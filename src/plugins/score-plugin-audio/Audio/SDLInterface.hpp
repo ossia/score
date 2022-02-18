@@ -24,7 +24,7 @@ public:
   }
 
   QString prettyName() const override { return QObject::tr("SDL"); };
-  std::unique_ptr<ossia::audio_engine> make_engine(
+  std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override
   {
@@ -34,7 +34,7 @@ public:
     rate = 48000;
     bs = 1024;
 #endif
-    return std::make_unique<ossia::sdl_protocol>(rate, bs);
+    return std::make_shared<ossia::sdl_protocol>(rate, bs);
   }
 
   QWidget* make_settings(

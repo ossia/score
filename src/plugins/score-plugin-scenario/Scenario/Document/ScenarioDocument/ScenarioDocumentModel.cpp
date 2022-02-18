@@ -154,8 +154,6 @@ void ScenarioDocumentModel::finishLoading()
 
 ScenarioDocumentModel::~ScenarioDocumentModel()
 {
-  cables.clear();
-  delete m_baseScenario;
 }
 
 IntervalModel& ScenarioDocumentModel::baseInterval() const
@@ -195,6 +193,12 @@ void ScenarioDocumentModel::busDeleted(const IdentifiedObjectAbstract* itv)
     ossia::remove_erase(busIntervals, itv);
     busesChanged();
   }
+}
+
+void ScenarioDocumentModel::close()
+{
+  cables.clear();
+  delete m_baseScenario;
 }
 
 }

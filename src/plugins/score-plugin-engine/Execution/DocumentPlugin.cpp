@@ -43,26 +43,25 @@ W_REGISTER_ARGTYPE(ossia::bench_map)
 W_OBJECT_IMPL(Execution::DocumentPlugin)
 namespace Execution
 {
+DocumentPlugin::ContextData::ContextData(const score::DocumentContext& ctx)
+  : setupContext{context}
+  , context{ctx, m_created, {}, {},
+            m_execQueue, m_editionQueue, m_gcQueue,
+            setupContext,
+            execGraph, execState
+    #if (__cplusplus > 201703L) && !defined(_MSC_VER)
+           , { ossia::disable_init }
+    #endif
+    }
+{
+
+}
 DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
     QObject* parent)
     : score::DocumentPlugin{ctx, "OSSIADocumentPlugin", parent}
     , settings{ctx.app.settings<Execution::Settings::Model>()}
-    , m_execQueue(1024)
-    , m_editionQueue(1024)
-    , m_gcQueue(1024)
-    , m_ctx
-{
-  ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, m_setup_ctx,
-      execGraph, execState
-#if (__cplusplus > 201703L) && !defined(_MSC_VER)
-      ,
-  {
-    ossia::disable_init
-  }
-#endif
-}
-, m_setup_ctx{m_ctx}, m_base{m_ctx, this}
+    , m_ctxData{std::make_shared<ContextData>(ctx)}
 {
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
@@ -91,18 +90,8 @@ DocumentPlugin::DocumentPlugin(
 
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(
-      m_setup_ctx);
-  model.cables.removing.connect<&SetupContext::on_cableRemoved>(m_setup_ctx);
-
-  con(
-      m_base,
-      &Execution::BaseScenarioElement::finished,
-      this,
-      [=] {
-        auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
-        stop_action.action()->trigger();
-      },
-      Qt::QueuedConnection);
+      m_ctxData->setupContext);
+  model.cables.removing.connect<&SetupContext::on_cableRemoved>(m_ctxData->setupContext);
 
   connect(
       this,
@@ -118,12 +107,26 @@ DocumentPlugin::DocumentPlugin(
       Qt::QueuedConnection);
 }
 
+void DocumentPlugin::recreateBase()
+{
+  m_base = std::make_shared<BaseScenarioElement>(m_ctxData->context, this);
+  connect(m_base.get(), &Execution::BaseScenarioElement::finished,
+          this, [=] {
+        auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
+        stop_action.action()->trigger();
+      },
+      Qt::QueuedConnection);
+}
+
 DocumentPlugin::~DocumentPlugin()
 {
-  if (m_base.active())
+  if(m_base)
   {
-    m_base.baseInterval().stop();
-    clear();
+    if (m_base->active())
+    {
+      m_base->baseInterval().stop();
+      clear();
+    }
   }
 
   if (auto devs = context().doc.findPlugin<Explorer::DeviceDocumentPlugin>())
@@ -144,10 +147,10 @@ void DocumentPlugin::on_finished()
 
     {
       ExecutionCommand cmd;
-      while (m_editionQueue.try_dequeue(cmd))
+      while (m_ctxData->m_editionQueue.try_dequeue(cmd))
         cmd();
       GCCommand gc;
-      while (m_gcQueue.try_dequeue(gc))
+      while (m_ctxData->m_gcQueue.try_dequeue(gc))
         ;
     }
   }
@@ -156,56 +159,55 @@ void DocumentPlugin::on_finished()
 
   initExecState();
 
-  for (auto& v : m_setup_ctx.runtime_connections)
+  for (auto& v : m_ctxData->setupContext.runtime_connections)
   {
     v.second.clear();
   }
-  m_setup_ctx.runtime_connections.clear();
+  m_ctxData->setupContext.runtime_connections.clear();
 }
 
 void DocumentPlugin::initExecState()
 {
-  execState = std::make_shared<ossia::execution_state>();
+  m_ctxData->execState = std::make_shared<ossia::execution_state>();
   auto& devlist
       = score::DocumentPlugin::context().plugin<Explorer::DeviceDocumentPlugin>().list().devices();
   if (audio_device)
-    execState->register_device(audio_device->getDevice());
+    m_ctxData->execState->register_device(audio_device->getDevice());
   if (local_device)
-    execState->register_device(local_device->getDevice());
+    m_ctxData->execState->register_device(local_device->getDevice());
   for (auto dev : devlist)
   {
     registerDevice(dev->getDevice());
   }
-  execState->apply_device_changes();
+  m_ctxData->execState->apply_device_changes();
 }
 
 void DocumentPlugin::timerEvent(QTimerEvent* event)
 {
   ExecutionCommand cmd;
-  while (m_editionQueue.try_dequeue(cmd))
+  while (m_ctxData->m_editionQueue.try_dequeue(cmd))
     cmd();
   GCCommand gc;
-  while (m_gcQueue.try_dequeue(gc))
+  while (m_ctxData->m_gcQueue.try_dequeue(gc))
     ;
 }
 
 void DocumentPlugin::registerDevice(ossia::net::device_base* d)
 {
-  if (execState)
-    execState->register_device(d);
+  if (m_ctxData->execState)
+    m_ctxData->execState->register_device(d);
 }
 
 void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 {
-  if (execState)
-    execState->unregister_device(d);
+  if (m_ctxData->execState)
+    m_ctxData->execState->unregister_device(d);
 }
 
 void DocumentPlugin::makeGraph()
 {
   using namespace ossia;
-  const score::DocumentContext& ctx = m_ctx.doc;
-  auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
+  auto& audiosettings = this->m_context.app.settings<Audio::Settings::Model>();
 
   static const Execution::Settings::SchedulingPolicies sched_t;
   static const Execution::Settings::OrderingPolicies order_t;
@@ -216,6 +218,10 @@ void DocumentPlugin::makeGraph()
   // manque le log pour dynamic
 
   auto sched = settings.getScheduling();
+
+  auto& execGraph = m_ctxData->execGraph;
+  auto& execState = m_ctxData->execState;
+  auto& bench = m_ctxData->bench;
 
   if (execGraph)
     execGraph->clear();
@@ -260,17 +266,21 @@ void DocumentPlugin::makeGraph()
 
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {
-  if (m_base.active())
+  if(m_base)
   {
-    m_base.baseInterval().stop();
+    if (m_base->active())
+    {
+      m_base->baseInterval().stop();
+    }
   }
   clear();
 
   const score::DocumentContext& ctx = m_context;
   auto& settings = ctx.app.settings<Execution::Settings::Model>();
 
-  m_ctx.time = settings.makeTimeFunction(ctx);
-  m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
+  SCORE_ASSERT(m_ctxData);
+  m_ctxData->context.time = settings.makeTimeFunction(ctx);
+  m_ctxData->context.reverseTime = settings.makeReverseTimeFunction(ctx);
 
   // Notify devices that they have to start running stuff, polling frames, etc.
   auto& devs = m_context.plugin<Explorer::DeviceDocumentPlugin>();
@@ -283,13 +293,15 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   SCORE_ASSERT(parent);
-  m_base.init(BaseScenarioRefContainer{cst, *parent});
-  m_created = true;
+
+  recreateBase();
+  m_base->init(BaseScenarioRefContainer{cst, *parent});
+  m_ctxData->m_created = true;
 
   auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();
   for (auto& cable : model.cables)
   {
-    m_setup_ctx.connectCable(cable);
+    m_ctxData->setupContext.connectCable(cable);
   }
 
   for (auto ctl : model.statesWithControls)
@@ -308,25 +320,22 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
 void DocumentPlugin::clear()
 {
-  m_setup_ctx.inlets.clear();
-  m_setup_ctx.outlets.clear();
-  m_setup_ctx.m_cables.clear();
-  m_setup_ctx.proc_map.clear();
-
-  if (m_base.active())
+  if(m_ctxData)
   {
-    runAllCommands();
-    runAllCommands();
-    m_base.cleanup();
-    m_created = false;
-    runAllCommands();
-    runAllCommands();
-
-    if (execGraph)
-      execGraph->clear();
-    execGraph.reset();
-    execState.reset();
+    m_ctxData->setupContext.inlets.clear();
+    m_ctxData->setupContext.outlets.clear();
+    m_ctxData->setupContext.m_cables.clear();
+    m_ctxData->setupContext.proc_map.clear();
   }
+  // TODO do this in some shared object instead.
+  m_base.reset();
+
+  if(m_ctxData)
+  {
+    m_ctxData->m_created = false;
+  }
+  m_ctxData.reset();
+  m_ctxData = std::make_shared<ContextData>(this->m_context);
 
   // Notify devices that they have to stop running stuff, polling frames, etc.
   auto& devs = m_context.plugin<Explorer::DeviceDocumentPlugin>();
@@ -338,26 +347,18 @@ void DocumentPlugin::clear()
 
 void DocumentPlugin::on_documentClosing()
 {
-  if (m_base.active())
+  if (m_base && m_base->active())
   {
-    m_base.baseInterval().stop();
-    m_ctx.context()
-        .doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>()
+    m_base->baseInterval().stop();
+    m_context.app.guiApplicationPlugin<Engine::ApplicationPlugin>()
         .execution()
         .request_stop();
     clear();
   }
-  execState.reset();
-
-  audioProto().stop();
+  m_ctxData->execState.reset();
 }
 
-const BaseScenarioElement& DocumentPlugin::baseScenario() const
-{
-  return m_base;
-}
-
-BaseScenarioElement& DocumentPlugin::baseScenario()
+const std::shared_ptr<BaseScenarioElement>& DocumentPlugin::baseScenario() const noexcept
 {
   return m_base;
 }
@@ -372,7 +373,7 @@ void DocumentPlugin::playStartState()
 
   // FIXME that does not look thread-safe at all !
   // what if devices are being added/removed in the exec thread !
-  if (execState)
+  if (m_ctxData->execState)
   {
     auto state = Engine::score_to_ossia::state(sm, this->context());
     state.launch();
@@ -380,21 +381,21 @@ void DocumentPlugin::playStartState()
   else
   {
     // Create a temporary execution_state...
-    execState = std::make_shared<ossia::execution_state>();
+    m_ctxData->execState = std::make_shared<ossia::execution_state>();
 
     // Fill its devices
     auto& devs = this->context().doc.plugin<Explorer::DeviceDocumentPlugin>();
     devs.list().apply([this](auto& dev) {
       if (auto d = dev.getDevice())
       {
-        execState->register_device(d);
+        m_ctxData->execState->register_device(d);
       }
     });
 
     auto state = Engine::score_to_ossia::state(sm, this->context());
     state.launch();
 
-    execState.reset();
+    m_ctxData->execState.reset();
   }
 }
 
@@ -408,7 +409,7 @@ void DocumentPlugin::playStopState()
 
   // FIXME that does not look thread-safe at all !
   // what if devices are being added/removed in the exec thread !
-  if (execState)
+  if (m_ctxData->execState)
   {
     auto state = Engine::score_to_ossia::state(sm, this->context());
     state.launch();
@@ -417,27 +418,28 @@ void DocumentPlugin::playStopState()
 
 bool DocumentPlugin::isPlaying() const
 {
-  return m_base.active();
+  SCORE_ASSERT(m_base);
+  return m_base->active();
 }
 
 const ExecutionController& DocumentPlugin::executionController() const noexcept
 {
-  return this->context()
-      .doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>()
-      .execution();
+  return m_context.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution();
 }
 
-ossia::audio_protocol& DocumentPlugin::audioProto()
+std::shared_ptr<ossia::audio_protocol> DocumentPlugin::audioProto()
 {
-  return static_cast<ossia::audio_protocol&>(
-      audio_device->getDevice()->get_protocol());
+  auto dev = audio_device->sharedDevice();
+  auto proto = &static_cast<ossia::audio_protocol&>(audio_device->getDevice()->get_protocol());
+
+  return std::shared_ptr<ossia::audio_protocol>(dev, proto);
 }
 
 void DocumentPlugin::runAllCommands() const
 {
   std::atomic_thread_fence(std::memory_order_seq_cst);
   ExecutionCommand com;
-  while (m_execQueue.try_dequeue(com))
+  while (m_ctxData->m_execQueue.try_dequeue(com))
     com();
 }
 
@@ -452,8 +454,8 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
   {
     if (p.second)
     {
-      auto proc = m_setup_ctx.proc_map.find(p.first);
-      if (proc != m_setup_ctx.proc_map.end())
+      auto proc = m_ctxData->setupContext.proc_map.find(p.first);
+      if (proc != m_ctxData->setupContext.proc_map.end())
       {
         if (proc->second)
         {

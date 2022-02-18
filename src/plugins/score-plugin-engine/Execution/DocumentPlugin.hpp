@@ -52,12 +52,31 @@ class AudioDevice;
 }
 namespace Execution
 {
+struct Queues {
+};
 class ExecutionController;
 class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
     : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
 public:
+  struct ContextData
+  {
+    explicit ContextData(const score::DocumentContext& ctx);
+
+    ExecutionCommandQueue m_execQueue{1024};
+    EditionCommandQueue m_editionQueue{1024};
+    GCCommandQueue m_gcQueue{1024};
+    std::atomic_bool m_created{};
+
+    std::shared_ptr<ossia::graph_interface> execGraph;
+    std::shared_ptr<ossia::execution_state> execState;
+    std::shared_ptr<ossia::bench_map> bench;
+    SetupContext setupContext;
+
+    Context context;
+  };
+
   DocumentPlugin(
       const score::DocumentContext& ctx,
       QObject* parent);
@@ -67,17 +86,17 @@ public:
   void clear();
 
   void on_documentClosing() override;
-  const BaseScenarioElement& baseScenario() const;
-  BaseScenarioElement& baseScenario();
+  const std::shared_ptr<BaseScenarioElement>& baseScenario() const noexcept;
 
   void playStartState();
   void playStopState();
 
   bool isPlaying() const;
 
-  const Context& context() const noexcept { return m_ctx; }
+  const std::shared_ptr<ContextData>& contextData() const noexcept { return m_ctxData; }
+  const Context& context() const noexcept { return m_ctxData->context; }
   const ExecutionController& executionController() const noexcept;
-  ossia::audio_protocol& audioProto();
+  std::shared_ptr<ossia::audio_protocol> audioProto();
 
   void runAllCommands() const;
 
@@ -88,10 +107,6 @@ public:
   }
 
   const Execution::Settings::Model& settings;
-
-  std::shared_ptr<ossia::graph_interface> execGraph;
-  std::shared_ptr<ossia::execution_state> execState;
-  std::shared_ptr<ossia::bench_map> bench;
 
   QPointer<Dataflow::AudioDevice> audio_device{};
   QPointer<Device::DeviceInterface> local_device{};
@@ -113,15 +128,11 @@ private:
   void unregisterDevice(ossia::net::device_base*);
   void makeGraph();
   void initExecState();
+  void recreateBase();
 
-  mutable ExecutionCommandQueue m_execQueue;
-  mutable EditionCommandQueue m_editionQueue;
-  mutable GCCommandQueue m_gcQueue;
-  Context m_ctx;
-  SetupContext m_setup_ctx;
-  BaseScenarioElement m_base;
+  std::shared_ptr<ContextData> m_ctxData;
+  std::shared_ptr<BaseScenarioElement> m_base;
   std::vector<ExecutionAction*> m_actions;
-  std::atomic_bool m_created{};
 
   int m_tid{};
 };

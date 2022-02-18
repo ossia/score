@@ -327,7 +327,8 @@ void ExecutionController::on_transport(TimeVal t)
   if (!m_clock)
     return;
 
-  auto itv = m_clock->scenario.baseInterval().OSSIAInterval();
+  SCORE_ASSERT(m_clock->scenario);
+  auto itv = m_clock->scenario->baseInterval().OSSIAInterval();
   if (!itv)
     return;
 
@@ -516,7 +517,8 @@ void ExecutionController::play_interval(
     if (setup_fun)
     {
       exec_plug->runAllCommands();
-      setup_fun(c, exec_plug->baseScenario());
+      SCORE_ASSERT(exec_plug->baseScenario());
+      setup_fun(c, *exec_plug->baseScenario());
       exec_plug->runAllCommands();
     }
 
@@ -559,11 +561,13 @@ void ExecutionController::stop_interval(
     }
   }
 }
+
 TimeVal ExecutionController::execution_time() const
 {
   if (m_clock)
   {
-    auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
+    SCORE_ASSERT(m_clock->scenario);
+    auto& itv = m_clock->scenario->baseInterval().scoreInterval().duration;
     return TimeVal(itv.defaultDuration() * itv.playPercentage());
   }
   return TimeVal::zero();
@@ -789,7 +793,8 @@ ExecutionController::makeClock(const Execution::Context& ctx)
 {
   auto& s = context.settings<Execution::Settings::Model>();
   auto clk = s.makeClock(ctx);
-  auto& itv = clk->scenario.baseInterval().interval();
+  SCORE_ASSERT(clk->scenario);
+  auto& itv = clk->scenario->baseInterval().interval();
   con(itv, &IdentifiedObjectAbstract::identified_object_destroying,
       this, [this] { trigger_stop(); });
   return clk;

@@ -59,7 +59,7 @@ class SCORE_PLUGIN_AUDIO_EXPORT AudioDevice final
 {
   W_OBJECT(AudioDevice)
 public:
-  AudioDevice(const Device::DeviceSettings& settings);
+  explicit AudioDevice(const Device::DeviceSettings& settings);
   ~AudioDevice();
 
   void addAddress(const Device::FullAddressSettings& settings) override;
@@ -69,8 +69,10 @@ public:
       const Device::FullAddressSettings& settings) override;
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
-  ossia::net::device_base* getDevice() const override { return &m_dev; }
+  const std::shared_ptr<ossia::net::generic_device>& sharedDevice() const noexcept { return m_dev; }
+  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
   ossia::audio_protocol* getProtocol() const { return m_protocol; }
+
 
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
 
@@ -81,7 +83,7 @@ private:
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};
-  mutable ossia::net::generic_device m_dev;
+  std::shared_ptr<ossia::net::generic_device> m_dev;
 };
 
 class AudioSettingsWidget final : public Device::ProtocolSettingsWidget

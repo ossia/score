@@ -29,7 +29,7 @@ public:
   void rescan();
 
   QString prettyName() const override;
-  std::unique_ptr<ossia::audio_engine> make_engine(
+  std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override;
 

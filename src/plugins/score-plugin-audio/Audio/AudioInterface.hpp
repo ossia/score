@@ -35,7 +35,7 @@ public:
   virtual void
   initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx)
       = 0;
-  virtual std::unique_ptr<ossia::audio_engine> make_engine(
+  virtual std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& settings,
       const score::ApplicationContext& ctx)
       = 0;

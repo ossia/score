@@ -35,10 +35,10 @@ W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 score_plugin_engine::score_plugin_engine()
 {
   qRegisterMetaType<ossia::bench_map>("BenchMap");
-  qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("ClockKey");
+  qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("Execution::ClockFactory::ConcreteKey");
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>(
-      "ClockKey");
+      "Execution::ClockFactory::ConcreteKey");
 #endif
 }
 

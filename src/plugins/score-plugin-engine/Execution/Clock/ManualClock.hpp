@@ -60,7 +60,7 @@ public:
 private:
   TimeWidget* m_widg{};
   // Clock interface
-  void play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs) override
+  void play_impl(const TimeVal& t) override
   {
     m_paused = false;
 
@@ -72,20 +72,21 @@ private:
     }
     QObject::connect(m_widg, &TimeWidget::advance, this, [=](int val) {
       using namespace ossia;
-      ossia::time_interval& itv = *scenario.baseInterval().OSSIAInterval();
+      ossia::time_interval& itv = *scenario->baseInterval().OSSIAInterval();
       ossia::time_value time{val};
       ossia::token_request tok{};
       itv.tick_offset(time, 0_tv, tok);
     });
     m_widg->show();
 
+    auto& bs = *scenario;
     m_default.play(t, bs);
 
-    resume_impl(bs);
+    resume_impl();
   }
-  void pause_impl(Execution::BaseScenarioElement&) override { }
-  void resume_impl(Execution::BaseScenarioElement&) override { }
-  void stop_impl(Execution::BaseScenarioElement&) override
+  void pause_impl() override { }
+  void resume_impl() override { }
+  void stop_impl() override
   {
     delete m_widg;
     context.doc.plugin<DocumentPlugin>().finished();

@@ -194,6 +194,7 @@ void ALSAPortAudioFactory::initialize(
       {
         set.setCardIn(default_dev->raw_name);
         set.setCardOut(default_dev->raw_name);
+
         int num_in_chans = ossia::clamp(set.getDefaultIn(), 0, default_dev->inputChan);
         int min_out_chans = std::min(2, default_dev->outputChan);
         int num_out_chans = ossia::clamp(set.getDefaultOut(), min_out_chans, default_dev->outputChan);
@@ -253,11 +254,11 @@ QString ALSAPortAudioFactory::prettyName() const
   return QObject::tr("ALSA (through PortAudio)");
 }
 
-std::unique_ptr<ossia::audio_engine> ALSAPortAudioFactory::make_engine(
+std::shared_ptr<ossia::audio_engine> ALSAPortAudioFactory::make_engine(
     const Audio::Settings::Model& set,
     const score::ApplicationContext& ctx)
 {
-  return std::make_unique<ossia::portaudio_engine>(
+  return std::make_shared<ossia::portaudio_engine>(
       "ossia score",
       set.getCardIn().toStdString(),
       set.getCardOut().toStdString(),
@@ -307,11 +308,11 @@ QString PulseAudioFactory::prettyName() const
   return QObject::tr("PulseAudio");
 }
 
-std::unique_ptr<ossia::audio_engine> PulseAudioFactory::make_engine(
+std::shared_ptr<ossia::audio_engine> PulseAudioFactory::make_engine(
     const Audio::Settings::Model& set,
     const score::ApplicationContext& ctx)
 {
-  return std::make_unique<ossia::pulseaudio_engine>(
+  return std::make_shared<ossia::pulseaudio_engine>(
       "ossia score",
       set.getCardIn().toStdString(),
       set.getCardOut().toStdString(),

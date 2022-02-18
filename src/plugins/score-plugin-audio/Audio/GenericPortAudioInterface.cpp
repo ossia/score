@@ -107,7 +107,7 @@ QString PortAudioFactory::prettyName() const
   return QObject::tr("PortAudio");
 }
 
-std::unique_ptr<ossia::audio_engine> PortAudioFactory::make_engine(
+std::shared_ptr<ossia::audio_engine> PortAudioFactory::make_engine(
     const Settings::Model& set,
     const score::ApplicationContext& ctx)
 {
@@ -123,7 +123,7 @@ std::unique_ptr<ossia::audio_engine> PortAudioFactory::make_engine(
     }
   }
 
-  return std::make_unique<ossia::portaudio_engine>(
+  return std::make_shared<ossia::portaudio_engine>(
       "ossia score",
       set.getCardIn().toStdString(),
       set.getCardOut().toStdString(),

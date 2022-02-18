@@ -23,13 +23,15 @@ Clock::Clock(const Context& ctx)
     : context{ctx}
     , scenario{context.doc.plugin<DocumentPlugin>().baseScenario()}
 {
+  SCORE_ASSERT(scenario);
 }
 
 void Clock::play(const TimeVal& t)
 {
+  SCORE_ASSERT(scenario);
   try
   {
-    play_impl(t, scenario);
+    play_impl(t);
     if (auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
             context.doc.document))
     {
@@ -44,18 +46,18 @@ void Clock::play(const TimeVal& t)
 
 void Clock::pause()
 {
-  pause_impl(scenario);
+  pause_impl();
 }
 
 void Clock::resume()
 {
-  resume_impl(scenario);
+  resume_impl();
 }
 
 void Clock::stop()
 {
-  if (scenario.active())
-    stop_impl(scenario);
+  if (scenario->active())
+    stop_impl();
 
   if (auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
           context.doc.document))

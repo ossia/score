@@ -42,6 +42,8 @@ public:
 
   DocumentDelegateModel& modelDelegate() const { return *m_model; }
 
+  void on_documentClosing();
+
   // Plugin models
   void addPluginModel(DocumentPlugin* m);
   const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }

@@ -301,6 +301,7 @@ void DocumentManager::forceCloseDocument(
     const score::GUIApplicationContext& ctx,
     Document& doc)
 {
+  // Clear the plug-ins
   for (auto plug : doc.model().pluginModels())
   {
     plug->on_documentClosing();
@@ -309,6 +310,10 @@ void DocumentManager::forceCloseDocument(
   if (m_view)
     m_view->closeDocument(doc.view());
 
+  // Clear the data model
+  doc.model().on_documentClosing();
+
+  // Delete the document
   QPointer<Document> d = &doc;
 
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);

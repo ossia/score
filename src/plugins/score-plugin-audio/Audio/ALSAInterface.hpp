@@ -8,7 +8,6 @@ class QComboBox;
 namespace Audio
 {
 #if defined(OSSIA_AUDIO_ALSA)
-
 struct range {
   int min;
   int max;
@@ -43,7 +42,7 @@ public:
 
   bool available() const noexcept override;
   QString prettyName() const override;
-  std::unique_ptr<ossia::audio_engine> make_engine(
+  std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override;
 
@@ -57,3 +56,4 @@ public:
 };
 #endif
 }
+

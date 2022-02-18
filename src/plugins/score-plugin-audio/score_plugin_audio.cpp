@@ -14,6 +14,7 @@
 #include <Audio/GenericPortAudioInterface.hpp>
 #include <Audio/JackInterface.hpp>
 #include <Audio/MMEPortAudioInterface.hpp>
+#include <Audio/PipeWireInterface.hpp>
 #include <Audio/PortAudioInterface.hpp>
 #include <Audio/SDLInterface.hpp>
 #include <Audio/Settings/Factory.hpp>
@@ -45,13 +46,14 @@ static void asound_error(
 
 score_plugin_audio::score_plugin_audio()
 {
-  qRegisterMetaType<Audio::Settings::ExternalTransport>("ExternalTransport");
+  qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("Audio::AudioFactory::ConcreteKey");
+  qRegisterMetaType<Audio::Settings::ExternalTransport>("Audio::Settings::ExternalTransport");
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
-      "AudioKey");
+      "Audio::AudioFactory::ConcreteKey");
   qRegisterMetaTypeStreamOperators<Audio::Settings::ExternalTransport>(
-      "ExternalTransport");
+      "Audio::Settings::ExternalTransport");
 #endif
 
   auto only_dummy_audio
@@ -171,6 +173,10 @@ score_plugin_audio::factories(
 #if defined(OSSIA_AUDIO_SDL)
            ,
            Audio::SDLFactory
+#endif
+#if defined(OSSIA_AUDIO_PIPEWIRE)
+           ,
+           Audio::PipeWireAudioFactory
 #endif
            >,
 

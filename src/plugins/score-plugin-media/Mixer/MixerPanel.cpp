@@ -426,6 +426,10 @@ public:
     delete m_mappingOutLayout.takeAt(0);
     delete m_virtualLayout.takeAt(0);
 
+    m_currentDevice = nullptr;
+    if(!dev->getDevice())
+      return;
+
     auto& proto = static_cast<ossia::audio_protocol&>(
         dev->getDevice()->get_protocol());
     {

@@ -126,11 +126,11 @@ public:
   }
 
   QString prettyName() const override { return QObject::tr("CoreAudio"); }
-  std::unique_ptr<ossia::audio_engine> make_engine(
+  std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override
   {
-    return std::make_unique<ossia::portaudio_engine>(
+    return std::make_shared<ossia::portaudio_engine>(
         "ossia score",
         set.getCardIn().toStdString(),
         set.getCardOut().toStdString(),

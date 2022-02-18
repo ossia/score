@@ -45,7 +45,7 @@ public:
   virtual ~Clock();
 
   const Context& context;
-  BaseScenarioElement& scenario;
+  std::shared_ptr<BaseScenarioElement> scenario;
 
   void play(const TimeVal& t);
   void pause();
@@ -54,10 +54,10 @@ public:
   virtual bool paused() const;
 
 protected:
-  virtual void play_impl(const TimeVal& t, BaseScenarioElement&) = 0;
-  virtual void pause_impl(BaseScenarioElement&) = 0;
-  virtual void resume_impl(BaseScenarioElement&) = 0;
-  virtual void stop_impl(BaseScenarioElement&) = 0;
+  virtual void play_impl(const TimeVal& t) = 0;
+  virtual void pause_impl() = 0;
+  virtual void resume_impl() = 0;
+  virtual void stop_impl() = 0;
 };
 
 class SCORE_PLUGIN_ENGINE_EXPORT ClockFactory : public score::InterfaceBase

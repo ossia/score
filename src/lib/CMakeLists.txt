@@ -274,6 +274,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYChooser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZChooser.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/AddRemoveList.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ComboBox.hpp"
@@ -442,7 +443,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYChooser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZChooser.cpp"
 
-
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/AddRemoveList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.cpp"

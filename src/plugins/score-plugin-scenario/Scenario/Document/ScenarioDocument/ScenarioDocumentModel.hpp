@@ -51,6 +51,7 @@ public:
   IntervalModel& baseInterval() const;
 
   void serialize(const VisitorVariant&) const override;
+  void close() override;
 
   score::EntityMap<Process::Cable> cables;
 

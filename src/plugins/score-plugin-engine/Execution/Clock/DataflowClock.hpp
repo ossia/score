@@ -25,16 +25,15 @@ public:
 
 private:
   // Clock interface
-  void play_impl(const TimeVal& t, Execution::BaseScenarioElement&) override;
-  void pause_impl(Execution::BaseScenarioElement&) override;
-  void resume_impl(Execution::BaseScenarioElement&) override;
-  void stop_impl(Execution::BaseScenarioElement&) override;
+  void play_impl(const TimeVal& t) override;
+  void pause_impl() override;
+  void resume_impl() override;
+  void stop_impl() override;
   bool paused() const override;
 
   Execution::DefaultClock m_default;
   Audio::ApplicationPlugin& m_audio;
   Execution::DocumentPlugin& m_plug;
-  Execution::BaseScenarioElement* m_cur{};
   bool m_paused{};
 
   ossia::audio_engine::fun_type m_play_tick{};

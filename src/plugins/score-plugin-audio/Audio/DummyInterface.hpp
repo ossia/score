@@ -29,11 +29,11 @@ public:
   {
     return QObject::tr("Dummy (No audio)");
   };
-  std::unique_ptr<ossia::audio_engine> make_engine(
+  std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override
   {
-    return std::make_unique<ossia::dummy_engine>(
+    return std::make_shared<ossia::dummy_engine>(
         set.getRate(), set.getBufferSize());
   }
 

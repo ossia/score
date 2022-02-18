@@ -15,5 +15,7 @@ public:
   virtual ~DocumentDelegateModel();
 
   virtual void serialize(const VisitorVariant&) const = 0;
+
+  virtual void close() = 0;
 };
 }

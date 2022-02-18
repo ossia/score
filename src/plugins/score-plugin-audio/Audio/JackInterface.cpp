@@ -4,170 +4,24 @@
 #include <Audio/Settings/View.hpp>
 
 #include <score/tools/Bind.hpp>
+#include <score/widgets/AddRemoveList.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
 #include <QDebug>
 #include <QFormLayout>
 #include <QLabel>
-#include <QListWidget>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTimer>
 #include <QWidget>
 
-#include <wobjectimpl.h>
-
 #include <thread>
+#include <wobjectimpl.h>
 
 #if defined(OSSIA_AUDIO_JACK)
 W_OBJECT_IMPL(Audio::JackFactory)
-#endif
-namespace Audio
-{
-#if defined(OSSIA_AUDIO_JACK)
 
-class AddRemoveList : public QListWidget
-{
-  W_OBJECT(AddRemoveList)
-  QString m_root;
-  int m_editing = 0;
-
-public:
-  AddRemoveList(const QString& root, const QStringList& data, QWidget* parent)
-      : QListWidget{parent}
-      , m_root{root}
-  {
-    setAlternatingRowColors(true);
-    setEditTriggers(QListWidget::DoubleClicked);
-
-    replaceContent(data);
-    connect(this, &AddRemoveList::itemChanged, this, [this](auto item) {
-      if (m_editing != 0)
-        return;
-      on_itemChanged(item);
-      changed();
-    });
-  }
-
-  void on_itemChanged(QListWidgetItem* item)
-  {
-    m_editing++;
-  start:
-    for (int i = 0; i < count(); i++)
-    {
-      auto other = this->item(i);
-      if (other != item)
-      {
-        if (other->text() == item->text())
-        {
-          item->setText(item->text() + "_");
-          goto start;
-        }
-      }
-    }
-    m_editing--;
-  }
-
-  void fix(int k)
-  {
-    m_editing++;
-    item(k)->setText(item(k)->text() + "_");
-    on_itemChanged(item(k));
-    m_editing--;
-  }
-
-  void replaceContent(const QStringList& values)
-  {
-    clear();
-    for (auto& str : values)
-    {
-      auto item = new QListWidgetItem{str};
-      item->setFlags(item->flags() | Qt::ItemFlag::ItemIsEditable);
-      addItem(item);
-    }
-  }
-
-  QStringList content() const noexcept
-  {
-    QStringList c;
-    const int n = count();
-    c.reserve(n);
-    for (int i = 0; i < n; i++)
-      c.push_back(item(i)->text());
-    return c;
-  }
-
-  bool sameContent(const QStringList& values)
-  {
-    const int n = count();
-    if (n != values.size())
-      return false;
-    for (int i = 0; i < n; i++)
-      if (item(i)->text() != values[i])
-        return false;
-    return true;
-  }
-
-  void on_add(const QString& name)
-  {
-    auto item = new QListWidgetItem{name};
-    item->setFlags(item->flags() | Qt::ItemFlag::ItemIsEditable);
-    addItem(item);
-    editItem(item);
-    changed();
-  }
-
-  void on_remove()
-  {
-    const auto& selection = selectedItems();
-    for (auto item : selection)
-    {
-      removeItemWidget(item);
-    }
-    changed();
-  }
-
-  void setCount(int i)
-  {
-    while (count() < i)
-    {
-      on_add(m_root + QString::number(count()));
-    }
-    while (count() > i)
-    {
-      delete takeItem(count() - 1);
-    }
-  }
-
-  void changed() W_SIGNAL(changed);
-};
-static void sanitize(AddRemoveList* changed, const AddRemoveList* other)
-{
-  bool must_recheck{};
-  auto c1 = changed->content();
-  auto c2 = other->content();
-  int k = 0;
-  for (auto& e1 : c1)
-  {
-    for (auto& e2 : c2)
-    {
-      if (e1 == e2)
-      {
-        changed->fix(k);
-        must_recheck = true;
-        break;
-      }
-    }
-    k++;
-  }
-
-  if (must_recheck)
-    sanitize(changed, other);
-}
-}
-
-W_OBJECT_IMPL(Audio::AddRemoveList)
 namespace Audio
 {
 JackFactory::~JackFactory() { }
@@ -197,7 +51,7 @@ catch (...)
   return {};
 }
 
-std::unique_ptr<ossia::audio_engine> JackFactory::make_engine(
+std::shared_ptr<ossia::audio_engine> JackFactory::make_engine(
     const Audio::Settings::Model& set,
     const score::ApplicationContext& ctx)
 {
@@ -305,7 +159,7 @@ std::unique_ptr<ossia::audio_engine> JackFactory::make_engine(
     pos.bbt_offset = 0;
   };
 
-  return std::make_unique<ossia::jack_engine>(
+  return std::make_shared<ossia::jack_engine>(
       clt, set.getDefaultIn(), set.getDefaultOut(), settings);
 }
 
@@ -393,19 +247,19 @@ void JackFactory::setupSettingsWidget(
         });
   }
 
-  auto in_ports = new AddRemoveList{"in_", m.getInputNames(), w};
-  auto out_ports = new AddRemoveList{"out_", m.getOutputNames(), w};
+  auto in_ports = new score::AddRemoveList{"in_", m.getInputNames(), w};
+  auto out_ports = new score::AddRemoveList{"out_", m.getOutputNames(), w};
   {
-    QObject::connect(in_ports, &AddRemoveList::changed, w, [=, &m, &m_disp]() {
-      sanitize(in_ports, out_ports);
+    QObject::connect(in_ports, &score::AddRemoveList::changed, w, [=, &m, &m_disp]() {
+      score::AddRemoveList::sanitize(in_ports, out_ports);
       m_disp.submitDeferredCommand<Audio::Settings::SetModelInputNames>(
           m, in_ports->content());
     });
   }
   {
     QObject::connect(
-        out_ports, &AddRemoveList::changed, w, [=, &m, &m_disp]() {
-          sanitize(out_ports, in_ports);
+        out_ports, &score::AddRemoveList::changed, w, [=, &m, &m_disp]() {
+          score::AddRemoveList::sanitize(out_ports, in_ports);
           m_disp.submitDeferredCommand<Audio::Settings::SetModelOutputNames>(
               m, out_ports->content());
         });
@@ -520,5 +374,5 @@ QWidget* JackFactory::make_settings(
 
   return w;
 }
-#endif
 }
+#endif

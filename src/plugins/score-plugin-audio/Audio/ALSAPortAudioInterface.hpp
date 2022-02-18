@@ -27,7 +27,7 @@ public:
 
   bool available() const noexcept override { return true; }
   QString prettyName() const override;
-  std::unique_ptr<ossia::audio_engine> make_engine(
+  std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override;
 
@@ -61,7 +61,7 @@ public:
   {
   }
   QString prettyName() const override;
-  std::unique_ptr<ossia::audio_engine> make_engine(
+  std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override;
 

@@ -41,6 +41,11 @@ DocumentModel::~DocumentModel()
   delete m_model;
 }
 
+void DocumentModel::on_documentClosing()
+{
+  m_model->close();
+}
+
 void DocumentModel::addPluginModel(DocumentPlugin* m)
 {
   m->setParent(this);

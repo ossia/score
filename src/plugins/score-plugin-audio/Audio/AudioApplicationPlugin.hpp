@@ -23,7 +23,7 @@ public:
 
   score::GUIElements makeGUIElements() override;
 
-  std::unique_ptr<ossia::audio_engine> audio;
+  std::shared_ptr<ossia::audio_engine> audio;
 
 private:
   void restart_engine();
@@ -39,6 +39,8 @@ private:
       override;
 
   void timerEvent(QTimerEvent*) override;
+
+  std::vector<std::shared_ptr<ossia::audio_engine>> previous_audio;
 };
 
 }

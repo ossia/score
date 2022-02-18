@@ -116,7 +116,6 @@ public:
       , m_view{v}
       , m_disp{disp}
   {
-    auto& devices = fact.devices;
     auto lay = new QFormLayout{this};
     auto rescan = new QPushButton{tr("Rescan"), this};
 
@@ -381,11 +380,11 @@ QString ALSAFactory::prettyName() const
   return QObject::tr("ALSA (raw, output only)");
 }
 
-std::unique_ptr<ossia::audio_engine> ALSAFactory::make_engine(
+std::shared_ptr<ossia::audio_engine> ALSAFactory::make_engine(
     const Audio::Settings::Model& set,
     const score::ApplicationContext& ctx)
 {
-  return std::make_unique<ossia::alsa_engine>(
+  return std::make_shared<ossia::alsa_engine>(
       set.getCardIn().toStdString(),
       set.getCardOut().toStdString(),
       set.getDefaultIn(),

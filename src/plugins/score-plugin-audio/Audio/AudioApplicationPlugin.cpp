@@ -69,6 +69,18 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
 {
   if (audio)
     audio->gc();
+
+  for(auto it = previous_audio.begin(); it != previous_audio.end(); )
+  {
+    auto& engine = **it;
+    engine.gc();
+    if(engine.stop_received) {
+      it = previous_audio.erase(it);
+    }
+    else {
+      ++it;
+    }
+  }
 }
 
 score::GUIElements ApplicationPlugin::makeGUIElements()
@@ -189,6 +201,7 @@ void ApplicationPlugin::stop_engine()
     }
 
     audio->stop();
+    previous_audio.push_back(std::move(audio));
     audio.reset();
   }
 }
@@ -212,6 +225,7 @@ void ApplicationPlugin::start_engine()
     {
       try
       {
+        SCORE_ASSERT(!audio);
         audio = dev->make_engine(set, this->context);
         if (!audio)
           throw std::runtime_error{""};

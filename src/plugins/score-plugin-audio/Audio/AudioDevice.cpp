@@ -31,8 +31,8 @@ namespace Dataflow
 AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
     : DeviceInterface{settings}
     , m_protocol{new ossia::audio_protocol}
-    , m_dev{std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio"}
 {
+  m_dev = std::make_shared<ossia::net::generic_device>(std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio");
   m_capas.canAddNode = true;
   m_capas.canRemoveNode = true;
   m_capas.canRenameNode = false;
@@ -83,6 +83,7 @@ void AudioDevice::disconnect()
 {
   // TODO handle listening ??
   setLogging_impl(Device::get_cur_logging(isLogging()));
+  m_dev.reset();
 }
 
 bool AudioDevice::reconnect()
@@ -91,18 +92,25 @@ bool AudioDevice::reconnect()
 
   try
   {
-    auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
-
+    m_protocol = new ossia::audio_protocol;
+    m_dev = std::make_shared<ossia::net::generic_device>(std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio");
     auto& engine = score::GUIAppContext()
                        .guiApplicationPlugin<Audio::ApplicationPlugin>()
                        .audio;
     if (!engine)
       return false;
 
+    // TODO we must make absolutely sure that the execution is not running here.
+    // Otherwise maybe we should just make a new proto...
+
     // We have to sync the GUI tree with the audio thread so we stop it momentarily...
-    engine->stop();
-    proto.setup_tree(engine->effective_inputs, engine->effective_outputs);
-    engine->start();
+    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    // engine->stop();
+    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    m_protocol->setup_tree(engine->effective_inputs, engine->effective_outputs);
+    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    // engine->start();
+    // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
