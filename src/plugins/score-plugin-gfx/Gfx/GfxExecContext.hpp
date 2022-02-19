@@ -19,12 +19,15 @@ public:
 
   void startTick(const ossia::audio_tick_state& st) override;
   void setEdge(port_index source, port_index sink);
+  void setFixedEdge(port_index source, port_index sink);
+  void unsetFixedEdge(port_index source, port_index sink);
   void endTick(const ossia::audio_tick_state& st) override;
 
   using edge = std::pair<port_index, port_index>;
 
   GfxContext* ui{};
   std::vector<edge> prev_edges;
+  std::vector<edge> fixed_edges;
   std::vector<edge> edges_cache;
   using edge_queue = moodycamel::ConcurrentQueue<edge>;
   edge_queue incoming_edges;

@@ -35,7 +35,9 @@ public:
   ~GfxContext();
 
   int32_t register_node(NodePtr node);
+  int32_t register_preview_node(NodePtr node);
   void unregister_node(int32_t idx);
+  void unregister_preview_node(int32_t idx);
 
   void recompute_edges();
   void recompute_graph();
@@ -50,6 +52,8 @@ public:
 
 private:
   void run_commands();
+  void add_preview_output(score::gfx::OutputNode& out);
+  void remove_preview_output();
 
   void timerEvent(QTimerEvent*) override;
   const score::DocumentContext& m_context;
@@ -60,7 +64,13 @@ private:
   QThread m_thread;
 
   struct Command {
-    enum { ADD_NODE, REMOVE_NODE, RELINK } cmd{};
+    enum {
+        ADD_NODE
+      , ADD_PREVIEW_NODE
+      , REMOVE_NODE
+      , REMOVE_PREVIEW_NODE
+      , RELINK
+    } cmd{};
     int32_t index{};
     std::unique_ptr<score::gfx::Node> node;
   };

@@ -17,6 +17,8 @@ public:
       const Execution::Context& ctx,
       QObject* parent);
 
+  void cleanup() override;
+
   void on_shaderChanged();
   std::pair<ossia::inlets, ossia::outlets> setup_node(Execution::Transaction& transact);
 

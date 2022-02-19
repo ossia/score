@@ -6,6 +6,7 @@
 #include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>
+#include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 
@@ -41,6 +42,14 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 {
   auto n = ossia::make_node<image_node>(*ctx.execState,ctx.doc.plugin<DocumentPlugin>().exec);
 
+  for(auto* outlet : element.outlets())
+  {
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+    {
+      out->nodeId = n->id;
+    }
+  }
+
   // Normal controls
   for (std::size_t i = 0; i < 7; i++)
   {
@@ -61,6 +70,16 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   m_ossia_process = std::make_shared<ossia::node_process>(n);
 }
 
+void ProcessExecutorComponent::cleanup()
+{
+  for(auto* outlet : this->process().outlets())
+  {
+    if(auto out = qobject_cast<TextureOutlet*>(outlet))
+    {
+      out->nodeId = -1;
+    }
+  }
+}
 ProcessExecutorComponent::~ProcessExecutorComponent()
 {
 }

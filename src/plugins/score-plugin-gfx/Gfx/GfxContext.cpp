@@ -66,9 +66,24 @@ int32_t GfxContext::register_node(
   return next;
 }
 
+int32_t GfxContext::register_preview_node(
+    std::unique_ptr<score::gfx::Node> node)
+{
+  auto next = index++;
+
+  tick_commands.enqueue(Command{Command::ADD_PREVIEW_NODE, next, std::move(node)});
+
+  return next;
+}
+
 void GfxContext::unregister_node(int32_t idx)
 {
   tick_commands.enqueue(Command{Command::REMOVE_NODE, idx, {}});
+}
+
+void GfxContext::unregister_preview_node(int32_t idx)
+{
+  tick_commands.enqueue(Command{Command::REMOVE_PREVIEW_NODE, idx, {}});
 }
 
 void GfxContext::recompute_edges()
@@ -120,6 +135,7 @@ void GfxContext::recompute_graph()
   rate = 1000. / qBound(1.0, rate, 1000.);
 
   // Update and render
+  // This starts the timer for updating the graph, that is, reading the new parameters.
   if (vsync)
   {
 #if defined(SCORE_THREADED_GFX)
@@ -140,6 +156,7 @@ void GfxContext::recompute_graph()
         Qt::QueuedConnection);
   }
 
+  // This starts the timers which control the actual render rate of various things
   for(auto& outputs : m_graph->renderLists())
   {
     if(auto conf = outputs->output.configuration(); conf.manualRenderingRate) {
@@ -147,6 +164,21 @@ void GfxContext::recompute_graph()
       m_manualTimers[id] = &outputs->output;
     }
   }
+}
+
+void GfxContext::add_preview_output(score::gfx::OutputNode& node)
+{
+  auto& settings = m_context.app.settings<Gfx::Settings::Model>();
+  auto api = settings.graphicsApiEnum();
+
+  m_graph->createSingleRenderList(node, api);
+
+  // rate in fps
+  double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
+  rate = 1000. / qBound(1.0, rate, 1000.);
+
+  if(m_timer == -1)
+    m_timer = startTimer(rate);
 }
 
 void GfxContext::recompute_connections()
@@ -178,6 +210,7 @@ void GfxContext::run_commands()
   std::vector<std::unique_ptr<score::gfx::Node>> nursery;
 
   bool recompute = false;
+  std::vector<score::gfx::Node*> add_output;
   Command cmd;
   while(tick_commands.try_dequeue(cmd))
   {
@@ -187,10 +220,17 @@ void GfxContext::run_commands()
       {
         m_graph->addNode(cmd.node.get());
         nodes[cmd.index] = {std::move(cmd.node)};
-
         recompute = true;
         break;
       }
+      case Command::ADD_PREVIEW_NODE:
+      {
+        m_graph->addNode(cmd.node.get());
+        add_output.push_back(cmd.node.get());
+        nodes[cmd.index] = {std::move(cmd.node)};
+        break;
+      }
+      case Command::REMOVE_PREVIEW_NODE:
       case Command::REMOVE_NODE:
       {
         // Remove the node from the timers if it's in there
@@ -238,9 +278,15 @@ void GfxContext::run_commands()
   {
     recompute_graph();
   }
+  else
+  {
+    for(auto* out : add_output)
+      add_preview_output(*safe_cast<score::gfx::OutputNode*>(out));
+  }
 
   nursery.clear();
 }
+
 void GfxContext::updateGraph()
 {
   run_commands();

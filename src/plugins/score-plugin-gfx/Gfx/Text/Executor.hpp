@@ -16,6 +16,7 @@ public:
       Model& element,
       const Execution::Context& ctx,
       QObject* parent);
+  void cleanup() override;
 };
 
 using ProcessExecutorComponentFactory

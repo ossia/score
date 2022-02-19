@@ -5,6 +5,7 @@
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Video/Process.hpp>
+#include <Gfx/TexturePort.hpp>
 #include <Process/ExecutionContext.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -94,6 +95,14 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     auto n = ossia::make_node<video_node>(*ctx.execState,
         element.decoder(), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
 
+    for(auto* outlet : element.outlets())
+    {
+      if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+      {
+        out->nodeId = n->id;
+      }
+    }
+
     n->root_outputs().push_back(new ossia::texture_outlet);
 
     this->node = n;
@@ -105,6 +114,16 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         vn->impl->setScaleMode(m);
       }
     });
+  }
+}
+void ProcessExecutorComponent::cleanup()
+{
+  for(auto* outlet : this->process().outlets())
+  {
+    if(auto out = qobject_cast<TextureOutlet*>(outlet))
+    {
+      out->nodeId = -1;
+    }
   }
 }
 }

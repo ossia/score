@@ -147,6 +147,23 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
   }
 }
 
+void Graph::createSingleRenderList(score::gfx::OutputNode& output, GraphicsApi graphicsApi)
+{
+#if QT_HAS_VULKAN
+  if (graphicsApi == Vulkan)
+  {
+    if (!staticVulkanInstance())
+    {
+      qWarning("Failed to create Vulkan instance, switching to OpenGL");
+      graphicsApi = OpenGL;
+    }
+  }
+#endif
+
+  initializeOutput(&output, graphicsApi);
+  output.startRendering();
+}
+
 void Graph::createOutputRenderList(OutputNode& output)
 {
   if(output.renderState())

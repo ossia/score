@@ -66,6 +66,8 @@ public:
   {
     return Process::PortType::Texture;
   }
+
+  int nodeId{-1};
 };
 
 struct TextureInletFactory final : public Dataflow::AutomatablePortFactory

@@ -21,6 +21,7 @@ public:
       const Execution::Context& ctx,
       QObject* parent);
 
+  void cleanup() override;
   ~ProcessExecutorComponent();
 };
 

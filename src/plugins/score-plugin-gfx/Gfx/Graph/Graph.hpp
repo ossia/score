@@ -47,6 +47,11 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   void createAllRenderLists(GraphicsApi graphicsApi);
 
   /**
+   * @brief Create a sequence of render events for a single output node
+   */
+  void createSingleRenderList(score::gfx::OutputNode& node, GraphicsApi graphicsApi);
+
+  /**
    * @brief Recreate the connections between renderers when edges changed.
    */
   void relinkGraph();

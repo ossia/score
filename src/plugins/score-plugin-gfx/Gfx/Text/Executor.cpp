@@ -5,6 +5,7 @@
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/TextNode.hpp>
 #include <Gfx/Text/Process.hpp>
+#include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 
@@ -40,6 +41,14 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 {
   auto n = ossia::make_node<text_node>(*ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
 
+  for(auto* outlet : element.outlets())
+  {
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+    {
+      out->nodeId = n->id;
+    }
+  }
+
   for (std::size_t i = 0; i < 8; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
@@ -57,5 +66,15 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 
   this->node = n;
   m_ossia_process = std::make_shared<ossia::node_process>(n);
+}
+void ProcessExecutorComponent::cleanup()
+{
+  for(auto* outlet : this->process().outlets())
+  {
+    if(auto out = qobject_cast<TextureOutlet*>(outlet))
+    {
+      out->nodeId = -1;
+    }
+  }
 }
 }

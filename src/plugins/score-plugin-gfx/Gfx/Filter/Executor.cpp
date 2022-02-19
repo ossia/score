@@ -64,6 +64,15 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         shader.compiledVertex,
         shader.compiledFragment,
         ctx.doc.plugin<DocumentPlugin>().exec);
+
+    for(auto* outlet : element.outlets())
+    {
+      if(auto out = qobject_cast<TextureOutlet*>(outlet))
+      {
+        out->nodeId = n->id;
+      }
+    }
+
     this->node = n;
 
     Execution::Transaction commands{system()};
@@ -80,6 +89,17 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   }
   catch (...)
   {
+  }
+}
+
+void ProcessExecutorComponent::cleanup()
+{
+  for(auto* outlet : this->process().outlets())
+  {
+    if(auto out = qobject_cast<TextureOutlet*>(outlet))
+    {
+      out->nodeId = -1;
+    }
   }
 }
 

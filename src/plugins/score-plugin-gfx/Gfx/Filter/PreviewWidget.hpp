@@ -33,4 +33,5 @@ private:
   score::gfx::ISFNode* m_isf{};
   ProcessedProgram m_program;
 };
+
 }
