@@ -418,8 +418,9 @@ void DocumentPlugin::playStopState()
 
 bool DocumentPlugin::isPlaying() const
 {
-  SCORE_ASSERT(m_base);
-  return m_base->active();
+  if(m_base)
+    return m_base->active();
+  return false;
 }
 
 const ExecutionController& DocumentPlugin::executionController() const noexcept

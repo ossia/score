@@ -13,7 +13,7 @@ namespace score::gfx
 {
 // TODO the "model" nodes should have a first update step so that they
 // can share data across all renderers during a tick
-struct VideoNode;
+class VideoNode;
 
 /**
  * @brief Processes and renders a video frame on the GPU
