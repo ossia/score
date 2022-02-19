@@ -225,20 +225,20 @@ public:
     if (w)
     {
       lay->addWidget(w);
+      lay->addStretch(100);
     }
     else
     {
-      auto scroll = new QScrollArea;
+      auto scroll = new QScrollArea{};
       scroll->setFrameShape(QFrame::NoFrame);
       scroll->setSizePolicy(
-          QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+          QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
       scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
       scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
       scroll->setWidgetResizable(true);
       scroll->setWidget(new PortListWidget{process, doc, this});
       lay->addWidget(scroll);
     }
-    lay->addStretch(100);
   }
 
   ~InspectorWidget()
