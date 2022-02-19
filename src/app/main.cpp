@@ -376,8 +376,65 @@ static void setup_limits()
 #endif
 }
 #include <QTimer>
+#include <QStandardPaths>
+#include <QDir>
+namespace
+{
+struct failsafe {
+  const bool fs = this->read();
+
+  explicit failsafe()
+  {
+    if(!fs)
+    {
+      this->write();
+    }
+    else
+    {
+      fprintf(stderr, "ossia score: starting in failsafe mode\n");
+      fflush(stderr);
+    }
+  }
+
+  QString path()
+  {
+    auto conf = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    return conf + QDir::separator() +
+           "ossia" + QDir::separator() +
+           "failsafe.bit";
+  }
+
+  bool read()
+  {
+    return QFile::exists(this->path());
+  }
+
+  void write()
+  {
+    QFile f{this->path()};
+    if(f.open(QIODevice::WriteOnly))
+      f.write("1");
+  }
+
+  void clear()
+  {
+    // We only clear the failsafe if it was not set otherwise
+    // it would crash every other time..
+    if(!fs)
+    {
+      QFile f{this->path()};
+      f.remove();
+    }
+  }
+
+  operator bool() const noexcept { return fs; }
+};
+}
+
 int main(int argc, char** argv)
 {
+  struct failsafe failsafe;
+
 #if defined(__APPLE__)
   disableAppRestore();
   disableAppNap();
@@ -402,6 +459,9 @@ int main(int argc, char** argv)
   disableAppNap();
 #endif
 
+  if(failsafe)
+    app.appSettings.opengl = false;
+
 #if defined(__linux__)
   // On linux under offscreen, etc it crashes inside
   // QOffscreenSurface::create
@@ -410,6 +470,7 @@ int main(int argc, char** argv)
 #endif
     setup_opengl(app.appSettings.opengl);
 
+  failsafe.clear();
   QTimer::singleShot(1, &app, &Application::init);
 
   increase_timer_precision timerRes;
