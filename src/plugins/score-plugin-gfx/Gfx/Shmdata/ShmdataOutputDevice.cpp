@@ -166,7 +166,7 @@ void ShmdataOutputNode::createOutput(
 {
   m_writer = std::make_unique<shmdata::Writer>(m_settings.path.toStdString(),
                                                       m_settings.width * m_settings.height * 4,
-                                                      fmt::format("video/x-raw,format=RGBA,width={},height={}", m_settings.width, m_settings.height),
+                                                      fmt::format("video/x-raw,format=RGBA,width={},height={},framerate={}/1", m_settings.width, m_settings.height, int(m_settings.rate)),
                                                       &m_logger);
   m_renderState = std::make_shared<score::gfx::RenderState>();
   m_update = onUpdate;

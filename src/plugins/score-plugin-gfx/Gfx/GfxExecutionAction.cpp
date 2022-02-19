@@ -1,4 +1,6 @@
 #include <Gfx/GfxExecContext.hpp>
+#include <ossia/detail/algorithms.hpp>
+
 namespace Gfx
 {
 
