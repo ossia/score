@@ -677,4 +677,15 @@ void SetupContext::unregister_node_soft(
   for (auto ptr : proc_outlets)
     outlets.erase(ptr);
 }
+
+SetupContext::SetupContext(Context& other) noexcept
+  : context{other}
+{
+}
+
+SetupContext::~SetupContext()
+{
+
+}
+
 }

@@ -88,11 +88,6 @@ DocumentPlugin::DocumentPlugin(
       unregisterDevice(d);
   });
 
-  auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
-  model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(
-      m_ctxData->setupContext);
-  model.cables.removing.connect<&SetupContext::on_cableRemoved>(m_ctxData->setupContext);
-
   connect(
       this,
       &DocumentPlugin::finished,
@@ -336,6 +331,13 @@ void DocumentPlugin::clear()
   }
   m_ctxData.reset();
   m_ctxData = std::make_shared<ContextData>(this->m_context);
+
+
+  auto& model = this->m_context.model<Scenario::ScenarioDocumentModel>();
+  model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(
+      m_ctxData->setupContext);
+  model.cables.removing.connect<&SetupContext::on_cableRemoved>(m_ctxData->setupContext);
+
 
   // Notify devices that they have to stop running stuff, polling frames, etc.
   auto& devs = m_context.plugin<Explorer::DeviceDocumentPlugin>();

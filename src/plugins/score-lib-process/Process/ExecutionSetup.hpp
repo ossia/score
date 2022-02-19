@@ -86,10 +86,8 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
     : public QObject
     , public Nano::Observer
 {
-  SetupContext(Context& other)
-      : context{other}
-  {
-  }
+  explicit SetupContext(Context& other) noexcept;
+  ~SetupContext();
   Context& context;
   void register_node(
       const Process::ProcessModel& proc,
