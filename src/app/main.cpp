@@ -15,7 +15,38 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 #endif
 #endif
 
+#if defined(_MSC_VER)
+#include <cmath>
+extern "C"
+void ___chkstk_ms()
+{
 
+}
+struct timeval {
+        long    tv_sec;         /* seconds */
+        long    tv_usec;        /* and microseconds */
+};
+
+extern "C"
+void gettimeofday(struct timeval *tv, void *tz)
+{
+    union {
+  long long ns100;
+  FILETIME ft;
+    } now;
+
+    ::GetSystemTimeAsFileTime(&now.ft);
+    tv->tv_usec = (long)((now.ns100 / 10LL) % 1000000LL);
+    tv->tv_sec = (long)((now.ns100 - 116444736000000000LL) / 10000000LL);
+}
+
+extern "C"
+void sincos(double x, double *sin, double *cos)
+{
+  *sin = std::sin(x);
+  *cos = std::cos(x);
+}
+#endif
 #include "Application.hpp"
 #include <ossia/detail/thread.hpp>
 #include <score/widgets/MessageBox.hpp>

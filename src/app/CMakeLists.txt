@@ -37,6 +37,7 @@ add_executable(${APPNAME} WIN32
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/BodyBasics.rc"
 
   "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomcolor.cpp"
   "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomstyle.cpp"

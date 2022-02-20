@@ -80,6 +80,7 @@ endif()
 if(TARGET SndFile::sndfile)
   target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
 endif()
+
 if(SCORE_FAUST_TESTER)
   add_executable(FaustTester Tests/FaustTester.cpp)
   target_compile_features(FaustTester PRIVATE cxx_std_20)
