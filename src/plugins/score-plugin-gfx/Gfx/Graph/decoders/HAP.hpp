@@ -1,6 +1,5 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 #include <hap/source/hap.h>
 #include <snappy.h>
@@ -12,6 +11,7 @@ extern "C"
 
 namespace score::gfx
 {
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 /**
  * @brief Base class for HAP ((c) Vidvox) decoding
  */

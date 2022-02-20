@@ -100,4 +100,5 @@ struct PackedDecoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 };
+#include <Gfx/Qt5CompatPop> // clang-format: keep
 }
