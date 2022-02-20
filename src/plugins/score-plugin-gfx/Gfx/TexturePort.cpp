@@ -207,7 +207,6 @@ void TextureOutletFactory::setupOutletInspector(
   };
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
-
   lay.addRow(new Wrapper{outlet, ctx.plugin<Gfx::DocumentPlugin>()});
 }
 }

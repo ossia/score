@@ -166,23 +166,16 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
   {
     auto shaders = m_gpu->init(r);
     SCORE_ASSERT(m_p.empty());
-    for(Edge* edge : this->node.output[0]->edges)
-    {
-      auto rt = r.renderTargetForOutput(*edge);
-      if(rt.renderTarget)
-      {
-        const auto& mesh = r.defaultTriangle();
-        m_p.emplace_back(edge, score::gfx::buildPipeline(
-              r,
-              mesh,
-              shaders.first,
-              shaders.second,
-              rt,
-              m_processUBO,
-              m_materialUBO,
-              m_gpu->samplers));
-      }
-    }
+    score::gfx::defaultPassesInit(
+        m_p,
+        this->node.output[0]->edges,
+        r,
+        r.defaultTriangle(),
+        shaders.first,
+        shaders.second,
+        m_processUBO,
+        m_materialUBO,
+        m_gpu->samplers);
   }
 }
 
@@ -225,7 +218,6 @@ void VideoNodeRenderer::init(RenderList& renderer)
   m_materialUBO = rhi.newBuffer(
   QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
   m_materialUBO->create();
-
   #include <Gfx/Qt5CompatPop> // clang-format: keep
 
   if (!m_gpu)
@@ -237,22 +229,7 @@ void VideoNodeRenderer::init(RenderList& renderer)
 
 void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
-  auto it = ossia::find_if(m_p, [ptr=&edge] (const auto& p){ return p.first == ptr; });
-  SCORE_ASSERT(it != m_p.end());
-  {
-    const auto sz = renderer.state.size;
-    cb.setGraphicsPipeline(it->second.pipeline);
-    cb.setShaderResources(it->second.srb);
-    cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
-
-    assert(this->m_meshBuffer);
-    assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-    const auto& mesh = renderer.defaultQuad();
-
-    mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
-
-    cb.draw(mesh.vertexCount);
-  }
+  score::gfx::quadRenderPass(m_meshBuffer, m_idxBuffer, renderer, cb, edge, m_p);
 }
 
 // TODO if we have multiple renderers for the same video, we must always keep
@@ -315,6 +292,9 @@ void VideoNodeRenderer::release(RenderList& r)
 
   delete m_processUBO;
   m_processUBO = nullptr;
+
+  delete m_materialUBO;
+  m_materialUBO = nullptr;
 
   for(auto& p : m_p)
     p.second.release();

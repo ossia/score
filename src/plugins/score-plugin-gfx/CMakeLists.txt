@@ -20,8 +20,10 @@ add_subdirectory(3rdparty/libisf)
 
 if(WIN32)
 set(SPOUT_SRCS
-    Gfx/SpoutDevice.hpp
-    Gfx/SpoutDevice.cpp
+    Gfx/Spout/SpoutInput.hpp
+    Gfx/Spout/SpoutInput.cpp
+    Gfx/Spout/SpoutOutput.hpp
+    Gfx/Spout/SpoutOutput.cpp
 )
 endif()
 

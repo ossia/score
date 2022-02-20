@@ -9,6 +9,88 @@ namespace score::gfx
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
+void defaultPassesInit(
+      PassMap& passes,
+      const std::vector<Edge*>& edges,
+      RenderList& renderer,
+      const Mesh& mesh,
+      const QShader& v, const QShader& f,
+      QRhiBuffer* processUBO, QRhiBuffer* matUBO,
+      const std::vector<Sampler>& samplers)
+{
+  SCORE_ASSERT(passes.empty());
+  for(Edge* edge : edges)
+  {
+    auto rt = renderer.renderTargetForOutput(*edge);
+    if(rt.renderTarget)
+    {
+      passes.emplace_back(
+            edge,
+            score::gfx::buildPipeline(
+              renderer,
+              mesh,
+              v, f,
+              rt,
+              processUBO, matUBO,
+              samplers)
+            );
+    }
+  }
+}
+
+void defaultRenderPass(
+    QRhiBuffer* m_meshBuffer,
+    QRhiBuffer* m_idxBuffer,
+    RenderList& renderer,
+    const Mesh& mesh,
+    QRhiCommandBuffer& cb,
+    Edge& edge,
+    PassMap& passes)
+{
+  auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
+  SCORE_ASSERT(it != passes.end());
+  {
+    const auto sz = renderer.state.size;
+    cb.setGraphicsPipeline(it->second.pipeline);
+    cb.setShaderResources(it->second.srb);
+    cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+
+    assert(m_meshBuffer);
+    assert(m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
+    mesh.setupBindings(*m_meshBuffer, m_idxBuffer, cb);
+
+    if(m_idxBuffer)
+      cb.drawIndexed(mesh.indexCount);
+    else
+      cb.draw(mesh.vertexCount);
+  }
+}
+
+void quadRenderPass(
+    QRhiBuffer* m_meshBuffer,
+    QRhiBuffer* m_idxBuffer,
+    RenderList& renderer,
+    QRhiCommandBuffer& cb,
+    Edge& edge,
+    PassMap& passes)
+{
+  auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
+  SCORE_ASSERT(it != passes.end());
+  {
+    const auto sz = renderer.state.size;
+    cb.setGraphicsPipeline(it->second.pipeline);
+    cb.setShaderResources(it->second.srb);
+    cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+
+    assert(m_meshBuffer);
+    assert(m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
+    const auto& mesh = renderer.defaultQuad();
+
+    mesh.setupBindings(*m_meshBuffer, m_idxBuffer, cb);
+    cb.draw(mesh.vertexCount);
+  }
+}
+
 TextureRenderTarget GenericNodeRenderer::renderTargetForInput(const Port& p)
 {
   SCORE_TODO;
@@ -36,32 +118,30 @@ void GenericNodeRenderer::processUBOInit(RenderList& renderer)
 
 void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh)
 {
-  defaultPassesInit(
+  score::gfx::defaultPassesInit(
+        m_p,
+        this->node.output[0]->edges,
         renderer,
         mesh,
         node.m_vertexS,
-        node.m_fragmentS);
+        node.m_fragmentS,
+        m_processUBO,
+        m_material.buffer,
+        m_samplers);
 }
 
 void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f)
 {
-  for(Edge* edge : this->node.output[0]->edges)
-  {
-    auto rt = renderer.renderTargetForOutput(*edge);
-    if(rt.renderTarget)
-    {
-      m_p.emplace_back(edge, score::gfx::buildPipeline(
-                         renderer,
-                         mesh,
-                         v,
-                         f,
-                         rt,
-                         m_processUBO,
-                         m_material.buffer, m_samplers));
-    }
-  }
+  score::gfx::defaultPassesInit(
+      m_p,
+      this->node.output[0]->edges,
+      renderer,
+      mesh,
+      v, f,
+      m_processUBO,
+      m_material.buffer,
+      m_samplers);
 }
-
 
 void GenericNodeRenderer::init(RenderList& renderer)
 {
@@ -149,23 +229,8 @@ void GenericNodeRenderer::defaultRenderPass(
       Edge& edge,
       PassMap& passes)
 {
-  auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
-  SCORE_ASSERT(it != passes.end());
-  {
-    const auto sz = renderer.state.size;
-    cb.setGraphicsPipeline(it->second.pipeline);
-    cb.setShaderResources(it->second.srb);
-    cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
-
-    assert(this->m_meshBuffer);
-    assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-    mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
-
-    if(this->m_idxBuffer)
-      cb.drawIndexed(mesh.indexCount);
-    else
-      cb.draw(mesh.vertexCount);
-  }
+  score::gfx::defaultRenderPass(m_meshBuffer, m_idxBuffer,
+                    renderer, mesh, cb, edge, passes);
 }
 
 void GenericNodeRenderer::runRenderPass(

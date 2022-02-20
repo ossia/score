@@ -38,6 +38,35 @@ public:
 
 
 using PassMap = ossia::small_vector<std::pair<Edge*, Pipeline>, 2>;
+SCORE_PLUGIN_GFX_EXPORT
+void defaultPassesInit(
+    PassMap& passes,
+    const std::vector<Edge*>& edges,
+    RenderList& renderer,
+    const Mesh& mesh,
+    const QShader& v, const QShader& f,
+    QRhiBuffer* processUBO, QRhiBuffer* matUBO,
+    const std::vector<Sampler>& samplers);
+
+SCORE_PLUGIN_GFX_EXPORT
+void defaultRenderPass(
+    QRhiBuffer* meshBuffer,
+    QRhiBuffer* idxBuffer,
+    RenderList& renderer,
+    const Mesh& mesh,
+    QRhiCommandBuffer& cb,
+    Edge& edge,
+    PassMap& passes);
+
+SCORE_PLUGIN_GFX_EXPORT
+void quadRenderPass(
+    QRhiBuffer* meshBuffer,
+    QRhiBuffer* idxBuffer,
+    RenderList& renderer,
+    QRhiCommandBuffer& cb,
+    Edge& edge,
+    PassMap& passes);
+
 /**
  * @brief Generic renderer.
  *
@@ -76,6 +105,7 @@ public:
   void processUBOInit(RenderList& renderer);
   void defaultPassesInit(RenderList& renderer, const Mesh& mesh);
   void defaultPassesInit(RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f);
+
   void init(RenderList& renderer) override;
 
   void defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);

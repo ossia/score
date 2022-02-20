@@ -1,4 +1,4 @@
-#include "SpoutDevice.hpp"
+#include "SpoutOutput.hpp"
 
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>

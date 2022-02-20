@@ -43,7 +43,7 @@ private:
   const VideoNodeBase& node;
   VideoFrameShare& reader;
 
-  std::vector<std::pair<Edge*, Pipeline>> m_p;
+  PassMap m_p;
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};
   QRhiBuffer* m_processUBO{};

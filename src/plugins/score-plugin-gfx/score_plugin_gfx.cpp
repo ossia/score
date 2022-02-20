@@ -31,7 +31,8 @@
 #include <Gfx/Shmdata/ShmdataOutputDevice.hpp>
 #endif
 #if defined(HAS_SPOUT)
-#include <Gfx/SpoutDevice.hpp>
+#include <Gfx/Spout/SpoutInput.hpp>
+#include <Gfx/Spout/SpoutOutput.hpp>
 #endif
 #if defined(HAS_FREENECT2)
 #include <Gfx/Kinect2Device.hpp>
@@ -79,8 +80,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
          , Gfx::ShmdataOutputProtocolFactory
 #endif
 #if defined(HAS_SPOUT)
-         ,
-         Gfx::SpoutProtocolFactory
+         , Gfx::Spout::InputFactory
+         , Gfx::SpoutProtocolFactory
 #endif
 #if defined(HAS_FREENECT2)
          ,
