@@ -17,26 +17,25 @@ add_library(Spout
   SpoutCommon.h
   SpoutCopy.h
   SpoutDirectX.h
-  SpoutGLDXinterop.h
+  SpoutFrameCount.h
+  SpoutGL.h
   SpoutGLextensions.h
-  SpoutMemoryShare.h
   SpoutReceiver.h
-  SpoutSDK.h
   SpoutSender.h
-  SpoutSenderMemory.h
   SpoutSenderNames.h
   SpoutSharedMemory.h
+  SpoutUtils.h
+  Spout.cpp
   SpoutCopy.cpp
   SpoutDirectX.cpp
-  SpoutGLDXinterop.cpp
+  SpoutFrameCount.cpp
+  SpoutGL.cpp
   SpoutGLextensions.cpp
-  SpoutMemoryShare.cpp
   SpoutReceiver.cpp
-  SpoutSDK.cpp
   SpoutSender.cpp
-  SpoutSenderMemory.cpp
   SpoutSenderNames.cpp
   SpoutSharedMemory.cpp
+  SpoutUtils.cpp
 )
 
 if(NOT MSVC)

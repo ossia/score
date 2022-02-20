@@ -1,6 +1,7 @@
 /*
 
 	spoutSenderNames.h
+
 	Spout sender management
 
 	Thanks and credit to Malcolm Bechard for modifications to this class
@@ -8,10 +9,10 @@
 	https://github.com/mbechard	
 
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-		Copyright (c) 2014-2017, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2021, Lynn Jarvis. All rights reserved.
 
-		Redistribution and use in source and binary forms, with or without modification, 
-		are permitted provided that the following conditions are met:
+	Redistribution and use in source and binary forms, with or without modification, 
+	are permitted provided that the following conditions are met:
 
 		1. Redistributions of source code must retain the above copyright notice, 
 		   this list of conditions and the following disclaimer.
@@ -20,17 +21,16 @@
 		   this list of conditions and the following disclaimer in the documentation 
 		   and/or other materials provided with the distribution.
 
-		THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
-		EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-		OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
-		IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-		INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-		PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-		INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-		LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-		OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
+	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
+	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
  */
 #pragma once
 #ifndef __spoutSenderNames__ // standard way as well
@@ -45,12 +45,17 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <intrin.h> // for __movsd
 
 #include "SpoutCommon.h"
 #include "SpoutSharedMemory.h"
 
-#define SPOUT_WAIT_TIMEOUT 100 // 100 msec wait for events
-// Now replaced by a global class variable // #define MaxSenders 10 // Max for list of Sender names
+using namespace spoututils;
+
+// 100 msec wait for events
+#define SPOUT_WAIT_TIMEOUT 100
+
+// MaxSenders define replaced by a global class variable (Maximum for list of Sender names)
 #define SpoutMaxSenderNameLen 256
 
 // The texture information structure that is saved to shared memory
@@ -65,14 +70,14 @@
 // https://msdn.microsoft.com/en-us/library/aa384267%28VS.85%29.aspx
 // in SpoutGLDXinterop.cpp and SpoutSenderNames
 //
-struct SharedTextureInfo {
-	unsigned __int32 shareHandle;
-	unsigned __int32 width;
-	unsigned __int32 height;
-	DWORD format; // Texture pixel format
-	DWORD usage; // not used
-	wchar_t description[128]; // Wyhon compatible description (not used)
-	unsigned __int32 partnerId; // Wyphon id of partner that shared it with us (not unused)
+struct SharedTextureInfo {			// 280 bytes total
+	unsigned __int32 shareHandle;	// 4 bytes : texture handle
+	unsigned __int32 width;			// 4 bytes : texture width
+	unsigned __int32 height;		// 4 bytes : texture height
+	DWORD format;					// 4 bytes : texture pixel format
+	DWORD usage;					// 4 bytes : not used
+	wchar_t description[128];		// 256 bytes : Wyphon compatible description (not used)
+	unsigned __int32 partnerId;		// 4 bytes : Wyphon id of partner that shared it with us (not used)
 };
 
 
@@ -83,51 +88,93 @@ class SPOUT_DLLEXP spoutSenderNames {
 		spoutSenderNames();
 		~spoutSenderNames();
 
+		//
 		// public functions
+		//
 
-		// ------------------------------------------------------------
-		// You must first register a sender name being using
-		bool RegisterSenderName(const char* senderName);
-		bool ReleaseSenderName(const char* senderName);
-		bool FindSenderName     (const char* Sendername);
+		//
+		// Sender name registration
+		//
 
-		// ------------------------------------------------------------
+		// Register a sender name in the list of senders
+		bool RegisterSenderName(const char* sendername);
+		// Remove a name from the list
+		bool ReleaseSenderName(const char* sendername);
+		// Find a name in the list
+		bool FindSenderName(const char* sendername);
+
+		//
 		// Functions to retrieve info about the sender set map and the senders in it
-		bool GetSenderNames	   (std::set<std::string> *Sendernames);
+		//
+
+		// Retrieve the sender name list as a set of names
+		bool GetSenderNames(std::set<std::string> *sendernames);
+		// Number of senders in the list
 		int  GetSenderCount();
-		bool GetSenderNameInfo (int index, char* sendername, int sendernameMaxSize, unsigned int &width, unsigned int &height, HANDLE &dxShareHandle);
+		// Sender item name
+		bool GetSender(int index, char* sendername, int MaxSize = 256);
+		// Information about a sender from an index into the list
+		bool GetSenderNameInfo(int index, char* sendername, int sendernameMaxSize, unsigned int &width, unsigned int &height, HANDLE &dxShareHandle);
 
-		// ------------------------------------------------------------
-		// New for 2.005
+
+		//
+		// Maximum number of senders allowed in the list
+		// Applies for versions 2.005 and after
+		//
+
+		// Get the maximum number from the registry
 		int GetMaxSenders();
-		void SetMaxSenders(int maxSenders); // Set the maximum number of senders in a new sender map
+		// Set the maximum number of senders in a new sender map
+		void SetMaxSenders(int maxSenders);
 
-		// ------------------------------------------------------------
+		//
 		// Functions to read and write info to a sender memory map
+		//
+
+		// Get sender information
 		bool GetSenderInfo (const char* sendername, unsigned int &width, unsigned int &height, HANDLE &dxShareHandle, DWORD &dwFormat);
+		// Set sender information
 		bool SetSenderInfo (const char* sendername, unsigned int width, unsigned int height, HANDLE dxShareHandle, DWORD dwFormat);
+		// Set sender PartnerID field with "CPU" sharing method and GL/DX compatibility
+		bool SetSenderID(const char *sendername, bool bCPU, bool bGLDX);
+		// Generic sender map info read (returned in a shared texture information structure)
+		bool getSharedInfo (const char* sendername, SharedTextureInfo* info);
+		// Generic sender map info write
+		bool setSharedInfo (const char* sendername, SharedTextureInfo* info);
+		// Test for shared info memory map existence
+		bool hasSharedInfo(const char* sendername);
 
-		// Generic sender map info retrieval
-		bool getSharedInfo (const char* SenderName, SharedTextureInfo* info);
-		bool setSharedInfo (const char* SenderName, SharedTextureInfo* info);
-
-		// ------------------------------------------------------------
+		//
 		// Functions to maintain the active sender
-		bool SetActiveSender     (const char* Sendername);
-		bool GetActiveSender     (char Sendername[SpoutMaxSenderNameLen]);
+		//
+
+		// Set the active sender - the first retrieved by a receiver
+		bool SetActiveSender     (const char* sendername);
+		// Get the current active sender
+		bool GetActiveSender     (char sendername[SpoutMaxSenderNameLen]);
+		// Get active sender information
 		bool GetActiveSenderInfo (SharedTextureInfo* info);
+		// Return details of the current active sender
 		bool FindActiveSender    (char activename[SpoutMaxSenderNameLen], unsigned int &width, unsigned int &height, HANDLE &hSharehandle, DWORD &dwFormat);
 
-		// ------------------------------------------------------------
-		// Functions to Create, Find or Update a sender without initializing DirectX or the GL/DX interop functions
-		bool CreateSender (const char *sendername, unsigned int width, unsigned int height, HANDLE hSharehandle, DWORD dwFormat = 0);
-		bool UpdateSender (const char *sendername, unsigned int width, unsigned int height, HANDLE hSharehandle, DWORD dwFormat = 0);
-		bool CheckSender  (const char *sendername, unsigned int &width, unsigned int &height, HANDLE &hSharehandle, DWORD &dwFormat);
-		bool FindSender   (char *sendername, unsigned int &width, unsigned int &height, HANDLE &hSharehandle, DWORD &dwFormat);
-		// ------------------------------------------------------------
+		//
+		// Functions to Create, Find or Update a sender
+		// without initializing DirectX or the GL/DX interop functions
+		//
 
-		// Debug function
-		bool SenderDebug (const char *Sendername, int size);
+		// Create a sender and register the name in the sender list
+		bool CreateSender (const char* sendername, unsigned int width, unsigned int height, HANDLE hSharehandle, DWORD dwFormat = 0);
+		// Update ana existing sender
+		bool UpdateSender (const char* sendername, unsigned int width, unsigned int height, HANDLE hSharehandle, DWORD dwFormat = 0);
+		// Check details of a sender
+		bool CheckSender  (const char* sendername, unsigned int &width, unsigned int &height, HANDLE &hSharehandle, DWORD &dwFormat);
+		// Find a sender and return details
+		bool FindSender   (char* sendername, unsigned int &width, unsigned int &height, HANDLE &hSharehandle, DWORD &dwFormat);
+		// Find a sender in the class names set
+		bool FindSender   (const char* sendername);
+		// Release orphaned senders
+		void CleanSenders();
+
 
 protected:
 
@@ -138,7 +185,6 @@ protected:
 		// Active sender management
 		bool setActiveSenderName (const char* SenderName);
 		bool getActiveSenderName (char SenderName[SpoutMaxSenderNameLen]);
-
 
 		// Goes through the full list of sender names and cleans up
 		// any that shouldn't still be around
@@ -157,7 +203,7 @@ protected:
 		// Make this a pointer to avoid size differences between compilers
 		// if the .dll is compiled with something different
 		std::unordered_map<std::string, SpoutSharedMemory*>*	m_senders;
-		int m_MaxSenders; // user defined maximum for the number of senders - development testing only
+		int m_MaxSenders; // maximum number of senders via registry
 
 };
 

@@ -15,26 +15,18 @@
 //			Pbo extensions
 //			wglSwapInterval extensions
 //
-//			Spout project									FBO		PBO		GLEW	SWAP	BLIT	GLDX
-//			FFGL - SpoutReceiver, SpoutSender				 -		 -		 -		 +		 +		 +
-//			MAX - jit.gl.spoutsender, jit.gl.spoutreceiver	 -		 -		 -		 +		 +		 +
-//			PROCESSING - Jspout JNI dll						 +		 -		 -		 +		 +		 +
-//			SpoutCam										 +		 -		 -		 +		 +		 +
-//			SpoutPanel										 +		 -		 -		 +		 +		 +
-//			Spout dll										 +		 +		 -		 +		 +		 +
-//			WinSpout										 +		 -		 -		 +		 +		 +
-//			OpenFrameWorks									 +		 -		 -		 +		 +		 +
-//			Cinder											 +		 -		 -		 +		 +		 +
 //
 //			03.11.14 - added additional defines for framebuffer status checks
 //			02.01.15 - added GL_BGR for SpoutCam
+//			21.11.18 - added preprocessor define for Jitter externals
+//					   https://github.com/robtherich/Spout2
 //
 /*
 
-		Copyright (c) 2014-2017, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2021, Lynn Jarvis. All rights reserved.
 
-		Redistribution and use in source and binary forms, with or without modification, 
-		are permitted provided that the following conditions are met:
+	Redistribution and use in source and binary forms, with or without modification, 
+	are permitted provided that the following conditions are met:
 
 		1. Redistributions of source code must retain the above copyright notice, 
 		   this list of conditions and the following disclaimer.
@@ -43,33 +35,65 @@
 		   this list of conditions and the following disclaimer in the documentation 
 		   and/or other materials provided with the distribution.
 
-		THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
-		EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-		OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
-		IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-		INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-		PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-		INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-		LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-		OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
+	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
+	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
 #ifndef __spoutGLextensions__	// standard way as well
 #define __spoutGLextensions__
 
+//
+// Header: spoutGLextensions
+//
+// Used for load of openGL extensions with options to use Glew
+// or disable dynamic load of specific extension types.
+// If Glew is used, none of the extensions are loaded dynamically.
+// Individual extension types can be disabled if they conflict
+// with extensions already managed by particular applications.
+//
+// Refer to source code for documentation.
+//
+
+
+// ====================== COMPILE OPTIONS ================================
+//
 // set this to use GLEW instead of dynamic load of extensions
 // #define USE_GLEW	
 // set this to use glew32s.lib instead of glew32.lib
 // #define GLEW_STATIC
 
-// *** Load of FBO extensions conflicts with FFGL or Jitter, disable them here ***
+// If load of FBO extensions conflicts with FFGL or Jitter, disable them here
+#ifndef UNDEF_USE_FBO_EXTENSIONS
 #define USE_FBO_EXTENSIONS // don't use for jitter
+#endif
 
 // If load of PBO extensions conflicts, disable them here - OK for Jitter
 #define USE_PBO_EXTENSIONS
 
+// If load of COPY extensions conflicts, disable them here
+// Only used for testing
+#define USE_COPY_EXTENSIONS
+
+// If load of context creation extension conflicts, disable it here
+// Only used for testing
+#define USE_CONTEXT_EXTENSION
+// ==========================================================================
+
+
 #include <windows.h>
 #include <stdio.h> // for debug print
+#include "SpoutCommon.h" // for legacyOpenGL define
+#include "SpoutUtils.h"
+
+using namespace spoututils;
+
 #ifdef USE_GLEW
 	#include <GL\glew.h>
 	#include <GL\wglew.h> // wglew.h and glxew.h, which define the available WGL and GLX extensions
@@ -106,15 +130,18 @@
 #define GL_INVALID_FRAMEBUFFER_OPERATION_EXT 0x0506
 #endif
 
+
 //------------------------------------
 // EXTENSION SUPPORT FLAGS
 //------------------------------------
-#define GLEXT_SUPPORT_NVINTEROP		 1
-#define GLEXT_SUPPORT_FBO			 2
-#define GLEXT_SUPPORT_FBO_BLIT		 4
-#define GLEXT_SUPPORT_PBO			 8
-#define GLEXT_SUPPORT_SWAP			16
-#define GLEXT_SUPPORT_BGRA			32
+#define GLEXT_SUPPORT_NVINTEROP		  1
+#define GLEXT_SUPPORT_FBO			  2
+#define GLEXT_SUPPORT_FBO_BLIT		  4
+#define GLEXT_SUPPORT_PBO			  8
+#define GLEXT_SUPPORT_SWAP			 16
+#define GLEXT_SUPPORT_BGRA			 32
+#define GLEXT_SUPPORT_COPY			 64
+#define GLEXT_SUPPORT_CONTEXT       128
 
 //-----------------------------------------------------
 // GL consts that are needed and aren't present in GL.h
@@ -125,6 +152,47 @@
 #define WGL_ACCESS_WRITE_DISCARD_NV		0x0002
 
 #define GL_CLAMP_TO_EDGE				0x812F
+
+// Other
+#ifndef  GL_MAJOR_VERSION
+#define GL_MAJOR_VERSION				0x821B
+#endif
+#ifndef GL_MINOR_VERSION 
+#define GL_MINOR_VERSION				0x821C
+#endif
+#ifndef GL_NUM_EXTENSIONS
+#define GL_NUM_EXTENSIONS				0x821D
+#endif
+#ifndef GL_CONTEXT_FLAGS // The flags with which the context was created.
+#define GL_CONTEXT_FLAGS				0x821E
+#endif
+
+#ifndef GL_CONTEXT_FLAGS
+#define GL_CONTEXT_FLAGS				0x821E
+#endif
+#ifndef GL_CONTEXT_PROFILE_MASK
+#define GL_CONTEXT_PROFILE_MASK			0x9126
+#endif
+
+// TODO clean up 
+#ifndef GL_CONTEXT_CORE_PROFILE_BIT
+#define GL_CONTEXT_CORE_PROFILE_BIT            0x00000001
+#endif
+#ifndef GL_CONTEXT_COMPATIBILITY_PROFILE_BIT
+#define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT   0x00000002
+#endif
+#ifndef GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT
+#define GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT 0x00000001
+#endif
+#ifndef GL_CONTEXT_FLAG_DEBUG_BIT
+#define GL_CONTEXT_FLAG_DEBUG_BIT              0x00000002
+#endif
+#ifndef GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT
+#define GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT      0x00000004
+#endif
+#ifndef GL_CONTEXT_FLAG_NO_ERROR_BIT
+#define GL_CONTEXT_FLAG_NO_ERROR_BIT           0x00000008
+#endif
 
 #ifndef USE_GLEW
 
@@ -257,6 +325,14 @@ extern glRenderbufferStorageEXTPROC					glRenderbufferStorageEXT;
 typedef void   (APIENTRY *glBlitFramebufferEXTPROC) (GLint srcX0,GLint srcY0,GLint srcX1,GLint srcY1,GLint dstX0,GLint dstY0,GLint dstX1,GLint dstY1,GLbitfield mask,GLenum filter);
 extern glBlitFramebufferEXTPROC glBlitFramebufferEXT;
 
+//-------------------
+// Blit FBO extension
+//-------------------
+#define READ_FRAMEBUFFER_EXT	0x8CA8
+#define DRAW_FRAMEBUFFER_EXT	0x8CA9
+
+typedef void   (APIENTRY *glBlitFramebufferEXTPROC) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+extern glBlitFramebufferEXTPROC glBlitFramebufferEXT;
 
 // ------------------------------
 // OpenGL sync control extensions
@@ -280,6 +356,7 @@ extern PFNWGLGETSWAPINTERVALEXTPROC    wglGetSwapIntervalEXT;
 #define GL_STREAM_READ					0x88E1
 #define GL_READ_ONLY					0x88B8
 #define GL_WRITE_ONLY					0x88B9
+#define GL_BUFFER_SIZE_EXT				0x8764
 
 
 // PBO functions
@@ -290,6 +367,7 @@ typedef void   (APIENTRY *glBindBufferPROC) (GLenum target, const GLuint buffer)
 typedef void   (APIENTRY *glBufferDataPROC) (GLenum target,  GLsizeiptr size,  const GLvoid * data,  GLenum usage);
 typedef void * (APIENTRY *glMapBufferPROC) (GLenum target,  GLenum access);
 typedef void   (APIENTRY *glUnmapBufferPROC) (GLenum target);
+typedef void   (APIENTRY *glGetBufferParameterivPROC) (GLenum target, GLenum value,	GLint * data);
 
 extern glGenBuffersPROC		glGenBuffersEXT;
 extern glDeleteBuffersPROC	glDeleteBuffersEXT;
@@ -297,7 +375,47 @@ extern glBindBufferPROC		glBindBufferEXT;
 extern glBufferDataPROC		glBufferDataEXT;
 extern glMapBufferPROC		glMapBufferEXT;
 extern glUnmapBufferPROC	glUnmapBufferEXT;
+extern glGetBufferParameterivPROC	glGetBufferParameterivEXT;
+
 #endif // USE_PBO_EXTENSIONS
+
+//-------------------
+// Copy extensions
+//-------------------
+#ifdef USE_COPY_EXTENSIONS
+typedef void (APIENTRY * PFNGLCOPYIMAGESUBDATAPROC)(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
+extern PFNGLCOPYIMAGESUBDATAPROC glCopyImageSubData;
+
+typedef void(APIENTRY * glGetInternalFormativPROC)(GLenum target, GLenum internalfrmat, GLenum pname, GLsizei buffSize, GLint *params);
+extern glGetInternalFormativPROC glGetInternalFormativ;
+
+#endif // USE_COPY_EXTENSIONS
+
+//---------------------------
+// Context creation extension
+//---------------------------
+typedef HGLRC (APIENTRY * PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext, const int *attribList);
+extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+
+// Tokens accepted as an attribute name in <*attribList>:
+#define		WGL_CONTEXT_MAJOR_VERSION_ARB           0x2091
+#define		WGL_CONTEXT_MINOR_VERSION_ARB           0x2092
+#define		WGL_CONTEXT_LAYER_PLANE_ARB             0x2093
+#define		WGL_CONTEXT_FLAGS_ARB                   0x2094
+#define		WGL_CONTEXT_PROFILE_MASK_ARB            0x9126
+
+//	Accepted as bits in the attribute value for WGL_CONTEXT_FLAGS in <*attribList>:
+#define		WGL_CONTEXT_DEBUG_BIT_ARB               0x0001
+#define		WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
+
+//	Accepted as bits in the attribute value for
+//	WGL_CONTEXT_PROFILE_MASK_ARB in <*attribList>:
+#define		WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
+#define		WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+
+//	New errors returned by GetLastError:
+#define		ERROR_INVALID_VERSION_ARB               0x2095
+#define		ERROR_INVALID_PROFILE_ARB               0x2096
 
 #endif // end GLEW
 
@@ -311,6 +429,8 @@ bool loadFBOextensions();
 bool loadBLITextension();
 bool loadSwapExtensions();
 bool loadPBOextensions();
-// bool isExtensionSupported(const char *extension);
+bool loadCopyExtensions();
+bool loadContextExtension();
+bool isExtensionSupported(const char *extension);
 
 #endif

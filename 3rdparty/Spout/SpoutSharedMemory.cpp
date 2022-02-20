@@ -1,6 +1,6 @@
 /**
 
-http://www.codeproject.com/Articles/835818/Ultimate-Shared-Memory-A-flexible-class-for-interp
+	http://www.codeproject.com/Articles/835818/Ultimate-Shared-Memory-A-flexible-class-for-interp
 
 	SpoutSharedMemory.cpp
 
@@ -10,10 +10,10 @@ http://www.codeproject.com/Articles/835818/Ultimate-Shared-Memory-A-flexible-cla
 
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-		Copyright (c) 2014-2017, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2021, Lynn Jarvis. All rights reserved.
 
-		Redistribution and use in source and binary forms, with or without modification, 
-		are permitted provided that the following conditions are met:
+	Redistribution and use in source and binary forms, with or without modification, 
+	are permitted provided that the following conditions are met:
 
 		1. Redistributions of source code must retain the above copyright notice, 
 		   this list of conditions and the following disclaimer.
@@ -22,22 +22,32 @@ http://www.codeproject.com/Articles/835818/Ultimate-Shared-Memory-A-flexible-cla
 		   this list of conditions and the following disclaimer in the documentation 
 		   and/or other materials provided with the distribution.
 
-		THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
-		EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-		OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
-		IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-		INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-		PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-		INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-		LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-		OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-		- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
+	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
+	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
 */
 
 #include "SpoutSharedMemory.h"
 #include <assert.h>
 #include <string>
+
+
+//
+// Class: SpoutSharedMemory
+//
+// Functions to manage shared memory for senders and sender names.
+//
+// Refer to source code for documentation.
+//
+
 
 SpoutSharedMemory::SpoutSharedMemory()
 {
@@ -80,7 +90,7 @@ SpoutCreateResult SpoutSharedMemory::Create(const char* name, int size)
 									NULL,
 									PAGE_READWRITE,
 									0,
-									size,
+									(DWORD)size,
 									(LPCSTR)name);
 
 	if (m_hMap == NULL)	{
@@ -98,8 +108,13 @@ SpoutCreateResult SpoutSharedMemory::Create(const char* name, int size)
 		// 2.004 apps will have created a 10 sender map which will not be increased in size thereafter.
 	}
 	else {
-		if(err != 0) printf("SpoutSharedMemory::Create - Error = %ld (0x%x)\n", err, err);
+		if (err != 0) {
+			SpoutLogError("SpoutSharedMemory::Create - Error = %lu (0x%4.4lX)", err, err);
+		}
 	}
+
+	// We can depend on the mapping object to be initially zeros.
+	// https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createfilemappinga
 
 	m_pBuffer = (char*)MapViewOfFile(m_hMap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 
@@ -112,7 +127,7 @@ SpoutCreateResult SpoutSharedMemory::Create(const char* name, int size)
 	mutexName = name;
 	mutexName += "_mutex";
 
-	m_hMutex = CreateMutexA(NULL, FALSE, mutexName.c_str());
+	m_hMutex = CreateMutexA(NULL, false, mutexName.c_str());
 
 	if (!m_hMutex) {
 		Close();
@@ -139,7 +154,7 @@ bool SpoutSharedMemory::Open(const char* name)
 		return true;
 	}
 
-	m_hMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, (LPCSTR)name);
+	m_hMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, false, (LPCSTR)name);
 	if (m_hMap == NULL)	{
 		return false;
 	}
@@ -154,13 +169,15 @@ bool SpoutSharedMemory::Open(const char* name)
 	mutexName = name;
 	mutexName += "_mutex";
 
-	m_hMutex = CreateMutexA(NULL, FALSE, mutexName.c_str());
+	m_hMutex = CreateMutexA(NULL, false, mutexName.c_str());
 	if (!m_hMutex) {
 		Close();
 		return false;
 	}
 
 	m_pName = _strdup(name);
+	// OpenFileMapping/MapViewOfFile do not return the map size
+	// Only the process that creates the shared memory can save it's size.
 	m_size = 0;
 
 	return true;
@@ -188,6 +205,8 @@ void SpoutSharedMemory::Close()
 		free((void*)m_pName);
 		m_pName = NULL;
 	}
+
+	m_size = 0;
 
 }
 
@@ -228,7 +247,6 @@ char* SpoutSharedMemory::Lock()
 
 void SpoutSharedMemory::Unlock()
 {
-
 	assert(m_hMutex);
 
 	m_lockCount--;
@@ -239,15 +257,23 @@ void SpoutSharedMemory::Unlock()
 	}
 }
 
+const char* SpoutSharedMemory::Name()
+{
+	return m_pName;
+}
+
+int SpoutSharedMemory::Size()
+{
+	return m_size;
+}
 
 void SpoutSharedMemory::Debug()
 {
-	/*
 	if (m_pName) {
-		printf("(%s) m_hMap = [%x], m_pBuffer = [%x]\n", m_pName, m_hMap, m_pBuffer);
+		SpoutLogNotice("SpoutSharedMemory::Debug : (%s) m_hMap = [0x%.7X], m_pBuffer = [0x%.7X]", m_pName, LOWORD(m_hMap), PtrToUint(m_pBuffer));
 	}
 	else {
-		printf("Shared Memory Map is not open\n");
+		SpoutLogNotice("SpoutSharedMemory::Debug : Shared Memory Map is not open\n");
 	}
-	*/
+
 }
