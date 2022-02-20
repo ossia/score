@@ -10,15 +10,11 @@
 #include <QLineEdit>
 
 #include <Gfx/GfxInputDevice.hpp>
+#include <Gfx/SharedInputSettings.hpp>
 class QComboBox;
 namespace Gfx::Spout
 {
-
-struct InputSettings
-{
-  QString path;
-};
-
+using InputSettings = Gfx::SharedInputSettings;
 class InputFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("3c995cb6-052b-4c52-a8fd-841b33b81b29")
@@ -65,10 +61,4 @@ private:
   QLineEdit* m_shmPath{};
   Device::DeviceSettings m_settings;
 };
-
-
 }
-
-SCORE_SERIALIZE_DATASTREAM_DECLARE(, Gfx::Spout::InputSettings);
-Q_DECLARE_METATYPE(Gfx::Spout::InputSettings)
-W_REGISTER_ARGTYPE(Gfx::Spout::InputSettings)

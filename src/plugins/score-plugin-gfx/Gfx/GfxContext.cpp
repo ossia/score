@@ -216,18 +216,18 @@ void GfxContext::run_commands()
   {
     switch(cmd.cmd)
     {
-      case Command::ADD_NODE:
-      {
-        m_graph->addNode(cmd.node.get());
-        nodes[cmd.index] = {std::move(cmd.node)};
-        recompute = true;
-        break;
-      }
       case Command::ADD_PREVIEW_NODE:
       {
         m_graph->addNode(cmd.node.get());
         add_output.push_back(cmd.node.get());
         nodes[cmd.index] = {std::move(cmd.node)};
+        break;
+      }
+      case Command::ADD_NODE:
+      {
+        m_graph->addNode(cmd.node.get());
+        nodes[cmd.index] = {std::move(cmd.node)};
+        recompute = true;
         break;
       }
       case Command::REMOVE_PREVIEW_NODE:

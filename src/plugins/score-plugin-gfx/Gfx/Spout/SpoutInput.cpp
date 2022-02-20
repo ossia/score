@@ -10,8 +10,6 @@
 
 #include <wobjectimpl.h>
 
-SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::Spout::InputSettings);
-
 namespace Gfx::Spout
 {
 class InputDevice final : public Gfx::GfxInputDevice
@@ -160,16 +158,23 @@ private:
     bool connected{};
     QSize cursize{metadata.width, metadata.height};
     uint w = metadata.width, h = metadata.height;
-    char sendername[256] = "Spout Demo Sender";
 
-    // if(!m_receiver.CheckReceiver(sendername, w, h, connected))
-    //   return;
+    char sendername[256];
+    {
+      if(!m_receiver.CheckReceiver(sendername, w, h, connected))
+        return;
+    }
+
     m_receiver.IsUpdated();
-
     bool mustUpload = false;
     // Check if the texture size changed
     if(w != metadata.width || h != metadata.height)
     {
+      m_receiver.ReleaseReceiver();
+      enabled = m_receiver.CreateReceiver(sendername, w, h);
+      if(!enabled)
+        return;
+
       metadata.width = w;
       metadata.height = h;
 
@@ -182,7 +187,6 @@ private:
         for(auto& pass : m_p)
           pass.second.srb->build();
         mustUpload = true;
-        qDebug() << "Resized";
       }
       else
       {
@@ -192,7 +196,6 @@ private:
 
     if(metadata.width > 0 && metadata.height > 0)
     {
-      // rhi.makeThreadLocalNativeContextCurrent();
       if(m_receiver.ReceiveImage((unsigned char*)m_pixels.data(), GL_RGBA, true))
       {
         mustUpload = m_receiver.IsFrameNew();
@@ -201,12 +204,6 @@ private:
 
     if(mustUpload)
     {
-      //std::generate_n(m_pixels.data(), metadata.width * metadata.height * 4, [] { return rand(); });
-      m_gpu->setPixels(res, (uint8_t*)m_pixels.data(), metadata.width * 4);
-    }
-    else
-    {
-      std::generate_n(m_pixels.data(), metadata.width * metadata.height * 4, [] { return rand(); });
       m_gpu->setPixels(res, (uint8_t*)m_pixels.data(), metadata.width * 4);
     }
   }
@@ -400,31 +397,4 @@ void InputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 }
 
 }
-
-template <>
-void DataStreamReader::read(const Gfx::Spout::InputSettings& n)
-{
-  m_stream << n.path;
-  insertDelimiter();
-}
-
-template <>
-void DataStreamWriter::write(Gfx::Spout::InputSettings& n)
-{
-  m_stream >> n.path;
-  checkDelimiter();
-}
-
-template <>
-void JSONReader::read(const Gfx::Spout::InputSettings& n)
-{
-  obj["Path"] = n.path;
-}
-
-template <>
-void JSONWriter::write(Gfx::Spout::InputSettings& n)
-{
-  n.path = obj["Path"].toString();
-}
-
 W_OBJECT_IMPL(Gfx::Spout::InputDevice)

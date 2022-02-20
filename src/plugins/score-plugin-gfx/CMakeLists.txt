@@ -104,6 +104,7 @@ set(HDRS
     Gfx/InvertYRenderer.hpp
     Gfx/TexturePort.hpp
     Gfx/ShaderProgram.hpp
+    Gfx/SharedInputSettings.hpp
     Gfx/SharedOutputSettings.hpp
 
     Gfx/CameraDevice.hpp
@@ -161,6 +162,7 @@ set(SRCS
     Gfx/GfxDevice.cpp
     Gfx/TexturePort.cpp
     Gfx/ShaderProgram.cpp
+    Gfx/SharedInputSettings.cpp
     Gfx/SharedOutputSettings.cpp
 
     Gfx/InvertYRenderer.cpp
