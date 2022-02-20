@@ -8,6 +8,7 @@
 namespace Gfx
 {
 
+SharedOutputProtocolFactory::~SharedOutputProtocolFactory() = default;
 Device::AddressDialog* SharedOutputProtocolFactory::makeAddAddressDialog(
     const Device::DeviceInterface& dev,
     const score::DocumentContext& ctx,

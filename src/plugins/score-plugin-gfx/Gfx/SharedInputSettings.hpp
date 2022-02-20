@@ -6,6 +6,8 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <verdigris>
 
+#include <score_plugin_gfx_export.h>
+
 class QFormLayout;
 class QSpinBox;
 class QLineEdit;
@@ -15,11 +17,11 @@ struct SharedInputSettings {
   QString path;
 };
 
-
-class SharedInputProtocolFactory
+class SCORE_PLUGIN_GFX_EXPORT SharedInputProtocolFactory
     : public Device::ProtocolFactory
 {
   public:
+  ~SharedInputProtocolFactory();
   Device::AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,
@@ -52,6 +54,7 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
 protected:
+  Device::DeviceSettings m_settings;
   QFormLayout* m_layout{};
   QLineEdit* m_deviceNameEdit{};
   QLineEdit* m_shmPath{};

@@ -256,11 +256,11 @@ SpoutProtocolFactory::defaultSettings() const noexcept
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
     s.protocol = static_concreteKey();
-    s.name = "spout_out";
+    s.name = "Spout Out";
     SharedOutputSettings set;
     set.width = 1280;
     set.height = 720;
-    set.path = "ossia";
+    set.path = "ossia score";
     set.rate = 60.;
     s.deviceSpecificSettings = QVariant::fromValue(set);
     return s;
@@ -276,7 +276,7 @@ Device::ProtocolSettingsWidget* SpoutProtocolFactory::makeSettingsWidget()
 SpoutSettingsWidget::SpoutSettingsWidget(QWidget* parent)
     : SharedOutputSettingsWidget(parent)
 {
-  m_deviceNameEdit->setText("Spout out");
+  m_deviceNameEdit->setText("Spout Out");
 
   ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
   setSettings(SpoutProtocolFactory{}.defaultSettings());

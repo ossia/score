@@ -2,33 +2,18 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <Spout/SpoutReceiver.h>
-#include <QFormLayout>
 #include <Gfx/Graph/decoders/RGBA.hpp>
+#include <Gfx/GfxApplicationPlugin.hpp>
+
+#include <Spout/SpoutReceiver.h>
+
+#include <QFormLayout>
+#include <QLabel>
 
 #include <wobjectimpl.h>
 
 namespace Gfx::Spout
 {
-class InputDevice final : public Gfx::GfxInputDevice
-{
-  W_OBJECT(InputDevice)
-public:
-  using GfxInputDevice::GfxInputDevice;
-  ~InputDevice();
-
-private:
-  bool reconnect() override;
-  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
-
-  ossia::net::protocol_base* m_protocol{};
-  mutable std::unique_ptr<ossia::net::device_base> m_dev;
-};
-
-InputDevice::~InputDevice() { }
-
 struct SpoutInputNode : score::gfx::ProcessNode
 {
 public:
@@ -54,9 +39,7 @@ public:
 class SpoutInputNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
-  Renderer(const SpoutInputNode& n): node{n} {
-
-  }
+  explicit Renderer(const SpoutInputNode& n): node{n} { }
 
 private:
   const SpoutInputNode& node;
@@ -252,39 +235,50 @@ score::gfx::NodeRenderer* SpoutInputNode::createRenderer(score::gfx::RenderList&
   return new Renderer{*this};
 }
 
-
-
-bool InputDevice::reconnect()
+class InputDevice final : public Gfx::GfxInputDevice
 {
-  disconnect();
+  W_OBJECT(InputDevice)
+public:
+  using GfxInputDevice::GfxInputDevice;
+  ~InputDevice(){ }
 
-  try
+private:
+  bool reconnect() override
   {
-    auto set = this->settings().deviceSpecificSettings.value<InputSettings>();
+    disconnect();
 
-    auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
-    if (plug)
+    try
     {
-      auto protocol = std::make_unique<simple_texture_input_protocol>();
-      m_protocol = protocol.get();
-      m_dev = std::make_unique<simple_texture_input_device>(
-                new SpoutInputNode{set},
-                &plug->exec,
-                std::move(protocol),
-                this->settings().name.toStdString());
-    }
-  }
-  catch (std::exception& e)
-  {
-    qDebug() << "Could not connect: " << e.what();
-  }
-  catch (...)
-  {
-    // TODO save the reason of the non-connection.
-  }
+      auto set = this->settings().deviceSpecificSettings.value<InputSettings>();
 
-  return connected();
-}
+      auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
+      if (plug)
+      {
+        auto protocol = std::make_unique<simple_texture_input_protocol>();
+        m_protocol = protocol.get();
+        m_dev = std::make_unique<simple_texture_input_device>(
+                  new SpoutInputNode{set},
+                  &plug->exec,
+                  std::move(protocol),
+                  this->settings().name.toStdString());
+      }
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << "Could not connect: " << e.what();
+    }
+    catch (...)
+    {
+      // TODO save the reason of the non-connection.
+    }
+
+    return connected();
+  }
+  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
+
+  ossia::net::protocol_base* m_protocol{};
+  mutable std::unique_ptr<ossia::net::device_base> m_dev;
+};
 
 QString InputFactory::prettyName() const noexcept
 {
@@ -312,30 +306,13 @@ const Device::DeviceSettings& InputFactory::defaultSettings() const noexcept
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
     s.protocol = concreteKey();
-    s.name = "Spout Input";
+    s.name = "Spout In";
     InputSettings specif;
-    specif.path = "Spout DX11 Sender";
+    specif.path = "Spout Demo Sender";
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
   return settings;
-}
-
-Device::AddressDialog* InputFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::AddressDialog* InputFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
 }
 
 Device::ProtocolSettingsWidget* InputFactory::makeSettingsWidget()
@@ -343,57 +320,20 @@ Device::ProtocolSettingsWidget* InputFactory::makeSettingsWidget()
   return new InputSettingsWidget;
 }
 
-QVariant InputFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+InputSettingsWidget::InputSettingsWidget(QWidget* parent)
+  : SharedInputSettingsWidget(parent)
 {
-  return makeProtocolSpecificSettings_T<InputSettings>(visitor);
-}
+  m_deviceNameEdit->setText("Spout In");
 
-void InputFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
-{
-  serializeProtocolSpecificSettings_T<InputSettings>(data, visitor);
-}
-
-bool InputFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
-{
-  return a.name != b.name;
-}
-
-InputSettingsWidget::InputSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
-{
-  m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
-  checkForChanges(m_deviceNameEdit);
-
-  auto layout = new QFormLayout;
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
-  layout->addRow(tr("Spout path"), m_shmPath = new QLineEdit);
-  setLayout(layout);
-
+  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
   setSettings(InputFactory{}.defaultSettings());
 }
 
-
 Device::DeviceSettings InputSettingsWidget::getSettings() const
 {
-  Device::DeviceSettings s = m_settings;
-  s.name = m_deviceNameEdit->text();
-  s.protocol = InputFactory::static_concreteKey();
-  InputSettings set;
-  set.path = m_shmPath->text();
-  s.deviceSpecificSettings = QVariant::fromValue(set);
-  return s;
-}
-
-void InputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
-{
-  m_settings = settings;
-  m_deviceNameEdit->setText(settings.name);
-
-  const auto& set = settings.deviceSpecificSettings.value<InputSettings>();
-  m_shmPath->setText(set.path);
+  auto set = SharedInputSettingsWidget::getSettings();
+  set.protocol = InputFactory::static_concreteKey();
+  return set;
 }
 
 }
