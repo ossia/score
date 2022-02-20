@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderState.hpp>

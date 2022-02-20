@@ -1,97 +1,47 @@
 #include "SpoutDevice.hpp"
 
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/GfxExecContext.hpp>
-#include <Gfx/GfxParameter.hpp>
-#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
+#include <Gfx/GfxParameter.hpp>
+#include <Gfx/GfxApplicationPlugin.hpp>
 
-#include <score/serialization/MimeVisitor.hpp>
-
-#include <ossia-qt/name_utils.hpp>
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/base/protocol.hpp>
+#include <QtGui/private/qrhigles2_p_p.h>
 
 #include <QFormLayout>
-#include <QLineEdit>
-#include <QMenu>
-#include <QMimeData>
-#include <QTimer>
-#include <QtGui/private/qrhigles2_p_p.h>
+#include <QLabel>
 
 #include <Spout/SpoutSender.h>
 #include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Gfx::SpoutDevice)
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
-
 namespace Gfx
 {
-struct SpoutNode : score::gfx::OutputNode
+struct SpoutNode final : score::gfx::OutputNode
 {
-  SpoutNode();
-  virtual ~SpoutNode();
-
-  std::weak_ptr<score::gfx::RenderList> m_renderer{};
-  QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
-  std::function<void()> m_update;
-  std::shared_ptr<score::gfx::RenderState> m_renderState{};
-  std::shared_ptr<SpoutSender> m_spout{};
-  bool m_hasSender{};
-
-  void startRendering() override;
-  void onRendererChange() override;
-  bool canRender() const override;
-  void stopRendering() override;
-
-  void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override;
-  score::gfx::RenderList* renderer() const override;
-
-  void createOutput(
-      score::gfx::GraphicsApi graphicsApi,
-      std::function<void()> onReady,
-      std::function<void()> onUpdate,
-      std::function<void()> onResize) override;
-  void destroyOutput() override;
-
-  score::gfx::RenderState* renderState() const override;
-  score::gfx::OutputNodeRenderer*
-  createRenderer(score::gfx::RenderList& r) const noexcept override;
-};
-
-class spout_device : public ossia::net::device_base
-{
-  gfx_node_base root;
-
-public:
-  spout_device(
-      std::unique_ptr<ossia::net::protocol_base> proto,
-      std::string name)
-      : ossia::net::device_base{std::move(proto)}
-      , root{*this, new SpoutNode, name}
+  SpoutNode(const SharedOutputSettings& set)
+    : OutputNode{}
+    , m_settings{set}
   {
+    input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
+  }
+  virtual ~SpoutNode() { }
+
+  void startRendering() override
+  {
+    if(!m_created)
+      m_created = m_spout->CreateSender(m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height);
   }
 
-  const gfx_node_base& get_root_node() const override { return root; }
-  gfx_node_base& get_root_node() override { return root; }
-};
-}
+  void onRendererChange() override { }
+  bool canRender() const override
+  {
+    return bool(m_spout);
+  }
 
-namespace Gfx
-{
-
-QTimer* timer_unsafe{};
-
-SpoutNode::SpoutNode()
-    : OutputNode{}
-{
-  input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
-  timer_unsafe = new QTimer;
-  QObject::connect(timer_unsafe, &QTimer::timeout, [this] {
+  void render() override
+  {
     if (m_update)
       m_update();
 
@@ -105,142 +55,123 @@ SpoutNode::SpoutNode()
 
       renderer->render(*cb);
 
+      // Spout-specific part starts here:
       {
         rhi->makeThreadLocalNativeContextCurrent();
-        static bool b = m_spout->CreateSender("ossia score", 1280, 720);
 
-        if (b)
+        if (m_created)
         {
           auto tex = dynamic_cast<QGles2Texture*>(m_texture)->texture;
-          m_spout->SendTexture(tex, GL_TEXTURE_2D, 1280, 720);
+          m_spout->SendTexture(tex, GL_TEXTURE_2D, m_settings.width, m_settings.height);
         }
         else
         {
           qDebug() << "sender not created";
         }
       }
+
       rhi->endOffscreenFrame();
     }
-  });
-}
-
-SpoutNode::~SpoutNode() { }
-bool SpoutNode::canRender() const
-{
-  return bool(m_spout);
-}
-
-void SpoutNode::startRendering()
-{
-  qDebug() << "startRendering: ";
-  timer_unsafe->start(16);
-  /*
-  if (window)
-  {
-    window->onRender = [this] {
-    if (auto r = window->state.renderer)
-    {
-      window->canRender = r->renderedNodes.size() > 1;
-      r->render();
-    }
-    };
-  }*/
-}
-
-void SpoutNode::onRendererChange()
-{ /*
-  if (window)
-    if (auto r = window->state.renderer)
-      window->canRender = r->renderedNodes.size() > 1;
-      */
-}
-
-void SpoutNode::stopRendering()
-{
-  qDebug() << "stopRendering: ";
-  timer_unsafe->stop();
-  /*
-  if (window)
-  {
-    window->canRender = false;
-    window->onRender = [] {};
-    ////window->state.hasSwapChain = false;
   }
-  */
-}
 
-void SpoutNode::setRenderer(std::shared_ptr<score::gfx::RenderList> r)
-{
-  m_renderer = r;
-}
+  void stopRendering() override
+  {
+  }
 
-score::gfx::RenderList* SpoutNode::renderer() const
-{
-  return m_renderer.lock().get();
-}
+  void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override
+  {
+    m_renderer = r;
+  }
 
-void SpoutNode::createOutput(
-    score::gfx::GraphicsApi graphicsApi,
-    std::function<void()> onReady,
-    std::function<void()> onUpdate,
-    std::function<void()> onResize)
-{
-  m_spout = std::make_shared<SpoutSender>();
-  m_renderState = std::make_shared<score::gfx::RenderState>();
-  m_update = onUpdate;
+  score::gfx::RenderList* renderer() const override
+  {
+    return m_renderer.lock().get();
+  }
 
-  m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-  QRhiGles2InitParams params;
-  params.fallbackSurface = m_renderState->surface;
-#include <Gfx/Qt5CompatPop> // clang-format: keep
-  m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
+  void createOutput(
+        score::gfx::GraphicsApi graphicsApi,
+        std::function<void()> onReady,
+        std::function<void()> onUpdate,
+        std::function<void()> onResize) override
+  {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-  m_renderState->size = QSize(1280, 720);
+    m_spout = std::make_shared<SpoutSender>();
+    m_renderState = std::make_shared<score::gfx::RenderState>();
+    m_update = onUpdate;
 
-  auto rhi = m_renderState->rhi;
-  m_texture = rhi->newTexture(
-      QRhiTexture::RGBA8,
-      m_renderState->size,
-      1,
-      QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
-  m_texture->create();
-  m_renderTarget = rhi->newTextureRenderTarget({m_texture});
-  m_renderState->renderPassDescriptor
-      = m_renderTarget->newCompatibleRenderPassDescriptor();
-  m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-  m_renderTarget->create();
+    m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
+    QRhiGles2InitParams params;
+    params.fallbackSurface = m_renderState->surface;
+#include <Gfx/Qt5CompatPop> // clang-format: keep
+    m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
+#include <Gfx/Qt5CompatPush> // clang-format: keep
+    m_renderState->size = QSize(m_settings.width, m_settings.height);
 
-  onReady();
-}
+    auto rhi = m_renderState->rhi;
+    m_texture = rhi->newTexture(
+                  QRhiTexture::RGBA8, m_renderState->size, 1,
+                  QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+    m_texture->create();
+    m_renderTarget = rhi->newTextureRenderTarget({m_texture});
+    m_renderState->renderPassDescriptor
+        = m_renderTarget->newCompatibleRenderPassDescriptor();
+    m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
+    m_renderTarget->create();
 
-void SpoutNode::destroyOutput()
-{
-  if (m_spout)
-    m_spout->ReleaseSender();
-  m_spout.reset();
-}
-
-score::gfx::RenderState* SpoutNode::renderState() const
-{
-  return m_renderState.get();
-}
-
-class SpoutRenderer : public score::gfx::OutputNodeRenderer
-{
-public:
-  score::gfx::TextureRenderTarget m_rt;
-  SpoutRenderer(const score::gfx::RenderState& state, const SpoutNode& parent)
-      : score::gfx::OutputNodeRenderer{}
-  {
-    m_rt.renderTarget = parent.m_renderTarget;
-    m_rt.renderPass = state.renderPassDescriptor;
+    onReady();
   }
+  void destroyOutput() override
+  {
+    if (m_spout)
+      m_spout->ReleaseSender();
+    m_spout.reset();
+  }
+
+  score::gfx::RenderState* renderState() const override
+  {
+    return m_renderState.get();
+  }
+
+  score::gfx::OutputNodeRenderer* createRenderer(score::gfx::RenderList& r) const noexcept override
+  {
+    class SpoutRenderer : public score::gfx::OutputNodeRenderer
+    {
+    public:
+      SpoutRenderer(const score::gfx::RenderState& state, const SpoutNode& parent)
+        : score::gfx::OutputNodeRenderer{}
+      {
+        m_rt.renderTarget = parent.m_renderTarget;
+        m_rt.renderPass = state.renderPassDescriptor;
+      }
+
+      score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return m_rt; }
+      void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb) override { }
+      void init(score::gfx::RenderList& renderer) override { }
+      void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
+      void release(score::gfx::RenderList&) override { }
+    private:
+      score::gfx::TextureRenderTarget m_rt;
+    };
+    return new SpoutRenderer{r.state, *this};
+  }
+
+  Configuration configuration() const noexcept override{
+    return { .manualRenderingRate = 1000. / m_settings.rate };
+  }
+
+private:
+  SharedOutputSettings m_settings;
+
+  std::weak_ptr<score::gfx::RenderList> m_renderer{};
+  QRhiTexture* m_texture{};
+  QRhiTextureRenderTarget* m_renderTarget{};
+  std::function<void()> m_update;
+  std::shared_ptr<score::gfx::RenderState> m_renderState{};
+  std::shared_ptr<SpoutSender> m_spout{};
+  bool m_created{};
 };
 
-score::gfx::NodeRenderer* SpoutNode::createRenderer(score::gfx::RenderList& r) const noexcept
-{
-  return new SpoutRenderer{r.state, *this};
-}
+#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 SpoutDevice::~SpoutDevice() { }
 
@@ -253,8 +184,29 @@ bool SpoutDevice::reconnect()
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if (plug)
     {
+      auto set = m_settings.deviceSpecificSettings.value<SharedOutputSettings>();
       m_protocol = new gfx_protocol_base{plug->exec};
+
+      class spout_device : public ossia::net::device_base
+      {
+        gfx_node_base root;
+
+      public:
+        spout_device(
+            const SharedOutputSettings& set,
+            std::unique_ptr<ossia::net::protocol_base> proto,
+            std::string name)
+            : ossia::net::device_base{std::move(proto)}
+            , root{*this, new SpoutNode{set}, name}
+        {
+        }
+
+        const gfx_node_base& get_root_node() const override { return root; }
+        gfx_node_base& get_root_node() override { return root; }
+      };
+
       m_dev = std::make_unique<spout_device>(
+          set,
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           m_settings.name.toStdString());
     }
@@ -303,28 +255,17 @@ SpoutProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
-    s.protocol = concreteKey();
+    s.protocol = static_concreteKey();
     s.name = "spout_out";
+    SharedOutputSettings set;
+    set.width = 1280;
+    set.height = 720;
+    set.path = "ossia";
+    set.rate = 60.;
+    s.deviceSpecificSettings = QVariant::fromValue(set);
     return s;
   }();
   return settings;
-}
-
-Device::AddressDialog* SpoutProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::AddressDialog* SpoutProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
 }
 
 Device::ProtocolSettingsWidget* SpoutProtocolFactory::makeSettingsWidget()
@@ -332,55 +273,19 @@ Device::ProtocolSettingsWidget* SpoutProtocolFactory::makeSettingsWidget()
   return new SpoutSettingsWidget;
 }
 
-QVariant SpoutProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
-{
-  return {};
-}
-
-void SpoutProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
-{
-}
-
-bool SpoutProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
-{
-  return a.name != b.name;
-}
-
 SpoutSettingsWidget::SpoutSettingsWidget(QWidget* parent)
-    : ProtocolSettingsWidget(parent)
+    : SharedOutputSettingsWidget(parent)
 {
-  m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  m_deviceNameEdit->setText("Spout out");
 
-  auto layout = new QFormLayout;
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
-
-  setLayout(layout);
-
-  setDefaults();
-}
-
-void SpoutSettingsWidget::setDefaults()
-{
-  m_deviceNameEdit->setText("spout_out");
+  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
+  setSettings(SpoutProtocolFactory{}.defaultSettings());
 }
 
 Device::DeviceSettings SpoutSettingsWidget::getSettings() const
 {
-  Device::DeviceSettings s;
-  s.name = m_deviceNameEdit->text();
-  s.protocol = SpoutProtocolFactory::static_concreteKey();
-  return s;
+  auto set = SharedOutputSettingsWidget::getSettings();
+  set.protocol = SpoutProtocolFactory::static_concreteKey();
+  return set;
 }
-
-void SpoutSettingsWidget::setSettings(const Device::DeviceSettings& settings)
-{
-  m_deviceNameEdit->setText(settings.name);
 }
-
-}
-#include <Gfx/Qt5CompatPop> // clang-format: keep
