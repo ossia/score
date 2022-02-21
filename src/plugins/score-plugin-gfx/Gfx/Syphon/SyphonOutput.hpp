@@ -52,5 +52,4 @@ public:
 
   Device::DeviceSettings getSettings() const override;
 };
-
 }

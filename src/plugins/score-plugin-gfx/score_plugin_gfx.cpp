@@ -88,7 +88,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
          , Gfx::SpoutProtocolFactory
 #endif
 #if defined(HAS_SYPHON)
-//         , Gfx::Syphon::InputFactory
+         , Gfx::Syphon::InputFactory
          , Gfx::SyphonProtocolFactory
 #endif
 #if defined(HAS_FREENECT2)

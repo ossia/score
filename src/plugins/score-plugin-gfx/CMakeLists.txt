@@ -30,7 +30,7 @@ endif()
 if(APPLE)
 set(SYPHON_SRCS
     Gfx/Syphon/SyphonInput.hpp
-#    Gfx/Syphon/SyphonInput.mm
+    Gfx/Syphon/SyphonInput.mm
     Gfx/Syphon/SyphonOutput.hpp
     Gfx/Syphon/SyphonOutput.mm
 )

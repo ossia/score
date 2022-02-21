@@ -4,14 +4,18 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
-
-// #include <Syphon/SyphonReceiver.h>
-#include <Syphon/SyphonOpenGLClient.h>
-
+#include <Gfx/Syphon/SyphonHelpers.hpp>
+#include <Syphon/SyphonClient.h>
+#include <Syphon/SyphonOpenGLImage.h>
+#include <Syphon/SyphonServerDirectory.h>
+#include <QtPlatformHeaders/QCocoaNativeContext>
+#include <QOpenGLContext>
 #include <QFormLayout>
+#include <QApplication>
 #include <QLabel>
 
 #include <wobjectimpl.h>
+#include <QtGui/private/qrhigles2_p_p.h>
 
 namespace Gfx::Syphon
 {
@@ -55,11 +59,45 @@ private:
 
   struct Material {
     float scale_w{1.0f}, scale_h{1.0f};
-  };
-  std::unique_ptr<score::gfx::PackedDecoder> m_gpu{};
+    float width{1.f}, height{1.f};
+  } material;
+  std::unique_ptr<score::gfx::PackedRectDecoder> m_gpu{};
 
   bool enabled{};
   ~Renderer() { }
+
+  void openServer(QRhi& rhi)
+  {
+    enabled = false;
+    // Need pool
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    SyphonServerDirectory *ssd = [SyphonServerDirectory sharedDirectory];
+    NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
+    if (servers.count != 0)
+    {
+
+      NSDictionary *desc = nullptr;// find_by_uuid(servers, s->uuid);
+      if (!desc) {
+        desc = servers[0];
+        /*
+          if (![s->uuid isEqualToString:
+                    desc[SyphonServerDescriptionUUIDKey]]) {
+            s->uuid_changed = true;
+          }
+          */
+      }
+
+      m_receiver = [[SYPHON_CLIENT_UNIQUE_CLASS_NAME alloc]
+          initWithServerDescription:desc
+          context: nativeContext(rhi)
+          options:NULL
+          newFrameHandler:NULL
+      ];
+      enabled = true;
+    }
+    [pool drain];
+  }
 
   score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return { }; }
   void init(score::gfx::RenderList& renderer) override
@@ -75,27 +113,44 @@ private:
     }
 
     m_processUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(score::gfx::ProcessUBO));
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(score::gfx::ProcessUBO));
     m_processUBO->create();
 
     m_materialUBO = rhi.newBuffer(
-    QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
     m_materialUBO->create();
 
     // Initialize syphon
-    m_receiver.SetReceiverName(node.settings.path.toStdString().c_str());
+    openServer(rhi);
+    int w = 16, h = 16;
 
-    char sendername[256];
-    uint w = 16, h = 16;
-    m_receiver.SetShareMode(0);
-    enabled = m_receiver.CreateReceiver(sendername, w, h);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    SyphonOpenGLImage* img{};
+    if(enabled)
+    {
+      if(img = [m_receiver newFrameImage]) {
+        NSSize sz = img.textureSize;
+        w = sz.width;
+        h = sz.height;
+      }
+    }
 
-    metadata.width = std::max((uint)1, w);
-    metadata.height = std::max((uint)1, h);
+    metadata.width = std::max((int)1, w);
+    metadata.height = std::max((int)1, h);
+    material.width = metadata.width;
+    material.height = metadata.height;
 
-    m_gpu = std::make_unique<score::gfx::PackedDecoder>(QRhiTexture::RGBA8, 4, metadata, QString{});
+    m_gpu = std::make_unique<score::gfx::PackedRectDecoder>(QRhiTexture::RGBA8, 4, metadata, QString{});
     createPipelines(renderer);
     m_pixels.resize(w * h * 4);
+
+    if(img)
+    {
+      rebuildTexture(img);
+      [img release];
+    }
+
+    [pool drain];
   }
 
   void createPipelines(score::gfx::RenderList& r)
@@ -117,79 +172,75 @@ private:
     }
   }
 
+  void rebuildTexture(SyphonOpenGLImage* img)
+  {
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+
+    QRhiTexture::NativeTexture tt;
+    tt.layout = 0;
+    tt.object = &currentTex;
+
+    tex->release();
+    NSSize sz = img.textureSize;
+    tex->setPixelSize(QSize(sz.width, sz.height));
+    tex->buildFrom(tt);
+
+    if(auto t = dynamic_cast<QGles2Texture*>(tex))
+    {
+      t->target = GL_TEXTURE_RECTANGLE;
+      t->gltype = GL_UNSIGNED_SHORT;
+      t->glintformat = GL_BGRA;
+      t->glsizedintformat = GL_BGRA;
+      t->glformat = GL_BGRA;
+      t->gltype = GL_UNSIGNED_INT_8_8_8_8_REV;
+    }
+    for(auto& pass : m_p)
+      pass.second.srb->build();
+  }
+
+  GLuint currentTex = 0;
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    res.updateDynamicBuffer(m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
-    Material mat;
-    mat.scale_w = 1.;
-    mat.scale_h = 1.;
-    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
     if(!enabled)
     {
-      char sendername[256];
-      uint w = 16, h = 16;
-      enabled = m_receiver.CreateReceiver(sendername, w, h);
-      if(!enabled)
-        return;
+      auto& rhi = *renderer.state.rhi;
+      openServer(rhi);
     }
 
-    SCORE_ASSERT(!m_gpu->samplers.empty());
+    if(!m_receiver.hasNewFrame)
+    {
+      return;
+    }
 
-    auto tex = m_gpu->samplers[0].texture;
     auto& rhi = *renderer.state.rhi;
 
     // Check the current status of the Syphon remote
     bool connected{};
-    QSize cursize{metadata.width, metadata.height};
-    uint w = metadata.width, h = metadata.height;
 
-    char sendername[256];
-    {
-      if(!m_receiver.CheckReceiver(sendername, w, h, connected))
-        return;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    auto img = [m_receiver newFrameImage];
+    if(!img) {
+      return;
     }
 
-    m_receiver.IsUpdated();
-    bool mustUpload = false;
-    // Check if the texture size changed
-    if(w != metadata.width || h != metadata.height)
+    NSSize sz = img.textureSize;
+    if(currentTex != img.textureName || sz.width != metadata.width || sz.height != metadata.height)
     {
-      m_receiver.ReleaseReceiver();
-      enabled = m_receiver.CreateReceiver(sendername, w, h);
-      if(!enabled)
-        return;
+      metadata.width = std::max(1., sz.width);
+      metadata.height = std::max(1., sz.height);
+      material.width = metadata.width;
+      material.height = metadata.height;
 
-      metadata.width = w;
-      metadata.height = h;
-
-      if(metadata.width > 0 && metadata.height > 0)
-      {
-        m_pixels.resize(w * h * 4);
-        tex->release();
-        tex->setPixelSize(QSize(w, h));
-        tex->build();
-        for(auto& pass : m_p)
-          pass.second.srb->build();
-        mustUpload = true;
-      }
-      else
-      {
-        return;
-      }
+      currentTex = img.textureName;
+      rebuildTexture(img);
     }
 
-    if(metadata.width > 0 && metadata.height > 0)
-    {
-      if(m_receiver.ReceiveImage((unsigned char*)m_pixels.data(), GL_RGBA, true))
-      {
-        mustUpload = m_receiver.IsFrameNew();
-      }
-    }
+    [img release];
+    [pool drain];
 
-    if(mustUpload)
-    {
-      m_gpu->setPixels(res, (uint8_t*)m_pixels.data(), metadata.width * 4);
-    }
+    res.updateDynamicBuffer(m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
+    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &material);
   }
 
   void runRenderPass(
@@ -205,7 +256,7 @@ private:
   {
     if(enabled)
     {
-      m_receiver.ReleaseReceiver();
+      //m_receiver.ReleaseReceiver();
       enabled = false;
     }
 
@@ -226,8 +277,8 @@ private:
     m_meshBuffer = nullptr;
   }
 
-  ::SyphonClient m_receiver;
-  std::vector<char> m_pixels;
+  SyphonOpenGLClient* m_receiver{};
+  std::vector<unsigned char> m_pixels;
 };
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 

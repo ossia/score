@@ -6,8 +6,8 @@
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 
+#include <Gfx/Syphon/SyphonHelpers.hpp>
 #include <QtGui/private/qrhigles2_p_p.h>
-#include <QtPlatformHeaders/QCocoaNativeContext>
 #include <QOpenGLContext>
 #include <QFormLayout>
 #include <QLabel>
@@ -19,6 +19,16 @@ W_OBJECT_IMPL(Gfx::SyphonDevice)
 
 namespace Gfx
 {
+CGLContextObj nativeContext(QRhi& rhi)
+{
+  auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
+  QOpenGLContext* ctx = handles->context;
+  auto pc = ctx->nativeHandle().value<QCocoaNativeContext>();
+
+  CGLContextObj obj = [pc.context() CGLContextObj];
+  return obj;
+}
+
 struct SyphonNode final : score::gfx::OutputNode
 {
   SyphonNode(const SharedOutputSettings& set)
@@ -39,17 +49,6 @@ struct SyphonNode final : score::gfx::OutputNode
     return  bool(m_syphon);
   }
 
-  CGLContextObj nativeContext(QRhi& rhi)
-  {
-    auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
-    QOpenGLContext* ctx = handles->context;
-    auto pctx = ctx->handle();
-    auto pp = ctx->nativeHandle();
-    auto pc = pp.value<QCocoaNativeContext>();
-
-    CGLContextObj obj = [pc.context() CGLContextObj];
-    return obj;
-  }
 
   void createSyphon(QRhi& rhi)
   {
