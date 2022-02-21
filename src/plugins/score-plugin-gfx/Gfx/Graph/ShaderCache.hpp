@@ -50,6 +50,7 @@ private:
 #endif
 #if defined(__APPLE__)
           {QShader::MslShader, QShaderVersion(12)},
+          {QShader::GlslShader, QShaderVersion(120, QShaderVersion::Flag{})} // For syphon
 #endif
     });
 
@@ -60,6 +61,7 @@ private:
 #endif
 #if defined(__APPLE__)
           QShader::Variant{},
+          QShader::Variant{}
 #endif
     });
   }

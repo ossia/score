@@ -20,11 +20,8 @@
  *
  ************************************************************************/
 
-#include <atomic>
-
 #import <Cocoa/Cocoa.h>
 
-extern "C"
 void disableAppNap()
 {
     // Does the App Nap API even exist on this Mac?

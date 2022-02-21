@@ -52,3 +52,6 @@
 [submodule "3rdparty/Gist"]
 	path = 3rdparty/Gist
 	url = https://github.com/jcelerier/Gist
+[submodule "3rdparty/Syphon-Framework"]
+	path = 3rdparty/Syphon-Framework
+	url = https://github.com/jcelerier/Syphon-Framework

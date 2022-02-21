@@ -1,4 +1,4 @@
-project(score_plugin_gfx LANGUAGES C CXX)
+project(score_plugin_gfx LANGUAGES C CXX OBJCXX)
 
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS ShaderTools)
 if(NOT TARGET ${QT_PREFIX}::ShaderTools)
@@ -24,6 +24,15 @@ set(SPOUT_SRCS
     Gfx/Spout/SpoutInput.cpp
     Gfx/Spout/SpoutOutput.hpp
     Gfx/Spout/SpoutOutput.cpp
+)
+endif()
+
+if(APPLE)
+set(SYPHON_SRCS
+    Gfx/Syphon/SyphonInput.hpp
+#    Gfx/Syphon/SyphonInput.mm
+    Gfx/Syphon/SyphonOutput.hpp
+    Gfx/Syphon/SyphonOutput.mm
 )
 endif()
 
@@ -117,6 +126,7 @@ set(HDRS
 
 set(SRCS
     ${SPOUT_SRCS}
+    ${SYPHON_SRCS}
     ${KINECT2_SRCS}
 
     Gfx/Filter/Executor.cpp
@@ -251,6 +261,12 @@ if(WIN32)
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
+endif()
+
+if(APPLE)
+  add_subdirectory("${3RDPARTY_FOLDER}/Syphon-Framework" "${CMAKE_CURRENT_BINARY_DIR}/Syphon")
+  target_link_libraries(${PROJECT_NAME} PRIVATE Syphon)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SYPHON)
 endif()
 
 if(freenect2_FOUND)

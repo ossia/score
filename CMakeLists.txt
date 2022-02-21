@@ -43,6 +43,7 @@ endif()
 
 project(score LANGUAGES C CXX)
 if(APPLE)
+  enable_language(OBJC)
   enable_language(OBJCXX)
 endif()
 if(NOT QT_VERSION)

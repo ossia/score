@@ -34,6 +34,10 @@
 #include <Gfx/Spout/SpoutInput.hpp>
 #include <Gfx/Spout/SpoutOutput.hpp>
 #endif
+#if defined(HAS_SYPHON)
+#include <Gfx/Syphon/SyphonInput.hpp>
+#include <Gfx/Syphon/SyphonOutput.hpp>
+#endif
 #if defined(HAS_FREENECT2)
 #include <Gfx/Kinect2Device.hpp>
 #endif
@@ -82,6 +86,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
 #if defined(HAS_SPOUT)
          , Gfx::Spout::InputFactory
          , Gfx::SpoutProtocolFactory
+#endif
+#if defined(HAS_SYPHON)
+//         , Gfx::Syphon::InputFactory
+         , Gfx::SyphonProtocolFactory
 #endif
 #if defined(HAS_FREENECT2)
          ,
