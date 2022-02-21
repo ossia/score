@@ -1,4 +1,4 @@
-﻿#ifndef SCORE_INTERFACELIST_2018_10_22
+#ifndef SCORE_INTERFACELIST_2018_10_22
 #define SCORE_INTERFACELIST_2018_10_22
 #pragma once
 #include <score/plugins/Interface.hpp>

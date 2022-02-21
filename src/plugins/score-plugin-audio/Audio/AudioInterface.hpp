@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/UuidKeySerialization.hpp>
 

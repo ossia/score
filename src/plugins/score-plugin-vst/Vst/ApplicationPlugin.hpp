@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <Vst/Loader.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>

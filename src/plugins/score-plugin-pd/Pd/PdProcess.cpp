@@ -1,4 +1,4 @@
-﻿#include "PdProcess.hpp"
+#include "PdProcess.hpp"
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>

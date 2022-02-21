@@ -1,4 +1,4 @@
-﻿#include "AudioDevice.hpp"
+#include "AudioDevice.hpp"
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Explorer/DeviceList.hpp>

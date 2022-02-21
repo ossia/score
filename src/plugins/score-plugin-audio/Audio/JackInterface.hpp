@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <Audio/AudioInterface.hpp>
 
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>

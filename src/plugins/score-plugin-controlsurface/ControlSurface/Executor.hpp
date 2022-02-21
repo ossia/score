@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <ControlSurface/Process.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
