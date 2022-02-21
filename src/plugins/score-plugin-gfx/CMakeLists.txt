@@ -1,4 +1,4 @@
-project(score_plugin_gfx LANGUAGES C CXX OBJCXX)
+project(score_plugin_gfx LANGUAGES C CXX)
 
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS ShaderTools)
 if(NOT TARGET ${QT_PREFIX}::ShaderTools)
@@ -28,6 +28,8 @@ set(SPOUT_SRCS
 endif()
 
 if(APPLE)
+enable_language(OBJC)
+enable_language(OBJCXX)
 set(SYPHON_SRCS
     Gfx/Syphon/SyphonInput.hpp
     Gfx/Syphon/SyphonInput.mm
