@@ -231,17 +231,6 @@ QString SpoutProtocolFactory::prettyName() const noexcept
   return QObject::tr("Spout Output");
 }
 
-QString SpoutProtocolFactory::category() const noexcept
-{
-  return StandardCategories::video;
-}
-
-Device::DeviceEnumerator*
-SpoutProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::DeviceInterface* SpoutProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
     const Explorer::DeviceDocumentPlugin& doc,

@@ -7,36 +7,59 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <score/serialization/MimeVisitor.hpp>
-
-#include <ossia-qt/name_utils.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 
 #include <QFormLayout>
 #include <QLineEdit>
-#include <QMenu>
-#include <QMimeData>
+
 #include <QtGui/private/qrhigles2_p_p.h>
 
-#include <ossia/detail/fmt.hpp>
 #include <shmdata/console-logger.hpp>
 #include <shmdata/writer.hpp>
+
+#include <ossia/detail/fmt.hpp>
 #include <QLabel>
 #include <QSpinBox>
+
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Gfx::ShmdataOutputDevice)
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
 namespace Gfx
 {
+class ShmdataOutputDevice final : public GfxOutputDevice
+{
+  W_OBJECT(ShmdataOutputDevice)
+public:
+  using GfxOutputDevice::GfxOutputDevice;
+  ~ShmdataOutputDevice();
+
+private:
+  bool reconnect() override;
+  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
+
+  gfx_protocol_base* m_protocol{};
+  mutable std::unique_ptr<ossia::net::device_base> m_dev;
+};
+
+class ShmdataOutputSettingsWidget final : public Gfx::SharedOutputSettingsWidget
+{
+public:
+  ShmdataOutputSettingsWidget(QWidget* parent = nullptr);
+
+  Device::DeviceSettings getSettings() const override;
+};
+
+}
+W_OBJECT_IMPL(Gfx::ShmdataOutputDevice)
+
+namespace Gfx
+{
 struct ShmdataOutputNode : score::gfx::OutputNode
 {
-  explicit ShmdataOutputNode(const ShmSettings&);
+  explicit ShmdataOutputNode(const SharedOutputSettings&);
   virtual ~ShmdataOutputNode();
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
@@ -67,7 +90,7 @@ struct ShmdataOutputNode : score::gfx::OutputNode
   score::gfx::OutputNodeRenderer* createRenderer(score::gfx::RenderList& r) const noexcept override;
   Configuration configuration() const noexcept override;
 
-  ShmSettings m_settings;
+  SharedOutputSettings m_settings;
 
   QRhiReadbackResult m_readback;
   shmdata::ConsoleLogger m_logger;
@@ -79,7 +102,7 @@ class shmdata_output_device : public ossia::net::device_base
 
 public:
   shmdata_output_device(
-      const ShmSettings& set,
+      const SharedOutputSettings& set,
       std::unique_ptr<ossia::net::protocol_base> proto,
       std::string name)
       : ossia::net::device_base{std::move(proto)}
@@ -96,7 +119,7 @@ namespace Gfx
 {
 
 
-ShmdataOutputNode::ShmdataOutputNode(const ShmSettings& set)
+ShmdataOutputNode::ShmdataOutputNode(const SharedOutputSettings& set)
     : OutputNode{}
     , m_settings{set}
 {
@@ -223,7 +246,7 @@ bool ShmdataOutputDevice::reconnect()
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if (plug)
     {
-      auto set = m_settings.deviceSpecificSettings.value<ShmSettings>();
+      auto set = m_settings.deviceSpecificSettings.value<SharedOutputSettings>();
       m_protocol = new gfx_protocol_base{plug->exec};
       m_dev = std::make_unique<shmdata_output_device>(
           set,
@@ -243,20 +266,14 @@ bool ShmdataOutputDevice::reconnect()
   return connected();
 }
 
+Device::ProtocolSettingsWidget* ShmdataOutputProtocolFactory::makeSettingsWidget()
+{
+  return new ShmdataOutputSettingsWidget{};
+}
+
 QString ShmdataOutputProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Shmdata Output");
-}
-
-QString ShmdataOutputProtocolFactory::category() const noexcept
-{
-  return StandardCategories::video;
-}
-
-Device::DeviceEnumerator*
-ShmdataOutputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
 }
 
 Device::DeviceInterface* ShmdataOutputProtocolFactory::makeDevice(
@@ -274,7 +291,7 @@ ShmdataOutputProtocolFactory::defaultSettings() const noexcept
     Device::DeviceSettings s;
     s.protocol = concreteKey();
     s.name = "Shmdata Output";
-    ShmSettings set;
+    SharedOutputSettings set;
     set.width = 1280;
     set.height = 720;
     set.path = "/tmp/score_shm_video";
@@ -285,71 +302,16 @@ ShmdataOutputProtocolFactory::defaultSettings() const noexcept
   return settings;
 }
 
-Device::AddressDialog* ShmdataOutputProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::AddressDialog* ShmdataOutputProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::ProtocolSettingsWidget* ShmdataOutputProtocolFactory::makeSettingsWidget()
-{
-  return new ShmdataOutputSettingsWidget;
-}
-
-QVariant ShmdataOutputProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
-{
-  return makeProtocolSpecificSettings_T<ShmSettings>(visitor);
-}
-
-void ShmdataOutputProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
-{
-  serializeProtocolSpecificSettings_T<ShmSettings>(data, visitor);
-}
-
-bool ShmdataOutputProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
-{
-  return a.name != b.name;
-}
-
 ShmdataOutputSettingsWidget::ShmdataOutputSettingsWidget(QWidget* parent)
-    : ProtocolSettingsWidget(parent)
+    : SharedOutputSettingsWidget{parent}
 {
-  m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
-
-  auto layout = new QFormLayout;
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
-  layout->addRow(tr("Shmdata path"), m_shmPath = new QLineEdit);
-  layout->addRow(tr("Width"), m_width = new QSpinBox);
-  layout->addRow(tr("Height"), m_height = new QSpinBox);
-  layout->addRow(tr("Rate"), m_rate = new QSpinBox);
-
-  m_width->setRange(1, 16384);
-  m_height->setRange(1, 16384);
-  m_rate->setRange(1, 1000);
+  m_deviceNameEdit->setText("Shmdata Out");
+  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Shmdata path");
 
   auto helpLabel = new QLabel{tr("To test, use the following command: \n"
                                  "$ gst-launch-1.0 shmdatasrc socket-path=<THE PATH> ! videoconvert ! xvimagesink")};
   helpLabel->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
-  layout->addRow(helpLabel);
-
-
-  setLayout(layout);
+  m_layout->addRow(helpLabel);
 
   setSettings(ShmdataOutputProtocolFactory{}.defaultSettings());
 }
@@ -357,64 +319,10 @@ ShmdataOutputSettingsWidget::ShmdataOutputSettingsWidget(QWidget* parent)
 
 Device::DeviceSettings ShmdataOutputSettingsWidget::getSettings() const
 {
-  Device::DeviceSettings s;
-  s.name = m_deviceNameEdit->text();
-  s.protocol = ShmdataOutputProtocolFactory::static_concreteKey();
-
-  ShmSettings set;
-  set.width = m_width->value();
-  set.height = m_height->value();
-  set.path = m_shmPath->text();
-  set.rate = m_rate->value();
-
-  s.deviceSpecificSettings = QVariant::fromValue(set);
-
-  return s;
-}
-
-void ShmdataOutputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
-{
-  m_deviceNameEdit->setText(settings.name);
-  const auto& set = settings.deviceSpecificSettings.value<ShmSettings>();
-  m_shmPath->setText(set.path);
-  m_width->setValue(set.width);
-  m_height->setValue(set.height);
-  m_rate->setValue(set.rate);
+  auto set = SharedOutputSettingsWidget::getSettings();
+  set.protocol = ShmdataOutputProtocolFactory::static_concreteKey();
+  return set;
 }
 
 }
 #include <Gfx/Qt5CompatPop> // clang-format: keep
-
-template <>
-void DataStreamReader::read(const Gfx::ShmSettings& n)
-{
-  m_stream << n.path << n.width << n.height << n.rate;
-  insertDelimiter();
-}
-
-template <>
-void DataStreamWriter::write(Gfx::ShmSettings& n)
-{
-  m_stream >> n.path >> n.width >> n.height >> n.rate;
-  checkDelimiter();
-}
-
-template <>
-void JSONReader::read(const Gfx::ShmSettings& n)
-{
-  obj["Path"] = n.path;
-  obj["Width"] = n.width;
-  obj["Height"] = n.height;
-  obj["Rate"] = n.rate;
-}
-
-template <>
-void JSONWriter::write(Gfx::ShmSettings& n)
-{
-  n.path = obj["Path"].toString();
-  n.width = obj["Width"].toDouble();
-  n.height = obj["Height"].toDouble();
-  n.rate = obj["Rate"].toDouble();
-}
-
-SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::ShmSettings);

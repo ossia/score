@@ -34,14 +34,33 @@
 
 #include <Video/VideoInterface.hpp>
 
+#include <QLabel>
 extern "C"
 {
 #include <libavformat/avformat.h>
 }
 
-W_OBJECT_IMPL(Gfx::Shmdata::InputDevice)
+namespace Gfx::Shmdata
+{
 
-SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::Shmdata::InputSettings);
+class InputDevice final : public Gfx::GfxInputDevice
+{
+  W_OBJECT(InputDevice)
+public:
+  using GfxInputDevice::GfxInputDevice;
+  ~InputDevice();
+
+private:
+  bool reconnect() override;
+  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
+
+  Gfx::video_texture_input_protocol* m_protocol{};
+  mutable std::unique_ptr<Gfx::video_texture_input_device> m_dev;
+};
+
+}
+
+W_OBJECT_IMPL(Gfx::Shmdata::InputDevice)
 
 namespace Gfx::Shmdata
 {
@@ -270,7 +289,7 @@ bool InputDevice::reconnect()
 
   try
   {
-    auto set = this->settings().deviceSpecificSettings.value<InputSettings>();
+    auto set = this->settings().deviceSpecificSettings.value<SharedInputSettings>();
 
     auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
     if (plug)
@@ -300,11 +319,6 @@ QString InputFactory::prettyName() const noexcept
   return QObject::tr("Shmdata Input");
 }
 
-QString InputFactory::category() const noexcept
-{
-  return StandardCategories::video;
-}
-
 Device::DeviceEnumerator* InputFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
@@ -322,7 +336,7 @@ const Device::DeviceSettings& InputFactory::defaultSettings() const noexcept
     Device::DeviceSettings s;
     s.protocol = concreteKey();
     s.name = "Shmdata Input";
-    InputSettings specif;
+    SharedInputSettings specif;
     specif.path = "/tmp/score_shmdata_input";
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
@@ -330,105 +344,24 @@ const Device::DeviceSettings& InputFactory::defaultSettings() const noexcept
   return settings;
 }
 
-Device::AddressDialog* InputFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::AddressDialog* InputFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
 Device::ProtocolSettingsWidget* InputFactory::makeSettingsWidget()
 {
   return new InputSettingsWidget;
 }
 
-QVariant InputFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+InputSettingsWidget::InputSettingsWidget(QWidget* parent)
+    : SharedInputSettingsWidget{parent}
 {
-  return makeProtocolSpecificSettings_T<InputSettings>(visitor);
-}
-
-void InputFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
-{
-  serializeProtocolSpecificSettings_T<InputSettings>(data, visitor);
-}
-
-bool InputFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
-{
-  return a.name != b.name;
-}
-
-InputSettingsWidget::InputSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
-{
-  m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
-  checkForChanges(m_deviceNameEdit);
-
-  auto layout = new QFormLayout;
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
-  layout->addRow(tr("Shmdata path"), m_shmPath = new QLineEdit);
-  setLayout(layout);
-
+  m_deviceNameEdit->setText("Shmdata In");
+  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Shmdata path");
   setSettings(InputFactory{}.defaultSettings());
 }
 
-
 Device::DeviceSettings InputSettingsWidget::getSettings() const
 {
-  Device::DeviceSettings s = m_settings;
-  s.name = m_deviceNameEdit->text();
-  s.protocol = InputFactory::static_concreteKey();
-  InputSettings set;
-  set.path = m_shmPath->text();
-  s.deviceSpecificSettings = QVariant::fromValue(set);
-  return s;
+  auto set = SharedInputSettingsWidget::getSettings();
+  set.protocol = InputFactory::static_concreteKey();
+  return set;
 }
 
-void InputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
-{
-  m_settings = settings;
-  m_deviceNameEdit->setText(settings.name);
-
-  const auto& set = settings.deviceSpecificSettings.value<InputSettings>();
-  m_shmPath->setText(set.path);
-}
-
-}
-
-template <>
-void DataStreamReader::read(const Gfx::Shmdata::InputSettings& n)
-{
-  m_stream << n.path;
-  insertDelimiter();
-}
-
-template <>
-void DataStreamWriter::write(Gfx::Shmdata::InputSettings& n)
-{
-  m_stream >> n.path;
-  checkDelimiter();
-}
-
-template <>
-void JSONReader::read(const Gfx::Shmdata::InputSettings& n)
-{
-  obj["Path"] = n.path;
-}
-
-template <>
-void JSONWriter::write(Gfx::Shmdata::InputSettings& n)
-{
-  n.path = obj["Path"].toString();
 }

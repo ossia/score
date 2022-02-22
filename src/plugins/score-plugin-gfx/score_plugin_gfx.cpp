@@ -26,6 +26,10 @@
 #include <Dataflow/WidgetInletFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
+
+#include <Gfx/SharedInputSettings.hpp>
+#include <Gfx/SharedOutputSettings.hpp>
+
 #if defined(SCORE_HAS_SHMDATA)
 #include <Gfx/Shmdata/ShmdataInputDevice.hpp>
 #include <Gfx/Shmdata/ShmdataOutputDevice.hpp>
@@ -47,11 +51,14 @@
 #include <score_plugin_gfx_commands_files.hpp>
 score_plugin_gfx::score_plugin_gfx()
 {
-#if defined(SCORE_HAS_SHMDATA)
-  qRegisterMetaType<Gfx::ShmSettings>();
+  qRegisterMetaType<Gfx::SharedInputSettings>();
+  qRegisterMetaType<Gfx::SharedOutputSettings>();
+  qRegisterMetaType<Gfx::CameraSettings>();
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Gfx::ShmSettings>();
-#endif
+  qRegisterMetaTypeStreamOperators<Gfx::SharedInputSettings>();
+  qRegisterMetaTypeStreamOperators<Gfx::SharedInputSettings>();
+  qRegisterMetaTypeStreamOperators<Gfx::CameraSettings>();
 #endif
 
 #if defined(HAS_FREENECT2)
@@ -59,11 +66,6 @@ score_plugin_gfx::score_plugin_gfx()
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Gfx::Kinect2Settings>();
 #endif
-#endif
-
-  qRegisterMetaType<Gfx::CameraSettings>();
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Gfx::CameraSettings>();
 #endif
 
 }

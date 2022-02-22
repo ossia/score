@@ -4,6 +4,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Gfx/SharedInputSettings.hpp>
 #include <verdigris>
 
 #include <score_plugin_gfx_export.h>
@@ -22,6 +23,9 @@ class SCORE_PLUGIN_GFX_EXPORT SharedInputProtocolFactory
 {
   public:
   ~SharedInputProtocolFactory();
+
+  QString category() const noexcept override;
+
   Device::AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,

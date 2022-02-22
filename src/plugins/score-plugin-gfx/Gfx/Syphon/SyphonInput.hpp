@@ -20,7 +20,6 @@ class InputFactory final : public SharedInputProtocolFactory
   SCORE_CONCRETE("398CEC01-C4EA-43B7-8281-D848748E0F68")
 public:
   QString prettyName() const noexcept override;
-  QString category() const noexcept override;
   Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface*

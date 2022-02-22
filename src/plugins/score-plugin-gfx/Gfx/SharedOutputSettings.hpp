@@ -46,6 +46,11 @@ class SCORE_PLUGIN_GFX_EXPORT SharedOutputProtocolFactory
   bool checkCompatibility(
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const noexcept override;
+
+  QString category() const noexcept override;
+
+  Device::DeviceEnumerator*
+  getEnumerator(const score::DocumentContext& ctx) const override;
 };
 
 class SharedOutputSettingsWidget : public Device::ProtocolSettingsWidget

@@ -51,8 +51,6 @@ public:
       , context{ctx}
       , node{gfx_n}
   {
-    auto& proto = static_cast<simple_texture_input_protocol&>(n.get_device().get_protocol());
-
     node_id = context->ui->register_node(std::unique_ptr<score::gfx::Node>{gfx_n});
   }
 

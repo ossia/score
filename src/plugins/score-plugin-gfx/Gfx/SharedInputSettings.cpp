@@ -8,6 +8,12 @@
 namespace Gfx
 {
 SharedInputProtocolFactory::~SharedInputProtocolFactory() = default;
+
+QString SharedInputProtocolFactory::category() const noexcept
+{
+  return StandardCategories::video;
+}
+
 Device::AddressDialog* SharedInputProtocolFactory::makeAddAddressDialog(
     const Device::DeviceInterface& dev,
     const score::DocumentContext& ctx,

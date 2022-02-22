@@ -276,17 +276,6 @@ QString SyphonProtocolFactory::prettyName() const noexcept
   return QObject::tr("Syphon Output");
 }
 
-QString SyphonProtocolFactory::category() const noexcept
-{
-  return StandardCategories::video;
-}
-
-Device::DeviceEnumerator*
-SyphonProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::DeviceInterface* SyphonProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
     const Explorer::DeviceDocumentPlugin& doc,
