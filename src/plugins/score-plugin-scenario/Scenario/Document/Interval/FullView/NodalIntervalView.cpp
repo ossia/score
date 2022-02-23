@@ -1,4 +1,5 @@
 #include "NodalIntervalView.hpp"
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
 #include <score/graphics/ZoomItem.hpp>
 #include <score/selection/SelectionStack.hpp>
@@ -232,6 +233,8 @@ void NodalIntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 void NodalIntervalView::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
   this->m_context.selectionStack.deselect();
+  auto focus = Process::ProcessFocusManager::get(this->m_context);
+  focus->focusNothing();
 
   m_pressedPos = e->scenePos();
   e->accept();
