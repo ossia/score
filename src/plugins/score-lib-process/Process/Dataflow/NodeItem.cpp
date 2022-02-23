@@ -594,10 +594,12 @@ enum Interaction
   Resize
 } nodeItemInteraction{};
 QSizeF origNodeSize{};
+bool nodeDidMove{};
 }
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  nodeDidMove = false;
   if (m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
   {
     nodeItemInteraction = Interaction::Resize;
@@ -619,23 +621,28 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   auto origp = mapToItem(parentItem(), event->buttonDownPos(Qt::LeftButton));
   auto p = mapToItem(parentItem(), event->pos());
+  if(p != origp)
+    nodeDidMove = true;
 
-  switch (nodeItemInteraction)
+  if(nodeDidMove)
   {
-    case Interaction::Resize:
+    switch (nodeItemInteraction)
     {
-      const auto sz
-          = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
-      m_context.dispatcher.submit<Process::ResizeNode>(
-          m_model, sz.expandedTo({minimalContentWidth(), minimalContentHeight()}));
-      updateSize();
-      break;
-    }
-    case Interaction::Move:
-    {
-      m_context.dispatcher.submit<Process::MoveNode>(
-          m_model, m_model.position() + (p - origp));
-      break;
+      case Interaction::Resize:
+      {
+        const auto sz
+            = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
+        m_context.dispatcher.submit<Process::ResizeNode>(
+            m_model, sz.expandedTo({minimalContentWidth(), minimalContentHeight()}));
+        updateSize();
+        break;
+      }
+      case Interaction::Move:
+      {
+        m_context.dispatcher.submit<Process::MoveNode>(
+            m_model, m_model.position() + (p - origp));
+        break;
+      }
     }
   }
   event->accept();
@@ -644,13 +651,14 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   mouseMoveEvent(event);
-  m_context.dispatcher.commit();
+  if(nodeDidMove)
+    m_context.dispatcher.commit();
+  nodeDidMove = false;
   event->accept();
 }
 
 void NodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  qDebug() << this->parentItem();
   event->accept();
 }
 
