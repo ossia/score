@@ -29,5 +29,6 @@ struct RenderState
 
   QOffscreenSurface* surface{};
   QSize size{};
+  GraphicsApi api{};
 };
 }

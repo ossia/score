@@ -143,6 +143,7 @@ struct SyphonNode final : score::gfx::OutputNode
     m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
 #include <Gfx/Qt5CompatPush> // clang-format: keep
     m_renderState->size = QSize(m_settings.width, m_settings.height);
+    m_renderState->api = score::gfx::GraphicsApi::OpenGL;
 
     auto rhi = m_renderState->rhi;
     m_texture = rhi->newTexture(

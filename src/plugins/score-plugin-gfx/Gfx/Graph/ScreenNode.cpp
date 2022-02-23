@@ -35,6 +35,7 @@ namespace score::gfx
 static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
   RenderState state;
+  state.api = graphicsApi;
 
 #ifndef QT_NO_OPENGL
   if (graphicsApi == OpenGL)
@@ -102,6 +103,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiNullInitParams params;
     state.rhi = QRhi::create(QRhi::Null, &params, {});
     state.size = window.size();
+    state.api = GraphicsApi::Null;
     return state;
   }
 

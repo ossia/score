@@ -199,6 +199,10 @@ void Graph::recreateOutputRenderList(OutputNode& output)
         it = m_renderers.erase(it);
       }
     }
+    else
+    {
+      qDebug("???");
+    }
   }
 }
 
@@ -440,6 +444,71 @@ void Graph::clearEdges()
 
 void Graph::addEdge(Port* source, Port* sink)
 {
+  SCORE_ASSERT(ossia::find_if(m_edges, [=] (Edge* e) {
+                   return e->source == source && e->sink == sink;
+              }) == m_edges.end()
+  );
+
   m_edges.push_back(new Edge{source, sink});
 }
+
+void Graph::removeEdge(Port* source, Port* sink)
+{
+  auto it = ossia::find_if(m_edges, [=] (Edge* e) {
+    return e->source == source && e->sink == sink;
+  });
+  if(it != m_edges.end())
+  {
+    delete *it;
+    m_edges.erase(it);
+  }
+}
+
+void Graph::addAndLinkEdge(Port* source, Port* sink)
+{
+  addEdge(source, sink);
+
+  auto output = dynamic_cast<OutputNode*>(sink->node);
+  SCORE_ASSERT(output);
+
+  auto state = output->renderState();
+  recreateOutputRenderList(*output);
+}
+
+void Graph::unlinkAndRemoveEdge(Port* source, Port* sink)
+{
+  removeEdge(source, sink);
+  auto output = dynamic_cast<OutputNode*>(sink->node);
+  SCORE_ASSERT(output);
+
+  auto state = output->renderState();
+  recreateOutputRenderList(*output);
+}
+
+void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
+{
+  auto it = ossia::find_if(m_renderers, [rend=output.renderer()] (const std::shared_ptr<RenderList>& r) {
+    return r.get() == rend;
+  });
+
+  if(it != m_renderers.end())
+  {
+    std::shared_ptr<RenderList>& renderer = *it;
+    if (renderer.get() == output.renderer())
+    {
+      renderer->release();
+      renderer.reset();
+
+      output.setRenderer({});
+      it = m_renderers.erase(it);
+    }
+    else
+    {
+      qDebug("???");
+    }
+  }
+
+  ossia::remove_erase(m_outputs, &output);
+}
+
 }

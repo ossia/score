@@ -61,7 +61,7 @@ int32_t GfxContext::register_node(
 {
   auto next = index++;
 
-  tick_commands.enqueue(Command{Command::ADD_NODE, next, std::move(node)});
+  tick_commands.enqueue(NodeCommand{NodeCommand::ADD_NODE, next, std::move(node)});
 
   return next;
 }
@@ -71,30 +71,36 @@ int32_t GfxContext::register_preview_node(
 {
   auto next = index++;
 
-  tick_commands.enqueue(Command{Command::ADD_PREVIEW_NODE, next, std::move(node)});
+  tick_commands.enqueue(NodeCommand{NodeCommand::ADD_PREVIEW_NODE, next, std::move(node)});
 
   return next;
 }
 
 void GfxContext::unregister_node(int32_t idx)
 {
-  tick_commands.enqueue(Command{Command::REMOVE_NODE, idx, {}});
+  tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_NODE, idx, {}});
 }
 
 void GfxContext::unregister_preview_node(int32_t idx)
 {
-  tick_commands.enqueue(Command{Command::REMOVE_PREVIEW_NODE, idx, {}});
+  tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_PREVIEW_NODE, idx, {}});
 }
 
-void GfxContext::recompute_edges()
+void GfxContext::connect_preview_node(Edge e)
 {
-  m_graph->clearEdges();
+  tick_commands.enqueue(EdgeCommand{EdgeCommand::CONNECT_PREVIEW_NODE, e});
+}
 
-  for (auto edge : edges)
+void GfxContext::disconnect_preview_node(Edge e)
+{
+  tick_commands.enqueue(EdgeCommand{EdgeCommand::DISCONNECT_PREVIEW_NODE, e});
+}
+
+void GfxContext::add_edge(Edge edge)
+{
+  auto source_node_it = this->nodes.find(edge.first.node);
+  if(source_node_it != this->nodes.end())
   {
-    auto source_node_it = this->nodes.find(edge.first.node);
-    if(source_node_it != this->nodes.end())
-    {
     auto sink_node_it = this->nodes.find(edge.second.node);
     if(sink_node_it != this->nodes.end())
     {
@@ -106,7 +112,35 @@ void GfxContext::recompute_edges()
 
       m_graph->addEdge(source_port, sink_port);
     }
+  }
+}
+
+void GfxContext::remove_edge(Edge edge)
+{
+  auto source_node_it = this->nodes.find(edge.first.node);
+  if(source_node_it != this->nodes.end())
+  {
+    auto sink_node_it = this->nodes.find(edge.second.node);
+    if(sink_node_it != this->nodes.end())
+    {
+      assert(source_node_it->second);
+      assert(sink_node_it->second);
+
+      auto source_port = source_node_it->second->output[edge.first.port];
+      auto sink_port = sink_node_it->second->input[edge.second.port];
+
+      m_graph->removeEdge(source_port, sink_port);
     }
+  }
+}
+
+void GfxContext::recompute_edges()
+{
+  m_graph->clearEdges();
+
+  for (auto edge : edges)
+  {
+    add_edge(edge);
   }
 }
 
@@ -205,73 +239,121 @@ void GfxContext::update_inputs()
   }
 }
 
+void GfxContext::remove_node(
+    std::vector<std::unique_ptr<score::gfx::Node>>& nursery,
+    int32_t index)
+{
+  // Remove all edges involving that node
+  for (auto it = this->edges.begin(); it != this->edges.end();)
+  {
+    if (it->first.node == index || it->second.node == index)
+      it = this->edges.erase(it);
+    else
+      ++it;
+  }
+
+  if (auto node_it = nodes.find(index); node_it != nodes.end())
+  {
+    auto node = node_it->second.get();
+
+    // Remove the node from the timers if it's in there
+    for(auto timer_it = m_manualTimers.container.begin(); timer_it != m_manualTimers.container.end(); ) {
+      if(timer_it->second == node)
+        timer_it = m_manualTimers.container.erase(timer_it);
+      else
+        ++timer_it;
+    }
+
+    m_graph->removeNode(node);
+
+    // Needed because when removing edges in recompute_graph,
+    // they remove themselves from the nodes / ports in their dtor
+    // thus if the items are deleted before that, it would crash
+    nursery.push_back(std::move(node_it->second));
+
+    nodes.erase(node_it);
+  }
+}
+
 void GfxContext::run_commands()
 {
   std::vector<std::unique_ptr<score::gfx::Node>> nursery;
 
   bool recompute = false;
   std::vector<score::gfx::Node*> add_output;
-  Command cmd;
-  while(tick_commands.try_dequeue(cmd))
+  Command c = NodeCommand{};
+  while(tick_commands.try_dequeue(c))
   {
+   if(auto cnode = std::get_if<NodeCommand>(&c))
+   {
+    auto& cmd = *cnode;
     switch(cmd.cmd)
     {
-      case Command::ADD_PREVIEW_NODE:
+      case NodeCommand::ADD_PREVIEW_NODE:
       {
         m_graph->addNode(cmd.node.get());
         add_output.push_back(cmd.node.get());
         nodes[cmd.index] = {std::move(cmd.node)};
         break;
       }
-      case Command::ADD_NODE:
+      case NodeCommand::ADD_NODE:
       {
         m_graph->addNode(cmd.node.get());
         nodes[cmd.index] = {std::move(cmd.node)};
         recompute = true;
         break;
       }
-      case Command::REMOVE_PREVIEW_NODE:
-      case Command::REMOVE_NODE:
+      case NodeCommand::REMOVE_PREVIEW_NODE:
       {
-        // Remove the node from the timers if it's in there
-        for(auto it = m_manualTimers.container.begin(); it != m_manualTimers.container.end(); ) {
-          if(it->second == cmd.node.get())
-            it = m_manualTimers.container.erase(it);
-          else
-            ++it;
-        }
-
-        // Remove all edges involving that node
-        for (auto it = this->edges.begin(); it != this->edges.end();)
+        auto& node = nodes.at(cmd.index);
+        auto n = dynamic_cast<score::gfx::OutputNode*>(node.get());
+        SCORE_ASSERT(n);
         {
-          if (it->first.node == cmd.index || it->second.node == cmd.index)
-            it = this->edges.erase(it);
-          else
-            ++it;
+          auto it = ossia::find_if(this->preview_edges, [idx=cmd.index] (Edge e) {
+            return e.second.node == idx;
+          });
+          if(it != this->preview_edges.end())
+          {
+            this->remove_edge(*it);
+            this->preview_edges.erase(*it);
+          }
         }
-
-        auto it = nodes.find(cmd.index);
-        if (it != nodes.end())
-        {
-          m_graph->removeNode(it->second.get());
-
-          // Needed because when removing edges in recompute_graph,
-          // they remove themselves from the nodes / ports in their dtor
-          // thus if the items are deleted before that, it would crash
-          nursery.push_back(std::move(it->second));
-
-          nodes.erase(it);
-        }
+        m_graph->destroyOutputRenderList(*n);
+        remove_node(nursery, cmd.index);
+        break;
+      }
+      case NodeCommand::REMOVE_NODE:
+      {
+        remove_node(nursery, cmd.index);
         recompute = true;
         break;
       }
-      case Command::RELINK:
+      case NodeCommand::RELINK:
       {
         recompute = true;
         break;
       }
     }
-
+   }
+   else if(auto cedge = std::get_if<EdgeCommand>(&c))
+   {
+     auto& cmd = *cedge;
+     switch(cmd.cmd)
+     {
+     case EdgeCommand::CONNECT_PREVIEW_NODE:
+     {
+       this->preview_edges.emplace(cmd.edge);
+       add_edge(cmd.edge);
+       break;
+     }
+     case EdgeCommand::DISCONNECT_PREVIEW_NODE:
+     {
+       this->preview_edges.erase(cmd.edge);
+       remove_edge(cmd.edge);
+       break;
+     }
+     }
+   }
   }
 
   if(recompute)

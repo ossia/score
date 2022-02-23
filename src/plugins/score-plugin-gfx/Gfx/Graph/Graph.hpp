@@ -37,6 +37,22 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   void addEdge(Port* source, Port* sink);
 
   /**
+   * @brief Remove an edge between two nodes.
+   */
+  void removeEdge(Port* source, Port* sink);
+
+  /**
+   * @brief Add an edge between two nodes and creates relevant pipelines.
+   */
+  void addAndLinkEdge(Port* source, Port* sink);
+
+  /**
+   * @brief Remove an edge between two nodes and free the pipelines
+   */
+  void unlinkAndRemoveEdge(Port* source, Port* sink);
+
+
+  /**
    * @brief Remove all edges.
    */
   void clearEdges();
@@ -50,6 +66,11 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
    * @brief Create a sequence of render events for a single output node
    */
   void createSingleRenderList(score::gfx::OutputNode& node, GraphicsApi graphicsApi);
+
+  /**
+   * @brief Free the render list of an output node if any
+   */
+  void destroyOutputRenderList(score::gfx::OutputNode& node);
 
   /**
    * @brief Recreate the connections between renderers when edges changed.
