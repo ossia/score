@@ -1,4 +1,6 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <Process/ExpandMode.hpp>
 
 #include <score/command/Command.hpp>
@@ -8,7 +10,7 @@
 
 #include <ossia/detail/json.hpp>
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <QPointF>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -49,6 +51,38 @@ private:
 
   score::hash_map<Id<Process::ProcessModel>, Id<Process::ProcessModel>>
       m_processIds;
+};
+
+class SCORE_PLUGIN_SCENARIO_EXPORT PasteProcessesInInterval final
+    : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      PasteProcessesInInterval,
+      "Paste processes in a interval")
+public:
+  PasteProcessesInInterval(
+      rapidjson::Value::Array sourceProcesses,
+      rapidjson::Value::Array sourceCables,
+      const IntervalModel& targetInterval,
+      ExpandMode mode,
+      QPointF origin);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  rapidjson::Document m_source;
+  rapidjson::Document m_cables;
+  Path<IntervalModel> m_target;
+  ExpandMode m_mode{ExpandMode::GrowShrink};
+  QPointF m_origin{};
+
+  score::hash_map<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
 };
 }
 }

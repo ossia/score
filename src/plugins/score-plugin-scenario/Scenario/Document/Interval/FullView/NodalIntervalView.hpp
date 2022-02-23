@@ -38,6 +38,8 @@ public:
   void rescale();
   QRectF enclosingRect() const noexcept;
 
+  QGraphicsItem& nodeContainer() const noexcept { return *m_container; }
+
 private:
   void on_processAdded(const Process::ProcessModel& proc);
   void on_processRemoving(const Process::ProcessModel& model);

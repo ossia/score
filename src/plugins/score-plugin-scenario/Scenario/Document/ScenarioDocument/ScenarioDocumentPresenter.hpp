@@ -68,6 +68,7 @@ public:
 
   IntervalModel& displayedInterval() const noexcept;
   IntervalPresenter* displayedIntervalPresenter() const noexcept;
+  const CentralDisplay& display() const noexcept;
   const ScenarioDocumentModel& model() const noexcept;
   ScenarioDocumentView& view() const noexcept;
   const Process::Context& context() const noexcept;

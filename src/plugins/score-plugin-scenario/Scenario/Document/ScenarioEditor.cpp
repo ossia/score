@@ -6,6 +6,7 @@
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
@@ -15,7 +16,10 @@
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
-
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <QApplication>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -38,21 +42,12 @@ bool ScenarioEditor::copy(JSONReader& r, const Selection& s, const score::Docume
   return false;
 }
 
-bool ScenarioEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+static bool pasteInScenario(QPoint pos, ScenarioPresenter& pres, const QMimeData& mime, const score::DocumentContext& ctx)
 {
-  // Check if we are focusing a scenario in which to paste
-  auto focus = Process::ProcessFocusManager::get(ctx);
-  if(!focus)
-    return false;
-
-  auto pres = qobject_cast<ScenarioPresenter*>(focus->focusedPresenter());
-  if (!pres)
-    return false;
-
-  auto& sm = static_cast<const Scenario::ProcessModel&>(pres->model());
+  auto& sm = static_cast<const Scenario::ProcessModel&>(pres.model());
 
   // Get the QGraphicsView
-  auto views = pres->view().scene()->views();
+  auto views = pres.view().scene()->views();
   if (views.empty())
     return false;
 
@@ -61,7 +56,7 @@ bool ScenarioEditor::paste(QPoint pos, const QMimeData& mime, const score::Docum
   // Find where to paste in the scenario
   auto view_pt = view->mapFromGlobal(pos);
   auto scene_pt = view->mapToScene(view_pt);
-  ScenarioView& sv = pres->view();
+  ScenarioView& sv = pres.view();
   auto sv_pt = sv.mapFromScene(scene_pt);
 
   // TODO this is a bit lazy.. find a better positoning algorithm
@@ -69,7 +64,7 @@ bool ScenarioEditor::paste(QPoint pos, const QMimeData& mime, const score::Docum
     sv_pt = sv.mapToScene(sv.boundingRect().center());
 
   // Read the copy json. TODO: give it a better mime type
-  auto origin = pres->toScenarioPoint(sv_pt);
+  auto origin = pres.toScenarioPoint(sv_pt);
   auto obj = readJson(mime.data("text/plain"));
 
   if (!obj.IsObject() || obj.MemberCount() == 0)
@@ -82,6 +77,101 @@ bool ScenarioEditor::paste(QPoint pos, const QMimeData& mime, const score::Docum
   auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
   CommandDispatcher<>{ctx.commandStack}.submit(cmd);
   return true;
+}
+
+static bool pasteInCurrentInterval(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+{
+  auto pres = score::IDocument::presenterDelegate<ScenarioDocumentPresenter>(ctx.document);
+  if(!pres)
+    return false;
+
+  // Get the QGraphicsView
+  auto view = &pres->view().view();
+
+  // Find where to paste in the scenario
+  auto view_pt = view->mapFromGlobal(pos);
+  auto scene_pt = view->mapToScene(view_pt);
+
+  // We may have to paste in the nodal view or in the temporal view,
+  // with different outcomes
+  struct NodalPositionVisitor {
+      QPointF& p;
+      QPointF operator()(const NodalIntervalView& nodal) const
+      {
+        auto pt = nodal.nodeContainer().mapFromScene(p);
+        // TODO clamp to the visible rect... it isn't boundingRect().
+        // QRectF nodalRect = nodal.boundingRect();
+        // if(!nodalRect.contains(pt))
+        //   return QPointF{};
+        return pt;
+      }
+
+      QPointF operator()(const CentralIntervalDisplay& disp) const
+      {
+        auto itv_pres = disp.presenter.intervalPresenter();
+        const auto& slots = itv_pres->getSlots();
+        auto nodal_it = ossia::find_if(
+                          slots, []
+                          (const SlotPresenter& slot) { return bool(slot.getNodalSlot()); });
+        if(nodal_it == slots.end())
+          return QPointF{};
+
+        auto nodal = nodal_it->getNodalSlot();
+        if(nodal && nodal->view)
+          return (*this)(*nodal->view);
+
+        return QPointF{};
+      }
+
+      QPointF operator()(const CentralNodalDisplay& disp) const {
+        return (*this)(*disp.presenter);
+      }
+
+      QPointF operator()(std::monostate) const { return QPointF{}; }
+  };
+
+  auto item_pt = std::visit(NodalPositionVisitor{scene_pt}, pres->display());
+
+  auto& itv = pres->displayedInterval();
+  auto obj = readJson(mime.data("text/plain"));
+  auto proc_it = obj.FindMember("Processes");
+  if(proc_it == obj.MemberEnd() || !proc_it->value.IsArray())
+    return false;
+
+  auto cables_it = obj.FindMember("Cables");
+  if(cables_it == obj.MemberEnd() || !cables_it->value.IsArray())
+    return false;
+
+  {
+    auto processes = proc_it->value.GetArray();
+    if(processes.Empty())
+      return true;
+
+    auto cables = cables_it->value.GetArray();
+
+    auto cmd = new Scenario::Command::PasteProcessesInInterval{processes, cables, itv, ExpandMode{}, item_pt};
+    CommandDispatcher<>{ctx.commandStack}.submit(cmd);
+
+    return true;
+  }
+  return false;
+}
+
+bool ScenarioEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+{
+  // Check if we are focusing a scenario in which to paste
+  auto focus = Process::ProcessFocusManager::get(ctx);
+  if(!focus)
+    return false;
+
+  if(auto pres = qobject_cast<ScenarioPresenter*>(focus->focusedPresenter()))
+  {
+    return pasteInScenario(pos, *pres, mime, ctx);
+  }
+  else
+  {
+    return pasteInCurrentInterval(pos, mime, ctx);
+  }
 }
 
 bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ctx)

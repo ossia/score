@@ -336,10 +336,9 @@ IntervalModel& ScenarioDocumentPresenter::displayedInterval() const noexcept
 
 IntervalPresenter* ScenarioDocumentPresenter::displayedIntervalPresenter() const noexcept
 {
-  auto itv_pres = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
-  if(!itv_pres)
-    return {};
-  return itv_pres->presenter.intervalPresenter();
+  if(auto itv_pres = std::get_if<CentralIntervalDisplay>(&m_centralDisplay))
+    return itv_pres->presenter.intervalPresenter();
+  return nullptr;
 }
 
 void ScenarioDocumentPresenter::selectAll()
@@ -354,6 +353,11 @@ void ScenarioDocumentPresenter::selectAll()
 void ScenarioDocumentPresenter::deselectAll()
 {
   m_selectionDispatcher.deselect();
+}
+
+const CentralDisplay& ScenarioDocumentPresenter::display() const noexcept
+{
+  return m_centralDisplay;
 }
 
 void ScenarioDocumentPresenter::selectTop()
