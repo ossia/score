@@ -234,7 +234,6 @@ struct StartScreenLink
 StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent)
     : QWidget(parent)
 {
-
   QFont f("Ubuntu", 14, QFont::Light);
   f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   f.setStyleStrategy(QFont::PreferAntialias);
@@ -260,7 +259,9 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     painter.drawText(QPointF(381, 195), QCoreApplication::applicationVersion());
     painter.end();
   }
-  setFixedSize(m_background.size() / qApp->devicePixelRatio());
+
+  // Weird code here is because the window size seems to scale only to integer ratios.
+  setFixedSize(m_background.size() / std::floor(qApp->devicePixelRatio()));
 
   float label_y = 285;
   { // Create new
