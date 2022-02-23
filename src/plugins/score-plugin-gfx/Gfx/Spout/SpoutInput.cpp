@@ -285,11 +285,6 @@ QString InputFactory::prettyName() const noexcept
   return QObject::tr("Spout Input");
 }
 
-QString InputFactory::category() const noexcept
-{
-  return StandardCategories::video;
-}
-
 Device::DeviceEnumerator* InputFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
