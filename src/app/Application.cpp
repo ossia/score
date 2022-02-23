@@ -273,6 +273,7 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
     {
       zoom = qBound(1.0, zoom, 10.);
       qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+      qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", "PassThrough");
     }
   }
 #endif
