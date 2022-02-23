@@ -14,7 +14,7 @@ bool NoteEditor::copy(JSONReader& r, const Selection& s, const score::DocumentCo
   return false;
 }
 
-bool NoteEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+bool NoteEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
   return false;

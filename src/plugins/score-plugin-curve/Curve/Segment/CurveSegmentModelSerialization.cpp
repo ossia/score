@@ -73,6 +73,46 @@ DataStreamWriter::write(Curve::SegmentData& segmt)
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
+JSONReader::read(const Curve::SegmentData& segmt)
+{
+  stream.StartObject();
+  obj[strings.id] = segmt.id;
+  obj[strings.Start] = segmt.start;
+  obj[strings.End] = segmt.end;
+  obj[strings.Previous] = segmt.previous;
+  obj[strings.Following] = segmt.following;
+  obj[strings.Type] = segmt.type;
+
+  auto& csl = components.interfaces<Curve::SegmentList>();
+  auto segmt_fact = csl.get(segmt.type);
+
+  SCORE_ASSERT(segmt_fact);
+  segmt_fact->serializeCurveSegmentData(
+        segmt.specificSegmentData, this->toVariant());
+  stream.EndObject();
+}
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
+JSONWriter::write(Curve::SegmentData& segmt)
+{
+  using namespace Curve;
+  segmt.previous <<= obj[strings.id];
+  segmt.start <<= obj[strings.Start];
+  segmt.end <<= obj[strings.End];
+  segmt.previous <<= obj[strings.Previous];
+  segmt.following <<= obj[strings.Following];
+  segmt.type <<= obj[strings.Type];
+
+  auto& csl = components.interfaces<Curve::SegmentList>();
+  auto segmt_fact = csl.get(segmt.type);
+  SCORE_ASSERT(segmt_fact);
+  segmt.specificSegmentData
+      = segmt_fact->makeCurveSegmentData(this->toVariant());
+}
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
 DataStreamReader::read(const Curve::SegmentModel& segmt)
 {
   // Save this class (this will be loaded by writeTo(*this) in

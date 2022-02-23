@@ -443,12 +443,19 @@ void ObjectMenuActions::pasteElements(QPoint pos)
     return;
 
   auto& ctx = doc->context();
+  Process::LayerPresenter* layer{};
+  {
+    if(auto focus = Process::ProcessFocusManager::get(ctx))
+    {
+      layer = qobject_cast<Process::LayerPresenter*>(focus->focusedPresenter());
+    }
+  }
 
   auto& rm = ctx.app.interfaces<score::ObjectEditorList>();
   const auto& md = *qApp->clipboard()->mimeData();
   for (auto& iface : rm)
   {
-    if(iface.paste(pos, md, ctx))
+    if(iface.paste(pos, layer, md, ctx))
       break;
   }
 }

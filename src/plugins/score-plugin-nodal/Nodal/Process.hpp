@@ -67,7 +67,7 @@ class NodeEditor : public score::ObjectEditor
   SCORE_CONCRETE("5e1c7e92-5beb-4313-92c8-f690089ff340")
 
   bool copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx) override;
-  bool paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx) override;
+  bool paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx) override;
   bool remove(const Selection& s, const score::DocumentContext& ctx) override;
 };
 }

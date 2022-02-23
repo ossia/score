@@ -2,6 +2,7 @@
 #include <Dataflow/Commands/EditConnection.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
@@ -45,26 +46,18 @@ bool ScenarioEditor::copy(JSONReader& r, const Selection& s, const score::Docume
 static bool pasteInScenario(QPoint pos, ScenarioPresenter& pres, const QMimeData& mime, const score::DocumentContext& ctx)
 {
   auto& sm = static_cast<const Scenario::ProcessModel&>(pres.model());
+  ScenarioView& sv = pres.view();
 
-  // Get the QGraphicsView
-  auto views = pres.view().scene()->views();
-  if (views.empty())
+  auto sv_pt = mapPointToItem(pos, sv);
+  if(!sv_pt)
     return false;
 
-  auto view = views.front();
-
-  // Find where to paste in the scenario
-  auto view_pt = view->mapFromGlobal(pos);
-  auto scene_pt = view->mapToScene(view_pt);
-  ScenarioView& sv = pres.view();
-  auto sv_pt = sv.mapFromScene(scene_pt);
-
   // TODO this is a bit lazy.. find a better positoning algorithm
-  if (!sv.contains(sv_pt))
+  if (!sv.contains(*sv_pt))
     sv_pt = sv.mapToScene(sv.boundingRect().center());
 
   // Read the copy json. TODO: give it a better mime type
-  auto origin = pres.toScenarioPoint(sv_pt);
+  auto origin = pres.toScenarioPoint(*sv_pt);
   auto obj = readJson(mime.data("text/plain"));
 
   if (!obj.IsObject() || obj.MemberCount() == 0)
@@ -152,19 +145,17 @@ static bool pasteInCurrentInterval(QPoint pos, const QMimeData& mime, const scor
     auto cmd = new Scenario::Command::PasteProcessesInInterval{processes, cables, itv, ExpandMode{}, item_pt};
     CommandDispatcher<>{ctx.commandStack}.submit(cmd);
 
+
+    // FIXME paste all cables recursively ! e.g. check copy-pasting a scenario
     return true;
   }
   return false;
 }
 
-bool ScenarioEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+bool ScenarioEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx)
 {
   // Check if we are focusing a scenario in which to paste
-  auto focus = Process::ProcessFocusManager::get(ctx);
-  if(!focus)
-    return false;
-
-  if(auto pres = qobject_cast<ScenarioPresenter*>(focus->focusedPresenter()))
+  if(auto pres = qobject_cast<ScenarioPresenter*>(focusedObject))
   {
     return pasteInScenario(pos, *pres, mime, ctx);
   }

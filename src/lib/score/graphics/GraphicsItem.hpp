@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <verdigris>
+#include <optional>
 class QGraphicsObject;
 class QGraphicsItem;
 class QGraphicsView;
@@ -31,6 +32,9 @@ QGraphicsView* getView(const QPainter& painter);
 
 SCORE_LIB_BASE_EXPORT
 QImage newImage(double logical_w, double logical_h);
+
+SCORE_LIB_BASE_EXPORT
+std::optional<QPointF> mapPointToItem(QPoint global, QGraphicsItem& item);
 
 template <typename T>
 struct graphics_item_ptr

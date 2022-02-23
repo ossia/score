@@ -71,6 +71,22 @@ QImage newImage(double logical_w, double logical_h)
 }
 
 
+std::optional<QPointF> mapPointToItem(QPoint global, QGraphicsItem& item)
+{
+  // Get the QGraphicsView
+  auto views = item.scene()->views();
+  if (views.empty())
+    return std::nullopt;
+
+  auto view = views.front();
+
+  // Find where to paste in the scenario
+  auto view_pt = view->mapFromGlobal(global);
+  auto scene_pt = view->mapToScene(view_pt);
+  return item.mapFromScene(scene_pt);
+}
+
+
 namespace score
 {
 std::pair<double, bool> ItemBounder::bound(QGraphicsItem* parent, double x0, double w) noexcept

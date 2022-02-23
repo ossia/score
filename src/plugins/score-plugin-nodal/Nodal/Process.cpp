@@ -76,7 +76,7 @@ bool NodeEditor::copy(JSONReader& r, const Selection& s, const score::DocumentCo
   return false;
 }
 
-bool NodeEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+bool NodeEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
   return false;

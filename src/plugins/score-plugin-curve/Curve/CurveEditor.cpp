@@ -1,6 +1,8 @@
 #include "CurveEditor.hpp"
 
 #include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/CurveView.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
@@ -10,25 +12,174 @@
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Process/Process.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <core/document/Document.hpp>
 
+#include <QMimeData>
 #include <set>
 namespace Curve
 {
 
 bool CurveEditor::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
 {
-  SCORE_TODO;
-  return false;
+  if(s.empty())
+    return false;
+  std::vector<Curve::SegmentModel*> segments;
+  for(const auto& obj : s)
+  {
+    if(auto s = qobject_cast<Curve::SegmentModel*>(obj.data()))
+      segments.push_back(s);
+    else if(auto s = qobject_cast<Curve::PointModel*>(obj.data()))
+      continue;
+    else
+      return false;
+  }
+
+  if(segments.empty())
+    return true;
+
+  auto model = qobject_cast<Curve::Model*>(segments[0]->parent());
+  if(!model)
+    return true;
+
+  std::vector<Curve::SegmentData> dat;
+
+  for(Curve::SegmentModel* seg : segments)
+    dat.push_back(seg->toSegmentData());
+  ossia::sort(dat);
+
+  r.stream.StartObject();
+  r.obj["Segments"] = dat;
+  r.stream.EndObject();
+
+  return true;
 }
 
-bool CurveEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx)
 {
-  SCORE_TODO;
-  return false;
+  if(!focusedObject)
+    return false;
+
+  auto curve = focusedObject->findChild<Curve::Presenter*>();
+  if(!curve)
+    return false;
+
+  auto obj = readJson(mime.data("text/plain"));
+  auto seg_it = obj.FindMember("Segments");
+  if(seg_it == obj.MemberEnd() || !seg_it->value.IsArray())
+    return false;
+
+  auto& p = *curve;
+  auto& v = p.view();
+  auto& m = p.model();
+  auto pt = mapPointToItem(pos, v);
+  if(!pt)
+    return true;
+
+  double x = pt->x() / v.boundingRect().width();
+
+  // Those are ordered
+  auto paste_segts = JsonValue{seg_it->value}.to<std::vector<Curve::SegmentData>>();
+  if(paste_segts.empty())
+    return true;
+
+  // Move the segments to the right position
+  double seg_delta = -paste_segts[0].start.x() + x;
+  for(auto& seg : paste_segts)
+  {
+    seg.start.rx() += seg_delta;
+    seg.end.rx() += seg_delta;
+  }
+
+  auto& first_pasted = paste_segts.front();
+  auto& last_pasted = paste_segts.back();
+
+  // What we have in the pasted-to curve
+  auto segments = orderedSegments(m);
+
+  int first_cut = -1;
+  int last_cut = -1;
+  for(std::size_t i = 0; i < segments.size(); i++)
+  {
+    auto cur_seg = segments[i];
+    if(cur_seg.start.x() < first_pasted.x() && first_pasted.x() <= cur_seg.end.x()) {
+      first_cut = i;
+      if(last_cut > -1)
+        break;
+    }
+    if(cur_seg.start.x() <= last_pasted.x() && last_pasted.x() < cur_seg.end.x()) {
+      last_cut = i;
+      if(first_cut > -1)
+        break;
+    }
+  }
+
+  if(first_cut == -1 || last_cut == -1)
+    return true;
+  if(first_cut > last_cut) // better safe than sorry
+    return true;
+
+  if(first_cut == last_cut)
+  {
+    auto start_seg = segments[first_cut];
+
+    // We insert in the middle of the cut segment
+    segments.insert(segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
+
+    // Change the end of the original start segment to match the start of what's pasted
+    segments[first_cut].end = segments[first_cut + 1].start;
+
+    // Add a last segment to link with the end
+    start_seg.start = paste_segts.back().end;
+    segments.insert(segments.begin() + first_cut + paste_segts.size() + 1, std::move(start_seg));
+  }
+  else
+  {
+    // Remove old segments
+    segments.erase(segments.begin() + first_cut + 1, segments.begin() + last_cut);
+
+    // Insert in the hole
+    segments.insert(segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
+
+    // Change the end of the original start segment to match the start of what's pasted
+    segments[first_cut].end = segments[first_cut + 1].start;
+
+    // Link last segment to link with the end
+    segments[first_cut + paste_segts.size() + 1].start = segments[first_cut + paste_segts.size()].end;
+  }
+
+  // Finally relink everything
+  segments.front().id = Id<Curve::SegmentModel>{0};
+  segments.front().previous = std::nullopt;
+
+  segments.back().id = Id<Curve::SegmentModel>{int(std::ssize(segments) - 1)};
+  segments.back().following = std::nullopt;
+
+  int N = std::ssize(segments);
+  if(N >= 2)
+  {
+    int i = 1;
+    for(; i < N - 1; i++)
+    {
+      segments[i].id = Id<Curve::SegmentModel>{i};
+      segments[i-1].following = segments[i].id;
+      segments[i].previous = segments[i-1].id;
+    }
+
+    i = N - 2;
+
+    {
+      segments.back().previous = segments[i].id;
+      segments[i].following = segments.back().id;
+    }
+  }
+
+  CommandDispatcher<>{ctx.commandStack}.submit(new UpdateCurve{m, std::move(segments)});
+  return true;
 }
 
 bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
