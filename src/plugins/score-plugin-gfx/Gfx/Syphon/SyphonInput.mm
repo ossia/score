@@ -360,7 +360,6 @@ public:
     QString name = QString::fromNSString(desc[SyphonServerDescriptionNameKey]);
     QString appname = QString::fromNSString(desc[SyphonServerDescriptionAppNameKey]);
     QString uid = QString::fromNSString(desc[SyphonServerDescriptionUUIDKey]);
-    qDebug() << "Name: " << name << name.isEmpty() << appname << uid;
 
     if(name.isEmpty())
       name = appname;

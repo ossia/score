@@ -1,6 +1,7 @@
 #include "NodalIntervalView.hpp"
 
 #include <score/graphics/ZoomItem.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <QGraphicsSceneDragDropEvent>
 
@@ -230,6 +231,8 @@ void NodalIntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 
 void NodalIntervalView::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
+  this->m_context.selectionStack.deselect();
+
   m_pressedPos = e->scenePos();
   e->accept();
 }
