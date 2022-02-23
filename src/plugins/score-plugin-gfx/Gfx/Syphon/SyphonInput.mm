@@ -66,6 +66,24 @@ private:
   bool enabled{};
   ~Renderer() { }
 
+  NSDictionary* findServer(NSArray* servers, QString uuid)
+  {
+    NSString* str = uuid.toNSString();
+
+    for(int i = 0; i < servers.count; ++i)
+    {
+      NSDictionary* s = servers[i];
+      NSString* uuid = s[SyphonServerDescriptionUUIDKey];
+      bool ok = [uuid isEqualToString: str];
+      if(ok)
+      {
+        return s;
+      }
+    }
+
+    return nullptr;
+  }
+
   void openServer(QRhi& rhi)
   {
     enabled = false;
@@ -76,24 +94,15 @@ private:
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
     if (servers.count != 0)
     {
-
-      NSDictionary *desc = nullptr;// find_by_uuid(servers, s->uuid);
-      if (!desc) {
-        desc = servers[0];
-        /*
-          if (![s->uuid isEqualToString:
-                    desc[SyphonServerDescriptionUUIDKey]]) {
-            s->uuid_changed = true;
-          }
-          */
+      if (NSDictionary *desc = findServer(servers, node.settings.path)) 
+      {
+        m_receiver = [[SYPHON_CLIENT_UNIQUE_CLASS_NAME alloc]
+            initWithServerDescription:desc
+            context: nativeContext(rhi)
+            options:NULL
+            newFrameHandler:NULL
+        ];
       }
-
-      m_receiver = [[SYPHON_CLIENT_UNIQUE_CLASS_NAME alloc]
-          initWithServerDescription:desc
-          context: nativeContext(rhi)
-          options:NULL
-          newFrameHandler:NULL
-      ];
       enabled = true;
     }
     [pool drain];
@@ -337,14 +346,56 @@ QString InputFactory::prettyName() const noexcept
   return QObject::tr("Syphon Input");
 }
 
-QString InputFactory::category() const noexcept
+class SyphonEnumerator : public Device::DeviceEnumerator
 {
-  return StandardCategories::video;
-}
+public:
+  SyphonEnumerator()
+  {
+  }
+
+  void registerServer(NSDictionary* desc, std::function<void(const Device::DeviceSettings&)> f) const
+  {
+    Device::DeviceSettings set;
+
+    QString name = QString::fromNSString(desc[SyphonServerDescriptionNameKey]);
+    QString appname = QString::fromNSString(desc[SyphonServerDescriptionAppNameKey]);
+    QString uid = QString::fromNSString(desc[SyphonServerDescriptionUUIDKey]);
+    qDebug() << "Name: " << name << name.isEmpty() << appname << uid;
+
+    if(name.isEmpty())
+      name = appname;
+    if(name.isEmpty())
+      name = "Syphon In";
+
+    set.name = name;
+    set.protocol = InputFactory::static_concreteKey();
+
+    SharedInputSettings specif;
+    specif.path = uid;
+    set.deviceSpecificSettings = QVariant::fromValue(specif);
+
+    f(set);
+  }
+  
+  void enumerate(
+      std::function<void(const Device::DeviceSettings&)> f) const override
+  {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    auto ssd = [SyphonServerDirectory sharedDirectory];
+    NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
+    for(int i = 0; i < servers.count; i++)
+    {
+      registerServer(servers[i], f);
+    }
+    [pool drain];
+  }
+};
+
 
 Device::DeviceEnumerator* InputFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new SyphonEnumerator;
 }
 
 Device::DeviceInterface*
