@@ -23,14 +23,17 @@ class ShaderPreviewWidget : public QWidget
 public:
   ShaderPreviewWidget(const QString& path, QWidget* parent = nullptr);
   ShaderPreviewWidget(const Process::Preset& path, QWidget* parent = nullptr);
+  ~ShaderPreviewWidget();
 
 private:
   void setup();
   void timerEvent(QTimerEvent* event) override;
 
-  score::gfx::Graph m_graph{};
   std::vector<score::gfx::Node*> m_previewInputs;
-  score::gfx::ISFNode* m_isf{};
+  std::unique_ptr<score::gfx::ISFNode> m_isf{};
+  std::unique_ptr<score::gfx::ScreenNode> m_screen{};
+  std::vector<std::unique_ptr<score::gfx::Node>> m_textures;
+  score::gfx::Graph m_graph{};
   ProcessedProgram m_program;
 };
 

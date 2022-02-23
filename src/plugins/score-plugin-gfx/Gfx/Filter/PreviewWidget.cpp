@@ -165,19 +165,24 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
         i++;
       }
     }
-  }
+}
+}
+
+ShaderPreviewWidget::~ShaderPreviewWidget()
+{
 }
 
 void ShaderPreviewWidget::setup()
 {
   // Create our graph
-  m_isf = new score::gfx::ISFNode{
+  m_isf = std::make_unique<score::gfx::ISFNode>(
       m_program.descriptor,
       m_program.compiledVertex,
-      m_program.compiledFragment};
-  auto window = new score::gfx::ScreenNode{true};
+      m_program.compiledFragment);
+  m_screen = std::make_unique<score::gfx::ScreenNode>(true);
+  auto window = m_screen.get();
 
-  m_graph.addNode(m_isf);
+  m_graph.addNode(m_isf.get());
   m_graph.addNode(window);
 
   // Edge from filter to output
@@ -195,6 +200,8 @@ void ShaderPreviewWidget::setup()
       m_previewInputs.push_back(node);
 
       m_graph.addEdge(node->output[0], m_isf->input[i]);
+
+      m_textures.push_back(std::unique_ptr<score::gfx::Node>(node));
     }
     i++;
   }
