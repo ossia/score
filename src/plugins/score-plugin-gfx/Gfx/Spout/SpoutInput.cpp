@@ -285,9 +285,39 @@ QString InputFactory::prettyName() const noexcept
   return QObject::tr("Spout Input");
 }
 
+class SpoutEnumerator : public Device::DeviceEnumerator
+{
+  mutable spoutSenderNames m_senders;
+public:
+  SpoutEnumerator()
+  {
+  }
+
+  void enumerate(
+      std::function<void(const Device::DeviceSettings&)> f) const override
+  {
+    std::set<std::string> senders;
+    if(!m_senders.GetSenderNames(&senders))
+      return;
+
+    for(auto& s : senders)
+    {
+      Device::DeviceSettings set;
+      set.protocol = InputFactory::static_concreteKey();
+      set.name = QString::fromStdString(s);
+
+      SharedInputSettings specif;
+      specif.path = set.name;
+      set.deviceSpecificSettings = QVariant::fromValue(specif);
+      f(set);
+    }
+  }
+};
+
+
 Device::DeviceEnumerator* InputFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new SpoutEnumerator;
 }
 
 Device::DeviceInterface*

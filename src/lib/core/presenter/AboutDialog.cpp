@@ -170,6 +170,13 @@ AboutDialog::AboutDialog(QWidget* parent)
       servus_LICENSE};
 
   map["shmdata"] = License{"https://gitlab.com/sat-metalab/shmdata", shmdata_LICENSE};
+#if defined(_WIN32)
+  map["Spout"] = License{"https://spout.zeal.co/", spout_LICENSE};
+#endif
+
+#if defined(__APPLE__)
+  map["Syphon"] = License{"http://syphon.v002.info/", syphon_LICENSE};
+#endif
 
   map["SmallFunction"] = License{
       "https://github.com/jcelerier/SmallFunction",
