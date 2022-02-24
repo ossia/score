@@ -154,7 +154,9 @@ void ShmdataOutputNode::render()
     rhi->endOffscreenFrame();
 
     int sz = m_readback.pixelSize.width() * m_readback.pixelSize.height() * 4;
-    m_writer->copy_to_shm(m_readback.data.data(), sz);
+    int bytes = m_readback.data.size();
+    if(bytes > 0 && bytes >= sz)
+      m_writer->copy_to_shm(m_readback.data.data(), sz);
   }
 }
 
