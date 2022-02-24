@@ -3,7 +3,7 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
-
+#include <score/tools/File.hpp>
 namespace Gfx::Filter
 {
 
@@ -30,12 +30,14 @@ void LibraryHandler::setup(Library::ProcessesItemModel& model, const score::GUIA
 
 void LibraryHandler::addPath(std::string_view path)
 {
-  QFileInfo file{QString::fromUtf8(path.data(), path.length())};
+  score::PathInfo file{path};
+
   Library::ProcessData pdata;
-  pdata.prettyName = file.baseName();
+  pdata.prettyName = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
+
   pdata.key = Metadata<ConcreteKey_k, Filter::Model>::get();
   pdata.author = "ISF";
-  pdata.customData = file.absoluteFilePath();
+  pdata.customData =  QString::fromUtf8(path.data(), path.size());
   categories.add(file, std::move(pdata));
 }
 

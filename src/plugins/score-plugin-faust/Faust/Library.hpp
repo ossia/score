@@ -53,7 +53,7 @@ class LibraryHandler final
   void registerDSP(const QFileInfo& file)
   {
     Library::ProcessData pdata;
-    pdata.prettyName = file.baseName();
+    pdata.prettyName = file.completeBaseName();
     pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
     pdata.customData = [&] { return file.absoluteFilePath(); }();
     pdata.author = "Faust standard library";

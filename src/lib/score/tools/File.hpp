@@ -15,6 +15,38 @@ QString locateFilePath(
     const QString& filename,
     const score::DocumentContext& ctx) noexcept;
 
+// Used instead of QFileInfo
+// as it does a stat which can be super expensive
+// when scanning large libraries ; this class only extracts
+// path info from the string.
+// Note: it works on string_view, that is, it should only
+// be used for transient computations as it won't allocate memory for the
+// path string it is created with.
+struct SCORE_LIB_BASE_EXPORT PathInfo
+{
+public:
+  explicit PathInfo(std::string_view v) noexcept;
+
+  // Absolute path to the file, passed as input.
+  // ex. /home/user/foo.tar.gz
+  const std::string_view absoluteFilePath;
+
+  // foo.tar.gz
+  std::string_view fileName;
+
+  // foo.tar
+  std::string_view completeBaseName;
+
+  // foo
+  std::string_view baseName;
+
+  // /home/user
+  std::string_view absolutePath;
+
+  // user
+  std::string_view parentDirName;
+};
+
 inline QByteArray mapAsByteArray(QFile& f) noexcept
 {
   const auto sz = f.size();

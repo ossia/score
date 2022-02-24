@@ -135,7 +135,7 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
 
   // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
   // out) / Kontakt 5 (16 out),  etc...
-  i.prettyName = QFileInfo(path).baseName();
+  i.prettyName = QFileInfo(path).completeBaseName();
 
   vst_modules.insert({i.uniqueID, nullptr});
   vst_infos.push_back(std::move(i));

@@ -58,7 +58,7 @@ class LibraryHandler final
   {
     QFileInfo file{QString::fromUtf8(path.data(), path.length())};
     Library::ProcessData pdata;
-    pdata.prettyName = file.baseName();
+    pdata.prettyName = file.completeBaseName();
 
     pdata.key = Metadata<ConcreteKey_k, YSFX::ProcessModel>::get();
     pdata.customData = file.absoluteFilePath();
@@ -83,7 +83,7 @@ class DropHandler final : public Process::ProcessDropHandler
     QFileInfo finfo{filename};
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
-    p.creation.prettyName = finfo.baseName();
+    p.creation.prettyName = finfo.completeBaseName();
     p.creation.customData = finfo.absoluteFilePath();
 
     vec.push_back(std::move(p));

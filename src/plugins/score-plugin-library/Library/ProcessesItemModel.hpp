@@ -8,6 +8,7 @@
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/tools/std/StringHash.hpp>
+#include <score/tools/File.hpp>
 
 #include <QDir>
 #include <QIcon>
@@ -83,6 +84,7 @@ struct Subcategories
 {
   Library::ProcessNode* parent{};
   QDir libraryFolder;
+  std::string libraryFolderPath{};
   std::unordered_map<QString, Library::ProcessNode*> categories;
 
   void init(const QModelIndex& idx, const score::ApplicationContext& ctx)
@@ -94,8 +96,10 @@ struct Subcategories
     // We use the parent folder as category...
     libraryFolder.setPath(
         ctx.settings<Library::Settings::Model>().getPackagesPath());
+    libraryFolderPath = libraryFolder.absolutePath().toStdString();
   }
 
+  [[deprecated]]
   void add(const QFileInfo& file, Library::ProcessData&& pdata)
   {
     auto parentFolder = file.dir().dirName();
@@ -113,6 +117,29 @@ struct Subcategories
       {
         auto& category = Library::addToLibrary(
             *parent, Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}});
+        Library::addToLibrary(category, std::move(pdata));
+        categories[parentFolder] = &category;
+      }
+    }
+  }
+
+  void add(const score::PathInfo& file, Library::ProcessData&& pdata)
+  {
+    auto parentFolder = QString::fromUtf8(file.parentDirName.data(), file.parentDirName.size());
+    if (auto it = categories.find(parentFolder); it != categories.end())
+    {
+      Library::addToLibrary(*it->second, std::move(pdata));
+    }
+    else
+    {
+      if (file.absolutePath == libraryFolderPath)
+      {
+        Library::addToLibrary(*parent, std::move(pdata));
+      }
+      else
+      {
+        auto& category = Library::addToLibrary(
+                           *parent, Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}});
         Library::addToLibrary(category, std::move(pdata));
         categories[parentFolder] = &category;
       }

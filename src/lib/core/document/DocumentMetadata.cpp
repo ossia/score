@@ -30,7 +30,7 @@ QString DocumentMetadata::documentName() const noexcept
   if(!f.exists())
     return m_fileName;
 
-  return f.baseName();
+  return f.completeBaseName();
 }
 
 QString DocumentMetadata::author() const noexcept
