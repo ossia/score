@@ -91,7 +91,7 @@ class OSCLibraryHandler final : public Library::LibraryInterface
     auto& model = devplug.explorer();
 
     Device::DeviceSettings& set = *n.target<Device::DeviceSettings>();
-    set.name = QFileInfo(path).baseName();
+    set.name = QFileInfo(path).completeBaseName();
     set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
     model.checkAndLoadDevice(std::move(n));

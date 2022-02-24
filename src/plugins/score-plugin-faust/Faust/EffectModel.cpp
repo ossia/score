@@ -217,7 +217,7 @@ void FaustEffectModel::reload()
     m_path = fi.absolutePath();
     fx_text = f.readAll();
     m_text = fx_text;
-    m_declareName = fi.baseName();
+    m_declareName = fi.completeBaseName();
   }
   else
   {

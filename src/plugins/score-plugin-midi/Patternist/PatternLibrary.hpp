@@ -43,7 +43,7 @@ class LibraryHandler final
   {
     QFileInfo file{QString::fromUtf8(path.data(), path.length())};
     Library::ProcessData pdata;
-    pdata.prettyName = file.baseName();
+    pdata.prettyName = file.completeBaseName();
     pdata.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
     pdata.author = "Drum Patterns";
     pdata.customData = file.absoluteFilePath();
