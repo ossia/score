@@ -1,4 +1,4 @@
-FROM centos:8
+FROM rockylinux:8
 
 RUN yum -y update
 RUN yum -y install epel-release dnf-plugins-core
@@ -12,6 +12,7 @@ RUN yum -y install  gcc-toolset-11  \
     vulkan vulkan-devel xcb-util-wm xcb-util-wm-devel libxkbcommon-devel libXcomposite-devel xcb-util-keysyms-devel \
     libxcb-devel pulseaudio-libs-devel \
     rsync \
+    pipewire-devel \
     bluez-libs-devel avahi-devel  wayland-devel  wayland-protocols-devel libwayland-egl libwayland-cursor libwayland-client ninja-build
 
 RUN ls \
