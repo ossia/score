@@ -51,6 +51,9 @@ ossia::net::osc_protocol_configuration readOSCConfig(const QByteArray& arr)
 
   rapidjson::Document doc;
   doc.Parse(arr.data(), arr.length());
+  if(!doc.IsObject())
+    return {};
+
   if(auto dev_it = doc.FindMember("Device"); dev_it != doc.MemberEnd())
   {
     auto dev = dev_it->value.GetObject();

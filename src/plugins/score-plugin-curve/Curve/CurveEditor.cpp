@@ -69,6 +69,9 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     return false;
 
   auto obj = readJson(mime.data("text/plain"));
+  if(!obj.IsObject())
+    return false;
+
   auto seg_it = obj.FindMember("Segments");
   if(seg_it == obj.MemberEnd() || !seg_it->value.IsArray())
     return false;
@@ -106,24 +109,53 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
   for(std::size_t i = 0; i < segments.size(); i++)
   {
     auto cur_seg = segments[i];
-    if(cur_seg.start.x() < first_pasted.x() && first_pasted.x() <= cur_seg.end.x()) {
+    if(cur_seg.start.x() < first_pasted.start.x() && first_pasted.start.x() <= cur_seg.end.x()) {
       first_cut = i;
       if(last_cut > -1)
         break;
     }
-    if(cur_seg.start.x() <= last_pasted.x() && last_pasted.x() < cur_seg.end.x()) {
+    if(cur_seg.start.x() <= last_pasted.end.x() && last_pasted.end.x() < cur_seg.end.x()) {
       last_cut = i;
       if(first_cut > -1)
         break;
     }
   }
 
-  if(first_cut == -1 || last_cut == -1)
-    return true;
-  if(first_cut > last_cut) // better safe than sorry
-    return true;
+  if(first_cut == -1 && last_cut == -1)
+  {
+    // We didn't find any segment to cut into
+    if(paste_segts[0].start.x() > segments.back().end.x())
+      segments.insert(segments.end(), paste_segts.begin(), paste_segts.end());
+    else if(paste_segts[0].end.x() < segments.front().start.x())
+      segments.insert(segments.begin(), paste_segts.begin(), paste_segts.end());
+    else
+      segments = paste_segts;
+  }
+  else if(first_cut == -1)
+  {
+    // Remove old segments
+    segments.erase(segments.begin(), segments.begin() + last_cut + 1);
 
-  if(first_cut == last_cut)
+    // We insert at the beginning
+    segments.insert(segments.begin(), paste_segts.begin(), paste_segts.end());
+
+    // Link last segment to link with the end we cut into
+    segments[paste_segts.size() + 1].start = segments[paste_segts.size()].end;
+  }
+  else if(last_cut == -1)
+  {
+    // The end of the paste ends after the current end
+
+    // Remove old segments
+    segments.erase(segments.begin() + first_cut + 1, segments.end());
+
+    // Insert in the hole
+    segments.insert(segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
+
+    // Change the end of the original start segment to match the start of what's pasted
+    segments[first_cut].end = segments[first_cut + 1].start;
+  }
+  else if(first_cut == last_cut)
   {
     auto start_seg = segments[first_cut];
 
@@ -137,7 +169,7 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     start_seg.start = paste_segts.back().end;
     segments.insert(segments.begin() + first_cut + paste_segts.size() + 1, std::move(start_seg));
   }
-  else
+  else if(first_cut < last_cut)
   {
     // Remove old segments
     segments.erase(segments.begin() + first_cut + 1, segments.begin() + last_cut);
@@ -150,6 +182,30 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
 
     // Link last segment to link with the end
     segments[first_cut + paste_segts.size() + 1].start = segments[first_cut + paste_segts.size()].end;
+  }
+  else
+  {
+    // first_cut > last_cut, does not make sense
+    return true;
+  }
+
+  // Do some clean-up, remove empty segments
+
+  for(auto it = segments.begin(); it != segments.end(); )
+  {
+    auto& seg = *it;
+    if(std::abs(seg.end.x() - seg.start.x()) < 0.001)
+    {
+      it = segments.erase(it);
+      continue;
+    }
+    if(seg.end.x() <= seg.start.x())
+    {
+      it = segments.erase(it);
+      continue;
+    }
+
+    ++it;
   }
 
   // Finally relink everything
@@ -166,8 +222,9 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     for(; i < N - 1; i++)
     {
       segments[i].id = Id<Curve::SegmentModel>{i};
-      segments[i-1].following = segments[i].id;
       segments[i].previous = segments[i-1].id;
+      segments[i-1].following = segments[i].id;
+      segments[i-1].end = segments[i].start;
     }
 
     i = N - 2;
@@ -175,6 +232,7 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     {
       segments.back().previous = segments[i].id;
       segments[i].following = segments.back().id;
+      segments[i].end = segments.back().start;
     }
   }
 

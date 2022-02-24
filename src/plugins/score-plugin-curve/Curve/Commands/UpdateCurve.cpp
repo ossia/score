@@ -37,10 +37,9 @@ UpdateCurve::UpdateCurve(
   {
 
     std::sort(m_newCurveData.begin(), m_newCurveData.end());
-
-    /*
+/*
     qDebug() << "Printing map: ";
-    for(auto elt : map)
+    for(auto elt : m_newCurveData)
     {
       QString log = QStringLiteral("id: %1 [%2; %3] prev: %4 following: %5")
                   .arg(elt.id.val())
@@ -50,9 +49,10 @@ UpdateCurve::UpdateCurve(
                   .arg(elt.following.value_or(Id<Curve::SegmentModel>{-1}).val());
       qDebug() << log;
     }
-    std::cout << std::endl;
-    std::cerr << std::endl;
-    */
+    fflush(stdout);
+    fflush(stderr);
+*/
+
 
     SCORE_ASSERT(
         m_newCurveData.empty()

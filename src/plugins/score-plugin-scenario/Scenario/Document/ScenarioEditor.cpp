@@ -127,6 +127,9 @@ static bool pasteInCurrentInterval(QPoint pos, const QMimeData& mime, const scor
 
   auto& itv = pres->displayedInterval();
   auto obj = readJson(mime.data("text/plain"));
+  if(!obj.IsObject())
+    return false;
+
   auto proc_it = obj.FindMember("Processes");
   if(proc_it == obj.MemberEnd() || !proc_it->value.IsArray())
     return false;
