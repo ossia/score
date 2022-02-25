@@ -111,8 +111,8 @@ void ProcessFocusManager::focusPresenter(LayerPresenter* p)
 void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
 {
   p->setFocus(false);
-  if (p->model().selection.get())
-    const_cast<ProcessModel&>(p->model()).selection.set(false);
+ // if (p->model().selection.get())
+ //   const_cast<ProcessModel&>(p->model()).selection.set(false);
   m_deathConnection = QMetaObject::Connection{};
   sig_defocusedPresenter(p);
 }

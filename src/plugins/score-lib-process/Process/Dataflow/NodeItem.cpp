@@ -17,6 +17,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/TextItem.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/model/Skin.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/Bind.hpp>
@@ -615,11 +616,23 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
   event->accept();
 }
-
+namespace
+{
+static std::vector<const Process::ProcessModel*> selectedProcesses(const score::DocumentContext& ctx)
+{
+  std::vector<const Process::ProcessModel*> ps;
+  auto sel = ctx.selectionStack.currentSelection();
+  ps.reserve(sel.size());
+  for(auto& obj : sel)
+    if(auto p = qobject_cast<Process::ProcessModel*>(obj))
+      ps.push_back(p);
+  return ps;
+}
+}
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  auto origp = mapToItem(parentItem(), event->buttonDownPos(Qt::LeftButton));
-  auto p = mapToItem(parentItem(), event->pos());
+  auto origp = event->buttonDownScenePos(Qt::LeftButton);
+  auto p = event->scenePos();
   if(p != origp)
     nodeDidMove = true;
 
@@ -638,8 +651,8 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       }
       case Interaction::Move:
       {
-        m_context.dispatcher.submit<Process::MoveNode>(
-            m_model, m_model.position() + (p - origp));
+        m_context.dispatcher.submit<Process::MoveNodes>(
+            selectedProcesses(m_context), p - origp);
         break;
       }
     }
