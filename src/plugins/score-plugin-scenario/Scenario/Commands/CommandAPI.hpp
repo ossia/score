@@ -116,11 +116,6 @@ public:
 
   void clearInterval(const Scenario::IntervalModel&);
 
-  void insertInInterval(
-      rapidjson::Value&& sourceInterval,
-      const IntervalModel& targetInterval,
-      ExpandMode mode);
-
   void resizeInterval(const IntervalModel& itv, const TimeVal& dur);
 
   void

@@ -62,6 +62,29 @@ cableDataFromCablesJson(const rapidjson::Document::ConstArray& arr)
 
   return cables;
 }
+std::vector<Process::CableData>
+cableDataFromCablesJson(const rapidjson::Document::Array& arr)
+{
+  std::vector<Process::CableData> cables;
+
+  cables.reserve(arr.Size());
+  for (const auto& element : arr)
+  {
+    Process::CableData cd;
+    if (element.IsObject() && element.HasMember("ObjectName"))
+    {
+      cd <<= JsonValue{element};
+      cables.emplace_back(std::move(cd));
+    }
+    else if (element.IsArray())
+    {
+      cd <<= JsonValue{element.GetArray()[1]};
+    cables.emplace_back(cd);
+  }
+}
+
+return cables;
+}
 
 namespace Command
 {
@@ -159,73 +182,12 @@ ScenarioPasteElements::ScenarioPasteElements(
   }
 
   // Cables //
-  {
-    std::unordered_map<Id<IntervalModel>, Id<IntervalModel>> id_map;
-    {
-      int i = 0;
-      for (IntervalModel* interval : intervals)
-      {
-        id_map[interval->id()] = interval_ids[i];
-        i++;
-      }
-    }
-
-    auto& doc
-        = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-    auto cable_ids
-        = getStrongIdRange<Process::Cable>(cables.size(), doc.cables);
-
-    int i = 0;
-    Path<Process::ProcessModel> p{scenario};
-    for (Process::CableData& cd : cables)
-    {
-      auto& source_vec = cd.source.unsafePath().vec();
-      auto& sink_vec = cd.sink.unsafePath().vec();
-      SCORE_ASSERT(!source_vec.empty());
-      SCORE_ASSERT(!sink_vec.empty());
-      int32_t source_itv_id = source_vec.front().id();
-      int32_t sink_itv_id = sink_vec.front().id();
-
-      for (IntervalModel* interval : intervals)
-      {
-        auto id = interval->id().val();
-        if (id == source_itv_id)
-          source_itv_id = id_map.at(interval->id()).val();
-        if (id == sink_itv_id)
-          sink_itv_id = id_map.at(interval->id()).val();
-      }
-      source_vec.front()
-          = ObjectIdentifier{source_vec.front().objectName(), source_itv_id};
-      sink_vec.front()
-          = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
-
-      source_vec.insert(
-          source_vec.begin(),
-          p.unsafePath().vec().begin(),
-          p.unsafePath().vec().end());
-      sink_vec.insert(
-          sink_vec.begin(),
-          p.unsafePath().vec().begin(),
-          p.unsafePath().vec().end());
-
-      m_cables.insert({cable_ids[i], std::move(cd)});
-      i++;
-    }
-  }
+  m_cables.cables = mapCopiedCables(ctx, cables, intervals, interval_ids, scenario);
 
   {
     int i = 0;
     for (IntervalModel* interval : intervals)
     {
-      const auto ports = interval->findChildren<Process::Port*>();
-      for (Process::Port* port : ports)
-      {
-        while (!port->cables().empty())
-        {
-          port->removeCable(port->cables().back());
-        }
-      }
-
       interval->setId(interval_ids[i]);
       {
         auto start_state_id = ossia::find_if(states, [&](auto state) {
@@ -368,15 +330,7 @@ void ScenarioPasteElements::undo(const score::DocumentContext& ctx) const
 {
   auto& scenario = m_ts.find(ctx);
 
-  ScenarioDocumentModel& model
-      = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-  for (const auto& [cable_id, cable_data] : m_cables)
-  {
-    auto& c = model.cables.at(cable_id);
-    c.source().find(ctx).removeCable(c);
-    c.sink().find(ctx).removeCable(c);
-    model.cables.remove(cable_id);
-  }
+  m_cables.undo(ctx);
   for (const auto& elt : m_ids_intervals)
   {
     ScenarioCreate<IntervalModel>::undo(elt, scenario);
@@ -430,33 +384,21 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
     scenario.intervals.add(cst);
   }
 
-  ScenarioDocumentModel& model
-      = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-  for (const auto& [cable_id, dat] : m_cables)
-  {
-    auto c = new Process::Cable{cable_id, dat, &model};
-
-    Path<Scenario::ScenarioDocumentModel> model_path{model};
-
-    model.cables.add(c);
-    auto ext = model_path.extend(cable_id);
-    dat.source.find(ctx).addCable(*c);
-    dat.sink.find(ctx).addCable(*c);
-  }
+  m_cables.redo(ctx);
 }
 
 void ScenarioPasteElements::serializeImpl(DataStreamInput& s) const
 {
   s << m_ts << m_ids_timesyncs << m_ids_events << m_ids_states
     << m_ids_intervals << m_json_timesyncs << m_json_events << m_json_states
-    << m_json_intervals << m_cables;
+    << m_json_intervals << m_cables.cables;
 }
 
 void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_ts >> m_ids_timesyncs >> m_ids_events >> m_ids_states
       >> m_ids_intervals >> m_json_timesyncs >> m_json_events >> m_json_states
-      >> m_json_intervals >> m_cables;
+      >> m_json_intervals >> m_cables.cables;
 }
 }
 }

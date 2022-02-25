@@ -1,9 +1,11 @@
 #pragma once
+#include <Process/Dataflow/Cable.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <score_plugin_scenario_export.h>
 
 #include <vector>
+
 class QJsonObject;
 class QObject;
 class Selection;
@@ -87,4 +89,12 @@ void copySelectedElementsToJson(
     JSONReader&,
     ScenarioInterface& s,
     const score::DocumentContext& ctx);
+
+struct CopiedCables
+{
+  ossia::flat_map<Id<Process::Cable>, Process::CableData> cables;
+
+  void undo(const score::DocumentContext& ctx) const;
+  void redo(const score::DocumentContext& ctx) const;
+};
 }

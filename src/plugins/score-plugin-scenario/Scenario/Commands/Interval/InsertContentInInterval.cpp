@@ -22,6 +22,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
 
 #include <functional>
 #include <map>
@@ -32,120 +33,6 @@ namespace Scenario
 {
 namespace Command
 {
-
-InsertContentInInterval::InsertContentInInterval(
-    const rapidjson::Value& sourceInterval,
-    const IntervalModel& targetInterval,
-    ExpandMode mode)
-    : m_source{clone(sourceInterval)}
-    , m_target{std::move(targetInterval)}
-    , m_mode{mode}
-{
-  // Generate new ids for each cloned process.
-  const auto& target_processes = targetInterval.processes;
-  std::vector<Id<Process::ProcessModel>> curIds;
-  m_processIds.reserve(target_processes.size());
-  std::transform(
-      target_processes.begin(),
-      target_processes.end(),
-      std::back_inserter(curIds),
-      [](const auto& proc) { return proc.id(); });
-
-  auto processes = m_source["Processes"].GetArray();
-  for (std::size_t i = 0; i < processes.Size(); i++)
-  {
-    auto obj = processes[i].GetObject();
-    Id<Process::ProcessModel> newId = getStrongId(curIds);
-    Id<Process::ProcessModel> oldId
-        = Id<Process::ProcessModel>(obj["id"].GetInt());
-    obj["id"] = newId.val();
-    processes[i] = std::move(obj);
-    m_processIds.insert({oldId, newId});
-    curIds.push_back(newId);
-  }
-  m_source["Processes"] = std::move(processes);
-}
-
-void InsertContentInInterval::undo(const score::DocumentContext& ctx) const
-{
-  auto& trg_interval = m_target.find(ctx);
-  // We just have to remove what we added
-  // TODO Remove the added slots, etc.
-
-  // Remove the processes
-  for (const auto& proc_id : m_processIds)
-  {
-    RemoveProcess(trg_interval, proc_id.second);
-  }
-
-  if (trg_interval.processes.empty())
-    trg_interval.setSmallViewVisible(false);
-}
-
-void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
-{
-  auto& pl = ctx.app.components.interfaces<Process::ProcessFactoryList>();
-  auto& trg_interval = m_target.find(ctx);
-  const auto& json_array = m_source["Processes"].GetArray();
-
-  for (const auto& json_vref : json_array)
-  {
-    JSONObject::Deserializer deserializer{json_vref};
-    auto newproc = deserialize_interface(pl, deserializer, ctx, &trg_interval);
-    if (newproc)
-    {
-      AddProcess(trg_interval, newproc);
-
-      // Resize the processes according to the new interval.
-      if (m_mode == ExpandMode::Scale)
-      {
-        newproc->setParentDuration(
-            ExpandMode::Scale, trg_interval.duration.defaultDuration());
-      }
-      else if (m_mode == ExpandMode::GrowShrink)
-      {
-        newproc->setParentDuration(
-            ExpandMode::ForceGrow, trg_interval.duration.defaultDuration());
-      }
-    }
-    else
-      SCORE_TODO;
-  }
-
-  auto sv_it = m_source.FindMember(score::StringConstant().SmallViewRack);
-  if (sv_it != m_source.MemberEnd())
-  {
-    Rack smallView = JsonValue{sv_it->value}.to<Rack>();
-    for (auto& sv : smallView)
-    {
-      if (sv.frontProcess)
-      {
-        sv.frontProcess = m_processIds.at(*sv.frontProcess);
-      }
-      for (auto& proc : sv.processes)
-      {
-        proc = m_processIds.at(proc);
-      }
-      trg_interval.addSlot(sv);
-    }
-  }
-  if (json_array.Size() > 0 && !trg_interval.smallViewVisible())
-    trg_interval.setSmallViewVisible(true);
-}
-
-void InsertContentInInterval::serializeImpl(DataStreamInput& s) const
-{
-  s << m_source << m_target << m_processIds << (int)m_mode;
-}
-
-void InsertContentInInterval::deserializeImpl(DataStreamOutput& s)
-{
-  int mode;
-  s >> m_source >> m_target >> m_processIds >> mode;
-  m_mode = static_cast<ExpandMode>(mode);
-}
-
-
 
 QRectF copiedProcessesRect(const rapidjson::Value::Array& sourceProcesses)
 {
@@ -178,50 +65,54 @@ PasteProcessesInInterval::PasteProcessesInInterval(
     const IntervalModel& targetInterval,
     ExpandMode mode,
     QPointF p)
-    : m_cables{clone(sourceCables)}
-    , m_target{std::move(targetInterval)}
+    :// m_cables{clone(sourceCables)}
+     m_target{std::move(targetInterval)}
     , m_mode{mode}
     , m_origin{p}
 {
-  // Generate new ids for each cloned process.
-  const auto& target_processes = targetInterval.processes;
-  std::vector<Id<Process::ProcessModel>> curIds;
-  m_processIds.reserve(target_processes.size());
-  std::transform(
-      target_processes.begin(),
-      target_processes.end(),
-      std::back_inserter(curIds),
-      [](const auto& proc) { return proc.id(); });
+  auto& ctx = targetInterval.context();
 
+  // Generate new ids for each cloned process.
+  auto [processes,processes_ids]
+      = ProcessesBeingCopied{sourceProcesses, targetInterval, ctx};
+
+  // Generate new ids for cables to create
+  auto cables = Scenario::cableDataFromCablesJson(sourceCables);
+  m_cables.cables = mapCopiedCables(ctx, cables, processes, processes_ids, targetInterval);
+
+  // Compute the rect of the objects
   QRectF copyRect = copiedProcessesRect(sourceProcesses);
   QPointF center = copyRect.center();
 
-  for (std::size_t i = 0; i < sourceProcesses.Size(); i++)
+  // Adjust the deserialized processes
+  int i = 0;
+  for(Process::ProcessModel* obj : processes)
   {
-    auto obj = sourceProcesses[i].GetObject();
-    auto newId = getStrongId(curIds);
-    auto oldId = Id<Process::ProcessModel>(obj["id"].GetInt());
-    obj["id"] = newId.val();
+    // Adapt the id
+    obj->setId(processes_ids[i]);
 
-    auto pos = obj["Pos"].GetArray();
-    auto sz = obj["Size"].GetArray();
-
-    double x = pos[0].GetDouble();
-    double y = pos[1].GetDouble();
-    double w = sz[0].GetDouble();
-    double h = sz[1].GetDouble();
+    // Put in the updated rect
+    double x = obj->position().x();
+    double y = obj->position().y();
+    double w = obj->size().width();
+    double h = obj->size().height();
     QRectF itemRect{x, y, w, h};
 
-    obj["Pos"][0] = p.x() + center.x() - x - itemRect.width();
-    obj["Pos"][1] = p.y() + center.y() - y - itemRect.height();
+    double nx = p.x() + center.x() - x - itemRect.width();
+    double ny = p.y() + center.y() - y - itemRect.height();
 
-    sourceProcesses[i] = std::move(obj);
-    m_processIds.insert({oldId, newId});
-    curIds.push_back(newId);
+    obj->setPosition(QPointF{nx, ny});
   }
 
-  // FIXME cablezs
-  m_source = clone(sourceProcesses);
+  m_ids_processes.reserve(processes.size());
+  m_json_processes.reserve(processes.size());
+  for (auto elt : processes)
+  {
+    m_ids_processes.push_back(elt->id());
+    m_json_processes.push_back(score::marshall<DataStream>(*elt));
+
+    delete elt;
+  }
 }
 
 void PasteProcessesInInterval::undo(const score::DocumentContext& ctx) const
@@ -230,10 +121,13 @@ void PasteProcessesInInterval::undo(const score::DocumentContext& ctx) const
   // We just have to remove what we added
   // TODO Remove the added slots, etc.
 
+  // Remove the cables
+  m_cables.undo(ctx);
+
   // Remove the processes
-  for (const auto& proc_id : m_processIds)
+  for (const auto& proc_id : m_ids_processes)
   {
-    RemoveProcess(trg_interval, proc_id.second);
+    RemoveProcess(trg_interval, proc_id);
   }
 
   if (trg_interval.processes.empty())
@@ -244,13 +138,11 @@ void PasteProcessesInInterval::redo(const score::DocumentContext& ctx) const
 {
   auto& pl = ctx.app.components.interfaces<Process::ProcessFactoryList>();
   auto& trg_interval = m_target.find(ctx);
-  const auto& json_array = m_source.GetArray();
-
   std::vector<Id<Process::ProcessModel>> processesToPutInSlot;
 
-  for (const auto& json_vref : json_array)
+  for (const auto& proc : m_json_processes)
   {
-    JSONObject::Deserializer deserializer{json_vref};
+    DataStream::Deserializer deserializer{proc};
     auto newproc = deserialize_interface(pl, deserializer, ctx, &trg_interval);
     if (newproc)
     {
@@ -282,19 +174,22 @@ void PasteProcessesInInterval::redo(const score::DocumentContext& ctx) const
     Slot s{{p}, p, false};
     trg_interval.addSlot(s);
   }
-  if (json_array.Size() > 0 && !trg_interval.smallViewVisible())
+  if (m_json_processes.size() > 0 && !trg_interval.smallViewVisible())
     trg_interval.setSmallViewVisible(true);
+
+  // Add cables
+  m_cables.redo(ctx);
 }
 
 void PasteProcessesInInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_source << m_cables << m_target << m_processIds << (int)m_mode << m_origin;
+  s << m_target << (int)m_mode << m_origin << m_ids_processes << m_json_processes << m_cables.cables;
 }
 
 void PasteProcessesInInterval::deserializeImpl(DataStreamOutput& s)
 {
-  int mode;
-  s >> m_source >> m_cables >> m_target >> m_processIds >> mode >> m_origin;
+  int mode{};
+  s >> m_target >> mode >> m_origin >> m_ids_processes >> m_json_processes >> m_cables.cables;
   m_mode = static_cast<ExpandMode>(mode);
 }
 }

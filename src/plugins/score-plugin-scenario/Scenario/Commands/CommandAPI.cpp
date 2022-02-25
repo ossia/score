@@ -477,14 +477,6 @@ void Macro::clearInterval(const IntervalModel& itv)
   m.submit(new ClearInterval{itv});
 }
 
-void Macro::insertInInterval(
-    rapidjson::Value&& json,
-    const IntervalModel& itv,
-    ExpandMode mode)
-{
-  m.submit(new InsertContentInInterval{std::move(json), itv, mode});
-}
-
 void Macro::resizeInterval(const IntervalModel& itv, const TimeVal& dur)
 {
   auto& resizers = m.stack().context().app.interfaces<IntervalResizerList>();

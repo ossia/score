@@ -1,4 +1,7 @@
 #pragma once
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <Process/Dataflow/Cable.hpp>
 
 #include <score/command/Command.hpp>
@@ -10,7 +13,6 @@
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/json.hpp>
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 namespace Scenario
 {
 struct Point;
@@ -57,7 +59,7 @@ private:
   std::vector<QByteArray> m_json_events;
   std::vector<QByteArray> m_json_states;
 
-  ossia::flat_map<Id<Process::Cable>, Process::CableData> m_cables;
+  CopiedCables m_cables;
 };
 }
 }

@@ -333,4 +333,34 @@ bool copySelectedProcesses(JSONReader& r, const score::DocumentContext& ctx)
   return false;
 }
 
+void CopiedCables::undo(const score::DocumentContext& ctx) const
+{
+  ScenarioDocumentModel& model
+      = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+  for (const auto& [cable_id, cable_data] : cables)
+  {
+    auto& c = model.cables.at(cable_id);
+    c.source().find(ctx).removeCable(c);
+    c.sink().find(ctx).removeCable(c);
+    model.cables.remove(cable_id);
+  }
+}
+
+void CopiedCables::redo(const score::DocumentContext& ctx) const
+{
+  ScenarioDocumentModel& model
+      = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+  for (const auto& [cable_id, dat] : cables)
+  {
+    auto c = new Process::Cable{cable_id, dat, &model};
+
+    Path<Scenario::ScenarioDocumentModel> model_path{model};
+
+    model.cables.add(c);
+    auto ext = model_path.extend(cable_id);
+    dat.source.find(ctx).addCable(*c);
+    dat.sink.find(ctx).addCable(*c);
+  }
+}
+
 }

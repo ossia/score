@@ -38,6 +38,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortType.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableCopy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/NodeItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/ControlWidgets.hpp"
