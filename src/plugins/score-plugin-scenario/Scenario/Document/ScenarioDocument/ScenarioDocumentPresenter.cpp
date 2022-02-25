@@ -1099,8 +1099,17 @@ void ScenarioDocumentPresenter::setNewSelection(
     const Selection& old,
     const Selection& s)
 {
-  static QMetaObject::Connection cur_proc_connection;
   auto process = m_focusManager.focusedModel();
+  auto clearProcessSelection = [=] (Process::ProcessModel* process) {
+    if (process)
+    {
+      process->setSelection(Selection{});
+      process->selection.set(false);
+      for(auto& con : m_processSelectionConnections)
+        QObject::disconnect(con);
+      m_processSelectionConnections.clear();
+    }
+  };
 
   for (auto& e : old)
   {
@@ -1126,13 +1135,7 @@ void ScenarioDocumentPresenter::setNewSelection(
   // selecting something in a process, or something in full view)
   if (s.empty())
   {
-    if (process)
-    {
-      process->setSelection(Selection{});
-      process->selection.set(false);
-      QObject::disconnect(cur_proc_connection);
-    }
-
+    clearProcessSelection(process);
     displayedElements.setSelection(Selection{});
 
     // Note : once here was a call to defocus a presenter. Why ? See git blame.
@@ -1147,12 +1150,7 @@ void ScenarioDocumentPresenter::setNewSelection(
                     || obj == &displayedElements.endState();
            }))
   {
-    if (process)
-    {
-      process->setSelection(Selection{});
-      process->selection.set(false);
-      QObject::disconnect(cur_proc_connection);
-    }
+    clearProcessSelection(process);
 
     auto pres = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
         *score::IDocument::documentFromObject(this));
@@ -1167,39 +1165,54 @@ void ScenarioDocumentPresenter::setNewSelection(
 
     // We know by the presenter that all objects
     // in a given selection are in the same Process.
-    Process::ProcessModel* newProc = qobject_cast<Process::ProcessModel*>(*s.begin());
-    if(!newProc)
-      newProc = Process::parentProcess(*s.begin());
-
-    if (process && newProc != process)
+    std::vector<Process::ProcessModel*> selectedProcesses;
+    for(auto& elt : s)
     {
-      process->setSelection(Selection{});
-      process->selection.set(false);
-      QObject::disconnect(cur_proc_connection);
+      if(auto obj = qobject_cast<Process::ProcessModel*>(elt))
+        selectedProcesses.push_back(obj);
     }
 
-    if (newProc)
+    if(selectedProcesses.empty())
     {
-      if (auto p = qobject_cast<Process::ProcessModel*>(*s.begin()))
+      // Select child of processes
+      auto newProc = Process::parentProcess(*s.begin());
+      SCORE_ASSERT(newProc);
+      if(process && process != newProc)
       {
-        // the process itself is being selected
-        p->selection.set(true);
+        clearProcessSelection(process);
       }
-      else
+
+      newProc->setSelection(s);
+      if (process)
       {
-        newProc->setSelection(s);
-        if (process)
-        {
-          process->selection.set(false);
-        }
-        newProc->selection.set(true);
+        process->selection.set(false);
       }
-      cur_proc_connection = connect(
+      newProc->selection.set(true);
+
+      m_processSelectionConnections.push_back(connect(
           newProc,
           &Process::ProcessModel::identified_object_destroying,
           this,
           &ScenarioDocumentPresenter::deselectAll,
-          Qt::UniqueConnection);
+          Qt::UniqueConnection));
+    }
+    else
+    {
+      if (process && !ossia::contains(selectedProcesses, process))
+      {
+        clearProcessSelection(process);
+      }
+
+      for(auto newProc : selectedProcesses)
+      {
+        newProc->selection.set(true);
+        m_processSelectionConnections.push_back(connect(
+            newProc,
+            &Process::ProcessModel::identified_object_destroying,
+            this,
+            &ScenarioDocumentPresenter::deselectAll,
+            Qt::UniqueConnection));
+      }
     }
 
     for (auto& elt : s)

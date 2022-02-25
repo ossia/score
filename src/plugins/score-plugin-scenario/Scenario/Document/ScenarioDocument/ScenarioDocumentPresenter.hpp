@@ -166,6 +166,8 @@ private:
   QAction* m_timelineAction{};
   QAction* m_musicalAction{};
 
+  std::vector<QMetaObject::Connection> m_processSelectionConnections;
+
   int m_nonGLTimebarTimer{-1};
 
   bool m_zooming{false};

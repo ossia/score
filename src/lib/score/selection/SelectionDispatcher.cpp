@@ -5,6 +5,7 @@
 #include "SelectionStack.hpp"
 
 #include <score/selection/Selection.hpp>
+#include <QApplication>
 namespace score
 {
 static const Selection emptySelection;
@@ -20,8 +21,20 @@ void SelectionDispatcher::select(const Selection& s)
 
 void SelectionDispatcher::select(const IdentifiedObjectAbstract& s)
 {
-  m_stack.pushNewSelection(
-      Selection{const_cast<IdentifiedObjectAbstract*>(&s)});
+  auto ptr = const_cast<IdentifiedObjectAbstract*>(&s);
+  if(qApp->keyboardModifiers() & Qt::CTRL)
+  {
+    auto sel = m_stack.currentSelection();
+    if(!sel.contains(ptr))
+      sel.append(ptr);
+
+    m_stack.pushNewSelection(std::move(sel));
+  }
+  else
+  {
+    m_stack.pushNewSelection(
+        Selection{const_cast<IdentifiedObjectAbstract*>(&s)});
+  }
 }
 
 score::SelectionStack& SelectionDispatcher::stack() const

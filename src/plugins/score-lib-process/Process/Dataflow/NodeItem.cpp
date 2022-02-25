@@ -283,14 +283,13 @@ QSizeF NodeItem::size() const noexcept
 
 void NodeItem::setSelected(bool s)
 {
-  if (m_selected != s)
-  {
-    m_selected = s;
-    if (s)
-      setFocus();
+  m_selected = s;
+  if (s)
+    setFocus();
+  else
+    clearFocus();
 
-    update();
-  }
+  update();
 }
 
 QRectF NodeItem::boundingRect() const

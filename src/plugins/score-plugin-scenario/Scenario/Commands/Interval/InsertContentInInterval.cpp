@@ -102,6 +102,8 @@ PasteProcessesInInterval::PasteProcessesInInterval(
     double ny = p.y() + center.y() - y - itemRect.height();
 
     obj->setPosition(QPointF{nx, ny});
+
+    i++;
   }
 
   m_ids_processes.reserve(processes.size());
