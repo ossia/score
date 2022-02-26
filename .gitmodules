@@ -55,3 +55,6 @@
 [submodule "3rdparty/Syphon-Framework"]
 	path = 3rdparty/Syphon-Framework
 	url = https://github.com/jcelerier/Syphon-Framework
+[submodule "3rdparty/avendish"]
+	path = 3rdparty/avendish
+	url = git@github.com:celtera/avendish

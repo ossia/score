@@ -79,6 +79,7 @@ score-plugin-ui
 score-plugin-gfx
 score-plugin-packagemanager
 
+score-plugin-avnd
 score-plugin-jit
 score-plugin-spline3d
 score-plugin-vst

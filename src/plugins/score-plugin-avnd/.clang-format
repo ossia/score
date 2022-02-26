@@ -1,0 +1,105 @@
+BasedOnStyle: WebKit
+
+AllowAllArgumentsOnNextLine: true
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+ReflowComments: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+
+AccessModifierOffset: -2
+AlignAfterOpenBracket: AlwaysBreak
+AlignEscapedNewlinesLeft: true
+AlignOperands: true
+AlignTrailingComments: true
+AlignConsecutiveDeclarations: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: false
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: true
+
+BraceWrapping:
+  AfterClass:      true
+  AfterControlStatement: true
+  AfterEnum:       true
+  AfterFunction:   true
+  AfterNamespace:  true
+  AfterStruct:     true
+  AfterUnion:      true
+  BeforeCatch:     true
+  BeforeElse:      true
+  IndentBraces:    false
+
+BinPackArguments: false
+BinPackParameters: false
+ExperimentalAutoDetectBinPacking: false
+AllowAllParametersOfDeclarationOnNextLine: false
+BreakBeforeBinaryOperators: All
+BreakBeforeBraces: Allman
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializersBeforeComma: true
+ColumnLimit: 79
+CommentPragmas: '^ IWYU pragma:'
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+IndentCaseLabels: true
+IndentWidth: 2
+IndentWrappedFunctionNames: false
+KeepEmptyLinesAtTheStartOfBlocks: true
+Language: Cpp
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 60
+PointerAlignment: Left
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceBeforeCpp11BracedList: false
+Standard: c++20
+TabWidth: 2
+UseTab: Never
+CommentPragmas: '^ clang-format:'
+StatementMacros: ['E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT']
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^"'
+    Priority:        1
+  - Regex:           '^<(Vst|Vst3|Audio|Magnetism|Control|ControlSurface|RemoteScenario|Explorer|Protocols|Process|State|Device|Media|Midi|JS|Curve|Inspector|Automation|Dataflow|Fx|Library|Mapping|Loop|Recording|PluginSettings|Gfx|Nodal|Pd|LV2|Mixer|Video|Effect|Execution|Engine|LocalTree)'
+    Priority:        2
+  - Regex:           '^<score/'
+    Priority:        3
+  - Regex:           '^<core/'
+    Priority:        4
+  - Regex:           '^<ossia/detail/config'
+    Priority:        5
+  - Regex:           '^<ossia/'
+    Priority:        6
+  - Regex:           '^<ossia-qt/'
+    Priority:        6
+  - Regex:           '^<boost'
+    Priority:        7
+  - Regex:           '^<Q'
+    Priority:        8
+  - Regex:           '<([[:alnum:]_]+\/?)+.(h|hpp)>'
+    Priority:        9
+  - Regex:           '<[[:alnum:]]+>'
+    Priority:        800
+
