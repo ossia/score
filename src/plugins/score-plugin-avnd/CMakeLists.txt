@@ -24,7 +24,7 @@ if(NOT COROUTINES_WORKING)
 endif()
 
 unset(CMAKE_REQUIRED_FLAGS)
-
+include_directories("${3RDPARTY_FOLDER}/avendish/include")
 add_library(
   score_plugin_avnd
   # oscr/Attributes.hpp

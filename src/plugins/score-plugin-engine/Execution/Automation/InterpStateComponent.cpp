@@ -3,6 +3,7 @@
 #include <ossia/dataflow/nodes/percentage.hpp>
 #include <ossia/editor/automation/curve_value_visitor.hpp>
 #include <ossia/editor/curve/behavior.hpp>
+#include <ossia/dataflow/typed_value.hpp>
 namespace ossia::nodes
 {
 class state_interpolation final : public ossia::graph_node

@@ -22,6 +22,8 @@
 
 #include <QTimer>
 #include <avnd/binding/ossia/node.hpp>
+#include <avnd/binding/ossia/mono_audio_node.hpp>
+#include <avnd/binding/ossia/poly_audio_node.hpp>
 
 
 namespace oscr
@@ -342,7 +344,7 @@ public:
     {
 
       auto st = ossia::exec_state_facade{ctx.execState.get()};
-      auto node = new safe_node_base<Node>{st.bufferSize(), (double)st.sampleRate()};
+      auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate()};
       this->node.reset(node);
 
       /* FIXME controls
