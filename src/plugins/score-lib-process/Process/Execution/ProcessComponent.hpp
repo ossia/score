@@ -138,8 +138,14 @@ public:
   {
     try
     {
+#if defined(SCORE_DEBUG)
+      // A bit slower but really makes backtraces simpler
+      auto comp = std::shared_ptr<ProcessComponent_T>(new ProcessComponent_T{
+          static_cast<model_type&>(proc), ctx, parent});
+#else
       auto comp = std::make_shared<ProcessComponent_T>(
           static_cast<model_type&>(proc), ctx, parent);
+#endif
       comp->lazy_init();
       return comp;
     }

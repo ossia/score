@@ -11,7 +11,7 @@ struct default_t
 };
 
 template <typename Model_T>
-class ProcessFactory_T final : public Process::ProcessModelFactory
+class ProcessFactory_T : public Process::ProcessModelFactory
 {
 public:
   virtual ~ProcessFactory_T() = default;

@@ -137,7 +137,7 @@ VSTEffectItem::VSTEffectItem(
           for (; it != controlItems.end(); ++it, ++i)
           {
             score::EmptyRectItem* rect = it->second;
-            QPointF pos = Process::currentWigetPos(i, [&](int j) {
+            QPointF pos = Process::currentWidgetPos(i, [&](int j) {
               return controlItems[j].second->boundingRect().size();
             });
 

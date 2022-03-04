@@ -18,7 +18,7 @@ static const constexpr int MaxRowsInEffect = 5;
 // TODO not very efficient since it recomputes everything every time...
 // Does a grid layout with maximum N rows per column.
 template <typename F>
-QPointF currentWigetPos(int controlIndex, F getControlSize) noexcept(
+QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
     noexcept(getControlSize(0)))
 {
   int N = MaxRowsInEffect * (controlIndex / MaxRowsInEffect);
@@ -139,7 +139,7 @@ auto createControl(
 
     const auto itemRect = QRectF{0., 0, w, h};
 
-    QPointF pos = Process::currentWigetPos(i, setup.getControlSize);
+    QPointF pos = Process::currentWidgetPos(i, setup.getControlSize);
     item->setPos(pos);
     item->setRect(itemRect);
     item->setToolTip(QString("%1\n%2").arg(port.name(), port.description()));
@@ -149,7 +149,7 @@ auto createControl(
   else
   {
     QRectF itemRect{0., 0, 90., 30.};
-    QPointF pos = Process::currentWigetPos(i, setup.getControlSize);
+    QPointF pos = Process::currentWidgetPos(i, setup.getControlSize);
     portItem->setPos(8., 4.);
     lab->setPos(20., 2);
     item->setPos(pos);

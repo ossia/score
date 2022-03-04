@@ -2,6 +2,8 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <ossia/detail/flat_map.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 #include <ossia/detail/flat_map.hpp>
