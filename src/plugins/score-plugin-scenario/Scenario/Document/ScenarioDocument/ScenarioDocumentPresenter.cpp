@@ -1176,25 +1176,33 @@ void ScenarioDocumentPresenter::setNewSelection(
     {
       // Select child of processes
       auto newProc = Process::parentProcess(*s.begin());
-      SCORE_ASSERT(newProc);
-      if(process && process != newProc)
+      if(newProc)
       {
-        clearProcessSelection(process);
-      }
+        if(process && process != newProc)
+        {
+          clearProcessSelection(process);
+        }
 
-      newProc->setSelection(s);
-      if (process)
+        newProc->setSelection(s);
+        if (process)
+        {
+          process->selection.set(false);
+        }
+        newProc->selection.set(true);
+
+        m_processSelectionConnections.push_back(connect(
+            newProc,
+            &Process::ProcessModel::identified_object_destroying,
+            this,
+            &ScenarioDocumentPresenter::deselectAll,
+            Qt::UniqueConnection));
+      }
+      else
       {
-        process->selection.set(false);
+        qDebug() << "Weird case ?? " << (QObject*)s.begin()->data();
+        if(process)
+          clearProcessSelection(process);
       }
-      newProc->selection.set(true);
-
-      m_processSelectionConnections.push_back(connect(
-          newProc,
-          &Process::ProcessModel::identified_object_destroying,
-          this,
-          &ScenarioDocumentPresenter::deselectAll,
-          Qt::UniqueConnection));
     }
     else
     {
