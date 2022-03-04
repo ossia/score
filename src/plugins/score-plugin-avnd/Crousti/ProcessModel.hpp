@@ -16,6 +16,9 @@
 #include <score_plugin_engine.hpp>
 #include <ossia/detail/typelist.hpp>
 
+#include <avnd/common/for_nth.hpp>
+#include <avnd/wrappers/bus_host_process_adapter.hpp>
+
 #if SCORE_PLUGIN_GFX
 #include <Gfx/TexturePort.hpp>
 #endif
@@ -140,49 +143,6 @@ struct Metadata<ConcreteKey_k, oscr::ProcessModel<Info>>
 namespace oscr
 {
 
-
-
-template<typename Info>
-void PortVisitDispatch(auto&& func_inlets, auto&& func_outlets)
-{
-  // Handle "virtual" audio ports for simple processors
-  // which pass things by arguments
-  struct FakeAudioIn {
-      static consteval auto name() { return "Audio In"; }
-  } fake_in;
-  struct FakeAudioOut {
-      static consteval auto name() { return "Audio Out"; }
-  } fake_out;
-  if constexpr(avnd::sample_arg_processor<Info>)
-  {
-    func_inlets(fake_in);
-    func_outlets(fake_out);
-  }
-  else if constexpr(avnd::channel_arg_processor<Info>)
-  {
-    func_inlets(fake_in);
-    func_outlets(fake_out);
-  }
-  else if constexpr(avnd::bus_arg_processor<Info>)
-  {
-    func_inlets(fake_in);
-    func_outlets(fake_out);
-  }
-
-  if constexpr(avnd::has_inputs<Info>)
-  {
-    using inputs_t = typename avnd::inputs_type<Info>::type;
-    inputs_t ins;
-    avnd::for_each_field_ref(ins, func_inlets);
-  }
-  if constexpr(avnd::has_outputs<Info>)
-  {
-    using outputs_t = typename avnd::outputs_type<Info>::type;
-    outputs_t outs;
-    avnd::for_each_field_ref(outs, func_outlets);
-  }
-}
-
 void setupNewPort(const auto& spec, auto* obj)
 {
   obj->setName(fromStringView(avnd::get_name(spec)));
@@ -235,6 +195,12 @@ struct InletInitFunc
   }
 #endif
 
+  void operator()(const avnd::message auto& in)
+  {
+    auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+  }
   void operator()(const auto& ctrl)
   {
     qDebug() << fromStringView(avnd::get_name(ctrl)) << "unhandled";
@@ -266,7 +232,7 @@ struct OutletInitFunc
     if constexpr(avnd::control<T>)
     {
       constexpr auto ctl = oscr::make_control_out<T>();
-      if(auto p = ctl.create_inlet(Id<Process::Port>(outlet++), &self))
+      if(auto p = ctl.create_outlet(Id<Process::Port>(outlet++), &self))
       {
         p->hidden = true;
         outs.push_back(p);
@@ -287,6 +253,12 @@ struct OutletInitFunc
     outs.push_back(p);
   }
 #endif
+  void operator()(const avnd::callback auto& out)
+  {
+    auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+  }
   void operator()(const auto& ctrl)
   {
     qDebug() << fromStringView(avnd::get_name(ctrl)) << "unhandled";
@@ -314,7 +286,7 @@ public:
   {
     metadata().setInstanceName(*this);
 
-    PortVisitDispatch<Info>(
+    avnd::port_visit_dispatcher<Info>(
       InletInitFunc{*this, m_inlets},
       OutletInitFunc{*this, m_outlets}
     );

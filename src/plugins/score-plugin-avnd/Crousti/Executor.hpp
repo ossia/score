@@ -1,9 +1,10 @@
 ﻿#pragma once
 
 #include <Crousti/ProcessModel.hpp>
-// #include <Crousti/ExecutorNode.hpp>
+//#include <Crousti/ExecutorNode.hpp>
+#include <Crousti/Metadatas.hpp>
 #include <Crousti/GpuNode.hpp>
-
+#include <ossia/dataflow/node_process.hpp>
 #include <Engine/Node/TickPolicy.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -12,17 +13,20 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/tools/Bind.hpp>
+#include <ossia/dataflow/exec_state_facade.hpp>
 
 #if SCORE_PLUGIN_GFX
 #include <Gfx/GfxApplicationPlugin.hpp>
+#include <Crousti/GpuNode.hpp>
 #endif
 
 #include <QTimer>
+#include <avnd/binding/ossia/node.hpp>
 
 
 namespace oscr
 {
-
+/*
 template <typename ExecNode_T, typename T, std::size_t ControlN>
 struct control_updater
 {
@@ -258,7 +262,7 @@ struct ExecutorGuiUpdate
     }
   }
 };
-
+*/
 template <typename Node>
 class Executor final
     : public Execution::
@@ -336,8 +340,12 @@ public:
     else
 #endif
     {
-      auto node = std::make_shared<safe_node<Node>>(ossia::exec_state_facade{ctx.execState.get()});
-      this->node = node;
+
+      auto st = ossia::exec_state_facade{ctx.execState.get()};
+      auto node = new safe_node_base<Node>{st.bufferSize(), (double)st.sampleRate()};
+      this->node.reset(node);
+
+      /* FIXME controls
 
       if constexpr (HasControlInputs<Node>)
       {
@@ -357,6 +365,8 @@ public:
             ExecutorGuiUpdate<Node>{weak_node, element},
             Qt::QueuedConnection);
       }
+
+      */
     }
 
     this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);

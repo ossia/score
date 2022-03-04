@@ -27,41 +27,19 @@ unset(CMAKE_REQUIRED_FLAGS)
 
 add_library(
   score_plugin_avnd
-  Examples/TrivialGenerator.hpp
-  Examples/TrivialFilter.hpp
-
-  Examples/SampleAccurateFilter.hpp
-  Examples/SampleAccurateGenerator.hpp
-
-  Examples/Empty.hpp
-
-  Examples/AudioEffect.hpp
-  Examples/AudioEffectWithSidechains.hpp
-
-  Examples/RawPorts.hpp
-
-  Examples/TextureGenerator.hpp
-
-  Examples/Distortion.hpp
-  Examples/CCC.hpp
-
-  Examples/ControlGallery.hpp
-  Examples/ZeroDependencyAudioEffect.hpp
-
-  oscr/Attributes.hpp
-  oscr/Concepts.hpp
-  oscr/GpuNode.hpp
-  oscr/Executor.hpp
-  oscr/ExecutorNode.hpp
-  oscr/Layer.hpp
-  oscr/Metadatas.hpp
-  oscr/ProcessModel.hpp
+  # oscr/Attributes.hpp
+  # oscr/Concepts.hpp
+  # oscr/GpuNode.hpp
+  # oscr/Executor.hpp
+  # oscr/ExecutorNode.hpp
+  # oscr/Layer.hpp
+  # oscr/Metadatas.hpp
+  # oscr/ProcessModel.hpp
 
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
   Crousti/GpuNode.hpp
   Crousti/Executor.hpp
-  Crousti/ExecutorNode.hpp
   Crousti/Layer.hpp
   Crousti/Metadatas.hpp
   Crousti/ProcessModel.hpp

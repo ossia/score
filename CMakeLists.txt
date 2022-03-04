@@ -133,6 +133,7 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/multi_index/include")
 
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
+include_directories(SYSTEM "${3RDPARTY_FOLDER}/avendish/include/")
 if(BOOST_ROOT)
   include_directories(SYSTEM "${BOOST_ROOT}")
 endif()

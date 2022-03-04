@@ -325,9 +325,14 @@ consteval auto make_control_out()
     constexpr auto c = avnd::get_range<T>();
     return Control::Bargraph{name, c.min, c.max, c.init};
   }
+  else if constexpr(avnd::fp_ish<decltype(T::value)>)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    return Control::Bargraph{name, c.min, c.max, c.init};
+  }
   else
   {
-    throw;
+    static_assert(T::error__unsupported_widget_type);
   }
 }
 
@@ -576,19 +581,3 @@ struct rgba_texture {
 static_assert(avnd::cpu_texture<rgba_texture>);
 }
 
-
-#include <boost/pfr.hpp>
-namespace avnd
-{
-template <class T, class F>
-void for_each_field_ref(T&& value, F&& func)
-{
-  using namespace boost::pfr;
-  constexpr std::size_t fields_count_val = boost::pfr::detail::fields_count<std::remove_reference_t<T>>();
-  auto t = detail::tie_as_tuple(value, detail::size_t_<fields_count_val>{});
-
-  [&] <std::size_t... I> (std::index_sequence<I...>){
-    (func(detail::sequence_tuple::get<I>(t)), ...);
-  }(detail::make_index_sequence<fields_count_val>{});
-}
-}

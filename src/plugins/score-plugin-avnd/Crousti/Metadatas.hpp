@@ -237,4 +237,10 @@ concept HasTextureOutputs = outlet_reflection<T>::texture_out_count > 0;
 template<typename T>
 concept GpuNode = inlet_reflection<T>::texture_in_count > 0 || outlet_reflection<T>::texture_out_count > 0;
 */
+
+template<typename T>
+concept GpuNode =
+   avnd::texture_input_introspection<T>::size > 0
+|| avnd::texture_output_introspection<T>::size > 0
+;
 }

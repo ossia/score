@@ -9,6 +9,8 @@
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
+#include <avnd/common/for_nth.hpp>
+
 namespace oscr
 {
 
