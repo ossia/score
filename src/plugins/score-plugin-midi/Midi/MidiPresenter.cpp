@@ -28,14 +28,14 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
+#include <wobjectimpl.h>
+
 #include <QAction>
 #include <QApplication>
 #include <QInputDialog>
 #include <QMenu>
 W_OBJECT_IMPL(Midi::Presenter)
-#if __has_include(<valgrind/callgrind.h>)
-#include <valgrind/callgrind.h>
-#endif
+
 namespace Midi
 {
 Presenter::Presenter(
@@ -111,16 +111,10 @@ Presenter::Presenter(
   {
     on_noteAdded(note);
   }
-#if __has_include(<valgrind/callgrind.h>)
-  // CALLGRIND_START_INSTRUMENTATION;
-#endif
 }
 
 Presenter::~Presenter()
 {
-#if __has_include(<valgrind/callgrind.h>)
-  // CALLGRIND_STOP_INSTRUMENTATION;
-#endif
 }
 
 void Presenter::fillContextMenu(
