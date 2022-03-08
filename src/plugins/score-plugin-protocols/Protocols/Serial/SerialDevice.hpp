@@ -12,7 +12,10 @@ public:
       const Device::DeviceSettings& stngs,
       const ossia::net::network_context_ptr& ctx);
 
+  ~SerialDevice();
+
   bool reconnect() override;
+  void disconnect() override;
 private:
   const ossia::net::network_context_ptr& m_ctx;
 };

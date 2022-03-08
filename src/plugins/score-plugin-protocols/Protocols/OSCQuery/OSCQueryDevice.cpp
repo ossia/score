@@ -96,19 +96,7 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings,
 
 OSCQueryDevice::~OSCQueryDevice()
 {
-  if(m_dev)
-  {
-    boost::asio::post(
-          m_ctx->context,
-          [dev = std::move(m_dev), ctx = &m_ctx->context] () mutable
-    {
-      dev->get_protocol().stop();
-      boost::asio::post(*ctx,
-            [d = std::move(dev)] () mutable {
-        d.reset();
-      });
-    });
-  }
+  Device::releaseDevice(*m_ctx, std::move(m_dev));
 }
 
 bool OSCQueryDevice::connected() const
@@ -132,19 +120,7 @@ void OSCQueryDevice::disconnect()
     // TODO why not auto dev = m_dev; ... like in MIDIDevice ?
     deviceChanged(m_dev.get(), nullptr);
 
-    if(m_dev)
-    {
-      boost::asio::post(
-            m_ctx->context,
-            [dev = std::move(m_dev), ctx = &m_ctx->context] () mutable
-      {
-        dev->get_protocol().stop();
-        boost::asio::post(*ctx,
-              [d = std::move(dev)] () mutable {
-          d.reset();
-        });
-      });
-    }
+    Device::releaseDevice(*m_ctx, std::move(m_dev));
     m_dev.reset();
   }
 }

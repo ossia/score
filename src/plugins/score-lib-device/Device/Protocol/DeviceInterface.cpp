@@ -13,6 +13,10 @@
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
+#include <ossia/network/context.hpp>
+
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/post.hpp>
 
 #include <QMenu>
 
@@ -1040,4 +1044,33 @@ void DeviceInterface::addressRemoved(const ossia::net::parameter_base& addr)
   as.name = QString::fromStdString(node.get_name());
   pathUpdated(currentAddress, as);
 }
+
+void releaseDevice(ossia::net::network_context& ctx, std::unique_ptr<ossia::net::device_base> dd)
+{
+  if(dd)
+  {
+    std::atomic_int k{};
+    boost::asio::post(
+          ctx.context,
+          [&dev=dd, ctx = &ctx.context, &k] () mutable
+    {
+      dev->get_protocol().stop();
+      boost::asio::post(*ctx, [&k] {
+        k = 1;
+      });
+    });
+
+    int n = 0;
+    while(k != 1 && n < 1000)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      ++n;
+    }
+
+    boost::asio::post(ctx.context, [d = std::move(dd)] () mutable {
+      d.reset();
+    });
+  }
+}
+
 }

@@ -30,6 +30,21 @@ SerialDevice::SerialDevice(const Device::DeviceSettings& settings,
   m_capas.canSetProperties = false;
 }
 
+void SerialDevice::disconnect()
+{
+  DeviceInterface::disconnect();
+  // TODO why not auto dev = m_dev; ... like in MIDIDevice ?
+  deviceChanged(m_dev.get(), nullptr);
+
+  Device::releaseDevice(*m_ctx, std::move(m_dev));
+  m_dev.reset();
+}
+
+SerialDevice::~SerialDevice()
+{
+  Device::releaseDevice(*m_ctx, std::move(m_dev));
+}
+
 bool SerialDevice::reconnect()
 {
   disconnect();

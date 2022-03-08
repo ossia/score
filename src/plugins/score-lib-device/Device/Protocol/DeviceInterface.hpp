@@ -220,4 +220,7 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
 
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
+
+SCORE_LIB_DEVICE_EXPORT
+void releaseDevice(ossia::net::network_context& ctx, std::unique_ptr<ossia::net::device_base> dev);
 }
