@@ -6,6 +6,7 @@
 #include "SerialDevice.hpp"
 #include "SerialProtocolFactory.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/LibraryDeviceEnumerator.hpp>
 #include <Protocols/Serial/SerialProtocolSettingsWidget.hpp>
@@ -45,7 +46,7 @@ Device::DeviceInterface* SerialProtocolFactory::makeDevice(
     const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new SerialDevice{settings};
+  return new SerialDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&

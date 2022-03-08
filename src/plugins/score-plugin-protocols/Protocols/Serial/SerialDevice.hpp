@@ -8,9 +8,13 @@ namespace Protocols
 class SerialDevice final : public Device::OwningDeviceInterface
 {
 public:
-  SerialDevice(const Device::DeviceSettings& settings);
+  SerialDevice(
+      const Device::DeviceSettings& stngs,
+      const ossia::net::network_context_ptr& ctx);
 
   bool reconnect() override;
+private:
+  const ossia::net::network_context_ptr& m_ctx;
 };
 }
 #endif

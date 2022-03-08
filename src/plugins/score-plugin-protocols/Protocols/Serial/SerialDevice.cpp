@@ -17,8 +17,10 @@
 
 namespace Protocols
 {
-SerialDevice::SerialDevice(const Device::DeviceSettings& settings)
+SerialDevice::SerialDevice(const Device::DeviceSettings& settings,
+                           const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
+    , m_ctx{ctx}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;
@@ -37,9 +39,13 @@ bool SerialDevice::reconnect()
     const auto& stgs
         = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
 
+    ossia::net::serial_configuration conf;
+    conf.baud_rate = stgs.rate;
+    conf.port = stgs.port.systemLocation().toStdString();
+
     m_dev = std::make_unique<ossia::net::serial_device>(
         std::make_unique<ossia::net::serial_protocol>(
-            stgs.text.toUtf8(), stgs.port, stgs.rate),
+            m_ctx, stgs.text.toUtf8(), conf),
         settings().name.toStdString());
 
     deviceChanged(nullptr, m_dev.get());
