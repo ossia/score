@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(score_plugin_avnd LANGUAGES CXX)
 
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13)
+    return()
+  endif()
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11)
+    return()
+  endif()
+endif()
+
 # Check for coroutines support
 include(CheckCXXSourceCompiles)
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
