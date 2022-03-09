@@ -13,7 +13,7 @@ struct PhongNode : NodeModel
   virtual ~PhongNode();
   const Mesh& mesh() const noexcept;
 
-  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept;
+  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
 private:
   const Mesh* m_mesh{};

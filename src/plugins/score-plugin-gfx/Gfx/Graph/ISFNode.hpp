@@ -27,7 +27,7 @@ public:
   virtual ~ISFNode();
   QSize computeTextureSize(const isf::pass& pass, QSize origSize);
 
-  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept;
+  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   const isf::descriptor& descriptor() const noexcept { return m_descriptor; }
 

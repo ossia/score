@@ -13,78 +13,7 @@
 #include <tuple>
 #include <utility>
 #include <tuplet/tuple.hpp>
-/*
-template<typename Node>
-struct Spec
-{
-  using info = ossia::safe_nodes::info_functions<Node>;
-  ossia::safe_nodes::safe_node<Node>& node;
 
-  template<std::size_t N, typename T, typename M>
-  const auto& get(typename T::Controls)
-  {
-    return node.get_control_accessor<N + info::control_start>(node.inputs());
-  }
-  template<std::size_t N, typename T, typename M>
-  const ossia::value_port& get(typename T::ValueIns)
-  {
-    return node.inputs()[N + info::audio_in_count + info::midi_in_count];
-  }
-  template<std::size_t N, typename T, typename M>
-  ossia::value_port& get(typename T::ValueOuts)
-  {
-    return *node.outputs()[N + info::audio_out_count +
-info::midi_out_count]->data.template target<ossia::value_port>();
-  }
-  template<std::size_t N, typename T, typename M>
-  const ossia::audio_port& get(typename T::AudioIns)
-  {
-    return node.inputs()[N];
-  }
-  template<std::size_t N, typename T, typename M>
-  ossia::audio_port& get(typename T::AudioOuts)
-  {
-    return node.outputs()[N];
-  }
-  template<std::size_t N, typename T, typename M>
-  const ossia::midi_port& get(typename T::MidiIns)
-  {
-    return node.inputs()[N + info::audio_in_count];
-  }
-  template<std::size_t N, typename T, typename M>
-  ossia::midi_port& get(typename T::MidiOuts)
-  {
-    return node.outputs()[N + info::audio_in_count];
-  }
-};
-
-#define _get(Kind, Member) spec.get<offsetof(Metadata::Kind, Member), Metadata,
-decltype(std::declval<Metadata::Kind>().Member)>(Metadata::Kind{})
-*/
-/* UB:  :'(
-template<std::size_t M, typename T>
-auto struct_idx()
-{
-  auto& [a0, a1, a2, a3, a4, a5] = *((T*)nullptr);
-  if(M == (std::intptr_t)(char*)&a0) return 0;
-  if(M == (std::intptr_t)(char*)&a1) return 1;
-  if(M == (std::intptr_t)(char*)&a2) return 2;
-  if(M == (std::intptr_t)(char*)&a3) return 3;
-  if(M == (std::intptr_t)(char*)&a4) return 4;
-  if(M == (std::intptr_t)(char*)&a5) return 5;
-  return -1;
-}
-
-  static void test(Spec<Node> spec)
-  {
-
-    const std::string& type = _get(Controls, waveform);
-    ossia::value_port& out = _get(ValueOuts, out);
-
-    return struct_idx<offsetof(foo, c), foo>();
-  }
-
-*/
 namespace Nodes
 {
 

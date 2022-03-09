@@ -28,7 +28,7 @@ public:
   virtual void setRenderer(std::shared_ptr<RenderList>) = 0;
   virtual RenderList* renderer() const = 0;
 
-  virtual OutputNodeRenderer* createRenderer(RenderList& r) const noexcept = 0;
+  OutputNodeRenderer* createRenderer(RenderList& r) const noexcept override = 0;
 
   virtual void startRendering() = 0;
   virtual void render() = 0;

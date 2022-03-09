@@ -28,7 +28,6 @@
 
 namespace oscr
 {
-/*
 template <typename ExecNode_T, typename T, std::size_t ControlN>
 struct control_updater
 {
@@ -48,104 +47,54 @@ struct setup_Impl0
 {
   using ExecNode = safe_node<Node>;
   using Model = ProcessModel<Node>;
+
   Model& element;
   const Execution::Context& ctx;
   const std::shared_ptr<ExecNode>& node_ptr;
   QObject* parent;
 
-  template <typename ControlIndexT>
-  struct con_validated
-  {
-    const Execution::Context& ctx;
-    std::weak_ptr<ExecNode> weak_node;
-    void operator()(const ossia::value& val)
-    {
-      using namespace boost::pfr;
-      using namespace ossia::safe_nodes;
-      using Info = Node;
-      constexpr auto control_index = ControlIndexT::value;
-      //using port_index_t = typename inlet_reflection<Info>::template control_input_index<ControlIndexT::value>;
-      using control_tuple = typename inlet_reflection<Info>::control_input_tuple;
-      using control_member = std::tuple_element_t<ControlIndexT::value, control_tuple>;
-      constexpr auto control_spec = get_control<control_member>();
-      using control_type = decltype(control_spec);
-
-      using control_value_type = typename control_type::type;
-
-      if (auto node = weak_node.lock())
-      {
-        if (auto v = control_spec.fromValue(val))
-          ctx.executionQueue.enqueue(control_updater<ExecNode, control_value_type, control_index>{weak_node, std::move(*v)});
-      }
-    }
-  };
-
-  template <typename ControlIndexT>
+  template <typename Field, std::size_t N>
   struct con_unvalidated
   {
     const Execution::Context& ctx;
     std::weak_ptr<ExecNode> weak_node;
+    Field& field;
     void operator()(const ossia::value& val)
     {
-      using namespace boost::pfr;
-      using namespace ossia::safe_nodes;
-      using Info = Node;
-      constexpr auto control_index = ControlIndexT::value;
-      //using port_index_t = typename inlet_reflection<Info>::template control_input_index<ControlIndexT::value>;
+      constexpr auto control_index = N;
 
-      using control_tuple = typename inlet_reflection<Info>::control_input_tuple;
-      using control_member = std::tuple_element_t<ControlIndexT::value, control_tuple>;
-      constexpr auto control_spec = get_control<control_member>();
-      using control_type = decltype(control_spec);
-
-      using control_value_type = typename control_type::type;
+      using control_value_type = std::decay_t<decltype(Field::value)>;
 
       if (auto node = weak_node.lock())
       {
-        ctx.executionQueue.enqueue(control_updater<ExecNode, control_value_type, control_index>{weak_node, control_spec.fromValue(val)});
+        control_value_type v;
+        oscr::from_ossia_value(field, val, v);
+        ctx.executionQueue.enqueue(
+              control_updater<ExecNode, control_value_type, control_index>{
+                weak_node,
+                std::move(v)
+              }
+        );
       }
     }
   };
 
-  template <typename ControlIndexT>
-  constexpr void operator()(ControlIndexT)
+  template <typename Field, std::size_t N>
+  constexpr void operator()(Field& param, avnd::num<N>)
   {
-    using namespace boost::pfr;
-    using namespace ossia::safe_nodes;
-    using Info = Node;
-    constexpr int control_index = ControlIndexT::value;
-    using port_index_t = typename inlet_reflection<Info>::template control_input_index<ControlIndexT::value>;
-    using control_tuple = typename inlet_reflection<Info>::control_input_tuple;
-    using control_member = std::tuple_element_t<ControlIndexT::value, control_tuple>;
-    constexpr auto control_spec = get_control<control_member>();
-    using control_type = decltype(control_spec);
+    constexpr int port_index = avnd::control_input_introspection<Node>::index_map[N];
+    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[port_index]);
 
-    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[port_index_t::value]);
+    // Initialize the control with the current value of the inlet
+    oscr::from_ossia_value(param, inlet->value(), param.value);
 
-    auto& node = *node_ptr;
+    // Connect to changes
     std::weak_ptr<ExecNode> weak_node = node_ptr;
-
-    if constexpr (control_type::must_validate)
-    {
-      if (auto res = control_spec.fromValue(inlet->value()))
-        get<control_index>(node.control_input) = *res;
-
-      QObject::connect(
-          inlet,
-          &Process::ControlInlet::valueChanged,
-          parent,
-          con_validated<ControlIndexT>{ctx, weak_node});
-    }
-    else
-    {
-      get<control_index>(node.control_input) = control_spec.fromValue(inlet->value());
-
-      QObject::connect(
-          inlet,
-          &Process::ControlInlet::valueChanged,
-          parent,
-          con_unvalidated<ControlIndexT>{ctx, weak_node});
-    }
+    QObject::connect(
+        inlet,
+        &Process::ControlInlet::valueChanged,
+        parent,
+        con_unvalidated<Field, N>{ctx, weak_node, param});
   }
 };
 
@@ -158,12 +107,13 @@ struct ApplyEngineControlChangeToUI
   typename ExecNode::control_input_values_type& arr;
   Model& element;
 
-  template <typename ControlIndexT>
-  void operator()(ControlIndexT)
+  template <std::size_t N>
+  void operator()(auto& field, avnd::num<N>)
   {
     using namespace boost::pfr;
     using namespace ossia::safe_nodes;
 
+    /*
     constexpr int control_index = ControlIndexT::value;
     using port_index_t = typename inlet_reflection<Node>::template control_input_index<ControlIndexT::value>;
 
@@ -175,6 +125,7 @@ struct ApplyEngineControlChangeToUI
     auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[port_index_t::value]);
 
     inlet->setExecutionValue(control_spec.toValue(get<control_index>(arr)));
+    */
   }
 };
 
@@ -186,11 +137,12 @@ struct setup_Impl1_Out
   typename ExecNode::control_output_values_type& arr;
   Model& element;
 
-  template <typename ControlIndexT>
-  void operator()(ControlIndexT)
+  template <std::size_t N>
+  void operator()(auto& field, avnd::num<N>)
   {
     using namespace boost::pfr;
     using namespace ossia::safe_nodes;
+    /*
     constexpr int control_index = ControlIndexT::value;
     using port_index_t = typename outlet_reflection<Node>::template control_output_index<ControlIndexT::value>;
 
@@ -199,6 +151,7 @@ struct setup_Impl1_Out
     auto outlet = static_cast<Process::ControlOutlet*>(element.outlets()[port_index_t::value]);
 
     outlet->setValue(control_spec.toValue(get<control_index>(arr)));
+*/
   }
 };
 
@@ -218,15 +171,16 @@ struct ExecutorGuiUpdate
 
     typename ExecNode::control_input_values_type arr;
     bool ok = false;
-    while (node.control_ins_queue.try_dequeue(arr))
+    while (node.control.ins_queue.try_dequeue(arr))
     {
       ok = true;
     }
     if (ok)
     {
-      constexpr const auto control_count = inlet_reflection<Node>::control_in_count;
-
-      ossia::for_each_in_range<control_count>(ApplyEngineControlChangeToUI<Node>{arr, element});
+      avnd::control_input_introspection<Node>::for_all_n(
+            avnd::get_inputs<Node>(node.impl),
+            ApplyEngineControlChangeToUI<Node>{arr, element}
+      );
     }
   }
 
@@ -237,34 +191,34 @@ struct ExecutorGuiUpdate
     // after...
     typename ExecNode::control_output_values_type arr;
     bool ok = false;
-    while (node.control_outs_queue.try_dequeue(arr))
+    while (node.control.outs_queue.try_dequeue(arr))
     {
       ok = true;
     }
     if (ok)
     {
-      constexpr const auto control_out_count
-          = outlet_reflection<Node>::control_out_count;
-
-      ossia::for_each_in_range<control_out_count>(
-          setup_Impl1_Out<Node>{arr, element});
+      avnd::control_output_introspection<Node>::for_all_n(
+            avnd::get_outputs<Node>(node.impl),
+            setup_Impl1_Out<Node>{arr, element}
+      );
     }
   }
 
   void operator()() const noexcept
   {
-    using namespace ossia::safe_nodes;
     if (auto node = weak_node.lock())
     {
-      if constexpr (inlet_reflection<Node>::control_in_count > 0)
+      constexpr const auto control_count = avnd::control_input_introspection<Node>::size;
+      constexpr const auto control_out_count = avnd::control_output_introspection<Node>::size;
+      if constexpr (control_count > 0)
         handle_controls(*node);
 
-      if constexpr (outlet_reflection<Node>::control_out_count > 0)
+      if constexpr (control_out_count > 0)
         handle_control_outs(*node);
     }
   }
 };
-*/
+
 template <typename Node>
 class Executor final
     : public Execution::
@@ -344,31 +298,40 @@ public:
     {
 
       auto st = ossia::exec_state_facade{ctx.execState.get()};
+      std::shared_ptr<safe_node<Node>> ptr;
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate()};
-      this->node.reset(node);
+      ptr.reset(node);
+      this->node = ptr;
 
-      /* FIXME controls
-
-      if constexpr (HasControlInputs<Node>)
+      using inputs_type = typename avnd::inputs_type<Node>::type;
+      using outputs_type = typename avnd::outputs_type<Node>::type;
+      using control_inputs_type = avnd::control_input_introspection<Node>;
+      using control_outputs_type = avnd::control_output_introspection<Node>;
+      auto& eff = node->impl;
+      if constexpr (control_inputs_type::size > 0)
       {
         // Initialize all the controls in the node with the current value.
         // And update the node when the UI changes
-        ossia::for_each_in_range<inlet_reflection<Node>::control_in_count>(
-            setup_Impl0<Node>{element, ctx, node, this});
+        qDebug("Init inputs");
+        avnd::control_input_introspection<Node>::for_all_n(
+              avnd::get_inputs<Node>(eff),
+              setup_Impl0<Node>{element, ctx, ptr, this}
+        );
       }
 
-      if constexpr (HasControlInputs<Node> || HasControlOutputs<Node>)
+      if constexpr (control_inputs_type::size > 0 || control_outputs_type::size > 0)
       {
         // Update the value in the UI
-        std::weak_ptr<safe_node<Node>> weak_node = node;
+        std::weak_ptr<safe_node<Node>> weak_node = ptr;
+        ExecutorGuiUpdate<Node> timer_action{weak_node, element};
+        timer_action();
+
         con(ctx.doc.coarseUpdateTimer,
             &QTimer::timeout,
             this,
-            ExecutorGuiUpdate<Node>{weak_node, element},
+            [=] { timer_action(); },
             Qt::QueuedConnection);
       }
-
-      */
     }
 
     this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
