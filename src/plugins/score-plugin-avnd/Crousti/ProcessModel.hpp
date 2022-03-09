@@ -308,10 +308,10 @@ struct is_custom_serialized<oscr::ProcessModel<Info>> : std::true_type
 {
 };
 
-template <template <typename> class Model, typename Info>
-struct TSerializer<DataStream, Model<Info>>
+template <typename Info>
+struct TSerializer<DataStream, oscr::ProcessModel<Info>>
 {
-  using model_type = Model<Info>;
+  using model_type = oscr::ProcessModel<Info>;
   static void readFrom(DataStream::Serializer& s, const model_type& obj)
   {
     Process::readPorts(s, obj.m_inlets, obj.m_outlets);
@@ -325,10 +325,10 @@ struct TSerializer<DataStream, Model<Info>>
   }
 };
 
-template <template <typename> class Model, typename Info>
-struct TSerializer<JSONObject, Model<Info>>
+template <typename Info>
+struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
 {
-  using model_type = Model<Info>;
+  using model_type = oscr::ProcessModel<Info>;
   static void readFrom(JSONObject::Serializer& s, const model_type& obj)
   {
     using namespace Control;

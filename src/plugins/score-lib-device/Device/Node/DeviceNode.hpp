@@ -1,4 +1,5 @@
 #pragma once
+#include <score/config.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <State/Address.hpp>
@@ -174,7 +175,7 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 bool operator<(const Device::Node& lhs, const Device::Node& rhs);
 }
 
-#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
+#if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES
 extern template class SCORE_LIB_DEVICE_EXPORT
     TreeNode<Device::DeviceExplorerNode>;
 #endif

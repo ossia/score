@@ -18,7 +18,7 @@
 
 #include <vector>
 
-#if !defined(SCORE_ALL_UNITY)
+#if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES
 #if defined(_WIN32)
 template class TreeNode<Device::DeviceExplorerNode>;
 #else

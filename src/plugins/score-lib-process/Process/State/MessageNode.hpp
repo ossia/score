@@ -1,4 +1,5 @@
 #pragma once
+#include <score/config.hpp>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
@@ -92,7 +93,7 @@ SCORE_LIB_PROCESS_EXPORT State::MessageList
 getUserMessages(const MessageNode&);
 }
 
-#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
+#if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES
 extern template class SCORE_LIB_PROCESS_EXPORT
     TreeNode<Process::StateNodeData>;
 #endif

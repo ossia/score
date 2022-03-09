@@ -1,4 +1,6 @@
-#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
+#include <score/config.hpp>
+
+#if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES
 
 #include <Scenario/Instantiations.hpp>
 #include <Scenario/PresenterInstantiations.hpp>

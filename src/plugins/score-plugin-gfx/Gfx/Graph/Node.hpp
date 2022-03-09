@@ -113,14 +113,12 @@ public:
  */
 class SCORE_PLUGIN_GFX_EXPORT NodeModel : public score::gfx::ProcessNode
 {
-  friend class GenericNodeRenderer;
-
 public:
   explicit NodeModel();
   virtual ~NodeModel();
 
   virtual score::gfx::NodeRenderer*
-  createRenderer(RenderList& r) const noexcept;
+  createRenderer(RenderList& r) const noexcept override;
 
 protected:
   std::unique_ptr<char[]> m_materialData;

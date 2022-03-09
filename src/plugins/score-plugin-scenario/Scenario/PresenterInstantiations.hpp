@@ -1,4 +1,5 @@
 #pragma once
+#include <score/config.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -11,7 +12,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
-#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
+#if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     IdContainer<Scenario::StatePresenter, Scenario::StateModel>;
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
