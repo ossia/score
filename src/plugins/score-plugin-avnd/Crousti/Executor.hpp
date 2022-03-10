@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <Crousti/ProcessModel.hpp>
-//#include <Crousti/ExecutorNode.hpp>
 #include <Crousti/Metadatas.hpp>
 #include <Crousti/GpuNode.hpp>
 #include <ossia/dataflow/node_process.hpp>
@@ -110,22 +109,9 @@ struct ApplyEngineControlChangeToUI
   template <std::size_t N>
   void operator()(auto& field, avnd::num<N>)
   {
-    using namespace boost::pfr;
-    using namespace ossia::safe_nodes;
-
-    /*
-    constexpr int control_index = ControlIndexT::value;
-    using port_index_t = typename inlet_reflection<Node>::template control_input_index<ControlIndexT::value>;
-
-    using control_tuple = typename inlet_reflection<Node>::control_input_tuple;
-    using control_member = std::tuple_element_t<ControlIndexT::value, control_tuple>;
-    constexpr auto control_spec = get_control<control_member>();
-    //using control_type = decltype(control_spec);
-
-    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[port_index_t::value]);
-
-    inlet->setExecutionValue(control_spec.toValue(get<control_index>(arr)));
-    */
+    constexpr int port_index = avnd::control_input_introspection<Node>::index_map[N];
+    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[port_index]);
+    inlet->setExecutionValue(oscr::to_ossia_value(field.value));
   }
 };
 
@@ -140,18 +126,9 @@ struct setup_Impl1_Out
   template <std::size_t N>
   void operator()(auto& field, avnd::num<N>)
   {
-    using namespace boost::pfr;
-    using namespace ossia::safe_nodes;
-    /*
-    constexpr int control_index = ControlIndexT::value;
-    using port_index_t = typename outlet_reflection<Node>::template control_output_index<ControlIndexT::value>;
-
-    constexpr const auto control_spec = tuple_element_t<port_index_t::value, decltype(ExecNode::state.outputs)>::display();
-
-    auto outlet = static_cast<Process::ControlOutlet*>(element.outlets()[port_index_t::value]);
-
-    outlet->setValue(control_spec.toValue(get<control_index>(arr)));
-*/
+    constexpr int port_index = avnd::control_output_introspection<Node>::index_map[N];
+    auto outlet = static_cast<Process::ControlOutlet*>(element.outlets()[port_index]);
+    outlet->setValue(oscr::to_ossia_value(field.value));
   }
 };
 
@@ -303,8 +280,6 @@ public:
       ptr.reset(node);
       this->node = ptr;
 
-      using inputs_type = typename avnd::inputs_type<Node>::type;
-      using outputs_type = typename avnd::outputs_type<Node>::type;
       using control_inputs_type = avnd::control_input_introspection<Node>;
       using control_outputs_type = avnd::control_output_introspection<Node>;
       auto& eff = node->impl;
@@ -312,7 +287,6 @@ public:
       {
         // Initialize all the controls in the node with the current value.
         // And update the node when the UI changes
-        qDebug("Init inputs");
         avnd::control_input_introspection<Node>::for_all_n(
               avnd::get_inputs<Node>(eff),
               setup_Impl0<Node>{element, ctx, ptr, this}
