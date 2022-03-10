@@ -192,6 +192,7 @@ public:
       const auto& [emplaced_it, value] = messages.emplace(addr.address, as->value);
       auto dist = std::distance(messages.begin(), emplaced_it);
       this->insertItem(dist, new QListWidgetItem{textFromMessage(addr.address, as->value)});
+      this->scrollToBottom();
     }
     else
     {

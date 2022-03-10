@@ -190,7 +190,11 @@ public:
     con(dev,
         &Device::DeviceInterface::pathAdded,
         this,
-        [=](const State::Address& a) { m_list->addItem(a.toString()); });
+        [=](const State::Address& a)
+        {
+          m_list->addItem(a.toString());
+          m_list->scrollToBottom();
+        });
 
     m_dev.setLearning(true);
   }
