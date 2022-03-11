@@ -292,7 +292,7 @@ std::function<void()> NodalExecutorBase::removing(
 void NodalExecutor::cleanup()
 {
   clear();
-  ProcessComponent::cleanup();
+  ::Execution::ProcessComponent::cleanup();
 }
 
 NodalExecutor::~NodalExecutor() { }
