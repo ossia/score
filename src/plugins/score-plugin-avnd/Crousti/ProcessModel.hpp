@@ -18,6 +18,7 @@
 
 #include <avnd/common/for_nth.hpp>
 #include <avnd/wrappers/bus_host_process_adapter.hpp>
+#include <avnd/wrappers/messages_introspection.hpp>
 
 #if SCORE_PLUGIN_GFX
 #include <Gfx/TexturePort.hpp>
@@ -195,14 +196,24 @@ struct InletInitFunc
   }
 #endif
 
-  void operator()(const avnd::message auto& in)
+  template<std::size_t Idx, avnd::message T>
+  void operator()(const avnd::field_reflection<Idx, T>& in)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
     ins.push_back(p);
   }
+  template<std::size_t Idx, avnd::unreflectable_message T>
+  void operator()(const avnd::field_reflection<Idx, T>& in)
+  {
+    auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+  }
+
   void operator()(const auto& ctrl)
   {
+    static_assert(avnd::message<std::decay_t<decltype(ctrl)>>);
     qDebug() << fromStringView(avnd::get_name(ctrl)) << "unhandled";
   }
 };
