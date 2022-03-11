@@ -168,7 +168,7 @@ struct GfxRenderer final : GenericTexgenRenderer
     m_samplers.push_back({sampler, texture});
   }
 
-  QRhiTexture* updateTexture(score::gfx::RenderList& renderer, int k, const oscr::rgba_texture& cpu_tex)
+  QRhiTexture* updateTexture(score::gfx::RenderList& renderer, int k, const avnd::cpu_texture auto& cpu_tex)
   {
     auto& [sampler, texture] = m_samplers[k];
     if(texture)
@@ -210,7 +210,7 @@ struct GfxRenderer final : GenericTexgenRenderer
   void uploadOutputTexture(
       score::gfx::RenderList& renderer,
       int k,
-      oscr::rgba_texture& cpu_tex,
+      avnd::cpu_texture auto& cpu_tex,
       QRhiResourceUpdateBatch* res)
   {
     if(cpu_tex.changed)
@@ -231,7 +231,7 @@ struct GfxRenderer final : GenericTexgenRenderer
     }
   }
 
-  void loadInputTexture(oscr::rgba_texture& cpu_tex, int k)
+  void loadInputTexture(avnd::cpu_texture auto& cpu_tex, int k)
   {
     auto& buf = m_readbacks[k].data;
     if(buf.size() != 4 * cpu_tex.width * cpu_tex.height)
@@ -256,28 +256,25 @@ struct GfxRenderer final : GenericTexgenRenderer
     {
       // Init input render targets
       int k = 0;
-      avnd::for_each_field_ref(
-          state.inputs,
-          [&] <typename T>(T&& t) {
-            if constexpr(avnd::cpu_texture_port<T>) {
-              createInput(renderer, k, QSize{t.texture.width, t.texture.height});
-              k++;
-            }
-          });
+      avnd::cpu_texture_input_introspection<Node_T>::for_all(
+            avnd::get_inputs<Node_T>(state), [&] (auto& t) {
+        auto sz = renderer.state.size;
+        createInput(renderer, k, sz);
+        t.texture.width = sz.width();
+        t.texture.height = sz.height();
+        k++;
+      });
     }
 
     if constexpr(texture_outputs::size > 0)
     {
       // Init textures for the outputs
       int k = 0;
-      avnd::for_each_field_ref(
-          state.outputs,
-          [&] <typename T>(T&& t) {
-            if constexpr(avnd::cpu_texture_port<T>) {
-              createOutput(renderer, QSize{t.texture.width, t.texture.height});
-              k++;
-            }
-          });
+      avnd::cpu_texture_output_introspection<Node_T>::for_all(
+            avnd::get_outputs<Node_T>(state), [&] (auto& t) {
+        createOutput(renderer, QSize{t.texture.width, t.texture.height});
+        k++;
+      });
     }
 
     defaultPassesInit(renderer, mesh);
@@ -329,7 +326,9 @@ struct GfxRenderer final : GenericTexgenRenderer
 
     // If we are paused, we don't run the processor implementation.
     if(parent.last_message.token.date == m_last_time)
+    {
       return;
+    }
     m_last_time = parent.last_message.token.date;
 
     // Fetch input textures (if any)
@@ -342,23 +341,18 @@ struct GfxRenderer final : GenericTexgenRenderer
       // TODO it would be much better to do this inside the readback's
       // "completed" callback.
       int k = 0;
-      avnd::for_each_field_ref(
-          state.inputs,
-          [&] <typename T>(T&& t) {
-            if constexpr(avnd::cpu_texture_port<T>) {
-              loadInputTexture(t.texture, k);
-              k++;
-            }
-          }
-      );
+      avnd::cpu_texture_input_introspection<Node_T>::for_all(
+            avnd::get_inputs<Node_T>(state), [&] (auto& t) {
+        loadInputTexture(t.texture, k);
+        k++;
+      });
     }
 
     // Apply the controls
     std::size_t k = 0;
-    avnd::for_each_field_ref(
-        state.inputs,
-        [&] <typename T>(T&& t) {
-          if constexpr(avnd::parameter<T>) {
+    avnd::parameter_input_introspection<Node_T>::for_all(
+          avnd::get_inputs<Node_T>(state),
+          [&] (avnd::parameter auto& t) {
             auto& mess = this->parent.last_message;
             if(mess.input.size() > k)
             {
@@ -368,9 +362,8 @@ struct GfxRenderer final : GenericTexgenRenderer
                 t.value = ossia::convert<type>(*val);
               }
             }
+            k++;
           }
-          k++;
-        }
     );
 
 
@@ -381,14 +374,11 @@ struct GfxRenderer final : GenericTexgenRenderer
     if constexpr(texture_outputs::size > 0)
     {
       int k = 0;
-      avnd::for_each_field_ref(
-          state.outputs,
-          [&] <typename T>(T&& t) {
-            if constexpr(avnd::cpu_texture_port<T>) {
-              uploadOutputTexture(renderer, k, t.texture, res);
-              k++;
-            }
-          });
+      avnd::cpu_texture_output_introspection<Node_T>::for_all(
+            avnd::get_outputs<Node_T>(state), [&] (auto& t) {
+        uploadOutputTexture(renderer, k, t.texture, res);
+        k++;
+      });
 
       commands.resourceUpdate(res);
       res = renderer.state.rhi->nextResourceUpdateBatch();

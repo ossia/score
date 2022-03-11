@@ -301,6 +301,12 @@ public:
               Gfx::con_unvalidated{ctx, i, 0, node});
           i++;
         }
+        else if (auto ctrl = qobject_cast<Process::ValueInlet*>(ctl))
+        {
+          auto& p = node->add_control();
+          p->changed = true;
+          i++;
+        }
         else if (auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
         {
           node->add_audio();
@@ -310,6 +316,16 @@ public:
           node->add_texture();
         }
       }
+
+      // FIXME refactor this with other GFX processes
+      for(auto* outlet : element.outlets())
+      {
+        if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+        {
+          out->nodeId = node_id;
+        }
+      }
+
     }
     else
 #endif
@@ -357,12 +373,22 @@ public:
 #if SCORE_PLUGIN_GFX
     if constexpr(GpuNode<Node>)
     {
+      // FIXME this must move in the Node dtor. See video_node
       auto& gfx_exec = this->system().doc.template plugin<Gfx::DocumentPlugin>().exec;
       if (node_id >= 0)
         gfx_exec.ui->unregister_node(node_id);
     }
 #endif
-    Executor::ProcessComponent::cleanup();
+
+    // FIXME refactor this with other GFX processes
+    for(auto* outlet : this->process().outlets())
+    {
+      if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+      {
+        out->nodeId = -1;
+      }
+    }
+    ::Execution::ProcessComponent::cleanup();
   }
 
   ~Executor() {
