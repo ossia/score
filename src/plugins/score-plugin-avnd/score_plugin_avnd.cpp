@@ -206,7 +206,6 @@ score_plugin_avnd::factories(
       , TrivialFilterExample
       , ZeroDependencyAudioEffect>(ctx, key);
 }
-
 std::vector<score::PluginKey> score_plugin_avnd::required() const
 {
   return {score_plugin_engine::static_key()};
