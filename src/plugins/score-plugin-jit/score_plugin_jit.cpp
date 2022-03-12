@@ -7,6 +7,7 @@
 #include <Bytebeat/Bytebeat.hpp>
 #include <JitCpp/ApplicationPlugin.hpp>
 #include <JitCpp/JitModel.hpp>
+#include <JitCpp/AvndJit.hpp>
 #include <Texgen/Texgen.hpp>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/ManagedStatic.h>
@@ -44,27 +45,35 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_jit::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
-         Jit::JitEffectFactory,
-         Jit::BytebeatEffectFactory
+         Jit::JitEffectFactory
+         , Jit::BytebeatEffectFactory
+#if defined(SCORE_PLUGIN_AVND)
+         , AvndJit::JitEffectFactory
+#endif
 #if defined(SCORE_JIT_HAS_TEXGEN)
-         ,
-         Jit::TexgenEffectFactory
+         , Jit::TexgenEffectFactory
 #endif
          >,
+
       FW<Process::LayerFactory,
-         Jit::LayerFactory,
-         Jit::BytebeatLayerFactory
+         Jit::LayerFactory
+         , Jit::BytebeatLayerFactory
+#if defined(SCORE_PLUGIN_AVND)
+         , AvndJit::LayerFactory
+#endif
 #if defined(SCORE_JIT_HAS_TEXGEN)
-         ,
-         Jit::TexgenLayerFactory
+         , Jit::TexgenLayerFactory
 #endif
          >,
+
       FW<Execution::ProcessComponentFactory,
-         Execution::JitEffectComponentFactory,
-         Jit::BytebeatExecutorFactory
+         Execution::JitEffectComponentFactory
+         , Jit::BytebeatExecutorFactory
+#if defined(SCORE_PLUGIN_AVND)
+         , AvndJit::JitEffectComponentFactory
+#endif
 #if defined(SCORE_JIT_HAS_TEXGEN)
-         ,
-         Jit::TexgenExecutorFactory
+         , Jit::TexgenExecutorFactory
 #endif
          >>(ctx, key);
 }

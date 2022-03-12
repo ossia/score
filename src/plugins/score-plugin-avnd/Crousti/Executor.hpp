@@ -330,7 +330,6 @@ public:
     else
 #endif
     {
-
       auto st = ossia::exec_state_facade{ctx.execState.get()};
       std::shared_ptr<safe_node<Node>> ptr;
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate()};

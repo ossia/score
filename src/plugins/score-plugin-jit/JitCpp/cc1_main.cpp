@@ -14,6 +14,7 @@
 
 #undef CALLBACK
 #include "clang/Basic/Stack.h"
+#include "clang/Basic/FileManager.h"
 #include "clang/Basic/TargetOptions.h"
 #include "clang/CodeGen/ObjectFilePCHContainerOperations.h"
 #include "clang/Config/config.h"
@@ -31,6 +32,7 @@
 #include "llvm/Support/BuryPointer.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/Signals.h"
@@ -212,19 +214,13 @@ llvm::Error cc1_main(
 {
   ensureSufficientStack();
 
-  std::unique_ptr<CompilerInstance> Clang(new CompilerInstance());
-  IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
-
-  // Register the support for object-file-wrapped Clang modules.
-  auto PCHOps = Clang->getPCHContainerOperations();
-  PCHOps->registerWriter(std::make_unique<ObjectFilePCHContainerWriter>());
-  PCHOps->registerReader(std::make_unique<ObjectFilePCHContainerReader>());
-
   // Initialize targets first, so that --version shows registered targets.
   llvm::InitializeAllTargets();
   llvm::InitializeAllTargetMCs();
   llvm::InitializeAllAsmPrinters();
   llvm::InitializeAllAsmParsers();
+
+  IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
 #ifdef LINK_POLLY_INTO_TOOLS
   llvm::PassRegistry& Registry = *llvm::PassRegistry::getPassRegistry();
   polly::initializePollyPasses(Registry);
@@ -234,9 +230,24 @@ llvm::Error cc1_main(
   // well formed diagnostic object.
   IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
   TextDiagnosticBuffer* DiagsBuffer = new TextDiagnosticBuffer;
-  DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagsBuffer);
+  llvm::IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(DiagID, &*DiagOpts, DiagsBuffer));
+
+#if LLVM_VERSION_MAJOR >= 15
+  llvm::IntrusiveRefCntPtr<FileManager> Files(new FileManager(FileSystemOptions(), llvm::vfs::getRealFileSystem()));
+  llvm::IntrusiveRefCntPtr<SourceManager> SrcMgr(new SourceManager(*Diags, *Files));
+#endif
+
+  // Create a Clang instance
+  std::unique_ptr<CompilerInstance> Clang(new CompilerInstance());
+
+  // Register the support for object-file-wrapped Clang modules.
+  auto PCHOps = Clang->getPCHContainerOperations();
+  PCHOps->registerWriter(std::make_unique<ObjectFilePCHContainerWriter>());
+  PCHOps->registerReader(std::make_unique<ObjectFilePCHContainerReader>());
+
+
   bool Success = CompilerInvocation::CreateFromArgs(
-      Clang->getInvocation(), Argv, Diags);
+      Clang->getInvocation(), Argv, *Diags);
 
   if (Clang->getFrontendOpts().TimeTrace)
   {
@@ -244,17 +255,26 @@ llvm::Error cc1_main(
         Clang->getFrontendOpts().TimeTraceGranularity, Argv0);
   }
 
+#if LLVM_VERSION_MAJOR >= 15
+  if(!Clang->hasSourceManager())
+  {
+    Diags->setSourceManager(SrcMgr.get());
+
+    Clang->setFileManager(Files.get());
+    Clang->setSourceManager(SrcMgr.get());
+  }
+#endif
   // Infer the builtin include path if unspecified.
   if (Clang->getHeaderSearchOpts().UseBuiltinIncludes
       && Clang->getHeaderSearchOpts().ResourceDir.empty())
     Clang->getHeaderSearchOpts().ResourceDir
         = CompilerInvocation::GetResourcesPath(Argv0, MainAddr);
 
-  // Create the actual diagnostics engine.
-
-  Clang->createDiagnostics(DiagsBuffer);
+  Clang->setDiagnostics(Diags.get());
   if (!Clang->hasDiagnostics())
+  {
     return llvm::make_error<llvm::StringError>("No diagnostics", std::error_code(1, std::system_category()));
+  }
 
   // Set an error handler, so that any LLVM backend diagnostics go through our
   // error handler.
@@ -263,7 +283,9 @@ llvm::Error cc1_main(
 
   DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
   if (!Success)
+  {
     return llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer, Clang->getSourceManager()), std::error_code(1, std::system_category()));
+  }
 
   // Execute the frontend actions.
   {

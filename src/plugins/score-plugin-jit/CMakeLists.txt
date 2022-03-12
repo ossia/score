@@ -80,6 +80,13 @@ if(TARGET score_plugin_gfx)
   target_link_libraries(${PROJECT_NAME} PRIVATE score_plugin_gfx)
 endif()
 
+if(TARGET score_plugin_avnd)
+  set(HDRS ${HDRS} JitCpp/AvndJit.hpp)
+  target_sources(${PROJECT_NAME} PRIVATE JitCpp/AvndJit.hpp JitCpp/AvndJit.cpp)
+  target_link_libraries(${PROJECT_NAME} PRIVATE score_plugin_avnd)
+endif()
+
+
 # LLVM definitions
 separate_arguments(LLVM_DEFINITIONS)
 

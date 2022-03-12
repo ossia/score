@@ -116,7 +116,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
     }
   }
 
-  args.push_back("-std=c++2a");
+  args.push_back("-std=c++20");
   args.push_back("-disable-free");
   args.push_back("-fdeprecated-macro");
   args.push_back("-fmath-errno");
@@ -210,7 +210,9 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   }
   else
   {
+#if LLVM_VERSION_MAJOR <= 13
     args.push_back("-munwind-tables");
+#endif
 
     args.push_back("-fcxx-exceptions");
     args.push_back("-fexceptions");
@@ -535,7 +537,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   {
     auto src_include_dirs
         = {"/3rdparty/libossia/src",
-           "/3rdparty/libossia/3rdparty/boost_1_73_0",
+           "/3rdparty/libossia/3rdparty/boost_1_78_0",
            "/3rdparty/libossia/3rdparty/variant/include",
            "/3rdparty/libossia/3rdparty/nano-signal-slot/include",
            "/3rdparty/libossia/3rdparty/spdlog/include",
@@ -558,14 +560,17 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
            "/3rdparty/libossia/3rdparty/libremidi/include",
            "/3rdparty/libossia/3rdparty/oscpack",
            "/3rdparty/libossia/3rdparty/rnd/include",
+           "/3rdparty/libossia/3rdparty/tuplet/include",
            "/3rdparty/libossia/3rdparty/multi_index/include",
            "/3rdparty/libossia/3rdparty/verdigris/src",
            "/3rdparty/libossia/3rdparty/weakjack",
+           "/3rdparty/avendish/include",
            "/src/lib",
            "/src/plugins/score-lib-state",
            "/src/plugins/score-lib-device",
            "/src/plugins/score-lib-process",
            "/src/plugins/score-lib-inspector",
+           "/src/plugins/score-plugin-avnd",
            "/src/plugins/score-plugin-gfx",
            "/src/plugins/score-plugin-jit",
            "/src/plugins/score-plugin-nodal",
@@ -598,6 +603,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
            "/src/plugins/score-lib-device",
            "/src/plugins/score-lib-process",
            "/src/plugins/score-lib-inspector",
+           "/src/plugins/score-plugin-avnd",
            "/src/plugins/score-plugin-gfx",
            "/src/plugins/score-plugin-jit",
            "/src/plugins/score-plugin-nodal",

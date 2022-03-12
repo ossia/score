@@ -18,6 +18,8 @@ if [[ -d "$OSSIA_SDK/openssl/include" ]]; then
   cp -rf "$OSSIA_SDK/openssl/include/." "$INCLUDE/"
 fi
 
+cp -rf "$SCORE_DIR/3rdparty/avendish/include/." "$INCLUDE/"
+
 BOOST=$(find "$SCORE_DIR/3rdparty/libossia/3rdparty/" -maxdepth 2 -name boost -type d | sort | tail -1)
 if [[ -d "$BOOST" ]]; then
   cp -rf "$BOOST" "$INCLUDE/"
