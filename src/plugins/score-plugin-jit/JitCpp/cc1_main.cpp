@@ -34,7 +34,7 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/Signals.h"
-#include "llvm/Support/TargetRegistry.h"
+//#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/TimeProfiler.h"
 #include "llvm/Support/Timer.h"
@@ -70,9 +70,13 @@ public:
 //===----------------------------------------------------------------------===//
 // Main driver
 //===----------------------------------------------------------------------===//
-
+#if LLVM_VERSION_MAJOR < 15
 static void
 LLVMErrorHandler(void* UserData, const std::string& Message, bool GenCrashDiag)
+#else
+static void
+LLVMErrorHandler(void* UserData, const char* Message, bool GenCrashDiag)
+#endif
 {
   DiagnosticsEngine& Diags = *static_cast<DiagnosticsEngine*>(UserData);
 

@@ -37,14 +37,6 @@ unset(CMAKE_REQUIRED_FLAGS)
 include_directories("${3RDPARTY_FOLDER}/avendish/include")
 add_library(
   score_plugin_avnd
-  # oscr/Attributes.hpp
-  # oscr/Concepts.hpp
-  # oscr/GpuNode.hpp
-  # oscr/Executor.hpp
-  # oscr/ExecutorNode.hpp
-  # oscr/Layer.hpp
-  # oscr/Metadatas.hpp
-  # oscr/ProcessModel.hpp
 
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <avnd/introspection/input.hpp>
+#include <avnd/introspection/output.hpp>
 #include <boost/pfr.hpp>
 #include <boost/mp11/algorithm.hpp>
 #include <ossia/dataflow/safe_nodes/port.hpp>

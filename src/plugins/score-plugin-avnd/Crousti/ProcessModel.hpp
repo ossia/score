@@ -17,8 +17,8 @@
 #include <ossia/detail/typelist.hpp>
 
 #include <avnd/common/for_nth.hpp>
+#include <avnd/introspection/messages.hpp>
 #include <avnd/wrappers/bus_host_process_adapter.hpp>
-#include <avnd/wrappers/messages_introspection.hpp>
 
 #if SCORE_PLUGIN_GFX
 #include <Gfx/TexturePort.hpp>

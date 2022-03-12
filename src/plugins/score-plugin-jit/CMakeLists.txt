@@ -171,6 +171,11 @@ if(TARGET score_plugin_media)
   endif()
 endif()
 
+# We have a dynamic libLLVM.so, we don't want to link against Polly
+if("${LLVM_LIBS}" STREQUAL "LLVM")
+  unset(POLLY_LIBS)
+endif()
+
 if(WIN32)
   list(REMOVE_ITEM LLVM_LIBS LTO)
   list(REMOVE_ITEM LLVM_LIBS OptRemarks)
