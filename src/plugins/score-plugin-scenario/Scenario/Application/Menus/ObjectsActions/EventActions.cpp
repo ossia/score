@@ -116,7 +116,9 @@ void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm) { }
 
 void EventActions::addTriggerToTimeSync()
 {
-  auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
+
+  auto& ctx = m_parent->currentDocument()->context();
+  auto si = focusedScenarioInterface(ctx);
   if (!si)
     return;
 
@@ -149,12 +151,21 @@ void EventActions::addTriggerToTimeSync()
 
   ossia::remove_duplicates(selectedTimeSyncs);
 
+  auto& selectedSync = *selectedTimeSyncs.begin();
+
   auto cmd = m_triggerCommandFactory.make(
       &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
-      **selectedTimeSyncs.begin());
+      *selectedSync);
 
   if (cmd)
+  {
     dispatcher().submit(cmd);
+    if (selectedSync->active())
+    {
+      score::SelectionDispatcher disp{ctx.selectionStack};
+      disp.select(*selectedSync);
+    }
+  }
 }
 
 void EventActions::addCondition()
