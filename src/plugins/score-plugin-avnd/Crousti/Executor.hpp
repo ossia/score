@@ -377,7 +377,6 @@ public:
       if (node_id >= 0)
         gfx_exec.ui->unregister_node(node_id);
     }
-#endif
 
     // FIXME refactor this with other GFX processes
     for(auto* outlet : this->process().outlets())
@@ -387,6 +386,7 @@ public:
         out->nodeId = -1;
       }
     }
+#endif
     ::Execution::ProcessComponent::cleanup();
   }
 
