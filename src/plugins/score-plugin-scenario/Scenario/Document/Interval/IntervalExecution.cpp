@@ -6,6 +6,7 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>

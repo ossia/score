@@ -1,5 +1,6 @@
 #pragma once
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Control/Widgets.hpp>
 #include <Effect/EffectLayer.hpp>
 #include <Effect/EffectLayout.hpp>

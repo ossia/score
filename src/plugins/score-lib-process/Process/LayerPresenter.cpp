@@ -4,6 +4,7 @@
 
 #include "LayerView.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Process/Commands/LoadPreset.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Preset.hpp>
@@ -17,6 +18,14 @@ W_OBJECT_IMPL(Process::LayerPresenter)
 W_OBJECT_IMPL(FocusDispatcher)
 namespace Process
 {
+Context::Context(const score::DocumentContext& doc, DataflowManager& dfm, FocusDispatcher& d)
+  : score::DocumentContext{doc}
+  , dataflow{dfm}
+  , focusDispatcher{d}
+  , processList{doc.app.interfaces<Process::LayerFactoryList>()}
+{
+}
+
 LayerPresenter::~LayerPresenter() = default;
 
 LayerPresenter::LayerPresenter(

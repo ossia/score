@@ -14,6 +14,7 @@
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <State/Address.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>

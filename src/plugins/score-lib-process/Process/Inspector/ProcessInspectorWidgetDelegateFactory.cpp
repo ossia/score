@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessInspectorWidgetDelegateFactory.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>

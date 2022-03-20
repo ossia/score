@@ -10,6 +10,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -228,6 +229,10 @@ void IntervalModel::removeSignature(TimeVal t)
 {
   m_signatures.erase(t);
   timeSignaturesChanged(m_signatures);
+}
+const TimeSignatureMap& IntervalModel::timeSignatureMap() const noexcept
+{
+  return m_signatures;
 }
 
 void IntervalModel::setTimeSignatureMap(const TimeSignatureMap& map)

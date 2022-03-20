@@ -1,6 +1,7 @@
 #include <Library/LibrarySettings.hpp>
 #include <Protocols/LibraryDeviceEnumerator.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/File.hpp>
 #include <score/tools/FindStringInFile.hpp>

@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioGlobalCommandManager.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>

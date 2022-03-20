@@ -21,6 +21,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/ValueConversion.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/CommandStackFacade.hpp>
 #include <score/document/DocumentContext.hpp>

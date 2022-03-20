@@ -49,7 +49,7 @@ bool DropPortInScenario::drop(
 
     // 5 seconds.
     // TODO instead use a percentage of the currently displayed view
-    TimeVal t = std::chrono::seconds{5};
+    TimeVal t = TimeVal::fromMsecs(5000);
 
     auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 

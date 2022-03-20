@@ -5,6 +5,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>

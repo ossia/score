@@ -17,6 +17,7 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia-qt/time.hpp>
+#include <ossia-qt/token_request.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>

@@ -1,5 +1,6 @@
 #include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>

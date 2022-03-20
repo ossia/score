@@ -3,6 +3,7 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Settings/Model.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>

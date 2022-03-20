@@ -1,5 +1,6 @@
 #include <Audio/DummyInterface.hpp>
 #include <Audio/Settings/Model.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 namespace Audio::Settings
 {
 namespace Parameters

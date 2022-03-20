@@ -3,6 +3,7 @@
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/graphics/GraphicsItem.hpp>

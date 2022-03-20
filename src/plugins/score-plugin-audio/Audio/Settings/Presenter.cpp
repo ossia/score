@@ -5,6 +5,7 @@
 #include <Audio/Settings/Presenter.hpp>
 #include <Audio/Settings/View.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>

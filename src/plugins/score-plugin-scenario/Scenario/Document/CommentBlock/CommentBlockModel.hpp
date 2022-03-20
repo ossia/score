@@ -59,7 +59,7 @@ public:
   void contentChanged(QString arg_1) W_SIGNAL(contentChanged, arg_1);
 
 private:
-  TimeVal m_date{std::chrono::seconds{0}};
+  TimeVal m_date{};
   double m_yposition{0};
 
   QString m_HTMLcontent{

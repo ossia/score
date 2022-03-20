@@ -9,6 +9,7 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <QVBoxLayout>
 

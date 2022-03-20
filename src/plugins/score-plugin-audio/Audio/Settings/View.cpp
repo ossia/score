@@ -3,6 +3,7 @@
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/FormWidget.hpp>
 #include <score/widgets/SignalUtils.hpp>
 

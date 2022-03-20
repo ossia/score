@@ -16,6 +16,7 @@
 #include <ossia/network/base/parameter_data.hpp>
 #include <ossia/network/common/complex_type.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <QDir>
 #include <QFile>

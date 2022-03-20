@@ -7,6 +7,7 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/tools/Bind.hpp>
 

@@ -2,6 +2,7 @@
 
 #include <Dataflow/Commands/CableHelpers.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/ChangeId.hpp>
 #include <score/document/DocumentContext.hpp>

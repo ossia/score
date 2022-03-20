@@ -141,10 +141,10 @@ using JitEffectComponentFactory
 
 namespace AvndJit
 {
-class EditScript
+class EditAvndScript
     : public Scenario::EditScript<Model, Model::p_script>
 {
-  SCORE_COMMAND_DECL(Jit::CommandFactoryName(), EditScript, "Edit a C++ program")
+  SCORE_COMMAND_DECL(Jit::CommandFactoryName(), EditAvndScript, "Edit a C++ program")
 public:
   using Scenario::EditScript<Model, Model::p_script>::
       EditScript;
@@ -156,9 +156,9 @@ namespace score
 {
 template <>
 struct StaticPropertyCommand<AvndJit::Model::p_script>
-    : AvndJit::EditScript
+    : AvndJit::EditAvndScript
 {
-  using AvndJit::EditScript::EditScript;
+  using AvndJit::EditAvndScript::EditAvndScript;
 };
 }
 

@@ -26,6 +26,7 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>

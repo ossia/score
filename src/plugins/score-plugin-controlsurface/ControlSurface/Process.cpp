@@ -6,6 +6,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/serialization/MapSerialization.hpp>
 
 #include <ossia/network/base/node_attributes.hpp>

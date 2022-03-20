@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LocalTreeDocumentPlugin.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
 #include <LocalTree/Device/LocalProtocolFactory.hpp>

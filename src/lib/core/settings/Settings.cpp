@@ -5,6 +5,7 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/settings/Settings.hpp>

@@ -4,7 +4,7 @@
 #include <QDebug>
 
 template <typename T>
-QDebug operator<<(QDebug d, Path<T> path)
+QDebug& operator<<(QDebug& d, const Path<T>& path)
 {
   auto& unsafe = path.unsafePath();
   d << unsafe.toString();

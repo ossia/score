@@ -8,6 +8,7 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>

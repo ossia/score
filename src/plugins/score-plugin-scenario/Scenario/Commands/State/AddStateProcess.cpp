@@ -4,6 +4,7 @@
 
 #include <Process/ProcessList.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>

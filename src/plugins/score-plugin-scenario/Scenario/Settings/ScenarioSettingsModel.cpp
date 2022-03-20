@@ -167,7 +167,7 @@ TimeVal Model::getDefaultDuration() const
 
 void Model::setDefaultDuration(TimeVal val)
 {
-  val = std::max(val, TimeVal{std::chrono::milliseconds{100}});
+  val = std::max(val, TimeVal::fromMsecs(100));
 
   if (val == m_DefaultDuration)
     return;

@@ -17,6 +17,7 @@
 #include <QMenu>
 #include <QToolButton>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>

@@ -10,6 +10,7 @@
 #include <Vst3/Commands.hpp>
 #include <Vst3/Control.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>

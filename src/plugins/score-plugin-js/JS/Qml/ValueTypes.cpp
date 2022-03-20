@@ -1,6 +1,7 @@
 #include <JS/Qml/ValueTypes.hpp>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <ossia-qt/token_request.hpp>
 #include <private/qqmlglobal_p.h>
 #include <private/qqmlvaluetype_p.h>
 #include <wobjectimpl.h>

@@ -360,7 +360,7 @@ JSONWriter::write(Scenario::IntervalModel& interval)
 
   writeTo(interval.duration);
 
-  assign_with_default(interval.m_signatures, obj.tryGet("Signatures"), {});
+  assign_with_default(interval.m_signatures, obj.tryGet("Signatures"), Scenario::TimeSignatureMap{});
 
   interval.m_startState <<= obj[strings.StartState];
   interval.m_endState <<= obj[strings.EndState];

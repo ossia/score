@@ -1,5 +1,6 @@
 #include "AddProcessToInterval.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 
 namespace Scenario

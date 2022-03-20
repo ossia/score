@@ -3,6 +3,7 @@
 #include <Inspector/InspectorLayout.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <score/document/DocumentContext.hpp>
 

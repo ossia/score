@@ -82,6 +82,7 @@ std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_plugin_jit::make_commands()
 {
   using namespace Jit;
+  using namespace AvndJit;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Jit::CommandFactoryName(), CommandGeneratorMap{}};
 

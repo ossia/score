@@ -1,6 +1,7 @@
 #include "NodalIntervalView.hpp"
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/ZoomItem.hpp>
 #include <score/selection/SelectionStack.hpp>
 

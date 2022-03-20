@@ -5,6 +5,7 @@
 #include "MIDIDevice.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>

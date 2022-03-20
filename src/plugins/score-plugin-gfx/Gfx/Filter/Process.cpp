@@ -1,5 +1,6 @@
 #include "Process.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/TexturePort.hpp>

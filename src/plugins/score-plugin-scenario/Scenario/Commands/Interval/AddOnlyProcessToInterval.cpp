@@ -4,7 +4,9 @@
 
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/Dataflow/Port.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/ChangeId.hpp>
 #include <score/document/DocumentContext.hpp>

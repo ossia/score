@@ -2,6 +2,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <Process/Commands/LoadPreset.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>

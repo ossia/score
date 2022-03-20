@@ -1,4 +1,5 @@
 #pragma once
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/actions/Action.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>

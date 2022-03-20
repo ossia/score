@@ -10,6 +10,7 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Style/Pixmaps.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/graphics/GraphicWidgets.hpp>

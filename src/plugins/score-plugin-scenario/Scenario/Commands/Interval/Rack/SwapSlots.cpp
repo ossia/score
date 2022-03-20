@@ -8,6 +8,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 

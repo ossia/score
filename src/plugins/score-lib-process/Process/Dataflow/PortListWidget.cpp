@@ -8,6 +8,7 @@
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>

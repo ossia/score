@@ -7,6 +7,7 @@
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/StringFactoryKey.hpp>

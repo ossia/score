@@ -10,6 +10,7 @@
 #include <score/graphics/YPos.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <score/tools/std/StringHash.hpp>
 

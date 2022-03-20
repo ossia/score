@@ -119,7 +119,7 @@ public:
           startPointChanged)
 
 private:
-  TimeVal m_date{std::chrono::seconds{0}};
+  TimeVal m_date{};
   State::Expression m_expression;
 
   EventIdVec m_events;

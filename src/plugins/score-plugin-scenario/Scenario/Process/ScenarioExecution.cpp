@@ -3,7 +3,9 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/Dataflow/Port.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>

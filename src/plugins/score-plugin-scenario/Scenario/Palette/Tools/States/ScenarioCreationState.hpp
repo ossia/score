@@ -8,6 +8,7 @@
 
 #include <QDebug>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>

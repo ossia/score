@@ -1,6 +1,7 @@
 #pragma once
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>

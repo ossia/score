@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalComponent.hpp"
 
+#include <Process/Dataflow/Port.hpp>
 #include <State/Expression.hpp>
 
 #include <ossia/detail/algorithms.hpp>

@@ -4,6 +4,7 @@
 
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/plugins/SerializableInterface.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <ossia/dataflow/nodes/automation.hpp>
 

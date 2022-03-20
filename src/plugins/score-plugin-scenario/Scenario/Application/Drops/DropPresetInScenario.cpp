@@ -52,7 +52,7 @@ bool DropPresetInScenario::drop(
   const Scenario::ProcessModel& scenar = pres.model();
   const Scenario::Point pt = pres.toScenarioPoint(pos);
 
-  const TimeVal t = std::chrono::seconds{5};
+  const TimeVal t = TimeVal::fromMsecs(5000);
 
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 

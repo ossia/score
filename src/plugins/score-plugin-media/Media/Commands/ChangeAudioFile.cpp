@@ -3,6 +3,8 @@
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
+#include <score/command/CommandData.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 

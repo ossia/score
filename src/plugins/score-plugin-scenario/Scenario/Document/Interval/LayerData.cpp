@@ -1,5 +1,6 @@
 #include <Scenario/Document/Interval/LayerData.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>

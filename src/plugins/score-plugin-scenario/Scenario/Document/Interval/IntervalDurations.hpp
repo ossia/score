@@ -157,7 +157,7 @@ public:
 private:
   IntervalModel& m_model;
 
-  TimeVal m_defaultDuration{std::chrono::milliseconds{200}};
+  TimeVal m_defaultDuration{TimeVal::fromMsecs(200)};
   TimeVal m_minDuration{m_defaultDuration};
   TimeVal m_maxDuration{m_defaultDuration};
   TimeVal m_guiDuration{m_defaultDuration};

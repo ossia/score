@@ -344,6 +344,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/OpenGL.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/Vulkan.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/FactorySetup.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/Interface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/InterfaceList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/SerializableInterface.cpp"

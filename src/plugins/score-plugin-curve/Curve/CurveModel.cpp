@@ -9,6 +9,7 @@
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
 #include <State/ValueConversion.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>

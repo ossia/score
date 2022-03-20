@@ -19,6 +19,7 @@
 #include <QGuiApplication>
 #include <QTimer>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>

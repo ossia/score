@@ -23,7 +23,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
   QString m_DefaultEditor;
   double m_GraphicZoom{};
   qreal m_SlotHeight{};
-  TimeVal m_DefaultDuration{std::chrono::seconds{30}};
+  TimeVal m_DefaultDuration{TimeVal::fromMsecs(30000)};
   int m_UpdateRate{60};
   int m_ExecutionRefreshRate{60};
   bool m_SnapshotOnCreate{};

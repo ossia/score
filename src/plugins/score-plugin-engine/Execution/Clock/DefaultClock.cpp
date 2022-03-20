@@ -3,6 +3,7 @@
 
 #include "DefaultClock.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <Process/ExecutionContext.hpp>

@@ -3,6 +3,7 @@
 #include <Media/AudioDecoder.hpp>
 #include <Media/RMSData.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>

@@ -5,6 +5,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 

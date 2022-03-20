@@ -9,6 +9,7 @@
 #include <State/Widgets/AddressLineEdit.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>

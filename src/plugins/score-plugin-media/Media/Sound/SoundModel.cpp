@@ -3,6 +3,7 @@
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <QRegularExpression>
 
 #include <wobjectimpl.h>

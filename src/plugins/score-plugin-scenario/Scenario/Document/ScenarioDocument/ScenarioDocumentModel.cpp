@@ -3,6 +3,7 @@
 
 #include "ScenarioDocumentModel.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/model/IdentifierDebug.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>

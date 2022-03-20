@@ -1,4 +1,5 @@
 #include <Media/Effect/Settings/Model.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <Vst/Window.hpp>
 
 #include <wobjectimpl.h>

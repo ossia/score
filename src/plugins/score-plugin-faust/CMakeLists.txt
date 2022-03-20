@@ -1,5 +1,5 @@
 project(score_plugin_faust LANGUAGES CXX)
-
+return()
 include(ExternalProject)
 score_common_setup()
 

@@ -1,5 +1,6 @@
 #include "Widgets.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>

@@ -27,6 +27,7 @@ namespace score
 {
 struct DocumentContext;
 class ActionGroup;
+class ActionManager;
 using ActionGroupKey = StringKey<ActionGroup>;
 
 /**

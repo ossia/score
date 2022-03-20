@@ -6,6 +6,7 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/model/EntitySerialization.hpp>

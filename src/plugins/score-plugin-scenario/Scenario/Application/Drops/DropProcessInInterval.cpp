@@ -1,5 +1,6 @@
 #include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>

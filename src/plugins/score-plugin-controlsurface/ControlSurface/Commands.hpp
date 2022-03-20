@@ -5,6 +5,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/AggregateCommand.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>

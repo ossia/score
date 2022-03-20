@@ -1,5 +1,6 @@
 #include <Scenario/Application/Drops/DropProcessOnState.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>

@@ -1,12 +1,14 @@
 #pragma once
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/CommandStackFacade.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/selection/FocusManager.hpp>
 class IdentifiedObjectAbstract;
+class QTimer;
 namespace score
 {
+struct ApplicationContext;
+struct GUIApplicationContext;
 class Document;
 class CommandStack;
 class SelectionStack;

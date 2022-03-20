@@ -9,10 +9,10 @@
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <cmath>
-#include <flicks.h>
+// #include <flicks.h>
 #include <score_lib_process_export.h>
 
-#include <chrono>
+// #include <chrono>
 #include <verdigris>
 
 class QTime;
@@ -57,6 +57,7 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 
   explicit TimeVal(const QTime& t) noexcept;
 
+  /*
   template <
       typename Duration,
       std::enable_if_t<
@@ -65,6 +66,7 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
       : time_value{util::flicks_cast(dur).count()}
   {
   }
+  */
 
   constexpr TimeVal operator-(TimeVal t) const noexcept
   {

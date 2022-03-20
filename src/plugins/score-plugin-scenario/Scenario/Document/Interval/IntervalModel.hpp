@@ -1,9 +1,10 @@
 #pragma once
-#include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
 #include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Scenario/Document/Interval/TimeSignatureMap.hpp>
 
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
@@ -23,8 +24,6 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <ossia/detail/flat_map.hpp>
-
 #include <QObject>
 #include <QPointer>
 
@@ -34,7 +33,11 @@
 
 class DataStream;
 class JSONObject;
-
+namespace Process
+{
+class AudioInlet;
+class AudioOutlet;
+}
 namespace Curve
 {
 class Model;
@@ -44,7 +47,6 @@ namespace Scenario
 class StateModel;
 class TempoProcess;
 
-using TimeSignatureMap = ossia::flat_map<TimeVal, ossia::time_signature>;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
     : public score::Entity<IntervalModel>
     , public Nano::Observer
@@ -196,10 +198,7 @@ public:
   void addSignature(TimeVal t, ossia::time_signature sig);
   void removeSignature(TimeVal t);
   void setTimeSignatureMap(const TimeSignatureMap& map);
-  const TimeSignatureMap& timeSignatureMap() const noexcept
-  {
-    return m_signatures;
-  }
+  const TimeSignatureMap& timeSignatureMap() const noexcept;
 
   ossia::musical_sync quantizationRate() const noexcept;
   void setQuantizationRate(ossia::musical_sync b);
@@ -348,8 +347,6 @@ TimeVal timeDelta(const IntervalModel* child, const IntervalModel* parent);
 
 DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")
 
-Q_DECLARE_METATYPE(Scenario::TimeSignatureMap)
-W_REGISTER_ARGTYPE(Scenario::TimeSignatureMap)
 Q_DECLARE_METATYPE(Scenario::IntervalModel::ViewMode)
 W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
 Q_DECLARE_METATYPE(QPointer<Scenario::IntervalModel>)

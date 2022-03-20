@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <score/document/DocumentContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/selection/Selection.hpp>

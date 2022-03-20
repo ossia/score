@@ -16,7 +16,6 @@
 
 #include <ossia/detail/small_vector.hpp>
 
-#include <QIcon>
 #include <QString>
 
 #include <score_lib_process_export.h>

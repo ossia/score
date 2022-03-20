@@ -7,6 +7,14 @@
 
 #include <type_traits>
 
+namespace score
+{
+struct GUIApplicationContext;
+struct ApplicationContext;
+}
+SCORE_LIB_BASE_EXPORT bool appcontext_has_ui(const score::GUIApplicationContext&) noexcept;
+SCORE_LIB_BASE_EXPORT bool appcontext_has_ui(const score::ApplicationContext&) noexcept;
+
 /**
  * @brief Create a vector filled with pointers to new instances of the template
  * arguments
@@ -70,6 +78,7 @@ struct has_ui<T, std::enable_if_t<T::ui_interface>>
 {
   static const constexpr bool value = T::ui_interface;
 };
+
 /**
  * \class FW_T
  * \brief Used to group base classes and concrete classes in a single argument
@@ -91,7 +100,7 @@ struct FW_T
   {
     if constexpr (has_ui<Factory_T>::value)
     {
-      if (!ctx.applicationSettings.gui)
+      if (!appcontext_has_ui(ctx))
       {
         return false;
       }

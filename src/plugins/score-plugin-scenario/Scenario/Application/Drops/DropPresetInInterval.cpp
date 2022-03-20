@@ -1,5 +1,6 @@
 #include <Scenario/Application/Drops/DropPresetInInterval.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
