@@ -204,7 +204,12 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
   {
     if (auto itv = scenar.state(state).previousInterval())
     {
-      SCORE_ASSERT(scenar.interval(*itv).graphal());
+      auto& i = scenar.interval(*itv);
+      if(!i.graphal())
+      {
+        qDebug() << "Invalid interval: " << i.metadata().getName() << i.metadata().getLabel() << i.id_val();
+        i.setGraphal(true);
+      }
     }
   }
 }
