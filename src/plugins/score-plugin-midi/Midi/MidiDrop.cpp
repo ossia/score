@@ -6,6 +6,7 @@
 #include <Midi/MidiProcess.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <QByteArray>
 #include <QDebug>

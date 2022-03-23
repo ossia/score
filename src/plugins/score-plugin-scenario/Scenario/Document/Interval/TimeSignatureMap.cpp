@@ -2,6 +2,7 @@
 #include <Process/TimeValueSerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 namespace Scenario
 {

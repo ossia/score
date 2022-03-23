@@ -7,6 +7,7 @@
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
 
+#include <ossia/detail/json.hpp>
 namespace Scenario
 {
 struct Point;
