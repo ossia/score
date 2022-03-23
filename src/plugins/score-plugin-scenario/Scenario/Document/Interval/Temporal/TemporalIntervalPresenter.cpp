@@ -525,7 +525,7 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
       p.view = nodal;
 
       const auto def_width
-          = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+          = m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio);
       nodal->setRect({0, 0, def_width, p.height});
 
       m_slots.insert(m_slots.begin() + pos, std::move(p));
@@ -571,7 +571,7 @@ void TemporalIntervalPresenter::createCollapsedSlot(int pos, const Slot& slt)
     }
 
     setHeaderWidth(
-        p, m_model.duration.defaultDuration().toPixels(m_zoomRatio));
+        p, m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio));
   }
   m_slots.insert(m_slots.begin() + pos, std::move(p));
 
@@ -592,7 +592,7 @@ void TemporalIntervalPresenter::createLayer(
     LayerData& ld = layers.emplace_back(&proc);
 
     const auto def_width
-        = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+        = m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio);
     const auto slot_height = m_model.smallView().at(slot_i).height;
 
     ld.updateLoops(
@@ -630,7 +630,7 @@ void TemporalIntervalPresenter::createLayer(
           if (!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
           {
             const auto def_width
-                = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+                = m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio);
             const auto slot_height = m_model.smallView().at(slot_i).height;
             ld.updateLoops(
                 m_context,
@@ -664,7 +664,7 @@ void TemporalIntervalPresenter::createLayer(
             if (!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
             {
               ld.updateStartOffset(
-                  -ld.model().startOffset().toPixels(m_zoomRatio));
+                  -ld.model().startOffset().toPixelsRaw(m_zoomRatio));
             }
             else
             {
@@ -686,7 +686,7 @@ void TemporalIntervalPresenter::createLayer(
           {
             LayerData& ld = slot->layers.front();
             const auto def_width
-                = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+                = m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio);
             const auto slot_height = m_model.smallView().at(slot_i).height;
 
             if (!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
@@ -764,7 +764,7 @@ void TemporalIntervalPresenter::updateProcessShape(
     ld.setHeight(h);
     ld.updateContainerHeights(h);
 
-    auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+    auto width = m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio);
     ld.setWidth(width, width);
     ld.parentGeometryChanged();
     ld.update();
@@ -955,7 +955,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
 
             setHeaderWidth(
                 *slt,
-                m_model.duration.defaultDuration().toPixels(m_zoomRatio));
+                m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio));
           }
         }
         else
@@ -1036,7 +1036,7 @@ void TemporalIntervalPresenter::updateScaling()
 void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   IntervalPresenter::on_zoomRatioChanged(ratio);
-  auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
+  auto def_width = m_model.duration.defaultDuration().toPixelsRaw(ratio);
 
   int i = 0;
   for (SlotPresenter& slot : m_slots)
