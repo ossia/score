@@ -53,7 +53,7 @@ QString::number(prev->following->val()) : QString("none"))
 PenCommandObject::PenCommandObject(
     Presenter* presenter,
     const score::CommandStackFacade& stack)
-    : CommandObjectBase{presenter, stack}
+    : CommandObjectBase{presenter->model(), presenter, stack}
     , m_segment{Id<SegmentModel>{}, nullptr}
 {
 }

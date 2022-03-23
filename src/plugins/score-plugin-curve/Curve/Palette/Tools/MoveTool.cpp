@@ -108,7 +108,7 @@ CreateTool::CreateTool(
     Curve::ToolPalette& sm,
     const score::DocumentContext& context)
     : EditionToolForCreate{sm}
-    , m_co{&sm.presenter(), context.commandStack}
+    , m_co{sm.model(), &sm.presenter(), context.commandStack}
 {
   localSM().setObjectName("CreateToolLocalSM");
   QState* waitState = new QState{&localSM()};

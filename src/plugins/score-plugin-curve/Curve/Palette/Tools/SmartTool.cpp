@@ -27,7 +27,7 @@ SmartTool::SmartTool(
     Curve::ToolPalette& sm,
     const score::DocumentContext& context)
     : CurveTool{sm}
-    , m_co{&sm.presenter(), context.commandStack}
+    , m_co{sm.model(), &sm.presenter(), context.commandStack}
 {
   m_state = new Curve::SelectionState{
       context.selectionStack,

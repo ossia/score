@@ -24,9 +24,10 @@ class CommandStackFacade;
 namespace Curve
 {
 CreatePointCommandObject::CreatePointCommandObject(
+    const Model& model,
     Presenter* presenter,
     const score::CommandStackFacade& stack)
-    : CommandObjectBase{presenter, stack}
+    : CommandObjectBase{model, presenter, stack}
 {
 }
 
@@ -37,7 +38,7 @@ void CreatePointCommandObject::on_press()
   // Save the start data.
   m_originalPress = m_state->currentPoint;
 
-  for (PointModel* pt : m_presenter->model().points())
+  for (PointModel* pt : m_model.points())
   {
     auto pt_x = pt->pos().x();
 

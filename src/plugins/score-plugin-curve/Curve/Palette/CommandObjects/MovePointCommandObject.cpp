@@ -47,9 +47,10 @@ struct CurveSegmentMap
 };
 class SegmentModel;
 MovePointCommandObject::MovePointCommandObject(
+    const Model& model,
     Presenter* presenter,
     const score::CommandStackFacade& stack)
-    : CommandObjectBase{presenter, stack}
+    : CommandObjectBase{model, presenter, stack}
 {
 }
 
@@ -64,21 +65,22 @@ void MovePointCommandObject::on_press()
 {
   // Save the start data.
   // First we take the exact position of the point we clicked.
+  const auto& pts = m_model.points();
   auto clickedCurvePoint_it = std::find_if(
-      m_presenter->model().points().begin(),
-      m_presenter->model().points().end(),
+      pts.begin(),
+      pts.end(),
       [&](PointModel* pt) {
         return pt->previous() == m_state->clickedPointId.previous
                && pt->following() == m_state->clickedPointId.following;
       });
 
-  SCORE_ASSERT(clickedCurvePoint_it != m_presenter->model().points().end());
+  SCORE_ASSERT(clickedCurvePoint_it != pts.end());
   auto clickedCurvePoint = *clickedCurvePoint_it;
   m_originalPress = clickedCurvePoint->pos();
 
   // Compute xmin, xmax
   // Look for the next and previous points
-  for (PointModel* pt : m_presenter->model().points())
+  for (PointModel* pt : m_model.points())
   {
     auto pt_x = pt->pos().x();
     if (pt == clickedCurvePoint)
@@ -98,8 +100,7 @@ void MovePointCommandObject::on_press()
     }
   }
 
-  m_presenter->view().setValueTooltip(
-      m_originalPress, getPrettyText(m_originalPress, *m_presenter));
+  setTooltip(m_originalPress);
 }
 
 void MovePointCommandObject::move()
@@ -116,7 +117,7 @@ void MovePointCommandObject::move()
     handlePointOverlap(segments);
 
     // This handles what happens when we cross another point.
-    if (m_presenter->editionSettings().suppressOnOverlap())
+    if (m_presenter && m_presenter->editionSettings().suppressOnOverlap())
     {
       handleSuppressOnOverlap(segments);
     }
@@ -132,21 +133,19 @@ void MovePointCommandObject::move()
 
   // Rewrite and make a command
   submit(std::vector<SegmentData>(segments.begin(), segments.end()));
-  m_presenter->view().setValueTooltip(
-      m_state->currentPoint,
-      getPrettyText(m_state->currentPoint, *m_presenter));
+  setTooltip(m_state->currentPoint);
 }
 
 void MovePointCommandObject::release()
 {
   m_dispatcher.commit();
-  m_presenter->view().setValueTooltip({}, QString{});
+  unsetTooltip();
 }
 
 void MovePointCommandObject::cancel()
 {
   m_dispatcher.rollback();
-  m_presenter->view().setValueTooltip({}, QString{});
+  unsetTooltip();
 }
 
 void MovePointCommandObject::handlePointOverlap(CurveSegmentMap& segments)
@@ -370,8 +369,13 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
     {
       auto foll_seg_it
           = segments_by_id.find(*m_state->clickedPointId.following);
+      if(foll_seg_it == segments_by_id.end())
+      {
+        qDebug() << "Following segment not found ?" << m_state->clickedPointId.following->val();
+        throw std::runtime_error("Curve edition error");
+      }
       auto& foll_seg = *foll_seg_it;
-      if (current_x > foll_seg.end.x())
+      if (current_x >= foll_seg.end.x())
       {
         // If there was also a previous segment, it now goes to the end of the
         // presently removed segment.
@@ -542,8 +546,14 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
     {
       auto prev_seg_it
           = segments_by_id.find(*m_state->clickedPointId.previous);
+      if(prev_seg_it == segments_by_id.end())
+      {
+        qDebug() << "Previous segment not found ?" << m_state->clickedPointId.previous->val();
+        throw std::runtime_error("Curve edition error");
+      }
+
       auto& prev_seg = *prev_seg_it;
-      if (current_x < prev_seg.start.x())
+      if (current_x <= prev_seg.start.x())
       {
         // If there was also a following segment to the click, it now goes to
         // the start of the
@@ -680,5 +690,20 @@ void MovePointCommandObject::setCurrentPoint(CurveSegmentMap& segments)
           seg_foll_it, [&](auto& seg) { seg.start = m_state->currentPoint; });
     }
   }
+}
+
+void MovePointCommandObject::setTooltip(const Point& p)
+{
+  if(!m_presenter)
+    return;
+
+  m_presenter->view().setValueTooltip(p, getPrettyText(p, *m_presenter));
+}
+void MovePointCommandObject::unsetTooltip()
+{
+  if(!m_presenter)
+    return;
+
+  m_presenter->view().setValueTooltip({}, {});
 }
 }

@@ -18,6 +18,7 @@ class SCORE_PLUGIN_CURVE_EXPORT CreatePointCommandObject final
 {
 public:
   CreatePointCommandObject(
+      const Model& model,
       Presenter* presenter,
       const score::CommandStackFacade& stack);
   virtual ~CreatePointCommandObject();

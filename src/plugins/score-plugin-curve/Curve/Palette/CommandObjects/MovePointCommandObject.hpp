@@ -13,6 +13,7 @@ class SCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final
 {
 public:
   MovePointCommandObject(
+      const Model& model,
       Presenter* presenter,
       const score::CommandStackFacade& stack);
   ~MovePointCommandObject();
@@ -30,5 +31,8 @@ private:
   void handleSuppressOnOverlap(CurveSegmentMap& segments);
   void handleCrossOnOverlap(CurveSegmentMap& segments);
   void setCurrentPoint(CurveSegmentMap& segments);
+  void setTooltip(const Curve::Point& p);
+  void unsetTooltip();
+
 };
 }

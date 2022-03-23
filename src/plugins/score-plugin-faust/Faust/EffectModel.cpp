@@ -5,6 +5,7 @@
 #include <Process/ExecutionSetup.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/DeleteAll.hpp>

@@ -48,7 +48,7 @@ class SegmentModel;
 class SCORE_PLUGIN_CURVE_EXPORT CommandObjectBase
 {
 public:
-  CommandObjectBase(Presenter* pres, const score::CommandStackFacade&);
+  CommandObjectBase(const Model& model, Presenter* pres, const score::CommandStackFacade&);
   virtual ~CommandObjectBase();
 
   void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
@@ -56,12 +56,12 @@ public:
 
   void handleLocking();
 
+protected:
   // Creates and pushes an UpdateCurve command
   // from a vector of segments.
   // They are removed afterwards
   void submit(std::vector<SegmentData>&&);
 
-protected:
   auto
   find(std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
   {
@@ -85,6 +85,7 @@ protected:
   QVector<QByteArray> m_oldCurveData;
   QPointF m_originalPress; // Note : there should be only one per curve...
 
+  const Model& m_model;
   Presenter* m_presenter{};
 
   Curve::StateBase* m_state{};

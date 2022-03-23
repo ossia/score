@@ -36,7 +36,7 @@ TempoPointInspectorWidget::TempoPointInspectorWidget(const Curve::PointModel& mo
   : Curve::PointInspectorWidget{model, doc, parent}
   , m_dispatcher{doc.dispatcher}
 {
-  auto automModel_base = safe_cast<Scenario::TempoProcess*>(m_model.parent()->parent());
+  auto automModel_base = safe_cast<Scenario::TempoProcess*>(model.parent()->parent());
 
   auto& automModel = *automModel_base;
   m_Ymin = automModel.min;
@@ -44,7 +44,7 @@ TempoPointInspectorWidget::TempoPointInspectorWidget(const Curve::PointModel& mo
   m_YBox = new QDoubleSpinBox{};
   m_YBox->setRange(automModel.min, automModel.max);
   m_YBox->setSingleStep(m_yFactor / 100);
-  m_YBox->setValue(m_model.pos().y() * m_yFactor + m_Ymin);
+  m_YBox->setValue(model.pos().y() * m_yFactor + m_Ymin);
   m_YBox->setDecimals(4); // NOTE : settings ?
 
   connect(
@@ -64,10 +64,13 @@ TempoPointInspectorWidget::TempoPointInspectorWidget(const Curve::PointModel& mo
 
 void TempoPointInspectorWidget::on_pointChanged(double d)
 {
+  if(!m_model)
+    return;
+  auto& model = *m_model;
   Curve::Point pos{
       m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
   m_dispatcher.submit<Curve::MovePoint>(
-      *safe_cast<Curve::Model*>(m_model.parent()), m_model.id(), pos);
+      *safe_cast<Curve::Model*>(model.parent()), model.id(), pos);
 }
 
 void TempoPointInspectorWidget::on_editFinished()

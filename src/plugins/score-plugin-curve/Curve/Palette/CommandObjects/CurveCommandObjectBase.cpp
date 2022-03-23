@@ -19,9 +19,11 @@ class CommandStackFacade;
 namespace Curve
 {
 CommandObjectBase::CommandObjectBase(
+    const Model& model,
     Presenter* pres,
     const score::CommandStackFacade& stack)
-    : m_presenter{pres}
+    : m_model{model}
+    , m_presenter{pres}
     , m_dispatcher{stack}
 {
 }
@@ -30,10 +32,8 @@ CommandObjectBase::~CommandObjectBase() { }
 
 void CommandObjectBase::press()
 {
-  const auto& current = m_presenter->model();
-
   // Serialize the current state of the curve
-  m_startSegments = current.toCurveData();
+  m_startSegments = m_model.toCurveData();
 
   // To prevent behind locked at 0.000001 or 0.9999
   m_xmin = std::numeric_limits<decltype(m_xmax)>::lowest();
@@ -48,7 +48,7 @@ void CommandObjectBase::handleLocking()
   double current_x = m_state->currentPoint.x();
   double current_y = m_state->currentPoint.y();
 
-  const bool bounded = m_presenter->boundedMove();
+  const bool bounded = m_presenter ? m_presenter->boundedMove() : true;
   // We lock between O - 1 in both axes.
   if (current_x < 0.)
     m_state->currentPoint.setX(0.);
@@ -61,7 +61,7 @@ void CommandObjectBase::handleLocking()
     m_state->currentPoint.setY(1.);
 
   // And more specifically...
-  if (m_presenter->editionSettings().lockBetweenPoints())
+  if (m_presenter && m_presenter->editionSettings().lockBetweenPoints())
   {
     if (current_x <= m_xmin)
       m_state->currentPoint.setX(m_xmin + 0.000001);
@@ -78,6 +78,6 @@ void CommandObjectBase::handleLocking()
 
 void CommandObjectBase::submit(std::vector<SegmentData>&& segments)
 {
-  m_dispatcher.submit(m_presenter->model(), std::move(segments));
+  m_dispatcher.submit(m_model, std::move(segments));
 }
 }
