@@ -472,6 +472,7 @@ struct AVCodecContext_Free
   void operator()(AVCodecContext* ctx) const noexcept
   {
 #if SCORE_HAS_LIBAV
+    avcodec_close(ctx);
     avcodec_free_context(&ctx);
 #endif
   }

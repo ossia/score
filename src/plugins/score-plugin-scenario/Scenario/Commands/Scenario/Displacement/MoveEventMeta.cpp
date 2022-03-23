@@ -76,6 +76,10 @@ MoveEventMeta::MoveEventMeta(
   m_oldY = scenar.state(*m_stateId).heightPercentage();
 }
 
+MoveEventMeta::~MoveEventMeta()
+{
+}
+
 void MoveEventMeta::undo(const score::DocumentContext& ctx) const
 {
   m_moveEventImplementation->undo(ctx);

@@ -42,6 +42,8 @@ public:
       ExpandMode mode,
       LockMode lock,
       Id<StateModel>);
+
+  ~MoveEventMeta();
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

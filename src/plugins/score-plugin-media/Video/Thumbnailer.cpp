@@ -98,7 +98,7 @@ VideoThumbnailer::VideoThumbnailer(QString path)
         char str[1500];
         qDebug() << "VideoThumbnailer: avcodec_open2 failed"
                  << av_make_error_string(str, 1499, err);
-        goto err;
+        return;
       }
 
       width = m_codecContext->coded_width;
@@ -110,7 +110,7 @@ VideoThumbnailer::VideoThumbnailer(QString path)
       else
       {
         qDebug() << "VideoThumbnailer: invalid video: width or height is 0";
-        goto err;
+        return;
       }
 
       smallHeight = 55;
@@ -139,40 +139,36 @@ VideoThumbnailer::VideoThumbnailer(QString path)
       fps = av_q2d(stream->avg_frame_rate);
     }
   }
-
-err:
-  if (!res)
-  {
-    // error
-    if (m_rgb)
-    {
-      av_frame_free(&m_rgb);
-      m_rgb = nullptr;
-    }
-
-    if (m_rescale)
-    {
-      sws_freeContext(m_rescale);
-      m_rescale = nullptr;
-    }
-
-    if (m_codecContext)
-    {
-      avcodec_close(m_codecContext);
-      m_codecContext = nullptr;
-      m_codec = nullptr;
-    }
-
-    if (m_formatContext)
-    {
-      avformat_close_input(&m_formatContext);
-      m_formatContext = nullptr;
-    }
-    return;
-  }
 }
 
-VideoThumbnailer::~VideoThumbnailer() { }
+VideoThumbnailer::~VideoThumbnailer()
+{
+  if (m_rgb)
+  {
+    av_frame_free(&m_rgb);
+    m_rgb = nullptr;
+  }
+
+  if (m_rescale)
+  {
+    sws_freeContext(m_rescale);
+    m_rescale = nullptr;
+  }
+
+  if (m_codecContext)
+  {
+    avcodec_close(m_codecContext);
+    avcodec_free_context(&m_codecContext);
+    m_codecContext = nullptr;
+    m_codec = nullptr;
+  }
+
+  if (m_formatContext)
+  {
+    avformat_close_input(&m_formatContext);
+    m_formatContext = nullptr;
+  }
+}
 
 void VideoThumbnailer::onRequest(int64_t req, QVector<int64_t> flicks)
 {

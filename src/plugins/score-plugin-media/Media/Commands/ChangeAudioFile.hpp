@@ -22,6 +22,8 @@ public:
       const QString& text,
       const score::DocumentContext& ctx);
 
+  ~ChangeAudioFile();
+
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

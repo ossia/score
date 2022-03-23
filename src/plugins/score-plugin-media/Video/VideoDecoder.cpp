@@ -399,7 +399,7 @@ bool VideoDecoder::open_stream() noexcept
           height = codecPar->height;
           fps = av_q2d(stream->avg_frame_rate);
 
-          m_codecContext = avcodec_alloc_context3(nullptr);
+          m_codecContext = avcodec_alloc_context3(m_codec);
           avcodec_parameters_to_context(m_codecContext, stream->codecpar);
 
           m_codecContext->framerate = av_guess_frame_rate(m_formatContext, stream, NULL);
@@ -435,6 +435,7 @@ void VideoDecoder::close_video() noexcept
   if (m_codecContext)
   {
     avcodec_close(m_codecContext);
+    avcodec_free_context(&m_codecContext);
     m_codecContext = nullptr;
     m_codec = nullptr;
   }

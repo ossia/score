@@ -45,6 +45,11 @@ ChangeAudioFile::ChangeAudioFile(
   }
 }
 
+ChangeAudioFile::~ChangeAudioFile()
+{
+  delete m_resizeInterval;
+}
+
 void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
 {
   if (m_newdur != TimeVal::zero())
