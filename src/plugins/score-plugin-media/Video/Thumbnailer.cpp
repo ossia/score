@@ -297,25 +297,18 @@ QImage VideoThumbnailer::process(int64_t flicks)
   }
 
   // 2. Resize
+  QImage img{QSize(m_rgb->linesize[0]/3, smallHeight), QImage::Format_RGB888};
+  uint8_t* data[1] = {(uint8_t*)img.bits()};
   sws_scale(
       m_rescale,
       res->data,
       res->linesize,
       0,
       this->height,
-      m_rgb->data,
+      data,
       m_rgb->linesize);
-  const int lineSize = m_rgb->linesize[0];
 
-  // 3. Convert to QImage
-  // TODO optimizeme - try to see if we can skip m_rgb...
-  QImage img{QSize(smallWidth, smallHeight), QImage::Format_RGB888};
-  for (int y = 0; y < smallHeight; ++y)
-  {
-    std::copy_n(
-        m_rgb->data[0] + y * lineSize, smallWidth * 3, img.scanLine(y));
-  }
-
+  av_frame_free(&res);
   return img;
 }
 

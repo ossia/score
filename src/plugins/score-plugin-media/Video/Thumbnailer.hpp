@@ -26,7 +26,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT VideoThumbnailer
 {
   W_OBJECT(VideoThumbnailer)
 public:
-  VideoThumbnailer(QString filePath);
+  explicit VideoThumbnailer(QString filePath);
   ~VideoThumbnailer();
 
   void requestThumbnails(int64_t req, QVector<int64_t> flicks)
