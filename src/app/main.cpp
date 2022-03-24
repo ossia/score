@@ -50,6 +50,17 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 #define HAS_RLIMIT 1
 #endif
 
+#if defined(__linux__)
+using X11ErrorHandler = int (*)(void*, void*);
+using XSetErrorHandler_ptr = X11ErrorHandler (*)(X11ErrorHandler);
+
+static struct {
+  void* gdk_x11{};
+  void* x11{};
+  XSetErrorHandler_ptr x11_set_error_handler{};
+} helper_dylibs;
+#endif
+
 #if defined(__SSE3__)
 #include <pmmintrin.h>
 #endif
@@ -78,12 +89,18 @@ extern "C" void disableAppNap();
 static void setup_x11()
 {
 #if defined(__linux__)
-  if(auto x11 = dlopen("libX11.so", RTLD_LAZY | RTLD_LOCAL))
-  if(auto sym = reinterpret_cast<int(*)()>(dlsym(x11, "XInitThreads")))
+  helper_dylibs.x11 = dlopen("libX11.so", RTLD_LAZY | RTLD_LOCAL);
+  if(helper_dylibs.x11)
   {
-    if(!sym())
+    helper_dylibs.x11_set_error_handler = reinterpret_cast<XSetErrorHandler_ptr>(dlsym(helper_dylibs.x11, "XSetErrorHandler"));
+    assert(helper_dylibs.x11_set_error_handler);
+
+    if(auto sym = reinterpret_cast<int(*)()>(dlsym(helper_dylibs.x11, "XInitThreads")))
     {
-      qDebug() << "Failed to initialise xlib thread support.";
+      if(!sym())
+      {
+        qDebug() << "Failed to initialise xlib thread support.";
+      }
     }
   }
 #endif
@@ -122,9 +139,19 @@ static void setup_gdk()
   // Fun fact: this code has for lineage
   // WebKit (https://bugs.webkit.org/show_bug.cgi?id=44324) -> KDE -> maybe Netscape (?)
   using gdk_init_check_ptr = void *(*)(int*, char***);
-  if (auto gdk = dlopen("libgdk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL))
-    if(auto gdk_init_check = (gdk_init_check_ptr)dlsym(gdk, "gdk_init_check"))
+
+  // For the handler thing: see
+  // https://github.com/qt/qtbase/blob/dev/src/plugins/platformthemes/gtk3/qgtk3theme.cpp#L88
+  // Basically GDK sets an error handler which exits... even though it's against the spec.
+  auto old_handler = helper_dylibs.x11_set_error_handler(nullptr);
+  helper_dylibs.gdk_x11 = dlopen("libgdk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+  if (helper_dylibs.gdk_x11)
+  {
+    if(auto gdk_init_check = (gdk_init_check_ptr)dlsym(helper_dylibs.gdk_x11, "gdk_init_check"))
       gdk_init_check(0, 0);
+  }
+
+  helper_dylibs.x11_set_error_handler(old_handler);
 #endif
 }
 
