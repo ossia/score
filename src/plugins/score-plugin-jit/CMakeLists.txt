@@ -18,7 +18,7 @@ if(NOT LLVM_FOUND)
   return()
 endif()
 
-if(LLVM_VERSION VERSION_GREATER "10.0")
+if(LLVM_VERSION VERSION_GREATER_EQUAL "13.0")
   message(" -- LLVM version: ${LLVM_VERSION}")
 else()
   message(" -- LLVM Version ${LLVM_VERSION} incompatible, skipping JIT plug-in")
