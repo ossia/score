@@ -10,6 +10,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
