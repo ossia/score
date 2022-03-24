@@ -9,6 +9,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
@@ -28,6 +29,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
