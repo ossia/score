@@ -26,6 +26,7 @@ namespace score
 {
 #if SCORE_HAS_STD_FILESYSTEM
 void for_all_files(std::string_view root, std::function<void(std::string_view)> f)
+try
 {
   namespace fs = std::filesystem;
   using iterator = fs::recursive_directory_iterator;
@@ -36,6 +37,8 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
 #endif
   for(auto it = iterator{root, options}, end = iterator{}; it != end; ++it)
   {
+    try
+    {
     const auto& path = it->path();
 #if defined(_WIN32)
     std::string path_str = path.generic_string();
@@ -54,7 +57,13 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
     }
 
     f(path_str);
+    }
+    catch(...) { continue; }
   }
+}
+catch(...)
+{
+
 }
 #elif SCORE_HAS_FTS
 static
