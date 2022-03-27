@@ -109,8 +109,11 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE GCC_VERSION)
 
-  if (GCC_VERSION VERSION_LESS 7)
-    message(FATAL_ERROR "score requires at least g++-7 to build. ")
+  if (GCC_VERSION VERSION_LESS 8)
+    message(FATAL_ERROR "score requires at least g++-8 to build. ")
+  endif()
+  if (GCC_VERSION VERSION_LESS 10)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts")
   endif()
 endif()
 
