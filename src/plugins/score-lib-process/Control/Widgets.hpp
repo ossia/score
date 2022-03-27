@@ -4,6 +4,7 @@
 #include <score/plugins/DeserializeKnownSubType.hpp>
 
 //#include <ossia/dataflow/port.hpp>
+#include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/dataflow/safe_nodes/port.hpp>
 #include <ossia/detail/timed_vec.hpp>
 
