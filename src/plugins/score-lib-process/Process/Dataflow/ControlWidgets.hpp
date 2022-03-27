@@ -50,7 +50,7 @@ struct FloatControl
   static constexpr Process::PortItemLayout layout() noexcept
   {
     using namespace Process;
-    return {
+    return PortItemLayout{
     };
   }
 
@@ -180,7 +180,7 @@ struct IntSlider
   static constexpr Process::PortItemLayout layout() noexcept
   {
     using namespace Process;
-    return {
+    return PortItemLayout{
     };
   }
 
@@ -271,7 +271,7 @@ struct IntSpinBox
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -355,7 +355,7 @@ struct Toggle
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -417,7 +417,7 @@ struct ImpulseButton
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -472,7 +472,7 @@ struct Button
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -529,7 +529,7 @@ struct ChooserToggle
   static constexpr Process::PortItemLayout layout() noexcept
   {
     using namespace Process;
-    return {
+    return PortItemLayout{
       .labelVisible = false
     };
   }
@@ -626,7 +626,7 @@ struct LineEdit
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -713,7 +713,7 @@ struct Enum
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -824,7 +824,7 @@ struct ComboBox
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -931,7 +931,7 @@ struct TimeSignatureValidator final : public QValidator
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -951,7 +951,7 @@ struct RGBAEdit
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -963,7 +963,7 @@ struct HSVSlider
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -1023,7 +1023,7 @@ struct XYSlider
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -1081,7 +1081,7 @@ struct XYZSlider
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
@@ -1139,7 +1139,7 @@ struct MultiSlider
     static constexpr Process::PortItemLayout layout() noexcept
     {
       using namespace Process;
-      return {
+      return PortItemLayout{
       };
     }
 
