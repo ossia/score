@@ -16,39 +16,16 @@ class SCORE_LIB_PROCESS_EXPORT SetControlValue final : public score::Command
       "Set a control")
 
 public:
-  SetControlValue(const Process::ControlInlet& obj, ossia::value newval)
-      : m_path{obj}
-      , m_old{obj.value()}
-      , m_new{newval}
-  {
-  }
+  SetControlValue(const Process::ControlInlet& obj, ossia::value newval);
+  virtual ~SetControlValue();
 
-  virtual ~SetControlValue() { }
-
-  void undo(const score::DocumentContext& ctx) const final override
-  {
-    m_path.find(ctx).setValue(m_old);
-  }
-
-  void redo(const score::DocumentContext& ctx) const final override
-  {
-    m_path.find(ctx).setValue(m_new);
-  }
-
-  void update(const Process::ControlInlet& obj, ossia::value newval)
-  {
-    m_new = std::move(newval);
-  }
+  void undo(const score::DocumentContext& ctx) const final override;
+  void redo(const score::DocumentContext& ctx) const final override;
+  void update(const Process::ControlInlet& obj, ossia::value newval);
 
 protected:
-  void serializeImpl(DataStreamInput& stream) const final override
-  {
-    stream << m_path << m_old << m_new;
-  }
-  void deserializeImpl(DataStreamOutput& stream) final override
-  {
-    stream >> m_path >> m_old >> m_new;
-  }
+  void serializeImpl(DataStreamInput& stream) const final override;
+  void deserializeImpl(DataStreamOutput& stream) final override;
 
 private:
   Path<Process::ControlInlet> m_path;
@@ -64,39 +41,16 @@ class SCORE_LIB_PROCESS_EXPORT SetControlOutletValue final
       "Set a control")
 
 public:
-  SetControlOutletValue(const Process::ControlOutlet& obj, ossia::value newval)
-      : m_path{obj}
-      , m_old{obj.value()}
-      , m_new{newval}
-  {
-  }
+  SetControlOutletValue(const Process::ControlOutlet& obj, ossia::value newval);
+  virtual ~SetControlOutletValue();
 
-  virtual ~SetControlOutletValue() { }
-
-  void undo(const score::DocumentContext& ctx) const final override
-  {
-    m_path.find(ctx).setValue(m_old);
-  }
-
-  void redo(const score::DocumentContext& ctx) const final override
-  {
-    m_path.find(ctx).setValue(m_new);
-  }
-
-  void update(const Process::ControlOutlet& obj, ossia::value newval)
-  {
-    m_new = std::move(newval);
-  }
+  void undo(const score::DocumentContext& ctx) const final override;
+  void redo(const score::DocumentContext& ctx) const final override;
+  void update(const Process::ControlOutlet& obj, ossia::value newval);
 
 protected:
-  void serializeImpl(DataStreamInput& stream) const final override
-  {
-    stream << m_path << m_old << m_new;
-  }
-  void deserializeImpl(DataStreamOutput& stream) final override
-  {
-    stream >> m_path >> m_old >> m_new;
-  }
+  void serializeImpl(DataStreamInput& stream) const final override;
+  void deserializeImpl(DataStreamOutput& stream) final override;
 
 private:
   Path<Process::ControlOutlet> m_path;

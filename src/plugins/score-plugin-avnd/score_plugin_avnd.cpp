@@ -23,7 +23,6 @@
 
 #include <Crousti/ProcessModel.hpp>
 #include <Crousti/Executor.hpp>
-#include <Crousti/Layer.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 
@@ -47,6 +46,7 @@
 #include <avnd/../../examples/Helpers/PerBus.hpp>
 #include <avnd/../../examples/Helpers/Peak.hpp>
 #include <avnd/../../examples/Helpers/Midi.hpp>
+#include <avnd/../../examples/Helpers/Ui.hpp>
 #include <avnd/../../examples/Init.hpp>
 #include <avnd/../../examples/Presets.hpp>
 #include <avnd/../../examples/PerSampleProcessor2.hpp>
@@ -58,7 +58,7 @@
 #include <avnd/../../examples/Tutorial/TextureFilterExample.hpp>
 #include <avnd/../../examples/Tutorial/TrivialGeneratorExample.hpp>
 #include <avnd/../../examples/Tutorial/TrivialFilterExample.hpp>
-#include <avnd/../../examples/Tutorial/Synth.hpp>
+// #include <avnd/../../examples/Tutorial/Synth.hpp>
 #include <avnd/../../examples/Tutorial/TextureGeneratorExample.hpp>
 #include <avnd/../../examples/Tutorial/EmptyExample.hpp>
 #include <avnd/../../examples/Tutorial/SampleAccurateFilterExample.hpp>
@@ -75,6 +75,8 @@
 #include <avnd/../../examples/Messages.hpp>
 
 #include <avnd/../../examples/Lowpass.hpp>
+
+#include <Crousti/Layer.hpp>
 /**
  * This file instantiates the classes that are provided by this plug-in.
  */
@@ -116,9 +118,6 @@ struct ExecutorFactory final
 {
   using Execution::ProcessComponentFactory_T<oscr::Executor<Node>>::ProcessComponentFactory_T;
 };
- //template <typename Node>
- //using LayerFactory = oscr::LayerFactory<Node>;
-
 
 template <typename... Nodes>
 std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
@@ -126,22 +125,22 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
     const score::InterfaceKey& key)
 {
   std::vector<std::unique_ptr<score::InterfaceBase>> v;
-
+/*
   if (key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     //static_assert((requires { std::declval<Nodes>().run({}, {}); } && ...));
     (v.emplace_back(new oscr::ExecutorFactory<Nodes>()), ...);
   }
-  else
+  else*/
     if (key == Process::ProcessModelFactory::static_interfaceKey())
   {
     (v.emplace_back(new oscr::ProcessFactory<Nodes>()), ...);
   }
+  else if (key == Process::LayerFactory::static_interfaceKey())
+  {
+    (v.emplace_back(new oscr::LayerFactory<Nodes>()), ...);
+  }
 
-  //else if (key == Process::LayerFactory::static_interfaceKey())
-  //{
-  //  (v.push_back(make_interface<oscr::LayerFactory<Nodes>>()), ...);
-  //}
   return v;
 }
 }
@@ -163,6 +162,8 @@ score_plugin_avnd::factories(
   };
 
   return oscr::instantiate_fx<
+      examples::helpers::Ui
+    #if 0
       Addition
       , Callback
       , Controls
@@ -204,7 +205,9 @@ score_plugin_avnd::factories(
 #endif
       , TrivialGeneratorExample
       , TrivialFilterExample
-      , ZeroDependencyAudioEffect>(ctx, key);
+      , ZeroDependencyAudioEffect
+    #endif
+      >(ctx, key);
 }
 std::vector<score::PluginKey> score_plugin_avnd::required() const
 {

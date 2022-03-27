@@ -5,11 +5,9 @@
 #include <Crousti/GpuNode.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <Engine/Node/TickPolicy.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/tools/Bind.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>

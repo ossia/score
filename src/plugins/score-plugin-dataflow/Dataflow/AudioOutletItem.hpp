@@ -50,7 +50,7 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final
       Inspector::Layout& lay,
       QObject* context) override;
 
-  PortItem* makeItem(
+  PortItem* makePortItem(
       Process::Outlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,
@@ -102,7 +102,7 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletFactory final
       Inspector::Layout& lay,
       QObject* context) override;
 
-  PortItem* makeItem(
+  PortItem* makePortItem(
       Process::Outlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,

@@ -93,7 +93,7 @@ struct Node
             m_interval,
             &Scenario::IntervalModel::executionEvent,
             this,
-            [=](Scenario::IntervalExecutionEvent ev) {
+            [this](Scenario::IntervalExecutionEvent ev) {
               switch (ev)
               {
                 case Scenario::IntervalExecutionEvent::Playing:
@@ -219,7 +219,7 @@ struct Node
           = static_cast<Process::ControlInlet*>(process.inlets().front());
 
       auto fact = portFactory.get(inl->concreteKey());
-      auto port = fact->makeItem(*inl, doc, this, this);
+      auto port = fact->makePortItem(*inl, doc, this, this);
       port->setPos(0, 5);
 
       connect(

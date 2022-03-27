@@ -11,6 +11,7 @@ W_OBJECT_IMPL(score::QGraphicsButton);
 namespace score
 {
 QGraphicsButton::QGraphicsButton(QGraphicsItem* parent)
+  : QGraphicsItem{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);

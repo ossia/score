@@ -55,6 +55,11 @@ void QGraphicsEnum::setRect(const QRectF& r)
   m_smallRect = r.adjusted(2, 2, -2, -2);
 }
 
+void QGraphicsEnum::setOneLineRect()
+{
+
+}
+
 void QGraphicsEnum::setValue(int32_t v)
 {
   const int32_t sz = std::ssize(array);

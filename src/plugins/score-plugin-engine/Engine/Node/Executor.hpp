@@ -12,8 +12,6 @@
 
 #include <QTimer>
 
-#include <Scenario/Execution/score2OSSIA.hpp>
-
 namespace Control
 {
 

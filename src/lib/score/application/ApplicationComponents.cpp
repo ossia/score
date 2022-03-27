@@ -55,6 +55,16 @@ ApplicationComponentsData::~ApplicationComponentsData()
   addons.clear();
 }
 
+InterfaceListBase* ApplicationComponentsData::findInterfaceList(const UuidKey<score::InterfaceBase>& k) const noexcept
+{
+  auto it = factories.find(k);
+  if (it != factories.end())
+  {
+    return it->second.get();
+  }
+  return nullptr;
+}
+
 Command*
 ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
 {

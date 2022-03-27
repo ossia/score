@@ -3,7 +3,7 @@
 
 #include <score/plugins/DeserializeKnownSubType.hpp>
 
-#include <ossia/dataflow/port.hpp>
+//#include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/port.hpp>
 #include <ossia/detail/timed_vec.hpp>
 
@@ -61,7 +61,7 @@ struct InControl final : ossia::safe_nodes::control_in
     return deserialize_known_interface<Process::ControlInlet>(id, parent);
   }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
   }
   const ossia::value& fromValue(const ossia::value& v) const { return v; }
@@ -109,7 +109,7 @@ struct FloatControl final
     return deserialize_known_interface<Model_T>(id, parent);
   }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::FLOAT;
     v->domain = ossia::domain_base<float>(this->min, this->max);
@@ -167,7 +167,7 @@ struct LogFloatControl final
     return deserialize_known_interface<Model_T>(id, parent);
   }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::FLOAT;
     v->domain = ossia::domain_base<float>(this->min, this->max);
@@ -221,7 +221,7 @@ struct FloatDisplay final
     return deserialize_known_interface<Process::Bargraph>(id, parent);
   }
 
-  void setup_exec(ossia::value_outlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::FLOAT;
     v->domain = ossia::domain_base<float>(this->min, this->max);
@@ -285,7 +285,7 @@ struct IntSlider final
     return deserialize_known_interface<Process::IntSlider>(id, parent);
   }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::INT;
     v->domain = ossia::domain_base<int>(this->min, this->max);
@@ -334,7 +334,7 @@ struct IntSpinBox final
   {
     return deserialize_known_interface<Process::IntSpinBox>(id, parent);
   }
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::INT;
     v->domain = ossia::domain_base<int>(this->min, this->max);
@@ -373,7 +373,7 @@ struct Button final
   }
   ossia::value toValue(bool v) const { return v; }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<bool>();
@@ -411,7 +411,7 @@ struct ImpulseButton final
   }
   ossia::value toValue(const ossia::value& v) const { return ossia::impulse{}; }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<ossia::impulse>();
@@ -451,7 +451,7 @@ struct Toggle final
   }
   ossia::value toValue(bool v) const { return v; }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<bool>();
@@ -500,7 +500,7 @@ struct ChooserToggle final
   {
     return deserialize_known_interface<Process::ChooserToggle>(id, parent);
   }
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<bool>();
@@ -541,7 +541,7 @@ struct LineEdit final
   {
     return deserialize_known_interface<Process::LineEdit>(id, parent);
   }
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::STRING;
   }
@@ -593,7 +593,7 @@ struct ComboBox final
   T fromValue(const ossia::value& v) const { return ossia::convert<T>(v); }
   ossia::value toValue(T v) const { return ossia::value{std::move(v)}; }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::STRING;
   }
@@ -666,7 +666,7 @@ struct EnumBase
     return deserialize_known_interface<Process::Enum>(id, parent);
   }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
   }
 };
@@ -866,7 +866,7 @@ struct XYSlider final
   }
   ossia::value toValue(ossia::vec2f v) const { return v; }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->domain = ossia::vecf_domain<2>(min, max);
     v->type = ossia::val_type::VEC2F;
@@ -905,7 +905,7 @@ struct HSVSlider final
   }
   ossia::value toValue(ossia::vec4f v) const { return v; }
 
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::rgba_u{};
   }
@@ -919,7 +919,7 @@ struct RGBAEdit final
   static const constexpr bool must_validate = false;
   using type = std::array<float, 4>;
   std::array<float, 4> init{};
-  void setup_exec(ossia::value_inlet& v) const
+  void setup_exec(auto& v) const
   {
     v->type = ossia::rgba_u{};
   }

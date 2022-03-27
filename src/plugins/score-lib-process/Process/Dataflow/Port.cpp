@@ -13,9 +13,12 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 
+#include <Process/ProcessContext.hpp>
 #include <ossia-qt/name_utils.hpp>
 #include <ossia-qt/value_metatypes.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <score/graphics/RectItem.hpp>
+#include <score/graphics/TextItem.hpp>
 
 #include <QDebug>
 
@@ -43,6 +46,10 @@ MODEL_METADATA_IMPL_CPP(MidiInlet)
 MODEL_METADATA_IMPL_CPP(MidiOutlet)
 MODEL_METADATA_IMPL_CPP(ControlInlet)
 MODEL_METADATA_IMPL_CPP(ControlOutlet)
+
+
+
+
 Port::~Port() { }
 
 Port::Port(Id<Port> c, const QString& name, QObject* parent)
@@ -653,7 +660,7 @@ ValueOutlet::ValueOutlet(JSONObject::Deserializer&& vis, QObject* parent)
 
 PortFactory::~PortFactory() { }
 
-Dataflow::PortItem* PortFactory::makeItem(
+Dataflow::PortItem* PortFactory::makePortItem(
     Inlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,
@@ -662,7 +669,7 @@ Dataflow::PortItem* PortFactory::makeItem(
   return new Dataflow::PortItem{port, ctx, parent};
 }
 
-Dataflow::PortItem* PortFactory::makeItem(
+Dataflow::PortItem* PortFactory::makePortItem(
     Outlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,
@@ -691,13 +698,9 @@ void PortFactory::setupOutletInspector(
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
 
-QWidget* PortFactory::makeControlWidget(
-    ControlInlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
-    QObject* context)
+PortItemLayout PortFactory::defaultLayout() const noexcept
 {
-  return nullptr;
+  return PortItemLayout{};
 }
 
 QGraphicsItem* PortFactory::makeControlItem(
@@ -762,6 +765,67 @@ QGraphicsItem* PortFactory::makeControlItem(
     return WidgetFactory::FloatSlider::make_item(
         SliderInfo{}, port, ctx, parent, context);
   }
+}
+
+static constexpr double total_margin = default_margin + default_padding;
+QGraphicsItem* PortFactory::makeFullItem(ControlInlet& portModel, const Process::Context& ctx, QGraphicsItem* parent, QObject* context)
+{
+  using namespace score;
+  auto item = new score::BackgroundItem{parent};
+
+  const auto& layout = defaultLayout();
+
+  // Port
+  auto port = makePortItem(portModel, ctx, item, context);
+  port->setPos(layout.port);
+
+  // Text
+  if(layout.labelVisible)
+  {
+    const auto& brush = Process::portBrush(portModel.type()).main;
+    auto lab = new score::SimpleTextItem{brush, item};
+    lab->setText(portModel.visualName());
+    lab->setPos(layout.label);
+  }
+
+  // Control
+  auto widg = makeControlItem(portModel, ctx, item, context);
+  widg->setParentItem(item);
+  widg->setPos(layout.control);
+
+  item->setRect(item->childrenBoundingRect().adjusted(-total_margin, -total_margin, total_margin, total_margin));
+
+  return item;
+}
+
+QGraphicsItem* PortFactory::makeFullItem(ControlOutlet& portModel, const Process::Context& ctx, QGraphicsItem* parent, QObject* context)
+{
+  using namespace score;
+  auto item = new score::BackgroundItem{parent};
+
+  const auto& layout = defaultLayout();
+
+  // Port
+  auto port = makePortItem(portModel, ctx, item, context);
+  port->setPos(layout.port);
+
+  // Text
+  if(layout.labelVisible)
+  {
+    const auto& brush = Process::portBrush(portModel.type()).main;
+    auto lab = new score::SimpleTextItem{brush, item};
+    lab->setText(portModel.visualName());
+    lab->setPos(layout.label);
+  }
+
+  // Control
+  auto widg = makeControlItem(portModel, ctx, item, context);
+  widg->setParentItem(item);
+  widg->setPos(layout.control);
+
+  item->setRect(item->childrenBoundingRect().adjusted(-total_margin, -total_margin, total_margin, total_margin));
+
+  return item;
 }
 
 Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent)

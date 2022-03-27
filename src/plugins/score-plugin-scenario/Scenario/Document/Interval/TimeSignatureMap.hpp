@@ -21,7 +21,6 @@ namespace Scenario
 
 struct SCORE_PLUGIN_SCENARIO_EXPORT TimeSignatureMap
 {
-    friend TimeSignatureMap;
     friend TSerializer<DataStream, TimeSignatureMap>;
     friend TSerializer<JSONObject, TimeSignatureMap>;
 public:

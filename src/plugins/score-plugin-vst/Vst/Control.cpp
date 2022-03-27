@@ -79,7 +79,7 @@ ControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
   });
 }
 
-Dataflow::PortItem* ControlPortFactory::makeItem(
+Dataflow::PortItem* ControlPortFactory::makePortItem(
     Process::Inlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,
@@ -90,7 +90,7 @@ Dataflow::PortItem* ControlPortFactory::makeItem(
   return port_item;
 }
 
-Dataflow::PortItem* ControlPortFactory::makeItem(
+Dataflow::PortItem* ControlPortFactory::makePortItem(
     Process::Outlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,

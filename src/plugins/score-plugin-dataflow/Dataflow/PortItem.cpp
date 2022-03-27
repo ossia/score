@@ -277,7 +277,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 }
 
-PortItem* AutomatablePortFactory::makeItem(
+PortItem* AutomatablePortFactory::makePortItem(
     Process::Inlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,
@@ -286,7 +286,7 @@ PortItem* AutomatablePortFactory::makeItem(
   return new Dataflow::AutomatablePortItem{port, ctx, parent};
 }
 
-PortItem* AutomatablePortFactory::makeItem(
+PortItem* AutomatablePortFactory::makePortItem(
     Process::Outlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,

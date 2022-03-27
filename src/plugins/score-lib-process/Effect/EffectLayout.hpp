@@ -78,10 +78,10 @@ auto controlSetup(Args&&... args)
   }
 }
 
-template <typename T, typename... Args>
+template <typename T>
 auto createControl(
     int i,
-    const ControlSetup<Args...>& setup,
+    const auto& setup, // See ControlSetup
     T& port,
     const Process::PortFactoryList& portFactory,
     const Process::Context& doc,
@@ -173,8 +173,8 @@ static auto makeControl(
 
   // Port
   Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
-  auto port = fact->makeItem(inlet, doc, item, &context);
-  port->setPos(0, 2.);
+  auto port = fact->makePortItem(inlet, doc, item, &context);
+  port->setPos(0, 1.);
 
   // Text
   const auto& brush = Process::portBrush(inlet.type()).main;
@@ -215,7 +215,7 @@ static auto makeControlNoText(
 
   // Port
   Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
-  auto port = fact->makeItem(inlet, doc, item, &context);
+  auto port = fact->makePortItem(inlet, doc, item, &context);
 
   // Create a single control
   struct ControlItem

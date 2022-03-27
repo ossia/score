@@ -15,6 +15,7 @@
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
 
+#include <QPointF>
 #include <verdigris>
 
 #if __cpp_constexpr >= 201907
@@ -97,6 +98,20 @@ namespace Process
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;
 using Outlets = ossia::small_vector<Process::Outlet*, 4>;
 using pan_weight = ossia::small_vector<double, 2>;
+
+// Used to know where to layout items for a given
+// kind of port.
+static constexpr const qreal default_margin = 5.;
+static constexpr const qreal default_padding = 5.;
+
+struct PortItemLayout
+{
+  QPointF port{0., 1.};
+  QPointF label{12., 0.};
+  QPointF control{0., 12.};
+  Qt::Alignment labelAlignment{Qt::AlignLeft};
+  bool labelVisible{true};
+};
 
 class Cable;
 class SCORE_LIB_PROCESS_EXPORT Port

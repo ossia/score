@@ -115,7 +115,7 @@ void Presenter::setupInlet(
 
   auto csetup = Process::controlSetup(
       [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-        return factory.makeItem(inlet, doc, item, parent);
+        return factory.makePortItem(inlet, doc, item, parent);
       },
       [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
         return factory.makeControlItem(inlet, doc, item, parent);

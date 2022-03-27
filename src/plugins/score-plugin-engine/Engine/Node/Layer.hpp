@@ -137,7 +137,7 @@ struct AutoUISetup
            auto& inlet,
            const auto& doc,
            auto item,
-           auto parent) { return factory.makeItem(inlet, doc, item, parent); },
+           auto parent) { return factory.makePortItem(inlet, doc, item, parent); },
         [&](auto& factory,
             auto& inlet,
             const auto& doc,
@@ -212,8 +212,7 @@ private:
       {
         Control::CustomUISetup<Info>{lm.inlets(), lm.outlets(), lm, *view, *view, context};
       }
-      else if constexpr (
-          ossia::safe_nodes::info_functions<Info>::control_count > 0)
+      else if constexpr(ossia::safe_nodes::info_functions<Info>::control_count > 0)
       {
         Control::AutoUISetup{Info{}, lm.inlets(), *view, *view, context};
       }

@@ -40,13 +40,13 @@ public:
   ~AutomatablePortFactory() override = default;
 
 private:
-  Dataflow::PortItem* makeItem(
+  Dataflow::PortItem* makePortItem(
       Process::Inlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context) override;
 
-  Dataflow::PortItem* makeItem(
+  Dataflow::PortItem* makePortItem(
       Process::Outlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,

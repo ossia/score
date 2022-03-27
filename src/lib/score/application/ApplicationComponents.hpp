@@ -52,6 +52,8 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
       = delete;
   ApplicationComponentsData& operator=(ApplicationComponentsData&&) = delete;
 
+  InterfaceListBase* findInterfaceList(const UuidKey<score::InterfaceBase>& k) const noexcept;
+
   std::vector<score::Addon> addons;
   std::vector<ApplicationPlugin*> appPlugins;
   std::vector<GUIApplicationPlugin*> guiAppPlugins;
@@ -171,13 +173,8 @@ public:
     static_assert(
         T::factory_list_tag,
         "This needs to be called with a factory list class");
-    auto it = m_data.factories.find(T::static_interfaceKey());
-    if (it != m_data.factories.end())
-    {
-      return safe_cast<T*>(it->second.get());
-    }
 
-    return nullptr;
+    return static_cast<T*>(m_data.findInterfaceList(T::static_interfaceKey()));
   }
 
   template <typename T>
@@ -186,11 +183,9 @@ public:
     static_assert(
         T::factory_list_tag,
         "This needs to be called with a factory list class");
-    auto it = m_data.factories.find(T::static_interfaceKey());
-    if (it != m_data.factories.end())
-    {
-      return *safe_cast<T*>(it->second.get());
-    }
+
+    if(auto ptr = m_data.findInterfaceList(T::static_interfaceKey()))
+       return *safe_cast<T*>(ptr);
 
     SCORE_ABORT;
     throw;

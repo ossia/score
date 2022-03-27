@@ -220,7 +220,7 @@ void NodeItem::resetInlets()
       continue;
 
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
-    Dataflow::PortItem* item = fact->makeItem(*port, m_context, this, this);
+    Dataflow::PortItem* item = fact->makePortItem(*port, m_context, this, this);
     item->setPos(x, y);
     m_inlets.push_back(item);
 
@@ -269,7 +269,7 @@ void NodeItem::resetOutlets()
     if (port->hidden)
       continue;
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
-    auto item = fact->makeItem(*port, m_context, this, this);
+    auto item = fact->makePortItem(*port, m_context, this, this);
     item->setPos(x, y);
     m_outlets.push_back(item);
 

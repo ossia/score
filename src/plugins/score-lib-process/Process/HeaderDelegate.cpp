@@ -201,7 +201,7 @@ void DefaultHeaderDelegate::updatePorts()
       continue;
     if (auto fact = portFactory.get(port->concreteKey()))
     {
-      if (auto item = fact->makeItem(*port, m_context, this, this))
+      if (auto item = fact->makePortItem(*port, m_context, this, this))
       {
         item->setPos(m_portEndX, portY());
         m_inPorts.push_back(item);
@@ -294,7 +294,7 @@ void DefaultFooterDelegate::updatePorts()
       continue;
     if (auto fact = portFactory.get(port->concreteKey()))
     {
-      auto item = fact->makeItem(*port, m_context, this, this);
+      auto item = fact->makePortItem(*port, m_context, this, this);
       item->setPos(m_portEndX, SCORE_YPOS(0., 0.));
       m_outPorts.push_back(item);
       m_portEndX += ((QGraphicsItem*)item)->boundingRect().width() - 2.;

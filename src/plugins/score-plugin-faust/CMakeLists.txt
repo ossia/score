@@ -1,7 +1,7 @@
 project(score_plugin_faust LANGUAGES CXX)
 include(ExternalProject)
 score_common_setup()
-
+return()
 if(MSVC)
   return()
 endif()

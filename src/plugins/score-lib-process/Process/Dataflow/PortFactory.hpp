@@ -16,6 +16,7 @@ class PortItem;
 namespace Process
 {
 struct Context;
+
 class SCORE_LIB_PROCESS_EXPORT PortFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(Process::Port, "4d461658-5c27-4a12-ba97-3d9392561ece")
@@ -23,17 +24,44 @@ public:
   ~PortFactory() override;
 
   virtual Process::Port* load(const VisitorVariant&, QObject* parent) = 0;
-  virtual Dataflow::PortItem* makeItem(
+
+  // Just the port
+  virtual Dataflow::PortItem* makePortItem(
       Process::Inlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context);
-  virtual Dataflow::PortItem* makeItem(
+  virtual Dataflow::PortItem* makePortItem(
       Process::Outlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context);
 
+  // Just the control
+  virtual QGraphicsItem* makeControlItem(
+      Process::ControlInlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context);
+  virtual QGraphicsItem* makeControlItem(
+      Process::ControlOutlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context);
+
+  // Port + control + text
+  QGraphicsItem* makeFullItem(
+      Process::ControlInlet& port,
+      const Process::Context& ctx,
+      QGraphicsItem* parent,
+      QObject* context);
+  QGraphicsItem* makeFullItem(
+      Process::ControlOutlet& port,
+      const Process::Context& ctx,
+      QGraphicsItem* parent,
+      QObject* context);
+
+  // Widget stuff
   virtual void setupInletInspector(
       const Process::Inlet& port,
       const score::DocumentContext& ctx,
@@ -47,22 +75,7 @@ public:
       Inspector::Layout& lay,
       QObject* context);
 
-  virtual QGraphicsItem* makeControlItem(
-      Process::ControlInlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
-  virtual QGraphicsItem* makeControlItem(
-      Process::ControlOutlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
-
-  virtual QWidget* makeControlWidget(
-      Process::ControlInlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
+  virtual PortItemLayout defaultLayout() const noexcept;
 };
 
 class SCORE_LIB_PROCESS_EXPORT PortFactoryList final

@@ -91,6 +91,7 @@ endfunction()
 
 function(setup_score_common_test_features TheTarget)
   setup_score_common_features(${TheTarget})
+  ossia_set_visibility(${TheTarget})
 endfunction()
 
 function(setup_score_common_lib_features TheTarget)

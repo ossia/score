@@ -332,7 +332,7 @@ public:
       // Other handles are free
       handle = new MovableHandle{*m_model, this};
 
-      con(*handle, &TimeSignatureHandle::press, this, [=] {
+      con(*handle, &TimeSignatureHandle::press, this, [this, handle] {
         assert(m_model);
         m_origHandles = m_model->timeSignatureMap();
         m_origTime = handle->time();
@@ -341,12 +341,12 @@ public:
       con(*handle,
           &TimeSignatureHandle::move,
           this,
-          [=](double originalPos, double delta) {
+          [this, handle](double originalPos, double delta) {
             assert(m_model);
             if (handle->m_visible)
               moveHandle(*handle, originalPos, delta);
           });
-      con(*handle, &TimeSignatureHandle::release, this, [=] {
+      con(*handle, &TimeSignatureHandle::release, this, [this, handle] {
         assert(m_model);
         if (handle->m_visible)
         {
@@ -358,7 +358,7 @@ public:
           *handle,
           &TimeSignatureHandle::remove,
           this,
-          [=] {
+          [this, handle] {
             assert(m_model);
             if (handle->m_visible)
               removeHandle(*handle);
@@ -373,7 +373,7 @@ public:
         *handle,
         &TimeSignatureHandle::signatureChange,
         this,
-        [=](ossia::time_signature sig) {
+        [this, handle](ossia::time_signature sig) {
           assert(m_model);
           auto signatures = m_model->timeSignatureMap();
 

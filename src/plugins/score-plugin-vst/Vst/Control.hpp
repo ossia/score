@@ -91,13 +91,13 @@ public:
 
   Process::Port* load(const VisitorVariant& vis, QObject* parent) override;
 
-  Dataflow::PortItem* makeItem(
+  Dataflow::PortItem* makePortItem(
       Process::Inlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context) override;
 
-  Dataflow::PortItem* makeItem(
+  Dataflow::PortItem* makePortItem(
       Process::Outlet& port,
       const Process::Context& ctx,
       QGraphicsItem* parent,

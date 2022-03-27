@@ -41,40 +41,38 @@ struct ExecutorFactory final
 template <typename Node>
 using LayerFactory = ControlLayerFactory<Node>;
 
-template <typename... Args>
-struct create_types
-{
-  template <template <typename> typename GenericFactory>
-  auto perform()
-  {
-    std::vector<std::unique_ptr<score::InterfaceBase>> vec;
-    ossia::for_each_tagged(brigand::list<Args...>{}, [&](auto t) {
-      using type = typename decltype(t)::type;
-      vec.emplace_back(std::make_unique<GenericFactory<type>>());
-    });
-    return vec;
-  }
-};
+
 template <typename... Nodes>
 std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key)
 {
+  std::vector<std::unique_ptr<score::InterfaceBase>> vec;
   if (key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}
-        .template perform<Control::ExecutorFactory>();
+    ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
+      using type = typename decltype(t)::type;
+      vec.emplace_back(new Control::ExecutorFactory<type>());
+    });
   }
   else if (key == Process::ProcessModelFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}
-        .template perform<Control::ProcessFactory>();
+    ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
+      using type = typename decltype(t)::type;
+      vec.emplace_back(new Control::ProcessFactory<type>());
+    });
   }
   else if (key == Process::LayerFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}.template perform<Control::LayerFactory>();
+    ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
+      using type = typename decltype(t)::type;
+      if constexpr(requires { &type::item; } || requires { type{}.item(0); } || requires { sizeof(typename type::Layer); })
+      {
+        vec.emplace_back(new Control::LayerFactory<type>());
+      }
+    });
   }
-  return {};
+  return vec;
 }
 
 struct Note

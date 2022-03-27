@@ -103,6 +103,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/ProcessCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/MoveNodes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"

@@ -79,60 +79,17 @@ using any_serializer_map
 //! The serializers for types that go in ossia::any should fit in here.
 SCORE_LIB_BASE_EXPORT any_serializer_map& anySerializers();
 }
+SCORE_LIB_BASE_EXPORT
+void apply(DataStreamReader& s, const std::string& key, const ossia::any& v);
 
-inline void
-apply(DataStreamReader& s, const std::string& key, const ossia::any& v)
-{
-  auto& ser = score::anySerializers();
-  auto it = ser.find(key);
-  if (it != ser.end())
-  {
-    it.value()->apply(s, v);
-  }
-  else
-  {
-    SCORE_TODO;
-  }
-}
-inline void apply(DataStreamWriter& s, const std::string& key, ossia::any& v)
-{
-  auto& ser = score::anySerializers();
-  auto it = ser.find(key);
-  if (it != ser.end())
-  {
-    it.value()->apply(s, v);
-  }
-  else
-  {
-    SCORE_TODO;
-  }
-}
-inline void apply(JSONReader& s, const std::string& key, const ossia::any& v)
-{
-  auto& ser = score::anySerializers();
-  auto it = ser.find(key);
-  if (it != ser.end())
-  {
-    it.value()->apply(s, key, v);
-  }
-  else
-  {
-    SCORE_TODO;
-  }
-}
-inline void apply(JSONWriter& s, const std::string& key, ossia::any& v)
-{
-  auto& ser = score::anySerializers();
-  auto it = ser.find(key);
-  if (it != ser.end())
-  {
-    it.value()->apply(s, key, v);
-  }
-  else
-  {
-    SCORE_TODO;
-  }
-}
+SCORE_LIB_BASE_EXPORT
+void apply(DataStreamWriter& s, const std::string& key, ossia::any& v);
+
+SCORE_LIB_BASE_EXPORT
+void apply(JSONReader& s, const std::string& key, const ossia::any& v);
+
+SCORE_LIB_BASE_EXPORT
+void apply(JSONWriter& s, const std::string& key, ossia::any& v);
 
 template <>
 struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, score::any_map>

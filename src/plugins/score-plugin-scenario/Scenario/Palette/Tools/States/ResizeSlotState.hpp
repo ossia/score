@@ -87,28 +87,28 @@ public:
     score::make_transition<Scenario::ReleaseOnAnything_SlotTransition>(
         move, release);
 
-    connect(press, &QAbstractState::entered, [=]() {
+    connect(press, &QAbstractState::entered, [this, &ctx=stack.context()] {
       m_originalPoint = m_sm.scenePoint;
 
       const IntervalModel& cst
-          = this->currentSlot.interval.find(stack.context());
+          = this->currentSlot.interval.find(ctx);
       m_originalHeight = cst.getSlotHeight(this->currentSlot);
     });
 
-    connect(move, &QAbstractState::entered, [=]() {
+    connect(move, &QAbstractState::entered, [this, &ctx=stack.context()] {
       auto val = std::max(
           20.0,
           m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
       const IntervalModel& cst
-          = this->currentSlot.interval.find(stack.context());
+          = this->currentSlot.interval.find(ctx);
       m_ongoingDispatcher.submit(cst, this->currentSlot, val);
     });
 
-    connect(release, &QAbstractState::entered, [=]() {
+    connect(release, &QAbstractState::entered, [this, &ctx=stack.context()] {
       m_ongoingDispatcher.commit();
 
-      IntervalModel& cst = this->currentSlot.interval.find(stack.context());
+      IntervalModel& cst = this->currentSlot.interval.find(ctx);
       cst.heightFinishedChanging();
     });
   }

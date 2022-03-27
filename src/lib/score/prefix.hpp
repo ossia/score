@@ -17,6 +17,8 @@
 #include <windows.h>
 #endif
 
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/path/Path.hpp>
@@ -44,6 +46,7 @@
 #include <cmath>
 #include <wobjectimpl.h>
 
+#include <fmt/format.h>
 #include <array>
 #include <cstdint>
 #include <functional>

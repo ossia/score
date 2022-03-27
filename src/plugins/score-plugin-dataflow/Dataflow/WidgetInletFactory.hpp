@@ -43,6 +43,12 @@ struct WidgetInletFactory : public AutomatablePortFactory
     using widg_t = typename Model_T::control_type;
     return widg_t::make_item(ctrl, ctrl, ctx, nullptr, context);
   }
+
+  Process::PortItemLayout defaultLayout() const noexcept override
+  {
+    using widg_t = typename Model_T::control_type;
+    return widg_t::layout();
+  }
 };
 
 template <typename T>
@@ -83,6 +89,12 @@ struct WidgetOutletFactory : public Process::PortFactory
     auto& ctrl = static_cast<Model_T&>(port);
     using widg_t = typename Model_T::control_type;
     return widg_t::make_item(ctrl, ctrl, ctx, nullptr, context);
+  }
+
+  Process::PortItemLayout defaultLayout() const noexcept override
+  {
+    using widg_t = typename Model_T::control_type;
+    return widg_t::layout();
   }
 };
 }

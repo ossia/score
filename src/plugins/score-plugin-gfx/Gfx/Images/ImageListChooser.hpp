@@ -22,6 +22,13 @@ namespace WidgetFactory
 {
 struct ImageListChooserItems
 {
+  static constexpr Process::PortItemLayout layout() noexcept
+  {
+    using namespace Process;
+    return {
+    };
+  }
+
   static QWidget* make_widget(
       const Gfx::Images::ImageListChooser& slider,
       const Gfx::Images::ImageListChooser& inlet,

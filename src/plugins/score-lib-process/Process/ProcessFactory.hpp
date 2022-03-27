@@ -13,7 +13,6 @@ struct VisitorVariant;
 namespace score
 {
 struct DocumentContext;
-class RectItem;
 class ResizeableItem;
 }
 namespace Process

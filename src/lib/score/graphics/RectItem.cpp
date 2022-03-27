@@ -10,6 +10,7 @@ W_OBJECT_IMPL(score::ResizeableItem)
 W_OBJECT_IMPL(score::EmptyRectItem)
 namespace score
 {
+RectItem::~RectItem() = default;
 
 void RectItem::setRect(const QRectF& r)
 {
@@ -72,6 +73,11 @@ void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+int RectItem::type() const
+{
+  return Type;
+}
+
 ResizeableItem::ResizeableItem(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
@@ -79,12 +85,21 @@ ResizeableItem::ResizeableItem(QGraphicsItem* parent)
 
 ResizeableItem::~ResizeableItem() { }
 
+int ResizeableItem::type() const
+{
+  return Type;
+}
+
+
 EmptyRectItem::EmptyRectItem(QGraphicsItem* parent)
     : ResizeableItem{parent}
 {
   this->setFlag(ItemHasNoContents, true);
   this->setAcceptedMouseButtons({});
 }
+
+EmptyRectItem::~EmptyRectItem() { }
+
 void EmptyRectItem::setRect(const QRectF& r)
 {
   if (r != m_rect)
@@ -132,6 +147,12 @@ void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->ignore();
 }
+
+int EmptyRectItem::type() const
+{
+  return Type;
+}
+
 
 BackgroundItem::BackgroundItem(QGraphicsItem* parent)
     : QGraphicsItem{parent}
@@ -184,10 +205,23 @@ void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->ignore();
 }
 
+int BackgroundItem::type() const
+{
+  return Type;
+}
+
+
 EmptyItem::EmptyItem(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
   setFlag(ItemHasNoContents, true);
+}
+
+EmptyItem::~EmptyItem() = default;
+
+int EmptyItem::type() const
+{
+  return Type;
 }
 
 QRectF EmptyItem::boundingRect() const
