@@ -65,6 +65,7 @@ public:
   void setRect(const QRectF& r);
   const QRectF& rect() const noexcept { return m_rect; }
   QRectF boundingRect() const final override;
+  void fitChildrenRect();
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
@@ -96,6 +97,8 @@ public:
   void setRect(const QRectF& r);
   const QRectF& rect() const noexcept { return m_rect; }
   QRectF boundingRect() const final override;
+
+  void fitChildrenRect();
 
   enum { Type = UserType + 80003 };
   int type() const override;

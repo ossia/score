@@ -912,17 +912,4 @@ struct HSVSlider final
   }
 };
 
-// TODO RGBAEdit
-struct RGBAEdit final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::RGBAEdit
-{
-  static const constexpr bool must_validate = false;
-  using type = std::array<float, 4>;
-  std::array<float, 4> init{};
-  void setup_exec(auto& v) const
-  {
-    v->type = ossia::rgba_u{};
-  }
-};
 }

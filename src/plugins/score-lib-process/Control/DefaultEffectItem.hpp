@@ -1,16 +1,25 @@
 #pragma once
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Process.hpp>
-
+#include <score/model/Identifier.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <score_lib_process_export.h>
+
+#include <vector>
+namespace score
+{
+class GraphicsLayout;
+}
 namespace Dataflow
 {
 class PortItem;
 }
 namespace Process
 {
+class ProcessModel;
 class PortFactoryList;
 struct Context;
+class ControlInlet;
+class ControlOutlet;
+class Port;
 
 class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final
     : public score::EmptyRectItem
@@ -38,8 +47,10 @@ private:
   void on_controlOutletAdded(const Id<Process::Port>& p);
   void on_controlOutletRemoved(const Process::Port& p);
   void reset();
+  void recreate();
   void updateRect();
 
+  score::GraphicsLayout* m_layout{};
   const Process::ProcessModel& m_effect;
   const Process::Context& m_ctx;
 

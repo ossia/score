@@ -25,7 +25,7 @@ void GraphicsHBoxLayout::layout()
   // Make them fit the height
   for(auto item : this->childItems())
   {
-    if(auto it = qgraphicsitem_cast<score::BackgroundItem*>(item))
+    if(auto it = qgraphicsitem_cast<score::GraphicsLayout*>(item))
     {
       QRectF cur = it->rect();
       cur.setHeight(max_h);
@@ -70,7 +70,7 @@ void GraphicsVBoxLayout::layout()
   // Make them fit the width
   for(auto item : this->childItems())
   {
-    if(auto it = qgraphicsitem_cast<score::BackgroundItem*>(item))
+    if(auto it = qgraphicsitem_cast<score::GraphicsLayout*>(item))
     {
       QRectF cur = it->rect();
       cur.setWidth(max_w);

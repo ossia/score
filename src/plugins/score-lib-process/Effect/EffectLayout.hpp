@@ -79,6 +79,7 @@ auto controlSetup(Args&&... args)
 }
 
 template <typename T>
+[[deprecated]]
 auto createControl(
     int i,
     const auto& setup, // See ControlSetup
@@ -161,6 +162,7 @@ auto createControl(
 }
 
 template <typename C, typename T>
+[[deprecated]]
 static auto makeControl(
     C& ctrl,
     T& inlet,
@@ -199,6 +201,7 @@ static auto makeControl(
 }
 
 template <typename C, typename T>
+[[deprecated]]
 static auto makeControlNoText(
     C& ctrl,
     T& inlet,

@@ -26,16 +26,33 @@
 
 #include <private/qwidgettextcontrol_p.h>
 #include <score_lib_process_export.h>
+namespace Process
+{
+
+struct SCORE_LIB_PROCESS_EXPORT DefaultControlLayouts
+{
+    static Process::PortItemLayout knob() noexcept;
+    static Process::PortItemLayout slider() noexcept;
+    static Process::PortItemLayout combo() noexcept;
+    static Process::PortItemLayout list() noexcept;
+    static Process::PortItemLayout lineedit() noexcept;
+    static Process::PortItemLayout spinbox() noexcept;
+    static Process::PortItemLayout toggle() noexcept;
+    static Process::PortItemLayout pad() noexcept;
+    static Process::PortItemLayout bang() noexcept;
+    static Process::PortItemLayout button() noexcept;
+};
+
+}
 
 namespace WidgetFactory
 {
 static_assert(std::numeric_limits<float>::is_iec559, "IEEE 754 required");
-
 template <typename T>
 using SetControlValue = typename std::conditional_t<
-    std::is_base_of<Process::ControlInlet, T>::value,
-    Process::SetControlValue,
-    Process::SetControlOutletValue>;
+std::is_base_of<Process::ControlInlet, T>::value,
+Process::SetControlValue,
+Process::SetControlOutletValue>;
 
 template <typename Normalizer, typename T>
 using ConcreteNormalizer = std::conditional_t<
@@ -47,11 +64,17 @@ using ConcreteNormalizer = std::conditional_t<
 template <typename ControlUI, typename Normalizer, bool Control>
 struct FloatControl
 {
-  static constexpr Process::PortItemLayout layout() noexcept
+  static Process::PortItemLayout layout() noexcept
   {
     using namespace Process;
-    return PortItemLayout{
-    };
+    if constexpr(std::is_same_v<score::QGraphicsKnob, ControlUI> || std::is_same_v<score::QGraphicsLogKnob, ControlUI>)
+    {
+      return DefaultControlLayouts::knob();
+    }
+    else
+    {
+      return DefaultControlLayouts::slider();
+    }
   }
 
   template <typename T, typename Control_T>
@@ -177,11 +200,9 @@ using LogFloatDisplay
 
 struct IntSlider
 {
-  static constexpr Process::PortItemLayout layout() noexcept
+  static Process::PortItemLayout layout() noexcept
   {
-    using namespace Process;
-    return PortItemLayout{
-    };
+    return Process::DefaultControlLayouts::slider();
   }
 
   template <typename T, typename Control_T>
@@ -268,11 +289,9 @@ struct IntSlider
 
 struct IntSpinBox
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::spinbox();
     }
 
   template <typename T, typename Control_T>
@@ -352,11 +371,9 @@ struct IntSpinBox
 
 struct Toggle
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::toggle();
     }
 
   template <typename T, typename Control_T>
@@ -414,11 +431,9 @@ struct Toggle
 
 struct ImpulseButton
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::bang();
     }
 
   template <typename T, typename Control_T>
@@ -469,11 +484,9 @@ struct ImpulseButton
 
 struct Button
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::bang();
     }
 
   template <typename T, typename Control_T>
@@ -526,13 +539,10 @@ struct Button
 
 struct ChooserToggle
 {
-  static constexpr Process::PortItemLayout layout() noexcept
-  {
-    using namespace Process;
-    return PortItemLayout{
-      .labelVisible = false
-    };
-  }
+    static Process::PortItemLayout layout() noexcept
+    {
+      return Process::DefaultControlLayouts::button();
+    }
 
   template <typename T>
   static constexpr auto getAlternatives(const T& t) -> decltype(auto)
@@ -623,11 +633,9 @@ struct ChooserToggle
 
 struct LineEdit
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::lineedit();
     }
 
   template <typename T, typename Control_T>
@@ -710,11 +718,9 @@ struct LineEdit
 
 struct Enum
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::list();
     }
 
   static const auto& toStd(const char* const& s) { return s; }
@@ -821,11 +827,9 @@ struct Enum
 
 struct ComboBox
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::combo();
     }
 
   template <typename U, typename Control_T>
@@ -946,26 +950,13 @@ struct TimeSignatureValidator final : public QValidator
   }
 };
 
-struct RGBAEdit
-{
-    static constexpr Process::PortItemLayout layout() noexcept
-    {
-      using namespace Process;
-      return PortItemLayout{
-      };
-    }
-
-  // TODO
-};
-
 struct HSVSlider
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::pad();
     }
+
 
   template <typename T, typename Control_T>
   static auto make_widget(
@@ -1078,11 +1069,9 @@ struct XYSlider
 
 struct XYZSlider
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::pad();
     }
 
   template <typename T, typename Control_T>
@@ -1136,12 +1125,11 @@ struct XYZSlider
 
 struct MultiSlider
 {
-    static constexpr Process::PortItemLayout layout() noexcept
+    static Process::PortItemLayout layout() noexcept
     {
-      using namespace Process;
-      return PortItemLayout{
-      };
+      return Process::DefaultControlLayouts::slider();
     }
+
 
   template <typename T, typename Control_T>
   static auto make_widget(

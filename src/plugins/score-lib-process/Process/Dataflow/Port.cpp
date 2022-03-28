@@ -17,6 +17,7 @@
 #include <ossia-qt/name_utils.hpp>
 #include <ossia-qt/value_metatypes.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
 
@@ -700,7 +701,11 @@ void PortFactory::setupOutletInspector(
 
 PortItemLayout PortFactory::defaultLayout() const noexcept
 {
-  return PortItemLayout{};
+  return PortItemLayout{
+      .port = QPointF{8., 4.}
+    , .label = QPointF{20., 2.}
+    , .control = QPointF{18., 15.}
+  };
 }
 
 QGraphicsItem* PortFactory::makeControlItem(
@@ -767,33 +772,59 @@ QGraphicsItem* PortFactory::makeControlItem(
   }
 }
 
-static constexpr double total_margin = default_margin + default_padding;
-QGraphicsItem* PortFactory::makeFullItem(ControlInlet& portModel, const Process::Context& ctx, QGraphicsItem* parent, QObject* context)
+auto makeFullItemImpl(const Process::Port& portModel, const Process::PortItemLayout& layout, QGraphicsItem& port, QGraphicsItem& control, score::EmptyRectItem& item)
 {
   using namespace score;
-  auto item = new score::BackgroundItem{parent};
-
-  const auto& layout = defaultLayout();
 
   // Port
-  auto port = makePortItem(portModel, ctx, item, context);
-  port->setPos(layout.port);
+  port.setParentItem(&item);
+  port.setPos(layout.port);
+  port.setZValue(3);
+
+  // Control
+  control.setParentItem(&item);
+  control.setPos(layout.control);
+  control.setZValue(2);
 
   // Text
   if(layout.labelVisible)
   {
     const auto& brush = Process::portBrush(portModel.type()).main;
-    auto lab = new score::SimpleTextItem{brush, item};
+    auto lab = new score::SimpleTextItem{brush, &item};
     lab->setText(portModel.visualName());
+
     lab->setPos(layout.label);
+    if(layout.labelAlignment == Qt::AlignCenter)
+    {
+      auto widg_r = control.boundingRect();
+      auto lab_r = lab->boundingRect();
+      auto lab_w = lab_r.width();
+      auto widg_w = widg_r.width();
+
+      lab->setX(control.pos().x() + (widg_w - lab_w) / 2.);
+    }
+    else if(layout.labelAlignment == Qt::AlignLeft)
+    {
+      lab->setX(control.pos().x());
+    }
   }
+  item.fitChildrenRect();
+}
+QGraphicsItem* PortFactory::makeFullItem(ControlInlet& portModel, const Process::Context& ctx, QGraphicsItem* parent, QObject* context)
+{
+  using namespace score;
+#if defined(SCORE_DEBUG_CONTROL_RECTS)
+  auto item = new score::GraphicsLayout{parent};
+  item->setBrush(score::Skin::instance().Light.main);
+#else
+  auto item = new score::EmptyRectItem{parent};
+#endif
 
-  // Control
+  const auto& layout = defaultLayout();
+  auto port = makePortItem(portModel, ctx, item, context);
   auto widg = makeControlItem(portModel, ctx, item, context);
-  widg->setParentItem(item);
-  widg->setPos(layout.control);
 
-  item->setRect(item->childrenBoundingRect().adjusted(-total_margin, -total_margin, total_margin, total_margin));
+  makeFullItemImpl(portModel, layout, *port, *widg, *item);
 
   return item;
 }
@@ -801,29 +832,18 @@ QGraphicsItem* PortFactory::makeFullItem(ControlInlet& portModel, const Process:
 QGraphicsItem* PortFactory::makeFullItem(ControlOutlet& portModel, const Process::Context& ctx, QGraphicsItem* parent, QObject* context)
 {
   using namespace score;
-  auto item = new score::BackgroundItem{parent};
+#if defined(SCORE_DEBUG_CONTROL_RECTS)
+  auto item = new score::GraphicsLayout{parent};
+  item->setBrush(score::Skin::instance().Light.main);
+#else
+  auto item = new score::EmptyRectItem{parent};
+#endif
 
   const auto& layout = defaultLayout();
-
-  // Port
   auto port = makePortItem(portModel, ctx, item, context);
-  port->setPos(layout.port);
-
-  // Text
-  if(layout.labelVisible)
-  {
-    const auto& brush = Process::portBrush(portModel.type()).main;
-    auto lab = new score::SimpleTextItem{brush, item};
-    lab->setText(portModel.visualName());
-    lab->setPos(layout.label);
-  }
-
-  // Control
   auto widg = makeControlItem(portModel, ctx, item, context);
-  widg->setParentItem(item);
-  widg->setPos(layout.control);
 
-  item->setRect(item->childrenBoundingRect().adjusted(-total_margin, -total_margin, total_margin, total_margin));
+  makeFullItemImpl(portModel, layout, *port, *widg, *item);
 
   return item;
 }

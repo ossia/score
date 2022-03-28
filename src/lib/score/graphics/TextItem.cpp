@@ -44,6 +44,7 @@ void SimpleTextItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
+  //painter->fillRect(boundingRect(), Qt::blue);
   if (!m_string.isEmpty())
   {
     painter->drawImage(QPointF{0, 0}, m_line);

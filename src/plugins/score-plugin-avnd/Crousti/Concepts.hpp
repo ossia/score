@@ -103,7 +103,6 @@ consteval auto make_control_in()
 
   if constexpr(widg.widget == avnd::widget_type::bang)
   {
-    constexpr auto c = avnd::get_range<T>();
     return Control::ImpulseButton{name};
   }
   else if constexpr(widg.widget == avnd::widget_type::button)

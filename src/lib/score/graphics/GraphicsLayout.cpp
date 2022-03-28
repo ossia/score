@@ -18,7 +18,7 @@ GraphicsLayout::~GraphicsLayout()
 
 void GraphicsLayout::layout()
 {
-  this->setRect(this->childrenBoundingRect());
+  this->fitChildrenRect();
 }
 
 void GraphicsLayout::centerContent()
@@ -55,6 +55,12 @@ void GraphicsLayout::paint(
     painter->drawRoundedRect(rect().adjusted(2., 2., -2., -2.), 3, 3);
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
+
+  //painter->setBrush(Qt::transparent);
+  //painter->setPen(Qt::red);
+  //painter->drawRect(boundingRect());
+  //painter->setPen(Qt::blue);
+  //painter->drawRect(childrenBoundingRect());
 }
 }
 

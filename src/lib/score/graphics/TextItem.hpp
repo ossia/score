@@ -47,6 +47,7 @@ private:
   SimpleTextItem& operator=(const SimpleTextItem&) = delete;
   SimpleTextItem& operator=(SimpleTextItem&&) = delete;
   void updateImpl();
+
   QRectF m_rect;
   const score::BrushSet* m_color{};
   QFont m_font;
@@ -55,8 +56,7 @@ private:
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
-    : // public QObject,
-      public score::SimpleTextItem
+    : public score::SimpleTextItem
 {
   W_OBJECT(QGraphicsTextButton)
 public:

@@ -94,6 +94,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/Widgets.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Control/Layout.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ProcessComponent.hpp"
@@ -124,6 +125,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/ControlWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/NodeItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortFactory.cpp"
@@ -158,6 +160,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Control/Layout.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTProcessComponent.cpp"
 

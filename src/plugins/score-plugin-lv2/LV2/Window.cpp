@@ -1,6 +1,7 @@
 #include <LV2/ApplicationPlugin.hpp>
 #include <LV2/Window.hpp>
 #include <Media/Effect/Settings/Model.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include <score/widgets/MarginLess.hpp>
 

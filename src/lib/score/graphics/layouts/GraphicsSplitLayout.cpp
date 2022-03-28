@@ -52,7 +52,7 @@ void GraphicsSplitLayout::layout()
   // Make them fit the height
   for(auto item : items)
   {
-    if(auto it = qgraphicsitem_cast<score::BackgroundItem*>(item))
+    if(auto it = qgraphicsitem_cast<score::GraphicsLayout*>(item))
     {
       QRectF cur = it->rect();
       cur.setHeight(max_h);

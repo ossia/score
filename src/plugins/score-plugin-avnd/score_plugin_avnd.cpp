@@ -110,11 +110,11 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   if (key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     //static_assert((requires { std::declval<Nodes>().run({}, {}); } && ...));
-    (v.emplace_back((Execution::ProcessComponentFactory*)new oscr::ExecutorFactory<Nodes>()), ...);
+    (v.emplace_back(static_cast<Execution::ProcessComponentFactory*>(new oscr::ExecutorFactory<Nodes>())), ...);
   }
   else if (key == Process::ProcessModelFactory::static_interfaceKey())
   {
-    (v.emplace_back((Process::ProcessModelFactory*)new oscr::ProcessFactory<Nodes>()), ...);
+    (v.emplace_back(static_cast<Process::ProcessModelFactory*>(new oscr::ProcessFactory<Nodes>())), ...);
   }
   else if (key == Process::LayerFactory::static_interfaceKey())
   {
@@ -122,7 +122,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
       using type = typename decltype(t)::type;
       if constexpr(avnd::has_ui_layout<type>)
       {
-        v.emplace_back((Process::LayerFactory*)new oscr::LayerFactory<type>());
+        v.emplace_back(static_cast<Process::LayerFactory*>(new oscr::LayerFactory<type>()));
       }
     });
   }
@@ -149,8 +149,8 @@ score_plugin_avnd::factories(
 
   return oscr::instantiate_fx<
       examples::helpers::Ui
-    #if 0
-      Addition
+    #if 1
+      , Addition
       , Callback
       , Controls
       , Logger<config>
@@ -184,7 +184,7 @@ score_plugin_avnd::factories(
       , SampleAccurateFilterExample
       , ControlGallery
 //      , RawPortsExample
-      , Synth
+//      , Synth
 #if SCORE_PLUGIN_GFX
       , TextureGeneratorExample
       , TextureFilterExample

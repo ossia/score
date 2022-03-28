@@ -1,4 +1,5 @@
 #include <score/graphics/RectItem.hpp>
+#include <score/graphics/GraphicsLayout.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
@@ -116,10 +117,15 @@ QRectF EmptyRectItem::boundingRect() const
   return m_rect;
 }
 
+void EmptyRectItem::fitChildrenRect()
+{
+  setRect(QRectF{QPointF{}, childrenBoundingRect().size()});
+}
+
 void EmptyRectItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget)
 {
   // painter->setPen(Qt::blue);
   // painter->setBrush(Qt::transparent);
@@ -185,6 +191,12 @@ void BackgroundItem::setRect(const QRectF& r)
 QRectF BackgroundItem::boundingRect() const
 {
   return m_rect;
+}
+
+void BackgroundItem::fitChildrenRect()
+{
+  const auto cld = childrenBoundingRect();
+  setRect(QRectF{0., 0., cld.right() + default_padding, cld.bottom() + default_padding});
 }
 
 void BackgroundItem::mousePressEvent(QGraphicsSceneMouseEvent* event)

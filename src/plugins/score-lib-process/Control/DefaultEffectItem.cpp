@@ -1,5 +1,8 @@
 #include "DefaultEffectItem.hpp"
 
+#include <score/graphics/layouts/GraphicsGridLayout.hpp>
+#include <Process/Process.hpp>
+#include <Control/Layout.hpp>
 #include <Control/Widgets.hpp>
 #include <Effect/EffectLayout.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
@@ -34,44 +37,27 @@ DefaultEffectItem::DefaultEffectItem(
       &effect,
       &Process::ProcessModel::controlAdded,
       this,
-      &DefaultEffectItem::on_controlAdded);
+      &DefaultEffectItem::reset);
 
   QObject::connect(
       &effect,
       &Process::ProcessModel::controlRemoved,
       this,
-      &DefaultEffectItem::on_controlRemoved);
+      &DefaultEffectItem::reset);
 
   QObject::connect(
       &effect,
       &Process::ProcessModel::controlOutletAdded,
       this,
-      &DefaultEffectItem::on_controlOutletAdded);
+      &DefaultEffectItem::reset);
 
   QObject::connect(
       &effect,
       &Process::ProcessModel::controlOutletRemoved,
       this,
-      &DefaultEffectItem::on_controlOutletRemoved);
+      &DefaultEffectItem::reset);
 
-  auto& portFactory = doc.app.interfaces<Process::PortFactoryList>();
-  for (auto& e : effect.inlets())
-  {
-    auto inlet = qobject_cast<Process::ControlInlet*>(e);
-    if (!inlet)
-      continue;
-
-    setupInlet(*inlet, portFactory);
-  }
-  for (auto& e : effect.outlets())
-  {
-    auto outlet = qobject_cast<Process::ControlOutlet*>(e);
-    if (!outlet)
-      continue;
-
-    setupOutlet(*outlet, portFactory);
-  }
-  updateRect();
+  reset();
 
   QObject::connect(
       &effect,
@@ -87,145 +73,50 @@ DefaultEffectItem::DefaultEffectItem(
 
 DefaultEffectItem::~DefaultEffectItem() { }
 
-template <typename T>
-void DefaultEffectItem::setupPort(
-    T& port,
-    const Process::PortFactoryList& portFactory)
-{
-  int i = std::ssize(m_ports);
-
-  auto csetup = Process::controlSetup(
-      [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-        return factory.makePortItem(inlet, doc, item, parent);
-      },
-      [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-        return factory.makeControlItem(inlet, doc, item, parent);
-      },
-      [&](int j) { return m_ports[j].rect.size(); },
-      [&] { return port.visualName(); });
-  auto [item, portItem, widg, lab, itemRect] = Process::createControl(
-      i, csetup, port, portFactory, m_ctx, this, this);
-  m_ports.push_back(Port{item, portItem, itemRect});
-  updateRect();
-}
-
-void DefaultEffectItem::setupInlet(
-    Process::ControlInlet& inlet,
-    const Process::PortFactoryList& portFactory)
-{
-  setupPort(inlet, portFactory);
-  con(inlet, &Process::ControlInlet::domainChanged, this, [this, &inlet] {
-    on_controlRemoved(inlet);
-    on_controlAdded(inlet.id());
-  });
-}
-
-void DefaultEffectItem::setupOutlet(
-    Process::ControlOutlet& outlet,
-    const Process::PortFactoryList& portFactory)
-{
-  setupPort(outlet, portFactory);
-  con(outlet, &Process::ControlOutlet::domainChanged, this, [this, &outlet] {
-    on_controlOutletRemoved(outlet);
-    on_controlOutletAdded(outlet.id());
-  });
-}
-
-void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
-{
-  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
-  auto inlet = safe_cast<Process::ControlInlet*>(m_effect.inlet(id));
-  setupInlet(*inlet, portFactory);
-}
-
-void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
-{
-  for (auto it = m_ports.begin(); it != m_ports.end(); ++it)
-  {
-    auto ptr = it->port;
-    if (&ptr->port() == &port)
-    {
-      auto parent_item = it->root;
-      auto h = parent_item->boundingRect().height();
-      delete parent_item;
-      m_ports.erase(it);
-
-      for (; it != m_ports.end(); ++it)
-      {
-        auto item = it->root;
-        item->moveBy(0., -h);
-      }
-      updateRect();
-      return;
-    }
-  }
-}
-
-void DefaultEffectItem::on_controlOutletAdded(const Id<Process::Port>& id)
-{
-  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
-  auto outlet = safe_cast<Process::ControlOutlet*>(m_effect.outlet(id));
-  setupOutlet(*outlet, portFactory);
-}
-
-void DefaultEffectItem::on_controlOutletRemoved(const Process::Port& port)
-{
-  for (auto it = m_ports.begin(); it != m_ports.end(); ++it)
-  {
-    auto ptr = it->port;
-    if (&ptr->port() == &port)
-    {
-      auto parent_item = it->root;
-      auto h = parent_item->boundingRect().height();
-      delete parent_item;
-      m_ports.erase(it);
-
-      for (; it != m_ports.end(); ++it)
-      {
-        auto item = it->root;
-        item->moveBy(0., -h);
-      }
-      updateRect();
-      return;
-    }
-  }
-}
-
 void DefaultEffectItem::reset()
 {
-  const auto& c = this->childItems();
-  for (auto child : c)
-  {
-    this->scene()->removeItem(child);
-    delete child;
-  }
-  updateRect();
+  delete m_layout;
+  m_layout = nullptr;
   m_ports.clear();
 
-  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
-  for (auto& e : m_effect.inlets())
-  {
-    if (auto inlet = qobject_cast<Process::ControlInlet*>(e))
-      setupInlet(*inlet, portFactory);
-  }
-  for (auto& e : m_effect.outlets())
-  {
-    if (auto outlet = qobject_cast<Process::ControlOutlet*>(e))
-      setupOutlet(*outlet, portFactory);
-  }
-  updateRect();
+  m_layout = new score::GraphicsDefaultLayout{this};
+  recreate();
 }
 
-void DefaultEffectItem::updateRect()
+void DefaultEffectItem::recreate()
 {
-  const auto r = this->childrenBoundingRect();
-  if (r.height() != 0.)
+  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
+
+  LayoutBuilderBase b{*this, m_ctx, portFactory, m_effect.inlets(), m_effect.outlets(), m_layout, {m_layout}};
+  for (auto& e : m_effect.inlets())
   {
-    this->setRect(r);
+    if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
+    {
+      auto item = b.makePort(*inlet);
+      item->setParentItem(m_layout);
+
+      con(*inlet, &Process::ControlInlet::domainChanged,
+          this, &DefaultEffectItem::reset, Qt::UniqueConnection);
+    }
   }
-  else
+
+  for (auto& e : m_effect.outlets())
   {
-    this->setRect({0., 0., 100, 100});
+    if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
+    {
+      auto item = b.makePort(*outlet);
+      item->setParentItem(m_layout);
+
+      con(*outlet, &Process::ControlOutlet::domainChanged,
+          this, &DefaultEffectItem::reset, Qt::UniqueConnection);
+    }
   }
+
+  auto& lay = *m_layout;
+  lay.layout();
+  lay.fitChildrenRect();
+
+  this->setRect(m_layout->rect());
 }
+
 }

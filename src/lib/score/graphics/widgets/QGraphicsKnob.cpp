@@ -92,6 +92,7 @@ void QGraphicsKnob::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
+  //painter->fillRect(boundingRect(), Qt::green);
   DefaultGraphicsKnobImpl::paint(
       *this,
       score::Skin::instance(),

@@ -394,7 +394,7 @@ double NodeItem::minimalContentWidth() const noexcept
   if(Q_UNLIKELY(!m_label))
     return 30.;
   else
-    return std::max(100.0, TitleWithUiX0 + m_label->boundingRect().width() + 6.);
+    return std::max(75.0, TitleWithUiX0 + m_label->boundingRect().width() + 6.);
 }
 double NodeItem::minimalContentHeight() const noexcept
 {

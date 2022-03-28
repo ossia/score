@@ -245,7 +245,7 @@ private:
         Control::AutoUISetup{Info{}, proc.inlets(), *rootItem, *rootItem, ctx};
       }
 
-      rootItem->setRect(rootItem->childrenBoundingRect());
+      rootItem->fitChildrenRect();
       return rootItem;
     }
   }

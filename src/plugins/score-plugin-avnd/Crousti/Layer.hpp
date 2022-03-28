@@ -1,6 +1,6 @@
 #pragma once
 #include <Crousti/ProcessModel.hpp>
-#include <Crousti/Layout.hpp>
+#include <Control/Layout.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <avnd/concepts/layout.hpp>
@@ -14,7 +14,7 @@ namespace oscr
 {
 
 template<typename Info>
-struct LayoutBuilder final : LayoutBuilderBase
+struct LayoutBuilder final : Process::LayoutBuilderBase
 {
     using inputs_type = typename avnd::input_introspection<Info>::type;
     using outputs_type = typename avnd::output_introspection<Info>::type;
@@ -114,22 +114,22 @@ struct LayoutBuilder final : LayoutBuilderBase
     void setupItem(const Item& it, QGraphicsItem& item)
     {
       item.setParentItem(layout);
-      if constexpr(requires { Item::x; } && requires { Item::y; })
-      {
-        item.setPos(it.x, it.y);
-      }
-      else if constexpr(requires { Item::x(); } && requires { Item::y(); })
+      if constexpr(requires { Item::x(); } && requires { Item::y(); })
       {
         item.setPos(it.x(), it.y());
       }
-
-      if constexpr(requires { Item::scale; })
+      else if constexpr(requires { Item::x; } && requires { Item::y; })
       {
-        item.setScale(it.scale);
+        item.setPos(it.x, it.y);
       }
-      else if constexpr(requires { Item::scale(); })
+
+      if constexpr(requires { Item::scale(); })
       {
         item.setScale(it.scale());
+      }
+      else if constexpr(requires { Item::scale; })
+      {
+        item.setScale(it.scale);
       }
     }
 
@@ -186,9 +186,18 @@ struct LayoutBuilder final : LayoutBuilderBase
       }
       else if constexpr(avnd::grid_layout<Item>)
       {
-        auto new_l = new score::GraphicsGridLayout{layout};
-        new_l->setColumns(Item::columns());
-        subLayout(item, new_l);
+        if constexpr(requires { Item::columns(); })
+        {
+          auto new_l = new score::GraphicsGridColumnsLayout{layout};
+          new_l->setColumns(Item::columns());
+          subLayout(item, new_l);
+        }
+        else if constexpr(requires { Item::rows(); })
+        {
+          auto new_l = new score::GraphicsGridRowsLayout{layout};
+          new_l->setRows(Item::rows());
+          subLayout(item, new_l);
+        }
       }
       else if constexpr(avnd::tab_layout<Item>)
       {
@@ -276,7 +285,7 @@ private:
       b.walkLayout(typename Info::ui_layout{});
       b.finalizeLayout(rootItem);
     }
-    rootItem->setRect(rootItem->childrenBoundingRect());
+    rootItem->fitChildrenRect();
     return rootItem;
   }
 };
