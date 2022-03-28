@@ -73,6 +73,7 @@
 #include <avnd/../../examples/Minimal.hpp>
 #include <avnd/../../examples/LitterPower/CCC.hpp>
 #include <avnd/../../examples/Messages.hpp>
+#include <brigand/sequences/list.hpp>
 
 #include <avnd/../../examples/Lowpass.hpp>
 
@@ -82,27 +83,7 @@
  */
 
 #include <avnd/helpers/meta.hpp>
-/*
-struct PerBusAsArgs
-{
-  $(name, "Per-bus processing (args, helpers)")
-  $(c_name, "avnd_helpers_per_bus_as_args")
-  $(uuid, "23a4de57-800b-453a-99b6-481db19d834f")
-  $(input_channels, 2)
-  $(output_channels, 2)
 
-  void operator()(double** inputs, double** outputs, int frames)
-  {
-    using namespace std;
-    for(int c = 0; c < input_channels(); ++c) {
-      for(int k = 0; k < frames; k++) {
-        outputs[c][k] = tanh(100*inputs[c][k]);
-      }
-    }
-  }
-};
-
-*/
 namespace oscr
 {
 template <typename Node>
@@ -125,20 +106,25 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
     const score::InterfaceKey& key)
 {
   std::vector<std::unique_ptr<score::InterfaceBase>> v;
-/*
+
   if (key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     //static_assert((requires { std::declval<Nodes>().run({}, {}); } && ...));
-    (v.emplace_back(new oscr::ExecutorFactory<Nodes>()), ...);
+    (v.emplace_back((Execution::ProcessComponentFactory*)new oscr::ExecutorFactory<Nodes>()), ...);
   }
-  else*/
-    if (key == Process::ProcessModelFactory::static_interfaceKey())
+  else if (key == Process::ProcessModelFactory::static_interfaceKey())
   {
-    (v.emplace_back(new oscr::ProcessFactory<Nodes>()), ...);
+    (v.emplace_back((Process::ProcessModelFactory*)new oscr::ProcessFactory<Nodes>()), ...);
   }
   else if (key == Process::LayerFactory::static_interfaceKey())
   {
-    (v.emplace_back(new oscr::LayerFactory<Nodes>()), ...);
+    ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
+      using type = typename decltype(t)::type;
+      if constexpr(avnd::has_ui_layout<type>)
+      {
+        v.emplace_back((Process::LayerFactory*)new oscr::LayerFactory<type>());
+      }
+    });
   }
 
   return v;

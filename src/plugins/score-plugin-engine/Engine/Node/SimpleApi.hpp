@@ -59,17 +59,11 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   std::vector<std::unique_ptr<score::InterfaceBase>> vec;
   if (key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
-    ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
-      using type = typename decltype(t)::type;
-      vec.emplace_back(new Control::ExecutorFactory<type>());
-    });
+    (vec.emplace_back((Execution::ProcessComponentFactory*)new Control::ExecutorFactory<Nodes>()), ...);
   }
   else if (key == Process::ProcessModelFactory::static_interfaceKey())
   {
-    ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
-      using type = typename decltype(t)::type;
-      vec.emplace_back(new Control::ProcessFactory<type>());
-    });
+    (vec.emplace_back((Process::ProcessModelFactory*)new Control::ProcessFactory<Nodes>()), ...);
   }
   else if (key == Process::LayerFactory::static_interfaceKey())
   {
@@ -77,7 +71,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
       using type = typename decltype(t)::type;
       if constexpr(HasItem<type>)
       {
-        vec.emplace_back(new Control::LayerFactory<type>());
+        vec.emplace_back((Process::LayerFactory*)new Control::LayerFactory<type>());
       }
     });
   }

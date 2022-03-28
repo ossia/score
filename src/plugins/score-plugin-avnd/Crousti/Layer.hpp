@@ -215,11 +215,7 @@ struct LayoutBuilder final : LayoutBuilderBase
 };
 
 template <typename Info>
-class LayerFactory;
-
-template <typename Info>
-requires avnd::has_ui_layout<Info>
-class LayerFactory<Info> final : public Process::LayerFactory
+class LayerFactory final : public Process::LayerFactory
 {
 public:
   virtual ~LayerFactory()
@@ -285,26 +281,4 @@ private:
   }
 };
 
-
-
-template <typename Info>
-requires (!avnd::has_ui_layout<Info>)
-class LayerFactory<Info> final : public Process::LayerFactory
-{
-public:
-  virtual ~LayerFactory()
-  {
-  }
-
-private:
-  UuidKey<Process::ProcessModel> concreteKey() const noexcept override
-  {
-    return Metadata<ConcreteKey_k, oscr::ProcessModel<Info>>::get();
-  }
-
-  bool matches(const UuidKey<Process::ProcessModel>& p) const override
-  {
-    return p == Metadata<ConcreteKey_k, oscr::ProcessModel<Info>>::get();
-  }
-};
 }
