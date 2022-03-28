@@ -26,7 +26,7 @@ void QGraphicsPixmapEnum::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
   auto& style = score::Skin::instance();
 
-  const QBrush& bg = style.SliderBrush;
+  const QBrush& bg = style.NoBrush;
   const QPen& noPen = style.NoPen;
 
   int actual_rows = std::ceil(double(array.size()) / columns);

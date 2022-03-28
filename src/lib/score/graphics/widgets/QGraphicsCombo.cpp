@@ -243,10 +243,13 @@ void QGraphicsCombo::paint(
   const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
   painter->drawRoundedRect(brect, 1, 1);
 
+
   // Draw text
   painter->setPen(skin.Base4.main.pen2);
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setFont(skin.Medium10Pt);
   painter->drawText(brect, array[value()], QTextOption(Qt::AlignCenter));
+
+  painter->drawLine(2, 2, 2, boundingRect().height() - 2);
 }
 }

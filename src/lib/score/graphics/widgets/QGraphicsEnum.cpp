@@ -136,8 +136,8 @@ void QGraphicsEnum::paint(
 
   const QPen& text = style.Gray.main.pen1;
   const QFont& textFont = style.MonoFontSmall;
-  const QPen& currentText = style.Base4.lighter180.pen1;
-  const QBrush& bg = style.SliderBrush;
+  const QPen& currentText = style.Base4.main.pen1;
+  const QBrush& bg = style.TransparentBrush;
   const QPen& noPen = style.NoPen;
 
   int actual_rows = std::ceil(double(array.size()) / columns);
