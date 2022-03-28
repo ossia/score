@@ -11,6 +11,7 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 #include <ossia/detail/for_each.hpp>
+#include <ossia/detail/concepts.hpp>
 
 #define make_uuid(text) score::uuids::string_generator::compute((text))
 #if defined(_MSC_VER)
@@ -21,6 +22,14 @@
 
 namespace Control
 {
+
+template<typename Item>
+concept HasItem =
+  requires { &Item::item; } ||
+  requires { Item{}.item(0); } ||
+  requires { sizeof(typename Item::Layer); };
+
+
 struct Meta_base : public ossia::safe_nodes::base_metadata
 {
   static const constexpr Process::ProcessFlags flags
@@ -66,7 +75,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   {
     ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
       using type = typename decltype(t)::type;
-      if constexpr(requires { &type::item; } || requires { type{}.item(0); } || requires { sizeof(typename type::Layer); })
+      if constexpr(HasItem<type>)
       {
         vec.emplace_back(new Control::LayerFactory<type>());
       }
