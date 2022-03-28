@@ -358,9 +358,10 @@ void ScenarioPresenter::fillContextMenu(
   menu.addAction(actions.action<Actions::DeselectAll>().action());
 
   auto createCommentAct = new QAction{"Add a Comment Block", &menu};
-  connect(createCommentAct, &QAction::triggered, [&, scenepos]() {
+  const auto viewpos = view().mapFromScene(scenepos);
+  connect(createCommentAct, &QAction::triggered, this, [&, viewpos] {
     auto scenPoint = Scenario::ConvertToScenarioPoint(
-        scenepos, zoomRatio(), view().height());
+        viewpos, zoomRatio(), view().height());
 
     auto cmd = new Scenario::Command::CreateCommentBlock{
         model(), scenPoint.date, scenPoint.y};
