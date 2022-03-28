@@ -106,7 +106,15 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     {
       // If reloading an old score:
       // (((endStateDate - startStateDate) - defaultDur) == TimeVal{1})
-      SCORE_ASSERT((endStateDate - startStateDate) == defaultDur);
+
+      if((endStateDate - startStateDate) != defaultDur)
+      {
+        if(endStateDate.impl <= startStateDate.impl || interval.duration.defaultDuration().impl == 0)
+          const_cast<IntervalModel&>(interval).setGraphal(true);
+        else
+          IntervalDurations::Algorithms::changeAllDurations(const_cast<IntervalModel&>(interval), endStateDate - startStateDate);
+      }
+      //SCORE_ASSERT((endStateDate - startStateDate) == defaultDur);
     }
     /*
     if (dur.isRigid())
