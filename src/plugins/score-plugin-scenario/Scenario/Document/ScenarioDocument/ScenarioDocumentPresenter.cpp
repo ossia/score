@@ -1123,6 +1123,8 @@ void ScenarioDocumentPresenter::setNewSelection(
       else if (auto port = qobject_cast<Process::Port*>(e))
       {
         port->selection.set(false);
+        if(auto proc = qobject_cast<Process::ProcessModel*>(port->parent()))
+          proc->selection.set(false);
       }
       else if (auto cable = qobject_cast<Process::Cable*>(e))
       {
