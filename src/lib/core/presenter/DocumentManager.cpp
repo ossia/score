@@ -39,10 +39,6 @@
 #include <QStandardPaths>
 #include <QStringList>
 
-#include <multi_index/hashed_index.hpp>
-#include <multi_index/mem_fun.hpp>
-#include <multi_index/member.hpp>
-#include <multi_index_container.hpp>
 #include <wobjectimpl.h>
 
 #include <utility>
@@ -56,20 +52,7 @@ struct LoadedPluginVersions
 };
 }
 
-namespace bmi = multi_index;
-using LocalPluginVersionsMap = bmi::multi_index_container<
-    score::Plugin_QtInterface*,
-    bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<
-        score::Plugin_QtInterface,
-        UuidKey<score::Plugin>,
-        &score::Plugin_QtInterface::key>>>>;
-using LoadedPluginVersionsMap = bmi::multi_index_container<
-    score::Plugin_QtInterface*,
-    bmi::indexed_by<bmi::hashed_unique<bmi::member<
-        score::LoadedPluginVersions,
-        UuidKey<score::Plugin>,
-        &score::LoadedPluginVersions::plugin>>>>;
-
+using LocalPluginVersionsMap = std::unordered_map<UuidKey<score::Plugin>, score::Plugin_QtInterface*>;
 namespace std
 {
 template <>
@@ -623,7 +606,7 @@ bool DocumentManager::checkAndUpdateJson(
   LocalPluginVersionsMap local_plugins;
   for (const auto& plug : ctx.addons())
   {
-    local_plugins.insert(plug.plugin);
+    local_plugins.emplace(plug.key, plug.plugin);
   }
 
   std::vector<LoadedPluginVersions> loading_plugins;
@@ -682,17 +665,16 @@ bool DocumentManager::checkAndUpdateJson(
   bool pluginsAvailable = true;
   bool pluginsLoadable = true;
 
-  auto& local_map = local_plugins.get<0>();
   for (const auto& plug : loading_plugins)
   {
-    auto it = local_map.find(plug.plugin);
-    if (it == local_map.end())
+    auto it = local_plugins.find(plug.plugin);
+    if (it == local_plugins.end())
     {
       pluginsAvailable = false;
     }
     else
     {
-      auto& current_local_plugin = *it;
+      auto& current_local_plugin = it->second;
       if (plug.version > current_local_plugin->version())
       {
         pluginsLoadable = false;

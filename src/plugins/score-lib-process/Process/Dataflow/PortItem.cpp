@@ -19,6 +19,7 @@
 #include <QMimeData>
 #include <QPainter>
 
+#include <score/graphics/TextItem.hpp>
 #include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
@@ -677,6 +678,25 @@ QVariant PortItem::itemChange(
 
   return QGraphicsItem::itemChange(change, value);
 }
+
+score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* parent)
+{
+  const auto& brush = Process::labelBrush(port);
+
+  auto lab = new score::SimpleTextItem{brush, parent};
+  lab->setText(port.visualName());
+
+  QObject::connect(&port.selection, &Selectable::changed, lab, [lab, &port] (bool b) {
+    lab->setColor(Process::labelBrush(port));
+  });
+
+  QObject::connect(
+        &port, &Process::Port::nameChanged,
+        lab, qOverload<const QString&>(&score::SimpleTextItem::setText));
+
+  return lab;
+}
+
 }
 
 namespace Process
@@ -697,6 +717,17 @@ const score::Brush& portBrush(Process::PortType type)
     default:
       return skin.Warn1;
   }
+}
+const score::Brush& labelBrush()
+{
+  return score::Skin::instance().HalfLight;
+}
+const score::BrushSet& labelBrush(const Process::Port& p)
+{
+  if(!p.selection.get())
+    return score::Skin::instance().HalfLight.main;
+  else
+    return score::Skin::instance().Base2.main;
 }
 
 }

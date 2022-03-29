@@ -1,6 +1,6 @@
 #include "GraphicsTabLayout.hpp"
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
-
+#include <score/tools/Debug.hpp>
 namespace score
 {
 

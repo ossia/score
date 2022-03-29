@@ -14,6 +14,7 @@
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
 #include <ossia/network/context.hpp>
+#include <spdlog/sinks/sink.h>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/post.hpp>
@@ -597,9 +598,9 @@ void DeviceInterface::setLogging_impl(DeviceLogging b) const
       case DeviceLogging::LogEverything:
       {
         ossia::net::network_logger logger;
-        logger.inbound_logger = std::make_shared<spdlog::logger>(
+        logger.inbound_logger = std::make_shared<ossia::logger_type>(
             "in_logger", std::make_shared<in_sink>(*this));
-        logger.outbound_logger = std::make_shared<spdlog::logger>(
+        logger.outbound_logger = std::make_shared<ossia::logger_type>(
             "out_logger", std::make_shared<out_sink>(*this));
 
         logger.inbound_logger->set_pattern("%v");
@@ -612,9 +613,9 @@ void DeviceInterface::setLogging_impl(DeviceLogging b) const
       case DeviceLogging::LogUnfolded:
       {
         ossia::net::network_logger logger;
-        logger.inbound_listened_logger = std::make_shared<spdlog::logger>(
+        logger.inbound_listened_logger = std::make_shared<ossia::logger_type>(
             "in_logger", std::make_shared<in_sink>(*this));
-        logger.outbound_listened_logger = std::make_shared<spdlog::logger>(
+        logger.outbound_listened_logger = std::make_shared<ossia::logger_type>(
             "out_logger", std::make_shared<out_sink>(*this));
 
         logger.inbound_listened_logger->set_pattern("%v");

@@ -9,6 +9,7 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/ssize.hpp>
+#include <ossia/detail/fmt.hpp>
 
 #include <QDockWidget>
 #include <QFileInfo>

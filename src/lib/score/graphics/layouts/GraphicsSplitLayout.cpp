@@ -1,4 +1,5 @@
 #include "GraphicsSplitLayout.hpp"
+#include <score/model/Skin.hpp>
 
 #include <QPainter>
 #include <QPen>

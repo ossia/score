@@ -1,7 +1,6 @@
 #pragma once
 #include <Engine/Node/SimpleApi.hpp>
 #undef slots
-#include <frozen/unordered_map.h>
 #include <ossia/detail/ssize.hpp>
 namespace Nodes::MidiUtil
 {
@@ -134,27 +133,23 @@ constexpr int get_scale(std::string_view s)
 #else
 #define MSVC_CONSTEXPR constexpr
 #endif
-static MSVC_CONSTEXPR
-    frozen::unordered_map<int, scales_array, scale::SCALES_MAX - 1>
-        scales{
+static MSVC_CONSTEXPR std::array<scales_array, scale::SCALES_MAX - 1> scales{
             //                                C   D   E F   G   A   B
-            {scale::all, make_scale({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1})},
-            {scale::ionian, make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1})},
-            {scale::dorian, make_scale({1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0})},
-            {scale::phyrgian,
-             make_scale({1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0})},
-            {scale::lydian, make_scale({1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1})},
-            {scale::mixolydian,
-             make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0})},
-            {scale::aeolian, make_scale({1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0})},
-            {scale::locrian, make_scale({1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0})},
-            {scale::I, make_scale({1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0})},
-            {scale::II, make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0})},
-            {scale::III, make_scale({0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1})},
-            {scale::IV, make_scale({1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0})},
-            {scale::V, make_scale({0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1})},
-            {scale::VI, make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0})},
-            {scale::VII, make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1})}};
+            /* { scale::all,         */ make_scale({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) /* } */,
+            /* { scale::ionian,      */ make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1}) /* } */,
+            /* { scale::dorian,      */ make_scale({1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0}) /* } */,
+            /* { scale::phyrgian,    */ make_scale({1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0}) /* } */,
+            /* { scale::lydian,      */ make_scale({1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1}) /* } */,
+            /* { scale::mixolydian,  */ make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0}) /* } */,
+            /* { scale::aeolian,     */ make_scale({1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0}) /* } */,
+            /* { scale::locrian,     */ make_scale({1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0}) /* } */,
+            /* { scale::I,           */ make_scale({1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}) /* } */,
+            /* { scale::II,          */ make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0}) /* } */,
+            /* { scale::III,         */ make_scale({0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1}) /* } */,
+            /* { scale::IV,          */ make_scale({1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0}) /* } */,
+            /* { scale::V,           */ make_scale({0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1}) /* } */,
+            /* { scale::VI,          */ make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0}) /* } */,
+            /* { scale::VII,         */ make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1}) /* } */};
 
 static std::optional<std::size_t>
 find_closest_index(const scale_array& arr, std::size_t i)
@@ -360,10 +355,10 @@ struct Node
 
     auto apply = [&](auto f) {
       const auto [tick_start, d] = st.timings(tk);
-      if (new_scale_idx != scale::custom)
+      if (new_scale_idx >= 0 && new_scale_idx < scale::custom)
       {
         f(midi_in,
-          scales.at(new_scale_idx)[new_base],
+          scales[new_scale_idx][new_base],
           new_transpose,
           midi_out,
           tick_start,

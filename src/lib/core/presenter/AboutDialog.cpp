@@ -86,14 +86,10 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["TinySpline"]
       = License{"https://github.com/msteinbeck/tinyspline", "MIT License"};
 
-  map["bitset2"]
-      = License{"https://github.com/ClaasBontus/bitset2", bitset2_LICENSE};
   map["Brigand"]
       = License{"https://github.com/edouarda/brigand", Brigand_LICENSE};
   map["Catch2"]
       = License{"https://github.com/catchorg/Catch2", Catch2_LICENSE};
-  map["Chobo"]
-      = License{"https://github.com/Chobolabs/chobo-shl", chobo_LICENSE};
   map["ConcurrentQueue"] = License{
       "https://github.com/cameron314/concurrentqueue",
       concurrentqueue_LICENSE};
@@ -109,7 +105,6 @@ AboutDialog::AboutDialog(QWidget* parent)
       "Based on https://github.com/skarupke/flat_hash_map\n"};
   map["Flicks"] = License{"https://github.com/OculusVR/Flicks", Flicks_LICENSE};
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
-  map["frozen"] = License{"https://github.com/serge-sans-paille/frozen", frozen_LICENSE};
   map["Gist"] = License{"https://github.com/adamstark/Gist", Gist_LICENSE};
   map["GSL"] = License{"https://github.com/Microsoft/GSL", GSL_LICENSE};
   map["HAP Codec"] = License{"", hap_LICENSE};
@@ -131,8 +126,6 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["miniz"] = License{"", miniz_LICENSE};
   map["ModernMidi"] = License{
       "https://github.com/ddiakopoulos/ModernMIDI", modernmidi_LICENSE};
-  map["multi_index"] = License{
-      "https://github.com/jcelerier/multi_index", multiindex_LICENSE};
   map["nano-signal-slot"] = License{
       "https://github.com/jcelerier/nano-signal-slot", nanosignal_LICENSE};
   map["OSCPack"]

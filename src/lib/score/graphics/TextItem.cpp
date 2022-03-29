@@ -51,14 +51,14 @@ void SimpleTextItem::paint(
   }
 }
 
-void SimpleTextItem::setFont(QFont f)
+void SimpleTextItem::setFont(const QFont& f)
 {
   m_font = std::move(f);
   m_font.setStyleStrategy(QFont::PreferAntialias);
   updateImpl();
 }
 
-void SimpleTextItem::setText(QString s)
+void SimpleTextItem::setText(const QString& s)
 {
   m_string = std::move(s);
   updateImpl();

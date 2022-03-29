@@ -1,4 +1,5 @@
 #include "GraphicsLayout.hpp"
+#include <score/model/Skin.hpp>
 #include <QPainter>
 
 namespace score

@@ -11,7 +11,6 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-#include <frozen/map.h>
 namespace Process
 {
 ScriptDialog::ScriptDialog(

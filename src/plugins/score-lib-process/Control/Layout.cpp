@@ -46,7 +46,7 @@ QGraphicsItem* LayoutBuilderBase::makeOutlet(int index)
 
 QGraphicsItem* LayoutBuilderBase::makeLabel(std::string_view item)
 {
-  const auto& brush = Process::portBrush(Process::PortType::Message).main;
+  const auto& brush = Process::labelBrush().main;
   auto lab = new score::SimpleTextItem{brush, nullptr};
   lab->setText(QString::fromUtf8(item.data()));
   return lab;

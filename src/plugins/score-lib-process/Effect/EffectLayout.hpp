@@ -97,18 +97,7 @@ auto createControl(
   auto portItem = setup.createPort(fact, port, doc, item, parent);
 
   // Create the label
-  auto lab
-      = new score::SimpleTextItem{Process::portBrush(port.type()).main, item};
-  if (auto name = setup.name(); name.size() > 0)
-    lab->setText(std::move(name));
-  else
-    lab->setText(QObject::tr("Control"));
-
-  QObject::connect(
-      &port,
-      &Process::ControlInlet::nameChanged,
-      item,
-      [=](const QString& txt) { lab->setText(txt); });
+  auto lab = Dataflow::makePortLabel(port, item);
 
   // Create the control
   struct Controls
@@ -179,9 +168,7 @@ static auto makeControl(
   port->setPos(0, 1.);
 
   // Text
-  const auto& brush = Process::portBrush(inlet.type()).main;
-  auto lab = new score::SimpleTextItem{brush, item};
-  lab->setText(ctrl.name);
+  auto lab = Dataflow::makePortLabel(inlet, item);
   lab->setPos(12, 0);
 
   // Control

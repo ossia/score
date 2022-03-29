@@ -35,8 +35,8 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
-  void setFont(QFont f);
-  void setText(QString s);
+  void setFont(const QFont& f);
+  void setText(const QString& s);
   void setText(std::string_view s);
   void setColor(const score::BrushSet& c);
 

@@ -72,7 +72,7 @@ public:
 //===----------------------------------------------------------------------===//
 // Main driver
 //===----------------------------------------------------------------------===//
-#if LLVM_VERSION_MAJOR < 15
+#if LLVM_VERSION_MAJOR < 14
 static void
 LLVMErrorHandler(void* UserData, const std::string& Message, bool GenCrashDiag)
 #else
@@ -232,7 +232,7 @@ llvm::Error cc1_main(
   TextDiagnosticBuffer* DiagsBuffer = new TextDiagnosticBuffer;
   llvm::IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(DiagID, &*DiagOpts, DiagsBuffer));
 
-#if LLVM_VERSION_MAJOR >= 15
+#if LLVM_VERSION_MAJOR >= 13
   llvm::IntrusiveRefCntPtr<FileManager> Files(new FileManager(FileSystemOptions(), llvm::vfs::getRealFileSystem()));
   llvm::IntrusiveRefCntPtr<SourceManager> SrcMgr(new SourceManager(*Diags, *Files));
 #endif
@@ -255,7 +255,7 @@ llvm::Error cc1_main(
         Clang->getFrontendOpts().TimeTraceGranularity, Argv0);
   }
 
-#if LLVM_VERSION_MAJOR >= 15
+#if LLVM_VERSION_MAJOR >= 13
   if(!Clang->hasSourceManager())
   {
     Diags->setSourceManager(SrcMgr.get());

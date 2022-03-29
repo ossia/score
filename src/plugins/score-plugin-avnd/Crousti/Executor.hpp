@@ -277,6 +277,7 @@ public:
       // Create the matching gpu node
       auto state = std::make_shared<Node>();
       auto node = std::make_shared<Gfx::gfx_exec_node>(gfx_exec);
+      node->prepare();
 
       node->root_outputs().push_back(new ossia::texture_outlet);
       this->node = node;
@@ -331,6 +332,7 @@ public:
       auto st = ossia::exec_state_facade{ctx.execState.get()};
       std::shared_ptr<safe_node<Node>> ptr;
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate()};
+      node->prepare(*ctx.execState.get());
       ptr.reset(node);
       this->node = ptr;
 

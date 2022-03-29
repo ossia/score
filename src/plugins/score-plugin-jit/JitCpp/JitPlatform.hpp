@@ -202,6 +202,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   */
 #endif
   args.push_back("-fno-assume-sane-operator-new");
+  args.push_back("-fcoroutines-ts");
   args.push_back("-stack-protector");
   args.push_back("0");
   if (opts.NoExceptions)
@@ -545,16 +546,12 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
            "/3rdparty/libossia/3rdparty/Flicks",
            "/3rdparty/libossia/3rdparty/fmt/include",
            "/3rdparty/libossia/3rdparty/hopscotch-map/include",
-           "/3rdparty/libossia/3rdparty/chobo-shl/include",
-           "/3rdparty/libossia/3rdparty/frozen/include",
-           "/3rdparty/libossia/3rdparty/bitset2",
            "/3rdparty/libossia/3rdparty/GSL/include",
            "/3rdparty/libossia/3rdparty/flat_hash_map",
            "/3rdparty/libossia/3rdparty/flat",
            "/3rdparty/libossia/3rdparty/readerwriterqueue",
            "/3rdparty/libossia/3rdparty/concurrentqueue",
            "/3rdparty/libossia/3rdparty/SmallFunction/smallfun/include",
-           "/3rdparty/libossia/3rdparty/asio/asio/include",
            "/3rdparty/libossia/3rdparty/websocketpp",
            "/3rdparty/libossia/3rdparty/rapidjson/include",
            "/3rdparty/libossia/3rdparty/libremidi/include",

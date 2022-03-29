@@ -789,10 +789,7 @@ auto makeFullItemImpl(const Process::Port& portModel, const Process::PortItemLay
   // Text
   if(layout.labelVisible)
   {
-    const auto& brush = Process::portBrush(portModel.type()).main;
-    auto lab = new score::SimpleTextItem{brush, &item};
-    lab->setText(portModel.visualName());
-
+    auto lab = Dataflow::makePortLabel(portModel, &item);
     lab->setPos(layout.label);
     if(layout.labelAlignment == Qt::AlignCenter)
     {

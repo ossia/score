@@ -156,32 +156,9 @@ public:
   std::size_t operator()(const Id<SegmentModel>& id) const { return id.val(); }
 };
 
-/*
-class CurveSegmentCachingMap : private CurveSegmentMap
-{
-        using CurveSegmentMap::CurveSegmentMap;
-
-        CurveSegmentData& at(const Id<CurveSegmentModel>& id) const
-        {
-            if(id.m_ptr)
-            {
-                SCORE_ASSERT(id.m_ptr->parent() ==
-(*this->map.find(id))->parent());
-                return safe_cast<CurveSegmentData&>(*id.m_ptr);
-            }
-            auto item = this->map.find(id);
-            SCORE_ASSERT(item != this->map.end());
-
-            id.m_ptr = *item;
-            return safe_cast<Element&>(**item);
-        }
-};
-*/
-
 enum Segments
 {
-  Hashed,
-  Ordered
+  Hashed
 };
 }
 

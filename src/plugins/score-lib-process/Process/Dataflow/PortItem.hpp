@@ -25,6 +25,7 @@ namespace score
 struct Brush;
 struct DocumentContext;
 class Command;
+class SimpleTextItem;
 }
 namespace Dataflow
 {
@@ -103,6 +104,8 @@ protected:
   portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept;
 };
 
+SCORE_LIB_PROCESS_EXPORT
+score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* parent);
 }
 
 namespace score
