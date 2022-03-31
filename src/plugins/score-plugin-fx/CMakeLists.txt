@@ -22,7 +22,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathMapping.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/DebugFx.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/ValueFilter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Smooth.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.hpp"

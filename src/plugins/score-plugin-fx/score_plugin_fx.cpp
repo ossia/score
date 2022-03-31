@@ -33,7 +33,7 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
-#include <Fx/ValueFilter.hpp>
+#include <Fx/Smooth.hpp>
 #include <Fx/RateLimiter.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
