@@ -41,6 +41,7 @@ struct SCORE_LIB_PROCESS_EXPORT DefaultControlLayouts
     static Process::PortItemLayout pad() noexcept;
     static Process::PortItemLayout bang() noexcept;
     static Process::PortItemLayout button() noexcept;
+    static Process::PortItemLayout chooser_toggle() noexcept;
 };
 
 }
@@ -541,7 +542,7 @@ struct ChooserToggle
 {
     static Process::PortItemLayout layout() noexcept
     {
-      return Process::DefaultControlLayouts::button();
+      return Process::DefaultControlLayouts::chooser_toggle();
     }
 
   template <typename T>

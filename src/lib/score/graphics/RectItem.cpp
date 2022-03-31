@@ -119,7 +119,8 @@ QRectF EmptyRectItem::boundingRect() const
 
 void EmptyRectItem::fitChildrenRect()
 {
-  setRect(QRectF{QPointF{}, childrenBoundingRect().size()});
+  const auto& cld = childrenBoundingRect();
+  setRect(QRectF{0., 0., cld.right(), cld.bottom()});
 }
 
 void EmptyRectItem::paint(

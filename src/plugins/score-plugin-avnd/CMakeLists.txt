@@ -40,12 +40,15 @@ add_library(
 
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
-  Crousti/GpuNode.hpp
   Crousti/Executor.hpp
+  Crousti/GpuNode.hpp
   Crousti/Layer.hpp
   Crousti/Layer.cpp
+  Crousti/Layout.hpp
   Crousti/Metadatas.hpp
+  Crousti/Painter.hpp
   Crousti/ProcessModel.hpp
+  Crousti/Widgets.hpp
 
   score_plugin_avnd.hpp
   score_plugin_avnd.cpp

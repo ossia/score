@@ -24,7 +24,6 @@ using edge_ptr = std::shared_ptr<graph_edge>;
 }
 namespace Dataflow
 {
-class NodeItem;
 class DocumentPlugin;
 }
 namespace Process

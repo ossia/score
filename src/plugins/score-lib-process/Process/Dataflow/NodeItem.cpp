@@ -222,6 +222,7 @@ void NodeItem::resetInlets()
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
     Dataflow::PortItem* item = fact->makePortItem(*port, m_context, this, this);
     item->setPos(x, y);
+    item->setZValue(10);
     m_inlets.push_back(item);
 
     y += PortSpacing;
@@ -271,6 +272,7 @@ void NodeItem::resetOutlets()
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
     auto item = fact->makePortItem(*port, m_context, this, this);
     item->setPos(x, y);
+    item->setZValue(10);
     m_outlets.push_back(item);
 
     y += PortSpacing;
@@ -310,7 +312,7 @@ QRectF NodeItem::boundingRect() const
       x -= LeftSideWidth;
       w += LeftSideWidth;
     }
-    //if(!m_outlets.empty())
+    if(!m_outlets.empty() || m_presenter) // FIXME make the redimension handle an item instead
     {
       w += RightSideWidth;
     }
@@ -332,6 +334,7 @@ void NodeItem::createContentItem()
     if (auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
+      m_contentSize = m_fx->boundingRect().size();
       connect(
           fx,
           &score::ResizeableItem::sizeChanged,
@@ -575,7 +578,7 @@ void NodeItem::paint(
   if (m_presenter)
   {
     const auto h = m_contentSize.height();
-    const auto w = m_contentSize.width() + RightSideWidth;
+    const auto w = m_contentSize.width() + ((!m_outlets.empty() || m_presenter) ? RightSideWidth : 0);
     painter->setPen(style.IntervalWarning().main.pen0_solid_round);
     double start_x = w - 6.;
     double start_y = h - 6.;

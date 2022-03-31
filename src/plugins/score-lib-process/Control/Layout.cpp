@@ -66,8 +66,14 @@ void LayoutBuilderBase::finalizeLayout(QGraphicsItem* rootItem)
     score::GraphicsLayout& lay = **it;
     lay.layout();
 
-    // Update the size of the layout
-    lay.setRect(lay.childrenBoundingRect().adjusted(-default_margin, -default_margin, default_margin, default_margin));
+    // Update the size of the layout if it was not set manually
+    if(lay.boundingRect().size() == QSize{0, 0})
+    {
+      //lay.setRect(lay.childrenBoundingRect().adjusted(-default_margin, -default_margin, default_margin, default_margin));
+
+      const auto& cld = lay.childrenBoundingRect();
+      lay.setRect(QRectF{0., 0., cld.right() + default_margin, cld.bottom() + default_margin});
+    }
   }
 
   for(auto it = createdLayouts.rbegin(); it != createdLayouts.rend(); ++it)
@@ -76,6 +82,8 @@ void LayoutBuilderBase::finalizeLayout(QGraphicsItem* rootItem)
     // Center the widgets if necessary
     lay.centerContent();
   }
+
+  createdLayouts.front()->setPos(0, 0);
 }
 
 }

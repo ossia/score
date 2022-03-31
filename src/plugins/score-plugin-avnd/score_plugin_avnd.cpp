@@ -35,9 +35,21 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <score_plugin_engine.hpp>
 #include <ossia/detail/typelist.hpp>
-#include <avnd/../../examples/Addition.hpp>
-#include <avnd/../../examples/Callback.hpp>
+#include <avnd/../../examples/Raw/Addition.hpp>
+#include <avnd/../../examples/Raw/Callback.hpp>
+#include <avnd/../../examples/Raw/Init.hpp>
+#include <avnd/../../examples/Raw/Presets.hpp>
+#include <avnd/../../examples/Raw/PerSampleProcessor2.hpp>
+#include <avnd/../../examples/Raw/Lowpass.hpp>
+#include <avnd/../../examples/Raw/Ui.hpp>
+#include <avnd/../../examples/Raw/Midi.hpp>
+#include <avnd/../../examples/Raw/PerSampleProcessor.hpp>
+#include <avnd/../../examples/Raw/Modular.hpp>
+#include <avnd/../../examples/Raw/SampleAccurateControls.hpp>
+#include <avnd/../../examples/Raw/Minimal.hpp>
+#include <avnd/../../examples/Raw/Messages.hpp>
 #include <avnd/../../examples/Helpers/Controls.hpp>
+#include <avnd/../../examples/Helpers/ImageUi.hpp>
 #include <avnd/../../examples/Helpers/Logger.hpp>
 #include <avnd/../../examples/Helpers/Lowpass.hpp>
 #include <avnd/../../examples/Helpers/Messages.hpp>
@@ -47,12 +59,6 @@
 #include <avnd/../../examples/Helpers/Peak.hpp>
 #include <avnd/../../examples/Helpers/Midi.hpp>
 #include <avnd/../../examples/Helpers/Ui.hpp>
-#include <avnd/../../examples/Init.hpp>
-#include <avnd/../../examples/Presets.hpp>
-#include <avnd/../../examples/PerSampleProcessor2.hpp>
-#include <avnd/../../examples/Lowpass.hpp>
-#include <avnd/../../examples/Ui.hpp>
-#include <avnd/../../examples/Midi.hpp>
 #include <avnd/../../examples/Tutorial/ZeroDependencyAudioEffect.hpp>
 #include <avnd/../../examples/Tutorial/AudioEffectExample.hpp>
 #include <avnd/../../examples/Tutorial/TextureFilterExample.hpp>
@@ -64,25 +70,18 @@
 #include <avnd/../../examples/Tutorial/SampleAccurateFilterExample.hpp>
 #include <avnd/../../examples/Tutorial/ControlGallery.hpp>
 #include <avnd/../../examples/Tutorial/AudioSidechainExample.hpp>
-#include <avnd/../../examples/Tutorial/RawPorts.hpp>
 #include <avnd/../../examples/Tutorial/SampleAccurateGeneratorExample.hpp>
 #include <avnd/../../examples/Tutorial/Distortion.hpp>
-#include <avnd/../../examples/PerSampleProcessor.hpp>
-#include <avnd/../../examples/Modular.hpp>
-#include <avnd/../../examples/SampleAccurateControls.hpp>
-#include <avnd/../../examples/Minimal.hpp>
-#include <avnd/../../examples/LitterPower/CCC.hpp>
-#include <avnd/../../examples/Messages.hpp>
+#include <avnd/../../examples/Ports/LitterPower/CCC.hpp>
 #include <brigand/sequences/list.hpp>
 
-#include <avnd/../../examples/Lowpass.hpp>
 
 #include <Crousti/Layer.hpp>
 /**
  * This file instantiates the classes that are provided by this plug-in.
  */
 
-#include <avnd/helpers/meta.hpp>
+#include <halp/meta.hpp>
 
 namespace oscr
 {
@@ -120,7 +119,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   {
     ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
       using type = typename decltype(t)::type;
-      if constexpr(avnd::has_ui_layout<type>)
+      if constexpr(avnd::has_ui<type>)
       {
         v.emplace_back(static_cast<Process::LayerFactory*>(new oscr::LayerFactory<type>()));
       }
@@ -144,12 +143,13 @@ score_plugin_avnd::factories(
   using namespace examples::helpers;
 
   struct config {
-      using logger_type = avnd::basic_logger;
+      using logger_type = halp::basic_logger;
   };
 
   return oscr::instantiate_fx<
-      examples::helpers::Ui
-    #if 1
+      examples::helpers::AdvancedUi
+    #if 0
+      , examples::helpers::Ui
       , Addition
       , Callback
       , Controls
@@ -167,7 +167,7 @@ score_plugin_avnd::factories(
       , examples::helpers::PerSampleAsArgs
       , examples::helpers::PerSampleAsPorts
       , examples::Init
-      , examples::CCC
+      , litterpower_ports::CCC
       , examples::Midi
       , examples::Minimal
       , examples::Modular

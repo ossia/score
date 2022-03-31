@@ -16,6 +16,7 @@ class SCORE_LIB_BASE_EXPORT GraphicsLayout : public score::BackgroundItem
     virtual void centerContent();
 
     void setBrush(score::BrushSet& b);
+    void setBackground(const QString& b);
     void setMargin(qreal m);
     void setPadding(qreal p);
 
@@ -23,6 +24,8 @@ class SCORE_LIB_BASE_EXPORT GraphicsLayout : public score::BackgroundItem
 
   protected:
     score::BrushSet* m_bg{};
+    QPixmap* m_pix{};
+
     qreal m_margin{default_margin};
     qreal m_padding{default_padding};
 };

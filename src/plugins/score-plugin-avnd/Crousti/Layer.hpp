@@ -1,5 +1,6 @@
 #pragma once
 #include <Crousti/ProcessModel.hpp>
+#include <Crousti/Painter.hpp>
 #include <Control/Layout.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -56,6 +57,12 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       }
     }
 
+    template<typename T>
+    QGraphicsItem* createCustom(const T& item)
+    {
+      return new oscr::CustomItem<typename T::item_type>{};
+    }
+
     /*
     template<int N>
     constexpr void recurse(auto item)
@@ -68,70 +75,6 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       (make_index_sequence<N>{});
     }
     */
-
-    template<typename T>
-    score::BrushSet& get_brush(T cur)
-    {
-      auto& skin = score::Skin::instance();
-      {
-      if constexpr(requires { T::darker; })
-        if(cur == T::darker)
-          return skin.Background2.darker300;
-      }
-      {
-        if constexpr(requires { T::dark; })
-          if(cur == T::dark)
-            return skin.Background2.darker;
-      }
-      {
-        if constexpr(requires { T::mid; })
-          if(cur == T::mid)
-            return skin.Background2.main;
-      }
-      {
-        if constexpr(requires { T::light; })
-          if(cur == T::light)
-            return skin.Background2.lighter;
-      }
-      {
-        if constexpr(requires { T::lighter; })
-          if(cur == T::lighter)
-            return skin.Background2.lighter180;
-      }
-      return skin.Background2.main;
-    }
-
-    template<typename Item>
-    void setupLayout(const Item&, score::GraphicsLayout& item)
-    {
-      if constexpr(requires { Item::background(); })
-      {
-        item.setBrush(get_brush(Item::background()));
-      }
-    }
-
-    template<typename Item>
-    void setupItem(const Item& it, QGraphicsItem& item)
-    {
-      item.setParentItem(layout);
-      if constexpr(requires { Item::x(); } && requires { Item::y(); })
-      {
-        item.setPos(it.x(), it.y());
-      }
-      else if constexpr(requires { Item::x; } && requires { Item::y; })
-      {
-        item.setPos(it.x, it.y);
-      }
-
-      if constexpr(requires { Item::scale(); })
-      {
-        item.setScale(it.scale());
-      }
-      else if constexpr(requires { Item::scale; })
-      {
-        item.setScale(it.scale);
-      }
-    }
 
     template<typename Item>
     void subLayout(const Item& item, score::GraphicsLayout* new_l)
@@ -214,11 +157,22 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         if(auto widg = createWidget(item.control))
           setupItem(item, *widg);
       }
-      else
+      else if constexpr(avnd::custom_layout<Item>)
       {
-        // Normal widget
+        // Widget with some metadata.. FIXME
+        if(auto widg = createCustom(item))
+          setupItem(item, *widg);
+      }
+      else if constexpr(!requires { &Item::layout; })
+      {
+        // Normal widget, e.g. just a const char*
         if(auto widg = createWidget(item))
           setupItem(item, *widg);
+      }
+      else
+      {
+        // Treat it like group
+        subLayout(item, new score::GraphicsLayout{layout});
       }
     }
 };
@@ -275,14 +229,14 @@ private:
   {
     using namespace score;
     auto rootItem = new score::EmptyRectItem{parent};
-    if constexpr (avnd::has_ui_layout<Info>)
+    if constexpr (avnd::has_ui<Info>)
     {
       LayoutBuilder<Info> b{
         *rootItem,
             ctx,
             ctx.app.interfaces<Process::PortFactoryList>(),
             proc.inlets(), proc.outlets()};
-      b.walkLayout(typename Info::ui_layout{});
+      b.walkLayout(typename Info::ui{});
       b.finalizeLayout(rootItem);
     }
     rootItem->fitChildrenRect();

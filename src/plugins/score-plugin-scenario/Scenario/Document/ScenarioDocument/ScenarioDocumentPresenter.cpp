@@ -289,7 +289,15 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     m_centralDisplay.emplace<CentralIntervalDisplay>(*this);
     if(view().view().timebarPlaying)
       startTimeBar();
-    QTimer::singleShot(0, this, [=] { restoreZoom(); });
+
+    // It may happen that the score is closed and this event is called
+    // and the event is processed before this is deleted, but after the interval
+    // is, so we have to double-check
+    QPointer<IntervalModel> itv = &displayedElements.interval();
+    QTimer::singleShot(0, this, [=] {
+      if(itv)
+        restoreZoom();
+    });
   }
 
 

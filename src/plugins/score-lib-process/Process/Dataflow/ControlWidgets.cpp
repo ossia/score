@@ -74,4 +74,13 @@ PortItemLayout DefaultControlLayouts::button() noexcept
   , .labelAlignment = Qt::AlignCenter
   };
 }
+
+PortItemLayout DefaultControlLayouts::chooser_toggle() noexcept
+{
+  return Process::PortItemLayout{
+    .port = QPointF{0., 4.}
+  , .control = QPointF{10., 0.}
+  , .labelVisible = false
+  };
+}
 }
