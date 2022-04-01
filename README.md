@@ -45,7 +45,7 @@ Some useful and easy potential contributions are listed [on the website](https:/
 There are also many fixable areas in the code :
 * [**TODO**](https://github.com/ossia/score/search?q=TODO) : for simple issues.
 * [**FIXME**](https://github.com/ossia/score/search?q=FIXME) : for critical bugs / problems.
-* [**MOVEME**](https://github.com/ossia/score/search?q=REMOVEME) : when something is not where it should be.
+* [**MOVEME**](https://github.com/ossia/score/search?q=MOVEME) : when something is not where it should be.
 * [**REMOVEME**](https://github.com/ossia/score/search?q=REMOVEME) : when something is redundant.
 * [**RENAMEME**](https://github.com/ossia/score/search?q=RENAMEME) : when the class does not match with the file it's in.
 * [**OPTIMIZEME**](https://github.com/ossia/score/search?q=OPTIMIZEME) : when an easy-to-write-but-suboptimal algorithm is used.
