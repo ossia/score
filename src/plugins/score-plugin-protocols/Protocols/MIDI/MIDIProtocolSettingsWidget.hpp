@@ -35,6 +35,7 @@ private:
 
   State::AddressFragmentLineEdit* m_name{};
   QCheckBox* m_createWhole{};
+  QCheckBox* m_virtualPort{};
   Device::DeviceSettings m_current;
 };
 class MIDIOutputSettingsWidget final : public Device::ProtocolSettingsWidget
@@ -51,6 +52,7 @@ private:
 
   State::AddressFragmentLineEdit* m_name{};
   QCheckBox* m_createWhole{};
+  QCheckBox* m_virtualPort{};
   Device::DeviceSettings m_current;
 };
 }

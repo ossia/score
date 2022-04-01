@@ -20,7 +20,7 @@ namespace Protocols
 class MIDIInputProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("f5e04ef0-16dd-4997-8f81-f5a04b8702bc")
-
+public:
   // Implement with OSSIA::Device
   Device::ProtocolFactory::Flags flags() const noexcept override;
   QString prettyName() const noexcept override;
@@ -61,7 +61,7 @@ class MIDIInputProtocolFactory final : public Device::ProtocolFactory
 class MIDIOutputProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("d5a4a701-d152-4b3b-be05-4d847b623451")
-
+public:
   // Implement with OSSIA::Device
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
