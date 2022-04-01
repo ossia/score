@@ -5,11 +5,12 @@
 #include "MIDIDevice.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"
 
-#include <score/application/GUIApplicationContext.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <Protocols/Settings/Model.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <QObject>
 #if defined(__EMSCRIPTEN__)
@@ -37,7 +38,8 @@ class MidiEnumerator : public Device::DeviceEnumerator
     libremidi::observer::callbacks cb;
     if constexpr (Type == ossia::net::midi::midi_info::Type::Input)
     {
-      cb.input_added = [this](int port, const std::string& device) {
+      cb.input_added = [this](int port, const std::string& device)
+      {
         Device::DeviceSettings set;
         MIDISpecificSettings specif;
         set.name = QString::fromStdString(device);
@@ -55,7 +57,8 @@ class MidiEnumerator : public Device::DeviceEnumerator
     }
     else
     {
-      cb.output_added = [this](int port, const std::string& device) {
+      cb.output_added = [this](int port, const std::string& device)
+      {
         Device::DeviceSettings set;
         MIDISpecificSettings specif;
         set.name = QString::fromStdString(device);
@@ -159,11 +162,14 @@ Device::DeviceInterface* MIDIInputProtocolFactory::makeDevice(
 const Device::DeviceSettings&
 MIDIInputProtocolFactory::defaultSettings() const noexcept
 {
-  static const Device::DeviceSettings settings = [&]() {
+  static const Device::DeviceSettings settings = [&]()
+  {
     Device::DeviceSettings s;
     s.protocol = concreteKey();
     s.name = "Midi";
     MIDISpecificSettings specif;
+    specif.io = MIDISpecificSettings::IO::In;
+    specif.virtualPort = false;
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
@@ -239,11 +245,14 @@ Device::DeviceInterface* MIDIOutputProtocolFactory::makeDevice(
 const Device::DeviceSettings&
 MIDIOutputProtocolFactory::defaultSettings() const noexcept
 {
-  static const Device::DeviceSettings settings = [&]() {
+  static const Device::DeviceSettings settings = [&]()
+  {
     Device::DeviceSettings s;
     s.protocol = concreteKey();
     s.name = "Midi";
     MIDISpecificSettings specif;
+    specif.io = MIDISpecificSettings::IO::Out;
+    specif.virtualPort = false;
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();

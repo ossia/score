@@ -51,7 +51,8 @@ DeviceEditDialog::DeviceEditDialog(
 {
   const auto& skin = score::Skin::instance();
   const QColor textHeaderColor = QColor("#D5D5D5");
-  auto setHeaderTextFormat = [&](QLabel* label) {
+  auto setHeaderTextFormat = [&](QLabel* label)
+  {
     label->setFont(skin.TitleFont);
     auto p = label->palette();
     p.setColor(QPalette::WindowText, textHeaderColor);
@@ -78,7 +79,7 @@ DeviceEditDialog::DeviceEditDialog(
   m_protocols = new QTreeWidget{this};
   m_protocols->header()->hide();
   m_protocols->setSelectionMode(QAbstractItemView::SingleSelection);
-  if(m_mode == Mode::Editing)
+  if (m_mode == Mode::Editing)
   {
     m_protocols->setVisible(false);
   }
@@ -106,7 +107,8 @@ DeviceEditDialog::DeviceEditDialog(
   {
     m_protocolNameLabel = new QLabel{tr("Settings"), this};
     setHeaderTextFormat(m_protocolNameLabel);
-    gridLayout->addWidget(m_protocolNameLabel, 0, 2, -1, -1, Qt::AlignLeft | Qt::AlignTop);
+    gridLayout->addWidget(
+        m_protocolNameLabel, 0, 2, -1, -1, Qt::AlignLeft | Qt::AlignTop);
   }
   m_main = new QWidget{this};
   gridLayout->addWidget(m_main, 1, 2, -1, -1);
@@ -118,12 +120,16 @@ DeviceEditDialog::DeviceEditDialog(
 
   initAvailableProtocols();
 
-  connect(m_protocols, &QTreeView::activated, this, [this] {
-    selectedProtocolChanged();
-  });
-  connect(m_devices, &QListWidget::currentRowChanged, this, [this] {
-    selectedDeviceChanged();
-  });
+  connect(
+      m_protocols,
+      &QTreeView::activated,
+      this,
+      [this] { selectedProtocolChanged(); });
+  connect(
+      m_devices,
+      &QListWidget::currentRowChanged,
+      this,
+      [this] { selectedDeviceChanged(); });
 
   if (m_protocols->topLevelItemCount() > 0)
   {
@@ -152,9 +158,9 @@ void DeviceEditDialog::initAvailableProtocols()
   }
 
   ossia::sort(
-      sorted, [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
-        return lhs->visualPriority() > rhs->visualPriority();
-      });
+      sorted,
+      [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs)
+      { return lhs->visualPriority() > rhs->visualPriority(); });
   for (const auto& prot_pair : sorted)
   {
     auto& prot = *prot_pair;
@@ -256,13 +262,15 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_devices->setVisible(true);
     m_devicesLabel->setVisible(true);
 
-    auto addItem = [&](const Device::DeviceSettings& settings) {
+    auto addItem = [&](const Device::DeviceSettings& settings)
+    {
       auto item = new QListWidgetItem;
       item->setText(settings.name);
       item->setData(Qt::UserRole, QVariant::fromValue(settings));
       m_devices->addItem(item);
     };
-    auto rmItem = [&](const QString& name) {
+    auto rmItem = [&](const QString& name)
+    {
       auto items = m_devices->findItems(name, Qt::MatchExactly);
       for (auto item : items)
         delete m_devices->takeItem(m_devices->row(item));
@@ -284,12 +292,13 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_devices->setVisible(false);
     m_devicesLabel->setVisible(false);
   }
-  m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
+  m_protocolNameLabel->setText(
+      tr("Settings (%1)").arg(protocol->prettyName()));
   m_protocolWidget = protocol->makeSettingsWidget();
-
 
   if (m_protocolWidget)
   {
+    m_protocolWidget->setSettings(protocol->defaultSettings());
     connect(
         m_protocolWidget,
         &Device::ProtocolSettingsWidget::changed,

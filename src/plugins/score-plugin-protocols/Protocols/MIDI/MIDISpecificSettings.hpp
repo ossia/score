@@ -15,9 +15,11 @@ struct MIDISpecificSettings
     Out
   } io{};
   QString endpoint;
+  QString name;
   int port{};
   libremidi::API api{};
   bool createWholeTree{};
+  bool virtualPort{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::MIDISpecificSettings)
