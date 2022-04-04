@@ -35,7 +35,7 @@ void GraphicsLayout::setBrush(score::BrushSet& b)
 
 void GraphicsLayout::setBackground(const QString& b)
 {
-  m_pix = new QPixmap{score::get_pixmap(b)};
+  m_pix = new QPixmap{score::get_pixmap(":/plugins/" + b)};
 }
 
 void GraphicsLayout::setPadding(qreal p)

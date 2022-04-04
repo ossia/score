@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <Crousti/ProcessModel.hpp>
+#include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadatas.hpp>
 #include <Crousti/GpuNode.hpp>
 #include <ossia/dataflow/node_process.hpp>
@@ -338,7 +339,9 @@ public:
 
       using control_inputs_type = avnd::control_input_introspection<Node>;
       using control_outputs_type = avnd::control_output_introspection<Node>;
-      auto& eff = node->impl;
+      avnd::effect_container<Node>& eff = node->impl;
+
+      // UI controls to engine
       if constexpr (control_inputs_type::size > 0)
       {
         // Initialize all the controls in the node with the current value.
@@ -349,6 +352,40 @@ public:
         );
       }
 
+      // Custom UI messages to engine
+      if constexpr(requires { element.from_ui; }) {
+        element.from_ui = [p = QPointer{this}, &eff] (QByteArray b) {
+          if(!p)
+            return;
+
+          p->in_exec([mess = std::move(b), &eff] {
+            using refl = avnd::function_reflection<&Node::process_message>;
+            static_assert(refl::count <= 1);
+
+            if constexpr(refl::count == 0) {
+              // no arguments, just call it
+              eff.effect.process_message();
+            }
+            else if constexpr(refl::count == 1) {
+              using arg_type = avnd::first_argument<&Node::process_message>;
+              std::decay_t<arg_type> arg;
+              MessageBusReader b{mess};
+              b(arg);
+              eff.effect.process_message(std::move(arg));
+            }
+          });
+        };
+      }
+
+      if constexpr(requires { eff.effect.send_message; }) {
+        eff.effect.send_message = [this] (auto b) mutable {
+          this->in_edit([this, bb = std::move(b)] () mutable{
+            MessageBusSender{this->process().to_ui}(std::move(bb));
+          });
+        };
+      }
+
+      // Engine to ui controls
       if constexpr (control_inputs_type::size > 0 || control_outputs_type::size > 0)
       {
         // Update the value in the UI
@@ -369,6 +406,11 @@ public:
 
   void cleanup() override
   {
+    if constexpr(requires { this->process().from_ui; }) {
+      this->process().from_ui = [] (QByteArray arr) { };
+    }
+    // FIXME cleanup eff.effect.send_message too ?
+
 #if SCORE_PLUGIN_GFX
     if constexpr(GpuNode<Node>)
     {

@@ -213,7 +213,7 @@ struct InletInitFunc
 
   void operator()(const auto& ctrl)
   {
-    static_assert(avnd::message<std::decay_t<decltype(ctrl)>>);
+    //(avnd::message<std::decay_t<decltype(ctrl)>>);
     qDebug() << fromStringView(avnd::get_name(ctrl)) << "unhandled";
   }
 };
@@ -277,7 +277,21 @@ struct OutletInitFunc
 };
 
 template <typename Info>
-class ProcessModel final : public Process::ProcessModel
+struct MessageBusWrapper {
+
+};
+
+template <typename Info>
+requires (!std::is_void_v<typename Info::ui::bus>)
+struct MessageBusWrapper<Info> {
+  std::function<void(QByteArray)> from_ui;
+  std::function<void(QByteArray)> to_ui;
+};
+
+template <typename Info>
+class ProcessModel final
+    : public Process::ProcessModel
+    , public MessageBusWrapper<Info>
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(ProcessModel<Info>)
@@ -301,6 +315,13 @@ public:
       InletInitFunc{*this, m_inlets},
       OutletInitFunc{*this, m_outlets}
     );
+
+    if constexpr(requires { this->from_ui; }) {
+      this->from_ui = [] (QByteArray arr) { };
+    }
+    if constexpr(requires { this->to_ui; }) {
+      this->to_ui = [] (QByteArray arr) { };
+    }
   }
 
   template <typename Impl>

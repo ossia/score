@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <halp/texture.hpp>
 
 namespace oscr
 {
@@ -75,30 +76,30 @@ struct QPainterAdapter
 
     // Colors:
     //                  R    G    B    A
-    void set_stroke_color(QColor c)
+    void set_stroke_color(halp::rgba_color c)
     {
-        QPen p = painter.pen();
-        p.setColor(c);
-        painter.setPen(p);
+      QPen p = painter.pen();
+      p.setColor(qRgba(c.r, c.g, c.b, c.a));
+      painter.setPen(p);
     }
     void set_stroke_width(double w)
     {
-        QPen p = painter.pen();
-        p.setWidth(w);
-        painter.setPen(p);
+      QPen p = painter.pen();
+      p.setWidth(w);
+      painter.setPen(p);
     }
 
-    void set_fill_color(QColor b)
+    void set_fill_color(halp::rgba_color c)
     {
-        painter.setBrush(b);
+      painter.setBrush(QColor(qRgba(c.r, c.g, c.b, c.a)));
     }
 
     // Text:
-    void set_font(QString f)
+    void set_font(std::string_view f)
     {
-        auto font = painter.font();
-        font.setFamily(f);
-        painter.setFont(font);
+      auto font = painter.font();
+      font.setFamily(QString::fromUtf8(f.data(), f.size()));
+      painter.setFont(font);
     }
 
     void set_font_size(double f)
@@ -108,9 +109,9 @@ struct QPainterAdapter
         painter.setFont(font);
     }
 
-    void draw_text(double x, double y, QString str)
+    void draw_text(double x, double y, std::string_view str)
     {
-        path.addText(x, y, painter.font(), str);
+        path.addText(x, y, painter.font(), QString::fromUtf8(str.data(), str.size()));
     }
 
     // Drawing
@@ -157,7 +158,11 @@ template<typename Item, typename Control = void>
 class CustomItem : public QGraphicsItem
 {
   public:
-    CustomItem()
+    // Item may be T::item_type or T&
+    using item_type = std::decay_t<Item>;
+
+    // Case T::item_type
+    explicit CustomItem()
     {
       this->setFlag(ItemClipsToShape);
       this->setFlag(ItemClipsChildrenToShape);
@@ -172,9 +177,17 @@ class CustomItem : public QGraphicsItem
       }
     }
 
+    // Case T&
+    explicit CustomItem(Item item_init)
+      : impl{item_init}
+    {
+      this->setFlag(ItemClipsToShape);
+      this->setFlag(ItemClipsChildrenToShape);
+    }
+
     QRectF boundingRect() const override
     {
-      return {0., 0., Item::width(), Item::height()};
+      return {0., 0., item_type::width(), item_type::height()};
     }
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
@@ -187,18 +200,21 @@ class CustomItem : public QGraphicsItem
   protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override
     {
-      if(impl.mouse_press(event->pos().x(), event->pos().y()))
-        event->accept();
+      if constexpr(requires { impl.mouse_press(0, 0); })
+        if(impl.mouse_press(event->pos().x(), event->pos().y()))
+          event->accept();
     }
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
     {
-      impl.mouse_move(event->pos().x(), event->pos().y());
-        event->accept();
+      if constexpr(requires { impl.mouse_move(0, 0); })
+        impl.mouse_move(event->pos().x(), event->pos().y());
+          event->accept();
     }
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
     {
-      impl.mouse_release(event->pos().x(), event->pos().y());
-      event->accept();
+      if constexpr(requires { impl.mouse_release(0, 0); })
+        impl.mouse_release(event->pos().x(), event->pos().y());
+          event->accept();
     }
 
   private:

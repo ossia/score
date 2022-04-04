@@ -59,6 +59,7 @@
 #include <avnd/../../examples/Helpers/Peak.hpp>
 #include <avnd/../../examples/Helpers/Midi.hpp>
 #include <avnd/../../examples/Helpers/Ui.hpp>
+#include <avnd/../../examples/Helpers/UiBus.hpp>
 #include <avnd/../../examples/Tutorial/ZeroDependencyAudioEffect.hpp>
 #include <avnd/../../examples/Tutorial/AudioEffectExample.hpp>
 #include <avnd/../../examples/Tutorial/TextureFilterExample.hpp>
@@ -82,6 +83,64 @@
  */
 
 #include <halp/meta.hpp>
+
+struct MyProcessor {
+  halp_meta(name, "Gain");
+  halp_meta(uuid, "3183d03e-9228-4d50-98e0-e7601dd16a2e");
+
+  struct ins {
+    halp::dynamic_audio_bus<"Input", double> audio;
+    halp::knob_f32<"Gain", halp::range{.min = 0., .max = 1.}> gain;
+  } inputs;
+
+  struct outs {
+    halp::dynamic_audio_bus<"Output", double> audio;
+    halp::hbargraph_f32<"Measure", halp::range{-1., 1., 0.}> measure;
+  } outputs;
+
+  struct ui {
+    using enum halp::colors;
+    using enum halp::layouts;
+
+    halp_meta(name, "Main")
+    halp_meta(layout, hbox)
+    halp_meta(background, mid)
+
+    struct {
+      halp_meta(name, "Widget")
+      halp_meta(layout, vbox)
+      halp_meta(background, dark)
+
+      const char* label = "Hello !";
+      halp::item<&ins::gain> widget;
+      const char* label2 = "Gain control!";
+    } widgets;
+
+    halp::spacing spc{.width = 20, .height = 20};
+
+    halp::item<&outs::measure> widget2;
+  };
+
+  void operator()(int N) {
+    auto& in = inputs.audio;
+    auto& out = outputs.audio;
+    const float gain = inputs.gain;
+
+    double measure = 0.;
+    for (int i = 0; i < in.channels; i++)
+    {
+      for (int j = 0; j < N; j++)
+      {
+        out[i][j] = gain * in[i][j];
+        measure += std::abs(out[i][j]);
+      }
+    }
+
+    if(N > 0 && in.channels > 0)
+      outputs.measure = measure / (N * in.channels);
+  }
+};
+
 
 namespace oscr
 {
@@ -147,9 +206,10 @@ score_plugin_avnd::factories(
   };
 
   return oscr::instantiate_fx<
-      examples::helpers::AdvancedUi
+      examples::helpers::MessageBusUi
     #if 0
-      , examples::helpers::Ui
+      examples::helpers::AdvancedUi
+      , MyProcessor
       , Addition
       , Callback
       , Controls

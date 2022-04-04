@@ -1,6 +1,7 @@
 #pragma once
 #include <Crousti/ProcessModel.hpp>
 #include <Crousti/Painter.hpp>
+#include <Crousti/MessageBus.hpp>
 #include <Control/Layout.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -58,9 +59,14 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     }
 
     template<typename T>
-    QGraphicsItem* createCustom(const T& item)
+    QGraphicsItem* createCustom(T& item)
     {
-      return new oscr::CustomItem<typename T::item_type>{};
+      if constexpr(requires { typename T::item_type{}; }) {
+        return new oscr::CustomItem<typename T::item_type>{};
+      }
+      else {
+        return new oscr::CustomItem<T&>{item};
+      }
     }
 
     /*
@@ -77,7 +83,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     */
 
     template<typename Item>
-    void subLayout(const Item& item, score::GraphicsLayout* new_l)
+    void subLayout(Item& item, score::GraphicsLayout* new_l)
     {
       auto old_l = layout;
       setupLayout(item, *new_l);
@@ -99,7 +105,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     }
 
     template<typename Item>
-    void walkLayout(const Item& item)
+    void walkLayout(Item& item)
     {
       if constexpr(avnd::spacing_layout<Item>)
       {
@@ -222,24 +228,80 @@ private:
     return nullptr;
   }
 
+  auto makeItemImpl(ProcessModel<Info>& proc, QGraphicsItem* parent) const noexcept
+  {
+    // Initialize if needed
+    if constexpr(requires { typename Info::ui::bus{}; }) {
+      struct Item
+          : score::EmptyRectItem
+      {
+          using score::EmptyRectItem::EmptyRectItem;
+          typename Info::ui ui;
+          typename Info::ui::bus bus;
+      };
+      auto ptr = new Item{parent};
+      // ui -> engine
+      ptr->bus.send_message = MessageBusSender{proc.from_ui};
+
+      // engine -> ui
+      proc.to_ui = [ptr] (QByteArray mess) {
+        if constexpr(requires { ptr->bus.process_message(); }) {
+          ptr->bus.process_message();
+        }
+        else if constexpr(requires { ptr->bus.process_message(ptr->ui); }) {
+          ptr->bus.process_message(ptr->ui);
+        }
+        else if constexpr(requires { ptr->bus.process_message(ptr->ui, {}); }) {
+          avnd::second_argument<&Info::ui::bus::process_message> arg;
+          MessageBusReader b{mess};
+          b(arg);
+          ptr->bus.process_message(ptr->ui, std::move(arg));
+        }
+        else
+        {
+          ptr->bus.process_message(ptr->ui, {});
+        }
+      };
+
+      ptr->bus.init(ptr->ui);
+      return ptr;
+    }
+    else
+    {
+      struct Item
+          : score::EmptyRectItem
+      {
+          using score::EmptyRectItem::EmptyRectItem;
+          typename Info::ui impl;
+      };
+      return new Item{parent};
+    }
+  }
+
   score::ResizeableItem* makeItem(
       const Process::ProcessModel& proc,
       const Process::Context& ctx,
       QGraphicsItem* parent) const final override
   {
     using namespace score;
-    auto rootItem = new score::EmptyRectItem{parent};
-    if constexpr (avnd::has_ui<Info>)
-    {
-      LayoutBuilder<Info> b{
-        *rootItem,
-            ctx,
-            ctx.app.interfaces<Process::PortFactoryList>(),
-            proc.inlets(), proc.outlets()};
-      b.walkLayout(typename Info::ui{});
-      b.finalizeLayout(rootItem);
-    }
+
+    auto rootItem = makeItemImpl(
+                      const_cast<ProcessModel<Info>&>(static_cast<const ProcessModel<Info>&>(proc)),
+                      parent);
+
+    LayoutBuilder<Info> b{
+      *rootItem,
+          ctx,
+          ctx.app.interfaces<Process::PortFactoryList>(),
+          proc.inlets(), proc.outlets()};
+
+
+    // Layout stuff
+    b.walkLayout(rootItem->ui);
+    b.finalizeLayout(rootItem);
+
     rootItem->fitChildrenRect();
+
     return rootItem;
   }
 };
