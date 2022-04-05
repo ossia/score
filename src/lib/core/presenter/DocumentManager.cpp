@@ -41,6 +41,7 @@
 
 #include <wobjectimpl.h>
 
+#include <unordered_map>
 #include <utility>
 W_OBJECT_IMPL(score::DocumentManager)
 namespace score
