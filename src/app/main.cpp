@@ -89,7 +89,7 @@ extern "C" void disableAppNap();
 static void setup_x11()
 {
 #if defined(__linux__)
-  helper_dylibs.x11 = dlopen("libX11.so", RTLD_LAZY | RTLD_LOCAL);
+  helper_dylibs.x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
   if(helper_dylibs.x11)
   {
     helper_dylibs.x11_set_error_handler = reinterpret_cast<XSetErrorHandler_ptr>(dlsym(helper_dylibs.x11, "XSetErrorHandler"));
@@ -143,7 +143,10 @@ static void setup_gdk()
   // For the handler thing: see
   // https://github.com/qt/qtbase/blob/dev/src/plugins/platformthemes/gtk3/qgtk3theme.cpp#L88
   // Basically GDK sets an error handler which exits... even though it's against the spec.
-  auto old_handler = helper_dylibs.x11_set_error_handler(nullptr);
+  X11ErrorHandler old_handler{};
+  if(helper_dylibs.x11_set_error_handler)
+    old_handler = helper_dylibs.x11_set_error_handler(nullptr);
+
   helper_dylibs.gdk_x11 = dlopen("libgdk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
   if (helper_dylibs.gdk_x11)
   {
@@ -151,7 +154,9 @@ static void setup_gdk()
       gdk_init_check(0, 0);
   }
 
-  helper_dylibs.x11_set_error_handler(old_handler);
+  if(helper_dylibs.x11_set_error_handler)
+    helper_dylibs.x11_set_error_handler(old_handler);
+
 #endif
 }
 
