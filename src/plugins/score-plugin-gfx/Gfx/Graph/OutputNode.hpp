@@ -51,6 +51,7 @@ public:
     // If set, the host is responsible for calling render() at this
     // rate (given in milliseconds)
     std::optional<double> manualRenderingRate;
+    bool outputNeedsRenderPass{};
   };
 
   virtual Configuration configuration() const noexcept = 0;

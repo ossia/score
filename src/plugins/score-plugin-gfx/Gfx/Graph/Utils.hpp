@@ -159,6 +159,38 @@ TextureRenderTarget createRenderTarget(
     QRhiTexture::Format fmt,
     QSize sz);
 
+SCORE_PLUGIN_GFX_EXPORT
+void replaceBuffer(
+    QRhiShaderResourceBindings&,
+    int binding,
+    QRhiBuffer* newBuffer);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceSampler(
+    QRhiShaderResourceBindings&,
+    int binding,
+    QRhiSampler* newSampler);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTexture(
+    QRhiShaderResourceBindings&,
+    int binding,
+    QRhiTexture* newTexture);
+
+SCORE_PLUGIN_GFX_EXPORT
+void replaceBuffer(
+    std::vector<QRhiShaderResourceBinding>&,
+    int binding,
+    QRhiBuffer* newBuffer);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceSampler(
+    std::vector<QRhiShaderResourceBinding>&,
+    int binding,
+    QRhiSampler* newSampler);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTexture(
+    std::vector<QRhiShaderResourceBinding>&,
+    int binding,
+    QRhiTexture* newTexture);
+
 /**
  * @brief Replace a sampler.
  */

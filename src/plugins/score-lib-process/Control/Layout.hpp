@@ -5,6 +5,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 
 #include <score/graphics/GraphicsLayout.hpp>
+#include <score/model/Skin.hpp>
 namespace Process
 {
 struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase

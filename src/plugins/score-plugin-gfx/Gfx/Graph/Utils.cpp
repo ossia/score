@@ -38,6 +38,103 @@ createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
   return createRenderTarget(state, texture);
 }
 
+void replaceBuffer(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiBuffer* newBuffer)
+{
+  const auto bufType = newBuffer->resourceType();
+  for (QRhiShaderResourceBinding& b : tmp)
+  {
+    if (b.data()->binding == binding)
+    {
+      switch(b.data()->type)
+      {
+        case QRhiShaderResourceBinding::Type::UniformBuffer:
+          b.data()->u.ubuf.buf = newBuffer;
+          break;
+        case QRhiShaderResourceBinding::Type::BufferLoad:
+        case QRhiShaderResourceBinding::Type::BufferStore:
+        case QRhiShaderResourceBinding::Type::BufferLoadStore:
+          b.data()->u.sbuf.buf = newBuffer;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+}
+
+void replaceSampler(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiSampler* newSampler)
+{
+  for (QRhiShaderResourceBinding& b : tmp)
+  {
+    if (b.data()->binding == binding)
+    {
+      if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+      {
+        b.data()->u.stex.texSamplers[0].sampler = newSampler;
+      }
+    }
+  }
+}
+
+void replaceTexture(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiTexture* newTexture)
+{
+  for (QRhiShaderResourceBinding& b : tmp)
+  {
+    if (b.data()->binding == binding)
+    {
+      switch(b.data()->type)
+      {
+        case QRhiShaderResourceBinding::Type::SampledTexture:
+          b.data()->u.stex.texSamplers[0].tex = newTexture;
+          break;
+        case QRhiShaderResourceBinding::Type::ImageLoad:
+        case QRhiShaderResourceBinding::Type::ImageStore:
+        case QRhiShaderResourceBinding::Type::ImageLoadStore:
+          b.data()->u.simage.tex = newTexture;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+}
+
+void replaceBuffer(QRhiShaderResourceBindings& srb, int binding, QRhiBuffer* newBuffer)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+
+  replaceBuffer(tmp, binding, newBuffer);
+
+  srb.destroy();
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.create();
+}
+
+void replaceSampler(QRhiShaderResourceBindings& srb, int binding, QRhiSampler* newSampler)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+
+  replaceSampler(tmp, binding, newSampler);
+
+  srb.destroy();
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.create();
+}
+
+void replaceTexture(QRhiShaderResourceBindings& srb, int binding, QRhiTexture* newTexture)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+
+  replaceTexture(tmp, binding, newTexture);
+
+  srb.destroy();
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.create();
+}
+
 void replaceSampler(
     QRhiShaderResourceBindings& srb,
     QRhiSampler* oldSampler,
@@ -275,6 +372,7 @@ std::pair<QShader, QShader> makeShaders(QString vert, QString frag)
     qDebug() << frag.toStdString().data();
   }
 
+  qDebug().noquote() << vert.toUtf8().constData();
   if (!vertexS.isValid())
     throw std::runtime_error("invalid vertex shader");
   if (!fragmentS.isValid())
@@ -466,5 +564,6 @@ QSizeF computeScale(ScaleMode mode, QSizeF viewport, QSizeF texture)
       return {1., 1.};
   }
 }
+
 
 }

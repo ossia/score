@@ -3,7 +3,9 @@
 #include <Crousti/ProcessModel.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadatas.hpp>
+#include <Crousti/GfxNode.hpp>
 #include <Crousti/GpuNode.hpp>
+#include <Crousti/GpuComputeNode.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <Engine/Node/TickPolicy.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -258,7 +260,7 @@ public:
   }
 
   [[no_unique_address]]
-  type_if<int, GpuNode<Node>> node_id = -1;
+  type_if<int, is_gpu<Node>> node_id = -1;
 
   Executor(
       ProcessModel<Node>& element,
@@ -272,19 +274,17 @@ public:
               p}
   {
 #if SCORE_PLUGIN_GFX
-    if constexpr(GpuNode<Node>)
+    if constexpr(is_gpu<Node>)
     {
       auto& gfx_exec = ctx.doc.plugin<Gfx::DocumentPlugin>().exec;
-      // Create the matching gpu node
-      auto state = std::make_shared<Node>();
+
+      // Create the executor in the audio thread
       auto node = std::make_shared<Gfx::gfx_exec_node>(gfx_exec);
-      node->prepare();
+      node->prepare(*ctx.execState);
 
-      node->root_outputs().push_back(new ossia::texture_outlet);
       this->node = node;
-      node->id = gfx_exec.ui->register_node(std::make_unique<GfxNode<Node>>(state));
-      node_id = node->id;
 
+      // Create the controls, inputs outputs etc.
       std::size_t i = 0;
       for (auto& ctl : element.inlets())
       {
@@ -320,12 +320,37 @@ public:
       // FIXME refactor this with other GFX processes
       for(auto* outlet : element.outlets())
       {
-        if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+        if (auto ctrl = qobject_cast<Process::ControlOutlet*>(outlet))
         {
+          node->add_control_out();
+        }
+        else if (auto ctrl = qobject_cast<Process::ValueOutlet*>(outlet))
+        {
+          node->add_control_out();
+        }
+        else if (auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+        {
+          node->add_texture_out();
           out->nodeId = node_id;
         }
       }
 
+      // Create the GPU node
+      if constexpr(GpuGraphicsNode2<Node>)
+      {
+        node->id = gfx_exec.ui->register_node(std::make_unique<CustomGpuNode<Node>>());
+      }
+      else if constexpr(GpuComputeNode2<Node>)
+      {
+        auto& q = ctx.executionQueue;
+        node->id = gfx_exec.ui->register_node(std::make_unique<GpuComputeNode<Node>>(q, node->control_outs));
+      }
+      else if constexpr(GpuNode<Node>)
+      {
+        auto state = std::make_shared<Node>();
+        node->id = gfx_exec.ui->register_node(std::make_unique<GfxNode<Node>>(state));
+      }
+      node_id = node->id;
     }
     else
 #endif
@@ -412,7 +437,7 @@ public:
     // FIXME cleanup eff.effect.send_message too ?
 
 #if SCORE_PLUGIN_GFX
-    if constexpr(GpuNode<Node>)
+    if constexpr(is_gpu<Node>)
     {
       // FIXME this must move in the Node dtor. See video_node
       auto& gfx_exec = this->system().doc.template plugin<Gfx::DocumentPlugin>().exec;

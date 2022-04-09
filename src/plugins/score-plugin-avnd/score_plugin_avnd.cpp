@@ -77,6 +77,9 @@
 #include <brigand/sequences/list.hpp>
 
 
+#include "/home/jcelerier/projets/perso/gpp/gpp-helpers.hpp"
+#include "/home/jcelerier/projets/perso/gpp/gpp-compute.hpp"
+
 #include <Crousti/Layer.hpp>
 /**
  * This file instantiates the classes that are provided by this plug-in.
@@ -206,9 +209,10 @@ score_plugin_avnd::factories(
   };
 
   return oscr::instantiate_fx<
-      examples::helpers::MessageBusUi
+      examples::GpuComputeExample
     #if 0
-      examples::helpers::AdvancedUi
+      , examples::helpers::MessageBusUi
+      , examples::helpers::AdvancedUi
       , MyProcessor
       , Addition
       , Callback

@@ -103,13 +103,15 @@ void RenderList::release()
   m_emptyTexture = nullptr;
 
   m_ready = false;
+  m_built = false;
 }
 
 void RenderList::maybeRebuild()
 {
   const QSize outputSize = state.size;
-  if (outputSize != m_lastSize)
+  if (outputSize != m_lastSize || !m_built)
   {
+    m_built = false;
     release();
 
     // Now we have the nodes in the order in which they are going to
@@ -125,6 +127,7 @@ void RenderList::maybeRebuild()
     }
 
     m_lastSize = outputSize;
+    m_built = true;
   }
 }
 
@@ -188,9 +191,9 @@ const Mesh& RenderList::defaultTriangle() const noexcept
 }
 
 
-void RenderList::render(QRhiCommandBuffer& commands)
+void RenderList::render(QRhiCommandBuffer& commands, bool force)
 {
-  if (renderers.size() <= 1)
+  if (renderers.size() <= 1 && !force)
   {
     return;
   }
@@ -246,9 +249,9 @@ void RenderList::render(QRhiCommandBuffer& commands)
         // For nodes that perform multiple rendering passes,
         // pre-computations in compute shaders, etc... run them now.
         // Most nodes don't do anything there.
-        for(auto [edge, node] : prevRenderers)
+        for(auto [edge, renderer] : prevRenderers)
         {
-          node->runInitialPasses(*this, commands, updateBatch, *edge);
+          renderer->runInitialPasses(*this, commands, updateBatch, *edge);
         }
 
         // Then do the final render of each node on the edge sink's render target
@@ -289,6 +292,17 @@ void RenderList::render(QRhiCommandBuffer& commands)
     SCORE_ASSERT(!this->output.renderedNodes.empty());
     SCORE_ASSERT(dynamic_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second));
     auto output_renderer = static_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second);
+
+    if(this->output.configuration().outputNeedsRenderPass)
+    {
+      // FIXME remove this hack
+      score::gfx::Port p;
+      score::gfx::Edge dummy{&p,&p};
+      output_renderer->update(*this, *updateBatch);
+      output_renderer->runInitialPasses(*this, commands, updateBatch, dummy);
+      output_renderer->runRenderPass(*this, commands, dummy);
+    }
+
     output_renderer->finishFrame(*this, commands);
   }
 }

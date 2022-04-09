@@ -41,7 +41,11 @@ add_library(
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
   Crousti/Executor.hpp
+  Crousti/GfxNode.hpp
   Crousti/GpuNode.hpp
+  Crousti/GpuComputeNode.hpp
+  Crousti/GpuUtils.hpp
+  Crousti/GpuUtils.cpp
   Crousti/Layer.hpp
   Crousti/Layer.cpp
   Crousti/Layout.hpp
@@ -57,7 +61,7 @@ add_library(
 target_include_directories(score_plugin_avnd PUBLIC "${3RDPARTY_FOLDER}/avendish/include")
 target_link_libraries(score_plugin_avnd PRIVATE score_plugin_engine)
 if(TARGET score_plugin_gfx)
-  target_link_libraries(score_plugin_avnd PRIVATE score_plugin_engine)
+  target_link_libraries(score_plugin_avnd PRIVATE score_plugin_gfx)
 endif()
 
 if(NOT AVND_DISABLE_COROUTINES)

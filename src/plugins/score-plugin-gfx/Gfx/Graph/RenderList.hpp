@@ -42,7 +42,7 @@ public:
   /**
    * @brief Render every node in order.
    */
-  void render(QRhiCommandBuffer& commands);
+  void render(QRhiCommandBuffer& commands, bool force = false);
 
   /**
    * @brief Release GPU resources owned by this render list
@@ -140,5 +140,6 @@ private:
   bool m_flip{};
 
   bool m_ready{};
+  bool m_built{};
 };
 }

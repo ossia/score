@@ -27,18 +27,22 @@ int64_t index_of(
   return -1;
 }
 
+struct exec_control
+{
+  ossia::value value{};
+  ossia::value_port* port{};
+  bool changed{};
+};
+
+using exec_controls = std::vector<std::shared_ptr<exec_control>>;
 class SCORE_PLUGIN_GFX_EXPORT gfx_exec_node
     : public ossia::graph_node
 {
 public:
-  struct control
-  {
-    ossia::value value{};
-    ossia::value_port* port{};
-    bool changed{};
-  };
+  using control = Gfx::exec_control;
 
-  std::vector<std::shared_ptr<control>> controls;
+  exec_controls controls;
+  exec_controls control_outs;
 
   GfxExecutionAction* exec_context{};
   gfx_exec_node(GfxExecutionAction& e_ctx)
@@ -48,21 +52,40 @@ public:
 
   const std::shared_ptr<control>& add_control()
   {
-    auto inletport = new ossia::value_inlet;
-    m_inlets.push_back(inletport);
+    auto port = new ossia::value_inlet;
+    m_inlets.push_back(port);
 
     controls.push_back(std::make_shared<control>());
     auto& c = controls.back();
-    c->port = &**inletport;
+    c->port = &**port;
     c->changed = true;
+
+    return c;
+  }
+
+  const std::shared_ptr<control>& add_control_out()
+  {
+    auto port = new ossia::value_outlet;
+    m_outlets.push_back(port);
+
+    control_outs.push_back(std::make_shared<control>());
+    auto& c = control_outs.back();
+    c->port = &**port;
+    c->changed = false;
 
     return c;
   }
 
   void add_texture()
   {
-    auto inletport = new ossia::texture_inlet;
-    m_inlets.push_back(inletport);
+    auto port = new ossia::texture_inlet;
+    m_inlets.push_back(port);
+  }
+
+  void add_texture_out()
+  {
+    auto port = new ossia::texture_outlet;
+    m_outlets.push_back(port);
   }
 
   void add_audio()

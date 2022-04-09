@@ -7,7 +7,7 @@
 
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/ssize.hpp>
-
+#include <ossia/network/value/format_value.hpp>
 namespace Gfx
 {
 gfx_exec_node::~gfx_exec_node()
@@ -40,23 +40,6 @@ void gfx_exec_node::run(
   int inlet_i = 0;
   for (ossia::inlet* inlet : this->m_inlets)
   {
-    for (ossia::graph_edge* cable : inlet->sources)
-    {
-      if (auto src_gfx = dynamic_cast<gfx_exec_node*>(cable->out_node.get()))
-      {
-        if (src_gfx->executed())
-        {
-          int32_t port_idx = index_of(src_gfx->m_outlets, cable->out);
-          assert(port_idx != -1);
-          {
-            exec_context->setEdge(
-                port_index{src_gfx->id, port_idx},
-                port_index{this->id, inlet_i});
-          }
-        }
-      }
-    }
-
     switch (inlet->which())
     {
       case ossia::value_port::which:
@@ -82,6 +65,23 @@ void gfx_exec_node::run(
               = dynamic_cast<ossia::gfx::texture_input_parameter*>(*in))
           {
             cam->pull_texture({this->id, inlet_i});
+          }
+        }
+
+        for (ossia::graph_edge* cable : inlet->sources)
+        {
+          if (auto src_gfx = dynamic_cast<gfx_exec_node*>(cable->out_node.get()))
+          {
+            if (src_gfx->executed())
+            {
+              int32_t port_idx = index_of(src_gfx->m_outlets, cable->out);
+              assert(port_idx != -1);
+              {
+                exec_context->setEdge(
+                    port_index{src_gfx->id, port_idx},
+                    port_index{this->id, inlet_i});
+              }
+            }
           }
         }
         break;
@@ -110,5 +110,12 @@ void gfx_exec_node::run(
   }
 
   exec_context->ui->send_message(std::move(msg));
+
+  // Finally: if there are any new output controls, handle them
+  for(auto& out_ctl : control_outs)
+  {
+    if(std::exchange(out_ctl->changed, false))
+      out_ctl->port->write_value(std::move(out_ctl->value), 0);
+  }
 }
 }
