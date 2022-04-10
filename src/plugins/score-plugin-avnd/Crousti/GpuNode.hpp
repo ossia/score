@@ -10,6 +10,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
+#include <gpp/ports.hpp>
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
@@ -109,10 +110,20 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
     QVarLengthArray<QRhiShaderResourceBinding, 8> bindings;
 
-    using bindings_type = decltype(Node_T::layout::bindings);
-    boost::pfr::for_each_field(bindings_type{}, [&] (auto f) {
-      bindings.push_back(initBinding(renderer, f));
-    });
+    if constexpr(requires { decltype(Node_T::layout::bindings){}; })
+    {
+      using bindings_type = decltype(Node_T::layout::bindings);
+      boost::pfr::for_each_field(bindings_type{}, [&] (auto f) {
+        bindings.push_back(initBinding(renderer, f));
+      });
+    }
+    else if constexpr(requires { typename Node_T::layout::bindings{}; })
+    {
+      using bindings_type = typename Node_T::layout::bindings;
+      boost::pfr::for_each_field(bindings_type{}, [&] (auto f) {
+        bindings.push_back(initBinding(renderer, f));
+      });
+    }
 
     srb->setBindings(bindings.begin(), bindings.end());
     return srb;
@@ -276,7 +287,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         {
           using ret_type = decltype(promise.feedback_value);
           gpp::qrhi::handle_update<CustomGpuRenderer, ret_type> handler{*this, *renderer.state.rhi, res, tmp, srb_touched};
-          promise.feedback_value = std::visit(handler, promise.current_command);
+          promise.feedback_value = visit(handler, promise.current_command);
         }
 
         if(srb_touched)
@@ -311,7 +322,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         for (auto& promise : state.release())
         {
           gpp::qrhi::handle_release handler{*r.state.rhi};
-          std::visit(handler, promise.current_command);
+          visit(handler, promise.current_command);
         }
         state.release();
       }
@@ -422,10 +433,18 @@ struct CustomGpuNode final : CustomGpuNodeBase
     static constexpr auto lay = layout{};
 
     gpp::qrhi::generate_shaders gen;
-    const auto vtx = QString::fromStdString(gen.vertex_shader(lay) + Node_T{}.vertex().data());
+    QString vtx;
+    if constexpr(requires { &Node_T::vertex; })
+    {
+      vtx = QString::fromStdString(gen.vertex_shader(lay) + Node_T{}.vertex().data());
+    }
+    else
+    {
+      vtx = gpp::qrhi::DefaultPipeline::vertex();
+    }
+
     const auto frag = QString::fromStdString(gen.fragment_shader(lay) + Node_T{}.fragment().data());
     std::tie(vertex, fragment) = score::gfx::makeShaders(vtx, frag);
-
   }
 
   score::gfx::NodeRenderer*

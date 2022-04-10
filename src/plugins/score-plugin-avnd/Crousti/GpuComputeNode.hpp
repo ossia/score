@@ -269,7 +269,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
       {
         using ret_type = decltype(promise.feedback_value);
         gpp::qrhi::handle_update<GpuComputeRenderer, ret_type> handler{*this, *renderer.state.rhi, res, tmp, srb_touched};
-        promise.feedback_value = std::visit(handler, promise.current_command);
+        promise.feedback_value = visit(handler, promise.current_command);
       }
 
       if(srb_touched)
@@ -324,7 +324,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
       for (auto& promise : state.release())
       {
         gpp::qrhi::handle_release handler{*r.state.rhi};
-        std::visit(handler, promise.current_command);
+        visit(handler, promise.current_command);
       }
       state.release();
     }
@@ -398,7 +398,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
         using ret_type = decltype(promise.feedback_value);
         gpp::qrhi::handle_dispatch<GpuComputeRenderer, ret_type> handler{
           *this, *renderer.state.rhi, cb, res, *this->m_pipeline};
-        promise.feedback_value = std::visit(handler, promise.current_command);
+        promise.feedback_value = visit(handler, promise.current_command);
       }
     }
 

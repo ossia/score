@@ -1,6 +1,4 @@
 #pragma once
-#include <avnd/common/member_reflection.hpp>
-#include <avnd/common/for_nth.hpp>
 #include <avnd/concepts/parameter.hpp>
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
 
@@ -8,106 +6,41 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 
+#include <gpp/layout.hpp>
+
 #include <QTimer>
-
-namespace gpp
-{
-
-template <auto F>
-consteval int std140_offset()
-{
-  using uniform_type = typename avnd::member_reflection<F>::member_type;
-  using ubo_type = typename avnd::member_reflection<F>::class_type;
-  constexpr ubo_type ubo{};
-
-  int sz = 0;
-  constexpr int field_offset = avnd::index_in_struct(ubo, F);
-  auto func = [&](auto field)
-  {
-    switch (sizeof(field.value))
-    {
-      case 4:
-        sz += 4;
-        break;
-      case 8:
-        if (sz % 8 != 0)
-          sz += 4;
-        sz += 8;
-        break;
-      case 12:
-        while (sz % 16 != 0)
-          sz += 4;
-        sz += 12;
-        break;
-      case 16:
-        while (sz % 16 != 0)
-          sz += 4;
-        sz += 16;
-        break;
-    }
-  };
-
-  if constexpr (field_offset > 0)
-  {
-    [&func]<typename K, K... Index>(std::integer_sequence<K, Index...>)
-    {
-      constexpr ubo_type t{};
-      (func(boost::pfr::get<Index>(t)), ...);
-    }
-    (std::make_index_sequence<field_offset>{});
-  }
-  return sz;
-}
-
-template <typename T>
-consteval int std140_size()
-{
-  int sz = 0;
-  constexpr int field_count = boost::pfr::tuple_size_v<T>;
-  auto func = [&](auto field)
-  {
-    switch (sizeof(field.value))
-    {
-      case 4:
-        sz += 4;
-        break;
-      case 8:
-        if (sz % 8 != 0)
-          sz += 4;
-        sz += 8;
-        break;
-      case 12:
-        while (sz % 16 != 0)
-          sz += 4;
-        sz += 12;
-        break;
-      case 16:
-        while (sz % 16 != 0)
-          sz += 4;
-        sz += 16;
-        break;
-    }
-  };
-
-  if constexpr (field_count > 0)
-  {
-    [&func]<typename K, K... Index>(std::integer_sequence<K, Index...>)
-    {
-      constexpr T t{};
-      (func(boost::pfr::get<Index, T>(t)), ...);
-    }
-    (std::make_index_sequence<field_count>{});
-  }
-  return sz;
-}
-
-}
-
 
 
 
 namespace gpp::qrhi
 {
+struct DefaultPipeline
+{
+  struct layout {
+    enum { graphics };
+    struct vertex_input {
+      struct {
+          static constexpr auto name() { return "position";}
+          static constexpr int location() { return 0; }
+          float data[2];
+      } pos;
+    };
+    struct vertex_output { };
+    struct fragment_input { };
+    struct bindings { };
+  };
+
+  static QString vertex() {
+    return R"_(#version 450
+layout(location = 0) in vec2 position;
+out gl_PerVertex { vec4 gl_Position; };
+void main() {
+  gl_Position = vec4( position, 0.0, 1.0 );
+}
+)_";
+  }
+};
+
 template <typename C>
 constexpr auto usage()
 {
@@ -578,27 +511,54 @@ struct generate_shaders
     template<typename T>
     std::string vertex_shader(const T& lay)
     {
-      std::string vstr = "#version 450\n\n";
+      using namespace gpp::qrhi;
+      std::string shader = "#version 450\n\n";
 
-      boost::pfr::for_each_field(lay.vertex_input, write_input{vstr});
-      boost::pfr::for_each_field(lay.vertex_output, write_output{vstr});
-      vstr += "\n";
-      boost::pfr::for_each_field(lay.bindings, write_bindings{vstr});
+      if constexpr(requires { lay.vertex_input; })
+        boost::pfr::for_each_field(lay.vertex_input, write_input{shader});
+      else if constexpr(requires { typename T::vertex_input; })
+        boost::pfr::for_each_field(typename T::vertex_input{}, write_input{shader});
+      else
+        boost::pfr::for_each_field(DefaultPipeline::layout::vertex_input{}, write_input{shader});
 
-      return vstr;
+      if constexpr(requires { lay.vertex_output; })
+        boost::pfr::for_each_field(lay.vertex_output, write_output{shader});
+      else if constexpr(requires { typename T::vertex_output; })
+        boost::pfr::for_each_field(typename T::vertex_output{}, write_output{shader});
+
+      shader += "\n";
+
+      if constexpr(requires { lay.bindings; })
+        boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
+      else if constexpr(requires { typename T::bindings; })
+        boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
+
+      return shader;
     }
 
     template<typename T>
     std::string fragment_shader(const T& lay)
     {
-      std::string fstr = "#version 450\n\n";
+      std::string shader = "#version 450\n\n";
 
-      boost::pfr::for_each_field(lay.fragment_input, write_input{fstr});
-      boost::pfr::for_each_field(lay.fragment_output, write_output{fstr});
-      fstr += "\n";
-      boost::pfr::for_each_field(lay.bindings, write_bindings{fstr});
+      if constexpr(requires { lay.fragment_input; })
+        boost::pfr::for_each_field(lay.fragment_input, write_input{shader});
+      else if constexpr(requires { typename T::fragment_input; })
+        boost::pfr::for_each_field(typename T::fragment_input{}, write_input{shader});
 
-      return fstr;
+      if constexpr(requires { lay.fragment_output; })
+        boost::pfr::for_each_field(lay.fragment_output, write_output{shader});
+      else if constexpr(requires { typename T::fragment_output; })
+        boost::pfr::for_each_field(typename T::fragment_output{}, write_output{shader});
+
+      shader += "\n";
+
+      if constexpr(requires { lay.bindings; })
+        boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
+      else if constexpr(requires { typename T::bindings; })
+        boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
+
+      return shader;
     }
 
 

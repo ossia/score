@@ -16,7 +16,7 @@ concept GpuNode =
 ;
 
 template<typename T>
-concept GpuGraphicsNode2 = requires { typename T::layout::graphics; };
+concept GpuGraphicsNode2 = requires { T::layout::graphics; };
 
 template<typename T>
 concept GpuComputeNode2 = requires { T::layout::compute; };

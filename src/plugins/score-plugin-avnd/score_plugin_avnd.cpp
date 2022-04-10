@@ -74,11 +74,13 @@
 #include <avnd/../../examples/Tutorial/SampleAccurateGeneratorExample.hpp>
 #include <avnd/../../examples/Tutorial/Distortion.hpp>
 #include <avnd/../../examples/Ports/LitterPower/CCC.hpp>
+#include <avnd/../../examples/Gpu/Compute.hpp>
+#include <avnd/../../examples/Gpu/DrawRaw.hpp>
+#include <avnd/../../examples/Gpu/DrawWithHelpers.hpp>
+#include <avnd/../../examples/Gpu/SolidColor.hpp>
+
 #include <brigand/sequences/list.hpp>
 
-
-#include "/home/jcelerier/projets/perso/gpp/gpp-helpers.hpp"
-#include "/home/jcelerier/projets/perso/gpp/gpp-compute.hpp"
 
 #include <Crousti/Layer.hpp>
 /**
@@ -208,8 +210,14 @@ score_plugin_avnd::factories(
       using logger_type = halp::basic_logger;
   };
 
+  static_assert(oscr::GpuComputeNode2<examples::GpuComputeExample>);
+  static_assert(oscr::GpuGraphicsNode2<examples::GpuFilterExample>);
+  static_assert(oscr::GpuGraphicsNode2<examples::GpuRawExample>);
   return oscr::instantiate_fx<
       examples::GpuComputeExample
+      , examples::GpuFilterExample
+      , examples::GpuRawExample
+      , examples::GpuSolidColorExample
     #if 0
       , examples::helpers::MessageBusUi
       , examples::helpers::AdvancedUi
