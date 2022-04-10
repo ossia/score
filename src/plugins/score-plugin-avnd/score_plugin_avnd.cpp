@@ -89,6 +89,7 @@
 
 #include <halp/meta.hpp>
 
+/*
 struct MyProcessor {
   halp_meta(name, "Gain");
   halp_meta(uuid, "3183d03e-9228-4d50-98e0-e7601dd16a2e");
@@ -145,7 +146,7 @@ struct MyProcessor {
       outputs.measure = measure / (N * in.channels);
   }
 };
-
+*/
 
 namespace oscr
 {

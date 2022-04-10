@@ -7,7 +7,7 @@
 #include <Gfx/Graph/RenderState.hpp>
 
 #include <gpp/layout.hpp>
-
+#include <fmt/format.h>
 #include <QTimer>
 
 

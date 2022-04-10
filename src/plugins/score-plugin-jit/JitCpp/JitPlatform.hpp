@@ -29,6 +29,7 @@
 #endif
 #include <JitCpp/JitOptions.hpp>
 #include <score_git_info.hpp>
+
 namespace Jit
 {
 
@@ -79,11 +80,18 @@ static inline std::string locateSDK()
         return d.absolutePath().toStdString();
       }
     }
-    return QString(appFolder + "/Score.Framework").toStdString();
+    auto framework = QString(appFolder + "/Score.Framework");
+    if(QDir{}.exists(framework))
+      return framework.toStdString();
+    else
+      return "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr";
   }
 #endif
 
 #else
+#if defined(__APPLE__)
+  return "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr";
+#endif
   if (QFileInfo("/usr/include/c++").isDir())
   {
     return "/usr";
@@ -413,19 +421,35 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 
   qDebug() << "SDK located: " << qsdk;
   std::string llvm_lib_version = SCORE_LLVM_VERSION;
+#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+  llvm_lib_version = "13.0.0";
+#endif
 
   QDir resDir = QString(qsdk + "/lib/clang");
   auto entries = resDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
   if (!entries.empty() && !entries.contains(SCORE_LLVM_VERSION))
     llvm_lib_version = entries.front().toStdString();
 
+#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+  std::string appleSharedSdk = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr";
+  args.push_back("-resource-dir");
+  args.push_back(appleSharedSdk + "/lib/clang/" + llvm_lib_version);
+#else
   args.push_back("-resource-dir");
   args.push_back(sdk + "/lib/clang/" + llvm_lib_version);
+#endif
+
 
 #if defined(_LIBCPP_VERSION)
   args.push_back("-stdlib=libc++");
   args.push_back("-internal-isystem");
+
+#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+  args.push_back(appleSharedSdk + "/include/c++/v1");
+#else
   args.push_back(sdk + "/include/c++/v1");
+#endif
+
 #elif defined(_GLIBCXX_RELEASE)
   // Try to locate the correct libstdc++ folder
   // TODO these are only heuristics. how to make them better ?
@@ -466,11 +490,17 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   }
 #endif
 
+#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+  args.push_back("-internal-isystem");
+  args.push_back(appleSharedSdk + "/lib/clang/" + llvm_lib_version + "/include");
+  args.push_back("-internal-externc-isystem");
+  args.push_back("/Applications/Xcode.app/Contents/Developer//Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include");
+#else
   args.push_back("-internal-isystem");
   args.push_back(sdk + "/lib/clang/" + llvm_lib_version + "/include");
-
   args.push_back("-internal-externc-isystem");
   args.push_back(sdk + "/include");
+#endif
 
   // -resource-dir
   // /opt/score-sdk/llvm/lib/clang/11.0.0

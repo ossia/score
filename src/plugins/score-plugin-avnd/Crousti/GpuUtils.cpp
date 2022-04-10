@@ -2,8 +2,6 @@
 #include <score/gfx/Vulkan.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <private/qrhigles2_p.h>
-#include <private/qrhivulkan_p.h>
-
 namespace oscr
 {
 static void customMessageProcess(const score::gfx::Message& msg, score::gfx::Message& last_message)
@@ -29,16 +27,13 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase()
 {
   m_renderState = std::make_shared<score::gfx::RenderState>();
 
-  //m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-  //QRhiGles2InitParams params;
-  //params.fallbackSurface = m_renderState->surface;
+  m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
+  QRhiGles2InitParams params;
+  params.fallbackSurface = m_renderState->surface;
 
-  QRhiVulkanInitParams params;
-  params.inst = score::gfx::staticVulkanInstance();
 #include <Gfx/Qt5CompatPop> // clang-format: keep
   m_renderState->rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers);
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-
 
   m_renderState->size = QSize(1000, 1000);
   m_renderState->api = score::gfx::GraphicsApi::Vulkan;
