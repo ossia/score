@@ -1,4 +1,6 @@
 #pragma once
+
+#if SCORE_PLUGIN_GFX
 #include <avnd/concepts/parameter.hpp>
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
 
@@ -643,3 +645,5 @@ struct CustomGpuOutputNodeBase
 };
 
 }
+
+#endif

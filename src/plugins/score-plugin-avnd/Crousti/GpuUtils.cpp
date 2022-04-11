@@ -1,3 +1,5 @@
+#if SCORE_PLUGIN_GFX
+
 #include "GpuUtils.hpp"
 #include <score/gfx/Vulkan.hpp>
 #include <Gfx/Graph/RenderList.hpp>
@@ -119,3 +121,4 @@ void CustomGpuNodeBase::process(const score::gfx::Message& msg)
 }
 
 }
+#endif
