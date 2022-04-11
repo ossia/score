@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 project(score_plugin_avnd LANGUAGES CXX)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
-  if(NOT APPLE)
+  if(NOT APPLE AND NOT WIN32)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
       return()
     endif()
