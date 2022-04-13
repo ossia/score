@@ -61,8 +61,22 @@ add_library(
   score_plugin_avnd.cpp
 )
 
-target_include_directories(score_plugin_avnd PUBLIC "${3RDPARTY_FOLDER}/avendish/include")
-target_link_libraries(score_plugin_avnd PRIVATE score_plugin_engine)
+target_include_directories(score_plugin_avnd
+    PUBLIC
+    "${3RDPARTY_FOLDER}/avendish/include"
+    /home/scrime/Documents/SAF/Spatial_Audio_Framework/framework/include
+
+)
+target_link_libraries(
+    score_plugin_avnd
+    PRIVATE
+    score_plugin_engine
+    /home/scrime/Documents/SAF/Spatial_Audio_Framework/build/framework/libsaf.a
+    -lopenblas
+    -llapack
+    -llapacke
+)
+
 if(TARGET score_plugin_gfx)
   target_link_libraries(score_plugin_avnd PRIVATE score_plugin_gfx)
 endif()

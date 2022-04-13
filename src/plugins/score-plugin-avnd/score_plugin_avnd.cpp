@@ -35,6 +35,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <score_plugin_engine.hpp>
 #include <ossia/detail/typelist.hpp>
+/*
 #include <avnd/../../examples/Raw/Addition.hpp>
 #include <avnd/../../examples/Raw/Callback.hpp>
 #include <avnd/../../examples/Raw/Init.hpp>
@@ -78,6 +79,8 @@
 #include <avnd/../../examples/Gpu/DrawRaw.hpp>
 #include <avnd/../../examples/Gpu/DrawWithHelpers.hpp>
 #include <avnd/../../examples/Gpu/SolidColor.hpp>
+*/
+#include <Spat/MaSpat.hpp>
 
 #include <brigand/sequences/list.hpp>
 
@@ -204,22 +207,25 @@ score_plugin_avnd::factories(
     const score::InterfaceKey& key) const
 {
   using namespace oscr;
-  using namespace examples;
-  using namespace examples::helpers;
+  //using namespace examples;
+  //using namespace examples::helpers;
 
   struct config {
       using logger_type = halp::basic_logger;
   };
-
+/*
   static_assert(oscr::GpuComputeNode2<examples::GpuComputeExample>);
   static_assert(oscr::GpuGraphicsNode2<examples::GpuFilterExample>);
   static_assert(oscr::GpuGraphicsNode2<examples::GpuRawExample>);
+  */
   return oscr::instantiate_fx<
+          //examples::helpers::Lowpass,
+          MaSpat
+        #if 0
       examples::GpuComputeExample
       , examples::GpuFilterExample
       , examples::GpuRawExample
       , examples::GpuSolidColorExample
-    #if 0
       , examples::helpers::MessageBusUi
       , examples::helpers::AdvancedUi
       , MyProcessor
