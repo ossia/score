@@ -84,4 +84,21 @@ if(NOT AVND_DISABLE_COROUTINES)
 else()
   target_compile_definitions(score_plugin_avnd PUBLIC AVND_DISABLE_COROUTINES)
 endif()
+
 setup_score_plugin(score_plugin_avnd)
+
+target_precompile_headers(score_plugin_avnd PRIVATE
+  Crousti/Attributes.hpp
+  Crousti/Concepts.hpp
+  Crousti/Executor.hpp
+  Crousti/GfxNode.hpp
+  Crousti/GpuNode.hpp
+  Crousti/GpuComputeNode.hpp
+  Crousti/GpuUtils.hpp
+  Crousti/Layer.hpp
+  Crousti/Layout.hpp
+  Crousti/Metadatas.hpp
+  Crousti/Painter.hpp
+  Crousti/ProcessModel.hpp
+  Crousti/Widgets.hpp
+)

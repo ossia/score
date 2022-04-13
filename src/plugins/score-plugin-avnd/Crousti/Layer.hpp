@@ -297,7 +297,15 @@ private:
 
 
     // Layout stuff
-    b.walkLayout(rootItem->ui);
+    if constexpr(requires { rootItem->ui; })
+    {
+      b.walkLayout(rootItem->ui);
+    }
+    else
+    {
+      static constexpr typename Info::ui ui;
+      b.walkLayout(ui);
+    }
     b.finalizeLayout(rootItem);
 
     rootItem->fitChildrenRect();
