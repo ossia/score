@@ -65,13 +65,14 @@ target_include_directories(score_plugin_avnd
     PUBLIC
     "${3RDPARTY_FOLDER}/avendish/include"
     /home/scrime/Documents/SAF/Spatial_Audio_Framework/framework/include
-
+    /home/scrime/Documents/SAF/Spatial_Audio_Framework/examples/include
 )
 target_link_libraries(
     score_plugin_avnd
     PRIVATE
     score_plugin_engine
     /home/scrime/Documents/SAF/Spatial_Audio_Framework/build/framework/libsaf.a
+    /home/scrime/Documents/SAF/Spatial_Audio_Framework/build/examples/libsaf_example_rotator.a
     -lopenblas
     -llapack
     -llapacke
