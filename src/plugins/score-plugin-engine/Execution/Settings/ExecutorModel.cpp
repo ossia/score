@@ -87,15 +87,6 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     , m_transportInterfaces{ctx.interfaces<Transport::TransportInterfaceList>()}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
-  // TODO
-  // for now set the unsafe options to safe values on each start
-  setClock(Parameters::Clock.def);
-  setScheduling(Parameters::Scheduling.def);
-  setOrdering(Parameters::Ordering.def);
-  setMerging(Parameters::Merging.def);
-  setCommit(Parameters::Commit.def);
-  setTick(Parameters::Tick.def);
-  setScoreOrder(Parameters::ScoreOrder.def);
 }
 
 std::unique_ptr<Clock> Model::makeClock(const Execution::Context& ctx) const
