@@ -444,12 +444,14 @@ void Graph::clearEdges()
 
 void Graph::addEdge(Port* source, Port* sink)
 {
-  SCORE_ASSERT(ossia::find_if(m_edges, [=] (Edge* e) {
-                   return e->source == source && e->sink == sink;
-              }) == m_edges.end()
-  );
+  auto it = ossia::find_if(m_edges, [=] (Edge* e) {
+    return e->source == source && e->sink == sink;
+  });
 
-  m_edges.push_back(new Edge{source, sink});
+  SCORE_SOFT_ASSERT(it == m_edges.end());
+
+  if(it == m_edges.end())
+    m_edges.push_back(new Edge{source, sink});
 }
 
 void Graph::removeEdge(Port* source, Port* sink)
