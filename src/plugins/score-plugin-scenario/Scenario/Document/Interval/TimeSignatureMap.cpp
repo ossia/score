@@ -10,7 +10,6 @@ namespace Scenario
 struct TimeSignatureMap::impl : ossia::flat_map<TimeVal, ossia::time_signature>
 {
     using flat_map::flat_map;
-
 };
 
 TimeSignatureMap::TimeSignatureMap()
@@ -68,7 +67,7 @@ std::size_t TimeSignatureMap::size() const noexcept
   else
     return 0;
 }
-ossia::time_signature TimeSignatureMap::at(const TimeVal& t)
+ossia::time_signature& TimeSignatureMap::at(const TimeVal& t)
 {
   SCORE_ASSERT(map);
   return map->at(t);

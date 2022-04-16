@@ -36,7 +36,7 @@ public:
     void clear();
     bool empty() const noexcept;
     std::size_t size() const noexcept;
-    ossia::time_signature at(const TimeVal&);
+    ossia::time_signature& at(const TimeVal&);
     ossia::time_signature& operator[](const TimeVal&);
     const_iterator find(const TimeVal&) const;
     const_iterator last_before(const TimeVal&) const;
