@@ -125,7 +125,6 @@ void ApplicationPlugin::initialize()
   {
     vst_infos = val.value<std::vector<AvailablePlugin>>();
   }
-  //vst_infos.clear();
 
   vstChanged();
 
@@ -189,9 +188,14 @@ void ApplicationPlugin::rescan(const QStringList& paths)
             qApp->applicationDirPath() + "/ossia-score-vst3puppet");
     }
 #else
-    proc->setProgram("ossia-score-vst3puppet");
+    proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vst3puppet");
 #endif
     proc->setArguments({path, QString::number(i)});
+    connect(proc.get(), &QProcess::errorOccurred, this, [proc=proc.get(), path] {
+      qDebug() << " == VST3: error => " << path;
+      qDebug() << "VST3 out: " << proc->readAllStandardOutput().constData();
+      qDebug() << "VST3 error: " << proc->readAllStandardError().constData();
+    });
     m_processes.push_back({path, std::move(proc), false, {}});
     i++;
   }

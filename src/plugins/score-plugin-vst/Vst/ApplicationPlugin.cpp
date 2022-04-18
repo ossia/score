@@ -244,7 +244,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
             qApp->applicationDirPath() + "/ossia-score-vstpuppet");
     }
 #else
-    proc->setProgram("ossia-score-vstpuppet");
+    proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
 #endif
     proc->setArguments({path, QString::number(i)});
     m_processes.push_back({path, std::move(proc), false, {}});
