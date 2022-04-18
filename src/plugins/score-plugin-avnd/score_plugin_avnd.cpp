@@ -35,6 +35,9 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <score_plugin_engine.hpp>
 #include <ossia/detail/typelist.hpp>
+
+#define AVND_TEST_BUILD 0
+#if AVND_TEST_BUILD
 #include <avnd/../../examples/Raw/Addition.hpp>
 #include <avnd/../../examples/Raw/Callback.hpp>
 #include <avnd/../../examples/Raw/Init.hpp>
@@ -78,7 +81,8 @@
 #include <avnd/../../examples/Gpu/DrawRaw.hpp>
 #include <avnd/../../examples/Gpu/DrawWithHelpers.hpp>
 #include <avnd/../../examples/Gpu/SolidColor.hpp>
-
+#include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
+#endif
 #include <brigand/sequences/list.hpp>
 
 
@@ -88,65 +92,6 @@
  */
 
 #include <halp/meta.hpp>
-
-/*
-struct MyProcessor {
-  halp_meta(name, "Gain");
-  halp_meta(uuid, "3183d03e-9228-4d50-98e0-e7601dd16a2e");
-
-  struct ins {
-    halp::dynamic_audio_bus<"Input", double> audio;
-    halp::knob_f32<"Gain", halp::range{.min = 0., .max = 1.}> gain;
-  } inputs;
-
-  struct outs {
-    halp::dynamic_audio_bus<"Output", double> audio;
-    halp::hbargraph_f32<"Measure", halp::range{-1., 1., 0.}> measure;
-  } outputs;
-
-  struct ui {
-    using enum halp::colors;
-    using enum halp::layouts;
-
-    halp_meta(name, "Main")
-    halp_meta(layout, hbox)
-    halp_meta(background, mid)
-
-    struct {
-      halp_meta(name, "Widget")
-      halp_meta(layout, vbox)
-      halp_meta(background, dark)
-
-      const char* label = "Hello !";
-      halp::item<&ins::gain> widget;
-      const char* label2 = "Gain control!";
-    } widgets;
-
-    halp::spacing spc{.width = 20, .height = 20};
-
-    halp::item<&outs::measure> widget2;
-  };
-
-  void operator()(int N) {
-    auto& in = inputs.audio;
-    auto& out = outputs.audio;
-    const float gain = inputs.gain;
-
-    double measure = 0.;
-    for (int i = 0; i < in.channels; i++)
-    {
-      for (int j = 0; j < N; j++)
-      {
-        out[i][j] = gain * in[i][j];
-        measure += std::abs(out[i][j]);
-      }
-    }
-
-    if(N > 0 && in.channels > 0)
-      outputs.measure = measure / (N * in.channels);
-  }
-};
-*/
 
 namespace oscr
 {
@@ -204,25 +149,20 @@ score_plugin_avnd::factories(
     const score::InterfaceKey& key) const
 {
   using namespace oscr;
+#if AVND_TEST_BUILD
   using namespace examples;
   using namespace examples::helpers;
 
   struct config {
       using logger_type = halp::basic_logger;
   };
+#endif
 
-  static_assert(oscr::GpuComputeNode2<examples::GpuComputeExample>);
-  static_assert(oscr::GpuGraphicsNode2<examples::GpuFilterExample>);
-  static_assert(oscr::GpuGraphicsNode2<examples::GpuRawExample>);
   return oscr::instantiate_fx<
-      examples::GpuComputeExample
-      , examples::GpuFilterExample
-      , examples::GpuRawExample
-      , examples::GpuSolidColorExample
-    #if 0
+    #if AVND_TEST_BUILD
+        oscr::Granolette
       , examples::helpers::MessageBusUi
       , examples::helpers::AdvancedUi
-      , MyProcessor
       , Addition
       , Callback
       , Controls
@@ -261,6 +201,10 @@ score_plugin_avnd::factories(
 #if SCORE_PLUGIN_GFX
       , TextureGeneratorExample
       , TextureFilterExample
+      , examples::GpuComputeExample
+      , examples::GpuFilterExample
+      , examples::GpuRawExample
+      , examples::GpuSolidColorExample
 #endif
       , TrivialGeneratorExample
       , TrivialFilterExample

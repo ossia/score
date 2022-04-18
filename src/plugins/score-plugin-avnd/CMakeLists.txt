@@ -79,7 +79,7 @@ if(NOT AVND_DISABLE_COROUTINES)
         score_plugin_avnd
         PUBLIC
           -fcoroutines-ts
-          )
+    )
   endif()
 else()
   target_compile_definitions(score_plugin_avnd PUBLIC AVND_DISABLE_COROUTINES)
