@@ -81,6 +81,7 @@
 #include <avnd/../../examples/Gpu/SolidColor.hpp>
 */
 #include <Spat/MaSpat.hpp>
+#include <Spat/Rotator.hpp>
 
 #include <brigand/sequences/list.hpp>
 
@@ -221,6 +222,7 @@ score_plugin_avnd::factories(
   return oscr::instantiate_fx<
           //examples::helpers::Lowpass,
           MaSpat
+          , Rotator
         #if 0
       examples::GpuComputeExample
       , examples::GpuFilterExample
