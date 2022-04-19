@@ -10,6 +10,8 @@ option(SMTG_ADD_VST3_PLUGINS_SAMPLES "Add VST3 Plug-ins Samples to the solution"
 # Add and use VSTGUI (enable VST3 Plug-ins Samples using VSTGUI)
 option(SMTG_ADD_VSTGUI "Add VSTGUI Support" OFF)
 
+set(SMTG_USE_STDATOMIC_H 0)
+set(SMTG_USE_STDATOMIC_H 0 CACHE INTERNAL "")
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
