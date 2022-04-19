@@ -139,9 +139,16 @@ void ApplicationPlugin::initialize()
 void ApplicationPlugin::rescan(const QStringList& paths)
 {
   // 1. List all plug-ins in new paths
+  QStringList exploredPaths;
   QSet<QString> newPlugins;
   for (const QString& dir : paths)
   {
+    auto canonical_path = QDir{dir}.canonicalPath();
+    if(exploredPaths.contains(canonical_path))
+      continue;
+
+    exploredPaths.push_back(canonical_path);
+
     QDirIterator it(
         dir,
         QStringList{default_filter},
