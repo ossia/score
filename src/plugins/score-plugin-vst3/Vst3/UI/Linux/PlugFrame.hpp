@@ -54,7 +54,7 @@ struct XcbConnection {
 
   std::unique_ptr<SocketPair> notifiers;
   XcbConnection()
-      : xcb{dlopen("/usr/lib/libxcb.so.1", RTLD_LOCAL)}
+      : xcb{dlopen("libxcb.so.1", RTLD_LOCAL)}
   {
     if(!xcb)
       return;

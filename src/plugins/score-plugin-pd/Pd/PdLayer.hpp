@@ -95,7 +95,11 @@ struct UiWrapper : public QWidget
 
   QString locatePdResourceFolder() noexcept {
 #if defined(__linux__)
-    return "/usr/lib/pd";
+    auto path = QStringLiteral("/usr/lib/pd");
+    if(QFile::exists(path))
+      return path;
+    else
+      return QStringLiteral("/usr/lib64/pd");
 #else
     return QFileInfo{locatePdBinary()}.absolutePath();
 #endif

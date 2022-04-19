@@ -73,20 +73,19 @@ namespace vst3
 namespace
 {
 #if defined(__APPLE__)
-static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST3";
+static const QStringList default_paths = {"/Library/Audio/Plug-Ins/VST3"};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
 #elif defined(__linux__)
-static const constexpr auto default_path{"/usr/lib/vst3"};
+static const QStringList default_paths = {QStringLiteral("/usr/lib/vst3"), QStringLiteral("/usr/lib64/vst3")};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
 #elif defined(_WIN32)
-static const constexpr auto default_path
-    = "C:\\Program Files\\Common Files\\VST3";
+static const QStringList default_paths = {"C:\\Program Files\\Common Files\\VST3"};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Files;
 #else
-static const constexpr auto default_path = "";
+static const constexpr auto default_paths = {QStringLiteral("/usr/lib/vst3")};
 static const constexpr auto default_filter = "";
 #endif
 }
@@ -134,7 +133,7 @@ void ApplicationPlugin::initialize()
   //
 
   if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
-    rescan({default_path});
+    rescan(default_paths);
 }
 
 void ApplicationPlugin::rescan(const QStringList& paths)

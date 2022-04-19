@@ -4,6 +4,7 @@
 
 #include <Vst/vst-compat.hpp>
 
+#include <QString>
 #include <string>
 
 namespace vst
@@ -26,7 +27,7 @@ struct Module
 static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST";
 static const constexpr auto default_filter = "*.vst *.dylib *.component";
 #elif defined(__linux__)
-static const constexpr auto default_path{"/usr/lib/vst"};
+static const auto default_path = QStringLiteral("/usr/lib/vst");
 static const constexpr auto default_filter = "*.so";
 #elif defined(_WIN32)
 static const constexpr auto default_path = "c:\\vst";
