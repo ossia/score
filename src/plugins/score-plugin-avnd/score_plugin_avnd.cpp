@@ -164,7 +164,7 @@ score_plugin_avnd::factories(
 
   return oscr::instantiate_fx<
           MaSpat
-          , Rotator
+          //, Rotator
     #if AVND_TEST_BUILD
         oscr::Granolette
       , examples::helpers::MessageBusUi
