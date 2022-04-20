@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <iomanip>
+#include <vector>
 #include <halp/meta.hpp>
 #include <halp/audio.hpp>
 #include <halp/controls.hpp>
@@ -14,21 +16,22 @@ class Rotator
 public:
     halp_meta(name, "Rotator")
     halp_meta(c_name, "avnd_rotator")
-    halp_meta(uuid, "82bdb9c5-9cf8-440e-8675-c0xaf4fc59b9")
+    halp_meta(uuid, "82bdb9f5-9cf8-440e-8675-c0caf4fc59b9")
 
     using setup = halp::setup;
     using tick = halp::tick;
 
     struct
     {
-      halp::dynamic_audio_bus<"Input", double> audio;
-      halp::hslider_f32<"Weight", halp::range{.min = 0., .max = 1., .init = 0.5}> weight;
-      halp::hslider_f32<"L/R", halp::range{.min = -1, .max = 1, .init = 0}> toto;
+      halp::dynamic_audio_bus<"Input", float> audio;
+      halp::hslider_f32<"Yaw", halp::range{.min = -2*M_PI, .max = 2*M_PI, .init = 0}> yaw;
+      halp::hslider_f32<"Pitch", halp::range{.min = -2*M_PI, .max = 2*M_PI, .init = 0}> pitch;
+      halp::hslider_f32<"Roll", halp::range{.min = -2*M_PI, .max = 2*M_PI, .init = 0}> roll;
     } inputs;
 
     struct
     {
-      halp::dynamic_audio_bus<"Output", double> audio;
+      halp::dynamic_audio_bus<"Output", float> audio;
     } outputs;
 
    /* Rotator()
@@ -185,8 +188,9 @@ public:
     {
         int nSamples = t.frames;
         //framesize = t.frames;
-
-        for (int i = 0; i < inputs.audio.channels ; i++)
+        float** in = inputs.audio.samples;
+        float** out = outputs.audio.samples;
+        for (int i = 0; i < nSH ; i++)
         //for (int i = 0; i < nSH ; i++)
         {
 
@@ -199,6 +203,53 @@ public:
 
           //rotator_process(hRot, (const float* const*)shSig_frame, shSig_rot_frame, nSH, nSH, framesize);
         }
+
+        quaternion_data Q;
+        float inFrame[MAX_NUM_SH_SIGNALS][nSamples];
+        float M_rot[MAX_NUM_SH_SIGNALS][MAX_NUM_SH_SIGNALS];
+
+        float Rxyz[3][3] ;
+        float M_rot_tmp[MAX_NUM_SH_SIGNALS*MAX_NUM_SH_SIGNALS] ;
+        memset(inFrame, 0, MAX_NUM_SH_SIGNALS*nSamples*sizeof(float));
+        memset(M_rot, 0, MAX_NUM_SH_SIGNALS*MAX_NUM_SH_SIGNALS*sizeof(float));
+
+        for(int i=0 ; i<nSamples ; i++)
+            for(int j=0 ; j<nSH ; j++)
+                inFrame[j][i] = in[0][i];
+
+        yawPitchRoll2Rzyx (this->inputs.yaw, this->inputs.pitch, this->inputs.roll, 1, Rxyz);
+        euler2Quaternion(this->inputs.yaw, this->inputs.pitch, this->inputs.roll, 0, 0 ? EULER_ROTATION_ROLL_PITCH_YAW : EULER_ROTATION_YAW_PITCH_ROLL, &Q);
+        getSHrotMtxReal(Rxyz, (float*)M_rot_tmp, order);
+
+        for(int i=0; i<nSH; i++)
+        {
+            for(int j=0; j<nSH; j++)
+            {
+                M_rot[i][j] = M_rot_tmp[i*nSH+j];
+                //printf("%f - %d, %d - %d\n", M_rot[i][j],i,j,nSH);
+            }
+        }
+
+        int i,j,k;
+        //printf("%f\n", in[0][0]);
+
+        for(i = 0; i < nSH; i++) {
+             for(j = 0; j < nSamples; j++) {
+                 printf("%f ", out[i][j]);
+                 out[i][j]=0.0f;
+                 printf("%f ", out[i][j]);
+                 for(k = 0; k < nSH; k++) {
+                     out[i][j] += M_rot[i][k] * inFrame[k][j];
+                 }
+                 printf("%f\n", out[i][j]);
+            }
+        }
+
+
+       /* cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nSH, nSamples, nSH, 1.0f,
+                                (float*)(M_rot), MAX_NUM_SH_SIGNALS,
+                                (float*)inFrame, MAX_NUM_SH_SIGNALS, 0.0f,
+                                (float*)out, inputs.audio.channels);*/
         //rotator_process(hRot, (const float* const*)in, out, nSH, nSH, framesize);
 
         // Clean-up
@@ -208,19 +259,6 @@ public:
         //free(Mrot);
         //free(y);
 
-    }
-
-    void rotator_process
-    (
-        void        *  const hRot,
-        double * inputs,
-        double * outputs,
-        int                  nInputs,
-        int                  nOutputs,
-        int                  nSamples
-    )
-    {
-        //rotator_data *pData = (rotator_data*)(hRot);
     }
 
     // Main struct for the rotator
@@ -260,6 +298,8 @@ public:
 
 private:
   std::vector<float> previous_values{};
+  int order = 1;
+  int nSH = (order+1)*(order+1);
 
 
 /*

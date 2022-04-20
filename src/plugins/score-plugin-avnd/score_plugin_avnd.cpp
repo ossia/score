@@ -84,8 +84,9 @@
 #include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #endif
 
-#include <Spat/MaSpat.hpp>
 #include <Spat/Rotator.hpp>
+#include <Spat/MaSpat.hpp>
+#include <Spat/MaSpat_.hpp>
 
 #include <brigand/sequences/list.hpp>
 
@@ -164,7 +165,8 @@ score_plugin_avnd::factories(
 
   return oscr::instantiate_fx<
           MaSpat
-          //, Rotator
+          , MaSpat_
+          , Rotator
     #if AVND_TEST_BUILD
         oscr::Granolette
       , examples::helpers::MessageBusUi

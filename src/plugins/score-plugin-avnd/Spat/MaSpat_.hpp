@@ -5,12 +5,12 @@
 #include <halp/controls.hpp>
 #include <experimental/mdspan>
 
-class MaSpat
+class MaSpat_
 {
 public:
-    halp_meta(name, "MaSpat")
-    halp_meta(c_name, "avnd_maspat")
-    halp_meta(uuid, "82bdb9c5-9cf8-440e-8675-c0caf4fc59b9")
+    halp_meta(name, "MaSpat_")
+    halp_meta(c_name, "avnd_maspat_")
+    halp_meta(uuid, "82bdb9c5-9cf8-441e-8675-c0caf4fc59b9")
 
     using setup = halp::setup;
     using tick = halp::tick;
@@ -48,7 +48,6 @@ public:
         //printf("test : %d", t.frames);
         if(inputs.audio.channels == 2 && outputs.audio.channels == 2)
         {
-            printf("coucou");
             auto coeff = inputs.toto;
 
             auto* l_in = inputs.audio[0];
