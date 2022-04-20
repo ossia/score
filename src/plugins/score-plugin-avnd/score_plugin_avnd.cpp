@@ -83,6 +83,10 @@
 #include <avnd/../../examples/Gpu/SolidColor.hpp>
 #include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #endif
+
+#include <Spat/MaSpat.hpp>
+#include <Spat/Rotator.hpp>
+
 #include <brigand/sequences/list.hpp>
 
 
@@ -159,6 +163,8 @@ score_plugin_avnd::factories(
 #endif
 
   return oscr::instantiate_fx<
+          MaSpat
+          , Rotator
     #if AVND_TEST_BUILD
         oscr::Granolette
       , examples::helpers::MessageBusUi
