@@ -10,6 +10,9 @@
 #include <atomic>
 #include <vector>
 #include <verdigris>
+
+#include <score_plugin_media_export.h>
+
 struct AVFrame;
 struct SwrContext;
 
@@ -43,7 +46,7 @@ struct AudioInfo
   }
 };
 
-class AudioDecoder : public QObject
+class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder : public QObject
 {
   W_OBJECT(AudioDecoder)
 

@@ -81,8 +81,8 @@
 #include <avnd/../../examples/Gpu/DrawRaw.hpp>
 #include <avnd/../../examples/Gpu/DrawWithHelpers.hpp>
 #include <avnd/../../examples/Gpu/SolidColor.hpp>
-#include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #endif
+#include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #include <brigand/sequences/list.hpp>
 
 
@@ -160,7 +160,7 @@ score_plugin_avnd::factories(
 
   return oscr::instantiate_fx<
     #if AVND_TEST_BUILD
-        oscr::Granolette
+      oscr::Granolette
       , examples::helpers::MessageBusUi
       , examples::helpers::AdvancedUi
       , Addition

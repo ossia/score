@@ -646,8 +646,10 @@ AudioFileManager::get(const QString& path, const score::DocumentContext& ctx)
   {
     return it->second;
   }
+
   auto r = std::make_shared<AudioFile>();
   r->load(path, abspath);
+
   m_handles.insert({abspath, r});
   return r;
 }
@@ -700,6 +702,7 @@ ossia::audio_array AudioFile::getAudioArray() const
       const int channels = av.wav.channels();
       out.resize(channels);
 
+      // OPTIMIZEME we can just read directly into out[c][i]..
       auto data = std::make_unique<float[]>(frames * channels);
       drwav_read_pcm_frames_f32(av.wav.wav(), frames, data.get());
       for(int i = 0; i < channels; i++)
@@ -822,6 +825,9 @@ std::optional<AudioInfo> probe(const QString& path)
   if (it == AudioDecoder::database().end())
   {
     QFileInfo fi{path};
+    if(!fi.exists())
+      return std::nullopt;
+
     const auto& suffix = fi.suffix().toLower();
     if (suffix == "wav" || suffix == "w64")
     {

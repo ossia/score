@@ -507,6 +507,7 @@ struct ChooserToggle final
     v->domain = ossia::domain_base<bool>();
   }
 };
+
 struct LineEdit final
     : ossia::safe_nodes::control_in
     , WidgetFactory::LineEdit
@@ -533,6 +534,44 @@ struct LineEdit final
   {
     return new Process::LineEdit{
         init.data(), QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::LineEdit>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::LineEdit>(id, parent);
+  }
+  void setup_exec(auto& v) const
+  {
+    v->type = ossia::val_type::STRING;
+  }
+};
+
+struct Soundfile final
+    : ossia::safe_nodes::control_in
+    , WidgetFactory::LineEdit
+{
+  static const constexpr bool must_validate = false;
+  constexpr Soundfile(std::string_view name)
+      : ossia::safe_nodes::control_in{name.data()}
+  {
+  }
+
+  std::string fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<std::string>(v);
+  }
+  ossia::value toValue(std::string v) const
+  {
+    return ossia::value{std::move(v)};
+  }
+
+  using type = std::string;
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::LineEdit{"", QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {

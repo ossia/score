@@ -24,10 +24,39 @@
 #include <avnd/binding/ossia/node.hpp>
 #include <avnd/binding/ossia/mono_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
-
-
+#include <Media/AudioDecoder.hpp>
 namespace oscr
 {
+namespace
+{
+// TODO refactor this into a generic explicit soundfile loaded mechanism
+static auto loadSoundfile(Process::ControlInlet* inlet, double rate)
+{
+  // Initialize the control with the current soundfile
+  if(auto str = inlet->value().target<std::string>())
+  {
+    auto dec = Media::AudioDecoder::decode_synchronous(
+                 QString::fromStdString(*str),
+                 rate);
+
+    if(dec.has_value())
+    {
+      auto hdl = std::make_shared<ossia::audio_data>();
+      hdl->data = std::move(dec->second);
+      hdl->path = std::move(*str);
+      return hdl;
+    }
+  }
+  return ossia::audio_handle{};
+}
+
+static auto loadSoundfile(Process::ControlInlet* inlet, const std::shared_ptr<ossia::execution_state>& st)
+{
+  const double rate = ossia::exec_state_facade{st.get()}.sampleRate();
+  return loadSoundfile(inlet, rate);
+}
+}
+
 template <typename ExecNode_T, typename T, std::size_t ControlN>
 struct control_updater
 {
@@ -79,11 +108,10 @@ struct setup_Impl0
     }
   };
 
-  template <typename Field, std::size_t N>
-  constexpr void operator()(Field& param, avnd::num<N>)
+  template <typename Field, std::size_t N, std::size_t NField>
+  constexpr void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    constexpr int port_index = avnd::control_input_introspection<Node>::index_map[N];
-    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[port_index]);
+    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[NField]);
 
     // Initialize the control with the current value of the inlet
     oscr::from_ossia_value(param, inlet->value(), param.value);
@@ -96,6 +124,47 @@ struct setup_Impl0
         parent,
         con_unvalidated<Field, N>{ctx, weak_node, param});
   }
+
+
+  template <avnd::soundfile_port Field, std::size_t N, std::size_t NField>
+  void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
+  {
+    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[NField]);
+
+    // First we can load it directly since execution hasn't started yet
+    auto& sf = param.soundfile;
+    if(auto hdl = loadSoundfile(inlet, ctx.execState))
+      node_ptr->soundfile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+
+    // Connect to changes
+    std::weak_ptr<ExecNode> weak_node = node_ptr;
+    std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
+    QObject::connect(
+        inlet,
+        &Process::ControlInlet::valueChanged,
+        parent,
+          [inlet, &ctx=this->ctx, weak_node = std::move(weak_node), weak_st = std::move(weak_st)] {
+           auto n = weak_node.lock();
+           if(!n)
+             return;
+           auto st = weak_st.lock();
+           if(!st)
+             return;
+
+           if(auto file = loadSoundfile(inlet, st))
+           {
+             ctx.executionQueue.enqueue([f=std::move(file), weak_node] () mutable {
+               auto n = weak_node.lock();
+               if(!n)
+                 return;
+
+               // We store the sound file handle returned in this lambda so that it gets
+               // GC'd in the main thread
+               n->soundfile_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+             });
+           }
+        });
+  }
 };
 
 template <typename Node>
@@ -107,11 +176,10 @@ struct ApplyEngineControlChangeToUI
   typename ExecNode::control_input_values_type& arr;
   Model& element;
 
-  template <std::size_t N>
-  void operator()(auto& field, avnd::num<N>)
+  template <std::size_t N, std::size_t NField>
+  void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    constexpr int port_index = avnd::control_input_introspection<Node>::index_map[N];
-    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[port_index]);
+    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[NField]);
     inlet->setExecutionValue(oscr::to_ossia_value(field.value));
   }
 };
@@ -124,11 +192,10 @@ struct setup_Impl1_Out
   typename ExecNode::control_output_values_type& arr;
   Model& element;
 
-  template <std::size_t N>
-  void operator()(auto& field, avnd::num<N>)
+  template <std::size_t N, std::size_t NField>
+  void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    constexpr int port_index = avnd::control_output_introspection<Node>::index_map[N];
-    auto outlet = static_cast<Process::ControlOutlet*>(element.outlets()[port_index]);
+    auto outlet = static_cast<Process::ControlOutlet*>(element.outlets()[NField]);
     outlet->setValue(oscr::to_ossia_value(field.value));
   }
 };
@@ -155,7 +222,7 @@ struct ExecutorGuiUpdate
     }
     if (ok)
     {
-      avnd::control_input_introspection<Node>::for_all_n(
+      avnd::control_input_introspection<Node>::for_all_n2(
             avnd::get_inputs<Node>(node.impl),
             ApplyEngineControlChangeToUI<Node>{arr, element}
       );
@@ -175,7 +242,7 @@ struct ExecutorGuiUpdate
     }
     if (ok)
     {
-      avnd::control_output_introspection<Node>::for_all_n(
+      avnd::control_output_introspection<Node>::for_all_n2(
             avnd::get_outputs<Node>(node.impl),
             setup_Impl1_Out<Node>{arr, element}
       );
@@ -363,6 +430,7 @@ public:
       this->node = ptr;
 
       using control_inputs_type = avnd::control_input_introspection<Node>;
+      using soundfile_inputs_type = avnd::soundfile_input_introspection<Node>;
       using control_outputs_type = avnd::control_output_introspection<Node>;
       avnd::effect_container<Node>& eff = node->impl;
 
@@ -371,10 +439,17 @@ public:
       {
         // Initialize all the controls in the node with the current value.
         // And update the node when the UI changes
-        avnd::control_input_introspection<Node>::for_all_n(
+        control_inputs_type::for_all_n2(
               avnd::get_inputs<Node>(eff),
               setup_Impl0<Node>{element, ctx, ptr, this}
         );
+      }
+      if constexpr (soundfile_inputs_type::size > 0)
+      {
+        soundfile_inputs_type::for_all_n2(
+              avnd::get_inputs<Node>(eff),
+              setup_Impl0<Node>{element, ctx, ptr, this}
+              );
       }
 
       // Custom UI messages to engine

@@ -168,6 +168,16 @@ struct InletInitFunc
     setupNewPort(in, p);
     ins.push_back(p);
   }
+
+  template<avnd::soundfile_port T>
+  void operator()(const T& in)
+  {
+    constexpr auto ctl = Control::Soundfile{avnd::get_name<T>()};
+    auto p = ctl.create_inlet(Id<Process::Port>(inlet++), &self);
+    p->hidden = true;
+    ins.push_back(p);
+  }
+
   template<avnd::parameter T>
   void operator()(const T& in)
   {
