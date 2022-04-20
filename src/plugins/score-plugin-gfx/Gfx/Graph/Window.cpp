@@ -172,7 +172,7 @@ void Window::exposeEvent(QExposeEvent*)
 
 void Window::mouseDoubleClickEvent(QMouseEvent* ev)
 {
-  setWindowState(Qt::WindowState(windowState() ^ Qt::WindowFullScreen));
+  setWindowStates(windowStates() ^ Qt::WindowFullScreen);
 }
 
 bool Window::event(QEvent* e)

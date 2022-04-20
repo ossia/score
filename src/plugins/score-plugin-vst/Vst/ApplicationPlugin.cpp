@@ -164,9 +164,16 @@ void ApplicationPlugin::unregisterRunningVST(Model* m)
 void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 {
   // 1. List all plug-ins in new paths
+  QStringList exploredPaths;
   QSet<QString> newPlugins;
   for (QString dir : paths)
   {
+    auto canonical_path = QDir{dir}.canonicalPath();
+    if(exploredPaths.contains(canonical_path))
+      continue;
+
+    exploredPaths.push_back(canonical_path);
+
 #if defined(__APPLE__)
     {
       QDirIterator it(
@@ -244,7 +251,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
             qApp->applicationDirPath() + "/ossia-score-vstpuppet");
     }
 #else
-    proc->setProgram("ossia-score-vstpuppet");
+    proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
 #endif
     proc->setArguments({path, QString::number(i)});
     m_processes.push_back({path, std::move(proc), false, {}});

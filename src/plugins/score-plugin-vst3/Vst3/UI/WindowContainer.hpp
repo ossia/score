@@ -81,18 +81,15 @@ struct WindowContainer
       QDialog& parentWindow)
   {
     if (view.canResize() != Steinberg::kResultTrue)
-    {
       return;
-    }
+
     Steinberg::ViewRect r;
     r.top = 0;
     r.left = 0;
-    r.right = sz.width() * 2;
-    r.bottom = sz.height() * 2;
+    r.right = sz.width();
+    r.bottom = sz.height();
     view.checkSizeConstraint(&r);
 
-    int w = r.getWidth();
-    int h = r.getHeight();
     int qw = r.getWidth() * qtScaleFactor;
     int qh = r.getHeight() * qtScaleFactor;
 
@@ -102,6 +99,7 @@ struct WindowContainer
     {
       qwindow->resize(qw, qh);
     }
+
     if (container)
     {
       container->move(0, 0);

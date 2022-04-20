@@ -41,7 +41,7 @@ if(WIN32 AND NOT MSVC AND NOT SCORE_PCH)
   target_compile_options(score_plugin_fx PRIVATE -Ofast -fno-finite-math-only -Wa,-mbig-obj)
 endif()
 
-if(BUILD_TESTING AND NOT SCORE_DYNAMIC_PLUGINS)
+if(0)#BUILD_TESTING AND NOT SCORE_DYNAMIC_PLUGINS)
   if(NOT TARGET Catch2::Catch2WithMain)
     include(CTest)
     set(CATCH_BUILD_STATIC_LIBRARY 1)

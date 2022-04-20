@@ -43,24 +43,7 @@ void Window::resizeEvent(QResizeEvent* event)
 {
   Steinberg::IPlugView& view = *m_model.fx.view;
   container.setSizeFromUser(view, event->size(), *this);
-  /*
-    QDialog::resizeEvent(event);
-
-    Steinberg::IPlugView& view = *m_model.fx.view;
-
-    auto& g = this->geometry();
-    Steinberg::ViewRect r;
-    r.top = 0;
-    r.bottom = g.height();
-    r.left = 0;
-    r.bottom = g.width();
-
-    container.qwindow->resize(r.getWidth(), r.getHeight());
-    container.container->resize(r.getWidth(), r.getHeight());
-
-    if(view.canResize() == Steinberg::kResultTrue)
-      view.onSize(&r);
-      */
+  event->accept();
 }
 
 void Window::closeEvent(QCloseEvent* event)

@@ -74,6 +74,7 @@ Presenter::Presenter(
     }
 
     m_notes.clear();
+    m_selectedNotes.clear();
 
     for (auto& note : model.notes)
     {

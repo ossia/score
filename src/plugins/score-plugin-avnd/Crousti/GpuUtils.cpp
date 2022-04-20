@@ -33,12 +33,10 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase()
   QRhiGles2InitParams params;
   params.fallbackSurface = m_renderState->surface;
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
-  m_renderState->rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers);
-#include <Gfx/Qt5CompatPush> // clang-format: keep
+  m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params);
 
   m_renderState->size = QSize(1000, 1000);
-  m_renderState->api = score::gfx::GraphicsApi::Vulkan;
+  m_renderState->api = score::gfx::GraphicsApi::OpenGL;
 }
 
 void CustomGpuOutputNodeBase::process(const score::gfx::Message& msg)

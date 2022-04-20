@@ -36,6 +36,7 @@ void ScaleNotes::redo(const score::DocumentContext& ctx) const
     auto& n = model.notes.at(note);
     n.setDuration(std::max(n.duration() + m_delta, 0.001));
   }
+  model.notesNeedUpdate();
 }
 
 void ScaleNotes::serializeImpl(DataStreamInput& s) const
@@ -75,6 +76,7 @@ void RescaleMidi::redo(const score::DocumentContext& ctx) const
     note.setStart(note.start() * m_delta);
     note.setDuration(note.duration() * m_delta);
   }
+  model.notesNeedUpdate();
 }
 
 void RescaleMidi::serializeImpl(DataStreamInput& s) const

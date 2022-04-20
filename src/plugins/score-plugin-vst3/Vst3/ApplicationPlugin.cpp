@@ -73,20 +73,19 @@ namespace vst3
 namespace
 {
 #if defined(__APPLE__)
-static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST3";
+static const QStringList default_paths = {"/Library/Audio/Plug-Ins/VST3"};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
 #elif defined(__linux__)
-static const constexpr auto default_path{"/usr/lib/vst3"};
+static const QStringList default_paths = {QStringLiteral("/usr/lib/vst3"), QStringLiteral("/usr/lib64/vst3")};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
 #elif defined(_WIN32)
-static const constexpr auto default_path
-    = "C:\\Program Files\\Common Files\\VST3";
+static const QStringList default_paths = {"C:\\Program Files\\Common Files\\VST3"};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Files;
 #else
-static const constexpr auto default_path = "";
+static const constexpr auto default_paths = {QStringLiteral("/usr/lib/vst3")};
 static const constexpr auto default_filter = "";
 #endif
 }
@@ -125,7 +124,6 @@ void ApplicationPlugin::initialize()
   {
     vst_infos = val.value<std::vector<AvailablePlugin>>();
   }
-  //vst_infos.clear();
 
   vstChanged();
 
@@ -135,15 +133,22 @@ void ApplicationPlugin::initialize()
   //
 
   if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
-    rescan({default_path});
+    rescan(default_paths);
 }
 
 void ApplicationPlugin::rescan(const QStringList& paths)
 {
   // 1. List all plug-ins in new paths
+  QStringList exploredPaths;
   QSet<QString> newPlugins;
   for (const QString& dir : paths)
   {
+    auto canonical_path = QDir{dir}.canonicalPath();
+    if(exploredPaths.contains(canonical_path))
+      continue;
+
+    exploredPaths.push_back(canonical_path);
+
     QDirIterator it(
         dir,
         QStringList{default_filter},
@@ -189,9 +194,14 @@ void ApplicationPlugin::rescan(const QStringList& paths)
             qApp->applicationDirPath() + "/ossia-score-vst3puppet");
     }
 #else
-    proc->setProgram("ossia-score-vst3puppet");
+    proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vst3puppet");
 #endif
     proc->setArguments({path, QString::number(i)});
+    connect(proc.get(), &QProcess::errorOccurred, this, [proc=proc.get(), path] {
+      qDebug() << " == VST3: error => " << path;
+      qDebug() << "VST3 out: " << proc->readAllStandardOutput().constData();
+      qDebug() << "VST3 error: " << proc->readAllStandardError().constData();
+    });
     m_processes.push_back({path, std::move(proc), false, {}});
     i++;
   }

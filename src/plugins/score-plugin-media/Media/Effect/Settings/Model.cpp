@@ -13,8 +13,10 @@ SETTINGS_PARAMETER_IMPL(VstPaths)
   }
 #elif defined(__linux__)
   {
-    "/usr/lib/vst",
-    "/usr/lib/lxvst"
+    QStringLiteral("/usr/lib/vst"),
+    QStringLiteral("/usr/lib/lxvst"),
+    QStringLiteral("/usr/lib64/vst"),
+    QStringLiteral("/usr/lib64/lxvst")
   }
 #elif defined(_WIN32)
   {
