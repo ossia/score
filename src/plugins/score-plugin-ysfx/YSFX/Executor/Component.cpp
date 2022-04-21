@@ -173,7 +173,7 @@ void ysfx_node::run(
     outs = (double**) alloca(sizeof(double*) * out_count);
     for(int i = 0; i < out_count; i++) {
 
-      this->audio_out->data.get()[i].resize(d);
+      this->audio_out->data.get()[i].resize(estate.bufferSize(), boost::container::default_init);
       outs[i] = this->audio_out->data.channel(i).data();
     }
   }

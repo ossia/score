@@ -95,7 +95,7 @@ public:
     auto& p = *m_outlets[0]->template target<ossia::audio_port>();
     p.set_channels(2);
     for (auto& chan : p)
-      chan.resize(bs);
+      chan.resize(bs, boost::container::default_init);
     return p.get();
   }
 

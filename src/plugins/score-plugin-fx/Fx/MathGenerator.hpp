@@ -306,7 +306,7 @@ struct Node
       for (int j = 0; j < chans; j++)
       {
         auto& out = output.channel(j);
-        out.resize(st.bufferSize());
+        out.resize(st.bufferSize(), boost::container::default_init);
       }
 
       self.p1 = a;
