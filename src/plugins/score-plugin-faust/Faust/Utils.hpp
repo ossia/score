@@ -81,12 +81,12 @@ struct UI : ::UI, MetaDataUI
     if(isKnob(zone))
     {
       auto inl = new Process::FloatKnob{
-          min, max, init, label, getStrongId(fx.inlets()), &fx};
+          (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
     } else
     {
       auto inl = new Process::FloatSlider{
-          min, max, init, label, getStrongId(fx.inlets()), &fx};
+          (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
     }
   }
@@ -121,7 +121,7 @@ struct UI : ::UI, MetaDataUI
       FAUSTFLOAT max) override
   {
     auto inl = new Process::Bargraph{
-        min, max, min, label, getStrongId(fx.outlets()), &fx};
+        (float)min, (float)max, (float)min, label, getStrongId(fx.outlets()), &fx};
     fx.outlets().push_back(inl);
   }
 
@@ -240,7 +240,7 @@ struct UpdateUI : ::UI, MetaDataUI
           delete fx.inlets()[i];
 
           auto inl = new Process::FloatKnob{
-              min, max, init, label, getStrongId(fx.inlets()), &fx};
+              (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
           fx.inlets().push_back(inl);
         }
         else
@@ -267,7 +267,7 @@ struct UpdateUI : ::UI, MetaDataUI
           delete fx.inlets()[i];
 
           auto inl = new Process::FloatSlider{
-              min, max, init, label, getStrongId(fx.inlets()), &fx};
+              (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
           fx.inlets().push_back(inl);
         }
       }
@@ -280,12 +280,12 @@ struct UpdateUI : ::UI, MetaDataUI
         if(isKnob(zone))
         {
           auto inl = new Process::FloatKnob{
-              min, max, init, label, getStrongId(fx.inlets()), &fx};
+              (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
           fx.inlets().push_back(inl);
         } else
         {
           auto inl = new Process::FloatSlider{
-              min, max, init, label, getStrongId(fx.inlets()), &fx};
+              (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
           fx.inlets().push_back(inl);
         }
       }
@@ -295,13 +295,13 @@ struct UpdateUI : ::UI, MetaDataUI
       if(isKnob(zone))
       {
         auto inl = new Process::FloatKnob{
-            min, max, init, label, getStrongId(fx.inlets()), &fx};
+            (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
         fx.inlets().push_back(inl);
         fx.controlAdded(inl->id());
       } else
       {
         auto inl = new Process::FloatSlider{
-            min, max, init, label, getStrongId(fx.inlets()), &fx};
+            (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
         fx.inlets().push_back(inl);
         fx.controlAdded(inl->id());
       }
@@ -351,14 +351,14 @@ struct UpdateUI : ::UI, MetaDataUI
         fx.controlRemoved(*fx.outlets()[o]);
         delete fx.outlets()[o];
 
-        auto inl = new Process::Bargraph{min, max, min, label, id, &fx};
+        auto inl = new Process::Bargraph{(float)min, (float)max, (float)min, label, id, &fx};
         fx.outlets()[o] = inl;
       }
     }
     else
     {
       auto inl = new Process::Bargraph{
-          min, max, min, label, getStrongId(fx.outlets()), &fx};
+          (float)min, (float)max, (float)min, label, getStrongId(fx.outlets()), &fx};
       fx.outlets().push_back(inl);
       fx.controlAdded(inl->id());
     }

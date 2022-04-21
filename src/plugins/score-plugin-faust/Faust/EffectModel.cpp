@@ -241,8 +241,11 @@ void FaustEffectModel::reload()
 
   std::string fx_path = m_path.toStdString();
   auto str = fx_text.toStdString();
-  int argc = fx_path.empty() ? 1 : 3;
-  const char* argv[]{"-vec", "-I", fx_path.c_str(), nullptr};
+
+  int argc = fx_path.empty() ? 2 : 4;
+  const char* argv[]{
+    sizeof(FAUSTFLOAT) == 4 ? "-single" : "-double",
+    "-vec", "-I", fx_path.c_str(), nullptr};
 
   std::string err;
   err.resize(4097);
