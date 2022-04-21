@@ -75,7 +75,6 @@ public:
         float** in = inputs.audio.samples;
         float** out = outputs.audio.samples;
 
-        quaternion_data Q;
         float inFrame[MAX_NSH][nSamples];
         float M_rot[MAX_NSH][MAX_NSH];
 
@@ -89,7 +88,6 @@ public:
                 inFrame[j][i] = in[0][i];
 
         yawPitchRoll2Rzyx (yaw, pitch, roll, 1, Rxyz);
-        euler2Quaternion(inputs.yaw, inputs.pitch, inputs.roll, 0, 0 ? EULER_ROTATION_ROLL_PITCH_YAW : EULER_ROTATION_YAW_PITCH_ROLL, &Q);
         getSHrotMtxReal(Rxyz, (float*)M_rot_tmp, order);
 
         bool sameRot = true;
