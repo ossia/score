@@ -2,7 +2,11 @@
 #include <map>
 #if defined(_WIN64)
 #include "SectionMemoryManager.cpp"
+extern "C"
+void fake_chkstk_llvm() { }
 #endif
+
+
 namespace Jit
 {
 // TODO investigate https://stackoverflow.com/questions/1839965/dynamically-creating-functions-in-c
@@ -79,6 +83,7 @@ JitCompiler::JitCompiler()
     RuntimeInterposes[m_mangler("fprintf")] = {pointerToJITTargetAddress(&::fprintf), JITSymbolFlags::Exported};
     RuntimeInterposes[m_mangler("vfprintf")] = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
     RuntimeInterposes[m_mangler("__mingw_vfprintf")] = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("___chkstk_ms")] = {pointerToJITTargetAddress(&::fake_chkstk_llvm), JITSymbolFlags::Exported};
 
     // RuntimeInterposes[m_mangler("_CxxThrowException")] = {pointerToJITTargetAddress(&SEHFrameHandler::RaiseSEHException), JITSymbolFlags::Exported};
 #endif
