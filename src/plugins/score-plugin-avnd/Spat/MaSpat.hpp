@@ -18,7 +18,6 @@ public:
     struct
     {
       halp::dynamic_audio_bus<"Input", double> audio;
-      halp::hslider_f32<"Weight", halp::range{.min = 0., .max = 1., .init = 0.5}> weight;
       halp::hslider_f32<"L/R", halp::range{.min = -1, .max = 1, .init = 0}> toto;
     } inputs;
 
@@ -44,25 +43,22 @@ public:
 
     void operator()(halp::tick t)
     {
-        // Process the input buffer
-        //printf("test : %d", t.frames);
         if(inputs.audio.channels == 2 && outputs.audio.channels == 2)
         {
-            printf("coucou");
             auto coeff = inputs.toto;
 
             auto* l_in = inputs.audio[0];
-            auto* l_out = outputs.audio[0];
-
             auto* r_in = inputs.audio[1];
+
+            auto* l_out = outputs.audio[0];
             auto* r_out = outputs.audio[1];
 
             //float& prev = this->previous_values[i];
 
             for (int j = 0; j < t.frames; j++)
             {
-              l_out[j] = l_in[j] * (1+coeff);
-              r_out[j] = r_in[j] * (1-coeff);
+              l_out[j] = l_in[j] * (1-coeff);
+              r_out[j] = r_in[j] * (1+coeff);
               //prev = out[j];
             }
             return;
