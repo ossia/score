@@ -1057,6 +1057,11 @@ struct ArraySerializer
 };
 
 template <typename... Args>
+struct TSerializer<JSONObject, boost::container::vector<Args...>> : ArraySerializer
+{
+};
+
+template <typename... Args>
 struct TSerializer<JSONObject, std::vector<Args...>> : ArraySerializer
 {
 };
