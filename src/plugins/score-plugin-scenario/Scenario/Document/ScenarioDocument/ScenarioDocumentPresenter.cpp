@@ -700,7 +700,11 @@ void ScenarioDocumentPresenter::restoreZoom()
 
 void ScenarioDocumentPresenter::on_viewReady()
 {
+  auto itv = QPointer<IntervalModel>{&displayedInterval()};
   QTimer::singleShot(0, this, [=] {
+    if(!itv)
+      return;
+
     restoreZoom();
 
     if (!window_size_set)

@@ -473,7 +473,6 @@ void Graph::addAndLinkEdge(Port* source, Port* sink)
   auto output = dynamic_cast<OutputNode*>(sink->node);
   SCORE_ASSERT(output);
 
-  auto state = output->renderState();
   recreateOutputRenderList(*output);
 }
 
@@ -483,7 +482,6 @@ void Graph::unlinkAndRemoveEdge(Port* source, Port* sink)
   auto output = dynamic_cast<OutputNode*>(sink->node);
   SCORE_ASSERT(output);
 
-  auto state = output->renderState();
   recreateOutputRenderList(*output);
 }
 
