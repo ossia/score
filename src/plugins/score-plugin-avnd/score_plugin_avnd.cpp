@@ -88,6 +88,7 @@
 #include <Spat/MaSpat.hpp>
 #include <Spat/MaSpat_.hpp>
 #include <Spat/StereoToMono.hpp>
+#include <Spat/Binaural.hpp>
 
 #include <brigand/sequences/list.hpp>
 
@@ -169,6 +170,7 @@ score_plugin_avnd::factories(
           , MaSpat_
           , Rotator
           , StereoToMono
+          , Binaural
     #if AVND_TEST_BUILD
         oscr::Granolette
       , examples::helpers::MessageBusUi
