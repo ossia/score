@@ -165,7 +165,11 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("-fno-builtin");
 #endif
 
+  // Prevent emitting ___chkstk_ms calls in alloca
+  args.push_back("-mno-stack-arg-probe");
+
   args.push_back("-fgnuc-version=4.2.1");
+
 #if defined(__APPLE__)
   args.push_back("-fmax-type-align=16");
 #endif

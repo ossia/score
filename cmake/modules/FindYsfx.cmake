@@ -11,7 +11,7 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
-    YSFX DEFAULT_MSG
+    Ysfx DEFAULT_MSG
     YSFX_LIBRARY YSFX_INCLUDE_DIR)
 
 if(YSFX_FOUND)
