@@ -170,7 +170,7 @@ consteval auto make_control_in()
     if constexpr(std::is_enum_v<value_type>) {
       // List of string, values will be the strings themselves or 0, 1...
       // Convert from std::string_view to const char* until we migrate everything here
-      return Control::ComboBox{name, c.init, to_const_char_array(T::choices())};
+      return Control::ComboBox{name, c.init, to_const_char_array(c.values)};
     }
     else if constexpr(requires { std::string_view{c.values[0].first}; }) {
       // Pair of string <-> values

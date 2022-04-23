@@ -27,8 +27,11 @@ function(score_pch TheTarget)
     return()
   endif()
 
-  target_precompile_headers("${TheTarget}" REUSE_FROM score_lib_pch)
-  target_compile_definitions("${TheTarget}" PRIVATE SCORE_LIB_PCH_EXPORTS)
+  get_target_property(hasCustomPCH "${TheTarget}" SCORE_CUSTOM_PCH)
+  if(NOT hasCustomPCH)
+    target_precompile_headers("${TheTarget}" REUSE_FROM score_lib_pch)
+    target_compile_definitions("${TheTarget}" PRIVATE SCORE_LIB_PCH_EXPORTS)
+  endif()
 endfunction()
 
 ### Call at the beginning of a plug-in cmakelists ###

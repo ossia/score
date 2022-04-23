@@ -405,17 +405,17 @@ public:
       // Create the GPU node
       if constexpr(GpuGraphicsNode2<Node>)
       {
-        node->id = gfx_exec.ui->register_node(std::make_unique<CustomGpuNode<Node>>());
+        node->id = gfx_exec.ui->register_node(std::unique_ptr<score::gfx::Node>{new CustomGpuNode<Node>()});
       }
       else if constexpr(GpuComputeNode2<Node>)
       {
         auto& q = ctx.executionQueue;
-        node->id = gfx_exec.ui->register_node(std::make_unique<GpuComputeNode<Node>>(q, node->control_outs));
+        node->id = gfx_exec.ui->register_node(std::unique_ptr<score::gfx::Node>{new GpuComputeNode<Node>(q, node->control_outs)});
       }
       else if constexpr(GpuNode<Node>)
       {
         auto state = std::make_shared<Node>();
-        node->id = gfx_exec.ui->register_node(std::make_unique<GfxNode<Node>>(state));
+        node->id = gfx_exec.ui->register_node(std::unique_ptr<score::gfx::Node>{new GfxNode<Node>(state)});
       }
       node_id = node->id;
     }

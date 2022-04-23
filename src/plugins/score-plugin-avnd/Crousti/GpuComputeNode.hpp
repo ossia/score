@@ -372,19 +372,17 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     // Apply the controls
     {
-      std::size_t k = 0;
-      avnd::parameter_input_introspection<Node_T>::for_all(
+      avnd::parameter_input_introspection<Node_T>::for_all_n2(
             avnd::get_inputs<Node_T>(state),
-            [&] (avnd::parameter auto& t) {
+            [&] (avnd::parameter auto& t, auto pred_index, auto field_index) {
               auto& mess = this->parent.last_message;
-              if(mess.input.size() > k)
+              if(mess.input.size() > field_index)
               {
-                if(auto val = std::get_if<ossia::value>(&mess.input[k]))
+                if(auto val = std::get_if<ossia::value>(&mess.input[field_index]))
                 {
                   oscr::from_ossia_value(t, *val, t.value);
                 }
               }
-              k++;
             }
       );
     }

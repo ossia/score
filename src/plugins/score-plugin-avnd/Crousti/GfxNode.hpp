@@ -9,7 +9,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
-
+#include <avnd/binding/ossia/port_run_preprocess.hpp>
 #include <avnd/common/for_nth.hpp>
 
 namespace oscr
@@ -258,7 +258,7 @@ struct GfxRenderer final : GenericTexgenRenderer
       // Init input render targets
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
-            avnd::get_inputs<Node_T>(state), [&] (auto& t) {
+            avnd::get_inputs<Node_T>(state), [&] <typename F> (F& t) {
         auto sz = renderer.state.size;
         createInput(renderer, k, sz);
         t.texture.width = sz.width();
@@ -350,20 +350,18 @@ struct GfxRenderer final : GenericTexgenRenderer
     }
 
     // Apply the controls
-    std::size_t k = 0;
-    avnd::parameter_input_introspection<Node_T>::for_all(
+    avnd::parameter_input_introspection<Node_T>::for_all_n2(
           avnd::get_inputs<Node_T>(state),
-          [&] (avnd::parameter auto& t) {
+          [&] (avnd::parameter auto& t, auto pred_index, auto field_index) {
             auto& mess = this->parent.last_message;
-            if(mess.input.size() > k)
+
+            if(mess.input.size() > field_index)
             {
-              if(auto val = std::get_if<ossia::value>(&mess.input[k]))
+              if(auto val = std::get_if<ossia::value>(&mess.input[field_index]))
               {
-                using type = std::remove_reference_t<decltype(t.value)>;
-                t.value = ossia::convert<type>(*val);
+                oscr::from_ossia_value(t, *val, t.value);
               }
             }
-            k++;
           }
     );
 

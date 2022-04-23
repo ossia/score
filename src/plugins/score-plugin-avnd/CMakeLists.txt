@@ -64,7 +64,7 @@ add_library(
 target_include_directories(score_plugin_avnd PUBLIC "${3RDPARTY_FOLDER}/avendish/include")
 target_link_libraries(score_plugin_avnd PUBLIC score_plugin_engine score_plugin_media)
 if(TARGET score_plugin_gfx)
-  target_link_libraries(score_plugin_avnd PRIVATE score_plugin_gfx)
+  target_link_libraries(score_plugin_avnd PUBLIC score_plugin_gfx)
 endif()
 
 if(NOT AVND_DISABLE_COROUTINES)
