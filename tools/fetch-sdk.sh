@@ -4,7 +4,7 @@ echo "Running on OSTYPE: '$OSTYPE'"
 
 export LATEST_TAG=$(git describe --tags --abbrev=0)
 export LATEST_TAG_NOV=$(echo "$LATEST_TAG" | sed "s/v//")
-export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/sdk23
+export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/sdk25
 export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk23
 export BOOST_VER=boost_1_78_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
