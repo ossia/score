@@ -122,6 +122,7 @@ struct descriptor
   std::vector<input> inputs;
   std::vector<pass> passes;
   std::vector<std::string> pass_targets;
+  bool default_vertex_shader{};
 };
 
 class ISF_EXPORT parser

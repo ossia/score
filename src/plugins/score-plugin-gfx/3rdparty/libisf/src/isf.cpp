@@ -161,6 +161,8 @@ parser::parser(
     , m_sourceFragment{std::move(frag)}
     , m_version{glslVersion}
 {
+  this->m_desc.default_vertex_shader = vert.empty();
+
   static const auto is_isf = [](const std::string& str) {
     bool has_isf
         = (str.find("isf") != std::string::npos

@@ -434,10 +434,12 @@ void RenderedISFNode::init(RenderList& renderer)
 
   // Create the mesh
   {
-    const auto& mesh = renderer.defaultTriangle();
+    m_mesh = this->n.descriptor().default_vertex_shader
+        ? &renderer.defaultTriangle()
+        : &renderer.defaultQuad();
     if (!m_meshBuffer)
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh);
       m_meshBuffer = mbuffer;
       m_idxBuffer = ibuffer;
     }
@@ -690,9 +692,9 @@ void RenderedISFNode::runInitialPasses(
 
       assert(this->m_meshBuffer);
       assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      renderer.defaultTriangle().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+      m_mesh->setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-      cb.draw(renderer.defaultTriangle().vertexCount);
+      cb.draw(m_mesh->vertexCount);
     }
     cb.endPass();
 
@@ -743,9 +745,9 @@ void RenderedISFNode::runRenderPass(
 
       assert(this->m_meshBuffer);
       assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      renderer.defaultTriangle().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+      m_mesh->setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-      cb.draw(renderer.defaultTriangle().vertexCount);
+      cb.draw(m_mesh->vertexCount);
     }
   }
 
@@ -936,7 +938,7 @@ void SimpleRenderedISFNode::initPass(const TextureRenderTarget& renderTarget, Re
   // Create the main pass
   auto pip = score::gfx::buildPipeline(
       renderer,
-      renderer.defaultTriangle(),
+      *m_mesh,
       n.m_vertexS,
       n.m_fragmentS,
       renderTarget,
@@ -952,10 +954,13 @@ void SimpleRenderedISFNode::init(RenderList& renderer)
 
   // Create the mesh
   {
-    const auto& mesh = renderer.defaultTriangle();
+    m_mesh = this->n.descriptor().default_vertex_shader
+        ? &renderer.defaultTriangle()
+        : &renderer.defaultQuad();
+
     if (!m_meshBuffer)
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh);
       m_meshBuffer = mbuffer;
       m_idxBuffer = ibuffer;
     }
@@ -1141,9 +1146,9 @@ void SimpleRenderedISFNode::runRenderPass(
 
       assert(this->m_meshBuffer);
       assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      renderer.defaultTriangle().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+      m_mesh->setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-      cb.draw(renderer.defaultTriangle().vertexCount);
+      cb.draw(m_mesh->vertexCount);
     }
   }
 }
