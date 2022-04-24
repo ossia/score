@@ -100,19 +100,25 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
   return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg", "imf", "mxf", "mts", "m2ts", "mj2"};
 }
 
-TimeVal guessVideoDuration(const QString& path)
+std::optional<TimeVal> guessVideoDuration(const QString& path)
 {
   AVFormatContext* ctx = avformat_alloc_context();
-  avformat_open_input(&ctx, path.toStdString().c_str(), nullptr, nullptr);
-  avformat_find_stream_info(ctx, nullptr);
-
-  int64_t duration = ctx->duration;
-
-  avformat_close_input(&ctx);
-  avformat_free_context(ctx);
-
-  auto flicks_per_av_time_base = ossia::flicks_per_second<double> / AV_TIME_BASE;
-  return TimeVal{(int64_t)(duration * flicks_per_av_time_base)};
+  int ret = avformat_open_input(&ctx, path.toStdString().c_str(), nullptr, nullptr);
+  if(ret == 0)
+  {
+    avformat_find_stream_info(ctx, nullptr);
+    int64_t duration = ctx->duration;
+    avformat_close_input(&ctx);
+    avformat_free_context(ctx);
+    auto flicks_per_av_time_base = ossia::flicks_per_second<double> / AV_TIME_BASE;
+    return TimeVal{(int64_t)(duration * flicks_per_av_time_base)};
+  }
+  else
+  {
+    avformat_close_input(&ctx);
+    avformat_free_context(ctx);
+    return std::nullopt;
+  }
 }
 
 void DropHandler::dropPath(
@@ -124,8 +130,10 @@ void DropHandler::dropPath(
   p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
   p.creation.prettyName = QFileInfo{filename}.baseName();
   p.creation.customData = filename;
-  p.duration = guessVideoDuration(filename);
-  vec.push_back(std::move(p));
+
+  // Invalid duration -> means that we could not open the file or do anything useful from it
+  if((p.duration = guessVideoDuration(filename)))
+    vec.push_back(std::move(p));
 }
 
 }
