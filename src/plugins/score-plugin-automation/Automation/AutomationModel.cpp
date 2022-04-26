@@ -257,7 +257,7 @@ void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
 void ProcessModel::setMin(double arg)
 {
   auto& inlet = ((Process::MinMaxFloatOutlet&)(*outlet)).minInlet;
-  if (*inlet->value().target<float>() == arg)
+  if (ossia::convert<float>(inlet->value()) == arg)
     return;
 
   inlet->setValue(arg);
@@ -268,7 +268,7 @@ void ProcessModel::setMin(double arg)
 void ProcessModel::setMax(double arg)
 {
   auto& inlet = ((Process::MinMaxFloatOutlet&)(*outlet)).maxInlet;
-  if (*inlet->value().target<float>() == arg)
+  if (ossia::convert<float>(inlet->value()) == arg)
     return;
 
   inlet->setValue(arg);
