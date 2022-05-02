@@ -23,6 +23,7 @@ public:
   {
     m_min = min;
     m_max = max;
+    update();
   }
   void setOrientation(Qt::Orientation ort) { m_orientation = ort; }
 
@@ -39,6 +40,7 @@ public:
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
+  virtual void createPopup(QPoint pos);
 
 protected:
   void paintEvent(QPaintEvent*) override;
@@ -48,11 +50,11 @@ protected:
 private:
   void updateValue(QPointF mousePos);
 
-  int m_value;
-  int m_min;
-  int m_max;
+  int m_value{};
+  int m_min{};
+  int m_max{};
 
-  Qt::Orientation m_orientation;
-  double m_borderWidth;
+  Qt::Orientation m_orientation{};
+  double m_borderWidth{};
 };
 }

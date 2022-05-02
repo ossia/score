@@ -100,63 +100,52 @@ void ToggleButton::paintEvent(QPaintEvent* event)
   style()->drawControl(QStyle::CE_PushButton, &opt, &p, this);*/
 }
 
-ValueSlider::~ValueSlider()
-{
-
-}
+ValueSlider::~ValueSlider() { }
 
 void ValueSlider::paintEvent(QPaintEvent* event)
 {
   paintWithText(QString::number(value()));
 }
 
-
-VolumeSlider::~VolumeSlider()
+double VolumeSlider::map(double v) const
 {
-
+  return ossia::detail::LinearGainToDecibels(v);
 }
+
+double VolumeSlider::unmap(double v) const
+{
+  return ossia::detail::DecibelsToLinearGain(v);
+}
+
+VolumeSlider::~VolumeSlider() { }
 
 void VolumeSlider::paintEvent(QPaintEvent*)
 {
-  paintWithText(
-      "vol: "
-      + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
-      + " dB");
+  paintWithText("vol: " + QString::number(map(value()), 'f', 1) + " dB");
 }
 
-ValueDoubleSlider::~ValueDoubleSlider()
-{
-
-}
-
-void ValueDoubleSlider::setRange(double min, double max) noexcept
-{
-  this->min = min;
-  this->max = max;
-  update();
-}
+ValueDoubleSlider::~ValueDoubleSlider() { }
 
 void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  paintWithText(QString::number(min + value() * (max - min), 'f', 3));
+  paintWithText(QString::number(map(value()), 'f', 3));
 }
 
-ValueLogDoubleSlider::~ValueLogDoubleSlider()
-{
+ValueLogDoubleSlider::~ValueLogDoubleSlider() { }
 
+double ValueLogDoubleSlider::map(double v) const
+{
+  return ossia::normalized_to_log(min, max - min, v);
 }
 
-void ValueLogDoubleSlider::setRange(double min, double max) noexcept
+double ValueLogDoubleSlider::unmap(double v) const
 {
-  this->min = min;
-  this->max = max;
-  update();
+  return ossia::log_to_normalized(min, max - min, v);
 }
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  paintWithText(QString::number(
-      ossia::normalized_to_log(min, max - min, value()), 'f', 3));
+  paintWithText(QString::number(map(value()), 'f', 3));
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)

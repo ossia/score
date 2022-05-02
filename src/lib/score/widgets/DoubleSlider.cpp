@@ -2,12 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DoubleSlider.hpp"
 
+#include "DoubleSpinBox.hpp"
+
 #include <score/model/Skin.hpp>
 #include <score/tools/Clamp.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <QMouseEvent>
 #include <QPainter>
 #include <QStyleOptionSlider>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DoubleSlider)
@@ -54,6 +58,16 @@ void DoubleSlider::setValue(double val)
   repaint();
 }
 
+double DoubleSlider::map(double v) const
+{
+  return min + m_value * (max - min);
+}
+
+double DoubleSlider::unmap(double v) const
+{
+  return (v / (max - min)) - min;
+}
+
 void DoubleSlider::updateValue(QPointF mousePos)
 {
   if (m_orientation == Qt::Horizontal)
@@ -75,7 +89,14 @@ void DoubleSlider::updateValue(QPointF mousePos)
 
 void DoubleSlider::mousePressEvent(QMouseEvent* event)
 {
-  updateValue(event->localPos());
+  if (event->button() == Qt::MouseButton::RightButton)
+  {
+    createPopup(event->globalPos());
+  }
+  else if (event->button() == Qt::MouseButton::LeftButton)
+  {
+    updateValue(event->localPos());
+  }
 }
 
 void DoubleSlider::mouseMoveEvent(QMouseEvent* event)
@@ -88,7 +109,35 @@ void DoubleSlider::mouseReleaseEvent(QMouseEvent* event)
 {
   sliderReleased();
 }
-
+void DoubleSlider::createPopup(QPoint pos)
+{
+  auto w = new score::DoubleSpinboxWithEnter;
+  w->setWindowFlag(Qt::Tool);
+  w->setWindowFlag(Qt::FramelessWindowHint);
+  w->setRange(map(0), map(1));
+  w->setValue(map(m_value));
+  w->setDecimals(3);
+  QObject::connect(
+      w,
+      SignalUtils::QDoubleSpinBox_valueChanged_double(),
+      this,
+      [=](double v)
+      {
+        this->setValue(this->unmap(v));
+        sliderMoved(this->value());
+      });
+  w->show();
+  w->move(pos.x(), pos.y());
+  QTimer::singleShot(5, w, [w] { w->setFocus(); });
+  QObject::connect(
+      w, &DoubleSpinboxWithEnter::editingFinished, w, &QObject::deleteLater);
+}
+void DoubleSlider::setRange(double min, double max) noexcept
+{
+  this->min = min;
+  this->max = max;
+  update();
+}
 void DoubleSlider::paintEvent(QPaintEvent* e)
 {
   QPainter p{this};
