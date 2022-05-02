@@ -41,7 +41,6 @@ struct SCORE_LIB_BASE_EXPORT SpeedSlider : public score::DoubleSlider
 public:
   explicit SpeedSlider(QWidget* parent = nullptr);
   ~SpeedSlider();
-  bool moving = false;
   bool showText = true;
 
   double speed() const noexcept;
@@ -54,16 +53,16 @@ protected:
 
   void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent*) override;
-  void createPopup(QPoint pos);
+  void createPopup(QPoint pos) override;
 };
 
 struct SCORE_LIB_BASE_EXPORT VolumeSlider : public score::DoubleSlider
 {
 public:
   using DoubleSlider::DoubleSlider;
+  double map(double v) const override; //TODO this is not very DRY friendly
+  double unmap(double v) const override;
   ~VolumeSlider();
-
-  bool moving = false;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -75,12 +74,6 @@ public:
   using score::DoubleSlider::DoubleSlider;
   ~ValueDoubleSlider();
 
-  bool moving = false;
-  double min{};
-  double max{};
-
-  void setRange(double min, double max) noexcept;
-
 protected:
   void paintEvent(QPaintEvent* event) override;
 };
@@ -89,13 +82,9 @@ struct SCORE_LIB_BASE_EXPORT ValueLogDoubleSlider : public score::DoubleSlider
 {
 public:
   using score::DoubleSlider::DoubleSlider;
+  double map(double v) const override;
+  double unmap(double v) const override;
   ~ValueLogDoubleSlider();
-
-  bool moving = false;
-  double min{};
-  double max{};
-
-  void setRange(double min, double max) noexcept;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -117,8 +106,6 @@ public:
 
   ComboSlider(const QStringList& arr, QWidget* parent);
   ~ComboSlider();
-
-  bool moving = false;
 
 protected:
   void paintEvent(QPaintEvent* event) override;

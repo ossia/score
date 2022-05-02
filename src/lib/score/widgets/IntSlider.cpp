@@ -4,11 +4,14 @@
 
 #include <score/model/Skin.hpp>
 #include <score/tools/Clamp.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QTimer>
 
 #include <wobjectimpl.h>
+
 W_OBJECT_IMPL(score::IntSlider)
 namespace score
 {
@@ -78,7 +81,14 @@ void IntSlider::updateValue(QPointF mousePos)
 
 void IntSlider::mousePressEvent(QMouseEvent* event)
 {
-  updateValue(event->localPos());
+  if (event->button() == Qt::MouseButton::RightButton)
+  {
+    createPopup(event->globalPos());
+  }
+  else if (event->button() == Qt::MouseButton::LeftButton)
+  {
+    updateValue(event->localPos());
+  }
 }
 
 void IntSlider::mouseMoveEvent(QMouseEvent* event)
@@ -91,7 +101,28 @@ void IntSlider::mouseReleaseEvent(QMouseEvent* event)
 {
   sliderReleased();
 }
+void IntSlider::createPopup(QPoint pos)
+{
+  auto w = new QSpinBox();
+  w->setWindowFlag(Qt::Tool);
+  w->setWindowFlag(Qt::FramelessWindowHint);
+  w->setValue(m_value);
+  w->setRange(m_min, m_max);
 
+  QObject::connect(
+      w,
+      SignalUtils::QSpinBox_valueChanged_int(),
+      this,
+      [=](int v)
+      {
+        this->setValue(v);
+        sliderMoved(this->value());
+      });
+  w->show();
+  w->move(pos.x(), pos.y());
+  QTimer::singleShot(5, w, [w] { w->setFocus(); });
+  QObject::connect(w, &QSpinBox::editingFinished, w, &QObject::deleteLater);
+}
 void IntSlider::paintEvent(QPaintEvent* e)
 {
   QPainter p{this};
