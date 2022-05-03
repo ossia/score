@@ -8,8 +8,6 @@
 #include <Vst/EffectModel.hpp>
 #include <Vst/AppleUI/vstwindow.h>
 
-#include <QMacCocoaViewContainer>
-
 #include <QWindow>
 #include <QApplication>
 #include <QDebug>
