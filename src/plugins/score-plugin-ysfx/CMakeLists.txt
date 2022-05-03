@@ -52,4 +52,8 @@ target_link_libraries(
   Ysfx::Ysfx Freetype::Freetype
 )
 
+if(SCORE_FHS_BUILD)
+  target_link_libraries(${PROJECT_NAME} PUBLIC -lfontconfig)
+endif()
+
 setup_score_plugin(${PROJECT_NAME})
