@@ -106,7 +106,7 @@ endfunction()
 
 ### Adds tests ###
 function(setup_score_tests TestFolder)
-  if(NOT DEPLOYMENT_BUILD AND NOT SCORE_STATIC_QT AND NOT IOS)
+  if(NOT SCORE_DEPLOYMENT_BUILD AND NOT SCORE_STATIC_QT AND NOT IOS)
     add_subdirectory(${TestFolder})
   endif()
 endfunction()

@@ -11,7 +11,7 @@ cmake -GNinja %BUILD_SOURCESDIRECTORY% ^
   -DCMAKE_UNITY_BUILD=1 ^
   -DOSSIA_STATIC_EXPORT=1 ^
   -DSCORE_INSTALL_HEADERS=1 ^
-  -DDEPLOYMENT_BUILD=1
+  -DSCORE_DEPLOYMENT_BUILD=1
 
 cmake --build .
 cmake --build . --target package

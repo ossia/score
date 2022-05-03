@@ -12,6 +12,6 @@ string(APPEND CMAKE_CXX_FLAGS_INIT " -march=core2 -mtune=haswell")
 set_cache(BUILD_SHARED_LIBS OFF)
 set_cache(CMAKE_INSTALL_MESSAGE NEVER)
 
-set_cache(DEPLOYMENT_BUILD 1)
+set_cache(SCORE_DEPLOYMENT_BUILD 1)
 set_cache(SCORE_INSTALL_HEADERS ON)
 set_cache(OSSIA_STATIC_EXPORT ON)

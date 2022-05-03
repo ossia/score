@@ -1,4 +1,4 @@
-if(NOT DEPLOYMENT_BUILD)
+if(NOT SCORE_DEPLOYMENT_BUILD)
     return()
 endif()
 

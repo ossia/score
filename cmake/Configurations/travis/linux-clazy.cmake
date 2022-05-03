@@ -1,7 +1,7 @@
 set(CMAKE_BUILD_TYPE Debug CACHE INTERNAL "")
 set(CMAKE_CXX_COMPILER /usr/bin/clazy)
 set(SCORE_PCH False)
-set(DEPLOYMENT_BUILD False)
+set(SCORE_DEPLOYMENT_BUILD False)
 set(SCORE_COVERAGE False)
 set(SCORE_AUDIO_PLUGINS True CACHE INTERNAL "")
 include(default-plugins)

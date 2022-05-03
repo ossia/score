@@ -27,6 +27,18 @@
 #define __SANITIZE_ADDRESS__ 1
 #endif
 #endif
+
+#if defined(SCORE_FHS_BUILD)
+  #define SCORE_USE_DISTRO_SYSROOT 1
+#else
+  #if defined(SCORE_DEPLOYMENT_BUILD)
+    #define SCORE_USE_DISTRO_SYSROOT 0
+  #else
+    #define SCORE_USE_DISTRO_SYSROOT 1
+  #endif
+#endif
+
+
 #include <JitCpp/JitOptions.hpp>
 #include <score_git_info.hpp>
 
@@ -54,7 +66,7 @@ static inline std::string locateSDK()
 
   auto appFolder = qApp->applicationDirPath();
 
-#if defined(SCORE_DEPLOYMENT_BUILD)
+#if !SCORE_FHS_BUILD
 
 #if defined(_WIN32)
   {
@@ -425,7 +437,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 
   qDebug() << "SDK located: " << qsdk;
   std::string llvm_lib_version = SCORE_LLVM_VERSION;
-#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+#if defined(__APPLE__) && SCORE_FHS_BUILD
   llvm_lib_version = "13.0.0";
 #endif
 
@@ -434,7 +446,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   if (!entries.empty() && !entries.contains(SCORE_LLVM_VERSION))
     llvm_lib_version = entries.front().toStdString();
 
-#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+#if defined(__APPLE__) && SCORE_FHS_BUILD
   std::string appleSharedSdk = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr";
   args.push_back("-resource-dir");
   args.push_back(appleSharedSdk + "/lib/clang/" + llvm_lib_version);
@@ -448,7 +460,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   args.push_back("-stdlib=libc++");
   args.push_back("-internal-isystem");
 
-#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+#if defined(__APPLE__) && SCORE_FHS_BUILD
   args.push_back(appleSharedSdk + "/include/c++/v1");
 #else
   args.push_back(sdk + "/include/c++/v1");
@@ -494,7 +506,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   }
 #endif
 
-#if defined(__APPLE__) && !defined(SCORE_DEPLOYMENT_BUILD)
+#if defined(__APPLE__) && SCORE_FHS_BUILD
   args.push_back("-internal-isystem");
   args.push_back(appleSharedSdk + "/lib/clang/" + llvm_lib_version + "/include");
   args.push_back("-internal-externc-isystem");
@@ -558,7 +570,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   include("qt/QtSerialBus");
   include("qt/QtSerialPort");
 
-#if defined(SCORE_DEPLOYMENT_BUILD)
+#if !SCORE_FHS_BUILD
   bool deploying = true;
 #else
   bool deploying = false;

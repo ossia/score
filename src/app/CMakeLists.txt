@@ -92,7 +92,7 @@ if(APPLE)
     target_sources(${APPNAME} PRIVATE mac_main.m)
     target_link_libraries(${APPNAME} PRIVATE ${CFLIB} ${FLIB})
 
-    if(DEPLOYMENT_BUILD)
+    if(SCORE_DEPLOYMENT_BUILD)
       set(ICON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.icns")
       set_source_files_properties(${ICON_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 

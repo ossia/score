@@ -65,7 +65,7 @@ function(score_set_compile_options theTarget)
       $<$<BOOL:${SCORE_IEEE}>:SCORE_IEEE_SKIN>
       $<$<BOOL:${SCORE_WEBSOCKETS}>:SCORE_WEBSOCKETS>
       $<$<BOOL:${SCORE_OPENGL}>:SCORE_OPENGL>
-      $<$<BOOL:${DEPLOYMENT_BUILD}>:SCORE_DEPLOYMENT_BUILD>
+      $<$<BOOL:${SCORE_DEPLOYMENT_BUILD}>:SCORE_DEPLOYMENT_BUILD>
       $<$<BOOL:${SCORE_STATIC_PLUGINS}>:SCORE_STATIC_PLUGINS>
       )
   get_target_property(theType ${theTarget} TYPE)

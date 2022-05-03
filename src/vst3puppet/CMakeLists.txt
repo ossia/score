@@ -61,7 +61,7 @@ set_target_properties(
       DISABLE_PRECOMPILE_HEADERS TRUE
 )
 
-if(APPLE AND DEPLOYMENT_BUILD)
+if(APPLE AND SCORE_DEPLOYMENT_BUILD)
   set_target_properties(
       ossia-score-vst3puppet
       PROPERTIES
