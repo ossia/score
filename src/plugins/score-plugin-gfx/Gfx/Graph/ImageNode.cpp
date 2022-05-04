@@ -151,8 +151,6 @@ void main ()
 )_";
 ImagesNode::ImagesNode()
 {
-  std::tie(m_vertexS, m_fragmentS)
-      = score::gfx::makeShaders(images_single_vertex_shader, images_single_fragment_shader);
   input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
   input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
   input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
@@ -331,6 +329,7 @@ private:
   void init(RenderList& renderer) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
+    const auto& rs = renderer.state;
     const Mesh& mesh = renderer.defaultQuad();
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
@@ -343,12 +342,11 @@ private:
     recreateTextures(rhi);
 
     tile = n.tile;
-    auto& nn = const_cast<ImagesNode&>(n);
-    QShader& v = nn.m_vertexS, &f = nn.m_fragmentS;
+    QShader& v = m_vertexS, &f = m_fragmentS;
     if(!tile)
-      std::tie(v, f) = score::gfx::makeShaders(images_single_vertex_shader, images_single_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(rs, images_single_vertex_shader, images_single_fragment_shader);
     else
-      std::tie(v, f) = score::gfx::makeShaders(TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -362,7 +360,7 @@ private:
 
     // Initialize the passes for the "tiled" case
     {
-      auto [v, f] = score::gfx::makeShaders(TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      auto [v, f] = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
       for(Edge* edge : this->node.output[0]->edges)
       {
         auto rt = renderer.renderTargetForOutput(*edge);
@@ -540,6 +538,7 @@ private:
   void init(RenderList& renderer) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
+    const auto& rs = renderer.state;
     const auto& mesh = renderer.defaultQuad();
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
@@ -550,12 +549,11 @@ private:
 
 
     tile = n.tile;
-    auto& nn = const_cast<ImagesNode&>(n);
-    QShader& v = nn.m_vertexS, &f = nn.m_fragmentS;
+    QShader& v = m_vertexS, &f = m_fragmentS;
     if(!tile)
-      std::tie(v, f) = score::gfx::makeShaders(images_single_vertex_shader, images_single_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(rs, images_single_vertex_shader, images_single_fragment_shader);
     else
-      std::tie(v, f) = score::gfx::makeShaders(TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -572,7 +570,7 @@ private:
 
     // Initialize the passes for the "tiled" case
     {
-      auto [v, f] = score::gfx::makeShaders(TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      auto [v, f] = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
       for(Edge* edge : this->node.output[0]->edges)
       {
         auto rt = renderer.renderTargetForOutput(*edge);
@@ -747,8 +745,6 @@ void main ()
 FullScreenImageNode::FullScreenImageNode(QImage dec)
     : m_image{std::move(dec)}
 {
-  std::tie(m_vertexS, m_fragmentS)
-      = score::gfx::makeShaders(fullscreen_images_vertex_shader, fullscreen_images_fragment_shader);
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
@@ -772,6 +768,8 @@ private:
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
+    std::tie(m_vertexS, m_fragmentS)
+        = score::gfx::makeShaders(renderer.state, fullscreen_images_vertex_shader, fullscreen_images_fragment_shader);
 
     auto& n = static_cast<const FullScreenImageNode&>(this->node);
     auto& rhi = *renderer.state.rhi;

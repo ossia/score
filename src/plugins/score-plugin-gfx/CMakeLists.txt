@@ -162,6 +162,7 @@ set(SRCS
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
     Gfx/Graph/ScreenNode.cpp
+    Gfx/Graph/ShaderCache.cpp
     Gfx/Graph/TextNode.cpp
     Gfx/Graph/PhongNode.cpp
     Gfx/Graph/Utils.cpp

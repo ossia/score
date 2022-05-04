@@ -121,9 +121,6 @@ namespace Gfx
 struct ProcessedProgram : ShaderSource
 {
   isf::descriptor descriptor;
-
-  QShader compiledVertex;
-  QShader compiledFragment;
 };
 
 struct SCORE_PLUGIN_GFX_EXPORT ProgramCache

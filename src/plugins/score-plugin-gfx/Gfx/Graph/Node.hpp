@@ -123,9 +123,6 @@ public:
 protected:
   std::unique_ptr<char[]> m_materialData;
 
-  QShader m_vertexS;
-  QShader m_fragmentS;
-
   friend class GenericNodeRenderer;
 };
 }

@@ -73,6 +73,8 @@ struct TexgenNode : NodeModel
       defaultMeshInit(renderer, mesh);
       processUBOInit(renderer);
       m_material.init(renderer, node.input, m_samplers);
+      std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+                                           renderer.state, vertex, filter);
 
       auto& n = static_cast<const TexgenNode&>(this->node);
       auto& rhi = *renderer.state.rhi;
@@ -127,7 +129,6 @@ struct TexgenNode : NodeModel
   TexgenNode()
   {
     image = QImage{QSize(640, 480), QImage::Format_ARGB32_Premultiplied};
-    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(vertex, filter);
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
   virtual ~TexgenNode() { m_materialData.release(); }

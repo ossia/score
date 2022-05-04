@@ -549,7 +549,7 @@ target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownload
 target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
 
 target_link_libraries(score_lib_base
-    PUBLIC ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::Network ossia QCodeEditor
+    PUBLIC ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::GuiPrivate ${QT_PREFIX}::Widgets ${QT_PREFIX}::Network ossia QCodeEditor
     )
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(score_lib_base

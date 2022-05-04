@@ -73,7 +73,7 @@ struct PackedDecoder : GPUVideoDecoder
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(vertexShader(), QString(rgb_filter).arg(filter));
+    return score::gfx::makeShaders(r.state, vertexShader(), QString(rgb_filter).arg(filter));
   }
 
   void exec(
@@ -194,7 +194,7 @@ void main()
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(vertex, QString(rgb_filter).arg(filter));
+    return score::gfx::makeShaders(r.state, vertex, QString(rgb_filter).arg(filter));
   }
 
   void exec(

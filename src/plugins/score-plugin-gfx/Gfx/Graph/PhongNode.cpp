@@ -64,6 +64,7 @@ void main()
 PhongNode::PhongNode(const Mesh* mesh)
     : m_mesh{mesh}
 {
+  /*
   QMatrix4x4 model;
   QMatrix4x4 projection;
   projection.perspective(90, 16. / 9., 0.001, 100.);
@@ -90,7 +91,7 @@ PhongNode::PhongNode(const Mesh* mesh)
   // translation, rotation, scale, camera => implies mvp matrices, etc
   input.push_back(new Port{this, cur, Types::Camera, {}});
 
-  output.push_back(new Port{this, {}, Types::Image, {}});
+  output.push_back(new Port{this, {}, Types::Image, {}});*/
 }
 
 PhongNode::~PhongNode() { }

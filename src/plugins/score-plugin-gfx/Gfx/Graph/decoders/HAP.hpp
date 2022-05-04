@@ -204,7 +204,7 @@ void main ()
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
-    auto shaders = score::gfx::makeShaders(
+    auto shaders = score::gfx::makeShaders(r.state,
         vertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
@@ -282,7 +282,7 @@ void main ()
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
-    auto shaders = score::gfx::makeShaders(
+    auto shaders = score::gfx::makeShaders(r.state,
         vertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;

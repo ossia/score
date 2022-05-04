@@ -123,8 +123,8 @@ void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& me
         this->node.output[0]->edges,
         renderer,
         mesh,
-        node.m_vertexS,
-        node.m_fragmentS,
+        m_vertexS,
+        m_fragmentS,
         m_processUBO,
         m_material.buffer,
         m_samplers);

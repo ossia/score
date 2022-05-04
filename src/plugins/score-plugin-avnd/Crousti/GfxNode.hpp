@@ -14,51 +14,51 @@
 
 namespace oscr
 {
+static const constexpr auto generic_texgen_vs = R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
 
-struct GenericTexgenNode : score::gfx::NodeModel
-{
-  static const constexpr auto vertex = R"_(#version 450
-  layout(location = 0) in vec2 position;
-  layout(location = 1) in vec2 texcoord;
+layout(binding=3) uniform sampler2D y_tex;
+layout(location = 0) out vec2 v_texcoord;
 
-  layout(binding=3) uniform sampler2D y_tex;
-  layout(location = 0) out vec2 v_texcoord;
-
-  layout(std140, binding = 0) uniform renderer_t {
-    mat4 clipSpaceCorrMatrix;
-    vec2 texcoordAdjust;
-    vec2 renderSize;
-  };
-
-  out gl_PerVertex { vec4 gl_Position; };
-
-  void main()
-  {
-    v_texcoord = texcoord;
-    gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-  }
-  )_";
-
-  static const constexpr auto filter = R"_(#version 450
-  layout(location = 0) in vec2 v_texcoord;
-  layout(location = 0) out vec4 fragColor;
-
-  layout(std140, binding = 0) uniform renderer_t {
+layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
   vec2 texcoordAdjust;
   vec2 renderSize;
-  };
+};
 
-  layout(binding=3) uniform sampler2D y_tex;
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  v_texcoord = texcoord;
+  gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+}
+)_";
+
+static const constexpr auto generic_texgen_fs = R"_(#version 450
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+layout(std140, binding = 0) uniform renderer_t {
+mat4 clipSpaceCorrMatrix;
+vec2 texcoordAdjust;
+vec2 renderSize;
+};
+
+layout(binding=3) uniform sampler2D y_tex;
 
 
-  void main ()
-  {
-    vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-    fragColor = texture(y_tex, texcoord);
-  }
-  )_";
+void main ()
+{
+  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
+  fragColor = texture(y_tex, texcoord);
+}
+)_";
 
+
+struct GenericTexgenNode : score::gfx::NodeModel
+{
   struct ubo
   {
     int currentImageIndex{};
@@ -69,7 +69,6 @@ struct GenericTexgenNode : score::gfx::NodeModel
   QImage image;
   GenericTexgenNode()
   {
-    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(vertex, filter);
   }
 
   score::gfx::Message last_message;
@@ -252,6 +251,8 @@ struct GfxRenderer final : GenericTexgenRenderer
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+                                         renderer.state, generic_texgen_vs, generic_texgen_fs);
 
     if constexpr(texture_inputs::size > 0)
     {

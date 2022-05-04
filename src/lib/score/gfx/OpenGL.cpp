@@ -22,9 +22,20 @@ GLCapabilities::GLCapabilities()
   type = ctx.format().renderableType();
   shaderVersion = glShaderVersion();
 
+  qShaderVersion.setVersion(shaderVersion);
+  if(type == QSurfaceFormat::OpenGLES)
+    qShaderVersion.setFlags(QShaderVersion::GlslEs);
+
 #endif
   qDebug() << "Available GL context: " << major << minor << shaderVersion
            << type;
+}
+
+void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
+{
+  fmt.setMajorVersion(major);
+  fmt.setMinorVersion(minor);
+  fmt.setProfile(QSurfaceFormat::CoreProfile);
 }
 
 int GLCapabilities::glShaderVersion() noexcept

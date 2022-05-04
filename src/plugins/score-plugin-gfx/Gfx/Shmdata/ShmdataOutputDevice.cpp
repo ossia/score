@@ -22,6 +22,7 @@
 #include <ossia/detail/fmt.hpp>
 #include <QLabel>
 #include <QSpinBox>
+#include <score/gfx/OpenGL.hpp>
 
 #include <wobjectimpl.h>
 
@@ -199,11 +200,14 @@ void ShmdataOutputNode::createOutput(
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
   QRhiGles2InitParams params;
   params.fallbackSurface = m_renderState->surface;
+  score::GLCapabilities caps;
+  caps.setupFormat(params.format);
 #include <Gfx/Qt5CompatPop> // clang-format: keep
   m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
 #include <Gfx/Qt5CompatPush> // clang-format: keep
   m_renderState->size = QSize(m_settings.width, m_settings.height);
   m_renderState->api = score::gfx::GraphicsApi::OpenGL;
+  m_renderState->version = caps.qShaderVersion;
 
   auto rhi = m_renderState->rhi;
   m_texture = rhi->newTexture(

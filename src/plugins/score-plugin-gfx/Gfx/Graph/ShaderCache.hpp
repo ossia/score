@@ -1,6 +1,6 @@
 #pragma once
 #include <score/gfx/OpenGL.hpp>
-
+#include <Gfx/Graph/RenderState.hpp>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QShaderBaker>
 #else
@@ -23,50 +23,22 @@ public:
    * @return If there is an error message, it will be in the QString part of the pair.
    */
   static const std::pair<QShader, QString>&
-  get(const QByteArray& shader, QShader::Stage stage)
-  {
-    static ShaderCache self;
-    if (auto it = self.shaders.find(shader); it != self.shaders.end())
-      return it->second;
-
-    self.baker.setSourceString(shader, stage);
-    auto res = self.shaders.insert(
-        {shader, {self.baker.bake(), self.baker.errorMessage()}});
-    return res.first->second;
-  }
+  get(const RenderState& v, const QByteArray& shader, QShader::Stage stage);
+  static const std::pair<QShader, QString>&
+  get(GraphicsApi api, const QShaderVersion& v, const QByteArray& shader, QShader::Stage stage);
 
 private:
-  score::GLCapabilities m_caps;
-  ShaderCache()
-  {
-    QShaderVersion::Flags glFlag = m_caps.type == QSurfaceFormat::OpenGLES
-                                       ? QShaderVersion::GlslEs
-                                       : QShaderVersion::Flag{};
-    baker.setGeneratedShaders({
-      {QShader::SpirvShader, 100},
-          {QShader::GlslShader, QShaderVersion(m_caps.shaderVersion, glFlag)},
-#if defined(_WIN32)
-          {QShader::HlslShader, QShaderVersion(50)},
-#endif
-#if defined(__APPLE__)
-          {QShader::MslShader, QShaderVersion(12)},
-          {QShader::GlslShader, QShaderVersion(120, QShaderVersion::Flag{})} // For syphon
-#endif
-    });
+  ShaderCache();
 
-    baker.setGeneratedShaderVariants({
-      QShader::Variant{}, QShader::Variant{},
-#if defined(_WIN32)
-          QShader::Variant{},
-#endif
-#if defined(__APPLE__)
-          QShader::Variant{},
-          QShader::Variant{}
-#endif
-    });
-  }
+  struct Baker {
+    explicit Baker(GraphicsApi api, const QShaderVersion& v);
 
-  QShaderBaker baker;
-  std::unordered_map<QByteArray, std::pair<QShader, QString>> shaders;
+    GraphicsApi api;
+    QShaderVersion version;
+    QShaderBaker baker;
+    std::unordered_map<QByteArray, std::pair<QShader, QString>> shaders;
+  };
+
+  std::vector<std::unique_ptr<Baker>> m_bakers;
 };
 }

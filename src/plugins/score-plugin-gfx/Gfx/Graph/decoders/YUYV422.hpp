@@ -73,7 +73,7 @@ void main() {
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(vertexShader(), filter);
+    return score::gfx::makeShaders(r.state, vertexShader(), filter);
   }
 
   void exec(
@@ -175,7 +175,7 @@ void main() {
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(vertexShader(), filter);
+    return score::gfx::makeShaders(r.state, vertexShader(), filter);
   }
 
   void exec(

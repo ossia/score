@@ -21,8 +21,8 @@ class filter_node final : public gfx_exec_node
 public:
   filter_node(
       const isf::descriptor& isf,
-      const QShader& vert,
-      const QShader& frag,
+      const QString& vert,
+      const QString& frag,
       GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
@@ -33,8 +33,8 @@ public:
 
   void set_script(
       const isf::descriptor& isf,
-      const QShader& vert,
-      const QShader& frag)
+      const QString& vert,
+      const QString& frag)
   {
     exec_context->ui->unregister_node(id);
 
@@ -61,8 +61,8 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 
     auto n = ossia::make_node<filter_node>(*ctx.execState,
         desc,
-        shader.compiledVertex,
-        shader.compiledFragment,
+        shader.vertex,
+        shader.fragment,
         ctx.doc.plugin<DocumentPlugin>().exec);
 
     for(auto* outlet : element.outlets())
@@ -120,7 +120,7 @@ void ProcessExecutorComponent::on_shaderChanged()
   const auto& shader = element.processedProgram();
   commands.push_back([n,
                       shader = std::make_unique<ProcessedProgram>(shader)] {
-    n->set_script(shader->descriptor, shader->compiledVertex, shader->compiledFragment);
+    n->set_script(shader->descriptor, shader->vertex, shader->fragment);
   });
 
   // 3. Register the inlets / outlets

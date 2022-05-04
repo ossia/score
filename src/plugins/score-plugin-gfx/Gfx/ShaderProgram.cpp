@@ -243,14 +243,15 @@ ProgramCache::get(const ShaderSource& program) noexcept
     if (isfVert != source_vert || isfFrag != source_frag)
     {
       ProcessedProgram processed{
-          ShaderSource{isfVert, isfFrag}, parser.data(), {}, {}};
+          ShaderSource{isfVert, isfFrag}, parser.data()};
 
       // Add layout, location, etc
       updateToGlsl45(processed);
 
       // Create QShader objects
-      auto [vertexS, vertexError]
-          = score::gfx::ShaderCache::get(processed.vertex.toUtf8(), QShader::VertexStage);
+      auto [vertexS, vertexError] = score::gfx::ShaderCache::get(
+              score::gfx::GraphicsApi::Vulkan, QShaderVersion(100),
+              processed.vertex.toUtf8(), QShader::VertexStage);
       if (!vertexError.isEmpty())
       {
         qDebug().noquote() << vertexError;
@@ -259,7 +260,8 @@ ProgramCache::get(const ShaderSource& program) noexcept
       }
 
       auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
-          processed.fragment.toUtf8(), QShader::FragmentStage);
+              score::gfx::GraphicsApi::Vulkan, QShaderVersion(100),
+              processed.fragment.toUtf8(), QShader::FragmentStage);
       if (!fragmentError.isEmpty())
       {
         qDebug().noquote() << fragmentError;
@@ -270,10 +272,6 @@ ProgramCache::get(const ShaderSource& program) noexcept
 
       if (vertexS.isValid() && fragmentS.isValid())
       {
-        // We can store our shader in the cache
-        processed.compiledVertex = std::move(vertexS);
-        processed.compiledFragment = std::move(fragmentS);
-
         programs[program] = processed;
         return {processed, {}};
       }

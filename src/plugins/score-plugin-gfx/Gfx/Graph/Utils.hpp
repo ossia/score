@@ -248,7 +248,7 @@ Pipeline buildPipeline(
  * Note: this function will throw if a shader is invalid.
  */
 SCORE_PLUGIN_GFX_EXPORT
-std::pair<QShader, QShader> makeShaders(QString vert, QString frag);
+std::pair<QShader, QShader> makeShaders(const RenderState& v, QString vert, QString frag);
 
 /**
  * @brief Compile a compute shader.
@@ -256,7 +256,7 @@ std::pair<QShader, QShader> makeShaders(QString vert, QString frag);
  * Note: this function will throw if the shader is invalid.
  */
 SCORE_PLUGIN_GFX_EXPORT
-QShader makeCompute(QString compt);
+QShader makeCompute(const RenderState& v, QString compt);
 
 /**
  * @brief Utility to represent a shader material following score conventions.

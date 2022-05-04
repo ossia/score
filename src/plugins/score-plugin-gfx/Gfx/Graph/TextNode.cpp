@@ -63,8 +63,6 @@ void main ()
 )_";
 TextNode::TextNode()
 {
-  std::tie(m_vertexS, m_fragmentS)
-      = score::gfx::makeShaders(text_vertex_shader, text_fragment_shader);
   input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
   input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
   input.push_back(new Port{this, &ubo.scale[0], Types::Vec2, {}});
@@ -118,6 +116,8 @@ private:
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
+    std::tie(m_vertexS, m_fragmentS)
+        = score::gfx::makeShaders(renderer.state, text_vertex_shader, text_fragment_shader);
 
     QRhi& rhi = *renderer.state.rhi;
 

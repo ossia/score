@@ -13,6 +13,7 @@
 #include <QLabel>
 
 #include <Syphon/SyphonOpenGLServer.h>
+#include <score/gfx/OpenGL.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::SyphonDevice)
@@ -147,6 +148,7 @@ struct SyphonNode final : score::gfx::OutputNode
 #include <Gfx/Qt5CompatPush> // clang-format: keep
     m_renderState->size = QSize(m_settings.width, m_settings.height);
     m_renderState->api = score::gfx::GraphicsApi::OpenGL;
+    m_renderState->version = QShaderVersion(120);
 
     auto rhi = m_renderState->rhi;
     m_texture = rhi->newTexture(

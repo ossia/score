@@ -248,15 +248,17 @@ void main ()
 )_";
 
   auto [vertexS, vertexError]
-      = score::gfx::ShaderCache::get(vertex_shader, QShader::VertexStage);
+      = score::gfx::ShaderCache::get(
+          renderer.state,
+          vertex_shader, QShader::VertexStage);
   SCORE_ASSERT (vertexError.isEmpty());
 
   auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
+      renderer.state,
       fragment_shader, QShader::FragmentStage);
   SCORE_ASSERT(fragmentError.isEmpty());
 
   SCORE_ASSERT(vertexS.isValid() && fragmentS.isValid());
-
 
   {
     SCORE_ASSERT(!m_passSamplers.empty());
@@ -319,11 +321,11 @@ RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput
       renderTarget.renderTarget->setName("ISFNode::createPass::renderTarget.renderTarget");
     }
 
+    auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
     auto pip = score::gfx::buildPipeline(
         renderer,
         renderer.defaultTriangle(),
-        n.m_vertexS,
-        n.m_fragmentS,
+        v, s,
         renderTarget,
         pubo,
         m_materialUBO,
@@ -936,11 +938,11 @@ void SimpleRenderedISFNode::initPass(const TextureRenderTarget& renderTarget, Re
   pubo->create();
 
   // Create the main pass
+  auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
   auto pip = score::gfx::buildPipeline(
       renderer,
       *m_mesh,
-      n.m_vertexS,
-      n.m_fragmentS,
+      v, s,
       renderTarget,
       pubo,
       m_materialUBO,

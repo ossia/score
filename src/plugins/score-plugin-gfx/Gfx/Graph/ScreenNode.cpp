@@ -45,11 +45,9 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     params.fallbackSurface = state.surface;
     params.window = &window;
 
-    score::GLCapabilities m_caps;
-    params.format.setMajorVersion(m_caps.major);
-    params.format.setMinorVersion(m_caps.minor);
-    params.format.setProfile(QSurfaceFormat::CoreProfile);
-
+    score::GLCapabilities caps;
+    caps.setupFormat(params.format);
+    state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
     state.size = window.size();
     return state;
@@ -62,6 +60,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiVulkanInitParams params;
     params.inst = window.vulkanInstance();
     params.window = &window;
+    state.version = QShaderVersion(100);
     state.rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers);
     state.size = window.size();
     return state;
@@ -80,6 +79,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;
     //   params.repeatDeviceKill = true;
     // }
+    state.version = QShaderVersion(50);
     state.rhi = QRhi::create(QRhi::D3D11, &params, {});
     state.size = window.size();
     return state;
@@ -90,6 +90,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
   if (graphicsApi == Metal)
   {
     QRhiMetalInitParams params;
+    state.version = QShaderVersion(12);
     state.rhi = QRhi::create(QRhi::Metal, &params, {});
     state.size = window.size();
     return state;
@@ -101,6 +102,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     qDebug() << "Failed to create RHI backend, creating Null backend";
 
     QRhiNullInitParams params;
+    state.version = QShaderVersion(120);
     state.rhi = QRhi::create(QRhi::Null, &params, {});
     state.size = window.size();
     state.api = GraphicsApi::Null;

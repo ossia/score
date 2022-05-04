@@ -89,6 +89,9 @@ public:
   const NodeModel& node;
   std::vector<Sampler> m_samplers;
 
+  QShader m_vertexS;
+  QShader m_fragmentS;
+
   // Pipeline
   PassMap m_p;
 

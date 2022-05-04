@@ -95,7 +95,7 @@ struct EmptyDecoder : GPUVideoDecoder
 
   std::pair<QShader, QShader> init(RenderList& r) override
   {
-    return score::gfx::makeShaders(vertexShader(), hashtag_no_filter);
+    return score::gfx::makeShaders(r.state, vertexShader(), hashtag_no_filter);
   }
 
   void exec(

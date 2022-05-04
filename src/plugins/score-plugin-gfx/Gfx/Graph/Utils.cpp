@@ -357,15 +357,15 @@ Pipeline buildPipeline(
   return buildPipeline(renderer, mesh, vertexS, fragmentS, rt, bindings);
 }
 
-std::pair<QShader, QShader> makeShaders(QString vert, QString frag)
+std::pair<QShader, QShader> makeShaders(const RenderState& v, QString vert, QString frag)
 {
   auto [vertexS, vertexError]
-      = ShaderCache::get(vert.toUtf8(), QShader::VertexStage);
+      = ShaderCache::get(v, vert.toUtf8(), QShader::VertexStage);
   if (!vertexError.isEmpty())
     qDebug() << vertexError;
 
   auto [fragmentS, fragmentError]
-      = ShaderCache::get(frag.toUtf8(), QShader::FragmentStage);
+      = ShaderCache::get(v, frag.toUtf8(), QShader::FragmentStage);
   if (!fragmentError.isEmpty())
   {
     qDebug() << fragmentError;
@@ -382,10 +382,10 @@ std::pair<QShader, QShader> makeShaders(QString vert, QString frag)
 }
 
 // TODO move to ShaderCache
-QShader makeCompute(QString compute)
+QShader makeCompute(const RenderState& v, QString compute)
 {
   auto [computeS, computeError]
-      = ShaderCache::get(compute.toUtf8(), QShader::ComputeStage);
+      = ShaderCache::get(v, compute.toUtf8(), QShader::ComputeStage);
   if (!computeError.isEmpty())
     qDebug() << computeError;
 

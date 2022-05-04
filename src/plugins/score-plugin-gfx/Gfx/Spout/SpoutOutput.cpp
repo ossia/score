@@ -12,6 +12,7 @@
 #include <QLabel>
 
 #include <Spout/SpoutSender.h>
+#include <score/gfx/OpenGL.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::SpoutDevice)
@@ -102,11 +103,14 @@ struct SpoutNode final : score::gfx::OutputNode
     m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
     QRhiGles2InitParams params;
     params.fallbackSurface = m_renderState->surface;
+    score::GLCapabilities caps;
+    caps.setupFormat(params.format);
 #include <Gfx/Qt5CompatPop> // clang-format: keep
     m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
 #include <Gfx/Qt5CompatPush> // clang-format: keep
     m_renderState->size = QSize(m_settings.width, m_settings.height);
     m_renderState->api = score::gfx::GraphicsApi::OpenGL;
+    m_renderState->version = caps.qShaderVersion;
 
     auto rhi = m_renderState->rhi;
     m_texture = rhi->newTexture(

@@ -32,7 +32,9 @@ void InvertYRenderer::init(score::gfx::RenderList& renderer)
       fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
     }
     )_";
-  std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(mesh.defaultVertexShader(), gl_filter);
+  std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+                                       renderer.state,
+                                       mesh.defaultVertexShader(), gl_filter);
 
   // Put the input texture, where all the input nodes are rendering, in a sampler.
   {

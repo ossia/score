@@ -189,8 +189,8 @@ struct isf_input_port_vis
 
 ISFNode::ISFNode(
     const isf::descriptor& desc,
-    const QShader& vert,
-    const QShader& frag)
+    const QString& vert,
+    const QString& frag)
     : m_descriptor{desc}
 {
   m_vertexS = vert;

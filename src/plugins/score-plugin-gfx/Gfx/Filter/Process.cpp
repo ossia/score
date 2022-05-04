@@ -91,7 +91,6 @@ void Model::setVertex(QString f)
     return;
   m_program.vertex = std::move(f);
   m_processedProgram.vertex.clear();
-  m_processedProgram.compiledVertex = QShader{};
 
   vertexChanged(m_program.vertex);
 }
@@ -102,7 +101,6 @@ void Model::setFragment(QString f)
     return;
   m_program.fragment = std::move(f);
   m_processedProgram.fragment.clear();
-  m_processedProgram.compiledFragment = QShader{};
 
   fragmentChanged(m_program.fragment);
 }
@@ -167,6 +165,7 @@ QString Model::prettyName() const noexcept
 
 void Model::setupIsf(const isf::descriptor& desc)
 {
+  /*
   {
     auto& [shader, error] = score::gfx::ShaderCache::get(
         m_processedProgram.vertex.toLatin1(), QShader::Stage::VertexStage);
@@ -177,6 +176,7 @@ void Model::setupIsf(const isf::descriptor& desc)
         m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
     SCORE_ASSERT(error.isEmpty());
   }
+  */
 
   int i = 0;
   using namespace isf;

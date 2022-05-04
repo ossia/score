@@ -111,7 +111,7 @@ struct YUV420Decoder : GPUVideoDecoder
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(
+    return score::gfx::makeShaders(r.state,
                vertexShader(), yuv420_filter);
   }
 

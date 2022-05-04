@@ -177,8 +177,8 @@ void ShaderPreviewWidget::setup()
   // Create our graph
   m_isf = std::make_unique<score::gfx::ISFNode>(
       m_program.descriptor,
-      m_program.compiledVertex,
-      m_program.compiledFragment);
+      m_program.vertex,
+      m_program.fragment);
   m_screen = std::make_unique<score::gfx::ScreenNode>(true);
   auto window = m_screen.get();
 

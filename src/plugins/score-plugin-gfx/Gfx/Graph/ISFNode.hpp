@@ -21,8 +21,8 @@ class ISFNode : public score::gfx::ProcessNode
 public:
   ISFNode(
       const isf::descriptor& desc,
-      const QShader& vert,
-      const QShader& frag);
+      const QString& vert,
+      const QString& frag);
 
   virtual ~ISFNode();
   QSize computeTextureSize(const isf::pass& pass, QSize origSize);
@@ -41,8 +41,8 @@ public:
   std::list<AudioTexture> m_audio_textures;
   std::unique_ptr<char[]> m_material_data;
 
-  QShader m_vertexS;
-  QShader m_fragmentS;
+  QString m_vertexS;
+  QString m_fragmentS;
   int m_materialSize{};
 };
 }

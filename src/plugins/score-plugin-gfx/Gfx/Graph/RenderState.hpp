@@ -16,6 +16,7 @@ enum GraphicsApi
   D3D11,
   Metal
 };
+
 class Window;
 
 /**
@@ -30,5 +31,6 @@ struct RenderState
   QOffscreenSurface* surface{};
   QSize size{};
   GraphicsApi api{};
+  QShaderVersion version{};
 };
 }
