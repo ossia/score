@@ -82,7 +82,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     // }
     state.version = QShaderVersion(50);
     state.rhi = QRhi::create(QRhi::D3D11, &params, {});
-    state.size = window.size();
+    state.renderSize = window.size();
     return state;
   }
 #endif
@@ -93,7 +93,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiMetalInitParams params;
     state.version = QShaderVersion(12);
     state.rhi = QRhi::create(QRhi::Metal, &params, {});
-    state.size = window.size();
+    state.renderSize = window.size();
     return state;
   }
 #endif
