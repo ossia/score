@@ -60,6 +60,6 @@ public:
 };
 }
 
-SCORE_SERIALIZE_DATASTREAM_DECLARE(, Curve::LinearSegmentData)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_CURVE_EXPORT, Curve::LinearSegmentData)
 Q_DECLARE_METATYPE(Curve::LinearSegmentData)
 W_REGISTER_ARGTYPE(Curve::LinearSegmentData)
