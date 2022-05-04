@@ -41,6 +41,8 @@ include_directories("${3RDPARTY_FOLDER}/avendish/include")
 add_library(
   score_plugin_avnd
 
+  Avnd/Factories.hpp
+
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
   Crousti/Executor.hpp
@@ -88,6 +90,8 @@ endif()
 setup_score_plugin(score_plugin_avnd)
 
 target_precompile_headers(score_plugin_avnd PRIVATE
+  Avnd/Factories.hpp
+
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
   Crousti/Executor.hpp
