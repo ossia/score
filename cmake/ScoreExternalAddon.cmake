@@ -252,7 +252,7 @@ if(TARGET Qt5::ShaderTools)
 endif()
 
 if(TARGET Qt5::ShaderTools)
-  target_link_libraries(score_plugin_avnd INTERFACE score_plugin_gfx score_plugin_engine)
+  target_link_libraries(score_plugin_avnd INTERFACE score_plugin_gfx score_plugin_engine score_plugin_media)
 endif()
 include(CheckCXXCompilerFlag)
 
