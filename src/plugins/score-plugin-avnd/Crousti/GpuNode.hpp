@@ -29,7 +29,6 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   ossia::time_value m_last_time{-1};
 
   score::gfx::PassMap m_p;
-  QShader vertex, fragment;
 
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};
@@ -41,11 +40,9 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   ossia::flat_map<int, QRhiSampler*> createdSamplers;
   ossia::flat_map<int, QRhiTexture*> createdTexs;
 
-  CustomGpuRenderer(const CustomGpuNodeBase& p, const QShader& vert, const QShader& frag)
+  CustomGpuRenderer(const CustomGpuNodeBase& p)
       : NodeRenderer{}      
       , parent{p}
-      , vertex{vert}
-      , fragment{frag}
   {
   }
 
@@ -153,9 +150,11 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
       // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
 
+
+      auto [v, f] = score::gfx::makeShaders(renderer.state, parent.vertex, parent.fragment);
       ps->setShaderStages(
-          {{QRhiShaderStage::Vertex, vertex},
-           {QRhiShaderStage::Fragment, fragment}});
+          {{QRhiShaderStage::Vertex, v},
+           {QRhiShaderStage::Fragment, f}});
 
       QRhiVertexInputLayout inputLayout;
       inputLayout.setBindings(
@@ -182,7 +181,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   requires avnd::sampler_port<F>
   void init_input(score::gfx::RenderList& renderer, avnd::field_reflection<Idx, F> field)
   {
-    auto tex = createInput(renderer, sampler_k++, renderer.state.size);
+    auto tex = createInput(renderer, sampler_k++, renderer.state.renderSize);
 
     using sampler_type = typename avnd::member_reflection<F::sampler()>::member_type;
     createdTexs[sampler_type::binding()] = tex;
@@ -412,7 +411,6 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 template<typename Node_T>
 struct CustomGpuNode final : CustomGpuNodeBase
 {
-  QShader vertex, fragment;
   CustomGpuNode()
   {
     using texture_inputs = avnd::gpu_sampler_introspection<Node_T>;
@@ -431,24 +429,22 @@ struct CustomGpuNode final : CustomGpuNodeBase
     static constexpr auto lay = layout{};
 
     gpp::qrhi::generate_shaders gen;
-    QString vtx;
     if constexpr(requires { &Node_T::vertex; })
     {
-      vtx = QString::fromStdString(gen.vertex_shader(lay) + Node_T{}.vertex().data());
+      vertex = QString::fromStdString(gen.vertex_shader(lay) + Node_T{}.vertex().data());
     }
     else
     {
-      vtx = gpp::qrhi::DefaultPipeline::vertex();
+      vertex = gpp::qrhi::DefaultPipeline::vertex();
     }
 
-    const auto frag = QString::fromStdString(gen.fragment_shader(lay) + Node_T{}.fragment().data());
-    std::tie(vertex, fragment) = score::gfx::makeShaders(vtx, frag);
+    fragment = QString::fromStdString(gen.fragment_shader(lay) + Node_T{}.fragment().data());
   }
 
   score::gfx::NodeRenderer*
   createRenderer(score::gfx::RenderList& r) const noexcept override
   {
-    return new CustomGpuRenderer<Node_T>{*this, vertex, fragment};
+    return new CustomGpuRenderer<Node_T>{*this};
   }
 };
 

@@ -29,7 +29,8 @@ struct RenderState
   std::weak_ptr<RenderList> renderer{};
 
   QOffscreenSurface* surface{};
-  QSize size{};
+  QSize renderSize{};
+  QSize outputSize{};
   GraphicsApi api{};
   QShaderVersion version{};
 };

@@ -85,7 +85,7 @@ void InvertYRenderer::finishFrame(
 {
   cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, nullptr);
   {
-    const auto sz = renderer.state.size;
+    const auto sz = renderer.state.renderSize;
     cb.setGraphicsPipeline(m_p.pipeline);
     cb.setShaderResources(m_p.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));

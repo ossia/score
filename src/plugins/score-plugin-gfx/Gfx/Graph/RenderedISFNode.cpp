@@ -149,14 +149,14 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
         sampler->setName("ISFNode::initInputSamplers::sampler");
         SCORE_ASSERT(sampler->create());
 
-        auto rt = score::gfx::createRenderTarget(renderer.state, QRhiTexture::RGBA8, renderer.state.size);
+        auto rt = score::gfx::createRenderTarget(renderer.state, QRhiTexture::RGBA8, renderer.state.renderSize);
         auto texture = rt.texture;
         samplers.push_back({sampler, texture});
 
         m_rts[in] = std::move(rt);
 
         // Allocate some space for the vec4 _imgRect in the uniform
-        storeTextureRectUniform(materialData, cur_pos, renderer.state.size);
+        storeTextureRectUniform(materialData, cur_pos, renderer.state.renderSize);
         break;
       }
       default:
@@ -477,7 +477,7 @@ void RenderedISFNode::init(RenderList& renderer)
     auto rt = renderer.renderTargetForOutput(*edge);
     if(rt.renderTarget)
     {
-      initPasses(rt, renderer, *edge, cur_pos, renderer.state.size);
+      initPasses(rt, renderer, *edge, cur_pos, renderer.state.renderSize);
     }
   }
 }
@@ -688,7 +688,7 @@ void RenderedISFNode::runInitialPasses(
       }
       else
       {
-        const auto sz = renderer.state.size;
+        const auto sz = renderer.state.renderSize;
         cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
       }
 
@@ -741,7 +741,7 @@ void RenderedISFNode::runRenderPass(
       }
       else
       {
-        const auto sz = renderer.state.size;
+        const auto sz = renderer.state.renderSize;
         cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
       }
 
@@ -1142,7 +1142,7 @@ void SimpleRenderedISFNode::runRenderPass(
       }
       else
       {
-        const auto sz = renderer.state.size;
+        const auto sz = renderer.state.renderSize;
         cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
       }
 

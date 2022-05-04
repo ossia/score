@@ -48,7 +48,8 @@ void Window::resizeSwapChain()
   if (m_swapChain)
   {
     m_hasSwapChain = m_swapChain->createOrResize();
-    state.size = m_swapChain->currentPixelSize();
+    state.renderSize = m_swapChain->currentPixelSize();
+    state.outputSize = m_swapChain->currentPixelSize();
     if (onResize)
       onResize();
   }

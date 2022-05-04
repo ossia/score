@@ -260,7 +260,7 @@ struct GfxRenderer final : GenericTexgenRenderer
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
             avnd::get_inputs<Node_T>(state), [&] <typename F> (F& t) {
-        auto sz = renderer.state.size;
+        auto sz = renderer.state.renderSize;
         createInput(renderer, k, sz);
         t.texture.width = sz.width();
         t.texture.height = sz.height();

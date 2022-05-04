@@ -34,7 +34,6 @@ struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
   Execution::ExecutionCommandQueue& queue;
   Gfx::exec_controls control_outs;
 
-  QShader compute;
   GpuComputeNode(Execution::ExecutionCommandQueue& q, Gfx::exec_controls ctls)
     : queue{q}
     , control_outs{std::move(ctls)}
@@ -55,8 +54,7 @@ struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
     static constexpr auto lay = layout{};
 
     gpp::qrhi::generate_shaders gen;
-    const auto cpt = QString::fromStdString(gen.compute_shader(lay) + Node_T{}.compute().data());
-    compute = score::gfx::makeCompute(cpt);
+    this->compute = QString::fromStdString(gen.compute_shader(lay) + Node_T{}.compute().data());
   }
 
   score::gfx::OutputNodeRenderer*
@@ -77,7 +75,6 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
   QRhiShaderResourceBindings* m_srb{};
   QRhiComputePipeline* m_pipeline{};
-  QShader compute;
 
   bool m_createdPipeline{};
 
@@ -92,10 +89,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   void addReadback(QRhiBufferReadbackResult* r) { bufReadbacks.push_back(r); }
   void addReadback(QRhiReadbackResult* r) { texReadbacks.push_back(r); }
 
-  GpuComputeRenderer(const GpuComputeNode<Node_T>& p, const QShader& comp)
+  GpuComputeRenderer(const GpuComputeNode<Node_T>& p)
       : ComputeRendererBaseType<Node_T>{}
       , parent{p}
-      , compute{comp}
   {
   }
 
@@ -183,7 +179,8 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   {
     auto& rhi = *renderer.state.rhi;
     auto compute = rhi.newComputePipeline();
-    compute->setShaderStage(QRhiShaderStage(QRhiShaderStage::Compute, this->compute));
+    auto cs = score::gfx::makeCompute(renderer.state, parent.compute);
+    compute->setShaderStage(QRhiShaderStage(QRhiShaderStage::Compute, cs));
 
     return compute;
   }
@@ -197,7 +194,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   requires avnd::image_port<F>
   void init_input(score::gfx::RenderList& renderer, avnd::field_reflection<Idx, F> field)
   {
-    auto tex = createInput(renderer, sampler_k++, renderer.state.size);
+    auto tex = createInput(renderer, sampler_k++, renderer.state.renderSize);
 
     using sampler_type = typename avnd::member_reflection<F::image()>::member_type;
     createdTexs[sampler_type::binding()] = tex;
@@ -453,7 +450,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 template<typename Node_T>
 inline score::gfx::OutputNodeRenderer* GpuComputeNode<Node_T>::createRenderer(score::gfx::RenderList& r) const noexcept
 {
-  return new GpuComputeRenderer<Node_T>{*this, compute};
+  return new GpuComputeRenderer<Node_T>{*this};
 }
 ;
 

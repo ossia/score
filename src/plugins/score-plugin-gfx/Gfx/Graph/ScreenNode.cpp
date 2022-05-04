@@ -3,6 +3,7 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
+#include <Gfx/InvertYRenderer.hpp>
 
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
@@ -49,7 +50,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     caps.setupFormat(params.format);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
-    state.size = window.size();
+    state.renderSize = window.size();
     return state;
   }
 #endif
@@ -62,7 +63,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     params.window = &window;
     state.version = QShaderVersion(100);
     state.rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers);
-    state.size = window.size();
+    state.renderSize = window.size();
     return state;
   }
 #endif
@@ -104,7 +105,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiNullInitParams params;
     state.version = QShaderVersion(120);
     state.rhi = QRhi::create(QRhi::Null, &params, {});
-    state.size = window.size();
+    state.renderSize = window.size();
     state.api = GraphicsApi::Null;
     return state;
   }
@@ -391,13 +392,13 @@ RenderState* ScreenNode::renderState() const
   return nullptr;
 }
 
-class ScreenNode::Renderer : public score::gfx::OutputNodeRenderer
+class ScreenNode::BasicRenderer : public score::gfx::OutputNodeRenderer
 {
 public:
   TextureRenderTarget m_rt;
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return m_rt; }
-  Renderer(const RenderState& state, const ScreenNode& parent)
+  BasicRenderer(const RenderState& state, const ScreenNode& parent)
       : score::gfx::OutputNodeRenderer{}
   {
     if (parent.m_swapChain)
@@ -413,7 +414,7 @@ public:
     }
   }
 
-  ~Renderer()
+  ~BasicRenderer()
   {
   }
   void init(RenderList& renderer) override
@@ -430,10 +431,135 @@ public:
   }
 };
 
+class ScreenNode::ScaledRenderer : public score::gfx::OutputNodeRenderer
+{
+public:
+  const ScreenNode& parent;
+  score::gfx::TextureRenderTarget m_inputTarget;
+  score::gfx::TextureRenderTarget m_renderTarget;
+
+  QShader m_vertexS, m_fragmentS;
+
+  std::vector<score::gfx::Sampler> m_samplers;
+
+  score::gfx::Pipeline m_p;
+
+  score::gfx::MeshBuffers m_mesh{};
+
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return m_inputTarget; }
+  ScaledRenderer(const RenderState& state, const ScreenNode& parent)
+      : score::gfx::OutputNodeRenderer{}
+      , parent{parent}
+  {
+  }
+
+  ~ScaledRenderer()
+  {
+  }
+
+  void init(RenderList& renderer) override
+  {
+    auto rhi = renderer.state.rhi;
+    m_inputTarget = score::gfx::createRenderTarget(renderer.state, QRhiTexture::Format::RGBA8, QSize(320, 240));
+
+    const auto& mesh = renderer.defaultTriangle();
+    m_mesh = renderer.initMeshBuffer(mesh);
+    static const constexpr auto gl_filter = R"_(#version 450
+      layout(location = 0) in vec2 v_texcoord;
+      layout(location = 0) out vec4 fragColor;
+
+      layout(binding = 3) uniform sampler2D tex;
+
+      void main()
+      {
+        fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+      }
+      )_";
+
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+                                         renderer.state,
+                                         mesh.defaultVertexShader(), gl_filter);
+
+    // Put the input texture, where all the input nodes are rendering, in a sampler.
+    {
+      auto sampler = renderer.state.rhi->newSampler(
+          QRhiSampler::Linear,
+          QRhiSampler::Linear,
+          QRhiSampler::None,
+          QRhiSampler::ClampToEdge,
+          QRhiSampler::ClampToEdge);
+
+      sampler->setName("FullScreenImageNode::sampler");
+  #include <Gfx/Qt5CompatPush>
+      sampler->create();
+  #include <Gfx/Qt5CompatPop>
+
+      m_samplers.push_back({sampler, this->m_inputTarget.texture});
+    }
+
+    m_renderTarget.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
+    m_renderTarget.renderPass = renderer.state.renderPassDescriptor;
+    m_p = score::gfx::buildPipeline(
+        renderer,
+        mesh,
+        m_vertexS,
+        m_fragmentS,
+        m_renderTarget,
+        nullptr,
+        nullptr,
+        m_samplers);
+  }
+
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+  }
+
+  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
+  {
+    // m_rt.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
+    // m_rt.renderPass = state.renderPassDescriptor;
+  }
+
+  void finishFrame(
+      score::gfx::RenderList& renderer,
+      QRhiCommandBuffer& cb) override
+  {
+    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, nullptr);
+    {
+      const auto sz = renderer.state.outputSize;
+      cb.setGraphicsPipeline(m_p.pipeline);
+      cb.setShaderResources(m_p.srb);
+      cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+
+      assert(this->m_mesh.mesh);
+      assert(this->m_mesh.mesh->usage().testFlag(QRhiBuffer::VertexBuffer));
+
+      const auto& mesh = renderer.defaultTriangle();
+      mesh.setupBindings(*this->m_mesh.mesh, this->m_mesh.index, cb);
+
+      cb.draw(mesh.vertexCount);
+    }
+    cb.endPass();
+  }
+
+  void release(RenderList&) override
+  {
+    m_p.release();
+    delete m_inputTarget.texture;
+    for(auto& s : m_samplers)
+    {
+      delete s.sampler;
+    }
+    m_samplers.clear();
+    m_renderTarget.release();
+  }
+};
+
+
 score::gfx::OutputNodeRenderer*
 ScreenNode::createRenderer(RenderList& r) const noexcept
 {
-  return new Renderer{r.state, *this};
+  return new BasicRenderer{r.state, *this};
 }
 
 OutputNode::Configuration ScreenNode::configuration() const noexcept

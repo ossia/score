@@ -45,7 +45,8 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   std::function<void(QPointF, QPointF)> onMouseMove;
   std::function<void(int, const QString&)> onKey;
 private:
-  class Renderer;
+  class BasicRenderer;
+  class ScaledRenderer;
   std::shared_ptr<Window> m_window{};
   QRhiSwapChain* m_swapChain{};
   QRhiRenderBuffer* m_depthStencil{};

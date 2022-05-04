@@ -35,7 +35,7 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase()
 
   m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params);
 
-  m_renderState->size = QSize(1000, 1000);
+  m_renderState->renderSize = QSize(1000, 1000);
   m_renderState->api = score::gfx::GraphicsApi::OpenGL;
 }
 

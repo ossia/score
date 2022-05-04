@@ -260,7 +260,7 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
   if(m_recomputeScale || m_currentScaleMode != this->node.m_scaleMode)
   {
     m_currentScaleMode = this->node.m_scaleMode;
-    auto sz = computeScale(m_currentScaleMode, renderer.state.size, QSizeF(m_currentWidth, m_currentHeight));
+    auto sz = computeScale(m_currentScaleMode, renderer.state.renderSize, QSizeF(m_currentWidth, m_currentHeight));
     Material mat;
     mat.scale_w = sz.width();
     mat.scale_h = sz.height();

@@ -77,7 +77,7 @@ void RenderList::init()
   m_emptyTexture->setName("RenderList::m_emptyTexture");
   m_emptyTexture->create();
 
-  m_lastSize = state.size;
+  m_lastSize = state.renderSize;
 }
 
 void RenderList::release()
@@ -108,7 +108,7 @@ void RenderList::release()
 
 void RenderList::maybeRebuild()
 {
-  const QSize outputSize = state.size;
+  const QSize outputSize = state.renderSize;
   if (outputSize != m_lastSize || !m_built)
   {
     m_built = false;

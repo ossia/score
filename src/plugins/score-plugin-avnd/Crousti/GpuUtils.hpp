@@ -606,6 +606,7 @@ struct CustomGpuNodeBase
   CustomGpuNodeBase() = default;
   virtual ~CustomGpuNodeBase() = default;
 
+  QString vertex, fragment, compute;
   score::gfx::Message last_message;
   void process(const score::gfx::Message& msg) override;
 };
@@ -620,6 +621,7 @@ struct CustomGpuOutputNodeBase
     std::shared_ptr<score::gfx::RenderState> m_renderState{};
     std::function<void()> m_update;
 
+    QString vertex, fragment, compute;
     score::gfx::Message last_message;
     void process(const score::gfx::Message& msg) override;
 

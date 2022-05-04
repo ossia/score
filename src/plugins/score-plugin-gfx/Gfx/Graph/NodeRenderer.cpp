@@ -50,7 +50,7 @@ void defaultRenderPass(
   auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
   SCORE_ASSERT(it != passes.end());
   {
-    const auto sz = renderer.state.size;
+    const auto sz = renderer.state.renderSize;
     cb.setGraphicsPipeline(it->second.pipeline);
     cb.setShaderResources(it->second.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
@@ -77,7 +77,7 @@ void quadRenderPass(
   auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
   SCORE_ASSERT(it != passes.end());
   {
-    const auto sz = renderer.state.size;
+    const auto sz = renderer.state.renderSize;
     cb.setGraphicsPipeline(it->second.pipeline);
     cb.setShaderResources(it->second.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
