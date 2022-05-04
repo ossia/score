@@ -23,10 +23,13 @@ CGLContextObj nativeContext(QRhi& rhi)
 {
   auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
   QOpenGLContext* ctx = handles->context;
+  #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   auto pc = ctx->nativeHandle().value<QCocoaNativeContext>();
-
-  CGLContextObj obj = [pc.context() CGLContextObj];
-  return obj;
+  return [pc.context() CGLContextObj];
+  #else
+  auto pc = ctx->nativeInterface<QNativeInterface::QCocoaGLContext>();
+  return [pc->nativeContext() CGLContextObj];
+  #endif
 }
 
 struct SyphonNode final : score::gfx::OutputNode
@@ -93,7 +96,7 @@ struct SyphonNode final : score::gfx::OutputNode
 
         if (m_created)
         {
-          auto t = dynamic_cast<QGles2Texture*>(m_texture);
+          auto t = static_cast<QGles2Texture*>(m_texture);
           NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
           [m_syphon

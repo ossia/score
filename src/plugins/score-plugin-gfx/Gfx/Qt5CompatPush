@@ -5,4 +5,5 @@
 #define destroy release
 #define create build
 #define deleteLater releaseAndDestroyLater
+#define createFrom buildFrom
 #endif

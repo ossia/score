@@ -8,7 +8,6 @@
 #include <Syphon/SyphonClient.h>
 #include <Syphon/SyphonOpenGLImage.h>
 #include <Syphon/SyphonServerDirectory.h>
-#include <QtPlatformHeaders/QCocoaNativeContext>
 #include <QOpenGLContext>
 #include <QFormLayout>
 #include <QApplication>
@@ -181,6 +180,7 @@ private:
     }
   }
 
+#include <Gfx/Qt5CompatPush> // clang-format: keep
   void rebuildTexture(SyphonOpenGLImage* img)
   {
     SCORE_ASSERT(!m_gpu->samplers.empty());
@@ -188,14 +188,15 @@ private:
 
     QRhiTexture::NativeTexture tt;
     tt.layout = 0;
-    tt.object = &currentTex;
+    tt.object = reinterpret_cast<decltype(tt.object)>(&currentTex);
 
-    tex->release();
+    tex->destroy();
     NSSize sz = img.textureSize;
     tex->setPixelSize(QSize(sz.width, sz.height));
-    tex->buildFrom(tt);
+    tex->createFrom(tt);
 
-    if(auto t = dynamic_cast<QGles2Texture*>(tex))
+    // FIXME how to ensure this ?
+    auto t = static_cast<QGles2Texture*>(tex);
     {
       t->target = GL_TEXTURE_RECTANGLE;
       t->gltype = GL_UNSIGNED_SHORT;
@@ -205,8 +206,9 @@ private:
       t->gltype = GL_UNSIGNED_INT_8_8_8_8_REV;
     }
     for(auto& pass : m_p)
-      pass.second.srb->build();
+      pass.second.srb->create();
   }
+#include <Gfx/Qt5CompatPop> // clang-format: keep
 
   GLuint currentTex = 0;
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override

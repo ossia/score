@@ -49,7 +49,7 @@ if(SMTG_ADD_VSTGUI)
     smtg_enable_vstgui_support()
 endif()
 
-include_directories(${ROOT} ${SDK_ROOT})
+include_directories(SYSTEM ${ROOT} ${SDK_ROOT})
 
 #-------------------------------------------------------------------------------
 # From Here this is optional...

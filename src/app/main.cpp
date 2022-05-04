@@ -250,6 +250,13 @@ static void setup_opengl(bool& enable_opengl_ui)
   fmt.setMajorVersion(3);
   fmt.setMinorVersion(2);
   fmt.setDefaultFormat(fmt);
+#elif defined(__APPLE__)
+  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+  fmt.setProfile(QSurfaceFormat::CoreProfile);
+  fmt.setSwapInterval(1);
+  fmt.setMajorVersion(4);
+  fmt.setMinorVersion(1);
+  fmt.setDefaultFormat(fmt);
 #else
   {
     std::vector<std::pair<int, int>> versions_to_test = {
@@ -339,8 +346,11 @@ static void setup_locale()
 
 static void setup_app_flags()
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   // Consistency in looks across macOS, Windows (which prevents the horrible 125% scaling) and Linux
+  // FIXME in Qt 6 this is entirely broken... https://bugreports.qt.io/browse/QTBUG-103225
   qputenv("QT_FONT_DPI", "96");
+#endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qputenv("QT_STYLE_OVERRIDE", "phantom");
@@ -470,7 +480,9 @@ int main(int argc, char** argv)
 #if defined(__APPLE__)
   disableAppRestore();
   disableAppNap();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qputenv("QT_MAC_WANTS_LAYER", "1");
+#endif
 #endif
 
   setup_limits();
