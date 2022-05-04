@@ -317,6 +317,7 @@ include_directories(SYSTEM "${OSSIA_SDK}/boost/include")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
 
 include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/libossia/src")
+include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/avendish/include")
 include_directories(SYSTEM "${SCORE_SOURCE_DIR}/src/lib")
 
 function(ossia_set_visibility TheTarget)
