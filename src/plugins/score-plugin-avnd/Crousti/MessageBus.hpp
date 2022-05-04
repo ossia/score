@@ -21,7 +21,7 @@ struct Serializer
 
     template<typename... Args>
     void operator()(const std::variant<Args...>& f) {
-      r.stream() << (std::size_t)f.index();
+      r.stream() << (int)f.index();
       std::visit([&] (const auto &arg) { r.stream() << arg; }, f);
     }
 
@@ -79,7 +79,7 @@ struct Deserializer
 
     template<typename... Args>
     void operator()(std::variant<Args...>& f) {
-      std::size_t index{};
+      int index{};
       r.stream() >> index;
 
       [&] <std::size_t... I> (std::index_sequence<I...>) {
