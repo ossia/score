@@ -57,6 +57,7 @@ set(SCORE_PLUGINS
   LIB_STATE
   PLUGIN_AUDIO
   PLUGIN_AUTOMATION
+  PLUGIN_AVND
   PLUGIN_CONTROLSURFACE
   PLUGIN_CURVE
   PLUGIN_DATAFLOW
@@ -250,6 +251,9 @@ if(TARGET Qt5::ShaderTools)
   target_link_libraries(score_plugin_gfx INTERFACE Qt5::ShaderTools)
 endif()
 
+if(TARGET Qt5::ShaderTools)
+  target_link_libraries(score_plugin_avnd INTERFACE score_plugin_gfx score_plugin_engine)
+endif()
 include(CheckCXXCompilerFlag)
 
 check_cxx_compiler_flag(-std=c++20 has_std_20_flag)
