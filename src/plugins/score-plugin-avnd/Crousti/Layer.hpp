@@ -169,16 +169,16 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         if(auto widg = createCustom(item))
           setupItem(item, *widg);
       }
-      else if constexpr(!requires { &Item::layout; })
+      else if constexpr(avnd::has_layout<Item>)
+      {
+        // Treat it like group
+        subLayout(item, new score::GraphicsLayout{layout});
+      }
+      else
       {
         // Normal widget, e.g. just a const char*
         if(auto widg = createWidget(item))
           setupItem(item, *widg);
-      }
-      else
-      {
-        // Treat it like group
-        subLayout(item, new score::GraphicsLayout{layout});
       }
     }
 };
