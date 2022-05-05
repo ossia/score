@@ -22,9 +22,11 @@ GLCapabilities::GLCapabilities()
   type = ctx.format().renderableType();
   shaderVersion = glShaderVersion();
 
+#if __has_include (<private/qshader_p.h>)
   qShaderVersion.setVersion(shaderVersion);
   if(type == QSurfaceFormat::OpenGLES)
     qShaderVersion.setFlags(QShaderVersion::GlslEs);
+#endif
 
 #endif
   qDebug() << "Available GL context: " << major << minor << shaderVersion
