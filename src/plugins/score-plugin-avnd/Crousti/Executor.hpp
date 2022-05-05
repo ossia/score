@@ -29,6 +29,18 @@ namespace oscr
 {
 namespace
 {
+
+template<typename T>
+auto& modelPort(auto& ports, int index)
+{
+  // We have to adjust before accessing a port as there is the first "fake"
+  // port if the processor takes audio by argument
+  if constexpr(avnd::audio_argument_processor<T>)
+    return ports[index + 1];
+  else
+    return ports[index];
+}
+
 // TODO refactor this into a generic explicit soundfile loaded mechanism
 static auto loadSoundfile(Process::ControlInlet* inlet, double rate)
 {
@@ -111,7 +123,7 @@ struct setup_Impl0
   template <typename Field, std::size_t N, std::size_t NField>
   constexpr void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[NField]);
+    auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // Initialize the control with the current value of the inlet
     oscr::from_ossia_value(param, inlet->value(), param.value);
@@ -129,7 +141,7 @@ struct setup_Impl0
   template <avnd::soundfile_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[NField]);
+    auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
     auto& sf = param.soundfile;
@@ -179,7 +191,7 @@ struct ApplyEngineControlChangeToUI
   template <std::size_t N, std::size_t NField>
   void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[NField]);
+    auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
     inlet->setExecutionValue(oscr::to_ossia_value(field.value));
   }
 };
@@ -195,7 +207,7 @@ struct setup_Impl1_Out
   template <std::size_t N, std::size_t NField>
   void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto outlet = static_cast<Process::ControlOutlet*>(element.outlets()[NField]);
+    auto outlet = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element.outlets(), NField));
     outlet->setValue(oscr::to_ossia_value(field.value));
   }
 };
