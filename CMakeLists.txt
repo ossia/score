@@ -46,12 +46,14 @@ if(APPLE)
   enable_language(OBJC)
   enable_language(OBJCXX)
 endif()
+
 if(NOT QT_VERSION)
   set(QT_VERSION Qt5 5.9)
-  set(QT_PREFIX Qt5)
-else()
-  set(QT_PREFIX Qt6)
 endif()
+
+# QT_PREFIX: Qt5 / Qt6
+list(GET QT_VERSION 0 QT_PREFIX)
+
 
 set(SCORE_VERSION_MAJOR 3)
 set(SCORE_VERSION_MINOR 0)
