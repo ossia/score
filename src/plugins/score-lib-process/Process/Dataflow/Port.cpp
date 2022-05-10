@@ -819,9 +819,18 @@ QGraphicsItem* PortFactory::makeFullItem(ControlInlet& portModel, const Process:
 
   const auto& layout = defaultLayout();
   auto port = makePortItem(portModel, ctx, item, context);
-  auto widg = makeControlItem(portModel, ctx, item, context);
+  SCORE_SOFT_ASSERT(port);
 
-  makeFullItemImpl(portModel, layout, *port, *widg, *item);
+  if(port)
+  {
+    auto widg = makeControlItem(portModel, ctx, item, context);
+    SCORE_SOFT_ASSERT(widg);
+
+    if(widg)
+    {
+      makeFullItemImpl(portModel, layout, *port, *widg, *item);
+    }
+  }
 
   return item;
 }

@@ -171,7 +171,7 @@ QWidget* WidgetFactory::ImageListChooserItems::make_widget(
 
 QGraphicsItem* WidgetFactory::ImageListChooserItems::make_item(const Gfx::Images::ImageListChooser& slider, const Gfx::Images::ImageListChooser& inlet, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
 {
-  return nullptr;// new QGraphicsEllipseItem{QRectF{0,0,20,20}, parent};
+  return new score::EmptyItem{parent};
 }
 
 W_OBJECT_IMPL(EditableTable)
