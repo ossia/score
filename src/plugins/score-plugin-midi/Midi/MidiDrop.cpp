@@ -65,11 +65,8 @@ void DropHandler::dropData(
             const double ratio = song_t / actualDuration.msec();
             if (ratio != 1.)
             {
-              for (auto& note : track.notes)
-              {
-                note.setStart(ratio * note.start());
-                note.setDuration(ratio * note.duration());
-              }
+              track.trackEvents.apply_scale_ratio(ratio);
+              track.notes.apply_scale_ratio(ratio);
             }
             disp.submit(new Midi::ReplaceNotes{
                           midi, track.notes, track.min, track.max, actualDuration});
@@ -389,6 +386,13 @@ void parseEvent(const libremidi::track_event& ev, MidiTrack& nv, midi_note_map& 
         nv.notes.push_back(note);
       }
       notes.erase(ev.m.bytes[1]);
+
+      break;
+    }
+    case libremidi::message_type::CONTROL_CHANGE:
+    {
+      const auto& cc = ControllerData::make_cc(ev.m.get_channel() - 1, ev.m.bytes[1], ev.m.bytes[2]);
+      nv.trackEvents.push_back(delta, tick, total, cc);
       break;
     }
     default:
@@ -487,7 +491,7 @@ MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
           tick += ev.tick;
           parseEvent(ev, nv, notes, delta, tick, total);
         }
-        if (nv.notes.size() > 0)
+        if (nv.notes.size() > 0 || nv.trackEvents.size() > 0)
           m.tracks.push_back(std::move(nv));
       }
       break;

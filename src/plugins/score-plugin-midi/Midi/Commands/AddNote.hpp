@@ -1,6 +1,8 @@
 #pragma once
+
 #include <Midi/Commands/CommandFactory.hpp>
 #include <Midi/MidiNote.hpp>
+#include "Midi/MidiDrop.hpp"
 #include <Process/TimeValue.hpp>
 
 #include <score/model/path/Path.hpp>
@@ -52,7 +54,7 @@ class SCORE_PLUGIN_MIDI_EXPORT ReplaceNotes final : public score::Command
 public:
   ReplaceNotes(
       const ProcessModel& model,
-      const std::vector<NoteData>& note,
+      const MidiTrackNotes& note,
       int min,
       int max,
       TimeVal dur);

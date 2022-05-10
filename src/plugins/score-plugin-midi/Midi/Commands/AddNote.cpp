@@ -69,7 +69,7 @@ void AddNotes::deserializeImpl(DataStreamOutput& s)
 
 ReplaceNotes::ReplaceNotes(
     const ProcessModel& model,
-    const std::vector<NoteData>& n,
+    const MidiTrackNotes& n,
     int min,
     int max,
     TimeVal d)
