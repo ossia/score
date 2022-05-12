@@ -87,7 +87,6 @@ private:
   void startSlotDrag(int slot, QPointF) const override;
   void stopSlotDrag() const override;
 
-  void setHeaderWidth(const SlotPresenter& slot, double w);
   void setHeaderWidth(const LayerSlotPresenter& slot, double w);
   void setHeaderWidth(const NodalSlotPresenter& slot, double w);
   void createNodalSlot();

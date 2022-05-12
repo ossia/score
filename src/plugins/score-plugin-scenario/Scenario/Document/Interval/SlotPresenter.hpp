@@ -4,12 +4,12 @@
 #include <Process/LayerPresenter.hpp>
 
 #include <Scenario/Document/Interval/SlotHeader.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 
 #include <variant>
 
 namespace Scenario
 {
-class LayerData;
 class SlotHeader;
 struct LayerSlotPresenter
 {

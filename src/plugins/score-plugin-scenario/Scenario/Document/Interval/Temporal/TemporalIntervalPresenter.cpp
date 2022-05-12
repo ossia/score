@@ -1146,15 +1146,6 @@ void TemporalIntervalPresenter::requestSlotMenu(
 }
 
 void TemporalIntervalPresenter::setHeaderWidth(
-    const SlotPresenter& slot,
-    double w)
-{
-  w -= 1.;
-
-  slot.visit([=](const auto& slot) { setHeaderWidth(slot, w); });
-}
-
-void TemporalIntervalPresenter::setHeaderWidth(
     const LayerSlotPresenter& slot,
     double w)
 {
@@ -1225,7 +1216,8 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   int i = 0;
   for (SlotPresenter& slot : m_slots)
   {
-    setHeaderWidth(slot, w);
+    slot.visit([=](const auto& slot) { setHeaderWidth(slot, w); });
+
     const auto slot_height = m_model.smallView()[i].height;
 
     slot.visit(
