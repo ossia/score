@@ -17,6 +17,7 @@
 
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QPlainTextEdit>
 #include <QTimer>
@@ -24,6 +25,7 @@
 
 #include <Faust/Commands.hpp>
 #include <Faust/Utils.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <wobjectimpl.h>
 
 #if __has_include(<sndfile.h>)
@@ -56,6 +58,29 @@ EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const
 }
 namespace Faust
 {
+
+static std::vector<std::string> getLibpaths()
+{
+  std::vector<std::string> ret;
+
+  auto& lib = score::AppContext().settings<Library::Settings::Model>();
+  QDirIterator dir{lib.getPackagesPath(), QDirIterator::FollowSymlinks};
+
+  while(dir.hasNext())
+  {
+    dir.next();
+    if(dir.fileInfo().isDir())
+    {
+      QDir d{dir.filePath() + QDir::separator() + "library"};
+      if(d.exists() && !d.isEmpty())
+      {
+
+        ret.push_back(d.canonicalPath().toStdString());
+      }
+    }
+  }
+  return ret;
+}
 
 FaustEffectModel::FaustEffectModel(
     TimeVal t,
@@ -242,16 +267,29 @@ void FaustEffectModel::reload()
   std::string fx_path = m_path.toStdString();
   auto str = fx_text.toStdString();
 
-  int argc = fx_path.empty() ? 2 : 4;
-  const char* argv[]{
-    sizeof(FAUSTFLOAT) == 4 ? "-single" : "-double",
-    "-vec", "-I", fx_path.c_str(), nullptr};
+  std::vector<const char*> argv;
+  argv.push_back(sizeof(FAUSTFLOAT) == 4 ? "-single" : "-double");
+  argv.push_back("-vec");
+
+  if(!fx_path.empty())
+  {
+    argv.push_back("-I");
+    argv.push_back(fx_path.c_str());
+  }
+
+  const auto libPaths = getLibpaths();
+  for(auto& lib : libPaths)
+  {
+    argv.push_back("-I");
+    argv.push_back(lib.c_str());
+  }
+
 
   std::string err;
   err.resize(4097);
   llvm_dsp_factory* fac{};
 
-  fac = createDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
+  fac = createDSPFactoryFromString("score", str, argv.size(), argv.data(), triple, err, -1);
 
   if (err[0] != 0)
   {
@@ -283,7 +321,7 @@ void FaustEffectModel::reload()
     fac = nullptr;
     {
       auto midi_fac = ossia::nodes::createCustomPolyDSPFactoryFromString(
-          "score", str, argc, argv, triple, err, -1);
+          "score", str, argv.size(), argv.data(), triple, err, -1);
       auto midi_obj = midi_fac->createPolyDSPInstance(4, true, true);
       {
         auto fac = midi_fac;
