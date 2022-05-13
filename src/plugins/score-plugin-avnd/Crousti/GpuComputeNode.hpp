@@ -13,8 +13,6 @@
 #include <Process/ExecutionContext.hpp>
 #include <Gfx/GfxExecNode.hpp>
 
-#include <avnd/binding/ossia/port_run_postprocess.hpp>
-
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
 namespace oscr
@@ -31,12 +29,8 @@ std::conditional_t<avnd::gpu_image_output_introspection<Node_T>::size != 0, scor
 template<typename Node_T>
 struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
 {
-  Execution::ExecutionCommandQueue& queue;
-  Gfx::exec_controls control_outs;
-
   GpuComputeNode(Execution::ExecutionCommandQueue& q, Gfx::exec_controls ctls)
-    : queue{q}
-    , control_outs{std::move(ctls)}
+    : ComputeNodeBaseType<Node_T>{q, std::move(ctls)}
   {
     using texture_inputs = avnd::gpu_image_input_introspection<Node_T>;
     using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
@@ -406,25 +400,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     this->texReadbacks.clear();
 
     // Copy the data to the model node
-    if(!parent.control_outs.empty())
-    {
-      int parm_k = 0;
-      avnd::parameter_output_introspection<Node_T>::for_all(
-            avnd::get_outputs(this->state),
-            [&] <avnd::parameter T> (const T& t)
-            {
-              parent.queue.enqueue([
-                  v = oscr::to_ossia_value(t.value)
-                , port = parent.control_outs[parm_k]] () mutable
-              {
-                std::swap(port->value, v);
-                port->changed = true;
-              });
-
-              parm_k++;
-      });
-    }
-
+    parent.processControlOut(this->state);
   }
 
   void runInitialPasses(

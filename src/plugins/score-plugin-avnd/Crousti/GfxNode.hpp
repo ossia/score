@@ -3,6 +3,7 @@
 #if SCORE_PLUGIN_GFX
 #include <Crousti/Concepts.hpp>
 #include <Crousti/Metadatas.hpp>
+#include <Crousti/GpuUtils.hpp>
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
@@ -57,7 +58,9 @@ void main ()
 )_";
 
 
-struct GenericTexgenNode : score::gfx::NodeModel
+struct GenericTexgenNode
+    : score::gfx::NodeModel
+    , GpuControlOuts
 {
   struct ubo
   {
@@ -67,8 +70,10 @@ struct GenericTexgenNode : score::gfx::NodeModel
   } ubo;
 
   QImage image;
-  GenericTexgenNode()
+  GenericTexgenNode(Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls)
+    : GpuControlOuts{q, std::move(ctls)}
   {
+
   }
 
   score::gfx::Message last_message;
@@ -383,6 +388,9 @@ struct GfxRenderer final : GenericTexgenRenderer
       commands.resourceUpdate(res);
       res = renderer.state.rhi->nextResourceUpdateBatch();
     }
+
+    // Copy the data to the model node
+    parent.processControlOut(this->state);
   }
 };
 
@@ -394,8 +402,10 @@ struct GfxNode final : GenericTexgenNode
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
   std::shared_ptr<Node_T> node;
 
-  GfxNode(std::shared_ptr<Node_T> n)
-      : node{std::move(n)}
+  GfxNode(std::shared_ptr<Node_T> n, Execution::ExecutionCommandQueue& q, Gfx::exec_controls ctls)
+    : GenericTexgenNode{q, std::move(ctls)}
+    , node{std::move(n)}
+
   {
     for(std::size_t i = 0; i < texture_inputs::size; i++)
     {

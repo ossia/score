@@ -17,7 +17,7 @@ struct Serializer
 
     template<typename F>
     requires (std::is_arithmetic_v<F>)
-    void operator()(F f) { r.stream().stream << f; }
+    void operator()(const F& f) { r.stream().stream << f; }
 
     template<typename... Args>
     void operator()(const std::variant<Args...>& f) {

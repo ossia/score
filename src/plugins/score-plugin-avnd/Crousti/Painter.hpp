@@ -82,6 +82,7 @@ struct QPainterAdapter
       p.setColor(qRgba(c.r, c.g, c.b, c.a));
       painter.setPen(p);
     }
+
     void set_stroke_width(double w)
     {
       QPen p = painter.pen();

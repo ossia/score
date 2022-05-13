@@ -403,6 +403,10 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     auto& mesh = renderer.defaultTriangle();
     score::gfx::defaultRenderPass(
           m_meshBuffer, m_idxBuffer, renderer, mesh, commands, edge, m_p);
+
+    // Copy the data to the model node
+    if(!this->states.empty())
+      parent.processControlOut(this->states[0]);
   }
 };
 
@@ -411,7 +415,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 template<typename Node_T>
 struct CustomGpuNode final : CustomGpuNodeBase
 {
-  CustomGpuNode()
+  CustomGpuNode(Execution::ExecutionCommandQueue& q, Gfx::exec_controls ctls)
+    : CustomGpuNodeBase{q, std::move(ctls)}
   {
     using texture_inputs = avnd::gpu_sampler_introspection<Node_T>;
     using texture_outputs = avnd::gpu_attachment_introspection<Node_T>;

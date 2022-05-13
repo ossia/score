@@ -3,11 +3,14 @@
 #if SCORE_PLUGIN_GFX
 #include <avnd/concepts/parameter.hpp>
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
+#include <avnd/binding/ossia/port_run_postprocess.hpp>
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/GfxExecNode.hpp>
 
+#include <Process/ExecutionContext.hpp>
 #include <gpp/layout.hpp>
 #include <fmt/format.h>
 #include <QTimer>
@@ -599,11 +602,44 @@ struct generate_shaders
 
 namespace oscr
 {
+struct GpuControlOuts
+{
+    Execution::ExecutionCommandQueue& queue;
+    Gfx::exec_controls control_outs;
+
+    template<typename Node_T>
+    void processControlOut(Node_T& state) const noexcept
+    {
+      if(!this->control_outs.empty())
+      {
+        int parm_k = 0;
+        avnd::parameter_output_introspection<Node_T>::for_all(
+              avnd::get_outputs(state),
+              [&] <avnd::parameter T> (const T& t) {
+          queue.enqueue([
+              v = oscr::to_ossia_value(t.value)
+            , port = control_outs[parm_k]] () mutable
+          {
+            std::swap(port->value, v);
+            port->changed = true;
+          });
+
+          parm_k++;
+        });
+      }
+    }
+};
 
 struct CustomGpuNodeBase
     : score::gfx::Node
+    , GpuControlOuts
 {
-  CustomGpuNodeBase() = default;
+  CustomGpuNodeBase(Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls)
+    : GpuControlOuts{q, std::move(ctls)}
+  {
+
+  }
+
   virtual ~CustomGpuNodeBase() = default;
 
   QString vertex, fragment, compute;
@@ -613,8 +649,9 @@ struct CustomGpuNodeBase
 
 struct CustomGpuOutputNodeBase
     : score::gfx::OutputNode
+    , GpuControlOuts
 {
-    CustomGpuOutputNodeBase();
+    CustomGpuOutputNodeBase(Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls);
     virtual ~CustomGpuOutputNodeBase() = default;
 
     std::weak_ptr<score::gfx::RenderList> m_renderer{};
@@ -644,6 +681,7 @@ struct CustomGpuOutputNodeBase
     score::gfx::RenderState* renderState() const override;
 
     Configuration configuration() const noexcept override;
+
 };
 
 }

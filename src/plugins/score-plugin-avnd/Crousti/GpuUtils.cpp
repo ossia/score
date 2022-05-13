@@ -25,7 +25,8 @@ static void customMessageProcess(const score::gfx::Message& msg, score::gfx::Mes
   }
 }
 
-CustomGpuOutputNodeBase::CustomGpuOutputNodeBase()
+CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
+    Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls): GpuControlOuts{q, std::move(ctls)}
 {
   m_renderState = std::make_shared<score::gfx::RenderState>();
 
