@@ -192,7 +192,9 @@ class CustomItem : public QGraphicsItem
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
     {
+      auto& skin = score::Skin::instance();
       painter->setRenderHint(QPainter::Antialiasing, true);
+      painter->setPen(skin.Dark.main.pen1);
       impl.paint(QPainterAdapter{*painter, *this, {}});
       painter->setRenderHint(QPainter::Antialiasing, false);
     }
