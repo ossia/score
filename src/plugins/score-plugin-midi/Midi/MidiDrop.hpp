@@ -2,6 +2,7 @@
 #include <Midi/MidiNote.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/TimeValue.hpp>
+#include <mpark/variant.hpp>
 namespace Midi
 {
 
@@ -53,7 +54,7 @@ struct MidiTrackEvent {
 
   void setStart(const double start){ m_start = start; }
   const double start(){return m_start; }
-  std::variant<Midi::NoteOnData, Midi::NoteOffData, Midi::ControllerData,Midi::PitchbendData> m_message;
+  mpark::variant<Midi::NoteOnData, Midi::NoteOffData, Midi::ControllerData,Midi::PitchbendData> m_message;
 };
 
 struct MidiTrackEvents {
