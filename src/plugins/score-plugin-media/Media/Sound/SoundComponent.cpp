@@ -42,7 +42,7 @@ public:
     struct
     {
       Execution::SoundComponent& component;
-      void operator()() const noexcept
+      void operator()(ossia::monostate) const noexcept
       {
         // Note : we need to construct a dummy node in case there is nothing,
         // because else the parent interval will destroy the component so
@@ -105,7 +105,7 @@ public:
     struct
     {
       Execution::SoundComponent& component;
-      void operator()() const noexcept { return; }
+      void operator()(ossia::monostate) const noexcept { return; }
       void operator()(const std::shared_ptr<Media::AudioFile::LibavReader>& r)
           const noexcept
       {

@@ -4,13 +4,12 @@
 #include <score/tools/Metadata.hpp>
 
 #include <ossia/detail/for_each.hpp>
-
-#include <eggs/variant.hpp>
+#include <ossia/detail/nullable_variant.hpp>
 
 /**
  * @file VariantSerialization
  *
- * @brief Used for serialization of eggs::variant classes.
+ * @brief Used for serialization of ossia::nullable_variant classes.
  *
  * This saves the index and the current element, for both JSON and QDataStream,
  * by iterating at compile time up to the "right" point in the variant.
@@ -106,9 +105,9 @@ void VariantDataStreamDeserializer<T>::operator()()
 }
 
 template <typename... Args>
-struct TSerializer<DataStream, eggs::variant<Args...>>
+struct TSerializer<DataStream, ossia::nullable_variant<Args...>>
 {
-  using var_t = eggs::variant<Args...>;
+  using var_t = ossia::nullable_variant<Args...>;
   static void readFrom(DataStream::Serializer& s, const var_t& var)
   {
     s.stream() << (quint64)var.which();
@@ -218,9 +217,9 @@ void VariantJSONDeserializer<T>::operator()()
 }
 
 template <typename... Args>
-struct TSerializer<JSONObject, eggs::variant<Args...>>
+struct TSerializer<JSONObject, ossia::nullable_variant<Args...>>
 {
-  using var_t = eggs::variant<Args...>;
+  using var_t = ossia::nullable_variant<Args...>;
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
     s.stream.StartObject();

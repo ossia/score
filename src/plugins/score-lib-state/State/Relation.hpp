@@ -7,12 +7,12 @@
 
 #include <QString>
 
-#include <eggs/variant.hpp>
+#include <ossia/detail/nullable_variant.hpp>
 
 namespace State
 {
 using RelationMember
-    = eggs::variant<State::Address, State::AddressAccessor, ossia::value>;
+    = ossia::nullable_variant<State::Address, State::AddressAccessor, ossia::value>;
 
 SCORE_LIB_STATE_EXPORT QString toString(const RelationMember&);
 

@@ -5,12 +5,12 @@
 
 #include <ossia/detail/for_each.hpp>
 
-#include <boost/variant2/variant.hpp>
+#include <ossia/detail/variant.hpp>
 
 /**
- * @file BoostVariant2Serialization
+ * @file OssiaVariantSerialization
  *
- * @brief Used for serialization of boost::variant2 classes.
+ * @brief Used for serialization of ossia::variant classes.
  *
  * This saves the index and the current element, for both JSON and QDataStream,
  * by iterating at compile time up to the "right" point in the variant.
@@ -18,29 +18,29 @@
  */
 
 /**
- * @class BoostVariant2DataStreamSerializer
- * @see BoostVariant2Serialization
+ * @class OssiaVariantDataStreamSerializer
+ * @see OssiaVariantSerialization
  */
 
 /**
- * @class BoostVariant2DataStreamDeserializer
- * @see BoostVariant2Serialization
+ * @class OssiaVariantDataStreamDeserializer
+ * @see OssiaVariantSerialization
  */
 
 /**
- * @class BoostVariant2JSONSerializer
- * @see BoostVariant2Serialization
+ * @class OssiaVariantJSONSerializer
+ * @see OssiaVariantSerialization
  */
 
 /**
- * @class BoostVariant2JSONDeserializer
- * @see BoostVariant2Serialization
+ * @class OssiaVariantJSONDeserializer
+ * @see OssiaVariantSerialization
  */
 
 template <typename T>
-struct BoostVariant2DataStreamSerializer
+struct OssiaVariantDataStreamSerializer
 {
-  BoostVariant2DataStreamSerializer(DataStream::Serializer& s_p, const T& var_p)
+  OssiaVariantDataStreamSerializer(DataStream::Serializer& s_p, const T& var_p)
       : s{s_p}
       , var{var_p}
   {
@@ -57,13 +57,13 @@ struct BoostVariant2DataStreamSerializer
 
 template <typename T>
 template <typename TheClass>
-void BoostVariant2DataStreamSerializer<T>::operator()()
+void OssiaVariantDataStreamSerializer<T>::operator()()
 {
   // This trickery iterates over all the types in Args...
   // A single type should be serialized, even if we cannot break.
   if (done)
     return;
-  if (auto res = boost::variant2::get_if<TheClass>(&var))
+  if (auto res = ossia::get_if<TheClass>(&var))
   {
     s.stream() << *res;
     done = true;
@@ -71,9 +71,9 @@ void BoostVariant2DataStreamSerializer<T>::operator()()
 }
 
 template <typename T>
-struct BoostVariant2DataStreamDeserializer
+struct OssiaVariantDataStreamDeserializer
 {
-  BoostVariant2DataStreamDeserializer(
+  OssiaVariantDataStreamDeserializer(
       DataStream::Deserializer& s_p,
       quint64 which_p,
       T& var_p)
@@ -94,7 +94,7 @@ struct BoostVariant2DataStreamDeserializer
 
 template <typename T>
 template <typename TheClass>
-void BoostVariant2DataStreamDeserializer<T>::operator()()
+void OssiaVariantDataStreamDeserializer<T>::operator()()
 {
   // Here we iterate until we are on the correct type, and we deserialize it.
   if (i++ != which)
@@ -106,15 +106,15 @@ void BoostVariant2DataStreamDeserializer<T>::operator()()
 }
 
 template <typename... Args>
-struct TSerializer<DataStream, boost::variant2::variant<Args...>>
+struct TSerializer<DataStream, ossia::variant<Args...>>
 {
-  using var_t = boost::variant2::variant<Args...>;
+  using var_t = ossia::variant<Args...>;
   static void readFrom(DataStream::Serializer& s, const var_t& var)
   {
     s.stream() << (quint64)var.index();
 
     ossia::for_each_type<Args...>(
-        BoostVariant2DataStreamSerializer<var_t>{s, var});
+        OssiaVariantDataStreamSerializer<var_t>{s, var});
 
     s.insertDelimiter();
   }
@@ -125,7 +125,7 @@ struct TSerializer<DataStream, boost::variant2::variant<Args...>>
     s.stream() >> which;
 
     ossia::for_each_type<Args...>(
-        BoostVariant2DataStreamDeserializer<var_t>{s, which, var});
+        OssiaVariantDataStreamDeserializer<var_t>{s, which, var});
     s.checkDelimiter();
   }
 };
@@ -147,9 +147,9 @@ struct TSerializer<DataStream, boost::variant2::variant<Args...>>
 // should not happen since we have the std::optionalVariant.
 
 template <typename T>
-struct BoostVariant2JSONSerializer
+struct OssiaVariantJSONSerializer
 {
-  BoostVariant2JSONSerializer(JSONObject::Serializer& s_p, const T& var_p)
+  OssiaVariantJSONSerializer(JSONObject::Serializer& s_p, const T& var_p)
       : s{s_p}
       , var{var_p}
   {
@@ -165,12 +165,12 @@ struct BoostVariant2JSONSerializer
 
 template <typename T>
 template <typename TheClass>
-void BoostVariant2JSONSerializer<T>::operator()()
+void OssiaVariantJSONSerializer<T>::operator()()
 {
   if (done)
     return;
 
-  if (auto res = boost::variant2::get_if<TheClass>(&var))
+  if (auto res = ossia::get_if<TheClass>(&var))
   {
     s.obj[Metadata<Json_k, TheClass>::get()] = *res;
     done = true;
@@ -178,9 +178,9 @@ void BoostVariant2JSONSerializer<T>::operator()()
 }
 
 template <typename T>
-struct BoostVariant2JSONDeserializer
+struct OssiaVariantJSONDeserializer
 {
-  BoostVariant2JSONDeserializer(JSONObject::Deserializer& s_p, T& var_p)
+  OssiaVariantJSONDeserializer(JSONObject::Deserializer& s_p, T& var_p)
       : s{s_p}
       , var{var_p}
   {
@@ -195,7 +195,7 @@ struct BoostVariant2JSONDeserializer
 
 template <typename T>
 template <typename TheClass>
-void BoostVariant2JSONDeserializer<T>::operator()()
+void OssiaVariantJSONDeserializer<T>::operator()()
 {
   if (done)
     return;
@@ -211,13 +211,13 @@ void BoostVariant2JSONDeserializer<T>::operator()()
 }
 
 template <typename... Args>
-struct TSerializer<JSONObject, boost::variant2::variant<Args...>>
+struct TSerializer<JSONObject, ossia::variant<Args...>>
 {
-  using var_t = boost::variant2::variant<Args...>;
+  using var_t = ossia::variant<Args...>;
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
     s.stream.StartObject();
-    ossia::for_each_type<Args...>(BoostVariant2JSONSerializer<var_t>{s, var});
+    ossia::for_each_type<Args...>(OssiaVariantJSONSerializer<var_t>{s, var});
     s.stream.EndObject();
   }
 
@@ -225,6 +225,6 @@ struct TSerializer<JSONObject, boost::variant2::variant<Args...>>
   {
     if (s.base.MemberCount() == 0)
       return;
-    ossia::for_each_type<Args...>(BoostVariant2JSONDeserializer<var_t>{s, var});
+    ossia::for_each_type<Args...>(OssiaVariantJSONDeserializer<var_t>{s, var});
   }
 };

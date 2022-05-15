@@ -52,9 +52,15 @@ const QString& DeviceExplorerNode::displayName() const
       static QString s{"Invisible Root DeviceExplorerNode"};
       return s;
     }
+    return_type operator()(ossia::monostate) const
+    {
+      SCORE_ASSERT(false);
+      static QString s{"BUG"};
+      return s;
+    }
   } visitor{};
 
-  return eggs::variants::apply(visitor, impl());
+  return ossia::visit(visitor, impl());
 }
 
 bool DeviceExplorerNode::isSelectable() const

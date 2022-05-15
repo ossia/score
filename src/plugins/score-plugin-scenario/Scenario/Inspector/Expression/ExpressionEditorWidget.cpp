@@ -214,10 +214,13 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
       if (e.childCount() > 0)
         widg.exploreExpression(e.childAt(0));
     }
-
+    return_type operator()(const ossia::monostate&) const
+    {
+      SCORE_ASSERT(false);
+    }
   } visitor{expr, *this};
 
-  return eggs::variants::apply(visitor, expr.impl());
+  return ossia::visit(visitor, expr.impl());
 }
 
 QString ExpressionEditorWidget::currentExpr()

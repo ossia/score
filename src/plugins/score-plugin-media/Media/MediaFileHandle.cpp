@@ -130,7 +130,7 @@ int64_t AudioFile::decodedSamples() const
 {
   struct
   {
-    int64_t operator()() const noexcept { return 0; }
+    int64_t operator()(ossia::monostate) const noexcept { return 0; }
     int64_t operator()(const libav_ptr& r) const noexcept
     {
       return r->decoder.decoded;
@@ -165,7 +165,7 @@ int64_t AudioFile::samples() const
 {
   struct
   {
-    int64_t operator()() const noexcept { return 0; }
+    int64_t operator()(ossia::monostate) const noexcept { return 0; }
     int64_t operator()(const libav_ptr& r) const noexcept
     {
       const auto& samples = r->handle->data;
@@ -188,7 +188,7 @@ int64_t AudioFile::channels() const
 {
   struct
   {
-    int64_t operator()() const noexcept { return 0; }
+    int64_t operator()(ossia::monostate) const noexcept { return 0; }
     int64_t operator()(const libav_ptr& r) const noexcept
     {
       return r->handle->data.size();
@@ -247,7 +247,7 @@ struct FrameComputer
   ossia::small_vector<T, 8>& sum;
   Fun_T fun;
 
-  void operator()() const noexcept { }
+  void operator()(ossia::monostate) const noexcept { }
 
   void operator()(const AudioFile::RAMView& r) noexcept
   {
@@ -339,7 +339,7 @@ struct SingleFrameComputer
   int64_t start_frame;
   ossia::small_vector<float, 8>& sum;
 
-  void operator()() const noexcept { }
+  void operator()(ossia::monostate) const noexcept { }
 
   void operator()(const AudioFile::RAMView& r) noexcept
   {
@@ -378,7 +378,7 @@ void AudioFile::ViewHandle::frame(
     ossia::small_vector<float, 8>& out) noexcept
 {
   SingleFrameComputer _{start_frame, out};
-  ossia::apply(_, *this);
+  ossia::visit(_, *this);
 }
 
 void AudioFile::ViewHandle::absmax_frame(
@@ -395,7 +395,7 @@ void AudioFile::ViewHandle::absmax_frame(
     }
   };
   FrameComputer<AbsMax, float> _{start_frame, end_frame, out, {}};
-  ossia::apply(_, *this);
+  ossia::visit(_, *this);
 }
 
 void AudioFile::ViewHandle::minmax_frame(
@@ -414,7 +414,7 @@ void AudioFile::ViewHandle::minmax_frame(
 
   FrameComputer<MinMax, std::pair<float, float>> _{
       start_frame, end_frame, out, {}};
-  ossia::apply(_, *this);
+  ossia::visit(_, *this);
 }
 
 void AudioFile::load_ffmpeg(int rate)
@@ -447,7 +447,7 @@ void AudioFile::load_ffmpeg(int rate)
           this,
           [=] {
             const auto& r
-                = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
+                = **m_impl.target<std::shared_ptr<LibavReader>>();
             std::vector<gsl::span<const audio_sample>> samples;
             auto& handle = r.handle->data;
             const auto decoded = r.decoder.decoded;
@@ -470,7 +470,7 @@ void AudioFile::load_ffmpeg(int rate)
           this,
           [=] {
             const auto& r
-                = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
+                = **m_impl.target<std::shared_ptr<LibavReader>>();
             std::vector<gsl::span<const audio_sample>> samples;
             auto& handle = r.handle->data;
             auto decoded = r.decoder.decoded;
@@ -659,7 +659,7 @@ AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
   struct
   {
     view_impl_t& self;
-    void operator()() const noexcept { }
+    void operator()(ossia::monostate) const noexcept { }
     void operator()(const libav_ptr& r) const noexcept
     {
       self = RAMView{r->data};
@@ -687,6 +687,10 @@ ossia::audio_array AudioFile::getAudioArray() const
     int64_t frames{};
     ossia::audio_array out;
 
+    void operator()(ossia::monostate) noexcept
+    {
+
+    }
     void operator()(const Media::AudioFile::RAMView& av) noexcept
     {
       const int channels = av.data.size();
@@ -721,7 +725,7 @@ ossia::audio_array AudioFile::getAudioArray() const
 
   } vis{this->decodedSamples(), {}};
 
-  eggs::variants::apply(vis, this->handle());
+  ossia::visit(vis, this->handle());
 
   return vis.out;
 }

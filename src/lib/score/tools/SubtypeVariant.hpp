@@ -1,6 +1,5 @@
 #pragma once
 #include <brigand/algorithms/transform.hpp>
-#include <eggs/variant.hpp>
 
 #include <type_traits>
 

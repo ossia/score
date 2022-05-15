@@ -6,8 +6,6 @@
 
 #include <QColor>
 
-#include <eggs/variant.hpp>
-
 #include <utility>
 
 namespace score

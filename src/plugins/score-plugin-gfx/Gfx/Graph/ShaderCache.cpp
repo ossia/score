@@ -1,5 +1,6 @@
 #include "ShaderCache.hpp"
 #include <Gfx/Graph/RenderState.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 namespace score::gfx
 {

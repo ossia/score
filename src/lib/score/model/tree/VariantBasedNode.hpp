@@ -1,7 +1,6 @@
 #pragma once
 #include <score/model/tree/InvisibleRootNode.hpp>
-
-#include <eggs/variant.hpp>
+#include <ossia/detail/nullable_variant.hpp>
 
 namespace score
 {
@@ -90,6 +89,6 @@ public:
   }
 
 protected:
-  eggs::variant<InvisibleRootNode, Args...> m_data;
+  ossia::nullable_variant<InvisibleRootNode, Args...> m_data;
 };
 }

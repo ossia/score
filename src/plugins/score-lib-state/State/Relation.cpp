@@ -6,6 +6,7 @@
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 
+#include <score/tools/Debug.hpp>
 #include <QMap>
 namespace State
 {
@@ -48,15 +49,19 @@ QString State::toString(const State::RelationMember& m)
 
       return "%" + addr + "%";
     }
+
+    return_type operator()(ossia::monostate) const
+    {
+      SCORE_ASSERT(false);
+      return {};
+    }
   } visitor{};
 
-  return eggs::variants::apply(visitor, m);
+  return ossia::visit(visitor, m);
 }
 
 QString State::toString(const Relation& rel)
 {
-  using namespace eggs::variants;
-
   return QString("%1 %2 %3")
       .arg(toString(rel.lhs))
       .arg(opToString()[rel.op])

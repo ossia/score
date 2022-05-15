@@ -72,9 +72,10 @@ QString State::ExprData::toString() const
       return unopMap[rel];
     }
     return_type operator()(const InvisibleRootNode rel) const { return ""; }
+    return_type operator()(ossia::monostate) const { SCORE_ASSERT(!__PRETTY_FUNCTION__); return {}; }
   };
 
-  return eggs::variants::apply(vis{}, m_data);
+  return ossia::visit(vis{}, m_data);
 }
 
 QString TreeNode<State::ExprData>::toString() const

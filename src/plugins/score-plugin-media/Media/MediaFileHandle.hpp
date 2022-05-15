@@ -7,10 +7,10 @@
 #include <ossia/audio/drwav_handle.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/nullable_variant.hpp>
 
 #include <QFile>
 
-#include <eggs/variant.hpp>
 #include <nano_signal_slot.hpp>
 #include <score_plugin_media_export.h>
 
@@ -119,7 +119,7 @@ public:
   using libav_ptr = std::shared_ptr<LibavReader>;
   using mmap_ptr = MmapReader;
   using sndfile_ptr = SndfileReader;
-  using impl_t = eggs::variant<mmap_ptr, libav_ptr, sndfile_ptr>;
+  using impl_t = ossia::nullable_variant<mmap_ptr, libav_ptr, sndfile_ptr>;
 
   struct MmapView
   {
@@ -164,7 +164,7 @@ public:
     }
   };
 
-  using view_impl_t = eggs::variant<MmapView, RAMView>;
+  using view_impl_t = ossia::nullable_variant<MmapView, RAMView>;
   struct ViewHandle : view_impl_t
   {
     using view_impl_t::view_impl_t;

@@ -123,13 +123,17 @@ static ossia::expressions::expression_atom::val_t expressionOperand(
     const State::RelationMember& relm,
     const ossia::execution_state& list)
 {
-  using namespace eggs::variants;
-
   const struct
   {
   public:
     const ossia::execution_state& devlist;
     using return_type = ossia::expressions::expression_atom::val_t;
+    return_type operator()(const ossia::monostate&) const
+    {
+      SCORE_ASSERT(false);
+      return {};
+    }
+
     return_type operator()(const State::Address& addr) const
     {
       return expressionAddress(addr, devlist);
@@ -146,15 +150,13 @@ static ossia::expressions::expression_atom::val_t expressionOperand(
     }
   } visitor{list};
 
-  return eggs::variants::apply(visitor, relm);
+  return ossia::visit(visitor, relm);
 }
 
 // State::Relation -> OSSIA::ExpressionAtom
 static ossia::expression_ptr
 expressionAtom(const State::Relation& rel, const ossia::execution_state& dev)
 {
-  using namespace eggs::variants;
-
   return ossia::expressions::make_expression_atom(
       expressionOperand(rel.lhs, dev),
       rel.op,
@@ -164,8 +166,6 @@ expressionAtom(const State::Relation& rel, const ossia::execution_state& dev)
 static ossia::expression_ptr
 expressionPulse(const State::Pulse& rel, const ossia::execution_state& dev)
 {
-  using namespace eggs::variants;
-
   return ossia::expressions::make_expression_pulse(
       expressionAddress(rel.address, dev));
 }
@@ -181,7 +181,7 @@ ossia::expression_ptr expression(
     const State::Expression& expr;
     const ossia::execution_state& devlist;
 
-    ossia::expression_ptr operator()() const
+    ossia::expression_ptr operator()(const ossia::monostate&) const
     {
       return T::default_expression();
     }
@@ -195,7 +195,7 @@ ossia::expression_ptr expression(
       return expressionPulse(rel, devlist);
     }
 
-    ossia::expression_ptr operator()(const State::BinaryOperator rel) const
+    ossia::expression_ptr operator()(const State::BinaryOperator& rel) const
     {
       const auto& lhs = expr.childAt(0);
       const auto& rhs = expr.childAt(1);
@@ -204,12 +204,12 @@ ossia::expression_ptr expression(
           rel,
           condition_expression(rhs, devlist));
     }
-    ossia::expression_ptr operator()(const State::UnaryOperator) const
+    ossia::expression_ptr operator()(const State::UnaryOperator&) const
     {
       return ossia::expressions::make_expression_not(
           condition_expression(expr.childAt(0), devlist));
     }
-    ossia::expression_ptr operator()(const InvisibleRootNode) const
+    ossia::expression_ptr operator()(const InvisibleRootNode&) const
     {
       if (expr.childCount() == 0)
       {
@@ -225,7 +225,6 @@ ossia::expression_ptr expression(
         SCORE_ABORT;
       }
     }
-
   } visitor{e, list};
 
   return ossia::apply(visitor, e.impl());

@@ -531,8 +531,7 @@ void OSCProtocolSettingsWidget::setSettings(
     };
 
     using namespace std;
-    using namespace boost::variant2;
-    visit(vis{*this}, m_settings.configuration.transport);
+    ossia::visit(vis{*this}, m_settings.configuration.transport);
   }
 }
 }
