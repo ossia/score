@@ -369,7 +369,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
               auto& mess = this->parent.last_message;
               if(mess.input.size() > field_index)
               {
-                if(auto val = std::get_if<ossia::value>(&mess.input[field_index]))
+                if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
                 {
                   oscr::from_ossia_value(t, *val, t.value);
                 }

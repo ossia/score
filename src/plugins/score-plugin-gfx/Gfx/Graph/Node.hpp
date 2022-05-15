@@ -7,6 +7,7 @@
 
 #include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/variant.hpp>
 #include <ossia/dataflow/token_request.hpp>
 
 #include <score_plugin_gfx_export.h>
@@ -14,7 +15,6 @@
 #include <algorithm>
 #include <optional>
 #include <vector>
-#include <variant>
 
 #include <unordered_map>
 
@@ -25,7 +25,7 @@ struct Graph;
 class GenericNodeRenderer;
 class NodeRenderer;
 
-using gfx_input = std::variant<std::monostate, ossia::value, ossia::audio_vector>;
+using gfx_input = ossia::variant<std::monostate, ossia::value, ossia::audio_vector>;
 
 /**
  * @brief Messages sent from the execution thread to the rendering thread

@@ -16,6 +16,8 @@
 #include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
 #include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
 
+#include <ossia/detail/variant.hpp>
+
 #include <memory>
 #include <verdigris>
 
@@ -42,7 +44,7 @@ class ScenarioDocumentPresenter;
 class ScenarioDocumentView;
 class TimeRulerPresenter;
 
-using CentralDisplay = std::variant<std::monostate, CentralIntervalDisplay, CentralNodalDisplay>;
+using CentralDisplay = ossia::variant<std::monostate, CentralIntervalDisplay, CentralNodalDisplay>;
 /**
  * @brief The ScenarioDocumentPresenter class
  *

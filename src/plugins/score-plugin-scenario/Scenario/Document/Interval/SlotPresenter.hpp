@@ -6,7 +6,7 @@
 #include <Scenario/Document/Interval/SlotHeader.hpp>
 #include <Scenario/Document/Interval/LayerData.hpp>
 
-#include <variant>
+#include <ossia/detail/variant.hpp>
 
 namespace Scenario
 {
@@ -48,17 +48,17 @@ struct NodalSlotPresenter
   void cleanup();
 };
 
-struct SlotPresenter : std::variant<LayerSlotPresenter, NodalSlotPresenter>
+struct SlotPresenter : ossia::variant<LayerSlotPresenter, NodalSlotPresenter>
 {
   using variant::variant;
 
   LayerSlotPresenter* getLayerSlot() const noexcept
   {
-    return std::get_if<LayerSlotPresenter>((variant*)this);
+    return ossia::get_if<LayerSlotPresenter>((variant*)this);
   }
   NodalSlotPresenter* getNodalSlot() const noexcept
   {
-    return std::get_if<NodalSlotPresenter>((variant*)this);
+    return ossia::get_if<NodalSlotPresenter>((variant*)this);
   }
 
   template <typename Layer, typename Nodal>
@@ -71,7 +71,7 @@ struct SlotPresenter : std::variant<LayerSlotPresenter, NodalSlotPresenter>
       void operator()(LayerSlotPresenter& pres) const { return lfun(pres); }
       void operator()(NodalSlotPresenter& pres) const { return nfun(pres); }
     } visitor{lfun, nfun};
-    return std::visit(visitor, (variant&)*this);
+    return ossia::visit(visitor, (variant&)*this);
   }
 
   template <typename Layer, typename Nodal>
@@ -90,19 +90,19 @@ struct SlotPresenter : std::variant<LayerSlotPresenter, NodalSlotPresenter>
         return nfun(pres);
       }
     } visitor{lfun, nfun};
-    return std::visit(visitor, (const variant&)*this);
+    return ossia::visit(visitor, (const variant&)*this);
   }
 
   template <typename F>
   auto visit(const F& fun)
   {
-    return std::visit(fun, (variant&)*this);
+    return ossia::visit(fun, (variant&)*this);
   }
 
   template <typename F>
   auto visit(const F& fun) const
   {
-    return std::visit(fun, (const variant&)*this);
+    return ossia::visit(fun, (const variant&)*this);
   }
 
   void cleanup(QGraphicsScene* sc)

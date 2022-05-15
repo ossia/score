@@ -71,7 +71,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     for (const isf::input& input : n.m_descriptor.inputs)
     {
       auto port = n.input[port_k];
-      if (std::get_if<isf::float_input>(&input.data))
+      if (ossia::get_if<isf::float_input>(&input.data))
       {
         syms.add_constant("var_" + input.name, *(float*)port->value);
       }

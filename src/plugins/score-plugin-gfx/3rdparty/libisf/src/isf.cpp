@@ -734,7 +734,7 @@ void parser::parse_isf()
 
       for (const isf::input& val : d.inputs)
       {
-        m_fragment += std::visit(create_val_visitor{}, val.data);
+        m_fragment += ossia::visit(create_val_visitor{}, val.data);
         m_fragment += ' ';
         m_fragment += val.name;
         m_fragment += ";\n";
@@ -776,7 +776,7 @@ void parser::parse_isf()
         for (const isf::input& val : d.inputs)
         {
           auto [text, isSampler]
-              = std::visit(create_val_visitor_450{}, val.data);
+              = ossia::visit(create_val_visitor_450{}, val.data);
 
           if (isSampler)
           {

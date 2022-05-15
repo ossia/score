@@ -1,5 +1,6 @@
 #pragma once
 #include <brigand/algorithms/transform.hpp>
+#include <ossia/detail/variant.hpp>
 
 #include <type_traits>
 
@@ -57,7 +58,7 @@ Variant make_subtype_variant(const Base& base)
 template <typename Base, typename... Args>
 class SubtypeVariant
 {
-  using arg_list = eggs::variant<Args...>;
+  using arg_list = ossia::variant<Args...>;
   using ptr_list = brigand::transform<arg_list, std::add_pointer<brigand::_1>>;
 
   ptr_list m_impl;
@@ -73,7 +74,7 @@ public:
   {
     if (m_impl)
     {
-      return eggs::variants::apply(detail::dereference_visitor<F>{f}, m_impl);
+      return ossia::visit(detail::dereference_visitor<F>{f}, m_impl);
     }
     else
     {

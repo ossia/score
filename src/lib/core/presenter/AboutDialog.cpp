@@ -180,7 +180,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["spdlog"] = License{"https://github.com/gabime/spdlog", spdlog_LICENSE};
   map["tuplet"] = License{"https://github.com/jcelerier/tuplet", tuplet_LICENSE};
   map["variant"]
-      = License{"https://github.com/eggs-cpp/variant", variant_LICENSE};
+      = License{"https://github.com/mpark/variant", variant_LICENSE};
   map["verdigris"]
       = License{"https://github.com/jcelerier/verdigris", verdigris_LICENSE};
   map["VST3 SDK"]

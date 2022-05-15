@@ -97,7 +97,7 @@ static void addArtnetFixture(
       }
     } vis{*chan_node, buffer, k};
 
-    std::visit(vis, chan.capabilities);
+    ossia::visit(vis, chan.capabilities);
 
     k++;
   }

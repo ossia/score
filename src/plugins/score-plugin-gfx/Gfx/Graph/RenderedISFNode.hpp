@@ -3,6 +3,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 
 #include <ossia/audio/fft.hpp>
+#include <ossia/detail/variant.hpp>
 #include <ossia/math/math_expression.hpp>
 #include <ossia/detail/small_flat_map.hpp>
 
@@ -20,7 +21,7 @@ struct PersistSampler
   QRhiSampler* sampler{};
   QRhiTexture* textures[2]{nullptr, nullptr};
 };
-using PassOutput = std::variant<PersistSampler, TextureRenderTarget>;
+using PassOutput = ossia::variant<PersistSampler, TextureRenderTarget>;
 
 struct AudioTextureUpload
 {

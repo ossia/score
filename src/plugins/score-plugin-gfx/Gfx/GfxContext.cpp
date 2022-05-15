@@ -285,7 +285,7 @@ void GfxContext::run_commands()
   Command c = NodeCommand{};
   while(tick_commands.try_dequeue(c))
   {
-   if(auto cnode = std::get_if<NodeCommand>(&c))
+   if(auto cnode = ossia::get_if<NodeCommand>(&c))
    {
     auto& cmd = *cnode;
     switch(cmd.cmd)
@@ -336,7 +336,7 @@ void GfxContext::run_commands()
       }
     }
    }
-   else if(auto cedge = std::get_if<EdgeCommand>(&c))
+   else if(auto cedge = ossia::get_if<EdgeCommand>(&c))
    {
      auto& cmd = *cedge;
      switch(cmd.cmd)

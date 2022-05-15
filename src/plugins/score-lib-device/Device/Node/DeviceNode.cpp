@@ -10,11 +10,11 @@
 
 #include <score/model/tree/TreeNode.hpp>
 
+#include <ossia/detail/variant.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <QDebug>
 
-#include <eggs/variant/variant.hpp>
 
 #include <vector>
 

@@ -350,7 +350,7 @@ void ProcessNode::process(const Message& msg)
   for (const gfx_input& m : msg.input)
   {
     auto sink = ossia::gfx::port_index{msg.node_id, p};
-    std::visit([this, sink] (const auto& v) { this->process(sink.port, v); }, std::move(m));
+    ossia::visit([this, sink] (const auto& v) { this->process(sink.port, v); }, std::move(m));
 
     p++;
   }

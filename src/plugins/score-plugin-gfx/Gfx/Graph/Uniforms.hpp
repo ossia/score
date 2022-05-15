@@ -2,11 +2,11 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/network/value/vec.hpp>
+#include <ossia/detail/variant.hpp>
 
 #include <QColor>
 
 #include <array>
-#include <variant>
 
 namespace score::gfx
 {
@@ -26,7 +26,7 @@ enum class Types
   Camera,
 };
 
-using ValueVariant = std::variant<
+using ValueVariant = ossia::variant<
     std::monostate,
     float,
     ossia::vec2f,

@@ -2,11 +2,11 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <score/tools/std/StringHash.hpp>
+#include <ossia/detail/variant.hpp>
 
 #include <QString>
 
 #include <utility>
-#include <variant>
 #include <vector>
 #include <verdigris>
 
@@ -31,7 +31,7 @@ struct RangeCapability : BaseCapability
 };
 
 using FixtureCapabilities
-    = std::variant<SingleCapability, std::vector<RangeCapability>>;
+    = ossia::variant<SingleCapability, std::vector<RangeCapability>>;
 struct Channel
 {
   QString name;

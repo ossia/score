@@ -123,7 +123,7 @@ static bool pasteInCurrentInterval(QPoint pos, const QMimeData& mime, const scor
       QPointF operator()(std::monostate) const { return QPointF{}; }
   };
 
-  auto item_pt = std::visit(NodalPositionVisitor{scene_pt}, pres->display());
+  auto item_pt = ossia::visit(NodalPositionVisitor{scene_pt}, pres->display());
 
   auto& itv = pres->displayedInterval();
   auto obj = readJson(mime.data("text/plain"));

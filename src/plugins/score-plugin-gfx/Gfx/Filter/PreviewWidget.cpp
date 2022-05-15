@@ -161,7 +161,7 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
       int i = 0;
       for (const isf::input& input : m_program.descriptor.inputs)
       {
-        std::visit(PreviewPresetVisitor{*m_isf, controls, i}, input.data);
+        ossia::visit(PreviewPresetVisitor{*m_isf, controls, i}, input.data);
         i++;
       }
     }
@@ -193,7 +193,7 @@ void ShaderPreviewWidget::setup()
   int i = 0;
   for (const isf::input& input : m_program.descriptor.inputs)
   {
-    auto node = std::visit(PreviewInputVisitor{image_i}, input.data);
+    auto node = ossia::visit(PreviewInputVisitor{image_i}, input.data);
     if (node)
     {
       m_graph.addNode(node);

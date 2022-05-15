@@ -202,7 +202,7 @@ ISFNode::ISFNode(
   // Size of the inputs
   for (const isf::input& input : desc.inputs)
   {
-    std::visit(sz_vis, input.data);
+    ossia::visit(sz_vis, input.data);
   }
 
   // Size of the pass textures (vec4)
@@ -220,7 +220,7 @@ ISFNode::ISFNode(
   // Create ports pointing to the data used for the UBO
   isf_input_port_vis visitor{*this, cur};
   for (const isf::input& input : desc.inputs)
-    std::visit(visitor, input.data);
+    ossia::visit(visitor, input.data);
 
   // Handle the pass textures size uniforms
   {
@@ -268,12 +268,12 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
   for (const isf::input& input : m_descriptor.inputs)
   {
     auto port = this->input[port_k];
-    if (std::get_if<isf::float_input>(&input.data))
+    if (ossia::get_if<isf::float_input>(&input.data))
     {
       e.add_constant(
           "var_" + input.name, data.emplace_back(*(float*)port->value));
     }
-    else if (std::get_if<isf::long_input>(&input.data))
+    else if (ossia::get_if<isf::long_input>(&input.data))
     {
       e.add_constant(
           "var_" + input.name, data.emplace_back(*(int*)port->value));

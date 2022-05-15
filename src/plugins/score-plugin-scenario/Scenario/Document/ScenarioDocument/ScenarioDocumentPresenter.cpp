@@ -260,7 +260,7 @@ void ScenarioDocumentPresenter::recenterNodal()
     void operator()(std::monostate) const noexcept {}
   } vis{};
 
-  std::visit(vis, m_centralDisplay);
+  ossia::visit(vis, m_centralDisplay);
 }
 
 void ScenarioDocumentPresenter::switchMode(bool nodal)
@@ -312,7 +312,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
       void operator()(std::monostate) const noexcept {
       }
     } init_vis{};
-    std::visit(init_vis, m_centralDisplay);
+    ossia::visit(init_vis, m_centralDisplay);
   }
 
   /*
@@ -344,7 +344,7 @@ IntervalModel& ScenarioDocumentPresenter::displayedInterval() const noexcept
 
 IntervalPresenter* ScenarioDocumentPresenter::displayedIntervalPresenter() const noexcept
 {
-  if(auto itv_pres = std::get_if<CentralIntervalDisplay>(&m_centralDisplay))
+  if(auto itv_pres = ossia::get_if<CentralIntervalDisplay>(&m_centralDisplay))
     return itv_pres->presenter.intervalPresenter();
   return nullptr;
 }
@@ -393,7 +393,7 @@ void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
     void operator()(std::monostate) const noexcept {
     }
   } vis{m_zoomRatio};
-  std::visit(vis, m_centralDisplay);
+  ossia::visit(vis, m_centralDisplay);
 
   for (auto& cbl : m_dataflow.cables())
   {
@@ -470,7 +470,7 @@ void ScenarioDocumentPresenter::on_visibleRectChanged(const QRectF& rect)
     void operator()(std::monostate) const noexcept {}
   } vis{rect};
 
-  std::visit(vis, this->m_centralDisplay);
+  ossia::visit(vis, this->m_centralDisplay);
 }
 
 void ScenarioDocumentPresenter::setLargeView()
@@ -486,7 +486,7 @@ void ScenarioDocumentPresenter::setLargeView()
 void ScenarioDocumentPresenter::startTimeBar()
 {
   bool visible = context().app.settings<Scenario::Settings::Model>().getTimeBar();
-  auto itv_display = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  auto itv_display = ossia::get_if<CentralIntervalDisplay>(&m_centralDisplay);
   visible &= bool(itv_display);
   IntervalPresenter* itv_pres{};
   if(itv_display)
@@ -571,7 +571,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     return;
 
   // Don't update when in nodal (this breaks the zoom / position saving)
-  auto itv = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  auto itv = ossia::get_if<CentralIntervalDisplay>(&m_centralDisplay);
   if (!itv)
     return;
 
@@ -661,7 +661,7 @@ void ScenarioDocumentPresenter::on_addProcessFromLibrary(
     void operator()(std::monostate) const noexcept {
     }
   } vis{dat};
-  std::visit(vis, m_centralDisplay);
+  ossia::visit(vis, m_centralDisplay);
 }
 
 void ScenarioDocumentPresenter::restoreZoom()
@@ -721,7 +721,7 @@ void ScenarioDocumentPresenter::on_viewReady()
       void operator()(std::monostate) const noexcept {
       }
     } vis{view().view().visibleRect()};
-    std::visit(vis, m_centralDisplay);
+    ossia::visit(vis, m_centralDisplay);
   });
 }
 
@@ -772,7 +772,7 @@ void ScenarioDocumentPresenter::on_timeRulerChanged()
     void operator()(CentralNodalDisplay& disp) const noexcept {}
     void operator()(std::monostate) const noexcept {}
   } vis{tr};
-  std::visit(vis, this->m_centralDisplay);
+  ossia::visit(vis, this->m_centralDisplay);
 
   on_horizontalPositionChanged(0);
 }
@@ -828,11 +828,11 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 
 void ScenarioDocumentPresenter::on_executionTimer()
 {
-  if(auto n = std::get_if<CentralNodalDisplay>(&this->m_centralDisplay))
+  if(auto n = ossia::get_if<CentralNodalDisplay>(&this->m_centralDisplay))
   {
     n->on_executionTimer();
   }
-  else if(auto i = std::get_if<CentralIntervalDisplay>(&this->m_centralDisplay))
+  else if(auto i = ossia::get_if<CentralIntervalDisplay>(&this->m_centralDisplay))
   {
     if(m_autoScroll)
       autoScroll();
@@ -878,7 +878,7 @@ void ScenarioDocumentPresenter::autoScroll()
 void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b)
 {
   const bool nodal = !b;
-  const bool m_nodal = std::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
+  const bool m_nodal = ossia::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
   if (nodal && !m_nodal)
     switchMode(true);
   else if (!nodal && m_nodal)
@@ -899,7 +899,7 @@ void ScenarioDocumentPresenter::updateTimeBar()
 {
   auto& set = m_context.app.settings<Settings::Model>();
   auto& gv = view().view();
-  const bool nodal = std::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
+  const bool nodal = ossia::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
   gv.timebarVisible = gv.timebarPlaying && set.getTimeBar() && !nodal && (&displayedInterval().duration == gv.currentTimebar);
 }
 
@@ -1062,7 +1062,7 @@ void ScenarioDocumentPresenter::on_viewModelFocused(
 void ScenarioDocumentPresenter::focusFrontProcess()
 {
   // TODO this snippet is useful, put it somewhere in some Toolkit file.
-  auto itv_disp = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  auto itv_disp = ossia::get_if<CentralIntervalDisplay>(&m_centralDisplay);
   if(!itv_disp)
     return;
   FullViewIntervalPresenter* cst_pres

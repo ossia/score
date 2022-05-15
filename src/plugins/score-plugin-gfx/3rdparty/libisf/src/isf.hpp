@@ -1,11 +1,11 @@
 #pragma once
 #include <isf_export.h>
 
+#include <ossia/detail/variant.hpp>
 #include <array>
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <variant>
 #include <vector>
 
 namespace isf
@@ -87,7 +87,7 @@ struct audioFFT_input
 
 struct input
 {
-  using input_impl = std::variant<
+  using input_impl = ossia::variant<
       float_input,
       long_input,
       event_input,

@@ -313,7 +313,7 @@ void Model::setupIsf(const isf::descriptor& desc)
 
   for (const isf::input& input : desc.inputs)
   {
-    std::visit(input_vis{input, i, *this}, input.data);
+    ossia::visit(input_vis{input, i, *this}, input.data);
     i++;
   }
 }

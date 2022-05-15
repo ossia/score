@@ -87,7 +87,7 @@ std::vector<Sampler> RenderedISFNode::allSamplers(ossia::small_vector<PassOutput
   // Pass samplers
   for (auto& pass : m_passSamplers)
   {
-    if(auto p = std::get_if<PersistSampler>(&pass))
+    if(auto p = ossia::get_if<PersistSampler>(&pass))
     {
       if(p->sampler)
       {
@@ -262,7 +262,7 @@ void main ()
 
   {
     SCORE_ASSERT(!m_passSamplers.empty());
-    auto last_sampler = std::get_if<PersistSampler>(&m_passSamplers.back());
+    auto last_sampler = ossia::get_if<PersistSampler>(&m_passSamplers.back());
     SCORE_ASSERT(last_sampler);
 
     auto pip = score::gfx::buildPipeline(
@@ -306,12 +306,12 @@ RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput
   {
     // Render target for the pass
     TextureRenderTarget renderTarget;
-    if(auto rt = std::get_if<TextureRenderTarget>(&target))
+    if(auto rt = ossia::get_if<TextureRenderTarget>(&target))
     {
       // Final render target
       renderTarget = *rt;
     }
-    else if(auto psampler = std::get_if<PersistSampler>(&target))
+    else if(auto psampler = ossia::get_if<PersistSampler>(&target))
     {
       // Intermediary pass
       renderTarget
@@ -335,7 +335,7 @@ RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput
 
   // If necessary create the alternative pass
   {
-    if(auto rt = std::get_if<TextureRenderTarget>(&target))
+    if(auto rt = ossia::get_if<TextureRenderTarget>(&target))
     {
       // Non-persistent last pass
       // assert (!persistent);
@@ -348,7 +348,7 @@ RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput
             renderer, ret.second.renderTarget, pubo, m_materialUBO, allSamplers(passSamplers, 0));
       }
     }
-    else if(auto psampler = std::get_if<PersistSampler>(&target))
+    else if(auto psampler = ossia::get_if<PersistSampler>(&target))
     {
       if (psampler->textures[1] != psampler->textures[0])
       {
@@ -593,7 +593,7 @@ void RenderedISFNode::release(RenderList& r)
           pass.processUBO->deleteLater();
 
 
-        if(auto p = std::get_if<PersistSampler>(&sampler))
+        if(auto p = ossia::get_if<PersistSampler>(&sampler))
         {
           delete p->sampler;
           // TODO check texture deletion ???

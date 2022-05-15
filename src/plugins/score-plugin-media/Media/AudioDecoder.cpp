@@ -8,7 +8,7 @@
 #include <QHash>
 
 #include <cmath>
-#include <eggs/variant.hpp>
+#include <ossia/detail/variant.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -202,7 +202,7 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
   }
 };
 
-using decoder_t = eggs::variant<
+using decoder_t = ossia::variant<
     Decoder<int16_t, 1, 16, true>,
     Decoder<int16_t, 2, 16, true>,
     Decoder<int16_t, 2, 16, false>, /*
@@ -436,7 +436,7 @@ case 4: return make_N_decoder<4>(stream);
 case 6: return make_N_decoder<6>(stream);
 case 8: return make_N_decoder<8>(stream);*/
     case 0:
-      return {};
+      throw std::runtime_error("Stream has no channels");
     default:
       return make_dynamic_decoder(stream);
   }
@@ -827,8 +827,6 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       throw std::runtime_error("Couldn't open codec");
 
     auto decoder = make_decoder(*stream);
-    if (!decoder)
-      throw std::runtime_error("Couldn't create decoder");
 
     // init resampling
     if (convertedSampleRate != fileSampleRate)
@@ -863,7 +861,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       return ret;
     };
     // decoding
-    eggs::variants::apply(
+    ossia::visit(
         [&](auto& dec) {
           AVPacket packet;
           AVFrame_ptr frame{av_frame_alloc()};

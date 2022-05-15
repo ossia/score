@@ -168,14 +168,14 @@ void ImagesNode::process(const Message& msg)
   int32_t p = 0;
   for (const gfx_input& m: msg.input)
   {
-    if(auto val = std::get_if<ossia::value>(&m))
+    if(auto val = ossia::get_if<ossia::value>(&m))
     {
       switch(p)
       {
         case 0: // Image index
         {
           auto sink = ossia::gfx::port_index{msg.node_id, p };
-          std::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
+          ossia::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
 
           if(linearImages.size() > 0)
           {
@@ -197,7 +197,7 @@ void ImagesNode::process(const Message& msg)
         case 2: // Position
         {
           auto sink = ossia::gfx::port_index{msg.node_id, p };
-          std::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
+          ossia::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
           break;
         }
 

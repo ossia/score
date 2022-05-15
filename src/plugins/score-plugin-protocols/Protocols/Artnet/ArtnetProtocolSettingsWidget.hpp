@@ -6,7 +6,6 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Protocols/Artnet/ArtnetSpecificSettings.hpp>
 
-#include <variant>
 #include <verdigris>
 
 class QLineEdit;

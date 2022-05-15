@@ -5,6 +5,7 @@
 #include <ossia/dataflow/token_request.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/variant.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
 
@@ -91,7 +92,7 @@ private:
     Edge edge;
   };
 
-  using Command = std::variant<NodeCommand, EdgeCommand>;
+  using Command = ossia::variant<NodeCommand, EdgeCommand>;
   moodycamel::ConcurrentQueue<Command> tick_commands;
   moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
 
