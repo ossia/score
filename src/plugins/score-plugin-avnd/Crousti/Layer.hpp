@@ -61,7 +61,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     template<typename T>
     QGraphicsItem* createCustom(T& item)
     {
-      if constexpr(requires { typename T::item_type{}; }) {
+      if constexpr(requires { sizeof(typename T::item_type); }) {
         return new oscr::CustomItem<typename T::item_type>{};
       }
       else {
@@ -231,7 +231,7 @@ private:
   auto makeItemImpl(ProcessModel<Info>& proc, QGraphicsItem* parent) const noexcept
   {
     // Initialize if needed
-    if constexpr(requires { typename Info::ui::bus{}; }) {
+    if constexpr(requires { sizeof(typename Info::ui::bus); }) {
       struct Item
           : score::EmptyRectItem
       {

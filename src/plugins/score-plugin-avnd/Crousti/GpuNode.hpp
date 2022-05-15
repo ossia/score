@@ -114,7 +114,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         bindings.push_back(initBinding(renderer, f));
       });
     }
-    else if constexpr(requires { typename Node_T::layout::bindings{}; })
+    else if constexpr(requires { sizeof(typename Node_T::layout::bindings); })
     {
       using bindings_type = typename Node_T::layout::bindings;
       boost::pfr::for_each_field(bindings_type{}, [&] (auto f) {
