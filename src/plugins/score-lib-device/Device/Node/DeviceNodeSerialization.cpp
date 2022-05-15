@@ -26,15 +26,15 @@ template <>
 SCORE_LIB_DEVICE_EXPORT void
 JSONReader::read(const Device::DeviceExplorerNode& n)
 {
-  switch (n.m_data.which())
+  switch (n.m_data.which().index())
   {
-    case 0:
+    case Device::Node::variant_type::index_of<InvisibleRootNode>().index():
       // invisible root node
       break;
-    case 1:
+    case Device::Node::variant_type::index_of<Device::DeviceSettings>().index():
       obj[strings.Device] = *n.m_data.target<Device::DeviceSettings>();
       break;
-    case 2:
+    case Device::Node::variant_type::index_of<Device::AddressSettings>().index():
       obj[strings.Address] = *n.m_data.target<Device::AddressSettings>();
       break;
     default:

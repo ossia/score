@@ -86,7 +86,7 @@ struct VariantDataStreamDeserializer
   quint64 which;
   T& var;
 
-  quint64 i = 0;
+  quint64 i = 1; // 0 is the monostate / npos
   template <typename TheClass>
   void operator()();
 };
@@ -110,10 +110,10 @@ struct TSerializer<DataStream, ossia::nullable_variant<Args...>>
   using var_t = ossia::nullable_variant<Args...>;
   static void readFrom(DataStream::Serializer& s, const var_t& var)
   {
-    s.stream() << (quint64)var.which();
+    s.stream() << (quint64)var.which().index();
 
     // TODO this should be an assert.
-    if ((quint64)var.which() != (quint64)var.npos)
+    if (var)
     {
       ossia::for_each_type<Args...>(
           VariantDataStreamSerializer<var_t>{s, var});
@@ -127,7 +127,7 @@ struct TSerializer<DataStream, ossia::nullable_variant<Args...>>
     quint64 which;
     s.stream() >> which;
 
-    if (which != (quint64)var.npos)
+    if (which != (quint64)var.npos.index())
     {
       ossia::for_each_type<Args...>(
           VariantDataStreamDeserializer<var_t>{s, which, var});
@@ -223,7 +223,7 @@ struct TSerializer<JSONObject, ossia::nullable_variant<Args...>>
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
     s.stream.StartObject();
-    if ((quint64)var.which() != (quint64)var.npos)
+    if (var)
     {
       ossia::for_each_type<Args...>(VariantJSONSerializer<var_t>{s, var});
     }

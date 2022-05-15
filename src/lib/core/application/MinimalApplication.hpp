@@ -21,6 +21,14 @@ class MinimalApplication final
     , public score::GUIApplicationInterface
 {
 public:
+  int default_argc = 1;
+  const char* default_argv[2] = {"score", nullptr};
+
+  MinimalApplication()
+   : MinimalApplication{default_argc, (char**)default_argv}
+  {
+  }
+
   MinimalApplication(int& argc, char** argv)
       : QObject{nullptr}
       , m_app{new QApplication{argc, argv}}

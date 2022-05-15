@@ -25,8 +25,11 @@ bool validate(const State::Expression& expr)
     return checkLeaves(&expr);
 }
 */
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+#include "Utils.hpp"
+
 #include <State/Expression.hpp>
-#include <State/TraversalPath.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
@@ -43,7 +46,6 @@ bool validate(const State::Expression& expr)
 #include <QObject>
 #include <QString>
 
-#include <eggs/variant/variant.hpp>
 using namespace score;
 #include <State/ExpressionParser.cpp>
 #include <State/ValueConversion.hpp>
@@ -53,7 +55,7 @@ using namespace score;
 #include <vector>
 
 /*
-void test_parse_expr()
+TEST_CASE("test_parse_expr", "test_parse_expr")
 {
     for (auto& input : std::list<std::string> {
          "(dev:/minuit <= 5) and (a:/b == 1.34);",
@@ -200,13 +202,7 @@ static void debug_path(std::optional<State::Address> addr)
   qDebug() << addr->toString();
 }
 using namespace score;
-class ExpressionParsingTests : public QObject
-{
-  Q_OBJECT
-public:
-private Q_SLOTS:
-
-  void test_parse_impulse()
+  TEST_CASE("test_parse_impulse", "test_parse_impulse")
   {
 
     {
@@ -218,7 +214,7 @@ private Q_SLOTS:
       State::Pulse p;
       bool r = parse(first, last, parser, p);
 
-      QVERIFY(r);
+      REQUIRE(r);
     }
 
     {
@@ -230,7 +226,7 @@ private Q_SLOTS:
       State::Pulse p;
       bool r = parse(first, last, parser, p);
 
-      QVERIFY(r);
+      REQUIRE(r);
     }
 
     {
@@ -238,7 +234,7 @@ private Q_SLOTS:
 
       auto expr = State::parseExpression(str);
 
-      QVERIFY(bool(expr) == true);
+      REQUIRE(bool(expr) == true);
     }
 
     {
@@ -246,11 +242,11 @@ private Q_SLOTS:
 
       auto expr = State::parseExpression(str);
 
-      QVERIFY(bool(expr) == true);
+      REQUIRE(bool(expr) == true);
     }
   }
 
-  void test_parse_array()
+  TEST_CASE("test_parse_array", "test_parse_array")
   {
 
     {
@@ -262,10 +258,10 @@ private Q_SLOTS:
       State::AddressAccessor p;
       bool r = parse(first, last, parser, p);
 
-      QVERIFY(r);
-      QVERIFY(p.address.toString() == "minuit:/device/lol");
-      QVERIFY(p.qualifiers.get().accessors.size() == 1);
-      QVERIFY(p.qualifiers.get().accessors[0] == 7);
+      REQUIRE(r);
+      REQUIRE(p.address.toString() == "minuit:/device/lol");
+      REQUIRE(p.qualifiers.get().accessors.size() == 1);
+      REQUIRE(p.qualifiers.get().accessors[0] == 7);
     }
 
     {
@@ -277,12 +273,12 @@ private Q_SLOTS:
       State::RelationMember rm;
       bool r = parse(first, last, parser, rm);
 
-      QVERIFY(r);
-      QVERIFY(rm.which() == 1);
-      auto& p = eggs::variants::get<State::AddressAccessor>(rm);
-      QVERIFY(p.address.toString() == "minuit:/device/lol");
-      QVERIFY(p.qualifiers.get().accessors.size() == 1);
-      QVERIFY(p.qualifiers.get().accessors[0] == 7);
+      REQUIRE(r);
+      REQUIRE(rm.which() == State::RelationMember::index_of<State::AddressAccessor>());
+      auto& p = ossia::get<State::AddressAccessor>(rm);
+      REQUIRE(p.address.toString() == "minuit:/device/lol");
+      REQUIRE(p.qualifiers.get().accessors.size() == 1);
+      REQUIRE(p.qualifiers.get().accessors[0] == 7);
     }
 
     {
@@ -290,11 +286,11 @@ private Q_SLOTS:
 
       auto expr = State::parseExpression(str);
 
-      QVERIFY(bool(expr) == true);
+      REQUIRE(bool(expr) == true);
     }
   }
 
-  void test_parse_dataspace()
+  TEST_CASE("test_parse_dataspace", "test_parse_dataspace")
   {
     {
       std::string str("minuit:/device/lol@[color.rgb]");
@@ -305,10 +301,10 @@ private Q_SLOTS:
       State::AddressAccessor p;
       bool r = parse(first, last, parser, p);
 
-      QVERIFY(r);
-      QVERIFY(p.address.toString() == "minuit:/device/lol");
-      QVERIFY(p.qualifiers.get().accessors.size() == 0);
-      QVERIFY(p.qualifiers.get().unit == ossia::rgb_u{});
+      REQUIRE(r);
+      REQUIRE(p.address.toString() == "minuit:/device/lol");
+      REQUIRE(p.qualifiers.get().accessors.size() == 0);
+      REQUIRE(p.qualifiers.get().unit == ossia::rgb_u{});
     }
 
     {
@@ -320,13 +316,13 @@ private Q_SLOTS:
       State::AddressAccessor p;
       bool r = parse(first, last, parser, p);
 
-      QVERIFY(r);
-      QVERIFY(p.address.toString() == "minuit:/device/lol");
+      REQUIRE(r);
+      REQUIRE(p.address.toString() == "minuit:/device/lol");
 
-      QVERIFY(p.qualifiers.get().unit == ossia::hsv_u{});
+      REQUIRE(p.qualifiers.get().unit == ossia::hsv_u{});
 
-      QVERIFY(p.qualifiers.get().accessors.size() == 1);
-      QVERIFY(p.qualifiers.get().accessors[0] == 1);
+      REQUIRE(p.qualifiers.get().accessors.size() == 1);
+      REQUIRE(p.qualifiers.get().accessors[0] == 1);
     }
 
     {
@@ -334,11 +330,11 @@ private Q_SLOTS:
 
       auto expr = State::parseExpression(str);
 
-      QVERIFY(bool(expr) == true);
+      REQUIRE(bool(expr) == true);
     }
   }
 
-  void test_parse_addr()
+  TEST_CASE("test_parse_addr", "test_parse_addr")
   {
     using namespace qi;
 
@@ -369,14 +365,14 @@ private Q_SLOTS:
       State::RelationMember rm;
       bool r = parse(first, last, parser, rm);
 
-      QVERIFY(r);
-      QVERIFY(rm.which() == 0);
-      auto& p = eggs::variants::get<State::Address>(rm);
-      QVERIFY(p.toString() == "minuit:/device/lol");
+      REQUIRE(r);
+      REQUIRE(rm.which() == State::RelationMember::index_of<State::Address>());
+      auto& p = ossia::get<State::Address>(rm);
+      REQUIRE(p.toString() == "minuit:/device/lol");
     }
   }
 
-  void test_parse_value()
+  TEST_CASE("test_parse_value", "test_parse_value")
   {
     std::vector<std::string> str_list{
         "[1,2,3]",
@@ -405,7 +401,7 @@ private Q_SLOTS:
     }
   }
 
-  void test_parse_rel_member()
+  TEST_CASE("test_parse_rel_member", "test_parse_rel_member")
   {
     std::vector<std::string> str_list{
         "minuit:/device"
@@ -425,7 +421,7 @@ private Q_SLOTS:
     }
   }
 
-  void test_parse_rel()
+  TEST_CASE("test_parse_rel", "test_parse_rel")
   {
     std::vector<std::string> str_list{
         "%minuit:/device%<=1234", "%minuit:/device% <= 1234"};
@@ -446,7 +442,7 @@ private Q_SLOTS:
     }
   }
 
-  void test_parse_expr_full()
+  TEST_CASE("test_parse_expr_full", "test_parse_expr_full")
   {
     for (auto& input : std::list<std::string>{
              "%dev:/minuit% != [1, 2, 3.12, 'c'];",
@@ -485,7 +481,7 @@ private Q_SLOTS:
         using namespace std::literals;
         std::cerr << input << std::string(" : expectation_failure at '")
                   << std::string(e.first, e.last) << std::string("'\n");
-        QVERIFY(false);
+        REQUIRE(false);
       }
 
       // if (f!=l) std::cerr << "unparsed: '" << std::string(f,l) << "'\n";
@@ -494,7 +490,7 @@ private Q_SLOTS:
     // return 0;
   }
 
-  void test_parse_expr_multi()
+  TEST_CASE("test_parse_expr_multi", "test_parse_expr_multi")
   {
     for (auto& input : std::list<std::string>{
              "{ %a:/b% != 1 };",
@@ -530,7 +526,7 @@ private Q_SLOTS:
         using namespace std::literals;
         std::cerr << input << std::string(" : expectation_failure at '")
                   << std::string(e.first, e.last) << std::string("'\n");
-        QVERIFY(false);
+        REQUIRE(false);
       }
 
       // if (f!=l) std::cerr << "unparsed: '" << std::string(f,l) << "'\n";
@@ -538,7 +534,7 @@ private Q_SLOTS:
 
     // return 0;
   }
-  void test_address_dot_in_instances()
+  TEST_CASE("test_address_dot_in_instances", "test_address_dot_in_instances")
   {
     debug_path(
         State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]"));
@@ -554,45 +550,37 @@ private Q_SLOTS:
     debug_path(State::parseAddress("myapp:/score/color.1@[color.rgb]"));
   }
 
-  void test_parse_random()
+  TEST_CASE("test_parse_random", "test_parse_random")
   {
     using namespace std::literals;
-    QVERIFY(bool(
+    REQUIRE(bool(
         State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
-    QVERIFY(bool(State::parseExpression("{ %myapp:/score% > 2}"s)));
-    QVERIFY(bool(State::parseExpression("{2 > %myapp:/stagescore% }"s)));
-    QVERIFY(bool(
+    REQUIRE(bool(State::parseExpression("{ %myapp:/score% > 2}"s)));
+    REQUIRE(bool(State::parseExpression("{2 > %myapp:/stagescore% }"s)));
+    REQUIRE(bool(
         State::parseExpression("{ %myapp:/score% > %myapp:/stagescore% }"s)));
-    QVERIFY(bool(
+    REQUIRE(bool(
         State::parseExpression("{ %myapp:/score% >= %myapp:/stagescore% }"s)));
-    QVERIFY(bool(State::parseExpression(
+    REQUIRE(bool(State::parseExpression(
         "{ %my_app:/score% > %my_app:/stagescore% }"s)));
-    QVERIFY(bool(State::parseExpression(
+    REQUIRE(bool(State::parseExpression(
         "{ %my_app:/score% > %my_app:/stage_score% }"s)));
-    QVERIFY(bool(State::parseExpression(
+    REQUIRE(bool(State::parseExpression(
         "{ %my_app:/score% > %my_app:/stage_score% }"s)));
-    QVERIFY(bool(State::parseExpression(
+    REQUIRE(bool(State::parseExpression(
         "{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
   }
 
-  // void test_parse_patternmatch()
+  // TEST_CASE("test_parse_patternmatch", "test_parse_patternmatch")
   //{
   //  using namespace std::literals;
   //
-  //  QVERIFY(bool(State::TraversalPath::make_path("myapp:/score")));
-  //  QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.")));
-  //  QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.*")));
-  //  QVERIFY(bool(State::TraversalPath::make_path("../score/blop")));
-  //  QVERIFY(bool(
+  //  REQUIRE(bool(State::TraversalPath::make_path("myapp:/score")));
+  //  REQUIRE(bool(State::TraversalPath::make_path("myapp:/score.")));
+  //  REQUIRE(bool(State::TraversalPath::make_path("myapp:/score.*")));
+  //  REQUIRE(bool(State::TraversalPath::make_path("../score/blop")));
+  //  REQUIRE(bool(
   //      State::TraversalPath::make_path("myapp:/score.*/[a-z]*/{blurg}")));
-  //  QVERIFY(bool(State::TraversalPath::make_path("//score")));
-  //  QVERIFY(bool(State::TraversalPath::make_path("//score/blop")));
+  //  REQUIRE(bool(State::TraversalPath::make_path("//score")));
+  //  REQUIRE(bool(State::TraversalPath::make_path("//score/blop")));
   //}
-};
-
-QTEST_APPLESS_MAIN(ExpressionParsingTests)
-#include "ExpressionParsingTests.moc"
-
-#include <State/Address.hpp>
-#include <State/Relation.hpp>
-#include <State/Value.hpp>

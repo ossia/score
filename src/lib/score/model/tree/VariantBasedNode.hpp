@@ -21,6 +21,8 @@ template <typename... Args>
 class VariantBasedNode
 {
 public:
+  using variant_type = ossia::nullable_variant<InvisibleRootNode, Args...>;
+
   VariantBasedNode(const VariantBasedNode& t) = default;
   VariantBasedNode(VariantBasedNode&& t) noexcept = default;
   VariantBasedNode& operator=(const VariantBasedNode& t) = default;

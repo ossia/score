@@ -63,3 +63,4 @@ target_link_libraries(score_lib_device
 
 setup_score_library(score_lib_device)
 
+# setup_score_tests(Tests)

@@ -1411,6 +1411,20 @@ QByteArray toJson(const T& t)
   return reader.toByteArray();
 }
 
+namespace score
+{
+
+template <typename Object>
+auto unmarshall(const JSONReader& obj)
+{
+  Object data;
+  const auto doc = toValue(obj);
+  JSONWriter wrt{doc};
+  wrt.writeTo(data);
+  return data;
+}
+
+}
 /*
 template<typename T>
 struct optional_assigner {
