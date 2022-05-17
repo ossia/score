@@ -45,10 +45,10 @@ struct NoteOffData {
 };
 struct MidiTrackEvent {
   static MidiTrackEvent make_note_off(const double start, const midi_size_t ch, const midi_size_t n, const midi_size_t v){
-    return MidiTrackEvent{m_start: start, m_message:  Midi::NoteOffData{channel: ch, note: n, velocity: v}};
+    return MidiTrackEvent{.m_start = start, .m_message =   Midi::NoteOffData{.channel = ch, .note =  n, .velocity =  v}};
   }
   static MidiTrackEvent make_note_on(const double start, const midi_size_t ch, const midi_size_t n, const midi_size_t v){
-    return MidiTrackEvent{m_start: start, m_message:  Midi::NoteOnData{channel: ch, note: n, velocity: v}};
+    return MidiTrackEvent{.m_start = start, .m_message =   Midi::NoteOnData{.channel = ch, .note =  n, .velocity =  v}};
   }
   double m_start{};
 
@@ -60,17 +60,17 @@ struct MidiTrackEvent {
 struct MidiTrackEvents {
   void push_back(double delta, int tick, double total, Midi::ControllerData c){
     const double start = delta * (tick / total);
-    trackEvents.push_back(MidiTrackEvent{m_start:start, m_message: c});
+    trackEvents.push_back(MidiTrackEvent{.m_start = start, .m_message =  c});
   }
 
   void push_back(double delta, int tick, double total, Midi::NoteOnData n){
     const double start = delta * (tick / total);
-    trackEvents.push_back(MidiTrackEvent{m_start:start, m_message: n});
+    trackEvents.push_back(MidiTrackEvent{.m_start = start, .m_message =  n});
   }
 
   void push_back(double delta, int tick, double total, Midi::NoteOffData n){
     const double start = delta * (tick / total);
-    trackEvents.push_back(MidiTrackEvent{m_start:start, m_message: n});
+    trackEvents.push_back(MidiTrackEvent{.m_start = start, .m_message =  n});
   }
 
   void apply_scale_ratio(const double ratio){
@@ -84,11 +84,23 @@ struct MidiTrackEvents {
 };
 
 struct MidiTrackNotes {
+  using pitch = int;
   std::vector<Midi::NoteData> notes;
-  void push_back(Midi::NoteData note){
+  pitch min{127}, max{0};
+  pitch minimum_pitch_noticed() const { return min; }
+  pitch maximum_pitch_noticed() const { return max; }
+  void append(Midi::NoteData note){
     notes.push_back(note);
   }
 
+  void notice_pitch(int pitch){
+    if (pitch < min) {
+      min = pitch;
+    }
+    else if (pitch > max) {
+      max = pitch;
+    }
+  }
   auto begin() { return notes.begin(); }
   auto end() { return notes.end(); }
   auto cbegin() const { return notes.begin(); }
@@ -114,7 +126,6 @@ struct MidiTrack
 
   MidiTrackNotes notes;
   MidiTrackEvents trackEvents;
-  int min{127}, max{0};
 
   struct MidiSong
   {

@@ -375,7 +375,7 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   track.notes.apply_scale_ratio(ratio);
   track.trackEvents.apply_scale_ratio(ratio);
   disp.submit<Midi::ReplaceNotes>(
-      model(), track.notes, track.min, track.max, model().duration());
+      model(), track.notes, track.notes.minimum_pitch_noticed(), track.notes.maximum_pitch_noticed(), model().duration());
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const
