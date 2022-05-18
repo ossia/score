@@ -233,7 +233,7 @@ AudioProtocolFactory::defaultSettings() const noexcept
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
     s.protocol = concreteKey();
-    s.name = "Audio";
+    s.name = "audio";
     return s;
   }();
   return settings;

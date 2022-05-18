@@ -36,9 +36,12 @@ auto& modelPort(auto& ports, int index)
   // We have to adjust before accessing a port as there is the first "fake"
   // port if the processor takes audio by argument
   if constexpr(avnd::audio_argument_processor<T>)
-    return ports[index + 1];
-  else
-    return ports[index];
+    index += 1;
+
+  // The "messages" ports also go before
+  index += avnd::messages_introspection<T>::size;
+
+  return ports[index];
 }
 
 // TODO refactor this into a generic explicit soundfile loaded mechanism
@@ -127,6 +130,7 @@ struct setup_Impl0
 
     // Initialize the control with the current value of the inlet
     oscr::from_ossia_value(param, inlet->value(), param.value);
+    if_possible(param.update(element));
 
     // Connect to changes
     std::weak_ptr<ExecNode> weak_node = node_ptr;
@@ -192,7 +196,7 @@ struct ApplyEngineControlChangeToUI
   void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
     auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
-    inlet->setExecutionValue(oscr::to_ossia_value(field.value));
+    inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
   }
 };
 
@@ -208,7 +212,7 @@ struct setup_Impl1_Out
   void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
     auto outlet = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element.outlets(), NField));
-    outlet->setValue(oscr::to_ossia_value(field.value));
+    outlet->setValue(oscr::to_ossia_value(field, field.value));
   }
 };
 
@@ -463,6 +467,15 @@ public:
               avnd::get_inputs<Node>(eff),
               setup_Impl0<Node>{element, ctx, ptr, this}
               );
+      }
+
+      // Update everything
+      {
+        for(auto& state : eff.full_state()) {
+          avnd::input_introspection<Node>::for_all(state.inputs, [&] (auto& field) {
+            if_possible(field.update(state.effect));
+          });
+        }
       }
 
       // Custom UI messages to engine

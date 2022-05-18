@@ -617,7 +617,7 @@ struct GpuControlOuts
               avnd::get_outputs(state),
               [&] <avnd::parameter T> (const T& t) {
           queue.enqueue([
-              v = oscr::to_ossia_value(t.value)
+              v = oscr::to_ossia_value(t, t.value)
             , port = control_outs[parm_k]] () mutable
           {
             std::swap(port->value, v);
