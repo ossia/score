@@ -20,6 +20,17 @@ function(score_pch TheTarget)
   if("${TheTarget}" STREQUAL "score_lib_pch")
       return()
   endif()
+  if(APPLE)
+    # error: Objective-C automated reference counting was disabled in PCH file but is currently enabled
+    if("${TheTarget}" STREQUAL "score_plugin_vst3") 
+      return()
+    endif()    
+
+    # error: cannot find interface declaration for 'SYPHON_UNIQUE_CLASS_NAME'
+    if("${TheTarget}" STREQUAL "score_plugin_gfx") 
+      return()
+    endif()
+  endif()
   if("${TheTarget}" STREQUAL "score_plugin_jit") # due to a bug with llvm 10 in c++20
     return()
   endif()

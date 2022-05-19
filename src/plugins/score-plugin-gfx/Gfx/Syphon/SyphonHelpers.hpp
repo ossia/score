@@ -4,6 +4,7 @@
 #include <QtPlatformHeaders/QCocoaNativeContext>
 #else
 #include <QOpenGLContext>
+#include <AppKit/AppKit.h>
 #endif
 class QRhi;
 namespace Gfx
