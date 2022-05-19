@@ -30,9 +30,49 @@
 
 W_OBJECT_IMPL(JS::JsUtils)
 W_OBJECT_IMPL(JS::EditJsContext)
-
+W_OBJECT_IMPL(JS::ActionContext)
 namespace JS
 {
+
+class ModuleLibraryHandler final
+    : public QObject
+    , public Library::LibraryInterface
+{
+  SCORE_CONCRETE("6e72e377-efdd-4e3c-9900-922b618e7d70")
+
+public:
+  JS::PanelDelegate* panel{};
+
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    return {"mjs"};
+  }
+
+  bool add(const QString& path)
+  {
+    QFile f{path};
+    if(!f.open(QIODevice::ReadOnly))
+      return false;
+
+    if(!panel)
+      panel = &score::GUIAppContext().panel<JS::PanelDelegate>();
+
+    panel->importModule(path);
+    return true;
+  }
+
+  void addPath(std::string_view path) override
+  {
+    add(QString::fromUtf8(path.data(), path.length()));
+  }
+
+  bool
+  onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  {
+    return add(path);
+  }
+};
+
 class ConsoleLibraryHandler final
     : public QObject
     , public Library::LibraryInterface
@@ -51,10 +91,16 @@ class ConsoleLibraryHandler final
     if(!f.open(QIODevice::ReadOnly))
       return false;
 
-    auto data = f.readAll();
-
     auto& p = ctx.app.panel<JS::PanelDelegate>();
-    p.evaluate(data);
+    if(QFileInfo{f}.suffix() == "mjs")
+    {
+      p.importModule(path);
+    }
+    else
+    {
+      auto data = f.readAll();
+      p.evaluate(data);
+    }
     return true;
   }
 };
@@ -171,7 +217,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
-      FW<Library::LibraryInterface, JS::LibraryHandler, JS::ConsoleLibraryHandler>,
+      FW<Library::LibraryInterface, JS::LibraryHandler, JS::ConsoleLibraryHandler, JS::ModuleLibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
       FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
       ctx, key);

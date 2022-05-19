@@ -75,6 +75,11 @@ StringKey<Menu> Menus::Windows()
   return StringKey<Menu>{"Windows"};
 }
 
+StringKey<Menu> Menus::Scripts()
+{
+  return StringKey<Menu>{"Scripts"};
+}
+
 StringKey<Menu> Menus::Settings()
 {
   return StringKey<Menu>{"Settings"};

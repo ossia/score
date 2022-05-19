@@ -134,6 +134,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   auto object = new QMenu{tr("&Object")};
   auto play = new QMenu{tr("&Play")};
   auto view = new QMenu{tr("&View")};
+  auto scripts = new QMenu{tr("&Scripts")};
   auto settings = new QMenu{tr("&Settings")};
   auto about = new QMenu{tr("&Help")};
   menus.emplace_back(file, Menus::File(), Menu::is_toplevel{}, 0);
@@ -141,7 +142,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   menus.emplace_back(object, Menus::Object(), Menu::is_toplevel{}, 2);
   menus.emplace_back(play, Menus::Play(), Menu::is_toplevel{}, 3);
   menus.emplace_back(view, Menus::View(), Menu::is_toplevel{}, 5);
-  menus.emplace_back(settings, Menus::Settings(), Menu::is_toplevel{}, 6);
+  menus.emplace_back(scripts, Menus::Scripts(), Menu::is_toplevel{}, 10);
+  menus.emplace_back(settings, Menus::Settings(), Menu::is_toplevel{}, 15);
 
   // Menus are by default at int_max - 1 so that they will be sorted before
   menus.emplace_back(
@@ -309,6 +311,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       settings->addAction(settings_act);
     }
     */
+
+    ////// Scripts /////
+    {
+      auto script_act = new QAction(tr(".mjs scripts will go there"), m_presenter.view());
+      script_act->setObjectName("DefaultScriptMenuAction");
+      script_act->setEnabled(false);
+      scripts->addAction(script_act);
+    }
 
     ////// About /////
     {

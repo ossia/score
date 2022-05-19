@@ -62,7 +62,7 @@ SystemLibraryWidget::SystemLibraryWidget(
   auto sel = m_tv.selectionModel();
 
   m_tv.setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-  connect(&m_tv, &QTreeView::customContextMenuRequested, this, [&] (QPoint pos){
+  connect(&m_tv, &QTreeView::customContextMenuRequested, this, [&] (QPoint pos) {
     auto idx = m_tv.indexAt(pos);
     if(!idx.isValid())
       return;
@@ -78,8 +78,8 @@ SystemLibraryWidget::SystemLibraryWidget(
     });
     menu->exec(m_tv.mapToGlobal(pos));
     menu->deleteLater();
-
   });
+
   connect(sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
     m_preview.hide();
     auto doc = ctx.docManager.currentDocument();

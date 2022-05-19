@@ -49,6 +49,7 @@ struct SCORE_LIB_BASE_EXPORT Menus
   static StringKey<Menu> Play();
   static StringKey<Menu> View();
   static StringKey<Menu> Windows();
+  static StringKey<Menu> Scripts();
   static StringKey<Menu> Settings();
   static StringKey<Menu> About();
 };

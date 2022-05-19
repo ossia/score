@@ -8,7 +8,7 @@
 #include <JS/Commands/ScriptMacro.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
-
+#include <score/actions/MenuManager.hpp>
 #include <State/OSSIASerializationImpl.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/application/GUIApplicationContext.hpp>
@@ -26,6 +26,7 @@
 #include <ossia/detail/logger.hpp>
 #include <ossia/network/value/format_value.hpp>
 
+#include <QMenu>
 #include <QJSEngine>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -38,6 +39,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <QJSValueIterator>
 #include <wobjectimpl.h>
 #include <Process/ProcessList.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
@@ -66,6 +68,14 @@ public:
     W_SLOT(readFile)
 };
 
+struct ActionContext : public QObject
+{
+    W_OBJECT(ActionContext)
+    public:
+    QString Menu = "Menu";
+
+    W_PROPERTY(QString, Menu READ Menu)
+};
 static TimeVal parseDuration(QString dur)
 {
   if(auto tm = QTime::fromString(dur); tm.isValid())
@@ -890,7 +900,7 @@ public:
   }
   W_SLOT(selectedObject)
 
-  QList<QObject*> selectedObjects()
+  QVariantList selectedObjects()
   {
     auto doc = ctx();
     if (!doc)
@@ -900,9 +910,9 @@ public:
     if(cur.empty())
       return {};
 
-    QObjectList list;
+    QVariantList list;
     for(auto& c : cur)
-      list.push_back(c.data());
+      list.push_back(QVariant::fromValue(c.data()));
     return list;
   }
   W_SLOT(selectedObjects)
@@ -922,6 +932,8 @@ public:
         "Score", m_engine.newQObject(new EditJsContext));
     m_engine.globalObject().setProperty(
         "Util", m_engine.newQObject(new JsUtils));
+    m_engine.globalObject().setProperty(
+        "ActionContext", m_engine.newQObject(new ActionContext));
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
     m_widget->setStatusTip(QObject::tr(
@@ -962,6 +974,90 @@ public:
     {
       m_edit->appendPlainText(res.toString() + "\n");
     }
+  }
+
+  QMenu* addMenu(QMenu* cur, QStringList names)
+  {
+    QMenu* newmenu{};
+
+    for(int i = 0; i < names.size() - 1; i++)
+    {
+      for(auto act : cur->findChildren<QMenu*>(QString{}, Qt::FindDirectChildrenOnly))
+      {
+        if(act->title() == names[i])
+        {
+          cur = act;
+          goto ok;
+        }
+      }
+
+      newmenu = new QMenu{names[i], cur};
+      cur->addMenu(newmenu);
+      cur = newmenu;
+
+      ok:
+        continue;
+    }
+    return cur;
+  }
+
+  void importModule(const QString& path)
+  {
+    QJSValue mod = m_engine.importModule(path);
+    if(auto init = mod.property("initialize"); init.isCallable())
+      init.call();
+    if(auto init = mod.property("actions"); init.isArray())
+    {
+      QJSValueIterator it(init);
+      while(it.hasNext())
+      {
+       if(it.next())
+       {
+         auto obj = it.value();
+         if(obj.isObject())
+         {
+           auto name = obj.property("name");
+           auto context = obj.property("context");
+           auto action = obj.property("action");
+           auto shortcut = obj.property("shortcut");
+           if(!name.isString())
+             return;
+           if(context.toString() != "Menu")
+             return;
+           if(!action.isCallable())
+             return;
+
+           auto names = name.toString().split('/');
+           if(names.empty())
+             return;
+
+           score::Menu& script = this->context().menus.get().at(score::Menus::Scripts());
+           if(auto act = script.menu()->actions()[0]; act->objectName() == "DefaultScriptMenuAction")
+             script.menu()->removeAction(act);
+
+           auto menu = addMenu(script.menu(), names);
+
+           auto act = new QAction{names.back(), this};
+           if(auto str = shortcut.toString(); !str.isEmpty())
+           {
+             act->setShortcut(QKeySequence::fromString(str));
+           }
+           connect(act, &QAction::triggered, this, [action=std::move(action)] () mutable {
+             auto res = action.call();
+             if(res.isError())
+             {
+               qDebug() << "Script error: " << res.errorType() << res.toString();
+             }
+           });
+           menu->addAction(act);
+         }
+       }
+      }
+    }
+
+    auto obj = m_engine.globalObject();
+    obj.setProperty(QFileInfo{path}.baseName(), mod);
+    m_edit->appendPlainText(mod.toString());
   }
 
 private:
