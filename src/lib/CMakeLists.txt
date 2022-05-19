@@ -1,4 +1,8 @@
+if(APPLE)
+project(score_lib_base LANGUAGES CXX OBJC OBJCXX)
+else()
 project(score_lib_base LANGUAGES CXX)
+endif()
 score_common_setup()
 
 # Packages
@@ -573,6 +577,7 @@ if(SCORE_PCH)
   if(APPLE)
     target_precompile_headers(score_lib_base PRIVATE
       "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+      "$<$<COMPILE_LANGUAGE:OBJC>:${CMAKE_CURRENT_SOURCE_DIR}/score/dummy.h>"
       "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
     )
   else()
@@ -592,9 +597,10 @@ if(SCORE_PCH)
   target_compile_definitions(score_lib_pch PUBLIC SCORE_LIB_PCH_EXPORTS)
 
   if(APPLE)
-    target_sources(score_lib_pch PRIVATE core/dummy.mm)
+    target_sources(score_lib_pch PRIVATE core/dummy.mm core/dummy.m)
     target_precompile_headers(score_lib_pch PUBLIC
       "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+      "$<$<COMPILE_LANGUAGE:OBJC>:${CMAKE_CURRENT_SOURCE_DIR}/core/dummy.h>"
       "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
     )
   else()
