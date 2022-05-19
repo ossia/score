@@ -875,6 +875,37 @@ public:
     }
   }
   W_SLOT(readFile)
+
+  QObject* selectedObject()
+  {
+    auto doc = ctx();
+    if (!doc)
+      return {};
+
+    const auto& cur = doc->selectionStack.currentSelection();
+    if(cur.empty())
+      return nullptr;
+
+    return *cur.begin();
+  }
+  W_SLOT(selectedObject)
+
+  QList<QObject*> selectedObjects()
+  {
+    auto doc = ctx();
+    if (!doc)
+      return {};
+
+    const auto& cur = doc->selectionStack.currentSelection();
+    if(cur.empty())
+      return {};
+
+    QObjectList list;
+    for(auto& c : cur)
+      list.push_back(c.data());
+    return list;
+  }
+  W_SLOT(selectedObjects)
 };
 
 class PanelDelegate final
@@ -970,3 +1001,4 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 
 
 W_REGISTER_ARGTYPE(QVector<QVariantList>)
+W_REGISTER_ARGTYPE(QList<QObject*>)
