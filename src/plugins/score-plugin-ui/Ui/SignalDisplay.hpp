@@ -246,7 +246,7 @@ struct Node
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
 
-      p->drawText(QPoint(15, 15), QString::fromStdString(fmt::format("{}", m_value)));
+      p->drawText(boundingRect(), QString::fromStdString(fmt::format("{}", m_value)));
 
       p->setRenderHint(QPainter::Antialiasing, false);
     }
