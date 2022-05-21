@@ -1003,6 +1003,7 @@ public:
 
   void importModule(const QString& path)
   {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     QJSValue mod = m_engine.importModule(path);
     if(auto init = mod.property("initialize"); init.isCallable())
       init.call();
@@ -1058,6 +1059,7 @@ public:
     auto obj = m_engine.globalObject();
     obj.setProperty(QFileInfo{path}.baseName(), mod);
     m_edit->appendPlainText(mod.toString());
+#endif
   }
 
 private:

@@ -21,10 +21,6 @@ target_include_directories(isf
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
-target_link_libraries(isf
-  PUBLIC
-    ossia
-)
 generate_export_header(isf BASE_NAME ISF)
 
 if(ISF_ENABLE_TESTS)

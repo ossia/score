@@ -1,6 +1,4 @@
 #pragma once
-#include <isf_export.h>
-
 #include <ossia/detail/variant.hpp>
 #include <array>
 #include <optional>
@@ -125,7 +123,7 @@ struct descriptor
   bool default_vertex_shader{};
 };
 
-class ISF_EXPORT parser
+class parser
 {
   std::string m_sourceVertex;
   std::string m_sourceFragment;

@@ -15,9 +15,6 @@ if(NOT TARGET avformat)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
 endif()
 
-add_subdirectory(3rdparty/libisf)
-
-
 if(WIN32)
 set(SPOUT_SRCS
     Gfx/Spout/SpoutInput.hpp
@@ -187,6 +184,10 @@ set(SRCS
     Gfx/Settings/View.cpp
 
     score_plugin_gfx.cpp
+
+    3rdparty/libisf/src/sajson.h
+    3rdparty/libisf/src/isf.hpp
+    3rdparty/libisf/src/isf.cpp
 )
 
 
@@ -196,6 +197,11 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 # Code generation
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    3rdparty/libisf/src
+)
+
 # Link
 target_link_libraries(${PROJECT_NAME} PUBLIC
   score_lib_base  score_lib_localtree score_lib_process score_plugin_dataflow score_plugin_engine
@@ -204,8 +210,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    isf
   PRIVATE
     avcodec avformat swresample avutil avdevice score_plugin_media
 )
