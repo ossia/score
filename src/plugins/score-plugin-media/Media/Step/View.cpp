@@ -195,15 +195,12 @@ void updateSteps(
     std::size_t num,
     float v)
 {
-  auto vec = m.steps();
-  if (num > vec.size())
+  if (num < m.steps().size())
   {
-    vec.resize(num, 0.5f);
+    auto vec = m.steps();
+    vec[num] = ossia::clamp(v, 0.f, 1.f);
+    disp.submit(m, std::move(vec));
   }
-  v = ossia::clamp(v, 0.f, 1.f);
-  vec[num] = v;
-
-  disp.submit(m, std::move(vec));
 }
 
 }
