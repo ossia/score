@@ -314,7 +314,7 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/spdlog/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/SmallFunction/smallfun/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/tuplet/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/verdigris/src")
-include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/variant/include")
+include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/mparkvariant/include")
 
 include_directories(SYSTEM "${OSSIA_SDK}/boost/include")
 
