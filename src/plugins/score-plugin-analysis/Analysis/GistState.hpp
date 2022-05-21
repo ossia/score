@@ -50,24 +50,90 @@ struct GistState
 
   void preprocess(const ossia::audio_port& audio)
   {
-    output.resize(audio.channels());
-    if(gist.size() < audio.channels())
+    const auto N = audio.channels();
+    output.resize(N);
+    if(gist.size() < N)
     {
       gist.clear();
-      gist.reserve(audio.channels());
-      while(gist.size() < audio.channels())
+      gist.reserve(N);
+      while(gist.size() < N)
         gist.emplace_back(bufferSize, rate);
     }
   }
 
+  // No gain //
   template<auto Func>
-  void process(
+  void process_mono(
       const ossia::audio_port& audio,
       ossia::value_port& out_port,
       const ossia::token_request& tk,
       const ossia::exec_state_facade& e)
   {
-    preprocess(audio);
+    float ret = 0.f;
+    auto& c0 = audio.get()[0];
+    auto& g0 = gist[0];
+    {
+      const auto samples = std::ssize(c0);
+      if(samples > 0)
+      {
+        if(g0.getAudioFrameSize() != samples)
+          g0.setAudioFrameSize(samples);
+
+        g0.processAudioFrame(c0.data(), samples);
+        ret = (g0.*Func)();
+      }
+    }
+
+    const auto [tick_start, d] = e.timings(tk);
+    out_port.write_value(ret, tick_start);
+  }
+
+  template<auto Func>
+  void process_stereo(
+      const ossia::audio_port& audio,
+      ossia::value_port& out_port,
+      const ossia::token_request& tk,
+      const ossia::exec_state_facade& e)
+  {
+    ossia::vec2f ret = {0.f, 0.f};
+    auto& c0 = audio.get()[0];
+    auto& g0 = gist[0];
+    {
+      const auto samples = std::ssize(c0);
+      if(samples > 0)
+      {
+        if(g0.getAudioFrameSize() != samples)
+          g0.setAudioFrameSize(samples);
+
+        g0.processAudioFrame(c0.data(), samples);
+        ret[0] = (g0.*Func)();
+      }
+    }
+    auto& c1 = audio.get()[1];
+    auto& g1 = gist[1];
+    {
+      const auto samples = std::ssize(c1);
+      if(samples > 0)
+      {
+        if(g1.getAudioFrameSize() != samples)
+          g1.setAudioFrameSize(samples);
+
+        g1.processAudioFrame(c0.data(), samples);
+        ret[1] = (g1.*Func)();
+      }
+    }
+
+    const auto [tick_start, d] = e.timings(tk);
+    out_port.write_value(ret, tick_start);
+  }
+
+  template<auto Func>
+  void process_multi(
+      const ossia::audio_port& audio,
+      ossia::value_port& out_port,
+      const ossia::token_request& tk,
+      const ossia::exec_state_facade& e)
+  {
     auto it = output.begin();
     auto git = gist.begin();
     for(auto& channel : audio.get())
@@ -93,41 +159,10 @@ struct GistState
     out_port.write_value(out_val, tick_start);
   }
 
-  template<auto Func>
-  void process(
-      const ossia::audio_port& audio,
-      float gain,
-      ossia::value_port& out_port,
-      const ossia::token_request& tk,
-      const ossia::exec_state_facade& e)
-  {
-    preprocess(audio);
-    auto it = output.begin();
-    auto git = gist.begin();
-    for(auto& channel : audio.get())
-    {
-      const auto samples = std::ssize(channel);
-      if(samples > 0)
-      {
-        if(git->getAudioFrameSize() != samples)
-          git->setAudioFrameSize(samples);
 
-        git->processAudioFrame(channel.data(), samples, gain, 0.0);
-        *it = float((git->*Func)());
-      }
-      else
-      {
-        *it = 0.f;
-      }
-      ++it;
-      ++git;
-    }
-    const auto [tick_start, d] = e.timings(tk);
-    out_port.write_value(out_val, tick_start);
-  }
-
+  // Gain, gate
   template<auto Func>
-  void process(
+  void process_mono(
       const ossia::audio_port& audio,
       float gain,
       float gate,
@@ -135,7 +170,75 @@ struct GistState
       const ossia::token_request& tk,
       const ossia::exec_state_facade& e)
   {
-    preprocess(audio);
+    float ret = 0.f;
+    auto& c0 = audio.get()[0];
+    auto& g0 = gist[0];
+    {
+      const auto samples = std::ssize(c0);
+      if(samples > 0)
+      {
+        if(g0.getAudioFrameSize() != samples)
+          g0.setAudioFrameSize(samples);
+
+        g0.processAudioFrame(c0.data(), samples, gain, gate);
+        ret = (g0.*Func)();
+      }
+    }
+
+    const auto [tick_start, d] = e.timings(tk);
+    out_port.write_value(ret, tick_start);
+  }
+
+  template<auto Func>
+  void process_stereo(
+      const ossia::audio_port& audio,
+      float gain,
+      float gate,
+      ossia::value_port& out_port,
+      const ossia::token_request& tk,
+      const ossia::exec_state_facade& e)
+  {
+    ossia::vec2f ret = {0.f, 0.f};
+    auto& c0 = audio.get()[0];
+    auto& g0 = gist[0];
+    {
+      const auto samples = std::ssize(c0);
+      if(samples > 0)
+      {
+        if(g0.getAudioFrameSize() != samples)
+          g0.setAudioFrameSize(samples);
+
+        g0.processAudioFrame(c0.data(), samples, gain, gate);
+        ret[0] = (g0.*Func)();
+      }
+    }
+    auto& c1 = audio.get()[1];
+    auto& g1 = gist[1];
+    {
+      const auto samples = std::ssize(c1);
+      if(samples > 0)
+      {
+        if(g1.getAudioFrameSize() != samples)
+          g1.setAudioFrameSize(samples);
+
+        g1.processAudioFrame(c0.data(), samples, gain, gate);
+        ret[1] = (g1.*Func)();
+      }
+    }
+
+    const auto [tick_start, d] = e.timings(tk);
+    out_port.write_value(ret, tick_start);
+  }
+
+  template<auto Func>
+  void process_multi(
+      const ossia::audio_port& audio,
+      float gain,
+      float gate,
+      ossia::value_port& out_port,
+      const ossia::token_request& tk,
+      const ossia::exec_state_facade& e)
+  {
     auto it = output.begin();
     auto git = gist.begin();
     for(auto& channel : audio.get())
@@ -161,48 +264,146 @@ struct GistState
     const auto [tick_start, d] = e.timings(tk);
     out_port.write_value(out_val, tick_start);
   }
-    template<auto Func>
-    void process(
-       const ossia::audio_port& audio,
-       float gain,
-       float gate,
-       ossia::value_port& out_port,
-       ossia::value_port& pulse_port,
-       const ossia::token_request& tk,
-       const ossia::exec_state_facade& e)
+
+
+  // Gain, gate, pulse
+  template<auto Func>
+  void process_mono(
+      const ossia::audio_port& audio,
+      float gain,
+      float gate,
+      ossia::value_port& out_port,
+      ossia::value_port& pulse_port,
+      const ossia::token_request& tk,
+      const ossia::exec_state_facade& e)
+  {
+    float ret = 0.f;
+    auto& c0 = audio.get()[0];
+    auto& g0 = gist[0];
     {
-      preprocess(audio);
-
-      bool bang = false;
-      auto it = output.begin();
-      auto git = gist.begin();
-      for(auto& channel : audio.get())
+      const auto samples = std::ssize(c0);
+      if(samples > 0)
       {
-        const auto samples = std::ssize(channel);
-        if(samples > 0)
-        {
-          if(git->getAudioFrameSize() != samples)
-            git->setAudioFrameSize(samples);
+        if(g0.getAudioFrameSize() != samples)
+          g0.setAudioFrameSize(samples);
 
-          git->processAudioFrame(channel.data(), samples, gain, gate);
-          float r{};
-          *it = r = float(((*git).*Func)());
-          bang |= (r > 1.f);
-        }
-        else
-        {
-          *it = 0.f;
-        }
-        ++it;
-        ++git;
-      }
-
-      const auto [tick_start, d] = e.timings(tk);
-      out_port.write_value(out_val, tick_start);
-      if(bang) {
-        pulse_port.write_value(ossia::impulse{}, tick_start);
+        g0.processAudioFrame(c0.data(), samples, gain, gate);
+        ret = (g0.*Func)();
       }
     }
+
+    const auto [tick_start, d] = e.timings(tk);
+    out_port.write_value(ret, tick_start);
+
+    if(ret >= 1.f)
+      pulse_port.write_value(ossia::impulse{}, tick_start);
+  }
+
+  template<auto Func>
+  void process_stereo(
+      const ossia::audio_port& audio,
+      float gain,
+      float gate,
+      ossia::value_port& out_port,
+      ossia::value_port& pulse_port,
+      const ossia::token_request& tk,
+      const ossia::exec_state_facade& e)
+  {
+    ossia::vec2f ret = {0.f, 0.f};
+    auto& c0 = audio.get()[0];
+    auto& g0 = gist[0];
+    {
+      const auto samples = std::ssize(c0);
+      if(samples > 0)
+      {
+        if(g0.getAudioFrameSize() != samples)
+          g0.setAudioFrameSize(samples);
+
+        g0.processAudioFrame(c0.data(), samples, gain, gate);
+        ret[0] = (g0.*Func)();
+      }
+    }
+    auto& c1 = audio.get()[1];
+    auto& g1 = gist[1];
+    {
+      const auto samples = std::ssize(c1);
+      if(samples > 0)
+      {
+        if(g1.getAudioFrameSize() != samples)
+          g1.setAudioFrameSize(samples);
+
+        g1.processAudioFrame(c0.data(), samples, gain, gate);
+        ret[1] = (g1.*Func)();
+      }
+    }
+
+    const auto [tick_start, d] = e.timings(tk);
+    out_port.write_value(ret, tick_start);
+    if(ret[0] >= 1.f || ret[1] >= 1.f)
+      pulse_port.write_value(ossia::impulse{}, tick_start);
+  }
+
+  template<auto Func>
+  void process_multi(
+     const ossia::audio_port& audio,
+     float gain,
+     float gate,
+     ossia::value_port& out_port,
+     ossia::value_port& pulse_port,
+     const ossia::token_request& tk,
+     const ossia::exec_state_facade& e)
+  {
+    bool bang = false;
+    auto it = output.begin();
+    auto git = gist.begin();
+    for(auto& channel : audio.get())
+    {
+      const auto samples = std::ssize(channel);
+      if(samples > 0)
+      {
+        if(git->getAudioFrameSize() != samples)
+          git->setAudioFrameSize(samples);
+
+        git->processAudioFrame(channel.data(), samples, gain, gate);
+        float r{};
+        *it = r = float(((*git).*Func)());
+        bang |= (r >= 1.f);
+      }
+      else
+      {
+        *it = 0.f;
+      }
+      ++it;
+      ++git;
+    }
+
+    const auto [tick_start, d] = e.timings(tk);
+    out_port.write_value(out_val, tick_start);
+    if(bang) {
+      pulse_port.write_value(ossia::impulse{}, tick_start);
+    }
+  }
+
+
+  template<auto Func, typename... Args>
+  void process(
+      const ossia::audio_port& audio, Args&&... args)
+  {
+    preprocess(audio);
+
+    switch(audio.channels())
+    {
+      case 1:
+        return process_mono<Func>(audio, args...);
+        break;
+      case 2:
+        return process_stereo<Func>(audio, args...);
+        break;
+      default:
+        return process_multi<Func>(audio, args...);
+        break;
+    }
+  }
 
   template<auto Func>
   void processVector(

@@ -56,9 +56,17 @@ struct Node
               nFilt->dno_v[2](t[2]),
               nFilt->dno_v[3](t[3]));
         }
+
         ossia::value operator()(const std::vector<ossia::value>& t) const
         {
-          return t;
+          std::vector<ossia::value> ret = t;
+          while(nFilt->dno_v.size() < ret.size())
+            nFilt->dno_v.push_back(nFilt->dno_v.front());
+
+          for(std::size_t k = 0; k < ret.size(); k++)
+            ret[k] = (float)nFilt->dno_v[k](ossia::convert<float>(ret[k]));
+
+          return ret;
         }
 
         NoiseFilter* nFilt;
