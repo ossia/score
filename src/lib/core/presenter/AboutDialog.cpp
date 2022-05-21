@@ -136,6 +136,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   //! reset the _score_license_written CMake variable to zero
   //! (it will then add the missing license which have been added in a more
   //! recent commit - see score/src/lib/CMakeLists.txt at the end
+  map["perlinnoise"] = License{"https://github.com/Reputeless/PerlinNoise", perlinnoise_LICENSE};
   map["phantomstyle"] = License{
       "https://github.com/randrew/phantomstyle", phantomstyle_LICENSE};
   map["PortAudio"] = License{"https://github.com/PortAudio/PortAudio", portaudio_LICENSE};
