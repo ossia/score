@@ -257,7 +257,7 @@ void ScenarioDocumentPresenter::recenterNodal()
     void operator()(CentralNodalDisplay& disp) const noexcept {
       disp.recenter();
     }
-    void operator()(std::monostate) const noexcept {}
+    void operator()(ossia::monostate) const noexcept {}
   } vis{};
 
   ossia::visit(vis, m_centralDisplay);
@@ -275,7 +275,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   view().view().setContextMenuPolicy(Qt::DefaultContextMenu);
 
   // First clear the display
-  m_centralDisplay.emplace<std::monostate>();
+  m_centralDisplay.emplace<ossia::monostate>();
 
   // Then reconstruct depending on the mode we want
   if (nodal)
@@ -309,7 +309,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
       void operator()(CentralNodalDisplay& disp) const noexcept {
         disp.init();
       }
-      void operator()(std::monostate) const noexcept {
+      void operator()(ossia::monostate) const noexcept {
       }
     } init_vis{};
     ossia::visit(init_vis, m_centralDisplay);
@@ -328,7 +328,7 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
   delete m_miniLayer;
 
-  m_centralDisplay.emplace<std::monostate>();
+  m_centralDisplay.emplace<ossia::monostate>();
 
   for(auto& [cable, item] : m_dataflow.cables())
     delete item;
@@ -390,7 +390,7 @@ void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
     }
     void operator()(CentralNodalDisplay& disp) const noexcept {
     }
-    void operator()(std::monostate) const noexcept {
+    void operator()(ossia::monostate) const noexcept {
     }
   } vis{m_zoomRatio};
   ossia::visit(vis, m_centralDisplay);
@@ -467,7 +467,7 @@ void ScenarioDocumentPresenter::on_visibleRectChanged(const QRectF& rect)
     void operator()(CentralNodalDisplay& disp) const noexcept {
       disp.presenter->setRect({0, 0, rect.width(), rect.height()});
     }
-    void operator()(std::monostate) const noexcept {}
+    void operator()(ossia::monostate) const noexcept {}
   } vis{rect};
 
   ossia::visit(vis, this->m_centralDisplay);
@@ -658,7 +658,7 @@ void ScenarioDocumentPresenter::on_addProcessFromLibrary(
     void operator()(CentralNodalDisplay& disp) const noexcept {
       disp.on_addProcessFromLibrary(dat);
     }
-    void operator()(std::monostate) const noexcept {
+    void operator()(ossia::monostate) const noexcept {
     }
   } vis{dat};
   ossia::visit(vis, m_centralDisplay);
@@ -718,7 +718,7 @@ void ScenarioDocumentPresenter::on_viewReady()
       void operator()(CentralNodalDisplay& disp) const noexcept {
         disp.on_visibleRectChanged(rect);
       }
-      void operator()(std::monostate) const noexcept {
+      void operator()(ossia::monostate) const noexcept {
       }
     } vis{view().view().visibleRect()};
     ossia::visit(vis, m_centralDisplay);
@@ -770,7 +770,7 @@ void ScenarioDocumentPresenter::on_timeRulerChanged()
       }
     }
     void operator()(CentralNodalDisplay& disp) const noexcept {}
-    void operator()(std::monostate) const noexcept {}
+    void operator()(ossia::monostate) const noexcept {}
   } vis{tr};
   ossia::visit(vis, this->m_centralDisplay);
 

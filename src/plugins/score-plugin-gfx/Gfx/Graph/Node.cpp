@@ -53,7 +53,7 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
   struct vec_visitor
   {
     const std::vector<ossia::value>& v;
-    void operator()(std::monostate) const noexcept { }
+    void operator()(ossia::monostate) const noexcept { }
     void operator()(float& val) const noexcept
     {
       if (!v.empty())

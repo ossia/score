@@ -120,7 +120,7 @@ static bool pasteInCurrentInterval(QPoint pos, const QMimeData& mime, const scor
         return (*this)(*disp.presenter);
       }
 
-      QPointF operator()(std::monostate) const { return QPointF{}; }
+      QPointF operator()(ossia::monostate) const { return QPointF{}; }
   };
 
   auto item_pt = ossia::visit(NodalPositionVisitor{scene_pt}, pres->display());

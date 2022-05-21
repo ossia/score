@@ -44,7 +44,7 @@ class ScenarioDocumentPresenter;
 class ScenarioDocumentView;
 class TimeRulerPresenter;
 
-using CentralDisplay = ossia::variant<std::monostate, CentralIntervalDisplay, CentralNodalDisplay>;
+using CentralDisplay = ossia::variant<ossia::monostate, CentralIntervalDisplay, CentralNodalDisplay>;
 /**
  * @brief The ScenarioDocumentPresenter class
  *

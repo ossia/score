@@ -25,7 +25,7 @@ struct Graph;
 class GenericNodeRenderer;
 class NodeRenderer;
 
-using gfx_input = ossia::variant<std::monostate, ossia::value, ossia::audio_vector>;
+using gfx_input = ossia::variant<ossia::monostate, ossia::value, ossia::audio_vector>;
 
 /**
  * @brief Messages sent from the execution thread to the rendering thread
@@ -105,7 +105,7 @@ public:
   void process(const ossia::token_request& tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
-  void process(int32_t port, std::monostate) const noexcept { }
+  void process(int32_t port, ossia::monostate) const noexcept { }
 };
 
 /**

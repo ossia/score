@@ -27,7 +27,7 @@ enum class Types
 };
 
 using ValueVariant = ossia::variant<
-    std::monostate,
+    ossia::monostate,
     float,
     ossia::vec2f,
     ossia::vec3f,
