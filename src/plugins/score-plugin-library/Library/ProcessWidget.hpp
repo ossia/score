@@ -30,7 +30,9 @@ class PresetLibraryHandler final
 {
   SCORE_CONCRETE("7fc3a366-7792-489f-aca9-79d9f6d4415d")
 
+public:
   QSet<QString> acceptedFiles() const noexcept override;
+  QSet<QString> acceptedMimeTypes() const noexcept override;
 
   void setup(
       Library::ProcessesItemModel& model,
@@ -38,6 +40,13 @@ class PresetLibraryHandler final
 
   void addPath(std::string_view path) override;
 
+  bool onDrop(
+      const QMimeData& mime,
+      int row,
+      int column,
+      const QDir& parent) override;
+
+private:
   Process::ApplicationPlugin* presetLib{};
   const Process::ProcessFactoryList* processes{};
 };

@@ -8,6 +8,7 @@
 #include <score_plugin_library_export.h>
 class QAbstractItemModel;
 class QMimeData;
+class QDir;
 namespace Process
 {
 struct Preset;
@@ -37,11 +38,10 @@ public:
   virtual void addPath(std::string_view);
   virtual void removePath(std::string_view);
   virtual bool onDrop(
-      FileSystemModel& model,
       const QMimeData& mime,
       int row,
       int column,
-      const QModelIndex& parent);
+      const QDir& parent);
 
   virtual bool
   onDoubleClick(const QString& path, const score::DocumentContext& ctx);

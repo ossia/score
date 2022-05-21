@@ -97,6 +97,7 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   QDir{}.mkpath(presetFolder);
   QString presetPath = presetFolder + "/" + preset.name + ".scp";
 
+  // FIXME refactor with score::addUniqueSuffix
   if (QFile::exists(presetPath))
   {
     presetPath = presetFolder + "/" + preset.name + " (%1).scp";

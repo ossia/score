@@ -178,6 +178,7 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       }
 
       mime.setData(score::mime::layerdata(), data);
+      mime.setData(score::mime::processpreset(), proc.savePreset().toJson());
     };
 
     ui_btn->click = [&proc, &context] (QPointF screenPos) {

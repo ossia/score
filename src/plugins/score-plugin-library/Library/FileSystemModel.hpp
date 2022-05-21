@@ -100,21 +100,19 @@ public:
       int column,
       const QModelIndex& parent) override
   {
-    LibraryInterface* handler{};
+    const QFileInfo f = fileInfo(parent);
+    const QDir d = f.isDir() ? QDir(f.canonicalFilePath()) : f.absoluteDir();
     for (const auto& fmt : data->formats())
     {
       auto it = m_mimeActions.find(fmt);
       if (it != m_mimeActions.end())
       {
-        handler = it.value();
-        break;
+        if(it.value()->onDrop(*data, row, column, d))
+          return true;
       }
     }
 
-    if (!handler)
-      return false;
-
-    return handler->onDrop(*this, *data, row, column, parent);
+    return false;
   }
 
   QVariant data(const QModelIndex& index, int role) const override

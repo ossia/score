@@ -52,11 +52,10 @@ QWidget* LibraryInterface::previewWidget(const Process::Preset& path, QWidget* p
 }
 
 bool LibraryInterface::onDrop(
-    FileSystemModel& model,
     const QMimeData& mime,
     int row,
     int column,
-    const QModelIndex& parent)
+    const QDir& parent)
 {
   return false;
 }

@@ -15,6 +15,9 @@ QString locateFilePath(
     const QString& filename,
     const score::DocumentContext& ctx) noexcept;
 
+SCORE_LIB_BASE_EXPORT
+QString addUniqueSuffix(const QString& fileName);
+
 // Used instead of QFileInfo
 // as it does a stat which can be super expensive
 // when scanning large libraries ; this class only extracts

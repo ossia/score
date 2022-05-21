@@ -221,7 +221,6 @@ ProcessWidget::ProcessWidget(
           });
   m_lv.setMinimumHeight(100);
 
-
   auto& presetLib = ctx.applicationPlugin<Process::ApplicationPlugin>();
   con(presetLib, &Process::ApplicationPlugin::savePreset,
       this, [&] (const Process::ProcessModel* proc) {
@@ -233,6 +232,11 @@ ProcessWidget::ProcessWidget(
 ProcessWidget::~ProcessWidget() { }
 
 QSet<QString> PresetLibraryHandler::acceptedFiles() const noexcept { return {"scp"}; }
+
+QSet<QString> PresetLibraryHandler::acceptedMimeTypes() const noexcept
+{
+  return {score::mime::processpreset()};
+}
 
 void PresetLibraryHandler::setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {
@@ -251,6 +255,27 @@ void PresetLibraryHandler::addPath(std::string_view path)
   {
     presetLib->addPreset(std::move(*p));
   }
+}
+
+bool PresetLibraryHandler::onDrop(const QMimeData& mime, int row, int column, const QDir& parent)
+{
+  if (!mime.hasFormat(score::mime::processpreset()))
+    return false;
+
+  auto json = readJson(mime.data(score::mime::processpreset()));
+  if (!json.HasMember("Name"))
+    return true;
+
+  auto basename = JsonValue{json["Name"]}.toString();
+  const QString filename = score::addUniqueSuffix(
+                       parent.absolutePath() + "/" + basename + ".scp");
+
+  QFile f{filename};
+  if (!f.open(QIODevice::WriteOnly))
+    return false;
+
+  f.write(mime.data(score::mime::processpreset()));
+  return true;
 }
 
 }
