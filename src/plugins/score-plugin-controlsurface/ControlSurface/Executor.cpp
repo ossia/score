@@ -211,7 +211,7 @@ void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
   auto v = inl.value(); // TODO does this make sense ?
 
   const State::AddressAccessor& addr = map.at(inl.id().val());
-  auto set_addr = set_destination_impl<ossia::outlet>(*ctx.execState, *ctx.execGraph, addr);
+  auto set_addr = ossia::set_destination_impl<ossia::outlet>(*ctx.execState, *ctx.execGraph, addr);
 
   std::weak_ptr<ossia::control_surface_node> weak_node = std::dynamic_pointer_cast<ossia::control_surface_node>(this->node);
   in_exec([v, weak_node, set_addr] () mutable {
