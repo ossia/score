@@ -237,7 +237,7 @@ static void setup_faust_path()
 static void setup_opengl(bool& enable_opengl_ui)
 {
   const auto& plat = qApp->platformName();
-  if(plat == "minimal" || plat == "offscreen" || plat == "vnc")
+  if(plat == "minimal" || plat == "offscreen" || plat == "vnc" || plat == "wasm")
   {
     return;
   }
@@ -501,6 +501,10 @@ int main(int argc, char** argv)
 
 #if defined(__APPLE__)
   disableAppNap();
+#endif
+
+#if defined(__EMSCRIPTEN__)
+  app.appSettings.opengl = false;
 #endif
 
   if(failsafe)
