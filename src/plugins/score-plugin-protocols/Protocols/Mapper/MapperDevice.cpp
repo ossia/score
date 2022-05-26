@@ -61,24 +61,28 @@ public:
 
   void on_deviceAdded(const Device::DeviceInterface* d)
   {
-    connect(
-        d,
-        &Device::DeviceInterface::deviceChanged,
-        this,
-        [this](auto oldd, auto newd) {
-          ossia::remove_erase(m_devices, oldd);
-          if (newd)
-            m_devices.push_back(newd);
-          rootsChanged(roots());
-        });
+    connect(d, &Device::DeviceInterface::deviceChanged,
+        this, &observable_device_roots::on_deviceAddedCallback, Qt::UniqueConnection);
     if (auto dev = d->getDevice())
       m_devices.push_back(dev);
 
     rootsChanged(roots());
   }
 
+  void on_deviceAddedCallback(
+      ossia::net::device_base* oldd,
+      ossia::net::device_base* newd)
+  {
+    ossia::remove_erase(m_devices, oldd);
+    if (newd)
+      m_devices.push_back(newd);
+    rootsChanged(roots());
+  }
+
   void on_deviceRemoved(const Device::DeviceInterface* d)
   {
+    disconnect(d, &Device::DeviceInterface::deviceChanged,
+               this, &observable_device_roots::on_deviceAddedCallback);
     ossia::remove_erase(m_devices, d->getDevice());
     rootsChanged(roots());
   }
