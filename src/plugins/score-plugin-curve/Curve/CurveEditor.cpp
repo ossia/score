@@ -248,7 +248,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
   if(!focused_process)
     return false;
 
-  auto cm = focused_process->findChild<Curve::Model*>();
+  auto cm = focused_process->findChild<Curve::Model*>(QString{}, Qt::FindDirectChildrenOnly);
   if(!cm)
     return false;
 
