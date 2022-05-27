@@ -829,7 +829,7 @@ std::optional<AudioInfo> probe(const QString& path)
   if (it == AudioDecoder::database().end())
   {
     QFileInfo fi{path};
-    if(!fi.exists())
+    if(!fi.exists() || !fi.isFile() || !fi.isReadable())
       return std::nullopt;
 
     const auto& suffix = fi.suffix().toLower();
