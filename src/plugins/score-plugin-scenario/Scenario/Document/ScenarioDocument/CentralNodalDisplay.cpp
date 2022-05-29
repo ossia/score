@@ -104,6 +104,11 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
   }
 }
 
+void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
+{
+  SCORE_TODO;
+}
+
 void CentralNodalDisplay::on_visibleRectChanged(const QRectF&)
 {
 

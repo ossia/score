@@ -151,6 +151,7 @@ private:
   ZoomRatio computeZoom(double l, double r);
 
   void on_addProcessFromLibrary(const Library::ProcessData& dat);
+  void on_addPresetFromLibrary(const Process::Preset& dat);
 
   Process::DataflowManager m_dataflow;
   CentralDisplay m_centralDisplay;

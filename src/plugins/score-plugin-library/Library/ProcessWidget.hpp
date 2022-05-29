@@ -58,8 +58,13 @@ public:
   ~ProcessWidget();
 
   ProcessesItemModel& processModel() const noexcept { return *m_processModel; }
+  PresetItemModel& presetModel() const noexcept { return *m_presetModel; }
+
   const ProcessTreeView& processView() const noexcept { return m_tv; }
   ProcessTreeView& processView() noexcept { return m_tv; }
+
+  const PresetListView& presetView() const noexcept { return m_lv; }
+  PresetListView& presetView() noexcept { return m_lv; }
 
 private:
   ProcessesItemModel* m_processModel{};

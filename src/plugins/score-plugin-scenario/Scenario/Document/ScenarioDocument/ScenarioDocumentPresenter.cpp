@@ -236,6 +236,10 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         &Library::ProcessTreeView::doubleClicked,
         this,
         &ScenarioDocumentPresenter::on_addProcessFromLibrary);
+    con(processLib->processWidget().presetView(),
+        &Library::PresetListView::doubleClicked,
+        this,
+        &ScenarioDocumentPresenter::on_addPresetFromLibrary);
   }
 
 
@@ -660,6 +664,26 @@ void ScenarioDocumentPresenter::on_addProcessFromLibrary(
     }
     void operator()(ossia::monostate) const noexcept {
     }
+  } vis{dat};
+  ossia::visit(vis, m_centralDisplay);
+}
+
+void ScenarioDocumentPresenter::on_addPresetFromLibrary(
+      const Process::Preset& dat)
+{
+  if(&this->context().app.currentDocument()->document != &this->context().document)
+    return;
+
+  const struct {
+      const Process::Preset& dat;
+      void operator()(CentralIntervalDisplay& disp) const noexcept {
+        disp.on_addPresetFromLibrary(dat);
+      }
+      void operator()(CentralNodalDisplay& disp) const noexcept {
+        disp.on_addPresetFromLibrary(dat);
+      }
+      void operator()(ossia::monostate) const noexcept {
+      }
   } vis{dat};
   ossia::visit(vis, m_centralDisplay);
 }

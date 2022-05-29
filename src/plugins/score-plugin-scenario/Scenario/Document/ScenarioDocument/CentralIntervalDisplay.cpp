@@ -181,6 +181,11 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
   }
 }
 
+void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
+{
+  SCORE_TODO;
+}
+
 void CentralIntervalDisplay::on_visibleRectChanged(const QRectF&)
 {
   auto& gv = parent.view().view();

@@ -2,6 +2,7 @@
 #include <Process/ProcessMetadata.hpp>
 
 #include <optional>
+#include <verdigris>
 namespace Process
 {
 class ProcessFactoryList;
@@ -57,3 +58,8 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   }
 };
 }
+
+Q_DECLARE_METATYPE(Process::Preset)
+W_REGISTER_ARGTYPE(Process::Preset)
+Q_DECLARE_METATYPE(std::optional<Process::Preset>)
+W_REGISTER_ARGTYPE(std::optional<Process::Preset>)

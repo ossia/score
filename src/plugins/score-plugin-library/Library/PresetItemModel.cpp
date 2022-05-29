@@ -66,6 +66,21 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
   return {};
 }
 
+void PresetListView::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  auto index = indexAt(event->pos());
+  if (!index.isValid())
+    return;
+
+  auto& self = *safe_cast<PresetItemModel*>(this->model());
+  if (index.row() < 0 || index.row() >= int(self.presets.size()))
+    return;
+
+  auto& preset = self.presets[index.row()];
+  doubleClicked(preset);
+
+  event->accept();
+}
 static bool isValidForFilename(const QString& name)
 {
   if (name.isEmpty())
