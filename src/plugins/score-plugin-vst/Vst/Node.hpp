@@ -50,9 +50,9 @@ public:
       const auto& vec = p.port->get_data();
       if (vec.empty())
         continue;
-      if (auto t = last(vec).template target<float>())
+      auto t = ossia::convert<float>(last(vec));
       {
-        p.value = ossia::clamp<float>(*t, 0.f, 1.f);
+        p.value = ossia::clamp<float>(t, 0.f, 1.f);
         fx->fx->setParameter(fx->fx, p.idx, p.value);
       }
     }
