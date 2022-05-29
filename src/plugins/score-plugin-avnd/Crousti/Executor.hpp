@@ -130,7 +130,7 @@ struct setup_Impl0
 
     // Initialize the control with the current value of the inlet
     oscr::from_ossia_value(param, inlet->value(), param.value);
-    if_possible(param.update(element));
+    if_possible(param.update(node_ptr->impl.state));
 
     // Connect to changes
     std::weak_ptr<ExecNode> weak_node = node_ptr;
