@@ -298,6 +298,7 @@ struct Node
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
       expr.add_variable("pos", cur_pos);
+      expr.add_variable("fs", fs);
 
       expr.add_variable("a", a);
       expr.add_variable("b", b);
@@ -324,6 +325,7 @@ struct Node
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
+    double fs{44100};
 
     double a{}, b{}, c{};
     double pa{}, pb{}, pc{};
@@ -354,6 +356,7 @@ struct Node
     self.a = a;
     self.b = b;
     self.c = c;
+    self.fs = st.sampleRate();
 
     if(self.expr.has_variable("xv"))
       GenericMathMapping<State>::run_array(input, output, tk, st, self);
