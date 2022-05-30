@@ -5,6 +5,11 @@
 #include <QGraphicsSceneMouseEvent>
 #include <halp/texture.hpp>
 
+#include <QGradient>
+#include <QPolygon>
+
+#include <cmath>
+
 namespace oscr
 {
 struct QPainterAdapter
@@ -95,6 +100,30 @@ struct QPainterAdapter
       painter.setBrush(QColor(qRgba(c.r, c.g, c.b, c.a)));
     }
 
+    //          x1, y1, x2, y2, c1, c2
+    void set_linear_gradient(double x1, double y1, double x2, double y2, halp::rgba_color c1, halp::rgba_color c2){
+        QLinearGradient gradient(QPointF(x1, y1),QPointF(x2, y2));
+        gradient.setColorAt(0,QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
+        gradient.setColorAt(1,QColor(qRgba(c2.r, c2.g, c2.b, c2.a)));
+        painter.setBrush(gradient);
+    }
+
+    //          cx, cy, radius, c1, c2
+    void set_radial_gradient(double cx, double cy, double cr, halp::rgba_color c1, halp::rgba_color c2){
+        QRadialGradient gradient(cx, cy, cr);
+        gradient.setColorAt(0,QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
+        gradient.setColorAt(1,QColor(qRgba(c2.r, c2.g, c2.b, c2.a)));
+        painter.setBrush(gradient);
+    }
+
+    //          x, y, angle, c1, c2
+    void set_conical_gradient(double x, double y, double a, halp::rgba_color c1, halp::rgba_color c2){
+        QConicalGradient gradient(x, y, a);
+        gradient.setColorAt(0,QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
+        gradient.setColorAt(1,QColor(qRgba(c2.r, c2.g, c2.b, c2.a)));
+        painter.setBrush(gradient);
+    }
+
     // Text:
     void set_font(std::string_view f)
     {
@@ -121,6 +150,16 @@ struct QPainterAdapter
     {
         path.moveTo(x1, y1);
         path.lineTo(x2, y2);
+    }
+
+    //          x1, y1, x2 , y2, x3, y3
+    void draw_triangle(double x1, double y1, double x2, double y2, double x3, double y3)
+    {
+        path.moveTo(x1, y1);
+        path.lineTo(x2, y2);
+        path.lineTo(x3, y3);
+        path.lineTo(x1, y1);
+        painter.drawPath(path);
     }
 
     //          x , y , w  , h
@@ -152,6 +191,20 @@ struct QPainterAdapter
     {
         path.addEllipse(QPointF{cx, cy}, cr, cr);
     }
+
+    //          tab, count
+    void draw_polygon(double* tab, int count)
+    {
+        QPolygonF poly;
+        double x, y;
+        for (int i = 0; i < count*2; i+=2){
+            x = tab[i];
+            y = tab[i+1];
+            poly << QPointF(x, y);
+        }
+        path.addPolygon(poly);
+    }
+
 };
 static_assert(avnd::painter<QPainterAdapter>);
 
