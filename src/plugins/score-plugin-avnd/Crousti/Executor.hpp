@@ -127,21 +127,22 @@ struct setup_Impl0
   template <typename Field, std::size_t N, std::size_t NField>
   constexpr void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
+    if(auto inlet = dynamic_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField)))
+    {
+      // Initialize the control with the current value of the inlet
+      oscr::from_ossia_value(param, inlet->value(), param.value);
+      if_possible(param.update(node_ptr->impl.state));
 
-    // Initialize the control with the current value of the inlet
-    oscr::from_ossia_value(param, inlet->value(), param.value);
-    if_possible(param.update(node_ptr->impl.state));
-
-    // Connect to changes
-    std::weak_ptr<ExecNode> weak_node = node_ptr;
-    QObject::connect(
-        inlet,
-        &Process::ControlInlet::valueChanged,
-        parent,
-        con_unvalidated<Field, N>{ctx, weak_node, param});
+      // Connect to changes
+      std::weak_ptr<ExecNode> weak_node = node_ptr;
+      QObject::connect(
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          parent,
+          con_unvalidated<Field, N>{ctx, weak_node, param});
+    }
+    // Else it's an unhandled value inlet
   }
-
 
   template <avnd::soundfile_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)

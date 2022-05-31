@@ -133,6 +133,11 @@ consteval auto make_control_in()
       return Control::FloatSlider{name, c.min, c.max, c.init};
     }
   }
+  else if constexpr(widg.widget == avnd::widget_type::range)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    return nullptr; // TODO
+  }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)
   {
     constexpr auto c = avnd::get_range<T>();

@@ -50,6 +50,7 @@
 #include <avnd/../../examples/Raw/Minimal.hpp>
 #include <avnd/../../examples/Raw/Messages.hpp>
 #include <avnd/../../examples/Helpers/Controls.hpp>
+#include <avnd/../../examples/Helpers/FFTDisplay.hpp>
 #include <avnd/../../examples/Helpers/ImageUi.hpp>
 #include <avnd/../../examples/Helpers/Logger.hpp>
 #include <avnd/../../examples/Helpers/Lowpass.hpp>
@@ -113,6 +114,7 @@ score_plugin_avnd::factories(
   return oscr::instantiate_fx<
     #if AVND_TEST_BUILD
       oscr::Granolette
+      , examples::helpers::FFTDisplay
       , examples::helpers::MessageBusUi
       , examples::helpers::AdvancedUi
       , Addition

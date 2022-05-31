@@ -179,23 +179,35 @@ struct InletInitFunc
     ins.push_back(p);
   }
 
+  void make_value_inlet(auto& in)
+  {
+    auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+  }
+
   template<avnd::parameter T>
   void operator()(const T& in)
   {
     if constexpr(avnd::control<T>)
     {
       constexpr auto ctl = oscr::make_control_in<T>();
-      if(auto p = ctl.create_inlet(Id<Process::Port>(inlet++), &self))
+      if constexpr(!std::is_same_v<std::decay_t<decltype(ctl)>, std::nullptr_t>)
       {
-        p->hidden = true;
-        ins.push_back(p);
+        if(auto p = ctl.create_inlet(Id<Process::Port>(inlet++), &self))
+        {
+          p->hidden = true;
+          ins.push_back(p);
+        }
+      }
+      else
+      {
+        make_value_inlet(in);
       }
     }
     else
     {
-      auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
-      setupNewPort(in, p);
-      ins.push_back(p);
+      make_value_inlet(in);
     }
   }
 #if SCORE_PLUGIN_GFX
