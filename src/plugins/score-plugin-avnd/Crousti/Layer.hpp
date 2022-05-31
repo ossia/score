@@ -240,30 +240,35 @@ private:
           typename Info::ui::bus bus;
       };
       auto ptr = new Item{parent};
-      // ui -> engine
-      ptr->bus.send_message = MessageBusSender{proc.from_ui};
 
-      // engine -> ui
-      proc.to_ui = [ptr] (QByteArray mess) {
-        if constexpr(requires { ptr->bus.process_message(); }) {
-          ptr->bus.process_message();
-        }
-        else if constexpr(requires { ptr->bus.process_message(ptr->ui); }) {
-          ptr->bus.process_message(ptr->ui);
-        }
-        else if constexpr(requires { ptr->bus.process_message(ptr->ui, {}); }) {
-          avnd::second_argument<&Info::ui::bus::process_message> arg;
-          MessageBusReader b{mess};
-          b(arg);
-          ptr->bus.process_message(ptr->ui, std::move(arg));
-        }
-        else
-        {
-          ptr->bus.process_message(ptr->ui, {});
-        }
-      };
+      if constexpr(avnd::has_gui_to_processor_bus<Info>) {
+        // ui -> engine
+        ptr->bus.send_message = MessageBusSender{proc.from_ui};
+      }
 
-      ptr->bus.init(ptr->ui);
+      if constexpr(avnd::has_processor_to_gui_bus<Info>) {
+        // engine -> ui
+        proc.to_ui = [ptr] (QByteArray mess) {
+          if constexpr(requires { ptr->bus.process_message(); }) {
+            ptr->bus.process_message();
+          }
+          else if constexpr(requires { ptr->bus.process_message(ptr->ui); }) {
+            ptr->bus.process_message(ptr->ui);
+          }
+          else if constexpr(requires { ptr->bus.process_message(ptr->ui, {}); }) {
+            avnd::second_argument<&Info::ui::bus::process_message> arg;
+            MessageBusReader b{mess};
+            b(arg);
+            ptr->bus.process_message(ptr->ui, std::move(arg));
+          }
+          else
+          {
+            ptr->bus.process_message(ptr->ui, {});
+          }
+        };
+      }
+
+      if_possible(ptr->bus.init(ptr->ui));
       return ptr;
     }
     else

@@ -21,6 +21,7 @@
 #endif
 
 #include <QTimer>
+#include <avnd/concepts/ui.hpp>
 #include <avnd/binding/ossia/node.hpp>
 #include <avnd/binding/ossia/mono_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
@@ -442,7 +443,7 @@ public:
       auto st = ossia::exec_state_facade{ctx.execState.get()};
       std::shared_ptr<safe_node<Node>> ptr;
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate()};
-      node->prepare(*ctx.execState.get());
+      node->prepare(*ctx.execState.get()); // Preparation of the ossia side
       ptr.reset(node);
       this->node = ptr;
 
@@ -479,7 +480,7 @@ public:
       }
 
       // Custom UI messages to engine
-      if constexpr(requires { element.from_ui; }) {
+      if constexpr(avnd::has_gui_to_processor_bus<Node>) {
         element.from_ui = [p = QPointer{this}, &eff] (QByteArray b) {
           if(!p)
             return;
@@ -503,7 +504,7 @@ public:
         };
       }
 
-      if constexpr(requires { eff.effect.send_message; }) {
+      if constexpr(avnd::has_processor_to_gui_bus<Node>) {
         eff.effect.send_message = [this] (auto b) mutable {
           this->in_edit([this, bb = std::move(b)] () mutable{
             MessageBusSender{this->process().to_ui}(std::move(bb));
@@ -525,6 +526,9 @@ public:
             [=] { timer_action(); },
             Qt::QueuedConnection);
       }
+
+      // To call prepare() after evertyhing is ready
+      node->audio_configuration_changed();
     }
 
     this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);

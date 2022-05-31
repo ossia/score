@@ -6,6 +6,7 @@
 
 #include <avnd/wrappers/metadatas.hpp>
 #include <avnd/concepts/gfx.hpp>
+#include <avnd/concepts/ui.hpp>
 
 #include <Process/ProcessMetadata.hpp>
 #include <Process/Process.hpp>
@@ -287,21 +288,29 @@ struct OutletInitFunc
 };
 
 template <typename Info>
-struct MessageBusWrapper {
+struct MessageBusWrapperToUi {
 
 };
 
 template <typename Info>
-requires (!std::is_void_v<typename Info::ui::bus>)
-struct MessageBusWrapper<Info> {
-  std::function<void(QByteArray)> from_ui;
+struct MessageBusWrapperFromUi {
+
+};
+template <avnd::has_processor_to_gui_bus Info>
+struct MessageBusWrapperToUi<Info> {
   std::function<void(QByteArray)> to_ui;
+};
+
+template <avnd::has_gui_to_processor_bus Info>
+struct MessageBusWrapperFromUi<Info> {
+  std::function<void(QByteArray)> from_ui;
 };
 
 template <typename Info>
 class ProcessModel final
     : public Process::ProcessModel
-    , public MessageBusWrapper<Info>
+    , public MessageBusWrapperFromUi<Info>
+    , public MessageBusWrapperToUi<Info>
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(ProcessModel<Info>)
