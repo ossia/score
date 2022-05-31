@@ -277,6 +277,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsPixmapEnum.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsPixmapToggle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSelectablePixmapToggle.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsRangeSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSliderBase.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsToggle.hpp"
