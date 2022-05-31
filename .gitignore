@@ -56,3 +56,9 @@ Documentation/Doc_sources/score-documentation/site
 .cmake
 
 .vscode
+./*.config
+./*.cflags
+./*.creator
+./*.cxxflags
+./*.includes
+./*.files

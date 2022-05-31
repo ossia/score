@@ -28,15 +28,22 @@ struct QPainterAdapter
   void move_to(double x, double y) { path.moveTo(x, y); }
   void line_to(double x, double y) { path.lineTo(x, y); }
   void
-  arc_to(double x, double y, double w, double h, double startAngle, double arcLength)
+  arc_to(double x, double y, double w, double h, double start, double length)
   {
-    path.arcTo(x, y, w, h, startAngle, arcLength);
+    path.arcTo(x, y, w, h, start, length);
   }
 
-  void cubic_to(double c1x, double c1y, double c2x, double c2y, double endx, double endy)
+  void cubic_to(
+      double c1x,
+      double c1y,
+      double c2x,
+      double c2y,
+      double endx,
+      double endy)
   {
     path.cubicTo(c1x, c1y, c2x, c2y, endx, endy);
   }
+
   void quad_to(double x1, double y1, double x2, double y2)
   {
     path.quadTo(x1, y1, x2, y2);
@@ -48,7 +55,6 @@ struct QPainterAdapter
   void reset_transform() { painter.resetTransform(); }
 
   // Colors:
-  //                  R    G    B    A
   void set_stroke_color(halp::rgba_color c)
   {
     QPen p = painter.pen();
@@ -68,7 +74,6 @@ struct QPainterAdapter
     painter.setBrush(QColor(qRgba(c.r, c.g, c.b, c.a)));
   }
 
-  //          x1, y1, x2, y2, c1, c2
   void set_linear_gradient(
       double x1,
       double y1,
@@ -83,7 +88,6 @@ struct QPainterAdapter
     painter.setBrush(gradient);
   }
 
-  //          cx, cy, radius, c1, c2
   void set_radial_gradient(
       double cx,
       double cy,
@@ -97,7 +101,6 @@ struct QPainterAdapter
     painter.setBrush(gradient);
   }
 
-  //          x, y, angle, c1, c2
   void set_conical_gradient(
       double x,
       double y,
@@ -128,11 +131,11 @@ struct QPainterAdapter
 
   void draw_text(double x, double y, std::string_view str)
   {
-    path.addText(x, y, painter.font(), QString::fromUtf8(str.data(), str.size()));
+    path.addText(
+        x, y, painter.font(), QString::fromUtf8(str.data(), str.size()));
   }
 
   // Drawing
-  //          x1, y1, x2 , y2
   void draw_line(double x1, double y1, double x2, double y2)
   {
     path.moveTo(x1, y1);
@@ -140,7 +143,13 @@ struct QPainterAdapter
   }
 
   //          x1, y1, x2 , y2, x3, y3
-  void draw_triangle(double x1, double y1, double x2, double y2, double x3, double y3)
+  void draw_triangle(
+      double x1,
+      double y1,
+      double x2,
+      double y2,
+      double x3,
+      double y3)
   {
     path.moveTo(x1, y1);
     path.lineTo(x2, y2);
@@ -150,7 +159,10 @@ struct QPainterAdapter
   }
 
   //          x , y , w  , h
-  void draw_rect(double x, double y, double w, double h) { path.addRect(x, y, w, h); }
+  void draw_rect(double x, double y, double w, double h)
+  {
+    path.addRect(x, y, w, h);
+  }
 
   //                  x , y , w  , h
   void draw_rounded_rect(double x, double y, double w, double h, double r)
@@ -230,8 +242,10 @@ public:
     return {0., 0., item_type::width(), item_type::height()};
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-      override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     auto& skin = score::Skin::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -240,26 +254,113 @@ public:
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
+  struct custom_mouse_event
+  {
+    enum button
+    {
+      no_button,
+      left = (1 << 1),
+      right = (1 << 2),
+      middle = (1 << 3)
+    };
+    enum modifier
+    {
+      no_modifier,
+      shift = (1 << 1),
+      ctrl = (1 << 2),
+      alt = (1 << 3),
+      meta = (1 << 4)
+    };
+    float x, y;
+
+    enum button button
+    {
+    };
+    enum button held_buttons
+    {
+    };
+    enum modifier modifiers
+    {
+    };
+  };
+
 protected:
+  static custom_mouse_event
+  make_event(QGraphicsSceneMouseEvent* event) noexcept
+  {
+    custom_mouse_event p;
+
+    p.x = event->pos().x();
+    p.y = event->pos().y();
+
+    if (event->button() == Qt::LeftButton)
+      p.button = custom_mouse_event::left;
+    else if (event->button() == Qt::RightButton)
+      p.button = custom_mouse_event::right;
+    else if (event->button() == Qt::MiddleButton)
+      p.button = custom_mouse_event::middle;
+
+    if (event->buttons() & Qt::LeftButton)
+      p.held_buttons |= p.left;
+    if (event->buttons() & Qt::RightButton)
+      p.held_buttons |= p.right;
+    if (event->buttons() & Qt::MiddleButton)
+      p.held_buttons |= p.middle;
+
+    if (event->modifiers() & Qt::ShiftModifier)
+      p.modifiers |= p.shift;
+    if (event->modifiers() & Qt::AltModifier)
+      p.modifiers |= p.alt;
+    if (event->modifiers() & Qt::ControlModifier)
+      p.modifiers |= p.ctrl;
+    if (event->modifiers() & Qt::MetaModifier)
+      p.modifiers |= p.meta;
+
+    return p;
+  }
+
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
     if constexpr (requires { impl.mouse_press(0, 0); })
+    {
       if (impl.mouse_press(event->pos().x(), event->pos().y()))
         event->accept();
+    }
+    else if constexpr (requires { impl.mouse_press(custom_mouse_event{}); })
+    {
+      if (impl.mouse_press(make_event(event)))
+        event->accept();
+    }
     update();
   }
+
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
   {
     if constexpr (requires { impl.mouse_move(0, 0); })
-      impl.mouse_move(event->pos().x(), event->pos().y());
-    event->accept();
+    {
+      if (impl.mouse_move(event->pos().x(), event->pos().y()))
+        event->accept();
+    }
+    else if constexpr (requires { impl.mouse_move(custom_mouse_event{}); })
+    {
+      if (impl.mouse_move(make_event(event)))
+        event->accept();
+    }
     update();
   }
+
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
   {
     if constexpr (requires { impl.mouse_release(0, 0); })
-      impl.mouse_release(event->pos().x(), event->pos().y());
-    event->accept();
+    {
+      if (impl.mouse_release(event->pos().x(), event->pos().y()))
+        event->accept();
+    }
+    else if constexpr (requires { impl.mouse_release(custom_mouse_event{}); })
+    {
+      if (impl.mouse_release(make_event(event)))
+        event->accept();
+    }
     update();
   }
 
