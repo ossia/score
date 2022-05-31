@@ -7,8 +7,8 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsRangeSlider);
 
-QGraphicsRangeSlider::QGraphicsRangeSlider(QObject *parent)
-    : QObject{parent}
+namespace score
+{
 {
 
 }
