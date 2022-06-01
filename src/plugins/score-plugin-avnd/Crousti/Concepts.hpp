@@ -288,7 +288,14 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     }
     else
     {
-      return new Process::FloatKnob{c.min, c.max, c.init, qname, id, parent};
+      if constexpr(avnd::has_mapper<T>)
+      {
+        return new CustomFloatControl<Node, avnd::field_index<N>>{c.min, c.max, c.init, qname, id, parent};
+      }
+      else
+      {
+        return new Process::FloatKnob{c.min, c.max, c.init, qname, id, parent};
+      }
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::lineedit)
