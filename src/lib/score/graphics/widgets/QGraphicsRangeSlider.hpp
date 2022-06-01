@@ -8,6 +8,8 @@
 
 #include <verdigris>
 
+///TODO. list in src/plugins/score-plugin-avnd/Crousti/Concepts.hpp#L139
+
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT QGraphicsRangeSlider final
