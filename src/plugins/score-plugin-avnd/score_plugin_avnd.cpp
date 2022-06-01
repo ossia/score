@@ -49,6 +49,7 @@
 #include <avnd/../../examples/Raw/SampleAccurateControls.hpp>
 #include <avnd/../../examples/Raw/Minimal.hpp>
 #include <avnd/../../examples/Raw/Messages.hpp>
+#include <avnd/../../examples/Raw/Sines.hpp>
 #include <avnd/../../examples/Helpers/Controls.hpp>
 #include <avnd/../../examples/Helpers/FFTDisplay.hpp>
 #include <avnd/../../examples/Helpers/ImageUi.hpp>
@@ -60,6 +61,7 @@
 #include <avnd/../../examples/Helpers/PerBus.hpp>
 #include <avnd/../../examples/Helpers/Peak.hpp>
 #include <avnd/../../examples/Helpers/Midi.hpp>
+#include <avnd/../../examples/Helpers/Sines.hpp>
 #include <avnd/../../examples/Helpers/Ui.hpp>
 #include <avnd/../../examples/Helpers/UiBus.hpp>
 #include <avnd/../../examples/Tutorial/ZeroDependencyAudioEffect.hpp>
@@ -133,6 +135,7 @@ score_plugin_avnd::factories(
       , examples::helpers::PerBusAsPortsDynamic
       , examples::helpers::PerSampleAsArgs
       , examples::helpers::PerSampleAsPorts
+      , examples::helpers::Sine
       , examples::Init
       , litterpower_ports::CCC
       , examples::Midi
@@ -142,6 +145,7 @@ score_plugin_avnd::factories(
       , examples::PerSampleProcessor2
       , examples::Presets
       , examples::SampleAccurateControls
+      , examples::Sine
       , examples::Ui
       , Distortion
       , AudioEffectExample
