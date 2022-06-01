@@ -453,6 +453,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsPixmapButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsPixmapEnum.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsPixmapToggle.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsRangeSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSelectablePixmapToggle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsToggle.cpp"
