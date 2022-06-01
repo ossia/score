@@ -4,13 +4,13 @@
 
 namespace Dataflow
 {
-template <typename T>
+template <typename T, typename Widget>
 struct WidgetInletFactory : public AutomatablePortFactory
 {
   using Model_T = T;
   UuidKey<Process::Port> concreteKey() const noexcept override
   {
-    return Metadata<ConcreteKey_k, Model_T>::get();
+    return Model_T::static_concreteKey();
   }
 
   Model_T* load(const VisitorVariant& vis, QObject* parent) override
@@ -27,9 +27,8 @@ struct WidgetInletFactory : public AutomatablePortFactory
       Inspector::Layout& lay,
       QObject* context) override
   {
-    using factory = typename Model_T::control_type;
     auto& ctrl = static_cast<const Model_T&>(port);
-    auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
+    auto widg = Widget::make_widget(ctrl, ctrl, ctx, parent, parent);
     Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
   }
 
@@ -40,18 +39,16 @@ struct WidgetInletFactory : public AutomatablePortFactory
       QObject* context) override
   {
     auto& ctrl = static_cast<Model_T&>(port);
-    using widg_t = typename Model_T::control_type;
-    return widg_t::make_item(ctrl, ctrl, ctx, nullptr, context);
+    return Widget::make_item(ctrl, ctrl, ctx, nullptr, context);
   }
 
   Process::PortItemLayout defaultLayout() const noexcept override
   {
-    using widg_t = typename Model_T::control_type;
-    return widg_t::layout();
+    return Widget::layout();
   }
 };
 
-template <typename T>
+template <typename T, typename Widget>
 struct WidgetOutletFactory : public Process::PortFactory
 {
   using Model_T = T;
@@ -74,9 +71,8 @@ struct WidgetOutletFactory : public Process::PortFactory
       Inspector::Layout& lay,
       QObject* context) override
   {
-    using factory = typename Model_T::control_type;
     auto& ctrl = static_cast<const Model_T&>(port);
-    auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
+    auto widg = Widget::make_widget(ctrl, ctrl, ctx, parent, parent);
     Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
   }
 
@@ -87,14 +83,12 @@ struct WidgetOutletFactory : public Process::PortFactory
       QObject* context) override
   {
     auto& ctrl = static_cast<Model_T&>(port);
-    using widg_t = typename Model_T::control_type;
-    return widg_t::make_item(ctrl, ctrl, ctx, nullptr, context);
+    return Widget::make_item(ctrl, ctrl, ctx, nullptr, context);
   }
 
   Process::PortItemLayout defaultLayout() const noexcept override
   {
-    using widg_t = typename Model_T::control_type;
-    return widg_t::layout();
+    return Widget::layout();
   }
 };
 }

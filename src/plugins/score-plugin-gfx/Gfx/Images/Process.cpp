@@ -1,5 +1,6 @@
 #include "Process.hpp"
 
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/TexturePort.hpp>

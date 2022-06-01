@@ -22,10 +22,22 @@
 namespace score
 {
 
-template <typename Vis, typename T>
-void serialize_dyn_impl(Vis& v, const T& t)
+template <typename T>
+void serialize_dyn_impl(DataStream::Serializer& v, const T& t)
 {
-  v.read(t);
+  if constexpr(is_custom_serialized<T>::value)
+    TSerializer<DataStream, T>{}.readFrom(v, t);
+  else
+    v.read(t);
+}
+
+template <typename T>
+void serialize_dyn_impl(JSONObject::Serializer& v, const T& t)
+{
+  if constexpr(is_custom_serialized<T>::value)
+    TSerializer<JSONObject, T>{}.readFrom(v, t);
+  else
+    v.read(t);
 }
 
 template <typename TheClass>

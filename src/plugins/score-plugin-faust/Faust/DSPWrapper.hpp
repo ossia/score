@@ -339,14 +339,6 @@ struct TSerializer<JSONObject, FaustDSP::Fx<DSP>>
   }
 };
 
-namespace score
-{
-template <typename Vis, typename DSP>
-void serialize_dyn_impl(Vis& v, const FaustDSP::Fx<DSP>& t)
-{
-  TSerializer<typename Vis::type, FaustDSP::Fx<DSP>>::readFrom(v, t);
-}
-}
 
 namespace FaustDSP
 {

@@ -92,11 +92,13 @@ void QGraphicsKnob::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  //painter->fillRect(boundingRect(), Qt::green);
+  const double val = map(m_value);
+  const double abs = std::abs(val);
+  int pres = abs < 10. ? 3 : abs < 100. ? 2 : abs < 1000. ? 1 : 0;
   DefaultGraphicsKnobImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(min + value() * (max - min), 'f', 2),
+      QString::number(val, 'f', pres),
       painter,
       widget);
 }

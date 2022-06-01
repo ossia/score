@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/Dataflow/ControlWidgets.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include <score/serialization/VisitorCommon.hpp>
 
@@ -128,7 +128,6 @@ namespace Process
 struct SCORE_LIB_PROCESS_EXPORT FloatSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(FloatSlider)
-  using control_type = WidgetFactory::FloatSlider;
   FloatSlider(
       float min,
       float max,
@@ -147,7 +146,6 @@ struct SCORE_LIB_PROCESS_EXPORT FloatSlider : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT FloatKnob : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(FloatKnob)
-      using control_type = WidgetFactory::FloatKnob;
   FloatKnob(
         float min,
         float max,
@@ -167,7 +165,6 @@ struct SCORE_LIB_PROCESS_EXPORT FloatKnob : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT LogFloatSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LogFloatSlider)
-  using control_type = WidgetFactory::LogFloatSlider;
   LogFloatSlider(
       float min,
       float max,
@@ -187,7 +184,6 @@ struct SCORE_LIB_PROCESS_EXPORT LogFloatSlider : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT IntSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntSlider)
-  using control_type = WidgetFactory::IntSlider;
   IntSlider(
       int min,
       int max,
@@ -207,7 +203,6 @@ struct SCORE_LIB_PROCESS_EXPORT IntSlider : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntSpinBox)
-  using control_type = WidgetFactory::IntSpinBox;
   IntSpinBox(
       int min,
       int max,
@@ -227,7 +222,6 @@ struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Toggle)
-  using control_type = WidgetFactory::Toggle;
   Toggle(
       bool init,
       const QString& name,
@@ -243,7 +237,6 @@ struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT ChooserToggle : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(ChooserToggle)
-  using control_type = WidgetFactory::ChooserToggle;
   ChooserToggle(
       QStringList alternatives,
       bool init,
@@ -261,7 +254,6 @@ struct SCORE_LIB_PROCESS_EXPORT ChooserToggle : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LineEdit)
-  using control_type = WidgetFactory::LineEdit;
   LineEdit(
       QString init,
       const QString& name,
@@ -276,7 +268,6 @@ struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
 {
-  using control_type = WidgetFactory::ComboBox;
   MODEL_METADATA_IMPL(ComboBox)
   std::vector<std::pair<QString, ossia::value>> alternatives;
   ComboBox(
@@ -301,7 +292,6 @@ struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Enum)
-  using control_type = WidgetFactory::Enum;
   std::vector<QString> values;
   std::vector<QString> pixmaps;
   Enum(
@@ -334,7 +324,6 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Button)
-  using control_type = WidgetFactory::Button;
   Button(const QString& name, Id<Process::Port> id, QObject* parent);
   ~Button();
 
@@ -346,7 +335,6 @@ struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT ImpulseButton : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(ImpulseButton)
-  using control_type = WidgetFactory::ImpulseButton;
   ImpulseButton(const QString& name, Id<Process::Port> id, QObject* parent);
   ~ImpulseButton();
 
@@ -358,7 +346,6 @@ struct SCORE_LIB_PROCESS_EXPORT ImpulseButton : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(HSVSlider)
-  using control_type = WidgetFactory::HSVSlider;
   HSVSlider(
       ossia::vec4f init,
       const QString& name,
@@ -375,7 +362,6 @@ struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(XYSlider)
-  using control_type = WidgetFactory::XYSlider;
   XYSlider(
       ossia::vec2f init,
       const QString& name,
@@ -400,7 +386,6 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(XYZSlider)
-      using control_type = WidgetFactory::XYZSlider;
   XYZSlider(
         ossia::vec3f init,
         const QString& name,
@@ -425,7 +410,6 @@ struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(MultiSlider)
-  using control_type = WidgetFactory::MultiSlider;
   MultiSlider(
       ossia::value init,
       const QString& name,
@@ -445,7 +429,6 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT Bargraph : public Process::ControlOutlet
 {
   MODEL_METADATA_IMPL(Bargraph)
-  using control_type = WidgetFactory::Bargraph;
   Bargraph(
       float min,
       float max,

@@ -10,7 +10,7 @@
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT QGraphicsKnob final
+class SCORE_LIB_BASE_EXPORT QGraphicsKnob
     : public QObject
     , public QGraphicsItem
 {
@@ -18,6 +18,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsKnob final
   Q_INTERFACES(QGraphicsItem)
   friend struct DefaultGraphicsKnobImpl;
 
+protected:
   double m_value{};
   double m_execValue{};
   QRectF m_rect{defaultKnobSize};

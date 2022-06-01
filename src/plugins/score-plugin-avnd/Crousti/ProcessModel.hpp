@@ -145,25 +145,25 @@ struct Metadata<ConcreteKey_k, oscr::ProcessModel<Info>>
 namespace oscr
 {
 
-void setupNewPort(const auto& spec, auto* obj)
+inline void setupNewPort(const auto& spec, auto* obj)
 {
   obj->setName(fromStringView(avnd::get_name(spec)));
 }
 
-
+template<typename Node>
 struct InletInitFunc
 {
   Process::ProcessModel& self;
   Process::Inlets& ins;
   int inlet = 0;
 
-  void operator()(const avnd::audio_port auto& in)
+  void operator()(const avnd::audio_port auto& in, auto idx)
   {
     auto p = new Process::AudioInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
     ins.push_back(p);
   }
-  void operator()(const avnd::midi_port auto& in)
+  void operator()(const avnd::midi_port auto& in, auto idx)
   {
     auto p = new Process::MidiInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
@@ -171,47 +171,42 @@ struct InletInitFunc
   }
 
   template<avnd::soundfile_port T>
-  void operator()(const T& in)
+  void operator()(const T& in, auto idx)
   {
-    constexpr auto ctl = Control::Soundfile{avnd::get_name<T>()};
-    auto p = ctl.create_inlet(Id<Process::Port>(inlet++), &self);
+    constexpr auto name = avnd::get_name<T>();
+    auto p = new Process::LineEdit{"", QString::fromUtf8(name.data(), name.size()), Id<Process::Port>(inlet++), &self};
     p->hidden = true;
     ins.push_back(p);
   }
 
-  void make_value_inlet(auto& in)
-  {
-    auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
-    ins.push_back(p);
-  }
-
-  template<avnd::parameter T>
-  void operator()(const T& in)
+  template<avnd::parameter T, std::size_t N>
+  void operator()(const T& in, avnd::field_index<N>)
   {
     if constexpr(avnd::control<T>)
     {
-      constexpr auto ctl = oscr::make_control_in<T>();
-      if constexpr(!std::is_same_v<std::decay_t<decltype(ctl)>, std::nullptr_t>)
+      if(auto p = oscr::make_control_in<Node, T>(avnd::field_index<N>{}, Id<Process::Port>(inlet), &self))
       {
-        if(auto p = ctl.create_inlet(Id<Process::Port>(inlet++), &self))
-        {
-          p->hidden = true;
-          ins.push_back(p);
-        }
+        p->hidden = true;
+        ins.push_back(p);
       }
       else
       {
-        make_value_inlet(in);
+        auto vp = new Process::ValueInlet(Id<Process::Port>(inlet), &self);
+        setupNewPort(in, vp);
+        ins.push_back(vp);
       }
     }
     else
     {
-      make_value_inlet(in);
+      auto vp = new Process::ValueInlet(Id<Process::Port>(inlet), &self);
+      setupNewPort(in, vp);
+      ins.push_back(vp);
     }
+    inlet++;
   }
+
 #if SCORE_PLUGIN_GFX
-  void operator()(const avnd::texture_port auto& in)
+  void operator()(const avnd::texture_port auto& in, auto idx)
   {
     auto p = new Gfx::TextureInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
@@ -226,7 +221,8 @@ struct InletInitFunc
     setupNewPort(in, p);
     ins.push_back(p);
   }
-  template<std::size_t Idx, avnd::unreflectable_message T>
+
+  template<std::size_t Idx, avnd::unreflectable_message<Node> T>
   void operator()(const avnd::field_reflection<Idx, T>& in)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
@@ -234,19 +230,21 @@ struct InletInitFunc
     ins.push_back(p);
   }
 
-  void operator()(const auto& ctrl)
+  void operator()(const auto& ctrl, auto idx)
   {
     //(avnd::message<std::decay_t<decltype(ctrl)>>);
     qDebug() << fromStringView(avnd::get_name(ctrl)) << "unhandled";
   }
 };
 
+template<typename Node>
 struct OutletInitFunc
 {
   Process::ProcessModel& self;
   Process::Outlets& outs;
   int outlet = 0;
-  void operator()(const avnd::audio_port auto& out)
+
+  void operator()(const avnd::audio_port auto& out, auto idx)
   {
     auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
@@ -254,46 +252,57 @@ struct OutletInitFunc
       p->setPropagate(true);
     outs.push_back(p);
   }
-  void operator()(const avnd::midi_port auto& out)
+
+  void operator()(const avnd::midi_port auto& out, auto idx)
   {
     auto p = new Process::MidiOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
     outs.push_back(p);
   }
-  template<avnd::parameter T>
-  void operator()(const T& out)
+
+  template<avnd::parameter T, std::size_t N>
+  void operator()(const T& out, avnd::field_index<N>)
   {
     if constexpr(avnd::control<T>)
     {
-      constexpr auto ctl = oscr::make_control_out<T>();
-      if(auto p = ctl.create_outlet(Id<Process::Port>(outlet++), &self))
+      if(auto p = oscr::make_control_out<T>(avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
       {
         p->hidden = true;
         outs.push_back(p);
       }
+      else
+      {
+        auto vp = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
+        setupNewPort(out, vp);
+        outs.push_back(vp);
+      }
     }
     else
     {
-      auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
-      setupNewPort(out, p);
-      outs.push_back(p);
+      auto vp = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
+      setupNewPort(out, vp);
+      outs.push_back(vp);
     }
+    outlet++;
   }
+
 #if SCORE_PLUGIN_GFX
-  void operator()(const avnd::texture_port auto& out)
+  void operator()(const avnd::texture_port auto& out, auto idx)
   {
     auto p = new Gfx::TextureOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
     outs.push_back(p);
   }
 #endif
-  void operator()(const avnd::callback auto& out)
+
+  void operator()(const avnd::callback auto& out, auto idx)
   {
     auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
     outs.push_back(p);
   }
-  void operator()(const auto& ctrl)
+
+  void operator()(const auto& ctrl, auto idx)
   {
     qDebug() << fromStringView(avnd::get_name(ctrl)) << "unhandled";
   }
@@ -343,8 +352,8 @@ public:
     metadata().setInstanceName(*this);
 
     avnd::port_visit_dispatcher<Info>(
-      InletInitFunc{*this, m_inlets},
-      OutletInitFunc{*this, m_outlets}
+      InletInitFunc<Info>{*this, m_inlets},
+      OutletInitFunc<Info>{*this, m_outlets}
     );
 
     if constexpr(requires { this->from_ui; }) {
@@ -394,26 +403,11 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
   using model_type = oscr::ProcessModel<Info>;
   static void readFrom(JSONObject::Serializer& s, const model_type& obj)
   {
-    using namespace Control;
-
     Process::readPorts(s, obj.m_inlets, obj.m_outlets);
   }
 
   static void writeTo(JSONObject::Deserializer& s, model_type& obj)
   {
-    using namespace Control;
-
     Process::writePorts(s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets, obj.m_outlets, &obj);
   }
 };
-
-namespace score
-{
-template <typename Vis, typename Info>
-void serialize_dyn_impl(Vis& v, const oscr::ProcessModel<Info>& t)
-{
-  TSerializer<typename Vis::type, oscr::ProcessModel<Info>>::readFrom(
-      v, t);
-}
-}
-

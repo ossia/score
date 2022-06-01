@@ -1,6 +1,7 @@
 #pragma once
-#include <Control/Widgets.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <ossia/dataflow/audio_port.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/tick_policies.hpp>
 #include <boost/container/vector.hpp>
 #include <Process/ProcessFlags.hpp>
@@ -11,6 +12,7 @@
 #include <gsl/span>
 #include <type_traits>
 #include <avnd/common/concepts_polyfill.hpp>
+#include <avnd/common/struct_reflection.hpp>
 #include <avnd/concepts/audio_port.hpp>
 #include <avnd/concepts/midi_port.hpp>
 #include <avnd/concepts/parameter.hpp>
@@ -18,10 +20,6 @@
 #include <avnd/wrappers/metadatas.hpp>
 #include <avnd/wrappers/widgets.hpp>
 #include <avnd/concepts/gfx.hpp>
-
-namespace oscr
-{
-
 
 #define make_uuid(text) score::uuids::string_generator::compute((text))
 #if defined(_MSC_VER)
@@ -32,10 +30,20 @@ namespace oscr
 
 #define constant static inline constexpr auto
 
+namespace oscr
+{
+template<typename Node, typename FieldIndex>
+struct CustomFloatControl;
+}
 
+template<typename Node, typename FieldIndex>
+struct is_custom_serialized<oscr::CustomFloatControl<Node, FieldIndex>> : std::true_type { };
 
+namespace oscr
+{
 template<typename N>
-consteval score::uuid_t uuid_from_string() {
+consteval score::uuid_t uuid_from_string()
+{
   if constexpr(requires { { N::uuid() } -> std::convertible_to<score::uuid_t>; })
   {
     return N::uuid();
@@ -47,14 +55,103 @@ consteval score::uuid_t uuid_from_string() {
   }
 }
 
+template<typename Node>
+score::uuids::uuid make_field_uuid(uint64_t is_input, uint64_t index)
+{
+  score::uuid_t node_uuid = uuid_from_string<Node>();
+  uint64_t dat[2];
+
+  memcpy(dat, node_uuid.data, 16);
+
+  dat[0] ^= is_input;
+  dat[1] ^= index;
+
+  memcpy(node_uuid.data, dat, 16);
+
+  return node_uuid;
 }
+
+template<typename Node, typename FieldIndex>
+struct CustomFloatControl : public Process::ControlInlet
+{
+  static key_type static_concreteKey() noexcept
+  {
+    return make_field_uuid<Node>(true, FieldIndex{});
+  }
+  key_type concreteKey() const noexcept override
+  {
+    return static_concreteKey();
+  }
+  void serialize_impl(const VisitorVariant& vis) const noexcept override
+  {
+    score::serialize_dyn(vis, *this);
+  }
+
+  CustomFloatControl(
+      float min,
+      float max,
+      float init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent)
+    : ControlInlet{id, parent}
+  {
+    hidden = true;
+    setValue(init);
+    setDomain(ossia::make_domain(min, max));
+    setName(name);
+  }
+
+  ~CustomFloatControl() { }
+
+  auto getMin() const noexcept { return domain().get().template convert_min<float>(); }
+  auto getMax() const noexcept { return domain().get().template convert_max<float>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override
+  {
+    auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+    port.type = ossia::val_type::FLOAT;
+    port.domain = domain().get();
+  }
+
+  using Process::ControlInlet::ControlInlet;
+};
+
+}
+template<typename Node, typename FieldIndex>
+struct TSerializer<DataStream, oscr::CustomFloatControl<Node, FieldIndex>>
+{
+  using model_type = oscr::CustomFloatControl<Node, FieldIndex>;
+  static void readFrom(DataStream::Serializer& s, const model_type& p)
+  {
+    s.read((const Process::ControlInlet&)p);
+  }
+
+  static void writeTo(DataStream::Deserializer& s, model_type& eff)
+  {
+  }
+};
+
+template<typename Node, typename FieldIndex>
+struct TSerializer<JSONObject, oscr::CustomFloatControl<Node, FieldIndex>>
+{
+  using model_type = oscr::CustomFloatControl<Node, FieldIndex>;
+  static void readFrom(JSONObject::Serializer& s, const model_type& p)
+  {
+    s.read((const Process::ControlInlet&)p);
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, model_type& eff)
+  {
+  }
+};
 
 
 namespace oscr
 {
 
+
 template<typename T, std::size_t N>
-consteval auto to_const_char_array(const T(& val)[N])
+constexpr auto to_const_char_array(const T(& val)[N])
 {
   //using pair_type = typename std::decay_t<decltype(val)>::value_type;
   using value_type = std::decay_t<decltype(T::second)>;
@@ -68,7 +165,7 @@ consteval auto to_const_char_array(const T(& val)[N])
   return choices_cstr;
 }
 template<std::size_t N, typename T>
-consteval auto to_const_char_array(const std::array<std::pair<std::string_view, T>, N>& val)
+constexpr auto to_const_char_array(const std::array<std::pair<std::string_view, T>, N>& val)
 {
   std::array<const char*, N> choices_cstr;
   for(int i = 0; i < N; i++)
@@ -76,7 +173,7 @@ consteval auto to_const_char_array(const std::array<std::pair<std::string_view, 
   return choices_cstr;
 }
 template<std::size_t N>
-consteval auto to_const_char_array(const std::string_view(&val)[N])
+constexpr auto to_const_char_array(const std::string_view(&val)[N])
 {
   std::array<const char*, N> choices_cstr;
   for(int i = 0; i < N; i++)
@@ -84,7 +181,7 @@ consteval auto to_const_char_array(const std::string_view(&val)[N])
   return choices_cstr;
 }
 template<std::size_t N>
-consteval auto to_const_char_array(const std::array<std::string_view, N>& val)
+constexpr auto to_const_char_array(const std::array<std::string_view, N>& val)
 {
   std::array<const char*, N> choices_cstr;
   for(int i = 0; i < N; i++)
@@ -92,33 +189,56 @@ consteval auto to_const_char_array(const std::array<std::string_view, N>& val)
   return choices_cstr;
 }
 
-template<typename T>
-consteval auto make_control_in()
+std::vector<std::pair<QString, ossia::value>> to_combobox_range(const auto& in)
+{
+  std::vector<std::pair<QString, ossia::value>> vec;
+  for (auto& v : to_const_char_array(in))
+    vec.emplace_back(v.first, v.second);
+  return vec;
+}
+
+std::vector<std::string> to_enum_range(const auto& in)
+{
+  std::vector<std::string> vec;
+  for (auto& v : to_const_char_array(in))
+    vec.emplace_back(v);
+  return vec;
+}
+
+template<typename Node, typename T, std::size_t N>
+auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
 {
   using value_type = as_type(T::value);
-  constexpr auto name = avnd::get_name<T>().data();
+  constexpr auto name = avnd::get_name<T>();
+  QString qname = QString::fromUtf8(name.data(), name.size());
+
   constexpr auto widg = avnd::get_widget<T>();
 
   // FIXME log normalization & friends
 
   if constexpr(widg.widget == avnd::widget_type::bang)
   {
-    return Control::ImpulseButton{name};
+    return new Process::ImpulseButton{qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::button)
   {
-    constexpr auto c = avnd::get_range<T>();
-    return Control::Button{name};
+    return new Process::Button{qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::toggle)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr(requires { c.values(); }) {
-       std::array<const char*, 2> arr{ c.values[0], c.values[1] };
-       return Control::ChooserToggle{name, arr, c.init};
+    if constexpr(requires { c.values(); })
+    {
+      return new Process::ChooserToggle{
+          {c.values[0], c.values[1]},
+          c.init,
+          qname,
+          id,
+          parent};
     }
-    else {
-      return Control::Toggle{name, c.init};
+    else
+    {
+      return new Process::Toggle{c.init, qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::slider)
@@ -126,11 +246,18 @@ consteval auto make_control_in()
     constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
-      return Control::IntSlider{name, c.min, c.max, c.init};
+      return new Process::IntSlider{c.min, c.max, c.init, qname, id, parent};
     }
     else
     {
-      return Control::FloatSlider{name, c.min, c.max, c.init};
+      if constexpr(avnd::has_mapper<T>)
+      {
+        return new CustomFloatControl<Node, avnd::field_index<N>>{c.min, c.max, c.init, qname, id, parent};
+      }
+      else
+      {
+        return new Process::FloatSlider{c.min, c.max, c.init, qname, id, parent};
+      }
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::range)
@@ -143,12 +270,12 @@ consteval auto make_control_in()
     constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
-      return Control::IntSpinBox{name, c.min, c.max, c.init};
+      return new Process::IntSpinBox{c.min, c.max, c.init, qname, id, parent};
     }
     else
     {
       // FIXME do a FloatSpinBox
-      return Control::FloatSlider{name, c.min, c.max, c.init};
+      return new Process::FloatSlider{c.min, c.max, c.init, qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::knob)
@@ -157,110 +284,80 @@ consteval auto make_control_in()
     if constexpr(std::is_integral_v<value_type>)
     {
       // FIXME do a IntKnob
-      return Control::IntSlider{name, c.min, c.max, c.init};
+      return new Process::IntSlider{c.min, c.max, c.init, qname, id, parent};
     }
     else
     {
-      return Control::FloatKnob{name, c.min, c.max, c.init};
+      return new Process::FloatKnob{c.min, c.max, c.init, qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::lineedit)
   {
     constexpr auto c = avnd::get_range<T>();
-    return Control::LineEdit{name, c.init.data()};
+    return new Process::LineEdit{c.init.data(), qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::combobox)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr(std::is_enum_v<value_type>) {
-      // List of string, values will be the strings themselves or 0, 1...
-      // Convert from std::string_view to const char* until we migrate everything here
-      return Control::ComboBox{name, c.init, to_const_char_array(c.values)};
-    }
-    else if constexpr(requires { std::string_view{c.values[0].first}; }) {
-      // Pair of string <-> values
-      return Control::ComboBox{name, c.init, to_const_char_array(c.values)};
-    }
-    else if constexpr(requires { std::string_view{c.values[0]}; }) {
-      // List of string, values will be the strings themselves or 0, 1...
-      return Control::ComboBox{name, c.init, to_const_char_array(c.values)};
-    }
-    else if constexpr(requires { int{c.values[0]}; }) {
-      // List of string, values will be the strings themselves or 0, 1...
-      return Control::ComboBox{name, c.init, to_const_char_array(c.values)};
-    }
-    else {
-      throw;
-    }
+    return new Process::ComboBox{to_combobox_range(c.values), c.init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::choices)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr(std::is_enum_v<value_type>) {
-      // List of string, values will be the strings themselves or 0, 1...
-      // Convert from std::string_view to const char* until we migrate everything here
-      return Control::Enum{name, c.init, to_const_char_array(c.values)};
-    }
-    else if constexpr(requires { std::string_view{c.values[0].first}; }) {
-      // Pair of string <-> values
-      return Control::Enum{name, c.init, to_const_char_array(c.values)};
-    }
-    else if constexpr(requires { std::string_view{c.values[0]}; }) {
-      // List of string, values will be the strings themselves or 0, 1...
-      return Control::Enum{name, c.init, to_const_char_array(c.values)};
-    }
-    else if constexpr(requires { int{c.values[0]}; }) {
-      // List of string, values will be the strings themselves or 0, 1...
-      return Control::Enum{name, c.init, to_const_char_array(c.values)};
-    }
-    else {
-      throw;
-    }
+    auto enums = to_enum_range(c.values);
+    auto init = enums[c.init];
+    return new Process::Enum{std::move(enums), {}, std::move(init), qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::xy)
   {
     constexpr auto c = avnd::get_range<T>();
-    return Control::XYSlider{name, c.min, c.max, c.init};
+    if constexpr(requires { c.min == 0.f; c.max == 0.f; c.init == 0.f;})
+    {
+      return new Process::XYSlider{{c.min, c.min}, {c.max, c.max}, {c.init, c.init}, qname, id, parent};
+    }
+    else
+    {
+      auto [mx, my] = c.min;
+      auto [Mx, My] = c.max;
+      auto [ix, iy] = c.init;
+      return new Process::XYSlider{{mx, my}, {Mx, My}, {ix, iy}, qname, id, parent};
+    }
   }
   else if constexpr(widg.widget == avnd::widget_type::color)
   {
     constexpr auto c = avnd::get_range<T>();
     constexpr auto i = c.init;
-    return Control::HSVSlider{name, {i.r, i.g, i.b, i.a}};
+    return new Process::HSVSlider{{i.r, i.g, i.b, i.a}, qname, id, parent};
   }
   else
   {
-    throw;
+    static_assert(T::is_not_a_valid_control);
   }
 }
 
-template<typename T>
-constexpr auto make_control_in(const T& t)
-{ return make_control_in<T>(); }
-
-
-template<typename T>
-consteval auto make_control_out()
+template<typename T, std::size_t N>
+auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
 {
   using value_type = as_type(T::value);
-  constexpr auto name = avnd::get_name<T>().data();
+  constexpr auto name = avnd::get_name<T>();
   constexpr auto widg = avnd::get_widget<T>();
+  QString qname = QString::fromUtf8(name.data(), name.size());
 
   // FIXME log normalization & friends
 
   if constexpr(widg.widget == avnd::widget_type::bargraph)
   {
     constexpr auto c = avnd::get_range<T>();
-    return Control::Bargraph{name, c.min, c.max, c.init};
+    return new Process::Bargraph{c.min, c.max, c.init, qname, id, parent};
   }
   else if constexpr(avnd::fp_ish<decltype(T::value)>)
   {
     constexpr auto c = avnd::get_range<T>();
-    return Control::Bargraph{name, c.min, c.max, c.init};
+    return new Process::Bargraph{c.min, c.max, c.init, qname, id, parent};
   }
   else
   {
-    static_assert(T::error__unsupported_widget_type);
+    static_assert(T::is_not_a_valid_control);
   }
 }
 

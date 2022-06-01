@@ -118,7 +118,7 @@ struct FloatControl
     }
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl, norm](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [sl, norm](const ossia::value& val) {
           if constexpr (Control)
           {
             if (!sl->moving)
@@ -165,7 +165,7 @@ struct FloatControl
     }
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl, norm](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [sl, norm](const ossia::value& val) {
           if constexpr (Control)
           {
             if (!sl->moving)
@@ -177,7 +177,7 @@ struct FloatControl
           }
         });
     QObject::connect(
-        &inlet, &Control_T::executionValueChanged, sl, [sl, norm](ossia::value val) {
+        &inlet, &Control_T::executionValueChanged, sl, [sl, norm](const ossia::value& val) {
           sl->setExecutionValue(norm.to01(ossia::convert<double>(val)));
         });
     QObject::connect(
@@ -237,7 +237,7 @@ struct IntSlider
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
           if (!sl->moving)
             sl->setValue(ossia::convert<int>(val));
         });
@@ -273,12 +273,12 @@ struct IntSlider
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
           if (!sl->moving)
             sl->setValue(ossia::convert<int>(val));
         });
     QObject::connect(
-        &inlet, &Control_T::executionValueChanged, sl, [=](ossia::value val) {
+        &inlet, &Control_T::executionValueChanged, sl, [=](const ossia::value& val) {
             sl->setExecutionValue(ossia::convert<int>(val));
         });
     QObject::connect(
@@ -318,7 +318,7 @@ struct IntSpinBox
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
           sl->setValue(ossia::convert<int>(val));
         });
 
@@ -353,13 +353,13 @@ struct IntSpinBox
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
           if (!sl->moving)
             sl->setValue(ossia::convert<int>(val));
         });
 
     QObject::connect(
-        &inlet, &Control_T::executionValueChanged, sl, [=](ossia::value val) {
+        &inlet, &Control_T::executionValueChanged, sl, [=](const ossia::value& val) {
           if (!sl->moving)
             sl->setExecutionValue(ossia::convert<int>(val));
         });
@@ -394,7 +394,7 @@ struct Toggle
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
           sl->setChecked(ossia::convert<bool>(val));
         });
 
@@ -422,7 +422,7 @@ struct Toggle
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, cb, [cb](ossia::value val) {
+        &inlet, &Control_T::valueChanged, cb, [cb](const ossia::value& val) {
           cb->setState(ossia::convert<bool>(val));
         });
 
@@ -590,7 +590,7 @@ struct ChooserToggle
         &inlet,
         &Control_T::valueChanged,
         toggleBtn,
-        [toggleBtn](ossia::value val) {
+        [toggleBtn](const ossia::value& val) {
           bool b = ossia::convert<bool>(val);
           if (b && !toggleBtn->isChecked())
             toggleBtn->toggle();
@@ -624,7 +624,7 @@ struct ChooserToggle
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, toggle, [toggle](ossia::value val) {
+        &inlet, &Control_T::valueChanged, toggle, [toggle](const ossia::value& val) {
           toggle->setState(ossia::convert<bool>(val));
         });
 
@@ -660,7 +660,7 @@ struct LineEdit
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
           sl->setText(
               QString::fromStdString(ossia::convert<std::string>(val)));
         });
@@ -1001,7 +1001,7 @@ struct HSVSlider
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
           if (!sl->moving)
             sl->setRgbaValue(ossia::convert<ossia::vec4f>(val));
         });
@@ -1059,7 +1059,7 @@ struct XYSlider
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
           if (!sl->moving)
             sl->setValue(ossia::convert<ossia::vec2f>(val));
         });
@@ -1115,7 +1115,7 @@ struct XYZSlider
     });
 
     QObject::connect(
-          &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+          &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
       if (!sl->moving)
         sl->setValue(ossia::convert<ossia::vec3f>(val));
     });
@@ -1175,7 +1175,7 @@ struct MultiSlider
         });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
           if (!sl->moving)
             sl->setValue(std::move(val));
         });

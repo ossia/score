@@ -11,7 +11,7 @@
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
+class SCORE_LIB_BASE_EXPORT QGraphicsSlider
     : public QObject
     , public QGraphicsSliderBase<QGraphicsSlider>
 {
@@ -19,6 +19,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
   friend struct DefaultGraphicsSliderImpl;
   friend struct QGraphicsSliderBase<QGraphicsSlider>;
 
+protected:
   double m_value{};
   double m_execValue{};
 
@@ -30,7 +31,7 @@ private:
   bool m_hasExec{};
 
 public:
-  QGraphicsSlider(QGraphicsItem* parent);
+  explicit QGraphicsSlider(QGraphicsItem* parent);
 
   double unmap(double v) const noexcept { return (v - min) / (max - min); }
   double map(double v) const noexcept { return (v * (max - min)) + min; }

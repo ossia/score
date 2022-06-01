@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/Dataflow/ControlWidgetDomains.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/plugins/DeserializeKnownSubType.hpp>
@@ -69,10 +71,10 @@ struct InControl final : ossia::safe_nodes::control_in
   const ossia::value& toValue(const ossia::value& v) const { return v; }
 };
 
-template <typename Model_T, typename T>
+template <typename Model_T, typename T, typename Normalizer = WidgetFactory::LinearNormalizer>
 struct FloatControl final
     : ossia::safe_nodes::control_in
-    , WidgetFactory::FloatControl<T, WidgetFactory::LinearNormalizer, true>
+    , WidgetFactory::FloatControl<T, Normalizer, true>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -81,64 +83,6 @@ struct FloatControl final
   const float init{};
 
   constexpr FloatControl(const char* name, float v1, float v2, float v3)
-      : ossia::safe_nodes::control_in{name}
-      , min{v1}
-      , max{v2}
-      , init{v3}
-  {
-  }
-
-  auto getMin() const { return min; }
-  auto getMax() const { return max; }
-
-  auto create_inlet(Id<Process::Port> id, QObject* parent) const
-  {
-    return new Model_T{
-        min,
-        max,
-        init,
-        QString::fromUtf8(name.data(), name.size()),
-        id,
-        parent};
-  }
-  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
-  {
-    return deserialize_known_interface<Model_T>(id, parent);
-  }
-  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
-  {
-    return deserialize_known_interface<Model_T>(id, parent);
-  }
-
-  void setup_exec(auto& v) const
-  {
-    v->type = ossia::val_type::FLOAT;
-    v->domain = ossia::domain_base<float>(this->min, this->max);
-  }
-
-  float fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<float>(v);
-  }
-  ossia::value toValue(float v) const { return v; }
-};
-
-template <typename Model_T, typename T>
-struct LogFloatControl final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::FloatControl<T, WidgetFactory::LogNormalizer, true>
-{
-  static const constexpr bool must_validate = false;
-  using type = float;
-  const float min{};
-  const float max{};
-  const float init{};
-
-  constexpr LogFloatControl(
-      const char* name,
-      float v1,
-      float v2,
-      float v3)
       : ossia::safe_nodes::control_in{name}
       , min{v1}
       , max{v2}
@@ -237,8 +181,8 @@ struct FloatDisplay final
 
 using FloatSlider = FloatControl<Process::FloatSlider, score::QGraphicsSlider>;
 using FloatKnob = FloatControl<Process::FloatKnob, score::QGraphicsKnob>;
-using LogFloatSlider = LogFloatControl<Process::LogFloatSlider, score::QGraphicsLogSlider>;
-using LogFloatKnob = LogFloatControl<Process::LogFloatSlider, score::QGraphicsLogKnob>;
+using LogFloatSlider = FloatControl<Process::LogFloatSlider, score::QGraphicsLogSlider, WidgetFactory::LogNormalizer>;
+using LogFloatKnob = FloatControl<Process::LogFloatSlider, score::QGraphicsLogKnob, WidgetFactory::LogNormalizer>;
 // FIXME the process implementation is missing.
 
 using Bargraph = FloatDisplay<score::QGraphicsSlider>;

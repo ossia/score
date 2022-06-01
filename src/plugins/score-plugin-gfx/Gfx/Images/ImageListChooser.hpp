@@ -50,7 +50,6 @@ namespace Gfx::Images
 struct ImageListChooser : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(ImageListChooser)
-  using control_type = WidgetFactory::ImageListChooserItems;
   ImageListChooser(
       const std::vector<QString>& init,
       const QString& name,

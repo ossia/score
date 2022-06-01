@@ -1,5 +1,6 @@
 #include "score_plugin_dataflow.hpp"
 
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Dataflow/AudioInletItem.hpp>
 #include <Dataflow/AudioOutletItem.hpp>
 #include <Dataflow/CableInspector.hpp>
@@ -45,23 +46,23 @@ score_plugin_dataflow::factories(
          Dataflow::AudioOutletFactory,
          Dataflow::ControlOutletFactory,
          Dataflow::MinMaxFloatOutletFactory,
-         Dataflow::WidgetInletFactory<Process::FloatSlider>,
-         Dataflow::WidgetInletFactory<Process::FloatKnob>,
-         Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
-         Dataflow::WidgetInletFactory<Process::IntSlider>,
-         Dataflow::WidgetInletFactory<Process::IntSpinBox>,
-         Dataflow::WidgetInletFactory<Process::Toggle>,
-         Dataflow::WidgetInletFactory<Process::Button>,
-         Dataflow::WidgetInletFactory<Process::ImpulseButton>,
-         Dataflow::WidgetInletFactory<Process::ChooserToggle>,
-         Dataflow::WidgetInletFactory<Process::LineEdit>,
-         Dataflow::WidgetInletFactory<Process::ComboBox>,
-         Dataflow::WidgetInletFactory<Process::Enum>,
-         Dataflow::WidgetInletFactory<Process::HSVSlider>,
-         Dataflow::WidgetInletFactory<Process::XYSlider>,
-         Dataflow::WidgetInletFactory<Process::XYZSlider>,
-         Dataflow::WidgetInletFactory<Process::MultiSlider>,
-         Dataflow::WidgetOutletFactory<Process::Bargraph>>>(ctx, key);
+         Dataflow::WidgetInletFactory<Process::FloatSlider, WidgetFactory::FloatSlider>,
+         Dataflow::WidgetInletFactory<Process::FloatKnob, WidgetFactory::FloatKnob>,
+         Dataflow::WidgetInletFactory<Process::LogFloatSlider, WidgetFactory::LogFloatSlider>,
+         Dataflow::WidgetInletFactory<Process::IntSlider, WidgetFactory::IntSlider>,
+         Dataflow::WidgetInletFactory<Process::IntSpinBox, WidgetFactory::IntSpinBox>,
+         Dataflow::WidgetInletFactory<Process::Toggle, WidgetFactory::Toggle>,
+         Dataflow::WidgetInletFactory<Process::Button, WidgetFactory::Button>,
+         Dataflow::WidgetInletFactory<Process::ImpulseButton, WidgetFactory::ImpulseButton>,
+         Dataflow::WidgetInletFactory<Process::ChooserToggle, WidgetFactory::ChooserToggle>,
+         Dataflow::WidgetInletFactory<Process::LineEdit, WidgetFactory::LineEdit>,
+         Dataflow::WidgetInletFactory<Process::ComboBox, WidgetFactory::ComboBox>,
+         Dataflow::WidgetInletFactory<Process::Enum, WidgetFactory::Enum>,
+         Dataflow::WidgetInletFactory<Process::HSVSlider, WidgetFactory::HSVSlider>,
+         Dataflow::WidgetInletFactory<Process::XYSlider, WidgetFactory::XYSlider>,
+         Dataflow::WidgetInletFactory<Process::XYZSlider, WidgetFactory::XYZSlider>,
+         Dataflow::WidgetInletFactory<Process::MultiSlider, WidgetFactory::MultiSlider>,
+         Dataflow::WidgetOutletFactory<Process::Bargraph, WidgetFactory::Bargraph>>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>
