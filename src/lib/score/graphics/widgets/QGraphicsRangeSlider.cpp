@@ -9,6 +9,9 @@ W_OBJECT_IMPL(score::QGraphicsRangeSlider);
 
 namespace score
 {
-{
+QGraphicsRangeSlider::QGraphicsRangeSlider(QGraphicsItem* parent){
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorPointingHand);
+}
 
 }
