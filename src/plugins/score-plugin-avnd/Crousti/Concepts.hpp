@@ -262,7 +262,14 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   else if constexpr(widg.widget == avnd::widget_type::range)
   {
     constexpr auto c = avnd::get_range<T>();
-    return nullptr; // TODO
+    if constexpr(std::is_integral_v<value_type>)
+    {
+      return new Process::IntRangeSlider{c.min, c.max, c.init, qname, id, parent};
+    }
+    else
+    {
+      return new Process::FloatRangeSlider{c.min, c.max, c.init, qname, id, parent};
+    }
   }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)
   {
