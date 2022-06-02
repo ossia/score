@@ -50,6 +50,8 @@ score_plugin_dataflow::factories(
          Dataflow::WidgetInletFactory<Process::FloatKnob, WidgetFactory::FloatKnob>,
          Dataflow::WidgetInletFactory<Process::LogFloatSlider, WidgetFactory::LogFloatSlider>,
          Dataflow::WidgetInletFactory<Process::IntSlider, WidgetFactory::IntSlider>,
+         Dataflow::WidgetInletFactory<Process::IntRangeSlider, WidgetFactory::IntRangeSlider>,
+         Dataflow::WidgetInletFactory<Process::FloatRangeSlider, WidgetFactory::FloatRangeSlider>,
          Dataflow::WidgetInletFactory<Process::IntSpinBox, WidgetFactory::IntSpinBox>,
          Dataflow::WidgetInletFactory<Process::Toggle, WidgetFactory::Toggle>,
          Dataflow::WidgetInletFactory<Process::Button, WidgetFactory::Button>,

@@ -217,9 +217,9 @@ struct SCORE_LIB_PROCESS_EXPORT IntRangeSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntRangeSlider)
   IntRangeSlider(
-        float min,
-        float max,
-        std::pair<float, float> init,
+        int min,
+        int max,
+        ossia::vec2f init,
         const QString& name,
         Id<Process::Port> id,
         QObject* parent);
@@ -238,7 +238,7 @@ struct SCORE_LIB_PROCESS_EXPORT FloatRangeSlider : public Process::ControlInlet
   FloatRangeSlider(
         float min,
         float max,
-        std::pair<float, float> init,
+        ossia::vec2f init,
         const QString& name,
         Id<Process::Port> id,
         QObject* parent);

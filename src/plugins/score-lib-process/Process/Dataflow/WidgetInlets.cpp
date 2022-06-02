@@ -236,6 +236,54 @@ void IntSlider::setupExecution(ossia::inlet& inl) const noexcept
   port.domain = domain().get();
 }
 
+IntRangeSlider::IntRangeSlider(
+    int min,
+    int max,
+    ossia::vec2f init,
+    const QString& name,
+    Id<Port> id,
+    QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setName(name);
+}
+
+IntRangeSlider::~IntRangeSlider() { }
+
+void IntRangeSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::VEC2F;
+  port.domain = domain().get();
+}
+
+FloatRangeSlider::FloatRangeSlider(
+    float min,
+    float max,
+    ossia::vec2f init,
+    const QString& name,
+    Id<Port> id,
+    QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setName(name);
+}
+
+FloatRangeSlider::~FloatRangeSlider() { }
+
+void FloatRangeSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::VEC2F;
+  port.domain = domain().get();
+}
+
 IntSpinBox::IntSpinBox(
     int min,
     int max,
@@ -586,6 +634,50 @@ JSONWriter::write<Process::IntSlider>(Process::IntSlider& p)
 {
 }
 
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::IntRangeSlider>(const Process::IntRangeSlider& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::IntRangeSlider>(Process::IntRangeSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::IntRangeSlider>(const Process::IntRangeSlider& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::IntRangeSlider>(Process::IntRangeSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::FloatRangeSlider>(const Process::FloatRangeSlider& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::FloatRangeSlider>(Process::FloatRangeSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::FloatRangeSlider>(const Process::FloatRangeSlider& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::FloatRangeSlider>(Process::FloatRangeSlider& p)
+{
+}
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)

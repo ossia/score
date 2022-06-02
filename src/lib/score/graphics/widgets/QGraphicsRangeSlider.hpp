@@ -24,20 +24,24 @@ class SCORE_LIB_BASE_EXPORT QGraphicsRangeSlider final
     double m_min{0}, m_max{1};
 
 public:
-    QGraphicsRangeSlider(QGraphicsItem* parent);
+    bool moving = false;
+
+    explicit QGraphicsRangeSlider(QGraphicsItem* parent);
 
     void setStart(double start);
     void setEnd(double end);
-
     void setRange(double min, double max);
 
-public:
-    void start_changed(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, start_changed, arg_1)
-    void end_changed(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, end_changed, arg_1)
+    void setValue(ossia::vec2f value);
+    ossia::vec2f value() const noexcept;
+    void setExecutionValue(ossia::vec2f) { } // TODO
+    void resetExecution() { } // TODO
 
-    double unmap(double v) const noexcept { return (v - m_min) / (m_max - m_min); }
-    double map(double v) const noexcept { return (v * (m_max - m_min)) + m_min; }
+    void startChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, startChanged, arg_1)
+    void endChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, endChanged, arg_1)
 
+    void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+    void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
