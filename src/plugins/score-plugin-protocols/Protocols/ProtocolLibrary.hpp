@@ -76,23 +76,15 @@ class OSCLibraryHandler final : public Library::LibraryInterface
     if (!ok)
       return false;
 
-    Device::ProtocolFactoryList fact;
-#if defined(OSSIA_PROTOCOL_OSC)
-    fact.insert(std::make_unique<Protocols::OSCProtocolFactory>());
-#endif
-#if defined(OSSIA_PROTOCOL_MINUIT)
-    fact.insert(std::make_unique<Protocols::MinuitProtocolFactory>());
-#endif
-#if defined(OSSIA_PROTOCOL_OSCQUERY)
-    fact.insert(std::make_unique<Protocols::OSCQueryProtocolFactory>());
-#endif
-
     auto& devplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
     auto& model = devplug.explorer();
 
     Device::DeviceSettings& set = *n.target<Device::DeviceSettings>();
-    set.name = QFileInfo(path).completeBaseName();
-    set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
+    if(set.name.isEmpty())
+      set.name = QFileInfo(path).completeBaseName();
+
+    if(set.protocol.impl().is_nil())
+      set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
     model.checkAndLoadDevice(std::move(n));
     return true;
@@ -123,12 +115,11 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     if (!obj)
       return true;
 
-    Device::ProtocolFactoryList fact;
     Device::DeviceSettings set;
     set.name = QFileInfo(f).baseName();
+
     if (dynamic_cast<Protocols::Mapper*>(obj.get()))
     {
-      fact.insert(std::make_unique<Protocols::MapperProtocolFactory>());
       set.protocol = Protocols::MapperProtocolFactory::static_concreteKey();
       set.deviceSpecificSettings
           = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
@@ -136,7 +127,6 @@ class QMLLibraryHandler final : public Library::LibraryInterface
 #if defined(OSSIA_PROTOCOL_SERIAL)
     else if (dynamic_cast<ossia::net::Serial*>(obj.get()))
     {
-      fact.insert(std::make_unique<Protocols::SerialProtocolFactory>());
       set.protocol = Protocols::SerialProtocolFactory::static_concreteKey();
       set.deviceSpecificSettings = QVariant::fromValue(
           Protocols::SerialSpecificSettings{{}, content});
@@ -145,7 +135,6 @@ class QMLLibraryHandler final : public Library::LibraryInterface
 #if defined(OSSIA_PROTOCOL_HTTP)
     else if (dynamic_cast<ossia::net::HTTP*>(obj.get()))
     {
-      fact.insert(std::make_unique<Protocols::HTTPProtocolFactory>());
       set.protocol = Protocols::HTTPProtocolFactory::static_concreteKey();
       set.deviceSpecificSettings
           = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
@@ -154,7 +143,6 @@ class QMLLibraryHandler final : public Library::LibraryInterface
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
     else if (dynamic_cast<ossia::net::WS*>(obj.get()))
     {
-      fact.insert(std::make_unique<Protocols::WSProtocolFactory>());
       set.protocol = Protocols::WSProtocolFactory::static_concreteKey();
       set.deviceSpecificSettings
           = QVariant::fromValue(Protocols::WSSpecificSettings{
