@@ -7,7 +7,7 @@
 
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/detail/ssize.hpp>
-
+#include <ossia/detail/math.hpp>
 #include <QJSValue>
 #include <QObject>
 #include <QQmlListProperty>
