@@ -25,6 +25,7 @@
 #include <QEventLoop>
 #include <QQmlComponent>
 #include <QQmlContext>
+#include <QTimer>
 
 #include <Scenario/Execution/score2OSSIA.hpp>
 
@@ -86,6 +87,29 @@ Component::Component(
         });
   }
 
+  auto c = con(
+      ctx.doc.coarseUpdateTimer,
+      &QTimer::timeout,
+      this,
+      [node, &proc] {
+        auto y = proc.fx.get();
+        if(std::bitset<64> res = ysfx_fetch_slider_changes(y); res.any())
+        {
+          for(int i = 0; i < 64; i++)
+          {
+            if(res.test(i))
+            {
+              // See ProcessModel.hpp around the loop:
+              // for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
+              int idx = 4 + i;
+              if(auto inl = static_cast<Process::ControlInlet*>(proc.inlet(Id<Process::Port>{idx})))
+                inl->setExecutionValue(ysfx_slider_get_value(y, i));
+              else
+                qDebug() << "Error while trying to access inlet " << idx;
+            }
+          }
+        }
+      });
 }
 
 Component::~Component() { }
@@ -94,18 +118,20 @@ ysfx_node::ysfx_node(std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
   : fx{std::move(ffx)}
   , m_st{st}
 {
-  ysfx_set_block_size(fx.get(), st.bufferSize);
-  ysfx_set_sample_rate(fx.get(), st.sampleRate);
-  ysfx_init(fx.get());
+  auto y = this->fx.get();
 
-  if(ysfx_get_num_inputs(fx.get()) > 0)
+  ysfx_set_block_size(y, st.bufferSize);
+  ysfx_set_sample_rate(y, st.sampleRate);
+  ysfx_init(y);
+
+  if(ysfx_get_num_inputs(y) > 0)
   {
     this->m_inlets.push_back(audio_in = new ossia::audio_inlet);
   }
 
   this->m_inlets.push_back(midi_in = new ossia::midi_inlet);
 
-  if(ysfx_get_num_outputs(fx.get()) > 0)
+  if(ysfx_get_num_outputs(y) > 0)
   {
     this->m_outlets.push_back(audio_out = new ossia::audio_outlet);
   }
@@ -117,18 +143,18 @@ ysfx_node::ysfx_node(std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
     auto inl = new ossia::value_inlet;
     this->m_inlets.push_back(inl);
     this->sliders.push_back(&**inl);
-    if (ysfx_slider_is_enum(fx.get(), i))
+    if (ysfx_slider_is_enum(y, i))
     {
 
     }
-    else if(ysfx_slider_is_path(fx.get(), i))
+    else if(ysfx_slider_is_path(y, i))
     {
 
     }
     else
     {
       ysfx_slider_range_t range{};
-      ysfx_slider_get_range(fx.get(), i, &range);
+      ysfx_slider_get_range(y, i, &range);
 
       (*inl)->domain = ossia::make_domain(range.min, range.max);
     }
@@ -140,6 +166,7 @@ void ysfx_node::run(
     ossia::exec_state_facade estate) noexcept
 {
   assert(fx);
+  auto y = this->fx.get();
 
   const auto [tick_start, d] = estate.timings(tk);
 
@@ -149,9 +176,9 @@ void ysfx_node::run(
   if(audio_in)
   {
     in_count = this->audio_in->data.channels();
-    if(in_count < (int)ysfx_get_num_inputs(this->fx.get()))
+    if(in_count < (int)ysfx_get_num_inputs(y))
     {
-      in_count = ysfx_get_num_inputs(this->fx.get());
+      in_count = ysfx_get_num_inputs(y);
       this->audio_in->data.set_channels(in_count);
     }
     ins = (double**) alloca(sizeof(double*) * in_count);
@@ -168,7 +195,7 @@ void ysfx_node::run(
   int out_count{};
   if(audio_out)
   {
-    audio_out->data.set_channels(ysfx_get_num_outputs(this->fx.get()));
+    audio_out->data.set_channels(ysfx_get_num_outputs(y));
     out_count = this->audio_out->data.channels();
     outs = (double**) alloca(sizeof(double*) * out_count);
     for(int i = 0; i < out_count; i++) {
@@ -189,11 +216,11 @@ void ysfx_node::run(
       auto& val = dat.back().value;
       if(float* v = val.target<float>())
       {
-        ysfx_slider_set_value(fx.get(), i, *v);
+        ysfx_slider_set_value(y, i, *v);
       }
       else if(int* v = val.target<int>())
       {
-        ysfx_slider_set_value(fx.get(), i, *v);
+        ysfx_slider_set_value(y, i, *v);
       }
     }
   }
@@ -206,13 +233,13 @@ void ysfx_node::run(
     ev.data = msg.bytes.data();
     ev.offset = msg.timestamp;
     ev.size = msg.bytes.size();
-    ysfx_send_midi(fx.get(), &ev);
+    ysfx_send_midi(y, &ev);
   }
 
-  ysfx_process_double(fx.get(), ins, outs, in_count, out_count, d);
+  ysfx_process_double(y, ins, outs, in_count, out_count, d);
 
   ysfx_midi_event_t ev;
-  while(ysfx_receive_midi(fx.get(), &ev)) {
+  while(ysfx_receive_midi(y, &ev)) {
     libremidi::message msg;
     msg.bytes.assign(ev.data, ev.data + ev.size);
     msg.timestamp = ev.offset;
