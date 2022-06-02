@@ -11,6 +11,8 @@ struct FloatSlider;
 struct FloatKnob;
 struct LogFloatSlider;
 struct IntSlider;
+struct IntRangeSlider;
+struct FloatRangeSlider;
 struct IntSpinBox;
 struct Toggle;
 struct ChooserToggle;
@@ -23,7 +25,6 @@ struct HSVSlider;
 struct XYSlider;
 struct XYZSlider;
 struct MultiSlider;
-
 struct Bargraph;
 }
 UUID_METADATA(
@@ -47,6 +48,18 @@ UUID_METADATA(
     Process::Port,
     Process::IntSlider,
     "348b80a4-45dc-4f70-8f5f-6546c85089a2")
+
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::IntRangeSlider,
+    "0c1902bc-e282-11ec-8fea-0242ac120002")
+
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::FloatRangeSlider,
+    "73ae3e85-0c91-497e-b612-b1391f87ac72")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
@@ -195,6 +208,44 @@ struct SCORE_LIB_PROCESS_EXPORT IntSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<int>(); }
   auto getMax() const noexcept { return domain().get().convert_max<int>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT IntRangeSlider : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(IntRangeSlider)
+  IntRangeSlider(
+        float min,
+        float max,
+        std::pair<float, float> init,
+        const QString& name,
+        Id<Process::Port> id,
+        QObject* parent);
+  ~IntRangeSlider();
+
+  auto getMin() const noexcept { return domain().get().convert_min<int>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<int>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT FloatRangeSlider : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(FloatRangeSlider)
+  FloatRangeSlider(
+        float min,
+        float max,
+        std::pair<float, float> init,
+        const QString& name,
+        Id<Process::Port> id,
+        QObject* parent);
+  ~FloatRangeSlider();
+
+  auto getMin() const noexcept { return domain().get().convert_min<float>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<float>(); }
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;

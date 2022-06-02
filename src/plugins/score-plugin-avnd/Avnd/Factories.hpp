@@ -11,6 +11,7 @@
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/graphics/widgets/QGraphicsSlider.hpp>
+#include <score/graphics/widgets/QGraphicsRangeSlider.hpp>
 
 namespace oscr
 {
