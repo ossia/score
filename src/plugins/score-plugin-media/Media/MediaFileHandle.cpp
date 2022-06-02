@@ -211,24 +211,6 @@ const RMSData& AudioFile::rms() const
   return *m_rms;
 }
 
-void AudioFile::updateSampleRate(int rate)
-{
-  switch (needsDecoding(m_file, rate))
-  {
-    case DecodingMethod::Libav:
-      load_ffmpeg(rate);
-      break;
-    case DecodingMethod::Sndfile:
-      load_ffmpeg(rate);
-      break;
-    case DecodingMethod::Mmap:
-      load_drwav();
-      break;
-    default:
-      break;
-  }
-}
-
 std::optional<double> AudioFile::knownTempo() const noexcept
 {
   auto& db = AudioDecoder::database();
@@ -622,10 +604,7 @@ AudioFileManager::AudioFileManager() noexcept
       &Audio::Settings::Model::RateChanged,
       this,
       [this](auto newRate) {
-        for (auto& [k, v] : m_handles)
-        {
-          v->updateSampleRate(newRate);
-        }
+        m_handles.clear();
       });
 }
 

@@ -113,6 +113,7 @@ public:
 
 private:
   void loadFile(const QString& str);
+  void reload();
   void init();
 
   void ancestorStartDateChanged() override;

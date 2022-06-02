@@ -88,8 +88,6 @@ public:
   Nano::Signal<void()> on_newData;
   Nano::Signal<void()> on_finishedDecoding;
 
-  void updateSampleRate(int);
-
   struct MmapReader
   {
     std::shared_ptr<QFile> file;

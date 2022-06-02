@@ -44,6 +44,10 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
   init();
   setFile(data);
+
+  auto& settings = score::AppContext().settings<Audio::Settings::Model>();
+  connect(&settings, &Audio::Settings::Model::RateChanged,
+          this, &ProcessModel::reload);
 }
 
 ProcessModel::~ProcessModel() { }
@@ -56,6 +60,15 @@ void ProcessModel::loadFile(const QString& file)
       file, score::IDocument::documentContext(*this));
 
   m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
+}
+
+void ProcessModel::reload()
+{
+  if(m_file)
+  {
+    loadFile(m_file->absoluteFileName());
+    on_mediaChanged();
+  }
 }
 
 void ProcessModel::setFile(const QString& file)
