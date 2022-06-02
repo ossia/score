@@ -178,9 +178,9 @@ struct SyphonNode final : score::gfx::OutputNode
     [pool drain];
   }
 
-  score::gfx::RenderState* renderState() const override
+  std::shared_ptr<score::gfx::RenderState> renderState() const override
   {
-    return m_renderState.get();
+    return m_renderState;
   }
 
   score::gfx::OutputNodeRenderer* createRenderer(score::gfx::RenderList& r) const noexcept override

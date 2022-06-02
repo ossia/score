@@ -161,6 +161,28 @@ public:
       m_root.add_child(std::move(size_node));
     }
 
+    {
+      auto size_node = std::make_unique<ossia::net::generic_node>("rendersize", *this, m_root);
+      ossia::net::set_description(*size_node, "Set to [0, 0] to use the viewport's size");
+
+      auto size_param = size_node->create_parameter(ossia::val_type::VEC2F);
+      size_param->push_value(ossia::vec2f{0.f, 0.f});
+      size_param->add_callback([this, abs_win] (const ossia::value& v) {
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, v=*val] {
+            screen->setRenderSize({(int)v[0], (int)v[1]});
+          });
+
+          auto dom = abs_win->get_domain();
+          ossia::set_max(dom, *val);
+          abs_win->set_domain(std::move(dom));
+        }
+      });
+
+      m_root.add_child(std::move(size_node));
+    }
+
     // Keyboard input
     {
       auto node = std::make_unique<ossia::net::generic_node>("key", *this, m_root);
@@ -363,16 +385,11 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
+  m_deviceNameEdit->setText("window");
 
   setLayout(layout);
-
-  setDefaults();
 }
 
-void WindowSettingsWidget::setDefaults()
-{
-  m_deviceNameEdit->setText("window");
-}
 
 Device::DeviceSettings WindowSettingsWidget::getSettings() const
 {

@@ -168,7 +168,7 @@ void Graph::createOutputRenderList(OutputNode& output)
 {
   if(output.renderState())
   {
-    if(auto rl = createRenderList(&output, *output.renderState()))
+    if(auto rl = createRenderList(&output, output.renderState()))
       m_renderers.push_back(std::move(rl));
   }
 }
@@ -185,7 +185,7 @@ void Graph::recreateOutputRenderList(OutputNode& output)
     if (renderer.get() == output.renderer())
     {
       auto old_renderer = renderer;
-      auto new_renderer = createRenderList(&output, *output.renderState());
+      auto new_renderer = createRenderList(&output, output.renderState());
 
       old_renderer->release();
 
@@ -362,7 +362,7 @@ static bool createNodeRenderer(score::gfx::Node& node, RenderList& r)
 }
 
 std::shared_ptr<RenderList>
-Graph::createRenderList(OutputNode* output, RenderState state)
+Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
 {
   auto ptr = std::make_shared<RenderList>(*output, state);
   output->setRenderer(ptr);

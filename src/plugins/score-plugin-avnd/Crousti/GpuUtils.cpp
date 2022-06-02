@@ -103,8 +103,8 @@ void CustomGpuOutputNodeBase::destroyOutput()
 {
 }
 
-score::gfx::RenderState* CustomGpuOutputNodeBase::renderState() const {
-  return m_renderState.get();
+std::shared_ptr<score::gfx::RenderState> CustomGpuOutputNodeBase::renderState() const {
+  return m_renderState;
 }
 
 score::gfx::OutputNode::Configuration CustomGpuOutputNodeBase::configuration() const noexcept {

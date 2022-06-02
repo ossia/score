@@ -25,6 +25,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void setScreen(QScreen*);
   void setPosition(QPoint pos);
   void setSize(QSize sz);
+  void setRenderSize(QSize sz);
   void setFullScreen(bool);
 
   void createOutput(
@@ -35,7 +36,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void destroyOutput() override;
   void updateGraphicsAPI(GraphicsApi) override;
 
-  RenderState* renderState() const override;
+  std::shared_ptr<RenderState> renderState() const override;
   score::gfx::OutputNodeRenderer*
   createRenderer(RenderList& r) const noexcept override;
   Configuration configuration() const noexcept override;
@@ -53,6 +54,7 @@ private:
   QScreen* m_screen{};
   std::optional<QPoint> m_pos{};
   std::optional<QSize> m_sz{};
+  std::optional<QSize> m_renderSz{};
 
   bool m_embedded{};
   bool m_fullScreen{};

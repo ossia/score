@@ -678,7 +678,7 @@ struct CustomGpuOutputNodeBase
         std::function<void()> onResize) override;
 
     void destroyOutput() override;
-    score::gfx::RenderState* renderState() const override;
+    std::shared_ptr<score::gfx::RenderState> renderState() const override;
 
     Configuration configuration() const noexcept override;
 

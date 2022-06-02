@@ -24,6 +24,12 @@ class Window;
  */
 struct RenderState
 {
+  RenderState() = default;
+  RenderState(const RenderState&) = delete;
+  RenderState(RenderState&&) = delete;
+  RenderState& operator=(const RenderState&) = delete;
+  RenderState& operator=(RenderState&&) = delete;
+
   QRhi* rhi{};
   QRhiRenderPassDescriptor* renderPassDescriptor{};
   std::weak_ptr<RenderList> renderer{};

@@ -48,8 +48,8 @@ void Window::resizeSwapChain()
   if (m_swapChain)
   {
     m_hasSwapChain = m_swapChain->createOrResize();
-    state.renderSize = m_swapChain->currentPixelSize();
-    state.outputSize = m_swapChain->currentPixelSize();
+    if(state)
+      state->outputSize = m_swapChain->currentPixelSize();
     if (onResize)
       onResize();
   }
@@ -88,9 +88,9 @@ void Window::render()
     m_newlyExposed = false;
   }
 
-  if (m_canRender)
+  if (m_canRender && state)
   {
-    QRhi::FrameOpResult r = state.rhi->beginFrame(m_swapChain, {});
+    QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
     if (r == QRhi::FrameOpSwapChainOutOfDate)
     {
       resizeSwapChain();
@@ -99,7 +99,7 @@ void Window::render()
         requestUpdate();
         return;
       }
-      r = state.rhi->beginFrame(m_swapChain);
+      r = state->rhi->beginFrame(m_swapChain);
     }
     if (r != QRhi::FrameOpSuccess)
     {
@@ -110,11 +110,11 @@ void Window::render()
     const auto commands = m_swapChain->currentFrameCommandBuffer();
     onRender(*commands);
 
-    state.rhi->endFrame(m_swapChain, {});
+    state->rhi->endFrame(m_swapChain, {});
   }
   else
   {
-    QRhi::FrameOpResult r = state.rhi->beginFrame(m_swapChain, {});
+    QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
     if (r == QRhi::FrameOpSwapChainOutOfDate)
     {
       resizeSwapChain();
@@ -123,7 +123,7 @@ void Window::render()
         requestUpdate();
         return;
       }
-      r = state.rhi->beginFrame(m_swapChain);
+      r = state->rhi->beginFrame(m_swapChain);
     }
     if (r != QRhi::FrameOpSuccess)
     {
@@ -132,12 +132,12 @@ void Window::render()
     }
 
     auto buf = m_swapChain->currentFrameCommandBuffer();
-    auto batch = state.rhi->nextResourceUpdateBatch();
+    auto batch = state->rhi->nextResourceUpdateBatch();
     buf->beginPass(
         m_swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
     buf->endPass();
 
-    state.rhi->endFrame(m_swapChain, {});
+    state->rhi->endFrame(m_swapChain, {});
   }
   requestUpdate();
 }

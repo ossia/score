@@ -17,8 +17,10 @@ class OutputNode;
  */
 class SCORE_PLUGIN_GFX_EXPORT RenderList
 {
+private:
+  std::shared_ptr<RenderState> m_state;
 public:
-  explicit RenderList(OutputNode& output, const RenderState& state);
+  explicit RenderList(OutputNode& output, const std::shared_ptr<RenderState>& state);
   ~RenderList();
 
   /**
@@ -76,7 +78,7 @@ public:
   /**
    * @brief RenderState corresponding to this RenderList
    */
-  RenderState state;
+  RenderState& state;
 
   using Buffers = std::pair<const Mesh* const, MeshBuffers>;
   /**

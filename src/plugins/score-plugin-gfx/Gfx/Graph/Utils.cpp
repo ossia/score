@@ -372,7 +372,7 @@ std::pair<QShader, QShader> makeShaders(const RenderState& v, QString vert, QStr
     qDebug() << frag.toStdString().data();
   }
 
-  qDebug().noquote() << vert.toUtf8().constData();
+  // qDebug().noquote() << vert.toUtf8().constData();
   if (!vertexS.isValid())
     throw std::runtime_error("invalid vertex shader");
   if (!fragmentS.isValid())

@@ -4,6 +4,14 @@
 namespace Gfx
 {
 
+struct WindowOutputSettings {
+  int width{};
+  int height{};
+  double rate{};
+  bool viewportSize{};
+  bool vsync{};
+};
+
 class WindowProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("5a181207-7d40-4ad8-814e-879fcdf8cc31")
@@ -68,8 +76,11 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
 private:
-  void setDefaults();
   QLineEdit* m_deviceNameEdit{};
+  QSpinBox* m_width{};
+  QSpinBox* m_height{};
+  QSpinBox* m_rate{};
+  QCheckBox* m_viewportSize{};
 };
 
 }

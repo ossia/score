@@ -45,7 +45,7 @@ public:
 
   virtual void updateGraphicsAPI(GraphicsApi);
   virtual void destroyOutput() = 0;
-  virtual RenderState* renderState() const = 0;
+  virtual std::shared_ptr<RenderState> renderState() const = 0;
 
   struct Configuration {
     // If set, the host is responsible for calling render() at this

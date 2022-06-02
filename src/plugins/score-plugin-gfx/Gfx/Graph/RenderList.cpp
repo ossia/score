@@ -37,9 +37,10 @@ MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh)
   return ret;
 }
 
-RenderList::RenderList(OutputNode& output, const RenderState& state)
-    : output{output}
-    , state{state}
+RenderList::RenderList(OutputNode& output, const std::shared_ptr<RenderState>& state)
+    : m_state{state}
+    , output{output}
+    , state{*m_state}
 {
 }
 
@@ -135,12 +136,12 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) noexcept
 {
   if (auto sink_node = edge.sink->node)
     if (auto it = sink_node->renderedNodes.find(this); it != sink_node->renderedNodes.end())
-      {
-        auto renderer = it->second;
-        auto tex = renderer->renderTargetForInput(*edge.sink);
-        if(tex.renderTarget && tex.renderPass)
-          return tex;
-      }
+    {
+      auto renderer = it->second;
+      auto tex = renderer->renderTargetForInput(*edge.sink);
+      if(tex.renderTarget && tex.renderPass)
+        return tex;
+    }
 
   return {};
 }

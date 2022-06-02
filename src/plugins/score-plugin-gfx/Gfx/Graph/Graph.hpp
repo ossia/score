@@ -96,7 +96,7 @@ private:
   void initializeOutput(OutputNode* output, GraphicsApi graphicsApi);
   void createOutputRenderList(OutputNode& output);
   void recreateOutputRenderList(OutputNode& output);
-  std::shared_ptr<RenderList> createRenderList(OutputNode*, RenderState state);
+  std::shared_ptr<RenderList> createRenderList(OutputNode*, std::shared_ptr<RenderState> state);
 
   std::vector<std::shared_ptr<RenderList>> m_renderers;
   std::vector<std::shared_ptr<Window>> m_unused_windows;

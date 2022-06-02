@@ -87,7 +87,7 @@ struct ShmdataOutputNode : score::gfx::OutputNode
       std::function<void()> onResize) override;
   void destroyOutput() override;
 
-  score::gfx::RenderState* renderState() const override;
+  std::shared_ptr<score::gfx::RenderState> renderState() const override;
   score::gfx::OutputNodeRenderer* createRenderer(score::gfx::RenderList& r) const noexcept override;
   Configuration configuration() const noexcept override;
 
@@ -230,9 +230,9 @@ void ShmdataOutputNode::destroyOutput()
   m_writer.reset();
 }
 
-score::gfx::RenderState* ShmdataOutputNode::renderState() const
+std::shared_ptr<score::gfx::RenderState> ShmdataOutputNode::renderState() const
 {
-  return m_renderState.get();
+  return m_renderState;
 }
 
 

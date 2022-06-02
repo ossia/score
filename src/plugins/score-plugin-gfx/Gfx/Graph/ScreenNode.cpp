@@ -33,9 +33,10 @@
 
 namespace score::gfx
 {
-static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
+static std::shared_ptr<RenderState> createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
-  RenderState state;
+  auto st = std::make_shared<RenderState>();
+  RenderState& state = *st;
   state.api = graphicsApi;
 
 #ifndef QT_NO_OPENGL
@@ -51,7 +52,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
     state.renderSize = window.size();
-    return state;
+    return st;
   }
 #endif
 
@@ -64,7 +65,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     state.version = QShaderVersion(100);
     state.rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers);
     state.renderSize = window.size();
-    return state;
+    return st;
   }
 #endif
 
@@ -83,7 +84,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     state.version = QShaderVersion(50);
     state.rhi = QRhi::create(QRhi::D3D11, &params, {});
     state.renderSize = window.size();
-    return state;
+    return st;
   }
 #endif
 
@@ -94,7 +95,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     state.version = QShaderVersion(12);
     state.rhi = QRhi::create(QRhi::Metal, &params, {});
     state.renderSize = window.size();
-    return state;
+    return st;
   }
 #endif
 
@@ -107,10 +108,10 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     state.rhi = QRhi::create(QRhi::Null, &params, {});
     state.renderSize = window.size();
     state.api = GraphicsApi::Null;
-    return state;
+    return st;
   }
 
-  return state;
+  return st;
 }
 
 ScreenNode::ScreenNode(bool embedded, bool fullScreen)
@@ -150,10 +151,10 @@ ScreenNode::~ScreenNode()
 
   if(m_window)
   {
-    delete m_window->state.renderPassDescriptor;
-    m_window->state.renderPassDescriptor = nullptr;
-    delete m_window->state.rhi;
-    m_window->state.rhi = nullptr;
+    delete m_window->state->renderPassDescriptor;
+    m_window->state->renderPassDescriptor = nullptr;
+    delete m_window->state->rhi;
+    m_window->state->rhi = nullptr;
   }
 
 }
@@ -171,7 +172,7 @@ void ScreenNode::startRendering()
   if (m_window)
   {
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
-      if (auto r = m_window->state.renderer.lock())
+      if (auto r = m_window->state->renderer.lock())
       {
         m_window->m_canRender = r->renderers.size() > 1;
         r->render(commands);
@@ -189,7 +190,7 @@ void ScreenNode::onRendererChange()
 {
   if (m_window)
   {
-    if (auto r = m_window->state.renderer.lock())
+    if (auto r = m_window->state->renderer.lock())
     {
       m_window->m_canRender = r->renderers.size() > 1;
     }
@@ -206,20 +207,20 @@ void ScreenNode::stopRendering()
   {
     m_window->m_canRender = false;
     m_window->onRender = [](QRhiCommandBuffer&) {};
-    m_window->state.renderer = {};
-    ////window->state.hasSwapChain = false;
+    m_window->state->renderer = {};
+    ////window->state->hasSwapChain = false;
   }
 }
 
 void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
 {
-  m_window->state.renderer = r;
+  m_window->state->renderer = r;
 }
 
 RenderList* ScreenNode::renderer() const
 {
   if (m_window)
-    return m_window->state.renderer.lock().get();
+    return m_window->state->renderer.lock().get();
   else
     return nullptr;
 }
@@ -248,6 +249,19 @@ void ScreenNode::setSize(QSize sz)
   if(m_window)
   {
     m_window->setGeometry({m_window->position(), sz});
+  }
+}
+
+void ScreenNode::setRenderSize(QSize sz)
+{
+  if(sz.width() >= 1 && sz.height() >= 1)
+    m_renderSz = sz;
+  else
+    m_renderSz = std::nullopt;
+
+  if(m_window && m_window->onResize)
+  {
+    m_window->onResize();
   }
 }
 
@@ -285,12 +299,13 @@ void ScreenNode::createOutput(
   m_window->onUpdate = std::move(onUpdate);
   m_window->onWindowReady = [this, graphicsApi, onReady = std::move(onReady)] {
     m_window->state = createRenderState(*m_window, graphicsApi);
-    if (m_window->state.rhi)
+    m_window->state->renderSize = QSize(1280, 720);
+    if (m_window->state->rhi)
     {
       // TODO depth stencil, render buffer, etc ?
-      m_swapChain = m_window->state.rhi->newSwapChain();
+      m_swapChain = m_window->state->rhi->newSwapChain();
       m_window->m_swapChain = m_swapChain;
-      m_depthStencil = m_window->state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil,
+      m_depthStencil = m_window->state->rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil,
                                                    QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
                                                    1,
                                                    QRhiRenderBuffer::UsedWithSwapChainOnly);
@@ -298,15 +313,29 @@ void ScreenNode::createOutput(
       m_swapChain->setDepthStencil(m_depthStencil);
       m_swapChain->setSampleCount(1);
       m_swapChain->setFlags({});
-      m_window->state.renderPassDescriptor
+      m_window->state->renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();
       m_swapChain->setRenderPassDescriptor(
-          m_window->state.renderPassDescriptor);
+          m_window->state->renderPassDescriptor);
 
       onReady();
     }
   };
-  m_window->onResize = std::move(onResize);
+  m_window->onResize = [this, onResize = std::move(onResize)]
+  {
+    if(!this->m_renderSz)
+    {
+      m_window->state->renderSize = m_window->state->outputSize;
+    }
+    else
+    {
+      m_window->state->renderSize = *this->m_renderSz;
+    }
+    if(onResize)
+    {
+      onResize();
+    }
+  };
 
   if (!m_embedded)
   {
@@ -351,7 +380,7 @@ void ScreenNode::destroyOutput()
   if (!m_window)
     return;
 
-  auto& s = m_window->state;
+  auto& s = *m_window->state;
   delete s.renderPassDescriptor;
   s.renderPassDescriptor = nullptr;
 
@@ -385,10 +414,10 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
   }
 }
 
-RenderState* ScreenNode::renderState() const
+std::shared_ptr<score::gfx::RenderState> ScreenNode::renderState() const
 {
   if (m_window && m_window->m_swapChain)
-    return &m_window->state;
+    return m_window->state;
   return nullptr;
 }
 
@@ -459,8 +488,7 @@ public:
 
   void init(RenderList& renderer) override
   {
-    auto rhi = renderer.state.rhi;
-    m_inputTarget = score::gfx::createRenderTarget(renderer.state, QRhiTexture::Format::RGBA8, QSize(320, 240));
+    m_inputTarget = score::gfx::createRenderTarget(renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize);
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh);
@@ -517,7 +545,7 @@ public:
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
   {
     // m_rt.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
-    // m_rt.renderPass = state.renderPassDescriptor;
+    // m_rt.renderPass = state->renderPassDescriptor;
   }
 
   void finishFrame(
@@ -527,6 +555,7 @@ public:
     cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, nullptr);
     {
       const auto sz = renderer.state.outputSize;
+
       cb.setGraphicsPipeline(m_p.pipeline);
       cb.setShaderResources(m_p.srb);
       cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
@@ -559,7 +588,7 @@ public:
 score::gfx::OutputNodeRenderer*
 ScreenNode::createRenderer(RenderList& r) const noexcept
 {
-  return new BasicRenderer{r.state, *this};
+  return new ScaledRenderer{r.state, *this};
 }
 
 OutputNode::Configuration ScreenNode::configuration() const noexcept

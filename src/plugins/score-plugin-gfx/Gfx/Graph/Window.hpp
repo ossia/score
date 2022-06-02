@@ -39,13 +39,13 @@ public:
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
 
-  RenderState state;
 
   void mouseMove(QPointF screen, QPointF win)
       W_SIGNAL(mouseMove, screen, win);
   void key(int key, const QString& t)
       W_SIGNAL(key, key, t);
 private:
+  std::shared_ptr<RenderState> state;
   GraphicsApi m_api{};
   QRhiSwapChain* m_swapChain{};
 
