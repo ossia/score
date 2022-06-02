@@ -28,6 +28,17 @@ void QGraphicsRangeSlider::setEnd(double end){
     }
 }
 
+void QGraphicsRangeSlider::setValue(ossia::vec2f value)
+{
+  setStart(value[0]);
+  setEnd(value[1]);
+}
+
+ossia::vec2f QGraphicsRangeSlider::value() const noexcept
+{
+  return {float(m_start), float(m_end)};
+}
+
 void QGraphicsRangeSlider::setRange(double min, double max){
     {
       m_min = min;
