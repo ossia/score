@@ -669,7 +669,13 @@ void ExecutionController::reset_after_stop()
     }
   }
 
-  QTimer::singleShot(50, this, &ExecutionController::reset_edition);
+  auto scenar = currentScenarioModel();
+  if (!scenar)
+    return;
+  QTimer::singleShot(50, this, [this, itv=QPointer<Scenario::IntervalModel>{&scenar->baseInterval()}] {
+    if(itv)
+      reset_edition();
+  });
 }
 
 void ExecutionController::reset_edition()
