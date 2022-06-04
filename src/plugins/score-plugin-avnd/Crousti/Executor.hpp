@@ -443,7 +443,8 @@ public:
     {
       auto st = ossia::exec_state_facade{ctx.execState.get()};
       std::shared_ptr<safe_node<Node>> ptr;
-      auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate()};
+      const auto id = std::hash<ObjectPath>{}(Path<Process::ProcessModel>{element}.unsafePath());
+      auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate(), id};
       node->prepare(*ctx.execState.get()); // Preparation of the ossia side
       ptr.reset(node);
       this->node = ptr;
