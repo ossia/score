@@ -269,7 +269,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     else
     {
       auto [start, end] = c.init;
-      return new Process::FloatRangeSlider{c.min, c.max, {start, end}, qname, id, parent};
+      return new Process::FloatRangeSlider{c.min, c.max, {(float)start, (float)end}, qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)

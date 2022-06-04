@@ -1,4 +1,7 @@
 #pragma once
+#include "ossia/network/value/vec.hpp"
+#include "ossia/network/value/value.hpp"
+//#include "ossia/network/domain/clamp.cpp" // Is that OK to include .cpp files ?
 #include <score/graphics/widgets/Constants.hpp>
 
 #include <QGraphicsItem>
@@ -34,8 +37,9 @@ public:
 
   void setValue(ossia::vec2f value);
   ossia::vec2f value() const noexcept;
-  void setExecutionValue(ossia::vec2f) { } // TODO
-  void resetExecution() { }                // TODO
+  ossia::vec2f m_execValue{};
+  void setExecutionValue(ossia::vec2f); // TODO
+  void resetExecution();               // TODO
 
   void startChanged(double arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, startChanged, arg_1)
@@ -55,6 +59,8 @@ private:
   qreal y_factor{0.005};
   qreal d2s, d2c, d2e, ypos, ydiff;
   double val1, val2;
+
+  bool m_hasExec{};
 
   enum Handle
   {

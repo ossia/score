@@ -39,6 +39,20 @@ void QGraphicsRangeSlider::setValue(ossia::vec2f value)
   setEnd(value[1]);
 }
 
+void QGraphicsRangeSlider::setExecutionValue(ossia::vec2f v)
+{
+  m_execValue[0] = ossia::clamp(v[0], 0., 1.);
+  m_execValue[1] = ossia::clamp(v[1], 0., 1.);
+  m_hasExec = true;
+  update();
+}
+
+void QGraphicsRangeSlider::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
 ossia::vec2f QGraphicsRangeSlider::value() const noexcept
 {
   return {float(m_start), float(m_end)};
