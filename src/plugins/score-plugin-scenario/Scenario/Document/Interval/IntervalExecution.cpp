@@ -269,11 +269,18 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
       itv->cleanup();
     });
 
-    auto [inputsToRegister, outputsToRegister] = portsToRegister(interval());
-    system().setup.unregister_node(
-        inputsToRegister,
-        outputsToRegister,
-        m_ossia_interval->node);
+    if(m_interval)
+    {
+      auto [inputsToRegister, outputsToRegister] = portsToRegister(*m_interval);
+      system().setup.unregister_node(
+          inputsToRegister,
+          outputsToRegister,
+          m_ossia_interval->node);
+    }
+    else
+    {
+      qDebug() << "IntervalComponent::cleanup() ! interval has already been deleted";
+    }
   }
   for (auto& proc : m_processes)
     proc.second->cleanup();

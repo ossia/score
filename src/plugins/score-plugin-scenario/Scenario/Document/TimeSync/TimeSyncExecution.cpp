@@ -82,6 +82,51 @@ ossia::expression_ptr TimeSyncComponent::makeTrigger() const
   return ossia::expressions::make_expression_true();
 }
 
+struct TimeSyncExecutionCallbacks
+    : public ossia::time_sync_callback
+{
+  explicit TimeSyncExecutionCallbacks(EditionCommandQueue& e, const QPointer<const Scenario::TimeSyncModel>& p)
+    : edit{e}
+    , score_node{p}
+  {
+
+  }
+
+  void entered_triggering() override {
+    edit.enqueue([score_node=this->score_node] {
+      if (score_node)
+      {
+        auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
+        v->setWaiting(true);
+      }
+    });
+  }
+
+  void trigger_date_fixed(ossia::time_value) override
+  {
+    entered_triggering();
+  }
+
+  void left_evaluation() override {
+    edit.enqueue([score_node=this->score_node] {
+      if (score_node)
+      {
+        auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
+        v->setWaiting(false);
+      }
+    });
+  }
+
+  void finished_evaluation(bool) override
+  {
+    left_evaluation();
+  }
+
+private:
+  EditionCommandQueue& edit;
+  QPointer<const Scenario::TimeSyncModel> score_node;
+};
+
 void TimeSyncComponent::onSetup(
     std::shared_ptr<ossia::time_sync> ptr,
     ossia::expression_ptr exp)
@@ -97,35 +142,7 @@ void TimeSyncComponent::onSetup(
       m_ossia_node->set_start(m_score_node->isStartPoint());
     }
 
-    using namespace ossia;
-    auto startWait = [&edit = system().editionQueue,
-                      score_node = m_score_node](ossia::time_value = 0_tv) {
-      edit.enqueue([score_node] {
-        if (score_node)
-        {
-          auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
-          v->setWaiting(true);
-        }
-      });
-    };
-
-    auto endWait = [&edit = system().editionQueue,
-                    score_node = m_score_node](bool = false) {
-      edit.enqueue([score_node] {
-        if (score_node)
-        {
-          auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
-          v->setWaiting(false);
-        }
-      });
-    };
-    // m_ossia_node->entered_evaluation.add_callback([] { });
-    m_ossia_node->entered_triggering.add_callback(startWait);
-    m_ossia_node->trigger_date_fixed.add_callback(startWait);
-
-    m_ossia_node->left_evaluation.add_callback(endWait);
-    m_ossia_node->finished_evaluation.add_callback(endWait);
-    // m_ossia_node->triggered.add_callback([] { });
+    m_ossia_node->callbacks.callbacks.push_back(new TimeSyncExecutionCallbacks{system().editionQueue, this->m_score_node});
   }
 }
 

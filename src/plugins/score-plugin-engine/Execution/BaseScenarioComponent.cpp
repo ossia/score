@@ -37,13 +37,23 @@ BaseScenarioElement::BaseScenarioElement(const Context& ctx, QObject* parent)
 
 BaseScenarioElement::~BaseScenarioElement() { }
 
+struct FinishCallback final : public ossia::time_sync_callback {
+  explicit FinishCallback(BaseScenarioElement& s): self{&s} { }
+
+  void finished_evaluation(bool) override {
+    ossia::qt::run_async(self.data(), [s=self] { if(s) s->finished(); });
+  }
+
+  QPointer<BaseScenarioElement> self;
+};
+
 void BaseScenarioElement::init(BaseScenarioRefContainer element)
 {
   m_ossia_scenario = std::make_shared<ossia::scenario>();
 
   auto main_start_node = m_ossia_scenario->get_start_time_sync();
   auto main_end_node = std::make_shared<ossia::time_sync>();
-  main_end_node->finished_evaluation.add_callback([this] (bool) { ossia::qt::run_async(this, [this] {finished(); }); });
+  main_end_node->callbacks.callbacks.push_back(new FinishCallback{*this});
   m_ossia_scenario->add_time_sync(main_end_node);
 
   auto main_start_event = *main_start_node->emplace(
