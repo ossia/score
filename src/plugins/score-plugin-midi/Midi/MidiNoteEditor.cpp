@@ -121,7 +121,12 @@ bool NoteEditor::remove(const Selection& s, const score::DocumentContext& ctx)
           noteIdList.push_back(model->id());
         }
       }
+      else
+      {
+        return false;
+      }
     }
+
     if (!noteIdList.empty())
     {
       auto parent = qobject_cast<const Midi::ProcessModel*>(

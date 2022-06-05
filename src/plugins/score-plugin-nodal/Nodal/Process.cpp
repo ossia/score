@@ -5,6 +5,7 @@
 #include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Dataflow/CableCopy.hpp>
 
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMapSerialization.hpp>
@@ -84,21 +85,32 @@ bool NodeEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mime
 
 bool NodeEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 {
-  if (s.size() == 1)
+  std::vector<std::pair<Process::ProcessModel*, Model*>> nodes;
+  for(auto& elt : s)
   {
-    auto first = s.begin()->data();
-    if (auto model = qobject_cast<const Process::ProcessModel*>(first))
-    {
-      if (auto parent = qobject_cast<Model*>(model->parent()))
-      {
-        auto f = [&ctx, parent, model] {
-          CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(
-              *parent, *model);
-        };
-        ossia::qt::run_async(qApp, f);
-        return true;
-      }
-    }
+    auto proc = qobject_cast<Process::ProcessModel*>(elt);
+    if(!proc)
+      return false;
+    auto p = proc->parent();
+    if(!p)
+      return false;
+    auto model = qobject_cast<Model*>(p);
+    if(!model)
+      return false;
+    nodes.push_back({proc, model});
+  }
+
+  if(!nodes.empty())
+  {
+    auto disp = std::make_shared<MacroCommandDispatcher<RemoveNodes>>(ctx.commandStack);
+
+    for(auto [p, m] : nodes)
+      disp->submit(new RemoveNode{*m, *p});
+
+    ossia::qt::run_async(qApp, [d = std::move(disp)] {
+      d->commit();
+    });
+    return true;
   }
   return false;
 }

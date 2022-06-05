@@ -261,8 +261,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     // First find the segments that will be deleted.
     // If a point is selected, the segments linked to that point
     // will be deleted, too.
-    const auto& c = m_model.selectedChildren();
-    for (const auto& elt : c)
+    for (const auto& elt : s)
     {
       if (auto point = qobject_cast<const PointModel*>(elt.data()))
       {
@@ -272,13 +271,16 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
           segmentsToDelete.insert(*point->following());
         }
       }
-
-      /*
-      if(auto segmt = qobject_cast<const SegmentModel*>(elt.data()))
+      else if(auto segmt = qobject_cast<const SegmentModel*>(elt.data()))
       {
-          segmentsToDelete.insert(segmt->id());
+        continue;
       }
-      */
+      else
+      {
+        // Not a point nor a segment: we likely
+        // selected a curve process in order to delete it
+        return false;
+      }
     }
 
     if (segmentsToDelete.empty())

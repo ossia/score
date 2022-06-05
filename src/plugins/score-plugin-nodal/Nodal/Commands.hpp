@@ -73,6 +73,15 @@ private:
   Dataflow::SerializedCables m_cables;
 };
 
+class RemoveNodes final
+    : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      RemoveNodes,
+      "Remove nodes")
+};
+
 class ReplaceAllNodes final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), ReplaceAllNodes, "Replace all nodes")
