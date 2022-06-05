@@ -584,16 +584,6 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
   // Setup the object
   elt->onSetup(ossia_tn, elt->makeTrigger());
 
-  // What happens when a time sync's status change
-  qDebug() << m_checker;
-  // ossia_tn->triggered.add_callback([thisP = shared_from_this(), elt] {
-  //   auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
-  //   return sub.timeSyncCallback(
-  //       elt.get(),
-  //       ossia::
-  //           time_value{} /* TODO WTF sub.m_parent_interval.OSSIAInterval()->get_date()*/);
-  // });
-
   // Changing the running API structures
   if (must_add)
   {
@@ -724,55 +714,5 @@ void ScenarioComponentBase::eventCallback(
         break;
     }
   }
-}
-
-void ScenarioComponentBase::timeSyncCallback(
-    TimeSyncComponent* tn,
-    ossia::time_value date)
-{
-  qDebug() << m_checker;
-  // if (m_checker)
-  // {
-  //   m_pastTn.push_back(tn->scoreTimeSync().id());
-
-  //   // Fix Timenode
-  //   auto& curTnProp = m_properties.timesyncs[tn->scoreTimeSync().id()];
-  //   curTnProp.date = double(date.impl);
-  //   curTnProp.date_max = curTnProp.date;
-  //   curTnProp.date_min = curTnProp.date;
-  //   curTnProp.status = Scenario::ExecutionStatus::Happened;
-
-  //   // Fix previous intervals
-  //   auto previousCstrs
-  //       = Scenario::previousIntervals(tn->scoreTimeSync(), process());
-
-  //   for (auto& cstrId : previousCstrs)
-  //   {
-  //     auto& startTn
-  //         = Scenario::startTimeSync(process().interval(cstrId), process());
-  //     auto& cstrProp = m_properties.intervals[cstrId];
-
-  //     cstrProp.newMin.setMSecs(
-  //         curTnProp.date - m_properties.timesyncs[startTn.id()].date);
-  //     cstrProp.newMax = cstrProp.newMin;
-
-  //     cstrProp.status = Scenario::ExecutionStatus::Happened;
-  //   }
-
-  //   // Compute new values
-  //   m_checker->computeDisplacement(m_pastTn, m_properties);
-
-  //   // Update intervals
-  //   for (auto& cstr : m_ossia_intervals)
-  //   {
-  //     auto ossiaCstr = cstr.second->OSSIAInterval();
-
-  //     auto tmin = m_properties.intervals[cstr.first].newMin.msec();
-  //     ossiaCstr->set_min_duration(ossia::time_value{int64_t(tmin)});
-
-  //     auto tmax = m_properties.intervals[cstr.first].newMax.msec();
-  //     ossiaCstr->set_max_duration(ossia::time_value{int64_t(tmax)});
-  //   }
-  // }
 }
 }

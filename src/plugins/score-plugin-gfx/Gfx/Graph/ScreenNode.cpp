@@ -149,7 +149,7 @@ ScreenNode::~ScreenNode()
     }
   }
 
-  if(m_window)
+  if(m_window && m_window->state)
   {
     delete m_window->state->renderPassDescriptor;
     m_window->state->renderPassDescriptor = nullptr;
@@ -207,7 +207,10 @@ void ScreenNode::stopRendering()
   {
     m_window->m_canRender = false;
     m_window->onRender = [](QRhiCommandBuffer&) {};
-    m_window->state->renderer = {};
+    if(m_window->state)
+      m_window->state->renderer = {};
+    else
+      qDebug() << "?? ";
     ////window->state->hasSwapChain = false;
   }
 }
@@ -380,9 +383,11 @@ void ScreenNode::destroyOutput()
   if (!m_window)
     return;
 
-  auto& s = *m_window->state;
-  delete s.renderPassDescriptor;
-  s.renderPassDescriptor = nullptr;
+  if(auto s = m_window->state)
+  {
+    delete s->renderPassDescriptor;
+    s->renderPassDescriptor = nullptr;
+  }
 
   //delete s.renderBuffer;
   //s.renderBuffer = nullptr;
@@ -391,11 +396,14 @@ void ScreenNode::destroyOutput()
   m_swapChain = nullptr;
   m_window->m_swapChain = nullptr;
 
-  delete s.rhi;
-  s.rhi = nullptr;
+  if(auto s = m_window->state)
+  {
+    delete s->rhi;
+    s->rhi = nullptr;
 
-  delete s.surface;
-  s.surface = nullptr;
+    delete s->surface;
+    s->surface = nullptr;
+  }
 
   if (m_ownsWindow)
   {

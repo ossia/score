@@ -128,9 +128,6 @@ protected:
       std::shared_ptr<EventComponent> ev,
       ossia::time_event::status newStatus);
 
-  void
-  timeSyncCallback(Execution::TimeSyncComponent* tn, ossia::time_value date);
-
   score::
       hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
           m_ossia_intervals;
