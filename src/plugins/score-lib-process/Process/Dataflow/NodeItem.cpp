@@ -503,7 +503,7 @@ void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
     f = std::fmod(playdur, loopDur) / loopDur;
   }
   m_playPercentage = f;
-  update({0., 14., m_contentSize.width() * f, 14.});
+  update({0., -1., m_contentSize.width() * f, 3.});
 }
 
 qreal NodeItem::width() const noexcept

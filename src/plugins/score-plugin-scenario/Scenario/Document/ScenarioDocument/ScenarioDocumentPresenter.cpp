@@ -507,7 +507,7 @@ void ScenarioDocumentPresenter::startTimeBar()
   // Necessary to redraw the exec bar correctly...
   // On non-retina macOS, FullViewportupdate on software is faster than GLWidget -=-
   // Maybe different on Retina, it has to be checked...
-  if(!this->context().app.applicationSettings.opengl)
+  if(visible && !this->context().app.applicationSettings.opengl)
   {
     view().view().setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_nonGLTimebarTimer = view().startTimer(16);
