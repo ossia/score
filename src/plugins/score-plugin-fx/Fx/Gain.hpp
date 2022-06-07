@@ -45,7 +45,7 @@ struct Node
       const int64_t samples = in.size();
       int64_t max = std::min(N, samples);
 
-      out.resize(samples, boost::container::default_init);
+      out.resize(samples);
 
       for (int64_t j = first_pos; j < max; j++)
       {

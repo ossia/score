@@ -1,5 +1,6 @@
 #include <score/tools/RecursiveWatch.hpp>
 #include <cstddef>
+#include <iostream>
 
 #if defined(__APPLE__)
   #if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_15
@@ -16,6 +17,7 @@
 #if SCORE_HAS_STD_FILESYSTEM
 #include <filesystem>
 #elif __has_include(<fts.h>)
+#include <cstring>
 #include <fts.h>
 #define SCORE_HAS_FTS 1
 #else
@@ -73,7 +75,7 @@ void process_file(FTS* fts, FTSENT* curr, std::function<void(std::string_view)>&
     case FTS_NS:
     case FTS_DNR:
     case FTS_ERR:
-      qDebug() << "for_all_files: " << curr->fts_accpath << strerror(curr->fts_errno);
+      std::cerr << "for_all_files: " << curr->fts_accpath << ":" << strerror(curr->fts_errno) << std::endl;
       break;
 
     case FTS_DC:
