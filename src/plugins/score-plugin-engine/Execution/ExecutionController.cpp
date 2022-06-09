@@ -285,7 +285,24 @@ void ExecutionController::on_play_local(bool b, ::TimeVal t)
   {
     if (b)
     {
-      play_interval(scenar->displayedInterval(), {}, t);
+      std::optional<TimeVal> startTime;
+      auto& itv = scenar->displayedInterval();
+      {
+        if(itv.startMarker() != TimeVal::zero())
+          startTime = itv.startMarker();
+      }
+      if(!startTime)
+        if(t != TimeVal::zero())
+          startTime = t;
+
+      if (startTime && m_playing && m_clock)
+      {
+        if (m_clock->paused())
+        {
+          on_transport(*startTime);
+        }
+      }
+      play_interval(scenar->displayedInterval(), {}, startTime ? *startTime : t);
     }
     else
     {

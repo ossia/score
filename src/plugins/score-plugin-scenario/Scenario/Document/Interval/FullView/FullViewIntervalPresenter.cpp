@@ -51,8 +51,6 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
-W_OBJECT_IMPL(Scenario::TimeSignatureHandle)
-W_OBJECT_IMPL(Scenario::LineTextItem)
 
 namespace Scenario
 {
@@ -784,6 +782,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   auto [model, lastFound, timeDelta] = closestParentWithMusicalMetrics(&m_model);
 
   this->m_timebars->timebar.setModel(model, timeDelta);
+  this->m_timebars->timebar.setZoomRatio(m_zoomRatio);
 
   if (!model || !this->m_settings.getMeasureBars())
   {
@@ -791,8 +790,8 @@ void FullViewIntervalPresenter::updateTimeBars()
     {
       this->m_timebars->lightBars.setVisible(false);
       this->m_timebars->lighterBars.setVisible(false);
-      this->m_timebars->timebar.setEnabled(false);
-      this->m_timebars->timebar.setVisible(false);
+      this->m_timebars->timebar.setEnabled(true);
+      this->m_timebars->timebar.setVisible(true);
     }
     return;
   }
@@ -806,8 +805,6 @@ void FullViewIntervalPresenter::updateTimeBars()
       this->m_timebars->timebar.setVisible(true);
     }
   }
-
-  m_timebars->timebar.setZoomRatio(m_zoomRatio);
 
   auto scene_x0 = m_view->mapToScene(QPointF{}).x();
 

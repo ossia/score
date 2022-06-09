@@ -524,6 +524,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/NodalIntervalView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/ClickableLabelItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/AddressBarItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/TimeSignatureItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/Braces/IntervalBrace.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalView.cpp"

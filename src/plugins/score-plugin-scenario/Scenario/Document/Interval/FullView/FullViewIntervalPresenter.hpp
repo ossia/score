@@ -106,6 +106,7 @@ private:
   Timebars* m_timebars{};
 
   MusicalGrid* m_grid{};
+
   const Scenario::Settings::Model& m_settings;
 };
 }

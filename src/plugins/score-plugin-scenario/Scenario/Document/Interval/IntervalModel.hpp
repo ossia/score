@@ -203,6 +203,9 @@ public:
   ossia::musical_sync quantizationRate() const noexcept;
   void setQuantizationRate(ossia::musical_sync b);
 
+  void setStartMarker(TimeVal t);
+  TimeVal startMarker() const noexcept;
+
   void hasTimeSignatureChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTimeSignatureChanged, arg_1)
   void timeSignaturesChanged(const TimeSignatureMap& arg_1)
@@ -217,6 +220,8 @@ public:
 
   void dateChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
+  void startMarkerChanged(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startMarkerChanged, arg_1)
 
   void focusChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1)
@@ -292,6 +297,8 @@ private:
 
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
+
+  TimeVal m_startMarker;
 
   TimeVal m_date;
   double m_heightPercentage{0.5};

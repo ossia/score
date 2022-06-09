@@ -587,6 +587,20 @@ void IntervalModel::setExecuting(bool m)
   }
 }
 
+void IntervalModel::setStartMarker(TimeVal t)
+{
+  if(t != m_startMarker)
+  {
+    m_startMarker = t;
+    startMarkerChanged(t);
+  }
+}
+
+TimeVal IntervalModel::startMarker() const noexcept
+{
+  return m_startMarker;
+}
+
 double IntervalModel::getSlotHeight(const SlotId& slot) const
 {
   if (slot.fullView())
