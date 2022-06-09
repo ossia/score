@@ -11,6 +11,7 @@
 
 #include <ossia/network/value/value_conversion.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <wobjectimpl.h>
 
