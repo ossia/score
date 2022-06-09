@@ -165,7 +165,11 @@ void LayerView::paint_impl(QPainter* painter) const
   auto ratio = m_wf.zoom / m_zoom;
 
   const qreal w = (m_wf.xf - m_wf.x0) * ratio;
+  if(w < 2.)
+    return;
   const qreal h = height() / channels;
+  if(h < 2.)
+    return;
 
   const double x0 = m_wf.x0 * ratio;
 
