@@ -63,7 +63,10 @@ DeviceDocumentPlugin::~DeviceDocumentPlugin()
 {
   m_processMessages = false;
   m_asioContext->context.stop();
+
+#if !defined(__EMSCRIPTEN__)
   m_asioThread.join();
+#endif
 }
 
 // MOVEME

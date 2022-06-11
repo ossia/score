@@ -33,6 +33,8 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-midi
   score-plugin-recording
 
+  score-plugin-avnd
+
 )
 else()
 set(SCORE_PLUGINS_TO_BUILD

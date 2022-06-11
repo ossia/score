@@ -4,7 +4,7 @@ project(score_plugin_avnd LANGUAGES CXX)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
   # Basically what does not work is clang 13 + libstdc++ due to coroutines
-  if(NOT APPLE AND NOT WIN32 AND NOT SCORE_DEPLOYMENT_BUILD)
+  if(NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN AND NOT SCORE_DEPLOYMENT_BUILD)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
       return()
     endif()

@@ -160,8 +160,17 @@ try
   if (m_updating_audio)
     return;
 
+#if defined(__EMSCRIPTEN__)
+  static bool init = 0;
+  if(!init)
+  {
+    init = true;
+    start_engine();
+  }
+#else
   stop_engine();
   start_engine();
+#endif
 }
 catch (std::exception& e)
 {

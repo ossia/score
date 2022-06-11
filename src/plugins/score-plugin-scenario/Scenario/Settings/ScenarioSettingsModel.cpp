@@ -41,7 +41,13 @@ SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){
 SETTINGS_PARAMETER_IMPL(AutoSequence){
     QStringLiteral("Scenario/AutoSequence"),
     false};
-SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
+SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"),
+    #if defined(__EMSCRIPTEN__)
+      false
+    #else
+      true
+    #endif
+};
 SETTINGS_PARAMETER_IMPL(MeasureBars){
     QStringLiteral("Scenario/MeasureBars"),
     true};
