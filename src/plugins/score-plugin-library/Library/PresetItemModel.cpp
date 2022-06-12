@@ -68,15 +68,18 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
 
 void PresetListView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  auto index = indexAt(event->pos());
-  if (!index.isValid())
+  auto proxy_index = indexAt(event->pos());
+  if (!proxy_index.isValid())
     return;
 
-  auto& self = *safe_cast<PresetItemModel*>(this->model());
-  if (index.row() < 0 || index.row() >= int(self.presets.size()))
+  auto proxy = static_cast<QSortFilterProxyModel*>(this->model());
+  auto model_index = proxy->mapToSource(proxy_index);
+
+  auto& self = *safe_cast<PresetItemModel*>(proxy->sourceModel());
+  if (model_index.row() < 0 || model_index.row() >= int(self.presets.size()))
     return;
 
-  auto& preset = self.presets[index.row()];
+  auto& preset = self.presets[model_index.row()];
   doubleClicked(preset);
 
   event->accept();

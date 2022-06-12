@@ -224,9 +224,10 @@ Process::ProcessModel* Macro::loadProcessInSlot(
 
 Process::ProcessModel* Macro::loadProcessFromPreset(
     const IntervalModel& interval,
-    const Process::Preset& preset)
+    const Process::Preset& preset,
+    QPointF pos)
 {
-  if(auto process = this->createProcessInNewSlot(interval, preset.key.key, preset.key.effect, {}))
+  if(auto process = this->createProcessInNewSlot(interval, preset.key.key, preset.key.effect, pos))
   {
     m.submit(new Process::LoadPreset{*process, preset});
     m.submit(new ChangeElementName{*process, preset.name});

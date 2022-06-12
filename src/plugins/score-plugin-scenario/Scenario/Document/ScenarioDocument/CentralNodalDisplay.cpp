@@ -102,11 +102,57 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
       return;
     }
   }
+
+  // Else just create there
+  createInParentInterval();
 }
 
 void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
 {
-  SCORE_TODO;
+  auto createInParentInterval = [&]
+  {
+    Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
+    m.loadProcessFromPreset(parent.displayedInterval(), dat);
+    m.commit();
+  };
+
+  // Try to see if a process is selected.
+  {
+    auto sel = filterSelectionByType<Process::ProcessModel>(
+          parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::ProcessModel& parentProcess = *sel.front();
+      if(!parentProcess.outlets().empty())
+      {
+        loadPresetAfterPort(parent, dat, parentProcess, *parentProcess.outlets().front());
+      }
+      else
+      {
+        createInParentInterval();
+      }
+
+      return;
+    }
+  }
+  // Else try to see if a port is selected.
+  {
+    auto sel = filterSelectionByType<Process::Port>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::Port& p = *sel.front();
+      auto parentProcess = closestParentProcessBeforeInterval(&p);
+      if(parentProcess)
+        loadPresetAfterPort(parent, dat, *parentProcess, p);
+      else
+        createInParentInterval();
+      return;
+    }
+  }
+
+  // Else just create there
+  createInParentInterval();
 }
 
 void CentralNodalDisplay::on_visibleRectChanged(const QRectF&)

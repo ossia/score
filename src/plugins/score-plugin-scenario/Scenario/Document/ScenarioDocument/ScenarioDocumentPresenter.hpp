@@ -186,4 +186,10 @@ void createProcessAfterPort(
     const Library::ProcessData& dat,
     const Process::ProcessModel& parentProcess,
     const Process::Port& p);
+
+void loadPresetAfterPort(
+    Scenario::ScenarioDocumentPresenter& parent,
+    const Process::Preset& dat,
+    const Process::ProcessModel& parentProcess,
+    const Process::Port& p);
 }

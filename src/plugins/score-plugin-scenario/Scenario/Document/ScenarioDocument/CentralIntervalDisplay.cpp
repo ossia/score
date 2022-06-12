@@ -125,6 +125,54 @@ void createProcessAfterPort(
     m.commit();
   }
 }
+void loadPresetAfterPort(
+    Scenario::ScenarioDocumentPresenter& parent,
+    const Process::Preset& dat,
+    const Process::ProcessModel& parentProcess,
+    const Process::Port& p)
+{
+  if(!qobject_cast<const Process::Outlet*>(&p))
+    return;
+
+  if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Port*>(&p)))
+  {
+    Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
+
+    auto pos = parentProcess.position();
+    pos.rx() += parentProcess.size().width() + 40;
+    auto proc = m.loadProcessFromPreset(*parent_itv, dat, pos);
+    if(proc)
+    {
+      // TODO all of this should be made atomic...
+      if(!proc->inlets().empty())
+      {
+        auto new_inlet = proc->inlets()[0];
+        // Create a cable from the output to the input
+        if(new_inlet->type() == p.type())
+        {
+          m.createCable(parent.model(), p, *proc->inlets()[0]);
+        }
+
+        if(!proc->outlets().empty())
+        {
+          auto new_outlet = proc->outlets()[0];
+          // Move the address in the selected output to the first outlet of the new process
+          if(new_outlet->type() == p.type())
+          {
+            if(auto addr = p.address(); addr != State::AddressAccessor{})
+            {
+              m.setProperty<Process::Port::p_address>(*new_outlet, addr);
+              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
+            }
+          }
+        }
+        parent.context().selectionStack.pushNewSelection({proc});
+      }
+    }
+    m.commit();
+  }
+}
+
 void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
   // First try to see if an interval is selected.
@@ -139,11 +187,13 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
       Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
       m.createProcessInNewSlot(itv, dat);
       m.commit();
-      return;
+      return true;
     }
+    return false;
   };
 
-  createInParentInterval();
+  if(createInParentInterval())
+    return;
 
   // Else try to see if a process is selected.
   {
@@ -158,7 +208,8 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
       }
       else
       {
-        createInParentInterval();
+        if(createInParentInterval())
+          return;
       }
 
       return;
@@ -175,7 +226,8 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
       if(parentProcess)
         createProcessAfterPort(parent, dat, *parentProcess, p);
       else
-        createInParentInterval();
+        if(createInParentInterval())
+          return;
       return;
     }
   }
@@ -183,7 +235,62 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
 
 void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
 {
-  SCORE_TODO;
+  // First try to see if an interval is selected.
+  auto createInParentInterval = [&]
+  {
+    auto sel = filterSelectionByType<IntervalModel>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Scenario::IntervalModel& itv = *sel.front();
+
+      Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
+      m.loadProcessFromPreset(itv, dat);
+      m.commit();
+      return true;
+    }
+    return false;
+  };
+
+  if(createInParentInterval())
+    return;
+
+  // Else try to see if a process is selected.
+  {
+    auto sel = filterSelectionByType<Process::ProcessModel>(
+          parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::ProcessModel& parentProcess = *sel.front();
+      if(!parentProcess.outlets().empty())
+      {
+        loadPresetAfterPort(parent, dat, parentProcess, *parentProcess.outlets().front());
+      }
+      else
+      {
+        if(createInParentInterval())
+          return;
+      }
+
+      return;
+    }
+  }
+  // Else try to see if a port is selected.
+  {
+    auto sel = filterSelectionByType<Process::Port>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::Port& p = *sel.front();
+      auto parentProcess = closestParentProcessBeforeInterval(&p);
+      if(parentProcess)
+        loadPresetAfterPort(parent, dat, *parentProcess, p);
+      else
+        if(createInParentInterval())
+          return;
+      return;
+    }
+  }
 }
 
 void CentralIntervalDisplay::on_visibleRectChanged(const QRectF&)

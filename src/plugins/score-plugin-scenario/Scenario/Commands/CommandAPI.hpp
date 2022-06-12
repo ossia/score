@@ -112,7 +112,8 @@ public:
       const rapidjson::Value& procdata);
   Process::ProcessModel* loadProcessFromPreset(
       const IntervalModel& interval,
-      const Process::Preset& preset);
+      const Process::Preset& preset,
+      QPointF pos = QPointF{});
 
   void clearInterval(const Scenario::IntervalModel&);
 

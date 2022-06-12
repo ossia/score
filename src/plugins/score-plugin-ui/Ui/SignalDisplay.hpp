@@ -9,22 +9,6 @@
 namespace ossia
 {
 
-OSSIA_INLINE bool safe_isinf(double val) noexcept
-{
-#if __FINITE_MATH_ONLY__
-#if defined(_MSC_VER)
-  return std::isinf(val);
-#elif defined(__APPLE__)
-  return __isinfd(val);
-#else
-  // On gcc / clang, with -ffast-math, std::isinf always returns 0
-  return __isinf(val);
-#endif
-#else
-  return std::isinf(val);
-#endif
-}
-
 }
 namespace Ui
 {
