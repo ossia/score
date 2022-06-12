@@ -204,6 +204,10 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
+
+  qRegisterMetaType<JS::SampleTimings>();
+  qRegisterMetaType<JS::TokenRequestValueType>();
+  qRegisterMetaType<JS::ExecutionStateValueType>();
 }
 
 score_plugin_js::~score_plugin_js() = default;

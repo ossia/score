@@ -9,6 +9,7 @@ W_GADGET_IMPL(JS::Vec2fValueType)
 W_GADGET_IMPL(JS::Vec3fValueType)
 W_GADGET_IMPL(JS::Vec4fValueType)
 W_GADGET_IMPL(JS::TokenRequestValueType)
+W_GADGET_IMPL(JS::SampleTimings)
 W_GADGET_IMPL(JS::ExecutionStateValueType)
 
 // Most of this code is refactored out of the qtdeclarative source.
@@ -934,6 +935,16 @@ bool TokenRequestValueType::unexpected_bar_change() const noexcept
   return req.unexpected_bar_change();
 }
 
+int SampleTimings::start_sample() const noexcept
+{
+   return tm.start_sample;
+}
+
+int SampleTimings::length() const noexcept
+{
+  return tm.length;
+}
+
 int ExecutionStateValueType::sample_rate() const noexcept
 {
   return req.sampleRate();
@@ -967,6 +978,11 @@ double ExecutionStateValueType::start_date_ns() const noexcept
 double ExecutionStateValueType::current_date_ns() const noexcept
 {
   return req.currentDate();
+}
+
+SampleTimings ExecutionStateValueType::timings(ossia::token_request tk) const noexcept
+{
+  return SampleTimings{req.timings(tk)};
 }
 }
 

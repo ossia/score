@@ -167,9 +167,10 @@ public:
 
 class TokenRequestValueType
 {
-  ossia::token_request req;
   W_GADGET(TokenRequestValueType)
 public:
+  ossia::token_request req;
+
   double previous_date() const noexcept;
   double date() const noexcept;
   double parent_duration() const noexcept;
@@ -244,11 +245,25 @@ public:
   W_PROPERTY(double, signature_lower READ signature_lower FINAL)
 };
 
-class ExecutionStateValueType
+struct SampleTimings
 {
-  ossia::exec_state_facade req;
+  W_GADGET(SampleTimings)
+public:
+
+  ossia::exec_state_facade::sample_timings tm{};
+
+  int start_sample() const noexcept;
+  int length() const noexcept;
+
+  W_PROPERTY(int, start_sample READ start_sample FINAL)
+  W_PROPERTY(int, length READ length FINAL)
+};
+
+struct ExecutionStateValueType
+{
   W_GADGET(ExecutionStateValueType)
 public:
+  ossia::exec_state_facade req;
   int sample_rate() const noexcept;
   int buffer_size() const noexcept;
   double model_to_physical() const noexcept;
@@ -256,6 +271,9 @@ public:
   double physical_date() const noexcept;
   double start_date_ns() const noexcept;
   double current_date_ns() const noexcept;
+
+  SampleTimings timings(ossia::token_request tk) const noexcept;
+  W_INVOKABLE(timings)
 
   W_PROPERTY(int, sample_rate READ sample_rate FINAL)
   W_PROPERTY(int, buffer_size READ buffer_size FINAL)
@@ -266,4 +284,9 @@ public:
   W_PROPERTY(double, current_date_ns READ current_date_ns FINAL)
 };
 }
+
+Q_DECLARE_METATYPE(JS::TokenRequestValueType)
+W_REGISTER_ARGTYPE(JS::TokenRequestValueType)
+Q_DECLARE_METATYPE(JS::SampleTimings)
+W_REGISTER_ARGTYPE(JS::SampleTimings)
 #endif
