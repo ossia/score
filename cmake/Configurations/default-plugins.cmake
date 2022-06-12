@@ -27,14 +27,21 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-dataflow
 
   score-plugin-media
-  score-plugin-fx
 
   score-plugin-js
   score-plugin-midi
   score-plugin-recording
 
+  score-plugin-nodal
+  score-plugin-controlsurface
+  score-plugin-remotecontrol
+  score-plugin-spline
+
   score-plugin-avnd
 
+  score-plugin-fx
+  score-plugin-ui
+  score-plugin-analysis
 )
 else()
 set(SCORE_PLUGINS_TO_BUILD
