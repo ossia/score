@@ -634,8 +634,10 @@ static std::vector<const Process::ProcessModel*> selectedProcesses(const score::
 }
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  auto origp = event->buttonDownScenePos(Qt::LeftButton);
-  auto p = event->scenePos();
+  auto parent = this->parentItem();
+
+  auto origp = parent->mapFromScene(event->buttonDownScenePos(Qt::LeftButton));
+  auto p = parent->mapFromScene(event->scenePos());
   if(p != origp)
     nodeDidMove = true;
 
