@@ -205,9 +205,11 @@ score_plugin_js::score_plugin_js()
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaType<JS::SampleTimings>();
   qRegisterMetaType<JS::TokenRequestValueType>();
   qRegisterMetaType<JS::ExecutionStateValueType>();
+#endif
 }
 
 score_plugin_js::~score_plugin_js() = default;
