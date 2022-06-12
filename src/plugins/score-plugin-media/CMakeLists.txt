@@ -185,6 +185,20 @@ if(FFmpeg_FOUND)
   endif()
 
   target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
+elseif(EMSCRIPTEN)
+  target_include_directories(${PROJECT_NAME} PRIVATE /opt/ossia-sdk-wasm/ffmpeg/include)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libavcodec.a
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libavdevice.a
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libavfilter.a
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libavformat.a
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libavutil.a
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libswscale.a
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libswresample.a
+    /opt/ossia-sdk-wasm/ffmpeg/lib/libpostproc.a
+    -Wl,--end-group
+  )
 endif()
 
 

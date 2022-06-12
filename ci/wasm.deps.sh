@@ -5,7 +5,7 @@ pacman -Syyu --noconfirm
 pacman -S wget ninja cmake which python tar git --noconfirm
 
 export SDK_ARCHIVE=sdk-wasm.tar.xz
-wget -nv https://github.com/ossia/score-sdk/releases/download/sdk19/$SDK_ARCHIVE -O $SDK_ARCHIVE
+wget -nv https://github.com/ossia/score-sdk/releases/download/sdk25/$SDK_ARCHIVE -O $SDK_ARCHIVE
 
 mkdir -p /opt/ossia-sdk-wasm
 chown -R $(whoami) /opt/ossia-sdk-wasm
