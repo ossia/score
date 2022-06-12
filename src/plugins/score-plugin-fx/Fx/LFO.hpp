@@ -19,6 +19,11 @@ namespace Nodes
 
 namespace LFO
 {
+static inline std::random_device& random_source() {
+  static thread_local std::random_device d;
+  return d;
+}
+
 namespace v1
 {
 struct Node
@@ -316,7 +321,7 @@ struct Node
   struct State
   {
     double phase{};
-    rnd::pcg rd;
+    rnd::pcg rd{random_source()};
   };
 
   using control_policy = ossia::safe_nodes::precise_tick;
