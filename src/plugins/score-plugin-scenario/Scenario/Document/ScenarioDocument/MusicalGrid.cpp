@@ -5,6 +5,7 @@
 #include <Scenario/Document/Interval/FullView/TimeSignatureItem.hpp>
 #include <Scenario/Document/Interval/FullView/Timebar.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <wobjectimpl.h>
