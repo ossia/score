@@ -13,6 +13,6 @@ pacman -S --noconfirm \
    libdrm tslib udev zstd \
    xcb-proto xcb-util xcb-util-cursor xcb-util-image \
    xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
-   qt6-base qt6-shadertools qt6-tools qt6-5compat qt6-declarative qt6-scxml
+   qt6-base qt6-shadertools qt6-tools qt6-5compat qt6-declarative qt6-scxml qt6-websockets
 
 source ci/common.deps.sh
