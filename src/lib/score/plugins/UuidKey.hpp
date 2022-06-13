@@ -194,12 +194,9 @@ constexpr inline bool operator==(uuid const& lhs, uuid const& rhs) noexcept
 
 constexpr inline bool operator<(uuid const& lhs, uuid const& rhs) noexcept
 {
-  for (std::size_t i = 0; i < uuid::static_size(); ++i)
-  {
-    if (lhs.data[i] > rhs.data[i])
-      return false;
-  }
-  return true;
+  return std::lexicographical_compare(
+        lhs.data, lhs.data + uuid::static_size(),
+        rhs.data, rhs.data + uuid::static_size());
 }
 
 constexpr inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
