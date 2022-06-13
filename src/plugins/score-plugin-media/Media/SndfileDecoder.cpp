@@ -1,10 +1,11 @@
 #include <Media/SndfileDecoder.hpp>
 #include <Media/MediaFileHandle.hpp>
 
-#include <sndfile.h>
 #include <new>
 #include <QDebug>
 
+#if __has_include(<sndfile.h>)
+#include <sndfile.h>
 namespace Media
 {
 
@@ -121,3 +122,21 @@ std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
 }
 
 }
+#else
+
+namespace Media
+{
+SndfileDecoder::SndfileDecoder()
+{
+}
+
+void SndfileDecoder::decode(const QString& path, audio_handle hdl)
+{
+}
+
+std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
+{
+  return {};
+}
+}
+#endif
