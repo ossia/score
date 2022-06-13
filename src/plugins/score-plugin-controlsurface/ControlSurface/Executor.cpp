@@ -135,7 +135,8 @@ public:
       auto& ctl = controls[i];
       if (ctl.second)
       {
-        m_outlets[i]->target<ossia::value_port>()->write_value(
+        auto vp = m_outlets[i]->target<ossia::value_port>();
+        vp->write_value(
             std::move(*ctl.first), 0);
         ctl.second = false;
       }
@@ -181,12 +182,27 @@ ProcessExecutorComponent::ProcessExecutorComponent(Model& element, const Executi
   for (auto& ctl : element.inlets())
   {
     std::pair<ossia::value*, bool>& p = node->add_control();
+    auto& inlet = *node->root_inputs().back();
+    auto& in_port = *inlet.target<ossia::value_port>();
+    auto& outlet = *node->root_outputs().back();
+    auto& out_port = *outlet.target<ossia::value_port>();
+
     auto ctrl = safe_cast<Process::ControlInlet*>(ctl);
     *p.first = ctrl->value(); // TODO does this make sense ?
     p.second = true;          // we will send the first value
 
+
     const State::AddressAccessor& addr = map.at(ctl->id().val());
-    system().setup.set_destination(addr, node->root_outputs().back());
+    system().setup.set_destination(addr, &outlet);
+    ctrl->setupExecution(inlet);
+
+    // set_destination sets the domain / type in the exec thread, so since
+    // we override it we have to schedul the change after to make sure it does
+    // not get overwritten:
+    in_exec([& in_port, &out_port] {
+      out_port.domain = in_port.domain;
+      out_port.type = in_port.type;
+    });
 
     std::weak_ptr<ossia::control_surface_node> weak_node = node;
     QObject::connect(
@@ -210,17 +226,30 @@ void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
 
   auto v = inl.value(); // TODO does this make sense ?
 
+  std::shared_ptr<ossia::value_inlet> fake = std::make_shared<ossia::value_inlet>();
+  inl.setupExecution(*fake);
+
   const State::AddressAccessor& addr = map.at(inl.id().val());
   auto set_addr = ossia::set_destination_impl<ossia::outlet>(*ctx.execState, *ctx.execGraph, addr);
 
   std::weak_ptr<ossia::control_surface_node> weak_node = std::dynamic_pointer_cast<ossia::control_surface_node>(this->node);
-  in_exec([v, weak_node, set_addr] () mutable {
+  in_exec([v, weak_node, set_addr, fake=std::move(fake)] () mutable {
     if(auto node = weak_node.lock()) {
       std::pair<ossia::value*, bool>& p = node->add_control();
       *p.first = std::move(v);
       p.second = true;
 
-      set_addr(*node->root_outputs().back());
+      auto& inlet = *node->root_inputs().back();
+      auto& in_port = *inlet.target<ossia::value_port>();
+      auto& outlet = *node->root_outputs().back();
+      auto& out_port = *outlet.target<ossia::value_port>();
+      set_addr(outlet);
+
+      auto& fake_port = *fake->target<ossia::value_port>();
+      in_port.domain = fake_port.domain;
+      in_port.type = fake_port.type;
+      out_port.domain = fake_port.domain;
+      out_port.type = fake_port.type;
     }
   });
 
