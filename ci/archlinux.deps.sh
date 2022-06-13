@@ -6,3 +6,4 @@ pacman -S --noconfirm \
    ffmpeg portaudio jack2 lv2 suil lilv sdl2 alsa-lib \
    avahi fftw bluez-libs
 
+source ci/common.deps.sh

@@ -12,3 +12,6 @@ tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-rpi/
 wget -nv https://raw.githubusercontent.com/ossia/sdk/master/ARM/RPi4/toolchain.cmake -O /opt/ossia-sdk-rpi/toolchain.cmake
 
 rm *.tar.*
+
+
+source ci/common.deps.sh

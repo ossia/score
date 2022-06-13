@@ -16,3 +16,5 @@ sudo pacman -S --needed --noconfirm \
 #     mingw-w64-x86_64-cmake \
 #     mingw-w64-x86_64-ninja \
 #     mingw-w64-x86_64-gcc
+
+source ci/common.deps.sh

@@ -41,3 +41,5 @@ dpkg -l | grep clang
 
 tar xaf cninja.tgz
 sudo cp -rf cninja /usr/bin/
+
+source ci/common.deps.sh

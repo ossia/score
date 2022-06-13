@@ -17,3 +17,5 @@ dnf -y install \
      bluez-libs-devel \
      qt5-qtbase-devel qt5-qttools-devel qt5-qtserialport-devel qt5-qtwebsockets-devel qt5-qtdeclarative-devel \
      qt5-qtbase-private-devel  qt5-qtdeclarative-private-devel
+
+source ci/common.deps.sh

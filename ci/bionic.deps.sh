@@ -21,3 +21,5 @@ apt-get install -qq --force-yes \
      portaudio19-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      libclang-10-dev
+
+source ci/common.deps.sh

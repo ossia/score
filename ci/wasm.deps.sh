@@ -13,3 +13,5 @@ chmod -R a+rwx /opt/ossia-sdk-wasm
 tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-wasm/
 
 rm *.tar.*
+
+source ci/common.deps.sh

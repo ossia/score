@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source ci/common.deps.sh
 
 rm -rf .git
 rm -rf *.tar.xz
