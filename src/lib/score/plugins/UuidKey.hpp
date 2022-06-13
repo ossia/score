@@ -192,29 +192,35 @@ constexpr inline bool operator==(uuid const& lhs, uuid const& rhs) noexcept
   return true;
 }
 
-constexpr inline bool operator<(uuid const& lhs, uuid const& rhs) noexcept
+constexpr inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
+{
+  return !(lhs == rhs);
+}
+
+#if __cpp_lib_constexpr_algorithms >= 201806L
+#define constexpr_algorithm constexpr
+#else
+#define constexpr_algorithm
+#endif
+
+constexpr_algorithm inline bool operator<(uuid const& lhs, uuid const& rhs) noexcept
 {
   return std::lexicographical_compare(
         lhs.data, lhs.data + uuid::static_size(),
         rhs.data, rhs.data + uuid::static_size());
 }
 
-constexpr inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
-{
-  return !(lhs == rhs);
-}
-
-constexpr inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
+constexpr_algorithm inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
 {
   return rhs < lhs;
 }
 
-constexpr inline bool operator<=(uuid const& lhs, uuid const& rhs) noexcept
+constexpr_algorithm inline bool operator<=(uuid const& lhs, uuid const& rhs) noexcept
 {
   return !(rhs < lhs);
 }
 
-constexpr inline bool operator>=(uuid const& lhs, uuid const& rhs) noexcept
+constexpr_algorithm inline bool operator>=(uuid const& lhs, uuid const& rhs) noexcept
 {
   return !(lhs < rhs);
 }
