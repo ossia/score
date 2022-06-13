@@ -2,7 +2,7 @@
 
 # Note: this is run from an ArchLinux container due to too recent glibc
 pacman -Syyu --noconfirm
-pacman -S wget ninja cmake which python tar git double-conversion --noconfirm
+pacman -S wget ninja cmake which python tar git double-conversion libb2 icu glib2 pcre2 --noconfirm
 
 export SDK_ARCHIVE=sdk-wasm.tar.xz
 wget -nv https://github.com/ossia/score-sdk/releases/download/sdk25/$SDK_ARCHIVE -O $SDK_ARCHIVE
