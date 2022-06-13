@@ -197,8 +197,9 @@ struct ApplyEngineControlChangeToUI
   template <std::size_t N, std::size_t NField>
   void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
-    inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
+    if(auto p = modelPort<Node>(element.inlets(), NField))
+      if(auto inlet = dynamic_cast<Process::ControlInlet*>(p))
+        inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
   }
 };
 
