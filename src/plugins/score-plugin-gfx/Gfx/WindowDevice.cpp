@@ -141,11 +141,95 @@ public:
       m_root.add_child(std::move(node));
     }
 
+    // Tablet input
+    ossia::net::parameter_base* scaled_tablet_win{};
+    ossia::net::parameter_base* abs_tablet_win{};
+    {
+      auto node = std::make_unique<ossia::net::generic_node>("tablet", *this, m_root);
+      ossia::net::parameter_base* tablet_pressure{};
+      ossia::net::parameter_base* tablet_z{};
+      ossia::net::parameter_base* tablet_tan{};
+      ossia::net::parameter_base* tablet_rot{};
+      ossia::net::parameter_base* tablet_tilt_x{};
+      ossia::net::parameter_base* tablet_tilt_y{};
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("scaled", *this, *node);
+        scaled_tablet_win = scale_node->create_parameter(ossia::val_type::VEC2F);
+        scaled_tablet_win->set_domain(ossia::make_domain(0.f, 1.f));
+        scaled_tablet_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto abs_node = std::make_unique<ossia::net::generic_node>("absolute", *this, *node);
+        abs_tablet_win = abs_node->create_parameter(ossia::val_type::VEC2F);
+        abs_tablet_win->set_domain(ossia::make_domain(ossia::vec2f{0.f, 0.f}, ossia::vec2f{1280, 270.f}));
+        abs_tablet_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(abs_node));
+      }
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("z", *this, *node);
+        tablet_z = scale_node->create_parameter(ossia::val_type::INT);
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("pressure", *this, *node);
+        tablet_pressure = scale_node->create_parameter(ossia::val_type::FLOAT);
+        //tablet_pressure->set_domain(ossia::make_domain(0.f, 1.f));
+        //tablet_pressure->push_value(0.f);
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("tangential", *this, *node);
+        tablet_tan = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_tan->set_domain(ossia::make_domain(-1.f, 1.f));
+        //tablet_tan->push_value(0.f);
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("rotation", *this, *node);
+        tablet_rot = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_rot->set_unit(ossia::degree_u{});
+        tablet_rot->set_domain(ossia::make_domain(-180.f, 180.f));
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("tilt_x", *this, *node);
+        tablet_tilt_x = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_tilt_x->set_domain(ossia::make_domain(-60.f, 60.f));
+        tablet_tilt_x->set_unit(ossia::degree_u{});
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("tilt_y", *this, *node);
+        tablet_tilt_y = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_tilt_y->set_domain(ossia::make_domain(-60.f, 60.f));
+        tablet_tilt_y->set_unit(ossia::degree_u{});
+        node->add_child(std::move(scale_node));
+      }
+
+      m_screen->onTabletMove = [=] (QTabletEvent* ev){
+        if(const auto& w = m_screen->window())
+        {
+          const auto sz = w->size();
+          const auto win = ev->posF();
+          scaled_tablet_win->push_value(ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
+          abs_tablet_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
+          tablet_pressure->push_value(ev->pressure());
+          tablet_tan->push_value(ev->tangentialPressure());
+          tablet_rot->push_value(ev->rotation());
+          tablet_tilt_x->push_value(ossia::vec2f{float(ev->xTilt()), float(ev->yTilt())});
+          tablet_tilt_y->push_value(ossia::vec2f{float(ev->xTilt()), float(ev->yTilt())});
+        }
+      };
+
+      m_root.add_child(std::move(node));
+    }
+
     {
       auto size_node = std::make_unique<ossia::net::generic_node>("size", *this, m_root);
       auto size_param = size_node->create_parameter(ossia::val_type::VEC2F);
       size_param->push_value(ossia::vec2f{1280.f, 720.f});
-      size_param->add_callback([this, abs_win] (const ossia::value& v) {
+      size_param->add_callback([this, abs_win, abs_tablet_win] (const ossia::value& v) {
         if(auto val = v.target<ossia::vec2f>())
         {
           ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, v=*val] {
@@ -154,7 +238,10 @@ public:
 
           auto dom = abs_win->get_domain();
           ossia::set_max(dom, *val);
-          abs_win->set_domain(std::move(dom));
+          {
+            abs_win->set_domain(std::move(dom));
+            abs_tablet_win->set_domain(std::move(dom));
+          }
         }
       });
 

@@ -298,6 +298,7 @@ void ScreenNode::createOutput(
     m_window->setVulkanInstance(staticVulkanInstance());
 #endif
   QObject::connect(m_window.get(), &Window::mouseMove, [this] (QPointF s, QPointF w) { if(onMouseMove) onMouseMove(s,w); });
+  QObject::connect(m_window.get(), &Window::tabletMove, [this] (QTabletEvent* e) { if(onTabletMove) onTabletMove(e); });
   QObject::connect(m_window.get(), &Window::key, [this] (int k, const QString& t) { if(onKey) onKey(k, t); });
   m_window->onUpdate = std::move(onUpdate);
   m_window->onWindowReady = [this, graphicsApi, onReady = std::move(onReady)] {

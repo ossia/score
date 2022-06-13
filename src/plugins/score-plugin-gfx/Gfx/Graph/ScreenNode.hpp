@@ -2,6 +2,7 @@
 #include <Gfx/Graph/OutputNode.hpp>
 
 class QScreen;
+class QTabletEvent;
 namespace score::gfx
 {
 /**
@@ -44,6 +45,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
 
   std::function<void(QPointF, QPointF)> onMouseMove;
+  std::function<void(QTabletEvent*)> onTabletMove;
   std::function<void(int, const QString&)> onKey;
 private:
   class BasicRenderer;

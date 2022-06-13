@@ -184,6 +184,16 @@ bool Window::event(QEvent* e)
       render();
       break;
 
+  case QEvent::TabletMove:
+  {
+    auto ev = static_cast<QTabletEvent*>(e);
+    this->tabletMove(ev);
+    break;
+  }
+  case QEvent::TabletPress:
+  case QEvent::TabletRelease:
+    break;
+
     case QEvent::MouseMove:
     {
       auto ev = static_cast<QMouseEvent*>(e);
