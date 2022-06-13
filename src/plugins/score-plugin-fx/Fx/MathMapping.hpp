@@ -472,6 +472,8 @@ struct Node
       expr.add_vector("m1", m1);
       expr.add_vector("m2", m2);
       expr.add_vector("m3", m3);
+
+      expr.update_symbol_table();
     }
 
     std::vector<double> cur_in{};
