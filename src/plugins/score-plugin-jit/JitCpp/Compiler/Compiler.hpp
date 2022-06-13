@@ -32,7 +32,11 @@ public:
       return EntrySym.takeError();
 
     // Cast the entry point address to a function pointer.
+#if LLVM_VERSION_MAJOR <= 14
     auto* Entry = (Signature_t*)EntrySym->getAddress();
+#else
+    auto* Entry = (Signature_t*)(*EntrySym).getValue();
+#endif
     return std::function<Signature_t>(Entry);
   }
 
