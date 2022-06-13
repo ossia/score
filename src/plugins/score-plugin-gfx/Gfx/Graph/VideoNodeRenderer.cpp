@@ -272,6 +272,9 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
 
 void VideoNodeRenderer::displayFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  if(frame.data[0] == nullptr)
+    return;
+
   checkFormat(
       renderer,
       static_cast<AVPixelFormat>(frame.format),
