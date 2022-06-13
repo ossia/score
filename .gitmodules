@@ -58,3 +58,6 @@
 [submodule "3rdparty/avendish"]
 	path = 3rdparty/avendish
 	url = https://github.com/celtera/avendish
+[submodule "3rdparty/dspfilters"]
+	path = 3rdparty/dspfilters
+	url = https://github.com/olilarkin/dspfilters

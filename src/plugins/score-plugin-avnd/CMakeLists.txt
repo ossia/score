@@ -61,10 +61,30 @@ add_library(
 
   score_plugin_avnd.hpp
   score_plugin_avnd.cpp
+
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Bessel.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Biquad.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Butterworth.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Cascade.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/ChebyshevI.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/ChebyshevII.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Custom.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Design.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Documentation.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Elliptic.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Filter.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Legendre.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/Param.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/PoleFilter.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/RBJ.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/RootFinder.cpp
+  ${3RDPARTY_FOLDER}/dspfilters/DSPFilters/source/State.cpp
 )
 
 target_include_directories(score_plugin_avnd PUBLIC "${3RDPARTY_FOLDER}/avendish/include")
 target_link_libraries(score_plugin_avnd PUBLIC score_plugin_engine score_plugin_media)
+target_include_directories(score_plugin_avnd PRIVATE "${3RDPARTY_FOLDER}/dspfilters/DSPFilters/include")
+
 if(TARGET score_plugin_gfx)
   target_link_libraries(score_plugin_avnd PUBLIC score_plugin_gfx)
 endif()

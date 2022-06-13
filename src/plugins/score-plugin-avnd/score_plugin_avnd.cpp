@@ -82,10 +82,11 @@
 #include <avnd/../../examples/Gpu/DrawRaw.hpp>
 #include <avnd/../../examples/Gpu/DrawWithHelpers.hpp>
 #include <avnd/../../examples/Gpu/SolidColor.hpp>
-#endif
-#include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #include <avnd/../../examples/Helpers/PeakBandFFTPort.hpp>
+#include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #include <brigand/sequences/list.hpp>
+#endif
+#include <avnd/../../examples/Tests/ParametricEq.hpp>
 
 
 /**
@@ -114,6 +115,7 @@ score_plugin_avnd::factories(
 #endif
 
   return oscr::instantiate_fx<
+      examples::ParametricEq
     #if AVND_TEST_BUILD
       oscr::Granolette
       , examples::helpers::FFTDisplay
