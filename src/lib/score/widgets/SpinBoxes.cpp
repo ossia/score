@@ -624,11 +624,11 @@ void TimeSpinBox::paintEvent(QPaintEvent* event)
 /* Speed goes from -1 to 5 */
 static constexpr double valueFromSpeed(double speed)
 {
-  return (speed + 1.) / 6.;
+  return (speed - 0.01) / 5.;
 }
 static constexpr double speedFromValue(double value)
 {
-  return value * 6. - 1.;
+  return value * 5. + 0.01;
 }
 
 SpeedSlider::SpeedSlider(QWidget* parent)
