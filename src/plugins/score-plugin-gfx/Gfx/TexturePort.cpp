@@ -21,15 +21,15 @@ W_OBJECT_IMPL(Gfx::TextureOutlet)
 
 namespace Gfx
 {
-MODEL_METADATA_IMPL_CPP(TextureInlet)
-MODEL_METADATA_IMPL_CPP(TextureOutlet)
+MODEL_METADATA_IMPL_CPP(TextureInlet);
+MODEL_METADATA_IMPL_CPP(TextureOutlet);
 
 class GraphPreviewWidget
     : public QWidget
 {
 public:
   GraphPreviewWidget(const TextureOutlet& outlet, Gfx::DocumentPlugin& plug)
-    : outlet{outlet}
+    : outlet_p{&outlet}
     , plug{plug}
   {
     setLayout(new Inspector::VBoxLayout{this});
@@ -47,6 +47,11 @@ public:
     const auto& w = node->window();
     if(!w)
       return;
+
+    if(!outlet_p)
+      return;
+
+    auto& outlet = *outlet_p;
 
     if(outlet.nodeId != nodeId)
     {
@@ -94,7 +99,7 @@ public:
   }
 
 private:
-  const TextureOutlet& outlet;
+  QPointer<const TextureOutlet> outlet_p;
   Gfx::DocumentPlugin& plug;
   score::gfx::ScreenNode* node{};
   std::optional<Gfx::Edge> e;
@@ -104,9 +109,9 @@ private:
   QWindow* qwindow{};
   QWidget* container{};
 
-               int screenId = -1;
-               int nodeId = -1;
-               int timerId{};
+  int screenId = -1;
+  int nodeId = -1;
+  int timerId{};
 
 };
 

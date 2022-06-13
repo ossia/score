@@ -718,7 +718,7 @@ out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  v_texcoord = texcoord;
+  v_texcoord = vec2(texcoord.x, 1. - texcoord.y);
   gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
 }
 )_";
