@@ -407,7 +407,7 @@ struct Node
             "\n"
             "for (var i := 0; i < n; i += 1) {\n"
             "  var dist := tan(x[i]*log(1 + 200 * a));\n"
-            "  out[i] := clamp(0, dist, 1);\n"
+            "  out[i] := clamp(-1, dist, 1);\n"
             "}\n"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
