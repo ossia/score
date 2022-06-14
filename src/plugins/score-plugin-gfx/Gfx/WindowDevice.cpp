@@ -217,8 +217,8 @@ public:
           tablet_pressure->push_value(ev->pressure());
           tablet_tan->push_value(ev->tangentialPressure());
           tablet_rot->push_value(ev->rotation());
-          tablet_tilt_x->push_value(ossia::vec2f{float(ev->xTilt()), float(ev->yTilt())});
-          tablet_tilt_y->push_value(ossia::vec2f{float(ev->xTilt()), float(ev->yTilt())});
+          tablet_tilt_x->push_value(ev->xTilt());
+          tablet_tilt_y->push_value(ev->yTilt());
         }
       };
 
