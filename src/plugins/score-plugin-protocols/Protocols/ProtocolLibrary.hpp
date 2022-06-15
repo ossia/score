@@ -53,7 +53,7 @@
 #endif
 namespace Protocols
 {
-class OSCLibraryHandler final : public Library::LibraryInterface
+class DeviceLibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("8d4c06e2-851b-4d5f-82f2-68056a50c370")
 

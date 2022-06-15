@@ -45,7 +45,40 @@ AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
 }
 
 AudioDevice::~AudioDevice() { }
+Device::Node AudioDevice::replaceNode(const Device::Node& n)
+{
 
+
+  auto isMappingAudioNode = [] (const Device::Node& n) {
+    if(!n.is<Device::AddressSettings>())
+      return false;
+
+    auto& addr = n.get<Device::AddressSettings>();
+    return !addr.extendedAttributes.empty();
+  };
+  // removing old mappings
+  auto in_mapping = m_protocol->in_mappings;
+  auto out_mapping = m_protocol->out_mappings;
+  for(auto in : in_mapping)
+  {
+    auto& i = in->get_node();
+    auto& parent = *i.get_parent();
+    parent.remove_child(i);
+  }
+  for(auto out : out_mapping){
+    auto& o = out->get_node();
+    auto& parent = *o.get_parent();
+    parent.remove_child(o);
+  }
+  //adding new mappings
+  for(auto& singleNode : n)
+  {
+    if(isMappingAudioNode(singleNode)){
+      addNode(singleNode);
+    }
+  }
+  return refresh();
+}
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 {
   using namespace ossia;

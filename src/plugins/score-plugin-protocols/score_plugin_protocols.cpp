@@ -137,7 +137,7 @@ score_plugin_protocols::factories(
          >,
       FW<score::SettingsDelegateFactory, Protocols::Settings::Factory>,
       FW<Library::LibraryInterface,
-         Protocols::OSCLibraryHandler
+         Protocols::DeviceLibraryHandler
 #if __has_include(<QQmlEngine>)
          ,
          Protocols::QMLLibraryHandler

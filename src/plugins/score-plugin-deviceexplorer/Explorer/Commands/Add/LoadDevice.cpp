@@ -40,7 +40,20 @@ void LoadDevice::undo(const score::DocumentContext& ctx) const
 void LoadDevice::redo(const score::DocumentContext& ctx) const
 {
   auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
-  devplug.updateProxy.addDevice(m_deviceNode);
+  auto& devList = devplug.list();
+  auto& nodeUUID = m_deviceNode.get<Device::DeviceSettings>().protocol;
+  if(devList.audioDevice() && devList.audioDevice()->settings().protocol==nodeUUID)
+  {
+    devplug.updateProxy.replaceDevice(m_deviceNode);
+  }
+/*
+  else if(devList.localDevice() && devList.localDevice()->settings().protocol==nodeUUID) {
+    devplug.updateProxy.addDevice(m_deviceNode);
+  }
+*/
+  else {
+    devplug.updateProxy.addDevice(m_deviceNode);
+  }
 }
 
 void LoadDevice::serializeImpl(DataStreamInput& d) const

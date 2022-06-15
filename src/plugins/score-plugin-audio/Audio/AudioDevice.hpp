@@ -62,8 +62,8 @@ public:
   explicit AudioDevice(const Device::DeviceSettings& settings);
   ~AudioDevice();
 
+  Device::Node replaceNode(const Device::Node& n) override;
   void addAddress(const Device::FullAddressSettings& settings) override;
-
   void updateAddress(
       const State::Address& currentAddr,
       const Device::FullAddressSettings& settings) override;

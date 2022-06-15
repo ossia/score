@@ -73,6 +73,7 @@ public:
   const QString& name() const;
 
   virtual void addNode(const Device::Node& n);
+  virtual Device::Node replaceNode(const Device::Node& n);
 
   DeviceCapas capabilities() const;
 

@@ -54,6 +54,24 @@ void NodeUpdateProxy::updateDevice(
   devModel.explorer().updateDevice(name, dev);
 }
 
+void NodeUpdateProxy::replaceDevice(
+    const Device::Node& node
+    )
+{
+   const auto& rootNode = devModel.rootNode();
+   const auto& dev = node.get<Device::DeviceSettings>();
+   auto it = ossia::find_if(rootNode, [&](const Device::Node& val) {
+     return val.is<Device::DeviceSettings>()
+            && val.get<Device::DeviceSettings>().name == dev.name;
+   });
+   SCORE_ASSERT(it != rootNode.end()); //crash if no previous audio device shown ?
+   auto dev_i = devModel.list().findDevice(dev.name);
+   SCORE_ASSERT(dev_i);
+   devModel.explorer().removeNode(it);
+   auto newdev = dev_i->replaceNode(node);
+   devModel.explorer().addDevice(newdev);
+}
+
 void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
 {
   const auto& rootNode = devModel.rootNode();

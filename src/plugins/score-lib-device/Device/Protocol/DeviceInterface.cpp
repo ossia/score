@@ -335,6 +335,10 @@ void DeviceInterface::addNode(const Device::Node& n)
   }
 }
 
+Device::Node DeviceInterface::replaceNode(const Device::Node& n){
+  return refresh();
+}
+
 DeviceCapas DeviceInterface::capabilities() const
 {
   return m_capas;

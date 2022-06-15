@@ -51,6 +51,8 @@ public:
 
   void updateDevice(const QString& name, const Device::DeviceSettings& dev);
 
+  void replaceDevice(const Device::Node& node);
+
   void removeDevice(const Device::DeviceSettings& dev);
 
   /**
