@@ -551,6 +551,9 @@ endif()
 target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}")
 target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownloader/src")
 target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
+target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/quickcpplib/include")
+target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/outcome/include")
+target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/llfio/include")
 
 target_link_libraries(score_lib_base
     PUBLIC ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::GuiPrivate ${QT_PREFIX}::Widgets ${QT_PREFIX}::Network ossia QCodeEditor
