@@ -58,3 +58,12 @@
 [submodule "3rdparty/avendish"]
 	path = 3rdparty/avendish
 	url = https://github.com/celtera/avendish
+[submodule "3rdparty/llfio"]
+	path = 3rdparty/llfio
+	url = https://github.com/ned14/llfio
+[submodule "3rdparty/quickcpplib"]
+	path = 3rdparty/quickcpplib
+	url = https://github.com/ned14/quickcpplib
+[submodule "3rdparty/outcome"]
+	path = 3rdparty/outcome
+	url = https://github.com/ned14/outcome

@@ -2,7 +2,9 @@
 #include <cstddef>
 #include <iostream>
 
-#if defined(__APPLE__)
+#if __has_include(<llfio.hpp>)
+  #define SCORE_HAS_LLFIO 1
+#elif defined(__APPLE__)
   #if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_15
   #if __cpp_lib_filesystem >= 201703
   #define SCORE_HAS_STD_FILESYSTEM 1
@@ -14,18 +16,69 @@
   #endif
 #endif
 
-#if SCORE_HAS_STD_FILESYSTEM
-#include <filesystem>
+#if SCORE_HAS_LLFIO
+  #define LLFIO_HEADERS_ONLY 1
+  #define LLFIO_EXPERIMENTAL_STATUS_CODE 1
+  #define LLFIO_DISABLE_OPENSSL 1
+  #include <llfio.hpp>
+  #include <QApplication>
+#elif SCORE_HAS_STD_FILESYSTEM
+  #include <filesystem>
 #elif __has_include(<fts.h>)
-#include <cstring>
-#include <fts.h>
-#define SCORE_HAS_FTS 1
+  #include <cstring>
+  #include <fts.h>
+  #define SCORE_HAS_FTS 1
 #else
 #error Platform missing a simple way to iterate directories.
 #endif
 
 namespace score
 {
+#if SCORE_HAS_LLFIO
+void for_all_files(std::string_view root, std::function<void(std::string_view)> f)
+{
+  using namespace LLFIO_V2_NAMESPACE;
+  auto pp = path_handle::path(path_view(root, path_view::zero_terminated));
+  algorithm::contents_visitor vis;
+  vis.contents_include_symlinks = true;
+  try
+  {
+    if(auto res = algorithm::contents(pp.value()))
+    {
+      for(auto& p : res.value())
+      {
+        switch(p.second.st_type)
+        {
+#if !defined(_WIN32)
+        case std::filesystem::file_type::symlink:
+          for_all_files(p.first.native(), f);
+          break;
+#endif
+        case std::filesystem::file_type::regular:
+        {
+          std::filesystem::path r{root};
+          r /= p.first;
+
+#if !defined(_WIN32)
+          f(r.native());
+#else
+          f(r.generic_string());
+#endif
+          break;
+        }
+        default:
+          break;
+        }
+      }
+    }
+  }
+  catch(...)
+  {
+
+  }
+}
+#endif
+
 #if SCORE_HAS_STD_FILESYSTEM
 void for_all_files(std::string_view root, std::function<void(std::string_view)> f)
 try
@@ -124,6 +177,10 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
 }
 #endif
 
+}
+
+namespace score
+{
 void RecursiveWatch::scan() const
 {
   for_all_files(m_root, [this] (std::string_view path) {
