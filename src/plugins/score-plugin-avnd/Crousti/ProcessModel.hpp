@@ -170,7 +170,8 @@ struct InletInitFunc
     ins.push_back(p);
   }
 
-  template<avnd::soundfile_port T>
+  template<typename T>
+  requires avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::raw_file_port<T>
   void operator()(const T& in, auto idx)
   {
     constexpr auto name = avnd::get_name<T>();

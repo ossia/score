@@ -26,6 +26,9 @@
 #include <avnd/binding/ossia/mono_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <Media/AudioDecoder.hpp>
+
+#define LIBREMIDI_HEADER_ONLY 1
+#include <libremidi/reader.hpp>
 namespace oscr
 {
 namespace
@@ -64,6 +67,47 @@ static auto loadSoundfile(Process::ControlInlet* inlet, double rate)
     }
   }
   return ossia::audio_handle{};
+}
+
+using midifile_handle = std::shared_ptr<oscr::midifile_data>;
+static midifile_handle loadMidifile(Process::ControlInlet* inlet)
+{
+  // Initialize the control with the current soundfile
+  if(auto str = inlet->value().target<std::string>())
+  {
+    QFile f(QString::fromStdString(*str));
+    if(!f.open(QIODevice::ReadOnly))
+      return {};
+    auto ptr = f.map(0, f.size());
+
+    libremidi::reader r;
+    if(auto ret = r.parse((uint8_t*)ptr, f.size()); ret == libremidi::reader::invalid)
+      return {};
+
+    auto hdl = std::make_shared<oscr::midifile_data>();
+    hdl->tracks = std::move(r.tracks);
+    hdl->filename = std::move(*str);
+    return hdl;
+  }
+  return {};
+}
+
+using raw_file_handle = std::shared_ptr<raw_file_data>;
+static raw_file_handle loadRawfile(Process::ControlInlet* inlet)
+{
+  // Initialize the control with the current soundfile
+  if(auto str = inlet->value().target<std::string>())
+  {
+    auto hdl = std::make_shared<oscr::raw_file_data>();
+    hdl->file.setFileName(QString::fromStdString(*str));
+    if(!hdl->file.open(QIODevice::ReadOnly))
+      return {};
+
+    hdl->mapped = (char*)hdl->file.map(0, hdl->file.size());
+    hdl->filename = std::move(*str);
+    return hdl;
+  }
+  return {};
 }
 
 static auto loadSoundfile(Process::ControlInlet* inlet, const std::shared_ptr<ossia::execution_state>& st)
@@ -150,7 +194,6 @@ struct setup_Impl0
     auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
-    auto& sf = param.soundfile;
     if(auto hdl = loadSoundfile(inlet, ctx.execState))
       node_ptr->soundfile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
 
@@ -162,13 +205,8 @@ struct setup_Impl0
         &Process::ControlInlet::valueChanged,
         parent,
           [inlet, &ctx=this->ctx, weak_node = std::move(weak_node), weak_st = std::move(weak_st)] {
-           auto n = weak_node.lock();
-           if(!n)
-             return;
-           auto st = weak_st.lock();
-           if(!st)
-             return;
-
+           if(auto n = weak_node.lock())
+           if(auto st = weak_st.lock())
            if(auto file = loadSoundfile(inlet, st))
            {
              ctx.executionQueue.enqueue([f=std::move(file), weak_node] () mutable {
@@ -182,6 +220,72 @@ struct setup_Impl0
              });
            }
         });
+  }
+
+  template <avnd::midifile_port Field, std::size_t N, std::size_t NField>
+  void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
+  {
+    auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
+
+    // First we can load it directly since execution hasn't started yet
+    if(auto hdl = loadMidifile(inlet))
+      node_ptr->midifile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+
+    // Connect to changes
+    std::weak_ptr<ExecNode> weak_node = node_ptr;
+    std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
+    QObject::connect(
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          parent,
+          [inlet, &ctx=this->ctx, weak_node = std::move(weak_node)] {
+      if(auto n = weak_node.lock())
+      if(auto file = loadMidifile(inlet))
+      {
+        ctx.executionQueue.enqueue([f=std::move(file), weak_node] () mutable {
+          auto n = weak_node.lock();
+          if(!n)
+            return;
+
+          // We store the sound file handle returned in this lambda so that it gets
+          // GC'd in the main thread
+          n->midifile_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        });
+      }
+    });
+  }
+
+  template <avnd::raw_file_port Field, std::size_t N, std::size_t NField>
+  void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
+  {
+    auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
+
+    // First we can load it directly since execution hasn't started yet
+    if(auto hdl = loadRawfile(inlet))
+      node_ptr->file_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+
+    // Connect to changes
+    std::weak_ptr<ExecNode> weak_node = node_ptr;
+    std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
+    QObject::connect(
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          parent,
+          [inlet, &ctx=this->ctx, weak_node = std::move(weak_node)] {
+      if(auto n = weak_node.lock())
+      if(auto file = loadRawfile(inlet))
+      {
+        ctx.executionQueue.enqueue([f=std::move(file), weak_node] () mutable {
+          auto n = weak_node.lock();
+          if(!n)
+            return;
+
+          // We store the sound file handle returned in this lambda so that it gets
+          // GC'd in the main thread
+          n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        });
+      }
+    });
   }
 };
 
@@ -452,6 +556,8 @@ public:
 
       using control_inputs_type = avnd::control_input_introspection<Node>;
       using soundfile_inputs_type = avnd::soundfile_input_introspection<Node>;
+      using midifile_inputs_type = avnd::midifile_input_introspection<Node>;
+      using raw_file_inputs_type = avnd::raw_file_input_introspection<Node>;
       using control_outputs_type = avnd::control_output_introspection<Node>;
       avnd::effect_container<Node>& eff = node->impl;
 
@@ -468,6 +574,20 @@ public:
       if constexpr (soundfile_inputs_type::size > 0)
       {
         soundfile_inputs_type::for_all_n2(
+              avnd::get_inputs<Node>(eff),
+              setup_Impl0<Node>{element, ctx, ptr, this}
+              );
+      }
+      if constexpr (midifile_inputs_type::size > 0)
+      {
+        midifile_inputs_type::for_all_n2(
+              avnd::get_inputs<Node>(eff),
+              setup_Impl0<Node>{element, ctx, ptr, this}
+              );
+      }
+      if constexpr (raw_file_inputs_type::size > 0)
+      {
+        raw_file_inputs_type::for_all_n2(
               avnd::get_inputs<Node>(eff),
               setup_Impl0<Node>{element, ctx, ptr, this}
               );
