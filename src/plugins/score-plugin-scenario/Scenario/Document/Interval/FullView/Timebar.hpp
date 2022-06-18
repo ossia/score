@@ -1,6 +1,8 @@
 #pragma once
 #include <score/model/Skin.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QGraphicsItem>
 #include <QPainter>
 

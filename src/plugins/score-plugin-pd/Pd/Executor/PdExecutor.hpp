@@ -15,8 +15,6 @@
 
 #include <boost/circular_buffer.hpp>
 
-#include <QJSEngine>
-#include <QJSValue>
 #include <QString>
 
 #include <memory>
