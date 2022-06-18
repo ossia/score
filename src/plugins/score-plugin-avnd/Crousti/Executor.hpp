@@ -80,12 +80,10 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
       return {};
     auto ptr = f.map(0, f.size());
 
-    libremidi::reader r;
-    if(auto ret = r.parse((uint8_t*)ptr, f.size()); ret == libremidi::reader::invalid)
+    auto hdl = std::make_shared<oscr::midifile_data>();
+    if(auto ret = hdl->reader.parse((uint8_t*)ptr, f.size()); ret == libremidi::reader::invalid)
       return {};
 
-    auto hdl = std::make_shared<oscr::midifile_data>();
-    hdl->tracks = std::move(r.tracks);
     hdl->filename = std::move(*str);
     return hdl;
   }
@@ -93,17 +91,34 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
 }
 
 using raw_file_handle = std::shared_ptr<raw_file_data>;
-static raw_file_handle loadRawfile(Process::ControlInlet* inlet)
+static raw_file_handle loadRawfile(Process::ControlInlet* inlet, bool text, bool mmap)
 {
   // Initialize the control with the current soundfile
   if(auto str = inlet->value().target<std::string>())
   {
+    if(str->empty())
+      return {};
+    auto filename = QString::fromStdString(*str);
+    if(!QFile::exists(filename))
+      return {};
+
     auto hdl = std::make_shared<oscr::raw_file_data>();
-    hdl->file.setFileName(QString::fromStdString(*str));
+    hdl->file.setFileName(filename);
     if(!hdl->file.open(QIODevice::ReadOnly))
       return {};
 
-    hdl->mapped = (char*)hdl->file.map(0, hdl->file.size());
+    if(mmap)
+    {
+      auto map = (char*)hdl->file.map(0, hdl->file.size());
+      hdl->data = QByteArray::fromRawData(map, hdl->file.size());
+    }
+    else
+    {
+      if(text)
+        hdl->file.setTextModeEnabled(true);
+
+      hdl->data = hdl->file.readAll();
+    }
     hdl->filename = std::move(*str);
     return hdl;
   }
@@ -260,9 +275,16 @@ struct setup_Impl0
   {
     auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
+    using file_ports = avnd::raw_file_input_introspection<Node>;
+    using elt = typename file_ports::template nth_element<N>;
+    constexpr bool has_text = requires { decltype(elt::file)::text; };
+    constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
+
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadRawfile(inlet))
+    if(auto hdl = loadRawfile(inlet, has_text, has_mmap))
+    {
       node_ptr->file_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+    }
 
     // Connect to changes
     std::weak_ptr<ExecNode> weak_node = node_ptr;
@@ -273,7 +295,7 @@ struct setup_Impl0
           parent,
           [inlet, &ctx=this->ctx, weak_node = std::move(weak_node)] {
       if(auto n = weak_node.lock())
-      if(auto file = loadRawfile(inlet))
+      if(auto file = loadRawfile(inlet, has_text, has_mmap))
       {
         ctx.executionQueue.enqueue([f=std::move(file), weak_node] () mutable {
           auto n = weak_node.lock();
