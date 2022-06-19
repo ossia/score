@@ -63,8 +63,16 @@ add_library(
   score_plugin_avnd.cpp
 )
 
-target_include_directories(score_plugin_avnd PUBLIC "${3RDPARTY_FOLDER}/avendish/include")
-target_link_libraries(score_plugin_avnd PUBLIC score_plugin_engine score_plugin_media)
+target_include_directories(score_plugin_avnd
+  PUBLIC
+    "${3RDPARTY_FOLDER}/avendish/include"
+)
+target_link_libraries(score_plugin_avnd
+  PUBLIC
+    score_plugin_engine
+    score_plugin_media
+    libremidi
+  )
 if(TARGET score_plugin_gfx)
   target_link_libraries(score_plugin_avnd PUBLIC score_plugin_gfx)
 endif()

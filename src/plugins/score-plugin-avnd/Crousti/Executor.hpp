@@ -27,7 +27,6 @@
 #include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <Media/AudioDecoder.hpp>
 
-#define LIBREMIDI_HEADER_ONLY 1
 #include <libremidi/reader.hpp>
 namespace oscr
 {
