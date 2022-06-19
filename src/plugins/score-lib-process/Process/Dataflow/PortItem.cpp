@@ -15,10 +15,12 @@
 #include <QDrag>
 #include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
 
+#include <Process/Process.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
@@ -268,6 +270,7 @@ PortItem::PortItem(
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
+  this->setFlag(QGraphicsItem::ItemIsFocusable);
   if (!p.description().isEmpty())
     this->setToolTip(p.description());
   else if (!p.exposed().isEmpty())
@@ -279,6 +282,11 @@ PortItem::PortItem(
   });
 
   con(p.selection, &Selectable::changed, this, [this](bool b) {
+    if(b)
+      this->setFocus(Qt::OtherFocusReason);
+    else
+      this->clearFocus();
+
     for (const auto& cable : cables)
     {
       cable->setZValue(b || cable->model().selection.get() ? 999999 : -1);
@@ -648,6 +656,91 @@ void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
   prepareGeometryChange();
   m_diam = 8.;
   update();
+  event->accept();
+}
+
+ossia::small_vector<const Process::Port*, 16> getProcessPorts(const Process::ProcessModel& proc)
+{
+  ossia::small_vector<const Process::Port*, 16> ports;
+  auto& inlets = proc.inlets();
+  auto& outlets = proc.outlets();
+  ports.reserve(inlets.size() + outlets.size());
+  ports.insert(ports.end(), inlets.begin(), inlets.end());
+  ports.insert(ports.end(), outlets.begin(), outlets.end());
+  return ports;
+}
+
+void PortItem::keyPressEvent(QKeyEvent* event)
+{
+  enum { Nothing, SelectCable, SelectPreviousPort, SelectNextPort } action{};
+
+  switch(event->key())
+  {
+    // It's an inlet: cable is at the left
+    case Qt::Key_Left:
+      if(qobject_cast<const Process::Inlet*>(&m_port))
+        action = SelectCable;
+      break;
+    case Qt::Key_Right:
+      if(qobject_cast<const Process::Outlet*>(&m_port))
+        action = SelectCable;
+      break;
+    case Qt::Key_Up:
+      action = SelectPreviousPort;
+      break;
+    case Qt::Key_Down:
+      action = SelectNextPort;
+      break;
+  }
+
+  score::SelectionDispatcher disp{m_context.selectionStack};
+  switch(action)
+  {
+    case Nothing:
+      break;
+    case SelectCable:
+      if(!this->cables.empty())
+        disp.select(this->cables.front()->model());
+      break;
+    case SelectPreviousPort:
+    {
+      if(auto proc = qobject_cast<Process::ProcessModel*>(m_port.parent()))
+      {
+        auto ports = getProcessPorts(*proc);
+        auto it = ossia::find(ports, &m_port);
+        SCORE_ASSERT(it != ports.end());
+        if(it == ports.begin())
+        {
+          disp.select(*proc);
+        }
+        else
+        {
+          std::advance(it, -1);
+          disp.select(**it);
+        }
+      }
+      break;
+    }
+    case SelectNextPort:
+    {
+      if(auto proc = qobject_cast<Process::ProcessModel*>(m_port.parent()))
+      {
+        auto ports = getProcessPorts(*proc);
+        auto it = ossia::find(ports, &m_port);
+        SCORE_ASSERT(it != ports.end());
+        std::advance(it, 1);
+        if(it != ports.end())
+          disp.select(**it);
+      }
+      break;
+    }
+  }
+
+  event->accept();
+}
+
+void PortItem::keyReleaseEvent(QKeyEvent* event)
+{
   event->accept();
 }
 

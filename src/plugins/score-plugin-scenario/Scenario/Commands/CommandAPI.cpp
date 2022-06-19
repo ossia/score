@@ -402,7 +402,7 @@ Process::Cable& Macro::createCable(
 
 void Macro::removeCable(
     const ScenarioDocumentModel& dp,
-    Process::Cable& theCable)
+    const Process::Cable& theCable)
 {
   m.submit(new Dataflow::RemoveCable(dp, theCable));
 }

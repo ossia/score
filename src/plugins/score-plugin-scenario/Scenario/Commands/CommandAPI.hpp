@@ -201,7 +201,7 @@ public:
 
   void removeCable(
       const Scenario::ScenarioDocumentModel& dp,
-      Process::Cable& theCable);
+      const Process::Cable& theCable);
 
   void
   loadCables(const ObjectPath& parent, const Dataflow::SerializedCables& c);

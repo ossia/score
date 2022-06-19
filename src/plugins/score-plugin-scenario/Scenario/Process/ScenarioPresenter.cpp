@@ -515,6 +515,7 @@ void ScenarioPresenter::selectLeft()
         auto& left_state = Scenario::startState(itv, model());
         score::SelectionDispatcher{m_context.context.selectionStack}.select(
             left_state);
+        return;
       }
       else if (n_states == 1)
       {
@@ -524,6 +525,7 @@ void ScenarioPresenter::selectLeft()
           auto& left_itv = Scenario::previousInterval(st, model());
           score::SelectionDispatcher{m_context.context.selectionStack}.select(
               left_itv);
+          return;
         }
       }
       break;

@@ -718,4 +718,23 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
   update();
   event->accept();
 }
+
+void NodeItem::keyPressEvent(QKeyEvent* event)
+{
+  if(event->key() == Qt::Key_Down)
+  {
+    auto ports = Dataflow::getProcessPorts(this->m_model);
+    if(!ports.empty())
+    {
+      score::SelectionDispatcher disp{m_context.selectionStack};
+      disp.select(*ports.front());
+    }
+  }
+  event->accept();
+}
+
+void NodeItem::keyReleaseEvent(QKeyEvent* event)
+{
+  event->accept();
+}
 }

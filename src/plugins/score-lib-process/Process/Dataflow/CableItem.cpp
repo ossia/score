@@ -16,6 +16,7 @@
 
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
 #include <QPainter>
 
 #include <tsl/hopscotch_map.h>
@@ -42,6 +43,7 @@ CableItem::CableItem(
   auto& plug = ctx.dataflow;
   this->setCursor(Qt::CrossCursor);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
+  this->setFlag(QGraphicsItem::ItemIsFocusable);
   this->setToolTip(tr("Cable\n"));
 
   SCORE_ASSERT(canCreateCable(c, plug));
@@ -54,12 +56,14 @@ CableItem::CableItem(
         setZValue(999999);
         m_p1->setHighlight(true);
         m_p2->setHighlight(true);
+        this->setFocus(Qt::OtherFocusReason);
       }
       else
       {
         setZValue(-1);
         m_p1->setHighlight(false);
         m_p2->setHighlight(false);
+        this->clearFocus();
       }
       update();
     }
@@ -343,6 +347,34 @@ void CableItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void CableItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+  event->accept();
+}
+
+void CableItem::keyPressEvent(QKeyEvent* event)
+{
+  switch(event->key())
+  {
+    case Qt::Key_Left:
+    case Qt::Key_Up:
+    {
+      auto& source = this->m_cable.source().find(this->m_context);
+      this->m_context.selectionStack.pushNewSelection({&source});
+      break;
+    }
+    case Qt::Key_Right:
+    case Qt::Key_Down:
+    {
+      auto& sink = this->m_cable.sink().find(this->m_context);
+      this->m_context.selectionStack.pushNewSelection({&sink});
+      break;
+    }
+  }
+  event->accept();
+}
+
+void CableItem::keyReleaseEvent(QKeyEvent* event)
+{
+
   event->accept();
 }
 

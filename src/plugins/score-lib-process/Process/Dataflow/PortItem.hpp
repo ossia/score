@@ -14,6 +14,7 @@
 #include <score_lib_process_export.h>
 namespace Process
 {
+class ProcessModel;
 class Port;
 class Inlet;
 class Outlet;
@@ -83,6 +84,10 @@ protected:
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) final override;
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) final override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) final override;
+
+  void keyPressEvent(QKeyEvent* event) override;
+  void keyReleaseEvent(QKeyEvent* event) override;
+
   QVariant
   itemChange(GraphicsItemChange change, const QVariant& value) override;
 
@@ -106,6 +111,8 @@ protected:
 
 SCORE_LIB_PROCESS_EXPORT
 score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* parent);
+
+ossia::small_vector<const Process::Port*, 16> getProcessPorts(const Process::ProcessModel& proc);
 }
 
 namespace score
