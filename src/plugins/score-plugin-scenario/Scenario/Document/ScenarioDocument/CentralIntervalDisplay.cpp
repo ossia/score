@@ -3,11 +3,11 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 
-#include <Process/Commands/EditPort.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
 #include <score/selection/SelectionStack.hpp>
@@ -78,101 +78,6 @@ Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj)
     return nullptr;
 }
 
-void createProcessAfterPort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Library::ProcessData& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Port& p)
-{
-  if(!qobject_cast<const Process::Outlet*>(&p))
-    return;
-
-  if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Port*>(&p)))
-  {
-    Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
-
-    auto pos = parentProcess.position();
-    pos.rx() += parentProcess.size().width() + 40;
-    auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
-    if(proc)
-    {
-      // TODO all of this should be made atomic...
-      if(!proc->inlets().empty())
-      {
-        auto new_inlet = proc->inlets()[0];
-        // Create a cable from the output to the input
-        if(new_inlet->type() == p.type())
-        {
-          m.createCable(parent.model(), p, *proc->inlets()[0]);
-        }
-
-        if(!proc->outlets().empty())
-        {
-          auto new_outlet = proc->outlets()[0];
-          // Move the address in the selected output to the first outlet of the new process
-          if(new_outlet->type() == p.type())
-          {
-            if(auto addr = p.address(); addr != State::AddressAccessor{})
-            {
-              m.setProperty<Process::Port::p_address>(*new_outlet, addr);
-              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
-            }
-          }
-        }
-        parent.context().selectionStack.pushNewSelection({proc});
-      }
-    }
-    m.commit();
-  }
-}
-void loadPresetAfterPort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Process::Preset& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Port& p)
-{
-  if(!qobject_cast<const Process::Outlet*>(&p))
-    return;
-
-  if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Port*>(&p)))
-  {
-    Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
-
-    auto pos = parentProcess.position();
-    pos.rx() += parentProcess.size().width() + 40;
-    auto proc = m.loadProcessFromPreset(*parent_itv, dat, pos);
-    if(proc)
-    {
-      // TODO all of this should be made atomic...
-      if(!proc->inlets().empty())
-      {
-        auto new_inlet = proc->inlets()[0];
-        // Create a cable from the output to the input
-        if(new_inlet->type() == p.type())
-        {
-          m.createCable(parent.model(), p, *proc->inlets()[0]);
-        }
-
-        if(!proc->outlets().empty())
-        {
-          auto new_outlet = proc->outlets()[0];
-          // Move the address in the selected output to the first outlet of the new process
-          if(new_outlet->type() == p.type())
-          {
-            if(auto addr = p.address(); addr != State::AddressAccessor{})
-            {
-              m.setProperty<Process::Port::p_address>(*new_outlet, addr);
-              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
-            }
-          }
-        }
-        parent.context().selectionStack.pushNewSelection({proc});
-      }
-    }
-    m.commit();
-  }
-}
-
 void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
   // First try to see if an interval is selected.
@@ -194,6 +99,18 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
 
   if(createInParentInterval())
     return;
+
+  // Else try to see if a cable is selected.
+  {
+    auto sel = filterSelectionByType<Process::Cable>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::Cable& cbl = *sel.front();
+      createProcessInCable(parent, dat, cbl);
+      return;
+    }
+  }
 
   // Else try to see if a process is selected.
   {
@@ -224,7 +141,12 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
       if(parentProcess)
-        createProcessAfterPort(parent, dat, *parentProcess, p);
+      {
+        if(auto inl = qobject_cast<const Process::Inlet*>(&p))
+          createProcessBeforePort(parent, dat, *parentProcess, *inl);
+        else if(auto inl = qobject_cast<const Process::Outlet*>(&p))
+          createProcessAfterPort(parent, dat, *parentProcess, *inl);
+      }
       else
         if(createInParentInterval())
           return;
@@ -255,6 +177,18 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   if(createInParentInterval())
     return;
 
+  // Else try to see if a cable is selected.
+  {
+    auto sel = filterSelectionByType<Process::Cable>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::Cable& cbl = *sel.front();
+      loadPresetInCable(parent, dat, cbl);
+      return;
+    }
+  }
+
   // Else try to see if a process is selected.
   {
     auto sel = filterSelectionByType<Process::ProcessModel>(
@@ -283,8 +217,14 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
     {
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
+
       if(parentProcess)
-        loadPresetAfterPort(parent, dat, *parentProcess, p);
+      {
+        if(auto inl = qobject_cast<const Process::Inlet*>(&p))
+          loadPresetBeforePort(parent, dat, *parentProcess, *inl);
+        else if(auto inl = qobject_cast<const Process::Outlet*>(&p))
+          loadPresetAfterPort(parent, dat, *parentProcess, *inl);
+      }
       else
         if(createInParentInterval())
           return;

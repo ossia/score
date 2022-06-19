@@ -2,6 +2,7 @@
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -68,6 +69,18 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
     m.commit();
   };
 
+  // Try to see if a cable is selected.
+  {
+    auto sel = filterSelectionByType<Process::Cable>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::Cable& cbl = *sel.front();
+      createProcessInCable(parent, dat, cbl);
+      return;
+    }
+  }
+
   // Try to see if a process is selected.
   {
     auto sel = filterSelectionByType<Process::ProcessModel>(
@@ -96,7 +109,12 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
       if(parentProcess)
-        createProcessAfterPort(parent, dat, *parentProcess, p);
+      {
+        if(auto inl = qobject_cast<const Process::Inlet*>(&p))
+          createProcessBeforePort(parent, dat, *parentProcess, *inl);
+        else if(auto inl = qobject_cast<const Process::Outlet*>(&p))
+          createProcessAfterPort(parent, dat, *parentProcess, *inl);
+      }
       else
         createInParentInterval();
       return;
@@ -115,6 +133,18 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
     m.loadProcessFromPreset(parent.displayedInterval(), dat);
     m.commit();
   };
+
+  // Try to see if a cable is selected.
+  {
+    auto sel = filterSelectionByType<Process::Cable>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::Cable& cbl = *sel.front();
+      loadPresetInCable(parent, dat, cbl);
+      return;
+    }
+  }
 
   // Try to see if a process is selected.
   {
@@ -144,7 +174,12 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
       if(parentProcess)
-        loadPresetAfterPort(parent, dat, *parentProcess, p);
+      {
+        if(auto inl = qobject_cast<const Process::Inlet*>(&p))
+          loadPresetBeforePort(parent, dat, *parentProcess, *inl);
+        else if(auto inl = qobject_cast<const Process::Outlet*>(&p))
+          loadPresetAfterPort(parent, dat, *parentProcess, *inl);
+      }
       else
         createInParentInterval();
       return;
