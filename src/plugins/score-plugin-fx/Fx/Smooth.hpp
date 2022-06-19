@@ -149,7 +149,9 @@ struct Node
         Control::FloatKnob{"Amount", 0., 1., 0.1},
         Control::LogFloatSlider{"Freq (1e/LP)", 0.001, 300., 120.},
         Control::LogFloatSlider{"Cutoff (1e/LP)", 0.001, 10., 1.},
-        Control::FloatSlider{"Beta (1e only)", 0.001, 10., 1.});
+        Control::FloatSlider{"Beta (1e only)", 0.001, 10., 1.},
+        Control::Toggle{"Continuous", false}
+        );
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};
@@ -195,6 +197,8 @@ struct Node
       return nf.filter(value);
     }
 
+  ossia::value last;
+
   private:
     std::string prev_type{"OneEuro"};
     float prev_amount{1 / SCALED_AMOUNT}, prev_freq{INIT_FREQ},
@@ -223,6 +227,7 @@ struct Node
       float freq,
       float cutoff,
       float beta,
+      bool continuous,
       ossia::value_port& out,
       ossia::token_request t,
       ossia::exec_state_facade st,
@@ -233,6 +238,19 @@ struct Node
       auto filtered = self.filter(v.value, type, amount, freq, cutoff, beta);
       out.write_value(filtered, v.timestamp); // TODO fix accuracy of timestamp
     }
+
+    if(!in.get_data().empty())
+    {
+      self.last = in.get_data().back().value;
+    }
+    else
+    {
+      if(continuous && self.last.valid())
+      {
+        auto filtered = self.filter(self.last, type, amount, freq, cutoff, beta);
+        out.write_value(filtered, st.timings(t).start_sample);
+      }
+    }
   }
 
   static void item(
@@ -241,6 +259,7 @@ struct Node
       Process::LogFloatSlider& freq,
       Process::LogFloatSlider& cutoff,
       Process::FloatSlider& beta,
+      Process::Toggle& cont,
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
@@ -249,7 +268,7 @@ struct Node
     using namespace Process;
     const Process::PortFactoryList& portFactory
         = doc.app.interfaces<Process::PortFactoryList>();
-    const auto tMarg = 10;
+    const auto tMarg = 5;
     const auto cMarg = 15;
     const auto h = 125;
     const auto w = 220;
@@ -276,7 +295,7 @@ struct Node
         context,
         doc,
         portFactory);
-    amount_item.root.setPos(tMarg, 40);
+    amount_item.root.setPos(tMarg, 30);
     amount_item.control.setPos(0, cMarg);
 
     auto freq_item = makeControl(
@@ -308,6 +327,17 @@ struct Node
         portFactory);
     beta_item.root.setPos(140, 80);
     beta_item.control.setPos(0, cMarg);
+
+
+    auto cont_item = makeControl(
+        tuplet::get<5>(Metadata::controls),
+        cont,
+        parent,
+        context,
+        doc,
+        portFactory);
+    cont_item.root.setPos(tMarg, 0);
+    //cont_item.control.setPos(10, cMarg);
   }
 };
 }
