@@ -1,7 +1,10 @@
 #include <score/tools/RecursiveWatch.hpp>
 #include <cstddef>
 #include <iostream>
+
+#if __has_include(<version>)
 #include <version>
+#endif
 
 #if __has_include(<llfio.hpp>) && (__cpp_lib_concepts >= 202002L) && (__cpp_lib_span >= 202002L) && __has_include(<span>) && !defined(_WIN32)
   #define SCORE_HAS_LLFIO 1
