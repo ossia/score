@@ -1,6 +1,7 @@
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
@@ -9,6 +10,9 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/graphics/TextItem.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
 #include <QCursor>
@@ -20,8 +24,6 @@
 #include <QMimeData>
 #include <QPainter>
 
-#include <Process/Process.hpp>
-#include <score/graphics/TextItem.hpp>
 #include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
