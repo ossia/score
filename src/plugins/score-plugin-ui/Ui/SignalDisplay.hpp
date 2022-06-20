@@ -4,6 +4,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <ossia/network/value/format_value.hpp>
+#include <ossia/math/safe_math.hpp>
 #include <QPainter>
 #include <ossia/detail/math.hpp>
 namespace ossia
