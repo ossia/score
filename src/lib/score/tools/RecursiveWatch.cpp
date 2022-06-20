@@ -24,6 +24,7 @@
   #define LLFIO_HEADERS_ONLY 1
   #define LLFIO_EXPERIMENTAL_STATUS_CODE 1
   #define LLFIO_DISABLE_OPENSSL 1
+  #define QUICKCPPLIB_USE_STD_SPAN 1
   #include <llfio.hpp>
   #include <QApplication>
 #elif SCORE_HAS_STD_FILESYSTEM
