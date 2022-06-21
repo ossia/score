@@ -4,6 +4,7 @@
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Commands/Properties.hpp>
 
 #include <Library/ProcessesItemModel.hpp>
 
@@ -26,8 +27,12 @@ void createProcessInCable(
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
     auto pos = QPointF{};
-    //auto pos = parentProcess.position();
-    //pos.rx() += parentProcess.size().width() + 40;
+    if(auto parent_source_proc = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
+    {
+      pos = parent_source_proc->position();
+      pos.rx() += parent_source_proc->size().width() + 40;
+    }
+
     auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
     if(proc)
     {
@@ -69,8 +74,12 @@ void loadPresetInCable(
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
     auto pos = QPointF{};
-    //auto pos = parentProcess.position();
-    //pos.rx() += parentProcess.size().width() + 40;
+    if(auto parent_source_proc = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
+    {
+      pos = parent_source_proc->position();
+      pos.rx() += parent_source_proc->size().width() + 40;
+    }
+
     auto proc = m.loadProcessFromPreset(*parent_itv, dat, pos);
     if(proc)
     {
@@ -107,11 +116,13 @@ void createProcessBeforePort(
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
-    auto pos = parentProcess.position();
-    pos.rx() += parentProcess.size().width() + 40;
-    auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
+    auto proc = m.createProcessInNewSlot(*parent_itv, dat, QPointF{});
     if(proc)
     {
+      auto pos = parentProcess.position();
+      pos.rx() -= proc->size().width() + 40;
+      m.setProperty<Process::ProcessModel::p_position>(*proc, pos);
+
       // TODO all of this should be made atomic...
       if(!proc->outlets().empty())
       {
@@ -198,11 +209,13 @@ void loadPresetBeforePort(
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
-    auto pos = parentProcess.position();
-    pos.rx() += parentProcess.size().width() + 40;
-    auto proc = m.loadProcessFromPreset(*parent_itv, dat, pos);
+    auto proc = m.loadProcessFromPreset(*parent_itv, dat, QPointF{});
     if(proc)
     {
+      auto pos = parentProcess.position();
+      pos.rx() -= proc->size().width() + 40;
+      m.setProperty<Process::ProcessModel::p_position>(*proc, pos);
+
       // TODO all of this should be made atomic...
       if(!proc->outlets().empty())
       {
