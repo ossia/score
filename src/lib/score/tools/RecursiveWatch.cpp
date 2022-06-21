@@ -6,7 +6,7 @@
 #include <version>
 #endif
 
-#if __has_include(<llfio.hpp>) && (__cpp_lib_concepts >= 202002L) && (__cpp_lib_span >= 202002L) && __has_include(<span>) && !defined(_WIN32)
+#if __has_include(<llfio.hpp>) && (__cpp_lib_concepts >= 202002L) && (__cpp_lib_span >= 202002L) && __has_include(<span>) && !defined(_WIN32) && !defined(__EMSCRIPTEN__)
   #define SCORE_HAS_LLFIO 1
 #elif defined(__APPLE__)
   #if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_15
