@@ -47,21 +47,26 @@ auto& modelPort(auto& ports, int index)
   return ports[index];
 }
 
+static QString filenameFromPort(const ossia::value& value)
+{
+  if(auto str = value.target<std::string>())
+    return QString::fromStdString(*str).trimmed();
+  return {};
+}
+
 // TODO refactor this into a generic explicit soundfile loaded mechanism
 static auto loadSoundfile(Process::ControlInlet* inlet, double rate)
 {
   // Initialize the control with the current soundfile
-  if(auto str = inlet->value().target<std::string>())
+  if(auto str = filenameFromPort(inlet->value()); !str.isEmpty())
   {
-    auto dec = Media::AudioDecoder::decode_synchronous(
-                 QString::fromStdString(*str),
-                 rate);
+    auto dec = Media::AudioDecoder::decode_synchronous(str, rate);
 
     if(dec.has_value())
     {
       auto hdl = std::make_shared<ossia::audio_data>();
       hdl->data = std::move(dec->second);
-      hdl->path = std::move(*str);
+      hdl->path = str.toStdString();
       return hdl;
     }
   }
@@ -72,9 +77,9 @@ using midifile_handle = std::shared_ptr<oscr::midifile_data>;
 static midifile_handle loadMidifile(Process::ControlInlet* inlet)
 {
   // Initialize the control with the current soundfile
-  if(auto str = inlet->value().target<std::string>())
+  if(auto str = filenameFromPort(inlet->value()); !str.isEmpty())
   {
-    QFile f(QString::fromStdString(*str));
+    QFile f(str);
     if(!f.open(QIODevice::ReadOnly))
       return {};
     auto ptr = f.map(0, f.size());
@@ -83,7 +88,7 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
     if(auto ret = hdl->reader.parse((uint8_t*)ptr, f.size()); ret == libremidi::reader::invalid)
       return {};
 
-    hdl->filename = std::move(*str);
+    hdl->filename = str.toStdString();
     return hdl;
   }
   return {};
@@ -93,11 +98,8 @@ using raw_file_handle = std::shared_ptr<raw_file_data>;
 static raw_file_handle loadRawfile(Process::ControlInlet* inlet, bool text, bool mmap)
 {
   // Initialize the control with the current soundfile
-  if(auto str = inlet->value().target<std::string>())
+  if(auto filename = filenameFromPort(inlet->value()); !filename.isEmpty())
   {
-    if(str->empty())
-      return {};
-    auto filename = QString::fromStdString(*str);
     if(!QFile::exists(filename))
       return {};
 
@@ -118,7 +120,7 @@ static raw_file_handle loadRawfile(Process::ControlInlet* inlet, bool text, bool
 
       hdl->data = hdl->file.readAll();
     }
-    hdl->filename = std::move(*str);
+    hdl->filename = filename.toStdString();
     return hdl;
   }
   return {};
