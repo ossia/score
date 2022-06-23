@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <iostream>
+
 #include <Crousti/ProcessModel.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadatas.hpp>
@@ -74,9 +76,15 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
   // Initialize the control with the current soundfile
   if(auto str = inlet->value().target<std::string>())
   {
+
+    std::cerr << "Heyo Donkey Kong" << std::endl;
+
     QFile f(QString::fromStdString(*str));
-    if(!f.open(QIODevice::ReadOnly))
-      return {};
+    if(!f.open(QIODevice::ReadOnly)){
+        std::cerr << "File read error for filename " << *str << " oomfie" << std::endl;
+        return {};
+    }
+
     auto ptr = f.map(0, f.size());
 
     auto hdl = std::make_shared<oscr::midifile_data>();
@@ -84,6 +92,9 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
       return {};
 
     hdl->filename = std::move(*str);
+
+    std::cerr << "BTW filename is " << hdl->filename << " oonga boonga" << std::endl;
+
     return hdl;
   }
   return {};
@@ -242,8 +253,10 @@ struct setup_Impl0
     auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadMidifile(inlet))
-      node_ptr->midifile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+    if(auto hdl = loadMidifile(inlet)){
+        std::cerr << "Executor gets here !" << std::endl;
+        node_ptr->midifile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+    }
 
     // Connect to changes
     std::weak_ptr<ExecNode> weak_node = node_ptr;
@@ -711,5 +724,3 @@ public:
   }
 };
 }
-
-
