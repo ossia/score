@@ -1,9 +1,12 @@
 #include <score/tools/RecursiveWatch.hpp>
 #include <cstddef>
 #include <iostream>
-#include <version>
 
-#if __has_include(<llfio.hpp>) && (__cpp_lib_concepts >= 202002L) && (__cpp_lib_span >= 202002L) && __has_include(<span>) && !defined(_WIN32)
+#if __has_include(<version>)
+#include <version>
+#endif
+
+#if __has_include(<llfio.hpp>) && (__cpp_lib_concepts >= 202002L) && (__cpp_lib_span >= 202002L) && __has_include(<span>) && !defined(_WIN32) && !defined(__EMSCRIPTEN__)
   #define SCORE_HAS_LLFIO 1
 #elif defined(__APPLE__)
   #if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_15
@@ -21,6 +24,7 @@
   #define LLFIO_HEADERS_ONLY 1
   #define LLFIO_EXPERIMENTAL_STATUS_CODE 1
   #define LLFIO_DISABLE_OPENSSL 1
+  #define QUICKCPPLIB_USE_STD_SPAN 1
   #include <llfio.hpp>
   #include <QApplication>
 #elif SCORE_HAS_STD_FILESYSTEM
