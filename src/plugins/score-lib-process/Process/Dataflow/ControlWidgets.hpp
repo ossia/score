@@ -1,4 +1,7 @@
 #pragma once
+
+#include <iostream>
+
 #include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/ControlWidgetDomains.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
@@ -23,6 +26,8 @@
 #include <QLineEdit>
 #include <QPalette>
 #include <QTextDocument>
+#include <QGraphicsSceneDragDropEvent>
+#include <QUrl>
 
 #include <private/qwidgettextcontrol_p.h>
 #include <score_lib_process_export.h>
@@ -678,6 +683,14 @@ struct LineEdit
         ctl->setAcceptRichText(false);
       }
     }
+
+     void dropEvent(QGraphicsSceneDragDropEvent* drop) override
+     {
+         QGraphicsTextItem::dropEvent(drop);
+         QList<QUrl> urlList = drop->mimeData()->urls();
+         QUrl newFileUrl = urlList[0];
+         this->setPlainText(newFileUrl.toLocalFile());
+     }
   };
   template <typename T, typename Control_T>
   static LineEditItem* make_item(

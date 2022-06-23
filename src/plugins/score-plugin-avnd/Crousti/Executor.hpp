@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <iostream>
+
 #include <Crousti/ProcessModel.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadatas.hpp>
@@ -246,8 +248,10 @@ struct setup_Impl0
     auto inlet = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadMidifile(inlet))
-      node_ptr->midifile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+    if(auto hdl = loadMidifile(inlet)){
+        std::cerr << "Executor gets here !" << std::endl;
+        node_ptr->midifile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+    }
 
     // Connect to changes
     std::weak_ptr<ExecNode> weak_node = node_ptr;
@@ -715,5 +719,3 @@ public:
   }
 };
 }
-
-
