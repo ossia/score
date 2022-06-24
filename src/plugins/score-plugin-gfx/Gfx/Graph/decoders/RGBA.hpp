@@ -57,7 +57,7 @@ struct PackedDecoder : GPUVideoDecoder
 
     {
       // Create a texture
-      auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(format, QSize{w, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       // Create a sampler
@@ -178,7 +178,7 @@ void main()
 
     {
       // Create a texture
-      auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(format, QSize{w, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       // Create a sampler

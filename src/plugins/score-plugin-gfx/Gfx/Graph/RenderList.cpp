@@ -74,7 +74,7 @@ void RenderList::init()
   m_outputUBO->create();
 
   m_emptyTexture = rhi.newTexture(
-      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
+      QRhiTexture::RGBA8, QSize{1, 1}, 8, QRhiTexture::Flag{});
   m_emptyTexture->setName("RenderList::m_emptyTexture");
   m_emptyTexture->create();
 

@@ -66,7 +66,7 @@ struct YUV420Decoder : GPUVideoDecoder
     // Y
     {
       auto tex
-          = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
+          = rhi.newTexture(QRhiTexture::R8, {w, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -82,7 +82,7 @@ struct YUV420Decoder : GPUVideoDecoder
     // U
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+          QRhiTexture::R8, {w / 2, h / 2}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -98,7 +98,7 @@ struct YUV420Decoder : GPUVideoDecoder
     // V
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+          QRhiTexture::R8, {w / 2, h / 2}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(

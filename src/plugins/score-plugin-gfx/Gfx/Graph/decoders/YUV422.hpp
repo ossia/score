@@ -63,7 +63,7 @@ void main()
     // Y
     {
       auto tex
-          = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
+          = rhi.newTexture(QRhiTexture::R8, {w, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -79,7 +79,7 @@ void main()
     // U
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h}, 1, QRhiTexture::Flag{});
+          QRhiTexture::R8, {w / 2, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -95,7 +95,7 @@ void main()
     // V
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h}, 1, QRhiTexture::Flag{});
+          QRhiTexture::R8, {w / 2, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(

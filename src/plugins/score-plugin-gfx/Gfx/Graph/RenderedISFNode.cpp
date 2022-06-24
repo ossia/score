@@ -47,7 +47,7 @@ PassOutput RenderedISFNode::initPassSampler(
             ? mainTexSize
             : n.computeTextureSize(pass, mainTexSize);
 
-  auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
+  auto tex = rhi.newTexture(fmt, texSize, 8, QRhiTexture::RenderTarget);
   tex->setName("ISFNode::initPassSamplers::tex");
   SCORE_ASSERT(tex->create());
 
@@ -62,7 +62,7 @@ PassOutput RenderedISFNode::initPassSampler(
 
   if (pass.persistent)
   {
-    auto tex2 = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
+    auto tex2 = rhi.newTexture(fmt, texSize, 8, QRhiTexture::RenderTarget);
     tex2->setName("ISFNode::initPassSamplers::tex2");
     SCORE_ASSERT(tex2->create());
 
@@ -861,7 +861,7 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
       rhiTexture = rhi.newTexture(
           QRhiTexture::R32F,
           {pixelWidth, audio.channels},
-          1,
+          8,
           QRhiTexture::Flag{});
       rhiTexture->create();
       textureChanged = true;

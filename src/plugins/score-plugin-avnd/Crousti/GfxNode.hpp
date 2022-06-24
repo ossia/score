@@ -145,7 +145,7 @@ struct GfxRenderer final : GenericTexgenRenderer
   {
     auto port = parent.input[k];
     constexpr auto flags = QRhiTexture::RenderTarget |  QRhiTexture::UsedAsTransferSource;
-    auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
+    auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 8, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(renderer.state, texture);
   }
@@ -157,7 +157,7 @@ struct GfxRenderer final : GenericTexgenRenderer
     if(size.width() > 0 && size.height() > 0)
     {
       texture = rhi.newTexture(
-        QRhiTexture::RGBA8, size, 1, QRhiTexture::Flag{});
+        QRhiTexture::RGBA8, size, 8, QRhiTexture::Flag{});
 
       texture->create();
     }

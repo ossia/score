@@ -298,6 +298,7 @@ static void setup_opengl(bool& enable_opengl_ui)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
     fmt.setProfile(QSurfaceFormat::CoreProfile);
     fmt.setSwapInterval(1);
+    fmt.setSamples(8);
     bool ok = false;
     for(auto [maj, min] : versions_to_test) {
       fmt.setMajorVersion(maj);

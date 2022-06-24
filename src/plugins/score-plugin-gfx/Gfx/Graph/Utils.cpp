@@ -11,7 +11,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex)
   TextureRenderTarget ret;
   ret.texture = tex;
 
-  ret.renderBuffer = state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, tex->pixelSize(), 1);
+  ret.renderBuffer = state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, tex->pixelSize(), 8);
   ret.renderBuffer->create();
 
   QRhiColorAttachment color0{ret.texture};
@@ -33,14 +33,14 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex)
 TextureRenderTarget
 createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
 {
-  auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget);
+  auto texture = state.rhi->newTexture(fmt, sz, 8, QRhiTexture::RenderTarget);
   SCORE_ASSERT(texture->create());
   return createRenderTarget(state, texture);
 }
 
 void replaceBuffer(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiBuffer* newBuffer)
 {
-  const auto bufType = newBuffer->resourceType();
+  //const auto bufType = newBuffer->resourceType();
   for (QRhiShaderResourceBinding& b : tmp)
   {
     if (b.data()->binding == binding)
@@ -248,7 +248,7 @@ Pipeline buildPipeline(
   premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
   ps->setTargetBlends({premulAlphaBlend});
 
-  ps->setSampleCount(1);
+  ps->setSampleCount(8);
 
   ps->setDepthTest(false);
   ps->setDepthWrite(false);

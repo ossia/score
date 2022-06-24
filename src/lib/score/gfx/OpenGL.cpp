@@ -35,6 +35,7 @@ GLCapabilities::GLCapabilities()
 
 void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
 {
+  fmt.setSamples(8);
   fmt.setMajorVersion(major);
   fmt.setMinorVersion(minor);
   fmt.setProfile(QSurfaceFormat::CoreProfile);

@@ -49,6 +49,7 @@ static std::shared_ptr<RenderState> createRenderState(QWindow& window, GraphicsA
 
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
+    params.format.setSamples(8);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
     state.renderSize = window.size();
@@ -311,11 +312,11 @@ void ScreenNode::createOutput(
       m_window->m_swapChain = m_swapChain;
       m_depthStencil = m_window->state->rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil,
                                                    QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
-                                                   1,
+                                                   8,
                                                    QRhiRenderBuffer::UsedWithSwapChainOnly);
       m_swapChain->setWindow(m_window.get());
       m_swapChain->setDepthStencil(m_depthStencil);
-      m_swapChain->setSampleCount(1);
+      m_swapChain->setSampleCount(8);
       m_swapChain->setFlags({});
       m_window->state->renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();
@@ -597,7 +598,7 @@ public:
 score::gfx::OutputNodeRenderer*
 ScreenNode::createRenderer(RenderList& r) const noexcept
 {
-  return new ScaledRenderer{r.state, *this};
+  return new BasicRenderer{r.state, *this};
 }
 
 OutputNode::Configuration ScreenNode::configuration() const noexcept

@@ -210,7 +210,7 @@ void main ()
     const auto w = decoder.width, h = decoder.height;
 
     {
-      auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(format, QSize{w, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -290,7 +290,7 @@ void main ()
     // Color texture
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::BC3, QSize{w, h}, 1, QRhiTexture::Flag{});
+          QRhiTexture::BC3, QSize{w, h}, 8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -305,7 +305,7 @@ void main ()
     // Alpha texture
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::BC4, QSize{w, h}, 1, QRhiTexture::Flag{});
+          QRhiTexture::BC4, QSize{w, h},8, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
