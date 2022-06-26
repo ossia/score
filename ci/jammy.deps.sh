@@ -1,9 +1,9 @@
 #!/bin/bash -eux
 
-echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+# echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-apt-get update -qq
-apt-get install -qq --force-yes \
+sudo apt-get update -qq
+sudo apt-get install -qq --force-yes \
     --allow-change-held-packages \
     --allow-downgrades \
     --allow-remove-essential \
