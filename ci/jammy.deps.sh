@@ -3,7 +3,7 @@
 # echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 sudo apt-get update -qq
-sudo apt-get install -qq --force-yes \
+sudo apt-get install --force-yes \
     --allow-change-held-packages \
     --allow-downgrades \
     --allow-remove-essential \

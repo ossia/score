@@ -3,7 +3,7 @@
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
 zypper -n install \
-   cmake ninja gcc10 gcc10-c++ \
+   cmake ninja gcc11 gcc11-c++ \
    llvm-devel \
    libjack-devel alsa-devel \
    portaudio-devel \
