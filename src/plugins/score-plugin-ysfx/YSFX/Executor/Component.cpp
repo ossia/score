@@ -237,6 +237,15 @@ void ysfx_node::run(
     ysfx_send_midi(y, &ev);
   }
 
+  ysfx_time_info_t info;
+  info.time_position = tk.prev_date.impl * estate.modelToSamples() / estate.sampleRate();
+  info.time_signature[0] = tk.signature.upper;
+  info.time_signature[1] = tk.signature.lower;
+  info.beat_position = tk.musical_start_position;
+  info.playback_state = ysfx_playback_playing;
+  info.tempo = tk.tempo;
+
+  ysfx_set_time_info(y, &info);
   ysfx_process_double(y, ins, outs, in_count, out_count, d);
 
   ysfx_midi_event_t ev;
