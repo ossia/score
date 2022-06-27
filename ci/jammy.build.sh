@@ -11,3 +11,4 @@ cmake .. \
 
 cmake --build .
 cmake --build . --target install
+cmake --build . --target package

@@ -1,4 +1,4 @@
 #!/bin/bash -eux
-export TAG=$GITTAGNOV
+export TAG=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
 
-mv "*.deb" "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-ubuntu22-amd64.deb"
+mv "*.deb" "ossia score-$TAG-ubuntu22-amd64.deb"
