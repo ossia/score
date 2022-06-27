@@ -1,14 +1,14 @@
 #!/bin/bash -eux
 
-# echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-sudo apt-get update -qq
-sudo apt-get install --force-yes \
+apt-get update -qq
+apt-get install --force-yes \
     --allow-change-held-packages \
     --allow-downgrades \
     --allow-remove-essential \
     --allow-unauthenticated \
-     binutils gcc-11 g++-11 \
+     binutils gcc-12 g++-12 clang-14 clang++-14 \
      software-properties-common wget \
      libasound-dev \
      ninja-build cmake \

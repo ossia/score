@@ -108,3 +108,53 @@ jobs:
       - name: Build
         run: |
           CC=clang-10 CXX=clang++-10 ./ci/focal.build.sh
+
+  jammy_gcc:
+    name: Ubuntu (Jammy, GCC)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:jammy
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/jammy.deps.sh
+
+      - name: Build
+        run: |
+          CC=gcc-12 CXX=g++-12 ./ci/jammy.build.sh
+
+  jammy_clang:
+    name: Ubuntu (Jammy, Clang)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:jammy
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/jammy.deps.sh
+
+      - name: Build
+        run: |
+          CC=clang-14 CXX=clang++-14 ./ci/jammy.build.sh

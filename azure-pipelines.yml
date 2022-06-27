@@ -66,27 +66,6 @@ stages:
               targetPath: "$(Build.ArtifactStagingDirectory)/"
               artifactName: Linux
 
-      - job: Ubuntu22
-        displayName: "Ubuntu 22.04"
-        pool:
-          vmImage: "ubuntu-22.04"
-
-        steps:
-          - checkout: self
-            submodules: recursive
-
-          - bash: |
-              source ci/jammy.deps.sh
-          - bash: |
-              source ci/jammy.build.sh
-          - bash: |
-              source ci/jammy.deploy.sh
-
-          - task: PublishPipelineArtifact@1
-            inputs:
-              targetPath: "$(Build.ArtifactStagingDirectory)/"
-              artifactName: Linux
-
       - job: macOS
         displayName: macOS
         pool:

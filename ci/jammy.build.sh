@@ -3,9 +3,6 @@
 mkdir build
 cd build
 
-export CC=gcc-11
-export CXX=g++-11
-
 cmake .. \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
