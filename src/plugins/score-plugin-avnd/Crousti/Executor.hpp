@@ -189,8 +189,10 @@ struct setup_Impl0
   {
     if(auto inlet = dynamic_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField)))
     {
-      // Initialize the control with the current value of the inlet
-      oscr::from_ossia_value(param, inlet->value(), param.value);
+      // Initialize the control with the current value of the inlet if it is not an optional
+      if constexpr(!requires { param.value.reset(); })
+        oscr::from_ossia_value(param, inlet->value(), param.value);
+
       if_possible(param.update(node_ptr->impl.state));
 
       // Connect to changes
