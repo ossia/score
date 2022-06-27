@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <iostream>
-
 #include <Crousti/ProcessModel.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadatas.hpp>
@@ -81,11 +79,11 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
   // Initialize the control with the current soundfile
   if(auto str = filenameFromPort(inlet->value()); !str.isEmpty())
   {
-    std::cerr << "Loading MIDI file" << std::endl;
+    qDebug() << QString("Loading MIDI File");
 
     QFile f(str);
     if(!f.open(QIODevice::ReadOnly)){
-        std::cerr << "File read error for filename " << *str << std::endl;
+        qDebug() << QString("File read error (filename : ") << str << QString(" )");
         return {};
     }
     auto ptr = f.map(0, f.size());
@@ -95,7 +93,7 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
       return {};
 
     hdl->filename = str.toStdString();
-    std::cerr << "BTW filename is " << hdl->filename << " oonga boonga" << std::endl;
+    qDebug() << QString("Read file name ") << QString(hdl->filename.c_str());
     return hdl;
   }
   return {};
@@ -252,7 +250,6 @@ struct setup_Impl0
 
     // First we can load it directly since execution hasn't started yet
     if(auto hdl = loadMidifile(inlet)){
-        std::cerr << "Executor gets here !" << std::endl;
         node_ptr->midifile_loaded(hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
     }
 
