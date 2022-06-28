@@ -1,6 +1,7 @@
 #!/bin/bash
 
 mkdir build
+(
 cd build
 
 cmake .. \
@@ -14,3 +15,6 @@ cmake .. \
 cmake --build .
 cmake --build . --target install
 cmake --build . --target package
+
+mv *.deb ..
+)

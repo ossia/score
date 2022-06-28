@@ -21,6 +21,7 @@ apt-get install -y \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
-     file
+     file \
+     dpkg-dev
 
 source ci/common.deps.sh
