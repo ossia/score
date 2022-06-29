@@ -1,5 +1,8 @@
 BasedOnStyle: WebKit
 
+BreakBeforeConceptDeclarations: Always
+IndentRequiresClause: false
+
 AllowAllArgumentsOnNextLine: true
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
@@ -41,7 +44,7 @@ BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
-ColumnLimit: 79
+ColumnLimit: 89
 CommentPragmas: '^ IWYU pragma:'
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
