@@ -1,30 +1,28 @@
 #pragma once
 
 #if SCORE_PLUGIN_GFX
-#include <Crousti/GpuUtils.hpp>
-#include <Crousti/Concepts.hpp>
-#include <Crousti/Metadatas.hpp>
-
-
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
-
-#include <gpp/ports.hpp>
-
 #include <Gfx/Qt5CompatPush> // clang-format: keep
+
+#include <Crousti/Concepts.hpp>
+#include <Crousti/GpuUtils.hpp>
+#include <Crousti/Metadatas.hpp>
+#include <gpp/ports.hpp>
 
 namespace oscr
 {
 
-template<typename Node_T>
+template <typename Node_T>
 struct CustomGpuRenderer final : score::gfx::NodeRenderer
 {
-  using texture_inputs  = avnd::texture_input_introspection<Node_T>;
+  using texture_inputs = avnd::texture_input_introspection<Node_T>;
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
   const CustomGpuNodeBase& parent;
   std::vector<Node_T> states;
-  ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2> m_rts;
+  ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
+      m_rts;
 
   ossia::time_value m_last_time{-1};
 
@@ -41,12 +39,13 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   ossia::flat_map<int, QRhiTexture*> createdTexs;
 
   CustomGpuRenderer(const CustomGpuNodeBase& p)
-      : NodeRenderer{}      
+      : NodeRenderer{}
       , parent{p}
   {
   }
 
-  score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override
+  score::gfx::TextureRenderTarget
+  renderTargetForInput(const score::gfx::Port& p) override
   {
     auto it = m_rts.find(&p);
     SCORE_ASSERT(it != m_rts.end());
@@ -56,40 +55,43 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   QRhiTexture* createInput(score::gfx::RenderList& renderer, int k, QSize size)
   {
     auto port = parent.input[k];
-    constexpr auto flags = QRhiTexture::RenderTarget |  QRhiTexture::UsedAsTransferSource;
+    constexpr auto flags = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
     auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(renderer.state, texture);
     return texture;
   }
 
-  template<typename F>
+  template <typename F>
   QRhiShaderResourceBinding initBinding(score::gfx::RenderList& renderer, F field)
   {
-    constexpr auto bindingStages = QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage;
-    if constexpr(requires { F::ubo; })
+    constexpr auto bindingStages = QRhiShaderResourceBinding::VertexStage
+                                   | QRhiShaderResourceBinding::FragmentStage;
+    if constexpr (requires { F::ubo; })
     {
       auto it = createdUbos.find(F::binding());
       QRhiBuffer* buffer = it != createdUbos.end() ? it->second : nullptr;
-      return QRhiShaderResourceBinding::uniformBuffer(F::binding(), bindingStages, buffer);
+      return QRhiShaderResourceBinding::uniformBuffer(
+          F::binding(), bindingStages, buffer);
     }
-    else if constexpr(requires { F::sampler2D; })
+    else if constexpr (requires { F::sampler2D; })
     {
       auto tex_it = createdTexs.find(F::binding());
-      QRhiTexture* tex = tex_it != createdTexs.end() ? tex_it->second : &renderer.emptyTexture();
+      QRhiTexture* tex
+          = tex_it != createdTexs.end() ? tex_it->second : &renderer.emptyTexture();
 
       // Samplers are always created by us
       QRhiSampler* sampler = renderer.state.rhi->newSampler(
-                                              QRhiSampler::Linear,
-                                              QRhiSampler::Linear,
-                                              QRhiSampler::None,
-                                              QRhiSampler::ClampToEdge,
-                                              QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear,
+          QRhiSampler::Linear,
+          QRhiSampler::None,
+          QRhiSampler::ClampToEdge,
+          QRhiSampler::ClampToEdge);
       sampler->create();
       createdSamplers[F::binding()] = sampler;
 
       return QRhiShaderResourceBinding::sampledTexture(
-            F::binding(), bindingStages, tex, sampler);
+          F::binding(), bindingStages, tex, sampler);
     }
     else
     {
@@ -107,69 +109,67 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
     QVarLengthArray<QRhiShaderResourceBinding, 8> bindings;
 
-    if constexpr(requires { decltype(Node_T::layout::bindings){}; })
+    if constexpr (requires { decltype(Node_T::layout::bindings){}; })
     {
       using bindings_type = decltype(Node_T::layout::bindings);
-      boost::pfr::for_each_field(bindings_type{}, [&] (auto f) {
-        bindings.push_back(initBinding(renderer, f));
-      });
+      boost::pfr::for_each_field(
+          bindings_type{},
+          [&](auto f) { bindings.push_back(initBinding(renderer, f)); });
     }
-    else if constexpr(requires { sizeof(typename Node_T::layout::bindings); })
+    else if constexpr (requires { sizeof(typename Node_T::layout::bindings); })
     {
       using bindings_type = typename Node_T::layout::bindings;
-      boost::pfr::for_each_field(bindings_type{}, [&] (auto f) {
-        bindings.push_back(initBinding(renderer, f));
-      });
+      boost::pfr::for_each_field(
+          bindings_type{},
+          [&](auto f) { bindings.push_back(initBinding(renderer, f)); });
     }
 
     srb->setBindings(bindings.begin(), bindings.end());
     return srb;
   }
 
-  QRhiGraphicsPipeline* createRenderPipeline(score::gfx::RenderList& renderer, score::gfx::TextureRenderTarget& rt)
+  QRhiGraphicsPipeline* createRenderPipeline(
+      score::gfx::RenderList& renderer,
+      score::gfx::TextureRenderTarget& rt)
   {
-      auto& rhi = *renderer.state.rhi;
-      auto& mesh = renderer.defaultTriangle();
-      auto ps = rhi.newGraphicsPipeline();
-      ps->setName("createRenderPipeline");
-      SCORE_ASSERT(ps);
-      QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
-      premulAlphaBlend.enable = true;
-      premulAlphaBlend.srcColor = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
-      premulAlphaBlend.dstColor = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
-      premulAlphaBlend.srcAlpha = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
-      premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
-      ps->setTargetBlends({premulAlphaBlend});
+    auto& rhi = *renderer.state.rhi;
+    auto& mesh = renderer.defaultTriangle();
+    auto ps = rhi.newGraphicsPipeline();
+    ps->setName("createRenderPipeline");
+    SCORE_ASSERT(ps);
+    QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
+    premulAlphaBlend.enable = true;
+    premulAlphaBlend.srcColor = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
+    premulAlphaBlend.dstColor = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
+    premulAlphaBlend.srcAlpha = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
+    premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
+    ps->setTargetBlends({premulAlphaBlend});
 
-      ps->setSampleCount(1);
+    ps->setSampleCount(1);
 
+    ps->setDepthTest(false);
+    ps->setDepthWrite(false);
+    ps->setTopology(QRhiGraphicsPipeline::TriangleStrip);
+    // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
+    // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
 
-      ps->setDepthTest(false);
-      ps->setDepthWrite(false);
-      ps->setTopology(QRhiGraphicsPipeline::TriangleStrip);
-      // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-      // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
+    auto [v, f]
+        = score::gfx::makeShaders(renderer.state, parent.vertex, parent.fragment);
+    ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, f}});
 
+    QRhiVertexInputLayout inputLayout;
+    inputLayout.setBindings(
+        mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
+    inputLayout.setAttributes(
+        mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
 
-      auto [v, f] = score::gfx::makeShaders(renderer.state, parent.vertex, parent.fragment);
-      ps->setShaderStages(
-          {{QRhiShaderStage::Vertex, v},
-           {QRhiShaderStage::Fragment, f}});
+    // TODO adapt mesh to expected binding (or repport an error)
+    ps->setVertexInputLayout(inputLayout);
 
-      QRhiVertexInputLayout inputLayout;
-      inputLayout.setBindings(
-          mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
-      inputLayout.setAttributes(
-          mesh.vertexAttributeBindings.begin(),
-          mesh.vertexAttributeBindings.end());
+    SCORE_ASSERT(rt.renderPass);
+    ps->setRenderPassDescriptor(rt.renderPass);
 
-      // TODO adapt mesh to expected binding (or repport an error)
-      ps->setVertexInputLayout(inputLayout);
-
-      SCORE_ASSERT(rt.renderPass);
-      ps->setRenderPassDescriptor(rt.renderPass);
-
-      return ps;
+    return ps;
   }
 
   void init_input(score::gfx::RenderList& renderer, auto field)
@@ -177,7 +177,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     //using input_type = std::decay_t<F>;
   }
 
-  template<std::size_t Idx, typename F>
+  template <std::size_t Idx, typename F>
   requires avnd::sampler_port<F>
   void init_input(score::gfx::RenderList& renderer, avnd::field_reflection<Idx, F> field)
   {
@@ -187,17 +187,18 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     createdTexs[sampler_type::binding()] = tex;
   }
 
-  template<std::size_t Idx, typename F>
+  template <std::size_t Idx, typename F>
   requires avnd::uniform_port<F>
   void init_input(score::gfx::RenderList& renderer, avnd::field_reflection<Idx, F> field)
   {
     using ubo_type = typename avnd::member_reflection<F::uniform()>::class_type;
 
     // We must mark the UBO to construct.
-    if(createdUbos.find(ubo_type::binding()) != createdUbos.end())
+    if (createdUbos.find(ubo_type::binding()) != createdUbos.end())
       return;
 
-    auto ubo = renderer.state.rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, gpp::std140_size<ubo_type>());
+    auto ubo = renderer.state.rhi->newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, gpp::std140_size<ubo_type>());
     ubo->create();
 
     createdUbos[ubo_type::binding()] = ubo;
@@ -214,9 +215,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     }
 
     // Create the global shared inputs
-    avnd::input_introspection<Node_T>::for_all([this, &renderer] (auto f) {
-      init_input(renderer, f);
-    });
+    avnd::input_introspection<Node_T>::for_all([this, &renderer](auto f)
+                                               { init_input(renderer, f); });
 
     // Create the initial srbs
     // TODO when implementing multi-pass, we may have to
@@ -224,10 +224,10 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     auto srb = initBindings(renderer);
 
     // Create the states and pipelines
-    for(score::gfx::Edge* edge : this->parent.output[0]->edges)
+    for (score::gfx::Edge* edge : this->parent.output[0]->edges)
     {
       auto rt = renderer.renderTargetForOutput(*edge);
-      if(rt.renderTarget)
+      if (rt.renderTarget)
       {
         states.push_back({});
         auto ps = createRenderPipeline(renderer, rt);
@@ -235,7 +235,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         m_p.emplace_back(edge, score::gfx::Pipeline{ps, srb});
 
         // No update step: we can directly create the pipeline here
-        if constexpr(!requires { &Node_T::update; })
+        if constexpr (!requires { &Node_T::update; })
         {
           SCORE_ASSERT(srb->create());
           SCORE_ASSERT(ps->create());
@@ -249,33 +249,34 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     // First copy all the "public" uniforms to their space in memory
-    if(states.size() > 0)
+    if (states.size() > 0)
     {
       auto& state = states[0];
 
       avnd::gpu_uniform_introspection<Node_T>::for_all(
-            avnd::get_inputs<Node_T>(state),
-            [&] <avnd::uniform_port F> (const F& t) {
-              using input_type = std::decay_t<F>;
-              using uniform_type = typename avnd::member_reflection<F::uniform()>::member_type;
-              using ubo_type = typename avnd::member_reflection<F::uniform()>::class_type;
+          avnd::get_inputs<Node_T>(state),
+          [&]<avnd::uniform_port F>(const F& t)
+          {
+            using input_type = std::decay_t<F>;
+            using uniform_type =
+                typename avnd::member_reflection<F::uniform()>::member_type;
+            using ubo_type = typename avnd::member_reflection<F::uniform()>::class_type;
 
-              auto ubo = this->createdUbos.at(ubo_type::binding());
+            auto ubo = this->createdUbos.at(ubo_type::binding());
 
-              constexpr int offset = gpp::std140_offset<F::uniform()>();
-              constexpr int size = sizeof(uniform_type::value);
-              res.updateDynamicBuffer(ubo, offset, size, &t.value);
-            }
-      );
+            constexpr int offset = gpp::std140_offset<F::uniform()>();
+            constexpr int size = sizeof(uniform_type::value);
+            res.updateDynamicBuffer(ubo, offset, size, &t.value);
+          });
     }
 
-    if constexpr(requires { &Node_T::update; })
+    if constexpr (requires { &Node_T::update; })
     {
       // Then run the update loop, which is a bit complicated
       // as we have to take into account that buffers could be allocated, freed, etc.
       // and thus updated in the shader resource bindings
       int k = 0;
-      for(score::gfx::Edge* edge : this->parent.output[0]->edges)
+      for (score::gfx::Edge* edge : this->parent.output[0]->edges)
       {
         auto& state = states[k];
         auto& pass = m_p[k].second;
@@ -285,19 +286,20 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         for (auto& promise : state.update())
         {
           using ret_type = decltype(promise.feedback_value);
-          gpp::qrhi::handle_update<CustomGpuRenderer, ret_type> handler{*this, *renderer.state.rhi, res, tmp, srb_touched};
+          gpp::qrhi::handle_update<CustomGpuRenderer, ret_type> handler{
+              *this, *renderer.state.rhi, res, tmp, srb_touched};
           promise.feedback_value = visit(handler, promise.current_command);
         }
 
-        if(srb_touched)
+        if (srb_touched)
         {
-          if(m_createdPipeline)
+          if (m_createdPipeline)
             pass.srb->destroy();
 
           pass.srb->setBindings(tmp.begin(), tmp.end());
         }
 
-        if(!m_createdPipeline)
+        if (!m_createdPipeline)
         {
           SCORE_ASSERT(pass.srb->create());
           SCORE_ASSERT(pass.pipeline->create());
@@ -314,9 +316,9 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     m_createdPipeline = false;
 
     // Release the object's internal states
-    if constexpr(requires { &Node_T::release; })
+    if constexpr (requires { &Node_T::release; })
     {
-      for(auto& state : states)
+      for (auto& state : states)
       {
         for (auto& promise : state.release())
         {
@@ -332,28 +334,28 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     m_meshBuffer = nullptr;
 
     // Release the allocated textures
-    for(auto& [id, tex] : this->createdTexs)
+    for (auto& [id, tex] : this->createdTexs)
       tex->deleteLater();
     this->createdTexs.clear();
 
     // Release the allocated samplers
-    for(auto& [id, sampl] : this->createdSamplers)
+    for (auto& [id, sampl] : this->createdSamplers)
       sampl->deleteLater();
     this->createdSamplers.clear();
 
     // Release the allocated ubos
-    for(auto& [id, ubo] : this->createdUbos)
+    for (auto& [id, ubo] : this->createdUbos)
       ubo->deleteLater();
     this->createdUbos.clear();
 
     // Release the allocated rts
     // TODO investigate why reference does not work here:
-    for(auto [port, rt] : m_rts)
+    for (auto [port, rt] : m_rts)
       rt.release();
     m_rts.clear();
 
     // Release the allocated pipelines
-    for(auto& pass : m_p)
+    for (auto& pass : m_p)
       pass.second.release();
     m_p.clear();
 
@@ -370,28 +372,28 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       score::gfx::Edge& edge) override
   {
     // If we are paused, we don't run the processor implementation.
-    if(parent.last_message.token.date == m_last_time)
+    if (parent.last_message.token.date == m_last_time)
     {
       return;
     }
     m_last_time = parent.last_message.token.date;
 
     // Apply the controls
-    for(auto& state : states)
+    for (auto& state : states)
     {
       avnd::parameter_input_introspection<Node_T>::for_all_n2(
-            avnd::get_inputs<Node_T>(state),
-            [&] (avnd::parameter auto& t, auto pred_index, auto field_index) {
-              auto& mess = this->parent.last_message;
-              if(mess.input.size() > field_index)
+          avnd::get_inputs<Node_T>(state),
+          [&](avnd::parameter auto& t, auto pred_index, auto field_index)
+          {
+            auto& mess = this->parent.last_message;
+            if (mess.input.size() > field_index)
+            {
+              if (auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
               {
-                if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
-                {
-                  oscr::from_ossia_value(t, *val, t.value);
-                }
+                oscr::from_ossia_value(t, *val, t.value);
               }
             }
-      );
+          });
     }
   }
 
@@ -402,30 +404,30 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   {
     auto& mesh = renderer.defaultTriangle();
     score::gfx::defaultRenderPass(
-          m_meshBuffer, m_idxBuffer, renderer, mesh, commands, edge, m_p);
+        m_meshBuffer, m_idxBuffer, renderer, mesh, commands, edge, m_p);
 
     // Copy the data to the model node
-    if(!this->states.empty())
+    if (!this->states.empty())
       parent.processControlOut(this->states[0]);
   }
 };
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 
-template<typename Node_T>
+template <typename Node_T>
 struct CustomGpuNode final : CustomGpuNodeBase
 {
   CustomGpuNode(Execution::ExecutionCommandQueue& q, Gfx::exec_controls ctls)
-    : CustomGpuNodeBase{q, std::move(ctls)}
+      : CustomGpuNodeBase{q, std::move(ctls)}
   {
     using texture_inputs = avnd::gpu_sampler_introspection<Node_T>;
     using texture_outputs = avnd::gpu_attachment_introspection<Node_T>;
 
-    for(std::size_t i = 0; i < texture_inputs::size; i++)
+    for (std::size_t i = 0; i < texture_inputs::size; i++)
     {
       input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
     }
-    for(std::size_t i = 0; i < texture_outputs::size; i++)
+    for (std::size_t i = 0; i < texture_outputs::size; i++)
     {
       output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
     }
@@ -434,7 +436,7 @@ struct CustomGpuNode final : CustomGpuNodeBase
     static constexpr auto lay = layout{};
 
     gpp::qrhi::generate_shaders gen;
-    if constexpr(requires { &Node_T::vertex; })
+    if constexpr (requires { &Node_T::vertex; })
     {
       vertex = QString::fromStdString(gen.vertex_shader(lay) + Node_T{}.vertex().data());
     }
@@ -443,7 +445,8 @@ struct CustomGpuNode final : CustomGpuNodeBase
       vertex = gpp::qrhi::DefaultPipeline::vertex();
     }
 
-    fragment = QString::fromStdString(gen.fragment_shader(lay) + Node_T{}.fragment().data());
+    fragment
+        = QString::fromStdString(gen.fragment_shader(lay) + Node_T{}.fragment().data());
   }
 
   score::gfx::NodeRenderer*

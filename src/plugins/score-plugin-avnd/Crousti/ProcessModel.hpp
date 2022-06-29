@@ -1,25 +1,25 @@
 #pragma once
-#include <boost/pfr.hpp>
-#include <Crousti/Concepts.hpp>
-#include <Crousti/Attributes.hpp>
-#include <Crousti/Metadatas.hpp>
-
-#include <avnd/wrappers/metadatas.hpp>
-#include <avnd/concepts/gfx.hpp>
-#include <avnd/concepts/ui.hpp>
-
-#include <Process/ProcessMetadata.hpp>
-#include <Process/Process.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/GenericProcessFactory.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
-#include <score_plugin_engine.hpp>
+#include <Process/GenericProcessFactory.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessMetadata.hpp>
+
 #include <ossia/detail/typelist.hpp>
 
+#include <boost/pfr.hpp>
+
+#include <Crousti/Attributes.hpp>
+#include <Crousti/Concepts.hpp>
+#include <Crousti/Metadatas.hpp>
 #include <avnd/common/for_nth.hpp>
+#include <avnd/concepts/gfx.hpp>
+#include <avnd/concepts/ui.hpp>
 #include <avnd/introspection/messages.hpp>
 #include <avnd/wrappers/bus_host_process_adapter.hpp>
+#include <avnd/wrappers/metadatas.hpp>
+#include <score_plugin_engine.hpp>
 
 #if SCORE_PLUGIN_GFX
 #include <Gfx/TexturePort.hpp>
@@ -28,7 +28,8 @@
  * This file instantiates the classes that are provided by this plug-in.
  */
 
-inline QString fromStringView(std::string_view v) {
+inline QString fromStringView(std::string_view v)
+{
   return QString::fromUtf8(v.data(), v.size());
 }
 ////////// METADATA ////////////
@@ -40,10 +41,7 @@ class ProcessModel;
 template <typename Info>
 struct Metadata<PrettyName_k, oscr::ProcessModel<Info>>
 {
-  static constexpr const char* get() noexcept
-  {
-    return avnd::get_name<Info>().data();
-  }
+  static constexpr const char* get() noexcept { return avnd::get_name<Info>().data(); }
 };
 template <typename Info>
 struct Metadata<Category_k, oscr::ProcessModel<Info>>
@@ -59,7 +57,7 @@ struct Metadata<Tags_k, oscr::ProcessModel<Info>>
   static QStringList get() noexcept
   {
     QStringList lst;
-    for(std::string_view tag : avnd::get_tags<Info>())
+    for (std::string_view tag : avnd::get_tags<Info>())
       lst.push_back(QString::fromUtf8(tag.data(), tag.size()));
     return lst;
   }
@@ -101,37 +99,47 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
   static Process::Descriptor get()
   {
 // literate programming goes brr
-#define if_exists(Expr, Else) [] { if constexpr(requires { Expr; }) return Expr; Else; }()
-    static Process::Descriptor desc{
-        Metadata<PrettyName_k, oscr::ProcessModel<Info>>::get(),
-        if_exists(Info::kind(), else return Process::ProcessCategory::Other;),
-        Metadata<Category_k, oscr::ProcessModel<Info>>::get(),
-        fromStringView(avnd::get_description<Info>()),
-        fromStringView(avnd::get_author<Info>()),
-        Metadata<Tags_k, oscr::ProcessModel<Info>>::get(),
-        inletDescription(),
-        outletDescription()};
+#define if_exists(Expr, Else)         \
+  []                                  \
+  {                                   \
+    if constexpr (requires { Expr; }) \
+      return Expr;                    \
+    Else;                             \
+  }()
+    static Process::Descriptor desc
+    {
+      Metadata<PrettyName_k, oscr::ProcessModel<Info>>::get(),
+          if_exists(Info::kind(), else return Process::ProcessCategory::Other;),
+          Metadata<Category_k, oscr::ProcessModel<Info>>::get(),
+          fromStringView(avnd::get_description<Info>()),
+          fromStringView(avnd::get_author<Info>()),
+          Metadata<Tags_k, oscr::ProcessModel<Info>>::get(), inletDescription(),
+          outletDescription()
+    };
     return desc;
   }
 };
 template <typename Info>
 struct Metadata<Process::ProcessFlags_k, oscr::ProcessModel<Info>>
 {
-  static Process::ProcessFlags get() noexcept {
-    if constexpr(requires { Info::flags(); }) {
+  static Process::ProcessFlags get() noexcept
+  {
+    if constexpr (requires { Info::flags(); })
+    {
       return Info::flags();
-    } else {
-      return Process::ProcessFlags(Process::ProcessFlags::SupportsLasting | Process::ProcessFlags::ControlSurface);
+    }
+    else
+    {
+      return Process::ProcessFlags(
+          Process::ProcessFlags::SupportsLasting
+          | Process::ProcessFlags::ControlSurface);
     }
   }
 };
 template <typename Info>
 struct Metadata<ObjectKey_k, oscr::ProcessModel<Info>>
 {
-  static constexpr auto get() noexcept
-  {
-    return avnd::get_c_name<Info>().data();
-  }
+  static constexpr auto get() noexcept { return avnd::get_c_name<Info>().data(); }
 };
 template <typename Info>
 struct Metadata<ConcreteKey_k, oscr::ProcessModel<Info>>
@@ -150,7 +158,7 @@ inline void setupNewPort(const auto& spec, auto* obj)
   obj->setName(fromStringView(avnd::get_name(spec)));
 }
 
-template<typename Node>
+template <typename Node>
 struct InletInitFunc
 {
   Process::ProcessModel& self;
@@ -170,23 +178,28 @@ struct InletInitFunc
     ins.push_back(p);
   }
 
-  template<typename T>
+  template <typename T>
   requires avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::raw_file_port<T>
   void operator()(const T& in, auto idx)
   {
     constexpr auto name = avnd::get_name<T>();
-    auto p = new Process::LineEdit{"", QString::fromUtf8(name.data(), name.size()), Id<Process::Port>(inlet++), &self};
+    auto p = new Process::LineEdit{
+        "",
+        QString::fromUtf8(name.data(), name.size()),
+        Id<Process::Port>(inlet++),
+        &self};
     p->hidden = true;
     ins.push_back(p);
   }
 
-  template<avnd::parameter T, std::size_t N>
+  template <avnd::parameter T, std::size_t N>
   void operator()(const T& in, avnd::field_index<N>)
   {
-    if constexpr(avnd::control<T>)
+    if constexpr (avnd::control<T>)
     {
-      auto p = oscr::make_control_in<Node, T>(avnd::field_index<N>{}, Id<Process::Port>(inlet), &self);
-      if constexpr(!std::is_same_v<std::decay_t<decltype(p)>, std::nullptr_t>)
+      auto p = oscr::make_control_in<Node, T>(
+          avnd::field_index<N>{}, Id<Process::Port>(inlet), &self);
+      if constexpr (!std::is_same_v<std::decay_t<decltype(p)>, std::nullptr_t>)
       {
         p->hidden = true;
         ins.push_back(p);
@@ -216,7 +229,7 @@ struct InletInitFunc
   }
 #endif
 
-  template<std::size_t Idx, avnd::message T>
+  template <std::size_t Idx, avnd::message T>
   void operator()(const avnd::field_reflection<Idx, T>& in)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
@@ -224,7 +237,7 @@ struct InletInitFunc
     ins.push_back(p);
   }
 
-  template<std::size_t Idx, avnd::unreflectable_message<Node> T>
+  template <std::size_t Idx, avnd::unreflectable_message<Node> T>
   void operator()(const avnd::field_reflection<Idx, T>& in)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
@@ -239,7 +252,7 @@ struct InletInitFunc
   }
 };
 
-template<typename Node>
+template <typename Node>
 struct OutletInitFunc
 {
   Process::ProcessModel& self;
@@ -262,12 +275,13 @@ struct OutletInitFunc
     outs.push_back(p);
   }
 
-  template<avnd::parameter T, std::size_t N>
+  template <avnd::parameter T, std::size_t N>
   void operator()(const T& out, avnd::field_index<N>)
   {
-    if constexpr(avnd::control<T>)
+    if constexpr (avnd::control<T>)
     {
-      if(auto p = oscr::make_control_out<T>(avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
+      if (auto p = oscr::make_control_out<T>(
+              avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
       {
         p->hidden = true;
         outs.push_back(p);
@@ -311,21 +325,23 @@ struct OutletInitFunc
 };
 
 template <typename Info>
-struct MessageBusWrapperToUi {
-
+struct MessageBusWrapperToUi
+{
 };
 
 template <typename Info>
-struct MessageBusWrapperFromUi {
-
+struct MessageBusWrapperFromUi
+{
 };
 template <avnd::has_processor_to_gui_bus Info>
-struct MessageBusWrapperToUi<Info> {
+struct MessageBusWrapperToUi<Info>
+{
   std::function<void(QByteArray)> to_ui;
 };
 
 template <avnd::has_gui_to_processor_bus Info>
-struct MessageBusWrapperFromUi<Info> {
+struct MessageBusWrapperFromUi<Info>
+{
   std::function<void(QByteArray)> from_ui;
 };
 
@@ -354,15 +370,15 @@ public:
     metadata().setInstanceName(*this);
 
     avnd::port_visit_dispatcher<Info>(
-      InletInitFunc<Info>{*this, m_inlets},
-      OutletInitFunc<Info>{*this, m_outlets}
-    );
+        InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
 
-    if constexpr(requires { this->from_ui; }) {
-      this->from_ui = [] (QByteArray arr) { };
+    if constexpr (requires { this->from_ui; })
+    {
+      this->from_ui = [](QByteArray arr) {};
     }
-    if constexpr(requires { this->to_ui; }) {
-      this->to_ui = [] (QByteArray arr) { };
+    if constexpr (requires { this->to_ui; })
+    {
+      this->to_ui = [](QByteArray arr) {};
     }
   }
 
@@ -394,7 +410,12 @@ struct TSerializer<DataStream, oscr::ProcessModel<Info>>
 
   static void writeTo(DataStream::Deserializer& s, model_type& obj)
   {
-    Process::writePorts(s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets, obj.m_outlets, &obj);
+    Process::writePorts(
+        s,
+        s.components.interfaces<Process::PortFactoryList>(),
+        obj.m_inlets,
+        obj.m_outlets,
+        &obj);
     s.checkDelimiter();
   }
 };
@@ -410,6 +431,11 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
 
   static void writeTo(JSONObject::Deserializer& s, model_type& obj)
   {
-    Process::writePorts(s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets, obj.m_outlets, &obj);
+    Process::writePorts(
+        s,
+        s.components.interfaces<Process::PortFactoryList>(),
+        obj.m_inlets,
+        obj.m_outlets,
+        &obj);
   }
 };
