@@ -51,6 +51,11 @@ ScriptDialog::ScriptDialog(
   connect(ce, &QCodeEditor::livecodeTrigger, this, &ScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::accepted, this, &ScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(
+      bbox->button(QDialogButtonBox::Close),
+      &QPushButton::clicked,
+      this,
+      &QDialog::close);
 }
 
 QString ScriptDialog::text() const noexcept
@@ -111,6 +116,11 @@ MultiScriptDialog::MultiScriptDialog(
       this,
       &MultiScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(
+      bbox->button(QDialogButtonBox::Close),
+      &QPushButton::clicked,
+      this,
+      &QDialog::close);
 }
 
 void MultiScriptDialog::addTab(
