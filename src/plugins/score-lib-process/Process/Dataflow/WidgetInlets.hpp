@@ -18,6 +18,7 @@ struct ChooserToggle;
 struct ComboBox;
 struct LineEdit;
 struct ProgramEdit;
+struct FileChooser;
 struct Enum;
 struct Button;
 struct ImpulseButton;
@@ -61,7 +62,12 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::LineEdit,
     "9ae797ea-d94c-4792-acec-9ec1932bae5d")
-
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::FileChooser,
+    "40833147-4c42-4b8b-bb80-0b1d15dae129"
+    )
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ProgramEdit,
     "de15c0da-429b-49d3-bb07-7c41f5f205c8")
@@ -226,6 +232,22 @@ struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
+};
+struct SCORE_LIB_PROCESS_EXPORT FileChooser : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(FileChooser)
+  FileChooser(
+      QString init,
+      QString filters,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
+  ~FileChooser();
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+  const QString& filters() const  noexcept { return m_filters;};
+  using Process::ControlInlet::ControlInlet;
+private:
+   QString m_filters;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet

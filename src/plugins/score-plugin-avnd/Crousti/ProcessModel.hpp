@@ -198,8 +198,12 @@ struct InletInitFunc
   void operator()(const T& in, auto idx)
   {
     constexpr auto name = avnd::get_name<T>();
-    auto p = new Process::LineEdit{
-        "", QString::fromUtf8(name.data(), name.size()), Id<Process::Port>(inlet++),
+
+    auto p = new Process::FileChooser{
+        "",
+        in.filters(),
+        QString::fromUtf8(name.data(), name.size()),
+        Id<Process::Port>(inlet++),
         &self};
     p->hidden = true;
     ins.push_back(p);

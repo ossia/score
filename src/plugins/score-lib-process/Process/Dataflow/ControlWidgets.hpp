@@ -27,6 +27,8 @@
 #include <QPalette>
 #include <QTextDocument>
 
+#include <QFileDialog>
+
 #include <private/qwidgettextcontrol_p.h>
 
 #include <score_lib_process_export.h>
@@ -702,6 +704,7 @@ struct LineEdit
   }
 };
 
+
 struct ProgramPortScriptDialog : Process::ScriptDialog
 {
   ProgramPortScriptDialog(
@@ -770,7 +773,98 @@ struct ProgramEdit
     dial->exec();
   }
 };
+struct FileChooser{
+    static Process::PortItemLayout layout() noexcept
+    {
+      return Process::DefaultControlLayouts::lineedit();
+    }
+  template <typename T, typename Control_T>
+    static auto make_widget(
+        const T& slider,
+        Control_T& inlet,
+        const score::DocumentContext& ctx,
+        QWidget* parent,
+        QObject* context)
+    {
 
+
+      auto sl = new QLineEdit{parent};
+      auto act = new QAction{sl};
+
+      act->setStatusTip("Opening a File");
+      act->setIcon(QIcon(":/icons/search.png"));
+      QObject::connect(sl, &QLineEdit::returnPressed, [=,&inlet]() {sl->setText(QFileDialog::getOpenFileName(nullptr,"Open Media File",{},"Media File ("+inlet.filters()+")")); });
+      QObject::connect(act, &QAction::triggered, [=,&inlet]() {sl->setText(QFileDialog::getOpenFileName(nullptr,"Open Media File",{},"Media File ("+inlet.filters()+")")); });
+      sl->addAction(act,QLineEdit::TrailingPosition);
+
+    sl->setText(
+        QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+    sl->setContentsMargins(0, 0, 0, 0);
+    sl->setMaximumWidth(70);
+    QObject::connect(
+        sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
+          CommandDispatcher<>{ctx.commandStack}
+              .submit<SetControlValue<Control_T>>(
+                  inlet, sl->text().toStdString());
+        });
+
+    QObject::connect(
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
+          sl->setText(
+              QString::fromStdString(ossia::convert<std::string>(val)));
+        });
+
+    return sl;
+  }
+    struct LineEditItem : public QGraphicsTextItem
+    {
+      LineEditItem()
+      {
+        setTextInteractionFlags(Qt::TextEditorInteraction);
+        auto ctl = this->findChild<QWidgetTextControl*>();
+        if (ctl)
+        {
+          ctl->setAcceptRichText(false);
+        }
+      }
+    };
+    template <typename T, typename Control_T>
+    static LineEditItem* make_item(
+        const T& slider,
+        Control_T& inlet,
+        const score::DocumentContext& ctx,
+        QGraphicsItem* parent,
+        QObject* context)
+    {
+      auto sl = new LineEditItem{};
+      sl->setTextWidth(180.);
+      sl->setDefaultTextColor(QColor{"#E0B01E"});
+      sl->setCursor(Qt::IBeamCursor);
+
+      sl->setPlainText(
+          QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+
+      auto doc = sl->document();
+      QObject::connect(
+          doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx] {
+            auto cur_str = ossia::convert<std::string>(inlet.value());
+            if (cur_str != doc->toPlainText().toStdString())
+            {
+              CommandDispatcher<>{ctx.commandStack}
+                  .submit<SetControlValue<Control_T>>(
+                      inlet, doc->toPlainText().toStdString());
+            }
+          });
+      QObject::connect(
+          &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+            auto str = QString::fromStdString(ossia::convert<std::string>(val));
+            if (str != doc->toPlainText())
+              doc->setPlainText(str);
+          });
+
+      return sl;
+    }
+};
 struct Enum
 {
   static Process::PortItemLayout layout() noexcept
