@@ -200,6 +200,7 @@ void ScenarioDocumentModel::close()
 {
   cables.clear();
   delete m_baseScenario;
+  m_baseScenario = nullptr;
 }
 
 }

@@ -44,6 +44,7 @@ public:
   }
 
   void finishLoading();
+  bool closing() const noexcept { return !m_baseScenario; }
   ~ScenarioDocumentModel() override;
 
   BaseScenario& baseScenario() const { return *m_baseScenario; }

@@ -687,7 +687,7 @@ void ExecutionController::reset_after_stop()
   }
 
   auto scenar = currentScenarioModel();
-  if (!scenar)
+  if (!scenar || scenar->closing())
     return;
   QTimer::singleShot(50, this, [this, itv=QPointer<Scenario::IntervalModel>{&scenar->baseInterval()}] {
     if(itv)
