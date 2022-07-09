@@ -20,19 +20,19 @@ public:
   {
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
-  QString prettyName() const override
+  QString prettyName() const noexcept override
   {
     return Metadata<PrettyName_k, Model_T>::get();
   }
-  QString category() const override
+  QString category() const noexcept override
   {
     return Metadata<Category_k, Model_T>::get();
   }
-  Descriptor descriptor(QString) const override
+  Descriptor descriptor(QString) const noexcept override
   {
     return Metadata<Process::Descriptor_k, Model_T>::get();
   }
-  ProcessFlags flags() const override
+  ProcessFlags flags() const noexcept override
   {
     return Metadata<ProcessFlags_k, Model_T>::get();
   }

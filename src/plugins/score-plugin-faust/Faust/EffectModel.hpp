@@ -113,11 +113,11 @@ namespace Process
 template <>
 QString
 EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData()
-    const;
+    const noexcept;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const;
+EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const noexcept;
 }
 
 namespace Faust

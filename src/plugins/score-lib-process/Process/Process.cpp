@@ -225,6 +225,11 @@ Preset ProcessModel::savePreset() const noexcept
   return p;
 }
 
+std::vector<Preset> ProcessModel::builtinPresets() const noexcept
+{
+  return {};
+}
+
 void ProcessModel::ancestorStartDateChanged() { }
 
 void ProcessModel::ancestorTempoChanged() { }

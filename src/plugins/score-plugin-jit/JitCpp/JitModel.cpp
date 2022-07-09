@@ -405,7 +405,7 @@ namespace Process
 
 template <>
 QString
-EffectProcessFactory_T<Jit::JitEffectModel>::customConstructionData() const
+EffectProcessFactory_T<Jit::JitEffectModel>::customConstructionData() const noexcept
 {
   return R"_(
 #include <ossia/dataflow/data.hpp>
@@ -446,7 +446,7 @@ extern "C" ossia::graph_node* score_graph_node_factory() {
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(QString d) const
+EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(QString d) const noexcept
 {
   return Metadata<Descriptor_k, Jit::JitEffectModel>::get();
 }

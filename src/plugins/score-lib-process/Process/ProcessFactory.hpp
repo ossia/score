@@ -23,6 +23,7 @@ class FooterDelegate;
 class LayerView;
 class MiniLayer;
 class ProcessModel;
+struct Preset;
 struct Context;
 
 /**
@@ -37,12 +38,12 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModelFactory
 public:
   ~ProcessModelFactory() override;
 
-  virtual QString prettyName() const = 0;
-  virtual QString category() const = 0;
-  virtual ProcessFlags flags() const = 0;
-  virtual Descriptor descriptor(QString) const = 0;
+  virtual QString prettyName() const noexcept = 0;
+  virtual QString category() const noexcept = 0;
+  virtual ProcessFlags flags() const noexcept = 0;
+  virtual Descriptor descriptor(QString) const noexcept = 0;
 
-  virtual QString customConstructionData() const;
+  virtual QString customConstructionData() const noexcept;
 
   virtual Process::ProcessModel* make(
       const TimeVal& duration,

@@ -1,22 +1,24 @@
 #include "EffectLayer.hpp"
 
+#include <Process/ApplicationPlugin.hpp>
+#include <Process/Commands/LoadPreset.hpp>
+#include <Process/Dataflow/CableCopy.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
-#include <Process/Style/Pixmaps.hpp>
-#include <Process/ApplicationPlugin.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Process/Dataflow/CableCopy.hpp>
+#include <Process/Style/Pixmaps.hpp>
 
-#include <score/graphics/GraphicWidgets.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/model/EntitySerialization.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/model/path/PathSerialization.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <ossia/detail/thread.hpp>
+
 #include <QMenu>
-#include <Process/Commands/LoadPreset.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::EffectLayerPresenter)
@@ -132,14 +134,15 @@ QGraphicsItem* makeExternalUIButton(
   {
     auto ui_btn = new score::QGraphicsPixmapToggle{
         pixmaps.show_ui_on, pixmaps.show_ui_off, root};
-    ui_btn->setToolTip(QObject::tr("Show/hide UI\nShow the process's interface for instance for VSTs or script editor for JS, etc."));
+    ui_btn->setToolTip(
+        QObject::tr("Show/hide UI\nShow the process's interface for instance for VSTs "
+                    "or script editor for JS, etc."));
     QObject::connect(
         ui_btn,
         &score::QGraphicsPixmapToggle::toggled,
         self,
-        [=, &effect, &context](bool b) {
-          Process::setupExternalUI(effect, *fact, context, b);
-        });
+        [=, &effect, &context](bool b)
+        { Process::setupExternalUI(effect, *fact, context, b); });
 
     if (effect.externalUI)
       ui_btn->setState(true);
@@ -163,9 +166,11 @@ score::QGraphicsDraggablePixmap* makePresetButton(
   {
     auto ui_btn = new score::QGraphicsDraggablePixmap{
         pixmaps.preset_on, pixmaps.preset_off, root};
-    ui_btn->setToolTip(QObject::tr("Presets\nDrag to the library to save the current preset. If there are existing presets, they will be shown in a menu."));
-    ui_btn->createDrag = [&proc] (QMimeData& mime) {
-
+    ui_btn->setToolTip(
+        QObject::tr("Presets\nDrag to the library to save the current preset. If there "
+                    "are existing presets, they will be shown in a menu."));
+    ui_btn->createDrag = [&proc](QMimeData& mime)
+    {
       QByteArray data;
       {
         JSONReader r;
@@ -181,34 +186,57 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       mime.setData(score::mime::processpreset(), proc.savePreset().toJson());
     };
 
-    ui_btn->click = [&proc, &context] (QPointF screenPos) {
+    ui_btn->click = [&proc, &context](QPointF screenPos)
+    {
       auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
       const auto& presets = pplug.presets;
 
       auto menu = new QMenu;
-      menu->addAction("Save current preset", menu, [&proc, &pplug] {
-        pplug.savePreset(&proc);
-      });
-
+      menu->addAction(
+          "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
 
       std::vector<const Process::Preset*> goodPresets;
       const auto& k = proc.concreteKey();
       const auto& e = proc.effect();
-      for(auto& preset : presets)
+      for (auto& preset : presets)
       {
-        if(preset.key.key == k && preset.key.effect == e)
+        if (preset.key.key == k && preset.key.effect == e)
           goodPresets.push_back(&preset);
       }
 
       menu->addSeparator();
 
-      for(auto p : goodPresets)
+      for (auto p : goodPresets)
       {
-        menu->addAction(p->name, menu, [p, &proc, &context] {
-          CommandDispatcher<> c{context.commandStack};
-          c.submit(new LoadPreset{proc, *p});
-        });
+        menu->addAction(
+            p->name,
+            menu,
+            [p, &proc, &context]
+            {
+              CommandDispatcher<> c{context.commandStack};
+              c.submit(new LoadPreset{proc, *p});
+            });
       }
+
+      if (auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
+      {
+        if (!goodPresets.empty())
+          menu->addSeparator();
+
+        for (auto& p : proc_builtins)
+        {
+          // FIXME try to understand why just p.name does not work here
+          menu->addAction(
+              "" + p.name,
+              menu,
+              [p = std::move(p), &proc, &context]
+              {
+                CommandDispatcher<> c{context.commandStack};
+                c.submit(new LoadPreset{proc, std::move(p)});
+              });
+        }
+      }
+
       menu->exec(screenPos.toPoint());
       menu->deleteLater();
     };

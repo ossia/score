@@ -127,6 +127,7 @@ public:
 
   virtual void loadPreset(const Preset& preset);
   virtual Preset savePreset() const noexcept;
+  virtual std::vector<Process::Preset> builtinPresets() const noexcept;
 
   // Called when an ancestor was moved in the timeline
   virtual void ancestorStartDateChanged();

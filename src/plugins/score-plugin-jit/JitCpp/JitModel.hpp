@@ -109,11 +109,11 @@ namespace Process
 {
 template <>
 QString
-EffectProcessFactory_T<Jit::JitEffectModel>::customConstructionData() const;
+EffectProcessFactory_T<Jit::JitEffectModel>::customConstructionData() const noexcept;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(QString d) const;
+EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(QString d) const noexcept;
 }
 
 namespace Execution

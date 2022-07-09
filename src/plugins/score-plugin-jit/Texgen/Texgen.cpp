@@ -258,7 +258,7 @@ namespace Process
 
 template <>
 QString
-EffectProcessFactory_T<Jit::TexgenModel>::customConstructionData() const
+EffectProcessFactory_T<Jit::TexgenModel>::customConstructionData() const noexcept
 {
   return R"_(extern "C"
 void score_rgba(unsigned char* rgba, int width, int height, int t)
@@ -280,7 +280,7 @@ void score_rgba(unsigned char* rgba, int width, int height, int t)
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Jit::TexgenModel>::descriptor(QString d) const
+EffectProcessFactory_T<Jit::TexgenModel>::descriptor(QString d) const noexcept
 {
   return Metadata<Descriptor_k, Jit::TexgenModel>::get();
 }

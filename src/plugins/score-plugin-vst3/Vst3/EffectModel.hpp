@@ -120,11 +120,11 @@ private:
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<vst3::Model>::customConstructionData() const;
+QString EffectProcessFactory_T<vst3::Model>::customConstructionData() const noexcept;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const;
+EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const noexcept;
 }
 
 namespace vst3

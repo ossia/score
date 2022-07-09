@@ -42,7 +42,7 @@ W_OBJECT_IMPL(vst3::Model)
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<vst3::Model>::customConstructionData() const
+QString EffectProcessFactory_T<vst3::Model>::customConstructionData() const noexcept
 { /*
   auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   QStringList vsts;
@@ -77,7 +77,7 @@ QString EffectProcessFactory_T<vst3::Model>::customConstructionData() const
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const
+EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const noexcept
 {
   Process::Descriptor desc;
 

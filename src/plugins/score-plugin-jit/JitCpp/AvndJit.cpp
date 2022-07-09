@@ -417,7 +417,7 @@ namespace Process
 
 template <>
 QString
-EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const
+EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const noexcept
 {
   return R"_(
 struct Node
@@ -453,7 +453,7 @@ struct Node
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<AvndJit::Model>::descriptor(QString d) const
+EffectProcessFactory_T<AvndJit::Model>::descriptor(QString d) const noexcept
 {
   return Metadata<Descriptor_k, AvndJit::Model>::get();
 }

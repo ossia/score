@@ -164,7 +164,7 @@ namespace Process
 {
 
 template <>
-QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const
+QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const noexcept
 {
   auto& world = score::AppComponents()
                     .applicationPlugin<LV2::ApplicationPlugin>()
@@ -177,7 +177,7 @@ QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<LV2::Model>::descriptor(QString d) const
+EffectProcessFactory_T<LV2::Model>::descriptor(QString d) const noexcept
 {
   Process::Descriptor desc;
   auto& app_plug

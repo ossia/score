@@ -3,8 +3,8 @@
 
 #include "ProcessModel.hpp"
 
-#include "YSFX/ProcessMetadata.hpp"
 #include "YSFX/ApplicationPlugin.hpp"
+#include "YSFX/ProcessMetadata.hpp"
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
@@ -32,16 +32,17 @@
 W_OBJECT_IMPL(YSFX::ProcessModel)
 namespace YSFX
 {
-bool ProcessModel::hasExternalUI() const noexcept {
-  if(!this->fx)
+bool ProcessModel::hasExternalUI() const noexcept
+{
+  if (!this->fx)
     return false;
 
   return ysfx_has_section(this->fx.get(), ysfx_section_gfx);
 }
 
 ProcessModel::ProcessModel(
-      const TimeVal& duration,
-      const QString& data,
+    const TimeVal& duration,
+    const QString& data,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{
@@ -56,6 +57,9 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
+  if (m_bank)
+    ysfx_bank_free(m_bank);
+
   if (externalUI)
   {
     auto w = reinterpret_cast<Window*>(externalUI);
@@ -66,35 +70,36 @@ ProcessModel::~ProcessModel()
 void ProcessModel::setScript(const QString& script)
 {
   auto arr = script.toStdString();
-  auto& config = score::GUIAppContext().applicationPlugin<YSFX::ApplicationPlugin>().config;
+  auto& config
+      = score::GUIAppContext().applicationPlugin<YSFX::ApplicationPlugin>().config;
   ysfx_guess_file_roots(config.get(), arr.c_str());
 
   fx.reset(ysfx_new(config.get()), ysfx_u_deleter{});
   if (!ysfx_load_file(fx.get(), arr.c_str(), 0))
   {
     qDebug() << "ysfx: could not load " << script;
-    return ;
+    return;
   }
 
   m_script = script;
 
   uint32_t compile_opts = 0;
   if (!ysfx_compile(fx.get(), compile_opts))
-      return;
+    return;
 
   ysfx_init(fx.get());
   ysfx_process_double(fx.get(), 0, 0, 0, 0, 0);
   auto name = ysfx_get_name(fx.get());
   metadata().setName(name);
 
-  if(ysfx_get_num_inputs(fx.get()) > 0)
+  if (ysfx_get_num_inputs(fx.get()) > 0)
   {
     auto inl = new Process::AudioInlet{Id<Process::Port>{0}, this};
     this->m_inlets.push_back(inl);
   }
   this->m_inlets.push_back(new Process::MidiInlet{Id<Process::Port>{1}, this});
 
-  if(ysfx_get_num_outputs(fx.get()) > 0)
+  if (ysfx_get_num_outputs(fx.get()) > 0)
   {
     auto outl = new Process::AudioOutlet{Id<Process::Port>{2}, this};
     outl->setPropagate(true);
@@ -106,7 +111,7 @@ void ProcessModel::setScript(const QString& script)
     for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
     {
       if (!ysfx_slider_exists(fx.get(), i))
-          continue;
+        continue;
 
       auto id = Id<Process::Port>(4 + i);
       const bool is_visible = ysfx_slider_is_initially_visible(fx.get(), i);
@@ -117,17 +122,17 @@ void ProcessModel::setScript(const QString& script)
         ossia::value init;
 
         uint32_t count = ysfx_slider_get_enum_size(fx.get(), i);
-        std::vector<const char *> names(count);
+        std::vector<const char*> names(count);
         ysfx_slider_get_enum_names(fx.get(), i, names.data(), count);
         int k = 0;
-        for(const char* val : names)
+        for (const char* val : names)
           values.push_back({val, k++});
 
         auto slider = new Process::ComboBox{values, 0, name, id, this};
 
         this->m_inlets.push_back(slider);
       }
-      else if(ysfx_slider_is_path(fx.get(), i))
+      else if (ysfx_slider_is_path(fx.get(), i))
       {
         auto slider = new Process::LineEdit{{}, name, id, this};
         this->m_inlets.push_back(slider);
@@ -137,12 +142,18 @@ void ProcessModel::setScript(const QString& script)
         ysfx_slider_range_t range{};
         ysfx_slider_get_range(fx.get(), i, &range);
 
-        auto slider = new Process::FloatSlider(range.min, range.max, range.def, name, id, this);
+        auto slider
+            = new Process::FloatSlider(range.min, range.max, range.def, name, id, this);
         // TODO increment
 
         this->m_inlets.push_back(slider);
       }
     }
+  }
+
+  if (auto bank = ysfx_get_bank_path(this->fx.get()))
+  {
+    m_bank = ysfx_load_bank(bank);
   }
 }
 
@@ -151,8 +162,43 @@ QString ProcessModel::script() const noexcept
   return m_script;
 }
 
+std::vector<Process::Preset> ProcessModel::builtinPresets() const noexcept
+{
+  std::vector<Process::Preset> presets;
+  if (m_bank)
+  {
+    for (std::size_t i = 0; i < m_bank->preset_count; i++)
+    {
+      Process::Preset p;
+      p.key.key = this->static_concreteKey();
+      p.key.effect = m_script;
+      p.name = m_bank->presets[i].name;
+      p.data = QStringLiteral(R"({ "ProgramIndex": %1 } )").arg(i).toLatin1();
+      presets.push_back(p);
+    }
+  }
+  return presets;
+}
+
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  if (!m_bank)
+    return;
+
+  const rapidjson::Document doc = readJson(preset.data);
+  if (!doc.IsObject())
+    return;
+  auto obj = doc.GetObject();
+
+  if (auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd())
+  {
+    auto idx = JsonValue{it->value}.toInt();
+    ysfx_load_state(this->fx.get(), this->m_bank->presets[idx].state);
+  }
+}
+
 Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent)
-  : m_model{e}
+    : m_model{e}
 {
   setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -163,7 +209,7 @@ Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget
   uint32_t dim[2];
   ysfx_get_gfx_dim(fx.get(), dim);
 
-  if(dim[0] == 0 || dim[1] == 0)
+  if (dim[0] == 0 || dim[1] == 0)
   {
     dim[0] = 640;
     dim[1] = 480;
@@ -180,20 +226,21 @@ Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget
   conf.user_data = this;
   conf.pixel_width = dim[0];
   conf.pixel_height = dim[1];
-  conf.pixel_stride = 0;// conf.pixel_width * 4;
+  conf.pixel_stride = 0; // conf.pixel_width * 4;
   conf.pixels = m_frame.bits();
   conf.scale_factor = 1.0;
-  conf.show_menu = [] (void *user_data, const char *menu_spec, int32_t xpos, int32_t ypos) -> int32_t
+  conf.show_menu
+      = [](void* user_data, const char* menu_spec, int32_t xpos, int32_t ypos) -> int32_t
   {
     //qDebug() << "Show menu" << menu_spec << xpos << ypos;
     return 0;
   };
-  conf.set_cursor = [ ] (void *user_data, int32_t cursor)
+  conf.set_cursor = [](void* user_data, int32_t cursor)
   {
     //qDebug() << "set cursor:" << cursor;
   };
 
-  conf.get_drop_file = [ ] (void *user_data, int32_t index) -> const char*
+  conf.get_drop_file = [](void* user_data, int32_t index) -> const char*
   {
     //qDebug() << "Get drop file" << index;
     return "";
@@ -222,9 +269,7 @@ void Window::closeEvent(QCloseEvent* event)
   event->accept();
 }
 
-
-static
-uint32_t qt_to_ysfx_mods()
+static uint32_t qt_to_ysfx_mods()
 {
   const auto qt_mods = qApp->keyboardModifiers();
   uint32_t mods{};
@@ -235,45 +280,91 @@ uint32_t qt_to_ysfx_mods()
   return mods;
 }
 
-static
-int qt_to_ysfx_key(int k)
+static int qt_to_ysfx_key(int k)
 {
   int key = -1;
-  switch(k)
+  switch (k)
   {
-    case Qt::Key_Backspace: key = ysfx_key_backspace; break;
-    case Qt::Key_Escape: key = ysfx_key_escape; break;
-    case Qt::Key_Delete: key = ysfx_key_delete; break;
+    case Qt::Key_Backspace:
+      key = ysfx_key_backspace;
+      break;
+    case Qt::Key_Escape:
+      key = ysfx_key_escape;
+      break;
+    case Qt::Key_Delete:
+      key = ysfx_key_delete;
+      break;
 
-    case Qt::Key_F1: key = ysfx_key_f1; break;
-    case Qt::Key_F2: key = ysfx_key_f2; break;
-    case Qt::Key_F3: key = ysfx_key_f3; break;
-    case Qt::Key_F4: key = ysfx_key_f4; break;
-    case Qt::Key_F5: key = ysfx_key_f5; break;
-    case Qt::Key_F6: key = ysfx_key_f6; break;
-    case Qt::Key_F7: key = ysfx_key_f7; break;
-    case Qt::Key_F8: key = ysfx_key_f8; break;
-    case Qt::Key_F9: key = ysfx_key_f9; break;
-    case Qt::Key_F10: key = ysfx_key_f10; break;
-    case Qt::Key_F11: key = ysfx_key_f11; break;
-    case Qt::Key_F12: key = ysfx_key_f12; break;
+    case Qt::Key_F1:
+      key = ysfx_key_f1;
+      break;
+    case Qt::Key_F2:
+      key = ysfx_key_f2;
+      break;
+    case Qt::Key_F3:
+      key = ysfx_key_f3;
+      break;
+    case Qt::Key_F4:
+      key = ysfx_key_f4;
+      break;
+    case Qt::Key_F5:
+      key = ysfx_key_f5;
+      break;
+    case Qt::Key_F6:
+      key = ysfx_key_f6;
+      break;
+    case Qt::Key_F7:
+      key = ysfx_key_f7;
+      break;
+    case Qt::Key_F8:
+      key = ysfx_key_f8;
+      break;
+    case Qt::Key_F9:
+      key = ysfx_key_f9;
+      break;
+    case Qt::Key_F10:
+      key = ysfx_key_f10;
+      break;
+    case Qt::Key_F11:
+      key = ysfx_key_f11;
+      break;
+    case Qt::Key_F12:
+      key = ysfx_key_f12;
+      break;
 
-    case Qt::Key_Left: key = ysfx_key_left; break;
-    case Qt::Key_Right: key = ysfx_key_right; break;
-    case Qt::Key_Up: key = ysfx_key_up; break;
-    case Qt::Key_Down: key = ysfx_key_down; break;
+    case Qt::Key_Left:
+      key = ysfx_key_left;
+      break;
+    case Qt::Key_Right:
+      key = ysfx_key_right;
+      break;
+    case Qt::Key_Up:
+      key = ysfx_key_up;
+      break;
+    case Qt::Key_Down:
+      key = ysfx_key_down;
+      break;
 
-    case Qt::Key_PageUp: key = ysfx_key_page_up; break;
-    case Qt::Key_PageDown: key = ysfx_key_page_down; break;
-    case Qt::Key_Home: key = ysfx_key_home; break;
-    case Qt::Key_End: key = ysfx_key_end; break;
-    case Qt::Key_Insert: key = ysfx_key_insert; break;
+    case Qt::Key_PageUp:
+      key = ysfx_key_page_up;
+      break;
+    case Qt::Key_PageDown:
+      key = ysfx_key_page_down;
+      break;
+    case Qt::Key_Home:
+      key = ysfx_key_home;
+      break;
+    case Qt::Key_End:
+      key = ysfx_key_end;
+      break;
+    case Qt::Key_Insert:
+      key = ysfx_key_insert;
+      break;
     default:
       break;
   }
   return key;
 }
-
 
 void Window::mousePressEvent(QMouseEvent* event)
 {
@@ -358,7 +449,7 @@ void Window::keyPressEvent(QKeyEvent* event)
   const auto mods = qt_to_ysfx_mods();
 
   const auto key = qt_to_ysfx_key(event->key());
-  if(key != -1)
+  if (key != -1)
     ysfx_gfx_add_key(fx.get(), mods, key, true);
 
   event->accept();
@@ -369,7 +460,7 @@ void Window::keyReleaseEvent(QKeyEvent* event)
   const auto mods = qt_to_ysfx_mods();
 
   const auto key = qt_to_ysfx_key(event->key());
-  if(key != -1)
+  if (key != -1)
     ysfx_gfx_add_key(fx.get(), mods, key, false);
 
   event->accept();
@@ -389,6 +480,3 @@ void YSFX::Window::timerEvent(QTimerEvent* event)
   update();
 }
 }
-
-
-

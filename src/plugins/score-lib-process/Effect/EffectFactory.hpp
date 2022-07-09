@@ -18,23 +18,23 @@ public:
   {
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
-  QString prettyName() const override
+  QString prettyName() const noexcept override
   {
     return Metadata<PrettyName_k, Model_T>::get();
   }
-  QString category() const override
+  QString category() const noexcept override
   {
     return Metadata<Category_k, Model_T>::get();
   }
 
-  Descriptor descriptor(QString) const override;
+  Descriptor descriptor(QString) const noexcept override;
 
-  ProcessFlags flags() const override
+  ProcessFlags flags() const noexcept override
   {
     return Metadata<ProcessFlags_k, Model_T>::get();
   }
 
-  QString customConstructionData() const override;
+  QString customConstructionData() const noexcept override;
 
   Model_T* make(
       const TimeVal& duration,
@@ -58,7 +58,7 @@ public:
 };
 
 template <typename Model_T>
-QString EffectProcessFactory_T<Model_T>::customConstructionData() const
+QString EffectProcessFactory_T<Model_T>::customConstructionData() const noexcept
 {
   static_assert(std::is_same<Model_T, void>::value, "can't be used like this");
   return {};

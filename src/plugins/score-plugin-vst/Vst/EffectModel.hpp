@@ -132,6 +132,7 @@ public:
   void on_controlChangedFromScore(int num, float newval);
 
   void reloadControls();
+  void reloadPrograms();
 
   auto dispatch(
       int32_t opcode,
@@ -146,6 +147,8 @@ public:
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
+  std::vector<Process::Preset> builtinPresets() const noexcept override;
+  
   QString getString(AEffectOpcodes op, int param);
   void setControlName(int fxnum, ControlInlet* ctrl);
   void init();
@@ -156,6 +159,7 @@ private:
 
   std::string m_backup_chunk;
   ossia::float_vector m_backup_float_data;
+  std::vector<std::pair<std::string, int>> m_programs;
   int32_t m_effectId{};
   bool m_createControls{};
 
@@ -180,11 +184,11 @@ intptr_t vst_host_callback(
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<vst::Model>::customConstructionData() const;
+QString EffectProcessFactory_T<vst::Model>::customConstructionData() const noexcept;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<vst::Model>::descriptor(QString d) const;
+EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept;
 }
 
 namespace vst

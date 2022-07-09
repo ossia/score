@@ -96,11 +96,11 @@ namespace Process
 {
 template <>
 QString
-EffectProcessFactory_T<Jit::TexgenModel>::customConstructionData() const;
+EffectProcessFactory_T<Jit::TexgenModel>::customConstructionData() const noexcept;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Jit::TexgenModel>::descriptor(QString d) const;
+EffectProcessFactory_T<Jit::TexgenModel>::descriptor(QString d) const noexcept;
 }
 class QPlainTextEdit;
 namespace Jit

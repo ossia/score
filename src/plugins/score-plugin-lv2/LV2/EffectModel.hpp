@@ -112,7 +112,7 @@ public:
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const;
+QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const noexcept;
 }
 
 namespace LV2

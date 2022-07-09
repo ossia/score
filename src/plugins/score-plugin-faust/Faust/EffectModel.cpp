@@ -43,14 +43,14 @@ namespace Process
 
 template <>
 QString
-EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const
+EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const noexcept
 {
   return "process = _;";
 }
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const
+EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const noexcept
 {
   Process::Descriptor desc;
   return desc;

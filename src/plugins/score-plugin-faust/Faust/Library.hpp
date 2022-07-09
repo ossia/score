@@ -45,17 +45,17 @@ class LibraryHandler final
 
   void addPath(std::string_view path) override
   {
-    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
-    if (file.fileName() != "layout.dsp")
+    score::PathInfo file{path};
+    if (file.fileName != "layout.dsp")
       registerDSP(file);
   }
 
-  void registerDSP(const QFileInfo& file)
+  void registerDSP(const score::PathInfo& file)
   {
     Library::ProcessData pdata;
-    pdata.prettyName = file.completeBaseName();
+    pdata.prettyName = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
     pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
-    pdata.customData = [&] { return file.absoluteFilePath(); }();
+    pdata.customData = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
     pdata.author = "Faust standard library";
 
     {

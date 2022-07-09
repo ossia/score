@@ -182,7 +182,7 @@ LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
   return nullptr;
 }
 
-QString ProcessModelFactory::customConstructionData() const
+QString ProcessModelFactory::customConstructionData() const noexcept
 {
   return {};
 }

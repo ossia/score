@@ -303,7 +303,7 @@ namespace Process
 
 template <>
 QString
-EffectProcessFactory_T<Jit::BytebeatModel>::customConstructionData() const
+EffectProcessFactory_T<Jit::BytebeatModel>::customConstructionData() const noexcept
 {
   return R"_(
 /* one per line */
@@ -314,7 +314,7 @@ t*(t>>10&((t>>16)+1))
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(QString d) const
+EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(QString d) const noexcept
 {
   return Metadata<Descriptor_k, Jit::BytebeatModel>::get();
 }

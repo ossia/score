@@ -111,11 +111,11 @@ namespace Process
 {
 template <>
 QString
-EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const;
+EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const noexcept;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<AvndJit::Model>::descriptor(QString d) const;
+EffectProcessFactory_T<AvndJit::Model>::descriptor(QString d) const noexcept;
 }
 
 namespace AvndJit

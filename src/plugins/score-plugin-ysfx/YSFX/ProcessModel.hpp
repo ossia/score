@@ -43,7 +43,10 @@ public:
 
   std::shared_ptr<ysfx_t> fx;
 
+  std::vector<Process::Preset> builtinPresets() const noexcept override;
 private:
+  void loadPreset(const Process::Preset&) override;
+  ysfx_bank_t* m_bank{};
   QString m_script;
 };
 
