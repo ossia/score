@@ -1,8 +1,8 @@
 #include "Commands.hpp"
 
+#include <Process/Dataflow/PortSerialization.hpp>
 #include <Vst3/Control.hpp>
 #include <Vst3/EffectModel.hpp>
-#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 namespace vst3
@@ -47,9 +47,7 @@ void SetControl::deserializeImpl(DataStreamOutput& stream)
   stream >> m_path >> m_old >> m_new;
 }
 
-CreateControl::CreateControl(
-    const Model& obj,
-    Steinberg::Vst::ParamID fxNum)
+CreateControl::CreateControl(const Model& obj, Steinberg::Vst::ParamID fxNum)
     : m_path{obj}
     , m_fxNum{fxNum}
 {
@@ -85,8 +83,7 @@ RemoveControl::RemoveControl(const Model& obj, Id<Process::Port> id)
 {
   auto& inlet = *obj.inlet(m_id);
   m_control = score::marshall<DataStream>(inlet);
-  m_cables
-      = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
+  m_cables = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
 }
 
 RemoveControl::~RemoveControl() { }

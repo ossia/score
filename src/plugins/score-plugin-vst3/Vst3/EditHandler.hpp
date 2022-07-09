@@ -1,8 +1,7 @@
 #pragma once
+#include <Vst3/Commands.hpp>
 #include <Vst3/Control.hpp>
 #include <Vst3/EffectModel.hpp>
-#include <Vst3/Commands.hpp>
-
 
 #include <QDebug>
 
@@ -24,13 +23,9 @@ public:
   {
   }
 
-  ~ComponentHandler()
-  {
+  ~ComponentHandler() { }
 
-  }
-
-  Steinberg::tresult
-  queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     using namespace Steinberg;
     if (FUID::fromTUID(_iid) == Steinberg::Vst::IComponentHandler2::iid)
@@ -50,16 +45,15 @@ public:
     if (auto ctrl = m_model.controls.find(id); ctrl == m_model.controls.end())
     {
       ossia::qt::run_async(
-        &m_model,
-        [&proc=m_model, id] {
-          if (auto ctrl = proc.controls.find(id); ctrl == proc.controls.end())
+          &m_model,
+          [&proc = m_model, id]
           {
-            auto& ctx = score::IDocument::documentContext(proc);
-            CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
-                proc, id);
-          }
-        }
-      );
+            if (auto ctrl = proc.controls.find(id); ctrl == proc.controls.end())
+            {
+              auto& ctx = score::IDocument::documentContext(proc);
+              CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(proc, id);
+            }
+          });
     }
     return Steinberg::kResultOk;
   }
@@ -92,19 +86,12 @@ public:
 
   Steinberg::tresult requestOpenEditor(Steinberg::FIDString name) override
   {
-    Process::setupExternalUI(
-        m_model, score::IDocument::documentContext(m_model), true);
+    Process::setupExternalUI(m_model, score::IDocument::documentContext(m_model), true);
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult startGroupEdit() override
-  {
-    return Steinberg::kResultOk;
-  }
+  Steinberg::tresult startGroupEdit() override { return Steinberg::kResultOk; }
 
-  Steinberg::tresult finishGroupEdit() override
-  {
-    return Steinberg::kResultOk;
-  }
+  Steinberg::tresult finishGroupEdit() override { return Steinberg::kResultOk; }
 };
 }

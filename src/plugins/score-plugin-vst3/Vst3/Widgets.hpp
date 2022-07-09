@@ -18,15 +18,9 @@ class VSTEffectItem final : public score::EmptyRectItem
   std::vector<std::pair<ControlInlet*, score::EmptyRectItem*>> controlItems;
 
 public:
-  VSTEffectItem(
-      const Model& effect,
-      const Process::Context& doc,
-      QGraphicsItem* root);
+  VSTEffectItem(const Model& effect, const Process::Context& doc, QGraphicsItem* root);
 
-  void setupInlet(
-      const Model& fx,
-      ControlInlet& inlet,
-      const Process::Context& doc);
+  void setupInlet(const Model& fx, ControlInlet& inlet, const Process::Context& doc);
 
 private:
   void updateRect();
@@ -78,10 +72,8 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 
 struct VSTFloatSlider : ossia::safe_nodes::control_in

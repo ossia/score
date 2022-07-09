@@ -15,18 +15,15 @@ public:
   {
     s.setByteOrder(QDataStream::LittleEndian);
   }
-  Steinberg::tresult
-  queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultFalse;
   }
   Steinberg::uint32 addRef() override { return 1; }
   Steinberg::uint32 release() override { return 1; }
 
-  Steinberg::tresult read(
-      void* buffer,
-      Steinberg::int32 numBytes,
-      Steinberg::int32* numBytesRead) override
+  Steinberg::tresult
+  read(void* buffer, Steinberg::int32 numBytes, Steinberg::int32* numBytesRead) override
   {
     int count = stream.readRawData((char*)buffer, numBytes);
     if (numBytesRead)
@@ -45,10 +42,8 @@ public:
 
     return Steinberg::kResultTrue;
   }
-  Steinberg::tresult seek(
-      Steinberg::int64 pos,
-      Steinberg::int32 mode,
-      Steinberg::int64* result) override
+  Steinberg::tresult
+  seek(Steinberg::int64 pos, Steinberg::int32 mode, Steinberg::int64* result) override
   {
     bool ok = stream.device()->seek(pos);
     if (result)

@@ -5,13 +5,14 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Vst3/Plugin.hpp>
-#include <public.sdk/source/vst/utility/uid.h>
 
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
 #include <verdigris>
+
+#include <public.sdk/source/vst/utility/uid.h>
 #define VST_DEFAULT_PARAM_NUMBER_CUTOFF 10
 
 namespace vst3
@@ -81,8 +82,7 @@ public:
   void removeControl(const Id<Process::Port>&);
   void removeControl(Steinberg::Vst::ParamID fxnum);
 
-  void addControlFromEditor(
-      Steinberg::Vst::ParamID id);
+  void addControlFromEditor(Steinberg::Vst::ParamID id);
   void on_addControl(const Steinberg::Vst::ParameterInfo& v);
   void on_addControl_impl(ControlInlet* inl);
   void initControl(ControlInlet* inl);
@@ -93,6 +93,7 @@ public:
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
+  std::vector<Process::Preset> builtinPresets() const noexcept override;
 
   void init();
   void create();

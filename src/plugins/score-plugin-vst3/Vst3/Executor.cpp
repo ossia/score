@@ -17,26 +17,27 @@ W_OBJECT_IMPL(vst3::Executor)
 namespace vst3
 {
 
-namespace {
+namespace
+{
 // This could be a lambda but fails on GCC 8 apparently because
 // it tries to reach QObject::connect through the this-> pointer ?
 template <typename Node_T>
-struct ConnectValueChanged {
-    Executor* self{};
-    std::size_t queue_idx{};
-    Node_T n;
-    QPointer<vst3::ControlInlet> ctrl;
+struct ConnectValueChanged
+{
+  Executor* self{};
+  std::size_t queue_idx{};
+  Node_T n;
+  QPointer<vst3::ControlInlet> ctrl;
 
-    void operator()() const noexcept
-    {
-        QObject::connect(
-            ctrl,
-            &vst3::ControlInlet::valueChanged,
-            self,
-            [queue_idx=this->queue_idx, n=this->n](float v) {
-              n->set_control(queue_idx, v);
-            });
-      }
+  void operator()() const noexcept
+  {
+    QObject::connect(
+        ctrl,
+        &vst3::ControlInlet::valueChanged,
+        self,
+        [queue_idx = this->queue_idx, n = this->n](float v)
+        { n->set_control(queue_idx, v); });
+  }
 };
 }
 template <typename Node_T>
@@ -50,15 +51,13 @@ void Executor::setupNode(Node_T& node)
   {
     if (auto ctrl = qobject_cast<vst3::ControlInlet*>(model_inlet))
     {
-      auto queue_idx = node->add_control(
-          new ossia::value_inlet, ctrl->fxNum, ctrl->value());
+      auto queue_idx
+          = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
       connect(
           ctrl,
           &vst3::ControlInlet::valueChanged,
           this,
-          [queue_idx, node](float v) {
-            node->set_control(queue_idx, v);
-          });
+          [queue_idx, node](float v) { node->set_control(queue_idx, v); });
     }
   }
 
@@ -67,7 +66,8 @@ void Executor::setupNode(Node_T& node)
       &proc,
       &vst3::Model::controlAdded,
       this,
-      [this, &proc, wp] (const Id<Process::Port>& id) {
+      [this, &proc, wp](const Id<Process::Port>& id)
+      {
         QPointer<vst3::ControlInlet> ctrl = proc.getControl(id);
         if (!ctrl)
           return;
@@ -79,9 +79,10 @@ void Executor::setupNode(Node_T& node)
           Execution::Transaction commands{system()};
 
           commands.push_back(
-              [n, inlet, ctrl, val = ctrl->value(), num = ctrl->fxNum, self = this] {
+              [n, inlet, ctrl, val = ctrl->value(), num = ctrl->fxNum, self = this]
+              {
                 auto queue_idx = n->add_control(inlet, num, val);
-                self->in_edit(ConnectValueChanged<Node_T> {self, queue_idx, n, ctrl});
+                self->in_edit(ConnectValueChanged<Node_T>{self, queue_idx, n, ctrl});
               });
 
           setup.register_inlet(*ctrl, inlet, n, commands);
@@ -93,37 +94,37 @@ void Executor::setupNode(Node_T& node)
       &proc,
       &vst3::Model::controlRemoved,
       this,
-      [this, wp](const Process::Port& port) {
+      [this, wp](const Process::Port& port)
+      {
         if (auto n = wp.lock())
         {
           Execution::SetupContext& setup = system().context().setup;
-          in_exec([n,
-                   num = static_cast<const vst3::ControlInlet&>(port).fxNum] {
-            auto it = ossia::find_if(
-                n->controls, [&](auto& c) { return c.idx == num; });
-            if (it != n->controls.end())
-            {
-              ossia::value_port* port = it->port;
-              n->controls.erase(it);
-              auto port_it = ossia::find_if(n->root_inputs(), [&](auto& p) {
-                return p->template target<ossia::value_port>() == port;
-              });
-              if (port_it != n->root_inputs().end())
+          in_exec(
+              [n, num = static_cast<const vst3::ControlInlet&>(port).fxNum]
               {
-                port->clear();
-                n->root_inputs().erase(port_it);
-              }
-            }
-          });
+                auto it
+                    = ossia::find_if(n->controls, [&](auto& c) { return c.idx == num; });
+                if (it != n->controls.end())
+                {
+                  ossia::value_port* port = it->port;
+                  n->controls.erase(it);
+                  auto port_it = ossia::find_if(
+                      n->root_inputs(),
+                      [&](auto& p)
+                      { return p->template target<ossia::value_port>() == port; });
+                  if (port_it != n->root_inputs().end())
+                  {
+                    port->clear();
+                    n->root_inputs().erase(port_it);
+                  }
+                }
+              });
           setup.unregister_inlet(static_cast<const Process::Inlet&>(port), n);
         }
       });
 }
 
-Executor::Executor(
-    vst3::Model& proc,
-    const Execution::Context& ctx,
-    QObject* parent)
+Executor::Executor(vst3::Model& proc, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{proc, ctx, "VST3Component", parent}
 {
   if (!proc.fx)
@@ -137,7 +138,8 @@ Executor::Executor(
   }
   else
   {
-    auto n = vst3::make_vst_fx<false>(*ctx.execState, proc.fx, ctx.execState->sampleRate);
+    auto n
+        = vst3::make_vst_fx<false>(*ctx.execState, proc.fx, ctx.execState->sampleRate);
     setupNode(n);
     node = std::move(n);
   }

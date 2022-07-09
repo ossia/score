@@ -6,15 +6,15 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/detail/math.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/ssize.hpp>
-#include <ossia/detail/math.hpp>
 #include <ossia/editor/scenario/time_signature.hpp>
+
+#include <pluginterfaces/vst/ivstmidicontrollers.h>
 
 #include <public.sdk/source/vst/hosting/eventlist.h>
 #include <public.sdk/source/vst/hosting/parameterchanges.h>
-
-#include <pluginterfaces/vst/ivstmidicontrollers.h>
 namespace vst3
 {
 
@@ -31,8 +31,7 @@ public:
   ossia::small_vector<std::pair<int32_t, Steinberg::Vst::ParamValue>, 1> data;
   Steinberg::Vst::ParamValue lastValue{};
 
-  Steinberg::tresult
-  queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultOk;
   }
@@ -72,8 +71,7 @@ class param_changes final : public Steinberg::Vst::IParameterChanges
 {
 public:
   std::vector<param_queue> queues;
-  Steinberg::tresult
-  queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultOk;
   }
@@ -217,8 +215,7 @@ protected:
 public:
   ossia::small_vector<vst_control, 16> controls;
 
-  std::size_t
-  add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
+  std::size_t add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
   {
     (**inlet).domain = ossia::domain_base<float>{0.f, 1.f};
     (**inlet).type = ossia::val_type::FLOAT;
@@ -295,7 +292,7 @@ public:
       {
         case libremidi::message_type::NOTE_ON:
         {
-          if(mess.bytes[2] > 0)
+          if (mess.bytes[2] > 0)
           {
             e.type = VstEvent::kNoteOnEvent;
             e.noteOn.channel = mess.get_channel();
@@ -341,11 +338,13 @@ public:
 
         case libremidi::message_type::PITCH_BEND:
         {
-          if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kPitchBend}); it != this->fx.midi_controls.end())
+          if (auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kPitchBend});
+              it != this->fx.midi_controls.end())
           {
             double pitch = (mess.bytes[2] * 128 + mess.bytes[1]) / (128. * 128.);
             Steinberg::Vst::ParamID pid = it->second;
-            if(auto queue_it = this->queue_map.find(pid); queue_it != this->queue_map.end())
+            if (auto queue_it = this->queue_map.find(pid);
+                queue_it != this->queue_map.end())
             {
               auto& queue = this->m_inputChanges.queues[queue_it->second];
               queue.data.push_back({e.sampleOffset, pitch});
@@ -356,11 +355,14 @@ public:
 
         case libremidi::message_type::AFTERTOUCH:
         {
-          if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kAfterTouch}); it != this->fx.midi_controls.end())
+          if (auto it
+              = this->fx.midi_controls.find({index, Steinberg::Vst::kAfterTouch});
+              it != this->fx.midi_controls.end())
           {
             double value = mess.bytes[1] / 128.;
             Steinberg::Vst::ParamID pid = it->second;
-            if(auto queue_it = this->queue_map.find(pid); queue_it != this->queue_map.end())
+            if (auto queue_it = this->queue_map.find(pid);
+                queue_it != this->queue_map.end())
             {
               auto& queue = this->m_inputChanges.queues[queue_it->second];
               queue.data.push_back({e.sampleOffset, value});
@@ -374,8 +376,7 @@ public:
     }
   }
 
-  auto&
-  preparePort(ossia::audio_port& port, int numChannels, std::size_t samples)
+  auto& preparePort(ossia::audio_port& port, int numChannels, std::size_t samples)
   {
     port.set_channels(numChannels);
 
@@ -384,8 +385,7 @@ public:
     return port.get();
   }
 
-  void
-  setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
+  void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
     using namespace Steinberg::Vst;
     using F = ProcessContext;
@@ -413,8 +413,8 @@ public:
     time_info.frameRate = {};
     time_info.samplesToNextClock = 0;
     time_info.state = F::kPlaying | F::kSystemTimeValid | F::kContTimeValid
-                      | F::kProjectTimeMusicValid | F::kBarPositionValid
-                      | F::kTempoValid | F::kTimeSigValid;
+                      | F::kProjectTimeMusicValid | F::kBarPositionValid | F::kTempoValid
+                      | F::kTimeSigValid;
   }
 
   Steinberg::Vst::ProcessData m_vstData;
@@ -441,9 +441,7 @@ public:
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample32;
   }
 
-  ~vst_node()
-  {
-  }
+  ~vst_node() { }
 
   std::string label() const noexcept override { return "VST3"; }
 
@@ -509,9 +507,7 @@ public:
     */
   }
 
-  void
-  run(const ossia::token_request& tk,
-      ossia::exec_state_facade st) noexcept override
+  void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     if (!muted() && tk.date > tk.prev_date)
     {
@@ -618,8 +614,7 @@ public:
         for (std::size_t i = 0; i < m_audioOutputChannels.size(); i++)
         {
           const int numChannels = m_audioOutputChannels[i];
-          ossia::audio_port& port
-              = *m_outlets[i]->template target<ossia::audio_port>();
+          ossia::audio_port& port = *m_outlets[i]->template target<ossia::audio_port>();
           for (int k = 0; k < numChannels; k++)
           {
             auto& audio_out = port.channel(k);
@@ -694,8 +689,7 @@ public:
   struct dummy_t
   {
   };
-  std::conditional_t<!UseDouble, std::vector<ossia::float_vector>, dummy_t>
-      float_v;
+  std::conditional_t<!UseDouble, std::vector<ossia::float_vector>, dummy_t> float_v;
 };
 
 template <bool b1, typename... Args>

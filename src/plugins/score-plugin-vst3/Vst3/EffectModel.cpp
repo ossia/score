@@ -22,21 +22,21 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
-#include <pluginterfaces/vst/ivstmidicontrollers.h>
-#include <pluginterfaces/vst/ivstaudioprocessor.h>
-#include <public.sdk/source/vst/hosting/module.h>
-
 #include <QInputDialog>
 #include <QTimer>
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <cmath>
+#include <pluginterfaces/vst/ivstaudioprocessor.h>
+#include <pluginterfaces/vst/ivstmidicontrollers.h>
 #include <pluginterfaces/vst/ivstprocesscontext.h>
 #include <websocketpp/base64/base64.hpp>
 #include <wobjectimpl.h>
 
 #include <memory>
 #include <set>
+
+#include <public.sdk/source/vst/hosting/module.h>
 
 W_OBJECT_IMPL(vst3::Model)
 namespace Process
@@ -83,7 +83,7 @@ EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const noexcept
 
   auto& app = score::GUIAppContext().applicationPlugin<vst3::ApplicationPlugin>();
   auto uid = VST3::UID::fromString(d.toStdString());
-  if(!uid)
+  if (!uid)
     return desc;
   const auto& [plug, cls] = app.classInfo(*uid);
 
@@ -112,7 +112,7 @@ Model::Model(
     QObject* parent)
     : ProcessModel{t, id, "VST", parent}
 {
-  if(auto id = VST3::UID::fromString(uid.toStdString()))
+  if (auto id = VST3::UID::fromString(uid.toStdString()))
   {
     m_uid = *id;
     auto& vst_plug = score::GUIAppContext().applicationPlugin<vst3::ApplicationPlugin>();
@@ -155,15 +155,14 @@ void Model::removeControl(Steinberg::Vst::ParamID fxNum)
   delete ctrl;
 }
 
-void Model::addControlFromEditor(
-    Steinberg::Vst::ParamID id)
+void Model::addControlFromEditor(Steinberg::Vst::ParamID id)
 {
   auto it = m_paramToIndex.find(id);
-  if(it == m_paramToIndex.end())
+  if (it == m_paramToIndex.end())
     return;
 
   Steinberg::Vst::ParameterInfo p;
-  if(fx.controller->getParameterInfo(it->second, p) == Steinberg::kResultOk)
+  if (fx.controller->getParameterInfo(it->second, p) == Steinberg::kResultOk)
   {
     on_addControl(p);
   }
@@ -177,8 +176,7 @@ void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
   }
 
   SCORE_ASSERT(controls.find(v.id) == controls.end());
-  auto ctrl
-      = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
+  auto ctrl = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
   ctrl->hidden = true;
   ctrl->fxNum = v.id;
   ctrl->setValue(v.defaultNormalizedValue);
@@ -189,8 +187,7 @@ void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
 
 void Model::removeControl(const Id<Process::Port>& id)
 {
-  auto it = ossia::find_if(
-      m_inlets, [&](const auto& inl) { return inl->id() == id; });
+  auto it = ossia::find_if(m_inlets, [&](const auto& inl) { return inl->id() == id; });
 
   SCORE_ASSERT(it != m_inlets.end());
   auto ctrl = safe_cast<ControlInlet*>(*it);
@@ -231,7 +228,8 @@ void Model::initControl(ControlInlet* ctrl)
       ctrl,
       &vst3::ControlInlet::valueChanged,
       this,
-      [this, i = ctrl->fxNum](float newval) {
+      [this, i = ctrl->fxNum](float newval)
+      {
         auto& c = *fx.controller;
         if (std::abs(newval - c.getParamNormalized(i)) > 0.0001)
         {
@@ -259,36 +257,38 @@ void Model::reloadControls()
 
 Steinberg::tresult Model::restartComponent(int32_t flags)
 {
-  if(fx.controller)
+  if (fx.controller)
   {
     const bool values_changed = flags & Steinberg::Vst::kParamValuesChanged;
     const bool titles_changed = flags & Steinberg::Vst::kParamTitlesChanged;
-    const bool something_else_changed = flags & ~(Steinberg::Vst::kParamTitlesChanged | Steinberg::Vst::kParamValuesChanged);
-    if(values_changed || titles_changed)
+    const bool something_else_changed
+        = flags
+          & ~(Steinberg::Vst::kParamTitlesChanged | Steinberg::Vst::kParamValuesChanged);
+    if (values_changed || titles_changed)
     {
       Steinberg::Vst::ParameterInfo p;
       for (const auto& ctrl : controls)
       {
-        if(titles_changed)
+        if (titles_changed)
         {
           auto it = m_paramToIndex.find(ctrl.first);
-          if(it != m_paramToIndex.end())
+          if (it != m_paramToIndex.end())
           {
-            if(fx.controller->getParameterInfo(it->second, p) == Steinberg::kResultOk)
+            if (fx.controller->getParameterInfo(it->second, p) == Steinberg::kResultOk)
             {
               ctrl.second->setName(fromString(p.title));
             }
           }
         }
 
-        if(values_changed)
+        if (values_changed)
         {
           ctrl.second->setValue(fx.controller->getParamNormalized(ctrl.first));
         }
       }
     }
 
-    if((values_changed || titles_changed) && !something_else_changed)
+    if ((values_changed || titles_changed) && !something_else_changed)
     {
       return Steinberg::kResultOk;
     }
@@ -297,7 +297,6 @@ Steinberg::tresult Model::restartComponent(int32_t flags)
       // FIXME here we should go into audio thread, and do a stop / restart cycle
       return Steinberg::kResultFalse;
     }
-
   }
   return Steinberg::kResultFalse;
 }
@@ -327,13 +326,7 @@ void Model::initFx()
 
   try
   {
-    this->fx.load(
-        *this,
-        p,
-        m_vstPath.toStdString(),
-        m_uid,
-        media.getRate(),
-        4096);
+    this->fx.load(*this, p, m_vstPath.toStdString(), m_uid, media.getRate(), 4096);
   }
   catch (std::exception& e)
   {
@@ -342,7 +335,7 @@ void Model::initFx()
     return;
   }
 
-  if(auto [plug, info] = p.classInfo(m_uid); info)
+  if (auto [plug, info] = p.classInfo(m_uid); info)
     metadata().setName(QString::fromStdString(info->name()));
   metadata().setLabel(metadata().getName());
 
@@ -416,12 +409,14 @@ struct PortCreationVisitor
 
     // MIDI input: check controls
     Steinberg::Vst::IMidiMapping* midi_map{};
-    if (this->fx.controller->queryInterface(Steinberg::Vst::IMidiMapping::iid, (void**)&midi_map) == Steinberg::kResultTrue)
+    if (this->fx.controller->queryInterface(
+            Steinberg::Vst::IMidiMapping::iid, (void**)&midi_map)
+        == Steinberg::kResultTrue)
     {
       Steinberg::Vst::ParamID p;
-      for(int i = 0; i <= 132; i++) // See ivstmidicontrollers.h
+      for (int i = 0; i <= 132; i++) // See ivstmidicontrollers.h
       {
-        if(midi_map->getMidiControllerAssignment(idx, 0, i, p) == Steinberg::kResultOk)
+        if (midi_map->getMidiControllerAssignment(idx, 0, i, p) == Steinberg::kResultOk)
           fx.midiControls[{idx, i}] = p;
       }
     }
@@ -431,8 +426,7 @@ struct PortCreationVisitor
   {
     BusActivationVisitor{fx}.audioOut(bus, idx);
 
-    auto port
-        = new Process::AudioOutlet(Id<Process::Port>{outlet_i++}, &model);
+    auto port = new Process::AudioOutlet(Id<Process::Port>{outlet_i++}, &model);
     port->setName(fromString(bus.name));
     model.m_outlets.push_back(port);
 
@@ -579,7 +573,7 @@ void Model::writeState()
     // Then reload the controller-specific data
     if (fx.controller)
     {
-      if(!m_savedControllerState.isEmpty())
+      if (!m_savedControllerState.isEmpty())
       {
         QDataStream str{m_savedControllerState};
 
@@ -593,21 +587,29 @@ void Model::writeState()
   }
 }
 
-
 void Model::loadPreset(const Process::Preset& preset)
 {
   const rapidjson::Document doc = readJson(preset.data);
-  if(!doc.IsObject())
+  if (!doc.IsObject())
     return;
   auto obj = doc.GetObject();
 
-  if(auto it = obj.FindMember("Processor"); it != obj.MemberEnd())
-    m_savedProcessorState = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
-  if(auto it = obj.FindMember("Controller"); it != obj.MemberEnd())
-    m_savedControllerState = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
+  if (auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd())
+  {
+    auto idx = JsonValue{it->value}.toInt();
+    return;
+    //    this->fx.units->getProgramInfo();
+  }
+  else
+  {
+    if (auto it = obj.FindMember("Processor"); it != obj.MemberEnd())
+      m_savedProcessorState = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
+    if (auto it = obj.FindMember("Controller"); it != obj.MemberEnd())
+      m_savedControllerState
+          = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
 
-  writeState();
-
+    writeState();
+  }
   for (auto* inlet : this->m_inlets)
   {
     if (auto ctl = qobject_cast<ControlInlet*>(inlet))
@@ -631,6 +633,24 @@ Process::Preset Model::savePreset() const noexcept
   r.stream.EndObject();
   p.data = r.toByteArray();
   return p;
+}
+
+std::vector<Process::Preset> Model::builtinPresets() const noexcept
+{
+  std::vector<Process::Preset> presets;
+  for (int i = 0; i < this->fx.programs.programCount; i++)
+  {
+    Process::Preset p;
+    p.key.key = this->static_concreteKey();
+    // FIXME p.key.effect = m_uid;
+    Steinberg::Vst::String128 progName;
+    this->fx.units->getProgramName(this->fx.programs.id, i, progName);
+
+    p.name = fromString(progName);
+    p.data = QStringLiteral(R"({ "ProgramIndex": %1 } )").arg(i).toLatin1();
+    presets.push_back(p);
+  }
+  return presets;
 }
 
 }
@@ -715,7 +735,7 @@ void DataStreamWriter::write(vst3::Model& eff)
   QString uid;
   m_stream >> uid >> eff.m_savedProcessorState >> eff.m_savedControllerState;
 
-  if(auto id = VST3::UID::fromString(uid.toStdString()))
+  if (auto id = VST3::UID::fromString(uid.toStdString()))
     eff.m_uid = *id;
   auto& vst_plug = this->components.applicationPlugin<vst3::ApplicationPlugin>();
   eff.m_vstPath = vst_plug.pathForClass(eff.m_uid);
@@ -746,9 +766,9 @@ template <>
 void JSONWriter::write(vst3::Model& eff)
 {
   auto& vst_plug = this->components.applicationPlugin<vst3::ApplicationPlugin>();
-  if(auto id = obj.tryGet("UID"))
+  if (auto id = obj.tryGet("UID"))
   {
-    if(auto uid = VST3::UID::fromString(id->toStdString()))
+    if (auto uid = VST3::UID::fromString(id->toStdString()))
       eff.m_uid = *uid;
     eff.m_vstPath = vst_plug.pathForClass(eff.m_uid);
   }
@@ -758,7 +778,7 @@ void JSONWriter::write(vst3::Model& eff)
     QString m_vstPath, m_className;
     m_vstPath <<= obj["VstPath"];
     m_className <<= obj["ClassName"];
-    if(auto id = vst_plug.uidForPathAndClassName(m_vstPath, m_className))
+    if (auto id = vst_plug.uidForPathAndClassName(m_vstPath, m_className))
     {
       eff.m_uid = *id;
       // Note: we use a different path here because

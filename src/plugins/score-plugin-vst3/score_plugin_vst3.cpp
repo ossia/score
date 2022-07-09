@@ -16,8 +16,7 @@
 
 namespace vst3
 {
-using LayerFactory
-    = Process::EffectLayerFactory_T<Model, VSTEffectItem, Window>;
+using LayerFactory = Process::EffectLayerFactory_T<Model, VSTEffectItem, Window>;
 }
 score_plugin_vst3::score_plugin_vst3() { }
 
@@ -29,8 +28,7 @@ score_plugin_vst3::make_applicationPlugin(const score::ApplicationContext& ctx)
   return new vst3::ApplicationPlugin{ctx};
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_vst3::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst3::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -43,8 +41,7 @@ score_plugin_vst3::factories(
       FW<Process::LayerFactory, vst3::LayerFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_vst3::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_vst3::make_commands()
 {
   using namespace vst3;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

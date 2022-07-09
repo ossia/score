@@ -31,7 +31,8 @@ createComponent(VST3::Hosting::Module& mdl, const std::string& name)
       }
     }
 
-  throw std::runtime_error(fmt::format("Couldn't create VST3 component ({})", mdl.getPath()));
+  throw std::runtime_error(
+      fmt::format("Couldn't create VST3 component ({})", mdl.getPath()));
 }
 
 static Steinberg::Vst::IComponent*
@@ -40,12 +41,11 @@ createComponent(VST3::Hosting::Module& mdl, const VST3::UID& cls)
   const auto& factory = mdl.getFactory();
   Steinberg::Vst::IComponent* obj{};
   factory.get()->createInstance(
-      cls.data(),
-      Steinberg::Vst::IComponent::iid,
-      reinterpret_cast<void**>(&obj));
+      cls.data(), Steinberg::Vst::IComponent::iid, reinterpret_cast<void**>(&obj));
   return obj;
 
-  throw std::runtime_error(fmt::format("Couldn't create VST3 component ({})", mdl.getPath()));
+  throw std::runtime_error(
+      fmt::format("Couldn't create VST3 component ({})", mdl.getPath()));
 }
 
 void Plugin::loadAudioProcessor(ApplicationPlugin& ctx)
@@ -54,21 +54,53 @@ void Plugin::loadAudioProcessor(ApplicationPlugin& ctx)
   auto audio_iface_res = component->queryInterface(
       Steinberg::Vst::IAudioProcessor::iid, (void**)&processor_ptr);
   if (audio_iface_res != Steinberg::kResultOk || !processor_ptr)
-    throw std::runtime_error(fmt::format("Couldn't get VST3 AudioProcessor interface ({})", path));
+    throw std::runtime_error(
+        fmt::format("Couldn't get VST3 AudioProcessor interface ({})", path));
 
   processor = processor_ptr;
 }
 
 void Plugin::loadBuses()
 {
-  audio_ins
-      = component->getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
-  event_ins
-      = component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kInput);
-  audio_outs = component->getBusCount(
-      Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
-  event_outs = component->getBusCount(
-      Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
+  audio_ins = component->getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
+  event_ins = component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kInput);
+  audio_outs = component->getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
+  event_outs = component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
+}
+
+void Plugin::loadPresets()
+{
+  Steinberg::Vst::IUnitInfo* unit_ptr = nullptr;
+  Steinberg::Vst::IProgramListData* pl_ptr = nullptr;
+  Steinberg::Vst::IUnitData* udata_ptr = nullptr;
+  {
+    auto res
+        = controller->queryInterface(Steinberg::Vst::IUnitInfo::iid, (void**)&unit_ptr);
+    if (res != Steinberg::kResultOk || !unit_ptr)
+      return;
+  }
+
+  {
+    auto res = component->queryInterface(
+        Steinberg::Vst::IProgramListData::iid, (void**)&pl_ptr);
+    if (res != Steinberg::kResultOk || !pl_ptr)
+      pl_ptr = nullptr;
+  }
+
+  {
+    auto res
+        = component->queryInterface(Steinberg::Vst::IUnitData::iid, (void**)&udata_ptr);
+    if (res != Steinberg::kResultOk || !udata_ptr)
+      udata_ptr = nullptr;
+  }
+
+  this->units = unit_ptr;
+
+  int banks = this->units->getProgramListCount();
+  if (banks > 0)
+  {
+    this->units->getProgramListInfo(0, this->programs);
+  }
 }
 
 void Plugin::loadProcessorStateToController()
@@ -121,8 +153,7 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
 
     IConnectionPoint* compICP{};
     IConnectionPoint* contrICP{};
-    if (component->queryInterface(IConnectionPoint::iid, (void**)&compICP)
-        != kResultOk)
+    if (component->queryInterface(IConnectionPoint::iid, (void**)&compICP) != kResultOk)
       compICP = nullptr;
 
     if (controller->queryInterface(IConnectionPoint::iid, (void**)&contrICP)
@@ -156,8 +187,8 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
   if (view)
   {
     this->view = view;
-    this->hasUI = view->isPlatformTypeSupported(currentPlatform())
-                  == Steinberg::kResultTrue;
+    this->hasUI
+        = view->isPlatformTypeSupported(currentPlatform()) == Steinberg::kResultTrue;
   }
 }
 
@@ -171,20 +202,23 @@ void Plugin::load(
 {
   this->path = path;
   mdl = ctx.getModule(path);
-  if(!mdl)
+  if (!mdl)
     return;
   component = createComponent(*mdl, uid);
-  if(!component)
+  if (!component)
     return;
 
   if (component->initialize(&ctx.m_host) != Steinberg::kResultOk)
-    throw std::runtime_error(fmt::format("Couldn't initialize VST3 component ({})", path));
+    throw std::runtime_error(
+        fmt::format("Couldn't initialize VST3 component ({})", path));
 
   loadAudioProcessor(ctx);
 
   loadEditController(model, ctx);
 
   loadBuses();
+
+  loadPresets();
 
   start(sample_rate, max_bs);
 }

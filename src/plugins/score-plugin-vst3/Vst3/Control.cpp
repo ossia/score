@@ -23,17 +23,23 @@ W_OBJECT_IMPL(vst3::ControlInlet)
 namespace vst3
 {
 
-void VSTControlPortItem::setupMenu(
-    QMenu& menu,
-    const score::DocumentContext& ctx)
+void VSTControlPortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
 {
   auto rm_act = menu.addAction(QObject::tr("Remove port"));
-  connect(rm_act, &QAction::triggered, this, [this, &ctx] {
-    QTimer::singleShot(0, [&ctx, parent = port().parent(), id = port().id()] {
-      CommandDispatcher<> disp{ctx.commandStack};
-      // TODO disp.submit<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
-    });
-  });
+  connect(
+      rm_act,
+      &QAction::triggered,
+      this,
+      [this, &ctx]
+      {
+        QTimer::singleShot(
+            0,
+            [&ctx, parent = port().parent(), id = port().id()]
+            {
+              CommandDispatcher<> disp{ctx.commandStack};
+              // TODO disp.submit<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
+            });
+      });
 }
 
 bool VSTControlPortItem::on_createAutomation(
@@ -45,12 +51,11 @@ bool VSTControlPortItem::on_createAutomation(
       cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}, {}};
   macro(make_cmd);
 
-  auto lay_cmd
-      = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+  auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
   macro(lay_cmd);
 
-  auto& autom = safe_cast<Automation::ProcessModel&>(
-      cst.processes.at(make_cmd->processId()));
+  auto& autom
+      = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
   macro(new Automation::SetMin{autom, 0.});
   macro(new Automation::SetMax{autom, 1.});
 
@@ -73,12 +78,13 @@ UuidKey<Process::Port> VSTControlPortFactory::concreteKey() const noexcept
   return Metadata<ConcreteKey_k, ControlInlet>::get();
 }
 
-Process::Port*
-VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
+Process::Port* VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
 {
-  return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-    return new ControlInlet{deserializer, parent};
-  });
+  return score::deserialize_dyn(
+      vis,
+      [&](auto&& deserializer) {
+        return new ControlInlet{deserializer, parent};
+      });
 }
 
 Dataflow::PortItem* VSTControlPortFactory::makePortItem(
@@ -126,9 +132,8 @@ static void setupVSTControl(
   Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
   hl2->addLayout(lay);
 
-  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
-    sw->setVisible(!sw->isVisible());
-  });
+  QObject::connect(
+      advBtn, &QToolButton::clicked, sw, [=] { sw->setVisible(!sw->isVisible()); });
   sw->setVisible(false);
 
   vlay.addRow(widg, inlet_widget);
@@ -144,8 +149,8 @@ void VSTControlPortFactory::setupInletInspector(
 {
   auto& inl = safe_cast<const ControlInlet&>(port);
   auto proc = safe_cast<Model*>(port.parent());
-  auto widg = VSTFloatSlider::make_widget(
-      proc->fx.controller, inl, ctx, parent, context);
+  auto widg
+      = VSTFloatSlider::make_widget(proc->fx.controller, inl, ctx, parent, context);
 
   setupVSTControl(inl, widg, ctx, lay, parent);
 }

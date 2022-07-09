@@ -19,8 +19,7 @@ class LibraryHandler final
       const AvailablePlugin& vst,
       const VST3::Hosting::ClassInfo& cls)
   {
-    MSVC_BUGGY_CONSTEXPR static const auto key
-        = Metadata<ConcreteKey_k, Model>::get();
+    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     auto name = QString::fromStdString(cls.name());
     auto vendor = QString::fromStdString(cls.vendor());
@@ -37,34 +36,31 @@ class LibraryHandler final
     Library::addToLibrary(parent, std::move(classdata));
   }
 
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override
   {
-    MSVC_BUGGY_CONSTEXPR static const auto key
-        = Metadata<ConcreteKey_k, Model>::get();
+    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     QModelIndex node = model.find(key);
     if (node == QModelIndex{})
     {
       return;
     }
-    auto& parent
-        = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
     parent.key = {};
 
     auto& plug = ctx.applicationPlugin<vst3::ApplicationPlugin>();
 
-    auto reset_plugs = [=, &plug, &parent] {
+    auto reset_plugs = [=, &plug, &parent]
+    {
       for (const auto& vst : plug.vst_infos)
       {
         if (vst.isValid)
         {
-          Library::ProcessData parent_data{
-              {key, vst.name, QString{}}, {}, {}, {}};
+          Library::ProcessData parent_data{{key, vst.name, QString{}}, {}, {}, {}};
 
           const int numClasses = vst.classInfo.size();
-          switch(numClasses)
+          switch (numClasses)
           {
             default:
             {
@@ -93,7 +89,8 @@ class LibraryHandler final
     con(plug,
         &vst3::ApplicationPlugin::vstChanged,
         this,
-        [=, &model, &parent] {
+        [=, &model, &parent]
+        {
           model.beginResetModel();
           parent.resize(0);
           reset_plugs();

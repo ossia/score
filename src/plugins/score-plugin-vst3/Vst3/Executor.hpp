@@ -17,10 +17,7 @@ class Executor final
 public:
   static constexpr bool is_unique = true;
 
-  Executor(
-      vst3::Model& proc,
-      const Execution::Context& ctx,
-      QObject* parent);
+  Executor(vst3::Model& proc, const Execution::Context& ctx, QObject* parent);
 
 private:
   template <typename Node_T>

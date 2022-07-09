@@ -10,8 +10,8 @@
 #include <QProcess>
 #include <QWebSocketServer>
 
-#include <pluginterfaces/vst/ivstmessage.h>
 #include <base/source/fstring.h>
+#include <pluginterfaces/vst/ivstmessage.h>
 
 #include <memory>
 #include <stdexcept>
@@ -52,8 +52,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
       return kResultTrue;
     }
     else if (
-        classID == Vst::IAttributeList::iid
-        && interfaceID == Vst::IAttributeList::iid)
+        classID == Vst::IAttributeList::iid && interfaceID == Vst::IAttributeList::iid)
     {
       *obj = Vst::HostAttributeList::make();
       return kResultTrue;
@@ -69,7 +68,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
     QUERY_INTERFACE(_iid, obj, FUnknown::iid, IHostApplication)
     QUERY_INTERFACE(_iid, obj, IHostApplication::iid, IHostApplication)
 
-    if (m_support.queryInterface(iid, obj) == kResultTrue)
+    if (m_support.isPlugInterfaceSupported(_iid) == kResultTrue)
       return kResultOk;
 
     *obj = nullptr;
@@ -102,9 +101,11 @@ public:
 
   void scanVSTsEvent();
 
-  std::pair<const AvailablePlugin*, const VST3::Hosting::ClassInfo*> classInfo(const VST3::UID& uid) const noexcept;
+  std::pair<const AvailablePlugin*, const VST3::Hosting::ClassInfo*>
+  classInfo(const VST3::UID& uid) const noexcept;
   QString pathForClass(const VST3::UID& uid) const noexcept;
-  std::optional<VST3::UID> uidForPathAndClassName(const QString& path, const QString& cls) const noexcept;
+  std::optional<VST3::UID>
+  uidForPathAndClassName(const QString& path, const QString& cls) const noexcept;
 
   struct ScanningProcess
   {
