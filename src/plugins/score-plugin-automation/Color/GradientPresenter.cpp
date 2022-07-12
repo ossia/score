@@ -33,13 +33,27 @@ Presenter::Presenter(
     auto new_grad = layer.gradient();
     auto prev = new_grad.lower_bound(np);
     if (prev == new_grad.begin())
-      return;
+    {
+      new_grad.insert(std::make_pair(np, prev->second));
+    }
     if (prev == new_grad.end())
-      prev = new_grad.begin();
+    {
+      if(!new_grad.empty())
+      {
+        prev = new_grad.begin();
+        new_grad.insert(std::make_pair(np, prev->second));
+      }
+      else
+      {
+        new_grad.insert(std::make_pair(np, QColor{Qt::black}));
+      }
+    }
     else
+    {
       prev--;
+      new_grad.insert(std::make_pair(np, prev->second));
+    }
 
-    new_grad.insert(std::make_pair(np, prev->second));
     CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
         layer, new_grad);
   });

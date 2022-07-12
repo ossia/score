@@ -40,8 +40,18 @@ static const QPainterPath& triangle{[] {
 
 void View::paint_impl(QPainter* p) const
 {
-  if (m_colors.size() < 2)
-    return;
+  switch(m_colors.size())
+  {
+    case 0:
+      p->fillRect(boundingRect(), Qt::black);
+      return;
+    case 1:
+      p->fillRect(boundingRect(), m_colors.begin()->second);
+      return;
+    default:
+      break;
+  }
+
   QLinearGradient g{QPointF{0, 0}, QPointF{m_dataWidth, 0.}};
   for (const auto& col : m_colors)
   {
