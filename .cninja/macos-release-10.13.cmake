@@ -9,6 +9,9 @@ string(APPEND CMAKE_C_FLAGS_INIT " -march=core2 -mtune=ivybridge")
 string(APPEND CMAKE_CXX_FLAGS_INIT " -march=core2 -mtune=ivybridge -D_LIBCPP_NO_EXCEPTIONS=1")
 string(APPEND CMAKE_OBJCXX_FLAGS_INIT " -march=core2 -mtune=ivybridge -D_LIBCPP_NO_EXCEPTIONS=1")
 
+# Needed because it's only available starting from 10.15
+string(APPEND CMAKE_CXX_FLAGS_INIT " -DBOOST_ASIO_DISABLE_STD_ALIGNED_ALLOC=1")
+string(APPEND CMAKE_OBJCXX_FLAGS_INIT " -BOOST_ASIO_DISABLE_STD_ALIGNED_ALLOC=1")
 
 set_cache(BUILD_SHARED_LIBS OFF)
 set_cache(CMAKE_INSTALL_MESSAGE NEVER)
