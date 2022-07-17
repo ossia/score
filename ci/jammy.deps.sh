@@ -8,7 +8,7 @@ apt-get install -y \
     --allow-downgrades \
     --allow-remove-essential \
     --allow-unauthenticated \
-     binutils gcc-12 g++-12 clang-14 clang++-14 \
+     binutils gcc-12 g++-12 clang-14 clang++-14 lld-14 \
      software-properties-common wget \
      libasound-dev \
      ninja-build cmake \

@@ -132,7 +132,7 @@ jobs:
 
       - name: Build
         run: |
-          CC=gcc-12 CXX=g++-12 ./ci/jammy.build.sh
+          CC=gcc-12 CXX=g++-12 LDFLAGS= ./ci/jammy.build.sh
 
       - name: Deploy
         run: |
@@ -168,4 +168,4 @@ jobs:
 
       - name: Build
         run: |
-          CC=clang-14 CXX=clang++-14 ./ci/jammy.build.sh
+          CC=clang-14 CXX=clang++-14 LDFLAGS=-fuse-ld=lld ./ci/jammy.build.sh
