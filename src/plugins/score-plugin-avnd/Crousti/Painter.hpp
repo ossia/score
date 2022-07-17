@@ -1,6 +1,7 @@
 #pragma once
 #include <score/model/Skin.hpp>
 
+#include <QFlags>
 #include <QGradient>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>

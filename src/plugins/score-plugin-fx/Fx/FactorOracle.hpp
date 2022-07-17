@@ -220,7 +220,7 @@ struct Node
   {
     static const constexpr auto prettyName = "Factor Oracle";
     static const constexpr auto objectKey = "Factor Oracle";
-    static const constexpr auto category = "Impro";
+    static const constexpr auto category = "Control/Impro";
     static const constexpr auto author
         = "Shlomo Dubnov, Ge Wang, Éric Meaux, Jean-Michaël Celerier";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
