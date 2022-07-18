@@ -1,8 +1,11 @@
 #include "FixedTabWidget.hpp"
 
 #include <QActionGroup>
+#include <QDragEnterEvent>
+#include <QDragLeaveEvent>
 #include <QPainter>
 #include <QToolBar>
+#include <QToolButton>
 
 #include <wobjectimpl.h>
 
@@ -58,12 +61,59 @@ void FixedTabWidget::setTab(int index)
   m_actGrp->actions()[index]->trigger();
 }
 
+struct DragOverToolButton final
+    : public QToolButton
+{
+  explicit DragOverToolButton(QWidget* parent = nullptr) noexcept
+    : QToolButton{parent}
+  {
+    setAcceptDrops(true);
+  }
+
+  void dragEnterEvent(QDragEnterEvent* e) override
+  {
+    m_tm = startTimer(250);
+    QToolButton::dragEnterEvent(e);
+    e->accept();
+  }
+
+  void dragLeaveEvent(QDragLeaveEvent* e) override
+  {
+    if(m_tm != 0)
+      killTimer(m_tm);
+    m_tm = 0;
+
+    QToolButton::dragLeaveEvent(e);
+    e->accept();
+  }
+
+  void timerEvent(QTimerEvent* e) override
+  {
+    if(m_tm != 0)
+      killTimer(m_tm);
+    m_tm = 0;
+
+    click();
+  }
+
+  int m_tm = 0;
+};
+
 std::pair<int, QAction*>
 FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
 {
   int idx = m_stack.addWidget(widg);
 
-  auto btn = m_buttons->addAction(v.icon, v.prettyName);
+  auto bbtn = new DragOverToolButton{};
+  bbtn->setAutoRaise(true);
+  bbtn->setFocusPolicy(Qt::NoFocus);
+  bbtn->setIconSize(m_buttons->iconSize());
+
+  auto btn = m_buttons->addWidget(bbtn);
+  bbtn->setDefaultAction(btn);
+  btn->setIcon(v.icon);
+  btn->setText(v.prettyName);
+
   m_actGrp->addAction(btn);
   btn->setCheckable(true);
   btn->setShortcut(v.shortcut);

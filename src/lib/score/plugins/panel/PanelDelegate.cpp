@@ -20,7 +20,6 @@ PanelStatus::PanelStatus(
     , prettyName{std::move(name)}
     , icon{[&icon] {
       QIcon ico;
-      ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Active);
       ico.addFile(
           ":/icons/" + icon + "_on.png",
           {},
@@ -31,7 +30,6 @@ PanelStatus::PanelStatus(
           {},
           QIcon::Mode::Normal,
           QIcon::State::Off);
-      ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Selected);
       return ico;
     }()}
     , shortcut(sc)
