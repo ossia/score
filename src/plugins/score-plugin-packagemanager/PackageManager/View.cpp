@@ -380,7 +380,7 @@ void PluginSettingsView::installAddon(const Package& addon)
           .arg(addon.name)
           .arg(QFileInfo(installPath).absoluteFilePath()));
   },
-  [=](qint64 recieved, qint64 total) { progress_from_bytes(recieved, total); },
+  [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
   [=] {
     reset_progress();
     QMessageBox::warning(
@@ -427,7 +427,7 @@ void PluginSettingsView::installSDK(const Package& addon)
 
     set_info();
   },
-  [=](qint64 recieved, qint64 total) { progress_from_bytes(recieved, total); },
+  [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
   [this] {
     reset_progress();
     QMessageBox::warning(
@@ -449,7 +449,7 @@ void PluginSettingsView::installLibrary(const Package& addon)
         addon.file,
         QFileInfo{destination}.absoluteFilePath(),
         [=] (const std::vector<QString>& res) { on_packageInstallSuccess(addon, destination, res); },
-  [=](qint64 recieved, qint64 total) { progress_from_bytes(recieved, total); },
+  [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
   [=] { on_packageInstallFailure(addon); });
 }
 
@@ -540,9 +540,9 @@ void PluginSettingsView::reset_progress()
   m_progress->setValue(0);
 }
 
-void PluginSettingsView::progress_from_bytes(qint64 bytesRecieved, qint64 bytesTotal)
+void PluginSettingsView::progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal)
 {
-  m_progress->setValue(((bytesRecieved / 1024.) / (bytesTotal / 1024.)) * 100);
+  m_progress->setValue(((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100);
 }
 
 }

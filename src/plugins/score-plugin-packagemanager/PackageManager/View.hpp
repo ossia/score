@@ -56,7 +56,7 @@ private:
 
   void set_info();
   void reset_progress();
-  void progress_from_bytes(qint64 bytesRecieved, qint64 bytesTotal);
+  void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
 
   QWidget* m_widget{new QWidget};
 
