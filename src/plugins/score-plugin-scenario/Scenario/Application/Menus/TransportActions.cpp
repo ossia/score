@@ -51,7 +51,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_playGlobal = new QAction{tr("Play Root"), nullptr};
   m_playGlobal->setCheckable(true);
   m_playGlobal->setObjectName("Play Root");
-  m_playGlobal->setShortcut(Qt::Key_Shift + Qt::Key_Space);
+  m_playGlobal->setShortcut(QKeySequence("Shift+Space"));
   m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_playGlobal->setStatusTip("Play the top-level score from the beginning");
   m_playGlobal->setData(false);
