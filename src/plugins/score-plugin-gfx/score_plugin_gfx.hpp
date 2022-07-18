@@ -94,7 +94,7 @@
  *   if VSync is enabled or with a timer otherwise:
  *   - Edges are updated with the currently running nodes in the score
  *   - Parameters, audio data... sent to the ossia processes
- *     in the execution graph are converted into uniforms correpsonding to the shaders used,
+ *     in the execution graph are converted into uniforms corresponding to the shaders used,
  *     and uploaded to the GPU.
  */
 namespace Gfx { }

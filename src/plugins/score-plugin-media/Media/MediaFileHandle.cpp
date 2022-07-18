@@ -33,7 +33,7 @@ namespace Media
 
 // TODO if it's smaller than e.g. 1 megabyte, it would be worth
 // loading it in memory entirely..
-// TODO might make sense to do resampling during execution if it's nott too
+// TODO might make sense to do resampling during execution if it's not too
 // expensive?
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {

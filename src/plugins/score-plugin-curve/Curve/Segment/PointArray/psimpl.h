@@ -665,7 +665,7 @@ namespace psimpl
 
             PD is an O(n) algorithm for polyline simplification. It computes the perpendicular
             distance of each point pi to the line segment S(pi-1, pi+1). Only when this distance is
-            larger than the given tolerance will pi be part of the simpification. Note that the
+            larger than the given tolerance will pi be part of the simplification. Note that the
             original polyline can only be reduced by a maximum of 50%. Multiple passes are required
             to achieve higher points reductions.
 

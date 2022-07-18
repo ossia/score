@@ -520,7 +520,7 @@ void DeviceExplorerWidget::blockGUI(bool b)
   }
   else
   {
-    // progreess widget to front
+    // progress widget to front
     m_lay->setCurrentIndex(0);
     m_refreshIndicator->stopAnimation();
   }

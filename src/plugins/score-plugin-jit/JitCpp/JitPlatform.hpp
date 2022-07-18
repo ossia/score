@@ -161,7 +161,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("-freciprocal-math");
   args.push_back("-fno-rounding-math");
 
-  // disappeard in clang 12 args.push_back("-fno-trapping-math");
+  // disappeared in clang 12 args.push_back("-fno-trapping-math");
   args.push_back("-ffp-contract=fast");
 
 #if !defined(__linux__) // || (defined(__linux__) && __GLIBC_MINOR__ >= 31)
