@@ -30,7 +30,7 @@ class Command;
  * They are stored in a \ref CommandData upon serialization, along with
  * the command-specific data.
  *
- * Reinstatiation is donne through \ref
+ * Reinstantiation is done through \ref
  * score::ApplicationContext::instantiateUndoCommand.
  *
  * OPTIMIZEME: right now the names are used, it should be nice to migrate

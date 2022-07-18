@@ -54,7 +54,7 @@ void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
 {
   if (m_newdur != TimeVal::zero())
   {
-    // Note: this is not symmetric with unde because resizeinterval does reload
+    // Note: this is not symmetric with undo because resizeinterval does reload
     // the process entirely anyways
     auto& snd = m_model.find(ctx);
     if (m_resizeInterval)

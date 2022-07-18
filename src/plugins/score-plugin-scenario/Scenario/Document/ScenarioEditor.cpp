@@ -52,7 +52,7 @@ static bool pasteInScenario(QPoint pos, ScenarioPresenter& pres, const QMimeData
   if(!sv_pt)
     return false;
 
-  // TODO this is a bit lazy.. find a better positoning algorithm
+  // TODO this is a bit lazy.. find a better positioning algorithm
   if (!sv.contains(*sv_pt))
     sv_pt = sv.mapToScene(sv.boundingRect().center());
 

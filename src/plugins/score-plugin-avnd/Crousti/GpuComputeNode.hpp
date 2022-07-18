@@ -14,7 +14,7 @@
 
 namespace oscr
 {
-// Comptue nodes that do not have any texture output so that they can get pulled
+// Compute nodes that do not have any texture output so that they can get pulled
 // must drive things internally instead
 template <typename Node_T>
 using ComputeNodeBaseType = std::conditional_t<

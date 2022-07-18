@@ -163,7 +163,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     inputLayout.setAttributes(
         mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
 
-    // TODO adapt mesh to expected binding (or repport an error)
+    // TODO adapt mesh to expected binding (or report an error)
     ps->setVertexInputLayout(inputLayout);
 
     SCORE_ASSERT(rt.renderPass);

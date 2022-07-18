@@ -352,7 +352,7 @@ RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput
     {
       if (psampler->textures[1] != psampler->textures[0])
       {
-        // This pass is a persistent pass, thus we need to alernate our render target
+        // This pass is a persistent pass, thus we need to alternate our render target
         // as we can't use a texture both as sampler and render target
         ret.second.processUBO = ret.first.processUBO;
         ret.second.p = ret.first.p;
