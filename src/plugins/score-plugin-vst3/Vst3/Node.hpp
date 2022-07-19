@@ -192,6 +192,9 @@ protected:
     m_vstData.inputEvents = &m_inputEvents;
     m_vstData.outputEvents = &m_outputEvents;
     m_vstData.processContext = &m_context;
+
+    m_inputEvents.setMaxSize(17 * 128 * m_totalEventIns);
+    m_outputEvents.setMaxSize(128 * m_totalEventOuts);
   }
 
   ~vst_node_base()
@@ -447,8 +450,6 @@ public:
 
   void all_notes_off(int bus) noexcept
   {
-    // TODO
-    /*
     bool ok = false;
     if(auto it = this->fx.midi_controls.find({bus, Steinberg::Vst::kCtrlAllNotesOff}); it != this->fx.midi_controls.end())
     {
@@ -476,35 +477,94 @@ public:
 
     if(!ok)
     {
-      // Send manual note off events ??
-
+      // Send manual note off events
+      for(int k = 0; k <= 16; k++)
+      for(int i = 0; i <= 127; i++)
+      {
+         using VstEvent = Steinberg::Vst::Event;
+         VstEvent e;
+         e.busIndex = bus;
+         e.sampleOffset = 0;
+         e.ppqPosition = 0; // FIXME
+         e.sampleOffset = 0;
+         e.type = VstEvent::kNoteOffEvent;
+         e.noteOff.channel = k;
+         e.noteOff.pitch = i;
+         e.noteOff.velocity = 0;
+         e.noteOff.noteId = -1;
+         e.noteOff.tuning = 0.f;
+         m_inputEvents.addEvent(e);
+      }
     }
-    */
   }
 
   void all_notes_off() noexcept override
   {
-    /*
+    if(m_totalEventIns == 0)
+      return;
+
+    m_inputEvents.clear();
+
     // Put messages into each MIDI in's event queues
     {
-      int k = 0;
-      int audioBusCount = std::ssize(m_audioInputChannels);
-      for (int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
+      for (int i = 0; i < m_totalEventIns; i++)
       {
-        all_notes_off(k++);
+        all_notes_off(i++);
       }
     }
 
     // Run a process cycle
     {
-      auto dat = m_vstData;
-      dat.numSamples = 0;
-      dat.inputs = nullptr;
-      dat.outputs = nullptr;
+      constexpr int samples = 64;
+      Steinberg::Vst::ProcessData dat;
+      memcpy(&dat, &m_vstData, sizeof(m_vstData));
+      dat.inputEvents = &m_inputEvents;
+      dat.numSamples = samples;
 
-      fx.processor->process(dat);
+      {
+        double** input{};
+        double** output{};
+
+        // Copy inputs
+        if (m_totalAudioIns > 0)
+        {
+          input = (double**)alloca(sizeof(double*) * m_totalAudioIns);
+
+          for(int k = 0; k < m_totalAudioIns; k++)
+          {
+            input[k] = (double*) alloca(sizeof(double) * samples);
+            memset(input[k], 0, sizeof(double) * samples);
+          }
+
+          for (std::size_t i = 0; i < m_audioInputChannels.size(); i++)
+          {
+            Steinberg::Vst::AudioBusBuffers& vst_in = dat.inputs[i];
+            vst_in.channelBuffers64 = input;
+            vst_in.silenceFlags = ~0ULL;
+          }
+        }
+
+        // Prepare outputs
+        if (m_totalAudioOuts > 0)
+        {
+          output = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
+          for(int k = 0; k < m_totalAudioOuts; k++)
+          {
+            output[k] = (double*) alloca(sizeof(double) * samples);
+            memset(output[k], 0, sizeof(double) * samples);
+          }
+
+          for (std::size_t i = 0; i < m_audioOutputChannels.size(); i++)
+          {
+            Steinberg::Vst::AudioBusBuffers& vst_out = dat.outputs[i];
+            vst_out.channelBuffers64 = output;
+            vst_out.silenceFlags = ~0ULL;
+          }
+        }
+
+        fx.processor->process(dat);
+      }
     }
-    */
   }
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
