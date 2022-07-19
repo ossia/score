@@ -206,7 +206,7 @@ public:
         e.flags = kVstMidiEventIsRealtime;
         e.byteSize = sizeof(VstMidiEvent);
 
-        e.midiData[0] = (char)(uint8_t)176;
+        e.midiData[0] = (char)(uint8_t)176 + i;
         e.midiData[1] = (char)(uint8_t)123;
         e.midiData[2] = 0;
         e.midiData[3] = 0;
@@ -222,7 +222,7 @@ public:
         e.flags = kVstMidiEventIsRealtime;
         e.byteSize = sizeof(VstMidiEvent);
 
-        e.midiData[0] = (char)(uint8_t)176;
+        e.midiData[0] = (char)(uint8_t)176 + i;
         e.midiData[1] = (char)(uint8_t)121;
         e.midiData[2] = 0;
         e.midiData[3] = 0;
