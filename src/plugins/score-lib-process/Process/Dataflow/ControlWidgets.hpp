@@ -789,12 +789,14 @@ struct FileChooser{
 
 
       auto sl = new QLineEdit{parent};
-      auto act = new QAction{sl};
+      auto act = new QAction{sl};"Media File ("+inlet.filters()+")";
 
-      act->setStatusTip("Opening a File");
+      act->setStatusTip(QObject::tr("Opening a File"));
       act->setIcon(QIcon(":/icons/search.png"));
-      QObject::connect(sl, &QLineEdit::returnPressed, [=,&inlet]() {sl->setText(QFileDialog::getOpenFileName(nullptr,"Open Media File",{},"Media File ("+inlet.filters()+")")); });
-      QObject::connect(act, &QAction::triggered, [=,&inlet]() {sl->setText(QFileDialog::getOpenFileName(nullptr,"Open Media File",{},"Media File ("+inlet.filters()+")")); });
+      const QString filter = "Media File ("+inlet.filters()+")";
+      auto on_open = [=,&inlet]{sl->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter));};
+      QObject::connect(sl, &QLineEdit::returnPressed, on_open);
+      QObject::connect(act, &QAction::triggered, on_open);
       sl->addAction(act,QLineEdit::TrailingPosition);
 
     sl->setText(
