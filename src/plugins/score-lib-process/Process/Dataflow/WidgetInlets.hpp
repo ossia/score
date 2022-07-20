@@ -245,6 +245,7 @@ struct SCORE_LIB_PROCESS_EXPORT FileChooser : public Process::ControlInlet
   ~FileChooser();
   void setupExecution(ossia::inlet& inl) const noexcept override;
   const QString& filters() const  noexcept { return m_filters;};
+  void  setFilters(QString nf) {m_filters = nf;}
   using Process::ControlInlet::ControlInlet;
 private:
    QString m_filters;

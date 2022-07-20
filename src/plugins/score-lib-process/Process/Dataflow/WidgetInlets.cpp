@@ -746,22 +746,30 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::FileChooser>(const Process::FileChooser& p)
 {
   read((const Process::ControlInlet&)p);
+  m_stream << p.filters();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write<Process::FileChooser>(Process::FileChooser& p)
 {
+  QString f;
+  m_stream >> f;
+  p.setFilters(f);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONReader::read<Process::FileChooser>(const Process::FileChooser& p)
 {
   read((const Process::ControlInlet&)p);
+  obj["Filters"] = p.filters();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write<Process::FileChooser>(Process::FileChooser& p)
 {
+  QString f;
+  f <<= obj["Filters"];
+  p.setFilters(f);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
