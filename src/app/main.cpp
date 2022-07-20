@@ -55,6 +55,9 @@ using X11ErrorHandler = int (*)(void*, void*);
 using XSetErrorHandler_ptr = X11ErrorHandler (*)(X11ErrorHandler);
 
 static struct {
+  void* gtk2{};
+  void* gtk3{};
+  void* gtk4{};
   void* gdk_x11{};
   void* x11{};
   XSetErrorHandler_ptr x11_set_error_handler{};
@@ -119,6 +122,30 @@ static void setup_suil()
     static char** argv{nullptr};
     sym(&argc, &argv, SUIL_ARG_NONE);
   }
+#endif
+}
+
+static void setup_gtk()
+{
+#if defined(__linux__)
+    helper_dylibs.gtk2 = dlopen("libgtk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if(helper_dylibs.gtk2)
+    {
+      if(auto sym = reinterpret_cast<void(*)(void)>(dlsym(helper_dylibs.gtk2, "gtk_disable_setlocale")))
+        sym();
+    }
+    helper_dylibs.gtk3 = dlopen("libgtk-3.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if(helper_dylibs.gtk3)
+    {
+      if(auto sym = reinterpret_cast<void(*)(void)>(dlsym(helper_dylibs.gtk3, "gtk_disable_setlocale")))
+        sym();
+    }
+    helper_dylibs.gtk4 = dlopen("libgtk-4.so.1", RTLD_LAZY | RTLD_LOCAL);
+    if(helper_dylibs.gtk4)
+    {
+      if(auto sym = reinterpret_cast<void(*)(void)>(dlsym(helper_dylibs.gtk4, "gtk_disable_setlocale")))
+        sym();
+    }
 #endif
 }
 
@@ -486,6 +513,7 @@ int main(int argc, char** argv)
 #endif
 
   setup_limits();
+  setup_gtk();
   setup_suil();
   setup_x11();
   disable_denormals();
