@@ -28,6 +28,8 @@ InspectorWidget::InspectorWidget(
       {tr("Raw"),
        tr("Timestretch"),
        tr("Timestretch (percussive)"),
+       tr("HQ Timestretch"),
+       tr("HQ Timestretch (percussive)"),
        tr("Repitch")});
 
   setObjectName("SoundInspectorWidget");
@@ -47,8 +49,19 @@ InspectorWidget::InspectorWidget(
       Sound::ProcessModel::p_stretchMode{},
       this,
       [&](ossia::audio_stretch_mode v) {
-        if (m_mode.currentIndex() != (int)v)
-          m_mode.setCurrentIndex((int)v);
+        int idx = 0;
+        switch(v)
+        {
+          case ossia::audio_stretch_mode::None: idx = 0; break;
+          case ossia::audio_stretch_mode::RubberBandStandard: idx = 1; break;
+          case ossia::audio_stretch_mode::RubberBandPercussive: idx = 2; break;
+          case ossia::audio_stretch_mode::RubberBandStandardHQ: idx = 3; break;
+          case ossia::audio_stretch_mode::RubberBandPercussiveHQ: idx = 4; break;
+          case ossia::audio_stretch_mode::Repitch: idx = 5; break;
+        }
+
+        if (m_mode.currentIndex() != idx)
+          m_mode.setCurrentIndex(idx);
       });
   ::bind(process(), Sound::ProcessModel::p_nativeTempo{}, this, [&](double t) {
     if (m_tempo.value() != t)
@@ -75,9 +88,22 @@ InspectorWidget::InspectorWidget(
       qOverload<int>(&QComboBox::currentIndexChanged),
       this,
       [&](int idx) {
-        if (idx != (int)process().stretchMode())
-          m_dispatcher.submit(
-              new ChangeStretchMode(object, (ossia::audio_stretch_mode)idx));
+        ossia::audio_stretch_mode m{};
+        switch(idx)
+        {
+          default:
+          case 0: m = ossia::audio_stretch_mode::None; break;
+          case 1: m = ossia::audio_stretch_mode::RubberBandStandard; break;
+          case 2: m = ossia::audio_stretch_mode::RubberBandPercussive; break;
+          case 3: m = ossia::audio_stretch_mode::RubberBandStandardHQ; break;
+          case 4: m = ossia::audio_stretch_mode::RubberBandPercussiveHQ; break;
+          case 5: m = ossia::audio_stretch_mode::Repitch; break;
+        }
+
+        if (m != process().stretchMode())
+        {
+          m_dispatcher.submit(new ChangeStretchMode(object, m));
+        }
       });
   con(m_tempo, &score::SpinBox<double>::editingFinished, this, [&]() {
     if (m_tempo.value() != process().nativeTempo())
