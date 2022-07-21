@@ -148,9 +148,8 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
 
 void Presenter::on_created(Process::ProcessModel& n)
 {
-  auto item = new Process::NodeItem{n, m_context.context, m_view};
+  auto item = new Process::NodeItem{n, m_context.context, m_model.duration(), m_view};
   item->setPos(n.position());
-  item->setParentDuration(m_model.duration());
   m_nodes.insert(item);
 }
 

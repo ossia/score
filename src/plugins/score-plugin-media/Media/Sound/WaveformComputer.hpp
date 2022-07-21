@@ -75,6 +75,8 @@ private:
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
   std::chrono::steady_clock::time_point last_request
       = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point last_render = {};
+  bool m_forceRedraw = false;
 
   WaveformRequest m_currentRequest;
 

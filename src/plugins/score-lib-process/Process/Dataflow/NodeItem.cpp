@@ -58,10 +58,12 @@ static const constexpr qreal RightSideWidth = LeftSideWidth;
 NodeItem::NodeItem(
     const Process::ProcessModel& process,
     const Process::Context& ctx,
+    TimeVal parentDur,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_model{process}
     , m_context{ctx}
+    , m_parentDuration{parentDur}
 {
   setAcceptedMouseButtons(Qt::LeftButton);
   setAcceptHoverEvents(true);

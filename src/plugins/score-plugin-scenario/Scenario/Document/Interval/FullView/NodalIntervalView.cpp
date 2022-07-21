@@ -31,8 +31,7 @@ NodalIntervalView::NodalIntervalView(
     if (m_itemsToShow == ItemsToShow::OnlyEffects
         && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
       continue;
-    auto item = new Process::NodeItem{proc, m_context, m_container};
-    item->setParentDuration(r);
+    auto item = new Process::NodeItem{proc, m_context, r, m_container};
     m_nodeItems.push_back(item);
   }
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
@@ -153,8 +152,7 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
     }
   }
 
-  auto item = new Process::NodeItem{proc, m_context, m_container};
-  item->setParentDuration(m_model.duration.defaultDuration());
+  auto item = new Process::NodeItem{proc, m_context, m_model.duration.defaultDuration(), m_container};
   m_nodeItems.push_back(item);
 }
 

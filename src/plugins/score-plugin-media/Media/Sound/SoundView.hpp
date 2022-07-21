@@ -62,6 +62,7 @@ private:
 
   bool m_frontColors{true};
   mutable bool m_recomputed{false};
+  mutable bool m_renderAll{true};
 };
 }
 }

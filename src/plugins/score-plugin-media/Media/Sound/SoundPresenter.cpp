@@ -32,7 +32,7 @@ LayerPresenter::LayerPresenter(
 
   m_view->setData(layer.file());
   updateTempo();
-  m_view->recompute(m_ratio);
+  //m_view->recompute(m_ratio);
 
   connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::onDrop);
   con(layer,

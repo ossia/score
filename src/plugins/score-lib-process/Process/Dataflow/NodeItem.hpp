@@ -37,6 +37,7 @@ public:
   NodeItem(
       const Process::ProcessModel& model,
       const Process::Context& ctx,
+      TimeVal parentDur,
       QGraphicsItem* parent);
   const Id<Process::ProcessModel>& id() const noexcept;
   ~NodeItem();

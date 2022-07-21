@@ -22,6 +22,7 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
   setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
+
   if (auto view = getView(*parent))
   {
     connect(
@@ -40,8 +41,7 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
           m_images = std::move(img);
 
           // We display the image at the device ratio of the view
-          auto view = ::getView(*this);
-          if (view)
+          if (auto view = ::getView(*this))
           {
             for (auto image : m_images)
             {
@@ -101,26 +101,31 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
 
 void LayerView::recompute() const
 {
-  if (Q_UNLIKELY(!m_data))
+  if (Q_UNLIKELY(!m_data || width() < 2. || height() < 2. || m_zoom <= 0.))
     return;
 
   if (auto view = getView(*this))
   {
+    // On the first render we render the whole thing
+    double x0 = m_renderAll ? 0 : mapFromScene(view->mapToScene(0, 0)).x();
+    double xf = m_renderAll ? 100000 : mapFromScene(view->mapToScene(view->width(), 0)).x();
+
     WaveformRequest req{
         m_data,
         m_zoom,
         m_tempoRatio,
         QSizeF{width(), height()},
         view->devicePixelRatioF(),
-        mapFromScene(view->mapToScene(0, 0)).x(),
-        mapFromScene(view->mapToScene(view->width(), 0)).x(),
+        x0,
+        xf,
         m_model.startOffset(),
         m_model.loopDuration(),
         m_model.loops(),
         m_frontColors};
     m_cpt->recompute(std::move(req));
+    m_recomputed = true;
+    m_renderAll = false;
   }
-  m_recomputed = true;
 }
 
 void LayerView::setFrontColors(bool b)
@@ -158,7 +163,10 @@ void LayerView::paint_impl(QPainter* painter) const
   if (channels == 0.)
   {
     if (!m_recomputed)
+    {
+      m_renderAll = true;
       recompute();
+    }
     return;
   }
 
@@ -167,9 +175,11 @@ void LayerView::paint_impl(QPainter* painter) const
   const qreal w = (m_wf.xf - m_wf.x0) * ratio;
   if(w < 2.)
     return;
+
   const qreal h = height() / channels;
   if(h < 2.)
     return;
+
 
   const double x0 = m_wf.x0 * ratio;
 
@@ -186,19 +196,17 @@ void LayerView::scrollValueChanged(int sbvalue)
   // TODO maybe we don't actually need to always recompute... check if we're in
   // the visible area.
   // TODO on_heightChanged
-  recompute(m_zoom);
+  recompute();
 }
 
 void LayerView::on_finishedDecoding()
 {
-  recompute(m_zoom);
-  // qDebug() << "finished decoding ! " ;
+  recompute();
 }
 
 void LayerView::on_newData()
 {
-  recompute(m_zoom);
-  // qDebug() << "new data ! " ;
+  recompute();
 }
 
 void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
@@ -232,12 +240,14 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 void LayerView::heightChanged(qreal r)
 {
   Process::LayerView::heightChanged(r);
-  recompute(m_zoom);
+  m_renderAll = true;
+  recompute();
 }
 
 void LayerView::widthChanged(qreal w)
 {
   Process::LayerView::widthChanged(w);
-  recompute(m_zoom);
+  m_renderAll = true;
+  recompute();
 }
 }

@@ -429,7 +429,7 @@ struct WaveformComputerImpl
            && x_pixels < infos.physical_max_pixel;
            x_samples++, x_pixels++)
       {
-        if (computer.m_redraw_count > redraw_number)
+        if (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
         {
           pool.giveBack(images);
           return;
@@ -483,7 +483,7 @@ struct WaveformComputerImpl
            && x_pixels < infos.physical_max_pixel;
            x_samples++, x_pixels++)
       {
-        if (computer.m_redraw_count > redraw_number)
+        if (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
         {
           pool.giveBack(images);
           return;
@@ -542,7 +542,7 @@ struct WaveformComputerImpl
          x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
          x_samples++, x_pixels++)
     {
-      if (computer.m_redraw_count > redraw_number)
+      if (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
       {
         pool.giveBack(images);
         return;
@@ -718,8 +718,11 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   // TODO if we haven't rendered for 24 ms maybe render the last thing ?
   using namespace std::literals;
   const auto now = std::chrono::steady_clock::now();
-  if (now - last_request < 16ms && !(now - last_request > 32ms))
+  m_forceRedraw = (now - last_render > 32ms);
+  if (!m_forceRedraw && (now - last_request < 16ms))
+  {
     return;
+  }
 
   auto dataHandle = file->handle();
   const double rate = file->sampleRate();
@@ -745,7 +748,7 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   WaveformComputerImpl impl{loopHandle, m_currentRequest, m_n, *this};
   impl.compute();
   m_processed_n = m_n;
-  // qDebug() << "finished processing" << m_processed_n;
+  last_render = now;
 }
 
 }
