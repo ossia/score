@@ -12,6 +12,7 @@ namespace score::gfx
 Window::Window(GraphicsApi graphicsApi)
     : m_api{graphicsApi}
 {
+  setCursor(Qt::BlankCursor);
   // Tell the platform plugin what we want.
   switch (m_api)
   {
