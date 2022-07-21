@@ -430,7 +430,7 @@ void AudioFile::load_ffmpeg(int rate)
           [=] {
             const auto& r
                 = **m_impl.target<std::shared_ptr<LibavReader>>();
-            std::vector<gsl::span<const audio_sample>> samples;
+            std::vector<tcb::span<const audio_sample>> samples;
             auto& handle = r.handle->data;
             const auto decoded = r.decoder.decoded;
 
@@ -438,7 +438,7 @@ void AudioFile::load_ffmpeg(int rate)
             {
               samples.emplace_back(
                   channel.data(),
-                  gsl::span<ossia::audio_sample>::size_type(decoded));
+                  tcb::span<ossia::audio_sample>::size_type(decoded));
             }
             m_rms->decode(samples);
 
@@ -453,7 +453,7 @@ void AudioFile::load_ffmpeg(int rate)
           [=] {
             const auto& r
                 = **m_impl.target<std::shared_ptr<LibavReader>>();
-            std::vector<gsl::span<const audio_sample>> samples;
+            std::vector<tcb::span<const audio_sample>> samples;
             auto& handle = r.handle->data;
             auto decoded = r.decoder.decoded;
 
@@ -461,7 +461,7 @@ void AudioFile::load_ffmpeg(int rate)
             {
               samples.emplace_back(
                   channel.data(),
-                  gsl::span<ossia::audio_sample>::size_type(decoded));
+                  tcb::span<ossia::audio_sample>::size_type(decoded));
             }
             m_rms->decodeLast(samples);
 

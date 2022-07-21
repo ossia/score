@@ -7,7 +7,7 @@ Mesh::Mesh() { }
 
 Mesh::~Mesh() { }
 
-PlainMesh::PlainMesh(gsl::span<const float> vtx, int count)
+PlainMesh::PlainMesh(tcb::span<const float> vtx, int count)
 {
   vertexInputBindings.push_back({2 * sizeof(float)});
   vertexAttributeBindings.push_back(
@@ -45,7 +45,7 @@ void main()
 )_";
 }
 
-TexturedMesh::TexturedMesh(gsl::span<const float> vtx, int count)
+TexturedMesh::TexturedMesh(tcb::span<const float> vtx, int count)
 {
   vertexInputBindings.push_back({2 * sizeof(float)});
   vertexInputBindings.push_back({2 * sizeof(float)});
@@ -81,8 +81,8 @@ void main()
 }
 
 TextureNormalMesh::TextureNormalMesh(
-    gsl::span<const float> vtx,
-    gsl::span<const unsigned int> idx,
+    tcb::span<const float> vtx,
+    tcb::span<const unsigned int> idx,
     int count)
 {
   vertexInputBindings.push_back({8 * sizeof(float)});

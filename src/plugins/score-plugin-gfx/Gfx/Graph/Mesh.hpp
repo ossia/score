@@ -27,8 +27,8 @@ struct SCORE_PLUGIN_GFX_EXPORT Mesh
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexInputBindings;
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributeBindings;
 
-  gsl::span<const float> vertexArray;
-  gsl::span<const unsigned int> indexArray;
+  tcb::span<const float> vertexArray;
+  tcb::span<const unsigned int> indexArray;
   int vertexCount{};
   int indexCount{};
 
@@ -44,7 +44,7 @@ private:
  */
 struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : Mesh
 {
-  explicit PlainMesh(gsl::span<const float> vtx, int count);
+  explicit PlainMesh(tcb::span<const float> vtx, int count);
 
   void setupBindings(
       QRhiBuffer& vtxData,
@@ -59,7 +59,7 @@ struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : Mesh
  */
 struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : Mesh
 {
-  explicit TexturedMesh(gsl::span<const float> vtx, int count);
+  explicit TexturedMesh(tcb::span<const float> vtx, int count);
 
   const char* defaultVertexShader() const noexcept override;
 };
@@ -70,8 +70,8 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : Mesh
 struct SCORE_PLUGIN_GFX_EXPORT TextureNormalMesh : Mesh
 {
   explicit TextureNormalMesh(
-      gsl::span<const float> vtx,
-      gsl::span<const unsigned int> idx,
+      tcb::span<const float> vtx,
+      tcb::span<const unsigned int> idx,
       int count);
 
   void setupBindings(

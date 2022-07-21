@@ -106,7 +106,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["Flicks"] = License{"https://github.com/OculusVR/Flicks", Flicks_LICENSE};
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
   map["Gist"] = License{"https://github.com/adamstark/Gist", Gist_LICENSE};
-  map["GSL"] = License{"https://github.com/Microsoft/GSL", GSL_LICENSE};
+  map["span"] = License{"https://github.com/tcbrindle/span", span_LICENSE};
   map["HAP Codec"] = License{"", hap_LICENSE};
   map["hsluvc"] = License{"", hsluv_LICENSE};
   map["hopscotch-map"] = License{
@@ -153,6 +153,7 @@ AboutDialog::AboutDialog(QWidget* parent)
 
   map["rapidjson"]
       = License{"https://github.com/miloyip/rapidjson", rapidjson_LICENSE};
+  map["re2"] = License{ "https://github.com/google/re2", re2_LICENSE};
   map["ReaderWriterQueue"] = License{
       "https://github.com/cameron314/readerwriterqueue",
       readerwriterqueue_LICENSE};

@@ -13,7 +13,7 @@
 namespace Gfx
 {
 std::vector<score::gfx::Image> getImages(const ossia::value& val);
-ossia::value fromImageSet(const gsl::span<score::gfx::Image>& images);
+ossia::value fromImageSet(const tcb::span<score::gfx::Image>& images);
 void releaseImages(std::vector<score::gfx::Image>& imgs);
 
 struct ImageCache

@@ -177,4 +177,3 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 }
 
 }
-

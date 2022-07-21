@@ -29,9 +29,9 @@ public:
   bool exists() const;
 
   // deinterleaved
-  void decode(const std::vector<gsl::span<const ossia::audio_sample>>& audio);
+  void decode(const std::vector<tcb::span<const ossia::audio_sample>>& audio);
   void
-  decodeLast(const std::vector<gsl::span<const ossia::audio_sample>>& audio);
+  decodeLast(const std::vector<tcb::span<const ossia::audio_sample>>& audio);
 
   // interleaved
   void decode(ossia::drwav_handle& audio);
@@ -51,14 +51,14 @@ public:
 
 private:
   rms_sample_t computeChannelRMS(
-      gsl::span<const ossia::audio_sample> chan,
+      tcb::span<const ossia::audio_sample> chan,
       int64_t start_idx,
       int64_t buffer_size);
   void computeRMS(
-      const std::vector<gsl::span<const ossia::audio_sample>>& audio,
+      const std::vector<tcb::span<const ossia::audio_sample>>& audio,
       int buffer_size);
   void computeLastRMS(
-      const std::vector<gsl::span<const ossia::audio_sample>>& audio,
+      const std::vector<tcb::span<const ossia::audio_sample>>& audio,
       int buffer_size);
   void computeChannelRMS(
       ossia::drwav_handle& wav,

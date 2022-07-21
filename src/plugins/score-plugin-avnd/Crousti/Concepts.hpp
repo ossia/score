@@ -5,6 +5,7 @@
 
 #include <score/plugins/UuidKey.hpp>
 
+#include <ossia/detail/span.hpp>
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/tick_policies.hpp>
@@ -22,7 +23,6 @@
 #include <avnd/wrappers/widgets.hpp>
 #include <cmath>
 
-#include <gsl/span>
 #include <type_traits>
 
 #define make_uuid(text) score::uuids::string_generator::compute((text))
@@ -388,14 +388,14 @@ struct multichannel_audio_view
   int64_t offset{};
   int64_t duration{};
 
-  gsl::span<const double> operator[](std::size_t i) const noexcept
+  tcb::span<const double> operator[](std::size_t i) const noexcept
   {
     auto& chan = (*buffer)[i];
     int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
     if (min_dur < 0)
       min_dur = 0;
 
-    return gsl::span<const double>{chan.data() + offset, std::size_t(min_dur)};
+    return tcb::span<const double>{chan.data() + offset, std::size_t(min_dur)};
   }
 
   std::size_t channels() const noexcept { return buffer->size(); }
@@ -414,14 +414,14 @@ struct multichannel_audio
   int64_t offset{};
   int64_t duration{};
 
-  gsl::span<double> operator[](std::size_t i) const noexcept
+  tcb::span<double> operator[](std::size_t i) const noexcept
   {
     auto& chan = (*buffer)[i];
     int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
     if (min_dur < 0)
       min_dur = 0;
 
-    return gsl::span<double>{chan.data() + offset, std::size_t(min_dur)};
+    return tcb::span<double>{chan.data() + offset, std::size_t(min_dur)};
   }
 
   std::size_t channels() const noexcept { return buffer->size(); }

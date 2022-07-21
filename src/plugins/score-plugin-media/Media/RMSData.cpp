@@ -86,13 +86,13 @@ bool RMSData::exists() const
 }
 
 void RMSData::decode(
-    const std::vector<gsl::span<const ossia::audio_sample>>& audio)
+    const std::vector<tcb::span<const ossia::audio_sample>>& audio)
 {
   computeRMS(audio, rms_buffer_size);
 }
 
 void RMSData::decodeLast(
-    const std::vector<gsl::span<const ossia::audio_sample>>& audio)
+    const std::vector<tcb::span<const ossia::audio_sample>>& audio)
 {
   computeLastRMS(audio, rms_buffer_size);
   /*
@@ -193,7 +193,7 @@ RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
 }
 
 rms_sample_t RMSData::computeChannelRMS(
-    gsl::span<const ossia::audio_sample> chan,
+    tcb::span<const ossia::audio_sample> chan,
     int64_t start_idx,
     int64_t buffer_size)
 {
@@ -238,7 +238,7 @@ void RMSData::computeChannelRMS(
 }
 
 void RMSData::computeRMS(
-    const std::vector<gsl::span<const ossia::audio_sample>>& audio,
+    const std::vector<tcb::span<const ossia::audio_sample>>& audio,
     int buffer_size)
 {
   if (audio.empty())
@@ -269,7 +269,7 @@ void RMSData::computeRMS(
 }
 
 void RMSData::computeLastRMS(
-    const std::vector<gsl::span<const ossia::audio_sample>>& audio,
+    const std::vector<tcb::span<const ossia::audio_sample>>& audio,
     int buffer_size)
 {
   if (audio.empty())

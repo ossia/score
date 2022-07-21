@@ -1,6 +1,6 @@
 #pragma once
 #include <Fx/MathGenerator.hpp>
-#include <gsl/span>
+
 namespace Nodes
 {
 template<typename State>
