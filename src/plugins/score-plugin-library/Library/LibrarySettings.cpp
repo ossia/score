@@ -1,28 +1,19 @@
 #include <Library/LibrarySettings.hpp>
-
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/FormWidget.hpp>
-#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 
-#include <QApplication>
 #include <QDir>
 #include <QFormLayout>
 #include <QLineEdit>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
 #include <QStandardPaths>
-#include <QStyle>
-#include <QTimer>
-#include <QMessageBox>
 
 #include <wobjectimpl.h>
-#include <zipdownloader.hpp>
 
 W_OBJECT_IMPL(Library::Settings::View)
 W_OBJECT_IMPL(Library::Settings::Model)
@@ -44,7 +35,7 @@ static auto list()
 }
 }
 
-static void initUserLibrary(QDir userlib)
+static void initUserLibrary(const QDir& userlib)
 {
   userlib.mkpath("./medias");
   userlib.mkpath("./presets");
@@ -61,13 +52,6 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     QDir{path}.mkpath(".");
   }
   initUserLibrary(getUserLibraryPath());
-
-#if !defined(__EMSCRIPTEN__)
-  if(ctx.applicationSettings.gui)
-  {
-    QTimer::singleShot(3000, this, &Model::firstTimeLibraryDownload);
-  }
-#endif
 }
 
 QString Model::getPackagesPath() const noexcept
@@ -93,39 +77,6 @@ QString Model::getUserPresetsPath() const noexcept
 QString Model::getSDKPath() const noexcept
 {
   return m_RootPath + "/sdk";
-}
-
-void Model::firstTimeLibraryDownload()
-{
-  QString lib_folder = getPackagesPath() + "/default";
-  QString lib_info = lib_folder + "/package.json";
-  if (QFile file{lib_info}; !file.exists())
-  {
-    auto dl = score::question(
-        qApp->activeWindow(),
-        tr("Download the user library ?"),
-        tr("The user library has not been found. \n"
-           "Do you want to download it from the internet ? \n\n"
-           "Note: you can always download it later from : \n"
-           "https://github.com/ossia/score-user-library"));
-
-    if (dl == QMessageBox::Yes)
-    {
-      zdl::download_and_extract(
-          QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
-          getPackagesPath(),
-          [this] (const auto&) mutable {
-            QDir packages_dir{getPackagesPath()};
-            packages_dir.rename("score-user-library-master", "default");
-
-            rescanLibrary();
-          },
-      [] (qint64 bytesReceived, qint64 bytesTotal) {
-        qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
-                 << "% downloaded"; },
-          [] {});
-    }
-  }
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, RootPath)

@@ -1,8 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "View.hpp"
+#include <PackageManager/Presenter.hpp>
+#include <PackageManager/FileDownloader.hpp>
 
-#include "Presenter.hpp"
+#include <score/widgets/MessageBox.hpp>
 
 #include <QBuffer>
 #include <QDir>
@@ -17,9 +19,11 @@
 #include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QTemporaryFile>
+#include <QApplication>
 #include <QDesktopServices>
+#include <QTimer>
+#include <QMessageBox>
 
-#include <PackageManager/FileDownloader.hpp>
 #include <score_git_info.hpp>
 #include <wobjectimpl.h>
 #include <zipdownloader.hpp>
@@ -176,11 +180,51 @@ QWidget* PluginSettingsView::getWidget()
   return m_widget;
 }
 
+void PluginSettingsView::firstTimeLibraryDownload()
+{
+  const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
+  const QString lib_folder = lib.getPackagesPath() + "/default";
+  const QString lib_info = lib_folder + "/package.json";
+  if (QFile file{lib_info}; !file.exists())
+  {
+    auto dl = score::question(
+      qApp->activeWindow(),
+      tr("Download the user library ?"),
+      tr("The user library has not been found. \n"
+         "Do you want to download it from the internet ? \n\n"
+         "Note: you can always download it later from : \n"
+         "https://github.com/ossia/score-user-library"));
+
+    if (dl == QMessageBox::Yes)
+    {
+      zdl::download_and_extract(
+        QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
+        lib.getPackagesPath(),
+        [] (const auto&) mutable {
+          auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
+          QDir packages_dir{lib.getPackagesPath()};
+          packages_dir.rename("score-user-library-master", "default");
+
+          lib.rescanLibrary();
+        },
+        [] (qint64 bytesReceived, qint64 bytesTotal) {
+          qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
+                     << "% downloaded"; },
+        [] {});
+    }
+  }
+  else
+  {
+    checkAll();
+  }
+}
+
 void PluginSettingsView::refresh()
 {
   QNetworkRequest rqst{QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/addons.json")};
   mgr.get(rqst);
 }
+
 void PluginSettingsView::handleAddonList(const QJsonObject& obj)
 {
   m_progress->setVisible(true);
@@ -259,6 +303,12 @@ void PluginSettingsView::on_message(QNetworkReply* rep)
     reset_progress();
   }
   rep->deleteLater();
+
+  if(!m_firstTimeCheck)
+  {
+    m_firstTimeCheck = true;
+    QTimer::singleShot(3000, this, &PluginSettingsView::firstTimeLibraryDownload);
+  }
 }
 
 // the install button set to visible means we are browsing
@@ -374,13 +424,44 @@ void PluginSettingsView::update()
   install_package(*it);
 }
 
+void PluginSettingsView::checkAll()
+{
+  auto local_model = static_cast<PackagesModel*>(m_addonsOnSystem->model());
+  auto remote_model = static_cast<PackagesModel*>(m_remoteAddons->model());
+
+  std::vector<Package*> to_update;
+  for(auto& addon : local_model->addons())
+  {
+    auto key = addon.key;
+    auto it = ossia::find_if(remote_model->addons(), [&] (auto& pkg) { return pkg.key == addon.key; });
+    if(it == remote_model->addons().end())
+    {
+      qDebug() << "Addon " << addon.name << "not found on the server!";
+      continue;
+    }
+
+    if(it->version <= addon.version)
+        continue;
+
+    to_update.push_back(&*it);
+  }
+
+  if(!to_update.empty())
+  {
+    QString s = tr("Some installed packages are out-of-date: \n");
+    for(auto pkg : to_update) {
+      s += tr("- %1 (version %3)\n").arg(pkg->name).arg(pkg->version);
+    }
+    s += tr("Head to Settings > Packages to update them");
+    score::information(qApp->activeWindow(), tr("Packages can be updated"), s);
+  }
+}
+
 void PluginSettingsView::updateAll()
 {
   auto local_model = static_cast<PackagesModel*>(m_addonsOnSystem->model());
   auto remote_model = static_cast<PackagesModel*>(m_remoteAddons->model());
 
-  // Install the stdlib
-  // Install the addons
   for(auto& addon : local_model->addons())
   {
     auto key = addon.key;
@@ -511,7 +592,7 @@ void PluginSettingsView::installLibrary(const Package& addon)
         addon.file,
         QFileInfo{destination}.absoluteFilePath(),
         [=] (const std::vector<QString>& res) { on_packageInstallSuccess(addon, destination, res); },
-  [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+  [=] (qint64 received, qint64 total) { progress_from_bytes(received, total); },
   [=] { on_packageInstallFailure(addon); });
 }
 

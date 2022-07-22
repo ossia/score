@@ -62,7 +62,6 @@ public:
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_LIBRARY_EXPORT, QString, RootPath)
 private:
-  void firstTimeLibraryDownload();
 };
 
 SCORE_SETTINGS_PARAMETER(Model, RootPath)

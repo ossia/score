@@ -35,6 +35,8 @@ public:
   QWidget* getWidget() override;
 
 private:
+  void firstTimeLibraryDownload();
+
   void handleAddonList(const QJsonObject&);
   void handleAddon(const QJsonObject&);
 
@@ -50,6 +52,7 @@ private:
   void install();
   void install_package(const Package& addon);
   void uninstall();
+  void checkAll();
   void update();
   void updateAll();
   void on_message(QNetworkReply* rep);
@@ -79,6 +82,8 @@ private:
 
   QStorageInfo storage;
   QLabel* m_storage{new QLabel};
+
+  bool m_firstTimeCheck{false};
 };
 
 }
