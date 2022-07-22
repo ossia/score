@@ -105,6 +105,8 @@ PluginSettingsView::PluginSettingsView()
   vlay->addWidget(m_uninstall);
   m_install->setVisible(false);
   vlay->addWidget(m_install);
+  vlay->addWidget(m_update);
+  vlay->addWidget(m_updateAll);
   vlay->addStretch();
 
   set_info();
@@ -123,10 +125,12 @@ PluginSettingsView::PluginSettingsView()
   }
 
   connect(tab_widget, &QTabWidget::tabBarClicked, this, [this] (int i) {
-    if (i)
+    if (i == 1) // Remote
     {
       m_uninstall->setVisible(false);
       m_install->setVisible(true);
+      m_update->setVisible(false);
+      m_updateAll->setVisible(false);
 
       RemotePackagesModel* model
           = static_cast<RemotePackagesModel*>(m_remoteAddons->model());
@@ -135,15 +139,14 @@ PluginSettingsView::PluginSettingsView()
       m_progress->setVisible(true);
       m_progress->setValue(0);
 
-      QNetworkRequest rqst{
-        QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/"
-             "addons.json")};
-      mgr.get(rqst);
+      refresh();
     }
-    else
+    else // Local
     {
       m_uninstall->setVisible(true);
       m_install->setVisible(false);
+      m_update->setVisible(true);
+      m_updateAll->setVisible(true);
     }
   });
 
@@ -156,8 +159,16 @@ PluginSettingsView::PluginSettingsView()
   connect(m_install, &QPushButton::pressed,
           this, &PluginSettingsView::install);
 
+  connect(m_update, &QPushButton::pressed,
+          this, &PluginSettingsView::update);
+
+  connect(m_updateAll, &QPushButton::pressed,
+          this, &PluginSettingsView::updateAll);
+
   connect(&mgr, &QNetworkAccessManager::finished,
           this, &PluginSettingsView::on_message);
+
+  refresh();
 }
 
 QWidget* PluginSettingsView::getWidget()
@@ -165,6 +176,11 @@ QWidget* PluginSettingsView::getWidget()
   return m_widget;
 }
 
+void PluginSettingsView::refresh()
+{
+  QNetworkRequest rqst{QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/addons.json")};
+  mgr.get(rqst);
+}
 void PluginSettingsView::handleAddonList(const QJsonObject& obj)
 {
   m_progress->setVisible(true);
@@ -293,6 +309,16 @@ void PluginSettingsView::openLink()
   QDesktopServices::openUrl(addon.url);
 }
 
+void PluginSettingsView::install_package(const Package& addon)
+{
+  if (addon.kind == "addon" || addon.kind == "nodes")
+    installAddon(addon);
+  else if (addon.kind == "sdk")
+    installSDK();
+  else if (addon.kind == "media")
+    installLibrary(addon);
+}
+
 void PluginSettingsView::install()
 {
   const auto& addon =
@@ -300,12 +326,7 @@ void PluginSettingsView::install()
 
   m_progress->setVisible(true);
 
-  if (addon.kind == "addon" || addon.kind == "nodes")
-    installAddon(addon);
-  else if (addon.kind == "sdk")
-    installSDK(addon);
-  else if (addon.kind == "media")
-    installLibrary(addon);
+  install_package(addon);
 }
 
 void PluginSettingsView::uninstall()
@@ -334,6 +355,49 @@ void PluginSettingsView::uninstall()
 
     localPlugins->removeAddon(addon);
     set_info();
+  }
+}
+
+void PluginSettingsView::update()
+{
+  auto local_model = static_cast<PackagesModel*>(m_addonsOnSystem->model());
+  auto remote_model = static_cast<PackagesModel*>(m_remoteAddons->model());
+  const auto& addon = selectedPackage(local_model, getCurrentRow(m_addonsOnSystem));
+
+  auto key = addon.key;
+  auto it = ossia::find_if(remote_model->addons(), [&] (auto& pkg) { return pkg.key == addon.key; });
+  if(it == remote_model->addons().end())
+  {
+    qDebug() << "Addon " << addon.name << "not found on the server!";
+    return;
+  }
+
+  m_progress->setVisible(true);
+  install_package(*it);
+}
+
+void PluginSettingsView::updateAll()
+{
+  auto local_model = static_cast<PackagesModel*>(m_addonsOnSystem->model());
+  auto remote_model = static_cast<PackagesModel*>(m_remoteAddons->model());
+
+  // Install the stdlib
+  // Install the addons
+  for(auto& addon : local_model->addons())
+  {
+    auto key = addon.key;
+    auto it = ossia::find_if(remote_model->addons(), [&] (auto& pkg) { return pkg.key == addon.key; });
+    if(it == remote_model->addons().end())
+    {
+      qDebug() << "Addon " << addon.name << "not found on the server!";
+      continue;
+    }
+
+    if(it->version <= addon.version)
+      continue;
+
+    m_progress->setVisible(true);
+    install_package(*it);
   }
 }
 
@@ -390,7 +454,7 @@ void PluginSettingsView::installAddon(const Package& addon)
   });
 }
 
-void PluginSettingsView::installSDK(const Package& addon)
+void PluginSettingsView::installSDK()
 {
   constexpr const char* platform =
     #if defined(_WIN32)
@@ -482,7 +546,6 @@ void PluginSettingsView::on_packageInstallSuccess(
     }
   }
 
-  if(!dir.exists("package.json"))
   {
     QFile f{dir.absoluteFilePath("package.json")};
     if(f.open(QIODevice::WriteOnly))

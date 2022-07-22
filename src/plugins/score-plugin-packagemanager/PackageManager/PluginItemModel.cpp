@@ -216,8 +216,12 @@ void LocalPackagesModel::registerAddon(const QString& p)
 
 void PackagesModel::addAddon(Package e)
 {
+  auto it = ossia::find_if(m_vec, [&] (auto& pkg) { return pkg.key == e.key; });
   beginResetModel();
-  m_vec.push_back(std::move(e));
+  if(it != m_vec.end())
+    *it = e;
+  else
+    m_vec.push_back(std::move(e));
   endResetModel();
 }
 

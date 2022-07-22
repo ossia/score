@@ -83,7 +83,7 @@ private:
 
 struct LocalPackagesModel : public PackagesModel
 {
-  LocalPackagesModel(const score::ApplicationContext& ctx);
+  explicit LocalPackagesModel(const score::ApplicationContext& ctx);
   void registerAddon(const QString& p);
   QFileSystemWatcher m_addonsWatch;
 };

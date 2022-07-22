@@ -44,16 +44,20 @@ private:
 
   void installAddon(const Package& addon);
   void installLibrary(const Package& addon);
-  void installSDK(const Package& addon);
+  void installSDK();
 
   void openLink();
   void install();
+  void install_package(const Package& addon);
   void uninstall();
+  void update();
+  void updateAll();
   void on_message(QNetworkReply* rep);
 
   void on_packageInstallSuccess(const Package& addon, const QDir& destination, const std::vector<QString>& res);
   void on_packageInstallFailure(const Package& addon);
 
+  void refresh();
   void set_info();
   void reset_progress();
   void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
@@ -66,6 +70,8 @@ private:
   QPushButton* m_link{new QPushButton{tr("Open link")}};
   QPushButton* m_install{new QPushButton{tr("Install")}};
   QPushButton* m_uninstall{new QPushButton{tr("Uninstall")}};
+  QPushButton* m_update{new QPushButton{tr("Update")}};
+  QPushButton* m_updateAll{new QPushButton{tr("Update all")}};
 
   QProgressBar* m_progress{new QProgressBar};
   QNetworkAccessManager mgr;
@@ -74,4 +80,5 @@ private:
   QStorageInfo storage;
   QLabel* m_storage{new QLabel};
 };
+
 }
