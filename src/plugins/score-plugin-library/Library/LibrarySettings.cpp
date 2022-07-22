@@ -8,6 +8,8 @@
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
+
 #include <QApplication>
 #include <QDir>
 #include <QFormLayout>
@@ -60,7 +62,12 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
   }
   initUserLibrary(getUserLibraryPath());
 
-  QTimer::singleShot(3000, this, &Model::firstTimeLibraryDownload);
+#if !defined(__EMSCRIPTEN__)
+  if(ctx.applicationSettings.gui)
+  {
+    QTimer::singleShot(3000, this, &Model::firstTimeLibraryDownload);
+  }
+#endif
 }
 
 QString Model::getPackagesPath() const noexcept

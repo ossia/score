@@ -199,11 +199,9 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
       = static_cast<RemotePackagesModel*>(m_remoteAddons->model());
 
   if (m_addonsToRetrieve == std::ssize(model->m_vec))
-  {
     reset_progress();
-  }
   else
-    m_progress->setValue(m_progress->value() + (100 / m_addonsToRetrieve));
+    m_progress->setValue(m_progress->value() + (100.0 / m_addonsToRetrieve));
 
 
   auto addon = Package::fromJson(obj);
