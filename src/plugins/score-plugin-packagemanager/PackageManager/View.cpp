@@ -5,6 +5,8 @@
 #include <PackageManager/FileDownloader.hpp>
 
 #include <score/widgets/MessageBox.hpp>
+#include <score/application/GUIApplicationContext.hpp>
+#include <core/application/ApplicationInterface.hpp>
 
 #include <QBuffer>
 #include <QDir>
