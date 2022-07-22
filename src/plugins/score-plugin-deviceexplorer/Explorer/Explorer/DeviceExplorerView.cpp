@@ -338,6 +338,8 @@ void DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
 void DeviceExplorerView::paintEvent(QPaintEvent* event)
 {
   QTreeView::paintEvent(event);
+  if (!this->isEnabled())
+    return;
   if (model() && model()->rowCount(rootIndex()) > 0)
     return;
 
