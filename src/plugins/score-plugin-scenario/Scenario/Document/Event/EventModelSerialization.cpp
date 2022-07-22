@@ -71,6 +71,6 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::EventModel& ev)
   }
 
   ev.m_date <<= obj[strings.Date];
-  ev.m_offset
-      = static_cast<Scenario::OffsetBehavior>(obj[strings.Offset].toInt());
+  if(auto off = obj.tryGet(strings.Offset))
+    ev.m_offset = static_cast<Scenario::OffsetBehavior>(off->toInt());
 }

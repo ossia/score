@@ -5,6 +5,7 @@
 #include <Curve/CurveModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/Dataflow/MinMaxFloatPort.hpp>
 #include <State/Address.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -52,11 +53,19 @@ void JSONReader::read(const Automation::ProcessModel& autom)
 template <>
 void JSONWriter::write(Automation::ProcessModel& autom)
 {
-  JSONWriter writer{obj["Outlet"]};
-  autom.outlet = Process::load_value_outlet(writer, &autom);
+  if(auto outl = obj.tryGet("Outlet"))
+  {
+    JSONWriter writer{*outl};
+    autom.outlet = Process::load_value_outlet(writer, &autom);
+  }
+  else
+  {
+    autom.outlet = std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), &autom);
+  }
 
   JSONObject::Deserializer curve_deser{obj["Curve"]};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-  autom.setTween(obj["Tween"].toBool());
+  if(auto tw = obj.tryGet("Tween"))
+    autom.setTween(tw->toBool());
 }

@@ -178,13 +178,24 @@ void JSONReader::read(const Scenario::ProcessModel& scenario)
 template <>
 void JSONWriter::write(Scenario::ProcessModel& scenario)
 {
+  if(auto inl = obj.tryGet("Inlet"))
   {
-    JSONWriter writer{obj["Inlet"]};
+    JSONWriter writer{*inl};
     scenario.inlet = Process::load_audio_inlet(writer, &scenario);
   }
+  else
   {
-    JSONWriter writer{obj["Outlet"]};
+    scenario.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &scenario);
+  }
+
+  if(auto outl = obj.tryGet("Outlet"))
+  {
+    JSONWriter writer{*outl};
     scenario.outlet = Process::load_audio_outlet(writer, &scenario);
+  }
+  else
+  {
+    scenario.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &scenario);
   }
 
   if(obj["uuid"].toString() == "995d41a8-0f10-4152-971d-e4c033579a02")
@@ -233,7 +244,10 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   {
     scenario.m_startTimeSyncId <<= obj["StartTimeNodeId"];
     scenario.m_startEventId <<= obj["StartEventId"];
-    scenario.m_startStateId <<= obj["StartStateId"];
+    if(auto ss = obj.tryGet("StartStateId"))
+      scenario.m_startStateId <<= *ss;
+    else
+      scenario.m_startStateId = Scenario::startId<Scenario::StateModel>();
 
     const auto& intervals = obj["Constraints"].toArray();
     for (const auto& json_vref : intervals)

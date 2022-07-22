@@ -89,7 +89,8 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
   model.m_baseScenario = new Scenario::BaseScenario(
       JSONObject::Deserializer{obj["BaseScenario"]}, model.m_context, &model);
 
-  model.m_savedCablesJson = clone(obj["Cables"].obj);
+  if(auto cb = obj.tryGet("Cables"))
+    model.m_savedCablesJson = clone(cb->obj);
 
   if(auto speed = obj.tryGet("Speed"); speed && speed->isDouble()) {
     model.baseInterval().duration.setSpeed(speed->toDouble());

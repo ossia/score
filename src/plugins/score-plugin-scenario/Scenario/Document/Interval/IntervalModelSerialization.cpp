@@ -305,13 +305,24 @@ JSONWriter::write(Scenario::IntervalModel& interval)
     return;
   }
 
+  if(auto inl = obj.tryGet("Inlet"))
   {
-    JSONWriter writer{obj["Inlet"]};
+    JSONWriter writer{*inl};
     interval.inlet = Process::load_audio_inlet(writer, &interval);
   }
+  else
   {
-    JSONWriter writer{obj["Outlet"]};
+    interval.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &interval);
+  }
+
+  if(auto outl = obj.tryGet("Outlet"))
+  {
+    JSONWriter writer{*outl};
     interval.outlet = Process::load_audio_outlet(writer, &interval);
+  }
+  else
+  {
+    interval.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &interval);
   }
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();

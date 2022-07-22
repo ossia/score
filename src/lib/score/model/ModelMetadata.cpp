@@ -209,14 +209,15 @@ SCORE_LIB_BASE_EXPORT void JSONWriter::write(score::ModelMetadata& md)
     if (col)
       md.m_color = *col;
     else
-      md.m_color = score::Skin::instance().fromString("Base1");
+      md.m_color = score::Skin::instance().fromString("Transparent1");
   }
   else
   {
-    md.m_color = score::Skin::instance().fromString("Base1");
+    md.m_color = score::Skin::instance().fromString("Transparent1");
   }
 
   md.m_label = obj[strings.Label].toString();
 
-  md.m_touchedName = obj[strings.Touched].toBool();
+  if(auto touched = obj.tryGet(strings.Touched))
+    md.m_touchedName = touched->toBool();
 }
