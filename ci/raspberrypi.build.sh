@@ -8,7 +8,7 @@ cd /build
 
 cmake $SCORE_DIR \
  -GNinja \
- -DCMAKE_UNITY_BUILD=1 \
+ -DCMAKE_UNITY_BUILD=0 \
  -DSCORE_PCH=0 \
  -DCMAKE_BUILD_TYPE=Release \
  -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi/toolchain.cmake \
@@ -16,7 +16,12 @@ cmake $SCORE_DIR \
  -DSCORE_DEPLOYMENT_BUILD=1 \
  -DOSSIA_ENABLE_KFR=0 \
  -DOSSIA_ENABLE_FFTW=0 \
- -DCMAKE_INSTALL_PREFIX=install
+ -DCMAKE_INSTALL_PREFIX=install \
+ -DCMAKE_C_FLAGS="-g0 -s" \
+ -DCMAKE_CXX_FLAGS="-g0 -s" \
+ -DCMAKE_SHARED_LINKER_FLAGS="-g0 -s" \
+ -DCMAKE_EXE_LINKER_FLAGS="-g0 -s"
+
 
 cmake --build .
 cmake --build . --target install/strip
