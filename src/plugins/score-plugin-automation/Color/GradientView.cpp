@@ -1,9 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Color/GradientView.hpp>
+
+#include <score/graphics/GraphicsItem.hpp>
+
 #include <QColorDialog>
+#include <QGraphicsView>
 #include <QPainter>
 
-#include <Color/GradientView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gradient::View)
 namespace Gradient
@@ -89,7 +93,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
       {
         if (pos.y() < (side / 1.5))
         {
-          auto w = QColorDialog::getColor();
+          auto w = QColorDialog::getColor(e.second, getView(*this), tr("Gradient color"));
           if (w.isValid())
             setColor(e.first, w);
         }

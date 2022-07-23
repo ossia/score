@@ -264,7 +264,7 @@ void DeviceExplorerView::headerMenuRequested(const QPoint& pos)
     contextMenu.addAction(m_actions.at(i));
   }
 
-  contextMenu.exec(pos);
+  contextMenu.exec(mapToGlobal(pos));
 }
 
 void DeviceExplorerView::selectionChanged(
