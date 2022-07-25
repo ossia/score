@@ -788,35 +788,36 @@ struct FileChooser{
     {
 
 
-      auto sl = new QLineEdit{parent};
-      auto act = new QAction{sl};"Media File ("+inlet.filters()+")";
+      auto bt = new QPushButton{parent} ;
+//      auto act = new QAction{bt};
 
-      act->setStatusTip(QObject::tr("Opening a File"));
-      act->setIcon(QIcon(":/icons/search.png"));
+      bt->setStatusTip(QObject::tr("Opening a File"));
+      bt->setIcon(QIcon(":/icons/search.png"));
+      bt->setText(QObject::tr("Open File"));
       const QString filter = "Media File ("+inlet.filters()+")";
-      auto on_open = [=,&inlet]{sl->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter));};
-      QObject::connect(sl, &QLineEdit::returnPressed, on_open);
-      QObject::connect(act, &QAction::triggered, on_open);
-      sl->addAction(act,QLineEdit::TrailingPosition);
+      auto on_open = [=,&inlet]{
+        bt->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
+      };
+      QObject::connect(bt, &QPushButton::pressed, on_open);
 
-    sl->setText(
+    bt->setText(
         QString::fromStdString(ossia::convert<std::string>(inlet.value())));
-    sl->setContentsMargins(0, 0, 0, 0);
-    sl->setMaximumWidth(70);
-    QObject::connect(
-        sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-          CommandDispatcher<>{ctx.commandStack}
-              .submit<SetControlValue<Control_T>>(
-                  inlet, sl->text().toStdString());
-        });
+//    sl->setContentsMargins(0, 0, 0, 0);
+//    sl->setMaximumWidth(70);
+//    QObject::connect(
+//        bt, &QLineEdit::editingFinished, context, [bt, &inlet, &ctx]() {
+//          CommandDispatcher<>{ctx.commandStack}
+//              .submit<SetControlValue<Control_T>>(
+//                  inlet, bt->text().toStdString());
+//        });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
-          sl->setText(
+        &inlet, &Control_T::valueChanged, bt, [bt](const ossia::value& val) {
+          bt->setText(
               QString::fromStdString(ossia::convert<std::string>(val)));
         });
 
-    return sl;
+    return bt;
   }
     struct LineEditItem : public QGraphicsTextItem
     {
