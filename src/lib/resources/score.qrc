@@ -702,5 +702,9 @@
         <file>icons/sync_on@2x.png</file>
         <file>icons/sync.png</file>
         <file>icons/sync@2x.png</file>
+        <file>icons/settings_sync_on@2x.png</file>
+        <file>icons/settings_sync_on.png</file>
+        <file>icons/settings_sync_off@2x.png</file>
+        <file>icons/settings_sync_off.png</file>
     </qresource>
 </RCC>
