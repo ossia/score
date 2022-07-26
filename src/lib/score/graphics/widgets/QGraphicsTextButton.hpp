@@ -14,7 +14,6 @@ class SCORE_LIB_BASE_EXPORT QGraphicsTextButton final
     : public score::SimpleTextItem
 {
   W_OBJECT(QGraphicsTextButton)
-  QRectF m_rect{defaultToggleSize};
 
   bool m_pressed{};
 public:

@@ -849,7 +849,7 @@ struct FileChooser{
     {
       auto bt = new score::QGraphicsTextButton{parent,"hello"};
 //      sl->setTextWidth(180.);
-      bt->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+      // bt->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 //      sl->setDefaultTextColor(QColor{"#E0B01E"});
 //      sl->setCursor(Qt::IBeamCursor);
 
