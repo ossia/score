@@ -1,0 +1,14 @@
+﻿<PackagingLayout xmlns="http://schemas.microsoft.com/appx/makeappx/2017">
+  <PackageFamily ID="ossia-score" FlatBundle="false" ManifestPath=".\manifests\Package.appxmanifest" ResourceManager="false">
+    <Package ID="ossia-score-x64" ProcessorArchitecture="x64" ManifestPath=".\manifests\Package-x64.appxmanifest">
+      <Files>
+        <File DestinationPath="*.exe" SourcePath="*.exe"/>
+        <File DestinationPath="*.dll" SourcePath="*.dll"/>
+        <File DestinationPath="*.conf" SourcePath="*.conf"/>
+        <File DestinationPath="*.png" SourcePath="*.png"/>
+        <File DestinationPath="*.ico" SourcePath="*.ico"/>
+        <File DestinationPath="faust\\**" SourcePath="faust\**"/>
+      </Files>
+    </Package>
+  </PackageFamily>
+</PackagingLayout>
