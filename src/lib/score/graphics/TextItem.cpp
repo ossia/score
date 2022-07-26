@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TextItem.hpp"
 
-#include <score/graphics/GraphicsItem.hpp>
+#include <score/graphics/Graphics<<<<<<< HEADItem.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -11,7 +11,6 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TextItem)
-W_OBJECT_IMPL(score::QGraphicsTextButton)
 namespace score
 {
 
@@ -108,7 +107,7 @@ void SimpleTextItem::updateImpl()
 
   update();
 }
-
+/*
 QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
@@ -153,4 +152,5 @@ void QGraphicsTextButton::paint(
   }
 }
 
+*/
 }

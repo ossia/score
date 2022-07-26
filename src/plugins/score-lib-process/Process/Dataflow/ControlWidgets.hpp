@@ -11,6 +11,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
+#include <score/graphics/widgets/QGraphicsTextButton.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -819,7 +820,7 @@ struct FileChooser{
 
     return bt;
   }
-    struct LineEditItem : public QGraphicsTextItem
+   /* struct LineEditItem : public QGraphicsTextItem
     {
       LineEditItem()
       {
@@ -830,24 +831,25 @@ struct FileChooser{
           ctl->setAcceptRichText(false);
         }
       }
-    };
+    };*/
     template <typename T, typename Control_T>
-    static LineEditItem* make_item(
+    static score::QGraphicsTextButton* make_item(
         const T& slider,
         Control_T& inlet,
         const score::DocumentContext& ctx,
         QGraphicsItem* parent,
         QObject* context)
     {
-      auto sl = new LineEditItem{};
-      sl->setTextWidth(180.);
-      sl->setDefaultTextColor(QColor{"#E0B01E"});
-      sl->setCursor(Qt::IBeamCursor);
+      auto bt = new score::QGraphicsTextButton{parent,""};
+//      sl->setTextWidth(180.);
+      bt->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+//      sl->setDefaultTextColor(QColor{"#E0B01E"});
+//      sl->setCursor(Qt::IBeamCursor);
 
-      sl->setPlainText(
-          QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+//      sl->setPlainText(
+//          QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
-      auto doc = sl->document();
+     /* auto doc = sl->document();
       QObject::connect(
           doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx] {
             auto cur_str = ossia::convert<std::string>(inlet.value());
@@ -857,15 +859,15 @@ struct FileChooser{
                   .submit<SetControlValue<Control_T>>(
                       inlet, doc->toPlainText().toStdString());
             }
-          });
-      QObject::connect(
+          });*/
+      /*QObject::connect(
           &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
             auto str = QString::fromStdString(ossia::convert<std::string>(val));
             if (str != doc->toPlainText())
               doc->setPlainText(str);
-          });
+          });*/
 
-      return sl;
+      return bt;
     }
 };
 struct Enum

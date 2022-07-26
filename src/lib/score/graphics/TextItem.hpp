@@ -33,6 +33,7 @@ public:
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       final override;
 
+
   void setFont(const QFont& f);
   void setText(const QString& s);
   void setText(std::string_view s);
@@ -52,7 +53,7 @@ private:
   QString m_string;
   QImage m_line;
 };
-
+/*
 class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
     : public QObject
     , public QGraphicsItem
@@ -73,4 +74,6 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QString m_string;
 };
+}
+*/
 }
