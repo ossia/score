@@ -18,6 +18,7 @@ QGraphicsXYZChooser::QGraphicsXYZChooser(QGraphicsItem* parent)
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
   setRange();
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsXYZChooser::paint(

@@ -21,7 +21,7 @@ QGraphicsNoteChooser::QGraphicsNoteChooser(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorScaleV);
-  this->setAcceptedMouseButtons(Qt::LeftButton);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsNoteChooser::setValue(int v)

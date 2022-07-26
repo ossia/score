@@ -20,7 +20,6 @@ QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
-  this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 void QGraphicsIntSlider::setValue(int v)

@@ -40,7 +40,6 @@ VSTGraphicsSlider::VSTGraphicsSlider(
   this->fx = fx;
   this->num = num;
   this->m_value = fx->getParamNormalized(num);
-  this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 void VSTGraphicsSlider::setValue(double v)

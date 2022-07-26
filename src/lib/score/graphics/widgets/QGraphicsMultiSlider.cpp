@@ -206,6 +206,7 @@ QGraphicsMultiSlider::QGraphicsMultiSlider(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsMultiSlider::setPoint(const QPointF& r)

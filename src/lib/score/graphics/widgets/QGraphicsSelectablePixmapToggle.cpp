@@ -28,6 +28,7 @@ QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
   setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsSelectablePixmapToggle::toggle()

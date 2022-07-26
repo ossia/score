@@ -20,7 +20,6 @@ QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
-  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsLogSlider::setRange(double min, double max)

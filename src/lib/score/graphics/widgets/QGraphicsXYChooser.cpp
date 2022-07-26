@@ -19,6 +19,7 @@ QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsXYChooser::paint(

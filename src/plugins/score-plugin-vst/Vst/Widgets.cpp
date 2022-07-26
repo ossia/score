@@ -36,7 +36,6 @@ GraphicsSlider::GraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent)
   this->fx = fx;
   this->num = num;
   this->m_value = fx->getParameter(fx, num);
-  this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 void GraphicsSlider::setValue(double v)

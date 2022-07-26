@@ -13,6 +13,7 @@ QGraphicsCheckBox::QGraphicsCheckBox(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsCheckBox::toggle()
@@ -63,16 +64,16 @@ void QGraphicsCheckBox::paint(
   {
     double position = (m_rect.width() - insideBoxWidth) * 0.5;
     painter->setPen(skin.Base4.main.pen2);
-    painter->drawLine(
+    painter->drawLine(QLineF{
         position,
         position,
         position + insideBoxWidth,
-        position + insideBoxWidth);
-    painter->drawLine(
+        position + insideBoxWidth});
+    painter->drawLine(QLineF{
         position,
         position + +insideBoxWidth,
         position + +insideBoxWidth,
-        position);
+        position});
   }
 
   painter->setRenderHint(QPainter::Antialiasing, false);

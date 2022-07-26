@@ -17,7 +17,7 @@ namespace score
 QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
-  this->setAcceptedMouseButtons(Qt::LeftButton);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
   setRect({0, 0, 104, 44});
 }
 
