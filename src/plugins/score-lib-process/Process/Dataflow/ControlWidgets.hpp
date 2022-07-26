@@ -799,7 +799,14 @@ struct FileChooser{
       auto on_open = [=,&inlet]{
         bt->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
       };
-      QObject::connect(bt, &QPushButton::pressed, on_open);
+//      QObject::connect(bt, &QPushButton::pressed, on_open);
+   /*   QObject::connect(
+          bt,
+          &score::QGraphicsTextButton::pressed,
+          context,
+          [=,&inlet,&ctx](bool pressed){
+
+      });*/
 
     bt->setText(
         QString::fromStdString(ossia::convert<std::string>(inlet.value())));
@@ -812,11 +819,11 @@ struct FileChooser{
 //                  inlet, bt->text().toStdString());
 //        });
 
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, bt, [bt](const ossia::value& val) {
-          bt->setText(
-              QString::fromStdString(ossia::convert<std::string>(val)));
-        });
+//    QObject::connect(
+//        &inlet, &Control_T::valueChanged, bt, [bt](const ossia::value& val) {
+//          bt->setText(
+//              QString::fromStdString(ossia::convert<std::string>(val)));
+//        });
 
     return bt;
   }
@@ -840,7 +847,7 @@ struct FileChooser{
         QGraphicsItem* parent,
         QObject* context)
     {
-      auto bt = new score::QGraphicsTextButton{parent,""};
+      auto bt = new score::QGraphicsTextButton{parent,"hello"};
 //      sl->setTextWidth(180.);
       bt->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 //      sl->setDefaultTextColor(QColor{"#E0B01E"});

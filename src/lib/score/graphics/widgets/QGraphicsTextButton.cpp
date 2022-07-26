@@ -14,8 +14,9 @@ namespace score {
 QGraphicsTextButton::QGraphicsTextButton(QGraphicsItem *parent,QString text)
 : SimpleTextItem{score::Skin::instance().Base1.main, parent}
 {
-    setText(std::move(text));
-
+   setText(std::move(text));
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorPointingHand);
 }
 void QGraphicsTextButton::bang()
 {
@@ -56,13 +57,14 @@ void QGraphicsTextButton::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
+  painter->fillRect(boundingRect(),Qt::blue);
   auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   constexpr const double margin = 2.;
-  constexpr const double backgroundRectWidth = 16.;
+  const double insideCircleWidth = m_rect.width();
+  const double backgroundRectWidth = insideCircleWidth + 2*margin;
 
-  constexpr const double insideCircleWidth = 12.;
   const double insideCircleOffset
       = margin + 0.5f * (backgroundRectWidth - insideCircleWidth);
 
@@ -70,18 +72,14 @@ void QGraphicsTextButton::paint(
   painter->setBrush(
       !m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
 
-  painter->drawEllipse(
-      QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
+  painter->drawRect(m_rect);
+//  painter->drawEllipse(
+//      QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
 
   if (m_pressed)
   {
-    painter->setPen(skin.Emphasis2.main.pen2);
-    painter->setBrush(skin.NoBrush);
-    painter->drawEllipse(QRectF{
-        insideCircleOffset,
-        insideCircleOffset,
-        insideCircleWidth,
-        insideCircleWidth});
+//    painter->setPen(skin.Emphasis2.main.pen2);
+    painter->fillRect(m_rect,Qt::blue);
   }
 
   painter->setRenderHint(QPainter::Antialiasing, false);
