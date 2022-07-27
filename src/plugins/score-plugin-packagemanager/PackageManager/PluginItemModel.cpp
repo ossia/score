@@ -264,8 +264,12 @@ Package::fromJson(const QJsonObject& obj) noexcept
       it->second(obj[k]);
     }
   }
+  auto it = std::remove_if(add.raw_name.begin(), add.raw_name.end(), [](const QChar& c){
+    return !(c.isLetterOrNumber() || c == QChar('_') || c == QChar(' ') || c == QChar('-'));
+  });
+  add.raw_name.chop(std::distance(it, add.raw_name.end()));
 
-  if (add.key.impl().is_nil() || add.name.isEmpty())
+  if (add.key.impl().is_nil() || add.name.isEmpty() || add.raw_name.isEmpty())
   {
     return std::nullopt;
   }

@@ -588,12 +588,17 @@ void PluginSettingsView::installLibrary(const Package& addon)
     score::AppContext().settings<Library::Settings::Model>().getPackagesPath()
         + "/" + addon.raw_name};
 
+  if(QDir dest{destination}; dest.exists())
+    dest.removeRecursively();
+
   QDir{}.mkpath(destination);
 
   zdl::download_and_extract(
         addon.file,
         QFileInfo{destination}.absoluteFilePath(),
-        [=] (const std::vector<QString>& res) { on_packageInstallSuccess(addon, destination, res); },
+        [=] (const std::vector<QString>& res) {
+    on_packageInstallSuccess(addon, destination, res);
+  },
   [=] (qint64 received, qint64 total) { progress_from_bytes(received, total); },
   [=] { on_packageInstallFailure(addon); });
 }
