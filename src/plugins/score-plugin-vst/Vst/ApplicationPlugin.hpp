@@ -6,7 +6,9 @@
 #include <ossia/detail/hash_map.hpp>
 
 #include <QElapsedTimer>
+#if QT_CONFIG(process)
 #include <QProcess>
+#endif
 #include <QWebSocketServer>
 
 #include <thread>
@@ -54,7 +56,9 @@ public:
 
   const std::thread::id m_tid{std::this_thread::get_id()};
   auto mainThreadId() const noexcept { return m_tid; }
+  std::vector<vst::Model*> m_runningVSTs;
 
+#if QT_CONFIG(process)
   struct ScanningProcess
   {
     QString path;
@@ -65,10 +69,10 @@ public:
 
   std::vector<ScanningProcess> m_processes;
 
-  std::vector<vst::Model*> m_runningVSTs;
 
 private:
   QWebSocketServer m_wsServer;
+#endif
 
   void timerEvent(QTimerEvent* event) override;
 };

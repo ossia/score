@@ -88,7 +88,9 @@ static const constexpr auto default_filter = "";
 }
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
     : score::ApplicationPlugin{ctx}
+    #if QT_CONFIG(process)
     , m_wsServer("vst3-notification-server", QWebSocketServer::NonSecureMode)
+    #endif
 {
   qRegisterMetaType<AvailablePlugin>();
   qRegisterMetaType<std::vector<AvailablePlugin>>();
@@ -98,6 +100,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
   qRegisterMetaTypeStreamOperators<std::vector<AvailablePlugin>>();
 #endif
 
+#if QT_CONFIG(process)
   m_wsServer.listen({}, 37588);
   con(m_wsServer,
       &QWebSocketServer::newConnection,
@@ -118,6 +121,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
               ws->deleteLater();
             });
       });
+#endif
 }
 
 void ApplicationPlugin::initialize()
@@ -143,6 +147,7 @@ void ApplicationPlugin::initialize()
 
 void ApplicationPlugin::rescan(const QStringList& paths)
 {
+#if QT_CONFIG(process)
   // 1. List all plug-ins in new paths
   QStringList exploredPaths;
   QSet<QString> newPlugins;
@@ -240,10 +245,12 @@ void ApplicationPlugin::rescan(const QStringList& paths)
     }
   }
   */
+#endif
 }
 
 void ApplicationPlugin::processIncomingMessage(const QString& txt)
 {
+#if QT_CONFIG(process)
   QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
 
   if (doc.isObject())
@@ -276,6 +283,7 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
       qDebug() << "Got invalid VST3 request ID" << id;
     }
   }
+#endif
 }
 
 void ApplicationPlugin::addInvalidVST(const QString& path)
@@ -368,6 +376,7 @@ VST3::Hosting::Module::Ptr ApplicationPlugin::getModule(const std::string& path)
 
 void ApplicationPlugin::scanVSTsEvent()
 {
+#if QT_CONFIG(process)
   constexpr int max_in_flight = 8;
   int in_flight = 0;
 
@@ -403,6 +412,7 @@ void ApplicationPlugin::scanVSTsEvent()
       return;
     }
   }
+#endif
 }
 
 std::pair<const AvailablePlugin*, const VST3::Hosting::ClassInfo*>

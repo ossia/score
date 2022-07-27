@@ -107,6 +107,7 @@ public:
   std::optional<VST3::UID>
   uidForPathAndClassName(const QString& path, const QString& cls) const noexcept;
 
+#if QT_CONFIG(process)
   struct ScanningProcess
   {
     QString path;
@@ -116,8 +117,9 @@ public:
   };
 
   std::vector<ScanningProcess> m_processes;
-
   QWebSocketServer m_wsServer;
+#endif
+
   HostApp m_host;
   ossia::string_map<VST3::Hosting::Module::Ptr> modules;
   std::vector<AvailablePlugin> vst_infos;

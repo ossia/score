@@ -51,7 +51,9 @@ namespace vst
 
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     : score::ApplicationPlugin{app}
+    #if QT_CONFIG(process)
     , m_wsServer("vst-notification-server", QWebSocketServer::NonSecureMode)
+    #endif
 {
   qRegisterMetaType<VSTInfo>();
   qRegisterMetaType<std::vector<VSTInfo>>();
@@ -61,6 +63,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   qRegisterMetaTypeStreamOperators<std::vector<VSTInfo>>();
 #endif
 
+#if QT_CONFIG(process)
   m_wsServer.listen({}, 37587);
   con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
     QWebSocket* ws = m_wsServer.nextPendingConnection();
@@ -73,6 +76,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
           ws->deleteLater();
         });
   });
+#endif
 
   // VST idle update
   startTimer(10, Qt::PreciseTimer);
@@ -163,6 +167,7 @@ void ApplicationPlugin::unregisterRunningVST(Model* m)
 
 void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 {
+#if QT_CONFIG(process)
   // 1. List all plug-ins in new paths
   QStringList exploredPaths;
   QSet<QString> newPlugins;
@@ -258,10 +263,12 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     i++;
   }
   scanVSTsEvent();
+#endif
 }
 
 void ApplicationPlugin::processIncomingMessage(const QString& txt)
 {
+#if QT_CONFIG(process)
   QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
   if (doc.isObject())
   {
@@ -294,10 +301,12 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
       qDebug() << "Got invalid VST3 request ID" << id;
     }
   }
+#endif
 }
 
 void ApplicationPlugin::scanVSTsEvent()
 {
+#if QT_CONFIG(process)
   constexpr int max_in_flight = 8;
   int in_flight = 0;
 
@@ -333,6 +342,7 @@ void ApplicationPlugin::scanVSTsEvent()
       return;
     }
   }
+#endif
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent* event)
