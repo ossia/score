@@ -1,5 +1,4 @@
 //
-//
 //			spoutGLextensions.h
 //
 //			Used for load of openGL extensions with options	to 
@@ -21,9 +20,11 @@
 //			21.11.18 - added preprocessor define for Jitter externals
 //					   https://github.com/robtherich/Spout2
 //
+//			All changes now documented in SpoutGLextensions.cpp
+//
 /*
 
-	Copyright (c) 2014-2021, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -49,6 +50,7 @@
 #ifndef __spoutGLextensions__	// standard way as well
 #define __spoutGLextensions__
 
+
 //
 // Header: spoutGLextensions
 //
@@ -61,13 +63,46 @@
 // Refer to source code for documentation.
 //
 
-
-// ====================== COMPILE OPTIONS ================================
 //
+// ====================== COMPILE OPTIONS ============================
+//
+
+//
+// Define "standalone" here to use the extensions independently of Spout source files.
+// Leave undefined otherwise.
+//
+// #define standalone
+//
+
+#ifdef standalone
+
+#include <windows.h>
+#include <stdio.h> // for console
+#include <iostream> // std::cout, std::end
+
+//
+// Define For use of 'EXT_framebuffer_object' in loadFBOextensions
+// and glGetString in isExtensionSupported
+// Not required unless compatibility with OpenGL < 3 is necessary
+// * Note that the same definition is in SpoutCommon.h if not standalone
+//
+// #define legacyOpenGL
+//
+#else
+
+// For use together with Spout source files
+#include "SpoutCommon.h" // for legacyOpenGL define
+#include "SpoutUtils.h"
+
+using namespace spoututils;
+
 // set this to use GLEW instead of dynamic load of extensions
 // #define USE_GLEW	
 // set this to use glew32s.lib instead of glew32.lib
 // #define GLEW_STATIC
+
+#endif
+
 
 // If load of FBO extensions conflicts with FFGL or Jitter, disable them here
 #ifndef UNDEF_USE_FBO_EXTENSIONS
@@ -84,16 +119,12 @@
 // If load of context creation extension conflicts, disable it here
 // Only used for testing
 #define USE_CONTEXT_EXTENSION
-// ==========================================================================
+// ========================= end Compile options ================================
 
 
-#include <windows.h>
-#include <stdio.h> // for debug print
-#include "SpoutCommon.h" // for legacyOpenGL define
-#include "SpoutUtils.h"
-
-using namespace spoututils;
-
+//------------------------------------------------------------
+// Allow for use of Glew instead of dynamic load of extensions
+//------------------------------------------------------------
 #ifdef USE_GLEW
 	#include <GL\glew.h>
 	#include <GL\wglew.h> // wglew.h and glxew.h, which define the available WGL and GLX extensions
@@ -105,6 +136,26 @@ using namespace spoututils;
 		#define glDeleteFramebuffersEXT	(_jit_gl_get_proctable()->DeleteFramebuffersEXT)
 	#endif
 #endif
+
+
+//
+// Spout compatible Log levels
+//
+enum LogLevel {
+	LOG_SILENT,
+	LOG_VERBOSE,
+	LOG_NOTICE,
+	LOG_WARNING,
+	LOG_ERROR,
+	LOG_FATAL,
+	LOG_NONE,
+};
+
+
+//
+// ====================== EXTENSIONS ============================
+//
+
 
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE 0x812F
@@ -131,9 +182,9 @@ using namespace spoututils;
 #endif
 
 
-//------------------------------------
+//------------------------
 // EXTENSION SUPPORT FLAGS
-//------------------------------------
+//------------------------
 #define GLEXT_SUPPORT_NVINTEROP		  1
 #define GLEXT_SUPPORT_FBO			  2
 #define GLEXT_SUPPORT_FBO_BLIT		  4
@@ -174,7 +225,6 @@ using namespace spoututils;
 #define GL_CONTEXT_PROFILE_MASK			0x9126
 #endif
 
-// TODO clean up 
 #ifndef GL_CONTEXT_CORE_PROFILE_BIT
 #define GL_CONTEXT_CORE_PROFILE_BIT            0x00000001
 #endif
@@ -314,7 +364,8 @@ extern glGetRenderbufferParameterivEXTPROC			glGetRenderbufferParameterivEXT;
 extern glIsFramebufferEXTPROC						glIsFramebufferEXT;
 extern glIsRenderbufferEXTPROC						glIsRenderbufferEXT;
 extern glRenderbufferStorageEXTPROC					glRenderbufferStorageEXT;
-#endif
+
+#endif // USE_FBO_EXTENSIONS
 
 //-------------------
 // Blit FBO extension
@@ -335,7 +386,7 @@ typedef void   (APIENTRY *glBlitFramebufferEXTPROC) (GLint srcX0, GLint srcY0, G
 extern glBlitFramebufferEXTPROC glBlitFramebufferEXT;
 
 // ------------------------------
-// OpenGL sync control extensions
+// OpenGL vsync control extensions
 // ------------------------------
 #ifdef USE_FBO_EXTENSIONS
 typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
@@ -348,6 +399,7 @@ extern PFNWGLGETSWAPINTERVALEXTPROC    wglGetSwapIntervalEXT;
 //	PBO extensions
 //----------------
 #ifdef USE_PBO_EXTENSIONS
+#define GL_ARRAY_BUFFER					0x8892
 #define GL_PIXEL_PACK_BUFFER			0x88EB
 #define GL_PIXEL_UNPACK_BUFFER			0x88EC
 #define GL_PIXEL_PACK_BUFFER_BINDING	0x88ED
@@ -357,15 +409,87 @@ extern PFNWGLGETSWAPINTERVALEXTPROC    wglGetSwapIntervalEXT;
 #define GL_READ_ONLY					0x88B8
 #define GL_WRITE_ONLY					0x88B9
 #define GL_BUFFER_SIZE_EXT				0x8764
+#ifndef GL_MAP_READ_BIT
+#define GL_MAP_READ_BIT					0x0001
+#endif
+#ifndef GL_MAP_WRITE_BIT
+#define GL_MAP_WRITE_BIT				0x0002
+#endif
+#ifndef GL_MAP_PERSISTENT_BIT
+#define GL_MAP_PERSISTENT_BIT			0x0040
+#endif
+#ifndef GL_MAP_COHERENT_BIT
+#define GL_MAP_COHERENT_BIT				0x0080 
+#endif
+//
+// Optional flag bits
+//
+#ifndef GL_MAP_INVALIDATE_RANGE_BIT
+#define GL_MAP_INVALIDATE_RANGE_BIT		0x0004
+#endif
+#ifndef GL_MAP_INVALIDATE_BUFFER_BIT
+#define GL_MAP_INVALIDATE_BUFFER_BIT	0x0008
+#endif
+#ifndef GL_MAP_FLUSH_EXPLICIT_BIT
+#define GL_MAP_FLUSH_EXPLICIT_BIT		0x0010
+#endif
+#ifndef GL_MAP_UNSYNCHRONIZED_BIT
+#define GL_MAP_UNSYNCHRONIZED_BIT		0x0020
+#endif
+#ifndef GL_SYNC_FLUSH_COMMANDS_BIT
+#define GL_SYNC_FLUSH_COMMANDS_BIT		0x0001
+#endif
 
 
-// PBO functions
+//
+// Sync
+//
+#ifndef GL_SYNC_CONDITION
+#define GL_SYNC_CONDITION                 0x9113
+#endif
+#ifndef GL_SYNC_STATUS
+#define GL_SYNC_STATUS                    0x9114
+#endif
+#ifndef GL_SYNC_FLAGS
+#define GL_SYNC_FLAGS                     0x9115
+#endif
+#ifndef GL_SYNC_FENCE
+#define GL_SYNC_FENCE                     0x9116
+#endif
+#ifndef GL_SYNC_GPU_COMMANDS_COMPLETE
+#define GL_SYNC_GPU_COMMANDS_COMPLETE     0x9117
+#endif
+#ifndef GL_UNSIGNALED
+#define GL_UNSIGNALED                     0x9118
+#endif
+#ifndef GL_SIGNALED
+#define GL_SIGNALED                       0x9119
+#endif
+#ifndef GL_ALREADY_SIGNALED
+#define GL_ALREADY_SIGNALED               0x911A
+#endif
+#ifndef GL_TIMEOUT_EXPIRED
+#define GL_TIMEOUT_EXPIRED                0x911B
+#endif
+#ifndef GL_CONDITION_SATISFIED
+#define GL_CONDITION_SATISFIED            0x911C
+#endif
+#ifndef GL_WAIT_FAILED
+#define GL_WAIT_FAILED                    0x911D
+#endif
+
+// ------------------------------
+// PBO extensions
+// ------------------------------
 typedef ptrdiff_t GLsizeiptr;
-typedef void   (APIENTRY *glGenBuffersPROC) (GLsizei n, const GLuint* buffers);
+typedef ptrdiff_t GLintptr;
+typedef void   (APIENTRY *glGenBuffersPROC)    (GLsizei n, const GLuint* buffers);
 typedef void   (APIENTRY *glDeleteBuffersPROC) (GLsizei n, const GLuint* buffers);
-typedef void   (APIENTRY *glBindBufferPROC) (GLenum target, const GLuint buffer);
-typedef void   (APIENTRY *glBufferDataPROC) (GLenum target,  GLsizeiptr size,  const GLvoid * data,  GLenum usage);
+typedef void   (APIENTRY *glBindBufferPROC)    (GLenum target, const GLuint buffer);
+typedef void   (APIENTRY *glBufferDataPROC)    (GLenum target,  GLsizeiptr size,  const GLvoid * data,  GLenum usage);
+typedef void   (APIENTRY *glBufferStoragePROC) (GLenum target, GLsizeiptr size, const void * data, GLbitfield flags);
 typedef void * (APIENTRY *glMapBufferPROC) (GLenum target,  GLenum access);
+typedef void * (APIENTRY *glMapBufferRangePROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
 typedef void   (APIENTRY *glUnmapBufferPROC) (GLenum target);
 typedef void   (APIENTRY *glGetBufferParameterivPROC) (GLenum target, GLenum value,	GLint * data);
 
@@ -373,9 +497,25 @@ extern glGenBuffersPROC		glGenBuffersEXT;
 extern glDeleteBuffersPROC	glDeleteBuffersEXT;
 extern glBindBufferPROC		glBindBufferEXT;
 extern glBufferDataPROC		glBufferDataEXT;
+extern glBufferStoragePROC	glBufferStorageEXT;
 extern glMapBufferPROC		glMapBufferEXT;
+extern glMapBufferRangePROC	glMapBufferRangeEXT;
 extern glUnmapBufferPROC	glUnmapBufferEXT;
-extern glGetBufferParameterivPROC	glGetBufferParameterivEXT;
+extern glGetBufferParameterivPROC glGetBufferParameterivEXT;
+
+// ------------------------------
+// SYNC objects
+// https://www.khronos.org/opengl/wiki/Sync_Object
+// ------------------------------
+typedef struct __GLsync *GLsync;
+typedef uint64_t GLuint64;
+typedef GLenum(APIENTRY *glClientWaitSyncPROC) (GLsync sync, GLbitfield flags, GLuint64 timeout);
+typedef void   (APIENTRY *glDeleteSyncPROC) (GLsync sync);
+typedef GLsync(APIENTRY *glFenceSyncPROC) (GLenum condition, GLbitfield flags);
+
+extern glClientWaitSyncPROC glClientWaitSyncEXT;
+extern glDeleteSyncPROC     glDeleteSyncEXT;
+extern glFenceSyncPROC      glFenceSyncEXT;
 
 #endif // USE_PBO_EXTENSIONS
 
@@ -432,5 +572,6 @@ bool loadPBOextensions();
 bool loadCopyExtensions();
 bool loadContextExtension();
 bool isExtensionSupported(const char *extension);
+void ExtLog(LogLevel level, const char* format, ...);
 
-#endif
+#endif // end __spoutGLextensions__

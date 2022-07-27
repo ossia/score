@@ -78,10 +78,11 @@
 			 - Change duplicate FindSenderName to FindSender overload
 			   testing function
 	31.07.21 - Add m_senders size check in UpdateSender
+	15.12.21 - Remove noisy SpoutLogNotice from SetSenderID
 
 
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	Copyright (c) 2014-2021, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -470,7 +471,6 @@ void spoutSenderNames::SetMaxSenders(int maxSenders)
 	m_MaxSenders = maxSenders;
 	// Set to the registry so that other applications will read the new maximum size
 	WriteDwordToRegistry(HKEY_CURRENT_USER, "Software\\Leading Edge\\Spout", "MaxSenders", (DWORD)maxSenders);
-
 }
 
 int spoutSenderNames::GetMaxSenders()
@@ -578,8 +578,6 @@ bool spoutSenderNames::SetSenderInfo(const char* sendername, unsigned int width,
 bool spoutSenderNames::SetSenderID(const char *sendername, bool bCPU, bool bGLDX)
 {
 	SharedTextureInfo info;
-
-	SpoutLogNotice("spoutSenderNames::SetSenderID(%s, %d, %d)", sendername, bCPU, bGLDX);
 
 	if (getSharedInfo(sendername, &info)) {
 

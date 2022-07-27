@@ -4,7 +4,7 @@
 
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	Copyright (c) 2016-2021, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2016-2022, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -53,11 +53,11 @@
 	09.12.20 - Correct movsd line pitch in RemovePadding
 	13.03.21 - Change CopyPixels and FlipBuffer to accept GL_LUMINANCE
 	09.07.21 - memcpy_sse2 - return for null dst or src
+	21.02.22 - use std:: prefix for floor in rgba2rgbResample for Clang compatibility. PR#81
 
 
 */
 #include "SpoutCopy.h"
-#include <cmath>
 
 //
 // Class: spoutCopy
@@ -496,7 +496,7 @@ void spoutCopy::rgba_bgra_sse2(const void *rgba_source, void *bgra_dest, unsigne
 
 
 //
-//	Adapted from a Gist snippet by Aurï¿½lien Vallï¿½e (NewbiZ) http://newbiz.github.io/
+//	Adapted from a Gist snippet by Aurélien Vallée (NewbiZ) http://newbiz.github.io/
 //
 //	https://gist.github.com/NewbiZ/5541524
 //
@@ -1047,7 +1047,6 @@ void spoutCopy::rgba2rgbResample(const void* source, void* dest,
 	unsigned int sourceWidth, unsigned int sourceHeight, unsigned int sourcePitch,
 	unsigned int destWidth, unsigned int destHeight, bool bInvert, bool bMirror, bool bSwapRB) const
 {
-	using namespace std;
 	unsigned char *srcBuffer = (unsigned char *)source; // bgra source
 	unsigned char *dstBuffer = (unsigned char *)dest; // bgr dest
 
@@ -1094,7 +1093,6 @@ void spoutCopy::rgba2bgrResample(const void* source, void* dest,
 	unsigned int sourceWidth, unsigned int sourceHeight, unsigned int sourcePitch,
 	unsigned int destWidth, unsigned int destHeight, bool bInvert) const
 {
-	using namespace std;
 	unsigned char *srcBuffer = (unsigned char *)source; // bgra source
 	unsigned char *dstBuffer = (unsigned char *)dest; // bgr dest
 
@@ -1105,8 +1103,8 @@ void spoutCopy::rgba2bgrResample(const void* source, void* dest,
 	unsigned int pixel, nearestMatch;
 	for (i = 0; i < destHeight; i++) {
 		for (j = 0; j < destWidth; j++) {
-			px = floor((float)j*x_ratio);
-			py = floor((float)i*y_ratio);
+			px = std::floor((float)j*x_ratio);
+			py = std::floor((float)i*y_ratio);
 			if (bInvert)
 				pixel = (destHeight - i - 1)*destWidth * 3 + j * 3; // flip vertically
 			else

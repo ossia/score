@@ -6,7 +6,7 @@
 
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	Copyright (c) 2016-2021, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2016-2022, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -40,6 +40,7 @@
 #include <intrin.h> // for cpuid to test for SSE2
 #include <emmintrin.h> // for SSE2
 #include <tmmintrin.h> // for SSSE3
+#include <cmath> // For compatibility with Clang. PR#81
 
 
 class SPOUT_DLLEXP spoutCopy {

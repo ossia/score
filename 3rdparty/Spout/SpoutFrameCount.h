@@ -4,7 +4,7 @@
 
 				Frame counting management
 
-	Copyright (c) 2019-2021. Lynn Jarvis. All rights reserved.
+	Copyright (c) 2019-2022. Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification,
 	are permitted provided that the following conditions are met:
@@ -71,7 +71,7 @@ class SPOUT_DLLEXP spoutFrameCount {
 	// Received frame count
 	long GetSenderFrame();
 	// Frame rate control
-	void HoldFps(int fps);
+	void HoldFps(int fps = 0);
 
 	//
 	// Used by other classes
@@ -144,6 +144,7 @@ protected:
 	// Sender frame timing
 	double m_SenderFps;
 	void UpdateSenderFps(long framecount = 0);
+
 	double GetRefreshRate();
 
 	// Fps control

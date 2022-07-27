@@ -6,7 +6,7 @@
 
 		- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-		Copyright (c) 2017-2021, Lynn Jarvis. All rights reserved.
+		Copyright (c) 2017-2022, Lynn Jarvis. All rights reserved.
 
 		Redistribution and use in source and binary forms, with or without modification, 
 		are permitted provided that the following conditions are met:
@@ -52,7 +52,7 @@
 // a Visual studio 2017 compiler. "#include <chrono>" will then fail.
 // If this is a problem, remove _MSC_VER_ and manually enable/disable the USE_CHRONO define.
 //
-#if _MSC_VER >= 1900
+#if _MSC_VER >= 1900 || defined (__clang__)
 #define USE_CHRONO
 #endif
 

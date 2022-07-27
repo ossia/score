@@ -4,7 +4,7 @@
 
 	Functions to manage DirectX 11 texture sharing
 
-	Copyright (c) 2014 - 2021, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014 - 2022, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@
 
 #include "SpoutCommon.h"
 #include <d3d11.h>
+
 #pragma comment (lib, "d3d11.lib")// the Direct3D 11 Library file
 #pragma comment (lib, "DXGI.lib") // for CreateDXGIFactory1
 
@@ -44,11 +45,13 @@ class SPOUT_DLLEXP spoutDirectX {
 
 		spoutDirectX();
 		~spoutDirectX();
-
+		
 		// Initialize and prepare DirectX 11
-		bool OpenDirectX11();
+		bool OpenDirectX11(ID3D11Device* pDevice = nullptr);
 		// Release DirectX 11 device and context
 		void CloseDirectX11();
+		// Set the DirectX11 device
+		bool SetDX11Device(ID3D11Device* pDevice);
 		// Create a DirectX11 device
 		ID3D11Device* CreateDX11device();
 		// Create a DirectX11 shared texture
@@ -85,13 +88,16 @@ class SPOUT_DLLEXP spoutDirectX {
 		// DirectX11 utiities
 		//
 
+		// Release a texture resource created with a class device1`
+		unsigned long ReleaseDX11Texture(ID3D11Texture2D* pTexture);
 		// Release a texture resource
 		unsigned long ReleaseDX11Texture(ID3D11Device* pd3dDevice, ID3D11Texture2D* pTexture);
 		// Release a device
 		unsigned long ReleaseDX11Device(ID3D11Device* pd3dDevice);
 		// Return the class device
 		ID3D11Device* GetDX11Device();
-		// Return the class immediate context
+
+		// Return the device immediate context
 		ID3D11DeviceContext* GetDX11Context();
 		// Flush immediate context command queue and wait for copleteion
 		void FlushWait(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pImmediateContext);
@@ -105,6 +111,7 @@ class SPOUT_DLLEXP spoutDirectX {
 		IDXGIAdapter*			m_pAdapterDX11; // Adapter pointer
 		ID3D11Device*           m_pd3dDevice;   // DX11 device
 		ID3D11DeviceContext*	m_pImmediateContext;
+		bool					m_bClassDevice;
 		D3D_DRIVER_TYPE			m_driverType;
 		D3D_FEATURE_LEVEL		m_featureLevel;
 

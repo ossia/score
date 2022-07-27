@@ -12,7 +12,7 @@
 		Thanks and credit to Malcolm Bechard, the author of this file
 		https://github.com/mbechard
 
-		Copyright (c) 2014-2021, Lynn Jarvis. All rights reserved.
+		Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
 
 		Redistribution and use in source and binary forms, with or without modification, 
 		are permitted provided that the following conditions are met:
@@ -40,8 +40,9 @@
 
 #ifndef __SpoutCommon__
 #define __SpoutCommon__
-
-
+//
+// For build of the Spout library as a dll
+//
 #if defined(_MSC_VER)
 	#if defined(SPOUT_BUILD_DLL)
 		#define SPOUT_DLLEXP	__declspec(dllexport)
@@ -54,10 +55,16 @@
 	#define SPOUT_DLLEXP
 #endif // _MSC_VERR
 
+//
 // This definition enables legacy OpenGL rendering code
 // used for shared texture Draw functions in SpoutGLDXinterop.cpp
+// Not required unless compatibility with OpenGL < 3 is necessary
 // Disabled by default for OpenGL 4 compliance
+// * Note that the same definition is necessary in SpoutGLextensions.h
+//   so that SpoutGLextensions can be used independently of the Spout library.
+//
 // #define legacyOpenGL
+//
 
 // Common utility functions namespace
 #include "SpoutUtils.h"
