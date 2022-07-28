@@ -28,8 +28,7 @@ struct QPainterAdapter
 
   void move_to(double x, double y) { path.moveTo(x, y); }
   void line_to(double x, double y) { path.lineTo(x, y); }
-  void
-  arc_to(double x, double y, double w, double h, double start, double length)
+  void arc_to(double x, double y, double w, double h, double start, double length)
   {
     path.arcTo(x, y, w, h, start, length);
   }
@@ -264,6 +263,11 @@ public:
       right = (1 << 2),
       middle = (1 << 3)
     };
+    friend button& operator|=(button& lhs, button rhs) noexcept
+    {
+      return (
+          enum button&)(reinterpret_cast<std::underlying_type_t<enum button>&>(lhs) |= reinterpret_cast<std::underlying_type_t<enum button>&>(rhs));
+    }
     enum modifier
     {
       no_modifier,
@@ -272,22 +276,21 @@ public:
       alt = (1 << 3),
       meta = (1 << 4)
     };
+    friend modifier& operator|=(modifier& lhs, modifier rhs) noexcept
+    {
+      return (
+          enum modifier&)(reinterpret_cast<std::underlying_type_t<enum modifier>&>(lhs) |= reinterpret_cast<std::underlying_type_t<enum modifier>&>(rhs));
+    }
+
     float x, y;
 
-    enum button button
-    {
-    };
-    enum button held_buttons
-    {
-    };
-    enum modifier modifiers
-    {
-    };
+    enum button button = {};
+    enum button held_buttons = {};
+    enum modifier modifiers = {};
   };
 
 protected:
-  static custom_mouse_event
-  make_event(QGraphicsSceneMouseEvent* event) noexcept
+  static custom_mouse_event make_event(QGraphicsSceneMouseEvent* event) noexcept
   {
     custom_mouse_event p;
 
@@ -339,13 +342,13 @@ protected:
   {
     if constexpr (requires { impl.mouse_move(0, 0); })
     {
-      if (impl.mouse_move(event->pos().x(), event->pos().y()))
-        event->accept();
+      impl.mouse_move(event->pos().x(), event->pos().y());
+      event->accept();
     }
     else if constexpr (requires { impl.mouse_move(custom_mouse_event{}); })
     {
-      if (impl.mouse_move(make_event(event)))
-        event->accept();
+      impl.mouse_move(make_event(event));
+      event->accept();
     }
     update();
   }
@@ -354,13 +357,13 @@ protected:
   {
     if constexpr (requires { impl.mouse_release(0, 0); })
     {
-      if (impl.mouse_release(event->pos().x(), event->pos().y()))
-        event->accept();
+      impl.mouse_release(event->pos().x(), event->pos().y());
+      event->accept();
     }
     else if constexpr (requires { impl.mouse_release(custom_mouse_event{}); })
     {
-      if (impl.mouse_release(make_event(event)))
-        event->accept();
+      impl.mouse_release(make_event(event));
+      event->accept();
     }
     update();
   }
