@@ -1,7 +1,7 @@
 BasedOnStyle: WebKit
 
-BreakBeforeConceptDeclarations: Always
-IndentRequiresClause: false
+# BreakBeforeConceptDeclarations: Always
+# IndentRequiresClause: false
 
 AllowAllArgumentsOnNextLine: true
 BreakConstructorInitializers: BeforeComma
