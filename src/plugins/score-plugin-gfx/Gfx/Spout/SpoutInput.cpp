@@ -163,13 +163,15 @@ private:
 
       if(metadata.width > 0 && metadata.height > 0)
       {
+#include <Gfx/Qt5CompatPush> // clang-format: keep
         m_pixels.resize(w * h * 4);
-        tex->release();
+        tex->destroy();
         tex->setPixelSize(QSize(w, h));
-        tex->build();
+        tex->create();
         for(auto& pass : m_p)
-          pass.second.srb->build();
+          pass.second.srb->create();
         mustUpload = true;
+#include <Gfx/Qt5CompatPop> // clang-format: keep
       }
       else
       {

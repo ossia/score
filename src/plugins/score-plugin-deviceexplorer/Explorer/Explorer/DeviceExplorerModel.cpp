@@ -901,6 +901,7 @@ void DeviceExplorerModel::checkAndLoadDevice(Device::Node n)
               m_devicePlugin.context().app.mainWindow,
               "Error",
               "Could not create the device");
+          dialog->deleteLater();
           return;
         }
         ossia::net::sanitize_device_name(deviceSettings.name);
@@ -938,6 +939,7 @@ void DeviceExplorerModel::checkAndLoadDevice(
           m_devicePlugin.context().app.mainWindow,
           "Error",
           "Could not create the device");
+      dialog->deleteLater();
       return;
     }
     ossia::net::sanitize_device_name(deviceSettings.name);

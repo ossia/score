@@ -239,8 +239,8 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& s)
     LayerSlotPresenter p;
     p.header = new SlotHeader{*this, slot_i, m_view};
     p.footer = new AmovibleSlotFooter{*this, slot_i, m_view};
-    auto it = m_slots.insert(m_slots.begin() + slot_i, std::move(p));
-    auto& slt = *it->getLayerSlot();
+    auto it = m_slots.emplace(m_slots.begin() + slot_i, Scenario::SlotPresenter{std::move(p)});
+    Scenario::LayerSlotPresenter& slt = *it->getLayerSlot();
     if(auto p = m_model.processes.find(s.process); p != m_model.processes.end())
       setupSlot(slt, *p, slot_i);
   }
@@ -256,7 +256,7 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& s)
     nodal->setFlag(QGraphicsItem::ItemClipsChildrenToShape, true);
     p.view = nodal;
     p.footer = new AmovibleSlotFooter{*this, slot_i, m_view};
-    auto it = m_slots.insert(m_slots.begin() + slot_i, std::move(p));
+    auto it = m_slots.emplace(m_slots.begin() + slot_i, std::move(p));
 
     setupSlot(*it->getNodalSlot(), slot_i);
   }

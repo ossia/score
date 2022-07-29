@@ -146,12 +146,10 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
   // TODO Fix Sound::DropHandler::drop so that we don't need to do that
   {
-    std::sort(res.begin(), res.end(), [] (auto& lhs, auto& rhs) {
+    auto comp = [] (auto& lhs, auto& rhs) {
       return lhs.creation.customData < rhs.creation.customData;
-    });
-    std::unique(res.begin(), res.end(), [] (auto& lhs, auto& rhs) {
-      return lhs.creation.customData < rhs.creation.customData;
-    });
+    };
+    ossia::remove_duplicates(res, comp);
   }
   if(!res.empty())
   {

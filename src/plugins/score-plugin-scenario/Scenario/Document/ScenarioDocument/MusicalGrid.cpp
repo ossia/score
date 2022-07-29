@@ -417,12 +417,9 @@ void MusicalGrid::compute(
       inc,
       sceneRect);
 
-  std::sort(
-      timebars.magneticTimings.begin(),
-      timebars.magneticTimings
-          .end()); //, [] (auto t1, auto t2) { return t1 < t2});
-  std::unique(
-      timebars.magneticTimings.begin(), timebars.magneticTimings.end());
+  ossia::remove_duplicates(timebars.magneticTimings);
+  //, [] (auto t1, auto t2) { return t1 < t2});
+
   for (auto& [v, _1, _2] : mainPositions)
     v -= x0_time.toPixels(zoom) + 100;
   // for (auto& [v, _1, _2] : subPositions)

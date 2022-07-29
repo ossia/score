@@ -7,11 +7,6 @@ if(NOT TARGET score_plugin_media)
   return()
 endif()
 
-if(MSVC)
-  message("VST 3 support does not work yet with MSVC.")
-  return()
-endif()
-
 if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*arm.*")
   return()
 endif()

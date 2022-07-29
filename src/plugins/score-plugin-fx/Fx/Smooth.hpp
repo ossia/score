@@ -13,7 +13,7 @@ using namespace dno;
 struct NoiseFilter
 {
   NoiseFilter()
-      : dno_i{DeNoiser<int>{}}
+      : dno_i{}
       , dno_v{
             DeNoiser<double>{},
             DeNoiser<double>{},
@@ -22,7 +22,7 @@ struct NoiseFilter
   {
   }
 
-  DeNoiser<int> dno_i;
+  DeNoiser<double> dno_i;
   std::vector<DeNoiser<double>> dno_v;
 
   ossia::value filter(const ossia::value& val)

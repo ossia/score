@@ -289,8 +289,6 @@ endif()
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
 
-target_compile_options(${PROJECT_NAME} PRIVATE -std=c++2a)
-
 if(SCORE_INSTALL_HEADERS)
   install(
     FILES

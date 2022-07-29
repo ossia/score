@@ -12,6 +12,19 @@ extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution,
 #include <Windows.h>
 #include <mmsystem.h>
 extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+
+extern "C" int gettimeofday(struct timeval* tv, struct timezone* tz)
+{
+  return 0;
+}
+extern "C" void ___chkstk_ms(void) { }
+
+#include <cmath>
+extern "C" void sincos(double x, double* sin, double* cos)
+{
+  *sin = std::sin(x);
+  *cos = std::cos(x);
+}
 #endif
 #endif
 

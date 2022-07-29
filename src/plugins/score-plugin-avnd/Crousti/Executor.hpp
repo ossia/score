@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Engine/Node/TickPolicy.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

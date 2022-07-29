@@ -50,7 +50,23 @@ struct NodalSlotPresenter
 
 struct SlotPresenter : ossia::variant<LayerSlotPresenter, NodalSlotPresenter>
 {
-  using variant::variant;
+  //using variant::variant;
+  SlotPresenter() = default;
+  SlotPresenter(const SlotPresenter&) = delete;
+  SlotPresenter(SlotPresenter&&) noexcept = default;
+  SlotPresenter& operator=(const SlotPresenter&) = delete;
+  SlotPresenter& operator=(SlotPresenter&&) noexcept = default;
+
+  explicit SlotPresenter(const LayerSlotPresenter& l) noexcept = delete;
+  explicit SlotPresenter(const NodalSlotPresenter& l) noexcept = delete;
+  explicit SlotPresenter(LayerSlotPresenter&& l) noexcept
+      : ossia::variant<LayerSlotPresenter, NodalSlotPresenter>{std::move(l)}
+  {
+  }
+  explicit SlotPresenter(NodalSlotPresenter&& l) noexcept
+      : ossia::variant<LayerSlotPresenter, NodalSlotPresenter>{std::move(l)}
+  {
+  }
 
   LayerSlotPresenter* getLayerSlot() const noexcept
   {

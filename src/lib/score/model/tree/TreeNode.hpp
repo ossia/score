@@ -274,8 +274,7 @@ std::vector<Node_T*> filterUniqueParents(std::vector<Node_T*>& nodes) noexcept
 {
   std::vector<Node_T*> cleaned_nodes;
 
-  ossia::sort(nodes);
-  nodes.erase(ossia::unique(nodes), nodes.end());
+  ossia::remove_duplicates(nodes);
 
   cleaned_nodes.reserve(nodes.size());
 

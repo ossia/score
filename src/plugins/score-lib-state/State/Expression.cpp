@@ -72,7 +72,12 @@ QString State::ExprData::toString() const
       return unopMap[rel];
     }
     return_type operator()(const InvisibleRootNode rel) const { return ""; }
-    return_type operator()(ossia::monostate) const { SCORE_ASSERT(!__PRETTY_FUNCTION__); return {}; }
+    return_type operator()(ossia::monostate) const {
+      #if !defined(_MSC_VER)
+      SCORE_ASSERT(!__PRETTY_FUNCTION__);
+      #endif
+      return {};
+    }
   };
 
   return ossia::visit(vis{}, m_data);

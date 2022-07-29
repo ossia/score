@@ -28,8 +28,8 @@ View::View()
 
 void View::setLocalTree(bool val)
 {
-  if (val != m_cb->checkState())
-    m_cb->setCheckState(val ? Qt::Checked : Qt::Unchecked);
+  if (val != m_cb->isChecked())
+    m_cb->setChecked(val);
 }
 
 QWidget* View::getWidget()

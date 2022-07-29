@@ -222,7 +222,7 @@ void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
 
 RenderList* ScreenNode::renderer() const
 {
-  if (m_window)
+  if (m_window && m_window->state)
     return m_window->state->renderer.lock().get();
   else
     return nullptr;
@@ -327,14 +327,19 @@ void ScreenNode::createOutput(
   };
   m_window->onResize = [this, onResize = std::move(onResize)]
   {
-    if(!this->m_renderSz)
+    if(m_window && m_window->state)
     {
-      m_window->state->renderSize = m_window->state->outputSize;
+      auto& st = *m_window->state;
+      if(!this->m_renderSz)
+      {
+        st.renderSize = st.outputSize;
+      }
+      else
+      {
+        st.renderSize = *this->m_renderSz;
+      }
     }
-    else
-    {
-      m_window->state->renderSize = *this->m_renderSz;
-    }
+
     if(onResize)
     {
       onResize();

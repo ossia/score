@@ -349,7 +349,7 @@ void View::setSlotHeight(const double val)
 
 void View::setAutoSequence(const bool val)
 {
-  if (val != m_sequence->checkState())
+  if (val != m_sequence->isChecked())
     m_sequence->setChecked(val);
 }
 

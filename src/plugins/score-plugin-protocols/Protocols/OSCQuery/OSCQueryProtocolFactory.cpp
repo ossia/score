@@ -58,7 +58,7 @@ private:
     if (m_instances.count(instance) == 0)
     {
       m_instances.insert(instance);
-      deviceAdded(settingsForInstance(instance));
+      settingsForInstance(instance);
     }
   }
 
@@ -71,15 +71,14 @@ private:
     }
   }
 
-  Device::DeviceSettings
-  settingsForInstance(const std::string& instance) const noexcept
+  void 
+  settingsForInstance(const std::string& instance) noexcept
   {
     using namespace std::literals;
 
     Device::DeviceSettings set;
     set.name = QString::fromStdString(instance);
     set.protocol = OSCQueryProtocolFactory::static_concreteKey();
-    OSCQuerySpecificSettings sub;
 
     std::string ip = m_serv.get(instance, "servus_host");
     if (ip.empty())
@@ -126,8 +125,6 @@ private:
     }
 
     {
-      QEventLoop e;
-
       QString req = QString("http://%1:%2/?HOST_INFO")
                         .arg(QString::fromStdString(ip))
                         .arg(QString::fromStdString(port));
@@ -138,51 +135,41 @@ private:
 #endif
       QPointer<QNetworkReply> ret = m_http.get(qreq);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-      connect(ret, &QNetworkReply::errorOccurred, this, [&e] { e.exit(); });
+      connect(ret, &QNetworkReply::errorOccurred, this, 
 #else
       connect(
           ret,
           qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
           this,
-          [&e] { e.exit(); });
 #endif
+            [] {  }
+      );
 #if QT_CONFIG(ssl)
-      connect(ret, &QNetworkReply::sslErrors, this, [&e] { e.exit(); });
+      connect(ret, &QNetworkReply::sslErrors, this, [] { });
 #endif
-      connect(ret, &QNetworkReply::finished, this, [=, &set, &e] {
+      connect(ret, &QNetworkReply::finished, this, [=] () mutable {
         auto doc = QJsonDocument::fromJson(ret->readAll());
         QString newName = doc.object()["NAME"].toString();
         if (!newName.isEmpty())
           set.name = newName;
-
+        
+        OSCQuerySpecificSettings sub;
+        sub.host = QString("%1://%2:%3")
+                       .arg(websockets ? "ws" : "http")
+                       .arg(ip.c_str())
+                       .arg(port.c_str());
+    
+        set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
+        deviceAdded(set);
         ret->deleteLater();
-        e.exit();
       });
-
-      e.exec();
-      if (ret)
-      {
-        ret->deleteLater();
-      }
     }
-
-    sub.host = QString("%1://%2:%3")
-                   .arg(websockets ? "ws" : "http")
-                   .arg(ip.c_str())
-                   .arg(port.c_str());
-
-    set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
-    return set;
   }
 
   // DeviceEnumerator API
   void enumerate(
       std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    for (const auto& instance : m_instances)
-    {
-      f(settingsForInstance(instance));
-    }
   }
 
   void timerEvent(QTimerEvent* ev) override { m_serv.browse(0); }

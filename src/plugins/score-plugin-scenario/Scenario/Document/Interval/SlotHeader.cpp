@@ -34,7 +34,7 @@ SlotHeader::SlotHeader(
     , m_width{slotView.view()->boundingRect().width()}
     , m_slotIndex{slotIndex}
 {
-  this->setToolTip(QObject::tr("Slot header\nDrag the \u2630 symbol to move the slot elsewhere."));
+  this->setToolTip(QObject::tr("Slot header\nDrag the symbol to move the slot elsewhere."));
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptHoverEvents(true);
   this->setFlag(ItemClipsToShape);

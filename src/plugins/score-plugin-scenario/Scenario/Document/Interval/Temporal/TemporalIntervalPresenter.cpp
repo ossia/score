@@ -489,7 +489,7 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
         p.footer = new FixedSlotFooter{*this, pos, m_view};
 
       // p.view = new SlotView{};
-      m_slots.insert(m_slots.begin() + pos, std::move(p));
+      m_slots.emplace(m_slots.begin() + pos, std::move(p));
 
       // FIXME: due to a crash with slots with invalid processes being
       // serialized. fix the model !!
@@ -528,7 +528,7 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
           = m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio);
       nodal->setRect({0, 0, def_width, p.height});
 
-      m_slots.insert(m_slots.begin() + pos, std::move(p));
+      m_slots.emplace(m_slots.begin() + pos, std::move(p));
     }
     updatePositions();
   }
@@ -573,7 +573,7 @@ void TemporalIntervalPresenter::createCollapsedSlot(int pos, const Slot& slt)
     setHeaderWidth(
         p, m_model.duration.defaultDuration().toPixelsRaw(m_zoomRatio));
   }
-  m_slots.insert(m_slots.begin() + pos, std::move(p));
+  m_slots.emplace(m_slots.begin() + pos, std::move(p));
 
   updatePositions();
 }

@@ -8,6 +8,7 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/ForEach.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/ssize.hpp>
 
@@ -21,8 +22,7 @@ W_OBJECT_IMPL(Selectable)
 W_OBJECT_IMPL(score::FocusManager)
 void Selection::removeDuplicates()
 {
-  std::sort(begin(), end());
-  std::unique(begin(), end());
+  ossia::remove_duplicates(*this);
 }
 
 Selectable::Selectable() { }

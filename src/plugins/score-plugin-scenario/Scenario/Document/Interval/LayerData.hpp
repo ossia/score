@@ -62,11 +62,11 @@ public:
     Scenario::LayerRectItem* container{};
     Process::LayerView* view{};
   };
-  LayerData() = default;
+  LayerData() noexcept = default;
   LayerData(const LayerData&) = delete;
-  LayerData(LayerData&&) = default;
-  LayerData& operator=(const LayerData&) = default;
-  LayerData& operator=(LayerData&&) = default;
+  LayerData(LayerData&&) noexcept = default;
+  LayerData& operator=(const LayerData&) = delete;
+  LayerData& operator=(LayerData&&) noexcept = default;
   LayerData(const Process::ProcessModel* m);
 
   Process::LayerPresenter* mainPresenter() const noexcept;
