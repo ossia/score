@@ -2965,13 +2965,13 @@ bool spoutGL::LoadGLextensions()
 	// Test PBO availability unless user has selected buffering off
 	// m_bPBOavailable also set by SetBufferMode()
 	if (m_bPBOavailable) {
-		if (!(m_caps && GLEXT_SUPPORT_PBO))
+		if (!(m_caps & GLEXT_SUPPORT_PBO))
 			m_bPBOavailable = false;
 	}
 
 	// Show status
 	if (!m_bPBOavailable) {
-		if (!(m_caps && GLEXT_SUPPORT_PBO))
+		if (!(m_caps & GLEXT_SUPPORT_PBO))
 			SpoutLogWarning("spoutGL::LoadGLextensions - pbo extensions not available");
 		else
 			SpoutLogWarning("spoutGL::LoadGLextensions - pbo functions disabled by settings");
