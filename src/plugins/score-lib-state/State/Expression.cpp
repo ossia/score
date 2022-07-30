@@ -25,7 +25,7 @@ QDebug operator<<(QDebug s, const Message& mess)
 // That one is needed for std::list::operator< 's instantiation...
 bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
 {
-  return false;
+  return lhs.toString() < rhs.toString();
 }
 }
 

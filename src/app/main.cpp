@@ -31,6 +31,7 @@ extern "C" void sincos(double x, double* sin, double* cos)
 
 #include "Application.hpp"
 #include <ossia/detail/thread.hpp>
+#include <ossia/detail/config.hpp>
 #include <score/widgets/MessageBox.hpp>
 
 #include <clocale>
@@ -430,7 +431,15 @@ static void setup_app_flags()
 static void setup_fftw()
 {
   // See http://fftw.org/fftw3_doc/Thread-safety.html
+#if defined(OSSIA_FFTW_SINGLE_ONLY)
+  fftwf_make_planner_thread_safe();
+  fftwf_plan_with_nthreads(1);
+  fftwf_init_threads();
+#elif defined(OSSIA_FFTW_DOUBLE_ONLY)
   fftw_make_planner_thread_safe();
+  fftw_plan_with_nthreads(1);
+  fftw_init_threads();
+#endif
 }
 #else
 static void setup_fftw() { }
