@@ -24,7 +24,7 @@ SystemLibraryWidget::SystemLibraryWidget(
     QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
-    , m_proxy{new QSortFilterProxyModel{this}}
+    , m_proxy{new FileSystemRecursiveFilterProxy{this}}
     , m_preview{this}
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
@@ -142,9 +142,19 @@ SystemLibraryWidget::~SystemLibraryWidget() { }
 void SystemLibraryWidget::setRoot(QString path)
 {
   auto idx = m_model->setRootPath(path);
-  m_tv.setRootIndex(m_proxy->mapFromSource(idx));
-  for (int i = 1; i < m_model->columnCount(); ++i)
-    m_tv.hideColumn(i);
+  ((FileSystemRecursiveFilterProxy*)m_proxy)->fixedRoot = path;
+  if(idx.isValid())
+  {
+    m_tv.setRootIndex(m_proxy->mapFromSource(idx));
+    for (int i = 1; i < m_model->columnCount(); ++i)
+      m_tv.hideColumn(i);
+
+    m_tv.setEnabled(true);
+  }
+  else
+  {
+    m_tv.setEnabled(false);
+  }
 }
 
 }

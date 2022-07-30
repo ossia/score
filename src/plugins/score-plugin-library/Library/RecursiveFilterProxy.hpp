@@ -1,16 +1,17 @@
 #pragma once
 #include <score/tools/Debug.hpp>
 
+#include <QFileSystemModel>
 #include <QSortFilterProxyModel>
 
 namespace Library
 {
-class RecursiveFilterProxy final : public QSortFilterProxyModel
+class RecursiveFilterProxy : public QSortFilterProxyModel
 {
 public:
   using QSortFilterProxyModel::QSortFilterProxyModel;
 
-private:
+protected:
   bool
   filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
@@ -34,10 +35,11 @@ private:
   bool filterAcceptsRowItself(int srcRow, const QModelIndex& srcParent) const
   {
     QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
+    const QVariant& data = sourceModel()->data(index);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    return sourceModel()->data(index).toString().contains(filterRegExp());
+    return data.toString().contains(filterRegExp());
 #else
-    return sourceModel()->data(index).toString().contains(
+    return data.toString().contains(
         filterRegularExpression());
 #endif
   }
@@ -65,6 +67,49 @@ private:
     }
 
     return false;
+  }
+};
+
+class FileSystemRecursiveFilterProxy final : public RecursiveFilterProxy
+{
+public:
+  using RecursiveFilterProxy::RecursiveFilterProxy;
+
+  QString fixedRoot{};
+private:
+  QFileSystemModel* sourceModel() const noexcept
+  { return static_cast<QFileSystemModel*>(QSortFilterProxyModel::sourceModel());}
+  bool
+  filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
+  {
+    QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
+    if(!sourceModel()->filePath(index).startsWith(fixedRoot))
+    {
+      return false;
+    }
+
+    if (filterAcceptsRowItself(srcRow, srcParent))
+    {
+      return true;
+    }
+
+    QModelIndex root_index = sourceModel()->index(fixedRoot);
+    // Accept if any of the parents is accepted on its own
+    for (QModelIndex parent = srcParent; parent.isValid();
+         parent = parent.parent())
+    {
+      // We went up to the root. We know that we are a child due to the startsWith.
+      if (parent == root_index)
+        return false;
+
+      if (filterAcceptsRowItself(parent.row(), parent.parent()))
+      {
+        return true;
+      }
+    }
+
+    // Accept if any of the children is accepted on its own
+    return hasAcceptedChildren(srcRow, srcParent);
   }
 };
 }

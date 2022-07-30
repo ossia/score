@@ -192,8 +192,15 @@ public:
     {
       const auto& [emplaced_it, value] = messages.emplace(addr.address, as->value);
       auto dist = std::distance(messages.begin(), emplaced_it);
-      this->insertItem(dist, new QListWidgetItem{textFromMessage(addr.address, as->value)});
+      auto new_item = new QListWidgetItem{textFromMessage(addr.address, as->value)};
+      this->insertItem(dist, new_item);
       this->scrollToBottom();
+
+      // Select the first message to be learned
+      if(messages.size() == 1)
+      {
+        new_item->setSelected(true);
+      }
     }
     else
     {

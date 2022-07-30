@@ -22,7 +22,7 @@ ProjectLibraryWidget::ProjectLibraryWidget(
     QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
-    , m_proxy{new RecursiveFilterProxy{this}}
+    , m_proxy{new FileSystemRecursiveFilterProxy{this}}
 {
   auto lay = new score::MarginLess<QVBoxLayout>;
   setStatusTip(QObject::tr(

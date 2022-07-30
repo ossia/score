@@ -37,6 +37,16 @@ public:
       if (!text().isEmpty())
       {
         m_view.expandAll();
+
+        if(m_proxy.hasChildren())
+        {
+          auto item_to_select = QModelIndex();
+          while(m_proxy.hasChildren(item_to_select))
+          {
+            item_to_select = m_proxy.index(0, 0, item_to_select);
+          }
+          m_view.setCurrentIndex(item_to_select);
+        }
       }
     }
 
