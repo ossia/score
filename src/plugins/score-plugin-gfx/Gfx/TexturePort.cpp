@@ -30,7 +30,7 @@ class GraphPreviewWidget
 public:
   GraphPreviewWidget(const TextureOutlet& outlet, Gfx::DocumentPlugin& plug)
     : outlet_p{&outlet}
-    , plug{plug}
+    , plug{&plug}
   {
     setLayout(new Inspector::VBoxLayout{this});
     auto window = std::make_unique<score::gfx::ScreenNode>(true);
@@ -57,7 +57,8 @@ public:
     {
       if(e)
       {
-        plug.context.disconnect_preview_node(*e);
+        if (plug)
+          plug->context.disconnect_preview_node(*e);
         e = std::nullopt;
       }
 
@@ -65,7 +66,9 @@ public:
       {
         nodeId = outlet.nodeId;
         e = { {nodeId, 0}, {screenId, 0} };
-        plug.context.connect_preview_node(*e);
+
+        if (plug)
+          plug->context.connect_preview_node(*e);
       }
     }
 
@@ -95,12 +98,13 @@ public:
 
     // We "garbage collect" the window
     QTimer::singleShot(1, [w=this->window] { });
-    plug.context.unregister_preview_node(screenId);
+    if (plug)
+      plug->context.unregister_preview_node(screenId);
   }
 
 private:
   QPointer<const TextureOutlet> outlet_p;
-  Gfx::DocumentPlugin& plug;
+  QPointer<Gfx::DocumentPlugin> plug;
   score::gfx::ScreenNode* node{};
   std::optional<Gfx::Edge> e;
 
