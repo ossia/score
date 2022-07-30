@@ -431,9 +431,9 @@ static bool pulse(QBrush& ref, bool pulse, int& idx)
   auto alpha = col.alphaF();
   if (pulse)
   {
-    alpha += 0.02;
+    alpha += 0.02f;
     idx++;
-    if (alpha >= 1 || idx > 24)
+    if (alpha >= 1.0f || idx > 24)
     {
       invert = true;
       alpha = 1;
@@ -443,12 +443,12 @@ static bool pulse(QBrush& ref, bool pulse, int& idx)
   }
   else
   {
-    alpha -= 0.02;
+    alpha -= 0.02f;
     idx--;
-    if (alpha <= 0.5 || idx < 0)
+    if (alpha <= 0.5f || idx < 0)
     {
       invert = true;
-      alpha = 0.5;
+      alpha = 0.5f;
       idx = 0;
     }
     col.setAlphaF(alpha);

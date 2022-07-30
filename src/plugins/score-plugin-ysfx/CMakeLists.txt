@@ -8,9 +8,6 @@ score_common_setup()
 
 # Packages
 find_package(Freetype)
-if(NOT TARGET Freetype::Freetype)
-  return()
-endif()
 
 find_package(Ysfx)
 if(NOT TARGET Ysfx::Ysfx)
@@ -49,8 +46,14 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(
   ${PROJECT_NAME} PUBLIC
   score_lib_base score_plugin_engine
-  Ysfx::Ysfx Freetype::Freetype
+  Ysfx::Ysfx
 )
+
+if(TARGET Freetype::Freetype)
+  target_link_libraries(
+    ${PROJECT_NAME} PUBLIC Freetype::Freetype
+  )
+endif()
 
 if(SCORE_FHS_BUILD)
   target_link_libraries(${PROJECT_NAME} PUBLIC -lfontconfig)

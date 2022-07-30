@@ -169,7 +169,7 @@ public:
 
 private:
   std::string prev_type{"OneEuro"};
-  float prev_amount{1 / SCALED_AMOUNT}, prev_freq{INIT_FREQ}, prev_cutoff{INIT_CUTOFF},
+  double prev_amount{1. / SCALED_AMOUNT}, prev_freq{INIT_FREQ}, prev_cutoff{INIT_CUTOFF},
       prev_beta{INIT_BETA};
 
   NoiseFilter nf{};

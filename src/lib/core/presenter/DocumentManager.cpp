@@ -75,7 +75,7 @@ static QDir getDialogDirectory(score::Document* current)
   if (current)
   {
     auto& doc = *current;
-    QFileInfo file{doc.metadata().fileName()};
+    const QFileInfo file{doc.metadata().fileName()};
     if(file.exists())
     {
       if (auto dir = file.absoluteDir(); dir.exists())
@@ -86,8 +86,10 @@ static QDir getDialogDirectory(score::Document* current)
 #if !defined(__EMSCRIPTEN__)
   if (QSettings s; s.contains("score/last_open_doc"))
   {
-    QFileInfo file{s.value("score/last_open_doc").toString()};
-    if (auto dir = file.absoluteDir(); dir.exists())
+    const QFileInfo file{s.value("score/last_open_doc").toString()};
+    if (file.isDir() && file.exists())
+      return QDir{file.absoluteFilePath()};
+    else if (auto dir = file.absoluteDir(); dir.exists())
       return dir;
   }
 #endif

@@ -280,7 +280,7 @@ void TemporalIntervalView::paint(
     auto brush
         = m_presenter.model().metadata().getColor().getBrush().main.brush;
     auto col = brush.color();
-    col.setAlphaF(0.6);
+    col.setAlphaF(0.6f);
     brush.setColor(col);
     painter.fillRect(backgroundRect, brush);
   }

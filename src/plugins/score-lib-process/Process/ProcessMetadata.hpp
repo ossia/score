@@ -15,7 +15,7 @@ namespace Process
 {
 SCORE_LIB_PROCESS_EXPORT
 const QIcon& getCategoryIcon(const QString& category) noexcept;
-enum ProcessCategory
+enum ProcessCategory : uint64_t
 {
   Other,
   Automation,
@@ -29,7 +29,7 @@ enum ProcessCategory
   Script,      // JS, PD, etc
   Structure,   // scenario, loop, etc
   Visual,      // gfx processes
-  Deprecated = (1LL << 63),      // gfx processes
+  Deprecated = (1ULL << 63),      // gfx processes
 };
 
 struct Descriptor
