@@ -134,8 +134,13 @@ Model::Model(
 
 Model::~Model()
 {
+  // close will set the pointer to nullptr
+  if(this->externalUI)
+    this->externalUI->close();
+
   if (fx && fx->fx)
     fx->fx->resvd1 = 0;
+
   fx.reset();
 }
 

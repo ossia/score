@@ -6,11 +6,9 @@ mkdir -p build || true
 cd build
 
 # FIXME vst3 error in sdk hosting...
-# FIXME windres error.. https://gitlab.kitware.com/cmake/cmake/-/merge_requests/24
-
 
 cmake $SCORE_DIR \
-  -G"MinGW Makefiles" \
+  -GNinja \
   -DQT_VERSION="Qt6;6.2" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \

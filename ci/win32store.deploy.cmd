@@ -40,7 +40,7 @@ signtool sign /fd sha256 /a /f %OSSIA_WIN32_CERTIFICATE% /p %OSSIA_WIN32_CERT_PA
 signtool sign /fd sha256 /a /f %OSSIA_WIN32_CERTIFICATE% /p %OSSIA_WIN32_CERT_PASSWORD% libwinpthread-1.dll
 
 REM Create the appxbundle
-makeappx build /v /f %SCORE_PATH%\cmake\Deployment\Windows\store\PackagingLayout.xml /op %SCORE_PATH%\output /bv %GITTAGNOV%.0 /pv %GITTAGNOV%.0 /ca
+makeappx build /v /f %SCORE_PATH%\cmake\Deployment\Windows\store\PackagingLayout.xml /op %SCORE_PATH%\output /ca
 
 REM Sign the appxbundle
 signtool sign /fd sha256 /a /f %OSSIA_WIN32_CERTIFICATE% /p %OSSIA_WIN32_CERT_PASSWORD% %SCORE_PATH%\output\ossia-score.appxbundle
