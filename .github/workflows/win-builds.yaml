@@ -108,6 +108,8 @@ jobs:
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
+        with:
+          version: 6.3
 
       - name: Set up Visual Studio shell
         uses: egor-tensin/vs-shell@v2
