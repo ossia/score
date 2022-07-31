@@ -96,3 +96,31 @@ jobs:
         shell: msys2 {0}
         run: |
           ./ci/mingw.build.sh
+
+  winmvsc:
+    name: MSVC
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+
+      - name: Set up Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+
+      - name: Dependencies
+        shell: bash
+        run: |
+          ./ci/win32.deps.sh
+
+      - name: Build
+        shell: cmd
+        run: |
+          call "%cd%\ci\win32store.build.cmd"
+
