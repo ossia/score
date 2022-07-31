@@ -1,0 +1,98 @@
+name: Windows build
+on: push
+
+jobs:
+  winstore:
+    name: Windows (store)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        shell: bash
+        run: |
+          ./ci/win32.deps.sh
+
+      - name: Build
+        shell: cmd
+        run: |
+          call "%cd%\ci\win32store.build.cmd"
+
+      - name: Create certificate
+        shell: pwsh
+        env:
+          OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
+          OSSIA_WIN32_CERT_PASSWORD: ${{ secrets.OSSIA_WIN32_CERT_PASSWORD }}
+        run: |
+          .\ci\win32store.cert.ps1
+
+      - name: Set up Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+
+      - name: Deploy
+        shell: cmd
+        env:
+          OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
+          OSSIA_WIN32_CERT_PASSWORD: ${{ secrets.OSSIA_WIN32_CERT_PASSWORD }}
+        run: |
+          call "%cd%\ci\win32store.deploy.cmd"
+
+      - name: Upload build
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-store
+          path: |
+            output/*.appxbundle
+
+  mingw:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - { sys: mingw64, env: x86_64 }
+          - { sys: mingw32, env: i686 }
+          - { sys: ucrt64,  env: ucrt-x86_64 } 
+          - { sys: clang64, env: clang-x86_64 }
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Setup msys2 and mingw-w64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          pacboy: >-
+            cmake:p 
+            ninja:p 
+            toolchain:p 
+            qt6-base:p 
+            qt6-declarative:p 
+            qt6-websockets:p 
+            qt6-serialport:p
+            qt6-shadertools:p 
+            qt6-5compat:p 
+            qt6-scxml:p 
+            qt6-tools:p
+            boost:p 
+            portaudio:p 
+            fftw:p 
+            ffmpeg:p
+            SDL2:p
+            
+      - name: Dependencies
+        shell: msys2 {0}
+        run: |
+          ./ci/mingw.deps.sh
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          ./ci/mingw.build.sh

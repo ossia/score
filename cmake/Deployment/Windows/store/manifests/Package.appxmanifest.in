@@ -16,7 +16,7 @@
   <Properties>
     <DisplayName>ossia score</DisplayName>
     <PublisherDisplayName>ossia.io</PublisherDisplayName>
-    <Logo>images/ossia-50x50.png</Logo>
+    <Logo>images/StoreLogo.png</Logo>
   </Properties>
   
   <Dependencies>
@@ -30,10 +30,11 @@
       <uap:VisualElements 
         DisplayName="ossia score"
         Description="an interactive and intermedia sequencer"
-        Square150x150Logo="images/ossia-150x150.png"
-        Square44x44Logo="images/ossia-44x44.png"
+        Square150x150Logo="images/Square150x150Logo.png"
+        Square44x44Logo="images/Square44x44Logo.png"
         BackgroundColor="transparent">
-        <uap:SplashScreen Image="images/banner-620x300.png" />
+        <uap:DefaultTile Wide310x150Logo="images/Wide310x150Logo.png" Square71x71Logo="images/SmallTile.png" Square310x310Logo="images/LargeTile.png"/>
+        <uap:SplashScreen Image="images/SplashScreen.png" />
       </uap:VisualElements>
       
       <Extensions>

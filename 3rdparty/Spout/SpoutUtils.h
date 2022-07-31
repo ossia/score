@@ -52,7 +52,7 @@
 // a Visual studio 2017 compiler. "#include <chrono>" will then fail.
 // If this is a problem, remove _MSC_VER_ and manually enable/disable the USE_CHRONO define.
 //
-#if _MSC_VER >= 1900 || defined (__clang__)
+#if _MSC_VER >= 1900 || defined (__clang__) || (__cplusplus >= 201703L)
 #define USE_CHRONO
 #endif
 

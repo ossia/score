@@ -2,15 +2,23 @@
 
 export SCORE_DIR=$PWD
 
-mkdir -p /build || true
-cd /build
+mkdir -p build || true
+cd build
+
+# FIXME vst3 error in sdk hosting...
+# FIXME windres error.. https://gitlab.kitware.com/cmake/cmake/-/merge_requests/24
+
 
 cmake $SCORE_DIR \
-  -GNinja \
+  -G"MinGW Makefiles" \
+  -DQT_VERSION="Qt6;6.2" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
+  -DSCORE_DISABLED_PLUGINS="score-plugin-vst3;score-plugin-jit;score-plugin-faust" \
   -DCMAKE_CXX_FLAGS="-Wa,-mbig-obj" \
-  -DSCORE_DYNAMIC_PLUGINS=1 \
+  -DCMAKE_C_USE_RESPONSE_FILE_FOR_OBJECTS=1 \
+  -DCMAKE_CXX_USE_RESPONSE_FILE_FOR_OBJECTS=1 \
+  -DCMAKE_NINJA_FORCE_RESPONSE_FILE=1 \
   -DSCORE_PCH=1
 
 cmake --build .

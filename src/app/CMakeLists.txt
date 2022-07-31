@@ -86,7 +86,19 @@ if(MSVC)
 endif()
 
 if(WIN32)
-  target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
+  if(MSVC OR ("${CMAKE_RC_COMPILER}" MATCHES ".*llvm.*"))
+    target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
+  else()
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/score-icon.obj"
+                       COMMAND "${CMAKE_RC_COMPILER}"
+                            -D GCC_WINDRES
+                            -I "${CMAKE_CURRENT_SOURCE_DIR}"
+                            -I "${CMAKE_CURRENT_BINARY_DIR}"
+                            -o "${CMAKE_CURRENT_BINARY_DIR}/score-icon.obj"
+                            -i "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc"
+                        VERBATIM)
+    target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/score-icon.obj")
+  endif()
 endif()
 
 if(UNIX AND NOT APPLE)

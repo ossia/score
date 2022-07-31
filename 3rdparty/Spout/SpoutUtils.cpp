@@ -742,35 +742,7 @@ namespace spoututils {
 		// Get the default log file path
 		std::string _getLogPath()
 		{
-			char logpath[MAX_PATH];
-			logpath[0] = 0;
-
-			// Retrieve user %appdata% environment variable
-			char *appdatapath = nullptr;
-			size_t len;
-			bool bSuccess = true;
-			errno_t err = _dupenv_s(&appdatapath, &len, "APPDATA");
-			if (err == 0 && appdatapath) {
-				strcpy_s(logpath, MAX_PATH, appdatapath);
-				strcat_s(logpath, MAX_PATH, "\\Spout");
-				if (_access(logpath, 0) == -1) {
-					if (!CreateDirectoryA(logpath, NULL)) {
-						bSuccess = false;
-					}
-				}
-			}
-			else {
-				bSuccess = false;
-			}
-
-			if (!bSuccess) {
-				// _dupenv_s or CreateDirectory failed
-				// Find the path of the executable
-				GetModuleFileNameA(NULL, (LPSTR)logpath, sizeof(logpath));
-				PathRemoveFileSpecA((LPSTR)logpath);
-			}
-
-			return logpath;
+      return {};
 		}
 
 		// Get the name for the current log level

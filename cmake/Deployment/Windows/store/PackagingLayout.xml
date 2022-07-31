@@ -3,12 +3,16 @@
     <Package ID="x64" ProcessorArchitecture="x64">
       <Files>
         <File DestinationPath="score.exe" SourcePath="score.exe"/>
+        <File DestinationPath="ossia-score-vstpuppet.exe" SourcePath="ossia-score-vstpuppet.exe"/>
+        <File DestinationPath="ossia-score-vst3puppet.exe" SourcePath="ossia-score-vst3puppet.exe"/>
         <File DestinationPath="*.manifest" SourcePath="*.manifest"/>
         <File DestinationPath="*.dll" SourcePath="*.dll"/>
         <File DestinationPath="*.conf" SourcePath="*.conf"/>
         <File DestinationPath="*.png" SourcePath="*.png"/>
         <File DestinationPath="images\*.png" SourcePath="images\*.png"/>
         <File DestinationPath="*.ico" SourcePath="*.ico"/>
+        <File DestinationPath="*.pri" SourcePath="*.pri"/>
+        <File DestinationPath="*.xml" SourcePath="*.xml"/>
         <!-- <File DestinationPath="faust\\**" SourcePath="faust\**"/> -->
       </Files>
     </Package>

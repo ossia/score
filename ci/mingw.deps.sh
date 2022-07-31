@@ -1,20 +1,15 @@
 #!/bin/bash -eux
 
-sudo pacman -S --needed --noconfirm \
-    mingw-w64-qt5-base mingw-w64-qt5-declarative mingw-w64-qt5-serialport mingw-w64-qt5-websockets \
-    mingw-w64-portaudio \
-    mingw-w64-fftw \
-    mingw-w64-ffmpeg \
-    ninja \
-    mingw-w64-gcc
+# Done in the GH action for caching:
+# pacboy -S --needed --noconfirm \
+#     cmake:p ninja:p toolchain:p \
+#     qt6-base:p qt6-declarative:p qt6-websockets:p qt6-serialport:p \
+#     qt6-shadertools:p qt6-5compat:p qt6-scxml:p qt6-tools:p \
+#     boost:p portaudio:p fftw:p ffmpeg:p \
+#     SDL2:p
 
-# sudo pacman -S --needed --noconfirm \
-#     mingw-w64-x86_64-qt5 \
-#     mingw-w64-x86_64-portaudio \
-#     mingw-w64-x86_64-fftw \
-#     mingw-w64-x86_64-ffmpeg \
-#     mingw-w64-x86_64-cmake \
-#     mingw-w64-x86_64-ninja \
-#     mingw-w64-x86_64-gcc
+# TODO:
+# jack2:p   not available on clang?
+# lv2 suil lilv
 
-source ci/common.deps.sh
+# source ci/common.deps.sh
