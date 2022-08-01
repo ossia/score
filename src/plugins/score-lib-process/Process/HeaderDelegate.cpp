@@ -106,13 +106,13 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
   if(flags & Process::ProcessFlags::Recordable)
   {
     auto rec_btn = new score::QGraphicsPixmapToggle{pixmaps.record_on, pixmaps.record_off, this};
-    rec_btn->setPos(m_portStartX, 2);
+    rec_btn->setPos(m_portStartX, 0);
     m_portStartX += 12;
   }
   if(flags & Process::ProcessFlags::Snapshottable)
   {
     auto rec_btn = new score::QGraphicsPixmapButton{pixmaps.snapshot_on, pixmaps.snapshot_off, this};
-    rec_btn->setPos(m_portStartX, 2);
+    rec_btn->setPos(m_portStartX, 0);
     m_portStartX += 18;
   }
 
