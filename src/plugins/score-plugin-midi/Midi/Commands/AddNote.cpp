@@ -8,6 +8,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 namespace Midi
 {
 
@@ -45,14 +47,14 @@ AddNotes::AddNotes(const ProcessModel& model, const std::vector<NoteData>& notes
 {}
 
 void AddNotes::undo(const score::DocumentContext& ctx) const{
-    for(int i = 0;i < m_ids.size();i++){
+  for(int i = 0; i < std::ssize(m_ids); i++){
         m_model.find(ctx).notes.remove(m_ids[i]);
     }
 }
 
 void AddNotes::redo(const score::DocumentContext& ctx) const{
     auto& model = m_model.find(ctx);
-    for(int i = 0; i < m_ids.size();i++){
+    for(int i = 0; i < std::ssize(m_ids); i++){
         model.notes.add(new Note{m_ids[i],m_notes[i],&model});
     }
 }
