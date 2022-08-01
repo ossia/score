@@ -372,13 +372,10 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   // Scale notes so that the durations are relative to the ratio of the song
   // duration & constraint duration
   const double ratio = song.durationInMs / model().duration().msec();
-  for (auto& note : track.notes)
-  {
-    note.setStart(ratio * note.start());
-    note.setDuration(ratio * note.duration());
-  }
+  track.notes.apply_scale_ratio(ratio);
+  track.trackEvents.apply_scale_ratio(ratio);
   disp.submit<Midi::ReplaceNotes>(
-      model(), track.notes, track.min, track.max, model().duration());
+      model(), track.notes, track.notes.minimum_pitch_noticed(), track.notes.maximum_pitch_noticed(), model().duration());
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const
