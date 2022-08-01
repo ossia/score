@@ -32,8 +32,6 @@
 #define uuid_constexpr constexpr
 #endif
 
-#define constant static inline constexpr auto
-
 namespace oscr
 {
 template <typename Node, typename FieldIndex>
