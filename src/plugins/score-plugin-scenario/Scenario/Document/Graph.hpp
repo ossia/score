@@ -7,6 +7,8 @@
 #include <nano_observer.hpp>
 #include <score_plugin_scenario_export.h>
 
+#include <QObject>
+
 namespace Scenario
 {
 class TimeSyncModel;
@@ -55,7 +57,9 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraphComponents
   bool isInMain(const Scenario::EventModel& c) const;
   bool isInMain(const Scenario::StateModel& c) const;
 };
-struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph : public Nano::Observer
+struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
+    : public QObject
+    , public Nano::Observer
 {
   TimenodeGraph(const Scenario::ProcessModel& scenar);
 

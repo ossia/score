@@ -2,6 +2,8 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <score/tools/Debug.hpp>
+#include <iostream>
 
 namespace score::gfx
 {

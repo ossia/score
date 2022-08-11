@@ -5,6 +5,7 @@
 #include <ossia/dataflow/token_request.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/mutex.hpp>
 #include <ossia/detail/variant.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
@@ -97,7 +98,7 @@ private:
   moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
 
   std::mutex edges_lock;
-  ossia::flat_set<Edge> new_edges;
+  ossia::flat_set<Edge> new_edges TS_GUARDED_BY(edges_lock);
   ossia::flat_set<Edge> edges;
   ossia::flat_set<Edge> preview_edges;
   std::atomic_bool edges_changed{};

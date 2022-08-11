@@ -3,6 +3,7 @@
 
 #include <ossia/detail/hash.hpp>
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/mutex.hpp>
 
 #include <QDebug>
 #include <QImage>
@@ -39,7 +40,7 @@ struct QImagePool
 
   static const constexpr int max_count = 100;
   using pool_t = ossia::fast_hash_map<std::pair<int, int>, Images>;
-  pool_t pool;
+  pool_t pool TS_GUARDED_BY(m_mtx);
   std::mutex m_mtx;
 
   static QImagePool& instance() noexcept

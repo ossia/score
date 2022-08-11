@@ -12,6 +12,7 @@
 #include <ossia/network/base/protocol.hpp>
 
 #include <QFormLayout>
+#include <QOffscreenSurface>
 #include <QLineEdit>
 
 #include <QtGui/private/qrhigles2_p_p.h>

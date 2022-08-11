@@ -1,6 +1,7 @@
 #include <Gfx/Graph/RenderedISFNode.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <score/tools/Debug.hpp>
 namespace score::gfx
 {
 

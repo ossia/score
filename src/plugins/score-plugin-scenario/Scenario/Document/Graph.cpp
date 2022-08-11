@@ -338,12 +338,16 @@ TimenodeGraphComponents TimenodeGraph::components()
 */
 void TimenodeGraph::intervalsChanged(const IntervalModel&)
 {
-  QTimer::singleShot(8, (QObject*)&m_scenario, [this] { recompute(); });
+  QTimer::singleShot(8, (QObject*)&m_scenario, [self = QPointer<TimenodeGraph>(this)] {
+    if(self) self->recompute();
+  });
 }
 
 void TimenodeGraph::timeSyncsChanged(const TimeSyncModel&)
 {
-  QTimer::singleShot(8, (QObject*)&m_scenario, [this] { recompute(); });
+  QTimer::singleShot(8, (QObject*)&m_scenario, [self = QPointer<TimenodeGraph>(this)] {
+    if(self) self->recompute();
+  });
 }
 
 bool TimenodeGraphComponents::isInMain(const EventModel& c) const

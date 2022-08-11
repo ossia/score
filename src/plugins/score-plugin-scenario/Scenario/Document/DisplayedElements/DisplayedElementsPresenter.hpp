@@ -27,7 +27,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final
 {
   W_OBJECT(DisplayedElementsPresenter)
 public:
-  DisplayedElementsPresenter(ScenarioDocumentPresenter& parent);
+  explicit DisplayedElementsPresenter(ScenarioDocumentPresenter& parent);
+  DisplayedElementsPresenter(const DisplayedElementsPresenter& parent) = delete;
+  DisplayedElementsPresenter(DisplayedElementsPresenter&& parent) noexcept = delete;
+  DisplayedElementsPresenter& operator=(const DisplayedElementsPresenter& parent) = delete;
+  DisplayedElementsPresenter& operator=(DisplayedElementsPresenter&& parent) noexcept = delete;
+
   ~DisplayedElementsPresenter();
   using QObject::event;
   using BaseScenarioPresenter<

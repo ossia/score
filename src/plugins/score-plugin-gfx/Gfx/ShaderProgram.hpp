@@ -4,6 +4,7 @@
 #include <ossia/detail/hash_map.hpp>
 
 #include <QDebug>
+#include <QObject>
 #include <QString>
 #include <QtGui/private/qshader_p.h>
 

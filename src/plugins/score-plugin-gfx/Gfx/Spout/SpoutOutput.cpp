@@ -9,6 +9,7 @@
 #include <QtGui/private/qrhigles2_p_p.h>
 
 #include <QFormLayout>
+#include <QOffscreenSurface>
 #include <QLabel>
 
 #include <Spout/SpoutSender.h>

@@ -3,6 +3,8 @@
 #include <score/serialization/VisitorInterface.hpp>
 
 #include <score_lib_base_export.h>
+
+class QWidget;
 namespace score
 {
 class Document;

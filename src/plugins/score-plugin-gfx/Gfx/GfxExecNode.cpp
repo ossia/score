@@ -54,6 +54,7 @@ void gfx_exec_node::run(
 
         break;
       }
+
       case ossia::texture_port::which:
       {
         if (auto in = inlet->address.target<ossia::net::parameter_base*>())

@@ -4,6 +4,7 @@
 #include <score/model/Identifier.hpp>
 
 #include <QPoint>
+#include <QObject>
 
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <score_plugin_scenario_export.h>
@@ -13,7 +14,6 @@
 
 class QGraphicsItem;
 class QMimeData;
-class QObject;
 
 namespace Scenario
 {

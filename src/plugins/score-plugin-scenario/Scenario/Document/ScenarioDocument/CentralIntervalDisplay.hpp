@@ -14,6 +14,11 @@ class CentralIntervalDisplay
 {
 public:
   explicit CentralIntervalDisplay(ScenarioDocumentPresenter& p);
+  CentralIntervalDisplay(const CentralIntervalDisplay&) = delete;
+  CentralIntervalDisplay(CentralIntervalDisplay&&) noexcept = delete;
+  CentralIntervalDisplay& operator=(const CentralIntervalDisplay&) = delete;
+  CentralIntervalDisplay& operator=(CentralIntervalDisplay&&) noexcept = delete;
+
   ~CentralIntervalDisplay();
 
   // Init method necessary because of

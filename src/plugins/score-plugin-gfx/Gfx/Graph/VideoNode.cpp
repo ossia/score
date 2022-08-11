@@ -1,6 +1,8 @@
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
 
+#include <score/tools/Debug.hpp>
+
 namespace score::gfx
 {
 void VideoNodeBase::setScaleMode(ScaleMode s)

@@ -6,6 +6,7 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 #include <atomic>
+#include <ossia/detail/mutex.hpp>
 
 namespace Video
 {
@@ -33,7 +34,7 @@ struct VideoFrameShare
   std::shared_ptr<Video::VideoInterface> m_decoder;
 
   mutable std::mutex m_frameLock{};
-  std::shared_ptr<RefcountedFrame> m_currentFrame{};
+  std::shared_ptr<RefcountedFrame> m_currentFrame TS_GUARDED_BY(m_frameLock);
 
   int64_t m_currentFrameIdx{};
 

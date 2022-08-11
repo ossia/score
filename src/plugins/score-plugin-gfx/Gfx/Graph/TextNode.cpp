@@ -63,6 +63,7 @@ void main ()
 )_";
 TextNode::TextNode()
 {
+  // FIXME why are the others missing ?????
   input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
   input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
   input.push_back(new Port{this, &ubo.scale[0], Types::Vec2, {}});

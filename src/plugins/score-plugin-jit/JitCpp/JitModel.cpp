@@ -14,6 +14,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <Gfx/TexturePort.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/IdentifierGeneration.hpp>

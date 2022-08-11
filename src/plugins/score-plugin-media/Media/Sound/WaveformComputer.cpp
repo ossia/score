@@ -224,39 +224,39 @@ struct WaveformComputerImpl
 
   struct SizeInfos
   {
-    int nchannels;
-    float logical_samples_per_pixels;
-    float physical_samples_per_pixels;
-    float tempo_ratio;
-    float pixel_ratio;
+    int32_t nchannels;
+    double logical_samples_per_pixels;
+    double physical_samples_per_pixels;
+    double tempo_ratio;
+    double pixel_ratio;
 
-    float logical_h;
-    int logical_h_int;
-    float logical_h_ratio;
-    float logical_half_h;
-    int logical_half_h_int;
-    float logical_half_h_ratio;
+    double logical_h;
+    int64_t logical_h_int;
+    double logical_h_ratio;
+    double logical_half_h;
+    int64_t logical_half_h_int;
+    double logical_half_h_ratio;
 
-    int32_t logical_w;
-    int32_t logical_x0;
-    int32_t logical_xf;
-    int32_t logical_width;
-    int32_t logical_max_pixel;
+    int64_t logical_w;
+    int64_t logical_x0;
+    int64_t logical_xf;
+    int64_t logical_width;
+    int64_t logical_max_pixel;
 
-    float physical_h;
-    int physical_h_int;
-    float physical_h_ratio;
-    float physical_half_h;
-    int physical_half_h_int;
-    float physical_half_h_ratio;
+    double physical_h;
+    int64_t physical_h_int;
+    double physical_h_ratio;
+    double physical_half_h;
+    int64_t physical_half_h_int;
+    double physical_half_h_ratio;
 
-    int32_t physical_w;
-    int32_t physical_x0;
-    int32_t physical_xf;
-    int32_t physical_width;
-    int32_t physical_max_pixel;
+    int64_t physical_w;
+    int64_t physical_x0;
+    int64_t physical_xf;
+    int64_t physical_width;
+    int64_t physical_max_pixel;
 
-    int32_t rightmost_sample;
+    int64_t rightmost_sample;
   };
 
   static constexpr const auto orange = qRgba(250, 180, 15, 255);
@@ -631,13 +631,13 @@ struct WaveformComputerImpl
 
     infos.logical_xf = std::floor(request.view_xmax);
     infos.rightmost_sample
-        = (int32_t)(handle.decoded_samples / infos.logical_samples_per_pixels);
+        = (int64_t)(handle.decoded_samples / infos.logical_samples_per_pixels);
     infos.logical_xf = infos.logical_xf;
 
     infos.logical_width
         = std::min(infos.logical_w, (infos.logical_xf - infos.logical_x0));
     infos.logical_max_pixel = infos.logical_width;
-    //        = std::min((int32_t)infos.logical_width, (int32_t)infos.rightmost_sample);
+    //        = std::min((int64_t)infos.logical_width, (int64_t)infos.rightmost_sample);
 
     // height
     infos.logical_h_int = infos.logical_h;

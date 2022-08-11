@@ -7,6 +7,8 @@
 #include <Gfx/Graph/decoders/YUV422.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
 
+#include <score/tools/Debug.hpp>
+
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/algorithms.hpp>
 

@@ -390,21 +390,27 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
         if (slot == curslot)
           return;
 
-        auto& modelSlot = m_model.smallView()[slot];
+        SCORE_ASSERT(slot >= 0);
+        SCORE_ASSERT(curslot >= 0);
+        SCORE_ASSERT(curslot < m_model.smallView().size());
         auto& modelCurslot = m_model.smallView()[curslot];
         CommandDispatcher<> disp{this->m_context.commandStack};
-        if (qApp->keyboardModifiers() & Qt::ALT
-            || modelCurslot.processes.size() == 1 || modelSlot.nodal
-            || modelCurslot.nodal)
+        if(slot < m_model.smallView().size())
         {
-          disp.submit<Command::ChangeSlotPosition>(
-              this->m_model, Slot::RackView::SmallView, curslot, slot);
+          auto& modelSlot = m_model.smallView()[slot];
+          if (qApp->keyboardModifiers() & Qt::ALT
+              || modelCurslot.processes.size() == 1 || modelSlot.nodal
+              || modelCurslot.nodal)
+          {
+            disp.submit<Command::ChangeSlotPosition>(
+                this->m_model, Slot::RackView::SmallView, curslot, slot);
+            return;
+          }
         }
-        else
-        {
-          disp.submit<Command::MoveLayerInNewSlot>(
-              this->m_model, curslot, slot);
-        }
+
+        // Otherwise we create a new slot
+        disp.submit<Command::MoveLayerInNewSlot>(
+            this->m_model, curslot, slot);
       },
       Qt::QueuedConnection); // needed because else SlotHeader is removed and
                              // stopSlotDrag can't be called

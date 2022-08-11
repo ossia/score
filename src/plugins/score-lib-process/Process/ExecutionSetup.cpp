@@ -21,12 +21,17 @@ namespace Execution
 static auto enqueue_in_context(SetupContext& self) noexcept
 {
   return
-      [&self](auto&& f) { self.context.executionQueue.enqueue(std::move(f)); };
+      [&self] <typename F> (F&& f) {
+        static_assert(std::is_nothrow_move_constructible_v<F>);
+        self.context.executionQueue.enqueue(std::move(f));
+  };
 }
 
 static auto enqueue_in_vector(Transaction& vec) noexcept
 {
-  return [&vec](auto&& f) { vec.push_back(std::move(f)); };
+  return [&vec] (auto&& f) {
+    vec.push_back(std::move(f));
+  };
 }
 
 ossia::net::node_base*

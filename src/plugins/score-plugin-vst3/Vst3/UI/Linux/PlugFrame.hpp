@@ -12,6 +12,7 @@
 #include <pluginterfaces/gui/iplugview.h>
 
 #include <utility>
+#include <unordered_map>
 #include <vector>
 #include <memory>
 

@@ -1,6 +1,7 @@
 #include "ShaderCache.hpp"
 #include <Gfx/Graph/RenderState.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/mutex.hpp>
 
 namespace score::gfx
 {
@@ -9,7 +10,7 @@ const std::pair<QShader, QString>& ShaderCache::get(
     GraphicsApi api, const QShaderVersion& version, const QByteArray& shader, QShader::Stage stage)
 {
   static std::mutex mut;
-  static ShaderCache self;
+  static ShaderCache self TS_GUARDED_BY(mut);
 
   std::lock_guard<std::mutex> m{mut};
 

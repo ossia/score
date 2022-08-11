@@ -5,6 +5,7 @@
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 
+#include <QObject>
 #include <QPointer>
 
 #include <score_lib_process_export.h>

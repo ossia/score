@@ -2,6 +2,8 @@
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
+#include <score/tools/Debug.hpp>
+
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep

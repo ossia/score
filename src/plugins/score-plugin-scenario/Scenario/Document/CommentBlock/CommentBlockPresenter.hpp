@@ -5,6 +5,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
 
+#include <QObject>
 #include <QPoint>
 
 #include <score_plugin_scenario_export.h>
