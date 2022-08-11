@@ -11,7 +11,20 @@ class RecursiveFilterProxy : public QSortFilterProxyModel
 public:
   using QSortFilterProxyModel::QSortFilterProxyModel;
 
+  const QString& pattern() const noexcept
+  { return m_textPattern; }
+  void setPattern(const QString& p)
+  {
+    beginResetModel();
+    auto old = m_textPattern;
+    m_textPattern = p;
+    endResetModel();
+    // if(!p.contains(old))
+    //  invalidateFilter();
+  }
+
 protected:
+  QString m_textPattern;
   bool
   filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
@@ -36,12 +49,8 @@ protected:
   {
     QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
     const QVariant& data = sourceModel()->data(index);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    return data.toString().contains(filterRegExp());
-#else
-    return data.toString().contains(
-        filterRegularExpression());
-#endif
+
+    return data.toString().contains(m_textPattern, Qt::CaseInsensitive);
   }
 
   bool hasAcceptedChildren(int srcRow, const QModelIndex& srcParent) const
@@ -75,15 +84,34 @@ class FileSystemRecursiveFilterProxy final : public RecursiveFilterProxy
 public:
   using RecursiveFilterProxy::RecursiveFilterProxy;
 
-  QString fixedRoot{};
+  QModelIndex fixedRootIndex{};
 private:
+
+  bool isChildOfRoot(const QModelIndex& m) const noexcept
+  {
+    if(!m.isValid())
+    {
+      return false;
+    }
+    if(m == fixedRootIndex)
+      return true;
+    if(auto parent = m.parent(); parent == fixedRootIndex)
+    {
+      return true;
+    }
+    else
+    {
+      return isChildOfRoot(parent);
+    }
+  }
+
   QFileSystemModel* sourceModel() const noexcept
   { return static_cast<QFileSystemModel*>(QSortFilterProxyModel::sourceModel());}
   bool
   filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
-    QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
-    if(!sourceModel()->filePath(index).startsWith(fixedRoot))
+    const QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
+    if(!isChildOfRoot(index))
     {
       return false;
     }
@@ -93,13 +121,12 @@ private:
       return true;
     }
 
-    QModelIndex root_index = sourceModel()->index(fixedRoot);
     // Accept if any of the parents is accepted on its own
     for (QModelIndex parent = srcParent; parent.isValid();
          parent = parent.parent())
     {
       // We went up to the root. We know that we are a child due to the startsWith.
-      if (parent == root_index)
+      if (parent == fixedRootIndex)
         return false;
 
       if (filterAcceptsRowItself(parent.row(), parent.parent()))

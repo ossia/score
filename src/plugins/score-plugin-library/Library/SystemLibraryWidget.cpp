@@ -76,6 +76,18 @@ SystemLibraryWidget::SystemLibraryWidget(
     connect(file_expl, &QAction::triggered, this, [=] {
       QDesktopServices::openUrl(QUrl::fromLocalFile(folder_path));
     });
+
+    if constexpr(FileSystemModel::supportsDisablingSorting())
+    {
+      auto sorting = new QAction(tr("Sort"));
+      sorting->setCheckable(true);
+      sorting->setChecked(m_model->isSorting());
+      menu->addAction(sorting);
+      connect(sorting, &QAction::triggered, this, [=] (bool checked) {
+        m_model->setSorting(checked);
+      });
+    }
+
     menu->exec(m_tv.mapToGlobal(pos));
     menu->deleteLater();
   });
@@ -142,7 +154,7 @@ SystemLibraryWidget::~SystemLibraryWidget() { }
 void SystemLibraryWidget::setRoot(QString path)
 {
   auto idx = m_model->setRootPath(path);
-  ((FileSystemRecursiveFilterProxy*)m_proxy)->fixedRoot = path;
+  ((FileSystemRecursiveFilterProxy*)m_proxy)->fixedRootIndex = idx;
   if(idx.isValid())
   {
     m_tv.setRootIndex(m_proxy->mapFromSource(idx));

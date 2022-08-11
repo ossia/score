@@ -1,6 +1,6 @@
 #pragma once
+#include <Library/RecursiveFilterProxy.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
-
 #include <QSortFilterProxyModel>
 #include <QTreeView>
 
@@ -8,12 +8,12 @@
 
 namespace Library
 {
-
+class RecursiveFilterProxy;
 struct ItemModelFilterLineEdit final : public score::SearchLineEdit
 {
 public:
   ItemModelFilterLineEdit(
-      QSortFilterProxyModel& proxy,
+      RecursiveFilterProxy& proxy,
       QTreeView& tv,
       QWidget* p)
       : score::SearchLineEdit{p}
@@ -25,14 +25,9 @@ public:
 
   void search() override
   {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    if (text() != m_proxy.filterRegExp().pattern())
-#else
-    if (text() != m_proxy.filterRegularExpression().pattern())
-#endif
+    if (text() != m_proxy.pattern())
     {
-      m_proxy.setFilterFixedString(text());
-      m_proxy.setFilterCaseSensitivity(Qt::CaseInsensitive);
+      m_proxy.setPattern(text());
 
       if (!text().isEmpty())
       {
@@ -62,7 +57,7 @@ public:
   }
 
   std::function<void()> reset;
-  QSortFilterProxyModel& m_proxy;
+  RecursiveFilterProxy& m_proxy;
   QTreeView& m_view;
 };
 

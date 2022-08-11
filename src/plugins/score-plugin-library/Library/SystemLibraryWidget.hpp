@@ -10,6 +10,8 @@ struct GUIApplicationContext;
 
 namespace Library
 {
+class FileSystemModel;
+class FileSystemRecursiveFilterProxy;
 class SystemLibraryWidget : public QWidget
 {
 public:
@@ -21,8 +23,8 @@ public:
   void setRoot(QString path);
 
 private:
-  QFileSystemModel* m_model{};
-  QSortFilterProxyModel* m_proxy{};
+  FileSystemModel* m_model{};
+  FileSystemRecursiveFilterProxy* m_proxy{};
   QTreeView m_tv;
   QWidget m_preview;
   QWidget* m_previewChild{};

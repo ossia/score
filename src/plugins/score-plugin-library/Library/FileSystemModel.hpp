@@ -66,7 +66,6 @@ public:
     }
 
     setNameFilters(types.values());
-    setNameFilterDisables(false);
     setResolveSymlinks(true);
     setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 
@@ -79,6 +78,42 @@ public:
       }
     }
   }
+
+  static consteval bool supportsDisablingSorting() noexcept
+  {
+    return [] <typename T> (T* fsm) constexpr
+    {
+      return requires { fsm->setOption(T::DontSort); };
+    }((QFileSystemModel*)nullptr);
+  }
+
+  void setSorting(bool b) noexcept
+  {
+    [b] <typename T> (T& self) {
+      if constexpr(T::supportsDisablingSorting())
+      {
+        static_assert(T::supportsDisablingSorting());
+        self.setOption(T::DontSort, b);
+      }
+    }(*this);
+  }
+
+  bool isSorting() noexcept
+  {
+    return [] <typename T> (T& fsm)
+    {
+      if constexpr(supportsDisablingSorting())
+      {
+        static_assert(requires { fsm.setOption(T::DontSort); });
+        return !fsm.testOption(T::DontSort);
+      }
+      else
+      {
+        return true;
+      }
+    } (*this);
+  }
+
 
   Qt::ItemFlags flags(const QModelIndex& index) const override
   {
