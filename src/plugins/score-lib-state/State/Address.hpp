@@ -24,24 +24,24 @@ struct SCORE_LIB_STATE_EXPORT DestinationQualifiers
 {
   W_GADGET(DestinationQualifiers)
 public:
-  DestinationQualifiers();
+  DestinationQualifiers() noexcept;
   DestinationQualifiers(const DestinationQualifiers& other);
-  DestinationQualifiers(DestinationQualifiers&& other);
+  DestinationQualifiers(DestinationQualifiers&& other) noexcept;
   DestinationQualifiers& operator=(const DestinationQualifiers& other);
-  DestinationQualifiers& operator=(DestinationQualifiers&& other);
+  DestinationQualifiers& operator=(DestinationQualifiers&& other) noexcept;
   ~DestinationQualifiers();
 
   DestinationQualifiers(const ossia::destination_qualifiers&);
   DestinationQualifiers& operator=(const ossia::destination_qualifiers&);
 
-  operator const ossia::destination_qualifiers&() const;
-  operator ossia::destination_qualifiers&();
+  operator const ossia::destination_qualifiers&() const noexcept;
+  operator ossia::destination_qualifiers&() noexcept;
 
-  bool operator==(const State::DestinationQualifiers& other) const;
-  bool operator!=(const State::DestinationQualifiers& other) const;
+  bool operator==(const State::DestinationQualifiers& other) const noexcept;
+  bool operator!=(const State::DestinationQualifiers& other) const noexcept;
 
-  const ossia::destination_qualifiers& get() const;
-  ossia::destination_qualifiers& get();
+  const ossia::destination_qualifiers& get() const noexcept;
+  ossia::destination_qualifiers& get() noexcept;
 
 private:
   std::unique_ptr<ossia::destination_qualifiers> qualifiers;

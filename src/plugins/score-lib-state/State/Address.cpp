@@ -22,7 +22,7 @@
 W_GADGET_IMPL(State::DestinationQualifiers)
 namespace State
 {
-DestinationQualifiers::DestinationQualifiers()
+DestinationQualifiers::DestinationQualifiers() noexcept
     : qualifiers{std::make_unique<ossia::destination_qualifiers>()}
 {
 }
@@ -34,7 +34,7 @@ DestinationQualifiers::DestinationQualifiers(
 {
 }
 
-DestinationQualifiers::DestinationQualifiers(DestinationQualifiers&& other)
+DestinationQualifiers::DestinationQualifiers(DestinationQualifiers&& other) noexcept
     : qualifiers{std::move(other.qualifiers)}
 {
   other.qualifiers = std::make_unique<ossia::destination_qualifiers>();
@@ -48,7 +48,7 @@ DestinationQualifiers::operator=(const DestinationQualifiers& other)
 }
 
 DestinationQualifiers&
-DestinationQualifiers::operator=(DestinationQualifiers&& other)
+DestinationQualifiers::operator=(DestinationQualifiers&& other) noexcept
 {
   *qualifiers = std::move(*other.qualifiers);
   other.qualifiers = std::make_unique<ossia::destination_qualifiers>();
@@ -71,33 +71,33 @@ DestinationQualifiers::operator=(const ossia::destination_qualifiers& other)
 }
 
 bool DestinationQualifiers::operator==(
-    const DestinationQualifiers& other) const
+    const DestinationQualifiers& other) const noexcept
 {
   return *qualifiers == *other.qualifiers;
 }
 
 bool DestinationQualifiers::operator!=(
-    const DestinationQualifiers& other) const
+    const DestinationQualifiers& other) const noexcept
 {
   return *qualifiers != *other.qualifiers;
 }
 
-const ossia::destination_qualifiers& DestinationQualifiers::get() const
+const ossia::destination_qualifiers& DestinationQualifiers::get() const noexcept
 {
   return *qualifiers;
 }
 
-ossia::destination_qualifiers& DestinationQualifiers::get()
+ossia::destination_qualifiers& DestinationQualifiers::get() noexcept
 {
   return *qualifiers;
 }
 
-DestinationQualifiers::operator const ossia::destination_qualifiers&() const
+DestinationQualifiers::operator const ossia::destination_qualifiers&() const noexcept
 {
   return *qualifiers;
 }
 
-DestinationQualifiers::operator ossia::destination_qualifiers&()
+DestinationQualifiers::operator ossia::destination_qualifiers&() noexcept
 {
   return *qualifiers;
 }
