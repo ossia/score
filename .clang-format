@@ -1,33 +1,10 @@
 BasedOnStyle: WebKit
 
-# BreakBeforeConceptDeclarations: Always
-# IndentRequiresClause: false
-
-AllowAllArgumentsOnNextLine: true
-BreakConstructorInitializers: BeforeComma
-BreakInheritanceList: BeforeComma
-ReflowComments: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
-
-AccessModifierOffset: -2
-AlignAfterOpenBracket: AlwaysBreak
-AlignEscapedNewlinesLeft: true
-AlignOperands: true
-AlignTrailingComments: true
-AlignConsecutiveDeclarations: false
-AllowShortBlocksOnASingleLine: false
-AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
-AlwaysBreakAfterDefinitionReturnType: false
-AlwaysBreakBeforeMultilineStrings: true
-AlwaysBreakTemplateDeclarations: true
-
 BraceWrapping:
   AfterClass:      true
   AfterControlStatement: true
   AfterEnum:       true
+  AfterExternBlock: false
   AfterFunction:   true
   AfterNamespace:  true
   AfterStruct:     true
@@ -36,27 +13,50 @@ BraceWrapping:
   BeforeElse:      true
   IndentBraces:    false
 
-BinPackArguments: false
-BinPackParameters: false
-ExperimentalAutoDetectBinPacking: false
-AllowAllParametersOfDeclarationOnNextLine: false
+# BreakBeforeConceptDeclarations: Always
+# IndentRequiresClause: false
+AccessModifierOffset: -2
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlinesLeft: true
+AlignOperands: true
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: false
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: true
+BinPackParameters: true
 BreakBeforeBinaryOperators: All
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Custom
+BreakBeforeConceptDeclarations: true
 BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeComma
 BreakConstructorInitializersBeforeComma: true
+BreakInheritanceList: BeforeComma
 ColumnLimit: 89
-CommentPragmas: '^ IWYU pragma:'
+CommentPragmas: '^ clang-format:'
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
 DerivePointerAlignment: false
+IncludeBlocks: Regroup
 IndentCaseLabels: true
+IndentExternBlock: NoIndent
 IndentWidth: 2
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: true
+LambdaBodyIndentation: OuterScope
 Language: Cpp
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
+PackConstructorInitializers: Never
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
@@ -64,45 +64,62 @@ PenaltyBreakString: 1000
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Left
+ReferenceAlignment: Left
+ReflowComments: false
+SortIncludes: true
 SpaceAfterCStyleCast: false
+SpaceAroundPointerQualifiers: Default
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeParens: ControlStatements
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeParens: Never
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
-SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-SpaceBeforeCpp11BracedList: false
-Standard: c++20
+Standard: Latest
+StatementMacros: ['E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT']
 TabWidth: 2
 UseTab: Never
-CommentPragmas: '^ clang-format:'
-StatementMacros: ['E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT']
-SortIncludes: true
-IncludeBlocks: Regroup
-IncludeCategories:
-  - Regex:           '^"'
-    Priority:        1
-  - Regex:           '^<(Vst|Vst3|Audio|Magnetism|Control|ControlSurface|RemoteScenario|Explorer|Protocols|Process|State|Device|Media|Midi|JS|Curve|Inspector|Automation|Dataflow|Fx|Library|Mapping|Loop|Recording|PluginSettings|Gfx|Nodal|Pd|LV2|Mixer|Video|Effect|Execution|Engine|LocalTree)'
-    Priority:        2
-  - Regex:           '^<score/'
-    Priority:        3
-  - Regex:           '^<core/'
-    Priority:        4
-  - Regex:           '^<ossia/detail/config'
-    Priority:        5
-  - Regex:           '^<ossia/'
-    Priority:        6
-  - Regex:           '^<ossia-qt/'
-    Priority:        6
-  - Regex:           '^<boost'
-    Priority:        7
-  - Regex:           '^<Q'
-    Priority:        8
-  - Regex:           '<([[:alnum:]_]+\/?)+.(h|hpp)>'
-    Priority:        9
-  - Regex:           '<[[:alnum:]]+>'
-    Priority:        800
 
+IncludeCategories:
+  - Regex:           '<.*\.(c|cpp)>'
+    Priority:        1000
+  - Regex:           '^"'
+    Priority:        10
+  - Regex:           '^<State/'
+    Priority:        20
+  - Regex:           '^<Device/'
+    Priority:        21
+  - Regex:           '^<Process/'
+    Priority:        22
+  - Regex:           '^<Curve/'
+    Priority:        23
+  - Regex:           '^<Explorer/'
+    Priority:        24
+  - Regex:           '^<Scenario/'
+    Priority:        25
+  - Regex:           '^<(Vst|Vst3|Audio|Magnetism|Control|ControlSurface|RemoteScenario|Protocols|Media|Midi|JS|Inspector|Automation|Dataflow|Fx|Library|Mapping|Loop|Recording|PluginSettings|Gfx|Nodal|Pd|LV2|Mixer|Video|Effect|Execution|Engine|LocalTree|Crousti|Ysfx|Jsfx|Jit|Texgen|Bytebeat)'
+    Priority:        29
+  - Regex:           '^<score/'
+    Priority:        30
+  - Regex:           '^<core/'
+    Priority:        40
+  - Regex:           '^<ossia/detail/config'
+    Priority:        50
+  - Regex:           '^<ossia/'
+    Priority:        60
+  - Regex:           '^<ossia-qt/'
+    Priority:        65
+  - Regex:           '^<boost'
+    Priority:        70
+  - Regex:           '^<Q'
+    Priority:        80
+  - Regex:           '<([[:alnum:]_]+\/)+([[:alnum:]_])+.(h|hpp)>'
+    Priority:        700
+  - Regex:           '<([[:alnum:]_]+\/?)+.(h|hpp)>'
+    Priority:        800
+  - Regex:           '<[[:alnum:]_]+>'
+    Priority:        900
