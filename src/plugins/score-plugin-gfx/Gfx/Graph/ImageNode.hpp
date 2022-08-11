@@ -40,7 +40,7 @@ public:
   std::atomic<ImageMode> tile{};
 
 private:
-  void process(const Message& msg) override;
+  void process(Message&& msg) override;
 
   std::vector<score::gfx::Image> images;
   std::vector<QImage*> linearImages;

@@ -153,8 +153,9 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* te
  * This function will also create a texture.
  */
 SCORE_PLUGIN_GFX_EXPORT
-TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz);
+TextureRenderTarget createRenderTarget(
+    const RenderState& state, QRhiTexture::Format fmt, QSize sz,
+    QRhiTexture::Flags = {});
 
 SCORE_PLUGIN_GFX_EXPORT
 void replaceBuffer(QRhiShaderResourceBindings&, int binding, QRhiBuffer* newBuffer);

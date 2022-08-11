@@ -20,7 +20,7 @@ public:
 
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
-  void process(const Message& msg) override;
+  void process(Message&& msg) override;
   class Renderer;
   struct UBO
   {

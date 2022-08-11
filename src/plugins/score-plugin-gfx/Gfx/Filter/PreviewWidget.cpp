@@ -252,7 +252,7 @@ void ShaderPreviewWidget::timerEvent(QTimerEvent* event)
           *((float*)m_isf->input[progress_k]->value) = progress;
         }
       }
-      m_isf->materialChanged++;
+      m_isf->materialChange();
     }
   }
 }

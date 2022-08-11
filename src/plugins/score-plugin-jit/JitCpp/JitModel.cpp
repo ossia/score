@@ -107,6 +107,12 @@ struct inlet_vis
     return i;
   }
 
+  Process::Inlet* operator()(const ossia::geometry_port& p) const noexcept
+  {
+    auto i = new Gfx::GeometryInlet{getStrongId(self.inlets()), &self};
+    return i;
+  }
+
   Process::Inlet* operator()(const ossia::midi_port& p) const noexcept
   {
     auto i = new Process::MidiInlet{getStrongId(self.inlets()), &self};
@@ -217,7 +223,6 @@ struct inlet_vis
     }
   }
 
-  Process::Inlet* operator()(const ossia::geometry_port&) const noexcept { return nullptr; }
   Process::Inlet* operator()() const noexcept { return nullptr; }
 };
 
@@ -227,6 +232,12 @@ struct outlet_vis
   Process::Outlet* operator()(const ossia::audio_port& p) const noexcept
   {
     auto i = new Process::AudioOutlet{getStrongId(self.outlets()), &self};
+    return i;
+  }
+
+  Process::Outlet* operator()(const ossia::geometry_port& p) const noexcept
+  {
+    auto i = new Gfx::GeometryOutlet{getStrongId(self.inlets()), &self};
     return i;
   }
 
@@ -241,7 +252,6 @@ struct outlet_vis
     auto i = new Process::ValueOutlet{getStrongId(self.outlets()), &self};
     return i;
   }
-  Process::Outlet* operator()(const ossia::geometry_port&) const noexcept { return nullptr; }
   Process::Outlet* operator()() const noexcept { return nullptr; }
 };
 

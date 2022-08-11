@@ -32,10 +32,11 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* te
   return ret;
 }
 
-TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
+TextureRenderTarget createRenderTarget(
+    const RenderState& state, QRhiTexture::Format fmt, QSize sz,
+    QRhiTexture::Flags flags)
 {
-  auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget);
+  auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget | flags);
   SCORE_ASSERT(texture->create());
   return createRenderTarget(state, texture);
 }
@@ -43,7 +44,7 @@ createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
 void replaceBuffer(
     std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiBuffer* newBuffer)
 {
-  const auto bufType = newBuffer->resourceType();
+  // const auto bufType = newBuffer->resourceType();
   for(QRhiShaderResourceBinding& b : tmp)
   {
     if(b.data()->binding == binding)
@@ -248,20 +249,27 @@ Pipeline buildPipeline(
 
   ps->setSampleCount(1);
 
-  ps->setDepthTest(false);
-  ps->setDepthWrite(false);
-  ps->setTopology(QRhiGraphicsPipeline::TriangleStrip);
-  // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-  // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
+  if(mesh.cullMode == QRhiGraphicsPipeline::None)
+  {
+    ps->setDepthTest(false);
+    ps->setDepthWrite(false);
+  }
+  else
+  {
+    ps->setDepthTest(true);
+    ps->setDepthWrite(true);
+  }
+
+  ps->setTopology(mesh.topology);
+  ps->setCullMode(mesh.cullMode);
+  ps->setFrontFace(mesh.frontFace);
 
   ps->setShaderStages(
       {{QRhiShaderStage::Vertex, vertexS}, {QRhiShaderStage::Fragment, fragmentS}});
 
   QRhiVertexInputLayout inputLayout;
-  inputLayout.setBindings(
-      mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
-  inputLayout.setAttributes(
-      mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
+  inputLayout.setBindings(mesh.vertexBindings.begin(), mesh.vertexBindings.end());
+  inputLayout.setAttributes(mesh.vertexAttributes.begin(), mesh.vertexAttributes.end());
   ps->setVertexInputLayout(inputLayout);
 
   ps->setShaderResourceBindings(srb);
@@ -434,6 +442,8 @@ void DefaultShaderMaterial::init(
           break;
         }
         case Types::Audio:
+          break;
+        case Types::Geometry:
           break;
         case Types::Camera:
           size += sizeof(ModelCameraUBO);

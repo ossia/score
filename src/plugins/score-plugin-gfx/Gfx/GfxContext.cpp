@@ -223,7 +223,7 @@ void GfxContext::update_inputs()
     if(auto it = nodes.find(msg.node_id); it != nodes.end())
     {
       auto& node = it->second;
-      node->process(msg);
+      node->process(std::move(msg));
     }
   }
 }

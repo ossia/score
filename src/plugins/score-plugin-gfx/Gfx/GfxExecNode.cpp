@@ -81,6 +81,24 @@ void gfx_exec_node::run(
         }
         break;
       }
+
+      case ossia::geometry_port::which: {
+        // TODO try to handle the case where it's generated on another GPU node
+        // to prevent going through the CPU there
+        auto& p = inlet->cast<ossia::geometry_port>();
+        {
+          if(p.geometry.dirty)
+          {
+            // FIXME If the cables, or address have changed
+            // We likely want to reload the geometry in any case
+            // .. or do we?
+            msg.input[inlet_i] = std::move(p.geometry);
+            p.geometry.dirty = false;
+          }
+        }
+        break;
+      }
+
       case ossia::audio_port::which: {
         auto& p = inlet->cast<ossia::audio_port>();
         msg.input[inlet_i] = std::move(p.get());

@@ -153,6 +153,9 @@ void CableItem::paint(
         case Process::PortType::Texture:
           painter->setPen(style.skin.LightGray.main.pen3_solid_round_round);
           break;
+        case Process::PortType::Geometry:
+          painter->setPen(style.skin.Emphasis3.main.pen3_solid_round_round);
+          break;
       }
     }
     else
@@ -170,6 +173,9 @@ void CableItem::paint(
           break;
         case Process::PortType::Texture:
           painter->setPen(style.skin.LightGray.lighter.pen3_solid_round_round);
+          break;
+        case Process::PortType::Geometry:
+          painter->setPen(style.skin.Emphasis3.lighter.pen3_solid_round_round);
           break;
       }
     }

@@ -646,7 +646,7 @@ struct CustomGpuNodeBase
 
   QString vertex, fragment, compute;
   score::gfx::Message last_message;
-  void process(const score::gfx::Message& msg) override;
+  void process(score::gfx::Message&& msg) override;
 };
 
 struct CustomGpuOutputNodeBase
@@ -663,7 +663,7 @@ struct CustomGpuOutputNodeBase
 
   QString vertex, fragment, compute;
   score::gfx::Message last_message;
-  void process(const score::gfx::Message& msg) override;
+  void process(score::gfx::Message&& msg) override;
 
   void setRenderer(std::shared_ptr<score::gfx::RenderList>) override;
   score::gfx::RenderList* renderer() const override;

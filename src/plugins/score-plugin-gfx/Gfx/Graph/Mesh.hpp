@@ -24,13 +24,17 @@ struct SCORE_PLUGIN_GFX_EXPORT Mesh
   /** @brief A basic vertex shader that is going to work with this mesh. */
   virtual const char* defaultVertexShader() const noexcept = 0;
 
-  ossia::small_vector<QRhiVertexInputBinding, 2> vertexInputBindings;
-  ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributeBindings;
+  ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
+  ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
 
   tcb::span<const float> vertexArray;
   tcb::span<const unsigned int> indexArray;
   int vertexCount{};
   int indexCount{};
+  QRhiGraphicsPipeline::Topology topology
+      = QRhiGraphicsPipeline::Topology::TriangleStrip;
+  QRhiGraphicsPipeline::CullMode cullMode = QRhiGraphicsPipeline::CullMode::None;
+  QRhiGraphicsPipeline::FrontFace frontFace = QRhiGraphicsPipeline::FrontFace::CW;
 
 private:
   Mesh(const Mesh&) = delete;

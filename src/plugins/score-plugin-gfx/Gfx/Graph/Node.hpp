@@ -5,6 +5,7 @@
 #include <Gfx/Graph/Uniforms.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
+#include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/dataflow/token_request.hpp>
 #include <ossia/detail/flat_map.hpp>
@@ -25,7 +26,8 @@ struct Graph;
 class GenericNodeRenderer;
 class NodeRenderer;
 
-using gfx_input = ossia::variant<ossia::monostate, ossia::value, ossia::audio_vector>;
+using gfx_input = ossia::variant<
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::geometry>;
 
 /**
  * @brief Messages sent from the execution thread to the rendering thread
@@ -60,7 +62,7 @@ public:
   /**
    * @brief Process a message from the execution engine
    */
-  virtual void process(const Message& msg);
+  virtual void process(Message&& msg);
 
   /**
    * @brief Input ports of that node.
@@ -92,7 +94,40 @@ public:
   /**
    * @brief Used to notify a material change from the model to the renderers.
    */
+  void materialChange() noexcept
+  {
+    materialChanged.fetch_add(1, std::memory_order_release);
+  }
+  bool hasMaterialChanged(int64_t& renderer) const noexcept
+  {
+    int64_t res = materialChanged.load(std::memory_order_acquire);
+    if(renderer != res)
+    {
+      renderer = res;
+      return true;
+    }
+    return false;
+  }
   std::atomic_int64_t materialChanged{0};
+
+  /**
+   * @brief Used to notify a geometry change from the model to the renderers.
+   */
+  void geometryChange() noexcept
+  {
+    geometryChanged.fetch_add(1, std::memory_order_release);
+  }
+  bool hasGeometryChanged(int64_t& renderer) const noexcept
+  {
+    int64_t res = geometryChanged.load(std::memory_order_acquire);
+    if(renderer != res)
+    {
+      renderer = res;
+      return true;
+    }
+    return false;
+  }
+  std::atomic_int64_t geometryChanged{-1};
 
   /**
    * @brief Every node matching with a score process will have such an UBO.
@@ -101,10 +136,19 @@ public:
    */
   ProcessUBO standardUBO{};
 
-  void process(const Message& msg) override;
+  /**
+   * @brief The geometry to use
+   *
+   * If not set, then a relevant default geometry for the node
+   * will be used, e.g. a full-screen quad or triangle
+   */
+  std::optional<ossia::geometry> geometry;
+
+  void process(Message&& msg) override;
   void process(const ossia::token_request& tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
+  void process(int32_t port, const ossia::geometry& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
 };
 

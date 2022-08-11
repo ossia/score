@@ -83,6 +83,9 @@ public:
 
   DefaultShaderMaterial m_material;
   int64_t materialChangedIndex{-1};
+  int64_t geometryChangedIndex{-1};
+
+  const score::gfx::Mesh* m_mesh{};
 
   // Render loop
   void defaultMeshInit(RenderList& renderer, const Mesh& mesh);
@@ -94,6 +97,7 @@ public:
   void init(RenderList& renderer) override;
 
   void defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  void defaultMeshUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
 
   void defaultRelease(RenderList&);

@@ -159,7 +159,7 @@ ImagesNode::ImagesNode()
   m_materialData.reset((char*)&ubo);
 }
 
-void ImagesNode::process(const Message& msg)
+void ImagesNode::process(Message&& msg)
 {
   ProcessNode::process(msg.token);
 
@@ -191,7 +191,7 @@ void ImagesNode::process(const Message& msg)
         {
           auto opacity = ossia::convert<float>(*val);
           this->ubo.opacity = ossia::clamp(opacity, 0.f, 1.f);
-          this->materialChanged++;
+          this->materialChange();
           break;
         }
         case 2: // Position
@@ -208,7 +208,7 @@ void ImagesNode::process(const Message& msg)
           {
             auto scale = ossia::convert<float>(*val);
             this->ubo.scale[0] = scale;
-            this->materialChanged++;
+            this->materialChange();
           }
           break;
         }
@@ -217,7 +217,7 @@ void ImagesNode::process(const Message& msg)
           {
             auto scale = ossia::convert<float>(*val);
             this->ubo.scale[1] = scale;
-            this->materialChanged++;
+            this->materialChange();
           }
           break;
         }
@@ -253,7 +253,7 @@ void ImagesNode::process(const Message& msg)
         {
           {
             this->tile = (ImageMode)ossia::convert<int>(*val);
-            ++this->materialChanged;
+            this->materialChange();
           }
           break;
         }
@@ -465,7 +465,7 @@ private:
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
     }
 
-    defaultUBOUpdate(renderer, res);
+    GenericNodeRenderer::update(renderer, res);
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
@@ -652,7 +652,7 @@ private:
       }
     }
 
-    defaultUBOUpdate(renderer, res);
+    GenericNodeRenderer::update(renderer, res);
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
@@ -792,7 +792,7 @@ private:
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    defaultUBOUpdate(renderer, res);
+    GenericNodeRenderer::update(renderer, res);
 
     auto& n = static_cast<const FullScreenImageNode&>(this->node);
     // If images haven't been uploaded yet, upload them.

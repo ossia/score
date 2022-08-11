@@ -53,6 +53,7 @@ private:
   GraphicsApi m_api{};
   QRhiSwapChain* m_swapChain{};
 
+  bool m_closed = false;
   bool m_canRender = false;
   bool m_running = false;
   bool m_notExposed = false;

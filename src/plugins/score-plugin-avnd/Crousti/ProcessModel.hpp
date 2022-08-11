@@ -226,6 +226,12 @@ struct InletInitFunc
     setupNewPort(in, p);
     ins.push_back(p);
   }
+  void operator()(const avnd::geometry_port auto& in, auto idx)
+  {
+    auto p = new Gfx::GeometryInlet(Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+  }
 #endif
 
   template <std::size_t Idx, avnd::message T>
@@ -305,6 +311,12 @@ struct OutletInitFunc
   void operator()(const avnd::texture_port auto& out, auto idx)
   {
     auto p = new Gfx::TextureOutlet(Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+  }
+  void operator()(const avnd::geometry_port auto& out, auto idx)
+  {
+    auto p = new Gfx::GeometryOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
     outs.push_back(p);
   }

@@ -33,7 +33,7 @@ void VideoNode::seeked()
   SCORE_TODO;
 }
 
-void VideoNode::process(const Message& msg)
+void VideoNode::process(Message&& msg)
 {
   ProcessNode::process(msg.token);
 
@@ -54,7 +54,7 @@ score::gfx::NodeRenderer* CameraNode::createRenderer(RenderList& r) const noexce
   return new VideoNodeRenderer{*this, const_cast<VideoFrameShare&>(reader)};
 }
 
-void CameraNode::process(const Message& msg)
+void CameraNode::process(Message&& msg)
 {
   if(auto frame = reader.m_decoder->dequeue_frame())
   {

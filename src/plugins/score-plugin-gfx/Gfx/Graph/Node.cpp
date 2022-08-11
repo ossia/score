@@ -17,7 +17,7 @@ Node::~Node()
     delete port;
 }
 
-void Node::process(const Message& msg) { }
+void Node::process(Message&& msg) { }
 
 NodeModel::NodeModel() { }
 
@@ -281,7 +281,7 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
 
   auto& in = this->input[port];
   v.apply(value_visitor{in->type, in->value});
-  this->materialChanged++;
+  this->materialChange();
 }
 
 void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
@@ -312,7 +312,14 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
     }
   }
 }
-void ProcessNode::process(const Message& msg)
+
+void ProcessNode::process(int32_t port, const ossia::geometry& v)
+{
+  this->geometry = v;
+  ++this->geometryChanged;
+}
+
+void ProcessNode::process(Message&& msg)
 {
   process(msg.token);
 

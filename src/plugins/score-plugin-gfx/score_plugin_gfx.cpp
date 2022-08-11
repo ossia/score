@@ -11,13 +11,11 @@
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
-#include <Gfx/Images/Layer.hpp>
 #include <Gfx/Images/Process.hpp>
 #include <Gfx/Settings/Factory.hpp>
 #include <Gfx/SharedInputSettings.hpp>
 #include <Gfx/SharedOutputSettings.hpp>
 #include <Gfx/Text/Executor.hpp>
-#include <Gfx/Text/Layer.hpp>
 #include <Gfx/Text/Process.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/Video/Executor.hpp>
@@ -95,8 +93,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
          Gfx::Video::ProcessFactory, Gfx::Text::ProcessFactory,
          Gfx::Images::ProcessFactory>,
-      FW<Process::LayerFactory, Gfx::Filter::LayerFactory, Gfx::Video::LayerFactory,
-         Gfx::Text::LayerFactory, Gfx::Images::LayerFactory>,
+      FW<Process::LayerFactory, Gfx::Filter::LayerFactory, Gfx::Video::LayerFactory>,
       FW<Execution::ProcessComponentFactory,
          Gfx::Filter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
@@ -106,7 +103,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Process::PortFactory,
          Dataflow::WidgetInletFactory<
              Gfx::Images::ImageListChooser, WidgetFactory::ImageListChooserItems>,
-         Gfx::TextureInletFactory, Gfx::TextureOutletFactory>,
+         Gfx::TextureInletFactory, Gfx::TextureOutletFactory, Gfx::GeometryInletFactory,
+         Gfx::GeometryOutletFactory>,
       FW<Process::ProcessDropHandler, Gfx::Filter::DropHandler, Gfx::Video::DropHandler,
          Gfx::Images::DropHandler>,
       FW<Library::LibraryInterface, Gfx::Filter::LibraryHandler,

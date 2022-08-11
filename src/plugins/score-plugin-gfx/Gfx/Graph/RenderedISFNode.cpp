@@ -479,11 +479,10 @@ void RenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
     n.standardUBO.passIndex = m_passes.size() - 1;
 
   // Update material
-  if(m_materialUBO && m_materialSize > 0 && materialChangedIndex != n.materialChanged)
+  if(m_materialUBO && m_materialSize > 0 && n.hasMaterialChanged(materialChangedIndex))
   {
     char* data = n.m_material_data.get();
     res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
-    materialChangedIndex = n.materialChanged;
   }
 
   // Update audio textures
@@ -952,11 +951,10 @@ void SimpleRenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch
   n.standardUBO.passIndex = 0;
 
   // Update material
-  if(m_materialUBO && m_materialSize > 0 && materialChangedIndex != n.materialChanged)
+  if(m_materialUBO && m_materialSize > 0 && n.hasMaterialChanged(materialChangedIndex))
   {
     char* data = n.m_material_data.get();
     res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
-    materialChangedIndex = n.materialChanged;
   }
 
   // Update audio textures

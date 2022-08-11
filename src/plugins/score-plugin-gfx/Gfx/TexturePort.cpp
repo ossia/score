@@ -259,3 +259,110 @@ template <>
 void JSONWriter::write<Gfx::TextureOutlet>(Gfx::TextureOutlet& p)
 {
 }
+
+W_OBJECT_IMPL(Gfx::GeometryInlet)
+W_OBJECT_IMPL(Gfx::GeometryOutlet)
+
+namespace Gfx
+{
+
+MODEL_METADATA_IMPL_CPP(GeometryInlet)
+MODEL_METADATA_IMPL_CPP(GeometryOutlet)
+
+GeometryInlet::~GeometryInlet() { }
+
+GeometryInlet::GeometryInlet(Id<Process::Port> c, QObject* parent)
+    : Process::Inlet{std::move(c), parent}
+{
+}
+
+GeometryInlet::GeometryInlet(DataStream::Deserializer& vis, QObject* parent)
+    : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GeometryInlet::GeometryInlet(JSONObject::Deserializer& vis, QObject* parent)
+    : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GeometryInlet::GeometryInlet(DataStream::Deserializer&& vis, QObject* parent)
+    : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GeometryInlet::GeometryInlet(JSONObject::Deserializer&& vis, QObject* parent)
+    : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+GeometryOutlet::~GeometryOutlet() { }
+
+GeometryOutlet::GeometryOutlet(Id<Process::Port> c, QObject* parent)
+    : Process::Outlet{std::move(c), parent}
+{
+}
+
+GeometryOutlet::GeometryOutlet(DataStream::Deserializer& vis, QObject* parent)
+    : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GeometryOutlet::GeometryOutlet(JSONObject::Deserializer& vis, QObject* parent)
+    : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GeometryOutlet::GeometryOutlet(DataStream::Deserializer&& vis, QObject* parent)
+    : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GeometryOutlet::GeometryOutlet(JSONObject::Deserializer&& vis, QObject* parent)
+    : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+}
+
+template <>
+void DataStreamReader::read<Gfx::GeometryInlet>(const Gfx::GeometryInlet& p)
+{
+  // read((Process::Outlet&)p);
+}
+template <>
+void DataStreamWriter::write<Gfx::GeometryInlet>(Gfx::GeometryInlet& p)
+{
+}
+
+template <>
+void JSONReader::read<Gfx::GeometryInlet>(const Gfx::GeometryInlet& p)
+{
+  // read((Process::Outlet&)p);
+}
+template <>
+void JSONWriter::write<Gfx::GeometryInlet>(Gfx::GeometryInlet& p)
+{
+}
+
+template <>
+void DataStreamReader::read<Gfx::GeometryOutlet>(const Gfx::GeometryOutlet& p)
+{
+  // read((Process::Outlet&)p);
+}
+template <>
+void DataStreamWriter::write<Gfx::GeometryOutlet>(Gfx::GeometryOutlet& p)
+{
+}
+
+template <>
+void JSONReader::read<Gfx::GeometryOutlet>(const Gfx::GeometryOutlet& p)
+{
+  // read((Process::Outlet&)p);
+}
+template <>
+void JSONWriter::write<Gfx::GeometryOutlet>(Gfx::GeometryOutlet& p)
+{
+}

@@ -154,10 +154,9 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, f}});
 
     QRhiVertexInputLayout inputLayout;
-    inputLayout.setBindings(
-        mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
+    inputLayout.setBindings(mesh.vertexBindings.begin(), mesh.vertexBindings.end());
     inputLayout.setAttributes(
-        mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
+        mesh.vertexAttributes.begin(), mesh.vertexAttributes.end());
 
     // TODO adapt mesh to expected binding (or report an error)
     ps->setVertexInputLayout(inputLayout);

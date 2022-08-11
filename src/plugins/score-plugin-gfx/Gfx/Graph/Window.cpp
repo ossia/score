@@ -37,7 +37,10 @@ Window::Window(GraphicsApi graphicsApi)
   }
 }
 
-Window::~Window() { }
+Window::~Window()
+{
+  m_closed = true;
+}
 
 void Window::init()
 {
@@ -69,6 +72,9 @@ void Window::releaseSwapChain()
 
 void Window::render()
 {
+  if(m_closed)
+    return;
+
   if(onUpdate)
     onUpdate();
 

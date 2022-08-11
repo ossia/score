@@ -48,7 +48,7 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
   m_renderState->api = score::gfx::GraphicsApi::OpenGL;
 }
 
-void CustomGpuOutputNodeBase::process(const score::gfx::Message& msg)
+void CustomGpuOutputNodeBase::process(score::gfx::Message&& msg)
 {
   customMessageProcess(msg, last_message);
 }
@@ -115,7 +115,7 @@ CustomGpuOutputNodeBase::configuration() const noexcept
   return {.manualRenderingRate = 1000. / 60., .outputNeedsRenderPass = true};
 }
 
-void CustomGpuNodeBase::process(const score::gfx::Message& msg)
+void CustomGpuNodeBase::process(score::gfx::Message&& msg)
 {
   customMessageProcess(msg, last_message);
 }

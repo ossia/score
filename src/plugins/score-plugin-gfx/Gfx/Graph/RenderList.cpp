@@ -38,6 +38,97 @@ MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh)
   return ret;
 }
 
+MeshBuffers
+RenderList::initDynamicMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& rb)
+{
+  auto it = m_vertexBuffers.find(&mesh);
+  SCORE_ASSERT(it == m_vertexBuffers.end());
+
+  auto& rhi = *state.rhi;
+  auto mesh_buf = rhi.newBuffer(
+      QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer,
+      mesh.vertexArray.size() * sizeof(float));
+
+  qDebug() << "initialize mesh buffer: "
+           << "vertex: " << mesh.vertexArray.size()
+           << mesh.vertexArray.size() * sizeof(float)
+           << "index: " << mesh.indexArray.size()
+           << mesh.indexArray.size() * sizeof(unsigned int);
+
+  mesh_buf->setName("RenderList::dyn_mesh_buf");
+  mesh_buf->create();
+
+  QRhiBuffer* idx_buf{};
+  if(!mesh.indexArray.empty())
+  {
+    idx_buf = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::IndexBuffer,
+        mesh.indexArray.size() * sizeof(unsigned int));
+    idx_buf->setName("RenderList::dyn_idx_buf");
+    idx_buf->create();
+  }
+
+  MeshBuffers ret{mesh_buf, idx_buf};
+  auto res = m_dynamicVertexBuffers.insert({&mesh, ret});
+  assert(res.second);
+
+  SCORE_ASSERT(!mesh.vertexArray.empty());
+  rb.updateDynamicBuffer(mesh_buf, 0, mesh_buf->size(), mesh.vertexArray.data());
+  if(idx_buf)
+  {
+    SCORE_ASSERT(!mesh.indexArray.empty());
+    rb.updateDynamicBuffer(idx_buf, 0, idx_buf->size(), mesh.indexArray.data());
+  }
+  return ret;
+}
+
+MeshBuffers
+RenderList::updateDynamicMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& rb)
+{
+  auto it = m_dynamicVertexBuffers.find(&mesh);
+  SCORE_ASSERT(it != m_dynamicVertexBuffers.end());
+
+  auto& [m, meshbuf] = *it;
+  if(auto sz = mesh.vertexArray.size() * sizeof(float); sz != meshbuf.mesh->size())
+  {
+    meshbuf.mesh->destroy();
+    meshbuf.mesh->setSize(sz);
+    meshbuf.mesh->create();
+  }
+
+  if(meshbuf.index)
+  {
+    // FIXME what if index disappears
+    if(auto sz = mesh.indexArray.size() * sizeof(unsigned int);
+       sz != meshbuf.index->size())
+    {
+      meshbuf.index->destroy();
+      meshbuf.index->setSize(sz);
+      meshbuf.index->create();
+    }
+    else
+    {
+    }
+  }
+  else
+  {
+    // FIXME what if index appears
+  }
+
+  rb.updateDynamicBuffer(meshbuf.mesh, 0, meshbuf.mesh->size(), mesh.vertexArray.data());
+  if(meshbuf.index)
+  {
+    rb.updateDynamicBuffer(
+        meshbuf.index, 0, meshbuf.index->size(), mesh.indexArray.data());
+  }
+  else
+  {
+    qDebug() << "no index";
+  }
+
+  return meshbuf;
+}
+
 RenderList::RenderList(OutputNode& output, const std::shared_ptr<RenderState>& state)
     : m_state{state}
     , output{output}
@@ -95,8 +186,16 @@ void RenderList::release()
     delete bufs.second.index;
   }
 
+  for(auto bufs : m_dynamicVertexBuffers)
+  {
+    delete bufs.second.mesh;
+    delete bufs.second.index;
+  }
+
   m_vertexBuffers.clear();
+  m_dynamicVertexBuffers.clear();
   buffersToUpload.clear();
+  dynamicBuffersToUpload.clear();
 
   delete m_outputUBO;
   m_outputUBO = nullptr;
@@ -346,6 +445,8 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
     res.updateDynamicBuffer(m_outputUBO, 0, sizeof(OutputUBO), &m_outputUBOData);
   }
 
+  // This does not work: this means that on the first frame the quads are not uplaoded
+  // yet and pipelines cannot be created
   if(Q_UNLIKELY(!buffersToUpload.empty()))
   {
     for(auto [mesh, buf] : buffersToUpload)

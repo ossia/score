@@ -9,8 +9,8 @@ Mesh::~Mesh() { }
 
 PlainMesh::PlainMesh(tcb::span<const float> vtx, int count)
 {
-  vertexInputBindings.push_back({2 * sizeof(float)});
-  vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
+  vertexBindings.push_back({2 * sizeof(float)});
+  vertexAttributes.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
   vertexArray = vtx;
   vertexCount = count;
 }
@@ -44,10 +44,10 @@ void main()
 
 TexturedMesh::TexturedMesh(tcb::span<const float> vtx, int count)
 {
-  vertexInputBindings.push_back({2 * sizeof(float)});
-  vertexInputBindings.push_back({2 * sizeof(float)});
-  vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
-  vertexAttributeBindings.push_back({1, 1, QRhiVertexInputAttribute::Float2, 0});
+  vertexBindings.push_back({2 * sizeof(float)});
+  vertexBindings.push_back({2 * sizeof(float)});
+  vertexAttributes.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
+  vertexAttributes.push_back({1, 1, QRhiVertexInputAttribute::Float2, 0});
   vertexArray = vtx;
   vertexCount = count;
 }
@@ -78,12 +78,12 @@ void main()
 TextureNormalMesh::TextureNormalMesh(
     tcb::span<const float> vtx, tcb::span<const unsigned int> idx, int count)
 {
-  vertexInputBindings.push_back({8 * sizeof(float)});
+  vertexBindings.push_back({8 * sizeof(float)});
   // int binding, int location, Format format, quint32 offset
-  vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float3, 0});
-  vertexAttributeBindings.push_back(
+  vertexAttributes.push_back({0, 0, QRhiVertexInputAttribute::Float3, 0});
+  vertexAttributes.push_back(
       {0, 1, QRhiVertexInputAttribute::Float3, 3 * sizeof(float)});
-  vertexAttributeBindings.push_back(
+  vertexAttributes.push_back(
       {0, 2, QRhiVertexInputAttribute::Float2, 6 * sizeof(float)});
 
   vertexArray = vtx;

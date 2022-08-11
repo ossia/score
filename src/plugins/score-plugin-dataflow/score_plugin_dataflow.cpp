@@ -56,6 +56,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::WidgetInletFactory<Process::HSVSlider, WidgetFactory::HSVSlider>,
          Dataflow::WidgetInletFactory<Process::XYSlider, WidgetFactory::XYSlider>,
          Dataflow::WidgetInletFactory<Process::XYZSlider, WidgetFactory::XYZSlider>,
+         Dataflow::WidgetInletFactory<
+             Process::XYZSpinboxes, WidgetFactory::XYZSpinboxes>,
          Dataflow::WidgetInletFactory<Process::MultiSlider, WidgetFactory::MultiSlider>,
          Dataflow::WidgetOutletFactory<Process::Bargraph, WidgetFactory::Bargraph>>>(
       ctx, key);

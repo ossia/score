@@ -188,7 +188,6 @@ private:
     defaultRelease(r);
   }
 
-  struct TextNode::UBO m_prev_ubo;
   QImage m_img;
   std::vector<std::pair<score::gfx::Edge*, QRhiTexture*>> m_textures;
   bool m_uploaded = false;
@@ -200,7 +199,7 @@ NodeRenderer* TextNode::createRenderer(RenderList& r) const noexcept
   return new Renderer{*this};
 }
 
-void TextNode::process(const Message& msg)
+void TextNode::process(Message&& msg)
 {
   ProcessNode::process(msg.token);
 
@@ -240,7 +239,7 @@ void TextNode::process(const Message& msg)
         {
           auto opacity = ossia::convert<float>(*val);
           this->ubo.opacity = ossia::clamp(opacity, 0.f, 1.f);
-          this->materialChanged++;
+          this->materialChange();
           break;
         }
         case 4: // Position
@@ -257,7 +256,7 @@ void TextNode::process(const Message& msg)
           {
             auto scale = ossia::convert<float>(*val);
             this->ubo.scale[0] = scale;
-            this->materialChanged++;
+            this->materialChange();
           }
           break;
         }
@@ -266,7 +265,7 @@ void TextNode::process(const Message& msg)
           {
             auto scale = ossia::convert<float>(*val);
             this->ubo.scale[1] = scale;
-            this->materialChanged++;
+            this->materialChange();
           }
           break;
         }

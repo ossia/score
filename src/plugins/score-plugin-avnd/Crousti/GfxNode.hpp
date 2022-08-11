@@ -75,7 +75,7 @@ struct GenericTexgenNode
   }
 
   score::gfx::Message last_message;
-  void process(const score::gfx::Message& msg) override
+  void process(score::gfx::Message&& msg) override
   {
     ProcessNode::process(msg.token);
     last_message.token = msg.token;
