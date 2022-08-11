@@ -1,11 +1,11 @@
 #pragma once
-#include <Scenario/Document/Interval/TimeSignatureMap.hpp>
 #include <Scenario/Document/Interval/FullView/Timebar.hpp>
+#include <Scenario/Document/Interval/TimeSignatureMap.hpp>
 
 #include <ossia/editor/scenario/time_signature.hpp>
 
-#include <QObject>
 #include <QGraphicsTextItem>
+#include <QObject>
 
 #include <verdigris>
 
@@ -24,10 +24,8 @@ class LineTextItem final : public QGraphicsTextItem
 public:
   LineTextItem(QGraphicsItem* parent) noexcept;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void keyPressEvent(QKeyEvent* ev) override;
   void keyReleaseEvent(QKeyEvent* ev) override;
@@ -46,23 +44,19 @@ public:
 
   QRectF boundingRect() const final override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void setSignature(TimeVal time, ossia::time_signature sig);
 
   const TimeVal& time() const;
   const ossia::time_signature& signature() const;
 
-  void move(double originalPos, double delta)
-      W_SIGNAL(move, originalPos, delta);
+  void move(double originalPos, double delta) W_SIGNAL(move, originalPos, delta);
   void press() W_SIGNAL(press);
   void release() W_SIGNAL(release);
   void remove() W_SIGNAL(remove);
-  void signatureChange(ossia::time_signature sig)
-      W_SIGNAL(signatureChange, sig);
+  void signatureChange(ossia::time_signature sig) W_SIGNAL(signatureChange, sig);
 
   bool pressed{};
 
@@ -90,13 +84,10 @@ public:
 
   QRectF boundingRect() const final override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
-  void move(double originalPos, double delta)
-      W_SIGNAL(move, originalPos, delta);
+  void move(double originalPos, double delta) W_SIGNAL(move, originalPos, delta);
   void press() W_SIGNAL(press);
   void release() W_SIGNAL(release);
   void remove() W_SIGNAL(remove);
@@ -106,6 +97,7 @@ public:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* mv) override;
 
   bool pressed{};
+
 private:
   double m_origItemX{};
   double m_pressX{};
@@ -148,15 +140,12 @@ public:
 private:
   void handlesChanged();
 
-  void
-  moveHandle(TimeSignatureHandle& handle, double originalPos, double delta);
+  void moveHandle(TimeSignatureHandle& handle, double originalPos, double delta);
 
   void removeHandle(TimeSignatureHandle& handle);
   QRectF boundingRect() const final override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
   void requestNewHandle(QPointF pos);
   void setStartMarker(QPointF pos);
   void removeStartMarker();

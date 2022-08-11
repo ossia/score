@@ -1,11 +1,14 @@
 #pragma once
 
-#include <Automation/AutomationProcessMetadata.hpp>
-#include <Automation/State/AutomationState.hpp>
-#include <Curve/Process/CurveProcessModel.hpp>
-#include <Process/TimeValue.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
+
+#include <Process/TimeValue.hpp>
+
+#include <Curve/Process/CurveProcessModel.hpp>
+
+#include <Automation/AutomationProcessMetadata.hpp>
+#include <Automation/State/AutomationState.hpp>
 
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/serialization/VisitorInterface.hpp>
@@ -29,8 +32,7 @@ class QObject;
 
 namespace Automation
 {
-class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
-    : public Curve::CurveProcessModel
+class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurveProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Automation::ProcessModel)
@@ -41,9 +43,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   ~ProcessModel() override;
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);

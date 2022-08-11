@@ -1,12 +1,13 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 
@@ -28,19 +29,10 @@ class custom_dsp_poly_effect;
 }
 
 PROCESS_METADATA(
-    ,
-    Faust::FaustEffectModel,
-    "5354c61a-1649-4f59-b952-5c2f1b79c1bd",
-    "Faust",
-    "Faust",
-    Process::ProcessCategory::Script,
-    "Plugins",
-    "Faust process. Refer to https://faust.grame.fr",
-    "GRAME and the Faust team",
-    {"Script"},
-    {},
-    {},
-    Process::ProcessFlags::ExternalEffect)
+    , Faust::FaustEffectModel, "5354c61a-1649-4f59-b952-5c2f1b79c1bd", "Faust", "Faust",
+    Process::ProcessCategory::Script, "Plugins",
+    "Faust process. Refer to https://faust.grame.fr", "GRAME and the Faust team",
+    {"Script"}, {}, {}, Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, Faust::FaustEffectModel, "Faust")
 namespace Faust
 {
@@ -56,9 +48,7 @@ public:
   static constexpr bool hasExternalUI() noexcept { return true; }
 
   FaustEffectModel(
-      TimeVal t,
-      const QString& faustProgram,
-      const Id<Process::ProcessModel>&,
+      TimeVal t, const QString& faustProgram, const Id<Process::ProcessModel>&,
       QObject* parent);
   ~FaustEffectModel();
 
@@ -90,8 +80,7 @@ public:
   void changed() W_SIGNAL(changed);
   void textChanged(const QString& str) W_SIGNAL(textChanged, str);
 
-  void errorMessage(int line, const QString& e)
-      W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
 
   PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
 private:
@@ -112,8 +101,7 @@ namespace Process
 {
 template <>
 QString
-EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData()
-    const noexcept;
+EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const noexcept;
 
 template <>
 Process::Descriptor
@@ -129,19 +117,15 @@ struct LanguageSpec
 
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
-    FaustEffectModel,
-    Process::DefaultEffectItem,
+    FaustEffectModel, Process::DefaultEffectItem,
     Process::ProcessScriptEditDialog<
-        FaustEffectModel,
-        FaustEffectModel::p_text,
-        LanguageSpec>>;
+        FaustEffectModel, FaustEffectModel::p_text, LanguageSpec>>;
 }
 
 namespace Execution
 {
 class FaustEffectComponent final
-    : public Execution::
-          ProcessComponent_T<Faust::FaustEffectModel, ossia::node_process>
+    : public Execution::ProcessComponent_T<Faust::FaustEffectModel, ossia::node_process>
 {
   W_OBJECT(FaustEffectComponent)
   COMPONENT_METADATA("eb4f83af-5ddc-4f2f-9426-6f8a599a1e96")
@@ -150,9 +134,7 @@ public:
   static constexpr bool is_unique = true;
 
   FaustEffectComponent(
-      Faust::FaustEffectModel& proc,
-      const Execution::Context& ctx,
-      QObject* parent);
+      Faust::FaustEffectModel& proc, const Execution::Context& ctx, QObject* parent);
 
 private:
   void reload(Execution::Transaction&);

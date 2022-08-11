@@ -5,8 +5,7 @@
 #include <Video/FrameQueue.hpp>
 #include <Video/Rescale.hpp>
 #include <Video/VideoInterface.hpp>
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 }
@@ -16,11 +15,10 @@ extern "C"
 #include <score_plugin_media_export.h>
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 #include <string>
 #include <thread>
-
-#include <condition_variable>
 namespace Video
 {
 
@@ -32,18 +30,14 @@ public:
   virtual void stop() noexcept = 0;
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final
-    : public ExternalInput
+class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final : public ExternalInput
 {
 public:
   CameraInput() noexcept;
   ~CameraInput() noexcept;
 
   bool load(
-      const std::string& inputDevice,
-      const std::string& format,
-      int w,
-      int h,
+      const std::string& inputDevice, const std::string& format, int w, int h,
       double fps) noexcept;
 
   bool start() noexcept override;

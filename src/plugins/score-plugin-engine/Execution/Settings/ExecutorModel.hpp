@@ -1,11 +1,13 @@
 #pragma once
-#include <Execution/Clock/ClockFactory.hpp>
-#include <Transport/TransportInterface.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Execution/Clock/ClockFactory.hpp>
 
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <ossia/editor/scenario/time_value.hpp>
+
+#include <Transport/TransportInterface.hpp>
 
 #include <score_plugin_engine_export.h>
 
@@ -21,10 +23,7 @@ struct SchedulingPolicies
   const QString StaticBFS{"Static (BFS)"};
   const QString StaticTC{"Static (TC)"};
   const QString Dynamic{"Dynamic"};
-  operator QStringList() const
-  {
-    return {StaticFixed, StaticBFS, StaticTC, Dynamic};
-  }
+  operator QStringList() const { return {StaticFixed, StaticBFS, StaticTC, Dynamic}; }
 };
 struct OrderingPolicies
 {
@@ -47,10 +46,7 @@ struct CommitPolicies
   const QString Ordered{"Ordered"};
   const QString Priorized{"Priorized"};
   const QString Merged{"Merged"};
-  operator QStringList() const
-  {
-    return {Default, Ordered, Priorized, Merged};
-  }
+  operator QStringList() const { return {Default, Ordered, Priorized, Merged}; }
 };
 struct TickPolicies
 {
@@ -88,15 +84,12 @@ public:
 
   std::unique_ptr<Clock> makeClock(const Execution::Context& ctx) const;
   time_function makeTimeFunction(const score::DocumentContext&) const;
-  reverse_time_function
-  makeReverseTimeFunction(const score::DocumentContext&) const;
+  reverse_time_function makeReverseTimeFunction(const score::DocumentContext&) const;
 
   Transport::TransportInterface* getTransport() const;
 
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT,
-      ClockFactory::ConcreteKey,
-      Clock)
+      SCORE_PLUGIN_ENGINE_EXPORT, ClockFactory::ConcreteKey, Clock)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Scheduling)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Ordering)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Merging)
@@ -104,21 +97,13 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Tick)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, Rate)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Parallel)
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT,
-      bool,
-      ExecutionListening)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, ExecutionListening)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Logging)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Bench)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, ScoreOrder)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, ValueCompilation)
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT,
-      bool,
-      ValueCompilation)
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT,
-      bool,
-      TransportValueCompilation)
+      SCORE_PLUGIN_ENGINE_EXPORT, bool, TransportValueCompilation)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Clock)

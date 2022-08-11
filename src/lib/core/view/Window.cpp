@@ -47,9 +47,9 @@ setTitle(View& view, const score::Document* document, bool save_state) noexcept
 {
   QString title;
 
-  if (document)
+  if(document)
   {
-    if (save_state)
+    if(save_state)
     {
       title = " * ";
     }
@@ -73,7 +73,7 @@ public:
   using QSplitter::QSplitter;
   void paintEvent(QPaintEvent* ev) override
   {
-    if (brush == QBrush())
+    if(brush == QBrush())
       return;
     QPainter p{this};
     p.setPen(Qt::transparent);
@@ -119,10 +119,7 @@ public:
 class TitleBar : public QWidget
 {
 public:
-  TitleBar()
-  {
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-  }
+  TitleBar() { setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed); }
 
   void setText(const QString& txt)
   {
@@ -161,18 +158,15 @@ View::View(QObject* parent)
   auto leftLabel = new TitleBar;
   leftTabs = new FixedTabWidget;
 
-  connect(
-      leftTabs,
-      &FixedTabWidget::actionTriggered,
-      this,
-      [=](QAction* act, bool b) { leftLabel->setText(act->text()); });
+  connect(leftTabs, &FixedTabWidget::actionTriggered, this, [=](QAction* act, bool b) {
+    leftLabel->setText(act->text());
+  });
   ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, topleftToolbar);
   ((QVBoxLayout*)leftTabs->layout())->insertWidget(1, leftLabel);
   rightSplitter = new RectSplitter{Qt::Vertical};
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
   this->resize(
-      static_cast<int>(rect.width() * 0.75),
-      static_cast<int>(rect.height() * 0.75));
+      static_cast<int>(rect.width() * 0.75), static_cast<int>(rect.height() * 0.75));
 
   auto totalWidg = new RectSplitter;
   totalWidg->setContentsMargins(0, 0, 0, 0);
@@ -219,14 +213,11 @@ View::View(QObject* parent)
     sz[2] = 0;
     rs->setSizes(sz);
     connect(
-        bottomTabs,
-        &FixedTabWidget::actionTriggered,
-        this,
-        [rs](QAction* act, bool ok) {
-          if (ok)
+        bottomTabs, &FixedTabWidget::actionTriggered, this, [rs](QAction* act, bool ok) {
+          if(ok)
           {
             QList<int> sz = rs->sizes();
-            if (sz[2] <= 1)
+            if(sz[2] <= 1)
             {
               sz[2] = 200;
               rs->setSizes(sz);
@@ -244,37 +235,30 @@ View::View(QObject* parent)
 
   setCentralWidget(totalWidg);
   connect(
-      centralTabs,
-      &QTabWidget::currentChanged,
-      this,
+      centralTabs, &QTabWidget::currentChanged, this,
       [&](int index) {
-        static QMetaObject::Connection saved_connection;
-        QObject::disconnect(saved_connection);
-        auto widg = centralTabs->widget(index);
-        auto doc = m_documents.find(widg);
-        if (doc == m_documents.end())
-        {
-          setTitle(*this, nullptr, false);
-          return;
-        }
+    static QMetaObject::Connection saved_connection;
+    QObject::disconnect(saved_connection);
+    auto widg = centralTabs->widget(index);
+    auto doc = m_documents.find(widg);
+    if(doc == m_documents.end())
+    {
+      setTitle(*this, nullptr, false);
+      return;
+    }
 
-        auto& document = const_cast<score::Document&>(doc->second->document());
-        activeDocumentChanged(document.model().id());
+    auto& document = const_cast<score::Document&>(doc->second->document());
+    activeDocumentChanged(document.model().id());
 
-        setTitle(*this, &document, !document.commandStack().isAtSavedIndex());
-        saved_connection = connect(
-            &document.commandStack(),
-            &score::CommandStack::saveIndexChanged,
-            this,
-            [this, doc = &document](bool state) {
-              setTitle(*this, doc, !state);
-            });
+    setTitle(*this, &document, !document.commandStack().isAtSavedIndex());
+    saved_connection = connect(
+        &document.commandStack(), &score::CommandStack::saveIndexChanged, this,
+        [this, doc = &document](bool state) { setTitle(*this, doc, !state); });
       },
       Qt::QueuedConnection);
 
   connect(centralTabs, &QTabWidget::tabCloseRequested, this, [&](int index) {
-    closeRequested(
-        m_documents.at(centralTabs->widget(index))->document().model().id());
+    closeRequested(m_documents.at(centralTabs->widget(index))->document().model().id());
   });
 }
 void View::setPresenter(Presenter* p)
@@ -297,7 +281,7 @@ void View::setupPanel(PanelDelegate* v)
   {
     // First time we get there, register the additional helper panel
     static int ok = false;
-    if (!ok)
+    if(!ok)
     {
       ok = true;
       static HelperPanelDelegate hd(v->context());
@@ -310,23 +294,20 @@ void View::setupPanel(PanelDelegate* v)
 
   QAction* toggle{};
   // Add the panel
-  switch (v->defaultPanelStatus().dock)
+  switch(v->defaultPanelStatus().dock)
   {
-    case Qt::LeftDockWidgetArea:
-    {
+    case Qt::LeftDockWidgetArea: {
       auto [idx, act] = leftTabs->addTab(w, v->defaultPanelStatus());
       toggle = act;
 
       break;
     }
-    case Qt::RightDockWidgetArea:
-    {
+    case Qt::RightDockWidgetArea: {
       rightSplitter->insertWidget(0, w);
 
       break;
     }
-    case Qt::BottomDockWidgetArea:
-    {
+    case Qt::BottomDockWidgetArea: {
       auto [tabIdx, act] = bottomTabs->addTab(w, v->defaultPanelStatus());
       toggle = act;
 
@@ -336,14 +317,14 @@ void View::setupPanel(PanelDelegate* v)
       SCORE_ABORT;
   }
 
-  if (toggle)
+  if(toggle)
   {
     auto& mw = v->context().menus.get().at(score::Menus::Windows());
     addAction(toggle);
     mw.menu()->addAction(toggle);
 
     // Maybe show the panel
-    if (v->defaultPanelStatus().shown)
+    if(v->defaultPanelStatus().shown)
       toggle->toggle();
   }
 }
@@ -351,21 +332,21 @@ void View::setupPanel(PanelDelegate* v)
 void View::allPanelsAdded()
 {
   auto splitter = (RectSplitter*)centralWidget();
-  for (auto& panel : score::GUIAppContext().panels())
+  for(auto& panel : score::GUIAppContext().panels())
   {
-    if (panel.defaultPanelStatus().prettyName == QObject::tr("Inspector"))
+    if(panel.defaultPanelStatus().prettyName == QObject::tr("Inspector"))
     {
       rightSplitter->insertWidget(1, panel.widget());
 
-      auto act = bottomTabs->addAction(
-          rightSplitter->widget(1), panel.defaultPanelStatus());
+      auto act
+          = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
       bottomTabs->actionGroup()->removeAction(act);
       act->setChecked(true);
       connect(act, &QAction::toggled, this, [splitter](bool ok) {
         QList<int> sz = splitter->sizes();
-        if (ok)
+        if(ok)
         {
-          if (sz[2] <= 1)
+          if(sz[2] <= 1)
           {
             sz[2] = 200;
             splitter->setSizes(sz);
@@ -400,10 +381,10 @@ void View::addTopToolbar(QToolBar* b)
 
 void View::closeDocument(DocumentView* doc)
 {
-  for (int i = 0; i < centralTabs->count(); i++)
+  for(int i = 0; i < centralTabs->count(); i++)
   {
     auto widg = doc->viewDelegate().getWidget();
-    if (widg == centralTabs->widget(i))
+    if(widg == centralTabs->widget(i))
     {
       m_documents.erase(widg);
 
@@ -417,7 +398,7 @@ void View::restoreLayout() { }
 
 void View::closeEvent(QCloseEvent* ev)
 {
-  if (m_presenter->exit())
+  if(m_presenter->exit())
   {
     ev->accept();
   }
@@ -429,12 +410,12 @@ void View::closeEvent(QCloseEvent* ev)
 
 void View::on_fileNameChanged(DocumentView* d, const QString& newName)
 {
-  for (int i = 0; i < centralTabs->count(); i++)
+  for(int i = 0; i < centralTabs->count(); i++)
   {
-    if (d->viewDelegate().getWidget() == centralTabs->widget(i))
+    if(d->viewDelegate().getWidget() == centralTabs->widget(i))
     {
       QString n = newName;
-      while (n.contains("/"))
+      while(n.contains("/"))
       {
         n.remove(0, n.indexOf("/") + 1);
       }
@@ -447,11 +428,11 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
 
 void View::changeEvent(QEvent* ev)
 {
-  if (m_presenter)
-    if (ev->type() == QEvent::ActivationChange)
+  if(m_presenter)
+    if(ev->type() == QEvent::ActivationChange)
     {
-      for (GUIApplicationPlugin* ctrl :
-           m_presenter->applicationContext().guiApplicationPlugins())
+      for(GUIApplicationPlugin* ctrl :
+          m_presenter->applicationContext().guiApplicationPlugins())
       {
         ctrl->on_activeWindowChanged();
       }
@@ -468,11 +449,11 @@ void View::resizeEvent(QResizeEvent* e)
 
 bool score::View::event(QEvent* event)
 {
-  if (event->type() == QEvent::StatusTip)
+  if(event->type() == QEvent::StatusTip)
   {
     auto tip = ((QStatusTipEvent*)event)->tip();
     auto idx = tip.indexOf(QChar('\n'));
-    if (idx != -1)
+    if(idx != -1)
     {
       tip.insert(idx, "</b>\n");
       tip.push_front("<b>");

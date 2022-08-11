@@ -7,8 +7,9 @@
 #include "PhidgetsProtocolSettingsWidget.hpp"
 #include "PhidgetsSpecificSettings.hpp"
 
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 #include <QCodeEditor>
 #include <QFormLayout>
@@ -45,8 +46,7 @@ Device::DeviceSettings PhidgetProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void PhidgetProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void PhidgetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
 }

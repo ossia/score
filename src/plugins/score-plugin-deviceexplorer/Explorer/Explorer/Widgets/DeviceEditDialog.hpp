@@ -27,8 +27,7 @@ class DeviceEnumerator;
 namespace Explorer
 {
 class DeviceExplorerModel;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final
-    : public QDialog
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final : public QDialog
 {
   W_OBJECT(DeviceEditDialog)
 
@@ -39,9 +38,7 @@ public:
     Editing
   };
   explicit DeviceEditDialog(
-      const DeviceExplorerModel& model,
-      const Device::ProtocolFactoryList& pl,
-      Mode mode,
+      const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, Mode mode,
       QWidget* parent);
   ~DeviceEditDialog();
 

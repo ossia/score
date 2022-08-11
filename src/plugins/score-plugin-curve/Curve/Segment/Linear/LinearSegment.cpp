@@ -17,9 +17,7 @@ SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::LinearSegmentData)
 namespace Curve
 {
 LinearSegment::LinearSegment(
-    const LinearSegment& other,
-    const IdentifiedObject::id_type& id,
-    QObject* parent)
+    const LinearSegment& other, const IdentifiedObject::id_type& id, QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}
 {
 }
@@ -36,9 +34,9 @@ void LinearSegment::on_endChanged()
 
 void LinearSegment::updateData(int numInterp) const
 {
-  if (!m_valid)
+  if(!m_valid)
   {
-    if (m_data.size() != 2)
+    if(m_data.size() != 2)
       m_data.resize(2);
     m_data[0] = start();
     m_data[1] = end();
@@ -48,8 +46,7 @@ void LinearSegment::updateData(int numInterp) const
 double LinearSegment::valueAt(double x) const
 {
   return start().y()
-         + (end().y() - start().y()) * (x - start().x())
-               / (end().x() - start().x());
+         + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 }
 
 QVariant LinearSegment::toSegmentSpecificData() const

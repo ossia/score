@@ -1,5 +1,5 @@
-#include <score/plugins/FactorySetup.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/plugins/FactorySetup.hpp>
 
 bool appcontext_has_ui(const score::GUIApplicationContext& ctx) noexcept
 {
@@ -7,5 +7,5 @@ bool appcontext_has_ui(const score::GUIApplicationContext& ctx) noexcept
 }
 bool appcontext_has_ui(const score::ApplicationContext& ctx) noexcept
 {
-    return ctx.applicationSettings.gui;
+  return ctx.applicationSettings.gui;
 }

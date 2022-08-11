@@ -33,10 +33,7 @@ public:
     m_valueSBox->setValue(value);
   }
 
-  ossia::value value() const override
-  {
-    return ossia::value{m_valueSBox->value()};
-  }
+  ossia::value value() const override { return ossia::value{m_valueSBox->value()}; }
 
 private:
   score::SpinBox<T>* m_valueSBox{};
@@ -58,8 +55,8 @@ public:
     connect(addbutton, &QPushButton::pressed, this, [=] { addRow({}); });
     lay->addWidget(addbutton);
 
-    auto buttonBox = new QDialogButtonBox{
-        QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+    auto buttonBox
+        = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
 
     lay->addWidget(buttonBox);
 
@@ -70,7 +67,7 @@ public:
   set_type values()
   {
     set_type t;
-    for (auto widg : m_widgs)
+    for(auto widg : m_widgs)
     {
       t.push_back(widg->value().template get<T>());
     }
@@ -80,12 +77,12 @@ public:
   void setValues(const set_type& t)
   {
     // OPTIMIZEME by reusing
-    for (auto row : m_rows)
+    for(auto row : m_rows)
       delete row;
     m_rows.clear();
     m_widgs.clear();
 
-    for (auto val : t)
+    for(auto val : t)
     {
       addRow(val);
     }
@@ -114,7 +111,7 @@ private:
 
   void removeRow(std::size_t i)
   {
-    if (i < m_rows.size())
+    if(i < m_rows.size())
     {
       delete m_rows[i];
       m_rows.erase(m_rows.begin() + i);
@@ -165,7 +162,7 @@ public:
       NumericValueSetDialog<T> dial{this};
       dial.setValues(m_values);
 
-      if (dial.exec())
+      if(dial.exec())
       {
         m_values = dial.values();
       }
@@ -176,12 +173,12 @@ public:
   {
     domain_type dom;
 
-    if (m_minCB->checkState())
+    if(m_minCB->checkState())
       dom.min = m_min->value();
     else
       dom.min = std::nullopt;
 
-    if (m_maxCB->checkState())
+    if(m_maxCB->checkState())
       dom.max = m_max->value();
     else
       dom.max = std::nullopt;
@@ -197,16 +194,16 @@ public:
     m_minCB->setCheckState(Qt::Unchecked);
     m_maxCB->setCheckState(Qt::Unchecked);
 
-    if (auto dom_p = dom_base.v.target<domain_type>())
+    if(auto dom_p = dom_base.v.target<domain_type>())
     {
       auto& dom = *dom_p;
 
-      if (dom.min)
+      if(dom.min)
       {
         m_minCB->setCheckState(Qt::Checked);
         m_min->setValue(*dom.min);
       }
-      if (dom.max)
+      if(dom.max)
       {
         m_maxCB->setCheckState(Qt::Checked);
         m_max->setValue(*dom.max);

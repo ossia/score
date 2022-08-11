@@ -3,23 +3,14 @@
 namespace Process
 {
 
-OfflineAction::~OfflineAction()
-{
+OfflineAction::~OfflineAction() { }
 
-}
+OfflineActionList::OfflineActionList() { }
 
-OfflineActionList::OfflineActionList()
-{
+OfflineActionList::~OfflineActionList() { }
 
-}
-
-OfflineActionList::~OfflineActionList()
-{
-
-}
-
-auto OfflineActionList::actionsForProcess(const UuidKey<ProcessModel>& key) const noexcept
-  -> OfflineActions
+auto OfflineActionList::actionsForProcess(
+    const UuidKey<ProcessModel>& key) const noexcept -> OfflineActions
 {
   auto it = actionsMap.find(key);
   if(it != actionsMap.end())

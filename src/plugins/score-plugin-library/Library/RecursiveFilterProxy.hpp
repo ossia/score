@@ -11,8 +11,7 @@ class RecursiveFilterProxy : public QSortFilterProxyModel
 public:
   using QSortFilterProxyModel::QSortFilterProxyModel;
 
-  const QString& pattern() const noexcept
-  { return m_textPattern; }
+  const QString& pattern() const noexcept { return m_textPattern; }
   void setPattern(const QString& p)
   {
     beginResetModel();
@@ -25,18 +24,16 @@ public:
 
 protected:
   QString m_textPattern;
-  bool
-  filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
+  bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
-    if (filterAcceptsRowItself(srcRow, srcParent))
+    if(filterAcceptsRowItself(srcRow, srcParent))
     {
       return true;
     }
 
     // Accept if any of the parents is accepted on its own
-    for (QModelIndex parent = srcParent; parent.isValid();
-         parent = parent.parent())
-      if (filterAcceptsRowItself(parent.row(), parent.parent()))
+    for(QModelIndex parent = srcParent; parent.isValid(); parent = parent.parent())
+      if(filterAcceptsRowItself(parent.row(), parent.parent()))
       {
         return true;
       }
@@ -57,21 +54,21 @@ protected:
   {
     QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
 
-    if (!index.isValid())
+    if(!index.isValid())
       return false;
 
     SCORE_ASSERT(index.model());
     const int childCount = index.model()->rowCount(index);
 
-    if (childCount == 0)
+    if(childCount == 0)
       return false;
 
-    for (int i = 0; i < childCount; ++i)
+    for(int i = 0; i < childCount; ++i)
     {
-      if (filterAcceptsRowItself(i, index))
+      if(filterAcceptsRowItself(i, index))
         return true;
 
-      if (hasAcceptedChildren(i, index))
+      if(hasAcceptedChildren(i, index))
         return true;
     }
 
@@ -85,8 +82,8 @@ public:
   using RecursiveFilterProxy::RecursiveFilterProxy;
 
   QModelIndex fixedRootIndex{};
-private:
 
+private:
   bool isChildOfRoot(const QModelIndex& m) const noexcept
   {
     if(!m.isValid())
@@ -106,9 +103,10 @@ private:
   }
 
   QFileSystemModel* sourceModel() const noexcept
-  { return static_cast<QFileSystemModel*>(QSortFilterProxyModel::sourceModel());}
-  bool
-  filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
+  {
+    return static_cast<QFileSystemModel*>(QSortFilterProxyModel::sourceModel());
+  }
+  bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
     const QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
     if(!isChildOfRoot(index))
@@ -116,20 +114,19 @@ private:
       return false;
     }
 
-    if (filterAcceptsRowItself(srcRow, srcParent))
+    if(filterAcceptsRowItself(srcRow, srcParent))
     {
       return true;
     }
 
     // Accept if any of the parents is accepted on its own
-    for (QModelIndex parent = srcParent; parent.isValid();
-         parent = parent.parent())
+    for(QModelIndex parent = srcParent; parent.isValid(); parent = parent.parent())
     {
       // We went up to the root. We know that we are a child due to the startsWith.
-      if (parent == fixedRootIndex)
+      if(parent == fixedRootIndex)
         return false;
 
-      if (filterAcceptsRowItself(parent.row(), parent.parent()))
+      if(filterAcceptsRowItself(parent.row(), parent.parent()))
       {
         return true;
       }

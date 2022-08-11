@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
@@ -17,9 +18,7 @@ namespace Command
 class Remove final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      Remove,
-      "Remove an Explorer node")
+      DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
 public:
   // For addresses
   Remove(const DeviceDocumentPlugin& devplug, Device::NodePath&& path);

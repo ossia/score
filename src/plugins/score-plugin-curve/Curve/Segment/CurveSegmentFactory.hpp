@@ -36,10 +36,8 @@ public:
   virtual QVariant makeCurveSegmentData() const = 0;
 
   virtual void serializeCurveSegmentData(
-      const QVariant& data,
-      const VisitorVariant& visitor) const = 0;
-  virtual QVariant
-  makeCurveSegmentData(const VisitorVariant& visitor) const = 0;
+      const QVariant& data, const VisitorVariant& visitor) const = 0;
+  virtual QVariant makeCurveSegmentData(const VisitorVariant& visitor) const = 0;
 };
 
 template <typename T>
@@ -71,16 +69,14 @@ public:
   }
 
   void serializeCurveSegmentData(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override
+      const QVariant& data, const VisitorVariant& visitor) const override
   {
     score::serialize_dyn(visitor, data.value<typename T::data_type>());
   }
 
   QVariant makeCurveSegmentData(const VisitorVariant& vis) const override
   {
-    return QVariant::fromValue(
-        score::deserialize_dyn<typename T::data_type>(vis));
+    return QVariant::fromValue(score::deserialize_dyn<typename T::data_type>(vis));
   }
 
   UuidKey<Curve::SegmentFactory> concreteKey() const noexcept override
@@ -88,10 +84,7 @@ public:
     return Metadata<ConcreteKey_k, T>::get();
   }
 
-  QString prettyName() const override
-  {
-    return Metadata<PrettyName_k, T>::get();
-  }
+  QString prettyName() const override { return Metadata<PrettyName_k, T>::get(); }
   QString category() const override { return Metadata<Category_k, T>::get(); }
 };
 }

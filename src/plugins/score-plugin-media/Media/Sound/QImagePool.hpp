@@ -51,9 +51,9 @@ struct QImagePool
 
   ~QImagePool()
   {
-    for (auto& pair : pool)
+    for(auto& pair : pool)
     {
-      for (QImage* img : pair.second.images)
+      for(QImage* img : pair.second.images)
       {
         delete img;
       }
@@ -67,10 +67,10 @@ struct QImagePool
     std::lock_guard _{m_mtx};
     // cacheStats();
     auto it = pool.find({w, h});
-    if (it != pool.end())
+    if(it != pool.end())
     {
       auto& vec = it->second.images;
-      if (!vec.empty())
+      if(!vec.empty())
       {
         auto img = vec.front();
         vec.pop_front();
@@ -89,7 +89,7 @@ struct QImagePool
 
   void giveBack(const QVector<QImage*>& imgs)
   {
-    for (auto img : imgs)
+    for(auto img : imgs)
     {
       QVector<QImage*> to_delete;
 
@@ -102,22 +102,22 @@ struct QImagePool
         images.last_touched = std::chrono::steady_clock::now();
       }
 
-      for (auto img : to_delete)
+      for(auto img : to_delete)
         delete img;
     }
   }
 
   QVector<QImage*> gc()
   {
-    if (pool.empty())
+    if(pool.empty())
       return {};
 
     int count = 0;
     auto oldest = pool.begin();
     auto oldest_t = oldest->second.last_touched;
-    for (auto it = oldest; it != pool.end(); ++it)
+    for(auto it = oldest; it != pool.end(); ++it)
     {
-      if (it->second.last_touched < oldest->second.last_touched)
+      if(it->second.last_touched < oldest->second.last_touched)
       {
         oldest = it;
         oldest_t = it->second.last_touched;
@@ -125,7 +125,7 @@ struct QImagePool
       count += it->second.images.size();
     }
 
-    if (count < max_count)
+    if(count < max_count)
       return {};
     auto res = std::move(oldest->second.images);
     SCORE_ASSERT(oldest->second.images.isEmpty());
@@ -137,9 +137,9 @@ struct QImagePool
   {
     std::size_t bytes = 0;
     int images = 0;
-    for (auto& pair : pool)
+    for(auto& pair : pool)
     {
-      for (QImage* img : pair.second.images)
+      for(QImage* img : pair.second.images)
       {
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
         bytes += img->byteCount();
@@ -150,8 +150,7 @@ struct QImagePool
       }
     }
 
-    qDebug() << QString(
-                    "%1 images: %2 megabytes ; hit/miss ratio : %3 / %4 = %5")
+    qDebug() << QString("%1 images: %2 megabytes ; hit/miss ratio : %3 / %4 = %5")
                     .arg(images)
                     .arg(bytes / (1024 * 1024))
                     .arg(hit)

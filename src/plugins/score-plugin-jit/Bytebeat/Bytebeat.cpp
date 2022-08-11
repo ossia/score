@@ -4,6 +4,8 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <JitCpp/Compiler/Driver.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -13,7 +15,6 @@
 #include <QSyntaxStyle>
 #include <QVBoxLayout>
 
-#include <JitCpp/Compiler/Driver.hpp>
 #include <wobjectimpl.h>
 
 #include <iostream>
@@ -32,20 +33,19 @@ QString generateBytebeatFunction(QString bb)
 
   int k = 0;
   auto lines = bb.split("\n");
-  for (auto& line : lines)
+  for(auto& line : lines)
   {
-    if (const auto simp = line.simplified(); !simp.isEmpty())
+    if(const auto simp = line.simplified(); !simp.isEmpty())
     {
       computed += QStringLiteral("double(signed_char(%1))+").arg(simp);
       k++;
     }
   }
 
-  if (k > 0 && computed.length() > 0)
+  if(k > 0 && computed.length() > 0)
   {
     computed.resize(computed.size() - 1);
-    computed.push_back(
-        QString(") * double(%1)").arg(1. / (128 * k), 0, 'g', 20));
+    computed.push_back(QString(") * double(%1)").arg(1. / (128 * k), 0, 'g', 20));
   }
   else
   {
@@ -75,9 +75,7 @@ void score_bytebeat(double* input, int size, int T)
 }
 
 BytebeatModel::BytebeatModel(
-    TimeVal t,
-    const QString& jitProgram,
-    const Id<Process::ProcessModel>& id,
+    TimeVal t, const QString& jitProgram, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{t, id, "Jit", parent}
 {
@@ -85,9 +83,9 @@ BytebeatModel::BytebeatModel(
   audio_out->setPropagate(true);
   this->m_outlets.push_back(audio_out);
   init();
-  if (jitProgram.isEmpty())
-    setScript(Process::EffectProcessFactory_T<Jit::BytebeatModel>{}
-                  .customConstructionData());
+  if(jitProgram.isEmpty())
+    setScript(
+        Process::EffectProcessFactory_T<Jit::BytebeatModel>{}.customConstructionData());
   else
     setScript(jitProgram);
 
@@ -126,7 +124,7 @@ BytebeatModel::BytebeatModel(DataStream::Deserializer&& vis, QObject* parent)
 
 void BytebeatModel::setScript(const QString& txt)
 {
-  if (m_text != txt)
+  if(m_text != txt)
   {
     m_text = txt;
     reload();
@@ -151,34 +149,33 @@ void BytebeatModel::reload()
 {
   // FIXME dispos of them once unused at execution
   static std::list<std::shared_ptr<BytebeatCompiler>> old_compilers;
-  if (m_compiler)
+  if(m_compiler)
   {
     old_compilers.push_front(std::move(m_compiler));
-    if (old_compilers.size() > 5)
+    if(old_compilers.size() > 5)
       old_compilers.pop_back();
   }
 
   m_compiler = std::make_unique<BytebeatCompiler>("score_bytebeat");
   auto fx_text = Jit::generateBytebeatFunction(m_text).toLocal8Bit();
   BytebeatFactory jit_factory;
-  if (fx_text.isEmpty())
+  if(fx_text.isEmpty())
     return;
 
   try
   {
-    jit_factory
-        = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{true});
+    jit_factory = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{true});
     assert(jit_factory);
 
-    if (!jit_factory)
+    if(!jit_factory)
       return;
   }
-  catch (const std::exception& e)
+  catch(const std::exception& e)
   {
     errorMessage(0, e.what());
     return;
   }
-  catch (...)
+  catch(...)
   {
     errorMessage(0, "JIT error");
     return;
@@ -209,9 +206,7 @@ public:
   bytebeat_node() { m_outlets.push_back(&audio_out); }
 
   void set_function(BytebeatFunction* func) { this->func = func; }
-  void
-  run(const ossia::token_request& t,
-      ossia::exec_state_facade f) noexcept override
+  void run(const ossia::token_request& t, ossia::exec_state_facade f) noexcept override
   {
     ossia::audio_port& o = *audio_out;
     o.set_channels(2);
@@ -219,7 +214,7 @@ public:
     double* data = o.channel(0).data();
     int N = f.bufferSize();
 
-    if (func)
+    if(func)
     {
       func(data, N, time);
     }
@@ -233,21 +228,19 @@ public:
 };
 
 BytebeatExecutor::BytebeatExecutor(
-    Jit::BytebeatModel& proc,
-    const Execution::Context& ctx,
-    QObject* parent)
+    Jit::BytebeatModel& proc, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
   auto bb = ossia::make_node<bytebeat_node>(*ctx.execState);
   this->node = bb;
 
-  if (auto tgt = proc.factory.target<void (*)(double*, int, int)>())
+  if(auto tgt = proc.factory.target<void (*)(double*, int, int)>())
     bb->set_function(*tgt);
 
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(proc, &Jit::BytebeatModel::changed, this, [this, &proc, bb] {
-    if (auto tgt = proc.factory.target<void (*)(double*, int, int)>())
+    if(auto tgt = proc.factory.target<void (*)(double*, int, int)>())
     {
       in_exec([tgt, bb] { bb->set_function(*tgt); });
     }
@@ -271,11 +264,8 @@ void DataStreamWriter::write(Jit::BytebeatModel& eff)
   m_stream >> eff.m_text;
   eff.reload();
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      eff.m_inlets,
-      eff.m_outlets,
-      &eff);
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
+      eff.m_outlets, &eff);
 }
 
 template <>
@@ -291,11 +281,8 @@ void JSONWriter::write(Jit::BytebeatModel& eff)
   eff.m_text = obj["Text"].toString();
   eff.reload();
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      eff.m_inlets,
-      eff.m_outlets,
-      &eff);
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
+      eff.m_outlets, &eff);
 }
 
 namespace Process

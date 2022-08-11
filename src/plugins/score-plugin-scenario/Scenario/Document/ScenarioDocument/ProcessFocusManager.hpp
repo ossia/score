@@ -48,8 +48,7 @@ public:
   void focusNothing();
 
 public:
-  void sig_focusedPresenter(LayerPresenter* arg_1)
-      W_SIGNAL(sig_focusedPresenter, arg_1);
+  void sig_focusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_focusedPresenter, arg_1);
   void sig_defocusedPresenter(LayerPresenter* arg_1)
       W_SIGNAL(sig_defocusedPresenter, arg_1);
 

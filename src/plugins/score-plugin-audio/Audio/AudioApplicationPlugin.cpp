@@ -1,10 +1,13 @@
 #include "AudioApplicationPlugin.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Application/ScenarioActions.hpp>
+
 #include <Audio/AudioDevice.hpp>
 #include <Audio/AudioInterface.hpp>
 #include <Audio/AudioTick.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/Bind.hpp>
@@ -13,21 +16,15 @@
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
-#include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/audio/audio_engine.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 
 #include <QToolBar>
 
-#include <Scenario/Application/ScenarioActions.hpp>
-
-SCORE_DECLARE_ACTION(
-    RestartAudio,
-    "Restart Audio",
-    Common,
-    QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 namespace Audio
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -44,40 +41,38 @@ void ApplicationPlugin::initialize()
 
   auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
 
-  if (auto dev = engines.get(set.getDriver()))
+  if(auto dev = engines.get(set.getDriver()))
   {
     dev->initialize(set, this->context);
   }
 
-  con(set,
-      &Audio::Settings::Model::changed,
-      this,
-      &ApplicationPlugin::restart_engine,
+  con(set, &Audio::Settings::Model::changed, this, &ApplicationPlugin::restart_engine,
       Qt::QueuedConnection);
 }
 
 ApplicationPlugin::~ApplicationPlugin() { }
 
 void ApplicationPlugin::on_documentChanged(
-    score::Document* olddoc,
-    score::Document* newdoc)
+    score::Document* olddoc, score::Document* newdoc)
 {
   restart_engine();
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent*)
 {
-  if (audio)
+  if(audio)
     audio->gc();
 
-  for(auto it = previous_audio.begin(); it != previous_audio.end(); )
+  for(auto it = previous_audio.begin(); it != previous_audio.end();)
   {
     auto& engine = **it;
     engine.gc();
-    if(engine.stop_received) {
+    if(engine.stop_received)
+    {
       it = previous_audio.erase(it);
     }
-    else {
+    else
+    {
       ++it;
     }
   }
@@ -96,11 +91,9 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   m_audioEngineAct->setStatusTip("Restart the audio engine");
 
   setIcons(
-      m_audioEngineAct,
-      QStringLiteral(":/icons/engine_on.png"),
+      m_audioEngineAct, QStringLiteral(":/icons/engine_on.png"),
       QStringLiteral(":/icons/engine_off.png"),
-      QStringLiteral(":/icons/engine_disabled.png"),
-      false);
+      QStringLiteral(":/icons/engine_disabled.png"), false);
   {
     auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
@@ -110,27 +103,25 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
     connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
-      if (!this->audio)
+      if(!this->audio)
         return;
 
       auto doc = context.currentDocument();
-      if (!doc)
+      if(!doc)
         return;
-      auto dev = (Dataflow::AudioDevice*)doc
-                     ->plugin<Explorer::DeviceDocumentPlugin>()
+      auto dev = (Dataflow::AudioDevice*)doc->plugin<Explorer::DeviceDocumentPlugin>()
                      .list()
                      .audioDevice();
-      if (!dev)
+      if(!dev)
         return;
       auto p = dev->getProtocol();
-      if (!p)
+      if(!p)
         return;
 
-      auto root = ossia::net::find_node(
-          dev->getDevice()->get_root_node(), "/out/main");
-      if (root)
+      auto root = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main");
+      if(root)
       {
-        if (auto p = root->get_parameter())
+        if(auto p = root->get_parameter())
         {
           auto audio_p = static_cast<ossia::audio_parameter*>(p);
           audio_p->push_value(v);
@@ -146,10 +137,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
   connect(
-      m_audioEngineAct,
-      &QAction::triggered,
-      this,
-      &ApplicationPlugin::restart_engine);
+      m_audioEngineAct, &QAction::triggered, this, &ApplicationPlugin::restart_engine);
 
   return e;
 }
@@ -157,7 +145,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 void ApplicationPlugin::restart_engine()
 try
 {
-  if (m_updating_audio)
+  if(m_updating_audio)
     return;
 
 #if defined(__EMSCRIPTEN__)
@@ -172,19 +160,16 @@ try
   start_engine();
 #endif
 }
-catch (std::exception& e)
+catch(std::exception& e)
 {
   score::warning(
-      context.documentTabWidget,
-      tr("Audio Error"),
-      tr("Warning: error while restarting the audio engine:\n%1")
-      .arg(e.what()));
+      context.documentTabWidget, tr("Audio Error"),
+      tr("Warning: error while restarting the audio engine:\n%1").arg(e.what()));
 }
-catch (...)
+catch(...)
 {
   score::warning(
-      context.documentTabWidget,
-      tr("Audio Error"),
+      context.documentTabWidget, tr("Audio Error"),
       tr("Warning: audio engine stuck. "
          "Operation aborted. "
          "Check the audio settings."));
@@ -192,17 +177,17 @@ catch (...)
 
 void ApplicationPlugin::stop_engine()
 {
-  if (audio)
+  if(audio)
   {
-    for (auto d : context.docManager.documents())
+    for(auto d : context.docManager.documents())
     {
       auto dev = (Dataflow::AudioDevice*)d->context()
                      .plugin<Explorer::DeviceDocumentPlugin>()
                      .list()
                      .audioDevice();
-      if (dev)
+      if(dev)
       {
-        if (auto proto = dev->getProtocol())
+        if(auto proto = dev->getProtocol())
         {
           proto->stop();
         }
@@ -217,26 +202,25 @@ void ApplicationPlugin::stop_engine()
 
 void ApplicationPlugin::start_engine()
 {
-  if (auto doc = this->currentDocument())
+  if(auto doc = this->currentDocument())
   {
     auto dev = (Dataflow::AudioDevice*)doc->context()
                    .plugin<Explorer::DeviceDocumentPlugin>()
                    .list()
                    .audioDevice();
-    if (!dev)
+    if(!dev)
       return;
 
     auto& set = this->context.settings<Audio::Settings::Model>();
-    auto& engines
-        = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
+    auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
 
-    if (auto dev = engines.get(set.getDriver()))
+    if(auto dev = engines.get(set.getDriver()))
     {
       try
       {
         SCORE_ASSERT(!audio);
         audio = dev->make_engine(set, this->context);
-        if (!audio)
+        if(!audio)
           throw std::runtime_error{""};
 
         m_updating_audio = true;
@@ -246,22 +230,21 @@ void ApplicationPlugin::start_engine()
         set.setRate(rate <= 0 ? 44100 : rate);
         m_updating_audio = false;
       }
-      catch (...)
+      catch(...)
       {
         score::warning(
-            nullptr,
-            tr("Audio error"),
+            nullptr, tr("Audio error"),
             tr("The desired audio settings could not be applied.\nPlease "
                "change "
                "them."));
       }
     }
 
-    if (m_audioEngineAct)
+    if(m_audioEngineAct)
       m_audioEngineAct->setChecked(bool(audio));
 
     dev->reconnect();
-    if (audio)
+    if(audio)
     {
       audio->set_tick(Audio::makePauseTick(this->context));
     }

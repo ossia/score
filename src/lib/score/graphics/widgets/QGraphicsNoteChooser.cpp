@@ -38,7 +38,7 @@ int QGraphicsNoteChooser::value() const
 void QGraphicsNoteChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   const auto srect = boundingRect();
-  if (srect.contains(event->pos()))
+  if(srect.contains(event->pos()))
   {
     m_grab = true;
   }
@@ -52,15 +52,15 @@ void QGraphicsNoteChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsNoteChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
+  if(m_grab)
   {
     auto pos = event->screenPos();
     auto dy = ossia::clamp((m_startPos.y() - pos.y()) / 10., -1., 1.);
-    if (dy != 0)
+    if(dy != 0)
     {
       m_curValue = ossia::clamp(m_curValue + dy, (double)m_min, (double)m_max);
 
-      if (int res = std::round(m_curValue); res != m_value)
+      if(int res = std::round(m_curValue); res != m_value)
       {
         m_value = res;
         m_curValue = m_value;
@@ -79,7 +79,7 @@ void QGraphicsNoteChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   mouseMoveEvent(event);
 
-  if (m_grab)
+  if(m_grab)
   {
     m_grab = false;
     sliderReleased();
@@ -90,30 +90,17 @@ void QGraphicsNoteChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 static QString noteText(int n)
 {
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-  static const QString lit[12]{
-      "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+  static const QString lit[12]{"C",  "C#", "D",  "D#", "E",  "F",
+                               "F#", "G",  "G#", "A",  "A#", "B"};
 #else
-  static const QStringView lit[12]{
-      u"C",
-      u"C#",
-      u"D",
-      u"D#",
-      u"E",
-      u"F",
-      u"F#",
-      u"G",
-      u"G#",
-      u"A",
-      u"A#",
-      u"B"};
+  static const QStringView lit[12]{u"C",  u"C#", u"D",  u"D#", u"E",  u"F",
+                                   u"F#", u"G",  u"G#", u"A",  u"A#", u"B"};
 #endif
   return QString{"%1%2"}.arg(lit[n % 12]).arg(n / 12 - 1);
 }
 
 void QGraphicsNoteChooser::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& style = score::Skin::instance();
   //const QPen& text = style.Gray.main.pen1;
@@ -129,8 +116,7 @@ void QGraphicsNoteChooser::paint(
   //painter->drawRect(boundingRect());
   painter->setPen(currentText);
   painter->drawText(
-      boundingRect(),
-      QString{"%1\n%2"}.arg(noteText(m_value)).arg(m_value),
+      boundingRect(), QString{"%1\n%2"}.arg(noteText(m_value)).arg(m_value),
       QTextOption(Qt::AlignLeft));
 }
 }

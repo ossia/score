@@ -1,12 +1,14 @@
-#include <Gfx/Graph/TextNode.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
-#include <QPainter>
+#include <Gfx/Graph/TextNode.hpp>
+
 #include <ossia/detail/math.hpp>
+#include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
-#include <ossia/gfx/port_index.hpp>
+
+#include <QPainter>
 
 namespace score::gfx
 {
@@ -86,7 +88,7 @@ public:
 private:
   ~Renderer() { }
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
 
   // TODO
   QSize sz{1920, 1080};
@@ -117,8 +119,8 @@ private:
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
-    std::tie(m_vertexS, m_fragmentS)
-        = score::gfx::makeShaders(renderer.state, text_vertex_shader, text_fragment_shader);
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+        renderer.state, text_vertex_shader, text_fragment_shader);
 
     QRhi& rhi = *renderer.state.rhi;
 
@@ -130,31 +132,27 @@ private:
       m_textures.push_back({{}, tex});
     }
 
-
     // Create the sampler in which we are going to put the texture
     {
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
       sampler->setName("TextNode::sampler");
       sampler->create();
-      auto tex = m_textures.empty() ? &renderer.emptyTexture() : m_textures.front().second;
+      auto tex
+          = m_textures.empty() ? &renderer.emptyTexture() : m_textures.front().second;
       m_samplers.push_back({sampler, tex});
     }
 
     defaultPassesInit(renderer, mesh);
   }
 
-  void
-  update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     defaultUBOUpdate(renderer, res);
 
-    if (m_textures.empty())
+    if(m_textures.empty())
       return;
 
     // If images haven't been uploaded yet, upload them.
@@ -173,10 +171,7 @@ private:
     }
   }
 
-  void runRenderPass(
-      RenderList& renderer,
-      QRhiCommandBuffer& cb,
-      Edge& edge) override
+  void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
   {
     const auto& mesh = renderer.defaultQuad();
     defaultRenderPass(renderer, mesh, cb, edge);
@@ -184,7 +179,7 @@ private:
 
   void release(RenderList& r) override
   {
-    for (auto tex : m_textures)
+    for(auto tex : m_textures)
     {
       tex.second->deleteLater();
     }
@@ -210,84 +205,82 @@ void TextNode::process(const Message& msg)
   ProcessNode::process(msg.token);
 
   int32_t p = 0;
-  for (const gfx_input& m: msg.input)
+  for(const gfx_input& m : msg.input)
   {
     if(auto val = ossia::get_if<ossia::value>(&m))
     {
-    switch(p)
-    {
-      case 0:
+      switch(p)
       {
-        // Text
-        {
-          text = QString::fromStdString(ossia::convert<std::string>(*val));
-          mustRerender = true;
+        case 0: {
+          // Text
+          {
+            text = QString::fromStdString(ossia::convert<std::string>(*val));
+            mustRerender = true;
+          }
+          break;
         }
-        break;
-      }
-      case 1:
-      {
-        // Font
-        {
-          font.setFamily(QString::fromStdString(ossia::convert<std::string>(*val)));
-          mustRerender = true;
+        case 1: {
+          // Font
+          {
+            font.setFamily(QString::fromStdString(ossia::convert<std::string>(*val)));
+            mustRerender = true;
+          }
+          break;
         }
-        break;
-      }
-      case 2:
-      {
-        // Point size
-        {
-          font.setPointSizeF(ossia::convert<float>(*val));
-          mustRerender = true;
+        case 2: {
+          // Point size
+          {
+            font.setPointSizeF(ossia::convert<float>(*val));
+            mustRerender = true;
+          }
+          break;
         }
-        break;
-      }
 
-      case 3: // Opacity
-      {
-        auto opacity = ossia::convert<float>(*val);
-        this->ubo.opacity = ossia::clamp(opacity, 0.f, 1.f);
-        this->materialChanged++;
-        break;
-      }
-      case 4: // Position
-      {
-        auto sink = ossia::gfx::port_index{msg.node_id, p - 3};
-          ossia::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
-        break;
-      }
-
-      case 5: // Scale X
-      {
+        case 3: // Opacity
         {
-          auto scale = ossia::convert<float>(*val);
-          this->ubo.scale[0] = scale;
+          auto opacity = ossia::convert<float>(*val);
+          this->ubo.opacity = ossia::clamp(opacity, 0.f, 1.f);
           this->materialChanged++;
+          break;
         }
-        break;
-      }
-      case 6: // Scale Y
-      {
+        case 4: // Position
         {
-          auto scale = ossia::convert<float>(*val);
-          this->ubo.scale[1] = scale;
-          this->materialChanged++;
+          auto sink = ossia::gfx::port_index{msg.node_id, p - 3};
+          ossia::visit(
+              [this, sink](const auto& v) { ProcessNode::process(sink.port, v); },
+              std::move(m));
+          break;
         }
-        break;
-      }
 
-      case 7:
-      {
-        // Color
+        case 5: // Scale X
         {
-          auto rgba = ossia::convert<ossia::vec4f>(*val);
-          pen.setColor(QColor::fromRgbF(rgba[0], rgba[1], rgba[2], rgba[3]));
-          mustRerender = true;
+          {
+            auto scale = ossia::convert<float>(*val);
+            this->ubo.scale[0] = scale;
+            this->materialChanged++;
+          }
+          break;
         }
-        break;
+        case 6: // Scale Y
+        {
+          {
+            auto scale = ossia::convert<float>(*val);
+            this->ubo.scale[1] = scale;
+            this->materialChanged++;
+          }
+          break;
+        }
+
+        case 7: {
+          // Color
+          {
+            auto rgba = ossia::convert<ossia::vec4f>(*val);
+            pen.setColor(QColor::fromRgbF(rgba[0], rgba[1], rgba[2], rgba[3]));
+            mustRerender = true;
+          }
+          break;
+        }
       }
-    }
     }
 
     p++;

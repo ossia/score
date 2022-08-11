@@ -4,9 +4,15 @@
 
 #include "ItemModel/MessageItemModelAlgorithms.hpp"
 
+#include <State/Message.hpp>
+
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <State/Message.hpp>
+
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -17,21 +23,14 @@
 #include <QAbstractItemModel>
 #include <QObject>
 
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::StateModel)
 namespace Scenario
 {
 StateModel::StateModel(
-    const Id<StateModel>& id,
-    const Id<EventModel>& eventId,
-    double yPos,
-    const score::DocumentContext& ctx,
-    QObject* parent)
+    const Id<StateModel>& id, const Id<EventModel>& eventId, double yPos,
+    const score::DocumentContext& ctx, QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, StateModel>::get(), parent}
     , m_context{ctx}
     , m_eventId{eventId}
@@ -51,25 +50,15 @@ StateModel::~StateModel()
 
 void StateModel::init()
 {
-  con(*m_messageItemModel,
-      &QAbstractItemModel::modelReset,
-      this,
+  con(*m_messageItemModel, &QAbstractItemModel::modelReset, this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel,
-      &QAbstractItemModel::dataChanged,
-      this,
+  con(*m_messageItemModel, &QAbstractItemModel::dataChanged, this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel,
-      &QAbstractItemModel::rowsInserted,
-      this,
+  con(*m_messageItemModel, &QAbstractItemModel::rowsInserted, this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel,
-      &QAbstractItemModel::rowsMoved,
-      this,
+  con(*m_messageItemModel, &QAbstractItemModel::rowsMoved, this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel,
-      &QAbstractItemModel::rowsRemoved,
-      this,
+  con(*m_messageItemModel, &QAbstractItemModel::rowsRemoved, this,
       &StateModel::statesUpdated_slt);
 }
 
@@ -80,7 +69,7 @@ double StateModel::heightPercentage() const
 
 void StateModel::setHeightPercentage(double y)
 {
-  if (m_heightPercentage == y)
+  if(m_heightPercentage == y)
     return;
   m_heightPercentage = y;
   heightPercentageChanged();
@@ -98,7 +87,7 @@ const Id<EventModel>& StateModel::eventId() const
 
 void StateModel::setEventId(const Id<EventModel>& id)
 {
-  if (id != m_eventId)
+  if(id != m_eventId)
   {
     auto old = m_eventId;
     m_eventId = id;
@@ -138,7 +127,7 @@ ControlItemModel& StateModel::controlMessages() const
 
 void StateModel::setStatus(ExecutionStatus status)
 {
-  if (m_status.get() == status)
+  if(m_status.get() == status)
     return;
 
   m_status.set(status);

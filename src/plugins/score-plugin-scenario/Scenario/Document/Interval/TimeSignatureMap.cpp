@@ -1,43 +1,43 @@
 #include "TimeSignatureMap.hpp"
+
 #include <Process/TimeValueSerialization.hpp>
+
 #include <score/serialization/MapSerialization.hpp>
-#include <ossia/detail/flat_map.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/flat_map.hpp>
 
 namespace Scenario
 {
 
 struct TimeSignatureMap::impl : ossia::flat_map<TimeVal, ossia::time_signature>
 {
-    using flat_map::flat_map;
+  using flat_map::flat_map;
 };
 
-TimeSignatureMap::TimeSignatureMap()
-{
-
-}
+TimeSignatureMap::TimeSignatureMap() { }
 TimeSignatureMap::~TimeSignatureMap()
 {
-    if(map)
-        delete map;
+  if(map)
+    delete map;
 }
 TimeSignatureMap::TimeSignatureMap(const TimeSignatureMap& other)
 {
-    if(other.map)
-    {
-        map = new impl{*other.map};
-    }
+  if(other.map)
+  {
+    map = new impl{*other.map};
+  }
 }
 TimeSignatureMap::TimeSignatureMap(TimeSignatureMap&& other)
 {
-    map = other.map;
-    other.map = nullptr;
+  map = other.map;
+  other.map = nullptr;
 }
 TimeSignatureMap& TimeSignatureMap::operator=(const TimeSignatureMap& other)
 {
   if(other.map)
   {
-      map = new impl{*other.map};
+    map = new impl{*other.map};
   }
   return *this;
 }
@@ -136,30 +136,38 @@ bool TimeSignatureMap::operator!=(const TimeSignatureMap& other) const noexcept
 }
 }
 
-void TSerializer<DataStream, Scenario::TimeSignatureMap>::readFrom(DataStream::Serializer& s, const Scenario::TimeSignatureMap& path)
+void TSerializer<DataStream, Scenario::TimeSignatureMap>::readFrom(
+    DataStream::Serializer& s, const Scenario::TimeSignatureMap& path)
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<DataStream, ossia::flat_map<TimeVal, ossia::time_signature>>::readFrom(s, *path.map);
+  TSerializer<DataStream, ossia::flat_map<TimeVal, ossia::time_signature>>::readFrom(
+      s, *path.map);
 }
 
-void TSerializer<DataStream, Scenario::TimeSignatureMap>::writeTo(DataStream::Deserializer& s, Scenario::TimeSignatureMap& path)
+void TSerializer<DataStream, Scenario::TimeSignatureMap>::writeTo(
+    DataStream::Deserializer& s, Scenario::TimeSignatureMap& path)
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<DataStream, ossia::flat_map<TimeVal, ossia::time_signature>>::writeTo(s, *path.map);
+  TSerializer<DataStream, ossia::flat_map<TimeVal, ossia::time_signature>>::writeTo(
+      s, *path.map);
 }
 
-void TSerializer<JSONObject, Scenario::TimeSignatureMap>::readFrom(JSONObject::Serializer& s, const Scenario::TimeSignatureMap& path)
+void TSerializer<JSONObject, Scenario::TimeSignatureMap>::readFrom(
+    JSONObject::Serializer& s, const Scenario::TimeSignatureMap& path)
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<JSONObject, ossia::flat_map<TimeVal, ossia::time_signature>>::readFrom(s, *path.map);
+  TSerializer<JSONObject, ossia::flat_map<TimeVal, ossia::time_signature>>::readFrom(
+      s, *path.map);
 }
 
-void TSerializer<JSONObject, Scenario::TimeSignatureMap>::writeTo(JSONObject::Deserializer& s, Scenario::TimeSignatureMap& path)
+void TSerializer<JSONObject, Scenario::TimeSignatureMap>::writeTo(
+    JSONObject::Deserializer& s, Scenario::TimeSignatureMap& path)
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<JSONObject, ossia::flat_map<TimeVal, ossia::time_signature>>::writeTo(s, *path.map);
+  TSerializer<JSONObject, ossia::flat_map<TimeVal, ossia::time_signature>>::writeTo(
+      s, *path.map);
 }

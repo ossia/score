@@ -1,7 +1,6 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 }
 
@@ -35,9 +34,7 @@ struct PackedDecoder : GPUVideoDecoder
     })_";
 
   PackedDecoder(
-      QRhiTexture::Format fmt,
-      int bytes_per_pixel,
-      Video::VideoMetadata& d,
+      QRhiTexture::Format fmt, int bytes_per_pixel, Video::VideoMetadata& d,
       QString f = "")
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
@@ -62,33 +59,26 @@ struct PackedDecoder : GPUVideoDecoder
 
       // Create a sampler
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
 
       // Store both
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(r.state, vertexShader(), QString(rgb_filter).arg(filter));
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(rgb_filter).arg(filter));
   }
 
-  void exec(
-      RenderList&,
-      QRhiResourceUpdateBatch& res,
-      AVFrame& frame) override
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
     // Nothing particular, we just upload the whole buffer
     setPixels(res, frame.data[0], frame.linesize[0]);
   }
 
-  void setPixels(
-      QRhiResourceUpdateBatch& res,
-      uint8_t* pixels,
-      int stride) const noexcept
+  void
+  setPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = samplers[0].texture;
@@ -100,7 +90,6 @@ struct PackedDecoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 };
-
 
 struct PackedRectDecoder : GPUVideoDecoder
 {
@@ -156,9 +145,7 @@ void main()
 )_";
 
   PackedRectDecoder(
-      QRhiTexture::Format fmt,
-      int bytes_per_pixel,
-      Video::VideoMetadata& d,
+      QRhiTexture::Format fmt, int bytes_per_pixel, Video::VideoMetadata& d,
       QString f = "")
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
@@ -183,11 +170,8 @@ void main()
 
       // Create a sampler
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
 
       // Store both
@@ -197,19 +181,14 @@ void main()
     return score::gfx::makeShaders(r.state, vertex, QString(rgb_filter).arg(filter));
   }
 
-  void exec(
-      RenderList&,
-      QRhiResourceUpdateBatch& res,
-      AVFrame& frame) override
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
     // Nothing particular, we just upload the whole buffer
     setPixels(res, frame.data[0], frame.linesize[0]);
   }
 
-  void setPixels(
-      QRhiResourceUpdateBatch& res,
-      uint8_t* pixels,
-      int stride) const noexcept
+  void
+  setPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = samplers[0].texture;

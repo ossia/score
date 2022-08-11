@@ -5,8 +5,11 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/EntitySerialization.hpp>
@@ -21,17 +24,13 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-
 namespace Scenario
 {
 namespace Command
 {
 
 RemoveProcessFromInterval::RemoveProcessFromInterval(
-    const IntervalModel& interval,
-    Id<Process::ProcessModel> processId)
+    const IntervalModel& interval, Id<Process::ProcessModel> processId)
     : m_path{interval}
     , m_processId{std::move(processId)}
 {
@@ -40,8 +39,7 @@ RemoveProcessFromInterval::RemoveProcessFromInterval(
   auto& proc = interval.processes.at(m_processId);
   s1.readFrom(proc);
 
-  m_cables = Dataflow::saveCables(
-      {&proc}, score::IDocument::documentContext(interval));
+  m_cables = Dataflow::saveCables({&proc}, score::IDocument::documentContext(interval));
 
   m_smallView = interval.smallView();
   m_smallViewVisible = interval.smallViewVisible();
@@ -70,30 +68,29 @@ void RemoveProcessFromInterval::redo(const score::DocumentContext& ctx) const
   // Find the slots that will be empty : we remove them.
   ossia::int_vector slots_to_remove;
   int i = 0;
-  for (const Slot& slot : interval.smallView())
+  for(const Slot& slot : interval.smallView())
   {
-    if (!slot.nodal && slot.processes.size() == 1
-        && slot.processes[0] == m_processId)
+    if(!slot.nodal && slot.processes.size() == 1 && slot.processes[0] == m_processId)
       slots_to_remove.push_back(i);
     i++;
   }
 
   RemoveProcess(interval, m_processId);
 
-  for (int slt : boost::adaptors::reverse(slots_to_remove))
+  for(int slt : boost::adaptors::reverse(slots_to_remove))
     interval.removeSlot(slt);
 }
 
 void RemoveProcessFromInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processId << m_serializedProcessData << m_cables
-    << m_smallView << m_smallViewVisible;
+  s << m_path << m_processId << m_serializedProcessData << m_cables << m_smallView
+    << m_smallViewVisible;
 }
 
 void RemoveProcessFromInterval::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processId >> m_serializedProcessData >> m_cables
-      >> m_smallView >> m_smallViewVisible;
+  s >> m_path >> m_processId >> m_serializedProcessData >> m_cables >> m_smallView
+      >> m_smallViewVisible;
 }
 }
 }

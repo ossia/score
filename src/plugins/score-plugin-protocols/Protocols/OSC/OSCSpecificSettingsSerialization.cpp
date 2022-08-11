@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "OSCSpecificSettings.hpp"
 
+#include <score/serialization/BoostVariant2Serialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/BoostVariant2Serialization.hpp>
 
 JSON_METADATA(ossia::net::udp_configuration, "UDP")
 JSON_METADATA(ossia::net::tcp_configuration, "TCP")
@@ -131,14 +131,16 @@ void JSONWriter::write(ossia::net::ws_server_configuration& n)
 template <>
 void DataStreamReader::read(const ossia::net::serial_configuration& n)
 {
-  m_stream << n.port << n.baud_rate << n.character_size << n.flow_control << n.parity << n.stop_bits;
+  m_stream << n.port << n.baud_rate << n.character_size << n.flow_control << n.parity
+           << n.stop_bits;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(ossia::net::serial_configuration& n)
 {
-  m_stream >> n.port >> n.baud_rate >> n.character_size >> n.flow_control >> n.parity >> n.stop_bits;
+  m_stream >> n.port >> n.baud_rate >> n.character_size >> n.flow_control >> n.parity
+      >> n.stop_bits;
   checkDelimiter();
 }
 
@@ -158,12 +160,12 @@ void JSONReader::read(const ossia::net::serial_configuration& n)
 template <>
 void JSONWriter::write(ossia::net::serial_configuration& n)
 {
-  n.port           = obj["Port"].toStdString()       ;
-  n.baud_rate      = obj["BaudRate"].toInt()   ;
-  n.character_size = obj["CharSize"].toInt()   ;
-  n.flow_control   <<= obj["FlowControl"];
-  n.parity         <<= obj["Parity"]     ;
-  n.stop_bits      <<= obj["StopBits"]   ;
+  n.port = obj["Port"].toStdString();
+  n.baud_rate = obj["BaudRate"].toInt();
+  n.character_size = obj["CharSize"].toInt();
+  n.flow_control <<= obj["FlowControl"];
+  n.parity <<= obj["Parity"];
+  n.stop_bits <<= obj["StopBits"];
 }
 
 template <>
@@ -213,8 +215,6 @@ void JSONWriter::write(ossia::net::send_socket_configuration& n)
 {
   write((ossia::net::socket_configuration&)n);
 }
-
-
 
 template <>
 void DataStreamReader::read(const ossia::net::receive_fd_configuration& n)
@@ -386,7 +386,6 @@ void DataStreamWriter::write(ossia::net::osc_protocol_configuration& n)
   checkDelimiter();
 }
 
-
 template <>
 void JSONReader::read(const ossia::net::osc_protocol_configuration& n)
 {
@@ -406,7 +405,6 @@ void JSONWriter::write(ossia::net::osc_protocol_configuration& n)
   n.framing <<= obj["Framing"];
   n.transport <<= obj["Transport"];
 }
-
 
 template <>
 void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
@@ -428,7 +426,7 @@ template <>
 void JSONReader::read(const Protocols::OSCSpecificSettings& n)
 {
   obj["Config"] = n.configuration;
-  if (n.rate)
+  if(n.rate)
     obj["Rate"] = *n.rate;
 }
 
@@ -436,14 +434,13 @@ template <>
 void JSONWriter::write(Protocols::OSCSpecificSettings& n)
 {
   // Old save format
-  if(auto outputPort = obj.tryGet("OutputPort")) {
+  if(auto outputPort = obj.tryGet("OutputPort"))
+  {
     ossia::net::udp_configuration conf;
     conf.local = ossia::net::receive_socket_configuration{
-        "0.0.0.0", (uint16_t)obj["OutputPort"].toInt()
-    };
+        "0.0.0.0", (uint16_t)obj["OutputPort"].toInt()};
     conf.remote = ossia::net::send_socket_configuration{
-        obj["Host"].toStdString(), (uint16_t)obj["InputPort"].toInt()
-    };
+        obj["Host"].toStdString(), (uint16_t)obj["InputPort"].toInt()};
     n.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
     n.configuration.version = ossia::net::osc_protocol_configuration::OSC1_0;
     n.configuration.transport = std::move(conf);
@@ -453,6 +450,6 @@ void JSONWriter::write(Protocols::OSCSpecificSettings& n)
     n.configuration <<= obj["Config"];
   }
 
-  if (auto it = obj.tryGet("Rate"))
+  if(auto it = obj.tryGet("Rate"))
     n.rate = it->toInt();
 }

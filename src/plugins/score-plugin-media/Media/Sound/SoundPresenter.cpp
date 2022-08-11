@@ -2,6 +2,8 @@
 
 #include "SoundView.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 #include <Media/Tempo.hpp>
@@ -10,16 +12,12 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 namespace Media
 {
 namespace Sound
 {
 LayerPresenter::LayerPresenter(
-    const ProcessModel& layer,
-    LayerView* view,
-    const Process::Context& ctx,
+    const ProcessModel& layer, LayerView* view, const Process::Context& ctx,
     QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
@@ -35,27 +33,21 @@ LayerPresenter::LayerPresenter(
   //m_view->recompute(m_ratio);
 
   connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::onDrop);
-  con(layer,
-      &Sound::ProcessModel::nativeTempoChanged,
-      this,
+  con(layer, &Sound::ProcessModel::nativeTempoChanged, this,
       &LayerPresenter::updateTempo);
-  con(layer,
-      &Sound::ProcessModel::scoreTempoChanged,
-      this,
+  con(layer, &Sound::ProcessModel::scoreTempoChanged, this,
       &LayerPresenter::updateTempo);
-  con(layer,
-      &Sound::ProcessModel::stretchModeChanged,
-      this,
+  con(layer, &Sound::ProcessModel::stretchModeChanged, this,
       &LayerPresenter::updateTempo);
 }
 
 void LayerPresenter::updateTempo()
 {
   const auto& layer = (const ProcessModel&)m_process;
-  if (layer.stretchMode() == ossia::audio_stretch_mode::None)
+  if(layer.stretchMode() == ossia::audio_stretch_mode::None)
   {
     const double tempoAtStart = Media::tempoAtStartDate(m_process);
-    if (tempoAtStart < 0.1)
+    if(tempoAtStart < 0.1)
       return;
 
     m_view->setTempoRatio(ossia::root_tempo / tempoAtStart);
@@ -64,7 +56,7 @@ void LayerPresenter::updateTempo()
   else
   {
     const double nativeTempo = layer.nativeTempo();
-    if (nativeTempo < 0.1)
+    if(nativeTempo < 0.1)
       return;
 
     m_view->setTempoRatio(ossia::root_tempo / nativeTempo);
@@ -106,15 +98,14 @@ void LayerPresenter::parentGeometryChanged()
 void LayerPresenter::onDrop(const QPointF& p, const QMimeData& mime)
 {
   DroppedAudioFiles drops{context().context, mime};
-  if (!drops.valid() || drops.files.size() != 1)
+  if(!drops.valid() || drops.files.size() != 1)
   {
     return;
   }
   CommandDispatcher<> disp{context().context.commandStack};
   disp.submit<Media::ChangeAudioFile>(
       static_cast<const Sound::ProcessModel&>(m_process),
-      std::move(drops.files.front().first),
-      context().context);
+      std::move(drops.files.front().first), context().context);
 }
 }
 }

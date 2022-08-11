@@ -10,11 +10,10 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QString>
 #include <QIODevice>
+#include <QString>
 
-static
-QByteArray readYSFXState(ysfx_t& fx)
+static QByteArray readYSFXState(ysfx_t& fx)
 {
   QByteArray dat;
   {
@@ -27,7 +26,8 @@ QByteArray readYSFXState(ysfx_t& fx)
         QDataStream stream{&dat, QIODevice::WriteOnly};
         stream << sz << sliders;
         stream << QByteArray((const char*)state->data, sz);
-        for(int64_t i = 0; i < sliders; i++) {
+        for(int64_t i = 0; i < sliders; i++)
+        {
           stream << state->sliders[i].index;
           stream << state->sliders[i].value;
         }
@@ -40,8 +40,7 @@ QByteArray readYSFXState(ysfx_t& fx)
   return dat;
 }
 
-static
-void loadYSFXState(ysfx_t& fx, const QByteArray& state)
+static void loadYSFXState(ysfx_t& fx, const QByteArray& state)
 {
   if(state.isEmpty())
     return;
@@ -57,7 +56,8 @@ void loadYSFXState(ysfx_t& fx, const QByteArray& state)
     stream >> sz >> sliders >> dat;
     sliders_data.resize(sliders);
 
-    for(int64_t i = 0; i < sliders; i++) {
+    for(int64_t i = 0; i < sliders; i++)
+    {
       stream >> sliders_data[i].index;
       stream >> sliders_data[i].value;
     }
@@ -92,11 +92,8 @@ void DataStreamWriter::write(YSFX::ProcessModel& proc)
   loadYSFXState(*proc.fx.get(), dat);
 
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   checkDelimiter();
 }
@@ -117,9 +114,6 @@ void JSONWriter::write(YSFX::ProcessModel& proc)
   loadYSFXState(*proc.fx.get(), dat);
 
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 }

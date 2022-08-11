@@ -19,10 +19,7 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT MidiOutletFactory final
   }
 
   void setupOutletInspector(
-      const Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override;
+      const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 };
 }

@@ -35,7 +35,7 @@ private:
     {
       rack->slot(slotId);
     }
-    catch (std::runtime_error& e)
+    catch(std::runtime_error& e)
     {
       QFAIL(e.what());
     }

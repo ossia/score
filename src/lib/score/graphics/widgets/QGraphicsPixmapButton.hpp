@@ -19,10 +19,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
   const QPixmap m_pressed, m_released;
 
 public:
-  QGraphicsPixmapButton(
-      QPixmap pressed,
-      QPixmap released,
-      QGraphicsItem* parent);
+  QGraphicsPixmapButton(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)

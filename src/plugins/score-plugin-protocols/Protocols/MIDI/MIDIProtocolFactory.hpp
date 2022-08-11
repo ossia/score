@@ -37,21 +37,16 @@ public:
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget* parent) override;
 
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*) override;
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*) override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,
@@ -77,21 +72,16 @@ public:
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget* parent) override;
 
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*) override;
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*) override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,

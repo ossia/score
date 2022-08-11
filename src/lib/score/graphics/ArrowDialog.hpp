@@ -15,10 +15,8 @@ class SCORE_LIB_BASE_EXPORT ArrowDialog
 public:
   ArrowDialog(QGraphicsScene* parent);
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
 private:
   const QPainterPath& getPath(QSizeF sz);

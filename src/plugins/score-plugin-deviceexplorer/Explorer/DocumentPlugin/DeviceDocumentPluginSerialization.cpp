@@ -3,6 +3,7 @@
 #include "DeviceDocumentPlugin.hpp"
 
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
@@ -30,7 +31,7 @@ void JSONReader::read(const Explorer::DeviceDocumentPlugin& plug)
 
   this->stream.Key("Children");
   this->stream.StartArray();
-  for (const Device::Node& node : plug.rootNode().children())
+  for(const Device::Node& node : plug.rootNode().children())
   {
     // TODO maybe objects shouldn't be there actually ?
 
@@ -38,7 +39,7 @@ void JSONReader::read(const Explorer::DeviceDocumentPlugin& plug)
     const Device::DeviceSettings& dev = node.get<Device::DeviceSettings>();
     auto actual = plug.list().findDevice(dev.name);
     SCORE_ASSERT(actual);
-    if (actual->capabilities().canSerialize)
+    if(actual->capabilities().canSerialize)
     {
       this->readFrom(node);
     }
@@ -60,7 +61,7 @@ void DataStreamWriter::write(Explorer::DeviceDocumentPlugin& plug)
   plug.m_explorer = new Explorer::DeviceExplorerModel{plug, &plug};
   // Here everything is loaded in m_loadingNode
 
-  for (const auto& node : n)
+  for(const auto& node : n)
   {
     plug.updateProxy.loadDevice(node);
   }
@@ -78,7 +79,7 @@ void JSONWriter::write(Explorer::DeviceDocumentPlugin& plug)
   // Here we recreate the correct structures in term of devices,
   // given what's present in the node hierarchy
 
-  for (const auto& node : n)
+  for(const auto& node : n)
   {
     plug.updateProxy.loadDevice(node);
   }

@@ -15,15 +15,12 @@ namespace Spline3D
 namespace RecreateOnPlay
 {
 class Component final
-    : public ::Execution::
-          ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("438137a8-e551-4e82-9f8b-0d0a47f8a676")
 public:
   Component(
-      Spline3D::ProcessModel& element,
-      const ::Execution::Context& ctx,
-      QObject* parent);
+      Spline3D::ProcessModel& element, const ::Execution::Context& ctx, QObject* parent);
   ~Component() override;
 
 private:
@@ -34,5 +31,4 @@ using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Execution::ProcessComponentFactory,
-    Spline3D::RecreateOnPlay::ComponentFactory)
+    Execution::ProcessComponentFactory, Spline3D::RecreateOnPlay::ComponentFactory)

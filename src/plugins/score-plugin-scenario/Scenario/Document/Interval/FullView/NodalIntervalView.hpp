@@ -1,14 +1,15 @@
 #pragma once
 #include <Process/Dataflow/NodeItem.hpp>
 
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+
 #include <score/graphics/RectItem.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
 
-#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <nano_observer.hpp>
 
 namespace Scenario
@@ -24,9 +25,7 @@ public:
     OnlyEffects
   };
   NodalIntervalView(
-      ItemsToShow sh,
-      const IntervalModel& model,
-      const Process::Context& ctx,
+      ItemsToShow sh, const IntervalModel& model, const Process::Context& ctx,
       QGraphicsItem* parent);
 
   ~NodalIntervalView();

@@ -1,10 +1,5 @@
 #pragma once
 
-#include <Magnetism/MagnetismAdjuster.hpp>
-
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <score/locking/ObjectLocker.hpp>
-
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
@@ -23,6 +18,11 @@
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+
+#include <Magnetism/MagnetismAdjuster.hpp>
+
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+#include <score/locking/ObjectLocker.hpp>
 //#include <Scenario/Application/ScenarioValidity.hpp>
 #include <QFinalState>
 
@@ -90,16 +90,13 @@ private:
 */
 template <
     typename MoveEventCommand_T, // MoveEventMeta
-    typename Scenario_T,
-    typename ToolPalette_T>
+    typename Scenario_T, typename ToolPalette_T>
 class MoveEventState final : public StateBase<Scenario_T>
 {
 public:
   MoveEventState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}
       , m_sm{stateMachine}
@@ -126,16 +123,14 @@ public:
       // press
       score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
           pressed, onlyMoving, *this);
-      score::make_transition<ReleaseOnAnything_Transition>(
-          pressed, finalState);
+      score::make_transition<ReleaseOnAnything_Transition>(pressed, finalState);
 
       // update commands
       score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
           onlyMoving, onlyMoving, *this);
 
       // commit merging
-      score::make_transition<ReleaseOnAnything_Transition>(
-          onlyMoving, released);
+      score::make_transition<ReleaseOnAnything_Transition>(onlyMoving, released);
 
       // ********************************************
       // What happens in each state.
@@ -143,28 +138,28 @@ public:
       QObject::connect(pressed, &QState::entered, [&]() {
         auto& scenar = stateMachine.model();
         auto evId{this->clickedEvent};
-        if (!bool(evId) && bool(this->clickedState))
+        if(!bool(evId) && bool(this->clickedState))
         {
           const Scenario::StateModel& st = scenar.state(*this->clickedState);
           evId = st.eventId();
           m_origPos.y = st.heightPercentage();
         }
 
-        if (!evId)
+        if(!evId)
           return;
 
         const Scenario::EventModel& ev = scenar.event(*evId);
         m_origPos.date = ev.date();
 
         auto prev_csts = previousNonGraphIntervals(ev, scenar);
-        if (!prev_csts.empty())
+        if(!prev_csts.empty())
         {
           // We find the one that starts the latest.
           TimeVal t = TimeVal::zero();
-          for (const auto& cst_id : prev_csts)
+          for(const auto& cst_id : prev_csts)
           {
             const auto& other_date = scenar.interval(cst_id).date();
-            if (other_date > t)
+            if(other_date > t)
               t = other_date;
           }
 
@@ -184,57 +179,48 @@ public:
         auto& scenar = stateMachine.model();
         // If we came here through a state.
         auto evId = this->clickedEvent;
-        if (!bool(evId) && bool(this->clickedState))
+        if(!bool(evId) && bool(this->clickedState))
         {
           evId = scenar.state(*this->clickedState).eventId();
         }
 
-        if (!evId)
+        if(!evId)
           return;
 
-        TimeVal adjDate = this->m_origPos.date
-                          + (this->currentPoint.date - this->m_pressPos.date);
+        TimeVal adjDate
+            = this->m_origPos.date + (this->currentPoint.date - this->m_pressPos.date);
         m_lastDate = this->m_pressedPrevious
                          ? std::max(adjDate, *this->m_pressedPrevious)
                          : adjDate;
 
         auto [magPos, snap] = stateMachine.magnetic().getPosition(
-            &Scenario::parentTimeSync(*evId, stateMachine.model()),
-            m_lastDate);
+            &Scenario::parentTimeSync(*evId, stateMachine.model()), m_lastDate);
         m_lastDate = magPos;
         stateMachine.presenter().setSnapLine(magPos, snap);
 
         m_lastDate = std::max(m_lastDate, TimeVal{});
 
-        if (this->clickedState)
+        if(this->clickedState)
         {
-          auto new_y
-              = m_origPos.y + (this->currentPoint.y - this->m_pressPos.y);
+          auto new_y = m_origPos.y + (this->currentPoint.y - this->m_pressPos.y);
           this->m_movingDispatcher.template submit<MoveEventCommand_T>(
-              this->m_scenario,
-              *evId,
-              m_lastDate,
-              new_y,
+              this->m_scenario, *evId, m_lastDate, new_y,
               stateMachine.editionSettings().expandMode(),
-              stateMachine.editionSettings().lockMode(),
-              *this->clickedState);
+              stateMachine.editionSettings().lockMode(), *this->clickedState);
         }
         else
         {
           this->m_movingDispatcher.template submit<MoveEventCommand_T>(
-              this->m_scenario,
-              *evId,
-              m_lastDate,
-              this->currentPoint.y,
+              this->m_scenario, *evId, m_lastDate, this->currentPoint.y,
               stateMachine.editionSettings().expandMode(),
               stateMachine.editionSettings().lockMode());
         }
       });
 
       QObject::connect(released, &QState::entered, [&] {
-        if constexpr (std::is_same_v<Scenario::ToolPalette, ToolPalette_T>)
+        if constexpr(std::is_same_v<Scenario::ToolPalette, ToolPalette_T>)
         {
-          if (this->clickedState)
+          if(this->clickedState)
           {
             auto& st = this->m_scenario.state(*this->clickedState);
             merge(st, this->m_lastDate);
@@ -261,10 +247,7 @@ public:
     this->setInitialState(mainState);
   }
 
-  void rollback()
-  {
-    m_movingDispatcher.template rollback<DefaultRollbackStrategy>();
-  }
+  void rollback() { m_movingDispatcher.template rollback<DefaultRollbackStrategy>(); }
 
   void merge(const StateModel& st, TimeVal date)
   {
@@ -276,31 +259,30 @@ public:
     std::vector<QGraphicsItem*> toIgnore;
     toIgnore.push_back(sts_pres.view());
     toIgnore.push_back(&sts_pres.trigger());
-    for (auto& ev_id : sts_pres.model().events())
+    for(auto& ev_id : sts_pres.model().events())
     {
       auto& ev = m_sm.presenter().event(ev_id);
       toIgnore.push_back(ev.view());
-      for (auto& st_id : ev.model().states())
+      for(auto& st_id : ev.model().states())
       {
         auto& st = m_sm.presenter().state(st_id);
         toIgnore.push_back(st.view());
       }
     }
 
-    for (auto& itv :
-         Scenario::previousIntervals(sts_pres.model(), this->m_scenario))
+    for(auto& itv : Scenario::previousIntervals(sts_pres.model(), this->m_scenario))
     {
-      auto& sst_pres = m_sm.presenter().state(
-          this->m_scenario.interval(itv).startState());
+      auto& sst_pres
+          = m_sm.presenter().state(this->m_scenario.interval(itv).startState());
       auto& sev_pres = m_sm.presenter().event(sst_pres.model().eventId());
       TimeSyncPresenter& sts_pres
           = m_sm.presenter().timeSync(sev_pres.model().timeSync());
 
       toIgnore.push_back(sts_pres.view());
-      for (auto& ev : sts_pres.events())
+      for(auto& ev : sts_pres.events())
       {
         toIgnore.push_back(ev->view());
-        for (auto& st : ev->states())
+        for(auto& st : ev->states())
         {
           toIgnore.push_back(st->view());
         }
@@ -309,19 +291,17 @@ public:
       toIgnore.push_back(&sts_pres.trigger());
     }
 
-    for (auto& itv :
-         Scenario::nextIntervals(sts_pres.model(), this->m_scenario))
+    for(auto& itv : Scenario::nextIntervals(sts_pres.model(), this->m_scenario))
     {
-      auto& sst_pres
-          = m_sm.presenter().state(this->m_scenario.interval(itv).endState());
+      auto& sst_pres = m_sm.presenter().state(this->m_scenario.interval(itv).endState());
       auto& sev_pres = m_sm.presenter().event(sst_pres.model().eventId());
       auto& sts_pres = m_sm.presenter().timeSync(sev_pres.model().timeSync());
 
       toIgnore.push_back(sts_pres.view());
-      for (auto& ev : sts_pres.events())
+      for(auto& ev : sts_pres.events())
       {
         toIgnore.push_back(ev->view());
-        for (auto& st : ev->states())
+        for(auto& st : ev->states())
         {
           toIgnore.push_back(st->view());
         }
@@ -332,25 +312,21 @@ public:
 
     QGraphicsItem* item = m_sm.itemAt({date, st.heightPercentage()}, toIgnore);
 
-    if (auto stateToMerge = qgraphicsitem_cast<Scenario::StateView*>(item))
+    if(auto stateToMerge = qgraphicsitem_cast<Scenario::StateView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeEvents>(
-          this->m_scenario,
-          ev.id(),
-          Scenario::parentEvent(
-              stateToMerge->presenter().model().id(), this->m_scenario)
+          this->m_scenario, ev.id(),
+          Scenario::parentEvent(stateToMerge->presenter().model().id(), this->m_scenario)
               .id());
     }
-    else if (
-        auto eventToMerge = qgraphicsitem_cast<Scenario::EventView*>(item))
+    else if(auto eventToMerge = qgraphicsitem_cast<Scenario::EventView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeEvents>(
           this->m_scenario, ev.id(), eventToMerge->presenter().model().id());
     }
-    else if (
-        auto syncToMerge = qgraphicsitem_cast<Scenario::TimeSyncView*>(item))
+    else if(auto syncToMerge = qgraphicsitem_cast<Scenario::TimeSyncView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeTimeSyncs>(

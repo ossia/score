@@ -1,9 +1,15 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Execution/BaseScenarioComponent.hpp>
-#include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/Process.hpp>
+
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioExecution.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
 
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
@@ -11,11 +17,6 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 
 #include <boost/graph/depth_first_search.hpp>
-
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioExecution.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 
 namespace Execution
 {
@@ -29,17 +30,13 @@ struct dfs_visitor_state
 struct dfs_visitor : public boost::default_dfs_visitor
 {
   // because these geniuses of boost decided to pass the visitor by value...
-  std::shared_ptr<dfs_visitor_state> state{
-      std::make_shared<dfs_visitor_state>()};
+  std::shared_ptr<dfs_visitor_state> state{std::make_shared<dfs_visitor_state>()};
 
-  void discover_vertex(
-      Scenario::Graph::vertex_descriptor i,
-      const Scenario::Graph& g)
+  void discover_vertex(Scenario::Graph::vertex_descriptor i, const Scenario::Graph& g)
   {
     state->nodes.insert(g[i]);
   }
-  void
-  examine_edge(Scenario::Graph::edge_descriptor i, const Scenario::Graph& g)
+  void examine_edge(Scenario::Graph::edge_descriptor i, const Scenario::Graph& g)
   {
     state->intervals.insert(g[i]);
   }
@@ -48,7 +45,7 @@ struct dfs_visitor : public boost::default_dfs_visitor
 tsl::hopscotch_set<Scenario::IntervalModel*>
 PlayFromIntervalScenarioPruner::intervalsToKeep() const
 {
-  if (auto sc = dynamic_cast<const Scenario::ProcessModel*>(&scenar))
+  if(auto sc = dynamic_cast<const Scenario::ProcessModel*>(&scenar))
   {
     Scenario::TimenodeGraph g{*sc};
 
@@ -57,16 +54,12 @@ PlayFromIntervalScenarioPruner::intervalsToKeep() const
 
     // Do a depth-first search from where we're starting
     dfs_visitor vis;
-    std::vector<boost::default_color_type> color_map(
-        boost::num_vertices(g.graph()));
+    std::vector<boost::default_color_type> color_map(boost::num_vertices(g.graph()));
 
     boost::depth_first_visit(
-        g.graph(),
-        vertex,
-        vis,
+        g.graph(), vertex, vis,
         boost::make_iterator_property_map(
-            color_map.begin(),
-            boost::get(boost::vertex_index, g.graph()),
+            color_map.begin(), boost::get(boost::vertex_index, g.graph()),
             color_map[0]));
 
     // Add the first interval
@@ -89,11 +82,10 @@ bool PlayFromIntervalScenarioPruner::toRemove(
 }
 
 void PlayFromIntervalScenarioPruner::operator()(
-    const Context& exec_ctx,
-    const BaseScenarioElement& bs)
+    const Context& exec_ctx, const BaseScenarioElement& bs)
 {
   auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
-  if (!process_ptr)
+  if(!process_ptr)
     return;
   // We prune all the superfluous components of the scenario, ie the one that
   // aren't either the started interval, or the ones following it.
@@ -107,18 +99,17 @@ void PlayFromIntervalScenarioPruner::operator()(
 
   SCORE_ASSERT(scenar_proc_it != source_procs.end());
 
-  auto scenar_comp
-      = dynamic_cast<ScenarioComponent*>((*scenar_proc_it).second.get());
+  auto scenar_comp = dynamic_cast<ScenarioComponent*>((*scenar_proc_it).second.get());
   const auto scenar_intervals = scenar_comp->intervals();
   IntervalComponent* other_cst{};
-  for (const auto& elt : scenar_intervals)
+  for(const auto& elt : scenar_intervals)
   {
     auto& is = elt.second->scoreInterval();
-    if (toRemove(toKeep, is))
+    if(toRemove(toKeep, is))
     {
       scenar_comp->remove(is);
     }
-    else if (&is == &interval)
+    else if(&is == &interval)
     {
       other_cst = elt.second.get();
     }
@@ -128,22 +119,16 @@ void PlayFromIntervalScenarioPruner::operator()(
 
   // Get the time_interval element of the interval we're starting from,
   // unless it is already linked to the beginning.
-  auto& start_e = *scenar_comp->OSSIAProcess()
-                       .get_start_time_sync()
-                       ->get_time_events()[0];
+  auto& start_e
+      = *scenar_comp->OSSIAProcess().get_start_time_sync()->get_time_events()[0];
   auto& new_end_e = other_cst->OSSIAInterval()->get_start_event();
-  if (&start_e != &new_end_e)
+  if(&start_e != &new_end_e)
   {
     auto end_date = new_end_e.get_time_sync().get_date();
     auto new_cst = ossia::time_interval::create(
         ossia::time_interval::exec_callback{},
-        *scenar_comp->OSSIAProcess()
-             .get_start_time_sync()
-             ->get_time_events()[0],
-        new_end_e,
-        end_date,
-        end_date,
-        end_date);
+        *scenar_comp->OSSIAProcess().get_start_time_sync()->get_time_events()[0],
+        new_end_e, end_date, end_date, end_date);
 
     scenar_comp->OSSIAProcess().add_time_interval(new_cst);
   }

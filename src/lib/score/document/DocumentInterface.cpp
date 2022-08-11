@@ -18,12 +18,12 @@ score::Document* score::IDocument::documentFromObject(const QObject* obj)
 {
   QString objName{obj ? obj->objectName() : "INVALID"};
 
-  while (obj && !qobject_cast<const Document*>(obj))
+  while(obj && !qobject_cast<const Document*>(obj))
   {
     obj = obj->parent();
   }
 
-  if (!obj)
+  if(!obj)
   {
     qDebug("fail");
     throw std::runtime_error(
@@ -43,9 +43,12 @@ score::Document* score::IDocument::documentFromObject(const QObject& obj)
 ObjectPath score::IDocument::unsafe_path(QObject const* const& obj)
 {
   auto& doc = documentFromObject(obj)->model();
-  try {
+  try
+  {
     return ObjectPath::pathBetweenObjects(&doc.modelDelegate(), obj);
-  }  catch (...) {
+  }
+  catch(...)
+  {
     return ObjectPath::pathBetweenObjects(&doc, obj);
   }
 }
@@ -58,13 +61,12 @@ ObjectPath score::IDocument::unsafe_path(const QObject& obj)
 score::DocumentDelegatePresenter*
 score::IDocument::presenterDelegate_generic(const score::Document& d)
 {
-  if (d.presenter())
+  if(d.presenter())
     return d.presenter()->presenterDelegate();
   return nullptr;
 }
 
-score::DocumentDelegateModel&
-score::IDocument::modelDelegate_generic(const Document& d)
+score::DocumentDelegateModel& score::IDocument::modelDelegate_generic(const Document& d)
 {
   return d.model().modelDelegate();
 }

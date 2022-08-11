@@ -1,11 +1,10 @@
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
-
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
-#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
 
 #include <Library/ProcessesItemModel.hpp>
 
@@ -29,26 +28,25 @@ void CentralNodalDisplay::init()
   auto& view = parent.view();
   ProcessGraphicsView& gv = view.view();
   presenter = new NodalIntervalView{
-      NodalIntervalView::AllItems,
-      itv,
-      parent.context(),
-      &view.baseItem()};
+      NodalIntervalView::AllItems, itv, parent.context(), &view.baseItem()};
 
   view.view().setSceneRect(QRectF{0, 0, 10, 10});
-  con(gv, &ProcessGraphicsView::dropRequested, presenter, [this, &gv](QPoint viewPos, const QMimeData* data) {
-        auto sp = gv.mapToScene(viewPos);
-        auto ip = presenter->mapFromScene(sp);
-        presenter->on_drop(ip, data);
-      });
+  con(gv, &ProcessGraphicsView::dropRequested, presenter,
+      [this, &gv](QPoint viewPos, const QMimeData* data) {
+    auto sp = gv.mapToScene(viewPos);
+    auto ip = presenter->mapFromScene(sp);
+    presenter->on_drop(ip, data);
+  });
 
-  con(gv, &ProcessGraphicsView::emptyContextMenuRequested, presenter, [this, &gv](const QPoint& pos) {
-        QMenu contextMenu(&gv);
-        auto recenter = contextMenu.addAction(QObject::tr("Recenter"));
+  con(gv, &ProcessGraphicsView::emptyContextMenuRequested, presenter,
+      [this, &gv](const QPoint& pos) {
+    QMenu contextMenu(&gv);
+    auto recenter = contextMenu.addAction(QObject::tr("Recenter"));
 
-        auto act = contextMenu.exec(gv.mapToGlobal(pos));
-        if (act == recenter)
-          this->recenter();
-      });
+    auto act = contextMenu.exec(gv.mapToGlobal(pos));
+    if(act == recenter)
+      this->recenter();
+  });
 
   QTimer::singleShot(0, presenter, &NodalIntervalView::recenter);
 }
@@ -62,8 +60,7 @@ void CentralNodalDisplay::recenter()
 
 void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
-  auto createInParentInterval = [&]
-  {
+  auto createInParentInterval = [&] {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
     m.createProcessInNewSlot(parent.displayedInterval(), dat);
     m.commit();
@@ -73,7 +70,7 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
   {
     auto sel = filterSelectionByType<Process::Cable>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Cable& cbl = *sel.front();
       createProcessInCable(parent, dat, cbl);
@@ -84,13 +81,14 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
   // Try to see if a process is selected.
   {
     auto sel = filterSelectionByType<Process::ProcessModel>(
-          parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+        parent.context().selectionStack.currentSelection());
+    if(sel.size() == 1)
     {
       const Process::ProcessModel& parentProcess = *sel.front();
       if(!parentProcess.outlets().empty())
       {
-        createProcessAfterPort(parent, dat, parentProcess, *parentProcess.outlets().front());
+        createProcessAfterPort(
+            parent, dat, parentProcess, *parentProcess.outlets().front());
       }
       else
       {
@@ -104,7 +102,7 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
   {
     auto sel = filterSelectionByType<Process::Port>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
@@ -127,8 +125,7 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
 
 void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
 {
-  auto createInParentInterval = [&]
-  {
+  auto createInParentInterval = [&] {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
     m.loadProcessFromPreset(parent.displayedInterval(), dat);
     m.commit();
@@ -138,7 +135,7 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   {
     auto sel = filterSelectionByType<Process::Cable>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Cable& cbl = *sel.front();
       loadPresetInCable(parent, dat, cbl);
@@ -149,13 +146,14 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   // Try to see if a process is selected.
   {
     auto sel = filterSelectionByType<Process::ProcessModel>(
-          parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+        parent.context().selectionStack.currentSelection());
+    if(sel.size() == 1)
     {
       const Process::ProcessModel& parentProcess = *sel.front();
       if(!parentProcess.outlets().empty())
       {
-        loadPresetAfterPort(parent, dat, parentProcess, *parentProcess.outlets().front());
+        loadPresetAfterPort(
+            parent, dat, parentProcess, *parentProcess.outlets().front());
       }
       else
       {
@@ -169,7 +167,7 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   {
     auto sel = filterSelectionByType<Process::Port>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
@@ -190,17 +188,13 @@ void CentralNodalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   createInParentInterval();
 }
 
-void CentralNodalDisplay::on_visibleRectChanged(const QRectF&)
-{
-
-}
+void CentralNodalDisplay::on_visibleRectChanged(const QRectF&) { }
 
 void CentralNodalDisplay::on_executionTimer()
 {
   auto& itv = parent.displayedInterval();
   auto pctg = itv.duration.playPercentage();
-  presenter->on_playPercentageChanged(
-      pctg, itv.duration.defaultDuration());
+  presenter->on_playPercentageChanged(pctg, itv.duration.defaultDuration());
 }
 
 CentralNodalDisplay::~CentralNodalDisplay()

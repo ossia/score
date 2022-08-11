@@ -28,19 +28,20 @@
 #endif
 
 #include <QOffscreenSurface>
-#include <QWindow>
 #include <QScreen>
+#include <QWindow>
 
 namespace score::gfx
 {
-static std::shared_ptr<RenderState> createRenderState(QWindow& window, GraphicsApi graphicsApi)
+static std::shared_ptr<RenderState>
+createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
   auto st = std::make_shared<RenderState>();
   RenderState& state = *st;
   state.api = graphicsApi;
 
 #ifndef QT_NO_OPENGL
-  if (graphicsApi == OpenGL)
+  if(graphicsApi == OpenGL)
   {
     state.surface = QRhiGles2InitParams::newFallbackSurface();
     QRhiGles2InitParams params;
@@ -57,7 +58,7 @@ static std::shared_ptr<RenderState> createRenderState(QWindow& window, GraphicsA
 #endif
 
 #if QT_HAS_VULKAN
-  if (graphicsApi == Vulkan)
+  if(graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
     params.inst = window.vulkanInstance();
@@ -70,7 +71,7 @@ static std::shared_ptr<RenderState> createRenderState(QWindow& window, GraphicsA
 #endif
 
 #ifdef Q_OS_WIN
-  if (graphicsApi == D3D11)
+  if(graphicsApi == D3D11)
   {
     QRhiD3D11InitParams params;
 #if !defined(NDEBUG)
@@ -89,7 +90,7 @@ static std::shared_ptr<RenderState> createRenderState(QWindow& window, GraphicsA
 #endif
 
 #ifdef Q_OS_DARWIN
-  if (graphicsApi == Metal)
+  if(graphicsApi == Metal)
   {
     QRhiMetalInitParams params;
     state.version = QShaderVersion(12);
@@ -99,7 +100,7 @@ static std::shared_ptr<RenderState> createRenderState(QWindow& window, GraphicsA
   }
 #endif
 
-  if (!state.rhi)
+  if(!state.rhi)
   {
     qDebug() << "Failed to create RHI backend, creating Null backend";
 
@@ -156,7 +157,6 @@ ScreenNode::~ScreenNode()
     delete m_window->state->rhi;
     m_window->state->rhi = nullptr;
   }
-
 }
 
 bool ScreenNode::canRender() const
@@ -164,15 +164,15 @@ bool ScreenNode::canRender() const
   // FIXME - Graph::onReady / Graph::onResize :
   // swapchain is recreated even when size does not change at the
   // beginning
-  return bool(m_window)/* && m_window->m_hasSwapChain */;
+  return bool(m_window) /* && m_window->m_hasSwapChain */;
 }
 
 void ScreenNode::startRendering()
 {
-  if (m_window)
+  if(m_window)
   {
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
-      if (auto r = m_window->state->renderer.lock())
+      if(auto r = m_window->state->renderer.lock())
       {
         m_window->m_canRender = r->renderers.size() > 1;
         r->render(commands);
@@ -181,16 +181,13 @@ void ScreenNode::startRendering()
   }
 }
 
-void ScreenNode::render()
-{
-
-}
+void ScreenNode::render() { }
 
 void ScreenNode::onRendererChange()
 {
-  if (m_window)
+  if(m_window)
   {
-    if (auto r = m_window->state->renderer.lock())
+    if(auto r = m_window->state->renderer.lock())
     {
       m_window->m_canRender = r->renderers.size() > 1;
     }
@@ -203,7 +200,7 @@ void ScreenNode::onRendererChange()
 
 void ScreenNode::stopRendering()
 {
-  if (m_window)
+  if(m_window)
   {
     m_window->m_canRender = false;
     m_window->onRender = [](QRhiCommandBuffer&) {};
@@ -222,7 +219,7 @@ void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
 
 RenderList* ScreenNode::renderer() const
 {
-  if (m_window && m_window->state)
+  if(m_window && m_window->state)
     return m_window->state->renderer.lock().get();
   else
     return nullptr;
@@ -285,48 +282,53 @@ void ScreenNode::setFullScreen(bool b)
 }
 
 void ScreenNode::createOutput(
-    GraphicsApi graphicsApi,
-    std::function<void()> onReady,
-    std::function<void()> onUpdate,
-    std::function<void()> onResize)
+    GraphicsApi graphicsApi, std::function<void()> onReady,
+    std::function<void()> onUpdate, std::function<void()> onResize)
 {
-  if (m_ownsWindow)
+  if(m_ownsWindow)
     m_window = std::make_shared<Window>(graphicsApi);
 
 #if QT_HAS_VULKAN
-  if (graphicsApi == Vulkan)
+  if(graphicsApi == Vulkan)
     m_window->setVulkanInstance(staticVulkanInstance());
 #endif
-  QObject::connect(m_window.get(), &Window::mouseMove, [this] (QPointF s, QPointF w) { if(onMouseMove) onMouseMove(s,w); });
-  QObject::connect(m_window.get(), &Window::tabletMove, [this] (QTabletEvent* e) { if(onTabletMove) onTabletMove(e); });
-  QObject::connect(m_window.get(), &Window::key, [this] (int k, const QString& t) { if(onKey) onKey(k, t); });
+  QObject::connect(m_window.get(), &Window::mouseMove, [this](QPointF s, QPointF w) {
+    if(onMouseMove)
+      onMouseMove(s, w);
+  });
+  QObject::connect(m_window.get(), &Window::tabletMove, [this](QTabletEvent* e) {
+    if(onTabletMove)
+      onTabletMove(e);
+  });
+  QObject::connect(m_window.get(), &Window::key, [this](int k, const QString& t) {
+    if(onKey)
+      onKey(k, t);
+  });
   m_window->onUpdate = std::move(onUpdate);
   m_window->onWindowReady = [this, graphicsApi, onReady = std::move(onReady)] {
     m_window->state = createRenderState(*m_window, graphicsApi);
     m_window->state->renderSize = QSize(1280, 720);
-    if (m_window->state->rhi)
+    if(m_window->state->rhi)
     {
       // TODO depth stencil, render buffer, etc ?
       m_swapChain = m_window->state->rhi->newSwapChain();
       m_window->m_swapChain = m_swapChain;
-      m_depthStencil = m_window->state->rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil,
-                                                   QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
-                                                   1,
-                                                   QRhiRenderBuffer::UsedWithSwapChainOnly);
+      m_depthStencil = m_window->state->rhi->newRenderBuffer(
+          QRhiRenderBuffer::DepthStencil,
+          QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
+          1, QRhiRenderBuffer::UsedWithSwapChainOnly);
       m_swapChain->setWindow(m_window.get());
       m_swapChain->setDepthStencil(m_depthStencil);
       m_swapChain->setSampleCount(1);
       m_swapChain->setFlags({});
       m_window->state->renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();
-      m_swapChain->setRenderPassDescriptor(
-          m_window->state->renderPassDescriptor);
+      m_swapChain->setRenderPassDescriptor(m_window->state->renderPassDescriptor);
 
       onReady();
     }
   };
-  m_window->onResize = [this, onResize = std::move(onResize)]
-  {
+  m_window->onResize = [this, onResize = std::move(onResize)] {
     if(m_window && m_window->state)
     {
       auto& st = *m_window->state;
@@ -346,7 +348,7 @@ void ScreenNode::createOutput(
     }
   };
 
-  if (!m_embedded)
+  if(!m_embedded)
   {
     /*
     if(window->isExposed())
@@ -355,12 +357,12 @@ void ScreenNode::createOutput(
     }
     */
 
-    if (m_screen)
+    if(m_screen)
     {
       m_window->setScreen(m_screen);
     }
 
-    if (m_fullScreen)
+    if(m_fullScreen)
     {
       m_window->showFullScreen();
     }
@@ -386,7 +388,7 @@ void ScreenNode::createOutput(
 
 void ScreenNode::destroyOutput()
 {
-  if (!m_window)
+  if(!m_window)
     return;
 
   if(auto s = m_window->state)
@@ -411,7 +413,7 @@ void ScreenNode::destroyOutput()
     s->surface = nullptr;
   }
 
-  if (m_ownsWindow)
+  if(m_ownsWindow)
   {
     m_window.reset();
   }
@@ -419,10 +421,10 @@ void ScreenNode::destroyOutput()
 
 void ScreenNode::updateGraphicsAPI(GraphicsApi api)
 {
-  if (!m_window)
+  if(!m_window)
     return;
 
-  if (m_window->api() != api)
+  if(m_window->api() != api)
   {
     destroyOutput();
   }
@@ -430,7 +432,7 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
 
 std::shared_ptr<score::gfx::RenderState> ScreenNode::renderState() const
 {
-  if (m_window && m_window->m_swapChain)
+  if(m_window && m_window->m_swapChain)
     return m_window->state;
   return nullptr;
 }
@@ -444,7 +446,7 @@ public:
   BasicRenderer(const RenderState& state, const ScreenNode& parent)
       : score::gfx::OutputNodeRenderer{}
   {
-    if (parent.m_swapChain)
+    if(parent.m_swapChain)
     {
       m_rt.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
       m_rt.renderPass = state.renderPassDescriptor;
@@ -457,21 +459,11 @@ public:
     }
   }
 
-  ~BasicRenderer()
-  {
-  }
-  void init(RenderList& renderer) override
-  {
-  }
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
-  {
-  }
-  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
-  {
-  }
-  void release(RenderList&) override
-  {
-  }
+  ~BasicRenderer() { }
+  void init(RenderList& renderer) override { }
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
+  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override { }
+  void release(RenderList&) override { }
 };
 
 class ScreenNode::ScaledRenderer : public score::gfx::OutputNodeRenderer
@@ -489,20 +481,22 @@ public:
 
   score::gfx::MeshBuffers m_mesh{};
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override { return m_inputTarget; }
+  TextureRenderTarget renderTargetForInput(const Port& p) override
+  {
+    return m_inputTarget;
+  }
   ScaledRenderer(const RenderState& state, const ScreenNode& parent)
       : score::gfx::OutputNodeRenderer{}
       , parent{parent}
   {
   }
 
-  ~ScaledRenderer()
-  {
-  }
+  ~ScaledRenderer() { }
 
   void init(RenderList& renderer) override
   {
-    m_inputTarget = score::gfx::createRenderTarget(renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize);
+    m_inputTarget = score::gfx::createRenderTarget(
+        renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize);
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh);
@@ -518,23 +512,19 @@ public:
       }
       )_";
 
-    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
-                                         renderer.state,
-                                         mesh.defaultVertexShader(), gl_filter);
+    std::tie(m_vertexS, m_fragmentS)
+        = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), gl_filter);
 
     // Put the input texture, where all the input nodes are rendering, in a sampler.
     {
       auto sampler = renderer.state.rhi->newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
       sampler->setName("FullScreenImageNode::sampler");
-  #include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush>
       sampler->create();
-  #include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop>
 
       m_samplers.push_back({sampler, this->m_inputTarget.texture});
     }
@@ -542,19 +532,11 @@ public:
     m_renderTarget.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
     m_renderTarget.renderPass = renderer.state.renderPassDescriptor;
     m_p = score::gfx::buildPipeline(
-        renderer,
-        mesh,
-        m_vertexS,
-        m_fragmentS,
-        m_renderTarget,
-        nullptr,
-        nullptr,
+        renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
         m_samplers);
   }
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
-  {
-  }
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
   {
@@ -562,9 +544,7 @@ public:
     // m_rt.renderPass = state->renderPassDescriptor;
   }
 
-  void finishFrame(
-      score::gfx::RenderList& renderer,
-      QRhiCommandBuffer& cb) override
+  void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb) override
   {
     cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, nullptr);
     {
@@ -598,9 +578,7 @@ public:
   }
 };
 
-
-score::gfx::OutputNodeRenderer*
-ScreenNode::createRenderer(RenderList& r) const noexcept
+score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const noexcept
 {
   return new ScaledRenderer{r.state, *this};
 }

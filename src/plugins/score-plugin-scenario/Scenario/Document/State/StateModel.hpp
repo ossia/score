@@ -2,6 +2,12 @@
 #include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
 
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Metatypes.hpp>
+#include <Scenario/Document/State/ItemModel/ControlItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -11,11 +17,6 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Metatypes.hpp>
-#include <Scenario/Document/State/ItemModel/ControlItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
 
@@ -70,11 +71,8 @@ public:
   Selectable selection;
 
   StateModel(
-      const Id<StateModel>& id,
-      const Id<EventModel>& eventId,
-      double yPos,
-      const score::DocumentContext& ctx,
-      QObject* parent);
+      const Id<StateModel>& id, const Id<EventModel>& eventId, double yPos,
+      const score::DocumentContext& ctx, QObject* parent);
 
   ~StateModel() override;
 
@@ -83,9 +81,7 @@ public:
       typename DeserializerVisitor,
       enable_if_deserializer<DeserializerVisitor>* = nullptr>
   StateModel(
-      DeserializerVisitor&& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent)
+      DeserializerVisitor&& vis, const score::DocumentContext& ctx, QObject* parent)
       : Entity{vis, parent}
       , m_context{ctx}
   {
@@ -113,10 +109,7 @@ public:
 
   ProcessVector& previousProcesses() { return m_previousProcesses; }
   ProcessVector& followingProcesses() { return m_nextProcesses; }
-  const ProcessVector& previousProcesses() const
-  {
-    return m_previousProcesses;
-  }
+  const ProcessVector& previousProcesses() const { return m_previousProcesses; }
   const ProcessVector& followingProcesses() const { return m_nextProcesses; }
 
   void setStatus(ExecutionStatus);
@@ -127,8 +120,7 @@ public:
   bool empty() const { return !messages().rootNode().hasChild(0); }
 
 public:
-  void sig_statesUpdated()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated)
+  void sig_statesUpdated() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated)
   void sig_controlMessagesUpdated()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_controlMessagesUpdated)
 
@@ -137,11 +129,12 @@ public:
   void statusChanged(Scenario::ExecutionStatus arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1)
 
-  void
-  eventChanged(Id<Scenario::EventModel> oldev, Id<Scenario::EventModel> newev)
+  void eventChanged(Id<Scenario::EventModel> oldev, Id<Scenario::EventModel> newev)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventChanged, oldev, newev)
 
-  PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+  PROPERTY(
+      double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
+                  heightPercentageChanged)
 private:
   void statesUpdated_slt();
   void init(); // TODO check if other model elements need an init method too.

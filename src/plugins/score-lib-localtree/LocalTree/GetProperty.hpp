@@ -1,9 +1,11 @@
 #pragma once
-#include <LocalTree/BaseCallbackWrapper.hpp>
 #include <Process/TypeConversion.hpp>
 
-#include <ossia/network/base/node.hpp>
+#include <LocalTree/BaseCallbackWrapper.hpp>
+
 #include <score/tools/Debug.hpp>
+
+#include <ossia/network/base/node.hpp>
 
 #include <QObject>
 
@@ -16,34 +18,29 @@ struct GetPropertyWrapper final : public BaseProperty
   using model_t = typename Property::model_type;
   using param_t = typename Property::param_type;
   model_t& m_model;
-  using converter_t
-      = ossia::qt_property_converter<typename Property::param_type>;
+  using converter_t = ossia::qt_property_converter<typename Property::param_type>;
 
   GetPropertyWrapper(
-      ossia::net::parameter_base& param_addr,
-      model_t& obj,
-      QObject* context)
+      ossia::net::parameter_base& param_addr, model_t& obj, QObject* context)
       : BaseProperty{param_addr}
       , m_model{obj}
   {
     QObject::connect(
-        &m_model,
-        Property::notify,
-        context,
+        &m_model, Property::notify, context,
         [&m = m_model, &addr = addr] {
-          auto newVal = converter_t::convert((m.*Property::get)());
-          try
-          {
-            auto res = addr.value();
+      auto newVal = converter_t::convert((m.*Property::get)());
+      try
+      {
+        auto res = addr.value();
 
-            if (newVal != res)
-            {
-              addr.push_value(newVal);
-            }
-          }
-          catch (...)
-          {
-          }
+        if(newVal != res)
+        {
+          addr.push_value(newVal);
+        }
+      }
+      catch(...)
+      {
+      }
         },
         Qt::QueuedConnection);
 

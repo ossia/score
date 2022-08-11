@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 
 #include <verdigris>
@@ -32,6 +33,7 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
   using Device::ProtocolSettingsWidget::checkForChanges;
+
 private:
   void setDefaults();
   QLineEdit* m_deviceNameEdit{};

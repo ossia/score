@@ -37,9 +37,9 @@ int index_of_child(const std::list<T>& list, const T* child)
 {
   int i = 0;
   const auto end = list.end();
-  for (auto it = list.begin(); it != end; ++it)
+  for(auto it = list.begin(); it != end; ++it)
   {
-    if (&(*it) == child)
+    if(&(*it) == child)
       return i;
     i++;
   }
@@ -75,7 +75,7 @@ public:
       , m_parent{other.m_parent}
       , m_children(other.m_children)
   {
-    for (auto& child : m_children)
+    for(auto& child : m_children)
       child.setParent(this);
   }
 
@@ -84,7 +84,7 @@ public:
       , m_parent{other.m_parent}
       , m_children(std::move(other.m_children))
   {
-    for (auto& child : m_children)
+    for(auto& child : m_children)
       child.setParent(this);
   }
 
@@ -94,7 +94,7 @@ public:
     m_parent = source.m_parent;
 
     m_children = source.m_children;
-    for (auto& child : m_children)
+    for(auto& child : m_children)
     {
       child.setParent(this);
     }
@@ -108,7 +108,7 @@ public:
     m_parent = source.m_parent;
 
     m_children = std::move(source.m_children);
-    for (auto& child : m_children)
+    for(auto& child : m_children)
     {
       child.setParent(this);
     }
@@ -173,10 +173,7 @@ public:
 
   TreeNode* parent() const noexcept { return m_parent; }
 
-  bool hasChild(std::size_t index) const noexcept
-  {
-    return m_children.size() > index;
-  }
+  bool hasChild(std::size_t index) const noexcept { return m_children.size() > index; }
 
   TreeNode& childAt(int index) noexcept { return child_at(m_children, index); }
 
@@ -194,9 +191,9 @@ public:
   auto iterOfChild(const TreeNode* child) noexcept
   {
     const auto end = m_children.end();
-    for (auto it = m_children.begin(); it != end; ++it)
+    for(auto it = m_children.begin(); it != end; ++it)
     {
-      if (&*it == child)
+      if(&*it == child)
         return it;
     }
     return end;
@@ -227,7 +224,7 @@ public:
   {
     f(*this);
 
-    for (const auto& child : m_children)
+    for(const auto& child : m_children)
     {
       child.visit(f);
     }
@@ -239,10 +236,10 @@ template <typename Node_T>
 bool isAncestor(const Node_T& gramps, const Node_T* node) noexcept
 {
   auto parent = node->parent();
-  if (!parent)
+  if(!parent)
     return false;
 
-  if (node == &gramps)
+  if(node == &gramps)
     return true;
 
   return isAncestor(gramps, parent);
@@ -280,13 +277,13 @@ std::vector<Node_T*> filterUniqueParents(std::vector<Node_T*>& nodes) noexcept
 
   // Only copy the index if it none of its parents
   // except the invisible root are in the list.
-  for (auto n : nodes)
+  for(auto n : nodes)
   {
-    if (ossia::any_of(nodes, [&](Node_T* other) {
-          if (other == n)
-            return false;
-          return isAncestor(*other, n);
-        }))
+    if(ossia::any_of(nodes, [&](Node_T* other) {
+         if(other == n)
+           return false;
+         return isAncestor(*other, n);
+       }))
     {
       continue;
     }

@@ -2,17 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationDropHandler.hpp"
 
-#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
+
 #include <Process/ProcessMimeSerialization.hpp>
-
-#include <score/document/DocumentContext.hpp>
-
-#include <ossia/detail/thread.hpp>
-#include <ossia/network/value/value_traits.hpp>
-
-#include <QFileInfo>
-#include <QUrl>
 
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -24,9 +16,18 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+
+#include <Dataflow/Commands/CableHelpers.hpp>
+
+#include <score/document/DocumentContext.hpp>
+
+#include <ossia/detail/thread.hpp>
+#include <ossia/network/value/value_traits.hpp>
+
+#include <QFileInfo>
+#include <QUrl>
 namespace Scenario
 {
-
 
 DropScenario::DropScenario()
 {
@@ -35,17 +36,14 @@ DropScenario::DropScenario()
 }
 
 bool DropScenario::drop(
-    const ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
-  if (mime.hasUrls())
+  if(mime.hasUrls())
   {
     const auto& doc = pres.context().context;
     auto& sm = pres.model();
     auto path = mime.urls().first().toLocalFile();
-    if (QFile f{path};
-        QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
+    if(QFile f{path}; QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
     {
       CommandDispatcher<> d{doc.commandStack};
       d.submit(new Scenario::Command::ScenarioPasteElements(
@@ -64,17 +62,14 @@ DropScoreInScenario::DropScoreInScenario()
 }
 
 bool DropScoreInScenario::drop(
-    const ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
-  if (mime.hasUrls())
+  if(mime.hasUrls())
   {
     const auto& doc = pres.context().context;
     auto& sm = pres.model();
     auto path = mime.urls().first().toLocalFile();
-    if (QFile f{path};
-        QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
+    if(QFile f{path}; QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
     {
       rapidjson::Document res;
       res.SetObject();
@@ -85,7 +80,7 @@ bool DropScoreInScenario::drop(
       // ScenarioPasteElements expects the cable address to start from the topmost interval in the copied
       // content
       res.AddMember("Cables", docobj["Cables"], res.GetAllocator());
-      for (auto& c : res["Cables"].GetArray())
+      for(auto& c : res["Cables"].GetArray())
       {
         auto source = c["Source"].GetArray();
         source.Erase(source.Begin());
@@ -132,16 +127,15 @@ bool DropScoreInScenario::drop(
 }
 
 static void getAddressesRecursively(
-    const Device::Node& node,
-    State::Address curAddr,
+    const Device::Node& node, State::Address curAddr,
     std::vector<Device::FullAddressSettings>& addresses)
 {
   // TODO refactor with CreateCurves and AddressAccessorEditWidget
-  if (node.is<Device::AddressSettings>())
+  if(node.is<Device::AddressSettings>())
   {
     const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
     // FIXME see https://github.com/ossia/libossia/issues/291
-    if (ossia::is_numeric(addr.value) || ossia::is_array(addr.value))
+    if(ossia::is_numeric(addr.value) || ossia::is_array(addr.value))
     {
       Device::FullAddressSettings as;
       static_cast<Device::AddressSettingsCommon&>(as) = addr;
@@ -151,7 +145,7 @@ static void getAddressesRecursively(
     // TODO interpolation
   }
 
-  for (auto& child : node)
+  for(auto& child : node)
   {
     const Device::AddressSettings& addr = child.get<Device::AddressSettings>();
 
@@ -162,26 +156,24 @@ static void getAddressesRecursively(
 }
 
 bool AutomationDropHandler::drop(
-    const score::DocumentContext& ctx,
-    const IntervalModel& cst,
-    QPointF p,
+    const score::DocumentContext& ctx, const IntervalModel& cst, QPointF p,
     const QMimeData& mime)
 {
   // TODO refactor with AddressEditWidget
-  if (mime.formats().contains(score::mime::nodelist()))
+  if(mime.formats().contains(score::mime::nodelist()))
   {
     Mime<Device::FreeNodeList>::Deserializer des{mime};
     Device::FreeNodeList nl = des.deserialize();
-    if (nl.empty())
+    if(nl.empty())
       return false;
 
     std::vector<Device::FullAddressSettings> addresses;
-    for (auto& np : nl)
+    for(auto& np : nl)
     {
       getAddressesRecursively(np.second, np.first, addresses);
     }
 
-    if (addresses.empty())
+    if(addresses.empty())
       return false;
 
     CreateCurvesFromAddresses({&cst}, addresses, ctx.commandStack);
@@ -195,16 +187,13 @@ bool AutomationDropHandler::drop(
 }
 
 bool DropScoreInInterval::drop(
-    const score::DocumentContext& doc,
-    const IntervalModel& interval,
-    QPointF p,
+    const score::DocumentContext& doc, const IntervalModel& interval, QPointF p,
     const QMimeData& mime)
 {
-  if (mime.hasUrls())
+  if(mime.hasUrls())
   {
     auto path = mime.urls().first().toLocalFile();
-    if (QFile f{path};
-        QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
+    if(QFile f{path}; QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
     {
       auto obj = readJson(f.readAll());
       auto& docobj = obj["Document"];
@@ -212,7 +201,7 @@ bool DropScoreInInterval::drop(
       auto& itv = scenar["Constraint"];
 
       Scenario::Command::Macro m{new Command::DropProcessInIntervalMacro, doc};
-      for (auto& json : itv["Processes"].GetArray())
+      for(auto& json : itv["Processes"].GetArray())
       {
         rapidjson::Value v{rapidjson::kObjectType};
         v.AddMember("Process", json, obj.GetAllocator());
@@ -231,9 +220,8 @@ bool DropScoreInInterval::drop(
             old_path, docobj["Cables"].GetArray());
 
         auto& document
-            = score::IDocument::get<Scenario::ScenarioDocumentModel>(
-                doc.document);
-        for (auto& c : cables)
+            = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc.document);
+        for(auto& c : cables)
         {
           c.first = getStrongId(document.cables);
         }

@@ -1,4 +1,9 @@
 #pragma once
+#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
+
 #include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/command/Command.hpp>
@@ -10,11 +15,6 @@
 #include <QByteArray>
 #include <QPair>
 #include <QVector>
-
-#include <Scenario/Commands/Event/SplitEvent.hpp>
-#include <Scenario/Commands/Interval/SetRigidity.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -34,13 +34,9 @@ namespace Command
  *
  * Tries to remove what is selected in a scenario.
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveSelection,
-      "Remove selected elements")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveSelection, "Remove selected elements")
 public:
   RemoveSelection(const Scenario::ProcessModel&, Selection sel);
 

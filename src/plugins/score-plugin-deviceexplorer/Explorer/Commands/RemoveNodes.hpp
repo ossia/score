@@ -10,9 +10,7 @@ namespace Command
 class RemoveNodes final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      RemoveNodes,
-      "Remove Explorer nodes")
+      DeviceExplorerCommandFactoryName(), RemoveNodes, "Remove Explorer nodes")
 };
 }
 }

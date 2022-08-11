@@ -30,8 +30,7 @@ private:
       const score::InterfaceKey& key) const override;
 
   // CommandFactory_QtInterface interface
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;

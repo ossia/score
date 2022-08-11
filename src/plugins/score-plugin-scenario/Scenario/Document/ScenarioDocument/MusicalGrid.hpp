@@ -1,9 +1,9 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 
-#include <ossia-qt/time.hpp>
-
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <ossia-qt/time.hpp>
 
 namespace Scenario
 {
@@ -36,11 +36,8 @@ public:
 
   void changed() W_SIGNAL(changed);
 
-  void compute(
-      TimeVal timeDelta,
-      ZoomRatio m_zoomRatio,
-      QRectF sceneRect,
-      TimeVal x0_time);
+  void
+  compute(TimeVal timeDelta, ZoomRatio m_zoomRatio, QRectF sceneRect, TimeVal x0_time);
 
   const TimeSignatureMap* m_measures{};
 };

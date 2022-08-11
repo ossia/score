@@ -2,9 +2,9 @@
 
 #include <Process/Dataflow/PortFactory.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/plugins/SerializableInterface.hpp>
-#include <score/application/GUIApplicationContext.hpp>
 
 #include <ossia/dataflow/nodes/automation.hpp>
 
@@ -25,30 +25,22 @@ MinMaxFloatOutlet::MinMaxFloatOutlet(Id<Process::Port> c, QObject* parent)
 }
 MinMaxFloatOutlet::~MinMaxFloatOutlet() { }
 
-MinMaxFloatOutlet::MinMaxFloatOutlet(
-    DataStream::Deserializer& vis,
-    QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(DataStream::Deserializer& vis, QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MinMaxFloatOutlet::MinMaxFloatOutlet(
-    JSONObject::Deserializer& vis,
-    QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer& vis, QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MinMaxFloatOutlet::MinMaxFloatOutlet(
-    DataStream::Deserializer&& vis,
-    QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(DataStream::Deserializer&& vis, QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MinMaxFloatOutlet::MinMaxFloatOutlet(
-    JSONObject::Deserializer&& vis,
-    QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
@@ -61,7 +53,8 @@ Device::FullAddressAccessorSettings MinMaxFloatOutlet::settings() const noexcept
   return set;
 }
 
-void MinMaxFloatOutlet::setSettings(const Device::FullAddressAccessorSettings& set) noexcept
+void MinMaxFloatOutlet::setSettings(
+    const Device::FullAddressAccessorSettings& set) noexcept
 {
   ValueOutlet::setSettings(set);
   this->minInlet->setValue(set.domain.get().get_min());
@@ -69,7 +62,7 @@ void MinMaxFloatOutlet::setSettings(const Device::FullAddressAccessorSettings& s
 }
 
 void MinMaxFloatOutlet::forChildInlets(
-      const smallfun::function<void(Inlet&)>& f) const noexcept
+    const smallfun::function<void(Inlet&)>& f) const noexcept
 {
   /* TODO fix AutomationModel
   f(*minInlet);
@@ -92,8 +85,7 @@ void MinMaxFloatOutlet::mapExecution(
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::MinMaxFloatOutlet>(
-    const Process::MinMaxFloatOutlet& p)
+DataStreamReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
 {
   // read((Process::Inlet&)p);
   m_stream << *p.minInlet << *p.maxInlet;
@@ -101,20 +93,17 @@ DataStreamReader::read<Process::MinMaxFloatOutlet>(
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MinMaxFloatOutlet>(
-    Process::MinMaxFloatOutlet& p)
+DataStreamWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
 {
   static auto& il = components.interfaces<Process::PortFactoryList>();
 
-  p.minInlet.reset(
-      (Process::FloatSlider*)deserialize_interface(il, *this, &p));
-  p.maxInlet.reset(
-      (Process::FloatSlider*)deserialize_interface(il, *this, &p));
+  p.minInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
+  p.maxInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::MinMaxFloatOutlet>(
-    const Process::MinMaxFloatOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
 {
   // read((Process::Inlet&)p);
   obj["MinInlet"] = *p.minInlet;
@@ -129,12 +118,10 @@ JSONWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
 
   {
     JSONWriter writer{obj["MinInlet"]};
-    p.minInlet.reset(
-        (Process::FloatSlider*)deserialize_interface(il, writer, &p));
+    p.minInlet.reset((Process::FloatSlider*)deserialize_interface(il, writer, &p));
   }
   {
     JSONWriter writer{obj["MaxInlet"]};
-    p.maxInlet.reset(
-        (Process::FloatSlider*)deserialize_interface(il, writer, &p));
+    p.maxInlet.reset((Process::FloatSlider*)deserialize_interface(il, writer, &p));
   }
 }

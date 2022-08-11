@@ -1,7 +1,8 @@
 #pragma once
+#include <Process/LayerPresenter.hpp>
+
 #include <Midi/Commands/MoveNotes.hpp>
 #include <Midi/MidiProcess.hpp>
-#include <Process/LayerPresenter.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
@@ -16,12 +17,10 @@ class Presenter final
     : public Process::LayerPresenter
     , public Nano::Observer
 {
-    W_OBJECT(Presenter)
+  W_OBJECT(Presenter)
 public:
   explicit Presenter(
-      const Midi::ProcessModel& model,
-      View* view,
-      const Process::Context& ctx,
+      const Midi::ProcessModel& model, View* view, const Process::Context& ctx,
       QObject* parent);
   ~Presenter() override;
 
@@ -67,9 +66,7 @@ private:
 
   ZoomRatio m_zr{};
   void fillContextMenu(
-      QMenu& menu,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu& menu, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager& cm) override;
 };
 }

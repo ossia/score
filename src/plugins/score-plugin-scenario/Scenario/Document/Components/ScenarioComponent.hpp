@@ -1,11 +1,4 @@
 #pragma once
-#include <score/document/DocumentContext.hpp>
-#include <score/model/Component.hpp>
-#include <score/model/ComponentSerialization.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-
-#include <ossia/detail/algorithms.hpp>
-
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -15,12 +8,17 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/document/DocumentContext.hpp>
+#include <score/model/Component.hpp>
+#include <score/model/ComponentSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
 #include <list>
 
 template <
-    typename Component_T,
-    typename Scenario_T,
-    typename IntervalComponent_T,
+    typename Component_T, typename Scenario_T, typename IntervalComponent_T,
     bool HasOwnership = true>
 class SimpleHierarchicalScenarioComponent
     : public Component_T
@@ -53,14 +51,11 @@ public:
   //! Do not forget to call this when using the lazy constructor.
   void init() { setup<Scenario::IntervalModel>(); }
 
-  const std::list<IntervalPair>& intervals_pairs() const
-  {
-    return m_intervals;
-  }
+  const std::list<IntervalPair>& intervals_pairs() const { return m_intervals; }
 
   void clear()
   {
-    for (auto element : m_intervals)
+    for(auto element : m_intervals)
       do_cleanup(element);
 
     m_intervals.clear();
@@ -77,7 +72,7 @@ public:
     auto it = ossia::find_if(
         container, [&](auto pair) { return &pair.element == &element; });
 
-    if (it != container.end())
+    if(it != container.end())
     {
       do_cleanup(*it);
       container.erase(it);
@@ -91,7 +86,7 @@ private:
   template <typename Pair_T>
   void do_cleanup(const Pair_T& pair)
   {
-    if constexpr (HasOwnership)
+    if constexpr(HasOwnership)
     {
       Component_T::removing(pair.element, pair.component);
       pair.element.components().remove(pair.component);
@@ -110,14 +105,14 @@ private:
     using map_t = MatchingComponent<elt_t, true>;
     auto&& member = map_t::scenario_container(Component_T::process());
 
-    for (auto& elt : member)
+    for(auto& elt : member)
     {
       add(elt);
     }
 
     member.mutable_added.template connect<
-        SimpleHierarchicalScenarioComponent,
-        &SimpleHierarchicalScenarioComponent::add>(this);
+        SimpleHierarchicalScenarioComponent, &SimpleHierarchicalScenarioComponent::add>(
+        this);
 
     member.removing.template connect<
         SimpleHierarchicalScenarioComponent,
@@ -128,9 +123,8 @@ private:
   template <typename elt_t>
   void add(elt_t& element)
   {
-    add(element,
-        typename score::is_component_serializable<
-            typename MatchingComponent<elt_t, true>::type>::type{});
+    add(element, typename score::is_component_serializable<
+                     typename MatchingComponent<elt_t, true>::type>::type{});
   }
 
   template <typename elt_t>
@@ -147,14 +141,14 @@ private:
         });
 
     // Maybe we could not deserialize it
-    if (!comp)
+    if(!comp)
     {
       comp = Component_T::template make<component_t>(
           getStrongId(element.components()), element);
     }
 
     // We try to add it
-    if (comp)
+    if(comp)
     {
       element.components().add(comp);
       (this->*map_t::local_container)
@@ -172,7 +166,7 @@ private:
     // We can just create a new component directly
     using map_t = MatchingComponent<elt_t, true>;
     auto comp = Component_T::make(getStrongId(element.components()), element);
-    if (comp)
+    if(comp)
     {
       element.components().add(comp);
       (this->*map_t::local_container)
@@ -189,18 +183,14 @@ private:
     using pair_type = IntervalPair;
     static const constexpr auto local_container
         = &SimpleHierarchicalScenarioComponent::m_intervals;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::IntervalModel>::accessor;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<Scenario_T, Scenario::IntervalModel>::accessor;
   };
 };
 
 template <
-    typename Component_T,
-    typename Scenario_T,
-    typename IntervalComponent_T,
-    typename EventComponent_T,
-    typename TimeSyncComponent_T,
-    typename StateComponent_T,
+    typename Component_T, typename Scenario_T, typename IntervalComponent_T,
+    typename EventComponent_T, typename TimeSyncComponent_T, typename StateComponent_T,
     bool HasOwnership = true>
 class HierarchicalScenarioComponent
     : public Component_T
@@ -257,26 +247,20 @@ public:
     setup<Scenario::IntervalModel>();
   }
 
-  const std::list<IntervalPair>& intervals_pairs() const
-  {
-    return m_intervals;
-  }
+  const std::list<IntervalPair>& intervals_pairs() const { return m_intervals; }
   const std::list<EventPair>& events_pairs() const { return m_events; }
   const std::list<StatePair>& states_pairs() const { return m_states; }
-  const std::list<TimeSyncPair>& timeSyncs_pairs() const
-  {
-    return m_timeSyncs;
-  }
+  const std::list<TimeSyncPair>& timeSyncs_pairs() const { return m_timeSyncs; }
 
   void clear()
   {
-    for (auto element : m_intervals)
+    for(auto element : m_intervals)
       do_cleanup(element);
-    for (auto element : m_states)
+    for(auto element : m_states)
       do_cleanup(element);
-    for (auto element : m_events)
+    for(auto element : m_events)
       do_cleanup(element);
-    for (auto element : m_timeSyncs)
+    for(auto element : m_timeSyncs)
       do_cleanup(element);
 
     m_intervals.clear();
@@ -296,7 +280,7 @@ public:
     auto it = ossia::find_if(
         container, [&](auto pair) { return &pair.element == &element; });
 
-    if (it != container.end())
+    if(it != container.end())
     {
       do_cleanup(*it);
       container.erase(it);
@@ -310,7 +294,7 @@ private:
   template <typename Pair_T>
   void do_cleanup(const Pair_T& pair)
   {
-    if constexpr (HasOwnership)
+    if constexpr(HasOwnership)
     {
       Component_T::removing(pair.element, pair.component);
       pair.element.components().remove(pair.component);
@@ -329,15 +313,15 @@ private:
     using map_t = MatchingComponent<elt_t, true>;
     auto&& member = map_t::scenario_container(Component_T::process());
 
-    for (auto& elt : member)
+    for(auto& elt : member)
     {
       add(elt);
     }
 
-    member.mutable_added
-        .template connect<&HierarchicalScenarioComponent::add<elt_t>>(this);
-    member.removing
-        .template connect<&HierarchicalScenarioComponent::remove<elt_t>>(this);
+    member.mutable_added.template connect<&HierarchicalScenarioComponent::add<elt_t>>(
+        this);
+    member.removing.template connect<&HierarchicalScenarioComponent::remove<elt_t>>(
+        this);
   }
 
   template <typename elt_t>
@@ -347,7 +331,7 @@ private:
     using component_t = typename MatchingComponent<elt_t, true>::type;
     constexpr bool is_serializable
         = std::is_base_of<score::SerializableComponent, component_t>::value;
-    if constexpr (is_serializable)
+    if constexpr(is_serializable)
     {
       using map_t = MatchingComponent<elt_t, true>;
       using component_t = typename map_t::type;
@@ -360,13 +344,13 @@ private:
           });
 
       // Maybe we could not deserialize it
-      if (!comp)
+      if(!comp)
       {
         comp = Component_T::template make<component_t>(element);
       }
 
       // We try to add it
-      if (comp)
+      if(comp)
       {
         element.components().add(comp);
         (this->*map_t::local_container)
@@ -379,7 +363,7 @@ private:
       // We can just create a new component directly
       using map_t = MatchingComponent<elt_t, true>;
       auto comp = Component_T::template make<typename map_t::type>(element);
-      if (comp)
+      if(comp)
       {
         element.components().add(comp);
         (this->*map_t::local_container)
@@ -400,8 +384,8 @@ private:
     using pair_type = IntervalPair;
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_intervals;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::IntervalModel>::accessor;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<Scenario_T, Scenario::IntervalModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::EventModel, dummy>
@@ -420,8 +404,8 @@ private:
     using pair_type = TimeSyncPair;
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_timeSyncs;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::TimeSyncModel>::accessor;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<Scenario_T, Scenario::TimeSyncModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::StateModel, dummy>
@@ -436,12 +420,8 @@ private:
 };
 
 template <
-    typename Component_T,
-    typename BaseScenario_T,
-    typename IntervalComponent_T,
-    typename EventComponent_T,
-    typename TimeSyncComponent_T,
-    typename StateComponent_T>
+    typename Component_T, typename BaseScenario_T, typename IntervalComponent_T,
+    typename EventComponent_T, typename TimeSyncComponent_T, typename StateComponent_T>
 class HierarchicalBaseScenario
     : public Component_T
     , public Nano::Observer
@@ -489,13 +469,13 @@ public:
 
   void clear()
   {
-    for (auto element : m_intervals)
+    for(auto element : m_intervals)
       cleanup(element);
-    for (auto element : m_states)
+    for(auto element : m_states)
       cleanup(element);
-    for (auto element : m_events)
+    for(auto element : m_events)
       cleanup(element);
-    for (auto element : m_timeSyncs)
+    for(auto element : m_timeSyncs)
       cleanup(element);
 
     m_intervals.clear();
@@ -544,10 +524,9 @@ private:
     using map_t = MatchingComponent<elt_t, true>;
     auto& container = this->*map_t::local_container;
 
-    auto it = find_if(
-        container, [&](auto pair) { return &pair.element == &element; });
+    auto it = find_if(container, [&](auto pair) { return &pair.element == &element; });
 
-    if (it != container.end())
+    if(it != container.end())
     {
       cleanup(*it);
       container.erase(it);
@@ -564,39 +543,35 @@ private:
   {
     using type = IntervalComponent_T;
     using pair_type = IntervalPair;
-    static const constexpr auto local_container
-        = &HierarchicalBaseScenario::m_intervals;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::IntervalModel>::accessor;
+    static const constexpr auto local_container = &HierarchicalBaseScenario::m_intervals;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<BaseScenario_T, Scenario::IntervalModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::EventModel, dummy>
   {
     using type = EventComponent_T;
     using pair_type = EventPair;
-    static const constexpr auto local_container
-        = &HierarchicalBaseScenario::m_events;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::EventModel>::accessor;
+    static const constexpr auto local_container = &HierarchicalBaseScenario::m_events;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<BaseScenario_T, Scenario::EventModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::TimeSyncModel, dummy>
   {
     using type = TimeSyncComponent_T;
     using pair_type = TimeSyncPair;
-    static const constexpr auto local_container
-        = &HierarchicalBaseScenario::m_timeSyncs;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::TimeSyncModel>::accessor;
+    static const constexpr auto local_container = &HierarchicalBaseScenario::m_timeSyncs;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<BaseScenario_T, Scenario::TimeSyncModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::StateModel, dummy>
   {
     using type = StateComponent_T;
     using pair_type = StatePair;
-    static const constexpr auto local_container
-        = &HierarchicalBaseScenario::m_states;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::StateModel>::accessor;
+    static const constexpr auto local_container = &HierarchicalBaseScenario::m_states;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<BaseScenario_T, Scenario::StateModel>::accessor;
   };
 };

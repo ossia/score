@@ -1,9 +1,10 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 
-#include <score/command/Command.hpp>
 #include <score/command/AggregateCommand.hpp>
+#include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
 #include <score_plugin_deviceexplorer_export.h>
@@ -13,17 +14,11 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT LoadDevice final
-    : public score::Command
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT LoadDevice final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      LoadDevice,
-      "Load a device")
+  SCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
 public:
-  LoadDevice(
-      const DeviceDocumentPlugin& devplug,
-      const Device::DeviceSettings& set);
+  LoadDevice(const DeviceDocumentPlugin& devplug, const Device::DeviceSettings& set);
   LoadDevice(const DeviceDocumentPlugin& devplug, Device::Node&& node);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -40,13 +35,10 @@ private:
 class ReloadWholeDevice final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      ReloadWholeDevice,
-      "Reload a device")
+      DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")
 public:
   ReloadWholeDevice(
-      const DeviceDocumentPlugin& devplug,
-      Device::Node&& oldnode,
+      const DeviceDocumentPlugin& devplug, Device::Node&& oldnode,
       Device::Node&& newnode);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -64,9 +56,7 @@ private:
 class UpdateAndReloadMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      UpdateAndReloadMacro,
-      "Reload a device")
+      DeviceExplorerCommandFactoryName(), UpdateAndReloadMacro, "Reload a device")
 };
 }
 }

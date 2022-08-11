@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/Explorer/ListeningManager.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -39,15 +40,12 @@ class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
 class DeviceExplorerView;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final
-    : public QWidget
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final : public QWidget
 {
   W_OBJECT(DeviceExplorerWidget)
 
 public:
-  explicit DeviceExplorerWidget(
-      const Device::ProtocolFactoryList&,
-      QWidget* parent);
+  explicit DeviceExplorerWidget(const Device::ProtocolFactoryList&, QWidget* parent);
 
   void setModel(DeviceExplorerModel* model);
   DeviceExplorerModel* model() const;
@@ -142,10 +140,12 @@ public:
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst)
 
 private:
-  void do_addAddress(InsertMode insert, QModelIndex index, Device::Node* parent, Device::AddressSettings& stgs);
+  void do_addAddress(
+      InsertMode insert, QModelIndex index, Device::Node* parent,
+      Device::AddressSettings& stgs);
 };
 
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT
-DeviceExplorerWidget* findDeviceExplorerWidgetInstance(
-    const score::GUIApplicationContext& ctx) noexcept;
+DeviceExplorerWidget*
+findDeviceExplorerWidgetInstance(const score::GUIApplicationContext& ctx) noexcept;
 }

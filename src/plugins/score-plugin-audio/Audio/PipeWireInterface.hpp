@@ -27,27 +27,20 @@ public:
   ~PipeWireAudioFactory() override;
 
   bool available() const noexcept override;
-  void initialize(
-      Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+  void
+  initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
   void rescan();
 
   QString prettyName() const override;
   std::shared_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+      const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
   void setupSettingsWidget(
-      QWidget* w,
-      QFormLayout* lay,
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
+      QWidget* w, QFormLayout* lay, Audio::Settings::Model& m, Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp);
   QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override;
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override;
 
 private:
   std::shared_ptr<ossia::pipewire_context> m_client{};

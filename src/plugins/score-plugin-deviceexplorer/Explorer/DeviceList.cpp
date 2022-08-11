@@ -3,6 +3,7 @@
 #include "DeviceList.hpp"
 
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <Explorer/DeviceLogging.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
 
@@ -15,8 +16,7 @@ W_OBJECT_IMPL(Device::DeviceList)
 namespace Device
 {
 template <typename TheList>
-static auto
-get_device_iterator_by_name(const QString& name, const TheList& devlist)
+static auto get_device_iterator_by_name(const QString& name, const TheList& devlist)
 {
   return ossia::find_if(
       devlist, [&](DeviceInterface* d) { return d->settings().name == name; });
@@ -24,9 +24,9 @@ get_device_iterator_by_name(const QString& name, const TheList& devlist)
 
 DeviceInterface& DeviceList::device(const QString& name) const
 {
-  if (m_localDevice && name == m_localDevice->name())
+  if(m_localDevice && name == m_localDevice->name())
     return *m_localDevice;
-  if (m_audioDevice && name == m_audioDevice->name())
+  if(m_audioDevice && name == m_audioDevice->name())
     return *m_audioDevice;
 
   auto it = get_device_iterator_by_name(name, m_devices);
@@ -42,9 +42,9 @@ DeviceInterface& DeviceList::device(const Node& node) const
 
 DeviceInterface* DeviceList::findDevice(const QString& name) const
 {
-  if (m_localDevice && name == m_localDevice->name())
+  if(m_localDevice && name == m_localDevice->name())
     return m_localDevice;
-  if (m_audioDevice && name == m_audioDevice->name())
+  if(m_audioDevice && name == m_audioDevice->name())
     return m_audioDevice;
 
   auto it = get_device_iterator_by_name(name, m_devices);
@@ -53,18 +53,17 @@ DeviceInterface* DeviceList::findDevice(const QString& name) const
 
 void DeviceList::addDevice(DeviceInterface* dev)
 {
-  if (!dev)
+  if(!dev)
     return;
 
-  if (dev == m_localDevice || dev == m_audioDevice)
+  if(dev == m_localDevice || dev == m_audioDevice)
   {
     // ...
   }
-  else if (
+  else if(
       dev->settings().protocol
-      == UuidKey<Device::ProtocolFactory>{
-          score::uuids::string_generator::compute(
-              "2835e6da-9b55-4029-9802-e1c817acbdc1")})
+      == UuidKey<Device::ProtocolFactory>{score::uuids::string_generator::compute(
+          "2835e6da-9b55-4029-9802-e1c817acbdc1")})
   {
     // FIXME
     // TODO dirty hack
@@ -84,18 +83,18 @@ void DeviceList::addDevice(DeviceInterface* dev)
 
 void DeviceList::removeDevice(const QString& name)
 {
-  if (m_localDevice && name == m_localDevice->name())
+  if(m_localDevice && name == m_localDevice->name())
   {
     m_localDevice->setLogging(get_cur_logging(false));
     auto vec = m_localDevice->listening();
-    for (const auto& elt : vec)
+    for(const auto& elt : vec)
       m_localDevice->setListening(elt, false);
   }
-  else if (m_audioDevice && name == m_audioDevice->name())
+  else if(m_audioDevice && name == m_audioDevice->name())
   {
     m_audioDevice->setLogging(get_cur_logging(false));
     auto vec = m_audioDevice->listening();
-    for (const auto& elt : vec)
+    for(const auto& elt : vec)
       m_audioDevice->setListening(elt, false);
   }
   else
@@ -116,16 +115,16 @@ const std::vector<DeviceInterface*>& DeviceList::devices() const
 
 void DeviceList::setLogging(bool b)
 {
-  if (m_logging == b)
+  if(m_logging == b)
     return;
   m_logging = b;
 
-  for (DeviceInterface* dev : m_devices)
+  for(DeviceInterface* dev : m_devices)
     dev->setLogging(get_cur_logging(b));
 
-  if (m_localDevice)
+  if(m_localDevice)
     m_localDevice->setLogging(get_cur_logging(b));
-  if (m_audioDevice)
+  if(m_audioDevice)
     m_audioDevice->setLogging(get_cur_logging(b));
 }
 
@@ -136,27 +135,27 @@ void DeviceList::setLocalDevice(DeviceInterface* dev)
 
 void DeviceList::apply(std::function<void(Device::DeviceInterface&)> fun)
 {
-  for (DeviceInterface* dev : m_devices)
+  for(DeviceInterface* dev : m_devices)
     fun(*dev);
 
-  if (m_localDevice)
+  if(m_localDevice)
     fun(*m_localDevice);
-  if (m_audioDevice)
+  if(m_audioDevice)
     fun(*m_audioDevice);
 }
 
 DeviceLogging get_cur_logging(bool b)
 {
-  if (b)
+  if(b)
   {
     static const Explorer::Settings::DeviceLogLevel ll;
     auto& app = score::GUIAppContext().settings<Explorer::Settings::Model>();
     auto log = app.getLogLevel();
-    if (log == ll.logNothing)
+    if(log == ll.logNothing)
       return LogNothing;
-    if (log == ll.logEverything)
+    if(log == ll.logEverything)
       return LogEverything;
-    if (log == ll.logUnfolded)
+    if(log == ll.logUnfolded)
       return LogUnfolded;
   }
   return LogNothing;

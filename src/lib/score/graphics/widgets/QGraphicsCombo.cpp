@@ -1,5 +1,5 @@
-#include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
+#include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
 
@@ -90,13 +90,11 @@ private:
 };
 */
 
-
 struct DefaultComboImpl
 {
-  static void
-  mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if (event->button() == Qt::LeftButton)
+    if(event->button() == Qt::LeftButton)
     {
       self.m_grab = true;
       InfiniteScroller::start(self, double(self.m_value) / (self.array.size() - 1));
@@ -105,14 +103,13 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void
-  mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if ((event->buttons() & Qt::LeftButton) && self.m_grab)
+    if((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       double v = InfiniteScroller::move(event);
       int curPos = v * (self.array.size() - 1);
-      if (curPos != self.m_value)
+      if(curPos != self.m_value)
       {
         self.m_value = curPos;
         self.sliderMoved();
@@ -122,18 +119,17 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void
-  mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if (event->button() == Qt::LeftButton)
+    if(event->button() == Qt::LeftButton)
     {
       InfiniteScroller::stop(self, event);
 
-      if (self.m_grab)
+      if(self.m_grab)
       {
         double v = InfiniteScroller::move(event);
         int curPos = v * (self.array.size() - 1);
-        if (curPos != self.m_value)
+        if(curPos != self.m_value)
         {
           self.m_value = curPos;
           self.update();
@@ -142,7 +138,7 @@ struct DefaultComboImpl
       }
       self.sliderReleased();
     }
-    else if (event->button() == Qt::RightButton)
+    else if(event->button() == Qt::RightButton)
     { /*
       QTimer::singleShot(0, [&, pos = event->scenePos()] {
         auto w = new ComboBoxWithEnter;
@@ -229,9 +225,7 @@ QRectF QGraphicsCombo::boundingRect() const
 }
 
 void QGraphicsCombo::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -242,7 +236,6 @@ void QGraphicsCombo::paint(
   // Draw rect
   const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
   painter->drawRoundedRect(brect, 1, 1);
-
 
   // Draw text
   painter->setPen(skin.Base4.main.pen2);

@@ -15,18 +15,14 @@ struct Point
   double y;
 };
 
-inline Point ConvertToScenarioPoint(
-    const QPointF& point,
-    ZoomRatio zoom,
-    double height) noexcept
+inline Point
+ConvertToScenarioPoint(const QPointF& point, ZoomRatio zoom, double height) noexcept
 {
   return {TimeVal::fromPixels(point.x(), zoom), point.y() / height};
 }
 
-inline QPointF ConvertFromScenarioPoint(
-    const Point& point,
-    ZoomRatio zoom,
-    double height) noexcept
+inline QPointF
+ConvertFromScenarioPoint(const Point& point, ZoomRatio zoom, double height) noexcept
 {
   return {point.date.toPixels(zoom), point.y * height};
 }

@@ -1,7 +1,8 @@
 #pragma once
-#include <Media/MediaFileHandle.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Media/MediaFileHandle.hpp>
 
 namespace Media::Sound
 {
@@ -9,10 +10,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT DroppedAudioFiles
 {
   DroppedAudioFiles(const score::DocumentContext& ctx, const QMimeData& mime);
 
-  bool valid() const
-  {
-    return !files.empty() && maxDuration != TimeVal::zero();
-  }
+  bool valid() const { return !files.empty() && maxDuration != TimeVal::zero(); }
 
   TimeVal dropMaxDuration() const;
   TimeVal maxDuration = TimeVal::zero();
@@ -31,8 +29,7 @@ class DropHandler final : public Process::ProcessDropHandler
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   void dropCustom(
-      std::vector<ProcessDrop>& drops,
-      const QMimeData& data,
+      std::vector<ProcessDrop>& drops, const QMimeData& data,
       const score::DocumentContext& ctx) const noexcept override;
 };
 

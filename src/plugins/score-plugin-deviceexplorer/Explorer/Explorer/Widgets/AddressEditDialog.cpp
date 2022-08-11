@@ -2,10 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressEditDialog.hpp"
 
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Address/IOType.hpp>
-#include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Domain.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
@@ -13,11 +9,17 @@
 #include <State/Widgets/AddressValidator.hpp>
 #include <State/Widgets/Values/TypeComboBox.hpp>
 
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/IOType.hpp>
+
+#include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
 
-#include <ossia/network/domain/domain.hpp>
 #include <ossia/network/base/name_validation.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 #include <QDialogButtonBox>
 #include <QFormLayout>
@@ -33,9 +35,7 @@ class AddressBraceExpressionValidator : public QValidator
 {
 public:
   using QValidator::QValidator;
-  virtual ~AddressBraceExpressionValidator(){
-
-  }
+  virtual ~AddressBraceExpressionValidator() { }
 
   QValidator::State validate(QString& s, int& pos) const override
   {
@@ -65,8 +65,7 @@ AddressEditDialog::AddressEditDialog(QWidget* parent)
 }
 
 AddressEditDialog::AddressEditDialog(
-    const Device::AddressSettings& addr,
-    QWidget* parent)
+    const Device::AddressSettings& addr, QWidget* parent)
     : Device::AddressDialog{parent}
     , m_originalSettings{addr}
 {
@@ -84,10 +83,7 @@ AddressEditDialog::AddressEditDialog(
   auto typeCb = new State::TypeComboBox{this};
 
   connect(
-      typeCb,
-      &State::TypeComboBox::changed,
-      this,
-      &AddressEditDialog::updateType,
+      typeCb, &State::TypeComboBox::changed, this, &AddressEditDialog::updateType,
       Qt::QueuedConnection);
 
   m_valueTypeCBox = typeCb;
@@ -117,18 +113,18 @@ void AddressEditDialog::updateType(ossia::val_type valueType)
 
   m_addressWidget->setWidget(widg);
 
-  if (!m_originalSettings.ioType)
+  if(!m_originalSettings.ioType)
     m_originalSettings.ioType = ossia::access_mode::BI;
 
-  if (widg)
+  if(widg)
   {
     auto& dom = m_originalSettings.domain.get();
-    if (!dom)
+    if(!dom)
       dom = widg->getDefaultSettings().domain.get();
     widg->setSettings(m_originalSettings);
   }
 
-  if (widg)
+  if(widg)
     widg->setCanEditProperties(m_canEdit);
 }
 
@@ -136,7 +132,7 @@ Device::AddressSettings AddressEditDialog::getSettings() const
 {
   Device::AddressSettings settings;
 
-  if (m_addressWidget && m_addressWidget->widget())
+  if(m_addressWidget && m_addressWidget->widget())
   {
     settings = m_addressWidget->widget()->getSettings();
   }
@@ -169,7 +165,7 @@ void AddressEditDialog::setCanEditProperties(bool b)
 {
   m_canEdit = b;
   m_valueTypeCBox->setEnabled(b);
-  if (auto w = m_addressWidget->widget())
+  if(auto w = m_addressWidget->widget())
     w->setCanEditProperties(b);
 }
 
@@ -181,11 +177,11 @@ void AddressEditDialog::setNodeSettings()
 
 void AddressEditDialog::setValueSettings()
 {
-  const int index = m_valueTypeCBox->findText(
-      State::convert::prettyType(m_originalSettings.value));
+  const int index
+      = m_valueTypeCBox->findText(State::convert::prettyType(m_originalSettings.value));
   SCORE_ASSERT(index != -1);
   SCORE_ASSERT(index < m_valueTypeCBox->count());
-  if (m_valueTypeCBox->currentIndex() == index)
+  if(m_valueTypeCBox->currentIndex() == index)
   {
     m_valueTypeCBox->currentIndexChanged(index);
   }

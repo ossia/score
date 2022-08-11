@@ -1,7 +1,8 @@
 #pragma once
-#include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 namespace Process
@@ -13,5 +14,6 @@ namespace Process
  * e.g. the automations.
  */
 SCORE_LIB_PROCESS_EXPORT
-QString displayNameForPort(const Process::Port& outlet, const score::DocumentContext& doc);
+QString
+displayNameForPort(const Process::Port& outlet, const score::DocumentContext& doc);
 }

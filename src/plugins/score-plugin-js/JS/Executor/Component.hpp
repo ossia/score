@@ -1,7 +1,8 @@
 #pragma once
-#include <JS/Qml/QmlObjects.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
+
+#include <JS/Qml/QmlObjects.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -18,15 +19,11 @@ class ProcessModel;
 namespace Executor
 {
 class Component final
-    : public ::Execution::
-          ProcessComponent_T<JS::ProcessModel, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<JS::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
 public:
-  Component(
-      JS::ProcessModel& element,
-      const Execution::Context& ctx,
-      QObject* parent);
+  Component(JS::ProcessModel& element, const Execution::Context& ctx, QObject* parent);
   ~Component() override;
 
 private:

@@ -1,14 +1,15 @@
 #pragma once
 #include <Process/Layer/LayerContextMenu.hpp>
 
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
 #include <Scenario/Application/Menus/TransportActions.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Execution/ScenarioExecution.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 #include <vector>
@@ -70,18 +71,15 @@ public:
   TransportActions& transportActions() { return m_transportActions; };
 
 public:
-  void keyPressed(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1)
-  void keyReleased(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1)
+  void keyPressed(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1)
+  void keyReleased(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1)
 
 private:
   void prepareNewDocument() override;
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
 
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
-      override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
   void on_activeWindowChanged() override;
 

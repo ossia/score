@@ -1,47 +1,44 @@
 #pragma once
-#include <QString>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <verdigris>
+
+#include <QString>
 
 #include <score_plugin_gfx_export.h>
+
+#include <verdigris>
 
 class QFormLayout;
 class QSpinBox;
 class QLineEdit;
 namespace Gfx
 {
-struct SharedOutputSettings {
+struct SharedOutputSettings
+{
   QString path;
   int width{};
   int height{};
   double rate{};
 };
 
-
 class SCORE_PLUGIN_GFX_EXPORT SharedOutputProtocolFactory
     : public Device::ProtocolFactory
 {
-  public:
+public:
   ~SharedOutputProtocolFactory();
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget* parent) override;
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*) override;
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*) override;
 
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,

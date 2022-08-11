@@ -9,8 +9,7 @@
 SCORE_LIB_BASE_EXPORT
 QDebug operator<<(QDebug debug, const std::string& obj);
 
-inline QStringList
-splitWithoutEmptyParts(const QString& src, const QString& sep)
+inline QStringList splitWithoutEmptyParts(const QString& src, const QString& sep)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
   return src.split(sep, Qt::SkipEmptyParts);

@@ -1,8 +1,11 @@
 #pragma once
 #include <score/plugins/InterfaceList.hpp>
+
 #include <ossia/detail/small_vector.hpp>
-#include <unordered_map>
+
 #include <score_lib_process_export.h>
+
+#include <unordered_map>
 namespace score
 {
 class Command;
@@ -22,8 +25,7 @@ class ProcessModel;
  * - Advanced actions which will open a custom modal dialog to allow the user to input the action
  *   settings.
  */
-class SCORE_LIB_PROCESS_EXPORT OfflineAction
-        : public score::InterfaceBase
+class SCORE_LIB_PROCESS_EXPORT OfflineAction : public score::InterfaceBase
 {
   SCORE_INTERFACE(OfflineAction, "0d9e9135-bf4d-4ef2-b872-21be740f990c")
 public:
@@ -44,10 +46,11 @@ public:
   using key_type = typename OfflineAction::ConcreteKey;
   using vector_type = score::IndirectContainer<OfflineAction>;
 
-   OfflineActionList();
+  OfflineActionList();
   ~OfflineActionList();
 
-  OfflineActions actionsForProcess(const UuidKey<Process::ProcessModel>& key) const noexcept;
+  OfflineActions
+  actionsForProcess(const UuidKey<Process::ProcessModel>& key) const noexcept;
 
   static const MSVC_BUGGY_CONSTEXPR score::InterfaceKey static_interfaceKey() noexcept
   {
@@ -61,7 +64,7 @@ public:
 
   void insert(std::unique_ptr<score::InterfaceBase> e) final override
   {
-    if (auto result = dynamic_cast<factory_type*>(e.get()))
+    if(auto result = dynamic_cast<factory_type*>(e.get()))
     {
       e.release();
       std::unique_ptr<factory_type> pf{result};
@@ -70,7 +73,7 @@ public:
 
       auto k = pf->concreteKey();
       auto it = this->map.find(k);
-      if (it == this->map.end())
+      if(it == this->map.end())
       {
         this->map.emplace(std::make_pair(k, std::move(pf)));
       }
@@ -95,8 +98,7 @@ public:
 
 protected:
   ossia::fast_hash_map<
-      typename OfflineAction::ConcreteKey,
-      std::unique_ptr<OfflineAction>>
+      typename OfflineAction::ConcreteKey, std::unique_ptr<OfflineAction>>
       map;
 
   std::unordered_map<UuidKey<Process::ProcessModel>, OfflineActions> actionsMap;
@@ -112,6 +114,5 @@ protected:
   OfflineActionList(OfflineActionList&&) = delete;
   OfflineActionList& operator=(const OfflineActionList&) = delete;
   OfflineActionList& operator=(OfflineActionList&&) = delete;
-
 };
 }

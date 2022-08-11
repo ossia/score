@@ -6,9 +6,6 @@
 
 #include <Process/TimeValue.hpp>
 
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/model/Identifier.hpp>
-
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
@@ -30,10 +27,12 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
+
 namespace Scenario
 {
-ScenarioViewInterface::ScenarioViewInterface(
-    const ScenarioPresenter& presenter)
+ScenarioViewInterface::ScenarioViewInterface(const ScenarioPresenter& presenter)
     : m_presenter{presenter}
 {
 }
@@ -45,14 +44,13 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
   ev.view()->setExtent(ev.extent() * h);
 
   ev.view()->setPos(
-      {ev.model().date().toPixels(m_presenter.m_zoomRatio),
-       ev.extent().top() * h});
+      {ev.model().date().toPixels(m_presenter.m_zoomRatio), ev.extent().top() * h});
 
   // We also have to move all the relevant states
-  for (const auto& state : ev.model().states())
+  for(const auto& state : ev.model().states())
   {
     auto state_it = m_presenter.m_states.find(state);
-    if (state_it != m_presenter.m_states.end())
+    if(state_it != m_presenter.m_states.end())
     {
       on_stateMoved(*state_it);
     }
@@ -60,8 +58,7 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
   m_presenter.m_view->update();
 }
 
-void ScenarioViewInterface::on_intervalMoved(
-    const TemporalIntervalPresenter& pres)
+void ScenarioViewInterface::on_intervalMoved(const TemporalIntervalPresenter& pres)
 {
   auto rect = m_presenter.m_view->boundingRect();
   auto msPerPixel = m_presenter.m_zoomRatio;
@@ -75,7 +72,7 @@ void ScenarioViewInterface::on_intervalMoved(
                            // there are processes. (delta * delta > 1); //
                            // Magnetism
 
-  if (dateChanged)
+  if(dateChanged)
   {
     cstr_view.setPos(
         startPos, std::round(rect.height() * cstr_model.heightPercentage()));
@@ -85,10 +82,8 @@ void ScenarioViewInterface::on_intervalMoved(
     cstr_view.setY(std::round(rect.height() * cstr_model.heightPercentage()));
   }
 
-  cstr_view.setDefaultWidth(
-      cstr_model.duration.defaultDuration().toPixels(msPerPixel));
-  cstr_view.setMinWidth(
-      cstr_model.duration.minDuration().toPixels(msPerPixel));
+  cstr_view.setDefaultWidth(cstr_model.duration.defaultDuration().toPixels(msPerPixel));
+  cstr_view.setMinWidth(cstr_model.duration.minDuration().toPixels(msPerPixel));
   cstr_view.setMaxWidth(
       cstr_model.duration.isMaxInfinite(),
       cstr_model.duration.isMaxInfinite()
@@ -124,8 +119,7 @@ void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
   m_presenter.m_view->update();
 }
 
-void ScenarioViewInterface::on_commentMoved(
-    const CommentBlockPresenter& comment)
+void ScenarioViewInterface::on_commentMoved(const CommentBlockPresenter& comment)
 {
   auto h = m_presenter.m_view->boundingRect().height();
   comment.view()->setPos(

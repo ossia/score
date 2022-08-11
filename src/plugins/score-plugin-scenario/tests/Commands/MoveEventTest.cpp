@@ -16,8 +16,8 @@ public:
 private:
   void MoveCommandTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
     // 1. Create a new event (the first one cannot move since it does not have
     // predecessors ?)
 
@@ -34,9 +34,7 @@ private:
         {
             {"ScenarioModel", {}},
         },
-        eventid,
-        data.dDate,
-        data.relativeY);
+        eventid, data.dDate, data.relativeY);
 
     cmd.redo(ctx);
     QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);

@@ -18,12 +18,11 @@ public:
   ~ScenarioInspectorWidgetFactoryWrapper() override;
 
   QWidget* make(
-      const InspectedObjects& sourceElements,
-      const score::DocumentContext& doc,
+      const InspectedObjects& sourceElements, const score::DocumentContext& doc,
       QWidget* parent) const override;
 
-  bool update(QWidget* cur, const QList<const IdentifiedObjectAbstract*>& obj)
-      const override;
+  bool
+  update(QWidget* cur, const QList<const IdentifiedObjectAbstract*>& obj) const override;
 
   bool matches(const InspectedObjects& objects) const override;
 };

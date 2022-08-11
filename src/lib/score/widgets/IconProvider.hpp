@@ -1,5 +1,6 @@
 #pragma once
 #include <QFileIconProvider>
+
 #include <score_lib_base_export.h>
 
 namespace score

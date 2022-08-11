@@ -1,6 +1,8 @@
-#include <faust/dsp/llvm-dsp.h>
-#include <memory>
 #include <QFile>
+
+#include <memory>
+
+#include <faust/dsp/llvm-dsp.h>
 int main(int argc, char** argv)
 {
 
@@ -30,7 +32,7 @@ int main(int argc, char** argv)
 
   {
     int argc = 0;
-    const char* argv[1] = { nullptr };
+    const char* argv[1] = {nullptr};
     fac = createDSPFactoryFromString("score", str.c_str(), argc, argv, triple, err, -1);
     assert(fac);
 

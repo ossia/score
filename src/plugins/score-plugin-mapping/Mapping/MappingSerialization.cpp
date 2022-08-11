@@ -2,10 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MappingModel.hpp"
 
-#include <Curve/CurveModel.hpp>
+#include <State/Address.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
-#include <State/Address.hpp>
+
+#include <Curve/CurveModel.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>

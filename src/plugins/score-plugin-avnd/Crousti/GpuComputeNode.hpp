@@ -1,16 +1,16 @@
 #pragma once
 
 #if SCORE_PLUGIN_GFX
-#include <Gfx/GfxExecNode.hpp>
-#include <Gfx/Graph/NodeRenderer.hpp>
-#include <Gfx/Graph/RenderList.hpp>
-#include <Gfx/Graph/Uniforms.hpp>
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 #include <Process/ExecutionContext.hpp>
 
 #include <Crousti/Concepts.hpp>
 #include <Crousti/GpuUtils.hpp>
 #include <Crousti/Metadatas.hpp>
+#include <Gfx/GfxExecNode.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/Uniforms.hpp>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 namespace oscr
 {
@@ -18,13 +18,11 @@ namespace oscr
 // must drive things internally instead
 template <typename Node_T>
 using ComputeNodeBaseType = std::conditional_t<
-    avnd::gpu_image_output_introspection<Node_T>::size != 0,
-    CustomGpuNodeBase,
+    avnd::gpu_image_output_introspection<Node_T>::size != 0, CustomGpuNodeBase,
     CustomGpuOutputNodeBase>;
 template <typename Node_T>
 using ComputeRendererBaseType = std::conditional_t<
-    avnd::gpu_image_output_introspection<Node_T>::size != 0,
-    score::gfx::NodeRenderer,
+    avnd::gpu_image_output_introspection<Node_T>::size != 0, score::gfx::NodeRenderer,
     score::gfx::OutputNodeRenderer>;
 
 template <typename Node_T>
@@ -36,12 +34,12 @@ struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
     using texture_inputs = avnd::gpu_image_input_introspection<Node_T>;
     using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
 
-    for (std::size_t i = 0; i < texture_inputs::size; i++)
+    for(std::size_t i = 0; i < texture_inputs::size; i++)
     {
       this->input.push_back(
           new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
     }
-    for (std::size_t i = 0; i < texture_outputs::size; i++)
+    for(std::size_t i = 0; i < texture_outputs::size; i++)
     {
       this->output.push_back(
           new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
@@ -115,43 +113,43 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   QRhiShaderResourceBinding initBinding(score::gfx::RenderList& renderer, F field)
   {
     constexpr auto bindingStages = QRhiShaderResourceBinding::ComputeStage;
-    if constexpr (requires { F::ubo; })
+    if constexpr(requires { F::ubo; })
     {
       auto it = createdUbos.find(F::binding());
       QRhiBuffer* buffer = it != createdUbos.end() ? it->second : nullptr;
       return QRhiShaderResourceBinding::uniformBuffer(
           F::binding(), bindingStages, buffer);
     }
-    else if constexpr (requires { F::image2D; })
+    else if constexpr(requires { F::image2D; })
     {
       auto tex_it = createdTexs.find(F::binding());
       QRhiTexture* tex
           = tex_it != createdTexs.end() ? tex_it->second : &renderer.emptyTexture();
 
-      if constexpr (
+      if constexpr(
           requires { F::load; } && requires { F::store; })
         return QRhiShaderResourceBinding::imageLoadStore(
             F::binding(), bindingStages, tex, 0);
-      else if constexpr (requires { F::readonly; })
+      else if constexpr(requires { F::readonly; })
         return QRhiShaderResourceBinding::imageLoad(F::binding(), bindingStages, tex, 0);
-      else if constexpr (requires { F::writeonly; })
+      else if constexpr(requires { F::writeonly; })
         return QRhiShaderResourceBinding::imageStore(
             F::binding(), bindingStages, tex, 0);
       else
         static_assert(F::load || F::store);
     }
-    else if constexpr (requires { F::buffer; })
+    else if constexpr(requires { F::buffer; })
     {
       auto it = createdUbos.find(F::binding());
       QRhiBuffer* buf = it != createdUbos.end() ? it->second : nullptr;
 
-      if constexpr (
+      if constexpr(
           requires { F::load; } && requires { F::store; })
         return QRhiShaderResourceBinding::bufferLoadStore(
             F::binding(), bindingStages, buf);
-      else if constexpr (requires { F::load; })
+      else if constexpr(requires { F::load; })
         return QRhiShaderResourceBinding::bufferLoad(F::binding(), bindingStages, buf);
-      else if constexpr (requires { F::store; })
+      else if constexpr(requires { F::store; })
         return QRhiShaderResourceBinding::bufferStore(F::binding(), bindingStages, buf);
       else
         static_assert(F::load || F::store);
@@ -212,7 +210,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     using ubo_type = typename avnd::member_reflection<F::uniform()>::class_type;
 
     // We must mark the UBO to construct.
-    if (createdUbos.find(ubo_type::binding()) != createdUbos.end())
+    if(createdUbos.find(ubo_type::binding()) != createdUbos.end())
       return;
 
     auto ubo = renderer.state.rhi->newBuffer(
@@ -225,15 +223,15 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   void init(score::gfx::RenderList& renderer) override
   {
     // Create the global shared inputs
-    avnd::input_introspection<Node_T>::for_all([this, &renderer](auto f)
-                                               { init_input(renderer, f); });
+    avnd::input_introspection<Node_T>::for_all(
+        [this, &renderer](auto f) { init_input(renderer, f); });
 
     m_srb = initBindings(renderer);
     m_pipeline = createComputePipeline(renderer);
     m_pipeline->setShaderResourceBindings(m_srb);
 
     // No update step: we can directly create the pipeline here
-    if constexpr (!requires { &Node_T::update; })
+    if constexpr(!requires { &Node_T::update; })
     {
       SCORE_ASSERT(m_srb->create());
       SCORE_ASSERT(m_pipeline->create());
@@ -246,9 +244,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   {
     // First copy all the "public" uniforms to their space in memory
     avnd::gpu_uniform_introspection<Node_T>::for_all(
-        avnd::get_inputs<Node_T>(state),
-        [&]<avnd::uniform_port F>(const F& t)
-        {
+        avnd::get_inputs<Node_T>(state), [&]<avnd::uniform_port F>(const F& t) {
           using uniform_type =
               typename avnd::member_reflection<F::uniform()>::member_type;
           using ubo_type = typename avnd::member_reflection<F::uniform()>::class_type;
@@ -264,11 +260,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     // as we have to take into account that buffers could be allocated, freed, etc.
     // and thus updated in the shader resource bindings
 
-    if constexpr (requires { &Node_T::update; })
+    if constexpr(requires { &Node_T::update; })
     {
       bool srb_touched{false};
       tmp.assign(m_srb->cbeginBindings(), m_srb->cendBindings());
-      for (auto& promise : state.update())
+      for(auto& promise : state.update())
       {
         using ret_type = decltype(promise.feedback_value);
         gpp::qrhi::handle_update<GpuComputeRenderer, ret_type> handler{
@@ -276,9 +272,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
         promise.feedback_value = visit(handler, promise.current_command);
       }
 
-      if (srb_touched)
+      if(srb_touched)
       {
-        if (m_createdPipeline)
+        if(m_createdPipeline)
           m_srb->destroy();
         m_srb->setBindings(tmp.begin(), tmp.end());
       }
@@ -307,7 +303,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
       }
       */
 
-      if (!m_createdPipeline)
+      if(!m_createdPipeline)
       {
         SCORE_ASSERT(m_srb->create());
         SCORE_ASSERT(m_pipeline->create());
@@ -322,9 +318,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     m_createdPipeline = false;
 
     // Release the object's internal states
-    if constexpr (requires { &Node_T::release; })
+    if constexpr(requires { &Node_T::release; })
     {
-      for (auto& promise : state.release())
+      for(auto& promise : state.release())
       {
         gpp::qrhi::handle_release handler{*r.state.rhi};
         visit(handler, promise.current_command);
@@ -333,12 +329,12 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     }
 
     // Release the allocated textures
-    for (auto& [id, tex] : this->createdTexs)
+    for(auto& [id, tex] : this->createdTexs)
       tex->deleteLater();
     this->createdTexs.clear();
 
     // Release the allocated ubos
-    for (auto& [id, ubo] : this->createdUbos)
+    for(auto& [id, ubo] : this->createdUbos)
       ubo->deleteLater();
     this->createdUbos.clear();
 
@@ -349,9 +345,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     m_rts.clear();
 
     // Release the allocated pipelines
-    if (m_srb)
+    if(m_srb)
       m_srb->deleteLater();
-    if (m_pipeline)
+    if(m_pipeline)
       m_pipeline->deleteLater();
     m_srb = nullptr;
     m_pipeline = nullptr;
@@ -363,8 +359,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   }
 
   void runCompute(
-      score::gfx::RenderList& renderer,
-      QRhiCommandBuffer& cb,
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res)
   {
     // If we are paused, we don't run the processor implementation.
@@ -377,16 +372,15 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     {
       avnd::parameter_input_introspection<Node_T>::for_all_n2(
           avnd::get_inputs<Node_T>(state),
-          [&](avnd::parameter auto& t, auto pred_index, auto field_index)
+          [&](avnd::parameter auto& t, auto pred_index, auto field_index) {
+        auto& mess = this->parent.last_message;
+        if(mess.input.size() > field_index)
+        {
+          if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
           {
-            auto& mess = this->parent.last_message;
-            if (mess.input.size() > field_index)
-            {
-              if (auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
-              {
-                oscr::from_ossia_value(t, *val, t.value);
-              }
-            }
+            oscr::from_ossia_value(t, *val, t.value);
+          }
+        }
           });
     }
 
@@ -394,7 +388,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     {
       SCORE_ASSERT(this->m_pipeline);
       SCORE_ASSERT(this->m_pipeline->shaderResourceBindings());
-      for (auto& promise : this->state.dispatch())
+      for(auto& promise : this->state.dispatch())
       {
         using ret_type = decltype(promise.feedback_value);
         gpp::qrhi::handle_dispatch<GpuComputeRenderer, ret_type> handler{
@@ -404,10 +398,10 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     }
 
     // Clear the readbacks
-    for (auto rb : this->bufReadbacks)
+    for(auto rb : this->bufReadbacks)
       delete rb;
     this->bufReadbacks.clear();
-    for (auto rb : this->texReadbacks)
+    for(auto rb : this->texReadbacks)
       delete rb;
     this->texReadbacks.clear();
 
@@ -416,17 +410,14 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   }
 
   void runInitialPasses(
-      score::gfx::RenderList& renderer,
-      QRhiCommandBuffer& cb,
-      QRhiResourceUpdateBatch*& res,
-      score::gfx::Edge& edge) override
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
+      QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge) override
   {
     runCompute(renderer, cb, res);
   }
 
   void runRenderPass(
-      score::gfx::RenderList& renderer,
-      QRhiCommandBuffer& commands,
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       score::gfx::Edge& edge) override
   {
   }

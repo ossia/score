@@ -14,6 +14,7 @@
 
 #include <Spline/GeneratorDialog.hpp>
 #include <Spline/View.hpp>
+
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -32,10 +33,7 @@ namespace Spline
 class CurveItem : public QGraphicsItem
 {
 public:
-  CurveItem(
-      const ProcessModel& model,
-      const score::DocumentContext& ctx,
-      View& parent)
+  CurveItem(const ProcessModel& model, const score::DocumentContext& ctx, View& parent)
       : QGraphicsItem{&parent}
       , m_view{parent}
       , m_model{model}
@@ -49,10 +47,7 @@ public:
 
   View& m_view;
 
-  QRectF boundingRect() const override
-  {
-    return QRectF(m_topLeft, m_bottomRight);
-  }
+  QRectF boundingRect() const override { return QRectF(m_topLeft, m_bottomRight); }
 
   QPointF point(double pos) const noexcept
   {
@@ -63,7 +58,7 @@ public:
   void paint(QPainter* p, const QStyleOptionGraphicsItem*, QWidget*) override
   {
     // TODO optimize painting here
-    if (m_spline.points.empty())
+    if(m_spline.points.empty())
       return;
 
     auto& skin = Process::Style::instance();
@@ -83,14 +78,10 @@ public:
 
       double biggestDim = std::max(rect.width(), rect.height());
       painter.drawLine(
-          -biggestDim * m_zoom,
-          rect.height() / 2.,
-          biggestDim * m_zoom,
+          -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom,
           rect.height() / 2.);
       painter.drawLine(
-          rect.height() / 2.,
-          -biggestDim * m_zoom,
-          rect.height() / 2.,
+          rect.height() / 2., -biggestDim * m_zoom, rect.height() / 2.,
           biggestDim * m_zoom);
     }
 
@@ -98,16 +89,14 @@ public:
 
     // Draw the curve
     {
-      QPen segmt = m_enabled
-                      ? m_selectedCurve
-                              ? skin.skin.Base2.main.pen2
-                              : skin.skin.Base4.main.pen2
-                      : skin.skin.Gray.main.pen1;
+      QPen segmt = m_enabled ? m_selectedCurve ? skin.skin.Base2.main.pen2
+                                               : skin.skin.Base4.main.pen2
+                             : skin.skin.Gray.main.pen1;
       segmt.setWidthF(segmt.widthF() / m_zoom);
 
       painter.strokePath(m_curveShape, segmt);
 
-      if (m_play > 0)
+      if(m_play > 0)
       {
         segmt.setColor(skin.IntervalPlayFill().color());
         painter.strokePath(m_playShape, segmt);
@@ -118,14 +107,14 @@ public:
     if(m_enabled)
     {
       const auto pts = m_spline.points.size();
-      if (pts == 0 || pts > 100)
+      if(pts == 0 || pts > 100)
         return;
 
       // Handle first point
       const auto pointSize = 3. / m_zoom;
 
       painter.setPen(skin.TransparentPen());
-      if (m_selectedPoint && 0 != *m_selectedPoint)
+      if(m_selectedPoint && 0 != *m_selectedPoint)
         painter.setBrush(QColor(170, 220, 20));
       else
         painter.setBrush(QColor(170, 220, 220));
@@ -133,30 +122,27 @@ public:
       {
         auto fp = mapToCanvas(m_spline.points[0]);
         painter.drawEllipse(QRectF{
-            fp.x() - pointSize,
-            fp.y() - pointSize,
-            pointSize * 2.,
-            pointSize * 2.});
+            fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
       }
 
       QPen purplePen = skin.skin.Emphasis3.darker.pen2_dotted_square_miter;
       purplePen.setWidthF(purplePen.widthF() / m_zoom);
       // Remaining points
-      for (std::size_t i = 1U; i < pts; i++)
+      for(std::size_t i = 1U; i < pts; i++)
       {
         QPointF p = mapToCanvas(m_spline.points[i]);
 
         // Draw the points
-        if (m_selectedPoint == i)
+        if(m_selectedPoint == i)
         {
           // Draw the purple lines
           painter.setPen(purplePen);
-          if (i > 0)
+          if(i > 0)
           {
             QPointF p0 = mapToCanvas(m_spline.points[i - 1]);
             painter.drawLine(p0, p);
           }
-          if (i < pts - 1)
+          if(i < pts - 1)
           {
             QPointF p2 = mapToCanvas(m_spline.points[i + 1]);
             painter.drawLine(p, p2);
@@ -170,10 +156,7 @@ public:
 
         painter.setPen(skin.TransparentPen());
         painter.drawEllipse(QRectF{
-            p.x() - pointSize,
-            p.y() - pointSize,
-            pointSize * 2.,
-            pointSize * 2.});
+            p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
       }
     }
 
@@ -185,7 +168,7 @@ public:
     prepareGeometryChange();
     m_topLeft = QPointF{INT_MAX, INT_MAX};
     m_bottomRight = QPointF{INT_MIN, INT_MIN};
-    for (auto& pt : m_spline.points)
+    for(auto& pt : m_spline.points)
     {
       m_topLeft.rx() = std::min(pt.x, m_topLeft.rx());
       m_topLeft.ry() = std::min(1. - pt.y, m_topLeft.ry());
@@ -212,12 +195,12 @@ public:
     const double w = m_bottomRight.x() - m_topLeft.x();
     const double h = m_bottomRight.y() - m_topLeft.y();
 
-    if (w < 0.005 || h < 0.005)
+    if(w < 0.005 || h < 0.005)
       return;
 
     const double parent_w = parentRect.width();
     const double parent_h = parentRect.height();
-    if (parent_w < 5 || parent_h < 5)
+    if(parent_w < 5 || parent_h < 5)
       return;
 
     const double w_ratio = parent_w / w;
@@ -243,8 +226,7 @@ public:
   void updateSpline()
   {
     m_spl.set_points(
-        reinterpret_cast<const tsReal*>(m_spline.points.data()),
-        m_spline.points.size());
+        reinterpret_cast<const tsReal*>(m_spline.points.data()), m_spline.points.size());
 
     // Recompute the curve
     {
@@ -257,7 +239,7 @@ public:
       m_points.push_back(pt);
       path.moveTo(pt);
 
-      for (std::size_t i = 1U; i <= N; i++)
+      for(std::size_t i = 1U; i <= N; i++)
       {
         pt = mapToCanvas(evaluate(double(i) / N));
         path.lineTo(pt);
@@ -280,7 +262,7 @@ public:
 
   void updatePlayPath()
   {
-    if (m_play > 0)
+    if(m_play > 0)
     {
       auto& path = m_playShape;
       clearPainterPath(path);
@@ -288,15 +270,13 @@ public:
       const double percentage = qBound(0.f, m_play, 1.f) * N;
       const double start = std::floor(percentage);
       const double end = std::ceil(percentage);
-      const std::size_t max_start = std::min(
-          std::size_t(start), m_points.size());
-      const std::size_t max_end = std::min(
-            std::size_t(end), m_points.size());
-      if (max_start == 0)
+      const std::size_t max_start = std::min(std::size_t(start), m_points.size());
+      const std::size_t max_end = std::min(std::size_t(end), m_points.size());
+      if(max_start == 0)
         return;
 
       path.moveTo(m_points[0]);
-      for (std::size_t i = 1U; i < max_end; i++)
+      for(std::size_t i = 1U; i < max_end; i++)
       {
         path.lineTo(m_points[i]);
       }
@@ -304,7 +284,8 @@ public:
       if(max_end < m_points.size())
       {
         const double rem = (percentage - max_start);
-        const QPointF interp = ((1. - rem) * m_points[max_start] + rem * m_points[max_end]);
+        const QPointF interp
+            = ((1. - rem) * m_points[max_start] + rem * m_points[max_end]);
         path.lineTo(interp);
       }
     }
@@ -316,7 +297,7 @@ public:
 
   void setSpline(ossia::spline_data d)
   {
-    if (d != m_spline)
+    if(d != m_spline)
     {
       m_spline = std::move(d);
       updateSpline();
@@ -350,36 +331,36 @@ public:
     qreal distance = -1;
 
     const auto N = m_spline.points.size();
-    for (std::size_t i = 0; i < N; ++i)
+    for(std::size_t i = 0; i < N; ++i)
     {
       qreal d = QLineF{point, mapToCanvas(m_spline.points.at(i))}.length();
-      if ((distance < 0 && d < 10 / m_zoom) || d < distance)
+      if((distance < 0 && d < 10 / m_zoom) || d < distance)
       {
         distance = d;
         pointIndex = i;
       }
     }
 
-    if (pointIndex != -1)
+    if(pointIndex != -1)
       return pointIndex;
     return {};
   }
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* e) override
   {
-    if (m_strokedShape.contains(e->pos()))
+    if(m_strokedShape.contains(e->pos()))
       setCursor(Qt::CrossCursor);
   }
   void hoverMoveEvent(QGraphicsSceneHoverEvent* e) override
   {
-    if (m_strokedShape.contains(e->pos()))
+    if(m_strokedShape.contains(e->pos()))
     {
-      if (cursor().shape() != Qt::CrossCursor)
+      if(cursor().shape() != Qt::CrossCursor)
         setCursor(Qt::CrossCursor);
     }
     else
     {
-      if (cursor().shape() == Qt::CrossCursor)
+      if(cursor().shape() == Qt::CrossCursor)
         unsetCursor();
     }
   }
@@ -391,10 +372,9 @@ public:
     auto menu = new QMenu{e->widget()};
     auto setCurveAct = menu->addAction(QObject::tr("Generate curve"));
     auto res = menu->exec(e->screenPos());
-    if (res == setCurveAct)
+    if(res == setCurveAct)
     {
-      auto dial
-          = new GeneratorDialog{this->m_model, this->m_context, e->widget()};
+      auto dial = new GeneratorDialog{this->m_model, this->m_context, e->widget()};
       dial->exec();
     }
     menu->deleteLater();
@@ -410,15 +390,15 @@ public:
 
     auto btn = e->button();
     m_selectedCurve = false;
-    if (btn == Qt::LeftButton)
+    if(btn == Qt::LeftButton)
     {
-      if ((m_selectedPoint = findControlPoint(e->pos())))
+      if((m_selectedPoint = findControlPoint(e->pos())))
       {
         moveControlPoint(e->pos());
         e->accept();
         update();
       }
-      else if (m_strokedShape.contains(e->pos()))
+      else if(m_strokedShape.contains(e->pos()))
       {
         m_origSpline = m_spline;
         m_origClick = e->pos();
@@ -440,14 +420,14 @@ public:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* e) override
   {
     auto btn = e->buttons();
-    if (btn & Qt::LeftButton)
+    if(btn & Qt::LeftButton)
     {
-      if (m_selectedPoint)
+      if(m_selectedPoint)
       {
         moveControlPoint(e->pos());
         e->accept();
       }
-      else if (m_selectedCurve)
+      else if(m_selectedCurve)
       {
         moveCurve(e->pos() - m_origClick);
         e->accept();
@@ -466,9 +446,9 @@ public:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* e) override
   {
     auto btn = e->button();
-    if (btn == Qt::LeftButton)
+    if(btn == Qt::LeftButton)
     {
-      if (m_selectedPoint)
+      if(m_selectedPoint)
       {
         moveControlPoint(e->pos());
         updateRect();
@@ -478,7 +458,7 @@ public:
         m_view.released(e->pos());
         update();
       }
-      else if (m_selectedCurve)
+      else if(m_selectedCurve)
       {
         moveCurve(e->pos() - m_origClick);
         updateRect();
@@ -505,7 +485,7 @@ public:
     std::optional<std::size_t> splitIndex;
     std::optional<std::size_t> eraseIndex;
     const std::size_t N = m_spline.points.size();
-    if (N <= 3)
+    if(N <= 3)
     {
       m_spline.points.push_back(newPos);
       updateSpline();
@@ -521,7 +501,7 @@ public:
 
     double dist_min = std::numeric_limits<double>::max();
     const QPointF p0{newPos.x, newPos.y};
-    for (std::size_t i = 0; i < N - 1; ++i)
+    for(std::size_t i = 0; i < N - 1; ++i)
     {
       const QPointF p1{m_spline.points[i].x, m_spline.points[i].y};
       const QPointF p2{m_spline.points[i + 1].x, m_spline.points[i + 1].y};
@@ -535,24 +515,26 @@ public:
       {
         if(l1l < epsilon || l2l < epsilon)
         {
-          if(l1l <= l2l) {
+          if(l1l <= l2l)
+          {
             eraseIndex = i;
-          } else {
-            eraseIndex = i+1;
+          }
+          else
+          {
+            eraseIndex = i + 1;
           }
           break;
         }
       }
 
       const double num = std::abs(
-          (p2.x() - p1.x()) * (p1.y() - p0.y())
-          - (p1.x() - p0.x()) * (p2.y() - p1.y()));
-      const double denom = std::sqrt(
-          std::pow(p2.x() - p1.x(), 2) + std::pow(p2.y() - p1.y(), 2));
+          (p2.x() - p1.x()) * (p1.y() - p0.y()) - (p1.x() - p0.x()) * (p2.y() - p1.y()));
+      const double denom
+          = std::sqrt(std::pow(p2.x() - p1.x(), 2) + std::pow(p2.y() - p1.y(), 2));
       const double point_to_line_distance = num / denom;
       const double dist = point_to_line_distance + l1l + l2l;
 
-      if (dist < dist_min)
+      if(dist < dist_min)
       {
         dist_min = dist;
         splitIndex = i;
@@ -562,9 +544,10 @@ public:
     // Check if we must erase the last one
     if(can_erase)
     {
-      if(QLineF{p0, QPointF{m_spline.points[N-1].x, m_spline.points[N-1].y}}.length() < epsilon)
+      if(QLineF{p0, QPointF{m_spline.points[N - 1].x, m_spline.points[N - 1].y}}.length()
+         < epsilon)
       {
-        eraseIndex = N-1;
+        eraseIndex = N - 1;
         splitIndex = std::nullopt;
       }
     }
@@ -591,7 +574,7 @@ public:
     auto p = mapFromCanvas(mouse);
     const auto mp = *m_selectedPoint;
     const auto N = m_spline.points.size();
-    if (mp < N)
+    if(mp < N)
     {
       m_spline.points[mp] = p;
 
@@ -602,7 +585,7 @@ public:
 
   void moveCurve(QPointF delta)
   {
-    for (std::size_t i = 0; i < m_spline.points.size(); i++)
+    for(std::size_t i = 0; i < m_spline.points.size(); i++)
     {
       m_spline.points[i].x = m_origSpline.points[i].x + delta.x();
       m_spline.points[i].y = m_origSpline.points[i].y - delta.y();
@@ -651,10 +634,7 @@ public:
 };
 
 static_assert(std::is_same<tsReal, qreal>::value, "");
-View::View(
-    const ProcessModel& m,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
+View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent)
     : LayerView{parent}
 {
   m_impl = new CurveItem{m, ctx, *this};
@@ -675,14 +655,13 @@ View::View(
   connect(item, &score::ZoomItem::recenter, this, &View::recenter);
   recenter();
 
-  this->setFlags(
-      QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
+  this->setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
 }
 
 void View::setSpline(ossia::spline_data d)
 {
   m_impl->setSpline(std::move(d));
-  if (!m_impl->m_selectedPoint)
+  if(!m_impl->m_selectedPoint)
   {
     recenter();
   }
@@ -712,8 +691,8 @@ void View::recenter()
 {
   m_impl->updateRect();
   m_impl->setZoomToFitRect(boundingRect());
-  auto childCenter = m_impl->mapRectToParent(m_impl->boundingRect()).center()
-                     - m_impl->pos();
+  auto childCenter
+      = m_impl->mapRectToParent(m_impl->boundingRect()).center() - m_impl->pos();
   auto ourCenter = boundingRect().center();
   auto delta = ourCenter - childCenter;
 

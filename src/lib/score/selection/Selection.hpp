@@ -31,7 +31,7 @@ public:
   static Selection fromList(const QList<IdentifiedObjectAbstract*>& other)
   {
     Selection s;
-    for (auto elt : other)
+    for(auto elt : other)
     {
       s.base_type::append(elt);
     }
@@ -40,9 +40,9 @@ public:
 
   bool contains(const IdentifiedObjectAbstract& obj) const noexcept
   {
-    for (const auto& ptr : *this)
+    for(const auto& ptr : *this)
     {
-      if (ptr.data() == &obj)
+      if(ptr.data() == &obj)
         return true;
     }
     return false;
@@ -50,9 +50,9 @@ public:
 
   bool contains(const IdentifiedObjectAbstract* obj) const noexcept
   {
-    for (const auto& ptr : *this)
+    for(const auto& ptr : *this)
     {
-      if (ptr.data() == obj)
+      if(ptr.data() == obj)
         return true;
     }
     return false;
@@ -63,38 +63,36 @@ public:
   void append(const IdentifiedObjectAbstract* obj)
   {
     auto ptr = const_cast<IdentifiedObjectAbstract*>(obj);
-    if (!contains(ptr))
+    if(!contains(ptr))
       base_type::append(ptr);
   }
 
   void append(const base_type::value_type& obj)
   {
-    if (!contains(obj))
+    if(!contains(obj))
       base_type::append(obj);
   }
 
   void append(base_type::value_type&& obj)
   {
-    if (!contains(obj))
+    if(!contains(obj))
       base_type::append(std::move(obj));
   }
 
   bool operator==(const Selection& other) const
   {
-    return static_cast<const base_type&>(*this)
-           == static_cast<const base_type&>(other);
+    return static_cast<const base_type&>(*this) == static_cast<const base_type&>(other);
   }
 
   bool operator!=(const Selection& other) const
   {
-    return static_cast<const base_type&>(*this)
-           != static_cast<const base_type&>(other);
+    return static_cast<const base_type&>(*this) != static_cast<const base_type&>(other);
   }
 
   QList<const IdentifiedObjectAbstract*> toList() const
   {
     QList<const IdentifiedObjectAbstract*> l;
-    for (const auto& elt : *this)
+    for(const auto& elt : *this)
       l.push_back(elt);
     return l;
   }
@@ -119,16 +117,16 @@ template <typename T>
  */
 Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
 {
-  if (!cumulation)
+  if(!cumulation)
   {
     sel.clear();
   }
 
   const auto ptr = const_cast<std::remove_const_t<T>*>(pressedModel);
   // If the pressed element is selected
-  if (pressedModel->selection.get())
+  if(pressedModel->selection.get())
   {
-    if (cumulation)
+    if(cumulation)
     {
       sel.removeAll(ptr);
     }
@@ -152,13 +150,11 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
  * with ctrl pressed.
  */
 inline Selection filterSelections(
-    Selection& newSelection,
-    const Selection& currentSelection,
-    bool cumulation)
+    Selection& newSelection, const Selection& currentSelection, bool cumulation)
 {
-  if (cumulation)
+  if(cumulation)
   {
-    for (auto& elt : currentSelection)
+    for(auto& elt : currentSelection)
       newSelection.append(elt);
   }
 

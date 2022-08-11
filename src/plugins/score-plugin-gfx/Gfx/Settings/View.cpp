@@ -11,8 +11,8 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QSpinBox>
 #include <QFormLayout>
+#include <QSpinBox>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::View)

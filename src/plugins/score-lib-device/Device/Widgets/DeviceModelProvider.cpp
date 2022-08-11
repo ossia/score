@@ -9,7 +9,7 @@ DeviceModelProviderList::~DeviceModelProviderList() { }
 DeviceModelProvider* DeviceModelProviderList::getBestProvider(
     const score::DocumentContext& ctx) const noexcept
 {
-  if (!empty())
+  if(!empty())
     return &*begin();
   return nullptr;
 }

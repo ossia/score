@@ -3,6 +3,12 @@
 #include "ApplicationPlugin.hpp"
 
 #include <Curve/Settings/CurveSettingsModel.hpp>
+
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Record/RecordManager.hpp>
@@ -21,11 +27,6 @@
 #include <QApplication>
 #include <qnamespace.h>
 
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-
 namespace Recording
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -34,27 +35,21 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   using namespace Scenario;
   // Since we have declared the dependency, we can assume
   // that ScenarioApplicationPlugin is instantiated already.
-  auto& scenario_plugin
-      = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
+  auto& scenario_plugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
   connect(
-      &scenario_plugin.execution(),
-      &ScenarioExecution::startRecording,
-      this,
+      &scenario_plugin.execution(), &ScenarioExecution::startRecording, this,
       &ApplicationPlugin::record);
   connect(
-      &scenario_plugin.execution(),
-      &ScenarioExecution::startRecordingMessages,
-      this,
+      &scenario_plugin.execution(), &ScenarioExecution::startRecordingMessages, this,
       &ApplicationPlugin::recordMessages);
   connect(
       &scenario_plugin.execution(),
       &ScenarioExecution::stopRecording, // TODO this seems useless
-      this,
-      &ApplicationPlugin::stopRecord);
+      this, &ApplicationPlugin::stopRecord);
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
-  if (ctx.applicationSettings.gui)
+  if(ctx.applicationSettings.gui)
   {
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     m_stopAction = stop_action.action();
@@ -62,32 +57,27 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   }
 }
 
-void ApplicationPlugin::record(
-    Scenario::ProcessModel* scenar,
-    Scenario::Point pt)
+void ApplicationPlugin::record(Scenario::ProcessModel* scenar, Scenario::Point pt)
 {
-  if (m_currentContext)
+  if(m_currentContext)
     return;
 
   m_stopAction->trigger();
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
   m_currentContext = std::make_unique<Recording::RecordContext>(*scenar, pt);
-  m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(
-      *m_currentContext);
+  m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(*m_currentContext);
 
-  if (context.settings<Curve::Settings::Model>().getPlayWhileRecording())
+  if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
   {
     connect(
-        &m_recManager->recorder,
-        &Recording::AutomationRecorder::firstMessageReceived,
-        this,
-        [=]() { m_ossiaplug->execution().on_record(pt.date); },
+        &m_recManager->recorder, &Recording::AutomationRecorder::firstMessageReceived,
+        this, [=]() { m_ossiaplug->execution().on_record(pt.date); },
         Qt::QueuedConnection);
   }
 
   auto res = m_recManager->setup();
-  if (!res)
+  if(!res)
   {
     m_recManager.reset();
     m_currentContext.reset();
@@ -95,10 +85,9 @@ void ApplicationPlugin::record(
 }
 
 void ApplicationPlugin::recordMessages(
-    Scenario::ProcessModel* scenar,
-    Scenario::Point pt)
+    Scenario::ProcessModel* scenar, Scenario::Point pt)
 {
-  if (m_currentContext)
+  if(m_currentContext)
     return;
 
   m_stopAction->trigger();
@@ -108,18 +97,16 @@ void ApplicationPlugin::recordMessages(
   m_recMessagesManager
       = std::make_unique<SingleRecorder<MessageRecorder>>(*m_currentContext);
 
-  if (context.settings<Curve::Settings::Model>().getPlayWhileRecording())
+  if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
   {
     connect(
         &m_recMessagesManager->recorder,
-        &Recording::MessageRecorder::firstMessageReceived,
-        this,
-        [=]() { m_ossiaplug->execution().on_record(pt.date); },
-        Qt::QueuedConnection);
+        &Recording::MessageRecorder::firstMessageReceived, this,
+        [=]() { m_ossiaplug->execution().on_record(pt.date); }, Qt::QueuedConnection);
   }
 
   auto res = m_recMessagesManager->setup();
-  if (!res)
+  if(!res)
   {
     m_recMessagesManager.reset();
     m_currentContext.reset();
@@ -128,13 +115,13 @@ void ApplicationPlugin::recordMessages(
 
 void ApplicationPlugin::stopRecord()
 {
-  if (m_recManager)
+  if(m_recManager)
   {
     m_recManager->stop();
     m_recManager.reset();
   }
 
-  if (m_recMessagesManager)
+  if(m_recMessagesManager)
   {
     m_recMessagesManager->stop();
     m_recMessagesManager.reset();

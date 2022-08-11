@@ -11,13 +11,12 @@
 #include <Color/GradientModel.hpp>
 #include <Color/GradientPresenter.hpp>
 #include <Color/GradientView.hpp>
+
 #include <wobjectimpl.h>
 namespace Gradient
 {
 Presenter::Presenter(
-    const Gradient::ProcessModel& layer,
-    View* view,
-    const Process::Context& ctx,
+    const Gradient::ProcessModel& layer, View* view, const Process::Context& ctx,
     QObject* parent)
     : LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
@@ -32,11 +31,11 @@ Presenter::Presenter(
     auto np = pos.x() / m_view->dataWidth();
     auto new_grad = layer.gradient();
     auto prev = new_grad.lower_bound(np);
-    if (prev == new_grad.begin())
+    if(prev == new_grad.begin())
     {
       new_grad.insert(std::make_pair(np, prev->second));
     }
-    if (prev == new_grad.end())
+    if(prev == new_grad.end())
     {
       if(!new_grad.empty())
       {
@@ -61,7 +60,7 @@ Presenter::Presenter(
   connect(m_view, &View::movePoint, this, [&](double orig, double cur) {
     auto new_grad = layer.gradient();
     auto it = new_grad.find(orig);
-    if (it == new_grad.end())
+    if(it == new_grad.end())
       return;
 
     auto col = it->second;
@@ -74,7 +73,7 @@ Presenter::Presenter(
   connect(m_view, &View::removePoint, this, [&](double orig) {
     auto new_grad = layer.gradient();
     auto it = new_grad.find(orig);
-    if (it == new_grad.end())
+    if(it == new_grad.end())
       return;
 
     new_grad.erase(it);
@@ -85,7 +84,7 @@ Presenter::Presenter(
   connect(m_view, &View::setColor, this, [&](double pos, QColor col) {
     auto new_grad = layer.gradient();
     auto it = new_grad.has(pos);
-    if (!it)
+    if(!it)
       return;
 
     *it = col;

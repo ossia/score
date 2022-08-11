@@ -2,6 +2,11 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
+
 #include <score/graphics/PainterPath.hpp>
 
 #include <QGraphicsSceneMouseEvent>
@@ -9,10 +14,6 @@
 #include <QPainterPathStroker>
 #include <QPen>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/State/StateView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::GraphalIntervalPresenter)
 
@@ -31,11 +32,8 @@ namespace Scenario
 {
 
 GraphalIntervalPresenter::GraphalIntervalPresenter(
-    const IntervalModel& model,
-    const StateView& start,
-    const StateView& end,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
+    const IntervalModel& model, const StateView& start, const StateView& end,
+    const Process::Context& ctx, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_model{model}
     , m_start{start}
@@ -45,11 +43,8 @@ GraphalIntervalPresenter::GraphalIntervalPresenter(
   resize();
   connect(&model.selection, &Selectable::changed, this, [this] { update(); });
   connect(
-      &model,
-      &IntervalModel::executionEvent,
-      this,
-      [this](IntervalExecutionEvent ev) {
-        if (ev == IntervalExecutionEvent::Playing)
+      &model, &IntervalModel::executionEvent, this, [this](IntervalExecutionEvent ev) {
+        if(ev == IntervalExecutionEvent::Playing)
         {
           m_execPing.start();
           update();
@@ -92,7 +87,7 @@ void GraphalIntervalPresenter::resize()
     bool x_dir = p1.x() > p2.x();
     auto& first = x_dir ? p1 : p2;
     auto& last = !x_dir ? p1 : p2;
-    if (x_dir)
+    if(x_dir)
     {
       p1.rx() -= 4.;
       p2.rx() += 4.;
@@ -110,17 +105,13 @@ void GraphalIntervalPresenter::resize()
 
     m_path.moveTo(first.x(), first.y());
     m_path.cubicTo(
-        first.x() + half_length,
-        first.y() + offset_y,
-        last.x() - half_length,
-        last.y() - offset_y,
-        last.x(),
-        last.y());
+        first.x() + half_length, first.y() + offset_y, last.x() - half_length,
+        last.y() - offset_y, last.x(), last.y());
 
     auto cur = m_path.currentPosition();
     auto angle = m_path.angleAtPercent(0.95);
     {
-      if (!x_dir)
+      if(!x_dir)
       {
         QLineF direct{p2, p1};
         direct.setLength(5);
@@ -142,7 +133,7 @@ void GraphalIntervalPresenter::resize()
 
     m_path.moveTo(cur);
     {
-      if (!x_dir)
+      if(!x_dir)
       {
         QLineF direct{p2, p1};
         direct.setLength(5);
@@ -169,20 +160,19 @@ void GraphalIntervalPresenter::resize()
 const score::Brush&
 GraphalIntervalPresenter::intervalColor(const Process::Style& skin) noexcept
 {
-  if (Q_UNLIKELY(m_model.selection.get()))
+  if(Q_UNLIKELY(m_model.selection.get()))
   {
     return skin.IntervalSelected();
   }
-  else if (Q_UNLIKELY(!m_model.consistency.isValid()))
+  else if(Q_UNLIKELY(!m_model.consistency.isValid()))
   {
     return skin.IntervalInvalid();
   }
-  else if (Q_UNLIKELY(m_model.consistency.warning()))
+  else if(Q_UNLIKELY(m_model.consistency.warning()))
   {
     return skin.IntervalWarning();
   }
-  else if (Q_UNLIKELY(
-               m_model.executionState() == IntervalExecutionState::Disabled))
+  else if(Q_UNLIKELY(m_model.executionState() == IntervalExecutionState::Disabled))
   {
     return skin.IntervalInvalid();
   }
@@ -193,20 +183,17 @@ GraphalIntervalPresenter::intervalColor(const Process::Style& skin) noexcept
 }
 
 void GraphalIntervalPresenter::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& style = Process::Style::instance();
   auto& brush = this->intervalColor(style);
 
   painter->setRenderHint(QPainter::Antialiasing, true);
 
-  if (m_execPing.running())
+  if(m_execPing.running())
   {
     const auto& nextPen = m_execPing.getNextPen(
-        brush.color(),
-        style.IntervalPlayFill().color(),
+        brush.color(), style.IntervalPlayFill().color(),
         brush.main.pen2_dashdot_square_miter);
     painter->setPen(nextPen);
     update();
@@ -248,8 +235,7 @@ void GraphalIntervalPresenter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   moved(event->scenePos());
 }
 
-void GraphalIntervalPresenter::mouseReleaseEvent(
-    QGraphicsSceneMouseEvent* event)
+void GraphalIntervalPresenter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   released(event->scenePos());
 }

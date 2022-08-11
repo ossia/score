@@ -6,10 +6,11 @@
 
 #include <core/application/SafeQApplication.hpp>
 
-#include <ossia-qt/invoke.hpp>
+#include <ossia/detail/fmt.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/ssize.hpp>
-#include <ossia/detail/fmt.hpp>
+
+#include <ossia-qt/invoke.hpp>
 
 #include <QDockWidget>
 #include <QFileInfo>
@@ -36,10 +37,7 @@ public:
       , m_buffer{}
   {
     m_updateScheduler.setInterval(100);
-    con(m_updateScheduler,
-        &QTimer::timeout,
-        this,
-        &LogMessagesItemModel::update);
+    con(m_updateScheduler, &QTimer::timeout, this, &LogMessagesItemModel::update);
     m_updateScheduler.start();
   }
 
@@ -47,13 +45,13 @@ public:
   void update()
   {
     const auto n = m_buffer.size();
-    if (m_lastCount < n)
+    if(m_lastCount < n)
     {
       beginInsertRows(QModelIndex(), m_lastCount, n);
       m_lastCount = n;
       endInsertRows();
 
-      if (n > 600)
+      if(n > 600)
       {
         auto diff = n - 500;
         beginRemoveRows(QModelIndex(), 0, diff);
@@ -74,23 +72,19 @@ public:
     endResetModel();
   }
 
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
     return createIndex(row, column, nullptr);
   }
   QModelIndex parent(const QModelIndex& child) const override { return {}; }
-  int rowCount(const QModelIndex& parent) const override
-  {
-    return m_lastCount;
-  }
+  int rowCount(const QModelIndex& parent) const override { return m_lastCount; }
   int columnCount(const QModelIndex& parent) const override { return 1; }
 
   QVariant data(const QModelIndex& index, int role) const override
   {
-    if (index.row() < std::ssize(m_buffer))
+    if(index.row() < std::ssize(m_buffer))
     {
-      switch (role)
+      switch(role)
       {
         case Qt::DisplayRole:
           return m_buffer[index.row()].message;
@@ -109,39 +103,34 @@ public:
 
 static MessagesPanelDelegate* g_messagesPanel{};
 
-static void LogToMessagePanel(
-    QtMsgType type,
-    const QMessageLogContext& context,
-    const QString& msg)
+static void
+LogToMessagePanel(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
   SafeQApplication::DebugOutput(type, context, msg);
-  if (!g_messagesPanel)
+  if(!g_messagesPanel)
     return;
 
   auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
   auto filename = basename_arr.constData();
 
   QByteArray localMsg = msg.toLocal8Bit();
-  switch (type)
+  switch(type)
   {
     case QtDebugMsg:
       g_messagesPanel->qtLog(fmt::format(
           "Debug: {} ({}:{})", localMsg.constData(), filename, context.line));
       break;
     case QtInfoMsg:
-      g_messagesPanel->qtLog(fmt::format(
-          "Info: {} ({}:{})", localMsg.constData(), filename, context.line));
+      g_messagesPanel->qtLog(
+          fmt::format("Info: {} ({}:{})", localMsg.constData(), filename, context.line));
       break;
     case QtWarningMsg:
-      g_messagesPanel->qtLog(fmt::format(
-          "Warn: {} ({}:{})", localMsg.constData(), filename, context.line));
+      g_messagesPanel->qtLog(
+          fmt::format("Warn: {} ({}:{})", localMsg.constData(), filename, context.line));
       break;
     case QtCriticalMsg:
       g_messagesPanel->qtLog(fmt::format(
-          "Critical: {} ({}:{})",
-          localMsg.constData(),
-          filename,
-          context.line));
+          "Critical: {} ({}:{})", localMsg.constData(), filename, context.line));
       break;
     case QtFatalMsg:
       g_messagesPanel->qtLog(fmt::format(
@@ -149,28 +138,24 @@ static void LogToMessagePanel(
   }
 }
 
-MessagesPanelDelegate::MessagesPanelDelegate(
-    const score::GUIApplicationContext& ctx)
+MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_itemModel{new LogMessagesItemModel{this}}
     , m_widget{new VisibilityNotifying<QListView>}
 {
   qInstallMessageHandler(LogToMessagePanel);
   m_widget->setModel(m_itemModel);
-  m_widget->setStatusTip(QObject::tr(
-                           "This panel displays all warnings, errors and logs. \n"
-                           "It is generally a good place to look first if something \n"
-                           "is not behaving as it should"));
+  m_widget->setStatusTip(
+      QObject::tr("This panel displays all warnings, errors and logs. \n"
+                  "It is generally a good place to look first if something \n"
+                  "is not behaving as it should"));
   m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
-      m_widget,
-      &QListView::customContextMenuRequested,
-      this,
-      [=](const QPoint& pos) {
+      m_widget, &QListView::customContextMenuRequested, this, [=](const QPoint& pos) {
         QMenu m{};
         auto act = m.addAction(QObject::tr("Clear"));
         auto res = m.exec(QCursor::pos());
-        if (res == act)
+        if(res == act)
         {
           m_itemModel->clear();
         }
@@ -201,7 +186,7 @@ const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
 void MessagesPanelDelegate::qtLog(const std::string& str)
 {
   ossia::qt::run_async(this, [=] {
-    if (m_itemModel && m_widget)
+    if(m_itemModel && m_widget)
     {
       push(QString::fromStdString(str), score::log::dark4);
     }
@@ -210,7 +195,7 @@ void MessagesPanelDelegate::qtLog(const std::string& str)
 
 void MessagesPanelDelegate::push(const QString& str, const QColor& col)
 {
-  if (!m_widget->isVisible())
+  if(!m_widget->isVisible())
     return;
 
   m_itemModel->push({str, col});

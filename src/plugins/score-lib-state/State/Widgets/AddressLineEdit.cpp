@@ -7,7 +7,7 @@ namespace State
 AddressFragmentLineEdit::~AddressFragmentLineEdit() = default;
 
 AddressFragmentLineEdit::AddressFragmentLineEdit(QWidget* parent)
-  : QLineEdit{parent}
+    : QLineEdit{parent}
 {
   setValidator(new AddressFragmentValidator{this});
 
@@ -18,7 +18,7 @@ AddressFragmentLineEdit::AddressFragmentLineEdit(QWidget* parent)
     QString s = str;
     int i = 0;
     QPalette palette{this->palette()};
-    if (validator()->validate(s, i) == QValidator::State::Acceptable)
+    if(validator()->validate(s, i) == QValidator::State::Acceptable)
     {
       palette.setColor(QPalette::Base, QColor{"#161514"});
       palette.setColor(QPalette::Light, QColor{"#c58014"});

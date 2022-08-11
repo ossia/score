@@ -1,9 +1,10 @@
 #pragma once
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/LayerPresenter.hpp>
+
 #include <Audio/Settings/Model.hpp>
 #include <Media/Step/Commands.hpp>
 #include <Media/Step/View.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/LayerPresenter.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
@@ -19,9 +20,7 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Process::ProcessModel& model,
-      View* view,
-      const Process::Context& ctx,
+      const Process::ProcessModel& model, View* view, const Process::Context& ctx,
       QObject* parent)
       : LayerPresenter{model, view, ctx, parent}
       , m_view{view}
@@ -38,21 +37,15 @@ public:
 
     con(m, &Step::Model::stepsChanged, this, [&] { m_view->update(); });
     con(m, &Step::Model::stepCountChanged, this, [&] { m_view->update(); });
-    con(m, &Step::Model::stepDurationChanged, this, [&] {
-      on_zoomRatioChanged(m_ratio);
-    });
+    con(m, &Step::Model::stepDurationChanged, this,
+        [&] { on_zoomRatioChanged(m_ratio); });
 
-    auto& audio_settings
-        = context().context.app.settings<Audio::Settings::Model>();
-    con(audio_settings, &Audio::Settings::Model::RateChanged, this, [&] {
-      on_zoomRatioChanged(m_ratio);
-    });
+    auto& audio_settings = context().context.app.settings<Audio::Settings::Model>();
+    con(audio_settings, &Audio::Settings::Model::RateChanged, this,
+        [&] { on_zoomRatioChanged(m_ratio); });
   }
 
-  void setWidth(qreal width, qreal defaultWidth) override
-  {
-    m_view->setWidth(width);
-  }
+  void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
   void setHeight(qreal val) override { m_view->setHeight(val); }
 
   void putToFront() override { m_view->setVisible(true); }
@@ -62,8 +55,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio r) override
   {
     auto samplerate
-        = 0.001
-          * context().context.app.settings<Audio::Settings::Model>().getRate();
+        = 0.001 * context().context.app.settings<Audio::Settings::Model>().getRate();
     m_ratio = r;
     auto& m = static_cast<const Step::Model&>(m_process);
     auto v = TimeVal::fromMsecs(m.stepDuration() / samplerate).toPixels(r);

@@ -30,11 +30,8 @@ void DataStreamWriter::write(JS::ProcessModel& proc)
   proc.setScript(str);
 
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   checkDelimiter();
 }
@@ -51,9 +48,6 @@ void JSONWriter::write(JS::ProcessModel& proc)
 {
   proc.setScript(obj["Script"].toString());
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 }

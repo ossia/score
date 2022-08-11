@@ -53,7 +53,7 @@ public:
   float value() const { return m_value; }
   void setValue(float v)
   {
-    if (v != m_value)
+    if(v != m_value)
     {
       m_value = v;
       valueChanged(v);
@@ -77,8 +77,7 @@ public:
 
   void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override;
   bool on_createAutomation(
-      const Scenario::IntervalModel& cst,
-      std::function<void(score::Command*)> macro,
+      const Scenario::IntervalModel& cst, std::function<void(score::Command*)> macro,
       const score::DocumentContext& ctx) override;
 };
 
@@ -92,22 +91,15 @@ public:
   Process::Port* load(const VisitorVariant& vis, QObject* parent) override;
 
   Dataflow::PortItem* makePortItem(
-      Process::Inlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Inlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context) override;
 
   Dataflow::PortItem* makePortItem(
-      Process::Outlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context) override;
 
   void setupInletInspector(
-      const Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override;
+      const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 };
 }

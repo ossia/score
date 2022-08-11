@@ -20,9 +20,7 @@ private:
 
 public:
   SelectionState(
-      score::SelectionStack& stack,
-      const Curve::ToolPalette& parentSM,
-      View& view,
+      score::SelectionStack& stack, const Curve::ToolPalette& parentSM, View& view,
       QState* parent)
       : CommonSelectionState{stack, &view, parent}
       , m_parentSM{parentSM}
@@ -33,10 +31,7 @@ public:
   const QPointF& initialPoint() const { return m_initialPoint; }
   const QPointF& movePoint() const { return m_movePoint; }
 
-  void on_pressAreaSelection() override
-  {
-    m_initialPoint = m_parentSM.scenePoint;
-  }
+  void on_pressAreaSelection() override { m_initialPoint = m_parentSM.scenePoint; }
 
   void on_moveAreaSelection() override
   {
@@ -51,7 +46,7 @@ public:
 
   void on_releaseAreaSelection() override
   {
-    if (m_parentSM.scenePoint == m_initialPoint)
+    if(m_parentSM.scenePoint == m_initialPoint)
     {
       dispatcher.deselect();
       auto proc = (IdentifiedObjectAbstract*)m_parentSM.model().parent();
@@ -72,24 +67,24 @@ private:
     using namespace std;
     Selection sel;
 
-    for (const auto& point : m_parentSM.presenter().points())
+    for(const auto& point : m_parentSM.presenter().points())
     {
-      if (point.shape().translated(point.pos()).intersects(scene_area))
+      if(point.shape().translated(point.pos()).intersects(scene_area))
       {
         sel.append(point.model());
       }
     }
 
-    for (const auto& segment : m_parentSM.presenter().segments())
+    for(const auto& segment : m_parentSM.presenter().segments())
     {
-      if (segment.shape().translated(segment.pos()).intersects(scene_area))
+      if(segment.shape().translated(segment.pos()).intersects(scene_area))
       {
         sel.append(segment.model());
       }
     }
 
-    dispatcher.select(filterSelections(
-        sel, m_parentSM.model().selectedChildren(), multiSelection()));
+    dispatcher.select(
+        filterSelections(sel, m_parentSM.model().selectedChildren(), multiSelection()));
   }
 };
 }

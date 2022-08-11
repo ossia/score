@@ -1,19 +1,18 @@
 #include "AudioInletItem.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Inspector/InspectorLayout.hpp>
 #include <Process/Dataflow/AudioPortComboBox.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Inspector/InspectorLayout.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
 namespace Dataflow
 {
 void AudioInletFactory::setupInletInspector(
-    const Process::Inlet& port,
-    const score::DocumentContext& ctx,
-    QWidget* parent,
-    Inspector::Layout& lay,
-    QObject* context)
+    const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
 {
   auto root = State::Address{"audio", {"in"}};
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();

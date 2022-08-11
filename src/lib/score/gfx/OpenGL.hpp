@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QSurfaceFormat>
-#if __has_include (<private/qshader_p.h>)
+#if __has_include(<private/qshader_p.h>)
 #include <private/qshader_p.h>
 #endif
 
@@ -19,7 +19,7 @@ public:
   int shaderVersion{};
   QSurfaceFormat::RenderableType type{};
 
-#if __has_include (<private/qshader_p.h>)
+#if __has_include(<private/qshader_p.h>)
   QShaderVersion qShaderVersion;
 #endif
 

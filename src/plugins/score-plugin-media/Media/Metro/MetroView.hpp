@@ -1,6 +1,7 @@
 #pragma once
-#include <Media/Metro/MetroModel.hpp>
 #include <Process/LayerView.hpp>
+
+#include <Media/Metro/MetroModel.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>

@@ -53,10 +53,8 @@ public:
   }
 
   ~SafeQApplication();
-  static void DebugOutput(
-      QtMsgType type,
-      const QMessageLogContext& context,
-      const QString& msg);
+  static void
+  DebugOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg);
 
 #if !defined(SCORE_DEBUG)
   void inform(const QString& str)

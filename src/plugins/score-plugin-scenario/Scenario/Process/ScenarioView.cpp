@@ -5,6 +5,9 @@
 #include <Process/LayerView.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+
 #include <QApplication>
 #include <QColor>
 #include <QDrag>
@@ -15,8 +18,6 @@
 #include <QPen>
 #include <qnamespace.h>
 
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Process/ScenarioPresenter.hpp>
 #include <wobjectimpl.h>
 
 namespace Scenario
@@ -24,8 +25,7 @@ namespace Scenario
 ScenarioView::ScenarioView(QGraphicsItem* parent)
     : LayerView{parent}
 {
-  this->setFlags(
-      ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
+  this->setFlags(ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
   setAcceptDrops(true);
 
   this->setZValue(1);
@@ -36,24 +36,23 @@ ScenarioView::~ScenarioView() = default;
 void ScenarioView::paint_impl(QPainter* painter) const
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
-  if (m_lock)
+  if(m_lock)
   {
     painter->setBrush({Qt::red, Qt::DiagCrossPattern});
     painter->drawRect(boundingRect());
   }
 
-  if (m_selectArea != QRectF{})
+  if(m_selectArea != QRectF{})
   {
     painter->setCompositionMode(QPainter::CompositionMode_Xor);
-    painter->setPen(QPen{
-        QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+    painter->setPen(
+        QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
     painter->setBrush(Qt::transparent);
     painter->drawRect(m_selectArea);
-    painter->setCompositionMode(
-        QPainter::CompositionMode::CompositionMode_SourceOver);
+    painter->setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceOver);
   }
 
-  if (m_snapLine)
+  if(m_snapLine)
   {
     painter->setPen(QPen{Qt::gray, 1, Qt::DashLine});
 
@@ -61,7 +60,7 @@ void ScenarioView::paint_impl(QPainter* painter) const
     painter->drawLine(x, 0, x, height());
   }
 
-  if (m_dragLine)
+  if(m_dragLine)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     const QRectF& rec = *m_dragLine;
@@ -71,15 +70,11 @@ void ScenarioView::paint_impl(QPainter* painter) const
     painter->drawEllipse(rec.bottomRight(), 3., 3.);
     painter->setRenderHint(QPainter::Antialiasing, false);
 
-    painter->drawText(
-        rec.adjusted(5, -15, 0, -3), Qt::TextDontClip, m_dragText);
+    painter->drawText(rec.adjusted(5, -15, 0, -3), Qt::TextDontClip, m_dragText);
   }
 }
 
-void ScenarioView::drawDragLine(
-    QPointF left,
-    QPointF right,
-    const QString& txt)
+void ScenarioView::drawDragLine(QPointF left, QPointF right, const QString& txt)
 {
   m_dragLine = QRectF(left, right);
   m_dragText = txt;
@@ -104,7 +99,7 @@ void ScenarioView::movedAsked(const QPointF& p)
 
 void ScenarioView::setSnapLine(std::optional<double> s)
 {
-  if (m_snapLine != s)
+  if(m_snapLine != s)
   {
     m_snapLine = s;
     update();
@@ -114,8 +109,7 @@ void ScenarioView::setSnapLine(std::optional<double> s)
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
-  if (event->button() == Qt::LeftButton
-      && !(qApp->keyboardModifiers() & Qt::ALT))
+  if(event->button() == Qt::LeftButton && !(qApp->keyboardModifiers() & Qt::ALT))
   {
     pressed(event->scenePos());
   }
@@ -125,11 +119,11 @@ void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (qApp->keyboardModifiers() & Qt::ALT)
+  if(qApp->keyboardModifiers() & Qt::ALT)
   {
     JSONReader r;
     copySelectedScenarioElements(r, m_scenario->model());
-    if (!r.empty())
+    if(!r.empty())
     {
       QDrag d{this};
       auto m = new QMimeData;
@@ -140,10 +134,10 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   }
   else
   {
-    if (m_moving
-        || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
-                   .manhattanLength()
-               > QApplication::startDragDistance())
+    if(m_moving
+       || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
+                  .manhattanLength()
+              > QApplication::startDragDistance())
     {
       m_moving = true;
       moved(event->scenePos());
@@ -161,7 +155,7 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void ScenarioView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::LeftButton)
+  if(event->button() == Qt::LeftButton)
     doubleClicked(event->pos());
 
   event->accept();
@@ -171,7 +165,7 @@ void ScenarioView::keyPressEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyPressEvent(event);
 
-  switch (event->key())
+  switch(event->key())
   {
     case Qt::Key_Escape:
       escPressed();
@@ -195,7 +189,7 @@ void ScenarioView::keyReleaseEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyReleaseEvent(event);
 
-  switch (event->key())
+  switch(event->key())
   {
     case Qt::Key_Shift:
     case Qt::Key_Control:

@@ -29,17 +29,17 @@
 #endif
 
 #if defined(SCORE_FHS_BUILD)
-  #define SCORE_USE_DISTRO_SYSROOT 1
+#define SCORE_USE_DISTRO_SYSROOT 1
 #else
-  #if defined(SCORE_DEPLOYMENT_BUILD)
-    #define SCORE_USE_DISTRO_SYSROOT 0
-  #else
-    #define SCORE_USE_DISTRO_SYSROOT 1
-  #endif
+#if defined(SCORE_DEPLOYMENT_BUILD)
+#define SCORE_USE_DISTRO_SYSROOT 0
+#else
+#define SCORE_USE_DISTRO_SYSROOT 1
+#endif
 #endif
 
-
 #include <JitCpp/JitOptions.hpp>
+
 #include <score_git_info.hpp>
 
 namespace Jit
@@ -53,13 +53,13 @@ static inline std::string locateSDK()
   auto& ctx = score::AppContext().settings<Library::Settings::Model>();
   QString path = ctx.getSDKPath();
 
-  if (QString libPath = QStringLiteral("%1/%2/usr").arg(path).arg(SCORE_TAG_NO_V);
-      QDir(libPath + "/include/c++").exists())
+  if(QString libPath = QStringLiteral("%1/%2/usr").arg(path).arg(SCORE_TAG_NO_V);
+     QDir(libPath + "/include/c++").exists())
   {
     return libPath.toStdString();
   }
 
-  if (QString libPath = path + "/usr"; QDir(libPath + "/include/c++").exists())
+  if(QString libPath = path + "/usr"; QDir(libPath + "/include/c++").exists())
   {
     return libPath.toStdString();
   }
@@ -85,9 +85,9 @@ static inline std::string locateSDK()
   {
     QDir d{appFolder};
     d.cdUp();
-    if (d.cd("Frameworks"))
+    if(d.cd("Frameworks"))
     {
-      if (d.cd("Score.Framework"))
+      if(d.cd("Score.Framework"))
       {
         return d.absolutePath().toStdString();
       }
@@ -96,15 +96,17 @@ static inline std::string locateSDK()
     if(QDir{}.exists(framework))
       return framework.toStdString();
     else
-      return "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr";
+      return "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/"
+             "Developer/SDKs/MacOSX.sdk/usr";
   }
 #endif
 
 #else
 #if defined(__APPLE__)
-  return "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr";
+  return "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/"
+         "Developer/SDKs/MacOSX.sdk/usr";
 #endif
-  if (QFileInfo("/usr/include/c++").isDir())
+  if(QFileInfo("/usr/include/c++").isDir())
   {
     return "/usr";
   }
@@ -126,9 +128,9 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
   {
     llvm::StringMap<bool> HostFeatures;
-    if (llvm::sys::getHostCPUFeatures(HostFeatures))
+    if(llvm::sys::getHostCPUFeatures(HostFeatures))
     {
-      for (const llvm::StringMapEntry<bool>& F : HostFeatures)
+      for(const llvm::StringMapEntry<bool>& F : HostFeatures)
       {
         args.push_back("-target-feature");
         args.push_back((F.second ? "+" : "-") + F.first().str());
@@ -229,7 +231,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("-fcoroutines-ts");
   args.push_back("-stack-protector");
   args.push_back("0");
-  if (opts.NoExceptions)
+  if(opts.NoExceptions)
   {
     args.push_back("-fno-rtti");
   }
@@ -243,11 +245,11 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
     args.push_back("-fexceptions");
     args.push_back("-fexternc-nounwind");
 #if defined(_WIN32)
-  #if LLVM_VERSION_MAJOR < 12
-      args.push_back("-fseh-exceptions");
-  #else
-      args.push_back("-exception-model=seh");
-  #endif
+#if LLVM_VERSION_MAJOR < 12
+    args.push_back("-fseh-exceptions");
+#else
+    args.push_back("-exception-model=seh");
+#endif
 #endif
   }
   args.push_back("-faddrsig");
@@ -259,10 +261,10 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
 static inline void populateDefinitions(std::vector<std::string>& args)
 {
-  #if defined(__APPLE__)
+#if defined(__APPLE__)
   // needed because otherwise readerwriterqueue includes CoreFoundation.h ...
   args.push_back("-DMOODYCAMEL_MAYBE_ALIGN_TO_CACHELINE=");
-  #endif
+#endif
   args.push_back("-DBOOST_MATH_DISABLE_FLOAT128=1");
   args.push_back("-DBOOST_ASIO_DISABLE_CONCEPTS=1");
   args.push_back("-DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING");
@@ -327,11 +329,11 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-D__STDC_CONSTANT_MACROS");
   args.push_back("-D__STDC_FORMAT_MACROS");
   args.push_back("-D__STDC_LIMIT_MACROS");
-  #if defined(FFTW_SINGLE_ONLY)
+#if defined(FFTW_SINGLE_ONLY)
   args.push_back("-DFFTW_SINGLE_ONLY");
-  #elif defined(FFTW_DOUBLE_ONLY)
+#elif defined(FFTW_DOUBLE_ONLY)
   args.push_back("-DFFTW_DOUBLE_ONLY");
-  #endif
+#endif
 }
 
 static inline auto getPotentialTriples()
@@ -421,12 +423,12 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 
   {
     QDir dir(qsdk);
-    if (!dir.cd("include") || !dir.cd("c++"))
+    if(!dir.cd("include") || !dir.cd("c++"))
     {
       qDebug() << "Unable to locate standard headers, fallback to /usr";
       sdk = "/usr";
       dir.setPath("/usr");
-      if (!dir.cd("include") || !dir.cd("c++"))
+      if(!dir.cd("include") || !dir.cd("c++"))
       {
         qDebug() << "Unable to locate standard headers++";
         throw std::runtime_error("Unable to compile");
@@ -443,18 +445,19 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 
   QDir resDir = QString(qsdk + "/lib/clang");
   auto entries = resDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-  if (!entries.empty() && !entries.contains(SCORE_LLVM_VERSION))
+  if(!entries.empty() && !entries.contains(SCORE_LLVM_VERSION))
     llvm_lib_version = entries.front().toStdString();
 
 #if defined(__APPLE__) && SCORE_FHS_BUILD
-  std::string appleSharedSdk = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr";
+  std::string appleSharedSdk
+      = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/"
+        "usr";
   args.push_back("-resource-dir");
   args.push_back(appleSharedSdk + "/lib/clang/" + llvm_lib_version);
 #else
   args.push_back("-resource-dir");
   args.push_back(sdk + "/lib/clang/" + llvm_lib_version);
 #endif
-
 
 #if defined(_LIBCPP_VERSION)
   args.push_back("-stdlib=libc++");
@@ -475,11 +478,11 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     QDir cpp_dir{"/usr/include/c++"};
     // Note: as this is only used for debugging we look in the host /usr
     QDirIterator cpp_it{cpp_dir};
-    while (cpp_it.hasNext())
+    while(cpp_it.hasNext())
     {
       cpp_it.next();
       auto ver = cpp_it.fileName();
-      if (!ver.isEmpty() && ver.startsWith(libstdcpp_major))
+      if(!ver.isEmpty() && ver.startsWith(libstdcpp_major))
       {
         auto gcc = ver.toStdString();
 
@@ -488,14 +491,13 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
         args.push_back("/usr/include/c++/" + gcc);
 
         cpp_dir.cd(ver);
-        for (auto& triple : getPotentialTriples())
+        for(auto& triple : getPotentialTriples())
         {
-          if (cpp_dir.exists(triple))
+          if(cpp_dir.exists(triple))
           {
             // e.g. /usr/include/c++/8.2.1/x86_64-pc-linux-gnu
             args.push_back("-internal-isystem");
-            args.push_back(
-                "/usr/include/c++/" + gcc + "/" + triple.toStdString());
+            args.push_back("/usr/include/c++/" + gcc + "/" + triple.toStdString());
             break;
           }
         }
@@ -510,7 +512,9 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   args.push_back("-internal-isystem");
   args.push_back(appleSharedSdk + "/lib/clang/" + llvm_lib_version + "/include");
   args.push_back("-internal-externc-isystem");
-  args.push_back("/Applications/Xcode.app/Contents/Developer//Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include");
+  args.push_back(
+      "/Applications/Xcode.app/Contents/Developer//Platforms/MacOSX.platform/Developer/"
+      "SDKs/MacOSX.sdk/usr/include");
 #else
   args.push_back("-internal-isystem");
   args.push_back(sdk + "/lib/clang/" + llvm_lib_version + "/include");
@@ -541,7 +545,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
       QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot,
       {}};
   std::string qt_version = QT_VERSION_STR;
-  if (qtVersionFolder.hasNext())
+  if(qtVersionFolder.hasNext())
   {
     QDir sub = qtVersionFolder.next();
     qt_version = sub.dirName().toStdString();
@@ -576,7 +580,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   bool deploying = false;
 #endif
 
-  if (deploying && sdk_found)
+  if(deploying && sdk_found)
   {
     include("score");
   }
@@ -634,7 +638,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
            "/src/plugins/score-plugin-js",
            "/src/plugins/score-plugin-mapping"};
 
-    for (auto path : src_include_dirs)
+    for(auto path : src_include_dirs)
     {
       args.push_back("-I" + std::string(SCORE_ROOT_SOURCE_DIR) + path);
     }
@@ -668,7 +672,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
            "/src/plugins/score-plugin-mapping",
            "/3rdparty/libossia/src"};
 
-    for (auto path : src_build_dirs)
+    for(auto path : src_build_dirs)
     {
       args.push_back("-I" + std::string(SCORE_ROOT_BINARY_DIR) + path);
     }

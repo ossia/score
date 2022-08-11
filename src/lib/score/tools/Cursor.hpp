@@ -23,8 +23,8 @@ inline void setCursorPos(QPointF pos) noexcept
   ppos.x = pos.x();
   ppos.y = pos.y();
 
-  CGEventRef e = CGEventCreateMouseEvent(
-      nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
+  CGEventRef e
+      = CGEventCreateMouseEvent(nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
 #else
@@ -36,7 +36,7 @@ inline void moveCursorPos(QPointF pos) noexcept
 #if defined(__APPLE__)
   static int i = 0;
   i++;
-  if (i % 2)
+  if(i % 2)
   {
     // Moving a cursor is visibly an expensive operation on macos
     // even on 3.2ghz i7 CPUs so we cull it a bit
@@ -46,8 +46,8 @@ inline void moveCursorPos(QPointF pos) noexcept
   ppos.x = pos.x();
   ppos.y = pos.y();
 
-  CGEventRef e = CGEventCreateMouseEvent(
-      nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
+  CGEventRef e
+      = CGEventCreateMouseEvent(nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
 #else
@@ -95,7 +95,7 @@ void showCursor();
 
 inline void hideCursor(bool hasCursor)
 {
-  if (QGuiApplication::overrideCursor())
+  if(QGuiApplication::overrideCursor())
     QGuiApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
   else
     QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));

@@ -1,15 +1,15 @@
 #pragma once
 
 #if SCORE_PLUGIN_GFX
+#include <Crousti/Concepts.hpp>
+#include <Crousti/GpuUtils.hpp>
+#include <Crousti/Metadatas.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
-#include <Crousti/Concepts.hpp>
-#include <Crousti/GpuUtils.hpp>
-#include <Crousti/Metadatas.hpp>
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
 #include <avnd/common/for_nth.hpp>
 
@@ -79,16 +79,16 @@ struct GenericTexgenNode
   {
     ProcessNode::process(msg.token);
     last_message.token = msg.token;
-    if (last_message.input.empty())
+    if(last_message.input.empty())
     {
       last_message = msg;
     }
     else
     {
-      for (std::size_t i = 0; i < msg.input.size(); i++)
+      for(std::size_t i = 0; i < msg.input.size(); i++)
       {
         // If there's some data, overwrite it
-        if (msg.input[i].index() != 0)
+        if(msg.input[i].index() != 0)
           last_message.input[i] = msg.input[i];
       }
     }
@@ -152,7 +152,7 @@ struct GfxRenderer final : GenericTexgenRenderer
   {
     auto& rhi = *renderer.state.rhi;
     QRhiTexture* texture = &renderer.emptyTexture();
-    if (size.width() > 0 && size.height() > 0)
+    if(size.width() > 0 && size.height() > 0)
     {
       texture = rhi.newTexture(QRhiTexture::RGBA8, size, 1, QRhiTexture::Flag{});
 
@@ -160,45 +160,38 @@ struct GfxRenderer final : GenericTexgenRenderer
     }
 
     auto sampler = rhi.newSampler(
-        QRhiSampler::Linear,
-        QRhiSampler::Linear,
-        QRhiSampler::None,
-        QRhiSampler::ClampToEdge,
-        QRhiSampler::ClampToEdge);
+        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
     sampler->create();
     m_samplers.push_back({sampler, texture});
   }
 
   QRhiTexture* updateTexture(
-      score::gfx::RenderList& renderer,
-      int k,
-      const avnd::cpu_texture auto& cpu_tex)
+      score::gfx::RenderList& renderer, int k, const avnd::cpu_texture auto& cpu_tex)
   {
     auto& [sampler, texture] = m_samplers[k];
-    if (texture)
+    if(texture)
     {
       auto sz = texture->pixelSize();
-      if (cpu_tex.width == sz.width() && cpu_tex.height == sz.height())
+      if(cpu_tex.width == sz.width() && cpu_tex.height == sz.height())
         return texture;
     }
 
     // Check the texture size
-    if (cpu_tex.width > 0 && cpu_tex.height > 0)
+    if(cpu_tex.width > 0 && cpu_tex.height > 0)
     {
       QRhiTexture* oldtex = texture;
       QRhiTexture* newtex = renderer.state.rhi->newTexture(
-          QRhiTexture::RGBA8,
-          QSize{cpu_tex.width, cpu_tex.height},
-          1,
+          QRhiTexture::RGBA8, QSize{cpu_tex.width, cpu_tex.height}, 1,
           QRhiTexture::Flag{});
       newtex->create();
-      for (auto& [edge, pass] : this->m_p)
-        if (pass.srb)
+      for(auto& [edge, pass] : this->m_p)
+        if(pass.srb)
           score::gfx::replaceTexture(*pass.srb, sampler, newtex);
       texture = newtex;
 
-      if (oldtex && oldtex != &renderer.emptyTexture())
+      if(oldtex && oldtex != &renderer.emptyTexture())
       {
         oldtex->deleteLater();
       }
@@ -207,8 +200,8 @@ struct GfxRenderer final : GenericTexgenRenderer
     }
     else
     {
-      for (auto& [edge, pass] : this->m_p)
-        if (pass.srb)
+      for(auto& [edge, pass] : this->m_p)
+        if(pass.srb)
           score::gfx::replaceTexture(*pass.srb, sampler, &renderer.emptyTexture());
 
       return &renderer.emptyTexture();
@@ -216,14 +209,12 @@ struct GfxRenderer final : GenericTexgenRenderer
   }
 
   void uploadOutputTexture(
-      score::gfx::RenderList& renderer,
-      int k,
-      avnd::cpu_texture auto& cpu_tex,
+      score::gfx::RenderList& renderer, int k, avnd::cpu_texture auto& cpu_tex,
       QRhiResourceUpdateBatch* res)
   {
-    if (cpu_tex.changed)
+    if(cpu_tex.changed)
     {
-      if (auto texture = updateTexture(renderer, k, cpu_tex))
+      if(auto texture = updateTexture(renderer, k, cpu_tex))
       {
         // Upload it
         {
@@ -243,7 +234,7 @@ struct GfxRenderer final : GenericTexgenRenderer
   void loadInputTexture(avnd::cpu_texture auto& cpu_tex, int k)
   {
     auto& buf = m_readbacks[k].data;
-    if (buf.size() != 4 * cpu_tex.width * cpu_tex.height)
+    if(buf.size() != 4 * cpu_tex.width * cpu_tex.height)
     {
       cpu_tex.bytes = nullptr;
     }
@@ -263,14 +254,12 @@ struct GfxRenderer final : GenericTexgenRenderer
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, generic_texgen_vs, generic_texgen_fs);
 
-    if constexpr (texture_inputs::size > 0)
+    if constexpr(texture_inputs::size > 0)
     {
       // Init input render targets
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
-          avnd::get_inputs<Node_T>(state),
-          [&]<typename F>(F& t)
-          {
+          avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
             auto sz = renderer.state.renderSize;
             createInput(renderer, k, sz);
             t.texture.width = sz.width();
@@ -279,14 +268,12 @@ struct GfxRenderer final : GenericTexgenRenderer
           });
     }
 
-    if constexpr (texture_outputs::size > 0)
+    if constexpr(texture_outputs::size > 0)
     {
       // Init textures for the outputs
       int k = 0;
       avnd::cpu_texture_output_introspection<Node_T>::for_all(
-          avnd::get_outputs<Node_T>(state),
-          [&](auto& t)
-          {
+          avnd::get_outputs<Node_T>(state), [&](auto& t) {
             createOutput(renderer, QSize{t.texture.width, t.texture.height});
             k++;
           });
@@ -298,16 +285,16 @@ struct GfxRenderer final : GenericTexgenRenderer
   void release(score::gfx::RenderList& r) override
   {
     // Free outputs
-    for (auto& [sampl, texture] : m_samplers)
+    for(auto& [sampl, texture] : m_samplers)
     {
-      if (texture != &r.emptyTexture())
+      if(texture != &r.emptyTexture())
         texture->deleteLater();
       texture = nullptr;
     }
 
     // Free inputs
     // TODO investigate why reference does not work here:
-    for (auto [port, rt] : m_rts)
+    for(auto [port, rt] : m_rts)
       rt.release();
     m_rts.clear();
 
@@ -315,8 +302,7 @@ struct GfxRenderer final : GenericTexgenRenderer
   }
 
   void inputAboutToFinish(
-      score::gfx::RenderList& renderer,
-      const score::gfx::Port& p,
+      score::gfx::RenderList& renderer, const score::gfx::Port& p,
       QRhiResourceUpdateBatch*& res) override
   {
     res = renderer.state.rhi->nextResourceUpdateBatch();
@@ -332,22 +318,20 @@ struct GfxRenderer final : GenericTexgenRenderer
   }
 
   void runInitialPasses(
-      score::gfx::RenderList& renderer,
-      QRhiCommandBuffer& commands,
-      QRhiResourceUpdateBatch*& res,
-      score::gfx::Edge& edge) override
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
+      QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge) override
   {
     auto& rhi = *renderer.state.rhi;
 
     // If we are paused, we don't run the processor implementation.
-    if (parent.last_message.token.date == m_last_time)
+    if(parent.last_message.token.date == m_last_time)
     {
       return;
     }
     m_last_time = parent.last_message.token.date;
 
     // Fetch input textures (if any)
-    if constexpr (texture_inputs::size > 0)
+    if constexpr(texture_inputs::size > 0)
     {
       // Insert a synchronisation point to allow readbacks to complete
       rhi.finish();
@@ -357,9 +341,7 @@ struct GfxRenderer final : GenericTexgenRenderer
       // "completed" callback.
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
-          avnd::get_inputs<Node_T>(state),
-          [&](auto& t)
-          {
+          avnd::get_inputs<Node_T>(state), [&](auto& t) {
             loadInputTexture(t.texture, k);
             k++;
           });
@@ -368,30 +350,27 @@ struct GfxRenderer final : GenericTexgenRenderer
     // Apply the controls
     avnd::parameter_input_introspection<Node_T>::for_all_n2(
         avnd::get_inputs<Node_T>(state),
-        [&](avnd::parameter auto& t, auto pred_index, auto field_index)
-        {
-          auto& mess = this->parent.last_message;
+        [&](avnd::parameter auto& t, auto pred_index, auto field_index) {
+      auto& mess = this->parent.last_message;
 
-          if (mess.input.size() > field_index)
-          {
-            if (auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
-            {
-              oscr::from_ossia_value(t, *val, t.value);
-            }
-          }
+      if(mess.input.size() > field_index)
+      {
+        if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
+        {
+          oscr::from_ossia_value(t, *val, t.value);
+        }
+      }
         });
 
     // Run the processor
     state();
 
     // Upload output textures
-    if constexpr (texture_outputs::size > 0)
+    if constexpr(texture_outputs::size > 0)
     {
       int k = 0;
       avnd::cpu_texture_output_introspection<Node_T>::for_all(
-          avnd::get_outputs<Node_T>(state),
-          [&](auto& t)
-          {
+          avnd::get_outputs<Node_T>(state), [&](auto& t) {
             uploadOutputTexture(renderer, k, t.texture, res);
             k++;
           });
@@ -414,18 +393,17 @@ struct GfxNode final : GenericTexgenNode
   std::shared_ptr<Node_T> node;
 
   GfxNode(
-      std::shared_ptr<Node_T> n,
-      Execution::ExecutionCommandQueue& q,
+      std::shared_ptr<Node_T> n, Execution::ExecutionCommandQueue& q,
       Gfx::exec_controls ctls)
       : GenericTexgenNode{q, std::move(ctls)}
       , node{std::move(n)}
 
   {
-    for (std::size_t i = 0; i < texture_inputs::size; i++)
+    for(std::size_t i = 0; i < texture_inputs::size; i++)
     {
       input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
     }
-    for (std::size_t i = 0; i < texture_outputs::size; i++)
+    for(std::size_t i = 0; i < texture_outputs::size; i++)
     {
       output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
     }

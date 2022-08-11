@@ -23,6 +23,6 @@ public:
   void setLearning(bool) final override;
 
 private:
-  const ossia::net::network_context_ptr&  m_ctx;
+  const ossia::net::network_context_ptr& m_ctx;
 };
 }

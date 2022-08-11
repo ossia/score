@@ -6,6 +6,7 @@
 #include "JoystickSpecificSettings.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <ossia/protocols/joystick/joystick_protocol.hpp>
 
 #include <QObject>
@@ -15,16 +16,14 @@ namespace Protocols
 class JoystickEnumerator : public Device::DeviceEnumerator
 {
 public:
-  void enumerate(
-      std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    const unsigned int joystick_count
-        = ossia::net::joystick_info::get_joystick_count();
+    const unsigned int joystick_count = ossia::net::joystick_info::get_joystick_count();
 
-    for (unsigned int i = 0; i < joystick_count; ++i)
+    for(unsigned int i = 0; i < joystick_count; ++i)
     {
       const char* s = ossia::net::joystick_info::get_joystick_name(i);
-      if (s)
+      if(s)
       {
         Device::DeviceSettings set;
         set.name = s;
@@ -57,15 +56,13 @@ JoystickProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 }
 
 Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new JoystickDevice{settings, plugin.networkContext()};
 }
 
-const Device::DeviceSettings&
-JoystickProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& JoystickProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -91,15 +88,13 @@ QVariant JoystickProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void JoystickProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<JoystickSpecificSettings>(data, visitor);
 }
 
 bool JoystickProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   auto a_ = a.deviceSpecificSettings.value<JoystickSpecificSettings>();
   auto b_ = b.deviceSpecificSettings.value<JoystickSpecificSettings>();

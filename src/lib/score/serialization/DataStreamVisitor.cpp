@@ -49,7 +49,7 @@ void DataStreamWriter::checkDelimiter()
   int val{};
   m_stream >> val;
 
-  if (val != int32_t(0xDEADBEEF))
+  if(val != int32_t(0xDEADBEEF))
   {
     SCORE_BREAKPOINT;
     throw std::runtime_error("Corrupt save file.");

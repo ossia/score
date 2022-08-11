@@ -4,6 +4,7 @@
 
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 
@@ -19,15 +20,12 @@ namespace Explorer
 namespace Command
 {
 UpdateDeviceSettings::UpdateDeviceSettings(
-    const DeviceDocumentPlugin& devplug,
-    const QString& name,
+    const DeviceDocumentPlugin& devplug, const QString& name,
     const Device::DeviceSettings& parameters)
     : m_newParameters(parameters)
 {
   auto it = std::find_if(
-      devplug.rootNode().begin(),
-      devplug.rootNode().end(),
-      [&](const Device::Node& n) {
+      devplug.rootNode().begin(), devplug.rootNode().end(), [&](const Device::Node& n) {
         return n.get<Device::DeviceSettings>().name == name;
       });
 

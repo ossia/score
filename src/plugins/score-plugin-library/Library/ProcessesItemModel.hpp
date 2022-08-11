@@ -1,25 +1,24 @@
 #pragma once
-#include <Library/LibrarySettings.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+
+#include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
+#include <score/tools/File.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/tools/std/StringHash.hpp>
-#include <score/tools/File.hpp>
 
 #include <QDir>
 #include <QIcon>
 
 #include <nano_observer.hpp>
-
 #include <score_plugin_library_export.h>
 
-#include <verdigris>
-
 #include <unordered_map>
+#include <verdigris>
 
 namespace score
 {
@@ -59,8 +58,7 @@ public:
   int columnCount(const QModelIndex& parent) const override;
   QVariant data(const QModelIndex& index, int role) const override;
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role)
-      const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
   // Drag, drop, etc.
@@ -90,26 +88,23 @@ struct Subcategories
   void init(const QModelIndex& idx, const score::ApplicationContext& ctx)
   {
     categories.clear();
-    parent
-        = reinterpret_cast<Library::ProcessNode*>(idx.internalPointer());
+    parent = reinterpret_cast<Library::ProcessNode*>(idx.internalPointer());
 
     // We use the parent folder as category...
-    libraryFolder.setPath(
-        ctx.settings<Library::Settings::Model>().getPackagesPath());
+    libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPackagesPath());
     libraryFolderPath = libraryFolder.absolutePath().toStdString();
   }
 
-  [[deprecated]]
-  void add(const QFileInfo& file, Library::ProcessData&& pdata)
+  [[deprecated]] void add(const QFileInfo& file, Library::ProcessData&& pdata)
   {
     auto parentFolder = file.dir().dirName();
-    if (auto it = categories.find(parentFolder); it != categories.end())
+    if(auto it = categories.find(parentFolder); it != categories.end())
     {
       Library::addToLibrary(*it->second, std::move(pdata));
     }
     else
     {
-      if (file.dir() == libraryFolder)
+      if(file.dir() == libraryFolder)
       {
         Library::addToLibrary(*parent, std::move(pdata));
       }
@@ -125,21 +120,22 @@ struct Subcategories
 
   void add(const score::PathInfo& file, Library::ProcessData&& pdata)
   {
-    auto parentFolder = QString::fromUtf8(file.parentDirName.data(), file.parentDirName.size());
-    if (auto it = categories.find(parentFolder); it != categories.end())
+    auto parentFolder
+        = QString::fromUtf8(file.parentDirName.data(), file.parentDirName.size());
+    if(auto it = categories.find(parentFolder); it != categories.end())
     {
       Library::addToLibrary(*it->second, std::move(pdata));
     }
     else
     {
-      if (file.absolutePath == libraryFolderPath)
+      if(file.absolutePath == libraryFolderPath)
       {
         Library::addToLibrary(*parent, std::move(pdata));
       }
       else
       {
         auto& category = Library::addToLibrary(
-                           *parent, Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}});
+            *parent, Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}});
         Library::addToLibrary(category, std::move(pdata));
         categories[parentFolder] = &category;
       }

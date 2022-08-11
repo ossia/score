@@ -1,10 +1,11 @@
 #pragma once
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsItem>
 #include <QMimeData>
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -40,10 +41,8 @@ public:
   QRectF boundingRect() const override;
 
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
   bool contains(const QPointF& point) const override;
 
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;

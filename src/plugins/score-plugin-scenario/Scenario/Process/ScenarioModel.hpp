@@ -2,6 +2,15 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Instantiations.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -13,15 +22,6 @@
 #include <QList>
 #include <QObject>
 #include <QVector>
-
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Instantiations.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 
 #include <verdigris>
 namespace Scenario
@@ -46,10 +46,8 @@ public:
   std::unique_ptr<Process::AudioOutlet> outlet;
 
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      const score::DocumentContext& ctx,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx, QObject* parent);
   template <typename Impl>
   ProcessModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
       : Process::ProcessModel{vis, parent}
@@ -105,8 +103,7 @@ public:
     return ossia::ptr_find(states, id);
   }
 
-  IntervalModel&
-  interval(const Id<IntervalModel>& intervalId) const final override
+  IntervalModel& interval(const Id<IntervalModel>& intervalId) const final override
   {
     return intervals.at(intervalId);
   }
@@ -114,8 +111,7 @@ public:
   {
     return events.at(eventId);
   }
-  TimeSyncModel&
-  timeSync(const Id<TimeSyncModel>& timeSyncId) const final override
+  TimeSyncModel& timeSync(const Id<TimeSyncModel>& timeSyncId) const final override
   {
     return timeSyncs.at(timeSyncId);
   }
@@ -128,10 +124,7 @@ public:
     return comments.at(cmtId);
   }
 
-  TimeSyncModel& startTimeSync() const
-  {
-    return timeSyncs.at(m_startTimeSyncId);
-  }
+  TimeSyncModel& startTimeSync() const { return timeSyncs.at(m_startTimeSyncId); }
 
   EventModel& startEvent() const { return events.at(m_startEventId); }
 
@@ -199,13 +192,12 @@ private:
 }
 // TODO this ought to go in Selection.hpp ?
 template <typename Vector>
-std::vector<const typename Vector::value_type*>
-selectedElements(const Vector& in)
+std::vector<const typename Vector::value_type*> selectedElements(const Vector& in)
 {
   std::vector<const typename Vector::value_type*> out;
-  for (const auto& elt : in)
+  for(const auto& elt : in)
   {
-    if (elt.selection.get())
+    if(elt.selection.get())
       out.push_back(&elt);
   }
 
@@ -216,12 +208,12 @@ template <typename T, typename Container>
 std::vector<const T*> filterSelectionByType(const Container& sel)
 {
   std::vector<const T*> selected_elements;
-  for (auto obj : sel)
+  for(auto obj : sel)
   {
     // TODO replace with a virtual Element::type() which will be faster.
-    if (auto casted_obj = qobject_cast<const T*>(obj.data()))
+    if(auto casted_obj = qobject_cast<const T*>(obj.data()))
     {
-      if (casted_obj->selection.get())
+      if(casted_obj->selection.get())
       {
         selected_elements.push_back(casted_obj);
       }
@@ -233,10 +225,8 @@ std::vector<const T*> filterSelectionByType(const Container& sel)
 
 namespace Scenario
 {
-SCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<IntervalModel>>
-intervalsBeforeTimeSync(
-    const Scenario::ProcessModel&,
-    const Id<TimeSyncModel>& timeSyncId);
+SCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
+    const Scenario::ProcessModel&, const Id<TimeSyncModel>& timeSyncId);
 
 inline auto& intervals(const Scenario::ProcessModel& scenar)
 {
@@ -258,34 +248,31 @@ inline auto& states(const Scenario::ProcessModel& scenar)
 template <>
 struct ElementTraits<Scenario::ProcessModel, IntervalModel>
 {
-  static const constexpr auto accessor = static_cast<const score::EntityMap<
-      IntervalModel>& (*)(const Scenario::ProcessModel&)>(&intervals);
+  static const constexpr auto accessor = static_cast<
+      const score::EntityMap<IntervalModel>& (*)(const Scenario::ProcessModel&)>(
+      &intervals);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, EventModel>
 {
   static const constexpr auto accessor = static_cast<
-      const score::EntityMap<EventModel>& (*)(const Scenario::ProcessModel&)>(
-      &events);
+      const score::EntityMap<EventModel>& (*)(const Scenario::ProcessModel&)>(&events);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, TimeSyncModel>
 {
-  static const constexpr auto accessor = static_cast<const score::EntityMap<
-      TimeSyncModel>& (*)(const Scenario::ProcessModel&)>(&timeSyncs);
+  static const constexpr auto accessor = static_cast<
+      const score::EntityMap<TimeSyncModel>& (*)(const Scenario::ProcessModel&)>(
+      &timeSyncs);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, StateModel>
 {
   static const constexpr auto accessor = static_cast<
-      const score::EntityMap<StateModel>& (*)(const Scenario::ProcessModel&)>(
-      &states);
+      const score::EntityMap<StateModel>& (*)(const Scenario::ProcessModel&)>(&states);
 };
 }
-DESCRIPTION_METADATA(
-    SCORE_PLUGIN_SCENARIO_EXPORT,
-    Scenario::ProcessModel,
-    "Scenario")
+DESCRIPTION_METADATA(SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
 
 Q_DECLARE_METATYPE(const Scenario::ProcessModel*)
 Q_DECLARE_METATYPE(Scenario::ProcessModel*)

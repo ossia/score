@@ -60,9 +60,9 @@ void VariantDataStreamSerializer<T>::operator()()
 {
   // This trickery iterates over all the types in Args...
   // A single type should be serialized, even if we cannot break.
-  if (done)
+  if(done)
     return;
-  if (auto res = var.template target<TheClass>())
+  if(auto res = var.template target<TheClass>())
   {
     s.stream() << *res;
     done = true;
@@ -72,10 +72,7 @@ void VariantDataStreamSerializer<T>::operator()()
 template <typename T>
 struct VariantDataStreamDeserializer
 {
-  VariantDataStreamDeserializer(
-      DataStream::Deserializer& s_p,
-      quint64 which_p,
-      T& var_p)
+  VariantDataStreamDeserializer(DataStream::Deserializer& s_p, quint64 which_p, T& var_p)
       : s{s_p}
       , which{which_p}
       , var{var_p}
@@ -96,7 +93,7 @@ template <typename TheClass>
 void VariantDataStreamDeserializer<T>::operator()()
 {
   // Here we iterate until we are on the correct type, and we deserialize it.
-  if (i++ != which)
+  if(i++ != which)
     return;
 
   TheClass data;
@@ -113,10 +110,9 @@ struct TSerializer<DataStream, ossia::nullable_variant<Args...>>
     s.stream() << (quint64)var.which().index();
 
     // TODO this should be an assert.
-    if (var)
+    if(var)
     {
-      ossia::for_each_type<Args...>(
-          VariantDataStreamSerializer<var_t>{s, var});
+      ossia::for_each_type<Args...>(VariantDataStreamSerializer<var_t>{s, var});
     }
 
     s.insertDelimiter();
@@ -127,10 +123,9 @@ struct TSerializer<DataStream, ossia::nullable_variant<Args...>>
     quint64 which;
     s.stream() >> which;
 
-    if (which != (quint64)var.npos.index())
+    if(which != (quint64)var.npos.index())
     {
-      ossia::for_each_type<Args...>(
-          VariantDataStreamDeserializer<var_t>{s, which, var});
+      ossia::for_each_type<Args...>(VariantDataStreamDeserializer<var_t>{s, which, var});
     }
     s.checkDelimiter();
   }
@@ -173,10 +168,10 @@ template <typename T>
 template <typename TheClass>
 void VariantJSONSerializer<T>::operator()()
 {
-  if (done)
+  if(done)
     return;
 
-  if (auto res = var.template target<TheClass>())
+  if(auto res = var.template target<TheClass>())
   {
     s.obj[Metadata<Json_k, TheClass>::get()] = *res;
     done = true;
@@ -203,10 +198,10 @@ template <typename T>
 template <typename TheClass>
 void VariantJSONDeserializer<T>::operator()()
 {
-  if (done)
+  if(done)
     return;
 
-  if (auto it = s.obj.tryGet(Metadata<Json_k, TheClass>::get()))
+  if(auto it = s.obj.tryGet(Metadata<Json_k, TheClass>::get()))
   {
     JSONWriter w{*it};
     TheClass obj;
@@ -223,7 +218,7 @@ struct TSerializer<JSONObject, ossia::nullable_variant<Args...>>
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
     s.stream.StartObject();
-    if (var)
+    if(var)
     {
       ossia::for_each_type<Args...>(VariantJSONSerializer<var_t>{s, var});
     }
@@ -232,7 +227,7 @@ struct TSerializer<JSONObject, ossia::nullable_variant<Args...>>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if (s.base.MemberCount() == 0)
+    if(s.base.MemberCount() == 0)
       return;
     ossia::for_each_type<Args...>(VariantJSONDeserializer<var_t>{s, var});
   }

@@ -13,8 +13,8 @@
 //===----------------------------------------------------------------------===//
 
 #undef CALLBACK
-#include "clang/Basic/Stack.h"
 #include "clang/Basic/FileManager.h"
+#include "clang/Basic/Stack.h"
 #include "clang/Basic/TargetOptions.h"
 #include "clang/CodeGen/ObjectFilePCHContainerOperations.h"
 #include "clang/Config/config.h"
@@ -59,9 +59,8 @@ class QtDiagnosticConsumer final : public DiagnosticConsumer
   // DiagnosticConsumer interface
 public:
   void finish() override { std::cerr << " == finish == \n"; }
-  void HandleDiagnostic(
-      DiagnosticsEngine::Level DiagLevel,
-      const Diagnostic& Info) override
+  void
+  HandleDiagnostic(DiagnosticsEngine::Level DiagLevel, const Diagnostic& Info) override
   {
     SmallVector<char, 1024> vec;
     Info.FormatDiagnostic(vec);
@@ -76,8 +75,7 @@ public:
 static void
 LLVMErrorHandler(void* UserData, const std::string& Message, bool GenCrashDiag)
 #else
-static void
-LLVMErrorHandler(void* UserData, const char* Message, bool GenCrashDiag)
+static void LLVMErrorHandler(void* UserData, const char* Message, bool GenCrashDiag)
 #endif
 {
   DiagnosticsEngine& Diags = *static_cast<DiagnosticsEngine*>(UserData);
@@ -101,7 +99,7 @@ static size_t getCurrentStackAllocation()
   // If we can't compute the current stack usage, allow for 512K of command
   // line arguments and environment.
   size_t Usage = 512 * 1024;
-  if (FILE* StatFile = fopen("/proc/self/stat", "r"))
+  if(FILE* StatFile = fopen("/proc/self/stat", "r"))
   {
     // We assume that the stack extends from its current address to the end of
     // the environment space. In reality, there is another string literal (the
@@ -115,15 +113,14 @@ static size_t getCurrentStackAllocation()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat"
 #endif
-    if (fscanf(
-            StatFile,
-            "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*lu %*lu %*lu %*lu %*lu "
-            "%*lu %*ld %*ld %*ld %*ld %*ld %*ld %*llu %*lu %*ld %*lu %*lu "
-            "%*lu %*lu %lu %*lu %*lu %*lu %*lu %*lu %*llu %*lu %*lu %*d %*d "
-            "%*u %*u %*llu %*lu %*ld %*lu %*lu %*lu %*lu %*lu %*lu %lu %*d",
-            &StackPtr,
-            &EnvEnd)
-        == 2)
+    if(fscanf(
+           StatFile,
+           "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*lu %*lu %*lu %*lu %*lu "
+           "%*lu %*ld %*ld %*ld %*ld %*ld %*ld %*llu %*lu %*ld %*lu %*lu "
+           "%*lu %*lu %lu %*lu %*lu %*lu %*lu %*lu %*llu %*lu %*lu %*d %*d "
+           "%*u %*u %*llu %*lu %*ld %*lu %*lu %*lu %*lu %*lu %*lu %lu %*d",
+           &StackPtr, &EnvEnd)
+       == 2)
     {
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
@@ -149,7 +146,7 @@ static void ensureStackAddressSpace()
   // pages allocated before we start running.
   size_t Curr = getCurrentStackAllocation();
   const int kTargetStack = DesiredStackSize - 256 * 1024;
-  if (Curr < kTargetStack)
+  if(Curr < kTargetStack)
   {
     volatile char* volatile Alloc
         = static_cast<volatile char*>(alloca(kTargetStack - Curr));
@@ -165,25 +162,22 @@ static void ensureStackAddressSpace() { }
 static void ensureSufficientStack()
 {
   struct rlimit rlim;
-  if (getrlimit(RLIMIT_STACK, &rlim) != 0)
+  if(getrlimit(RLIMIT_STACK, &rlim) != 0)
     return;
 
   // Increase the soft stack limit to our desired level, if necessary and
   // possible.
-  if (rlim.rlim_cur != RLIM_INFINITY
-      && rlim.rlim_cur < rlim_t(DesiredStackSize))
+  if(rlim.rlim_cur != RLIM_INFINITY && rlim.rlim_cur < rlim_t(DesiredStackSize))
   {
     // Try to allocate sufficient stack.
-    if (rlim.rlim_max == RLIM_INFINITY
-        || rlim.rlim_max >= rlim_t(DesiredStackSize))
+    if(rlim.rlim_max == RLIM_INFINITY || rlim.rlim_max >= rlim_t(DesiredStackSize))
       rlim.rlim_cur = DesiredStackSize;
-    else if (rlim.rlim_cur == rlim.rlim_max)
+    else if(rlim.rlim_cur == rlim.rlim_max)
       return;
     else
       rlim.rlim_cur = rlim.rlim_max;
 
-    if (setrlimit(RLIMIT_STACK, &rlim) != 0
-        || rlim.rlim_cur != DesiredStackSize)
+    if(setrlimit(RLIMIT_STACK, &rlim) != 0 || rlim.rlim_cur != DesiredStackSize)
       return;
   }
 
@@ -198,19 +192,16 @@ static void ensureSufficientStack() { }
 auto printErrors(TextDiagnosticBuffer& buf, const SourceManager& mgr)
 {
   std::stringstream ss;
-  for (auto it = buf.err_begin(); it != buf.err_end(); ++it)
+  for(auto it = buf.err_begin(); it != buf.err_end(); ++it)
   {
     auto& loc = it->first;
     ss << loc.printToString(mgr) << ":\n" << it->second << "\n\n";
- }
+  }
 
   std::cerr << ss.str();
   return ss.str();
 }
-llvm::Error cc1_main(
-    ArrayRef<const char*> Argv,
-    const char* Argv0,
-    void* MainAddr)
+llvm::Error cc1_main(ArrayRef<const char*> Argv, const char* Argv0, void* MainAddr)
 {
   ensureSufficientStack();
 
@@ -230,10 +221,12 @@ llvm::Error cc1_main(
   // well formed diagnostic object.
   IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
   TextDiagnosticBuffer* DiagsBuffer = new TextDiagnosticBuffer;
-  llvm::IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(DiagID, &*DiagOpts, DiagsBuffer));
+  llvm::IntrusiveRefCntPtr<DiagnosticsEngine> Diags(
+      new DiagnosticsEngine(DiagID, &*DiagOpts, DiagsBuffer));
 
 #if LLVM_VERSION_MAJOR >= 13
-  llvm::IntrusiveRefCntPtr<FileManager> Files(new FileManager(FileSystemOptions(), llvm::vfs::getRealFileSystem()));
+  llvm::IntrusiveRefCntPtr<FileManager> Files(
+      new FileManager(FileSystemOptions(), llvm::vfs::getRealFileSystem()));
   llvm::IntrusiveRefCntPtr<SourceManager> SrcMgr(new SourceManager(*Diags, *Files));
 #endif
 
@@ -245,11 +238,10 @@ llvm::Error cc1_main(
   PCHOps->registerWriter(std::make_unique<ObjectFilePCHContainerWriter>());
   PCHOps->registerReader(std::make_unique<ObjectFilePCHContainerReader>());
 
+  bool Success
+      = CompilerInvocation::CreateFromArgs(Clang->getInvocation(), Argv, *Diags);
 
-  bool Success = CompilerInvocation::CreateFromArgs(
-      Clang->getInvocation(), Argv, *Diags);
-
-  if (Clang->getFrontendOpts().TimeTrace)
+  if(Clang->getFrontendOpts().TimeTrace)
   {
     llvm::timeTraceProfilerInitialize(
         Clang->getFrontendOpts().TimeTraceGranularity, Argv0);
@@ -265,15 +257,16 @@ llvm::Error cc1_main(
   }
 #endif
   // Infer the builtin include path if unspecified.
-  if (Clang->getHeaderSearchOpts().UseBuiltinIncludes
-      && Clang->getHeaderSearchOpts().ResourceDir.empty())
+  if(Clang->getHeaderSearchOpts().UseBuiltinIncludes
+     && Clang->getHeaderSearchOpts().ResourceDir.empty())
     Clang->getHeaderSearchOpts().ResourceDir
         = CompilerInvocation::GetResourcesPath(Argv0, MainAddr);
 
   Clang->setDiagnostics(Diags.get());
-  if (!Clang->hasDiagnostics())
+  if(!Clang->hasDiagnostics())
   {
-    return llvm::make_error<llvm::StringError>("No diagnostics", std::error_code(1, std::system_category()));
+    return llvm::make_error<llvm::StringError>(
+        "No diagnostics", std::error_code(1, std::system_category()));
   }
 
   // Set an error handler, so that any LLVM backend diagnostics go through our
@@ -282,9 +275,11 @@ llvm::Error cc1_main(
       LLVMErrorHandler, static_cast<void*>(&Clang->getDiagnostics()));
 
   DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
-  if (!Success)
+  if(!Success)
   {
-    return llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer, Clang->getSourceManager()), std::error_code(1, std::system_category()));
+    return llvm::make_error<llvm::StringError>(
+        printErrors(*DiagsBuffer, Clang->getSourceManager()),
+        std::error_code(1, std::system_category()));
   }
 
   // Execute the frontend actions.
@@ -298,10 +293,10 @@ llvm::Error cc1_main(
   llvm::TimerGroup::printAll(llvm::errs());
   llvm::TimerGroup::clearAll();
 
-  auto res = Success
-                 ? llvm::Error::success()
-                 : llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer, Clang->getSourceManager()), std::error_code(1, std::system_category()));
-
+  auto res = Success ? llvm::Error::success()
+                     : llvm::make_error<llvm::StringError>(
+                         printErrors(*DiagsBuffer, Clang->getSourceManager()),
+                         std::error_code(1, std::system_category()));
 
   // Our error handler depends on the Diagnostics object, which we're
   // potentially about to delete. Uninstall the handler now so that any
@@ -309,7 +304,7 @@ llvm::Error cc1_main(
   llvm::remove_fatal_error_handler();
 
   // When running with -disable-free, don't do any destruction or shutdown.
-  if (Clang->getFrontendOpts().DisableFree)
+  if(Clang->getFrontendOpts().DisableFree)
   {
     llvm::BuryPointer(std::move(Clang));
     return res;

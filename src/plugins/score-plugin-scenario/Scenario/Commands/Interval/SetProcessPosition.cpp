@@ -2,18 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetProcessPosition.hpp"
 
-#include <score/model/path/PathSerialization.hpp>
-
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+
+#include <score/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 PutProcessBefore::PutProcessBefore(
-    const IntervalModel& cst,
-    std::optional<Id<Process::ProcessModel>> proc,
+    const IntervalModel& cst, std::optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
     : m_path{cst}
     , m_proc{std::move(proc)}
@@ -27,10 +26,9 @@ PutProcessBefore::PutProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order
-      = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
   auto next = it2_order++;
-  if (next != seq.end())
+  if(next != seq.end())
   {
     m_old_after_proc2 = (*next)->id();
   }
@@ -51,8 +49,7 @@ void PutProcessBefore::redo(const score::DocumentContext& ctx) const
 }
 
 void PutProcessBefore::putBefore(
-    const score::DocumentContext& ctx,
-    std::optional<Id<Process::ProcessModel>> t1,
+    const score::DocumentContext& ctx, std::optional<Id<Process::ProcessModel>> t1,
     Id<Process::ProcessModel> t2) const
 {
   auto& cst = m_path.find(ctx);
@@ -61,7 +58,7 @@ void PutProcessBefore::putBefore(
   auto& hash = id_map.m_map;
   auto& seq = id_map.m_order;
 
-  if (t1 == t2)
+  if(t1 == t2)
     return;
 
   // 1. Find elements
@@ -69,7 +66,7 @@ void PutProcessBefore::putBefore(
   SCORE_ASSERT(it2_hash != hash.end());
   auto& it2_order = it2_hash.value().second;
 
-  if (t1)
+  if(t1)
   {
     // put before t1
     auto it1_hash = hash.find(*t1);
@@ -102,8 +99,7 @@ void PutProcessBefore::deserializeImpl(DataStreamOutput& s)
 }
 
 PutStateProcessBefore::PutStateProcessBefore(
-    const StateModel& cst,
-    std::optional<Id<Process::ProcessModel>> proc,
+    const StateModel& cst, std::optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
     : m_path{cst}
     , m_proc{std::move(proc)}
@@ -117,10 +113,9 @@ PutStateProcessBefore::PutStateProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order
-      = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
   auto next = it2_order++;
-  if (next != seq.end())
+  if(next != seq.end())
   {
     m_old_after_proc2 = (*next)->id();
   }
@@ -141,8 +136,7 @@ void PutStateProcessBefore::redo(const score::DocumentContext& ctx) const
 }
 
 void PutStateProcessBefore::putBefore(
-    const score::DocumentContext& ctx,
-    std::optional<Id<Process::ProcessModel>> t1,
+    const score::DocumentContext& ctx, std::optional<Id<Process::ProcessModel>> t1,
     Id<Process::ProcessModel> t2) const
 {
   auto& cst = m_path.find(ctx);
@@ -151,7 +145,7 @@ void PutStateProcessBefore::putBefore(
   auto& hash = id_map.m_map;
   auto& seq = id_map.m_order;
 
-  if (t1 == t2)
+  if(t1 == t2)
     return;
 
   // 1. Find elements
@@ -159,7 +153,7 @@ void PutStateProcessBefore::putBefore(
   SCORE_ASSERT(it2_hash != hash.end());
   auto& it2_order = it2_hash.value().second;
 
-  if (t1)
+  if(t1)
   {
     // put before t1
     auto it1_hash = hash.find(*t1);

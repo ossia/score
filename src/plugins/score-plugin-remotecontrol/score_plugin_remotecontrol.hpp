@@ -26,8 +26,7 @@ private:
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext& ctx,

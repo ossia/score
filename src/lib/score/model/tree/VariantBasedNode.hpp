@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/tree/InvisibleRootNode.hpp>
+
 #include <ossia/detail/nullable_variant.hpp>
 
 namespace score
@@ -85,10 +86,7 @@ public:
 
   auto& impl() { return m_data; }
 
-  bool operator==(const VariantBasedNode& other) const
-  {
-    return m_data == other.m_data;
-  }
+  bool operator==(const VariantBasedNode& other) const { return m_data == other.m_data; }
 
 protected:
   ossia::nullable_variant<InvisibleRootNode, Args...> m_data;

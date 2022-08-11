@@ -13,11 +13,9 @@ public:
       : QComboBox(parent)
   {
     setDisabled(true);
-    connect(
-        this,
-        qOverload<int>(&QComboBox::currentIndexChanged),
-        this,
-        [&](int index) { this->setEnabled(index != -1); });
+    connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
+      this->setEnabled(index != -1);
+    });
   }
 };
 }

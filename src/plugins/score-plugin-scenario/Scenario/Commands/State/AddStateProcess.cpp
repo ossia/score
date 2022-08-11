@@ -4,37 +4,33 @@
 
 #include <Process/ProcessList.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-
-#include <Scenario/Document/State/StateModel.hpp>
 namespace Scenario
 {
 namespace Command
 {
 
 AddStateProcessToState::AddStateProcessToState(
-    const Scenario::StateModel& state,
-    UuidKey<Process::ProcessModel> process)
-  : AddStateProcessToState{state, process, QString{}}
+    const Scenario::StateModel& state, UuidKey<Process::ProcessModel> process)
+    : AddStateProcessToState{state, process, QString{}}
 {
 }
 AddStateProcessToState::AddStateProcessToState(
-    const Scenario::StateModel& state,
-    UuidKey<Process::ProcessModel> process,
+    const Scenario::StateModel& state, UuidKey<Process::ProcessModel> process,
     const QString& data)
-  : AddStateProcessToState{state, getStrongId(state.stateProcesses), process, data}
+    : AddStateProcessToState{state, getStrongId(state.stateProcesses), process, data}
 {
 }
 
 AddStateProcessToState::AddStateProcessToState(
-    const Scenario::StateModel& state,
-    Id<Process::ProcessModel> processId,
-    UuidKey<Process::ProcessModel> process,
-    const QString& data)
+    const Scenario::StateModel& state, Id<Process::ProcessModel> processId,
+    UuidKey<Process::ProcessModel> process, const QString& data)
     : m_path{state}
     , m_processName{process}
     , m_data{data}
@@ -52,10 +48,9 @@ void AddStateProcessToState::redo(const score::DocumentContext& ctx) const
 {
   auto& state = m_path.find(ctx);
   // Create process model
-  auto proc
-      = ctx.app.interfaces<Process::ProcessFactoryList>()
-            .get(m_processName)
-            ->make(TimeVal::zero(), m_data, m_createdProcessId, ctx, &state);
+  auto proc = ctx.app.interfaces<Process::ProcessFactoryList>()
+                  .get(m_processName)
+                  ->make(TimeVal::zero(), m_data, m_createdProcessId, ctx, &state);
 
   state.stateProcesses.add(proc);
 }

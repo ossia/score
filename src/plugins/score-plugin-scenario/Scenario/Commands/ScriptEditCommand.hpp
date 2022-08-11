@@ -1,12 +1,13 @@
 #pragma once
-#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <Dataflow/Commands/CableHelpers.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 namespace Scenario
 {
 struct SavedPort
@@ -22,21 +23,18 @@ class EditScript : public score::Command
 public:
   using param_type = typename Property_T::param_type;
   using score::Command::Command;
-  EditScript(const Process_T& model, param_type newScript, const score::DocumentContext& ctx)
+  EditScript(
+      const Process_T& model, param_type newScript, const score::DocumentContext& ctx)
       : m_path{model}
       , m_newScript{std::move(newScript)}
       , m_oldScript{(model.*Property_T::get)()}
   {
-    m_oldCables = Dataflow::saveCables(
-        {const_cast<Process_T*>(&model)},
-        ctx);
+    m_oldCables = Dataflow::saveCables({const_cast<Process_T*>(&model)}, ctx);
 
-    for (auto& port : model.inlets())
-      m_oldInlets.emplace_back(
-          SavedPort{port->name(), port->type(), port->saveData()});
-    for (auto& port : model.outlets())
-      m_oldOutlets.emplace_back(
-          SavedPort{port->name(), port->type(), port->saveData()});
+    for(auto& port : model.inlets())
+      m_oldInlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
+    for(auto& port : model.outlets())
+      m_oldOutlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
   }
 
 private:
@@ -56,11 +54,11 @@ private:
     SCORE_ASSERT(m_oldOutlets.size() == cmt.outlets().size());
 
     // So we can reload their data identically
-    for (std::size_t i = 0; i < m_oldInlets.size(); i++)
+    for(std::size_t i = 0; i < m_oldInlets.size(); i++)
     {
       cmt.inlets()[i]->loadData(m_oldInlets[i].data);
     }
-    for (std::size_t i = 0; i < m_oldOutlets.size(); i++)
+    for(std::size_t i = 0; i < m_oldOutlets.size(); i++)
     {
       cmt.outlets()[i]->loadData(m_oldOutlets[i].data);
     }
@@ -72,12 +70,10 @@ private:
   }
 
   static void restoreCables(
-      Process::Inlet& new_p,
-      Scenario::ScenarioDocumentModel& doc,
-      const score::DocumentContext& ctx,
-      const Dataflow::SerializedCables& cables)
+      Process::Inlet& new_p, Scenario::ScenarioDocumentModel& doc,
+      const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
   {
-    for (auto& cable : new_p.cables())
+    for(auto& cable : new_p.cables())
     {
       SCORE_ASSERT(!cable.unsafePath().vec().empty());
       auto cable_id = cable.unsafePath().vec().back().id();
@@ -94,12 +90,10 @@ private:
     }
   }
   static void restoreCables(
-      Process::Outlet& new_p,
-      Scenario::ScenarioDocumentModel& doc,
-      const score::DocumentContext& ctx,
-      const Dataflow::SerializedCables& cables)
+      Process::Outlet& new_p, Scenario::ScenarioDocumentModel& doc,
+      const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
   {
-    for (auto& cable : new_p.cables())
+    for(auto& cable : new_p.cables())
     {
       SCORE_ASSERT(!cable.unsafePath().vec().empty());
       auto cable_id = cable.unsafePath().vec().back().id();
@@ -125,30 +119,28 @@ private:
 
     // Try an optimistic matching. Type and name must match.
 
-    auto& doc
-        = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+    auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
     std::size_t min_inlets = std::min(m_oldInlets.size(), cmt.inlets().size());
-    std::size_t min_outlets
-        = std::min(m_oldOutlets.size(), cmt.outlets().size());
-    for (std::size_t i = 0; i < min_inlets; i++)
+    std::size_t min_outlets = std::min(m_oldOutlets.size(), cmt.outlets().size());
+    for(std::size_t i = 0; i < min_inlets; i++)
     {
       auto new_p = cmt.inlets()[i];
       auto& old_p = m_oldInlets[i];
 
-      if (new_p->type() == old_p.type && new_p->name() == old_p.name)
+      if(new_p->type() == old_p.type && new_p->name() == old_p.name)
       {
         new_p->loadData(old_p.data);
         restoreCables(*new_p, doc, ctx, m_oldCables);
       }
     }
 
-    for (std::size_t i = 0; i < min_outlets; i++)
+    for(std::size_t i = 0; i < min_outlets; i++)
     {
       auto new_p = cmt.outlets()[i];
       auto& old_p = m_oldOutlets[i];
 
-      if (new_p->type() == old_p.type && new_p->name() == old_p.name)
+      if(new_p->type() == old_p.type && new_p->name() == old_p.name)
       {
         new_p->loadData(old_p.data);
         restoreCables(*new_p, doc, ctx, m_oldCables);
@@ -189,8 +181,7 @@ struct is_custom_serialized<Scenario::SavedPort> : std::true_type
 template <>
 struct TSerializer<DataStream, Scenario::SavedPort>
 {
-  static void
-  readFrom(DataStream::Serializer& s, const Scenario::SavedPort& tv)
+  static void readFrom(DataStream::Serializer& s, const Scenario::SavedPort& tv)
   {
     s.stream() << tv.name << tv.type << tv.data;
   }

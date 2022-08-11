@@ -15,9 +15,7 @@ class QObject;
 
 namespace Device
 {
-DeviceCompleter::DeviceCompleter(
-    Device::NodeBasedItemModel& treemodel,
-    QObject* parent)
+DeviceCompleter::DeviceCompleter(Device::NodeBasedItemModel& treemodel, QObject* parent)
     : QCompleter{parent}
 {
   setModel(&treemodel);
@@ -33,10 +31,10 @@ QString DeviceCompleter::pathFromIndex(const QModelIndex& index) const
 
   QModelIndex iter = index;
 
-  while (iter.isValid())
+  while(iter.isValid())
   {
     auto node = static_cast<Device::Node*>(iter.internalPointer());
-    if (node && node->is<Device::DeviceSettings>())
+    if(node && node->is<Device::DeviceSettings>())
     {
       path = QString{"%1:/"}.arg(iter.data(0).toString()) + path;
     }
@@ -55,7 +53,7 @@ QStringList DeviceCompleter::splitPath(const QString& path) const
 {
   QString p2 = path;
 
-  if (p2.at(0) == QChar('/'))
+  if(p2.at(0) == QChar('/'))
   {
     p2.remove(0, 1);
   }

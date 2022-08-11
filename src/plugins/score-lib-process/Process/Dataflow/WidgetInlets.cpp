@@ -11,16 +11,12 @@ Enum::Enum(DataStream::Deserializer& vis, QObject* parent)
   vis.writeTo(*this);
 }
 Enum::Enum(
-    const std::vector<std::string>& dom,
-    std::vector<QString> pixmaps,
-    std::string init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    const std::vector<std::string>& dom, std::vector<QString> pixmaps, std::string init,
+    const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
     , pixmaps{std::move(pixmaps)}
 {
-  for (auto& val : dom)
+  for(auto& val : dom)
     values.push_back(QString::fromStdString(val));
 
   hidden = true;
@@ -30,12 +26,8 @@ Enum::Enum(
 }
 
 Enum::Enum(
-    const QStringList& values,
-    std::vector<QString> pixmaps,
-    std::string init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    const QStringList& values, std::vector<QString> pixmaps, std::string init,
+    const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
     , values{values.begin(), values.end()}
     , pixmaps{std::move(pixmaps)}
@@ -43,7 +35,7 @@ Enum::Enum(
   hidden = true;
   setValue(init);
   ossia::domain_base<std::string> dom;
-  for (auto& val : values)
+  for(auto& val : values)
     dom.values.push_back(val.toStdString());
   setDomain(State::Domain{dom});
   setName(name);
@@ -80,18 +72,15 @@ ComboBox::ComboBox(DataStream::Deserializer& vis, QObject* parent)
   vis.writeTo(*this);
 }
 ComboBox::ComboBox(
-    std::vector<std::pair<QString, ossia::value>> values,
-    ossia::value init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    std::vector<std::pair<QString, ossia::value>> values, ossia::value init,
+    const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
     , alternatives{std::move(values)}
 {
   hidden = true;
   setValue(init);
   std::vector<ossia::value> vals;
-  for (auto& v : alternatives)
+  for(auto& v : alternatives)
     vals.push_back(v.second);
   setDomain(State::Domain{ossia::make_domain(vals)});
   setName(name);
@@ -122,10 +111,7 @@ ComboBox::ComboBox(JSONObject::Deserializer&& vis, QObject* parent)
 }
 
 HSVSlider::HSVSlider(
-    ossia::vec4f init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    ossia::vec4f init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -141,12 +127,7 @@ void HSVSlider::setupExecution(ossia::inlet& i) const noexcept
 }
 
 FloatSlider::FloatSlider(
-    float min,
-    float max,
-    float init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -165,13 +146,8 @@ void FloatSlider::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 FloatKnob::FloatKnob(
-    float min,
-    float max,
-    float init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
-  : ControlInlet{id, parent}
+    float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
 {
   hidden = true;
   setValue(init);
@@ -189,12 +165,7 @@ void FloatKnob::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 LogFloatSlider::LogFloatSlider(
-    float min,
-    float max,
-    float init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -213,12 +184,7 @@ void LogFloatSlider::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 IntSlider::IntSlider(
-    int min,
-    int max,
-    int init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -237,12 +203,7 @@ void IntSlider::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 IntSpinBox::IntSpinBox(
-    int min,
-    int max,
-    int init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -279,16 +240,12 @@ void Toggle::setupExecution(ossia::inlet& inl) const noexcept
 Toggle::~Toggle() { }
 
 ChooserToggle::ChooserToggle(
-    QStringList alternatives,
-    bool init,
-    const QString& name,
-    Id<Port> id,
+    QStringList alternatives, bool init, const QString& name, Id<Port> id,
     QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
-  setValue(
-      init ? alternatives[1].toStdString() : alternatives[0].toStdString());
+  setValue(init ? alternatives[1].toStdString() : alternatives[0].toStdString());
   setDomain(State::Domain{ossia::domain_base<std::string>{
       {alternatives[0].toStdString(), alternatives[1].toStdString()}}});
   setName(name);
@@ -305,19 +262,14 @@ ChooserToggle::~ChooserToggle() { }
 
 QStringList ChooserToggle::alternatives() const noexcept
 {
-  const auto& dom
-      = *this->domain().get().v.target<ossia::domain_base<std::string>>();
+  const auto& dom = *this->domain().get().v.target<ossia::domain_base<std::string>>();
   auto it = dom.values.begin();
   auto& s1 = *it;
   auto& s2 = *(++it);
   return {QString::fromStdString(s1), QString::fromStdString(s2)};
 }
 
-LineEdit::LineEdit(
-    QString init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+LineEdit::LineEdit(QString init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -370,11 +322,7 @@ void ImpulseButton::setupExecution(ossia::inlet& inl) const noexcept
 
 ImpulseButton::~ImpulseButton() { }
 
-XYSlider::XYSlider(
-    ossia::vec2f init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -384,12 +332,8 @@ XYSlider::XYSlider(
 }
 
 XYSlider::XYSlider(
-    ossia::vec2f min,
-    ossia::vec2f max,
-    ossia::vec2f init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, const QString& name,
+    Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -408,10 +352,7 @@ void XYSlider::setupExecution(ossia::inlet& inl) const noexcept
 XYSlider::~XYSlider() { }
 
 XYZSlider::XYZSlider(
-    ossia::vec3f init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    ossia::vec3f init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -421,13 +362,9 @@ XYZSlider::XYZSlider(
 }
 
 XYZSlider::XYZSlider(
-    ossia::vec3f min,
-    ossia::vec3f max,
-    ossia::vec3f init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
-  : ControlInlet{id, parent}
+    ossia::vec3f min, ossia::vec3f max, ossia::vec3f init, const QString& name,
+    Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
 {
   hidden = true;
   setValue(init);
@@ -445,10 +382,7 @@ void XYZSlider::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 MultiSlider::MultiSlider(
-    ossia::value init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    ossia::value init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -477,12 +411,7 @@ void MultiSlider::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 Bargraph::Bargraph(
-    float min,
-    float max,
-    float init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
     : ControlOutlet{id, parent}
 {
   hidden = true;
@@ -541,8 +470,8 @@ JSONWriter::write<Process::FloatKnob>(Process::FloatKnob& p)
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::LogFloatSlider>(
-    const Process::LogFloatSlider& p)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::LogFloatSlider>(const Process::LogFloatSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
@@ -621,14 +550,12 @@ DataStreamWriter::write<Process::Toggle>(Process::Toggle& p)
 {
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Toggle>(const Process::Toggle& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Toggle>(const Process::Toggle& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Toggle>(Process::Toggle& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Toggle>(Process::Toggle& p)
 {
 }
 
@@ -673,8 +600,7 @@ JSONReader::read<Process::LineEdit>(const Process::LineEdit& p)
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::LineEdit>(Process::LineEdit& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::LineEdit>(Process::LineEdit& p)
 {
 }
 
@@ -686,22 +612,19 @@ DataStreamReader::read<Process::Enum>(const Process::Enum& p)
   m_stream << p.values << p.pixmaps;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Enum>(Process::Enum& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Enum>(Process::Enum& p)
 {
   m_stream >> p.values >> p.pixmaps;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Enum>(const Process::Enum& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Enum>(const Process::Enum& p)
 {
   read((const Process::ControlInlet&)p);
   obj["Values"] = p.values;
   obj["Pixmaps"] = p.pixmaps;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Enum>(Process::Enum& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Enum>(Process::Enum& p)
 {
   p.values <<= obj["Values"];
   p.pixmaps <<= obj["Pixmaps"];
@@ -728,8 +651,7 @@ JSONReader::read<Process::ComboBox>(const Process::ComboBox& p)
   obj["Values"] = p.alternatives;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ComboBox>(Process::ComboBox& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::ComboBox>(Process::ComboBox& p)
 {
   p.alternatives <<= obj["Values"];
 }
@@ -745,14 +667,12 @@ DataStreamWriter::write<Process::Button>(Process::Button& p)
 {
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Button>(const Process::Button& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Button>(const Process::Button& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Button>(Process::Button& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Button>(Process::Button& p)
 {
 }
 template <>
@@ -819,8 +739,7 @@ JSONReader::read<Process::XYSlider>(const Process::XYSlider& p)
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::XYSlider>(Process::XYSlider& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::XYSlider>(Process::XYSlider& p)
 {
 }
 
@@ -888,8 +807,7 @@ JSONReader::read<Process::Bargraph>(const Process::Bargraph& p)
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Bargraph>(Process::Bargraph& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Bargraph>(Process::Bargraph& p)
 {
 }
 

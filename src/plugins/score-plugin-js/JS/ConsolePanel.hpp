@@ -1,19 +1,40 @@
 #pragma once
 
-#include <Engine/ApplicationPlugin.hpp>
+#include <State/OSSIASerializationImpl.hpp>
+
+#include <Process/Commands/EditPort.hpp>
+#include <Process/ProcessList.hpp>
+
+#include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
+
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Process/Commands/EditPort.hpp>
+
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+
+#include <Engine/ApplicationPlugin.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
+#include <JS/Qml/Metatypes.hpp>
+#include <Media/Step/Commands.hpp>
+#include <Media/Step/Model.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
-#include <score/actions/MenuManager.hpp>
-#include <State/OSSIASerializationImpl.hpp>
+
 #include <score/actions/ActionManager.hpp>
+#include <score/actions/MenuManager.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
+#include <score/tools/File.hpp>
 #include <score/tools/MapCopy.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -21,36 +42,20 @@
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
+#include <ossia/detail/logger.hpp>
 #include <ossia/network/base/parameter_data.hpp>
 #include <ossia/network/common/complex_type.hpp>
-#include <ossia/detail/logger.hpp>
 #include <ossia/network/value/format_value.hpp>
 
-#include <QMenu>
 #include <QJSEngine>
+#include <QJSValueIterator>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPlainTextEdit>
 #include <QScrollBar>
 #include <QVBoxLayout>
-#include <score/tools/File.hpp>
 
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <QJSValueIterator>
 #include <wobjectimpl.h>
-#include <Process/ProcessList.hpp>
-#include <Curve/Segment/PointArray/PointArraySegment.hpp>
-#include <Curve/Commands/UpdateCurve.hpp>
-#include <Curve/CurveModel.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Curve/Segment/Linear/LinearSegment.hpp>
-
-#include <Media/Step/Model.hpp>
-#include <Media/Step/Commands.hpp>
-#include <JS/Qml/Metatypes.hpp>
 
 namespace JS
 {
@@ -58,29 +63,31 @@ class JsUtils : public QObject
 {
   W_OBJECT(JsUtils)
 public:
-    QByteArray readFile(QString path)
-    {
-      QFile f(path);
-      if (f.open(QIODevice::ReadOnly))
-        return f.readAll();
-      return {};
-    }
-    W_SLOT(readFile)
+  QByteArray readFile(QString path)
+  {
+    QFile f(path);
+    if(f.open(QIODevice::ReadOnly))
+      return f.readAll();
+    return {};
+  }
+  W_SLOT(readFile)
 };
 
 struct ActionContext : public QObject
 {
-    W_OBJECT(ActionContext)
-    public:
-    QString Menu = "Menu";
+  W_OBJECT(ActionContext)
+public:
+  QString Menu = "Menu";
 
-    W_PROPERTY(QString, Menu READ Menu)
+  W_PROPERTY(QString, Menu READ Menu)
 };
 static TimeVal parseDuration(QString dur)
 {
   if(auto tm = QTime::fromString(dur); tm.isValid())
   {
-    return TimeVal::fromMsecs(tm.msec() + 1e3 * tm.second() + 1e3 * 60 * tm.minute() + 1e3 * 60 * 60 * tm.hour());
+    return TimeVal::fromMsecs(
+        tm.msec() + 1e3 * tm.second() + 1e3 * 60 * tm.minute()
+        + 1e3 * 60 * 60 * tm.hour());
   }
   else
   {
@@ -95,7 +102,8 @@ class EditJsContext : public QObject
   std::optional<Macro> m_macro;
   auto macro(const score::DocumentContext& doc)
   {
-    struct clear {
+    struct clear
+    {
       std::optional<Macro>& macro;
       bool clearOnDelete{};
       ~clear()
@@ -118,6 +126,7 @@ class EditJsContext : public QObject
       return clear{m_macro, true};
     }
   }
+
 public:
   EditJsContext() { }
 
@@ -147,10 +156,10 @@ public:
   void createAddress(QString addr, QString type)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto a = State::Address::fromString(addr);
-    if (!a)
+    if(!a)
       return;
 
     auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
@@ -161,17 +170,17 @@ public:
 
     const ossia::net::parameter_data* t
         = ossia::default_parameter_for_type(type.toStdString());
-    if (t)
+    if(t)
     {
       set.unit = t->unit;
-      if (t->bounding)
+      if(t->bounding)
         set.clipMode = *t->bounding;
-      if (t->domain)
+      if(t->domain)
         set.domain = *t->domain;
 
       set.ioType = ossia::access_mode::BI;
       set.value = t->value;
-      if (set.value.get_type() == ossia::val_type::NONE)
+      if(set.value.get_type() == ossia::val_type::NONE)
       {
         set.value = ossia::init_value(ossia::underlying_type(t->type));
       }
@@ -183,7 +192,7 @@ public:
   QObject* createProcess(QObject* interval, QString name, QString data)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto& factories = doc->app.interfaces<Process::ProcessFactoryList>();
     Process::ProcessModelFactory* f{};
@@ -217,54 +226,54 @@ public:
     using namespace Scenario;
     using namespace Scenario::Command;
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
 
     auto [m, _] = macro(*doc);
 
     auto sanitize = [&](auto* ptr) {
-      if (new_name == ptr->metadata().getName())
+      if(new_name == ptr->metadata().getName())
         return false;
       using T = std::remove_reference_t<decltype(*ptr)>;
-      if (new_name.isEmpty())
+      if(new_name.isEmpty())
         new_name = QString("%1.0").arg(Metadata<PrettyName_k, T>::get());
       return true;
     };
 
-    if (auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
+    if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
-      if (!sanitize(cst))
+      if(!sanitize(cst))
         return;
 
       m->submit(new ChangeElementName<Scenario::IntervalModel>{*cst, new_name});
     }
-    else if (auto ev = qobject_cast<Scenario::EventModel*>(sel))
+    else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
-      if (!sanitize(ev))
-       return;
+      if(!sanitize(ev))
+        return;
 
       m->submit(new ChangeElementName<Scenario::EventModel>{*ev, new_name});
     }
-    else if (auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
+    else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
-      if (!sanitize(tn))
+      if(!sanitize(tn))
         return;
 
       m->submit(new ChangeElementName<Scenario::TimeSyncModel>{*tn, new_name});
     }
-    else if (auto st = qobject_cast<Scenario::StateModel*>(sel))
+    else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
-      if (!sanitize(st))
+      if(!sanitize(st))
         return;
 
       m->submit(new ChangeElementName<Scenario::StateModel>{*st, new_name});
     }
-    else if (auto p = qobject_cast<Process::ProcessModel*>(sel))
+    else if(auto p = qobject_cast<Process::ProcessModel*>(sel))
     {
-      if (new_name == p->metadata().getName())
+      if(new_name == p->metadata().getName())
         return;
 
-      if (new_name.isEmpty())
+      if(new_name.isEmpty())
         new_name = QString("%1.0").arg(p->objectName());
 
       m->submit(new ChangeElementName<Process::ProcessModel>{*p, new_name});
@@ -275,10 +284,10 @@ public:
   QObject* createBox(QObject* obj, QString startTime, QString duration, double y)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto scenar = qobject_cast<Scenario::ProcessModel*>(obj);
-    if (!scenar)
+    if(!scenar)
       return nullptr;
 
     auto t0 = parseDuration(startTime);
@@ -290,21 +299,19 @@ public:
   }
   W_SLOT(createBox)
 
-
   QObject* createIntervalAfter(QObject* obj, QString duration, double y)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
 
     auto state = qobject_cast<Scenario::StateModel*>(obj);
-    if (!state)
+    if(!state)
       return nullptr;
 
     auto scenar = qobject_cast<Scenario::ProcessModel*>(state->parent());
     if(!scenar)
       return nullptr;
-
 
     auto& ev = Scenario::parentEvent(*state, *scenar);
     const auto t0 = ev.date();
@@ -328,17 +335,19 @@ public:
   QObject* port(QObject* obj, QString name)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto proc = qobject_cast<Process::ProcessModel*>(obj);
     if(!proc)
       return nullptr;
 
-    for(auto p : proc->inlets()) {
+    for(auto p : proc->inlets())
+    {
       if(p->name() == name)
         return p;
     }
-    for(auto p : proc->outlets()) {
+    for(auto p : proc->outlets())
+    {
       if(p->name() == name)
         return p;
     }
@@ -349,7 +358,7 @@ public:
   QObject* inlet(QObject* obj, int index)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto proc = qobject_cast<Process::ProcessModel*>(obj);
     if(!proc)
@@ -364,7 +373,7 @@ public:
   int inlets(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return 0;
     auto proc = qobject_cast<Process::ProcessModel*>(obj);
     if(!proc)
@@ -376,7 +385,7 @@ public:
   QObject* outlet(QObject* obj, int index)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto proc = qobject_cast<Process::ProcessModel*>(obj);
     if(!proc)
@@ -391,7 +400,7 @@ public:
   int outlets(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return 0;
     auto proc = qobject_cast<Process::ProcessModel*>(obj);
     if(!proc)
@@ -403,13 +412,13 @@ public:
   void setAddress(QObject* obj, QString addr)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto proc = qobject_cast<Process::Port*>(obj);
     if(!proc)
       return;
     auto a = State::parseAddressAccessor(addr);
-    if (!a)
+    if(!a)
       return;
 
     auto [m, _] = macro(*doc);
@@ -420,7 +429,7 @@ public:
   void setValue(QObject* obj, double value)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
@@ -433,7 +442,7 @@ public:
   void setValue(QObject* obj, QString value)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
@@ -446,7 +455,7 @@ public:
   void setValue(QObject* obj, bool value)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
@@ -459,14 +468,15 @@ public:
   void setValue(QObject* obj, QList<QString> value)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
       return;
 
     std::vector<ossia::value> vals;
-    for(auto& v : value) {
+    for(auto& v : value)
+    {
       vals.push_back(v.toStdString());
     }
     auto [m, _] = macro(*doc);
@@ -477,7 +487,7 @@ public:
   QString valueType(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return {};
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
@@ -488,10 +498,12 @@ public:
       return {};
 
     QString ret;
-    ossia::apply_nonnull([&] (const auto& t) {
+    ossia::apply_nonnull(
+        [&](const auto& t) {
       using type = std::decay_t<decltype(t)>;
       ret = Metadata<Json_k, type>::get();
-    }, v);
+        },
+        v);
     return ret;
   }
   W_SLOT(valueType)
@@ -499,7 +511,7 @@ public:
   double min(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return {};
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
@@ -512,7 +524,7 @@ public:
   double max(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return {};
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
@@ -525,7 +537,7 @@ public:
   QVector<QString> enumValues(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return {};
     auto port = qobject_cast<Process::ControlInlet*>(obj);
     if(!port)
@@ -533,8 +545,10 @@ public:
 
     QVector<QString> ret;
     auto vals = ossia::get_values(port->domain().get());
-    for(auto& v : vals) {
-      if(auto str = v.target<std::string>()) {
+    for(auto& v : vals)
+    {
+      if(auto str = v.target<std::string>())
+      {
         ret.push_back(QString::fromStdString(*str));
       }
     }
@@ -553,10 +567,10 @@ public:
   QObject* startState(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
-    if (!itv)
+    if(!itv)
       return nullptr;
     auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
     if(!scenar)
@@ -569,10 +583,10 @@ public:
   QObject* startEvent(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
-    if (!itv)
+    if(!itv)
       return nullptr;
     auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
     if(!scenar)
@@ -585,10 +599,10 @@ public:
   QObject* startSync(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
-    if (!itv)
+    if(!itv)
       return nullptr;
     auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
     if(!scenar)
@@ -598,14 +612,13 @@ public:
   }
   W_SLOT(startSync)
 
-
   QObject* endState(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
-    if (!itv)
+    if(!itv)
       return nullptr;
     auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
     if(!scenar)
@@ -618,10 +631,10 @@ public:
   QObject* endEvent(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
-    if (!itv)
+    if(!itv)
       return nullptr;
     auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
     if(!scenar)
@@ -634,10 +647,10 @@ public:
   QObject* endSync(QObject* obj)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return nullptr;
     auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
-    if (!itv)
+    if(!itv)
       return nullptr;
     auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
     if(!scenar)
@@ -647,14 +660,13 @@ public:
   }
   W_SLOT(endSync)
 
-
   void remove(QObject* obj)
   {
     if(!obj)
       return;
 
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
 
     if(auto proc = qobject_cast<Process::ProcessModel*>(obj))
@@ -678,7 +690,7 @@ public:
       return;
 
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
 
     auto proc = qobject_cast<Process::ProcessModel*>(process);
@@ -689,7 +701,8 @@ public:
     if(!curve)
       return;
 
-    for(auto& pt : points) {
+    for(auto& pt : points)
+    {
       if(pt.size() < 2)
         return;
     }
@@ -700,7 +713,8 @@ public:
     double cur_x = points[0][0].toDouble();
     double cur_y = points[0][1].toDouble();
 
-    for(int i = 1, N = std::ssize(points); i < N; i++) {
+    for(int i = 1, N = std::ssize(points); i < N; i++)
+    {
       const auto& pt = points[i];
       auto x = pt[0].toDouble();
       auto y = pt[1].toDouble();
@@ -734,7 +748,7 @@ public:
       return;
 
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
 
     auto proc = qobject_cast<Media::Step::Model*>(process);
@@ -742,17 +756,18 @@ public:
       return;
 
     auto [m, _] = macro(*doc);
-    m->submit(new Media::ChangeSteps{*proc, ossia::float_vector{points.begin(), points.end()}});
+    m->submit(new Media::ChangeSteps{
+        *proc, ossia::float_vector{points.begin(), points.end()}});
   }
   W_SLOT(setSteps)
 
   void automate(QObject* interval, QString addr)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
-    if (!itv)
+    if(!itv)
       return;
 
     auto [m, _] = macro(*doc);
@@ -763,13 +778,13 @@ public:
   void automate(QObject* interval, QObject* port)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
-    if (!itv)
+    if(!itv)
       return;
     auto ctl = qobject_cast<Process::Inlet*>(port);
-    if (!ctl)
+    if(!ctl)
       return;
     if(ctl->type() != Process::PortType::Message)
       return;
@@ -782,7 +797,7 @@ public:
   void startMacro()
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     this->m_macro.emplace(new ScriptMacro, *doc);
   }
@@ -796,11 +811,10 @@ public:
   }
   W_SLOT(endMacro)
 
-
   void undo()
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     doc->document.commandStack().undo();
   }
@@ -809,7 +823,7 @@ public:
   void redo()
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return;
     doc->document.commandStack().redo();
   }
@@ -819,9 +833,9 @@ public:
   {
     auto doc = document();
     const auto meta = doc->findChildren<score::ModelMetadata*>();
-    for (auto m : meta)
+    for(auto m : meta)
     {
-      if (m->getName() == p)
+      if(m->getName() == p)
       {
         return m->parent();
       }
@@ -830,39 +844,34 @@ public:
   }
   W_SLOT(find)
 
-  QObject* document()
-  {
-    return score::GUIAppContext().documents.currentDocument();
-  }
+  QObject* document() { return score::GUIAppContext().documents.currentDocument(); }
   W_SLOT(document)
 
   /// Execution ///
 
   void play(QObject* obj)
   {
-    auto plug
-        = score::GUIAppContext()
-              .findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
-    if (!plug)
+    auto plug = score::GUIAppContext()
+                    .findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    if(!plug)
       return;
 
-    if (auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
+    if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
     {
       plug->execution().playInterval(itv);
     }
-    else if (auto state = qobject_cast<Scenario::StateModel*>(obj))
+    else if(auto state = qobject_cast<Scenario::StateModel*>(obj))
     {
-      plug->execution().playState(
-          &Scenario::parentScenario(*state), state->id());
+      plug->execution().playState(&Scenario::parentScenario(*state), state->id());
     }
   }
   W_SLOT(play)
 
   void stop()
   {
-    auto plug = score::GUIAppContext()
-                    .findGuiApplicationPlugin<Engine::ApplicationPlugin>();
-    if (plug)
+    auto plug
+        = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+    if(plug)
       plug->execution().request_stop();
   }
   W_SLOT(stop)
@@ -871,7 +880,7 @@ public:
   QString readFile(QString path)
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return {};
 
     auto actual = score::locateFilePath(path, *doc);
@@ -889,7 +898,7 @@ public:
   QObject* selectedObject()
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return {};
 
     const auto& cur = doc->selectionStack.currentSelection();
@@ -903,7 +912,7 @@ public:
   QVariantList selectedObjects()
   {
     auto doc = ctx();
-    if (!doc)
+    if(!doc)
       return {};
 
     const auto& cur = doc->selectionStack.currentSelection();
@@ -928,17 +937,15 @@ public:
       , m_widget{new QWidget}
   {
     m_engine.installExtensions(QJSEngine::ConsoleExtension);
-    m_engine.globalObject().setProperty(
-        "Score", m_engine.newQObject(new EditJsContext));
-    m_engine.globalObject().setProperty(
-        "Util", m_engine.newQObject(new JsUtils));
+    m_engine.globalObject().setProperty("Score", m_engine.newQObject(new EditJsContext));
+    m_engine.globalObject().setProperty("Util", m_engine.newQObject(new JsUtils));
     m_engine.globalObject().setProperty(
         "ActionContext", m_engine.newQObject(new ActionContext));
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
-    m_widget->setStatusTip(QObject::tr(
-                             "This panel prompts the scripting console \n"
-                             "still in early development"));
+    m_widget->setStatusTip(
+        QObject::tr("This panel prompts the scripting console \n"
+                    "still in early development"));
 
     m_edit = new QPlainTextEdit{m_widget};
     m_edit->setTextInteractionFlags(Qt::TextEditorInteraction);
@@ -950,12 +957,11 @@ public:
     // TODO ctrl-space !
     connect(m_lineEdit, &QLineEdit::editingFinished, this, [=] {
       auto txt = m_lineEdit->text();
-      if (!txt.isEmpty())
+      if(!txt.isEmpty())
       {
         evaluate(txt);
         m_lineEdit->clear();
-        m_edit->verticalScrollBar()->setValue(
-            m_edit->verticalScrollBar()->maximum());
+        m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
       }
     });
   }
@@ -966,11 +972,11 @@ public:
   {
     m_edit->appendPlainText("> " + txt);
     auto res = m_engine.evaluate(txt);
-    if (res.isError())
+    if(res.isError())
     {
       m_edit->appendPlainText("ERROR: " + res.toString() + "\n");
     }
-    else if (!res.isUndefined())
+    else if(!res.isUndefined())
     {
       m_edit->appendPlainText(res.toString() + "\n");
     }
@@ -995,8 +1001,8 @@ public:
       cur->addMenu(newmenu);
       cur = newmenu;
 
-      ok:
-        continue;
+    ok:
+      continue;
     }
     return cur;
   }
@@ -1012,47 +1018,50 @@ public:
       QJSValueIterator it(init);
       while(it.hasNext())
       {
-       if(it.next())
-       {
-         auto obj = it.value();
-         if(obj.isObject())
-         {
-           auto name = obj.property("name");
-           auto context = obj.property("context");
-           auto action = obj.property("action");
-           auto shortcut = obj.property("shortcut");
-           if(!name.isString())
-             return;
-           if(context.toString() != "Menu")
-             return;
-           if(!action.isCallable())
-             return;
+        if(it.next())
+        {
+          auto obj = it.value();
+          if(obj.isObject())
+          {
+            auto name = obj.property("name");
+            auto context = obj.property("context");
+            auto action = obj.property("action");
+            auto shortcut = obj.property("shortcut");
+            if(!name.isString())
+              return;
+            if(context.toString() != "Menu")
+              return;
+            if(!action.isCallable())
+              return;
 
-           auto names = name.toString().split('/');
-           if(names.empty())
-             return;
+            auto names = name.toString().split('/');
+            if(names.empty())
+              return;
 
-           score::Menu& script = this->context().menus.get().at(score::Menus::Scripts());
-           if(auto act = script.menu()->actions()[0]; act->objectName() == "DefaultScriptMenuAction")
-             script.menu()->removeAction(act);
+            score::Menu& script
+                = this->context().menus.get().at(score::Menus::Scripts());
+            if(auto act = script.menu()->actions()[0];
+               act->objectName() == "DefaultScriptMenuAction")
+              script.menu()->removeAction(act);
 
-           auto menu = addMenu(script.menu(), names);
+            auto menu = addMenu(script.menu(), names);
 
-           auto act = new QAction{names.back(), this};
-           if(auto str = shortcut.toString(); !str.isEmpty())
-           {
-             act->setShortcut(QKeySequence::fromString(str));
-           }
-           connect(act, &QAction::triggered, this, [action=std::move(action)] () mutable {
-             auto res = action.call();
-             if(res.isError())
-             {
-               qDebug() << "Script error: " << res.errorType() << res.toString();
-             }
-           });
-           menu->addAction(act);
-         }
-       }
+            auto act = new QAction{names.back(), this};
+            if(auto str = shortcut.toString(); !str.isEmpty())
+            {
+              act->setShortcut(QKeySequence::fromString(str));
+            }
+            connect(
+                act, &QAction::triggered, this, [action = std::move(action)]() mutable {
+                  auto res = action.call();
+                  if(res.isError())
+                  {
+                    qDebug() << "Script error: " << res.errorType() << res.toString();
+                  }
+                });
+            menu->addAction(act);
+          }
+        }
       }
     }
 
@@ -1063,7 +1072,10 @@ public:
   }
 
 private:
-  QWidget* widget() override { return m_widget; }
+  QWidget* widget() override
+  {
+    return m_widget;
+  }
 
   const score::PanelStatus& defaultPanelStatus() const override
   {
@@ -1096,7 +1108,6 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
   }
 };
 }
-
 
 W_REGISTER_ARGTYPE(QVector<QVariantList>)
 W_REGISTER_ARGTYPE(QList<QObject*>)

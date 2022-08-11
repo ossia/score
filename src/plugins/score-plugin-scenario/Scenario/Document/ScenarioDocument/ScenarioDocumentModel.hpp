@@ -2,11 +2,12 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 
+#include <Scenario/Instantiations.hpp>
+
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <Scenario/Instantiations.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -32,10 +33,7 @@ public:
   ScenarioDocumentModel(const score::DocumentContext& ctx, QObject* parent);
 
   template <typename Impl>
-  ScenarioDocumentModel(
-      Impl& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent)
+  ScenarioDocumentModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
       : score::DocumentDelegateModel{vis, parent}
       , m_context{ctx}
   {

@@ -1,15 +1,18 @@
 #pragma once
 
+#include <State/Address.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Process/TimeValue.hpp>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
+
 #include <Recording/Commands/Record.hpp>
-#include <State/Address.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/tools/std/HashMap.hpp>
-
-#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 
 #include <chrono>
 #include <memory>
@@ -55,9 +58,7 @@ struct RecordContext;
  */
 using RecordListening = std::vector<std::vector<Device::Node*>>;
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
-    Recording::Record,
-    RedoStrategy::Quiet,
-    SendStrategy::UndoRedo>;
+    Recording::Record, RedoStrategy::Quiet, SendStrategy::UndoRedo>;
 
 struct Box
 {
@@ -73,17 +74,14 @@ RecordListening GetAddressesToRecord(
         Explorer::DeviceExplorerModel& m_explorer);
 */
 // The selected addresses and all their children
-RecordListening
-GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer);
+RecordListening GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer);
 
 Box CreateBox(RecordContext&);
 
-inline double
-GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
+inline double GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
 {
   using namespace std::chrono;
-  return duration_cast<microseconds>(steady_clock::now() - start).count()
-         / 1000.;
+  return duration_cast<microseconds>(steady_clock::now() - start).count() / 1000.;
 }
 inline TimeVal GetTimeDifference(std::chrono::steady_clock::time_point start)
 {

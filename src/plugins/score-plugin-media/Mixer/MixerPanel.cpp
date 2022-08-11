@@ -1,9 +1,14 @@
 #include "MixerPanel.hpp"
 
-#include <Audio/AudioDevice.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/AudioPortComboBox.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <Audio/AudioDevice.hpp>
 
 #include <score/model/ComponentUtils.hpp>
 #include <score/model/Skin.hpp>
@@ -18,17 +23,14 @@
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/parameter.hpp>
 
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QComboBox>
 #include <QTabWidget>
 #include <QToolButton>
 #include <qlabel.h>
-
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 namespace Mixer
 {
@@ -60,7 +62,7 @@ public:
 
   void setPan(const ossia::pan_weight& p)
   {
-    if (p.size() != 2)
+    if(p.size() != 2)
     {
       setValue(0.5);
       return;
@@ -90,7 +92,7 @@ protected:
     const double hw = width() / 2.;
     const double w = hw * std::abs(ratio);
 
-    if (ratio < 0)
+    if(ratio < 0)
     {
       p.drawRect(QRectF{hw - w, y, w, h});
       p.setPen(skin.SliderLine);
@@ -153,22 +155,19 @@ public:
     label.setText(addr);
 
     slider.setValue(*param.value().target<float>());
-    con(slider, &AudioSliderWidget::valueChanged, this, [&](double d) {
-      param.push_value(d);
-    });
-    idx = param.add_callback([=](const ossia::value& v) {
-      slider.setValue(ossia::convert<float>(v));
-    });
-    param.get_node()
-        .about_to_be_deleted.connect<&AudioDeviceSlider::onParamRemoved>(
-            *this);
+    con(slider, &AudioSliderWidget::valueChanged, this,
+        [&](double d) { param.push_value(d); });
+    idx = param.add_callback(
+        [=](const ossia::value& v) { slider.setValue(ossia::convert<float>(v)); });
+    param.get_node().about_to_be_deleted.connect<&AudioDeviceSlider::onParamRemoved>(
+        *this);
   }
 
   void onParamRemoved(const ossia::net::node_base& n) { p = nullptr; }
 
   ~AudioDeviceSlider() override
   {
-    if (p)
+    if(p)
       p->remove_callback(idx);
   }
 };
@@ -177,10 +176,8 @@ class AudioBusWidget : public QWidget
 {
 public:
   AudioBusWidget(
-      const Scenario::IntervalModel* param,
-      const Dataflow::AudioDevice* dev,
-      const score::DocumentContext& ctx,
-      QWidget* parent)
+      const Scenario::IntervalModel* param, const Dataflow::AudioDevice* dev,
+      const score::DocumentContext& ctx, QWidget* parent)
       : QWidget{parent}
       , m_context{ctx}
       , m_lay{this}
@@ -216,8 +213,8 @@ public:
     {
       auto root = State::Address{"audio", {"out"}};
       const auto& node = dev->getNode(root);
-      m_audioSelector = Process::makeAddressCombo(root, node, *param->outlet, ctx, parent);
-
+      m_audioSelector
+          = Process::makeAddressCombo(root, node, *param->outlet, ctx, parent);
     }
 
     m_lay.addWidget(&m_title, 0, 0, 1, 2, Qt::AlignLeft);
@@ -239,20 +236,15 @@ public:
     });
 
     m_gainSlider.setValue(param->outlet->gain());
-    con(m_gainSlider,
-        &AudioSliderWidget::valueChanged,
-        this,
-        [this](double d) {
-          m_context.dispatcher.submit<Process::SetGain>(*m_model->outlet, d);
-        });
-    con(m_gainSlider, &AudioSliderWidget::sliderReleased, this, [this] {
-      m_context.dispatcher.commit();
+    con(m_gainSlider, &AudioSliderWidget::valueChanged, this, [this](double d) {
+      m_context.dispatcher.submit<Process::SetGain>(*m_model->outlet, d);
     });
+    con(m_gainSlider, &AudioSliderWidget::sliderReleased, this,
+        [this] { m_context.dispatcher.commit(); });
 
     m_mute.setChecked(param->muted());
     con(m_mute, &QPushButton::toggled, this, [this] {
-      const_cast<Scenario::IntervalModel*>(m_model)->setMuted(
-          m_mute.isChecked());
+      const_cast<Scenario::IntervalModel*>(m_model)->setMuted(m_mute.isChecked());
     });
 
     m_upmix.setChecked(false);
@@ -274,9 +266,8 @@ public:
       m_context.dispatcher.submit<Process::SetPan>(
           *m_model->outlet, ossia::pan_weight{l, r});
     });
-    con(m_panSlider, &PanSliderWidget::sliderReleased, this, [this] {
-      m_context.dispatcher.commit();
-    });
+    con(m_panSlider, &PanSliderWidget::sliderReleased, this,
+        [this] { m_context.dispatcher.commit(); });
   }
 
   ~AudioBusWidget() override { }
@@ -388,7 +379,7 @@ public:
     setup_tab(m_virtualArea);
 
     auto& aplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
-    if (auto audio = aplug.list().audioDevice())
+    if(auto audio = aplug.list().audioDevice())
     {
       auto dev = static_cast<Dataflow::AudioDevice*>(audio);
       connect(dev, &Dataflow::AudioDevice::changed, this, [=] {
@@ -399,9 +390,7 @@ public:
     }
 
     auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-    con(plug,
-        &Scenario::ScenarioDocumentModel::busesChanged,
-        this,
+    con(plug, &Scenario::ScenarioDocumentModel::busesChanged, this,
         &MixerPanel::setupBuses);
     setupBuses();
   }
@@ -430,52 +419,49 @@ public:
     if(!dev->getDevice())
       return;
 
-    auto& proto = static_cast<ossia::audio_protocol&>(
-        dev->getDevice()->get_protocol());
+    auto& proto = static_cast<ossia::audio_protocol&>(dev->getDevice()->get_protocol());
     {
-      if (proto.main_audio_in)
+      if(proto.main_audio_in)
       {
         // Main in
-        auto w
-            = new AudioDeviceSlider{*proto.main_audio_in, &m_physicalInWidget};
+        auto w = new AudioDeviceSlider{*proto.main_audio_in, &m_physicalInWidget};
         m_mappingInLayout.addWidget(w);
         m_mappingInWidgets.push_back(w);
       }
-      for (auto& in : proto.audio_ins)
+      for(auto& in : proto.audio_ins)
       {
         auto w = new AudioDeviceSlider{*in, &m_physicalInWidget};
         m_physicalInLayout.addWidget(w);
         m_physicalInWidgets.push_back(w);
       }
-      for (auto& in : proto.in_mappings)
+      for(auto& in : proto.in_mappings)
       {
         auto w = new AudioDeviceSlider{*in, &m_mappingInArea};
         m_mappingInLayout.addWidget(w);
         m_mappingInWidgets.push_back(w);
       }
 
-      if (proto.main_audio_out)
+      if(proto.main_audio_out)
       {
         // Main out
-        auto w = new AudioDeviceSlider{
-            *proto.main_audio_out, &m_physicalOutWidget};
+        auto w = new AudioDeviceSlider{*proto.main_audio_out, &m_physicalOutWidget};
         m_mappingOutLayout.addWidget(w);
         m_mappingOutWidgets.push_back(w);
       }
-      for (auto& out : proto.audio_outs)
+      for(auto& out : proto.audio_outs)
       {
         auto w = new AudioDeviceSlider{*out, &m_physicalOutWidget};
         m_physicalOutLayout.addWidget(w);
         m_physicalOutWidgets.push_back(w);
       }
-      for (auto& out : proto.out_mappings)
+      for(auto& out : proto.out_mappings)
       {
         auto w = new AudioDeviceSlider{*out, &m_mappingOutArea};
         m_mappingOutLayout.addWidget(w);
         m_mappingOutWidgets.push_back(w);
       }
 
-      for (auto& out : proto.virtaudio)
+      for(auto& out : proto.virtaudio)
       {
         auto w = new AudioDeviceSlider{*out, &m_virtualWidget};
         m_virtualLayout.addWidget(w);
@@ -485,19 +471,16 @@ public:
 
     constexpr double width = 75;
 
-    m_physicalInWidget.setMinimumSize(
-        (proto.audio_ins.size() + 1) * width, 150);
+    m_physicalInWidget.setMinimumSize((proto.audio_ins.size() + 1) * width, 150);
     m_physicalInLayout.addStretch(1);
 
-    m_physicalOutWidget.setMinimumSize(
-        (proto.audio_outs.size() + 1) * width, 150);
+    m_physicalOutWidget.setMinimumSize((proto.audio_outs.size() + 1) * width, 150);
     m_physicalOutLayout.addStretch(1);
 
     m_mappingInWidget.setMinimumSize((proto.in_mappings.size()) * width, 150);
     m_mappingInLayout.addStretch(1);
 
-    m_mappingOutWidget.setMinimumSize(
-        (proto.out_mappings.size()) * width, 150);
+    m_mappingOutWidget.setMinimumSize((proto.out_mappings.size()) * width, 150);
     m_mappingOutLayout.addStretch(1);
 
     m_virtualWidget.setMinimumSize((proto.virtaudio.size()) * width, 150);
@@ -515,7 +498,7 @@ public:
     delete m_busLayout.takeAt(0);
 
     int i = 0;
-    for (auto bus : plug.busIntervals)
+    for(auto bus : plug.busIntervals)
     {
       auto w = new AudioBusWidget{bus, m_currentDevice, ctx, &m_busWidget};
       m_busLayout.addWidget(w);
@@ -531,11 +514,10 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     , m_widget{new QWidget}
 {
   m_widget->setLayout(new score::MarginLess<QHBoxLayout>);
-  m_widget->setStatusTip(QObject::tr(
-                           "This panel shows the audio mixer\n"
-                           "Parameters of audio busses and of the audio device \n "
-                           "can be accessed here \n"
-                           ));
+  m_widget->setStatusTip(
+      QObject::tr("This panel shows the audio mixer\n"
+                  "Parameters of audio busses and of the audio device \n "
+                  "can be accessed here \n"));
 }
 
 QWidget* PanelDelegate::widget()
@@ -557,14 +539,12 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
   return status;
 }
 
-void PanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm,
-    score::MaybeDocument newm)
+void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
 {
   delete m_cur;
   m_cur = nullptr;
 
-  if (newm)
+  if(newm)
   {
     m_cur = new MixerPanel{*newm, m_widget};
     m_widget->layout()->addWidget(m_cur);

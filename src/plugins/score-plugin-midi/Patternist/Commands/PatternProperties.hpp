@@ -14,10 +14,7 @@ inline auto& CommandFactoryName()
 }
 class UpdatePattern final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Midi::CommandFactoryName(),
-      UpdatePattern,
-      "Update a pattern")
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), UpdatePattern, "Update a pattern")
 public:
   UpdatePattern(const ProcessModel& model, int p, const Pattern& pat)
       : m_model{model}
@@ -37,10 +34,7 @@ public:
     m_model.find(ctx).setPattern(m_id, m_new);
   }
 
-  void update(const ProcessModel& model, int p, const Pattern& pat)
-  {
-    m_new = pat;
-  }
+  void update(const ProcessModel& model, int p, const Pattern& pat) { m_new = pat; }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override
@@ -62,14 +56,8 @@ private:
 
 }
 PROPERTY_COMMAND_T(
-    Patternist,
-    SetPatternChannel,
-    ProcessModel::p_channel,
-    "Change channel")
+    Patternist, SetPatternChannel, ProcessModel::p_channel, "Change channel")
 SCORE_COMMAND_DECL_T(Patternist::SetPatternChannel)
 PROPERTY_COMMAND_T(
-    Patternist,
-    SetCurrentPattern,
-    ProcessModel::p_currentPattern,
-    "Change pattern")
+    Patternist, SetCurrentPattern, ProcessModel::p_currentPattern, "Change pattern")
 SCORE_COMMAND_DECL_T(Patternist::SetCurrentPattern)

@@ -52,31 +52,22 @@ class DefaultLayerPresenter final : public LayerPresenter
 
 public:
   DefaultLayerPresenter(
-      const Process::ProcessModel& model,
-      Process::LayerView* v,
-      const Context& ctx,
+      const Process::ProcessModel& model, Process::LayerView* v, const Context& ctx,
       QObject* parent)
       : LayerPresenter{model, v, ctx, parent}
       , m_view{v}
   {
     auto vi = dynamic_cast<DefaultLayerView*>(v);
     vi->m_txt = model.metadata().getName();
-    connect(
-        &model.metadata(),
-        &score::ModelMetadata::NameChanged,
-        this,
-        [=](auto t) {
-          vi->m_txt = t;
-          vi->update();
-        });
+    connect(&model.metadata(), &score::ModelMetadata::NameChanged, this, [=](auto t) {
+      vi->m_txt = t;
+      vi->update();
+    });
   }
 
   ~DefaultLayerPresenter() override { }
 
-  void setWidth(qreal width, qreal defaultWidth) override
-  {
-    m_view->setWidth(width);
-  }
+  void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
   void setHeight(qreal height) override { m_view->setHeight(height); }
 
   void putToFront() override { m_view->setVisible(true); }
@@ -86,62 +77,49 @@ public:
   void parentGeometryChanged() override { }
 };
 LayerPresenter* LayerFactory::makeLayerPresenter(
-    const ProcessModel& m,
-    LayerView* v,
-    const Context& context,
-    QObject* parent) const
+    const ProcessModel& m, LayerView* v, const Context& context, QObject* parent) const
 {
   return new DefaultLayerPresenter{m, v, context, parent};
 }
 
 LayerView* LayerFactory::makeLayerView(
-    const ProcessModel& view,
-    const Process::Context& context,
+    const ProcessModel& view, const Process::Context& context,
     QGraphicsItem* parent) const
 {
   return new DefaultLayerView{parent};
 }
 
-Process::MiniLayer* LayerFactory::makeMiniLayer(
-    const ProcessModel& view,
-    QGraphicsItem* parent) const
+Process::MiniLayer*
+LayerFactory::makeMiniLayer(const ProcessModel& view, QGraphicsItem* parent) const
 {
   return nullptr;
 }
 
 score::ResizeableItem* LayerFactory::makeItem(
-    const ProcessModel&,
-    const Process::Context& ctx,
-    QGraphicsItem* parent) const
+    const ProcessModel&, const Process::Context& ctx, QGraphicsItem* parent) const
 {
   return nullptr;
 }
 
 bool LayerFactory::hasExternalUI(
-    const ProcessModel&,
-    const score::DocumentContext& ctx) const noexcept
+    const ProcessModel&, const score::DocumentContext& ctx) const noexcept
 {
   return false;
 }
 
 HeaderDelegate* LayerFactory::makeHeaderDelegate(
-    const ProcessModel& model,
-    const Process::Context& ctx,
-    QGraphicsItem* parent) const
+    const ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent) const
 {
   return new DefaultHeaderDelegate{model, ctx};
 }
 FooterDelegate* LayerFactory::makeFooterDelegate(
-    const ProcessModel& model,
-    const Process::Context& ctx) const
+    const ProcessModel& model, const Process::Context& ctx) const
 {
   return new DefaultFooterDelegate{model, ctx};
 }
 
 QWidget* LayerFactory::makeExternalUI(
-    const ProcessModel&,
-    const score::DocumentContext& ctx,
-    QWidget* parent) const
+    const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
 {
   return nullptr;
 }
@@ -157,16 +135,13 @@ bool LayerFactory::matches(const UuidKey<Process::ProcessModel>& p) const
 }
 
 ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
-    const VisitorVariant& vis,
-    const score::DocumentContext& ctx,
-    QObject* parent) const
+    const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;
 }
 
-LayerFactory*
-LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
+LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
   return findDefaultFactory(proc.concreteKey());
 }
@@ -174,9 +149,9 @@ LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 LayerFactory*
 LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
 {
-  for (auto& fac : *this)
+  for(auto& fac : *this)
   {
-    if (fac.matches(proc))
+    if(fac.matches(proc))
       return &fac;
   }
   return nullptr;

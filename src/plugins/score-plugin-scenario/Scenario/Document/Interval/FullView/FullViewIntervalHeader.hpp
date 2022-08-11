@@ -1,8 +1,8 @@
 #pragma once
-#include <QRect>
-
 #include <Scenario/Document/Interval/FullView/AddressBarItem.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
+
+#include <QRect>
 
 class QGraphicsItem;
 class QPainter;
@@ -22,10 +22,8 @@ public:
   void setState(State s) override { }
 
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
 private:
   AddressBarItem m_bar;

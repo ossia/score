@@ -29,10 +29,8 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   m_undoAction->setToolTip(QObject::tr("Undo (Ctrl+Z)"));
 
   setIcons(
-      m_undoAction,
-      QStringLiteral(":/icons/prev_on.png"),
-      QStringLiteral(":/icons/prev_hover.png"),
-      QStringLiteral(":/icons/prev_off.png"),
+      m_undoAction, QStringLiteral(":/icons/prev_on.png"),
+      QStringLiteral(":/icons/prev_hover.png"), QStringLiteral(":/icons/prev_off.png"),
       QStringLiteral(":/icons/prev_disabled.png"));
 
   QObject::connect(m_undoAction, &QAction::triggered, [&]() {
@@ -46,10 +44,8 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   m_redoAction->setToolTip(QObject::tr("Redo (Ctrl+Shift+Z)"));
 
   setIcons(
-      m_redoAction,
-      QStringLiteral(":/icons/next_on.png"),
-      QStringLiteral(":/icons/next_hover.png"),
-      QStringLiteral(":/icons/next_off.png"),
+      m_redoAction, QStringLiteral(":/icons/next_on.png"),
+      QStringLiteral(":/icons/next_hover.png"), QStringLiteral(":/icons/next_off.png"),
       QStringLiteral(":/icons/next_disabled.png"));
 
   QObject::connect(m_redoAction, &QAction::triggered, [&]() {
@@ -60,22 +56,19 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
 
 score::UndoApplicationPlugin::~UndoApplicationPlugin()
 {
-  Foreach(
-      m_connections, [](auto connection) { QObject::disconnect(connection); });
+  Foreach(m_connections, [](auto connection) { QObject::disconnect(connection); });
 }
 
 void score::UndoApplicationPlugin::on_documentChanged(
-    score::Document* olddoc,
-    score::Document* newDoc)
+    score::Document* olddoc, score::Document* newDoc)
 {
   using namespace score;
 
   // Cleanup
-  Foreach(
-      m_connections, [](auto connection) { QObject::disconnect(connection); });
+  Foreach(m_connections, [](auto connection) { QObject::disconnect(connection); });
   m_connections.clear();
 
-  if (!newDoc)
+  if(!newDoc)
   {
     m_undoAction->setEnabled(false);
     m_undoAction->setText(QObject::tr("Nothing to undo"));
@@ -96,12 +89,12 @@ void score::UndoApplicationPlugin::on_documentChanged(
         m_redoAction->setEnabled(b);
       }));
 
-  m_connections.push_back(QObject::connect(
-      stack, &CommandStack::undoTextChanged, [&](const QString& s) {
+  m_connections.push_back(
+      QObject::connect(stack, &CommandStack::undoTextChanged, [&](const QString& s) {
         m_undoAction->setText(QObject::tr("Undo ") + s);
       }));
-  m_connections.push_back(QObject::connect(
-      stack, &CommandStack::redoTextChanged, [&](const QString& s) {
+  m_connections.push_back(
+      QObject::connect(stack, &CommandStack::redoTextChanged, [&](const QString& s) {
         m_redoAction->setText(QObject::tr("Redo ") + s);
       }));
 

@@ -2,25 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveNewEvent.hpp"
 
+#include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QByteArray>
-
-#include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 MoveNewEvent::MoveNewEvent(
-    const Scenario::ProcessModel& scenarioPath,
-    Id<IntervalModel> intervalId,
-    Id<EventModel> eventId,
-    TimeVal date,
-    double y,
-    bool yLocked)
+    const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
+    Id<EventModel> eventId, TimeVal date, double y, bool yLocked)
     : m_path{scenarioPath}
     , m_intervalId{std::move(intervalId)}
     , m_cmd{scenarioPath, std::move(eventId), std::move(date), ExpandMode::Scale}
@@ -30,13 +26,8 @@ MoveNewEvent::MoveNewEvent(
 }
 
 MoveNewEvent::MoveNewEvent(
-    const Scenario::ProcessModel& scenarioPath,
-    Id<IntervalModel> intervalId,
-    Id<EventModel> eventId,
-    TimeVal date,
-    const double y,
-    bool yLocked,
-    ExpandMode mode)
+    const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
+    Id<EventModel> eventId, TimeVal date, const double y, bool yLocked, ExpandMode mode)
     : m_path{scenarioPath}
     , m_intervalId{std::move(intervalId)}
     , m_cmd{scenarioPath, std::move(eventId), std::move(date), mode}
@@ -55,11 +46,11 @@ void MoveNewEvent::undo(const score::DocumentContext& ctx) const
 void MoveNewEvent::redo(const score::DocumentContext& ctx) const
 {
   m_cmd.redo(ctx);
-  if (!m_yLocked)
+  if(!m_yLocked)
   {
     auto& scenar = m_cmd.path().find(ctx);
     auto& itv = scenar.intervals.at(m_intervalId);
-    if (itv.graphal())
+    if(itv.graphal())
     {
       scenar.states.at(itv.endState()).setHeightPercentage(m_y);
     }

@@ -1,16 +1,15 @@
 #include <Execution/Automation/InterpStateComponent.hpp>
 
 #include <ossia/dataflow/nodes/percentage.hpp>
+#include <ossia/dataflow/typed_value.hpp>
 #include <ossia/editor/automation/curve_value_visitor.hpp>
 #include <ossia/editor/curve/behavior.hpp>
-#include <ossia/dataflow/typed_value.hpp>
 namespace ossia::nodes
 {
 class state_interpolation final : public ossia::graph_node
 {
 public:
-  using drives_vector
-      = std::vector<std::pair<ossia::destination, ossia::behavior>>;
+  using drives_vector = std::vector<std::pair<ossia::destination, ossia::behavior>>;
   state_interpolation() { }
 
   ~state_interpolation() override { }
@@ -21,16 +20,14 @@ public:
 
   void reset_drive()
   {
-    for (auto& [_, drive] : m_drives)
+    for(auto& [_, drive] : m_drives)
       drive.reset();
   }
 
 private:
-  void
-  run(const ossia::token_request& t,
-      ossia::exec_state_facade e) noexcept override
+  void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    for (auto& [dest, drive] : m_drives)
+    for(auto& [dest, drive] : m_drives)
     {
       auto val = ossia::apply(
           ossia::detail::compute_value_visitor{
@@ -47,14 +44,8 @@ namespace InterpState
 {
 
 ExecComponent::ExecComponent(
-    InterpState::ProcessModel& element,
-    const Execution::Context& ctx,
-    QObject* parent)
-    : ProcessComponent_T{
-        element,
-        ctx,
-        "Executor::InterpStateComponent",
-        parent}
+    InterpState::ProcessModel& element, const Execution::Context& ctx, QObject* parent)
+    : ProcessComponent_T{element, ctx, "Executor::InterpStateComponent", parent}
 {
   // - When a state (start / end) changes
   //   -> value changed
@@ -143,8 +134,7 @@ ExecComponent::on_curveChanged_impl(const std::optional<ossia::destination>& d)
 }
 
 std::shared_ptr<ossia::curve_abstract> ExecComponent::on_curveChanged(
-    ossia::val_type type,
-    const std::optional<ossia::destination>& d)
+    ossia::val_type type, const std::optional<ossia::destination>& d)
 { /*
    switch (type)
    {

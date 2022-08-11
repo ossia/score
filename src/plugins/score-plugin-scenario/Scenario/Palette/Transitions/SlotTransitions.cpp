@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SlotTransitions.hpp"
 
-#include <score/model/path/Path.hpp>
-
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
+
+#include <score/model/path/Path.hpp>
 
 class QEvent;
 
@@ -44,8 +44,7 @@ void MoveOnSlotHandle_Transition::onTransition(QEvent* ev)
   this->state().currentSlot = std::move(qev->path);
 }
 
-ReleaseOnSlotHandle_Transition::ReleaseOnSlotHandle_Transition(
-    SlotState& state)
+ReleaseOnSlotHandle_Transition::ReleaseOnSlotHandle_Transition(SlotState& state)
     : m_state{state}
 {
 }

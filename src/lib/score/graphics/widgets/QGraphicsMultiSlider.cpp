@@ -83,10 +83,7 @@ struct SliderWrapper
     r.setWidth(std::max(0., getHandleX()));
     return r;
   }
-  QRectF execHandleRect() const noexcept
-  {
-    return {0,  6, getExecHandleX(), 2};
-  }
+  QRectF execHandleRect() const noexcept { return {0, 6, getExecHandleX(), 2}; }
 
   QRectF boundingRect() const noexcept { return rect; }
 
@@ -109,24 +106,18 @@ struct PaintVisitor
   template <std::size_t N>
   void operator()(std::array<float, N>& v) const noexcept
   {
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       // FIXME: exec Value isn't handled properly here.
       SliderWrapper<float> slider{self, {v[i]}, {v[i]}};
       slider.rect.moveTop(i * (defaultSliderSize.height() + 4));
       DefaultGraphicsSliderImpl::paint(
-          slider,
-          skin,
-          QString::number(self.min + v[i] * (self.max - self.min), 'f', 3),
-          &painter,
-          &widget);
+          slider, skin, QString::number(self.min + v[i] * (self.max - self.min), 'f', 3),
+          &painter, &widget);
     }
   }
 
-  void operator()(const std::vector<ossia::value>& v) const noexcept
-  {
-    SCORE_TODO;
-  }
+  void operator()(const std::vector<ossia::value>& v) const noexcept { SCORE_TODO; }
   void operator()(float v) const noexcept { SCORE_TODO; }
   void operator()(int v) const noexcept { SCORE_TODO; }
   template <typename T>
@@ -170,7 +161,7 @@ struct EventVisitor
   template <std::size_t N>
   void operator()(std::array<float, N>& v) const noexcept
   {
-    for (int64_t i = 0; i < int64_t(N); i++)
+    for(int64_t i = 0; i < int64_t(N); i++)
     {
       // FIXME: exec Value isn't handled properly here.
       SliderWrapper<float> slider{self, {v[i]}, {v[i]}};
@@ -179,13 +170,13 @@ struct EventVisitor
       slider.rect.moveTop(i * (defaultSliderSize.height() + 4));
       Event(slider, &event);
 
-      if (slider.m_grab)
+      if(slider.m_grab)
       {
         self.m_grab = i;
       }
       else
       {
-        if (had_grab)
+        if(had_grab)
           self.m_grab = -1;
       }
     }
@@ -215,9 +206,7 @@ void QGraphicsMultiSlider::setPoint(const QPointF& r)
 }
 
 void QGraphicsMultiSlider::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   m_value.apply(PaintVisitor{*this, *painter, *widget});
 }
@@ -227,9 +216,7 @@ ossia::value QGraphicsMultiSlider::value() const
   return m_value;
 }
 
-void QGraphicsMultiSlider::setRange(
-    const ossia::value& min,
-    const ossia::value& max)
+void QGraphicsMultiSlider::setRange(const ossia::value& min, const ossia::value& max)
 {
   this->min = ossia::convert<float>(min);
   this->max = ossia::convert<float>(max);
@@ -239,9 +226,9 @@ void QGraphicsMultiSlider::setRange(const ossia::domain& dom)
 {
   auto [min, max] = ossia::get_float_minmax(dom);
 
-  if (min)
+  if(min)
     this->min = *min;
-  if (max)
+  if(max)
     this->max = *max;
 }
 
@@ -255,24 +242,21 @@ void QGraphicsMultiSlider::setValue(ossia::value v)
 void QGraphicsMultiSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_value.apply(
-      EventVisitor<
-          &DefaultGraphicsSliderImpl::mousePressEvent<SliderWrapper<float>>>{
+      EventVisitor<&DefaultGraphicsSliderImpl::mousePressEvent<SliderWrapper<float>>>{
           *this, *event});
 }
 
 void QGraphicsMultiSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   m_value.apply(
-      EventVisitor<
-          &DefaultGraphicsSliderImpl::mouseMoveEvent<SliderWrapper<float>>>{
+      EventVisitor<&DefaultGraphicsSliderImpl::mouseMoveEvent<SliderWrapper<float>>>{
           *this, *event});
 }
 
 void QGraphicsMultiSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_value.apply(
-      EventVisitor<
-          &DefaultGraphicsSliderImpl::mouseReleaseEvent<SliderWrapper<float>>>{
+      EventVisitor<&DefaultGraphicsSliderImpl::mouseReleaseEvent<SliderWrapper<float>>>{
           *this, *event});
 }
 

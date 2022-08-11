@@ -1,4 +1,5 @@
 #include <Gfx/ShaderProgram.hpp>
+
 #include <QFile>
 #include <QGuiApplication>
 int main(int argc, char** argv)
@@ -12,7 +13,7 @@ int main(int argc, char** argv)
       frag = f.readAll();
 
     const auto& [_, error] = Gfx::ProgramCache::instance().get({QString{}, frag});
-    if (!error.isEmpty())
+    if(!error.isEmpty())
     {
       return 1;
     }
@@ -25,7 +26,7 @@ int main(int argc, char** argv)
       frag = f.readAll();
 
     const auto& [_, error] = Gfx::ProgramCache::instance().get({vert, frag});
-    if (!error.isEmpty())
+    if(!error.isEmpty())
     {
       return 1;
     }

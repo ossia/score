@@ -1,18 +1,17 @@
 #pragma once
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
+
 #include <Automation/Inspector/CurvePointInspectorWidget.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 namespace Scenario
 {
 
-class TempoPointInspectorWidget final
-    : public Curve::PointInspectorWidget
+class TempoPointInspectorWidget final : public Curve::PointInspectorWidget
 {
 public:
   explicit TempoPointInspectorWidget(
-      const Curve::PointModel& model,
-      const score::DocumentContext& doc,
+      const Curve::PointModel& model, const score::DocumentContext& doc,
       QWidget* parent);
 
 private:
@@ -33,8 +32,7 @@ public:
   TempoPointInspectorFactory();
 
   QWidget* make(
-      const InspectedObjects& sourceElements,
-      const score::DocumentContext& doc,
+      const InspectedObjects& sourceElements, const score::DocumentContext& doc,
       QWidget* parent) const override;
 
   bool matches(const InspectedObjects& objects) const override;

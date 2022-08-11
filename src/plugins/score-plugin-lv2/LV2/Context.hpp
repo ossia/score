@@ -29,6 +29,7 @@
 #include <boost/bimap.hpp>
 
 #include <lilv/lilvmm.hpp>
+
 #include <readerwriterqueue.h>
 
 #include <atomic>
@@ -193,10 +194,8 @@ struct LV2Data
   LV2::HostContext& host;
   LV2::EffectContext& effect;
   ossia::small_vector<int, 4> audio_in_ports, audio_out_ports;
-  ossia::small_vector<int, 8> control_in_ports, control_out_ports,
-      control_other_ports;
-  ossia::small_vector<int, 2> midi_in_ports, midi_out_ports, midi_other_ports,
-      cv_ports;
+  ossia::small_vector<int, 8> control_in_ports, control_out_ports, control_other_ports;
+  ossia::small_vector<int, 2> midi_in_ports, midi_out_ports, midi_other_ports, cv_ports;
 
   ossia::small_vector<int, 2> time_Position_ports{};
 

@@ -2,21 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurvePointInspectorWidget.hpp"
 
-#include <Automation/AutomationModel.hpp>
+#include <Process/TimeValue.hpp>
+
 #include <Curve/Commands/MovePoint.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Inspector/InspectorLayout.hpp>
-#include <Process/TimeValue.hpp>
 
-#include <score/selection/SelectionDispatcher.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Inspector/InspectorLayout.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -30,9 +32,7 @@
 namespace Curve
 {
 PointInspectorWidget::PointInspectorWidget(
-    const Curve::PointModel& model,
-    const score::DocumentContext& doc,
-    QWidget* parent)
+    const Curve::PointModel& model, const score::DocumentContext& doc, QWidget* parent)
     : InspectorWidgetBase{model, doc, parent, tr("Point")}
     , m_model{&model}
 {
@@ -64,9 +64,7 @@ PointInspectorWidget::PointInspectorWidget(
 namespace Automation
 {
 PointInspectorWidget::PointInspectorWidget(
-    const Curve::PointModel& model,
-    const score::DocumentContext& doc,
-    QWidget* parent)
+    const Curve::PointModel& model, const score::DocumentContext& doc, QWidget* parent)
     : Curve::PointInspectorWidget{model, doc, parent}
     , m_moveState{new Curve::StateBase{}}
     , m_moveX{*qobject_cast<Curve::Model*>(model.parent()), nullptr, doc.commandStack}
@@ -77,17 +75,11 @@ PointInspectorWidget::PointInspectorWidget(
   m_moveX.setCurveState(m_moveState);
   connect(
       m_XBox,
-      static_cast<void (QDoubleSpinBox::*)(double)>(
-          &QDoubleSpinBox::valueChanged),
-      this,
+      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this,
       &PointInspectorWidget::on_pointXChanged);
 
   connect(
-      m_XBox,
-      &QSpinBox::editingFinished,
-      this,
-      &PointInspectorWidget::on_editXFinished);
-
+      m_XBox, &QSpinBox::editingFinished, this, &PointInspectorWidget::on_editXFinished);
 
   // y  box
   auto cm = safe_cast<Curve::Model*>(model.parent());
@@ -104,16 +96,11 @@ PointInspectorWidget::PointInspectorWidget(
   m_YBox->setDecimals(4); // NOTE : settings ?
 
   connect(
-        m_YBox,
-        SignalUtils::QDoubleSpinBox_valueChanged_double(),
-        this,
-        &PointInspectorWidget::on_pointYChanged);
+      m_YBox, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+      &PointInspectorWidget::on_pointYChanged);
 
   connect(
-        m_YBox,
-        &QSpinBox::editingFinished,
-        this,
-        &PointInspectorWidget::on_editYFinished);
+      m_YBox, &QSpinBox::editingFinished, this, &PointInspectorWidget::on_editYFinished);
 
   m_layout->addRow("Value", m_YBox);
 
@@ -130,7 +117,6 @@ PointInspectorWidget::PointInspectorWidget(
 
         vec.push_back(widgP);
     */
-
 }
 
 void PointInspectorWidget::on_pointXChanged(double d)
@@ -145,13 +131,14 @@ void PointInspectorWidget::on_editXFinished()
     return;
 
   auto& model = *m_model;
-  Curve::Point pos{
-    m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
+  Curve::Point pos{m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
   if(std::abs(pos.x() - model.pos().x()) < 0.0001)
     return;
 
-
-  auto simpleMove = [this] { on_pointYChanged(m_YBox->value()); on_editYFinished(); };
+  auto simpleMove = [this] {
+    on_pointYChanged(m_YBox->value());
+    on_editYFinished();
+  };
 
   // Try to handle all the simple cases:
   auto& curve = *qobject_cast<Curve::Model*>(model.parent());
@@ -211,7 +198,7 @@ void PointInspectorWidget::on_editXFinished()
   m_moveX.release();
   m_startedEditing = false;
 
-  QTimer::singleShot(1, [&ctx=this->context(), &curve, pos] {
+  QTimer::singleShot(1, [&ctx = this->context(), &curve, pos] {
     // Find the point that is at the specified position and select it
     for(const Curve::PointModel* pt : curve.points())
     {
@@ -229,8 +216,7 @@ void PointInspectorWidget::on_pointYChanged(double d)
 {
   if(!m_model)
     return;
-  Curve::Point pos{
-      m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
+  Curve::Point pos{m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
   m_dispatcher.submit<Curve::MovePoint>(
       *safe_cast<Curve::Model*>(m_model->parent()), m_model->id(), pos);
 }

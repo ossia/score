@@ -2,16 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddSlotToRack.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <vector>
 
@@ -25,9 +25,7 @@ AddSlotToRack::AddSlotToRack(const Path<IntervalModel>& rackPath)
     , m_slot{
           {},
           Id<Process::ProcessModel>{},
-          score::AppContext()
-              .settings<Scenario::Settings::Model>()
-              .getSlotHeight()}
+          score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight()}
 {
 }
 

@@ -24,8 +24,7 @@ extern "C" [[dllexport]] void benchmark_main()
   const size_t size = 16384;
 
   // initialize input & output buffers
-  univector<complex<fbase>, size> in
-      = sin(linspace(0.0, c_pi<fbase, 2> * 4.0, size));
+  univector<complex<fbase>, size> in = sin(linspace(0.0, c_pi<fbase, 2> * 4.0, size));
   univector<complex<fbase>, size> out = scalar(qnan);
 
   // initialize fft
@@ -34,7 +33,7 @@ extern "C" [[dllexport]] void benchmark_main()
   // allocate work buffer for fft (if needed)
   univector<u8> temp(dft.temp_size);
   auto t0 = clk::now();
-  for (int i = 0; i < 10000; i++)
+  for(int i = 0; i < 10000; i++)
   {
     // perform forward fft
     dft.execute(out, in, temp);
@@ -43,8 +42,7 @@ extern "C" [[dllexport]] void benchmark_main()
     dft.execute(in, out, temp);
   }
   auto t1 = clk::now();
-  std::cout << " = "
-            << std::chrono::duration_cast<milliseconds>(t1 - t0).count()
+  std::cout << " = " << std::chrono::duration_cast<milliseconds>(t1 - t0).count()
             << std::endl;
 
   // scale output

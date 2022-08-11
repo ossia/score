@@ -1,9 +1,10 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
 
+#include <Scenario/Palette/Tool.hpp>
+
 #include <QObject>
 
-#include <Scenario/Palette/Tool.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -47,9 +48,7 @@ public:
 
   W_PROPERTY(Scenario::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
 
-  W_PROPERTY(
-      LockMode,
-      lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
+  W_PROPERTY(LockMode, lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
 
   W_PROPERTY(
       ExpandMode,

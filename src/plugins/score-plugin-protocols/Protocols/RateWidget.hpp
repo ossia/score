@@ -44,7 +44,7 @@ public:
 
   std::optional<int> rate() const noexcept
   {
-    if (!m_check->isChecked())
+    if(!m_check->isChecked())
     {
       return std::optional<int>{};
     }
@@ -56,7 +56,7 @@ public:
 
   void setRate(std::optional<int> r) noexcept
   {
-    if (r)
+    if(r)
     {
       m_check->setChecked(true);
       m_spin->setValue(*r);

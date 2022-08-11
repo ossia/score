@@ -18,8 +18,7 @@ class IntervalSummaryWidget final : public QWidget
 {
 public:
   explicit IntervalSummaryWidget(
-      const IntervalModel& object,
-      const score::DocumentContext& doc,
+      const IntervalModel& object, const score::DocumentContext& doc,
       QWidget* parent = nullptr);
   ~IntervalSummaryWidget();
 

@@ -55,10 +55,7 @@ void QGraphicsEnum::setRect(const QRectF& r)
   m_smallRect = r.adjusted(2, 2, -2, -2);
 }
 
-void QGraphicsEnum::setOneLineRect()
-{
-
-}
+void QGraphicsEnum::setOneLineRect() { }
 
 void QGraphicsEnum::setValue(int32_t v)
 {
@@ -82,10 +79,10 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
   const double w = m_smallRect.width() / columns;
   const double h = m_smallRect.height() / actual_rows;
 
-  for (std::size_t i = 0; i < array.size(); i++)
+  for(std::size_t i = 0; i < array.size(); i++)
   {
     QRectF rect{2. + col * w, 2. + row * h, w, h};
-    if (rect.contains(event->pos()))
+    if(rect.contains(event->pos()))
     {
       m_clicking = i;
       update();
@@ -93,7 +90,7 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
 
     col++;
-    if (col == columns)
+    if(col == columns)
     {
       row++;
       col = 0;
@@ -112,7 +109,7 @@ void QGraphicsEnum::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsEnum::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
-  if (m_clicking != -1)
+  if(m_clicking != -1)
   {
     m_value = m_clicking;
     m_clicking = -1;
@@ -127,9 +124,7 @@ QRectF QGraphicsEnum::boundingRect() const
 }
 
 void QGraphicsEnum::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   auto& style = score::Skin::instance();
@@ -148,10 +143,10 @@ void QGraphicsEnum::paint(
   painter->setBrush(bg);
   int i = 0;
   QRectF clickRect{};
-  for (const QString& str : array)
+  for(const QString& str : array)
   {
     QRectF rect{2. + col * w, 2. + row * h, w, h};
-    if (i == m_clicking)
+    if(i == m_clicking)
     {
       clickRect = rect;
       painter->setPen(currentText);
@@ -166,7 +161,7 @@ void QGraphicsEnum::paint(
     painter->setFont(textFont);
     painter->drawText(rect, str, QTextOption(Qt::AlignCenter));
     col++;
-    if (col == columns)
+    if(col == columns)
     {
       row++;
       col = 0;

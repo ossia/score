@@ -1,10 +1,12 @@
 #include "InvertYRenderer.hpp"
+
 #include <Gfx/Graph/RenderList.hpp>
 
 namespace Gfx
 {
 
-InvertYRenderer::InvertYRenderer(score::gfx::TextureRenderTarget rt,  QRhiReadbackResult& readback)
+InvertYRenderer::InvertYRenderer(
+    score::gfx::TextureRenderTarget rt, QRhiReadbackResult& readback)
     : score::gfx::OutputNodeRenderer{}
     , m_inputTarget{std::move(rt)}
     , m_readback{readback}
@@ -13,7 +15,8 @@ InvertYRenderer::InvertYRenderer(score::gfx::TextureRenderTarget rt,  QRhiReadba
 
 void InvertYRenderer::init(score::gfx::RenderList& renderer)
 {
-  m_renderTarget = score::gfx::createRenderTarget(renderer.state, QRhiTexture::Format::RGBA8, m_inputTarget.texture->pixelSize());
+  m_renderTarget = score::gfx::createRenderTarget(
+      renderer.state, QRhiTexture::Format::RGBA8, m_inputTarget.texture->pixelSize());
 
   const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh);
@@ -32,18 +35,14 @@ void InvertYRenderer::init(score::gfx::RenderList& renderer)
       fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
     }
     )_";
-  std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
-                                       renderer.state,
-                                       mesh.defaultVertexShader(), gl_filter);
+  std::tie(m_vertexS, m_fragmentS)
+      = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), gl_filter);
 
   // Put the input texture, where all the input nodes are rendering, in a sampler.
   {
     auto sampler = renderer.state.rhi->newSampler(
-        QRhiSampler::Linear,
-        QRhiSampler::Linear,
-        QRhiSampler::None,
-        QRhiSampler::ClampToEdge,
-        QRhiSampler::ClampToEdge);
+        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
     sampler->setName("FullScreenImageNode::sampler");
 #include <Gfx/Qt5CompatPush>
@@ -54,17 +53,12 @@ void InvertYRenderer::init(score::gfx::RenderList& renderer)
   }
 
   m_p = score::gfx::buildPipeline(
-      renderer,
-      mesh,
-      m_vertexS,
-      m_fragmentS,
-      m_renderTarget,
-      nullptr,
-      nullptr,
+      renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
       m_samplers);
 }
 
-void InvertYRenderer::update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
+void InvertYRenderer::update(
+    score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
 }
 
@@ -80,8 +74,7 @@ void InvertYRenderer::release(score::gfx::RenderList&)
 }
 
 void InvertYRenderer::finishFrame(
-    score::gfx::RenderList& renderer,
-    QRhiCommandBuffer& cb)
+    score::gfx::RenderList& renderer, QRhiCommandBuffer& cb)
 {
   cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, nullptr);
   {
@@ -105,6 +98,5 @@ void InvertYRenderer::finishFrame(
   next->readBackTexture(rb, &m_readback);
   cb.endPass(next);
 }
-
 
 }

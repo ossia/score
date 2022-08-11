@@ -3,6 +3,8 @@
 
 #include <Process/TimeValue.hpp>
 
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
@@ -10,7 +12,6 @@
 
 #include <QString>
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -26,29 +27,20 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateTimeSync_Event_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateTimeSync_Event_State,
+      CommandFactoryName(), CreateTimeSync_Event_State,
       "Create a timesync, an event and a state")
 public:
   CreateTimeSync_Event_State(
-      const Scenario::ProcessModel& scenario,
-      TimeVal date,
-      double stateY);
+      const Scenario::ProcessModel& scenario, TimeVal date, double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {
     return m_command.scenarioPath();
   }
 
-  const Id<StateModel>& createdState() const
-  {
-    return m_command.createdState();
-  }
+  const Id<StateModel>& createdState() const { return m_command.createdState(); }
 
-  const Id<EventModel>& createdEvent() const
-  {
-    return m_command.createdEvent();
-  }
+  const Id<EventModel>& createdEvent() const { return m_command.createdEvent(); }
 
   const Id<TimeSyncModel>& createdTimeSync() const { return m_newTimeSync; }
 

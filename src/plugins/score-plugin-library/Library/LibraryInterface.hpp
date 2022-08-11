@@ -18,8 +18,7 @@ namespace Library
 {
 class ProcessesItemModel;
 class FileSystemModel;
-class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterface
-    : public score::InterfaceBase
+class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterface : public score::InterfaceBase
 {
   SCORE_INTERFACE(LibraryInterface, "9b94d974-9f2d-4986-a62b-b69e51a4d305")
 public:
@@ -28,23 +27,16 @@ public:
   virtual QSet<QString> acceptedFiles() const noexcept;
   virtual QSet<QString> acceptedMimeTypes() const noexcept;
 
-  virtual QWidget*
-  previewWidget(const QString& path, QWidget* parent) const noexcept;
+  virtual QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept;
   virtual QWidget*
   previewWidget(const Process::Preset& preset, QWidget* parent) const noexcept;
 
-  virtual void
-  setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
+  virtual void setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
   virtual void addPath(std::string_view);
   virtual void removePath(std::string_view);
-  virtual bool onDrop(
-      const QMimeData& mime,
-      int row,
-      int column,
-      const QDir& parent);
+  virtual bool onDrop(const QMimeData& mime, int row, int column, const QDir& parent);
 
-  virtual bool
-  onDoubleClick(const QString& path, const score::DocumentContext& ctx);
+  virtual bool onDoubleClick(const QString& path, const score::DocumentContext& ctx);
 };
 
 class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterfaceList final
@@ -62,7 +54,6 @@ public:
 
   QSet<QString> acceptedFiles() const noexcept override;
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
-      override;
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override;
 };
 }

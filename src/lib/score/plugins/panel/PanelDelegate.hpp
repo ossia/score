@@ -23,13 +23,8 @@ class PanelView;
 struct SCORE_LIB_BASE_EXPORT PanelStatus
 {
   PanelStatus(
-      bool isShown,
-      bool fixed,
-      Qt::DockWidgetArea d,
-      int prio,
-      QString name,
-      QString icon,
-      const QKeySequence& sc);
+      bool isShown, bool fixed, Qt::DockWidgetArea d, int prio, QString name,
+      QString icon, const QKeySequence& sc);
 
   const bool shown; // Controls if it is shown by default.
   const bool fixed;
@@ -37,7 +32,7 @@ struct SCORE_LIB_BASE_EXPORT PanelStatus
   const int priority;            // Higher priority will come up first.
   const QString prettyName;      // Used in the header.
   const QIcon icon;              // Same
-  const QKeySequence shortcut; // Keyboard shortcut to show or hide the panel.
+  const QKeySequence shortcut;   // Keyboard shortcut to show or hide the panel.
 };
 
 /**

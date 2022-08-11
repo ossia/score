@@ -5,8 +5,7 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(ProcessStateDataInterface)
 ProcessStateDataInterface::ProcessStateDataInterface(
-    Process::ProcessModel& model,
-    QObject* parent)
+    Process::ProcessModel& model, QObject* parent)
     : IdentifiedObject{Id<ProcessStateDataInterface>{}, "", parent}
     , m_model{model}
 {

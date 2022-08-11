@@ -1,10 +1,11 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
-#include <LV2/Context.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <LV2/Context.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 
@@ -17,18 +18,8 @@ namespace LV2
 class Model;
 }
 PROCESS_METADATA(
-    ,
-    LV2::Model,
-    "fd5243ba-70b5-4164-b44a-ecb0dcdc0494",
-    "LV2",
-    "LV2",
-    Process::ProcessCategory::Other,
-    "Plugins",
-    "LV2 plug-in",
-    "ossia score",
-    {},
-    {},
-    {},
+    , LV2::Model, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2",
+    Process::ProcessCategory::Other, "Plugins", "LV2 plug-in", "ossia score", {}, {}, {},
     Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, LV2::Model, "LV2")
 namespace LV2
@@ -40,10 +31,7 @@ class Model : public Process::ProcessModel
 public:
   PROCESS_METADATA_IMPL(Model)
   Model(
-      TimeVal t,
-      const QString& name,
-      const Id<Process::ProcessModel>&,
-      QObject* parent);
+      TimeVal t, const QString& name, const Id<Process::ProcessModel>&, QObject* parent);
 
   ~Model() override;
   template <typename Impl>
@@ -69,10 +57,10 @@ public:
   std::size_t m_controlOutStart{};
   mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui to score
   mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
-  mutable moodycamel::ReaderWriterQueue<Message> to_process_events; // from score to process
+  mutable moodycamel::ReaderWriterQueue<Message>
+      to_process_events; // from score to process
 
-  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>>
-      control_map;
+  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
   ossia::fast_hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
 
 private:
@@ -92,20 +80,13 @@ class LV2EffectComponent final
 public:
   static constexpr bool is_unique = true;
 
-  LV2EffectComponent(
-      LV2::Model& proc,
-      const Execution::Context& ctx,
-      QObject* parent);
+  LV2EffectComponent(LV2::Model& proc, const Execution::Context& ctx, QObject* parent);
 
   void lazy_init() override;
 
-  void writeAtomToUi(
-      uint32_t port_index,
-      uint32_t type,
-      uint32_t size,
-      const void* body);
-  void writeAtomToUi(
-      uint32_t port_index, LV2_Atom& atom);
+  void
+  writeAtomToUi(uint32_t port_index, uint32_t type, uint32_t size, const void* body);
+  void writeAtomToUi(uint32_t port_index, LV2_Atom& atom);
 };
 }
 
@@ -118,6 +99,5 @@ QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const noexc
 namespace LV2
 {
 using ProcessFactory = Process::EffectProcessFactory_T<Model>;
-using ExecutorFactory
-    = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
+using ExecutorFactory = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 }

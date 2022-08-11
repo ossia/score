@@ -42,8 +42,7 @@ StringValueSetDialog::StringValueSetDialog(QWidget* parent)
   connect(addbutton, &QPushButton::pressed, this, [=] { addRow(""); });
   lay->addWidget(addbutton);
 
-  auto buttonBox
-      = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+  auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
 
   lay->addWidget(buttonBox);
 
@@ -54,7 +53,7 @@ StringValueSetDialog::StringValueSetDialog(QWidget* parent)
 StringValueSetDialog::set_type StringValueSetDialog::values()
 {
   set_type t;
-  for (StringValueWidget* widg : m_widgs)
+  for(StringValueWidget* widg : m_widgs)
   {
     t.push_back(widg->value().v.get<std::string>());
   }
@@ -64,12 +63,12 @@ StringValueSetDialog::set_type StringValueSetDialog::values()
 void StringValueSetDialog::setValues(const StringValueSetDialog::set_type& t)
 {
   // OPTIMIZEME by reusing
-  for (auto row : m_rows)
+  for(auto row : m_rows)
     delete row;
   m_rows.clear();
   m_widgs.clear();
 
-  for (auto& val : t)
+  for(auto& val : t)
   {
     addRow(val);
   }
@@ -83,9 +82,8 @@ void StringValueSetDialog::addRow(const std::string& c)
   auto minus_b = new QPushButton{tr("-"), this};
   sub_lay->addWidget(minus_b);
 
-  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
-    removeRow(i);
-  });
+  connect(
+      minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] { removeRow(i); });
 
   auto widg = new StringValueWidget{c, this};
   sub_lay->addWidget(widg);
@@ -97,7 +95,7 @@ void StringValueSetDialog::addRow(const std::string& c)
 
 void StringValueSetDialog::removeRow(std::size_t i)
 {
-  if (i < m_rows.size())
+  if(i < m_rows.size())
   {
     delete m_rows[i];
     m_rows.erase(m_rows.begin() + i);

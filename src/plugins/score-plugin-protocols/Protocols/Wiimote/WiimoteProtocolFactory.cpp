@@ -5,9 +5,9 @@
 #include "WiimoteProtocolSettingsWidget.hpp"
 #include "WiimoteSpecificSettings.hpp"
 
-#include <QObject>
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <QObject>
 
 namespace Protocols
 {
@@ -29,15 +29,13 @@ WiimoteProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 }
 
 Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new WiimoteDevice{settings, plugin.networkContext()};
 }
 
-const Device::DeviceSettings&
-WiimoteProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& WiimoteProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -56,22 +54,20 @@ Device::ProtocolSettingsWidget* WiimoteProtocolFactory::makeSettingsWidget()
   return new WiimoteProtocolSettingsWidget;
 }
 
-QVariant WiimoteProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant
+WiimoteProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<WiimoteSpecificSettings>(visitor);
 }
 
 void WiimoteProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<WiimoteSpecificSettings>(data, visitor);
 }
 
 bool WiimoteProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return false;
 }

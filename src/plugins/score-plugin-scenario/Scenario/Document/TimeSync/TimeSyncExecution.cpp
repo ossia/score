@@ -2,8 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeSyncExecution.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -13,45 +18,28 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-
 #include <exception>
 
 namespace Execution
 {
 TimeSyncComponent::TimeSyncComponent(
-    const Scenario::TimeSyncModel& element,
-    const Execution::Context& ctx,
+    const Scenario::TimeSyncModel& element, const Execution::Context& ctx,
     QObject* parent)
     : Execution::Component{ctx, "Executor::TimeSync", nullptr}
     , m_score_node{&element}
 {
-  con(element,
-      &Scenario::TimeSyncModel::triggeredByGui,
-      this,
+  con(element, &Scenario::TimeSyncModel::triggeredByGui, this,
       &TimeSyncComponent::on_GUITrigger);
 
-  con(element,
-      &Scenario::TimeSyncModel::activeChanged,
-      this,
+  con(element, &Scenario::TimeSyncModel::activeChanged, this,
       &TimeSyncComponent::updateTrigger);
-  con(element,
-      &Scenario::TimeSyncModel::autotriggerChanged,
-      this,
-      [=](bool b) {
-        in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); });
-      });
-  con(element,
-      &Scenario::TimeSyncModel::triggerChanged,
-      this,
+  con(element, &Scenario::TimeSyncModel::autotriggerChanged, this,
+      [=](bool b) { in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); }); });
+  con(element, &Scenario::TimeSyncModel::triggerChanged, this,
       &TimeSyncComponent::updateTrigger);
 
   // TODO startChanged
-  con(element,
-      &Scenario::TimeSyncModel::musicalSyncChanged,
-      this,
+  con(element, &Scenario::TimeSyncModel::musicalSyncChanged, this,
       &TimeSyncComponent::updateTriggerTime);
 }
 
@@ -63,16 +51,16 @@ void TimeSyncComponent::cleanup()
 
 ossia::expression_ptr TimeSyncComponent::makeTrigger() const
 {
-  if (m_score_node)
+  if(m_score_node)
   {
-    if (m_score_node->active())
+    if(m_score_node->active())
     {
       try
       {
         return Engine::score_to_ossia::trigger_expression(
             m_score_node->expression(), *system().execState);
       }
-      catch (std::exception& e)
+      catch(std::exception& e)
       {
         ossia::logger().error(e.what());
       }
@@ -82,19 +70,19 @@ ossia::expression_ptr TimeSyncComponent::makeTrigger() const
   return ossia::expressions::make_expression_true();
 }
 
-struct TimeSyncExecutionCallbacks
-    : public ossia::time_sync_callback
+struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
 {
-  explicit TimeSyncExecutionCallbacks(EditionCommandQueue& e, const QPointer<const Scenario::TimeSyncModel>& p)
-    : edit{e}
-    , score_node{p}
+  explicit TimeSyncExecutionCallbacks(
+      EditionCommandQueue& e, const QPointer<const Scenario::TimeSyncModel>& p)
+      : edit{e}
+      , score_node{p}
   {
-
   }
 
-  void entered_triggering() override {
-    edit.enqueue([score_node=this->score_node] {
-      if (score_node)
+  void entered_triggering() override
+  {
+    edit.enqueue([score_node = this->score_node] {
+      if(score_node)
       {
         auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
         v->setWaiting(true);
@@ -102,14 +90,12 @@ struct TimeSyncExecutionCallbacks
     });
   }
 
-  void trigger_date_fixed(ossia::time_value) override
-  {
-    entered_triggering();
-  }
+  void trigger_date_fixed(ossia::time_value) override { entered_triggering(); }
 
-  void left_evaluation() override {
-    edit.enqueue([score_node=this->score_node] {
-      if (score_node)
+  void left_evaluation() override
+  {
+    edit.enqueue([score_node = this->score_node] {
+      if(score_node)
       {
         auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
         v->setWaiting(false);
@@ -117,10 +103,7 @@ struct TimeSyncExecutionCallbacks
     });
   }
 
-  void finished_evaluation(bool) override
-  {
-    left_evaluation();
-  }
+  void finished_evaluation(bool) override { left_evaluation(); }
 
 private:
   EditionCommandQueue& edit;
@@ -128,12 +111,11 @@ private:
 };
 
 void TimeSyncComponent::onSetup(
-    std::shared_ptr<ossia::time_sync> ptr,
-    ossia::expression_ptr exp)
+    std::shared_ptr<ossia::time_sync> ptr, ossia::expression_ptr exp)
 {
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
-  if (m_score_node)
+  if(m_score_node)
   {
     updateTriggerTime();
     if(m_score_node->active())
@@ -142,7 +124,8 @@ void TimeSyncComponent::onSetup(
       m_ossia_node->set_start(m_score_node->isStartPoint());
     }
 
-    m_ossia_node->callbacks.callbacks.push_back(new TimeSyncExecutionCallbacks{system().editionQueue, this->m_score_node});
+    m_ossia_node->callbacks.callbacks.push_back(
+        new TimeSyncExecutionCallbacks{system().editionQueue, this->m_score_node});
   }
 }
 
@@ -170,14 +153,14 @@ void TimeSyncComponent::updateTrigger()
 
   this->in_exec([e = m_ossia_node, exp_ptr, autotrigger, start] {
     bool was_observing = e->is_observing_expression();
-    if (was_observing)
+    if(was_observing)
       e->observe_expression(false);
 
     e->set_expression(std::move(*exp_ptr));
     e->set_autotrigger(autotrigger);
     e->set_start(start);
 
-    if (was_observing)
+    if(was_observing)
       e->observe_expression(true);
   });
 }
@@ -193,19 +176,20 @@ void TimeSyncComponent::updateTriggerTime()
       auto parent_quantif = Scenario::closestParentWithQuantification(parent);
 
       // We only set a quantization if there is some parent that has some tempo information.
-      if(parent_quantif.parent && parent_metrics.lastFound && parent_metrics.lastFound->hasTimeSignature()) {
+      if(parent_quantif.parent && parent_metrics.lastFound
+         && parent_metrics.lastFound->hasTimeSignature())
+      {
         quantRate = parent_quantif.parent->quantizationRate();
       }
 
-      if(quantRate < 0) {
+      if(quantRate < 0)
+      {
         quantRate = 0.;
       }
     }
   }
 
-  this->in_exec([e = m_ossia_node, quantRate] {
-    e->set_sync_rate(quantRate);
-  });
+  this->in_exec([e = m_ossia_node, quantRate] { e->set_sync_rate(quantRate); });
 }
 
 void TimeSyncComponent::on_GUITrigger()

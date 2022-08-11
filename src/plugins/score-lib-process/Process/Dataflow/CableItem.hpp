@@ -30,8 +30,7 @@ class SCORE_LIB_PROCESS_EXPORT CableItem final
 public:
   static bool g_cables_enabled;
   CableItem(
-      const Process::Cable& c,
-      const Process::Context& ctx,
+      const Process::Cable& c, const Process::Context& ctx,
       QGraphicsItem* parent = nullptr);
   ~CableItem() override;
   const Id<Process::Cable>& id() const { return m_cable.id(); }
@@ -52,10 +51,8 @@ public:
 
 private:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
   QPainterPath shape() const override;
   QPainterPath opaqueArea() const override;
   bool contains(const QPointF& point) const override;
@@ -70,6 +67,5 @@ private:
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;
   Process::PortType m_type{};
-
 };
 }

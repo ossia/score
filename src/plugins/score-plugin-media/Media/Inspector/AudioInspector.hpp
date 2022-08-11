@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Media/Sound/SoundModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+
+#include <Media/Sound/SoundModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/SpinBoxes.hpp>
@@ -19,9 +20,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& doc,
-      QWidget* parent);
+      const ProcessModel& object, const score::DocumentContext& doc, QWidget* parent);
 
 private:
   CommandDispatcher<> m_dispatcher;

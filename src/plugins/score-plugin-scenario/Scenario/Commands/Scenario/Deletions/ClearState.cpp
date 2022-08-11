@@ -2,14 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ClearState.hpp"
 
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 
 namespace Scenario
 {

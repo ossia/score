@@ -17,8 +17,7 @@ public:
   ossia::net::node_base& node;
 
   MetadataNamePropertyWrapper(
-      ossia::net::node_base& parent,
-      score::ModelMetadata& arg_metadata,
+      ossia::net::node_base& parent, score::ModelMetadata& arg_metadata,
       QObject* context)
       : metadata{arg_metadata}
       , node{*parent.create_child(arg_metadata.getName().toStdString())}
@@ -41,11 +40,11 @@ public:
       const auto newName = newName_qstring.toStdString();
       const auto curName = node.get_name();
 
-      if (curName != newName)
+      if(curName != newName)
       {
         node.set_name(newName);
         auto real_newName = node.get_name();
-        if (real_newName != newName)
+        if(real_newName != newName)
         {
           const auto& x = QString::fromStdString(real_newName);
           qDebug() << "ERROR (real_newName/newName)" << x << newName_qstring;
@@ -54,8 +53,7 @@ public:
       }
     };
 
-    QObject::connect(
-        &metadata, &score::ModelMetadata::NameChanged, context, setNameFun);
+    QObject::connect(&metadata, &score::ModelMetadata::NameChanged, context, setNameFun);
 
     setNameFun(metadata.getName());
   }
@@ -63,7 +61,7 @@ public:
   ~MetadataNamePropertyWrapper()
   {
     auto par = node.get_parent();
-    if (par)
+    if(par)
       par->remove_child(node);
   }
 };

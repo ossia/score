@@ -60,9 +60,7 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModel
 public:
   Selectable selection;
   ProcessModel(
-      TimeVal duration,
-      const Id<ProcessModel>& id,
-      const QString& name,
+      TimeVal duration, const Id<ProcessModel>& id, const QString& name,
       QObject* parent);
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
@@ -98,13 +96,10 @@ public:
   void setPosition(const QPointF& v);
   void setSize(const QSizeF& v);
 
-  void positionChanged(QPointF p)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, positionChanged, p)
+  void positionChanged(QPointF p) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, positionChanged, p)
   void sizeChanged(QSizeF p) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, p)
 
-  PROPERTY(
-      QPointF,
-      position READ position WRITE setPosition NOTIFY positionChanged)
+  PROPERTY(QPointF, position READ position WRITE setPosition NOTIFY positionChanged)
   PROPERTY(QSizeF, size READ size WRITE setSize NOTIFY sizeChanged)
 
   /// States. The process has ownership.
@@ -134,8 +129,7 @@ public:
   virtual void ancestorTempoChanged();
 
   virtual void forEachControl(
-      smallfun::function<void(Process::ControlInlet&, const ossia::value&)>)
-      const;
+      smallfun::function<void(Process::ControlInlet&, const ossia::value&)>) const;
 
   // Clip duration things
   bool loops() const noexcept { return m_loops; }
@@ -149,8 +143,7 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startOffsetChanged, b)
   PROPERTY(
       TimeVal,
-      startOffset READ startOffset WRITE setStartOffset NOTIFY
-          startOffsetChanged)
+      startOffset READ startOffset WRITE setStartOffset NOTIFY startOffsetChanged)
 
   TimeVal loopDuration() const noexcept { return m_loopDuration; }
   void setLoopDuration(TimeVal b);
@@ -158,17 +151,15 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopDurationChanged, b)
   PROPERTY(
       TimeVal,
-      loopDuration READ loopDuration WRITE setLoopDuration NOTIFY
-          loopDurationChanged)
+      loopDuration READ loopDuration WRITE setLoopDuration NOTIFY loopDurationChanged)
 
   virtual void setCreatingControls(bool ok);
   bool creatingControls() const noexcept;
   void creatingControlsChanged(bool b)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, creatingControlsChanged, b)
   PROPERTY(
-      bool,
-      creatingControls READ creatingControls WRITE setCreatingControls NOTIFY
-          creatingControlsChanged)
+      bool, creatingControls READ creatingControls WRITE setCreatingControls NOTIFY
+                creatingControlsChanged)
 
   // FIXME ugh
   QWidget* externalUI{};
@@ -185,8 +176,7 @@ public:
 
   void slotHeightChanged(double arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, slotHeightChanged, arg_1)
-  void prettyNameChanged()
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, prettyNameChanged)
+  void prettyNameChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, prettyNameChanged)
 
   void inletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, inletsChanged)
   void outletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, outletsChanged)
@@ -200,8 +190,7 @@ public:
   void controlOutletRemoved(const Process::Port& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlOutletRemoved, arg_1)
 
-  void benchmark(double arg_1)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1)
+  void benchmark(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1)
   void externalUIVisible(bool v) const
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v)
 

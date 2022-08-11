@@ -1,6 +1,7 @@
 #include <Media/Effect/Settings/Model.hpp>
-#include <score/application/GUIApplicationContext.hpp>
 #include <Vst/Window.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <wobjectimpl.h>
 
@@ -14,40 +15,34 @@ ERect Window::getRect(AEffect& e)
 
   int16_t w{};
   int16_t h{};
-  if (vstRect)
+  if(vstRect)
   {
     w = vstRect->right - vstRect->left;
     h = vstRect->bottom - vstRect->top;
   }
 
-  if (w <= 1)
+  if(w <= 1)
     w = 640;
-  if (h <= 1)
+  if(h <= 1)
     h = 480;
 
-  if (vstRect)
+  if(vstRect)
     return ERect{vstRect->top, vstRect->left, vstRect->bottom, vstRect->right};
   else
     return ERect{0, 0, w, h};
 }
 
-Window::Window(
-    const Model& e,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
     : Window{e, ctx}
 {
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   connect(
-      &ctx.coarseUpdateTimer,
-      &QTimer::timeout,
-      this,
-      &Window::refreshTimer,
+      &ctx.coarseUpdateTimer, &QTimer::timeout, this, &Window::refreshTimer,
       Qt::UniqueConnection);
 
   bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
-  if (ontop)
+  if(ontop)
   {
     setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
   }
@@ -55,9 +50,10 @@ Window::Window(
   e.fx->ui_opened = true;
 }
 
-Window::~Window() {
+Window::~Window()
+{
 
-  if (auto eff = effect.lock())
+  if(auto eff = effect.lock())
   {
     if(eff->ui_opened)
       eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
@@ -67,14 +63,14 @@ Window::~Window() {
 
 void Window::refreshTimer()
 {
-  if (auto eff = effect.lock())
+  if(auto eff = effect.lock())
     eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
 }
 
 void Window::closeEvent(QCloseEvent* event)
 {
   QPointer<Window> p(this);
-  if (auto eff = effect.lock())
+  if(auto eff = effect.lock())
   {
     if(eff->ui_opened)
       eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
@@ -82,7 +78,7 @@ void Window::closeEvent(QCloseEvent* event)
   }
   const_cast<QWidget*&>(m_model.externalUI) = nullptr;
   m_model.externalUIVisible(false);
-  if (p)
+  if(p)
     QDialog::closeEvent(event);
 }
 

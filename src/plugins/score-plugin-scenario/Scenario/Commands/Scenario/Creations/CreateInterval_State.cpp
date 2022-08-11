@@ -2,18 +2,18 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateInterval_State.hpp"
 
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
 
 #include <QByteArray>
-
-#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -22,11 +22,8 @@ namespace Scenario
 namespace Command
 {
 CreateInterval_State::CreateInterval_State(
-    const Scenario::ProcessModel& scenario,
-    Id<StateModel> startState,
-    Id<EventModel> endEvent,
-    double endStateY,
-    bool graphal)
+    const Scenario::ProcessModel& scenario, Id<StateModel> startState,
+    Id<EventModel> endEvent, double endStateY, bool graphal)
     : m_createdName{RandomNameProvider::generateName<StateModel>()}
     , m_newState{getStrongId(scenario.states)}
     , m_command{scenario, std::move(startState), m_newState, graphal}
@@ -59,8 +56,7 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const
 {
-  s << m_newState << m_createdName << m_command.serialize() << m_endEvent
-    << m_stateY;
+  s << m_newState << m_createdName << m_command.serialize() << m_endEvent << m_stateY;
 }
 
 void CreateInterval_State::deserializeImpl(DataStreamOutput& s)

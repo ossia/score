@@ -7,8 +7,7 @@
 
 #include <verdigris>
 
-inline QDataStream&
-operator<<(QDataStream& i, const ossia::exec_state_facade& sel)
+inline QDataStream& operator<<(QDataStream& i, const ossia::exec_state_facade& sel)
 {
   SCORE_ABORT;
   return i;

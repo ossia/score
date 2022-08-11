@@ -1,9 +1,10 @@
 #include "IconProvider.hpp"
+
 #include <score/widgets/IconProvider.hpp>
 #include <score/widgets/Pixmap.hpp>
 
-#include <QIcon>
 #include <QFileInfo>
+#include <QIcon>
 #include <QString>
 
 namespace score

@@ -16,27 +16,22 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsToolPaletteFactory
     : public score::InterfaceBase
 {
   SCORE_INTERFACE(
-      DisplayedElementsToolPaletteFactory,
-      "0884edb9-81e4-44ff-856f-fbc772f6d683")
+      DisplayedElementsToolPaletteFactory, "0884edb9-81e4-44ff-856f-fbc772f6d683")
 public:
   virtual ~DisplayedElementsToolPaletteFactory();
 
   virtual bool matches(const IntervalModel& interval) const = 0;
 
   bool matches(
-      ScenarioDocumentPresenter& pres,
-      DisplayedElementsPresenter& presenters,
-      const IntervalModel& interval,
-      QGraphicsItem*) const
+      ScenarioDocumentPresenter& pres, DisplayedElementsPresenter& presenters,
+      const IntervalModel& interval, QGraphicsItem*) const
   {
     return matches(interval);
   }
 
   virtual std::unique_ptr<GraphicsSceneToolPalette> make(
-      ScenarioDocumentPresenter& pres,
-      DisplayedElementsPresenter& presenters,
-      const IntervalModel& interval,
-      QGraphicsItem* parent)
+      ScenarioDocumentPresenter& pres, DisplayedElementsPresenter& presenters,
+      const IntervalModel& interval, QGraphicsItem* parent)
       = 0;
 };
 }

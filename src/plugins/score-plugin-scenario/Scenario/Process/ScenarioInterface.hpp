@@ -20,18 +20,14 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
 {
 public:
   virtual ~ScenarioInterface();
-  virtual IntervalModel*
-  findInterval(const Id<IntervalModel>& intervalId) const = 0;
+  virtual IntervalModel* findInterval(const Id<IntervalModel>& intervalId) const = 0;
   virtual EventModel* findEvent(const Id<EventModel>& eventId) const = 0;
-  virtual TimeSyncModel*
-  findTimeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
+  virtual TimeSyncModel* findTimeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
   virtual StateModel* findState(const Id<StateModel>& stId) const = 0;
 
-  virtual IntervalModel&
-  interval(const Id<IntervalModel>& intervalId) const = 0;
+  virtual IntervalModel& interval(const Id<IntervalModel>& intervalId) const = 0;
   virtual EventModel& event(const Id<EventModel>& eventId) const = 0;
-  virtual TimeSyncModel&
-  timeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
+  virtual TimeSyncModel& timeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
   virtual StateModel& state(const Id<StateModel>& stId) const = 0;
 
   virtual score::IndirectContainer<IntervalModel> getIntervals() const = 0;

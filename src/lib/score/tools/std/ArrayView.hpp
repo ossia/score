@@ -43,8 +43,11 @@ public:
   }
 };
 
-#define make_dynarray(Type, Count) \
-  score::dynarray_impl<Type> { (Type*)alloca(sizeof(Type) * Count), Count }
+#define make_dynarray(Type, Count)             \
+  score::dynarray_impl<Type>                   \
+  {                                            \
+    (Type*)alloca(sizeof(Type) * Count), Count \
+  }
 
 template <typename T>
 class dynvector_impl
@@ -97,6 +100,9 @@ public:
   }
 };
 
-#define make_dynvector(Type, Count) \
-  score::dynvector_impl<Type> { (Type*)alloca(sizeof(Type) * Count), Count }
+#define make_dynvector(Type, Count)            \
+  score::dynvector_impl<Type>                  \
+  {                                            \
+    (Type*)alloca(sizeof(Type) * Count), Count \
+  }
 }

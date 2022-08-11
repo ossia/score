@@ -1,8 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+
+#include <Midi/MidiProcess.hpp>
 
 #include <score/model/EntityMapSerialization.hpp>
 
@@ -14,9 +15,7 @@ W_OBJECT_IMPL(Midi::ProcessModel)
 namespace Midi
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
         ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
@@ -37,7 +36,7 @@ ProcessModel::~ProcessModel() { }
 void ProcessModel::setChannel(int n)
 {
   n = std::clamp(n, 1, 16);
-  if (n != m_channel)
+  if(n != m_channel)
   {
     m_channel = n;
     channelChanged(n);
@@ -51,16 +50,16 @@ int ProcessModel::channel() const
 
 void ProcessModel::setRange(int min, int max)
 {
-  if (min == max)
+  if(min == max)
   {
     min = 127;
     max = 0;
 
-    for (auto& note : notes)
+    for(auto& note : notes)
     {
-      if (note.pitch() < min)
+      if(note.pitch() < min)
         min = note.pitch();
-      if (note.pitch() > max)
+      if(note.pitch() > max)
         max = note.pitch();
     }
   }
@@ -68,7 +67,7 @@ void ProcessModel::setRange(int min, int max)
   {
     min = std::max(0, min);
     max = std::min(127, max);
-    if (min >= max)
+    if(min >= max)
     {
       min = std::max(0, max - 7);
       max = std::min(127, min + 14);
@@ -76,7 +75,7 @@ void ProcessModel::setRange(int min, int max)
   }
 
   std::pair<int, int> range{min, max};
-  if (range != m_range)
+  if(range != m_range)
   {
     m_range = range;
     rangeChanged(min, max);
@@ -91,13 +90,13 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
-  if (duration() == newDuration)
+  if(duration() == newDuration)
     return;
-  if (newDuration == TimeVal::zero())
+  if(newDuration == TimeVal::zero())
     return;
   auto ratio = double(duration().impl) / newDuration.impl;
 
-  for (auto& note : notes)
+  for(auto& note : notes)
     note.scale(ratio);
 
   notesChanged();
@@ -106,14 +105,14 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  if (duration() == newDuration)
+  if(duration() == newDuration)
     return;
-  if (newDuration == TimeVal::zero())
+  if(newDuration == TimeVal::zero())
     return;
 
   auto ratio = double(duration().impl) / newDuration.impl;
 
-  for (Note& n : notes)
+  for(Note& n : notes)
     n.scale(ratio);
 
   notesChanged();
@@ -123,7 +122,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 TimeVal ProcessModel::contentDuration() const noexcept
 {
   double end_max{0.};
-  for (const Note& n : notes)
+  for(const Note& n : notes)
   {
     if(double n_end = n.start() + n.duration(); n_end > end_max)
     {
@@ -215,7 +214,7 @@ void DataStreamReader::read(const Midi::ProcessModel& proc)
   const auto& notes = proc.notes;
 
   m_stream << (int32_t)notes.size();
-  for (const auto& n : notes)
+  for(const auto& n : notes)
   {
     readFrom(n);
   }
@@ -230,7 +229,7 @@ void DataStreamWriter::write(Midi::ProcessModel& proc)
   m_stream >> proc.m_channel >> proc.m_range.first >> proc.m_range.second;
   int n;
   m_stream >> n;
-  for (int i = 0; i < n; i++)
+  for(int i = 0; i < n; i++)
   {
     proc.notes.add(new Midi::Note{*this, &proc});
   }
@@ -255,7 +254,7 @@ void JSONWriter::write(Midi::ProcessModel& proc)
     proc.outlet = Process::load_midi_outlet(writer, &proc);
   }
 
-  for (const auto& json_vref : obj["Notes"].toArray())
+  for(const auto& json_vref : obj["Notes"].toArray())
   {
     auto note = new Midi::Note{JSONObject::Deserializer{json_vref}, &proc};
     proc.notes.add(note);

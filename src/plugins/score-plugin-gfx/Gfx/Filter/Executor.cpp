@@ -1,14 +1,15 @@
 #include "Executor.hpp"
 
+#include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
+
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/TexturePort.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <Process/ExecutionSetup.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
@@ -20,9 +21,7 @@ class filter_node final : public gfx_exec_node
 {
 public:
   filter_node(
-      const isf::descriptor& isf,
-      const QString& vert,
-      const QString& frag,
+      const isf::descriptor& isf, const QString& vert, const QString& frag,
       GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
@@ -31,10 +30,7 @@ public:
     id = exec_context->ui->register_node(std::move(n));
   }
 
-  void set_script(
-      const isf::descriptor& isf,
-      const QString& vert,
-      const QString& frag)
+  void set_script(const isf::descriptor& isf, const QString& vert, const QString& frag)
   {
     exec_context->ui->unregister_node(id);
 
@@ -49,9 +45,7 @@ public:
 };
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Gfx::Filter::Model& element,
-    const Execution::Context& ctx,
-    QObject* parent)
+    Gfx::Filter::Model& element, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{element, ctx, "gfxExecutorComponent", parent}
 {
   try
@@ -59,10 +53,8 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     const auto& shader = element.processedProgram();
     const auto& desc = shader.descriptor;
 
-    auto n = ossia::make_node<filter_node>(*ctx.execState,
-        desc,
-        shader.vertex,
-        shader.fragment,
+    auto n = ossia::make_node<filter_node>(
+        *ctx.execState, desc, shader.vertex, shader.fragment,
         ctx.doc.plugin<DocumentPlugin>().exec);
 
     for(auto* outlet : element.outlets())
@@ -84,10 +76,11 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     m_oldInlets = process().inlets();
     m_oldOutlets = process().outlets();
 
-    connect(&element, &Filter::Model::programChanged,
-            this, &ProcessExecutorComponent::on_shaderChanged, Qt::DirectConnection);
+    connect(
+        &element, &Filter::Model::programChanged, this,
+        &ProcessExecutorComponent::on_shaderChanged, Qt::DirectConnection);
   }
-  catch (...)
+  catch(...)
   {
   }
 }
@@ -118,17 +111,16 @@ void ProcessExecutorComponent::on_shaderChanged()
 
   // 2. Change the script
   const auto& shader = element.processedProgram();
-  commands.push_back([n,
-                      shader = std::make_unique<ProcessedProgram>(shader)] {
+  commands.push_back([n, shader = std::make_unique<ProcessedProgram>(shader)] {
     n->set_script(shader->descriptor, shader->vertex, shader->fragment);
   });
 
   // 3. Register the inlets / outlets
-  for (std::size_t i = 0; i < inls.size(); i++)
+  for(std::size_t i = 0; i < inls.size(); i++)
   {
     setup.register_inlet(*process().inlets()[i], inls[i], node, commands);
   }
-  for (std::size_t i = 0; i < outls.size(); i++)
+  for(std::size_t i = 0; i < outls.size(); i++)
   {
     setup.register_outlet(*process().outlets()[i], outls[i], node, commands);
   }
@@ -139,14 +131,14 @@ void ProcessExecutorComponent::on_shaderChanged()
   m_oldOutlets = process().outlets();
 }
 
-std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
+std::pair<ossia::inlets, ossia::outlets>
+ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
 {
   const Execution::Context& ctx = system();
   auto& element = this->process();
 
   auto n = std::dynamic_pointer_cast<filter_node>(this->node);
   int script_index = ++n->script_index;
-
 
   // 1. Create new inlet & outlet arrays
   ossia::inlets inls;
@@ -157,9 +149,9 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
 
   std::size_t control_index = 0;
   std::weak_ptr<gfx_exec_node> weak_node = n;
-  for (auto& ctl : element.inlets())
+  for(auto& ctl : element.inlets())
   {
-    if (auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
+    if(auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
     {
       // NOTE! we do not use add_control() here as it changes the internal arrays,
       // while we will replace them after in ossia::recabler
@@ -177,18 +169,16 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
       // TODO assert that we aren't going to connect twice
       QObject::disconnect(ctrl, nullptr, this, nullptr);
       QObject::connect(
-          ctrl,
-          &Process::ControlInlet::valueChanged,
-          this,
+          ctrl, &Process::ControlInlet::valueChanged, this,
           con_unvalidated{ctx, control_index, script_index, weak_node});
 
       control_index++;
     }
-    else if (auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
+    else if(auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
     {
       inls.push_back(new ossia::audio_inlet);
     }
-    else if (auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
+    else if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
     {
       inls.push_back(new ossia::texture_inlet);
     }
@@ -199,8 +189,9 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
   //! TODO the day we have audio outputs in some GFX node
   //! propagate will need to be handled ; right now here
   //! it will cut the sound
-  auto recable = std::shared_ptr<ossia::recabler>(new ossia::recabler{n, system().execGraph, inls, outls});
-  commands.push_back([n, controls, recable] () mutable {
+  auto recable = std::shared_ptr<ossia::recabler>(
+      new ossia::recabler{n, system().execGraph, inls, outls});
+  commands.push_back([n, controls, recable]() mutable {
     using namespace std;
     (*recable)();
 

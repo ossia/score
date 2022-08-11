@@ -1,6 +1,7 @@
 #pragma once
-#include <Dataflow/PortItem.hpp>
 #include <Process/Dataflow/MinMaxFloatPort.hpp>
+
+#include <Dataflow/PortItem.hpp>
 
 #include <score/graphics/ArrowDialog.hpp>
 
@@ -12,17 +13,13 @@ namespace Dataflow
 class SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletItem : public AutomatablePortItem
 {
 public:
-  AudioOutletItem(
-      Process::Port& p,
-      const Process::Context& ctx,
-      QGraphicsItem* parent);
+  AudioOutletItem(Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent);
   ~AudioOutletItem() override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  QVariant
-  itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
   QPointer<score::ArrowDialog> m_subView{};
 };
@@ -44,37 +41,28 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final
   }
 
   void setupOutletInspector(
-      const Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override;
+      const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 
   PortItem* makePortItem(
-      Process::Outlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context) override
   {
     return new Dataflow::AudioOutletItem{port, ctx, parent};
   }
 };
 
-class SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletItem
-    : public AutomatablePortItem
+class SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletItem : public AutomatablePortItem
 {
 public:
   MinMaxFloatOutletItem(
-      Process::Port& p,
-      const Process::Context& ctx,
-      QGraphicsItem* parent);
+      Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent);
   ~MinMaxFloatOutletItem() override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  QVariant
-  itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
   QPointer<score::ArrowDialog> m_subView{};
 };
@@ -96,16 +84,11 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletFactory final
   }
 
   void setupOutletInspector(
-      const Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override;
+      const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 
   PortItem* makePortItem(
-      Process::Outlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context) override
   {
     return new Dataflow::MinMaxFloatOutletItem{port, ctx, parent};

@@ -9,11 +9,11 @@
 #include <QtGui/private/qshader_p.h>
 
 #include <isf.hpp>
+#include <score_plugin_gfx_export.h>
 
 #include <array>
 #include <optional>
 #include <verdigris>
-#include <score_plugin_gfx_export.h>
 namespace isf
 {
 struct descriptor;
@@ -70,35 +70,30 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
   {
     return (d << sp.vertex << sp.fragment);
   }
-  friend bool
-  operator==(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
+  friend bool operator==(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
     return lhs.vertex == rhs.vertex && lhs.fragment == rhs.fragment;
   }
-  friend bool
-  operator!=(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
+  friend bool operator!=(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
     return !(lhs == rhs);
   }
 
-  friend bool operator==(
-      const std::vector<QString>& lhs,
-      const ShaderSource& rhs) noexcept
+  friend bool
+  operator==(const std::vector<QString>& lhs, const ShaderSource& rhs) noexcept
   {
     SCORE_ASSERT(lhs.size() == 2);
     return lhs[0] == rhs.*(ShaderSource::specification[0].pointer)
            && lhs[1] == rhs.*(ShaderSource::specification[1].pointer);
   }
-  friend bool operator!=(
-      const std::vector<QString>& lhs,
-      const ShaderSource& rhs) noexcept
+  friend bool
+  operator!=(const std::vector<QString>& lhs, const ShaderSource& rhs) noexcept
   {
     return !(lhs == rhs);
   }
 };
 
-ShaderSource
-programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
+ShaderSource programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
 }
 
 namespace std

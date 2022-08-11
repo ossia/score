@@ -6,6 +6,10 @@
 
 #include <score/widgets/MarginLess.hpp>
 
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/basic_resolver.hpp>
+#include <boost/asio/ip/tcp.hpp>
+
 #include <QAbstractItemView>
 #include <QAction>
 #include <QDebug>
@@ -17,9 +21,6 @@
 #include <QListView>
 #include <QSpinBox>
 
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/basic_resolver.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <servus/qt/itemModel.h>
 #include <servus/servus.h>
 class QWidget;
@@ -39,11 +40,11 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
     m_serv = std::make_unique<servus::Servus>(service.toStdString());
     m_model = new servus::qt::ItemModel(*m_serv, this);
   }
-  catch (const std::exception& e)
+  catch(const std::exception& e)
   {
     qDebug() << e.what();
   }
-  catch (...)
+  catch(...)
   {
   }
 
@@ -51,9 +52,8 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   m_list->setSelectionMode(QAbstractItemView::SingleSelection);
   m_list->setModel(m_model);
 
-  connect(m_list, &QListView::doubleClicked, this, [=](const QModelIndex&) {
-    accept();
-  });
+  connect(
+      m_list, &QListView::doubleClicked, this, [=](const QModelIndex&) { accept(); });
 
   lay->addWidget(m_list);
 
@@ -68,13 +68,10 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
 
   lay->addWidget(manualWidg);
 
-  auto buttonBox
-      = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-  connect(
-      buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
-  connect(
-      buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
 
   lay->addWidget(buttonBox);
 }
@@ -97,7 +94,7 @@ void ZeroconfBrowser::accept()
   auto ip = m_manualIp->text();
   int port = m_manualPort->value();
 
-  if (!ip.isEmpty() && port > 0)
+  if(!ip.isEmpty() && port > 0)
   {
     sessionSelected("manual", ip, port, {});
     m_dialog->close();
@@ -106,14 +103,14 @@ void ZeroconfBrowser::accept()
   ip.clear();
 
   auto selection = m_list->currentIndex();
-  if (!selection.isValid())
+  if(!selection.isValid())
   {
     m_dialog->close();
     return;
   }
 
   auto dat = m_model->itemData(selection);
-  if (dat.isEmpty())
+  if(dat.isEmpty())
   {
     m_dialog->close();
     return;
@@ -123,28 +120,28 @@ void ZeroconfBrowser::accept()
 
   QMap<QString, QByteArray> text;
   const int N = m_model->rowCount(selection);
-  for (int i = 0; i < N; i++)
+  for(int i = 0; i < N; i++)
   {
     auto idx = m_model->index(i, 0, selection);
-    if (!idx.isValid())
+    if(!idx.isValid())
       continue;
 
     auto dat = m_model->itemData(idx);
-    if (!dat.empty())
+    if(!dat.empty())
     {
       auto str = dat.first().toString();
-      if (str.startsWith("servus_host = "))
+      if(str.startsWith("servus_host = "))
       {
         str.remove("servus_host = ");
-        if (ip.isEmpty())
+        if(ip.isEmpty())
           ip = std::move(str);
       }
-      else if (str.startsWith("servus_port = "))
+      else if(str.startsWith("servus_port = "))
       {
         str.remove("servus_port = ");
         port = str.toInt();
       }
-      else if (str.startsWith("servus_ip = "))
+      else if(str.startsWith("servus_ip = "))
       {
         str.remove("servus_ip = ");
         ip = str;
@@ -152,7 +149,7 @@ void ZeroconfBrowser::accept()
       else
       {
         auto res = str.split(" = ");
-        if (res.size() == 2)
+        if(res.size() == 2)
         {
           text.insert(res[0], res[1].toUtf8());
         }
@@ -164,19 +161,18 @@ void ZeroconfBrowser::accept()
   {
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::ip::tcp::resolver::query query(
-        ip.toStdString(), std::to_string(port));
+    boost::asio::ip::tcp::resolver::query query(ip.toStdString(), std::to_string(port));
     boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-    if (iter->endpoint().address().is_loopback())
+    if(iter->endpoint().address().is_loopback())
     {
       ip = "localhost";
     }
   }
-  catch (...)
+  catch(...)
   {
   }
 
-  if (!ip.isEmpty() && port > 0)
+  if(!ip.isEmpty() && port > 0)
   {
     sessionSelected(name, ip, port, text);
     m_dialog->close();

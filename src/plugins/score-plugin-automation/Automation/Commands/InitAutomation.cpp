@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InitAutomation.hpp"
 
-#include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+
+#include <Automation/AutomationModel.hpp>
 
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -13,11 +14,8 @@
 namespace Automation
 {
 InitAutomation::InitAutomation(
-    const ProcessModel& path,
-    const ::State::AddressAccessor& newaddr,
-    double newmin,
-    double newmax,
-    std::vector<Curve::SegmentData>&& segments)
+    const ProcessModel& path, const ::State::AddressAccessor& newaddr, double newmin,
+    double newmax, std::vector<Curve::SegmentData>&& segments)
     : m_path{path}
     , m_addr(newaddr)
     , m_newMin{newmin}
@@ -27,11 +25,8 @@ InitAutomation::InitAutomation(
 }
 
 InitAutomation::InitAutomation(
-    const ProcessModel& path,
-    State::AddressAccessor&& newaddr,
-    double newmin,
-    double newmax,
-    std::vector<Curve::SegmentData>&& segments)
+    const ProcessModel& path, State::AddressAccessor&& newaddr, double newmin,
+    double newmax, std::vector<Curve::SegmentData>&& segments)
     : m_path{path}
     , m_addr(std::move(newaddr))
     , m_newMin{newmin}
@@ -41,9 +36,7 @@ InitAutomation::InitAutomation(
 }
 
 InitAutomation::InitAutomation(
-    const ProcessModel& path,
-    const ::State::AddressAccessor& newaddr,
-    double newmin,
+    const ProcessModel& path, const ::State::AddressAccessor& newaddr, double newmin,
     double newmax)
     : InitAutomation(path, newaddr, newmin, newmax, {})
 {
@@ -56,7 +49,7 @@ void InitAutomation::redo(const score::DocumentContext& ctx) const
 
   auto& curve = autom.curve();
 
-  if (!m_segments.empty())
+  if(!m_segments.empty())
     curve.fromCurveData(m_segments);
 
   autom.setMin(m_newMin);

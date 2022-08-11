@@ -35,8 +35,7 @@ private:
   bool m_updating_audio = false;
   void initialize() override;
 
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
-      override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
   void timerEvent(QTimerEvent*) override;
 

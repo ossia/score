@@ -22,17 +22,16 @@ public:
   template <std::size_t N>
   QGraphicsPixmapEnum(
       const std::array<const char*, N>& arr,
-      const std::array<const char*, 2 * N>& pixmaps,
-      QGraphicsItem* parent)
+      const std::array<const char*, 2 * N>& pixmaps, QGraphicsItem* parent)
       : QGraphicsPixmapEnum{parent}
   {
     array.reserve(N);
-    for (auto str : arr)
+    for(auto str : arr)
       array.push_back(str);
 
-    for (std::size_t i = 0; i < pixmaps.size(); i++)
+    for(std::size_t i = 0; i < pixmaps.size(); i++)
     {
-      if (i % 2)
+      if(i % 2)
         off_images.emplace_back(score::get_pixmap(pixmaps[i]));
       else
         on_images.emplace_back(score::get_pixmap(pixmaps[i]));
@@ -40,16 +39,15 @@ public:
   }
 
   QGraphicsPixmapEnum(
-      std::vector<QString> arr,
-      const std::vector<QString>& pixmaps,
+      std::vector<QString> arr, const std::vector<QString>& pixmaps,
       QGraphicsItem* parent)
       : QGraphicsPixmapEnum{parent}
   {
     array = std::move(arr);
 
-    for (std::size_t i = 0; i < pixmaps.size(); i++)
+    for(std::size_t i = 0; i < pixmaps.size(); i++)
     {
-      if (i % 2)
+      if(i % 2)
         off_images.emplace_back(score::get_pixmap(pixmaps[i]));
       else
         on_images.emplace_back(score::get_pixmap(pixmaps[i]));
@@ -58,9 +56,7 @@ public:
 
   QGraphicsPixmapEnum(QGraphicsItem* parent);
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 }

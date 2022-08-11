@@ -9,17 +9,15 @@ namespace Patternist
 {
 class ProcessModel;
 class Executor final
-    : public ::Execution::
-          ProcessComponent_T<Patternist::ProcessModel, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<
+          Patternist::ProcessModel, ossia::node_process>
     , public Nano::Observer
 {
   COMPONENT_METADATA("77ddab97-b6b7-41e1-b294-81415d6c9d3e")
 public:
   static const constexpr bool is_unique = true;
   Executor(
-      Patternist::ProcessModel& element,
-      const Execution::Context& ctx,
-      QObject* parent);
+      Patternist::ProcessModel& element, const Execution::Context& ctx, QObject* parent);
   ~Executor() override;
   void stop() override;
 

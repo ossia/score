@@ -1,4 +1,5 @@
 #include "QmlObjects.hpp"
+
 #include <JS/Qml/Metatypes.hpp>
 
 #include <wobjectimpl.h>
@@ -39,7 +40,7 @@ QVariant ValueInlet::value() const
 
 void ValueInlet::setValue(QVariant value)
 {
-  if (m_value == value)
+  if(m_value == value)
     return;
 
   m_value = value;
@@ -59,7 +60,7 @@ QVariant ControlInlet::value() const
 
 void ControlInlet::setValue(QVariant value)
 {
-  if (m_value == value)
+  if(m_value == value)
     return;
 
   m_value = value;
@@ -79,7 +80,7 @@ QVariant ValueOutlet::value() const
 
 void ValueOutlet::setValue(QVariant value)
 {
-  if (m_value == value)
+  if(m_value == value)
     return;
 
   m_value = value;

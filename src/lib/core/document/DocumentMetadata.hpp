@@ -46,21 +46,14 @@ public:
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, lastEditionChanged, lastEdition)
 
   W_PROPERTY(
-      QString,
-      fileName READ fileName WRITE setFileName NOTIFY fileNameChanged,
-      W_Final)
+      QString, fileName READ fileName WRITE setFileName NOTIFY fileNameChanged, W_Final)
+  W_PROPERTY(QString, author READ author WRITE setAuthor NOTIFY authorChanged, W_Final)
   W_PROPERTY(
-      QString,
-      author READ author WRITE setAuthor NOTIFY authorChanged,
-      W_Final)
-  W_PROPERTY(
-      QDateTime,
-      creation READ creation WRITE setCreation NOTIFY creationChanged,
+      QDateTime, creation READ creation WRITE setCreation NOTIFY creationChanged,
       W_Final)
   W_PROPERTY(
       QDateTime,
-      lastEdition READ lastEdition WRITE setLastEdition NOTIFY
-          lastEditionChanged,
+      lastEdition READ lastEdition WRITE setLastEdition NOTIFY lastEditionChanged,
       W_Final)
 };
 

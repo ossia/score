@@ -67,9 +67,7 @@ void Components::erase(Component& t)
 DataStreamSerializedComponents::~DataStreamSerializedComponents() = default;
 JSONSerializedComponents::~JSONSerializedComponents() = default;
 DataStreamSerializedComponents::DataStreamSerializedComponents(
-    const Id<Component>& id,
-    DataStreamComponents obj,
-    QObject* parent)
+    const Id<Component>& id, DataStreamComponents obj, QObject* parent)
     : score::Component{id, "SerializedComponents", parent}
     , data(std::move(obj))
 {
@@ -83,26 +81,21 @@ DataStreamSerializedComponents::DataStreamSerializedComponents(
 }
 
 JSONSerializedComponents::JSONSerializedComponents(
-    const Id<Component>& id,
-    JSONComponents obj,
-    QObject* parent)
+    const Id<Component>& id, JSONComponents obj, QObject* parent)
     : score::Component{id, "SerializedComponents", parent}
     , data(std::move(obj))
 {
 }
 
-bool JSONSerializedComponents::deserializeRemaining(
-    Components& comps,
-    QObject* entity)
+bool JSONSerializedComponents::deserializeRemaining(Components& comps, QObject* entity)
 {
   auto& ctx = score::IDocument::documentContext(*entity);
-  auto& comp_factory
-      = ctx.app.interfaces<score::SerializableComponentFactoryList>();
-  for (auto it = data.begin(); it != data.end();)
+  auto& comp_factory = ctx.app.interfaces<score::SerializableComponentFactoryList>();
+  for(auto it = data.begin(); it != data.end();)
   {
     JSONObject::Deserializer s{it->second};
     auto res = deserialize_interface(comp_factory, s, ctx, entity);
-    if (res)
+    if(res)
     {
       comps.add(res);
       it = data.erase(it);
@@ -117,17 +110,15 @@ bool JSONSerializedComponents::deserializeRemaining(
 }
 
 bool DataStreamSerializedComponents::deserializeRemaining(
-    Components& components,
-    QObject* entity)
+    Components& components, QObject* entity)
 {
   auto& ctx = score::IDocument::documentContext(*entity);
-  auto& comp_factory
-      = ctx.app.interfaces<score::SerializableComponentFactoryList>();
-  for (auto it = data.begin(); it != data.end();)
+  auto& comp_factory = ctx.app.interfaces<score::SerializableComponentFactoryList>();
+  for(auto it = data.begin(); it != data.end();)
   {
     DataStream::Deserializer s{it->second};
     auto res = deserialize_interface(comp_factory, s, ctx, entity);
-    if (res)
+    if(res)
     {
       components.add(res);
       it = data.erase(it);
@@ -145,9 +136,7 @@ SerializableComponentFactory::~SerializableComponentFactory() { }
 SerializableComponentFactoryList::~SerializableComponentFactoryList() { }
 
 score::SerializableComponent* SerializableComponentFactoryList::loadMissing(
-    const VisitorVariant& vis,
-    const DocumentContext& ctx,
-    QObject* parent) const
+    const VisitorVariant& vis, const DocumentContext& ctx, QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;
@@ -156,22 +145,22 @@ score::SerializableComponent* SerializableComponentFactoryList::loadMissing(
 void deserializeRemainingComponents(score::Components& comps, QObject* obj)
 {
   // First with datastream
-  if (auto ser = findComponent<score::DataStreamSerializedComponents>(comps))
+  if(auto ser = findComponent<score::DataStreamSerializedComponents>(comps))
   {
     ser->deserializeRemaining(comps, obj);
 
     // If we deserialized everything, no point in keeping this one
-    if (ser->finished())
+    if(ser->finished())
       comps.remove(ser);
   }
 
   // Then with JSON
-  if (auto ser = findComponent<score::JSONSerializedComponents>(comps))
+  if(auto ser = findComponent<score::JSONSerializedComponents>(comps))
   {
     ser->deserializeRemaining(comps, obj);
 
     // If we deserialized everything, no point in keeping this one
-    if (ser->finished())
+    if(ser->finished())
       comps.remove(ser);
   }
 }
@@ -181,13 +170,12 @@ void deserializeRemainingComponents(score::Components& comps, QObject* obj)
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template <>
 SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read<score::SerializableComponent>(
-    const score::SerializableComponent&)
+DataStreamReader::read<score::SerializableComponent>(const score::SerializableComponent&)
 {
 }
 template <>
-SCORE_LIB_BASE_EXPORT void JSONReader::read<score::SerializableComponent>(
-    const score::SerializableComponent&)
+SCORE_LIB_BASE_EXPORT void
+JSONReader::read<score::SerializableComponent>(const score::SerializableComponent&)
 {
 }
 #endif

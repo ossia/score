@@ -11,7 +11,7 @@ class ExpressionValidator final : public QValidator
 public:
   QValidator::State validate(QString& str, int&) const override
   {
-    if (str.isEmpty())
+    if(str.isEmpty())
     {
       // Remove the condition
       m_currentExp = T{};

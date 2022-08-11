@@ -1,8 +1,8 @@
 #pragma once
+#include <Scenario/Commands/ScriptEditCommand.hpp>
+
 #include <YSFX/Commands/CommandFactory.hpp>
 #include <YSFX/ProcessModel.hpp>
-
-#include <Scenario/Commands/ScriptEditCommand.hpp>
 
 //  namespace YSFX
 //  {

@@ -2,13 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateCurveFromStates.hpp"
 
-#include <Automation/AutomationModel.hpp>
+#include <State/ValueSerialization.hpp>
+
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Process/Process.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <State/ValueSerialization.hpp>
+
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <Automation/AutomationModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -25,27 +32,21 @@
 #include <QByteArray>
 
 #include <Color/GradientModel.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 CreateAutomationFromStates::CreateAutomationFromStates(
-    const IntervalModel& interval,
-    const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> curveId,
-    State::AddressAccessor address,
-    const Curve::CurveDomain& dom,
-    bool tween)
+    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId, State::AddressAccessor address,
+    const Curve::CurveDomain& dom, bool tween)
     : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Automation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_dom{dom}
     , m_tween(tween)
 {
-  if (m_dom.max - m_dom.min < 0.000001)
+  if(m_dom.max - m_dom.min < 0.000001)
     m_dom.max = m_dom.max + 1.;
 }
 
@@ -61,8 +62,7 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
 
   // Add a segment
   auto segment = new Curve::DefaultCurveSegmentModel{
-      Id<Curve::SegmentModel>{score::id_generator::getFirstId()},
-      &autom.curve()};
+      Id<Curve::SegmentModel>{score::id_generator::getFirstId()}, &autom.curve()};
 
   double fact = 1. / (m_dom.max - m_dom.min);
   segment->setStart({0., (m_dom.start - m_dom.min) * fact});
@@ -75,7 +75,7 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
 
   autom.curve().changed();
 
-  for (const auto& cmd : m_slotsCmd)
+  for(const auto& cmd : m_slotsCmd)
     cmd.redo(ctx);
 }
 
@@ -92,13 +92,9 @@ void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 }
 
 CreateGradient::CreateGradient(
-    const IntervalModel& interval,
-    const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> curveId,
-    State::AddressAccessor address,
-    QColor start,
-    QColor end,
-    bool tween)
+    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId, State::AddressAccessor address, QColor start,
+    QColor end, bool tween)
     : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Gradient::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_start{start}
@@ -121,7 +117,7 @@ void CreateGradient::redo(const score::DocumentContext& ctx) const
   g[1.] = m_end;
   autom.setGradient(std::move(g));
 
-  for (const auto& cmd : m_slotsCmd)
+  for(const auto& cmd : m_slotsCmd)
     cmd.redo(ctx);
 }
 
@@ -181,19 +177,13 @@ void CreateInterpolationFromStates::deserializeImpl(DataStreamOutput& s)
 }
 */
 CreateProcessAndLayers::CreateProcessAndLayers(
-    const IntervalModel& interval,
-    const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> procId,
-    UuidKey<Process::ProcessModel> key)
+    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> procId, UuidKey<Process::ProcessModel> key)
     : m_addProcessCmd{
-        std::move(interval),
-        std::move(procId),
-        std::move(key),
-        QString{},
-        QPointF{}}
+        std::move(interval), std::move(procId), std::move(key), QString{}, QPointF{}}
 {
   m_slotsCmd.reserve(slotList.size());
-  for (const auto& elt : slotList)
+  for(const auto& elt : slotList)
   {
     m_slotsCmd.emplace_back(elt, procId);
   }
@@ -201,7 +191,7 @@ CreateProcessAndLayers::CreateProcessAndLayers(
 
 void CreateProcessAndLayers::undo(const score::DocumentContext& ctx) const
 {
-  for (const auto& cmd : m_slotsCmd)
+  for(const auto& cmd : m_slotsCmd)
     cmd.undo(ctx);
   m_addProcessCmd.undo(ctx);
 }
@@ -210,7 +200,7 @@ void CreateProcessAndLayers::serializeImpl(DataStreamInput& s) const
 {
   s << m_addProcessCmd.serialize();
   s << (int32_t)m_slotsCmd.size();
-  for (const auto& elt : m_slotsCmd)
+  for(const auto& elt : m_slotsCmd)
   {
     s << elt.serialize();
   }
@@ -225,7 +215,7 @@ void CreateProcessAndLayers::deserializeImpl(DataStreamOutput& s)
   int32_t n = 0;
   s >> n;
   m_slotsCmd.resize(n);
-  for (int i = 0; i < n; i++)
+  for(int i = 0; i < n; i++)
   {
     QByteArray b;
     s >> b;

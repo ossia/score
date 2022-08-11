@@ -21,7 +21,7 @@ View::View()
     m_enabled = new QCheckBox{tr("Enabled")};
 
     connect(m_enabled, &QCheckBox::stateChanged, this, [&](int t) {
-      switch (t)
+      switch(t)
       {
         case Qt::Unchecked:
           enabledChanged(false);
@@ -40,14 +40,14 @@ View::View()
 
 void View::setEnabled(bool val)
 {
-  switch (m_enabled->checkState())
+  switch(m_enabled->checkState())
   {
     case Qt::Unchecked:
-      if (val)
+      if(val)
         m_enabled->setChecked(true);
       break;
     case Qt::Checked:
-      if (!val)
+      if(!val)
         m_enabled->setChecked(false);
       break;
     default:

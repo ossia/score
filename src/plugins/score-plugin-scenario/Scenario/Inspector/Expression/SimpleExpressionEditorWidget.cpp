@@ -2,10 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SimpleExpressionEditorWidget.hpp"
 
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <State/Expression.hpp>
 #include <State/Relation.hpp>
+
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
+
+#include <Scenario/Inspector/ExpressionValidator.hpp>
+
+#include <Inspector/InspectorSectionWidget.hpp>
 
 #include <score/model/Skin.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -22,7 +26,6 @@
 #include <QPainter>
 #include <QToolButton>
 
-#include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::SimpleExpressionEditorWidget)
 namespace Scenario
@@ -72,10 +75,7 @@ public:
 };
 
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
-    const score::DocumentContext& doc,
-    int64_t index,
-    QWidget* parent,
-    QMenu* menu)
+    const score::DocumentContext& doc, int64_t index, QWidget* parent, QMenu* menu)
     : QWidget(parent)
     , id{index}
 {
@@ -117,9 +117,8 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_menuBtn = new Inspector::MenuButton{btnWidg};
   m_menuBtn->setObjectName(QStringLiteral("SettingsMenu"));
   m_menuBtn->setMaximumSize(30, 30);
-  connect(m_menuBtn, &QToolButton::clicked, menu, [menu]() {
-    menu->popup(QCursor::pos());
-  });
+  connect(
+      m_menuBtn, &QToolButton::clicked, menu, [menu]() { menu->popup(QCursor::pos()); });
 
   QSizePolicy sp = m_menuBtn->sizePolicy();
   sp.setRetainSizeWhenHidden(true);
@@ -146,28 +145,20 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   connect(m_addBtn, &QToolButton::clicked, this, [=]() { addTerm(); });
 
   /// EDIT FINISHED
-  connect(
-      m_address,
-      &Device::AddressAccessorEditWidget::addressChanged,
-      this,
-      [&]() { on_editFinished(); });
-  connect(m_comparator, &QComboBox::currentTextChanged, this, [&] {
+  connect(m_address, &Device::AddressAccessorEditWidget::addressChanged, this, [&]() {
     on_editFinished();
   });
   connect(
-      m_value,
-      &QLineEdit::editingFinished,
-      this,
+      m_comparator, &QComboBox::currentTextChanged, this, [&] { on_editFinished(); });
+  connect(
+      m_value, &QLineEdit::editingFinished, this,
       &SimpleExpressionEditorWidget::on_editFinished);
-  connect(m_binOperator, &QComboBox::currentTextChanged, this, [&] {
-    on_editFinished();
-  });
+  connect(
+      m_binOperator, &QComboBox::currentTextChanged, this, [&] { on_editFinished(); });
 
   // enable value field
   connect(
-      m_comparator,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
+      m_comparator, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       &SimpleExpressionEditorWidget::on_comparatorChanged);
 
   m_ok->setVisible(false);
@@ -184,7 +175,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   auto& lst = ExpressionEditorComparators();
 
-  for (auto& c : lst)
+  for(auto& c : lst)
   {
     m_comparator->addItem(c.second, QVariant::fromValue(c.first));
   }
@@ -196,7 +187,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   sp_retain.setRetainSizeWhenHidden(true);
   m_binOperator->setSizePolicy(sp_retain);
 
-  if (id == 0)
+  if(id == 0)
   {
     m_binOperator->setVisible(false);
   }
@@ -211,7 +202,7 @@ void SimpleExpressionEditorWidget::decreaseId()
   id--;
   SCORE_ASSERT(id >= 0);
 
-  if (id == 0)
+  if(id == 0)
     m_binOperator->setVisible(false);
   else
     m_binOperator->setCurrentIndex(1);
@@ -223,7 +214,7 @@ State::Expression SimpleExpressionEditorWidget::relation()
   QString expr = currentRelation();
 
   m_validator.validate(expr, i);
-  if (m_validator.validate(expr, i) == QValidator::State::Acceptable)
+  if(m_validator.validate(expr, i) == QValidator::State::Acceptable)
   {
     return *m_validator.get();
   }
@@ -232,10 +223,9 @@ State::Expression SimpleExpressionEditorWidget::relation()
     return State::Expression{};
 }
 
-std::optional<State::BinaryOperator>
-SimpleExpressionEditorWidget::binOperator()
+std::optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
 {
-  switch (m_binOperator->currentIndex())
+  switch(m_binOperator->currentIndex())
   {
     case 1:
       return State::BinaryOperator::AND;
@@ -250,12 +240,12 @@ void SimpleExpressionEditorWidget::setRelation(const State::Relation& r)
 {
   auto lptr = r.lhs.target<ossia::value>();
   auto rptr = r.rhs.target<ossia::value>();
-  if (lptr && rptr)
+  if(lptr && rptr)
   {
     auto lv = *lptr;
     auto rv = *rptr;
 
-    if (r.op == ossia::expressions::comparator::EQUAL && lv == rv)
+    if(r.op == ossia::expressions::comparator::EQUAL && lv == rv)
     {
       m_comparator->setCurrentIndex(ExpressionEditorComparator::AlwaysTrue);
     }
@@ -268,11 +258,11 @@ void SimpleExpressionEditorWidget::setRelation(const State::Relation& r)
   }
   else
   {
-    if (auto addr_ptr = r.lhs.target<State::Address>())
+    if(auto addr_ptr = r.lhs.target<State::Address>())
     {
       m_address->setAddress(State::AddressAccessor{*addr_ptr});
     }
-    else if (auto acc_ptr = r.lhs.target<State::AddressAccessor>())
+    else if(auto acc_ptr = r.lhs.target<State::AddressAccessor>())
     {
       m_address->setAddress(*acc_ptr);
     }
@@ -299,13 +289,12 @@ void SimpleExpressionEditorWidget::setPulse(const State::Pulse& p)
   m_relation = State::toString(p);
 
   int i;
-  m_ok->setVisible(
-      m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
+  m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
 }
 
 void SimpleExpressionEditorWidget::setOperator(State::BinaryOperator o)
 {
-  switch (o)
+  switch(o)
   {
     case State::BinaryOperator::AND:
       m_binOperator->setCurrentIndex(1);
@@ -338,7 +327,7 @@ void SimpleExpressionEditorWidget::setOperator(State::UnaryOperator u)
 void SimpleExpressionEditorWidget::on_editFinished()
 {
   QString expr = currentRelation();
-  if (expr == m_relation && m_op == currentOperator())
+  if(expr == m_relation && m_op == currentOperator())
     return;
 
   int i = 1;
@@ -346,13 +335,13 @@ void SimpleExpressionEditorWidget::on_editFinished()
   m_relation = expr;
   bool b = m_validator.validate(expr, i) == QValidator::State::Acceptable;
   m_ok->setVisible(!b);
-  if (b)
+  if(b)
     editingFinished();
 }
 
 void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
 {
-  switch (i)
+  switch(i)
   {
     case ExpressionEditorComparator::Equal:
     case ExpressionEditorComparator::Different:
@@ -394,7 +383,7 @@ QString SimpleExpressionEditorWidget::currentRelation()
 {
   QString addr = "%" + m_address->addressString() + "%";
 
-  switch (m_comparator->currentIndex())
+  switch(m_comparator->currentIndex())
   {
     case ExpressionEditorComparator::Greater:
       return addr + " > " + m_value->text();

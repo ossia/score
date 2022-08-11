@@ -1,7 +1,8 @@
 #pragma once
+#include <Process/Process.hpp>
+
 #include <JS/JSProcessMetadata.hpp>
 #include <JS/Qml/QmlObjects.hpp>
-#include <Process/Process.hpp>
 
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
@@ -19,9 +20,7 @@ struct ComponentCache
 {
 public:
   JS::Script*
-  get(const JS::ProcessModel& process,
-      const QByteArray& str,
-      bool isFile) noexcept;
+  get(const JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
   JS::Script* tryGet(const QByteArray& str, bool isFile) const noexcept;
   ComponentCache();
   ~ComponentCache();
@@ -45,9 +44,7 @@ public:
   static constexpr bool hasExternalUI() noexcept { return true; }
 
   explicit ProcessModel(
-      const TimeVal& duration,
-      const QString& data,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   template <typename Impl>

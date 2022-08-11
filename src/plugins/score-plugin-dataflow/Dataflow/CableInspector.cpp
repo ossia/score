@@ -2,10 +2,10 @@
 
 #include <Dataflow/Commands/EditConnection.hpp>
 
+#include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <score/document/DocumentContext.hpp>
 
 #include <QVBoxLayout>
 
@@ -14,13 +14,12 @@ namespace Dataflow
 {
 static void fillPortName(QString& name, const Process::Port& port)
 {
-  if (auto p = port.parent())
+  if(auto p = port.parent())
   {
-    auto model
-        = p->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
-    if (model)
+    auto model = p->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
+    if(model)
     {
-      if (!port.name().isEmpty())
+      if(!port.name().isEmpty())
       {
         name += QString(": %1 (%2)").arg(port.name()).arg(model->getName());
       }
@@ -31,16 +30,14 @@ static void fillPortName(QString& name, const Process::Port& port)
     }
     else
     {
-      if ((p = p->parent()))
+      if((p = p->parent()))
       {
-        model = p->findChild<score::ModelMetadata*>(
-            {}, Qt::FindDirectChildrenOnly);
-        if (model)
+        model = p->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
+        if(model)
         {
-          if (!port.name().isEmpty())
+          if(!port.name().isEmpty())
           {
-            name
-                += QString(": %1 (%2)").arg(port.name()).arg(model->getName());
+            name += QString(": %1 (%2)").arg(port.name()).arg(model->getName());
           }
           else
           {
@@ -53,26 +50,19 @@ static void fillPortName(QString& name, const Process::Port& port)
 }
 
 CableWidget::CableWidget(
-    const Process::Cable& cable,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    const Process::Cable& cable, const score::DocumentContext& ctx, QWidget* parent)
     : InspectorWidgetBase{cable, ctx, parent, tr("Cable")}
     , m_selectionDispatcher{ctx.selectionStack}
 {
   m_cableType.addItems(
-      {tr("Immediate Glutton"),
-       tr("Immediate Strict"),
-       tr("Delayed Glutton"),
+      {tr("Immediate Glutton"), tr("Immediate Strict"), tr("Delayed Glutton"),
        tr("Delayed Strict")});
   m_cableType.setCurrentIndex((int)cable.type());
 
-  con(m_cableType,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
-      [&](int idx) {
-        CommandDispatcher<> c{ctx.commandStack};
-        c.submit<Dataflow::UpdateCable>(cable, (Process::CableType)idx);
-      });
+  con(m_cableType, SignalUtils::QComboBox_currentIndexChanged_int(), this, [&](int idx) {
+    CommandDispatcher<> c{ctx.commandStack};
+    c.submit<Dataflow::UpdateCable>(cable, (Process::CableType)idx);
+  });
 
   this->updateAreaLayout({&m_cableType, &m_portList});
 
@@ -109,8 +99,7 @@ CableInspectorFactory::CableInspectorFactory()
 }
 
 QWidget* CableInspectorFactory::make(
-    const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc,
+    const InspectedObjects& sourceElements, const score::DocumentContext& doc,
     QWidget* parent) const
 {
   return new CableWidget{

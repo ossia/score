@@ -4,20 +4,22 @@
 
 #include "RefreshStatesMacro.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/selection/SelectionStack.hpp>
+#include <Process/State/MessageNode.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <vector>
 
@@ -32,17 +34,16 @@ void RefreshStates(const score::DocumentContext& doc)
   // Fetch the selected intervals
 
   // TODO this method can also be used in ScoreCohesion's other algorithms.
-  auto selected_states = filterSelectionByType<StateModel>(
-      doc.selectionStack.currentSelection());
+  auto selected_states
+      = filterSelectionByType<StateModel>(doc.selectionStack.currentSelection());
 
   RefreshStates(selected_states, doc);
 }
 
 void RefreshStates(
-    const std::vector<const StateModel*>& states,
-    const score::DocumentContext& doc)
+    const std::vector<const StateModel*>& states, const score::DocumentContext& doc)
 {
-  if (states.empty())
+  if(states.empty())
     return;
 
   auto& stack = doc.commandStack;
@@ -50,11 +51,11 @@ void RefreshStates(
 
   auto macro = new RefreshStatesMacro;
 
-  for (auto st : states)
+  for(auto st : states)
   {
     const auto& state = *st;
     auto messages = flatten(state.messages().rootNode());
-    for (auto& elt : messages)
+    for(auto& elt : messages)
     {
       auto val = proxy.refreshRemoteValue(elt.address.address);
       SCORE_TODO; // FIXME merge the value with the address accessor

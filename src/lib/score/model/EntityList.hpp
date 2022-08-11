@@ -16,10 +16,7 @@ public:
   // The real interface starts here
   using value_type = T;
   auto begin() const { return score::make_indirect_iterator(m_list.begin()); }
-  auto cbegin() const
-  {
-    return score::make_indirect_iterator(m_list.cbegin());
-  }
+  auto cbegin() const { return score::make_indirect_iterator(m_list.cbegin()); }
   auto end() const { return score::make_indirect_iterator(m_list.end()); }
   auto cend() const { return score::make_indirect_iterator(m_list.cend()); }
   auto size() const { return m_list.size(); }
@@ -57,8 +54,7 @@ public:
 
   auto index(const Id<T>& id) const
   {
-    auto it
-        = ossia::find_if(m_list, [&](auto ptr) { return ptr->id() == id; });
+    auto it = ossia::find_if(m_list, [&](auto ptr) { return ptr->id() == id; });
     ;
     SCORE_ASSERT(it != m_list.end());
     return std::distance(m_list.begin(), it);
@@ -112,7 +108,7 @@ public:
 
   void clear()
   {
-    while (!m_list.empty())
+    while(!m_list.empty())
     {
       remove(*m_list.begin());
     }

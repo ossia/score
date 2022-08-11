@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -7,9 +8,9 @@
 
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-#include <score_plugin_deviceexplorer_export.h>
-
 #include <ossia/detail/hash_map.hpp>
+
+#include <score_plugin_deviceexplorer_export.h>
 
 #include <thread>
 #include <verdigris>
@@ -21,9 +22,7 @@ using network_context_ptr = std::shared_ptr<network_context>;
 }
 
 UUID_METADATA(
-    ,
-    score::DocumentPluginFactory,
-    Explorer::DeviceDocumentPlugin,
+    , score::DocumentPluginFactory, Explorer::DeviceDocumentPlugin,
     "6e610e1f-9de2-4c36-90dd-0ef570002a21")
 
 namespace Explorer
@@ -37,16 +36,11 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
 
   MODEL_METADATA_IMPL_HPP(DeviceDocumentPlugin)
 public:
-  explicit DeviceDocumentPlugin(
-      const score::DocumentContext& ctx,
-      QObject* parent);
+  explicit DeviceDocumentPlugin(const score::DocumentContext& ctx, QObject* parent);
 
   virtual ~DeviceDocumentPlugin();
   template <typename Impl>
-  DeviceDocumentPlugin(
-      const score::DocumentContext& ctx,
-      Impl& vis,
-      QObject* parent)
+  DeviceDocumentPlugin(const score::DocumentContext& ctx, Impl& vis, QObject* parent)
       : score::SerializableDocumentPlugin{ctx, vis, parent}
   {
     init();
@@ -82,7 +76,10 @@ public:
 
   void reconnect(const QString&);
 
-  const ossia::net::network_context_ptr& networkContext() const noexcept { return m_asioContext; }
+  const ossia::net::network_context_ptr& networkContext() const noexcept
+  {
+    return m_asioContext;
+  }
 
 private:
   void initDevice(Device::DeviceInterface&);
@@ -96,9 +93,7 @@ private:
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
-  ossia::fast_hash_map<
-      Device::DeviceInterface*,
-      std::vector<QMetaObject::Connection>>
+  ossia::fast_hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>>
       m_connections;
 
   void asyncConnect(Device::DeviceInterface& newdev);

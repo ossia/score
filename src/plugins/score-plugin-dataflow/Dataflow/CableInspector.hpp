@@ -21,9 +21,7 @@ class CableWidget final : public Inspector::InspectorWidgetBase
 
 public:
   CableWidget(
-      const Process::Cable& cable,
-      const score::DocumentContext& ctx,
-      QWidget* parent);
+      const Process::Cable& cable, const score::DocumentContext& ctx, QWidget* parent);
 };
 
 class CableInspectorFactory final : public Inspector::InspectorWidgetFactory
@@ -33,8 +31,7 @@ public:
   CableInspectorFactory();
 
   QWidget* make(
-      const InspectedObjects& sourceElements,
-      const score::DocumentContext& doc,
+      const InspectedObjects& sourceElements, const score::DocumentContext& doc,
       QWidget* parent) const override;
 
   bool matches(const InspectedObjects& objects) const override;

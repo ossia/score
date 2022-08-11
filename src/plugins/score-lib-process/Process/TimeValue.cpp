@@ -13,7 +13,7 @@ TimeVal::TimeVal(const QTime& t) noexcept
 
 QTime TimeVal::toQTime() const noexcept
 {
-  if (infinite())
+  if(infinite())
     return QTime(23, 59, 59, 999);
   else
     return QTime(0, 0, 0, 0).addMSecs(msec());
@@ -26,9 +26,7 @@ QString TimeVal::toString() const noexcept
       .arg(
           qT.hour() != 0 ? QString::number(qT.hour()) % QStringLiteral(" h ")
                          : QString(),
-          qT.minute() != 0
-              ? QString::number(qT.minute()) % QStringLiteral(" min ")
-              : QString(),
-          QString::number(qT.second()),
-          QString::number(qT.msec()));
+          qT.minute() != 0 ? QString::number(qT.minute()) % QStringLiteral(" min ")
+                           : QString(),
+          QString::number(qT.second()), QString::number(qT.msec()));
 }

@@ -20,8 +20,7 @@ public:
   virtual ~AddressValidator();
   QValidator::State validate(QString& s, int& pos) const override
   {
-    return ::State::Address::validateString(s) ? State::Acceptable
-                                               : State::Intermediate;
+    return ::State::Address::validateString(s) ? State::Acceptable : State::Intermediate;
   }
 };
 
@@ -43,9 +42,8 @@ public:
   virtual ~AddressFragmentValidator();
   QValidator::State validate(QString& s, int& pos) const override
   {
-    return ::State::Address::validateFragment(s)
-               ? QValidator::State::Acceptable
-               : QValidator::State::Invalid;
+    return ::State::Address::validateFragment(s) ? QValidator::State::Acceptable
+                                                 : QValidator::State::Invalid;
   }
 };
 }

@@ -100,7 +100,7 @@ public:
       : score::IntSlider{parent}
   {
     array.reserve(N);
-    for (auto str : arr)
+    for(auto str : arr)
       array.push_back(str);
   }
 

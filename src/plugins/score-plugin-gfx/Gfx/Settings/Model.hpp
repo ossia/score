@@ -40,10 +40,7 @@ public:
   void GraphicsApiChanged(QString arg)
       E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, GraphicsApiChanged, arg)
   PROPERTY(
-      QString,
-      GraphicsApi,
-      &Model::getGraphicsApi,
-      &Model::setGraphicsApi,
+      QString, GraphicsApi, &Model::getGraphicsApi, &Model::setGraphicsApi,
       &Model::GraphicsApiChanged)
 };
 

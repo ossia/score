@@ -1,21 +1,21 @@
-#include <Media/SndfileDecoder.hpp>
 #include <Media/MediaFileHandle.hpp>
+#include <Media/SndfileDecoder.hpp>
+
+#include <QDebug>
 
 #include <new>
-#include <QDebug>
 
 #if __has_include(<sndfile.h>)
 #include <sndfile.h>
 namespace Media
 {
 
-SndfileDecoder::SndfileDecoder()
+SndfileDecoder::SndfileDecoder() { }
+
+struct sndfile_deleter
 {
-
-}
-
-struct sndfile_deleter {
-  void operator()(SNDFILE* ptr) {
+  void operator()(SNDFILE* ptr)
+  {
     if(ptr)
       sf_close(ptr);
   }
@@ -37,20 +37,17 @@ void SndfileDecoder::decode(const QString& path, audio_handle hdl)
   // Read the data
   switch(info.channels)
   {
-    case 0:
-    {
+    case 0: {
       return;
     }
-    case 1:
-    {
+    case 1: {
       hdl->data.resize(1);
       hdl->data[0].resize(info.frames);
       sf_readf_float(sf.get(), hdl->data[0].data(), info.frames);
       break;
     }
-    default:
-    {
-      auto buf = new (std::nothrow) float[info.channels * info.frames];
+    default: {
+      auto buf = new(std::nothrow) float[info.channels * info.frames];
       if(!buf)
       {
         qDebug() << "Could not allocate memory for soundfile";
@@ -68,7 +65,8 @@ void SndfileDecoder::decode(const QString& path, audio_handle hdl)
       // Copy by deinterleaving
       auto& res = hdl->data;
       std::size_t frame = 0;
-      for(std::size_t i = 0, N = info.frames * info.channels; i < N; i += info.channels) {
+      for(std::size_t i = 0, N = info.frames * info.channels; i < N; i += info.channels)
+      {
 
         for(int s = 0; s < info.channels; ++s)
           res[s][frame] = buf[i + s];
@@ -108,7 +106,7 @@ std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
 
   sf_seek(sf.get(), info.frames, SF_SEEK_END);
   SF_LOOP_INFO loop;
-  sf_command(sf.get(), SFC_GET_LOOP_INFO, &loop, sizeof (loop)) ;
+  sf_command(sf.get(), SFC_GET_LOOP_INFO, &loop, sizeof(loop));
   if(loop.bpm > 0.001)
   {
     ret.tempo = loop.bpm;
@@ -126,13 +124,9 @@ std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
 
 namespace Media
 {
-SndfileDecoder::SndfileDecoder()
-{
-}
+SndfileDecoder::SndfileDecoder() { }
 
-void SndfileDecoder::decode(const QString& path, audio_handle hdl)
-{
-}
+void SndfileDecoder::decode(const QString& path, audio_handle hdl) { }
 
 std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
 {

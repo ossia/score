@@ -1,8 +1,9 @@
 #pragma once
-#include <Media/MediaFileHandle.hpp>
-#include <Media/Sound/SoundMetadata.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
+
+#include <Media/MediaFileHandle.hpp>
+#include <Media/Sound/SoundMetadata.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -31,9 +32,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
 
 public:
   explicit ProcessModel(
-      const TimeVal& duration,
-      const QString& data,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel() override;
@@ -48,7 +47,6 @@ public:
     vis.writeTo(*this);
     init();
   }
-
 
   /**
    * Will load a new audio file, load its tempo, etc
@@ -85,15 +83,13 @@ public:
   void nativeTempoChanged(double t) W_SIGNAL(nativeTempoChanged, t);
   void upmixChannelsChanged(int upmixChannels)
       W_SIGNAL(upmixChannelsChanged, upmixChannels);
-  void startChannelChanged(int startChannel)
-      W_SIGNAL(startChannelChanged, startChannel);
+  void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
   void stretchModeChanged(ossia::audio_stretch_mode mode)
       W_SIGNAL(stretchModeChanged, mode);
 
   PROPERTY(
       int,
-      startChannel READ startChannel WRITE setStartChannel NOTIFY
-          startChannelChanged,
+      startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged,
       W_Final)
   PROPERTY(
       int,
@@ -102,13 +98,11 @@ public:
       W_Final)
   PROPERTY(
       double,
-      nativeTempo READ nativeTempo WRITE setNativeTempo NOTIFY
-          nativeTempoChanged,
+      nativeTempo READ nativeTempo WRITE setNativeTempo NOTIFY nativeTempoChanged,
       W_Final)
   PROPERTY(
       ossia::audio_stretch_mode,
-      stretchMode READ stretchMode WRITE setStretchMode NOTIFY
-          stretchModeChanged,
+      stretchMode READ stretchMode WRITE setStretchMode NOTIFY stretchModeChanged,
       W_Final)
 
 private:

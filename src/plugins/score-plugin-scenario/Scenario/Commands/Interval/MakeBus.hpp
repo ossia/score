@@ -1,11 +1,11 @@
 #pragma once
-#include <score/command/Command.hpp>
-
-#include <ossia/detail/algorithms.hpp>
-
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <score/command/Command.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 namespace Scenario
 {
@@ -30,7 +30,7 @@ public:
   {
     auto& doc = m_doc.find(ctx);
     auto& itv = m_itv.find(ctx);
-    if (m_old)
+    if(m_old)
       doc.addBus(&itv);
     else
       doc.removeBus(&itv);
@@ -39,7 +39,7 @@ public:
   {
     auto& doc = m_doc.find(ctx);
     auto& itv = m_itv.find(ctx);
-    if (m_new)
+    if(m_new)
       doc.addBus(&itv);
     else
       doc.removeBus(&itv);

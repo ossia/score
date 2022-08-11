@@ -9,10 +9,7 @@ namespace score
 FileDownloader::FileDownloader(QUrl imageUrl)
 {
   connect(
-      &m_mgr,
-      &QNetworkAccessManager::finished,
-      this,
-      &FileDownloader::fileDownloaded);
+      &m_mgr, &QNetworkAccessManager::finished, this, &FileDownloader::fileDownloaded);
 
   QNetworkRequest req(imageUrl);
   req.setRawHeader("User-Agent", "curl/7.35.0");

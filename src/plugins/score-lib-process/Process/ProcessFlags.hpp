@@ -16,51 +16,51 @@ class EffectFactory;
 enum ProcessFlags : int64_t
 {
   //! Can be loaded as a process of an interval
-  SupportsTemporal =   SCORE_FLAG(0),
+  SupportsTemporal = SCORE_FLAG(0),
 
   //! The process won't change if the parent duration changes (eg it's a filter)
-  TimeIndependent =    SCORE_FLAG(1),
+  TimeIndependent = SCORE_FLAG(1),
 
   //! Can be loaded in a state
-  SupportsState =      SCORE_FLAG(2),
+  SupportsState = SCORE_FLAG(2),
 
   //! Action from the user required upon creation
   RequiresCustomData = SCORE_FLAG(3),
 
   //! When created in an interval, go on the top slot or in a new slot
-  PutInNewSlot =       SCORE_FLAG(4),
+  PutInNewSlot = SCORE_FLAG(4),
 
   //! The presenter / view already handles rendering when the model loops.
-  HandlesLooping =     SCORE_FLAG(5),
+  HandlesLooping = SCORE_FLAG(5),
 
   //! The process supports being exposed to the ControlSurface
-  ControlSurface =     SCORE_FLAG(6),
+  ControlSurface = SCORE_FLAG(6),
 
   //! The process's item handles all the decoration (won't be title, etc)
-  FullyCustomItem =    SCORE_FLAG(7),
+  FullyCustomItem = SCORE_FLAG(7),
 
   //! The process supports adding new controls (for audio plug-ins, LV2 etc):
   //! this will show the UI in the inspector
-  CanCreateControls =  SCORE_FLAG(8),
+  CanCreateControls = SCORE_FLAG(8),
 
   //! The process is currently creating new controls (the runtime state changed by the user)
-  CreateControls =     SCORE_FLAG(9),
+  CreateControls = SCORE_FLAG(9),
 
   //! The process is snapshottable
-  Snapshottable =      SCORE_FLAG(10),
+  Snapshottable = SCORE_FLAG(10),
 
   //! The process is recordable
-  Recordable =         SCORE_FLAG(11),
+  Recordable = SCORE_FLAG(11),
 
   SupportsLasting = SupportsTemporal | TimeIndependent,
-  ExternalEffect = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
+  ExternalEffect
+  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
   SupportsAll = SupportsTemporal | TimeIndependent | SupportsState
 };
 
-
 constexpr ProcessFlags operator|(ProcessFlags a, ProcessFlags b) noexcept
 {
-  return ProcessFlags((int64_t) a | (int64_t) b);
+  return ProcessFlags((int64_t)a | (int64_t)b);
 }
 
 constexpr ProcessFlags operator|=(ProcessFlags& a, ProcessFlags b) noexcept

@@ -1,11 +1,12 @@
 #pragma once
+#include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/GenericProcessFactory.hpp>
+#include <Process/Process.hpp>
+
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Text/Metadata.hpp>
 #include <Library/LibraryInterface.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
-#include <Process/GenericProcessFactory.hpp>
-#include <Process/Process.hpp>
 
 #include <score/command/PropertyCommand.hpp>
 namespace Gfx::Text
@@ -18,10 +19,7 @@ class Model final : public Process::ProcessModel
 
 public:
   constexpr bool hasExternalUI() { return false; }
-  Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent)

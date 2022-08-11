@@ -1,29 +1,28 @@
 #include "Process.hpp"
 
-#include <Nodal/Commands.hpp>
-#include <Process/ProcessList.hpp>
-#include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Dataflow/CableCopy.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/ProcessList.hpp>
 
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <Nodal/Commands.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMapSerialization.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/std/Invoke.hpp>
 
-#include <wobjectimpl.h>
-
 #include <QApplication>
+
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Nodal::Model)
 namespace Nodal
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    const score::DocumentContext& ctx,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const score::DocumentContext& ctx, QObject* parent)
     : Process::ProcessModel{duration, id, "NodalProcess", parent}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
@@ -43,41 +42,44 @@ QString Model::prettyName() const noexcept
 
 void Model::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
-  for (Process::ProcessModel& n : this->nodes)
+  for(Process::ProcessModel& n : this->nodes)
     n.setParentDuration(ExpandMode::Scale, newDuration);
 }
 
 void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
-  for (Process::ProcessModel& n : this->nodes)
+  for(Process::ProcessModel& n : this->nodes)
     n.setParentDuration(ExpandMode::GrowShrink, newDuration);
 }
 
 void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  for (Process::ProcessModel& n : this->nodes)
+  for(Process::ProcessModel& n : this->nodes)
     n.setParentDuration(ExpandMode::GrowShrink, newDuration);
 }
 
 void Model::ancestorStartDateChanged()
 {
-  for (Process::ProcessModel& n : this->nodes)
+  for(Process::ProcessModel& n : this->nodes)
     n.ancestorStartDateChanged();
 }
 
 void Model::ancestorTempoChanged()
 {
-  for (Process::ProcessModel& n : this->nodes)
+  for(Process::ProcessModel& n : this->nodes)
     n.ancestorTempoChanged();
 }
 
-bool NodeEditor::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
+bool NodeEditor::copy(
+    JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
   return false;
 }
 
-bool NodeEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx)
+bool NodeEditor::paste(
+    QPoint pos, QObject* focusedObject, const QMimeData& mime,
+    const score::DocumentContext& ctx)
 {
   SCORE_TODO;
   return false;
@@ -107,9 +109,7 @@ bool NodeEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     for(auto [p, m] : nodes)
       disp->submit(new RemoveNode{*m, *p});
 
-    ossia::qt::run_async(qApp, [d = std::move(disp)] {
-      d->commit();
-    });
+    ossia::qt::run_async(qApp, [d = std::move(disp)] { d->commit(); });
     return true;
   }
   return false;
@@ -150,7 +150,7 @@ void DataStreamReader::read(const Nodal::Model& proc)
 
   // Nodes
   m_stream << (int32_t)proc.nodes.size();
-  for (const auto& node : proc.nodes)
+  for(const auto& node : proc.nodes)
     readFrom(node);
 
   insertDelimiter();
@@ -167,10 +167,10 @@ void DataStreamWriter::write(Nodal::Model& process)
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
   int32_t process_count = 0;
   m_stream >> process_count;
-  for (; process_count-- > 0;)
+  for(; process_count-- > 0;)
   {
     auto proc = deserialize_interface(pl, *this, process.m_context, &process);
-    if (proc)
+    if(proc)
     {
       process.nodes.add(proc);
     }
@@ -204,11 +204,11 @@ void JSONWriter::write(Nodal::Model& proc)
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
   const auto& nodes = obj["Nodes"].toArray();
-  for (const auto& json_vref : nodes)
+  for(const auto& json_vref : nodes)
   {
     JSONObject::Deserializer deserializer{json_vref};
     auto p = deserialize_interface(pl, deserializer, proc.m_context, &proc);
-    if (p)
+    if(p)
       proc.nodes.add(p);
     else
       SCORE_TODO;

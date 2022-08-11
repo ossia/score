@@ -12,8 +12,7 @@ W_OBJECT_IMPL(score::QGraphicsLogSlider);
 
 namespace score
 {
-template void
-QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
+template void QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
 
 QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
     : QGraphicsSliderBase{parent}
@@ -78,8 +77,7 @@ void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
-void QGraphicsLogSlider::contextMenuEvent(
-    QGraphicsSceneContextMenuEvent* event)
+void QGraphicsLogSlider::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
 }
@@ -90,16 +88,11 @@ void QGraphicsLogSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 }
 
 void QGraphicsLogSlider::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this,
-      score::Skin::instance(),
-      QString::number(
-          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
-      painter,
-      widget);
+      *this, score::Skin::instance(),
+      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      painter, widget);
 }
 }

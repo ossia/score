@@ -1,9 +1,10 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Vst3/Plugin.hpp>
 
 #include <score/tools/std/Invoke.hpp>
@@ -21,24 +22,12 @@ class Model;
 class ControlInlet;
 }
 PROCESS_METADATA(
-    ,
-    vst3::Model,
-    "4cc30435-3237-4e94-a79e-1c2bd6b724a1",
-    "VST 3",
-    "VST 3",
-    Process::ProcessCategory::Other,
-    "Plugins",
-    "VST 3 plug-in",
-    "VST is a trademark of Steinberg Media Technologies GmbH",
-    {},
-    {},
-    {},
+    , vst3::Model, "4cc30435-3237-4e94-a79e-1c2bd6b724a1", "VST 3", "VST 3",
+    Process::ProcessCategory::Other, "Plugins", "VST 3 plug-in",
+    "VST is a trademark of Steinberg Media Technologies GmbH", {}, {}, {},
     Process::ProcessFlags::ExternalEffect)
 UUID_METADATA(
-    ,
-    Process::Port,
-    vst3::ControlInlet,
-    "82b24dd8-fbc0-43a6-adfa-7bb29ca48660")
+    , Process::Port, vst3::ControlInlet, "82b24dd8-fbc0-43a6-adfa-7bb29ca48660")
 DESCRIPTION_METADATA(, vst3::Model, "VST")
 namespace vst3
 {
@@ -56,10 +45,7 @@ class Model final : public Process::ProcessModel
 public:
   PROCESS_METADATA_IMPL(Model)
   Model(
-      TimeVal t,
-      const QString& name,
-      const Id<Process::ProcessModel>&,
-      QObject* parent);
+      TimeVal t, const QString& name, const Id<Process::ProcessModel>&, QObject* parent);
 
   ~Model() override;
   template <typename Impl>

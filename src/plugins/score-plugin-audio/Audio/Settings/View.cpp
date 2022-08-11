@@ -25,22 +25,17 @@ View::View()
   m_Driver = new QComboBox{m_widg};
   lay->addRow(tr("Driver"), m_Driver);
   auto& list = score::GUIAppContext().interfaces<AudioFactoryList>();
-  for (AudioFactory& drv : list)
+  for(AudioFactory& drv : list)
   {
-    if (drv.available())
+    if(drv.available())
     {
-      m_Driver->addItem(
-          drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
+      m_Driver->addItem(drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
     }
   }
 
   connect(
-      m_Driver,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
-      [this](int i) {
-        const auto key
-            = m_Driver->itemData(i).value<AudioFactory::ConcreteKey>();
+      m_Driver, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {
+        const auto key = m_Driver->itemData(i).value<AudioFactory::ConcreteKey>();
         DriverChanged(key);
       });
 
@@ -58,7 +53,7 @@ QWidget* View::getWidget()
 void View::setDriver(AudioFactory::ConcreteKey k)
 {
   int idx = m_Driver->findData(QVariant::fromValue(k));
-  if (idx != m_Driver->currentIndex())
+  if(idx != m_Driver->currentIndex())
   {
     m_Driver->setCurrentIndex(idx);
   }
@@ -69,27 +64,27 @@ void View::setDriverWidget(QWidget* w)
   delete m_curDriver;
   m_curDriver = w;
 
-  if (w)
+  if(w)
     m_sw->layout()->addWidget(m_curDriver);
 }
 
 void View::setRate(int val)
 {
-  if (m_curDriver)
+  if(m_curDriver)
   {
-    if (auto cb = m_curDriver->findChild<QComboBox*>("Rate"))
+    if(auto cb = m_curDriver->findChild<QComboBox*>("Rate"))
     {
       int idx = cb->findData(QVariant::fromValue(val));
-      if (idx != -1 && idx != cb->currentIndex())
+      if(idx != -1 && idx != cb->currentIndex())
         cb->setCurrentIndex(idx);
       else
       {
         idx = cb->findText(QString::number(val));
-        if (idx != -1 && idx != cb->currentIndex())
+        if(idx != -1 && idx != cb->currentIndex())
           cb->setCurrentIndex(idx);
       }
     }
-    else if (auto label = m_curDriver->findChild<QLabel*>("Rate"))
+    else if(auto label = m_curDriver->findChild<QLabel*>("Rate"))
     {
       label->setText(QString::number(val));
     }
@@ -98,21 +93,21 @@ void View::setRate(int val)
 
 void View::setBufferSize(int val)
 {
-  if (m_curDriver)
+  if(m_curDriver)
   {
-    if (auto cb = m_curDriver->findChild<QComboBox*>("BufferSize"))
+    if(auto cb = m_curDriver->findChild<QComboBox*>("BufferSize"))
     {
       int idx = cb->findData(QVariant::fromValue(val));
-      if (idx != -1 && idx != cb->currentIndex())
+      if(idx != -1 && idx != cb->currentIndex())
         cb->setCurrentIndex(idx);
       else
       {
         idx = cb->findText(QString::number(val));
-        if (idx != -1 && idx != cb->currentIndex())
+        if(idx != -1 && idx != cb->currentIndex())
           cb->setCurrentIndex(idx);
       }
     }
-    else if (auto label = m_curDriver->findChild<QLabel*>("BufferSize"))
+    else if(auto label = m_curDriver->findChild<QLabel*>("BufferSize"))
     {
       label->setText(QString::number(val));
     }

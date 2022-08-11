@@ -24,9 +24,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsToggle final
 
 public:
   QGraphicsToggle(
-      const QString& textUntoggled,
-      const QString& textToggled,
-      QGraphicsItem* parent);
+      const QString& textUntoggled, const QString& textToggled, QGraphicsItem* parent);
 
   void toggle();
   void setState(bool toggled);
@@ -38,9 +36,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 }

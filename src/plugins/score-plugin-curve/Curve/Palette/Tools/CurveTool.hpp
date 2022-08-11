@@ -23,40 +23,34 @@ public:
 protected:
   template <typename PointFun, typename SegmentFun, typename NothingFun>
   void mapTopItem(
-      QPointF scenePoint,
-      const QGraphicsItem* pressedItem,
-      PointFun pt_fun,
-      SegmentFun seg_fun,
-      NothingFun nothing_fun) const
+      QPointF scenePoint, const QGraphicsItem* pressedItem, PointFun pt_fun,
+      SegmentFun seg_fun, NothingFun nothing_fun) const
   {
-    if (!pressedItem)
+    if(!pressedItem)
     {
       nothing_fun();
       return;
     }
 
-    switch (pressedItem->type())
+    switch(pressedItem->type())
     {
-      case PointView::Type:
-      {
+      case PointView::Type: {
         auto pt = safe_cast<const PointView*>(pressedItem);
-        if (pt->contains(pt->mapFromScene(scenePoint)))
+        if(pt->contains(pt->mapFromScene(scenePoint)))
           pt_fun(pt);
         break;
       }
 
-      case SegmentView::Type:
-      {
+      case SegmentView::Type: {
         auto segt = safe_cast<const SegmentView*>(pressedItem);
-        if (segt->contains(segt->mapFromScene(scenePoint)))
+        if(segt->contains(segt->mapFromScene(scenePoint)))
         {
           seg_fun(segt);
         }
         break;
       }
 
-      default:
-      {
+      default: {
         nothing_fun();
         break;
       }
@@ -65,8 +59,7 @@ protected:
 
   template <typename Model>
   void select(
-      const Model& model,
-      const Selection& selected,
+      const Model& model, const Selection& selected,
       bool multi = CommonSelectionState::multiSelection())
   {
     score::SelectionDispatcher{context().selectionStack}.select(

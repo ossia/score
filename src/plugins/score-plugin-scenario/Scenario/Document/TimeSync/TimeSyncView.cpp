@@ -6,6 +6,9 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+
 #include <score/model/ModelMetadata.hpp>
 
 #include <ossia/detail/hash_map.hpp>
@@ -16,9 +19,6 @@
 #include <QPainter>
 #include <QPen>
 #include <qnamespace.h>
-
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -32,12 +32,12 @@ static ossia::fast_hash_map<QRgb, QPixmap> timeSyncPixmaps;
 const QPixmap& TimeSyncView::pixmap(const score::Brush& b)
 {
   auto col = b.color().rgba();
-  if (auto it = timeSyncPixmaps.find(col); it != timeSyncPixmaps.end())
+  if(auto it = timeSyncPixmaps.find(col); it != timeSyncPixmaps.end())
     return it->second;
 
   static QPainterPath p = [] {
     QPainterPath p;
-    for (double i = 0; i < 1000.; i += 2.)
+    for(double i = 0; i < 1000.; i += 2.)
     {
       p.lineTo(0., i * 4 + 1);
       p.moveTo(0., i * 4 + 2);
@@ -78,13 +78,11 @@ TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
 TimeSyncView::~TimeSyncView() { }
 
 void TimeSyncView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto height = m_extent.bottom() - m_extent.top();
 #if !defined(NDEBUG)
-  if (m_presenter.model().events().empty())
+  if(m_presenter.model().events().empty())
   {
     QPen ugh(Qt::red, 15);
     QBrush ughb(Qt::red);
@@ -97,14 +95,13 @@ void TimeSyncView::paint(
   }
 #endif
 
-  if (height < 1)
+  if(height < 1)
     return;
 
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  auto& pix
-      = (isSelected()) ? pixmap(skin.TimenodeSelected()) : pixmap(*m_color);
+  auto& pix = (isSelected()) ? pixmap(skin.TimenodeSelected()) : pixmap(*m_color);
 
   painter->drawTiledPixmap(-1, -1, 4, height, pix);
 
@@ -139,7 +136,7 @@ void TimeSyncView::setMoving(bool arg)
 
 void TimeSyncView::setTriggerActive(bool b)
 {
-  if (b)
+  if(b)
     m_text.setPos(-m_text.boundingRect().width() / 2, -40);
   else
     m_text.setPos(-m_text.boundingRect().width() / 2, -20);
@@ -168,7 +165,7 @@ void TimeSyncView::setLabel(const QString& s)
 
 void TimeSyncView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::MouseButton::LeftButton)
+  if(event->button() == Qt::MouseButton::LeftButton)
     m_presenter.pressed(event->scenePos());
 }
 

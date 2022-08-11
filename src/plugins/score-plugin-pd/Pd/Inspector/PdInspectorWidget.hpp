@@ -1,9 +1,11 @@
 #pragma once
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Pd/Commands/EditPd.hpp>
-#include <Pd/PdProcess.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
+#include <Pd/Commands/EditPd.hpp>
+#include <Pd/PdProcess.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -16,14 +18,12 @@
 namespace Pd
 {
 
-class PdWidget final
-    : public Process::InspectorWidgetDelegate_T<Pd::ProcessModel>
+class PdWidget final : public Process::InspectorWidgetDelegate_T<Pd::ProcessModel>
 {
   W_OBJECT(PdWidget)
 public:
   explicit PdWidget(
-      const Pd::ProcessModel& object,
-      const score::DocumentContext& context,
+      const Pd::ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
   void pressed() W_SIGNAL(pressed);

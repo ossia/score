@@ -7,6 +7,7 @@
 #include "PhidgetsProtocolFactory.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Protocols/Phidgets/PhidgetsProtocolSettingsWidget.hpp>
 #include <Protocols/Phidgets/PhidgetsSpecificSettings.hpp>
 
@@ -22,8 +23,7 @@ QString PhidgetProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* PhidgetProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
 {
   return new PhidgetDevice{settings};
 }
@@ -46,39 +46,33 @@ Device::ProtocolSettingsWidget* PhidgetProtocolFactory::makeSettingsWidget()
   return new PhidgetProtocolSettingsWidget;
 }
 
-QVariant PhidgetProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant
+PhidgetProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<PhidgetSpecificSettings>(visitor);
 }
 
 void PhidgetProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<PhidgetSpecificSettings>(data, visitor);
 }
 
 bool PhidgetProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }
 
 Device::AddressDialog* PhidgetProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings&,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget*)
+    const Device::AddressSettings&, const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx, QWidget*)
 {
   return nullptr;
 }
 
 Device::AddressDialog* PhidgetProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget*)
+    const Device::DeviceInterface& dev, const score::DocumentContext& ctx, QWidget*)
 {
   return nullptr;
 }

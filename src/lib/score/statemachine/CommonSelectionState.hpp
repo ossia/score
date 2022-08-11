@@ -40,9 +40,7 @@ public:
 
 protected:
   CommonSelectionState(
-      score::SelectionStack& stack,
-      QObject* process_view,
-      QState* parent);
+      score::SelectionStack& stack, QObject* process_view, QState* parent);
 
 private:
   QState* m_waitState{};

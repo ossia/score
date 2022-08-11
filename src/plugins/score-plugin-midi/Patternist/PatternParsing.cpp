@@ -1,14 +1,16 @@
-#include <Patternist/PatternParsing.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+
 #include <score/tools/File.hpp>
 
-#include <QRegularExpression>
-#include <QString>
 #include <QByteArray>
 #include <QFile>
 #include <QFileInfo>
-#include <QUrl>
 #include <QMimeData>
+#include <QRegularExpression>
+#include <QString>
+#include <QUrl>
+
+#include <Patternist/PatternParsing.hpp>
 
 namespace Patternist
 {
@@ -32,7 +34,8 @@ Pattern parsePattern(const QByteArray& data) noexcept
       if(ok)
       {
         p.length = split[1].size();
-        for(int i = 0; i < p.length; i++) {
+        for(int i = 0; i < p.length; i++)
+        {
           lane.pattern.push_back(split[1][i] == '-' ? false : true);
         }
 
@@ -51,14 +54,14 @@ Pattern parsePattern(const QByteArray& data) noexcept
 Pattern parsePatternFile(const QString& path) noexcept
 {
   QFile f{path};
-  if (!QFileInfo{f}.suffix().toLower().contains(QStringLiteral("pat")))
+  if(!QFileInfo{f}.suffix().toLower().contains(QStringLiteral("pat")))
     return {};
 
-  if (!f.open(QIODevice::ReadOnly))
+  if(!f.open(QIODevice::ReadOnly))
     return {};
 
   auto res = parsePattern(score::mapAsByteArray(f));
-  if (!res.lanes.empty() && res.length > 0)
+  if(!res.lanes.empty() && res.length > 0)
     return res;
   return {};
 }
@@ -67,9 +70,9 @@ std::vector<Pattern> parsePatternFiles(const QMimeData& mime) noexcept
 {
   std::vector<Pattern> pat;
 
-  if (mime.hasUrls())
+  if(mime.hasUrls())
   {
-    for (auto& url : mime.urls())
+    for(auto& url : mime.urls())
     {
       if(auto res = parsePatternFile(url.toLocalFile()); !res.lanes.empty())
       {

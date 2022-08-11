@@ -97,7 +97,7 @@ public:
 
   void clear() INLINE_EXPORT
   {
-    while (!m_map.empty())
+    while(!m_map.empty())
     {
       remove(*m_map.begin());
     }

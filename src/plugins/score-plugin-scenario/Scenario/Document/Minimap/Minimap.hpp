@@ -42,15 +42,12 @@ public:
 
 public:
   void rescale() W_SIGNAL(rescale);
-  void visibleRectChanged(double l, double r)
-      W_SIGNAL(visibleRectChanged, l, r);
+  void visibleRectChanged(double l, double r) W_SIGNAL(visibleRectChanged, l, r);
 
 private:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;

@@ -2,25 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <State/ValueSerialization.hpp>
 
-#include <score/model/path/PathSerialization.hpp>
-
-#include <ossia/network/common/destination_qualifiers.hpp>
-
-#include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
+#include <score/model/path/PathSerialization.hpp>
+
+#include <ossia/network/common/destination_qualifiers.hpp>
+
+#include <Interpolation/Commands/ChangeAddress.hpp>
+
 namespace Interpolation
 {
 ChangeAddress::ChangeAddress(
-    const ProcessModel& proc,
-    const State::AddressAccessor& addr,
-    const ossia::value& start,
-    const ossia::value& end,
-    const State::Unit& u)
+    const ProcessModel& proc, const State::AddressAccessor& addr,
+    const ossia::value& start, const ossia::value& end, const State::Unit& u)
     : m_path{proc}
     , m_oldAddr{proc.address()}
     , m_newAddr{addr}
@@ -70,18 +68,17 @@ void ChangeAddress::deserializeImpl(DataStreamOutput& s)
 }
 
 void ChangeInterpolationAddress(
-    const ProcessModel& proc,
-    const State::AddressAccessor& addr,
+    const ProcessModel& proc, const State::AddressAccessor& addr,
     CommandDispatcher<>& disp)
 {
   // Various checks
-  if (addr == proc.address())
+  if(addr == proc.address())
     return;
 
-  if (addr.address.path.isEmpty())
+  if(addr.address.path.isEmpty())
     return;
 
-  if (addr == State::AddressAccessor{})
+  if(addr == State::AddressAccessor{})
   {
     disp.submit(new ChangeAddress{proc, {}, {}, {}, {}});
   }
@@ -90,11 +87,10 @@ void ChangeInterpolationAddress(
     // Try to find a matching state in the start & end state in order to update
     // the process
     auto cst = dynamic_cast<Scenario::IntervalModel*>(proc.parent());
-    if (!cst)
+    if(!cst)
       return;
-    auto parent_scenario
-        = dynamic_cast<Scenario::ScenarioInterface*>(cst->parent());
-    if (!parent_scenario)
+    auto parent_scenario = dynamic_cast<Scenario::ScenarioInterface*>(cst->parent());
+    if(!parent_scenario)
       return;
 
     ossia::value sv, ev;
@@ -102,25 +98,21 @@ void ChangeInterpolationAddress(
 
     auto& ss = Scenario::startState(*cst, *parent_scenario);
     auto& es = Scenario::endState(*cst, *parent_scenario);
-    const auto snodes
-        = Process::try_getNodesFromAddress(ss.messages().rootNode(), addr);
-    const auto enodes
-        = Process::try_getNodesFromAddress(es.messages().rootNode(), addr);
+    const auto snodes = Process::try_getNodesFromAddress(ss.messages().rootNode(), addr);
+    const auto enodes = Process::try_getNodesFromAddress(es.messages().rootNode(), addr);
 
-    for (const Process::MessageNode* lhs : snodes)
+    for(const Process::MessageNode* lhs : snodes)
     {
-      if (!lhs->hasValue())
+      if(!lhs->hasValue())
         continue;
-      if (lhs->name.qualifiers.get().accessors
-          != addr.qualifiers.get().accessors)
+      if(lhs->name.qualifiers.get().accessors != addr.qualifiers.get().accessors)
         continue;
 
       auto it = ossia::find_if(enodes, [&](auto rhs) {
-        return (lhs->name.qualifiers == rhs->name.qualifiers)
-               && rhs->hasValue();
+        return (lhs->name.qualifiers == rhs->name.qualifiers) && rhs->hasValue();
       });
 
-      if (it != enodes.end())
+      if(it != enodes.end())
       {
         sv = *lhs->value();
         ev = *(*it)->value();

@@ -97,7 +97,9 @@
  *     in the execution graph are converted into uniforms corresponding to the shaders used,
  *     and uploaded to the GPU.
  */
-namespace Gfx { }
+namespace Gfx
+{
+}
 
 class score_plugin_gfx final
     : public score::Plugin_QtInterface
@@ -119,7 +121,6 @@ private:
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& key) const override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
   std::vector<score::PluginKey> required() const override;
 };

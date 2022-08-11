@@ -22,7 +22,7 @@ void apply(DataStreamReader& s, const std::string& key, const ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
-  if (it != ser.end())
+  if(it != ser.end())
   {
     it.value()->apply(s, v);
   }
@@ -36,7 +36,7 @@ void apply(DataStreamWriter& s, const std::string& key, ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
-  if (it != ser.end())
+  if(it != ser.end())
   {
     it.value()->apply(s, v);
   }
@@ -50,7 +50,7 @@ void apply(JSONWriter& s, const std::string& key, ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
-  if (it != ser.end())
+  if(it != ser.end())
   {
     it.value()->apply(s, key, v);
   }
@@ -64,7 +64,7 @@ void apply(JSONReader& s, const std::string& key, const ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
-  if (it != ser.end())
+  if(it != ser.end())
   {
     it.value()->apply(s, key, v);
   }

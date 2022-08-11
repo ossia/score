@@ -6,12 +6,7 @@ namespace score
 {
 
 PanelStatus::PanelStatus(
-    bool isShown,
-    bool fixed,
-    Qt::DockWidgetArea d,
-    int prio,
-    QString name,
-    QString icon,
+    bool isShown, bool fixed, Qt::DockWidgetArea d, int prio, QString name, QString icon,
     const QKeySequence& sc)
     : shown{isShown}
     , fixed{fixed}
@@ -21,15 +16,9 @@ PanelStatus::PanelStatus(
     , icon{[&icon] {
       QIcon ico;
       ico.addFile(
-          ":/icons/" + icon + "_on.png",
-          {},
-          QIcon::Mode::Normal,
-          QIcon::State::On);
+          ":/icons/" + icon + "_on.png", {}, QIcon::Mode::Normal, QIcon::State::On);
       ico.addFile(
-          ":/icons/" + icon + "_off.png",
-          {},
-          QIcon::Mode::Normal,
-          QIcon::State::Off);
+          ":/icons/" + icon + "_off.png", {}, QIcon::Mode::Normal, QIcon::State::Off);
       return ico;
     }()}
     , shortcut(sc)

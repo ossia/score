@@ -8,16 +8,13 @@
 #include <score/widgets/SetIcons.hpp>
 
 SelectionButton::SelectionButton(
-    const QString& text,
-    Selection target,
-    score::SelectionDispatcher& disp,
+    const QString& text, Selection target, score::SelectionDispatcher& disp,
     QWidget* parent)
     : QToolButton{parent}
     , m_dispatcher{disp}
 {
   auto icon = makeIcons(
-      QStringLiteral(":/icons/next_on.png"),
-      QStringLiteral(":/icons/next_on.png"),
+      QStringLiteral(":/icons/next_on.png"), QStringLiteral(":/icons/next_on.png"),
       QStringLiteral(":/icons/next_off.png"),
       QStringLiteral(":/icons/next_disabled.png"));
 
@@ -26,7 +23,5 @@ SelectionButton::SelectionButton(
   setIcon(icon);
   setAutoRaise(true);
 
-  connect(this, &QToolButton::clicked, this, [=]() {
-    m_dispatcher.select(target);
-  });
+  connect(this, &QToolButton::clicked, this, [=]() { m_dispatcher.select(target); });
 }

@@ -1,6 +1,7 @@
 #pragma once
-#include <Automation/AutomationModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+
+#include <Automation/AutomationModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
@@ -38,8 +39,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -64,8 +64,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:

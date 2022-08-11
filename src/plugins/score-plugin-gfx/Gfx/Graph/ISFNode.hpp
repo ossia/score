@@ -19,10 +19,7 @@ struct isf_input_port_vis;
 class ISFNode : public score::gfx::ProcessNode
 {
 public:
-  ISFNode(
-      const isf::descriptor& desc,
-      const QString& vert,
-      const QString& frag);
+  ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag);
 
   virtual ~ISFNode();
   QSize computeTextureSize(const isf::pass& pass, QSize origSize);

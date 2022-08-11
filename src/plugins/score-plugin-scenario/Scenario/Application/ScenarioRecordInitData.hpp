@@ -33,8 +33,7 @@ operator<<(QDataStream& i, const Scenario::ScenarioRecordInitData& sel)
   SCORE_ABORT;
   return i;
 }
-inline QDataStream&
-operator>>(QDataStream& i, Scenario::ScenarioRecordInitData& sel)
+inline QDataStream& operator>>(QDataStream& i, Scenario::ScenarioRecordInitData& sel)
 {
   SCORE_ABORT;
   return i;

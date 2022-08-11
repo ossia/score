@@ -35,7 +35,7 @@ SCORE_LIB_BASE_EXPORT std::size_t
 hash<ObjectPath>::operator()(const ObjectPath& path) const
 {
   std::size_t seed = 0;
-  for (const auto& v : path.vec())
+  for(const auto& v : path.vec())
   {
     ossia::hash_combine(seed, hash<ObjectIdentifier>{}(v));
   }
@@ -44,26 +44,23 @@ hash<ObjectPath>::operator()(const ObjectPath& path) const
 }
 
 template <typename Container>
-typename Container::value_type
-findById_weak_safe(const Container& c, int32_t id)
+typename Container::value_type findById_weak_safe(const Container& c, int32_t id)
 {
   auto it = std::find_if(
-      std::begin(c), std::end(c), [&id](typename Container::value_type model) {
-        return model->id_val() == id;
-      });
+      std::begin(c), std::end(c),
+      [&id](typename Container::value_type model) { return model->id_val() == id; });
 
-  if (it != std::end(c))
+  if(it != std::end(c))
   {
     return *it;
   }
 
   SCORE_BREAKPOINT;
-  throw std::runtime_error(
-      QString("findById : id %1 not found in vector of %2")
-          .arg(id)
-          .arg(typeid(c).name())
-          .toUtf8()
-          .constData());
+  throw std::runtime_error(QString("findById : id %1 not found in vector of %2")
+                               .arg(id)
+                               .arg(typeid(c).name())
+                               .toUtf8()
+                               .constData());
 }
 
 template <typename Container>
@@ -71,11 +68,10 @@ typename Container::value_type
 findById_weak_unsafe(const Container& c, int32_t id) noexcept
 {
   auto it = std::find_if(
-      std::begin(c), std::end(c), [&id](typename Container::value_type model) {
-        return model->id_val() == id;
-      });
+      std::begin(c), std::end(c),
+      [&id](typename Container::value_type model) { return model->id_val() == id; });
 
-  if (it != std::end(c))
+  if(it != std::end(c))
   {
     return *it;
   }
@@ -84,14 +80,13 @@ findById_weak_unsafe(const Container& c, int32_t id) noexcept
 }
 
 ObjectPath ObjectPath::pathBetweenObjects(
-    const QObject* const parent_obj,
-    const QObject* target_object)
+    const QObject* const parent_obj, const QObject* target_object)
 {
   std::vector<ObjectIdentifier> v;
 
   auto current_obj = target_object;
   auto add_parent_to_vector = [&v](const QObject* ptr) {
-    if (auto id_obj = qobject_cast<const IdentifiedObjectAbstract*>(ptr))
+    if(auto id_obj = qobject_cast<const IdentifiedObjectAbstract*>(ptr))
       v.push_back({id_obj->objectName(), id_obj->id_val()});
     else
       v.push_back({ptr->objectName(), {}});
@@ -100,12 +95,12 @@ ObjectPath ObjectPath::pathBetweenObjects(
   QString debug_objectnames;
 #endif
   // Recursively go through the object and all the parents
-  while (current_obj != parent_obj)
+  while(current_obj != parent_obj)
   {
 #if defined(SCORE_DEBUG)
     debug_objectnames += current_obj->objectName() + "->";
 #endif
-    if (current_obj->objectName().isEmpty())
+    if(current_obj->objectName().isEmpty())
     {
 #if defined(SCORE_DEBUG)
       qDebug() << "Names: " << debug_objectnames;
@@ -120,7 +115,7 @@ ObjectPath ObjectPath::pathBetweenObjects(
 
     current_obj = current_obj->parent();
 
-    if (!current_obj)
+    if(!current_obj)
     {
       SCORE_BREAKPOINT;
       throw std::runtime_error(
@@ -144,7 +139,7 @@ QString ObjectPath::toString() const noexcept
 {
   QString s;
 
-  for (auto& obj : m_objectIdentifiers)
+  for(auto& obj : m_objectIdentifiers)
   {
     s += obj.objectName() % "." % QString::number(obj.id()) % "/";
   }
@@ -158,19 +153,19 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
   QObject* obj = &ctx.document.model();
   SCORE_ASSERT(obj);
 
-  for (const auto& currentObjIdentifier : m_objectIdentifiers)
+  for(const auto& currentObjIdentifier : m_objectIdentifiers)
   {
     const QObjectList& children = obj->children();
     QObject* found = nullptr;
 
-    for (int i = 0; i < children.size(); ++i)
+    for(int i = 0; i < children.size(); ++i)
     {
       obj = children.at(i);
       SCORE_ASSERT(obj);
-      if (obj->objectName() == currentObjIdentifier.objectName())
+      if(obj->objectName() == currentObjIdentifier.objectName())
       {
         auto itf = safe_cast<IdentifiedObjectAbstract*>(obj);
-        if (itf->id_val() == currentObjIdentifier.id())
+        if(itf->id_val() == currentObjIdentifier.id())
         {
           found = itf;
           break;
@@ -178,7 +173,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
       }
     }
 
-    if (found)
+    if(found)
     {
       obj = found;
       SCORE_ASSERT(obj);
@@ -196,24 +191,23 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
   return obj;
 }
 
-QObject*
-ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const noexcept
+QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const noexcept
 {
   using namespace score;
   QObject* obj = &ctx.document.model();
 
-  for (const auto& currentObjIdentifier : m_objectIdentifiers)
+  for(const auto& currentObjIdentifier : m_objectIdentifiers)
   {
     const QObjectList& children = obj->children();
     QObject* found = nullptr;
 
-    for (int i = 0; i < children.size(); ++i)
+    for(int i = 0; i < children.size(); ++i)
     {
       obj = children.at(i);
-      if (obj->objectName() == currentObjIdentifier.objectName())
+      if(obj->objectName() == currentObjIdentifier.objectName())
       {
         auto itf = safe_cast<IdentifiedObjectAbstract*>(obj);
-        if (itf->id_val() == currentObjIdentifier.id())
+        if(itf->id_val() == currentObjIdentifier.id())
         {
           found = itf;
           break;
@@ -221,7 +215,7 @@ ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const noexcept
       }
     }
 
-    if (found)
+    if(found)
     {
       obj = found;
     }
@@ -235,16 +229,14 @@ ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const noexcept
 }
 
 void replacePathPart(
-    const ObjectPath& src,
-    const ObjectPath& target,
-    ObjectPath& toChange)
+    const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange)
 {
   auto& src_v = src.vec();
   auto& tgt_v = target.vec();
   auto& v = toChange.vec();
 #ifdef SCORE_DEBUG
   SCORE_ASSERT(v.size() > src_v.size());
-  for (std::size_t i = 0; i < src_v.size(); i++)
+  for(std::size_t i = 0; i < src_v.size(); i++)
   {
     SCORE_ASSERT(v[i] == src_v[i]);
   }
@@ -252,7 +244,7 @@ void replacePathPart(
 
   // OPTIMIZEME
   v.erase(v.begin(), v.begin() + src_v.size());
-  if (!tgt_v.empty())
+  if(!tgt_v.empty())
   {
     v.insert(v.begin(), tgt_v.begin(), tgt_v.end());
   }

@@ -3,23 +3,27 @@
 #include "OSCQueryDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
+
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
-#include <ossia/protocols/oscquery/oscquery_mirror_asio.hpp>
+
+#include <ossia/network/context.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/local/local.hpp>
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
-#include <ossia/network/context.hpp>
+#include <ossia/protocols/oscquery/oscquery_mirror_asio.hpp>
+
 #include <boost/algorithm/string.hpp>
-
-#include <QDebug>
-
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
+
+#include <QDebug>
+
 #include <wobjectimpl.h>
 
 #include <memory>
@@ -32,7 +36,7 @@ bool resolve_ip(std::string host)
     std::string m_queryPort;
     auto m_queryHost = host;
     auto port_idx = m_queryHost.find_last_of(':');
-    if (port_idx != std::string::npos)
+    if(port_idx != std::string::npos)
     {
       m_queryPort = m_queryHost.substr(port_idx + 1);
       m_queryHost = m_queryHost.substr(0, port_idx);
@@ -40,9 +44,9 @@ bool resolve_ip(std::string host)
     else
       m_queryPort = "80";
 
-    if (boost::starts_with(m_queryHost, "http://"))
+    if(boost::starts_with(m_queryHost, "http://"))
       m_queryHost.erase(m_queryHost.begin(), m_queryHost.begin() + 7);
-    else if (boost::starts_with(m_queryHost, "ws://"))
+    else if(boost::starts_with(m_queryHost, "ws://"))
       m_queryHost.erase(m_queryHost.begin(), m_queryHost.begin() + 5);
 
     boost::asio::io_service io_service;
@@ -51,18 +55,18 @@ bool resolve_ip(std::string host)
     boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
     return true;
   }
-  catch (const std::exception& e)
+  catch(const std::exception& e)
   {
   }
-  catch (...)
+  catch(...)
   {
   }
   return false;
 }
 namespace Protocols
 {
-OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings,
-                               const ossia::net::network_context_ptr& ctx)
+OSCQueryDevice::OSCQueryDevice(
+    const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -72,26 +76,18 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings,
   m_capas.canSetProperties = false;
 
   connect(
-      this,
-      &OSCQueryDevice::sig_command,
-      this,
-      &OSCQueryDevice::slot_command,
+      this, &OSCQueryDevice::sig_command, this, &OSCQueryDevice::slot_command,
       Qt::QueuedConnection);
   connect(
-      this,
-      &OSCQueryDevice::sig_createDevice,
-      this,
-      &OSCQueryDevice::slot_createDevice,
+      this, &OSCQueryDevice::sig_createDevice, this, &OSCQueryDevice::slot_createDevice,
       Qt::QueuedConnection);
   connect(
-      this,
-      &OSCQueryDevice::sig_disconnect,
-      this,
+      this, &OSCQueryDevice::sig_disconnect, this,
       [=] {
-        // TODO how to notify the GUI ?
-        m_connected = false;
+    // TODO how to notify the GUI ?
+    m_connected = false;
       },
-  Qt::QueuedConnection);
+      Qt::QueuedConnection);
 }
 
 OSCQueryDevice::~OSCQueryDevice()
@@ -106,7 +102,7 @@ bool OSCQueryDevice::connected() const
 
 void OSCQueryDevice::disconnect()
 {
-  if (m_mirror)
+  if(m_mirror)
   {
     m_mirror->on_connection_closed.disconnect<&OSCQueryDevice::sig_disconnect>(*this);
     m_mirror->on_connection_failure.disconnect<&OSCQueryDevice::sig_disconnect>(*this);
@@ -114,7 +110,7 @@ void OSCQueryDevice::disconnect()
   }
 
   // Taken from OwningDeviceInterface::disconnect
-  if (m_owned)
+  if(m_owned)
   {
     DeviceInterface::disconnect();
     // TODO why not auto dev = m_dev; ... like in MIDIDevice ?
@@ -131,7 +127,7 @@ bool OSCQueryDevice::reconnect()
   const auto& stgs
       = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
-  if (m_dev && m_mirror && m_oldSettings == cur_settings)
+  if(m_dev && m_mirror && m_oldSettings == cur_settings)
   {
     // TODO update settings
     try
@@ -139,12 +135,12 @@ bool OSCQueryDevice::reconnect()
       m_mirror->connect();
       m_connected = true;
     }
-    catch (std::exception& e)
+    catch(std::exception& e)
     {
       qDebug() << "Could not connect: " << e.what();
       m_connected = false;
     }
-    catch (...)
+    catch(...)
     {
       // TODO save the reason of the non-connection.
       m_connected = false;
@@ -159,7 +155,7 @@ bool OSCQueryDevice::reconnect()
   // TODO put this in the io_context thread instead
   std::thread resolver([this, host = stgs.host.toStdString()] {
     bool ok = resolve_ip(host);
-    if (ok)
+    if(ok)
     {
       sig_createDevice();
     }
@@ -176,7 +172,7 @@ bool OSCQueryDevice::reconnect()
 
 void OSCQueryDevice::recreate(const Device::Node& n)
 {
-  for (auto& child : n)
+  for(auto& child : n)
   {
     addNode(child);
   }
@@ -203,11 +199,10 @@ void OSCQueryDevice::slot_createDevice()
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<mirror_proto>(m_ctx, stgs.host.toStdString());
 
-    auto& p = static_cast<mirror_proto&>(
-        *ossia_settings);
+    auto& p = static_cast<mirror_proto&>(*ossia_settings);
     m_mirror = &p;
 
-    if (stgs.rate)
+    if(stgs.rate)
     {
       ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
           std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
@@ -230,18 +225,18 @@ void OSCQueryDevice::slot_createDevice()
     enableCallbacks();
     m_connected = true;
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
     m_connected = false;
-    if (!m_dev)
+    if(!m_dev)
       m_mirror = nullptr;
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
     m_connected = false;
-    if (!m_dev)
+    if(!m_dev)
       m_mirror = nullptr;
   }
 

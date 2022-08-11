@@ -15,16 +15,14 @@
 namespace Curve
 {
 MovePoint::MovePoint(
-    const Model& curve,
-    const Id<PointModel>& pointId,
-    Curve::Point newPoint)
+    const Model& curve, const Id<PointModel>& pointId, Curve::Point newPoint)
     : m_model{curve}
     , m_pointId{pointId}
     , m_newPoint{newPoint}
 {
-  for (auto& p : curve.points())
+  for(auto& p : curve.points())
   {
-    if (p->id() == m_pointId)
+    if(p->id() == m_pointId)
     {
       m_oldPoint = p->pos();
       break;
@@ -35,14 +33,14 @@ MovePoint::MovePoint(
 void MovePoint::undo(const score::DocumentContext& ctx) const
 {
   auto& curve = m_model.find(ctx);
-  for (auto& p : curve.points())
+  for(auto& p : curve.points())
   {
-    if (p->id() == m_pointId)
+    if(p->id() == m_pointId)
     {
       p->setPos(m_oldPoint);
-      if (p->previous())
+      if(p->previous())
         curve.segments().at(*p->previous()).setEnd(m_oldPoint);
-      if (p->following())
+      if(p->following())
         curve.segments().at(*p->following()).setStart(m_oldPoint);
       break;
     }
@@ -53,13 +51,13 @@ void MovePoint::undo(const score::DocumentContext& ctx) const
 void MovePoint::redo(const score::DocumentContext& ctx) const
 {
   auto& curve = m_model.find(ctx);
-  for (auto& p : curve.points())
+  for(auto& p : curve.points())
   {
-    if (p->id() == m_pointId)
+    if(p->id() == m_pointId)
     {
-      if (p->previous())
+      if(p->previous())
         curve.segments().at(*p->previous()).setEnd(m_newPoint);
-      if (p->following())
+      if(p->following())
         curve.segments().at(*p->following()).setStart(m_newPoint);
       p->setPos(m_newPoint);
       break;
@@ -69,9 +67,7 @@ void MovePoint::redo(const score::DocumentContext& ctx) const
 }
 
 void MovePoint::update(
-    const Model& obj,
-    const Id<PointModel>& pointId,
-    const Curve::Point& newPoint)
+    const Model& obj, const Id<PointModel>& pointId, const Curve::Point& newPoint)
 {
   m_newPoint = newPoint;
 }

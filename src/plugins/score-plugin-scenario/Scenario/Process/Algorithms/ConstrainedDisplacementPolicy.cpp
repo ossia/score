@@ -4,24 +4,20 @@ namespace Scenario
 {
 
 void ConstrainedDisplacementPolicy::init(
-    ProcessModel& scenario,
-    const QVector<Id<TimeSyncModel>>& draggedElements)
+    ProcessModel& scenario, const QVector<Id<TimeSyncModel>>& draggedElements)
 {
 }
 
 void ConstrainedDisplacementPolicy::computeDisplacement(
-    ProcessModel& scenario,
-    const QVector<Id<TimeSyncModel>>& draggedElements,
-    const TimeVal& deltaTime,
-    ElementsProperties& elementsProperties)
+    ProcessModel& scenario, const QVector<Id<TimeSyncModel>>& draggedElements,
+    const TimeVal& deltaTime, ElementsProperties& elementsProperties)
 {
   // Scale all the intervals before and after.
-  if (draggedElements.empty())
+  if(draggedElements.empty())
     return;
   auto tn_id = draggedElements[0];
   auto& tn = scenario.timeSyncs.at(tn_id);
-  const auto& intervalsBefore
-      = Scenario::previousNonGraphIntervals(tn, scenario);
+  const auto& intervalsBefore = Scenario::previousNonGraphIntervals(tn, scenario);
   const auto& intervalsAfter = Scenario::nextNonGraphIntervals(tn, scenario);
   QObjectList processesToSave;
 
@@ -29,47 +25,47 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
   // We have to stop as soon as a interval would become too small.
   TimeVal min{TimeVal::infinity};
   TimeVal max{TimeVal::infinity};
-  for (const auto& id : intervalsBefore)
+  for(const auto& id : intervalsBefore)
   {
     auto it = elementsProperties.intervals.find(id);
-    if (it == elementsProperties.intervals.end())
+    if(it == elementsProperties.intervals.end())
     {
       auto& c = scenario.intervals.at(id);
-      for (auto& proc : c.processes)
+      for(auto& proc : c.processes)
         processesToSave.append(&proc);
-      if (c.duration.defaultDuration() < min)
+      if(c.duration.defaultDuration() < min)
         min = c.duration.defaultDuration();
     }
     else
     {
       const IntervalProperties& c = it.value();
-      if (c.oldDefault < min)
+      if(c.oldDefault < min)
         min = c.oldDefault;
     }
   }
 
-  for (const auto& id : intervalsAfter)
+  for(const auto& id : intervalsAfter)
   {
     auto it = elementsProperties.intervals.find(id);
-    if (it == elementsProperties.intervals.end())
+    if(it == elementsProperties.intervals.end())
     {
       auto& c = scenario.intervals.at(id);
-      for (auto& proc : c.processes)
+      for(auto& proc : c.processes)
         processesToSave.append(&proc);
-      if (c.duration.defaultDuration() < max)
+      if(c.duration.defaultDuration() < max)
         max = c.duration.defaultDuration();
     }
     else
     {
       const IntervalProperties& c = it.value();
-      if (c.oldDefault < max)
+      if(c.oldDefault < max)
         max = c.oldDefault;
     }
   }
 
   // Save cables
 
-  if (!processesToSave.empty())
+  if(!processesToSave.empty())
   {
     elementsProperties.cables = Dataflow::saveCables(
         processesToSave, score::IDocument::documentContext(scenario));
@@ -77,20 +73,19 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
 
   // 2. Rescale deltaTime
   auto dt = deltaTime;
-  if (min != TimeVal{TimeVal::infinity} && dt < TimeVal::zero() && dt < -min)
+  if(min != TimeVal{TimeVal::infinity} && dt < TimeVal::zero() && dt < -min)
   {
     dt = -min;
   }
-  else if (
-      max != TimeVal{TimeVal::infinity} && dt > TimeVal::zero() && dt > max)
+  else if(max != TimeVal{TimeVal::infinity} && dt > TimeVal::zero() && dt > max)
   {
     dt = max;
   }
 
-  for (auto& id : intervalsBefore)
+  for(auto& id : intervalsBefore)
   {
     auto it = elementsProperties.intervals.find(id);
-    if (it != elementsProperties.intervals.end())
+    if(it != elementsProperties.intervals.end())
     {
       auto& c = it.value();
       c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
@@ -118,10 +113,10 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     }
   }
 
-  for (auto& id : intervalsAfter)
+  for(auto& id : intervalsAfter)
   {
     auto it = elementsProperties.intervals.find(id);
-    if (it != elementsProperties.intervals.end())
+    if(it != elementsProperties.intervals.end())
     {
       auto& c = it.value();
       c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
@@ -150,7 +145,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
   }
 
   auto it = elementsProperties.timesyncs.find(tn.id());
-  if (it != elementsProperties.timesyncs.end())
+  if(it != elementsProperties.timesyncs.end())
   {
     it.value().newDate = it.value().oldDate + dt;
   }

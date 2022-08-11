@@ -1,4 +1,5 @@
 #include <Library/LibrarySettings.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
@@ -24,10 +25,10 @@ namespace Library::Settings
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(RootPath){QStringLiteral("Library/RootPath"), []() -> QString {
-                                auto paths = QStandardPaths::standardLocations(
-                                    QStandardPaths::DocumentsLocation);
-                                return paths[0] + "/ossia/score";
-                              }()};
+                                    auto paths = QStandardPaths::standardLocations(
+                                        QStandardPaths::DocumentsLocation);
+                                    return paths[0] + "/ossia/score";
+                                  }()};
 
 static auto list()
 {

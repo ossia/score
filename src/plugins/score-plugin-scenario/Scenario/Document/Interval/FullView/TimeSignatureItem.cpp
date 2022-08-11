@@ -1,12 +1,18 @@
 #include "TimeSignatureItem.hpp"
-#include <Magnetism/MagnetismAdjuster.hpp>
+
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Commands/Signature/SignatureCommands.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <Magnetism/MagnetismAdjuster.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/tools/Bind.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -18,10 +24,6 @@
 #include <QPainter>
 #include <QTextLayout>
 
-#include <Scenario/Commands/Signature/SignatureCommands.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeSignatureHandle)
 W_OBJECT_IMPL(Scenario::LineTextItem)
@@ -31,16 +33,15 @@ namespace Scenario
 {
 
 LineTextItem::LineTextItem(QGraphicsItem* parent) noexcept
-  : QGraphicsTextItem{parent}
+    : QGraphicsTextItem{parent}
 {
-  setFlags(
-        QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable
-        | flags());
+  setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable | flags());
   setTextInteractionFlags(Qt::TextEditorInteraction);
   setDefaultTextColor(Qt::black);
 }
 
-void LineTextItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void LineTextItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setPen(Qt::black);
@@ -54,17 +55,15 @@ void LineTextItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
 void LineTextItem::keyPressEvent(QKeyEvent* ev)
 {
   ev->accept();
-  switch (ev->key())
+  switch(ev->key())
   {
-    case Qt::Key_Left:
-    {
+    case Qt::Key_Left: {
       auto c = textCursor();
       c.setPosition(std::max(0, c.position() - 1));
       setTextCursor(c);
       return;
     }
-    case Qt::Key_Right:
-    {
+    case Qt::Key_Right: {
       auto c = textCursor();
       c.setPosition(ossia::min(int64_t(toPlainText().size()), c.position() + 1));
       setTextCursor(c);
@@ -95,14 +94,13 @@ void LineTextItem::focusOutEvent(QFocusEvent* event)
 }
 
 StartMarker::StartMarker(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
+    : QGraphicsItem{parent}
 {
   this->setToolTip(QObject::tr("Start marker"));
   setFlag(ItemIsSelectable, true);
 }
 
 StartMarker::~StartMarker() { }
-
 
 static constexpr double startMarkerDiam = 12.;
 QRectF StartMarker::boundingRect() const
@@ -122,10 +120,11 @@ const QPainterPath& startMarkerPath()
   return p;
 }
 
-void StartMarker::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void StartMarker::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->translate(-startMarkerDiam/2., 0.);
+  painter->translate(-startMarkerDiam / 2., 0.);
   painter->fillPath(startMarkerPath(), score::Skin::instance().Gray);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
@@ -133,7 +132,7 @@ void StartMarker::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 void StartMarker::mousePressEvent(QGraphicsSceneMouseEvent* mv)
 {
   mv->accept();
-  if (mv->button() != Qt::LeftButton)
+  if(mv->button() != Qt::LeftButton)
   {
     remove();
   }
@@ -150,7 +149,7 @@ void StartMarker::mousePressEvent(QGraphicsSceneMouseEvent* mv)
 void StartMarker::mouseMoveEvent(QGraphicsSceneMouseEvent* mv)
 {
   double delta = mv->scenePos().x() - m_pressX;
-  if (delta != 0)
+  if(delta != 0)
   {
     move(m_origItemX, delta);
   }
@@ -168,9 +167,10 @@ void StartMarker::mouseReleaseEvent(QGraphicsSceneMouseEvent* mv)
 }
 
 TimeSignatureHandle::TimeSignatureHandle(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
+    : QGraphicsItem{parent}
 {
-  this->setToolTip(QObject::tr("Time signature handle\nDrag to displace, double-click to change the signature."));
+  this->setToolTip(QObject::tr(
+      "Time signature handle\nDrag to displace, double-click to change the signature."));
   setFlag(ItemIsSelectable, true);
 }
 
@@ -179,18 +179,15 @@ TimeSignatureHandle::~TimeSignatureHandle() { }
 QRectF TimeSignatureHandle::boundingRect() const
 {
   return {
-    0.,
-    0.,
-    std::max(20., 12. + m_rect.width()),
-        std::max(20., 3. + m_rect.height())};
+      0., 0., std::max(20., 12. + m_rect.width()), std::max(20., 3. + m_rect.height())};
 }
 
-void TimeSignatureHandle::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void TimeSignatureHandle::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if (m_visible)
+  if(m_visible)
   {
-    painter->drawPixmap(
-          QPointF{0., 2.}, Process::Pixmaps::instance().metricHandle);
+    painter->drawPixmap(QPointF{0., 2.}, Process::Pixmaps::instance().metricHandle);
     painter->drawPixmap(QPointF{10., 3.}, m_signature);
   }
 }
@@ -198,7 +195,7 @@ void TimeSignatureHandle::paint(QPainter* painter, const QStyleOptionGraphicsIte
 void TimeSignatureHandle::setSignature(TimeVal time, ossia::time_signature sig)
 {
   m_time = time;
-  if (sig != m_sig)
+  if(sig != m_sig)
   {
     m_sig = sig;
     updateImpl();
@@ -206,9 +203,15 @@ void TimeSignatureHandle::setSignature(TimeVal time, ossia::time_signature sig)
   update();
 }
 
-const TimeVal& TimeSignatureHandle::time() const { return m_time; }
+const TimeVal& TimeSignatureHandle::time() const
+{
+  return m_time;
+}
 
-const ossia::time_signature& TimeSignatureHandle::signature() const { return m_sig; }
+const ossia::time_signature& TimeSignatureHandle::signature() const
+{
+  return m_sig;
+}
 
 void TimeSignatureHandle::updateImpl()
 {
@@ -227,7 +230,7 @@ void TimeSignatureHandle::updateImpl()
     m_rect = line.naturalTextRect();
     auto r = line.glyphRuns();
 
-    if (r.size() > 0)
+    if(r.size() > 0)
     {
       auto m_line = newImage(m_rect.width(), m_rect.height());
 
@@ -264,11 +267,9 @@ void TimeSignatureHandle::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* mv)
   item->setFocus(Qt::OtherFocusReason);
 
   connect(
-        item,
-        &LineTextItem::done,
-        this,
-        [this, item](const QString& s) {
-    if (auto sig = ossia::get_time_signature(s.toStdString()))
+      item, &LineTextItem::done, this,
+      [this, item](const QString& s) {
+    if(auto sig = ossia::get_time_signature(s.toStdString()))
     {
       signatureChange(*sig);
     }
@@ -277,8 +278,8 @@ void TimeSignatureHandle::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* mv)
     m_visible = true;
     prepareGeometryChange();
     update();
-  },
-  Qt::QueuedConnection);
+      },
+      Qt::QueuedConnection);
 
   mv->accept();
 }
@@ -286,7 +287,7 @@ void TimeSignatureHandle::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* mv)
 void MovableHandle::mousePressEvent(QGraphicsSceneMouseEvent* mv)
 {
   mv->accept();
-  if (mv->button() != Qt::LeftButton)
+  if(mv->button() != Qt::LeftButton)
   {
     remove();
   }
@@ -303,7 +304,7 @@ void MovableHandle::mousePressEvent(QGraphicsSceneMouseEvent* mv)
 void MovableHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* mv)
 {
   double delta = mv->scenePos().x() - m_pressX;
-  if (delta != 0)
+  if(delta != 0)
   {
     move(m_origItemX, delta);
   }
@@ -320,11 +321,12 @@ void MovableHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* mv)
   QGraphicsItem::mouseReleaseEvent(mv);
 }
 
-TimeSignatureItem::TimeSignatureItem(const FullViewIntervalPresenter& itv, QGraphicsItem* parent)
-  : QGraphicsItem{parent}
-  , m_itv{itv}
-  , m_magnetic{(Process::MagnetismAdjuster&)m_itv.context()
-               .app.interfaces<Process::MagnetismAdjuster>()}
+TimeSignatureItem::TimeSignatureItem(
+    const FullViewIntervalPresenter& itv, QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_itv{itv}
+    , m_magnetic{(Process::MagnetismAdjuster&)m_itv.context()
+                     .app.interfaces<Process::MagnetismAdjuster>()}
 {
   setZValue(200);
   setCursor(Qt::CrossCursor);
@@ -339,7 +341,7 @@ void TimeSignatureItem::createHandle(TimeVal time, ossia::time_signature sig)
   assert(m_model);
   TimeSignatureHandle* handle{};
 
-  if (time == TimeVal::zero())
+  if(time == TimeVal::zero())
   {
     // The first time handle cannot move or change
     handle = new FixedHandle{this};
@@ -355,64 +357,57 @@ void TimeSignatureItem::createHandle(TimeVal time, ossia::time_signature sig)
       m_origTime = handle->time();
       m_origSig = handle->signature();
     });
-    con(*handle,
-        &TimeSignatureHandle::move,
-        this,
+    con(*handle, &TimeSignatureHandle::move, this,
         [this, handle](double originalPos, double delta) {
       assert(m_model);
-      if (handle->m_visible)
+      if(handle->m_visible)
         moveHandle(*handle, originalPos, delta);
     });
     con(*handle, &TimeSignatureHandle::release, this, [this, handle] {
       assert(m_model);
-      if (handle->m_visible)
+      if(handle->m_visible)
       {
         m_origHandles.clear();
         m_itv.context().dispatcher.commit();
       }
     });
     con(
-          *handle,
-          &TimeSignatureHandle::remove,
-          this,
-          [this, handle] {
+        *handle, &TimeSignatureHandle::remove, this,
+        [this, handle] {
       assert(m_model);
-      if (handle->m_visible)
+      if(handle->m_visible)
         removeHandle(*handle);
-    },
-    Qt::QueuedConnection);
+        },
+        Qt::QueuedConnection);
   }
 
   handle->setPos((time - m_timeDelta).toPixels(m_ratio), 0.);
   handle->setSignature(time, sig);
 
   con(
-        *handle,
-        &TimeSignatureHandle::signatureChange,
-        this,
-        [this, handle](ossia::time_signature sig) {
+      *handle, &TimeSignatureHandle::signatureChange, this,
+      [this, handle](ossia::time_signature sig) {
     assert(m_model);
     auto signatures = m_model->timeSignatureMap();
 
     signatures.at(handle->time()) = sig;
 
-    m_itv.context()
-        .dispatcher.submit<Scenario::Command::SetTimeSignatures>(
-          *m_model, signatures);
+    m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(
+        *m_model, signatures);
 
     m_itv.context().dispatcher.commit();
-  },
-  Qt::QueuedConnection);
+      },
+      Qt::QueuedConnection);
 
   m_handles.push_back(handle);
 }
 
 void TimeSignatureItem::setZoomRatio(ZoomRatio r)
 {
-  if (!m_model)
+  if(!m_model)
     return;
 
-  if (m_ratio != r)
+  if(m_ratio != r)
   {
     m_ratio = r;
 
@@ -420,7 +415,7 @@ void TimeSignatureItem::setZoomRatio(ZoomRatio r)
 
     auto it = m_handles.begin();
     auto handle_it = m_model->timeSignatureMap().begin();
-    while (it != m_handles.end())
+    while(it != m_handles.end())
     {
       auto& [time, sig] = *handle_it;
 
@@ -441,39 +436,31 @@ void TimeSignatureItem::setWidth(double w)
 
 void TimeSignatureItem::setModel(const IntervalModel* model, TimeVal delta)
 {
-  if (model != m_model)
+  if(model != m_model)
   {
-    if (m_model)
+    if(m_model)
     {
       disconnect(
-            m_model,
-            &IntervalModel::timeSignaturesChanged,
-            this,
-            &TimeSignatureItem::handlesChanged);
+          m_model, &IntervalModel::timeSignaturesChanged, this,
+          &TimeSignatureItem::handlesChanged);
       disconnect(
-            m_model,
-            &IntervalModel::startMarkerChanged,
-            this,
-            &TimeSignatureItem::updateStartMarker);
+          m_model, &IntervalModel::startMarkerChanged, this,
+          &TimeSignatureItem::updateStartMarker);
     }
 
     m_model = model;
 
-    if (m_model)
+    if(m_model)
     {
       connect(
-            m_model,
-            &IntervalModel::timeSignaturesChanged,
-            this,
-            &TimeSignatureItem::handlesChanged);
+          m_model, &IntervalModel::timeSignaturesChanged, this,
+          &TimeSignatureItem::handlesChanged);
       connect(
-            m_model,
-            &IntervalModel::startMarkerChanged,
-            this,
-            &TimeSignatureItem::updateStartMarker);
+          m_model, &IntervalModel::startMarkerChanged, this,
+          &TimeSignatureItem::updateStartMarker);
     }
 
-    for (auto h : m_handles)
+    for(auto h : m_handles)
       delete h;
     m_handles.clear();
     delete m_start;
@@ -485,10 +472,10 @@ void TimeSignatureItem::setModel(const IntervalModel* model, TimeVal delta)
 
 void TimeSignatureItem::updateStartMarker()
 {
-  if (!m_model)
+  if(!m_model)
     return;
   const TimeVal st = m_model->startMarker();
-  if (m_start && st != TimeVal::zero())
+  if(m_start && st != TimeVal::zero())
   {
     m_start->setPos(st.toPixels(m_ratio), 12.);
   }
@@ -507,7 +494,7 @@ void TimeSignatureItem::updateStartMarker()
 
 void TimeSignatureItem::handlesChanged()
 {
-  if (!m_model)
+  if(!m_model)
     return;
 
   // Start marker
@@ -515,14 +502,14 @@ void TimeSignatureItem::handlesChanged()
 
   // Time signature handles
   const auto& signatures = m_model->timeSignatureMap();
-  if (m_handles.size() > signatures.size())
+  if(m_handles.size() > signatures.size())
   {
     // Removed handles
-    for (auto it = m_handles.begin(); it != m_handles.end();)
+    for(auto it = m_handles.begin(); it != m_handles.end();)
     {
       // TODO what if we undo creation while pressing
       // we should prevent undo / redo while doing an action...
-      if (signatures.find((*it)->time()) == signatures.end())
+      if(signatures.find((*it)->time()) == signatures.end())
       {
         SCORE_ASSERT(!((*it)->pressed));
         delete *it;
@@ -534,27 +521,27 @@ void TimeSignatureItem::handlesChanged()
       }
     }
   }
-  else if (m_handles.size() < signatures.size())
+  else if(m_handles.size() < signatures.size())
   {
     // Created handles
-    for (auto h : m_handles)
+    for(auto h : m_handles)
       delete h;
     m_handles.clear();
 
-    for (auto& [time, sig] : signatures)
+    for(auto& [time, sig] : signatures)
     {
       createHandle(time, sig);
     }
   }
   else
   {
-    for (auto h : m_handles)
-      if (h->pressed)
+    for(auto h : m_handles)
+      if(h->pressed)
         return;
 
     auto it = m_handles.begin();
     auto handle_it = signatures.begin();
-    while (it != m_handles.end())
+    while(it != m_handles.end())
     {
       (*it)->setPos((handle_it->first - m_timeDelta).toPixels(m_ratio), 0.);
       (*it)->setSignature(handle_it->first, handle_it->second);
@@ -565,7 +552,8 @@ void TimeSignatureItem::handlesChanged()
   }
 }
 
-void TimeSignatureItem::moveHandle(TimeSignatureHandle& handle, double originalPos, double delta)
+void TimeSignatureItem::moveHandle(
+    TimeSignatureHandle& handle, double originalPos, double delta)
 {
   const double x = originalPos + delta;
   // TODO what if we pass on top of another :|
@@ -578,7 +566,7 @@ void TimeSignatureItem::moveHandle(TimeSignatureHandle& handle, double originalP
   // Replace it in the signatures
   TimeSignatureMap signatures = m_origHandles;
   auto it = signatures.find(m_origTime);
-  if (it == signatures.end())
+  if(it == signatures.end())
   {
     qWarning("Time signature not found");
   }
@@ -593,12 +581,12 @@ void TimeSignatureItem::moveHandle(TimeSignatureHandle& handle, double originalP
   handle.setSignature(new_time, handle.signature());
 
   m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(
-        *m_model, signatures);
+      *m_model, signatures);
 }
 
 void TimeSignatureItem::removeHandle(TimeSignatureHandle& handle)
 {
-  if (handle.pressed)
+  if(handle.pressed)
     return;
   TimeSignatureMap signatures = m_model->timeSignatureMap();
   auto it = signatures.find(handle.time());
@@ -608,9 +596,13 @@ void TimeSignatureItem::removeHandle(TimeSignatureHandle& handle)
   disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
 }
 
-QRectF TimeSignatureItem::boundingRect() const { return {0., 0., m_width, 20.}; }
+QRectF TimeSignatureItem::boundingRect() const
+{
+  return {0., 0., m_width, 20.};
+}
 
-void TimeSignatureItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void TimeSignatureItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 }
 
@@ -618,8 +610,7 @@ void TimeSignatureItem::requestNewHandle(QPointF pos)
 {
   assert(m_model);
   auto signatures = m_model->timeSignatureMap();
-  signatures[TimeVal::fromPixels(pos.x(), m_ratio)]
-      = ossia::time_signature{4, 4};
+  signatures[TimeVal::fromPixels(pos.x(), m_ratio)] = ossia::time_signature{4, 4};
   CommandDispatcher<> disp{m_itv.context().commandStack};
   disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
 }
@@ -627,7 +618,8 @@ void TimeSignatureItem::requestNewHandle(QPointF pos)
 void TimeSignatureItem::setStartMarker(QPointF pos)
 {
   assert(m_model);
-  ((IntervalModel*)m_model)->setStartMarker(TimeVal::fromPixels(pos.x(), m_itv.zoomRatio()));
+  ((IntervalModel*)m_model)
+      ->setStartMarker(TimeVal::fromPixels(pos.x(), m_itv.zoomRatio()));
 }
 
 void TimeSignatureItem::removeStartMarker()
@@ -638,7 +630,7 @@ void TimeSignatureItem::removeStartMarker()
 
 void TimeSignatureItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  if (ossia::any_of(m_handles, [](auto handle) { return handle->pressed; }))
+  if(ossia::any_of(m_handles, [](auto handle) { return handle->pressed; }))
     return;
 
   QMenu menu;

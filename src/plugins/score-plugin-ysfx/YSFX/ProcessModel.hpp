@@ -1,16 +1,17 @@
 #pragma once
-#include <YSFX/ProcessMetadata.hpp>
 #include <Process/Process.hpp>
-#include <Effect/EffectFactory.hpp>
+
 #include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <YSFX/ProcessMetadata.hpp>
+#include <ysfx.h>
+
+#include <QDialog>
 
 #include <score_plugin_ysfx_export.h>
 
-#include <QDialog>
 #include <memory>
 #include <verdigris>
-
-#include <ysfx.h>
 
 namespace YSFX
 {
@@ -24,9 +25,7 @@ public:
   bool hasExternalUI() const noexcept;
 
   explicit ProcessModel(
-      const TimeVal& duration,
-      const QString& data,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   template <typename Impl>
@@ -44,6 +43,7 @@ public:
   std::shared_ptr<ysfx_t> fx;
 
   std::vector<Process::Preset> builtinPresets() const noexcept override;
+
 private:
   void loadPreset(const Process::Preset&) override;
   ysfx_bank_t* m_bank{};
@@ -60,6 +60,7 @@ public:
 
   std::shared_ptr<ysfx_t> fx;
   ysfx_gfx_config_t conf{};
+
 private:
   QImage m_frame;
   void resizeEvent(QResizeEvent* event) override;
@@ -75,9 +76,7 @@ private:
   void timerEvent(QTimerEvent* event) override;
 };
 
-using LayerFactory = Process::EffectLayerFactory_T<
-  ProcessModel,
-  Process::DefaultEffectItem,
-  Window>;
+using LayerFactory
+    = Process::EffectLayerFactory_T<ProcessModel, Process::DefaultEffectItem, Window>;
 
 }

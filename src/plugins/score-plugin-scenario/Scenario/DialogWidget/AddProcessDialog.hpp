@@ -13,8 +13,7 @@ public:
   using Key = typename Process::ProcessFactoryList::key_type;
 
   AddProcessDialog(
-      const Process::ProcessFactoryList& plist,
-      Process::ProcessFlags acceptable,
+      const Process::ProcessFactoryList& plist, Process::ProcessFlags acceptable,
       QWidget* parent);
   ~AddProcessDialog();
 

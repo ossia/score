@@ -1,7 +1,8 @@
 #pragma once
-#include <Gfx/Video/Process.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+
+#include <Gfx/Video/Process.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
@@ -12,8 +13,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const Gfx::Video::Model& object,
-      const score::DocumentContext& context,
+      const Gfx::Video::Model& object, const score::DocumentContext& context,
       QWidget* parent);
   ~InspectorWidget() override;
 

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <JitCpp/JitOptions.hpp>
+
 #include <QThread>
 
-#include <JitCpp/JitOptions.hpp>
 #include <score_plugin_jit_export.h>
 
 #include <verdigris>
@@ -23,16 +24,12 @@ public:
 
   ~AddonCompiler();
   void submitJob(
-      const std::string& id,
-      std::string cpp,
-      std::vector<std::string> flags,
+      const std::string& id, std::string cpp, std::vector<std::string> flags,
       CompilerOptions opts) W_SIGNAL(submitJob, id, cpp, flags, opts);
   void jobCompleted(score::Plugin_QtInterface* p) W_SIGNAL(jobCompleted, p);
   void jobFailed() W_SIGNAL(jobFailed);
   void on_job(
-      std::string id,
-      std::string cpp,
-      std::vector<std::string> flags,
+      std::string id, std::string cpp, std::vector<std::string> flags,
       CompilerOptions opts);
 
 private:
@@ -40,8 +37,8 @@ private:
 };
 
 using FactoryFunction = std::function<void()>;
-using CustomCompiler = std::function<
-    FactoryFunction(const std::string&, const std::vector<std::string>&)>;
+using CustomCompiler = std::function<FactoryFunction(
+    const std::string&, const std::vector<std::string>&)>;
 }
 
 Q_DECLARE_METATYPE(std::string)

@@ -1,9 +1,10 @@
 #pragma once
-#include <LocalTree/BaseCallbackWrapper.hpp>
 #include <Process/TypeConversion.hpp>
 
-#include <score/tools/std/Invoke.hpp>
+#include <LocalTree/BaseCallbackWrapper.hpp>
+
 #include <score/tools/Debug.hpp>
+#include <score/tools/std/Invoke.hpp>
 
 #include <ossia/network/base/node.hpp>
 
@@ -32,10 +33,7 @@ auto make_setProperty(ossia::net::parameter_base& addr, Callback prop)
 }
 
 template <typename T, typename Callback>
-auto add_setProperty(
-    ossia::net::node_base& n,
-    const std::string& name,
-    Callback cb)
+auto add_setProperty(ossia::net::node_base& n, const std::string& name, Callback cb)
 {
   constexpr const auto t = ossia::qt_property_converter<T>::val;
   auto node = n.create_child(name);

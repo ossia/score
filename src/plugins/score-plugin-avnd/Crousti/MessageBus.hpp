@@ -12,14 +12,10 @@ struct Serializer
 
   template <typename F>
   requires std::is_aggregate_v<F>
-  void operator()(const F& f)
-  {
-    boost::pfr::for_each_field(f, *this);
-  }
+  void operator()(const F& f) { boost::pfr::for_each_field(f, *this); }
 
   template <typename F>
-  requires(std::is_arithmetic_v<F>)
-  void operator()(const F& f)
+  requires(std::is_arithmetic_v<F>) void operator()(const F& f)
   {
     r.stream().stream << f;
   }
@@ -47,8 +43,7 @@ struct MessageBusSender
   }
 
   template <typename T>
-  requires(!std::is_trivial_v<T>)
-  void operator()(const T& msg)
+  requires(!std::is_trivial_v<T>) void operator()(const T& msg)
   {
     // Here we gotta serialize... :D
     QByteArray buf;
@@ -66,17 +61,10 @@ struct Deserializer
 
   template <typename F>
   requires std::is_aggregate_v<F>
-  void operator()(F& f)
-  {
-    boost::pfr::for_each_field(f, *this);
-  }
+  void operator()(F& f) { boost::pfr::for_each_field(f, *this); }
 
   template <typename F>
-  requires(std::is_arithmetic_v<F>)
-  void operator()(F& f)
-  {
-    r.stream().stream >> f;
-  }
+  requires(std::is_arithmetic_v<F>) void operator()(F& f) { r.stream().stream >> f; }
 
   template <std::size_t I, typename... Args>
   bool write_variant(std::variant<Args...>& f)
@@ -115,8 +103,7 @@ struct MessageBusReader
   }
 
   template <typename T>
-  requires(!std::is_trivial_v<T>)
-  void operator()(T& msg)
+  requires(!std::is_trivial_v<T>) void operator()(T& msg)
   {
     // Deserialize... :D
 

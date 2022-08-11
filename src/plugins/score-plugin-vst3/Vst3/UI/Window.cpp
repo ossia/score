@@ -4,9 +4,7 @@
 namespace vst3
 {
 WindowContainer createVstWindowContainer(
-    Window& parentWindow,
-    const Model& e,
-    const score::DocumentContext& ctx)
+    Window& parentWindow, const Model& e, const score::DocumentContext& ctx)
 {
   WindowContainer wc;
 
@@ -24,7 +22,7 @@ WindowContainer createVstWindowContainer(
   view.setFrame(wc.frame);
   view.attached((void*)wc.qwindow->winId(), currentPlatform());
 
-  QTimer::singleShot(16, &parentWindow, [&,wc] () mutable {
+  QTimer::singleShot(16, &parentWindow, [&, wc]() mutable {
     Steinberg::ViewRect r;
     view.getSize(&r);
     if(r.getWidth() != 0 && r.getHeight() != 0)

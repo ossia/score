@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Widgets/DeviceModelProvider.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -16,7 +17,7 @@ public:
   getNodeModel(const score::DocumentContext& ctx) const noexcept override
   {
     auto plug = ctx.findPlugin<DeviceDocumentPlugin>();
-    if (plug)
+    if(plug)
     {
       return &plug->explorer();
     }

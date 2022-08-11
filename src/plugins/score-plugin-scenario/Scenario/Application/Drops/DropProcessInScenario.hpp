@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Drop/ProcessDropHandler.hpp>
+
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 
 namespace Scenario
@@ -18,10 +19,8 @@ public:
   void init();
 
 private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+  bool
+  drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
 }

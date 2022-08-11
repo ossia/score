@@ -31,7 +31,7 @@ private:                                                              \
   void View::set##Control(QString val) \
   {                                    \
     auto cur = m_##Control->text();    \
-    if (cur != val)                    \
+    if(cur != val)                     \
       m_##Control->setText(val);       \
   }
 
@@ -42,8 +42,7 @@ class FormWidget;
 class QCheckBox;
 namespace Library::Settings
 {
-class SCORE_PLUGIN_LIBRARY_EXPORT Model final
-    : public score::SettingsDelegateModel
+class SCORE_PLUGIN_LIBRARY_EXPORT Model final : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
   QString m_RootPath;
@@ -57,8 +56,7 @@ public:
   QString getUserPresetsPath() const noexcept;
   QString getSDKPath() const noexcept;
 
-  void rescanLibrary()
-  E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, rescanLibrary)
+  void rescanLibrary() E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, rescanLibrary)
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_LIBRARY_EXPORT, QString, RootPath)
 private:
@@ -92,9 +90,5 @@ private:
 };
 
 SCORE_DECLARE_SETTINGS_FACTORY(
-    Factory,
-    Model,
-    Presenter,
-    View,
-    "d6966670-f69f-48d0-96f6-72a5e2190cbc")
+    Factory, Model, Presenter, View, "d6966670-f69f-48d0-96f6-72a5e2190cbc")
 }

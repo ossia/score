@@ -2,6 +2,7 @@
 #include <Process/Process.hpp>
 
 #include <Patternist/PatternMetadata.hpp>
+
 #include <score_plugin_midi_export.h>
 
 #include <verdigris>
@@ -27,13 +28,11 @@ struct Pattern
 
   bool operator==(const Pattern& other) const noexcept
   {
-    return length == other.length && division == other.division
-           && lanes == other.lanes;
+    return length == other.length && division == other.division && lanes == other.lanes;
   }
 };
 
-class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
-    : public Process::ProcessModel
+class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   W_OBJECT(ProcessModel)
@@ -41,14 +40,10 @@ class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
 public:
   PROCESS_METADATA_IMPL(Patternist::ProcessModel)
   explicit ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   explicit ProcessModel(
-      const TimeVal& duration,
-      const QString& custom,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const QString& custom,
+      const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)
@@ -80,10 +75,7 @@ public:
   void execPosition(int arg_1) W_SIGNAL(execPosition, arg_1);
   void patternsChanged() W_SIGNAL(patternsChanged);
 
-  PROPERTY(
-      int,
-      channel READ channel WRITE setChannel NOTIFY channelChanged,
-      W_Final)
+  PROPERTY(int, channel READ channel WRITE setChannel NOTIFY channelChanged, W_Final)
   PROPERTY(
       int,
       currentPattern READ currentPattern WRITE setCurrentPattern NOTIFY

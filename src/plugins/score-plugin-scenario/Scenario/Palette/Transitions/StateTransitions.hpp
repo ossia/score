@@ -34,8 +34,7 @@ public:
 protected:
   bool eventTest(QEvent* e) override
   {
-    if (e->type()
-        == QEvent::Type(QEvent::User + ClickOnState_Event::user_type))
+    if(e->type() == QEvent::Type(QEvent::User + ClickOnState_Event::user_type))
     {
       auto qev = static_cast<ClickOnState_Event*>(e);
       return qev->id == Scenario::endId<StateModel>();

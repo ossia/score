@@ -6,19 +6,21 @@
 #include <windows.h>
 // Map an "ImageBase" to a range of addresses that can throw.
 //
-class SEHFrameHandler {
+class SEHFrameHandler
+{
   typedef SingleSectionMemoryManager::EHFrameInfos EHFrameInfos;
   typedef std::vector<std::pair<DWORD, DWORD>> ImageRanges;
   typedef std::map<uintptr_t, ImageRanges> ImageBaseMap;
   ImageBaseMap m_Map;
 
-  static void MergeRanges(ImageRanges &Ranges);
+  static void MergeRanges(ImageRanges& Ranges);
   uintptr_t FindEHFrame(uintptr_t Caller);
 
 public:
-  static __declspec(noreturn) void __stdcall RaiseSEHException(void *, void *);
-  void RegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos &Frames, bool Block = true);
-  void DeRegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos &Frames);
+  static __declspec(noreturn) void __stdcall RaiseSEHException(void*, void*);
+  void
+  RegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos& Frames, bool Block = true);
+  void DeRegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos& Frames);
 };
 
 // FIXME: Rather than this static and overriding _CxxThrowException via
@@ -31,17 +33,21 @@ public:
 static SEHFrameHandler sFrameHandler;
 
 // Merge overlapping ranges for faster searching with throwing PC
-void SEHFrameHandler::MergeRanges(ImageRanges &Ranges) {
+void SEHFrameHandler::MergeRanges(ImageRanges& Ranges)
+{
   std::sort(Ranges.begin(), Ranges.end());
 
   ImageRanges Merged;
   ImageRanges::iterator It = Ranges.begin();
   auto Current = *(It)++;
-  while (It != Ranges.end()) {
-    if (Current.second + 1 < It->first) {
+  while(It != Ranges.end())
+  {
+    if(Current.second + 1 < It->first)
+    {
       Merged.push_back(Current);
       Current = *(It);
-    } else
+    }
+    else
       Current.second = std::max(Current.second, It->second);
     ++It;
   }
@@ -50,11 +56,14 @@ void SEHFrameHandler::MergeRanges(ImageRanges &Ranges) {
 }
 
 // Find the "ImageBase" for Caller/PC who is throwing an exception
-uintptr_t SEHFrameHandler::FindEHFrame(uintptr_t Caller) {
-  for (auto &&Itr : m_Map) {
+uintptr_t SEHFrameHandler::FindEHFrame(uintptr_t Caller)
+{
+  for(auto&& Itr : m_Map)
+  {
     const uintptr_t ImgBase = Itr.first;
-    for (auto &&Rng : Itr.second) {
-      if (Caller >= (ImgBase + Rng.first) && Caller <= (ImgBase + Rng.second))
+    for(auto&& Rng : Itr.second)
+    {
+      if(Caller >= (ImgBase + Rng.first) && Caller <= (ImgBase + Rng.second))
         return ImgBase;
     }
   }
@@ -62,53 +71,66 @@ uintptr_t SEHFrameHandler::FindEHFrame(uintptr_t Caller) {
 }
 
 // Register a range of addresses for a single section that
-void SEHFrameHandler::RegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos &Frames, bool Block) {
-  if (Frames.empty())
+void SEHFrameHandler::RegisterEHFrames(
+    uintptr_t ImageBase, const EHFrameInfos& Frames, bool Block)
+{
+  if(Frames.empty())
     return;
   assert(m_Map.find(ImageBase) == m_Map.end());
 
-  ImageBaseMap::mapped_type &Ranges = m_Map[ImageBase];
-  ImageRanges::value_type *BlockRange = nullptr;
-  if (Block) {
+  ImageBaseMap::mapped_type& Ranges = m_Map[ImageBase];
+  ImageRanges::value_type* BlockRange = nullptr;
+  if(Block)
+  {
     // Merge all unwind addresses into a single contiguous block for faster
     // searching later.
-    Ranges.emplace_back(std::numeric_limits<DWORD>::max(), std::numeric_limits<DWORD>::min());
+    Ranges.emplace_back(
+        std::numeric_limits<DWORD>::max(), std::numeric_limits<DWORD>::min());
     BlockRange = &Ranges.back();
   }
 
-  for (auto &&Frame : Frames) {
-    assert(m_Map.find(DWORD64(Frame.Addr)) == m_Map.end() && "Runtime function should not be a key!");
+  for(auto&& Frame : Frames)
+  {
+    assert(
+        m_Map.find(DWORD64(Frame.Addr)) == m_Map.end()
+        && "Runtime function should not be a key!");
 
     PRUNTIME_FUNCTION RFunc = reinterpret_cast<PRUNTIME_FUNCTION>(Frame.Addr);
     const size_t N = Frame.Size / sizeof(RUNTIME_FUNCTION);
-    if (BlockRange) {
-      for (PRUNTIME_FUNCTION It = RFunc, End = RFunc + N; It < End; ++It) {
+    if(BlockRange)
+    {
+      for(PRUNTIME_FUNCTION It = RFunc, End = RFunc + N; It < End; ++It)
+      {
         BlockRange->first = std::min(BlockRange->first, It->BeginAddress);
         BlockRange->second = std::max(BlockRange->second, It->EndAddress);
       }
-    } else {
-      for (PRUNTIME_FUNCTION It = RFunc, End = RFunc + N; It < End; ++It)
+    }
+    else
+    {
+      for(PRUNTIME_FUNCTION It = RFunc, End = RFunc + N; It < End; ++It)
         Ranges.emplace_back(It->BeginAddress, It->EndAddress);
     }
 
     ::RtlAddFunctionTable(RFunc, N, ImageBase);
   }
 
-  if (!Block)
+  if(!Block)
     MergeRanges(Ranges); // Initial sort and merge
 }
 
-void SEHFrameHandler::DeRegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos &Frames) {
-  if (Frames.empty())
+void SEHFrameHandler::DeRegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos& Frames)
+{
+  if(Frames.empty())
     return;
 
   auto Itr = m_Map.find(ImageBase);
-  if (Itr != m_Map.end()) {
+  if(Itr != m_Map.end())
+  {
     // Remove the ImageBase from lookup
     m_Map.erase(Itr);
 
     // Unregister all the PRUNTIME_FUNCTIONs
-    for (auto &&Frame : Frames)
+    for(auto&& Frame : Frames)
       ::RtlDeleteFunctionTable(reinterpret_cast<PRUNTIME_FUNCTION>(Frame.Addr));
   }
 }
@@ -126,26 +148,30 @@ void SEHFrameHandler::DeRegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos
 #define EH_EXCEPTION_PARAMETERS 4
 
 // A generic exception record
-struct EHExceptionRecord {
+struct EHExceptionRecord
+{
   DWORD ExceptionCode;
   DWORD ExceptionFlags;               // Flags determined by NT
-  _EXCEPTION_RECORD *ExceptionRecord; // Extra exception record (unused)
-  void *ExceptionAddress;             // Address at which exception occurred
-  DWORD NumberParameters; // No. of parameters = EH_EXCEPTION_PARAMETERS
-  struct EHParameters {
+  _EXCEPTION_RECORD* ExceptionRecord; // Extra exception record (unused)
+  void* ExceptionAddress;             // Address at which exception occurred
+  DWORD NumberParameters;             // No. of parameters = EH_EXCEPTION_PARAMETERS
+  struct EHParameters
+  {
     DWORD magicNumber;            // = EH_MAGIC_NUMBER1
-    void *pExceptionObject;       // Pointer to the actual object thrown
-    struct ThrowInfo *pThrowInfo; // Description of thrown object
+    void* pExceptionObject;       // Pointer to the actual object thrown
+    struct ThrowInfo* pThrowInfo; // Description of thrown object
 #if _EH_RELATIVE_OFFSETS
     DWORD64 pThrowImageBase; // Image base of thrown object
 #endif
   } params;
 };
 
-__declspec(noreturn) void __stdcall SEHFrameHandler::RaiseSEHException(void *CxxExcept, void *Info) {
+__declspec(noreturn) void __stdcall SEHFrameHandler::RaiseSEHException(
+    void* CxxExcept, void* Info)
+{
   std::cerr << "Entering SEHFrameHandler::RaiseSEHException()!" << std::endl;
   // DEBUG_MSG("Entering SEHFrameHandler::RaiseSEHException()!");
-/*
+  /*
   uintptr_t Caller;
   static_assert(sizeof(Caller) == sizeof(PVOID), "Size mismatch");
 
@@ -219,18 +245,19 @@ __declspec(noreturn) void __stdcall SEHFrameHandler::RaiseSEHException(void *Cxx
 */
 }
 
-
-void SingleSectionMemoryManager::Block::Reset(uint8_t *Ptr, uintptr_t Size) {
+void SingleSectionMemoryManager::Block::Reset(uint8_t* Ptr, uintptr_t Size)
+{
   assert(Ptr != nullptr && "Bad allocation");
   Addr = Ptr;
   End = Ptr ? Ptr + Size : nullptr;
 }
 
-uint8_t *SingleSectionMemoryManager::Block::Next(uintptr_t Size, unsigned Alignment) {
+uint8_t* SingleSectionMemoryManager::Block::Next(uintptr_t Size, unsigned Alignment)
+{
   uintptr_t Out = (uintptr_t)Addr;
 
   // Align the out pointer properly
-  if (!Alignment)
+  if(!Alignment)
     Alignment = 16;
   Out = (Out + Alignment - 1) & ~(uintptr_t)(Alignment - 1);
 
@@ -239,49 +266,63 @@ uint8_t *SingleSectionMemoryManager::Block::Next(uintptr_t Size, unsigned Alignm
   assert((Out + Size) <= (uintptr_t)End && "Out of bounds");
 
   // Set the next Addr to deliver at the end of this one.
-  Addr = (uint8_t *)(Out + Size);
-  return (uint8_t *)Out;
+  Addr = (uint8_t*)(Out + Size);
+  return (uint8_t*)Out;
 }
 
-uint8_t *SingleSectionMemoryManager::allocateCodeSection(uintptr_t Size, unsigned Align, unsigned ID, llvm::StringRef Name) {
+uint8_t* SingleSectionMemoryManager::allocateCodeSection(
+    uintptr_t Size, unsigned Align, unsigned ID, llvm::StringRef Name)
+{
   return Code.Next(Size, Align);
 }
 
-uint8_t *SingleSectionMemoryManager::allocateDataSection(
-    uintptr_t Size, unsigned Align, unsigned ID, llvm::StringRef Name, bool RO) {
+uint8_t* SingleSectionMemoryManager::allocateDataSection(
+    uintptr_t Size, unsigned Align, unsigned ID, llvm::StringRef Name, bool RO)
+{
   return RO ? ROData.Next(Size, Align) : RWData.Next(Size, Align);
 }
 
 void SingleSectionMemoryManager::reserveAllocationSpace(
     uintptr_t CodeSize, uint32_t CodeAlign, uintptr_t ROSize, uint32_t ROAlign,
-    uintptr_t RWSize, uint32_t RWAlign) {
+    uintptr_t RWSize, uint32_t RWAlign)
+{
   // FIXME: Ideally this should be one contiguous block, with Code, ROData,
   // and RWData pointing to sub-blocks within, but setting the correct
   // permissions for that wouldn't work unless we over-allocated to have each
   // Block.Base aligned on a page boundary.
   const unsigned SecID = 0;
-  Code.Reset(SectionMemoryManager::allocateCodeSection(CodeSize, CodeAlign, SecID, "code"), CodeSize);
+  Code.Reset(
+      SectionMemoryManager::allocateCodeSection(CodeSize, CodeAlign, SecID, "code"),
+      CodeSize);
 
-  ROData.Reset(SectionMemoryManager::allocateDataSection(ROSize, ROAlign, SecID, "rodata", true/*RO*/), ROSize);
+  ROData.Reset(
+      SectionMemoryManager::allocateDataSection(
+          ROSize, ROAlign, SecID, "rodata", true /*RO*/),
+      ROSize);
 
-  RWData.Reset(SectionMemoryManager::allocateDataSection(RWSize, RWAlign, SecID, "rwdata", false/*RO*/), RWSize);
+  RWData.Reset(
+      SectionMemoryManager::allocateDataSection(
+          RWSize, RWAlign, SecID, "rwdata", false /*RO*/),
+      RWSize);
 
   ImageBase = (uintptr_t)std::min(std::min(Code.Addr, ROData.Addr), RWData.Addr);
 }
 
-
-void SingleSectionMemoryManager::deregisterEHFrames() {
+void SingleSectionMemoryManager::deregisterEHFrames()
+{
   sFrameHandler.DeRegisterEHFrames(ImageBase, EHFrames);
   EHFrameInfos().swap(EHFrames);
 }
 
-bool SingleSectionMemoryManager::finalizeMemory(std::string *ErrMsg) {
+bool SingleSectionMemoryManager::finalizeMemory(std::string* ErrMsg)
+{
   sFrameHandler.RegisterEHFrames(ImageBase, EHFrames);
   ImageBase = 0;
   return SectionMemoryManager::finalizeMemory(ErrMsg);
 }
 
-SingleSectionMemoryManager::SingleSectionMemoryManager() {
+SingleSectionMemoryManager::SingleSectionMemoryManager()
+{
   // Override Windows _CxxThrowException to call into our local version that
   // can throw to and from the JIT.
   //   that function should not be called here, instead, we register an absolute symbol in our JIT libs.

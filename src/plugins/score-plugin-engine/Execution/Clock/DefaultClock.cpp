@@ -3,19 +3,21 @@
 
 #include "DefaultClock.hpp"
 
-#include <score/application/GUIApplicationContext.hpp>
-#include <Execution/BaseScenarioComponent.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
 #include <Process/ExecutionContext.hpp>
-
-#include <ossia/dataflow/execution_state.hpp>
-#include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/editor/scenario/scenario.hpp>
-#include <ossia/editor/scenario/execution_log.hpp>
 
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/editor/scenario/execution_log.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
 
 namespace Execution
 {
@@ -32,18 +34,16 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
   IntervalComponentBase& comp = bs.baseInterval();
   ossia::scenario& scenar = bs.baseScenario();
 
-  if (settings.getValueCompilation())
+  if(settings.getValueCompilation())
   {
     comp.interval().duration.setPlayPercentage(0);
 
 #if defined(OSSIA_EXECUTION_LOG)
     auto log = ossia::g_exec_log.init();
 #endif
-    context.executionQueue.enqueue([time = context.time(t),
-                                    &scenar,
-                                    g = context.execGraph,
-                                    s = context.execState] {
-      if (time != 0_tv)
+    context.executionQueue.enqueue(
+        [time = context.time(t), &scenar, g = context.execGraph, s = context.execState] {
+      if(time != 0_tv)
       {
         using namespace ossia;
 
@@ -63,7 +63,7 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
   else
   {
     context.executionQueue.enqueue([time = context.time(t), &scenar] {
-      if (time != 0_tv)
+      if(time != 0_tv)
         scenar.transport(time);
     });
   }
@@ -80,7 +80,7 @@ void DefaultClock::play(const TimeVal& t, BaseScenarioElement& bs)
     bs.baseInterval().OSSIAInterval()->start_and_tick();
     bs.baseInterval().executionStarted();
   }
-  catch (const std::exception& e)
+  catch(const std::exception& e)
   {
     qDebug() << e.what();
   }
@@ -100,6 +100,5 @@ void DefaultClock::stop(BaseScenarioElement& bs)
 {
   bs.baseInterval().stop();
 }
-
 
 }

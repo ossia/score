@@ -30,14 +30,11 @@ public:
   double value() const { return m_value; }
   virtual double map(double v) const;
   virtual double unmap(double v) const;
-  double
-      min{}; //TODO make it private. Warning used like this in a lot of places.
+  double min{}; //TODO make it private. Warning used like this in a lot of places.
   double max{}; //ditto
 
-  void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
-  void sliderMoved(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved, arg_1)
+  void valueChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved, arg_1)
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
   void mousePressEvent(QMouseEvent* event) override;

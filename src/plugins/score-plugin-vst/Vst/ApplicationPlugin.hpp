@@ -69,7 +69,6 @@ public:
 
   std::vector<ScanningProcess> m_processes;
 
-
 private:
   QWebSocketServer m_wsServer;
 #endif

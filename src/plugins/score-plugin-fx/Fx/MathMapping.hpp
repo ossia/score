@@ -3,12 +3,10 @@
 
 namespace Nodes
 {
-template<typename State>
+template <typename State>
 struct GenericMathMapping
 {
-  static void store_output(
-      State& self,
-      const ossia::value& v)
+  static void store_output(State& self, const ossia::value& v)
   {
     switch(v.get_type())
     {
@@ -17,26 +15,22 @@ struct GenericMathMapping
       case ossia::val_type::FLOAT:
         self.po = *v.target<float>();
         break;
-      case ossia::val_type::VEC2F:
-      {
+      case ossia::val_type::VEC2F: {
         auto& vec = *v.target<ossia::vec2f>();
         self.pov.assign(vec.begin(), vec.end());
         break;
       }
-      case ossia::val_type::VEC3F:
-      {
+      case ossia::val_type::VEC3F: {
         auto& vec = *v.target<ossia::vec3f>();
         self.pov.assign(vec.begin(), vec.end());
         break;
       }
-      case ossia::val_type::VEC4F:
-      {
+      case ossia::val_type::VEC4F: {
         auto& vec = *v.target<ossia::vec4f>();
         self.pov.assign(vec.begin(), vec.end());
         break;
       }
-      case ossia::val_type::LIST:
-      {
+      case ossia::val_type::LIST: {
         auto& arr = *v.target<std::vector<ossia::value>>();
         if(!arr.empty())
         {
@@ -52,10 +46,7 @@ struct GenericMathMapping
     }
   }
 
-  static void exec_scalar(
-      int64_t timestamp,
-      State& self,
-      ossia::value_port& output)
+  static void exec_scalar(int64_t timestamp, State& self, ossia::value_port& output)
   {
     auto res = self.expr.result();
 
@@ -66,9 +57,7 @@ struct GenericMathMapping
   }
 
   static void exec_array(
-      int64_t timestamp,
-      State& self,
-      ossia::value_port& output,
+      int64_t timestamp, State& self, ossia::value_port& output,
       bool vector_size_did_change)
   {
     if(self.xv.empty())
@@ -101,17 +90,13 @@ struct GenericMathMapping
     output.write_value(std::move(res), timestamp);
   }
 
-
-  static void
-  run_scalar(const ossia::value_port& input,
-      ossia::value_port& output,
-      const ossia::token_request& tk,
-      ossia::exec_state_facade st,
-      State& self)
+  static void run_scalar(
+      const ossia::value_port& input, ossia::value_port& output,
+      const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
   {
     auto ratio = st.modelToSamples();
     auto parent_dur = tk.parent_duration.impl * ratio;
-    for (const ossia::timed_value& v : input.get_data())
+    for(const ossia::timed_value& v : input.get_data())
     {
       int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
       setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
@@ -147,8 +132,7 @@ struct GenericMathMapping
         case ossia::val_type::VEC4F:
           self.x = (*v.value.target<ossia::vec4f>())[0];
           break;
-        case ossia::val_type::LIST:
-        {
+        case ossia::val_type::LIST: {
           auto& arr = *v.value.target<std::vector<ossia::value>>();
           if(!arr.empty())
             self.x = ossia::convert<float>(arr[0]);
@@ -160,23 +144,19 @@ struct GenericMathMapping
     }
   }
 
-  static void
-  run_array(const ossia::value_port& input,
-             ossia::value_port& output,
-             const ossia::token_request& tk,
-             ossia::exec_state_facade st,
-             State& self)
+  static void run_array(
+      const ossia::value_port& input, ossia::value_port& output,
+      const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
   {
     auto ratio = st.modelToSamples();
     auto parent_dur = tk.parent_duration.impl * ratio;
-    for (const ossia::timed_value& v : input.get_data())
+    for(const ossia::timed_value& v : input.get_data())
     {
       int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
       setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
       self.last_value_time = new_time;
 
-      auto array_run_scalar = [&] (float in)
-      {
+      auto array_run_scalar = [&](float in) {
         auto old_size = self.xv.size();
         self.xv.assign(1, in);
         auto new_size = 1U;
@@ -205,43 +185,44 @@ struct GenericMathMapping
         case ossia::val_type::STRING:
           array_run_scalar(ossia::convert<float>(v.value));
           break;
-        case ossia::val_type::VEC2F:
-        {
+        case ossia::val_type::VEC2F: {
           auto& arr = *v.value.target<ossia::vec2f>();
           auto old_size = self.xv.size();
           self.xv.assign(arr.begin(), arr.end());
           auto new_size = 2U;
-          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          GenericMathMapping::exec_array(
+              v.timestamp, self, output, old_size != new_size);
           break;
         }
-        case ossia::val_type::VEC3F:
-        {
+        case ossia::val_type::VEC3F: {
           auto& arr = *v.value.target<ossia::vec3f>();
           auto old_size = self.xv.size();
           self.xv.assign(arr.begin(), arr.end());
           auto new_size = 3U;
-          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          GenericMathMapping::exec_array(
+              v.timestamp, self, output, old_size != new_size);
           break;
         }
-        case ossia::val_type::VEC4F:
-        {
+        case ossia::val_type::VEC4F: {
           auto& arr = *v.value.target<ossia::vec4f>();
           auto old_size = self.xv.size();
           self.xv.assign(arr.begin(), arr.end());
           auto new_size = 4U;
-          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          GenericMathMapping::exec_array(
+              v.timestamp, self, output, old_size != new_size);
           break;
         }
-        case ossia::val_type::LIST:
-        {
+        case ossia::val_type::LIST: {
           auto& arr = *v.value.target<std::vector<ossia::value>>();
           auto old_size = self.xv.size();
           self.xv.resize(arr.size());
           auto new_size = arr.size();
-          for(std::size_t i = 0; i < arr.size(); i++) {
+          for(std::size_t i = 0; i < arr.size(); i++)
+          {
             self.xv[i] = ossia::convert<float>(arr[i]);
           }
-          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          GenericMathMapping::exec_array(
+              v.timestamp, self, output, old_size != new_size);
           break;
         }
       }
@@ -273,9 +254,7 @@ struct Node
     static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = tuplet::make_tuple(
-        Control::LineEdit(
-            "Expression (ExprTK)",
-            "cos(t) + log(pos * (1+abs(x)) / dt)"),
+        Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
@@ -340,17 +319,11 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::value_port& input,
-      const std::string& expr,
-      float a,
-      float b,
-      float c,
-      ossia::value_port& output,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
+  run(const ossia::value_port& input, const std::string& expr, float a, float b, float c,
+      ossia::value_port& output, ossia::token_request tk, ossia::exec_state_facade st,
       State& self)
   {
-    if (!self.expr.set_expression(expr))
+    if(!self.expr.set_expression(expr))
       return;
 
     self.a = a;
@@ -449,7 +422,7 @@ struct Node
 
     void reset_symbols(std::size_t N)
     {
-      if (N == cur_in.size())
+      if(N == cur_in.size())
         return;
 
       expr.remove_vector("x");
@@ -489,26 +462,20 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::audio_port& input,
-      const std::string& expr,
-      float a,
-      float b,
-      float c,
-      ossia::audio_port& output,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
+  run(const ossia::audio_port& input, const std::string& expr, float a, float b, float c,
+      ossia::audio_port& output, ossia::token_request tk, ossia::exec_state_facade st,
       State& self)
   {
-    if (tk.date > tk.prev_date)
+    if(tk.date > tk.prev_date)
     {
       self.fs = st.sampleRate();
-      if (!self.expr.set_expression(expr))
+      if(!self.expr.set_expression(expr))
         return;
 
       const auto samplesRatio = st.modelToSamples();
       const auto [tick_start, count] = st.timings(tk);
 
-      if (input.empty())
+      if(input.empty())
         return;
 
       const auto min_count
@@ -518,7 +485,7 @@ struct Node
       self.reset_symbols(chans);
       output.set_channels(chans);
 
-      for (int j = 0; j < chans; j++)
+      for(int j = 0; j < chans; j++)
       {
         auto& out = output.channel(j);
         out.resize(st.bufferSize(), boost::container::default_init);
@@ -528,9 +495,9 @@ struct Node
       self.p2 = b;
       self.p3 = c;
       const auto start_sample = (tk.prev_date * samplesRatio).impl;
-      for (int64_t i = 0; i < min_count; i++)
+      for(int64_t i = 0; i < min_count; i++)
       {
-        for (int j = 0; j < chans; j++)
+        for(int j = 0; j < chans; j++)
         {
           self.cur_in[j] = input.channel(j)[tick_start + i];
         }
@@ -540,7 +507,7 @@ struct Node
         self.expr.value();
 
         // Apply the output
-        for (int j = 0; j < chans; j++)
+        for(int j = 0; j < chans; j++)
         {
           output.channel(j)[tick_start + i] = self.cur_out[j];
         }
@@ -557,7 +524,6 @@ struct Node
 };
 }
 
-
 namespace MicroMapping
 {
 struct Node
@@ -569,8 +535,7 @@ struct Node
     static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description
-        = "Applies a math expression to an input.";
+    static const constexpr auto description = "Applies a math expression to an input.";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const uuid_constexpr auto uuid
         = make_uuid("25c64b87-a44a-4fed-9f60-0a48906fd3ec");
@@ -578,8 +543,8 @@ struct Node
     static const constexpr value_in value_ins[]{value_in{"in", false}};
     static const constexpr value_out value_outs[]{"out"};
 
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::LineEdit("Expression", "x / 127"));
+    static const constexpr auto controls
+        = tuplet::make_tuple(Control::LineEdit("Expression", "x / 127"));
   };
   struct State
   {
@@ -624,16 +589,11 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
 
-
   static void
-  run(const ossia::value_port& input,
-      const std::string& expr,
-      ossia::value_port& output,
-      const ossia::token_request& tk,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const ossia::value_port& input, const std::string& expr, ossia::value_port& output,
+      const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
   {
-    if (!self.expr.set_expression(expr))
+    if(!self.expr.set_expression(expr))
       return;
 
     if(self.expr.has_variable("xv"))

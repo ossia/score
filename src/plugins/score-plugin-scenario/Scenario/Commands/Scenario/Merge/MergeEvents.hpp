@@ -2,6 +2,13 @@
 
 #include "MergeTimeSyncs.hpp"
 
+#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -9,13 +16,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Unused.hpp>
-
-#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
-#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 namespace Scenario
 {
@@ -27,9 +27,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : public score::Command
   SCORE_COMMAND_DECL(CommandFactoryName(), MergeEvents, "Merge events")
 public:
   MergeEvents(
-      const ProcessModel& scenario,
-      Id<EventModel> clickedEv,
-      Id<EventModel> hoveredEv);
+      const ProcessModel& scenario, Id<EventModel> clickedEv, Id<EventModel> hoveredEv);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -1,15 +1,15 @@
 #pragma once
 #include <Process/Tools/ToolPalette.hpp>
 
-#include <score/document/DocumentContext.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-
-#include <QPoint>
-
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
 
 class BaseGraphicsObject;
 
@@ -31,15 +31,12 @@ class DisplayedElementsModel;
 class DisplayedElementsPresenter;
 class ScenarioDocumentPresenter;
 
-class ScenarioDisplayedElementsToolPalette final
-    : public GraphicsSceneToolPalette
+class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
 public:
   ScenarioDisplayedElementsToolPalette(
-      const DisplayedElementsModel&,
-      DisplayedElementsPresenter&,
-      ScenarioDocumentPresenter&,
-      QGraphicsItem*);
+      const DisplayedElementsModel&, DisplayedElementsPresenter&,
+      ScenarioDocumentPresenter&, QGraphicsItem*);
 
   QGraphicsItem& view() const;
   DisplayedElementsPresenter& presenter() const;
@@ -68,9 +65,7 @@ private:
   const Scenario::EditionSettings& m_editionSettings;
 
   Scenario::SmartTool<
-      Scenario::ProcessModel,
-      ScenarioDisplayedElementsToolPalette,
-      BaseGraphicsObject,
+      Scenario::ProcessModel, ScenarioDisplayedElementsToolPalette, BaseGraphicsObject,
       Scenario::DoNotMoveInterval_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
@@ -79,9 +74,7 @@ private:
       m_state;
 
   ToolPaletteInputDispatcher<
-      Scenario::Tool,
-      ScenarioDisplayedElementsToolPalette,
-      BaseElementContext,
+      Scenario::Tool, ScenarioDisplayedElementsToolPalette, BaseElementContext,
       ScenarioDocumentPresenter>
       m_inputDisp;
 };

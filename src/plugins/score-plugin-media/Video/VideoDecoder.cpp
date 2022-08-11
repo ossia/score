@@ -1,16 +1,16 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 
-extern "C"
-{
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
 #include "VideoDecoder.hpp"
 
-#include <score/tools/Debug.hpp>
 #include <Video/GpuFormats.hpp>
+
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flicks.hpp>
 
@@ -23,7 +23,10 @@ namespace Video
 static char global_errbuf[512];
 VideoInterface::~VideoInterface() { }
 
-void FreeAVFrame::operator()(AVFrame* f) const noexcept { av_frame_free(&f); }
+void FreeAVFrame::operator()(AVFrame* f) const noexcept
+{
+  av_frame_free(&f);
+}
 
 VideoDecoder::VideoDecoder() noexcept { }
 
@@ -39,28 +42,24 @@ std::shared_ptr<VideoDecoder> VideoDecoder::clone() const noexcept
   return ptr;
 }
 
-bool VideoDecoder::load(
-    const std::string& inputFile,
-    double fps_unused) noexcept
+bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcept
 {
   close_file();
 
   m_inputFile = inputFile;
-  if (avformat_open_input(
-          &m_formatContext, inputFile.c_str(), nullptr, nullptr)
-      != 0)
+  if(avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
   {
     close_file();
     return false;
   }
 
-  if (avformat_find_stream_info(m_formatContext, nullptr) < 0)
+  if(avformat_find_stream_info(m_formatContext, nullptr) < 0)
   {
     close_file();
     return false;
   }
 
-  if (!open_stream())
+  if(!open_stream())
   {
     close_file();
     return false;
@@ -107,9 +106,9 @@ void VideoDecoder::release_frame(AVFrame* frame) noexcept
 
 void VideoDecoder::buffer_thread() noexcept
 {
-  while (m_running.load(std::memory_order_acquire))
+  while(m_running.load(std::memory_order_acquire))
   {
-    if (int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+    if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
     {
       seek_impl(seek);
     }
@@ -118,20 +117,19 @@ void VideoDecoder::buffer_thread() noexcept
       std::unique_lock lck{m_condMut};
       m_condVar.wait(lck, [&] {
         return m_frames.size() < frames_to_buffer / 2
-               || !m_running.load(std::memory_order_acquire)
-               || (m_seekTo != -1);
+               || !m_running.load(std::memory_order_acquire) || (m_seekTo != -1);
       });
-      if (!m_running.load(std::memory_order_acquire))
+      if(!m_running.load(std::memory_order_acquire))
         return;
 
-      if (int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+      if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
       {
         seek_impl(seek);
       }
 
-      if (m_frames.size() < (frames_to_buffer / 2))
+      if(m_frames.size() < (frames_to_buffer / 2))
       {
-        if (auto f = read_frame_impl())
+        if(auto f = read_frame_impl())
         {
           m_frames.enqueue(f);
         }
@@ -147,14 +145,14 @@ void VideoDecoder::close_file() noexcept
   m_running.store(false, std::memory_order_release);
   m_condVar.notify_one();
 
-  if (m_thread.joinable())
+  if(m_thread.joinable())
     m_thread.join();
 
   // Clear the stream
   close_video();
 
   // Clear the fmt context
-  if (m_formatContext)
+  if(m_formatContext)
   {
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
@@ -167,18 +165,17 @@ void VideoDecoder::close_file() noexcept
 ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
 {
   const bool hap
-      = (m_formatContext->streams[m_stream]->codecpar->codec_id
-         == AV_CODEC_ID_HAP);
+      = (m_formatContext->streams[m_stream]->codecpar->codec_id == AV_CODEC_ID_HAP);
   int res{};
   if(hap && frame->buf[0])
   {
     av_buffer_unref(&frame->buf[0]);
   }
-  while ((res = av_read_frame(m_formatContext, &packet)) >= 0)
+  while((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
-    if (packet.stream_index == m_stream)
+    if(packet.stream_index == m_stream)
     {
-      if (hap)
+      if(hap)
       {
         auto cp = m_formatContext->streams[m_stream]->codecpar;
         // TODO this is a hack, we store the FOURCC in the format...
@@ -204,9 +201,8 @@ ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
       {
         SCORE_ASSERT(m_codecContext);
 
-        av_packet_rescale_ts(&packet,
-                             this->m_avstream->time_base,
-                             this->m_codecContext->time_base);
+        av_packet_rescale_ts(
+            &packet, this->m_avstream->time_base, this->m_codecContext->time_base);
 
         auto res = enqueue_frame(&packet, std::move(frame));
 
@@ -221,12 +217,10 @@ ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
     av_packet_unref(&packet);
   }
 
-
-  if (res != 0 && res != AVERROR_EOF)
+  if(res != 0 && res != AVERROR_EOF)
   {
     qDebug() << "Error while reading a frame: "
-             << av_make_error_string(
-                    global_errbuf, sizeof(global_errbuf), res);
+             << av_make_error_string(global_errbuf, sizeof(global_errbuf), res);
   }
   av_packet_unref(&packet);
   return {nullptr, res};
@@ -249,7 +243,7 @@ int seek_to_frame(AVFormatContext* format, AVStream* stream, int frameIndex)
 
 bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
-  if (m_stream >= int(m_formatContext->nb_streams))
+  if(m_stream >= int(m_formatContext->nb_streams))
     return false;
 
   const auto stream = m_formatContext->streams[m_stream];
@@ -257,14 +251,13 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
   // Don't seek if we're less than 0.2 second close to the request
   // unit of the timestamps in seconds: stream->time_base.num / stream->time_base.den
-  const int64_t min_dts_delta
-      = (0.2 * stream->time_base.den) / stream->time_base.num;
-  if (std::abs(dts - m_last_dequeued_dts) <= min_dts_delta)
+  const int64_t min_dts_delta = (0.2 * stream->time_base.den) / stream->time_base.num;
+  if(std::abs(dts - m_last_dequeued_dts) <= min_dts_delta)
     return false;
 
-  // TODO - maybe we should also store the "last dequeued dts" from the
-  // decoder side - this way no need to seek if we are in the interval
-  // const bool seek_forward = dts >= this->m_last_dequeued_dts;
+    // TODO - maybe we should also store the "last dequeued dts" from the
+    // decoder side - this way no need to seek if we are in the interval
+    // const bool seek_forward = dts >= this->m_last_dequeued_dts;
 #if LIBAVFORMAT_VERSION_MAJOR >= 59
   const int64_t start = 0;
 #else
@@ -277,7 +270,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     return false;
   }
 
-  if (m_codecContext)
+  if(m_codecContext)
     avcodec_flush_buffers(m_codecContext);
 
   AVPacket pkt{};
@@ -289,23 +282,23 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     do
     {
       r = read_one_frame(m_frames.newFrame(), pkt);
-    } while (r.error == AVERROR(EAGAIN));
+    } while(r.error == AVERROR(EAGAIN));
 
-    if (r.error == AVERROR_EOF || !r.frame)
+    if(r.error == AVERROR_EOF || !r.frame)
     {
       break;
     }
 
     // we're starting to see correct frames, try to get close to the dts we want.
-    while (r.frame->pkt_dts + r.frame->pkt_duration < dts)
+    while(r.frame->pkt_dts + r.frame->pkt_duration < dts)
     {
       r = read_one_frame(AVFramePointer{r.frame}, pkt);
-      if (r.error == AVERROR_EOF || !r.frame)
+      if(r.error == AVERROR_EOF || !r.frame)
         break;
     }
-  } while (0);
+  } while(0);
 
-  if (r.frame)
+  if(r.frame)
   {
     m_frames.set_discard_frame(r.frame);
     m_frames.enqueue(r.frame);
@@ -321,7 +314,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
 {
   ReadFrame res;
 
-  if (m_stream != -1)
+  if(m_stream != -1)
   {
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
@@ -329,7 +322,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
     do
     {
       res = read_one_frame(m_frames.newFrame(), packet);
-    } while (res.error == AVERROR(EAGAIN));
+    } while(res.error == AVERROR(EAGAIN));
   }
   return res.frame;
 }
@@ -344,16 +337,16 @@ bool VideoDecoder::open_stream() noexcept
 {
   bool res = false;
 
-  if (!m_formatContext)
+  if(!m_formatContext)
     return res;
 
   m_stream = -1;
 
-  for (unsigned int i = 0; i < m_formatContext->nb_streams; i++)
+  for(unsigned int i = 0; i < m_formatContext->nb_streams; i++)
   {
-    if (m_formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+    if(m_formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
     {
-      if (m_stream == -1)
+      if(m_stream == -1)
       {
         m_stream = i;
         continue;
@@ -362,7 +355,7 @@ bool VideoDecoder::open_stream() noexcept
     m_formatContext->streams[i]->discard = AVDISCARD_ALL;
   }
 
-  if (m_stream != -1)
+  if(m_stream != -1)
   {
     AVStream* stream = m_formatContext->streams[m_stream];
     m_avstream = stream;
@@ -371,7 +364,7 @@ bool VideoDecoder::open_stream() noexcept
     flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
 
     auto codecPar = stream->codecpar;
-    if ((m_codec = avcodec_find_decoder(codecPar->codec_id)))
+    if((m_codec = avcodec_find_decoder(codecPar->codec_id)))
     {
       if(codecPar->width <= 0 || codecPar->height <= 0)
       {
@@ -380,7 +373,7 @@ bool VideoDecoder::open_stream() noexcept
       }
       else
       {
-        if (stream->codecpar->codec_id == AV_CODEC_ID_HAP)
+        if(stream->codecpar->codec_id == AV_CODEC_ID_HAP)
         {
           // TODO this is a hack, we store the FOURCC in the format...
           memcpy(&pixel_format, &stream->codecpar->codec_tag, 4);
@@ -423,7 +416,7 @@ bool VideoDecoder::open_stream() noexcept
     }
   }
 
-  if (!res)
+  if(!res)
   {
     close_video();
   }
@@ -432,7 +425,7 @@ bool VideoDecoder::open_stream() noexcept
 
 void VideoDecoder::close_video() noexcept
 {
-  if (m_codecContext)
+  if(m_codecContext)
   {
     avcodec_close(m_codecContext);
     avcodec_free_context(&m_codecContext);
@@ -446,8 +439,7 @@ void VideoDecoder::close_video() noexcept
   m_stream = -1;
 }
 
-ReadFrame
-VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
+ReadFrame VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
 {
   ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get());
   if(!read.frame)
@@ -456,7 +448,7 @@ VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
     return read;
   }
 
-  if (m_rescale)
+  if(m_rescale)
   {
     m_rescale.rescale(*this, m_frames, frame, read);
   }
@@ -468,36 +460,32 @@ VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
   return read;
 }
 
-ReadFrame readVideoFrame(
-    AVCodecContext* codecContext,
-    const AVPacket* pkt,
-    AVFrame* frame)
+ReadFrame
+readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame)
 {
-  if (codecContext && pkt && frame)
+  if(codecContext && pkt && frame)
   {
     int ret = avcodec_send_packet(codecContext, pkt);
-    if (ret < 0)
+    if(ret < 0)
     {
-      if (ret != AVERROR_EOF)
+      if(ret != AVERROR_EOF)
       {
         qDebug() << "avcodec_send_packet: "
-                 << av_make_error_string(
-                        global_errbuf, sizeof(global_errbuf), ret);
+                 << av_make_error_string(global_errbuf, sizeof(global_errbuf), ret);
       }
       return {nullptr, ret};
     }
 
     ret = avcodec_receive_frame(codecContext, frame);
-    if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
+    if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
     {
       qDebug() << "avcodec_receive_frame: "
-               << av_make_error_string(
-                      global_errbuf, sizeof(global_errbuf), ret);
+               << av_make_error_string(global_errbuf, sizeof(global_errbuf), ret);
       return {nullptr, ret};
     }
     else
     {
-      if (frame->pts >= 0)
+      if(frame->pts >= 0)
         return {frame, ret};
       else
         return {nullptr, ret};

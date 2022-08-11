@@ -7,9 +7,5 @@
 namespace Media::Settings
 {
 SCORE_DECLARE_SETTINGS_FACTORY(
-    Factory,
-    Model,
-    Presenter,
-    View,
-    "5cce4a2c-0d64-4400-a9dd-bf5760e46853")
+    Factory, Model, Presenter, View, "5cce4a2c-0d64-4400-a9dd-bf5760e46853")
 }

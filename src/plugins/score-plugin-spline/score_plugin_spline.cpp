@@ -17,29 +17,27 @@
 #include <Spline/Model.hpp>
 #include <Spline/Presenter.hpp>
 #include <Spline/View.hpp>
+
 #include <score_plugin_spline_commands_files.hpp>
 #include <wobjectimpl.h>
 namespace Spline
 {
 using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
-using SplineLayerFactory = Process::
-    LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
+using SplineLayerFactory
+    = Process::LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
 }
 
 score_plugin_spline::score_plugin_spline() = default;
 score_plugin_spline::~score_plugin_spline() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_spline::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_spline::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Spline::SplineFactory>,
+      score::ApplicationContext, FW<Process::ProcessModelFactory, Spline::SplineFactory>,
       FW<Process::LayerFactory, Spline::SplineLayerFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Spline::RecreateOnPlay::ComponentFactory>>(ctx, key);
+      FW<Execution::ProcessComponentFactory, Spline::RecreateOnPlay::ComponentFactory>>(
+      ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

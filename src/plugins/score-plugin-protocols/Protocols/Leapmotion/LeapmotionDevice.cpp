@@ -6,9 +6,10 @@
 
 #include <score/document/DocumentContext.hpp>
 
-#include <ossia-qt/invoke.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/protocols/leapmotion/leapmotion_device.hpp>
+
+#include <ossia-qt/invoke.hpp>
 
 #include <QLabel>
 #include <QProgressDialog>
@@ -21,8 +22,7 @@ namespace Protocols
 {
 
 LeapmotionDevice::LeapmotionDevice(
-    const Device::DeviceSettings& settings,
-    const ossia::net::network_context_ptr& ctx)
+    const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -57,7 +57,7 @@ bool LeapmotionDevice::reconnect()
       m_dev = std::move(addr);
       deviceChanged(nullptr, m_dev.get());
     }
-    catch (...)
+    catch(...)
     {
       SCORE_TODO;
     }

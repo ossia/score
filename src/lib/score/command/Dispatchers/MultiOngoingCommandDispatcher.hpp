@@ -8,11 +8,10 @@ namespace RollbackStrategy
 {
 struct Simple
 {
-  static void rollback(
-      const score::DocumentContext& ctx,
-      const std::vector<score::Command*>& cmds)
+  static void
+  rollback(const score::DocumentContext& ctx, const std::vector<score::Command*>& cmds)
   {
-    for (int i = cmds.size() - 1; i >= 0; --i)
+    for(int i = cmds.size() - 1; i >= 0; --i)
     {
       cmds[i]->undo(ctx);
     }
@@ -56,7 +55,7 @@ public:
   template <typename TheCommand, typename... Args>
   void submit(Args&&... args)
   {
-    if (m_cmds.empty())
+    if(m_cmds.empty())
     {
       stack().disableActions();
       auto cmd = new TheCommand(std::forward<Args>(args)...);
@@ -66,7 +65,7 @@ public:
     else
     {
       score::Command* last = m_cmds.back();
-      if (last->key() == TheCommand::static_key())
+      if(last->key() == TheCommand::static_key())
       {
         safe_cast<TheCommand*>(last)->update(std::forward<Args>(args)...);
         safe_cast<TheCommand*>(last)->redo(stack().context());
@@ -84,10 +83,10 @@ public:
   template <typename CommitCommand>
   void commit()
   {
-    if (!m_cmds.empty())
+    if(!m_cmds.empty())
     {
       auto theCmd = new CommitCommand;
-      for (auto& cmd : m_cmds)
+      for(auto& cmd : m_cmds)
       {
         theCmd->addCommand(cmd);
       }
@@ -113,8 +112,7 @@ public:
 private:
   void cleanup()
   {
-    std::for_each(
-        m_cmds.rbegin(), m_cmds.rend(), [](auto cmd) { delete cmd; });
+    std::for_each(m_cmds.rbegin(), m_cmds.rend(), [](auto cmd) { delete cmd; });
   }
 
   std::vector<score::Command*> m_cmds;

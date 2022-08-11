@@ -48,7 +48,8 @@ class SegmentModel;
 class SCORE_PLUGIN_CURVE_EXPORT CommandObjectBase
 {
 public:
-  CommandObjectBase(const Model& model, Presenter* pres, const score::CommandStackFacade&);
+  CommandObjectBase(
+      const Model& model, Presenter* pres, const score::CommandStackFacade&);
   virtual ~CommandObjectBase();
 
   void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
@@ -62,22 +63,16 @@ protected:
   // They are removed afterwards
   void submit(std::vector<SegmentData>&&);
 
-  auto
-  find(std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
+  auto find(std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
   {
     return std::find_if(
-        segments.begin(), segments.end(), [&](const auto& seg) {
-          return seg.id == id;
-        });
+        segments.begin(), segments.end(), [&](const auto& seg) { return seg.id == id; });
   }
-  auto find(
-      const std::vector<SegmentData>& segments,
-      const OptionalId<SegmentModel>& id)
+  auto find(const std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
   {
-    return std::find_if(
-        segments.cbegin(), segments.cend(), [&](const auto& seg) {
-          return seg.id == id;
-        });
+    return std::find_if(segments.cbegin(), segments.cend(), [&](const auto& seg) {
+      return seg.id == id;
+    });
   }
 
   virtual void on_press() = 0;

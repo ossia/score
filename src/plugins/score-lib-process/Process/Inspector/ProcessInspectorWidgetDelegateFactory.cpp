@@ -2,12 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessInspectorWidgetDelegateFactory.hpp"
 
-#include <score/application/GUIApplicationContext.hpp>
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+
 #include <Effect/EffectLayer.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
@@ -27,29 +29,27 @@ namespace Process
 InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
 
 QWidget* InspectorWidgetDelegateFactory::make(
-    const InspectedObjects& objects,
-    const score::DocumentContext& doc,
+    const InspectedObjects& objects, const score::DocumentContext& doc,
     QWidget* parent) const
 {
-  if (objects.empty())
+  if(objects.empty())
     return nullptr;
 
   auto obj = objects.first();
-  if (auto p = qobject_cast<const Process::ProcessModel*>(obj))
+  if(auto p = qobject_cast<const Process::ProcessModel*>(obj))
   {
     return make_process(*p, doc, parent);
   }
   return nullptr;
 }
 
-bool InspectorWidgetDelegateFactory::matches(
-    const InspectedObjects& objects) const
+bool InspectorWidgetDelegateFactory::matches(const InspectedObjects& objects) const
 {
-  if (objects.empty())
+  if(objects.empty())
     return false;
 
   auto obj = objects.first();
-  if (auto p = qobject_cast<const Process::ProcessModel*>(obj))
+  if(auto p = qobject_cast<const Process::ProcessModel*>(obj))
   {
     return matches_process(*p);
   }
@@ -59,11 +59,10 @@ bool InspectorWidgetDelegateFactory::matches(
 class InspectorWidget : public QWidget
 {
   QPointer<ProcessModel> m_proc;
+
 public:
   InspectorWidget(
-      const ProcessModel& process,
-      const score::DocumentContext& doc,
-      QWidget* w,
+      const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
       QWidget* parent)
       : QWidget{parent}
       , m_proc{&const_cast<Process::ProcessModel&>(process)}
@@ -90,7 +89,7 @@ public:
       btn_lay = new QHBoxLayout;
       loop_lay->addRow(btn_lay);
     };
-    if (!(process.flags() & ProcessFlags::TimeIndependent))
+    if(!(process.flags() & ProcessFlags::TimeIndependent))
     {
       initButtonsLayout();
 
@@ -110,11 +109,11 @@ public:
         loop_btn->setCheckable(true);
         loop_btn->setChecked(process.loops());
         connect(loop_btn, &QToolButton::toggled, this, [&](bool b) {
-          if (b != process.loops())
+          if(b != process.loops())
             CommandDispatcher<>{doc.commandStack}.submit<SetLoop>(process, b);
         });
         con(process, &ProcessModel::loopsChanged, this, [loop_btn](bool b) {
-          if (b != loop_btn->isChecked())
+          if(b != loop_btn->isChecked())
             loop_btn->setChecked(b);
         });
         btn_lay->addWidget(loop_btn);
@@ -126,16 +125,12 @@ public:
         so->setMinimumTime({});
         so->setTime(process.startOffset());
         connect(
-            so,
-            &score::TimeSpinBox::timeChanged,
-            this,
-            [&](const ossia::time_value& t) {
-              if (t != process.startOffset())
-                CommandDispatcher<>{doc.commandStack}.submit<SetStartOffset>(
-                    process, t);
+            so, &score::TimeSpinBox::timeChanged, this, [&](const ossia::time_value& t) {
+              if(t != process.startOffset())
+                CommandDispatcher<>{doc.commandStack}.submit<SetStartOffset>(process, t);
             });
         con(process, &ProcessModel::startOffsetChanged, this, [so](TimeVal t) {
-          if (t != so->time())
+          if(t != so->time())
             so->setTime(t);
         });
         loop_lay->addRow(tr("Start offset"), so);
@@ -147,28 +142,23 @@ public:
         so->setMinimumTime(TimeVal::fromMsecs(10));
         so->setTime(process.loopDuration());
         connect(
-            so,
-            &score::TimeSpinBox::timeChanged,
-            this,
+            so, &score::TimeSpinBox::timeChanged, this,
             [&](const ossia::time_value& t) {
-              if (t != process.loopDuration())
-                CommandDispatcher<>{doc.commandStack}.submit<SetLoopDuration>(
-                    process, t);
+          if(t != process.loopDuration())
+            CommandDispatcher<>{doc.commandStack}.submit<SetLoopDuration>(process, t);
             });
-        con(process,
-            &ProcessModel::loopDurationChanged,
-            this,
-            [so](TimeVal t) {
-              if (t != so->time())
-                so->setTime(t);
-            });
+        con(process, &ProcessModel::loopDurationChanged, this, [so](TimeVal t) {
+          if(t != so->time())
+            so->setTime(t);
+        });
         loop_lay->addRow(tr("Loop duration"), so);
       }
     }
 
     auto& processes = doc.app.interfaces<Process::LayerFactoryList>();
 
-    if(auto fact = processes.get(process.concreteKey()); fact && fact->hasExternalUI(process, doc))
+    if(auto fact = processes.get(process.concreteKey());
+       fact && fact->hasExternalUI(process, doc))
     {
       if(!loop_lay)
         initButtonsLayout();
@@ -186,12 +176,10 @@ public:
       uiToggle->setCheckable(true);
       uiToggle->setChecked(bool(process.externalUI));
 
-      connect(uiToggle, &QToolButton::toggled,
-              this, [&process, fact, &doc] (bool state) {
+      connect(uiToggle, &QToolButton::toggled, this, [&process, fact, &doc](bool state) {
         Process::setupExternalUI(process, *fact, doc, state);
       });
-      connect(&process, &ProcessModel::externalUIVisible,
-              uiToggle, [=] (bool v) {
+      connect(&process, &ProcessModel::externalUIVisible, uiToggle, [=](bool v) {
         QSignalBlocker block{uiToggle};
         uiToggle->setChecked(v);
       });
@@ -199,7 +187,7 @@ public:
       btn_lay->addWidget(uiToggle);
     }
 
-    if (process.flags() & ProcessFlags::CanCreateControls)
+    if(process.flags() & ProcessFlags::CanCreateControls)
     {
       if(!loop_lay)
         initButtonsLayout();
@@ -210,20 +198,20 @@ public:
           QStringLiteral(":/icons/control_record_off.png"),
           QStringLiteral(":/icons/control_record_off.png")));
       controlsToggle->setToolTip(tr("Edit controls"));
-      controlsToggle->setStatusTip(tr("Enable the controls changed in the plug-in ui to appear in the main window"));
+      controlsToggle->setStatusTip(tr(
+          "Enable the controls changed in the plug-in ui to appear in the main window"));
       controlsToggle->setAutoRaise(true);
       controlsToggle->setIconSize(QSize{28, 28});
       controlsToggle->setCheckable(true);
       controlsToggle->setChecked(false);
-      connect(controlsToggle, &QToolButton::toggled,
-              this, [&process] (bool state) {
+      connect(controlsToggle, &QToolButton::toggled, this, [&process](bool state) {
         auto& p = const_cast<Process::ProcessModel&>(process);
         p.setCreatingControls(state);
       });
       btn_lay->addWidget(controlsToggle);
     }
 
-    if (w)
+    if(w)
     {
       lay->addWidget(w);
       lay->addStretch(100);
@@ -232,8 +220,7 @@ public:
     {
       auto scroll = new QScrollArea{};
       scroll->setFrameShape(QFrame::NoFrame);
-      scroll->setSizePolicy(
-          QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
+      scroll->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
       scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
       scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
       scroll->setWidgetResizable(true);
@@ -252,9 +239,7 @@ public:
 };
 
 QWidget* InspectorWidgetDelegateFactory::wrap(
-    const ProcessModel& process,
-    const score::DocumentContext& doc,
-    QWidget* w,
+    const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
     QWidget* parent)
 {
   auto widg = new InspectorWidget{process, doc, w, parent};

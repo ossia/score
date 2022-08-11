@@ -2,22 +2,14 @@
 namespace score::gfx
 {
 
-OutputNode::OutputNode()
-{
-}
+OutputNode::OutputNode() { }
 
 OutputNode::~OutputNode() { }
 
 void OutputNode::updateGraphicsAPI(GraphicsApi) { }
 
-OutputNodeRenderer::~OutputNodeRenderer()
-{
+OutputNodeRenderer::~OutputNodeRenderer() { }
 
-}
-
-void OutputNodeRenderer::finishFrame(RenderList&, QRhiCommandBuffer& commands)
-{
-
-}
+void OutputNodeRenderer::finishFrame(RenderList&, QRhiCommandBuffer& commands) { }
 
 }

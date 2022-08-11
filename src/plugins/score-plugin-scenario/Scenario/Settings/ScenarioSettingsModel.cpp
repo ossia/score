@@ -11,9 +11,9 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/File.hpp>
 
-#include <core/presenter/DocumentManager.hpp>
-#include <core/document/Document.hpp>
 #include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <QDebug>
 #include <QFile>
@@ -27,56 +27,36 @@ namespace Settings
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(Skin){QStringLiteral("Skin/Skin"), "Default"};
-SETTINGS_PARAMETER_IMPL(DefaultEditor){
-    QStringLiteral("Skin/DefaultEditor"),
-    ""};
+SETTINGS_PARAMETER_IMPL(DefaultEditor){QStringLiteral("Skin/DefaultEditor"), ""};
 SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
 SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
 SETTINGS_PARAMETER_IMPL(DefaultDuration){
-    QStringLiteral("Skin/defaultDuration"),
-    TimeVal::fromMsecs(15000)};
+    QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
 SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){
-    QStringLiteral("Scenario/SnapshotOnCreate"),
-    false};
-SETTINGS_PARAMETER_IMPL(AutoSequence){
-    QStringLiteral("Scenario/AutoSequence"),
-    false};
-SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"),
-    #if defined(__EMSCRIPTEN__)
+    QStringLiteral("Scenario/SnapshotOnCreate"), false};
+SETTINGS_PARAMETER_IMPL(AutoSequence){QStringLiteral("Scenario/AutoSequence"), false};
+SETTINGS_PARAMETER_IMPL(TimeBar)
+{
+  QStringLiteral("Scenario/TimeBar"),
+#if defined(__EMSCRIPTEN__)
       false
-    #else
+#else
       true
-    #endif
+#endif
 };
-SETTINGS_PARAMETER_IMPL(MeasureBars){
-    QStringLiteral("Scenario/MeasureBars"),
-    true};
+SETTINGS_PARAMETER_IMPL(MeasureBars){QStringLiteral("Scenario/MeasureBars"), true};
 SETTINGS_PARAMETER_IMPL(MagneticMeasures){
-    QStringLiteral("Scenario/MagneticMeasures"),
-    true};
-SETTINGS_PARAMETER_IMPL(UpdateRate){
-  QStringLiteral("Scenario/UpdateRate"),
-    60};
+    QStringLiteral("Scenario/MagneticMeasures"), true};
+SETTINGS_PARAMETER_IMPL(UpdateRate){QStringLiteral("Scenario/UpdateRate"), 60};
 SETTINGS_PARAMETER_IMPL(ExecutionRefreshRate){
-    QStringLiteral("Scenario/ExecutionRefreshRate"),
-    60};
+    QStringLiteral("Scenario/ExecutionRefreshRate"), 60};
 
 static auto list()
 {
   return std::tie(
-      Skin,
-      DefaultEditor,
-      GraphicZoom,
-      SlotHeight,
-      DefaultDuration,
-      SnapshotOnCreate,
-      AutoSequence,
-      TimeBar,
-      MeasureBars,
-      MagneticMeasures,
-      UpdateRate,
-      ExecutionRefreshRate
-      );
+      Skin, DefaultEditor, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
+      AutoSequence, TimeBar, MeasureBars, MagneticMeasures, UpdateRate,
+      ExecutionRefreshRate);
 }
 }
 
@@ -84,14 +64,13 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 
-  if (m_DefaultDuration < TimeVal::fromMsecs(1000))
+  if(m_DefaultDuration < TimeVal::fromMsecs(1000))
     setDefaultDuration(TimeVal::fromMsecs(15000));
-  if (m_DefaultDuration > TimeVal::fromMsecs(10000000))
+  if(m_DefaultDuration > TimeVal::fromMsecs(10000000))
     setDefaultDuration(TimeVal::fromMsecs(100000));
   // setDefaultDuration(TimeVal::fromMsecs(100000));
 
-  bind(*this, Model::p_UpdateRate{},
-       this, [&ctx] (int r) {
+  bind(*this, Model::p_UpdateRate{}, this, [&ctx](int r) {
     auto& set = const_cast<score::ApplicationSettings&>(ctx.applicationSettings);
     set.uiEventRate = r;
     for(auto& doc : ctx.documents.documents())
@@ -108,20 +87,20 @@ QString Model::getSkin() const
 
 void Model::setSkin(const QString& skin)
 {
-  if (m_Skin == skin)
+  if(m_Skin == skin)
     return;
-  if (!score::AppContext().applicationSettings.gui)
+  if(!score::AppContext().applicationSettings.gui)
     return;
 
   QFile f(skin);
-  if (skin.isEmpty() || skin == "Default" || !f.exists())
+  if(skin.isEmpty() || skin == "Default" || !f.exists())
     f.setFileName(":/skin/DefaultSkin.json");
 
-  if (f.open(QFile::ReadOnly))
+  if(f.open(QFile::ReadOnly))
   {
     QJsonParseError err;
     auto doc = QJsonDocument::fromJson(score::mapAsByteArray(f), &err);
-    if (err.error)
+    if(err.error)
     {
       qDebug() << "could not load skin : " << err.errorString() << err.offset;
     }
@@ -152,15 +131,14 @@ QString Model::getDefaultEditor() const
 
 void Model::setDefaultEditor(QString val)
 {
-  if (val == m_DefaultEditor)
+  if(val == m_DefaultEditor)
     return;
 
   m_DefaultEditor = val;
 
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
-  s.setValue(
-      Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
+  s.setValue(Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
 #endif
 
   DefaultEditorChanged(val);
@@ -175,15 +153,14 @@ void Model::setDefaultDuration(TimeVal val)
 {
   val = std::max(val, TimeVal::fromMsecs(100));
 
-  if (val == m_DefaultDuration)
+  if(val == m_DefaultDuration)
     return;
 
   m_DefaultDuration = val;
 
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
-  s.setValue(
-      Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
+  s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
 #endif
 
   DefaultDurationChanged(val);
@@ -201,14 +178,12 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, ExecutionRefreshRate)
 }
 
 double getNewLayerHeight(
-    const score::ApplicationContext& ctx,
-    const Process::ProcessModel& proc) noexcept
+    const score::ApplicationContext& ctx, const Process::ProcessModel& proc) noexcept
 {
   double h = 100;
-  const auto& fact
-      = ctx.interfaces<Process::LayerFactoryList>().get(proc.concreteKey());
+  const auto& fact = ctx.interfaces<Process::LayerFactoryList>().get(proc.concreteKey());
 
-  if (auto opt_h = fact->recommendedHeight())
+  if(auto opt_h = fact->recommendedHeight())
   {
     h = *opt_h;
   }

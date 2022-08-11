@@ -7,6 +7,9 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+
 #include <score/model/ModelMetadata.hpp>
 
 #include <QCursor>
@@ -14,8 +17,6 @@
 #include <QPainter>
 #include <qnamespace.h>
 
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::EventView)
@@ -34,10 +35,7 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
   m_conditionItem.setPos(-13.5, -13.5);
 
   connect(
-      &m_conditionItem,
-      &ConditionView::pressed,
-      &m_presenter,
-      &EventPresenter::pressed);
+      &m_conditionItem, &ConditionView::pressed, &m_presenter, &EventPresenter::pressed);
 
   this->setParentItem(parent);
   auto& skin = score::Skin::instance();
@@ -51,7 +49,7 @@ EventView::~EventView() { }
 
 void EventView::setStatus(ExecutionStatus status)
 {
-  if (status == ExecutionStatus::Happened)
+  if(status == ExecutionStatus::Happened)
   {
     m_execPing.start();
   }
@@ -65,7 +63,7 @@ void EventView::setStatus(ExecutionStatus status)
 
 void EventView::setCondition(const QString& cond)
 {
-  if (m_condition == cond)
+  if(m_condition == cond)
     return;
   m_condition = cond;
   m_conditionItem.setVisible(!State::isEmptyExpression(cond));
@@ -78,25 +76,22 @@ bool EventView::hasCondition() const
 }
 
 void EventView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   const auto rect = QRectF(QPointF(-1.3, 0.), QPointF(1.3, m_height));
-  if (Q_UNLIKELY(isSelected()))
+  if(Q_UNLIKELY(isSelected()))
   {
     painter->fillRect(rect, skin.EventSelected());
   }
   else
   {
-    if (Q_UNLIKELY(m_execPing.running()))
+    if(Q_UNLIKELY(m_execPing.running()))
     {
       const auto& nextPen = m_execPing.getNextPen(
-          m_presenter.model().color(skin).color(),
-          skin.EventHappened().color(),
+          m_presenter.model().color(skin).color(), skin.EventHappened().color(),
           skin.StateDot().main.pen_cosmetic);
       painter->fillRect(rect, nextPen.brush());
       update();
@@ -154,7 +149,7 @@ void EventView::changeToolTip(const QString& c)
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::MouseButton::LeftButton)
+  if(event->button() == Qt::MouseButton::LeftButton)
     m_presenter.pressed(event->scenePos());
 }
 

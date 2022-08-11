@@ -5,8 +5,8 @@
 #include <State/Unit.hpp>
 #include <State/UpdateAddress.hpp>
 
-#include <score/tools/ForEach.hpp>
 #include <score/tools/Debug.hpp>
+#include <score/tools/ForEach.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/hash.hpp>
@@ -27,10 +27,8 @@ DestinationQualifiers::DestinationQualifiers() noexcept
 {
 }
 
-DestinationQualifiers::DestinationQualifiers(
-    const DestinationQualifiers& other)
-    : qualifiers{
-        std::make_unique<ossia::destination_qualifiers>(*other.qualifiers)}
+DestinationQualifiers::DestinationQualifiers(const DestinationQualifiers& other)
+    : qualifiers{std::make_unique<ossia::destination_qualifiers>(*other.qualifiers)}
 {
 }
 
@@ -57,8 +55,7 @@ DestinationQualifiers::operator=(DestinationQualifiers&& other) noexcept
 
 DestinationQualifiers::~DestinationQualifiers() { }
 
-DestinationQualifiers::DestinationQualifiers(
-    const ossia::destination_qualifiers& other)
+DestinationQualifiers::DestinationQualifiers(const ossia::destination_qualifiers& other)
     : qualifiers{std::make_unique<ossia::destination_qualifiers>(other)}
 {
 }
@@ -70,14 +67,12 @@ DestinationQualifiers::operator=(const ossia::destination_qualifiers& other)
   return *this;
 }
 
-bool DestinationQualifiers::operator==(
-    const DestinationQualifiers& other) const noexcept
+bool DestinationQualifiers::operator==(const DestinationQualifiers& other) const noexcept
 {
   return *qualifiers == *other.qualifiers;
 }
 
-bool DestinationQualifiers::operator!=(
-    const DestinationQualifiers& other) const noexcept
+bool DestinationQualifiers::operator!=(const DestinationQualifiers& other) const noexcept
 {
   return *qualifiers != *other.qualifiers;
 }
@@ -140,17 +135,15 @@ bool Address::validateString(const QString& str)
                && (firstslash == (firstcolon + 1) && !str.contains("//"));
 
   QStringList path = str.split("/");
-  if (path.empty())
+  if(path.empty())
     return false;
 
-  if (path.first().count(':') > 1)
+  if(path.first().count(':') > 1)
     return false;
 
   path.first().remove(":");
 
-  Foreach(path, [&](const auto& fragment) {
-    valid &= validateFragment(fragment);
-  });
+  Foreach(path, [&](const auto& fragment) { valid &= validateFragment(fragment); });
 
   return valid;
 }
@@ -162,15 +155,15 @@ bool Address::validateFragment(const QString& s)
 
 std::optional<Address> Address::fromString(const QString& str)
 {
-  if (!validateString(str))
+  if(!validateString(str))
     return {};
 
   QStringList path = str.split("/");
   SCORE_ASSERT(path.size() > 0);
 
   auto device = path.first().remove(":");
-  path.removeFirst();         // Remove the device.
-  if (path.first().isEmpty()) // case "device:/"
+  path.removeFirst();        // Remove the device.
+  if(path.first().isEmpty()) // case "device:/"
   {
     return State::Address{device, {}};
   }
@@ -181,7 +174,7 @@ std::optional<Address> Address::fromString(const QString& str)
 QString Address::toString() const
 {
   QString ad = toString_unsafe();
-  if (!validateString(ad))
+  if(!validateString(ad))
     ad.clear();
 
   return ad;
@@ -227,8 +220,7 @@ AddressAccessor::AddressAccessor(AddressAccessor&& other) noexcept
 {
 }
 
-AddressAccessor&
-AddressAccessor::operator=(const AddressAccessor& other) noexcept
+AddressAccessor& AddressAccessor::operator=(const AddressAccessor& other) noexcept
 {
   address = other.address;
   qualifiers = other.qualifiers;
@@ -254,9 +246,7 @@ AddressAccessor::AddressAccessor(Address a, const AccessorVector& v) noexcept
 }
 
 AddressAccessor::AddressAccessor(
-    Address a,
-    const AccessorVector& v,
-    const ossia::unit_t& u) noexcept
+    Address a, const AccessorVector& v, const ossia::unit_t& u) noexcept
     : address{std::move(a)}
     , qualifiers{ossia::destination_qualifiers{v, u}}
 {
@@ -319,11 +309,11 @@ QDebug operator<<(QDebug d, const State::Address& a)
 
 QDebug operator<<(QDebug d, const State::AccessorVector& a)
 {
-  if (!a.empty())
+  if(!a.empty())
   {
     QString str;
 
-    for (auto acc : a)
+    for(auto acc : a)
     {
       str += "[" % QString::number(acc) % "]";
     }
@@ -338,9 +328,8 @@ QDebug operator<<(QDebug d, const State::DestinationQualifiers& val)
 {
   auto& a = val.get();
   d.noquote().nospace() << a.accessors;
-  if (a.unit)
-    d << QString::fromStdString(
-        std::string(ossia::get_pretty_unit_text(a.unit)));
+  if(a.unit)
+    d << QString::fromStdString(std::string(ossia::get_pretty_unit_text(a.unit)));
 
   return d;
 }
@@ -370,15 +359,14 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
 {
   QString str;
   str.reserve(16);
-  if (qualifiers.unit)
+  if(qualifiers.unit)
   {
     QString unit_text = State::prettyUnitText(qualifiers.unit);
     //  = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
-    if (!qualifiers.accessors.empty())
+    if(!qualifiers.accessors.empty())
     {
-      char c
-          = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
-      if (c != 0)
+      char c = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
+      if(c != 0)
       {
         unit_text += '.';
         unit_text += c;
@@ -391,10 +379,10 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
   }
   else
   {
-    if (!qualifiers.accessors.empty())
+    if(!qualifiers.accessors.empty())
     {
       str += '@';
-      for (auto acc : qualifiers.accessors)
+      for(auto acc : qualifiers.accessors)
       {
         str += "[";
         str += QString::number(acc);
@@ -405,23 +393,22 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
   return str;
 }
 
-std::optional<State::AddressAccessor> onUpdatableAddress(
-    const State::AddressAccessor& current,
-    const QMimeData& mime)
+std::optional<State::AddressAccessor>
+onUpdatableAddress(const State::AddressAccessor& current, const QMimeData& mime)
 {
-  if (mime.formats().contains(score::mime::messagelist()))
+  if(mime.formats().contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
-    if (ml.empty())
+    if(ml.empty())
       return {};
     auto& newAddr = ml[0].address;
 
-    if (newAddr == current)
+    if(newAddr == current)
       return {};
 
     // TODO do we want that ? we may want to clean the address...
-    if (newAddr.address.path.isEmpty())
+    if(newAddr.address.path.isEmpty())
       return {};
 
     return newAddr;
@@ -432,19 +419,19 @@ std::optional<State::AddressAccessor> onUpdatableAddress(
 std::optional<State::Address>
 onUpdatableAddress(const State::Address& current, const QMimeData& mime)
 {
-  if (mime.formats().contains(score::mime::messagelist()))
+  if(mime.formats().contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
-    if (ml.empty())
+    if(ml.empty())
       return {};
     auto& newAddr = ml[0].address;
 
-    if (newAddr.address == current)
+    if(newAddr.address == current)
       return {};
 
     // TODO do we want that ? we may want to clean the address...
-    if (newAddr.address.path.isEmpty())
+    if(newAddr.address.path.isEmpty())
       return {};
 
     return newAddr.address;
@@ -454,8 +441,7 @@ onUpdatableAddress(const State::Address& current, const QMimeData& mime)
 
 }
 
-std::size_t
-std::hash<State::Address>::operator()(const State::Address& k) const
+std::size_t std::hash<State::Address>::operator()(const State::Address& k) const
 {
   using std::hash;
   using std::size_t;
@@ -464,13 +450,11 @@ std::hash<State::Address>::operator()(const State::Address& k) const
 // Compute individual hash values for first,
 // second and third and combine them using XOR
 // and bit shifting:
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
-  return (
-      (qHash(k.device) ^ (qHashRange(k.path.begin(), k.path.end()) << 1))
-      >> 1);
+#if(QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
+  return ((qHash(k.device) ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
 #else
   auto h = qHash(k.device);
-  for (const auto& elt : k.path)
+  for(const auto& elt : k.path)
   {
     h = (h ^ (qHash(elt) << 1)) >> 1;
   }
@@ -487,7 +471,7 @@ struct hash<ossia::unit_variant>
   {
     std::size_t seed = 0;
     ossia::hash_combine(seed, k.which());
-    if (k)
+    if(k)
     {
       ossia::apply_nonnull(
           [&](const auto& ds) { ossia::hash_combine(seed, ds.which()); }, k);
@@ -497,13 +481,13 @@ struct hash<ossia::unit_variant>
 };
 }
 
-std::size_t std::hash<State::AddressAccessor>::operator()(
-    const State::AddressAccessor& k) const
+std::size_t
+std::hash<State::AddressAccessor>::operator()(const State::AddressAccessor& k) const
 {
   std::size_t seed = 0;
   ossia::hash_combine(seed, k.address);
   auto& qual = k.qualifiers.get();
-  for (auto& q : qual.accessors)
+  for(auto& q : qual.accessors)
   {
     ossia::hash_combine(seed, q);
   }
@@ -521,19 +505,19 @@ std::optional<State::Address> State::parseAddress(const QString& str)
     State::Address result;
     bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
 
-    if (!ok)
+    if(!ok)
     {
       return {};
     }
 
     return result;
   }
-  catch (const qi::expectation_failure<decltype(f)>& e)
+  catch(const qi::expectation_failure<decltype(f)>& e)
   {
     // SCORE_BREAKPOINT;
     return {};
   }
-  catch (...)
+  catch(...)
   {
     // SCORE_BREAKPOINT;
     return {};
@@ -549,18 +533,17 @@ bool validatePatternCharacters(const QString& str)
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "0123456789"
       "_~(): .*?,{}[]-@/");
-  for (const auto& c : str)
+  for(const auto& c : str)
   {
-    if (Q_UNLIKELY(!chars.contains(c)))
+    if(Q_UNLIKELY(!chars.contains(c)))
       return false;
   }
   return true;
 }
 }
-std::optional<State::AddressAccessor>
-State::parseAddressAccessor(const QString& str)
+std::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
 {
-  if (!validatePatternCharacters(str))
+  if(!validatePatternCharacters(str))
     return std::nullopt;
 
   auto input = str.toStdString();
@@ -571,7 +554,7 @@ State::parseAddressAccessor(const QString& str)
     State::AddressAccessor result;
     bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
 
-    if (ok)
+    if(ok)
     {
       return result;
     }
@@ -579,7 +562,7 @@ State::parseAddressAccessor(const QString& str)
     {
       // We try to get an address instead.
       std::optional<State::Address> res = State::parseAddress(str);
-      if (res)
+      if(res)
       {
         result.address = (*res);
         result.qualifiers.get().accessors.clear();
@@ -592,12 +575,12 @@ State::parseAddressAccessor(const QString& str)
       }
     }
   }
-  catch (const qi::expectation_failure<decltype(f)>& e)
+  catch(const qi::expectation_failure<decltype(f)>& e)
   {
     // SCORE_BREAKPOINT;
     return {};
   }
-  catch (...)
+  catch(...)
   {
     // SCORE_BREAKPOINT;
     return {};

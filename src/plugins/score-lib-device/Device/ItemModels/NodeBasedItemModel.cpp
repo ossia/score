@@ -9,11 +9,8 @@ namespace Device
 NodeBasedItemModel::~NodeBasedItemModel() = default;
 
 Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
-    const State::AddressAccessor& addr,
-    const Device::NodeBasedItemModel& deviceexplorer,
-    ossia::value min,
-    ossia::value max,
-    ossia::value val)
+    const State::AddressAccessor& addr, const Device::NodeBasedItemModel& deviceexplorer,
+    ossia::value min, ossia::value max, ossia::value val)
 {
   auto& newval = addr.address;
 
@@ -22,9 +19,8 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
 
   // First try to find if there is a matching address
   // in the device explorer
-  auto new_n
-      = Device::try_getNodeFromString(deviceexplorer.rootNode(), newpath);
-  if (new_n && new_n->is<Device::AddressSettings>())
+  auto new_n = Device::try_getNodeFromString(deviceexplorer.rootNode(), newpath);
+  if(new_n && new_n->is<Device::AddressSettings>())
   {
     return Device::FullAddressAccessorSettings{
         addr, new_n->get<Device::AddressSettings>()};
@@ -46,7 +42,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
 Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(const Device::Node& mess)
 {
-  if (auto as_ptr = mess.target<Device::AddressSettings>())
+  if(auto as_ptr = mess.target<Device::AddressSettings>())
   {
     return Device::FullAddressAccessorSettings{Device::address(mess), *as_ptr};
   }

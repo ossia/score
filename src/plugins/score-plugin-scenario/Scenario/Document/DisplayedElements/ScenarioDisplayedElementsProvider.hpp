@@ -6,8 +6,7 @@ namespace Scenario
 {
 class IntervalModel;
 
-class ScenarioDisplayedElementsProvider final
-    : public DisplayedElementsProvider
+class ScenarioDisplayedElementsProvider final : public DisplayedElementsProvider
 {
   SCORE_CONCRETE("acc060fe-6aa5-415f-b3f9-d082e6f52ce8")
 public:
@@ -15,11 +14,8 @@ public:
   DisplayedElementsContainer make(IntervalModel& cst) const override;
 
   DisplayedElementsPresenterContainer make_presenters(
-      ZoomRatio zoom,
-      const IntervalModel& m,
-      const Process::Context& ctx,
-      QGraphicsItem* view_parent,
-      QObject* parent) const override;
+      ZoomRatio zoom, const IntervalModel& m, const Process::Context& ctx,
+      QGraphicsItem* view_parent, QObject* parent) const override;
 };
 
 class DefaultDisplayedElementsProvider final : public DisplayedElementsProvider
@@ -30,10 +26,7 @@ public:
   DisplayedElementsContainer make(IntervalModel& cst) const override;
 
   DisplayedElementsPresenterContainer make_presenters(
-      ZoomRatio zoom,
-      const IntervalModel& m,
-      const Process::Context& ctx,
-      QGraphicsItem* view_parent,
-      QObject* parent) const override;
+      ZoomRatio zoom, const IntervalModel& m, const Process::Context& ctx,
+      QGraphicsItem* view_parent, QObject* parent) const override;
 };
 }

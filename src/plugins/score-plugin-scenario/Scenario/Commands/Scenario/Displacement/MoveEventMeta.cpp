@@ -2,6 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveEventMeta.hpp"
 
+#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -10,24 +16,14 @@
 
 #include <QByteArray>
 
-#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 namespace Scenario
 {
 class EventModel;
 namespace Command
 {
 MoveEventMeta::MoveEventMeta(
-    const Scenario::ProcessModel& scenar,
-    Id<EventModel> eventId,
-    TimeVal newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lm)
+    const Scenario::ProcessModel& scenar, Id<EventModel> eventId, TimeVal newDate,
+    double y, ExpandMode mode, LockMode lm)
     : SerializableMoveEvent{}
     , m_scenario{scenar}
     , m_eventId{std::move(eventId)}
@@ -36,14 +32,12 @@ MoveEventMeta::MoveEventMeta(
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(
-                  score::AppContext(),
-                  MoveEventFactoryInterface::Strategy::MOVE)
+              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
               .make(scenar, m_eventId, std::move(newDate), mode, lm))
 {
   auto& ev = scenar.event(m_eventId);
   auto states = ev.states();
-  if (states.size() == 1)
+  if(states.size() == 1)
   {
     auto& st = scenar.states.at(states.front());
     m_oldY = st.heightPercentage();
@@ -51,13 +45,8 @@ MoveEventMeta::MoveEventMeta(
 }
 
 MoveEventMeta::MoveEventMeta(
-    const Scenario::ProcessModel& scenar,
-    Id<EventModel> eventId,
-    TimeVal newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lm,
-    Id<StateModel> sid)
+    const Scenario::ProcessModel& scenar, Id<EventModel> eventId, TimeVal newDate,
+    double y, ExpandMode mode, LockMode lm, Id<StateModel> sid)
     : SerializableMoveEvent{}
     , m_scenario{scenar}
     , m_eventId{std::move(eventId)}
@@ -68,17 +57,13 @@ MoveEventMeta::MoveEventMeta(
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(
-                  score::AppContext(),
-                  MoveEventFactoryInterface::Strategy::MOVE)
+              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
               .make(scenar, m_eventId, std::move(newDate), mode, lm))
 {
   m_oldY = scenar.state(*m_stateId).heightPercentage();
 }
 
-MoveEventMeta::~MoveEventMeta()
-{
-}
+MoveEventMeta::~MoveEventMeta() { }
 
 void MoveEventMeta::undo(const score::DocumentContext& ctx) const
 {
@@ -98,14 +83,10 @@ const Path<Scenario::ProcessModel>& MoveEventMeta::path() const
 }
 
 void MoveEventMeta::update(
-    ProcessModel& scenar,
-    const Id<EventModel>& eventId,
-    const TimeVal& newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lock)
+    ProcessModel& scenar, const Id<EventModel>& eventId, const TimeVal& newDate,
+    double y, ExpandMode mode, LockMode lock)
 {
-  if (lock == m_lock)
+  if(lock == m_lock)
   {
     m_moveEventImplementation->update(scenar, eventId, newDate, y, mode, lock);
   }
@@ -123,15 +104,10 @@ void MoveEventMeta::update(
 }
 
 void MoveEventMeta::update(
-    ProcessModel& scenar,
-    const Id<EventModel>& eventId,
-    const TimeVal& newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lock,
-    const Id<StateModel>& st)
+    ProcessModel& scenar, const Id<EventModel>& eventId, const TimeVal& newDate,
+    double y, ExpandMode mode, LockMode lock, const Id<StateModel>& st)
 {
-  if (lock == m_lock && mode == m_expand)
+  if(lock == m_lock && mode == m_expand)
   {
     m_moveEventImplementation->update(scenar, eventId, newDate, y, mode, lock);
   }
@@ -162,16 +138,14 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
   QByteArray cmdData;
   int e;
   int l;
-  s >> m_scenario >> m_eventId >> m_stateId >> e >> l >> m_oldY >> m_newY
-      >> cmdData;
+  s >> m_scenario >> m_eventId >> m_stateId >> e >> l >> m_oldY >> m_newY >> cmdData;
   m_expand = (ExpandMode)e;
   m_lock = (LockMode)l;
 
   m_moveEventImplementation
       = score::AppContext()
             .interfaces<MoveEventList>()
-            .get(
-                score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make(m_lock);
 
   m_moveEventImplementation->deserialize(cmdData);
@@ -182,7 +156,7 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
   auto& ev = scenar.event(m_eventId);
   auto states = ev.states();
   Scenario::StateModel* stp{};
-  if (m_stateId)
+  if(m_stateId)
   {
     stp = &scenar.states.at(*m_stateId);
   }
@@ -195,46 +169,34 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
   }
   */
 
-  if (stp)
+  if(stp)
   {
     auto& st = *stp;
-    bool hasPrevious = st.previousInterval()
-                       && !scenar.interval(*st.previousInterval()).graphal();
-    bool hasNext
-        = st.nextInterval() && !scenar.interval(*st.nextInterval()).graphal();
-    if (!hasPrevious && !hasNext)
+    bool hasPrevious
+        = st.previousInterval() && !scenar.interval(*st.previousInterval()).graphal();
+    bool hasNext = st.nextInterval() && !scenar.interval(*st.nextInterval()).graphal();
+    if(!hasPrevious && !hasNext)
     {
       st.setHeightPercentage(y);
     }
-    if (hasPrevious)
+    if(hasPrevious)
       scenar.intervals.at(*st.previousInterval()).requestHeightChange(y);
-    if (hasNext)
+    if(hasNext)
       scenar.intervals.at(*st.nextInterval()).requestHeightChange(y);
   }
 }
 
 MoveTopEventMeta::MoveTopEventMeta(
-    const Scenario::ProcessModel& scenarioPath,
-    Id<EventModel> eventId,
-    TimeVal newDate,
-    double y,
-    ExpandMode mode,
-    LockMode)
+    const Scenario::ProcessModel& scenarioPath, Id<EventModel> eventId, TimeVal newDate,
+    double y, ExpandMode mode, LockMode)
     : SerializableMoveEvent{}
     , m_scenario{scenarioPath}
     , m_eventId{std::move(eventId)}
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(
-                  score::AppContext(),
-                  MoveEventFactoryInterface::Strategy::MOVE)
-              .make(
-                  scenarioPath,
-                  m_eventId,
-                  std::move(newDate),
-                  mode,
-                  LockMode::Free))
+              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+              .make(scenarioPath, m_eventId, std::move(newDate), mode, LockMode::Free))
 {
 }
 
@@ -266,23 +228,17 @@ void MoveTopEventMeta::deserializeImpl(DataStreamOutput& s)
   m_moveEventImplementation
       = score::AppContext()
             .interfaces<MoveEventList>()
-            .get(
-                score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make(LockMode::Free);
 
   m_moveEventImplementation->deserialize(cmdData);
 }
 
 void MoveTopEventMeta::update(
-    Scenario::ProcessModel& scenar,
-    const Id<EventModel>& eventId,
-    const TimeVal& newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lm)
+    Scenario::ProcessModel& scenar, const Id<EventModel>& eventId,
+    const TimeVal& newDate, double y, ExpandMode mode, LockMode lm)
 {
-  m_moveEventImplementation->update(
-      scenar, eventId, newDate, y, mode, LockMode::Free);
+  m_moveEventImplementation->update(scenar, eventId, newDate, y, mode, LockMode::Free);
 }
 }
 }

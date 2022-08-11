@@ -1,8 +1,8 @@
 #pragma once
+#include <Audio/AudioTick.hpp>
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <Audio/AudioTick.hpp>
 namespace Audio
 {
 class ApplicationPlugin;
@@ -46,8 +46,7 @@ class ClockFactory final : public Execution::ClockFactory
 
 public:
   QString prettyName() const override;
-  std::unique_ptr<Execution::Clock>
-  make(const Execution::Context& ctx) override;
+  std::unique_ptr<Execution::Clock> make(const Execution::Context& ctx) override;
 
   Execution::time_function
   makeTimeFunction(const score::DocumentContext& ctx) const override;

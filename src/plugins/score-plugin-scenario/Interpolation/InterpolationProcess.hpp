@@ -1,12 +1,14 @@
 #pragma once
-#include <Curve/Process/CurveProcessModel.hpp>
-#include <Process/ProcessMetadata.hpp>
-#include <Process/State/MessageNode.hpp>
-#include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <State/Value.hpp>
+
+#include <Process/ProcessMetadata.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
+
+#include <Curve/Process/CurveProcessModel.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -20,17 +22,10 @@ class ProcessModel;
 }
 
 PROCESS_METADATA(
-    ,
-    Interpolation::ProcessModel,
-    "aa569e11-03a9-4023-92c2-b590e88fec90",
-    "Interpolation",
-    "Interpolation",
-    Process::ProcessCategory::Automation,
-    "Automations",
-    "Interpolate between two states",
-    "ossia score",
-    (QStringList{"Curve", "Automation"}),
-    {},
+    , Interpolation::ProcessModel, "aa569e11-03a9-4023-92c2-b590e88fec90",
+    "Interpolation", "Interpolation", Process::ProcessCategory::Automation,
+    "Automations", "Interpolate between two states", "ossia score",
+    (QStringList{"Curve", "Automation"}), {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
     Process::ProcessFlags::SupportsTemporal)
 namespace Interpolation
@@ -56,16 +51,14 @@ public:
 
   ::State::MessageList messages() const override;
 
-  ::State::MessageList setMessages(
-      const ::State::MessageList&,
-      const Process::MessageNode&) override;
+  ::State::MessageList
+  setMessages(const ::State::MessageList&, const Process::MessageNode&) override;
 
 private:
   Point m_point{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
-    : public Curve::CurveProcessModel
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final : public Curve::CurveProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Interpolation::ProcessModel)
@@ -74,9 +67,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   ~ProcessModel();
 
@@ -106,7 +97,7 @@ public:
   bool tween() const { return m_tween; }
   void setTween(bool tween)
   {
-    if (m_tween == tween)
+    if(m_tween == tween)
       return;
 
     m_tween = tween;

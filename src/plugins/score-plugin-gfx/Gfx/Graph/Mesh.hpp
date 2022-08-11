@@ -3,6 +3,7 @@
 #include <ossia/detail/span.hpp>
 
 #include <private/qrhi_p.h>
+
 #include <score_plugin_gfx_export.h>
 
 namespace score::gfx
@@ -17,8 +18,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Mesh
 
   /** @brief Setup bindings according to the input triangle data */
   virtual void setupBindings(
-      QRhiBuffer& vtxData,
-      QRhiBuffer* idxData,
+      QRhiBuffer& vtxData, QRhiBuffer* idxData,
       QRhiCommandBuffer& cb) const noexcept = 0;
 
   /** @brief A basic vertex shader that is going to work with this mesh. */
@@ -46,10 +46,8 @@ struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : Mesh
 {
   explicit PlainMesh(tcb::span<const float> vtx, int count);
 
-  void setupBindings(
-      QRhiBuffer& vtxData,
-      QRhiBuffer* idxData,
-      QRhiCommandBuffer& cb) const noexcept override;
+  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
+      const noexcept override;
 
   const char* defaultVertexShader() const noexcept override;
 };
@@ -70,14 +68,10 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : Mesh
 struct SCORE_PLUGIN_GFX_EXPORT TextureNormalMesh : Mesh
 {
   explicit TextureNormalMesh(
-      tcb::span<const float> vtx,
-      tcb::span<const unsigned int> idx,
-      int count);
+      tcb::span<const float> vtx, tcb::span<const unsigned int> idx, int count);
 
-  void setupBindings(
-      QRhiBuffer& vtxData,
-      QRhiBuffer* idxData,
-      QRhiCommandBuffer& cb) const noexcept override;
+  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
+      const noexcept override;
 
   const char* defaultVertexShader() const noexcept override;
 };
@@ -100,33 +94,19 @@ struct SCORE_PLUGIN_GFX_EXPORT PlainTriangle final : PlainMesh
  */
 struct SCORE_PLUGIN_GFX_EXPORT TexturedTriangle final : TexturedMesh
 {
-  static const constexpr float data[] = {
-      // positions
-      -1, -1,
-      3,  -1,
-      -1, 3,
-      // tex coords
-      0, 0,
-      2, 0,
-      0, 2
-  };
-  static const constexpr float flipped_y_data[] = {
-      // positions
-      -1, -1,
-      3,  -1,
-      -1, 3,
-      // tex coords
-      0, 2,
-      2, 2,
-      0, 0
-  };
+  static const constexpr float data[] = {// positions
+                                         -1, -1, 3, -1, -1, 3,
+                                         // tex coords
+                                         0, 0, 2, 0, 0, 2};
+  static const constexpr float flipped_y_data[] = {// positions
+                                                   -1, -1, 3, -1, -1, 3,
+                                                   // tex coords
+                                                   0, 2, 2, 2, 0, 0};
 
   explicit TexturedTriangle(bool flipped = false);
 
-  void setupBindings(
-      QRhiBuffer& vtxData,
-      QRhiBuffer* idxData,
-      QRhiCommandBuffer& cb) const noexcept override;
+  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
+      const noexcept override;
 };
 
 /**
@@ -135,40 +115,21 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedTriangle final : TexturedMesh
  */
 struct SCORE_PLUGIN_GFX_EXPORT TexturedQuad final : TexturedMesh
 {
-  static const constexpr float data[] = {
-      // positions
-      -1, -1,
-      +1, -1,
-      -1, +1,
-      +1, +1,
-      // tex coords
-      0, 0,
-      1, 0,
-      0, 1,
-      1, 1
-  };
+  static const constexpr float data[] = {// positions
+                                         -1, -1, +1, -1, -1, +1, +1, +1,
+                                         // tex coords
+                                         0, 0, 1, 0, 0, 1, 1, 1};
 
-  static const constexpr float flipped_y_data[] = {
-      // positions
-      -1, -1,
-      +1, -1,
-      -1, +1,
-      +1, +1,
-      // tex coords
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0
-  };
+  static const constexpr float flipped_y_data[] = {// positions
+                                                   -1, -1, +1, -1, -1, +1, +1, +1,
+                                                   // tex coords
+                                                   0, 1, 1, 1, 0, 0, 1, 0};
 
   explicit TexturedQuad(bool flipped = false);
 
-  void setupBindings(
-      QRhiBuffer& vtxData,
-      QRhiBuffer* idxData,
-      QRhiCommandBuffer& cb) const noexcept override;
+  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
+      const noexcept override;
 };
-
 
 struct MeshBuffers
 {

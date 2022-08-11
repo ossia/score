@@ -1,12 +1,14 @@
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Device/Widgets/DeviceModelProvider.hpp>
-#include <Inspector/InspectorLayout.hpp>
+
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>
+
+#include <Inspector/InspectorLayout.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -24,8 +26,7 @@
 namespace Process
 {
 PortListWidget::PortListWidget(
-    const Process::ProcessModel& proc,
-    const score::DocumentContext& ctx,
+    const Process::ProcessModel& proc, const score::DocumentContext& ctx,
     QWidget* parent)
     : QWidget{parent}
     , m_process{proc}
@@ -35,9 +36,7 @@ PortListWidget::PortListWidget(
   reload();
 
   con(proc, &Process::ProcessModel::inletsChanged, this, [this] { reload(); });
-  con(proc, &Process::ProcessModel::outletsChanged, this, [this] {
-    reload();
-  });
+  con(proc, &Process::ProcessModel::outletsChanged, this, [this] { reload(); });
 }
 
 void PortListWidget::reload()
@@ -49,13 +48,13 @@ void PortListWidget::reload()
 
   auto& pf = m_ctx.app.interfaces<PortFactoryList>();
 
-  if (!m_process.inlets().empty())
+  if(!m_process.inlets().empty())
   {
     lay.addRow(tr("<b>Inputs</b>"), (QWidget*)nullptr);
-    for (auto port : m_process.inlets())
+    for(auto port : m_process.inlets())
     {
       auto fact = pf.get(port->concreteKey());
-      if (fact)
+      if(fact)
       {
         fact->setupInletInspector(*port, m_ctx, this, lay, this);
       }
@@ -66,13 +65,13 @@ void PortListWidget::reload()
     }
   }
 
-  if (!m_process.outlets().empty())
+  if(!m_process.outlets().empty())
   {
     lay.addRow(tr("<b>Outputs</b>"), (QWidget*)nullptr);
-    for (auto port : m_process.outlets())
+    for(auto port : m_process.outlets())
     {
       auto fact = pf.get(port->concreteKey());
-      if (fact)
+      if(fact)
       {
         fact->setupOutletInspector(*port, m_ctx, this, lay, this);
       }
@@ -85,29 +84,22 @@ void PortListWidget::reload()
 }
 
 void PortWidgetSetup::setupAlone(
-    const Port& port,
-    const score::DocumentContext& ctx,
-    Inspector::Layout& lay,
+    const Port& port, const score::DocumentContext& ctx, Inspector::Layout& lay,
     QWidget* parent)
 {
   setupImpl(port.name(), port, ctx, lay, parent);
 }
 
 void PortWidgetSetup::setupInLayout(
-    const Port& port,
-    const score::DocumentContext& ctx,
-    Inspector::Layout& lay,
+    const Port& port, const score::DocumentContext& ctx, Inspector::Layout& lay,
     QWidget* parent)
 {
   setupImpl(QObject::tr("Address"), port, ctx, lay, parent);
 }
 
 void PortWidgetSetup::setupControl(
-    const ControlInlet& inlet,
-    QWidget* inlet_widget,
-    const score::DocumentContext& ctx,
-    Inspector::Layout& vlay,
-    QWidget* parent)
+    const ControlInlet& inlet, QWidget* inlet_widget, const score::DocumentContext& ctx,
+    Inspector::Layout& vlay, QWidget* parent)
 {
   auto widg = new QWidget;
   auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
@@ -128,8 +120,7 @@ void PortWidgetSetup::setupControl(
   QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
     sw->setVisible(!sw->isVisible());
     advBtn->setArrowType(
-        advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow
-                                              : Qt::RightArrow);
+        advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
   });
   sw->setVisible(false);
 
@@ -138,11 +129,8 @@ void PortWidgetSetup::setupControl(
 }
 
 void PortWidgetSetup::setupControl(
-    const ControlOutlet& inlet,
-    QWidget* inlet_widget,
-    const score::DocumentContext& ctx,
-    Inspector::Layout& vlay,
-    QWidget* parent)
+    const ControlOutlet& inlet, QWidget* inlet_widget, const score::DocumentContext& ctx,
+    Inspector::Layout& vlay, QWidget* parent)
 {
   auto widg = new QWidget;
   auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
@@ -163,8 +151,7 @@ void PortWidgetSetup::setupControl(
   QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
     sw->setVisible(!sw->isVisible());
     advBtn->setArrowType(
-        advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow
-                                              : Qt::RightArrow);
+        advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
   });
   sw->setVisible(false);
 
@@ -173,46 +160,36 @@ void PortWidgetSetup::setupControl(
 }
 
 QWidget* PortWidgetSetup::makeAddressWidget(
-    const Port& port,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    const Port& port, const score::DocumentContext& ctx, QWidget* parent)
 {
   using namespace Device;
   auto edit = new AddressAccessorEditWidget{ctx, parent};
   edit->setAddress(port.address());
 
   QObject::connect(
-      &port,
-      &Port::addressChanged,
-      edit,
-      [edit](const State::AddressAccessor& addr) {
-        if (addr != edit->address().address)
+      &port, &Port::addressChanged, edit, [edit](const State::AddressAccessor& addr) {
+        if(addr != edit->address().address)
         {
           edit->setAddress(addr);
         }
       });
 
   QObject::connect(
-      edit,
-      &AddressAccessorEditWidget::addressChanged,
-      parent,
+      edit, &AddressAccessorEditWidget::addressChanged, parent,
       [&port, &ctx](const auto& newAddr) {
-        if (newAddr.address == port.address())
-          return;
+    if(newAddr.address == port.address())
+      return;
 
-        CommandDispatcher<>{ctx.dispatcher}.submit(
-            new Process::ChangePortAddress{port, newAddr.address});
+    CommandDispatcher<>{ctx.dispatcher}.submit(
+        new Process::ChangePortAddress{port, newAddr.address});
       });
 
   return edit;
 }
 
 void PortWidgetSetup::setupImpl(
-    const QString& txt,
-    const Port& port,
-    const score::DocumentContext& ctx,
-    Inspector::Layout& lay,
-    QWidget* parent)
+    const QString& txt, const Port& port, const score::DocumentContext& ctx,
+    Inspector::Layout& lay, QWidget* parent)
 {
   auto widg = new QWidget;
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
@@ -227,7 +204,7 @@ void PortWidgetSetup::setupImpl(
   auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
   lay.addRow(widg, port_widg);
 
-  switch (port.type())
+  switch(port.type())
   {
     case Process::PortType::Audio:
       advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_audio.png")));

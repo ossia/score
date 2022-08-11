@@ -3,6 +3,19 @@
 
 #include "IntervalInspectorWidget.hpp"
 
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
+#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
+#include <Scenario/Commands/Interval/MakeBus.hpp>
+#include <Scenario/Commands/Signature/SignatureCommands.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
+#include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <Inspector/InspectorLayout.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -16,19 +29,6 @@
 
 #include <QCheckBox>
 #include <QToolBar>
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
-#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
-#include <Scenario/Commands/Interval/MakeBus.hpp>
-#include <Scenario/Commands/Signature/SignatureCommands.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
-#include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 
 namespace Scenario
 {
@@ -46,14 +46,13 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   using namespace score;
   using namespace score::IDocument;
   setObjectName("Interval");
-  if (object.graphal())
+  if(object.graphal())
     return;
 
   std::vector<QWidget*> parts;
   ////// HEADER
   // metadata
-  auto meta = new MetadataWidget{
-      m_model.metadata(), ctx.commandStack, &m_model, this};
+  auto meta = new MetadataWidget{m_model.metadata(), ctx.commandStack, &m_model, this};
 
   meta->setupConnections(m_model);
   addHeader(meta);
@@ -76,14 +75,15 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/fullview_off.png"),
         QStringLiteral(":/icons/fullview_off.png")));
     fullview->setToolTip(tr("FullView"));
-    fullview->setStatusTip(tr("Display the content of the selected interval in full view\n"
-                              "Same effect as double clicking on its name"));
+    fullview->setStatusTip(
+        tr("Display the content of the selected interval in full view\n"
+           "Same effect as double clicking on its name"));
     fullview->setAutoRaise(true);
     fullview->setIconSize(QSize{28, 28});
 
     connect(fullview, &QToolButton::clicked, this, [this] {
       auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
-      if (base)
+      if(base)
         base->setDisplayedInterval(&model());
     });
     btnLayout->addWidget(fullview);
@@ -102,7 +102,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/audio_bus_off.png")));
     busWidg->setToolTip(tr("Audio bus"));
     busWidg->setStatusTip(
-          tr("Add audio output controls to the bus section of the audio mixer"));
+        tr("Add audio output controls to the bus section of the audio mixer"));
     busWidg->setCheckable(true);
     busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
     busWidg->setAutoRaise(true);
@@ -110,7 +110,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
 
     connect(busWidg, &QToolButton::toggled, this, [=, &ctx, &doc](bool b) {
       bool is_bus = ossia::contains(doc.busIntervals, &m_model);
-      if ((b && !is_bus) || (!b && is_bus))
+      if((b && !is_bus) || (!b && is_bus))
       {
         CommandDispatcher<> disp{ctx.commandStack};
         disp.submit<Command::SetBus>(doc, m_model, b);
@@ -130,17 +130,17 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/time_signature_off.png"),
         QStringLiteral(":/icons/time_signature_off.png")));
     sigWidg->setToolTip(tr("Time signature"));
-    sigWidg->setStatusTip(tr("Specify a different time signature from the parent interval"));
+    sigWidg->setStatusTip(
+        tr("Specify a different time signature from the parent interval"));
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(this->m_model.hasTimeSignature());
     sigWidg->setIconSize(QSize{28, 28});
 
     connect(sigWidg, &QToolButton::toggled, this, [=](bool b) {
-      if (b != this->m_model.hasTimeSignature())
+      if(b != this->m_model.hasTimeSignature())
       {
-        this->commandDispatcher()->submit<Command::SetHasTimeSignature>(
-            m_model, b);
+        this->commandDispatcher()->submit<Command::SetHasTimeSignature>(m_model, b);
       }
     });
     btnLayout->addWidget(sigWidg);
@@ -148,8 +148,9 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   {
     auto interp = new QToolButton{this};
     interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
-    interp->setStatusTip(tr("Interpolate states (Ctrl+K)\n"
-                            "Create automations between values contained in the start and end states"));
+    interp->setStatusTip(
+        tr("Interpolate states (Ctrl+K)\n"
+           "Create automations between values contained in the start and end states"));
     interp->setShortcut(QKeySequence(tr("Ctrl+K")));
     interp->setIcon(makeIcons(
         QStringLiteral(":/icons/interpolate_on.png"),
@@ -167,8 +168,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   }
   {
     QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(
-        QSizePolicy::Expanding, QSizePolicy::Preferred);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidget->setVisible(true);
     btnLayout->addWidget(spacerWidget);
   }
@@ -186,25 +186,25 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     quantiz->setStatusTip(tr("Set quantification to synchronize the interval start"));
 
     QObject::connect(
-        quantiz,
-        &score::QuantificationWidget::quantificationChanged,
-        this,
+        quantiz, &score::QuantificationWidget::quantificationChanged, this,
         [&ctx, &object](double v) {
-          CommandDispatcher<>{ctx.commandStack}
-              .submit<Scenario::Command::SetIntervalQuantizationRate>(object, v);
+      CommandDispatcher<>{ctx.commandStack}
+          .submit<Scenario::Command::SetIntervalQuantizationRate>(object, v);
         });
 
-    connect(&m_model, &IntervalModel::quantizationRateChanged,
-            quantiz, &score::QuantificationWidget::setQuantification);
+    connect(
+        &m_model, &IntervalModel::quantizationRateChanged, quantiz,
+        &score::QuantificationWidget::setQuantification);
     lay->addRow(tr("Quantization"), quantiz);
   }
 
   // Durations
   auto& ctrl = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();
   auto dur = new DurationWidget{ctrl.editionSettings(), *lay, this};
-  dur->setStatusTip(tr("Set the duration of the interval\n"
-                       "Min: Define the minimal duration before evaluating the trigger\n"
-                       "Max: Define the duration before triggering automatically\n"));
+  dur->setStatusTip(
+      tr("Set the duration of the interval\n"
+         "Min: Define the minimal duration before evaluating the trigger\n"
+         "Max: Define the duration before triggering automatically\n"));
   lay->addWidget(dur);
 
   // Display data

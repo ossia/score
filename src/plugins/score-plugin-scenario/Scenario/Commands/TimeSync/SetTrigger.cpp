@@ -4,12 +4,12 @@
 
 #include <State/Expression.hpp>
 
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
-
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace Scenario
 {

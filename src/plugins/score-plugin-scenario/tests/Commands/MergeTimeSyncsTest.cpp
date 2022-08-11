@@ -1,13 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/document/DocumentInterface.hpp>
-
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 #include <Scenario/Commands/TimeSync/MergeTimeSyncs.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/document/DocumentInterface.hpp>
 
 using namespace score;
 using namespace Scenario::Command;
@@ -19,8 +19,8 @@ private:
   void mergeTest()
   {
     // A scenario, 2 events at same date
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);
@@ -59,8 +59,7 @@ private:
         {
             {"ScenarioModel", {0}},
         },
-        tn1_id,
-        tn2_id);
+        tn1_id, tn2_id);
 
     cmd.redo(ctx);
     QCOMPARE((int)scenar->timeSyncs().size(), 3);
@@ -71,7 +70,7 @@ private:
       scenar->timeSync(tn2_id);
       QFAIL("TimeSync call did not throw");
     }
-    catch (...)
+    catch(...)
     {
     }
 
@@ -82,7 +81,7 @@ private:
       scenar->timeSync(tn2_id);
       QCOMPARE(scenar->timeSync(tn2_id)->events().first(), event2_id);
     }
-    catch (...)
+    catch(...)
     {
       QFAIL("TimeSync call throw ...");
     }
@@ -95,7 +94,7 @@ private:
       scenar->timeSync(tn2_id);
       QFAIL("TimeSync call did not throw");
     }
-    catch (...)
+    catch(...)
     {
     }
   }

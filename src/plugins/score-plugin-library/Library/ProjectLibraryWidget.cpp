@@ -8,8 +8,8 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MarginLess.hpp>
-#include <core/document/Document.hpp>
 
+#include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QVBoxLayout>
@@ -18,16 +18,15 @@ namespace Library
 {
 
 ProjectLibraryWidget::ProjectLibraryWidget(
-    const score::GUIApplicationContext& ctx,
-    QWidget* parent)
+    const score::GUIApplicationContext& ctx, QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new FileSystemRecursiveFilterProxy{this}}
 {
   auto lay = new score::MarginLess<QVBoxLayout>;
-  setStatusTip(QObject::tr(
-      "This panel shows the project library.\n"
-      "It lists the files in the folder where the score is saved."));
+  setStatusTip(
+      QObject::tr("This panel shows the project library.\n"
+                  "It lists the files in the folder where the score is saved."));
 
   this->setLayout(lay);
 
@@ -40,13 +39,13 @@ ProjectLibraryWidget::ProjectLibraryWidget(
   setup_treeview(m_tv);
   connect(&m_tv, &QTreeView::doubleClicked, this, [&](const QModelIndex& idx) {
     auto doc = ctx.docManager.currentDocument();
-    if (!doc)
+    if(!doc)
       return;
 
     auto path = m_model->filePath(m_proxy->mapToSource(idx));
-    for (auto lib : libraryInterface(path))
+    for(auto lib : libraryInterface(path))
     {
-      if (lib->onDoubleClick(path, doc->context()))
+      if(lib->onDoubleClick(path, doc->context()))
         return;
     }
   });
@@ -64,13 +63,13 @@ void ProjectLibraryWidget::unsetRoot()
 void ProjectLibraryWidget::setRoot(score::DocumentMetadata& meta)
 {
   auto setFilename = [this](const QString& path) {
-    if (!path.isEmpty())
+    if(!path.isEmpty())
     {
       auto idx = m_model->setRootPath(path);
 
       m_tv.setModel(m_proxy);
       m_tv.setRootIndex(m_proxy->mapFromSource(idx));
-      for (int i = 1; i < m_model->columnCount(); ++i)
+      for(int i = 1; i < m_model->columnCount(); ++i)
         m_tv.hideColumn(i);
     }
     else
@@ -80,19 +79,16 @@ void ProjectLibraryWidget::setRoot(score::DocumentMetadata& meta)
   };
   QObject::disconnect(m_con);
   m_con = con(
-      meta,
-      &score::DocumentMetadata::fileNameChanged,
-      this,
+      meta, &score::DocumentMetadata::fileNameChanged, this,
       [=](const QString& filename) {
-        auto fi = QFileInfo{filename};
-        if (fi.exists())
-        {
-          auto path = fi.absolutePath();
-          setFilename(path);
-        }
+    auto fi = QFileInfo{filename};
+    if(fi.exists())
+    {
+      auto path = fi.absolutePath();
+      setFilename(path);
+    }
       },
       Qt::QueuedConnection);
-
 
   if(auto projectPath = meta.projectFolder(); !projectPath.isEmpty())
   {

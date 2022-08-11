@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <functional>
-
 #include <string_view>
 
 #if __has_include(<experimental/functional>)
@@ -14,11 +13,10 @@
 namespace score
 {
 template <typename T>
-static void
-findStringInFile(const QString& filepath, std::string_view req, T onSuccess)
+static void findStringInFile(const QString& filepath, std::string_view req, T onSuccess)
 {
   QFile f{filepath};
-  if (f.open(QIODevice::ReadOnly))
+  if(f.open(QIODevice::ReadOnly))
   {
     unsigned char* data = f.map(0, f.size());
 
@@ -26,17 +24,15 @@ findStringInFile(const QString& filepath, std::string_view req, T onSuccess)
     const char* cend = cbegin + f.size();
 
 #if defined(__cpp_lib_boyer_moore_searcher)
-    auto it = std::search(
-        cbegin, cend, std::boyer_moore_searcher(req.begin(), req.end()));
+    auto it
+        = std::search(cbegin, cend, std::boyer_moore_searcher(req.begin(), req.end()));
 #elif __has_include(<experimental/functional>)
     auto it = std::search(
-        cbegin,
-        cend,
-        std::experimental::boyer_moore_searcher(req.begin(), req.end()));
+        cbegin, cend, std::experimental::boyer_moore_searcher(req.begin(), req.end()));
 #else
     auto it = std::search(cbegin, cend, req.begin(), req.end());
 #endif
-    if (it != cend)
+    if(it != cend)
     {
       onSuccess(f);
     }

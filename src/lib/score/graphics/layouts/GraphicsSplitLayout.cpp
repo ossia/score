@@ -1,4 +1,5 @@
 #include "GraphicsSplitLayout.hpp"
+
 #include <score/model/Skin.hpp>
 
 #include <QPainter>
@@ -8,15 +9,10 @@ namespace score
 {
 static constexpr const double split_side_padding = 5.;
 static constexpr const double split_top_padding = 15.;
-GraphicsSplitLayout::~GraphicsSplitLayout()
-{
-
-}
+GraphicsSplitLayout::~GraphicsSplitLayout() { }
 
 void GraphicsSplitLayout::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& style = score::Skin::instance();
   GraphicsLayout::paint(painter, option, widget);
@@ -27,9 +23,11 @@ void GraphicsSplitLayout::paint(
   for(int i = 0; i < N; i++)
   {
     auto item = items[i];
-    double x = item->pos().x() + item->boundingRect().width() + m_padding + split_side_padding;
+    double x = item->pos().x() + item->boundingRect().width() + m_padding
+               + split_side_padding;
     painter->setPen(style.DarkGray.main.pen2_solid_round_round);
-    painter->drawLine(x, split_top_padding, x, this->rect().height() - split_top_padding);
+    painter->drawLine(
+        x, split_top_padding, x, this->rect().height() - split_top_padding);
   }
 }
 

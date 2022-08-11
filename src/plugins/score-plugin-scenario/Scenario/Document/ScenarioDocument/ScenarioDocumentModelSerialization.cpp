@@ -4,6 +4,9 @@
 
 #include <Process/Dataflow/Cable.hpp>
 
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
+
 #include <score/model/EntityMapSerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -12,28 +15,25 @@
 
 #include <core/document/Document.hpp>
 
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
-
 template <>
 void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
 {
   readFrom(*model.m_baseScenario);
 
-  if (model.cables.empty() && !model.m_savedCables.empty())
+  if(model.cables.empty() && !model.m_savedCables.empty())
   {
     m_stream << model.m_savedCables;
   }
   else
   {
     std::vector<QByteArray> arr;
-    for (auto& cable : model.cables)
+    for(auto& cable : model.cables)
       arr.push_back(DataStreamReader::marshall(cable));
     m_stream << arr;
   }
 
   std::vector<Path<Scenario::IntervalModel>> buses;
-  for (auto& bus : model.busIntervals)
+  for(auto& bus : model.busIntervals)
     buses.emplace_back(*bus);
   m_stream << buses;
 
@@ -45,8 +45,7 @@ void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
 template <>
 void DataStreamWriter::write(Scenario::ScenarioDocumentModel& model)
 {
-  model.m_baseScenario
-      = new Scenario::BaseScenario{*this, model.m_context, &model};
+  model.m_baseScenario = new Scenario::BaseScenario{*this, model.m_context, &model};
 
   m_stream >> model.m_savedCables;
 
@@ -54,7 +53,7 @@ void DataStreamWriter::write(Scenario::ScenarioDocumentModel& model)
 
   std::vector<Path<Scenario::IntervalModel>> buses;
   m_stream >> buses;
-  for (auto& path : buses)
+  for(auto& path : buses)
   {
     model.busIntervals.push_back(&path.find(ctx));
   }
@@ -76,7 +75,7 @@ void JSONReader::read(const Scenario::ScenarioDocumentModel& model)
   stream.Key("BusIntervals");
   stream.StartArray();
 
-  for (auto& bus : model.busIntervals)
+  for(auto& bus : model.busIntervals)
   {
     readFrom(Path{*bus});
   }
@@ -92,7 +91,8 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
   if(auto cb = obj.tryGet("Cables"))
     model.m_savedCablesJson = clone(cb->obj);
 
-  if(auto speed = obj.tryGet("Speed"); speed && speed->isDouble()) {
+  if(auto speed = obj.tryGet("Speed"); speed && speed->isDouble())
+  {
     model.baseInterval().duration.setSpeed(speed->toDouble());
   }
   auto& ctx = safe_cast<score::Document*>(model.parent()->parent())->context();
@@ -100,7 +100,7 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
   if(auto b = obj.tryGet("BusIntervals"))
   {
     const auto& buses = b->toArray();
-    for (const auto& bus : buses)
+    for(const auto& bus : buses)
     {
       auto path = JsonValue{bus}.to<Path<Scenario::IntervalModel>>();
       model.busIntervals.push_back(&path.find(ctx));
@@ -108,8 +108,7 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
   }
 }
 
-void Scenario::ScenarioDocumentModel::serialize(
-    const VisitorVariant& vis) const
+void Scenario::ScenarioDocumentModel::serialize(const VisitorVariant& vis) const
 {
   serialize_dyn(vis, *this);
 }

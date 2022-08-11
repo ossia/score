@@ -5,19 +5,18 @@
 #include <score/tools/Debug.hpp>
 #include <score/tools/std/Invoke.hpp>
 
+#include <QDebug>
 #include <QFileInfo>
 #include <QFileOpenEvent>
 #include <QThread>
-#include <QDebug>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(SafeQApplication)
 
 SafeQApplication::~SafeQApplication() { }
 
 void SafeQApplication::DebugOutput(
-    QtMsgType type,
-    const QMessageLogContext& context,
-    const QString& msg)
+    QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
   auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
   auto basename = basename_arr.constData();
@@ -27,50 +26,32 @@ void SafeQApplication::DebugOutput(
   out_file = logger.desc();
 #endif
   QByteArray localMsg = msg.toLocal8Bit();
-  switch (type)
+  switch(type)
   {
     case QtDebugMsg:
       fprintf(
-          out_file,
-          "Debug: %s (%s:%u)\n",
-          localMsg.constData(),
-          basename,
-          context.line);
+          out_file, "Debug: %s (%s:%u)\n", localMsg.constData(), basename, context.line);
       break;
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
+#if(QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
     case QtInfoMsg:
       fprintf(
-          out_file,
-          "Info: %s (%s:%u)\n",
-          localMsg.constData(),
-          basename,
-          context.line);
+          out_file, "Info: %s (%s:%u)\n", localMsg.constData(), basename, context.line);
       break;
 #endif
     case QtWarningMsg:
       fprintf(
-          out_file,
-          "Warning: %s (%s:%u)\n",
-          localMsg.constData(),
-          basename,
+          out_file, "Warning: %s (%s:%u)\n", localMsg.constData(), basename,
           context.line);
       break;
     case QtCriticalMsg:
       fprintf(
-          out_file,
-          "Critical: %s (%s:%u)\n",
-          localMsg.constData(),
-          basename,
+          out_file, "Critical: %s (%s:%u)\n", localMsg.constData(), basename,
           context.line);
       break;
     case QtFatalMsg:
       fprintf(
-          out_file,
-          "Fatal: %s (%s:%u)\n",
-          localMsg.constData(),
-          basename,
-          context.line);
+          out_file, "Fatal: %s (%s:%u)\n", localMsg.constData(), basename, context.line);
       SCORE_BREAKPOINT;
       std::terminate();
   }
@@ -78,13 +59,13 @@ void SafeQApplication::DebugOutput(
 }
 
 #if !defined(SCORE_DEBUG)
-bool SafeQApplication::notify(QObject *receiver, QEvent *event)
+bool SafeQApplication::notify(QObject* receiver, QEvent* event)
 {
   try
   {
     return QApplication::notify(receiver, event);
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     if(this->thread() != QThread::currentThread())
     {
@@ -95,7 +76,7 @@ bool SafeQApplication::notify(QObject *receiver, QEvent *event)
       inform(QObject::tr("Internal error: ") + e.what());
     }
   }
-  catch (...)
+  catch(...)
   {
     if(this->thread() != QThread::currentThread())
     {
@@ -113,21 +94,20 @@ bool SafeQApplication::notify(QObject *receiver, QEvent *event)
 
 bool SafeQApplication::event(QEvent* ev)
 {
-  switch ((int)ev->type())
+  switch((int)ev->type())
   {
-  case QEvent::FileOpen:
-  {
-    auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
+    case QEvent::FileOpen: {
+      auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
 #if defined(__APPLE__)
-    // Used for the case when the user double-clicks something
-    // with score not yet open, thus it's too early when the event
-    // is processed
-    this->fileToOpen = loadString;
+      // Used for the case when the user double-clicks something
+      // with score not yet open, thus it's too early when the event
+      // is processed
+      this->fileToOpen = loadString;
 #endif
-    fileOpened(loadString);
-    return true;
-  }
-  default:
-    return QApplication::event(ev);
+      fileOpened(loadString);
+      return true;
+    }
+    default:
+      return QApplication::event(ev);
   }
 }

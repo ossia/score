@@ -5,9 +5,9 @@
 #include <score/tools/QMapHelper.hpp>
 #include <score/widgets/MessageBox.hpp>
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <core/application/OpenDocumentsFile.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
 #include <QDateTime>
@@ -23,14 +23,13 @@
 bool score::DocumentBackups::canRestoreDocuments()
 {
   // Try to reload if there was a crash
-  if (OpenDocumentsFile::exists())
+  if(OpenDocumentsFile::exists())
   {
-    if (score::question(
-            qApp->activeWindow(),
-            QObject::tr("Reload?"),
-            QObject::tr("It seems that score previously crashed. Do you "
-                        "wish to reload your work?"))
-        == QMessageBox::Yes)
+    if(score::question(
+           qApp->activeWindow(), QObject::tr("Reload?"),
+           QObject::tr("It seems that score previously crashed. Do you "
+                       "wish to reload your work?"))
+       == QMessageBox::Yes)
     {
       return true;
     }
@@ -45,29 +44,31 @@ bool score::DocumentBackups::canRestoreDocuments()
 }
 
 static void loadRestorableDocumentData(
-    const QString& data_filename,
-    const QString& save_filename,
-    const QString& command_filename,
-    std::vector<score::RestorableDocument>& arr)
+    const QString& data_filename, const QString& save_filename,
+    const QString& command_filename, std::vector<score::RestorableDocument>& arr)
 {
   QFile data_file{data_filename};
   QFile command_file{command_filename};
-  if (data_file.exists() && command_file.exists())
+  if(data_file.exists() && command_file.exists())
   {
     data_file.open(QFile::ReadOnly);
     command_file.open(QFile::ReadOnly);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    auto it = ossia::find_if(arr, [&] (score::RestorableDocument& elt) { return elt.filePath == save_filename; });
+    auto it = ossia::find_if(arr, [&](score::RestorableDocument& elt) {
+      return elt.filePath == save_filename;
+    });
     if(it == arr.end())
     {
       arr.push_back(
-          {save_filename, data_filename, command_filename, data_file.readAll(), command_file.readAll()});
+          {save_filename, data_filename, command_filename, data_file.readAll(),
+           command_file.readAll()});
     }
     else
     {
       // Compare dates
-      auto old_time = QFile{it->commandsPath}.fileTime(QFileDevice::FileModificationTime);
+      auto old_time
+          = QFile{it->commandsPath}.fileTime(QFileDevice::FileModificationTime);
       auto new_time = command_file.fileTime(QFileDevice::FileModificationTime);
 
       if(old_time < new_time)
@@ -81,13 +82,13 @@ static void loadRestorableDocumentData(
 #else
     // 5.9 did not support fileTime
     arr.push_back(
-        {save_filename, data_filename, command_filename, data_file.readAll(), command_file.readAll()});
+        {save_filename, data_filename, command_filename, data_file.readAll(),
+         command_file.readAll()});
 #endif
   }
 }
 
-std::vector<score::RestorableDocument>
-score::DocumentBackups::restorableDocuments()
+std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocuments()
 {
   std::vector<score::RestorableDocument> arr;
 
@@ -97,9 +98,9 @@ score::DocumentBackups::restorableDocuments()
   auto docs = s.value("score/docs");
   const auto existing_files = docs.toMap();
 
-  for (const auto& file1 : QMap_keys(existing_files))
+  for(const auto& file1 : QMap_keys(existing_files))
   {
-    if (file1.isEmpty())
+    if(file1.isEmpty())
       continue;
 
     auto res = existing_files[file1].value<QPair<QString, QString>>();
@@ -112,7 +113,7 @@ score::DocumentBackups::restorableDocuments()
 SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
 {
 #if !defined(__EMSCRIPTEN__)
-  if (OpenDocumentsFile::exists())
+  if(OpenDocumentsFile::exists())
   {
     // Remove all the tmp files
     {
@@ -120,7 +121,7 @@ SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
 
       const auto existing_files = s.value("score/docs").toMap();
 
-      for (auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
+      for(auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
       {
         QFile{it.key()}.remove();
         auto files = it.value().value<QPair<QString, QString>>();

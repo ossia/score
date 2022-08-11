@@ -26,7 +26,7 @@ ArrowButton::ArrowButton(Qt::ArrowType arrowType, QWidget* parent)
 
 void ArrowButton::setArrowType(Qt::ArrowType type)
 {
-  if (m_arrowType == type || type == Qt::NoArrow)
+  if(m_arrowType == type || type == Qt::NoArrow)
     return;
 
   m_arrowType = type;

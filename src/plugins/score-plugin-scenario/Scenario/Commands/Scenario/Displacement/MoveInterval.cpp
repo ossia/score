@@ -4,21 +4,19 @@
 
 #include <Process/TimeValue.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 MoveInterval::MoveInterval(
-    const Scenario::ProcessModel& scenar,
-    Id<IntervalModel> id,
-    double height)
+    const Scenario::ProcessModel& scenar, Id<IntervalModel> id, double height)
     : m_path{scenar}
     , m_interval{id}
     , m_newHeight{height}
@@ -28,19 +26,19 @@ MoveInterval::MoveInterval(
 
   auto list = selectedElements(scenar.intervals);
 
-  for (auto& elt : list)
+  for(auto& elt : list)
   {
     m_selectedIntervals.push_back({elt->id(), elt->heightPercentage()});
   }
 
-  if (m_selectedIntervals.empty())
+  if(m_selectedIntervals.empty())
     m_selectedIntervals.push_back({m_interval, m_oldHeight});
 }
 
 void MoveInterval::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
-  for (const auto& cstr : m_selectedIntervals)
+  for(const auto& cstr : m_selectedIntervals)
   {
     scenar.intervals.at(cstr.first).requestHeightChange(cstr.second);
   }
@@ -49,7 +47,7 @@ void MoveInterval::undo(const score::DocumentContext& ctx) const
 void MoveInterval::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
-  for (const auto& cstr : m_selectedIntervals)
+  for(const auto& cstr : m_selectedIntervals)
   {
     scenar.intervals.at(cstr.first)
         .requestHeightChange(cstr.second + m_newHeight - m_oldHeight);
@@ -58,14 +56,12 @@ void MoveInterval::redo(const score::DocumentContext& ctx) const
 
 void MoveInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_interval << m_oldHeight << m_newHeight
-    << m_selectedIntervals;
+  s << m_path << m_interval << m_oldHeight << m_newHeight << m_selectedIntervals;
 }
 
 void MoveInterval::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_interval >> m_oldHeight >> m_newHeight
-      >> m_selectedIntervals;
+  s >> m_path >> m_interval >> m_oldHeight >> m_newHeight >> m_selectedIntervals;
 }
 }
 }

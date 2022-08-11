@@ -1,7 +1,8 @@
-#include <Process/ControlMessage.hpp>
-#include <Process/Process.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
+
+#include <Process/ControlMessage.hpp>
+#include <Process/Process.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 
@@ -11,10 +12,10 @@ namespace Process
 QString ControlMessage::name(const score::DocumentContext& ctx) const noexcept
 {
   auto port = this->port.try_find(ctx);
-  if (port)
+  if(port)
   {
     auto parent = qobject_cast<Process::ProcessModel*>(port->parent());
-    if (parent)
+    if(parent)
       return parent->metadata().getName() + " (" + port->name() + ")";
     else
       return port->name();
@@ -25,8 +26,7 @@ QString ControlMessage::name(const score::DocumentContext& ctx) const noexcept
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read(const Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlMessage& mess)
 {
   readFrom(mess.port);
   readFrom(mess.value);
@@ -34,8 +34,7 @@ DataStreamReader::read(const Process::ControlMessage& mess)
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read(const Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ControlMessage& mess)
 {
   stream.StartObject();
   obj[strings.Address] = mess.port;
@@ -44,8 +43,7 @@ JSONReader::read(const Process::ControlMessage& mess)
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write(Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ControlMessage& mess)
 {
   writeTo(mess.port);
   writeTo(mess.value);

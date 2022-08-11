@@ -14,8 +14,7 @@ class QObject;
 namespace Curve
 {
 class SegmentModel;
-class SCORE_PLUGIN_CURVE_EXPORT PointModel final
-    : public IdentifiedObject<PointModel>
+class SCORE_PLUGIN_CURVE_EXPORT PointModel final : public IdentifiedObject<PointModel>
 {
   W_OBJECT(PointModel)
 public:

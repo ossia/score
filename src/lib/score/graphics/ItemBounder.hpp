@@ -1,6 +1,7 @@
 #pragma once
-#include <utility>
 #include <score_lib_base_export.h>
+
+#include <utility>
 class QGraphicsItem;
 namespace score
 {

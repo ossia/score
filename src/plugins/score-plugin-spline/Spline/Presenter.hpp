@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
+
 #include <Process/LayerPresenter.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
@@ -15,9 +16,7 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Spline::ProcessModel& model,
-      Spline::View* view,
-      const Process::Context& ctx,
+      const Spline::ProcessModel& model, Spline::View* view, const Process::Context& ctx,
       QObject* parent);
 
   void setWidth(qreal width, qreal defaultWidth) override;

@@ -7,9 +7,9 @@
 
 void score::setCursor(Qt::CursorShape c)
 {
-  if (qApp)
+  if(qApp)
   {
-    if (auto w = qApp->activeWindow())
+    if(auto w = qApp->activeWindow())
     {
       w->setCursor(c);
     }

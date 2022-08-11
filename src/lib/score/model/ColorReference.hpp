@@ -19,15 +19,9 @@ namespace score
  */
 struct SCORE_LIB_BASE_EXPORT ColorRef
 {
-  friend bool operator==(ColorRef lhs, ColorRef rhs)
-  {
-    return lhs.ref == rhs.ref;
-  }
+  friend bool operator==(ColorRef lhs, ColorRef rhs) { return lhs.ref == rhs.ref; }
 
-  friend bool operator!=(ColorRef lhs, ColorRef rhs)
-  {
-    return lhs.ref != rhs.ref;
-  }
+  friend bool operator!=(ColorRef lhs, ColorRef rhs) { return lhs.ref != rhs.ref; }
 
 public:
   constexpr ColorRef() noexcept = default;
@@ -58,10 +52,7 @@ public:
     return *ref;
   }
 
-  QString name() const noexcept
-  {
-    return score::Skin::instance().toString(ref);
-  }
+  QString name() const noexcept { return score::Skin::instance().toString(ref); }
 
   static std::optional<ColorRef> ColorFromString(const QString&) noexcept;
   static std::optional<ColorRef> SimilarColor(QColor other) noexcept;

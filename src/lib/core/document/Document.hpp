@@ -5,8 +5,8 @@
 #include <score/selection/SelectionStack.hpp>
 
 #include <core/command/CommandStack.hpp>
-#include <core/document/DocumentMetadata.hpp>
 #include <core/document/DocumentBackups.hpp>
+#include <core/document/DocumentMetadata.hpp>
 
 #include <ossia/detail/json.hpp>
 
@@ -77,8 +77,7 @@ public:
 
   DocumentView* view() const noexcept { return m_view; }
 
-  DocumentBackupManager* backupManager() const noexcept
-  { return m_backupMgr; }
+  DocumentBackupManager* backupManager() const noexcept { return m_backupMgr; }
 
   void saveDocumentModelAsJson(JSONObject::Serializer& writer);
   QByteArray saveDocumentModelAsByteArray();
@@ -94,11 +93,7 @@ public:
   }
 
   // Load without creating presenter and view
-  Document(
-      const QString& name,
-      DocumentDelegateFactory& type,
-      QObject* parent);
-
+  Document(const QString& name, DocumentDelegateFactory& type, QObject* parent);
 
   // Called once all the plug-ins, etc... of the document have been loaded
   void ready();
@@ -109,36 +104,27 @@ public:
 private:
   // These are to be constructed by DocumentBuilder.
   Document(
-      const QString& name,
-      const Id<DocumentModel>& id,
-      DocumentDelegateFactory& type,
-      QWidget* parentview,
-      QObject* parent);
+      const QString& name, const Id<DocumentModel>& id, DocumentDelegateFactory& type,
+      QWidget* parentview, QObject* parent);
 
   // Load
   Document(
-      const QString& name,
-      DocumentDelegateFactory& type,
-      QWidget* parentview,
+      const QString& name, DocumentDelegateFactory& type, QWidget* parentview,
       QObject* parent);
 
   Document(
-      const QString& name,
-      const QByteArray& data,
-      SerializationIdentifier format,
-      DocumentDelegateFactory& type,
-      QWidget* parentview,
-      QObject* parent);
+      const QString& name, const QByteArray& data, SerializationIdentifier format,
+      DocumentDelegateFactory& type, QWidget* parentview, QObject* parent);
 
   // Restore
   Document(
-      const score::RestorableDocument& data,
-      DocumentDelegateFactory& type,
-      QWidget* parentview,
-      QObject* parent);
+      const score::RestorableDocument& data, DocumentDelegateFactory& type,
+      QWidget* parentview, QObject* parent);
 
   void loadModel(const QString& fileName, DocumentDelegateFactory& factory);
-  void loadModel(const QString& fileName, const QByteArray& data, SerializationIdentifier format, DocumentDelegateFactory& factory);
+  void loadModel(
+      const QString& fileName, const QByteArray& data, SerializationIdentifier format,
+      DocumentDelegateFactory& factory);
   void restoreModel(const QByteArray& data, DocumentDelegateFactory& factory);
   void init();
 

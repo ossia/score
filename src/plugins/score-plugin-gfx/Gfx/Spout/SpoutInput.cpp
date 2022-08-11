@@ -1,14 +1,15 @@
 #include "SpoutInput.hpp"
+
+#include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
-#include <Gfx/GfxApplicationPlugin.hpp>
-
-#include <Spout/SpoutReceiver.h>
 
 #include <QFormLayout>
 #include <QLabel>
+
+#include <Spout/SpoutReceiver.h>
 
 #include <wobjectimpl.h>
 
@@ -18,16 +19,14 @@ struct SpoutInputNode : score::gfx::ProcessNode
 {
 public:
   explicit SpoutInputNode(const InputSettings& s)
-    : settings{s}
+      : settings{s}
   {
     output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
   }
 
   InputSettings settings;
 
-  virtual ~SpoutInputNode()
-  {
-  }
+  virtual ~SpoutInputNode() { }
 
   score::gfx::NodeRenderer*
   createRenderer(score::gfx::RenderList& r) const noexcept override;
@@ -39,7 +38,10 @@ public:
 class SpoutInputNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
-  explicit Renderer(const SpoutInputNode& n): node{n} { }
+  explicit Renderer(const SpoutInputNode& n)
+      : node{n}
+  {
+  }
 
 private:
   const SpoutInputNode& node;
@@ -52,7 +54,8 @@ private:
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
-  struct Material {
+  struct Material
+  {
     float scale_w{1.0f}, scale_h{1.0f};
   };
   std::unique_ptr<score::gfx::PackedDecoder> m_gpu{};
@@ -60,13 +63,17 @@ private:
   bool enabled{};
   ~Renderer() { }
 
-  score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return { }; }
+  score::gfx::TextureRenderTarget
+  renderTargetForInput(const score::gfx::Port& p) override
+  {
+    return {};
+  }
   void init(score::gfx::RenderList& renderer) override
   {
     // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
     const auto& mesh = renderer.defaultQuad();
-    if (!m_meshBuffer)
+    if(!m_meshBuffer)
     {
       auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
       m_meshBuffer = mbuffer;
@@ -78,7 +85,7 @@ private:
     m_processUBO->create();
 
     m_materialUBO = rhi.newBuffer(
-    QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
     m_materialUBO->create();
 
     // Initialize spout
@@ -92,33 +99,28 @@ private:
     metadata.width = std::max((uint)1, w);
     metadata.height = std::max((uint)1, h);
 
-    m_gpu = std::make_unique<score::gfx::PackedDecoder>(QRhiTexture::RGBA8, 4, metadata, QString{});
+    m_gpu = std::make_unique<score::gfx::PackedDecoder>(
+        QRhiTexture::RGBA8, 4, metadata, QString{});
     createPipelines(renderer);
     m_pixels.resize(w * h * 4);
   }
 
   void createPipelines(score::gfx::RenderList& r)
   {
-    if (m_gpu)
+    if(m_gpu)
     {
       auto shaders = m_gpu->init(r);
       SCORE_ASSERT(m_p.empty());
       score::gfx::defaultPassesInit(
-          m_p,
-          this->node.output[0]->edges,
-          r,
-          r.defaultQuad(),
-          shaders.first,
-          shaders.second,
-          m_processUBO,
-          m_materialUBO,
-          m_gpu->samplers);
+          m_p, this->node.output[0]->edges, r, r.defaultQuad(), shaders.first,
+          shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
     }
   }
 
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    res.updateDynamicBuffer(m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
+    res.updateDynamicBuffer(
+        m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
     Material mat;
     mat.scale_w = 1.;
     mat.scale_h = 1.;
@@ -194,8 +196,7 @@ private:
   }
 
   void runRenderPass(
-      score::gfx::RenderList& renderer,
-      QRhiCommandBuffer& cb,
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       score::gfx::Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
@@ -210,7 +211,7 @@ private:
       enabled = false;
     }
 
-    if (m_gpu)
+    if(m_gpu)
     {
       m_gpu->release(r);
     }
@@ -232,7 +233,8 @@ private:
 };
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 
-score::gfx::NodeRenderer* SpoutInputNode::createRenderer(score::gfx::RenderList& r) const noexcept
+score::gfx::NodeRenderer*
+SpoutInputNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
   return new Renderer{*this};
 }
@@ -242,7 +244,7 @@ class InputDevice final : public Gfx::GfxInputDevice
   W_OBJECT(InputDevice)
 public:
   using GfxInputDevice::GfxInputDevice;
-  ~InputDevice(){ }
+  ~InputDevice() { }
 
 private:
   bool reconnect() override
@@ -254,22 +256,20 @@ private:
       auto set = this->settings().deviceSpecificSettings.value<InputSettings>();
 
       auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
-      if (plug)
+      if(plug)
       {
         auto protocol = std::make_unique<simple_texture_input_protocol>();
         m_protocol = protocol.get();
         m_dev = std::make_unique<simple_texture_input_device>(
-                  new SpoutInputNode{set},
-                  &plug->exec,
-                  std::move(protocol),
-                  this->settings().name.toStdString());
+            new SpoutInputNode{set}, &plug->exec, std::move(protocol),
+            this->settings().name.toStdString());
       }
     }
-    catch (std::exception& e)
+    catch(std::exception& e)
     {
       qDebug() << "Could not connect: " << e.what();
     }
-    catch (...)
+    catch(...)
     {
       // TODO save the reason of the non-connection.
     }
@@ -290,13 +290,11 @@ QString InputFactory::prettyName() const noexcept
 class SpoutEnumerator : public Device::DeviceEnumerator
 {
   mutable spoutSenderNames m_senders;
-public:
-  SpoutEnumerator()
-  {
-  }
 
-  void enumerate(
-      std::function<void(const Device::DeviceSettings&)> f) const override
+public:
+  SpoutEnumerator() { }
+
+  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
     std::set<std::string> senders;
     if(!m_senders.GetSenderNames(&senders))
@@ -316,14 +314,15 @@ public:
   }
 };
 
-
-Device::DeviceEnumerator* InputFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+InputFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new SpoutEnumerator;
 }
 
-Device::DeviceInterface*
-InputFactory::makeDevice(const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin, const score::DocumentContext& ctx)
+Device::DeviceInterface* InputFactory::makeDevice(
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
+    const score::DocumentContext& ctx)
 {
   return new InputDevice(settings, ctx);
 }
@@ -348,7 +347,7 @@ Device::ProtocolSettingsWidget* InputFactory::makeSettingsWidget()
 }
 
 InputSettingsWidget::InputSettingsWidget(QWidget* parent)
-  : SharedInputSettingsWidget(parent)
+    : SharedInputSettingsWidget(parent)
 {
   m_deviceNameEdit->setText("Spout In");
 

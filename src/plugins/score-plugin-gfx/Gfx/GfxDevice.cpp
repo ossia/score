@@ -12,8 +12,7 @@ namespace Gfx
 {
 
 GfxInputDevice::GfxInputDevice(
-    const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
     : Device::DeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -42,16 +41,14 @@ QMimeData* GfxInputDevice::mimeData() const
   return mimeData;
 }
 
-void GfxInputDevice::addAddress(const Device::FullAddressSettings& settings) {
-}
+void GfxInputDevice::addAddress(const Device::FullAddressSettings& settings) { }
 
 void GfxInputDevice::disconnect() { }
 
 void GfxInputDevice::recreate(const Device::Node& n) { }
 
 void GfxInputDevice::setupNode(
-    ossia::net::node_base& node,
-    const ossia::extended_attributes& attr)
+    ossia::net::node_base& node, const ossia::extended_attributes& attr)
 {
 }
 
@@ -66,10 +63,9 @@ static Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
     score_node.reserve(cld.size());
 
     // 2. Recurse on the children
-    for (const auto& ossia_child : cld)
+    for(const auto& ossia_child : cld)
     {
-      if (!ossia::net::get_hidden(*ossia_child)
-          && !ossia::net::get_zombie(*ossia_child))
+      if(!ossia::net::get_hidden(*ossia_child) && !ossia::net::get_zombie(*ossia_child))
       {
         auto child_n = ToDeviceExplorer(*ossia_child);
         child_n.setParent(&score_node);
@@ -87,7 +83,7 @@ Device::Node GfxInputDevice::refresh()
   // Recurse on the children
   const auto& ossia_children = getDevice()->get_root_node().children();
   score_device.reserve(ossia_children.size());
-  for (const auto& node : ossia_children)
+  for(const auto& node : ossia_children)
   {
     score_device.push_back(ToDeviceExplorer(*node.get()));
   }
@@ -99,8 +95,7 @@ Device::Node GfxInputDevice::refresh()
 }
 
 GfxOutputDevice::GfxOutputDevice(
-    const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
     : Device::DeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -129,20 +124,14 @@ QMimeData* GfxOutputDevice::mimeData() const
   return mimeData;
 }
 
-void GfxOutputDevice::addAddress(const Device::FullAddressSettings& settings)
-{
-}
+void GfxOutputDevice::addAddress(const Device::FullAddressSettings& settings) { }
 
 void GfxOutputDevice::disconnect() { }
 
-void GfxOutputDevice::recreate(const Device::Node& n)
-{
-
-}
+void GfxOutputDevice::recreate(const Device::Node& n) { }
 
 void GfxOutputDevice::setupNode(
-    ossia::net::node_base& node,
-    const ossia::extended_attributes& attr)
+    ossia::net::node_base& node, const ossia::extended_attributes& attr)
 {
 }
 

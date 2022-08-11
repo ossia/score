@@ -16,9 +16,7 @@ class MoveNotes final : public score::Command
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), MoveNotes, "Move notes")
 public:
   MoveNotes(
-      const ProcessModel& model,
-      const std::vector<Id<Note>>& to_move,
-      int note_delta,
+      const ProcessModel& model, const std::vector<Id<Note>>& to_move, int note_delta,
       double t_delta);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -37,14 +35,10 @@ private:
 
 class ChangeNotesVelocity final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Midi::CommandFactoryName(),
-      ChangeNotesVelocity,
-      "Change velocity")
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ChangeNotesVelocity, "Change velocity")
 public:
   ChangeNotesVelocity(
-      const ProcessModel& model,
-      const std::vector<Id<Note>>& to_update,
+      const ProcessModel& model, const std::vector<Id<Note>>& to_update,
       double vel_delta);
 
   void undo(const score::DocumentContext& ctx) const override;

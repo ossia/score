@@ -4,23 +4,22 @@
 
 #include <Process/ProcessList.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-
-#include <Scenario/Document/State/StateModel.hpp>
 namespace Scenario
 {
 namespace Command
 {
 
 RemoveStateProcess::RemoveStateProcess(
-    const Scenario::StateModel& state,
-    Id<Process::ProcessModel> processId)
+    const Scenario::StateModel& state, Id<Process::ProcessModel> processId)
     : m_path{state}
     , m_processId{std::move(processId)}
 {

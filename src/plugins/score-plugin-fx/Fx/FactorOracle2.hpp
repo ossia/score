@@ -73,9 +73,8 @@ template <class T>
 class State
 {
 public:
-  int state_; /*!< denotes the number of the state */
-  std::vector<SingleTransition<T>>
-      transition_; /*!< denotes the number of the state */
+  int state_;                                   /*!< denotes the number of the state */
+  std::vector<SingleTransition<T>> transition_; /*!< denotes the number of the state */
   int suffix_transition_;
   int lrs_ = 0;
   void singleTransitionResize() { transition_.resize(10); }
@@ -105,7 +104,7 @@ public:
       \param i an integer argument.
       \param word a template vector argument.
     */
-    if (i != 0)
+    if(i != 0)
     {
       this->states_.resize(i + 1);
       this->RevSuffix.resize(i + 1);
@@ -122,17 +121,17 @@ public:
        *      phi_one = k
        *      k = S[k]
        * */
-      while (k > -1 && flag == 0)
+      while(k > -1 && flag == 0)
       {
-        while (iter < std::ssize(this->states_[k].transition_))
+        while(iter < std::ssize(this->states_[k].transition_))
         {
-          if (this->states_[k].transition_[iter].symbol_ == alpha)
+          if(this->states_[k].transition_[iter].symbol_ == alpha)
           {
             flag = 1;
           }
           iter++;
         }
-        if (flag == 0)
+        if(flag == 0)
         {
           this->AddTransition(k, state_m_plus_one, alpha);
           phi = k;
@@ -140,7 +139,7 @@ public:
           iter = 0;
         }
       }
-      if (k == -1)
+      if(k == -1)
       {
         this->states_[state_m_plus_one].suffix_transition_ = 0;
         this->states_[state_m_plus_one].lrs_ = 0;
@@ -148,28 +147,26 @@ public:
       else
       {
         flag = 0, iter = 0;
-        if (this->states_[k].transition_[iter].symbol_ == alpha)
+        if(this->states_[k].transition_[iter].symbol_ == alpha)
         {
           flag = 1;
           this->states_[state_m_plus_one].suffix_transition_
               = this->states_[k].transition_[iter].last_state_;
           this->states_[state_m_plus_one].lrs_
               = this->LengthCommonSuffix(
-                    phi,
-                    this->states_[state_m_plus_one].suffix_transition_ - 1)
+                    phi, this->states_[state_m_plus_one].suffix_transition_ - 1)
                 + 1;
         }
-        while (iter < this->states_[k].transition_.size() && flag == 0)
+        while(iter < this->states_[k].transition_.size() && flag == 0)
         {
-          if (this->states_[k].transition_[iter].symbol_ == alpha)
+          if(this->states_[k].transition_[iter].symbol_ == alpha)
           {
 
             this->states_[state_m_plus_one].suffix_transition_
                 = this->states_[k].transition_[iter].last_state_;
             this->states_[state_m_plus_one].lrs_
                 = this->LengthCommonSuffix(
-                      phi,
-                      this->states_[state_m_plus_one].suffix_transition_ - 1)
+                      phi, this->states_[state_m_plus_one].suffix_transition_ - 1)
                   + 1;
             flag = 1;
           }
@@ -177,13 +174,11 @@ public:
           iter++;
         }
       }
-      T temp_word
-          = word[state_m_plus_one - this->states_[state_m_plus_one].lrs_ - 1];
+      T temp_word = word[state_m_plus_one - this->states_[state_m_plus_one].lrs_ - 1];
       k = this->FindBetter(state_m_plus_one, temp_word, word);
-      if (k != 0)
+      if(k != 0)
       {
-        this->states_[state_m_plus_one].lrs_
-            = this->states_[state_m_plus_one].lrs_ + 1;
+        this->states_[state_m_plus_one].lrs_ = this->states_[state_m_plus_one].lrs_ + 1;
         this->states_[state_m_plus_one].suffix_transition_ = k;
       }
       RevSuffix[this->states_[state_m_plus_one].suffix_transition_].push_back(
@@ -192,15 +187,15 @@ public:
   };
   int LengthCommonSuffix(int phi_one, int phi_two)
   {
-    if (phi_two == this->states_[phi_one].suffix_transition_)
+    if(phi_two == this->states_[phi_one].suffix_transition_)
       return this->states_[phi_one].lrs_;
     else
     {
-      while (this->states_[phi_one].suffix_transition_
-             != this->states_[phi_two].suffix_transition_)
+      while(this->states_[phi_one].suffix_transition_
+            != this->states_[phi_two].suffix_transition_)
         phi_two = this->states_[phi_two].suffix_transition_;
     }
-    if (this->states_[phi_one].lrs_ <= this->states_[phi_two].lrs_)
+    if(this->states_[phi_one].lrs_ <= this->states_[phi_two].lrs_)
       return this->states_[phi_one].lrs_;
     else
       return this->states_[phi_two].lrs_;
@@ -217,19 +212,17 @@ public:
 
     int len_t = this->RevSuffix[this->states_[i].suffix_transition_].size();
     int state_i = this->states_[i].suffix_transition_;
-    if (len_t == 0)
+    if(len_t == 0)
       return 0;
     sort(this->RevSuffix[state_i].begin(), this->RevSuffix[state_i].end());
-    for (int j = 0; j < len_t; j++)
+    for(int j = 0; j < len_t; j++)
     {
-      if (this->states_[this->RevSuffix[this->states_[i].suffix_transition_]
-                                       [j]]
-                  .lrs_
-              == this->states_[i].lrs_
-          && word
-                     [this->RevSuffix[this->states_[i].suffix_transition_][j]
-                      - this->states_[i].lrs_ - 1]
-                 == alpha)
+      if(this->states_[this->RevSuffix[this->states_[i].suffix_transition_][j]].lrs_
+             == this->states_[i].lrs_
+         && word
+                    [this->RevSuffix[this->states_[i].suffix_transition_][j]
+                     - this->states_[i].lrs_ - 1]
+                == alpha)
       {
         int out = RevSuffix[this->states_[i].suffix_transition_][j];
         return out;
@@ -251,26 +244,25 @@ public:
     std::uniform_real_distribution<> dis(0.0, 1.0);
     float u = dis(gen);
 
-    if (this->states_.size() == 2 || this->states_.size() == 1)
+    if(this->states_.size() == 2 || this->states_.size() == 1)
     {
       v.push_back(this->states_[0].transition_[0].symbol_);
     }
     else
     {
-      if (u < q)
+      if(u < q)
       {
         i = i + 1;
         int len = this->states_.size();
-        if (i >= len)
+        if(i >= len)
           i = len - 1;
         T w = this->states_[i].transition_[0].symbol_;
         v.push_back(std::move(w));
       }
       else
       {
-        int lenSuffix = this->states_[this->states_[i].suffix_transition_]
-                            .transition_.size()
-                        - 1;
+        int lenSuffix
+            = this->states_[this->states_[i].suffix_transition_].transition_.size() - 1;
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis_int(0, lenSuffix);
@@ -281,7 +273,7 @@ public:
         i = this->states_[this->states_[i].suffix_transition_]
                 .transition_[rand_alpha]
                 .last_state_;
-        if (i == -1)
+        if(i == -1)
         {
           i = 0;
         }
@@ -303,10 +295,7 @@ public:
     this->states_[0].suffix_transition_ = -1;
     this->RevSuffix.resize(2);
   };
-  void AddState(int first_state)
-  {
-    this->states_[first_state].state_ = first_state;
-  };
+  void AddState(int first_state) { this->states_[first_state].state_ = first_state; };
   void AddTransition(int first_state, int last_state, T symbol)
   {
     SingleTransition<T> transition_i;
@@ -320,10 +309,10 @@ public:
 
     std::vector<T> oracle = {};
     fo_iter = 1;
-    for (int x = 0; x < len; x++)
+    for(int x = 0; x < len; x++)
     {
       oracle = this->FOGenerate(fo_iter, oracle, q);
-      if (fo_iter == len)
+      if(fo_iter == len)
         fo_iter = len - 1;
     }
     return oracle;
@@ -341,8 +330,7 @@ struct Node
     static const constexpr auto category = "Control/Impro";
     static const constexpr auto author = "Maria Paula Carrero Rivas";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description
-        = "Factor Oracle algorithm ."; // TODO cite
+    static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const uuid_constexpr auto uuid
         = make_uuid("66F1C352-C48F-40A2-9283-35C2CB376258");
@@ -363,33 +351,27 @@ struct Node
   ossia::value* buffer = nullptr;
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::value_port& in,
-      const ossia::value_port& regen,
-      const ossia::value_port& bangs,
-      int seq_len,
-      ossia::value_port& out,
-      ossia::token_request,
-      ossia::exec_state_facade,
-      State& self)
+  run(const ossia::value_port& in, const ossia::value_port& regen,
+      const ossia::value_port& bangs, int seq_len, ossia::value_port& out,
+      ossia::token_request, ossia::exec_state_facade, State& self)
   {
 
     // Entrées sont dans p1
-    for (auto val : in.get_data())
+    for(auto val : in.get_data())
     {
       self.oracle.input_values.push_back(val.value);
-      self.oracle.AddLetter(
-          self.oracle.current_state, self.oracle.input_values);
+      self.oracle.AddLetter(self.oracle.current_state, self.oracle.input_values);
       self.oracle.current_state = self.oracle.current_state + 1;
     }
 
-    if (!regen.get_data().empty())
+    if(!regen.get_data().empty())
     {
       self.sequence = self.oracle.CallGenerate(seq_len, 0.6);
     }
 
-    if (!self.sequence.empty())
+    if(!self.sequence.empty())
     {
-      for (auto& bang : bangs.get_data())
+      for(auto& bang : bangs.get_data())
       {
         self.sequence_idx = ossia::clamp<int64_t>(
             (int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);

@@ -1,14 +1,16 @@
 #pragma once
 
+#include <Scenario/Document/VerticalExtent.hpp>
+
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <QPoint>
 #include <QObject>
+#include <QPoint>
 
-#include <Scenario/Document/VerticalExtent.hpp>
-#include <score_plugin_scenario_export.h>
 #include <sys/types.h>
+
+#include <score_plugin_scenario_export.h>
 
 #include <verdigris>
 
@@ -28,9 +30,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncPresenter final : public QObject
   W_OBJECT(TimeSyncPresenter)
 public:
   TimeSyncPresenter(
-      const TimeSyncModel& model,
-      QGraphicsItem* parentview,
-      QObject* parent);
+      const TimeSyncModel& model, QGraphicsItem* parentview, QObject* parent);
   ~TimeSyncPresenter();
 
   const Id<TimeSyncModel>& id() const;
@@ -51,16 +51,12 @@ public:
   void extentChanged(const Scenario::VerticalExtent& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
 
-  const std::vector<EventPresenter*>& events() const noexcept
-  {
-    return m_events;
-  }
+  const std::vector<EventPresenter*>& events() const noexcept { return m_events; }
 
 public:
   void pressed(const QPointF& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
-  void moved(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
+  void moved(const QPointF& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(const QPointF& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 

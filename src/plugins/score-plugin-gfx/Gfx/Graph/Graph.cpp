@@ -1,4 +1,5 @@
 #include "ISFNode.hpp"
+
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -11,8 +12,8 @@
 #include <ossia/detail/ssize.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/topological_sort.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <boost/graph/topological_sort.hpp>
 
 namespace score::gfx
 {
@@ -21,18 +22,21 @@ void print_graph(Graph_T& g, IO& stream)
 {
   std::stringstream s;
   boost::write_graphviz(
-      s, g, [&](auto& out, auto v) {
-        if (g[v])
-          {
+      s, g,
+      [&](auto& out, auto v) {
+    if(g[v])
+    {
 
-            out << "[label=\"";
-            auto n = g[v];
-            if(auto i = dynamic_cast<ISFNode*>(n))out << i->m_descriptor.description;
-            else out << "output";
-            out<< "\"]";
-          }
-        else
-          out << "[]";
+      out << "[label=\"";
+      auto n = g[v];
+      if(auto i = dynamic_cast<ISFNode*>(n))
+        out << i->m_descriptor.description;
+      else
+        out << "output";
+      out << "\"]";
+    }
+    else
+      out << "[]";
       },
       [](auto&&...) {});
 
@@ -40,18 +44,19 @@ void print_graph(Graph_T& g, IO& stream)
 }
 
 using Vertex = score::gfx::Node*;
-using GraphImpl = boost::
-    adjacency_list<boost::vecS, boost::vecS, boost::directedS, Vertex>;
+using GraphImpl
+    = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Vertex>;
 using VertexMap = std::map<score::gfx::Node*, GraphImpl::vertex_descriptor>;
-static void
-graphwalk(score::gfx::Node* node, std::vector<score::gfx::Node*>& list, GraphImpl& g, VertexMap& m)
+static void graphwalk(
+    score::gfx::Node* node, std::vector<score::gfx::Node*>& list, GraphImpl& g,
+    VertexMap& m)
 {
   auto sink_desc = m[node];
-  for (auto inputs : node->input)
+  for(auto inputs : node->input)
   {
-    for (auto edge : inputs->edges)
+    for(auto edge : inputs->edges)
     {
-      if (!edge->source->node->addedToGraph)
+      if(!edge->source->node->addedToGraph)
       {
         list.push_back(edge->source->node);
 
@@ -77,7 +82,7 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
   m[model_nodes.front()] = k;
 
   std::size_t processed = 0;
-  while (processed != model_nodes.size())
+  while(processed != model_nodes.size())
   {
     graphwalk(model_nodes[processed], model_nodes, g, m);
     processed++;
@@ -90,14 +95,14 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
   {
     model_nodes.clear();
     boost::topological_sort(g, std::back_inserter(topo_order));
-    for (auto it = topo_order.begin(); it != topo_order.end(); ++it)
+    for(auto it = topo_order.begin(); it != topo_order.end(); ++it)
     {
       auto e = *it;
       SCORE_ASSERT(g[e]);
       model_nodes.push_back(g[e]);
     }
   }
-  catch (const std::exception& e)
+  catch(const std::exception& e)
   {
     qDebug() << "Invalid gfx graph: " << e.what();
   }
@@ -105,10 +110,10 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
 
 void Graph::createAllRenderLists(GraphicsApi graphicsApi)
 {
-#if QT_HAS_VULKAN 
-  if (graphicsApi == Vulkan)
+#if QT_HAS_VULKAN
+  if(graphicsApi == Vulkan)
   {
-    if (!staticVulkanInstance())
+    if(!staticVulkanInstance())
     {
       qWarning("Failed to create Vulkan instance, switching to OpenGL");
       graphicsApi = OpenGL;
@@ -116,17 +121,17 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
   }
 #endif
 
-  for (auto output : m_outputs)
+  for(auto output : m_outputs)
   {
     output->stopRendering();
   }
 
-  for (auto node : m_nodes)
+  for(auto node : m_nodes)
   {
     node->renderedNodes.clear();
   }
 
-  for (auto& renderer : m_renderers)
+  for(auto& renderer : m_renderers)
   {
     renderer->release();
   }
@@ -134,25 +139,26 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
   m_renderers.clear();
   m_outputs.clear();
 
-  for (auto node : m_nodes)
-    if (auto out = dynamic_cast<OutputNode*>(node))
+  for(auto node : m_nodes)
+    if(auto out = dynamic_cast<OutputNode*>(node))
       m_outputs.push_back(out);
 
   m_renderers.reserve(ossia::max(16, std::ssize(m_outputs)));
 
-  for (auto output : m_outputs)
+  for(auto output : m_outputs)
   {
     initializeOutput(output, graphicsApi);
     output->startRendering();
   }
 }
 
-void Graph::createSingleRenderList(score::gfx::OutputNode& output, GraphicsApi graphicsApi)
+void Graph::createSingleRenderList(
+    score::gfx::OutputNode& output, GraphicsApi graphicsApi)
 {
 #if QT_HAS_VULKAN
-  if (graphicsApi == Vulkan)
+  if(graphicsApi == Vulkan)
   {
-    if (!staticVulkanInstance())
+    if(!staticVulkanInstance())
     {
       qWarning("Failed to create Vulkan instance, switching to OpenGL");
       graphicsApi = OpenGL;
@@ -175,14 +181,15 @@ void Graph::createOutputRenderList(OutputNode& output)
 
 void Graph::recreateOutputRenderList(OutputNode& output)
 {
-  auto it = ossia::find_if(m_renderers, [rend=output.renderer()] (const std::shared_ptr<RenderList>& r) {
-    return r.get() == rend;
-  });
+  auto it = ossia::find_if(
+      m_renderers, [rend = output.renderer()](const std::shared_ptr<RenderList>& r) {
+        return r.get() == rend;
+      });
 
   if(it != m_renderers.end())
   {
     std::shared_ptr<RenderList>& renderer = *it;
-    if (renderer.get() == output.renderer())
+    if(renderer.get() == output.renderer())
     {
       auto old_renderer = renderer;
       auto new_renderer = createRenderList(&output, output.renderState());
@@ -209,22 +216,20 @@ void Graph::recreateOutputRenderList(OutputNode& output)
 void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
 {
   output->updateGraphicsAPI(graphicsApi);
-  if (!output->canRender())
+  if(!output->canRender())
   {
     auto onReady = [=] {
       if(output->canRender())
         createOutputRenderList(*output);
     };
 
-    auto onResize = [=] {
-      recreateOutputRenderList(*output);
-    };
+    auto onResize = [=] { recreateOutputRenderList(*output); };
 
     auto onUpdate = [this] {
-      switch (this->m_outputs.size())
+      switch(this->m_outputs.size())
       {
         case 1:
-          if (this->m_vsync_callback)
+          if(this->m_vsync_callback)
             this->m_vsync_callback();
           break;
         default:
@@ -233,11 +238,7 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
     };
 
     // TODO only works for one output !!
-    output->createOutput(
-        graphicsApi,
-        onReady,
-        onUpdate,
-        onResize);
+    output->createOutput(graphicsApi, onReady, onUpdate, onResize);
   }
   else
   {
@@ -248,10 +249,10 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
 
 void Graph::relinkGraph()
 {
-  for (auto r_it = m_renderers.begin(); r_it != m_renderers.end(); )
+  for(auto r_it = m_renderers.begin(); r_it != m_renderers.end();)
   {
     auto& r = **r_it;
-    for (auto& node : m_nodes)
+    for(auto& node : m_nodes)
       node->addedToGraph = false;
 
     assert(!r.nodes.empty());
@@ -267,14 +268,14 @@ void Graph::relinkGraph()
       // In which order do we want to render stuff
       graphwalk(model_nodes);
 
-      if (model_nodes.size() > 1)
+      if(model_nodes.size() > 1)
       {
         bool invalid_renderlist = false;
-        for (auto node : model_nodes)
+        for(auto node : model_nodes)
         {
           score::gfx::NodeRenderer* rn{};
           auto it = node->renderedNodes.find(&r);
-          if (it == node->renderedNodes.end())
+          if(it == node->renderedNodes.end())
           {
             if((rn = node->createRenderer(r)))
             {
@@ -306,14 +307,16 @@ void Graph::relinkGraph()
           break;
         }
 
-        for (auto node : r.renderers)
+        for(auto node : r.renderers)
         {
           node->init(r);
         }
       }
-      else if (model_nodes.size() == 1)
+      else if(model_nodes.size() == 1)
       {
-        SCORE_ASSERT(model_nodes[0]->renderedNodes.find(&r) != model_nodes[0]->renderedNodes.end());
+        SCORE_ASSERT(
+            model_nodes[0]->renderedNodes.find(&r)
+            != model_nodes[0]->renderedNodes.end());
         auto rn = model_nodes[0]->renderedNodes.find(&r)->second;
         SCORE_ASSERT(rn);
         rn->release(r);
@@ -321,7 +324,7 @@ void Graph::relinkGraph()
     }
     r.output.onRendererChange();
 
-     ++r_it;
+    ++r_it;
   }
 
   if(m_outputs.size() > m_renderers.size())
@@ -348,7 +351,7 @@ void Graph::setVSyncCallback(std::function<void()> cb)
 static bool createNodeRenderer(score::gfx::Node& node, RenderList& r)
 {
   // Register the node with the renderer
-  if (auto rn = node.createRenderer(r))
+  if(auto rn = node.createRenderer(r))
   {
     r.renderers.push_back(rn);
 
@@ -366,7 +369,7 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
 {
   auto ptr = std::make_shared<RenderList>(*output, state);
   output->setRenderer(ptr);
-  for (auto& node : m_nodes)
+  for(auto& node : m_nodes)
     node->addedToGraph = false;
 
   RenderList& r = *ptr;
@@ -380,7 +383,7 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
     // Now we have the nodes in the order in which they are going to
     // be init'd (e.g. output node first to create the render targets)
     // We create renderers for each of them
-    for (auto node : model_nodes)
+    for(auto node : model_nodes)
     {
       if(!createNodeRenderer(*node, r))
       {
@@ -394,9 +397,9 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
   {
     r.init();
 
-    if (model_nodes.size() > 1)
+    if(model_nodes.size() > 1)
     {
-      for (auto node : r.renderers)
+      for(auto node : r.renderers)
         node->init(r);
     }
   }
@@ -404,18 +407,16 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
   return ptr;
 }
 
-Graph::Graph() {
-
-}
+Graph::Graph() { }
 
 Graph::~Graph()
 {
-  for (auto& renderer : m_renderers)
+  for(auto& renderer : m_renderers)
   {
     renderer->release();
   }
 
-  for (auto out : m_outputs)
+  for(auto out : m_outputs)
   {
     out->destroyOutput();
   }
@@ -435,7 +436,7 @@ void Graph::removeNode(Node* n)
 
 void Graph::clearEdges()
 {
-  for (auto edge : m_edges)
+  for(auto edge : m_edges)
   {
     delete edge;
   }
@@ -444,9 +445,8 @@ void Graph::clearEdges()
 
 void Graph::addEdge(Port* source, Port* sink)
 {
-  auto it = ossia::find_if(m_edges, [=] (Edge* e) {
-    return e->source == source && e->sink == sink;
-  });
+  auto it = ossia::find_if(
+      m_edges, [=](Edge* e) { return e->source == source && e->sink == sink; });
 
   SCORE_SOFT_ASSERT(it == m_edges.end());
 
@@ -456,9 +456,8 @@ void Graph::addEdge(Port* source, Port* sink)
 
 void Graph::removeEdge(Port* source, Port* sink)
 {
-  auto it = ossia::find_if(m_edges, [=] (Edge* e) {
-    return e->source == source && e->sink == sink;
-  });
+  auto it = ossia::find_if(
+      m_edges, [=](Edge* e) { return e->source == source && e->sink == sink; });
   if(it != m_edges.end())
   {
     delete *it;
@@ -487,14 +486,15 @@ void Graph::unlinkAndRemoveEdge(Port* source, Port* sink)
 
 void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
 {
-  auto it = ossia::find_if(m_renderers, [rend=output.renderer()] (const std::shared_ptr<RenderList>& r) {
-    return r.get() == rend;
-  });
+  auto it = ossia::find_if(
+      m_renderers, [rend = output.renderer()](const std::shared_ptr<RenderList>& r) {
+        return r.get() == rend;
+      });
 
   if(it != m_renderers.end())
   {
     std::shared_ptr<RenderList>& renderer = *it;
-    if (renderer.get() == output.renderer())
+    if(renderer.get() == output.renderer())
     {
       renderer->release();
       renderer.reset();

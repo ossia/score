@@ -1,19 +1,16 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 
 #include <QObject>
-
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 namespace Scenario
 {
 namespace Command
 {
 class RefreshStatesMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RefreshStatesMacro,
-      "Refresh states")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RefreshStatesMacro, "Refresh states")
 };
 }
 }

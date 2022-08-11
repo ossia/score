@@ -16,14 +16,12 @@ Device::AddressSettings AddressImpulseSettingsWidget::getSettings() const
   return set;
 }
 
-void AddressImpulseSettingsWidget::setSettings(
-    const Device::AddressSettings& settings)
+void AddressImpulseSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
 }
 
-Device::AddressSettings
-AddressImpulseSettingsWidget::getDefaultSettings() const
+Device::AddressSettings AddressImpulseSettingsWidget::getDefaultSettings() const
 {
   return {};
 }

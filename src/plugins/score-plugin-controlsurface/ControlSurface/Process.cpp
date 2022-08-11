@@ -1,10 +1,12 @@
 #include "Process.hpp"
 
-#include <Curve/CurveModel.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+
+#include <Curve/CurveModel.hpp>
+
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/serialization/MapSerialization.hpp>
@@ -21,9 +23,7 @@ namespace ControlSurface
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "ControlSurfaceProcess", parent}
     , m_observer{Explorer::deviceExplorerFromObject(*parent), Apply{*this}}
 {
@@ -33,24 +33,22 @@ Model::Model(
 Model::~Model() { }
 
 Process::ControlInlet* makeControlFromType(
-    const Id<Process::Port>& id,
-    const Device::FullAddressAccessorSettings& addr,
+    const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& addr,
     QObject* parent)
 {
   // SliderWithOutputAddress<Process::IntSlider>();
   // TODO make better widgets if we have more information.
 
   auto& unit = addr.address.qualifiers.get().unit.v;
-  if (unit.target<ossia::color_u>())
+  if(unit.target<ossia::color_u>())
   {
     return new Process::HSVSlider{id, parent};
   }
-  if (unit.target<ossia::position_u>()
-      && addr.value.get_type() == ossia::val_type::VEC2F)
+  if(unit.target<ossia::position_u>() && addr.value.get_type() == ossia::val_type::VEC2F)
   {
     return new Process::XYSlider{id, parent};
   }
-  switch (addr.value.get_type())
+  switch(addr.value.get_type())
   {
     case ossia::val_type::IMPULSE:
       return new Process::ImpulseButton{id, parent};
@@ -65,16 +63,14 @@ Process::ControlInlet* makeControlFromType(
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC4F:
       return new Process::MultiSlider{id, parent};
-  case ossia::val_type::VEC3F:
-    return new Process::XYZSlider{id, parent};
+    case ossia::val_type::VEC3F:
+      return new Process::XYZSlider{id, parent};
     default:
       return new Process::ControlInlet(id, parent);
   }
 }
 
-void Model::setupControl(
-    Process::ControlInlet* ctl,
-    const State::AddressAccessor& addr)
+void Model::setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr)
 {
   int32_t id = ctl->id().val();
   m_outputAddresses[id] = addr;
@@ -85,8 +81,7 @@ void Model::setupControl(
 }
 
 void Model::addControl(
-    const Id<Process::Port>& id,
-    const Device::FullAddressAccessorSettings& msg)
+    const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& msg)
 {
   auto ctl = makeControlFromType(id, msg, this);
   // ctl->setAddress(msg.address);
@@ -95,14 +90,14 @@ void Model::addControl(
 
   m_observer.listen(msg.address.address, id.val());
 
-  if (auto desc = ossia::net::get_description(msg.extendedAttributes))
+  if(auto desc = ossia::net::get_description(msg.extendedAttributes))
   {
     ctl->setDescription(QString::fromStdString(*desc));
   }
 
   auto setName = [ctl](const State::AddressAccessor& addr) {
     int length_limit = 20;
-    if (addr.address.path.isEmpty())
+    if(addr.address.path.isEmpty())
     {
       ctl->setName("-");
     }
@@ -114,14 +109,14 @@ void Model::addControl(
       QString str;
 
       auto it = addr.address.path.rbegin();
-      while (it != addr.address.path.rend())
+      while(it != addr.address.path.rend())
       {
         QString new_str = str;
 
         new_str.prepend("/" + *it);
 
         ++it;
-        if (new_str.length() <= length_limit)
+        if(new_str.length() <= length_limit)
         {
           str = new_str;
         }
@@ -132,7 +127,7 @@ void Model::addControl(
       }
 
       // Remove the first / if it's not a whole address
-      if (it != addr.address.path.rend())
+      if(it != addr.address.path.rend())
         str.remove(0, 1);
 
       ctl->setName(str + quals);
@@ -151,8 +146,8 @@ void Model::removeControl(const Id<Process::Port>& m_id)
 {
   m_outputAddresses.erase(m_id.val());
 
-  auto it = ossia::find_if(
-      inlets(), [&](const auto& inlet) { return inlet->id() == m_id; });
+  auto it
+      = ossia::find_if(inlets(), [&](const auto& inlet) { return inlet->id() == m_id; });
   SCORE_ASSERT(it != inlets().end());
   controlRemoved(**it);
   auto ptr = *it;
@@ -173,7 +168,8 @@ void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept { }
 
 void Model::Apply::operator()(Device::Node* n, int id)
 {
-  auto& ctl = *static_cast<Process::ControlInlet*>(this->model.inlet(Id<Process::Port>{id}));
+  auto& ctl
+      = *static_cast<Process::ControlInlet*>(this->model.inlet(Id<Process::Port>{id}));
 
   if(auto addr = n->target<Device::AddressSettings>())
   {
@@ -194,11 +190,8 @@ template <>
 void DataStreamWriter::write(ControlSurface::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
   m_stream >> proc.m_outputAddresses;
   checkDelimiter();
 }
@@ -214,11 +207,8 @@ template <>
 void JSONWriter::write(ControlSurface::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   proc.m_outputAddresses <<= obj["Addresses"];
 }

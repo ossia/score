@@ -5,7 +5,7 @@ namespace Scenario
 
 void IntervalPixmaps::update(const Process::Style& style)
 {
-  if (loadIndex == style.skin.LoadIndex)
+  if(loadIndex == style.skin.LoadIndex)
     return;
   loadIndex = style.skin.LoadIndex;
 
@@ -21,20 +21,17 @@ void IntervalPixmaps::update(const Process::Style& style)
 
   QImage image(dash_width, pen_width, QImage::Format_ARGB32_Premultiplied);
 
-  for (auto& [pen, pixmap] :
-       {std::tie(dashPen, dashed),
-        std::tie(dashSelectedPen, dashedSelected),
-        std::tie(dashDropTargetPen, dashedDropTarget),
-        std::tie(dashWarningPen, dashedWarning),
-        std::tie(dashLoopPen, dashedInvalid),
-        std::tie(dashMutedPen, dashedMuted)})
+  for(auto& [pen, pixmap] :
+      {std::tie(dashPen, dashed), std::tie(dashSelectedPen, dashedSelected),
+       std::tie(dashDropTargetPen, dashedDropTarget),
+       std::tie(dashWarningPen, dashedWarning), std::tie(dashLoopPen, dashedInvalid),
+       std::tie(dashMutedPen, dashedMuted)})
   {
     image.fill(Qt::transparent);
     QPainter p;
     p.begin(&image);
     p.setPen(pen);
-    p.drawLine(
-        QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
+    p.drawLine(QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
     p.end();
 
     pixmap = QPixmap::fromImage(image);
@@ -43,7 +40,7 @@ void IntervalPixmaps::update(const Process::Style& style)
   {
     auto dashPlayPen = style.IntervalDashPen(style.IntervalPlayDashFill());
     QColor pulse_base = style.skin.Pulse1.color();
-    for (int i = 0; i < 25; i++)
+    for(int i = 0; i < 25; i++)
     {
       float alpha = 0.5 + 0.02 * i;
       pulse_base.setAlphaF(alpha);
@@ -53,8 +50,7 @@ void IntervalPixmaps::update(const Process::Style& style)
       QPainter p;
       p.begin(&image);
       p.setPen(dashPlayPen);
-      p.drawLine(
-          QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
+      p.drawLine(QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
       p.end();
 
       playDashed[i] = QPixmap::fromImage(image);
@@ -63,17 +59,13 @@ void IntervalPixmaps::update(const Process::Style& style)
 }
 
 void IntervalPixmaps::drawDashes(
-    qreal from,
-    qreal to,
-    QPainter& p,
-    const QRectF& visibleRect,
-    const QPixmap& pixmap)
+    qreal from, qreal to, QPainter& p, const QRectF& visibleRect, const QPixmap& pixmap)
 {
   from = std::max(from, visibleRect.left());
   to = std::min(to, visibleRect.right());
   const qreal w = pixmap.width();
   const qreal h = -1.;
-  for (; from < to - w; from += w)
+  for(; from < to - w; from += w)
   {
     p.drawPixmap(from, h, pixmap);
   }

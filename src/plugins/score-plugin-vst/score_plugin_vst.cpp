@@ -29,8 +29,7 @@ score_plugin_vst::score_plugin_vst() { }
 
 score_plugin_vst::~score_plugin_vst() { }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_vst::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_vst::make_commands()
 {
   using namespace vst;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
@@ -49,19 +48,17 @@ score_plugin_vst::make_applicationPlugin(const score::ApplicationContext& app)
   return new vst::ApplicationPlugin{app};
 }
 
-score::GUIApplicationPlugin* score_plugin_vst::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_vst::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new vst::GUIApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext,
-      FW<Process::ProcessModelFactory, vst::VSTEffectFactory>,
+      score::ApplicationContext, FW<Process::ProcessModelFactory, vst::VSTEffectFactory>,
       FW<Process::LayerFactory, vst::LayerFactory>,
       FW<Library::LibraryInterface, vst::LibraryHandler>,
       FW<Process::PortFactory, vst::ControlPortFactory>,

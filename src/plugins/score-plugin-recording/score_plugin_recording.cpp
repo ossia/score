@@ -23,8 +23,7 @@ score::GUIApplicationPlugin* score_plugin_recording::make_guiApplicationPlugin(
 
 auto score_plugin_recording::required() const -> std::vector<score::PluginKey>
 {
-  return {
-      score_plugin_scenario::static_key(), score_plugin_engine::static_key()};
+  return {score_plugin_scenario::static_key(), score_plugin_engine::static_key()};
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

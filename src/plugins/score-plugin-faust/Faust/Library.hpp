@@ -1,8 +1,9 @@
 #pragma once
+#include <Process/Drop/ProcessDropHandler.hpp>
+
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <QFileInfo>
 #include <QTimer>
@@ -30,14 +31,13 @@ class LibraryHandler final
 
   Library::Subcategories categories;
 
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override
   {
     // TODO relaunch whenever library path changes...
     const auto& key = FaustEffectFactory{}.concreteKey();
     QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
+    if(node == QModelIndex{})
       return;
 
     categories.init(node, ctx);
@@ -46,35 +46,37 @@ class LibraryHandler final
   void addPath(std::string_view path) override
   {
     score::PathInfo file{path};
-    if (file.fileName != "layout.dsp")
+    if(file.fileName != "layout.dsp")
       registerDSP(file);
   }
 
   void registerDSP(const score::PathInfo& file)
   {
     Library::ProcessData pdata;
-    pdata.prettyName = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
+    pdata.prettyName
+        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
     pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
-    pdata.customData = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
+    pdata.customData
+        = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
     pdata.author = "Faust standard library";
 
     {
       auto matches = nameExpr.match(pdata.customData);
-      if (matches.hasMatch())
+      if(matches.hasMatch())
       {
         pdata.prettyName = matches.captured(1);
       }
     }
     {
       auto matches = authorExpr.match(pdata.customData);
-      if (matches.hasMatch())
+      if(matches.hasMatch())
       {
         pdata.author = matches.captured(1);
       }
     }
     {
       auto matches = descExpr.match(pdata.customData);
-      if (matches.hasMatch())
+      if(matches.hasMatch())
       {
         pdata.description = matches.captured(1);
       }
@@ -91,9 +93,8 @@ class DropHandler final : public Process::ProcessDropHandler
   QSet<QString> fileExtensions() const noexcept override { return {"dsp"}; }
 
   void dropPath(
-        std::vector<ProcessDrop>& vec,
-        const QString& filename,
-        const score::DocumentContext& ctx) const noexcept override
+      std::vector<ProcessDrop>& vec, const QString& filename,
+      const score::DocumentContext& ctx) const noexcept override
   {
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, Faust::FaustEffectModel>::get();

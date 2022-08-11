@@ -1,6 +1,7 @@
 #pragma once
-#include <Media/Step/Metadata.hpp>
 #include <Process/Process.hpp>
+
+#include <Media/Step/Metadata.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -8,9 +9,9 @@
 
 #include <ossia/detail/pod_vector.hpp>
 
-#include <verdigris>
-
 #include <score_plugin_media_export.h>
+
+#include <verdigris>
 Q_DECLARE_METATYPE(std::size_t)
 W_REGISTER_ARGTYPE(std::size_t)
 namespace Media
@@ -27,9 +28,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT Model final : public Process::ProcessModel
 
 public:
   explicit Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   ~Model() override;
 
@@ -82,12 +81,9 @@ private:
 
   W_PROPERTY(
       int,
-      stepDuration READ stepDuration WRITE setStepDuration NOTIFY
-          stepDurationChanged)
+      stepDuration READ stepDuration WRITE setStepDuration NOTIFY stepDurationChanged)
 
-  W_PROPERTY(
-      int,
-      stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
+  W_PROPERTY(int, stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
 };
 }
 }

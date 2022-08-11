@@ -1,8 +1,9 @@
 #pragma once
+#include <Process/GenericProcessFactory.hpp>
+
 #include <Nodal/Presenter.hpp>
 #include <Nodal/Process.hpp>
 #include <Nodal/View.hpp>
-#include <Process/GenericProcessFactory.hpp>
 
 namespace Nodal
 {

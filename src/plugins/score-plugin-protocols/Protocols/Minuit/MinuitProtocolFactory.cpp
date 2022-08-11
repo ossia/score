@@ -5,6 +5,7 @@
 #include "MinuitDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Protocols/Minuit/MinuitProtocolSettingsWidget.hpp>
 #include <Protocols/Minuit/MinuitSpecificSettings.hpp>
 
@@ -36,15 +37,13 @@ int MinuitProtocolFactory::visualPriority() const noexcept
 }
 
 Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new MinuitDevice{settings};
 }
 
-const Device::DeviceSettings&
-MinuitProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& MinuitProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -62,22 +61,20 @@ Device::ProtocolSettingsWidget* MinuitProtocolFactory::makeSettingsWidget()
   return new MinuitProtocolSettingsWidget;
 }
 
-QVariant MinuitProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant
+MinuitProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<MinuitSpecificSettings>(visitor);
 }
 
 void MinuitProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<MinuitSpecificSettings>(data, visitor);
 }
 
 bool MinuitProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   // TODO we should check also for other devices.  Devices should have a "open
   // ports" method that

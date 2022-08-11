@@ -18,12 +18,9 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final
 {
 public:
   ~InspectorWidgetList();
-  bool update(
-      QWidget* cur,
-      const QList<const IdentifiedObjectAbstract*>& models) const;
+  bool update(QWidget* cur, const QList<const IdentifiedObjectAbstract*>& models) const;
   QList<QWidget*> make(
       const score::DocumentContext& doc,
-      const QList<const IdentifiedObjectAbstract*>& models,
-      QWidget* parent) const;
+      const QList<const IdentifiedObjectAbstract*>& models, QWidget* parent) const;
 };
 }

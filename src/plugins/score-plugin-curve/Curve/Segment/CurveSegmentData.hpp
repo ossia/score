@@ -68,12 +68,8 @@ struct SegmentData
   SegmentData& operator=(SegmentData&&) = default;
 
   SegmentData(
-      Id<SegmentModel> i,
-      Curve::Point s,
-      Curve::Point e,
-      OptionalId<SegmentModel> prev,
-      OptionalId<SegmentModel> foll,
-      const UuidKey<Curve::SegmentFactory>& t,
+      Id<SegmentModel> i, Curve::Point s, Curve::Point e, OptionalId<SegmentModel> prev,
+      OptionalId<SegmentModel> foll, const UuidKey<Curve::SegmentFactory>& t,
       QVariant data)
       : id(std::move(i))
       , start(s)
@@ -115,7 +111,7 @@ Id<SegmentModel> getSegmentId(const Container& ids)
   do
   {
     id = Id<SegmentModel>{score::random_id_generator::getRandomId()};
-  } while (ids.find(id) != end);
+  } while(ids.find(id) != end);
 
   return id;
 }
@@ -128,9 +124,7 @@ inline Id<SegmentModel> getSegmentId(const std::vector<SegmentData>& ids)
   do
   {
     id = Id<SegmentModel>{score::random_id_generator::getRandomId()};
-  } while (
-      ossia::find_if(ids, [&](const auto& other) { return other.id == id; })
-      != end);
+  } while(ossia::find_if(ids, [&](const auto& other) { return other.id == id; }) != end);
 
   return id;
 }
@@ -143,8 +137,7 @@ inline Id<SegmentModel> getSegmentId(const std::vector<Id<SegmentModel>>& ids)
   do
   {
     id = Id<SegmentModel>{score::random_id_generator::getRandomId()};
-  } while (ossia::find_if(ids, [&](const auto& other) { return other == id; })
-           != end);
+  } while(ossia::find_if(ids, [&](const auto& other) { return other == id; }) != end);
 
   return id;
 }
@@ -177,17 +170,16 @@ W_REGISTER_ARGTYPE(Curve::SegmentData)
     }                                                       \
   };
 
-#define CURVE_SEGMENT_METADATA(                           \
-    Export, Model, Uuid, ObjectKey, PrettyName, Category) \
-  OBJECTKEY_METADATA(Export, Model, ObjectKey)            \
-  CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid)     \
-  template <>                                             \
-  struct Export Metadata<PrettyName_k, Model>             \
-  {                                                       \
-    static auto get() { return QObject::tr(PrettyName); } \
-  };                                                      \
-  template <>                                             \
-  struct Export Metadata<Curve::Category_k, Model>        \
-  {                                                       \
-    static auto get() { return QObject::tr(Category); }   \
+#define CURVE_SEGMENT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName, Category) \
+  OBJECTKEY_METADATA(Export, Model, ObjectKey)                                       \
+  CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid)                                \
+  template <>                                                                        \
+  struct Export Metadata<PrettyName_k, Model>                                        \
+  {                                                                                  \
+    static auto get() { return QObject::tr(PrettyName); }                            \
+  };                                                                                 \
+  template <>                                                                        \
+  struct Export Metadata<Curve::Category_k, Model>                                   \
+  {                                                                                  \
+    static auto get() { return QObject::tr(Category); }                              \
   };

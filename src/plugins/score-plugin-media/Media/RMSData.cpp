@@ -23,7 +23,7 @@ static const constexpr auto rms_buffer_size = 64;
 RMSData::RMSData() { }
 
 void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
-{/*
+{ /*
   this->header = nullptr;
   this->data = nullptr;
   this->m_exists = false;
@@ -85,14 +85,12 @@ bool RMSData::exists() const
   return m_exists;
 }
 
-void RMSData::decode(
-    const std::vector<tcb::span<const ossia::audio_sample>>& audio)
+void RMSData::decode(const std::vector<tcb::span<const ossia::audio_sample>>& audio)
 {
   computeRMS(audio, rms_buffer_size);
 }
 
-void RMSData::decodeLast(
-    const std::vector<tcb::span<const ossia::audio_sample>>& audio)
+void RMSData::decodeLast(const std::vector<tcb::span<const ossia::audio_sample>>& audio)
 {
   computeLastRMS(audio, rms_buffer_size);
   /*
@@ -104,7 +102,7 @@ void RMSData::decodeLast(
 }
 
 void RMSData::decode(ossia::drwav_handle& audio)
-{/*
+{ /*
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.channels();
   if (channels > 0)
@@ -127,7 +125,7 @@ void RMSData::decode(ossia::drwav_handle& audio)
   }
 */
   newData();
-/*
+  /*
   m_file.open(QIODevice::WriteOnly);
   m_file.write(m_ramData);
   m_file.flush();
@@ -152,13 +150,13 @@ RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
   const auto start_idx = (start_frame / rms_buffer_size);
   auto end_idx = (end_frame / rms_buffer_size);
 
-  if (start_idx >= samples_count)
+  if(start_idx >= samples_count)
   {
     // qDebug() << "bug on start! " << start_idx << samples_count;
     return sum;
   }
 
-  if (end_idx > samples_count)
+  if(end_idx > samples_count)
   {
     // qDebug() << "bug on end! " << end_idx << samples_count;
     end_idx = samples_count;
@@ -168,49 +166,45 @@ RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
   rms_sample_t* end = (data + end_idx);
 
   constexpr float size_factor = 1. / std::numeric_limits<rms_sample_t>::max();
-  if (begin == end && start_frame < end_frame)
+  if(begin == end && start_frame < end_frame)
   {
     // Note: we should not enter this case -
     // instead AudioFileHandle::frame would be used
-    for (std::size_t k = 0; k < channels; k++)
+    for(std::size_t k = 0; k < channels; k++)
       sum[k] = begin[k] * size_factor;
     return sum;
   }
 
-  for (; begin < end; begin += channels)
+  for(; begin < end; begin += channels)
   {
-    for (std::size_t k = 0; k < channels; k++)
+    for(std::size_t k = 0; k < channels; k++)
     {
       const int64_t val = begin[k];
       sum[k] = abs_max(sum[k], val);
     }
   }
 
-  for (std::size_t k = 0; k < channels; k++)
+  for(std::size_t k = 0; k < channels; k++)
     sum[k] *= size_factor;
 
   return sum;
 }
 
 rms_sample_t RMSData::computeChannelRMS(
-    tcb::span<const ossia::audio_sample> chan,
-    int64_t start_idx,
-    int64_t buffer_size)
+    tcb::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size)
 {
   float val = 0.;
   auto begin = chan.begin() + start_idx;
   auto end = begin + buffer_size;
 
-  for (auto it = begin; it < end; ++it)
+  for(auto it = begin; it < end; ++it)
     val = abs_max(val, *it);
   return val * std::numeric_limits<rms_sample_t>::max();
 }
 
 void RMSData::computeChannelRMS(
-    ossia::drwav_handle& wav,
-    rms_sample_t* bytes,
-    int64_t buffer_size)
-{/*
+    ossia::drwav_handle& wav, rms_sample_t* bytes, int64_t buffer_size)
+{ /*
   const int channels = wav.channels();
   float* val = (float*)alloca(sizeof(float) * channels);
 
@@ -238,12 +232,11 @@ void RMSData::computeChannelRMS(
 }
 
 void RMSData::computeRMS(
-    const std::vector<tcb::span<const ossia::audio_sample>>& audio,
-    int buffer_size)
+    const std::vector<tcb::span<const ossia::audio_sample>>& audio, int buffer_size)
 {
-  if (audio.empty())
+  if(audio.empty())
     return;
-/*
+  /*
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.size();
   const int64_t max_sample = audio.front().size();
@@ -269,12 +262,11 @@ void RMSData::computeRMS(
 }
 
 void RMSData::computeLastRMS(
-    const std::vector<tcb::span<const ossia::audio_sample>>& audio,
-    int buffer_size)
+    const std::vector<tcb::span<const ossia::audio_sample>>& audio, int buffer_size)
 {
-  if (audio.empty())
+  if(audio.empty())
     return;
-/*
+  /*
   // store the data in interleaved format, it's much easier...
   const int channels = std::ssize(audio);
   const int64_t max_frames = audio.front().size();

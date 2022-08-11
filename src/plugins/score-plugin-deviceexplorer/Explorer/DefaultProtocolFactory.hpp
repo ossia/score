@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+
 #include <Explorer/Explorer/Widgets/AddressEditDialog.hpp>
 
 namespace Protocols
@@ -11,10 +12,8 @@ public:
   using Device::ProtocolFactory::ProtocolFactory;
 
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings& set,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget* parent) override
+      const Device::AddressSettings& set, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget* parent) override
   {
     auto ptr = new Explorer::AddressEditDialog{set, parent};
 
@@ -24,8 +23,7 @@ public:
     return ptr;
   }
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget* parent) override
   {
     auto ptr = new Explorer::AddressEditDialog{parent};

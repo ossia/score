@@ -1,17 +1,18 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-
 #if defined(_WIN32)
 #if !defined(_MSC_VER)
-#include <windows.h>
 #include <mmsystem.h>
 #include <ntdef.h>
-extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+#include <windows.h>
+extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(
+    ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
 #else
 #include <Windows.h>
 #include <mmsystem.h>
-extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+extern "C" __declspec(dllimport) LONG __stdcall NtSetTimerResolution(
+    ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
 
 extern "C" int gettimeofday(struct timeval* tv, struct timezone* tz)
 {
@@ -28,30 +29,33 @@ extern "C" void sincos(double x, double* sin, double* cos)
 #endif
 #endif
 
-
 #include "Application.hpp"
-#include <ossia/detail/thread.hpp>
-#include <ossia/detail/config.hpp>
+
 #include <score/widgets/MessageBox.hpp>
+
+#include <ossia/detail/config.hpp>
+
+#include <ossia/detail/thread.hpp>
+
+#include <QApplication>
+#include <QItemSelection>
+#include <QPixmapCache>
+#include <QSurfaceFormat>
+#include <qnamespace.h>
 
 #include <clocale>
 
-#include <QPixmapCache>
-#include <QItemSelection>
-#include <QSurfaceFormat>
-#include <QApplication>
-#include <qnamespace.h>
-
 #ifndef QT_NO_OPENGL
+#include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
-#include <QOffscreenSurface>
 #endif
 /*
 #if __has_include(<valgrind/callgrind.h>)
-#include <valgrind/callgrind.h>
 #include <QMessageBox>
 #include <QTimer>
+
+#include <valgrind/callgrind.h>
 #endif
 */
 #if defined(__linux__)
@@ -59,8 +63,9 @@ extern "C" void sincos(double x, double* sin, double* cos)
 #if !_GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
-#include <link.h>
 #include <sys/resource.h>
+
+#include <link.h>
 #define HAS_RLIMIT 1
 #endif
 
@@ -68,7 +73,8 @@ extern "C" void sincos(double x, double* sin, double* cos)
 using X11ErrorHandler = int (*)(void*, void*);
 using XSetErrorHandler_ptr = X11ErrorHandler (*)(X11ErrorHandler);
 
-static struct {
+static struct
+{
   void* gtk2{};
   void* gtk3{};
   void* gtk4{};
@@ -109,10 +115,11 @@ static void setup_x11()
   helper_dylibs.x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
   if(helper_dylibs.x11)
   {
-    helper_dylibs.x11_set_error_handler = reinterpret_cast<XSetErrorHandler_ptr>(dlsym(helper_dylibs.x11, "XSetErrorHandler"));
+    helper_dylibs.x11_set_error_handler = reinterpret_cast<XSetErrorHandler_ptr>(
+        dlsym(helper_dylibs.x11, "XSetErrorHandler"));
     assert(helper_dylibs.x11_set_error_handler);
 
-    if(auto sym = reinterpret_cast<int(*)()>(dlsym(helper_dylibs.x11, "XInitThreads")))
+    if(auto sym = reinterpret_cast<int (*)()>(dlsym(helper_dylibs.x11, "XInitThreads")))
     {
       if(!sym())
       {
@@ -126,40 +133,46 @@ static void setup_x11()
 static void setup_suil()
 {
 #if defined(__linux__)
-  enum SuilArg { SUIL_ARG_NONE };
+  enum SuilArg
+  {
+    SUIL_ARG_NONE
+  };
   using suil_init_t = void (*)(int* argc, char*** argv, SuilArg key, ...);
 
   if(auto lib = dlopen("libsuil-0.so.0", RTLD_LAZY | RTLD_LOCAL))
-  if(auto sym = reinterpret_cast<suil_init_t>(dlsym(lib, "suil_init")))
-  {
-    static int argc{0};
-    static char** argv{nullptr};
-    sym(&argc, &argv, SUIL_ARG_NONE);
-  }
+    if(auto sym = reinterpret_cast<suil_init_t>(dlsym(lib, "suil_init")))
+    {
+      static int argc{0};
+      static char** argv{nullptr};
+      sym(&argc, &argv, SUIL_ARG_NONE);
+    }
 #endif
 }
 
 static void setup_gtk()
 {
 #if defined(__linux__)
-    helper_dylibs.gtk2 = dlopen("libgtk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if(helper_dylibs.gtk2)
-    {
-      if(auto sym = reinterpret_cast<void(*)(void)>(dlsym(helper_dylibs.gtk2, "gtk_disable_setlocale")))
-        sym();
-    }
-    helper_dylibs.gtk3 = dlopen("libgtk-3.so.0", RTLD_LAZY | RTLD_LOCAL);
-    if(helper_dylibs.gtk3)
-    {
-      if(auto sym = reinterpret_cast<void(*)(void)>(dlsym(helper_dylibs.gtk3, "gtk_disable_setlocale")))
-        sym();
-    }
-    helper_dylibs.gtk4 = dlopen("libgtk-4.so.1", RTLD_LAZY | RTLD_LOCAL);
-    if(helper_dylibs.gtk4)
-    {
-      if(auto sym = reinterpret_cast<void(*)(void)>(dlsym(helper_dylibs.gtk4, "gtk_disable_setlocale")))
-        sym();
-    }
+  helper_dylibs.gtk2 = dlopen("libgtk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
+  if(helper_dylibs.gtk2)
+  {
+    if(auto sym = reinterpret_cast<void (*)(void)>(
+           dlsym(helper_dylibs.gtk2, "gtk_disable_setlocale")))
+      sym();
+  }
+  helper_dylibs.gtk3 = dlopen("libgtk-3.so.0", RTLD_LAZY | RTLD_LOCAL);
+  if(helper_dylibs.gtk3)
+  {
+    if(auto sym = reinterpret_cast<void (*)(void)>(
+           dlsym(helper_dylibs.gtk3, "gtk_disable_setlocale")))
+      sym();
+  }
+  helper_dylibs.gtk4 = dlopen("libgtk-4.so.1", RTLD_LAZY | RTLD_LOCAL);
+  if(helper_dylibs.gtk4)
+  {
+    if(auto sym = reinterpret_cast<void (*)(void)>(
+           dlsym(helper_dylibs.gtk4, "gtk_disable_setlocale")))
+      sym();
+  }
 #endif
 }
 
@@ -167,19 +180,21 @@ static void setup_gdk()
 {
 #if defined(__linux__)
   static bool gtk3_loaded{};
-  dl_iterate_phdr([] (struct dl_phdr_info *info,
-                  size_t size, void *data) -> int {
-    if(std::string_view(info->dlpi_name).find(std::string_view("qgtk3")) != std::string_view::npos)
-      gtk3_loaded = true;
-    return 0;
-  }, nullptr);
+  dl_iterate_phdr(
+      [](struct dl_phdr_info* info, size_t size, void* data) -> int {
+        if(std::string_view(info->dlpi_name).find(std::string_view("qgtk3"))
+           != std::string_view::npos)
+          gtk3_loaded = true;
+        return 0;
+      },
+      nullptr);
 
   if(gtk3_loaded)
     return;
 
   // Fun fact: this code has for lineage
   // WebKit (https://bugs.webkit.org/show_bug.cgi?id=44324) -> KDE -> maybe Netscape (?)
-  using gdk_init_check_ptr = void *(*)(int*, char***);
+  using gdk_init_check_ptr = void* (*)(int*, char***);
 
   // For the handler thing: see
   // https://github.com/qt/qtbase/blob/dev/src/plugins/platformthemes/gtk3/qgtk3theme.cpp#L88
@@ -189,9 +204,10 @@ static void setup_gdk()
     old_handler = helper_dylibs.x11_set_error_handler(nullptr);
 
   helper_dylibs.gdk_x11 = dlopen("libgdk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
-  if (helper_dylibs.gdk_x11)
+  if(helper_dylibs.gdk_x11)
   {
-    if(auto gdk_init_check = (gdk_init_check_ptr)dlsym(helper_dylibs.gdk_x11, "gdk_init_check"))
+    if(auto gdk_init_check
+       = (gdk_init_check_ptr)dlsym(helper_dylibs.gdk_x11, "gdk_init_check"))
       gdk_init_check(0, 0);
   }
 
@@ -206,12 +222,12 @@ struct increase_timer_precision
   increase_timer_precision()
   {
 #if defined(_WIN32)
-  // First try to set the 1ms period
-  timeBeginPeriod(1);
+    // First try to set the 1ms period
+    timeBeginPeriod(1);
 
-  // Then maybe we can go a bit lower...
-  ULONG currentRes{};
-  NtSetTimerResolution(100, TRUE, &currentRes);
+    // Then maybe we can go a bit lower...
+    ULONG currentRes{};
+    NtSetTimerResolution(100, TRUE, &currentRes);
 #endif
   }
 
@@ -300,11 +316,9 @@ static void setup_opengl(bool& enable_opengl_ui)
   fmt.setDefaultFormat(fmt);
 #else
   {
-    std::vector<std::pair<int, int>> versions_to_test = {
-        { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
-        { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 },
-        { 2, 1 }, { 2, 0 }
-    };
+    std::vector<std::pair<int, int>> versions_to_test
+        = {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+           {3, 3}, {3, 2}, {3, 1}, {3, 0}, {2, 1}, {2, 0}};
 
     QOffscreenSurface surf;
     surf.create();
@@ -318,7 +332,8 @@ static void setup_opengl(bool& enable_opengl_ui)
       }
       if(!ctx.makeCurrent(&surf))
       {
-        qDebug() << "OpenGL detection skipped, cannot create make an offscreen surface current";
+        qDebug() << "OpenGL detection skipped, cannot create make an offscreen surface "
+                    "current";
         enable_opengl_ui = false;
         return;
       }
@@ -327,7 +342,8 @@ static void setup_opengl(bool& enable_opengl_ui)
 
       if(auto gl_renderer = (const char*)ctx.functions()->glGetString(GL_RENDERER))
       {
-        if(auto ver = QString::fromUtf8(gl_renderer); ver.contains("llvmpipe", Qt::CaseInsensitive))
+        if(auto ver = QString::fromUtf8(gl_renderer);
+           ver.contains("llvmpipe", Qt::CaseInsensitive))
         {
           qDebug() << "LLVMPIPE detected, not changing the default format as it crashes";
           enable_opengl_ui = false;
@@ -340,7 +356,8 @@ static void setup_opengl(bool& enable_opengl_ui)
     fmt.setProfile(QSurfaceFormat::CoreProfile);
     fmt.setSwapInterval(1);
     bool ok = false;
-    for(auto [maj, min] : versions_to_test) {
+    for(auto [maj, min] : versions_to_test)
+    {
       fmt.setMajorVersion(maj);
       fmt.setMinorVersion(min);
 
@@ -350,9 +367,12 @@ static void setup_opengl(bool& enable_opengl_ui)
       {
         if(ctx.makeCurrent(&surf))
         {
-          qDebug().nospace() << "Using highest available OpenGL version: " << ctx.format().majorVersion() << "." << ctx.format().minorVersion();
+          qDebug().nospace() << "Using highest available OpenGL version: "
+                             << ctx.format().majorVersion() << "."
+                             << ctx.format().minorVersion();
           if(maj < 3 || (maj == 3 && min < 2))
-            qDebug() << "Warning ! This OpenGL version is too old for every feature to work correctly. Consider updating your graphics card.";
+            qDebug() << "Warning ! This OpenGL version is too old for every feature to "
+                        "work correctly. Consider updating your graphics card.";
 
           if(maj < 2)
             // GL 1: we don't even try
@@ -450,14 +470,14 @@ static void setup_limits()
 #if HAS_RLIMIT
   constexpr int min_fds = 10000;
   struct rlimit rlim;
-  if (getrlimit(RLIMIT_NOFILE, &rlim) != 0)
+  if(getrlimit(RLIMIT_NOFILE, &rlim) != 0)
     return;
 
-  if (rlim.rlim_cur != RLIM_INFINITY && rlim.rlim_cur < rlim_t(min_fds))
+  if(rlim.rlim_cur != RLIM_INFINITY && rlim.rlim_cur < rlim_t(min_fds))
   {
-    if (rlim.rlim_max == RLIM_INFINITY)
+    if(rlim.rlim_max == RLIM_INFINITY)
       rlim.rlim_cur = min_fds;
-    else if (rlim.rlim_cur == rlim.rlim_max)
+    else if(rlim.rlim_cur == rlim.rlim_max)
       return;
     else
       rlim.rlim_cur = rlim.rlim_max;
@@ -466,12 +486,13 @@ static void setup_limits()
   }
 #endif
 }
-#include <QTimer>
-#include <QStandardPaths>
 #include <QDir>
+#include <QStandardPaths>
+#include <QTimer>
 namespace
 {
-struct failsafe {
+struct failsafe
+{
   const bool fs = this->read();
 
   explicit failsafe()
@@ -490,15 +511,10 @@ struct failsafe {
   QString path()
   {
     auto conf = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    return conf + QDir::separator() +
-           "ossia" + QDir::separator() +
-           "failsafe.bit";
+    return conf + QDir::separator() + "ossia" + QDir::separator() + "failsafe.bit";
   }
 
-  bool read()
-  {
-    return QFile::exists(this->path());
-  }
+  bool read() { return QFile::exists(this->path()); }
 
   void write()
   {
@@ -600,8 +616,7 @@ int main(int argc, char** argv)
 #include <windows.h>
 static inline char* wideToMulti(int codePage, const wchar_t* aw)
 {
-  const int required
-      = WideCharToMultiByte(codePage, 0, aw, -1, NULL, 0, NULL, NULL);
+  const int required = WideCharToMultiByte(codePage, 0, aw, -1, NULL, 0, NULL, NULL);
   char* result = new char[required];
   WideCharToMultiByte(codePage, 0, aw, -1, result, required, NULL, NULL);
   return result;
@@ -612,15 +627,15 @@ WinMain(HINSTANCE, HINSTANCE, LPSTR /*cmdParamarg*/, int /* cmdShow */)
 {
   int argc;
   wchar_t** argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
-  if (!argvW)
+  if(!argvW)
     return -1;
   char** argv = new char*[argc + 1];
-  for (int i = 0; i < argc; ++i)
+  for(int i = 0; i < argc; ++i)
     argv[i] = wideToMulti(CP_ACP, argvW[i]);
   argv[argc] = nullptr;
   LocalFree(argvW);
   const int exitCode = main(argc, argv);
-  for (int i = 0; i < argc && argv[i]; ++i)
+  for(int i = 0; i < argc && argv[i]; ++i)
     delete[] argv[i];
   delete[] argv;
   return exitCode;

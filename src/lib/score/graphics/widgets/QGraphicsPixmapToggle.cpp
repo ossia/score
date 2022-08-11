@@ -9,9 +9,7 @@ W_OBJECT_IMPL(score::QGraphicsPixmapToggle);
 namespace score
 {
 QGraphicsPixmapToggle::QGraphicsPixmapToggle(
-    QPixmap pressed,
-    QPixmap released,
-    QGraphicsItem* parent)
+    QPixmap pressed, QPixmap released, QGraphicsItem* parent)
     : QGraphicsPixmapItem{released, parent}
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}
@@ -31,7 +29,7 @@ void QGraphicsPixmapToggle::toggle()
 
 void QGraphicsPixmapToggle::setState(bool toggled)
 {
-  if (toggled != m_toggled)
+  if(toggled != m_toggled)
   {
     m_toggled = toggled;
     setPixmap(m_toggled ? m_pressed : m_released);

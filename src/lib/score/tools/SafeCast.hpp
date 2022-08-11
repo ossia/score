@@ -23,7 +23,7 @@ try
   auto&& res = dynamic_cast<T>(other);
   return res;
 }
-catch (const std::exception& e)
+catch(const std::exception& e)
 {
   qDebug() << e.what();
   SCORE_ABORT;

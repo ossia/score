@@ -96,16 +96,11 @@ QRectF QGraphicsLogKnob::boundingRect() const
 }
 
 void QGraphicsLogKnob::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsKnobImpl::paint(
-      *this,
-      score::Skin::instance(),
-      QString::number(
-          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
-      painter,
-      widget);
+      *this, score::Skin::instance(),
+      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      painter, widget);
 }
 }

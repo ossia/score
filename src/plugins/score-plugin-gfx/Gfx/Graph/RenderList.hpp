@@ -19,6 +19,7 @@ class SCORE_PLUGIN_GFX_EXPORT RenderList
 {
 private:
   std::shared_ptr<RenderState> m_state;
+
 public:
   explicit RenderList(OutputNode& output, const std::shared_ptr<RenderState>& state);
   ~RenderList();

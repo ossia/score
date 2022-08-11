@@ -91,25 +91,19 @@ public:
    */
   void localRedo() E_SIGNAL(SCORE_LIB_BASE_EXPORT, localRedo)
 
-  void localIndexChanged(int v)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, localIndexChanged, v)
+  void localIndexChanged(int v) E_SIGNAL(SCORE_LIB_BASE_EXPORT, localIndexChanged, v)
 
-  void canUndoChanged(bool b)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, canUndoChanged, b)
-  void canRedoChanged(bool b)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, canRedoChanged, b)
+  void canUndoChanged(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, canUndoChanged, b)
+  void canRedoChanged(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, canRedoChanged, b)
 
-  void undoTextChanged(QString b)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, undoTextChanged, b)
-  void redoTextChanged(QString b)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, redoTextChanged, b)
+  void undoTextChanged(QString b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, undoTextChanged, b)
+  void redoTextChanged(QString b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, redoTextChanged, b)
 
   void indexChanged(int b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, indexChanged, b)
 
   void stackChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, stackChanged)
 
-  void saveIndexChanged(bool b)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, saveIndexChanged, b)
+  void saveIndexChanged(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, saveIndexChanged, b)
 
   // These signals are low-level and are sent on each operation that
   // affects the stacks
@@ -187,18 +181,18 @@ public:
     c();
     m_checker();
 
-    if (pre_canUndo != canUndo())
+    if(pre_canUndo != canUndo())
       canUndoChanged(canUndo());
 
-    if (pre_canRedo != canRedo())
+    if(pre_canRedo != canRedo())
       canRedoChanged(canRedo());
 
-    if (canUndo())
+    if(canUndo())
       undoTextChanged(m_undoable.top()->description());
     else
       undoTextChanged("");
 
-    if (canRedo())
+    if(canRedo())
       redoTextChanged(m_redoable.top()->description());
     else
       redoTextChanged("");

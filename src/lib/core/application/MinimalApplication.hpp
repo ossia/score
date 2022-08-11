@@ -25,7 +25,7 @@ public:
   const char* default_argv[2] = {"score", nullptr};
 
   MinimalApplication()
-   : MinimalApplication{default_argc, (char**)default_argv}
+      : MinimalApplication{default_argc, (char**)default_argv}
   {
   }
 
@@ -40,8 +40,8 @@ public:
     m_instance = this;
     this->setParent(m_app);
 
-    m_presenter = new score::Presenter{
-        m_applicationSettings, m_settings, m_pset, nullptr, this};
+    m_presenter
+        = new score::Presenter{m_applicationSettings, m_settings, m_pset, nullptr, this};
 
     GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
   }
@@ -70,7 +70,10 @@ public:
     return m_presenter->components();
   }
 
-  int exec() { return m_app->exec(); }
+  int exec()
+  {
+    return m_app->exec();
+  }
 
   QApplication* m_app;
   score::Settings m_settings;
@@ -96,8 +99,8 @@ public:
     this->setParent(m_app);
 
     m_view = new score::View{nullptr};
-    m_presenter = new score::Presenter{
-        m_applicationSettings, m_settings, m_pset, m_view, this};
+    m_presenter
+        = new score::Presenter{m_applicationSettings, m_settings, m_pset, m_view, this};
 
     GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
 
@@ -128,9 +131,15 @@ public:
     return m_presenter->components();
   }
 
-  score::View& view() const { return *m_view; }
+  score::View& view() const
+  {
+    return *m_view;
+  }
 
-  int exec() { return m_app->exec(); }
+  int exec()
+  {
+    return m_app->exec();
+  }
 
   QApplication* m_app{};
   score::Settings m_settings;

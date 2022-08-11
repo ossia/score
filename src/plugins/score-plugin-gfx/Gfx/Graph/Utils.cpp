@@ -7,13 +7,13 @@
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture* tex)
+TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* tex)
 {
   TextureRenderTarget ret;
   ret.texture = tex;
 
-  ret.renderBuffer = state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, tex->pixelSize(), 1);
+  ret.renderBuffer
+      = state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, tex->pixelSize(), 1);
   ret.renderBuffer->create();
 
   QRhiColorAttachment color0{ret.texture};
@@ -40,12 +40,13 @@ createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
   return createRenderTarget(state, texture);
 }
 
-void replaceBuffer(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiBuffer* newBuffer)
+void replaceBuffer(
+    std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiBuffer* newBuffer)
 {
   const auto bufType = newBuffer->resourceType();
-  for (QRhiShaderResourceBinding& b : tmp)
+  for(QRhiShaderResourceBinding& b : tmp)
   {
-    if (b.data()->binding == binding)
+    if(b.data()->binding == binding)
     {
       switch(b.data()->type)
       {
@@ -64,13 +65,14 @@ void replaceBuffer(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRh
   }
 }
 
-void replaceSampler(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiSampler* newSampler)
+void replaceSampler(
+    std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiSampler* newSampler)
 {
-  for (QRhiShaderResourceBinding& b : tmp)
+  for(QRhiShaderResourceBinding& b : tmp)
   {
-    if (b.data()->binding == binding)
+    if(b.data()->binding == binding)
     {
-      if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+      if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
       {
         b.data()->u.stex.texSamplers[0].sampler = newSampler;
       }
@@ -78,11 +80,12 @@ void replaceSampler(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QR
   }
 }
 
-void replaceTexture(std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiTexture* newTexture)
+void replaceTexture(
+    std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiTexture* newTexture)
 {
-  for (QRhiShaderResourceBinding& b : tmp)
+  for(QRhiShaderResourceBinding& b : tmp)
   {
-    if (b.data()->binding == binding)
+    if(b.data()->binding == binding)
     {
       switch(b.data()->type)
       {
@@ -113,7 +116,8 @@ void replaceBuffer(QRhiShaderResourceBindings& srb, int binding, QRhiBuffer* new
   srb.create();
 }
 
-void replaceSampler(QRhiShaderResourceBindings& srb, int binding, QRhiSampler* newSampler)
+void replaceSampler(
+    QRhiShaderResourceBindings& srb, int binding, QRhiSampler* newSampler)
 {
   std::vector<QRhiShaderResourceBinding> tmp;
   tmp.assign(srb.cbeginBindings(), srb.cendBindings());
@@ -125,7 +129,8 @@ void replaceSampler(QRhiShaderResourceBindings& srb, int binding, QRhiSampler* n
   srb.create();
 }
 
-void replaceTexture(QRhiShaderResourceBindings& srb, int binding, QRhiTexture* newTexture)
+void replaceTexture(
+    QRhiShaderResourceBindings& srb, int binding, QRhiTexture* newTexture)
 {
   std::vector<QRhiShaderResourceBinding> tmp;
   tmp.assign(srb.cbeginBindings(), srb.cendBindings());
@@ -138,24 +143,22 @@ void replaceTexture(QRhiShaderResourceBindings& srb, int binding, QRhiTexture* n
 }
 
 void replaceSampler(
-    QRhiShaderResourceBindings& srb,
-    QRhiSampler* oldSampler,
-    QRhiSampler* newSampler)
+    QRhiShaderResourceBindings& srb, QRhiSampler* oldSampler, QRhiSampler* newSampler)
 {
   std::vector<QRhiShaderResourceBinding> tmp;
   tmp.assign(srb.cbeginBindings(), srb.cendBindings());
-  for (QRhiShaderResourceBinding& b : tmp)
+  for(QRhiShaderResourceBinding& b : tmp)
   {
-    if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+    if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       SCORE_ASSERT(b.data()->u.stex.count >= 1);
-      if (b.data()->u.stex.texSamplers[0].sampler == oldSampler)
+      if(b.data()->u.stex.texSamplers[0].sampler == oldSampler)
       {
         b.data()->u.stex.texSamplers[0].sampler = newSampler;
       }
 #else
-      if (b.data()->u.stex.sampler == oldSampler)
+      if(b.data()->u.stex.sampler == oldSampler)
       {
         b.data()->u.stex.sampler = newSampler;
       }
@@ -169,24 +172,22 @@ void replaceSampler(
 }
 
 void replaceTexture(
-    QRhiShaderResourceBindings& srb,
-    QRhiSampler* sampler,
-    QRhiTexture* newTexture)
+    QRhiShaderResourceBindings& srb, QRhiSampler* sampler, QRhiTexture* newTexture)
 {
   std::vector<QRhiShaderResourceBinding> tmp;
   tmp.assign(srb.cbeginBindings(), srb.cendBindings());
-  for (QRhiShaderResourceBinding& b : tmp)
+  for(QRhiShaderResourceBinding& b : tmp)
   {
-    if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+    if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       SCORE_ASSERT(b.data()->u.stex.count >= 1);
-      if (b.data()->u.stex.texSamplers[0].sampler == sampler)
+      if(b.data()->u.stex.texSamplers[0].sampler == sampler)
       {
         b.data()->u.stex.texSamplers[0].tex = newTexture;
       }
 #else
-      if (b.data()->u.stex.sampler == sampler)
+      if(b.data()->u.stex.sampler == sampler)
       {
         b.data()->u.stex.tex = newTexture;
       }
@@ -200,25 +201,23 @@ void replaceTexture(
 }
 
 void replaceTexture(
-    QRhiShaderResourceBindings& srb,
-    QRhiTexture* old_tex,
-    QRhiTexture* new_tex)
+    QRhiShaderResourceBindings& srb, QRhiTexture* old_tex, QRhiTexture* new_tex)
 {
   QVarLengthArray<QRhiShaderResourceBinding> bindings;
-  for (auto it = srb.cbeginBindings(); it != srb.cendBindings(); ++it)
+  for(auto it = srb.cbeginBindings(); it != srb.cendBindings(); ++it)
   {
     bindings.push_back(*it);
 
     auto& binding = *bindings.back().data();
-    if (binding.type == QRhiShaderResourceBinding::SampledTexture)
+    if(binding.type == QRhiShaderResourceBinding::SampledTexture)
     {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-      if (binding.u.stex.texSamplers[0].tex == old_tex)
+      if(binding.u.stex.texSamplers[0].tex == old_tex)
       {
         binding.u.stex.texSamplers[0].tex = new_tex;
       }
 #else
-      if (binding.u.stex.tex == old_tex)
+      if(binding.u.stex.tex == old_tex)
       {
         binding.u.stex.tex = new_tex;
       }
@@ -230,11 +229,8 @@ void replaceTexture(
 }
 
 Pipeline buildPipeline(
-    const RenderList& renderer,
-    const Mesh& mesh,
-    const QShader& vertexS,
-    const QShader& fragmentS,
-    const TextureRenderTarget& rt,
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt,
     QRhiShaderResourceBindings* srb)
 {
   auto& rhi = *renderer.state.rhi;
@@ -259,15 +255,13 @@ Pipeline buildPipeline(
   // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
 
   ps->setShaderStages(
-      {{QRhiShaderStage::Vertex, vertexS},
-       {QRhiShaderStage::Fragment, fragmentS}});
+      {{QRhiShaderStage::Vertex, vertexS}, {QRhiShaderStage::Fragment, fragmentS}});
 
   QRhiVertexInputLayout inputLayout;
   inputLayout.setBindings(
       mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
   inputLayout.setAttributes(
-      mesh.vertexAttributeBindings.begin(),
-      mesh.vertexAttributeBindings.end());
+      mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
   ps->setVertexInputLayout(inputLayout);
 
   ps->setShaderResourceBindings(srb);
@@ -280,11 +274,8 @@ Pipeline buildPipeline(
 }
 
 QRhiShaderResourceBindings* createDefaultBindings(
-    const RenderList& renderer,
-    const TextureRenderTarget& rt,
-    QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO,
-    const std::vector<Sampler>& samplers)
+    const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers)
 {
   auto& rhi = *renderer.state.rhi;
   // Shader resource bindings
@@ -305,37 +296,35 @@ QRhiShaderResourceBindings* createDefaultBindings(
   if(processUBO)
   {
     const auto standardUniformBinding
-        = QRhiShaderResourceBinding::uniformBuffer(
-            1, bindingStages, processUBO);
+        = QRhiShaderResourceBinding::uniformBuffer(1, bindingStages, processUBO);
     bindings.push_back(standardUniformBinding);
   }
 
   // Bind materials
-  if (materialUBO)
+  if(materialUBO)
   {
-    const auto materialBinding = QRhiShaderResourceBinding::uniformBuffer(
-        2, bindingStages, materialUBO);
+    const auto materialBinding
+        = QRhiShaderResourceBinding::uniformBuffer(2, bindingStages, materialUBO);
     bindings.push_back(materialBinding);
   }
 
   // Bind samplers
   int binding = 3;
-  for (auto sampler : samplers)
+  for(auto sampler : samplers)
   {
     assert(sampler.texture);
     auto actual_texture = sampler.texture;
 
     // For cases where we do multi-pass rendering, set "this pass"'s input texture
     // to an empty texture instead as we can't output to an input texture
-    if (actual_texture == rt.texture)
+    if(actual_texture == rt.texture)
       actual_texture = &renderer.emptyTexture();
 
     bindings.push_back(QRhiShaderResourceBinding::sampledTexture(
         binding,
         QRhiShaderResourceBinding::VertexStage
             | QRhiShaderResourceBinding::FragmentStage,
-        actual_texture,
-        sampler.sampler));
+        actual_texture, sampler.sampler));
     binding++;
   }
 
@@ -345,39 +334,32 @@ QRhiShaderResourceBindings* createDefaultBindings(
 }
 
 Pipeline buildPipeline(
-    const RenderList& renderer,
-    const Mesh& mesh,
-    const QShader& vertexS,
-    const QShader& fragmentS,
-    const TextureRenderTarget& rt,
-    QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO,
-    const std::vector<Sampler>& samplers)
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers)
 {
-  auto bindings = createDefaultBindings(
-      renderer, rt, processUBO, materialUBO, samplers);
+  auto bindings = createDefaultBindings(renderer, rt, processUBO, materialUBO, samplers);
   return buildPipeline(renderer, mesh, vertexS, fragmentS, rt, bindings);
 }
 
 std::pair<QShader, QShader> makeShaders(const RenderState& v, QString vert, QString frag)
 {
-  auto [vertexS, vertexError]
-      = ShaderCache::get(v, vert.toUtf8(), QShader::VertexStage);
-  if (!vertexError.isEmpty())
+  auto [vertexS, vertexError] = ShaderCache::get(v, vert.toUtf8(), QShader::VertexStage);
+  if(!vertexError.isEmpty())
     qDebug() << vertexError;
 
   auto [fragmentS, fragmentError]
       = ShaderCache::get(v, frag.toUtf8(), QShader::FragmentStage);
-  if (!fragmentError.isEmpty())
+  if(!fragmentError.isEmpty())
   {
     qDebug() << fragmentError;
     qDebug() << frag.toStdString().data();
   }
 
   // qDebug().noquote() << vert.toUtf8().constData();
-  if (!vertexS.isValid())
+  if(!vertexS.isValid())
     throw std::runtime_error("invalid vertex shader");
-  if (!fragmentS.isValid())
+  if(!fragmentS.isValid())
     throw std::runtime_error("invalid fragment shader");
 
   return {vertexS, fragmentS};
@@ -388,24 +370,26 @@ QShader makeCompute(const RenderState& v, QString compute)
 {
   auto [computeS, computeError]
       = ShaderCache::get(v, compute.toUtf8(), QShader::ComputeStage);
-  if (!computeError.isEmpty())
+  if(!computeError.isEmpty())
     qDebug() << computeError;
 
-  if (!computeS.isValid())
+  if(!computeS.isValid())
     throw std::runtime_error("invalid compute shader");
   return computeS;
 }
 
-void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>& input, std::vector<Sampler>& samplers)
+void DefaultShaderMaterial::init(
+    RenderList& renderer, const std::vector<Port*>& input,
+    std::vector<Sampler>& samplers)
 {
   auto& rhi = *renderer.state.rhi;
 
   // Set up shader inputs
   {
     size = 0;
-    for (auto in : input)
+    for(auto in : input)
     {
-      switch (in->type)
+      switch(in->type)
       {
         case Types::Empty:
           break;
@@ -415,25 +399,24 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
           break;
         case Types::Vec2:
           size += 8;
-          if (size % 8 != 0)
+          if(size % 8 != 0)
             size += 4;
           break;
         case Types::Vec3:
-          while (size % 16 != 0)
+          while(size % 16 != 0)
           {
             size += 4;
           }
           size += 12;
           break;
         case Types::Vec4:
-          while (size % 16 != 0)
+          while(size % 16 != 0)
           {
             size += 4;
           }
           size += 16;
           break;
-        case Types::Image:
-        {
+        case Types::Image: {
           SCORE_TODO;
           /*
           auto sampler = rhi.newSampler(
@@ -458,10 +441,9 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
       }
     }
 
-    if (size > 0)
+    if(size > 0)
     {
-      buffer = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, size);
+      buffer = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, size);
       buffer->setName("DefaultShaderMaterial::buffer");
       SCORE_ASSERT(buffer->create());
     }
@@ -469,8 +451,6 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
 }
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
-
-
 
 QSize resizeTextureSize(QSize sz, int min, int max) noexcept
 {
@@ -499,13 +479,13 @@ QSize resizeTextureSize(QSize sz, int min, int max) noexcept
     }
     else if(sz.width() > max)
     {
-      qreal factor = (qreal) max / sz.width();
+      qreal factor = (qreal)max / sz.width();
       sz.rwidth() *= factor;
       sz.rheight() *= factor;
     }
     else if(sz.height() > max)
     {
-      qreal factor = (qreal) max / sz.height();
+      qreal factor = (qreal)max / sz.height();
       sz.rwidth() *= factor;
       sz.rheight() *= factor;
     }
@@ -537,35 +517,39 @@ QSizeF computeScale(ScaleMode mode, QSizeF viewport, QSizeF texture)
 {
   switch(mode)
   {
-    case score::gfx::ScaleMode::BlackBars:
-    {
-      const auto new_tex_size = viewport.scaled(texture, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
-      return {texture.width() / new_tex_size.width(), texture.height() / new_tex_size.height()};
+    case score::gfx::ScaleMode::BlackBars: {
+      const auto new_tex_size
+          = viewport.scaled(texture, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
+      return {
+          texture.width() / new_tex_size.width(),
+          texture.height() / new_tex_size.height()};
     }
-    case score::gfx::ScaleMode::Fill:
-    {
+    case score::gfx::ScaleMode::Fill: {
       double correct_ratio_w = 2. * texture.width() / viewport.width();
       double correct_ratio_h = 2. * texture.height() / viewport.height();
       if(texture.width() >= viewport.width() && texture.height() >= viewport.height())
       {
         double rw = viewport.width() / texture.width();
         double rh = viewport.height() / texture.height();
-        double min = std::max(rw, rh)/2.;
+        double min = std::max(rw, rh) / 2.;
 
         return {correct_ratio_w * min, correct_ratio_h * min};
       }
-      const auto new_tex_size1 = viewport.scaled(texture, Qt::AspectRatioMode::KeepAspectRatio);
-      return {texture.width() / new_tex_size1.width(), texture.height() / new_tex_size1.height()};
+      const auto new_tex_size1
+          = viewport.scaled(texture, Qt::AspectRatioMode::KeepAspectRatio);
+      return {
+          texture.width() / new_tex_size1.width(),
+          texture.height() / new_tex_size1.height()};
     }
-    case score::gfx::ScaleMode::Original:
-    {
-      return {2. * texture.width() / viewport.width(), 2. * texture.height() / viewport.height()};
+    case score::gfx::ScaleMode::Original: {
+      return {
+          2. * texture.width() / viewport.width(),
+          2. * texture.height() / viewport.height()};
     }
     case score::gfx::ScaleMode::Stretch:
     default:
       return {1., 1.};
   }
 }
-
 
 }

@@ -27,7 +27,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(LogLevel);
 
   con(v, &View::localTreeChanged, this, [&](auto val) {
-    if (val != m.getLocalTree())
+    if(val != m.getLocalTree())
     {
       m_disp.submitDeferredCommand<SetModelLocalTree>(this->model(this), val);
     }

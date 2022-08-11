@@ -4,6 +4,7 @@
 
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 
@@ -18,15 +19,12 @@ namespace Explorer
 namespace Command
 {
 LoadDevice::LoadDevice(
-    const DeviceDocumentPlugin& devplug,
-    const Device::DeviceSettings& set)
+    const DeviceDocumentPlugin& devplug, const Device::DeviceSettings& set)
     : LoadDevice{devplug, Device::Node{set, {}}}
 {
 }
 
-LoadDevice::LoadDevice(
-    const DeviceDocumentPlugin& devplug,
-    Device::Node&& node)
+LoadDevice::LoadDevice(const DeviceDocumentPlugin& devplug, Device::Node&& node)
     : m_deviceNode(std::move(node))
 {
 }
@@ -54,9 +52,7 @@ void LoadDevice::deserializeImpl(DataStreamOutput& d)
 }
 
 ReloadWholeDevice::ReloadWholeDevice(
-    const DeviceDocumentPlugin& devplug,
-    Device::Node&& oldNode,
-    Device::Node&& newNode)
+    const DeviceDocumentPlugin& devplug, Device::Node&& oldNode, Device::Node&& newNode)
     : m_oldNode(std::move(oldNode))
     , m_newNode(std::move(newNode))
 {

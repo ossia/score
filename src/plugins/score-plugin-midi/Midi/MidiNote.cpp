@@ -24,7 +24,7 @@ Note::Note(const Id<Note>& id, NoteData n, QObject* parent)
 
 void Note::scale(double s) noexcept
 {
-  if (s != 1.)
+  if(s != 1.)
   {
     m_start *= s;
     m_duration *= s;
@@ -34,7 +34,7 @@ void Note::scale(double s) noexcept
 
 void Note::setStart(double s) noexcept
 {
-  if (m_start != s)
+  if(m_start != s)
   {
     m_start = s;
     noteChanged();
@@ -43,7 +43,7 @@ void Note::setStart(double s) noexcept
 
 void Note::setDuration(double s) noexcept
 {
-  if (m_duration != s)
+  if(m_duration != s)
   {
     m_duration = s;
     noteChanged();
@@ -52,7 +52,7 @@ void Note::setDuration(double s) noexcept
 
 void Note::setPitch(midi_size_t s) noexcept
 {
-  if (m_pitch != s)
+  if(m_pitch != s)
   {
     m_pitch = s;
     noteChanged();
@@ -61,7 +61,7 @@ void Note::setPitch(midi_size_t s) noexcept
 
 void Note::setVelocity(midi_size_t s) noexcept
 {
-  if (m_velocity != s)
+  if(m_velocity != s)
   {
     m_velocity = s;
     noteChanged();

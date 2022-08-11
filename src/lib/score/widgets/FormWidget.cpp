@@ -9,7 +9,7 @@ namespace score
 {
 
 FormWidget::FormWidget(const QString& title, QWidget* parent)
-  : QWidget(parent)
+    : QWidget(parent)
 {
   auto vlay = new QVBoxLayout;
   vlay->setSpacing(10);
@@ -37,9 +37,6 @@ FormWidget::FormWidget(const QString& title, QWidget* parent)
   vlay->addLayout(m_formLayout, 1);
 }
 
-FormWidget::~FormWidget()
-{
-
-}
+FormWidget::~FormWidget() { }
 
 }

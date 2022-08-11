@@ -13,8 +13,7 @@ public:
   ~ProcessFactoryList();
 
   object_type* loadMissing(
-      const VisitorVariant& vis,
-      const score::DocumentContext& ctx,
+      const VisitorVariant& vis, const score::DocumentContext& ctx,
       QObject* parent) const;
 };
 
@@ -25,8 +24,7 @@ public:
   ~LayerFactoryList();
 
   LayerFactory* findDefaultFactory(const Process::ProcessModel& proc) const;
-  LayerFactory*
-  findDefaultFactory(const UuidKey<Process::ProcessModel>& proc) const;
+  LayerFactory* findDefaultFactory(const UuidKey<Process::ProcessModel>& proc) const;
   LayerFactory* get(const UuidKey<Process::ProcessModel>& proc) const
   {
     return findDefaultFactory(proc);

@@ -1,6 +1,7 @@
 #pragma once
-#include <Control/Widgets.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <Control/Widgets.hpp>
 #include <Vst3/EffectModel.hpp>
 
 #include <score/graphics/GraphicWidgets.hpp>
@@ -48,8 +49,7 @@ public:
   static const constexpr double max = 1.;
   friend struct score::DefaultGraphicsSliderImpl;
   VSTGraphicsSlider(
-      Steinberg::Vst::IEditController* fx,
-      Steinberg::Vst::ParamID num,
+      Steinberg::Vst::IEditController* fx, Steinberg::Vst::ParamID num,
       QGraphicsItem* parent);
 
   static double map(double v) { return v; }
@@ -79,17 +79,11 @@ private:
 struct VSTFloatSlider : ossia::safe_nodes::control_in
 {
   static QWidget* make_widget(
-      Steinberg::Vst::IEditController* fx,
-      const ControlInlet& inlet,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      QObject* context);
+      Steinberg::Vst::IEditController* fx, const ControlInlet& inlet,
+      const score::DocumentContext& ctx, QWidget* parent, QObject* context);
   static QGraphicsItem* make_item(
-      Steinberg::Vst::IEditController* fx,
-      ControlInlet& inlet,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
+      Steinberg::Vst::IEditController* fx, ControlInlet& inlet,
+      const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
 };
 
 }

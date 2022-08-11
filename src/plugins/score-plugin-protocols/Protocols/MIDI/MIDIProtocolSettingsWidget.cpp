@@ -5,8 +5,9 @@
 #include "MIDIProtocolFactory.hpp"
 #include "MIDISpecificSettings.hpp"
 
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 #include <score/widgets/ComboBox.hpp>
 
@@ -43,8 +44,7 @@ MIDIInputSettingsWidget::MIDIInputSettingsWidget(QWidget* parent)
   m_createWhole->setEnabled(false);
   m_virtualPort->setChecked(false);
 #if defined(_WIN32)
-  m_virtualPort->setEnabled(
-      false); //virtual port creation is unsupported by Windows
+  m_virtualPort->setEnabled(false); //virtual port creation is unsupported by Windows
 #else
   m_virtualPort->setEnabled(true);
 #endif
@@ -53,8 +53,7 @@ MIDIInputSettingsWidget::MIDIInputSettingsWidget(QWidget* parent)
 Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = m_current;
-  MIDISpecificSettings midi
-      = s.deviceSpecificSettings.value<MIDISpecificSettings>();
+  MIDISpecificSettings midi = s.deviceSpecificSettings.value<MIDISpecificSettings>();
   s.name = m_name->text();
   s.protocol = MIDIInputProtocolFactory::static_concreteKey();
   midi.createWholeTree = m_createWhole->isChecked();
@@ -65,19 +64,17 @@ Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
   return s;
 }
 
-void MIDIInputSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void MIDIInputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_current = settings;
-  const auto& s
-      = m_current.deviceSpecificSettings.value<MIDISpecificSettings>();
+  const auto& s = m_current.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_createWhole->setChecked(s.createWholeTree);
   m_virtualPort->setChecked(s.virtualPort);
   m_name->setText(s.name);
 
   // Clean up the name a bit
   auto pretty_name = settings.name;
-  if (!pretty_name.isEmpty())
+  if(!pretty_name.isEmpty())
   {
     pretty_name = pretty_name.split(':').front();
     ossia::net::sanitize_device_name(pretty_name);
@@ -108,8 +105,7 @@ MIDIOutputSettingsWidget::MIDIOutputSettingsWidget(QWidget* parent)
   m_createWhole->setEnabled(true);
   m_virtualPort->setChecked(false);
 #if defined(_WIN32)
-  m_virtualPort->setEnabled(
-      false); //virtual port creation is unsupported by Windows
+  m_virtualPort->setEnabled(false); //virtual port creation is unsupported by Windows
 #else
   m_virtualPort->setEnabled(true);
 #endif
@@ -118,8 +114,7 @@ MIDIOutputSettingsWidget::MIDIOutputSettingsWidget(QWidget* parent)
 Device::DeviceSettings MIDIOutputSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = m_current;
-  MIDISpecificSettings midi
-      = s.deviceSpecificSettings.value<MIDISpecificSettings>();
+  MIDISpecificSettings midi = s.deviceSpecificSettings.value<MIDISpecificSettings>();
   s.name = m_name->text();
   s.protocol = MIDIOutputProtocolFactory::static_concreteKey();
   midi.createWholeTree = m_createWhole->isChecked();
@@ -131,19 +126,17 @@ Device::DeviceSettings MIDIOutputSettingsWidget::getSettings() const
   return s;
 }
 
-void MIDIOutputSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void MIDIOutputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_current = settings;
-  const auto& s
-      = m_current.deviceSpecificSettings.value<MIDISpecificSettings>();
+  const auto& s = m_current.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_createWhole->setChecked(s.createWholeTree);
   m_virtualPort->setChecked(s.virtualPort);
   m_name->setText(s.name);
 
   // Clean up the name a bit
   auto prettyName = settings.name;
-  if (!prettyName.isEmpty())
+  if(!prettyName.isEmpty())
   {
     prettyName = prettyName.split(':').front();
     ossia::net::sanitize_device_name(prettyName);

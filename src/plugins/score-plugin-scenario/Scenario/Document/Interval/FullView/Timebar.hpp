@@ -25,19 +25,14 @@ public:
 
   QRectF boundingRect() const
   {
-    if (positions.empty())
+    if(positions.empty())
       return {};
     return {
-        positions.front().x1(),
-        0,
-        positions.back().x1() - positions.front().x1(),
+        positions.front().x1(), 0, positions.back().x1() - positions.front().x1(),
         10000};
   }
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget)
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(score::Skin::instance().DarkGray.main.pen_cosmetic);
@@ -46,7 +41,7 @@ public:
 
   QLineF& operator[](int i)
   {
-    if (i >= std::ssize(positions))
+    if(i >= std::ssize(positions))
     {
       positions.resize((i + 1) * 1.2);
     }
@@ -75,29 +70,23 @@ public:
 
   QRectF boundingRect() const
   {
-    if (positions.empty())
+    if(positions.empty())
       return {};
     return {
-        positions.front().x1(),
-        0,
-        positions.back().x1() - positions.front().x1(),
+        positions.front().x1(), 0, positions.back().x1() - positions.front().x1(),
         10000};
   }
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget)
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(
-        score::Skin::instance().DarkGray.darker300.pen_cosmetic);
+    painter->setPen(score::Skin::instance().DarkGray.darker300.pen_cosmetic);
     painter->drawLines(positions.data(), positions.size());
   }
 
   QLineF& operator[](int i)
   {
-    if (i >= std::ssize(positions))
+    if(i >= std::ssize(positions))
     {
       positions.resize((i + 1) * 1.2);
     }

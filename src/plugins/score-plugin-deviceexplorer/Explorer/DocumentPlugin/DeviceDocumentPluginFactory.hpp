@@ -5,6 +5,5 @@
 namespace Explorer
 {
 class DeviceDocumentPlugin;
-using DocumentPluginFactory
-    = score::DocumentPluginFactory_T<DeviceDocumentPlugin>;
+using DocumentPluginFactory = score::DocumentPluginFactory_T<DeviceDocumentPlugin>;
 }

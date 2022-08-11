@@ -4,7 +4,6 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Recording/Record/RecordProviderFactory.hpp>
 
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
@@ -12,14 +11,15 @@
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <Recording/Record/RecordProviderFactory.hpp>
 namespace Recording
 {
 
-static void
-GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
+static void GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
 {
   vec.reserve(vec.size() + parent->childCount());
-  for (auto& node : *parent)
+  for(auto& node : *parent)
   {
     vec.push_back(&node);
     GetParametersRecursive(&node, vec);
@@ -29,24 +29,24 @@ static std::vector<Device::Node*>
 GetParametersRecursive(const std::vector<Device::Node*>& parents)
 {
   std::vector<Device::Node*> res;
-  for (auto node : parents)
+  for(auto node : parents)
   {
     res.push_back(node);
     GetParametersRecursive(node, res);
   }
 
-  for (auto it = res.begin(); it != res.end();)
+  for(auto it = res.begin(); it != res.end();)
   {
     bool ok = true;
     Device::Node* n = *it;
     ok &= n->is<Device::AddressSettings>();
-    if (ok)
+    if(ok)
     {
       auto& as = n->get<Device::AddressSettings>();
       ok &= as.value.valid();
     }
 
-    if (ok)
+    if(ok)
     {
       ++it;
     }
@@ -59,21 +59,20 @@ GetParametersRecursive(const std::vector<Device::Node*>& parents)
   return res;
 }
 
-RecordListening
-GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
+RecordListening GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
 {
   RecordListening recordListening;
 
   auto nodes = explorer.uniqueSelectedNodes(explorer.selectedIndexes());
-  auto parameters = GetParametersRecursive(
-      nodes.parents.empty() ? nodes.messages : nodes.parents);
+  auto parameters
+      = GetParametersRecursive(nodes.parents.empty() ? nodes.messages : nodes.parents);
 
   // First get the addresses to listen.
-  for (auto node_ptr : parameters)
+  for(auto node_ptr : parameters)
   {
     // TODO use address settings instead.
     auto& node = *node_ptr;
-    if (!node.is<Device::AddressSettings>())
+    if(!node.is<Device::AddressSettings>())
       continue;
 
     auto addr = Device::address(node);
@@ -86,7 +85,7 @@ GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
       return Device::deviceName(*vec.front()) == addr.address.device;
     });
 
-    if (dev_it != recordListening.end())
+    if(dev_it != recordListening.end())
     {
       dev_it->push_back(node_ptr);
     }
@@ -157,10 +156,7 @@ Box CreateBox(RecordContext& context)
   // TODO what happens if we go past the end of our scenario ? Stop recording
   // ??
   auto cmd_end = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-      context.scenario,
-      cmd_start->createdState(),
-      default_end_date,
-      context.point.y,
+      context.scenario, cmd_start->createdState(), default_end_date, context.point.y,
       false};
   cmd_end->redo(context.context);
   context.dispatcher.submit(cmd_end);
@@ -168,12 +164,7 @@ Box CreateBox(RecordContext& context)
   auto& cstr = context.scenario.intervals.at(cmd_end->createdInterval());
 
   auto cmd_move = new Scenario::Command::MoveNewEvent(
-      context.scenario,
-      cstr.id(),
-      cmd_end->createdEvent(),
-      default_end_date,
-      0,
-      true,
+      context.scenario, cstr.id(), cmd_end->createdEvent(), default_end_date, 0, true,
       ExpandMode::CannotExpand);
   context.dispatcher.submit(cmd_move);
 

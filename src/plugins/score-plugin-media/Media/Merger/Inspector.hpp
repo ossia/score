@@ -1,8 +1,9 @@
 #pragma once
-#include <Media/Merger/Commands.hpp>
-#include <Media/Merger/Model.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+
+#include <Media/Merger/Commands.hpp>
+#include <Media/Merger/Model.hpp>
 
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -21,9 +22,7 @@ class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Model>
 {
 public:
   explicit InspectorWidget(
-      const Model& obj,
-      const score::DocumentContext& doc,
-      QWidget* parent)
+      const Model& obj, const score::DocumentContext& doc, QWidget* parent)
       : InspectorWidgetDelegate_T{obj, parent}
       , m_dispatcher{doc.dispatcher}
       , m_count{this}
@@ -33,9 +32,8 @@ public:
 
     auto lay = new QFormLayout{this};
 
-    con(process(), &Model::inCountChanged, this, [&] {
-      m_count.setValue(obj.inCount());
-    });
+    con(process(), &Model::inCountChanged, this,
+        [&] { m_count.setValue(obj.inCount()); });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
       m_dispatcher.submit<SetMergeInCount>(obj, m_count.value());

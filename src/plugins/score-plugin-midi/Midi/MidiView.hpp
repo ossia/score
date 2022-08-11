@@ -1,6 +1,7 @@
 #pragma once
-#include <Midi/MidiProcess.hpp>
 #include <Process/LayerView.hpp>
+
+#include <Midi/MidiProcess.hpp>
 
 #include <QPainter>
 #include <QPainterPath>

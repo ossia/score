@@ -9,7 +9,7 @@ namespace Curve
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
-  if (!ctx.mainWindow)
+  if(!ctx.mainWindow)
     return;
 
   // Setup the actions
@@ -32,7 +32,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   m_actions->setEnabled(true);
 
   connect(m_altact, &QAction::toggled, this, [&](bool b) {
-    if (b)
+    if(b)
     {
       editionSettings().setTool(Curve::Tool::CreatePen);
     }
@@ -42,7 +42,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     }
   });
   connect(m_shiftact, &QAction::toggled, this, [&](bool b) {
-    if (b)
+    if(b)
     {
       editionSettings().setTool(Curve::Tool::SetSegment);
     }
@@ -52,7 +52,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     }
   });
   connect(m_ctrlact, &QAction::toggled, this, [&](bool b) {
-    if (b)
+    if(b)
     {
       editionSettings().setTool(Curve::Tool::Create);
     }
@@ -66,19 +66,15 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 void ApplicationPlugin::on_keyPressEvent(QKeyEvent& event)
 {
   auto key = event.key();
-  if (key == Qt::Key_Shift)
+  if(key == Qt::Key_Shift)
   {
     m_shiftact->setChecked(true);
   }
-  else if (
-      key == Qt::Key_Control
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if(key == Qt::Key_Control && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_ctrlact->setChecked(true);
   }
-  else if (
-      key == Qt::Key_Alt
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if(key == Qt::Key_Alt && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_altact->setChecked(!m_altact->isChecked());
   }
@@ -87,19 +83,15 @@ void ApplicationPlugin::on_keyPressEvent(QKeyEvent& event)
 void ApplicationPlugin::on_keyReleaseEvent(QKeyEvent& event)
 {
   auto key = event.key();
-  if (key == Qt::Key_Shift)
+  if(key == Qt::Key_Shift)
   {
     m_shiftact->setChecked(false);
   }
-  else if (
-      key == Qt::Key_Control
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if(key == Qt::Key_Control && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_ctrlact->setChecked(false);
   }
-  else if (
-      key == Qt::Key_Alt
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if(key == Qt::Key_Alt && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_altact->setChecked(!m_altact->isChecked());
   }

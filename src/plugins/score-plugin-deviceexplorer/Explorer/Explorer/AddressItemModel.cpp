@@ -1,12 +1,13 @@
 #include "AddressItemModel.hpp"
 
+#include <State/Expression.hpp>
+#include <State/ValueConversion.hpp>
+#include <State/Widgets/UnitWidget.hpp>
+
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <State/Expression.hpp>
-#include <State/ValueConversion.hpp>
-#include <State/Widgets/UnitWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/serialization/AnySerialization.hpp>
@@ -16,11 +17,12 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
-#include <ossia-qt/metatypes.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_traits.hpp>
+
+#include <ossia-qt/metatypes.hpp>
 
 #include <QHBoxLayout>
 #include <QLineEdit>
@@ -41,8 +43,7 @@ AddressItemModel::AddressItemModel(QObject* parent)
 }
 
 void AddressItemModel::setState(
-    DeviceExplorerModel* model,
-    Device::NodePath nodepath,
+    DeviceExplorerModel* model, Device::NodePath nodepath,
     const Device::FullAddressSettings& s)
 {
   beginResetModel();
@@ -62,22 +63,19 @@ void AddressItemModel::clear()
   endResetModel();
 }
 
-bool AddressItemModel::setData(
-    const QModelIndex& index,
-    const QVariant& value,
-    int role)
+bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   namespace onet = ossia::net;
-  if (index.column() != 1)
+  if(index.column() != 1)
     return false;
 
-  if (index.row() < 0 || index.row() > rowCount({}))
+  if(index.row() < 0 || index.row() > rowCount({}))
     return false;
 
-  if (!m_model)
+  if(!m_model)
     return false;
 
-  if (m_settings.address.path.empty())
+  if(m_settings.address.path.empty())
     return false; // TODO just rename device ?
 
   Device::AddressSettings before, after;
@@ -85,11 +83,10 @@ bool AddressItemModel::setData(
   (Device::AddressSettingsCommon&)before = m_settings;
   after = before;
 
-  switch (index.row())
+  switch(index.row())
   {
-    case Rows::Value:
-    {
-      if (value.canConvert<ossia::value>())
+    case Rows::Value: {
+      if(value.canConvert<ossia::value>())
       {
         after.value = value.value<ossia::value>();
 
@@ -107,30 +104,25 @@ bool AddressItemModel::setData(
 
         // We may have to convert types.
         const ossia::value& orig = before.value;
-        if (copy.v.which() != orig.v.which()
-            && !State::convert::convert(orig, copy))
+        if(copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
           return false;
 
         after.value = copy;
 
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
-        m_model->deviceModel().updateProxy.updateRemoteValue(
-            m_settings.address, copy);
+        m_model->deviceModel().updateProxy.updateRemoteValue(m_settings.address, copy);
         return true;
       }
     }
 
-    case Rows::Type:
-    {
-      after.value
-          = ossia::convert(before.value, value.value<ossia::val_type>());
+    case Rows::Type: {
+      after.value = ossia::convert(before.value, value.value<ossia::val_type>());
       break;
     }
 
-    case Rows::Min:
-    {
-      if (value.canConvert<ossia::value>())
+    case Rows::Min: {
+      if(value.canConvert<ossia::value>())
       {
         after.domain.get().set_min(value.value<ossia::value>());
       }
@@ -142,17 +134,15 @@ bool AddressItemModel::setData(
 
         // We may have to convert types.
         const ossia::value& orig = before.value;
-        if (copy.v.which() != orig.v.which()
-            && !State::convert::convert(orig, copy))
+        if(copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
           return false;
 
         after.domain.get().set_min(copy);
       }
       break;
     }
-    case Rows::Max:
-    {
-      if (value.canConvert<ossia::value>())
+    case Rows::Max: {
+      if(value.canConvert<ossia::value>())
       {
         after.domain.get().set_max(value.value<ossia::value>());
       }
@@ -164,67 +154,60 @@ bool AddressItemModel::setData(
 
         // We may have to convert types.
         const ossia::value& orig = before.value;
-        if (copy.v.which() != orig.v.which()
-            && !State::convert::convert(orig, copy))
+        if(copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
           return false;
 
         after.domain.get().set_max(copy);
       }
       break;
     }
-    case Rows::Access:
-    {
+    case Rows::Access: {
       after.ioType = (ossia::access_mode)value.toInt();
       break;
     }
-    case Rows::Bounding:
-    {
+    case Rows::Bounding: {
       after.clipMode = (ossia::bounding_mode)value.toInt();
       break;
     }
-    case Rows::Repetition:
-    {
-      after.repetitionFilter = value.toInt() != 0
-                                   ? ossia::repetition_filter::ON
-                                   : ossia::repetition_filter::OFF;
+    case Rows::Repetition: {
+      after.repetitionFilter = value.toInt() != 0 ? ossia::repetition_filter::ON
+                                                  : ossia::repetition_filter::OFF;
       break;
     }
-    case Rows::Unit:
-    {
+    case Rows::Unit: {
       after.unit.get() = value.value<State::Unit>().get();
       break;
     }
-    default:
-    {
+    default: {
       int idx = index.row() - Rows::Count;
-      if (ossia::valid_index(idx, after.extendedAttributes))
+      if(ossia::valid_index(idx, after.extendedAttributes))
       {
         auto it = after.extendedAttributes.begin();
         std::advance(it, idx);
-        if (it.key() == onet::text_description())
+        if(it.key() == onet::text_description())
         {
           it.value() = value.toString().toStdString();
         }
-        else if (it.key() == onet::text_tags())
+        else if(it.key() == onet::text_tags())
         {
           // TODO
         }
-        else if (it->first == onet::text_default_value())
+        else if(it->first == onet::text_default_value())
         {
-          if (value.canConvert<ossia::value>())
+          if(value.canConvert<ossia::value>())
           {
             it.value() = value.value<ossia::value>();
           }
         }
-        else if (it->first == onet::text_refresh_rate())
+        else if(it->first == onet::text_refresh_rate())
         {
           it.value() = value.toInt();
         }
-        else if (it->first == onet::text_value_step_size())
+        else if(it->first == onet::text_value_step_size())
         {
           it.value() = value.toDouble();
         }
-        else if (it->first == onet::text_priority())
+        else if(it->first == onet::text_priority())
         {
           it.value() = value.toInt();
         }
@@ -232,12 +215,11 @@ bool AddressItemModel::setData(
     }
   }
 
-  auto node
-      = (Device::Node*)m_model->convertPathToIndex(m_path).internalPointer();
-  if (!node)
+  auto node = (Device::Node*)m_model->convertPathToIndex(m_path).internalPointer();
+  if(!node)
     return false;
 
-  if (!m_model->checkAddressEditable(*node, before, after))
+  if(!m_model->checkAddressEditable(*node, before, after))
     return false;
 
   CommandDispatcher<> disp{m_model->commandStack()};
@@ -247,10 +229,9 @@ bool AddressItemModel::setData(
   return true;
 }
 
-QModelIndex
-AddressItemModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex AddressItemModel::index(int row, int column, const QModelIndex& parent) const
 {
-  if (parent == QModelIndex{})
+  if(parent == QModelIndex{})
   {
     return createIndex(row, column, nullptr);
   }
@@ -264,10 +245,10 @@ QModelIndex AddressItemModel::parent(const QModelIndex&) const
 
 int AddressItemModel::rowCount(const QModelIndex&) const
 {
-  if (m_settings.address.device.isEmpty())
+  if(m_settings.address.device.isEmpty())
     return 0;
 
-  if (!m_settings.value.valid())
+  if(!m_settings.value.valid())
     return 2;
 
   return Rows::Count + extendedCount();
@@ -278,12 +259,11 @@ int AddressItemModel::columnCount(const QModelIndex&) const
   return 2;
 }
 
-QVariant
-AddressItemModel::valueColumnData(const State::Value& val, int role) const
+QVariant AddressItemModel::valueColumnData(const State::Value& val, int role) const
 {
-  if (role == Qt::DisplayRole || role == Qt::EditRole)
+  if(role == Qt::DisplayRole || role == Qt::EditRole)
   {
-    if (ossia::is_array(val))
+    if(ossia::is_array(val))
     {
       // TODO a nice editor for lists.
       return State::convert::toPrettyString(val);
@@ -300,15 +280,14 @@ AddressItemModel::valueColumnData(const State::Value& val, int role) const
 QVariant AddressItemModel::data(const QModelIndex& index, int role) const
 {
   namespace onet = ossia::net;
-  if (role == Qt::DisplayRole)
+  if(role == Qt::DisplayRole)
   {
-    if (!m_settings.value.valid())
+    if(!m_settings.value.valid())
     {
-      switch (index.column())
+      switch(index.column())
       {
-        case 0:
-        {
-          switch (index.row())
+        case 0: {
+          switch(index.row())
           {
             case Rows::Name:
               return tr("Name");
@@ -319,9 +298,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           }
           break;
         }
-        case 1:
-        {
-          switch (index.row())
+        case 1: {
+          switch(index.row())
           {
             case Rows::Name:
               return m_settings.address.path.last();
@@ -338,11 +316,10 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
       return {};
     }
 
-    switch (index.column())
+    switch(index.column())
     {
-      case 0:
-      {
-        switch (index.row())
+      case 0: {
+        switch(index.row())
         {
           case Rows::Name:
             return tr("Name");
@@ -366,19 +343,18 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
             return tr("Bounding");
           case Rows::Repetition:
             return tr("Repetition");
-          default:
-          {
+          default: {
             int idx = index.row() - Rows::Count;
-            if (ossia::valid_index(idx, m_settings.extendedAttributes))
+            if(ossia::valid_index(idx, m_settings.extendedAttributes))
             {
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
               auto str = QString::fromStdString(it.key());
-              if (!str.isEmpty())
+              if(!str.isEmpty())
                 str[0] = str[0].toUpper();
-              for (int i = 1; i < str.size(); i++)
+              for(int i = 1; i < str.size(); i++)
               {
-                if (str[i].isUpper())
+                if(str[i].isUpper())
                 {
                   str.insert(i, ' ');
                   i++;
@@ -391,9 +367,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
 
         break;
       }
-      case 1:
-      {
-        switch (index.row())
+      case 1: {
+        switch(index.row())
         {
           case Rows::Name:
             return m_settings.address.path.last();
@@ -401,33 +376,24 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
             return m_settings.address.toString();
           case Rows::Value:
             return valueColumnData(m_settings.value, role);
-          case Rows::Type:
-          {
-            return State::convert::ValuePrettyTypesArray()
-                [(int)m_settings.value.get_type()];
+          case Rows::Type: {
+            return State::convert::ValuePrettyTypesArray()[(int)m_settings.value
+                                                               .get_type()];
           }
-          case Rows::Min:
-          {
-            return valueColumnData(
-                ossia::get_min(m_settings.domain.get()), role);
+          case Rows::Min: {
+            return valueColumnData(ossia::get_min(m_settings.domain.get()), role);
           }
-          case Rows::Max:
-          {
-            return valueColumnData(
-                ossia::get_max(m_settings.domain.get()), role);
+          case Rows::Max: {
+            return valueColumnData(ossia::get_max(m_settings.domain.get()), role);
           }
-          case Rows::Values:
-          {
-            return valueColumnData(
-                ossia::get_values(m_settings.domain.get()), role);
+          case Rows::Values: {
+            return valueColumnData(ossia::get_values(m_settings.domain.get()), role);
           }
-          case Rows::Unit:
-          {
+          case Rows::Unit: {
             return State::prettyUnitText(m_settings.unit.get());
           }
-          case Rows::Access:
-          {
-            if (m_settings.ioType)
+          case Rows::Access: {
+            if(m_settings.ioType)
             {
               return Device::AccessModePrettyText()[*m_settings.ioType];
             }
@@ -436,58 +402,52 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               return tr("None");
             }
           }
-          case Rows::Bounding:
-          {
+          case Rows::Bounding: {
             return Device::ClipModePrettyStringMap()[m_settings.clipMode];
           }
-          case Rows::Repetition:
-          {
+          case Rows::Repetition: {
             return m_settings.repetitionFilter == ossia::repetition_filter::ON
                        ? tr("Filtered")
                        : tr("Unfiltered");
           }
-          default:
-          {
+          default: {
             int idx = index.row() - Rows::Count;
-            if (ossia::valid_index(idx, m_settings.extendedAttributes))
+            if(ossia::valid_index(idx, m_settings.extendedAttributes))
             {
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
-              if (it->first == onet::text_description())
+              if(it->first == onet::text_description())
               {
                 return QString::fromStdString(
                     ossia::any_cast<onet::description>(it->second));
               }
-              else if (it->first == onet::text_tags())
+              else if(it->first == onet::text_tags())
               {
                 const auto& tags = ossia::any_cast<onet::tags>(it->second);
 
                 QStringList l;
-                for (const auto& s : tags)
+                for(const auto& s : tags)
                   l += QString::fromStdString(s);
                 return l.join(", ");
               }
-              else if (it->first == onet::text_default_value())
+              else if(it->first == onet::text_default_value())
               {
                 const auto& v
-                    = ossia::any_cast<onet::default_value_attribute::type>(
-                        it->second);
+                    = ossia::any_cast<onet::default_value_attribute::type>(it->second);
                 return valueColumnData(v, role);
               }
-              else if (it->first == onet::text_refresh_rate())
+              else if(it->first == onet::text_refresh_rate())
               {
-                return ossia::any_cast<onet::refresh_rate_attribute::type>(
-                    it->second);
+                return ossia::any_cast<onet::refresh_rate_attribute::type>(it->second);
               }
-              else if (it->first == onet::text_value_step_size())
+              else if(it->first == onet::text_value_step_size())
               {
                 return ossia::any_cast<onet::value_step_size_attribute::type>(
                     it->second);
               }
-              else if (it->first == onet::text_priority())
+              else if(it->first == onet::text_priority())
               {
-                return ossia::any_cast<onet::priority_attribute::type>(
-                    it->second);
+                return ossia::any_cast<onet::priority_attribute::type>(it->second);
               }
             }
             return {};
@@ -500,11 +460,11 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         break;
     }
   }
-  else if (role == Qt::EditRole)
+  else if(role == Qt::EditRole)
   {
-    if (index.column() == 1)
+    if(index.column() == 1)
     {
-      switch (index.row())
+      switch(index.row())
       {
         case Rows::Type:
           return (int)m_settings.value.get_type();
@@ -521,45 +481,38 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Max:
           return QVariant::fromValue(ossia::get_max(m_settings.domain.get()));
         case Rows::Values:
-          return QVariant::fromValue(
-              ossia::get_values(m_settings.domain.get()));
-        default:
-        {
+          return QVariant::fromValue(ossia::get_values(m_settings.domain.get()));
+        default: {
           int idx = index.row() - Rows::Count;
-          if (ossia::valid_index(idx, m_settings.extendedAttributes))
+          if(ossia::valid_index(idx, m_settings.extendedAttributes))
           {
             auto it = m_settings.extendedAttributes.begin();
             std::advance(it, idx);
-            if (it->first == onet::text_description())
+            if(it->first == onet::text_description())
             {
               return QString::fromStdString(
                   ossia::any_cast<onet::description>(it->second));
             }
-            else if (it->first == onet::text_tags())
+            else if(it->first == onet::text_tags())
+            {
+              return QVariant::fromValue(ossia::any_cast<onet::tags>(it->second));
+            }
+            else if(it->first == onet::text_default_value())
             {
               return QVariant::fromValue(
-                  ossia::any_cast<onet::tags>(it->second));
+                  ossia::any_cast<onet::default_value_attribute::type>(it->second));
             }
-            else if (it->first == onet::text_default_value())
+            else if(it->first == onet::text_refresh_rate())
             {
-              return QVariant::fromValue(
-                  ossia::any_cast<onet::default_value_attribute::type>(
-                      it->second));
+              return ossia::any_cast<onet::refresh_rate_attribute::type>(it->second);
             }
-            else if (it->first == onet::text_refresh_rate())
+            else if(it->first == onet::text_value_step_size())
             {
-              return ossia::any_cast<onet::refresh_rate_attribute::type>(
-                  it->second);
+              return ossia::any_cast<onet::value_step_size_attribute::type>(it->second);
             }
-            else if (it->first == onet::text_value_step_size())
+            else if(it->first == onet::text_priority())
             {
-              return ossia::any_cast<onet::value_step_size_attribute::type>(
-                  it->second);
-            }
-            else if (it->first == onet::text_priority())
-            {
-              return ossia::any_cast<onet::priority_attribute::type>(
-                  it->second);
+              return ossia::any_cast<onet::priority_attribute::type>(it->second);
             }
           }
           return {};
@@ -571,19 +524,18 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
       return {};
     }
   }
-  else if (role == Qt::CheckStateRole)
+  else if(role == Qt::CheckStateRole)
   {
-    if (index.column() == 1)
+    if(index.column() == 1)
     {
-      switch (index.row())
+      switch(index.row())
       {
         case Rows::Repetition:
           return m_settings.repetitionFilter == ossia::repetition_filter::ON
                      ? Qt::Checked
                      : Qt::Unchecked;
-        case Rows::Value:
-        {
-          if (auto b = m_settings.value.target<bool>())
+        case Rows::Value: {
+          if(auto b = m_settings.value.target<bool>())
           {
             return *b ? Qt::Checked : Qt::Unchecked;
           }
@@ -604,7 +556,7 @@ int AddressItemModel::extendedCount() const noexcept
 
 Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
 {
-  if (index.column() == 0)
+  if(index.column() == 0)
     return {Qt::ItemIsEnabled};
 
   Qt::ItemFlags f = QAbstractItemModel::flags(index);
@@ -632,14 +584,14 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
       {Qt::ItemIsUserCheckable | Qt::ItemIsEnabled} // repetition
   }};
 
-  if (index.row() < Rows::Count)
+  if(index.row() < Rows::Count)
     f |= flags[index.row()];
   else
     f |= Qt::ItemIsEditable;
 
-  if (index.row() == Value)
+  if(index.row() == Value)
   {
-    if (m_settings.value.target<bool>())
+    if(m_settings.value.target<bool>())
     {
       f |= Qt::ItemIsUserCheckable;
       f |= Qt::ItemIsEnabled;
@@ -657,8 +609,7 @@ AddressItemDelegate::AddressItemDelegate(QObject* parent)
 AddressItemDelegate::~AddressItemDelegate() { }
 
 void AddressItemDelegate::paint(
-    QPainter* painter,
-    const QStyleOptionViewItem& option,
+    QPainter* painter, const QStyleOptionViewItem& option,
     const QModelIndex& index) const
 {
   QStyledItemDelegate::paint(painter, option, index);
@@ -683,10 +634,9 @@ public:
       m_edit.setValue(v);
     });
 
-    connect(
-        &m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [=](int v) {
-          m_slider.setValue(v);
-        });
+    connect(&m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [=](int v) {
+      m_slider.setValue(v);
+    });
 
     m_lay.addWidget(&m_slider);
     m_lay.addWidget(&m_edit);
@@ -694,10 +644,7 @@ public:
 
   ossia::value get() const override { return m_slider.value(); }
 
-  void set(ossia::value t) override
-  {
-    m_slider.setValue(ossia::convert<int>(t));
-  }
+  void set(ossia::value t) override { m_slider.setValue(ossia::convert<int>(t)); }
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
@@ -719,15 +666,12 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
 
-    connect(
-        &m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
-          m_edit.setValue(min + v * (max - min));
-        });
+    connect(&m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
+      m_edit.setValue(min + v * (max - min));
+    });
 
     connect(
-        &m_edit,
-        SignalUtils::QDoubleSpinBox_valueChanged_double(),
-        this,
+        &m_edit, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
         [=](double v) { m_slider.setValue((v - min) / (max - min)); });
 
     m_lay.addWidget(&m_slider);
@@ -736,10 +680,7 @@ public:
 
   ossia::value get() const override { return m_edit.value(); }
 
-  void set(ossia::value t) override
-  {
-    m_edit.setValue(ossia::convert<float>(t));
-  }
+  void set(ossia::value t) override { m_edit.setValue(ossia::convert<float>(t)); }
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
@@ -761,7 +702,7 @@ public:
   ossia::value get() const override
   {
     auto val = State::parseValue(m_edit.text().toStdString());
-    if (val)
+    if(val)
       return *val;
     return std::vector<ossia::value>{};
   }
@@ -796,14 +737,14 @@ struct make_dataspace
   AddressValueWidget* operator()(ossia::color_u ds)
   {
     auto res = ossia::apply(make_unit{}, ds);
-    if (!res)
+    if(!res)
       return nullptr; // TODO generic colorpicker
     return res;
   }
   AddressValueWidget* operator()(ossia::position_u ds)
   {
     auto res = ossia::apply(make_unit{}, ds);
-    if (!res)
+    if(!res)
       return nullptr; // TODO generic position chooser if vec2f ?
     return res;
   }
@@ -811,17 +752,16 @@ struct make_dataspace
   AddressValueWidget* operator()() { return nullptr; }
 };
 
-AddressValueWidget*
-make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
+AddressValueWidget* make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
-  if (auto widg = ossia::apply(make_dataspace{}, addr.unit.get().v))
+  if(auto widg = ossia::apply(make_dataspace{}, addr.unit.get().v))
     return widg;
 
   auto& dom = addr.domain.get();
   auto min = dom.get_min(), max = dom.get_max();
-  if (min.valid() && max.valid() && addr.value.valid())
+  if(min.valid() && max.valid() && addr.value.valid())
   {
-    switch (addr.value.get_type())
+    switch(addr.value.get_type())
     {
       case ossia::val_type::FLOAT:
         return new DoubleSliderValueWidget{
@@ -834,7 +774,7 @@ make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
     }
   }
 
-  switch (addr.value.get_type())
+  switch(addr.value.get_type())
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
@@ -845,10 +785,9 @@ make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
   return nullptr;
 }
 
-AddressValueWidget*
-make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
+AddressValueWidget* make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
-  switch (addr.value.get_type())
+  switch(addr.value.get_type())
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
@@ -859,10 +798,9 @@ make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
   return nullptr;
 }
 
-AddressValueWidget*
-make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
+AddressValueWidget* make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
-  switch (addr.value.get_type())
+  switch(addr.value.get_type())
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
@@ -874,60 +812,51 @@ make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
 }
 
 QWidget* AddressItemDelegate::createEditor(
-    QWidget* parent,
-    const QStyleOptionViewItem& option,
-    const QModelIndex& index) const
+    QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   auto model = qobject_cast<const AddressItemModel*>(index.model());
-  if (index.column() == 0 || !model)
+  if(index.column() == 0 || !model)
     return QStyledItemDelegate::createEditor(parent, option, index);
 
-  switch (index.row())
+  switch(index.row())
   {
-    case AddressItemModel::Rows::Type:
-    {
+    case AddressItemModel::Rows::Type: {
       auto t = new State::TypeComboBox{parent};
       t->set(index.data(Qt::EditRole).value<ossia::val_type>());
       return t;
     }
-    case AddressItemModel::Rows::Access:
-    {
+    case AddressItemModel::Rows::Access: {
       auto t = new Explorer::AccessModeComboBox{parent};
       t->set(index.data(Qt::EditRole).value<ossia::access_mode>());
       return t;
     }
-    case AddressItemModel::Rows::Bounding:
-    {
+    case AddressItemModel::Rows::Bounding: {
       auto t = new Explorer::BoundingModeComboBox{parent};
       t->set(index.data(Qt::EditRole).value<ossia::bounding_mode>());
       return t;
     }
-    case AddressItemModel::Rows::Unit:
-    {
+    case AddressItemModel::Rows::Unit: {
       auto t = new State::UnitWidget{Qt::Horizontal, parent};
       t->setUnit(index.data(Qt::EditRole).value<State::Unit>());
       return t;
     }
-    case AddressItemModel::Rows::Value:
-    {
+    case AddressItemModel::Rows::Value: {
       auto t = make_value_widget(model->settings(), parent);
-      if (t)
+      if(t)
         return t;
       else
         break;
     }
-    case AddressItemModel::Rows::Min:
-    {
+    case AddressItemModel::Rows::Min: {
       auto t = make_min_widget(model->settings(), parent);
-      if (t)
+      if(t)
         return t;
       else
         break;
     }
-    case AddressItemModel::Rows::Max:
-    {
+    case AddressItemModel::Rows::Max: {
       auto t = make_max_widget(model->settings(), parent);
-      if (t)
+      if(t)
         return t;
       else
         break;
@@ -937,57 +866,49 @@ QWidget* AddressItemDelegate::createEditor(
   return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
-void AddressItemDelegate::setEditorData(
-    QWidget* editor,
-    const QModelIndex& index) const
+void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
-  if (index.column() == 0)
+  if(index.column() == 0)
   {
     QStyledItemDelegate::setEditorData(editor, index);
     return;
   }
 
-  switch (index.row())
+  switch(index.row())
   {
-    case AddressItemModel::Rows::Type:
-    {
-      if (auto cb = qobject_cast<State::TypeComboBox*>(editor))
+    case AddressItemModel::Rows::Type: {
+      if(auto cb = qobject_cast<State::TypeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
-        if (cur >= 0
-            && cur < (int)State::convert::ValuePrettyTypesArray().size())
+        if(cur >= 0 && cur < (int)State::convert::ValuePrettyTypesArray().size())
           cb->set((ossia::val_type)cur);
         return;
       }
       break;
     }
-    case AddressItemModel::Rows::Access:
-    {
-      if (auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
+    case AddressItemModel::Rows::Access: {
+      if(auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
-        if (const int max = Device::AccessModePrettyText().size();
-            cur >= 0 && cur < max)
+        if(const int max = Device::AccessModePrettyText().size(); cur >= 0 && cur < max)
           cb->set((ossia::access_mode)cur);
         return;
       }
       break;
     }
-    case AddressItemModel::Rows::Bounding:
-    {
-      if (auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
+    case AddressItemModel::Rows::Bounding: {
+      if(auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
 
-        if (ossia::valid_index(cur, Device::ClipModePrettyStringMap()))
+        if(ossia::valid_index(cur, Device::ClipModePrettyStringMap()))
           cb->set((ossia::bounding_mode)cur);
         return;
       }
       break;
     }
-    case AddressItemModel::Rows::Unit:
-    {
-      if (auto cb = qobject_cast<State::UnitWidget*>(editor))
+    case AddressItemModel::Rows::Unit: {
+      if(auto cb = qobject_cast<State::UnitWidget*>(editor))
       {
         auto cur = index.data(Qt::EditRole).value<State::Unit>();
         cb->setUnit(cur);
@@ -997,9 +918,8 @@ void AddressItemDelegate::setEditorData(
     }
     case AddressItemModel::Rows::Value:
     case AddressItemModel::Rows::Min:
-    case AddressItemModel::Rows::Max:
-    {
-      if (auto cb = qobject_cast<AddressValueWidget*>(editor))
+    case AddressItemModel::Rows::Max: {
+      if(auto cb = qobject_cast<AddressValueWidget*>(editor))
       {
         auto cur = index.data(Qt::EditRole).value<ossia::value>();
         cb->set(cur);
@@ -1012,45 +932,39 @@ void AddressItemDelegate::setEditorData(
 }
 
 void AddressItemDelegate::setModelData(
-    QWidget* editor,
-    QAbstractItemModel* model,
-    const QModelIndex& index) const
+    QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
-  if (index.column() == 0)
+  if(index.column() == 0)
   {
     QStyledItemDelegate::setModelData(editor, model, index);
     return;
   }
 
-  switch (index.row())
+  switch(index.row())
   {
-    case AddressItemModel::Rows::Type:
-    {
-      if (auto cb = qobject_cast<State::TypeComboBox*>(editor))
+    case AddressItemModel::Rows::Type: {
+      if(auto cb = qobject_cast<State::TypeComboBox*>(editor))
       {
         model->setData(index, cb->itemData(cb->currentIndex()), Qt::EditRole);
       }
       return;
     }
-    case AddressItemModel::Rows::Access:
-    {
-      if (auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
+    case AddressItemModel::Rows::Access: {
+      if(auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
       {
         model->setData(index, cb->itemData(cb->currentIndex()), Qt::EditRole);
       }
       return;
     }
-    case AddressItemModel::Rows::Bounding:
-    {
-      if (auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
+    case AddressItemModel::Rows::Bounding: {
+      if(auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
       {
         model->setData(index, cb->itemData(cb->currentIndex()), Qt::EditRole);
       }
       return;
     }
-    case AddressItemModel::Rows::Unit:
-    {
-      if (auto cb = qobject_cast<State::UnitWidget*>(editor))
+    case AddressItemModel::Rows::Unit: {
+      if(auto cb = qobject_cast<State::UnitWidget*>(editor))
       {
         model->setData(index, QVariant::fromValue(cb->unit()), Qt::EditRole);
       }
@@ -1058,9 +972,8 @@ void AddressItemDelegate::setModelData(
     }
     case AddressItemModel::Rows::Value:
     case AddressItemModel::Rows::Min:
-    case AddressItemModel::Rows::Max:
-    {
-      if (auto cb = qobject_cast<AddressValueWidget*>(editor))
+    case AddressItemModel::Rows::Max: {
+      if(auto cb = qobject_cast<AddressValueWidget*>(editor))
       {
         model->setData(index, QVariant::fromValue(cb->get()), Qt::EditRole);
         return;

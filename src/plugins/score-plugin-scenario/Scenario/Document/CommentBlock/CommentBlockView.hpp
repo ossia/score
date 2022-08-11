@@ -1,9 +1,9 @@
 #pragma once
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointF>
-
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <verdigris>
 namespace score
@@ -26,10 +26,8 @@ public:
 
   const CommentBlockPresenter& presenter() const { return m_presenter; }
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   QRectF boundingRect() const override;
 

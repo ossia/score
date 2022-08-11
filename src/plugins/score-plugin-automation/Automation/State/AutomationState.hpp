@@ -1,8 +1,9 @@
 #pragma once
 
+#include <State/Message.hpp>
+
 #include <Process/State/MessageNode.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <State/Message.hpp>
 
 #include <vector>
 
@@ -28,9 +29,8 @@ public:
 
   std::vector<State::AddressAccessor> matchingAddresses() override;
   ::State::MessageList messages() const override;
-  ::State::MessageList setMessages(
-      const ::State::MessageList&,
-      const Process::MessageNode&) override;
+  ::State::MessageList
+  setMessages(const ::State::MessageList&, const Process::MessageNode&) override;
 
 private:
   double m_point{};

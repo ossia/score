@@ -15,29 +15,27 @@
 namespace Curve
 {
 SetSegmentParameters::SetSegmentParameters(
-    const Model& curve,
-    SegmentParameterMap&& parameters)
+    const Model& curve, SegmentParameterMap&& parameters)
     : m_model{curve}
     , m_new{std::move(parameters)}
 {
-  for (auto it = m_new.cbegin(); it != m_new.cend(); ++it)
+  for(auto it = m_new.cbegin(); it != m_new.cend(); ++it)
   {
     const auto& seg = curve.segments().at(it->first);
-    m_old.insert(
-        {it->first, {seg.verticalParameter(), seg.horizontalParameter()}});
+    m_old.insert({it->first, {seg.verticalParameter(), seg.horizontalParameter()}});
   }
 }
 
 void SetSegmentParameters::undo(const score::DocumentContext& ctx) const
 {
   auto& curve = m_model.find(ctx);
-  for (auto it = m_old.cbegin(); it != m_old.cend(); ++it)
+  for(auto it = m_old.cbegin(); it != m_old.cend(); ++it)
   {
     auto& seg = curve.segments().at(it->first);
 
-    if (it->second.first)
+    if(it->second.first)
       seg.setVerticalParameter(*it->second.first);
-    if (it->second.second)
+    if(it->second.second)
       seg.setHorizontalParameter(*it->second.second);
   }
 
@@ -47,7 +45,7 @@ void SetSegmentParameters::undo(const score::DocumentContext& ctx) const
 void SetSegmentParameters::redo(const score::DocumentContext& ctx) const
 {
   auto& curve = m_model.find(ctx);
-  for (auto it = m_new.cbegin(); it != m_new.cend(); ++it)
+  for(auto it = m_new.cbegin(); it != m_new.cend(); ++it)
   {
     auto& seg = curve.segments().at(it->first);
 

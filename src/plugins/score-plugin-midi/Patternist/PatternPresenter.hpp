@@ -4,6 +4,7 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
 #include <Patternist/PatternModel.hpp>
+
 #include <nano_observer.hpp>
 
 namespace Patternist
@@ -15,9 +16,7 @@ class Presenter final
 {
 public:
   explicit Presenter(
-      const Patternist::ProcessModel& model,
-      View* view,
-      const Process::Context& ctx,
+      const Patternist::ProcessModel& model, View* view, const Process::Context& ctx,
       QObject* parent);
   ~Presenter() override;
 
@@ -32,7 +31,7 @@ public:
   void parentGeometryChanged() override;
 
 private:
-    void on_drop(const QPointF& pos, const QMimeData& md);
-    View* m_view{};
+  void on_drop(const QPointF& pos, const QMimeData& md);
+  View* m_view{};
 };
 }

@@ -30,10 +30,8 @@ public:
   SimpleTextItem(const score::BrushSet& col, QGraphicsItem*);
 
   QRectF boundingRect() const final override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      final override;
 
   void setFont(const QFont& f);
   void setText(const QString& s);
@@ -55,8 +53,7 @@ private:
   QImage m_line;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
-    : public score::SimpleTextItem
+class SCORE_LIB_BASE_EXPORT QGraphicsTextButton : public score::SimpleTextItem
 {
   W_OBJECT(QGraphicsTextButton)
 public:

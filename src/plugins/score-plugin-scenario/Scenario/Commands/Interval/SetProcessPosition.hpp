@@ -1,8 +1,8 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
-
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -19,16 +19,12 @@ namespace Command
 {
 class PutProcessBefore final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      PutProcessBefore,
-      "Set process position")
+  SCORE_COMMAND_DECL(CommandFactoryName(), PutProcessBefore, "Set process position")
 
 public:
   // Put proc2 before proc
   PutProcessBefore(
-      const IntervalModel& cst,
-      std::optional<Id<Process::ProcessModel>> proc,
+      const IntervalModel& cst, std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -40,8 +36,7 @@ protected:
 
 private:
   void putBefore(
-      const score::DocumentContext& ctx,
-      std::optional<Id<Process::ProcessModel>> proc,
+      const score::DocumentContext& ctx, std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2) const;
 
   Path<Scenario::IntervalModel> m_path;
@@ -52,16 +47,12 @@ private:
 
 class PutStateProcessBefore final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      PutStateProcessBefore,
-      "Set process position")
+  SCORE_COMMAND_DECL(CommandFactoryName(), PutStateProcessBefore, "Set process position")
 
 public:
   // Put proc2 before proc
   PutStateProcessBefore(
-      const StateModel& cst,
-      std::optional<Id<Process::ProcessModel>> proc,
+      const StateModel& cst, std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -73,8 +64,7 @@ protected:
 
 private:
   void putBefore(
-      const score::DocumentContext& ctx,
-      std::optional<Id<Process::ProcessModel>> proc,
+      const score::DocumentContext& ctx, std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2) const;
 
   Path<Scenario::StateModel> m_path;

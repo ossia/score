@@ -1,11 +1,12 @@
 #pragma once
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
+
 #include <QMetaObject>
 
 #include <RemoteControl/Scenario/Event.hpp>
 #include <RemoteControl/Scenario/Interval.hpp>
 #include <RemoteControl/Scenario/State.hpp>
 #include <RemoteControl/Scenario/Sync.hpp>
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
 
 namespace RemoteControl
 {
@@ -15,9 +16,7 @@ class ScenarioBase : public ProcessComponent_T<Scenario::ProcessModel>
 
 public:
   ScenarioBase(
-      Scenario::ProcessModel& scenario,
-      DocumentPlugin& doc,
-      QObject* parent_obj);
+      Scenario::ProcessModel& scenario, DocumentPlugin& doc, QObject* parent_obj);
 
   template <typename Component_T, typename Element>
   Component_T* make(Element& elt)
@@ -37,12 +36,7 @@ public:
 };
 
 using ScenarioComponent = HierarchicalScenarioComponent<
-    ScenarioBase,
-    Scenario::ProcessModel,
-    Interval,
-    Event,
-    Sync,
-    State>;
+    ScenarioBase, Scenario::ProcessModel, Interval, Event, Sync, State>;
 
 using ScenarioComponentFactory = ProcessComponentFactory_T<ScenarioComponent>;
 }

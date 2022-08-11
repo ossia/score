@@ -1,6 +1,7 @@
 #pragma once
-#include <Control/Widgets.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <Control/Widgets.hpp>
 #include <Vst/EffectModel.hpp>
 
 #include <score/graphics/GraphicWidgets.hpp>
@@ -21,15 +22,9 @@ class EffectItem final : public score::EmptyRectItem
   std::vector<std::pair<ControlInlet*, score::EmptyRectItem*>> controlItems;
 
 public:
-  EffectItem(
-      const Model& effect,
-      const Process::Context& doc,
-      QGraphicsItem* root);
+  EffectItem(const Model& effect, const Process::Context& doc, QGraphicsItem* root);
 
-  void setupInlet(
-      const Model& fx,
-      ControlInlet& inlet,
-      const Process::Context& doc);
+  void setupInlet(const Model& fx, ControlInlet& inlet, const Process::Context& doc);
 
 private:
   void updateRect();
@@ -78,26 +73,18 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 
 struct VSTFloatSlider : ossia::safe_nodes::control_in
 {
   static QWidget* make_widget(
-      AEffect* fx,
-      const ControlInlet& inlet,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      QObject* context);
+      AEffect* fx, const ControlInlet& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context);
   static QGraphicsItem* make_item(
-      AEffect* fx,
-      ControlInlet& inlet,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
+      AEffect* fx, ControlInlet& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context);
 };
 
 }

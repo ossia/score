@@ -11,7 +11,7 @@ void changeObjectId(IdentifiedObject<T>& obj, const Id<T>& new_id)
 {
   obj.setId(new_id);
   const auto& cld = ((QObject&)obj).findChildren<IdentifiedObjectAbstract*>();
-  for (auto child : cld)
+  for(auto child : cld)
     child->resetCache();
 }
 }

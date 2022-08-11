@@ -1,4 +1,5 @@
 #include "Executor.hpp"
+
 #include <Process/ExecutionFunctions.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
@@ -6,21 +7,18 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 namespace ossia
 {
-template<typename T>
+template <typename T>
 std::function<void(T&)> set_destination_impl(
-    execution_state& s,
-    graph_interface& g,
-    const State::AddressAccessor& address)
+    execution_state& s, graph_interface& g, const State::AddressAccessor& address)
 {
-  if (address.address.device.isEmpty())
+  if(address.address.device.isEmpty())
   {
-    return [&s, &g] (T& port) {
-      if (port.address)
+    return [&s, &g](T& port) {
+      if(port.address)
       {
         s.unregister_port(port);
         port.address = {};
-        if (ossia::value_port* dat
-            = port.template target<ossia::value_port>())
+        if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index = {};
@@ -31,18 +29,17 @@ std::function<void(T&)> set_destination_impl(
   }
 
   auto& qual = address.qualifiers.get();
-  if (auto n = Execution::findNode(s, address.address))
+  if(auto n = Execution::findNode(s, address.address))
   {
-    return [&s, &g, n, qual] (T& port) {
+    return [&s, &g, n, qual](T& port) {
       auto p = n->get_parameter();
-      if (p)
+      if(p)
       {
         s.unregister_port(port);
         port.address = p;
-        if (ossia::value_port* dat
-            = port.template target<ossia::value_port>())
+        if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
-          if (qual.unit)
+          if(qual.unit)
             dat->type = qual.unit;
           dat->index = qual.accessors;
         }
@@ -58,18 +55,17 @@ std::function<void(T&)> set_destination_impl(
       }
     };
   }
-  else if (auto ad = address.address.toString_unsafe().toStdString();
-           ossia::traversal::is_pattern(ad))
+  else if(auto ad = address.address.toString_unsafe().toStdString();
+          ossia::traversal::is_pattern(ad))
   {
     // OPTIMIZEME
     auto path = ossia::traversal::make_path(ad);
-    if (path)
+    if(path)
     {
-      return [&s, &g, path=std::move(path)] (T& port) {
+      return [&s, &g, path = std::move(path)](T& port) {
         s.unregister_port(port);
         port.address = std::move(*path);
-        if (ossia::value_port* dat
-            = port.template target<ossia::value_port>())
+        if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -80,11 +76,10 @@ std::function<void(T&)> set_destination_impl(
     }
     else
     {
-      return [&s, &g] (T& port) {
+      return [&s, &g](T& port) {
         s.unregister_port(port);
         port.address = {};
-        if (ossia::value_port* dat
-            = port.template target<ossia::value_port>())
+        if(ossia::value_port* dat = port.template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -95,7 +90,7 @@ std::function<void(T&)> set_destination_impl(
   }
   else
   {
-    return [] (T& port) { };
+    return [](T& port) {};
   }
 }
 
@@ -130,14 +125,13 @@ public:
   {
     // TODO take input port data into account.
     const int n = std::ssize(controls);
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       auto& ctl = controls[i];
-      if (ctl.second)
+      if(ctl.second)
       {
         auto vp = m_outlets[i]->target<ossia::value_port>();
-        vp->write_value(
-            std::move(*ctl.first), 0);
+        vp->write_value(std::move(*ctl.first), 0);
         ctl.second = false;
       }
     }
@@ -157,18 +151,18 @@ struct con_unvalidated
   std::weak_ptr<ossia::control_surface_node> weak_node;
   void operator()(const ossia::value& val)
   {
-    if (auto node = weak_node.lock())
+    if(auto node = weak_node.lock())
     {
-      ctx.executionQueue.enqueue(ossia::control_surface_node::control_updater{
-          node->controls[i], val});
+      ctx.executionQueue.enqueue(
+          ossia::control_surface_node::control_updater{node->controls[i], val});
     }
   }
 };
 
-ProcessExecutorComponent::ProcessExecutorComponent(Model& element, const Execution::Context& ctx, QObject* parent)
-  : Execution::ProcessComponent_T<
-    ControlSurface::Model,
-    ossia::node_process>{element, ctx, "ControlSurface", parent}
+ProcessExecutorComponent::ProcessExecutorComponent(
+    Model& element, const Execution::Context& ctx, QObject* parent)
+    : Execution::ProcessComponent_T<ControlSurface::Model, ossia::node_process>{
+        element, ctx, "ControlSurface", parent}
 {
   auto node = ossia::make_node<ossia::control_surface_node>(*ctx.execState);
   this->node = node;
@@ -179,7 +173,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(Model& element, const Executi
 
   // TODO do it also when they change
   const auto& map = element.outputAddresses();
-  for (auto& ctl : element.inlets())
+  for(auto& ctl : element.inlets())
   {
     std::pair<ossia::value*, bool>& p = node->add_control();
     auto& inlet = *node->root_inputs().back();
@@ -191,7 +185,6 @@ ProcessExecutorComponent::ProcessExecutorComponent(Model& element, const Executi
     *p.first = ctrl->value(); // TODO does this make sense ?
     p.second = true;          // we will send the first value
 
-
     const State::AddressAccessor& addr = map.at(ctl->id().val());
     system().setup.set_destination(addr, &outlet);
     ctrl->setupExecution(inlet);
@@ -199,24 +192,22 @@ ProcessExecutorComponent::ProcessExecutorComponent(Model& element, const Executi
     // set_destination sets the domain / type in the exec thread, so since
     // we override it we have to schedul the change after to make sure it does
     // not get overwritten:
-    in_exec([& in_port, &out_port] {
+    in_exec([&in_port, &out_port] {
       out_port.domain = in_port.domain;
       out_port.type = in_port.type;
     });
 
     std::weak_ptr<ossia::control_surface_node> weak_node = node;
     QObject::connect(
-          ctrl,
-          &Process::ControlInlet::valueChanged,
-          this,
-          con_unvalidated{ctx, m_currentIndex++, weak_node});
+        ctrl, &Process::ControlInlet::valueChanged, this,
+        con_unvalidated{ctx, m_currentIndex++, weak_node});
   }
 
-  QObject::connect(&element, &Model::controlAdded,
-                  this, [this] (const Id<Process::Port>& id) {
-    auto& inl = *static_cast<Process::ControlInlet*>(this->process().inlet(id));
-    inletAdded(inl);
-  });
+  QObject::connect(
+      &element, &Model::controlAdded, this, [this](const Id<Process::Port>& id) {
+        auto& inl = *static_cast<Process::ControlInlet*>(this->process().inlet(id));
+        inletAdded(inl);
+      });
 }
 
 void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
@@ -230,11 +221,14 @@ void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
   inl.setupExecution(*fake);
 
   const State::AddressAccessor& addr = map.at(inl.id().val());
-  auto set_addr = ossia::set_destination_impl<ossia::outlet>(*ctx.execState, *ctx.execGraph, addr);
+  auto set_addr
+      = ossia::set_destination_impl<ossia::outlet>(*ctx.execState, *ctx.execGraph, addr);
 
-  std::weak_ptr<ossia::control_surface_node> weak_node = std::dynamic_pointer_cast<ossia::control_surface_node>(this->node);
-  in_exec([v, weak_node, set_addr, fake=std::move(fake)] () mutable {
-    if(auto node = weak_node.lock()) {
+  std::weak_ptr<ossia::control_surface_node> weak_node
+      = std::dynamic_pointer_cast<ossia::control_surface_node>(this->node);
+  in_exec([v, weak_node, set_addr, fake = std::move(fake)]() mutable {
+    if(auto node = weak_node.lock())
+    {
       std::pair<ossia::value*, bool>& p = node->add_control();
       *p.first = std::move(v);
       p.second = true;
@@ -256,10 +250,8 @@ void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
   // Note: we cannot remove inlets in the exec as this would shift all the indices.
   // We cannot use pointers / refs in con_unvalidated as they may be invalidated upon reallocation.
   QObject::connect(
-        &inl,
-        &Process::ControlInlet::valueChanged,
-        this,
-        con_unvalidated{ctx, m_currentIndex++, weak_node});
+      &inl, &Process::ControlInlet::valueChanged, this,
+      con_unvalidated{ctx, m_currentIndex++, weak_node});
 }
 
 ProcessExecutorComponent::~ProcessExecutorComponent() { }

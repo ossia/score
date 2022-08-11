@@ -12,7 +12,5 @@ ScenarioScene::ScenarioScene(QObject* parent)
   setItemIndexMethod(QGraphicsScene::NoIndex);
 }
 
-void ScenarioScene::helpEvent(QGraphicsSceneHelpEvent* event)
-{
-}
+void ScenarioScene::helpEvent(QGraphicsSceneHelpEvent* event) { }
 }

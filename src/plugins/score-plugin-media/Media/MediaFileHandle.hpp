@@ -6,8 +6,8 @@
 
 #include <ossia/audio/drwav_handle.hpp>
 #include <ossia/detail/hash_map.hpp>
-#include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/nullable_variant.hpp>
+#include <ossia/detail/small_vector.hpp>
 
 #include <QFile>
 
@@ -28,7 +28,7 @@ class SoundComponentSetup;
 static constexpr inline float abs_max(float f1, float f2) noexcept
 {
   const int mul = (f2 >= 0.f) ? 1 : -1;
-  if (f1 < mul * f2)
+  if(f1 < mul * f2)
     return f2;
   else
     return f1;
@@ -168,15 +168,12 @@ public:
     using view_impl_t::view_impl_t;
     ViewHandle(const Handle&);
 
-    void
-    frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept;
+    void frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept;
     void absmax_frame(
-        int64_t start_frame,
-        int64_t end_frame,
+        int64_t start_frame, int64_t end_frame,
         ossia::small_vector<float, 8>& out) noexcept;
     void minmax_frame(
-        int64_t start_frame,
-        int64_t end_frame,
+        int64_t start_frame, int64_t end_frame,
         ossia::small_vector<std::pair<float, float>, 8>& out) noexcept;
   };
 
@@ -186,8 +183,8 @@ public:
   const Handle& unsafe_handle() const noexcept { return m_impl; }
 
   std::optional<double> knownTempo() const noexcept;
-private:
 
+private:
   void load_ffmpeg(int rate);
   void load_drwav();
   void load_sndfile();
@@ -212,8 +209,7 @@ public:
   ~AudioFileManager() noexcept;
 
   static AudioFileManager& instance() noexcept;
-  std::shared_ptr<AudioFile>
-  get(const QString&, const score::DocumentContext&);
+  std::shared_ptr<AudioFile> get(const QString&, const score::DocumentContext&);
 
 private:
   ossia::fast_hash_map<QString, std::shared_ptr<AudioFile>> m_handles;
@@ -225,12 +221,10 @@ private:
 SCORE_PLUGIN_MEDIA_EXPORT
 void writeAudioArrayToFile(const QString& path, const ossia::audio_array& arr, int fs);
 
-
 std::optional<double> estimateTempo(const AudioFile& file);
 std::optional<double> estimateTempo(const QString& filePath);
 
 std::optional<AudioInfo> probe(const QString& path);
-
 
 }
 

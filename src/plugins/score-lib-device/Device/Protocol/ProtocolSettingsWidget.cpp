@@ -23,27 +23,19 @@ void ProtocolSettingsWidget::checkForChanges(QLineEdit* w)
 void ProtocolSettingsWidget::checkForChanges(QComboBox* w)
 {
   connect(
-      w,
-      qOverload<int>(&QComboBox::currentIndexChanged),
-      this,
+      w, qOverload<int>(&QComboBox::currentIndexChanged), this,
       &ProtocolSettingsWidget::changed);
 }
 void ProtocolSettingsWidget::checkForChanges(QSpinBox* w)
 {
   connect(
-      w,
-      qOverload<int>(&QSpinBox::valueChanged),
-      this,
+      w, qOverload<int>(&QSpinBox::valueChanged), this,
       &ProtocolSettingsWidget::changed);
 }
 void ProtocolSettingsWidget::checkForChanges(QTextEdit* w)
 {
   if(auto edit = qobject_cast<QCodeEditor*>(w))
-  connect(
-      edit,
-      &QCodeEditor::editingFinished,
-      this,
-      &ProtocolSettingsWidget::changed);
+    connect(edit, &QCodeEditor::editingFinished, this, &ProtocolSettingsWidget::changed);
 }
 void ProtocolSettingsWidget::checkForChanges(QCheckBox* w)
 {

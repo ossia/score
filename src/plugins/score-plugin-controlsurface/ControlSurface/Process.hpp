@@ -1,12 +1,16 @@
 #pragma once
-#include <ControlSurface/Metadata.hpp>
-#include <Process/GenericProcessFactory.hpp>
-#include <Process/Process.hpp>
 #include <State/Message.hpp>
 
-#include <unordered_map>
+#include <Process/GenericProcessFactory.hpp>
+#include <Process/Process.hpp>
+
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
+#include <ControlSurface/Metadata.hpp>
+
 #include <ossia/detail/hash_map.hpp>
+
+#include <unordered_map>
 
 namespace Device
 {
@@ -19,24 +23,25 @@ class ControlInlet;
 
 namespace ControlSurface
 {
-template<typename Identifier, typename Func>
-struct NodeObserver
-    : public QObject
+template <typename Identifier, typename Func>
+struct NodeObserver : public QObject
 {
   Explorer::DeviceExplorerModel& model;
   Func f;
 
   NodeObserver(Explorer::DeviceExplorerModel& explorer, Func fun)
-    : model{explorer}
-    , f{fun}
+      : model{explorer}
+      , f{fun}
   {
     // TODO handle the case where the node isn't available / gets removed and added again...
-    connect(&explorer, &Explorer::DeviceExplorerModel::nodeChanged,
-            this, [this] (Device::Node* n) {
-      if(auto it = available.find(n); it != available.end()) {
+    connect(
+        &explorer, &Explorer::DeviceExplorerModel::nodeChanged, this,
+        [this](Device::Node* n) {
+      if(auto it = available.find(n); it != available.end())
+      {
         f(n, it->second.id);
       }
-    });
+        });
   }
 
   void listen(State::Address addr, Identifier identifier)
@@ -54,20 +59,23 @@ struct NodeObserver
 
   void unlisten(const State::Address& addr)
   {
-    auto it = ossia::find_if(available, [&] (const auto& pair) { return pair.second.accessor == addr; });
+    auto it = ossia::find_if(
+        available, [&](const auto& pair) { return pair.second.accessor == addr; });
     if(it != available.end())
     {
       available.erase(it);
     }
     else
     {
-      auto it = ossia::find_if(missing, [&] (const auto& p) { return p.accessor == addr; });
+      auto it
+          = ossia::find_if(missing, [&](const auto& p) { return p.accessor == addr; });
       if(it != missing.end())
         missing.erase(it);
     }
   }
 
-  struct AvailableNode {
+  struct AvailableNode
+  {
     State::Address accessor;
     Identifier id;
   };
@@ -84,10 +92,7 @@ class Model final : public Process::ProcessModel
 
 public:
   using address_map = ossia::fast_hash_map<int32_t, State::AddressAccessor>;
-  Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent)
@@ -106,16 +111,11 @@ public:
   Process::Outlets& outlets() noexcept { return m_outlets; }
 
   void addControl(
-      const Id<Process::Port>& id,
-      const Device::FullAddressAccessorSettings& message);
-  void
-  setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr);
+      const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& message);
+  void setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr);
   void removeControl(const Id<Process::Port>& id);
 
-  const address_map& outputAddresses() const noexcept
-  {
-    return m_outputAddresses;
-  }
+  const address_map& outputAddresses() const noexcept { return m_outputAddresses; }
 
 private:
   QString prettyName() const noexcept override;
@@ -126,7 +126,8 @@ private:
 
   address_map m_outputAddresses;
 
-  struct Apply {
+  struct Apply
+  {
     ProcessModel& model;
     void operator()(Device::Node*, int);
   };

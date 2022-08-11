@@ -39,22 +39,17 @@ public:
     }
 
     connect(
-        m_settingsList,
-        &QListWidget::currentRowChanged,
-        m_stackedWidget,
+        m_settingsList, &QListWidget::currentRowChanged, m_stackedWidget,
         &QStackedWidget::setCurrentIndex);
 
-    connect(
-        m_buttons, &QDialogButtonBox::accepted, this, &SettingsView::accept);
-    connect(
-        m_buttons, &QDialogButtonBox::rejected, this, &SettingsView::reject);
+    connect(m_buttons, &QDialogButtonBox::accepted, this, &SettingsView::accept);
+    connect(m_buttons, &QDialogButtonBox::rejected, this, &SettingsView::reject);
   }
   void addSettingsView(SettingsDelegateView<Model>* view)
   {
     view->setParent(this);
     QListWidgetItem* it = new QListWidgetItem{
-        view->getPresenter()->settingsIcon(),
-        view->getPresenter()->settingsName(),
+        view->getPresenter()->settingsIcon(), view->getPresenter()->settingsName(),
         m_settingsList};
     it->setSizeHint(QSize{0, 30});
     m_settingsList->addItem(it);
@@ -71,8 +66,7 @@ private:
   QListWidget* m_settingsList{new QListWidget{this}};
   QStackedWidget* m_stackedWidget{new QStackedWidget{this}};
 
-  QDialogButtonBox* m_buttons{new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-      this}};
+  QDialogButtonBox* m_buttons{
+      new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this}};
 };
 }

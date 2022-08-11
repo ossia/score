@@ -34,7 +34,7 @@ public:
       : QGraphicsCombo{parent}
   {
     array.reserve(N);
-    for (auto str : arr)
+    for(auto str : arr)
       array.push_back(str);
   }
 
@@ -61,9 +61,7 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 }

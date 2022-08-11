@@ -1,20 +1,18 @@
 #include "PatternPresenter.hpp"
 
-#include <Patternist/Commands/PatternProperties.hpp>
-#include <Patternist/PatternParsing.hpp>
-#include <Patternist/PatternView.hpp>
-
 #include <Process/Focus/FocusDispatcher.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <Patternist/Commands/PatternProperties.hpp>
+#include <Patternist/PatternParsing.hpp>
+#include <Patternist/PatternView.hpp>
 
 namespace Patternist
 {
 
 Presenter::Presenter(
-    const Patternist::ProcessModel& layer,
-    View* view,
-    const Process::Context& ctx,
+    const Patternist::ProcessModel& layer, View* view, const Process::Context& ctx,
     QObject* parent)
     : LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
@@ -75,7 +73,7 @@ void Presenter::parentGeometryChanged() { }
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
   auto patterns = parsePatternFiles(md);
-  if (patterns.empty())
+  if(patterns.empty())
     return;
 
   auto& model = static_cast<const Patternist::ProcessModel&>(this->model());

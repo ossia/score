@@ -15,14 +15,12 @@ W_OBJECT_IMPL(score::DocumentModel)
 namespace score
 {
 DocumentModel::DocumentModel(
-    const Id<DocumentModel>& id,
-    const score::DocumentContext& ctx,
-    DocumentDelegateFactory& fact,
-    QObject* parent)
+    const Id<DocumentModel>& id, const score::DocumentContext& ctx,
+    DocumentDelegateFactory& fact, QObject* parent)
     : IdentifiedObject{id, "DocumentModel", parent}
 {
   fact.make(ctx, m_model, this);
-  for (auto& appPlug : ctx.app.guiApplicationPlugins())
+  for(auto& appPlug : ctx.app.guiApplicationPlugins())
   {
     appPlug->on_initDocument(ctx.document);
   }
@@ -33,7 +31,7 @@ DocumentModel::~DocumentModel()
   auto p = m_pluginModels;
 
   // We remove the plug-ins first.
-  for (auto plug : p)
+  for(auto plug : p)
   {
     delete plug;
     m_pluginModels.erase(m_pluginModels.begin());

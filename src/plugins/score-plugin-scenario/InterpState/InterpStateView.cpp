@@ -17,8 +17,7 @@ View::View(QGraphicsItem* parent)
 {
   setZValue(1);
   setFlags(
-      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
-      | ItemIsFocusable);
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
 }
 
@@ -33,7 +32,7 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 
 QPixmap View::pixmap() noexcept
 {
-  if (m_curveView)
+  if(m_curveView)
     return m_curveView->pixmap();
   else
     return QPixmap();

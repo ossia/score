@@ -25,8 +25,8 @@ private:
     ProcessList* plist = new ProcessList{obj};
     plist->registerProcess(new ScenarioFactory);
 
-    IntervalModel* cstrModel = new IntervalModel{
-        Id<IntervalModel>{1}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* cstrModel
+        = new IntervalModel{Id<IntervalModel>{1}, Id<IntervalViewModel>{0}, qApp};
 
     AddRackToInterval rackCmd(ObjectPath{{"IntervalModel", {1}}});
     rackCmd.redo(ctx);

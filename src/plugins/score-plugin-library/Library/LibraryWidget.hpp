@@ -12,7 +12,7 @@ inline void setup_treeview(QTreeView& tv)
   tv.setDropIndicatorShown(true);
   tv.setAlternatingRowColors(true);
   tv.setSelectionMode(QAbstractItemView::SingleSelection);
-  for (int i = 1; i < tv.model()->columnCount(); ++i)
+  for(int i = 1; i < tv.model()->columnCount(); ++i)
     tv.hideColumn(i);
 }
 

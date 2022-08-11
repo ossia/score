@@ -3,9 +3,9 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Process/Process.hpp>
 
 #include <score/graphics/PainterPath.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
@@ -20,22 +20,20 @@
 #include <QPainter>
 
 #include <tsl/hopscotch_map.h>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::CableItem)
 namespace Dataflow
 {
 bool CableItem::g_cables_enabled = true;
 
-static bool
-canCreateCable(const Process::Cable& c, Process::DataflowManager& plug)
+static bool canCreateCable(const Process::Cable& c, Process::DataflowManager& plug)
 {
   auto it = plug.cables().find(&c);
   return it == plug.cables().end() || it->second == nullptr;
 }
 CableItem::CableItem(
-    const Process::Cable& c,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
+    const Process::Cable& c, const Process::Context& ctx, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_cable{c}
     , m_context{ctx}
@@ -49,9 +47,9 @@ CableItem::CableItem(
   SCORE_ASSERT(canCreateCable(c, plug));
 
   con(c.selection, &Selectable::changed, this, [=](bool b) {
-    if (m_p1 && m_p2)
+    if(m_p1 && m_p2)
     {
-      if (b)
+      if(b)
       {
         setZValue(999999);
         m_p1->setHighlight(true);
@@ -70,20 +68,20 @@ CableItem::CableItem(
   });
 
   auto& p = plug.ports();
-  if (auto src_port = c.source().try_find(ctx))
+  if(auto src_port = c.source().try_find(ctx))
   {
     auto src = p.find(src_port);
-    if (src != p.end())
+    if(src != p.end())
     {
       m_p1 = src->second;
       m_p1->cables.push_back(this);
     }
   }
 
-  if (auto snk_port = c.sink().try_find(ctx))
+  if(auto snk_port = c.sink().try_find(ctx))
   {
     auto snk = p.find(snk_port);
-    if (snk != p.end())
+    if(snk != p.end())
     {
       m_p2 = snk->second;
       m_p2->cables.push_back(this);
@@ -95,18 +93,18 @@ CableItem::CableItem(
 
 CableItem::~CableItem()
 {
-  if (m_p1)
+  if(m_p1)
   {
     ossia::remove_erase(m_p1->cables, this);
   }
-  if (m_p2)
+  if(m_p2)
   {
     ossia::remove_erase(m_p2->cables, this);
   }
   auto& plug = m_context.dataflow;
   auto& p = plug.cables();
   auto it = p.find(&m_cable);
-  if (it != p.end())
+  if(it != p.end())
     it.value() = nullptr;
 }
 
@@ -133,17 +131,15 @@ bool CableItem::contains(const QPointF& point) const
 }
 
 void CableItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if (m_p1 && m_p2)
+  if(m_p1 && m_p2)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     auto& style = Process::Style::instance();
-    if (!m_cable.selection.get())
+    if(!m_cable.selection.get())
     {
-      switch (m_type)
+      switch(m_type)
       {
         case Process::PortType::Message:
           painter->setPen(style.DataCablePen());
@@ -161,7 +157,7 @@ void CableItem::paint(
     }
     else
     {
-      switch (m_type)
+      switch(m_type)
       {
         case Process::PortType::Message:
           painter->setPen(style.SelectedDataCablePen());
@@ -189,7 +185,7 @@ void CableItem::resize()
   prepareGeometryChange();
 
   clearPainterPath(m_path);
-  if (m_p1 && m_p2)
+  if(m_p1 && m_p2)
   {
     auto p1 = m_p1->scenePos() + QPointF(6., 6.) * m_p1->sceneTransform().m11();
     auto p2 = m_p2->scenePos() + QPointF(6., 6.) * m_p2->sceneTransform().m11();
@@ -213,19 +209,14 @@ void CableItem::resize()
 
     m_path.moveTo(first.x(), first.y());
     m_path.cubicTo(
-        first.x() + half_length,
-        first.y() + offset_y,
-        last.x() - half_length,
-        last.y() - offset_y,
-        last.x(),
-        last.y());
+        first.x() + half_length, first.y() + offset_y, last.x() - half_length,
+        last.y() - offset_y, last.x(), last.y());
   }
 
   update();
 }
 
-static
-bool isPortActuallyVisible(QGraphicsItem* port)
+static bool isPortActuallyVisible(QGraphicsItem* port)
 {
   if(QGraphicsItem* parent = port->parentItem())
   {
@@ -266,23 +257,23 @@ static bool cableMustBeShown(PortItem* p1, PortItem* p2)
 
 void CableItem::check()
 {
-  if (g_cables_enabled && cableMustBeShown(m_p1, m_p2))
+  if(g_cables_enabled && cableMustBeShown(m_p1, m_p2))
   {
-    if (!isEnabled())
+    if(!isEnabled())
     {
       setVisible(true);
       setEnabled(true);
     }
-    else if (!isVisible())
+    else if(!isVisible())
     {
       setVisible(true);
     }
     m_type = m_p1->port().type();
-    if (auto c_o = m_p1->commonAncestorItem(m_p2))
+    if(auto c_o = m_p1->commonAncestorItem(m_p2))
       setParentItem(c_o);
     resize();
   }
-  else if (isEnabled())
+  else if(isEnabled())
   {
     setVisible(false);
     setEnabled(false);
@@ -355,15 +346,13 @@ void CableItem::keyPressEvent(QKeyEvent* event)
   switch(event->key())
   {
     case Qt::Key_Left:
-    case Qt::Key_Up:
-    {
+    case Qt::Key_Up: {
       auto& source = this->m_cable.source().find(this->m_context);
       this->m_context.selectionStack.pushNewSelection({&source});
       break;
     }
     case Qt::Key_Right:
-    case Qt::Key_Down:
-    {
+    case Qt::Key_Down: {
       auto& sink = this->m_cable.sink().find(this->m_context);
       this->m_context.selectionStack.pushNewSelection({&sink});
       break;
@@ -377,6 +366,5 @@ void CableItem::keyReleaseEvent(QKeyEvent* event)
 
   event->accept();
 }
-
 
 }

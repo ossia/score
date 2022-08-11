@@ -13,12 +13,10 @@ namespace Execution
 using tick_fun = ossia::audio_engine::fun_type;
 
 tick_fun makeExecutionTick(
-    ossia::tick_setup_options opt,
-    Execution::DocumentPlugin& plug,
+    ossia::tick_setup_options opt, Execution::DocumentPlugin& plug,
     const std::shared_ptr<Execution::BaseScenarioElement>& scenar);
 
 tick_fun makeBenchmarkTick(
-    ossia::tick_setup_options opt,
-    Execution::DocumentPlugin& plug,
+    ossia::tick_setup_options opt, Execution::DocumentPlugin& plug,
     const std::shared_ptr<Execution::BaseScenarioElement>& scenar);
 }

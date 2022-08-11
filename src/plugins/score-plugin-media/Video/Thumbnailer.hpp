@@ -6,8 +6,7 @@
 
 #include <score_plugin_media_export.h>
 
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 }

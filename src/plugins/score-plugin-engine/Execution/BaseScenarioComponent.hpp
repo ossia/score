@@ -38,16 +38,12 @@ class BaseScenarioRefContainer
 {
 public:
   BaseScenarioRefContainer(
-      Scenario::IntervalModel& interval,
-      Scenario::ScenarioInterface& s);
+      Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s);
 
   BaseScenarioRefContainer(
-      Scenario::IntervalModel& interval,
-      Scenario::StateModel& startState,
-      Scenario::StateModel& endState,
-      Scenario::EventModel& startEvent,
-      Scenario::EventModel& endEvent,
-      Scenario::TimeSyncModel& startNode,
+      Scenario::IntervalModel& interval, Scenario::StateModel& startState,
+      Scenario::StateModel& endState, Scenario::EventModel& startEvent,
+      Scenario::EventModel& endEvent, Scenario::TimeSyncModel& startNode,
       Scenario::TimeSyncModel& endNode)
       : m_interval{interval}
       , m_startState{startState}
@@ -106,6 +102,7 @@ public:
   StateComponent& endState() const;
 
   ossia::scenario& baseScenario() const;
+
 public:
   void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished)
 

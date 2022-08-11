@@ -24,9 +24,7 @@ View::View()
     m_sb->setMinimum(1);
     m_sb->setMaximum(100);
     connect(
-        m_sb,
-        SignalUtils::QDoubleSpinBox_valueChanged_double(),
-        this,
+        m_sb, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
         &View::simplificationRatioChanged);
 
     lay->addRow(tr("Simplification Ratio"), m_sb);
@@ -36,7 +34,7 @@ View::View()
     m_simpl = new QCheckBox{tr("Simplify")};
 
     connect(m_simpl, &QCheckBox::stateChanged, this, [&](int t) {
-      switch (t)
+      switch(t)
       {
         case Qt::Unchecked:
           simplifyChanged(false);
@@ -56,7 +54,7 @@ View::View()
     m_mode = new QCheckBox{tr("Ramp to new value")};
 
     connect(m_mode, &QCheckBox::stateChanged, this, [&](int t) {
-      switch (t)
+      switch(t)
       {
         case Qt::Unchecked:
           modeChanged(Mode::Parameter);
@@ -76,7 +74,7 @@ View::View()
     m_playWhileRecording = new QCheckBox{tr("Play while recording")};
 
     connect(m_playWhileRecording, &QCheckBox::stateChanged, this, [&](int t) {
-      switch (t)
+      switch(t)
       {
         case Qt::Unchecked:
           playWhileRecordingChanged(false);
@@ -95,20 +93,20 @@ View::View()
 
 void View::setSimplificationRatio(int val)
 {
-  if (val != m_sb->value())
+  if(val != m_sb->value())
     m_sb->setValue(val);
 }
 
 void View::setSimplify(bool val)
 {
-  switch (m_simpl->checkState())
+  switch(m_simpl->checkState())
   {
     case Qt::Unchecked:
-      if (val)
+      if(val)
         m_simpl->setChecked(true);
       break;
     case Qt::Checked:
-      if (!val)
+      if(!val)
         m_simpl->setChecked(false);
       break;
     default:
@@ -118,14 +116,14 @@ void View::setSimplify(bool val)
 
 void View::setMode(Mode val)
 {
-  switch (m_mode->checkState())
+  switch(m_mode->checkState())
   {
     case Qt::Unchecked:
-      if (val == Mode::Message)
+      if(val == Mode::Message)
         m_mode->setChecked(true);
       break;
     case Qt::Checked:
-      if (val == Mode::Parameter)
+      if(val == Mode::Parameter)
         m_mode->setChecked(false);
       break;
     default:
@@ -135,14 +133,14 @@ void View::setMode(Mode val)
 
 void View::setPlayWhileRecording(bool b)
 {
-  switch (m_playWhileRecording->checkState())
+  switch(m_playWhileRecording->checkState())
   {
     case Qt::Unchecked:
-      if (b)
+      if(b)
         m_playWhileRecording->setChecked(true);
       break;
     case Qt::Checked:
-      if (!b)
+      if(!b)
         m_playWhileRecording->setChecked(false);
       break;
     default:

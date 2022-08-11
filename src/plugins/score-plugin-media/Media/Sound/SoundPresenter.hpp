@@ -1,7 +1,8 @@
 #pragma once
-#include <Media/Sound/SoundModel.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
+
+#include <Media/Sound/SoundModel.hpp>
 class QMimeData;
 namespace Media
 {
@@ -14,9 +15,7 @@ class LayerPresenter final : public Process::LayerPresenter
 public:
   using model_type = const Media::Sound::ProcessModel;
   explicit LayerPresenter(
-      const ProcessModel& model,
-      LayerView* view,
-      const Process::Context& ctx,
+      const ProcessModel& model, LayerView* view, const Process::Context& ctx,
       QObject* parent);
 
   void setWidth(qreal width, qreal defaultWidth) override;

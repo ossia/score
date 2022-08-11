@@ -1,24 +1,24 @@
 #include "CableHelpers.hpp"
 
-#include <score/model/IdentifierDebug.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
 #include <score/document/DocumentContext.hpp>
+#include <score/model/IdentifierDebug.hpp>
 
 #include <ossia/detail/ptr_set.hpp>
 
 #include <QDebug>
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
 namespace Dataflow
 {
 static bool startsWith(const ObjectPath& object, const ObjectPath& parent)
 {
-  if (object.vec().size() < parent.vec().size())
+  if(object.vec().size() < parent.vec().size())
     return false;
 
-  for (std::size_t i = 0; i < parent.vec().size(); i++)
+  for(std::size_t i = 0; i < parent.vec().size(); i++)
   {
-    if (!(object.vec()[i] == parent.vec()[i]))
+    if(!(object.vec()[i] == parent.vec()[i]))
       return false;
   }
 
@@ -31,15 +31,15 @@ getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
   std::vector<Process::Cable*> cables;
 
   ossia::ptr_set<Process::Port*> ports;
-  for (auto obj : objs)
+  for(auto obj : objs)
   {
-    if (auto p = qobject_cast<Process::Port*>(obj))
+    if(auto p = qobject_cast<Process::Port*>(obj))
     {
       ports.insert(p);
     }
     else
     {
-      for (auto p : obj->findChildren<Process::Port*>())
+      for(auto p : obj->findChildren<Process::Port*>())
       {
         ports.insert(p);
       }
@@ -47,9 +47,9 @@ getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
   }
 
   cables.reserve(0.05 * ports.size()); // totally empiric
-  for (auto p : ports)
+  for(auto p : ports)
   {
-    for (auto& cbl : p->cables())
+    for(auto& cbl : p->cables())
     {
       cables.push_back(&cbl.find(ctx));
     }
@@ -57,21 +57,20 @@ getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
 
   return cables;
 }
-SerializedCables
-saveCables(QObjectList objs, const score::DocumentContext& ctx)
+SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
 {
   SerializedCables cables;
 
   ossia::ptr_set<Process::Port*> ports;
-  for (auto obj : objs)
+  for(auto obj : objs)
   {
-    if (auto p = qobject_cast<Process::Port*>(obj))
+    if(auto p = qobject_cast<Process::Port*>(obj))
     {
       ports.insert(p);
     }
     else
     {
-      for (auto p : obj->findChildren<Process::Port*>())
+      for(auto p : obj->findChildren<Process::Port*>())
       {
         ports.insert(p);
       }
@@ -79,9 +78,9 @@ saveCables(QObjectList objs, const score::DocumentContext& ctx)
   }
 
   cables.reserve(0.05 * ports.size()); // totally empiric
-  for (auto p : ports)
+  for(auto p : ports)
   {
-    for (auto& cbl : p->cables())
+    for(auto& cbl : p->cables())
     {
       Process::Cable& c = cbl.find(ctx);
       cables.push_back({c.id(), c.toCableData()});
@@ -92,26 +91,25 @@ saveCables(QObjectList objs, const score::DocumentContext& ctx)
 }
 
 SerializedCables serializedCablesFromCableJson(
-    const ObjectPath& old_path,
-    const ObjectPath& new_path,
+    const ObjectPath& old_path, const ObjectPath& new_path,
     const rapidjson::Document::Array& arr)
 {
   SerializedCables cables;
 
   cables.reserve(arr.Size());
-  for (const auto& element : arr)
+  for(const auto& element : arr)
   {
     Process::CableData cd;
-    if (element.IsObject() && element.HasMember("ObjectName"))
+    if(element.IsObject() && element.HasMember("ObjectName"))
     {
       Id<Process::Cable> id;
       id <<= JsonValue{element["id"]};
       cd <<= JsonValue{element};
 
-      if (auto& p = cd.source.unsafePath(); startsWith(p, old_path))
+      if(auto& p = cd.source.unsafePath(); startsWith(p, old_path))
         replacePathPart(old_path, new_path, p);
 
-      if (auto& p = cd.sink.unsafePath(); startsWith(p, old_path))
+      if(auto& p = cd.sink.unsafePath(); startsWith(p, old_path))
         replacePathPart(old_path, new_path, p);
 
       cables.emplace_back(std::move(id), std::move(cd));
@@ -121,23 +119,20 @@ SerializedCables serializedCablesFromCableJson(
   return cables;
 }
 SerializedCables serializedCablesFromCableJson(
-    const ObjectPath& old_path,
-    const rapidjson::Document::Array& arr)
+    const ObjectPath& old_path, const rapidjson::Document::Array& arr)
 {
   return serializedCablesFromCableJson(old_path, ObjectPath{}, arr);
 }
 
-void removeCables(
-    const SerializedCables& cables,
-    const score::DocumentContext& ctx)
+void removeCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-  for (const auto& cid : cables)
+  for(const auto& cid : cables)
   {
     auto cable_it = doc.cables.find(cid.first);
-    if (cable_it != doc.cables.end())
+    if(cable_it != doc.cables.end())
     {
       auto& cable = *cable_it;
       cable.source().find(ctx).removeCable(cable);
@@ -151,16 +146,14 @@ void removeCables(
   }
 }
 
-void restoreCables(
-    const SerializedCables& cables,
-    const score::DocumentContext& ctx)
+void restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-  for (const auto& [id, data] : cables)
+  for(const auto& [id, data] : cables)
   {
-    if (doc.cables.find(id) == doc.cables.end())
+    if(doc.cables.find(id) == doc.cables.end())
     {
       auto c = new Process::Cable{id, data, &doc};
       doc.cables.add(c);
@@ -176,17 +169,15 @@ void restoreCables(
 
 // TODO keep a single way of doing
 void loadCables(
-    const ObjectPath& old_path,
-    const ObjectPath& new_path,
-    Dataflow::SerializedCables& cables,
-    const score::DocumentContext& ctx)
+    const ObjectPath& old_path, const ObjectPath& new_path,
+    Dataflow::SerializedCables& cables, const score::DocumentContext& ctx)
 {
-  for (auto& c : cables)
+  for(auto& c : cables)
   {
-    if (auto& p = c.second.source.unsafePath(); startsWith(p, old_path))
+    if(auto& p = c.second.source.unsafePath(); startsWith(p, old_path))
       replacePathPart(old_path, new_path, p);
 
-    if (auto& p = c.second.sink.unsafePath(); startsWith(p, old_path))
+    if(auto& p = c.second.sink.unsafePath(); startsWith(p, old_path))
       replacePathPart(old_path, new_path, p);
   }
 
@@ -195,16 +186,12 @@ void loadCables(
 
 void unstripCables(const ObjectPath& p, SerializedCables& cables)
 {
-  for (auto& c : cables)
+  for(auto& c : cables)
   {
     c.second.source.unsafePath().vec().insert(
-        c.second.source.unsafePath().vec().begin(),
-        p.vec().begin(),
-        p.vec().end());
+        c.second.source.unsafePath().vec().begin(), p.vec().begin(), p.vec().end());
     c.second.sink.unsafePath().vec().insert(
-        c.second.sink.unsafePath().vec().begin(),
-        p.vec().begin(),
-        p.vec().end());
+        c.second.sink.unsafePath().vec().begin(), p.vec().begin(), p.vec().end());
   }
 }
 

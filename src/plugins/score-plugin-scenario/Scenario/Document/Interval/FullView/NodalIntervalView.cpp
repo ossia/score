@@ -1,4 +1,5 @@
 #include "NodalIntervalView.hpp"
+
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -11,10 +12,8 @@ namespace Scenario
 {
 
 NodalIntervalView::NodalIntervalView(
-    NodalIntervalView::ItemsToShow sh,
-    const IntervalModel& model,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
+    NodalIntervalView::ItemsToShow sh, const IntervalModel& model,
+    const Process::Context& ctx, QGraphicsItem* parent)
     : score::EmptyRectItem{parent}
     , m_model{model}
     , m_context{ctx}
@@ -26,25 +25,22 @@ NodalIntervalView::NodalIntervalView(
   // setFlag(ItemHasNoContents, true);
   // setRect(QRectF{0, 0, 1000, 1000});
   const TimeVal r = m_model.duration.defaultDuration();
-  for (auto& proc : m_model.processes)
+  for(auto& proc : m_model.processes)
   {
-    if (m_itemsToShow == ItemsToShow::OnlyEffects
-        && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
+    if(m_itemsToShow == ItemsToShow::OnlyEffects
+       && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
       continue;
     auto item = new Process::NodeItem{proc, m_context, r, m_container};
     m_nodeItems.push_back(item);
   }
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
-  m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(
-      *this);
+  m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
 
   con(
-      model,
-      &IntervalModel::executionEvent,
-      this,
+      model, &IntervalModel::executionEvent, this,
       [=](IntervalExecutionEvent ev) {
-        if (ev == IntervalExecutionEvent::Finished)
-          on_playPercentageChanged(0., TimeVal{});
+    if(ev == IntervalExecutionEvent::Finished)
+      on_playPercentageChanged(0., TimeVal{});
       },
       Qt::QueuedConnection);
 
@@ -56,7 +52,7 @@ NodalIntervalView::NodalIntervalView(
     // TODO proper zooming is done in log space
     connect(item, &score::ZoomItem::zoom, this, [this] {
       auto zoom = m_container->scale();
-      if (zoom < 1 && zoom * 1.2 > 1)
+      if(zoom < 1 && zoom * 1.2 > 1)
         zoom = 1;
       else
         zoom = qBound(0.001, zoom * 1.2, 1000.);
@@ -64,17 +60,15 @@ NodalIntervalView::NodalIntervalView(
     });
     connect(item, &score::ZoomItem::dezoom, this, [this] {
       auto zoom = m_container->scale();
-      if (zoom < 1 && zoom / 1.2 > 1)
+      if(zoom < 1 && zoom / 1.2 > 1)
         zoom = 1;
       else
         zoom = qBound(0.001, zoom / 1.2, 1000.);
       m_container->setScale(zoom);
     });
 
-    connect(
-        item, &score::ZoomItem::recenter, this, &NodalIntervalView::recenter);
-    connect(
-          item, &score::ZoomItem::rescale, this, &NodalIntervalView::rescale);
+    connect(item, &score::ZoomItem::recenter, this, &NodalIntervalView::recenter);
+    connect(item, &score::ZoomItem::rescale, this, &NodalIntervalView::rescale);
     connect(
         this, &score::EmptyRectItem::sizeChanged, this, &NodalIntervalView::recenter);
   }
@@ -127,7 +121,7 @@ void NodalIntervalView::on_drop(QPointF pos, const QMimeData* data)
 void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)
 {
   t = ossia::clamp(t, 0., 1.);
-  for (Process::NodeItem* node : m_nodeItems)
+  for(Process::NodeItem* node : m_nodeItems)
   {
     node->setPlayPercentage(t, parent_dur);
   }
@@ -135,8 +129,8 @@ void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)
 
 void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
 {
-  if (m_itemsToShow == ItemsToShow::OnlyEffects
-      && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
+  if(m_itemsToShow == ItemsToShow::OnlyEffects
+     && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
     return;
 
   // The reason for this loop sucks a bit.
@@ -144,25 +138,26 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
   // which is called as a response of the nano signal processes.mutable_added.connect<>...
   // But NodalIntervalView adds itself to the callback list: this means that
   // after creation which already creates a node for the process, we get the item duplicated here.
-  for (auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
+  for(auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
   {
-    if (&(*it)->model() == &proc)
+    if(&(*it)->model() == &proc)
     {
       return;
     }
   }
 
-  auto item = new Process::NodeItem{proc, m_context, m_model.duration.defaultDuration(), m_container};
+  auto item = new Process::NodeItem{
+      proc, m_context, m_model.duration.defaultDuration(), m_container};
   m_nodeItems.push_back(item);
 }
 
 void NodalIntervalView::on_processRemoving(const Process::ProcessModel& model)
 {
-  for (auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
+  for(auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
   {
-    if (&(*it)->model() == &model)
+    if(&(*it)->model() == &model)
     {
-      delete (*it);
+      delete(*it);
       m_nodeItems.erase(it);
       return;
     }
@@ -173,7 +168,7 @@ void NodalIntervalView::on_zoomRatioChanged(ZoomRatio ratio)
 {
   // TODO should be "on model duration changed"
   const TimeVal r = m_model.duration.defaultDuration();
-  for (Process::NodeItem* node : m_nodeItems)
+  for(Process::NodeItem* node : m_nodeItems)
   {
     node->setParentDuration(r);
   }
@@ -181,22 +176,22 @@ void NodalIntervalView::on_zoomRatioChanged(ZoomRatio ratio)
 
 QRectF NodalIntervalView::enclosingRect() const noexcept
 {
-  if (m_nodeItems.empty())
+  if(m_nodeItems.empty())
     return QRectF{-100., -100., 200., 200.};
   double x0{std::numeric_limits<double>::max()}, y0{x0},
       x1{std::numeric_limits<double>::lowest()}, y1{x1};
 
-  for (QGraphicsItem* item : m_nodeItems)
+  for(QGraphicsItem* item : m_nodeItems)
   {
     const auto pos = item->pos();
     const auto r = item->boundingRect();
-    if (x0 > pos.x())
+    if(x0 > pos.x())
       x0 = pos.x();
-    if (y0 > pos.y())
+    if(y0 > pos.y())
       y0 = pos.y();
-    if (x1 < pos.x() + r.width())
+    if(x1 < pos.x() + r.width())
       x1 = pos.x() + r.width();
-    if (y1 < pos.y() + r.height())
+    if(y1 < pos.y() + r.height())
       y1 = pos.y() + r.height();
   }
 

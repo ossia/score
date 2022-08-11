@@ -13,24 +13,22 @@ struct EntityMapSerializer
   static void readFrom(DataStream::Serializer& s, const T& obj)
   {
     s.m_stream << (int32_t)obj.size();
-    for (const auto& child : obj)
+    for(const auto& child : obj)
       s.readFrom(child);
   }
 
   template <typename List, typename T>
   static void writeTo(
-      DataStream::Deserializer& s,
-      T& obj,
-      const score::DocumentContext& ctx,
+      DataStream::Deserializer& s, T& obj, const score::DocumentContext& ctx,
       QObject* parent)
   {
     int32_t sz;
     s.m_stream >> sz;
     auto& pl = s.components.template interfaces<List>();
-    for (; sz-- > 0;)
+    for(; sz-- > 0;)
     {
       auto proc = deserialize_interface(pl, s, ctx, parent);
-      if (proc)
+      if(proc)
         obj.add(proc);
       else
         SCORE_TODO;
@@ -41,25 +39,23 @@ struct EntityMapSerializer
   static void readFrom(JSONObject::Serializer& s, const T& vec)
   {
     s.stream.StartArray();
-    for (const auto& elt : vec)
+    for(const auto& elt : vec)
       s.readFrom(elt);
     s.stream.EndArray();
   }
   template <typename List, typename T>
   static void writeTo(
-      JSONObject::Deserializer&& s,
-      T& obj,
-      const score::DocumentContext& ctx,
+      JSONObject::Deserializer&& s, T& obj, const score::DocumentContext& ctx,
       QObject* parent)
   {
     auto& pl = s.components.interfaces<List>();
 
     const auto& array = s.base.GetArray();
-    for (const auto& json_vref : array)
+    for(const auto& json_vref : array)
     {
       JSONObject::Deserializer deserializer{json_vref};
       auto proc = deserialize_interface(pl, deserializer, ctx, parent);
-      if (proc)
+      if(proc)
         obj.add(proc);
       else
         SCORE_TODO;

@@ -5,9 +5,11 @@
 #include "WSProtocolFactory.hpp"
 #include "WSSpecificSettings.hpp"
 
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <Process/Script/ScriptWidget.hpp>
 
 #include <score/tools/Debug.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -37,9 +39,7 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
   checkForChanges(m_codeEdit);
 
   connect(
-      static_cast<QCodeEditor*>(m_codeEdit),
-      &QCodeEditor::editingFinished,
-      this,
+      static_cast<QCodeEditor*>(m_codeEdit), &QCodeEditor::editingFinished, this,
       &WSProtocolSettingsWidget::parseHost);
 
   auto layout = new QGridLayout;
@@ -69,30 +69,24 @@ void WSProtocolSettingsWidget::parseHost()
 {
   auto engine = new QQmlEngine;
   auto comp = new QQmlComponent{engine};
-  connect(
-      comp,
-      &QQmlComponent::statusChanged,
-      this,
-      [=](QQmlComponent::Status status) {
-        switch (status)
+  connect(comp, &QQmlComponent::statusChanged, this, [=](QQmlComponent::Status status) {
+    switch(status)
+    {
+      case QQmlComponent::Status::Ready: {
+        auto object = comp->create();
+        if(auto prop = object->property("host").toString(); !prop.isEmpty())
         {
-          case QQmlComponent::Status::Ready:
-          {
-            auto object = comp->create();
-            if (auto prop = object->property("host").toString();
-                !prop.isEmpty())
-            {
-              m_addressNameEdit->setText(prop);
-            }
-            object->deleteLater();
-            break;
-          }
-          default:
-            qDebug() << status << comp->errorString();
+          m_addressNameEdit->setText(prop);
         }
-        comp->deleteLater();
-        engine->deleteLater();
-      });
+        object->deleteLater();
+        break;
+      }
+      default:
+        qDebug() << status << comp->errorString();
+    }
+    comp->deleteLater();
+    engine->deleteLater();
+  });
 
   comp->setData(m_codeEdit->document()->toPlainText().toUtf8(), QUrl{});
 }
@@ -113,17 +107,16 @@ Device::DeviceSettings WSProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void WSProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void WSProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   WSSpecificSettings specific;
-  if (settings.deviceSpecificSettings.canConvert<WSSpecificSettings>())
+  if(settings.deviceSpecificSettings.canConvert<WSSpecificSettings>())
   {
     specific = settings.deviceSpecificSettings.value<WSSpecificSettings>();
 
     m_addressNameEdit->setText(specific.address);
-    if (specific.text != m_codeEdit->toPlainText())
+    if(specific.text != m_codeEdit->toPlainText())
     {
       m_codeEdit->setPlainText(specific.text);
       parseHost();

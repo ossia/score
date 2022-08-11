@@ -1,5 +1,6 @@
 #include "score_plugin_gfx.hpp"
 
+#include <Dataflow/WidgetInletFactory.hpp>
 #include <Gfx/CameraDevice.hpp>
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Executor.hpp>
@@ -9,26 +10,23 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/Images/Executor.hpp>
+#include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Layer.hpp>
 #include <Gfx/Images/Process.hpp>
+#include <Gfx/Settings/Factory.hpp>
+#include <Gfx/SharedInputSettings.hpp>
+#include <Gfx/SharedOutputSettings.hpp>
 #include <Gfx/Text/Executor.hpp>
 #include <Gfx/Text/Layer.hpp>
 #include <Gfx/Text/Process.hpp>
-#include <Gfx/Settings/Factory.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/Video/Executor.hpp>
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
 #include <Gfx/Video/Process.hpp>
 #include <Gfx/WindowDevice.hpp>
-#include <Gfx/Images/ImageListChooser.hpp>
-
-#include <Dataflow/WidgetInletFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
-
-#include <Gfx/SharedInputSettings.hpp>
-#include <Gfx/SharedOutputSettings.hpp>
 
 #if defined(SCORE_HAS_SHMDATA)
 #include <Gfx/Shmdata/ShmdataInputDevice.hpp>
@@ -67,47 +65,38 @@ score_plugin_gfx::score_plugin_gfx()
   qRegisterMetaTypeStreamOperators<Gfx::Kinect2Settings>();
 #endif
 #endif
-
 }
 
 score_plugin_gfx::~score_plugin_gfx() { }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory,
-         Gfx::WindowProtocolFactory,
-         Gfx::CameraProtocolFactory
+      FW<Device::ProtocolFactory, Gfx::WindowProtocolFactory, Gfx::CameraProtocolFactory
 #if defined(SCORE_HAS_SHMDATA)
-         , Gfx::Shmdata::InputFactory
-         , Gfx::ShmdataOutputProtocolFactory
+         ,
+         Gfx::Shmdata::InputFactory, Gfx::ShmdataOutputProtocolFactory
 #endif
 #if defined(HAS_SPOUT)
-         , Gfx::Spout::InputFactory
-         , Gfx::SpoutProtocolFactory
+         ,
+         Gfx::Spout::InputFactory, Gfx::SpoutProtocolFactory
 #endif
 #if defined(HAS_SYPHON)
-         , Gfx::Syphon::InputFactory
-         , Gfx::SyphonProtocolFactory
+         ,
+         Gfx::Syphon::InputFactory, Gfx::SyphonProtocolFactory
 #endif
 #if defined(HAS_FREENECT2)
          ,
          Gfx::Kinect2ProtocolFactory
 #endif
          >,
-      FW<Process::ProcessModelFactory,
-         Gfx::Filter::ProcessFactory,
-         Gfx::Video::ProcessFactory,
-         Gfx::Text::ProcessFactory,
+      FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
+         Gfx::Video::ProcessFactory, Gfx::Text::ProcessFactory,
          Gfx::Images::ProcessFactory>,
-      FW<Process::LayerFactory,
-         Gfx::Filter::LayerFactory,
-         Gfx::Video::LayerFactory,
-         Gfx::Text::LayerFactory,
-         Gfx::Images::LayerFactory>,
+      FW<Process::LayerFactory, Gfx::Filter::LayerFactory, Gfx::Video::LayerFactory,
+         Gfx::Text::LayerFactory, Gfx::Images::LayerFactory>,
       FW<Execution::ProcessComponentFactory,
          Gfx::Filter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
@@ -115,28 +104,23 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
          Gfx::Images::ProcessExecutorComponentFactory>,
       FW<Inspector::InspectorWidgetFactory, Gfx::Video::InspectorFactory>,
       FW<Process::PortFactory,
-         Dataflow::WidgetInletFactory<Gfx::Images::ImageListChooser, WidgetFactory::ImageListChooserItems>,
-         Gfx::TextureInletFactory,
-         Gfx::TextureOutletFactory>,
-      FW<Process::ProcessDropHandler,
-         Gfx::Filter::DropHandler,
-         Gfx::Video::DropHandler,
+         Dataflow::WidgetInletFactory<
+             Gfx::Images::ImageListChooser, WidgetFactory::ImageListChooserItems>,
+         Gfx::TextureInletFactory, Gfx::TextureOutletFactory>,
+      FW<Process::ProcessDropHandler, Gfx::Filter::DropHandler, Gfx::Video::DropHandler,
          Gfx::Images::DropHandler>,
-      FW<Library::LibraryInterface,
-         Gfx::Filter::LibraryHandler,
-         Gfx::Video::LibraryHandler,
-         Gfx::Images::LibraryHandler>,
+      FW<Library::LibraryInterface, Gfx::Filter::LibraryHandler,
+         Gfx::Video::LibraryHandler, Gfx::Images::LibraryHandler>,
       FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>>(ctx, key);
 }
 
-score::GUIApplicationPlugin* score_plugin_gfx::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_gfx::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Gfx::ApplicationPlugin{app};
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_gfx::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_gfx::make_commands()
 {
   using namespace Gfx;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

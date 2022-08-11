@@ -56,7 +56,7 @@ void Remove::deserializeImpl(DataStreamOutput& d)
   QByteArray cmd_data;
   d >> m_device >> cmd_data;
 
-  if (m_device)
+  if(m_device)
   {
     m_cmd = new LoadDevice;
   }

@@ -31,13 +31,9 @@ public:
 
 private:
   void disableListening_rec(
-      const Device::Node& node,
-      Device::DeviceInterface&,
-      ListeningHandler& lm);
+      const Device::Node& node, Device::DeviceInterface&, ListeningHandler& lm);
   void enableListening_rec(
-      const QModelIndex& index,
-      Device::DeviceInterface&,
-      ListeningHandler& lm);
+      const QModelIndex& index, Device::DeviceInterface&, ListeningHandler& lm);
 
   Device::DeviceInterface& deviceFromNode(const Device::Node&);
   Device::DeviceInterface& deviceFromProxyModelIndex(const QModelIndex&);

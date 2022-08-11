@@ -10,16 +10,13 @@ Mesh::~Mesh() { }
 PlainMesh::PlainMesh(tcb::span<const float> vtx, int count)
 {
   vertexInputBindings.push_back({2 * sizeof(float)});
-  vertexAttributeBindings.push_back(
-      {0, 0, QRhiVertexInputAttribute::Float2, 0});
+  vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
   vertexArray = vtx;
   vertexCount = count;
 }
 
 void PlainMesh::setupBindings(
-    QRhiBuffer& vtxData,
-    QRhiBuffer* idxData,
-    QRhiCommandBuffer& cb) const noexcept
+    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
 
@@ -49,10 +46,8 @@ TexturedMesh::TexturedMesh(tcb::span<const float> vtx, int count)
 {
   vertexInputBindings.push_back({2 * sizeof(float)});
   vertexInputBindings.push_back({2 * sizeof(float)});
-  vertexAttributeBindings.push_back(
-      {0, 0, QRhiVertexInputAttribute::Float2, 0});
-  vertexAttributeBindings.push_back(
-      {1, 1, QRhiVertexInputAttribute::Float2, 0});
+  vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
+  vertexAttributeBindings.push_back({1, 1, QRhiVertexInputAttribute::Float2, 0});
   vertexArray = vtx;
   vertexCount = count;
 }
@@ -81,14 +76,11 @@ void main()
 }
 
 TextureNormalMesh::TextureNormalMesh(
-    tcb::span<const float> vtx,
-    tcb::span<const unsigned int> idx,
-    int count)
+    tcb::span<const float> vtx, tcb::span<const unsigned int> idx, int count)
 {
   vertexInputBindings.push_back({8 * sizeof(float)});
   // int binding, int location, Format format, quint32 offset
-  vertexAttributeBindings.push_back(
-      {0, 0, QRhiVertexInputAttribute::Float3, 0});
+  vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float3, 0});
   vertexAttributeBindings.push_back(
       {0, 1, QRhiVertexInputAttribute::Float3, 3 * sizeof(float)});
   vertexAttributeBindings.push_back(
@@ -100,14 +92,11 @@ TextureNormalMesh::TextureNormalMesh(
 }
 
 void TextureNormalMesh::setupBindings(
-    QRhiBuffer& vtxData,
-    QRhiBuffer* idxData,
-    QRhiCommandBuffer& cb) const noexcept
+    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
 
-  cb.setVertexInput(
-      0, 1, bindings, idxData, 0, QRhiCommandBuffer::IndexUInt32);
+  cb.setVertexInput(0, 1, bindings, idxData, 0, QRhiCommandBuffer::IndexUInt32);
 }
 
 const char* TextureNormalMesh::defaultVertexShader() const noexcept
@@ -179,13 +168,10 @@ TexturedTriangle::TexturedTriangle(bool flipped)
 }
 
 void TexturedTriangle::setupBindings(
-    QRhiBuffer& vtxData,
-    QRhiBuffer* idxData,
-    QRhiCommandBuffer& cb) const noexcept
+    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[]
-      = {{&vtxData, 0},
-         {&vtxData, 3 * 2 * sizeof(float)}};
+      = {{&vtxData, 0}, {&vtxData, 3 * 2 * sizeof(float)}};
 
   cb.setVertexInput(0, 2, bindings);
 }
@@ -196,13 +182,10 @@ TexturedQuad::TexturedQuad(bool flipped)
 }
 
 void TexturedQuad::setupBindings(
-    QRhiBuffer& vtxData,
-    QRhiBuffer* idxData,
-    QRhiCommandBuffer& cb) const noexcept
+    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[]
-      = {{&vtxData, 0},
-         {&vtxData, 4 * 2 * sizeof(float)}};
+      = {{&vtxData, 0}, {&vtxData, 4 * 2 * sizeof(float)}};
 
   cb.setVertexInput(0, 2, bindings);
 }

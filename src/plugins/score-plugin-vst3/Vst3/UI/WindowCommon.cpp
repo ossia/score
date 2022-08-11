@@ -5,21 +5,18 @@
 namespace vst3
 {
 Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
-  : QDialog{parent}
-  , m_model{e}
+    : QDialog{parent}
+    , m_model{e}
 {
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   container = createVstWindowContainer(*this, e, ctx);
 
-  bool ontop = score::AppContext()
-      .settings<Media::Settings::Model>()
-      .getVstAlwaysOnTop();
-  if (ontop)
+  bool ontop
+      = score::AppContext().settings<Media::Settings::Model>().getVstAlwaysOnTop();
+  if(ontop)
   {
-    setWindowFlags(
-          windowFlags() | Qt::WindowStaysOnTopHint
-          | Qt::WindowCloseButtonHint);
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
   }
   else
   {
@@ -49,14 +46,14 @@ void Window::resizeEvent(QResizeEvent* event)
 void Window::closeEvent(QCloseEvent* event)
 {
   QPointer<Window> p(this);
-  if (auto view = m_model.fx.view)
+  if(auto view = m_model.fx.view)
     view->removed();
   delete container.frame;
   container.frame = nullptr;
 
   const_cast<QWidget*&>(m_model.externalUI) = nullptr;
   m_model.externalUIVisible(false);
-  if (p)
+  if(p)
     QDialog::closeEvent(event);
 }
 }

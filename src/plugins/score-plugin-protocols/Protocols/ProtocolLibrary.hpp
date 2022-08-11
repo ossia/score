@@ -3,9 +3,11 @@
 #include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Loading/TouchOSCDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
+
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp>
+
 #include <Library/LibraryInterface.hpp>
 #include <Protocols/Mapper/MapperDevice.hpp>
 
@@ -62,18 +64,14 @@ class OSCLibraryHandler final : public Library::LibraryInterface
     return {"touchosc", "json", "xml", "device"};
   }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
-      override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     Device::Node n{Device::DeviceSettings{}, nullptr};
-    bool ok = (path.endsWith(".touchosc")
-               && Device::loadDeviceFromTouchOSC(path, n))
-              || (path.endsWith(".json")
-                  && Device::loadDeviceFromScoreJSON(path, n))
+    bool ok = (path.endsWith(".touchosc") && Device::loadDeviceFromTouchOSC(path, n))
+              || (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
               || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
-              || (path.endsWith(".device")
-                  && Device::loadDeviceFromScoreJSON(path, n));
-    if (!ok)
+              || (path.endsWith(".device") && Device::loadDeviceFromScoreJSON(path, n));
+    if(!ok)
       return false;
 
     auto& devplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
@@ -98,11 +96,10 @@ class QMLLibraryHandler final : public Library::LibraryInterface
 
   QSet<QString> acceptedFiles() const noexcept override { return {"qml"}; }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
-      override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     QFile f(path);
-    if (!f.open(QIODevice::ReadOnly))
+    if(!f.open(QIODevice::ReadOnly))
       return true;
     auto content = f.readAll();
 
@@ -112,28 +109,28 @@ class QMLLibraryHandler final : public Library::LibraryInterface
 
     std::unique_ptr<QObject> obj{c.create()};
 
-    if (!obj)
+    if(!obj)
       return true;
 
     Device::DeviceSettings set;
     set.name = QFileInfo(f).baseName();
 
-    if (dynamic_cast<Protocols::Mapper*>(obj.get()))
+    if(dynamic_cast<Protocols::Mapper*>(obj.get()))
     {
       set.protocol = Protocols::MapperProtocolFactory::static_concreteKey();
       set.deviceSpecificSettings
           = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
     }
 #if defined(OSSIA_PROTOCOL_SERIAL)
-    else if (dynamic_cast<ossia::net::Serial*>(obj.get()))
+    else if(dynamic_cast<ossia::net::Serial*>(obj.get()))
     {
       set.protocol = Protocols::SerialProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(
-          Protocols::SerialSpecificSettings{{}, content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::SerialSpecificSettings{{}, content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
-    else if (dynamic_cast<ossia::net::HTTP*>(obj.get()))
+    else if(dynamic_cast<ossia::net::HTTP*>(obj.get()))
     {
       set.protocol = Protocols::HTTPProtocolFactory::static_concreteKey();
       set.deviceSpecificSettings
@@ -141,16 +138,15 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     }
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
-    else if (dynamic_cast<ossia::net::WS*>(obj.get()))
+    else if(dynamic_cast<ossia::net::WS*>(obj.get()))
     {
       set.protocol = Protocols::WSProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings
-          = QVariant::fromValue(Protocols::WSSpecificSettings{
-              QQmlProperty(obj.get(), "host").read().toString(), content});
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::WSSpecificSettings{
+          QQmlProperty(obj.get(), "host").read().toString(), content});
     }
 #endif
 
-    if (set.protocol == UuidKey<Device::ProtocolFactory>{})
+    if(set.protocol == UuidKey<Device::ProtocolFactory>{})
       return false;
 
     auto& devplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();

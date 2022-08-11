@@ -1,18 +1,21 @@
 #pragma once
+#include <Process/ExecutionContext.hpp>
+
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Media/MediaFileHandle.hpp>
-#include <Process/ExecutionContext.hpp>
 
+#include <score/tools/ThreadPool.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Pixmap.hpp>
 
-#include <ossia-qt/invoke.hpp>
 #include <ossia/audio/audio_protocol.hpp>
-#include <score/tools/ThreadPool.hpp>
+
+#include <ossia-qt/invoke.hpp>
+
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -41,8 +44,8 @@ public:
     lay->addWidget(&m_playstop);
     lay->addWidget(&m_name);
     m_name.setText(QFileInfo{path}.fileName());
-    m_reader.on_finishedDecoding
-        .connect<&AudioPreviewWidget::on_finishedDecoding>(*this);
+    m_reader.on_finishedDecoding.connect<&AudioPreviewWidget::on_finishedDecoding>(
+        *this);
     m_reader.load(path, path, DecodingMethod::Libav);
 
     m_playPixmap = score::get_pixmap(":/icons/play_off.png");
@@ -54,7 +57,7 @@ public:
     m_playstop.setMaximumWidth(24);
 
     connect(&m_playstop, &QPushButton::clicked, this, [&]() {
-      if (!m_autoPlay)
+      if(!m_autoPlay)
       {
         setAutoPlay(true);
         startPlayback();
@@ -69,7 +72,7 @@ public:
 
   void on_finishedDecoding()
   {
-    if (m_autoPlay)
+    if(m_autoPlay)
     {
       m_playstop.setChecked(false);
       startPlayback();
@@ -79,7 +82,7 @@ public:
   bool autoPlay() const noexcept { return m_autoPlay; }
   void setAutoPlay(bool b)
   {
-    if (b != m_autoPlay)
+    if(b != m_autoPlay)
     {
       m_autoPlay = b;
     }
@@ -94,8 +97,7 @@ public:
     auto reader = m_reader.unsafe_handle().target<AudioFile::libav_ptr>();
     SCORE_ASSERT(reader);
     SCORE_ASSERT((*reader)->handle);
-    inst.queue.enqueue(
-        {(*reader)->handle, (int)m_reader.channels(), (int)rate});
+    inst.queue.enqueue({(*reader)->handle, (int)m_reader.channels(), (int)rate});
 
     m_playstop.setIcon(m_stopPixmap);
   }
@@ -123,11 +125,11 @@ class LibraryHandler final : public Library::LibraryInterface
 
   QSet<QString> acceptedFiles() const noexcept override
   {
-    return {"wav", "mp3", "m4a", "ogg", "flac", "aif", "aiff", "w64", "ape", "wv", "wma"};
+    return {"wav",  "mp3", "m4a", "ogg", "flac", "aif",
+            "aiff", "w64", "ape", "wv",  "wma"};
   }
 
-  QWidget*
-  previewWidget(const QString& path, QWidget* parent) const noexcept override
+  QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override
   {
     return new AudioPreviewWidget{path, parent};
   }

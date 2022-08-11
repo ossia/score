@@ -23,13 +23,11 @@ class IntervalModel;
 
 std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
     const Scenario::IntervalModel& interval,
-    const Device::FullAddressAccessorSettings& as,
-    Scenario::Command::Macro& m);
+    const Device::FullAddressAccessorSettings& as, Scenario::Command::Macro& m);
 
 std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
     const Scenario::IntervalModel& interval,
-    const std::vector<Device::FullAddressSettings>& a,
-    Scenario::Command::Macro& m);
+    const std::vector<Device::FullAddressSettings>& a, Scenario::Command::Macro& m);
 
 void CreateCurves(
     const std::vector<const Scenario::IntervalModel*>& selected_intervals,

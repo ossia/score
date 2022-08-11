@@ -34,7 +34,8 @@ class CommandBackupFile final : public QObject
 {
 public:
   CommandBackupFile(const score::CommandStack& stack, QObject* parent);
-  CommandBackupFile(const score::CommandStack& stack, const QByteArray& restored, QObject* parent);
+  CommandBackupFile(
+      const score::CommandStack& stack, const QByteArray& restored, QObject* parent);
   QString fileName() const;
 
 private:

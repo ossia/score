@@ -5,10 +5,10 @@
 
 #include <score/plugins/UuidKey.hpp>
 
-#include <ossia/detail/span.hpp>
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/tick_policies.hpp>
+#include <ossia/detail/span.hpp>
 
 #include <boost/container/vector.hpp>
 
@@ -21,6 +21,7 @@
 #include <avnd/concepts/parameter.hpp>
 #include <avnd/wrappers/metadatas.hpp>
 #include <avnd/wrappers/widgets.hpp>
+
 #include <cmath>
 
 #include <type_traits>
@@ -48,11 +49,11 @@ namespace oscr
 template <typename N>
 consteval score::uuid_t uuid_from_string()
 {
-  if constexpr (requires {
-                  {
-                    N::uuid()
-                    } -> std::convertible_to<score::uuid_t>;
-                })
+  if constexpr(requires {
+                 {
+                   N::uuid()
+                   } -> std::convertible_to<score::uuid_t>;
+               })
   {
     return N::uuid();
   }
@@ -93,11 +94,7 @@ struct CustomFloatControl : public Process::ControlInlet
   }
 
   CustomFloatControl(
-      float min,
-      float max,
-      float init,
-      const QString& name,
-      Id<Process::Port> id,
+      float min, float max, float init, const QString& name, Id<Process::Port> id,
       QObject* parent)
       : ControlInlet{id, parent}
   {
@@ -156,7 +153,7 @@ constexpr auto to_const_char_array(const T (&val)[N])
   using value_type = std::decay_t<decltype(T::second)>;
 
   std::array<std::pair<const char*, value_type>, N> choices_cstr;
-  for (int i = 0; i < N; i++)
+  for(int i = 0; i < N; i++)
   {
     choices_cstr[i].first = val[i].first.data();
     choices_cstr[i].second = val[i].second;
@@ -168,7 +165,7 @@ constexpr auto
 to_const_char_array(const std::array<std::pair<std::string_view, T>, N>& val)
 {
   std::array<const char*, N> choices_cstr;
-  for (int i = 0; i < N; i++)
+  for(int i = 0; i < N; i++)
     choices_cstr[i] = val[i].data();
   return choices_cstr;
 }
@@ -176,7 +173,7 @@ template <std::size_t N>
 constexpr auto to_const_char_array(const std::string_view (&val)[N])
 {
   std::array<const char*, N> choices_cstr;
-  for (int i = 0; i < N; i++)
+  for(int i = 0; i < N; i++)
     choices_cstr[i] = val[i].data();
   return choices_cstr;
 }
@@ -184,7 +181,7 @@ template <std::size_t N>
 constexpr auto to_const_char_array(const std::array<std::string_view, N>& val)
 {
   std::array<const char*, N> choices_cstr;
-  for (int i = 0; i < N; i++)
+  for(int i = 0; i < N; i++)
     choices_cstr[i] = val[i].data();
   return choices_cstr;
 }
@@ -192,7 +189,7 @@ constexpr auto to_const_char_array(const std::array<std::string_view, N>& val)
 std::vector<std::pair<QString, ossia::value>> to_combobox_range(const auto& in)
 {
   std::vector<std::pair<QString, ossia::value>> vec;
-  for (auto& v : to_const_char_array(in))
+  for(auto& v : to_const_char_array(in))
     vec.emplace_back(v.first, v.second);
   return vec;
 }
@@ -200,7 +197,7 @@ std::vector<std::pair<QString, ossia::value>> to_combobox_range(const auto& in)
 std::vector<std::string> to_enum_range(const auto& in)
 {
   std::vector<std::string> vec;
-  for (auto& v : to_const_char_array(in))
+  for(auto& v : to_const_char_array(in))
     vec.emplace_back(v);
   return vec;
 }
@@ -216,18 +213,18 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
 
   // FIXME log normalization & friends
 
-  if constexpr (widg.widget == avnd::widget_type::bang)
+  if constexpr(widg.widget == avnd::widget_type::bang)
   {
     return new Process::ImpulseButton{qname, id, parent};
   }
-  else if constexpr (widg.widget == avnd::widget_type::button)
+  else if constexpr(widg.widget == avnd::widget_type::button)
   {
     return new Process::Button{qname, id, parent};
   }
-  else if constexpr (widg.widget == avnd::widget_type::toggle)
+  else if constexpr(widg.widget == avnd::widget_type::toggle)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr (requires { c.values(); })
+    if constexpr(requires { c.values(); })
     {
       return new Process::ChooserToggle{
           {c.values[0], c.values[1]}, c.init, qname, id, parent};
@@ -237,19 +234,19 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       return new Process::Toggle{c.init, qname, id, parent};
     }
   }
-  else if constexpr (widg.widget == avnd::widget_type::slider)
+  else if constexpr(widg.widget == avnd::widget_type::slider)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr (std::is_integral_v<value_type>)
+    if constexpr(std::is_integral_v<value_type>)
     {
       return new Process::IntSlider{c.min, c.max, c.init, qname, id, parent};
     }
     else
     {
-      if constexpr (avnd::has_mapper<T>)
+      if constexpr(avnd::has_mapper<T>)
       {
-        return new CustomFloatControl<Node, avnd::field_index<N>>{
-            c.min, c.max, c.init, qname, id, parent};
+        return new CustomFloatControl<Node, avnd::field_index<N>>{c.min, c.max, c.init,
+                                                                  qname, id,    parent};
       }
       else
       {
@@ -257,15 +254,15 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       }
     }
   }
-  else if constexpr (widg.widget == avnd::widget_type::range)
+  else if constexpr(widg.widget == avnd::widget_type::range)
   {
     constexpr auto c = avnd::get_range<T>();
     return nullptr; // TODO
   }
-  else if constexpr (widg.widget == avnd::widget_type::spinbox)
+  else if constexpr(widg.widget == avnd::widget_type::spinbox)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr (std::is_integral_v<value_type>)
+    if constexpr(std::is_integral_v<value_type>)
     {
       return new Process::IntSpinBox{c.min, c.max, c.init, qname, id, parent};
     }
@@ -275,20 +272,20 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       return new Process::FloatSlider{c.min, c.max, c.init, qname, id, parent};
     }
   }
-  else if constexpr (widg.widget == avnd::widget_type::knob)
+  else if constexpr(widg.widget == avnd::widget_type::knob)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr (std::is_integral_v<value_type>)
+    if constexpr(std::is_integral_v<value_type>)
     {
       // FIXME do a IntKnob
       return new Process::IntSlider{c.min, c.max, c.init, qname, id, parent};
     }
     else
     {
-      if constexpr (avnd::has_mapper<T>)
+      if constexpr(avnd::has_mapper<T>)
       {
-        return new CustomFloatControl<Node, avnd::field_index<N>>{
-            c.min, c.max, c.init, qname, id, parent};
+        return new CustomFloatControl<Node, avnd::field_index<N>>{c.min, c.max, c.init,
+                                                                  qname, id,    parent};
       }
       else
       {
@@ -296,31 +293,31 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       }
     }
   }
-  else if constexpr (widg.widget == avnd::widget_type::lineedit)
+  else if constexpr(widg.widget == avnd::widget_type::lineedit)
   {
     constexpr auto c = avnd::get_range<T>();
     return new Process::LineEdit{c.init.data(), qname, id, parent};
   }
-  else if constexpr (widg.widget == avnd::widget_type::combobox)
+  else if constexpr(widg.widget == avnd::widget_type::combobox)
   {
     constexpr auto c = avnd::get_range<T>();
     return new Process::ComboBox{to_combobox_range(c.values), c.init, qname, id, parent};
   }
-  else if constexpr (widg.widget == avnd::widget_type::choices)
+  else if constexpr(widg.widget == avnd::widget_type::choices)
   {
     constexpr auto c = avnd::get_range<T>();
     auto enums = to_enum_range(c.values);
     auto init = enums[c.init];
     return new Process::Enum{std::move(enums), {}, std::move(init), qname, id, parent};
   }
-  else if constexpr (widg.widget == avnd::widget_type::xy)
+  else if constexpr(widg.widget == avnd::widget_type::xy)
   {
     constexpr auto c = avnd::get_range<T>();
-    if constexpr (requires {
-                    c.min == 0.f;
-                    c.max == 0.f;
-                    c.init == 0.f;
-                  })
+    if constexpr(requires {
+                   c.min == 0.f;
+                   c.max == 0.f;
+                   c.init == 0.f;
+                 })
     {
       return new Process::XYSlider{
           {c.min, c.min}, {c.max, c.max}, {c.init, c.init}, qname, id, parent};
@@ -333,7 +330,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       return new Process::XYSlider{{mx, my}, {Mx, My}, {ix, iy}, qname, id, parent};
     }
   }
-  else if constexpr (widg.widget == avnd::widget_type::color)
+  else if constexpr(widg.widget == avnd::widget_type::color)
   {
     constexpr auto c = avnd::get_range<T>();
     constexpr auto i = c.init;
@@ -355,12 +352,12 @@ auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* par
 
   // FIXME log normalization & friends
 
-  if constexpr (widg.widget == avnd::widget_type::bargraph)
+  if constexpr(widg.widget == avnd::widget_type::bargraph)
   {
     constexpr auto c = avnd::get_range<T>();
     return new Process::Bargraph{c.min, c.max, c.init, qname, id, parent};
   }
-  else if constexpr (avnd::fp_ish<decltype(T::value)>)
+  else if constexpr(avnd::fp_ish<decltype(T::value)>)
   {
     constexpr auto c = avnd::get_range<T>();
     return new Process::Bargraph{c.min, c.max, c.init, qname, id, parent};
@@ -390,7 +387,7 @@ struct multichannel_audio_view
   {
     auto& chan = (*buffer)[i];
     int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
-    if (min_dur < 0)
+    if(min_dur < 0)
       min_dur = 0;
 
     return tcb::span<const double>{chan.data() + offset, std::size_t(min_dur)};
@@ -401,7 +398,7 @@ struct multichannel_audio_view
   void reserve(std::size_t channels, std::size_t bufferSize)
   {
     resize(channels);
-    for (auto& vec : *buffer)
+    for(auto& vec : *buffer)
       vec.reserve(bufferSize);
   }
 };
@@ -416,7 +413,7 @@ struct multichannel_audio
   {
     auto& chan = (*buffer)[i];
     int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
-    if (min_dur < 0)
+    if(min_dur < 0)
       min_dur = 0;
 
     return tcb::span<double>{chan.data() + offset, std::size_t(min_dur)};
@@ -426,14 +423,14 @@ struct multichannel_audio
   void resize(std::size_t channels, std::size_t samples_to_write) const noexcept
   {
     buffer->resize(channels);
-    for (auto& c : *buffer)
+    for(auto& c : *buffer)
       c.resize(offset + samples_to_write);
   }
 
   void reserve(std::size_t channels, std::size_t bufferSize)
   {
     buffer->resize(channels);
-    for (auto& c : *buffer)
+    for(auto& c : *buffer)
       c.reserve(bufferSize);
   }
 };

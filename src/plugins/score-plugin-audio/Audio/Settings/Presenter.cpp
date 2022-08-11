@@ -29,27 +29,27 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.setAutoStereo(m.getAutoStereo());
 
   con(v, &View::DriverChanged, this, [this, &m](auto val) {
-    if (val != m.getDriver())
+    if(val != m.getDriver())
     {
       m_disp.submit<SetModelDriver>(m, val);
       loadDriver(val);
     }
   });
   con(v, &View::AutoStereoChanged, this, [this, &m](auto val) {
-    if (val != m.getAutoStereo())
+    if(val != m.getAutoStereo())
     {
       m_disp.submitDeferredCommand<SetModelAutoStereo>(m, val);
     }
   });
 
   con(v, &View::BufferSizeChanged, this, [this, &m](auto val) {
-    if (val != m.getBufferSize())
+    if(val != m.getBufferSize())
     {
       m_disp.submitDeferredCommand<SetModelBufferSize>(m, val);
     }
   });
   con(v, &View::RateChanged, this, [this, &m](auto val) {
-    if (val != m.getRate())
+    if(val != m.getRate())
     {
       m_disp.submitDeferredCommand<SetModelRate>(m, val);
     }
@@ -87,7 +87,7 @@ void Presenter::loadDriver(const UuidKey<AudioFactory>& val)
   auto& m = this->model(this);
   auto& v = this->view(this);
 
-  if (factory)
+  if(factory)
   {
     auto widg = factory->make_settings(m, v, m_disp, nullptr);
     v.setDriverWidget(widg);

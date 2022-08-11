@@ -160,34 +160,26 @@ public:
 
   // TODO do the same for ids
   // TODO make it work only for upcasts
-  template <
-      typename U,
-      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
   Path(const Path<U>& other) noexcept
       : m_impl{other.m_impl.vec()}
   {
   }
 
-  template <
-      typename U,
-      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
   Path(Path<U>&& other) noexcept
       : m_impl{std::move(other.m_impl.vec())}
   {
   }
 
-  template <
-      typename U,
-      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
   Path& operator=(const Path<U>& other) noexcept
   {
     m_impl = other.m_impl;
     return *this;
   }
 
-  template <
-      typename U,
-      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
   Path& operator=(Path<U>&& other) noexcept
   {
     m_impl = std::move(other.m_impl);
@@ -207,7 +199,7 @@ public:
   }
   Object* try_find(const score::DocumentContext& ctx) const noexcept
   {
-    if (!valid())
+    if(!valid())
       return nullptr;
     return m_impl.try_find<Object>(ctx);
   }

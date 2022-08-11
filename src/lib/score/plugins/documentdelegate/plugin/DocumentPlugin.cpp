@@ -12,11 +12,9 @@ namespace score
 class Document;
 
 DocumentPlugin::DocumentPlugin(
-    const score::DocumentContext& ctx,
-    const QString& name,
-    QObject* parent)
-  : QObject{parent}
-  , m_context{ctx}
+    const score::DocumentContext& ctx, const QString& name, QObject* parent)
+    : QObject{parent}
+    , m_context{ctx}
 {
   setObjectName(name);
 }
@@ -30,9 +28,7 @@ DocumentPluginFactory::~DocumentPluginFactory() = default;
 DocumentPluginFactoryList::~DocumentPluginFactoryList() { }
 
 DocumentPluginFactoryList::object_type* DocumentPluginFactoryList::loadMissing(
-    const VisitorVariant& vis,
-    DocumentContext& doc,
-    QObject* parent) const
+    const VisitorVariant& vis, DocumentContext& doc, QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;

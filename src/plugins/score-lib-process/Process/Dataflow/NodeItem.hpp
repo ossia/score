@@ -35,9 +35,7 @@ class SCORE_LIB_PROCESS_EXPORT NodeItem
 {
 public:
   NodeItem(
-      const Process::ProcessModel& model,
-      const Process::Context& ctx,
-      TimeVal parentDur,
+      const Process::ProcessModel& model, const Process::Context& ctx, TimeVal parentDur,
       QGraphicsItem* parent);
   const Id<Process::ProcessModel>& id() const noexcept;
   ~NodeItem();
@@ -62,10 +60,8 @@ private:
   void setSize(QSizeF sz);
 
   bool isInSelectionCorner(QPointF f, QRectF r) const;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -91,8 +87,7 @@ private:
 
   double minimalContentWidth() const noexcept;
   double minimalContentHeight() const noexcept;
-  static void
-  paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
+  static void paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
 
   // Title
   QGraphicsItem* m_uiButton{};

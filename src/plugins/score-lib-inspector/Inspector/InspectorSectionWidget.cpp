@@ -19,8 +19,7 @@ MenuButton::MenuButton(QWidget* parent)
   setAutoRaise(true);
   setObjectName(QStringLiteral("SettingsMenu"));
   setIcon(makeIcons(
-      QStringLiteral(":/icons/gear_on.png"),
-      QStringLiteral(":/icons/gear_off.png"),
+      QStringLiteral(":/icons/gear_on.png"), QStringLiteral(":/icons/gear_off.png"),
       QStringLiteral(":/icons/gear_disabled.png")));
   setIconSize(QSize(16, 16));
 }
@@ -43,10 +42,9 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   m_buttonTitle.setText(QStringLiteral("section name"));
 
   m_sectionTitle.setObjectName("SectionTitle");
-  con(m_sectionTitle, &QLineEdit::editingFinished, this, [=]() {
-    nameChanged(m_sectionTitle.text());
-  });
-  if (editable)
+  con(m_sectionTitle, &QLineEdit::editingFinished, this,
+      [=]() { nameChanged(m_sectionTitle.text()); });
+  if(editable)
     m_buttonTitle.hide();
   else
     m_sectionTitle.hide();
@@ -69,12 +67,10 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // GENERAL
   m_generalLayout.addWidget(&m_title);
 
-  con(m_unfoldBtn, &QAbstractButton::released, this, [&] {
-    this->expand(!m_isUnfolded);
-  });
-  con(m_buttonTitle, &QAbstractButton::clicked, this, [&] {
-    this->expand(!m_isUnfolded);
-  });
+  con(m_unfoldBtn, &QAbstractButton::released, this,
+      [&] { this->expand(!m_isUnfolded); });
+  con(m_buttonTitle, &QAbstractButton::clicked, this,
+      [&] { this->expand(!m_isUnfolded); });
 
   // INIT
   m_isUnfolded = true;
@@ -82,9 +78,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
 }
 
 InspectorSectionWidget::InspectorSectionWidget(
-    QString name,
-    bool editable,
-    QWidget* parent)
+    QString name, bool editable, QWidget* parent)
     : InspectorSectionWidget(editable, parent)
 {
   renameSection(name);
@@ -100,18 +94,18 @@ QString InspectorSectionWidget::name() const
 
 void InspectorSectionWidget::expand(bool b)
 {
-  if (m_isUnfolded == b)
+  if(m_isUnfolded == b)
     return;
   else
     m_isUnfolded = b;
 
-  for (int i = m_generalLayout.count() - 1; i >= 1; i--)
+  for(int i = m_generalLayout.count() - 1; i >= 1; i--)
   {
-    if (auto widg = m_generalLayout.itemAt(i)->widget())
+    if(auto widg = m_generalLayout.itemAt(i)->widget())
       widg->setVisible(m_isUnfolded);
   }
 
-  if (m_isUnfolded)
+  if(m_isUnfolded)
   {
     m_unfoldBtn.setArrowType(Qt::DownArrow);
   }
@@ -140,9 +134,9 @@ void InspectorSectionWidget::removeContent(QWidget* toRemove)
 
 void InspectorSectionWidget::removeAll()
 {
-  while (QLayoutItem* item = m_generalLayout.takeAt(1))
+  while(QLayoutItem* item = m_generalLayout.takeAt(1))
   {
-    if (QWidget* wid = item->widget())
+    if(QWidget* wid = item->widget())
     {
       delete wid;
     }

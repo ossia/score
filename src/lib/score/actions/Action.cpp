@@ -37,7 +37,7 @@ StringKey<ActionCondition> ActionCondition::key() const
 
 void ActionCondition::setEnabled(ActionManager& mgr, bool b)
 {
-  for (auto& action : m_actions)
+  for(auto& action : m_actions)
   {
     auto& act = mgr.get().at(action);
     act.action()->setEnabled(b);
@@ -61,10 +61,7 @@ ActionGroupKey ActionGroup::key() const
 }
 
 Action::Action(
-    QAction* act,
-    QString text,
-    ActionKey key,
-    ActionGroupKey k,
+    QAction* act, QString text, ActionKey key, ActionGroupKey k,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
     , m_text{std::move(text)}
@@ -77,12 +74,8 @@ Action::Action(
   updateTexts();
 }
 Action::Action(
-    QAction* act,
-    QString text,
-    ActionKey key,
-    ActionGroupKey k,
-    const QKeySequence& defaultShortcut,
-    const QKeySequence& defaultShortcut2)
+    QAction* act, QString text, ActionKey key, ActionGroupKey k,
+    const QKeySequence& defaultShortcut, const QKeySequence& defaultShortcut2)
     : m_impl{act}
     , m_text{std::move(text)}
     , m_key{std::move(key)}
@@ -95,10 +88,7 @@ Action::Action(
 }
 
 Action::Action(
-    QAction* act,
-    QString text,
-    const char* key,
-    const char* group_key,
+    QAction* act, QString text, const char* key, const char* group_key,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
     , m_text{std::move(text)}
@@ -145,11 +135,11 @@ void Action::updateTexts()
   QString clearText = m_text;
   clearText.remove('&');
   clearText.append(QString(" (%1)").arg(m_impl->shortcut().toString()));
-  if (m_impl->toolTip().isEmpty())
+  if(m_impl->toolTip().isEmpty())
     m_impl->setToolTip(clearText);
-  if (m_impl->whatsThis().isEmpty())
+  if(m_impl->whatsThis().isEmpty())
     m_impl->setWhatsThis(clearText);
-  if (m_impl->statusTip().isEmpty())
+  if(m_impl->statusTip().isEmpty())
     m_impl->setStatusTip(clearText);
 }
 

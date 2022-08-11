@@ -5,6 +5,9 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -14,9 +17,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/MapCopy.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-
 namespace Scenario
 {
 namespace Command
@@ -25,11 +25,11 @@ ClearInterval::ClearInterval(const IntervalModel& interval)
     : m_intervalSaveData{interval, true}
 {
   QObjectList l;
-  for (auto& proc : interval.processes)
+  for(auto& proc : interval.processes)
     l.push_back(&proc);
 
-  m_cables = Dataflow::saveCables(
-      std::move(l), score::IDocument::documentContext(interval));
+  m_cables
+      = Dataflow::saveCables(std::move(l), score::IDocument::documentContext(interval));
 }
 
 void ClearInterval::undo(const score::DocumentContext& ctx) const
@@ -50,7 +50,7 @@ void ClearInterval::redo(const score::DocumentContext& ctx) const
   // We make copies since the iterators might change.
   // TODO check if this is still valid wrt boost::multi_index
   auto processes = shallow_copy(interval.processes);
-  for (auto process : processes)
+  for(auto process : processes)
   {
     RemoveProcess(interval, process->id());
   }

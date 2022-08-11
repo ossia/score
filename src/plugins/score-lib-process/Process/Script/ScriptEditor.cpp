@@ -14,9 +14,7 @@
 namespace Process
 {
 ScriptDialog::ScriptDialog(
-    const std::string_view language,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    const std::string_view language, const score::DocumentContext& ctx, QWidget* parent)
     : QDialog{parent}
     , m_context{ctx}
 {
@@ -37,14 +35,12 @@ ScriptDialog::ScriptDialog(
   lay->setStretch(0, 3);
   lay->setStretch(1, 1);
   auto bbox = new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close,
-      this};
+      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
-  connect(
-      bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
-        m_error->clear();
-      });
+  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
+    m_error->clear();
+  });
   lay->addWidget(bbox);
 
   auto ce = qobject_cast<QCodeEditor*>(m_textedit);
@@ -52,9 +48,7 @@ ScriptDialog::ScriptDialog(
   connect(bbox, &QDialogButtonBox::accepted, this, &ScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(
-      bbox->button(QDialogButtonBox::Close),
-      &QPushButton::clicked,
-      this,
+      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
 }
 
@@ -65,7 +59,7 @@ QString ScriptDialog::text() const noexcept
 
 void ScriptDialog::setText(const QString& str)
 {
-  if (str != text())
+  if(str != text())
   {
     m_textedit->setPlainText(str);
   }
@@ -76,9 +70,7 @@ void ScriptDialog::setError(int line, const QString& str)
   m_error->setPlainText(str);
 }
 
-MultiScriptDialog::MultiScriptDialog(
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
     : QDialog{parent}
     , m_context{ctx}
 {
@@ -98,35 +90,25 @@ MultiScriptDialog::MultiScriptDialog(
   lay->addWidget(m_error);
 
   auto bbox = new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close,
-      this};
+      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
 
   lay->addWidget(bbox);
 
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
-  connect(
-      bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
-        m_error->clear();
-      });
+  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
+    m_error->clear();
+  });
 
-  connect(
-      bbox,
-      &QDialogButtonBox::accepted,
-      this,
-      &MultiScriptDialog::on_accepted);
+  connect(bbox, &QDialogButtonBox::accepted, this, &MultiScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(
-      bbox->button(QDialogButtonBox::Close),
-      &QPushButton::clicked,
-      this,
+      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
 }
 
 void MultiScriptDialog::addTab(
-    const QString& name,
-    const QString& text,
-    const std::string_view language)
+    const QString& name, const QString& text, const std::string_view language)
 {
   auto textedit = createScriptWidget(language);
   textedit->setText(text);
@@ -141,7 +123,7 @@ std::vector<QString> MultiScriptDialog::text() const noexcept
 {
   std::vector<QString> vec;
   vec.reserve(m_editors.size());
-  for (const auto& tab : m_editors)
+  for(const auto& tab : m_editors)
     vec.push_back(tab.textedit->document()->toPlainText());
   return vec;
 }
@@ -152,7 +134,7 @@ void MultiScriptDialog::setText(int idx, const QString& str)
   SCORE_ASSERT(std::size_t(idx) < m_editors.size());
 
   auto textEdit = m_editors[idx].textedit;
-  if (str != textEdit->document()->toPlainText())
+  if(str != textEdit->document()->toPlainText())
   {
     textEdit->setPlainText(str);
   }

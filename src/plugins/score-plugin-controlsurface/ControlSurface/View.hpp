@@ -1,6 +1,7 @@
 #pragma once
-#include <Process/LayerView.hpp>
 #include <State/Message.hpp>
+
+#include <Process/LayerView.hpp>
 
 namespace Process
 {
@@ -21,8 +22,7 @@ public:
   explicit View(QGraphicsItem* parent);
   ~View() override;
 
-  void addressesDropped(State::MessageList lst)
-      W_SIGNAL(addressesDropped, lst);
+  void addressesDropped(State::MessageList lst) W_SIGNAL(addressesDropped, lst);
 
 private:
   void paint_impl(QPainter*) const override;

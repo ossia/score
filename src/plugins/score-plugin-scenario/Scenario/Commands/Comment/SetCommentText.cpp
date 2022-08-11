@@ -2,18 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetCommentText.hpp"
 
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
-SetCommentText::SetCommentText(
-    const CommentBlockModel& model,
-    QString newComment)
+SetCommentText::SetCommentText(const CommentBlockModel& model, QString newComment)
     : m_path{model}
     , m_newComment{std::move(newComment)}
     , m_oldComment{model.content()}

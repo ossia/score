@@ -12,8 +12,9 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/messages/MessagesPanel.hpp>
 
-#include <ossia-qt/qt_logger.hpp>
 #include <ossia/detail/logger.hpp>
+
+#include <ossia-qt/qt_logger.hpp>
 
 #include <QDockWidget>
 
@@ -29,37 +30,26 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 }
 
 void ApplicationPlugin::setupConnections(
-    score::MessagesPanelDelegate& messages,
-    Device::DeviceList& devices)
+    score::MessagesPanelDelegate& messages, Device::DeviceList& devices)
 {
   m_inbound = QObject::connect(
-      &devices,
-      &Device::DeviceList::logInbound,
-      &messages,
-      [&messages](const QString& str) {
-        messages.push(str, score::log::dark1);
-      },
+      &devices, &Device::DeviceList::logInbound, &messages,
+      [&messages](const QString& str) { messages.push(str, score::log::dark1); },
       Qt::QueuedConnection);
 
   m_outbound = QObject::connect(
-      &devices,
-      &Device::DeviceList::logOutbound,
-      &messages,
-      [&messages](const QString& str) {
-        messages.push(str, score::log::dark2);
-      },
+      &devices, &Device::DeviceList::logOutbound, &messages,
+      [&messages](const QString& str) { messages.push(str, score::log::dark2); },
       Qt::QueuedConnection);
 
-  for (const auto& sink : ossia::logger().sinks())
+  for(const auto& sink : ossia::logger().sinks())
   {
-    if (auto qt_sink = dynamic_cast<ossia::qt::log_sink*>(&*sink))
+    if(auto qt_sink = dynamic_cast<ossia::qt::log_sink*>(&*sink))
     {
       m_error = QObject::connect(
-          qt_sink,
-          &ossia::qt::log_sink::l,
-          &messages,
+          qt_sink, &ossia::qt::log_sink::l, &messages,
           [&messages](spdlog::level::level_enum l, const QString& m) {
-            messages.push(m, score::log::dark3);
+        messages.push(m, score::log::dark3);
           },
           Qt::QueuedConnection);
       break;
@@ -73,19 +63,18 @@ void ApplicationPlugin::on_newDocument(score::Document& doc)
 }
 
 void ApplicationPlugin::on_documentChanged(
-    score::Document* olddoc,
-    score::Document* newdoc)
+    score::Document* olddoc, score::Document* newdoc)
 {
   disableConnections();
   QObject::disconnect(m_visible);
 
-  if (olddoc)
+  if(olddoc)
   {
     auto& doc_plugin = olddoc->context().plugin<DeviceDocumentPlugin>();
     doc_plugin.setConnection(false);
   }
 
-  if (newdoc)
+  if(newdoc)
   {
     // Connect devices
     auto& doc_plugin = newdoc->context().plugin<DeviceDocumentPlugin>();
@@ -95,13 +84,13 @@ void ApplicationPlugin::on_documentChanged(
     auto& devices = doc_plugin.list();
 
     auto messages = context.findPanel<score::MessagesPanelDelegate>();
-    if (messages)
+    if(messages)
     {
-      if (auto qw = messages->widget())
+      if(auto qw = messages->widget())
       {
         auto func = [=, &devices](bool visible) {
           disableConnections();
-          if (visible)
+          if(visible)
           {
             setupConnections(*messages, devices);
           }
@@ -109,16 +98,14 @@ void ApplicationPlugin::on_documentChanged(
         };
 
         m_visible = QObject::connect(
-            qw,
-            &score::VisibilityNotifying<QListView>::visibilityChanged,
-            messages,
+            qw, &score::VisibilityNotifying<QListView>::visibilityChanged, messages,
             func);
 
         func(qw->isVisible());
       }
     }
 
-    if (auto w = Explorer::findDeviceExplorerWidgetInstance(this->context))
+    if(auto w = Explorer::findDeviceExplorerWidgetInstance(this->context))
     {
       w->setEditable(true);
     }

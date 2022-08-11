@@ -1,10 +1,11 @@
 #pragma once
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
 
-#include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
-
 #include <Scenario/Palette/Tool.hpp>
+
+#include <Inspector/InspectorSectionWidget.hpp>
+
+#include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
 class QCheckBox;
 class QGridLayout;
@@ -22,8 +23,7 @@ class DurationWidget final : public QWidget
 {
 public:
   DurationWidget(
-      const Scenario::EditionSettings& set,
-      QFormLayout& lay,
+      const Scenario::EditionSettings& set, QFormLayout& lay,
       IntervalInspectorWidget* parent);
 
 private:

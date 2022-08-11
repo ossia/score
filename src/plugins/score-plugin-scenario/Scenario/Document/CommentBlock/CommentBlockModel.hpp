@@ -31,9 +31,7 @@ public:
   Selectable selection;
 
   CommentBlockModel(
-      const Id<CommentBlockModel>& id,
-      const TimeVal& date,
-      double yPos,
+      const Id<CommentBlockModel>& id, const TimeVal& date, double yPos,
       QObject* parent);
 
   template <typename DeserializerVisitor>
@@ -54,8 +52,7 @@ public:
 
 public:
   void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
-  void heightPercentageChanged(bool arg_1)
-      W_SIGNAL(heightPercentageChanged, arg_1);
+  void heightPercentageChanged(bool arg_1) W_SIGNAL(heightPercentageChanged, arg_1);
   void contentChanged(QString arg_1) W_SIGNAL(contentChanged, arg_1);
 
 private:

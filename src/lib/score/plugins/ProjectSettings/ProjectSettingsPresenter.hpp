@@ -4,6 +4,5 @@
 namespace score
 {
 class ProjectSettingsModel;
-using ProjectSettingsPresenter
-    = SettingsDelegatePresenter<ProjectSettingsModel>;
+using ProjectSettingsPresenter = SettingsDelegatePresenter<ProjectSettingsModel>;
 }

@@ -1,8 +1,10 @@
 #include "MidiInletItem.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Inspector/InspectorLayout.hpp>
 #include <Process/Dataflow/AudioPortComboBox.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Inspector/InspectorLayout.hpp>
 
 #if defined(SCORE_PLUGIN_PROTOCOLS)
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>
@@ -14,11 +16,8 @@
 namespace Dataflow
 {
 void MidiInletFactory::setupInletInspector(
-    const Process::Inlet& port,
-    const score::DocumentContext& ctx,
-    QWidget* parent,
-    Inspector::Layout& lay,
-    QObject* context)
+    const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
 {
 #if defined(SCORE_PLUGIN_PROTOCOLS)
   static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
@@ -30,11 +29,11 @@ void MidiInletFactory::setupInletInspector(
 
   device.list().apply([&](Device::DeviceInterface& dev) {
     auto& set = dev.settings();
-    if (set.protocol == midi_uuid)
+    if(set.protocol == midi_uuid)
     {
-      const auto& midi_set = set.deviceSpecificSettings
-                                 .value<Protocols::MIDISpecificSettings>();
-      if (midi_set.io == Protocols::MIDISpecificSettings::IO::In)
+      const auto& midi_set
+          = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
+      if(midi_set.io == Protocols::MIDISpecificSettings::IO::In)
         midiDevices.push_back(set.name);
     }
   });

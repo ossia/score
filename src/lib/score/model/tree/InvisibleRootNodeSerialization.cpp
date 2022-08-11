@@ -13,7 +13,7 @@ QModelIndex TreeModel::convertPathToIndex(const TreePath& path) const
   QModelIndex iter;
   const int pathSize = std::ssize(path);
 
-  for (int i = 0; i < pathSize; ++i)
+  for(int i = 0; i < pathSize; ++i)
   {
     iter = index(path.at(i), 0, iter);
   }

@@ -2,15 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveModel.hpp"
 
+#include <State/ValueConversion.hpp>
+
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-#include <State/ValueConversion.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -22,8 +23,8 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
 
-#include <ossia/detail/math.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/math.hpp>
 #include <ossia/network/domain/domain_base.hpp>
 
 #include <wobjectimpl.h>
@@ -58,7 +59,7 @@ void Model::addSortedSegment(SegmentModel* m)
     return pt;
   };
 
-  if (!m->previous())
+  if(!m->previous())
   {
     createStartPoint();
   }
@@ -94,20 +95,19 @@ void Model::addSegment(SegmentModel* m)
     return pt;
   };
 
-  if (m->previous())
+  if(m->previous())
   {
-    auto previousSegment = std::find_if(
-        m_segments.begin(), m_segments.end(), [&](const auto& seg) {
-          return seg.following() == m->id();
-        });
-    if (previousSegment != m_segments.end())
-    {
-      auto thePt = std::find_if(
-          m_points.begin(), m_points.end(), [&](PointModel* pt) {
-            return pt->previous() == (*previousSegment).id();
+    auto previousSegment
+        = std::find_if(m_segments.begin(), m_segments.end(), [&](const auto& seg) {
+            return seg.following() == m->id();
           });
+    if(previousSegment != m_segments.end())
+    {
+      auto thePt = std::find_if(m_points.begin(), m_points.end(), [&](PointModel* pt) {
+        return pt->previous() == (*previousSegment).id();
+      });
 
-      if (thePt != m_points.end())
+      if(thePt != m_points.end())
       {
         // The previous segments and points both exist
         (*thePt)->setFollowing(m->id());
@@ -124,27 +124,26 @@ void Model::addSegment(SegmentModel* m)
       createStartPoint();
     }
   }
-  else if (std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
-             return pt->following() == m->id();
-           }))
+  else if(std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
+            return pt->following() == m->id();
+          }))
   {
     createStartPoint();
   }
 
-  if (m->following())
+  if(m->following())
   {
-    auto followingSegment = std::find_if(
-        m_segments.begin(), m_segments.end(), [&](const auto& seg) {
-          return seg.previous() == m->id();
-        });
-    if (followingSegment != m_segments.end())
-    {
-      auto thePt = std::find_if(
-          m_points.begin(), m_points.end(), [&](PointModel* pt) {
-            return pt->following() == (*followingSegment).id();
+    auto followingSegment
+        = std::find_if(m_segments.begin(), m_segments.end(), [&](const auto& seg) {
+            return seg.previous() == m->id();
           });
+    if(followingSegment != m_segments.end())
+    {
+      auto thePt = std::find_if(m_points.begin(), m_points.end(), [&](PointModel* pt) {
+        return pt->following() == (*followingSegment).id();
+      });
 
-      if (thePt != m_points.end())
+      if(thePt != m_points.end())
       {
         (*thePt)->setPrevious(m->id());
       }
@@ -159,9 +158,9 @@ void Model::addSegment(SegmentModel* m)
       createEndPoint();
     }
   }
-  else if (std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
-             return pt->previous() == m->id();
-           }))
+  else if(std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
+            return pt->previous() == m->id();
+          }))
   {
     // Note : if one day a buggy case happens here, check that set
     // following/previous
@@ -178,9 +177,9 @@ void Model::insertSegment(SegmentModel* m)
   // TODO have indexes on the points with the start and end
   // curve segments
   connect(m, &SegmentModel::startChanged, this, [=]() {
-    for (PointModel* pt : m_points)
+    for(PointModel* pt : m_points)
     {
-      if (pt->following() == m->id())
+      if(pt->following() == m->id())
       {
         pt->setPos(m->start());
         break;
@@ -188,9 +187,9 @@ void Model::insertSegment(SegmentModel* m)
     }
   });
   connect(m, &SegmentModel::endChanged, this, [=]() {
-    for (PointModel* pt : m_points)
+    for(PointModel* pt : m_points)
     {
-      if (pt->previous() == m->id())
+      if(pt->previous() == m->id())
       {
         pt->setPos(m->end());
         break;
@@ -207,19 +206,19 @@ void Model::removeSegment(SegmentModel* m)
 
   segmentRemoved(m->id());
 
-  for (PointModel* pt : m_points)
+  for(PointModel* pt : m_points)
   {
-    if (pt->previous() == m->id())
+    if(pt->previous() == m->id())
     {
       pt->setPrevious(OptionalId<SegmentModel>{});
     }
 
-    if (pt->following() == m->id())
+    if(pt->following() == m->id())
     {
       pt->setFollowing(OptionalId<SegmentModel>{});
     }
 
-    if (!pt->previous() && !pt->following())
+    if(!pt->previous() && !pt->following())
     {
       removePoint(pt);
     }
@@ -232,13 +231,12 @@ std::vector<SegmentModel*> Model::sortedSegments() const
 {
   std::vector<SegmentModel*> dat;
   dat.reserve(m_segments.size());
-  for (auto& seg : m_segments)
+  for(auto& seg : m_segments)
   {
     dat.push_back(&seg);
   }
 
-  ossia::sort(
-      dat, [](auto s1, auto s2) { return s1->start().x() < s2->start().x(); });
+  ossia::sort(dat, [](auto s1, auto s2) { return s1->start().x() < s2->start().x(); });
 
   return dat;
 }
@@ -247,7 +245,7 @@ std::vector<SegmentData> Model::toCurveData() const
 {
   std::vector<SegmentData> dat;
   dat.reserve(m_segments.size());
-  for (const auto& seg : m_segments)
+  for(const auto& seg : m_segments)
   {
     dat.push_back(seg.toSegmentData());
   }
@@ -283,10 +281,9 @@ void Model::fromCurveData(const std::vector<SegmentData>& curve)
     std::cout << std::endl;
     std::cerr << std::endl;
     */
-    SCORE_ASSERT(
-        map.empty() || (!map.front().previous && !map.back().following));
+    SCORE_ASSERT(map.empty() || (!map.front().previous && !map.back().following));
 
-    for (const auto& elt : map)
+    for(const auto& elt : map)
     {
       addSortedSegment(createCurveSegment(csl, elt, this));
     }
@@ -300,14 +297,14 @@ void Model::fromCurveData(const std::vector<SegmentData>& curve)
 Selection Model::selectedChildren() const
 {
   Selection s;
-  for (const auto& elt : m_segments)
+  for(const auto& elt : m_segments)
   {
-    if (elt.selection.get())
+    if(elt.selection.get())
       s.append(elt);
   }
-  for (const auto& elt : m_points)
+  for(const auto& elt : m_points)
   {
-    if (elt->selection.get())
+    if(elt->selection.get())
       s.append(elt);
   }
 
@@ -317,9 +314,9 @@ Selection Model::selectedChildren() const
 void Model::setSelection(const Selection& s)
 {
   // OPTIMIZEME
-  for (auto& elt : m_segments)
+  for(auto& elt : m_segments)
     elt.selection.set(s.contains(&elt));
-  for (auto& elt : m_points)
+  for(auto& elt : m_points)
     elt->selection.set(s.contains(elt));
 }
 
@@ -329,12 +326,12 @@ void Model::clear()
 
   auto segs = shallow_copy(m_segments);
   m_segments.clear();
-  for (auto seg : segs)
+  for(auto seg : segs)
     seg->deleteLater();
 
   auto pts = m_points;
   m_points.clear();
-  for (auto pt : pts)
+  for(auto pt : pts)
     pt->deleteLater();
 }
 
@@ -346,17 +343,17 @@ const std::vector<PointModel*>& Model::points() const
 double Model::lastPointPos() const
 {
   double pos = 0;
-  for (auto pt : m_points)
-    if (pt->pos().x() > pos)
+  for(auto pt : m_points)
+    if(pt->pos().x() > pos)
       pos = pt->pos().x();
   return pos;
 }
 
 std::optional<double> Model::valueAt(double x) const noexcept
 {
-  for (const Curve::SegmentModel& segment : m_segments)
+  for(const Curve::SegmentModel& segment : m_segments)
   {
-    if (segment.start().x() <= x && x <= segment.end().x())
+    if(segment.start().x() <= x && x <= segment.end().x())
     {
       return segment.valueAt(x);
     }
@@ -374,7 +371,7 @@ void Model::addPoint(PointModel* pt)
 void Model::removePoint(PointModel* pt)
 {
   auto it = ossia::find(m_points, pt);
-  if (it != m_points.end())
+  if(it != m_points.end())
   {
     m_points.erase(it);
   }
@@ -394,7 +391,7 @@ CurveDomain::CurveDomain(const ossia::domain& dom)
     : min{ossia::convert<double>(dom.get_min())}
     , max{ossia::convert<double>(dom.get_max())}
 {
-  if (min == 0. && max == 0.)
+  if(min == 0. && max == 0.)
   {
     max = 1.;
   }
@@ -408,17 +405,17 @@ CurveDomain::CurveDomain(const ossia::domain& dom, const ossia::value& v)
     , max{ossia::convert<double>(dom.get_max())}
 {
   const auto val = State::convert::value<double>(v);
-  if (min == 0. && max == 0.)
+  if(min == 0. && max == 0.)
   {
-    if (val > 0.)
+    if(val > 0.)
       max = val;
-    else if (val < 0.)
+    else if(val < 0.)
       min = val;
     else
       max = 1.;
   }
 
-  if (min == max)
+  if(min == max)
     max += 1.;
 
   start = ossia::clamp(val, min, max);
@@ -433,12 +430,10 @@ CurveDomain::CurveDomain(const ossia::domain& dom, double start, double end)
 {
   auto min_v = dom.get_min();
   auto max_v = dom.get_max();
-  min = (min_v.valid())
-            ? std::min(ossia::convert<double>(min_v), std::min(start, end))
-            : std::min(start, end);
-  max = (max_v.valid())
-            ? std::max(ossia::convert<double>(max_v), std::max(start, end))
-            : std::max(start, end);
+  min = (min_v.valid()) ? std::min(ossia::convert<double>(min_v), std::min(start, end))
+                        : std::min(start, end);
+  max = (max_v.valid()) ? std::max(ossia::convert<double>(max_v), std::max(start, end))
+                        : std::max(start, end);
 
   ensureValid();
 }
@@ -448,12 +443,12 @@ void CurveDomain::refine(const ossia::domain& dom)
   auto min_v = dom.get_min();
   auto max_v = dom.get_max();
 
-  if (min_v.valid())
+  if(min_v.valid())
     min = std::min(min, ossia::convert<double>(min_v));
   else
     min = std::min(start, end);
 
-  if (max_v.valid())
+  if(max_v.valid())
     max = std::max(max, ossia::convert<double>(max_v));
   else
     max = std::max(start, end);
@@ -463,16 +458,16 @@ void CurveDomain::refine(const ossia::domain& dom)
 
 void CurveDomain::ensureValid()
 {
-  if (min == 0. && max == 0.)
+  if(min == 0. && max == 0.)
   {
     max = 1.;
   }
-  else if (min == max)
+  else if(min == max)
   {
     max += 1.;
   }
 
-  if (start == end)
+  if(start == end)
   {
     start = std::min(min, max);
     end = std::max(min, max);

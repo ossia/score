@@ -35,9 +35,7 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
   SCORE_SERIALIZE_FRIENDS
 public:
   using data_vector = std::vector<
-      QPointF,
-      boost::alignment::
-          aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
+      QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
   Selectable selection;
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);
@@ -45,10 +43,7 @@ public:
   // Used for cloning :
   // Previous and following shall be set afterwards by the cloner.
   SegmentModel(
-      Curve::Point s,
-      Curve::Point e,
-      const Id<SegmentModel>& id,
-      QObject* parent);
+      Curve::Point s, Curve::Point e, const Id<SegmentModel>& id, QObject* parent);
 
   SegmentModel(DataStream::Deserializer& vis, QObject* parent);
   SegmentModel(JSONObject::Deserializer& vis, QObject* parent);
@@ -84,14 +79,13 @@ public:
 
   SegmentData toSegmentData() const
   {
-    return {
-        id(),
-        start(),
-        end(),
-        previous(),
-        following(),
-        concreteKey(),
-        toSegmentSpecificData()};
+    return {id(),
+            start(),
+            end(),
+            previous(),
+            following(),
+            concreteKey(),
+            toSegmentSpecificData()};
   }
 
 public:
@@ -124,10 +118,7 @@ using DefaultCurveSegmentModel = PowerSegment;
 using DefaultCurveSegmentData = PowerSegmentData;
 }
 
-OBJECTKEY_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT,
-    Curve::SegmentModel,
-    "CurveSegmentModel")
+OBJECTKEY_METADATA(SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")
 
 // extern template class SCORE_PLUGIN_CURVE_EXPORT
 // IdContainer<Curve::SegmentModel>;

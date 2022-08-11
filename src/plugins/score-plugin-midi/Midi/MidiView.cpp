@@ -53,8 +53,8 @@ void View::updateBackground(double h)
   const auto note_height = rect.height() / (visibleCount());
 
   const auto for_white_notes = [&](auto fun) {
-    for (int i = m_min; i <= m_max; i++)
-      switch (i % 12)
+    for(int i = m_min; i <= m_max; i++)
+      switch(i % 12)
       {
         case 0:
         case 2:
@@ -68,8 +68,8 @@ void View::updateBackground(double h)
       }
   };
   const auto for_black_notes = [&](auto fun) {
-    for (int i = m_min; i <= m_max; i++)
-      switch (i % 12)
+    for(int i = m_min; i <= m_max; i++)
+      switch(i % 12)
       {
         case 1:
         case 3:
@@ -83,22 +83,18 @@ void View::updateBackground(double h)
 
   p.setPen(Qt::NoPen);
 
-  if (canEdit())
+  if(canEdit())
   {
-    if (auto v = getView(*this))
+    if(auto v = getView(*this))
     {
       const qreal width = std::max(v->width(), 800) * 2;
 
       {
-        QRectF* white_rects
-            = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
+        QRectF* white_rects = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
         int max_white = 0;
         const auto draw_bg_white = [&](int i) {
           white_rects[max_white++] = QRectF{
-              0,
-              rect.height() + note_height * (m_min - i - 1) - 1,
-              width,
-              note_height};
+              0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
         };
         for_white_notes(draw_bg_white);
         p.setBrush(style.lightBrush);
@@ -108,7 +104,7 @@ void View::updateBackground(double h)
       {
         QLineF* lines = (QLineF*)alloca((sizeof(QLineF) * visibleCount()));
         int max_lines = 0;
-        for (int i = m_min; i <= m_max; i++)
+        for(int i = m_min; i <= m_max; i++)
         {
           const float y = rect.height() + note_height * (m_min - i - 1) - 1;
           lines[max_lines++] = QLineF{0, y, width, y};
@@ -118,23 +114,20 @@ void View::updateBackground(double h)
         p.drawLines(lines, max_lines);
       }
 
-      if (note_height > 10)
+      if(note_height > 10)
       {
         QPixmap text(30 * dpi, h * dpi);
         text.setDevicePixelRatio(dpi);
         text.fill(Qt::transparent);
         QPainter text_painter{&text};
-        static constexpr const char* texts[]{
-            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+        static constexpr const char* texts[]{"C",  "C#", "D",  "D#", "E",  "F",
+                                             "F#", "G",  "G#", "A",  "A#", "B"};
         const auto draw_text = [&](int i) {
           text_painter.drawText(
               QRectF{
-                  4.,
-                  rect.height() + note_height * (m_min - i - 1) - 1,
-                  width,
+                  4., rect.height() + note_height * (m_min - i - 1) - 1, width,
                   note_height},
-              texts[i % 12],
-              QTextOption{Qt::AlignVCenter});
+              texts[i % 12], QTextOption{Qt::AlignVCenter});
         };
 
         text_painter.setPen(style.darkerBrush.color());
@@ -144,7 +137,7 @@ void View::updateBackground(double h)
       }
       else
       {
-        if (!m_textCache.isNull())
+        if(!m_textCache.isNull())
         {
           m_textCache = QPixmap{};
         }
@@ -162,7 +155,7 @@ void View::setDefaultWidth(double w)
   m_defaultW = w;
   update();
   const auto& children = childItems();
-  for (auto cld : children)
+  for(auto cld : children)
     cld->update();
 }
 
@@ -184,9 +177,9 @@ bool View::canEdit() const
 
 void View::paint_impl(QPainter* p) const
 {
-  if (auto v = getView(*this))
+  if(auto v = getView(*this))
   {
-    if (canEdit())
+    if(canEdit())
     {
       const double dpi = p->device()->devicePixelRatioF();
       const auto view_left = v->mapToScene(0, 0);
@@ -197,22 +190,13 @@ void View::paint_impl(QPainter* p) const
       const double proc_w = width();
       const double h = std::round(m_bgCache.height() / 2.);
 
-      if (p->device()->devicePixelRatioF() == 1.)
+      if(p->device()->devicePixelRatioF() == 1.)
       {
         m_fragmentCache.clear();
-        while (x - next_w < proc_w)
+        while(x - next_w < proc_w)
         {
           m_fragmentCache.push_back(QPainter::PixmapFragment{
-              x,
-              h,
-              text_w,
-              0.,
-              next_w,
-              (double)m_bgCache.height(),
-              1.,
-              1.,
-              0.,
-              1.});
+              x, h, text_w, 0., next_w, (double)m_bgCache.height(), 1., 1., 0., 1.});
           x += next_w;
         }
 
@@ -221,23 +205,22 @@ void View::paint_impl(QPainter* p) const
       }
       else
       {
-        while (x - next_w < proc_w)
+        while(x - next_w < proc_w)
         {
           p->drawPixmap(
-              QPointF{x, 0},
-              m_bgCache,
+              QPointF{x, 0}, m_bgCache,
               QRectF{text_w, 0., next_w, (double)m_bgCache.height()});
           x += next_w / dpi;
         }
       }
 
-      if (left < 30 && !m_textCache.isNull())
+      if(left < 30 && !m_textCache.isNull())
       {
         p->drawPixmap(QPointF{}, m_textCache);
       }
     }
   }
-  if (!m_selectArea.isEmpty())
+  if(!m_selectArea.isEmpty())
   {
     p->setBrush(style.transparentBrush);
     p->setPen(style.selectionPen);
@@ -247,7 +230,7 @@ void View::paint_impl(QPainter* p) const
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if (canEdit())
+  if(canEdit())
   {
     pressed(ev->scenePos());
   }
@@ -256,7 +239,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if (canEdit())
+  if(canEdit())
   {
     QPainterPath p;
     p.addRect(QRectF{ev->buttonDownPos(Qt::LeftButton), ev->pos()});
@@ -270,7 +253,7 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if (canEdit())
+  if(canEdit())
   {
     m_selectArea = {};
     update();
@@ -280,7 +263,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if (canEdit())
+  if(canEdit())
   {
     doubleClicked(ev->pos());
   }
@@ -310,8 +293,7 @@ NoteData View::noteAtPos(QPointF point) const
       1
           + int(
               m_max
-              - (qMin(rect.bottom(), qMax(point.y(), rect.top()))
-                 / rect.height())
+              - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
                     * visibleCount()),
       m_max);
 

@@ -1,9 +1,9 @@
 #pragma once
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
+
 #include <score/plugins/InterfaceList.hpp>
 
 #include <ossia/detail/algorithms.hpp>
-
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
 
 namespace Scenario
 {

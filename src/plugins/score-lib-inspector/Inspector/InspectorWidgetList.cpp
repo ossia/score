@@ -16,12 +16,11 @@ namespace Inspector
 InspectorWidgetList::~InspectorWidgetList() { }
 
 bool InspectorWidgetList::update(
-    QWidget* cur,
-    const QList<const IdentifiedObjectAbstract*>& models) const
+    QWidget* cur, const QList<const IdentifiedObjectAbstract*>& models) const
 {
-  for (const InspectorWidgetFactory& factory : *this)
+  for(const InspectorWidgetFactory& factory : *this)
   {
-    if (factory.update(cur, models))
+    if(factory.update(cur, models))
       return true;
   }
   return false;
@@ -29,16 +28,15 @@ bool InspectorWidgetList::update(
 
 QList<QWidget*> InspectorWidgetList::make(
     const score::DocumentContext& doc,
-    const QList<const IdentifiedObjectAbstract*>& models,
-    QWidget* parent) const
+    const QList<const IdentifiedObjectAbstract*>& models, QWidget* parent) const
 {
   QList<QWidget*> widgs;
-  for (const InspectorWidgetFactory& factory : *this)
+  for(const InspectorWidgetFactory& factory : *this)
   {
-    if (factory.matches(models))
+    if(factory.matches(models))
     {
       auto widg = factory.make(models, doc, parent);
-      if (widg)
+      if(widg)
       {
         widgs.push_back(widg);
         return widgs;

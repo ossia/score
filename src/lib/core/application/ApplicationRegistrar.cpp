@@ -39,42 +39,37 @@ void ApplicationRegistrar::registerApplicationPlugin(ApplicationPlugin* ctrl)
 }
 
 SCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerCommands(
-    CommandStore&& cmds)
+void ApplicationRegistrar::registerCommands(CommandStore&& cmds)
 {
   m_components.commands = std::move(cmds);
 }
 
 SCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerCommands(const CommandGroupKey& group_k, CommandGeneratorMap&& cmds)
+void ApplicationRegistrar::registerCommands(
+    const CommandGroupKey& group_k, CommandGeneratorMap&& cmds)
 {
-  for(auto&& [k, v] : std::move(cmds)) {
+  for(auto&& [k, v] : std::move(cmds))
+  {
     m_components.commands.emplace(FindCommandKey{group_k, std::move(k)}, v);
   }
 }
 
 SCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
-    score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
-        facts)
+    score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&& facts)
 {
   m_components.factories = std::move(facts);
 }
 
 SCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerFactory(
-    std::unique_ptr<InterfaceListBase> cmds)
+void ApplicationRegistrar::registerFactory(std::unique_ptr<InterfaceListBase> cmds)
 {
-  m_components.factories.insert(
-      std::make_pair(cmds->interfaceKey(), std::move(cmds)));
+  m_components.factories.insert(std::make_pair(cmds->interfaceKey(), std::move(cmds)));
 }
 
 GUIApplicationRegistrar::GUIApplicationRegistrar(
-    ApplicationComponentsData& comp,
-    const score::GUIApplicationContext& ctx,
-    MenuManager& m,
-    ToolbarManager& t,
-    ActionManager& a)
+    ApplicationComponentsData& comp, const score::GUIApplicationContext& ctx,
+    MenuManager& m, ToolbarManager& t, ActionManager& a)
     : ApplicationRegistrar{comp}
     , m_context{ctx}
     , m_menuManager{m}
@@ -86,10 +81,9 @@ GUIApplicationRegistrar::GUIApplicationRegistrar(
 GUIApplicationRegistrar::~GUIApplicationRegistrar() { }
 
 SCORE_LIB_BASE_EXPORT
-void GUIApplicationRegistrar::registerGUIApplicationPlugin(
-    GUIApplicationPlugin* ctrl)
+void GUIApplicationRegistrar::registerGUIApplicationPlugin(GUIApplicationPlugin* ctrl)
 {
-  if (m_context.applicationSettings.gui)
+  if(m_context.applicationSettings.gui)
   {
     // GUI Presenter stuff...
     auto ui = ctrl->makeGUIElements();

@@ -17,8 +17,7 @@ template <typename Model, typename... Args>
 struct HierarchicModel;
 
 template <typename Model, typename Arg, typename... Args>
-struct HierarchicModel<Model, Arg, Args...>
-    : public HierarchicModel<Model, Args...>
+struct HierarchicModel<Model, Arg, Args...> : public HierarchicModel<Model, Args...>
 {
 public:
   using HierarchicModel<Model, Args...>::HierarchicModel;
@@ -26,7 +25,7 @@ public:
   virtual ~HierarchicModel()
   {
     auto& member = this->*Arg::ptr;
-    for (auto elt : member->map().get())
+    for(auto elt : member->map().get())
     {
       delete elt;
     }
@@ -43,7 +42,7 @@ public:
   virtual ~HierarchicModel()
   {
     auto& member = this->*Arg::ptr;
-    for (auto elt : member->map().get())
+    for(auto elt : member->map().get())
     {
       delete elt;
     }

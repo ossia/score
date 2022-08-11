@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/SimpleApi.hpp>
+
 #include <ossia/network/value/value_conversion.hpp>
 
 namespace Nodes
@@ -27,11 +28,8 @@ struct Input
   using control_policy = ossia::safe_nodes::default_tick;
 
   static void
-  run(const ossia::value_port& msb,
-      const ossia::value_port& lsb,
-      ossia::value_port& out,
-      ossia::value_port& out_f,
-      const ossia::token_request& tk,
+  run(const ossia::value_port& msb, const ossia::value_port& lsb, ossia::value_port& out,
+      ossia::value_port& out_f, const ossia::token_request& tk,
       ossia::exec_state_facade st)
   {
     auto& msbs = msb.get_data();
@@ -57,9 +55,11 @@ struct Output
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
-    static const constexpr auto description = "Creates MIDI LSB/MSB from a 0-16384 or 0-1 value";
+    static const constexpr auto description
+        = "Creates MIDI LSB/MSB from a 0-16384 or 0-1 value";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid = make_uuid("d6f5173b-b823-4571-b31f-660832b6132b");
+    static const uuid_constexpr auto uuid
+        = make_uuid("d6f5173b-b823-4571-b31f-660832b6132b");
 
     static const constexpr value_in value_ins[]{"int", "float"};
     static const constexpr value_out value_outs[]{"msb", "lsb"};
@@ -68,21 +68,18 @@ struct Output
   using control_policy = ossia::safe_nodes::default_tick;
 
   static void
-  run(const ossia::value_port& in,
-      const ossia::value_port& in_f,
-      ossia::value_port& msb,
-      ossia::value_port& lsb,
-      const ossia::token_request& tk,
+  run(const ossia::value_port& in, const ossia::value_port& in_f, ossia::value_port& msb,
+      ossia::value_port& lsb, const ossia::token_request& tk,
       ossia::exec_state_facade st)
   {
     for(auto& [val, t] : in.get_data())
     {
-        const int32_t v = ossia::convert<int>(val);
-        const int32_t m = ossia::clamp(int32_t(v / 127), 0, 127);
-        const int32_t l = ossia::clamp(int32_t(v - m * 127), 0, 127);
+      const int32_t v = ossia::convert<int>(val);
+      const int32_t m = ossia::clamp(int32_t(v / 127), 0, 127);
+      const int32_t l = ossia::clamp(int32_t(v - m * 127), 0, 127);
 
-        msb.write_value(m, t);
-        lsb.write_value(l, t);
+      msb.write_value(m, t);
+      lsb.write_value(l, t);
     }
 
     for(auto& [val, t] : in_f.get_data())

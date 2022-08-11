@@ -1,10 +1,11 @@
 #pragma once
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/Identifier.hpp>
 
 #include <QObject>
 
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -43,15 +44,8 @@ public:
    * IntervalModel that aren't originating from this one.
    */
   void playFromIntervalAtDate(
-      const ScenarioInterface* arg_1,
-      Id<IntervalModel> arg_2,
-      const TimeVal& arg_3)
-      E_SIGNAL(
-          SCORE_PLUGIN_SCENARIO_EXPORT,
-          playFromIntervalAtDate,
-          arg_1,
-          arg_2,
-          arg_3)
+      const ScenarioInterface* arg_1, Id<IntervalModel> arg_2, const TimeVal& arg_3)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playFromIntervalAtDate, arg_1, arg_2, arg_3)
 
   //! "Play from here" algorithm.
   void playAtDate(const TimeVal& arg_1)
@@ -65,11 +59,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startRecording, arg_1, arg_2)
 
   //! Request a message recording from a given point.
-  void startRecordingMessages(ProcessModel* arg_1, Point arg_2) E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      startRecordingMessages,
-      arg_1,
-      arg_2)
+  void startRecordingMessages(ProcessModel* arg_1, Point arg_2)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startRecordingMessages, arg_1, arg_2)
 
   void stopRecording() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stopRecording)
 };

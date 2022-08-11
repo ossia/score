@@ -1,18 +1,23 @@
 #include "TexturePort.hpp"
 
 #include "GfxDevice.hpp"
-#include <Gfx/GfxApplicationPlugin.hpp>
 
 #include <Device/Protocol/DeviceInterface.hpp>
+
+#include <Process/Dataflow/AudioPortComboBox.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <Inspector/InspectorLayout.hpp>
-#include <Process/Dataflow/AudioPortComboBox.hpp>
+
+#include <score/plugins/SerializableHelpers.hpp>
+
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QTimer>
-#include <score/plugins/SerializableHelpers.hpp>
 
 #include <wobjectimpl.h>
 
@@ -24,13 +29,12 @@ namespace Gfx
 MODEL_METADATA_IMPL_CPP(TextureInlet);
 MODEL_METADATA_IMPL_CPP(TextureOutlet);
 
-class GraphPreviewWidget
-    : public QWidget
+class GraphPreviewWidget : public QWidget
 {
 public:
   GraphPreviewWidget(const TextureOutlet& outlet, Gfx::DocumentPlugin& plug)
-    : outlet_p{&outlet}
-    , plug{&plug}
+      : outlet_p{&outlet}
+      , plug{&plug}
   {
     setLayout(new Inspector::VBoxLayout{this});
     auto window = std::make_unique<score::gfx::ScreenNode>(true);
@@ -57,7 +61,7 @@ public:
     {
       if(e)
       {
-        if (plug)
+        if(plug)
           plug->context.disconnect_preview_node(*e);
         e = std::nullopt;
       }
@@ -65,9 +69,9 @@ public:
       if(outlet.nodeId != -1)
       {
         nodeId = outlet.nodeId;
-        e = { {nodeId, 0}, {screenId, 0} };
+        e = {{nodeId, 0}, {screenId, 0}};
 
-        if (plug)
+        if(plug)
           plug->context.connect_preview_node(*e);
       }
     }
@@ -97,8 +101,8 @@ public:
     }
 
     // We "garbage collect" the window
-    QTimer::singleShot(1, [w=this->window] { });
-    if (plug)
+    QTimer::singleShot(1, [w = this->window] {});
+    if(plug)
       plug->context.unregister_preview_node(screenId);
   }
 
@@ -116,7 +120,6 @@ private:
   int screenId = -1;
   int nodeId = -1;
   int timerId{};
-
 };
 
 TextureInlet::~TextureInlet() { }
@@ -176,18 +179,15 @@ TextureOutlet::TextureOutlet(JSONObject::Deserializer&& vis, QObject* parent)
 }
 
 void TextureInletFactory::setupInletInspector(
-    const Process::Inlet& port,
-    const score::DocumentContext& ctx,
-    QWidget* parent,
-    Inspector::Layout& lay,
-    QObject* context)
+    const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
 {
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   QStringList devices;
   devices.push_back("");
 
   device.list().apply([&](Device::DeviceInterface& dev) {
-    if (dynamic_cast<GfxInputDevice*>(&dev))
+    if(dynamic_cast<GfxInputDevice*>(&dev))
     {
       auto& set = dev.settings();
       devices.push_back(set.name);
@@ -198,18 +198,15 @@ void TextureInletFactory::setupInletInspector(
 }
 
 void TextureOutletFactory::setupOutletInspector(
-    const Process::Outlet& port,
-    const score::DocumentContext& ctx,
-    QWidget* parent,
-    Inspector::Layout& lay,
-    QObject* context)
+    const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
 {
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   QStringList devices;
   devices.push_back("");
 
   device.list().apply([&](Device::DeviceInterface& dev) {
-    if (dynamic_cast<GfxOutputDevice*>(&dev))
+    if(dynamic_cast<GfxOutputDevice*>(&dev))
     {
       auto& set = dev.settings();
       devices.push_back(set.name);
@@ -217,7 +214,6 @@ void TextureOutletFactory::setupOutletInspector(
   });
 
   lay.addRow(Process::makeDeviceCombo(devices, port, ctx, parent));
-
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
   lay.addRow(new GraphPreviewWidget{outlet, ctx.plugin<Gfx::DocumentPlugin>()});

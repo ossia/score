@@ -29,10 +29,7 @@ struct DefaultGraphicsSliderImpl
 {
   template <typename T>
   static void paint(
-      T& self,
-      const score::Skin& skin,
-      const QString& text,
-      QPainter* painter,
+      T& self, const score::Skin& skin, const QString& text, QPainter* painter,
       QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, false);
@@ -55,8 +52,7 @@ struct DefaultGraphicsSliderImpl
 #endif
     painter->setPen(skin.Base4.lighter180.pen1);
     painter->setFont(skin.Medium8Pt);
-    const auto textrect
-        = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
+    const auto textrect = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
     painter->drawText(textrect, text, QTextOption(Qt::AlignCenter));
 
     // Draw handle
@@ -75,14 +71,14 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mousePressEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (event->button() == Qt::LeftButton && self.isInHandle(event->pos()))
+    if(event->button() == Qt::LeftButton && self.isInHandle(event->pos()))
     {
       self.m_grab = true;
 
       const auto srect = self.sliderRect();
       const auto posX = event->pos().x() - srect.x();
       double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
-      if (curPos != self.m_value)
+      if(curPos != self.m_value)
       {
         self.m_value = curPos;
         self.sliderMoved();
@@ -96,12 +92,12 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mouseMoveEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if ((event->buttons() & Qt::LeftButton) && self.m_grab)
+    if((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       const auto srect = self.sliderRect();
       const auto posX = event->pos().x() - srect.x();
       double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
-      if (curPos != self.m_value)
+      if(curPos != self.m_value)
       {
         self.m_value = curPos;
         self.sliderMoved();
@@ -114,12 +110,12 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (self.m_grab)
+    if(self.m_grab)
     {
       const auto srect = self.sliderRect();
       const auto posX = event->pos().x() - srect.x();
       double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
-      if (curPos != self.m_value)
+      if(curPos != self.m_value)
       {
         self.m_value = curPos;
         self.update();
@@ -129,7 +125,7 @@ struct DefaultGraphicsSliderImpl
     self.m_grab = false;
     self.sliderReleased();
 
-    if (event->button() == Qt::RightButton)
+    if(event->button() == Qt::RightButton)
     {
       contextMenuEvent(self, event->scenePos());
     }
@@ -154,31 +150,25 @@ struct DefaultGraphicsSliderImpl
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
       auto con = QObject::connect(
-          w,
-          SignalUtils::QDoubleSpinBox_valueChanged_double(),
-          &self,
+          w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
           [&self](double v) {
-            self.m_value = self.unmap(v);
-            self.sliderMoved();
-            self.update();
+        self.m_value = self.unmap(v);
+        self.sliderMoved();
+        self.update();
           });
 
       QObject::connect(
-          w,
-          &DoubleSpinboxWithEnter::editingFinished,
-          &self,
-          [obj, con, self_p] {
-            if (self_p->impl->spinbox)
+          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, self_p] {
+            if(self_p->impl->spinbox)
             {
               self_p->sliderReleased();
               QObject::disconnect(con);
-              QTimer::singleShot(
-                  0, self_p, [self_p, scene = self_p->scene(), obj] {
-                    scene->removeItem(obj);
-                    delete obj;
-                    self_p->impl->spinbox = nullptr;
-                    self_p->impl->spinboxProxy = nullptr;
-                  });
+              QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
+                scene->removeItem(obj);
+                delete obj;
+                self_p->impl->spinbox = nullptr;
+                self_p->impl->spinboxProxy = nullptr;
+              });
               self_p->impl->spinbox = nullptr;
               self_p->impl->spinboxProxy = nullptr;
             }

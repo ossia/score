@@ -6,10 +6,11 @@
 #include "YSFX/ApplicationPlugin.hpp"
 #include "YSFX/ProcessMetadata.hpp"
 
+#include <State/Expression.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/PresetHelpers.hpp>
-#include <State/Expression.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
@@ -34,22 +35,17 @@ namespace YSFX
 {
 bool ProcessModel::hasExternalUI() const noexcept
 {
-  if (!this->fx)
+  if(!this->fx)
     return false;
 
   return ysfx_has_section(this->fx.get(), ysfx_section_gfx);
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const QString& data,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{
-        duration,
-        id,
-        Metadata<ObjectKey_k, ProcessModel>::get(),
-        parent}
+        duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
   setScript(data);
   metadata().setInstanceName(*this);
@@ -57,10 +53,10 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-  if (m_bank)
+  if(m_bank)
     ysfx_bank_free(m_bank);
 
-  if (externalUI)
+  if(externalUI)
   {
     auto w = reinterpret_cast<Window*>(externalUI);
     delete w;
@@ -75,7 +71,7 @@ void ProcessModel::setScript(const QString& script)
   ysfx_guess_file_roots(config.get(), arr.c_str());
 
   fx.reset(ysfx_new(config.get()), ysfx_u_deleter{});
-  if (!ysfx_load_file(fx.get(), arr.c_str(), 0))
+  if(!ysfx_load_file(fx.get(), arr.c_str(), 0))
   {
     qDebug() << "ysfx: could not load " << script;
     return;
@@ -84,7 +80,7 @@ void ProcessModel::setScript(const QString& script)
   m_script = script;
 
   uint32_t compile_opts = 0;
-  if (!ysfx_compile(fx.get(), compile_opts))
+  if(!ysfx_compile(fx.get(), compile_opts))
     return;
 
   ysfx_init(fx.get());
@@ -92,14 +88,14 @@ void ProcessModel::setScript(const QString& script)
   auto name = ysfx_get_name(fx.get());
   metadata().setName(name);
 
-  if (ysfx_get_num_inputs(fx.get()) > 0)
+  if(ysfx_get_num_inputs(fx.get()) > 0)
   {
     auto inl = new Process::AudioInlet{Id<Process::Port>{0}, this};
     this->m_inlets.push_back(inl);
   }
   this->m_inlets.push_back(new Process::MidiInlet{Id<Process::Port>{1}, this});
 
-  if (ysfx_get_num_outputs(fx.get()) > 0)
+  if(ysfx_get_num_outputs(fx.get()) > 0)
   {
     auto outl = new Process::AudioOutlet{Id<Process::Port>{2}, this};
     outl->setPropagate(true);
@@ -108,15 +104,15 @@ void ProcessModel::setScript(const QString& script)
   this->m_outlets.push_back(new Process::MidiOutlet{Id<Process::Port>{3}, this});
 
   {
-    for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
+    for(uint32_t i = 0; i < ysfx_max_sliders; ++i)
     {
-      if (!ysfx_slider_exists(fx.get(), i))
+      if(!ysfx_slider_exists(fx.get(), i))
         continue;
 
       auto id = Id<Process::Port>(4 + i);
       const bool is_visible = ysfx_slider_is_initially_visible(fx.get(), i);
       QString name = ysfx_slider_get_name(fx.get(), i);
-      if (ysfx_slider_is_enum(fx.get(), i))
+      if(ysfx_slider_is_enum(fx.get(), i))
       {
         std::vector<std::pair<QString, ossia::value>> values;
         ossia::value init;
@@ -125,14 +121,14 @@ void ProcessModel::setScript(const QString& script)
         std::vector<const char*> names(count);
         ysfx_slider_get_enum_names(fx.get(), i, names.data(), count);
         int k = 0;
-        for (const char* val : names)
+        for(const char* val : names)
           values.push_back({val, k++});
 
         auto slider = new Process::ComboBox{values, 0, name, id, this};
 
         this->m_inlets.push_back(slider);
       }
-      else if (ysfx_slider_is_path(fx.get(), i))
+      else if(ysfx_slider_is_path(fx.get(), i))
       {
         auto slider = new Process::LineEdit{{}, name, id, this};
         this->m_inlets.push_back(slider);
@@ -151,7 +147,7 @@ void ProcessModel::setScript(const QString& script)
     }
   }
 
-  if (auto bank = ysfx_get_bank_path(this->fx.get()))
+  if(auto bank = ysfx_get_bank_path(this->fx.get()))
   {
     m_bank = ysfx_load_bank(bank);
   }
@@ -165,9 +161,9 @@ QString ProcessModel::script() const noexcept
 std::vector<Process::Preset> ProcessModel::builtinPresets() const noexcept
 {
   std::vector<Process::Preset> presets;
-  if (m_bank)
+  if(m_bank)
   {
-    for (std::size_t i = 0; i < m_bank->preset_count; i++)
+    for(std::size_t i = 0; i < m_bank->preset_count; i++)
     {
       Process::Preset p;
       p.key.key = this->static_concreteKey();
@@ -182,15 +178,15 @@ std::vector<Process::Preset> ProcessModel::builtinPresets() const noexcept
 
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {
-  if (!m_bank)
+  if(!m_bank)
     return;
 
   const rapidjson::Document doc = readJson(preset.data);
-  if (!doc.IsObject())
+  if(!doc.IsObject())
     return;
   auto obj = doc.GetObject();
 
-  if (auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd())
+  if(auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd())
   {
     auto idx = JsonValue{it->value}.toInt();
     ysfx_load_state(this->fx.get(), this->m_bank->presets[idx].state);
@@ -209,7 +205,7 @@ Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget
   uint32_t dim[2];
   ysfx_get_gfx_dim(fx.get(), dim);
 
-  if (dim[0] == 0 || dim[1] == 0)
+  if(dim[0] == 0 || dim[1] == 0)
   {
     dim[0] = 640;
     dim[1] = 480;
@@ -229,19 +225,16 @@ Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget
   conf.pixel_stride = 0; // conf.pixel_width * 4;
   conf.pixels = m_frame.bits();
   conf.scale_factor = 1.0;
-  conf.show_menu
-      = [](void* user_data, const char* menu_spec, int32_t xpos, int32_t ypos) -> int32_t
-  {
+  conf.show_menu = [](void* user_data, const char* menu_spec, int32_t xpos,
+                      int32_t ypos) -> int32_t {
     //qDebug() << "Show menu" << menu_spec << xpos << ypos;
     return 0;
   };
-  conf.set_cursor = [](void* user_data, int32_t cursor)
-  {
+  conf.set_cursor = [](void* user_data, int32_t cursor) {
     //qDebug() << "set cursor:" << cursor;
   };
 
-  conf.get_drop_file = [](void* user_data, int32_t index) -> const char*
-  {
+  conf.get_drop_file = [](void* user_data, int32_t index) -> const char* {
     //qDebug() << "Get drop file" << index;
     return "";
   };
@@ -283,7 +276,7 @@ static uint32_t qt_to_ysfx_mods()
 static int qt_to_ysfx_key(int k)
 {
   int key = -1;
-  switch (k)
+  switch(k)
   {
     case Qt::Key_Backspace:
       key = ysfx_key_backspace;
@@ -449,7 +442,7 @@ void Window::keyPressEvent(QKeyEvent* event)
   const auto mods = qt_to_ysfx_mods();
 
   const auto key = qt_to_ysfx_key(event->key());
-  if (key != -1)
+  if(key != -1)
     ysfx_gfx_add_key(fx.get(), mods, key, true);
 
   event->accept();
@@ -460,7 +453,7 @@ void Window::keyReleaseEvent(QKeyEvent* event)
   const auto mods = qt_to_ysfx_mods();
 
   const auto key = qt_to_ysfx_key(event->key());
-  if (key != -1)
+  if(key != -1)
     ysfx_gfx_add_key(fx.get(), mods, key, false);
 
   event->accept();

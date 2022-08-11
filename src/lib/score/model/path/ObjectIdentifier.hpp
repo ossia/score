@@ -19,8 +19,7 @@
  */
 class ObjectIdentifier
 {
-  friend bool
-  operator==(const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
+  friend bool operator==(const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
   {
     return (lhs.m_objectName == rhs.m_objectName) && (lhs.m_id == rhs.m_id);
   }

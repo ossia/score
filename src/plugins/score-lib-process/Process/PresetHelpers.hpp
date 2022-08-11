@@ -1,19 +1,19 @@
 #pragma once
-#include <Process/Process.hpp>
-#include <ossia/detail/algorithms.hpp>
-
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Process.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 namespace Process
 {
 
-template<typename T = Process::ControlInlet>
+template <typename T = Process::ControlInlet>
 void saveFixedControls(JSONReader& r, const Process::ProcessModel& proc)
 {
   r.stream.StartArray();
-  for (const auto& inlet : proc.inlets())
+  for(const auto& inlet : proc.inlets())
   {
-    if (auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
+    if(auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
     {
       r.stream.StartArray();
       r.stream.Int(ctrl->id().val());
@@ -24,20 +24,21 @@ void saveFixedControls(JSONReader& r, const Process::ProcessModel& proc)
   r.stream.EndArray();
 }
 
-template<typename T = Process::ControlInlet>
-void loadFixedControls(const rapidjson::Document::ConstArray& ctrls, Process::ProcessModel& proc)
+template <typename T = Process::ControlInlet>
+void loadFixedControls(
+    const rapidjson::Document::ConstArray& ctrls, Process::ProcessModel& proc)
 {
-  for (const auto& arr : ctrls)
+  for(const auto& arr : ctrls)
   {
     const auto& id = arr[0].GetInt();
     ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
 
     auto it = ossia::find_if(
         proc.inlets(), [&](const auto& inl) { return inl->id().val() == id; });
-    if (it != proc.inlets().end())
+    if(it != proc.inlets().end())
     {
       Process::Inlet& inlet = **it;
-      if (auto ctrl = qobject_cast<T*>(&inlet))
+      if(auto ctrl = qobject_cast<T*>(&inlet))
       {
         ctrl->setValue(val);
       }
@@ -45,7 +46,7 @@ void loadFixedControls(const rapidjson::Document::ConstArray& ctrls, Process::Pr
   }
 }
 
-template<typename T>
+template <typename T>
 Process::Preset saveScriptProcessPreset(const T& process, const QString& data)
 {
   Process::Preset p;
@@ -60,7 +61,7 @@ Process::Preset saveScriptProcessPreset(const T& process, const QString& data)
   return p;
 }
 
-template<typename ScriptProperty, typename T>
+template <typename ScriptProperty, typename T>
 void loadScriptProcessPreset(T& process, const Process::Preset& preset)
 {
   const rapidjson::Document doc = readJson(preset.data);

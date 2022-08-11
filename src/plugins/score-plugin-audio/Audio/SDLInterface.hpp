@@ -17,16 +17,14 @@ class SDLFactory final : public AudioFactory
 public:
   ~SDLFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(
-      Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+  void
+  initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
   }
 
   QString prettyName() const override { return QObject::tr("SDL"); };
   std::shared_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+      const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
     int rate = set.getRate();
     int bs = set.getBufferSize();
@@ -38,10 +36,8 @@ public:
   }
 
   QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override
   {
     return nullptr;
   }

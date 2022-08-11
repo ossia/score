@@ -17,9 +17,7 @@ namespace Command
 class CreationMetaCommand final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreationMetaCommand,
-      "Create elements in scenario")
+      CommandFactoryName(), CreationMetaCommand, "Create elements in scenario")
 public:
   void undo(const score::DocumentContext& ctx) const override
   {
@@ -27,15 +25,15 @@ public:
     // since the move ones perform unnecessary serialization / etc in this case
     // and don't bring anything to the table.
     // TODO REFACTOR WITH SCENARIOROLLBACKSTRATEGY
-    for (auto& cmd : boost::adaptors::reverse(m_cmds))
+    for(auto& cmd : boost::adaptors::reverse(m_cmds))
     {
-      if (cmd->key() == CreateInterval::static_key()
-          || cmd->key() == CreateState::static_key()
-          || cmd->key() == CreateEvent_State::static_key()
-          || cmd->key() == CreateInterval_State::static_key()
-          || cmd->key() == CreateInterval_State_Event::static_key()
-          || cmd->key() == CreateInterval_State_Event_TimeSync::static_key()
-          || cmd->key() == CreateSequence::static_key())
+      if(cmd->key() == CreateInterval::static_key()
+         || cmd->key() == CreateState::static_key()
+         || cmd->key() == CreateEvent_State::static_key()
+         || cmd->key() == CreateInterval_State::static_key()
+         || cmd->key() == CreateInterval_State_Event::static_key()
+         || cmd->key() == CreateInterval_State_Event_TimeSync::static_key()
+         || cmd->key() == CreateSequence::static_key())
       {
         cmd->undo(ctx);
       }

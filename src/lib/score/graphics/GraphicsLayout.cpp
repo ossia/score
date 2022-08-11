@@ -1,16 +1,17 @@
 #include "GraphicsLayout.hpp"
-#include <score/widgets/Pixmap.hpp>
+
 #include <score/model/Skin.hpp>
+#include <score/widgets/Pixmap.hpp>
+
 #include <QPainter>
 
 namespace score
 {
 
-GraphicsLayout::GraphicsLayout(QGraphicsItem* parent):
-  score::BackgroundItem{parent}
-, m_bg{nullptr}
+GraphicsLayout::GraphicsLayout(QGraphicsItem* parent)
+    : score::BackgroundItem{parent}
+    , m_bg{nullptr}
 {
-
 }
 
 GraphicsLayout::~GraphicsLayout()
@@ -23,10 +24,7 @@ void GraphicsLayout::layout()
   //fitChildrenRect();
 }
 
-void GraphicsLayout::centerContent()
-{
-
-}
+void GraphicsLayout::centerContent() { }
 
 void GraphicsLayout::setBrush(score::BrushSet& b)
 {
@@ -49,9 +47,7 @@ void GraphicsLayout::setMargin(qreal p)
 }
 
 void GraphicsLayout::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   // painter->fillRect(boundingRect(), QColor(qRgb(127, 127, 160)));
   if(m_bg)
@@ -75,4 +71,3 @@ void GraphicsLayout::paint(
   //painter->drawRect(childrenBoundingRect());
 }
 }
-

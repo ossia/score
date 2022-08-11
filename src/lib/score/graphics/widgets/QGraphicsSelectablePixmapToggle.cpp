@@ -1,11 +1,11 @@
 #include <score/graphics/widgets/QGraphicsSelectablePixmapToggle.hpp>
 #include <score/model/Skin.hpp>
 
-#include <QGraphicsSceneMouseEvent>
-
 #include <QApplication>
 #include <QDrag>
+#include <QGraphicsSceneMouseEvent>
 #include <QMimeData>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsSelectablePixmapToggle);
 W_OBJECT_IMPL(score::QGraphicsDraggablePixmap);
@@ -13,11 +13,8 @@ W_OBJECT_IMPL(score::QGraphicsDraggablePixmap);
 namespace score
 {
 QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
-    QPixmap pressed,
-    QPixmap pressed_selected,
-    QPixmap released,
-    QPixmap released_selected,
-    QGraphicsItem* parent)
+    QPixmap pressed, QPixmap pressed_selected, QPixmap released,
+    QPixmap released_selected, QGraphicsItem* parent)
     : QGraphicsPixmapItem{released, parent}
     , m_pressed{std::move(pressed)}
     , m_pressed_selected{std::move(pressed_selected)}
@@ -41,7 +38,7 @@ void QGraphicsSelectablePixmapToggle::toggle()
 
 void QGraphicsSelectablePixmapToggle::setSelected(bool selected)
 {
-  if (selected != m_selected)
+  if(selected != m_selected)
   {
     m_selected = selected;
     setPixmap(
@@ -52,7 +49,7 @@ void QGraphicsSelectablePixmapToggle::setSelected(bool selected)
 
 void QGraphicsSelectablePixmapToggle::setState(bool toggled)
 {
-  if (toggled != m_toggled)
+  if(toggled != m_toggled)
   {
     m_toggled = toggled;
     setPixmap(
@@ -61,8 +58,7 @@ void QGraphicsSelectablePixmapToggle::setState(bool toggled)
   }
 }
 
-void QGraphicsSelectablePixmapToggle::mousePressEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_toggled = !m_toggled;
   setPixmap(
@@ -72,23 +68,18 @@ void QGraphicsSelectablePixmapToggle::mousePressEvent(
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseMoveEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
-
 
 QGraphicsDraggablePixmap::QGraphicsDraggablePixmap(
-    QPixmap pressed,
-    QPixmap released,
-    QGraphicsItem* parent)
+    QPixmap pressed, QPixmap released, QGraphicsItem* parent)
     : QGraphicsPixmapItem{released, parent}
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}
@@ -99,21 +90,19 @@ QGraphicsDraggablePixmap::QGraphicsDraggablePixmap(
   setCursor(skin.CursorPointingHand);
 }
 
-
-void QGraphicsDraggablePixmap::mousePressEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsDraggablePixmap::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_didDrag = false;
   setPixmap(m_pressed);
   event->accept();
 }
 
-void QGraphicsDraggablePixmap::mouseMoveEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsDraggablePixmap::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   {
-    auto min_dist
-        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength() >= QApplication::startDragDistance();
+    auto min_dist = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+                        .manhattanLength()
+                    >= QApplication::startDragDistance();
     if(min_dist && this->createDrag)
     {
       m_didDrag = true;
@@ -129,8 +118,7 @@ void QGraphicsDraggablePixmap::mouseMoveEvent(
   event->accept();
 }
 
-void QGraphicsDraggablePixmap::mouseReleaseEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsDraggablePixmap::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if(!m_didDrag && this->click)
   {

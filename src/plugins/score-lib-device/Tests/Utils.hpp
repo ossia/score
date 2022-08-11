@@ -1,9 +1,12 @@
 #pragma once
 
 #include <State/Message.hpp>
+
+#include <score/serialization/VisitorCommon.hpp>
+
 #include <core/application/MinimalApplication.hpp>
 #include <core/application/MockApplication.hpp>
-#include <score/serialization/VisitorCommon.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 #include <QMetaType>

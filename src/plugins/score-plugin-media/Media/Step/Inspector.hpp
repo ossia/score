@@ -1,8 +1,9 @@
 #pragma once
-#include <Media/Step/Commands.hpp>
-#include <Media/Step/Model.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+
+#include <Media/Step/Commands.hpp>
+#include <Media/Step/Model.hpp>
 
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -20,9 +21,7 @@ class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Model>
 {
 public:
   explicit InspectorWidget(
-      const Model& obj,
-      const score::DocumentContext& doc,
-      QWidget* parent)
+      const Model& obj, const score::DocumentContext& doc, QWidget* parent)
       : InspectorWidgetDelegate_T{obj, parent}
       , m_dispatcher{doc.dispatcher}
       , m_count{this}
@@ -41,18 +40,12 @@ public:
 
     auto lay = new QFormLayout{this};
 
-    con(process(), &Model::stepCountChanged, this, [&] {
-      m_count.setValue(obj.stepCount());
-    });
-    con(process(), &Model::stepDurationChanged, this, [&] {
-      m_dur.setValue(obj.stepDuration());
-    });
-    con(process(), &Model::minChanged, this, [&] {
-      m_min.setValue(obj.min());
-    });
-    con(process(), &Model::maxChanged, this, [&] {
-      m_max.setValue(obj.max());
-    });
+    con(process(), &Model::stepCountChanged, this,
+        [&] { m_count.setValue(obj.stepCount()); });
+    con(process(), &Model::stepDurationChanged, this,
+        [&] { m_dur.setValue(obj.stepDuration()); });
+    con(process(), &Model::minChanged, this, [&] { m_min.setValue(obj.min()); });
+    con(process(), &Model::maxChanged, this, [&] { m_max.setValue(obj.max()); });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
       m_dispatcher.submit<SetStepCount>(obj, m_count.value());

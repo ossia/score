@@ -18,10 +18,8 @@ public:
   ~ZoomItem();
 
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void zoom() E_SIGNAL(SCORE_LIB_BASE_EXPORT, zoom)
   void dezoom() E_SIGNAL(SCORE_LIB_BASE_EXPORT, dezoom)

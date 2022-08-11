@@ -15,16 +15,14 @@ public:
 private:
   void CreateTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     CreateEventAfterEvent cmd(
         {
             {"ScenarioModel", {0}},
         },
-        scenar->startEvent()->id(),
-        TimeValue::fromMsecs(10),
-        0.5);
+        scenar->startEvent()->id(), TimeValue::fromMsecs(10), 0.5);
 
     cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), 2);
@@ -38,7 +36,7 @@ private:
       scenar->event(cmd.m_createdEventId);
       QFAIL("Event call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
 

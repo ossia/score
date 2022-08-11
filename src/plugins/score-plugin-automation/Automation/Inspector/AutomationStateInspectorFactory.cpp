@@ -15,8 +15,7 @@ StateInspectorFactory::StateInspectorFactory()
 }
 
 QWidget* StateInspectorFactory::make(
-    const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc,
+    const InspectedObjects& sourceElements, const score::DocumentContext& doc,
     QWidget* parent) const
 {
   return new StateInspectorWidget{

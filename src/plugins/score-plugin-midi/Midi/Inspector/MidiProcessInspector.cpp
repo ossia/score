@@ -16,9 +16,7 @@ namespace Midi
 {
 
 InspectorWidget::InspectorWidget(
-    const ProcessModel& model,
-    const score::DocumentContext& doc,
-    QWidget* parent)
+    const ProcessModel& model, const score::DocumentContext& doc, QWidget* parent)
     : InspectorWidgetDelegate_T{model, parent}
 {
   auto vlay = new score::MarginLess<QFormLayout>{this};
@@ -31,17 +29,16 @@ InspectorWidget::InspectorWidget(
     vlay->addRow(tr("Channel"), m_chan);
     m_chan->setValue(model.channel());
     con(model, &ProcessModel::channelChanged, this, [=](int n) {
-      if (m_chan->value() != n)
+      if(m_chan->value() != n)
         m_chan->setValue(n);
     });
-    connect(
-        m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
-          if (model.channel() != n)
-          {
-            CommandDispatcher<> d{doc.commandStack};
-            d.submit(new SetChannel{model, n});
-          }
-        });
+    connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
+      if(model.channel() != n)
+      {
+        CommandDispatcher<> d{doc.commandStack};
+        d.submit(new SetChannel{model, n});
+      }
+    });
   }
 
   ///// RANGE /////
@@ -65,7 +62,7 @@ InspectorWidget::InspectorWidget(
 
     connect(m_min, &QSpinBox::editingFinished, this, [=, &model, &doc] {
       auto n = m_min->value();
-      if (model.range().first != n)
+      if(model.range().first != n)
       {
         CommandDispatcher<> d{doc.commandStack};
         d.submit(new SetRange{model, n, m_max->value()});
@@ -73,7 +70,7 @@ InspectorWidget::InspectorWidget(
     });
     connect(m_max, &QSpinBox::editingFinished, this, [=, &model, &doc] {
       auto n = m_max->value();
-      if (model.range().second != n)
+      if(model.range().second != n)
       {
         CommandDispatcher<> d{doc.commandStack};
         d.submit(new SetRange{model, m_min->value(), n});

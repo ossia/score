@@ -1,5 +1,6 @@
 #include <Audio/DummyInterface.hpp>
 #include <Audio/Settings/Model.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 namespace Audio::Settings
 {
@@ -10,34 +11,21 @@ SETTINGS_PARAMETER_IMPL(Driver)
 {
   QStringLiteral("Audio/Driver"),
 #if defined(_WIN32)
-      Audio::AudioFactory::ConcreteKey
-  {
-    score::uuids::string_generator::compute(
-        "afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")
-  } // WASAPI
+      Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+          "afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")} // WASAPI
 #elif defined(__APPLE__)
-      Audio::AudioFactory::ConcreteKey
-  {
-    score::uuids::string_generator::compute(
-        "e75cb711-613f-4f15-834f-398ab1807470")
-  }
+      Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+          "e75cb711-613f-4f15-834f-398ab1807470")}
 #elif defined(__linux__)
-      Audio::AudioFactory::ConcreteKey
-  {
-    score::uuids::string_generator::compute(
-        "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
-  } // ALSA
+      Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+          "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")} // ALSA
 #elif defined(__EMSCRIPTEN__)
-      Audio::AudioFactory::ConcreteKey
-  {
-    score::uuids::string_generator::compute(
-        "28b88e91-c5f0-4f13-834f-aa333d14aa81")
-  } // ALSA
+      Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+          "28b88e91-c5f0-4f13-834f-aa333d14aa81")} // ALSA
 #else
       Audio::AudioFactory::ConcreteKey
   {
-    score::uuids::string_generator::compute(
-        "e7543875-3b22-457c-bf41-75504637686f")
+    score::uuids::string_generator::compute("e7543875-3b22-457c-bf41-75504637686f")
   }
 #endif
 };
@@ -50,28 +38,15 @@ SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("Audio/SamplingRate"), 44100};
 SETTINGS_PARAMETER_IMPL(DefaultIn){QStringLiteral("Audio/DefaultIn"), 2};
 SETTINGS_PARAMETER_IMPL(DefaultOut){QStringLiteral("Audio/DefaultOut"), 2};
 SETTINGS_PARAMETER_IMPL(AutoStereo){QStringLiteral("Audio/AutoStereo"), true};
-SETTINGS_PARAMETER_IMPL(AutoConnect){
-    QStringLiteral("Audio/AutoConnect"),
-    true};
+SETTINGS_PARAMETER_IMPL(AutoConnect){QStringLiteral("Audio/AutoConnect"), true};
 SETTINGS_PARAMETER_IMPL(JackTransport){
-    QStringLiteral("Audio/JackTransport"),
-    ExternalTransport::None};
+    QStringLiteral("Audio/JackTransport"), ExternalTransport::None};
 
 static auto list()
 {
   return std::tie(
-      Driver,
-      Rate,
-      InputNames,
-      OutputNames,
-      CardIn,
-      CardOut,
-      BufferSize,
-      DefaultIn,
-      DefaultOut,
-      AutoStereo,
-      AutoConnect,
-      JackTransport);
+      Driver, Rate, InputNames, OutputNames, CardIn, CardOut, BufferSize, DefaultIn,
+      DefaultOut, AutoStereo, AutoConnect, JackTransport);
 }
 }
 
@@ -91,27 +66,26 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
   auto& ctx = score::AppContext();
   auto& factories = ctx.interfaces<AudioFactoryList>();
   auto iface = factories.get(val);
-  if (!iface)
+  if(!iface)
   {
     val = Parameters::Driver.def;
     iface = factories.get(val);
-    if (!iface)
+    if(!iface)
     {
       val = DummyFactory::static_concreteKey();
       iface = factories.get(val);
     }
   }
 
-  if (val == m_Driver)
+  if(val == m_Driver)
     return;
 
   m_Driver = val;
 
   // SDL
-  if (m_Driver
-      == Audio::AudioFactory::ConcreteKey{
-          score::uuids::string_generator::compute(
-              "28b88e91-c5f0-4f13-834f-aa333d14aa81")})
+  if(m_Driver
+     == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+         "28b88e91-c5f0-4f13-834f-aa333d14aa81")})
   {
     setRate(48000);
     setBufferSize(1024);
@@ -122,10 +96,9 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
   s.setValue(Parameters::Driver.key, QVariant::fromValue(m_Driver));
 
   // Special case for dummy driver: set reasonable values
-  if (m_Driver
-      == Audio::AudioFactory::ConcreteKey{
-          score::uuids::string_generator::compute(
-              "13dabcc3-9cda-422f-a8c7-5fef5c220677")})
+  if(m_Driver
+     == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+         "13dabcc3-9cda-422f-a8c7-5fef5c220677")})
   {
     m_Rate = 44100;
     s.setValue(Parameters::Rate.key, QVariant::fromValue(m_Rate));
@@ -144,9 +117,9 @@ int Model::getRate() const
 
 void Model::setRate(int val)
 {
-  if (val <= 0)
+  if(val <= 0)
     val = 44100;
-  if (val == m_Rate)
+  if(val == m_Rate)
     return;
 
   m_Rate = val;
@@ -165,9 +138,9 @@ int Model::getBufferSize() const
 
 void Model::setBufferSize(int val)
 {
-  if (val <= 0)
+  if(val <= 0)
     val = 512;
-  if (val == m_BufferSize)
+  if(val == m_BufferSize)
     return;
 
   m_BufferSize = val;
@@ -187,8 +160,5 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultIn)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultOut)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoStereo)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoConnect)
-SCORE_SETTINGS_PARAMETER_CPP(
-    Audio::Settings::ExternalTransport,
-    Model,
-    JackTransport)
+SCORE_SETTINGS_PARAMETER_CPP(Audio::Settings::ExternalTransport, Model, JackTransport)
 }

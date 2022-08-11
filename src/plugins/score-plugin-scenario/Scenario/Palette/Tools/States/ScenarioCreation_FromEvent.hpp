@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QFinalState>
-
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
@@ -15,28 +13,23 @@
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 
+#include <QFinalState>
+
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
-class Creation_FromEvent final
-    : public CreationState<Scenario_T, ToolPalette_T>
+class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
 {
 public:
   Creation_FromEvent(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      QState* parent)
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, QState* parent)
       : CreationState<Scenario_T, ToolPalette_T>{
-          stateMachine,
-          stack,
-          std::move(scenarioPath),
-          parent}
+          stateMachine, stack, std::move(scenarioPath), parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
-    QObject::connect(
-        finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
+    QObject::connect(finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
 
     auto mainState = new QState{this};
     mainState->setObjectName("Main state");
@@ -60,8 +53,7 @@ public:
       released->addTransition(finalState);
 
       // Release
-      score::make_transition<ReleaseOnAnything_Transition>(
-          mainState, released);
+      score::make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
       // Pressed -> ...
       score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
@@ -168,16 +160,15 @@ public:
       });
 
       QObject::connect(move_nothing, &QState::entered, [&]() {
-        if (this->createdIntervals.empty() || this->createdEvents.empty())
+        if(this->createdIntervals.empty() || this->createdEvents.empty())
         {
           this->rollback();
           return;
         }
 
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
+        if(this->currentPoint.date <= this->m_clickedPoint.date)
         {
-          this->currentPoint.date
-              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
+          this->currentPoint.date = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
           ;
         }
 
@@ -185,52 +176,44 @@ public:
             &stateMachine.model(), this->currentPoint.date);
 
         this->m_dispatcher.template submit<MoveNewEvent>(
-            this->m_scenario,
-            this->createdIntervals.last(),
-            this->createdEvents.last(),
-            this->currentPoint.date,
-            this->currentPoint.y,
+            this->m_scenario, this->createdIntervals.last(), this->createdEvents.last(),
+            this->currentPoint.date, this->currentPoint.y,
             stateMachine.editionSettings().tool() == Tool::CreateSequence);
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {
-        if (this->createdStates.empty())
+        if(this->createdStates.empty())
         {
           this->rollback();
           return;
         }
 
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
+        if(this->currentPoint.date <= this->m_clickedPoint.date)
         {
           return;
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
       QObject::connect(move_event, &QState::entered, [&]() {
-        if (this->createdStates.empty())
+        if(this->createdStates.empty())
         {
           this->rollback();
           return;
         }
 
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
+        if(this->currentPoint.date <= this->m_clickedPoint.date)
         {
           return;
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
-      QObject::connect(
-          released, &QState::entered, this, &Creation_FromEvent::commit);
+      QObject::connect(released, &QState::entered, this, &Creation_FromEvent::commit);
     }
 
     auto rollbackState = new QState{this};
@@ -246,7 +229,7 @@ public:
 private:
   void createInitialState()
   {
-    if (this->clickedEvent)
+    if(this->clickedEvent)
     {
       auto cmd = new Scenario::Command::CreateState{
           this->m_scenario, *this->clickedEvent, this->currentPoint.y};
@@ -271,7 +254,7 @@ private:
   // Note : clickedEvent is set at startEvent if clicking in the background.
   void createToEvent()
   {
-    if (this->hoveredEvent != this->clickedEvent)
+    if(this->hoveredEvent != this->clickedEvent)
     {
       createInitialState();
       this->createToEvent_base(this->createdStates.first());

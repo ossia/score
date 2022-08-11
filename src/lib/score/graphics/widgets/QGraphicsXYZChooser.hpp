@@ -30,8 +30,7 @@ public:
 
   void setPoint(const QPointF& r);
   void setValue(ossia::vec3f v);
-  void setRange(ossia::vec3f min = {0.f, 0.f, 0.f},
-                ossia::vec3f max = {1.f, 1.f, 1.f});
+  void setRange(ossia::vec3f min = {0.f, 0.f, 0.f}, ossia::vec3f max = {1.f, 1.f, 1.f});
   ossia::vec3f value() const;
 
   bool moving = false;
@@ -47,9 +46,7 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 }

@@ -9,7 +9,7 @@
 
 inline QDebug operator<<(QDebug d, const TimeVal& tv)
 {
-  if (!tv.infinite())
+  if(!tv.infinite())
   {
     d << tv.msec() << "ms";
   }
@@ -40,15 +40,14 @@ struct TSerializer<JSONObject, TimeVal>
 {
   static void readFrom(JSONObject::Serializer& s, const TimeVal& tv)
   {
-    if (Q_UNLIKELY(tv.impl > ossia::time_value::infinite_min))
+    if(Q_UNLIKELY(tv.impl > ossia::time_value::infinite_min))
     {
       s.stream.Int64(ossia::time_value::infinity);
     }
-    else if (Q_UNLIKELY(tv.impl < 0))
+    else if(Q_UNLIKELY(tv.impl < 0))
     {
-      qDebug()
-          << "Warning: saving a time_value < 0. This likely indicates a bug: "
-          << tv.impl;
+      qDebug() << "Warning: saving a time_value < 0. This likely indicates a bug: "
+               << tv.impl;
       s.stream.Int64(0);
     }
     else
@@ -61,11 +60,11 @@ struct TSerializer<JSONObject, TimeVal>
   {
     using namespace std;
     using namespace std::literals;
-    if (Q_LIKELY(s.base.IsInt64()))
+    if(Q_LIKELY(s.base.IsInt64()))
     {
       tv.impl = s.base.GetInt64();
     }
-    else if (s.base.IsUint64())
+    else if(s.base.IsUint64())
     {
       // Note: there is likely a rapidjson bug there...
       qDebug() << "Warning: loading a value > to the maximum of an int64_t: "

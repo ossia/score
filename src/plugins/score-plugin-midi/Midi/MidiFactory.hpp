@@ -1,8 +1,9 @@
 #pragma once
+#include <Process/GenericProcessFactory.hpp>
+
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <Midi/MidiView.hpp>
-#include <Process/GenericProcessFactory.hpp>
 
 namespace Midi
 {

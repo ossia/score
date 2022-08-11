@@ -1,7 +1,8 @@
 #pragma once
 
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
 namespace Library
 {

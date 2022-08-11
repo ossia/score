@@ -35,15 +35,12 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(ExecutionRefreshRate);
 
   con(v, &View::zoomChanged, this, [&](auto val) {
-    if (val != m.getGraphicZoom())
+    if(val != m.getGraphicZoom())
     {
-      m_disp.submit<SetModelGraphicZoom>(
-          this->model(this), 0.01 * double(val));
+      m_disp.submit<SetModelGraphicZoom>(this->model(this), 0.01 * double(val));
     }
   });
-  con(m, &Model::GraphicZoomChanged, this, [&](double z) {
-    v.setZoom((100 * z));
-  });
+  con(m, &Model::GraphicZoomChanged, this, [&](double z) { v.setZoom((100 * z)); });
   v.setZoom(m.getGraphicZoom() * 100);
 }
 

@@ -1,6 +1,7 @@
 #pragma once
-#include <Automation/AutomationModel.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+
+#include <Automation/AutomationModel.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/value/destination.hpp>
@@ -17,14 +18,13 @@ namespace Automation
 namespace RecreateOnPlay
 {
 class Component final
-    : public ::Execution::
-          ProcessComponent_T<Automation::ProcessModel, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<
+          Automation::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("f759eacd-5a67-4627-bbe8-c649e0f9b6c5")
 public:
   Component(
-      Automation::ProcessModel& element,
-      const ::Execution::Context& ctx,
+      Automation::ProcessModel& element, const ::Execution::Context& ctx,
       QObject* parent);
 
   ~Component() override;
@@ -44,5 +44,4 @@ using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Execution::ProcessComponentFactory,
-    Automation::RecreateOnPlay::ComponentFactory)
+    Execution::ProcessComponentFactory, Automation::RecreateOnPlay::ComponentFactory)

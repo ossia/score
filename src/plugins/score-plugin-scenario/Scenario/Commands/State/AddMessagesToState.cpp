@@ -6,6 +6,10 @@
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
@@ -13,24 +17,19 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/MapSerialization.hpp>
 
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-
 namespace Scenario
 {
 namespace Command
 {
 
 RenameAddressInState::RenameAddressInState(
-    const Scenario::StateModel& state,
-    const State::AddressAccessor& old,
+    const Scenario::StateModel& state, const State::AddressAccessor& old,
     const State::AddressAccessorHead& name)
     : m_state{state}
     , m_oldName{old}
     , m_newName{old}
 {
-  if (!m_newName.address.path.isEmpty())
+  if(!m_newName.address.path.isEmpty())
     m_newName.address.path.back() = name.name;
   else
     m_newName.address.device = name.name;
@@ -61,8 +60,7 @@ void RenameAddressInState::deserializeImpl(DataStreamOutput& s)
 }
 
 AddMessagesToState::AddMessagesToState(
-    const Scenario::StateModel& state,
-    const State::MessageList& messages)
+    const Scenario::StateModel& state, const State::MessageList& messages)
     : m_path{state}
 {
   m_oldState = state.messages().rootNode();
@@ -83,11 +81,10 @@ AddMessagesToState::AddMessagesToState(
   // the node altogether
 
   // TODO this won't work in network editing ???
-  for (const ProcessStateWrapper& prevProc : state.previousProcesses())
+  for(const ProcessStateWrapper& prevProc : state.previousProcesses())
   {
     const auto& processModel = prevProc.process().process();
-    m_previousBackup.insert(
-        {processModel.id(), prevProc.process().messages()});
+    m_previousBackup.insert({processModel.id(), prevProc.process().messages()});
 
     auto lst = prevProc.process().setMessages(messages, m_oldState);
 
@@ -95,11 +92,10 @@ AddMessagesToState::AddMessagesToState(
         m_newState, lst, processModel.id(), ProcessPosition::Previous);
   }
 
-  for (const ProcessStateWrapper& nextProc : state.followingProcesses())
+  for(const ProcessStateWrapper& nextProc : state.followingProcesses())
   {
     const auto& processModel = nextProc.process().process();
-    m_followingBackup.insert(
-        {processModel.id(), nextProc.process().messages()});
+    m_followingBackup.insert({processModel.id(), nextProc.process().messages()});
 
     auto lst = nextProc.process().setMessages(messages, m_oldState);
 
@@ -123,12 +119,12 @@ void AddMessagesToState::undo(const score::DocumentContext& ctx) const
   // TODO we should reset the model
 
   // Restore the state of the processes.
-  for (const ProcessStateWrapper& prevProc : sm.previousProcesses())
+  for(const ProcessStateWrapper& prevProc : sm.previousProcesses())
   {
     prevProc.process().setMessages(
         m_previousBackup.at(prevProc.process().process().id()), m_oldState);
   }
-  for (const ProcessStateWrapper& nextProc : sm.followingProcesses())
+  for(const ProcessStateWrapper& nextProc : sm.followingProcesses())
   {
     nextProc.process().setMessages(
         m_followingBackup.at(nextProc.process().process().id()), m_oldState);
@@ -143,19 +139,16 @@ void AddMessagesToState::redo(const score::DocumentContext& ctx) const
 
 void AddMessagesToState::serializeImpl(DataStreamInput& d) const
 {
-  d << m_path << m_oldState << m_newState << m_previousBackup
-    << m_followingBackup;
+  d << m_path << m_oldState << m_newState << m_previousBackup << m_followingBackup;
 }
 
 void AddMessagesToState::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_path >> m_oldState >> m_newState >> m_previousBackup
-      >> m_followingBackup;
+  d >> m_path >> m_oldState >> m_newState >> m_previousBackup >> m_followingBackup;
 }
 
 AddControlMessagesToState::AddControlMessagesToState(
-    const Scenario::StateModel& state,
-    std::vector<Process::ControlMessage>&& messages)
+    const Scenario::StateModel& state, std::vector<Process::ControlMessage>&& messages)
     : m_path{state}
 {
   m_old = state.controlMessages().messages();

@@ -1,7 +1,9 @@
 #pragma once
+#include <Process/Preset.hpp>
+
+#include <Library/LibraryInterface.hpp>
 #include <Library/PresetListView.hpp>
 #include <Library/ProcessTreeView.hpp>
-#include <Library/LibraryInterface.hpp>
 
 #include <score/tools/std/Optional.hpp>
 
@@ -9,8 +11,6 @@
 #include <QTreeView>
 
 #include <score_plugin_library_export.h>
-
-#include <Process/Preset.hpp>
 namespace score
 {
 struct GUIApplicationContext;
@@ -34,17 +34,12 @@ public:
   QSet<QString> acceptedFiles() const noexcept override;
   QSet<QString> acceptedMimeTypes() const noexcept override;
 
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override;
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override;
 
   void addPath(std::string_view path) override;
 
-  bool onDrop(
-      const QMimeData& mime,
-      int row,
-      int column,
-      const QDir& parent) override;
+  bool onDrop(const QMimeData& mime, int row, int column, const QDir& parent) override;
 
 private:
   Process::ApplicationPlugin* presetLib{};

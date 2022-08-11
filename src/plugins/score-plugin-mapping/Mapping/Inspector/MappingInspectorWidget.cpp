@@ -3,12 +3,14 @@
 
 #include "MappingInspectorWidget.hpp"
 
+#include <State/Address.hpp>
+
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
+
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>
 #include <Mapping/MappingModel.hpp>
-#include <State/Address.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -28,9 +30,7 @@
 namespace Mapping
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& mappingModel,
-    const score::DocumentContext& doc,
-    QWidget* parent)
+    const ProcessModel& mappingModel, const score::DocumentContext& doc, QWidget* parent)
     : InspectorWidgetDelegate_T{mappingModel, parent}
     , m_dispatcher{doc.commandStack}
 {
@@ -49,15 +49,11 @@ InspectorWidget::InspectorWidget(
     m_sourceLineEdit = new AddressAccessorEditWidget{doc, this};
 
     m_sourceLineEdit->setAddress(process().sourceAddress());
-    con(process(),
-        &ProcessModel::sourceAddressChanged,
-        m_sourceLineEdit,
+    con(process(), &ProcessModel::sourceAddressChanged, m_sourceLineEdit,
         &AddressAccessorEditWidget::setAddress);
 
     connect(
-        m_sourceLineEdit,
-        &AddressAccessorEditWidget::addressChanged,
-        this,
+        m_sourceLineEdit, &AddressAccessorEditWidget::addressChanged, this,
         &InspectorWidget::on_sourceAddressChange);
 
     lay->addWidget(m_sourceLineEdit);
@@ -76,24 +72,16 @@ InspectorWidget::InspectorWidget(
     minmaxlay->addRow(tr("Min"), m_sourceMin);
     minmaxlay->addRow(tr("Max"), m_sourceMax);
 
-    con(process(),
-        &ProcessModel::sourceMinChanged,
-        m_sourceMin,
+    con(process(), &ProcessModel::sourceMinChanged, m_sourceMin,
         &QDoubleSpinBox::setValue);
-    con(process(),
-        &ProcessModel::sourceMaxChanged,
-        m_sourceMax,
+    con(process(), &ProcessModel::sourceMaxChanged, m_sourceMax,
         &QDoubleSpinBox::setValue);
 
     connect(
-        m_sourceMin,
-        &QAbstractSpinBox::editingFinished,
-        this,
+        m_sourceMin, &QAbstractSpinBox::editingFinished, this,
         &InspectorWidget::on_sourceMinValueChanged);
     connect(
-        m_sourceMax,
-        &QAbstractSpinBox::editingFinished,
-        this,
+        m_sourceMax, &QAbstractSpinBox::editingFinished, this,
         &InspectorWidget::on_sourceMaxValueChanged);
   }
 
@@ -104,15 +92,11 @@ InspectorWidget::InspectorWidget(
     m_targetLineEdit = new AddressAccessorEditWidget{doc, this};
 
     m_targetLineEdit->setAddress(process().targetAddress());
-    con(process(),
-        &ProcessModel::targetAddressChanged,
-        m_targetLineEdit,
+    con(process(), &ProcessModel::targetAddressChanged, m_targetLineEdit,
         &AddressAccessorEditWidget::setAddress);
 
     connect(
-        m_targetLineEdit,
-        &AddressAccessorEditWidget::addressChanged,
-        this,
+        m_targetLineEdit, &AddressAccessorEditWidget::addressChanged, this,
         &InspectorWidget::on_targetAddressChange);
 
     lay->addWidget(m_targetLineEdit);
@@ -131,24 +115,16 @@ InspectorWidget::InspectorWidget(
     minmaxlay->addRow(tr("Min"), m_targetMin);
     minmaxlay->addRow(tr("Max"), m_targetMax);
 
-    con(process(),
-        &ProcessModel::targetMinChanged,
-        m_targetMin,
+    con(process(), &ProcessModel::targetMinChanged, m_targetMin,
         &QDoubleSpinBox::setValue);
-    con(process(),
-        &ProcessModel::targetMaxChanged,
-        m_targetMax,
+    con(process(), &ProcessModel::targetMaxChanged, m_targetMax,
         &QDoubleSpinBox::setValue);
 
     connect(
-        m_targetMin,
-        &QAbstractSpinBox::editingFinished,
-        this,
+        m_targetMin, &QAbstractSpinBox::editingFinished, this,
         &InspectorWidget::on_targetMinValueChanged);
     connect(
-        m_targetMax,
-        &QAbstractSpinBox::editingFinished,
-        this,
+        m_targetMax, &QAbstractSpinBox::editingFinished, this,
         &InspectorWidget::on_targetMaxValueChanged);
   }
 
@@ -159,7 +135,7 @@ void InspectorWidget::on_sourceAddressChange(
     const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
-  if (newAddr.address == process().sourceAddress())
+  if(newAddr.address == process().sourceAddress())
     return;
 
   auto cmd = new ChangeSourceAddress{process(), newAddr};
@@ -170,7 +146,7 @@ void InspectorWidget::on_sourceAddressChange(
 void InspectorWidget::on_sourceMinValueChanged()
 {
   auto newVal = m_sourceMin->value();
-  if (newVal != process().sourceMin())
+  if(newVal != process().sourceMin())
   {
     auto cmd = new SetMappingSourceMin{process(), newVal};
 
@@ -181,7 +157,7 @@ void InspectorWidget::on_sourceMinValueChanged()
 void InspectorWidget::on_sourceMaxValueChanged()
 {
   auto newVal = m_sourceMax->value();
-  if (newVal != process().sourceMax())
+  if(newVal != process().sourceMax())
   {
     auto cmd = new SetMappingSourceMax{process(), newVal};
 
@@ -193,7 +169,7 @@ void InspectorWidget::on_targetAddressChange(
     const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
-  if (newAddr.address == process().targetAddress())
+  if(newAddr.address == process().targetAddress())
     return;
 
   auto cmd = new ChangeTargetAddress{process(), newAddr};
@@ -204,7 +180,7 @@ void InspectorWidget::on_targetAddressChange(
 void InspectorWidget::on_targetMinValueChanged()
 {
   auto newVal = m_targetMin->value();
-  if (newVal != process().targetMin())
+  if(newVal != process().targetMin())
   {
     auto cmd = new SetMappingTargetMin{process(), newVal};
 
@@ -215,7 +191,7 @@ void InspectorWidget::on_targetMinValueChanged()
 void InspectorWidget::on_targetMaxValueChanged()
 {
   auto newVal = m_targetMax->value();
-  if (newVal != process().targetMax())
+  if(newVal != process().targetMax())
   {
     auto cmd = new SetMappingTargetMax{process(), newVal};
 

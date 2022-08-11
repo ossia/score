@@ -7,6 +7,13 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/PainterPath.hpp>
 #include <score/model/Skin.hpp>
@@ -18,12 +25,6 @@
 #include <QStyleOption>
 #include <qnamespace.h>
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TemporalIntervalView)
 class QGraphicsSceneHoverEvent;
@@ -33,8 +34,7 @@ class QWidget;
 namespace Scenario
 {
 TemporalIntervalView::TemporalIntervalView(
-    TemporalIntervalPresenter& presenter,
-    QGraphicsItem* parent)
+    TemporalIntervalPresenter& presenter, QGraphicsItem* parent)
     : IntervalView{presenter, parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
@@ -70,11 +70,11 @@ void TemporalIntervalView::updatePaths()
   const qreal play_w = playWidth();
 
   // Paths
-  if (play_w <= 0.)
+  if(play_w <= 0.)
   {
-    if (infinite())
+    if(infinite())
     {
-      if (min_w != 0.)
+      if(min_w != 0.)
       {
         solidPath.lineTo(min_w, 0.);
       }
@@ -83,13 +83,13 @@ void TemporalIntervalView::updatePaths()
       // - dashedPath.moveTo(min_w, 0.);
       // - dashedPath.lineTo(def_w, 0.);
     }
-    else if (min_w == max_w) // TODO rigid()
+    else if(min_w == max_w) // TODO rigid()
     {
       solidPath.lineTo(def_w, 0.);
     }
     else
     {
-      if (min_w != 0.)
+      if(min_w != 0.)
       {
         solidPath.lineTo(min_w, 0.);
       }
@@ -97,9 +97,9 @@ void TemporalIntervalView::updatePaths()
   }
   else
   {
-    if (infinite())
+    if(infinite())
     {
-      if (min_w != 0.)
+      if(min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
         // if(play_w < min_w)
@@ -108,14 +108,14 @@ void TemporalIntervalView::updatePaths()
         }
       }
     }
-    else if (min_w == max_w) // TODO rigid()
+    else if(min_w == max_w) // TODO rigid()
     {
       playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
       solidPath.lineTo(def_w, 0.);
     }
     else
     {
-      if (min_w != 0.)
+      if(min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
         solidPath.lineTo(min_w, 0.);
@@ -125,9 +125,7 @@ void TemporalIntervalView::updatePaths()
 }
 
 void TemporalIntervalView::drawDashedPath(
-    QPainter& p,
-    QRectF visibleRect,
-    const Process::Style& skin)
+    QPainter& p, QRectF visibleRect, const Process::Style& skin)
 {
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -137,13 +135,13 @@ void TemporalIntervalView::drawDashedPath(
   auto& dash_pixmap = intervalDashedPixmap(skin);
 
   // Paths
-  if (play_w <= min_w)
+  if(play_w <= min_w)
   {
-    if (infinite())
+    if(infinite())
     {
       IntervalPixmaps::drawDashes(min_w, def_w, p, visibleRect, dash_pixmap);
     }
-    else if (min_w != max_w)
+    else if(min_w != max_w)
     {
       IntervalPixmaps::drawDashes(min_w, max_w, p, visibleRect, dash_pixmap);
     }
@@ -151,9 +149,7 @@ void TemporalIntervalView::drawDashedPath(
 }
 
 void TemporalIntervalView::drawPlayDashedPath(
-    QPainter& p,
-    QRectF visibleRect,
-    const Process::Style& skin)
+    QPainter& p, QRectF visibleRect, const Process::Style& skin)
 {
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -161,14 +157,13 @@ void TemporalIntervalView::drawPlayDashedPath(
   const qreal play_w = playWidth();
 
   // Paths
-  if (play_w <= min_w)
+  if(play_w <= min_w)
     return;
-  if (presenter().model().duration.isRigid())
+  if(presenter().model().duration.isRigid())
     return;
 
   double actual_min = std::max(min_w, visibleRect.left());
-  double actual_max
-      = std::min(infinite() ? def_w : max_w, visibleRect.right());
+  double actual_max = std::min(infinite() ? def_w : max_w, visibleRect.right());
 
   auto& pixmaps = intervalPixmaps(skin);
 
@@ -179,16 +174,12 @@ void TemporalIntervalView::drawPlayDashedPath(
 
   // played
   IntervalPixmaps::drawDashes(
-      actual_min,
-      std::min(actual_max, play_w),
-      p,
-      visibleRect,
+      actual_min, std::min(actual_max, play_w), p, visibleRect,
       pixmaps.playDashed.back());
 
   p.setPen(skin.IntervalPlayLinePen(skin.IntervalPlayFill()));
 
-  p.drawLine(
-      QPointF{actual_min, -0.5}, QPointF{std::min(actual_max, play_w), -0.5});
+  p.drawLine(QPointF{actual_min, -0.5}, QPointF{std::min(actual_max, play_w), -0.5});
 }
 
 void TemporalIntervalView::updatePlayPaths()
@@ -201,26 +192,26 @@ void TemporalIntervalView::updatePlayPaths()
   const qreal play_w = playWidth();
 
   // Paths
-  if (play_w <= 0.)
+  if(play_w <= 0.)
   {
     return;
   }
   else
   {
-    if (infinite())
+    if(infinite())
     {
-      if (min_w != 0.)
+      if(min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
     }
-    else if (min_w == max_w) // TODO rigid()
+    else if(min_w == max_w) // TODO rigid()
     {
       playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
     }
     else
     {
-      if (min_w != 0.)
+      if(min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
@@ -229,12 +220,10 @@ void TemporalIntervalView::updatePlayPaths()
 }
 
 void TemporalIntervalView::paint(
-    QPainter* p,
-    const QStyleOptionGraphicsItem* so,
-    QWidget*)
+    QPainter* p, const QStyleOptionGraphicsItem* so, QWidget*)
 {
   auto view = ::getView(*this);
-  if (!view)
+  if(!view)
     return;
   auto& painter = *p;
   const auto rect = boundingRect();
@@ -243,21 +232,18 @@ void TemporalIntervalView::paint(
   QPointF sceneDrawableBottomRight
       = view->mapToScene(view->width() + 10, view->height() + 10);
   QPointF itemDrawableTopLeft = this->mapFromScene(sceneDrawableTopLeft);
-  QPointF itemDrawableBottomRight
-      = this->mapFromScene(sceneDrawableBottomRight);
+  QPointF itemDrawableBottomRight = this->mapFromScene(sceneDrawableBottomRight);
 
   itemDrawableTopLeft.rx() = std::max(itemDrawableTopLeft.x(), 0.);
   itemDrawableTopLeft.ry() = std::max(itemDrawableTopLeft.y(), 0.);
 
-  itemDrawableBottomRight.rx()
-      = std::min(itemDrawableBottomRight.x(), rect.width());
-  itemDrawableBottomRight.ry()
-      = std::min(itemDrawableBottomRight.y(), rect.height());
-  if (itemDrawableTopLeft.x() > rect.width())
+  itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), rect.width());
+  itemDrawableBottomRight.ry() = std::min(itemDrawableBottomRight.y(), rect.height());
+  if(itemDrawableTopLeft.x() > rect.width())
   {
     return;
   }
-  if (itemDrawableBottomRight.y() > rect.height())
+  if(itemDrawableBottomRight.y() > rect.height())
   {
     return;
   }
@@ -265,20 +251,17 @@ void TemporalIntervalView::paint(
   painter.setRenderHint(QPainter::Antialiasing, false);
   auto& skin = Process::Style::instance();
 
-  const QRectF visibleRect
-      = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
+  const QRectF visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
   auto& c = presenter().model();
-  if (c.smallViewVisible())
+  if(c.smallViewVisible())
   {
     // Background
-    itemDrawableBottomRight.rx()
-        = std::min(itemDrawableBottomRight.x(), m_defaultWidth);
+    itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), m_defaultWidth);
     const auto backgroundRect = QRectF{
         itemDrawableTopLeft + QPointF{0.5, 2.},
         itemDrawableBottomRight + QPointF{-0.5, -2.}};
 
-    auto brush
-        = m_presenter.model().metadata().getColor().getBrush().main.brush;
+    auto brush = m_presenter.model().metadata().getColor().getBrush().main.brush;
     auto col = brush.color();
     col.setAlphaF(0.6f);
     brush.setColor(col);
@@ -289,7 +272,7 @@ void TemporalIntervalView::paint(
   const auto& defaultColor = this->intervalColor(skin);
 
   // Drawing
-  if (!solidPath.isEmpty())
+  if(!solidPath.isEmpty())
   {
     painter.setPen(skin.IntervalSolidPen(defaultColor));
     painter.drawPath(solidPath);
@@ -297,17 +280,16 @@ void TemporalIntervalView::paint(
 
   drawDashedPath(painter, visibleRect, skin);
 
-  if (!playedSolidPath.isEmpty())
+  if(!playedSolidPath.isEmpty())
   {
-    if (m_execPing.running())
+    if(m_execPing.running())
     {
       const auto& nextPen = m_execPing.getNextPen(
-          defaultColor.color(),
-          skin.IntervalPlayFill().color(),
+          defaultColor.color(), skin.IntervalPlayFill().color(),
           skin.IntervalSolidPen(skin.IntervalPlayFill()));
       painter.setPen(nextPen);
       update();
-      if (!m_execPing.running())
+      if(!m_execPing.running())
       {
         m_playWidth = 0.;
         updatePlayPaths();
@@ -332,7 +314,7 @@ void TemporalIntervalView::paint(
 void TemporalIntervalView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
-  if (h->pos().y() < 4)
+  if(h->pos().y() < 4)
     setUngripCursor();
   else
     unsetCursor();
@@ -357,9 +339,9 @@ void TemporalIntervalView::setExecutionDuration(const TimeVal& progress)
 {
   // FIXME this should be merged with the slot in IntervalPresenter!!!
   // Also make a setting to disable it since it may take a lot of time
-  if (!qFuzzyCompare(progress.msec(), 0))
+  if(!qFuzzyCompare(progress.msec(), 0))
   {
-    if (!m_counterItem.isVisible())
+    if(!m_counterItem.isVisible())
       m_counterItem.setVisible(true);
     updateCounterPos();
 

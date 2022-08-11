@@ -9,25 +9,21 @@
 namespace Midi
 {
 
-RemoveNotes::RemoveNotes(
-    const ProcessModel& model,
-    const std::vector<Id<Note>>& notes)
+RemoveNotes::RemoveNotes(const ProcessModel& model, const std::vector<Id<Note>>& notes)
     : m_model{model}
 {
-  for (auto id : notes)
+  for(auto id : notes)
   {
     auto& note = model.notes.at(id);
     m_notes.push_back(std::make_pair(
-        id,
-        NoteData{
-            note.start(), note.duration(), note.pitch(), note.velocity()}));
+        id, NoteData{note.start(), note.duration(), note.pitch(), note.velocity()}));
   }
 }
 
 void RemoveNotes::undo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  for (auto& note : m_notes)
+  for(auto& note : m_notes)
   {
     model.notes.add(new Note{note.first, note.second, &model});
   }
@@ -36,7 +32,7 @@ void RemoveNotes::undo(const score::DocumentContext& ctx) const
 void RemoveNotes::redo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  for (auto& note : m_notes)
+  for(auto& note : m_notes)
   {
     model.notes.remove(note.first);
   }

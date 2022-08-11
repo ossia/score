@@ -2,13 +2,15 @@
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 
-#include <ossia-qt/time_value.hpp>
 #include <ossia/dataflow/transport.hpp>
 
+#include <ossia-qt/time_value.hpp>
+
 #include <QObject>
-#include <verdigris>
 
 #include <score_plugin_transport_export.h>
+
+#include <verdigris>
 namespace Transport
 {
 
@@ -33,12 +35,9 @@ public:
   virtual void requestStop() = 0;
   virtual void requestTransport(ossia::time_value t) = 0;
 
-  void play()
-      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, play)
-  void pause()
-      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, pause)
-  void stop()
-      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, stop)
+  void play() E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, play)
+  void pause() E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, pause)
+  void stop() E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, stop)
   void transport(ossia::time_value t)
       E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, transport, t)
 };

@@ -1,7 +1,8 @@
 #pragma once
+#include <JitCpp/ClangDriver.hpp>
+
 #include <QDebug>
 
-#include <JitCpp/ClangDriver.hpp>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
@@ -17,10 +18,8 @@ public:
   ~JitCompiler();
 
   void compile(
-      const std::string& cppCode,
-      const std::vector<std::string>& flags,
-      CompilerOptions opts,
-      llvm::orc::ThreadSafeContext& context);
+      const std::string& cppCode, const std::vector<std::string>& flags,
+      CompilerOptions opts, llvm::orc::ThreadSafeContext& context);
 
   template <class Signature_t>
   llvm::Expected<std::function<Signature_t>> getFunction(std::string name)
@@ -28,10 +27,10 @@ public:
     auto& JIT = *m_jit;
     // Look up the JIT'd code entry point.
     auto EntrySym = JIT.lookup(name);
-    if (!EntrySym)
+    if(!EntrySym)
       return EntrySym.takeError();
 
-    // Cast the entry point address to a function pointer.
+      // Cast the entry point address to a function pointer.
 #if LLVM_VERSION_MAJOR <= 14
     auto* Entry = (Signature_t*)EntrySym->getAddress();
 #else
@@ -40,7 +39,10 @@ public:
     return std::function<Signature_t>(Entry);
   }
 
-  const QString& errors() const noexcept { return m_errors; }
+  const QString& errors() const noexcept
+  {
+    return m_errors;
+  }
 
 private:
   ClangCC1Driver m_driver;

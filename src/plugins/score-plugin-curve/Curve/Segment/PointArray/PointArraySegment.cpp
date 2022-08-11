@@ -9,7 +9,6 @@
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
-#include <ossia/editor/curve/curve_segment/easing.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -18,6 +17,7 @@
 
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/ssize.hpp>
+#include <ossia/editor/curve/curve_segment/easing.hpp>
 
 #include <wobjectimpl.h>
 
@@ -37,16 +37,14 @@ PointArraySegment::PointArraySegment(const SegmentData& dat, QObject* parent)
   min_y = pa_data.min_y;
   max_y = pa_data.max_y;
 
-  for (auto pt : pa_data.m_points)
+  for(auto pt : pa_data.m_points)
   {
     m_points.insert(std::make_pair(pt.x(), pt.y()));
   }
 }
 
 PointArraySegment::PointArraySegment(
-    const PointArraySegment& other,
-    const id_type& id,
-    QObject* parent)
+    const PointArraySegment& other, const id_type& id, QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}
     , min_x{other.min_x}
     , max_x{other.max_x}
@@ -69,26 +67,25 @@ void PointArraySegment::on_endChanged()
 
 void PointArraySegment::updateData(int numInterp) const
 {
-  if (!m_valid)
+  if(!m_valid)
   {
     m_data.clear();
     m_data.reserve(m_points.size());
 
     double length = max_x - min_x;
-    if (std::abs(length) < 1e-12)
+    if(std::abs(length) < 1e-12)
       length = 1e-12;
     double amplitude = max_y - min_y;
-    if (std::abs(amplitude) < 1e-12)
+    if(std::abs(amplitude) < 1e-12)
       amplitude = 1e-12;
 
     // Scale all the points between 0 / 1 in <->
     // and the local min / max in vertical
 
-    for (const auto& elt : m_points)
+    for(const auto& elt : m_points)
     {
       m_data.push_back(
-          {(m_end.x() - m_start.x()) * (elt.first - min_x) / length
-               + m_start.x(),
+          {(m_end.x() - m_start.x()) * (elt.first - min_x) / length + m_start.x(),
            (elt.second - min_y) / amplitude});
     }
   }
@@ -107,21 +104,21 @@ void PointArraySegment::addPoint(double x, double y)
   // If y < 0 or y > 1, we rescale everything (and update min / max)
   int s = std::ssize(m_points);
 
-  if (y < min_y)
+  if(y < min_y)
     min_y = y;
-  if (y > max_y)
+  if(y > max_y)
     max_y = y;
 
-  if (s > 0)
+  if(s > 0)
   {
-    if (x < min_x)
+    if(x < min_x)
       min_x = x;
-    else if (x > max_x)
+    else if(x > max_x)
       max_x = x;
 
-    if (y < min_y)
+    if(y < min_y)
       min_y = y;
-    else if (y > max_y)
+    else if(y > max_y)
       max_y = y;
   }
   else
@@ -142,30 +139,30 @@ void PointArraySegment::addPointUnscaled(double x, double y)
 {
   m_points[x] = y;
   const auto end = m_points.end();
-  if (m_lastX != -1)
+  if(m_lastX != -1)
   {
-    if (m_lastX < x)
+    if(m_lastX < x)
     {
       auto it1 = m_points.find(m_lastX);
       auto it2 = m_points.lower_bound(x);
-      if (it1 != end && it2 != end)
+      if(it1 != end && it2 != end)
       {
         std::advance(it1, 1);
-        if (it1 != end && it1 != it2)
+        if(it1 != end && it1 != it2)
         {
           m_points.erase(it1, it2);
         }
       }
     }
-    else if (x < m_lastX && m_points.size() > 1)
+    else if(x < m_lastX && m_points.size() > 1)
     {
       auto it1 = m_points.find(x);
       auto it2 = m_points.lower_bound(m_lastX);
 
-      if (it1 != end && it2 != end)
+      if(it1 != end && it2 != end)
       {
         std::advance(it1, 1);
-        if (it1 != end && it1 != it2)
+        if(it1 != end && it1 != it2)
         {
           m_points.erase(it1, it2);
         }
@@ -184,7 +181,7 @@ void PointArraySegment::simplify(double ratio)
 
   ossia::double_vector orig;
   orig.reserve(m_points.size() * 2);
-  for (const auto& pt : m_points)
+  for(const auto& pt : m_points)
   {
     orig.push_back(pt.first);
     orig.push_back(pt.second);
@@ -200,7 +197,7 @@ void PointArraySegment::simplify(double ratio)
 
   m_points.clear();
   // m_points.container.reserve(result.size() / 2);
-  for (auto i = 0u; i < result.size(); i += 2)
+  for(auto i = 0u; i < result.size(); i += 2)
   {
     m_points.insert(std::make_pair(result[i], result[i + 1]));
   }
@@ -216,26 +213,18 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 
   int N0 = 10000;
   vec.emplace_back(
-      Id<SegmentModel>{N0},
-      pts[0],
-      pts[1],
-      std::nullopt,
-      std::nullopt,
+      Id<SegmentModel>{N0}, pts[0], pts[1], std::nullopt, std::nullopt,
       Metadata<ConcreteKey_k, LinearSegment>::get(),
       QVariant::fromValue(LinearSegmentData{}));
 
   int size = std::ssize(pts);
-  for (int i = 1; i < size - 1; i++)
+  for(int i = 1; i < size - 1; i++)
   {
     const int k = i + N0;
     vec.back().following = Id<SegmentModel>{k};
 
     vec.emplace_back(
-        Id<SegmentModel>{k},
-        pts[i],
-        pts[i + 1],
-        Id<SegmentModel>{k - 1},
-        std::nullopt,
+        Id<SegmentModel>{k}, pts[i], pts[i + 1], Id<SegmentModel>{k - 1}, std::nullopt,
         Metadata<ConcreteKey_k, LinearSegment>::get(),
         QVariant::fromValue(LinearSegmentData()));
   }
@@ -253,38 +242,31 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
 
   int N0 = 10000;
   vec.emplace_back(
-      Id<SegmentModel>{N0},
-      pts[0],
-      pts[1],
-      std::nullopt,
-      std::nullopt,
+      Id<SegmentModel>{N0}, pts[0], pts[1], std::nullopt, std::nullopt,
       Metadata<ConcreteKey_k, PowerSegment>::get(),
       QVariant::fromValue(PowerSegmentData{}));
 
   int size = std::ssize(pts);
-  for (int i = 1; i < size - 1; i++)
+  for(int i = 1; i < size - 1; i++)
   {
     const int k = i + N0;
     vec.back().following = Id<SegmentModel>{k};
 
     vec.emplace_back(
-        Id<SegmentModel>{k},
-        pts[i],
-        pts[i + 1],
-        Id<SegmentModel>{k - 1},
-        OptionalId<SegmentModel>{},
-        Metadata<ConcreteKey_k, PowerSegment>::get(),
+        Id<SegmentModel>{k}, pts[i], pts[i + 1], Id<SegmentModel>{k - 1},
+        OptionalId<SegmentModel>{}, Metadata<ConcreteKey_k, PowerSegment>::get(),
         QVariant::fromValue(PowerSegmentData()));
   }
 
   return vec;
 }
-template<typename T>
+template <typename T>
 struct point_array_executor
 {
   ossia::flat_map<double, double> m_points;
 
-  T operator()(double ratio, T start, T end) {
+  T operator()(double ratio, T start, T end)
+  {
     auto it = m_points.lower_bound(ratio);
     if(it != m_points.end())
       return ossia::easing::ease{}(start, end, 1. - it->second);
@@ -292,15 +274,18 @@ struct point_array_executor
   }
 };
 
-ossia::curve_segment<double> PointArraySegment::makeDoubleFunction() const{
+ossia::curve_segment<double> PointArraySegment::makeDoubleFunction() const
+{
   return point_array_executor<double>{m_points};
 }
 
-ossia::curve_segment<float> PointArraySegment::makeFloatFunction() const {
+ossia::curve_segment<float> PointArraySegment::makeFloatFunction() const
+{
   return point_array_executor<float>{m_points};
 }
 
-ossia::curve_segment<int> PointArraySegment::makeIntFunction() const {
+ossia::curve_segment<int> PointArraySegment::makeIntFunction() const
+{
   return point_array_executor<int>{m_points};
 }
 

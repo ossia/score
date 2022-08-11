@@ -1,14 +1,15 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "View.hpp"
-#include <PackageManager/Presenter.hpp>
-#include <PackageManager/FileDownloader.hpp>
 
-#include <score/widgets/MessageBox.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/widgets/MessageBox.hpp>
+
 #include <core/application/ApplicationInterface.hpp>
 
+#include <QApplication>
 #include <QBuffer>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QGridLayout>
@@ -21,10 +22,10 @@
 #include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QTemporaryFile>
-#include <QApplication>
-#include <QDesktopServices>
 #include <QTimer>
-#include <QMessageBox>
+
+#include <PackageManager/FileDownloader.hpp>
+#include <PackageManager/Presenter.hpp>
 
 #include <score_git_info.hpp>
 #include <wobjectimpl.h>
@@ -39,7 +40,7 @@ namespace zip_helper
 QString get_path(const QString& str)
 {
   auto idx = str.lastIndexOf('/');
-  if (idx != -1)
+  if(idx != -1)
   {
     return str.mid(0, idx);
   }
@@ -71,7 +72,8 @@ bool make_folder(const QString& str)
 
 PluginSettingsView::PluginSettingsView()
 {
-  storage = QStorageInfo(score::AppContext().settings<Library::Settings::Model>().getPackagesPath());
+  storage = QStorageInfo(
+      score::AppContext().settings<Library::Settings::Model>().getPackagesPath());
 
   m_progress->setMinimum(0);
   m_progress->setMaximum(100);
@@ -118,7 +120,7 @@ PluginSettingsView::PluginSettingsView()
   set_info();
   vlay->addWidget(m_storage);
 
-  for (QTableView* v : {m_addonsOnSystem, m_remoteAddons})
+  for(QTableView* v : {m_addonsOnSystem, m_remoteAddons})
   {
     v->verticalHeader()->hide();
     v->verticalHeader()->sectionResizeMode(QHeaderView::Fixed);
@@ -130,8 +132,8 @@ PluginSettingsView::PluginSettingsView()
     v->setShowGrid(false);
   }
 
-  connect(tab_widget, &QTabWidget::tabBarClicked, this, [this] (int i) {
-    if (i == 1) // Remote
+  connect(tab_widget, &QTabWidget::tabBarClicked, this, [this](int i) {
+    if(i == 1) // Remote
     {
       m_uninstall->setVisible(false);
       m_install->setVisible(true);
@@ -156,23 +158,17 @@ PluginSettingsView::PluginSettingsView()
     }
   });
 
-  connect(m_link, &QPushButton::pressed,
-          this, &PluginSettingsView::openLink);
+  connect(m_link, &QPushButton::pressed, this, &PluginSettingsView::openLink);
 
-  connect(m_uninstall, &QPushButton::pressed,
-          this, &PluginSettingsView::uninstall);
+  connect(m_uninstall, &QPushButton::pressed, this, &PluginSettingsView::uninstall);
 
-  connect(m_install, &QPushButton::pressed,
-          this, &PluginSettingsView::install);
+  connect(m_install, &QPushButton::pressed, this, &PluginSettingsView::install);
 
-  connect(m_update, &QPushButton::pressed,
-          this, &PluginSettingsView::update);
+  connect(m_update, &QPushButton::pressed, this, &PluginSettingsView::update);
 
-  connect(m_updateAll, &QPushButton::pressed,
-          this, &PluginSettingsView::updateAll);
+  connect(m_updateAll, &QPushButton::pressed, this, &PluginSettingsView::updateAll);
 
-  connect(&mgr, &QNetworkAccessManager::finished,
-          this, &PluginSettingsView::on_message);
+  connect(&mgr, &QNetworkAccessManager::finished, this, &PluginSettingsView::on_message);
 
   refresh();
 }
@@ -187,32 +183,32 @@ void PluginSettingsView::firstTimeLibraryDownload()
   const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
   const QString lib_folder = lib.getPackagesPath() + "/default";
   const QString lib_info = lib_folder + "/package.json";
-  if (QFile file{lib_info}; !file.exists())
+  if(QFile file{lib_info}; !file.exists())
   {
     auto dl = score::question(
-      qApp->activeWindow(),
-      tr("Download the user library ?"),
-      tr("The user library has not been found. \n"
-         "Do you want to download it from the internet ? \n\n"
-         "Note: you can always download it later from : \n"
-         "https://github.com/ossia/score-user-library"));
+        qApp->activeWindow(), tr("Download the user library ?"),
+        tr("The user library has not been found. \n"
+           "Do you want to download it from the internet ? \n\n"
+           "Note: you can always download it later from : \n"
+           "https://github.com/ossia/score-user-library"));
 
-    if (dl == QMessageBox::Yes)
+    if(dl == QMessageBox::Yes)
     {
       zdl::download_and_extract(
-        QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
-        lib.getPackagesPath(),
-        [] (const auto&) mutable {
-          auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
-          QDir packages_dir{lib.getPackagesPath()};
-          packages_dir.rename("score-user-library-master", "default");
+          QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
+          lib.getPackagesPath(),
+          [](const auto&) mutable {
+        auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
+        QDir packages_dir{lib.getPackagesPath()};
+        packages_dir.rename("score-user-library-master", "default");
 
-          lib.rescanLibrary();
-        },
-        [] (qint64 bytesReceived, qint64 bytesTotal) {
-          qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
-                     << "% downloaded"; },
-        [] {});
+        lib.rescanLibrary();
+          },
+          [](qint64 bytesReceived, qint64 bytesTotal) {
+        qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
+                 << "% downloaded";
+      },
+          [] {});
     }
   }
   else
@@ -223,7 +219,8 @@ void PluginSettingsView::firstTimeLibraryDownload()
 
 void PluginSettingsView::refresh()
 {
-  QNetworkRequest rqst{QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/addons.json")};
+  QNetworkRequest rqst{
+      QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/addons.json")};
   mgr.get(rqst);
 }
 
@@ -232,7 +229,7 @@ void PluginSettingsView::handleAddonList(const QJsonObject& obj)
   m_progress->setVisible(true);
   auto arr = obj["addons"].toArray();
   m_addonsToRetrieve = arr.size();
-  for (QJsonValue elt : arr)
+  for(QJsonValue elt : arr)
   {
     QNetworkRequest rqst{QUrl(elt.toString())};
     mgr.get(rqst);
@@ -244,40 +241,37 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
   RemotePackagesModel* model
       = static_cast<RemotePackagesModel*>(m_remoteAddons->model());
 
-  if (m_addonsToRetrieve == std::ssize(model->m_vec))
+  if(m_addonsToRetrieve == std::ssize(model->m_vec))
     reset_progress();
   else
     m_progress->setValue(m_progress->value() + (100.0 / m_addonsToRetrieve));
 
-
   auto addon = Package::fromJson(obj);
-  if (!addon)
+  if(!addon)
     return;
 
   auto& add = *addon;
 
   // Load images
-  if (!add.smallImagePath.isEmpty())
+  if(!add.smallImagePath.isEmpty())
   {
     // c.f. https://wiki.qt.io/Download_Data_from_URL
     auto dl = new score::FileDownloader{QUrl{add.smallImagePath}};
     connect(dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
-      model->updateAddon(add.key, [=](Package& add) {
-        add.smallImage.loadFromData(arr);
-      });
+      model->updateAddon(
+          add.key, [=](Package& add) { add.smallImage.loadFromData(arr); });
 
       dl->deleteLater();
     });
   }
 
-  if (!add.largeImagePath.isEmpty())
+  if(!add.largeImagePath.isEmpty())
   {
     // c.f. https://wiki.qt.io/Download_Data_from_URL
     auto dl = new score::FileDownloader{QUrl{add.largeImagePath}};
     connect(dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
-      model->updateAddon(add.key, [=](Package& add) {
-        add.largeImage.loadFromData(arr);
-      });
+      model->updateAddon(
+          add.key, [=](Package& add) { add.largeImage.loadFromData(arr); });
 
       dl->deleteLater();
     });
@@ -291,11 +285,11 @@ void PluginSettingsView::on_message(QNetworkReply* rep)
   auto res = rep->readAll();
   auto json = QJsonDocument::fromJson(res).object();
 
-  if (json.contains("addons"))
+  if(json.contains("addons"))
   {
     handleAddonList(json);
   }
-  else if (json.contains("name"))
+  else if(json.contains("name"))
   {
     handleAddon(json);
   }
@@ -316,7 +310,7 @@ void PluginSettingsView::on_message(QNetworkReply* rep)
 // the install button set to visible means we are browsing
 PackagesModel* PluginSettingsView::getCurrentModel()
 {
-  if (m_install->isVisible())
+  if(m_install->isVisible())
     return static_cast<PackagesModel*>(m_remoteAddons->model());
   else
     return static_cast<PackagesModel*>(m_addonsOnSystem->model());
@@ -326,17 +320,17 @@ int PluginSettingsView::getCurrentRow(const QTableView* t = nullptr)
 {
   QModelIndexList rows{};
 
-  if (t)
+  if(t)
     rows = t->selectionModel()->selectedRows(0);
   else
   {
-    if (m_install->isVisible())
+    if(m_install->isVisible())
       rows = m_remoteAddons->selectionModel()->selectedRows(0);
     else
       rows = m_addonsOnSystem->selectionModel()->selectedRows(0);
   }
 
-  if (rows.isEmpty())
+  if(rows.isEmpty())
     return -1;
 
   return rows.first().row();
@@ -344,7 +338,7 @@ int PluginSettingsView::getCurrentRow(const QTableView* t = nullptr)
 
 Package PluginSettingsView::selectedPackage(const PackagesModel* model, int row)
 {
-  if (row == -1)
+  if(row == -1)
     return {};
 
   SCORE_ASSERT(int(model->addons().size()) > row);
@@ -361,18 +355,19 @@ void PluginSettingsView::openLink()
 
 void PluginSettingsView::install_package(const Package& addon)
 {
-  if (addon.kind == "addon" || addon.kind == "nodes")
+  if(addon.kind == "addon" || addon.kind == "nodes")
     installAddon(addon);
-  else if (addon.kind == "sdk")
+  else if(addon.kind == "sdk")
     installSDK();
-  else if (addon.kind == "media")
+  else if(addon.kind == "media")
     installLibrary(addon);
 }
 
 void PluginSettingsView::install()
 {
-  const auto& addon =
-      selectedPackage(static_cast<PackagesModel*>(m_remoteAddons->model()), getCurrentRow(m_remoteAddons));
+  const auto& addon = selectedPackage(
+      static_cast<PackagesModel*>(m_remoteAddons->model()),
+      getCurrentRow(m_remoteAddons));
 
   m_progress->setVisible(true);
 
@@ -381,24 +376,24 @@ void PluginSettingsView::install()
 
 void PluginSettingsView::uninstall()
 {
-  const auto& addon =
-      selectedPackage(static_cast<PackagesModel*>(m_addonsOnSystem->model()), getCurrentRow(m_addonsOnSystem));
+  const auto& addon = selectedPackage(
+      static_cast<PackagesModel*>(m_addonsOnSystem->model()),
+      getCurrentRow(m_addonsOnSystem));
 
   bool success{false};
 
-  const auto& library{
-    score::AppContext().settings<Library::Settings::Model>()};
+  const auto& library{score::AppContext().settings<Library::Settings::Model>()};
 
-  if (addon.kind == "addon" || addon.kind == "nodes" || addon.kind == "media")
+  if(addon.kind == "addon" || addon.kind == "nodes" || addon.kind == "media")
   {
     success = QDir{library.getPackagesPath() + '/' + addon.raw_name}.removeRecursively();
   }
-  else if (addon.kind == "sdk")
+  else if(addon.kind == "sdk")
   {
     success = QDir{library.getSDKPath()}.removeRecursively();
   }
 
-  if (success)
+  if(success)
   {
     const auto& localPlugins
         = static_cast<LocalPackagesModel*>(m_addonsOnSystem->model());
@@ -415,7 +410,8 @@ void PluginSettingsView::update()
   const auto& addon = selectedPackage(local_model, getCurrentRow(m_addonsOnSystem));
 
   auto key = addon.key;
-  auto it = ossia::find_if(remote_model->addons(), [&] (auto& pkg) { return pkg.key == addon.key; });
+  auto it = ossia::find_if(
+      remote_model->addons(), [&](auto& pkg) { return pkg.key == addon.key; });
   if(it == remote_model->addons().end())
   {
     qDebug() << "Addon " << addon.name << "not found on the server!";
@@ -435,7 +431,8 @@ void PluginSettingsView::checkAll()
   for(auto& addon : local_model->addons())
   {
     auto key = addon.key;
-    auto it = ossia::find_if(remote_model->addons(), [&] (auto& pkg) { return pkg.key == addon.key; });
+    auto it = ossia::find_if(
+        remote_model->addons(), [&](auto& pkg) { return pkg.key == addon.key; });
     if(it == remote_model->addons().end())
     {
       qDebug() << "Addon " << addon.name << "not found on the server!";
@@ -443,7 +440,7 @@ void PluginSettingsView::checkAll()
     }
 
     if(it->version <= addon.version)
-        continue;
+      continue;
 
     to_update.push_back(&*it);
   }
@@ -451,7 +448,8 @@ void PluginSettingsView::checkAll()
   if(!to_update.empty())
   {
     QString s = tr("Some installed packages are out-of-date: \n");
-    for(auto pkg : to_update) {
+    for(auto pkg : to_update)
+    {
       s += tr("- %1 (version %3)\n").arg(pkg->name).arg(pkg->version);
     }
     s += tr("Head to Settings > Packages to update them");
@@ -467,7 +465,8 @@ void PluginSettingsView::updateAll()
   for(auto& addon : local_model->addons())
   {
     auto key = addon.key;
-    auto it = ossia::find_if(remote_model->addons(), [&] (auto& pkg) { return pkg.key == addon.key; });
+    auto it = ossia::find_if(
+        remote_model->addons(), [&](auto& pkg) { return pkg.key == addon.key; });
     if(it == remote_model->addons().end())
     {
       qDebug() << "Addon " << addon.name << "not found on the server!";
@@ -484,19 +483,19 @@ void PluginSettingsView::updateAll()
 
 void PluginSettingsView::installAddon(const Package& addon)
 {
-  if (addon.file == QUrl{})
+  if(addon.file == QUrl{})
   {
     reset_progress();
     return;
   }
 
-  const QString& installPath = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
+  const QString& installPath
+      = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
   zdl::download_and_extract(
-        addon.file,
-        QDir{installPath}.absolutePath(),
-        [=](const std::vector<QString>& res) {
+      addon.file, QDir{installPath}.absolutePath(),
+      [=](const std::vector<QString>& res) {
     reset_progress();
-    if (res.empty())
+    if(res.empty())
       return;
     // We want the extracted folder to have the name of the addon
     {
@@ -504,9 +503,9 @@ void PluginSettingsView::installAddon(const Package& addon)
       QFileInfo a_file(res[0]);
       auto d = a_file.dir();
       auto old_d = d;
-      while (d.cdUp() && !d.isRoot())
+      while(d.cdUp() && !d.isRoot())
       {
-        if (d == addons_dir)
+        if(d == addons_dir)
         {
           addons_dir.rename(old_d.dirName(), addon.raw_name);
           break;
@@ -516,77 +515,71 @@ void PluginSettingsView::installAddon(const Package& addon)
     }
 
     QMessageBox::information(
-          m_widget,
-          tr("Addon downloaded"),
-          tr("The addon %1 has been successfully installed in :\n"
-             "%2\n\n"
-             "It will be built and enabled shortly.\nCheck the message "
-             "console for errors if nothing happens.")
-          .arg(addon.name)
-          .arg(QFileInfo(installPath).absoluteFilePath()));
-  },
-  [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-  [=] {
+        m_widget, tr("Addon downloaded"),
+        tr("The addon %1 has been successfully installed in :\n"
+           "%2\n\n"
+           "It will be built and enabled shortly.\nCheck the message "
+           "console for errors if nothing happens.")
+            .arg(addon.name)
+            .arg(QFileInfo(installPath).absoluteFilePath()));
+      },
+      [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+      [=] {
     reset_progress();
     QMessageBox::warning(
-          m_widget,
-          tr("Download failed"),
-          tr("The package %1 could not be downloaded.").arg(addon.name));
+        m_widget, tr("Download failed"),
+        tr("The package %1 could not be downloaded.").arg(addon.name));
   });
 }
 
 void PluginSettingsView::installSDK()
 {
   constexpr const char* platform =
-    #if defined(_WIN32)
+#if defined(_WIN32)
       "windows"
-    #elif defined(__APPLE__)
+#elif defined(__APPLE__)
       "mac"
-    #else
+#else
       "linux"
-    #endif
+#endif
       ;
 
   const QString sdk_path{
-    score::AppContext().settings<Library::Settings::Model>().getSDKPath() + '/' + SCORE_TAG_NO_V};
+      score::AppContext().settings<Library::Settings::Model>().getSDKPath() + '/'
+      + SCORE_TAG_NO_V};
   QDir{}.mkpath(sdk_path);
 
   const QUrl sdk_url
-      = QString(
-        "https://github.com/ossia/score/releases/download/%1/%2-sdk.zip")
-      .arg(SCORE_TAG)
-      .arg(platform);
+      = QString("https://github.com/ossia/score/releases/download/%1/%2-sdk.zip")
+            .arg(SCORE_TAG)
+            .arg(platform);
 
   zdl::download_and_extract(
-        sdk_url,
-        QFileInfo{sdk_path}.absoluteFilePath(),
-        [=](const std::vector<QString>& res) {
+      sdk_url, QFileInfo{sdk_path}.absoluteFilePath(),
+      [=](const std::vector<QString>& res) {
     reset_progress();
-    if (res.empty())
+    if(res.empty())
       return;
 
     QMessageBox::information(
-          m_widget,
-          tr("SDK downloaded"),
-          tr("The SDK has been successfully installed in the user library."));
+        m_widget, tr("SDK downloaded"),
+        tr("The SDK has been successfully installed in the user library."));
 
     set_info();
-  },
-  [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-  [this] {
+      },
+      [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+      [this] {
     reset_progress();
     QMessageBox::warning(
-          m_widget,
-          tr("Download failed"),
-          tr("The SDK could not be downloaded."));
+        m_widget, tr("Download failed"), tr("The SDK could not be downloaded."));
   });
 }
 
 void PluginSettingsView::installLibrary(const Package& addon)
 {
   const QString destination{
-    score::AppContext().settings<Library::Settings::Model>().getPackagesPath()
-        + "/" + addon.raw_name};
+      score::AppContext().settings<Library::Settings::Model>().getPackagesPath() + "/"
+      + addon.raw_name};
 
   if(QDir dest{destination}; dest.exists())
     dest.removeRecursively();
@@ -594,22 +587,19 @@ void PluginSettingsView::installLibrary(const Package& addon)
   QDir{}.mkpath(destination);
 
   zdl::download_and_extract(
-        addon.file,
-        QFileInfo{destination}.absoluteFilePath(),
-        [=] (const std::vector<QString>& res) {
+      addon.file, QFileInfo{destination}.absoluteFilePath(),
+      [=](const std::vector<QString>& res) {
     on_packageInstallSuccess(addon, destination, res);
-  },
-  [=] (qint64 received, qint64 total) { progress_from_bytes(received, total); },
-  [=] { on_packageInstallFailure(addon); });
+      },
+      [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+      [=] { on_packageInstallFailure(addon); });
 }
 
 void PluginSettingsView::on_packageInstallSuccess(
-      const Package& addon,
-      const QDir& destination,
-      const std::vector<QString>& res)
+    const Package& addon, const QDir& destination, const std::vector<QString>& res)
 {
   reset_progress();
-  if (res.empty())
+  if(res.empty())
     return;
 
   // Often zip files contain a single, empty directory.
@@ -620,12 +610,16 @@ void PluginSettingsView::on_packageInstallSuccess(
   {
     auto child = files[0];
     QFileInfo info{dir.absoluteFilePath(child)};
-    if(info.isDir()) {
+    if(info.isDir())
+    {
       dir.rename(child, "___score_tmp___");
       QDir subdir{dir.absoluteFilePath("___score_tmp___")};
 
-      for(auto& entry : subdir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
-        dir.rename(QString{"___score_tmp___%1%2"}.arg(QDir::separator()).arg(entry), entry);
+      for(auto& entry :
+          subdir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot))
+      {
+        dir.rename(
+            QString{"___score_tmp___%1%2"}.arg(QDir::separator()).arg(entry), entry);
       }
 
       subdir.removeRecursively();
@@ -653,34 +647,29 @@ void PluginSettingsView::on_packageInstallSuccess(
   }
 
   QMessageBox::information(
-        m_widget,
-        tr("Package downloaded"),
-        tr("The package %1 has been successfully installed in the user library.")
-        .arg(addon.name));
+      m_widget, tr("Package downloaded"),
+      tr("The package %1 has been successfully installed in the user library.")
+          .arg(addon.name));
 
-  auto& localPlugins
-      = *static_cast<LocalPackagesModel*>(m_addonsOnSystem->model());
+  auto& localPlugins = *static_cast<LocalPackagesModel*>(m_addonsOnSystem->model());
 
   localPlugins.registerAddon(dir.absolutePath());
   set_info();
 }
 
-void PluginSettingsView::on_packageInstallFailure(
-      const Package& addon)
+void PluginSettingsView::on_packageInstallFailure(const Package& addon)
 {
   reset_progress();
   QMessageBox::warning(
-        m_widget,
-        tr("Download failed"),
-        tr("The package %1 could not be downloaded.").arg(addon.name));
+      m_widget, tr("Download failed"),
+      tr("The package %1 could not be downloaded.").arg(addon.name));
 }
 
 void PluginSettingsView::set_info()
 {
-  m_storage->setText(QString::number(
-                       storage.bytesAvailable() / 1024.0 / 1024.0 / 1024)
-                     + " G\n"
-                     + tr("available on volume"));
+  m_storage->setText(
+      QString::number(storage.bytesAvailable() / 1024.0 / 1024.0 / 1024) + " G\n"
+      + tr("available on volume"));
 };
 
 void PluginSettingsView::reset_progress()

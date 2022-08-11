@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
@@ -17,18 +18,12 @@ namespace Command
 class ReplaceDevice final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      ReplaceDevice,
-      "Replace a device")
+      DeviceExplorerCommandFactoryName(), ReplaceDevice, "Replace a device")
 public:
   ReplaceDevice(
-      const DeviceDocumentPlugin& device_tree,
-      int deviceIndex,
-      Device::Node&& rootNode);
+      const DeviceDocumentPlugin& device_tree, int deviceIndex, Device::Node&& rootNode);
   ReplaceDevice(
-      const DeviceDocumentPlugin& device_tree,
-      int deviceIndex,
-      Device::Node&& oldDevice,
+      const DeviceDocumentPlugin& device_tree, int deviceIndex, Device::Node&& oldDevice,
       Device::Node&& newDevice);
 
   void undo(const score::DocumentContext& ctx) const override;

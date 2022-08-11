@@ -1,12 +1,13 @@
 #pragma once
-#include <Gfx/CommandFactory.hpp>
-#include <Gfx/Graph/ImageNode.hpp>
-#include <Gfx/Images/Metadata.hpp>
-#include <Library/LibraryInterface.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+
+#include <Gfx/CommandFactory.hpp>
+#include <Gfx/Graph/ImageNode.hpp>
+#include <Gfx/Images/Metadata.hpp>
+#include <Library/LibraryInterface.hpp>
 
 #include <score/command/PropertyCommand.hpp>
 
@@ -23,12 +24,12 @@ public:
   void release(score::gfx::Image&& img);
 
   static ImageCache& instance() noexcept;
+
 private:
   std::unordered_map<std::string, std::pair<int, score::gfx::Image>> m_images;
 };
 }
 W_REGISTER_ARGTYPE(score::gfx::Image)
-
 
 namespace Gfx::Images
 {
@@ -40,10 +41,7 @@ class Model final : public Process::ProcessModel
 
 public:
   constexpr bool hasExternalUI() { return false; }
-  Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent)
@@ -83,8 +81,7 @@ public:
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   void dropCustom(
-      std::vector<ProcessDrop>& drops,
-      const QMimeData& data,
+      std::vector<ProcessDrop>& drops, const QMimeData& data,
       const score::DocumentContext& ctx) const noexcept override;
 };
 

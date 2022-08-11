@@ -1,9 +1,10 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score_plugin_scenario_export.h>
 
 // RENAMEME
@@ -18,32 +19,26 @@ namespace Scenario
 class StateModel;
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddStateProcessToState,
-      "Add a state process")
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddStateProcessToState, "Add a state process")
 public:
   AddStateProcessToState(
-      const Scenario::StateModel& state,
-      UuidKey<Process::ProcessModel> process);
+      const Scenario::StateModel& state, UuidKey<Process::ProcessModel> process);
   AddStateProcessToState(
-      const Scenario::StateModel& state,
-      UuidKey<Process::ProcessModel> process,
+      const Scenario::StateModel& state, UuidKey<Process::ProcessModel> process,
       const QString& data);
   AddStateProcessToState(
-      const Scenario::StateModel& state,
-      Id<Process::ProcessModel> idToUse,
-      UuidKey<Process::ProcessModel> process,
-      const QString& data);
+      const Scenario::StateModel& state, Id<Process::ProcessModel> idToUse,
+      UuidKey<Process::ProcessModel> process, const QString& data);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
   const Id<Process::ProcessModel>& processId() const noexcept
-  { return m_createdProcessId; }
+  {
+    return m_createdProcessId;
+  }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

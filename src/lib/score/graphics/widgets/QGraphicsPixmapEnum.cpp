@@ -20,9 +20,7 @@ QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent)
 }
 
 void QGraphicsPixmapEnum::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   auto& style = score::Skin::instance();
@@ -38,10 +36,10 @@ void QGraphicsPixmapEnum::paint(
 
   painter->setBrush(bg);
   int i = 0;
-  for (std::size_t img = 0; img < off_images.size(); img++)
+  for(std::size_t img = 0; img < off_images.size(); img++)
   {
     QRectF rect{2. + col * w, 2. + row * h, w, h};
-    if (i != m_clicking)
+    if(i != m_clicking)
     {
       painter->setPen(noPen);
       painter->drawRect(rect);
@@ -50,7 +48,7 @@ void QGraphicsPixmapEnum::paint(
     const QPixmap& pixmap = i != m_value ? on_images[img] : off_images[img];
     painter->drawPixmap(rect.topLeft(), pixmap);
     col++;
-    if (col == columns)
+    if(col == columns)
     {
       row++;
       col = 0;

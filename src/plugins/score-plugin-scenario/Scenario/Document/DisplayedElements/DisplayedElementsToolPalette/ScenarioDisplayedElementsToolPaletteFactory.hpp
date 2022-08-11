@@ -17,9 +17,7 @@ public:
   bool matches(const IntervalModel& interval) const override;
 
   std::unique_ptr<GraphicsSceneToolPalette> make(
-      ScenarioDocumentPresenter& pres,
-      DisplayedElementsPresenter& presenters,
-      const IntervalModel& interval,
-      QGraphicsItem* parent) override;
+      ScenarioDocumentPresenter& pres, DisplayedElementsPresenter& presenters,
+      const IntervalModel& interval, QGraphicsItem* parent) override;
 };
 }

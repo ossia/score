@@ -1,7 +1,9 @@
 #pragma once
-#include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Device/Address/AddressSettings.hpp>
+
 #include <Process/LayerPresenter.hpp>
+
+#include <Automation/Commands/AutomationCommandFactory.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
@@ -13,14 +15,9 @@ namespace Gradient
 
 class ChangeGradient final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(),
-      ChangeGradient,
-      "ChangeGradient")
+  SCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeGradient, "ChangeGradient")
 public:
-  ChangeGradient(
-      const ProcessModel& autom,
-      const ProcessModel::gradient_colors& newval)
+  ChangeGradient(const ProcessModel& autom, const ProcessModel::gradient_colors& newval)
       : m_path{autom}
       , m_old{autom.gradient()}
       , m_new{newval}
@@ -42,10 +39,7 @@ protected:
   {
     s << m_path << m_old << m_new;
   }
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_path >> m_old >> m_new;
-  }
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_path >> m_old >> m_new; }
 
 private:
   Path<ProcessModel> m_path;
@@ -57,10 +51,8 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Gradient::ProcessModel& model,
-      Gradient::View* view,
-      const Process::Context& ctx,
-      QObject* parent);
+      const Gradient::ProcessModel& model, Gradient::View* view,
+      const Process::Context& ctx, QObject* parent);
 
   void setWidth(qreal width, qreal defaultWidth) override;
   void setHeight(qreal height) override;

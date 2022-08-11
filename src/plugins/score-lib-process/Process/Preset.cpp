@@ -7,9 +7,8 @@
 namespace Process
 {
 
-std::shared_ptr<Preset> Preset::fromJson(
-    const ProcessFactoryList& procs,
-    const QByteArray& obj) noexcept
+std::shared_ptr<Preset>
+Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcept
 {
   rapidjson::Document doc;
   Process::Preset p;
@@ -28,7 +27,7 @@ std::shared_ptr<Preset> Preset::fromJson(
   p.key.key <<= k["Uuid"];
   p.key.effect = k["Effect"].toString();
 
-  if (!procs.get(p.key.key))
+  if(!procs.get(p.key.key))
     return {};
 
   rapidjson::StringBuffer buf;

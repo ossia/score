@@ -11,9 +11,7 @@ W_OBJECT_IMPL(Curve::CurveProcessModel)
 namespace Curve
 {
 CurveProcessModel::CurveProcessModel(
-    TimeVal duration,
-    const Id<Process::ProcessModel>& id,
-    const QString& name,
+    TimeVal duration, const Id<Process::ProcessModel>& id, const QString& name,
     QObject* parent)
     : Process::ProcessModel(duration, id, name, parent)
 {
@@ -42,9 +40,9 @@ CurveProcessModel::~CurveProcessModel()
 Selection CurveProcessModel::selectableChildren() const noexcept
 {
   Selection s;
-  for (auto& segment : m_curve->segments())
+  for(auto& segment : m_curve->segments())
     s.append(segment);
-  for (auto& point : m_curve->points())
+  for(auto& point : m_curve->points())
     s.append(point);
   return s;
 }
@@ -66,16 +64,14 @@ void CurveProcessModel::setCurve(Model* newCurve)
 
   setCurve_impl();
 
-  connect(
-      m_curve, &Curve::Model::changed, this, &CurveProcessModel::curveChanged);
+  connect(m_curve, &Curve::Model::changed, this, &CurveProcessModel::curveChanged);
 
   m_curve->changed();
 }
 
 TimeVal CurveProcessModel::contentDuration() const noexcept
 {
-  return TimeVal(
-      duration().impl * double(std::max(1., m_curve->lastPointPos())));
+  return TimeVal(duration().impl * double(std::max(1., m_curve->lastPointPos())));
 }
 
 void CurveProcessModel::setCurve_impl() { }

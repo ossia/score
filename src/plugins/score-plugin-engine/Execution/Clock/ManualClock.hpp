@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -8,8 +10,6 @@
 
 #include <QMainWindow>
 #include <QToolBar>
-
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
 
 #include <verdigris>
 
@@ -65,10 +65,9 @@ private:
     m_paused = false;
 
     m_widg = new TimeWidget;
-    if (context.doc.app.mainWindow)
+    if(context.doc.app.mainWindow)
     {
-      context.doc.app.mainWindow->addToolBar(
-          Qt::ToolBarArea::BottomToolBarArea, m_widg);
+      context.doc.app.mainWindow->addToolBar(Qt::ToolBarArea::BottomToolBarArea, m_widg);
     }
     QObject::connect(m_widg, &TimeWidget::advance, this, [=](int val) {
       using namespace ossia;

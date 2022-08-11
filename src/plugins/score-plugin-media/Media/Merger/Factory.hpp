@@ -1,7 +1,8 @@
 #pragma once
+#include <Process/GenericProcessFactory.hpp>
+
 #include <Media/Merger/Metadata.hpp>
 #include <Media/Merger/Model.hpp>
-#include <Process/GenericProcessFactory.hpp>
 
 namespace Media
 {

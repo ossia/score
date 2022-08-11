@@ -25,11 +25,8 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::audio_port& p1,
-      float g,
-      ossia::audio_port& p2,
-      ossia::token_request t,
-      ossia::exec_state_facade st)
+  run(const ossia::audio_port& p1, float g, ossia::audio_port& p2,
+      ossia::token_request t, ossia::exec_state_facade st)
   {
     const auto chans = p1.channels();
     p2.set_channels(chans);
@@ -37,7 +34,7 @@ struct Node
     const auto [first_pos, N] = st.timings(t);
 
     const double gain = g;
-    for (std::size_t i = 0; i < chans; i++)
+    for(std::size_t i = 0; i < chans; i++)
     {
       auto& in = p1.channel(i);
       auto& out = p2.channel(i);
@@ -47,7 +44,7 @@ struct Node
 
       out.resize(samples);
 
-      for (int64_t j = first_pos; j < max; j++)
+      for(int64_t j = first_pos; j < max; j++)
       {
         out[j] = in[j] * gain;
       }

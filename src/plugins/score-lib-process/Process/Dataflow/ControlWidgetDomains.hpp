@@ -28,7 +28,7 @@ struct LinearNormalizer
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
-    if (max - min == 0)
+    if(max - min == 0)
       max = min + 1;
     return to01(min, max - min, val);
   }
@@ -38,7 +38,7 @@ struct LinearNormalizer
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
-    if (max - min == 0)
+    if(max - min == 0)
       max = min + 1;
     return from01(min, max - min, val);
   }
@@ -61,7 +61,7 @@ struct LogNormalizer
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
-    if (max - min == 0)
+    if(max - min == 0)
       max = min + 1;
     return to01(min, max - min, val);
   }
@@ -71,7 +71,7 @@ struct LogNormalizer
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
-    if (max - min == 0)
+    if(max - min == 0)
       max = min + 1;
     return from01(min, max - min, val);
   }
@@ -87,7 +87,7 @@ struct FixedNormalizer
   {
     min = slider.getMin();
     max = slider.getMax();
-    if (max - min == 0)
+    if(max - min == 0)
       max = min + 1;
   }
 
@@ -112,10 +112,7 @@ struct UpdatingNormalizer
   {
   }
 
-  constexpr float to01(float val) const noexcept
-  {
-    return Norm_T::to01(slider, val);
-  }
+  constexpr float to01(float val) const noexcept { return Norm_T::to01(slider, val); }
 
   constexpr float from01(float val) const noexcept
   {
@@ -124,28 +121,26 @@ struct UpdatingNormalizer
 };
 
 template <typename T, typename Control_T, typename Widget_T>
-static void
-bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
+static void bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
   auto min = slider.getMin();
   auto max = slider.getMax();
-  if (max - min == 0)
+  if(max - min == 0)
     max = min + 1;
 
   widget.setRange(min, max);
 
-  if constexpr (std::is_base_of_v<Process::ControlInlet, T>)
+  if constexpr(std::is_base_of_v<Process::ControlInlet, T>)
   {
     SCORE_ASSERT(&slider == &inlet);
-    QObject::connect(
-        &inlet, &Control_T::domainChanged, &widget, [&slider, &widget] {
-          auto min = slider.getMin();
-          auto max = slider.getMax();
-          if (max - min == 0)
-            max = min + 1;
+    QObject::connect(&inlet, &Control_T::domainChanged, &widget, [&slider, &widget] {
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
 
-          widget.setRange(min, max);
-        });
+      widget.setRange(min, max);
+    });
   }
 }
 
@@ -154,41 +149,36 @@ static void bindIntDomain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
   auto min = slider.getMin();
   auto max = slider.getMax();
-  if (max - min == 0)
+  if(max - min == 0)
     max = min + 1;
 
   widget.setRange(min, max);
 
-  if constexpr (std::is_base_of_v<Process::ControlInlet, T>)
+  if constexpr(std::is_base_of_v<Process::ControlInlet, T>)
   {
     SCORE_ASSERT(&slider == &inlet);
-    QObject::connect(
-        &inlet, &Control_T::domainChanged, &widget, [&slider, &widget] {
-          auto min = slider.getMin();
-          auto max = slider.getMax();
-          if (max - min == 0)
-            max = min + 1;
+    QObject::connect(&inlet, &Control_T::domainChanged, &widget, [&slider, &widget] {
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
 
-          widget.setRange(min, max);
-        });
+      widget.setRange(min, max);
+    });
   }
 }
 
-
 template <typename T, typename Control_T, typename Widget_T>
-static void
-bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
+static void bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
-  auto update_range = [&widget, &inlet]
-  {
-
+  auto update_range = [&widget, &inlet] {
     auto min = ossia::get_min(inlet.domain());
     auto max = ossia::get_max(inlet.domain());
     auto min_float = min.template target<float>();
     auto max_float = max.template target<float>();
     if(min_float && max_float)
     {
-      if (*max_float - *min_float == 0)
+      if(*max_float - *min_float == 0)
         *max_float = *min_float + 1;
       widget.setRange({*min_float, *min_float}, {*max_float, *max_float});
     }
@@ -200,55 +190,9 @@ bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
       {
         auto& min = *min_vec2;
         auto& max = *max_vec2;
-        for(std::size_t i = 0; i < min.size(); i++) {
-        if (max[i] - min[i] == 0)
-          max[i] = min[i] + 1;
-        }
-
-        widget.setRange(min, max);
-      }
-    }
-  };
-
-  update_range();
-
-
-  if constexpr (std::is_base_of_v<Process::ControlInlet, T>)
-  {
-    SCORE_ASSERT(&slider == &inlet);
-    QObject::connect(
-        &inlet, &Control_T::domainChanged, &widget, update_range);
-  }
-}
-
-template <typename T, typename Control_T, typename Widget_T>
-static void
-bindVec3Domain(const T& slider, Control_T& inlet, Widget_T& widget)
-{
-  auto update_range = [&widget, &inlet]
-  {
-    auto min = ossia::get_min(inlet.domain());
-    auto max = ossia::get_max(inlet.domain());
-    auto min_float = min.template target<float>();
-    auto max_float = max.template target<float>();
-    if (min_float && max_float)
-    {
-      if (*max_float - *min_float == 0)
-        *max_float = *min_float + 1;
-      widget.setRange({*min_float, *min_float, *min_float},
-                      {*max_float, *max_float, *max_float});
-    }
-    else
-    {
-      auto min_vec3 = min.template target<ossia::vec3f>();
-      auto max_vec3 = max.template target<ossia::vec3f>();
-      if (min_vec3 && max_vec3)
-      {
-        auto& min = *min_vec3;
-        auto& max = *max_vec3;
-        for (std::size_t i = 0; i < min.size(); i++)
+        for(std::size_t i = 0; i < min.size(); i++)
         {
-          if (max[i] - min[i] == 0)
+          if(max[i] - min[i] == 0)
             max[i] = min[i] + 1;
         }
 
@@ -259,11 +203,53 @@ bindVec3Domain(const T& slider, Control_T& inlet, Widget_T& widget)
 
   update_range();
 
-  if constexpr (std::is_base_of_v<Process::ControlInlet, T>)
+  if constexpr(std::is_base_of_v<Process::ControlInlet, T>)
   {
     SCORE_ASSERT(&slider == &inlet);
-    QObject::connect(
-          &inlet, &Control_T::domainChanged, &widget, update_range);
+    QObject::connect(&inlet, &Control_T::domainChanged, &widget, update_range);
+  }
+}
+
+template <typename T, typename Control_T, typename Widget_T>
+static void bindVec3Domain(const T& slider, Control_T& inlet, Widget_T& widget)
+{
+  auto update_range = [&widget, &inlet] {
+    auto min = ossia::get_min(inlet.domain());
+    auto max = ossia::get_max(inlet.domain());
+    auto min_float = min.template target<float>();
+    auto max_float = max.template target<float>();
+    if(min_float && max_float)
+    {
+      if(*max_float - *min_float == 0)
+        *max_float = *min_float + 1;
+      widget.setRange(
+          {*min_float, *min_float, *min_float}, {*max_float, *max_float, *max_float});
+    }
+    else
+    {
+      auto min_vec3 = min.template target<ossia::vec3f>();
+      auto max_vec3 = max.template target<ossia::vec3f>();
+      if(min_vec3 && max_vec3)
+      {
+        auto& min = *min_vec3;
+        auto& max = *max_vec3;
+        for(std::size_t i = 0; i < min.size(); i++)
+        {
+          if(max[i] - min[i] == 0)
+            max[i] = min[i] + 1;
+        }
+
+        widget.setRange(min, max);
+      }
+    }
+  };
+
+  update_range();
+
+  if constexpr(std::is_base_of_v<Process::ControlInlet, T>)
+  {
+    SCORE_ASSERT(&slider == &inlet);
+    QObject::connect(&inlet, &Control_T::domainChanged, &widget, update_range);
   }
 }
 }

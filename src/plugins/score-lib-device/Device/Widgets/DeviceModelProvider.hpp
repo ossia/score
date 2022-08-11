@@ -26,7 +26,6 @@ class SCORE_LIB_DEVICE_EXPORT DeviceModelProviderList final
 {
 public:
   ~DeviceModelProviderList() override;
-  DeviceModelProvider*
-  getBestProvider(const score::DocumentContext& ctx) const noexcept;
+  DeviceModelProvider* getBestProvider(const score::DocumentContext& ctx) const noexcept;
 };
 }

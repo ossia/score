@@ -8,9 +8,10 @@
 #include <QObject>
 #include <QVector>
 
+#include <score_plugin_media_export.h>
+
 #include <memory>
 #include <verdigris>
-#include <score_plugin_media_export.h>
 
 class QGraphicsView;
 namespace Media::Sound
@@ -61,10 +62,10 @@ public:
 
 public:
   void recompute(WaveformRequest req)
-  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, recompute, req);
+      E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, recompute, req);
 
   void ready(QVector<QImage*> img, ComputedWaveform wf)
-  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, ready, img, wf);
+      E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, ready, img, wf);
 
 private:
   friend struct WaveformComputerImpl;
@@ -73,8 +74,7 @@ private:
   void timerEvent(QTimerEvent* event) override;
 
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
-  std::chrono::steady_clock::time_point last_request
-      = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point last_request = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point last_render = {};
   bool m_forceRedraw = false;
 
@@ -86,26 +86,22 @@ private:
 
 }
 
-inline QDataStream&
-operator<<(QDataStream& i, const Media::Sound::WaveformRequest& sel)
+inline QDataStream& operator<<(QDataStream& i, const Media::Sound::WaveformRequest& sel)
 {
   SCORE_ABORT;
   return i;
 }
-inline QDataStream&
-operator>>(QDataStream& i, Media::Sound::WaveformRequest& sel)
+inline QDataStream& operator>>(QDataStream& i, Media::Sound::WaveformRequest& sel)
 {
   SCORE_ABORT;
   return i;
 }
-inline QDataStream&
-operator<<(QDataStream& i, const Media::Sound::ComputedWaveform& sel)
+inline QDataStream& operator<<(QDataStream& i, const Media::Sound::ComputedWaveform& sel)
 {
   SCORE_ABORT;
   return i;
 }
-inline QDataStream&
-operator>>(QDataStream& i, Media::Sound::ComputedWaveform& sel)
+inline QDataStream& operator>>(QDataStream& i, Media::Sound::ComputedWaveform& sel)
 {
   SCORE_ABORT;
   return i;

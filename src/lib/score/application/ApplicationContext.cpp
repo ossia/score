@@ -6,8 +6,7 @@
 #include <core/presenter/DocumentManager.hpp>
 
 score::ApplicationContext::ApplicationContext(
-    const score::ApplicationSettings& app,
-    const score::ApplicationComponents& c,
+    const score::ApplicationSettings& app, const score::ApplicationComponents& c,
     DocumentList& l,
     const std::vector<std::unique_ptr<score::SettingsDelegateModel>>& set)
     : applicationSettings{app}
@@ -17,10 +16,9 @@ score::ApplicationContext::ApplicationContext(
 {
 }
 
-const score::DocumentContext*
-score::ApplicationContext::currentDocument() const noexcept
+const score::DocumentContext* score::ApplicationContext::currentDocument() const noexcept
 {
-  if (auto doc = documents.currentDocument())
+  if(auto doc = documents.currentDocument())
     return &doc->context();
   return nullptr;
 }

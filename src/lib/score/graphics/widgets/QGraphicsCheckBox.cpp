@@ -24,7 +24,7 @@ void QGraphicsCheckBox::toggle()
 
 void QGraphicsCheckBox::setState(bool toggled)
 {
-  if (toggled != m_toggled)
+  if(toggled != m_toggled)
   {
     m_toggled = toggled;
     update();
@@ -45,9 +45,7 @@ void QGraphicsCheckBox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 void QGraphicsCheckBox::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -60,20 +58,14 @@ void QGraphicsCheckBox::paint(
       QRectF{positionCheckBox, positionCheckBox, checkBoxWidth, checkBoxWidth},
       skin.Emphasis2.main.brush);
 
-  if (m_toggled)
+  if(m_toggled)
   {
     double position = (m_rect.width() - insideBoxWidth) * 0.5;
     painter->setPen(skin.Base4.main.pen2);
     painter->drawLine(QLineF{
-        position,
-        position,
-        position + insideBoxWidth,
-        position + insideBoxWidth});
+        position, position, position + insideBoxWidth, position + insideBoxWidth});
     painter->drawLine(QLineF{
-        position,
-        position + +insideBoxWidth,
-        position + +insideBoxWidth,
-        position});
+        position, position + +insideBoxWidth, position + +insideBoxWidth, position});
   }
 
   painter->setRenderHint(QPainter::Antialiasing, false);

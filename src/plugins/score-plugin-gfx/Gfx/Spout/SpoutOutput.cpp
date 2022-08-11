@@ -1,19 +1,20 @@
 #include "SpoutOutput.hpp"
 
-#include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
-#include <Gfx/GfxParameter.hpp>
-#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 
-#include <QtGui/private/qrhigles2_p_p.h>
+#include <score/gfx/OpenGL.hpp>
 
 #include <QFormLayout>
-#include <QOffscreenSurface>
 #include <QLabel>
+#include <QOffscreenSurface>
+#include <QtGui/private/qrhigles2_p_p.h>
 
 #include <Spout/SpoutSender.h>
-#include <score/gfx/OpenGL.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::SpoutDevice)
@@ -23,8 +24,8 @@ namespace Gfx
 struct SpoutNode final : score::gfx::OutputNode
 {
   SpoutNode(const SharedOutputSettings& set)
-    : OutputNode{}
-    , m_settings{set}
+      : OutputNode{}
+      , m_settings{set}
   {
     input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
   }
@@ -33,26 +34,24 @@ struct SpoutNode final : score::gfx::OutputNode
   void startRendering() override
   {
     if(!m_created)
-      m_created = m_spout->CreateSender(m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height);
+      m_created = m_spout->CreateSender(
+          m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height);
   }
 
   void onRendererChange() override { }
-  bool canRender() const override
-  {
-    return bool(m_spout);
-  }
+  bool canRender() const override { return bool(m_spout); }
 
   void render() override
   {
-    if (m_update)
+    if(m_update)
       m_update();
 
     auto renderer = m_renderer.lock();
-    if (renderer && m_renderState)
+    if(renderer && m_renderState)
     {
       auto rhi = m_renderState->rhi;
       QRhiCommandBuffer* cb{};
-      if (rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+      if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
         return;
 
       renderer->render(*cb);
@@ -61,7 +60,7 @@ struct SpoutNode final : score::gfx::OutputNode
       {
         rhi->makeThreadLocalNativeContextCurrent();
 
-        if (m_created)
+        if(m_created)
         {
           auto tex = dynamic_cast<QGles2Texture*>(m_texture)->texture;
           m_spout->SendTexture(tex, GL_TEXTURE_2D, m_settings.width, m_settings.height);
@@ -76,25 +75,18 @@ struct SpoutNode final : score::gfx::OutputNode
     }
   }
 
-  void stopRendering() override
-  {
-  }
+  void stopRendering() override { }
 
   void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override
   {
     m_renderer = r;
   }
 
-  score::gfx::RenderList* renderer() const override
-  {
-    return m_renderer.lock().get();
-  }
+  score::gfx::RenderList* renderer() const override { return m_renderer.lock().get(); }
 
   void createOutput(
-        score::gfx::GraphicsApi graphicsApi,
-        std::function<void()> onReady,
-        std::function<void()> onUpdate,
-        std::function<void()> onResize) override
+      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
+      std::function<void()> onUpdate, std::function<void()> onResize) override
   {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
     m_spout = std::make_shared<SpoutSender>();
@@ -115,8 +107,8 @@ struct SpoutNode final : score::gfx::OutputNode
 
     auto rhi = m_renderState->rhi;
     m_texture = rhi->newTexture(
-                  QRhiTexture::RGBA8, m_renderState->renderSize, 1,
-                  QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+        QRhiTexture::RGBA8, m_renderState->renderSize, 1,
+        QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
     m_renderTarget = rhi->newTextureRenderTarget({m_texture});
     m_renderState->renderPassDescriptor
@@ -128,7 +120,7 @@ struct SpoutNode final : score::gfx::OutputNode
   }
   void destroyOutput() override
   {
-    if (m_spout)
+    if(m_spout)
       m_spout->ReleaseSender();
     m_spout.reset();
   }
@@ -138,31 +130,43 @@ struct SpoutNode final : score::gfx::OutputNode
     return m_renderState;
   }
 
-  score::gfx::OutputNodeRenderer* createRenderer(score::gfx::RenderList& r) const noexcept override
+  score::gfx::OutputNodeRenderer*
+  createRenderer(score::gfx::RenderList& r) const noexcept override
   {
     class SpoutRenderer : public score::gfx::OutputNodeRenderer
     {
     public:
       SpoutRenderer(const score::gfx::RenderState& state, const SpoutNode& parent)
-        : score::gfx::OutputNodeRenderer{}
+          : score::gfx::OutputNodeRenderer{}
       {
         m_rt.renderTarget = parent.m_renderTarget;
         m_rt.renderPass = state.renderPassDescriptor;
       }
 
-      score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return m_rt; }
-      void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb) override { }
+      score::gfx::TextureRenderTarget
+      renderTargetForInput(const score::gfx::Port& p) override
+      {
+        return m_rt;
+      }
+      void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb) override
+      {
+      }
       void init(score::gfx::RenderList& renderer) override { }
-      void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
+      void
+      update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+      {
+      }
       void release(score::gfx::RenderList&) override { }
+
     private:
       score::gfx::TextureRenderTarget m_rt;
     };
     return new SpoutRenderer{r.state, *this};
   }
 
-  Configuration configuration() const noexcept override{
-    return { .manualRenderingRate = 1000. / m_settings.rate };
+  Configuration configuration() const noexcept override
+  {
+    return {.manualRenderingRate = 1000. / m_settings.rate};
   }
 
 private:
@@ -188,7 +192,7 @@ bool SpoutDevice::reconnect()
   try
   {
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
-    if (plug)
+    if(plug)
     {
       auto set = m_settings.deviceSpecificSettings.value<SharedOutputSettings>();
       m_protocol = new gfx_protocol_base{plug->exec};
@@ -200,8 +204,7 @@ bool SpoutDevice::reconnect()
       public:
         spout_device(
             const SharedOutputSettings& set,
-            std::unique_ptr<ossia::net::protocol_base> proto,
-            std::string name)
+            std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
             : ossia::net::device_base{std::move(proto)}
             , root{*this, new SpoutNode{set}, name}
         {
@@ -212,19 +215,18 @@ bool SpoutDevice::reconnect()
       };
 
       m_dev = std::make_unique<spout_device>(
-          set,
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+          set, std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           m_settings.name.toStdString());
     }
     // TODOengine->reload(&proto);
 
     // setLogging_impl(Device::get_cur_logging(isLogging()));
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }
@@ -238,15 +240,13 @@ QString SpoutProtocolFactory::prettyName() const noexcept
 }
 
 Device::DeviceInterface* SpoutProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& doc,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& doc,
     const score::DocumentContext& ctx)
 {
   return new SpoutDevice(settings, ctx);
 }
 
-const Device::DeviceSettings&
-SpoutProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& SpoutProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;

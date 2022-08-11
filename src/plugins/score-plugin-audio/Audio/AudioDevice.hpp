@@ -31,31 +31,25 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
       const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget* parent) override;
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*) override;
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*) override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const noexcept override;
 };
 
-class SCORE_PLUGIN_AUDIO_EXPORT AudioDevice final
-    : public Device::DeviceInterface
+class SCORE_PLUGIN_AUDIO_EXPORT AudioDevice final : public Device::DeviceInterface
 {
   W_OBJECT(AudioDevice)
 public:
@@ -69,17 +63,18 @@ public:
       const Device::FullAddressSettings& settings) override;
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
-  const std::shared_ptr<ossia::net::generic_device>& sharedDevice() const noexcept { return m_dev; }
+  const std::shared_ptr<ossia::net::generic_device>& sharedDevice() const noexcept
+  {
+    return m_dev;
+  }
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
   ossia::audio_protocol* getProtocol() const { return m_protocol; }
-
 
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
 
 private:
   using Device::DeviceInterface::refresh;
-  void
-  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};

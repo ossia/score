@@ -1,9 +1,13 @@
 #include "MetroExecutor.hpp"
 
+#include <Process/ExecutionContext.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Execution/score2OSSIA.hpp>
+
 #include <Library/LibrarySettings.hpp>
 #include <Media/MediaFileHandle.hpp>
-#include <Process/ExecutionContext.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/tools/Bind.hpp>
@@ -14,8 +18,6 @@
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <QApplication>
-
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 namespace ossia::nodes
 {
@@ -43,9 +45,7 @@ public:
 
   audio_metronome(
       const ossia::small_vector<audio_sample*, 8>& hi,
-      const ossia::small_vector<audio_sample*, 8>& lo,
-      int64_t hi_dur,
-      int64_t lo_dur)
+      const ossia::small_vector<audio_sample*, 8>& lo, int64_t hi_dur, int64_t lo_dur)
       : hi_sound{hi}
       , lo_sound{lo}
       , hi_dur{hi_dur}
@@ -57,110 +57,97 @@ public:
 
   void run(const token_request& tk, exec_state_facade st) noexcept override
   {
-    if (tk.forward())
+    if(tk.forward())
     {
       tk.metronome(
           st.modelToSamples(),
           [&](int64_t hi_start_sample) {
-            for (auto& sound : in_flight)
-            {
-              sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
-              sound.fade_remaining = sound.fade_total;
-            }
+        for(auto& sound : in_flight)
+        {
+          sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
+          sound.fade_remaining = sound.fade_total;
+        }
 
-            if (hi_dur > 0)
-            {
-              bang_out.target<value_port>()->write_value(
-                  ossia::impulse{}, hi_start_sample);
-              in_flight.push_back(
-                  {&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
-            }
+        if(hi_dur > 0)
+        {
+          bang_out.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
+          in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
+        }
           },
           [&](int64_t lo_start_sample) {
-            for (auto& sound : in_flight)
-            {
-              sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
-              sound.fade_remaining = sound.fade_total;
-            }
+        for(auto& sound : in_flight)
+        {
+          sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
+          sound.fade_remaining = sound.fade_total;
+        }
 
-            if (lo_dur > 0)
-            {
-              bang_out.target<value_port>()->write_value(
-                  ossia::impulse{}, lo_start_sample);
-              in_flight.push_back(
-                  {&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
-            }
-          });
+        if(lo_dur > 0)
+        {
+          bang_out.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
+          in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
+        }
+      });
     }
 
     audio_out.target<audio_port>()->set_channels(2);
     auto& ap = audio_out.target<audio_port>()->get();
 
-    auto render_sound =
-        [&ap, &tk, &st](
-            const int64_t fade_total,
-            int64_t& fade_remaining,
-            int64_t& pos,
-            const int64_t dur,
-            const int64_t start_sample,
-            const ossia::small_vector<audio_sample*, 8>& sound) {
-          bool finished = false;
+    auto render_sound = [&ap, &tk, &st](
+                            const int64_t fade_total, int64_t& fade_remaining,
+                            int64_t& pos, const int64_t dur, const int64_t start_sample,
+                            const ossia::small_vector<audio_sample*, 8>& sound) {
+      bool finished = false;
 
-          ap.resize(2);
-          ap[0].resize(st.bufferSize());
-          ap[1].resize(st.bufferSize());
+      ap.resize(2);
+      ap[0].resize(st.bufferSize());
+      ap[1].resize(st.bufferSize());
 
-          const float* const src = sound[0] + pos;
+      const float* const src = sound[0] + pos;
 
-          const auto [tick_start, d] = st.timings(tk);
+      const auto [tick_start, d] = st.timings(tk);
 
-          int64_t count = d - start_sample;
-          if(count < 0)
-            return true;
-          if (pos + count < dur)
-          {
-            pos += count;
-          }
-          else
-          {
-            count = dur - pos;
-            finished = true;
-          }
+      int64_t count = d - start_sample;
+      if(count < 0)
+        return true;
+      if(pos + count < dur)
+      {
+        pos += count;
+      }
+      else
+      {
+        count = dur - pos;
+        finished = true;
+      }
 
-          auto fade_remaining_prev = fade_remaining;
-          for (auto dst : {ap[0].data(), ap[1].data()})
-          {
-            fade_remaining = fade_remaining_prev;
-            double* start = dst + tick_start + start_sample;
-            for (int i = 0; i < count; i++)
-            {
-              const double fade
-                  = (fade_total == 0 ? 1.
-                                     : double(--fade_remaining) / fade_total);
+      auto fade_remaining_prev = fade_remaining;
+      for(auto dst : {ap[0].data(), ap[1].data()})
+      {
+        fade_remaining = fade_remaining_prev;
+        double* start = dst + tick_start + start_sample;
+        for(int i = 0; i < count; i++)
+        {
+          const double fade
+              = (fade_total == 0 ? 1. : double(--fade_remaining) / fade_total);
 
-              start[i] += src[i] * fade;
-            }
-          }
+          start[i] += src[i] * fade;
+        }
+      }
 
-          finished |= fade_total > 0 && fade_remaining <= 0;
+      finished |= fade_total > 0 && fade_remaining <= 0;
 
-          return finished;
-        };
+      return finished;
+    };
 
-    for (auto it = in_flight.begin(); it != in_flight.end();)
+    for(auto it = in_flight.begin(); it != in_flight.end();)
     {
       bool finished = render_sound(
-          it->fade_total,
-          it->fade_remaining,
-          it->pos,
-          it->dur,
-          it->start_sample,
+          it->fade_total, it->fade_remaining, it->pos, it->dur, it->start_sample,
           *it->samples);
 
-      if (it->start_sample != 0)
+      if(it->start_sample != 0)
         it->start_sample = 0;
 
-      if (finished)
+      if(finished)
       {
         it = in_flight.erase(it);
       }
@@ -183,11 +170,10 @@ struct MetronomeSounds
   const std::unique_ptr<Media::AudioFile> tick{[this] {
     auto f = std::make_unique<Media::AudioFile>();
     f->load(
-        root + "/metro_tick.wav",
-        root + "/metro_tick.wav",
+        root + "/metro_tick.wav", root + "/metro_tick.wav",
         Media::DecodingMethod::Libav);
 
-    while (f->samples() != f->decodedSamples())
+    while(f->samples() != f->decodedSamples())
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
       qApp->processEvents();
@@ -197,11 +183,10 @@ struct MetronomeSounds
   const std::unique_ptr<Media::AudioFile> tock{[this] {
     auto f = std::make_unique<Media::AudioFile>();
     f->load(
-        root + "/metro_tock.wav",
-        root + "/metro_tock.wav",
+        root + "/metro_tock.wav", root + "/metro_tock.wav",
         Media::DecodingMethod::Libav);
 
-    while (f->samples() != f->decodedSamples())
+    while(f->samples() != f->decodedSamples())
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
       qApp->processEvents();
@@ -220,27 +205,18 @@ struct MetronomeSounds
 };
 
 MetroComponent::MetroComponent(
-    Media::Metro::Model& element,
-    const Execution::Context& ctx,
-    QObject* parent)
+    Media::Metro::Model& element, const Execution::Context& ctx, QObject* parent)
     : Execution::ProcessComponent_T<Media::Metro::Model, ossia::node_process>{
-        element,
-        ctx,
-        "Executor::MetroComponent",
-        parent}
+        element, ctx, "Executor::MetroComponent", parent}
 {
   static const MetronomeSounds sounds;
-  if (sounds)
+  if(sounds)
   {
-    const auto& tick_sound{
-        sounds.tick_handle.target<Media::AudioFile::RAMView>()->data};
-    const auto& tock_sound{
-        sounds.tock_handle.target<Media::AudioFile::RAMView>()->data};
+    const auto& tick_sound{sounds.tick_handle.target<Media::AudioFile::RAMView>()->data};
+    const auto& tock_sound{sounds.tock_handle.target<Media::AudioFile::RAMView>()->data};
 
-    auto node = ossia::make_node<ossia::nodes::audio_metronome>(*ctx.execState.get(),
-        tick_sound,
-        tock_sound,
-        sounds.tick->decodedSamples(),
+    auto node = ossia::make_node<ossia::nodes::audio_metronome>(
+        *ctx.execState.get(), tick_sound, tock_sound, sounds.tick->decodedSamples(),
         sounds.tock->decodedSamples());
 
     this->node = node;

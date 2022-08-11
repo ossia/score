@@ -1,46 +1,38 @@
 #pragma once
+#include <State/UpdateAddress.hpp>
+
+#include <Device/Node/NodeListMimeSerialization.hpp>
+
+#include <Process/ProcessContext.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+
+#include <Curve/Process/CurveProcessPresenter.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationView.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
-#include <Curve/Process/CurveProcessPresenter.hpp>
-#include <Device/Node/NodeListMimeSerialization.hpp>
-#include <Process/ProcessContext.hpp>
-#include <Process/ProcessMimeSerialization.hpp>
-#include <State/UpdateAddress.hpp>
 
 #include <verdigris>
 
 namespace Automation
 {
-class LayerPresenter final
-    : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
+class LayerPresenter final : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
   W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
-      const Curve::Style& style,
-      const Automation::ProcessModel& layer,
-      LayerView* view,
-      const Process::Context& context,
-      QObject* parent)
+      const Curve::Style& style, const Automation::ProcessModel& layer, LayerView* view,
+      const Process::Context& context, QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     // TODO instead have a prettyNameChanged signal.
-    con(layer,
-        &ProcessModel::tweenChanged,
-        this,
-        &LayerPresenter::on_tweenChanges);
+    con(layer, &ProcessModel::tweenChanged, this, &LayerPresenter::on_tweenChanges);
 
-    connect(
-        m_view,
-        &LayerView::dropReceived,
-        this,
-        &LayerPresenter::on_dropReceived);
+    connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::on_dropReceived);
 
     on_tweenChanges(layer.tween());
-    con(layer.curve(), &Curve::Model::curveReset, this, [&] {
-      on_tweenChanges(layer.tween());
-    });
+    con(layer.curve(), &Curve::Model::curveReset, this,
+        [&] { on_tweenChanges(layer.tween()); });
   }
 
 private:
@@ -48,9 +40,9 @@ private:
 
   void on_tweenChanges(bool b)
   {
-    for (Curve::SegmentView& seg : m_curve.segments())
+    for(Curve::SegmentView& seg : m_curve.segments())
     {
-      if (seg.model().start().x() != 0.)
+      if(seg.model().start().x() != 0.)
       {
         seg.setTween(false);
       }
@@ -63,12 +55,12 @@ private:
 
   void on_dropReceived(const QPointF& pos, const QMimeData& mime)
   {
-    if (auto addr = State::onUpdatableAddress(model().address(), mime))
+    if(auto addr = State::onUpdatableAddress(model().address(), mime))
     {
       CommandDispatcher<>{context().context.commandStack}.submit(
           new ChangeAddress{model(), *addr});
     }
-    else if (mime.formats().contains(score::mime::processpreset()))
+    else if(mime.formats().contains(score::mime::processpreset()))
     {
       handlePresetDrop(pos, mime);
     }

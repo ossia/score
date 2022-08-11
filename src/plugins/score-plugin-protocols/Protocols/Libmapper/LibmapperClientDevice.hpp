@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <Explorer/DefaultProtocolFactory.hpp>
 
 namespace Protocols
@@ -13,7 +14,6 @@ struct LibmapperClientSpecificSettings
 
 Q_DECLARE_METATYPE(Protocols::LibmapperClientSpecificSettings)
 W_REGISTER_ARGTYPE(Protocols::LibmapperClientSpecificSettings)
-
 
 namespace Protocols
 {
@@ -34,7 +34,6 @@ private:
   const ossia::net::network_context_ptr& m_ctx;
 };
 
-
 class LibmapperClientProtocolFactory final : public DefaultProtocolFactory
 {
   SCORE_CONCRETE("708191fc-a901-414f-90c6-fef4a284330d")
@@ -53,21 +52,17 @@ class LibmapperClientProtocolFactory final : public DefaultProtocolFactory
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const noexcept override;
 };
 
-
-class LibmapperClientProtocolSettingsWidget final
-    : public Device::ProtocolSettingsWidget
+class LibmapperClientProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
   W_OBJECT(LibmapperClientProtocolSettingsWidget)
 

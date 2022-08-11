@@ -4,9 +4,10 @@
 
 #include <State/ValueConversion.hpp>
 
+#include <score/tools/Debug.hpp>
+
 #include <ossia/network/common/destination_qualifiers.hpp>
 
-#include <score/tools/Debug.hpp>
 #include <QMap>
 namespace State
 {
@@ -38,13 +39,13 @@ QString State::toString(const State::RelationMember& m)
     {
       auto addr = acc.address.toString();
 
-      if (!acc.qualifiers.get().accessors.empty())
+      if(!acc.qualifiers.get().accessors.empty())
       {
         addr += '@';
-        for (auto val : acc.qualifiers.get().accessors)
+        for(auto val : acc.qualifiers.get().accessors)
         {
           addr += QString("[%1]").arg(val);
-         }
+        }
       }
 
       return "%" + addr + "%";

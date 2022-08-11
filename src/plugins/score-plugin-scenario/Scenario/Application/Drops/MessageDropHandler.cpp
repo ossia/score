@@ -4,15 +4,6 @@
 
 #include <State/MessageListSerialization.hpp>
 
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
-#include <ossia/detail/algorithms.hpp>
-
-#include <QFile>
-#include <QFileInfo>
-#include <QMimeData>
-#include <QUrl>
-
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
@@ -24,6 +15,15 @@
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QFile>
+#include <QFileInfo>
+#include <QMimeData>
+#include <QUrl>
+
 namespace Scenario
 {
 MessageDropHandler::MessageDropHandler()
@@ -33,26 +33,23 @@ MessageDropHandler::MessageDropHandler()
 }
 
 bool MessageDropHandler::drop(
-    const Scenario::ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
+    const Scenario::ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   using namespace Scenario::Command;
 
   // If the mime data has states in it we can handle it.
   State::MessageList ml;
-  if (mime.formats().contains(score::mime::messagelist()))
+  if(mime.formats().contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     ml = des.deserialize();
   }
-  else if (mime.hasUrls())
+  else if(mime.hasUrls())
   {
-    for (const auto& u : mime.urls())
+    for(const auto& u : mime.urls())
     {
       auto path = u.toLocalFile();
-      if (QFile f{path};
-          QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
       {
         State::MessageList sub;
         auto json = readJson(f.readAll());
@@ -64,7 +61,7 @@ bool MessageDropHandler::drop(
     }
   }
 
-  if (ml.empty())
+  if(ml.empty())
     return false;
 
   Scenario::Command::Macro m{
@@ -77,9 +74,9 @@ bool MessageDropHandler::drop(
 
   m_magnetic = magneticStates(m_magnetic, pt, pres);
   auto [x_state, y_state, magnetic] = m_magnetic;
-  if (y_state)
+  if(y_state)
   {
-    if (magnetic)
+    if(magnetic)
     {
       createdState = m.createState(scenar, y_state->eventId(), pt.y).id();
     }
@@ -90,9 +87,9 @@ bool MessageDropHandler::drop(
       createdState = i.endState();
     }
   }
-  else if (x_state)
+  else if(x_state)
   {
-    if (x_state->nextInterval())
+    if(x_state->nextInterval())
     {
       // We create from the event instead
       auto& s = m.createState(scenar, x_state->eventId(), pt.y);
@@ -101,7 +98,7 @@ bool MessageDropHandler::drop(
     }
     else
     {
-      if (magnetic)
+      if(magnetic)
       {
         auto& i = m.createIntervalAfter(
             scenar, x_state->id(), {pt.date, x_state->heightPercentage()});

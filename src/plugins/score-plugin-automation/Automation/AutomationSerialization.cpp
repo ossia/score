@@ -2,11 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationModel.hpp"
 
-#include <Curve/CurveModel.hpp>
+#include <State/Address.hpp>
+
+#include <Process/Dataflow/MinMaxFloatPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
-#include <Process/Dataflow/MinMaxFloatPort.hpp>
-#include <State/Address.hpp>
+
+#include <Curve/CurveModel.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
@@ -60,7 +62,8 @@ void JSONWriter::write(Automation::ProcessModel& autom)
   }
   else
   {
-    autom.outlet = std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), &autom);
+    autom.outlet
+        = std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), &autom);
   }
 
   JSONObject::Deserializer curve_deser{obj["Curve"]};

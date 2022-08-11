@@ -1,6 +1,7 @@
 #pragma once
-#include <Nodal/Process.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+
+#include <Nodal/Process.hpp>
 
 #include <score/model/ComponentHierarchy.hpp>
 
@@ -18,10 +19,7 @@ public:
   using component_t = ::Execution::ProcessComponent;
   using component_factory_list_t = Execution::ProcessComponentFactoryList;
 
-  NodalExecutorBase(
-      Model& element,
-      const Execution::Context& ctx,
-      QObject* parent);
+  NodalExecutorBase(Model& element, const Execution::Context& ctx, QObject* parent);
 
   ~NodalExecutorBase();
 
@@ -32,15 +30,10 @@ public:
 
   ossia::fast_hash_map<Id<Process::ProcessModel>, RegisteredNode> m_nodes;
 
-  ::Execution::ProcessComponent* make(
-      Execution::ProcessComponentFactory& factory,
-      Process::ProcessModel& process);
-
   ::Execution::ProcessComponent*
-  make(Process::ProcessModel& process)
-  {
-    return nullptr;
-  }
+  make(Execution::ProcessComponentFactory& factory, Process::ProcessModel& process);
+
+  ::Execution::ProcessComponent* make(Process::ProcessModel& process) { return nullptr; }
   void added(::Execution::ProcessComponent& e);
 
   std::function<void()>
@@ -49,7 +42,7 @@ public:
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
-    if (f)
+    if(f)
       f();
   }
 
@@ -94,8 +87,7 @@ public:
   HierarchyManager(Args&&... args)
       : ParentComponent_T{std::forward<Args>(args)...}
       , m_componentFactory{
-            score::AppComponents()
-                .template interfaces<ChildComponentFactoryList_T>()}
+            score::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
   {
     init_hierarchy();
   }
@@ -103,7 +95,7 @@ public:
   void init_hierarchy()
   {
     auto& child_models = process().nodes;
-    for (auto& child_model : child_models)
+    for(auto& child_model : child_models)
     {
       add(child_model);
     }
@@ -118,12 +110,12 @@ public:
   void add(Process::ProcessModel& model)
   {
     // Will return a factory for the given process if available
-    if (auto factory = m_componentFactory.factory(model))
+    if(auto factory = m_componentFactory.factory(model))
     {
       // The subclass should provide this function to construct
       // the correct component relative to this process.
       auto comp = this->make(*factory, model);
-      if (comp)
+      if(comp)
       {
         model.components().add(comp);
         m_children.emplace_back(ChildPair{&model, comp});
@@ -133,7 +125,7 @@ public:
     else
     {
       auto comp = ParentComponent_T::make(model);
-      if (comp)
+      if(comp)
       {
         model.components().add(comp);
         m_children.emplace_back(ChildPair{&model, comp});
@@ -144,10 +136,10 @@ public:
 
   void remove(const ChildModel_T& model)
   {
-    auto it = ossia::find_if(
-        m_children, [&](auto pair) { return pair.model == &model; });
+    auto it
+        = ossia::find_if(m_children, [&](auto pair) { return pair.model == &model; });
 
-    if (it != m_children.end())
+    if(it != m_children.end())
     {
       do_cleanup(*it);
       m_children.erase(it);
@@ -156,7 +148,7 @@ public:
 
   void clear()
   {
-    for (const auto& element : m_children)
+    for(const auto& element : m_children)
     {
       do_cleanup(element);
     }
@@ -182,10 +174,7 @@ private:
 class NodalExecutor final : public HierarchyManager
 {
 public:
-  NodalExecutor(
-      Nodal::Model& element,
-      const ::Execution::Context& ctx,
-      QObject* parent)
+  NodalExecutor(Nodal::Model& element, const ::Execution::Context& ctx, QObject* parent)
       : HierarchyManager{element, ctx, parent}
   {
     // TODO passthrough ?

@@ -1,13 +1,13 @@
 #pragma once
-#include <score/command/AggregateCommand.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-
-#include <ossia/detail/algorithms.hpp>
-
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <score/command/AggregateCommand.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 namespace Scenario
 {
@@ -15,21 +15,17 @@ namespace Command
 {
 // RENAMEME
 // One InterpolateMacro per interval
-class AddMultipleProcessesToMultipleIntervalsMacro final
-    : public score::AggregateCommand
+class AddMultipleProcessesToMultipleIntervalsMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddMultipleProcessesToMultipleIntervalsMacro,
+      CommandFactoryName(), AddMultipleProcessesToMultipleIntervalsMacro,
       "Add processes to intervals")
 };
 
-class AddMultipleProcessesToIntervalMacro final
-    : public score::AggregateCommand
+class AddMultipleProcessesToIntervalMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddMultipleProcessesToIntervalMacro,
+      CommandFactoryName(), AddMultipleProcessesToIntervalMacro,
       "Add processes to interval")
 
 public:
@@ -50,7 +46,7 @@ public:
   AddMultipleProcessesToIntervalMacro(const IntervalModel& interval)
   {
     // If no slot : create slot
-    if (interval.smallView().empty())
+    if(interval.smallView().empty())
     {
       auto cmd_slot = new Scenario::Command::AddSlotToRack{interval};
       addCommand(cmd_slot);
@@ -58,7 +54,8 @@ public:
     }
     else
     {
-      auto it = ossia::find_if(interval.smallView(), [] (auto& slt) { return !slt.nodal; });
+      auto it
+          = ossia::find_if(interval.smallView(), [](auto& slt) { return !slt.nodal; });
       if(it != interval.smallView().end())
       {
         int slot_index = it - interval.smallView().begin();

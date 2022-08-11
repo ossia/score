@@ -2,15 +2,16 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 #include <Video/VideoInterface.hpp>
+
 #include <ossia/detail/lockfree_queue.hpp>
-#include <vector>
-#include <atomic>
 
 #include <score_plugin_media_export.h>
 
-extern "C"
-{
-  struct AVFrame;
+#include <atomic>
+#include <vector>
+
+extern "C" {
+struct AVFrame;
 }
 namespace Video
 {

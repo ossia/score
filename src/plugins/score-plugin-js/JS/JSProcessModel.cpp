@@ -5,10 +5,12 @@
 
 #include "JS/JSProcessMetadata.hpp"
 
-#include <JS/Qml/QmlObjects.hpp>
+#include <State/Expression.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/PresetHelpers.hpp>
-#include <State/Expression.hpp>
+
+#include <JS/Qml/QmlObjects.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
@@ -30,17 +32,12 @@ W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const QString& data,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{
-        duration,
-        id,
-        Metadata<ObjectKey_k, ProcessModel>::get(),
-        parent}
+        duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  if (data.isEmpty())
+  if(data.isEmpty())
   {
     setScript(
         R"_(import Score 1.0
@@ -75,16 +72,15 @@ bool ProcessModel::validate(const QString& script) const noexcept
   const auto trimmed = script.trimmed();
   const QByteArray data = trimmed.toUtf8();
 
-  auto path = score::locateFilePath(
-      trimmed, score::IDocument::documentContext(*this));
+  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
 
-  if (QFileInfo::exists(path))
+  if(QFileInfo::exists(path))
   {
     return (bool)m_cache.get(*this, path.toUtf8(), true);
   }
   else
   {
-    if (!data.startsWith("import"))
+    if(!data.startsWith("import"))
       return false;
     return (bool)m_cache.get(*this, data, false);
   }
@@ -109,10 +105,9 @@ void ProcessModel::setScript(const QString& script)
   const auto trimmed = script.trimmed();
   const QByteArray data = trimmed.toUtf8();
 
-  auto path = score::locateFilePath(
-      trimmed, score::IDocument::documentContext(*this));
+  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
 
-  if (QFileInfo{path}.exists())
+  if(QFileInfo{path}.exists())
   {
     /* Disabling the watch feature for now :
      * it does not fix the cables, etc.
@@ -137,12 +132,12 @@ void ProcessModel::setScript(const QString& script)
         });
 
     */
-    if (!setQmlData(path.toUtf8(), true))
+    if(!setQmlData(path.toUtf8(), true))
       return;
   }
   else
   {
-    if (!setQmlData(data, false))
+    if(!setQmlData(data, false))
       return;
   }
 
@@ -152,11 +147,11 @@ void ProcessModel::setScript(const QString& script)
 
 bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 {
-  if (!isFile && !data.startsWith("import"))
+  if(!isFile && !data.startsWith("import"))
     return false;
 
   auto script = m_cache.get(*this, data, isFile);
-  if (!script)
+  if(!script)
     return false;
 
   m_isFile = isFile;
@@ -171,12 +166,12 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   {
     auto cld_inlet = script->findChildren<Inlet*>();
     int i = 0;
-    for (auto n : cld_inlet)
+    for(auto n : cld_inlet)
     {
       auto port = n->make(Id<Process::Port>(i++), this);
       if(const auto& name = n->objectName(); !name.isEmpty())
         port->setName(name);
-      if (auto addr = State::parseAddressAccessor(n->address()))
+      if(auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_inlets.push_back(port);
     }
@@ -185,24 +180,24 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   {
     auto cld_outlet = script->findChildren<Outlet*>();
     int i = 0;
-    for (auto n : cld_outlet)
+    for(auto n : cld_outlet)
     {
       auto port = n->make(Id<Process::Port>(i++), this);
       if(const auto& name = n->objectName(); !name.isEmpty())
         port->setName(name);
-      if (auto addr = State::parseAddressAccessor(n->address()))
+      if(auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_outlets.push_back(port);
     }
   }
 
-  if (m_isFile)
+  if(m_isFile)
   {
     const auto name = QFileInfo{data}.baseName();
     metadata().setName(name);
     metadata().setLabel(name);
   }
-  else if (metadata().getName().isEmpty())
+  else if(metadata().getName().isEmpty())
   {
     metadata().setName(QStringLiteral("Script"));
   }
@@ -224,12 +219,11 @@ Script* ProcessModel::currentObject() const noexcept
 ComponentCache::ComponentCache() { }
 ComponentCache::~ComponentCache() { }
 
-Script*
-ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
+Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
 {
   QByteArray content;
   QFile f{str};
-  if (isFile)
+  if(isFile)
   {
     f.open(QIODevice::ReadOnly);
     content = score::mapAsByteArray(f);
@@ -239,9 +233,8 @@ ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
     content = str;
   }
 
-  auto it
-      = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
-  if (it != m_map.end())
+  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
+  if(it != m_map.end())
   {
     return it->object.get();
   }
@@ -252,13 +245,11 @@ ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
 }
 
 Script* ComponentCache::get(
-    const ProcessModel& process,
-    const QByteArray& str,
-    bool isFile) noexcept
+    const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
 {
   QFile f;
   QByteArray content;
-  if (isFile)
+  if(isFile)
   {
     f.setFileName(str);
     f.open(QIODevice::ReadOnly);
@@ -269,9 +260,8 @@ Script* ComponentCache::get(
     content = str;
   }
 
-  auto it
-      = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
-  if (it != m_map.end())
+  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
+  if(it != m_map.end())
   {
     return it->object.get();
   }
@@ -280,7 +270,7 @@ Script* ComponentCache::get(
     static QQmlEngine dummyEngine;
 
     auto comp = std::make_unique<QQmlComponent>(&dummyEngine);
-    if (!isFile)
+    if(!isFile)
     {
       comp->setData(str, QUrl());
     }
@@ -290,7 +280,7 @@ Script* ComponentCache::get(
     }
 
     const auto& errs = comp->errors();
-    if (!errs.empty())
+    if(!errs.empty())
     {
       const auto& err = errs.first();
       qDebug() << err.line() << err.toString();
@@ -302,9 +292,9 @@ Script* ComponentCache::get(
 
     auto obj = comp->create();
     auto script = qobject_cast<JS::Script*>(obj);
-    if (script)
+    if(script)
     {
-      if (m_map.size() > 5)
+      if(m_map.size() > 5)
         m_map.erase(m_map.begin());
 
       m_map.emplace_back(
@@ -314,7 +304,7 @@ Script* ComponentCache::get(
     else
     {
       process.errorMessage(0, "The component must be of type Script");
-      if (obj)
+      if(obj)
       {
         delete obj;
       }

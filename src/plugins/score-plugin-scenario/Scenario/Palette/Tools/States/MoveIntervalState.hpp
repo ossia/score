@@ -1,11 +1,5 @@
 #pragma once
 
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <score/locking/ObjectLocker.hpp>
-
-#include <QApplication>
-#include <QFinalState>
-
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
@@ -26,6 +20,12 @@
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+#include <score/locking/ObjectLocker.hpp>
+
+#include <QApplication>
+#include <QFinalState>
+
 namespace Scenario
 {
 template <typename T>
@@ -33,10 +33,8 @@ class MoveIntervalState final : public StateBase<Scenario::ProcessModel>
 {
 public:
   MoveIntervalState(
-      const T& stateMachine,
-      const Scenario::ProcessModel& scenario,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const T& stateMachine, const Scenario::ProcessModel& scenario,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario::ProcessModel>{scenario, parent}
       , m_sm{stateMachine}
@@ -56,13 +54,13 @@ public:
       mainState->setInitialState(pressed);
       released->addTransition(finalState);
 
-      auto t_pressed = score::make_transition<
-          MoveOnAnything_Transition<Scenario::ProcessModel>>(
-          pressed, moving, *this);
+      auto t_pressed
+          = score::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
+              pressed, moving, *this);
       QObject::connect(t_pressed, &QAbstractTransition::triggered, [&]() {
         auto& scenar = stateMachine.model();
         m_initialClick = this->currentPoint;
-        if (!this->clickedInterval)
+        if(!this->clickedInterval)
           return;
 
         auto& cst = scenario.interval(*this->clickedInterval);
@@ -73,14 +71,14 @@ public:
         m_lastDate = m_intervalInitialPoint.date;
 
         auto prev_csts = previousNonGraphIntervals(sev, scenar);
-        if (!prev_csts.empty())
+        if(!prev_csts.empty())
         {
           // We find the one that starts the latest.
           TimeVal t = TimeVal::zero();
-          for (const auto& cst_id : prev_csts)
+          for(const auto& cst_id : prev_csts)
           {
             const auto& other_date = scenar.interval(cst_id).date();
-            if (other_date > t)
+            if(other_date > t)
               t = other_date;
           }
 
@@ -97,32 +95,30 @@ public:
         this->m_endEventCanBeMerged = nextIntervals(eev, scenar).empty();
       });
 
-      score::make_transition<ReleaseOnAnything_Transition>(
-          pressed, finalState);
-      score::make_transition<
-          MoveOnAnything_Transition<Scenario::ProcessModel>>(
+      score::make_transition<ReleaseOnAnything_Transition>(pressed, finalState);
+      score::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
           moving, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
       QObject::connect(moving, &QState::entered, [&] {
         auto& scenario = stateMachine.model();
-        if (!this->clickedInterval)
+        if(!this->clickedInterval)
           return;
         auto& cst = scenario.interval(*this->clickedInterval);
-        if (cst.graphal())
+        if(cst.graphal())
           return;
         auto& sst = Scenario::startState(cst, scenario);
         auto& sev = Scenario::parentEvent(sst, scenario);
         auto& sts = Scenario::parentTimeSync(sev, scenario);
 
-        if (qApp->keyboardModifiers() & Qt::ShiftModifier)
+        if(qApp->keyboardModifiers() & Qt::ShiftModifier)
         {
-          if (&sts == &scenario.startTimeSync())
+          if(&sts == &scenario.startTimeSync())
             return;
 
           m_lastDate = m_intervalInitialPoint.date
                        + (this->currentPoint.date - m_initialClick.date);
-          if (this->m_pressedPrevious)
+          if(this->m_pressedPrevious)
             m_lastDate = std::max(m_lastDate, *this->m_pressedPrevious);
 
           m_lastDate = stateMachine.magnetic().getPosition(&sts, m_lastDate);
@@ -141,32 +137,28 @@ public:
         /// we have to check for it during the press, not the move
 
         this->m_movingDispatcher.template submit<Command::MoveEventMeta>(
-            this->m_scenario,
-            sev.id(),
-            m_lastDate,
-            m_intervalInitialPoint.y
-                + (this->currentPoint.y - m_initialClick.y),
+            this->m_scenario, sev.id(), m_lastDate,
+            m_intervalInitialPoint.y + (this->currentPoint.y - m_initialClick.y),
             stateMachine.editionSettings().expandMode(),
-            stateMachine.editionSettings().lockMode(),
-            cst.startState());
+            stateMachine.editionSettings().lockMode(), cst.startState());
       });
 
       QObject::connect(released, &QState::entered, [&]() {
-        if (!this->clickedInterval)
+        if(!this->clickedInterval)
           return;
         auto& cst = scenario.interval(*this->clickedInterval);
-        if (cst.graphal())
+        if(cst.graphal())
           return;
         auto& sst = Scenario::startState(cst, scenario);
         auto& sev = Scenario::parentEvent(sst, scenario);
         auto& sts = Scenario::parentTimeSync(sev, scenario);
 
-        if (qApp->keyboardModifiers() & Qt::ShiftModifier)
+        if(qApp->keyboardModifiers() & Qt::ShiftModifier)
         {
-          if (&sts == &scenario.startTimeSync())
+          if(&sts == &scenario.startTimeSync())
             return;
 
-          if (this->m_startEventCanBeMerged)
+          if(this->m_startEventCanBeMerged)
           {
             merge(cst, Scenario::startState(cst, m_scenario), m_lastDate);
           }
@@ -196,10 +188,7 @@ public:
   }
 
 private:
-  void rollback()
-  {
-    m_movingDispatcher.template rollback<DefaultRollbackStrategy>();
-  }
+  void rollback() { m_movingDispatcher.template rollback<DefaultRollbackStrategy>(); }
 
   void merge(const IntervalModel& cst, const StateModel& st, TimeVal date)
   {
@@ -217,28 +206,23 @@ private:
     toIgnore.push_back(sts_pres.view());
     toIgnore.push_back(&sts_pres.trigger());
     toIgnore.push_back(itv_pres.view());
-    QGraphicsItem* item
-        = m_sm.itemAt({date, cst.heightPercentage()}, toIgnore);
+    QGraphicsItem* item = m_sm.itemAt({date, cst.heightPercentage()}, toIgnore);
 
-    if (auto stateToMerge = qgraphicsitem_cast<Scenario::StateView*>(item))
+    if(auto stateToMerge = qgraphicsitem_cast<Scenario::StateView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeEvents>(
-          this->m_scenario,
-          ev.id(),
-          Scenario::parentEvent(
-              stateToMerge->presenter().model().id(), this->m_scenario)
+          this->m_scenario, ev.id(),
+          Scenario::parentEvent(stateToMerge->presenter().model().id(), this->m_scenario)
               .id());
     }
-    else if (
-        auto eventToMerge = qgraphicsitem_cast<Scenario::EventView*>(item))
+    else if(auto eventToMerge = qgraphicsitem_cast<Scenario::EventView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeEvents>(
           this->m_scenario, ev.id(), eventToMerge->presenter().model().id());
     }
-    else if (
-        auto syncToMerge = qgraphicsitem_cast<Scenario::TimeSyncView*>(item))
+    else if(auto syncToMerge = qgraphicsitem_cast<Scenario::TimeSyncView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeTimeSyncs>(

@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/TimeSignature.hpp>
+
 #include <Vst/EffectModel.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
@@ -31,10 +32,7 @@ protected:
   };
 
   inline void dispatch(
-      int32_t opcode,
-      int32_t index = 0,
-      intptr_t value = 0,
-      void* ptr = nullptr,
+      int32_t opcode, int32_t index = 0, intptr_t value = 0, void* ptr = nullptr,
       float opt = 0.0f)
   {
     fx->dispatch(opcode, index, value, ptr, opt);
@@ -45,10 +43,10 @@ public:
 
   void setControls()
   {
-    for (vst_control& p : controls)
+    for(vst_control& p : controls)
     {
       const auto& vec = p.port->get_data();
-      if (vec.empty())
+      if(vec.empty())
         continue;
       auto t = ossia::convert<float>(last(vec));
       {
@@ -62,25 +60,22 @@ public:
   {
     const auto bs = offset + samples;
     auto& p = *m_inlets[0]->template target<ossia::audio_port>();
-    switch (p.channels())
+    switch(p.channels())
     {
-      case 0:
-      {
+      case 0: {
         p.set_channels(2);
         p.channel(0).resize(bs);
         p.channel(1).resize(bs);
         break;
       }
-      case 1:
-      {
+      case 1: {
         p.set_channels(2);
         p.channel(0).resize(bs);
         p.channel(1).assign(p.channel(0).begin(), p.channel(0).end());
         break;
       }
-      default:
-      {
-        for (auto& i : p)
+      default: {
+        for(auto& i : p)
           i.resize(bs);
         break;
       }
@@ -94,13 +89,12 @@ public:
     const auto bs = offset + samples;
     auto& p = *m_outlets[0]->template target<ossia::audio_port>();
     p.set_channels(2);
-    for (auto& chan : p)
+    for(auto& chan : p)
       chan.resize(bs, boost::container::default_init);
     return p.get();
   }
 
-  void
-  setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
+  void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
     static const constexpr double ppq_reference = 960.;
 
@@ -110,9 +104,9 @@ public:
     time_info.samplePos = tk.start_date_to_physical(st.modelToSamples());
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();
-    time_info.ppqPos = tk.musical_start_position;// * ppq_reference;
+    time_info.ppqPos = tk.musical_start_position; // * ppq_reference;
     time_info.tempo = tk.tempo;
-    time_info.barStartPos = tk.musical_start_last_bar;// * ppq_reference;
+    time_info.barStartPos = tk.musical_start_last_bar; // * ppq_reference;
     time_info.cycleStartPos = 0.;
     time_info.cycleEndPos = 0.;
     time_info.timeSigNumerator = tk.signature.upper;
@@ -141,7 +135,7 @@ public:
   {
     // Midi or audio input
     m_inlets.push_back(new ossia::audio_inlet);
-    if constexpr (IsSynth)
+    if constexpr(IsSynth)
       m_inlets.push_back(new ossia::midi_inlet);
 
     // audio output
@@ -165,8 +159,7 @@ public:
     dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
     dispatch(effSetBlockSize, 0, bs, nullptr, bs); // Generalize what's in pd
     dispatch(
-        effSetProcessPrecision,
-        0,
+        effSetProcessPrecision, 0,
         UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
     dispatch(effMainsChanged, 0, 1);
     dispatch(effStartProcess);
@@ -185,7 +178,7 @@ public:
 
   void all_notes_off() noexcept override
   {
-    if constexpr (IsSynth)
+    if constexpr(IsSynth)
     {
       // copy midi data
       // should be 32 but some VSTs read a bit out of bounds apparently ! so we allocate a bit more memory
@@ -199,7 +192,7 @@ public:
       memset(&ev, 0, sizeof(ev));
 
       // All notes off
-      for (int i = 0; i < 16; i++)
+      for(int i = 0; i < 16; i++)
       {
         auto& e = ev[i];
         e.type = kVstMidiType;
@@ -215,7 +208,7 @@ public:
       }
 
       // All sound off
-      for (int i = 0; i < 16; i++)
+      for(int i = 0; i < 16; i++)
       {
         auto& e = ev[16 + i];
         e.type = kVstMidiType;
@@ -232,19 +225,19 @@ public:
 
       dispatch(effProcessEvents, 0, 0, events, 0.f);
 
-      if constexpr (!UseDouble)
+      if constexpr(!UseDouble)
       {
         float* dummy = (float*)alloca(sizeof(float) * m_bs);
         std::fill_n(dummy, m_bs, 0.f);
 
-        float** input = (float**)alloca(
-              sizeof(float*) * std::max(2, this->fx->fx->numInputs));
-        for (int i = 0; i < this->fx->fx->numInputs; i++)
+        float** input
+            = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numInputs));
+        for(int i = 0; i < this->fx->fx->numInputs; i++)
           input[i] = dummy;
 
-        float** output = (float**)alloca(
-            sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
-        for (int i = 0; i < this->fx->fx->numOutputs; i++)
+        float** output
+            = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
+        for(int i = 0; i < this->fx->fx->numOutputs; i++)
           output[i] = dummy;
 
         fx->fx->processReplacing(fx->fx, input, output, m_bs);
@@ -254,14 +247,14 @@ public:
         double* dummy = (double*)alloca(sizeof(double) * m_bs);
         std::fill_n(dummy, m_bs, 0.);
 
-        double** input = (double**)alloca(
-              sizeof(double*) * std::max(2, this->fx->fx->numInputs));
-        for (int i = 0; i < this->fx->fx->numInputs; i++)
+        double** input
+            = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numInputs));
+        for(int i = 0; i < this->fx->fx->numInputs; i++)
           input[i] = dummy;
 
-        double** output = (double**)alloca(
-            sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
-        for (int i = 0; i < this->fx->fx->numOutputs; i++)
+        double** output
+            = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
+        for(int i = 0; i < this->fx->fx->numOutputs; i++)
           output[i] = dummy;
 
         fx->fx->processDoubleReplacing(fx->fx, input, output, m_bs);
@@ -278,7 +271,7 @@ public:
     // copy midi data
     auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages;
     const auto n_mess = ip.size();
-    if (n_mess == 0)
+    if(n_mess == 0)
     {
       f();
       return;
@@ -293,7 +286,7 @@ public:
     ossia::small_vector<VstMidiEvent, 16> vec;
     vec.resize(n_mess);
     std::size_t i = 0;
-    for (libremidi::message& mess : ip)
+    for(libremidi::message& mess : ip)
     {
       VstMidiEvent& e = vec[i];
       std::memset(&e, 0, sizeof(VstMidiEvent));
@@ -304,9 +297,7 @@ public:
       e.flags = kVstMidiEventIsRealtime;
 
       std::memcpy(
-          e.midiData,
-          mess.bytes.data(),
-          std::min(mess.bytes.size(), (std::size_t)4));
+          e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
       // for (std::size_t k = 0, N = std::min(mess.bytes.size(),
       // (std::size_t)4); k < N; k++)
       //   e.midiData[k] = mess.bytes[k];
@@ -318,21 +309,21 @@ public:
     f();
   }
 
-  void
-  run(const ossia::token_request& tk,
-      ossia::exec_state_facade st) noexcept override
+  void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
-    if (!muted() && tk.date > tk.prev_date)
+    if(!muted() && tk.date > tk.prev_date)
     {
       const auto timings = st.timings(tk);
       this->setControls();
       this->setupTimeInfo(tk, st);
 
-      if constexpr (UseDouble)
+      if constexpr(UseDouble)
       {
-        if constexpr (IsSynth)
+        if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, [=] { processDouble(timings.start_sample, timings.length); });
+          dispatchMidi(timings.start_sample, [=] {
+            processDouble(timings.start_sample, timings.length);
+          });
         }
         else
         {
@@ -341,9 +332,11 @@ public:
       }
       else
       {
-        if constexpr (IsSynth)
+        if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, [=] { processFloat(timings.start_sample, timings.length); });
+          dispatchMidi(timings.start_sample, [=] {
+            processFloat(timings.start_sample, timings.length);
+          });
         }
         else
         {
@@ -352,7 +345,7 @@ public:
       }
 
       // upmix mono VSTs to stereo
-      if (this->fx->fx->numOutputs == 1)
+      if(this->fx->fx->numOutputs == 1)
       {
         auto& op = m_outlets[0]->template target<ossia::audio_port>()->get();
         op[1].assign(op[0].begin(), op[0].end());
@@ -362,7 +355,7 @@ public:
 
   void processFloat(int64_t offset, int64_t samples)
   {
-    if constexpr (!UseDouble)
+    if constexpr(!UseDouble)
     {
       if(samples <= 0)
         return;
@@ -373,7 +366,7 @@ public:
       const auto max_o = std::max(2, this->fx->fx->numOutputs);
       const auto max_io = std::max(max_i, max_o);
 
-      const auto max_samples = std::max(samples, (int64_t)m_bs);// * 16;
+      const auto max_samples = std::max(samples, (int64_t)m_bs); // * 16;
 
       //qDebug() << samples << m_bs << max_samples << offset << " ::: " << max_i << max_o << max_io;
 
@@ -402,7 +395,7 @@ public:
         float* dummy = (float*)alloca(sizeof(float) * max_samples);
         std::fill_n(dummy, max_samples, 0.f);
 
-        for (int i = 2; i < max_io; i++)
+        for(int i = 2; i < max_io; i++)
           io[i] = dummy;
       }
 
@@ -418,7 +411,7 @@ public:
 
   void processDouble(int64_t offset, int64_t samples)
   {
-    if constexpr (UseDouble)
+    if constexpr(UseDouble)
     {
       if(samples <= 0)
         return;
@@ -450,9 +443,9 @@ public:
         // freed at the end
         double* dummy = (double*)alloca(sizeof(double) * m_bs);
         std::fill_n(dummy, m_bs, 0.);
-        for (int i = 2; i < this->fx->fx->numInputs; i++)
+        for(int i = 2; i < this->fx->fx->numInputs; i++)
           input[i] = dummy;
-        for (int i = 2; i < this->fx->fx->numOutputs; i++)
+        for(int i = 2; i < this->fx->fx->numOutputs; i++)
           output[i] = dummy;
       }
 
@@ -463,8 +456,7 @@ public:
   struct dummy_t
   {
   };
-  std::conditional_t<!UseDouble, std::array<ossia::float_vector, 2>, dummy_t>
-      float_v;
+  std::conditional_t<!UseDouble, std::array<ossia::float_vector, 2>, dummy_t> float_v;
 };
 
 template <bool b1, bool b2, typename... Args>

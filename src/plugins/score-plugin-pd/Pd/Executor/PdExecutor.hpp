@@ -1,9 +1,11 @@
 #pragma once
-#include <Pd/PdInstance.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Pd/PdProcess.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
+
+#include <Explorer/DeviceList.hpp>
+
+#include <Pd/PdInstance.hpp>
+#include <Pd/PdProcess.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -28,17 +30,10 @@ class PdGraphNode final : public ossia::graph_node
 {
 public:
   PdGraphNode(
-      std::shared_ptr<Instance> instance,
-      ossia::string_view folder,
-      ossia::string_view file,
-      const Execution::Context& ctx,
-      std::size_t audio_inputs,
-      std::size_t audio_outputs,
-      Process::Inlets inmess,
-      Process::Outlets outmess,
-      const Pd::PatchSpec& spec,
-      bool midi_in = true,
-      bool midi_out = true);
+      std::shared_ptr<Instance> instance, ossia::string_view folder,
+      ossia::string_view file, const Execution::Context& ctx, std::size_t audio_inputs,
+      std::size_t audio_outputs, Process::Inlets inmess, Process::Outlets outmess,
+      const Pd::PatchSpec& spec, bool midi_in = true, bool midi_out = true);
 
   ~PdGraphNode();
 
@@ -49,9 +44,7 @@ public:
   ossia::midi_port* get_midi_in() const;
   ossia::midi_port* get_midi_out() const;
 
-  void
-  run(const ossia::token_request& t,
-      ossia::exec_state_facade e) noexcept override;
+  void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override;
   void add_dzero(std::string& s) const;
 
   std::shared_ptr<Instance> m_instance;
@@ -77,10 +70,7 @@ class Component final : public Execution::ProcessComponent
 
 public:
   using model_type = Pd::ProcessModel;
-  Component(
-      Pd::ProcessModel& element,
-      const Execution::Context& ctx,
-      QObject* parent);
+  Component(Pd::ProcessModel& element, const Execution::Context& ctx, QObject* parent);
 
   ~Component();
 };

@@ -5,8 +5,8 @@
 #include <score_lib_base_export.h>
 
 #include <memory>
-#include <verdigris>
 #include <optional>
+#include <verdigris>
 class QGraphicsObject;
 class QGraphicsItem;
 class QGraphicsView;

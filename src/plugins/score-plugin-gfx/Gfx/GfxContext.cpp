@@ -3,8 +3,8 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Settings/Model.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 
@@ -22,18 +22,10 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   edges.container.reserve(100);
 
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
-  con(settings,
-      &Gfx::Settings::Model::GraphicsApiChanged,
-      this,
+  con(settings, &Gfx::Settings::Model::GraphicsApiChanged, this,
       &GfxContext::recompute_graph);
-  con(settings,
-      &Gfx::Settings::Model::RateChanged,
-      this,
-      &GfxContext::recompute_graph);
-  con(settings,
-      &Gfx::Settings::Model::VSyncChanged,
-      this,
-      &GfxContext::recompute_graph);
+  con(settings, &Gfx::Settings::Model::RateChanged, this, &GfxContext::recompute_graph);
+  con(settings, &Gfx::Settings::Model::VSyncChanged, this, &GfxContext::recompute_graph);
 
   m_graph = new score::gfx::Graph;
 
@@ -41,15 +33,13 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   rate = 1000. / qBound(1.0, rate, 1000.);
 
   QMetaObject::invokeMethod(
-      this,
-      [this, rate] { m_timer = startTimer(rate); },
-      Qt::QueuedConnection);
+      this, [this, rate] { m_timer = startTimer(rate); }, Qt::QueuedConnection);
 }
 
 GfxContext::~GfxContext()
 {
 #if defined(SCORE_THREADED_GFX)
-  if (m_thread.isRunning())
+  if(m_thread.isRunning())
     m_thread.exit(0);
   m_thread.wait();
 #endif
@@ -57,8 +47,7 @@ GfxContext::~GfxContext()
   delete m_graph;
 }
 
-int32_t GfxContext::register_node(
-    std::unique_ptr<score::gfx::Node> node)
+int32_t GfxContext::register_node(std::unique_ptr<score::gfx::Node> node)
 {
   auto next = index++;
 
@@ -67,12 +56,12 @@ int32_t GfxContext::register_node(
   return next;
 }
 
-int32_t GfxContext::register_preview_node(
-    std::unique_ptr<score::gfx::Node> node)
+int32_t GfxContext::register_preview_node(std::unique_ptr<score::gfx::Node> node)
 {
   auto next = index++;
 
-  tick_commands.enqueue(NodeCommand{NodeCommand::ADD_PREVIEW_NODE, next, std::move(node)});
+  tick_commands.enqueue(
+      NodeCommand{NodeCommand::ADD_PREVIEW_NODE, next, std::move(node)});
 
   return next;
 }
@@ -139,7 +128,7 @@ void GfxContext::recompute_edges()
 {
   m_graph->clearEdges();
 
-  for (auto edge : edges)
+  for(auto edge : edges)
   {
     add_edge(edge);
   }
@@ -147,7 +136,7 @@ void GfxContext::recompute_edges()
 
 void GfxContext::recompute_graph()
 {
-  if (m_timer != -1)
+  if(m_timer != -1)
     killTimer(m_timer);
   for(auto [id, ptr] : m_manualTimers)
     killTimer(id);
@@ -171,10 +160,10 @@ void GfxContext::recompute_graph()
 
   // Update and render
   // This starts the timer for updating the graph, that is, reading the new parameters.
-  if (vsync)
+  if(vsync)
   {
 #if defined(SCORE_THREADED_GFX)
-    if (api == Vulkan)
+    if(api == Vulkan)
     {
       //:startTimer(rate);
       moveToThread(&m_thread);
@@ -186,15 +175,14 @@ void GfxContext::recompute_graph()
   else
   {
     QMetaObject::invokeMethod(
-        this,
-        [this, rate] { m_timer = startTimer(rate); },
-        Qt::QueuedConnection);
+        this, [this, rate] { m_timer = startTimer(rate); }, Qt::QueuedConnection);
   }
 
   // This starts the timers which control the actual render rate of various things
   for(auto& outputs : m_graph->renderLists())
   {
-    if(auto conf = outputs->output.configuration(); conf.manualRenderingRate) {
+    if(auto conf = outputs->output.configuration(); conf.manualRenderingRate)
+    {
       int id = startTimer(*conf.manualRenderingRate, Qt::PreciseTimer);
       m_manualTimers[id] = &outputs->output;
     }
@@ -230,9 +218,9 @@ void GfxContext::recompute_connections()
 void GfxContext::update_inputs()
 {
   score::gfx::Message msg;
-  while (tick_messages.try_dequeue(msg))
+  while(tick_messages.try_dequeue(msg))
   {
-    if (auto it = nodes.find(msg.node_id); it != nodes.end())
+    if(auto it = nodes.find(msg.node_id); it != nodes.end())
     {
       auto& node = it->second;
       node->process(msg);
@@ -241,24 +229,25 @@ void GfxContext::update_inputs()
 }
 
 void GfxContext::remove_node(
-    std::vector<std::unique_ptr<score::gfx::Node>>& nursery,
-    int32_t index)
+    std::vector<std::unique_ptr<score::gfx::Node>>& nursery, int32_t index)
 {
   // Remove all edges involving that node
-  for (auto it = this->edges.begin(); it != this->edges.end();)
+  for(auto it = this->edges.begin(); it != this->edges.end();)
   {
-    if (it->first.node == index || it->second.node == index)
+    if(it->first.node == index || it->second.node == index)
       it = this->edges.erase(it);
     else
       ++it;
   }
 
-  if (auto node_it = nodes.find(index); node_it != nodes.end())
+  if(auto node_it = nodes.find(index); node_it != nodes.end())
   {
     auto node = node_it->second.get();
 
     // Remove the node from the timers if it's in there
-    for(auto timer_it = m_manualTimers.container.begin(); timer_it != m_manualTimers.container.end(); ) {
+    for(auto timer_it = m_manualTimers.container.begin();
+        timer_it != m_manualTimers.container.end();)
+    {
       if(timer_it->second == node)
         timer_it = m_manualTimers.container.erase(timer_it);
       else
@@ -285,76 +274,69 @@ void GfxContext::run_commands()
   Command c = NodeCommand{};
   while(tick_commands.try_dequeue(c))
   {
-   if(auto cnode = ossia::get_if<NodeCommand>(&c))
-   {
-    auto& cmd = *cnode;
-    switch(cmd.cmd)
+    if(auto cnode = ossia::get_if<NodeCommand>(&c))
     {
-      case NodeCommand::ADD_PREVIEW_NODE:
+      auto& cmd = *cnode;
+      switch(cmd.cmd)
       {
-        m_graph->addNode(cmd.node.get());
-        add_output.push_back(cmd.node.get());
-        nodes[cmd.index] = {std::move(cmd.node)};
-        break;
-      }
-      case NodeCommand::ADD_NODE:
-      {
-        m_graph->addNode(cmd.node.get());
-        nodes[cmd.index] = {std::move(cmd.node)};
-        recompute = true;
-        break;
-      }
-      case NodeCommand::REMOVE_PREVIEW_NODE:
-      {
-        auto& node = nodes.at(cmd.index);
-        auto n = dynamic_cast<score::gfx::OutputNode*>(node.get());
-        SCORE_ASSERT(n);
-        {
-          auto it = ossia::find_if(this->preview_edges, [idx=cmd.index] (Edge e) {
-            return e.second.node == idx;
-          });
-          if(it != this->preview_edges.end())
-          {
-            this->remove_edge(*it);
-            this->preview_edges.erase(*it);
-          }
+        case NodeCommand::ADD_PREVIEW_NODE: {
+          m_graph->addNode(cmd.node.get());
+          add_output.push_back(cmd.node.get());
+          nodes[cmd.index] = {std::move(cmd.node)};
+          break;
         }
-        m_graph->destroyOutputRenderList(*n);
-        remove_node(nursery, cmd.index);
-        break;
-      }
-      case NodeCommand::REMOVE_NODE:
-      {
-        remove_node(nursery, cmd.index);
-        recompute = true;
-        break;
-      }
-      case NodeCommand::RELINK:
-      {
-        recompute = true;
-        break;
+        case NodeCommand::ADD_NODE: {
+          m_graph->addNode(cmd.node.get());
+          nodes[cmd.index] = {std::move(cmd.node)};
+          recompute = true;
+          break;
+        }
+        case NodeCommand::REMOVE_PREVIEW_NODE: {
+          auto& node = nodes.at(cmd.index);
+          auto n = dynamic_cast<score::gfx::OutputNode*>(node.get());
+          SCORE_ASSERT(n);
+          {
+            auto it = ossia::find_if(this->preview_edges, [idx = cmd.index](Edge e) {
+              return e.second.node == idx;
+            });
+            if(it != this->preview_edges.end())
+            {
+              this->remove_edge(*it);
+              this->preview_edges.erase(*it);
+            }
+          }
+          m_graph->destroyOutputRenderList(*n);
+          remove_node(nursery, cmd.index);
+          break;
+        }
+        case NodeCommand::REMOVE_NODE: {
+          remove_node(nursery, cmd.index);
+          recompute = true;
+          break;
+        }
+        case NodeCommand::RELINK: {
+          recompute = true;
+          break;
+        }
       }
     }
-   }
-   else if(auto cedge = ossia::get_if<EdgeCommand>(&c))
-   {
-     auto& cmd = *cedge;
-     switch(cmd.cmd)
-     {
-     case EdgeCommand::CONNECT_PREVIEW_NODE:
-     {
-       this->preview_edges.emplace(cmd.edge);
-       add_edge(cmd.edge);
-       break;
-     }
-     case EdgeCommand::DISCONNECT_PREVIEW_NODE:
-     {
-       this->preview_edges.erase(cmd.edge);
-       remove_edge(cmd.edge);
-       break;
-     }
-     }
-   }
+    else if(auto cedge = ossia::get_if<EdgeCommand>(&c))
+    {
+      auto& cmd = *cedge;
+      switch(cmd.cmd)
+      {
+        case EdgeCommand::CONNECT_PREVIEW_NODE: {
+          this->preview_edges.emplace(cmd.edge);
+          add_edge(cmd.edge);
+          break;
+        }
+        case EdgeCommand::DISCONNECT_PREVIEW_NODE: {
+          this->preview_edges.erase(cmd.edge);
+          remove_edge(cmd.edge);
+          break;
+        }
+      }
+    }
   }
 
   if(recompute)
@@ -376,7 +358,7 @@ void GfxContext::updateGraph()
 
   update_inputs();
 
-  if (edges_changed)
+  if(edges_changed)
   {
     {
       std::lock_guard l{edges_lock};
@@ -395,11 +377,11 @@ void GfxContext::timerEvent(QTimerEvent* ev)
   }
   else
   {
-    if(auto ptr = m_manualTimers.find(ev->timerId()); ptr != m_manualTimers.end()) {
+    if(auto ptr = m_manualTimers.find(ev->timerId()); ptr != m_manualTimers.end())
+    {
       ptr->second->render();
     }
   }
 }
-
 
 }

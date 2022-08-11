@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Settings/CurveSettingsModel.hpp>
+
 #include <Recording/Record/RecordData.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
 #include <Recording/Record/RecordTools.hpp>
@@ -32,8 +33,10 @@ public:
   bool setup(const Box&, const RecordListening&) override;
   void stop() override;
 
-  int count() {
-    return numeric_records.size() + vec2_records.size() + vec3_records.size() + vec4_records.size() + list_records.size();
+  int count()
+  {
+    return numeric_records.size() + vec2_records.size() + vec3_records.size()
+           + vec4_records.size() + list_records.size();
   }
 
   void commit();
@@ -52,10 +55,7 @@ private:
   void parameterCallback(const State::Address& addr, const ossia::value& val);
 
   bool finish(
-      State::AddressAccessor addr,
-      const RecordData& dat,
-      const TimeVal& msecs,
-      bool,
+      State::AddressAccessor addr, const RecordData& dat, const TimeVal& msecs, bool,
       int);
   const Curve::Settings::Model& m_settings;
   Curve::Settings::Mode m_recordingMode{};

@@ -1,8 +1,9 @@
 #include "Kinect2Device.hpp"
 
-#include <Gfx/GfxApplicationPlugin.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Gfx/GfxApplicationPlugin.hpp>
 
 #include <score/serialization/MimeVisitor.hpp>
 
@@ -18,6 +19,7 @@
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/logger.h>
 #include <libfreenect2/registration.h>
+
 #include <wobjectimpl.h>
 
 namespace Gfx
@@ -61,32 +63,32 @@ void kinect2_camera::load(kinect2_settings set)
 #endif
 
   const int numDevices = freenect2.enumerateDevices();
-  if (numDevices == 0)
+  if(numDevices == 0)
   {
     std::cerr << "no device connected!" << std::endl;
     return;
   }
 
   int foundSerial = -1;
-  for (int i = 0; i < numDevices; i++)
+  for(int i = 0; i < numDevices; i++)
   {
-    if (freenect2.getDeviceSerialNumber(i) == set.device)
+    if(freenect2.getDeviceSerialNumber(i) == set.device)
     {
       foundSerial = i;
       break;
     }
   }
-  if (foundSerial == -1)
+  if(foundSerial == -1)
     set.device = freenect2.getDefaultDeviceSerialNumber();
 
   m_dev = freenect2.openDevice(set.device, m_pipeline);
 
   types = 0;
-  if (set.rgb)
+  if(set.rgb)
     types |= libfreenect2::Frame::Color;
-  if (set.ir)
+  if(set.ir)
     types |= libfreenect2::Frame::Ir;
-  if (set.depth)
+  if(set.depth)
     types |= libfreenect2::Frame::Depth;
 
   m_listener = new libfreenect2::SyncMultiFrameListener(types);
@@ -97,7 +99,7 @@ void kinect2_camera::load(kinect2_settings set)
 
 kinect2_camera::~kinect2_camera()
 {
-  if (m_dev)
+  if(m_dev)
   {
     qDebug() << "Close:";
     m_dev->close();
@@ -113,19 +115,19 @@ kinect2_camera::~kinect2_camera()
 
 void kinect2_camera::start()
 {
-  if (!m_dev)
+  if(!m_dev)
     return;
 
   const bool enable_rgb = types & libfreenect2::Frame::Color;
   const bool enable_depth = types & libfreenect2::Frame::Depth;
-  if (enable_rgb && enable_depth)
+  if(enable_rgb && enable_depth)
   {
-    if (!m_dev->start())
+    if(!m_dev->start())
       return;
   }
   else
   {
-    if (!m_dev->startStreams(enable_rgb, enable_depth))
+    if(!m_dev->startStreams(enable_rgb, enable_depth))
       return;
   }
 
@@ -136,9 +138,9 @@ void kinect2_camera::start()
 void kinect2_camera::stop()
 {
   m_running = false;
-  if (m_dev)
+  if(m_dev)
   {
-    if (m_thread.joinable())
+    if(m_thread.joinable())
       m_thread.join();
     m_dev->stop();
   }
@@ -146,17 +148,16 @@ void kinect2_camera::stop()
 
 void kinect2_camera::loop()
 {
-  while (m_running)
+  while(m_running)
   {
     libfreenect2::FrameMap frames;
-    if (!m_listener->waitForNewFrame(frames, 2000))
+    if(!m_listener->waitForNewFrame(frames, 2000))
     {
       return;
     }
 
     process(
-        frames[libfreenect2::Frame::Color],
-        frames[libfreenect2::Frame::Ir],
+        frames[libfreenect2::Frame::Color], frames[libfreenect2::Frame::Ir],
         frames[libfreenect2::Frame::Depth]);
 
     m_listener->release(frames);
@@ -164,17 +165,16 @@ void kinect2_camera::loop()
 }
 
 void kinect2_camera::process(
-    libfreenect2::Frame* colorFrame,
-    libfreenect2::Frame* irFrame,
+    libfreenect2::Frame* colorFrame, libfreenect2::Frame* irFrame,
     libfreenect2::Frame* depthFrame)
 {
-  if (rgbFrames.size() < 16)
+  if(rgbFrames.size() < 16)
   {
-    if (libfreenect2::Frame* frame = colorFrame)
+    if(libfreenect2::Frame* frame = colorFrame)
     {
       auto f = rgbFrames.newFrame();
       const auto bytes = frame->width * frame->height * frame->bytes_per_pixel;
-      if (!f->data[0])
+      if(!f->data[0])
         f->data[0] = (uint8_t*)malloc(bytes);
       memcpy(f->data[0], frame->data, bytes);
 
@@ -186,13 +186,13 @@ void kinect2_camera::process(
     }
   }
 
-  if (irFrames.size() < 16)
+  if(irFrames.size() < 16)
   {
-    if (libfreenect2::Frame* frame = irFrame)
+    if(libfreenect2::Frame* frame = irFrame)
     {
       auto f = irFrames.newFrame();
       const auto bytes = frame->width * frame->height * frame->bytes_per_pixel;
-      if (!f->data[0])
+      if(!f->data[0])
         f->data[0] = (uint8_t*)malloc(bytes);
       memcpy(f->data[0], frame->data, bytes);
 
@@ -204,13 +204,13 @@ void kinect2_camera::process(
     }
   }
 
-  if (depthFrames.size() < 16)
+  if(depthFrames.size() < 16)
   {
-    if (libfreenect2::Frame* frame = depthFrame)
+    if(libfreenect2::Frame* frame = depthFrame)
     {
       auto f = depthFrames.newFrame();
       const auto bytes = frame->width * frame->height * frame->bytes_per_pixel;
-      if (!f->data[0])
+      if(!f->data[0])
         f->data[0] = (uint8_t*)malloc(bytes);
       memcpy(f->data[0], frame->data, bytes);
 
@@ -224,41 +224,33 @@ void kinect2_camera::process(
 }
 
 kinect2_device::kinect2_device(
-    const kinect2_settings& settings,
-    GfxExecutionAction& ctx,
-    std::unique_ptr<kinect2_protocol> proto,
-    std::string name)
+    const kinect2_settings& settings, GfxExecutionAction& ctx,
+    std::unique_ptr<kinect2_protocol> proto, std::string name)
     : ossia::net::generic_device{std::move(proto), name}
 {
   auto& k = ((kinect2_protocol*)m_protocol.get())->kinect2;
-  if (settings.rgb)
+  if(settings.rgb)
   {
     auto decoder = std::make_shared<kinect2_decoder>(
         k.rgbFrames, 1920, 1080, AV_PIX_FMT_BGR0, QString{});
     this->add_child(
         std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "rgb"));
   }
-  if (settings.ir)
+  if(settings.ir)
   {
     auto decoder = std::make_shared<kinect2_decoder>(
-        k.irFrames,
-        512,
-        424,
-        AV_PIX_FMT_GRAYF32LE,
+        k.irFrames, 512, 424, AV_PIX_FMT_GRAYF32LE,
         "processed.rgb = tex.rgb / 4000; processed.a = 1;");
     this->add_child(
         std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "ir"));
   }
-  if (settings.depth)
+  if(settings.depth)
   {
     auto decoder = std::make_shared<kinect2_decoder>(
-        k.depthFrames,
-        512,
-        424,
-        AV_PIX_FMT_GRAYF32LE,
+        k.depthFrames, 512, 424, AV_PIX_FMT_GRAYF32LE,
         "processed.rgb = tex.rgb / 4000; processed.a = 1;");
-    this->add_child(std::make_unique<kinect2_node>(
-        std::move(decoder), ctx, *this, "depth"));
+    this->add_child(
+        std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "depth"));
   }
 }
 
@@ -273,9 +265,7 @@ bool kinect2_protocol::pull(ossia::net::parameter_base&)
   return false;
 }
 
-bool kinect2_protocol::push(
-    const ossia::net::parameter_base&,
-    const ossia::value& v)
+bool kinect2_protocol::push(const ossia::net::parameter_base&, const ossia::value& v)
 {
   return false;
 }
@@ -319,28 +309,24 @@ bool Kinect2Device::reconnect()
 
   try
   {
-    auto set
-        = this->settings().deviceSpecificSettings.value<Kinect2Settings>();
-    kinect2_settings ossia_stgs{
-        set.input.toStdString(), set.rgb, set.ir, set.depth};
+    auto set = this->settings().deviceSpecificSettings.value<Kinect2Settings>();
+    kinect2_settings ossia_stgs{set.input.toStdString(), set.rgb, set.ir, set.depth};
 
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
-    if (plug)
+    if(plug)
     {
       m_protocol = new kinect2_protocol{ossia_stgs};
       m_dev = std::make_unique<kinect2_device>(
-          ossia_stgs,
-          plug->exec,
-          std::unique_ptr<kinect2_protocol>(m_protocol),
+          ossia_stgs, plug->exec, std::unique_ptr<kinect2_protocol>(m_protocol),
           this->settings().name.toStdString());
     }
     // TODOengine->reload(&proto);
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }
@@ -351,20 +337,19 @@ bool Kinect2Device::reconnect()
 class Kinect2Enumerator : public Device::DeviceEnumerator
 {
 public:
-  void enumerate(
-      std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
     auto& freenect2 = Kinect2Context::instance().freenect2;
     const int numDevices = freenect2.enumerateDevices();
 
-    for (int i = 0; i < numDevices; i++)
+    for(int i = 0; i < numDevices; i++)
     {
       Device::DeviceSettings s;
       Kinect2Settings sset;
       sset.input = QString::fromStdString(freenect2.getDeviceSerialNumber(i));
       s.name = "Kinect2";
 
-      if (numDevices > 1)
+      if(numDevices > 1)
       {
         s.name += QStringLiteral("_%1").arg(i);
       }
@@ -393,14 +378,12 @@ Kinect2ProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 }
 
 Device::DeviceInterface* Kinect2ProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
 {
   return new Kinect2Device(settings, ctx);
 }
 
-const Device::DeviceSettings&
-Kinect2ProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& Kinect2ProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -417,18 +400,15 @@ Kinect2ProtocolFactory::defaultSettings() const noexcept
 }
 
 Device::AddressDialog* Kinect2ProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
     QWidget* parent)
 {
   return nullptr;
 }
 
 Device::AddressDialog* Kinect2ProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    const Device::AddressSettings& set, const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx, QWidget* parent)
 {
   return nullptr;
 }
@@ -438,22 +418,20 @@ Device::ProtocolSettingsWidget* Kinect2ProtocolFactory::makeSettingsWidget()
   return new Kinect2SettingsWidget;
 }
 
-QVariant Kinect2ProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant
+Kinect2ProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<Kinect2Settings>(visitor);
 }
 
 void Kinect2ProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<Kinect2Settings>(data, visitor);
 }
 
 bool Kinect2ProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

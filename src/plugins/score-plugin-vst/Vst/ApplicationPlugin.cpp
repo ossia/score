@@ -1,7 +1,9 @@
 #include "ApplicationPlugin.hpp"
 
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Media/Effect/Settings/Model.hpp>
 #include <Vst/EffectModel.hpp>
 #include <Vst/Loader.hpp>
@@ -32,10 +34,10 @@ void DataStreamReader::read<vst::VSTInfo>(const vst::VSTInfo& p)
 template <>
 void DataStreamWriter::write<vst::VSTInfo>(vst::VSTInfo& p)
 {
-  if (!vst_invalid_format)
-    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author
-        >> p.uniqueID >> p.controls >> p.isSynth >> p.isValid;
-  if (m_stream.stream.status() != QDataStream::Status::Ok)
+  if(!vst_invalid_format)
+    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID
+        >> p.controls >> p.isSynth >> p.isValid;
+  if(m_stream.stream.status() != QDataStream::Status::Ok)
   {
     vst_invalid_format = true;
   }
@@ -51,9 +53,9 @@ namespace vst
 
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     : score::ApplicationPlugin{app}
-    #if QT_CONFIG(process)
+#if QT_CONFIG(process)
     , m_wsServer("vst-notification-server", QWebSocketServer::NonSecureMode)
-    #endif
+#endif
 {
   qRegisterMetaType<VSTInfo>();
   qRegisterMetaType<std::vector<VSTInfo>>();
@@ -67,14 +69,13 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   m_wsServer.listen({}, 37587);
   con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
     QWebSocket* ws = m_wsServer.nextPendingConnection();
-    if (!ws)
+    if(!ws)
       return;
 
-    connect(
-        ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
-          processIncomingMessage(txt);
-          ws->deleteLater();
-        });
+    connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
+      processIncomingMessage(txt);
+      ws->deleteLater();
+    });
   });
 #endif
 
@@ -87,12 +88,12 @@ void ApplicationPlugin::initialize()
   // init with the database
   QSettings s;
   auto val = s.value("Effect/KnownVST2");
-  if (val.canConvert<std::vector<VSTInfo>>())
+  if(val.canConvert<std::vector<VSTInfo>>())
   {
     vst_infos = val.value<std::vector<VSTInfo>>();
   }
 
-  if (vst_invalid_format)
+  if(vst_invalid_format)
   {
     vst_infos.clear();
     vst_invalid_format = false;
@@ -101,12 +102,10 @@ void ApplicationPlugin::initialize()
   vstChanged();
 
   auto& set = context.settings<Media::Settings::Model>();
-  con(set,
-      &Media::Settings::Model::VstPathsChanged,
-      this,
+  con(set, &Media::Settings::Model::VstPathsChanged, this,
       &ApplicationPlugin::rescanVSTs);
 
-  if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
     rescanVSTs(set.getVstPaths());
 }
 
@@ -171,7 +170,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   // 1. List all plug-ins in new paths
   QStringList exploredPaths;
   QSet<QString> newPlugins;
-  for (QString dir : paths)
+  for(QString dir : paths)
   {
     auto canonical_path = QDir{dir}.canonicalPath();
     if(exploredPaths.contains(canonical_path))
@@ -182,43 +181,36 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 #if defined(__APPLE__)
     {
       QDirIterator it(
-          dir,
-          QStringList{"*.vst", "*.component"},
-          QDir::AllEntries,
+          dir, QStringList{"*.vst", "*.component"}, QDir::AllEntries,
           QDirIterator::Subdirectories);
 
-      while (it.hasNext())
+      while(it.hasNext())
         newPlugins.insert(it.next());
     }
     {
       QDirIterator it(
-          dir,
-          QStringList{"*.dylib"},
-          QDir::Files,
-          QDirIterator::Subdirectories);
-      while (it.hasNext())
+          dir, QStringList{"*.dylib"}, QDir::Files, QDirIterator::Subdirectories);
+      while(it.hasNext())
       {
         auto path = it.next();
-        if (!path.contains(".vst") && !path.contains(".component"))
+        if(!path.contains(".vst") && !path.contains(".component"))
           newPlugins.insert(path);
       }
     }
 #else
     QDirIterator it(
-        dir,
-        QStringList{vst::default_filter},
-        QDir::Files,
+        dir, QStringList{vst::default_filter}, QDir::Files,
         QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-    while (it.hasNext())
+    while(it.hasNext())
       newPlugins.insert(it.next());
 #endif
   }
 
   // 2. Remove plug-ins not in these paths
-  for (auto it = vst_infos.begin(); it != vst_infos.end();)
+  for(auto it = vst_infos.begin(); it != vst_infos.end();)
   {
     auto new_it = newPlugins.find(it->path);
-    if (new_it != newPlugins.end())
+    if(new_it != newPlugins.end())
     {
       // plug-in is in both set, we ignore it
       newPlugins.erase(new_it);
@@ -236,9 +228,9 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   m_processes.clear();
   m_processes.reserve(newPlugins.size());
   int i = 0;
-  for (const QString& path : newPlugins)
+  for(const QString& path : newPlugins)
   {
-    if (path.contains("linvst.so"))
+    if(path.contains("linvst.so"))
       continue;
 
     auto proc = std::make_unique<QProcess>();
@@ -249,11 +241,10 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           = qApp->applicationDirPath()
             + "/ossia-score-vstpuppet.app/Contents/MacOS/"
               "ossia-score-vstpuppet";
-      if (QFile::exists(bundle_vstpuppet))
+      if(QFile::exists(bundle_vstpuppet))
         proc->setProgram(bundle_vstpuppet);
       else
-        proc->setProgram(
-            qApp->applicationDirPath() + "/ossia-score-vstpuppet");
+        proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
     }
 #else
     proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
@@ -270,19 +261,18 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
 {
 #if QT_CONFIG(process)
   QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
-  if (doc.isObject())
+  if(doc.isObject())
   {
     auto obj = doc.object();
     addVST(obj["Path"].toString(), obj);
     int id = obj["Request"].toInt();
 
-    if (id >= 0 && id < std::ssize(m_processes))
+    if(id >= 0 && id < std::ssize(m_processes))
     {
-      if (m_processes[id].process)
+      if(m_processes[id].process)
       {
         m_processes[id].process->close();
-        if (m_processes[id].process->state()
-            == QProcess::ProcessState::NotRunning)
+        if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
         {
           m_processes[id] = {};
         }
@@ -290,8 +280,7 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
         {
           connect(
               m_processes[id].process.get(),
-              qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-              this,
+              qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
               [this, id] { m_processes[id] = {}; });
         }
       }
@@ -310,13 +299,13 @@ void ApplicationPlugin::scanVSTsEvent()
   constexpr int max_in_flight = 8;
   int in_flight = 0;
 
-  for (auto& proc : m_processes)
+  for(auto& proc : m_processes)
   {
     // Already scanned processes
-    if (!proc.process)
+    if(!proc.process)
       continue;
 
-    if (!proc.scanning)
+    if(!proc.scanning)
     {
       proc.process->start(QProcess::ReadOnly);
       proc.scanning = true;
@@ -326,7 +315,7 @@ void ApplicationPlugin::scanVSTsEvent()
     }
     else
     {
-      if (proc.timer.elapsed() > 10000)
+      if(proc.timer.elapsed() > 10000)
       {
         addInvalidVST(proc.path);
         proc.process.reset();
@@ -336,7 +325,7 @@ void ApplicationPlugin::scanVSTsEvent()
       }
     }
 
-    if (in_flight == max_in_flight)
+    if(in_flight == max_in_flight)
     {
       QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
       return;
@@ -358,14 +347,13 @@ void ApplicationPlugin::timerEvent(QTimerEvent* event)
 
 ApplicationPlugin::~ApplicationPlugin()
 {
-  for (auto& e : vst_modules)
+  for(auto& e : vst_modules)
   {
     delete e.second;
   }
 }
 
-GUIApplicationPlugin::GUIApplicationPlugin(
-    const score::GUIApplicationContext& app)
+GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app)
     : score::GUIApplicationPlugin{app}
 {
 }

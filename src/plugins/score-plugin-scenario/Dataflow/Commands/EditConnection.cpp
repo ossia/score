@@ -5,21 +5,17 @@
 namespace Dataflow
 {
 CreateCable::CreateCable(
-    const Scenario::ScenarioDocumentModel& dp,
-    Id<Process::Cable> theCable,
-    Process::CableType type,
-    const Process::Port& source,
-    const Process::Port& sink)
+    const Scenario::ScenarioDocumentModel& dp, Id<Process::Cable> theCable,
+    Process::CableType type, const Process::Port& source, const Process::Port& sink)
     : m_model{dp}
     , m_cable{std::move(theCable)}
     , m_dat{type, source, sink}
 {
   SCORE_ASSERT(m_dat.source != m_dat.sink);
 
-  if (source.type() == Process::PortType::Audio)
+  if(source.type() == Process::PortType::Audio)
   {
-    m_previousPropagate
-        = static_cast<const Process::AudioOutlet&>(source).propagate();
+    m_previousPropagate = static_cast<const Process::AudioOutlet&>(source).propagate();
   }
 }
 
@@ -31,7 +27,7 @@ void CreateCable::undo(const score::DocumentContext& ctx) const
   m_dat.sink.find(ctx).removeCable(ext);
   m_model.find(ctx).cables.remove(m_cable);
 
-  if (m_previousPropagate)
+  if(m_previousPropagate)
   {
     static_cast<Process::AudioOutlet&>(source).setPropagate(true);
   }
@@ -48,7 +44,7 @@ void CreateCable::redo(const score::DocumentContext& ctx) const
   source.addCable(*c);
   m_dat.sink.find(ctx).addCable(*c);
 
-  if (m_previousPropagate)
+  if(m_previousPropagate)
   {
     static_cast<Process::AudioOutlet&>(source).setPropagate(false);
   }
@@ -64,9 +60,7 @@ void CreateCable::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_cable >> m_dat >> m_previousPropagate;
 }
 
-UpdateCable::UpdateCable(
-    const Process::Cable& cable,
-    Process::CableType newDat)
+UpdateCable::UpdateCable(const Process::Cable& cable, Process::CableType newDat)
     : m_model{cable}
     , m_new{newDat}
 {
@@ -94,8 +88,7 @@ void UpdateCable::deserializeImpl(DataStreamOutput& s)
 }
 
 RemoveCable::RemoveCable(
-    const Scenario::ScenarioDocumentModel& dp,
-    const Process::Cable& c)
+    const Scenario::ScenarioDocumentModel& dp, const Process::Cable& c)
     : m_model{dp}
     , m_cable{c.id()}
 {
@@ -104,10 +97,9 @@ RemoveCable::RemoveCable(
   m_data.sink = c.sink();
 
   auto& source = c.source().find(dp.context());
-  if (source.type() == Process::PortType::Audio)
+  if(source.type() == Process::PortType::Audio)
   {
-    m_previousPropagate
-        = static_cast<const Process::AudioOutlet&>(source).propagate();
+    m_previousPropagate = static_cast<const Process::AudioOutlet&>(source).propagate();
   }
 }
 
@@ -120,7 +112,7 @@ void RemoveCable::undo(const score::DocumentContext& ctx) const
   source.addCable(*cbl);
   cbl->sink().find(ctx).addCable(*cbl);
 
-  if (m_previousPropagate && !m_previousPropagate)
+  if(m_previousPropagate && !m_previousPropagate)
   {
     static_cast<Process::AudioOutlet&>(source).setPropagate(false);
   }
@@ -130,7 +122,7 @@ void RemoveCable::redo(const score::DocumentContext& ctx) const
 {
   auto& cables = m_model.find(ctx).cables;
   auto cable_it = cables.find(m_cable);
-  if (cable_it != cables.end())
+  if(cable_it != cables.end())
   {
     auto& cable = *cable_it;
     auto& source = cable.source().find(ctx);
@@ -138,7 +130,7 @@ void RemoveCable::redo(const score::DocumentContext& ctx) const
     cable.sink().find(ctx).removeCable(cable);
     m_model.find(ctx).cables.remove(m_cable);
 
-    if (m_previousPropagate && source.cables().size() == 0)
+    if(m_previousPropagate && source.cables().size() == 0)
     {
       static_cast<Process::AudioOutlet&>(source).setPropagate(true);
     }

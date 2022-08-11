@@ -1,6 +1,7 @@
 #pragma once
-#include <Dataflow/PortItem.hpp>
 #include <Process/Dataflow/Port.hpp>
+
+#include <Dataflow/PortItem.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -9,16 +10,9 @@ namespace Gfx
 class TextureInlet;
 class TextureOutlet;
 }
+UUID_METADATA(, Process::Port, Gfx::TextureInlet, "5ac86198-2d03-4830-9e41-a6d529922d29")
 UUID_METADATA(
-    ,
-    Process::Port,
-    Gfx::TextureInlet,
-    "5ac86198-2d03-4830-9e41-a6d529922d29")
-UUID_METADATA(
-    ,
-    Process::Port,
-    Gfx::TextureOutlet,
-    "f1c71046-b754-49a5-8e66-d01374773dfc")
+    , Process::Port, Gfx::TextureOutlet, "f1c71046-b754-49a5-8e66-d01374773dfc")
 namespace Gfx
 {
 
@@ -86,11 +80,8 @@ struct TextureInletFactory final : public Dataflow::AutomatablePortFactory
   }
 
   void setupInletInspector(
-      const Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override;
+      const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 };
 
 struct TextureOutletFactory final : public Dataflow::AutomatablePortFactory
@@ -109,10 +100,7 @@ struct TextureOutletFactory final : public Dataflow::AutomatablePortFactory
   }
 
   void setupOutletInspector(
-      const Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override;
+      const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 };
 }

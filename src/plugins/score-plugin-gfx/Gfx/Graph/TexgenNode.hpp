@@ -73,25 +73,22 @@ struct TexgenNode : NodeModel
       defaultMeshInit(renderer, mesh);
       processUBOInit(renderer);
       m_material.init(renderer, node.input, m_samplers);
-      std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
-                                           renderer.state, vertex, filter);
+      std::tie(m_vertexS, m_fragmentS)
+          = score::gfx::makeShaders(renderer.state, vertex, filter);
 
       auto& n = static_cast<const TexgenNode&>(this->node);
       auto& rhi = *renderer.state.rhi;
       {
-        texture = rhi.newTexture(
-            QRhiTexture::RGBA8, n.image.size(), 1, QRhiTexture::Flag{});
+        texture
+            = rhi.newTexture(QRhiTexture::RGBA8, n.image.size(), 1, QRhiTexture::Flag{});
 
         texture->create();
       }
 
       {
         auto sampler = rhi.newSampler(
-            QRhiSampler::Linear,
-            QRhiSampler::Linear,
-            QRhiSampler::None,
-            QRhiSampler::ClampToEdge,
-            QRhiSampler::ClampToEdge);
+            QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+            QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
         sampler->create();
         m_samplers.push_back({sampler, texture});
@@ -99,17 +96,13 @@ struct TexgenNode : NodeModel
       defaultPassesInit(renderer, mesh);
     }
 
-    void
-    update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+    void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
     {
       defaultUBOUpdate(renderer, res);
       auto& n = static_cast<const TexgenNode&>(this->node);
-      if (func_t f = n.function.load())
+      if(func_t f = n.function.load())
       {
-        f(const_cast<uchar*>(n.image.bits()),
-          n.image.width(),
-          n.image.height(),
-          t++);
+        f(const_cast<uchar*>(n.image.bits()), n.image.width(), n.image.height(), t++);
         res.uploadTexture(texture, n.image);
       }
     }
@@ -131,13 +124,15 @@ struct TexgenNode : NodeModel
     image = QImage{QSize(640, 480), QImage::Format_ARGB32_Premultiplied};
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
-  virtual ~TexgenNode() { m_materialData.release(); }
+  virtual ~TexgenNode()
+  {
+    m_materialData.release();
+  }
 
   using func_t = void (*)(unsigned char* rgb, int width, int height, int t);
   std::atomic<func_t> function{};
 
-  score::gfx::NodeRenderer*
-  createRenderer(RenderList& r) const noexcept override
+  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override
   {
     return new Rendered{*this};
   }

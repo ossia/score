@@ -1,17 +1,18 @@
 #pragma once
-#include <Media/AudioArray.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Media/AudioArray.hpp>
 
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/optional.hpp>
 
 #include <QThread>
 
+#include <score_plugin_media_export.h>
+
 #include <atomic>
 #include <vector>
 #include <verdigris>
-
-#include <score_plugin_media_export.h>
 
 struct AVFrame;
 struct SwrContext;
@@ -37,7 +38,8 @@ struct AudioInfo
     if(tempo)
     {
       return TimeVal::fromMsecs(
-          1000. * (double(fileLength) / double(fileRate)) * (*tempo / ossia::root_tempo));
+          1000. * (double(fileLength) / double(fileRate))
+          * (*tempo / ossia::root_tempo));
     }
     else
     {
@@ -70,8 +72,7 @@ public:
   void newData() W_SIGNAL(newData);
   void finishedDecoding(audio_handle hdl) W_SIGNAL(finishedDecoding, hdl);
 
-  void startDecode(QString str, audio_handle hdl)
-      W_SIGNAL(startDecode, str, hdl);
+  void startDecode(QString str, audio_handle hdl) W_SIGNAL(startDecode, str, hdl);
 
 public:
   void on_startDecode(QString, audio_handle hdl);

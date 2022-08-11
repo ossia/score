@@ -1,8 +1,8 @@
 #pragma once
 #include <score/tools/Debug.hpp>
 
-#include <ossia/network/value/vec.hpp>
 #include <ossia/detail/variant.hpp>
+#include <ossia/network/value/vec.hpp>
 
 #include <QColor>
 
@@ -27,10 +27,5 @@ enum class Types
 };
 
 using ValueVariant = ossia::variant<
-    ossia::monostate,
-    float,
-    ossia::vec2f,
-    ossia::vec3f,
-    ossia::vec4f,
-    image>;
+    ossia::monostate, float, ossia::vec2f, ossia::vec3f, ossia::vec4f, image>;
 }

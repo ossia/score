@@ -1,8 +1,8 @@
 #include "Layout.hpp"
-#include <score/graphics/GraphicsLayout.hpp>
 
 #include <Process/Dataflow/PortItem.hpp>
 
+#include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
 
@@ -72,7 +72,8 @@ void LayoutBuilderBase::finalizeLayout(QGraphicsItem* rootItem)
       //lay.setRect(lay.childrenBoundingRect().adjusted(-default_margin, -default_margin, default_margin, default_margin));
 
       const auto& cld = lay.childrenBoundingRect();
-      lay.setRect(QRectF{0., 0., cld.right() + default_margin, cld.bottom() + default_margin});
+      lay.setRect(
+          QRectF{0., 0., cld.right() + default_margin, cld.bottom() + default_margin});
     }
   }
 

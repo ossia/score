@@ -22,11 +22,11 @@ public:
 
   QModelIndex modelIndexFromNode(node_type& n, int column) const
   {
-    if (n.is<InvisibleRootNode>())
+    if(n.is<InvisibleRootNode>())
     {
       return QModelIndex();
     }
-    else if (n.is<Device::DeviceSettings>())
+    else if(n.is<Device::DeviceSettings>())
     {
       SCORE_ASSERT(n.parent());
       return createIndex(n.parent()->indexOfChild(&n), 0, &n);
@@ -58,7 +58,7 @@ public:
   {
     SCORE_ASSERT(!node->is<InvisibleRootNode>());
 
-    if (node->is<Device::AddressSettings>())
+    if(node->is<Device::AddressSettings>())
     {
       node_type* parent = node->parent();
       SCORE_ASSERT(parent);
@@ -90,11 +90,8 @@ public:
 
 SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(
-    const State::AddressAccessor& mess,
-    const Device::NodeBasedItemModel& ctx,
-    ossia::value min,
-    ossia::value max,
-    ossia::value val);
+    const State::AddressAccessor& mess, const Device::NodeBasedItemModel& ctx,
+    ossia::value min, ossia::value max, ossia::value val);
 SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(const Device::Node& mess);
 }

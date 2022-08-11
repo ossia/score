@@ -1,14 +1,14 @@
 #pragma once
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
+
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPen>
-
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/State/StateView.hpp>
 
 namespace Scenario
 {
@@ -31,10 +31,8 @@ public:
 
   virtual const score::Brush& brush() const noexcept = 0;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -55,11 +53,10 @@ public:
               : QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}
                     .translated(-4, 2);
     const auto l2
-        = m_big
-              ? QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}
-                    .translated(-2, 1)
-              : QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}
-                    .translated(-4, 2);
+        = m_big ? QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}
+                      .translated(-2, 1)
+                : QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}
+                      .translated(-4, 2);
 
     painter->drawLine(l1.translated(1, 1));
     painter->drawLine(l2.translated(1, 1));
@@ -114,7 +111,8 @@ public:
   explicit StatePlusOverlay(StateView* parent)
       : CrossOverlay{parent}
   {
-    this->setToolTip(QObject::tr("Create an interval.\nDrag the plus to create an interval"));
+    this->setToolTip(
+        QObject::tr("Create an interval.\nDrag the plus to create an interval"));
   }
 
 private:
@@ -126,11 +124,11 @@ private:
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
-    if (event->button() == Qt::MouseButton::LeftButton)
+    if(event->button() == Qt::MouseButton::LeftButton)
     {
       auto st = static_cast<StateView*>(parentItem());
       st->presenter().select();
-      if (auto p = event->pos(); p.x() > 4 && p.y() < 10)
+      if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
       {
         st->startCreateMode();
       }
@@ -147,7 +145,8 @@ public:
   explicit StateGraphPlusOverlay(StateView* parent)
       : CrossOverlay{parent}
   {
-    this->setToolTip(QObject::tr("Create a graph link.\nDrag the plus to create a graph link"));
+    this->setToolTip(
+        QObject::tr("Create a graph link.\nDrag the plus to create a graph link"));
   }
 
 private:
@@ -159,11 +158,11 @@ private:
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
-    if (event->button() == Qt::MouseButton::LeftButton)
+    if(event->button() == Qt::MouseButton::LeftButton)
     {
       auto st = static_cast<StateView*>(parentItem());
       st->presenter().select();
-      if (auto p = event->pos(); p.x() > 4 && p.y() < 10)
+      if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
       {
         st->startCreateGraphalMode();
       }
@@ -180,7 +179,8 @@ public:
   explicit StateSequencePlusOverlay(StateView* parent)
       : CrossOverlay{parent}
   {
-    this->setToolTip(QObject::tr("Create a sequence.\nDrag the plus to create a sequence."));
+    this->setToolTip(
+        QObject::tr("Create a sequence.\nDrag the plus to create a sequence."));
   }
 
 private:
@@ -192,11 +192,11 @@ private:
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
-    if (event->button() == Qt::MouseButton::LeftButton)
+    if(event->button() == Qt::MouseButton::LeftButton)
     {
       auto st = static_cast<StateView*>(parentItem());
       st->presenter().select();
-      if (auto p = event->pos(); p.x() > 4 && p.y() < 10)
+      if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
       {
         st->startCreateSequence();
       }
@@ -220,7 +220,7 @@ struct StateOverlays
 
     m_overlay.setPos(1, -14);
     m_graphOverlay.setPos(1, 6);
-    if (v->presenter().model().nextInterval())
+    if(v->presenter().model().nextInterval())
     {
       m_sequenceOverlay.setVisible(false);
       m_sequenceOverlay.setEnabled(false);

@@ -1,13 +1,14 @@
 #include "Executor.hpp"
 
+#include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionContext.hpp>
+
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/TextNode.hpp>
 #include <Gfx/Text/Process.hpp>
 #include <Gfx/TexturePort.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/ExecutionContext.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
@@ -26,7 +27,7 @@ public:
 
   ~text_node()
   {
-    if (id >= 0)
+    if(id >= 0)
       exec_context->ui->unregister_node(id);
   }
 
@@ -34,12 +35,11 @@ public:
 };
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Gfx::Text::Model& element,
-    const Execution::Context& ctx,
-    QObject* parent)
+    Gfx::Text::Model& element, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{element, ctx, "textComponent", parent}
 {
-  auto n = ossia::make_node<text_node>(*ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
+  auto n = ossia::make_node<text_node>(
+      *ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
 
   for(auto* outlet : element.outlets())
   {
@@ -49,17 +49,14 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     }
   }
 
-  for (std::size_t i = 0; i < 8; i++)
+  for(std::size_t i = 0; i < 8; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
     p->value = ctrl->value();
 
     QObject::connect(
-        ctrl,
-        &Process::ControlInlet::valueChanged,
-        this,
-        con_unvalidated{ctx, i, 0, n});
+        ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, 0, n});
   }
 
   n->root_outputs().push_back(new ossia::texture_outlet);

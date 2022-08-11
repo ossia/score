@@ -26,22 +26,16 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 {
   {
     // view -> model
-    con(v,
-        &View::simplificationRatioChanged,
-        this,
-        [&](auto simplificationRatio) {
-          if (simplificationRatio != m.getSimplificationRatio())
-          {
-            m_disp.submit<SetModelSimplificationRatio>(
-                this->model(this), simplificationRatio);
-          }
-        });
+    con(v, &View::simplificationRatioChanged, this, [&](auto simplificationRatio) {
+      if(simplificationRatio != m.getSimplificationRatio())
+      {
+        m_disp.submit<SetModelSimplificationRatio>(
+            this->model(this), simplificationRatio);
+      }
+    });
 
     // model -> view
-    con(m,
-        &Model::SimplificationRatioChanged,
-        &v,
-        &View::setSimplificationRatio);
+    con(m, &Model::SimplificationRatioChanged, &v, &View::setSimplificationRatio);
 
     // initial value
     v.setSimplificationRatio(m.getSimplificationRatio());
@@ -50,7 +44,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   {
     // view -> model
     con(v, &View::simplifyChanged, this, [&](auto simplify) {
-      if (simplify != m.getSimplify())
+      if(simplify != m.getSimplify())
       {
         m_disp.submit<SetModelSimplify>(this->model(this), simplify);
       }
@@ -66,7 +60,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   {
     // view -> model
     con(v, &View::modeChanged, this, [&](auto val) {
-      if (val != m.getCurveMode())
+      if(val != m.getCurveMode())
       {
         m_disp.submit<SetModelCurveMode>(this->model(this), val);
       }
@@ -82,17 +76,14 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   {
     // view -> model
     con(v, &View::playWhileRecordingChanged, this, [&](auto val) {
-      if (val != m.getPlayWhileRecording())
+      if(val != m.getPlayWhileRecording())
       {
         m_disp.submit<SetModelPlayWhileRecording>(this->model(this), val);
       }
     });
 
     // model -> view
-    con(m,
-        &Model::PlayWhileRecordingChanged,
-        &v,
-        &View::setPlayWhileRecording);
+    con(m, &Model::PlayWhileRecordingChanged, &v, &View::setPlayWhileRecording);
 
     // initial value
     v.setPlayWhileRecording(m.getPlayWhileRecording());

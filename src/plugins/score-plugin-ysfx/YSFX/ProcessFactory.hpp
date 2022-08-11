@@ -1,12 +1,13 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
-#include <YSFX/ProcessMetadata.hpp>
-#include <YSFX/ProcessModel.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <YSFX/ProcessMetadata.hpp>
+#include <YSFX/ProcessModel.hpp>
 
 namespace YSFX
 {

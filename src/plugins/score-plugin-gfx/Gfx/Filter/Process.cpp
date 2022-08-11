@@ -1,13 +1,14 @@
 #include "Process.hpp"
 
-#include <score/application/GUIApplicationContext.hpp>
-#include <Gfx/Graph/Node.hpp>
-#include <Gfx/Graph/ShaderCache.hpp>
-#include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/TexturePort.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/DeleteAll.hpp>
 
 #include <QFileInfo>
@@ -19,9 +20,7 @@ W_OBJECT_IMPL(Gfx::Filter::Model)
 namespace Gfx::Filter
 {
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
@@ -60,9 +59,7 @@ void main() {
 }
 
 Model::Model(
-    const TimeVal& duration,
-    const QString& init,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
@@ -77,7 +74,7 @@ Model::~Model() { }
 bool Model::validate(const ShaderSource& txt) const noexcept
 {
   const auto& [_, error] = ProgramCache::instance().get(txt);
-  if (!error.isEmpty())
+  if(!error.isEmpty())
   {
     this->errorMessage(error);
     return false;
@@ -87,7 +84,7 @@ bool Model::validate(const ShaderSource& txt) const noexcept
 
 void Model::setVertex(QString f)
 {
-  if (f == m_program.vertex)
+  if(f == m_program.vertex)
     return;
   m_program.vertex = std::move(f);
   m_processedProgram.vertex.clear();
@@ -97,7 +94,7 @@ void Model::setVertex(QString f)
 
 void Model::setFragment(QString f)
 {
-  if (f == m_program.fragment)
+  if(f == m_program.fragment)
     return;
   m_program.fragment = std::move(f);
   m_processedProgram.fragment.clear();
@@ -109,8 +106,7 @@ void Model::setProgram(const ShaderSource& f)
 {
   setVertex(f.vertex);
   setFragment(f.fragment);
-  if (const auto& [processed, error] = ProgramCache::instance().get(f);
-      bool(processed))
+  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
   {
     auto inls = score::clearAndDeleteLater(m_inlets);
     m_processedProgram = *processed;
@@ -189,11 +185,7 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const float_input& v)
     {
       auto port = new Process::FloatSlider(
-          v.min,
-          v.max,
-          v.def,
-          QString::fromStdString(input.name),
-          Id<Process::Port>(i),
+          v.min, v.max, v.def, QString::fromStdString(input.name), Id<Process::Port>(i),
           &self);
 
       self.m_inlets.push_back(port);
@@ -204,17 +196,13 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const long_input& v)
     {
       std::vector<std::pair<QString, ossia::value>> alternatives;
-      for (std::size_t i = 0; i < v.values.size() && i < v.labels.size(); i++)
+      for(std::size_t i = 0; i < v.values.size() && i < v.labels.size(); i++)
       {
-        alternatives.emplace_back(
-            QString::fromStdString(v.labels[i]), (int)v.values[i]);
+        alternatives.emplace_back(QString::fromStdString(v.labels[i]), (int)v.values[i]);
       }
       auto port = new Process::ComboBox(
-          std::move(alternatives),
-          (int)v.def,
-          QString::fromStdString(input.name),
-          Id<Process::Port>(i),
-          &self);
+          std::move(alternatives), (int)v.def, QString::fromStdString(input.name),
+          Id<Process::Port>(i), &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -232,10 +220,7 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const bool_input& v)
     {
       auto port = new Process::Toggle(
-          v.def,
-          QString::fromStdString(input.name),
-          Id<Process::Port>(i),
-          &self);
+          v.def, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -246,18 +231,14 @@ void Model::setupIsf(const isf::descriptor& desc)
       ossia::vec2f min{0., 0.};
       ossia::vec2f max{1., 1.};
       ossia::vec2f init{0.5, 0.5};
-      if (v.def)
+      if(v.def)
         std::copy_n(v.def->begin(), 2, init.begin());
-      if (v.min)
+      if(v.min)
         std::copy_n(v.min->begin(), 2, min.begin());
-      if (v.max)
+      if(v.max)
         std::copy_n(v.max->begin(), 2, max.begin());
       auto port = new Process::XYSlider{
-          min,
-          max,
-          init,
-          QString::fromStdString(input.name),
-          Id<Process::Port>(i),
+          min,  max, init, QString::fromStdString(input.name), Id<Process::Port>(i),
           &self};
 
       self.m_inlets.push_back(port);
@@ -277,15 +258,12 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const color_input& v)
     {
       ossia::vec4f init{0.5, 0.5, 0.5, 1.};
-      if (v.def)
+      if(v.def)
       {
         std::copy_n(v.def->begin(), 4, init.begin());
       }
       auto port = new Process::HSVSlider(
-          init,
-          QString::fromStdString(input.name),
-          Id<Process::Port>(i),
-          &self);
+          init, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -311,7 +289,7 @@ void Model::setupIsf(const isf::descriptor& desc)
     }
   };
 
-  for (const isf::input& input : desc.inputs)
+  for(const isf::input& input : desc.inputs)
   {
     ossia::visit(input_vis{input, i, *this}, input.data);
     i++;
@@ -349,11 +327,8 @@ void DataStreamWriter::write(Gfx::Filter::Model& proc)
   proc.setProgram(s);
 
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   checkDelimiter();
 }
@@ -376,9 +351,6 @@ void JSONWriter::write(Gfx::Filter::Model& proc)
   proc.setProgram(s);
 
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 }

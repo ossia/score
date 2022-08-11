@@ -8,10 +8,7 @@ class WebSocketView final : public QObject
 {
   W_OBJECT(WebSocketView)
 public:
-  explicit WebSocketView(
-      QGraphicsScene* s,
-      quint16 port,
-      QObject* parent = Q_NULLPTR);
+  explicit WebSocketView(QGraphicsScene* s, quint16 port, QObject* parent = Q_NULLPTR);
   ~WebSocketView();
 
 public:

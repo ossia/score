@@ -1,6 +1,10 @@
 #pragma once
-#include <Process/TimeValue.hpp>
 #include <State/Expression.hpp>
+
+#include <Process/TimeValue.hpp>
+
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Metatypes.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -10,8 +14,6 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Metatypes.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -30,8 +32,7 @@ class StateModel;
 class ScenarioInterface;
 class TimeSyncModel;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT EventModel final
-    : public score::Entity<EventModel>
+class SCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public score::Entity<EventModel>
 {
   W_OBJECT(EventModel)
 
@@ -43,9 +44,7 @@ public:
 
   /** The class **/
   EventModel(
-      const Id<EventModel>&,
-      const Id<TimeSyncModel>& timesync,
-      const TimeVal& date,
+      const Id<EventModel>&, const Id<TimeSyncModel>& timesync, const TimeVal& date,
       QObject* parent);
 
   template <typename DeserializerVisitor>
@@ -75,9 +74,7 @@ public:
 
   void setCondition(const State::Expression& arg);
   void setDate(const TimeVal& date);
-  void setStatus(
-      Scenario::ExecutionStatus status,
-      const Scenario::ScenarioInterface&);
+  void setStatus(Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
   void setOffsetBehavior(Scenario::OffsetBehavior);
 
   const QBrush& color(const Process::Style&) const noexcept;
@@ -92,9 +89,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, status)
   void offsetBehaviorChanged(OffsetBehavior arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, offsetBehaviorChanged, arg_1)
-  void timeSyncChanged(
-      Id<Scenario::TimeSyncModel> oldt,
-      Id<Scenario::TimeSyncModel> newt)
+  void
+  timeSyncChanged(Id<Scenario::TimeSyncModel> oldt, Id<Scenario::TimeSyncModel> newt)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSyncChanged, oldt, newt)
 
 private:

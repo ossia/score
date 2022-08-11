@@ -83,7 +83,7 @@ LockHelper::LockHelper(ObjectPath&& path, ObjectLocker& locker)
 
 LockHelper::~LockHelper()
 {
-  if (m_locked)
+  if(m_locked)
     unlock();
 }
 

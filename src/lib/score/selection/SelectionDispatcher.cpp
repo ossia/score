@@ -5,6 +5,7 @@
 #include "SelectionStack.hpp"
 
 #include <score/selection/Selection.hpp>
+
 #include <QApplication>
 namespace score
 {
@@ -32,8 +33,7 @@ void SelectionDispatcher::select(const IdentifiedObjectAbstract& s)
   }
   else
   {
-    m_stack.pushNewSelection(
-        Selection{const_cast<IdentifiedObjectAbstract*>(&s)});
+    m_stack.pushNewSelection(Selection{const_cast<IdentifiedObjectAbstract*>(&s)});
   }
 }
 

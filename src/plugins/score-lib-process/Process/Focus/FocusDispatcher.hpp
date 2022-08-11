@@ -19,10 +19,7 @@ class SCORE_LIB_PROCESS_EXPORT FocusDispatcher : public QObject
 
 public:
   void focus(QPointer<Process::LayerPresenter> arg_1) E_SIGNAL(
-      SCORE_LIB_PROCESS_EXPORT,
-      focus,
-      (QPointer<Process::LayerPresenter>),
-      arg_1)
+      SCORE_LIB_PROCESS_EXPORT, focus, (QPointer<Process::LayerPresenter>), arg_1)
 };
 
 Q_DECLARE_METATYPE(QPointer<Process::LayerPresenter>)

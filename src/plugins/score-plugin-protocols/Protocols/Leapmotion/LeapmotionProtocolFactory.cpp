@@ -5,9 +5,9 @@
 #include "LeapmotionProtocolSettingsWidget.hpp"
 #include "LeapmotionSpecificSettings.hpp"
 
-#include <QObject>
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <QObject>
 
 namespace Protocols
 {
@@ -29,15 +29,13 @@ LeapmotionProtocolFactory::getEnumerator(const score::DocumentContext& ctx) cons
 }
 
 Device::DeviceInterface* LeapmotionProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new LeapmotionDevice{settings, plugin.networkContext()};
 }
 
-const Device::DeviceSettings&
-LeapmotionProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& LeapmotionProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -63,15 +61,13 @@ QVariant LeapmotionProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void LeapmotionProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<LeapmotionSpecificSettings>(data, visitor);
 }
 
 bool LeapmotionProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return false;
 }

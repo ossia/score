@@ -20,9 +20,8 @@ public:
 
   ~PortAudioFactory() override;
   bool available() const noexcept override { return true; }
-  void initialize(
-      Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+  void
+  initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
   }
 
@@ -30,22 +29,17 @@ public:
 
   QString prettyName() const override;
   std::shared_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+      const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
   void setCardIn(QComboBox* combo, QString val);
   void setCardOut(QComboBox* combo, QString val);
 
   void updateSampleRates(
-      QComboBox* rate,
-      const PortAudioCard& input,
-      const PortAudioCard& output);
+      QComboBox* rate, const PortAudioCard& input, const PortAudioCard& output);
 
   QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override;
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override;
 };
 #endif
 }

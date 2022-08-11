@@ -6,8 +6,8 @@
 #include <score/tools/std/Pointer.hpp>
 
 #include <ossia/detail/hash_map.hpp>
-#include <nano_signal_slot.hpp>
 
+#include <nano_signal_slot.hpp>
 #include <score_lib_base_export.h>
 
 namespace score
@@ -54,9 +54,8 @@ public:
   virtual void optimize() noexcept = 0;
 };
 
-SCORE_LIB_BASE_EXPORT void debug_types(
-    const score::InterfaceBase* orig,
-    const score::InterfaceBase* repl) noexcept;
+SCORE_LIB_BASE_EXPORT void
+debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) noexcept;
 /**
  * @brief InterfaceList Default implementation of InterfaceListBase
  *
@@ -98,7 +97,7 @@ public:
 
   void insert(std::unique_ptr<score::InterfaceBase> e) final override
   {
-    if (auto result = dynamic_cast<factory_type*>(e.get()))
+    if(auto result = dynamic_cast<factory_type*>(e.get()))
     {
       e.release();
       std::unique_ptr<factory_type> pf{result};
@@ -106,7 +105,7 @@ public:
 
       auto k = pf->concreteKey();
       auto it = this->map.find(k);
-      if (it == this->map.end())
+      if(it == this->map.end())
       {
         this->map.emplace(std::make_pair(k, std::move(pf)));
       }
@@ -130,9 +129,7 @@ public:
   mutable Nano::Signal<void(const factory_type&)> added;
 
 protected:
-  ossia::fast_hash_map<
-      typename FactoryType::ConcreteKey,
-      std::unique_ptr<FactoryType>>
+  ossia::fast_hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
       map;
 
 private:
@@ -171,9 +168,9 @@ public:
   auto make(Fun f, Args&&... args) const noexcept
   {
     using val_t = decltype(*this->begin());
-    for (const val_t& elt : *this)
+    for(const val_t& elt : *this)
     {
-      if (elt.matches(std::forward<Args>(args)...))
+      if(elt.matches(std::forward<Args>(args)...))
       {
         return (elt.*f)(std::forward<Args>(args)...);
       }

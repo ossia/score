@@ -4,11 +4,6 @@
 
 #include <Process/TimeValue.hpp>
 
-#include <score/document/DocumentContext.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -20,21 +15,21 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
 void ScenarioCreate<CommentBlockModel>::undo(
-    const Id<CommentBlockModel>& id,
-    Scenario::ProcessModel& s)
+    const Id<CommentBlockModel>& id, Scenario::ProcessModel& s)
 {
   s.comments.remove(id);
 }
 
 CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
-    const Id<CommentBlockModel>& id,
-    const TimeVal& date,
-    double y,
+    const Id<CommentBlockModel>& id, const TimeVal& date, double y,
     Scenario::ProcessModel& s)
 {
   auto comment = new CommentBlockModel{id, date, y, &s};
@@ -44,8 +39,7 @@ CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
 }
 
 void ScenarioCreate<TimeSyncModel>::undo(
-    const Id<TimeSyncModel>& id,
-    Scenario::ProcessModel& s)
+    const Id<TimeSyncModel>& id, Scenario::ProcessModel& s)
 {
   auto& ctx = score::IDocument::documentContext(s);
   ctx.selectionStack.pruneRecursively(&s.timeSyncs.at(id));
@@ -54,9 +48,7 @@ void ScenarioCreate<TimeSyncModel>::undo(
 }
 
 TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
-    const Id<TimeSyncModel>& id,
-    const TimeVal& date,
-    Scenario::ProcessModel& s)
+    const Id<TimeSyncModel>& id, const TimeVal& date, Scenario::ProcessModel& s)
 {
   auto timeSync = new TimeSyncModel{id, date, &s};
   s.timeSyncs.add(timeSync);
@@ -65,8 +57,7 @@ TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
 }
 
 void ScenarioCreate<EventModel>::undo(
-    const Id<EventModel>& id,
-    Scenario::ProcessModel& s)
+    const Id<EventModel>& id, Scenario::ProcessModel& s)
 {
   auto& ev = s.event(id);
 
@@ -78,9 +69,7 @@ void ScenarioCreate<EventModel>::undo(
 }
 
 EventModel& ScenarioCreate<EventModel>::redo(
-    const Id<EventModel>& id,
-    TimeSyncModel& timesync,
-    Scenario::ProcessModel& s)
+    const Id<EventModel>& id, TimeSyncModel& timesync, Scenario::ProcessModel& s)
 {
   auto ev = new EventModel{id, timesync.id(), timesync.date(), &s};
 
@@ -91,8 +80,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
 }
 
 void ScenarioCreate<StateModel>::undo(
-    const Id<StateModel>& id,
-    Scenario::ProcessModel& s)
+    const Id<StateModel>& id, Scenario::ProcessModel& s)
 {
   auto& state = s.state(id);
 
@@ -107,10 +95,7 @@ void ScenarioCreate<StateModel>::undo(
 }
 
 StateModel& ScenarioCreate<StateModel>::redo(
-    const Id<StateModel>& id,
-    EventModel& ev,
-    double y,
-    Scenario::ProcessModel& s)
+    const Id<StateModel>& id, EventModel& ev, double y, Scenario::ProcessModel& s)
 {
   auto state = new StateModel{id, ev.id(), y, s.context(), &s};
 
@@ -121,8 +106,7 @@ StateModel& ScenarioCreate<StateModel>::redo(
 }
 
 void ScenarioCreate<IntervalModel>::undo(
-    const Id<IntervalModel>& id,
-    Scenario::ProcessModel& s)
+    const Id<IntervalModel>& id, Scenario::ProcessModel& s)
 {
   auto& cst = s.intervals.at(id);
 
@@ -136,12 +120,8 @@ void ScenarioCreate<IntervalModel>::undo(
 }
 
 IntervalModel& ScenarioCreate<IntervalModel>::redo(
-    const Id<IntervalModel>& id,
-    StateModel& sst,
-    StateModel& est,
-    double ypos,
-    bool graphal,
-    Scenario::ProcessModel& s)
+    const Id<IntervalModel>& id, StateModel& sst, StateModel& est, double ypos,
+    bool graphal, Scenario::ProcessModel& s)
 {
   auto interval = new IntervalModel{id, ypos, s.context(), &s};
   interval->setGraphal(graphal);
@@ -157,18 +137,17 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
   const auto& eev = s.event(est.eventId());
   const auto& tn = s.timeSync(eev.timeSync());
 
-  if (graphal)
+  if(graphal)
   {
     IntervalDurations::Algorithms::fixAllDurations(*interval, TimeVal::zero());
   }
   else
   {
-    IntervalDurations::Algorithms::fixAllDurations(
-        *interval, eev.date() - sev.date());
+    IntervalDurations::Algorithms::fixAllDurations(*interval, eev.date() - sev.date());
   }
   interval->setStartDate(sev.date());
 
-  if (tn.active())
+  if(tn.active())
   {
     interval->duration.setRigid(false);
     const auto& dur = interval->duration.defaultDuration();

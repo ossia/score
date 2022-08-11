@@ -13,23 +13,16 @@ namespace RecreateOnPlay
 {
 using spline = ossia::nodes::spline3d;
 Component::Component(
-    ::Spline3D::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    QObject* parent)
-    : ::Execution::
-        ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>{
-            element,
-            ctx,
-            "Executor::SplineComponent",
-            parent}
+    ::Spline3D::ProcessModel& element, const ::Execution::Context& ctx, QObject* parent)
+    : ::Execution::ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>{
+        element, ctx, "Executor::SplineComponent", parent}
 {
   auto node = ossia::make_node<spline>(*ctx.execState);
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(element, &Spline3D::ProcessModel::splineChanged, this, [this] {
-    this->recompute();
-  });
+  con(element, &Spline3D::ProcessModel::splineChanged, this,
+      [this] { this->recompute(); });
 
   recompute();
 }

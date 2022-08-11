@@ -2,20 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceDocumentPlugin.hpp"
 
+#include <State/Address.hpp>
+
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
+
 #include <Explorer/Commands/ReplaceDevice.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
-#include <State/Address.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/tree/TreeNode.hpp>
@@ -27,9 +29,10 @@
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
 
-#include <ossia-qt/invoke.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/network/context.hpp>
+
+#include <ossia-qt/invoke.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -48,12 +51,8 @@ namespace Explorer
 {
 MODEL_METADATA_IMPL_CPP(DeviceDocumentPlugin)
 DeviceDocumentPlugin::DeviceDocumentPlugin(
-    const score::DocumentContext& ctx,
-    QObject* parent)
-    : score::SerializableDocumentPlugin{
-        ctx,
-        "Explorer::DeviceDocumentPlugin",
-        parent}
+    const score::DocumentContext& ctx, QObject* parent)
+    : score::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
   init();
   m_explorer = new DeviceExplorerModel{*this, this};
@@ -76,7 +75,7 @@ struct print_node_rec
   {
     qDebug() << Device::address(addr).toString();
     ;
-    for (auto& child : addr)
+    for(auto& child : addr)
     {
       visit(child);
     }
@@ -91,7 +90,7 @@ void DeviceDocumentPlugin::init()
   startTimer(8);
 #else
   m_asioThread = std::thread{[this] {
-    while (m_processMessages)
+    while(m_processMessages)
     {
       m_asioContext->run();
     }
@@ -102,30 +101,25 @@ void DeviceDocumentPlugin::init()
 void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
 {
   const auto w = score::GUIAppContext().mainWindow;
-  if (newdev.capabilities().asyncConnect && w)
+  if(newdev.capabilities().asyncConnect && w)
   {
     w->setEnabled(false);
 
     QMessageBox b(
-        QMessageBox::NoIcon,
-        QString{"Waiting"},
+        QMessageBox::NoIcon, QString{"Waiting"},
         QString{"Waiting for a device: " + newdev.settings().name},
-        QMessageBox::StandardButton::NoButton,
-        w,
+        QMessageBox::StandardButton::NoButton, w,
         Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     b.setStandardButtons(QMessageBox::StandardButton::Cancel);
     b.setIconPixmap(
         score::get_pixmap(QStringLiteral(":/icons/message_information.png")));
 
     connect(
-        b.button(QMessageBox::StandardButton::Cancel),
-        &QPushButton::clicked,
-        &b,
+        b.button(QMessageBox::StandardButton::Cancel), &QPushButton::clicked, &b,
         [&b] { b.reject(); });
 
-    connect(&newdev, &Device::DeviceInterface::connectionChanged, &b, [&b] {
-      b.accept();
-    });
+    connect(
+        &newdev, &Device::DeviceInterface::connectionChanged, &b, [&b] { b.accept(); });
     QTimer::singleShot(1, [&] { newdev.reconnect(); });
     b.exec();
 
@@ -140,7 +134,7 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
 void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
 {
 #if defined(__EMSCRIPTEN__)
-  if (m_processMessages)
+  if(m_processMessages)
   {
     using work_guard
         = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
@@ -150,12 +144,11 @@ void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
     {
       m_asioContext->context.poll();
     }
-    catch (std::exception& e)
+    catch(std::exception& e)
     {
-      ossia::logger().error(
-          "Error while processing network events: {}", e.what());
+      ossia::logger().error("Error while processing network events: {}", e.what());
     }
-    catch (...)
+    catch(...)
     {
       ossia::logger().error("Error while processing network events.");
     }
@@ -176,8 +169,7 @@ void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
  *   -> what happens for not found OSCQuery devices
  */
 
-Device::Node
-DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
+Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
 {
   try
   {
@@ -188,31 +180,29 @@ DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
     auto newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 
-    if (!newdev)
+    if(!newdev)
       throw std::runtime_error("Null device");
 
     initDevice(*newdev);
 
-    if (newdev->capabilities().canRefreshTree)
+    if(newdev->capabilities().canRefreshTree)
     {
       return newdev->refresh();
     }
     else
     {
-      for (auto& child : node)
+      for(auto& child : node)
       {
         newdev->addNode(child);
       }
       return node;
     }
   }
-  catch (const std::runtime_error& e)
+  catch(const std::runtime_error& e)
   {
     score::warning(
-        QApplication::activeWindow(),
-        QObject::tr("Error loading device"),
-        node.get<Device::DeviceSettings>().name + ": "
-            + QString::fromLatin1(e.what()));
+        QApplication::activeWindow(), QObject::tr("Error loading device"),
+        node.get<Device::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
   }
 
   return node;
@@ -229,15 +219,15 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
     Device::DeviceInterface* newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 
-    if (!newdev)
+    if(!newdev)
       throw std::runtime_error("Null device");
 
     initDevice(*newdev);
 
     // We do not reload for devices such as LocalDevice.
-    if (newdev->capabilities().canSerialize)
+    if(newdev->capabilities().canSerialize)
     {
-      for (auto& child : node)
+      for(auto& child : node)
       {
         newdev->addNode(child);
       }
@@ -251,13 +241,11 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
       return newdev->refresh();
     }
   }
-  catch (const std::runtime_error& e)
+  catch(const std::runtime_error& e)
   {
     score::warning(
-        QApplication::activeWindow(),
-        QObject::tr("Error loading device"),
-        node.get<Device::DeviceSettings>().name + ": "
-            + QString::fromLatin1(e.what()));
+        QApplication::activeWindow(), QObject::tr("Error loading device"),
+        node.get<Device::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
   }
 
   return {};
@@ -265,23 +253,22 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
 
 void DeviceDocumentPlugin::setConnection(bool b)
 {
-  if (b)
+  if(b)
   {
     // Reconnect all devices
     m_list.apply([&](Device::DeviceInterface& dev) {
-      if (!dev.connected())
+      if(!dev.connected())
         asyncConnect(dev);
-      if (dev.capabilities().canSerialize)
+      if(dev.capabilities().canSerialize)
       {
-        auto it
-            = ossia::find_if(m_rootNode, [&](const Device::Node& dev_node) {
-                return dev_node.template get<Device::DeviceSettings>().name
-                       == dev.settings().name;
-              });
+        auto it = ossia::find_if(m_rootNode, [&](const Device::Node& dev_node) {
+          return dev_node.template get<Device::DeviceSettings>().name
+                 == dev.settings().name;
+        });
 
-        if (it != m_rootNode.cend())
+        if(it != m_rootNode.cend())
         {
-          for (const auto& nodes : *it)
+          for(const auto& nodes : *it)
           {
             dev.addNode(nodes);
           }
@@ -307,11 +294,11 @@ void DeviceDocumentPlugin::setConnection(bool b)
 
 ListeningHandler& DeviceDocumentPlugin::listening() const
 {
-  if (m_listening)
+  if(m_listening)
     return *m_listening;
 
-  m_listening = context().app.interfaces<ListeningHandlerFactoryList>().make(
-      *this, context());
+  m_listening
+      = context().app.interfaces<ListeningHandlerFactoryList>().make(*this, context());
   return *m_listening;
 }
 
@@ -327,63 +314,53 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 }
 
 void DeviceDocumentPlugin::setupConnections(
-    Device::DeviceInterface& device,
-    bool enabled)
+    Device::DeviceInterface& device, bool enabled)
 {
   auto& vec = m_connections[&device];
-  if (enabled)
+  if(enabled)
   {
     vec.push_back(
-        con(device,
-            &Device::DeviceInterface::pathAdded,
-            this,
+        con(device, &Device::DeviceInterface::pathAdded, this,
             [&](const State::Address& addr) {
-              // FIXME A subtle bug is introduced if we want to add the root
-              // node...
-              if (addr.path.size() > 0)
-              {
-                auto parentAddr = addr;
-                parentAddr.path.removeLast();
+      // FIXME A subtle bug is introduced if we want to add the root
+      // node...
+      if(addr.path.size() > 0)
+      {
+        auto parentAddr = addr;
+        parentAddr.path.removeLast();
 
-                Device::Node* parent
-                    = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
-                if (parent)
-                {
-                  const auto& last = addr.path[addr.path.size() - 1];
-                  auto it = ossia::find_if(*parent, [&](const auto& n) {
-                    return n.displayName() == last;
-                  });
-                  if (it == parent->cend())
-                  {
-                    updateProxy.addLocalNode(
-                        *parent, device.getNodeWithoutChildren(addr));
-                  }
-                  else
-                  {
-                    // TODO update the node with the new information
-                  }
-                }
-              }
-            }));
+        Device::Node* parent = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
+        if(parent)
+        {
+          const auto& last = addr.path[addr.path.size() - 1];
+          auto it = ossia::find_if(
+              *parent, [&](const auto& n) { return n.displayName() == last; });
+          if(it == parent->cend())
+          {
+            updateProxy.addLocalNode(*parent, device.getNodeWithoutChildren(addr));
+          }
+          else
+          {
+            // TODO update the node with the new information
+          }
+        }
+      }
+        }));
 
     vec.push_back(con(
-        device,
-        &Device::DeviceInterface::pathRemoved,
-        this,
+        device, &Device::DeviceInterface::pathRemoved, this,
         [&](const State::Address& addr) { updateProxy.removeLocalNode(addr); },
         Qt::QueuedConnection));
     vec.push_back(con(
-        device,
-        &Device::DeviceInterface::pathUpdated,
-        this,
+        device, &Device::DeviceInterface::pathUpdated, this,
         [&](const State::Address& addr, const Device::AddressSettings& set) {
-          updateProxy.updateLocalSettings(addr, set, device);
+      updateProxy.updateLocalSettings(addr, set, device);
         },
         Qt::QueuedConnection));
   }
   else
   {
-    for (auto& q : vec)
+    for(auto& q : vec)
     {
       QObject::disconnect(q);
     }
@@ -393,14 +370,14 @@ void DeviceDocumentPlugin::setupConnections(
 
 int index(const DeviceDocumentPlugin& model, const QString& name)
 {
-  for (int i = 0; i < model.rootNode().childCount(); i++)
+  for(int i = 0; i < model.rootNode().childCount(); i++)
   {
 
     const Device::Node& n = model.rootNode().childAt(i);
-    if (n.is<Device::DeviceSettings>())
+    if(n.is<Device::DeviceSettings>())
     {
       auto& d = n.get<Device::DeviceSettings>();
-      if (d.name == name)
+      if(d.name == name)
         return i;
     }
   }
@@ -415,7 +392,7 @@ void DeviceDocumentPlugin::reconnect(const QString& device)
       auto new_node = dev.refresh();
 
       auto device_index = index(*this, dev.settings().name);
-      if (device_index != -1)
+      if(device_index != -1)
       {
         auto cmd = new Explorer::Command::ReplaceDevice{
             *this, device_index, std::move(new_node)};
@@ -425,10 +402,10 @@ void DeviceDocumentPlugin::reconnect(const QString& device)
     });
   };
 
-  if (device.isEmpty())
+  if(device.isEmpty())
   {
     m_list.apply([&, f](Device::DeviceInterface& dev) {
-      if (!dev.connected())
+      if(!dev.connected())
       {
         f(dev);
       }
@@ -437,15 +414,14 @@ void DeviceDocumentPlugin::reconnect(const QString& device)
   else
   {
     m_list.apply([&](Device::DeviceInterface& dev) {
-      if (!dev.connected() && dev.settings().name == device)
+      if(!dev.connected() && dev.settings().name == device)
         f(dev);
     });
   }
 }
 
 void DeviceDocumentPlugin::on_valueUpdated(
-    const State::Address& addr,
-    const ossia::value& v)
+    const State::Address& addr, const ossia::value& v)
 {
   ossia::qt::run_async(this, [this, aa = State::AddressAccessor{addr}, v] {
     updateProxy.updateLocalValue(aa, v);

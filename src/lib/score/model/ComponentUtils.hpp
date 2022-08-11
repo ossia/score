@@ -21,8 +21,8 @@ T& component(const score::Components& c)
 {
   static_assert(T::is_unique, "Components must be unique to use getComponent");
 
-  auto it = ossia::find_if(
-      c, [](auto& other) { return other.key_match(T::static_key()); });
+  auto it
+      = ossia::find_if(c, [](auto& other) { return other.key_match(T::static_key()); });
 
   SCORE_ASSERT(it != c.end());
   return static_cast<T&>(*it);
@@ -40,10 +40,10 @@ T* findComponent(const score::Components& c) noexcept
 {
   static_assert(T::is_unique, "Components must be unique to use getComponent");
 
-  auto it = ossia::find_if(
-      c, [](auto& other) { return other->key_match(T::static_key()); });
+  auto it
+      = ossia::find_if(c, [](auto& other) { return other->key_match(T::static_key()); });
 
-  if (it != c.end())
+  if(it != c.end())
   {
     return static_cast<T*>(*it);
   }

@@ -4,6 +4,12 @@
 
 #include <State/MessageListSerialization.hpp>
 
+#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/TimeSync/TriggerView.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
@@ -12,19 +18,12 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Bind.hpp>
 
-#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
-#include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeSyncPresenter)
 namespace Scenario
 {
 TimeSyncPresenter::TimeSyncPresenter(
-    const TimeSyncModel& model,
-    QGraphicsItem* parentview,
-    QObject* parent)
+    const TimeSyncModel& model, QGraphicsItem* parentview, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new TimeSyncView{*this, parentview}}
@@ -35,19 +34,15 @@ TimeSyncPresenter::TimeSyncPresenter(
     m_triggerView->setSelected(b);
   });
   con(m_model, &TimeSyncModel::waitingChanged, this, [=](bool b) {
-    if (b)
+    if(b)
       m_triggerView->onWaitStart();
     else
       m_triggerView->onWaitEnd();
   });
 
-  con(m_model.metadata(),
-      &score::ModelMetadata::ColorChanged,
-      this,
+  con(m_model.metadata(), &score::ModelMetadata::ColorChanged, this,
       [=](const score::ColorRef& c) { m_view->changeColor(c.getBrush()); });
-  con(m_model.metadata(),
-      &score::ModelMetadata::LabelChanged,
-      this,
+  con(m_model.metadata(), &score::ModelMetadata::LabelChanged, this,
       [=](const auto& t) { m_view->setLabel(t); });
   con(m_model, &TimeSyncModel::activeChanged, this, [=] {
     m_view->setTriggerActive(m_model.active());
@@ -65,12 +60,8 @@ TimeSyncPresenter::TimeSyncPresenter(
   m_triggerView->setPos(-10., -25.);
 
   m_triggerView->setToolTip(m_model.expression().toString());
-  con(m_model,
-      &TimeSyncModel::triggerChanged,
-      this,
-      [&](const State::Expression& t) {
-        m_triggerView->setToolTip(t.toString());
-      });
+  con(m_model, &TimeSyncModel::triggerChanged, this,
+      [&](const State::Expression& t) { m_triggerView->setToolTip(t.toString()); });
 
   connect(m_triggerView, &TriggerView::pressed, &m_model, [=](QPointF sp) {
     m_model.triggeredByGui();
@@ -78,10 +69,7 @@ TimeSyncPresenter::TimeSyncPresenter(
   });
 
   connect(
-      m_triggerView,
-      &TriggerView::dropReceived,
-      this,
-      &TimeSyncPresenter::handleDrop);
+      m_triggerView, &TriggerView::dropReceived, this, &TimeSyncPresenter::handleDrop);
 }
 
 TimeSyncPresenter::~TimeSyncPresenter() { }
@@ -93,7 +81,7 @@ const VerticalExtent& TimeSyncPresenter::extent() const noexcept
 
 void TimeSyncPresenter::setExtent(const VerticalExtent& extent)
 {
-  if (extent != m_extent)
+  if(extent != m_extent)
   {
     m_extent = extent;
     extentChanged(m_extent);
@@ -108,7 +96,7 @@ void TimeSyncPresenter::addEvent(EventPresenter* ev)
 void TimeSyncPresenter::removeEvent(EventPresenter* ev)
 {
   auto it = ossia::find(m_events, ev);
-  if (it != m_events.end())
+  if(it != m_events.end())
     m_events.erase(it);
 }
 
@@ -135,17 +123,17 @@ TriggerView& TimeSyncPresenter::trigger() const noexcept
 void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
 {
   // If the mime data has states in it we can handle it.
-  if (mime.formats().contains(score::mime::messagelist()))
+  if(mime.formats().contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
 
-    if (ml.size() > 0)
+    if(ml.size() > 0)
     {
       QString expr = "{" + toString(State::Pulse{ml[0].address.address}) + "}";
       auto trig = State::parseExpression(expr);
 
-      if (trig)
+      if(trig)
       {
         CommandDispatcher<> dispatcher{
             score::IDocument::documentContext(m_model).commandStack};

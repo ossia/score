@@ -43,9 +43,7 @@ struct WSClient
 
 struct Handler
 {
-  ossia::flat_map<
-      QString,
-      std::function<void(const rapidjson::Value&, const WSClient&)>>
+  ossia::flat_map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>>
       answers;
 
   std::function<void(const std::vector<WSClient>&)> onAdded;
@@ -61,12 +59,12 @@ struct Handler
   {
     onAdded = [msgs](const std::vector<RemoteControl::WSClient>& clts) {
       auto msg = msgs.initMessage();
-      for (auto& clt : clts)
+      for(auto& clt : clts)
         clt.socket->sendTextMessage(msg);
     };
     onRemoved = [msgs](const std::vector<RemoteControl::WSClient>& clts) {
       auto msg = msgs.deinitMessage();
-      for (auto& clt : clts)
+      for(auto& clt : clts)
         clt.socket->sendTextMessage(msg);
     };
 
@@ -116,25 +114,20 @@ private:
   Explorer::DeviceDocumentPlugin& m_dev;
   std::list<Path<Scenario::TimeSyncModel>> m_activeSyncs;
 
-  score::hash_map<
-      QString,
-      std::function<void(const rapidjson::Value&, const WSClient&)>>
+  score::hash_map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>>
       m_answers;
   score::hash_map<::State::Address, WSClient> m_listenedAddresses;
 
   std::vector<std::pair<QObject*, Handler>> m_handlers;
 };
 
-class SCORE_PLUGIN_REMOTECONTROL_EXPORT DocumentPlugin
-    : public score::DocumentPlugin
+class SCORE_PLUGIN_REMOTECONTROL_EXPORT DocumentPlugin : public score::DocumentPlugin
 {
 public:
-  DocumentPlugin(
-      const score::DocumentContext& doc,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext& doc, QObject* parent);
   ~DocumentPlugin();
 
-  void timerEvent(QTimerEvent *event) override;
+  void timerEvent(QTimerEvent* event) override;
 
   void registerInterval(Scenario::IntervalModel& m);
   void unregisterInterval(Scenario::IntervalModel& m);

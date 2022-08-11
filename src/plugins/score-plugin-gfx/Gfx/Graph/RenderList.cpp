@@ -1,8 +1,10 @@
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
-#include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/RenderList.hpp>
+
 #include <score/tools/Debug.hpp>
+
 #include <iostream>
 
 namespace score::gfx
@@ -10,24 +12,21 @@ namespace score::gfx
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh)
 {
-  if (auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
+  if(auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
     return it->second;
 
   auto& rhi = *state.rhi;
   auto mesh_buf = rhi.newBuffer(
-      QRhiBuffer::Immutable,
-      QRhiBuffer::VertexBuffer,
+      QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer,
       mesh.vertexArray.size() * sizeof(float));
   mesh_buf->setName("RenderList::mesh_buf");
   mesh_buf->create();
 
-
   QRhiBuffer* idx_buf{};
-  if (!mesh.indexArray.empty())
+  if(!mesh.indexArray.empty())
   {
     idx_buf = rhi.newBuffer(
-        QRhiBuffer::Immutable,
-        QRhiBuffer::IndexBuffer,
+        QRhiBuffer::Immutable, QRhiBuffer::IndexBuffer,
         mesh.indexArray.size() * sizeof(unsigned int));
     idx_buf->setName("RenderList::idx_buf");
     idx_buf->create();
@@ -48,11 +47,11 @@ RenderList::RenderList(OutputNode& output, const std::shared_ptr<RenderState>& s
 
 RenderList::~RenderList()
 {
-  for (auto node : this->nodes)
+  for(auto node : this->nodes)
   {
     node->renderedNodes.erase(this);
   }
-  for (auto node : renderers)
+  for(auto node : renderers)
   {
     delete node;
   }
@@ -62,7 +61,7 @@ RenderList::~RenderList()
 void RenderList::init()
 {
   m_ready = false;
-  if (!state.rhi)
+  if(!state.rhi)
     return;
   auto& rhi = *state.rhi;
 
@@ -70,13 +69,13 @@ void RenderList::init()
   m_maxTexSize = state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
   m_flip = state.rhi->isYUpInFramebuffer();
 
-  m_outputUBO = rhi.newBuffer(
-      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(OutputUBO));
+  m_outputUBO
+      = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(OutputUBO));
   m_outputUBO->setName("RenderList::m_outputUBO");
   m_outputUBO->create();
 
-  m_emptyTexture = rhi.newTexture(
-      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
+  m_emptyTexture
+      = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
   m_emptyTexture->setName("RenderList::m_emptyTexture");
   m_emptyTexture->create();
 
@@ -85,12 +84,12 @@ void RenderList::init()
 
 void RenderList::release()
 {
-  for (auto node : renderers)
+  for(auto node : renderers)
   {
     node->release(*this);
   }
 
-  for (auto bufs : m_vertexBuffers)
+  for(auto bufs : m_vertexBuffers)
   {
     delete bufs.second.mesh;
     delete bufs.second.index;
@@ -112,7 +111,7 @@ void RenderList::release()
 void RenderList::maybeRebuild()
 {
   const QSize outputSize = state.renderSize;
-  if (outputSize != m_lastSize || !m_built)
+  if(outputSize != m_lastSize || !m_built)
   {
     m_built = false;
     release();
@@ -124,7 +123,7 @@ void RenderList::maybeRebuild()
 
     // We init the nodes in reverse orders as
     // the render targets of subsequent nodes must be initialized
-    for (auto node : renderers)
+    for(auto node : renderers)
     {
       node->init(*this);
     }
@@ -136,8 +135,9 @@ void RenderList::maybeRebuild()
 
 TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) noexcept
 {
-  if (auto sink_node = edge.sink->node)
-    if (auto it = sink_node->renderedNodes.find(this); it != sink_node->renderedNodes.end())
+  if(auto sink_node = edge.sink->node)
+    if(auto it = sink_node->renderedNodes.find(this);
+       it != sink_node->renderedNodes.end())
     {
       auto renderer = it->second;
       auto tex = renderer->renderTargetForInput(*edge.sink);
@@ -193,10 +193,9 @@ const Mesh& RenderList::defaultTriangle() const noexcept
   */
 }
 
-
 void RenderList::render(QRhiCommandBuffer& commands, bool force)
 {
-  if (renderers.size() <= 1 && !force)
+  if(renderers.size() <= 1 && !force)
   {
     return;
   }
@@ -218,13 +217,14 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   //    Render
   //  End pass
 
-  struct EdgePair {
+  struct EdgePair
+  {
     Edge* edge;
     NodeRenderer* node;
   };
 
   ossia::small_pod_vector<EdgePair, 4> prevRenderers;
-  for(auto it = this->nodes.rbegin(); it !=this->nodes.rend(); ++it)
+  for(auto it = this->nodes.rbegin(); it != this->nodes.rend(); ++it)
   {
     auto node = *it;
     for(auto input : node->input)
@@ -242,7 +242,8 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           auto src = edge->source;
           SCORE_ASSERT(src);
 
-          SCORE_ASSERT(src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
+          SCORE_ASSERT(
+              src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
           NodeRenderer* renderer = src->node->renderedNodes.find(this)->second;
           prevRenderers.push_back({edge, renderer});
 
@@ -293,14 +294,16 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   // Finally the output node may have some rendering to do too
   {
     SCORE_ASSERT(!this->output.renderedNodes.empty());
-    SCORE_ASSERT(dynamic_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second));
-    auto output_renderer = static_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second);
+    SCORE_ASSERT(
+        dynamic_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second));
+    auto output_renderer
+        = static_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second);
 
     if(this->output.configuration().outputNeedsRenderPass)
     {
       // FIXME remove this hack
       score::gfx::Port p;
-      score::gfx::Edge dummy{&p,&p};
+      score::gfx::Edge dummy{&p, &p};
       output_renderer->update(*this, *updateBatch);
       output_renderer->runInitialPasses(*this, commands, updateBatch, dummy);
       output_renderer->runRenderPass(*this, commands, dummy);
@@ -312,7 +315,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
 void RenderList::update(QRhiResourceUpdateBatch& res)
 {
-  if (!m_ready)
+  if(!m_ready)
   {
     m_ready = true;
 
@@ -343,15 +346,13 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
     res.updateDynamicBuffer(m_outputUBO, 0, sizeof(OutputUBO), &m_outputUBOData);
   }
 
-  if (Q_UNLIKELY(!buffersToUpload.empty()))
+  if(Q_UNLIKELY(!buffersToUpload.empty()))
   {
-    for (auto [mesh, buf] : buffersToUpload)
+    for(auto [mesh, buf] : buffersToUpload)
     {
-      res.uploadStaticBuffer(
-          buf.mesh, 0, buf.mesh->size(), mesh->vertexArray.data());
-      if (buf.index)
-        res.uploadStaticBuffer(
-            buf.index, 0, buf.index->size(), mesh->indexArray.data());
+      res.uploadStaticBuffer(buf.mesh, 0, buf.mesh->size(), mesh->vertexArray.data());
+      if(buf.index)
+        res.uploadStaticBuffer(buf.index, 0, buf.index->size(), mesh->indexArray.data());
     }
 
     buffersToUpload.clear();

@@ -2,18 +2,16 @@
 #include <Media/Libav.hpp>
 
 #if SCORE_HAS_LIBAV
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h>
 }
 
 namespace Video
 {
-inline
-bool formatNeedsDecoding(AVPixelFormat fmt)
+inline bool formatNeedsDecoding(AVPixelFormat fmt)
 {
-  switch (fmt)
+  switch(fmt)
   {
     // Supported formats for gpu decoding
     case AV_PIX_FMT_YUV420P:

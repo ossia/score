@@ -14,7 +14,8 @@ struct Node
     static const constexpr auto objectKey = "Envelope";
     static const constexpr auto category = "Audio";
     static const constexpr auto author = "ossia score";
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer | Process::ProcessCategory::Deprecated;
+    static const constexpr auto kind
+        = Process::ProcessCategory::Analyzer | Process::ProcessCategory::Deprecated;
     static const constexpr auto description
         = "Converts an audio signal into RMS and peak values";
     static const constexpr auto tags = std::array<const char*, 0>{};
@@ -28,11 +29,11 @@ struct Node
   using control_policy = ossia::safe_nodes::default_tick;
   static auto get(const ossia::audio_channel& chan)
   {
-    if (chan.size() > 0)
+    if(chan.size() > 0)
     {
       auto max = chan[0];
       auto rms = 0.;
-      for (auto sample : chan)
+      for(auto sample : chan)
       {
         max = std::max(max, std::abs(sample));
         rms += sample * sample;
@@ -50,32 +51,27 @@ struct Node
   }
 
   static void
-  run(const ossia::audio_port& audio,
-      ossia::value_port& rms_port,
-      ossia::value_port& peak_port,
-      ossia::token_request tk,
-      ossia::exec_state_facade e)
+  run(const ossia::audio_port& audio, ossia::value_port& rms_port,
+      ossia::value_port& peak_port, ossia::token_request tk, ossia::exec_state_facade e)
   {
     const auto [tick_start, d] = e.timings(tk);
-    switch (audio.channels())
+    switch(audio.channels())
     {
       case 0:
         return;
-      case 1:
-      {
+      case 1: {
         auto [rms, peak] = get(audio.channel(0));
 
         rms_port.write_value(rms, tick_start);
         peak_port.write_value(peak, tick_start);
         break;
       }
-      default:
-      {
+      default: {
         std::vector<ossia::value> peak_vec;
         peak_vec.reserve(audio.channels());
         std::vector<ossia::value> rms_vec;
         rms_vec.reserve(audio.channels());
-        for (auto& c : audio)
+        for(auto& c : audio)
         {
           auto [rms, peak] = get(c);
           rms_vec.push_back(rms);

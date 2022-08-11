@@ -1,8 +1,9 @@
 #pragma once
+#include <QApplication>
+#include <QDebug>
 #include <QDialog>
 #include <QWindow>
-#include <QDebug>
-#include <QApplication>
+
 #include <pluginterfaces/gui/iplugview.h>
 
 namespace vst3
@@ -40,8 +41,7 @@ struct WindowContainer
   }
 
   auto setSizeFromQt(
-      Steinberg::IPlugView& view,
-      const Steinberg::ViewRect& r,
+      Steinberg::IPlugView& view, const Steinberg::ViewRect& r,
       QDialog& parentWindow) const
   {
     int w = r.getWidth();
@@ -54,7 +54,7 @@ struct WindowContainer
       return std::make_pair(w, h);
     }
 
-    if (view.canResize() == Steinberg::kResultTrue)
+    if(view.canResize() == Steinberg::kResultTrue)
     {
       parentWindow.resize(QSize{qw, qh});
     }
@@ -62,11 +62,11 @@ struct WindowContainer
     {
       parentWindow.setFixedSize(QSize{qw, qh});
     }
-    if (qwindow)
+    if(qwindow)
     {
       qwindow->resize(qw, qh);
     }
-    if (container)
+    if(container)
     {
       container->move(0, 0);
       container->setFixedSize(qw, qh);
@@ -75,12 +75,10 @@ struct WindowContainer
     return std::make_pair(w, h);
   }
 
-  void setSizeFromUser(
-      Steinberg::IPlugView& view,
-      const QSize& sz,
-      QDialog& parentWindow)
+  void
+  setSizeFromUser(Steinberg::IPlugView& view, const QSize& sz, QDialog& parentWindow)
   {
-    if (view.canResize() != Steinberg::kResultTrue)
+    if(view.canResize() != Steinberg::kResultTrue)
       return;
 
     Steinberg::ViewRect r;
@@ -95,12 +93,12 @@ struct WindowContainer
 
     parentWindow.resize(QSize(qw, qh));
 
-    if (qwindow)
+    if(qwindow)
     {
       qwindow->resize(qw, qh);
     }
 
-    if (container)
+    if(container)
     {
       container->move(0, 0);
       container->setFixedSize(qw, qh);
@@ -110,9 +108,7 @@ struct WindowContainer
   }
 
   auto setSizeFromVst(
-      Steinberg::IPlugView& view,
-      Steinberg::ViewRect& r,
-      QDialog& parentWindow)
+      Steinberg::IPlugView& view, Steinberg::ViewRect& r, QDialog& parentWindow)
   {
     int w = r.getWidth();
     int h = r.getHeight();
@@ -125,7 +121,7 @@ struct WindowContainer
       return std::make_pair(qw, qh);
     }
 
-    if (view.canResize() == Steinberg::kResultTrue)
+    if(view.canResize() == Steinberg::kResultTrue)
     {
       parentWindow.resize(QSize{qw, qh});
     }
@@ -134,11 +130,11 @@ struct WindowContainer
       parentWindow.setFixedSize(QSize{qw, qh});
     }
 
-    if (qwindow)
+    if(qwindow)
     {
       qwindow->resize(qw, qh);
     }
-    if (container)
+    if(container)
     {
       container->move(0, 0);
       container->setFixedSize(qw, qh);

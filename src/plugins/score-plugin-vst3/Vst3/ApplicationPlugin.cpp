@@ -48,7 +48,7 @@ void DataStreamWriter::write<VST3::Hosting::ClassInfo>(VST3::Hosting::ClassInfo&
   std::string clsid;
   m_stream >> clsid >> d.cardinality >> d.category >> d.name >> d.vendor >> d.version
       >> d.sdkVersion >> d.subCategories >> (uint32_t&)d.classFlags;
-  if (auto id = VST3::UID::fromString(clsid))
+  if(auto id = VST3::UID::fromString(clsid))
     d.classID = *id;
   else
     qDebug() << "Invalid VST3 UID:" << clsid.c_str();
@@ -88,9 +88,9 @@ static const constexpr auto default_filter = "";
 }
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
     : score::ApplicationPlugin{ctx}
-    #if QT_CONFIG(process)
+#if QT_CONFIG(process)
     , m_wsServer("vst3-notification-server", QWebSocketServer::NonSecureMode)
-    #endif
+#endif
 {
   qRegisterMetaType<AvailablePlugin>();
   qRegisterMetaType<std::vector<AvailablePlugin>>();
@@ -102,25 +102,16 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
 
 #if QT_CONFIG(process)
   m_wsServer.listen({}, 37588);
-  con(m_wsServer,
-      &QWebSocketServer::newConnection,
-      this,
-      [this]
-      {
-        QWebSocket* ws = m_wsServer.nextPendingConnection();
-        if (!ws)
-          return;
+  con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
+    QWebSocket* ws = m_wsServer.nextPendingConnection();
+    if(!ws)
+      return;
 
-        connect(
-            ws,
-            &QWebSocket::textMessageReceived,
-            this,
-            [=](const QString& txt)
-            {
-              processIncomingMessage(txt);
-              ws->deleteLater();
-            });
-      });
+    connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
+      processIncomingMessage(txt);
+      ws->deleteLater();
+    });
+  });
 #endif
 }
 
@@ -129,7 +120,7 @@ void ApplicationPlugin::initialize()
   // init with the database
   QSettings s;
   auto val = s.value("Effect/KnownVST3");
-  if (val.canConvert<std::vector<AvailablePlugin>>())
+  if(val.canConvert<std::vector<AvailablePlugin>>())
   {
     vst_infos = val.value<std::vector<AvailablePlugin>>();
   }
@@ -141,7 +132,7 @@ void ApplicationPlugin::initialize()
   // con(set, &Media::Settings::Model::VstPathsChanged, this, &ApplicationPlugin::rescanVSTs);
   //
 
-  if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
     rescan(default_paths);
 }
 
@@ -151,28 +142,26 @@ void ApplicationPlugin::rescan(const QStringList& paths)
   // 1. List all plug-ins in new paths
   QStringList exploredPaths;
   QSet<QString> newPlugins;
-  for (const QString& dir : paths)
+  for(const QString& dir : paths)
   {
     auto canonical_path = QDir{dir}.canonicalPath();
-    if (exploredPaths.contains(canonical_path))
+    if(exploredPaths.contains(canonical_path))
       continue;
 
     exploredPaths.push_back(canonical_path);
 
     QDirIterator it(
-        dir,
-        QStringList{default_filter},
-        default_format,
+        dir, QStringList{default_filter}, default_format,
         QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-    while (it.hasNext())
+    while(it.hasNext())
       newPlugins.insert(it.next());
   }
 
   // 2. Remove plug-ins not in these paths
-  for (auto it = vst_infos.begin(); it != vst_infos.end();)
+  for(auto it = vst_infos.begin(); it != vst_infos.end();)
   {
     auto new_it = newPlugins.find(it->path);
-    if (new_it != newPlugins.end())
+    if(new_it != newPlugins.end())
     {
       // plug-in is in both set, we ignore it
       newPlugins.erase(new_it);
@@ -190,7 +179,7 @@ void ApplicationPlugin::rescan(const QStringList& paths)
   m_processes.clear();
   m_processes.reserve(newPlugins.size());
   int i = 0;
-  for (const QString& path : newPlugins)
+  for(const QString& path : newPlugins)
   {
     auto proc = std::make_unique<QProcess>();
 
@@ -199,7 +188,7 @@ void ApplicationPlugin::rescan(const QStringList& paths)
       QString bundle_vstpuppet
           = qApp->applicationDirPath()
             + "/ossia-score-vst3puppet.app/Contents/MacOS/ossia-score-vst3puppet";
-      if (QFile::exists(bundle_vstpuppet))
+      if(QFile::exists(bundle_vstpuppet))
         proc->setProgram(bundle_vstpuppet);
       else
         proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vst3puppet");
@@ -208,16 +197,11 @@ void ApplicationPlugin::rescan(const QStringList& paths)
     proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vst3puppet");
 #endif
     proc->setArguments({path, QString::number(i)});
-    connect(
-        proc.get(),
-        &QProcess::errorOccurred,
-        this,
-        [proc = proc.get(), path]
-        {
-          qDebug() << " == VST3: error => " << path;
-          qDebug() << "VST3 out: " << proc->readAllStandardOutput().constData();
-          qDebug() << "VST3 error: " << proc->readAllStandardError().constData();
-        });
+    connect(proc.get(), &QProcess::errorOccurred, this, [proc = proc.get(), path] {
+      qDebug() << " == VST3: error => " << path;
+      qDebug() << "VST3 out: " << proc->readAllStandardOutput().constData();
+      qDebug() << "VST3 error: " << proc->readAllStandardError().constData();
+    });
     m_processes.push_back({path, std::move(proc), false, {}});
     i++;
   }
@@ -253,18 +237,18 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
 #if QT_CONFIG(process)
   QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
 
-  if (doc.isObject())
+  if(doc.isObject())
   {
     auto obj = doc.object();
     addVST(obj["Path"].toString(), obj);
     int id = obj["Request"].toInt();
 
-    if (ossia::valid_index(id, m_processes))
+    if(ossia::valid_index(id, m_processes))
     {
-      if (m_processes[id].process)
+      if(m_processes[id].process)
       {
         m_processes[id].process->close();
-        if (m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+        if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
         {
           m_processes[id] = {};
         }
@@ -272,8 +256,7 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
         {
           connect(
               m_processes[id].process.get(),
-              qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-              this,
+              qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
               [this, id] { m_processes[id] = {}; });
         }
       }
@@ -306,7 +289,7 @@ parseSubCategories(const std::string& str) noexcept
   std::vector<std::string> vec;
   std::stringstream stream(str);
   std::string item;
-  while (std::getline(stream, item, '|'))
+  while(std::getline(stream, item, '|'))
     vec.emplace_back(move(item));
   return vec;
 }
@@ -321,11 +304,11 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   const auto& classes = obj["Classes"].toArray();
   i.classInfo.reserve(classes.size());
 
-  for (const QJsonValue& v : classes)
+  for(const QJsonValue& v : classes)
   {
     const QJsonObject& obj = v.toObject();
     const auto uid = VST3::UID::fromString(obj["UID"].toString().toStdString());
-    if (!uid)
+    if(!uid)
       continue;
 
     i.classInfo.resize(i.classInfo.size() + 1);
@@ -343,7 +326,7 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
     cls.get().classFlags = obj["Version"].toDouble();
   }
 
-  if (i.classInfo.empty())
+  if(i.classInfo.empty())
     return;
 
   vst_infos.push_back(std::move(i));
@@ -358,7 +341,7 @@ VST3::Hosting::Module::Ptr ApplicationPlugin::getModule(const std::string& path)
 {
   std::string err;
   auto it = modules.find(path);
-  if (it != modules.end())
+  if(it != modules.end())
   {
     return it->second;
   }
@@ -366,7 +349,7 @@ VST3::Hosting::Module::Ptr ApplicationPlugin::getModule(const std::string& path)
   {
     auto module = VST3::Hosting::Module::create(path, err);
 
-    if (!module)
+    if(!module)
       throw std::runtime_error(fmt::format("Failed to load VST3 ({}) : {}", path, err));
 
     modules[path] = module;
@@ -380,13 +363,13 @@ void ApplicationPlugin::scanVSTsEvent()
   constexpr int max_in_flight = 8;
   int in_flight = 0;
 
-  for (auto& proc : m_processes)
+  for(auto& proc : m_processes)
   {
     // Already scanned processes
-    if (!proc.process)
+    if(!proc.process)
       continue;
 
-    if (!proc.scanning)
+    if(!proc.scanning)
     {
       proc.process->start(QProcess::ReadOnly);
       proc.scanning = true;
@@ -394,7 +377,7 @@ void ApplicationPlugin::scanVSTsEvent()
     }
     else
     {
-      if (proc.timer.elapsed() > 10000)
+      if(proc.timer.elapsed() > 10000)
       {
         addInvalidVST(proc.path);
         proc.process.reset();
@@ -406,7 +389,7 @@ void ApplicationPlugin::scanVSTsEvent()
 
     in_flight++;
 
-    if (in_flight == max_in_flight)
+    if(in_flight == max_in_flight)
     {
       QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
       return;
@@ -419,11 +402,11 @@ std::pair<const AvailablePlugin*, const VST3::Hosting::ClassInfo*>
 ApplicationPlugin::classInfo(const VST3::UID& uid) const noexcept
 {
   // OPTIMIZEME with a small id -> {plugin, class} cache
-  for (auto& plug : this->vst_infos)
+  for(auto& plug : this->vst_infos)
   {
-    for (auto& cls : plug.classInfo)
+    for(auto& cls : plug.classInfo)
     {
-      if (cls.ID() == uid)
+      if(cls.ID() == uid)
         return {&plug, &cls};
     }
   }
@@ -433,11 +416,11 @@ ApplicationPlugin::classInfo(const VST3::UID& uid) const noexcept
 QString ApplicationPlugin::pathForClass(const VST3::UID& uid) const noexcept
 {
   // OPTIMIZEME with the same cache than above
-  for (auto& plug : this->vst_infos)
+  for(auto& plug : this->vst_infos)
   {
-    for (auto& cls : plug.classInfo)
+    for(auto& cls : plug.classInfo)
     {
-      if (cls.ID() == uid)
+      if(cls.ID() == uid)
         return plug.path;
     }
   }
@@ -445,18 +428,17 @@ QString ApplicationPlugin::pathForClass(const VST3::UID& uid) const noexcept
 }
 
 std::optional<VST3::UID> ApplicationPlugin::uidForPathAndClassName(
-    const QString& path,
-    const QString& cls) const noexcept
+    const QString& path, const QString& cls) const noexcept
 {
   auto it
       = ossia::find_if(this->vst_infos, [&](auto& info) { return info.path == path; });
-  if (it == this->vst_infos.end())
+  if(it == this->vst_infos.end())
     return {};
 
-  auto cls_it = ossia::find_if(
-      it->classInfo,
-      [&, n = cls.toStdString()](auto& info) { return info.name() == n; });
-  if (cls_it == it->classInfo.end())
+  auto cls_it = ossia::find_if(it->classInfo, [&, n = cls.toStdString()](auto& info) {
+    return info.name() == n;
+  });
+  if(cls_it == it->classInfo.end())
     return {};
 
   return cls_it->ID();

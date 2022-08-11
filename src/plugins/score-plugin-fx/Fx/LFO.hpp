@@ -5,6 +5,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <rnd/random.hpp>
+#include <tuplet/tuple.hpp>
 
 #include <array>
 #include <bitset>
@@ -12,14 +13,14 @@
 #include <random>
 #include <tuple>
 #include <utility>
-#include <tuplet/tuple.hpp>
 
 namespace Nodes
 {
 
 namespace LFO
 {
-static inline std::random_device& random_source() {
+static inline std::random_device& random_source()
+{
   static thread_local std::random_device d;
   return d;
 }
@@ -35,7 +36,8 @@ struct Node
     static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto kind = Process::ProcessCategory::Generator | Process::ProcessCategory::Deprecated;
+    static const constexpr auto kind
+        = Process::ProcessCategory::Generator | Process::ProcessCategory::Deprecated;
     static const constexpr auto description = "Low-frequency oscillator";
     static const constexpr double recommended_height = 130.;
     static const uuid_constexpr auto uuid
@@ -65,29 +67,19 @@ struct Node
   using control_policy = ossia::safe_nodes::precise_tick;
 
   static void
-  run(float freq,
-      float ampl,
-      float ampl_fine,
-      float offset,
-      float offset_fine,
-      float jitter,
-      float custom_phase,
-      const std::string& type,
-      float quantif,
-      ossia::value_port& out,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
+  run(float freq, float ampl, float ampl_fine, float offset, float offset_fine,
+      float jitter, float custom_phase, const std::string& type, float quantif,
+      ossia::value_port& out, ossia::token_request tk, ossia::exec_state_facade st,
       State& s)
   {
-    constexpr const double sine_ratio
-        = ossia::two_pi / ossia::flicks_per_second<double>;
+    constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
     const auto& waveform_map = Control::Widgets::waveformMap();
     const auto elapsed = tk.model_read_duration().impl;
 
-    if (quantif)
+    if(quantif)
     {
       // Determine the frequency with the quantification
-      if (tk.unexpected_bar_change())
+      if(tk.unexpected_bar_change())
       {
         s.phase = 0;
       }
@@ -103,10 +95,10 @@ struct Node
 
     const auto ph_delta = elapsed * freq * sine_ratio;
 
-    if (const auto it = waveform_map.find_key(type))
+    if(const auto it = waveform_map.find_key(type))
     {
       auto ph = s.phase;
-      if (jitter > 0)
+      if(jitter > 0)
       {
         ph += std::normal_distribution<float>(0., 0.25)(s.rd) * jitter;
       }
@@ -120,7 +112,7 @@ struct Node
         const auto [tick_start, d] = st.timings(tk);
         out.write_value(ampl * new_val + offset, tick_start);
       };
-      switch (*it)
+      switch(*it)
       {
         case Sin:
           add_val(std::sin(custom_phase + ph));
@@ -134,11 +126,10 @@ struct Node
         case Square:
           add_val((std::sin(custom_phase + ph) > 0.f) ? 1.f : -1.f);
           break;
-        case SampleAndHold:
-        {
+        case SampleAndHold: {
           const auto start_s = std::sin(custom_phase + ph);
           const auto end_s = std::sin(custom_phase + ph + ph_delta);
-          if ((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
+          if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           {
             add_val(std::uniform_real_distribution<float>(-1.f, 1.f)(s.rd));
           }
@@ -151,8 +142,7 @@ struct Node
           add_val(std::normal_distribution<float>(0.f, 1.f)(s.rd));
           break;
         case Noise3:
-          add_val(std::clamp(
-              std::cauchy_distribution<float>(0.f, 1.f)(s.rd), 0.f, 1.f));
+          add_val(std::clamp(std::cauchy_distribution<float>(0.f, 1.f)(s.rd), 0.f, 1.f));
           break;
       }
     }
@@ -161,18 +151,11 @@ struct Node
   }
 
   static void item(
-      Process::LogFloatSlider& freq,
-      Process::FloatKnob& ampl,
-      Process::FloatKnob& ampl_fine,
-      Process::FloatKnob& offset,
-      Process::FloatKnob& offset_fine,
-      Process::FloatKnob& jitter,
-      Process::FloatKnob& phase,
-      Process::Enum& type,
-      Process::ComboBox& quantif,
-      const Process::ProcessModel& process,
-      QGraphicsItem& parent,
-      QObject& context,
+      Process::LogFloatSlider& freq, Process::FloatKnob& ampl,
+      Process::FloatKnob& ampl_fine, Process::FloatKnob& offset,
+      Process::FloatKnob& offset_fine, Process::FloatKnob& jitter,
+      Process::FloatKnob& phase, Process::Enum& type, Process::ComboBox& quantif,
+      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
       const Process::Context& doc)
   {
     using namespace Process;
@@ -195,31 +178,16 @@ struct Node
     c2_bg->setRect({270., 0., 60., 130.});
 
     auto freq_item = makeControl(
-        get<0>(Metadata::controls),
-        freq,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
     freq_item.root.setPos(c0, 0);
 
     auto quant_item = makeControlNoText(
-        get<8>(Metadata::controls),
-        quantif,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<8>(Metadata::controls), quantif, parent, context, doc, portFactory);
     quant_item.root.setPos(90, 25);
     quant_item.port.setPos(-10, 2);
 
     auto type_item = makeControlNoText(
-        get<7>(Metadata::controls),
-        type,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<7>(Metadata::controls), type, parent, context, doc, portFactory);
     type_item.root.setPos(c0, h);
     type_item.control.rows = 2;
     type_item.control.columns = 4;
@@ -228,57 +196,27 @@ struct Node
     type_item.port.setPos(0, 17);
 
     auto ampl_item = makeControl(
-        get<1>(Metadata::controls),
-        ampl,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
     ampl_item.root.setPos(c1, 0);
 
     auto ampl_fine_item = makeControl(
-        get<2>(Metadata::controls),
-        ampl_fine,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<2>(Metadata::controls), ampl_fine, parent, context, doc, portFactory);
     ampl_fine_item.root.setPos(c1 + w, 0);
 
     auto offset_item = makeControl(
-        get<3>(Metadata::controls),
-        offset,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<3>(Metadata::controls), offset, parent, context, doc, portFactory);
     offset_item.root.setPos(c1, h);
 
     auto offset_fine_item = makeControl(
-        get<4>(Metadata::controls),
-        offset_fine,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
     offset_fine_item.root.setPos(c1 + w, h);
 
     auto jitter_item = makeControl(
-        get<5>(Metadata::controls),
-        jitter,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
     jitter_item.root.setPos(c2 + w, 0);
 
     auto phase_item = makeControl(
-        get<6>(Metadata::controls),
-        phase,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<6>(Metadata::controls), phase, parent, context, doc, portFactory);
     phase_item.root.setPos(c2 + w, h);
   }
 
@@ -286,7 +224,6 @@ struct Node
   // where types are either controls, ports, items, inlets...
 };
 }
-
 
 namespace v2
 {
@@ -327,30 +264,21 @@ struct Node
   using control_policy = ossia::safe_nodes::precise_tick;
 
   static void
-  run(float freq,
-      float ampl,
-      float offset,
-      float jitter,
-      float custom_phase,
-      const std::string& type,
-      float quantif,
-      ossia::value_port& out,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& s)
+  run(float freq, float ampl, float offset, float jitter, float custom_phase,
+      const std::string& type, float quantif, ossia::value_port& out,
+      ossia::token_request tk, ossia::exec_state_facade st, State& s)
   {
-    constexpr const double sine_ratio
-        = ossia::two_pi / ossia::flicks_per_second<double>;
+    constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
     const auto& waveform_map = Control::Widgets::waveformMap();
     const auto elapsed = tk.model_read_duration().impl;
 
     out.type = ossia::val_type::FLOAT;
     out.domain = ossia::domain_base<float>{0., 1.};
 
-    if (quantif)
+    if(quantif)
     {
       // Determine the frequency with the quantification
-      if (tk.unexpected_bar_change())
+      if(tk.unexpected_bar_change())
       {
         s.phase = 0;
       }
@@ -366,10 +294,10 @@ struct Node
 
     const auto ph_delta = elapsed * freq * sine_ratio;
 
-    if (const auto it = waveform_map.find_key(type))
+    if(const auto it = waveform_map.find_key(type))
     {
       auto ph = s.phase;
-      if (jitter > 0)
+      if(jitter > 0)
       {
         ph += std::normal_distribution<float>(0., 0.25)(s.rd) * jitter;
       }
@@ -380,7 +308,7 @@ struct Node
         const auto [tick_start, d] = st.timings(tk);
         out.write_value(ampl * new_val + offset, tick_start);
       };
-      switch (*it)
+      switch(*it)
       {
         case Sin:
           add_val(std::sin(custom_phase + ph));
@@ -394,11 +322,10 @@ struct Node
         case Square:
           add_val((std::sin(custom_phase + ph) > 0.f) ? 1.f : -1.f);
           break;
-        case SampleAndHold:
-        {
+        case SampleAndHold: {
           const auto start_s = std::sin(custom_phase + ph);
           const auto end_s = std::sin(custom_phase + ph + ph_delta);
-          if ((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
+          if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           {
             add_val(std::uniform_real_distribution<float>(-1.f, 1.f)(s.rd));
           }
@@ -411,8 +338,7 @@ struct Node
           add_val(std::normal_distribution<float>(0.f, 1.f)(s.rd));
           break;
         case Noise3:
-          add_val(std::clamp(
-              std::cauchy_distribution<float>(0.f, 1.f)(s.rd), 0.f, 1.f));
+          add_val(std::clamp(std::cauchy_distribution<float>(0.f, 1.f)(s.rd), 0.f, 1.f));
           break;
       }
     }
@@ -421,16 +347,10 @@ struct Node
   }
 
   static void item(
-      Process::LogFloatSlider& freq,
-      Process::FloatKnob& ampl,
-      Process::FloatKnob& offset,
-      Process::FloatKnob& jitter,
-      Process::FloatKnob& phase,
-      Process::Enum& type,
-      Process::ComboBox& quantif,
-      const Process::ProcessModel& process,
-      QGraphicsItem& parent,
-      QObject& context,
+      Process::LogFloatSlider& freq, Process::FloatKnob& ampl,
+      Process::FloatKnob& offset, Process::FloatKnob& jitter, Process::FloatKnob& phase,
+      Process::Enum& type, Process::ComboBox& quantif,
+      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
       const Process::Context& doc)
   {
     using namespace Process;
@@ -453,57 +373,27 @@ struct Node
     c2_bg->setRect({270., 0., 60., 130.});
 
     auto freq_item = makeControl(
-        get<0>(Metadata::controls),
-        freq,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
     freq_item.root.setPos(c0, 0);
 
     auto ampl_item = makeControl(
-        get<1>(Metadata::controls),
-        ampl,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
     ampl_item.root.setPos(c1, 0);
 
     auto offset_item = makeControl(
-        get<2>(Metadata::controls),
-        offset,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<2>(Metadata::controls), offset, parent, context, doc, portFactory);
     offset_item.root.setPos(c1, h);
 
     auto jitter_item = makeControl(
-        get<3>(Metadata::controls),
-        jitter,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<3>(Metadata::controls), jitter, parent, context, doc, portFactory);
     jitter_item.root.setPos(c2 + w, 0);
 
     auto phase_item = makeControl(
-        get<4>(Metadata::controls),
-        phase,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<4>(Metadata::controls), phase, parent, context, doc, portFactory);
     phase_item.root.setPos(c2 + w, h);
 
     auto type_item = makeControlNoText(
-        get<5>(Metadata::controls),
-        type,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<5>(Metadata::controls), type, parent, context, doc, portFactory);
     type_item.root.setPos(c0, h);
     type_item.control.rows = 2;
     type_item.control.columns = 4;
@@ -512,12 +402,7 @@ struct Node
     type_item.port.setPos(0, 17);
 
     auto quant_item = makeControlNoText(
-        get<6>(Metadata::controls),
-        quantif,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<6>(Metadata::controls), quantif, parent, context, doc, portFactory);
     quant_item.root.setPos(90, 25);
     quant_item.port.setPos(-10, 2);
   }

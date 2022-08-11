@@ -17,16 +17,15 @@ public:
 private:
   void test()
   {
-    IntervalModel* interval = new IntervalModel{
-        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* interval
+        = new IntervalModel{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
     AddRackToInterval cmd{ObjectPath{{"IntervalModel", {}}}};
 
     cmd.redo(ctx);
     auto rack = interval->rack(cmd.m_createdRackId);
 
-    AddSlotToRack cmd2{
-        ObjectPath{{"IntervalModel", {}}, {"RackModel", rack->id()}}};
+    AddSlotToRack cmd2{ObjectPath{{"IntervalModel", {}}, {"RackModel", rack->id()}}};
 
     auto slotId = cmd2.m_createdSlotId;
     cmd2.redo(ctx);

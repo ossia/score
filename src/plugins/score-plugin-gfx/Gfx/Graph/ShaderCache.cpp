@@ -1,5 +1,7 @@
 #include "ShaderCache.hpp"
+
 #include <Gfx/Graph/RenderState.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/mutex.hpp>
 
@@ -7,18 +9,19 @@ namespace score::gfx
 {
 
 const std::pair<QShader, QString>& ShaderCache::get(
-    GraphicsApi api, const QShaderVersion& version, const QByteArray& shader, QShader::Stage stage)
+    GraphicsApi api, const QShaderVersion& version, const QByteArray& shader,
+    QShader::Stage stage)
 {
   static std::mutex mut;
   static ShaderCache self TS_GUARDED_BY(mut);
 
   std::lock_guard<std::mutex> m{mut};
 
-  auto ver_it = ossia::find_if(self.m_bakers, [&] (const auto& p) {
+  auto ver_it = ossia::find_if(self.m_bakers, [&](const auto& p) {
     return p->api == api && p->version == version;
   });
   Baker* bb{};
-  if (ver_it == self.m_bakers.end())
+  if(ver_it == self.m_bakers.end())
   {
     self.m_bakers.push_back(std::make_unique<Baker>(api, version));
     bb = self.m_bakers.back().get();
@@ -29,28 +32,25 @@ const std::pair<QShader, QString>& ShaderCache::get(
   }
 
   Baker& b = *bb;
-  if (auto it = b.shaders.find(shader); it != b.shaders.end())
+  if(auto it = b.shaders.find(shader); it != b.shaders.end())
     return it->second;
 
   b.baker.setSourceString(shader, stage);
-  auto res = b.shaders.insert(
-               {shader, {b.baker.bake(), b.baker.errorMessage()}});
+  auto res = b.shaders.insert({shader, {b.baker.bake(), b.baker.errorMessage()}});
   return res.first->second;
 }
 
-const std::pair<QShader, QString>& ShaderCache::get(
-    const RenderState& v, const QByteArray& shader, QShader::Stage stage)
+const std::pair<QShader, QString>&
+ShaderCache::get(const RenderState& v, const QByteArray& shader, QShader::Stage stage)
 {
   return ShaderCache::get(v.api, v.version, shader, stage);
 }
 
-ShaderCache::ShaderCache()
-{
-}
+ShaderCache::ShaderCache() { }
 
 ShaderCache::Baker::Baker(GraphicsApi api, const QShaderVersion& version)
-  : api{api}
-  , version{version}
+    : api{api}
+    , version{version}
 {
   switch(api)
   {
@@ -70,7 +70,7 @@ ShaderCache::Baker::Baker(GraphicsApi api, const QShaderVersion& version)
       baker.setGeneratedShaders({{QShader::MslShader, version}});
       break;
   }
-  baker.setGeneratedShaderVariants({ {} });
+  baker.setGeneratedShaderVariants({{}});
 }
 
 /*

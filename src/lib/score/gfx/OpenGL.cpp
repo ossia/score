@@ -22,15 +22,14 @@ GLCapabilities::GLCapabilities()
   type = ctx.format().renderableType();
   shaderVersion = glShaderVersion();
 
-#if __has_include (<private/qshader_p.h>)
+#if __has_include(<private/qshader_p.h>)
   qShaderVersion.setVersion(shaderVersion);
   if(type == QSurfaceFormat::OpenGLES)
     qShaderVersion.setFlags(QShaderVersion::GlslEs);
 #endif
 
 #endif
-  qDebug() << "Available GL context: " << major << minor << shaderVersion
-           << type;
+  qDebug() << "Available GL context: " << major << minor << shaderVersion << type;
 }
 
 void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
@@ -42,11 +41,10 @@ void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
 
 int GLCapabilities::glShaderVersion() noexcept
 {
-  switch (type)
+  switch(type)
   {
-    case QSurfaceFormat::OpenGLES:
-    {
-      if (major >= 3)
+    case QSurfaceFormat::OpenGLES: {
+      if(major >= 3)
       {
         return major * 100 + minor * 10;
       }
@@ -55,15 +53,14 @@ int GLCapabilities::glShaderVersion() noexcept
         return 100;
       }
     }
-    case QSurfaceFormat::OpenGL:
-    {
-      if (major > 3 || (major == 3 && minor >= 3))
+    case QSurfaceFormat::OpenGL: {
+      if(major > 3 || (major == 3 && minor >= 3))
       {
         return major * 100 + minor * 10;
       }
-      else if (major == 3)
+      else if(major == 3)
       {
-        switch (minor)
+        switch(minor)
         {
           case 2:
             return 150;
@@ -73,9 +70,9 @@ int GLCapabilities::glShaderVersion() noexcept
             return 120; // Technically 140 but Rhi looks for 120
         }
       }
-      else if (major == 2)
+      else if(major == 2)
       {
-        switch (minor)
+        switch(minor)
         {
           case 1:
             return 120;
@@ -88,8 +85,7 @@ int GLCapabilities::glShaderVersion() noexcept
         return 120;
       }
     }
-    default:
-    {
+    default: {
       return major * 100 + minor * 10;
     }
   }

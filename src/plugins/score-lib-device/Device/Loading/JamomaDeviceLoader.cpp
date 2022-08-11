@@ -24,30 +24,30 @@ static ossia::value stringToVal(const QString& str, const QString& type)
 {
   ossia::value val;
   bool ok = false;
-  if (type == "integer")
+  if(type == "integer")
   {
     val = str.toInt(&ok);
   }
-  else if (type == "decimal")
+  else if(type == "decimal")
   {
     val = str.toFloat(&ok);
   }
-  else if (type == "boolean")
+  else if(type == "boolean")
   {
     val = (str.toFloat(&ok) != 0);
   }
-  else if (type == "string")
+  else if(type == "string")
   {
     val = str.toStdString();
     ok = true;
   }
-  else if (type == "array")
+  else if(type == "array")
   {
     val = std::vector<ossia::value>{};
     // TODO
     ok = true;
   }
-  else if (type == "none")
+  else if(type == "none")
   {
     val = ossia::impulse{};
     ok = true;
@@ -57,7 +57,7 @@ static ossia::value stringToVal(const QString& str, const QString& type)
     qDebug() << "Unknown type: " << type;
   }
 
-  if (!ok)
+  if(!ok)
     return ossia::value{};
 
   return val;
@@ -67,30 +67,30 @@ static ossia::value stringToOssiaVal(const QString& str, const QString& type)
 {
   ossia::value val;
   bool ok = false;
-  if (type == "integer")
+  if(type == "integer")
   {
     val = str.toInt(&ok);
   }
-  else if (type == "decimal")
+  else if(type == "decimal")
   {
     val = str.toFloat(&ok);
   }
-  else if (type == "boolean")
+  else if(type == "boolean")
   {
     val = (str.toFloat(&ok) != 0);
   }
-  else if (type == "string")
+  else if(type == "string")
   {
     val = str.toStdString();
     ok = true;
   }
-  else if (type == "array")
+  else if(type == "array")
   {
     val = std::vector<ossia::value>{};
     // TODO
     ok = true;
   }
-  else if (type == "none")
+  else if(type == "none")
   {
     val = ossia::impulse{};
     ok = true;
@@ -110,7 +110,7 @@ static ossia::value stringToOssiaVal(const QString& str, const QString& type)
 static ossia::value
 read_valueDefault(const QDomElement& dom_element, const QString& type)
 {
-  if (dom_element.hasAttribute("valueDefault"))
+  if(dom_element.hasAttribute("valueDefault"))
   {
     const auto value = dom_element.attribute("valueDefault");
     return stringToVal(value, type);
@@ -121,14 +121,13 @@ read_valueDefault(const QDomElement& dom_element, const QString& type)
   }
 }
 
-static std::optional<ossia::access_mode>
-read_service(const QDomElement& dom_element)
+static std::optional<ossia::access_mode> read_service(const QDomElement& dom_element)
 {
   using namespace score;
-  if (dom_element.hasAttribute("service"))
+  if(dom_element.hasAttribute("service"))
   {
     const auto service = dom_element.attribute("service");
-    if (service == "parameter")
+    if(service == "parameter")
       return ossia::access_mode::BI;
     /*
 else if(service == "")
@@ -143,19 +142,18 @@ else if(service == "")
   return std::nullopt;
 }
 
-static auto
-read_rangeBounds(const QDomElement& dom_element, const QString& type)
+static auto read_rangeBounds(const QDomElement& dom_element, const QString& type)
 {
   ossia::domain domain;
 
-  if (dom_element.hasAttribute("rangeBounds"))
+  if(dom_element.hasAttribute("rangeBounds"))
   {
     QString bounds = dom_element.attribute("rangeBounds");
     QString minBound = bounds;
     minBound.truncate(bounds.indexOf(" "));
     bounds.remove(0, minBound.length() + 1); // contains max
 
-    if (type == "decimal" || type == "integer")
+    if(type == "decimal" || type == "integer")
     {
       auto v1 = stringToOssiaVal(minBound, type);
       auto v2 = stringToOssiaVal(bounds, type);
@@ -168,10 +166,10 @@ read_rangeBounds(const QDomElement& dom_element, const QString& type)
 
 static auto read_rangeClipmode(const QDomElement& dom_element)
 {
-  if (dom_element.hasAttribute("rangeClipmode"))
+  if(dom_element.hasAttribute("rangeClipmode"))
   {
     const auto clipmode = dom_element.attribute("rangeClipmode");
-    if (clipmode == "both")
+    if(clipmode == "both")
     {
       return ossia::bounding_mode::CLIP;
     }
@@ -185,7 +183,7 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
   QDomElement dom_child = dom_element.firstChildElement("");
   QString name;
 
-  if (dom_element.hasAttribute("address"))
+  if(dom_element.hasAttribute("address"))
   {
     name = dom_element.attribute("address");
   }
@@ -197,7 +195,7 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
   Device::AddressSettings addr;
   addr.name = name;
 
-  if (dom_element.hasAttribute("type"))
+  if(dom_element.hasAttribute("type"))
   {
     const auto type = dom_element.attribute("type");
     addr.value = read_valueDefault(dom_element, type);
@@ -212,20 +210,20 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
     addr.domain = read_rangeBounds(dom_element, type);
     addr.clipMode = read_rangeClipmode(dom_element);
 
-    if (!addr.ioType)
+    if(!addr.ioType)
     {
-      if (addr.value.valid())
+      if(addr.value.valid())
       {
         addr.ioType = ossia::access_mode::BI;
       }
     }
 
-    if (dom_element.previousSibling().isComment())
+    if(dom_element.previousSibling().isComment())
     {
       auto desc = dom_element.previousSibling().nodeValue();
-      if (desc.startsWith("\""))
+      if(desc.startsWith("\""))
         desc.remove(0, 1);
-      if (desc.endsWith("\""))
+      if(desc.endsWith("\""))
         desc.chop(1);
       ossia::net::set_description(addr, desc.toStdString());
     }
@@ -233,12 +231,12 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
 
   auto& childNode = parentNode.emplace_back(addr, &parentNode);
 
-  while (!dom_child.isNull() && dom_element.hasChildNodes())
+  while(!dom_child.isNull() && dom_element.hasChildNodes())
   {
     convertFromDomElement(dom_child, childNode);
 
     auto ns = dom_child.nextSibling();
-    while (ns.isComment())
+    while(ns.isComment())
     {
       ns = ns.nextSibling();
     }
@@ -251,7 +249,7 @@ bool loadDeviceFromXML(const QString& filePath, Device::Node& node)
 {
   // Open the Jamoma XML device
   QFile doc_xml(filePath);
-  if (!doc_xml.open(QIODevice::ReadOnly))
+  if(!doc_xml.open(QIODevice::ReadOnly))
   {
     qDebug() << "Erreur : Impossible d'ouvrir le ficher XML";
     doc_xml.close();
@@ -259,7 +257,7 @@ bool loadDeviceFromXML(const QString& filePath, Device::Node& node)
   }
 
   QDomDocument domDoc;
-  if (!domDoc.setContent(&doc_xml))
+  if(!domDoc.setContent(&doc_xml))
   {
     qDebug() << "Erreur : Impossible de charger le ficher XML";
     doc_xml.close();
@@ -273,7 +271,7 @@ bool loadDeviceFromXML(const QString& filePath, Device::Node& node)
   QDomElement application = doc.firstChildElement("application");
   QDomElement dom_node = application.firstChildElement("");
 
-  while (!dom_node.isNull())
+  while(!dom_node.isNull())
   {
     convertFromDomElement(dom_node, node);
     dom_node = dom_node.nextSiblingElement("");

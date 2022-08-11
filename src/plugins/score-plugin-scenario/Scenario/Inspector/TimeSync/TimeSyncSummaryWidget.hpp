@@ -21,8 +21,7 @@ class TimeSyncSummaryWidget final : public QWidget
 {
 public:
   explicit TimeSyncSummaryWidget(
-      const TimeSyncModel&,
-      const score::DocumentContext& doc,
+      const TimeSyncModel&, const score::DocumentContext& doc,
       QWidget* parent = nullptr);
   ~TimeSyncSummaryWidget() override;
 

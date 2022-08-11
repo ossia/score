@@ -16,20 +16,17 @@ class ArtnetProtocolFactory final : public DefaultProtocolFactory
   getEnumerator(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface* makeDevice(
-      const Device::DeviceSettings& settings,
-      const Explorer::DeviceDocumentPlugin& plug,
+      const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plug,
       const score::DocumentContext& ctx) override;
 
   const Device::DeviceSettings& defaultSettings() const noexcept override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,

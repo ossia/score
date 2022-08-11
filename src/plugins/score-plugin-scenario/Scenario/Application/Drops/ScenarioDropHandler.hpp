@@ -1,4 +1,6 @@
 #pragma once
+#include <Scenario/Palette/ScenarioPoint.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -6,7 +8,6 @@
 #include <QMimeData>
 #include <QPointF>
 
-#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace score
@@ -27,9 +28,7 @@ struct MagneticStates
 };
 
 MagneticStates magneticStates(
-    MagneticStates cur,
-    Scenario::Point pt,
-    const Scenario::ScenarioPresenter& pres);
+    MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioPresenter& pres);
 
 class ScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT DropHandler : public score::InterfaceBase
@@ -39,20 +38,14 @@ public:
   ~DropHandler() override;
 
   // Returns false if not handled.
-  virtual bool dragEnter(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime);
+  virtual bool
+  dragEnter(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime);
 
-  virtual bool dragMove(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime);
+  virtual bool
+  dragMove(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime);
 
-  virtual bool dragLeave(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime);
+  virtual bool
+  dragLeave(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime);
 
   virtual bool canDrop(const QMimeData& mime) const noexcept;
 
@@ -61,8 +54,7 @@ public:
       = 0;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT GhostIntervalDropHandler
-    : public DropHandler
+class SCORE_PLUGIN_SCENARIO_EXPORT GhostIntervalDropHandler : public DropHandler
 {
 public:
   ~GhostIntervalDropHandler() override;
@@ -74,18 +66,12 @@ protected:
   MagneticStates m_magnetic{};
 
 private:
-  bool dragEnter(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) final override;
-  bool dragMove(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) final override;
-  bool dragLeave(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) final override;
+  bool dragEnter(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+      final override;
+  bool dragMove(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+      final override;
+  bool dragLeave(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+      final override;
 };
 
 class DropHandlerList final : public score::InterfaceList<DropHandler>
@@ -93,23 +79,15 @@ class DropHandlerList final : public score::InterfaceList<DropHandler>
 public:
   ~DropHandlerList() override;
 
-  bool dragEnter(
-      const ScenarioPresenter& scen,
-      QPointF pos,
-      const QMimeData& mime) const;
-  bool dragMove(
-      const ScenarioPresenter& scen,
-      QPointF pos,
-      const QMimeData& mime) const;
-  bool dragLeave(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
-      const;
-  bool drop(const ScenarioPresenter& scen, QPointF pos, const QMimeData& mime)
-      const;
+  bool
+  dragEnter(const ScenarioPresenter& scen, QPointF pos, const QMimeData& mime) const;
+  bool dragMove(const ScenarioPresenter& scen, QPointF pos, const QMimeData& mime) const;
+  bool dragLeave(const ScenarioPresenter&, QPointF pos, const QMimeData& mime) const;
+  bool drop(const ScenarioPresenter& scen, QPointF pos, const QMimeData& mime) const;
 };
 
 class IntervalModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDropHandler
-    : public score::InterfaceBase
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDropHandler : public score::InterfaceBase
 {
   SCORE_INTERFACE(IntervalDropHandler, "b9f3efc0-b906-487a-ac49-87924edd2cff")
 public:
@@ -117,23 +95,18 @@ public:
 
   // Returns false if not handled.
   virtual bool drop(
-      const score::DocumentContext& ctx,
-      const Scenario::IntervalModel&,
-      QPointF pos,
+      const score::DocumentContext& ctx, const Scenario::IntervalModel&, QPointF pos,
       const QMimeData& mime)
       = 0;
 };
 
-class IntervalDropHandlerList final
-    : public score::InterfaceList<IntervalDropHandler>
+class IntervalDropHandlerList final : public score::InterfaceList<IntervalDropHandler>
 {
 public:
   ~IntervalDropHandlerList() override;
 
   bool drop(
-      const score::DocumentContext& ctx,
-      const Scenario::IntervalModel&,
-      QPointF pos,
+      const score::DocumentContext& ctx, const Scenario::IntervalModel&, QPointF pos,
       const QMimeData& mime) const;
 };
 }

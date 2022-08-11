@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetAutoTrigger.hpp"
 
-#include <score/model/path/PathSerialization.hpp>
-
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+
+#include <score/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

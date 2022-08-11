@@ -2,14 +2,14 @@
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <Scenario/Document/Components/IntervalComponent.hpp>
+
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/model/Identifier.hpp>
 
 #include <ossia-qt/time_value.hpp>
 
 #include <QObject>
-
-#include <Scenario/Document/Components/IntervalComponent.hpp>
 
 #include <memory>
 #include <verdigris>
@@ -79,10 +79,8 @@ public:
 
   static const constexpr bool is_unique = true;
   IntervalComponentBase(
-      Scenario::IntervalModel& score_cst,
-      const std::shared_ptr<ossia::scenario>& scenar,
-      const Context& ctx,
-      QObject* parent);
+      Scenario::IntervalModel& score_cst, const std::shared_ptr<ossia::scenario>& scenar,
+      const Context& ctx, QObject* parent);
   IntervalComponentBase(const IntervalComponentBase&) = delete;
   IntervalComponentBase(IntervalComponentBase&&) = delete;
   IntervalComponentBase& operator=(const IntervalComponentBase&) = delete;
@@ -103,16 +101,10 @@ public:
   void executionStarted();
   void executionStopped();
 
-  ProcessComponent* make(
-      ProcessComponentFactory& factory,
-      Process::ProcessModel& process);
   ProcessComponent*
-  make(Process::ProcessModel& process)
-  {
-    return nullptr;
-  }
-  std::function<void()>
-  removing(const Process::ProcessModel& e, ProcessComponent& c);
+  make(ProcessComponentFactory& factory, Process::ProcessModel& process);
+  ProcessComponent* make(Process::ProcessModel& process) { return nullptr; }
+  std::function<void()> removing(const Process::ProcessModel& e, ProcessComponent& c);
 
   template <typename... Args>
   void added(Args&&...)
@@ -121,7 +113,7 @@ public:
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
-    if (f)
+    if(f)
       f();
   }
 
@@ -129,9 +121,8 @@ public:
 
 protected:
   void on_processAdded(Process::ProcessModel& score_proc);
-  void recomputePropagate(
-      const Process::ProcessModel& process,
-      const Process::Port& port);
+  void
+  recomputePropagate(const Process::ProcessModel& process, const Process::Port& port);
 
   std::shared_ptr<ossia::time_interval> m_ossia_interval;
   score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
@@ -147,8 +138,7 @@ public:
   template <typename... Args>
   IntervalComponent(Args&&... args)
       : PolymorphicComponentHierarchyManager{
-          score::lazy_init_t{},
-          std::forward<Args>(args)...}
+          score::lazy_init_t{}, std::forward<Args>(args)...}
   {
   }
 
@@ -170,8 +160,7 @@ public:
   //! To be called from the API edition thread
   void onSetup(
       std::shared_ptr<IntervalComponent>,
-      std::shared_ptr<ossia::time_interval> ossia_cst,
-      interval_duration_data dur,
+      std::shared_ptr<ossia::time_interval> ossia_cst, interval_duration_data dur,
       bool executionRoot = false);
 
 public:

@@ -3,9 +3,12 @@
 
 #include "TimeSyncModel.hpp"
 
+#include <State/Expression.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <State/Expression.hpp>
+
+#include <Scenario/Document/VerticalExtent.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
@@ -16,15 +19,13 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <Scenario/Document/VerticalExtent.hpp>
-
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
 {
   m_stream << timesync.m_date << timesync.m_events << timesync.m_musicalSync
-           << timesync.m_active << timesync.m_autotrigger
-           << timesync.m_startPoint << timesync.m_expression;
+           << timesync.m_active << timesync.m_autotrigger << timesync.m_startPoint
+           << timesync.m_expression;
 
   insertDelimiter();
 }
@@ -54,8 +55,7 @@ JSONReader::read(const Scenario::TimeSyncModel& timesync)
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONWriter::write(Scenario::TimeSyncModel& timesync)
+SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::TimeSyncModel& timesync)
 {
   timesync.m_date <<= obj[strings.Date];
   timesync.m_events <<= obj[strings.Events];
@@ -83,7 +83,7 @@ JSONWriter::write(Scenario::TimeSyncModel& timesync)
   {
     QString exprstr;
     assign_with_default(exprstr, obj.tryGet(strings.Expression), "");
-    if (auto expr = State::parseExpression(exprstr))
+    if(auto expr = State::parseExpression(exprstr))
       timesync.m_expression = *std::move(expr);
 
     assign_with_default(timesync.m_active, obj.tryGet("Active"), false);

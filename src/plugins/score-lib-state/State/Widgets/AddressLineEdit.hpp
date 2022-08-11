@@ -29,7 +29,7 @@ public:
       QString s = str;
       int i = 0;
       QPalette palette{this->palette()};
-      if (m_validator.validate(s, i) == QValidator::State::Acceptable)
+      if(m_validator.validate(s, i) == QValidator::State::Acceptable)
       {
         palette.setColor(QPalette::Base, QColor{"#161514"});
         palette.setColor(QPalette::Light, QColor{"#c58014"});
@@ -59,8 +59,7 @@ private:
 };
 
 template <typename Parent_T>
-class AddressLineEdit final
-    : public AddressLineEditBase<AddressValidator, Parent_T>
+class AddressLineEdit final : public AddressLineEditBase<AddressValidator, Parent_T>
 {
 public:
   using AddressLineEditBase<AddressValidator, Parent_T>::AddressLineEditBase;
@@ -71,7 +70,6 @@ class AddressAccessorLineEdit final
     : public AddressLineEditBase<AddressAccessorValidator, Parent_T>
 {
 public:
-  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::
-      AddressLineEditBase;
+  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::AddressLineEditBase;
 };
 }

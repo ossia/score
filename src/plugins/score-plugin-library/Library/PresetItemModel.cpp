@@ -1,19 +1,20 @@
 #include "PresetItemModel.hpp"
 
-#include <Library/LibrarySettings.hpp>
-#include <Library/LibraryInterface.hpp>
-#include <Library/ProcessWidget.hpp>
 #include <Process/ApplicationPlugin.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
+#include <Library/LibraryInterface.hpp>
+#include <Library/LibrarySettings.hpp>
+#include <Library/ProcessWidget.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/File.hpp>
 
-#include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/detail/ssize.hpp>
 
@@ -23,15 +24,13 @@ namespace Library
 {
 
 PresetItemModel::PresetItemModel(
-    const score::GUIApplicationContext& ctx,
-    QObject* parent)
+    const score::GUIApplicationContext& ctx, QObject* parent)
     : QAbstractItemModel{parent}
     , presets{ctx.applicationPlugin<Process::ApplicationPlugin>().presets}
 {
 }
 
-QModelIndex
-PresetItemModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex PresetItemModel::index(int row, int column, const QModelIndex& parent) const
 {
   return createIndex(row, column, nullptr);
 }
@@ -53,9 +52,9 @@ int PresetItemModel::columnCount(const QModelIndex& parent) const
 
 QVariant PresetItemModel::data(const QModelIndex& index, int role) const
 {
-  if (index.row() < std::ssize(presets))
+  if(index.row() < std::ssize(presets))
   {
-    switch (role)
+    switch(role)
     {
       case Qt::DisplayRole:
       case Qt::EditRole:
@@ -69,14 +68,14 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
 void PresetListView::mouseDoubleClickEvent(QMouseEvent* event)
 {
   auto proxy_index = indexAt(event->pos());
-  if (!proxy_index.isValid())
+  if(!proxy_index.isValid())
     return;
 
   auto proxy = static_cast<QSortFilterProxyModel*>(this->model());
   auto model_index = proxy->mapToSource(proxy_index);
 
   auto& self = *safe_cast<PresetItemModel*>(proxy->sourceModel());
-  if (model_index.row() < 0 || model_index.row() >= int(self.presets.size()))
+  if(model_index.row() < 0 || model_index.row() >= int(self.presets.size()))
     return;
 
   auto& preset = self.presets[model_index.row()];
@@ -86,11 +85,11 @@ void PresetListView::mouseDoubleClickEvent(QMouseEvent* event)
 }
 static bool isValidForFilename(const QString& name)
 {
-  if (name.isEmpty())
+  if(name.isEmpty())
     return false;
 
-  for (QChar c : QStringLiteral(",^@=+{}[]~!?:&*\"|#%<>$\"';`'"))
-    if (name.contains(c))
+  for(QChar c : QStringLiteral(",^@=+{}[]~!?:&*\"|#%<>$\"';`'"))
+    if(name.contains(c))
       return false;
 
   return true;
@@ -103,8 +102,7 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   const auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   auto& factory = *procs.get(preset.key.key);
   const auto& desc = factory.descriptor(preset.key.effect); // TODO
-  QString presetFolder
-      = ctx.settings<Library::Settings::Model>().getUserPresetsPath();
+  QString presetFolder = ctx.settings<Library::Settings::Model>().getUserPresetsPath();
 
   presetFolder += "/" + factory.prettyName();
 
@@ -116,24 +114,24 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   QString presetPath = presetFolder + "/" + preset.name + ".scp";
 
   // FIXME refactor with score::addUniqueSuffix
-  if (QFile::exists(presetPath))
+  if(QFile::exists(presetPath))
   {
     presetPath = presetFolder + "/" + preset.name + " (%1).scp";
 
     int idx = 1;
-    while (QFile::exists(presetPath.arg(idx)))
+    while(QFile::exists(presetPath.arg(idx)))
       idx++;
     presetPath = presetPath.arg(idx);
     preset.name = preset.name + QString("(%1)").arg(idx);
   }
 
   QFile f{presetPath};
-  if (!f.open(QIODevice::WriteOnly))
+  if(!f.open(QIODevice::WriteOnly))
     return false;
 
   f.write(preset.toJson());
 
-  if (!old.isEmpty())
+  if(!old.isEmpty())
   {
     // Remove the old file
     const QString oldPath = presetFolder + "/" + old + ".scp";
@@ -143,26 +141,23 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   return true;
 }
 
-bool PresetItemModel::setData(
-    const QModelIndex& index,
-    const QVariant& value,
-    int role)
+bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
-  if (!index.isValid())
+  if(!index.isValid())
     return false;
-  if (index.row() < 0 || index.row() >= int(presets.size()))
+  if(index.row() < 0 || index.row() >= int(presets.size()))
     return false;
-  if (role != Qt::EditRole)
+  if(role != Qt::EditRole)
     return false;
   auto str = value.toString();
-  if (!isValidForFilename(str))
+  if(!isValidForFilename(str))
     return false;
 
   auto& preset = presets[index.row()];
 
   auto old = preset.name;
   preset.name = str;
-  if (!updatePresetFilename(preset, old))
+  if(!updatePresetFilename(preset, old))
   {
     preset.name = old;
     return false;
@@ -172,43 +167,36 @@ bool PresetItemModel::setData(
 }
 
 bool PresetItemModel::dropMimeData(
-    const QMimeData* data,
-    Qt::DropAction act,
-    int row,
-    int col,
+    const QMimeData* data, Qt::DropAction act, int row, int col,
     const QModelIndex& parent)
 {
   const auto& ctx = score::GUIAppContext();
-  const rapidjson::Document jsondoc
-      = readJson(data->data(score::mime::layerdata()));
-  if (!jsondoc.HasMember("Path"))
+  const rapidjson::Document jsondoc = readJson(data->data(score::mime::layerdata()));
+  if(!jsondoc.HasMember("Path"))
     return false;
   auto obj = JsonValue{jsondoc}["Path"].to<Path<Process::ProcessModel>>();
   auto doc = ctx.docManager.currentDocument();
-  if (!doc)
+  if(!doc)
     return false;
   const Process::ProcessModel* proc = obj.try_find(doc->context());
-  if (!proc)
+  if(!proc)
     return false;
 
   return savePreset(*proc);
 }
 
-bool PresetItemModel::savePreset(
-    const Process::ProcessModel& proc)
+bool PresetItemModel::savePreset(const Process::ProcessModel& proc)
 {
   auto preset = proc.savePreset();
-  if (!updatePresetFilename(preset))
+  if(!updatePresetFilename(preset))
     return false;
 
   beginResetModel();
   // beginInsertRows(QModelIndex(), presets.size(), presets.size());
   auto it = std::lower_bound(
-      presets.begin(),
-      presets.end(),
-      preset,
+      presets.begin(), presets.end(), preset,
       [](const Process::Preset& lhs, const Process::Preset& rhs) {
-        return lhs.key < rhs.key;
+    return lhs.key < rhs.key;
       });
 
   presets.insert(it, std::move(preset));
@@ -219,10 +207,7 @@ bool PresetItemModel::savePreset(
 }
 
 bool PresetItemModel::canDropMimeData(
-    const QMimeData* data,
-    Qt::DropAction act,
-    int row,
-    int col,
+    const QMimeData* data, Qt::DropAction act, int row, int col,
     const QModelIndex& parent) const
 {
   return data->hasFormat(score::mime::layerdata());
@@ -230,11 +215,11 @@ bool PresetItemModel::canDropMimeData(
 
 QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
 {
-  if (indexes.empty())
+  if(indexes.empty())
     return nullptr;
 
   int row = indexes.front().row();
-  if (row >= int(presets.size()) || row < 0)
+  if(row >= int(presets.size()) || row < 0)
     return nullptr;
 
   auto mime = new QMimeData;
@@ -264,9 +249,7 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
-bool PresetFilterProxy::filterAcceptsRow(
-    int srcRow,
-    const QModelIndex& srcParent) const
+bool PresetFilterProxy::filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const
 {
   PresetItemModel* model = safe_cast<PresetItemModel*>(sourceModel());
   if(model->presets[srcRow].key.key != currentFilter.key)

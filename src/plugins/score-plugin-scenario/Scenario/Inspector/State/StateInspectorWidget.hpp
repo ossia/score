@@ -14,9 +14,7 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 public:
   explicit StateInspectorWidget(
-      const StateModel& object,
-      const score::DocumentContext& context,
-      QWidget* parent);
+      const StateModel& object, const score::DocumentContext& context, QWidget* parent);
 
 private:
   void splitFromEvent();

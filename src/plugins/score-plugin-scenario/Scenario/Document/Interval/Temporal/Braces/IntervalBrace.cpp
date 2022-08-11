@@ -4,20 +4,18 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <QCursor>
-#include <QPainter>
-
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+
+#include <QCursor>
+#include <QPainter>
 
 namespace Scenario
 {
 LeftBraceView::~LeftBraceView() { }
 
 RightBraceView::~RightBraceView() { }
-IntervalBrace::IntervalBrace(
-    const IntervalView& parentCstr,
-    QGraphicsItem* parent)
+IntervalBrace::IntervalBrace(const IntervalView& parentCstr, QGraphicsItem* parent)
     : QGraphicsItem()
     , m_parent{parentCstr}
 {
@@ -38,23 +36,21 @@ QRectF IntervalBrace::boundingRect() const
 }
 
 void IntervalBrace::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setBrush(skin.NoBrush());
 
-  if (m_parent.isSelected())
+  if(m_parent.isSelected())
   {
     painter->setPen(skin.IntervalBraceSelected());
   }
-  else if (m_parent.warning())
+  else if(m_parent.warning())
   {
     painter->setPen(skin.IntervalBraceWarning());
   }
-  else if (!m_parent.isValid())
+  else if(!m_parent.isValid())
   {
     painter->setPen(skin.IntervalBraceInvalid());
   }
@@ -76,7 +72,7 @@ void IntervalBrace::paint(
 
 void IntervalBrace::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::MouseButton::LeftButton)
+  if(event->button() == Qt::MouseButton::LeftButton)
     m_parent.presenter().pressed(event->scenePos());
 }
 

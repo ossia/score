@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LibraryPanelDelegate.hpp"
 
+#include <Process/ProcessList.hpp>
+
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessWidget.hpp>
 #include <Library/ProjectLibraryWidget.hpp>
 #include <Library/SystemLibraryWidget.hpp>
-#include <Process/ProcessList.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -22,10 +23,10 @@ UserPanel::UserPanel(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new SystemLibraryWidget{ctx, nullptr}}
 {
-  m_widget->setStatusTip(QObject::tr(
-      "This panel allows to browse medias and presets in the documents. \n"
-      "Check for library updates on \n"
-      "github.com/ossia/score-user-library"));
+  m_widget->setStatusTip(
+      QObject::tr("This panel allows to browse medias and presets in the documents. \n"
+                  "Check for library updates on \n"
+                  "github.com/ossia/score-user-library"));
 }
 
 QWidget* UserPanel::widget()
@@ -75,11 +76,9 @@ const score::PanelStatus& ProjectPanel::defaultPanelStatus() const
   return status;
 }
 
-void ProjectPanel::on_modelChanged(
-    score::MaybeDocument oldm,
-    score::MaybeDocument newm)
+void ProjectPanel::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
 {
-  if (newm)
+  if(newm)
   {
     auto& meta = newm->document.metadata();
     m_widget->setRoot(meta);

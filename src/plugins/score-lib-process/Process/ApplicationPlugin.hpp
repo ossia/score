@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Preset.hpp>
 #include <Process/Process.hpp>
+
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 namespace Process
@@ -17,7 +18,7 @@ public:
   ~ApplicationPlugin();
 
   void savePreset(const Process::ProcessModel* proc)
-  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, savePreset, proc)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, savePreset, proc)
 
   void addPreset(Process::Preset&& p);
 

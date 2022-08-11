@@ -1,7 +1,7 @@
 #pragma once
-#include <QRect>
-
 #include <Scenario/Document/Interval/IntervalView.hpp>
+
+#include <QRect>
 
 #include <verdigris>
 
@@ -18,26 +18,20 @@ class FullViewIntervalView final : public IntervalView
   W_OBJECT(FullViewIntervalView)
 
 public:
-  FullViewIntervalView(
-      FullViewIntervalPresenter& presenter,
-      QGraphicsItem* parent);
+  FullViewIntervalView(FullViewIntervalPresenter& presenter, QGraphicsItem* parent);
 
   ~FullViewIntervalView() override;
 
   void drawPaths(
-      QPainter& p,
-      QRectF visibleRect,
-      const score::Brush& defaultColor,
+      QPainter& p, QRectF visibleRect, const score::Brush& defaultColor,
       const Process::Style& skin);
   void updatePaths() final override;
   void updatePlayPaths() final override;
   void updateOverlayPos();
 
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void setGuiWidth(double);
 
@@ -45,12 +39,8 @@ public:
   void setSnapLine(std::optional<double>);
 
 private:
-  void
-  drawDashedPath(QPainter& p, QRectF visibleRect, const Process::Style& skin);
-  void drawPlayDashedPath(
-      QPainter& p,
-      QRectF visibleRect,
-      const Process::Style& skin);
+  void drawDashedPath(QPainter& p, QRectF visibleRect, const Process::Style& skin);
+  void drawPlayDashedPath(QPainter& p, QRectF visibleRect, const Process::Style& skin);
   double m_guiWidth{};
   std::optional<double> m_snapLine{};
 };

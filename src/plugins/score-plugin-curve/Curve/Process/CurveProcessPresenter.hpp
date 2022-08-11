@@ -1,13 +1,14 @@
 #pragma once
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/LayerView.hpp>
+
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <Process/LayerView.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -27,25 +28,18 @@ class CurveProcessPresenter : public Process::LayerPresenter
 {
 public:
   CurveProcessPresenter(
-      const Curve::Style& style,
-      const Model_T& lm,
-      LayerView_T* view,
-      const Process::Context& ctx,
-      QObject* parent)
+      const Curve::Style& style, const Model_T& lm, LayerView_T* view,
+      const Process::Context& ctx, QObject* parent)
       : LayerPresenter{lm, view, ctx, parent}
       , m_view{static_cast<LayerView_T*>(view)}
       , m_curve{ctx, style, lm.curve(), new View{m_view}, this}
       , m_commandDispatcher{ctx.commandStack}
       , m_sm{m_context, m_curve}
   {
-    con(lm,
-        &CurveProcessModel::curveChanged,
-        this,
+    con(lm, &CurveProcessModel::curveChanged, this,
         &CurveProcessPresenter::parentGeometryChanged);
 
-    con(m_curve,
-        &Presenter::contextMenuRequested,
-        this,
+    con(m_curve, &Presenter::contextMenuRequested, this,
         &LayerPresenter::contextMenuRequested);
 
     connect(&m_curve.view(), &View::doubleClick, this, [this](QPointF pt) {
@@ -61,7 +55,7 @@ public:
   void on_focusChanged() final override
   {
     bool b = focused();
-    if (b)
+    if(b)
       m_view->setFocus();
 
     // TODO Same for Scenario please.
@@ -105,7 +99,7 @@ public:
   {
     // Compute the rect with the duration of the process.
     QRectF rect = m_view->boundingRect(); // for the height
-    m_curve.view().setRect(rect); // wtf
+    m_curve.view().setRect(rect);         // wtf
 
     const auto dw = m_process.duration().toPixels(m_zoomRatio);
     m_curve.view().setDefaultWidth(dw);
@@ -114,19 +108,14 @@ public:
   }
 
   void fillContextMenu(
-      QMenu& menu,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu& menu, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager&) final override
   {
     m_curve.fillContextMenu(menu, pos, scenepos);
   }
 
   LayerView_T* view() { return m_view.impl; }
-  const Model_T& model() const
-  {
-    return static_cast<const Model_T&>(m_process);
-  }
+  const Model_T& model() const { return static_cast<const Model_T&>(m_process); }
 
 protected:
   graphics_item_ptr<LayerView_T> m_view;

@@ -2,14 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RecordAutomationCreationVisitor.hpp"
 
-#include <Automation/AutomationModel.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
-
-#include <ossia/network/domain/domain.hpp>
 
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <Automation/AutomationModel.hpp>
+
+#include <ossia/network/domain/domain.hpp>
 
 namespace Recording
 {
@@ -19,10 +20,7 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   // Note : since we directly create the IDs here, we don't have to worry
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToInterval{
-      box.interval,
-      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(),
-      {},
-      {}};
+      box.interval, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}, {}};
   cmd_proc->redo(recorder.context.context);
   auto& proc = box.interval.processes.at(cmd_proc->processId());
   auto& autom = static_cast<Automation::ProcessModel&>(proc);
@@ -93,10 +91,7 @@ void RecordAutomationCreationVisitor::operator()(std::array<float, 4> val)
   recorder.vec4_records.insert(std::make_pair(
       addresses.back().back(),
       std::array<RecordData, 4>{
-          makeCurve(val[0]),
-          makeCurve(val[1]),
-          makeCurve(val[2]),
-          makeCurve(val[3])}));
+          makeCurve(val[0]), makeCurve(val[1]), makeCurve(val[2]), makeCurve(val[3])}));
 }
 
 void RecordAutomationCreationVisitor::operator()(float f)

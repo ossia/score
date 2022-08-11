@@ -14,8 +14,7 @@ ProcessDropHandler::ProcessDropHandler() { }
 ProcessDropHandler::~ProcessDropHandler() { }
 
 void ProcessDropHandler::getCustomDrops(
-    std::vector<ProcessDropHandler::ProcessDrop>& drops,
-    const QMimeData& mime,
+    std::vector<ProcessDropHandler::ProcessDrop>& drops, const QMimeData& mime,
     const score::DocumentContext& ctx) const noexcept
 {
   // Check for special mime handling code
@@ -23,10 +22,8 @@ void ProcessDropHandler::getCustomDrops(
 }
 
 void ProcessDropHandler::getMimeDrops(
-    std::vector<ProcessDropHandler::ProcessDrop>& drops,
-    const QMimeData& mime,
-    const QString& fmt,
-    const score::DocumentContext& ctx) const noexcept
+    std::vector<ProcessDropHandler::ProcessDrop>& drops, const QMimeData& mime,
+    const QString& fmt, const score::DocumentContext& ctx) const noexcept
 {
   qDebug() << fmt << mime.data(fmt);
   auto df = DroppedFile{{}, mime.data(fmt)};
@@ -34,10 +31,8 @@ void ProcessDropHandler::getMimeDrops(
 }
 
 void ProcessDropHandler::getFileDrops(
-    std::vector<ProcessDropHandler::ProcessDrop>& drops,
-    const QMimeData& mime,
-    const QString& path,
-    const score::DocumentContext& ctx) const noexcept
+    std::vector<ProcessDropHandler::ProcessDrop>& drops, const QMimeData& mime,
+    const QString& path, const score::DocumentContext& ctx) const noexcept
 {
   // Check for handling through paths
   auto old_sz = drops.size();
@@ -46,7 +41,7 @@ void ProcessDropHandler::getFileDrops(
     return;
 
   // Fall back to manual handling
-  if (QFile file{path}; file.open(QIODevice::ReadOnly))
+  if(QFile file{path}; file.open(QIODevice::ReadOnly))
   {
     dropData(drops, {QFileInfo{file}.absoluteFilePath(), file.readAll()}, ctx);
   }
@@ -63,22 +58,19 @@ QSet<QString> ProcessDropHandler::fileExtensions() const noexcept
 }
 
 void ProcessDropHandler::dropCustom(
-    std::vector<ProcessDropHandler::ProcessDrop>&,
-    const QMimeData& data,
+    std::vector<ProcessDropHandler::ProcessDrop>&, const QMimeData& data,
     const score::DocumentContext& ctx) const noexcept
 {
 }
 
 void ProcessDropHandler::dropPath(
-    std::vector<ProcessDropHandler::ProcessDrop>&,
-    const QString& data,
+    std::vector<ProcessDropHandler::ProcessDrop>&, const QString& data,
     const score::DocumentContext& ctx) const noexcept
 {
 }
 
 void ProcessDropHandler::dropData(
-    std::vector<ProcessDropHandler::ProcessDrop>&,
-    const DroppedFile& data,
+    std::vector<ProcessDropHandler::ProcessDrop>&, const DroppedFile& data,
     const score::DocumentContext& ctx) const noexcept
 {
 }
@@ -86,14 +78,13 @@ void ProcessDropHandler::dropData(
 ProcessDropHandlerList::~ProcessDropHandlerList() { }
 
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
-    const QMimeData& mime,
-    const score::DocumentContext& ctx) const noexcept
+    const QMimeData& mime, const score::DocumentContext& ctx) const noexcept
 {
   std::vector<ProcessDropHandler::ProcessDrop> res;
 
   initCaches();
 
-  auto handleCustomDrop = [&] (auto& handler) {
+  auto handleCustomDrop = [&](auto& handler) {
     auto before = res.size();
     handler.getCustomDrops(res, mime, ctx);
     auto after = res.size();
@@ -127,10 +118,11 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   {
     auto path = url.toLocalFile();
     QFileInfo f{path};
-    if (f.exists())
+    if(f.exists())
     {
       auto ext = f.suffix().toLower();
-      if(auto it = m_perFileExtension.find(ext.toStdString()); it != m_perFileExtension.end())
+      if(auto it = m_perFileExtension.find(ext.toStdString());
+         it != m_perFileExtension.end())
       {
         auto& handler = *it->second;
 
@@ -146,7 +138,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
   // TODO Fix Sound::DropHandler::drop so that we don't need to do that
   {
-    auto comp = [] (auto& lhs, auto& rhs) {
+    auto comp = [](auto& lhs, auto& rhs) {
       return lhs.creation.customData < rhs.creation.customData;
     };
     ossia::remove_duplicates(res, comp);
@@ -175,10 +167,10 @@ std::optional<TimeVal> ProcessDropHandlerList::getMaxDuration(
   using drop_t = Process::ProcessDropHandler::ProcessDrop;
   SCORE_ASSERT(!res.empty());
 
-  auto max_t = std::max_element(
-      res.begin(), res.end(), [](const drop_t& l, const drop_t& r) {
-        return l.duration < r.duration;
-      });
+  auto max_t
+      = std::max_element(res.begin(), res.end(), [](const drop_t& l, const drop_t& r) {
+          return l.duration < r.duration;
+        });
 
   return max_t->duration;
 }

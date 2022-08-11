@@ -2,13 +2,13 @@
 
 #include <Process/TimeValueSerialization.hpp>
 
+#include <Scenario/Application/ScenarioValidity.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 
 #include <core/document/Document.hpp>
-
-#include <Scenario/Application/ScenarioValidity.hpp>
 
 namespace Scenario
 {
@@ -16,8 +16,7 @@ namespace Command
 {
 
 MergeTimeSyncs::MergeTimeSyncs(
-    const ProcessModel& scenario,
-    Id<TimeSyncModel> clickedTn,
+    const ProcessModel& scenario, Id<TimeSyncModel> clickedTn,
     Id<TimeSyncModel> hoveredTn)
     : m_scenarioPath{scenario}
     , m_movingTnId{std::move(clickedTn)}
@@ -32,10 +31,7 @@ MergeTimeSyncs::MergeTimeSyncs(
   m_serializedTimeSync = arr;
 
   m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{
-      scenario,
-      tn.events().front(),
-      destinantionTn.date(),
-      ExpandMode::Scale,
+      scenario, tn.events().front(), destinantionTn.date(), ExpandMode::Scale,
       LockMode::Free};
 
   m_targetTrigger = destinantionTn.expression();
@@ -59,14 +55,14 @@ void MergeTimeSyncs::undo(const score::DocumentContext& ctx) const
   auto events_in_timesync = recreatedTn->events();
   // we remove and re-add events in recreated Tn
   // to ensure correct parentship between elements.
-  for (const auto& evId : events_in_timesync)
+  for(const auto& evId : events_in_timesync)
   {
     recreatedTn->removeEvent(evId);
     globalTn.removeEvent(evId);
   }
 
   scenar.timeSyncs.add(recreatedTn);
-  for (const auto& evId : events_in_timesync)
+  for(const auto& evId : events_in_timesync)
   {
     recreatedTn->addEvent(evId);
   }
@@ -87,7 +83,7 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
   auto& destinationTn = scenar.timeSync(m_destinationTnId);
 
   auto movingEvents = movingTn.events();
-  for (auto& evId : movingEvents)
+  for(auto& evId : movingEvents)
   {
     movingTn.removeEvent(evId);
     destinationTn.addEvent(evId);
@@ -99,26 +95,23 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
 }
 
 void MergeTimeSyncs::update(
-    unused_t scenar,
-    const Id<TimeSyncModel>& clickedTn,
+    unused_t scenar, const Id<TimeSyncModel>& clickedTn,
     const Id<TimeSyncModel>& hoveredTn)
 {
 }
 
 void MergeTimeSyncs::serializeImpl(DataStreamInput& s) const
 {
-  s << m_scenarioPath << m_movingTnId << m_destinationTnId
-    << m_serializedTimeSync << m_moveCommand->serialize() << m_targetTrigger
-    << m_targetTriggerActive;
+  s << m_scenarioPath << m_movingTnId << m_destinationTnId << m_serializedTimeSync
+    << m_moveCommand->serialize() << m_targetTrigger << m_targetTriggerActive;
 }
 
 void MergeTimeSyncs::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray cmd;
 
-  s >> m_scenarioPath >> m_movingTnId >> m_destinationTnId
-      >> m_serializedTimeSync >> cmd >> m_targetTrigger
-      >> m_targetTriggerActive;
+  s >> m_scenarioPath >> m_movingTnId >> m_destinationTnId >> m_serializedTimeSync >> cmd
+      >> m_targetTrigger >> m_targetTriggerActive;
 
   m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{};
   m_moveCommand->deserialize(cmd);

@@ -30,16 +30,13 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void setFullScreen(bool);
 
   void createOutput(
-      GraphicsApi graphicsApi,
-      std::function<void()> onReady,
-      std::function<void()> onUpdate,
-      std::function<void()> onResize) override;
+      GraphicsApi graphicsApi, std::function<void()> onReady,
+      std::function<void()> onUpdate, std::function<void()> onResize) override;
   void destroyOutput() override;
   void updateGraphicsAPI(GraphicsApi) override;
 
   std::shared_ptr<RenderState> renderState() const override;
-  score::gfx::OutputNodeRenderer*
-  createRenderer(RenderList& r) const noexcept override;
+  score::gfx::OutputNodeRenderer* createRenderer(RenderList& r) const noexcept override;
   Configuration configuration() const noexcept override;
 
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
@@ -47,6 +44,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   std::function<void(QPointF, QPointF)> onMouseMove;
   std::function<void(QTabletEvent*)> onTabletMove;
   std::function<void(int, const QString&)> onKey;
+
 private:
   class BasicRenderer;
   class ScaledRenderer;
@@ -61,6 +59,5 @@ private:
   bool m_embedded{};
   bool m_fullScreen{};
   bool m_ownsWindow{};
-
 };
 }

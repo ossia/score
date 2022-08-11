@@ -31,8 +31,7 @@ MidiAPI::operator QStringList() const
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(MidiAPI){
-    QStringLiteral("Protocols/MidiAPI"),
-    QStringList{Protocols::Settings::MidiAPI{}}[0]};
+    QStringLiteral("Protocols/MidiAPI"), QStringList{Protocols::Settings::MidiAPI{}}[0]};
 
 static auto list()
 {
@@ -48,19 +47,19 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 libremidi::API Model::getMidiApiAsEnum() const noexcept
 {
   libremidi::API api = libremidi::API::UNSPECIFIED;
-  if (m_MidiAPI == "MME")
+  if(m_MidiAPI == "MME")
     api = libremidi::API::WINDOWS_MM;
-  else if (m_MidiAPI == "UWP")
+  else if(m_MidiAPI == "UWP")
     api = libremidi::API::WINDOWS_UWP;
-  else if (m_MidiAPI == "CoreMidi")
+  else if(m_MidiAPI == "CoreMidi")
     api = libremidi::API::MACOSX_CORE;
-  else if (m_MidiAPI == "ALSA (sequencer)")
+  else if(m_MidiAPI == "ALSA (sequencer)")
     api = libremidi::API::LINUX_ALSA_SEQ;
-  else if (m_MidiAPI == "ALSA (raw)")
+  else if(m_MidiAPI == "ALSA (raw)")
     api = libremidi::API::LINUX_ALSA_RAW;
-  else if (m_MidiAPI == "JACK")
+  else if(m_MidiAPI == "JACK")
     api = libremidi::API::UNIX_JACK;
-  else if (m_MidiAPI == "Emscripten")
+  else if(m_MidiAPI == "Emscripten")
     api = libremidi::API::EMSCRIPTEN_WEBMIDI;
   return api;
 }

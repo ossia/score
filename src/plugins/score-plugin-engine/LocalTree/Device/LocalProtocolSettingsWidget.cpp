@@ -51,10 +51,9 @@ Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void LocalProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void LocalProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
-  if (settings.deviceSpecificSettings.canConvert<LocalSpecificSettings>())
+  if(settings.deviceSpecificSettings.canConvert<LocalSpecificSettings>())
   {
     auto set = settings.deviceSpecificSettings.value<LocalSpecificSettings>();
     m_oscPort->setValue(set.oscPort);

@@ -21,7 +21,7 @@ struct MimeReader<Device::NodeList> : public MimeDataReader
     JSONReader r;
 
     r.stream.StartArray();
-    for (const auto& elt : lst)
+    for(const auto& elt : lst)
     {
       r.stream.StartObject();
       r.obj["Node"] = *elt;
@@ -45,7 +45,7 @@ struct MimeWriter<Device::FreeNodeList> : public MimeDataWriter
     const auto& arr = json.GetArray();
 
     auto& strings = score::StringConstant();
-    for (const rapidjson::Value& elt : arr)
+    for(const rapidjson::Value& elt : arr)
     {
       JSONObject::Deserializer des{elt};
       Device::FreeNode n;

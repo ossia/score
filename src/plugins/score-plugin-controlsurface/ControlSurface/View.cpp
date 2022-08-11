@@ -1,7 +1,8 @@
 #include "View.hpp"
 
-#include <Process/Style/ScenarioStyle.hpp>
 #include <State/MessageListSerialization.hpp>
+
+#include <Process/Style/ScenarioStyle.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -16,8 +17,7 @@ View::View(QGraphicsItem* parent)
 {
   setZValue(1);
   this->setFlags(
-      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
-      | ItemIsFocusable);
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 }
 
 View::~View() { }
@@ -50,10 +50,10 @@ void View::dragMoveEvent(QGraphicsSceneDragDropEvent* event) { }
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   Mime<State::MessageList>::Deserializer des(*event->mimeData());
-  if (event->mimeData()->hasFormat(score::mime::messagelist()))
+  if(event->mimeData()->hasFormat(score::mime::messagelist()))
   {
     auto list = des.deserialize();
-    if (!list.empty())
+    if(!list.empty())
       addressesDropped(list);
   }
 }

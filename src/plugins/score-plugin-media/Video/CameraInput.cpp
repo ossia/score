@@ -1,18 +1,17 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 #include "CameraInput.hpp"
-extern "C"
-{
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
-#include <score/tools/Debug.hpp>
 #include <Video/GpuFormats.hpp>
+
+#include <score/tools/Debug.hpp>
 
 #include <QDebug>
 #include <QElapsedTimer>
-
 
 #include <functional>
 namespace Video
@@ -31,10 +30,7 @@ CameraInput::~CameraInput() noexcept
 }
 
 bool CameraInput::load(
-    const std::string& inputKind,
-    const std::string& inputDevice,
-    int w,
-    int h,
+    const std::string& inputKind, const std::string& inputDevice, int w, int h,
     double fps) noexcept
 {
   close_file();
@@ -42,7 +38,7 @@ bool CameraInput::load(
   m_inputDevice = inputDevice;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
-  if (ifmt)
+  if(ifmt)
   {
     qDebug() << ifmt->name << ifmt->long_name;
     return true;
@@ -55,11 +51,11 @@ bool CameraInput::load(
 
 bool CameraInput::start() noexcept
 {
-  if (m_running)
+  if(m_running)
     return false;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
-  if (!ifmt)
+  if(!ifmt)
     return false;
 
   m_formatContext = avformat_alloc_context();
@@ -72,21 +68,19 @@ bool CameraInput::start() noexcept
   av_dict_set(&options, "input_format", format.c_str(), 0); // this one seems failing
   av_dict_set(&options, "video_size", fmt::format("{}x{}", w, h).c_str(), 0);
   */
-  if (avformat_open_input(
-          &m_formatContext, m_inputDevice.c_str(), ifmt, nullptr)
-      != 0)
+  if(avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr) != 0)
   {
     close_file();
     return false;
   }
 
-  if (avformat_find_stream_info(m_formatContext, nullptr) < 0)
+  if(avformat_find_stream_info(m_formatContext, nullptr) < 0)
   {
     close_file();
     return false;
   }
 
-  if (!open_stream())
+  if(!open_stream())
   {
     close_file();
     return false;
@@ -115,11 +109,11 @@ void CameraInput::release_frame(AVFrame* frame) noexcept
 
 void CameraInput::buffer_thread() noexcept
 {
-  while (m_running.load(std::memory_order_acquire))
+  while(m_running.load(std::memory_order_acquire))
   {
     if(m_frames.size() < 4)
     {
-      if (auto f = read_frame_impl())
+      if(auto f = read_frame_impl())
       {
 
         m_frames.enqueue(f);
@@ -134,14 +128,14 @@ void CameraInput::close_file() noexcept
   // Stop the running status
   m_running.store(false, std::memory_order_release);
 
-  if (m_thread.joinable())
+  if(m_thread.joinable())
     m_thread.join();
 
   // Clear the stream
   close_stream();
 
   // Clear the fmt context
-  if (m_formatContext)
+  if(m_formatContext)
   {
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
@@ -157,7 +151,7 @@ AVFrame* CameraInput::read_frame_impl() noexcept
 {
   ReadFrame res;
 
-  if (m_stream != -1)
+  if(m_stream != -1)
   {
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
@@ -165,7 +159,7 @@ AVFrame* CameraInput::read_frame_impl() noexcept
     do
     {
       res = read_one_frame(m_frames.newFrame(), packet);
-    } while (res.error == AVERROR(EAGAIN));
+    } while(res.error == AVERROR(EAGAIN));
   }
   return res.frame;
 }
@@ -173,9 +167,9 @@ AVFrame* CameraInput::read_frame_impl() noexcept
 ReadFrame CameraInput::read_one_frame(AVFramePointer frame, AVPacket& packet)
 {
   int res{};
-  while ((res = av_read_frame(m_formatContext, &packet)) >= 0)
+  while((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
-    if (packet.stream_index == m_stream)
+    if(packet.stream_index == m_stream)
     {
       {
         SCORE_ASSERT(m_codecContext);
@@ -203,7 +197,7 @@ bool CameraInput::open_stream() noexcept
 {
   bool res = false;
 
-  if (!m_formatContext)
+  if(!m_formatContext)
   {
     close_stream();
     return false;
@@ -211,15 +205,15 @@ bool CameraInput::open_stream() noexcept
 
   m_stream = -1;
 
-  for (unsigned int i = 0; i < m_formatContext->nb_streams; i++)
+  for(unsigned int i = 0; i < m_formatContext->nb_streams; i++)
   {
     auto codecpar = m_formatContext->streams[i]->codecpar;
-    if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+    if(codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
     {
       m_stream = i;
       m_codec = avcodec_find_decoder(codecpar->codec_id);
 
-      if (m_codec)
+      if(m_codec)
       {
         m_codecContext = avcodec_alloc_context3(m_codec);
         avcodec_parameters_to_context(m_codecContext, codecpar);
@@ -243,7 +237,7 @@ bool CameraInput::open_stream() noexcept
     }
   }
 
-  if (!res)
+  if(!res)
   {
     close_stream();
     return false;
@@ -254,7 +248,7 @@ bool CameraInput::open_stream() noexcept
 
 void CameraInput::close_stream() noexcept
 {
-  if (m_codecContext)
+  if(m_codecContext)
   {
     avcodec_close(m_codecContext);
   }
@@ -275,7 +269,7 @@ ReadFrame CameraInput::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) 
     return read;
   }
 
-  if (m_rescale)
+  if(m_rescale)
   {
     m_rescale.rescale(*this, m_frames, frame, read);
   }

@@ -1,8 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentMetadata.hpp"
-#include <QFileInfo>
+
 #include <QDir>
+#include <QFileInfo>
 #include <QRegularExpression>
 
 #include <wobjectimpl.h>
@@ -51,7 +52,7 @@ QDateTime DocumentMetadata::lastEdition() const noexcept
 QString DocumentMetadata::projectFolder() const noexcept
 {
   auto fi = QFileInfo{m_fileName};
-  if (fi.exists())
+  if(fi.exists())
   {
     return fi.absolutePath();
   }
@@ -59,11 +60,9 @@ QString DocumentMetadata::projectFolder() const noexcept
   return {};
 }
 
-
-
 void DocumentMetadata::setFileName(QString fileName)
 {
-  if (m_fileName == fileName)
+  if(m_fileName == fileName)
     return;
 
   m_fileName = fileName;
@@ -72,7 +71,7 @@ void DocumentMetadata::setFileName(QString fileName)
 
 void DocumentMetadata::setAuthor(QString author)
 {
-  if (m_author == author)
+  if(m_author == author)
     return;
 
   m_author = author;
@@ -81,7 +80,7 @@ void DocumentMetadata::setAuthor(QString author)
 
 void DocumentMetadata::setCreation(QDateTime creation)
 {
-  if (m_creation == creation)
+  if(m_creation == creation)
     return;
 
   m_creation = creation;
@@ -90,7 +89,7 @@ void DocumentMetadata::setCreation(QDateTime creation)
 
 void DocumentMetadata::setLastEdition(QDateTime lastEdition)
 {
-  if (m_lastEdition == lastEdition)
+  if(m_lastEdition == lastEdition)
     return;
 
   m_lastEdition = lastEdition;
@@ -126,20 +125,15 @@ QString newProcessedFilePath(const QString& sourceFile, const QDir& destination)
       count = m.captured(2).toInt();
     }
 
-    auto path = [&] (int count) {
+    auto path = [&](int count) {
       return destination.filePath(
-            QStringLiteral("%1-%2.%3")
-            .arg(base)
-            .arg(count, 4, 10, QChar('0'))
-            .arg(ext));
+          QStringLiteral("%1-%2.%3").arg(base).arg(count, 4, 10, QChar('0')).arg(ext));
     };
     while(QFile::exists(path(count)))
       ++count;
 
     return path(count);
   }
-
 }
-
 
 }

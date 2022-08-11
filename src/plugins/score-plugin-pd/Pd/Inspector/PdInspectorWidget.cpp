@@ -1,4 +1,5 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Pd/Inspector/PdInspectorWidget.hpp>
 
 #include <score/tools/Bind.hpp>
@@ -12,9 +13,7 @@ namespace Pd
 {
 
 PdWidget::PdWidget(
-    const Pd::ProcessModel& proc,
-    const score::DocumentContext& context,
-    QWidget* parent)
+    const Pd::ProcessModel& proc, const score::DocumentContext& context, QWidget* parent)
     : InspectorWidgetDelegate_T{proc, parent}
     , m_disp{context.commandStack}
     , m_proc{proc}
@@ -51,54 +50,45 @@ PdWidget::PdWidget(
   m_midiIn.setChecked(m_proc.midiInput());
   m_midiOut.setChecked(m_proc.midiOutput());
   con(m_audioIn, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int val) {
-    if (val != m_proc.audioInputs())
+    if(val != m_proc.audioInputs())
       m_disp.submit<SetAudioIns>(m_proc, val);
   });
-  con(m_audioOut,
-      SignalUtils::QSpinBox_valueChanged_int(),
-      this,
-      [&](int val) {
-        if (val != m_proc.audioOutputs())
-          m_disp.submit<SetAudioOuts>(m_proc, val);
-      });
+  con(m_audioOut, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int val) {
+    if(val != m_proc.audioOutputs())
+      m_disp.submit<SetAudioOuts>(m_proc, val);
+  });
   con(m_midiIn, &QCheckBox::toggled, this, [&](bool val) {
-    if (val != m_proc.midiInput())
+    if(val != m_proc.midiInput())
       m_disp.submit<SetMidiIn>(m_proc, val);
   });
   con(m_midiOut, &QCheckBox::toggled, this, [&](bool val) {
-    if (val != m_proc.midiOutput())
+    if(val != m_proc.midiOutput())
       m_disp.submit<SetMidiOut>(m_proc, val);
   });
 
   con(proc, &ProcessModel::audioInputsChanged, this, [&](int i) {
-    if (m_audioIn.value() != i)
+    if(m_audioIn.value() != i)
       m_audioIn.setValue(i);
   });
   con(proc, &ProcessModel::audioOutputsChanged, this, [&](int i) {
-    if (m_audioOut.value() != i)
+    if(m_audioOut.value() != i)
       m_audioOut.setValue(i);
   });
   con(proc, &ProcessModel::midiInputChanged, this, [&](bool i) {
-    if (m_midiIn.checkState() != i)
+    if(m_midiIn.checkState() != i)
       m_midiIn.setChecked(i);
   });
   con(proc, &ProcessModel::midiOutputChanged, this, [&](bool i) {
-    if (m_midiOut.checkState() != i)
+    if(m_midiOut.checkState() != i)
       m_midiOut.setChecked(i);
   });
 
   con(proc, &ProcessModel::scriptChanged, this, &PdWidget::on_patchChange);
   reinit();
 
-  con(proc,
-      &Process::ProcessModel::inletsChanged,
-      this,
-      &PdWidget::reinit,
+  con(proc, &Process::ProcessModel::inletsChanged, this, &PdWidget::reinit,
       Qt::QueuedConnection);
-  con(proc,
-      &Process::ProcessModel::outletsChanged,
-      this,
-      &PdWidget::reinit,
+  con(proc, &Process::ProcessModel::outletsChanged, this, &PdWidget::reinit,
       Qt::QueuedConnection);
 }
 

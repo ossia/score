@@ -24,7 +24,10 @@ W_OBJECT_IMPL(score::Skin)
   }
 
 #define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) \
-  Brush::Pair { QStringLiteral(Name), QColor(Hex) }
+  Brush::Pair                                \
+  {                                          \
+    QStringLiteral(Name), QColor(Hex)        \
+  }
 
 namespace score
 {
@@ -33,7 +36,7 @@ struct Skin::color_map
   color_map(std::initializer_list<std::pair<QString, Brush*>> list)
       : left(list.begin(), list.end())
   {
-    for (auto& pair : list)
+    for(auto& pair : list)
     {
       right.insert({pair.second, pair.first});
     }
@@ -56,48 +59,28 @@ Skin::Skin() noexcept
     , NoPen{Qt::NoPen}
     , NoBrush{Qt::NoBrush}
     , TextBrush{QColor("#1f2a30")}
-    , m_colorMap(new color_map{SCORE_INSERT_COLOR(Dark),
-                               SCORE_INSERT_COLOR(HalfDark),
-                               SCORE_INSERT_COLOR(DarkGray),
-                               SCORE_INSERT_COLOR(Gray),
-                               SCORE_INSERT_COLOR(LightGray),
-                               SCORE_INSERT_COLOR(HalfLight),
-                               SCORE_INSERT_COLOR(Light),
-                               SCORE_INSERT_COLOR(Emphasis1),
-                               SCORE_INSERT_COLOR(Emphasis2),
-                               SCORE_INSERT_COLOR(Emphasis3),
-                               SCORE_INSERT_COLOR(Emphasis4),
-                               SCORE_INSERT_COLOR(Emphasis5),
-                               SCORE_INSERT_COLOR(Base1),
-                               SCORE_INSERT_COLOR(Base2),
-                               SCORE_INSERT_COLOR(Base3),
-                               SCORE_INSERT_COLOR(Base4),
-                               SCORE_INSERT_COLOR(Base5),
-                               SCORE_INSERT_COLOR(Warn1),
-                               SCORE_INSERT_COLOR(Warn2),
-                               SCORE_INSERT_COLOR(Warn3),
-                               SCORE_INSERT_COLOR(Background1),
-                               SCORE_INSERT_COLOR(Background2),
-                               SCORE_INSERT_COLOR(Transparent1),
-                               SCORE_INSERT_COLOR(Transparent2),
-                               SCORE_INSERT_COLOR(Transparent3),
-                               SCORE_INSERT_COLOR(Smooth1),
-                               SCORE_INSERT_COLOR(Smooth2),
-                               SCORE_INSERT_COLOR(Smooth3),
-                               SCORE_INSERT_COLOR(Tender1),
-                               SCORE_INSERT_COLOR(Tender2),
-                               SCORE_INSERT_COLOR(Tender3),
-                               SCORE_INSERT_COLOR(Cable1),
-                               SCORE_INSERT_COLOR(Cable2),
-                               SCORE_INSERT_COLOR(Cable3),
-                               SCORE_INSERT_COLOR(SelectedCable1),
-                               SCORE_INSERT_COLOR(SelectedCable2),
-                               SCORE_INSERT_COLOR(SelectedCable3),
-                               SCORE_INSERT_COLOR(Port1),
-                               SCORE_INSERT_COLOR(Port2),
-                               SCORE_INSERT_COLOR(Port3),
-                               SCORE_INSERT_COLOR(Pulse1),
-                               SCORE_INSERT_COLOR(Pulse2)})
+    , m_colorMap(new color_map{
+          SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),
+          SCORE_INSERT_COLOR(DarkGray),       SCORE_INSERT_COLOR(Gray),
+          SCORE_INSERT_COLOR(LightGray),      SCORE_INSERT_COLOR(HalfLight),
+          SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
+          SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
+          SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
+          SCORE_INSERT_COLOR(Base1),          SCORE_INSERT_COLOR(Base2),
+          SCORE_INSERT_COLOR(Base3),          SCORE_INSERT_COLOR(Base4),
+          SCORE_INSERT_COLOR(Base5),          SCORE_INSERT_COLOR(Warn1),
+          SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
+          SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
+          SCORE_INSERT_COLOR(Transparent1),   SCORE_INSERT_COLOR(Transparent2),
+          SCORE_INSERT_COLOR(Transparent3),   SCORE_INSERT_COLOR(Smooth1),
+          SCORE_INSERT_COLOR(Smooth2),        SCORE_INSERT_COLOR(Smooth3),
+          SCORE_INSERT_COLOR(Tender1),        SCORE_INSERT_COLOR(Tender2),
+          SCORE_INSERT_COLOR(Tender3),        SCORE_INSERT_COLOR(Cable1),
+          SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
+          SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
+          SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
+          SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
+          SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)})
     , m_defaultPalette{
           SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
           SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
@@ -126,13 +109,13 @@ Skin::Skin() noexcept
 #endif
   MonoFont.setFixedPitch(true);
 
-  for (QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
+  for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
   {
     font->setStyleStrategy(QFont::ForceOutline);
     font->setHintingPreference(QFont::PreferVerticalHinting);
   }
 
-  for (auto& c : m_defaultPalette)
+  for(auto& c : m_defaultPalette)
   {
     m_colorMap->left.insert({c.first, &c.second});
     m_colorMap->right.insert({&c.second, c.first});
@@ -187,82 +170,53 @@ Skin::Skin() noexcept
 
   int hotspotX = 12 * dpr;
   int hotspotY = 10 * dpr;
-  CursorPointer = QCursor{
-      score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
+  CursorPointer
+      = QCursor{score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
 
   int centerHotspot = 16 * dpr;
   CursorOpenHand = QCursor{
-      score::get_pixmap(":/icons/cursor_open_hand.png"),
-      centerHotspot,
-      centerHotspot};
+      score::get_pixmap(":/icons/cursor_open_hand.png"), centerHotspot, centerHotspot};
   CursorClosedHand = QCursor{
-      score::get_pixmap(":/icons/cursor_closed_hand.png"),
-      centerHotspot,
-      centerHotspot};
+      score::get_pixmap(":/icons/cursor_closed_hand.png"), centerHotspot, centerHotspot};
   CursorPointingHand = QCursor{
-      score::get_pixmap(":/icons/cursor_pointing_hand.png"),
-      centerHotspot,
+      score::get_pixmap(":/icons/cursor_pointing_hand.png"), centerHotspot,
       centerHotspot};
 
   int hotspot = 15 * dpr;
-  CursorMagnifier = QCursor{
-      score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
-  CursorMove = QCursor{
-      score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
+  CursorMagnifier
+      = QCursor{score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
+  CursorMove = QCursor{score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
 
   CursorScaleH = QCursor{
-      score::get_pixmap(":/icons/cursor_scale_h.png"),
-      centerHotspot,
-      centerHotspot};
+      score::get_pixmap(":/icons/cursor_scale_h.png"), centerHotspot, centerHotspot};
   CursorScaleV = QCursor{
-      score::get_pixmap(":/icons/cursor_scale_v.png"),
-      centerHotspot,
-      centerHotspot};
+      score::get_pixmap(":/icons/cursor_scale_v.png"), centerHotspot, centerHotspot};
   CursorScaleFDiag = QCursor{
-      score::get_pixmap(":/icons/cursor_scale_fdiag.png"),
-      centerHotspot,
-      centerHotspot};
+      score::get_pixmap(":/icons/cursor_scale_fdiag.png"), centerHotspot, centerHotspot};
 
   CursorSpin = QCursor{
-      score::get_pixmap(":/icons/cursor_spin.png"),
-      centerHotspot,
-      centerHotspot};
+      score::get_pixmap(":/icons/cursor_spin.png"), centerHotspot, centerHotspot};
 
   hotspotX = 12 * dpr;
   hotspotY = 10 * dpr;
   CursorPlayFromHere = QCursor{
-      score::get_pixmap(":/icons/cursor_play_from_here.png"),
-      hotspotX,
-      hotspotY};
+      score::get_pixmap(":/icons/cursor_play_from_here.png"), hotspotX, hotspotY};
   CursorCreationMode = QCursor{
-      score::get_pixmap(":/icons/cursor_creation_mode.png"),
-      hotspotY,
-      hotspotX};
+      score::get_pixmap(":/icons/cursor_creation_mode.png"), hotspotY, hotspotX};
 
   std::initializer_list<QFont*> mono_fonts = {&MonoFont, &MonoFontSmall};
-  std::initializer_list<QFont*> fonts
-      = {&SansFont,
-         &MonoFont,
-         &MonoFontSmall,
-         &SansFontSmall,
-         &Bold10Pt,
-         &Bold12Pt,
-         &Medium7Pt,
-         &Medium8Pt,
-         &Medium10Pt,
-         &Medium12Pt,
-         &SliderFont,
-         &TitleFont};
-  for (QFont* font : fonts)
+  std::initializer_list<QFont*> fonts = {
+      &SansFont,  &MonoFont,  &MonoFontSmall, &SansFontSmall, &Bold10Pt,   &Bold12Pt,
+      &Medium7Pt, &Medium8Pt, &Medium10Pt,    &Medium12Pt,    &SliderFont, &TitleFont};
+  for(QFont* font : fonts)
   {
-    font->setHintingPreference(
-        QFont::HintingPreference::PreferVerticalHinting);
+    font->setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
     font->setStyleHint(QFont::StyleHint::SansSerif);
     font->setStyleStrategy(QFont::StyleStrategy(
         QFont::StyleStrategy::PreferQuality | QFont::StyleStrategy::PreferMatch
         | QFont::StyleStrategy::NoFontMerging));
   }
-  for (QFont* font : mono_fonts)
+  for(QFont* font : mono_fonts)
   {
     font->setStyleHint(QFont::StyleHint::Monospace);
   }
@@ -285,16 +239,15 @@ Skin& score::Skin::instance() noexcept
   do                             \
   {                              \
     fromColor(#Col, Col);        \
-  } while (0)
+  } while(0)
 void Skin::load(const QJsonObject& obj)
 {
   auto fromColor = [&](const QString& key, Brush& col) {
     auto arr = obj[key].toArray();
-    if (arr.size() == 3)
+    if(arr.size() == 3)
       col = QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
-    else if (arr.size() == 4)
-      col = QColor(
-          arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
+    else if(arr.size() == 4)
+      col = QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
   };
 
   SCORE_CONVERT_COLOR(Dark);
@@ -418,7 +371,7 @@ QVector<QPair<QColor, QString>> Skin::getDefaultPaletteColors() const
   QVector<QPair<QColor, QString>> vec_color;
   vec_color.reserve(18);
 
-  for (auto& c : m_defaultPalette)
+  for(auto& c : m_defaultPalette)
     vec_color.push_back({c.second.color(), c.first});
 
   return vec_color;
@@ -429,11 +382,11 @@ static bool pulse(QBrush& ref, bool pulse, int& idx)
   bool invert = false;
   auto col = ref.color();
   auto alpha = col.alphaF();
-  if (pulse)
+  if(pulse)
   {
     alpha += 0.02f;
     idx++;
-    if (alpha >= 1.0f || idx > 24)
+    if(alpha >= 1.0f || idx > 24)
     {
       invert = true;
       alpha = 1;
@@ -445,7 +398,7 @@ static bool pulse(QBrush& ref, bool pulse, int& idx)
   {
     alpha -= 0.02f;
     idx--;
-    if (alpha <= 0.5f || idx < 0)
+    if(alpha <= 0.5f || idx < 0)
     {
       invert = true;
       alpha = 0.5f;
@@ -462,7 +415,7 @@ void Skin::timerEvent(QTimerEvent* event)
   int tmp{12};
   pulse(Pulse1.main.brush, m_pulseDirection, this->PulseIndex);
   auto invert = pulse(Pulse2.main.brush, m_pulseDirection, tmp);
-  if (invert)
+  if(invert)
     m_pulseDirection = !m_pulseDirection;
 }
 

@@ -36,14 +36,10 @@ struct Node
     static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = tuplet::make_tuple(
         Control::ComboBox<float, std::size(Control::Widgets::notes)>(
-            "Start quant.",
-            2,
-            Control::Widgets::notes),
+            "Start quant.", 2, Control::Widgets::notes),
         Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
         Control::ComboBox<float, std::size(Control::Widgets::notes)>(
-            "End quant.",
-            2,
-            Control::Widgets::notes),
+            "End quant.", 2, Control::Widgets::notes),
         Control::Widgets::MidiSpinbox("Default pitch"),
         Control::Widgets::MidiSpinbox("Default vel."),
         Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
@@ -80,26 +76,22 @@ struct Node
     Note operator()(float note) { return {(uint8_t)note, base_vel}; }
     Note operator()(char note) { return {(uint8_t)note, base_vel}; }
     Note operator()(int note) { return {(uint8_t)note, base_vel}; }
-    Note operator()(int note, int vel)
-    {
-      return {(uint8_t)note, (uint8_t)vel};
-    }
+    Note operator()(int note, int vel) { return {(uint8_t)note, (uint8_t)vel}; }
     Note operator()(int note, float vel)
     {
       return {(uint8_t)note, (uint8_t)(vel * 127.f)};
     }
     Note operator()(const std::vector<ossia::value>& v)
     {
-      switch (v.size())
+      switch(v.size())
       {
         case 0:
           return operator()();
         case 1:
           return operator()(ossia::convert<int>(v[0]));
-        case 2:
-        {
+        case 2: {
           int note = ossia::convert<int>(v[0]);
-          switch (v[1].get_type())
+          switch(v[1].get_type())
           {
             case ossia::val_type::FLOAT:
               return operator()(note, *v[1].v.target<float>());
@@ -110,8 +102,7 @@ struct Node
           }
         }
         default:
-          return operator()(
-              ossia::convert<int>(v[0]), ossia::convert<int>(v[1]));
+          return operator()(ossia::convert<int>(v[0]), ossia::convert<int>(v[1]));
       }
     }
     template <std::size_t N>
@@ -127,19 +118,12 @@ struct Node
     return (uint8_t)ossia::clamp(num, 0, 127);
   }
   static void
-  run(const ossia::value_port& p1,
-      const ossia::timed_vec<float>& startq,
-      const ossia::timed_vec<float>& tightness,
-      const ossia::timed_vec<float>& endq,
-      const ossia::timed_vec<int>& basenote,
-      const ossia::timed_vec<int>& basevel,
-      const ossia::timed_vec<int>& shift_note,
-      const ossia::timed_vec<int>& note_random,
-      const ossia::timed_vec<int>& vel_random,
-      const ossia::timed_vec<int>& chan_vec,
-      ossia::midi_port& p2,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
+  run(const ossia::value_port& p1, const ossia::timed_vec<float>& startq,
+      const ossia::timed_vec<float>& tightness, const ossia::timed_vec<float>& endq,
+      const ossia::timed_vec<int>& basenote, const ossia::timed_vec<int>& basevel,
+      const ossia::timed_vec<int>& shift_note, const ossia::timed_vec<int>& note_random,
+      const ossia::timed_vec<int>& vel_random, const ossia::timed_vec<int>& chan_vec,
+      ossia::midi_port& p2, ossia::token_request tk, ossia::exec_state_facade st,
       State& self)
   {
     // TODO : when arrays like [ 1, 25, 12, 37, 10, 40 ] are received
@@ -167,31 +151,30 @@ struct Node
     auto chan = chan_vec.rbegin()->second;
 
     const double sampleRatio = st.modelToSamples();
-    for (auto& in : p1.get_data())
+    for(auto& in : p1.get_data())
     {
       auto note = in.value.apply(val_visitor{self, base_note, base_vel});
 
-      if (rand_note != 0)
+      if(rand_note != 0)
         note.pitch += rnd::rand(-rand_note, rand_note);
-      if (rand_vel != 0)
+      if(rand_vel != 0)
         note.vel += rnd::rand(-rand_vel, rand_vel);
 
       note.pitch = ossia::clamp((int)note.pitch + shiftnote, 0, 127);
       note.vel = ossia::clamp((int)note.vel, 0, 127);
 
-      if (note.vel != 0)
+      if(note.vel != 0)
       {
-        if (start == 0.f) // No quantification, start directly
+        if(start == 0.f) // No quantification, start directly
         {
           auto& no = p2.note_on(chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
-          if (end > 0.f)
+          if(end > 0.f)
           {
             self.running_notes.push_back(
-                {note,
-                 tk.from_physical_time_in_tick(in.timestamp, sampleRatio)});
+                {note, tk.from_physical_time_in_tick(in.timestamp, sampleRatio)});
           }
-          else if (end == 0.f)
+          else if(end == 0.f)
           {
             // Stop at the next sample
             p2.note_off(chan, note.pitch, note.vel).timestamp = no.timestamp;
@@ -211,81 +194,59 @@ struct Node
       }
     }
 
-    if (start != 0.f)
+    if(start != 0.f)
     {
-      if (auto date = tk.get_quantification_date(1. / start))
+      if(auto date = tk.get_quantification_date(1. / start))
       {
         start_all_notes(
-            *date,
-            tk.to_physical_time_in_tick(*date, sampleRatio),
-            chan,
-            end,
-            p2,
-            self);
+            *date, tk.to_physical_time_in_tick(*date, sampleRatio), chan, end, p2, self);
       }
     }
     else
     {
       start_all_notes(
-          tk.prev_date,
-          tk.to_physical_time_in_tick(tk.prev_date, sampleRatio),
-          chan,
-          end,
-          p2,
-          self);
+          tk.prev_date, tk.to_physical_time_in_tick(tk.prev_date, sampleRatio), chan,
+          end, p2, self);
     }
 
-    if (end != 0.f)
+    if(end != 0.f)
     {
-      if (auto date = tk.get_quantification_date(1. / end))
+      if(auto date = tk.get_quantification_date(1. / end))
       {
-        stop_notes(
-            tk.to_physical_time_in_tick(*date, sampleRatio), chan, p2, self);
+        stop_notes(tk.to_physical_time_in_tick(*date, sampleRatio), chan, p2, self);
       }
     }
     else
     {
-      stop_notes(
-          tk.to_physical_time_in_tick(tk.prev_date, sampleRatio),
-          chan,
-          p2,
-          self);
+      stop_notes(tk.to_physical_time_in_tick(tk.prev_date, sampleRatio), chan, p2, self);
     }
   }
 
   static void start_all_notes(
-      ossia::time_value date,
-      ossia::physical_time date_phys,
-      int chan,
-      float endq,
-      ossia::midi_port& p2,
-      State& self) noexcept
+      ossia::time_value date, ossia::physical_time date_phys, int chan, float endq,
+      ossia::midi_port& p2, State& self) noexcept
   {
-    for (auto& note : self.to_start)
+    for(auto& note : self.to_start)
     {
       p2.note_on(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
 
-      if (endq > 0.f)
+      if(endq > 0.f)
       {
         self.running_notes.push_back({{note.note}, date});
       }
-      else if (endq == 0.f)
+      else if(endq == 0.f)
       {
         // Stop at the next sample
-        p2.note_off(chan, note.note.pitch, note.note.vel).timestamp
-            = date_phys;
+        p2.note_off(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
       }
     }
     self.to_start.clear();
   }
 
-  static void stop_notes(
-      ossia::physical_time date_phys,
-      int chan,
-      ossia::midi_port& p2,
-      State& self)
+  static void
+  stop_notes(ossia::physical_time date_phys, int chan, ossia::midi_port& p2, State& self)
   {
-    for (auto& note : self.running_notes)
+    for(auto& note : self.running_notes)
     {
       p2.note_off(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
     }

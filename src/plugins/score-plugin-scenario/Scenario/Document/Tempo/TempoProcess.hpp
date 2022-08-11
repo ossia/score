@@ -1,6 +1,7 @@
 #pragma once
-#include <Curve/Process/CurveProcessModel.hpp>
 #include <Process/ProcessMetadata.hpp>
+
+#include <Curve/Process/CurveProcessModel.hpp>
 
 namespace Scenario
 {
@@ -8,18 +9,10 @@ class TempoProcess;
 }
 
 PROCESS_METADATA(
-    ,
-    Scenario::TempoProcess,
-    "14bcc6d2-cb34-4bc6-8c70-e512f11d1ceb",
-    "Tempo",
-    "Tempo",
-    Process::ProcessCategory::Automation,
-    "Automations",
-    "Tempo curve - only one per interval",
-    "ossia score",
-    (QStringList{"Curve", "Automation"}),
-    {},
-    {},
+    , Scenario::TempoProcess, "14bcc6d2-cb34-4bc6-8c70-e512f11d1ceb", "Tempo", "Tempo",
+    Process::ProcessCategory::Automation, "Automations",
+    "Tempo curve - only one per interval", "ossia score",
+    (QStringList{"Curve", "Automation"}), {}, {},
     Process::ProcessFlags::SupportsTemporal)
 
 namespace Scenario
@@ -40,9 +33,7 @@ public:
   std::unique_ptr<Process::Inlet> position_inlet;
 
   TempoProcess(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   ~TempoProcess() override;
   void init();
 

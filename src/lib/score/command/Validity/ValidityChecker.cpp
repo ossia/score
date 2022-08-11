@@ -15,9 +15,7 @@ DocumentValidator ValidityCheckerList::make(const Document& ctx)
   return DocumentValidator{*this, ctx};
 }
 
-DocumentValidator::DocumentValidator(
-    const ValidityCheckerList& l,
-    const Document& doc)
+DocumentValidator::DocumentValidator(const ValidityCheckerList& l, const Document& doc)
     : m_list{l}
     , m_doc{doc}
 {
@@ -26,7 +24,7 @@ DocumentValidator::DocumentValidator(
 bool DocumentValidator::operator()() const
 {
   bool b = true;
-  for (auto& e : m_list)
+  for(auto& e : m_list)
     b &= e.validate(m_doc.context());
   return b;
 }

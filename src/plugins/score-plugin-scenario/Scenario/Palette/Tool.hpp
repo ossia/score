@@ -16,7 +16,7 @@ enum class Tool : uint8_t
 
 inline constexpr bool isCreationTool(Tool t) noexcept
 {
-  switch (t)
+  switch(t)
   {
     case Tool::Create:
     case Tool::CreateGraph:

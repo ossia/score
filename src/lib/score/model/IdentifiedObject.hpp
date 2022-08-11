@@ -59,10 +59,7 @@ public:
     m_id.m_ptr = this;
   }
 
-  void resetCache() const noexcept override
-  {
-    m_path_cache.unsafePath().vec().clear();
-  }
+  void resetCache() const noexcept override { m_path_cache.unsafePath().vec().clear(); }
 
   mutable Path<model> m_path_cache;
   // TODO see
@@ -107,11 +104,11 @@ template <typename T>
 Path<T> path(const IdentifiedObject<T>& obj)
 {
   static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-  if (obj.m_path_cache.valid())
+  if(obj.m_path_cache.valid())
     return obj.m_path_cache;
 
-  obj.m_path_cache = Path<T>{
-      score::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
+  obj.m_path_cache
+      = Path<T>{score::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
   return obj.m_path_cache;
 }
 }

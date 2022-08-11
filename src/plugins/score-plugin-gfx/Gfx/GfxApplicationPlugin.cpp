@@ -1,15 +1,14 @@
 #include "GfxApplicationPlugin.hpp"
 
 #include <Execution/DocumentPlugin.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
 namespace Gfx
 {
 
-DocumentPlugin::DocumentPlugin(
-    const score::DocumentContext& ctx,
-    QObject* parent)
+DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* parent)
     : score::DocumentPlugin{ctx, "Gfx::DocumentPlugin", parent}
     , context{ctx}
 {
@@ -26,8 +25,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
-  doc.model().addPluginModel(new DocumentPlugin{
-      doc.context(), &doc.model()});
+  doc.model().addPluginModel(new DocumentPlugin{doc.context(), &doc.model()});
 }
 
 }

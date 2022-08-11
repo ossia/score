@@ -7,8 +7,7 @@ class OSCDevice final : public Device::OwningDeviceInterface
 {
 public:
   OSCDevice(
-      const Device::DeviceSettings& stngs,
-      const ossia::net::network_context_ptr& ctx);
+      const Device::DeviceSettings& stngs, const ossia::net::network_context_ptr& ctx);
 
   bool reconnect() override;
   void recreate(const Device::Node&) final override;

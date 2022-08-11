@@ -2,6 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StateInspectorWidget.hpp"
 
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
+#include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/Commands/State/AddStateProcess.hpp>
+#include <Scenario/Commands/State/RemoveStateProcess.hpp>
+#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
+#include <Scenario/DialogWidget/MessageTreeView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 
@@ -27,23 +44,6 @@
 #include <QTableView>
 #include <QWidget>
 
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
-#include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
-#include <Scenario/Commands/Event/SplitEvent.hpp>
-#include <Scenario/Commands/State/AddStateProcess.hpp>
-#include <Scenario/Commands/State/RemoveStateProcess.hpp>
-#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
-#include <Scenario/DialogWidget/MessageTreeView.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 namespace Scenario
 {
 class MessageListProxy final : public QAbstractProxyModel
@@ -55,21 +55,20 @@ public:
   {
     return static_cast<MessageItemModel*>(sourceModel());
   }
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
-    if (parent == QModelIndex{})
+    if(parent == QModelIndex{})
     {
-      if (row >= (int)rowCount({}) || row < 0)
+      if(row >= (int)rowCount({}) || row < 0)
         return {};
 
-      if (column >= 2 || column < 0)
+      if(column >= 2 || column < 0)
         return {};
 
-      if (!source())
+      if(!source())
         return {};
 
-      if (auto obj = getNthChild(source()->rootNode(), row))
+      if(auto obj = getNthChild(source()->rootNode(), row))
         return createIndex(row, column, obj);
     }
     return {};
@@ -77,25 +76,24 @@ public:
 
   QModelIndex parent(const QModelIndex& child) const override { return {}; }
 
-  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole)
-      const override
+  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override
   {
     auto ptr = proxyIndex.internalPointer();
-    if (!ptr)
+    if(!ptr)
       return {};
     Process::MessageNode& msg = *static_cast<Process::MessageNode*>(ptr);
 
-    if (proxyIndex.column() == 0)
+    if(proxyIndex.column() == 0)
     {
-      if (role == Qt::DisplayRole)
+      if(role == Qt::DisplayRole)
       {
         return Process::address(msg).toString();
       }
     }
-    else if (proxyIndex.column() == 1)
+    else if(proxyIndex.column() == 1)
     {
       auto val = msg.value();
-      if (val)
+      if(val)
       {
         return valueColumnData(msg, role);
       }
@@ -104,7 +102,7 @@ public:
   }
   int rowCount(const QModelIndex& parent) const override
   {
-    if (parent == QModelIndex() && source())
+    if(parent == QModelIndex() && source())
     {
       return countNodes(source()->rootNode());
     }
@@ -114,12 +112,12 @@ public:
   QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
   {
     auto idx = proxyIndex.internalPointer();
-    if (!idx)
+    if(!idx)
       return {};
 
     auto ptr = static_cast<Process::MessageNode*>(idx);
     auto parent = ptr->parent();
-    if (!parent)
+    if(!parent)
       return {};
 
     return createIndex(parent->indexOfChild(ptr), proxyIndex.column(), ptr);
@@ -127,28 +125,27 @@ public:
   QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
   {
     auto idx = sourceIndex.internalPointer();
-    if (!idx)
+    if(!idx)
       return {};
 
     auto ptr = static_cast<Process::MessageNode*>(idx);
     auto parent = ptr->parent();
-    if (!parent)
+    if(!parent)
       return {};
 
-    if (!source())
+    if(!source())
       return {};
 
     auto row = getChildIndex(source()->rootNode(), ptr);
     return createIndex(row, sourceIndex.column(), idx);
   }
 
-  QVariant
-  headerData(int section, Qt::Orientation orientation, int role) const override
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
   {
-    if (orientation == Qt::Vertical)
+    if(orientation == Qt::Vertical)
       return {};
 
-    if (role == Qt::DisplayRole)
+    if(role == Qt::DisplayRole)
       return (section == 0) ? tr("Address") : tr("Value");
     else
       return QAbstractProxyModel::headerData(section, orientation, role);
@@ -156,9 +153,7 @@ public:
 };
 
 StateInspectorWidget::StateInspectorWidget(
-    const StateModel& object,
-    const score::DocumentContext& doc,
-    QWidget* parent)
+    const StateModel& object, const score::DocumentContext& doc, QWidget* parent)
     : Inspector::
         InspectorWidgetBase{object, doc, parent, tr("State (%1)").arg(object.metadata().getName())}
     , m_model{object}
@@ -168,8 +163,8 @@ StateInspectorWidget::StateInspectorWidget(
   setObjectName("StateInspectorWidget");
   setParent(parent);
 
-  auto metadata = new MetadataWidget{
-      m_model.metadata(), m_context.commandStack, &m_model, this};
+  auto metadata
+      = new MetadataWidget{m_model.metadata(), m_context.commandStack, &m_model, this};
   metadata->setupConnections(m_model);
   addHeader(metadata);
 
@@ -192,10 +187,7 @@ StateInspectorWidget::StateInspectorWidget(
     splitEvent->setIconSize(QSize{28, 28});
     m_btnLayout.addWidget(splitEvent);
     connect(
-        splitEvent,
-        &QPushButton::clicked,
-        this,
-        &StateInspectorWidget::splitFromEvent);
+        splitEvent, &QPushButton::clicked, this, &StateInspectorWidget::splitFromEvent);
   }
 
   {
@@ -214,9 +206,7 @@ StateInspectorWidget::StateInspectorWidget(
     m_btnLayout.addWidget(desynchronize);
 
     connect(
-        desynchronize,
-        &QPushButton::clicked,
-        this,
+        desynchronize, &QPushButton::clicked, this,
         &StateInspectorWidget::splitFromNode);
   }
   {
@@ -270,7 +260,7 @@ StateInspectorWidget::StateInspectorWidget(
     trigger->setIconSize(QSize{28, 28});
 
     connect(trigger, &QToolButton::toggled, this, [this](bool b) {
-      if (b)
+      if(b)
       {
         auto& addTrig = context().app.actions.action<Actions::AddTrigger>();
         addTrig.action()->trigger();
@@ -298,15 +288,14 @@ StateInspectorWidget::StateInspectorWidget(
     condition->setAutoRaise(true);
 
     connect(condition, &QToolButton::toggled, this, [this](bool b) {
-      if (b)
+      if(b)
       {
         auto& addTrig = context().app.actions.action<Actions::AddCondition>();
         addTrig.action()->trigger();
       }
       else
       {
-        auto& rmTrig
-            = context().app.actions.action<Actions::RemoveCondition>();
+        auto& rmTrig = context().app.actions.action<Actions::RemoveCondition>();
         rmTrig.action()->trigger();
       }
     });
@@ -333,8 +322,7 @@ StateInspectorWidget::StateInspectorWidget(
   */
   {
     QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(
-        QSizePolicy::Expanding, QSizePolicy::Preferred);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidget->setVisible(true);
     m_btnLayout.addWidget(spacerWidget);
   }
@@ -359,8 +347,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto lv = new QTableView{this};
     lv->verticalHeader()->hide();
     lv->horizontalHeader()->setCascadingSectionResizes(true);
-    lv->horizontalHeader()->setSectionResizeMode(
-        QHeaderView::ResizeToContents);
+    lv->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     lv->horizontalHeader()->setStretchLastSection(true);
     lv->setAlternatingRowColors(true);
     lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -393,8 +380,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto lv = new QTableView;
     lv->verticalHeader()->hide();
     lv->horizontalHeader()->setCascadingSectionResizes(true);
-    lv->horizontalHeader()->setSectionResizeMode(
-        QHeaderView::ResizeToContents);
+    lv->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     lv->horizontalHeader()->setStretchLastSection(true);
     lv->setAlternatingRowColors(true);
     lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -410,10 +396,10 @@ StateInspectorWidget::StateInspectorWidget(
 void StateInspectorWidget::splitFromEvent()
 {
   auto scenar = dynamic_cast<const Scenario::ProcessModel*>(m_model.parent());
-  if (scenar)
+  if(scenar)
   {
     auto& parentEvent = scenar->events.at(m_model.eventId());
-    if (parentEvent.states().size() > 1)
+    if(parentEvent.states().size() > 1)
     {
       auto cmd = new Scenario::Command::SplitEvent{
           *scenar, m_model.eventId(), {m_model.id()}};
@@ -426,14 +412,13 @@ void StateInspectorWidget::splitFromEvent()
 void StateInspectorWidget::splitFromNode()
 {
   auto scenar = dynamic_cast<const Scenario::ProcessModel*>(m_model.parent());
-  if (scenar)
+  if(scenar)
   {
     auto& ev = Scenario::parentEvent(m_model, *scenar);
     auto& tn = Scenario::parentTimeSync(m_model, *scenar);
-    if (ev.states().size() > 1)
+    if(ev.states().size() > 1)
     {
-      MacroCommandDispatcher<Command::SplitStateMacro> disp{
-          m_commandDispatcher.stack()};
+      MacroCommandDispatcher<Command::SplitStateMacro> disp{m_commandDispatcher.stack()};
 
       auto cmd = new Scenario::Command::SplitEvent{
           *scenar, m_model.eventId(), {m_model.id()}};
@@ -442,12 +427,11 @@ void StateInspectorWidget::splitFromNode()
       disp.submit(cmd2);
       disp.commit();
     }
-    else if (ev.states().size() == 1)
+    else if(ev.states().size() == 1)
     {
-      if (tn.events().size() > 1)
+      if(tn.events().size() > 1)
       {
-        auto cmd
-            = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
+        auto cmd = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
         m_commandDispatcher.submit(cmd);
       }
     }

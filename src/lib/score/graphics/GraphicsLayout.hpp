@@ -8,26 +8,27 @@ static constexpr const qreal default_margin = 5.;
 static constexpr const qreal default_padding = 5.;
 class SCORE_LIB_BASE_EXPORT GraphicsLayout : public score::BackgroundItem
 {
-  public:
-    explicit GraphicsLayout(QGraphicsItem* parent);
-    ~GraphicsLayout();
+public:
+  explicit GraphicsLayout(QGraphicsItem* parent);
+  ~GraphicsLayout();
 
-    virtual void layout();
-    virtual void centerContent();
+  virtual void layout();
+  virtual void centerContent();
 
-    void setBrush(score::BrushSet& b);
-    void setBackground(const QString& b);
-    void setMargin(qreal m);
-    void setPadding(qreal p);
+  void setBrush(score::BrushSet& b);
+  void setBackground(const QString& b);
+  void setMargin(qreal m);
+  void setPadding(qreal p);
 
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
-  protected:
-    score::BrushSet* m_bg{};
-    QPixmap* m_pix{};
+protected:
+  score::BrushSet* m_bg{};
+  QPixmap* m_pix{};
 
-    qreal m_margin{default_margin};
-    qreal m_padding{default_padding};
+  qreal m_margin{default_margin};
+  qreal m_padding{default_padding};
 };
 
 }

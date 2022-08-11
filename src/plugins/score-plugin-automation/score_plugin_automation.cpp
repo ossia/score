@@ -2,6 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_automation.hpp"
 
+#include <Process/GenericProcessFactory.hpp>
+#include <Process/HeaderDelegate.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+
+#include <Curve/Process/CurveProcessFactory.hpp>
+
 #include <Automation/AutomationColors.hpp>
 #include <Automation/AutomationExecution.hpp>
 #include <Automation/AutomationModel.hpp>
@@ -13,13 +21,7 @@
 #include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
 #include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #include <Automation/LocalTree.hpp>
-#include <Curve/Process/CurveProcessFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <Process/GenericProcessFactory.hpp>
-#include <Process/HeaderDelegate.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -29,6 +31,7 @@
 #include <Color/GradientModel.hpp>
 #include <Color/GradientPresenter.hpp>
 #include <Color/GradientView.hpp>
+
 #include <score_plugin_automation_commands_files.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::LayerPresenter)
@@ -38,11 +41,8 @@ template <typename Layer_T>
 class MinMaxHeaderDelegate final : public Process::DefaultHeaderDelegate
 {
 public:
-  using model_t
-      = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
-  MinMaxHeaderDelegate(
-      const Process::ProcessModel& m,
-      const Process::Context& doc)
+  using model_t = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
+  MinMaxHeaderDelegate(const Process::ProcessModel& m, const Process::Context& doc)
       : Process::DefaultHeaderDelegate{m, doc}
   {
     const auto& model = static_cast<model_t&>(m_model);
@@ -56,8 +56,7 @@ public:
     auto& style = Process::Style::instance();
     const auto& model = static_cast<model_t&>(m_model);
 
-    const QPen& pen
-        = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
+    const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
 
     QString txt = model.prettyName();
     txt += "  Min: ";
@@ -71,45 +70,33 @@ public:
 };
 using AutomationFactory = Process::ProcessFactory_T<Automation::ProcessModel>;
 using AutomationLayerFactory = Curve::CurveLayerFactory_T<
-    Automation::ProcessModel,
-    Automation::LayerPresenter,
-    Automation::LayerView,
-    Automation::Colors,
-    Automation::MinMaxHeaderDelegate<Automation::LayerPresenter>>;
+    Automation::ProcessModel, Automation::LayerPresenter, Automation::LayerView,
+    Automation::Colors, Automation::MinMaxHeaderDelegate<Automation::LayerPresenter>>;
 }
 namespace Gradient
 {
 using GradientFactory = Process::ProcessFactory_T<Gradient::ProcessModel>;
 using GradientLayerFactory = Process::LayerFactory_T<
-    Gradient::ProcessModel,
-    Gradient::Presenter,
-    Gradient::View>;
+    Gradient::ProcessModel, Gradient::Presenter, Gradient::View>;
 }
 
 score_plugin_automation::score_plugin_automation() = default;
 score_plugin_automation::~score_plugin_automation() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_automation::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_automation::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory,
-         Automation::AutomationFactory,
+      FW<Process::ProcessModelFactory, Automation::AutomationFactory,
          Gradient::GradientFactory>,
-      FW<Process::LayerFactory,
-         Automation::AutomationLayerFactory,
+      FW<Process::LayerFactory, Automation::AutomationLayerFactory,
          Gradient::GradientLayerFactory>,
-      FW<Inspector::InspectorWidgetFactory,
-         Automation::StateInspectorFactory,
-         Automation::PointInspectorFactory,
-         Automation::InspectorFactory,
+      FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory,
+         Automation::PointInspectorFactory, Automation::InspectorFactory,
          Gradient::InspectorFactory>,
 
-      FW<LocalTree::ProcessComponentFactory,
-         LocalTree::AutomationComponentFactory>,
+      FW<LocalTree::ProcessComponentFactory, LocalTree::AutomationComponentFactory>,
 
       FW<Execution::ProcessComponentFactory,
          //, Interpolation::Executor::ComponentFactory,

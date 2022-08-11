@@ -1,9 +1,9 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {
@@ -20,16 +20,14 @@ public:
   }
   static const CommandKey& static_key() noexcept
   {
-    QString name
-        = QString("ChangeElementName_") + Metadata<ObjectKey_k, T>::get();
+    QString name = QString("ChangeElementName_") + Metadata<ObjectKey_k, T>::get();
     static const CommandKey kagi{std::move(name)};
     return kagi;
   }
   const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
-    return QObject::tr("Change %1 name")
-        .arg(Metadata<Description_k, T>::get());
+    return QObject::tr("Change %1 name").arg(Metadata<Description_k, T>::get());
   }
 
   ChangeElementName() = default;

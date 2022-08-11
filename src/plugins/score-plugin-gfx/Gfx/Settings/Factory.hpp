@@ -7,9 +7,5 @@
 namespace Gfx::Settings
 {
 SCORE_DECLARE_SETTINGS_FACTORY(
-    Factory,
-    Model,
-    Presenter,
-    View,
-    "90bc7d6e-94ca-4acc-8f1c-db76185e86f8")
+    Factory, Model, Presenter, View, "90bc7d6e-94ca-4acc-8f1c-db76185e86f8")
 }

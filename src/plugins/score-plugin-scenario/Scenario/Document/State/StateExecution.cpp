@@ -4,6 +4,9 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/nodes/state.hpp>
 #include <ossia/dataflow/port.hpp>
@@ -11,9 +14,6 @@
 #include <ossia/editor/scenario/time_event.hpp>
 
 #include <QDebug>
-
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 namespace Execution
 {
@@ -26,16 +26,16 @@ toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
   const auto& msgs = state.controlMessages().messages();
   std::vector<ossia::control_message> ossia_msgs;
   ossia_msgs.reserve(msgs.size());
-  for (const Process::ControlMessage& msg : msgs)
+  for(const Process::ControlMessage& msg : msgs)
   {
     auto port = msg.port.try_find(ctx.context.doc);
-    if (port)
+    if(port)
     {
       auto it = ctx.inlets.find(port);
-      if (it != ctx.inlets.end())
+      if(it != ctx.inlets.end())
       {
         ossia::inlet& inlet = *it->second.second;
-        if (ossia::value_port* port = inlet.target<ossia::value_port>())
+        if(ossia::value_port* port = inlet.target<ossia::value_port>())
           ossia_msgs.push_back(ossia::control_message{port, msg.value});
       }
     }
@@ -44,31 +44,24 @@ toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
 }
 }
 StateComponentBase::StateComponentBase(
-    const Scenario::StateModel& element,
-    std::shared_ptr<ossia::time_event> ev,
-    const Execution::Context& ctx,
-    QObject* parent)
+    const Scenario::StateModel& element, std::shared_ptr<ossia::time_event> ev,
+    const Execution::Context& ctx, QObject* parent)
     : Execution::Component{ctx, "Executor::State", nullptr}
     , m_model{&element}
     , m_ev{std::move(ev)}
     , m_node{ossia::make_node<ossia::nodes::state_writer>(
-               *ctx.execState,
-          Engine::score_to_ossia::state(element, ctx))}
+          *ctx.execState, Engine::score_to_ossia::state(element, ctx))}
 {
   system().setup.register_node({}, {}, m_node);
 
-  connect(
-      &element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
-        in_exec([n = m_node,
-                 x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
-          n->data = std::move(x);
-        });
-      });
+  connect(&element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
+    in_exec([n = m_node, x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
+      n->data = std::move(x);
+    });
+  });
 
   connect(
-      &element,
-      &Scenario::StateModel::sig_controlMessagesUpdated,
-      this,
+      &element, &Scenario::StateModel::sig_controlMessagesUpdated, this,
       &StateComponentBase::updateControls);
   // Note : they aren't updated in the constructor, but in
   // DocumentPlugin::reload as the ports to which we're talking may not exist
@@ -78,7 +71,7 @@ StateComponentBase::StateComponentBase(
 void StateComponentBase::updateControls()
 {
   auto ossia_msgs = toOssiaControls(this->system().setup, state());
-  if (!ossia_msgs.empty())
+  if(!ossia_msgs.empty())
   {
     in_exec([n = m_node, x = std::move(ossia_msgs)]() mutable {
       n->controls = std::move(x);
@@ -89,11 +82,11 @@ void StateComponentBase::updateControls()
 void StateComponentBase::onDelete() const
 {
   system().setup.unregister_node({}, {}, m_node);
-  if (m_ev)
+  if(m_ev)
   {
     in_exec([gr = this->system().execGraph, ev = m_ev] {
       auto& procs = ev->get_time_processes();
-      if (!procs.empty())
+      if(!procs.empty())
       {
         const auto& proc = (*procs.begin());
         ev->remove_time_process(proc.get());
@@ -102,43 +95,40 @@ void StateComponentBase::onDelete() const
   }
 }
 
-ProcessComponent* StateComponentBase::make(
-    ProcessComponentFactory& fac,
-    Process::ProcessModel& proc)
+ProcessComponent*
+StateComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& proc)
 {
   try
   {
     const Execution::Context& ctx = system();
     auto plug = fac.make(proc, ctx, nullptr);
-    if (plug && plug->OSSIAProcessPtr())
+    if(plug && plug->OSSIAProcessPtr())
     {
       auto oproc = plug->OSSIAProcessPtr();
       m_processes.emplace(proc.id(), plug);
 
-      if (auto& onode = plug->node)
+      if(auto& onode = plug->node)
         ctx.setup.register_node(proc, onode);
 
       auto cst = m_ev;
 
       QObject::connect(
-          &proc.selection,
-          &Selectable::changed,
-          plug.get(),
+          &proc.selection, &Selectable::changed, plug.get(),
           [this, n = oproc->node](bool ok) {
-            in_exec([=] {
-              if (n)
-                n->set_logging(ok);
-            });
+        in_exec([=] {
+          if(n)
+            n->set_logging(ok);
+        });
           });
-      if (oproc->node)
+      if(oproc->node)
         oproc->node->set_logging(proc.selection.get());
 
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
       std::weak_ptr<ossia::graph_interface> g_weak = plug->system().execGraph;
 
       in_exec([cst = m_ev, oproc_weak, g_weak] {
-        if (auto oproc = oproc_weak.lock())
-          if (auto g = g_weak.lock())
+        if(auto oproc = oproc_weak.lock())
+          if(auto g = g_weak.lock())
           {
             cst->add_time_process(oproc);
           }
@@ -147,23 +137,22 @@ ProcessComponent* StateComponentBase::make(
       return plug.get();
     }
   }
-  catch (const std::exception& e)
+  catch(const std::exception& e)
   {
     qDebug() << "Error while creating a process: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     qDebug() << "Error while creating a process";
   }
   return nullptr;
 }
 
-std::function<void()> StateComponentBase::removing(
-    const Process::ProcessModel& e,
-    ProcessComponent& c)
+std::function<void()>
+StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c)
 {
   auto it = m_processes.find(e.id());
-  if (it != m_processes.end())
+  if(it != m_processes.end())
   {
     auto c_ptr = c.shared_from_this();
     in_exec([cstr = m_ev, c_ptr] {
@@ -186,7 +175,7 @@ void StateComponent::onSetup()
 
 void StateComponent::init()
 {
-  if (m_model)
+  if(m_model)
   {
     init_hierarchy();
   }
@@ -194,12 +183,12 @@ void StateComponent::init()
 
 void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
 {
-  if (m_ev)
+  if(m_ev)
   {
     // self has to be kept alive until next tick
     in_exec([itv = m_ev, self] { itv->cleanup(); });
   }
-  for (auto& proc : m_processes)
+  for(auto& proc : m_processes)
     proc.second->cleanup();
 
   clear();

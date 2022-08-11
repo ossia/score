@@ -28,9 +28,8 @@
 
 #include <wobjectimpl.h>
 
-#include <vector>
-
 #include <unordered_map>
+#include <vector>
 W_OBJECT_IMPL(score::Presenter)
 namespace score
 {
@@ -44,11 +43,8 @@ static auto get_menubar(View* view)
 #endif
 }
 Presenter::Presenter(
-    const score::ApplicationSettings& app,
-    score::Settings& set,
-    score::ProjectSettings& pset,
-    View* view,
-    QObject* arg_parent)
+    const score::ApplicationSettings& app, score::Settings& set,
+    score::ProjectSettings& pset, View* view, QObject* arg_parent)
     : QObject{arg_parent}
     , m_view{view}
     , m_settings{set}
@@ -57,26 +53,17 @@ Presenter::Presenter(
     , m_components{}
     , m_components_readonly{m_components}
     , m_menubar{get_menubar(view)}
-    , m_context{
-          app,
-          m_components_readonly,
-          m_docManager,
-          m_menus,
-          m_toolbars,
-          m_actions,
-          m_settings.settings(),
-          m_view}
+    , m_context{app,       m_components_readonly, m_docManager, m_menus, m_toolbars,
+                m_actions, m_settings.settings(), m_view}
 {
   m_docManager.init(m_context); // It is necessary to break
   // this dependency cycle.
 
   connect(
-      &m_context.docManager,
-      &DocumentManager::documentChanged,
-      &m_actions,
+      &m_context.docManager, &DocumentManager::documentChanged, &m_actions,
       &ActionManager::reset);
 
-  if (m_view)
+  if(m_view)
     m_view->setPresenter(this);
 }
 
@@ -99,18 +86,18 @@ void Presenter::setupGUI()
   {
     std::vector<Menu> menus;
     menus.reserve(m_menus.get().size());
-    for (auto& elt : m_menus.get())
+    for(auto& elt : m_menus.get())
     {
-      if (elt.second.toplevel())
+      if(elt.second.toplevel())
         menus.push_back(elt.second);
     }
     std::sort(menus.begin(), menus.end(), [](auto& lhs, auto& rhs) {
       return lhs.column() < rhs.column();
     });
 
-    if (view())
+    if(view())
     {
-      for (Menu& menu : menus)
+      for(Menu& menu : menus)
       {
         view()->menuBar()->addMenu(menu.menu());
       }
@@ -122,23 +109,22 @@ void Presenter::setupGUI()
   {
     std::unordered_map<Qt::ToolBarArea, std::vector<Toolbar>> toolbars;
 
-    for (auto& tb : m_toolbars.get())
+    for(auto& tb : m_toolbars.get())
     {
       toolbars[(Qt::ToolBarArea)tb.second.row()].push_back(tb.second);
     }
 
-    if (!view())
+    if(!view())
       return;
 
-    for (auto& tb : toolbars)
+    for(auto& tb : toolbars)
     {
-      ossia::sort(tb.second, [](auto& lhs, auto& rhs) {
-        return lhs.column() < rhs.column();
-      });
+      ossia::sort(
+          tb.second, [](auto& lhs, auto& rhs) { return lhs.column() < rhs.column(); });
     }
 
     {
-      for (const Toolbar& tb : toolbars[Qt::TopToolBarArea])
+      for(const Toolbar& tb : toolbars[Qt::TopToolBarArea])
       {
         view()->addTopToolbar(tb.toolbar());
       }
@@ -149,9 +135,9 @@ void Presenter::setupGUI()
       auto bl = (QGridLayout*)bw->layout();
 
       int i = 0;
-      for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
+      for(const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
-        if (i == 2 || i == ((int)toolbars[Qt::BottomToolBarArea].size()) * 2)
+        if(i == 2 || i == ((int)toolbars[Qt::BottomToolBarArea].size()) * 2)
         { // for 3rd and penultimate
           auto dummy = new QWidget;
           dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -161,9 +147,9 @@ void Presenter::setupGUI()
         }
 
         // TODO find a better design for that !
-        if (tb.key() == StringKey<score::Toolbar>("Audio"))
+        if(tb.key() == StringKey<score::Toolbar>("Audio"))
         {
-          if (!tb.toolbar()->actions().empty())
+          if(!tb.toolbar()->actions().empty())
           {
             auto audio_engine_act = tb.toolbar()->actions().back();
             tb.toolbar()->removeAction(audio_engine_act);
@@ -197,7 +183,7 @@ void Presenter::optimize()
   score::optimize_hash_map(m_components.commands);
 
   score::optimize_hash_map(m_components.factories);
-  for (auto& fact : m_components.factories)
+  for(auto& fact : m_components.factories)
   {
     fact.second->optimize();
   }

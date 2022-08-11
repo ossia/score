@@ -38,14 +38,12 @@ struct Node
   {
   public:
     bool should_output(
-        float quantif,
-        const int64_t& ms,
-        const ossia::token_request& t,
+        float quantif, const int64_t& ms, const ossia::token_request& t,
         const ossia::exec_state_facade& st)
     {
-      if (quantif != 0.)
+      if(quantif != 0.)
         return true;
-      else if (t.date.impl >= (last_time + ms * flicks_per_ms))
+      else if(t.date.impl >= (last_time + ms * flicks_per_ms))
       {
         last_time = t.date.impl;
         return true;
@@ -61,38 +59,29 @@ struct Node
   using control_policy = ossia::safe_nodes::last_tick;
 
   static void
-  run(const ossia::value_port& in,
-      float quantif,
-      uint64_t ms,
-      ossia::value_port& out,
-      ossia::token_request t,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const ossia::value_port& in, float quantif, uint64_t ms, ossia::value_port& out,
+      ossia::token_request t, ossia::exec_state_facade st, State& self)
   {
-    for (const ossia::timed_value& v : in.get_data())
+    for(const ossia::timed_value& v : in.get_data())
     {
 
-      if (quantif <= 0.)
+      if(quantif <= 0.)
       {
-        if (self.should_output(quantif, ms, t, st))
-          out.write_value(
-              v.value, v.timestamp); // TODO fix accuracy of timestamp
+        if(self.should_output(quantif, ms, t, st))
+          out.write_value(v.value, v.timestamp); // TODO fix accuracy of timestamp
       }
       else
       {
-        if (auto time = t.get_physical_quantification_date(
-                1. / quantif, st.modelToSamples()))
+        if(auto time
+           = t.get_physical_quantification_date(1. / quantif, st.modelToSamples()))
           out.write_value(v.value, *time);
       }
     }
   }
 
   static void item(
-      Process::ComboBox& quantif,
-      Process::IntSlider& ms,
-      const Process::ProcessModel& process,
-      QGraphicsItem& parent,
-      QObject& context,
+      Process::ComboBox& quantif, Process::IntSlider& ms,
+      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
       const Process::Context& doc)
   {
     using namespace Process;
@@ -105,22 +94,12 @@ struct Node
     c1_bg->setRect({0., 0, w, 45.});
 
     auto quant_item = makeControl(
-        tuplet::get<0>(Metadata::controls),
-        quantif,
-        parent,
-        context,
-        doc,
-        portFactory);
+        tuplet::get<0>(Metadata::controls), quantif, parent, context, doc, portFactory);
     quant_item.root.setPos(5, 0);
     quant_item.control.setPos(cMarg, cMarg);
 
     auto ms_item = makeControl(
-        tuplet::get<1>(Metadata::controls),
-        ms,
-        parent,
-        context,
-        doc,
-        portFactory);
+        tuplet::get<1>(Metadata::controls), ms, parent, context, doc, portFactory);
     ms_item.root.setPos(100, 0);
     ms_item.control.setPos(0, cMarg);
   }

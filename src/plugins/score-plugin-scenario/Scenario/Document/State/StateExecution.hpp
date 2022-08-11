@@ -3,12 +3,12 @@
 #include <Process/ExecutionComponent.hpp>
 #include <Process/Process.hpp>
 
+#include <Scenario/Document/Components/IntervalComponent.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/model/ComponentHierarchy.hpp>
 
 #include <ossia/dataflow/nodes/state.hpp>
-
-#include <Scenario/Document/Components/IntervalComponent.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 
 namespace ossia
 {
@@ -22,8 +22,7 @@ class StateModel;
 
 namespace Execution
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT StateComponentBase
-    : public Execution::Component
+class SCORE_PLUGIN_SCENARIO_EXPORT StateComponentBase : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("b3905e79-2bd0-48bd-8654-8666455ceedd")
 public:
@@ -34,25 +33,17 @@ public:
   using component_t = ProcessComponent;
   using component_factory_list_t = ProcessComponentFactoryList;
   StateComponentBase(
-      const Scenario::StateModel& element,
-      std::shared_ptr<ossia::time_event> ev,
-      const Execution::Context& ctx,
-      QObject* parent);
+      const Scenario::StateModel& element, std::shared_ptr<ossia::time_event> ev,
+      const Execution::Context& ctx, QObject* parent);
 
   //! To be called from the GUI thread
   void onDelete() const;
   void updateControls();
 
-  ProcessComponent* make(
-      ProcessComponentFactory& factory,
-      Process::ProcessModel& process);
   ProcessComponent*
-  make(Process::ProcessModel& process)
-  {
-    return nullptr;
-  }
-  std::function<void()>
-  removing(const Process::ProcessModel& e, ProcessComponent& c);
+  make(ProcessComponentFactory& factory, Process::ProcessModel& process);
+  ProcessComponent* make(Process::ProcessModel& process) { return nullptr; }
+  std::function<void()> removing(const Process::ProcessModel& e, ProcessComponent& c);
 
   template <typename... Args>
   void added(Args&&...)
@@ -61,7 +52,7 @@ public:
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
-    if (f)
+    if(f)
       f();
   }
   template <typename Models>
@@ -74,9 +65,8 @@ public:
     return m_model->stateProcesses;
   }
 
-  const score::
-      hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
-      processes() const
+  const score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
+  processes() const
   {
     return m_processes;
   }
@@ -85,10 +75,7 @@ public:
     SCORE_ASSERT(m_model);
     return *m_model;
   }
-  const std::shared_ptr<ossia::nodes::state_writer>& node() const
-  {
-    return m_node;
-  }
+  const std::shared_ptr<ossia::nodes::state_writer>& node() const { return m_node; }
 
 protected:
   QPointer<const Scenario::StateModel> m_model;
@@ -105,8 +92,7 @@ public:
   template <typename... Args>
   StateComponent(Args&&... args)
       : PolymorphicComponentHierarchyManager{
-          score::lazy_init_t{},
-          std::forward<Args>(args)...}
+          score::lazy_init_t{}, std::forward<Args>(args)...}
   {
     init();
   }

@@ -5,17 +5,17 @@
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
+#include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
 
 #include <QByteArray>
-
-#include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -24,9 +24,7 @@ namespace Scenario
 namespace Command
 {
 CreateTimeSync_Event_State::CreateTimeSync_Event_State(
-    const Scenario::ProcessModel& scenario,
-    TimeVal date,
-    double stateY)
+    const Scenario::ProcessModel& scenario, TimeVal date, double stateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}
     , m_createdName{RandomNameProvider::generateName<TimeSyncModel>()}
     , m_date{std::move(date)}
@@ -38,8 +36,7 @@ void CreateTimeSync_Event_State::undo(const score::DocumentContext& ctx) const
 {
   m_command.undo(ctx);
 
-  ScenarioCreate<TimeSyncModel>::undo(
-      m_newTimeSync, m_command.scenarioPath().find(ctx));
+  ScenarioCreate<TimeSyncModel>::undo(m_newTimeSync, m_command.scenarioPath().find(ctx));
 }
 
 void CreateTimeSync_Event_State::redo(const score::DocumentContext& ctx) const

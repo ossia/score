@@ -30,24 +30,20 @@
 
 #include <ossia-config.hpp>
 
-#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) \
-    && __has_include(<alsa/asoundlib.h>)
+#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) && __has_include(<alsa/asoundlib.h>)
 #include <alsa/asoundlib.h>
 static void asound_error(
-    const char* file,
-    int line,
-    const char* function,
-    int err,
-    const char* fmt,
-    ...)
+    const char* file, int line, const char* function, int err, const char* fmt, ...)
 {
 }
 #endif
 
 score_plugin_audio::score_plugin_audio()
 {
-  qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("Audio::AudioFactory::ConcreteKey");
-  qRegisterMetaType<Audio::Settings::ExternalTransport>("Audio::Settings::ExternalTransport");
+  qRegisterMetaType<Audio::AudioFactory::ConcreteKey>(
+      "Audio::AudioFactory::ConcreteKey");
+  qRegisterMetaType<Audio::Settings::ExternalTransport>(
+      "Audio::Settings::ExternalTransport");
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
@@ -56,34 +52,30 @@ score_plugin_audio::score_plugin_audio()
       "Audio::Settings::ExternalTransport");
 #endif
 
-  auto only_dummy_audio
-      = qEnvironmentVariableIntValue("SCORE_ONLY_DUMMY_AUDIO") > 0;
+  auto only_dummy_audio = qEnvironmentVariableIntValue("SCORE_ONLY_DUMMY_AUDIO") > 0;
 
-  if (!only_dummy_audio)
+  if(!only_dummy_audio)
   {
 #if OSSIA_AUDIO_JACK
-  jack_set_error_function([](const char* str) {
-    std::cerr << "JACK ERROR: " << str << std::endl;
-  });
-  jack_set_info_function([](const char* str) {
-    // std::cerr << "JACK INFO: " << str << std::endl;
-  });
+    jack_set_error_function(
+        [](const char* str) { std::cerr << "JACK ERROR: " << str << std::endl; });
+    jack_set_info_function([](const char* str) {
+      // std::cerr << "JACK INFO: " << str << std::endl;
+    });
 #endif
-#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) \
-    && __has_include(<alsa/asoundlib.h>)
-  auto asound = dlopen("libasound.so.2", RTLD_LAZY | RTLD_LOCAL);
-  auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(
-      asound, "snd_lib_error_set_handler");
-  sym(asound_error);
+#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+    auto asound = dlopen("libasound.so.2", RTLD_LAZY | RTLD_LOCAL);
+    auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(
+        asound, "snd_lib_error_set_handler");
+    sym(asound_error);
 #endif
-
   }
 }
 
 score_plugin_audio::~score_plugin_audio() { }
 
-score::GUIApplicationPlugin* score_plugin_audio::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_audio::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Audio::ApplicationPlugin{app};
 }
@@ -94,23 +86,20 @@ score_plugin_audio::factoryFamilies()
   return make_ptr_vector<score::InterfaceListBase, Audio::AudioFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_audio::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Audio;
-  auto only_dummy_audio
-      = qEnvironmentVariableIntValue("SCORE_ONLY_DUMMY_AUDIO") > 0;
+  auto only_dummy_audio = qEnvironmentVariableIntValue("SCORE_ONLY_DUMMY_AUDIO") > 0;
 
-  if (only_dummy_audio)
+  if(only_dummy_audio)
   {
     return instantiate_factories<
-        score::ApplicationContext,
-        FW<Audio::AudioFactory, Audio::DummyFactory>,
+        score::ApplicationContext, FW<Audio::AudioFactory, Audio::DummyFactory>,
         FW<Device::ProtocolFactory
 #if defined(OSSIA_PROTOCOL_AUDIO)
-           , Dataflow::AudioProtocolFactory
+           ,
+           Dataflow::AudioProtocolFactory
 #endif
            >,
         FW<score::SettingsDelegateFactory, Audio::Settings::Factory>,
@@ -121,8 +110,7 @@ score_plugin_audio::factories(
 
     return instantiate_factories<
         score::ApplicationContext,
-        FW<Audio::AudioFactory,
-           Audio::DummyFactory
+        FW<Audio::AudioFactory, Audio::DummyFactory
 #if defined(OSSIA_AUDIO_JACK)
            ,
            Audio::JackFactory

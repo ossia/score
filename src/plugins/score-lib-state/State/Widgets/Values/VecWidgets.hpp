@@ -36,7 +36,7 @@ public:
     auto lay = new QHBoxLayout;
     this->setLayout(lay);
 
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       auto box = new QDoubleSpinBox{this};
       box->setMinimum(-9999);
@@ -52,7 +52,7 @@ public:
 
   void setValue(std::array<float, N> v)
   {
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       m_boxes[i]->setValue(v[i]);
     }
@@ -61,7 +61,7 @@ public:
   std::array<float, N> value() const
   {
     std::array<float, N> v;
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       v[i] = m_boxes[i]->value();
     }
@@ -101,22 +101,20 @@ public:
     lay->addWidget(m_max);
   }
 
-  static std::array<std::optional<float>, N>
-  toOptional(const std::array<float, N>& f)
+  static std::array<std::optional<float>, N> toOptional(const std::array<float, N>& f)
   {
     std::array<std::optional<float>, N> res;
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       res[i] = f[i];
     }
     return res;
   }
 
-  static std::array<float, N>
-  fromOptional(const std::array<std::optional<float>, N>& f)
+  static std::array<float, N> fromOptional(const std::array<std::optional<float>, N>& f)
   {
     std::array<float, N> res;
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       res[i] = f[i] ? *f[i] : 0;
     }
@@ -138,7 +136,7 @@ public:
     m_min->setValue(ossia::fill_vec<N>(0));
     m_max->setValue(ossia::fill_vec<N>(1));
 
-    if (auto dom_p = dom_base.v.target<domain_type>())
+    if(auto dom_p = dom_base.v.target<domain_type>())
     {
       auto& dom = *dom_p;
 

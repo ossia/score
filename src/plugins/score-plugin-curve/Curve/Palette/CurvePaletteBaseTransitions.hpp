@@ -15,8 +15,7 @@ template <typename T>
 using GenericTransition = score::StateAwareTransition<StateBase, T>;
 
 template <typename Event>
-class MatchedCurveTransition
-    : public GenericTransition<score::MatchedTransition<Event>>
+class MatchedCurveTransition : public GenericTransition<score::MatchedTransition<Event>>
 {
 public:
   using GenericTransition<score::MatchedTransition<Event>>::GenericTransition;
@@ -40,9 +39,7 @@ protected:
   }
 
 private:
-  void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Click_tag>* ev)
-  {
-  }
+  void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Click_tag>* ev) { }
   void impl(CurveEvent<Element::Point_tag, score::Modifier::Click_tag>* ev)
   {
     auto& model = safe_cast<const PointView*>(ev->item)->model();
@@ -54,8 +51,7 @@ private:
         = safe_cast<const SegmentView*>(ev->item)->model().id();
   }
 
-  void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Move_tag>* ev) {
-  }
+  void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Move_tag>* ev) { }
   void impl(CurveEvent<Element::Point_tag, score::Modifier::Move_tag>* ev)
   {
     auto& model = safe_cast<const PointView*>(ev->item)->model();
@@ -67,9 +63,7 @@ private:
         = safe_cast<const SegmentView*>(ev->item)->model().id();
   }
 
-  void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Release_tag>* ev)
-  {
-  }
+  void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Release_tag>* ev) { }
   void impl(CurveEvent<Element::Point_tag, score::Modifier::Release_tag>* ev)
   {
     auto& model = safe_cast<const PointView*>(ev->item)->model();
@@ -82,37 +76,28 @@ private:
   }
 };
 
-using ClickOnNothing_Transition = PositionedCurveTransition<
-    Element::Nothing_tag,
-    score::Modifier::Click_tag>;
-using ClickOnPoint_Transition = PositionedCurveTransition<
-    Element::Point_tag,
-    score::Modifier::Click_tag>;
-using ClickOnSegment_Transition = PositionedCurveTransition<
-    Element::Segment_tag,
-    score::Modifier::Click_tag>;
+using ClickOnNothing_Transition
+    = PositionedCurveTransition<Element::Nothing_tag, score::Modifier::Click_tag>;
+using ClickOnPoint_Transition
+    = PositionedCurveTransition<Element::Point_tag, score::Modifier::Click_tag>;
+using ClickOnSegment_Transition
+    = PositionedCurveTransition<Element::Segment_tag, score::Modifier::Click_tag>;
 
-using MoveOnNothing_Transition = PositionedCurveTransition<
-    Element::Nothing_tag,
-    score::Modifier::Move_tag>;
+using MoveOnNothing_Transition
+    = PositionedCurveTransition<Element::Nothing_tag, score::Modifier::Move_tag>;
 using MoveOnPoint_Transition
     = PositionedCurveTransition<Element::Point_tag, score::Modifier::Move_tag>;
-using MoveOnSegment_Transition = PositionedCurveTransition<
-    Element::Segment_tag,
-    score::Modifier::Move_tag>;
+using MoveOnSegment_Transition
+    = PositionedCurveTransition<Element::Segment_tag, score::Modifier::Move_tag>;
 
-using ReleaseOnNothing_Transition = PositionedCurveTransition<
-    Element::Nothing_tag,
-    score::Modifier::Release_tag>;
-using ReleaseOnPoint_Transition = PositionedCurveTransition<
-    Element::Point_tag,
-    score::Modifier::Release_tag>;
-using ReleaseOnSegment_Transition = PositionedCurveTransition<
-    Element::Segment_tag,
-    score::Modifier::Release_tag>;
+using ReleaseOnNothing_Transition
+    = PositionedCurveTransition<Element::Nothing_tag, score::Modifier::Release_tag>;
+using ReleaseOnPoint_Transition
+    = PositionedCurveTransition<Element::Point_tag, score::Modifier::Release_tag>;
+using ReleaseOnSegment_Transition
+    = PositionedCurveTransition<Element::Segment_tag, score::Modifier::Release_tag>;
 
-class ClickOnAnything_Transition final
-    : public GenericTransition<QAbstractTransition>
+class ClickOnAnything_Transition final : public GenericTransition<QAbstractTransition>
 {
 public:
   using GenericTransition<QAbstractTransition>::GenericTransition;
@@ -137,8 +122,7 @@ protected:
   }
 };
 
-class MoveOnAnything_Transition final
-    : public GenericTransition<QAbstractTransition>
+class MoveOnAnything_Transition final : public GenericTransition<QAbstractTransition>
 {
 public:
   using GenericTransition<QAbstractTransition>::GenericTransition;

@@ -29,13 +29,10 @@ public:
   const Process::Context& m_context;
 };
 
-class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate
-    : public Process::HeaderDelegate
+class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate : public Process::HeaderDelegate
 {
 public:
-  DefaultHeaderDelegate(
-      const Process::ProcessModel& m,
-      const Process::Context& doc);
+  DefaultHeaderDelegate(const Process::ProcessModel& m, const Process::Context& doc);
   ~DefaultHeaderDelegate() override;
 
   void updateText() override;
@@ -48,10 +45,8 @@ public:
 
 protected:
   void updatePorts();
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   QPixmap m_line, m_bench;
   QGraphicsItem* m_ui{};
@@ -90,23 +85,18 @@ protected:
   int type() const override;
 };
 
-class SCORE_LIB_PROCESS_EXPORT DefaultFooterDelegate
-    : public Process::FooterDelegate
+class SCORE_LIB_PROCESS_EXPORT DefaultFooterDelegate : public Process::FooterDelegate
 {
 public:
-  DefaultFooterDelegate(
-      const Process::ProcessModel& m,
-      const Process::Context& doc);
+  DefaultFooterDelegate(const Process::ProcessModel& m, const Process::Context& doc);
   ~DefaultFooterDelegate() override;
 
   void setSize(QSizeF sz) final override;
 
 protected:
   void updatePorts();
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   ossia::small_vector<Dataflow::PortItem*, 3> m_outPorts;
   double m_portEndX{};

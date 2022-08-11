@@ -1,7 +1,12 @@
 #pragma once
+#include <State/Expression.hpp>
+
 #include <Process/Dataflow/TimeSignature.hpp>
 #include <Process/TimeValue.hpp>
-#include <State/Expression.hpp>
+
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Metatypes.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -13,9 +18,6 @@
 
 #include <QObject>
 
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Metatypes.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <chrono>
@@ -40,10 +42,7 @@ public:
   Selectable selection;
 
   /** The class **/
-  TimeSyncModel(
-      const Id<TimeSyncModel>& id,
-      const TimeVal& date,
-      QObject* parent);
+  TimeSyncModel(const Id<TimeSyncModel>& id, const TimeVal& date, QObject* parent);
 
   template <typename DeserializerVisitor>
   TimeSyncModel(DeserializerVisitor&& vis, QObject* parent)
@@ -100,8 +99,7 @@ public:
   void startPointChanged(bool b)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startPointChanged, b)
 
-  void triggeredByGui() const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
+  void triggeredByGui() const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
 
   void waitingChanged(bool b) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, waitingChanged, b)
@@ -111,12 +109,9 @@ public:
 
   PROPERTY(
       ossia::musical_sync,
-      musicalSync READ musicalSync WRITE setMusicalSync NOTIFY
-          musicalSyncChanged)
+      musicalSync READ musicalSync WRITE setMusicalSync NOTIFY musicalSyncChanged)
   PROPERTY(
-      bool,
-      startPoint READ isStartPoint WRITE setStartPoint NOTIFY
-          startPointChanged)
+      bool, startPoint READ isStartPoint WRITE setStartPoint NOTIFY startPointChanged)
 
 private:
   TimeVal m_date{};

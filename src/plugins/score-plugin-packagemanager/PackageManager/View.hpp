@@ -1,17 +1,18 @@
 #pragma once
-#include <score/application/ApplicationContext.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <Library/LibrarySettings.hpp>
 
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
 #include <QGridLayout>
+#include <QLabel>
 #include <QNetworkAccessManager>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QStorageInfo>
 #include <QTabWidget>
 #include <QTableView>
 #include <QWidget>
-#include <QStorageInfo>
-#include <QLabel>
 
 #include <PackageManager/PluginItemModel.hpp>
 
@@ -57,7 +58,8 @@ private:
   void updateAll();
   void on_message(QNetworkReply* rep);
 
-  void on_packageInstallSuccess(const Package& addon, const QDir& destination, const std::vector<QString>& res);
+  void on_packageInstallSuccess(
+      const Package& addon, const QDir& destination, const std::vector<QString>& res);
   void on_packageInstallFailure(const Package& addon);
 
   void refresh();

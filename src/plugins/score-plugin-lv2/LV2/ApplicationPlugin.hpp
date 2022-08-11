@@ -1,5 +1,6 @@
 #pragma once
 #include <LV2/Context.hpp>
+#include <LV2/Suil.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
@@ -11,8 +12,6 @@
 
 #include <thread>
 #include <verdigris>
-
-#include <LV2/Suil.hpp>
 
 namespace LV2
 {

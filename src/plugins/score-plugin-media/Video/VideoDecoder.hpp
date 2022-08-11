@@ -1,11 +1,10 @@
 #pragma once
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
-#include <Video/VideoInterface.hpp>
 #include <Video/FrameQueue.hpp>
 #include <Video/Rescale.hpp>
-extern "C"
-{
+#include <Video/VideoInterface.hpp>
+extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 }
@@ -15,12 +14,11 @@ extern "C"
 #include <score_plugin_media_export.h>
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
-
-#include <condition_variable>
 
 namespace Video
 {

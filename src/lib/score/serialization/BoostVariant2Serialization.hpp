@@ -4,7 +4,6 @@
 #include <score/tools/Metadata.hpp>
 
 #include <ossia/detail/for_each.hpp>
-
 #include <ossia/detail/variant.hpp>
 
 /**
@@ -61,9 +60,9 @@ void OssiaVariantDataStreamSerializer<T>::operator()()
 {
   // This trickery iterates over all the types in Args...
   // A single type should be serialized, even if we cannot break.
-  if (done)
+  if(done)
     return;
-  if (auto res = ossia::get_if<TheClass>(&var))
+  if(auto res = ossia::get_if<TheClass>(&var))
   {
     s.stream() << *res;
     done = true;
@@ -74,9 +73,7 @@ template <typename T>
 struct OssiaVariantDataStreamDeserializer
 {
   OssiaVariantDataStreamDeserializer(
-      DataStream::Deserializer& s_p,
-      quint64 which_p,
-      T& var_p)
+      DataStream::Deserializer& s_p, quint64 which_p, T& var_p)
       : s{s_p}
       , which{which_p}
       , var{var_p}
@@ -97,7 +94,7 @@ template <typename TheClass>
 void OssiaVariantDataStreamDeserializer<T>::operator()()
 {
   // Here we iterate until we are on the correct type, and we deserialize it.
-  if (i++ != which)
+  if(i++ != which)
     return;
 
   TheClass data;
@@ -113,8 +110,7 @@ struct TSerializer<DataStream, ossia::variant<Args...>>
   {
     s.stream() << (quint64)var.index();
 
-    ossia::for_each_type<Args...>(
-        OssiaVariantDataStreamSerializer<var_t>{s, var});
+    ossia::for_each_type<Args...>(OssiaVariantDataStreamSerializer<var_t>{s, var});
 
     s.insertDelimiter();
   }
@@ -167,10 +163,10 @@ template <typename T>
 template <typename TheClass>
 void OssiaVariantJSONSerializer<T>::operator()()
 {
-  if (done)
+  if(done)
     return;
 
-  if (auto res = ossia::get_if<TheClass>(&var))
+  if(auto res = ossia::get_if<TheClass>(&var))
   {
     s.obj[Metadata<Json_k, TheClass>::get()] = *res;
     done = true;
@@ -197,10 +193,10 @@ template <typename T>
 template <typename TheClass>
 void OssiaVariantJSONDeserializer<T>::operator()()
 {
-  if (done)
+  if(done)
     return;
 
-  if (auto it = s.obj.tryGet(Metadata<Json_k, TheClass>::get()))
+  if(auto it = s.obj.tryGet(Metadata<Json_k, TheClass>::get()))
   {
     JSONWriter w{*it};
     TheClass obj;
@@ -223,7 +219,7 @@ struct TSerializer<JSONObject, ossia::variant<Args...>>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if (s.base.MemberCount() == 0)
+    if(s.base.MemberCount() == 0)
       return;
     ossia::for_each_type<Args...>(OssiaVariantJSONDeserializer<var_t>{s, var});
   }

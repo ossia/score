@@ -40,33 +40,33 @@ struct PluginDependencyGraph
     const score::Addon* addon{};
   };
 
-  using Graph = boost::
-      adjacency_list<boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
+  using Graph
+      = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
 
 public:
   explicit PluginDependencyGraph(const std::vector<score::Addon>& addons)
   {
-    if (addons.empty())
+    if(addons.empty())
       return;
 
     score::hash_map<PluginKey, int64_t> keys;
     std::vector<const score::Addon*> not_loaded;
 
     // First add all the vertices to the graph
-    for (const score::Addon& addon : addons)
+    for(const score::Addon& addon : addons)
     {
       auto vx = boost::add_vertex(GraphVertex{&addon}, m_graph);
       keys[addon.key] = vx;
     }
 
     // If A depends on B, then there is an edge from B to A.
-    for (const score::Addon& addon : addons)
+    for(const score::Addon& addon : addons)
     {
       auto addon_k = keys[addon.key];
-      for (const auto& k : addon.plugin->required())
+      for(const auto& k : addon.plugin->required())
       {
         auto it = keys.find(k);
-        if (it != keys.end())
+        if(it != keys.end())
         {
           boost::add_edge(addon_k, it->second, m_graph);
         }
@@ -80,7 +80,7 @@ public:
       }
     }
 
-    if (!not_loaded.empty())
+    if(!not_loaded.empty())
       qDebug() << not_loaded.size()
                << "plugins were not loaded due to a dependency problem.";
 
@@ -92,13 +92,13 @@ public:
     try
     {
       boost::topological_sort(m_graph, std::back_inserter(topo_order));
-      for (auto e : topo_order)
+      for(auto e : topo_order)
       {
-        if (m_graph[e].addon)
+        if(m_graph[e].addon)
           m_sorted.push_back(*m_graph[e].addon);
       }
     }
-    catch (const std::exception& e)
+    catch(const std::exception& e)
     {
       qDebug() << "Invalid plug-in graph: " << e.what();
       m_graph.clear();

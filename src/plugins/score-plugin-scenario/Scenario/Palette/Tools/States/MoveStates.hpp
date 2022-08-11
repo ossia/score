@@ -1,11 +1,4 @@
 #pragma once
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <score/locking/ObjectLocker.hpp>
-
-#include <QApplication>
-#include <QFinalState>
-
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
@@ -26,20 +19,24 @@
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <score/locking/ObjectLocker.hpp>
+
+#include <QApplication>
+#include <QFinalState>
+
 namespace Scenario
 {
 template <
     typename MoveBraceCommand_T, // SetMinDuration or setMaxDuration
-    typename Scenario_T,
-    typename ToolPalette_T>
+    typename Scenario_T, typename ToolPalette_T>
 class MoveIntervalBraceState final : public StateBase<Scenario_T>
 {
 public:
   MoveIntervalBraceState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}
       , m_dispatcher{stack}
@@ -59,8 +56,7 @@ public:
 
       score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
           pressed, moving, *this);
-      score::make_transition<ReleaseOnAnything_Transition>(
-          pressed, finalState);
+      score::make_transition<ReleaseOnAnything_Transition>(pressed, finalState);
 
       score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
           moving, moving, *this);
@@ -68,7 +64,7 @@ public:
 
       QObject::connect(pressed, &QState::entered, [&]() {
         this->m_initialDate = this->currentPoint.date;
-        if (this->clickedInterval)
+        if(this->clickedInterval)
         {
           auto& scenar = stateMachine.model();
           auto& cstr = scenar.interval(*this->clickedInterval);
@@ -82,15 +78,13 @@ public:
       });
 
       QObject::connect(moving, &QState::entered, [&]() {
-        if (this->clickedInterval)
+        if(this->clickedInterval)
         {
           auto& scenar = stateMachine.model();
           auto& cstr = scenar.interval(*this->clickedInterval);
-          auto date
-              = this->currentPoint.date - *m_initialDate + *m_initialDuration;
+          auto date = this->currentPoint.date - *m_initialDate + *m_initialDuration;
 
-          date = stateMachine.magnetic().getPosition(
-              &stateMachine.model(), date);
+          date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
 
           this->m_dispatcher.submit(cstr, date, false);
         }
@@ -117,16 +111,13 @@ private:
 
 template <
     typename MoveTimeSyncCommand_T, // MoveEventMeta
-    typename Scenario_T,
-    typename ToolPalette_T>
+    typename Scenario_T, typename ToolPalette_T>
 class MoveTimeSyncState final : public StateBase<Scenario_T>
 {
 public:
   MoveTimeSyncState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}
       , m_dispatcher{stack}
@@ -147,29 +138,28 @@ public:
 
       score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
           pressed, moving, *this);
-      score::make_transition<ReleaseOnAnything_Transition>(
-          pressed, finalState);
+      score::make_transition<ReleaseOnAnything_Transition>(pressed, finalState);
       score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
           moving, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
       // What happens in each state.
       QObject::connect(pressed, &QState::entered, [&]() {
-        if (!this->clickedTimeSync)
+        if(!this->clickedTimeSync)
           return;
 
         auto& scenar = stateMachine.model();
 
-        auto prev_csts = previousNonGraphIntervals(
-            scenar.timeSync(*this->clickedTimeSync), scenar);
-        if (!prev_csts.empty())
+        auto prev_csts
+            = previousNonGraphIntervals(scenar.timeSync(*this->clickedTimeSync), scenar);
+        if(!prev_csts.empty())
         {
           // We find the one that starts the latest.
           TimeVal t = TimeVal::zero();
-          for (const auto& cst_id : prev_csts)
+          for(const auto& cst_id : prev_csts)
           {
             const auto& other_date = scenar.interval(cst_id).date();
-            if (other_date > t)
+            if(other_date > t)
               t = other_date;
           }
           this->m_pressedPrevious = t;
@@ -181,7 +171,7 @@ public:
       });
 
       QObject::connect(moving, &QState::entered, [&]() {
-        if (!this->clickedTimeSync)
+        if(!this->clickedTimeSync)
           return;
 
         // Get the 1st event on the timesync.
@@ -191,19 +181,15 @@ public:
         const auto& ev_id = tn.events().front();
         auto date = this->currentPoint.date;
 
-        date
-            = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
+        date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
 
-        if (this->m_pressedPrevious)
+        if(this->m_pressedPrevious)
         {
           date = max(date, *this->m_pressedPrevious);
         }
 
         m_dispatcher.submit(
-            this->m_scenario,
-            ev_id,
-            date,
-            this->currentPoint.y,
+            this->m_scenario, ev_id, date, this->currentPoint.y,
             stateMachine.editionSettings().expandMode(),
             stateMachine.editionSettings().lockMode());
       });

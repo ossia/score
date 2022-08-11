@@ -2,8 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InterpStateProcess.hpp"
 
-#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <State/ValueSerialization.hpp>
+
+#include <Curve/Segment/Power/PowerSegment.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
@@ -15,20 +16,13 @@ namespace InterpState
 ProcessModel::~ProcessModel() = default;
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : CurveProcessModel{
-        duration,
-        id,
-        Metadata<ObjectKey_k, ProcessModel>::get(),
-        parent}
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+    : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(
-      Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 

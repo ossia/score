@@ -1,14 +1,13 @@
-#include <Scenario/Application/Drops/DropLayerInScenario.hpp>
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
-
+#include <Scenario/Application/Drops/DropLayerInScenario.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
 
 #include <QFile>
-#include <QUrl>
 #include <QFileInfo>
+#include <QUrl>
 
 namespace Scenario
 {
@@ -20,20 +19,18 @@ DropLayerInScenario::DropLayerInScenario()
 }
 
 bool DropLayerInScenario::drop(
-    const ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   rapidjson::Document json;
   QString filename;
-  if (mime.formats().contains(score::mime::layerdata()))
+  if(mime.formats().contains(score::mime::layerdata()))
   {
     json = readJson(mime.data(score::mime::layerdata()));
   }
-  else if (mime.hasUrls())
+  else if(mime.hasUrls())
   {
-    if (QFile f{mime.urls()[0].toLocalFile()};
-        QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
+    if(QFile f{mime.urls()[0].toLocalFile()};
+       QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
     {
       filename = QFileInfo{f}.fileName();
       json = readJson(f.readAll());
@@ -44,9 +41,9 @@ bool DropLayerInScenario::drop(
     return false;
   }
 
-  if (!json.IsObject() || json.MemberCount() == 0)
+  if(!json.IsObject() || json.MemberCount() == 0)
     return false;
-  if (!json.HasMember("Path") || !json.HasMember("Duration"))
+  if(!json.HasMember("Path") || !json.HasMember("Duration"))
     return false;
 
   Scenario::Command::Macro m{

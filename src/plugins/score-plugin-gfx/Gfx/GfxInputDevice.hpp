@@ -1,12 +1,12 @@
 #pragma once
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
-#include <Video/CameraInput.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Video/CameraInput.hpp>
+
 #include <ossia/gfx/texture_parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
-
 
 namespace Gfx
 {
@@ -24,15 +24,12 @@ public:
   {
     return false;
   }
-  bool push_raw(const ossia::net::full_parameter_data&) override
-  {
-    return false;
-  }
+  bool push_raw(const ossia::net::full_parameter_data&) override { return false; }
   bool observe(ossia::net::parameter_base&, bool) override { return false; }
   bool update(ossia::net::node_base& node_base) override { return false; }
 
-  void start_execution() override {  }
-  void stop_execution() override {  }
+  void start_execution() override { }
+  void stop_execution() override { }
 };
 
 class simple_texture_input_parameter : public ossia::gfx::texture_input_parameter
@@ -44,9 +41,7 @@ public:
   score::gfx::Node* node{};
 
   simple_texture_input_parameter(
-      score::gfx::Node* gfx_n,
-      GfxExecutionAction* ctx,
-      ossia::net::node_base& n)
+      score::gfx::Node* gfx_n, GfxExecutionAction* ctx, ossia::net::node_base& n)
       : ossia::gfx::texture_input_parameter{n}
       , context{ctx}
       , node{gfx_n}
@@ -63,10 +58,7 @@ public:
     context->ui->send_message(std::move(m));
   }
 
-  virtual ~simple_texture_input_parameter()
-  {
-    context->ui->unregister_node(node_id);
-  }
+  virtual ~simple_texture_input_parameter() { context->ui->unregister_node(node_id); }
 };
 
 class simple_texture_input_device;
@@ -78,12 +70,11 @@ class simple_texture_input_node : public ossia::net::node_base
 
 public:
   simple_texture_input_node(
-      score::gfx::Node* gfx_n,
-      GfxExecutionAction* context,
-      ossia::net::device_base& dev,
+      score::gfx::Node* gfx_n, GfxExecutionAction* context, ossia::net::device_base& dev,
       std::string name)
       : m_device{dev}
-      , m_parameter{std::make_unique<simple_texture_input_parameter>(gfx_n, context, *this)}
+      , m_parameter{
+            std::make_unique<simple_texture_input_parameter>(gfx_n, context, *this)}
   {
     m_name = std::move(name);
   }
@@ -103,8 +94,7 @@ private:
   }
   bool remove_parameter() override { return false; }
 
-  std::unique_ptr<ossia::net::node_base>
-  make_child(const std::string& name) override
+  std::unique_ptr<ossia::net::node_base> make_child(const std::string& name) override
   {
     return {};
   }
@@ -117,10 +107,8 @@ class simple_texture_input_device : public ossia::net::device_base
 
 public:
   simple_texture_input_device(
-      score::gfx::Node* gfx_n,
-      GfxExecutionAction* context,
-      std::unique_ptr<ossia::net::protocol_base> proto,
-      std::string name)
+      score::gfx::Node* gfx_n, GfxExecutionAction* context,
+      std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
       : ossia::net::device_base{std::move(proto)}
       , root{gfx_n, context, *this, name}
   {
@@ -130,26 +118,12 @@ public:
   simple_texture_input_node& get_root_node() override { return root; }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class video_texture_input_protocol : public ossia::net::protocol_base
 {
 public:
   std::shared_ptr<::Video::ExternalInput> camera;
   video_texture_input_protocol(
-       std::shared_ptr<::Video::ExternalInput> cam,
-      GfxExecutionAction& ctx)
+      std::shared_ptr<::Video::ExternalInput> cam, GfxExecutionAction& ctx)
       : protocol_base{flags{}}
       , camera{std::move(cam)}
       , context{&ctx}
@@ -162,10 +136,7 @@ public:
   {
     return false;
   }
-  bool push_raw(const ossia::net::full_parameter_data&) override
-  {
-    return false;
-  }
+  bool push_raw(const ossia::net::full_parameter_data&) override { return false; }
   bool observe(ossia::net::parameter_base&, bool) override { return false; }
   bool update(ossia::net::node_base& node_base) override { return false; }
 
@@ -182,13 +153,12 @@ public:
   int32_t node_id{};
   score::gfx::CameraNode* node{};
 
-  video_texture_input_parameter(
-      ossia::net::node_base& n,
-      GfxExecutionAction* ctx)
+  video_texture_input_parameter(ossia::net::node_base& n, GfxExecutionAction* ctx)
       : ossia::gfx::texture_input_parameter{n}
       , context{ctx}
   {
-    auto& proto = static_cast<video_texture_input_protocol&>(n.get_device().get_protocol());
+    auto& proto
+        = static_cast<video_texture_input_protocol&>(n.get_device().get_protocol());
     camera = proto.camera;
 
     node = new score::gfx::CameraNode(proto.camera, {});
@@ -204,10 +174,7 @@ public:
     context->ui->send_message(std::move(m));
   }
 
-  virtual ~video_texture_input_parameter()
-  {
-    context->ui->unregister_node(node_id);
-  }
+  virtual ~video_texture_input_parameter() { context->ui->unregister_node(node_id); }
 };
 
 class video_texture_input_device;
@@ -218,9 +185,7 @@ class video_texture_input_node : public ossia::net::node_base
   std::unique_ptr<video_texture_input_parameter> m_parameter;
 
 public:
-  video_texture_input_node(
-      ossia::net::device_base& dev,
-      std::string name)
+  video_texture_input_node(ossia::net::device_base& dev, std::string name)
       : m_device{dev}
       , m_parameter{std::make_unique<video_texture_input_parameter>(
             *this,
@@ -244,8 +209,7 @@ private:
   }
   bool remove_parameter() override { return false; }
 
-  std::unique_ptr<ossia::net::node_base>
-  make_child(const std::string& name) override
+  std::unique_ptr<ossia::net::node_base> make_child(const std::string& name) override
   {
     return {};
   }
@@ -258,8 +222,7 @@ class video_texture_input_device : public ossia::net::device_base
 
 public:
   video_texture_input_device(
-      std::unique_ptr<ossia::net::protocol_base> proto,
-      std::string name)
+      std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
       : ossia::net::device_base{std::move(proto)}
       , root{*this, name}
   {

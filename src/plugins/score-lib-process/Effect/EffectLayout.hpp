@@ -23,10 +23,10 @@ QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
 {
   int N = MaxRowsInEffect * (controlIndex / MaxRowsInEffect);
   qreal x = 0;
-  for (int i = 0; i < N;)
+  for(int i = 0; i < N;)
   {
     qreal w = 0;
-    for (int j = i; j < i + MaxRowsInEffect && j < N; j++)
+    for(int j = i; j < i + MaxRowsInEffect && j < N; j++)
     {
       auto sz = getControlSize(j);
       w = std::max(w, sz.width());
@@ -36,7 +36,7 @@ QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
   }
 
   qreal y = 0;
-  for (int j = N; j < controlIndex; j++)
+  for(int j = N; j < controlIndex; j++)
   {
     auto sz = getControlSize(j);
     y += sz.height();
@@ -46,11 +46,8 @@ QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
 }
 
 template <
-    typename CreatePort,
-    typename CreateControl,
-    typename GetControlSize,
-    typename GetName,
-    typename GetFactory>
+    typename CreatePort, typename CreateControl, typename GetControlSize,
+    typename GetName, typename GetFactory>
 struct ControlSetup
 {
   CreatePort createPort;
@@ -63,14 +60,12 @@ struct ControlSetup
 template <typename... Args>
 auto controlSetup(Args&&... args)
 {
-  if constexpr (sizeof...(Args) == 4)
+  if constexpr(sizeof...(Args) == 4)
   {
     return controlSetup(
         std::forward<Args>(args)...,
-        [](const Process::PortFactoryList& portFactory,
-           Process::Port& port) -> Process::PortFactory& {
-          return *portFactory.get(port.concreteKey());
-        });
+        [](const Process::PortFactoryList& portFactory, Process::Port& port)
+            -> Process::PortFactory& { return *portFactory.get(port.concreteKey()); });
   }
   else
   {
@@ -79,15 +74,11 @@ auto controlSetup(Args&&... args)
 }
 
 template <typename T>
-[[deprecated]]
-auto createControl(
+[[deprecated]] auto createControl(
     int i,
     const auto& setup, // See ControlSetup
-    T& port,
-    const Process::PortFactoryList& portFactory,
-    const Process::Context& doc,
-    QGraphicsItem* parentItem,
-    QObject* parent)
+    T& port, const Process::PortFactoryList& portFactory, const Process::Context& doc,
+    QGraphicsItem* parentItem, QObject* parent)
 {
   // TODO put the port at the correct order wrt its index ?
   auto item = new score::EmptyRectItem{parentItem};
@@ -151,14 +142,9 @@ auto createControl(
 }
 
 template <typename C, typename T>
-[[deprecated]]
-static auto makeControl(
-    C& ctrl,
-    T& inlet,
-    QGraphicsItem& parent,
-    QObject& context,
-    const Process::Context& doc,
-    const Process::PortFactoryList& portFactory)
+[[deprecated]] static auto makeControl(
+    C& ctrl, T& inlet, QGraphicsItem& parent, QObject& context,
+    const Process::Context& doc, const Process::PortFactoryList& portFactory)
 {
   auto item = new score::EmptyItem{&parent};
 
@@ -188,14 +174,9 @@ static auto makeControl(
 }
 
 template <typename C, typename T>
-[[deprecated]]
-static auto makeControlNoText(
-    C& ctrl,
-    T& inlet,
-    QGraphicsItem& parent,
-    QObject& context,
-    const Process::Context& doc,
-    const Process::PortFactoryList& portFactory)
+[[deprecated]] static auto makeControlNoText(
+    C& ctrl, T& inlet, QGraphicsItem& parent, QObject& context,
+    const Process::Context& doc, const Process::PortFactoryList& portFactory)
 {
   auto item = new score::EmptyItem{&parent};
 

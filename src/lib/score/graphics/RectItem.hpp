@@ -17,7 +17,10 @@ public:
 
   void sizeChanged(QSizeF sz) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, sz)
 
-  enum { Type = UserType + 80000 };
+  enum
+  {
+    Type = UserType + 80000
+  };
   int type() const override;
 };
 
@@ -33,13 +36,15 @@ public:
   const QRectF& rect() const noexcept { return m_rect; }
   void setHighlight(bool);
   QRectF boundingRect() const final override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      final override;
 
-  enum { Type = UserType + 80001 };
+  enum
+  {
+    Type = UserType + 80001
+  };
   int type() const override;
+
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
 
@@ -66,13 +71,15 @@ public:
   const QRectF& rect() const noexcept { return m_rect; }
   QRectF boundingRect() const final override;
   void fitChildrenRect();
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
-  enum { Type = UserType + 80002 };
+  enum
+  {
+    Type = UserType + 80002
+  };
   int type() const override;
+
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
@@ -90,18 +97,20 @@ public:
   explicit BackgroundItem(QGraphicsItem* parent);
   ~BackgroundItem();
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
   void setRect(const QRectF& r);
   const QRectF& rect() const noexcept { return m_rect; }
   QRectF boundingRect() const final override;
 
   void fitChildrenRect();
 
-  enum { Type = UserType + 80003 };
+  enum
+  {
+    Type = UserType + 80003
+  };
   int type() const override;
+
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -113,16 +122,18 @@ class SCORE_LIB_BASE_EXPORT EmptyItem final : public QGraphicsItem
 {
 public:
   explicit EmptyItem(QGraphicsItem* parent);
- ~EmptyItem();
+  ~EmptyItem();
 
-  enum { Type = UserType + 80004 };
+  enum
+  {
+    Type = UserType + 80004
+  };
   int type() const override;
+
 private:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 
 }

@@ -22,7 +22,7 @@ rapidjson::Document readJson(const QByteArray& arr)
 {
   rapidjson::Document doc;
   doc.Parse(arr.data(), arr.size());
-  if (doc.HasParseError())
+  if(doc.HasParseError())
   {
     qDebug() << "Invalid JSON document ! \n" << arr;
   }
@@ -57,15 +57,13 @@ JSONWriter::JSONWriter(const JsonValue& o)
 }
 
 void TSerializer<DataStream, rapidjson::Document>::readFrom(
-    DataStream::Serializer& s,
-    const rapidjson::Document& obj)
+    DataStream::Serializer& s, const rapidjson::Document& obj)
 {
   s.stream() << jsonToByteArray(obj);
 }
 
 void TSerializer<DataStream, rapidjson::Document>::writeTo(
-    DataStream::Deserializer& s,
-    rapidjson::Document& obj)
+    DataStream::Deserializer& s, rapidjson::Document& obj)
 {
   QByteArray arr;
   s.stream() >> arr;

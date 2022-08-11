@@ -26,10 +26,8 @@ struct RecordData
 {
   RecordData(
       Scenario::Command::AddOnlyProcessToInterval* cmd_proc,
-      Scenario::Command::AddLayerModelToSlot* cmd_lay,
-      Curve::Model& cm,
-      Curve::PointArraySegment& seg,
-      const State::Unit& u)
+      Scenario::Command::AddLayerModelToSlot* cmd_lay, Curve::Model& cm,
+      Curve::PointArraySegment& seg, const State::Unit& u)
       : addProcCmd{cmd_proc}
       , addLayCmd{cmd_lay}
       , curveModel{cm}

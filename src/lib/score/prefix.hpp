@@ -18,8 +18,8 @@
 #endif
 
 #include <score/application/GUIApplicationContext.hpp>
-#include <score/document/DocumentContext.hpp>
 #include <score/command/AggregateCommand.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
@@ -37,16 +37,17 @@
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/string_map.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
-#include <ossia/network/value/value.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <QGraphicsItem>
 #include <QWidget>
 
+#include <fmt/format.h>
+
 #include <cmath>
 #include <wobjectimpl.h>
 
-#include <fmt/format.h>
 #include <array>
 #include <cstdint>
 #include <functional>

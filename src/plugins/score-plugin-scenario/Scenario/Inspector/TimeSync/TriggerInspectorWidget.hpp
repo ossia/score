@@ -2,9 +2,9 @@
 
 #include <State/Expression.hpp>
 
-#include <QWidget>
-
 #include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
+
+#include <QWidget>
 
 namespace score
 {
@@ -29,10 +29,8 @@ class TriggerInspectorWidget final : public QWidget
 {
 public:
   TriggerInspectorWidget(
-      const score::DocumentContext&,
-      const Command::TriggerCommandFactoryList& fact,
-      const TimeSyncModel& object,
-      Inspector::InspectorWidgetBase* parent);
+      const score::DocumentContext&, const Command::TriggerCommandFactoryList& fact,
+      const TimeSyncModel& object, Inspector::InspectorWidgetBase* parent);
 
   void on_triggerChanged();
 

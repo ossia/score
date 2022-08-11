@@ -34,11 +34,9 @@ View::View(QGraphicsItem* parent) noexcept
 View::~View() { }
 
 void View::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if (m_selectArea != QRectF{})
+  if(m_selectArea != QRectF{})
   {
     painter->setPen(Qt::white);
     painter->drawRect(m_selectArea);
@@ -53,14 +51,14 @@ void View::setSelectionArea(const QRectF& rect) noexcept
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::LeftButton)
+  if(event->button() == Qt::LeftButton)
     pressed(event->scenePos());
   event->accept();
 }
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::LeftButton)
+  if(event->button() == Qt::LeftButton)
     doubleClick(event->scenePos());
   event->accept();
 }
@@ -121,25 +119,24 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
   m_tooltipPos = pos;
 
   static QGraphicsSimpleTextItem* tooltip{};
-  if (!m_tooltip.isEmpty())
+  if(!m_tooltip.isEmpty())
   {
     // Compute position
     auto textrect = getTextRect(m_tooltip);
 
     QPointF pos = QPointF{
-        m_tooltipPos.x() * m_defaultW,
-        (1. - m_tooltipPos.y()) * m_rect.height()};
+        m_tooltipPos.x() * m_defaultW, (1. - m_tooltipPos.y()) * m_rect.height()};
     pos += {10., 10.};
-    if (pos.x() + textrect.width() > 0.95 * m_defaultW)
+    if(pos.x() + textrect.width() > 0.95 * m_defaultW)
     {
       pos.rx() -= (textrect.width() + 20);
     }
-    if (pos.y() + textrect.height() > 0.95 * m_rect.height())
+    if(pos.y() + textrect.height() > 0.95 * m_rect.height())
     {
       pos.ry() -= (textrect.height() + 10);
     }
 
-    if (!tooltip)
+    if(!tooltip)
     {
       tooltip = new QGraphicsSimpleTextItem{this};
       tooltip->setZValue(100);
@@ -153,7 +150,7 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
   }
   else
   {
-    if (tooltip)
+    if(tooltip)
     {
       delete tooltip;
       tooltip = nullptr;
@@ -165,7 +162,7 @@ QPixmap View::pixmap() noexcept
 {
   // Retrieve the bounding rect
   QRect rect = boundingRect().toRect();
-  if (rect.isNull() || !rect.isValid())
+  if(rect.isNull() || !rect.isValid())
   {
     return QPixmap();
   }
@@ -181,7 +178,7 @@ QPixmap View::pixmap() noexcept
   painter.translate(-rect.topLeft());
   paint(&painter, nullptr, nullptr);
   const auto& items = childItems();
-  for (QGraphicsItem* child : items)
+  for(QGraphicsItem* child : items)
   {
     painter.save();
     painter.translate(child->mapToParent(pos()));

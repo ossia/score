@@ -1,7 +1,7 @@
 #pragma once
-#include <Transport/TransportInterface.hpp>
-
 #include <ossia/audio/jack_protocol.hpp>
+
+#include <Transport/TransportInterface.hpp>
 namespace Execution
 {
 #if defined(OSSIA_AUDIO_JACK)

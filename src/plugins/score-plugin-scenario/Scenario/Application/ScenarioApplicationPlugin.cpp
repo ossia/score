@@ -4,13 +4,36 @@
 
 #include "Menus/TransportActions.hpp"
 
-#include <Inspector/InspectorWidgetList.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+
+#include <Inspector/InspectorWidgetList.hpp>
 
 #include <score/actions/Menu.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -35,27 +58,6 @@
 #include <QMenu>
 #include <qnamespace.h>
 
-#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
-#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
-#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Palette/Tool.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioPresenter.hpp>
 #include <string.h>
 #include <wobjectimpl.h>
 
@@ -72,12 +74,10 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     : GUIApplicationPlugin{ctx}
 {
   auto app = QCoreApplication::instance();
-  if (auto guiapp = qobject_cast<QGuiApplication*>(app))
+  if(auto guiapp = qobject_cast<QGuiApplication*>(app))
   {
     connect(
-        guiapp,
-        &QGuiApplication::applicationStateChanged,
-        this,
+        guiapp, &QGuiApplication::applicationStateChanged, this,
         [&](Qt::ApplicationState st) { editionSettings().setDefault(); });
   }
 
@@ -103,15 +103,14 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   auto on_sm = std::make_shared<EnableWhenScenarioModelObject>();
   ctx.actions.onSelectionChange(on_sm);
   ctx.actions.onFocusChange(on_sm);
-  auto on_instant_si
-      = std::make_shared<EnableWhenScenarioInterfaceInstantObject>();
+  auto on_instant_si = std::make_shared<EnableWhenScenarioInterfaceInstantObject>();
   ctx.actions.onSelectionChange(on_instant_si);
   ctx.actions.onFocusChange(on_instant_si);
   auto on_si = std::make_shared<EnableWhenScenarioInterfaceObject>();
   ctx.actions.onSelectionChange(on_si);
   ctx.actions.onFocusChange(on_si);
 
-  if (context.applicationSettings.gui)
+  if(context.applicationSettings.gui)
   {
     m_objectActions.setupContextMenu(m_layerCtxMenuManager);
   }
@@ -122,30 +121,29 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     m_showCables->setCheckable(true);
     m_showCables->setChecked(true);
     setIcons(
-        m_showCables,
-        QStringLiteral(":/icons/show_cables_on.png"),
+        m_showCables, QStringLiteral(":/icons/show_cables_on.png"),
         QStringLiteral(":/icons/show_cables_hover.png"),
         QStringLiteral(":/icons/show_cables_off.png"),
         QStringLiteral(":/icons/show_cables_disabled.png"));
     connect(m_showCables, &QAction::toggled, this, [this](bool c) {
       auto doc = this->currentDocument();
-      if (doc)
+      if(doc)
       {
         Dataflow::CableItem::g_cables_enabled = c;
 
         ScenarioDocumentPresenter* plug
             = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
-        if (plug)
+        if(plug)
         {
-          for (const auto& port : plug->context().dataflow.ports())
+          for(const auto& port : plug->context().dataflow.ports())
           {
-            if (port.second)
+            if(port.second)
               port.second->resetPortVisible();
           }
 
-          for (auto& cable : plug->context().dataflow.cables())
+          for(auto& cable : plug->context().dataflow.cables())
           {
-            if (cable.second)
+            if(cable.second)
               cable.second->check();
           }
         }
@@ -168,15 +166,14 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
           QStringLiteral(":/icons/show_cables_disabled.png"));
     */
     // TODO initialize new document correctly
-    connect(m_autoScroll, &QAction::toggled, this, [this](bool c)
-    {
+    connect(m_autoScroll, &QAction::toggled, this, [this](bool c) {
       for(auto doc : this->context.documents.documents())
       {
-        if (doc)
+        if(doc)
         {
           ScenarioDocumentPresenter* plug
               = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
-          if (plug)
+          if(plug)
           {
             plug->setAutoScroll(c);
           }
@@ -190,12 +187,12 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     m_foldIntervals = new QAction{this};
     connect(m_foldIntervals, &QAction::triggered, this, [this] {
       auto doc = this->currentDocument();
-      if (!doc)
+      if(!doc)
         return;
       auto scenario = focusedScenarioInterface(doc->context());
-      if (!scenario)
+      if(!scenario)
         return;
-      for (IntervalModel& itv : scenario->getIntervals())
+      for(IntervalModel& itv : scenario->getIntervals())
       {
         itv.setSmallViewVisible(false);
       }
@@ -203,12 +200,12 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     m_unfoldIntervals = new QAction{this};
     connect(m_unfoldIntervals, &QAction::triggered, this, [this] {
       auto doc = this->currentDocument();
-      if (!doc)
+      if(!doc)
         return;
       auto scenario = focusedScenarioInterface(doc->context());
-      if (!scenario)
+      if(!scenario)
         return;
-      for (IntervalModel& itv : scenario->getIntervals())
+      for(IntervalModel& itv : scenario->getIntervals())
       {
         itv.setSmallViewVisible(true);
       }
@@ -219,12 +216,12 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     m_levelUp = new QAction{this};
     connect(m_levelUp, &QAction::triggered, this, [this] {
       auto doc = this->currentDocument();
-      if (!doc)
+      if(!doc)
         return;
 
       ScenarioDocumentPresenter* pres
           = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*doc);
-      if (!pres)
+      if(!pres)
         return;
       pres->goUpALevel();
     });
@@ -247,8 +244,7 @@ void ScenarioApplicationPlugin::initialize()
   {
     auto& pw = const_cast<Inspector::InspectorWidgetList&>(
         context.interfaces<Inspector::InspectorWidgetList>());
-    pw.insert(
-        std::make_unique<Process::DefaultInspectorWidgetDelegateFactory>());
+    pw.insert(std::make_unique<Process::DefaultInspectorWidgetDelegateFactory>());
   }
 }
 
@@ -281,8 +277,7 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 
 ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
 
-void ScenarioApplicationPlugin::on_presenterDefocused(
-    Process::LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* pres)
 {
   // We set the currently focused view model to a "select" state
   // to prevent problems.
@@ -293,14 +288,13 @@ void ScenarioApplicationPlugin::on_presenterDefocused(
   disconnect(m_keyReleaseConnection);
 }
 
-void ScenarioApplicationPlugin::on_presenterFocused(
-    Process::LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pres)
 {
   // Generic stuff
   disconnect(m_contextMenuConnection);
   disconnect(m_keyPressConnection);
   disconnect(m_keyReleaseConnection);
-  if (!pres)
+  if(!pres)
     return;
 
   {
@@ -308,30 +302,24 @@ void ScenarioApplicationPlugin::on_presenterFocused(
     // this is called and will create a context menu with slot & process
     // information.
     m_contextMenuConnection = QObject::connect(
-        pres,
-        &Process::LayerPresenter::contextMenuRequested,
-        this,
+        pres, &Process::LayerPresenter::contextMenuRequested, this,
         [=](const QPoint& pos, const QPointF& pt2) {
-          QMenu menu(qApp->activeWindow());
-          pres->fillContextMenu(menu, pos, pt2, m_layerCtxMenuManager);
-          menu.exec(pos);
-          menu.close();
+      QMenu menu(qApp->activeWindow());
+      pres->fillContextMenu(menu, pos, pt2, m_layerCtxMenuManager);
+      menu.exec(pos);
+      menu.close();
         });
   }
 
   auto s_pres = dynamic_cast<ScenarioPresenter*>(pres);
-  if (s_pres)
+  if(s_pres)
   {
     m_keyPressConnection = connect(
-        s_pres,
-        &ScenarioPresenter::keyPressed,
-        this,
+        s_pres, &ScenarioPresenter::keyPressed, this,
         &ScenarioApplicationPlugin::keyPressed);
 
     m_keyReleaseConnection = connect(
-        s_pres,
-        &ScenarioPresenter::keyReleased,
-        this,
+        s_pres, &ScenarioPresenter::keyReleased, this,
         &ScenarioApplicationPlugin::keyReleased);
 
     auto& select_act = context.actions.action<Actions::SelectTool>();
@@ -340,8 +328,7 @@ void ScenarioApplicationPlugin::on_presenterFocused(
 }
 
 void ScenarioApplicationPlugin::on_documentChanged(
-    score::Document* olddoc,
-    score::Document* newdoc)
+    score::Document* olddoc, score::Document* newdoc)
 {
   using namespace score;
   // TODO the context menu connection should be reviewed, too.
@@ -351,37 +338,32 @@ void ScenarioApplicationPlugin::on_documentChanged(
   m_editionSettings.setDefault();
   m_editionSettings.setExecution(false);
 
-  if (!newdoc)
+  if(!newdoc)
     return;
 
   // Load cables
   auto& model
-      = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
-          *newdoc);
+      = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*newdoc);
   model.finishLoading();
   // TODO do this on restore
 
   // Setup ui
-  if (!newdoc->context().app.mainWindow)
+  if(!newdoc->context().app.mainWindow)
     return;
 
   auto focusManager = processFocusManager();
 
-  if (!focusManager)
+  if(!focusManager)
     return;
 
   m_focusConnection = connect(
-      focusManager,
-      &Process::ProcessFocusManager::sig_focusedPresenter,
-      this,
+      focusManager, &Process::ProcessFocusManager::sig_focusedPresenter, this,
       &ScenarioApplicationPlugin::on_presenterFocused);
   m_defocusConnection = connect(
-      focusManager,
-      &Process::ProcessFocusManager::sig_defocusedPresenter,
-      this,
+      focusManager, &Process::ProcessFocusManager::sig_defocusedPresenter, this,
       &ScenarioApplicationPlugin::on_presenterDefocused);
 
-  if (focusManager->focusedPresenter())
+  if(focusManager->focusedPresenter())
   {
     // Used when switching between documents
     on_presenterFocused(focusManager->focusedPresenter());
@@ -390,17 +372,17 @@ void ScenarioApplicationPlugin::on_documentChanged(
   {
     // We focus by default the first process of the interval in full view
     // we're in
-    if (auto pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc))
+    if(auto pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc))
     {
       pres->focusFrontProcess();
     }
   }
 
   // Finally we focus the View widget.
-  if (auto v = newdoc->view())
+  if(auto v = newdoc->view())
   {
     auto bev = dynamic_cast<ScenarioDocumentView*>(&v->viewDelegate());
-    if (bev)
+    if(bev)
       bev->view().setFocus();
   }
 }
@@ -412,7 +394,7 @@ void ScenarioApplicationPlugin::on_activeWindowChanged()
 
 ScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
-  if (auto focusManager = processFocusManager())
+  if(auto focusManager = processFocusManager())
   {
     return dynamic_cast<ScenarioPresenter*>(focusManager->focusedPresenter());
   }
@@ -425,23 +407,21 @@ void ScenarioApplicationPlugin::on_createdDocument(score::Document& doc) { }
 
 void ScenarioApplicationPlugin::prepareNewDocument()
 {
-  if (context.applicationSettings.gui)
+  if(context.applicationSettings.gui)
   {
     auto& stop_action = context.actions.action<Actions::Stop>();
     stop_action.action()->trigger();
   }
 }
 
-Process::ProcessFocusManager*
-ScenarioApplicationPlugin::processFocusManager() const
+Process::ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
 {
-  if (auto doc = currentDocument())
+  if(auto doc = currentDocument())
   {
-    if (auto pres = doc->presenter())
+    if(auto pres = doc->presenter())
     {
-      auto bem = dynamic_cast<ScenarioDocumentPresenter*>(
-          pres->presenterDelegate());
-      if (bem)
+      auto bem = dynamic_cast<ScenarioDocumentPresenter*>(pres->presenterDelegate());
+      if(bem)
       {
         return &bem->focusManager();
       }

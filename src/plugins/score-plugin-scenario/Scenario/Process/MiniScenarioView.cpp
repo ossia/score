@@ -4,10 +4,10 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <QPainter>
-
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <QPainter>
 namespace Scenario
 {
 
@@ -15,14 +15,10 @@ MiniScenarioView::MiniScenarioView(const ProcessModel& sc, QGraphicsItem* p)
     : MiniLayer{p}
     , m_scenario{sc}
 {
-  m_scenario.intervals.added.connect<&MiniScenarioView::on_elementChanged>(
-      this);
-  m_scenario.intervals.removed.connect<&MiniScenarioView::on_elementChanged>(
-      this);
+  m_scenario.intervals.added.connect<&MiniScenarioView::on_elementChanged>(this);
+  m_scenario.intervals.removed.connect<&MiniScenarioView::on_elementChanged>(this);
 
-  connect(&m_scenario, &Scenario::ProcessModel::intervalMoved, this, [=] {
-    update();
-  });
+  connect(&m_scenario, &Scenario::ProcessModel::intervalMoved, this, [=] { update(); });
 }
 
 void MiniScenarioView::paint_impl(QPainter* p) const
@@ -30,10 +26,10 @@ void MiniScenarioView::paint_impl(QPainter* p) const
   auto& skin = Process::Style::instance();
   const auto h = 12.;
 
-  for (const Scenario::IntervalModel& c : m_scenario.intervals)
+  for(const Scenario::IntervalModel& c : m_scenario.intervals)
   {
     const auto& col = c.metadata().getColor();
-    if (&col.getBrush() == &skin.IntervalDefaultBackground())
+    if(&col.getBrush() == &skin.IntervalDefaultBackground())
       p->setPen(skin.MiniScenarioPen(skin.IntervalHeaderText()));
     else
       p->setPen(skin.MiniScenarioPen(c.metadata().getColor().getBrush()));

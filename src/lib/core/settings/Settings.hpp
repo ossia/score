@@ -52,8 +52,7 @@ public:
   Settings& operator=(Settings&&) = delete;
 
   void setupSettingsPlugin(
-      QSettings& s,
-      const score::ApplicationContext& ctx,
+      QSettings& s, const score::ApplicationContext& ctx,
       SettingsDelegateFactory& plugin);
   SettingsView<SettingsDelegateModel>& view() const { return *m_settingsView; }
 

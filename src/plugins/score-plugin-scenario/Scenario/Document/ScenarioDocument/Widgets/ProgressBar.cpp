@@ -13,9 +13,7 @@ QRectF ProgressBar::boundingRect() const
 }
 
 void ProgressBar::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->drawRect(boundingRect());

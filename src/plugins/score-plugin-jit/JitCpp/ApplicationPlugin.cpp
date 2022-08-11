@@ -1,3 +1,5 @@
+#include <JitCpp/ApplicationPlugin.hpp>
+#include <JitCpp/MetadataGenerator.hpp>
 #include <Library/LibrarySettings.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
@@ -8,28 +10,18 @@
 #include <QCommandLineParser>
 #include <QDir>
 #include <QDirIterator>
-
-#include <JitCpp/ApplicationPlugin.hpp>
-#include <JitCpp/MetadataGenerator.hpp>
 namespace Jit
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
-  con(m_addonsWatch,
-      &QFileSystemWatcher::directoryChanged,
-      this,
-      [&](const QString& a) {
-        QTimer::singleShot(5000, this, [=] { rescanAddons(); });
-      });
-  con(m_addonsWatch,
-      &QFileSystemWatcher::fileChanged,
-      this,
+  con(m_addonsWatch, &QFileSystemWatcher::directoryChanged, this, [&](const QString& a) {
+    QTimer::singleShot(5000, this, [=] { rescanAddons(); });
+  });
+  con(m_addonsWatch, &QFileSystemWatcher::fileChanged, this,
       &ApplicationPlugin::updateAddon);
 
-  con(m_nodesWatch,
-      &QFileSystemWatcher::fileChanged,
-      this,
+  con(m_nodesWatch, &QFileSystemWatcher::fileChanged, this,
       &ApplicationPlugin::setupNode);
 
   {
@@ -37,62 +29,45 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     QCommandLineParser parser;
 
     QCommandLineOption compile_node(
-        "compile-node",
-        QCoreApplication::translate("jit", "Node to compile"),
-        "Name",
+        "compile-node", QCoreApplication::translate("jit", "Node to compile"), "Name",
         "");
     parser.addOption(compile_node);
     QCommandLineOption compile_addon(
         "compile-addon",
-        QCoreApplication::translate("jit", "Path to the addon to compile"),
-        "Name",
-        "");
+        QCoreApplication::translate("jit", "Path to the addon to compile"), "Name", "");
     parser.addOption(compile_addon);
 
     parser.parse(ctx.applicationSettings.arguments);
     auto node_to_compile = parser.value(compile_node);
     auto addon_to_compile = parser.value(compile_addon);
 
-    if ((!node_to_compile.isEmpty() || !addon_to_compile.isEmpty()))
+    if((!node_to_compile.isEmpty() || !addon_to_compile.isEmpty()))
     {
       qDebug() << node_to_compile << addon_to_compile;
-      if (QFile::exists(node_to_compile))
+      if(QFile::exists(node_to_compile))
       {
-        con(m_compiler,
-            &AddonCompiler::jobCompleted,
-            this,
-            [this](auto addon) {
-              registerAddon(addon);
-              exit(0);
-            });
+        con(m_compiler, &AddonCompiler::jobCompleted, this, [this](auto addon) {
+          registerAddon(addon);
+          exit(0);
+        });
 
         setupNode(node_to_compile);
       }
-      else if (QFile::exists(addon_to_compile))
+      else if(QFile::exists(addon_to_compile))
       {
-        con(m_compiler,
-            &AddonCompiler::jobCompleted,
-            this,
-            [this](auto addon) {
-              registerAddon(addon);
-              qApp->exit(0);
-            });
+        con(m_compiler, &AddonCompiler::jobCompleted, this, [this](auto addon) {
+          registerAddon(addon);
+          qApp->exit(0);
+        });
 
         setupAddon(addon_to_compile);
       }
-      con(m_compiler,
-          &AddonCompiler::jobFailed,
-          this, [] {
-            qApp->exit(1);
-          });
+      con(m_compiler, &AddonCompiler::jobFailed, this, [] { qApp->exit(1); });
     }
     else
     {
-      con(m_compiler,
-          &AddonCompiler::jobCompleted,
-          this,
-          &ApplicationPlugin::registerAddon,
-          Qt::QueuedConnection);
+      con(m_compiler, &AddonCompiler::jobCompleted, this,
+          &ApplicationPlugin::registerAddon, Qt::QueuedConnection);
     }
   }
 }
@@ -102,15 +77,14 @@ void ApplicationPlugin::rescanAddons()
   QString addons = context.settings<Library::Settings::Model>().getPackagesPath();
   m_addonsWatch.addPath(addons);
   QDirIterator it{
-      addons,
-      QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot,
-          QDirIterator::NoIteratorFlags};
-  while (it.hasNext())
+      addons, QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot,
+      QDirIterator::NoIteratorFlags};
+  while(it.hasNext())
   {
     it.next();
     QDir addon_dir = it.fileInfo().filePath();
     auto p = addon_dir.absolutePath();
-    if (!m_addonsPaths.contains(p))
+    if(!m_addonsPaths.contains(p))
     {
       if(addon_dir.exists("addon.json"))
       {
@@ -172,12 +146,12 @@ void ApplicationPlugin::setupAddon(const QString& addon)
   qDebug() << "Registering JIT addon" << addon;
   QFileInfo addonInfo{addon};
   auto addonFolderName = addonInfo.fileName();
-  if (addonFolderName == "Nodes")
+  if(addonFolderName == "Nodes")
     return;
 
   auto [json, cpp_files, files, flags] = loadAddon(addon);
 
-  if (cpp_files.empty())
+  if(cpp_files.empty())
   {
     qDebug() << "Add-on has no cpp files";
     return;
@@ -188,7 +162,7 @@ void ApplicationPlugin::setupAddon(const QString& addon)
   flags.push_back("-I" + addon_files_path.toStdString());
 
   std::string id = json["key"].toString().remove(QChar('-')).toStdString();
-  if (id.empty())
+  if(id.empty())
   {
     id = addonFolderName.remove(QChar('-')).remove(QChar(' ')).toStdString();
   }
@@ -200,22 +174,22 @@ void ApplicationPlugin::setupAddon(const QString& addon)
 void ApplicationPlugin::setupNode(const QString& f)
 {
   QFileInfo fi{f};
-  if (fi.suffix() == "hpp" || fi.suffix() == "cpp")
+  if(fi.suffix() == "hpp" || fi.suffix() == "cpp")
   {
-    if (QFile file{f}; file.open(QIODevice::ReadOnly))
+    if(QFile file{f}; file.open(QIODevice::ReadOnly))
     {
       auto node = file.readAll();
       constexpr auto make_uuid_s = "make_uuid";
       auto make_uuid = node.indexOf(make_uuid_s);
-      if (make_uuid == -1)
+      if(make_uuid == -1)
         return;
       int umin = node.indexOf('"', make_uuid + 9);
-      if (umin == -1)
+      if(umin == -1)
         return;
       int umax = node.indexOf('"', umin + 1);
-      if (umax == -1)
+      if(umax == -1)
         return;
-      if ((umax - umin) != 37)
+      if((umax - umin) != 37)
         return;
       auto uuid = QString{node.mid(umin + 1, 36)};
       uuid.remove(QChar('-'));

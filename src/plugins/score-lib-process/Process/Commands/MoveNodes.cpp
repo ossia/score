@@ -2,9 +2,7 @@
 
 namespace Process
 {
-MoveNodes::MoveNodes(
-  std::vector<const ProcessModel*> processes,
-  QPointF delta)
+MoveNodes::MoveNodes(std::vector<const ProcessModel*> processes, QPointF delta)
     : m_delta{delta}
 {
   for(auto& proc : processes)

@@ -1,31 +1,30 @@
 #include "ImageListChooser.hpp"
-#include <score/document/DocumentContext.hpp>
-
-#include <QStandardItemModel>
-#include <QListView>
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QFileDialog>
-#include <verdigris>
-
-#include <ossia/network/value/value_conversion.hpp>
-#include <score/graphics/RectItem.hpp>
-#include <score/graphics/TextItem.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <wobjectimpl.h>
 
 #include <Process/Commands/SetControlValue.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/graphics/RectItem.hpp>
+#include <score/graphics/TextItem.hpp>
+
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QListView>
+#include <QPushButton>
+#include <QStandardItemModel>
+#include <QVBoxLayout>
+
+#include <wobjectimpl.h>
+
+#include <verdigris>
 namespace Gfx::Images
 {
 
-
 ImageListChooser::~ImageListChooser() { }
 ImageListChooser::ImageListChooser(
-    const std::vector<QString>& init,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    const std::vector<QString>& init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -118,7 +117,9 @@ public:
 private:
   void on_addItems()
   {
-    auto files = QFileDialog::getOpenFileNames(this, tr("Choose images..."), QString{}, QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"});
+    auto files = QFileDialog::getOpenFileNames(
+        this, tr("Choose images..."), QString{},
+        QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"});
     for(auto f : files)
     {
       addItem(f);
@@ -140,10 +141,8 @@ private:
 
 QWidget* WidgetFactory::ImageListChooserItems::make_widget(
     const Gfx::Images::ImageListChooser& slider,
-    const Gfx::Images::ImageListChooser& inlet,
-    const score::DocumentContext& ctx,
-    QWidget* parent,
-    QObject* context)
+    const Gfx::Images::ImageListChooser& inlet, const score::DocumentContext& ctx,
+    QWidget* parent, QObject* context)
 {
   auto widg = new EditableTable;
   auto vec = ossia::convert<std::vector<ossia::value>>(inlet.value());
@@ -155,22 +154,24 @@ QWidget* WidgetFactory::ImageListChooserItems::make_widget(
     }
   }
 
-  QObject::connect(
-      widg, &EditableTable::itemsChanged, context, [widg, &inlet, &ctx]() {
-        CommandDispatcher<> disp{ctx.commandStack};
-        disp.submit<Process::SetControlValue>(inlet, widg->value());
-      });
+  QObject::connect(widg, &EditableTable::itemsChanged, context, [widg, &inlet, &ctx]() {
+    CommandDispatcher<> disp{ctx.commandStack};
+    disp.submit<Process::SetControlValue>(inlet, widg->value());
+  });
 
   QObject::connect(
-      &inlet, &Gfx::Images::ImageListChooser::valueChanged, widg, [widg] (const ossia::value& val) {
-
-        widg->setItems(ossia::convert<std::vector<ossia::value>>(val));
+      &inlet, &Gfx::Images::ImageListChooser::valueChanged, widg,
+      [widg](const ossia::value& val) {
+    widg->setItems(ossia::convert<std::vector<ossia::value>>(val));
       });
 
   return widg;
 }
 
-QGraphicsItem* WidgetFactory::ImageListChooserItems::make_item(const Gfx::Images::ImageListChooser& slider, const Gfx::Images::ImageListChooser& inlet, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
+QGraphicsItem* WidgetFactory::ImageListChooserItems::make_item(
+    const Gfx::Images::ImageListChooser& slider,
+    const Gfx::Images::ImageListChooser& inlet, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
 {
   return new score::EmptyItem{parent};
 }

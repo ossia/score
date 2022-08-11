@@ -7,9 +7,5 @@
 namespace Protocols::Settings
 {
 SCORE_DECLARE_SETTINGS_FACTORY(
-    Factory,
-    Model,
-    Presenter,
-    View,
-    "372d4801-8170-451f-9db1-346652290e5c")
+    Factory, Model, Presenter, View, "372d4801-8170-451f-9db1-346652290e5c")
 }

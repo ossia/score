@@ -2,10 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressStringSettingsWidget.hpp"
 
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
+
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 #include <QFormLayout>
 #include <QLineEdit>
@@ -29,7 +30,7 @@ AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
 
   connect(pb, &QPushButton::clicked, this, [=] {
     auto vals = m_values->values();
-    if (!m_values->exec())
+    if(!m_values->exec())
     {
       // Revert to previous values
       m_values->setValues(vals);
@@ -55,14 +56,12 @@ void AddressStringSettingsWidget::setCanEditProperties(bool b)
   AddressSettingsWidget::setCanEditProperties(b);
 }
 
-void AddressStringSettingsWidget::setSettings(
-    const Device::AddressSettings& settings)
+void AddressStringSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
   m_valueEdit->setText(State::convert::value<QString>(settings.value));
 
-  if (auto dom_p
-      = settings.domain.get().v.target<ossia::domain_base<std::string>>())
+  if(auto dom_p = settings.domain.get().v.target<ossia::domain_base<std::string>>())
     m_values->setValues(dom_p->values);
   else
     m_values->setValues(State::StringValueSetDialog::set_type{});

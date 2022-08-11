@@ -1,6 +1,7 @@
 #pragma once
-#include <Media/Merger/Metadata.hpp>
 #include <Process/Process.hpp>
+
+#include <Media/Merger/Metadata.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -21,9 +22,7 @@ class Model final : public Process::ProcessModel
 
 public:
   explicit Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   ~Model() override;
 

@@ -1,30 +1,33 @@
 #include "CurveEditor.hpp"
 
+#include <Process/Process.hpp>
+
+#include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
-#include <Curve/Commands/UpdateCurve.hpp>
-#include <Curve/Segment/CurveSegmentModel.hpp>
-#include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/Palette/CurveEditionSettings.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
-#include <Curve/Palette/CurveEditionSettings.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
-#include <Process/Process.hpp>
-#include <score/model/EntitySerialization.hpp>
-#include <score/model/EntityMapSerialization.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/model/EntityMapSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 
 #include <core/document/Document.hpp>
 
 #include <QMimeData>
+
 #include <set>
 namespace Curve
 {
 
-bool CurveEditor::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
+bool CurveEditor::copy(
+    JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
 {
   if(s.empty())
     return false;
@@ -59,7 +62,9 @@ bool CurveEditor::copy(JSONReader& r, const Selection& s, const score::DocumentC
   return true;
 }
 
-bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx)
+bool CurveEditor::paste(
+    QPoint pos, QObject* focusedObject, const QMimeData& mime,
+    const score::DocumentContext& ctx)
 {
   if(!focusedObject)
     return false;
@@ -109,12 +114,15 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
   for(std::size_t i = 0; i < segments.size(); i++)
   {
     auto cur_seg = segments[i];
-    if(cur_seg.start.x() < first_pasted.start.x() && first_pasted.start.x() <= cur_seg.end.x()) {
+    if(cur_seg.start.x() < first_pasted.start.x()
+       && first_pasted.start.x() <= cur_seg.end.x())
+    {
       first_cut = i;
       if(last_cut > -1)
         break;
     }
-    if(cur_seg.start.x() <= last_pasted.end.x() && last_pasted.end.x() < cur_seg.end.x()) {
+    if(cur_seg.start.x() <= last_pasted.end.x() && last_pasted.end.x() < cur_seg.end.x())
+    {
       last_cut = i;
       if(first_cut > -1)
         break;
@@ -150,7 +158,8 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     segments.erase(segments.begin() + first_cut + 1, segments.end());
 
     // Insert in the hole
-    segments.insert(segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
+    segments.insert(
+        segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
 
     // Change the end of the original start segment to match the start of what's pasted
     segments[first_cut].end = segments[first_cut + 1].start;
@@ -160,14 +169,16 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     auto start_seg = segments[first_cut];
 
     // We insert in the middle of the cut segment
-    segments.insert(segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
+    segments.insert(
+        segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
 
     // Change the end of the original start segment to match the start of what's pasted
     segments[first_cut].end = segments[first_cut + 1].start;
 
     // Add a last segment to link with the end
     start_seg.start = paste_segts.back().end;
-    segments.insert(segments.begin() + first_cut + paste_segts.size() + 1, std::move(start_seg));
+    segments.insert(
+        segments.begin() + first_cut + paste_segts.size() + 1, std::move(start_seg));
   }
   else if(first_cut < last_cut)
   {
@@ -175,13 +186,15 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     segments.erase(segments.begin() + first_cut + 1, segments.begin() + last_cut);
 
     // Insert in the hole
-    segments.insert(segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
+    segments.insert(
+        segments.begin() + first_cut + 1, paste_segts.begin(), paste_segts.end());
 
     // Change the end of the original start segment to match the start of what's pasted
     segments[first_cut].end = segments[first_cut + 1].start;
 
     // Link last segment to link with the end
-    segments[first_cut + paste_segts.size() + 1].start = segments[first_cut + paste_segts.size()].end;
+    segments[first_cut + paste_segts.size() + 1].start
+        = segments[first_cut + paste_segts.size()].end;
   }
   else
   {
@@ -191,7 +204,7 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
 
   // Do some clean-up, remove empty segments
 
-  for(auto it = segments.begin(); it != segments.end(); )
+  for(auto it = segments.begin(); it != segments.end();)
   {
     auto& seg = *it;
     if(std::abs(seg.end.x() - seg.start.x()) < 0.001)
@@ -222,9 +235,9 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
     for(; i < N - 1; i++)
     {
       segments[i].id = Id<Curve::SegmentModel>{i};
-      segments[i].previous = segments[i-1].id;
-      segments[i-1].following = segments[i].id;
-      segments[i-1].end = segments[i].start;
+      segments[i].previous = segments[i - 1].id;
+      segments[i - 1].following = segments[i].id;
+      segments[i - 1].end = segments[i].start;
     }
 
     i = N - 2;
@@ -243,12 +256,13 @@ bool CurveEditor::paste(QPoint pos, QObject* focusedObject, const QMimeData& mim
 bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 {
   // Check if we are focusing a curve
-  auto focused_process = qobject_cast<const Process::ProcessModel*>(
-      ctx.document.focusManager().get());
+  auto focused_process
+      = qobject_cast<const Process::ProcessModel*>(ctx.document.focusManager().get());
   if(!focused_process)
     return false;
 
-  auto cm = focused_process->findChild<Curve::Model*>(QString{}, Qt::FindDirectChildrenOnly);
+  auto cm
+      = focused_process->findChild<Curve::Model*>(QString{}, Qt::FindDirectChildrenOnly);
   if(!cm)
     return false;
 
@@ -261,11 +275,11 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     // First find the segments that will be deleted.
     // If a point is selected, the segments linked to that point
     // will be deleted, too.
-    for (const auto& elt : s)
+    for(const auto& elt : s)
     {
-      if (auto point = qobject_cast<const PointModel*>(elt.data()))
+      if(auto point = qobject_cast<const PointModel*>(elt.data()))
       {
-        if (point->previous() && point->following())
+        if(point->previous() && point->following())
         {
           segmentsToDelete.insert(*point->previous());
           segmentsToDelete.insert(*point->following());
@@ -283,7 +297,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
       }
     }
 
-    if (segmentsToDelete.empty())
+    if(segmentsToDelete.empty())
       return true;
 
     double x0 = 0;
@@ -297,17 +311,17 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     {
       // First look for the start and end segments
       {
-        for (auto& seg : newSegments)
+        for(auto& seg : newSegments)
         {
-          if (ossia::contains(segmentsToDelete, seg.id))
+          if(ossia::contains(segmentsToDelete, seg.id))
           {
-            if (!seg.previous)
+            if(!seg.previous)
             {
               firstRemoved = true;
               x0 = seg.start.x();
               y0 = seg.start.y();
             }
-            if (!seg.following)
+            if(!seg.following)
             {
               lastRemoved = true;
               x1 = seg.end.x();
@@ -319,35 +333,33 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 
       // Then set the others
       auto it = newSegments.begin();
-      while (it != newSegments.end())
+      while(it != newSegments.end())
       {
-        if (ossia::contains(segmentsToDelete, it->id))
+        if(ossia::contains(segmentsToDelete, it->id))
         {
-          if (it->previous)
+          if(it->previous)
           {
-            auto prev_it
-                = ossia::find_if(newSegments, [&](const SegmentData& d) {
-                    return d.id == *it->previous;
-                  });
-            if (prev_it != newSegments.end())
+            auto prev_it = ossia::find_if(newSegments, [&](const SegmentData& d) {
+              return d.id == *it->previous;
+            });
+            if(prev_it != newSegments.end())
               prev_it->following = OptionalId<SegmentModel>{};
           }
-          if (it->following)
+          if(it->following)
           {
-            auto next_it
-                = ossia::find_if(newSegments, [&](const SegmentData& d) {
-                    return d.id == *it->following;
-                  });
-            if (next_it != newSegments.end())
+            auto next_it = ossia::find_if(newSegments, [&](const SegmentData& d) {
+              return d.id == *it->following;
+            });
+            if(next_it != newSegments.end())
               next_it->previous = OptionalId<SegmentModel>{};
           }
           it = newSegments.erase(it);
           continue;
         }
 
-        if (it->previous && ossia::contains(segmentsToDelete, it->previous))
+        if(it->previous && ossia::contains(segmentsToDelete, it->previous))
           it->previous = OptionalId<SegmentModel>{};
-        if (it->following && ossia::contains(segmentsToDelete, it->following))
+        if(it->following && ossia::contains(segmentsToDelete, it->following))
           it->following = OptionalId<SegmentModel>{};
 
         it++;
@@ -362,7 +374,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
       });
 
       // First if there is no segments, we recreate one.
-      if (newSegments.empty())
+      if(newSegments.empty())
       {
         SegmentData d;
         d.start = QPointF{0, y0};
@@ -374,7 +386,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
       }
       else
       {
-        if (firstRemoved)
+        if(firstRemoved)
         {
           // Recreate a segment from x = 0 to the beginning of the first segment.
           auto it = newSegments.begin();
@@ -392,7 +404,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
           newSegments.insert(it, d);
         }
 
-        if (lastRemoved)
+        if(lastRemoved)
         {
           // Recreate a segment from x = 0 to the end of the last segment.
           auto it = newSegments.rbegin();
@@ -413,14 +425,14 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 
       // Then try to fill the holes
       auto it = newSegments.begin();
-      for (; it != newSegments.end();)
+      for(; it != newSegments.end();)
       {
         // Check if it's the last segment
         auto next = it + 1;
-        if (next == newSegments.end())
+        if(next == newSegments.end())
           break;
 
-        if (it->following)
+        if(it->following)
         {
           it = next;
         }
@@ -448,7 +460,8 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     }
 
     // Apply the changes.
-    CommandDispatcher<>{ctx.commandStack}.submit(new UpdateCurve{m_model, std::move(newSegments)});
+    CommandDispatcher<>{ctx.commandStack}.submit(
+        new UpdateCurve{m_model, std::move(newSegments)});
   }
   /*
   if (s.size() == 1)

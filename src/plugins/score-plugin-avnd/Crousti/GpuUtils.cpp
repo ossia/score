@@ -1,12 +1,19 @@
 #if SCORE_PLUGIN_GFX
 
 #include "GpuUtils.hpp"
-#include <score/gfx/Vulkan.hpp>
+
 #include <Gfx/Graph/RenderList.hpp>
+
+#include <score/gfx/Vulkan.hpp>
+
+#include <QOffscreenSurface>
+
 #include <private/qrhigles2_p.h>
+
 namespace oscr
 {
-static void customMessageProcess(const score::gfx::Message& msg, score::gfx::Message& last_message)
+static void
+customMessageProcess(const score::gfx::Message& msg, score::gfx::Message& last_message)
 {
   //ProcessNode::process(msg.token);
   last_message.token = msg.token;
@@ -26,7 +33,8 @@ static void customMessageProcess(const score::gfx::Message& msg, score::gfx::Mes
 }
 
 CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
-    Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls): GpuControlOuts{q, std::move(ctls)}
+    Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls)
+    : GpuControlOuts{q, std::move(ctls)}
 {
   m_renderState = std::make_shared<score::gfx::RenderState>();
 
@@ -56,22 +64,20 @@ score::gfx::RenderList* CustomGpuOutputNodeBase::renderer() const
   return m_renderer.lock().get();
 }
 
-void CustomGpuOutputNodeBase::startRendering()
+void CustomGpuOutputNodeBase::startRendering() { }
+
+void CustomGpuOutputNodeBase::render()
 {
 
-}
-
-void CustomGpuOutputNodeBase::render() {
-
-  if (m_update)
+  if(m_update)
     m_update();
 
   auto renderer = m_renderer.lock();
-  if (renderer && m_renderState)
+  if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
     QRhiCommandBuffer* cb{};
-    if (rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
       return;
 
     renderer->render(*cb, true);
@@ -79,39 +85,34 @@ void CustomGpuOutputNodeBase::render() {
   }
 }
 
-void CustomGpuOutputNodeBase::stopRendering() {
-}
+void CustomGpuOutputNodeBase::stopRendering() { }
 
-bool CustomGpuOutputNodeBase::canRender() const {
+bool CustomGpuOutputNodeBase::canRender() const
+{
   return true;
 }
 
-void CustomGpuOutputNodeBase::onRendererChange() {
-}
+void CustomGpuOutputNodeBase::onRendererChange() { }
 
 void CustomGpuOutputNodeBase::createOutput(
-    score::gfx::GraphicsApi graphicsApi
-    , std::function<void ()> onReady
-    , std::function<void ()> onUpdate
-    , std::function<void ()> onResize
-    ) {
+    score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
+    std::function<void()> onUpdate, std::function<void()> onResize)
+{
   m_update = onUpdate;
   onReady();
 }
 
-void CustomGpuOutputNodeBase::destroyOutput()
-{
-}
+void CustomGpuOutputNodeBase::destroyOutput() { }
 
-std::shared_ptr<score::gfx::RenderState> CustomGpuOutputNodeBase::renderState() const {
+std::shared_ptr<score::gfx::RenderState> CustomGpuOutputNodeBase::renderState() const
+{
   return m_renderState;
 }
 
-score::gfx::OutputNode::Configuration CustomGpuOutputNodeBase::configuration() const noexcept {
-  return {
-    .manualRenderingRate = 1000. / 60.
-  , .outputNeedsRenderPass = true
-  };
+score::gfx::OutputNode::Configuration
+CustomGpuOutputNodeBase::configuration() const noexcept
+{
+  return {.manualRenderingRate = 1000. / 60., .outputNeedsRenderPass = true};
 }
 
 void CustomGpuNodeBase::process(const score::gfx::Message& msg)

@@ -1,15 +1,16 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
+
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/Skin.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/widgets/Pixmap.hpp>
-#include <score/model/Skin.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
@@ -20,21 +21,22 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
 
-#include <ossia-qt/qt_logger.hpp>
 #include <ossia/context.hpp>
 
-#include <QFontDatabase>
+#include <ossia-qt/qt_logger.hpp>
+
 #include <QDesktopServices>
-#include <QKeyEvent>
-#include <QUrl>
-#include <QOpenGLContext>
-#include <QPushButton>
-#include <QLabel>
 #include <QDir>
+#include <QFontDatabase>
+#include <QKeyEvent>
+#include <QLabel>
+#include <QOpenGLContext>
 #include <QPainter>
+#include <QPushButton>
 #include <QStandardPaths>
-#include <qobjectdefs.h>
+#include <QUrl>
 #include <qconfig.h>
+#include <qobjectdefs.h>
 #if defined(QT_FEATURE_thread)
 #if QT_FEATURE_thread == 1
 #include <QThreadPool>
@@ -64,63 +66,77 @@ int qInitResources_score();
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QCborStreamWriter>
-#include <QtCore/private/qplugin_p.h>
 #include <QStyleFactory>
 #include <QStylePlugin>
+#include <QtCore/private/qplugin_p.h>
 
-class PhantomStylePlugin : public QStylePlugin {
+class PhantomStylePlugin : public QStylePlugin
+{
   W_OBJECT(PhantomStylePlugin)
 public:
-   PhantomStylePlugin() { }
+  PhantomStylePlugin() { }
   ~PhantomStylePlugin() { }
-  QStyle* create(const QString& key) override  {
-    if (QString::compare(key, QLatin1String("phantom"), Qt::CaseInsensitive) != 0)
+  QStyle* create(const QString& key) override
+  {
+    if(QString::compare(key, QLatin1String("phantom"), Qt::CaseInsensitive) != 0)
       return nullptr;
     return new PhantomStyle();
   }
-
 };
 W_OBJECT_IMPL(PhantomStylePlugin)
 
 const QStaticPlugin qt_static_plugin_PhantomStylePlugin()
 {
   QStaticPlugin plug;
-  plug.instance = [] () -> QObject* {
-    return new PhantomStylePlugin;
-  };
-  plug.rawMetaData = [] () -> const char* {
-      static const QByteArray meta = [] () -> QByteArray {
-    constexpr const char start[] = { 'Q', 'T', 'M', 'E', 'T', 'A', 'D', 'A', 'T', 'A', ' ', '!', 0, QT_VERSION_MAJOR, QT_VERSION_MINOR, qPluginArchRequirements() };
-    QByteArray prefix{start, 16};
+  plug.instance = []() -> QObject* { return new PhantomStylePlugin; };
+  plug.rawMetaData = []() -> const char* {
+    static const QByteArray meta = []() -> QByteArray {
+      constexpr const char start[]
+          = {'Q',
+             'T',
+             'M',
+             'E',
+             'T',
+             'A',
+             'D',
+             'A',
+             'T',
+             'A',
+             ' ',
+             '!',
+             0,
+             QT_VERSION_MAJOR,
+             QT_VERSION_MINOR,
+             qPluginArchRequirements()};
+      QByteArray prefix{start, 16};
 
       QByteArray arr;
       {
-      QCborStreamWriter writer{&arr};
-      writer.startMap(3);
+        QCborStreamWriter writer{&arr};
+        writer.startMap(3);
 
-      writer.append((int) QtPluginMetaDataKeys::IID);
-      writer.append(QLatin1String(QStyleFactoryInterface_iid));
+        writer.append((int)QtPluginMetaDataKeys::IID);
+        writer.append(QLatin1String(QStyleFactoryInterface_iid));
 
-      writer.append(int(QtPluginMetaDataKeys::ClassName));
-      writer.append(QLatin1String("PhantomStylePlugin"));
+        writer.append(int(QtPluginMetaDataKeys::ClassName));
+        writer.append(QLatin1String("PhantomStylePlugin"));
 
-      writer.append(int(QtPluginMetaDataKeys::MetaData));
-      {
-        writer.startMap(1);
-        writer.append("Keys");
+        writer.append(int(QtPluginMetaDataKeys::MetaData));
         {
-          writer.startArray(1);
-          writer.append(QLatin1String("phantom"));
-          writer.endArray();
+          writer.startMap(1);
+          writer.append("Keys");
+          {
+            writer.startArray(1);
+            writer.append(QLatin1String("phantom"));
+            writer.endArray();
+          }
+          writer.endMap();
         }
         writer.endMap();
-      }
-      writer.endMap();
       }
 
       prefix += arr;
       return prefix;
-
     }();
 
     return meta.data();
@@ -130,7 +146,6 @@ const QStaticPlugin qt_static_plugin_PhantomStylePlugin()
 Q_IMPORT_PLUGIN(PhantomStylePlugin)
 #endif
 
-
 #if defined(SCORE_SPLASH_SCREEN)
 #include "StartScreen.hpp"
 #else
@@ -138,7 +153,6 @@ namespace score
 {
 class StartScreen : public QWidget
 {
-
 };
 }
 #endif
@@ -155,28 +169,31 @@ static void setQApplicationSettings(QApplication& m_app)
 
   QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
 
-  QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu Regular
-  QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");       // Ubuntu Bold
-  QFontDatabase::addApplicationFont(":/Ubuntu-L.ttf");       // Ubuntu Light
-  QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf"); // Catamaran Regular
-  QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf"); // Montserrat
+  QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");            // Ubuntu Regular
+  QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");            // Ubuntu Bold
+  QFontDatabase::addApplicationFont(":/Ubuntu-L.ttf");            // Ubuntu Light
+  QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf");   // Catamaran Regular
+  QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");  // Montserrat
   QFontDatabase::addApplicationFont(":/Montserrat-SemiBold.ttf"); // Montserrat
-  QFontDatabase::addApplicationFont(":/Montserrat-Light.ttf"); // Montserrat
+  QFontDatabase::addApplicationFont(":/Montserrat-Light.ttf");    // Montserrat
 
   // Source Code Pro
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Black.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-BlackIt.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Bold.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-BoldIt.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-ExtraLight.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-ExtraLightIt.ttf");
+  QFontDatabase::addApplicationFont(
+      ":/fonts/sourcecodepro/SourceCodePro-ExtraLight.ttf");
+  QFontDatabase::addApplicationFont(
+      ":/fonts/sourcecodepro/SourceCodePro-ExtraLightIt.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Light.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-LightIt.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-It.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Medium.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-MediumIt.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Semibold.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf");
+  QFontDatabase::addApplicationFont(
+      ":/fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf");
 
   // For release builds against a debug Qt, we build qt without any style plug-in.
   // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).
@@ -187,9 +204,9 @@ static void setQApplicationSettings(QApplication& m_app)
 #endif
 
   auto pal = qApp->palette();
-  pal.setBrush(QPalette::Window, QColor("#222222"));//#1A2024"));
-  pal.setBrush(QPalette::Base, QColor("#161514"));//12171A"));
-  pal.setBrush(QPalette::AlternateBase, QColor("#1e1d1c"));//1f2a30")); // alternate bg
+  pal.setBrush(QPalette::Window, QColor("#222222"));        //#1A2024"));
+  pal.setBrush(QPalette::Base, QColor("#161514"));          //12171A"));
+  pal.setBrush(QPalette::AlternateBase, QColor("#1e1d1c")); //1f2a30")); // alternate bg
   pal.setBrush(QPalette::Highlight, QColor{"#9062400a"});
   pal.setBrush(QPalette::HighlightedText, QColor("#FDFDFD"));
   pal.setBrush(QPalette::WindowText, QColor("silver"));
@@ -205,8 +222,8 @@ static void setQApplicationSettings(QApplication& m_app)
   pal.setBrush(QPalette::Light, QColor{"#c58014"});
   pal.setBrush(QPalette::Mid, QColor("#252930"));
 
-//  pal.setBrush(QPalette::Dark, QColor("#808080"));
- // pal.setBrush(QPalette::Shadow, QColor("#666666"));
+  //  pal.setBrush(QPalette::Dark, QColor("#808080"));
+  // pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
   constexpr const int defaultFontSize = 10;
 
@@ -219,25 +236,24 @@ static void setQApplicationSettings(QApplication& m_app)
 
 } // namespace score
 
-namespace {
+namespace
+{
 bool runningUnderAnUISession() noexcept
 {
 #if __linux__
-  return
-      !qgetenv("DISPLAY").isEmpty() ||
-      !qgetenv("WAYLAND_DISPLAY").isEmpty() ||
-      (qgetenv("XDG_SESSION_TYPE") != "tty") ||
-      (qgetenv("QT_QPA_PLATFORM").contains("gl"))
-      ;
+  return !qgetenv("DISPLAY").isEmpty() || !qgetenv("WAYLAND_DISPLAY").isEmpty()
+         || (qgetenv("XDG_SESSION_TYPE") != "tty")
+         || (qgetenv("QT_QPA_PLATFORM").contains("gl"));
 #else
   // Win32 and macOS always have a graphical session
   return true;
 #endif
 }
 
-QCoreApplication* createApplication(const score::ApplicationSettings& set, int& argc, char** argv)
+QCoreApplication*
+createApplication(const score::ApplicationSettings& set, int& argc, char** argv)
 {
-  if (set.gui)
+  if(set.gui)
   {
     return new SafeQApplication{argc, argv};
   }
@@ -251,12 +267,13 @@ QCoreApplication* createApplication(const score::ApplicationSettings& set, int& 
 }
 }
 
-Application::Application(int& argc, char** argv) : QObject{nullptr}
+Application::Application(int& argc, char** argv)
+    : QObject{nullptr}
 {
   m_instance = this;
 
   QStringList l;
-  for (int i = 0; i < argc; i++)
+  for(int i = 0; i < argc; i++)
     l.append(QString::fromUtf8(argv[i]));
   appSettings.parse(l, argc, argv);
 
@@ -279,12 +296,12 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
 #endif
 
   m_app = createApplication(appSettings, argc, argv);
-
 }
 
 Application::Application(
     const score::ApplicationSettings& appSettings, int& argc, char** argv)
-    : QObject{nullptr}, appSettings(appSettings)
+    : QObject{nullptr}
+    , appSettings(appSettings)
 {
   m_instance = this;
 
@@ -330,7 +347,6 @@ const score::ApplicationComponents& Application::components() const
   return m_presenter->applicationComponents();
 }
 
-
 void Application::init()
 {
   if(appSettings.gui && appSettings.opengl)
@@ -360,9 +376,13 @@ void Application::init()
     v.push_back(std::make_shared<spdlog::sinks::stderr_sink_mt>());
   } catch (...) { }
   */
-  try {
+  try
+  {
     v.push_back(std::make_shared<ossia::qt::log_sink>());
-  } catch (...) { }
+  }
+  catch(...)
+  {
+  }
 
   ossia::context context{std::move(v)};
   ossia::logger().set_level(spdlog::level::debug);
@@ -386,7 +406,7 @@ void Application::init()
 #endif
 
   // MVP
-  if (appSettings.gui)
+  if(appSettings.gui)
   {
     score::setQApplicationSettings(*qApp);
     m_settings.setupView();
@@ -394,13 +414,13 @@ void Application::init()
     m_view = new score::View{this};
   }
 
-  m_presenter = new score::Presenter{appSettings, m_settings,
-                                     m_projectSettings, m_view, this};
+  m_presenter
+      = new score::Presenter{appSettings, m_settings, m_projectSettings, m_view, this};
   // Plugins
   GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
 
   // View
-  if (appSettings.gui)
+  if(appSettings.gui)
   {
 #if !defined(__EMSCRIPTEN__)
     m_view->show();
@@ -412,7 +432,7 @@ void Application::init()
 
 #if defined(__APPLE__)
   {
-    if (appSettings.gui)
+    if(appSettings.gui)
     {
       auto sqa = safe_cast<SafeQApplication*>(m_app);
       if(auto file = sqa->fileToOpen; QFile::exists(file))
@@ -424,35 +444,30 @@ void Application::init()
 #endif
 
 #if defined(SCORE_SPLASH_SCREEN)
-  if (appSettings.gui && appSettings.loadList.empty())
+  if(appSettings.gui && appSettings.loadList.empty())
   {
     m_startScreen = new score::StartScreen{this->context().docManager.recentFiles()};
     m_startScreen->show();
 
     auto& ctx = m_presenter->applicationContext();
-    connect(
-          m_startScreen, &score::StartScreen::openNewDocument, this, [&]() {
+    connect(m_startScreen, &score::StartScreen::openNewDocument, this, [&]() {
       m_startScreen->close();
       openNewDocument();
     });
     connect(
-          m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
-      m_startScreen->close();
-      m_presenter->documentManager().loadFile(ctx, file);
-    });
-    connect(
-          m_startScreen, &score::StartScreen::openFileDialog, this, [&]() {
+        m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
+          m_startScreen->close();
+          m_presenter->documentManager().loadFile(ctx, file);
+        });
+    connect(m_startScreen, &score::StartScreen::openFileDialog, this, [&]() {
       m_startScreen->close();
       m_presenter->documentManager().loadFile(ctx);
     });
-    connect(
-        m_startScreen, &score::StartScreen::exitApp, this, [&](){
-        qApp->quit();
-    });
+    connect(m_startScreen, &score::StartScreen::exitApp, this, [&]() { qApp->quit(); });
   }
 #endif
 
-  if (appSettings.gui)
+  if(appSettings.gui)
   {
     m_view->sizeChanged(m_view->size());
     m_view->ready();
@@ -464,55 +479,53 @@ void Application::init()
 void Application::initDocuments()
 {
   auto& ctx = m_presenter->applicationContext();
-  if (!appSettings.loadList.empty())
+  if(!appSettings.loadList.empty())
   {
-    for (const auto& doc : appSettings.loadList)
+    for(const auto& doc : appSettings.loadList)
       m_presenter->documentManager().loadFile(ctx, doc);
   }
 
   // The plug-ins have the ability to override the boot process.
-  for (auto plug : ctx.guiApplicationPlugins())
+  for(auto plug : ctx.guiApplicationPlugins())
   {
-    if (plug->handleStartup())
+    if(plug->handleStartup())
     {
       return;
     }
   }
 
-  if (appSettings.gui)
+  if(appSettings.gui)
   {
     auto sqa = safe_cast<SafeQApplication*>(m_app);
-    connect(
-        sqa, &SafeQApplication::fileOpened, this, [&](const QString& file) {
-          m_presenter->documentManager().loadFile(ctx, file);
-        });
+    connect(sqa, &SafeQApplication::fileOpened, this, [&](const QString& file) {
+      m_presenter->documentManager().loadFile(ctx, file);
+    });
   }
 
   // Try to reload if there was a crash
-  if (appSettings.tryToRestore)
+  if(appSettings.tryToRestore)
   {
-    #if defined(SCORE_SPLASH_SCREEN)
+#if defined(SCORE_SPLASH_SCREEN)
     if(m_startScreen && score::OpenDocumentsFile::exists())
     {
       m_startScreen->addLoadCrashedSession();
-      connect(
-          m_startScreen, &score::StartScreen::loadCrashedSession, this, [&]() {
-            m_startScreen->close();
-            m_presenter->documentManager().restoreDocuments(ctx);
-          });
+      connect(m_startScreen, &score::StartScreen::loadCrashedSession, this, [&]() {
+        m_startScreen->close();
+        m_presenter->documentManager().restoreDocuments(ctx);
+      });
     }
-    #else
+#else
     if(score::DocumentBackups::canRestoreDocuments())
     {
       m_presenter->documentManager().restoreDocuments(ctx);
     }
-    #endif
+#endif
   }
 
-  // If nothing was reloaded, open a normal document
-  #if !defined(SCORE_SPLASH_SCREEN)
+// If nothing was reloaded, open a normal document
+#if !defined(SCORE_SPLASH_SCREEN)
   openNewDocument();
-  #endif
+#endif
 
 #if defined(QT_FEATURE_thread)
 #if QT_FEATURE_thread == 1
@@ -524,16 +537,14 @@ void Application::initDocuments()
 void Application::openNewDocument()
 {
   auto& ctx = m_presenter->applicationContext();
-  if (m_presenter->documentManager().documents().empty())
+  if(m_presenter->documentManager().documents().empty())
   {
-    auto& documentKinds = m_presenter->applicationComponents()
-                              .interfaces<score::DocumentDelegateList>();
-    if (!documentKinds.empty()
-        && m_presenter->documentManager().documents().empty())
+    auto& documentKinds
+        = m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>();
+    if(!documentKinds.empty() && m_presenter->documentManager().documents().empty())
     {
       m_presenter->documentManager().newDocument(
-          ctx,
-          Id<score::DocumentModel>{score::random_id_generator::getRandomId()},
+          ctx, Id<score::DocumentModel>{score::random_id_generator::getRandomId()},
           *m_presenter->applicationComponents()
                .interfaces<score::DocumentDelegateList>()
                .begin());
@@ -552,4 +563,3 @@ W_OBJECT_IMPL(score::StartScreen)
 W_OBJECT_IMPL(score::InteractiveLabel)
 
 #endif
-

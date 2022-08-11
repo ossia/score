@@ -4,9 +4,10 @@
 #include <score/serialization/DataStreamFwd.hpp>
 #include <score/serialization/IsTemplate.hpp>
 
-#include <ossia-qt/time_value.hpp>
 #include <ossia/detail/flicks.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+
+#include <ossia-qt/time_value.hpp>
 
 #include <cmath>
 // #include <flicks.h>
@@ -70,14 +71,14 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 
   constexpr TimeVal operator-(TimeVal t) const noexcept
   {
-    if (infinite() || t.infinite())
+    if(infinite() || t.infinite())
       return TimeVal{infinity};
 
     return TimeVal{impl - t.impl};
   }
   constexpr TimeVal operator+(TimeVal t) const noexcept
   {
-    if (infinite() || t.infinite())
+    if(infinite() || t.infinite())
       return TimeVal{infinity};
 
     return TimeVal{impl + t.impl};
@@ -101,7 +102,7 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 
   constexpr TimeVal& operator-() noexcept
   {
-    if (!infinite())
+    if(!infinite())
       impl = -impl;
 
     return *this;
@@ -127,7 +128,7 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 
   constexpr double msec() const noexcept
   {
-    if (!infinite())
+    if(!infinite())
       return impl / ossia::flicks_per_millisecond<double>;
 
     return 0;
@@ -135,7 +136,7 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 
   constexpr double sec() const noexcept
   {
-    if (!infinite())
+    if(!infinite())
       return double(impl) / ossia::flicks_per_second<double>;
     return 0;
   }
@@ -163,35 +164,17 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
     impl = msecs * ossia::flicks_per_millisecond<double>;
   }
 
-  constexpr bool operator==(TimeVal other) const noexcept
-  {
-    return impl == other.impl;
-  }
+  constexpr bool operator==(TimeVal other) const noexcept { return impl == other.impl; }
 
-  constexpr bool operator!=(TimeVal other) const noexcept
-  {
-    return impl != other.impl;
-  }
+  constexpr bool operator!=(TimeVal other) const noexcept { return impl != other.impl; }
 
-  constexpr bool operator>(TimeVal other) const noexcept
-  {
-    return impl > other.impl;
-  }
+  constexpr bool operator>(TimeVal other) const noexcept { return impl > other.impl; }
 
-  constexpr bool operator>=(TimeVal other) const noexcept
-  {
-    return impl >= other.impl;
-  }
+  constexpr bool operator>=(TimeVal other) const noexcept { return impl >= other.impl; }
 
-  constexpr bool operator<(TimeVal other) const noexcept
-  {
-    return impl < other.impl;
-  }
+  constexpr bool operator<(TimeVal other) const noexcept { return impl < other.impl; }
 
-  constexpr bool operator<=(TimeVal other) const noexcept
-  {
-    return impl <= other.impl;
-  }
+  constexpr bool operator<=(TimeVal other) const noexcept { return impl <= other.impl; }
 
   constexpr bool operator==(time_value other) const noexcept
   {
@@ -203,20 +186,14 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
     return impl != other.impl;
   }
 
-  constexpr bool operator>(time_value other) const noexcept
-  {
-    return impl > other.impl;
-  }
+  constexpr bool operator>(time_value other) const noexcept { return impl > other.impl; }
 
   constexpr bool operator>=(time_value other) const noexcept
   {
     return impl >= other.impl;
   }
 
-  constexpr bool operator<(time_value other) const noexcept
-  {
-    return impl < other.impl;
-  }
+  constexpr bool operator<(time_value other) const noexcept { return impl < other.impl; }
 
   constexpr bool operator<=(time_value other) const noexcept
   {
@@ -226,7 +203,7 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 
 inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept
 {
-  if (lhs < rhs)
+  if(lhs < rhs)
     return rhs;
   else
     return lhs;

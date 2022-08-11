@@ -1,6 +1,7 @@
 #pragma once
-#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
+
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 namespace Scenario
 {
 namespace Command
@@ -12,9 +13,7 @@ class DropProcessOnState
 {
 public:
   bool drop(
-      const Scenario::StateModel&,
-      const Scenario::ProcessModel&,
-      const QMimeData& mime,
+      const Scenario::StateModel&, const Scenario::ProcessModel&, const QMimeData& mime,
       const score::DocumentContext& ctx);
 };
 

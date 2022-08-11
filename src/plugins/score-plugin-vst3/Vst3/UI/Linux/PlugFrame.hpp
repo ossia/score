@@ -2,39 +2,40 @@
 #include <cstddef>
 
 #if defined(__linux__)
+#include <Vst3/UI/WindowContainer.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QDebug>
+#include <QSocketNotifier>
 #include <QTimer>
 #include <QWindow>
-#include <QSocketNotifier>
 
 #include <pluginterfaces/gui/iplugview.h>
-
-#include <utility>
-#include <unordered_map>
-#include <vector>
-#include <memory>
-
-#include <Vst3/UI/WindowContainer.hpp>
-
+#include <xcb/xcb.h>
 
 #include <dlfcn.h>
-#include <xcb/xcb.h>
+
+#include <memory>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace vst3
 {
 namespace Linux = Steinberg::Linux;
 
-struct SocketPair {
+struct SocketPair
+{
   SocketPair(int fd)
       : read{fd, QSocketNotifier::Read}
       , write{fd, QSocketNotifier::Write}
       , error{fd, QSocketNotifier::Exception}
   {
   }
-  template<typename F>
-  void connect(QObject* sink, F f) {
+  template <typename F>
+  void connect(QObject* sink, F f)
+  {
     QObject::connect(&read, &QSocketNotifier::activated, sink, f);
     QObject::connect(&write, &QSocketNotifier::activated, sink, f);
     QObject::connect(&error, &QSocketNotifier::activated, sink, f);
@@ -48,7 +49,8 @@ struct SocketPair {
   QSocketNotifier error;
 };
 
-struct XcbConnection {
+struct XcbConnection
+{
   void* xcb{};
   xcb_connection_t* connection{};
   int fd{-1};
@@ -60,10 +62,13 @@ struct XcbConnection {
     if(!xcb)
       return;
 
-    auto xcb_connect = reinterpret_cast<decltype(&::xcb_connect)>(dlsym(xcb, "xcb_connect"));
+    auto xcb_connect
+        = reinterpret_cast<decltype(&::xcb_connect)>(dlsym(xcb, "xcb_connect"));
     if(!xcb_connect)
       return;
-    auto xcb_get_file_descriptor =reinterpret_cast<decltype(&::xcb_get_file_descriptor)>(dlsym(xcb, "xcb_get_file_descriptor"));
+    auto xcb_get_file_descriptor
+        = reinterpret_cast<decltype(&::xcb_get_file_descriptor)>(
+            dlsym(xcb, "xcb_get_file_descriptor"));
     if(!xcb_get_file_descriptor)
       return;
 
@@ -85,14 +90,16 @@ struct XcbConnection {
     if(!connection)
       return;
 
-    auto xcb_disconnect = reinterpret_cast<decltype(&::xcb_disconnect)>(dlsym(xcb, "xcb_disconnect"));
+    auto xcb_disconnect
+        = reinterpret_cast<decltype(&::xcb_disconnect)>(dlsym(xcb, "xcb_disconnect"));
     if(!xcb_disconnect)
       return;
     xcb_disconnect(connection);
   }
 };
 
-struct SocketHandler {
+struct SocketHandler
+{
   Linux::IEventHandler* handler{};
   QSocketNotifier* r_notifier{};
   QSocketNotifier* w_notifier{};
@@ -103,6 +110,7 @@ struct SocketHandler {
 class GlobalSocketHandlers : public QObject
 {
   XcbConnection xcb;
+
 public:
   std::unordered_map<int, std::vector<Linux::IEventHandler*>> handlers;
   GlobalSocketHandlers()
@@ -133,7 +141,8 @@ public:
         handlers.erase(it);
     }
   }
-  static GlobalSocketHandlers& instance() {
+  static GlobalSocketHandlers& instance()
+  {
     static GlobalSocketHandlers handlers;
     return handlers;
   }
@@ -157,15 +166,18 @@ public:
   tresult queryInterface(const TUID _iid, void** obj) override
   {
     using namespace Steinberg;
-    if (FUnknownPrivate::iidEqual(_iid, FUnknown::iid)) {
+    if(FUnknownPrivate::iidEqual(_iid, FUnknown::iid))
+    {
       *obj = this;
       return kResultOk;
     }
-    if (FUnknownPrivate::iidEqual(_iid, IPlugFrame::iid)) {
+    if(FUnknownPrivate::iidEqual(_iid, IPlugFrame::iid))
+    {
       *obj = this;
       return kResultOk;
     }
-    if (FUnknownPrivate::iidEqual(_iid, Linux::IRunLoop::iid)) {
+    if(FUnknownPrivate::iidEqual(_iid, Linux::IRunLoop::iid))
+    {
       *obj = static_cast<Linux::IRunLoop*>(this);
       return kResultOk;
     }
@@ -176,12 +188,13 @@ public:
   uint32 addRef() override { return 1; }
   uint32 release() override { return 1; }
 
-  tresult registerEventHandler (Linux::IEventHandler* handler, Linux::FileDescriptor fd) SMTG_OVERRIDE
+  tresult registerEventHandler(Linux::IEventHandler* handler, Linux::FileDescriptor fd)
+      SMTG_OVERRIDE
   {
     using namespace Steinberg;
-    if (!handler)
+    if(!handler)
       return kInvalidArgument;
-    auto existing = ossia::find_if(handlers, [=] (auto p) { return p.fd == fd; });
+    auto existing = ossia::find_if(handlers, [=](auto p) { return p.fd == fd; });
 
     if(existing != handlers.end())
       return kInvalidArgument;
@@ -189,31 +202,36 @@ public:
     auto readnotifier = new QSocketNotifier{fd, QSocketNotifier::Read};
     readnotifier->setEnabled(true);
     auto on_fd = [=] { handler->onFDIsSet(fd); };
-    QObject::connect(readnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
+    QObject::connect(
+        readnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
     auto writenotifier = new QSocketNotifier{fd, QSocketNotifier::Write};
     writenotifier->setEnabled(true);
-    QObject::connect(writenotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
+    QObject::connect(
+        writenotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
     auto errnotifier = new QSocketNotifier{fd, QSocketNotifier::Exception};
     errnotifier->setEnabled(true);
-    QObject::connect(errnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
+    QObject::connect(
+        errnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
-    handlers.push_back(SocketHandler{handler, readnotifier, writenotifier, errnotifier, fd});
+    handlers.push_back(
+        SocketHandler{handler, readnotifier, writenotifier, errnotifier, fd});
     GlobalSocketHandlers::instance().registerHandler(handler, fd);
 
     return kResultTrue;
   }
 
-  tresult unregisterEventHandler (Linux::IEventHandler* handler) SMTG_OVERRIDE
+  tresult unregisterEventHandler(Linux::IEventHandler* handler) SMTG_OVERRIDE
   {
     using namespace Steinberg;
-    if (!handler) {
+    if(!handler)
+    {
       return kInvalidArgument;
     }
 
     tresult res{kResultFalse};
-    for(auto it = handlers.begin(); it != handlers.end(); )
+    for(auto it = handlers.begin(); it != handlers.end();)
     {
       if(it->handler == handler)
       {
@@ -234,8 +252,7 @@ public:
   }
 
   tresult registerTimer(
-      Linux::ITimerHandler* handler,
-      Linux::TimerInterval milliseconds) override
+      Linux::ITimerHandler* handler, Linux::TimerInterval milliseconds) override
   {
     auto t = new QTimer;
     QObject::connect(t, &QTimer::timeout, [=] { handler->onTimer(); });
@@ -246,9 +263,8 @@ public:
 
   tresult unregisterTimer(Linux::ITimerHandler* handler) override
   {
-    auto t = ossia::find_if(
-        timers, [=](auto& p1) { return p1.first == handler; });
-    if (t != timers.end())
+    auto t = ossia::find_if(timers, [=](auto& p1) { return p1.first == handler; });
+    if(t != timers.end())
     {
       delete t->second;
       timers.erase(t);
@@ -266,9 +282,9 @@ public:
 
   ~PlugFrame()
   {
-    for(auto timer: timers)
+    for(auto timer : timers)
       delete timer.second;
-    for(auto handler: handlers)
+    for(auto handler : handlers)
     {
       GlobalSocketHandlers::instance().unregisterHandler(handler.handler, handler.fd);
       delete handler.r_notifier;
@@ -277,8 +293,7 @@ public:
     }
   }
 
-  tresult
-  resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
+  tresult resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
     wc.setSizeFromVst(*view, *newSize, w);
     return Steinberg::kResultOk;

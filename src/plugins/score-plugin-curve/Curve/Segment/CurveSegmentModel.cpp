@@ -16,9 +16,7 @@ namespace Curve
 {
 SegmentModel::SegmentModel(const Id<SegmentModel>& id, QObject* parent)
     : IdentifiedObject<SegmentModel>{
-        id,
-        Metadata<ObjectKey_k, SegmentModel>::get(),
-        parent}
+        id, Metadata<ObjectKey_k, SegmentModel>::get(), parent}
 
 {
 }
@@ -34,10 +32,7 @@ SegmentModel::SegmentModel(const SegmentData& data, QObject* parent)
 }
 
 SegmentModel::SegmentModel(
-    Curve::Point s,
-    Curve::Point e,
-    const Id<SegmentModel>& id,
-    QObject* parent)
+    Curve::Point s, Curve::Point e, const Id<SegmentModel>& id, QObject* parent)
     : IdentifiedObject<
         SegmentModel>{id, Metadata<ObjectKey_k, SegmentModel>::get(), parent}
     , m_start{s}
@@ -61,7 +56,7 @@ SegmentModel::~SegmentModel() { }
 
 void SegmentModel::setPrevious(const OptionalId<SegmentModel>& previous)
 {
-  if (previous != m_previous)
+  if(previous != m_previous)
   {
     m_previous = previous;
     previousChanged();
@@ -72,7 +67,7 @@ void SegmentModel::setVerticalParameter(double p) { }
 
 void SegmentModel::setFollowing(const OptionalId<SegmentModel>& following)
 {
-  if (following != m_following)
+  if(following != m_following)
   {
     m_following = following;
     followingChanged();
@@ -93,7 +88,7 @@ std::optional<double> SegmentModel::horizontalParameter() const
 
 void SegmentModel::setStart(const Curve::Point& pt)
 {
-  if (pt != m_start)
+  if(pt != m_start)
   {
     m_start = pt;
     m_valid = false;
@@ -105,7 +100,7 @@ void SegmentModel::setStart(const Curve::Point& pt)
 
 void SegmentModel::setEnd(const Curve::Point& pt)
 {
-  if (pt != m_end)
+  if(pt != m_end)
   {
     m_end = pt;
     m_valid = false;

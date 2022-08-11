@@ -4,51 +4,42 @@
 
 #include <Process/TimeValue.hpp>
 
-#include <score/document/DocumentContext.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 namespace Scenario
 {
 
 BaseScenarioContainer::BaseScenarioContainer(
-    no_init,
-    const score::DocumentContext& ctx,
-    QObject* parentObject)
+    no_init, const score::DocumentContext& ctx, QObject* parentObject)
     : m_context{ctx}
     , m_parent{parentObject}
 {
 }
 
 BaseScenarioContainer::BaseScenarioContainer(
-    const score::DocumentContext& ctx,
-    QObject* parentObject)
+    const score::DocumentContext& ctx, QObject* parentObject)
     : m_context{ctx}
     , m_parent{parentObject}
 {
-  m_startNode = new TimeSyncModel{
-      Scenario::startId<TimeSyncModel>(), TimeVal::zero(), m_parent};
+  m_startNode
+      = new TimeSyncModel{Scenario::startId<TimeSyncModel>(), TimeVal::zero(), m_parent};
   m_startNode->metadata().setName("Sync.start");
-  m_endNode = new TimeSyncModel{
-      Scenario::endId<TimeSyncModel>(), TimeVal::zero(), m_parent};
+  m_endNode
+      = new TimeSyncModel{Scenario::endId<TimeSyncModel>(), TimeVal::zero(), m_parent};
   m_endNode->metadata().setName("Sync.end");
   m_startEvent = new EventModel{
-      Scenario::startId<EventModel>(),
-      m_startNode->id(),
-      TimeVal::zero(),
-      m_parent};
+      Scenario::startId<EventModel>(), m_startNode->id(), TimeVal::zero(), m_parent};
   m_startEvent->metadata().setName("Event.start");
   m_endEvent = new EventModel{
-      Scenario::endId<EventModel>(),
-      m_endNode->id(),
-      TimeVal::zero(),
-      m_parent};
+      Scenario::endId<EventModel>(), m_endNode->id(), TimeVal::zero(), m_parent};
   m_endEvent->metadata().setName("Event.end");
   m_startState = new StateModel{
       Scenario::startId<StateModel>(), m_startEvent->id(), 0, ctx, m_parent};
@@ -92,21 +83,20 @@ BaseScenarioContainer::~BaseScenarioContainer()
   m_endNode = nullptr;
 }
 
-IntervalModel*
-BaseScenarioContainer::findInterval(const Id<IntervalModel>& id) const
+IntervalModel* BaseScenarioContainer::findInterval(const Id<IntervalModel>& id) const
 {
-  if (id == m_interval->id())
+  if(id == m_interval->id())
     return m_interval;
   return nullptr;
 }
 
 EventModel* BaseScenarioContainer::findEvent(const Id<EventModel>& id) const
 {
-  if (id == m_startEvent->id())
+  if(id == m_startEvent->id())
   {
     return m_startEvent;
   }
-  else if (id == m_endEvent->id())
+  else if(id == m_endEvent->id())
   {
     return m_endEvent;
   }
@@ -116,14 +106,13 @@ EventModel* BaseScenarioContainer::findEvent(const Id<EventModel>& id) const
   }
 }
 
-TimeSyncModel*
-BaseScenarioContainer::findTimeSync(const Id<TimeSyncModel>& id) const
+TimeSyncModel* BaseScenarioContainer::findTimeSync(const Id<TimeSyncModel>& id) const
 {
-  if (id == m_startNode->id())
+  if(id == m_startNode->id())
   {
     return m_startNode;
   }
-  else if (id == m_endNode->id())
+  else if(id == m_endNode->id())
   {
     return m_endNode;
   }
@@ -135,11 +124,11 @@ BaseScenarioContainer::findTimeSync(const Id<TimeSyncModel>& id) const
 
 StateModel* BaseScenarioContainer::findState(const Id<StateModel>& id) const
 {
-  if (id == m_startState->id())
+  if(id == m_startState->id())
   {
     return m_startState;
   }
-  else if (id == m_endState->id())
+  else if(id == m_endState->id())
   {
     return m_endState;
   }
@@ -149,8 +138,7 @@ StateModel* BaseScenarioContainer::findState(const Id<StateModel>& id) const
   }
 }
 
-IntervalModel&
-BaseScenarioContainer::interval(const Id<IntervalModel>& id) const
+IntervalModel& BaseScenarioContainer::interval(const Id<IntervalModel>& id) const
 {
   SCORE_ASSERT(id == m_interval->id());
   return *m_interval;
@@ -162,8 +150,7 @@ EventModel& BaseScenarioContainer::event(const Id<EventModel>& id) const
   return id == m_startEvent->id() ? *m_startEvent : *m_endEvent;
 }
 
-TimeSyncModel&
-BaseScenarioContainer::timeSync(const Id<TimeSyncModel>& id) const
+TimeSyncModel& BaseScenarioContainer::timeSync(const Id<TimeSyncModel>& id) const
 {
   SCORE_ASSERT(id == m_startNode->id() || id == m_endNode->id());
   return id == m_startNode->id() ? *m_startNode : *m_endNode;

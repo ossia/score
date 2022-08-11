@@ -1,6 +1,7 @@
 #pragma once
-#include <Device/Node/DeviceNode.hpp>
 #include <State/Value.hpp>
+
+#include <Device/Node/DeviceNode.hpp>
 
 #include <QString>
 
@@ -61,8 +62,7 @@ public:
    * Used to add a new address (after input from user for instance)
    */
   void addAddress(
-      const Device::NodePath& parentPath,
-      const Device::AddressSettings& settings,
+      const Device::NodePath& parentPath, const Device::AddressSettings& settings,
       int row);
 
   void addAddress(const Device::FullAddressSettings& settings);
@@ -72,48 +72,35 @@ public:
    * @param parentPath Path to the parent
    * @param node The node to insert.
    */
-  void addNode(
-      const Device::NodePath& parentPath,
-      const Device::Node& node,
-      int row);
+  void addNode(const Device::NodePath& parentPath, const Device::Node& node, int row);
 
   void updateAddress(
-      const Device::NodePath& nodePath,
-      const Device::AddressSettings& settings);
+      const Device::NodePath& nodePath, const Device::AddressSettings& settings);
 
   void removeNode(
-      const Device::NodePath& parentPath,
-      const Device::AddressSettings& settings);
+      const Device::NodePath& parentPath, const Device::AddressSettings& settings);
 
   // Local : the Device::Node structure
   // Remote : what's behind a DeviceInterface
-  void addLocalAddress(
-      Device::Node& parent,
-      const Device::AddressSettings& data,
-      int row);
-  void addLocalAddresses(
-      Device::Node& parent,
-      Device::AddressSettings data,
-      int row);
+  void
+  addLocalAddress(Device::Node& parent, const Device::AddressSettings& data, int row);
+  void addLocalAddresses(Device::Node& parent, Device::AddressSettings data, int row);
 
   void addLocalNode(Device::Node& parent, Device::Node&& node);
 
   void removeLocalNode(const State::Address&);
   void updateLocalValue(const State::AddressAccessor&, const ossia::value&);
   void updateLocalSettings(
-      const State::Address&,
-      const Device::AddressSettings&,
+      const State::Address&, const Device::AddressSettings&,
       Device::DeviceInterface& newdev);
 
   void updateRemoteValue(const State::Address&, const ossia::value&);
 
   ossia::value refreshRemoteValue(const State::Address&) const;
-  std::optional<ossia::value>
-  try_refreshRemoteValue(const State::Address&) const;
+  std::optional<ossia::value> try_refreshRemoteValue(const State::Address&) const;
   void refreshRemoteValues(const Device::NodeList&);
 
 private:
-  void
-  rec_addNode(Device::NodePath parentPath, const Device::Node& node, int row);
+  void rec_addNode(Device::NodePath parentPath, const Device::Node& node, int row);
 };
 }

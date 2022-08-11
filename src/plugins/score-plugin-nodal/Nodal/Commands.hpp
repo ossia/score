@@ -1,16 +1,18 @@
 #pragma once
-#include <Dataflow/Commands/CableHelpers.hpp>
-#include <Nodal/CommandFactory.hpp>
-#include <Nodal/Process.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
+
+#include <Dataflow/Commands/CableHelpers.hpp>
+#include <Nodal/CommandFactory.hpp>
+#include <Nodal/Process.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 namespace Nodal
 {
@@ -26,18 +28,13 @@ class CreateNode final : public score::Command
   SCORE_COMMAND_DECL(CommandFactoryName(), CreateNode, "Create a node")
 public:
   CreateNode(
-      const Nodal::Model& process,
-      QPointF position,
-      const UuidKey<Process::ProcessModel>& uuid,
-      const QString& dat);
+      const Nodal::Model& process, QPointF position,
+      const UuidKey<Process::ProcessModel>& uuid, const QString& dat);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  const Id<Process::ProcessModel>& nodeId() const noexcept
-  {
-    return m_createdNodeId;
-  }
+  const Id<Process::ProcessModel>& nodeId() const noexcept { return m_createdNodeId; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
@@ -73,13 +70,9 @@ private:
   Dataflow::SerializedCables m_cables;
 };
 
-class RemoveNodes final
-    : public score::AggregateCommand
+class RemoveNodes final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveNodes,
-      "Remove nodes")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveNodes, "Remove nodes")
 };
 
 class ReplaceAllNodes final : public score::Command

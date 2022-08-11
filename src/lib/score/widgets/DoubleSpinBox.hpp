@@ -4,8 +4,7 @@
 #include <score_lib_base_export.h>
 namespace score
 {
-struct SCORE_LIB_BASE_EXPORT DoubleSpinboxWithEnter final
-    : public QDoubleSpinBox
+struct SCORE_LIB_BASE_EXPORT DoubleSpinboxWithEnter final : public QDoubleSpinBox
 {
 public:
   using QDoubleSpinBox::QDoubleSpinBox;

@@ -8,23 +8,14 @@ SETTINGS_PARAMETER_IMPL(VstPaths)
 {
   QStringLiteral("Effect/VstPaths"),
 #if defined(__APPLE__)
-  {
-    "/Library/Audio/Plug-Ins/VST"
-  }
+      {"/Library/Audio/Plug-Ins/VST"}
 #elif defined(__linux__)
-  {
-    QStringLiteral("/usr/lib/vst"),
-    QStringLiteral("/usr/lib/lxvst"),
-    QStringLiteral("/usr/lib64/vst"),
-    QStringLiteral("/usr/lib64/lxvst")
-  }
+      {QStringLiteral("/usr/lib/vst"), QStringLiteral("/usr/lib/lxvst"),
+       QStringLiteral("/usr/lib64/vst"), QStringLiteral("/usr/lib64/lxvst")}
 #elif defined(_WIN32)
-  {
-    "C:\\Program Files\\VSTPlugins",
-    "C:\\Program Files\\Steinberg\\VSTPlugins",
-    "C:\\Program Files\\Common Files\\VST2",
-    "C:\\Program Files\\Common Files\\Steinberg\\VST2"
-  }
+      {"C:\\Program Files\\VSTPlugins", "C:\\Program Files\\Steinberg\\VSTPlugins",
+       "C:\\Program Files\\Common Files\\VST2",
+       "C:\\Program Files\\Common Files\\Steinberg\\VST2"}
 #else
   {
     "/usr/lib/vst"
@@ -33,8 +24,7 @@ SETTINGS_PARAMETER_IMPL(VstPaths)
 };
 
 SETTINGS_PARAMETER_IMPL(VstAlwaysOnTop){
-    QStringLiteral("score_plugin_engine/VstAlwaysOnTop"),
-    true};
+    QStringLiteral("score_plugin_engine/VstAlwaysOnTop"), true};
 static auto list()
 {
   return std::tie(VstPaths, VstAlwaysOnTop);

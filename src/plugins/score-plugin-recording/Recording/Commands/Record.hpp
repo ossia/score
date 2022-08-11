@@ -15,14 +15,14 @@ public:
   {
     const int N = std::ssize(m_cmds);
     // Undo 1
-    if (N >= 2)
+    if(N >= 2)
     {
       auto it = m_cmds.begin();
       std::advance(it, 1);
       (*it)->undo(ctx);
     }
 
-    if (N >= 1)
+    if(N >= 1)
     {
       // Undo 0
       (*m_cmds.begin())->undo(ctx);

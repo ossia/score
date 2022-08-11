@@ -2,7 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_mapping.hpp"
 
+#include <Process/GenericProcessFactory.hpp>
+#include <Process/HeaderDelegate.hpp>
+#include <Process/ProcessFactory.hpp>
+
 #include <Curve/Process/CurveProcessFactory.hpp>
+
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Mapping/Commands/MappingCommandFactory.hpp>
 #include <Mapping/Inspector/MappingInspectorFactory.hpp>
@@ -13,9 +18,6 @@
 #include <Mapping/MappingPresenter.hpp>
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Mapping/MappingView.hpp>
-#include <Process/GenericProcessFactory.hpp>
-#include <Process/HeaderDelegate.hpp>
-#include <Process/ProcessFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -28,10 +30,7 @@ namespace Mapping
 
 using MappingFactory = Process::ProcessFactory_T<Mapping::ProcessModel>;
 using MappingLayerFactory = Curve::CurveLayerFactory_T<
-    Mapping::ProcessModel,
-    Mapping::LayerPresenter,
-    Mapping::LayerView,
-    Mapping::Colors,
+    Mapping::ProcessModel, Mapping::LayerPresenter, Mapping::LayerView, Mapping::Colors,
     Process::DefaultHeaderDelegate>;
 }
 
@@ -40,10 +39,8 @@ using MappingLayerFactory = Curve::CurveLayerFactory_T<
 score_plugin_mapping::score_plugin_mapping() = default;
 score_plugin_mapping::~score_plugin_mapping() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_mapping::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_mapping::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Mapping;
   return instantiate_factories<
@@ -51,10 +48,9 @@ score_plugin_mapping::factories(
       FW<Process::ProcessModelFactory, Mapping::MappingFactory>,
       FW<Process::LayerFactory, Mapping::MappingLayerFactory>,
       FW<Inspector::InspectorWidgetFactory, MappingInspectorFactory>,
-      FW<LocalTree::ProcessComponentFactory,
-         LocalTree::MappingComponentFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Mapping::RecreateOnPlay::ComponentFactory>>(ctx, key);
+      FW<LocalTree::ProcessComponentFactory, LocalTree::MappingComponentFactory>,
+      FW<Execution::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory>>(
+      ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

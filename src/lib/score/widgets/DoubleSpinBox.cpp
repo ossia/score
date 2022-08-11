@@ -4,12 +4,11 @@
 
 bool score::DoubleSpinboxWithEnter::event(QEvent* event)
 {
-  switch (event->type())
+  switch(event->type())
   {
-    case QEvent::ShortcutOverride:
-    {
+    case QEvent::ShortcutOverride: {
       QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-      switch (keyEvent->key())
+      switch(keyEvent->key())
       {
         case Qt::Key_Enter:
         case Qt::Key_Return:
@@ -23,10 +22,9 @@ bool score::DoubleSpinboxWithEnter::event(QEvent* event)
       break;
     }
 
-    case QEvent::KeyPress:
-    {
+    case QEvent::KeyPress: {
       QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-      switch (keyEvent->key())
+      switch(keyEvent->key())
       {
         case Qt::Key_Enter:
         case Qt::Key_Return:
@@ -39,8 +37,7 @@ bool score::DoubleSpinboxWithEnter::event(QEvent* event)
       }
     }
 
-    case QEvent::FocusOut:
-    {
+    case QEvent::FocusOut: {
       editingFinished();
       break;
     }

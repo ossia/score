@@ -5,11 +5,13 @@
 #include "OSCProtocolFactory.hpp"
 #include "OSCSpecificSettings.hpp"
 
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <Device/Loading/JamomaDeviceLoader.hpp>
 #include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <Protocols/RateWidget.hpp>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/widgets/MarginLess.hpp>
 
@@ -65,12 +67,12 @@ public:
 
   void setSettings(const ossia::net::udp_configuration& conf)
   {
-    if (conf.remote)
+    if(conf.remote)
     {
       m_remotePort->setValue(conf.remote->port);
       m_host->setText(QString::fromStdString(conf.remote->host));
     }
-    if (conf.local)
+    if(conf.local)
     {
       m_localPort->setValue(conf.local->port);
     }
@@ -120,7 +122,9 @@ public:
     return conf;
   }
 
-  void setSettings(const ossia::net::osc_protocol_configuration& c, const ossia::net::tcp_configuration& conf)
+  void setSettings(
+      const ossia::net::osc_protocol_configuration& c,
+      const ossia::net::tcp_configuration& conf)
   {
     m_remotePort->setValue(conf.port);
     m_framing->setCurrentIndex(c.framing);
@@ -156,20 +160,19 @@ public:
   ossia::net::unix_dgram_configuration settings() const noexcept
   {
     ossia::net::unix_dgram_configuration conf;
-    conf.local = ossia::net::receive_fd_configuration{
-        m_remotePort->text().toStdString()};
-    conf.remote
-        = ossia::net::send_fd_configuration{m_localPort->text().toStdString()};
+    conf.local
+        = ossia::net::receive_fd_configuration{m_remotePort->text().toStdString()};
+    conf.remote = ossia::net::send_fd_configuration{m_localPort->text().toStdString()};
     return conf;
   }
 
   void setSettings(const ossia::net::unix_dgram_configuration& conf)
   {
-    if (conf.remote)
+    if(conf.remote)
     {
       m_localPort->setText(QString::fromStdString(conf.remote->fd));
     }
-    if (conf.local)
+    if(conf.local)
     {
       m_remotePort->setText(QString::fromStdString(conf.local->fd));
     }
@@ -211,7 +214,9 @@ public:
     return conf;
   }
 
-  void setSettings(const ossia::net::osc_protocol_configuration& c, const ossia::net::unix_stream_configuration& conf)
+  void setSettings(
+      const ossia::net::osc_protocol_configuration& c,
+      const ossia::net::unix_stream_configuration& conf)
   {
     m_framing->setCurrentIndex(c.framing);
     m_host->setText(QString::fromStdString(conf.fd));
@@ -322,7 +327,9 @@ public:
     return conf;
   }
 
-  void setSettings(const ossia::net::osc_protocol_configuration& c, const ossia::net::serial_configuration& conf)
+  void setSettings(
+      const ossia::net::osc_protocol_configuration& c,
+      const ossia::net::serial_configuration& conf)
   {
     m_framing->setCurrentIndex(c.framing);
     m_host->setText(QString::fromStdString(conf.port));
@@ -358,12 +365,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
 
   m_transport = new QComboBox{this};
   m_transport->addItems(
-      {"UDP",
-       "TCP",
-       "Serial port",
-       "Unix Datagram",
-       "Unix Stream",
-       "Websocket Client",
+      {"UDP", "TCP", "Serial port", "Unix Datagram", "Unix Stream", "Websocket Client",
        "Websocket Server"});
   checkForChanges(m_transport);
 
@@ -393,9 +395,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   m_transportLayout->addWidget(m_ws_server);
 
   connect(
-      m_transport,
-      qOverload<int>(&QComboBox::currentIndexChanged),
-      this,
+      m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
       [=](int idx) { m_transportLayout->setCurrentIndex(idx); });
 
   auto layout = new QFormLayout{this};
@@ -413,7 +413,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   s.protocol = OSCProtocolFactory::static_concreteKey();
 
   OSCSpecificSettings osc = m_settings;
-  switch ((OscProtocols)m_transport->currentIndex())
+  switch((OscProtocols)m_transport->currentIndex())
   {
     case UDP:
       osc.configuration.transport = m_udp->settings();
@@ -465,14 +465,14 @@ Device::Node OSCProtocolSettingsWidget::getDevice() const
   Device::Node n{set, nullptr};
 
   const auto& json = m_settings.jsonToLoad;
-  if (json.isEmpty())
+  if(json.isEmpty())
     return n;
 
   // This is normal, we just check what we can instantiate.
   Device::loadDeviceFromScoreJSON(readJson(json), n);
 
   // Re-apply our original settings which may have been overwritten
-  if (auto dev = n.target<Device::DeviceSettings>())
+  if(auto dev = n.target<Device::DeviceSettings>())
   {
     *dev = set;
   }
@@ -480,12 +480,11 @@ Device::Node OSCProtocolSettingsWidget::getDevice() const
   return n;
 }
 
-void OSCProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
 
-  if (settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
+  if(settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
   {
     m_settings = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
     m_oscVersion->setCurrentIndex(m_settings.configuration.version);

@@ -25,8 +25,7 @@ class LocalDevice final : public Device::DeviceInterface
 {
 public:
   LocalDevice(
-      ossia::net::device_base& dev,
-      const score::DocumentContext& ctx,
+      ossia::net::device_base& dev, const score::DocumentContext& ctx,
       const Device::DeviceSettings& settings);
 
   ~LocalDevice() override;

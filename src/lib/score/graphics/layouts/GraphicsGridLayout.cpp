@@ -5,10 +5,7 @@
 
 namespace score
 {
-GraphicsGridColumnsLayout::~GraphicsGridColumnsLayout()
-{
-    
-}
+GraphicsGridColumnsLayout::~GraphicsGridColumnsLayout() { }
 
 void GraphicsGridColumnsLayout::setColumns(int columns)
 {
@@ -71,13 +68,7 @@ void GraphicsGridColumnsLayout::layout()
   }
 }
 
-
-
-
-GraphicsGridRowsLayout::~GraphicsGridRowsLayout()
-{
-
-}
+GraphicsGridRowsLayout::~GraphicsGridRowsLayout() { }
 
 void GraphicsGridRowsLayout::setRows(int rows)
 {
@@ -141,13 +132,7 @@ void GraphicsGridRowsLayout::layout()
   }
 }
 
-
-
-
-GraphicsDefaultLayout::~GraphicsDefaultLayout()
-{
-
-}
+GraphicsDefaultLayout::~GraphicsDefaultLayout() { }
 
 static const constexpr int MaxRowsInEffect = 5;
 
@@ -159,10 +144,10 @@ static QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
 {
   int N = MaxRowsInEffect * (controlIndex / MaxRowsInEffect);
   qreal x = 0;
-  for (int i = 0; i < N;)
+  for(int i = 0; i < N;)
   {
     qreal w = 0;
-    for (int j = i; j < i + MaxRowsInEffect && j < N; j++)
+    for(int j = i; j < i + MaxRowsInEffect && j < N; j++)
     {
       auto sz = getControlSize(j);
       w = std::max(w, sz.width());
@@ -173,7 +158,7 @@ static QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
   }
 
   qreal y = 0;
-  for (int j = N; j < controlIndex; j++)
+  for(int j = N; j < controlIndex; j++)
   {
     auto sz = getControlSize(j);
     y += sz.height() + default_padding;
@@ -187,7 +172,8 @@ void GraphicsDefaultLayout::layout()
   for(int i = 0; i < items.size(); i++)
   {
     auto it = items[i];
-    it->setPos(currentWidgetPos(i, [&] (int j) { return items[j]->boundingRect().size(); }));
+    it->setPos(
+        currentWidgetPos(i, [&](int j) { return items[j]->boundingRect().size(); }));
   }
 }
 }

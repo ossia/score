@@ -39,41 +39,36 @@ template class SCORE_PLUGIN_CURVE_EXPORT
 #endif
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::SegmentData& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::SegmentData& segmt)
 {
-  m_stream << segmt.id << segmt.start << segmt.end << segmt.previous
-           << segmt.following << segmt.type;
+  m_stream << segmt.id << segmt.start << segmt.end << segmt.previous << segmt.following
+           << segmt.type;
 
   auto& csl = components.interfaces<Curve::SegmentList>();
   auto segmt_fact = csl.get(segmt.type);
 
   SCORE_ASSERT(segmt_fact);
-  segmt_fact->serializeCurveSegmentData(
-      segmt.specificSegmentData, this->toVariant());
+  segmt_fact->serializeCurveSegmentData(segmt.specificSegmentData, this->toVariant());
 
   insertDelimiter();
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::write(Curve::SegmentData& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::SegmentData& segmt)
 {
-  m_stream >> segmt.id >> segmt.start >> segmt.end >> segmt.previous
-      >> segmt.following >> segmt.type;
+  m_stream >> segmt.id >> segmt.start >> segmt.end >> segmt.previous >> segmt.following
+      >> segmt.type;
 
   auto& csl = components.interfaces<Curve::SegmentList>();
   auto segmt_fact = csl.get(segmt.type);
   SCORE_ASSERT(segmt_fact);
-  segmt.specificSegmentData
-      = segmt_fact->makeCurveSegmentData(this->toVariant());
+  segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
 
   checkDelimiter();
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-JSONReader::read(const Curve::SegmentData& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void JSONReader::read(const Curve::SegmentData& segmt)
 {
   stream.StartObject();
   obj[strings.id] = segmt.id;
@@ -87,14 +82,12 @@ JSONReader::read(const Curve::SegmentData& segmt)
   auto segmt_fact = csl.get(segmt.type);
 
   SCORE_ASSERT(segmt_fact);
-  segmt_fact->serializeCurveSegmentData(
-        segmt.specificSegmentData, this->toVariant());
+  segmt_fact->serializeCurveSegmentData(segmt.specificSegmentData, this->toVariant());
   stream.EndObject();
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-JSONWriter::write(Curve::SegmentData& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::SegmentData& segmt)
 {
   using namespace Curve;
   segmt.previous <<= obj[strings.id];
@@ -107,26 +100,21 @@ JSONWriter::write(Curve::SegmentData& segmt)
   auto& csl = components.interfaces<Curve::SegmentList>();
   auto segmt_fact = csl.get(segmt.type);
   SCORE_ASSERT(segmt_fact);
-  segmt.specificSegmentData
-      = segmt_fact->makeCurveSegmentData(this->toVariant());
+  segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::SegmentModel& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::SegmentModel& segmt)
 {
   // Save this class (this will be loaded by writeTo(*this) in
   // CurveSegmentModel ctor
-  m_stream << segmt.previous() << segmt.following() << segmt.start()
-           << segmt.end();
+  m_stream << segmt.previous() << segmt.following() << segmt.start() << segmt.end();
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::write(Curve::SegmentModel& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::SegmentModel& segmt)
 {
-  m_stream >> segmt.m_previous >> segmt.m_following >> segmt.m_start
-      >> segmt.m_end;
+  m_stream >> segmt.m_previous >> segmt.m_following >> segmt.m_start >> segmt.m_end;
 
   // Note : don't call setStart/setEnd here since they
   // call virtual methods and this may be called from
@@ -134,8 +122,7 @@ DataStreamWriter::write(Curve::SegmentModel& segmt)
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-JSONReader::read(const Curve::SegmentModel& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void JSONReader::read(const Curve::SegmentModel& segmt)
 {
   using namespace Curve;
 
@@ -160,9 +147,7 @@ SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::SegmentModel& segmt)
 namespace Curve
 {
 Curve::SegmentModel* createCurveSegment(
-    const Curve::SegmentList& csl,
-    const Curve::SegmentData& dat,
-    QObject* parent)
+    const Curve::SegmentList& csl, const Curve::SegmentData& dat, QObject* parent)
 {
   auto fact = csl.get(dat.type);
   auto model = fact->load(dat, parent);

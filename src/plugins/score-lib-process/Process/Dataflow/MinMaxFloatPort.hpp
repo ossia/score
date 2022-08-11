@@ -8,9 +8,7 @@ class MinMaxFloatOutlet;
 }
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::MinMaxFloatOutlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::MinMaxFloatOutlet,
     "047e4cc2-4d99-4e8b-bf98-206018d02274")
 namespace Process
 {
@@ -34,12 +32,10 @@ public:
   Device::FullAddressAccessorSettings settings() const noexcept override;
   void setSettings(const Device::FullAddressAccessorSettings& set) noexcept override;
 
-  void forChildInlets(
-      const smallfun::function<void(Inlet&)>& f) const noexcept override;
+  void forChildInlets(const smallfun::function<void(Inlet&)>& f) const noexcept override;
   void mapExecution(
       ossia::outlet& e,
-      const smallfun::function<void(Inlet&, ossia::inlet&)>& f)
-      const noexcept override;
+      const smallfun::function<void(Inlet&, ossia::inlet&)>& f) const noexcept override;
 
   VIRTUAL_CONSTEXPR PortType type() const noexcept override
   {

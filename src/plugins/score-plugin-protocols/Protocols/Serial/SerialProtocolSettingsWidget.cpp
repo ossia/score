@@ -7,9 +7,11 @@
 #include "SerialProtocolSettingsWidget.hpp"
 #include "SerialSpecificSettings.hpp"
 
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <Process/Script/ScriptWidget.hpp>
 
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/Layout.hpp>
@@ -35,11 +37,10 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
 
   m_codeEdit = Process::createScriptWidget("JS");
 
-  for (auto port : QSerialPortInfo::availablePorts())
+  for(auto port : QSerialPortInfo::availablePorts())
     m_port->addItem(port.portName());
 
-
-  for (auto rate : QSerialPortInfo::standardBaudRates())
+  for(auto rate : QSerialPortInfo::standardBaudRates())
     m_rate->addItem(QString::number(rate));
 
   QGridLayout* gLayout = new QGridLayout;
@@ -77,12 +78,12 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   s.protocol = SerialProtocolFactory::static_concreteKey();
 
   SerialSpecificSettings specific;
-  for (auto port : QSerialPortInfo::availablePorts())
-    if (port.portName() == m_port->currentText())
+  for(auto port : QSerialPortInfo::availablePorts())
+    if(port.portName() == m_port->currentText())
       specific.port = port;
 
-  for (auto rate : QSerialPortInfo::standardBaudRates())
-    if (rate == m_rate->currentText().toInt())
+  for(auto rate : QSerialPortInfo::standardBaudRates())
+    if(rate == m_rate->currentText().toInt())
     {
       specific.rate = rate;
       break;
@@ -94,17 +95,17 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void SerialProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void SerialProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
   SerialSpecificSettings specific;
-  if (settings.deviceSpecificSettings.canConvert<SerialSpecificSettings>())
+  if(settings.deviceSpecificSettings.canConvert<SerialSpecificSettings>())
   {
     specific = settings.deviceSpecificSettings.value<SerialSpecificSettings>();
 
     int32_t rate{specific.rate};
-    if (rate == 0) rate = 9600;
+    if(rate == 0)
+      rate = 9600;
 
     m_port->setCurrentText(specific.port.portName());
     m_rate->setCurrentText(QString::number(rate));

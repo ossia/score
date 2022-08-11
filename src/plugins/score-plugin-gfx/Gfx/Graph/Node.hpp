@@ -6,17 +6,17 @@
 #include <Gfx/Graph/Utils.hpp>
 
 #include <ossia/dataflow/nodes/media.hpp>
+#include <ossia/dataflow/token_request.hpp>
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/variant.hpp>
-#include <ossia/dataflow/token_request.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <score_plugin_gfx_export.h>
 
 #include <algorithm>
 #include <optional>
-#include <vector>
-
 #include <unordered_map>
+#include <vector>
 
 namespace score::gfx
 {

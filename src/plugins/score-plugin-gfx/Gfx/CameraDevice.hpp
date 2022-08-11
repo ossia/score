@@ -1,7 +1,7 @@
 #pragma once
 #include <Gfx/GfxDevice.hpp>
-#include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
+#include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Video/CameraInput.hpp>
 
@@ -44,23 +44,18 @@ class CameraProtocolFactory final : public Device::ProtocolFactory
       const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget* parent) override;
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*) override;
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*) override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,

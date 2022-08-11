@@ -104,11 +104,9 @@ const Mesh& PhongNode::mesh() const noexcept
 struct RenderedPhongNode : GenericNodeRenderer
 {
   using GenericNodeRenderer::GenericNodeRenderer;
-
 };
 
-score::gfx::NodeRenderer*
-PhongNode::createRenderer(RenderList& r) const noexcept
+score::gfx::NodeRenderer* PhongNode::createRenderer(RenderList& r) const noexcept
 {
   return NodeModel::createRenderer(r);
   // return new RenderedPhongNode{*this};

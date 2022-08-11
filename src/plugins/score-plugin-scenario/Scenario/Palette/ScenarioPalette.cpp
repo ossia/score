@@ -3,14 +3,6 @@
 
 #include "ScenarioPalette.hpp"
 
-#include <Magnetism/MagnetismAdjuster.hpp>
-
-#include <score/command/Command.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
@@ -21,14 +13,20 @@
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 
+#include <Magnetism/MagnetismAdjuster.hpp>
+
+#include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+#include <score/tools/std/Optional.hpp>
+
 #include <vector>
 
 namespace Scenario
 {
 SlotState::~SlotState() { }
-ToolPalette::ToolPalette(
-    Process::LayerContext& lay,
-    ScenarioPresenter& presenter)
+ToolPalette::ToolPalette(Process::LayerContext& lay, ScenarioPresenter& presenter)
     : GraphicsSceneToolPalette{*presenter.view().scene()}
     , m_presenter{presenter}
     , m_model{m_presenter.model()}
@@ -52,7 +50,7 @@ void ToolPalette::on_pressed(QPointF point)
   scenePoint = point;
   auto scenarioPoint
       = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-  switch (editionSettings().tool())
+  switch(editionSettings().tool())
   {
     case Scenario::Tool::Create:
     case Scenario::Tool::CreateGraph:
@@ -76,7 +74,7 @@ void ToolPalette::on_moved(QPointF point)
   scenePoint = point;
   auto scenarioPoint
       = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-  switch (editionSettings().tool())
+  switch(editionSettings().tool())
   {
     case Scenario::Tool::Create:
     case Scenario::Tool::CreateGraph:
@@ -97,7 +95,7 @@ void ToolPalette::on_released(QPointF point)
   auto& es = m_presenter.editionSettings();
   auto scenarioPoint
       = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-  switch (es.tool())
+  switch(es.tool())
   {
     case Scenario::Tool::Create:
     case Scenario::Tool::CreateGraph:
@@ -129,29 +127,28 @@ void ToolPalette::activate(Tool t) { }
 void ToolPalette::desactivate(Tool t) { }
 
 QGraphicsItem* ToolPalette::itemAt(
-    const Point& pt,
-    const std::vector<QGraphicsItem*>& ignore) const noexcept
+    const Point& pt, const std::vector<QGraphicsItem*>& ignore) const noexcept
 {
   auto pres_pt = presenter().fromScenarioPoint(pt);
   auto scene_pt = presenter().view().mapToScene(pres_pt);
   auto scene_items = scene().items(scene_pt);
   QVarLengthArray<QGraphicsItem*> items;
-  for (auto it : scene_items)
+  for(auto it : scene_items)
   {
-    if (it->parentItem() == &presenter().view())
-      if (!ossia::contains(ignore, it))
+    if(it->parentItem() == &presenter().view())
+      if(!ossia::contains(ignore, it))
         items.push_back(it);
   }
-  for (auto it : items)
-    if (qgraphicsitem_cast<StateView*>(it))
+  for(auto it : items)
+    if(qgraphicsitem_cast<StateView*>(it))
       return it;
-  for (auto it : items)
-    if (qgraphicsitem_cast<EventView*>(it))
+  for(auto it : items)
+    if(qgraphicsitem_cast<EventView*>(it))
       return it;
-  for (auto it : items)
-    if (qgraphicsitem_cast<TimeSyncView*>(it))
+  for(auto it : items)
+    if(qgraphicsitem_cast<TimeSyncView*>(it))
       return it;
-  if (!items.empty())
+  if(!items.empty())
     return items.front();
   return nullptr;
 }
@@ -159,8 +156,6 @@ QGraphicsItem* ToolPalette::itemAt(
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
   return ConvertToScenarioPoint(
-      point,
-      m_presenter.zoomRatio(),
-      m_presenter.view().boundingRect().height());
+      point, m_presenter.zoomRatio(), m_presenter.view().boundingRect().height());
 }
 }

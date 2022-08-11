@@ -4,6 +4,7 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 
@@ -19,8 +20,7 @@ namespace Explorer
 namespace Command
 {
 RemoveAddress::RemoveAddress(
-    const DeviceDocumentPlugin& devplug,
-    const Device::NodePath& nodePath)
+    const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath)
     : m_nodePath{nodePath}
 {
   auto n = nodePath.toNode(&devplug.rootNode());
@@ -43,8 +43,7 @@ void RemoveAddress::redo(const score::DocumentContext& ctx) const
   auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   auto parentPath = m_nodePath;
   parentPath.pop_back();
-  devplug.updateProxy.removeNode(
-      parentPath, m_savedNode.get<Device::AddressSettings>());
+  devplug.updateProxy.removeNode(parentPath, m_savedNode.get<Device::AddressSettings>());
 }
 
 void RemoveAddress::serializeImpl(DataStreamInput& s) const

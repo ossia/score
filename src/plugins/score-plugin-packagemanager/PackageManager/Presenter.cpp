@@ -11,12 +11,13 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QHeaderView>
 #include <QListView>
 #include <QStandardItemModel>
 #include <QStyle>
-#include <QHeaderView>
 
 #include <PackageManager/FileDownloader.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(PM::PluginSettingsPresenter)
 
@@ -29,8 +30,7 @@ namespace PM
 {
 
 PluginSettingsPresenter::PluginSettingsPresenter(
-    score::SettingsDelegateModel& model,
-    score::GlobalSettingsView& view,
+    score::SettingsDelegateModel& model, score::GlobalSettingsView& view,
     QObject* parent)
     : score::GlobalSettingsPresenter{model, view, parent}
 {
@@ -52,15 +52,11 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   ps_view.remoteView()->setSelectionModel(&ps_model.remoteSelection);
 
   connect(
-      &ps_model.remoteSelection,
-      &QItemSelectionModel::currentRowChanged,
-      this,
+      &ps_model.remoteSelection, &QItemSelectionModel::currentRowChanged, this,
       [&](const QModelIndex& current, const QModelIndex& previous) {
-        Package& addon
-            = ps_model.remotePlugins.addons().at(current.row());
+    Package& addon = ps_model.remotePlugins.addons().at(current.row());
 
-        ps_view.installButton().setEnabled(
-            addon.file != QUrl{} || addon.kind == "sdk");
+    ps_view.installButton().setEnabled(addon.file != QUrl{} || addon.kind == "sdk");
       });
 
   ps_view.installButton().setEnabled(false);

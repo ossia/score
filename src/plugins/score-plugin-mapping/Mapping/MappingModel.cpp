@@ -2,13 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MappingModel.hpp"
 
+#include <State/Address.hpp>
+
+#include <Process/Dataflow/Port.hpp>
+
 #include <Curve/CurveModel.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+
 #include <Mapping/MappingProcessMetadata.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <State/Address.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
@@ -20,9 +23,7 @@ W_OBJECT_IMPL(Mapping::ProcessModel)
 namespace Mapping
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Curve::
         CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
@@ -34,8 +35,7 @@ ProcessModel::ProcessModel(
 {
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(
-      Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -70,41 +70,35 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
 
   connect(
-      inlet.get(),
-      &Process::Port::addressChanged,
-      this,
+      inlet.get(), &Process::Port::addressChanged, this,
       [=](const State::AddressAccessor& arg) {
-        sourceAddressChanged(arg);
-        prettyNameChanged();
-        m_curve->changed();
+    sourceAddressChanged(arg);
+    prettyNameChanged();
+    m_curve->changed();
       });
   connect(
-      outlet.get(),
-      &Process::Port::addressChanged,
-      this,
+      outlet.get(), &Process::Port::addressChanged, this,
       [=](const State::AddressAccessor& arg) {
-        targetAddressChanged(arg);
-        prettyNameChanged();
-        m_curve->changed();
+    targetAddressChanged(arg);
+    prettyNameChanged();
+    m_curve->changed();
       });
 }
 
 QString ProcessModel::prettyName() const noexcept
 {
-  QString str = sourceAddress().toString_unsafe() + " -> "
-                + targetAddress().toString_unsafe();
-  if (str != " -> ")
+  QString str
+      = sourceAddress().toString_unsafe() + " -> " + targetAddress().toString_unsafe();
+  if(str != " -> ")
     return str;
   return tr("Mapping");
 }
 
 QString ProcessModel::prettyValue(double x, double y) const noexcept
 {
-  return QString::number(
-             (x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3)
+  return QString::number((x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3)
          + " -> "
-         + QString::number(
-        (y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
+         + QString::number((y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
 }
 
 TimeVal ProcessModel::contentDuration() const noexcept
@@ -153,7 +147,7 @@ void ProcessModel::setSourceAddress(const State::AddressAccessor& arg)
 
 void ProcessModel::setSourceMin(double arg)
 {
-  if (m_sourceMin == arg)
+  if(m_sourceMin == arg)
     return;
 
   m_sourceMin = arg;
@@ -163,7 +157,7 @@ void ProcessModel::setSourceMin(double arg)
 
 void ProcessModel::setSourceMax(double arg)
 {
-  if (m_sourceMax == arg)
+  if(m_sourceMax == arg)
     return;
 
   m_sourceMax = arg;
@@ -193,7 +187,7 @@ void ProcessModel::setTargetAddress(const State::AddressAccessor& arg)
 
 void ProcessModel::setTargetMin(double arg)
 {
-  if (m_targetMin == arg)
+  if(m_targetMin == arg)
     return;
 
   m_targetMin = arg;
@@ -203,7 +197,7 @@ void ProcessModel::setTargetMin(double arg)
 
 void ProcessModel::setTargetMax(double arg)
 {
-  if (m_targetMax == arg)
+  if(m_targetMax == arg)
     return;
 
   m_targetMax = arg;

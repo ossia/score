@@ -1,12 +1,12 @@
 #pragma once
 #include <State/Expression.hpp>
 
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
-
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace Scenario
 {
@@ -36,15 +36,10 @@ private:
 }
 
 PROPERTY_COMMAND_T(
-    Scenario::Command,
-    SetTimeSyncMusicalSync,
-    TimeSyncModel::p_musicalSync,
-    "Set sync")
+    Scenario::Command, SetTimeSyncMusicalSync, TimeSyncModel::p_musicalSync, "Set sync")
 SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncMusicalSync)
 
 PROPERTY_COMMAND_T(
-    Scenario::Command,
-    SetTimeSyncIsStartPoint,
-    TimeSyncModel::p_startPoint,
+    Scenario::Command, SetTimeSyncIsStartPoint, TimeSyncModel::p_startPoint,
     "Set start point")
 SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncIsStartPoint)

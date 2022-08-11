@@ -2,16 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PutLayerModelToFront.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
 PutLayerModelToFront::PutLayerModelToFront(
-    SlotPath&& slotPath,
-    const Id<Process::ProcessModel>& pid)
+    SlotPath&& slotPath, const Id<Process::ProcessModel>& pid)
     : m_slotPath{std::move(slotPath)}
     , m_pid{pid}
 {

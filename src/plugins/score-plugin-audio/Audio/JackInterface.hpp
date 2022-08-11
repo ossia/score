@@ -35,33 +35,26 @@ public:
   ~JackFactory() override;
 
   bool available() const noexcept override;
-  void initialize(
-      Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+  void
+  initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
   }
 
   QString prettyName() const override { return QObject::tr("JACK"); }
   std::shared_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+      const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
   std::shared_ptr<ossia::jack_client> acquireClient();
 
   void setupSettingsWidget(
-      QWidget* w,
-      QFormLayout* lay,
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
+      QWidget* w, QFormLayout* lay, Audio::Settings::Model& m, Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp);
   QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override;
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override;
 
   void transportStateChanged(ossia::transport_status st)
-  E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st)
+      E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st)
 
   ossia::tick_transport_info currentTransportInfo;
 
@@ -70,5 +63,3 @@ private:
 };
 #endif
 }
-
-

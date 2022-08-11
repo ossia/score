@@ -1,11 +1,11 @@
 #include <Scenario/Application/Drops/DropProcessOnState.hpp>
-
-#include <score/application/GUIApplicationContext.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <QApplication>
 
@@ -16,10 +16,8 @@ class DropProcessOnStateHelper
 {
 public:
   DropProcessOnStateHelper(
-      const StateModel& sourceState,
-      const Scenario::ProcessModel& scenar,
-      const score::DocumentContext& ctx,
-      TimeVal maxdur)
+      const StateModel& sourceState, const Scenario::ProcessModel& scenar,
+      const score::DocumentContext& ctx, TimeVal maxdur)
       : m_sequence{bool(qApp->keyboardModifiers() & Qt::ShiftModifier)}
       , m_scenar{scenar}
       , m_macro{new Command::AddProcessInNewBoxMacro, ctx}
@@ -29,31 +27,26 @@ public:
     const auto& parent_ev = Scenario::parentEvent(sourceState, scenar);
     const auto& date = parent_ev.date();
     m_currentDate = date;
-    if (!m_sequence)
+    if(!m_sequence)
     {
-      if (!sourceState.nextInterval())
+      if(!sourceState.nextInterval())
       {
         m_intervalY = sourceState.heightPercentage();
         // Everything will go in a single interval
         m_itv = &m.createIntervalAfter(
-            scenar,
-            sourceState.id(),
-            Scenario::Point{date + maxdur, m_intervalY});
+            scenar, sourceState.id(), Scenario::Point{date + maxdur, m_intervalY});
       }
       else
       {
         m_intervalY = sourceState.heightPercentage() + 0.1;
-        m_createdState
-            = m.createState(scenar, parent_ev.id(), m_intervalY).id();
+        m_createdState = m.createState(scenar, parent_ev.id(), m_intervalY).id();
         m_itv = &m.createIntervalAfter(
-            scenar,
-            m_createdState,
-            Scenario::Point{date + maxdur, m_intervalY});
+            scenar, m_createdState, Scenario::Point{date + maxdur, m_intervalY});
       }
     }
     else
     {
-      if (!sourceState.nextInterval())
+      if(!sourceState.nextInterval())
       {
         m_intervalY = sourceState.heightPercentage();
         m_createdState = sourceState.id();
@@ -61,8 +54,7 @@ public:
       else
       {
         m_intervalY = sourceState.heightPercentage() + 0.1;
-        m_createdState
-            = m.createState(scenar, parent_ev.id(), m_intervalY).id();
+        m_createdState = m.createState(scenar, parent_ev.id(), m_intervalY).id();
       }
     }
   }
@@ -71,15 +63,13 @@ public:
   Process::ProcessModel* addProcess(F&& fun, TimeVal duration)
   {
     // sequence : processes are put all one after the other
-    if (m_sequence)
+    if(m_sequence)
     {
       {
         // We create the first interval / process
         m_currentDate += duration;
         m_itv = &m_macro.createIntervalAfter(
-            m_scenar,
-            m_createdState,
-            Scenario::Point{m_currentDate, m_intervalY});
+            m_scenar, m_createdState, Scenario::Point{m_currentDate, m_intervalY});
         m_createdState = m_itv->endState();
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
@@ -95,7 +85,7 @@ public:
 
   void commit()
   {
-    if (!m_sequence)
+    if(!m_sequence)
     {
       SCORE_ASSERT(m_itv);
       m_macro.showRack(*m_itv);
@@ -119,22 +109,20 @@ private:
 };
 
 bool DropProcessOnState::drop(
-    const StateModel& st,
-    const ProcessModel& scenar,
-    const QMimeData& mime,
+    const StateModel& st, const ProcessModel& scenar, const QMimeData& mime,
     const score::DocumentContext& ctx)
 {
 
   const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
 
-  if (auto res = handlers.getDrop(mime, ctx); !res.empty())
+  if(auto res = handlers.getDrop(mime, ctx); !res.empty())
   {
     auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
 
     DropProcessOnStateHelper dropper(st, scenar, ctx, t);
 
     score::Dispatcher_T disp{dropper.macro()};
-    for (const auto& proc : res)
+    for(const auto& proc : res)
     {
       Process::ProcessModel* p = dropper.addProcess(
           [&](Scenario::Command::Macro& m,
@@ -142,20 +130,19 @@ bool DropProcessOnState::drop(
             return m.createProcessInNewSlot(itv, proc.creation);
           },
           proc.duration ? *proc.duration : t);
-      if (p && proc.setup)
+      if(p && proc.setup)
       {
         proc.setup(*p, disp);
       }
     }
 
-    if (res.size() == 1)
+    if(res.size() == 1)
     {
       const auto& name = res.front().creation.prettyName;
       auto& itv = dropper.interval();
-      if (!name.isEmpty())
+      if(!name.isEmpty())
       {
-        dropper.macro().submit(
-            new Scenario::Command::ChangeElementName{itv, name});
+        dropper.macro().submit(new Scenario::Command::ChangeElementName{itv, name});
       }
     }
     dropper.commit();

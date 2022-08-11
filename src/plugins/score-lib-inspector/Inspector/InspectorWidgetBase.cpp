@@ -18,10 +18,8 @@ W_OBJECT_IMPL(Inspector::InspectorWidgetBase)
 namespace Inspector
 {
 InspectorWidgetBase::InspectorWidgetBase(
-    const IdentifiedObjectAbstract& inspectedObj,
-    const score::DocumentContext& ctx,
-    QWidget* parent,
-    QString name)
+    const IdentifiedObjectAbstract& inspectedObj, const score::DocumentContext& ctx,
+    QWidget* parent, QString name)
     : QWidget(parent)
     , m_inspectedObject{inspectedObj}
     , m_context{ctx}
@@ -62,28 +60,26 @@ InspectorWidgetBase::~InspectorWidgetBase()
 }
 
 void InspectorWidgetBase::updateSectionsView(
-    QVBoxLayout* layout,
-    const std::vector<QWidget*>& contents)
+    QVBoxLayout* layout, const std::vector<QWidget*>& contents)
 {
-  while (!layout->isEmpty())
+  while(!layout->isEmpty())
   {
     auto item = layout->takeAt(0);
 
-    if (auto widg = item->widget())
+    if(auto widg = item->widget())
       delete widg;
     delete item;
   }
 
-  for (auto section : contents)
+  for(auto section : contents)
   {
     layout->addWidget(section);
   }
 }
 
-void InspectorWidgetBase::updateAreaLayout(
-    std::initializer_list<QWidget*> contents)
+void InspectorWidgetBase::updateAreaLayout(std::initializer_list<QWidget*> contents)
 {
-  while (!m_scrollAreaLayout->isEmpty())
+  while(!m_scrollAreaLayout->isEmpty())
   {
     auto item = m_scrollAreaLayout->takeAt(m_scrollAreaLayout->count() - 1);
 
@@ -91,17 +87,16 @@ void InspectorWidgetBase::updateAreaLayout(
     delete item;
   }
 
-  for (auto section : contents)
+  for(auto section : contents)
   {
     m_scrollAreaLayout->addWidget(section);
   }
   m_scrollAreaLayout->addStretch(1);
 }
 
-void InspectorWidgetBase::updateAreaLayout(
-    const std::vector<QWidget*>& contents)
+void InspectorWidgetBase::updateAreaLayout(const std::vector<QWidget*>& contents)
 {
-  while (!m_scrollAreaLayout->isEmpty())
+  while(!m_scrollAreaLayout->isEmpty())
   {
     auto item = m_scrollAreaLayout->takeAt(m_scrollAreaLayout->count() - 1);
 
@@ -109,7 +104,7 @@ void InspectorWidgetBase::updateAreaLayout(
     delete item;
   }
 
-  for (auto section : contents)
+  for(auto section : contents)
   {
     m_scrollAreaLayout->addWidget(section);
   }

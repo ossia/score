@@ -1,9 +1,15 @@
 #include "MoveProcess.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
 #include <Dataflow/Commands/CableHelpers.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/ChangeId.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/ObjectPath.hpp>
@@ -13,20 +19,12 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-
 namespace Scenario::Command
 {
 
 MoveProcess::MoveProcess(
-    const IntervalModel& src,
-    const IntervalModel& tgt,
-    Id<Process::ProcessModel> processId,
-    bool addSlot)
+    const IntervalModel& src, const IntervalModel& tgt,
+    Id<Process::ProcessModel> processId, bool addSlot)
     : m_src{src}
     , m_tgt{tgt}
     , m_oldId{processId}
@@ -36,9 +34,9 @@ MoveProcess::MoveProcess(
     , m_addedSlot{addSlot}
 {
   int i = 0;
-  for (auto& e : src.fullView())
+  for(auto& e : src.fullView())
   {
-    if (e.process == m_oldId)
+    if(e.process == m_oldId)
     {
       m_oldPos = i;
       break;
@@ -48,12 +46,9 @@ MoveProcess::MoveProcess(
 }
 
 static void moveProcess(
-    Scenario::IntervalModel& src,
-    Scenario::IntervalModel& tgt,
-    Process::ProcessModel& proc,
-    const Id<Process::ProcessModel>& old_id,
-    const Id<Process::ProcessModel>& new_id,
-    const score::DocumentContext& ctx)
+    Scenario::IntervalModel& src, Scenario::IntervalModel& tgt,
+    Process::ProcessModel& proc, const Id<Process::ProcessModel>& old_id,
+    const Id<Process::ProcessModel>& new_id, const score::DocumentContext& ctx)
 {
   auto cables = Dataflow::saveCables({&proc}, ctx);
   Dataflow::removeCables(cables, ctx);
@@ -68,9 +63,9 @@ static void moveProcess(
     const bool nodal = proc.flags() & Process::ProcessFlags::TimeIndependent;
     if(!nodal)
     {
-      for (const Slot& slot : src.smallView())
+      for(const Slot& slot : src.smallView())
       {
-        if (slot.processes.size() == 1 && slot.processes[0] == proc.id())
+        if(slot.processes.size() == 1 && slot.processes[0] == proc.id())
           slots_to_remove.push_back(i);
         i++;
       }
@@ -79,8 +74,7 @@ static void moveProcess(
     EraseProcess(src, proc.id());
     if(!nodal)
     {
-      for (auto it = slots_to_remove.rbegin(); it != slots_to_remove.rend();
-           ++it)
+      for(auto it = slots_to_remove.rbegin(); it != slots_to_remove.rend(); ++it)
         src.removeSlot(*it);
     }
   }
@@ -131,7 +125,7 @@ void MoveProcess::redo(const score::DocumentContext& ctx) const
   const bool nodal = proc.flags() & Process::ProcessFlags::TimeIndependent;
   if(!nodal)
   {
-    if (m_addedSlot)
+    if(m_addedSlot)
     {
       auto h = ctx.app.settings<Scenario::Settings::Model>().getSlotHeight();
       tgt.addSlot(Slot{{m_newId}, m_newId, h});
@@ -142,13 +136,13 @@ void MoveProcess::redo(const score::DocumentContext& ctx) const
 
 void MoveProcess::serializeImpl(DataStreamInput& s) const
 {
-  s << m_src << m_tgt << m_oldId << m_newId << m_oldSmall << m_oldFull
-    << m_oldPos << m_addedSlot;
+  s << m_src << m_tgt << m_oldId << m_newId << m_oldSmall << m_oldFull << m_oldPos
+    << m_addedSlot;
 }
 
 void MoveProcess::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_src >> m_tgt >> m_oldId >> m_newId >> m_oldSmall >> m_oldFull
-      >> m_oldPos >> m_addedSlot;
+  s >> m_src >> m_tgt >> m_oldId >> m_newId >> m_oldSmall >> m_oldFull >> m_oldPos
+      >> m_addedSlot;
 }
 }

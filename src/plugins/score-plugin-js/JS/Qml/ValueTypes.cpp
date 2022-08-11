@@ -2,8 +2,10 @@
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <ossia-qt/token_request.hpp>
+
 #include <private/qqmlglobal_p.h>
 #include <private/qqmlvaluetype_p.h>
+
 #include <wobjectimpl.h>
 W_GADGET_IMPL(JS::Vec2fValueType)
 W_GADGET_IMPL(JS::Vec3fValueType)
@@ -66,7 +68,7 @@ public:
 
   static QVector2D vector2DFromString(const QString& s, bool* ok)
   {
-    if (s.count(QLatin1Char(',')) == 1)
+    if(s.count(QLatin1Char(',')) == 1)
     {
       int index = s.indexOf(QLatin1Char(','));
 
@@ -74,22 +76,22 @@ public:
       float xCoord = s.leftRef(index).toFloat(&xGood);
       float yCoord = s.midRef(index + 1).toFloat(&yGood);
 
-      if (xGood && yGood)
+      if(xGood && yGood)
       {
-        if (ok)
+        if(ok)
           *ok = true;
         return QVector2D(xCoord, yCoord);
       }
     }
 
-    if (ok)
+    if(ok)
       *ok = false;
     return QVector2D();
   }
 
   static QVector3D vector3DFromString(const QString& s, bool* ok)
   {
-    if (s.count(QLatin1Char(',')) == 2)
+    if(s.count(QLatin1Char(',')) == 2)
     {
       int index = s.indexOf(QLatin1Char(','));
       int index2 = s.indexOf(QLatin1Char(','), index + 1);
@@ -99,22 +101,22 @@ public:
       float yCoord = s.midRef(index + 1, index2 - index - 1).toFloat(&yGood);
       float zCoord = s.midRef(index2 + 1).toFloat(&zGood);
 
-      if (xGood && yGood && zGood)
+      if(xGood && yGood && zGood)
       {
-        if (ok)
+        if(ok)
           *ok = true;
         return QVector3D(xCoord, yCoord, zCoord);
       }
     }
 
-    if (ok)
+    if(ok)
       *ok = false;
     return QVector3D();
   }
 
   static QVector4D vector4DFromString(const QString& s, bool* ok)
   {
-    if (s.count(QLatin1Char(',')) == 3)
+    if(s.count(QLatin1Char(',')) == 3)
     {
       int index = s.indexOf(QLatin1Char(','));
       int index2 = s.indexOf(QLatin1Char(','), index + 1);
@@ -126,22 +128,22 @@ public:
       float zCoord = s.midRef(index2 + 1, index3 - index2 - 1).toFloat(&zGood);
       float wCoord = s.midRef(index3 + 1).toFloat(&wGood);
 
-      if (xGood && yGood && zGood && wGood)
+      if(xGood && yGood && zGood && wGood)
       {
-        if (ok)
+        if(ok)
           *ok = true;
         return QVector4D(xCoord, yCoord, zCoord, wCoord);
       }
     }
 
-    if (ok)
+    if(ok)
       *ok = false;
     return QVector4D();
   }
 
   const QMetaObject* getMetaObjectForMetaType(int type) override
   {
-    switch (type)
+    switch(type)
     {
       case QMetaType::QVector2D:
         return &Vec2fValueType::staticMetaObject;
@@ -149,15 +151,13 @@ public:
         return &Vec3fValueType::staticMetaObject;
       case QMetaType::QVector4D:
         return &Vec4fValueType::staticMetaObject;
-      default:
-      {
-        static const int tokenId
-            = QMetaTypeId<ossia::token_request>::qt_metatype_id();
-        if (type == tokenId)
+      default: {
+        static const int tokenId = QMetaTypeId<ossia::token_request>::qt_metatype_id();
+        if(type == tokenId)
           return &TokenRequestValueType::staticMetaObject;
         static const int execStateId
             = QMetaTypeId<ossia::exec_state_facade>::qt_metatype_id();
-        if (type == execStateId)
+        if(type == execStateId)
           return &ExecutionStateValueType::staticMetaObject;
         break;
       }
@@ -168,7 +168,7 @@ public:
 
   bool init(int type, QVariant& dst) override
   {
-    switch (type)
+    switch(type)
     {
       case QMetaType::QVector2D:
         dst.setValue<QVector2D>(QVector2D());
@@ -179,11 +179,10 @@ public:
       case QMetaType::QVector4D:
         dst.setValue<QVector4D>(QVector4D());
         return true;
-      default:
-      {
+      default: {
         static const int tokenId
             = QMetaTypeId<JS::TokenRequestValueType>::qt_metatype_id();
-        if (type == tokenId)
+        if(type == tokenId)
           dst.setValue<ossia::token_request>({});
         break;
       }
@@ -194,10 +193,10 @@ public:
 
   bool create(int type, int argc, const void* argv[], QVariant* v) override
   {
-    switch (type)
+    switch(type)
     {
       case QMetaType::QVector2D:
-        if (argc == 1)
+        if(argc == 1)
         {
           const float* xy = reinterpret_cast<const float*>(argv[0]);
           QVector2D v2(xy[0], xy[1]);
@@ -206,7 +205,7 @@ public:
         }
         break;
       case QMetaType::QVector3D:
-        if (argc == 1)
+        if(argc == 1)
         {
           const float* xyz = reinterpret_cast<const float*>(argv[0]);
           QVector3D v3(xyz[0], xyz[1], xyz[2]);
@@ -215,7 +214,7 @@ public:
         }
         break;
       case QMetaType::QVector4D:
-        if (argc == 1)
+        if(argc == 1)
         {
           const float* xyzw = reinterpret_cast<const float*>(argv[0]);
           QVector4D v4(xyzw[0], xyzw[1], xyzw[2], xyzw[3]);
@@ -235,17 +234,15 @@ public:
   {
     ASSERT_VALID_SIZE(dataSize, sizeof(T));
     T* t = reinterpret_cast<T*>(data);
-    new (t) T(initValue);
+    new(t) T(initValue);
     return true;
   }
 
-  bool
-  createFromString(int type, const QString& s, void* data, size_t dataSize)
-      override
+  bool createFromString(int type, const QString& s, void* data, size_t dataSize) override
   {
     bool ok = false;
 
-    switch (type)
+    switch(type)
     {
       case QMetaType::QVector2D:
         return createFromStringTyped<QVector2D>(
@@ -273,21 +270,21 @@ public:
     bool ok = false;
 
     QVector2D v2 = vector2DFromString(s, &ok);
-    if (ok)
+    if(ok)
     {
       *v = QVariant::fromValue(v2);
       return true;
     }
 
     QVector3D v3 = vector3DFromString(s, &ok);
-    if (ok)
+    if(ok)
     {
       *v = QVariant::fromValue(v3);
       return true;
     }
 
     QVector4D v4 = vector4DFromString(s, &ok);
-    if (ok)
+    if(ok)
     {
       *v = QVariant::fromValue(v4);
       return true;
@@ -299,20 +296,17 @@ public:
   {
     bool ok = false;
 
-    switch (type)
+    switch(type)
     {
-      case QMetaType::QVector2D:
-      {
+      case QMetaType::QVector2D: {
         *v = QVariant::fromValue(vector2DFromString(s, &ok));
         return true;
       }
-      case QMetaType::QVector3D:
-      {
+      case QMetaType::QVector3D: {
         *v = QVariant::fromValue(vector3DFromString(s, &ok));
         return true;
       }
-      case QMetaType::QVector4D:
-      {
+      case QMetaType::QVector4D: {
         *v = QVariant::fromValue(vector4DFromString(s, &ok));
         return true;
       }
@@ -325,10 +319,7 @@ public:
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
   bool variantFromJsObject(
-      int type,
-      const QV4::Value& object,
-      QV4::ExecutionEngine* v4,
-      QVariant* v) override
+      int type, const QV4::Value& object, QV4::ExecutionEngine* v4, QVariant* v) override
   {
     return false;
     /*
@@ -363,7 +354,7 @@ public:
 
   bool equal(int type, const void* lhs, const QVariant& rhs) override
   {
-    switch (type)
+    switch(type)
     {
       case QMetaType::QVector2D:
         return typedEqual<QVector2D>(lhs, rhs);
@@ -384,7 +375,7 @@ public:
     ASSERT_VALID_SIZE(dstSize, sizeof(T));
     const T* srcT = reinterpret_cast<const T*>(src);
     T* dstT = reinterpret_cast<T*>(dst);
-    new (dstT) T(*srcT);
+    new(dstT) T(*srcT);
     return true;
   }
 
@@ -397,7 +388,7 @@ public:
   bool typedRead(const QVariant& src, int dstType, void* dst)
   {
     T* dstT = reinterpret_cast<T*>(dst);
-    if (src.userType() == dstType)
+    if(src.userType() == dstType)
     {
       *dstT = src.value<T>();
     }
@@ -410,7 +401,7 @@ public:
 
   bool read(const QVariant& src, void* dst, int dstType) override
   {
-    switch (dstType)
+    switch(dstType)
     {
       case QMetaType::QVector2D:
         return typedRead<QVector2D>(src, dstType, dst);
@@ -429,7 +420,7 @@ public:
   bool typedWrite(const void* src, QVariant& dst)
   {
     const T* srcT = reinterpret_cast<const T*>(src);
-    if (dst.value<T>() != *srcT)
+    if(dst.value<T>() != *srcT)
     {
       dst = *srcT;
       return true;
@@ -439,7 +430,7 @@ public:
 
   bool write(int type, const void* src, QVariant& dst) override
   {
-    switch (type)
+    switch(type)
     {
       case QMetaType::QVector2D:
         return typedWrite<QVector2D>(src, dst);
@@ -531,9 +522,9 @@ QVector4D Vec2fValueType::toVector4d() const
 bool Vec2fValueType::fuzzyEquals(const QVector2D& vec, qreal epsilon) const
 {
   qreal absEps = qAbs(epsilon);
-  if (qAbs(v.x() - vec.x()) > absEps)
+  if(qAbs(v.x() - vec.x()) > absEps)
     return false;
-  if (qAbs(v.y() - vec.y()) > absEps)
+  if(qAbs(v.y() - vec.y()) > absEps)
     return false;
   return true;
 }
@@ -645,11 +636,11 @@ QVector4D Vec3fValueType::toVector4d() const
 bool Vec3fValueType::fuzzyEquals(const QVector3D& vec, qreal epsilon) const
 {
   qreal absEps = qAbs(epsilon);
-  if (qAbs(v.x() - vec.x()) > absEps)
+  if(qAbs(v.x() - vec.x()) > absEps)
     return false;
-  if (qAbs(v.y() - vec.y()) > absEps)
+  if(qAbs(v.y() - vec.y()) > absEps)
     return false;
-  if (qAbs(v.z() - vec.z()) > absEps)
+  if(qAbs(v.z() - vec.z()) > absEps)
     return false;
   return true;
 }
@@ -761,13 +752,13 @@ QVector3D Vec4fValueType::toVector3d() const
 bool Vec4fValueType::fuzzyEquals(const QVector4D& vec, qreal epsilon) const
 {
   qreal absEps = qAbs(epsilon);
-  if (qAbs(v.x() - vec.x()) > absEps)
+  if(qAbs(v.x() - vec.x()) > absEps)
     return false;
-  if (qAbs(v.y() - vec.y()) > absEps)
+  if(qAbs(v.y() - vec.y()) > absEps)
     return false;
-  if (qAbs(v.z() - vec.z()) > absEps)
+  if(qAbs(v.z() - vec.z()) > absEps)
     return false;
-  if (qAbs(v.w() - vec.w()) > absEps)
+  if(qAbs(v.w() - vec.w()) > absEps)
     return false;
   return true;
 }
@@ -852,14 +843,12 @@ double TokenRequestValueType::physical_start(double ratio) const noexcept
   return req.physical_start(ratio);
 }
 
-double
-TokenRequestValueType::physical_read_duration(double ratio) const noexcept
+double TokenRequestValueType::physical_read_duration(double ratio) const noexcept
 {
   return req.physical_read_duration(ratio);
 }
 
-double
-TokenRequestValueType::physical_write_duration(double ratio) const noexcept
+double TokenRequestValueType::physical_write_duration(double ratio) const noexcept
 {
   return req.physical_write_duration(ratio);
 }
@@ -869,16 +858,14 @@ bool TokenRequestValueType::in_range(double time) const noexcept
   return req.in_range({int64_t(time)});
 }
 
-double TokenRequestValueType::to_physical_time_in_tick(
-    double time,
-    double ratio) const noexcept
+double
+TokenRequestValueType::to_physical_time_in_tick(double time, double ratio) const noexcept
 {
   return req.to_physical_time_in_tick(time, ratio);
 }
 
 double TokenRequestValueType::from_physical_time_in_tick(
-    double time,
-    double ratio) const noexcept
+    double time, double ratio) const noexcept
 {
   return req.from_physical_time_in_tick(time, ratio).impl;
 }
@@ -903,19 +890,17 @@ bool TokenRequestValueType::paused() const noexcept
   return req.paused();
 }
 
-double
-TokenRequestValueType::get_quantification_date(double ratio) const noexcept
+double TokenRequestValueType::get_quantification_date(double ratio) const noexcept
 {
-  if (auto res = req.get_quantification_date(ratio))
+  if(auto res = req.get_quantification_date(ratio))
     return res->impl;
   return -1;
 }
 
 double TokenRequestValueType::get_physical_quantification_date(
-    double rate,
-    double ratio) const noexcept
+    double rate, double ratio) const noexcept
 {
-  if (auto res = req.get_physical_quantification_date(rate, ratio))
+  if(auto res = req.get_physical_quantification_date(rate, ratio))
     return *res;
   return -1;
 }
@@ -937,7 +922,7 @@ bool TokenRequestValueType::unexpected_bar_change() const noexcept
 
 int SampleTimings::start_sample() const noexcept
 {
-   return tm.start_sample;
+  return tm.start_sample;
 }
 
 int SampleTimings::length() const noexcept

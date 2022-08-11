@@ -1,8 +1,11 @@
 #pragma once
-#include <Curve/Process/CurveProcessModel.hpp>
-#include <Mapping/MappingProcessMetadata.hpp>
-#include <Process/TimeValue.hpp>
 #include <State/Address.hpp>
+
+#include <Process/TimeValue.hpp>
+
+#include <Curve/Process/CurveProcessModel.hpp>
+
+#include <Mapping/MappingProcessMetadata.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -20,8 +23,7 @@ class Outlet;
 }
 namespace Mapping
 {
-class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
-    : public Curve::CurveProcessModel
+class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final : public Curve::CurveProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Mapping::ProcessModel)
@@ -30,9 +32,7 @@ class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
   ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
@@ -78,26 +78,16 @@ public:
   void targetMaxChanged(double arg)
       E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetMaxChanged, arg)
 
+  PROPERTY(double, targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
+  PROPERTY(double, targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
   PROPERTY(
-      double,
-      targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
+      State::AddressAccessor, targetAddress READ targetAddress WRITE setTargetAddress
+                                  NOTIFY targetAddressChanged)
+  PROPERTY(double, sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
+  PROPERTY(double, sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
   PROPERTY(
-      double,
-      targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
-  PROPERTY(
-      State::AddressAccessor,
-      targetAddress READ targetAddress WRITE setTargetAddress NOTIFY
-          targetAddressChanged)
-  PROPERTY(
-      double,
-      sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
-  PROPERTY(
-      double,
-      sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
-  PROPERTY(
-      State::AddressAccessor,
-      sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY
-          sourceAddressChanged)
+      State::AddressAccessor, sourceAddress READ sourceAddress WRITE setSourceAddress
+                                  NOTIFY sourceAddressChanged)
 
 private:
   void init();

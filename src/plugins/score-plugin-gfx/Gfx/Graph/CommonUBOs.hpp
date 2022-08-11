@@ -26,10 +26,10 @@ packed_struct ProcessUBO
 };
 end_packed_struct
 
-/**
+    /**
  * @brief UBO shared across all entities shown with the same camera.
  */
-packed_struct ModelCameraUBO
+    packed_struct ModelCameraUBO
 {
   float mvp[16]{};
   float mv[16]{};
@@ -41,7 +41,8 @@ packed_struct ModelCameraUBO
 };
 end_packed_struct
 
-static_assert(sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3));
+    static_assert(
+        sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3));
 
 /**
  * @brief UBO shared across all entities shown on the same output.

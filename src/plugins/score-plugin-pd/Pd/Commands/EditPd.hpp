@@ -1,25 +1,21 @@
 #pragma once
+#include <Scenario/Commands/ScriptEditCommand.hpp>
+
 #include <Pd/Commands/PdCommandFactory.hpp>
 #include <Pd/PdProcess.hpp>
 
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <Scenario/Commands/ScriptEditCommand.hpp>
-
 namespace Pd
 {
 class EditPdPath final
     : public Scenario::EditScript<Pd::ProcessModel, Pd::ProcessModel::p_script>
 {
-  SCORE_COMMAND_DECL(
-      Pd::CommandFactoryName(),
-      EditPdPath,
-      "Edit path to Pd file")
+  SCORE_COMMAND_DECL(Pd::CommandFactoryName(), EditPdPath, "Edit path to Pd file")
 
 public:
-  using Scenario::EditScript<Pd::ProcessModel, Pd::ProcessModel::p_script>::
-      EditScript;
+  using Scenario::EditScript<Pd::ProcessModel, Pd::ProcessModel::p_script>::EditScript;
 };
 
 class SetAudioIns final : public score::PropertyCommand

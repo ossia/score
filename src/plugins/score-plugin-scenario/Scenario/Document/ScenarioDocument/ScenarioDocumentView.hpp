@@ -1,4 +1,10 @@
 #pragma once
+#include <Scenario/Document/Minimap/Minimap.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
+#include <Scenario/Document/ScenarioDocument/TimeBar.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
+#include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
+
 #include <score/graphics/ArrowDialog.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -8,11 +14,6 @@
 #include <QPoint>
 #include <QPointer>
 
-#include <Scenario/Document/Minimap/Minimap.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
-#include <Scenario/Document/ScenarioDocument/TimeBar.hpp>
-#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
-#include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -43,15 +44,12 @@ class ScenarioScene;
 class IntervalDurations;
 class IntervalView;
 class TimeRuler;
-class SCORE_PLUGIN_SCENARIO_EXPORT ProcessGraphicsView final
-    : public QGraphicsView
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
   W_OBJECT(ProcessGraphicsView)
 public:
   ProcessGraphicsView(
-      const score::GUIApplicationContext& ctx,
-      QGraphicsScene* scene,
-      QWidget* parent);
+      const score::GUIApplicationContext& ctx, QGraphicsScene* scene, QWidget* parent);
   ~ProcessGraphicsView() override;
 
   void scrollHorizontal(double dx);
@@ -65,11 +63,10 @@ public:
   bool timebarVisible{};
 
 public:
-  void drawForeground(QPainter *painter, const QRectF &rect) override;
+  void drawForeground(QPainter* painter, const QRectF& rect) override;
   void sizeChanged(const QSize& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sizeChanged, arg_1)
-  void scrolled(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scrolled, arg_1)
+  void scrolled(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scrolled, arg_1)
   void focusedOut() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusedOut)
   void horizontalZoom(QPointF pixDelta, QPointF pos)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, horizontalZoom, pixDelta, pos)
@@ -146,8 +143,7 @@ public:
   void ready() override;
 
 public:
-  void elementsScaleChanged(double arg_1)
-      W_SIGNAL(elementsScaleChanged, arg_1);
+  void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
   void setLargeView() W_SIGNAL(setLargeView);
   void timeRulerChanged() W_SIGNAL(timeRulerChanged);
 

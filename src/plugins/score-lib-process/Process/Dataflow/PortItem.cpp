@@ -7,10 +7,10 @@
 
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/Bind.hpp>
-#include <score/graphics/TextItem.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -25,15 +25,14 @@
 #include <QPainter>
 
 #include <tsl/hopscotch_map.h>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
 
 namespace Dataflow
 {
 void onCreateCable(
-    const score::DocumentContext& ctx,
-    Dataflow::PortItem* p1,
-    Dataflow::PortItem* p2);
+    const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2);
 
 namespace
 {
@@ -58,10 +57,8 @@ struct Ellipses
     auto& skin = Process::Style::instance();
     static constexpr qreal smallRadius = 3.;
     static constexpr qreal largeRadius = 5.;
-    static constexpr QRectF smallEllipse{
-        3., 3., 2. * smallRadius, 2. * smallRadius};
-    static constexpr QRectF largeEllipse{
-        1., 1., 2. * largeRadius, 2. * largeRadius};
+    static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
+    static constexpr QRectF largeEllipse{1., 1., 2. * largeRadius, 2. * largeRadius};
     const qreal dpi = qApp->devicePixelRatio();
     const qreal sz = dpi * 13.;
 
@@ -77,7 +74,7 @@ struct Ellipses
     p.setBrush(Brush);                                        \
     p.drawEllipse(Ellipse);                                   \
     Image = QPixmap::fromImage(temp);                         \
-  } while (0)
+  } while(0)
 
     const auto& audiopen = skin.AudioPortPen();
     const auto& datapen = skin.DataPortPen();
@@ -114,77 +111,38 @@ struct Ellipses
     DRAW_ELLIPSE(LargeEllipsesOut[2], midipen, midibrush, largeEllipse);
     DRAW_ELLIPSE(LargeEllipsesOut[3], texturepen, texturebrush, largeEllipse);
 
+    DRAW_ELLIPSE(SmallEllipsesInLight[0], audiopen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesInLight[1], datapen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesInLight[2], midipen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesInLight[3], texturepen_light, nobrush, smallEllipse);
     DRAW_ELLIPSE(
-        SmallEllipsesInLight[0], audiopen_light, nobrush, smallEllipse);
+        SmallEllipsesOutLight[0], audiopen_light, audiobrush_light, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOutLight[1], datapen_light, databrush_light, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOutLight[2], midipen_light, midibrush_light, smallEllipse);
     DRAW_ELLIPSE(
-        SmallEllipsesInLight[1], datapen_light, nobrush, smallEllipse);
-    DRAW_ELLIPSE(
-        SmallEllipsesInLight[2], midipen_light, nobrush, smallEllipse);
-    DRAW_ELLIPSE(
-        SmallEllipsesInLight[3], texturepen_light, nobrush, smallEllipse);
-    DRAW_ELLIPSE(
-        SmallEllipsesOutLight[0],
-        audiopen_light,
-        audiobrush_light,
-        smallEllipse);
-    DRAW_ELLIPSE(
-        SmallEllipsesOutLight[1],
-        datapen_light,
-        databrush_light,
-        smallEllipse);
-    DRAW_ELLIPSE(
-        SmallEllipsesOutLight[2],
-        midipen_light,
-        midibrush_light,
-        smallEllipse);
-    DRAW_ELLIPSE(
-        SmallEllipsesOutLight[3],
-        texturepen_light,
-        texturebrush_light,
-        smallEllipse);
+        SmallEllipsesOutLight[3], texturepen_light, texturebrush_light, smallEllipse);
 
+    DRAW_ELLIPSE(LargeEllipsesInLight[0], audiopen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesInLight[1], datapen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesInLight[2], midipen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesInLight[3], texturepen_light, nobrush, largeEllipse);
     DRAW_ELLIPSE(
-        LargeEllipsesInLight[0], audiopen_light, nobrush, largeEllipse);
+        LargeEllipsesOutLight[0], audiopen_light, audiobrush_light, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOutLight[1], datapen_light, databrush_light, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOutLight[2], midipen_light, midibrush_light, largeEllipse);
     DRAW_ELLIPSE(
-        LargeEllipsesInLight[1], datapen_light, nobrush, largeEllipse);
-    DRAW_ELLIPSE(
-        LargeEllipsesInLight[2], midipen_light, nobrush, largeEllipse);
-    DRAW_ELLIPSE(
-        LargeEllipsesInLight[3], texturepen_light, nobrush, largeEllipse);
-    DRAW_ELLIPSE(
-        LargeEllipsesOutLight[0],
-        audiopen_light,
-        audiobrush_light,
-        largeEllipse);
-    DRAW_ELLIPSE(
-        LargeEllipsesOutLight[1],
-        datapen_light,
-        databrush_light,
-        largeEllipse);
-    DRAW_ELLIPSE(
-        LargeEllipsesOutLight[2],
-        midipen_light,
-        midibrush_light,
-        largeEllipse);
-    DRAW_ELLIPSE(
-        LargeEllipsesOutLight[3],
-        texturepen_light,
-        texturebrush_light,
-        largeEllipse);
+        LargeEllipsesOutLight[3], texturepen_light, texturebrush_light, largeEllipse);
 
 #undef DRAW_ELLIPSE
   }
 };
 }
-const QPixmap& PortItem::portImage(
-    Process::PortType t,
-    bool inlet,
-    bool small,
-    bool light) noexcept
+const QPixmap&
+PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
 {
   static const Ellipses ellipses;
   int n;
-  switch (t)
+  switch(t)
   {
     case Process::PortType::Audio:
       n = 0;
@@ -203,11 +161,11 @@ const QPixmap& PortItem::portImage(
       break;
   };
 
-  if (Q_UNLIKELY(light))
+  if(Q_UNLIKELY(light))
   {
-    if (inlet)
+    if(inlet)
     {
-      if (small)
+      if(small)
       {
         return ellipses.SmallEllipsesInLight[n];
       }
@@ -218,7 +176,7 @@ const QPixmap& PortItem::portImage(
     }
     else
     {
-      if (small)
+      if(small)
       {
         return ellipses.SmallEllipsesOutLight[n];
       }
@@ -230,9 +188,9 @@ const QPixmap& PortItem::portImage(
   }
   else
   {
-    if (inlet)
+    if(inlet)
     {
-      if (small)
+      if(small)
       {
         return ellipses.SmallEllipsesIn[n];
       }
@@ -243,7 +201,7 @@ const QPixmap& PortItem::portImage(
     }
     else
     {
-      if (small)
+      if(small)
       {
         return ellipses.SmallEllipsesOut[n];
       }
@@ -257,9 +215,7 @@ const QPixmap& PortItem::portImage(
 
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
-    const Process::Port& p,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
+    const Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_context{ctx}
     , m_port{p}
@@ -273,9 +229,9 @@ PortItem::PortItem(
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
   this->setFlag(QGraphicsItem::ItemIsFocusable);
-  if (!p.description().isEmpty())
+  if(!p.description().isEmpty())
     this->setToolTip(p.description());
-  else if (!p.exposed().isEmpty())
+  else if(!p.exposed().isEmpty())
     this->setToolTip(p.exposed());
 
   connect(&p, &QObject::destroyed, this, [] {
@@ -289,7 +245,7 @@ PortItem::PortItem(
     else
       this->clearFocus();
 
-    for (const auto& cable : cables)
+    for(const auto& cable : cables)
     {
       cable->setZValue(b || cable->model().selection.get() ? 999999 : -1);
     }
@@ -300,7 +256,7 @@ PortItem::PortItem(
     // If a port already exists it becomes zombie-like.
 
     auto it = plug.ports().find(&p);
-    if (it != plug.ports().end())
+    if(it != plug.ports().end())
     {
       setVisible(false);
       setEnabled(false);
@@ -310,11 +266,11 @@ PortItem::PortItem(
     plug.ports().insert({&p, this});
 
     Path<Process::Port> path = p;
-    for (auto c : plug.cables())
+    for(auto c : plug.cables())
     {
-      if (c.first->source().unsafePath() == path.unsafePath())
+      if(c.first->source().unsafePath() == path.unsafePath())
       {
-        if (c.second)
+        if(c.second)
         {
           c.second->setSource(this);
           cables.push_back(c.second);
@@ -324,9 +280,9 @@ PortItem::PortItem(
           m_context.dataflow.createCable(*c.first, m_context, scene());
         }
       }
-      else if (c.first->sink().unsafePath() == path.unsafePath())
+      else if(c.first->sink().unsafePath() == path.unsafePath())
       {
-        if (c.second)
+        if(c.second)
         {
           c.second->setTarget(this);
           cables.push_back(c.second);
@@ -339,14 +295,12 @@ PortItem::PortItem(
     }
 
     QObject::connect(
-        this,
-        &Dataflow::PortItem::contextMenuRequested,
-        this,
+        this, &Dataflow::PortItem::contextMenuRequested, this,
         [&](QPointF sp, QPoint p) {
-          auto menu = new QMenu{};
-          setupMenu(*menu, ctx);
-          menu->exec(p);
-          menu->deleteLater();
+      auto menu = new QMenu{};
+      setupMenu(*menu, ctx);
+      menu->exec(p);
+      menu->deleteLater();
         });
   }
   setVisible(CableItem::g_cables_enabled);
@@ -354,20 +308,20 @@ PortItem::PortItem(
 
 PortItem::~PortItem()
 {
-  if (this == magneticDropPort)
+  if(this == magneticDropPort)
     magneticDropPort = nullptr;
 
-  for (const auto& cable : cables)
+  for(const auto& cable : cables)
   {
-    if (cable->source() == this)
+    if(cable->source() == this)
       cable->setSource(nullptr);
-    if (cable->target() == this)
+    if(cable->target() == this)
       cable->setTarget(nullptr);
   }
   auto& plug = m_context.dataflow;
   auto& p = plug.ports();
   auto it = p.find(&m_port);
-  if (it != p.end())
+  if(it != p.end())
     p.erase(it);
 }
 
@@ -381,7 +335,7 @@ void PortItem::setPortVisible(bool b)
 void PortItem::resetPortVisible()
 {
   bool v = m_visible && CableItem::g_cables_enabled;
-  if (v != isVisible())
+  if(v != isVisible())
     setVisible(v);
 }
 
@@ -397,20 +351,17 @@ QRectF PortItem::boundingRect() const
   return {0., 0., max_diam, max_diam};
 }
 void PortItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const QPixmap& img
-      = portImage(m_port.type(), m_inlet, m_diam == 8., m_highlight);
+  const QPixmap& img = portImage(m_port.type(), m_inlet, m_diam == 8., m_highlight);
   painter->drawPixmap(0, 0, img);
 }
 
 void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (this->contains(event->pos()))
+  if(this->contains(event->pos()))
   {
-    switch (event->button())
+    switch(event->button())
     {
       case Qt::RightButton:
         contextMenuRequested(event->scenePos(), event->screenPos());
@@ -425,7 +376,7 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 {
-  if (magneticDropPort)
+  if(magneticDropPort)
   {
     magneticDropPort->m_diam = 8;
     magneticDropPort->update();
@@ -434,26 +385,25 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
   auto items = scene.items({pt.x() - 8, pt.y() - 8, 16, 16});
   PortItem** closePorts = (PortItem**)alloca(items.size() * sizeof(PortItem*));
   int count = 0;
-  for (auto item : items)
+  for(auto item : items)
   {
-    if (item->type() == QGraphicsItem::UserType + 700)
+    if(item->type() == QGraphicsItem::UserType + 700)
     {
       closePorts[count++] = safe_cast<PortItem*>(item);
     }
   }
 
-  if (count > 0)
+  if(count > 0)
   {
     QPointF cur_center{};
     double cur_length = 1000.;
     PortItem* cur_port{};
-    for (int i = 0; i < count; i++)
+    for(int i = 0; i < count; i++)
     {
       auto port = closePorts[i];
       auto port_center
           = port->mapToScene(((QGraphicsItem*)port)->boundingRect().center());
-      if (double length = QLineF{port_center, pt}.length();
-          length < cur_length)
+      if(double length = QLineF{port_center, pt}.length(); length < cur_length)
       {
         cur_length = length;
         cur_port = port;
@@ -463,7 +413,7 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 
     portDragLineCoords.setP2(cur_center);
     magneticDropPort = cur_port;
-    if (magneticDropPort)
+    if(magneticDropPort)
     {
       magneticDropPort->m_diam = 12;
       magneticDropPort->update();
@@ -480,11 +430,8 @@ public:
       : QGraphicsLineItem{f}
   {
     setPen(QPen(
-        QBrush{qRgb(200, 200, 210)},
-        2,
-        Qt::PenStyle::SolidLine,
-        Qt::PenCapStyle::RoundCap,
-        Qt::PenJoinStyle::RoundJoin));
+        QBrush{qRgb(200, 200, 210)}, 2, Qt::PenStyle::SolidLine,
+        Qt::PenCapStyle::RoundCap, Qt::PenJoinStyle::RoundJoin));
 
     setAcceptHoverEvents(true);
   }
@@ -505,8 +452,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget = nullptr) override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -521,19 +467,19 @@ struct DragMoveFilter : QObject
 public:
   bool eventFilter(QObject* watched, QEvent* event) override
   {
-    if (event->type() == QEvent::GraphicsSceneDragMove)
+    if(event->type() == QEvent::GraphicsSceneDragMove)
     {
       auto ev = static_cast<QGraphicsSceneDragDropEvent*>(event);
       updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
       portDragLine->setLine(portDragLineCoords);
       return false;
     }
-    else if (event->type() == QEvent::GraphicsSceneDrop)
+    else if(event->type() == QEvent::GraphicsSceneDrop)
     {
       auto ev = static_cast<QGraphicsSceneDragDropEvent*>(event);
       updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
 
-      if (magneticDropPort)
+      if(magneticDropPort)
       {
         magneticDropPort->dropEvent(ev);
         magneticDropPort->m_diam = 8;
@@ -550,12 +496,12 @@ static DragMoveFilter* drag_move_filter{};
 void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
-  if (QLineF(pos(), event->pos()).length() > QApplication::startDragDistance())
+  if(QLineF(pos(), event->pos()).length() > QApplication::startDragDistance())
   {
     QPointer<QDrag> d{new QDrag{this}};
     QMimeData* m = new QMimeData;
-    portDragLineCoords = QLineF{
-        scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
+    portDragLineCoords
+        = QLineF{scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
     portDragLine = new DragLine{portDragLineCoords};
 
     scene()->installEventFilter(drag_move_filter = new DragMoveFilter{});
@@ -568,8 +514,7 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     // This is because some drag actions may remove the port, by
     // e.g. moving the process somewhere else or something like that
     // Thus we put stuff in a lambda to make sure that we only access what is necessary
-    [d, sc = this->scene(), self = this]
-    {
+    [d, sc = this->scene(), self = this] {
       connect(d, &QDrag::destroyed, self, [sc] {
         sc->removeEventFilter(drag_move_filter);
         clickedPort = nullptr;
@@ -596,19 +541,18 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
           drag_move_filter = nullptr;
         }
       }
-    }();
+        }();
   }
 }
 
 void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (this->contains(event->pos()))
+  if(this->contains(event->pos()))
   {
     event->accept();
-    switch (event->button())
+    switch(event->button())
     {
-      case Qt::LeftButton:
-      {
+      case Qt::LeftButton: {
         score::SelectionDispatcher disp{m_context.selectionStack};
         disp.select(m_port);
         break;
@@ -661,7 +605,8 @@ void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 }
 
-ossia::small_vector<const Process::Port*, 16> getProcessPorts(const Process::ProcessModel& proc)
+ossia::small_vector<const Process::Port*, 16>
+getProcessPorts(const Process::ProcessModel& proc)
 {
   ossia::small_vector<const Process::Port*, 16> ports;
   auto& inlets = proc.inlets();
@@ -674,7 +619,13 @@ ossia::small_vector<const Process::Port*, 16> getProcessPorts(const Process::Pro
 
 void PortItem::keyPressEvent(QKeyEvent* event)
 {
-  enum { Nothing, SelectCable, SelectPreviousPort, SelectNextPort } action{};
+  enum
+  {
+    Nothing,
+    SelectCable,
+    SelectPreviousPort,
+    SelectNextPort
+  } action{};
 
   switch(event->key())
   {
@@ -704,8 +655,7 @@ void PortItem::keyPressEvent(QKeyEvent* event)
       if(!this->cables.empty())
         disp.select(this->cables.front()->model());
       break;
-    case SelectPreviousPort:
-    {
+    case SelectPreviousPort: {
       if(auto proc = qobject_cast<Process::ProcessModel*>(m_port.parent()))
       {
         auto ports = getProcessPorts(*proc);
@@ -723,8 +673,7 @@ void PortItem::keyPressEvent(QKeyEvent* event)
       }
       break;
     }
-    case SelectNextPort:
-    {
+    case SelectNextPort: {
       if(auto proc = qobject_cast<Process::ProcessModel*>(m_port.parent()))
       {
         auto ports = getProcessPorts(*proc);
@@ -746,24 +695,23 @@ void PortItem::keyReleaseEvent(QKeyEvent* event)
   event->accept();
 }
 
-QVariant PortItem::itemChange(
-    QGraphicsItem::GraphicsItemChange change,
-    const QVariant& value)
+QVariant
+PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
-  switch (change)
+  switch(change)
   {
     case QGraphicsItem::ItemScenePositionHasChanged:
-      for (auto cbl : cables)
+      for(auto cbl : cables)
       {
-        if (cbl)
+        if(cbl)
           cbl->check();
       }
       break;
     case QGraphicsItem::ItemVisibleHasChanged:
     case QGraphicsItem::ItemSceneHasChanged:
-      for (auto cbl : cables)
+      for(auto cbl : cables)
       {
-        if (cbl)
+        if(cbl)
           cbl->check();
       }
       break;
@@ -781,13 +729,13 @@ score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* p
   auto lab = new score::SimpleTextItem{brush, parent};
   lab->setText(port.visualName());
 
-  QObject::connect(&port.selection, &Selectable::changed, lab, [lab, &port] (bool b) {
+  QObject::connect(&port.selection, &Selectable::changed, lab, [lab, &port](bool b) {
     lab->setColor(Process::labelBrush(port));
   });
 
   QObject::connect(
-        &port, &Process::Port::nameChanged,
-        lab, qOverload<const QString&>(&score::SimpleTextItem::setText));
+      &port, &Process::Port::nameChanged, lab,
+      qOverload<const QString&>(&score::SimpleTextItem::setText));
 
   return lab;
 }
@@ -799,7 +747,7 @@ namespace Process
 const score::Brush& portBrush(Process::PortType type)
 {
   const auto& skin = score::Skin::instance();
-  switch (type)
+  switch(type)
   {
     case Process::PortType::Audio:
       return skin.Port1;

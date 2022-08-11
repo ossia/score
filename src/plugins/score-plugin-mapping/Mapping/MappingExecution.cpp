@@ -2,10 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MappingExecution.hpp"
 
-#include <Curve/CurveConversion.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
+
+#include <Curve/CurveConversion.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -18,45 +20,29 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Mapping::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    QObject* parent)
-    : ::Execution::ProcessComponent_T<
-        Mapping::ProcessModel,
-        ossia::node_process>{element, ctx, "MappingElement", parent}
+    ::Mapping::ProcessModel& element, const ::Execution::Context& ctx, QObject* parent)
+    : ::Execution::ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>{
+        element, ctx, "MappingElement", parent}
 {
   node = ossia::make_node<ossia::nodes::mapping>(*ctx.execState.get());
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(element,
-      &Mapping::ProcessModel::sourceAddressChanged,
-      this,
+  con(element, &Mapping::ProcessModel::sourceAddressChanged, this,
       [this](const auto&) { this->recompute(); });
-  con(element,
-      &Mapping::ProcessModel::sourceMinChanged,
-      this,
+  con(element, &Mapping::ProcessModel::sourceMinChanged, this,
       [this](const auto&) { this->recompute(); });
-  con(element,
-      &Mapping::ProcessModel::sourceMaxChanged,
-      this,
+  con(element, &Mapping::ProcessModel::sourceMaxChanged, this,
       [this](const auto&) { this->recompute(); });
 
-  con(element,
-      &Mapping::ProcessModel::targetAddressChanged,
-      this,
+  con(element, &Mapping::ProcessModel::targetAddressChanged, this,
       [this](const auto&) { this->recompute(); });
-  con(element,
-      &Mapping::ProcessModel::targetMinChanged,
-      this,
+  con(element, &Mapping::ProcessModel::targetMinChanged, this,
       [this](const auto&) { this->recompute(); });
-  con(element,
-      &Mapping::ProcessModel::targetMaxChanged,
-      this,
+  con(element, &Mapping::ProcessModel::targetMaxChanged, this,
       [this](const auto&) { this->recompute(); });
 
-  con(element, &Mapping::ProcessModel::curveChanged, this, [this]() {
-    this->recompute();
-  });
+  con(element, &Mapping::ProcessModel::curveChanged, this,
+      [this]() { this->recompute(); });
 
   recompute();
 }
@@ -72,7 +58,7 @@ void Component::recompute()
       = Execution::makeDestination(devices, process().targetAddress());
 
   std::shared_ptr<ossia::curve_abstract> curve;
-  if (ossia_source_addr && ossia_target_addr)
+  if(ossia_source_addr && ossia_target_addr)
   {
     auto sourceAddressType = ossia_source_addr->address().get_value_type();
     auto targetAddressType = ossia_target_addr->address().get_value_type();
@@ -81,13 +67,13 @@ void Component::recompute()
         sourceAddressType, targetAddressType); // If the type changes we need
                                                // to rebuild the curve.
   }
-  else if (ossia_source_addr)
+  else if(ossia_source_addr)
   {
     curve = rebuildCurve(
         ossia_source_addr->address().get_value_type(),
         ossia_source_addr->address().get_value_type());
   }
-  else if (ossia_target_addr)
+  else if(ossia_target_addr)
   {
     curve = rebuildCurve(
         ossia::val_type::FLOAT, ossia_target_addr->address().get_value_type());
@@ -97,11 +83,10 @@ void Component::recompute()
     curve = rebuildCurve(ossia::val_type::FLOAT, ossia::val_type::FLOAT);
   }
 
-  if (curve)
+  if(curve)
   {
     std::function<void()> v
-        = [proc = std::dynamic_pointer_cast<ossia::nodes::mapping>(
-               OSSIAProcess().node),
+        = [proc = std::dynamic_pointer_cast<ossia::nodes::mapping>(OSSIAProcess().node),
            curve] { proc->set_behavior(std::move(curve)); };
     in_exec([fun = std::move(v)] { fun(); });
     return;
@@ -111,7 +96,7 @@ void Component::recompute()
 template <typename X_T, typename Y_T>
 std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl2()
 {
-  if (process().curve().segments().size() == 0)
+  if(process().curve().segments().size() == 0)
     return {};
 
   const double xmin = process().sourceMin();
@@ -124,10 +109,9 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl2()
   auto scale_y = [=](double val) -> Y_T { return val * (ymax - ymin) + ymin; };
 
   auto segt_data = process().curve().sortedSegments();
-  if (segt_data.size() != 0)
+  if(segt_data.size() != 0)
   {
-    return Engine::score_to_ossia::curve<X_T, Y_T>(
-        scale_x, scale_y, segt_data, {});
+    return Engine::score_to_ossia::curve<X_T, Y_T>(scale_x, scale_y, segt_data, {});
   }
   else
   {
@@ -139,7 +123,7 @@ template <typename X_T>
 std::shared_ptr<ossia::curve_abstract>
 Component::on_curveChanged_impl(ossia::val_type target)
 {
-  switch (target)
+  switch(target)
   {
     case ossia::val_type::INT:
     case ossia::val_type::FLOAT:
@@ -160,7 +144,7 @@ Component::on_curveChanged_impl(ossia::val_type target)
 std::shared_ptr<ossia::curve_abstract>
 Component::rebuildCurve(ossia::val_type source, ossia::val_type target)
 {
-  switch (source)
+  switch(source)
   {
     case ossia::val_type::INT:
     case ossia::val_type::FLOAT:

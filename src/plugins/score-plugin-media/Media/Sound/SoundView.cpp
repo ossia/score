@@ -23,35 +23,31 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
 
-  if (auto view = getView(*parent))
+  if(auto view = getView(*parent))
   {
     connect(
-        view->horizontalScrollBar(),
-        &QScrollBar::valueChanged,
-        this,
+        view->horizontalScrollBar(), &QScrollBar::valueChanged, this,
         &Media::Sound::LayerView::scrollValueChanged);
   }
   connect(
-      m_cpt,
-      &WaveformComputer::ready,
-      this,
+      m_cpt, &WaveformComputer::ready, this,
       [=](QVector<QImage*> img, ComputedWaveform wf) {
+    {
+      QImagePool::instance().giveBack(m_images);
+      m_images = std::move(img);
+
+      // We display the image at the device ratio of the view
+      if(auto view = ::getView(*this))
+      {
+        for(auto image : m_images)
         {
-          QImagePool::instance().giveBack(m_images);
-          m_images = std::move(img);
-
-          // We display the image at the device ratio of the view
-          if (auto view = ::getView(*this))
-          {
-            for (auto image : m_images)
-            {
-              image->setDevicePixelRatio(view->devicePixelRatioF());
-            }
-          }
+          image->setDevicePixelRatio(view->devicePixelRatioF());
         }
-        m_wf = wf;
+      }
+    }
+    m_wf = wf;
 
-        update();
+    update();
       });
 }
 
@@ -67,33 +63,25 @@ LayerView::~LayerView()
 
 void LayerView::setData(const std::shared_ptr<AudioFile>& data)
 {
-  if (m_data)
+  if(m_data)
   {
     QObject::disconnect(&m_data->rms(), nullptr, this, nullptr);
-    m_data->on_finishedDecoding.disconnect<&LayerView::on_finishedDecoding>(
-        *this);
+    m_data->on_finishedDecoding.disconnect<&LayerView::on_finishedDecoding>(*this);
   }
 
   SCORE_ASSERT(data);
 
   m_data = data;
   m_numChan = data->channels();
-  if (m_data)
+  if(m_data)
   {
     connect(
-        &m_data->rms(),
-        &RMSData::finishedDecoding,
-        this,
-        &LayerView::on_finishedDecoding,
-        Qt::QueuedConnection);
+        &m_data->rms(), &RMSData::finishedDecoding, this,
+        &LayerView::on_finishedDecoding, Qt::QueuedConnection);
     connect(
-        &m_data->rms(),
-        &RMSData::newData,
-        this,
-        &LayerView::on_newData,
+        &m_data->rms(), &RMSData::newData, this, &LayerView::on_newData,
         Qt::QueuedConnection);
-    m_data->on_finishedDecoding.connect<&LayerView::on_finishedDecoding>(
-        *this);
+    m_data->on_finishedDecoding.connect<&LayerView::on_finishedDecoding>(*this);
     on_newData();
   }
   m_sampleRate = data->sampleRate();
@@ -101,14 +89,15 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
 
 void LayerView::recompute() const
 {
-  if (Q_UNLIKELY(!m_data || width() < 2. || height() < 2. || m_zoom <= 0.))
+  if(Q_UNLIKELY(!m_data || width() < 2. || height() < 2. || m_zoom <= 0.))
     return;
 
-  if (auto view = getView(*this))
+  if(auto view = getView(*this))
   {
     // On the first render we render the whole thing
     double x0 = m_renderAll ? 0 : mapFromScene(view->mapToScene(0, 0)).x();
-    double xf = m_renderAll ? 100000 : mapFromScene(view->mapToScene(view->width(), 0)).x();
+    double xf
+        = m_renderAll ? 100000 : mapFromScene(view->mapToScene(view->width(), 0)).x();
 
     WaveformRequest req{
         m_data,
@@ -130,7 +119,7 @@ void LayerView::recompute() const
 
 void LayerView::setFrontColors(bool b)
 {
-  if (b != m_frontColors)
+  if(b != m_frontColors)
   {
     m_frontColors = b;
     recompute();
@@ -139,7 +128,7 @@ void LayerView::setFrontColors(bool b)
 
 void LayerView::setTempoRatio(double r)
 {
-  if (r != m_tempoRatio)
+  if(r != m_tempoRatio)
   {
     m_tempoRatio = r;
     recompute();
@@ -154,15 +143,15 @@ void LayerView::recompute(ZoomRatio ratio)
 
 void LayerView::paint_impl(QPainter* painter) const
 {
-  if (m_zoom == 0.)
+  if(m_zoom == 0.)
     return;
-  if (!m_data)
+  if(!m_data)
     return;
 
   int channels = std::ssize(m_images);
-  if (channels == 0.)
+  if(channels == 0.)
   {
-    if (!m_recomputed)
+    if(!m_recomputed)
     {
       m_renderAll = true;
       recompute();
@@ -180,11 +169,10 @@ void LayerView::paint_impl(QPainter* painter) const
   if(h < 2.)
     return;
 
-
   const double x0 = m_wf.x0 * ratio;
 
   painter->setRenderHint(QPainter::SmoothPixmapTransform, 0);
-  for (int i = 0; i < channels; i++)
+  for(int i = 0; i < channels; i++)
   {
     painter->drawImage(QRectF{x0, h * i, w, h}, *m_images[i]);
   }
@@ -233,7 +221,7 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   event->accept();
 
-  if (event->mimeData())
+  if(event->mimeData())
     dropReceived(event->pos(), *event->mimeData());
 }
 

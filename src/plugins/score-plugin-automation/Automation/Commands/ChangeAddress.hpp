@@ -1,7 +1,9 @@
 #pragma once
-#include <Automation/Commands/AutomationCommandFactory.hpp>
-#include <Curve/Palette/CurvePoint.hpp>
 #include <Device/Address/AddressSettings.hpp>
+
+#include <Curve/Palette/CurvePoint.hpp>
+
+#include <Automation/Commands/AutomationCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
@@ -20,15 +22,9 @@ class ChangeAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "ChangeAddress")
 public:
-  ChangeAddress(
-      const ProcessModel& autom,
-      const State::AddressAccessor& newval);
-  ChangeAddress(
-      const ProcessModel& autom,
-      Device::FullAddressAccessorSettings newval);
-  ChangeAddress(
-      const ProcessModel& autom,
-      const Device::FullAddressSettings& newval);
+  ChangeAddress(const ProcessModel& autom, const State::AddressAccessor& newval);
+  ChangeAddress(const ProcessModel& autom, Device::FullAddressAccessorSettings newval);
+  ChangeAddress(const ProcessModel& autom, const Device::FullAddressSettings& newval);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;

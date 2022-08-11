@@ -4,15 +4,15 @@
 
 #include "PlayListeningHandler.hpp"
 
-#include <Execution/DocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Execution/DocumentPlugin.hpp>
 
 #include <score/document/DocumentContext.hpp>
 namespace Execution
 {
 std::unique_ptr<Explorer::ListeningHandler> PlayListeningHandlerFactory::make(
-    const Explorer::DeviceDocumentPlugin& plug,
-    const score::DocumentContext& ctx)
+    const Explorer::DeviceDocumentPlugin& plug, const score::DocumentContext& ctx)
 {
   auto& exe = ctx.plugin<Execution::DocumentPlugin>();
   return std::make_unique<PlayListeningHandler>(exe);

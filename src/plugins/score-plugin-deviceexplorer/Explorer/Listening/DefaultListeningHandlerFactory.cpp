@@ -9,10 +9,8 @@
 #include <score/document/DocumentContext.hpp>
 namespace Explorer
 {
-std::unique_ptr<Explorer::ListeningHandler>
-DefaultListeningHandlerFactory::make(
-    const DeviceDocumentPlugin& plug,
-    const score::DocumentContext& ctx)
+std::unique_ptr<Explorer::ListeningHandler> DefaultListeningHandlerFactory::make(
+    const DeviceDocumentPlugin& plug, const score::DocumentContext& ctx)
 {
   return std::make_unique<Explorer::DefaultListeningHandler>();
 }

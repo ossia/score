@@ -1,15 +1,15 @@
 #pragma once
 #include <Process/Drop/ProcessDropHandler.hpp>
 
-#include <QSet>
-
-#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Application/Drops/DropLayerInScenario.hpp>
 #include <Scenario/Application/Drops/DropPresetInInterval.hpp>
 #include <Scenario/Application/Drops/DropPresetInScenario.hpp>
 #include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 #include <Scenario/Application/Drops/DropProcessInScenario.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+
+#include <QSet>
 
 namespace score
 {
@@ -32,8 +32,7 @@ public:
   }
 
   void dropCustom(
-      std::vector<ProcessDrop>& vec,
-      const QMimeData& mime,
+      std::vector<ProcessDrop>& vec, const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept override
   try
   {
@@ -43,7 +42,7 @@ public:
     p.creation = des.deserialize();
     vec.push_back(p);
   }
-  catch (...)
+  catch(...)
   {
   }
 };
@@ -56,10 +55,8 @@ public:
   DropScenario();
 
 private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+  bool
+  drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
 class DropScoreInScenario final : public GhostIntervalDropHandler
@@ -69,10 +66,8 @@ public:
   DropScoreInScenario();
 
 private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+  bool
+  drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
 /**
@@ -83,9 +78,7 @@ class DropScoreInInterval final : public IntervalDropHandler
   SCORE_CONCRETE("46cb9918-fe25-4123-ab61-68ce3939b80a")
 
   bool drop(
-      const score::DocumentContext& ctx,
-      const Scenario::IntervalModel&,
-      QPointF p,
+      const score::DocumentContext& ctx, const Scenario::IntervalModel&, QPointF p,
       const QMimeData& mime) override;
 };
 
@@ -98,9 +91,7 @@ class AutomationDropHandler final : public IntervalDropHandler
   SCORE_CONCRETE("851c98e1-4bcb-407b-9a72-8288d83c9f38")
 
   bool drop(
-      const score::DocumentContext& ctx,
-      const Scenario::IntervalModel&,
-      QPointF p,
+      const score::DocumentContext& ctx, const Scenario::IntervalModel&, QPointF p,
       const QMimeData& mime) override;
 };
 }

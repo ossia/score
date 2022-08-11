@@ -2,15 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RemoveMessageNodes.hpp"
 
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 
 namespace Scenario
 {
@@ -24,7 +24,7 @@ RemoveMessageNodes::RemoveMessageNodes(
 {
   m_oldState = model.messages().rootNode();
   m_newState = m_oldState;
-  for (const auto& node : nodes)
+  for(const auto& node : nodes)
   {
     updateTreeWithRemovedNode(m_newState, address(*node));
   }

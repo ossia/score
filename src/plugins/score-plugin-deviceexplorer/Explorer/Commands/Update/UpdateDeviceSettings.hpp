@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
@@ -18,13 +19,10 @@ namespace Command
 class UpdateDeviceSettings final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      UpdateDeviceSettings,
-      "Update a device")
+      DeviceExplorerCommandFactoryName(), UpdateDeviceSettings, "Update a device")
 public:
   UpdateDeviceSettings(
-      const DeviceDocumentPlugin& devplug,
-      const QString& name,
+      const DeviceDocumentPlugin& devplug, const QString& name,
       const Device::DeviceSettings& parameters);
 
   void undo(const score::DocumentContext& ctx) const override;

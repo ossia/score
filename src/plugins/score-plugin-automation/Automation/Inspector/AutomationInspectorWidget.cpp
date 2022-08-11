@@ -3,12 +3,14 @@
 
 #include "AutomationInspectorWidget.hpp"
 
+#include <State/Address.hpp>
+
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <State/Address.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -30,8 +32,7 @@
 namespace Automation
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& automationModel,
-    const score::DocumentContext& doc,
+    const ProcessModel& automationModel, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
@@ -49,15 +50,11 @@ InspectorWidget::InspectorWidget(
   m_lineEdit = new AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(process().address());
-  con(process(),
-      &ProcessModel::addressChanged,
-      m_lineEdit,
+  con(process(), &ProcessModel::addressChanged, m_lineEdit,
       &AddressAccessorEditWidget::setAddress);
 
   connect(
-      m_lineEdit,
-      &AddressAccessorEditWidget::addressChanged,
-      this,
+      m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
       &InspectorWidget::on_addressChange);
 
   vlay->addRow(tr("Address"), m_lineEdit);
@@ -67,8 +64,7 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
-  connect(
-      m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
+  connect(m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
 
   // Min / max
   m_minsb = new score::SpinBox<float>{this};
@@ -79,24 +75,14 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(tr("Min"), m_minsb);
   vlay->addRow(tr("Max"), m_maxsb);
 
-  con(process(),
-      &ProcessModel::minChanged,
-      m_minsb,
-      &QDoubleSpinBox::setValue);
-  con(process(),
-      &ProcessModel::maxChanged,
-      m_maxsb,
-      &QDoubleSpinBox::setValue);
+  con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
+  con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
 
   connect(
-      m_minsb,
-      &QAbstractSpinBox::editingFinished,
-      this,
+      m_minsb, &QAbstractSpinBox::editingFinished, this,
       &InspectorWidget::on_minValueChanged);
   connect(
-      m_maxsb,
-      &QAbstractSpinBox::editingFinished,
-      this,
+      m_maxsb, &QAbstractSpinBox::editingFinished, this,
       &InspectorWidget::on_maxValueChanged);
 
   this->setLayout(vlay);
@@ -106,10 +92,10 @@ void InspectorWidget::on_addressChange(
     const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
-  if (newAddr.address == process().address())
+  if(newAddr.address == process().address())
     return;
 
-  if (newAddr.address.address.path.isEmpty())
+  if(newAddr.address.address.path.isEmpty())
     return;
 
   auto cmd = new ChangeAddress{process(), newAddr};
@@ -120,7 +106,7 @@ void InspectorWidget::on_addressChange(
 void InspectorWidget::on_minValueChanged()
 {
   auto newVal = m_minsb->value();
-  if (newVal != process().min())
+  if(newVal != process().min())
   {
     auto cmd = new SetMin{process(), newVal};
 
@@ -131,7 +117,7 @@ void InspectorWidget::on_minValueChanged()
 void InspectorWidget::on_maxValueChanged()
 {
   auto newVal = m_maxsb->value();
-  if (newVal != process().max())
+  if(newVal != process().max())
   {
     auto cmd = new SetMax{process(), newVal};
 
@@ -141,7 +127,7 @@ void InspectorWidget::on_maxValueChanged()
 void InspectorWidget::on_tweenChanged()
 {
   bool newVal = m_tween->checkState();
-  if (newVal != process().tween())
+  if(newVal != process().tween())
   {
     auto cmd = new SetTween{process(), newVal};
 
@@ -153,9 +139,7 @@ void InspectorWidget::on_tweenChanged()
 namespace Gradient
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& proc,
-    const score::DocumentContext& doc,
-    QWidget* parent)
+    const ProcessModel& proc, const score::DocumentContext& doc, QWidget* parent)
     : InspectorWidgetDelegate_T{proc, parent}
     , m_dispatcher{doc.commandStack}
 {
@@ -193,8 +177,7 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
-  connect(
-      m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
+  connect(m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
 
   this->setLayout(vlay);
 }
@@ -202,7 +185,7 @@ InspectorWidget::InspectorWidget(
 void InspectorWidget::on_tweenChanged()
 {
   bool newVal = m_tween->checkState();
-  if (newVal != process().tween())
+  if(newVal != process().tween())
   {
     auto cmd = new Gradient::SetGradientTween(process(), newVal);
 

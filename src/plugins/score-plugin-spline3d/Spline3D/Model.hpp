@@ -1,7 +1,8 @@
 #pragma once
-#include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
+
+#include <Process/Process.hpp>
 
 #include <score/serialization/VisitorCommon.hpp>
 
@@ -24,9 +25,7 @@ class ProcessModel final : public Process::ProcessModel
 public:
   static constexpr bool hasExternalUI() noexcept { return true; }
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   ~ProcessModel() override;
 
   template <typename Impl>
@@ -46,7 +45,7 @@ public:
   bool tween() const { return m_tween; }
   void setTween(bool tween)
   {
-    if (m_tween == tween)
+    if(m_tween == tween)
       return;
 
     m_tween = tween;
@@ -58,7 +57,7 @@ public:
   const ossia::spline3d_data& spline() const noexcept { return m_spline; }
   void setSpline(const ossia::spline3d_data& c)
   {
-    if (m_spline != c)
+    if(m_spline != c)
     {
       m_spline = c;
       splineChanged();

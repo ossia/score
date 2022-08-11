@@ -17,11 +17,7 @@ QRecentFilesMenu::QRecentFilesMenu(const QString& title, QWidget* parent)
     , m_maxCount(5)
     , m_format(QLatin1String("%s"))
 {
-  connect(
-      this,
-      &QRecentFilesMenu::triggered,
-      this,
-      &QRecentFilesMenu::menuTriggered);
+  connect(this, &QRecentFilesMenu::triggered, this, &QRecentFilesMenu::menuTriggered);
 
   setMaxCount(m_maxCount);
 }
@@ -31,7 +27,7 @@ void QRecentFilesMenu::addRecentFile(const QString& fileName)
   m_files.removeAll(fileName);
   m_files.prepend(fileName);
 
-  while (m_files.size() > maxCount())
+  while(m_files.size() > maxCount())
     m_files.removeLast();
 
   updateRecentFileActions();
@@ -51,7 +47,7 @@ int QRecentFilesMenu::maxCount() const
 
 void QRecentFilesMenu::setFormat(const QString& format)
 {
-  if (m_format == format)
+  if(m_format == format)
     return;
   m_format = format;
 
@@ -86,13 +82,13 @@ bool QRecentFilesMenu::restoreState(const QByteArray& state)
 
   stream >> marker;
   stream >> v;
-  if (marker != RecentFilesMenuMagic || v != version)
+  if(marker != RecentFilesMenuMagic || v != version)
     return false;
 
   stream >> m_files;
 
   // Remove the files that cannot be found
-  for(auto it = m_files.begin(); it != m_files.end(); )
+  for(auto it = m_files.begin(); it != m_files.end();)
   {
     if(QFile::exists(*it))
       ++it;
@@ -114,7 +110,7 @@ void QRecentFilesMenu::setMaxCount(int count)
 
 void QRecentFilesMenu::menuTriggered(QAction* action)
 {
-  if (action->data().isValid())
+  if(action->data().isValid())
     recentFileTriggered(action->data().toString());
 }
 
@@ -124,7 +120,7 @@ void QRecentFilesMenu::updateRecentFileActions()
 
   clear();
 
-  for (int i = 0; i < numRecentFiles; ++i)
+  for(int i = 0; i < numRecentFiles; ++i)
   {
     QString strippedName = QFileInfo(m_files[i]).fileName();
 

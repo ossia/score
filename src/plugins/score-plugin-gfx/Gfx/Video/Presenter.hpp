@@ -18,10 +18,7 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Model& model,
-      View* view,
-      const Process::Context& ctx,
-      QObject* parent);
+      const Model& model, View* view, const Process::Context& ctx, QObject* parent);
 
   void setWidth(qreal width, qreal defaultWidth) override;
   void setHeight(qreal height) override;
@@ -39,8 +36,7 @@ public:
 private:
   View* m_view{};
   void setupInlet(
-      Process::ControlInlet& port,
-      const Process::PortFactoryList& portFactory,
+      Process::ControlInlet& port, const Process::PortFactoryList& portFactory,
       const Process::Context& doc);
   struct Port;
   std::vector<Port> m_ports;

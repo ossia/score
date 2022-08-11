@@ -8,10 +8,9 @@
 
 #include <score_lib_base_export.h>
 
-#include <vector>
-
 #include <initializer_list>
 #include <type_traits>
+#include <vector>
 namespace score
 {
 struct DocumentContext;
@@ -95,9 +94,8 @@ public:
     return *this;
   }
 
-  static ObjectPath pathBetweenObjects(
-      const QObject* const parent_obj,
-      const QObject* target_object);
+  static ObjectPath
+  pathBetweenObjects(const QObject* const parent_obj, const QObject* target_object);
 
   /**
    * @brief find the object described by the ObjectPath
@@ -112,14 +110,13 @@ public:
   T& find(const score::DocumentContext& ctx) const
   {
     // First see if the pointer is still loaded in the cache.
-    if (!m_cache.isNull())
+    if(!m_cache.isNull())
     {
       return *safe_cast<T*>(m_cache.data());
     }
     else // Load it by hand
     {
-      auto ptr
-          = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
+      auto ptr = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
       m_cache = ptr;
       return *ptr;
     }
@@ -135,28 +132,25 @@ public:
   {
     try
     {
-      if (!m_cache.isNull())
+      if(!m_cache.isNull())
       {
         return safe_cast<T*>(m_cache.data());
       }
       else // Load it by hand
       {
-        auto ptr = static_cast<typename std::remove_const<T>::type*>(
-            find_impl_unsafe(ctx));
+        auto ptr
+            = static_cast<typename std::remove_const<T>::type*>(find_impl_unsafe(ctx));
         m_cache = ptr;
         return ptr;
       }
     }
-    catch (...)
+    catch(...)
     {
       return nullptr;
     }
   }
 
-  const ObjectIdentifierVector& vec() const noexcept
-  {
-    return m_objectIdentifiers;
-  }
+  const ObjectIdentifierVector& vec() const noexcept { return m_objectIdentifiers; }
 
   ObjectIdentifierVector& vec() noexcept { return m_objectIdentifiers; }
 
@@ -173,10 +167,8 @@ private:
   mutable QPointer<QObject> m_cache;
 };
 
-SCORE_LIB_BASE_EXPORT void replacePathPart(
-    const ObjectPath& src,
-    const ObjectPath& target,
-    ObjectPath& toChange);
+SCORE_LIB_BASE_EXPORT void
+replacePathPart(const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange);
 inline uint qHash(const ObjectPath& obj, uint seed)
 {
   return qHash(obj.toString(), seed);

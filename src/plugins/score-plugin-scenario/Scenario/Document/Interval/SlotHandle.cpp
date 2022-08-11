@@ -5,25 +5,26 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 
+#include <Scenario/Document/Interval/LayerData.hpp>
+
 #include <score/graphics/GraphicsItem.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QGraphicsScene>
 #include <QPointer>
-
-#include <Scenario/Document/Interval/LayerData.hpp>
 
 namespace Scenario
 {
 
 void LayerSlotPresenter::cleanupHeaderFooter()
 {
-  if (headerDelegate)
+  if(headerDelegate)
   {
     deleteGraphicsItem(headerDelegate);
     headerDelegate = nullptr;
   }
-  if (footerDelegate)
+  if(footerDelegate)
   {
     deleteGraphicsItem(footerDelegate);
     footerDelegate = nullptr;
@@ -32,15 +33,15 @@ void LayerSlotPresenter::cleanupHeaderFooter()
 
 void LayerSlotPresenter::cleanup(QGraphicsScene* sc)
 {
-  if (sc)
+  if(sc)
   {
-    if (header)
+    if(header)
     {
       sc->removeItem(header);
       delete header;
       header = nullptr;
     }
-    if (footer)
+    if(footer)
     {
       sc->removeItem(footer);
       delete footer;
@@ -55,7 +56,7 @@ void LayerSlotPresenter::cleanup(QGraphicsScene* sc)
     footer = nullptr;
   }
 
-  for (LayerData& ld : layers)
+  for(LayerData& ld : layers)
   {
     ld.cleanup();
   }
@@ -64,7 +65,9 @@ void LayerSlotPresenter::cleanup(QGraphicsScene* sc)
 
 void LayerSlotPresenter::putToFront(const Id<Process::ProcessModel>& id)
 {
-  auto it = ossia::find_if(this->layers, [&] (const LayerData& l) { return l.mainPresenter()->model().id() == id; });
+  auto it = ossia::find_if(this->layers, [&](const LayerData& l) {
+    return l.mainPresenter()->model().id() == id;
+  });
   if(it != this->layers.end())
   {
     std::iter_swap(it, this->layers.begin());

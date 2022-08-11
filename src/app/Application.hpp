@@ -8,9 +8,8 @@
 
 #include <QApplication>
 
-#include <verdigris>
-
 #include <memory>
+#include <verdigris>
 
 namespace score
 {
@@ -32,7 +31,9 @@ class StartScreen;
  * parent of every other object created.
  * It does instantiate the rest of the software (MVP, settings, plugins).
  */
-class Application final : public QObject, public score::GUIApplicationInterface
+class Application final
+    : public QObject
+    , public score::GUIApplicationInterface
 {
   W_OBJECT(Application)
   friend class ChildEventFilter;
@@ -40,8 +41,7 @@ class Application final : public QObject, public score::GUIApplicationInterface
 public:
   Application(int& argc, char** argv);
 
-  Application(
-      const score::ApplicationSettings& appSettings, int& argc, char** argv);
+  Application(const score::ApplicationSettings& appSettings, int& argc, char** argv);
 
   Application(const Application&) = delete;
   Application& operator=(const Application&) = delete;
@@ -54,6 +54,7 @@ public:
   void init(); // m_applicationSettings has to be set.
 
   score::ApplicationSettings appSettings;
+
 private:
   void initDocuments();
   void openNewDocument();

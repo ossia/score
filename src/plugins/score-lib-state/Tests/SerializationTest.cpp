@@ -1,8 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
 #include "Utils.hpp"
+
+#include <catch2/catch.hpp>
 
 using namespace score;
 TEST_CASE("serializationTest", "serializationTest")
@@ -120,30 +121,27 @@ TEST_CASE("ossia_domain_serialization_test", "ossia_domain_serialization_test")
   }
 
   {
-    ossia::domain d
-        = ossia::make_domain(ossia::vec2f{0, 0}, ossia::vec2f{1, 1});
+    ossia::domain d = ossia::make_domain(ossia::vec2f{0, 0}, ossia::vec2f{1, 1});
+    REQUIRE(unmarshall<ossia::domain>(marshall<JSONObject>(d)) == d);
+    REQUIRE(unmarshall<ossia::domain>(marshall<DataStream>(d)) == d);
+  }
+
+  {
+    ossia::domain d = ossia::make_domain(ossia::vec3f{0, 0, 0}, ossia::vec3f{1, 1, 1});
     REQUIRE(unmarshall<ossia::domain>(marshall<JSONObject>(d)) == d);
     REQUIRE(unmarshall<ossia::domain>(marshall<DataStream>(d)) == d);
   }
 
   {
     ossia::domain d
-        = ossia::make_domain(ossia::vec3f{0, 0, 0}, ossia::vec3f{1, 1, 1});
+        = ossia::make_domain(ossia::vec4f{0, 0, 0, 0}, ossia::vec4f{1, 1, 1, 1});
     REQUIRE(unmarshall<ossia::domain>(marshall<JSONObject>(d)) == d);
     REQUIRE(unmarshall<ossia::domain>(marshall<DataStream>(d)) == d);
   }
 
   {
     ossia::domain d = ossia::make_domain(
-        ossia::vec4f{0, 0, 0, 0}, ossia::vec4f{1, 1, 1, 1});
-    REQUIRE(unmarshall<ossia::domain>(marshall<JSONObject>(d)) == d);
-    REQUIRE(unmarshall<ossia::domain>(marshall<DataStream>(d)) == d);
-  }
-
-  {
-    ossia::domain d = ossia::make_domain(
-        std::vector<ossia::value>{0, 'x'},
-        std::vector<ossia::value>{1, 'y'});
+        std::vector<ossia::value>{0, 'x'}, std::vector<ossia::value>{1, 'y'});
     REQUIRE(unmarshall<ossia::domain>(marshall<JSONObject>(d)) == d);
     REQUIRE(unmarshall<ossia::domain>(marshall<DataStream>(d)) == d);
   }

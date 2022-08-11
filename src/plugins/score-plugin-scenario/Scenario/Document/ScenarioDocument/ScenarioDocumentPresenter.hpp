@@ -4,19 +4,19 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
 
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
+#include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 
+#include <ossia/detail/variant.hpp>
+
 #include <QPoint>
 #include <QRect>
-
-#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
-#include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
-
-#include <ossia/detail/variant.hpp>
 
 #include <memory>
 #include <verdigris>
@@ -44,7 +44,8 @@ class ScenarioDocumentPresenter;
 class ScenarioDocumentView;
 class TimeRulerPresenter;
 
-using CentralDisplay = ossia::slow_variant<ossia::monostate, CentralIntervalDisplay, CentralNodalDisplay>;
+using CentralDisplay
+    = ossia::slow_variant<ossia::monostate, CentralIntervalDisplay, CentralNodalDisplay>;
 /**
  * @brief The ScenarioDocumentPresenter class
  *
@@ -62,10 +63,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentPresenter final
 
 public:
   ScenarioDocumentPresenter(
-      const score::DocumentContext& ctx,
-      score::DocumentPresenter* parent_presenter,
-      const score::DocumentDelegateModel& model,
-      score::DocumentDelegateView& view);
+      const score::DocumentContext& ctx, score::DocumentPresenter* parent_presenter,
+      const score::DocumentDelegateModel& model, score::DocumentDelegateView& view);
   ~ScenarioDocumentPresenter() override;
 
   IntervalModel& displayedInterval() const noexcept;
@@ -109,12 +108,9 @@ public:
   void setAutoScroll(bool);
 
 public:
-  void pressed(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
-  void moved(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
-  void released(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
+  void pressed(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
+  void moved(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
+  void released(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
   void escPressed() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, escPressed)
 
   void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1)

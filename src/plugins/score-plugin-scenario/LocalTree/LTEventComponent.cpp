@@ -5,62 +5,53 @@
 namespace LocalTree
 {
 Event::Event(
-    ossia::net::node_base& parent,
-    Scenario::EventModel& event,
-    const score::DocumentContext& doc,
-    QObject* parent_comp)
-    : CommonComponent{
-        parent,
-        event.metadata(),
-        doc,
-        "EventComponent",
-        parent_comp}
+    ossia::net::node_base& parent, Scenario::EventModel& event,
+    const score::DocumentContext& doc, QObject* parent_comp)
+    : CommonComponent{parent, event.metadata(), doc, "EventComponent", parent_comp}
 {
   auto exp_n = node().create_child("expression");
   auto exp_a = exp_n->create_parameter(ossia::val_type::STRING);
   exp_a->set_access(ossia::access_mode::BI);
 
   exp_a->add_callback([&](const ossia::value& v) {
-    if (m_setting)
+    if(m_setting)
       return;
 
     auto expr = v.target<std::string>();
-    if (expr)
+    if(expr)
     {
       auto expr_p = ::State::parseExpression(*expr);
-      if (expr_p && expr_p != event.condition())
+      if(expr_p && expr_p != event.condition())
         event.setCondition(*std::move(expr_p));
     }
   });
 
   QObject::connect(
-      &event,
-      &Scenario::EventModel::conditionChanged,
-      this,
+      &event, &Scenario::EventModel::conditionChanged, this,
       [=](const ::State::Expression& cond) {
-        m_setting = true;
-        // TODO try to simplify the other get / set properties like this
-        ossia::value newVal = cond.toString().toStdString();
-        try
+    m_setting = true;
+    // TODO try to simplify the other get / set properties like this
+    ossia::value newVal = cond.toString().toStdString();
+    try
+    {
+      auto res = exp_a->value();
+      if(auto str = res.target<std::string>())
+      {
+        if(::State::parseExpression(*str) != cond)
         {
-          auto res = exp_a->value();
-          if (auto str = res.target<std::string>())
-          {
-            if (::State::parseExpression(*str) != cond)
-            {
-              exp_a->push_value(std::move(newVal));
-            }
-          }
-          else
-          {
-            exp_a->push_value(std::move(newVal));
-          }
+          exp_a->push_value(std::move(newVal));
         }
-        catch (...)
-        {
-        }
+      }
+      else
+      {
+        exp_a->push_value(std::move(newVal));
+      }
+    }
+    catch(...)
+    {
+    }
 
-        m_setting = false;
+    m_setting = false;
       },
       Qt::QueuedConnection);
 

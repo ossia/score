@@ -5,9 +5,10 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::ProcessFocusManager)
@@ -15,10 +16,11 @@ namespace Process
 {
 ProcessFocusManager* ProcessFocusManager::get(const score::DocumentContext& ctx)
 {
-  if (auto pres = ctx.document.presenter())
+  if(auto pres = ctx.document.presenter())
   {
-    auto bem = qobject_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
-    if (bem)
+    auto bem
+        = qobject_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
+    if(bem)
     {
       return &bem->focusManager();
     }
@@ -27,7 +29,7 @@ ProcessFocusManager* ProcessFocusManager::get(const score::DocumentContext& ctx)
 }
 
 ProcessFocusManager::ProcessFocusManager(score::FocusManager& fmgr)
-  : m_mgr{fmgr}
+    : m_mgr{fmgr}
 {
 }
 ProcessFocusManager::~ProcessFocusManager() { }
@@ -43,35 +45,32 @@ LayerPresenter* ProcessFocusManager::focusedPresenter() const
 
 void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 {
-  if (p == m_currentPresenter)
+  if(p == m_currentPresenter)
     return;
 
-  if (m_currentPresenter)
+  if(m_currentPresenter)
   {
     defocusPresenter(m_currentPresenter);
   }
-  if (m_currentModel)
+  if(m_currentModel)
   {
     sig_defocusedViewModel(m_currentModel);
   }
 
   m_currentPresenter = p;
 
-  if (m_currentPresenter)
+  if(m_currentPresenter)
   {
-    m_currentModel
-        = const_cast<Process::ProcessModel*>(&m_currentPresenter->model());
+    m_currentModel = const_cast<Process::ProcessModel*>(&m_currentPresenter->model());
 
     sig_focusedViewModel(m_currentModel);
 
     m_deathConnection = connect(
-        m_currentModel,
-        &IdentifiedObjectAbstract::identified_object_destroying,
-        this,
+        m_currentModel, &IdentifiedObjectAbstract::identified_object_destroying, this,
         [=]() {
-          sig_defocusedViewModel(nullptr);
-          sig_defocusedPresenter(nullptr);
-          focusNothing();
+      sig_defocusedViewModel(nullptr);
+      sig_defocusedPresenter(nullptr);
+      focusNothing();
         });
     focusPresenter(m_currentPresenter);
   }
@@ -91,9 +90,9 @@ void ProcessFocusManager::focus(Scenario::ScenarioDocumentPresenter*)
 
 void ProcessFocusManager::focusNothing()
 {
-  if (m_currentModel)
+  if(m_currentModel)
     sig_defocusedViewModel(m_currentModel);
-  if (m_currentPresenter)
+  if(m_currentPresenter)
     defocusPresenter(m_currentPresenter);
 
   m_currentModel = nullptr;
@@ -111,8 +110,8 @@ void ProcessFocusManager::focusPresenter(LayerPresenter* p)
 void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
 {
   p->setFocus(false);
- // if (p->model().selection.get())
- //   const_cast<ProcessModel&>(p->model()).selection.set(false);
+  // if (p->model().selection.get())
+  //   const_cast<ProcessModel&>(p->model()).selection.set(false);
   m_deathConnection = QMetaObject::Connection{};
   sig_defocusedPresenter(p);
 }

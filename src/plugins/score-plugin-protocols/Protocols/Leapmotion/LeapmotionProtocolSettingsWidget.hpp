@@ -9,8 +9,7 @@ class QLineEdit;
 namespace Protocols
 {
 
-class LeapmotionProtocolSettingsWidget final
-    : public Device::ProtocolSettingsWidget
+class LeapmotionProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
   W_OBJECT(LeapmotionProtocolSettingsWidget)
 

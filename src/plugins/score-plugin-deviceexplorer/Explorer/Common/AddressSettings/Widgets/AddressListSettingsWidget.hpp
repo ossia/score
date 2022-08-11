@@ -1,9 +1,11 @@
 #pragma once
-#include <Device/Address/AddressSettings.hpp>
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/VecWidgets.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 namespace Explorer
 {

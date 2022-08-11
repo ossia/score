@@ -50,8 +50,7 @@ public:
   MaxRangeSpinBox(Args&&... args)
       : SpinBox::spinbox_type{std::forward<Args>(args)...}
   {
-    this->setMinimum(
-        std::numeric_limits<typename SpinBox::value_type>::lowest());
+    this->setMinimum(std::numeric_limits<typename SpinBox::value_type>::lowest());
     this->setMaximum(std::numeric_limits<typename SpinBox::value_type>::max());
     this->setAlignment(Qt::AlignRight);
   }

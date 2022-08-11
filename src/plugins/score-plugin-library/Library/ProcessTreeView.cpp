@@ -1,5 +1,7 @@
 #include "ProcessTreeView.hpp"
+
 #include <Library/PresetListView.hpp>
+
 #include <score/widgets/Pixmap.hpp>
 
 #include <QDrag>
@@ -19,22 +21,20 @@ Library::ProcessData* ProcessTreeView::dataFromViewIndex(QModelIndex idx)
   SCORE_ASSERT(idx.isValid());
   auto proxy = (QSortFilterProxyModel*)this->model();
   auto model_idx = proxy->mapToSource(idx);
-  auto data
-      = reinterpret_cast<TreeNode<ProcessData>*>(model_idx.internalPointer());
+  auto data = reinterpret_cast<TreeNode<ProcessData>*>(model_idx.internalPointer());
   return data;
 }
 
 void ProcessTreeView::selectionChanged(
-    const QItemSelection& sel,
-    const QItemSelection& desel)
+    const QItemSelection& sel, const QItemSelection& desel)
 {
   setDropIndicatorShown(true);
 
-  if (!sel.isEmpty())
+  if(!sel.isEmpty())
   {
     selected(*dataFromViewIndex(sel.indexes().front()));
   }
-  else if (desel.size() > 0)
+  else if(desel.size() > 0)
   {
     selected({});
   }
@@ -48,22 +48,21 @@ QModelIndexList ProcessTreeView::selectedDraggableIndexes() const
     return !(m->flags(index) & Qt::ItemIsDragEnabled);
   };
   indexes.erase(
-      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled),
-      indexes.end());
+      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled), indexes.end());
   return indexes;
 }
 
 void ProcessTreeView::startDrag(Qt::DropActions)
 {
   QModelIndexList indexes = selectedDraggableIndexes();
-  if (indexes.count() == 1)
+  if(indexes.count() == 1)
   {
     // auto proxy = (QSortFilterProxyModel*)this->model();
     // auto model_idx = proxy->mapFromSource(indexes.first());
 
     // QMimeData* data = proxy->mimeData(QModelIndexList{model_idx});
     QMimeData* data = QTreeView::model()->mimeData(indexes);
-    if (!data)
+    if(!data)
       return;
 
     QDrag* drag = new QDrag(this);
@@ -81,10 +80,10 @@ void ProcessTreeView::startDrag(Qt::DropActions)
 void ProcessTreeView::mouseDoubleClickEvent(QMouseEvent* event)
 {
   auto index = indexAt(event->pos());
-  if (index.isValid())
+  if(index.isValid())
   {
     auto data = dataFromViewIndex(index);
-    if (data->key != UuidKey<Process::ProcessModel>{})
+    if(data->key != UuidKey<Process::ProcessModel>{})
     {
       doubleClicked(*data);
       event->accept();

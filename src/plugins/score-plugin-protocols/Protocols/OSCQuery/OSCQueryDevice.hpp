@@ -15,8 +15,9 @@ class OSCQueryDevice final : public Device::OwningDeviceInterface
 {
   W_OBJECT(OSCQueryDevice)
 public:
-  OSCQueryDevice(const Device::DeviceSettings& settings,
-                 const ossia::net::network_context_ptr& ctx);
+  OSCQueryDevice(
+      const Device::DeviceSettings& settings,
+      const ossia::net::network_context_ptr& ctx);
 
   ~OSCQueryDevice();
 

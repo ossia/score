@@ -7,9 +7,7 @@ class Model;
 }
 
 PROCESS_METADATA(
-    ,
-    Nodal::Model,
-    "f5678806-c431-45c5-ae3a-fae5183380fb",
+    , Nodal::Model, "f5678806-c431-45c5-ae3a-fae5183380fb",
     "Nodal",                                     // Internal name
     "Nodal",                                     // Pretty name
     Process::ProcessCategory::Structure,         // Category
@@ -19,5 +17,4 @@ PROCESS_METADATA(
     (QStringList{}),                             // Tags
     {},                                          // Inputs
     {},                                          // Outputs
-    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
-)
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)

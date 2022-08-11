@@ -123,19 +123,19 @@ std::optional<ossia::value> parseValue(const std::string& input)
     ossia::value result;
     bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
 
-    if (!ok)
+    if(!ok)
     {
       return {};
     }
 
     return result;
   }
-  catch (const qi::expectation_failure<decltype(f)>& e)
+  catch(const qi::expectation_failure<decltype(f)>& e)
   {
     // SCORE_BREAKPOINT;
     return {};
   }
-  catch (...)
+  catch(...)
   {
     // SCORE_BREAKPOINT;
     return {};

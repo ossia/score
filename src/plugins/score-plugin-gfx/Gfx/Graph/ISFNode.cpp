@@ -26,14 +26,14 @@ struct isf_input_size_vis
 
   void operator()(const isf::point2d_input&) noexcept
   {
-    if (sz % 8 != 0)
+    if(sz % 8 != 0)
       sz += 4;
     sz += 2 * 4;
   }
 
   void operator()(const isf::point3d_input&) noexcept
   {
-    while (sz % 16 != 0)
+    while(sz % 16 != 0)
     {
       sz += 4;
     }
@@ -42,17 +42,14 @@ struct isf_input_size_vis
 
   void operator()(const isf::color_input&) noexcept
   {
-    while (sz % 16 != 0)
+    while(sz % 16 != 0)
     {
       sz += 4;
     }
     sz += 4 * 4;
   }
 
-  void operator()(const isf::image_input&) noexcept
-  {
-    (*this)(isf::color_input{});
-  }
+  void operator()(const isf::image_input&) noexcept { (*this)(isf::color_input{}); }
 
   void operator()(const isf::audio_input&) noexcept { }
 
@@ -67,7 +64,7 @@ struct isf_input_port_vis
 
   void operator()(const isf::float_input& in) noexcept
   {
-    if (in.def != 0.)
+    if(in.def != 0.)
       *reinterpret_cast<float*>(data) = in.def;
     else
       *reinterpret_cast<float*>(data) = (in.max - in.min) / 2.;
@@ -102,7 +99,7 @@ struct isf_input_port_vis
 
   void operator()(const isf::point2d_input& in) noexcept
   {
-    if (sz % 8 != 0)
+    if(sz % 8 != 0)
     {
       sz += 4;
       data += 4;
@@ -118,7 +115,7 @@ struct isf_input_port_vis
 
   void operator()(const isf::point3d_input& in) noexcept
   {
-    while (sz % 16 != 0)
+    while(sz % 16 != 0)
     {
       sz += 4;
       data += 4;
@@ -134,13 +131,12 @@ struct isf_input_port_vis
 
   void operator()(const isf::color_input& in) noexcept
   {
-    while (sz % 16 != 0)
+    while(sz % 16 != 0)
     {
       sz += 4;
       data += 4;
     }
-    const auto& arr
-        = in.def.value_or(std::array<double, 4>{0.5, 0.5, 0.5, 0.5});
+    const auto& arr = in.def.value_or(std::array<double, 4>{0.5, 0.5, 0.5, 0.5});
     *reinterpret_cast<float*>(data) = arr[0];
     *reinterpret_cast<float*>(data + 4) = arr[1];
     *reinterpret_cast<float*>(data + 8) = arr[2];
@@ -155,7 +151,7 @@ struct isf_input_port_vis
     self.input.push_back(new Port{&self, {}, Types::Image, {}});
 
     // Also add the vec4 imgRect uniform:
-    while (sz % 16 != 0)
+    while(sz % 16 != 0)
     {
       sz += 4;
       data += 4;
@@ -187,10 +183,7 @@ struct isf_input_port_vis
   }
 };
 
-ISFNode::ISFNode(
-    const isf::descriptor& desc,
-    const QString& vert,
-    const QString& frag)
+ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag)
     : m_descriptor{desc}
 {
   m_vertexS = vert;
@@ -200,13 +193,13 @@ ISFNode::ISFNode(
   isf_input_size_vis sz_vis{};
 
   // Size of the inputs
-  for (const isf::input& input : desc.inputs)
+  for(const isf::input& input : desc.inputs)
   {
     ossia::visit(sz_vis, input.data);
   }
 
   // Size of the pass textures (vec4)
-  for (std::size_t i = 0; i < desc.pass_targets.size(); i++)
+  for(std::size_t i = 0; i < desc.pass_targets.size(); i++)
     sz_vis(isf::color_input{});
 
   m_materialSize = sz_vis.sz;
@@ -219,17 +212,17 @@ ISFNode::ISFNode(
 
   // Create ports pointing to the data used for the UBO
   isf_input_port_vis visitor{*this, cur};
-  for (const isf::input& input : desc.inputs)
+  for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
 
   // Handle the pass textures size uniforms
   {
     char* data = visitor.data;
     int sz = visitor.sz;
-    for (std::size_t i = 0; i < desc.pass_targets.size(); i++)
+    for(std::size_t i = 0; i < desc.pass_targets.size(); i++)
     {
       // Passes also need an _imgRect uniform
-      while (sz % 16 != 0)
+      while(sz % 16 != 0)
       {
         sz += 4;
         data += 4;
@@ -249,7 +242,6 @@ ISFNode::ISFNode(
 
 ISFNode::~ISFNode() { }
 
-
 QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 {
   QSize res = origSize;
@@ -265,39 +257,37 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
   e.add_constant("var_WIDTH", data.emplace_back(res.width()));
   e.add_constant("var_HEIGHT", data.emplace_back(res.height()));
   int port_k = 0;
-  for (const isf::input& input : m_descriptor.inputs)
+  for(const isf::input& input : m_descriptor.inputs)
   {
     auto port = this->input[port_k];
-    if (ossia::get_if<isf::float_input>(&input.data))
+    if(ossia::get_if<isf::float_input>(&input.data))
     {
-      e.add_constant(
-          "var_" + input.name, data.emplace_back(*(float*)port->value));
+      e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
     }
-    else if (ossia::get_if<isf::long_input>(&input.data))
+    else if(ossia::get_if<isf::long_input>(&input.data))
     {
-      e.add_constant(
-          "var_" + input.name, data.emplace_back(*(int*)port->value));
+      e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
     }
 
     port_k++;
   }
 
-  if (auto expr = pass.width_expression; !expr.empty())
+  if(auto expr = pass.width_expression; !expr.empty())
   {
     boost::algorithm::replace_all(expr, "$", "var_");
     e.register_symbol_table();
     bool ok = e.set_expression(expr);
-    if (ok)
+    if(ok)
       res.setWidth(e.value());
     else
       qDebug() << e.error().c_str() << expr.c_str();
   }
-  if (auto expr = pass.height_expression; !expr.empty())
+  if(auto expr = pass.height_expression; !expr.empty())
   {
     boost::algorithm::replace_all(expr, "$", "var_");
     e.register_symbol_table();
     bool ok = e.set_expression(expr);
-    if (ok)
+    if(ok)
       res.setHeight(e.value());
     else
       qDebug() << e.error().c_str() << expr.c_str();
@@ -322,8 +312,7 @@ score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
         return new RenderedISFNode{*this};
       }
       break;
-    default:
-    {
+    default: {
       return new RenderedISFNode{*this};
       break;
     }

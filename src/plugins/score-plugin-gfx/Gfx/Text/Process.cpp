@@ -1,9 +1,10 @@
 #include "Process.hpp"
 
-#include <Gfx/Graph/Node.hpp>
-#include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/TexturePort.hpp>
 
 #include <QFileInfo>
 #include <QImageReader>
@@ -15,22 +16,21 @@ namespace Gfx::Text
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
   {
-    auto text = new Process::LineEdit{tr("Greetings from Oscar !"), tr("Text"), Id<Process::Port>(0), this};
+    auto text = new Process::LineEdit{
+        tr("Greetings from Oscar !"), tr("Text"), Id<Process::Port>(0), this};
     m_inlets.push_back(text);
   }
 
   {
-    auto font = new Process::LineEdit{tr("Monospace"), tr("Font"), Id<Process::Port>(1), this};
+    auto font
+        = new Process::LineEdit{tr("Monospace"), tr("Font"), Id<Process::Port>(1), this};
     m_inlets.push_back(font);
   }
-
 
   {
     auto pointSize = new Process::FloatSlider{Id<Process::Port>(2), this};
@@ -50,12 +50,10 @@ Model::Model(
   {
     auto pos = new Process::XYSlider{Id<Process::Port>(4), this};
     pos->setName(tr("Position"));
-    pos->setDomain(
-      ossia::make_domain(ossia::vec2f{-5.0, -5.0}, ossia::vec2f{5.0, 5.0}));
+    pos->setDomain(ossia::make_domain(ossia::vec2f{-5.0, -5.0}, ossia::vec2f{5.0, 5.0}));
 
     m_inlets.push_back(pos);
   }
-
 
   {
     auto scaleX = new Process::FloatSlider{Id<Process::Port>(5), this};
@@ -102,11 +100,8 @@ template <>
 void DataStreamWriter::write(Gfx::Text::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   checkDelimiter();
 }
@@ -121,9 +116,6 @@ template <>
 void JSONWriter::write(Gfx::Text::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 }

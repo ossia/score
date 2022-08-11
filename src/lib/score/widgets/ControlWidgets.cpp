@@ -52,7 +52,7 @@ ToggleButton::ToggleButton(std::array<QString, 2> alts, QWidget* parent)
   setCheckable(true);
 
   connect(this, &QPushButton::toggled, this, [&](bool b) {
-    if (b)
+    if(b)
     {
       setText(alternatives[1]);
     }
@@ -61,7 +61,7 @@ ToggleButton::ToggleButton(std::array<QString, 2> alts, QWidget* parent)
       setText(alternatives[0]);
     }
   });
-  if (isChecked())
+  if(isChecked())
   {
     setText(alternatives[1]);
   }
@@ -81,10 +81,7 @@ ToggleButton::ToggleButton(QStringList alt, QWidget* parent)
 {
 }
 
-ToggleButton::~ToggleButton()
-{
-
-}
+ToggleButton::~ToggleButton() { }
 
 void ToggleButton::paintEvent(QPaintEvent* event)
 {
@@ -154,10 +151,7 @@ ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)
 {
 }
 
-ComboSlider::~ComboSlider()
-{
-
-}
+ComboSlider::~ComboSlider() { }
 
 void ComboSlider::paintEvent(QPaintEvent* event)
 {

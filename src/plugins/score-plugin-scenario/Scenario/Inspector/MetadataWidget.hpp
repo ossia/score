@@ -1,5 +1,11 @@
 #pragma once
 
+#include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Inspector/CommentEdit.hpp>
+
 #include <Inspector/InspectorLayout.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -12,12 +18,6 @@
 #include <QString>
 #include <QToolButton>
 #include <QWidget>
-
-#include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Scenario/Inspector/CommentEdit.hpp>
 
 #include <verdigris>
 
@@ -49,10 +49,8 @@ class MetadataWidget final : public QWidget
 
 public:
   explicit MetadataWidget(
-      const score::ModelMetadata& metadata,
-      const score::CommandStackFacade& m,
-      const QObject* docObject,
-      QWidget* parent = nullptr);
+      const score::ModelMetadata& metadata, const score::CommandStackFacade& m,
+      const QObject* docObject, QWidget* parent = nullptr);
 
   ~MetadataWidget();
 
@@ -62,25 +60,19 @@ public:
     using namespace Scenario::Command;
     using namespace score::IDocument;
     connect(this, &MetadataWidget::labelChanged, [&](const QString& newLabel) {
-      if (newLabel != model.metadata().getLabel())
+      if(newLabel != model.metadata().getLabel())
         m_commandDispatcher.submit(new ChangeElementLabel<T>{model, newLabel});
     });
 
-    connect(
-        this,
-        &MetadataWidget::commentsChanged,
-        [&](const QString& newComments) {
-          if (newComments != model.metadata().getComment())
-            m_commandDispatcher.submit(
-                new ChangeElementComments<T>{model, newComments});
-        });
+    connect(this, &MetadataWidget::commentsChanged, [&](const QString& newComments) {
+      if(newComments != model.metadata().getComment())
+        m_commandDispatcher.submit(new ChangeElementComments<T>{model, newComments});
+    });
 
-    connect(
-        this, &MetadataWidget::colorChanged, [&](score::ColorRef newColor) {
-          if (newColor != model.metadata().getColor())
-            m_commandDispatcher.submit(
-                new ChangeElementColor<T>{model, newColor});
-        });
+    connect(this, &MetadataWidget::colorChanged, [&](score::ColorRef newColor) {
+      if(newColor != model.metadata().getColor())
+        m_commandDispatcher.submit(new ChangeElementColor<T>{model, newColor});
+    });
 
     /*
     connect(
@@ -112,8 +104,6 @@ private:
   QLineEdit m_labelLine;
   CommentEdit m_comments;
   color_widgets::Swatch* m_palette_widget;
-  QPixmap m_colorButtonPixmap{
-      4 * m_colorIconSize / 3,
-      4 * m_colorIconSize / 3};
+  QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3, 4 * m_colorIconSize / 3};
 };
 }

@@ -1,10 +1,13 @@
+#include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <Nodal/CommandFactory.hpp>
 #include <Nodal/Commands.hpp>
 #include <Nodal/Presenter.hpp>
 #include <Nodal/Process.hpp>
 #include <Nodal/View.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
-#include <Process/ProcessMimeSerialization.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -16,16 +19,11 @@
 
 #include <QTimer>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 namespace Nodal
 {
 
 Presenter::Presenter(
-    const Model& layer,
-    View* view,
-    const Process::Context& ctx,
-    QObject* parent)
+    const Model& layer, View* view, const Process::Context& ctx, QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}
     , m_model{layer}
     , m_view{view}
@@ -34,13 +32,13 @@ Presenter::Presenter(
 
   connect(view, &View::dropReceived, this, &Presenter::on_drop);
 
-  if (auto itv = Scenario::closestParentInterval(m_model.parent()))
+  if(auto itv = Scenario::closestParentInterval(m_model.parent()))
   {
     auto& dur = itv->duration;
     con(ctx.execTimer, &QTimer::timeout, this, [&] {
       {
         float p = ossia::clamp((float)dur.playPercentage(), 0.f, 1.f);
-        for (Process::NodeItem& node : m_nodes)
+        for(Process::NodeItem& node : m_nodes)
         {
           node.setPlayPercentage(p, dur.defaultDuration());
         }
@@ -48,7 +46,7 @@ Presenter::Presenter(
     });
 
     auto reset_exec = [this] {
-      for (Process::NodeItem& node : m_nodes)
+      for(Process::NodeItem& node : m_nodes)
       {
         node.setPlayPercentage(0.f, TimeVal{});
       }
@@ -69,7 +67,7 @@ void Presenter::setWidth(qreal val, qreal defaultWidth)
   m_defaultW = defaultWidth;
 
   const auto d = m_model.duration();
-  for (Process::NodeItem& node : m_nodes)
+  for(Process::NodeItem& node : m_nodes)
   {
     node.setParentDuration(d);
   }
@@ -94,7 +92,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   m_ratio = ratio;
   const auto d = m_model.duration();
-  for (Process::NodeItem& node : m_nodes)
+  for(Process::NodeItem& node : m_nodes)
   {
     node.setParentDuration(d);
   }
@@ -106,7 +104,7 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
 {
   const auto& ctx = context().context;
   auto& layer = m_model;
-  if (mime.hasFormat(score::mime::processdata()))
+  if(mime.hasFormat(score::mime::processdata()))
   {
     Mime<Process::ProcessData>::Deserializer des{mime};
     Process::ProcessData p = des.deserialize();
@@ -118,23 +116,21 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
   else
   {
     // TODO refactor with EffectProcessLayer
-    const auto& handlers
-        = ctx.app.interfaces<Process::ProcessDropHandlerList>();
+    const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
 
-    if (auto res = handlers.getDrop(mime, ctx); !res.empty())
+    if(auto res = handlers.getDrop(mime, ctx); !res.empty())
     {
       RedoMacroCommandDispatcher<DropNodesMacro> cmd{ctx.commandStack};
       score::Dispatcher_T disp{cmd};
-      for (const auto& proc : res)
+      for(const auto& proc : res)
       {
         auto& p = proc.creation;
         // TODO fudge pos a bit
         auto create = new CreateNode(layer, pos, p.key, p.customData);
         cmd.submit(create);
-        if (auto fx = layer.nodes.find(create->nodeId());
-            fx != layer.nodes.end())
+        if(auto fx = layer.nodes.find(create->nodeId()); fx != layer.nodes.end())
         {
-          if (proc.setup)
+          if(proc.setup)
           {
             proc.setup(*fx, disp);
           }

@@ -1,14 +1,15 @@
 #include "AvndJit.hpp"
 
+#include <Process/Dataflow/WidgetInlets.hpp>
+
+#include <JitCpp/Compiler/Driver.hpp>
+#include <JitCpp/EditScript.hpp>
+
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-#include <JitCpp/Compiler/Driver.hpp>
-#include <JitCpp/EditScript.hpp>
-#include <Process/Dataflow/WidgetInlets.hpp>
 //#include <JitCpp/Commands/EditJitEffect.hpp>
 
 #include <Process/Dataflow/PortFactory.hpp>
@@ -32,16 +33,14 @@ namespace AvndJit
 {
 
 Model::Model(
-    TimeVal t,
-    const QString& jitProgram,
-    const Id<Process::ProcessModel>& id,
+    TimeVal t, const QString& jitProgram, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{t, id, "Jit", parent}
 {
   init();
-  if (jitProgram.isEmpty())
-    setScript(Process::EffectProcessFactory_T<AvndJit::Model>{}
-                  .customConstructionData());
+  if(jitProgram.isEmpty())
+    setScript(
+        Process::EffectProcessFactory_T<AvndJit::Model>{}.customConstructionData());
   else
     setScript(jitProgram);
 }
@@ -84,7 +83,7 @@ bool Model::validate(const QString& txt) const noexcept
 
 void Model::setScript(const QString& txt)
 {
-  if (m_text != txt)
+  if(m_text != txt)
   {
     m_text = txt;
     reload();
@@ -116,7 +115,7 @@ struct inlet_vis
 
   Process::Inlet* operator()(const ossia::value_port& p) const noexcept
   {
-    if (!p.is_event)
+    if(!p.is_event)
     {
       auto i = new Process::ValueInlet{getStrongId(self.inlets()), &self};
       return i;
@@ -144,7 +143,8 @@ struct inlet_vis
         }
         else if(u->v.target<ossia::position_u>())
         {
-          if(*u == ossia::cartesian_2d_u{} || *u == ossia::ad_u{} || *u == ossia::polar_u{})
+          if(*u == ossia::cartesian_2d_u{} || *u == ossia::ad_u{}
+             || *u == ossia::polar_u{})
             i = new Process::XYSlider{ossia::vec2f{}, "Position", id, &self};
           else
             i = new Process::XYZSlider{ossia::vec3f{}, "Position", id, &self};
@@ -162,11 +162,11 @@ struct inlet_vis
           i = new Process::FloatKnob{min, max, init, "Frequency", id, &self};
         }
       }
-      else if(auto tp = p.type.target<ossia::val_type>()) {
+      else if(auto tp = p.type.target<ossia::val_type>())
+      {
         switch(*tp)
         {
-          case ossia::val_type::INT:
-          {
+          case ossia::val_type::INT: {
             auto min = ossia::convert<int>(ossia::get_min(p.domain));
             auto max = ossia::convert<int>(ossia::get_max(p.domain));
             auto init = min;
@@ -174,8 +174,7 @@ struct inlet_vis
             i = new Process::IntSlider{min, max, init, name, id, &self};
             break;
           }
-          case ossia::val_type::FLOAT:
-          {
+          case ossia::val_type::FLOAT: {
             auto min = ossia::convert<float>(ossia::get_min(p.domain));
             auto max = ossia::convert<float>(ossia::get_max(p.domain));
             auto init = min;
@@ -183,28 +182,23 @@ struct inlet_vis
             i = new Process::FloatSlider{min, max, init, name, id, &self};
             break;
           }
-          case ossia::val_type::STRING:
-          {
+          case ossia::val_type::STRING: {
             i = new Process::LineEdit{{}, "String input", id, &self};
             break;
           }
-          case ossia::val_type::BOOL:
-          {
+          case ossia::val_type::BOOL: {
             i = new Process::Toggle{{}, name, id, &self};
             break;
           }
-          case ossia::val_type::IMPULSE:
-          {
+          case ossia::val_type::IMPULSE: {
             i = new Process::ImpulseButton{name, id, &self};
             break;
           }
-          case ossia::val_type::VEC2F:
-          {
+          case ossia::val_type::VEC2F: {
             i = new Process::XYSlider{{}, name, id, &self};
             break;
           }
-          case ossia::val_type::VEC3F:
-          {
+          case ossia::val_type::VEC3F: {
             i = new Process::XYZSlider{{}, name, id, &self};
             break;
           }
@@ -223,6 +217,7 @@ struct inlet_vis
     }
   }
 
+  Process::Inlet* operator()(const ossia::geometry_port&) const noexcept { return nullptr; }
   Process::Inlet* operator()() const noexcept { return nullptr; }
 };
 
@@ -246,6 +241,7 @@ struct outlet_vis
     auto i = new Process::ValueOutlet{getStrongId(self.outlets()), &self};
     return i;
   }
+  Process::Outlet* operator()(const ossia::geometry_port&) const noexcept { return nullptr; }
   Process::Outlet* operator()() const noexcept { return nullptr; }
 };
 
@@ -254,7 +250,7 @@ std::shared_ptr<NodeFactory> Model::getJitFactory()
   static std::map<QByteArray, std::shared_ptr<NodeFactory>> facts;
 
   auto fx_text = m_text.toUtf8();
-  if (fx_text.isEmpty())
+  if(fx_text.isEmpty())
     return nullptr;
 
   if(auto it = facts.find(fx_text); it != facts.end())
@@ -264,7 +260,7 @@ std::shared_ptr<NodeFactory> Model::getJitFactory()
 
   // FIXME dispos of them once unused at execution
   static std::list<std::shared_ptr<NodeCompiler>> old_compilers;
-  if (m_compiler)
+  if(m_compiler)
   {
     old_compilers.push_front(std::move(m_compiler));
     // if (old_compilers.size() > 5)
@@ -272,7 +268,6 @@ std::shared_ptr<NodeFactory> Model::getJitFactory()
   }
 
   m_compiler = std::make_unique<NodeCompiler>("avnd_factory");
-
 
   std::shared_ptr<NodeFactory> jit_factory;
   try
@@ -289,18 +284,19 @@ extern "C" ossia::graph_node* avnd_factory() {
 )_";
     //str = "#include <cmath>"
     //      "";
-    jit_factory = std::make_shared<NodeFactory>((*m_compiler)(str, {}, Jit::CompilerOptions{false}));
+    jit_factory = std::make_shared<NodeFactory>(
+        (*m_compiler)(str, {}, Jit::CompilerOptions{false}));
 
-    if (!(*jit_factory))
+    if(!(*jit_factory))
       return nullptr;
   }
-  catch (const std::exception& e)
+  catch(const std::exception& e)
   {
     qDebug() << e.what();
     errorMessage(0, e.what());
     return nullptr;
   }
-  catch (...)
+  catch(...)
   {
     errorMessage(0, "JIT error");
     return nullptr;
@@ -318,7 +314,7 @@ void Model::reload()
   auto& jit_factory = *jit_fac;
 
   std::unique_ptr<ossia::graph_node> jit_object{jit_factory()};
-  if (!jit_object)
+  if(!jit_object)
   {
     jit_factory = {};
     return;
@@ -330,23 +326,22 @@ void Model::reload()
   auto inls = score::clearAndDeleteLater(m_inlets);
   auto outls = score::clearAndDeleteLater(m_outlets);
 
-  for (ossia::inlet* port : jit_object->root_inputs())
+  for(ossia::inlet* port : jit_object->root_inputs())
   {
-    if (auto inl = port->visit(inlet_vis{*this}))
+    if(auto inl = port->visit(inlet_vis{*this}))
     {
       m_inlets.push_back(inl);
     }
   }
-  for (ossia::outlet* port : jit_object->root_outputs())
+  for(ossia::outlet* port : jit_object->root_outputs())
   {
-    if (auto inl = port->visit(outlet_vis{*this}))
+    if(auto inl = port->visit(outlet_vis{*this}))
     {
       m_outlets.push_back(inl);
     }
   }
 
-  if (!m_outlets.empty()
-      && m_outlets.front()->type() == Process::PortType::Audio)
+  if(!m_outlets.empty() && m_outlets.front()->type() == Process::PortType::Audio)
     safe_cast<Process::AudioOutlet*>(m_outlets.front())->setPropagate(true);
 
   inletsChanged();
@@ -386,11 +381,8 @@ void DataStreamWriter::write(AvndJit::Model& eff)
   eff.reload();
 
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      eff.m_inlets,
-      eff.m_outlets,
-      &eff);
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
+      eff.m_outlets, &eff);
 }
 
 template <>
@@ -407,19 +399,15 @@ void JSONWriter::write(AvndJit::Model& eff)
   eff.reload();
 
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      eff.m_inlets,
-      eff.m_outlets,
-      &eff);
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
+      eff.m_outlets, &eff);
 }
 
 namespace Process
 {
 
 template <>
-QString
-EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const noexcept
+QString EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const noexcept
 {
   return R"_(
 struct Node
@@ -464,38 +452,32 @@ EffectProcessFactory_T<AvndJit::Model>::descriptor(QString d) const noexcept
 namespace AvndJit
 {
 
-Executor::Executor(
-    AvndJit::Model& proc,
-    const Execution::Context& ctx,
-    QObject* parent)
+Executor::Executor(AvndJit::Model& proc, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
   auto reset = [this, &proc] {
-    if (proc.factory && *proc.factory)
+    if(proc.factory && *proc.factory)
     {
       auto pf = (*proc.factory)();
       this->node.reset(pf);
-      if (this->node)
+      if(this->node)
       {
         m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-        for (std::size_t i = 0; i < proc.inlets().size(); i++)
+        for(std::size_t i = 0; i < proc.inlets().size(); i++)
         {
           auto inlet = dynamic_cast<Process::ControlInlet*>(proc.inlets()[i]);
-          if (!inlet)
+          if(!inlet)
             continue;
 
           auto inl = node->root_inputs()[i];
           inl->target<ossia::value_port>()->write_value(inlet->value(), {});
           connect(
-              inlet,
-              &Process::ControlInlet::valueChanged,
-              this,
+              inlet, &Process::ControlInlet::valueChanged, this,
               [this, inl](const ossia::value& v) {
-                system().executionQueue.enqueue([inl, val = v]() mutable {
-                  inl->target<ossia::value_port>()->write_value(
-                      std::move(val), 1);
-                });
+            system().executionQueue.enqueue([inl, val = v]() mutable {
+              inl->target<ossia::value_port>()->write_value(std::move(val), 1);
+            });
               });
         }
       }

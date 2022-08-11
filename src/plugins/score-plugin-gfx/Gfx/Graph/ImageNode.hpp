@@ -1,11 +1,13 @@
 #pragma once
 
 #include <Gfx/Graph/Node.hpp>
+
 #include <ossia/detail/packed_struct.hpp>
 
 namespace score::gfx
 {
-enum ImageMode {
+enum ImageMode
+{
   Single,
   Clamped,
   Tiled,
@@ -21,8 +23,7 @@ public:
   explicit ImagesNode();
   virtual ~ImagesNode();
 
-  score::gfx::NodeRenderer*
-  createRenderer(RenderList& r) const noexcept override;
+  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   class PreloadedRenderer;
   class OnTheFlyRenderer;
@@ -50,10 +51,10 @@ public:
   explicit FullScreenImageNode(QImage dec);
   virtual ~FullScreenImageNode();
 
-  score::gfx::NodeRenderer*
-  createRenderer(RenderList& r) const noexcept override;
+  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   class Renderer;
+
 private:
   QImage m_image;
 };

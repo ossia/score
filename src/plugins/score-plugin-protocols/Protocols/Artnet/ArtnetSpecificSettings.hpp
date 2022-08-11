@@ -2,6 +2,7 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <score/tools/std/StringHash.hpp>
+
 #include <ossia/detail/variant.hpp>
 
 #include <QString>
@@ -55,7 +56,11 @@ struct ArtnetSpecificSettings
   QString host;
   int rate{20};
   int universe{1};
-  enum { ArtNet, E131 } transport{ArtNet};
+  enum
+  {
+    ArtNet,
+    E131
+  } transport{ArtNet};
 };
 }
 

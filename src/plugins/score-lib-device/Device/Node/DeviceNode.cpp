@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceNode.hpp"
 
+#include <State/Message.hpp>
+#include <State/Value.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <State/Message.hpp>
-#include <State/Value.hpp>
 
 #include <score/model/tree/TreeNode.hpp>
 
@@ -14,7 +15,6 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <QDebug>
-
 
 #include <vector>
 
@@ -37,10 +37,7 @@ const QString& DeviceExplorerNode::displayName() const
   {
   public:
     using return_type = const QString&;
-    return_type operator()(const Device::DeviceSettings& dev) const
-    {
-      return dev.name;
-    }
+    return_type operator()(const Device::DeviceSettings& dev) const { return dev.name; }
 
     return_type operator()(const Device::AddressSettings& addr) const
     {
@@ -90,7 +87,7 @@ Device::Node& getNodeFromAddress(Device::Node& n, const State::Address& addr)
 
 void address_rec(QStringList& path, const Node* n, const Device::Node*& root)
 {
-  if (n->parent() && !n->is<DeviceSettings>())
+  if(n->parent() && !n->is<DeviceSettings>())
   {
     address_rec(path, n->parent(), root);
     path.push_back(n->get<AddressSettings>().name);
@@ -106,7 +103,7 @@ State::AddressAccessor address(const Node& treeNode)
   State::AddressAccessor addr;
   const Node* n = &treeNode;
 
-  if (n->is<Device::AddressSettings>())
+  if(n->is<Device::AddressSettings>())
     addr.qualifiers.get().unit = n->get<Device::AddressSettings>().unit;
 
   addr.address.path.reserve(8);
@@ -121,17 +118,17 @@ State::AddressAccessor address(const Node& treeNode)
 
 void parametersList(const Node& n, State::MessageList& ml)
 {
-  if (n.is<AddressSettings>())
+  if(n.is<AddressSettings>())
   {
     const auto& stgs = n.get<AddressSettings>();
 
-    if (stgs.ioType == ossia::access_mode::BI)
+    if(stgs.ioType == ossia::access_mode::BI)
     {
       ml.push_back(message(n));
     }
   }
 
-  for (const auto& child : n.children())
+  for(const auto& child : n.children())
   {
     parametersList(child, ml);
   }
@@ -139,7 +136,7 @@ void parametersList(const Node& n, State::MessageList& ml)
 
 State::Message message(const Node& node)
 {
-  if (!node.is<Device::AddressSettings>())
+  if(!node.is<Device::AddressSettings>())
     return {};
 
   auto& s = node.get<Device::AddressSettings>();
@@ -164,21 +161,20 @@ void merge(Device::Node& base, const State::Message& message)
   path.prepend(message.address.address.device);
 
   Node* node = &base;
-  for (int i = 0; i < path.size(); i++)
+  for(int i = 0; i < path.size(); i++)
   {
-    auto it
-        = std::find_if(node->begin(), node->end(), [&](const auto& cur_node) {
-            return cur_node.displayName() == path[i];
-          });
+    auto it = std::find_if(node->begin(), node->end(), [&](const auto& cur_node) {
+      return cur_node.displayName() == path[i];
+    });
 
-    if (it == node->end())
+    if(it == node->end())
     {
       // We have to start adding sub-nodes from here.
       Node* parentnode{node};
-      for (int k = i; k < path.size(); k++)
+      for(int k = i; k < path.size(); k++)
       {
         Node* newNode{};
-        if (k == 0)
+        if(k == 0)
         {
           // We're adding a device
           Device::DeviceSettings dev;
@@ -191,7 +187,7 @@ void merge(Device::Node& base, const State::Message& message)
           Device::AddressSettings addr;
           addr.name = path[k];
 
-          if (k == path.size() - 1)
+          if(k == path.size() - 1)
           {
             // End of the address
             addr.value = message.value;
@@ -218,10 +214,10 @@ void merge(Device::Node& base, const State::Message& message)
     {
       node = &*it;
 
-      if (i == path.size() - 1)
+      if(i == path.size() - 1)
       {
         // We replace the value by the one in the message
-        if (node->is<Device::AddressSettings>())
+        if(node->is<Device::AddressSettings>())
         {
           node->get<Device::AddressSettings>().value = message.value;
         }
@@ -239,7 +235,7 @@ Device::Node merge(Device::Node base, const State::MessageList& other)
 
   SCORE_ASSERT(base.is<InvisibleRootNode>());
 
-  for (const auto& message : other)
+  for(const auto& message : other)
   {
     merge(base, message);
   }
@@ -249,10 +245,9 @@ Device::Node merge(Device::Node base, const State::MessageList& other)
 
 void dumpTree(const Node& node, QString rec)
 {
-  qDebug() << rec.toUtf8().constData()
-           << node.displayName().toUtf8().constData();
+  qDebug() << rec.toUtf8().constData() << node.displayName().toUtf8().constData();
   rec += " ";
-  for (const auto& child : node)
+  for(const auto& child : node)
   {
     dumpTree(child, rec);
   }
@@ -261,7 +256,7 @@ void dumpTree(const Node& node, QString rec)
 QString deviceName(const Node& treeNode)
 {
   const Node* n = &treeNode;
-  while (n->parent() && !n->is<DeviceSettings>())
+  while(n->parent() && !n->is<DeviceSettings>())
   {
     n = n->parent();
   }

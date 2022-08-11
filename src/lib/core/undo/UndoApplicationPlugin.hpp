@@ -31,8 +31,7 @@ public:
   ~UndoApplicationPlugin() override;
 
 private:
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
-      override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
   GUIElements makeGUIElements() override;
 

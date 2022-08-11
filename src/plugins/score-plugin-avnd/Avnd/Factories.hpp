@@ -1,10 +1,9 @@
 #pragma once
-#include <Crousti/ProcessModel.hpp>
-#include <Crousti/Executor.hpp>
-#include <Crousti/Layer.hpp>
 #include <Process/Dataflow/ControlWidgets.hpp>
 
-#include <ossia/detail/for_each.hpp>
+#include <Crousti/Executor.hpp>
+#include <Crousti/Layer.hpp>
+#include <Crousti/ProcessModel.hpp>
 #include <Dataflow/WidgetInletFactory.hpp>
 
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
@@ -12,11 +11,12 @@
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/graphics/widgets/QGraphicsSlider.hpp>
 
+#include <ossia/detail/for_each.hpp>
+
 namespace oscr
 {
 template <typename Node>
-struct ProcessFactory final
-    : public Process::ProcessFactory_T<oscr::ProcessModel<Node>>
+struct ProcessFactory final : public Process::ProcessFactory_T<oscr::ProcessModel<Node>>
 {
   using Process::ProcessFactory_T<oscr::ProcessModel<Node>>::ProcessFactory_T;
 };
@@ -25,13 +25,15 @@ template <typename Node>
 struct ExecutorFactory final
     : public Execution::ProcessComponentFactory_T<oscr::Executor<Node>>
 {
-  using Execution::ProcessComponentFactory_T<oscr::Executor<Node>>::ProcessComponentFactory_T;
+  using Execution::ProcessComponentFactory_T<
+      oscr::Executor<Node>>::ProcessComponentFactory_T;
 };
 
-template<typename N>
-using reflect_mapped_controls = typename avnd::mapped_control_input_introspection<N>::field_reflections_type;
+template <typename N>
+using reflect_mapped_controls =
+    typename avnd::mapped_control_input_introspection<N>::field_reflections_type;
 
-template<typename Field>
+template <typename Field>
 struct NormalizerFromMapper
 {
   static inline constexpr auto mapper = avnd::get_mapper<Field>();
@@ -65,8 +67,7 @@ struct NormalizerFromMapper
   }
 };
 
-
-template<typename Field>
+template <typename Field>
 class CustomTextGraphicsSlider final : public score::QGraphicsSlider
 {
 public:
@@ -74,19 +75,21 @@ public:
 
   double getMin() const noexcept { return this->min; }
   double getMax() const noexcept { return this->max; }
-  double unmap(double v) const noexcept { return NormalizerFromMapper<Field>::to01(*this, v); }
-  double map(double v) const noexcept { return NormalizerFromMapper<Field>::from01(*this, v); }
+  double unmap(double v) const noexcept
+  {
+    return NormalizerFromMapper<Field>::to01(*this, v);
+  }
+  double map(double v) const noexcept
+  {
+    return NormalizerFromMapper<Field>::from01(*this, v);
+  }
+
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
   {
     score::DefaultGraphicsSliderImpl::paint(
-        *this,
-        score::Skin::instance(),
-        QString::number(map(m_value), 'f', 3),
-        painter,
+        *this, score::Skin::instance(), QString::number(map(m_value), 'f', 3), painter,
         widget);
   }
 
@@ -111,7 +114,7 @@ private:
   }
 };
 
-template<typename Field>
+template <typename Field>
 class CustomTextGraphicsKnob final : public score::QGraphicsKnob
 {
 public:
@@ -119,23 +122,25 @@ public:
 
   double getMin() const noexcept { return this->min; }
   double getMax() const noexcept { return this->max; }
-  double unmap(double v) const noexcept { return NormalizerFromMapper<Field>::to01(*this, v); }
-  double map(double v) const noexcept { return NormalizerFromMapper<Field>::from01(*this, v); }
+  double unmap(double v) const noexcept
+  {
+    return NormalizerFromMapper<Field>::to01(*this, v);
+  }
+  double map(double v) const noexcept
+  {
+    return NormalizerFromMapper<Field>::from01(*this, v);
+  }
+
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
   {
     const double val = map(m_value);
     const double abs = std::abs(val);
     int pres = abs < 10. ? 3 : abs < 100. ? 2 : abs < 1000. ? 1 : 0;
     score::DefaultGraphicsKnobImpl::paint(
-          *this,
-          score::Skin::instance(),
-          QString::number(val, 'f', pres),
-          painter,
-          widget);
+        *this, score::Skin::instance(), QString::number(val, 'f', pres), painter,
+        widget);
   }
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
@@ -159,65 +164,72 @@ private:
   }
 };
 
-template<typename Field>
-struct MatchingWidget { using type = CustomTextGraphicsSlider<Field>; };
-template<typename Field>
-requires requires { Field::widget::knob; }
-struct MatchingWidget<Field> { using type = CustomTextGraphicsKnob<Field>; };
-
-template<typename Node, typename Refl>
-struct CustomControlFactory;
-template<typename Node, std::size_t N, typename Field>
-struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
-  : public Dataflow::WidgetInletFactory<
-      oscr::CustomFloatControl<
-        Node
-      , avnd::field_index<N>
-      >
-    , WidgetFactory::FloatControl<
-        typename MatchingWidget<Field>::type
-      , NormalizerFromMapper<Field>
-      , true
-      >
-    >
+template <typename Field>
+struct MatchingWidget
 {
+  using type = CustomTextGraphicsSlider<Field>;
+};
+template <typename Field>
+requires requires
+{
+  Field::widget::knob;
+}
+struct MatchingWidget<Field>
+{
+  using type = CustomTextGraphicsKnob<Field>;
+};
 
+template <typename Node, typename Refl>
+struct CustomControlFactory;
+template <typename Node, std::size_t N, typename Field>
+struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
+    : public Dataflow::WidgetInletFactory<
+          oscr::CustomFloatControl<Node, avnd::field_index<N>>,
+          WidgetFactory::FloatControl<
+              typename MatchingWidget<Field>::type, NormalizerFromMapper<Field>, true>>
+{
 };
 
 template <typename... Nodes>
-std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key)
+std::vector<std::unique_ptr<score::InterfaceBase>>
+instantiate_fx(const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
   std::vector<std::unique_ptr<score::InterfaceBase>> v;
 
-  if (key == Execution::ProcessComponentFactory::static_interfaceKey())
+  if(key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     //static_assert((requires { std::declval<Nodes>().run({}, {}); } && ...));
-    (v.emplace_back(static_cast<Execution::ProcessComponentFactory*>(new oscr::ExecutorFactory<Nodes>())), ...);
+    (v.emplace_back(static_cast<Execution::ProcessComponentFactory*>(
+         new oscr::ExecutorFactory<Nodes>())),
+     ...);
   }
-  else if (key == Process::ProcessModelFactory::static_interfaceKey())
+  else if(key == Process::ProcessModelFactory::static_interfaceKey())
   {
-    (v.emplace_back(static_cast<Process::ProcessModelFactory*>(new oscr::ProcessFactory<Nodes>())), ...);
+    (v.emplace_back(
+         static_cast<Process::ProcessModelFactory*>(new oscr::ProcessFactory<Nodes>())),
+     ...);
   }
-  else if (key == Process::LayerFactory::static_interfaceKey())
+  else if(key == Process::LayerFactory::static_interfaceKey())
   {
-    auto fun = [&] <typename type> () {
+    auto fun = [&]<typename type>() {
       if constexpr(avnd::has_ui<type>)
       {
-        v.emplace_back(static_cast<Process::LayerFactory*>(new oscr::LayerFactory<type>()));
+        v.emplace_back(
+            static_cast<Process::LayerFactory*>(new oscr::LayerFactory<type>()));
       }
     };
     (fun.template operator()<Nodes>(), ...);
   }
-  else if (key == Process::PortFactory::static_interfaceKey())
+  else if(key == Process::PortFactory::static_interfaceKey())
   {
     // Go through all the process's control inputs with a mapper
     // Generate the matching WidgetInletFactory
     using namespace boost::mp11;
 
-    auto fun = [&] <typename N, typename... Fields> (avnd::typelist<Fields...>) {
-      (v.emplace_back( static_cast<Process::PortFactory*>(new CustomControlFactory<N, Fields>{}) ), ...);
+    auto fun = [&]<typename N, typename... Fields>(avnd::typelist<Fields...>) {
+      (v.emplace_back(
+           static_cast<Process::PortFactory*>(new CustomControlFactory<N, Fields>{})),
+       ...);
     };
     (fun.template operator()<Nodes>(reflect_mapped_controls<Nodes>{}), ...);
   }

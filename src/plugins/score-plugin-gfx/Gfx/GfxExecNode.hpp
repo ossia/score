@@ -1,10 +1,12 @@
 #pragma once
 
+#include <State/ValueConversion.hpp>
+
+#include <Process/ExecutionContext.hpp>
+
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <State/ValueConversion.hpp>
 
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
@@ -16,11 +18,10 @@ namespace Gfx
 {
 
 template <typename Vector>
-int64_t index_of(
-    Vector&& v,
-    const typename std::remove_reference_t<Vector>::value_type& t)
+int64_t
+index_of(Vector&& v, const typename std::remove_reference_t<Vector>::value_type& t)
 {
-  if (auto it = ossia::find(v, t); it != v.end())
+  if(auto it = ossia::find(v, t); it != v.end())
   {
     return std::distance(v.begin(), it);
   }
@@ -35,8 +36,7 @@ struct exec_control
 };
 
 using exec_controls = std::vector<std::shared_ptr<exec_control>>;
-class SCORE_PLUGIN_GFX_EXPORT gfx_exec_node
-    : public ossia::graph_node
+class SCORE_PLUGIN_GFX_EXPORT gfx_exec_node : public ossia::graph_node
 {
 public:
   using control = Gfx::exec_control;
@@ -121,7 +121,7 @@ struct con_unvalidated
   std::weak_ptr<gfx_exec_node> weak_node;
   void operator()(const ossia::value& val)
   {
-    if (auto node = weak_node.lock())
+    if(auto node = weak_node.lock())
     {
       // Check for the case where the node controls have changed
       // due to the script changing

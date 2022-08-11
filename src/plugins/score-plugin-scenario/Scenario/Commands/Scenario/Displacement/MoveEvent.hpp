@@ -2,10 +2,6 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 
-#include <score/model/Identifier.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/path/PathSerialization.hpp>
-
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
@@ -13,6 +9,10 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 struct ElementsProperties;
 
@@ -48,8 +48,7 @@ public:
   }
   QString description() const override
   {
-    return QObject::tr("Move an event with %1")
-        .arg(DisplacementPolicy::name());
+    return QObject::tr("Move an event with %1").arg(DisplacementPolicy::name());
   }
 
   MoveEvent()
@@ -66,11 +65,8 @@ public:
    * @param mode
    */
   MoveEvent(
-      const Scenario::ProcessModel& scenario,
-      const Id<EventModel>& eventId,
-      const TimeVal& newDate,
-      ExpandMode mode,
-      LockMode lock)
+      const Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
+      const TimeVal& newDate, ExpandMode mode, LockMode lock)
       : SerializableMoveEvent{}
       , m_path{scenario}
       , m_mode{mode}
@@ -91,12 +87,8 @@ public:
   }
 
   void update(
-      Scenario::ProcessModel& scenario,
-      const Id<EventModel>& eventId,
-      const TimeVal& newDate,
-      double,
-      ExpandMode,
-      LockMode) override
+      Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
+      const TimeVal& newDate, double, ExpandMode, LockMode) override
   {
     // we need to compute the new time delta
     // NOTE: in the future in would be better to give directly the delta value
@@ -122,10 +114,9 @@ public:
 
     // update positions using old stored dates
     DisplacementPolicy::revertPositions(
-        ctx,
-        scenario,
+        ctx, scenario,
         [&](Process::ProcessModel& p, const TimeVal& t) {
-          p.setParentDuration(m_mode, t);
+      p.setParentDuration(m_mode, t);
         },
         m_savedElementsProperties);
 
@@ -140,7 +131,7 @@ public:
     DisplacementPolicy::updatePositions(
         scenario,
         [&](Process::ProcessModel& p, const TimeVal& t) {
-          p.setParentDuration(m_mode, t);
+      p.setParentDuration(m_mode, t);
         },
         m_savedElementsProperties);
   }
@@ -157,8 +148,7 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override
   {
     int mode;
-    s >> m_savedElementsProperties >> m_path >> m_eventId >> m_initialDate
-        >> mode;
+    s >> m_savedElementsProperties >> m_path >> m_eventId >> m_initialDate >> mode;
 
     m_mode = static_cast<ExpandMode>(mode);
   }
@@ -175,8 +165,7 @@ private:
    * @brief m_initialDate
    * the delta will be calculated from the initial date
    */
-  TimeVal
-      m_initialDate; // used to compute the deltaTime and respect undo behavior
+  TimeVal m_initialDate; // used to compute the deltaTime and respect undo behavior
 };
 }
 }

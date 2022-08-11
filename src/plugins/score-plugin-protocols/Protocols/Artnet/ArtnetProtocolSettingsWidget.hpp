@@ -4,6 +4,7 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <Protocols/Artnet/ArtnetSpecificSettings.hpp>
 
 #include <verdigris>
@@ -16,8 +17,7 @@ class QPushButton;
 namespace Protocols
 {
 
-class ArtnetProtocolSettingsWidget final
-    : public Device::ProtocolSettingsWidget
+class ArtnetProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
   W_OBJECT(ArtnetProtocolSettingsWidget)
 

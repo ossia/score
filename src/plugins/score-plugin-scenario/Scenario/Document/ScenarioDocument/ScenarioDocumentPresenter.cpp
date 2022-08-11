@@ -4,9 +4,6 @@
 
 #include "ZoomPolicy.hpp"
 
-#include <Dataflow/Commands/EditConnection.hpp>
-#include <Library/Panel/LibraryPanelDelegate.hpp>
-#include <Library/ProcessWidget.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -14,36 +11,6 @@
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
-
-#include <score/actions/Toolbar.hpp>
-#include <score/actions/ToolbarManager.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/path/ObjectIdentifier.hpp>
-#include <score/model/path/ObjectPath.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/selection/SelectionStack.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-#include <score/tools/Bind.hpp>
-#include <score/tools/Clamp.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/actions/ActionManager.hpp>
-
-#include <core/application/ApplicationSettings.hpp>
-#include <core/view/Window.hpp>
-
-#include <ossia-qt/invoke.hpp>
-#include <ossia/detail/math.hpp>
-
-#include <QApplication>
-#include <QDebug>
-#include <QMenu>
-#include <QScrollBar>
-#include <QSize>
-#include <QToolBar>
 
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
@@ -66,6 +33,42 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
+#include <Dataflow/Commands/EditConnection.hpp>
+#include <Library/Panel/LibraryPanelDelegate.hpp>
+#include <Library/ProcessWidget.hpp>
+
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/Toolbar.hpp>
+#include <score/actions/ToolbarManager.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/model/path/ObjectPath.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+#include <score/tools/Bind.hpp>
+#include <score/tools/Clamp.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/view/Window.hpp>
+
+#include <ossia/detail/math.hpp>
+
+#include <ossia-qt/invoke.hpp>
+
+#include <QApplication>
+#include <QDebug>
+#include <QMenu>
+#include <QScrollBar>
+#include <QSize>
+#include <QToolBar>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentPresenter)
 namespace Scenario
@@ -87,8 +90,7 @@ ScenarioDocumentView& ScenarioDocumentPresenter::view() const noexcept
 }
 
 ScenarioDocumentPresenter::ScenarioDocumentPresenter(
-    const score::DocumentContext& ctx,
-    score::DocumentPresenter* parent_presenter,
+    const score::DocumentContext& ctx, score::DocumentPresenter* parent_presenter,
     const score::DocumentDelegateModel& delegate_model,
     score::DocumentDelegateView& delegate_view)
     : DocumentDelegatePresenter{parent_presenter, delegate_model, delegate_view}
@@ -99,122 +101,86 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   using namespace score;
 
   // Setup the connections
-  if (auto win = static_cast<score::View*>(score::GUIAppContext().mainWindow))
+  if(auto win = static_cast<score::View*>(score::GUIAppContext().mainWindow))
   {
     connect(
-        win,
-        &View::sizeChanged,
-        this,
-        &ScenarioDocumentPresenter::on_windowSizeChanged,
+        win, &View::sizeChanged, this, &ScenarioDocumentPresenter::on_windowSizeChanged,
         Qt::QueuedConnection);
     connect(
-        win,
-        &View::ready,
-        this,
-        &ScenarioDocumentPresenter::on_viewReady,
+        win, &View::ready, this, &ScenarioDocumentPresenter::on_viewReady,
         Qt::QueuedConnection);
 
-    if(auto scroll_act = ctx.app.actions.action<Actions::AutoScroll>(); scroll_act.action())
+    if(auto scroll_act = ctx.app.actions.action<Actions::AutoScroll>();
+       scroll_act.action())
     {
       m_autoScroll = scroll_act.action()->isChecked();
     }
-
   }
 
-  con(view().view(),
-      &ProcessGraphicsView::sizeChanged,
-      this,
-      &ScenarioDocumentPresenter::on_windowSizeChanged,
-      Qt::QueuedConnection);
+  con(view().view(), &ProcessGraphicsView::sizeChanged, this,
+      &ScenarioDocumentPresenter::on_windowSizeChanged, Qt::QueuedConnection);
 
-  con(view().view(), &ProcessGraphicsView::visibleRectChanged,
-      this, &ScenarioDocumentPresenter::on_visibleRectChanged);
+  con(view().view(), &ProcessGraphicsView::visibleRectChanged, this,
+      &ScenarioDocumentPresenter::on_visibleRectChanged);
 
-  con(view().view(),
-      &ProcessGraphicsView::horizontalZoom,
-      this,
+  con(view().view(), &ProcessGraphicsView::horizontalZoom, this,
       &ScenarioDocumentPresenter::on_horizontalZoom);
-  con(view().view(),
-      &ProcessGraphicsView::verticalZoom,
-      this,
+  con(view().view(), &ProcessGraphicsView::verticalZoom, this,
       &ScenarioDocumentPresenter::on_verticalZoom);
-  con(view().view(),
-      &ProcessGraphicsView::scrolled,
-      this,
+  con(view().view(), &ProcessGraphicsView::scrolled, this,
       &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
-  con(view(),
-      &ScenarioDocumentView::setLargeView,
-      this,
+  con(view(), &ScenarioDocumentView::setLargeView, this,
       &ScenarioDocumentPresenter::setLargeView);
 
-  con(view().timeRuler(),
-      &TimeRuler::drag,
-      this,
+  con(view().timeRuler(), &TimeRuler::drag, this,
       &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
-  con(view(), &ScenarioDocumentView::timeRulerChanged,
-      this, &ScenarioDocumentPresenter::on_timeRulerChanged);
+  con(view(), &ScenarioDocumentView::timeRulerChanged, this,
+      &ScenarioDocumentPresenter::on_timeRulerChanged);
 
-  con(view().minimap(),
-      &Minimap::visibleRectChanged,
-      this,
+  con(view().minimap(), &Minimap::visibleRectChanged, this,
       &ScenarioDocumentPresenter::on_minimapChanged);
 
   // Focus
   connect(
       &m_focusDispatcher,
-      qOverload<QPointer<Process::LayerPresenter>>(&FocusDispatcher::focus),
-      this,
-      &ScenarioDocumentPresenter::setFocusedPresenter,
-      Qt::QueuedConnection);
+      qOverload<QPointer<Process::LayerPresenter>>(&FocusDispatcher::focus), this,
+      &ScenarioDocumentPresenter::setFocusedPresenter, Qt::QueuedConnection);
 
   auto& set = ctx.app.settings<Settings::Model>();
   con(set, &Settings::Model::GraphicZoomChanged, this, [&](double d) {
     auto& skin = Process::Style::instance();
     skin.setIntervalWidth(d);
   });
-  con(set,
-      &Settings::Model::TimeBarChanged,
-      this,
+  con(set, &Settings::Model::TimeBarChanged, this,
       &ScenarioDocumentPresenter::updateTimeBar);
 
   // Help for the FocusDispatcher.
   connect(
-      this,
-      &ScenarioDocumentPresenter::setFocusedPresenter,
-      &m_focusManager,
+      this, &ScenarioDocumentPresenter::setFocusedPresenter, &m_focusManager,
       static_cast<void (Process::ProcessFocusManager::*)(
-          QPointer<Process::LayerPresenter>)>(
-          &Process::ProcessFocusManager::focus));
+          QPointer<Process::LayerPresenter>)>(&Process::ProcessFocusManager::focus));
 
-  con(m_focusManager,
-      &Process::ProcessFocusManager::sig_defocusedViewModel,
-      this,
+  con(m_focusManager, &Process::ProcessFocusManager::sig_defocusedViewModel, this,
       &ScenarioDocumentPresenter::on_viewModelDefocused);
-  con(m_focusManager,
-      &Process::ProcessFocusManager::sig_focusedViewModel,
-      this,
+  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedViewModel, this,
       &ScenarioDocumentPresenter::on_viewModelFocused);
   con(
-      m_focusManager,
-      &Process::ProcessFocusManager::sig_focusedRoot,
-      this,
+      m_focusManager, &Process::ProcessFocusManager::sig_focusedRoot, this,
       [] {
-        ScenarioApplicationPlugin& app
-            = score::GUIAppContext()
-                  .guiApplicationPlugin<ScenarioApplicationPlugin>();
-        app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
+    ScenarioApplicationPlugin& app
+        = score::GUIAppContext().guiApplicationPlugin<ScenarioApplicationPlugin>();
+    app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
       },
       Qt::QueuedConnection);
 
   // Execution timers
-  con(m_context.execTimer, &QTimer::timeout,
-      this, &ScenarioDocumentPresenter::on_executionTimer);
+  con(m_context.execTimer, &QTimer::timeout, this,
+      &ScenarioDocumentPresenter::on_executionTimer);
 
   // Nodal mode control
-  if (auto tb
-      = ctx.app.toolbars.get().find(StringKey<score::Toolbar>("UISetup"));
-      tb != ctx.app.toolbars.get().end())
+  if(auto tb = ctx.app.toolbars.get().find(StringKey<score::Toolbar>("UISetup"));
+     tb != ctx.app.toolbars.get().end())
   {
     // Nodal stuff
     auto actions = tb->second.toolbar()->actions();
@@ -223,45 +189,37 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     m_timelineAction = actions[0];
     SCORE_ASSERT(m_timelineAction);
 
-    connect(m_timelineAction, &QAction::toggled,
-            this, &ScenarioDocumentPresenter::on_timelineModeSwitch);
+    connect(
+        m_timelineAction, &QAction::toggled, this,
+        &ScenarioDocumentPresenter::on_timelineModeSwitch);
 
     m_musicalAction = actions[1];
   }
 
   // Library double-click
-  if (auto processLib = ctx.app.findPanel<Library::ProcessPanel>())
+  if(auto processLib = ctx.app.findPanel<Library::ProcessPanel>())
   {
     con(processLib->processWidget().processView(),
-        &Library::ProcessTreeView::doubleClicked,
-        this,
+        &Library::ProcessTreeView::doubleClicked, this,
         &ScenarioDocumentPresenter::on_addProcessFromLibrary);
     con(processLib->processWidget().presetView(),
-        &Library::PresetListView::doubleClicked,
-        this,
+        &Library::PresetListView::doubleClicked, this,
         &ScenarioDocumentPresenter::on_addPresetFromLibrary);
   }
 
-
   setDisplayedInterval(&model().baseInterval());
 
-  model()
-      .cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(
-          *this);
-  model()
-      .cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(
-          *this);
+  model().cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(*this);
+  model().cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(*this);
 }
 
 void ScenarioDocumentPresenter::recenterNodal()
 {
-  struct {
-    void operator()(CentralIntervalDisplay& disp) const noexcept {
-    }
-    void operator()(CentralNodalDisplay& disp) const noexcept {
-      disp.recenter();
-    }
-    void operator()(ossia::monostate) const noexcept {}
+  struct
+  {
+    void operator()(CentralIntervalDisplay& disp) const noexcept { }
+    void operator()(CentralNodalDisplay& disp) const noexcept { disp.recenter(); }
+    void operator()(ossia::monostate) const noexcept { }
   } vis{};
 
   ossia::visit(vis, m_centralDisplay);
@@ -269,8 +227,8 @@ void ScenarioDocumentPresenter::recenterNodal()
 
 void ScenarioDocumentPresenter::switchMode(bool nodal)
 {
-  const auto mode = nodal ? IntervalModel::ViewMode::Nodal
-                          : IntervalModel::ViewMode::Temporal;
+  const auto mode
+      = nodal ? IntervalModel::ViewMode::Nodal : IntervalModel::ViewMode::Temporal;
   displayedInterval().setViewMode(mode);
 
   view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -282,7 +240,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   m_centralDisplay.emplace<ossia::monostate>();
 
   // Then reconstruct depending on the mode we want
-  if (nodal)
+  if(nodal)
   {
     view().view().timebarVisible = false;
 
@@ -304,17 +262,12 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     });
   }
 
-
   {
-    const struct {
-      void operator()(CentralIntervalDisplay& disp) const noexcept {
-        disp.init();
-      }
-      void operator()(CentralNodalDisplay& disp) const noexcept {
-        disp.init();
-      }
-      void operator()(ossia::monostate) const noexcept {
-      }
+    const struct
+    {
+      void operator()(CentralIntervalDisplay& disp) const noexcept { disp.init(); }
+      void operator()(CentralNodalDisplay& disp) const noexcept { disp.init(); }
+      void operator()(ossia::monostate) const noexcept { }
     } init_vis{};
     ossia::visit(init_vis, m_centralDisplay);
   }
@@ -356,7 +309,7 @@ IntervalPresenter* ScenarioDocumentPresenter::displayedIntervalPresenter() const
 void ScenarioDocumentPresenter::selectAll()
 {
   auto processmodel = focusManager().focusedModel();
-  if (processmodel)
+  if(processmodel)
   {
     m_selectionDispatcher.select(processmodel->selectableChildren());
   }
@@ -376,8 +329,7 @@ void ScenarioDocumentPresenter::selectTop()
 {
   focusManager().focus(this);
   score::SelectionDispatcher{m_context.selectionStack}.select(Selection{
-      &displayedElements.startState(),
-      &displayedElements.interval(),
+      &displayedElements.startState(), &displayedElements.interval(),
       &displayedElements.endState()});
 }
 
@@ -387,28 +339,26 @@ void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
 
   view().timeRuler().setZoomRatio(newRatio);
 
-  const struct {
+  const struct
+  {
     ZoomRatio zoomRatio{};
-    void operator()(CentralIntervalDisplay& disp) const noexcept {
+    void operator()(CentralIntervalDisplay& disp) const noexcept
+    {
       disp.presenter.on_zoomRatioChanged(zoomRatio);
     }
-    void operator()(CentralNodalDisplay& disp) const noexcept {
-    }
-    void operator()(ossia::monostate) const noexcept {
-    }
+    void operator()(CentralNodalDisplay& disp) const noexcept { }
+    void operator()(ossia::monostate) const noexcept { }
   } vis{m_zoomRatio};
   ossia::visit(vis, m_centralDisplay);
 
-  for (auto& cbl : m_dataflow.cables())
+  for(auto& cbl : m_dataflow.cables())
   {
-    if (cbl.second)
+    if(cbl.second)
       cbl.second->resize();
   }
 }
 
-void ScenarioDocumentPresenter::on_horizontalZoom(
-    QPointF zoom,
-    QPointF scenePoint)
+void ScenarioDocumentPresenter::on_horizontalZoom(QPointF zoom, QPointF scenePoint)
 {
   auto& map = view().minimap();
 
@@ -438,40 +388,40 @@ void ScenarioDocumentPresenter::on_horizontalZoom(
   view().minimap().modifyHandles(lh, rh);
 }
 
-void ScenarioDocumentPresenter::on_verticalZoom(
-    QPointF zoom,
-    QPointF scenePoint)
+void ScenarioDocumentPresenter::on_verticalZoom(QPointF zoom, QPointF scenePoint)
 {
   auto z = ossia::clamp(zoom.y(), -100., 100.);
-  if (z == 0.)
+  if(z == 0.)
     return;
   auto& c = displayedInterval();
   const FullRack& slts = c.fullView();
-  for (std::size_t i = 0; i < slts.size(); i++)
+  for(std::size_t i = 0; i < slts.size(); i++)
   {
     SlotId slot{i, Slot::FullView};
     c.setSlotHeight(slot, c.getSlotHeight(slot) + z);
   }
 }
 void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
-    QPointF previous,
-    QPointF current)
+    QPointF previous, QPointF current)
 {
   view().view().scrollHorizontal(previous.x() - current.x());
 }
 
 void ScenarioDocumentPresenter::on_visibleRectChanged(const QRectF& rect)
 {
-  struct {
+  struct
+  {
     const QRectF& rect;
-    void operator()(CentralIntervalDisplay& disp) const noexcept {
-      if (auto p = disp.presenter.intervalPresenter())
+    void operator()(CentralIntervalDisplay& disp) const noexcept
+    {
+      if(auto p = disp.presenter.intervalPresenter())
         p->on_visibleRectChanged(rect);
     }
-    void operator()(CentralNodalDisplay& disp) const noexcept {
+    void operator()(CentralNodalDisplay& disp) const noexcept
+    {
       disp.presenter->setRect({0, 0, rect.width(), rect.height()});
     }
-    void operator()(ossia::monostate) const noexcept {}
+    void operator()(ossia::monostate) const noexcept { }
   } vis{rect};
 
   ossia::visit(vis, this->m_centralDisplay);
@@ -544,7 +494,7 @@ void ScenarioDocumentPresenter::setAutoScroll(bool c)
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 {
-  if (m_zoomRatio == -1)
+  if(m_zoomRatio == -1)
     return;
 
   // Keep the same zoom level with the new width.
@@ -556,7 +506,7 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
   // Update the time interval if the window is greater.
   auto& c = displayedInterval();
   auto visible_rect = view().visibleSceneRect();
-  if (visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
+  if(visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
   {
     auto t = TimeVal::fromPixels(visible_rect.width(), m_zoomRatio);
     auto min_time = c.contentDuration();
@@ -571,39 +521,37 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 {
   // Prevent loops
-  if (m_updatingView)
+  if(m_updatingView)
     return;
 
   // Don't update when in nodal (this breaks the zoom / position saving)
   auto itv = ossia::get_if<CentralIntervalDisplay>(&m_centralDisplay);
-  if (!itv)
+  if(!itv)
     return;
 
   auto& c = displayedInterval();
   auto& gv = view().view();
 
-  if (dx < 0 && !m_zooming)
+  if(dx < 0 && !m_zooming)
   {
     auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
     auto scene_rect = gv.sceneRect();
-    if (cur_rect.x() + cur_rect.width() - dx > (scene_rect.width()))
+    if(cur_rect.x() + cur_rect.width() - dx > (scene_rect.width()))
     {
-      auto t = TimeVal::fromPixels(
-          cur_rect.x() + cur_rect.width() - dx, m_zoomRatio);
+      auto t = TimeVal::fromPixels(cur_rect.x() + cur_rect.width() - dx, m_zoomRatio);
       c.duration.setGuiDuration(t);
       scene_rect.adjust(0, 0, 5, 0);
       gv.setSceneRect(scene_rect);
     }
   }
-  else if (dx > 0 && !m_zooming)
+  else if(dx > 0 && !m_zooming)
   {
     auto min_time = c.contentDuration();
-    if (min_time < c.duration.guiDuration())
+    if(min_time < c.duration.guiDuration())
     {
       auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
       auto t = std::max(
-          TimeVal::fromPixels(
-              cur_rect.x() + cur_rect.width() - dx, m_zoomRatio),
+          TimeVal::fromPixels(cur_rect.x() + cur_rect.width() - dx, m_zoomRatio),
           min_time);
       c.duration.setGuiDuration(t);
 
@@ -618,10 +566,11 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   view().timeRuler().setStartPoint(
       TimeVal::fromPixels(visible_scene_rect.x(), m_zoomRatio));
   const auto dur = c.duration.guiDuration();
-  double center_pixel_percentage = (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio));
+  double center_pixel_percentage
+      = (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio));
   c.setMidTime(dur * center_pixel_percentage);
 
-  if (!m_updatingMinimap)
+  if(!m_updatingMinimap)
   {
     updateMinimap();
   }
@@ -648,49 +597,51 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
   return disptime / view_width;
 }
 
-void ScenarioDocumentPresenter::on_addProcessFromLibrary(
-    const Library::ProcessData& dat)
+void ScenarioDocumentPresenter::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
   if(&this->context().app.currentDocument()->document != &this->context().document)
     return;
 
-  const struct {
+  const struct
+  {
     const Library::ProcessData& dat;
-    void operator()(CentralIntervalDisplay& disp) const noexcept {
+    void operator()(CentralIntervalDisplay& disp) const noexcept
+    {
       disp.on_addProcessFromLibrary(dat);
     }
-    void operator()(CentralNodalDisplay& disp) const noexcept {
+    void operator()(CentralNodalDisplay& disp) const noexcept
+    {
       disp.on_addProcessFromLibrary(dat);
     }
-    void operator()(ossia::monostate) const noexcept {
-    }
+    void operator()(ossia::monostate) const noexcept { }
   } vis{dat};
   ossia::visit(vis, m_centralDisplay);
 }
 
-void ScenarioDocumentPresenter::on_addPresetFromLibrary(
-      const Process::Preset& dat)
+void ScenarioDocumentPresenter::on_addPresetFromLibrary(const Process::Preset& dat)
 {
   if(&this->context().app.currentDocument()->document != &this->context().document)
     return;
 
-  const struct {
-      const Process::Preset& dat;
-      void operator()(CentralIntervalDisplay& disp) const noexcept {
-        disp.on_addPresetFromLibrary(dat);
-      }
-      void operator()(CentralNodalDisplay& disp) const noexcept {
-        disp.on_addPresetFromLibrary(dat);
-      }
-      void operator()(ossia::monostate) const noexcept {
-      }
+  const struct
+  {
+    const Process::Preset& dat;
+    void operator()(CentralIntervalDisplay& disp) const noexcept
+    {
+      disp.on_addPresetFromLibrary(dat);
+    }
+    void operator()(CentralNodalDisplay& disp) const noexcept
+    {
+      disp.on_addPresetFromLibrary(dat);
+    }
+    void operator()(ossia::monostate) const noexcept { }
   } vis{dat};
   ossia::visit(vis, m_centralDisplay);
 }
 
 void ScenarioDocumentPresenter::restoreZoom()
 {
-  if (auto z = displayedInterval().zoom(); z > 0)
+  if(auto z = displayedInterval().zoom(); z > 0)
   {
     auto& c = displayedInterval();
 
@@ -709,7 +660,7 @@ void ScenarioDocumentPresenter::restoreZoom()
     const auto cstDur = displayedInterval().duration.guiDuration();
     double handles_duration_ratio = (c.midTime() / c.duration.guiDuration());
     double handle_center = handles_duration_ratio * viewWidth;
-    auto lx = handle_center - minimap_handle_width / 2./* - minimap_offset_pixels*/;
+    auto lx = handle_center - minimap_handle_width / 2. /* - minimap_offset_pixels*/;
 
     minimap.setMinDistance(2. * viewWidth / cstDur.impl);
     m_reloadingMinimap = true;
@@ -731,19 +682,21 @@ void ScenarioDocumentPresenter::on_viewReady()
 
     restoreZoom();
 
-    if (!window_size_set)
+    if(!window_size_set)
       on_windowSizeChanged({});
 
-    const struct {
+    const struct
+    {
       QRectF rect;
-      void operator()(CentralIntervalDisplay& disp) const noexcept {
+      void operator()(CentralIntervalDisplay& disp) const noexcept
+      {
         disp.on_visibleRectChanged(rect);
       }
-      void operator()(CentralNodalDisplay& disp) const noexcept {
+      void operator()(CentralNodalDisplay& disp) const noexcept
+      {
         disp.on_visibleRectChanged(rect);
       }
-      void operator()(ossia::monostate) const noexcept {
-      }
+      void operator()(ossia::monostate) const noexcept { }
     } vis{view().view().visibleRect()};
     ossia::visit(vis, m_centralDisplay);
   });
@@ -754,7 +707,7 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
   // Run async because the cable model may have been
   // created before the port item have in e.g. an undo command
   ossia::qt::run_async(this, [this, ptr = QPointer{&c}] {
-    if (ptr)
+    if(ptr)
     {
       m_dataflow.createCable(*ptr, m_context, &view().scene());
     }
@@ -764,7 +717,7 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)
 {
   auto it = m_dataflow.cables().find(const_cast<Process::Cable*>(&c));
-  if (it != m_dataflow.cables().end())
+  if(it != m_dataflow.cables().end())
   {
     delete it->second;
     m_dataflow.cables().erase(it);
@@ -775,26 +728,25 @@ void ScenarioDocumentPresenter::on_timeRulerChanged()
 {
   auto& tr = view().timeRuler();
 
-  con(tr,
-      &TimeRuler::drag,
-      this,
-      &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+  con(tr, &TimeRuler::drag, this, &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
 
-  if (m_zoomRatio > 0)
+  if(m_zoomRatio > 0)
     tr.setZoomRatio(m_zoomRatio);
   tr.setWidth(view().viewWidth());
 
-  struct {
+  struct
+  {
     Scenario::TimeRulerBase& tr;
-    void operator()(CentralIntervalDisplay& disp) const noexcept {
-      if (auto p = disp.presenter.intervalPresenter())
+    void operator()(CentralIntervalDisplay& disp) const noexcept
+    {
+      if(auto p = disp.presenter.intervalPresenter())
       {
         tr.setGrid(p->grid());
         p->on_zoomRatioChanged(p->zoomRatio());
       }
     }
-    void operator()(CentralNodalDisplay& disp) const noexcept {}
-    void operator()(ossia::monostate) const noexcept {}
+    void operator()(CentralNodalDisplay& disp) const noexcept { }
+    void operator()(ossia::monostate) const noexcept { }
   } vis{tr};
   ossia::visit(vis, this->m_centralDisplay);
 
@@ -826,7 +778,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   const double y = visible_scene_rect.top();
 
   // Set zoom
-  if (newZoom != m_zoomRatio)
+  if(newZoom != m_zoomRatio)
     setZoomRatio(newZoom);
 
   // Set viewport position
@@ -841,8 +793,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   {
     c.setZoom(newZoom);
     c.setMidTime(TimeVal(
-        dur.impl
-        * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
+        dur.impl * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
   }
 
   m_zooming = false;
@@ -894,18 +845,20 @@ void ScenarioDocumentPresenter::autoScroll()
     }
   };
 
-  double exec_d = visible_play_percentage() * (delta + dur.defaultDuration()).toPixels(this->m_zoomRatio);
+  double exec_d = visible_play_percentage()
+                  * (delta + dur.defaultDuration()).toPixels(this->m_zoomRatio);
   auto center = view().view().visibleRect().center();
-  view().view().ensureVisible({exec_d - 100, center.y() - 10, view().viewWidth() / 2., 20});
+  view().view().ensureVisible(
+      {exec_d - 100, center.y() - 10, view().viewWidth() / 2., 20});
 }
 
 void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b)
 {
   const bool nodal = !b;
   const bool m_nodal = ossia::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
-  if (nodal && !m_nodal)
+  if(nodal && !m_nodal)
     switchMode(true);
-  else if (!nodal && m_nodal)
+  else if(!nodal && m_nodal)
     switchMode(false);
 }
 
@@ -924,12 +877,13 @@ void ScenarioDocumentPresenter::updateTimeBar()
   auto& set = m_context.app.settings<Settings::Model>();
   auto& gv = view().view();
   const bool nodal = ossia::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
-  gv.timebarVisible = gv.timebarPlaying && set.getTimeBar() && !nodal && (&displayedInterval().duration == gv.currentTimebar);
+  gv.timebarVisible = gv.timebarPlaying && set.getTimeBar() && !nodal
+                      && (&displayedInterval().duration == gv.currentTimebar);
 }
 
 void ScenarioDocumentPresenter::updateMinimap()
 {
-  if (m_zoomRatio == -1)
+  if(m_zoomRatio == -1)
     return;
 
   auto& minimap = view().minimap();
@@ -944,7 +898,7 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto zoomRatio = cstDur.impl / viewWidth;
 
   minimap.setWidth(viewWidth);
-  if (m_miniLayer)
+  if(m_miniLayer)
   {
     m_miniLayer->setWidth(viewWidth);
     m_miniLayer->setZoomRatio(zoomRatio);
@@ -970,9 +924,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
   // Can't be a ref because of a qmetatype quirk
   auto& interval = *itv;
   auto& ctx = model().context();
-  if (displayedElements.initialized())
+  if(displayedElements.initialized())
   {
-    if (&interval == &displayedElements.interval())
+    if(&interval == &displayedElements.interval())
     {
       selectTop();
       return;
@@ -982,7 +936,7 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsContainer elements
       = provider.make(&DisplayedElementsProvider::make, interval);
-  if (!elements.interval)
+  if(!elements.interval)
   {
     qWarning() << "could not put interval in fullview";
     return;
@@ -994,38 +948,35 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
 
   disconnect(m_intervalConnection);
   disconnect(m_durationConnection);
-  if (&interval != &model().baseInterval())
+  if(&interval != &model().baseInterval())
   {
     m_intervalConnection = con(interval, &QObject::destroyed, this, [&]() {
       setDisplayedInterval(&model().baseInterval());
     });
   }
-  m_durationConnection = con(
-      interval.duration, &IntervalDurations::guiDurationChanged, this, [=] {
-        updateMinimap();
-      });
+  m_durationConnection
+      = con(interval.duration, &IntervalDurations::guiDurationChanged, this, [=] {
+          updateMinimap();
+        });
 
   // Setup of the layer in the minimap
   delete m_miniLayer;
   m_miniLayer = nullptr;
 
   auto& layerFactoryList = ctx.app.interfaces<Process::LayerFactoryList>();
-  for (auto& proc : interval.processes)
+  for(auto& proc : interval.processes)
   {
-    if (auto fac = layerFactoryList.findDefaultFactory(proc))
+    if(auto fac = layerFactoryList.findDefaultFactory(proc))
     {
-      if ((m_miniLayer = fac->makeMiniLayer(proc, nullptr)))
+      if((m_miniLayer = fac->makeMiniLayer(proc, nullptr)))
       {
         m_miniLayer->setHeight(40);
         m_miniLayer->setWidth(view().minimap().width());
         view().minimap().scene()->addItem(m_miniLayer);
-        con(proc,
-            &Process::ProcessModel::identified_object_destroying,
-            this,
-            [=] {
-              delete m_miniLayer;
-              m_miniLayer = nullptr;
-            });
+        con(proc, &Process::ProcessModel::identified_object_destroying, this, [=] {
+          delete m_miniLayer;
+          m_miniLayer = nullptr;
+        });
         break;
       }
     }
@@ -1033,9 +984,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
 
   // Setup of the nodal stuff
   {
-    if (m_timelineAction)
+    if(m_timelineAction)
     {
-      switch (interval.viewMode())
+      switch(interval.viewMode())
       {
         case Scenario::IntervalModel::Temporal:
           m_timelineAction->setChecked(true);
@@ -1049,33 +1000,31 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
   }
 }
 
-void ScenarioDocumentPresenter::on_viewModelDefocused(
-    const Process::ProcessModel* vm)
+void ScenarioDocumentPresenter::on_viewModelDefocused(const Process::ProcessModel* vm)
 {
   // Deselect
   // Note : why these two lines ?
   // selectionStack.clear() should clear the selection everywhere anyway.
-  if (vm)
+  if(vm)
     vm->setSelection({});
 
   score::IDocument::documentContext(*this).selectionStack.clearAllButLast();
 }
 
-void ScenarioDocumentPresenter::on_viewModelFocused(
-    const Process::ProcessModel* process)
+void ScenarioDocumentPresenter::on_viewModelFocused(const Process::ProcessModel* process)
 {
   // If the parent of the layer is a interval, we set the focus on the
   // interval too.
   auto slot = process->parent();
-  if (!slot)
+  if(!slot)
     return;
   auto rack = slot->parent();
-  if (!rack)
+  if(!rack)
     return;
   auto cm = rack->parent();
-  if (auto interval = dynamic_cast<IntervalModel*>(cm))
+  if(auto interval = dynamic_cast<IntervalModel*>(cm))
   {
-    if (m_focusedInterval)
+    if(m_focusedInterval)
       m_focusedInterval->focusChanged(false);
 
     m_focusedInterval = interval;
@@ -1089,17 +1038,16 @@ void ScenarioDocumentPresenter::focusFrontProcess()
   auto itv_disp = ossia::get_if<CentralIntervalDisplay>(&m_centralDisplay);
   if(!itv_disp)
     return;
-  FullViewIntervalPresenter* cst_pres
-      = itv_disp->presenter.intervalPresenter();
+  FullViewIntervalPresenter* cst_pres = itv_disp->presenter.intervalPresenter();
 
-  if (cst_pres && !cst_pres->getSlots().empty())
+  if(cst_pres && !cst_pres->getSlots().empty())
   {
     auto& firstSlot = cst_pres->getSlots().front();
-    if (auto slt = firstSlot.getLayerSlot())
+    if(auto slt = firstSlot.getLayerSlot())
     {
       if(!slt->layers.empty())
       {
-        if (auto p = slt->layers.front().mainPresenter())
+        if(auto p = slt->layers.front().mainPresenter())
           focusManager().focus(p);
       }
       else
@@ -1116,14 +1064,14 @@ void ScenarioDocumentPresenter::focusFrontProcess()
 
 void ScenarioDocumentPresenter::goUpALevel()
 {
-  if (!this->displayedElements.initialized())
+  if(!this->displayedElements.initialized())
     return;
 
   QObject* itv = &this->displayedElements.interval();
-  while (itv)
+  while(itv)
   {
     itv = itv->parent();
-    if (auto itv_ = qobject_cast<const IntervalModel*>(itv))
+    if(auto itv_ = qobject_cast<const IntervalModel*>(itv))
     {
       setDisplayedInterval(const_cast<IntervalModel*>(itv_));
       return;
@@ -1131,13 +1079,11 @@ void ScenarioDocumentPresenter::goUpALevel()
   }
 }
 
-void ScenarioDocumentPresenter::setNewSelection(
-    const Selection& old,
-    const Selection& s)
+void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Selection& s)
 {
   auto process = m_focusManager.focusedModel();
-  auto clearProcessSelection = [=] (Process::ProcessModel* process) {
-    if (process)
+  auto clearProcessSelection = [=](Process::ProcessModel* process) {
+    if(process)
     {
       process->setSelection(Selection{});
       process->selection.set(false);
@@ -1147,22 +1093,22 @@ void ScenarioDocumentPresenter::setNewSelection(
     }
   };
 
-  for (auto& e : old)
+  for(auto& e : old)
   {
     const auto it = ossia::find(s, e);
-    if (it == s.end())
+    if(it == s.end())
     {
-      if (auto proc = qobject_cast<Process::ProcessModel*>(e))
+      if(auto proc = qobject_cast<Process::ProcessModel*>(e))
       {
         proc->selection.set(false);
       }
-      else if (auto port = qobject_cast<Process::Port*>(e))
+      else if(auto port = qobject_cast<Process::Port*>(e))
       {
         port->selection.set(false);
         if(auto proc = qobject_cast<Process::ProcessModel*>(port->parent()))
           proc->selection.set(false);
       }
-      else if (auto cable = qobject_cast<Process::Cable*>(e))
+      else if(auto cable = qobject_cast<Process::Cable*>(e))
       {
         cable->selection.set(false);
       }
@@ -1171,28 +1117,28 @@ void ScenarioDocumentPresenter::setNewSelection(
 
   // Manages the selection (different case if we're
   // selecting something in a process, or something in full view)
-  if (s.empty())
+  if(s.empty())
   {
     clearProcessSelection(process);
     displayedElements.setSelection(Selection{});
 
     // Note : once here was a call to defocus a presenter. Why ? See git blame.
   }
-  else if (ossia::any_of(s, [&](const QObject* obj) {
-             return obj == &displayedElements.interval()
-                    || obj == &displayedElements.startTimeSync()
-                    || obj == &displayedElements.endTimeSync()
-                    || obj == &displayedElements.startEvent()
-                    || obj == &displayedElements.endEvent()
-                    || obj == &displayedElements.startState()
-                    || obj == &displayedElements.endState();
-           }))
+  else if(ossia::any_of(s, [&](const QObject* obj) {
+            return obj == &displayedElements.interval()
+                   || obj == &displayedElements.startTimeSync()
+                   || obj == &displayedElements.endTimeSync()
+                   || obj == &displayedElements.startEvent()
+                   || obj == &displayedElements.endEvent()
+                   || obj == &displayedElements.startState()
+                   || obj == &displayedElements.endState();
+          }))
   {
     clearProcessSelection(process);
 
     auto pres = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
         *score::IDocument::documentFromObject(this));
-    if (pres)
+    if(pres)
       m_focusManager.focus(pres);
 
     displayedElements.setSelection(s);
@@ -1222,18 +1168,15 @@ void ScenarioDocumentPresenter::setNewSelection(
         }
 
         newProc->setSelection(s);
-        if (process)
+        if(process)
         {
           process->selection.set(false);
         }
         newProc->selection.set(true);
 
         m_processSelectionConnections.push_back(connect(
-            newProc,
-            &Process::ProcessModel::identified_object_destroying,
-            this,
-            &ScenarioDocumentPresenter::deselectAll,
-            Qt::UniqueConnection));
+            newProc, &Process::ProcessModel::identified_object_destroying, this,
+            &ScenarioDocumentPresenter::deselectAll, Qt::UniqueConnection));
       }
       else
       {
@@ -1244,7 +1187,7 @@ void ScenarioDocumentPresenter::setNewSelection(
     }
     else
     {
-      if (process && !ossia::contains(selectedProcesses, process))
+      if(process && !ossia::contains(selectedProcesses, process))
       {
         clearProcessSelection(process);
       }
@@ -1253,19 +1196,16 @@ void ScenarioDocumentPresenter::setNewSelection(
       {
         newProc->selection.set(true);
         m_processSelectionConnections.push_back(connect(
-            newProc,
-            &Process::ProcessModel::identified_object_destroying,
-            this,
-            &ScenarioDocumentPresenter::deselectAll,
-            Qt::UniqueConnection));
+            newProc, &Process::ProcessModel::identified_object_destroying, this,
+            &ScenarioDocumentPresenter::deselectAll, Qt::UniqueConnection));
       }
     }
 
-    for (auto& elt : s)
+    for(auto& elt : s)
     {
-      if (auto cable = qobject_cast<Process::Cable*>(elt.data()))
+      if(auto cable = qobject_cast<Process::Cable*>(elt.data()))
         cable->selection.set(true);
-      else if (auto port = qobject_cast<Process::Port*>(elt.data()))
+      else if(auto port = qobject_cast<Process::Port*>(elt.data()))
         port->selection.set(true);
     }
   }

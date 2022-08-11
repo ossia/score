@@ -1,7 +1,8 @@
 #pragma once
+#include <Process/TimeValue.hpp>
+
 #include <Midi/Commands/CommandFactory.hpp>
 #include <Midi/MidiNote.hpp>
-#include <Process/TimeValue.hpp>
 
 #include <score/model/path/Path.hpp>
 
@@ -31,19 +32,21 @@ private:
 
 class AddNotes final : public score::Command
 {
-    SCORE_COMMAND_DECL(Midi::CommandFactoryName(),AddNotes,"Add multiple notes")
-    public:
-        AddNotes(const ProcessModel& model, const std::vector<NoteData>& notes);
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), AddNotes, "Add multiple notes")
+public:
+  AddNotes(const ProcessModel& model, const std::vector<NoteData>& notes);
 
-        void undo(const score::DocumentContext& ctx) const override;
-        void redo(const score::DocumentContext& ctx) const override;
-    protected:
-        void serializeImpl(DataStreamInput& s) const override;
-        void deserializeImpl(DataStreamOutput& s) override;
-    private:
-        Path<ProcessModel> m_model;
-        std::vector<Id<Note>> m_ids;
-        std::vector<NoteData> m_notes;
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<ProcessModel> m_model;
+  std::vector<Id<Note>> m_ids;
+  std::vector<NoteData> m_notes;
 };
 
 class SCORE_PLUGIN_MIDI_EXPORT ReplaceNotes final : public score::Command
@@ -51,10 +54,7 @@ class SCORE_PLUGIN_MIDI_EXPORT ReplaceNotes final : public score::Command
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ReplaceNotes, "Set notes")
 public:
   ReplaceNotes(
-      const ProcessModel& model,
-      const std::vector<NoteData>& note,
-      int min,
-      int max,
+      const ProcessModel& model, const std::vector<NoteData>& note, int min, int max,
       TimeVal dur);
 
   void undo(const score::DocumentContext& ctx) const override;

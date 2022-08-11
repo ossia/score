@@ -7,16 +7,17 @@ W_OBJECT_IMPL(score::AddRemoveList)
 namespace score
 {
 
-AddRemoveList::AddRemoveList(const QString& root, const QStringList& data, QWidget* parent)
-  : QListWidget{parent}
-  , m_root{root}
+AddRemoveList::AddRemoveList(
+    const QString& root, const QStringList& data, QWidget* parent)
+    : QListWidget{parent}
+    , m_root{root}
 {
   setAlternatingRowColors(true);
   setEditTriggers(QListWidget::DoubleClicked);
 
   replaceContent(data);
   connect(this, &AddRemoveList::itemChanged, this, [this](auto item) {
-    if (m_editing != 0)
+    if(m_editing != 0)
       return;
     on_itemChanged(item);
     changed();
@@ -27,12 +28,12 @@ void AddRemoveList::on_itemChanged(QListWidgetItem* item)
 {
   m_editing++;
 start:
-  for (int i = 0; i < count(); i++)
+  for(int i = 0; i < count(); i++)
   {
     auto other = this->item(i);
-    if (other != item)
+    if(other != item)
     {
-      if (other->text() == item->text())
+      if(other->text() == item->text())
       {
         item->setText(item->text() + "_");
         goto start;
@@ -53,7 +54,7 @@ void AddRemoveList::fix(int k)
 void AddRemoveList::replaceContent(const QStringList& values)
 {
   clear();
-  for (auto& str : values)
+  for(auto& str : values)
   {
     auto item = new QListWidgetItem{str};
     item->setFlags(item->flags() | Qt::ItemFlag::ItemIsEditable);
@@ -66,7 +67,7 @@ QStringList AddRemoveList::content() const noexcept
   QStringList c;
   const int n = count();
   c.reserve(n);
-  for (int i = 0; i < n; i++)
+  for(int i = 0; i < n; i++)
     c.push_back(item(i)->text());
   return c;
 }
@@ -74,10 +75,10 @@ QStringList AddRemoveList::content() const noexcept
 bool AddRemoveList::sameContent(const QStringList& values)
 {
   const int n = count();
-  if (n != values.size())
+  if(n != values.size())
     return false;
-  for (int i = 0; i < n; i++)
-    if (item(i)->text() != values[i])
+  for(int i = 0; i < n; i++)
+    if(item(i)->text() != values[i])
       return false;
   return true;
 }
@@ -94,7 +95,7 @@ void AddRemoveList::on_add(const QString& name)
 void AddRemoveList::on_remove()
 {
   const auto& selection = selectedItems();
-  for (auto item : selection)
+  for(auto item : selection)
   {
     removeItemWidget(item);
   }
@@ -103,11 +104,11 @@ void AddRemoveList::on_remove()
 
 void AddRemoveList::setCount(int i)
 {
-  while (count() < i)
+  while(count() < i)
   {
     on_add(m_root + QString::number(count()));
   }
-  while (count() > i)
+  while(count() > i)
   {
     delete takeItem(count() - 1);
   }
@@ -119,11 +120,11 @@ void AddRemoveList::sanitize(AddRemoveList* changed, const AddRemoveList* other)
   auto c1 = changed->content();
   auto c2 = other->content();
   int k = 0;
-  for (auto& e1 : c1)
+  for(auto& e1 : c1)
   {
-    for (auto& e2 : c2)
+    for(auto& e2 : c2)
     {
-      if (e1 == e2)
+      if(e1 == e2)
       {
         changed->fix(k);
         must_recheck = true;
@@ -133,7 +134,7 @@ void AddRemoveList::sanitize(AddRemoveList* changed, const AddRemoveList* other)
     k++;
   }
 
-  if (must_recheck)
+  if(must_recheck)
     sanitize(changed, other);
 }
 

@@ -1,8 +1,7 @@
 #include <Scenario/Application/Drops/DropProcessInScenario.hpp>
-
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 
@@ -15,9 +14,7 @@ class DropProcessInScenarioHelper
 {
 public:
   DropProcessInScenarioHelper(
-      MagneticStates m_magnetic,
-      const Scenario::ScenarioPresenter& pres,
-      QPointF pos,
+      MagneticStates m_magnetic, const Scenario::ScenarioPresenter& pres, QPointF pos,
       TimeVal maxdur)
       : m_sequence{bool(qApp->keyboardModifiers() & Qt::ShiftModifier)}
       , m_magnetism{!bool(qApp->keyboardModifiers() & Qt::AltModifier)}
@@ -30,40 +27,36 @@ public:
     Scenario::Point pt = pres.toScenarioPoint(pos);
 
     auto [x_state, y_state, magnetic] = m_magnetic;
-    if (m_magnetism && y_state)
+    if(m_magnetism && y_state)
     {
       m_intervalY = pt.y;
-      if (magnetic || pt.date <= scenar.event(y_state->eventId()).date())
+      if(magnetic || pt.date <= scenar.event(y_state->eventId()).date())
       {
         // Create another state on that event and put the process afterwards
-        m_createdState
-            = m.createState(scenar, y_state->eventId(), m_intervalY).id();
+        m_createdState = m.createState(scenar, y_state->eventId(), m_intervalY).id();
       }
       else
       {
         auto& s = m.createState(scenar, y_state->eventId(), m_intervalY);
-        auto& i
-            = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
+        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
     }
-    else if (m_magnetism && x_state)
+    else if(m_magnetism && x_state)
     {
-      if (x_state->nextInterval())
+      if(x_state->nextInterval())
       {
         // We create from the event instead
         m_intervalY = pt.y;
         auto& s = m.createState(scenar, x_state->eventId(), m_intervalY);
-        auto& i
-            = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
+        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
       else
       {
         m_intervalY = magnetic ? x_state->heightPercentage() : pt.y;
 
-        auto& i = m.createIntervalAfter(
-            scenar, x_state->id(), {pt.date, m_intervalY});
+        auto& i = m.createIntervalAfter(scenar, x_state->id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
     }
@@ -75,13 +68,11 @@ public:
       m_createdState = s.id();
     }
 
-    if (!m_sequence)
+    if(!m_sequence)
     {
       // Everything will go in a single interval
       m_itv = &m.createIntervalAfter(
-          scenar,
-          m_createdState,
-          Scenario::Point{pt.date + maxdur, m_intervalY});
+          scenar, m_createdState, Scenario::Point{pt.date + maxdur, m_intervalY});
     }
   }
 
@@ -89,19 +80,17 @@ public:
   Process::ProcessModel* addProcess(F&& fun, TimeVal duration)
   {
     // sequence : processes are put all one after the other
-    if (m_sequence)
+    if(m_sequence)
     {
       const Scenario::ProcessModel& scenar = m_pres.model();
       Scenario::Point pt = m_pres.toScenarioPoint(m_pos);
-      if (m_itv)
+      if(m_itv)
       {
         // We already created the first interval / process
         auto last_state = m_itv->endState();
         pt.date
-            = Scenario::parentEvent(scenar.state(last_state), scenar).date()
-              + duration;
-        m_itv = &m_macro.createIntervalAfter(
-            scenar, last_state, {pt.date, m_intervalY});
+            = Scenario::parentEvent(scenar.state(last_state), scenar).date() + duration;
+        m_itv = &m_macro.createIntervalAfter(scenar, last_state, {pt.date, m_intervalY});
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
         return proc;
@@ -109,7 +98,8 @@ public:
       else
       {
         // We create the first interval / process
-        m_itv = &m_macro.createIntervalAfter(scenar, m_createdState, {pt.date + duration, pt.y});
+        m_itv = &m_macro.createIntervalAfter(
+            scenar, m_createdState, {pt.date + duration, pt.y});
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
         return proc;
@@ -123,7 +113,7 @@ public:
 
   void commit()
   {
-    if (!m_sequence)
+    if(!m_sequence)
       m_macro.showRack(*m_itv);
 
     m_macro.commit();
@@ -143,36 +133,33 @@ private:
   Id<StateModel> m_createdState;
 };
 
-
 DropProcessInScenario::DropProcessInScenario() { }
 
 void DropProcessInScenario::init()
 {
   const auto& handlers
       = score::GUIAppContext().interfaces<Process::ProcessDropHandlerList>();
-  for (auto& handler : handlers)
+  for(auto& handler : handlers)
   {
-    for (auto& type : handler.mimeTypes())
+    for(auto& type : handler.mimeTypes())
       m_acceptableMimeTypes.push_back(type);
-    for (auto& ext : handler.fileExtensions())
+    for(auto& ext : handler.fileExtensions())
       m_acceptableSuffixes.push_back(ext);
   }
 }
 bool DropProcessInScenario::drop(
-    const ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   const auto& ctx = pres.context().context;
   const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
 
-  if (auto res = handlers.getDrop(mime, ctx); !res.empty())
+  if(auto res = handlers.getDrop(mime, ctx); !res.empty())
   {
     auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
     DropProcessInScenarioHelper dropper(m_magnetic, pres, pos, t);
 
     score::Dispatcher_T disp{dropper.macro()};
-    for (const auto& proc : res)
+    for(const auto& proc : res)
     {
       Process::ProcessModel* p = dropper.addProcess(
           [&](Scenario::Command::Macro& m,
@@ -180,20 +167,19 @@ bool DropProcessInScenario::drop(
             return m.createProcessInNewSlot(itv, proc.creation);
           },
           proc.duration ? *proc.duration : t);
-      if (p && proc.setup)
+      if(p && proc.setup)
       {
         proc.setup(*p, disp);
       }
     }
 
-    if (res.size() == 1)
+    if(res.size() == 1)
     {
       const auto& name = res.front().creation.prettyName;
       auto& itv = dropper.interval();
-      if (!name.isEmpty())
+      if(!name.isEmpty())
       {
-        dropper.macro().submit(
-            new Scenario::Command::ChangeElementName{itv, name});
+        dropper.macro().submit(new Scenario::Command::ChangeElementName{itv, name});
       }
     }
 

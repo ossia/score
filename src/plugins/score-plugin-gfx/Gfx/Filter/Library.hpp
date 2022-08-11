@@ -1,7 +1,8 @@
 #pragma once
+#include <Process/Drop/ProcessDropHandler.hpp>
+
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
 
 namespace Gfx::Filter
 {
@@ -11,13 +12,11 @@ class LibraryHandler final : public Library::LibraryInterface
 
   QSet<QString> acceptedFiles() const noexcept override;
 
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override;
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override;
 
   void addPath(std::string_view path) override;
-  QWidget*
-  previewWidget(const QString& path, QWidget* parent) const noexcept override;
+  QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
   QWidget*
   previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;
 
@@ -31,8 +30,7 @@ class DropHandler final : public Process::ProcessDropHandler
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   void dropPath(
-      std::vector<ProcessDrop>&,
-      const QString& data,
+      std::vector<ProcessDrop>&, const QString& data,
       const score::DocumentContext& ctx) const noexcept override;
 };
 }

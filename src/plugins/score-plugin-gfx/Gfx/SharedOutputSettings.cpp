@@ -1,5 +1,7 @@
 #include "SharedOutputSettings.hpp"
+
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -22,18 +24,15 @@ SharedOutputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) co
 }
 
 Device::AddressDialog* SharedOutputProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
     QWidget* parent)
 {
   return nullptr;
 }
 
 Device::AddressDialog* SharedOutputProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    const Device::AddressSettings& set, const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx, QWidget* parent)
 {
   return nullptr;
 }
@@ -45,15 +44,13 @@ QVariant SharedOutputProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void SharedOutputProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<SharedOutputSettings>(data, visitor);
 }
 
 bool SharedOutputProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }
@@ -76,7 +73,6 @@ SharedOutputSettingsWidget::SharedOutputSettingsWidget(QWidget* parent)
 
   setLayout(m_layout);
 }
-
 
 Device::DeviceSettings SharedOutputSettingsWidget::getSettings() const
 {
@@ -105,7 +101,6 @@ void SharedOutputSettingsWidget::setSettings(const Device::DeviceSettings& setti
 }
 
 }
-
 
 template <>
 void DataStreamReader::read(const Gfx::SharedOutputSettings& n)

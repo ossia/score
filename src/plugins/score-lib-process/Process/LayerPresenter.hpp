@@ -36,9 +36,7 @@ class SCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 
 public:
   LayerPresenter(
-      const ProcessModel& model,
-      const LayerView* view,
-      const Context& ctx,
+      const ProcessModel& model, const LayerView* view, const Context& ctx,
       QObject* parent);
   ~LayerPresenter() override;
 
@@ -61,11 +59,8 @@ public:
 
   const ProcessModel& model() const noexcept;
 
-  virtual void fillContextMenu(
-      QMenu&,
-      QPoint pos,
-      QPointF scenepos,
-      const LayerContextMenuManager&);
+  virtual void
+  fillContextMenu(QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&);
 
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 

@@ -2,8 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MetadataWidget.hpp"
 
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <Scenario/Inspector/CommentEdit.hpp>
+
+#include <Inspector/InspectorSectionWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/ModelMetadata.hpp>
@@ -18,7 +21,6 @@
 #include <QtColorWidgets/color_palette_model.hpp>
 #include <QtColorWidgets/swatch.hpp>
 
-#include <Scenario/Inspector/CommentEdit.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MetadataWidget)
 W_OBJECT_IMPL(Scenario::CommentEdit)
@@ -44,10 +46,8 @@ auto colorPalette() -> color_widgets::ColorPaletteModel&
   return p;
 }
 MetadataWidget::MetadataWidget(
-    const score::ModelMetadata& metadata,
-    const score::CommandStackFacade& m,
-    const QObject* docObject,
-    QWidget* parent)
+    const score::ModelMetadata& metadata, const score::CommandStackFacade& m,
+    const QObject* docObject, QWidget* parent)
     : QWidget(parent)
     , m_metadata{metadata}
     , m_commandDispatcher{m}
@@ -65,17 +65,13 @@ MetadataWidget::MetadataWidget(
   m_labelLine.setPlaceholderText(tr("Label"));
   m_labelLine.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   m_metadataLayout.addWidget(&m_labelLine);
-  con(metadata,
-      &score::ModelMetadata::LabelChanged,
-      this,
+  con(metadata, &score::ModelMetadata::LabelChanged, this,
       [=](const auto& str) { m_labelLine.setText(str); });
 
   // comments
   m_comments.setMaximumHeight(50);
   m_comments.setPlaceholderText(tr("Comments"));
-  con(metadata,
-      &score::ModelMetadata::CommentChanged,
-      this,
+  con(metadata, &score::ModelMetadata::CommentChanged, this,
       [=](const auto& str) { m_comments.setText(str); });
 
   m_metadataLayout.addWidget(&m_comments);
@@ -103,50 +99,44 @@ MetadataWidget::MetadataWidget(
     connect(m_palette_widget, &Swatch::selectedChanged, this, [=](int idx) {
       auto colors = color_palette.palette(0).colors();
 
-      if (idx == colors.size() - 1)
+      if(idx == colors.size() - 1)
       {
         const score::Brush& defaultBrush
             = Process::Style::instance().IntervalDefaultBackground();
         colorChanged(&defaultBrush);
       }
-      else if (ossia::valid_index(idx, colors))
+      else if(ossia::valid_index(idx, colors))
       {
         auto col_1 = colors.at(idx).second;
         auto col = score::ColorRef::ColorFromString(col_1);
-        if (col)
+        if(col)
           colorChanged(*col);
       }
     });
 
-    con(metadata,
-        &score::ModelMetadata::ColorChanged,
-        this,
+    con(metadata, &score::ModelMetadata::ColorChanged, this,
         [=](const score::ColorRef& str) {
-          auto palette = m_palette_widget->palette();
-          auto color = str.getBrush().color();
-          for (int i = 0; i < palette.count(); i++)
-          {
-            if (palette.colorAt(i) == color)
-            {
-              m_palette_widget->setSelected(i);
-              break;
-            }
-          }
-        });
+      auto palette = m_palette_widget->palette();
+      auto color = str.getBrush().color();
+      for(int i = 0; i < palette.count(); i++)
+      {
+        if(palette.colorAt(i) == color)
+        {
+          m_palette_widget->setSelected(i);
+          break;
+        }
+      }
+    });
     m_metadataLayout.addWidget(m_palette_widget);
   }
 
-  con(m_labelLine, &QLineEdit::editingFinished, [=]() {
-    labelChanged(m_labelLine.text());
-  });
+  con(m_labelLine, &QLineEdit::editingFinished,
+      [=]() { labelChanged(m_labelLine.text()); });
 
-  con(m_comments, &CommentEdit::editingFinished, [=]() {
-    commentsChanged(m_comments.toPlainText());
-  });
+  con(m_comments, &CommentEdit::editingFinished,
+      [=]() { commentsChanged(m_comments.toPlainText()); });
 
-  con(metadata,
-      &score::ModelMetadata::metadataChanged,
-      this,
+  con(metadata, &score::ModelMetadata::metadataChanged, this,
       &MetadataWidget::updateAsked);
   updateAsked();
 }
@@ -160,9 +150,9 @@ void MetadataWidget::updateAsked()
 
   const auto& palette = m_palette_widget->palette();
   auto color = m_metadata.getColor().getBrush().color();
-  for (int i = 0; i < palette.count(); i++)
+  for(int i = 0; i < palette.count(); i++)
   {
-    if (palette.colorAt(i) == color)
+    if(palette.colorAt(i) == color)
     {
       m_palette_widget->setSelected(i);
       break;

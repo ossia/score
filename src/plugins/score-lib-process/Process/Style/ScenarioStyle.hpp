@@ -30,27 +30,15 @@ struct SCORE_LIB_PROCESS_EXPORT Style
 
   const score::Brush& IntervalBase() const noexcept { return skin.Base1; }
   const score::Brush& IntervalSelected() const noexcept { return skin.Base2; }
-  const score::Brush& IntervalDropTarget() const noexcept
-  {
-    return skin.Warn1;
-  }
+  const score::Brush& IntervalDropTarget() const noexcept { return skin.Warn1; }
   const score::Brush& IntervalPlayFill() const noexcept { return skin.Base3; }
-  const score::Brush& IntervalPlayDashFill() const noexcept
-  {
-    return skin.Pulse1;
-  }
-  const score::Brush& IntervalWaitingDashFill() const noexcept
-  {
-    return skin.Pulse2;
-  }
+  const score::Brush& IntervalPlayDashFill() const noexcept { return skin.Pulse1; }
+  const score::Brush& IntervalWaitingDashFill() const noexcept { return skin.Pulse2; }
   const score::Brush& IntervalLoop() const noexcept { return skin.Warn1; }
   const score::Brush& IntervalWarning() const noexcept { return skin.Warn2; }
   const score::Brush& IntervalInvalid() const noexcept { return skin.Warn3; }
   const score::Brush& IntervalMuted() const noexcept { return skin.HalfDark; }
-  const score::Brush& IntervalDefaultLabel() const noexcept
-  {
-    return skin.Gray;
-  }
+  const score::Brush& IntervalDefaultLabel() const noexcept { return skin.Gray; }
   const score::Brush& IntervalDefaultBackground() const noexcept
   {
     return skin.Transparent1;
@@ -63,10 +51,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
     return skin.Emphasis1;
   }
 
-  const score::Brush& IntervalHeaderText() const noexcept
-  {
-    return skin.Light;
-  }
+  const score::Brush& IntervalHeaderText() const noexcept { return skin.Light; }
   const score::Brush& IntervalHeaderBottomLine() const noexcept
   {
     return skin.Transparent1;
@@ -75,19 +60,13 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   {
     return skin.Transparent1;
   }
-  const score::Brush& IntervalHeaderSideBorder() const noexcept
-  {
-    return skin.Base1;
-  }
+  const score::Brush& IntervalHeaderSideBorder() const noexcept { return skin.Base1; }
 
   const score::Brush& ProcessViewBorder() const noexcept { return skin.Gray; }
 
   const score::Brush& SlotFocus() const noexcept { return skin.Base2; }
   const score::Brush& SlotOverlayBorder() const noexcept { return skin.Dark; }
-  const score::Brush& SlotOverlay() const noexcept
-  {
-    return skin.Transparent2;
-  }
+  const score::Brush& SlotOverlay() const noexcept { return skin.Transparent2; }
   const score::Brush& SlotHandle() const noexcept { return skin.Transparent3; }
 
   const score::Brush& TimenodeDefault() const noexcept { return skin.Gray; }
@@ -100,10 +79,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   const score::Brush& EventDisposed() const noexcept { return skin.Warn3; }
   const score::Brush& EventSelected() const noexcept { return skin.Base2; }
 
-  const score::Brush& ConditionDefault() const noexcept
-  {
-    return skin.Smooth3;
-  }
+  const score::Brush& ConditionDefault() const noexcept { return skin.Smooth3; }
   const score::Brush& ConditionWaiting() const noexcept { return skin.Gray; }
   const score::Brush& ConditionDisabled() const noexcept { return skin.Base1; }
   const score::Brush& ConditionFalse() const noexcept { return skin.Smooth1; }
@@ -119,14 +95,8 @@ struct SCORE_LIB_PROCESS_EXPORT Style
     return skin.Transparent1;
   }
 
-  const score::Brush& TimeRulerBackground() const noexcept
-  {
-    return skin.DarkGray;
-  }
-  const score::Brush& MinimapBackground() const noexcept
-  {
-    return skin.Background1;
-  }
+  const score::Brush& TimeRulerBackground() const noexcept { return skin.DarkGray; }
+  const score::Brush& MinimapBackground() const noexcept { return skin.Background1; }
   const score::Brush& TimeRuler() const noexcept { return skin.Base1; }
   const score::Brush& LocalTimeRuler() const noexcept { return skin.Gray; }
 
@@ -137,10 +107,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
 
   // TODO white
   const QPen& CommentBlockPen() const noexcept { return skin.Light.main.pen1; }
-  const QPen& CommentBlockSelectedPen() const noexcept
-  {
-    return skin.Light.main.pen2;
-  }
+  const QPen& CommentBlockSelectedPen() const noexcept { return skin.Light.main.pen2; }
 
   const QPen& SeparatorPen() const noexcept { return skin.Light.main.pen2; }
 
@@ -203,10 +170,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
     return IntervalHeaderSideBorder().main.pen2_solid_flat_miter;
   }
 
-  static const QPen& ConditionPen(const score::Brush& b) noexcept
-  {
-    return b.main.pen2;
-  }
+  static const QPen& ConditionPen(const score::Brush& b) noexcept { return b.main.pen2; }
   static const QPen& ConditionTrianglePen(const score::Brush& b) noexcept
   {
     return b.main.pen_cosmetic;
@@ -217,10 +181,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
     return b.main.pen2_dotted_square_miter;
   }
 
-  const QPen& MinimapPen() const noexcept
-  {
-    return skin.LightGray.main.pen_cosmetic;
-  }
+  const QPen& MinimapPen() const noexcept { return skin.LightGray.main.pen_cosmetic; }
   const score::Brush& MinimapBrush() const noexcept { return skin.DarkGray; }
 
   static const QPen& StateTemporalPointPen(const score::Brush& b) noexcept
@@ -233,19 +194,10 @@ struct SCORE_LIB_PROCESS_EXPORT Style
     return b.main.pen_cosmetic;
   }
 
-  const QPen& TimeRulerLargePen() const noexcept
-  {
-    return TimeRuler().main.pen2;
-  }
-  const QPen& TimeRulerSmallPen() const noexcept
-  {
-    return TimeRuler().main.pen1;
-  }
+  const QPen& TimeRulerLargePen() const noexcept { return TimeRuler().main.pen2; }
+  const QPen& TimeRulerSmallPen() const noexcept { return TimeRuler().main.pen1; }
 
-  const QPen& SlotHandlePen() const noexcept
-  {
-    return ProcessViewBorder().main.pen0;
-  }
+  const QPen& SlotHandlePen() const noexcept { return ProcessViewBorder().main.pen0; }
 
   static const QPen& MiniScenarioPen(const score::Brush& b) noexcept
   {
@@ -284,18 +236,9 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   const QPen& DataPortPen() const noexcept { return skin.Port2.main.pen1_5; }
   const QPen& MidiPortPen() const noexcept { return skin.Port3.main.pen1_5; }
 
-  const score::BrushSet& AudioPortBrush() const noexcept
-  {
-    return skin.Port1.darker;
-  }
-  const score::BrushSet& DataPortBrush() const noexcept
-  {
-    return skin.Port2.darker;
-  }
-  const score::BrushSet& MidiPortBrush() const noexcept
-  {
-    return skin.Port3.darker;
-  }
+  const score::BrushSet& AudioPortBrush() const noexcept { return skin.Port1.darker; }
+  const score::BrushSet& DataPortBrush() const noexcept { return skin.Port2.darker; }
+  const score::BrushSet& MidiPortBrush() const noexcept { return skin.Port3.darker; }
 
   const QPen& SlotHeaderTextPen() const noexcept
   {

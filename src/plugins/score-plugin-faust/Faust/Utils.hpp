@@ -7,16 +7,19 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QDebug>
+
 #include <faust/gui/MetaDataUI.h>
 
-#include <QDebug>
 #include <string_view>
 
 namespace Faust
 {
 
 template <typename Proc, bool Synth>
-struct UI : ::UI, MetaDataUI
+struct UI
+    : ::UI
+    , MetaDataUI
 {
   Proc& fx;
 
@@ -33,19 +36,17 @@ struct UI : ::UI, MetaDataUI
   {
     MetaDataUI::declare(zone, key, val);
   }
-  void addSoundfile(
-      const char* label,
-      const char* filename,
-      Soundfile** sf_zone) override
+  void
+  addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override
   {
   }
 
   void addButton(const char* label, FAUSTFLOAT* zone) override
   {
-    if constexpr (Synth)
+    if constexpr(Synth)
     {
       using namespace std::literals;
-      if (label == "Panic"sv || label == "gate"sv)
+      if(label == "Panic"sv || label == "gate"sv)
         return;
     }
 
@@ -55,27 +56,22 @@ struct UI : ::UI, MetaDataUI
 
   void addCheckButton(const char* label, FAUSTFLOAT* zone) override
   {
-    auto inl = new Process::Toggle{
-        bool(*zone), label, getStrongId(fx.inlets()), &fx};
+    auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
   void addVerticalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     using namespace std::literals;
-    if constexpr (Synth)
+    if constexpr(Synth)
     {
-      if (label == "gain"sv || label == "freq"sv || label == "sustain"sv)
+      if(label == "gain"sv || label == "freq"sv || label == "sustain"sv)
         return;
     }
 
-    if (label == "0x00"sv)
+    if(label == "0x00"sv)
       label = "Control";
 
     if(isKnob(zone))
@@ -83,7 +79,8 @@ struct UI : ::UI, MetaDataUI
       auto inl = new Process::FloatKnob{
           (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
-    } else
+    }
+    else
     {
       auto inl = new Process::FloatSlider{
           (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
@@ -92,33 +89,22 @@ struct UI : ::UI, MetaDataUI
   }
 
   void addHorizontalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addNumEntry(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     // TODO spinbox ?
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addHorizontalBargraph(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
   {
     auto inl = new Process::Bargraph{
         (float)min, (float)max, (float)min, label, getStrongId(fx.outlets()), &fx};
@@ -126,17 +112,16 @@ struct UI : ::UI, MetaDataUI
   }
 
   void addVerticalBargraph(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
   {
     addHorizontalBargraph(label, zone, min, max);
   }
 };
 
 template <typename Proc, bool SetInit>
-struct UpdateUI : ::UI, MetaDataUI
+struct UpdateUI
+    : ::UI
+    , MetaDataUI
 {
   Proc& fx;
   std::size_t i = 1;
@@ -155,18 +140,16 @@ struct UpdateUI : ::UI, MetaDataUI
   {
     MetaDataUI::declare(zone, key, val);
   }
-  void addSoundfile(
-      const char* label,
-      const char* filename,
-      Soundfile** sf_zone) override
+  void
+  addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override
   {
   }
 
   void addButton(const char* label, FAUSTFLOAT* zone) override
   {
-    if (i < fx.inlets().size())
+    if(i < fx.inlets().size())
     {
-      if (auto inlet = dynamic_cast<Process::Button*>(fx.inlets()[i]))
+      if(auto inlet = dynamic_cast<Process::Button*>(fx.inlets()[i]))
       {
         inlet->setName(label);
       }
@@ -192,12 +175,12 @@ struct UpdateUI : ::UI, MetaDataUI
 
   void addCheckButton(const char* label, FAUSTFLOAT* zone) override
   {
-    if (i < fx.inlets().size())
+    if(i < fx.inlets().size())
     {
-      if (auto inlet = dynamic_cast<Process::Toggle*>(fx.inlets()[i]))
+      if(auto inlet = dynamic_cast<Process::Toggle*>(fx.inlets()[i]))
       {
         inlet->setName(label);
-        if constexpr (SetInit)
+        if constexpr(SetInit)
           inlet->setValue(bool(*zone));
       }
       else
@@ -213,8 +196,7 @@ struct UpdateUI : ::UI, MetaDataUI
     }
     else
     {
-      auto inl = new Process::Toggle{
-          bool(*zone), label, getStrongId(fx.inlets()), &fx};
+      auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
       fx.controlAdded(inl->id());
     }
@@ -222,16 +204,13 @@ struct UpdateUI : ::UI, MetaDataUI
   }
 
   void addVerticalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
-    if (i < fx.inlets().size())
+    if(i < fx.inlets().size())
     {
-      if (Process::FloatSlider* slider{dynamic_cast<Process::FloatSlider*>(fx.inlets()[i])})
+      if(Process::FloatSlider
+         * slider{dynamic_cast<Process::FloatSlider*>(fx.inlets()[i])})
       {
         if(isKnob(zone))
         {
@@ -247,18 +226,19 @@ struct UpdateUI : ::UI, MetaDataUI
         {
           slider->setName(label);
           slider->setDomain(ossia::make_domain(min, max));
-          if constexpr (SetInit)
-              slider->setValue(init);
+          if constexpr(SetInit)
+            slider->setValue(init);
         }
       }
-      else if (Process::FloatKnob* knob{dynamic_cast<Process::FloatKnob*>(fx.inlets()[i])})
+      else if(
+          Process::FloatKnob * knob{dynamic_cast<Process::FloatKnob*>(fx.inlets()[i])})
       {
-        if (isKnob(zone))
+        if(isKnob(zone))
         {
           knob->setName(label);
           knob->setDomain(ossia::make_domain(min, max));
-          if constexpr (SetInit)
-              knob->setValue(init);
+          if constexpr(SetInit)
+            knob->setValue(init);
         }
         else
         {
@@ -282,7 +262,8 @@ struct UpdateUI : ::UI, MetaDataUI
           auto inl = new Process::FloatKnob{
               (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
           fx.inlets().push_back(inl);
-        } else
+        }
+        else
         {
           auto inl = new Process::FloatSlider{
               (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
@@ -298,7 +279,8 @@ struct UpdateUI : ::UI, MetaDataUI
             (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
         fx.inlets().push_back(inl);
         fx.controlAdded(inl->id());
-      } else
+      }
+      else
       {
         auto inl = new Process::FloatSlider{
             (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
@@ -311,36 +293,25 @@ struct UpdateUI : ::UI, MetaDataUI
   }
 
   void addHorizontalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addNumEntry(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addHorizontalBargraph(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
   {
-    if (o < fx.outlets().size())
+    if(o < fx.outlets().size())
     {
-      if (auto outlet = dynamic_cast<Process::Bargraph*>(fx.outlets()[o]))
+      if(auto outlet = dynamic_cast<Process::Bargraph*>(fx.outlets()[o]))
       {
         outlet->setName(label);
         outlet->setDomain(ossia::make_domain(min, max));
@@ -351,7 +322,8 @@ struct UpdateUI : ::UI, MetaDataUI
         fx.controlRemoved(*fx.outlets()[o]);
         delete fx.outlets()[o];
 
-        auto inl = new Process::Bargraph{(float)min, (float)max, (float)min, label, id, &fx};
+        auto inl
+            = new Process::Bargraph{(float)min, (float)max, (float)min, label, id, &fx};
         fx.outlets()[o] = inl;
       }
     }
@@ -366,10 +338,7 @@ struct UpdateUI : ::UI, MetaDataUI
   }
 
   void addVerticalBargraph(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
   {
     addHorizontalBargraph(label, zone, min, max);
   }

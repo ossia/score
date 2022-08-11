@@ -38,15 +38,15 @@ struct TSerializer<JSONObject, ossia::vecf_domain<N>>
   {
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
-    if (auto it = s.obj.tryGet(s.strings.Min))
+    if(auto it = s.obj.tryGet(s.strings.Min))
     {
       domain.min <<= *it;
     }
-    if (auto it = s.obj.tryGet(s.strings.Max))
+    if(auto it = s.obj.tryGet(s.strings.Max))
     {
       domain.max <<= *it;
     }
-    if (auto it = s.obj.tryGet(s.strings.Values))
+    if(auto it = s.obj.tryGet(s.strings.Values))
     {
       domain.values <<= *it;
     }
@@ -76,11 +76,11 @@ struct TSerializer<JSONObject, ossia::domain_base<T>>
   {
     s.stream.StartObject();
 
-    if (domain.min)
+    if(domain.min)
       s.obj[s.strings.Min] = *domain.min;
-    if (domain.max)
+    if(domain.max)
       s.obj[s.strings.Max] = *domain.max;
-    if (!domain.values.empty())
+    if(!domain.values.empty())
       s.obj[s.strings.Values] = domain.values;
 
     s.stream.EndObject();
@@ -90,15 +90,15 @@ struct TSerializer<JSONObject, ossia::domain_base<T>>
   {
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
-    if (auto it = s.obj.tryGet(s.strings.Min))
+    if(auto it = s.obj.tryGet(s.strings.Min))
     {
       domain.min <<= *it;
     }
-    if (auto it = s.obj.tryGet(s.strings.Max))
+    if(auto it = s.obj.tryGet(s.strings.Max))
     {
       domain.max <<= *it;
     }
-    if (auto it = s.obj.tryGet(s.strings.Values))
+    if(auto it = s.obj.tryGet(s.strings.Values))
     {
       domain.values <<= *it;
     }
@@ -112,14 +112,14 @@ struct TSerializer<JSONObject, ossia::domain_base<std::string>>
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
     s.stream.StartObject();
-    if (!domain.values.empty())
+    if(!domain.values.empty())
       s.obj[s.strings.Values] = domain.values;
     s.stream.EndObject();
   }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
   {
-    if (auto it_values = s.obj.tryGet(s.strings.Values))
+    if(auto it_values = s.obj.tryGet(s.strings.Values))
     {
       domain.values <<= *it_values;
     }
@@ -168,15 +168,15 @@ struct TSerializer<JSONObject, ossia::vector_domain>
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
 
-    if (auto it = s.obj.tryGet(s.strings.Min))
+    if(auto it = s.obj.tryGet(s.strings.Min))
     {
       domain.min <<= *it;
     }
-    if (auto it = s.obj.tryGet(s.strings.Max))
+    if(auto it = s.obj.tryGet(s.strings.Max))
     {
       domain.max <<= *it;
     }
-    if (auto it = s.obj.tryGet(s.strings.Values))
+    if(auto it = s.obj.tryGet(s.strings.Values))
     {
       domain.values <<= *it;
     }
@@ -193,7 +193,7 @@ struct TSerializer<DataStream, ossia::domain_base<T>>
     {
       bool min_b{domain.min};
       s.stream() << min_b;
-      if (min_b)
+      if(min_b)
         s.stream() << *domain.min;
     }
 
@@ -201,14 +201,14 @@ struct TSerializer<DataStream, ossia::domain_base<T>>
     {
       bool max_b{domain.max};
       s.stream() << max_b;
-      if (max_b)
+      if(max_b)
         s.stream() << *domain.max;
     }
 
     // Values
     {
       s.stream() << (int32_t)domain.values.size();
-      for (auto& val : domain.values)
+      for(auto& val : domain.values)
         s.stream() << val;
     }
 
@@ -220,7 +220,7 @@ struct TSerializer<DataStream, ossia::domain_base<T>>
     {
       bool min_b;
       s.stream() >> min_b;
-      if (min_b)
+      if(min_b)
       {
         typename domain_t::value_type v;
         s.stream() >> v;
@@ -231,7 +231,7 @@ struct TSerializer<DataStream, ossia::domain_base<T>>
     {
       bool max_b;
       s.stream() >> max_b;
-      if (max_b)
+      if(max_b)
       {
         typename domain_t::value_type v;
         s.stream() >> v;
@@ -242,7 +242,7 @@ struct TSerializer<DataStream, ossia::domain_base<T>>
     {
       int32_t count;
       s.stream() >> count;
-      for (int i = 0; i < count; i++)
+      for(int i = 0; i < count; i++)
       {
         typename domain_t::value_type v;
         s.stream() >> v;
@@ -263,7 +263,7 @@ struct TSerializer<DataStream, ossia::domain_base<std::string>>
     // Values
     {
       s.stream() << (int32_t)domain.values.size();
-      for (auto& val : domain.values)
+      for(auto& val : domain.values)
         s.stream() << val;
     }
 
@@ -275,7 +275,7 @@ struct TSerializer<DataStream, ossia::domain_base<std::string>>
     {
       int32_t count;
       s.stream() >> count;
-      for (int i = 0; i < count; i++)
+      for(int i = 0; i < count; i++)
       {
         std::string v;
         s.stream() >> v;
@@ -307,12 +307,11 @@ struct TSerializer<DataStream, ossia::domain_base<bool>>
 
 template <typename Functor>
 void apply_typeonly(
-    Functor&& functor,
-    ossia::domain_base_variant::Type type,
+    Functor&& functor, ossia::domain_base_variant::Type type,
     ossia::domain_base_variant& var)
 {
   using namespace ossia;
-  switch (type)
+  switch(type)
   {
     case domain_base_variant::Type::Type0:
       return functor(typeholder<ossia::domain_base<ossia::impulse>>{}, var);
@@ -349,7 +348,7 @@ struct TSerializer<DataStream, ossia::domain_base_variant>
   {
     s.stream() << (quint64)var.which();
 
-    if (var)
+    if(var)
     {
       ossia::apply_nonnull([&](const auto& v) { s.stream() << v; }, var);
     }
@@ -362,16 +361,15 @@ struct TSerializer<DataStream, ossia::domain_base_variant>
     quint64 which;
     s.stream() >> which;
 
-    if (which != (quint64)var.npos)
+    if(which != (quint64)var.npos)
     {
       apply_typeonly(
           [&](auto type, var_t& var) {
-            typename decltype(type)::type value;
-            s.stream() >> value;
-            var = std::move(value);
+        typename decltype(type)::type value;
+        s.stream() >> value;
+        var = std::move(value);
           },
-          (var_t::Type)which,
-          var);
+          (var_t::Type)which, var);
     }
     s.checkDelimiter();
   }
@@ -384,26 +382,18 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
     s.stream.StartObject();
-    if ((quint64)var.which() != (quint64)var.npos)
+    if((quint64)var.which() != (quint64)var.npos)
     {
-      ossia::for_each_type(
-          value_type_list{}, VariantJSONSerializer<var_t>{s, var});
+      ossia::for_each_type(value_type_list{}, VariantJSONSerializer<var_t>{s, var});
     }
     s.stream.EndObject();
   }
 
   using value_type_list = ossia::tl<
-      ossia::domain_base<ossia::impulse>,
-      ossia::domain_base<bool>,
-      ossia::domain_base<int>,
-      ossia::domain_base<float>,
-      ossia::domain_base<char>,
-      ossia::domain_base<std::string>,
-      ossia::vector_domain,
-      ossia::vecf_domain<2>,
-      ossia::vecf_domain<3>,
-      ossia::vecf_domain<4>,
-      ossia::domain_base<ossia::value>>;
+      ossia::domain_base<ossia::impulse>, ossia::domain_base<bool>,
+      ossia::domain_base<int>, ossia::domain_base<float>, ossia::domain_base<char>,
+      ossia::domain_base<std::string>, ossia::vector_domain, ossia::vecf_domain<2>,
+      ossia::vecf_domain<3>, ossia::vecf_domain<4>, ossia::domain_base<ossia::value>>;
 
   static auto init_keys()
   {
@@ -424,9 +414,8 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if (!s.base.IsObject() || s.base.MemberCount() == 0)
+    if(!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
-    ossia::for_each_type(
-        value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
+    ossia::for_each_type(value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
   }
 };

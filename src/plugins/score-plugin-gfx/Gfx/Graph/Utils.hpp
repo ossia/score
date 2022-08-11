@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Gfx/Graph/Scale.hpp>
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/Scale.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
 #include <score_plugin_gfx_export.h>
@@ -71,11 +71,11 @@ struct Edge
 
   ~Edge()
   {
-    if (auto it = std::find(source->edges.begin(), source->edges.end(), this);
-        it != source->edges.end())
+    if(auto it = std::find(source->edges.begin(), source->edges.end(), this);
+       it != source->edges.end())
       source->edges.erase(it);
-    if (auto it = std::find(sink->edges.begin(), sink->edges.end(), this);
-        it != sink->edges.end())
+    if(auto it = std::find(sink->edges.begin(), sink->edges.end(), this);
+       it != sink->edges.end())
       sink->edges.erase(it);
   }
 
@@ -115,7 +115,7 @@ struct TextureRenderTarget
 
   void release()
   {
-    if (texture)
+    if(texture)
     {
       delete texture;
       texture = nullptr;
@@ -145,8 +145,7 @@ struct Image
  * @brief Create a render target from a texture.
  */
 SCORE_PLUGIN_GFX_EXPORT
-TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture* tex);
+TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* tex);
 
 /**
  * @brief Create a render target from a texture format and size.
@@ -154,93 +153,62 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex);
  * This function will also create a texture.
  */
 SCORE_PLUGIN_GFX_EXPORT
-TextureRenderTarget createRenderTarget(
-    const RenderState& state,
-    QRhiTexture::Format fmt,
-    QSize sz);
+TextureRenderTarget
+createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz);
+
+SCORE_PLUGIN_GFX_EXPORT
+void replaceBuffer(QRhiShaderResourceBindings&, int binding, QRhiBuffer* newBuffer);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceSampler(QRhiShaderResourceBindings&, int binding, QRhiSampler* newSampler);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTexture(QRhiShaderResourceBindings&, int binding, QRhiTexture* newTexture);
 
 SCORE_PLUGIN_GFX_EXPORT
 void replaceBuffer(
-    QRhiShaderResourceBindings&,
-    int binding,
-    QRhiBuffer* newBuffer);
+    std::vector<QRhiShaderResourceBinding>&, int binding, QRhiBuffer* newBuffer);
 SCORE_PLUGIN_GFX_EXPORT
 void replaceSampler(
-    QRhiShaderResourceBindings&,
-    int binding,
-    QRhiSampler* newSampler);
+    std::vector<QRhiShaderResourceBinding>&, int binding, QRhiSampler* newSampler);
 SCORE_PLUGIN_GFX_EXPORT
 void replaceTexture(
-    QRhiShaderResourceBindings&,
-    int binding,
-    QRhiTexture* newTexture);
-
-SCORE_PLUGIN_GFX_EXPORT
-void replaceBuffer(
-    std::vector<QRhiShaderResourceBinding>&,
-    int binding,
-    QRhiBuffer* newBuffer);
-SCORE_PLUGIN_GFX_EXPORT
-void replaceSampler(
-    std::vector<QRhiShaderResourceBinding>&,
-    int binding,
-    QRhiSampler* newSampler);
-SCORE_PLUGIN_GFX_EXPORT
-void replaceTexture(
-    std::vector<QRhiShaderResourceBinding>&,
-    int binding,
-    QRhiTexture* newTexture);
+    std::vector<QRhiShaderResourceBinding>&, int binding, QRhiTexture* newTexture);
 
 /**
  * @brief Replace a sampler.
  */
 SCORE_PLUGIN_GFX_EXPORT
 void replaceSampler(
-    QRhiShaderResourceBindings&,
-    QRhiSampler* oldSampler,
-    QRhiSampler* newSampler);
+    QRhiShaderResourceBindings&, QRhiSampler* oldSampler, QRhiSampler* newSampler);
 
 /**
  * @brief Replace the texture currently bound to a sampler.
  */
 SCORE_PLUGIN_GFX_EXPORT
 void replaceTexture(
-    QRhiShaderResourceBindings&,
-    QRhiSampler* sampler,
-    QRhiTexture* newTexture);
+    QRhiShaderResourceBindings&, QRhiSampler* sampler, QRhiTexture* newTexture);
 
 /**
  * @brief Replace a texture by another in a set of bindings.
  */
 SCORE_PLUGIN_GFX_EXPORT
 void replaceTexture(
-    QRhiShaderResourceBindings& srb,
-    QRhiTexture* old_tex,
-    QRhiTexture* new_tex);
+    QRhiShaderResourceBindings& srb, QRhiTexture* old_tex, QRhiTexture* new_tex);
 /**
  * @brief Create bindings following the score conventions for shaders and materials.
  */
 SCORE_PLUGIN_GFX_EXPORT
 QRhiShaderResourceBindings* createDefaultBindings(
-    const RenderList& renderer,
-    const TextureRenderTarget& rt,
-    QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO,
-    const std::vector<Sampler>& samplers);
+    const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers);
 
 /**
  * @brief Create a render pipeline following the score conventions for shaders and materials.
  */
 SCORE_PLUGIN_GFX_EXPORT
 Pipeline buildPipeline(
-    const RenderList& renderer,
-    const Mesh& mesh,
-    const QShader& vertexS,
-    const QShader& fragmentS,
-    const TextureRenderTarget& rt,
-    QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO,
-    const std::vector<Sampler>& samplers);
+    const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
+    const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers);
 
 /**
  * @brief Get a pair of compiled vertex / fragment shaders from GLSL 4.5 sources.
@@ -248,7 +216,8 @@ Pipeline buildPipeline(
  * Note: this function will throw if a shader is invalid.
  */
 SCORE_PLUGIN_GFX_EXPORT
-std::pair<QShader, QShader> makeShaders(const RenderState& v, QString vert, QString frag);
+std::pair<QShader, QShader>
+makeShaders(const RenderState& v, QString vert, QString frag);
 
 /**
  * @brief Compile a compute shader.
@@ -266,8 +235,7 @@ QShader makeCompute(const RenderState& v, QString compt);
 struct SCORE_PLUGIN_GFX_EXPORT DefaultShaderMaterial
 {
   void init(
-      RenderList& renderer,
-      const std::vector<Port*>& input,
+      RenderList& renderer, const std::vector<Port*>& input,
       std::vector<Sampler>& samplers);
 
   QRhiBuffer* buffer{};

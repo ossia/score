@@ -27,7 +27,7 @@ public:
   T& operator[](std::size_t i_)
   {
     auto i = static_cast<std::size_t>(i_);
-    if (i < impl.size() && impl.size() != 0)
+    if(i < impl.size() && impl.size() != 0)
     {
       return impl[i];
     }
@@ -35,14 +35,11 @@ public:
     return impl[i];
   }
 
-  const T& operator[](int i_) const
-  {
-    return (*this)[static_cast<std::size_t>(i_)];
-  }
+  const T& operator[](int i_) const { return (*this)[static_cast<std::size_t>(i_)]; }
   const T& operator[](std::size_t i_) const
   {
     auto i = static_cast<std::size_t>(i_);
-    if (i < impl.size() && impl.size() != 0)
+    if(i < impl.size() && impl.size() != 0)
     {
       return impl[i];
     }
@@ -60,7 +57,7 @@ public:
   T& operator[](std::size_t i_)
   {
     auto i = static_cast<std::size_t>(i_);
-    if (i < impl.size() && impl.size() != 0)
+    if(i < impl.size() && impl.size() != 0)
     {
       return impl[i];
     }
@@ -87,10 +84,10 @@ public:
   /// Function LCS (longest common suffix)
   int LCS(int p1, int p2)
   {
-    if (p2 == m_sp[p1])
+    if(p2 == m_sp[p1])
       return m_lrs[p1];
 
-    while (m_sp[p2] != m_sp[p1])
+    while(m_sp[p2] != m_sp[p1])
       p2 = m_sp[p2];
 
     return std::min(m_lrs[p1], m_lrs[p2]);
@@ -98,12 +95,12 @@ public:
 
   void add_char(ossia::value c)
   {
-    if (n < std::ssize(m_forwardLink) - 1)
+    if(n < std::ssize(m_forwardLink) - 1)
     {
       m_sequence.push_back(std::move(c));
       auto it = ossia::find_if(
           value_map, [&](const auto& pair) { return pair.second == c; });
-      if (it != value_map.end())
+      if(it != value_map.end())
       {
         add_state(it->first);
       }
@@ -122,11 +119,11 @@ public:
     int p1 = n;
     int j = m_sp[p1];
     ++n;
-    while (j != -1 && m_trans[j][c] == -1)
+    while(j != -1 && m_trans[j][c] == -1)
     {
       int& m_trans_j_c = m_trans[j][c];
       m_trans_j_c = n;
-      if (m_forwardLink[j][0] == -1)
+      if(m_forwardLink[j][0] == -1)
       {
         m_forwardLink[j][0] = m_trans_j_c;
       }
@@ -142,20 +139,17 @@ public:
     m_lrs[n] = (m_sp_n == 0 ? 0 : LCS(p1, m_sp_n - 1) + 1);
   }
 
-  debug_vector_t<ossia::value>
-  make_rand_sequence(float continuity, int seqSize) const
+  debug_vector_t<ossia::value> make_rand_sequence(float continuity, int seqSize) const
   {
-    auto start = std::uniform_int_distribution<std::size_t>{
-        0, m_sequence.size()}(m_rand_engine);
+    auto start = std::uniform_int_distribution<std::size_t>{0, m_sequence.size()}(
+        m_rand_engine);
     return make_sequence(continuity, start, seqSize);
   }
 
-  debug_vector_t<ossia::value> make_sequence(
-      float continuity,
-      std::size_t curState,
-      std::size_t seqSize) const
+  debug_vector_t<ossia::value>
+  make_sequence(float continuity, std::size_t curState, std::size_t seqSize) const
   {
-    if (curState > m_sequence.size())
+    if(curState > m_sequence.size())
     {
       qDebug() << "Le point initial de l'improvisation doit être comprise "
                   "dans la séquence";
@@ -164,10 +158,10 @@ public:
 
     debug_vector_t<ossia::value> v;
     v.reserve(seqSize);
-    for (std::size_t i = 0; i < seqSize; i++)
+    for(std::size_t i = 0; i < seqSize; i++)
     {
       auto f = std::uniform_real_distribution<float>{}(m_rand_engine);
-      if (f <= continuity && curState < m_sequence.size() - 1)
+      if(f <= continuity && curState < m_sequence.size() - 1)
       {
         curState++;
         v.push_back(m_sequence[curState]);
@@ -177,16 +171,16 @@ public:
         do
         {
           int links = (curState == 0 ? 0 : 1);
-          if (m_forwardLink[curState][0] != -1)
+          if(m_forwardLink[curState][0] != -1)
           {
             links += m_forwardLink[curState].size();
           }
 
-          auto linkToFollow = std::uniform_int_distribution<int>{0, links - 1}(
-              m_rand_engine);
-          if (linkToFollow == links - 1)
+          auto linkToFollow
+              = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
+          if(linkToFollow == links - 1)
           {
-            if (curState != 0)
+            if(curState != 0)
             {
               curState = m_sp[curState];
             }
@@ -195,7 +189,7 @@ public:
           {
             curState = m_forwardLink[curState][linkToFollow];
           }
-        } while (curState >= m_sequence.size());
+        } while(curState >= m_sequence.size());
 
         v.push_back(m_sequence[curState]);
       }
@@ -224,8 +218,7 @@ struct Node
     static const constexpr auto author
         = "Shlomo Dubnov, Ge Wang, Éric Meaux, Jean-Michaël Celerier";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description
-        = "Factor Oracle algorithm ."; // TODO cite
+    static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const uuid_constexpr auto uuid
         = make_uuid("d90284c0-4196-47e0-802d-7e07342029ec");
@@ -246,29 +239,24 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::value_port& in,
-      const ossia::value_port& regen,
-      const ossia::value_port& bangs,
-      int seq_len,
-      ossia::value_port& out,
-      ossia::token_request,
-      ossia::exec_state_facade,
-      State& self)
+  run(const ossia::value_port& in, const ossia::value_port& regen,
+      const ossia::value_port& bangs, int seq_len, ossia::value_port& out,
+      ossia::token_request, ossia::exec_state_facade, State& self)
   {
     // Entrées sont dans p1
-    for (auto val : in.get_data())
+    for(auto val : in.get_data())
     {
       self.oracle.add_char(val.value);
     }
 
-    if (!regen.get_data().empty())
+    if(!regen.get_data().empty())
     {
       self.sequence = self.oracle.make_rand_sequence(0.4, seq_len);
     }
 
-    if (!self.sequence.empty())
+    if(!self.sequence.empty())
     {
-      for (auto& bang : bangs.get_data())
+      for(auto& bang : bangs.get_data())
       {
         self.sequence_idx = ossia::clamp<int64_t>(
             (int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);

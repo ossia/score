@@ -12,14 +12,13 @@
 
 #include <Color/GradientModel.hpp>
 #include <Color/GradientPresenter.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gradient::ProcessModel)
 namespace Gradient
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
         ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
@@ -37,8 +36,7 @@ void ProcessModel::init()
 {
   outlet->setName("Out");
   auto update_invalid_address = [=](const State::AddressAccessor& addr) {
-    if (addr.qualifiers.get()
-        != ossia::destination_qualifiers{{}, ossia::argb_u{}})
+    if(addr.qualifiers.get() != ossia::destination_qualifiers{{}, ossia::argb_u{}})
     {
       State::AddressAccessor copy = addr;
       copy.qualifiers = ossia::destination_qualifiers{{}, ossia::argb_u{}};
@@ -47,7 +45,8 @@ void ProcessModel::init()
     prettyNameChanged();
   };
   con(*outlet, &Process::Outlet::addressChanged, this, update_invalid_address);
-  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
+  connect(
+      outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
   update_invalid_address(outlet->address());
   m_outlets.push_back(outlet.get());
 }
@@ -55,8 +54,7 @@ void ProcessModel::init()
 QString ProcessModel::prettyName() const noexcept
 {
   auto& doc = score::IDocument::documentContext(*this);
-  if(auto name = Process::displayNameForPort(*outlet, doc);
-      !name.isEmpty())
+  if(auto name = Process::displayNameForPort(*outlet, doc); !name.isEmpty())
   {
     return name;
   }
@@ -70,7 +68,7 @@ const ProcessModel::gradient_colors& ProcessModel::gradient() const
 
 void ProcessModel::setGradient(const ProcessModel::gradient_colors& c)
 {
-  if (m_colors != c)
+  if(m_colors != c)
   {
     m_colors = c;
     gradientChanged();
@@ -89,7 +87,7 @@ bool ProcessModel::tween() const
 
 void ProcessModel::setTween(bool tween)
 {
-  if (m_tween == tween)
+  if(m_tween == tween)
     return;
 
   m_tween = tween;
@@ -115,7 +113,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 TimeVal ProcessModel::contentDuration() const noexcept
 {
   auto lastPoint = 1.;
-  if (!m_colors.empty())
+  if(!m_colors.empty())
   {
     auto back = m_colors.rbegin()->first;
     lastPoint = std::max(1., back);

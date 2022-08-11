@@ -33,13 +33,9 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 {
   W_OBJECT(InspectorSectionWidget)
 public:
-  explicit InspectorSectionWidget(
-      bool editable = false,
-      QWidget* parent = nullptr);
+  explicit InspectorSectionWidget(bool editable = false, QWidget* parent = nullptr);
   InspectorSectionWidget(
-      QString name,
-      bool nameEditable = false,
-      QWidget* parent = nullptr);
+      QString name, bool nameEditable = false, QWidget* parent = nullptr);
   virtual ~InspectorSectionWidget();
 
   QMenu* menu() const { return m_menu; }

@@ -39,7 +39,7 @@ void Window::setup_rect(QWidget* container, int width, int height)
 Window::Window(const Model& e, const score::DocumentContext& ctx)
     : m_model{e}
 {
-  if (!e.fx)
+  if(!e.fx)
     throw std::runtime_error("Cannot create UI");
 
   effect = e.fx;

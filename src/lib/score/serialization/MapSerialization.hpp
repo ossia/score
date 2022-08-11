@@ -15,7 +15,7 @@ struct MapSerializer
   {
     auto& st = s.stream();
     st << (int32_t)obj.size();
-    for (const auto& e : obj)
+    for(const auto& e : obj)
     {
       st << e.first << e.second;
     }
@@ -29,7 +29,7 @@ struct MapSerializer
     auto& st = s.stream();
     int32_t n;
     st >> n;
-    for (int32_t i = 0; i < n; i++)
+    for(int32_t i = 0; i < n; i++)
     {
       typename Map_T::key_type key;
       typename Map_T::mapped_type value;
@@ -42,7 +42,7 @@ struct MapSerializer
   static void readFrom(JSONObject::Serializer& s, const Map_T& obj)
   {
     s.stream.StartArray();
-    for (const auto& pair : obj)
+    for(const auto& pair : obj)
     {
       s.stream.StartArray();
       s.readFrom(pair.first);
@@ -58,7 +58,7 @@ struct MapSerializer
     obj.clear();
 
     const auto& arr = s.base.GetArray();
-    for (const auto& elt : arr)
+    for(const auto& elt : arr)
     {
       const auto& pair = elt.GetArray();
       typename Map_T::key_type key;
@@ -88,7 +88,7 @@ struct TSerializer<JSONObject, std::unordered_map<T, U>> : MapSerializer
 {
 };
 
-#if (INTPTR_MAX == INT64_MAX)
+#if(INTPTR_MAX == INT64_MAX)
 template <typename T, typename U>
 struct TSerializer<DataStream, ska::flat_hash_map<T, U>> : MapSerializer
 {

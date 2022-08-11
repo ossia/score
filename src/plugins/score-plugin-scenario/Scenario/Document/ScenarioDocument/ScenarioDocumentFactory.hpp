@@ -26,20 +26,16 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentFactory final
   makeView(const score::DocumentContext& ctx, QObject* parent) override;
 
   score::DocumentDelegatePresenter* makePresenter(
-      const score::DocumentContext& ctx,
-      score::DocumentPresenter* parent_presenter,
+      const score::DocumentContext& ctx, score::DocumentPresenter* parent_presenter,
       const score::DocumentDelegateModel& model,
       score::DocumentDelegateView& view) override;
 
   void make(
-      const score::DocumentContext& ctx,
-      score::DocumentDelegateModel*& ptr,
+      const score::DocumentContext& ctx, score::DocumentDelegateModel*& ptr,
       score::DocumentModel* parent) override;
 
   void load(
-      const VisitorVariant&,
-      const score::DocumentContext& ctx,
-      score::DocumentDelegateModel*& ptr,
-      score::DocumentModel* parent) override;
+      const VisitorVariant&, const score::DocumentContext& ctx,
+      score::DocumentDelegateModel*& ptr, score::DocumentModel* parent) override;
 };
 }

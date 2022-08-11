@@ -37,8 +37,7 @@ public:
       mainState->setInitialState(pressed);
 
       // Also try with pressed, released
-      score::make_transition<MoveOnAnything_Transition>(
-          pressed, moving, *this);
+      score::make_transition<MoveOnAnything_Transition>(pressed, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(pressed, released);
 
       score::make_transition<MoveOnAnything_Transition>(moving, moving, *this);
@@ -46,8 +45,7 @@ public:
 
       connect(pressed, &QAbstractState::entered, this, [&]() { obj.press(); });
       connect(moving, &QAbstractState::entered, this, [&]() { obj.move(); });
-      connect(
-          released, &QAbstractState::entered, this, [&]() { obj.release(); });
+      connect(released, &QAbstractState::entered, this, [&]() { obj.release(); });
     }
 
     mainState->addTransition(mainState, finishedState(), finalState);
@@ -56,8 +54,7 @@ public:
     score::make_transition<score::Cancel_Transition>(mainState, cancelled);
     cancelled->addTransition(finalState);
 
-    connect(
-        cancelled, &QAbstractState::entered, this, [&]() { obj.cancel(); });
+    connect(cancelled, &QAbstractState::entered, this, [&]() { obj.cancel(); });
   }
 };
 }

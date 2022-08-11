@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -32,12 +33,8 @@ public:
   } // To please boost::const_mem_fun
 
   TemporalIntervalPresenter(
-      ZoomRatio zoom,
-      const IntervalModel& viewModel,
-      const Process::Context& ctx,
-      bool handles,
-      QGraphicsItem* parentobject,
-      QObject* parent);
+      ZoomRatio zoom, const IntervalModel& viewModel, const Process::Context& ctx,
+      bool handles, QGraphicsItem* parentobject, QObject* parent);
 
   ~TemporalIntervalPresenter() override;
 
@@ -55,10 +52,8 @@ public:
   void requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const;
 
 public:
-  void intervalHoverEnter()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter)
-  void intervalHoverLeave()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave)
+  void intervalHoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter)
+  void intervalHoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave)
 
 private:
   double rackHeight() const;

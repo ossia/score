@@ -3,13 +3,13 @@
 #include <score/tools/std/ArrayView.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <score_lib_base_export.h>
 #include <sys/types.h>
 
-#include <cstddef>
-#include <vector>
+#include <score_lib_base_export.h>
 
+#include <cstddef>
 #include <type_traits>
+#include <vector>
 
 namespace score
 {
@@ -37,8 +37,8 @@ struct SCORE_LIB_BASE_EXPORT random_id_generator
     typename Vector::value_type id{};
 
     constexpr auto fnd = [](const auto& ids, const auto& id) noexcept {
-      for (auto& elt : ids)
-        if (elt == id)
+      for(auto& elt : ids)
+        if(elt == id)
           return true;
       return false;
     };
@@ -46,7 +46,7 @@ struct SCORE_LIB_BASE_EXPORT random_id_generator
     do
     {
       id = typename Vector::value_type{getRandomId()};
-    } while (fnd(ids, id));
+    } while(fnd(ids, id));
 
     return id;
   }
@@ -63,7 +63,7 @@ struct SCORE_LIB_BASE_EXPORT linear_id_generator
   static auto getNextId(const Vector& ids)
   {
     auto it = std::max_element(ids.begin(), ids.end());
-    if (it != ids.end())
+    if(it != ids.end())
       return typename Vector::value_type{getId(*it) + 1};
     else
       return typename Vector::value_type{getFirstId()};
@@ -95,8 +95,7 @@ auto getStrongId(const score::dynvector_impl<Id<T>>& v)
 
 template <
     typename Container,
-    std::enable_if_t<
-        std::is_pointer<typename Container::value_type>::value>* = nullptr>
+    std::enable_if_t<std::is_pointer<typename Container::value_type>::value>* = nullptr>
 auto getStrongId(const Container& v)
     -> Id<typename std::remove_pointer<typename Container::value_type>::type>
 {
@@ -106,31 +105,24 @@ auto getStrongId(const Container& v)
   vector<int32_t> ids(v.size()); // Map reduce
 
   transform(
-      v.begin(),
-      v.end(),
-      ids.begin(),
-      [](const typename Container::value_type& elt) {
-        return elt->id().val();
-      });
+      v.begin(), v.end(), ids.begin(),
+      [](const typename Container::value_type& elt) { return elt->id().val(); });
 
   return local_id_t{score::id_generator::getNextId(ids)};
 }
 
 template <
     typename Container,
-    std::enable_if_t<
-        !std::is_pointer<typename Container::value_type>::value>* = nullptr>
+    std::enable_if_t<!std::is_pointer<typename Container::value_type>::value>* = nullptr>
 auto getStrongId(const Container& v) -> Id<typename Container::value_type>
 {
   using namespace std;
   auto ids = make_dynarray(int32_t, v.size());
 
-  transform(v.begin(), v.end(), ids.begin(), [](const auto& elt) {
-    return elt.id().val();
-  });
+  transform(
+      v.begin(), v.end(), ids.begin(), [](const auto& elt) { return elt.id().val(); });
 
-  return Id<typename Container::value_type>{
-      score::id_generator::getNextId(ids)};
+  return Id<typename Container::value_type>{score::id_generator::getNextId(ids)};
 }
 
 template <typename T>
@@ -141,7 +133,7 @@ auto getStrongIdRange(std::size_t s)
   vec.emplace_back(score::id_generator::getFirstId());
 
   s--;
-  for (std::size_t i = 0; i < s; i++)
+  for(std::size_t i = 0; i < s; i++)
   {
     vec.push_back(getStrongId(vec));
   }
@@ -159,13 +151,11 @@ auto getStrongIdRange(std::size_t s, const Vector& existing)
 
   // Copy the existing ids
   std::transform(
-      existing.begin(),
-      existing.end(),
-      std::back_inserter(vec),
+      existing.begin(), existing.end(), std::back_inserter(vec),
       [](const auto& elt) { return elt.id(); });
 
   // Then generate the new ones
-  for (std::size_t i = 0; i < s; i++)
+  for(std::size_t i = 0; i < s; i++)
   {
     vec.push_back(getStrongId(vec));
   }
@@ -174,30 +164,24 @@ auto getStrongIdRange(std::size_t s, const Vector& existing)
 }
 
 template <typename T, typename Vector1, typename Vector2>
-static auto getStrongIdRange2(
-    std::size_t s,
-    const Vector1& existing1,
-    const Vector2& existing2)
+static auto
+getStrongIdRange2(std::size_t s, const Vector1& existing1, const Vector2& existing2)
 {
   std::vector<Id<T>> vec;
   vec.reserve(s + existing1.size() + existing2.size());
   std::transform(
-      existing1.begin(),
-      existing1.end(),
-      std::back_inserter(vec),
+      existing1.begin(), existing1.end(), std::back_inserter(vec),
       [](const auto& elt) { return elt.id(); });
   std::transform(
-      existing2.begin(),
-      existing2.end(),
-      std::back_inserter(vec),
+      existing2.begin(), existing2.end(), std::back_inserter(vec),
       [](const auto& elt) { return elt->id(); });
 
-  for (std::size_t i = 0; i < s; i++)
+  for(std::size_t i = 0; i < s; i++)
   {
     vec.push_back(getStrongId(vec));
   }
-  auto final = std::vector<Id<T>>(
-      vec.begin() + existing1.size() + existing2.size(), vec.end());
+  auto final
+      = std::vector<Id<T>>(vec.begin() + existing1.size() + existing2.size(), vec.end());
 
   return final;
 }
@@ -208,12 +192,10 @@ auto getStrongIdRangePtr(std::size_t s, const Vector& existing)
   std::vector<Id<T>> vec;
   vec.reserve(s + existing.size());
   std::transform(
-      existing.begin(),
-      existing.end(),
-      std::back_inserter(vec),
+      existing.begin(), existing.end(), std::back_inserter(vec),
       [](const auto& elt) { return elt->id(); });
 
-  for (; s-- > 0;)
+  for(; s-- > 0;)
   {
     vec.push_back(getStrongId(vec));
   }

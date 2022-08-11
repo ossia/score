@@ -1,9 +1,10 @@
 #pragma once
-#include <Curve/CurveView.hpp>
-#include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
+
+#include <Curve/CurveView.hpp>
+#include <Curve/Process/CurveProcessPresenter.hpp>
 
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
 
@@ -29,7 +30,7 @@ public:
 private:
   QPixmap pixmap() noexcept override
   {
-    if (m_curveView)
+    if(m_curveView)
       return m_curveView->pixmap();
     else
       return QPixmap();
@@ -38,39 +39,31 @@ private:
   void paint_impl(QPainter* painter) const override { }
   void dropEvent(QGraphicsSceneDragDropEvent* event) override
   {
-    if (event->mimeData())
+    if(event->mimeData())
       dropReceived(event->pos(), *event->mimeData());
   }
 
   Curve::View* m_curveView{};
 };
 
-class TempoPresenter final
-    : public Curve::CurveProcessPresenter<TempoProcess, TempoView>
+class TempoPresenter final : public Curve::CurveProcessPresenter<TempoProcess, TempoView>
 {
 public:
   explicit TempoPresenter(
-      const Curve::Style& style,
-      const Scenario::TempoProcess& layer,
-      TempoView* view,
-      const Process::Context& context,
-      QObject* parent)
+      const Curve::Style& style, const Scenario::TempoProcess& layer, TempoView* view,
+      const Process::Context& context, QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     // only disable the curve when using the first 2 inlets
-    for (int i = 0; i < 2; i++)
+    for(int i = 0; i < 2; i++)
     {
-      QObject::connect(
-          layer.inlets()[i],
-          &Process::Inlet::addressChanged,
-          this,
-          [this] { disableIfNeeded(); });
+      QObject::connect(layer.inlets()[i], &Process::Inlet::addressChanged, this, [this] {
+        disableIfNeeded();
+      });
 
-      QObject::connect(
-          layer.inlets()[i],
-          &Process::Inlet::cablesChanged,
-          this,
-          [this] { disableIfNeeded(); });
+      QObject::connect(layer.inlets()[i], &Process::Inlet::cablesChanged, this, [this] {
+        disableIfNeeded();
+      });
     }
   }
 
@@ -82,16 +75,15 @@ private:
     bool should_disable{false};
 
     // only disable the curve when using the first 2 inlets
-    for (int i = 0; i < 2; i++)
+    for(int i = 0; i < 2; i++)
     {
       const auto inlet{m_process.inlets()[i]};
 
-      if (inlet->address().isSet()
-          || !inlet->cables().empty())
+      if(inlet->address().isSet() || !inlet->cables().empty())
         should_disable = true;
     }
 
-    if (should_disable)
+    if(should_disable)
       m_curve.disable();
     else
       m_curve.enable();

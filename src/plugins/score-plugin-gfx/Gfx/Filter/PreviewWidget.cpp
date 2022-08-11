@@ -1,7 +1,9 @@
+#include <Process/Preset.hpp>
+
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
-#include <Process/Preset.hpp>
+
 #include <ossia/network/value/value.hpp>
 
 namespace Gfx
@@ -29,10 +31,12 @@ struct PreviewInputVisitor
   score::gfx::NodeModel* operator()(const isf::image_input& v)
   {
     static std::array<QImage, 3> images{
-        QImage{":/gfx/testcard-1.png"}.scaled(300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
-        QImage{":/gfx/testcard-2.jpeg"}.scaled(300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
-        QImage{":/gfx/testcard-3.png"}.scaled(300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation)
-    };
+        QImage{":/gfx/testcard-1.png"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-2.jpeg"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-3.png"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation)};
     auto image_node = new score::gfx::FullScreenImageNode{images[img_count]};
     img_count++;
     img_count = img_count % 3;
@@ -65,9 +69,7 @@ struct PreviewPresetVisitor
     }
   }
 
-  void operator()(const isf::event_input& v)
-  {
-  }
+  void operator()(const isf::event_input& v) { }
 
   void operator()(const isf::bool_input& v)
   {
@@ -107,17 +109,11 @@ struct PreviewPresetVisitor
     }
   }
 
-  void operator()(const isf::image_input& v)
-  {
-  }
+  void operator()(const isf::image_input& v) { }
 
-  void operator()(const isf::audio_input& v)
-  {
-  }
+  void operator()(const isf::audio_input& v) { }
 
-  void operator()(const isf::audioFFT_input& v)
-  {
-  }
+  void operator()(const isf::audioFFT_input& v) { }
 };
 }
 
@@ -126,8 +122,8 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
 {
   ShaderSource program = programFromFragmentShaderPath(path, {});
 
-  if (const auto& [processed, error] = ProgramCache::instance().get(program);
-      bool(processed))
+  if(const auto& [processed, error] = ProgramCache::instance().get(program);
+     bool(processed))
   {
     m_program = *processed;
     setup();
@@ -145,40 +141,36 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
   auto frag = obj["Fragment"].GetString();
   auto vert = obj["Vertex"].GetString();
   ShaderSource program{vert, frag};
-  if (const auto& [processed, error] = ProgramCache::instance().get(program);
-      bool(processed))
+  if(const auto& [processed, error] = ProgramCache::instance().get(program);
+     bool(processed))
   {
     m_program = *std::move(processed);
     setup();
     if(m_isf)
     {
       std::map<int, ossia::value> controls;
-      for (const auto& arr : obj["Controls"].GetArray())
+      for(const auto& arr : obj["Controls"].GetArray())
       {
-        controls[arr[0].GetInt()] =  JsonValue{arr[1]}.to<ossia::value>();
+        controls[arr[0].GetInt()] = JsonValue{arr[1]}.to<ossia::value>();
       }
 
       int i = 0;
-      for (const isf::input& input : m_program.descriptor.inputs)
+      for(const isf::input& input : m_program.descriptor.inputs)
       {
         ossia::visit(PreviewPresetVisitor{*m_isf, controls, i}, input.data);
         i++;
       }
     }
-}
+  }
 }
 
-ShaderPreviewWidget::~ShaderPreviewWidget()
-{
-}
+ShaderPreviewWidget::~ShaderPreviewWidget() { }
 
 void ShaderPreviewWidget::setup()
 {
   // Create our graph
   m_isf = std::make_unique<score::gfx::ISFNode>(
-      m_program.descriptor,
-      m_program.vertex,
-      m_program.fragment);
+      m_program.descriptor, m_program.vertex, m_program.fragment);
   m_screen = std::make_unique<score::gfx::ScreenNode>(true);
   auto window = m_screen.get();
 
@@ -191,10 +183,10 @@ void ShaderPreviewWidget::setup()
   // Edges from image nodes to image inputs
   int image_i = 0;
   int i = 0;
-  for (const isf::input& input : m_program.descriptor.inputs)
+  for(const isf::input& input : m_program.descriptor.inputs)
   {
     auto node = ossia::visit(PreviewInputVisitor{image_i}, input.data);
-    if (node)
+    if(node)
     {
       m_graph.addNode(node);
       m_previewInputs.push_back(node);

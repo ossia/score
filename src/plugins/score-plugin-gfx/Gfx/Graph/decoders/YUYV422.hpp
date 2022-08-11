@@ -1,7 +1,6 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 }
 
@@ -59,16 +58,12 @@ void main() {
     const auto w = decoder.width, h = decoder.height;
     // Y
     {
-      auto tex = rhi.newTexture(
-          QRhiTexture::RGBA8, {w / 2, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::RGBA8, {w / 2, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
       samplers.push_back({sampler, tex});
     }
@@ -76,24 +71,18 @@ void main() {
     return score::gfx::makeShaders(r.state, vertexShader(), filter);
   }
 
-  void exec(
-      RenderList&,
-      QRhiResourceUpdateBatch& res,
-      AVFrame& frame) override
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
     setYPixels(res, frame.data[0], frame.linesize[0]);
   }
 
-  void setYPixels(
-      QRhiResourceUpdateBatch& res,
-      uint8_t* pixels,
-      int stride) const noexcept
+  void
+  setYPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = samplers[0].texture;
 
-    QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, w, h, 2, stride)};
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);
@@ -149,7 +138,7 @@ void main() {
 }
 )_";
 
-  UYVY422Decoder( Video::VideoMetadata& d)
+  UYVY422Decoder(Video::VideoMetadata& d)
       : decoder{d}
   {
   }
@@ -161,16 +150,12 @@ void main() {
     const auto w = decoder.width, h = decoder.height;
     // Y
     {
-      auto tex = rhi.newTexture(
-          QRhiTexture::RGBA8, {w / 2, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::RGBA8, {w / 2, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
       samplers.push_back({sampler, tex});
     }
@@ -178,10 +163,7 @@ void main() {
     return score::gfx::makeShaders(r.state, vertexShader(), filter);
   }
 
-  void exec(
-      RenderList&,
-      QRhiResourceUpdateBatch& res,
-      AVFrame& frame) override
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
     auto y_tex = samplers[0].texture;
 

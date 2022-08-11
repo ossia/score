@@ -8,9 +8,14 @@
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <score/graphics/ItemBounder.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
+#include <score/graphics/ItemBounder.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/Pixmap.hpp>
@@ -23,10 +28,6 @@
 #include <QPoint>
 #include <QTextLayout>
 
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -48,8 +49,7 @@ TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
-  this->setAcceptedMouseButtons(
-      Qt::LeftButton); // needs to be enabled for dblclick
+  this->setAcceptedMouseButtons(Qt::LeftButton); // needs to be enabled for dblclick
   this->setFlags(
       QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemClipsToShape
       | QGraphicsItem::ItemClipsChildrenToShape | ItemStacksBehindParent);
@@ -57,24 +57,21 @@ TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
 
 QRectF TemporalIntervalHeader::boundingRect() const
 {
-  if (Q_UNLIKELY(m_overlay))
+  if(Q_UNLIKELY(m_overlay))
     return {0., 0., m_width, qreal(IntervalHeader::headerHeight())};
   else
     return {5., 0., m_width - 10., qreal(IntervalHeader::headerHeight())};
 }
 
-
 void TemporalIntervalHeader::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  if (m_rackButton)
+  if(m_rackButton)
     m_rackButton->setState(m_state == State::RackHidden);
 
-  if (m_width < 30)
+  if(m_width < 30)
     return;
 
   // Header
@@ -87,26 +84,24 @@ void TemporalIntervalHeader::paint(
   double rack_button_offset = 0.;
 
   auto& itv = m_presenter.model();
-  if (m_rackButton && !itv.processes.empty())
+  if(m_rackButton && !itv.processes.empty())
     rack_button_offset += interval_header_rack_button_spacing;
 
   const auto p = QPointF{
       m_bounder.x() + rack_button_offset,
       std::round(
-          -1.
-          + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.)};
+          -1. + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.)};
 
-  if (moved)
+  if(moved)
     updateButtons();
 
-  if (m_selected)
+  if(m_selected)
   {
     auto& style = Process::Style::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(style.NoPen());
     painter->setBrush(
-        itv.muted() ? style.MutedIntervalHeaderBackground()
-                    : style.SlotHeader());
+        itv.muted() ? style.MutedIntervalHeaderBackground() : style.SlotHeader());
 
     painter->drawPolygon(m_poly);
     painter->setRenderHint(QPainter::Antialiasing, false);
@@ -123,29 +118,29 @@ void TemporalIntervalHeader::updateButtons()
   double pos = m_bounder.x() - 2;
   auto& itv = m_presenter.model();
 
-  if (m_rackButton && !itv.processes.empty())
+  if(m_rackButton && !itv.processes.empty())
   {
     m_rackButton->setPos(pos - 3., 0.);
     pos += interval_header_rack_button_spacing;
   }
 
   pos += m_textRectCache.width() + 5.;
-  if (m_mute)
+  if(m_mute)
   {
     m_mute->setPos(pos, 0.);
     pos += interval_header_button_spacing;
   }
-  if (m_play)
+  if(m_play)
   {
     m_play->setPos(pos, 0.);
     pos += interval_header_button_spacing;
   }
-  if (m_stop)
+  if(m_stop)
   {
     m_stop->setPos(pos, 0.);
     pos += interval_header_button_spacing;
   }
-  if (m_speed)
+  if(m_speed)
     m_speed->setPos(pos, -1.);
 
   updateShape();
@@ -165,13 +160,13 @@ void TemporalIntervalHeader::updateOverlay()
   bool hadStop = m_stop;
   bool hadSpeed = m_speed;
 
-  if (hadSpeed)
+  if(hadSpeed)
     overlayVisible |= bool(m_speed->impl->spinbox);
 
   bool needsRackButton = !itv.processes.empty();
   bool needsMute = overlayVisible;
-  bool needsPlay= overlayVisible && grand_parent_executing;
-  bool needsStop= overlayVisible && grand_parent_executing;
+  bool needsPlay = overlayVisible && grand_parent_executing;
+  bool needsStop = overlayVisible && grand_parent_executing;
   bool needsSpeed = overlayVisible && m_executing;
 
   prepareGeometryChange();
@@ -181,25 +176,21 @@ void TemporalIntervalHeader::updateOverlay()
   const auto& pixmaps = Process::Pixmaps::instance();
 
   /// Show-hide rack ///
-  if (hadRackButton && !needsRackButton)
+  if(hadRackButton && !needsRackButton)
   {
     delete m_rackButton;
     m_rackButton = nullptr;
   }
-  else if (!hadRackButton && needsRackButton)
+  else if(!hadRackButton && needsRackButton)
   {
     m_rackButton = new score::QGraphicsSelectablePixmapToggle{
-        pixmaps.roll,
-        pixmaps.roll_selected,
-        pixmaps.unroll,
-        pixmaps.unroll_selected,
+        pixmaps.roll, pixmaps.roll_selected, pixmaps.unroll, pixmaps.unroll_selected,
         this};
-    m_rackButton->setToolTip(tr("Rack folding\nUnroll or re-roll the processes in this interval."));
+    m_rackButton->setToolTip(
+        tr("Rack folding\nUnroll or re-roll the processes in this interval."));
 
     connect(
-        m_rackButton,
-        &score::QGraphicsSelectablePixmapToggle::toggled,
-        &m_presenter,
+        m_rackButton, &score::QGraphicsSelectablePixmapToggle::toggled, &m_presenter,
         [=] { ((TemporalIntervalPresenter&)m_presenter).changeRackState(); });
 
     m_rackButton->setSelected(overlayVisible);
@@ -207,94 +198,94 @@ void TemporalIntervalHeader::updateOverlay()
   }
 
   /// Mute ///
-  if (hadMute && !needsMute)
+  if(hadMute && !needsMute)
   {
     delete m_mute;
     m_mute = nullptr;
   }
-  else if (!hadMute && needsMute)
+  else if(!hadMute && needsMute)
   {
-    m_mute = new score::QGraphicsPixmapToggle{
-        pixmaps.muted, pixmaps.unmuted, this};
-    m_mute->setToolTip(tr("Mute\nMute the audio output of this interval. Processes will still execute but will not produce output."));
+    m_mute = new score::QGraphicsPixmapToggle{pixmaps.muted, pixmaps.unmuted, this};
+    m_mute->setToolTip(
+        tr("Mute\nMute the audio output of this interval. Processes will still execute "
+           "but will not produce output."));
 
-    if (itv.muted())
+    if(itv.muted())
       m_mute->toggle();
     connect(
-        m_mute,
-        &score::QGraphicsPixmapToggle::toggled,
-        &m_presenter,
+        m_mute, &score::QGraphicsPixmapToggle::toggled, &m_presenter,
         [&itv](bool b) { ((IntervalModel&)itv).setMuted(b); });
-    con(itv, &IntervalModel::mutedChanged, m_mute, [=](bool b) {
-      m_mute->setState(b);
-    });
+    con(itv, &IntervalModel::mutedChanged, m_mute, [=](bool b) { m_mute->setState(b); });
   }
 
   /// Play ///
-  if (hadPlay && !needsPlay)
+  if(hadPlay && !needsPlay)
   {
     delete m_play;
     m_play = nullptr;
   }
-  else if (!hadPlay && needsPlay)
+  else if(!hadPlay && needsPlay)
   {
     m_play = new score::QGraphicsPixmapButton{
         pixmaps.interval_play, pixmaps.interval_play, this};
-    m_play->setToolTip(tr("Play\nPlay this interval. Playback follows quantization rules."));
-    connect(m_play, &score::QGraphicsPixmapButton::clicked, this, [this] { \
-      auto& ctx = this->m_presenter.context().app.guiApplicationPlugin<ScenarioApplicationPlugin>();
-      ctx.execution().playInterval(const_cast<IntervalModel*>(&this->m_presenter.model()));
+    m_play->setToolTip(
+        tr("Play\nPlay this interval. Playback follows quantization rules."));
+    connect(m_play, &score::QGraphicsPixmapButton::clicked, this, [this] {
+      auto& ctx = this->m_presenter.context()
+                      .app.guiApplicationPlugin<ScenarioApplicationPlugin>();
+      ctx.execution().playInterval(
+          const_cast<IntervalModel*>(&this->m_presenter.model()));
     });
   }
-  if (hadStop && !needsStop)
+  if(hadStop && !needsStop)
   {
     delete m_stop;
     m_stop = nullptr;
   }
-  else if (!hadStop && needsStop)
+  else if(!hadStop && needsStop)
   {
     m_stop = new score::QGraphicsPixmapButton{
         pixmaps.interval_stop, pixmaps.interval_stop, this};
-    m_stop->setToolTip(tr("Stop\nStop this interval. Stopping follows quantization rules."));
-    connect(m_stop, &score::QGraphicsPixmapButton::clicked, this, [this] { \
-      auto& ctx = this->m_presenter.context().app.guiApplicationPlugin<ScenarioApplicationPlugin>();
-              ctx.execution().stopInterval(const_cast<IntervalModel*>(&this->m_presenter.model()));
-            });
+    m_stop->setToolTip(
+        tr("Stop\nStop this interval. Stopping follows quantization rules."));
+    connect(m_stop, &score::QGraphicsPixmapButton::clicked, this, [this] {
+      auto& ctx = this->m_presenter.context()
+                      .app.guiApplicationPlugin<ScenarioApplicationPlugin>();
+      ctx.execution().stopInterval(
+          const_cast<IntervalModel*>(&this->m_presenter.model()));
+    });
   }
 
   /// Speed slider ///
-  if (hadSpeed && !needsSpeed)
+  if(hadSpeed && !needsSpeed)
   {
     delete m_speed;
     m_speed = nullptr;
   }
-  else if (!hadSpeed && needsSpeed)
+  else if(!hadSpeed && needsSpeed)
   {
     auto& durations = const_cast<IntervalDurations&>(itv.duration);
     m_speed = new score::QGraphicsSlider{this};
-    m_speed->setToolTip(tr("Speed control\nChange the playback speed of this interval."));
+    m_speed->setToolTip(
+        tr("Speed control\nChange the playback speed of this interval."));
     m_speed->min = -1.;
     m_speed->max = 5.;
     m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
     m_speed->setValue(
         (durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
     connect(
-        m_speed,
-        &score::QGraphicsSlider::sliderMoved,
-        this,
+        m_speed, &score::QGraphicsSlider::sliderMoved, this,
         [this, min = m_speed->min, max = m_speed->max, &durations] {
-          durations.setSpeed(m_speed->value() * (max - min) + min);
+      durations.setSpeed(m_speed->value() * (max - min) + min);
         });
     connect(
-        m_speed,
-        &score::QGraphicsSlider::sliderReleased,
-        this,
+        m_speed, &score::QGraphicsSlider::sliderReleased, this,
         [this, min = m_speed->min, max = m_speed->max, &durations] {
-          durations.setSpeed(m_speed->value() * (max - min) + min);
+      durations.setSpeed(m_speed->value() * (max - min) + min);
         });
   }
 
-  if (m_speed || m_play || m_stop || m_mute || m_rackButton)
+  if(m_speed || m_play || m_stop || m_mute || m_rackButton)
   {
     updateButtons();
   }
@@ -321,8 +312,7 @@ void TemporalIntervalHeader::setLabel(const QString& label)
   on_textChanged();
 }
 
-void TemporalIntervalHeader::mouseDoubleClickEvent(
-    QGraphicsSceneMouseEvent* event)
+void TemporalIntervalHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   doubleClicked();
 }
@@ -334,22 +324,21 @@ void TemporalIntervalHeader::updateShape() noexcept
   double rack_button_offset = 0.;
 
   auto& itv = m_presenter.model();
-  if (m_rackButton && !itv.processes.empty())
+  if(m_rackButton && !itv.processes.empty())
     rack_button_offset += interval_header_rack_button_spacing;
 
   double buttons_width = rack_button_offset + 5.;
 
-  if (m_mute)
+  if(m_mute)
     buttons_width += interval_header_button_spacing;
-  if (m_play)
+  if(m_play)
     buttons_width += interval_header_button_spacing;
-  if (m_stop)
+  if(m_stop)
     buttons_width += interval_header_button_spacing;
-  if (m_speed)
+  if(m_speed)
     buttons_width += m_speed->boundingRect().width();
 
-  m_poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5}
-         << QPointF{5., 0.}
+  m_poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5} << QPointF{5., 0.}
          << QPointF{m_bounder.x() + text_width + buttons_width, 0.}
          << QPointF{
                 m_bounder.x() + text_width + buttons_width + 5.,
@@ -358,7 +347,7 @@ void TemporalIntervalHeader::updateShape() noexcept
 
 void TemporalIntervalHeader::setState(IntervalHeader::State s)
 {
-  if (s == m_state)
+  if(s == m_state)
     return;
 
   m_state = s;
@@ -374,9 +363,10 @@ void TemporalIntervalHeader::on_textChanged()
   const auto& model = m_presenter.model().metadata();
   const auto& label = model.getLabel();
   const auto& name = model.getName();
-  const auto& text
-      = (m_state != State::Hidden || m_overlay) ? (label.isEmpty() ? name : label) : label;
-  if (text.isEmpty())
+  const auto& text = (m_state != State::Hidden || m_overlay)
+                         ? (label.isEmpty() ? name : label)
+                         : label;
+  if(text.isEmpty())
   {
     m_textRectCache = {};
     m_line = QPixmap{};
@@ -392,17 +382,17 @@ void TemporalIntervalHeader::on_textChanged()
 
     m_textRectCache = line.naturalTextRect();
     auto r = line.glyphRuns();
-    if (r.size() > 0)
+    if(r.size() > 0)
     {
       img = newImage(m_textRectCache.width(), m_textRectCache.height());
 
       QPainter p{&img};
-      if (m_hovered || m_selected)
+      if(m_hovered || m_selected)
         p.setPen(skin.IntervalBraceSelected());
       else
       {
         const auto& col = model.getColor();
-        if (&col.getBrush() == &skin.IntervalDefaultBackground())
+        if(&col.getBrush() == &skin.IntervalDefaultBackground())
           p.setPen(skin.IntervalHeaderTextPen());
         else
           p.setPen(QPen(col.getBrush().color()));

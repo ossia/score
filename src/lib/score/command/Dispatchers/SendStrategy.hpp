@@ -5,8 +5,7 @@ namespace SendStrategy
 {
 struct Simple
 {
-  static void
-  send(const score::CommandStackFacade& stack, score::Command* other)
+  static void send(const score::CommandStackFacade& stack, score::Command* other)
   {
     stack.redoAndPush(other);
   }
@@ -14,8 +13,7 @@ struct Simple
 
 struct Quiet
 {
-  static void
-  send(const score::CommandStackFacade& stack, score::Command* other)
+  static void send(const score::CommandStackFacade& stack, score::Command* other)
   {
     stack.push(other);
   }
@@ -23,8 +21,7 @@ struct Quiet
 
 struct UndoRedo
 {
-  static void
-  send(const score::CommandStackFacade& stack, score::Command* other)
+  static void send(const score::CommandStackFacade& stack, score::Command* other)
   {
     other->undo(stack.context());
     stack.redoAndPush(other);

@@ -19,9 +19,7 @@ class CommandStackFacade;
 namespace Curve
 {
 CommandObjectBase::CommandObjectBase(
-    const Model& model,
-    Presenter* pres,
-    const score::CommandStackFacade& stack)
+    const Model& model, Presenter* pres, const score::CommandStackFacade& stack)
     : m_model{model}
     , m_presenter{pres}
     , m_dispatcher{stack}
@@ -50,27 +48,27 @@ void CommandObjectBase::handleLocking()
 
   const bool bounded = m_presenter ? m_presenter->boundedMove() : true;
   // We lock between O - 1 in both axes.
-  if (current_x < 0.)
+  if(current_x < 0.)
     m_state->currentPoint.setX(0.);
-  else if (bounded && current_x > 1.)
+  else if(bounded && current_x > 1.)
     m_state->currentPoint.setX(1.);
 
-  if (current_y < 0.)
+  if(current_y < 0.)
     m_state->currentPoint.setY(0.);
-  else if (current_y > 1.)
+  else if(current_y > 1.)
     m_state->currentPoint.setY(1.);
 
   // And more specifically...
-  if (m_presenter && m_presenter->editionSettings().lockBetweenPoints())
+  if(m_presenter && m_presenter->editionSettings().lockBetweenPoints())
   {
-    if (current_x <= m_xmin)
+    if(current_x <= m_xmin)
       m_state->currentPoint.setX(m_xmin + 0.000001);
 
-    if (current_x >= m_xmax)
+    if(current_x >= m_xmax)
     {
       // If xmax is the max of the whole curve and we are not bounded,
       // we ignore.
-      if (!(!bounded && current_x >= m_xLastPoint))
+      if(!(!bounded && current_x >= m_xLastPoint))
         m_state->currentPoint.setX(m_xmax - 0.000001);
     }
   }

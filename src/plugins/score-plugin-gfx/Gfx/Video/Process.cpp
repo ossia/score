@@ -1,12 +1,14 @@
 #include "Process.hpp"
 
-#include <Gfx/Graph/Node.hpp>
-#include <Gfx/TexturePort.hpp>
-#include <Media/Tempo.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/TexturePort.hpp>
+#include <Media/Tempo.hpp>
+
 #include <QFileInfo>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Video::Model)
@@ -14,9 +16,7 @@ namespace Gfx::Video
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const QString& path,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const QString& path, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id, "VideoProcess", parent}
     , m_nativeTempo{120}
@@ -33,7 +33,7 @@ Model::~Model() { }
 
 void Model::setPath(const QString& f)
 {
-  if (f == m_path)
+  if(f == m_path)
     return;
 
   m_path = f;
@@ -50,7 +50,7 @@ score::gfx::ScaleMode Model::scaleMode() const noexcept
 
 void Model::setScaleMode(score::gfx::ScaleMode t)
 {
-  if (t != m_scaleMode)
+  if(t != m_scaleMode)
   {
     m_scaleMode = t;
     scaleModeChanged(t);
@@ -64,7 +64,7 @@ double Model::nativeTempo() const noexcept
 
 void Model::setNativeTempo(double t)
 {
-  if (t != m_nativeTempo)
+  if(t != m_nativeTempo)
   {
     m_nativeTempo = t;
     nativeTempoChanged(t);
@@ -78,7 +78,7 @@ bool Model::ignoreTempo() const noexcept
 
 void Model::setIgnoreTempo(bool t)
 {
-  if (t != m_ignoreTempo)
+  if(t != m_ignoreTempo)
   {
     m_ignoreTempo = t;
     ignoreTempoChanged(t);
@@ -92,12 +92,14 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg", "imf", "mxf", "mts", "m2ts", "mj2"};
+  return {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
+          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg", "imf", "mxf", "mts", "m2ts", "mj2"};
+  return {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
+          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
 }
 
 std::optional<TimeVal> guessVideoDuration(const QString& path)
@@ -122,8 +124,7 @@ std::optional<TimeVal> guessVideoDuration(const QString& path)
 }
 
 void DropHandler::dropPath(
-    std::vector<ProcessDrop>& vec,
-    const QString& filename,
+    std::vector<ProcessDrop>& vec, const QString& filename,
     const score::DocumentContext& ctx) const noexcept
 {
   Process::ProcessDropHandler::ProcessDrop p;
@@ -142,7 +143,8 @@ void DataStreamReader::read(const Gfx::Video::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
-  m_stream << proc.m_path << proc.m_scaleMode << proc.m_nativeTempo << proc.m_ignoreTempo;
+  m_stream << proc.m_path << proc.m_scaleMode << proc.m_nativeTempo
+           << proc.m_ignoreTempo;
   insertDelimiter();
 }
 
@@ -150,11 +152,8 @@ template <>
 void DataStreamWriter::write(Gfx::Video::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   QString path;
   m_stream >> path >> proc.m_scaleMode >> proc.m_nativeTempo >> proc.m_ignoreTempo;
@@ -176,11 +175,8 @@ template <>
 void JSONWriter::write(Gfx::Video::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
   proc.setPath(obj["FilePath"].toString());
 
   if(auto sc = obj.tryGet("Scale"))

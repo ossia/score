@@ -15,9 +15,7 @@ class SCORE_LIB_BASE_EXPORT SelectionButton final : public QToolButton
 {
 public:
   SelectionButton(
-      const QString& text,
-      Selection target,
-      score::SelectionDispatcher& disp,
+      const QString& text, Selection target, score::SelectionDispatcher& disp,
       QWidget* parent);
 
   template <typename Obj>
@@ -30,11 +28,8 @@ public:
   }
 
   template <typename Obj>
-  static SelectionButton* make(
-      const QString& text,
-      Obj* obj,
-      score::SelectionDispatcher& disp,
-      QWidget* parent)
+  static SelectionButton*
+  make(const QString& text, Obj* obj, score::SelectionDispatcher& disp, QWidget* parent)
   {
     auto ptr = const_cast<std::remove_const_t<Obj>*>(obj);
     auto but = new SelectionButton{text, Selection{ptr}, disp, parent};

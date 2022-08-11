@@ -6,6 +6,7 @@
 #include "LocalProtocolSettingsWidget.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <LocalTree/Device/LocalSpecificSettings.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
@@ -37,13 +38,12 @@ LocalProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 }
 
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   qDebug() << "updating local" << settings.name;
   auto doc = ctx.findPlugin<LocalTree::DocumentPlugin>();
-  if (doc)
+  if(doc)
   {
     doc->localDevice().updateSettings(settings);
     return &doc->localDevice();
@@ -68,8 +68,7 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
   return settings;
 }
 
-const Device::DeviceSettings&
-LocalProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const noexcept
 {
   return static_defaultSettings();
 }
@@ -79,22 +78,20 @@ Device::ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
   return new LocalProtocolSettingsWidget;
 }
 
-QVariant LocalProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant
+LocalProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<LocalSpecificSettings>(visitor);
 }
 
 void LocalProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<LocalSpecificSettings>(data, visitor);
 }
 
 bool LocalProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

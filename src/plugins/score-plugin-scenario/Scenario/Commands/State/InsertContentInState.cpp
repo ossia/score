@@ -4,22 +4,21 @@
 
 #include <Process/State/MessageNode.hpp>
 
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-
 namespace Scenario::Command
 {
 
 InsertContentInState::InsertContentInState(
-    const rapidjson::Value& stateData,
-    const Scenario::StateModel& state)
+    const rapidjson::Value& stateData, const Scenario::StateModel& state)
     : m_state{state}
 {
   // TODO ask what should be copied ? the state due to the processes ? the user
@@ -34,8 +33,7 @@ InsertContentInState::InsertContentInState(
   m_newNode = m_oldNode;
   updateTreeWithMessageList(
       m_newNode,
-      Process::flatten(
-          score::unmarshall<Process::MessageNode>(stateData["Messages"])));
+      Process::flatten(score::unmarshall<Process::MessageNode>(stateData["Messages"])));
 }
 
 void InsertContentInState::undo(const score::DocumentContext& ctx) const

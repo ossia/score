@@ -26,9 +26,9 @@ struct TSerializer<DataStream, score::Entity<T>>
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
     // Save components
     score::DataStreamComponents vec;
-    for (auto& comp : obj.components())
+    for(auto& comp : obj.components())
     {
-      if (auto c = dynamic_cast<score::SerializableComponent*>(&comp))
+      if(auto c = dynamic_cast<score::SerializableComponent*>(&comp))
       {
         vec[c->concreteKey()] = s.marshall(*c);
       }
@@ -47,7 +47,7 @@ struct TSerializer<DataStream, score::Entity<T>>
     // Reload components
     score::DataStreamComponents vec;
     s.writeTo(vec);
-    if (!vec.empty())
+    if(!vec.empty())
     {
       // TODO we use id -1, there should be a better way... for now it will
       // work since id's begin at 1.
@@ -71,9 +71,9 @@ struct TSerializer<JSONObject, score::Entity<T>>
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
     // Save components
     QJsonArray json_components;
-    for (auto& comp : obj.components())
+    for(auto& comp : obj.components())
     {
-      if (auto c = dynamic_cast<score::SerializableComponent*>(&comp))
+      if(auto c = dynamic_cast<score::SerializableComponent*>(&comp))
       {
         json_components.append(s.marshall(*c));
       }
@@ -92,10 +92,10 @@ struct TSerializer<JSONObject, score::Entity<T>>
 
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
     const QJsonArray json_components = s.obj[s.strings.Components].toArray();
-    if (!json_components.empty())
+    if(!json_components.empty())
     {
       score::JSONComponents vec;
-      for (const auto& comp : json_components)
+      for(const auto& comp : json_components)
       {
         // Since the component is a SerializableInterface, it has an uuid
         // attribute.
@@ -122,24 +122,21 @@ struct ArrayEntitySerializer
   static void readFrom(DataStream::Serializer& s, const T& vec)
   {
     s.m_stream << (int32_t)vec.size();
-    for (auto* v : vec)
+    for(auto* v : vec)
       s.readFrom(*v);
   }
 
   template <typename List, typename OnSucces, typename OnFailure>
   static void writeTo(
-      DataStream::Deserializer& s,
-      const List& lst,
-      QObject* parent,
-      const OnSucces& success,
-      const OnFailure& fail)
+      DataStream::Deserializer& s, const List& lst, QObject* parent,
+      const OnSucces& success, const OnFailure& fail)
   {
     int32_t count;
     s.m_stream >> count;
-    for (; count-- > 0;)
+    for(; count-- > 0;)
     {
       auto proc = deserialize_interface(lst, s, parent);
-      if (proc)
+      if(proc)
       {
         success(proc);
       }
@@ -154,24 +151,21 @@ struct ArrayEntitySerializer
   static void readFrom(JSONObject::Serializer& s, const T& vec)
   {
     s.stream.StartArray();
-    for (const auto* elt : vec)
+    for(const auto* elt : vec)
       s.readFrom(*elt);
     s.stream.EndArray();
   }
 
   template <typename List, typename OnSucces, typename OnFailure>
   static void writeTo(
-      const JSONObject::Deserializer& s,
-      const List& lst,
-      QObject* parent,
-      const OnSucces& success,
-      const OnFailure& fail)
+      const JSONObject::Deserializer& s, const List& lst, QObject* parent,
+      const OnSucces& success, const OnFailure& fail)
   {
-    for (const auto& json_vref : s.base.GetArray())
+    for(const auto& json_vref : s.base.GetArray())
     {
-      auto proc = deserialize_interface(
-          lst, JSONObject::Deserializer{json_vref}, parent);
-      if (proc)
+      auto proc
+          = deserialize_interface(lst, JSONObject::Deserializer{json_vref}, parent);
+      if(proc)
       {
         success(proc);
       }

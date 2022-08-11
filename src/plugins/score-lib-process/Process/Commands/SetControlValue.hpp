@@ -1,8 +1,9 @@
 #pragma once
-#include <Process/Commands/ProcessCommandFactory.hpp>
-#include <Process/Dataflow/Port.hpp>
 #include <State/Value.hpp>
 #include <State/ValueSerialization.hpp>
+
+#include <Process/Commands/ProcessCommandFactory.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 
@@ -10,10 +11,7 @@ namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT SetControlValue final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Process::CommandFactoryName(),
-      SetControlValue,
-      "Set a control")
+  SCORE_COMMAND_DECL(Process::CommandFactoryName(), SetControlValue, "Set a control")
 
 public:
   SetControlValue(const Process::ControlInlet& obj, ossia::value newval);
@@ -32,13 +30,10 @@ private:
   ossia::value m_old, m_new;
 };
 
-class SCORE_LIB_PROCESS_EXPORT SetControlOutletValue final
-    : public score::Command
+class SCORE_LIB_PROCESS_EXPORT SetControlOutletValue final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Process::CommandFactoryName(),
-      SetControlOutletValue,
-      "Set a control")
+      Process::CommandFactoryName(), SetControlOutletValue, "Set a control")
 
 public:
   SetControlOutletValue(const Process::ControlOutlet& obj, ossia::value newval);

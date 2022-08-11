@@ -2,10 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessageItemModel.hpp"
 
-#include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/ValueConversion.hpp>
+
+#include <Process/State/MessageNode.hpp>
+
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -15,8 +19,9 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <ossia-qt/name_utils.hpp>
 #include <ossia/network/value/value_traits.hpp>
+
+#include <ossia-qt/name_utils.hpp>
 
 #include <QFile>
 #include <QFileInfo>
@@ -25,8 +30,6 @@
 #include <QString>
 #include <QUrl>
 
-#include <Scenario/Commands/State/AddMessagesToState.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::MessageItemModel)
@@ -70,10 +73,9 @@ int MessageItemModel::columnCount(const QModelIndex& parent) const
   return (int)Column::Count;
 }
 
-static QVariant
-nameColumnData(const MessageItemModel::node_type& node, int role)
+static QVariant nameColumnData(const MessageItemModel::node_type& node, int role)
 {
-  if (role == Qt::DisplayRole || role == Qt::EditRole)
+  if(role == Qt::DisplayRole || role == Qt::EditRole)
   {
     return node.displayName();
   }
@@ -83,13 +85,13 @@ nameColumnData(const MessageItemModel::node_type& node, int role)
 
 QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
-  if (role == Qt::DisplayRole || role == Qt::EditRole)
+  if(role == Qt::DisplayRole || role == Qt::EditRole)
   {
     const auto& opt_val = node.value();
-    if (opt_val)
+    if(opt_val)
     {
       auto& val = *opt_val;
-      if (ossia::is_array(val))
+      if(ossia::is_array(val))
       {
         // TODO a nice editor for lists.
         // TODO use AddressItemModel's !
@@ -110,19 +112,17 @@ QVariant MessageItemModel::data(const QModelIndex& index, int role) const
 {
   const int col = index.column();
 
-  if (col < 0 || col >= (int)Column::Count)
+  if(col < 0 || col >= (int)Column::Count)
     return {};
 
   auto& node = nodeFromModelIndex(index);
 
-  switch ((Column)col)
+  switch((Column)col)
   {
-    case Column::Name:
-    {
+    case Column::Name: {
       return nameColumnData(node, role);
     }
-    case Column::Value:
-    {
+    case Column::Value: {
       return valueColumnData(node, role);
     }
     default:
@@ -132,16 +132,14 @@ QVariant MessageItemModel::data(const QModelIndex& index, int role) const
   return {};
 }
 
-QVariant MessageItemModel::headerData(
-    int section,
-    Qt::Orientation orientation,
-    int role) const
+QVariant
+MessageItemModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+  if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
   {
-    if (section == 0)
+    if(section == 0)
       return tr("Address");
-    else if (section == 1)
+    else if(section == 1)
       return tr("Value");
   }
 
@@ -149,10 +147,7 @@ QVariant MessageItemModel::headerData(
 }
 
 bool MessageItemModel::setHeaderData(
-    int section,
-    Qt::Orientation orientation,
-    const QVariant& value,
-    int role)
+    int section, Qt::Orientation orientation, const QVariant& value, int role)
 {
   return false;
 }
@@ -179,19 +174,18 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
   SelectedNodes nodes;
   ossia::transform(
-      indexes, std::back_inserter(nodes.parents), [&](const QModelIndex& idx) {
-        return &nodeFromModelIndex(idx);
-      });
+      indexes, std::back_inserter(nodes.parents),
+      [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
   nodes.parents = filterUniqueParents(nodes.parents);
 
   State::MessageList messages;
   messages.reserve(nodes.parents.size());
-  for (auto* node : nodes.parents)
+  for(auto* node : nodes.parents)
   {
     ossia::insert_at_end(messages, flatten(*node));
   }
 
-  if (!messages.empty())
+  if(!messages.empty())
   {
     auto mimeData = new QMimeData;
     Mime<State::MessageList>::Serializer s{*mimeData};
@@ -203,23 +197,20 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool MessageItemModel::canDropMimeData(
-    const QMimeData* data,
-    Qt::DropAction action,
-    int row,
-    int column,
+    const QMimeData* data, Qt::DropAction action, int row, int column,
     const QModelIndex& parent) const
 {
-  if (action == Qt::IgnoreAction)
+  if(action == Qt::IgnoreAction)
   {
     return true;
   }
 
-  if (action != Qt::MoveAction && action != Qt::CopyAction)
+  if(action != Qt::MoveAction && action != Qt::CopyAction)
   {
     return false;
   }
 
-  if (!(data->hasFormat(score::mime::messagelist()) || data->hasUrls()))
+  if(!(data->hasFormat(score::mime::messagelist()) || data->hasUrls()))
   {
     return false;
   }
@@ -228,53 +219,46 @@ bool MessageItemModel::canDropMimeData(
 }
 
 bool MessageItemModel::dropMimeData(
-    const QMimeData* data,
-    Qt::DropAction action,
-    int row,
-    int column,
+    const QMimeData* data, Qt::DropAction action, int row, int column,
     const QModelIndex& parent)
 {
-  if (action == Qt::IgnoreAction)
+  if(action == Qt::IgnoreAction)
   {
     return true;
   }
 
-  if (action != Qt::MoveAction && action != Qt::CopyAction)
+  if(action != Qt::MoveAction && action != Qt::CopyAction)
   {
     return false;
   }
 
-  if (data->hasFormat(score::mime::messagelist()))
+  if(data->hasFormat(score::mime::messagelist()))
   {
-    State::MessageList ml
-        = MimeWriter<State::MessageList>{*data}.deserialize();
+    State::MessageList ml = MimeWriter<State::MessageList>{*data}.deserialize();
 
     auto cmd = new Command::AddMessagesToState{stateModel, std::move(ml)};
 
-    CommandDispatcher<> disp(
-        score::IDocument::documentContext(stateModel).commandStack);
+    CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
     beginResetModel();
     disp.submit(cmd);
     endResetModel();
   }
-  else if (data->hasUrls())
+  else if(data->hasUrls())
   {
     State::MessageList ml;
-    for (const auto& u : data->urls())
+    for(const auto& u : data->urls())
     {
       auto path = u.toLocalFile();
-      if (QFile f{path};
-          QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
       {
         ossia::insert_at_end(ml, fromJson<State::MessageList>(f.readAll()));
       }
     }
 
-    if (!ml.empty())
+    if(!ml.empty())
     {
       auto cmd = new Command::AddMessagesToState{stateModel, ml};
-      CommandDispatcher<>{
-          score::IDocument::documentContext(stateModel).commandStack}
+      CommandDispatcher<>{score::IDocument::documentContext(stateModel).commandStack}
           .submit(cmd);
     }
   }
@@ -295,7 +279,7 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const
 {
   Qt::ItemFlags f = Qt::ItemIsEnabled;
 
-  if (index.isValid())
+  if(index.isValid())
   {
     f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled
          | Qt::ItemIsEditable;
@@ -308,29 +292,26 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const
 }
 
 bool MessageItemModel::setData(
-    const QModelIndex& index,
-    const QVariant& value_received,
-    int role)
+    const QModelIndex& index, const QVariant& value_received, int role)
 {
-  if (!index.isValid())
+  if(!index.isValid())
     return false;
 
   auto& n = nodeFromModelIndex(index);
 
-  if (!n.parent())
+  if(!n.parent())
     return false;
 
   auto col = Column(index.column());
 
-  if (role == Qt::EditRole)
+  if(role == Qt::EditRole)
   {
-    switch (col)
+    switch(col)
     {
-      case Column::Name:
-      {
+      case Column::Name: {
         QString name = value_received.toString();
         ossia::net::sanitize_name(name);
-        if (name.isEmpty())
+        if(name.isEmpty())
           return false;
 
         // TODO check that name is unique across brethren
@@ -346,13 +327,12 @@ bool MessageItemModel::setData(
         return true;
       }
 
-      case Column::Value:
-      {
-        if (!n.hasValue())
+      case Column::Value: {
+        if(!n.hasValue())
           return false;
         auto value = State::convert::fromQVariant(value_received);
         auto current_val = n.value();
-        if (current_val)
+        if(current_val)
         {
           State::convert::convert(*current_val, value);
         }

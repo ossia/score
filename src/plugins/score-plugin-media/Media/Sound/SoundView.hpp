@@ -1,10 +1,11 @@
 #pragma once
-#include <Media/AudioArray.hpp>
-#include <Media/MediaFileHandle.hpp>
-#include <Media/Sound/WaveformComputer.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+
+#include <Media/AudioArray.hpp>
+#include <Media/MediaFileHandle.hpp>
+#include <Media/Sound/WaveformComputer.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 

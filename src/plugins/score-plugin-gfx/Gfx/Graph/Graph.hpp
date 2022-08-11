@@ -51,7 +51,6 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
    */
   void unlinkAndRemoveEdge(Port* source, Port* sink);
 
-
   /**
    * @brief Remove all edges.
    */
@@ -91,12 +90,16 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   bool canDoVSync() const noexcept { return m_outputs.size() == 1; }
 
   const std::vector<std::shared_ptr<RenderList>>& renderLists() const noexcept
-  { return m_renderers; }
+  {
+    return m_renderers;
+  }
+
 private:
   void initializeOutput(OutputNode* output, GraphicsApi graphicsApi);
   void createOutputRenderList(OutputNode& output);
   void recreateOutputRenderList(OutputNode& output);
-  std::shared_ptr<RenderList> createRenderList(OutputNode*, std::shared_ptr<RenderState> state);
+  std::shared_ptr<RenderList>
+  createRenderList(OutputNode*, std::shared_ptr<RenderState> state);
 
   std::vector<std::shared_ptr<RenderList>> m_renderers;
   std::vector<std::shared_ptr<Window>> m_unused_windows;

@@ -1,11 +1,12 @@
 #pragma once
-#include <Pd/PdInstance.hpp>
-#include <Pd/PdMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
 #include <Process/WidgetLayer/WidgetLayerView.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
+
+#include <Pd/PdInstance.hpp>
+#include <Pd/PdMetadata.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
@@ -43,10 +44,8 @@ class ProcessModel final : public Process::ProcessModel
 public:
   using base_type = Process::ProcessModel;
   explicit ProcessModel(
-      const TimeVal& duration,
-      const QString& pdpatch,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const QString& pdpatch,
+      const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)
@@ -81,22 +80,17 @@ public:
   void midiOutputChanged(bool v) W_SIGNAL(midiOutputChanged, v);
 
   W_PROPERTY(
-      int,
-      audioInputs READ audioInputs WRITE setAudioInputs NOTIFY
-          audioInputsChanged)
+      int, audioInputs READ audioInputs WRITE setAudioInputs NOTIFY audioInputsChanged)
   W_PROPERTY(
       int,
-      audioOutputs READ audioOutputs WRITE setAudioOutputs NOTIFY
-          audioOutputsChanged)
+      audioOutputs READ audioOutputs WRITE setAudioOutputs NOTIFY audioOutputsChanged)
+  W_PROPERTY(bool, midiInput READ midiInput WRITE setMidiInput NOTIFY midiInputChanged)
   W_PROPERTY(
-      bool,
-      midiInput READ midiInput WRITE setMidiInput NOTIFY midiInputChanged)
-  W_PROPERTY(
-      bool,
-      midiOutput READ midiOutput WRITE setMidiOutput NOTIFY midiOutputChanged)
+      bool, midiOutput READ midiOutput WRITE setMidiOutput NOTIFY midiOutputChanged)
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
   std::shared_ptr<Instance> m_instance;
+
 private:
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;

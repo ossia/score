@@ -4,8 +4,6 @@
 
 #include <Process/State/ProcessStateDataInterface.hpp>
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
@@ -16,15 +14,16 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/selection/SelectionStack.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 namespace Scenario
 {
-static void AddProcessBeforeState(
-    StateModel& statemodel,
-    const Process::ProcessModel& proc)
+static void
+AddProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   // TODO this should be fused with the notion of State Process.
   ProcessStateDataInterface* state = proc.endStateData();
-  if (!state)
+  if(!state)
     return;
 
   auto prev_proc_fun = [&](const State::MessageList& ml) {
@@ -35,24 +34,19 @@ static void AddProcessBeforeState(
     // from the process ?
     auto& messages = statemodel.messages();
 
-    for (const ProcessStateWrapper& next_proc :
-         statemodel.followingProcesses())
+    for(const ProcessStateWrapper& next_proc : statemodel.followingProcesses())
     {
       next_proc.process().setMessages(ml, messages.rootNode());
     }
 
-    updateModelWithMessageList(
-        messages, ml, proc.id(), ProcessPosition::Previous);
+    updateModelWithMessageList(messages, ml, proc.id(), ProcessPosition::Previous);
     statemodel.sig_statesUpdated();
   };
 
   statemodel.previousProcesses().emplace_back(state);
   auto& wrapper = statemodel.previousProcesses().back();
   QObject::connect(
-      state,
-      &ProcessStateDataInterface::messagesChanged,
-      &wrapper,
-      prev_proc_fun);
+      state, &ProcessStateDataInterface::messagesChanged, &wrapper, prev_proc_fun);
 
   prev_proc_fun(state->messages());
 }
@@ -61,74 +55,66 @@ static void
 AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   ProcessStateDataInterface* state = proc.startStateData();
-  if (!state)
+  if(!state)
     return;
 
   auto next_proc_fun = [&](const State::MessageList& ml) {
     auto& messages = statemodel.messages();
 
-    for (const ProcessStateWrapper& prev_proc : statemodel.previousProcesses())
+    for(const ProcessStateWrapper& prev_proc : statemodel.previousProcesses())
     {
       prev_proc.process().setMessages(ml, messages.rootNode());
     }
 
-    updateModelWithMessageList(
-        messages, ml, proc.id(), ProcessPosition::Following);
+    updateModelWithMessageList(messages, ml, proc.id(), ProcessPosition::Following);
     statemodel.sig_statesUpdated();
   };
 
   statemodel.followingProcesses().emplace_back(state);
   auto& wrapper = statemodel.followingProcesses().back();
   QObject::connect(
-      state,
-      &ProcessStateDataInterface::messagesChanged,
-      &wrapper,
-      next_proc_fun);
+      state, &ProcessStateDataInterface::messagesChanged, &wrapper, next_proc_fun);
 
   next_proc_fun(state->messages());
 }
 
-static void RemoveProcessBeforeState(
-    StateModel& statemodel,
-    const Process::ProcessModel& proc)
+static void
+RemoveProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   ProcessStateDataInterface* state = proc.endStateData();
-  if (!state)
+  if(!state)
     return;
 
-  auto it
-      = ossia::find_if(statemodel.previousProcesses(), [&](const auto& elt) {
-          return state == &elt.process();
-        });
+  auto it = ossia::find_if(statemodel.previousProcesses(), [&](const auto& elt) {
+    return state == &elt.process();
+  });
 
   updateModelWithRemovedProcess(
       statemodel.messages(), proc.id(), ProcessPosition::Previous);
   statemodel.sig_statesUpdated();
 
   // TODO debug the need for this check
-  if (it != statemodel.previousProcesses().end())
+  if(it != statemodel.previousProcesses().end())
     statemodel.previousProcesses().erase(it);
 }
 
-static void RemoveProcessAfterState(
-    StateModel& statemodel,
-    const Process::ProcessModel& proc)
+static void
+RemoveProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   ProcessStateDataInterface* state = proc.startStateData();
-  if (!state)
+  if(!state)
     return;
 
-  auto it
-      = ossia::find_if(statemodel.followingProcesses(), [&](const auto& elt) {
-          return state == &elt.process();
-        });
+  auto it = ossia::find_if(statemodel.followingProcesses(), [&](const auto& elt) {
+    return state == &elt.process();
+  });
 
   updateModelWithRemovedProcess(
       statemodel.messages(), proc.id(), ProcessPosition::Following);
   statemodel.sig_statesUpdated();
 
   // TODO debug the need for this check
-  if (it != statemodel.followingProcesses().end())
+  if(it != statemodel.followingProcesses().end())
     statemodel.followingProcesses().erase(it);
 }
 
@@ -141,9 +127,7 @@ void AddProcess(IntervalModel& interval, Process::ProcessModel* proc)
   AddProcessBeforeState(endState(interval, scenar), *proc);
 }
 
-void RemoveProcess(
-    IntervalModel& interval,
-    const Id<Process::ProcessModel>& proc_id)
+void RemoveProcess(IntervalModel& interval, const Id<Process::ProcessModel>& proc_id)
 {
   auto& proc = interval.processes.at(proc_id);
   const auto& scenar = *dynamic_cast<ScenarioInterface*>(interval.parent());
@@ -156,9 +140,7 @@ void RemoveProcess(
   interval.processes.remove(proc);
 }
 
-void EraseProcess(
-    IntervalModel& interval,
-    const Id<Process::ProcessModel>& proc_id)
+void EraseProcess(IntervalModel& interval, const Id<Process::ProcessModel>& proc_id)
 {
   auto& proc = interval.processes.at(proc_id);
   const auto& scenar = *dynamic_cast<ScenarioInterface*>(interval.parent());
@@ -176,7 +158,7 @@ void SetPreviousInterval(StateModel& state, const IntervalModel& interval)
   SetNoPreviousInterval(state);
 
   state.setPreviousInterval(interval.id());
-  for (const auto& proc : interval.processes)
+  for(const auto& proc : interval.processes)
   {
     AddProcessBeforeState(state, proc);
   }
@@ -187,7 +169,7 @@ void SetNextInterval(StateModel& state, const IntervalModel& interval)
   SetNoNextInterval(state);
 
   state.setNextInterval(interval.id());
-  for (const auto& proc : interval.processes)
+  for(const auto& proc : interval.processes)
   {
     AddProcessAfterState(state, proc);
   }
@@ -195,10 +177,9 @@ void SetNextInterval(StateModel& state, const IntervalModel& interval)
 
 void SetNoPreviousInterval(StateModel& state)
 {
-  if (state.previousInterval())
+  if(state.previousInterval())
   {
-    updateModelWithRemovedInterval(
-        state.messages(), ProcessPosition::Previous);
+    updateModelWithRemovedInterval(state.messages(), ProcessPosition::Previous);
 
     state.previousProcesses().clear();
     state.setPreviousInterval(OptionalId<IntervalModel>{});
@@ -207,10 +188,9 @@ void SetNoPreviousInterval(StateModel& state)
 
 void SetNoNextInterval(StateModel& state)
 {
-  if (state.nextInterval())
+  if(state.nextInterval())
   {
-    updateModelWithRemovedInterval(
-        state.messages(), ProcessPosition::Following);
+    updateModelWithRemovedInterval(state.messages(), ProcessPosition::Following);
 
     state.followingProcesses().clear();
     state.setNextInterval(OptionalId<IntervalModel>{});

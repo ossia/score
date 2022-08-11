@@ -2,10 +2,10 @@
 
 #include <State/Expression.hpp>
 
+#include <Scenario/Inspector/ExpressionValidator.hpp>
+
 #include <QString>
 #include <QWidget>
-
-#include <Scenario/Inspector/ExpressionValidator.hpp>
 
 #include <verdigris>
 
@@ -47,9 +47,7 @@ class SimpleExpressionEditorWidget final : public QWidget
   W_OBJECT(SimpleExpressionEditorWidget)
 public:
   SimpleExpressionEditorWidget(
-      const score::DocumentContext&,
-      int64_t index,
-      QWidget* parent = nullptr,
+      const score::DocumentContext&, int64_t index, QWidget* parent = nullptr,
       QMenu* menu = nullptr);
 
   State::Expression relation();

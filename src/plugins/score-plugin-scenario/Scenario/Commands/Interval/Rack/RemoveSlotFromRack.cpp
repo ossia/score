@@ -2,17 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RemoveSlotFromRack.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <utility>
-
 #include <type_traits>
+#include <utility>
 
 namespace Scenario
 {

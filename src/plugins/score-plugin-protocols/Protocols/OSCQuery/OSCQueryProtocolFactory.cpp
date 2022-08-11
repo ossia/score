@@ -5,7 +5,9 @@
 #include "OSCQueryDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
 
@@ -16,6 +18,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
+
 #include <servus/listener.h>
 #include <servus/servus.h>
 #endif
@@ -55,7 +58,7 @@ private:
   // Servus API
   void instanceAdded(const std::string& instance) override
   {
-    if (m_instances.count(instance) == 0)
+    if(m_instances.count(instance) == 0)
     {
       m_instances.insert(instance);
       settingsForInstance(instance);
@@ -64,15 +67,14 @@ private:
 
   void instanceRemoved(const std::string& instance) override
   {
-    if (m_instances.count(instance) != 0)
+    if(m_instances.count(instance) != 0)
     {
       m_instances.erase(instance);
       deviceRemoved(QString::fromStdString(instance));
     }
   }
 
-  void 
-  settingsForInstance(const std::string& instance) noexcept
+  void settingsForInstance(const std::string& instance) noexcept
   {
     using namespace std::literals;
 
@@ -81,13 +83,13 @@ private:
     set.protocol = OSCQueryProtocolFactory::static_concreteKey();
 
     std::string ip = m_serv.get(instance, "servus_host");
-    if (ip.empty())
+    if(ip.empty())
     {
       ip = m_serv.get(instance, "servus_ip");
     }
 
 #if defined(_WIN32)
-    if (!ip.empty() && ip.back() == '.')
+    if(!ip.empty() && ip.back() == '.')
       ip.pop_back();
 #endif
 
@@ -100,15 +102,13 @@ private:
 
       boost::asio::ip::tcp::resolver resolver(io_service);
       boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(
-          boost::asio::ip::tcp::v4(),
-          ip,
-          port,
+          boost::asio::ip::tcp::v4(), ip, port,
           boost::asio::ip::resolver_base::numeric_service);
 
       boost::asio::ip::tcp::resolver::iterator end;
-      while (iter != end)
+      while(iter != end)
       {
-        if (iter->endpoint().address().is_loopback())
+        if(iter->endpoint().address().is_loopback())
         {
           ip = "localhost";
           break;
@@ -120,7 +120,7 @@ private:
         }
       }
     }
-    catch (...)
+    catch(...)
     {
     }
 
@@ -135,30 +135,28 @@ private:
 #endif
       QPointer<QNetworkReply> ret = m_http.get(qreq);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-      connect(ret, &QNetworkReply::errorOccurred, this, 
+      connect(
+          ret, &QNetworkReply::errorOccurred, this,
 #else
       connect(
-          ret,
-          qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
-          this,
+          ret, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error), this,
 #endif
-            [] {  }
-      );
+          [] {});
 #if QT_CONFIG(ssl)
-      connect(ret, &QNetworkReply::sslErrors, this, [] { });
+      connect(ret, &QNetworkReply::sslErrors, this, []{});
 #endif
-      connect(ret, &QNetworkReply::finished, this, [=] () mutable {
+      connect(ret, &QNetworkReply::finished, this, [=]() mutable {
         auto doc = QJsonDocument::fromJson(ret->readAll());
         QString newName = doc.object()["NAME"].toString();
-        if (!newName.isEmpty())
+        if(!newName.isEmpty())
           set.name = newName;
-        
+
         OSCQuerySpecificSettings sub;
         sub.host = QString("%1://%2:%3")
                        .arg(websockets ? "ws" : "http")
                        .arg(ip.c_str())
                        .arg(port.c_str());
-    
+
         set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
         deviceAdded(set);
         ret->deleteLater();
@@ -167,12 +165,12 @@ private:
   }
 
   // DeviceEnumerator API
-  void enumerate(
-      std::function<void(const Device::DeviceSettings&)> f) const override
-  {
-  }
+  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override { }
 
-  void timerEvent(QTimerEvent* ev) override { m_serv.browse(0); }
+  void timerEvent(QTimerEvent* ev) override
+  {
+    m_serv.browse(0);
+  }
 
   servus::Servus m_serv;
   ossia::flat_set<std::string> m_instances;
@@ -203,7 +201,7 @@ OSCQueryProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
   {
     return new OSCQueryEnumerator;
   }
-  catch (...)
+  catch(...)
   {
     return nullptr;
   }
@@ -213,15 +211,13 @@ OSCQueryProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 }
 
 Device::DeviceInterface* OSCQueryProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new OSCQueryDevice{settings, plugin.networkContext()};
 }
 
-const Device::DeviceSettings&
-OSCQueryProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& OSCQueryProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -246,15 +242,13 @@ QVariant OSCQueryProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void OSCQueryProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<OSCQuerySpecificSettings>(data, visitor);
 }
 
 bool OSCQueryProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

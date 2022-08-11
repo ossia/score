@@ -44,8 +44,7 @@ Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void JoystickProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void JoystickProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_settings = settings;
   m_deviceNameEdit->setText(settings.name);

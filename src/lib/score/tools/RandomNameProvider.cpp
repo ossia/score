@@ -15,11 +15,10 @@ struct WordList : public QStringList
   WordList() noexcept
   {
     QFile f(":/dict.txt");
-    if (f.open(QFile::Text | QFile::ReadOnly))
+    if(f.open(QFile::Text | QFile::ReadOnly))
     {
       QString list = score::readFileAsQString(f);
-      static_cast<QStringList&>(*this)
-          = list.split("\n", {} /* Qt::KeepEmptyParts */);
+      static_cast<QStringList&>(*this) = list.split("\n", {} /* Qt::KeepEmptyParts */);
     }
     else
     {
@@ -36,22 +35,19 @@ QString RandomNameProvider::generateRandomName()
 {
   static WordList words;
 
-  return words.at(std::abs(
-             score::random_id_generator::getRandomId() % (words.size() - 1)))
-         + QString::number(
-             std::abs(score::random_id_generator::getRandomId() % 99))
-         + words.at(std::abs(
-             score::random_id_generator::getRandomId() % (words.size() - 1)))
-         + QString::number(
-             std::abs(score::random_id_generator::getRandomId() % 99));
+  return words.at(
+             std::abs(score::random_id_generator::getRandomId() % (words.size() - 1)))
+         + QString::number(std::abs(score::random_id_generator::getRandomId() % 99))
+         + words.at(
+             std::abs(score::random_id_generator::getRandomId() % (words.size() - 1)))
+         + QString::number(std::abs(score::random_id_generator::getRandomId() % 99));
 }
 
 QString RandomNameProvider::generateShortRandomName()
 {
   static WordList words;
 
-  return words.at(std::abs(
-             score::random_id_generator::getRandomId() % (words.size() - 1)))
-         + QString::number(
-             std::abs(score::random_id_generator::getRandomId() % 99));
+  return words.at(
+             std::abs(score::random_id_generator::getRandomId() % (words.size() - 1)))
+         + QString::number(std::abs(score::random_id_generator::getRandomId() % 99));
 }

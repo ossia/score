@@ -42,8 +42,7 @@ public:
 
 private:
   void selectionChanged(
-      const QItemSelection& selected,
-      const QItemSelection& deselected) override;
+      const QItemSelection& selected, const QItemSelection& deselected) override;
   W_SLOT(selectionChanged, (const QItemSelection&, const QItemSelection&));
 
   void headerMenuRequested(const QPoint& pos);

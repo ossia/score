@@ -22,19 +22,16 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandler : public QObject
   W_OBJECT(ListeningHandler)
 public:
   virtual ~ListeningHandler();
-  virtual void setListening(
-      Device::DeviceInterface& dev,
-      const State::Address& addr,
-      bool b)
+  virtual void
+  setListening(Device::DeviceInterface& dev, const State::Address& addr, bool b)
       = 0;
 
   virtual void
   setListening(Device::DeviceInterface& dev, const Device::Node& addr, bool b)
       = 0;
 
-  virtual void addToListening(
-      Device::DeviceInterface& dev,
-      const std::vector<State::Address>& v)
+  virtual void
+  addToListening(Device::DeviceInterface& dev, const std::vector<State::Address>& v)
       = 0;
 
 public:

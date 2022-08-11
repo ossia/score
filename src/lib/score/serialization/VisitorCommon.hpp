@@ -43,12 +43,12 @@ void serialize_dyn_impl(JSONObject::Serializer& v, const T& t)
 template <typename TheClass>
 void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
 {
-  if (vis.identifier == DataStream::type())
+  if(vis.identifier == DataStream::type())
   {
     serialize_dyn_impl(static_cast<DataStream::Serializer&>(vis.visitor), s);
     return;
   }
-  else if (vis.identifier == JSONObject::type())
+  else if(vis.identifier == JSONObject::type())
   {
     serialize_dyn_impl(static_cast<JSONObject::Serializer&>(vis.visitor), s);
     return;
@@ -60,15 +60,13 @@ void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
 template <typename TheClass>
 TheClass& deserialize_dyn(const VisitorVariant& vis, TheClass& s)
 {
-  switch (vis.identifier)
+  switch(vis.identifier)
   {
-    case DataStream::type():
-    {
+    case DataStream::type(): {
       static_cast<DataStream::Deserializer&>(vis.visitor).writeTo(s);
       break;
     }
-    case JSONObject::type():
-    {
+    case JSONObject::type(): {
       static_cast<JSONObject::Deserializer&>(vis.visitor).writeTo(s);
       break;
     }
@@ -84,15 +82,13 @@ TheClass deserialize_dyn(const VisitorVariant& vis)
 {
   TheClass s;
 
-  switch (vis.identifier)
+  switch(vis.identifier)
   {
-    case DataStream::type():
-    {
+    case DataStream::type(): {
       static_cast<DataStream::Deserializer&>(vis.visitor).writeTo(s);
       break;
     }
-    case JSONObject::type():
-    {
+    case JSONObject::type(): {
       static_cast<JSONObject::Deserializer&>(vis.visitor).writeTo(s);
       break;
     }
@@ -105,15 +101,13 @@ TheClass deserialize_dyn(const VisitorVariant& vis)
 template <typename Functor>
 auto deserialize_dyn(const VisitorVariant& vis, Functor&& fun)
 {
-  switch (vis.identifier)
+  switch(vis.identifier)
   {
-    case DataStream::type():
-    {
+    case DataStream::type(): {
       return fun(static_cast<DataStream::Deserializer&>(vis.visitor));
       break;
     }
-    case JSONObject::type():
-    {
+    case JSONObject::type(): {
       return fun(static_cast<JSONObject::Deserializer&>(vis.visitor));
       break;
     }

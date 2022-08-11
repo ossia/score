@@ -15,8 +15,7 @@ namespace Protocols
 {
 
 JoystickDevice::JoystickDevice(
-    const Device::DeviceSettings& settings,
-    const ossia::net::network_context_ptr& ctx)
+    const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -34,8 +33,7 @@ bool JoystickDevice::reconnect()
 {
   disconnect();
 
-  auto stgs
-      = settings().deviceSpecificSettings.value<JoystickSpecificSettings>();
+  auto stgs = settings().deviceSpecificSettings.value<JoystickSpecificSettings>();
   try
   {
     m_dev = std::make_unique<ossia::net::generic_device>(
@@ -44,14 +42,13 @@ bool JoystickDevice::reconnect()
         settings().name.toStdString());
     deviceChanged(nullptr, m_dev.get());
   }
-  catch (...)
+  catch(...)
   {
     // Maybe the joystick has become unavailable. Try to find a similar available one just once.
     try
     {
-      stgs.spec
-          = ossia::net::joystick_info::get_available_id_for_uid(stgs.id.data);
-      if (stgs.spec != stgs.unassigned)
+      stgs.spec = ossia::net::joystick_info::get_available_id_for_uid(stgs.id.data);
+      if(stgs.spec != stgs.unassigned)
       {
         m_dev = std::make_unique<ossia::net::generic_device>(
             std::make_unique<ossia::net::joystick_protocol>(
@@ -64,7 +61,7 @@ bool JoystickDevice::reconnect()
         deviceChanged(nullptr, m_dev.get());
       }
     }
-    catch (...)
+    catch(...)
     {
       SCORE_TODO;
     }

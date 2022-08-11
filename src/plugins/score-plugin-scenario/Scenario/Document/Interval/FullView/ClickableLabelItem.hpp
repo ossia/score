@@ -24,10 +24,8 @@ public:
   // QGraphicsItem interface
 public:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 };
 
 class ClickableLabelItem final
@@ -38,9 +36,7 @@ class ClickableLabelItem final
 public:
   using ClickHandler = std::function<void(ClickableLabelItem*)>;
   ClickableLabelItem(
-      score::ModelMetadata& interval,
-      ClickHandler&& onClick,
-      const QString& text,
+      score::ModelMetadata& interval, ClickHandler&& onClick, const QString& text,
       QGraphicsItem* parent);
 
   int index() const;

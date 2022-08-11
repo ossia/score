@@ -14,29 +14,20 @@ QMetaObject::Connection con(const T& t, Args&&... args)
   return T::connect(&t, std::forward<Args>(args)...);
 }
 
-template <
-    typename T,
-    typename Property,
-    typename U,
-    typename Slot,
-    typename... Args>
+template <typename T, typename Property, typename U, typename Slot, typename... Args>
 QMetaObject::Connection
 bind(T& t, const Property&, const U* tgt, Slot&& slot, Args&&... args)
 {
   slot((t.*(Property::get))());
 
   return T::connect(
-      &t,
-      Property::notify,
-      tgt,
-      std::forward<Slot>(slot),
-      std::forward<Args>(args)...);
+      &t, Property::notify, tgt, std::forward<Slot>(slot), std::forward<Args>(args)...);
 }
 
 template <typename Entities, typename Presenter>
 void bind(const Entities& model, Presenter& presenter)
 {
-  for (auto& entity : model)
+  for(auto& entity : model)
     presenter.on_created(entity);
 
   model.mutable_added.template connect<&Presenter::on_created>(presenter);

@@ -12,7 +12,8 @@ namespace score
 struct GUIApplicationContext;
 struct ApplicationContext;
 }
-SCORE_LIB_BASE_EXPORT bool appcontext_has_ui(const score::GUIApplicationContext&) noexcept;
+SCORE_LIB_BASE_EXPORT bool
+appcontext_has_ui(const score::GUIApplicationContext&) noexcept;
 SCORE_LIB_BASE_EXPORT bool appcontext_has_ui(const score::ApplicationContext&) noexcept;
 
 /**
@@ -46,7 +47,7 @@ struct FactoryBuilder // sorry padre for I have sinned
 {
   static auto make(const Context_T& ctx)
   {
-    if constexpr (std::is_constructible_v<Factory_T, const Context_T&>)
+    if constexpr(std::is_constructible_v<Factory_T, const Context_T&>)
       return std::make_unique<Factory_T>(ctx);
     else
       return std::make_unique<Factory_T>();
@@ -58,14 +59,12 @@ struct FactoryBuilder // sorry padre for I have sinned
  */
 template <typename Context_T, typename Base_T, typename... Args>
 void fill_ptr_vector(
-    const Context_T& context,
-    std::vector<std::unique_ptr<Base_T>>& vec) noexcept
+    const Context_T& context, std::vector<std::unique_ptr<Base_T>>& vec) noexcept
 {
   vec.reserve(sizeof...(Args));
   ossia::for_each_type_tagged<Args...>([&](auto tag) {
     vec.push_back(
-        FactoryBuilder<Context_T, typename decltype(tag)::type>::make(
-            context));
+        FactoryBuilder<Context_T, typename decltype(tag)::type>::make(context));
   });
 }
 
@@ -94,19 +93,18 @@ struct FW_T
 #endif
   template <typename Context_T>
   bool operator()(
-      const Context_T& ctx,
-      const score::InterfaceKey& fact,
+      const Context_T& ctx, const score::InterfaceKey& fact,
       std::vector<std::unique_ptr<score::InterfaceBase>>& vec) noexcept
   {
-    if constexpr (has_ui<Factory_T>::value)
+    if constexpr(has_ui<Factory_T>::value)
     {
-      if (!appcontext_has_ui(ctx))
+      if(!appcontext_has_ui(ctx))
       {
         return false;
       }
     }
 
-    if (fact == Factory_T::static_interfaceKey())
+    if(fact == Factory_T::static_interfaceKey())
     {
       fill_ptr_vector<Context_T, score::InterfaceBase, Types_T...>(ctx, vec);
       return true;
@@ -138,9 +136,7 @@ using FW = FW_T<Factory_T, Args...>;
  * \endcode
  */
 template <typename Context_T, typename... Args>
-auto instantiate_factories(
-    const Context_T& ctx,
-    const score::InterfaceKey& key) noexcept
+auto instantiate_factories(const Context_T& ctx, const score::InterfaceKey& key) noexcept
 {
   std::vector<std::unique_ptr<score::InterfaceBase>> vec;
 

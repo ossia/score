@@ -10,12 +10,9 @@ namespace Explorer::Settings
 {
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(LocalTree){
-    QStringLiteral("score_plugin_LocalTree"),
-    true};
+SETTINGS_PARAMETER_IMPL(LocalTree){QStringLiteral("score_plugin_LocalTree"), true};
 SETTINGS_PARAMETER_IMPL(LogLevel){
-    QStringLiteral("score_plugin_engine/LogLevel"),
-    DeviceLogLevel{}.logEverything};
+    QStringLiteral("score_plugin_engine/LogLevel"), DeviceLogLevel{}.logEverything};
 
 static auto list()
 {
@@ -34,9 +31,7 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, LogLevel)
 
 namespace Explorer::ProjectSettings
 {
-Model::Model(
-    const score::DocumentContext& ctx,
-    QObject* parent)
+Model::Model(const score::DocumentContext& ctx, QObject* parent)
     : ProjectSettingsModel{ctx, "ExplorerSettings", parent}
 {
 }

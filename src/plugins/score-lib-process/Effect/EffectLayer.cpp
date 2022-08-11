@@ -35,9 +35,7 @@ EffectLayerView::~EffectLayerView() { }
 void EffectLayerView::paint_impl(QPainter*) const { }
 
 EffectLayerPresenter::EffectLayerPresenter(
-    const ProcessModel& model,
-    Process::LayerView* view,
-    const Context& ctx,
+    const ProcessModel& model, Process::LayerView* view, const Context& ctx,
     QObject* parent)
     : LayerPresenter{model, view, ctx, parent}
     , m_view{view}
@@ -72,25 +70,20 @@ void EffectLayerPresenter::on_zoomRatioChanged(ZoomRatio) { }
 void EffectLayerPresenter::parentGeometryChanged() { }
 
 void EffectLayerPresenter::fillContextMenu(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
-    const LayerContextMenuManager& mgr)
+    QMenu& menu, QPoint pos, QPointF scenepos, const LayerContextMenuManager& mgr)
 {
 }
 
 void setupExternalUI(
-    const Process::ProcessModel& proc,
-    const Process::LayerFactory& fact,
-    const score::DocumentContext& ctx,
-    bool show)
+    const Process::ProcessModel& proc, const Process::LayerFactory& fact,
+    const score::DocumentContext& ctx, bool show)
 {
-  if (show)
+  if(show)
   {
-    if (proc.externalUI)
+    if(proc.externalUI)
       return;
 
-    if (auto win = fact.makeExternalUI(proc, ctx, nullptr))
+    if(auto win = fact.makeExternalUI(proc, ctx, nullptr))
     {
       const_cast<QWidget*&>(proc.externalUI) = win;
       win->show();
@@ -98,7 +91,7 @@ void setupExternalUI(
   }
   else
   {
-    if (auto win = proc.externalUI)
+    if(auto win = proc.externalUI)
     {
       win->close();
       delete win;
@@ -108,29 +101,25 @@ void setupExternalUI(
 }
 
 void setupExternalUI(
-    const Process::ProcessModel& proc,
-    const score::DocumentContext& ctx,
-    bool show)
+    const Process::ProcessModel& proc, const score::DocumentContext& ctx, bool show)
 {
   auto& facts = ctx.app.interfaces<Process::LayerFactoryList>();
 
   auto fact = facts.findDefaultFactory(proc);
-  if (!fact || !fact->hasExternalUI(proc, ctx))
+  if(!fact || !fact->hasExternalUI(proc, ctx))
     return;
 
   setupExternalUI(proc, *fact, ctx, show);
 }
 
 QGraphicsItem* makeExternalUIButton(
-    const ProcessModel& effect,
-    const score::DocumentContext& context,
-    QObject* self,
+    const ProcessModel& effect, const score::DocumentContext& context, QObject* self,
     QGraphicsItem* root)
 {
   auto& pixmaps = Process::Pixmaps::instance();
   auto& facts = context.app.interfaces<Process::LayerFactoryList>();
   auto fact = facts.findDefaultFactory(effect);
-  if (fact && fact->hasExternalUI(effect, context))
+  if(fact && fact->hasExternalUI(effect, context))
   {
     auto ui_btn = new score::QGraphicsPixmapToggle{
         pixmaps.show_ui_on, pixmaps.show_ui_off, root};
@@ -138,18 +127,15 @@ QGraphicsItem* makeExternalUIButton(
         QObject::tr("Show/hide UI\nShow the process's interface for instance for VSTs "
                     "or script editor for JS, etc."));
     QObject::connect(
-        ui_btn,
-        &score::QGraphicsPixmapToggle::toggled,
-        self,
-        [=, &effect, &context](bool b)
-        { Process::setupExternalUI(effect, *fact, context, b); });
+        ui_btn, &score::QGraphicsPixmapToggle::toggled, self,
+        [=, &effect, &context](bool b) {
+      Process::setupExternalUI(effect, *fact, context, b);
+        });
 
-    if (effect.externalUI)
+    if(effect.externalUI)
       ui_btn->setState(true);
     QObject::connect(
-        &effect,
-        &Process::ProcessModel::externalUIVisible,
-        ui_btn,
+        &effect, &Process::ProcessModel::externalUIVisible, ui_btn,
         [=](bool v) { ui_btn->setState(v); });
     return ui_btn;
   }
@@ -157,9 +143,7 @@ QGraphicsItem* makeExternalUIButton(
 }
 
 score::QGraphicsDraggablePixmap* makePresetButton(
-    const ProcessModel& proc,
-    const score::DocumentContext& context,
-    QObject* self,
+    const ProcessModel& proc, const score::DocumentContext& context, QObject* self,
     QGraphicsItem* root)
 {
   auto& pixmaps = Process::Pixmaps::instance();
@@ -169,8 +153,7 @@ score::QGraphicsDraggablePixmap* makePresetButton(
     ui_btn->setToolTip(
         QObject::tr("Presets\nDrag to the library to save the current preset. If there "
                     "are existing presets, they will be shown in a menu."));
-    ui_btn->createDrag = [&proc](QMimeData& mime)
-    {
+    ui_btn->createDrag = [&proc](QMimeData& mime) {
       QByteArray data;
       {
         JSONReader r;
@@ -186,8 +169,7 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       mime.setData(score::mime::processpreset(), proc.savePreset().toJson());
     };
 
-    ui_btn->click = [&proc, &context](QPointF screenPos)
-    {
+    ui_btn->click = [&proc, &context](QPointF screenPos) {
       auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
       const auto& presets = pplug.presets;
 
@@ -198,42 +180,34 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       std::vector<const Process::Preset*> goodPresets;
       const auto& k = proc.concreteKey();
       const auto& e = proc.effect();
-      for (auto& preset : presets)
+      for(auto& preset : presets)
       {
-        if (preset.key.key == k && preset.key.effect == e)
+        if(preset.key.key == k && preset.key.effect == e)
           goodPresets.push_back(&preset);
       }
 
       menu->addSeparator();
 
-      for (auto p : goodPresets)
+      for(auto p : goodPresets)
       {
-        menu->addAction(
-            p->name,
-            menu,
-            [p, &proc, &context]
-            {
-              CommandDispatcher<> c{context.commandStack};
-              c.submit(new LoadPreset{proc, *p});
-            });
+        menu->addAction(p->name, menu, [p, &proc, &context] {
+          CommandDispatcher<> c{context.commandStack};
+          c.submit(new LoadPreset{proc, *p});
+        });
       }
 
-      if (auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
+      if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
       {
-        if (!goodPresets.empty())
+        if(!goodPresets.empty())
           menu->addSeparator();
 
-        for (auto& p : proc_builtins)
+        for(auto& p : proc_builtins)
         {
           // FIXME try to understand why just p.name does not work here
-          menu->addAction(
-              "" + p.name,
-              menu,
-              [p = std::move(p), &proc, &context]
-              {
-                CommandDispatcher<> c{context.commandStack};
-                c.submit(new LoadPreset{proc, std::move(p)});
-              });
+          menu->addAction("" + p.name, menu, [p = std::move(p), &proc, &context] {
+            CommandDispatcher<> c{context.commandStack};
+            c.submit(new LoadPreset{proc, std::move(p)});
+          });
         }
       }
 

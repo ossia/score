@@ -4,13 +4,6 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <score/widgets/MimeData.hpp>
-
-#include <QApplication>
-#include <QCursor>
-#include <QDrag>
-#include <QMimeData>
-
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -19,6 +12,14 @@
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/widgets/MimeData.hpp>
+
+#include <QApplication>
+#include <QCursor>
+#include <QDrag>
+#include <QMimeData>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::IntervalView)
 namespace Scenario
@@ -56,9 +57,9 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
 
 IntervalView::~IntervalView()
 {
-  for (auto item : childItems())
+  for(auto item : childItems())
   {
-    if (item->type() == Dataflow::CableItem::Type)
+    if(item->type() == Dataflow::CableItem::Type)
     {
       item->setParentItem(nullptr);
     }
@@ -68,7 +69,7 @@ IntervalView::~IntervalView()
 
 void IntervalView::setInfinite(bool infinite)
 {
-  if (m_infinite != infinite)
+  if(m_infinite != infinite)
   {
     prepareGeometryChange();
 
@@ -81,11 +82,11 @@ void IntervalView::setInfinite(bool infinite)
 
 void IntervalView::setExecuting(bool e)
 {
-  if (m_waiting && !e)
+  if(m_waiting && !e)
   {
     m_execPing.start();
   }
-  else if (e)
+  else if(e)
   {
     m_execPing.stop();
   }
@@ -96,7 +97,7 @@ void IntervalView::setExecuting(bool e)
 
 void IntervalView::setDefaultWidth(double width)
 {
-  if (m_defaultWidth != width)
+  if(m_defaultWidth != width)
   {
     prepareGeometryChange();
     m_defaultWidth = width;
@@ -108,7 +109,7 @@ void IntervalView::setDefaultWidth(double width)
 
 void IntervalView::setMaxWidth(bool infinite, double max)
 {
-  if (infinite != m_infinite || max != m_maxWidth)
+  if(infinite != m_infinite || max != m_maxWidth)
   {
     prepareGeometryChange();
 
@@ -123,7 +124,7 @@ void IntervalView::setMaxWidth(bool infinite, double max)
 
 void IntervalView::setMinWidth(double min)
 {
-  if (min != m_minWidth)
+  if(min != m_minWidth)
   {
     prepareGeometryChange();
     m_minWidth = min;
@@ -140,7 +141,7 @@ void IntervalView::setRigid(bool r)
 
 void IntervalView::setHeight(double height)
 {
-  if (m_height != height)
+  if(m_height != height)
   {
     prepareGeometryChange();
     m_height = height;
@@ -153,7 +154,7 @@ void IntervalView::setHeight(double height)
 double IntervalView::setPlayWidth(double width)
 {
   const auto v = std::abs(m_playWidth - width);
-  if (v > 1. || (width > 0 && (playedSolidPath.isEmpty())))
+  if(v > 1. || (width > 0 && (playedSolidPath.isEmpty())))
   {
     m_playWidth = width;
     updatePlayPaths();
@@ -185,7 +186,7 @@ void IntervalView::setUngripCursor()
 
 void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->pos().y() < 4)
+  if(event->pos().y() < 4)
     setGripCursor();
   else
     unsetCursor();
@@ -203,16 +204,16 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (qApp->keyboardModifiers() & Qt::ALT)
+  if(qApp->keyboardModifiers() & Qt::ALT)
   {
-    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
-            presenter().model().parent()))
+    if(auto si
+       = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
     {
       JSONReader r;
       copySelectedElementsToJson(
           r, *const_cast<ScenarioInterface*>(si), m_presenter.context());
 
-      if (!r.empty())
+      if(!r.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
@@ -228,7 +229,7 @@ void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void IntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_presenter.released(event->scenePos());
-  if (event->pos().y() < 4)
+  if(event->pos().y() < 4)
     setUngripCursor();
   else
     unsetCursor();
@@ -244,28 +245,25 @@ void IntervalView::setWarning(bool warning)
   m_warning = warning;
 }
 
-const score::Brush&
-IntervalView::intervalColor(const Process::Style& skin) const
+const score::Brush& IntervalView::intervalColor(const Process::Style& skin) const
 {
-  if (Q_UNLIKELY(m_dropTarget))
+  if(Q_UNLIKELY(m_dropTarget))
   {
     return skin.IntervalDropTarget();
   }
-  else if (Q_UNLIKELY(m_selected))
+  else if(Q_UNLIKELY(m_selected))
   {
     return skin.IntervalSelected();
   }
-  else if (Q_UNLIKELY(m_warning))
+  else if(Q_UNLIKELY(m_warning))
   {
     return skin.IntervalWarning();
   }
-  else if (Q_UNLIKELY(
-               !m_validInterval
-               || m_state == IntervalExecutionState::Disabled))
+  else if(Q_UNLIKELY(!m_validInterval || m_state == IntervalExecutionState::Disabled))
   {
     return skin.IntervalInvalid();
   }
-  else if (Q_UNLIKELY(m_state == IntervalExecutionState::Muted))
+  else if(Q_UNLIKELY(m_state == IntervalExecutionState::Muted))
   {
     return skin.IntervalMuted();
   }
@@ -275,29 +273,26 @@ IntervalView::intervalColor(const Process::Style& skin) const
   }
 }
 
-const QPixmap&
-IntervalView::intervalDashedPixmap(const Process::Style& skin) const
+const QPixmap& IntervalView::intervalDashedPixmap(const Process::Style& skin) const
 {
   auto& pixmaps = intervalPixmaps(skin);
-  if (Q_UNLIKELY(m_dropTarget))
+  if(Q_UNLIKELY(m_dropTarget))
   {
     return pixmaps.dashedDropTarget;
   }
-  else if (Q_UNLIKELY(m_selected))
+  else if(Q_UNLIKELY(m_selected))
   {
     return pixmaps.dashedSelected;
   }
-  else if (Q_UNLIKELY(m_warning))
+  else if(Q_UNLIKELY(m_warning))
   {
     return pixmaps.dashedWarning;
   }
-  else if (Q_UNLIKELY(
-               !m_validInterval
-               || m_state == IntervalExecutionState::Disabled))
+  else if(Q_UNLIKELY(!m_validInterval || m_state == IntervalExecutionState::Disabled))
   {
     return pixmaps.dashedInvalid;
   }
-  else if (Q_UNLIKELY(m_state == IntervalExecutionState::Muted))
+  else if(Q_UNLIKELY(m_state == IntervalExecutionState::Muted))
   {
     return pixmaps.dashedMuted;
   }
@@ -309,8 +304,7 @@ IntervalView::intervalDashedPixmap(const Process::Style& skin) const
 
 void IntervalView::updateCounterPos()
 {
-  m_counterItem.setPos(
-      defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
+  m_counterItem.setPos(defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
 }
 
 void IntervalView::setExecutionState(IntervalExecutionState s)

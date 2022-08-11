@@ -1,5 +1,5 @@
-#include <score/graphics/RectItem.hpp>
 #include <score/graphics/GraphicsLayout.hpp>
+#include <score/graphics/RectItem.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
@@ -32,9 +32,7 @@ QRectF RectItem::boundingRect() const
 }
 
 void RectItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
 
@@ -91,7 +89,6 @@ int ResizeableItem::type() const
   return Type;
 }
 
-
 EmptyRectItem::EmptyRectItem(QGraphicsItem* parent)
     : ResizeableItem{parent}
 {
@@ -103,7 +100,7 @@ EmptyRectItem::~EmptyRectItem() { }
 
 void EmptyRectItem::setRect(const QRectF& r)
 {
-  if (r != m_rect)
+  if(r != m_rect)
   {
     prepareGeometryChange();
     m_rect = r;
@@ -124,9 +121,7 @@ void EmptyRectItem::fitChildrenRect()
 }
 
 void EmptyRectItem::paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   // painter->setPen(Qt::blue);
   // painter->setBrush(Qt::transparent);
@@ -160,7 +155,6 @@ int EmptyRectItem::type() const
   return Type;
 }
 
-
 BackgroundItem::BackgroundItem(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
@@ -170,9 +164,7 @@ BackgroundItem::BackgroundItem(QGraphicsItem* parent)
 BackgroundItem::~BackgroundItem() { }
 
 void BackgroundItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& style = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -223,7 +215,6 @@ int BackgroundItem::type() const
   return Type;
 }
 
-
 EmptyItem::EmptyItem(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
@@ -243,9 +234,7 @@ QRectF EmptyItem::boundingRect() const
 }
 
 void EmptyItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 }
 

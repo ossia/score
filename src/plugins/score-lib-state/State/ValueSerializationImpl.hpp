@@ -10,46 +10,35 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
   using var_t = ossia::value_variant_type;
 
   using value_type_list = ossia::tl<
-      float,
-      int,
-      ossia::vec2f,
-      ossia::vec3f,
-      ossia::vec4f,
-      ossia::impulse,
-      bool,
-      std::string,
-      std::vector<ossia::value>,
-      char>;
+      float, int, ossia::vec2f, ossia::vec3f, ossia::vec4f, ossia::impulse, bool,
+      std::string, std::vector<ossia::value>, char>;
 
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
     s.stream.StartObject();
-    if ((quint64)var.which() != (quint64)var.npos)
+    if((quint64)var.which() != (quint64)var.npos)
     {
-      ossia::for_each_type(
-          value_type_list{}, VariantJSONSerializer<var_t>{s, var});
+      ossia::for_each_type(value_type_list{}, VariantJSONSerializer<var_t>{s, var});
     }
     s.stream.EndObject();
   }
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if (!s.base.IsObject() || s.base.MemberCount() == 0)
+    if(!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
-    ossia::for_each_type(
-        value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
+    ossia::for_each_type(value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
   }
 };
 
 //////////// Value Variant serialization /////////////
 template <typename Functor>
 void apply_typeonly(
-    Functor&& functor,
-    ossia::value_variant_type::Type type,
+    Functor&& functor, ossia::value_variant_type::Type type,
     ossia::value_variant_type& var)
 {
   using namespace ossia;
-  switch (type)
+  switch(type)
   {
     case value_variant_type::Type::Type0:
       return functor(typeholder<float>{}, var);
@@ -94,7 +83,7 @@ struct TSerializer<DataStream, ossia::value_variant_type>
   {
     s.stream() << (quint64)var.which();
 
-    if (var)
+    if(var)
     {
       ossia::apply_nonnull(ValueVariantDatastreamSerializer{s}, var);
     }
@@ -107,16 +96,15 @@ struct TSerializer<DataStream, ossia::value_variant_type>
     quint64 which;
     s.stream() >> which;
 
-    if (which != (quint64)var.npos)
+    if(which != (quint64)var.npos)
     {
       apply_typeonly(
           [&](auto type, var_t& var) {
-            typename decltype(type)::type value;
-            s.stream() >> value;
-            var = std::move(value);
+        typename decltype(type)::type value;
+        s.stream() >> value;
+        var = std::move(value);
           },
-          (var_t::Type)which,
-          var);
+          (var_t::Type)which, var);
     }
     s.checkDelimiter();
   }

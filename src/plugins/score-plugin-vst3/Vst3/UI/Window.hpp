@@ -15,9 +15,7 @@ namespace vst3
 {
 
 WindowContainer createVstWindowContainer(
-    Window& parentWindow,
-    const Model& e,
-    const score::DocumentContext& ctx);
+    Window& parentWindow, const Model& e, const score::DocumentContext& ctx);
 
 class Window : public QDialog
 {

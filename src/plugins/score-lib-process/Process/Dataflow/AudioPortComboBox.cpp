@@ -13,24 +13,21 @@ W_OBJECT_IMPL(Process::AudioPortComboBox)
 namespace Process
 {
 AudioPortComboBox::AudioPortComboBox(
-    const State::Address& rootAddress,
-    const Device::Node& node,
-    QWidget* parent)
+    const State::Address& rootAddress, const Device::Node& node, QWidget* parent)
     : QComboBox{parent}
     , m_root{rootAddress}
 {
   m_address.address = rootAddress;
-  if (!node.children().empty())
+  if(!node.children().empty())
   {
-    auto& first_child
-        = node.children().front().target<Device::AddressSettings>()->name;
+    auto& first_child = node.children().front().target<Device::AddressSettings>()->name;
     m_address.address.path.push_back(first_child);
   }
 
   connect(this, &QComboBox::currentTextChanged, [=](const QString& str) {
-    if (str == "None")
+    if(str == "None")
     {
-      if (m_address.address != m_root)
+      if(m_address.address != m_root)
       {
         m_address.address = m_root;
         addressChanged(m_address);
@@ -40,7 +37,7 @@ AudioPortComboBox::AudioPortComboBox(
     {
       auto addr = m_root;
       addr.path.push_back(str);
-      if (m_address.address != addr)
+      if(m_address.address != addr)
       {
         m_address.address = std::move(addr);
         addressChanged(m_address);
@@ -50,7 +47,7 @@ AudioPortComboBox::AudioPortComboBox(
 
   m_child.push_back("None");
   addItem("None");
-  for (auto& child : node)
+  for(auto& child : node)
   {
     const QString& name = child.target<Device::AddressSettings>()->name;
     addItem(name);
@@ -62,12 +59,12 @@ void AudioPortComboBox::setAddress(const State::Address& addr)
 {
   m_address.address = m_root;
 
-  if (!addr.path.empty())
+  if(!addr.path.empty())
   {
     auto& name = addr.path.back();
-    for (std::size_t i = 0; i < m_child.size(); i++)
+    for(std::size_t i = 0; i < m_child.size(); i++)
     {
-      if (m_child[i] == name)
+      if(m_child[i] == name)
       {
         m_address.address.path.push_back(name);
         setCurrentIndex(i);
@@ -85,47 +82,37 @@ const Device::FullAddressSettings& AudioPortComboBox::address() const
 }
 
 QWidget* makeAddressCombo(
-    State::Address root,
-    const Device::Node& out_node,
-    const Process::Port& port,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    State::Address root, const Device::Node& out_node, const Process::Port& port,
+    const score::DocumentContext& ctx, QWidget* parent)
 {
   using namespace Device;
   auto edit = new Process::AudioPortComboBox{root, out_node, parent};
   edit->setAddress(port.address().address);
 
   QObject::connect(
-      &port,
-      &Process::Port::addressChanged,
-      edit,
+      &port, &Process::Port::addressChanged, edit,
       [edit](const State::AddressAccessor& addr) {
-        if (addr.address != edit->address().address)
-        {
-          edit->setAddress(addr.address);
-        }
+    if(addr.address != edit->address().address)
+    {
+      edit->setAddress(addr.address);
+    }
       });
 
   QObject::connect(
-      edit,
-      &Process::AudioPortComboBox::addressChanged,
-      parent,
+      edit, &Process::AudioPortComboBox::addressChanged, parent,
       [&port, &ctx](const auto& newAddr) {
-        if (newAddr.address == port.address().address)
-          return;
+    if(newAddr.address == port.address().address)
+      return;
 
-        CommandDispatcher<>{ctx.dispatcher}.submit(
-            new Process::ChangePortAddress{
-                port, State::AddressAccessor{newAddr.address, {}}});
+    CommandDispatcher<>{ctx.dispatcher}.submit(new Process::ChangePortAddress{
+        port, State::AddressAccessor{newAddr.address, {}}});
       });
 
   return edit;
 }
 
 QWidget* makeDeviceCombo(
-    QStringList devices,
-    const Process::Port& port,
-    const score::DocumentContext& ctx,
+    QStringList devices, const Process::Port& port, const score::DocumentContext& ctx,
     QWidget* parent)
 {
   using namespace Device;
@@ -135,27 +122,21 @@ QWidget* makeDeviceCombo(
   edit->setCurrentText(port.address().address.device);
 
   QObject::connect(
-      &port,
-      &Process::Port::addressChanged,
-      edit,
+      &port, &Process::Port::addressChanged, edit,
       [edit](const State::AddressAccessor& addr) {
-        if (addr.address.device != edit->currentText())
-        {
-          edit->setCurrentText(addr.address.device);
-        }
+    if(addr.address.device != edit->currentText())
+    {
+      edit->setCurrentText(addr.address.device);
+    }
       });
 
   QObject::connect(
-      edit,
-      &QComboBox::currentTextChanged,
-      parent,
-      [&port, &ctx](const auto& newDev) {
-        if (newDev == port.address().address.device)
+      edit, &QComboBox::currentTextChanged, parent, [&port, &ctx](const auto& newDev) {
+        if(newDev == port.address().address.device)
           return;
 
-        CommandDispatcher<>{ctx.dispatcher}.submit(
-            new Process::ChangePortAddress{
-                port, State::AddressAccessor{State::Address{newDev, {}}, {}}});
+        CommandDispatcher<>{ctx.dispatcher}.submit(new Process::ChangePortAddress{
+            port, State::AddressAccessor{State::Address{newDev, {}}, {}}});
       });
 
   return edit;

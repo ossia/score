@@ -22,15 +22,12 @@ namespace Media::Sound
 WaveformComputer::WaveformComputer()
 {
   connect(
-      this,
-      &WaveformComputer::recompute,
-      this,
+      this, &WaveformComputer::recompute, this,
       [=](WaveformRequest req) {
-        int64_t n = ++m_redraw_count;
+    int64_t n = ++m_redraw_count;
 
-        ossia::qt::run_async(this, [=, r = std::move(req)]() mutable {
-          on_recompute(std::move(r), n);
-        });
+    ossia::qt::run_async(
+        this, [=, r = std::move(req)]() mutable { on_recompute(std::move(r), n); });
       },
       Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);
@@ -54,18 +51,13 @@ struct WaveformComputerImpl
     int64_t duration{};
 
     using frame_fun_t = bool (*)(
-        LoopWrapper& h,
-        int64_t start_frame,
+        LoopWrapper& h, int64_t start_frame,
         ossia::small_vector<float, 8>& out) noexcept;
     using absmax_frame_fun_t = bool (*)(
-        LoopWrapper& h,
-        int64_t start_frame,
-        int64_t end_frame,
+        LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<float, 8>& out) noexcept;
     using minmax_frame_fun_t = bool (*)(
-        LoopWrapper& h,
-        int64_t start_frame,
-        int64_t end_frame,
+        LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<std::pair<float, float>, 8>& out) noexcept;
 
     frame_fun_t frame_impl{};
@@ -80,27 +72,22 @@ struct WaveformComputerImpl
       return frame_impl(*this, start_frame, out);
     }
     bool absmax_frame(
-        int64_t start_frame,
-        int64_t end_frame,
-        ossia::small_vector<float, 8>& out)
+        int64_t start_frame, int64_t end_frame, ossia::small_vector<float, 8>& out)
     {
       return absmax_frame_impl(*this, start_frame, end_frame, out);
     }
     bool minmax_frame(
-        int64_t start_frame,
-        int64_t end_frame,
+        int64_t start_frame, int64_t end_frame,
         ossia::small_vector<std::pair<float, float>, 8>& out)
     {
       return minmax_frame_impl(*this, start_frame, end_frame, out);
     }
 
     static bool normal_frame(
-        LoopWrapper& h,
-        int64_t start_frame,
-        ossia::small_vector<float, 8>& out) noexcept
+        LoopWrapper& h, int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + start_frame;
-      if (start < h.decoded_samples)
+      if(start < h.decoded_samples)
       {
         h.handle.frame(start, out);
         return true;
@@ -111,14 +98,12 @@ struct WaveformComputerImpl
       }
     }
     static bool normal_absmax_frame(
-        LoopWrapper& h,
-        int64_t start_frame,
-        int64_t end_frame,
+        LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<float, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + start_frame;
       const int64_t end = h.start_offset + end_frame;
-      if (start < h.decoded_samples && end < h.decoded_samples)
+      if(start < h.decoded_samples && end < h.decoded_samples)
       {
         h.handle.absmax_frame(start, end, out);
         return true;
@@ -129,14 +114,12 @@ struct WaveformComputerImpl
       }
     }
     static bool normal_minmax_frame(
-        LoopWrapper& h,
-        int64_t start_frame,
-        int64_t end_frame,
+        LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<std::pair<float, float>, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + start_frame;
       const int64_t end = h.start_offset + end_frame;
-      if (start < h.decoded_samples && end < h.decoded_samples)
+      if(start < h.decoded_samples && end < h.decoded_samples)
       {
         h.handle.minmax_frame(start, end, out);
         return true;
@@ -148,69 +131,62 @@ struct WaveformComputerImpl
     }
 
     static bool loop_frame(
-        LoopWrapper& h,
-        int64_t start_frame,
-        ossia::small_vector<float, 8>& out) noexcept
+        LoopWrapper& h, int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + (start_frame % h.duration);
-      if (start < h.decoded_samples)
+      if(start < h.decoded_samples)
       {
         h.handle.frame(start, out);
       }
       else
       {
-        for (auto& val : out)
+        for(auto& val : out)
           val = {};
       }
       return true;
     }
     static bool loop_absmax_frame(
-        LoopWrapper& h,
-        int64_t start_frame,
-        int64_t end_frame,
+        LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<float, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + (start_frame % h.duration);
       const int64_t end = h.start_offset + (end_frame % h.duration);
-      if (start < end)
+      if(start < end)
       {
-        if (start < h.decoded_samples && end < h.decoded_samples)
+        if(start < h.decoded_samples && end < h.decoded_samples)
           h.handle.absmax_frame(start, end, out);
         else
-          for (auto& val : out)
+          for(auto& val : out)
             val = {};
       }
-      else if (start < h.decoded_samples)
+      else if(start < h.decoded_samples)
         h.handle.absmax_frame(start, start, out); // TODO can maybe be improved
       else
-        for (auto& val : out)
+        for(auto& val : out)
           val = {};
 
       return true;
     }
     static bool loop_minmax_frame(
-        LoopWrapper& h,
-        int64_t start_frame,
-        int64_t end_frame,
+        LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<std::pair<float, float>, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + (start_frame % h.duration);
       const int64_t end = h.start_offset + (end_frame % h.duration);
-      if (start < end)
+      if(start < end)
       {
-        if (start < h.decoded_samples && end < h.decoded_samples)
+        if(start < h.decoded_samples && end < h.decoded_samples)
           h.handle.minmax_frame(start, end, out);
         else
-          for (auto& val : out)
+          for(auto& val : out)
             val = {};
       }
       else
       {
-        if (start < h.decoded_samples)
-          h.handle.minmax_frame(
-              start, start, out); // TODO can maybe be improved
+        if(start < h.decoded_samples)
+          h.handle.minmax_frame(start, start, out); // TODO can maybe be improved
         else
-          for (auto& val : out)
+          for(auto& val : out)
             val = {};
       }
       return true;
@@ -286,36 +262,35 @@ struct WaveformComputerImpl
         : p{p}
         , n{n}
     {
-      for (int i = 0; i < n; i++)
+      for(int i = 0; i < n; i++)
       {
-        new (&p[i]) QPainter;
+        new(&p[i]) QPainter;
       }
     }
     ~QPainterCleanup()
     {
-      for (int i = 0; i < init; i++)
+      for(int i = 0; i < init; i++)
       {
         p[i].end();
       }
 
-      for (int i = 0; i < n; i++)
+      for(int i = 0; i < n; i++)
       {
         p[i].~QPainter();
       }
     }
   };
 
-  bool
-  initImages(QVector<QImage*>& images, const SizeInfos& infos) const noexcept
+  bool initImages(QVector<QImage*>& images, const SizeInfos& infos) const noexcept
   {
     images.resize(infos.nchannels);
-    for (int i = 0; i < infos.nchannels; i++)
+    for(int i = 0; i < infos.nchannels; i++)
     {
       images[i] = pool.request(infos.physical_width, infos.physical_h);
 
       // No need to set device pixel ratio here, since we
       // change pixels directly
-      if (computer.m_redraw_count > redraw_number)
+      if(computer.m_redraw_count > redraw_number)
       {
         images.resize(i + 1);
         pool.giveBack(images);
@@ -326,20 +301,18 @@ struct WaveformComputerImpl
   }
 
   bool initImages(
-      QVector<QImage*>& images,
-      const SizeInfos& infos,
-      QPainter* p,
+      QVector<QImage*>& images, const SizeInfos& infos, QPainter* p,
       QPainterCleanup& _) const noexcept
   {
     images.resize(infos.nchannels);
-    for (int i = 0; i < infos.nchannels; i++)
+    for(int i = 0; i < infos.nchannels; i++)
     {
       images[i] = pool.request(infos.physical_width, infos.physical_h);
 
       // When painting on the image, we paint at retina resolution
       images[i]->setDevicePixelRatio(1.);
 
-      if (computer.m_redraw_count > redraw_number)
+      if(computer.m_redraw_count > redraw_number)
       {
         images.resize(i + 1);
         pool.giveBack(images);
@@ -418,18 +391,17 @@ struct WaveformComputerImpl
 
       ossia::small_vector<QPointF, 8> prev_pos(infos.nchannels);
 
-      if (!initImages(images, infos, p, _))
+      if(!initImages(images, infos, p, _))
         return;
 
       ossia::small_vector<float, 8> mean_sample(infos.nchannels);
       const float pix_ratio = infos.pixel_ratio;
-      for (int32_t x_samples = infos.physical_x0,
-                   x_pixels = x_samples - infos.physical_x0;
-           x_samples < infos.physical_xf
-           && x_pixels < infos.physical_max_pixel;
-           x_samples++, x_pixels++)
+      for(int32_t x_samples = infos.physical_x0,
+                  x_pixels = x_samples - infos.physical_x0;
+          x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
+          x_samples++, x_pixels++)
       {
-        if (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
+        if(!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
         {
           pool.giveBack(images);
           return;
@@ -439,14 +411,13 @@ struct WaveformComputerImpl
         int64_t end_sample = (x_samples + 1) * pix_ratio;
 
         bool ok = handle.absmax_frame(start_sample, end_sample, mean_sample);
-        if (!ok)
+        if(!ok)
           break;
 
-        for (int k = 0; k < infos.nchannels; k++)
+        for(int k = 0; k < infos.nchannels; k++)
         {
-          const int max_value
-              = infos.physical_half_h_int
-                + int(mean_sample[k] * infos.physical_half_h_ratio);
+          const int max_value = infos.physical_half_h_int
+                                + int(mean_sample[k] * infos.physical_half_h_ratio);
           p[k].drawLine(prev_pos[k], QPointF(x_pixels, max_value));
           prev_pos[k] = QPointF(x_pixels, max_value);
         }
@@ -470,20 +441,18 @@ struct WaveformComputerImpl
     {
       // QPainterCleanup _{p, infos.nchannels};
 
-      if (!initImages(images, infos /*, p, _*/))
+      if(!initImages(images, infos /*, p, _*/))
         return;
 
-      ossia::small_vector<std::pair<float, float>, 8> mean_sample(
-          infos.nchannels);
+      ossia::small_vector<std::pair<float, float>, 8> mean_sample(infos.nchannels);
 
       const float pix_ratio = infos.pixel_ratio;
-      for (int32_t x_samples = infos.physical_x0,
-                   x_pixels = x_samples - infos.physical_x0;
-           x_samples < infos.physical_xf
-           && x_pixels < infos.physical_max_pixel;
-           x_samples++, x_pixels++)
+      for(int32_t x_samples = infos.physical_x0,
+                  x_pixels = x_samples - infos.physical_x0;
+          x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
+          x_samples++, x_pixels++)
       {
-        if (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
+        if(!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
         {
           pool.giveBack(images);
           return;
@@ -493,25 +462,23 @@ struct WaveformComputerImpl
         int64_t end_sample = (x_samples + 1) * pix_ratio;
 
         bool ok = handle.minmax_frame(start_sample, end_sample, mean_sample);
-        if (!ok)
+        if(!ok)
           break;
 
-        for (int k = 0; k < infos.nchannels; k++)
+        for(int k = 0; k < infos.nchannels; k++)
         {
           const int min_value = ossia::clamp(
               infos.physical_half_h_int
                   + int(mean_sample[k].first * infos.physical_half_h_ratio),
-              int(0),
-              infos.physical_h_int - 1);
+              int(0), infos.physical_h_int - 1);
           const int max_value = ossia::clamp(
               infos.physical_half_h_int
                   + int(mean_sample[k].second * infos.physical_half_h_ratio),
-              int(0),
-              infos.physical_h_int - 1);
+              int(0), infos.physical_h_int - 1);
 
           QImage& image = *images[k];
           auto dat = reinterpret_cast<uint32_t*>(image.bits());
-          for (int y = max_value; y <= min_value; y++)
+          for(int y = max_value; y <= min_value; y++)
           {
             dat[x_pixels + y * infos.physical_width] = main_color;
           }
@@ -531,49 +498,47 @@ struct WaveformComputerImpl
   void compute_sample(const SizeInfos infos)
   {
     QVector<QImage*> images;
-    if (!initImages(images, infos))
+    if(!initImages(images, infos))
       return;
 
     ossia::small_vector<float, 8> frame(infos.nchannels);
     const float pix_ratio = infos.pixel_ratio;
     int64_t oldbegin = 0;
-    for (int32_t x_samples = infos.physical_x0,
-                 x_pixels = x_samples - infos.physical_x0;
-         x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
-         x_samples++, x_pixels++)
+    for(int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0;
+        x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
+        x_samples++, x_pixels++)
     {
-      if (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
+      if(!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
       {
         pool.giveBack(images);
         return;
       }
 
       int64_t begin = (x_samples)*pix_ratio;
-      if (begin == oldbegin)
+      if(begin == oldbegin)
         continue;
       oldbegin = begin;
 
       bool ok = this->handle.frame(begin, frame);
-      if (!ok)
+      if(!ok)
         break;
 
       SCORE_ASSERT(x_pixels >= 0 && x_pixels < infos.physical_width);
-      for (int k = 0; k < infos.nchannels; k++)
+      for(int k = 0; k < infos.nchannels; k++)
       {
         QImage& image = *images[k];
         auto dat = reinterpret_cast<uint32_t*>(image.bits());
-        const int v = infos.physical_half_h_int
-                      + int(frame[k] * infos.physical_half_h_ratio);
+        const int v
+            = infos.physical_half_h_int + int(frame[k] * infos.physical_half_h_ratio);
         const int value = ossia::clamp(v, int(0), int(infos.physical_h - 1));
 
-        auto [y, end_y]
-            = value < infos.physical_half_h_int
-                  ? std::tuple<int, int>{value, infos.physical_half_h_int}
-                  : std::tuple<int, int>{infos.physical_half_h_int, value};
+        auto [y, end_y] = value < infos.physical_half_h_int
+                              ? std::tuple<int, int>{value, infos.physical_half_h_int}
+                              : std::tuple<int, int>{infos.physical_half_h_int, value};
         SCORE_ASSERT(y >= 0 && y < infos.physical_h);
         SCORE_ASSERT(end_y >= 0 && end_y <= infos.physical_h);
 
-        for (; y <= end_y; y++)
+        for(; y <= end_y; y++)
         {
           dat[x_pixels + y * infos.physical_width] = main_color;
         }
@@ -596,10 +561,10 @@ struct WaveformComputerImpl
     const auto zoom = request.zoom;
 
     infos.nchannels = data.channels();
-    if (infos.nchannels == 0)
+    if(infos.nchannels == 0)
       return;
 
-    if (data.decodedSamples() == 0)
+    if(data.decodedSamples() == 0)
       return;
     //auto& rms = data.rms();
     //if (rms.frames_count == 0)
@@ -607,10 +572,10 @@ struct WaveformComputerImpl
 
     // Height of each channel
     infos.logical_h = request.layerSize.height() / (float)infos.nchannels;
-    if (infos.logical_h < 1.)
+    if(infos.logical_h < 1.)
       return;
     infos.logical_w = request.layerSize.width();
-    if (infos.logical_w <= 1.)
+    if(infos.logical_w <= 1.)
       return;
 
     // leftmost point
@@ -623,10 +588,9 @@ struct WaveformComputerImpl
     // always resampled, only if we user the RMS cache : There may be a ratio
     // because the waveform could have been computed at a different samplerate.
     // infos.rate_ratio =  data.rms().sampleRateRatio(audioSampleRate);
-    infos.logical_samples_per_pixels
-        = infos.tempo_ratio * 0.001 * zoom * audioSampleRate
-          / (ossia::flicks_per_millisecond<double>);
-    if (infos.logical_samples_per_pixels <= 1e-6)
+    infos.logical_samples_per_pixels = infos.tempo_ratio * 0.001 * zoom * audioSampleRate
+                                       / (ossia::flicks_per_millisecond<double>);
+    if(infos.logical_samples_per_pixels <= 1e-6)
       return;
 
     infos.logical_xf = std::floor(request.view_xmax);
@@ -646,7 +610,7 @@ struct WaveformComputerImpl
     infos.logical_half_h_int = infos.logical_half_h;
     infos.logical_half_h_ratio = 1 - infos.logical_half_h;
 
-    if (infos.logical_width <= 1.)
+    if(infos.logical_width <= 1.)
       return;
 
     const auto dpr = request.devicePixelRatio;
@@ -666,17 +630,17 @@ struct WaveformComputerImpl
     infos.physical_width = dpr * infos.logical_width;
     infos.physical_max_pixel = dpr * infos.logical_max_pixel;
 
-    if (infos.physical_width * infos.physical_h > 3840 * 2160 * 3)
+    if(infos.physical_width * infos.physical_h > 3840 * 2160 * 3)
       return;
-    if (infos.physical_width < 4 || infos.physical_h < 2)
+    if(infos.physical_width < 4 || infos.physical_h < 2)
       return;
 
-    if (infos.logical_samples_per_pixels <= 1.)
+    if(infos.logical_samples_per_pixels <= 1.)
     {
       // Show lines in that case
       compute_sample(infos);
     }
-    else if (infos.logical_samples_per_pixels <= 10.)
+    else if(infos.logical_samples_per_pixels <= 10.)
     {
       // Show mean if one pixel is smaller than a rms sample
       compute_mean_absmax(infos);
@@ -692,13 +656,13 @@ struct WaveformComputerImpl
 
 void WaveformComputer::on_recompute(WaveformRequest&& req, int64_t n)
 {
-  if (m_redraw_count > n)
+  if(m_redraw_count > n)
     return;
 
-  if (!req.file)
+  if(!req.file)
     return;
 
-  if (req.file->channels() == 0)
+  if(req.file->channels() == 0)
     return;
 
   m_currentRequest = std::move(req);
@@ -710,16 +674,16 @@ void WaveformComputer::on_recompute(WaveformRequest&& req, int64_t n)
 void WaveformComputer::timerEvent(QTimerEvent* event)
 {
   auto& file = m_currentRequest.file;
-  if (!file)
+  if(!file)
     return;
-  if (m_n == m_processed_n)
+  if(m_n == m_processed_n)
     return;
 
   // TODO if we haven't rendered for 24 ms maybe render the last thing ?
   using namespace std::literals;
   const auto now = std::chrono::steady_clock::now();
   m_forceRedraw = (now - last_render > 32ms);
-  if (!m_forceRedraw && (now - last_request < 16ms))
+  if(!m_forceRedraw && (now - last_request < 16ms))
   {
     return;
   }
@@ -727,13 +691,10 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   auto dataHandle = file->handle();
   const double rate = file->sampleRate();
   WaveformComputerImpl::LoopWrapper loopHandle{
-      dataHandle,
-      file->decodedSamples(),
-      m_currentRequest.startOffset.toSample(
-          rate * m_currentRequest.tempo_ratio),
-      m_currentRequest.loopDuration.toSample(
-          rate * m_currentRequest.tempo_ratio)};
-  if (m_currentRequest.loops)
+      dataHandle, file->decodedSamples(),
+      m_currentRequest.startOffset.toSample(rate * m_currentRequest.tempo_ratio),
+      m_currentRequest.loopDuration.toSample(rate * m_currentRequest.tempo_ratio)};
+  if(m_currentRequest.loops)
   {
     loopHandle.frame_impl = loopHandle.loop_frame;
     loopHandle.absmax_frame_impl = loopHandle.loop_absmax_frame;

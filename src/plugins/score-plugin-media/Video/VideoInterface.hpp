@@ -2,8 +2,7 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 #include <score_plugin_media_export.h>
-extern "C"
-{
+extern "C" {
 #include <libavutil/pixfmt.h>
 struct AVFrame;
 struct AVCodecContext;
@@ -36,16 +35,14 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ReadFrame
   AVFrame* frame{};
   int error{};
 };
-struct SCORE_PLUGIN_MEDIA_EXPORT FreeAVFrame {
+struct SCORE_PLUGIN_MEDIA_EXPORT FreeAVFrame
+{
   void operator()(AVFrame* f) const noexcept;
 };
 
 using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
 
-
-ReadFrame readVideoFrame(
-    AVCodecContext* codecContext,
-    const AVPacket* pkt,
-    AVFrame* frame);
+ReadFrame
+readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame);
 }
 #endif

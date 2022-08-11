@@ -15,14 +15,11 @@ W_OBJECT_IMPL(CommonSelectionState)
 
 bool CommonSelectionState::multiSelection() noexcept
 {
-  return qApp->queryKeyboardModifiers().testFlag(
-      Qt::KeyboardModifier::ControlModifier);
+  return qApp->queryKeyboardModifiers().testFlag(Qt::KeyboardModifier::ControlModifier);
 }
 
 CommonSelectionState::CommonSelectionState(
-    score::SelectionStack& stack,
-    QObject* obj,
-    QState* parent)
+    score::SelectionStack& stack, QObject* obj, QState* parent)
     : QState{parent}
     , dispatcher{stack}
 {
@@ -37,10 +34,8 @@ CommonSelectionState::CommonSelectionState(
   auto selectionAreaState = new QState{this};
   selectionAreaState->setObjectName("selectionAreaState");
 
-  score::make_transition<score::Press_Transition>(
-      m_waitState, selectionAreaState);
-  selectionAreaState->addTransition(
-      selectionAreaState, finishedState(), m_waitState);
+  score::make_transition<score::Press_Transition>(m_waitState, selectionAreaState);
+  selectionAreaState->addTransition(selectionAreaState, finishedState(), m_waitState);
   {
     // States
     auto pressAreaSelection = new QState{selectionAreaState};
@@ -57,42 +52,31 @@ CommonSelectionState::CommonSelectionState(
     score::make_transition<score::Release_Transition>(
         pressAreaSelection, releaseAreaSelection);
 
-    score::make_transition<score::Move_Transition>(
-        moveAreaSelection, moveAreaSelection);
+    score::make_transition<score::Move_Transition>(moveAreaSelection, moveAreaSelection);
     score::make_transition<score::Release_Transition>(
         moveAreaSelection, releaseAreaSelection);
 
     // Operations
     connect(
-        pressAreaSelection,
-        &QState::entered,
-        this,
+        pressAreaSelection, &QState::entered, this,
         &CommonSelectionState::on_pressAreaSelection);
     connect(
-        moveAreaSelection,
-        &QState::entered,
-        this,
+        moveAreaSelection, &QState::entered, this,
         &CommonSelectionState::on_moveAreaSelection);
     connect(
-        releaseAreaSelection,
-        &QState::entered,
-        this,
+        releaseAreaSelection, &QState::entered, this,
         &CommonSelectionState::on_releaseAreaSelection);
   }
 
   // Deselection
   auto deselectState = new QState{this};
   deselectState->setObjectName("deselectState");
-  score::make_transition<score::Cancel_Transition>(
-      selectionAreaState, deselectState);
+  score::make_transition<score::Cancel_Transition>(selectionAreaState, deselectState);
   score::make_transition<score::Cancel_Transition>(m_waitState, deselectState);
   score::make_transition<score::Cancel_Transition>(this, deselectState);
   deselectState->addTransition(m_waitState);
   connect(
-      deselectState,
-      &QAbstractState::entered,
-      this,
-      &CommonSelectionState::on_deselect);
+      deselectState, &QAbstractState::entered, this, &CommonSelectionState::on_deselect);
 }
 
 CommonSelectionState::~CommonSelectionState() = default;

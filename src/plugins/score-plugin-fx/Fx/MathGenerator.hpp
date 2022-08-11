@@ -7,41 +7,36 @@
 namespace Nodes
 {
 
-template<typename State>
+template <typename State>
 static void setMathExpressionTiming(
-    State& self,
-    int64_t input_time,
-    int64_t prev_time,
-    int64_t parent_dur)
+    State& self, int64_t input_time, int64_t prev_time, int64_t parent_dur)
 {
   self.cur_time = input_time;
   self.cur_deltatime = (input_time - prev_time);
-  self.cur_pos = parent_dur > 0 ? double(input_time) / parent_dur: 0;
+  self.cur_pos = parent_dur > 0 ? double(input_time) / parent_dur : 0;
 }
 
-template<typename State>
+template <typename State>
 static void setMathExpressionTiming(
-    State& self,
-    ossia::time_value input_time,
-    ossia::time_value prev_time,
-    ossia::time_value parent_dur,
-    double modelToSamples)
+    State& self, ossia::time_value input_time, ossia::time_value prev_time,
+    ossia::time_value parent_dur, double modelToSamples)
 {
-  setMathExpressionTiming(self, input_time.impl * modelToSamples, prev_time.impl * modelToSamples, parent_dur.impl * modelToSamples);
+  setMathExpressionTiming(
+      self, input_time.impl * modelToSamples, prev_time.impl * modelToSamples,
+      parent_dur.impl * modelToSamples);
 }
 
-template<typename State>
-static void setMathExpressionTiming(State& self, const ossia::token_request& tk, ossia::exec_state_facade st)
+template <typename State>
+static void setMathExpressionTiming(
+    State& self, const ossia::token_request& tk, ossia::exec_state_facade st)
 {
-  setMathExpressionTiming(self, tk.date, tk.prev_date, tk.parent_duration, st.modelToSamples());
+  setMathExpressionTiming(
+      self, tk.date, tk.prev_date, tk.parent_duration, st.modelToSamples());
 }
 
 static void miniMathItem(
-    const tuplet::tuple<Control::LineEdit>& controls,
-    Process::LineEdit& edit,
-    const Process::ProcessModel& process,
-    QGraphicsItem& parent,
-    QObject& context,
+    const tuplet::tuple<Control::LineEdit>& controls, Process::LineEdit& edit,
+    const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
     const Process::Context& doc)
 {
   using namespace Process;
@@ -50,26 +45,19 @@ static void miniMathItem(
   const Process::PortFactoryList& portFactory
       = doc.app.interfaces<Process::PortFactoryList>();
 
-  auto edit_item = makeControlNoText(
-      get<0>(controls), edit, parent, context, doc, portFactory);
+  auto edit_item
+      = makeControlNoText(get<0>(controls), edit, parent, context, doc, portFactory);
   edit_item.control.setTextWidth(100);
   edit_item.control.setPos(15, 0);
 }
 
 static void mathItem(
     const tuplet::tuple<
-        Control::LineEdit,
-        Control::FloatSlider,
-        Control::FloatSlider,
+        Control::LineEdit, Control::FloatSlider, Control::FloatSlider,
         Control::FloatSlider>& controls,
-    Process::LineEdit& edit,
-    Process::FloatSlider& a,
-    Process::FloatSlider& b,
-    Process::FloatSlider& c,
-    const Process::ProcessModel& process,
-    QGraphicsItem& parent,
-    QObject& context,
-    const Process::Context& doc)
+    Process::LineEdit& edit, Process::FloatSlider& a, Process::FloatSlider& b,
+    Process::FloatSlider& c, const Process::ProcessModel& process, QGraphicsItem& parent,
+    QObject& context, const Process::Context& doc)
 {
   using namespace Process;
   using namespace std;
@@ -82,8 +70,8 @@ static void mathItem(
   auto c0_bg = new score::BackgroundItem{&parent};
   c0_bg->setRect({0., 0., 300., 200.});
 
-  auto edit_item = makeControl(
-      get<0>(controls), edit, parent, context, doc, portFactory);
+  auto edit_item
+      = makeControl(get<0>(controls), edit, parent, context, doc, portFactory);
   edit_item.control.setTextWidth(280);
   edit_item.root.setPos(c0, 40);
   /*
@@ -93,14 +81,11 @@ static void mathItem(
   ((QGraphicsProxyWidget&)edit_item.control).widget()->setMaximumWidth(200);
   */
 
-  auto a_item = makeControl(
-      get<1>(controls), a, parent, context, doc, portFactory);
+  auto a_item = makeControl(get<1>(controls), a, parent, context, doc, portFactory);
   a_item.root.setPos(c0, 5);
-  auto b_item = makeControl(
-      get<2>(controls), b, parent, context, doc, portFactory);
+  auto b_item = makeControl(get<2>(controls), b, parent, context, doc, portFactory);
   b_item.root.setPos(c0 + 70, 5);
-  auto c_item = makeControl(
-      get<3>(controls), c, parent, context, doc, portFactory);
+  auto c_item = makeControl(get<3>(controls), c, parent, context, doc, portFactory);
   c_item.root.setPos(c0 + 140, 5);
 }
 
@@ -159,16 +144,10 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const std::string& expr,
-      float a,
-      float b,
-      float c,
-      ossia::value_port& output,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const std::string& expr, float a, float b, float c, ossia::value_port& output,
+      ossia::token_request tk, ossia::exec_state_facade st, State& self)
   {
-    if (!self.expr.set_expression(expr))
+    if(!self.expr.set_expression(expr))
       return;
 
     setMathExpressionTiming(self, tk, st);
@@ -253,7 +232,7 @@ struct Node
     void reset_symbols(std::size_t N)
     {
       // TODO allow to set how many channels
-      if (N == cur_out.size())
+      if(N == cur_out.size())
         return;
 
       expr.remove_vector("out");
@@ -284,19 +263,13 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const std::string& expr,
-      float a,
-      float b,
-      float c,
-      ossia::audio_port& output,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const std::string& expr, float a, float b, float c, ossia::audio_port& output,
+      ossia::token_request tk, ossia::exec_state_facade st, State& self)
   {
-    if (tk.forward())
+    if(tk.forward())
     {
       self.fs = st.sampleRate();
-      if (!self.expr.set_expression(expr))
+      if(!self.expr.set_expression(expr))
         return;
 
       const auto samplesRatio = st.modelToSamples();
@@ -305,7 +278,7 @@ struct Node
       const int chans = 2;
       self.reset_symbols(chans);
       output.set_channels(chans);
-      for (int j = 0; j < chans; j++)
+      for(int j = 0; j < chans; j++)
       {
         auto& out = output.channel(j);
         out.resize(st.bufferSize(), boost::container::default_init);
@@ -315,7 +288,7 @@ struct Node
       self.p2 = b;
       self.p3 = c;
       const auto start_sample = (tk.prev_date * samplesRatio).impl;
-      for (int64_t i = 0; i < count; i++)
+      for(int64_t i = 0; i < count; i++)
       {
         self.cur_time = start_sample + i;
 
@@ -323,7 +296,7 @@ struct Node
         self.expr.value();
 
         // Apply the output
-        for (int j = 0; j < chans; j++)
+        for(int j = 0; j < chans; j++)
         {
           output.channel(j)[tick_start + i] = self.cur_out[j];
         }

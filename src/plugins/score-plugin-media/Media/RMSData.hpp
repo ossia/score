@@ -1,6 +1,7 @@
 #pragma once
-#include <Media/AudioArray.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Media/AudioArray.hpp>
 
 #include <ossia/detail/span.hpp>
 
@@ -30,8 +31,7 @@ public:
 
   // deinterleaved
   void decode(const std::vector<tcb::span<const ossia::audio_sample>>& audio);
-  void
-  decodeLast(const std::vector<tcb::span<const ossia::audio_sample>>& audio);
+  void decodeLast(const std::vector<tcb::span<const ossia::audio_sample>>& audio);
 
   // interleaved
   void decode(ossia::drwav_handle& audio);
@@ -51,19 +51,13 @@ public:
 
 private:
   rms_sample_t computeChannelRMS(
-      tcb::span<const ossia::audio_sample> chan,
-      int64_t start_idx,
-      int64_t buffer_size);
+      tcb::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size);
   void computeRMS(
-      const std::vector<tcb::span<const ossia::audio_sample>>& audio,
-      int buffer_size);
+      const std::vector<tcb::span<const ossia::audio_sample>>& audio, int buffer_size);
   void computeLastRMS(
-      const std::vector<tcb::span<const ossia::audio_sample>>& audio,
-      int buffer_size);
-  void computeChannelRMS(
-      ossia::drwav_handle& wav,
-      rms_sample_t* bytes,
-      int64_t buffer_size);
+      const std::vector<tcb::span<const ossia::audio_sample>>& audio, int buffer_size);
+  void
+  computeChannelRMS(ossia::drwav_handle& wav, rms_sample_t* bytes, int64_t buffer_size);
 
   QFile m_file;
   bool m_exists{false};

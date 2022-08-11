@@ -1,12 +1,11 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
+
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 
 #include <score_plugin_scenario_export.h>
-
-#include <ossia/detail/flat_map.hpp>
 
 #include <vector>
 
@@ -51,18 +50,14 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
 void copyBaseInterval(JSONReader&, const IntervalModel&);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-void copySelectedScenarioElements(
-    JSONReader&,
-    const Scenario::ProcessModel& sm);
+void copySelectedScenarioElements(JSONReader&, const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 void copyWholeScenario(JSONReader&, const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 void copySelectedScenarioElements(
-    JSONReader&,
-    const Scenario::ProcessModel& sm,
-    CategorisedScenario& cat);
+    JSONReader&, const Scenario::ProcessModel& sm, CategorisedScenario& cat);
 
 /**
  * The parent should be in the object tree of the scenario.
@@ -81,18 +76,12 @@ void copySelectedScenarioElements(
 //        const BaseScenario& sm,
 //        QObject* parent);
 void copySelectedScenarioElements(
-    JSONReader&,
-    const BaseScenarioContainer& sm,
-    QObject* parent);
+    JSONReader&, const BaseScenarioContainer& sm, QObject* parent);
 
-bool copySelectedProcesses(
-    JSONReader&,
-    const score::DocumentContext& ctx);
+bool copySelectedProcesses(JSONReader&, const score::DocumentContext& ctx);
 
 void copySelectedElementsToJson(
-    JSONReader&,
-    ScenarioInterface& s,
-    const score::DocumentContext& ctx);
+    JSONReader&, ScenarioInterface& s, const score::DocumentContext& ctx);
 
 struct CopiedCables
 {

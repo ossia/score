@@ -11,7 +11,7 @@ struct TSerializer<DataStream, TreeNode<T>>
     s.readFrom(static_cast<const T&>(n));
 
     s.stream() << n.childCount();
-    for (const auto& child : n)
+    for(const auto& child : n)
     {
       s.readFrom(child);
     }
@@ -25,7 +25,7 @@ struct TSerializer<DataStream, TreeNode<T>>
 
     int childCount;
     s.stream() >> childCount;
-    for (int i = 0; i < childCount; ++i)
+    for(int i = 0; i < childCount; ++i)
     {
       TreeNode<T> child;
       s.writeTo(child);
@@ -45,7 +45,7 @@ struct TSerializer<JSONObject, TreeNode<T>>
 
     s.readFrom(static_cast<const T&>(n));
 
-    if (n.childCount() > 0)
+    if(n.childCount() > 0)
       s.obj[s.strings.Children] = n.children();
 
     s.stream.EndObject();
@@ -55,10 +55,10 @@ struct TSerializer<JSONObject, TreeNode<T>>
   {
     s.writeTo(static_cast<T&>(n));
     auto it = s.obj.constFind(s.strings.Children);
-    if (it != s.obj.constEnd())
+    if(it != s.obj.constEnd())
     {
       const auto& children = it->toArray();
-      for (const auto& val : children)
+      for(const auto& val : children)
       {
         TreeNode<T> child;
         JSONObject::Deserializer nodeWriter(val);

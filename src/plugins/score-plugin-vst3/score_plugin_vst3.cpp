@@ -29,8 +29,7 @@ score_plugin_vst3::make_applicationPlugin(const score::ApplicationContext& ctx)
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst3::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,

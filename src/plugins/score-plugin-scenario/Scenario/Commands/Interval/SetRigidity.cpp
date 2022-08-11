@@ -5,12 +5,12 @@
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
@@ -49,7 +49,7 @@ void SetRigidity::redo(const score::DocumentContext& ctx) const
   interval.duration.setRigid(m_rigidity);
   auto dur = interval.duration.defaultDuration();
 
-  if (m_rigidity)
+  if(m_rigidity)
   {
     interval.duration.setMinNull(false);
     interval.duration.setMaxInfinite(false);
@@ -65,14 +65,14 @@ void SetRigidity::redo(const score::DocumentContext& ctx) const
 
 void SetRigidity::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_oldMinDuration << m_oldMaxDuration << m_rigidity
-    << m_oldRigidity << m_oldIsNull << m_oldIsInfinite;
+  s << m_path << m_oldMinDuration << m_oldMaxDuration << m_rigidity << m_oldRigidity
+    << m_oldIsNull << m_oldIsInfinite;
 }
 
 void SetRigidity::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_oldMinDuration >> m_oldMaxDuration >> m_rigidity
-      >> m_oldRigidity >> m_oldIsNull >> m_oldIsInfinite;
+  s >> m_path >> m_oldMinDuration >> m_oldMaxDuration >> m_rigidity >> m_oldRigidity
+      >> m_oldIsNull >> m_oldIsInfinite;
 }
 }
 }

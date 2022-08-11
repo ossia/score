@@ -19,14 +19,14 @@ public:
   template <typename F>
   void iterate(const QModelIndex& idx, const F& f)
   {
-    if (idx.isValid())
+    if(idx.isValid())
       f(idx);
 
-    if (!hasChildren(idx))
+    if(!hasChildren(idx))
       return;
 
     const int rows = rowCount(idx);
-    for (int i = 0; i < rows; ++i)
+    for(int i = 0; i < rows; ++i)
       iterate(this->index(i, 0, idx), f);
   }
 
@@ -55,38 +55,37 @@ public:
 
   QModelIndex parent(const QModelIndex& index) const final override
   {
-    if (!index.isValid())
+    if(!index.isValid())
       return QModelIndex();
-    if (index.model() != this)
+    if(index.model() != this)
       return QModelIndex();
 
     const auto& node = nodeFromModelIndex(index);
     auto parentNode = node.parent();
 
-    if (!parentNode)
+    if(!parentNode)
       return QModelIndex();
 
     auto grandparentNode = parentNode->parent();
 
-    if (!grandparentNode)
+    if(!grandparentNode)
       return QModelIndex();
 
     const int rowParent = grandparentNode->indexOfChild(parentNode);
-    if (rowParent == -1)
+    if(rowParent == -1)
       return QModelIndex();
 
     return createIndex(rowParent, 0, parentNode);
   }
 
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const final override
+  QModelIndex index(int row, int column, const QModelIndex& parent) const final override
   {
-    if (!hasIndex(row, column, parent))
+    if(!hasIndex(row, column, parent))
       return QModelIndex();
 
     auto& parentItem = nodeFromModelIndex(parent);
 
-    if (parentItem.hasChild(row))
+    if(parentItem.hasChild(row))
       return createIndex(row, column, &parentItem.childAt(row));
     else
       return QModelIndex();
@@ -94,7 +93,7 @@ public:
 
   int rowCount(const QModelIndex& parent) const final override
   {
-    if (parent.column() > 0)
+    if(parent.column() > 0)
       return 0;
 
     const auto& parentNode = nodeFromModelIndex(parent);

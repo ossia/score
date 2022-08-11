@@ -1,10 +1,11 @@
 #pragma once
-#include <score/config.hpp>
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+
+#include <score/config.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreePath.hpp>
 #include <score/model/tree/VariantBasedNode.hpp>
@@ -23,8 +24,7 @@ struct AddressSettings;
 struct DeviceSettings;
 
 class SCORE_LIB_DEVICE_EXPORT DeviceExplorerNode
-    : public score::
-          VariantBasedNode<Device::DeviceSettings, Device::AddressSettings>
+    : public score::VariantBasedNode<Device::DeviceSettings, Device::AddressSettings>
 {
   SCORE_SERIALIZE_FRIENDS
 
@@ -111,13 +111,11 @@ SCORE_LIB_DEVICE_EXPORT void dumpTree(const Device::Node& node, QString rec);
 SCORE_LIB_DEVICE_EXPORT Device::Node
 merge(Device::Node base, const State::MessageList& other);
 
-SCORE_LIB_DEVICE_EXPORT void
-merge(Device::Node& base, const State::Message& message);
+SCORE_LIB_DEVICE_EXPORT void merge(Device::Node& base, const State::Message& message);
 
 inline auto findChildNode_it(const Device::Node& node, const QString& name)
 {
-  return std::find_if(
-        node.begin(), node.end(), [&] (const Device::Node& n) {
+  return std::find_if(node.begin(), node.end(), [&](const Device::Node& n) {
     return n.get<Device::AddressSettings>().name == name;
   });
 }
@@ -135,12 +133,12 @@ inline const Device::Node* findChildNode(const Device::Node& node, const QString
 template <typename Node_T, typename It>
 Node_T* try_getNodeFromString_impl(Node_T& n, It begin, It end)
 {
-  if (begin == end)
+  if(begin == end)
     return &n;
 
-  for (auto& child : n)
+  for(auto& child : n)
   {
-    if (child.displayName() == *begin)
+    if(child.displayName() == *begin)
     {
       return try_getNodeFromString_impl(child, ++begin, end);
     }
@@ -158,7 +156,7 @@ Node_T* try_getNodeFromString(Node_T& n, const QStringList& parts)
 template <typename Node_T>
 Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 {
-  if (addr.device.isEmpty())
+  if(addr.device.isEmpty())
     return &root;
 
   auto dev = std::find_if(root.begin(), root.end(), [&](const Node_T& n) {
@@ -166,7 +164,7 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
            && n.template get<Device::DeviceSettings>().name == addr.device;
   });
 
-  if (dev == root.end())
+  if(dev == root.end())
     return nullptr;
 
   return try_getNodeFromString(*dev, addr.path);
@@ -176,7 +174,6 @@ bool operator<(const Device::Node& lhs, const Device::Node& rhs);
 }
 
 #if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES
-extern template class SCORE_LIB_DEVICE_EXPORT
-    TreeNode<Device::DeviceExplorerNode>;
+extern template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
 #endif
 W_REGISTER_ARGTYPE(Device::Node*)

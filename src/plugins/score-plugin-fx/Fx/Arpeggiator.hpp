@@ -24,8 +24,7 @@ struct Node
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = tuplet::make_tuple(
-        Control::Widgets::ArpeggioChooser(),
-        Control::IntSlider("Octave", 1, 7, 1),
+        Control::Widgets::ArpeggioChooser(), Control::IntSlider("Octave", 1, 7, 1),
         Control::IntSlider("Quantification", 1, 32, 8));
   };
 
@@ -45,7 +44,7 @@ struct Node
     void update()
     {
       // Create the content of the arpeggio
-      switch (previous_arpeggio)
+      switch(previous_arpeggio)
       {
         case 0:
           arpeggiate(1);
@@ -57,19 +56,17 @@ struct Node
         case 2:
           arpeggiate(2);
           arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
-          std::reverse(
-              arpeggio.begin() + notes.container.size(), arpeggio.end());
+          std::reverse(arpeggio.begin() + notes.container.size(), arpeggio.end());
           break;
         case 3:
           arpeggiate(2);
           arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
-          std::reverse(
-              arpeggio.begin(), arpeggio.begin() + notes.container.size());
+          std::reverse(arpeggio.begin(), arpeggio.begin() + notes.container.size());
           break;
         case 4:
           arpeggio.clear();
           arpeggio.resize(1);
-          for (std::pair note : notes.container)
+          for(std::pair note : notes.container)
           {
             arpeggio[0].push_back(note);
           }
@@ -79,11 +76,11 @@ struct Node
       const std::size_t orig_size = arpeggio.size();
 
       // Create the octave duplicates
-      for (int i = 1; i < previous_octave; i++)
+      for(int i = 1; i < previous_octave; i++)
       {
         octavize(orig_size, i);
       }
-      for (int i = 1; i < previous_octave; i++)
+      for(int i = 1; i < previous_octave; i++)
       {
         octavize(orig_size, -i);
       }
@@ -93,7 +90,7 @@ struct Node
     {
       arpeggio.clear();
       arpeggio.reserve(notes.container.size() * size_mult);
-      for (std::pair note : notes.container)
+      for(std::pair note : notes.container)
       {
         arpeggio.push_back(chord{note});
       }
@@ -101,14 +98,14 @@ struct Node
 
     void octavize(std::size_t orig_size, int i)
     {
-      for (std::size_t j = 0; j < orig_size; j++)
+      for(std::size_t j = 0; j < orig_size; j++)
       {
         auto copy = arpeggio[j];
-        for (auto it = copy.begin(); it != copy.end();)
+        for(auto it = copy.begin(); it != copy.end();)
         {
           auto& note = *it;
           int res = note.first + 12 * i;
-          if (res >= 0.f && res <= 127.f)
+          if(res >= 0.f && res <= 127.f)
           {
             note.first = res;
             ++it;
@@ -126,13 +123,8 @@ struct Node
 
   using control_policy = ossia::safe_nodes::precise_tick;
   static void
-  run(const ossia::midi_port& midi,
-      int arpeggio,
-      float octave,
-      int quantif,
-      ossia::midi_port& out,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
+  run(const ossia::midi_port& midi, int arpeggio, float octave, int quantif,
+      ossia::midi_port& out, ossia::token_request tk, ossia::exec_state_facade st,
       State& self)
   {
     // Store the current chord in a buffer
@@ -140,16 +132,16 @@ struct Node
     self.previous_octave = octave;
     self.previous_arpeggio = arpeggio;
 
-    if (msgs.size() > 0)
+    if(msgs.size() > 0)
     {
       // Update the "running" notes
-      for (auto& note : msgs)
+      for(auto& note : msgs)
       {
-        if (note.get_message_type() == libremidi::message_type::NOTE_ON)
+        if(note.get_message_type() == libremidi::message_type::NOTE_ON)
         {
           self.notes.insert({note.bytes[1], note.bytes[2]});
         }
-        else if (note.get_message_type() == libremidi::message_type::NOTE_OFF)
+        else if(note.get_message_type() == libremidi::message_type::NOTE_OFF)
         {
           self.notes.erase(note.bytes[1]);
         }
@@ -157,15 +149,14 @@ struct Node
     }
 
     // Update the arpeggio itself
-    const bool mustUpdateArpeggio = msgs.size() > 0
-                                    || octave != self.previous_octave
+    const bool mustUpdateArpeggio = msgs.size() > 0 || octave != self.previous_octave
                                     || arpeggio != self.previous_arpeggio;
-    if (mustUpdateArpeggio)
+    if(mustUpdateArpeggio)
     {
       self.update();
     }
 
-    if (self.arpeggio.empty())
+    if(self.arpeggio.empty())
     {
       const auto [tick_start, d] = st.timings(tk);
       for(int k = 0; k < 128; k++)
@@ -179,12 +170,11 @@ struct Node
       return;
     }
 
-    if (self.index >= self.arpeggio.size())
+    if(self.index >= self.arpeggio.size())
       self.index = 0;
 
     // Play the next note / chord if we're on a quantification marker
-    if (auto date
-        = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
+    if(auto date = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
     {
       // Finish previous notes
 
@@ -200,7 +190,7 @@ struct Node
       // Start the next note in the chord
       auto& chord = self.arpeggio[self.index];
 
-      for (auto& note : chord)
+      for(auto& note : chord)
       {
         self.in_flight[note.first]++;
         out.note_on(1, note.first, note.second).timestamp = *date;

@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
+
 #include <Mapping/Commands/MappingCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
@@ -18,13 +19,9 @@ class ProcessModel;
 class ChangeSourceAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(),
-      ChangeSourceAddress,
-      "ChangeSourceAddress")
+      MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
 public:
-  ChangeSourceAddress(
-      const ProcessModel&,
-      Device::FullAddressAccessorSettings newval);
+  ChangeSourceAddress(const ProcessModel&, Device::FullAddressAccessorSettings newval);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;
@@ -42,13 +39,9 @@ private:
 class ChangeTargetAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(),
-      ChangeTargetAddress,
-      "ChangeTargetAddress")
+      MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
 public:
-  ChangeTargetAddress(
-      const ProcessModel&,
-      Device::FullAddressAccessorSettings);
+  ChangeTargetAddress(const ProcessModel&, Device::FullAddressAccessorSettings);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;

@@ -2,13 +2,11 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
 #include <Gfx/Images/Process.hpp>
 
-
-#include <ossia/gfx/port_index.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/gfx/port_index.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 namespace score::gfx
 {
@@ -166,7 +164,7 @@ void ImagesNode::process(const Message& msg)
   ProcessNode::process(msg.token);
 
   int32_t p = 0;
-  for (const gfx_input& m: msg.input)
+  for(const gfx_input& m : msg.input)
   {
     if(auto val = ossia::get_if<ossia::value>(&m))
     {
@@ -174,8 +172,10 @@ void ImagesNode::process(const Message& msg)
       {
         case 0: // Image index
         {
-          auto sink = ossia::gfx::port_index{msg.node_id, p };
-          ossia::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
+          auto sink = ossia::gfx::port_index{msg.node_id, p};
+          ossia::visit(
+              [this, sink](const auto& v) { ProcessNode::process(sink.port, v); },
+              std::move(m));
 
           if(linearImages.size() > 0)
           {
@@ -196,8 +196,10 @@ void ImagesNode::process(const Message& msg)
         }
         case 2: // Position
         {
-          auto sink = ossia::gfx::port_index{msg.node_id, p };
-          ossia::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
+          auto sink = ossia::gfx::port_index{msg.node_id, p};
+          ossia::visit(
+              [this, sink](const auto& v) { ProcessNode::process(sink.port, v); },
+              std::move(m));
           break;
         }
 
@@ -260,7 +262,6 @@ void ImagesNode::process(const Message& msg)
 
     p++;
   }
-
 }
 
 ImagesNode::~ImagesNode()
@@ -273,20 +274,25 @@ ImagesNode::~ImagesNode()
 static QRhiSampler* createSampler(ImageMode tile, QRhi& rhi)
 {
   QRhiSampler::AddressMode am{};
-  switch(tile) {
+  switch(tile)
+  {
     default:
-    case Single: am = QRhiSampler::ClampToEdge; break;
-    case Clamped: am = QRhiSampler::ClampToEdge; break;
-    case Tiled: am = QRhiSampler::Repeat; break;
-    case Mirrored: am = QRhiSampler::Mirror; break;
+    case Single:
+      am = QRhiSampler::ClampToEdge;
+      break;
+    case Clamped:
+      am = QRhiSampler::ClampToEdge;
+      break;
+    case Tiled:
+      am = QRhiSampler::Repeat;
+      break;
+    case Mirrored:
+      am = QRhiSampler::Mirror;
+      break;
   }
 
   auto sampler = rhi.newSampler(
-      QRhiSampler::Linear,
-      QRhiSampler::Linear,
-      QRhiSampler::None,
-      am,
-      am);
+      QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None, am, am);
 
   sampler->setName("ImagesNode::sampler");
   sampler->create();
@@ -310,14 +316,13 @@ private:
     const int limits_min = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
     const int limits_max = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
-    for (const QImage* frame : n.linearImages)
+    for(const QImage* frame : n.linearImages)
     {
       const QSize sz = frame->size();
       auto tex = rhi.newTexture(
-            QRhiTexture::BGRA8,
-            resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max),
-            1,
-            QRhiTexture::Flag{});
+          QRhiTexture::BGRA8,
+          resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max), 1,
+          QRhiTexture::Flag{});
 
       tex->setName("ImagesNode::tex");
       tex->create();
@@ -325,7 +330,7 @@ private:
     }
   }
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
   void init(RenderList& renderer) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
@@ -342,11 +347,13 @@ private:
     recreateTextures(rhi);
 
     tile = n.tile;
-    QShader& v = m_vertexS, &f = m_fragmentS;
+    QShader &v = m_vertexS, &f = m_fragmentS;
     if(!tile)
-      std::tie(v, f) = score::gfx::makeShaders(rs, images_single_vertex_shader, images_single_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(
+          rs, images_single_vertex_shader, images_single_fragment_shader);
     else
-      std::tie(v, f) = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(
+          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -360,27 +367,23 @@ private:
 
     // Initialize the passes for the "tiled" case
     {
-      auto [v, f] = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      auto [v, f] = score::gfx::makeShaders(
+          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
       for(Edge* edge : this->node.output[0]->edges)
       {
         auto rt = renderer.renderTargetForOutput(*edge);
         if(rt.renderTarget)
         {
-          m_altPasses.emplace_back(edge, score::gfx::buildPipeline(
-                                     renderer,
-                                     mesh,
-                                     v,
-                                     f,
-                                     rt,
-                                     m_processUBO,
-                                     m_material.buffer, m_samplers));
+          m_altPasses.emplace_back(
+              edge, score::gfx::buildPipeline(
+                        renderer, mesh, v, f, rt, m_processUBO, m_material.buffer,
+                        m_samplers));
         }
       }
     }
   }
 
-  void
-  update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
 
@@ -388,14 +391,14 @@ private:
     {
       tile = n.tile;
       auto [s, tex] = m_samplers[0];
-          m_samplers.clear();
+      m_samplers.clear();
 
-          // Create a new sampler
-          auto new_sampler = createSampler(tile, *renderer.state.rhi);
-          m_samplers.push_back({new_sampler, tex});
+      // Create a new sampler
+      auto new_sampler = createSampler(tile, *renderer.state.rhi);
+      m_samplers.push_back({new_sampler, tex});
 
       // Replace it in the render passes
-      auto replace_sampler = [] (PassMap& passes, QRhiSampler* oldS, QRhiSampler* newS) {
+      auto replace_sampler = [](PassMap& passes, QRhiSampler* oldS, QRhiSampler* newS) {
         for(auto& pass : passes)
           score::gfx::replaceSampler(*pass.second.srb, oldS, newS);
       };
@@ -422,10 +425,10 @@ private:
     }
 
     // If images haven't been uploaded yet, upload them.
-    if (!m_uploaded)
+    if(!m_uploaded)
     {
       std::size_t k = 0;
-      for (const QImage* frame : n.linearImages)
+      for(const QImage* frame : n.linearImages)
       {
         res.uploadTexture(m_textures[k], renderer.adaptImage(*frame));
         k++;
@@ -436,9 +439,10 @@ private:
 
     // If the current image being displayed by this renderer (in m_prev_ubo)
     // is out of date with the image in the data model, we switch the texture
-    if (updateCurrentTexture || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
+    if(updateCurrentTexture || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
-      auto replace_texture = [] (PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
+      auto replace_texture
+          = [](PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
         for(auto& pass : passes)
           score::gfx::replaceTexture(*pass.second.srb, sampler, tex);
       };
@@ -464,10 +468,7 @@ private:
     defaultUBOUpdate(renderer, res);
   }
 
-  void runRenderPass(
-      RenderList& renderer,
-      QRhiCommandBuffer& cb,
-      Edge& edge) override
+  void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
   {
     const auto& mesh = renderer.defaultQuad();
     if(tile == ImageMode::Single)
@@ -478,7 +479,7 @@ private:
 
   void release(RenderList& r) override
   {
-    for (auto tex : m_textures)
+    for(auto tex : m_textures)
     {
       tex->deleteLater();
     }
@@ -518,7 +519,7 @@ private:
     const int limits_max = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
     QSize maxSize{1, 1};
-    for (const QImage* frame : n.linearImages)
+    for(const QImage* frame : n.linearImages)
     {
       const auto sz = resizeTextureSize(frame->size(), limits_min, limits_max);
 
@@ -534,7 +535,7 @@ private:
     m_texture = tex;
   }
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
   void init(RenderList& renderer) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
@@ -547,13 +548,14 @@ private:
     m_prev_ubo.currentImageIndex = -1;
     QRhi& rhi = *renderer.state.rhi;
 
-
     tile = n.tile;
-    QShader& v = m_vertexS, &f = m_fragmentS;
+    QShader &v = m_vertexS, &f = m_fragmentS;
     if(!tile)
-      std::tie(v, f) = score::gfx::makeShaders(rs, images_single_vertex_shader, images_single_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(
+          rs, images_single_vertex_shader, images_single_fragment_shader);
     else
-      std::tie(v, f) = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      std::tie(v, f) = score::gfx::makeShaders(
+          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -570,28 +572,23 @@ private:
 
     // Initialize the passes for the "tiled" case
     {
-      auto [v, f] = score::gfx::makeShaders(rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      auto [v, f] = score::gfx::makeShaders(
+          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
       for(Edge* edge : this->node.output[0]->edges)
       {
         auto rt = renderer.renderTargetForOutput(*edge);
         if(rt.renderTarget)
         {
-          m_altPasses.emplace_back(edge, score::gfx::buildPipeline(
-                             renderer,
-                             mesh,
-                             v,
-                             f,
-                             rt,
-                             m_processUBO,
-                             m_material.buffer, m_samplers));
+          m_altPasses.emplace_back(
+              edge, score::gfx::buildPipeline(
+                        renderer, mesh, v, f, rt, m_processUBO, m_material.buffer,
+                        m_samplers));
         }
       }
     }
   }
 
-
-  void
-  update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
 
@@ -607,7 +604,7 @@ private:
       m_samplers.push_back({new_sampler, tex});
 
       // Replace it in the render passes
-      auto replace_sampler = [] (PassMap& passes, QRhiSampler* oldS, QRhiSampler* newS) {
+      auto replace_sampler = [](PassMap& passes, QRhiSampler* oldS, QRhiSampler* newS) {
         for(auto& pass : passes)
           score::gfx::replaceSampler(*pass.second.srb, oldS, newS);
       };
@@ -628,7 +625,8 @@ private:
       recreateTexture(*renderer.state.rhi);
       m_uploaded = false;
 
-      auto replace_texture = [] (PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
+      auto replace_texture
+          = [](PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
         for(auto& pass : passes)
           score::gfx::replaceTexture(*pass.second.srb, sampler, tex);
       };
@@ -640,7 +638,7 @@ private:
 
     // If the current image being displayed by this renderer (in m_prev_ubo)
     // is out of date with the image in the data model, we switch the texture
-    if (!m_uploaded || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
+    if(!m_uploaded || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
       const int idx = imageIndex(n.ubo.currentImageIndex, n.linearImages.size());
       if(ossia::valid_index(idx, n.linearImages))
@@ -657,10 +655,7 @@ private:
     defaultUBOUpdate(renderer, res);
   }
 
-  void runRenderPass(
-      RenderList& renderer,
-      QRhiCommandBuffer& cb,
-      Edge& edge) override
+  void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
   {
     const auto& mesh = renderer.defaultQuad();
     if(tile == ImageMode::Single)
@@ -696,7 +691,6 @@ NodeRenderer* ImagesNode::createRenderer(RenderList& r) const noexcept
 }
 
 }
-
 
 namespace score::gfx
 {
@@ -748,9 +742,7 @@ FullScreenImageNode::FullScreenImageNode(QImage dec)
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
-FullScreenImageNode::~FullScreenImageNode()
-{
-}
+FullScreenImageNode::~FullScreenImageNode() { }
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 class FullScreenImageNode::Renderer : public GenericNodeRenderer
@@ -761,15 +753,16 @@ public:
 private:
   ~Renderer() { }
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
   void init(RenderList& renderer) override
   {
     const auto& mesh = renderer.defaultTriangle();
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
-    std::tie(m_vertexS, m_fragmentS)
-        = score::gfx::makeShaders(renderer.state, fullscreen_images_vertex_shader, fullscreen_images_fragment_shader);
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+        renderer.state, fullscreen_images_vertex_shader,
+        fullscreen_images_fragment_shader);
 
     auto& n = static_cast<const FullScreenImageNode&>(this->node);
     auto& rhi = *renderer.state.rhi;
@@ -777,10 +770,7 @@ private:
     // Create GPU textures for the image
     const QSize sz = n.m_image.size();
     auto tex = rhi.newTexture(
-        QRhiTexture::BGRA8,
-        QSize{sz.width(), sz.height()},
-        1,
-        QRhiTexture::Flag{});
+        QRhiTexture::BGRA8, QSize{sz.width(), sz.height()}, 1, QRhiTexture::Flag{});
 
     tex->setName("FullScreenImageNode::tex");
     tex->create();
@@ -789,11 +779,8 @@ private:
     // Create the sampler in which we are going to put the texture
     {
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
       sampler->setName("FullScreenImageNode::sampler");
       sampler->create();
@@ -809,17 +796,14 @@ private:
 
     auto& n = static_cast<const FullScreenImageNode&>(this->node);
     // If images haven't been uploaded yet, upload them.
-    if (!m_uploaded)
+    if(!m_uploaded)
     {
       res.uploadTexture(m_texture, renderer.adaptImage(n.m_image));
       m_uploaded = true;
     }
   }
 
-  void runRenderPass(
-      RenderList& renderer,
-      QRhiCommandBuffer& cb,
-      Edge& edge) override
+  void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
     defaultRenderPass(renderer, mesh, cb, edge);

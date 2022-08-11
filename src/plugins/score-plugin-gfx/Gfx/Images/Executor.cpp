@@ -1,5 +1,8 @@
 #include "Executor.hpp"
 
+#include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionContext.hpp>
+
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExecNode.hpp>
@@ -7,8 +10,6 @@
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>
 #include <Gfx/TexturePort.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/ExecutionContext.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
@@ -27,7 +28,7 @@ public:
 
   ~image_node()
   {
-    if (id >= 0)
+    if(id >= 0)
       exec_context->ui->unregister_node(id);
   }
 
@@ -35,12 +36,11 @@ public:
 };
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Gfx::Images::Model& element,
-    const Execution::Context& ctx,
-    QObject* parent)
+    Gfx::Images::Model& element, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{element, ctx, "gfxExecutorComponent", parent}
 {
-  auto n = ossia::make_node<image_node>(*ctx.execState,ctx.doc.plugin<DocumentPlugin>().exec);
+  auto n = ossia::make_node<image_node>(
+      *ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
 
   for(auto* outlet : element.outlets())
   {
@@ -51,17 +51,14 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   }
 
   // Normal controls
-  for (std::size_t i = 0; i < 7; i++)
+  for(std::size_t i = 0; i < 7; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
     p->value = ctrl->value();
 
     QObject::connect(
-        ctrl,
-        &Process::ControlInlet::valueChanged,
-        this,
-        con_unvalidated{ctx, i, 0, n});
+        ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, 0, n});
   }
 
   n->root_outputs().push_back(new ossia::texture_outlet);
@@ -80,8 +77,6 @@ void ProcessExecutorComponent::cleanup()
     }
   }
 }
-ProcessExecutorComponent::~ProcessExecutorComponent()
-{
-}
+ProcessExecutorComponent::~ProcessExecutorComponent() { }
 
 }

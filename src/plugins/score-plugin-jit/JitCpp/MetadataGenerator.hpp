@@ -36,15 +36,14 @@ static void loadBasicAddon(const QString& addon, AddonData& data)
       QDir::Filter::Files | QDir::Filter::NoDotAndDotDot,
       QDirIterator::Subdirectories};
 
-  while (it.hasNext())
+  while(it.hasNext())
   {
-    if (QFile f(it.next()); f.open(QIODevice::ReadOnly))
+    if(QFile f(it.next()); f.open(QIODevice::ReadOnly))
     {
       QFileInfo fi{f};
-      if (fi.suffix() == "cpp")
+      if(fi.suffix() == "cpp")
       {
-        data.unity_cpp.append(
-            "#include \"" + it.filePath().toStdString() + "\"\n");
+        data.unity_cpp.append("#include \"" + it.filePath().toStdString() + "\"\n");
       }
 
       data.files.push_back({fi.filePath(), f.readAll()});
@@ -66,12 +65,11 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
   auto defs = definitions.globalMatch(cm);
   auto incs = includes.globalMatch(cm);
 
-  while (files.hasNext())
+  while(files.hasNext())
   {
     auto m = files.next();
-    auto res
-        = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
-    for (const QString& file : res)
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+    for(const QString& file : res)
     {
       QString filename = QString{R"_(%1/%2)_"}.arg(addon).arg(file);
 
@@ -86,27 +84,24 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
       data.files.push_back({filename, score::readFileAsQString(f)});
     }
   }
-  while (defs.hasNext())
+  while(defs.hasNext())
   {
     auto m = defs.next();
-    auto res
-        = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
-    for (const QString& define : res)
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+    for(const QString& define : res)
     {
       data.flags.push_back(QString{R"_(-D%1)_"}.arg(define).toStdString());
     }
   }
 
-  while (incs.hasNext())
+  while(incs.hasNext())
   {
     auto m = incs.next();
-    auto res
-        = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
 
-    for (const QString& path : res)
+    for(const QString& path : res)
     {
-      data.flags.push_back(
-          QString{R"_(-I%1/%2)_"}.arg(addon).arg(path).toStdString());
+      data.flags.push_back(QString{R"_(-I%1/%2)_"}.arg(addon).arg(path).toStdString());
     }
   }
 }
@@ -114,14 +109,14 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
 static AddonData loadAddon(const QString& addon)
 {
   AddonData data;
-  if (QFile f(addon + QDir::separator() + "addon.json"); f.open(QIODevice::ReadOnly))
+  if(QFile f(addon + QDir::separator() + "addon.json"); f.open(QIODevice::ReadOnly))
   {
     qDebug() << "Loading addon info from: " << f.fileName();
     f.setTextModeEnabled(true);
     data.addon_info = QJsonDocument::fromJson(f.readAll()).object();
   }
 
-  if (QFile f(addon + QDir::separator() + "CMakeLists.txt"); f.open(QIODevice::ReadOnly))
+  if(QFile f(addon + QDir::separator() + "CMakeLists.txt"); f.open(QIODevice::ReadOnly))
   {
     qDebug() << "Loading CMake-based add-on: " << f.fileName();
     // Needed because regex uses \n
@@ -140,28 +135,26 @@ static AddonData loadAddon(const QString& addon)
 //! Generates the score_myaddon_commands.hpp and score_myaddon_command_list.hpp
 //! files
 static void generateCommandFiles(
-    const QString& output,
-    const QString& addon_path,
+    const QString& output, const QString& addon_path,
     const std::vector<std::pair<QString, QString>>& files)
 {
   QRegularExpression decl(
       "SCORE_COMMAND_DECL\\([A-Za-z_0-9,:<>\r\n\t "
       "]*\\(\\)[A-Za-z_0-9,\"':<>\r\n\t ]*\\)");
-  QRegularExpression decl_t(
-      "SCORE_COMMAND_DECL_T\\([A-Za-z_0-9,:<>\r\n\t ]*\\)");
+  QRegularExpression decl_t("SCORE_COMMAND_DECL_T\\([A-Za-z_0-9,:<>\r\n\t ]*\\)");
 
   QString includes;
   QString commands;
-  for (const auto& f : files)
+  for(const auto& f : files)
   {
     {
       auto res = decl.globalMatch(f.second);
-      while (res.hasNext())
+      while(res.hasNext())
       {
         auto match = res.next();
-        if (auto txt = match.capturedTexts(); !txt.empty())
+        if(auto txt = match.capturedTexts(); !txt.empty())
         {
-          if (auto split = txt[0].split(","); split.size() > 1)
+          if(auto split = txt[0].split(","); split.size() > 1)
           {
             auto filename = f.first;
             filename.remove(addon_path + "/");
@@ -192,12 +185,10 @@ static void generateCommandFiles(
 
 //! Generates a score_myaddon_export.h file suitable for a static build
 static void generateExportFile(
-    const QString& addon_files_path,
-    const QString& addon_name,
+    const QString& addon_files_path, const QString& addon_name,
     const QByteArray& addon_export)
 {
-  QFile export_file
-      = QString{addon_files_path + "/" + addon_name + "_export.h"};
+  QFile export_file = QString{addon_files_path + "/" + addon_name + "_export.h"};
   export_file.open(QIODevice::WriteOnly);
   QByteArray export_data{
     "#ifndef " + addon_export + "_EXPORT_H\n"
@@ -213,15 +204,13 @@ static void generateExportFile(
 //! Given an addon, generates all the files needed for the build of this addon
 //! ; this is the same that CMake would generate into the addon's build dir.
 static QString generateAddonFiles(
-    QString addon_name,
-    const QString& addon,
+    QString addon_name, const QString& addon,
     const std::vector<std::pair<QString, QString>>& files)
 {
   addon_name.replace("-", "_");
   QByteArray addon_export = addon_name.toUpper().toUtf8();
 
-  QString addon_files_path
-      = QDir::tempPath() + "/score-tmp-build/" + addon_name;
+  QString addon_files_path = QDir::tempPath() + "/score-tmp-build/" + addon_name;
   QDir{}.mkpath(addon_files_path);
   generateExportFile(addon_files_path, addon_name, addon_export);
   generateCommandFiles(addon_files_path, addon, files);

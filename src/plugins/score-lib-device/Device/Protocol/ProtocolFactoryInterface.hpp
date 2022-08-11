@@ -30,8 +30,7 @@ class SCORE_LIB_DEVICE_EXPORT DeviceEnumerator : public QObject
 public:
   virtual ~DeviceEnumerator();
 
-  virtual void
-      enumerate(std::function<void(const Device::DeviceSettings&)>) const = 0;
+  virtual void enumerate(std::function<void(const Device::DeviceSettings&)>) const = 0;
 
   void deviceAdded(const Device::DeviceSettings& s)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceAdded, s)
@@ -56,7 +55,8 @@ public:
     static const constexpr auto util = "Utilities";
   };
 
-  enum Flags {
+  enum Flags
+  {
     EditingReloadsEverything = (1 << 0)
   };
 
@@ -69,47 +69,38 @@ public:
    * will show up first in the protocol list */
   virtual int visualPriority() const noexcept;
 
-  virtual DeviceEnumerator*
-  getEnumerator(const score::DocumentContext& ctx) const = 0;
+  virtual DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const = 0;
 
   virtual DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
-      const Explorer::DeviceDocumentPlugin& plugin,
-      const score::DocumentContext& ctx)
+      const Explorer::DeviceDocumentPlugin& plugin, const score::DocumentContext& ctx)
       = 0;
 
   virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
 
   virtual AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*)
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx, QWidget*)
       = 0;
   virtual AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*)
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*)
       = 0;
 
   virtual const Device::DeviceSettings& defaultSettings() const noexcept = 0;
 
   // Save
   virtual void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const = 0;
+      const QVariant& data, const VisitorVariant& visitor) const = 0;
 
   template <typename T>
   void serializeProtocolSpecificSettings_T(
-      const QVariant& data,
-      const VisitorVariant& visitor) const
+      const QVariant& data, const VisitorVariant& visitor) const
   {
     score::serialize_dyn(visitor, data.value<T>());
   }
 
   // Load
-  virtual QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
+  virtual QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
 
   template <typename T>
   QVariant makeProtocolSpecificSettings_T(const VisitorVariant& vis) const

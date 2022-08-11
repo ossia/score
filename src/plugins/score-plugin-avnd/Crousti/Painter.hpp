@@ -9,8 +9,9 @@
 #include <QPolygon>
 
 #include <avnd/concepts/painter.hpp>
-#include <cmath>
 #include <halp/texture.hpp>
+
+#include <cmath>
 
 namespace oscr
 {
@@ -33,13 +34,7 @@ struct QPainterAdapter
     path.arcTo(x, y, w, h, start, length);
   }
 
-  void cubic_to(
-      double c1x,
-      double c1y,
-      double c2x,
-      double c2y,
-      double endx,
-      double endy)
+  void cubic_to(double c1x, double c1y, double c2x, double c2y, double endx, double endy)
   {
     path.cubicTo(c1x, c1y, c2x, c2y, endx, endy);
   }
@@ -75,11 +70,7 @@ struct QPainterAdapter
   }
 
   void set_linear_gradient(
-      double x1,
-      double y1,
-      double x2,
-      double y2,
-      halp::rgba_color c1,
+      double x1, double y1, double x2, double y2, halp::rgba_color c1,
       halp::rgba_color c2)
   {
     QLinearGradient gradient(QPointF(x1, y1), QPointF(x2, y2));
@@ -89,11 +80,7 @@ struct QPainterAdapter
   }
 
   void set_radial_gradient(
-      double cx,
-      double cy,
-      double cr,
-      halp::rgba_color c1,
-      halp::rgba_color c2)
+      double cx, double cy, double cr, halp::rgba_color c1, halp::rgba_color c2)
   {
     QRadialGradient gradient(cx, cy, cr);
     gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
@@ -102,11 +89,7 @@ struct QPainterAdapter
   }
 
   void set_conical_gradient(
-      double x,
-      double y,
-      double a,
-      halp::rgba_color c1,
-      halp::rgba_color c2)
+      double x, double y, double a, halp::rgba_color c1, halp::rgba_color c2)
   {
     QConicalGradient gradient(x, y, a);
     gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
@@ -131,8 +114,7 @@ struct QPainterAdapter
 
   void draw_text(double x, double y, std::string_view str)
   {
-    path.addText(
-        x, y, painter.font(), QString::fromUtf8(str.data(), str.size()));
+    path.addText(x, y, painter.font(), QString::fromUtf8(str.data(), str.size()));
   }
 
   // Drawing
@@ -143,13 +125,7 @@ struct QPainterAdapter
   }
 
   //          x1, y1, x2 , y2, x3, y3
-  void draw_triangle(
-      double x1,
-      double y1,
-      double x2,
-      double y2,
-      double x3,
-      double y3)
+  void draw_triangle(double x1, double y1, double x2, double y2, double x3, double y3)
   {
     path.moveTo(x1, y1);
     path.lineTo(x2, y2);
@@ -159,10 +135,7 @@ struct QPainterAdapter
   }
 
   //          x , y , w  , h
-  void draw_rect(double x, double y, double w, double h)
-  {
-    path.addRect(x, y, w, h);
-  }
+  void draw_rect(double x, double y, double w, double h) { path.addRect(x, y, w, h); }
 
   //                  x , y , w  , h
   void draw_rounded_rect(double x, double y, double w, double h, double r)
@@ -193,7 +166,7 @@ struct QPainterAdapter
   {
     QPolygonF poly;
     double x, y;
-    for (int i = 0; i < count * 2; i += 2)
+    for(int i = 0; i < count * 2; i += 2)
     {
       x = tab[i];
       y = tab[i + 1];
@@ -216,11 +189,10 @@ public:
   {
     this->setFlag(ItemClipsToShape);
     this->setFlag(ItemClipsChildrenToShape);
-    if constexpr (requires { impl.transaction; })
+    if constexpr(requires { impl.transaction; })
     {
       impl.transaction.start = [] {};
-      impl.transaction.update = [this](const auto& value)
-      {
+      impl.transaction.update = [this](const auto& value) {
         impl.value = value; //impl.value_to_control(Control{}
         update();
       };
@@ -242,10 +214,8 @@ public:
     return {0., 0., item_type::width(), item_type::height()};
   }
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
   {
     auto& skin = score::Skin::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -297,27 +267,27 @@ protected:
     p.x = event->pos().x();
     p.y = event->pos().y();
 
-    if (event->button() == Qt::LeftButton)
+    if(event->button() == Qt::LeftButton)
       p.button = custom_mouse_event::left;
-    else if (event->button() == Qt::RightButton)
+    else if(event->button() == Qt::RightButton)
       p.button = custom_mouse_event::right;
-    else if (event->button() == Qt::MiddleButton)
+    else if(event->button() == Qt::MiddleButton)
       p.button = custom_mouse_event::middle;
 
-    if (event->buttons() & Qt::LeftButton)
+    if(event->buttons() & Qt::LeftButton)
       p.held_buttons |= p.left;
-    if (event->buttons() & Qt::RightButton)
+    if(event->buttons() & Qt::RightButton)
       p.held_buttons |= p.right;
-    if (event->buttons() & Qt::MiddleButton)
+    if(event->buttons() & Qt::MiddleButton)
       p.held_buttons |= p.middle;
 
-    if (event->modifiers() & Qt::ShiftModifier)
+    if(event->modifiers() & Qt::ShiftModifier)
       p.modifiers |= p.shift;
-    if (event->modifiers() & Qt::AltModifier)
+    if(event->modifiers() & Qt::AltModifier)
       p.modifiers |= p.alt;
-    if (event->modifiers() & Qt::ControlModifier)
+    if(event->modifiers() & Qt::ControlModifier)
       p.modifiers |= p.ctrl;
-    if (event->modifiers() & Qt::MetaModifier)
+    if(event->modifiers() & Qt::MetaModifier)
       p.modifiers |= p.meta;
 
     return p;
@@ -325,14 +295,14 @@ protected:
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
-    if constexpr (requires { impl.mouse_press(0, 0); })
+    if constexpr(requires { impl.mouse_press(0, 0); })
     {
-      if (impl.mouse_press(event->pos().x(), event->pos().y()))
+      if(impl.mouse_press(event->pos().x(), event->pos().y()))
         event->accept();
     }
-    else if constexpr (requires { impl.mouse_press(custom_mouse_event{}); })
+    else if constexpr(requires { impl.mouse_press(custom_mouse_event{}); })
     {
-      if (impl.mouse_press(make_event(event)))
+      if(impl.mouse_press(make_event(event)))
         event->accept();
     }
     update();
@@ -340,12 +310,12 @@ protected:
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
   {
-    if constexpr (requires { impl.mouse_move(0, 0); })
+    if constexpr(requires { impl.mouse_move(0, 0); })
     {
       impl.mouse_move(event->pos().x(), event->pos().y());
       event->accept();
     }
-    else if constexpr (requires { impl.mouse_move(custom_mouse_event{}); })
+    else if constexpr(requires { impl.mouse_move(custom_mouse_event{}); })
     {
       impl.mouse_move(make_event(event));
       event->accept();
@@ -355,12 +325,12 @@ protected:
 
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
   {
-    if constexpr (requires { impl.mouse_release(0, 0); })
+    if constexpr(requires { impl.mouse_release(0, 0); })
     {
       impl.mouse_release(event->pos().x(), event->pos().y());
       event->accept();
     }
-    else if constexpr (requires { impl.mouse_release(custom_mouse_event{}); })
+    else if constexpr(requires { impl.mouse_release(custom_mouse_event{}); })
     {
       impl.mouse_release(make_event(event));
       event->accept();

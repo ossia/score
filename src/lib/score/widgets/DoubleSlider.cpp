@@ -23,11 +23,9 @@ DoubleSlider::DoubleSlider(Qt::Orientation ort, QWidget* widg)
     : QWidget{widg}
     , m_orientation(ort)
 {
-  setFocusPolicy(
-      Qt::FocusPolicy(style()->styleHint(QStyle::SH_Button_FocusPolicy)));
-  QSizePolicy sp(
-      QSizePolicy::Ignored, QSizePolicy::Fixed, QSizePolicy::Slider);
-  if (ort == Qt::Vertical)
+  setFocusPolicy(Qt::FocusPolicy(style()->styleHint(QStyle::SH_Button_FocusPolicy)));
+  QSizePolicy sp(QSizePolicy::Ignored, QSizePolicy::Fixed, QSizePolicy::Slider);
+  if(ort == Qt::Vertical)
     sp.transpose();
   setSizePolicy(sp);
   setAttribute(Qt::WA_WState_OwnSizePolicy, false);
@@ -35,7 +33,7 @@ DoubleSlider::DoubleSlider(Qt::Orientation ort, QWidget* widg)
   auto& skin = score::Skin::instance();
   m_borderWidth = skin.SliderPen.width();
 
-  switch (ort)
+  switch(ort)
   {
     case Qt::Vertical:
       setMinimumSize(20, 30);
@@ -70,16 +68,14 @@ double DoubleSlider::unmap(double v) const
 
 void DoubleSlider::updateValue(QPointF mousePos)
 {
-  if (m_orientation == Qt::Horizontal)
+  if(m_orientation == Qt::Horizontal)
   {
-    double clamped
-        = clamp(mousePos.x(), m_borderWidth, width() - m_borderWidth);
+    double clamped = clamp(mousePos.x(), m_borderWidth, width() - m_borderWidth);
     m_value = (clamped - m_borderWidth) / (width() - 2 * m_borderWidth);
   }
   else
   {
-    double clamped
-        = clamp(mousePos.y(), m_borderWidth, height() - m_borderWidth);
+    double clamped = clamp(mousePos.y(), m_borderWidth, height() - m_borderWidth);
     m_value = 1 - (clamped - m_borderWidth) / (height() - 2 * m_borderWidth);
   }
 
@@ -89,11 +85,11 @@ void DoubleSlider::updateValue(QPointF mousePos)
 
 void DoubleSlider::mousePressEvent(QMouseEvent* event)
 {
-  if (event->button() == Qt::MouseButton::RightButton)
+  if(event->button() == Qt::MouseButton::RightButton)
   {
     createPopup(event->globalPos());
   }
-  else if (event->button() == Qt::MouseButton::LeftButton)
+  else if(event->button() == Qt::MouseButton::LeftButton)
   {
     updateValue(event->localPos());
   }
@@ -118,11 +114,7 @@ void DoubleSlider::createPopup(QPoint pos)
   w->setValue(map(m_value));
   w->setDecimals(3);
   QObject::connect(
-      w,
-      SignalUtils::QDoubleSpinBox_valueChanged_double(),
-      this,
-      [=](double v)
-      {
+      w, SignalUtils::QDoubleSpinBox_valueChanged_double(), this, [=](double v) {
         this->setValue(this->unmap(v));
         sliderMoved(this->value());
       });
@@ -153,8 +145,7 @@ void DoubleSlider::paint(QPainter& p)
   const double penWidth = p.pen().width();
   p.drawRect(QRectF{
       QPointF{
-          rect().topLeft().x() + penWidth / 2.,
-          rect().topLeft().y() + penWidth / 2.},
+          rect().topLeft().x() + penWidth / 2., rect().topLeft().y() + penWidth / 2.},
       QSizeF{rect().width() - penWidth, rect().height() - penWidth}});
 
   p.setPen(skin.TransparentPen);
@@ -162,13 +153,12 @@ void DoubleSlider::paint(QPainter& p)
 
   const double interiorWidth = (double)width() - 2. * penWidth;
   const double interiorHeight = (double)height() - 2. * penWidth;
-  if (m_orientation == Qt::Horizontal)
+  if(m_orientation == Qt::Horizontal)
   {
     const double current = m_value * interiorWidth;
-    p.drawRect(
-        QRectF{QPointF{penWidth, penWidth}, QSizeF{current, interiorHeight}});
+    p.drawRect(QRectF{QPointF{penWidth, penWidth}, QSizeF{current, interiorHeight}});
 
-    if (!qFuzzyIsNull(current))
+    if(!qFuzzyIsNull(current))
     {
       p.setPen(skin.SliderLine);
       const double linePenWidth = p.pen().width();
@@ -182,10 +172,9 @@ void DoubleSlider::paint(QPainter& p)
     const double h = (1. - m_value) * interiorHeight;
 
     p.drawRect(QRectF{
-        QPointF{penWidth, h + penWidth},
-        QSizeF{interiorWidth, (double)height() - h}});
+        QPointF{penWidth, h + penWidth}, QSizeF{interiorWidth, (double)height() - h}});
 
-    if (!qFuzzyCompare(h, interiorHeight))
+    if(!qFuzzyCompare(h, interiorHeight))
     {
       p.setPen(skin.SliderLine);
       const double linePenWidth = p.pen().width();
@@ -205,9 +194,7 @@ void DoubleSlider::paintWithText(const QString& s)
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
   p.drawText(
-      QRectF{4., 2., (width() - 16.), height() - 4.},
-      s,
-      QTextOption(Qt::AlignLeft));
+      QRectF{4., 2., (width() - 16.), height() - 4.}, s, QTextOption(Qt::AlignLeft));
 }
 
 }

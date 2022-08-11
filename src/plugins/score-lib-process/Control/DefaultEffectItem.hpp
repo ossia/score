@@ -1,6 +1,7 @@
 #pragma once
-#include <score/model/Identifier.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <score/model/Identifier.hpp>
+
 #include <score_lib_process_export.h>
 
 #include <vector>
@@ -21,22 +22,18 @@ class ControlInlet;
 class ControlOutlet;
 class Port;
 
-class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final
-    : public score::EmptyRectItem
+class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final : public score::EmptyRectItem
 {
 public:
   DefaultEffectItem(
-      const Process::ProcessModel& effect,
-      const Process::Context& doc,
+      const Process::ProcessModel& effect, const Process::Context& doc,
       QGraphicsItem* root);
   ~DefaultEffectItem();
 
-  void setupInlet(
-      Process::ControlInlet& inlet,
-      const Process::PortFactoryList& portFactory);
+  void
+  setupInlet(Process::ControlInlet& inlet, const Process::PortFactoryList& portFactory);
   void setupOutlet(
-      Process::ControlOutlet& inlet,
-      const Process::PortFactoryList& portFactory);
+      Process::ControlOutlet& inlet, const Process::PortFactoryList& portFactory);
 
 private:
   template <typename T>

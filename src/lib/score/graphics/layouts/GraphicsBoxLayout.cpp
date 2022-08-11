@@ -3,10 +3,7 @@
 namespace score
 {
 
-GraphicsHBoxLayout::~GraphicsHBoxLayout()
-{
-
-}
+GraphicsHBoxLayout::~GraphicsHBoxLayout() { }
 
 void GraphicsHBoxLayout::layout()
 {
@@ -46,10 +43,7 @@ void GraphicsHBoxLayout::centerContent()
   }
 }
 
-GraphicsVBoxLayout::~GraphicsVBoxLayout()
-{
-
-}
+GraphicsVBoxLayout::~GraphicsVBoxLayout() { }
 
 void GraphicsVBoxLayout::layout()
 {

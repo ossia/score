@@ -5,6 +5,14 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
@@ -24,43 +32,25 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <cstddef>
 #include <limits>
-#include <vector>
-
 #include <unordered_map>
+#include <vector>
 namespace Scenario
 {
 namespace Command
 {
 ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
-    const Scenario::ProcessModel& scenario,
-    const Scenario::TimeSyncModel& attach_sync,
-    const rapidjson::Value& obj,
-    double ratio)
+    const Scenario::ProcessModel& scenario, const Scenario::TimeSyncModel& attach_sync,
+    const rapidjson::Value& obj, double ratio)
     : m_ts{scenario}
 {
   m_attachSync = attach_sync.id();
 
   auto& ctx = score::IDocument::documentContext(scenario);
   auto
-      [timesyncs,
-       intervals,
-       events,
-       states,
-       cables,
-       interval_ids,
-       timesync_ids,
-       event_ids,
-       state_ids]
+      [timesyncs, intervals, events, states, cables, interval_ids, timesync_ids,
+       event_ids, state_ids]
       = ScenarioBeingCopied{obj, scenario, ctx};
 
   SCORE_ASSERT(!timesyncs.empty());
@@ -70,9 +60,9 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     // Find the earliest timesync (will serve of attach point)
     auto earliest_it = timesyncs.begin();
     auto min_date = (*earliest_it)->date();
-    for (auto it = earliest_it; it != timesyncs.end(); ++it)
+    for(auto it = earliest_it; it != timesyncs.end(); ++it)
     {
-      if ((*it)->date() < min_date)
+      if((*it)->date() < min_date)
       {
         min_date = (*it)->date();
         earliest_it = it;
@@ -83,9 +73,9 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     std::vector<EventModel*> event_in_start;
     {
       auto timesync = *earliest_it;
-      for (EventModel* event : events)
+      for(EventModel* event : events)
       {
-        if (event->timeSync() == timesync->id())
+        if(event->timeSync() == timesync->id())
         {
           event->changeTimeSync(m_attachSync);
           event_in_start.push_back(event);
@@ -97,13 +87,13 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
     // Set new ids for all the timesyncs
     int i = 0;
-    for (auto it = timesyncs.begin(); it != timesyncs.end(); ++i, ++it)
+    for(auto it = timesyncs.begin(); it != timesyncs.end(); ++i, ++it)
     {
       auto timesync = *it;
-      for (EventModel* event : events)
+      for(EventModel* event : events)
       {
-        if (event->timeSync() == timesync->id()
-            && !ossia::contains(event_in_start, event))
+        if(event->timeSync() == timesync->id()
+           && !ossia::contains(event_in_start, event))
         {
           event->changeTimeSync(timesync_ids[i]);
         }
@@ -114,14 +104,14 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   {
     int i = 0;
-    for (EventModel* event : events)
+    for(EventModel* event : events)
     {
       {
-        auto it = std::find_if(
-            timesyncs.begin(), timesyncs.end(), [&](TimeSyncModel* tn) {
-              return tn->id() == event->timeSync();
-            });
-        if (it != timesyncs.end())
+        auto it
+            = std::find_if(timesyncs.begin(), timesyncs.end(), [&](TimeSyncModel* tn) {
+                return tn->id() == event->timeSync();
+              });
+        if(it != timesyncs.end())
         {
           auto timesync = *it;
           timesync->removeEvent(event->id());
@@ -134,9 +124,9 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
         }
       }
 
-      for (StateModel* state : states)
+      for(StateModel* state : states)
       {
-        if (state->eventId() == event->id())
+        if(state->eventId() == event->id())
         {
           state->setEventId(event_ids[i]);
         }
@@ -149,24 +139,23 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   {
     int i = 0;
-    for (StateModel* state : states)
+    for(StateModel* state : states)
     {
       {
-        auto it = std::find_if(
-            events.begin(), events.end(), [&](EventModel* event) {
-              return event->id() == state->eventId();
-            });
+        auto it = std::find_if(events.begin(), events.end(), [&](EventModel* event) {
+          return event->id() == state->eventId();
+        });
         SCORE_ASSERT(it != events.end());
         auto event = *it;
         event->removeState(state->id());
         event->addState(state_ids[i]);
       }
 
-      for (IntervalModel* interval : intervals)
+      for(IntervalModel* interval : intervals)
       {
-        if (interval->startState() == state->id())
+        if(interval->startState() == state->id())
           interval->setStartState(state_ids[i]);
-        else if (interval->endState() == state->id())
+        else if(interval->endState() == state->id())
           interval->setEndState(state_ids[i]);
       }
 
@@ -180,29 +169,27 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   {
     int i = 0;
-    for (IntervalModel* interval : intervals)
+    for(IntervalModel* interval : intervals)
     {
       interval->setId(interval_ids[i]);
       {
-        auto start_state_id = ossia::find_if(states, [&](auto state) {
-          return state->id() == interval->startState();
-        });
-        if (start_state_id != states.end())
+        auto start_state_id = ossia::find_if(
+            states, [&](auto state) { return state->id() == interval->startState(); });
+        if(start_state_id != states.end())
           SetNextInterval(**start_state_id, *interval);
       }
       {
-        auto end_state_id = ossia::find_if(states, [&](auto state) {
-          return state->id() == interval->endState();
-        });
-        if (end_state_id != states.end())
+        auto end_state_id = ossia::find_if(
+            states, [&](auto state) { return state->id() == interval->endState(); });
+        if(end_state_id != states.end())
           SetPreviousInterval(**end_state_id, *interval);
       }
 
       const auto& fv = interval->fullView();
-      if (!fv.empty() && interval->smallView().empty())
+      if(!fv.empty() && interval->smallView().empty())
       {
         const auto N = fv.size();
-        for (std::size_t i = 0; i < N; i++)
+        for(std::size_t i = 0; i < N; i++)
         {
           interval->addSlot(Slot{{fv[i].process}, fv[i].process}, i);
         }
@@ -215,39 +202,39 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   // Take the earliest interval or timesync and compute the delta; apply the
   // delta everywhere.
 
-  if (!intervals.empty() || !timesyncs.empty()) // Should always be the case.
+  if(!intervals.empty() || !timesyncs.empty()) // Should always be the case.
   {
-    auto earliestTime = !intervals.empty() ? intervals.front()->date()
-                                           : timesyncs.front()->date();
-    for (const IntervalModel* interval : intervals)
+    auto earliestTime
+        = !intervals.empty() ? intervals.front()->date() : timesyncs.front()->date();
+    for(const IntervalModel* interval : intervals)
     {
       const auto& t = interval->date();
-      if (t < earliestTime)
+      if(t < earliestTime)
         earliestTime = t;
     }
-    for (const TimeSyncModel* tn : timesyncs)
+    for(const TimeSyncModel* tn : timesyncs)
     {
       const auto& t = tn->date();
-      if (t < earliestTime)
+      if(t < earliestTime)
         earliestTime = t;
     }
-    for (const EventModel* ev : events)
+    for(const EventModel* ev : events)
     {
       const auto& t = ev->date();
-      if (t < earliestTime)
+      if(t < earliestTime)
         earliestTime = t;
     }
 
     auto delta_t = attach_sync.date() - earliestTime;
-    for (IntervalModel* interval : intervals)
+    for(IntervalModel* interval : intervals)
     {
       interval->setStartDate(interval->date() + delta_t);
     }
-    for (TimeSyncModel* tn : timesyncs)
+    for(TimeSyncModel* tn : timesyncs)
     {
       tn->setDate(tn->date() + delta_t);
     }
-    for (EventModel* ev : events)
+    for(EventModel* ev : events)
     {
       ev->setDate(ev->date() + delta_t);
     }
@@ -255,22 +242,22 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   // Same for y.
   qreal delta_y = 0;
-  for (auto& ev : attach_sync.events())
+  for(auto& ev : attach_sync.events())
   {
-    for (auto& state : scenario.events.at(ev).states())
+    for(auto& state : scenario.events.at(ev).states())
     {
       auto h = scenario.states.at(state).heightPercentage();
-      if (h > delta_y)
+      if(h > delta_y)
         delta_y = h;
     }
   }
 
   delta_y *= 1.1;
-  for (IntervalModel* cst : intervals)
+  for(IntervalModel* cst : intervals)
   {
     cst->setHeightPercentage(clamp(delta_y, 0., 1.));
   }
-  for (StateModel* state : states)
+  for(StateModel* state : states)
   {
     state->setHeightPercentage(clamp(delta_y, 0., 1.));
   }
@@ -279,7 +266,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   // in the ids.
   m_ids_intervals.reserve(intervals.size());
   m_json_intervals.reserve(intervals.size());
-  for (auto elt : intervals)
+  for(auto elt : intervals)
   {
     m_ids_intervals.push_back(elt->id());
     m_json_intervals.push_back(score::marshall<DataStream>(*elt));
@@ -289,7 +276,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   m_ids_timesyncs.reserve(timesyncs.size());
   m_json_timesyncs.reserve(timesyncs.size());
-  for (auto elt : timesyncs)
+  for(auto elt : timesyncs)
   {
     m_ids_timesyncs.push_back(elt->id());
     m_json_timesyncs.push_back(score::marshall<DataStream>(*elt));
@@ -299,7 +286,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   m_json_events.reserve(events.size());
   m_ids_events.reserve(events.size());
-  for (auto elt : events)
+  for(auto elt : events)
   {
     m_ids_events.push_back(elt->id());
     m_json_events.push_back(score::marshall<DataStream>(*elt));
@@ -309,7 +296,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   m_json_states.reserve(states.size());
   m_ids_states.reserve(states.size());
-  for (auto elt : states)
+  for(auto elt : states)
   {
     m_ids_states.push_back(elt->id());
     m_json_states.push_back(score::marshall<DataStream>(*elt));
@@ -324,19 +311,19 @@ void ScenarioPasteElementsAfter::undo(const score::DocumentContext& ctx) const
   auto& scenario = m_ts.find(ctx);
 
   m_cables.undo(ctx);
-  for (const auto& elt : m_ids_intervals)
+  for(const auto& elt : m_ids_intervals)
   {
     ScenarioCreate<IntervalModel>::undo(elt, scenario);
   }
-  for (const auto& elt : m_ids_states)
+  for(const auto& elt : m_ids_states)
   {
     ScenarioCreate<StateModel>::undo(elt, scenario);
   }
-  for (const auto& elt : m_ids_events)
+  for(const auto& elt : m_ids_events)
   {
     ScenarioCreate<EventModel>::undo(elt, scenario);
   }
-  for (const auto& elt : m_ids_timesyncs)
+  for(const auto& elt : m_ids_timesyncs)
   {
     ScenarioCreate<TimeSyncModel>::undo(elt, scenario);
   }
@@ -350,14 +337,14 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
   addedTimeSyncs.reserve(m_json_timesyncs.size());
   std::vector<EventModel*> addedEvents;
   addedEvents.reserve(m_json_events.size());
-  for (const auto& timesync : m_json_timesyncs)
+  for(const auto& timesync : m_json_timesyncs)
   {
     auto tn = new TimeSyncModel(DataStream::Deserializer{timesync}, &scenario);
     scenario.timeSyncs.add(tn);
     addedTimeSyncs.push_back(tn);
   }
 
-  for (const auto& event : m_json_events)
+  for(const auto& event : m_json_events)
   {
     auto ev = new EventModel(DataStream::Deserializer{event}, &scenario);
     scenario.events.add(ev);
@@ -365,19 +352,19 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
   }
 
   auto& rootSync = scenario.timeSync(m_attachSync);
-  for (auto& to_attach : m_eventsToAttach)
+  for(auto& to_attach : m_eventsToAttach)
   {
     rootSync.addEvent(to_attach);
   }
 
-  for (const auto& state : m_json_states)
+  for(const auto& state : m_json_states)
   {
-    auto st = new StateModel(
-        DataStream::Deserializer{state}, scenario.context(), &scenario);
+    auto st
+        = new StateModel(DataStream::Deserializer{state}, scenario.context(), &scenario);
     scenario.states.add(st);
   }
 
-  for (const auto& interval : m_json_intervals)
+  for(const auto& interval : m_json_intervals)
   {
     auto cst = new IntervalModel(
         DataStream::Deserializer{interval}, scenario.context(), &scenario);
@@ -389,16 +376,16 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
 
 void ScenarioPasteElementsAfter::serializeImpl(DataStreamInput& s) const
 {
-  s << m_ts << m_attachSync << m_eventsToAttach << m_ids_timesyncs
-    << m_ids_events << m_ids_states << m_ids_intervals << m_json_timesyncs
-    << m_json_events << m_json_states << m_json_intervals << m_cables.cables;
+  s << m_ts << m_attachSync << m_eventsToAttach << m_ids_timesyncs << m_ids_events
+    << m_ids_states << m_ids_intervals << m_json_timesyncs << m_json_events
+    << m_json_states << m_json_intervals << m_cables.cables;
 }
 
 void ScenarioPasteElementsAfter::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_ts >> m_attachSync >> m_eventsToAttach >> m_ids_timesyncs
-      >> m_ids_events >> m_ids_states >> m_ids_intervals >> m_json_timesyncs
-      >> m_json_events >> m_json_states >> m_json_intervals >> m_cables.cables;
+  s >> m_ts >> m_attachSync >> m_eventsToAttach >> m_ids_timesyncs >> m_ids_events
+      >> m_ids_states >> m_ids_intervals >> m_json_timesyncs >> m_json_events
+      >> m_json_states >> m_json_intervals >> m_cables.cables;
 }
 }
 }

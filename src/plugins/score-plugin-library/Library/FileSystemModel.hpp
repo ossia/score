@@ -7,8 +7,8 @@
 
 #include <QFileIconProvider>
 #include <QFileSystemModel>
-#include <QMimeData>
 #include <QGuiApplication>
+#include <QMimeData>
 #include <QSet>
 
 #include <tsl/hopscotch_map.h>
@@ -20,7 +20,6 @@ namespace Library
 class FileSystemModel : public QFileSystemModel
 {
 public:
-
   FileSystemModel(const score::GUIApplicationContext& ctx, QObject* parent)
       : QFileSystemModel{parent}
   {
@@ -46,10 +45,10 @@ public:
                         "*.dsp",
                         "*.mid"};
 
-    for (const LibraryInterface& lib : lib_setup)
+    for(const LibraryInterface& lib : lib_setup)
     {
       auto lst = lib.acceptedFiles();
-      for (const auto& ext : lib.acceptedFiles())
+      for(const auto& ext : lib.acceptedFiles())
       {
         types.insert("*." + ext);
       }
@@ -59,7 +58,7 @@ public:
     // **floppy drive noises buzzing in the background**
     {
       auto copy = types;
-      for (auto t : copy)
+      for(auto t : copy)
       {
         types.insert(t.toUpper());
       }
@@ -69,9 +68,9 @@ public:
     setResolveSymlinks(true);
     setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 
-    for (auto& lib : lib_setup)
+    for(auto& lib : lib_setup)
     {
-      for (const auto& str : lib.acceptedMimeTypes())
+      for(const auto& str : lib.acceptedMimeTypes())
       {
         m_mimeTypes.push_back(str);
         m_mimeActions[str] = &lib;
@@ -81,27 +80,30 @@ public:
 
   static consteval bool supportsDisablingSorting() noexcept
   {
-    return [] <typename T> (T* fsm) constexpr
+    return []<typename T>(T * fsm) constexpr
     {
-      return requires { fsm->setOption(T::DontSort); };
-    }((QFileSystemModel*)nullptr);
+      return requires
+      {
+        fsm->setOption(T::DontSort);
+      };
+    }
+    ((QFileSystemModel*)nullptr);
   }
 
   void setSorting(bool b) noexcept
   {
-    [b] <typename T> (T& self) {
+    [b]<typename T>(T& self) {
       if constexpr(T::supportsDisablingSorting())
       {
         static_assert(T::supportsDisablingSorting());
         self.setOption(T::DontSort, b);
       }
-    }(*this);
+        }(*this);
   }
 
   bool isSorting() noexcept
   {
-    return [] <typename T> (T& fsm)
-    {
+    return []<typename T>(T& fsm) {
       if constexpr(supportsDisablingSorting())
       {
         static_assert(requires { fsm.setOption(T::DontSort); });
@@ -111,16 +113,15 @@ public:
       {
         return true;
       }
-    } (*this);
+    }(*this);
   }
-
 
   Qt::ItemFlags flags(const QModelIndex& index) const override
   {
-    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable
-                      | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled
+                      | Qt::ItemIsDropEnabled;
 
-    if (!isDir(index))
+    if(!isDir(index))
       f |= Qt::ItemIsEditable;
 
     return f;
@@ -129,18 +130,15 @@ public:
   QStringList mimeTypes() const override { return m_mimeTypes; }
 
   bool dropMimeData(
-      const QMimeData* data,
-      Qt::DropAction action,
-      int row,
-      int column,
+      const QMimeData* data, Qt::DropAction action, int row, int column,
       const QModelIndex& parent) override
   {
     const QFileInfo f = fileInfo(parent);
     const QDir d = f.isDir() ? QDir(f.canonicalFilePath()) : f.absoluteDir();
-    for (const auto& fmt : data->formats())
+    for(const auto& fmt : data->formats())
     {
       auto it = m_mimeActions.find(fmt);
-      if (it != m_mimeActions.end())
+      if(it != m_mimeActions.end())
       {
         if(it.value()->onDrop(*data, row, column, d))
           return true;
@@ -164,6 +162,5 @@ public:
 
   QStringList m_mimeTypes;
   tsl::hopscotch_map<QString, LibraryInterface*> m_mimeActions;
-
 };
 }

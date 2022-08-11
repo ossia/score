@@ -40,11 +40,9 @@ QRectF SimpleTextItem::boundingRect() const
 }
 
 void SimpleTextItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if (!m_string.isEmpty())
+  if(!m_string.isEmpty())
   {
     painter->drawImage(QPointF{0, 0}, m_line);
   }
@@ -79,7 +77,7 @@ void SimpleTextItem::updateImpl()
 {
   prepareGeometryChange();
 
-  if (m_string.isEmpty())
+  if(m_string.isEmpty())
   {
     m_rect = QRectF{};
     m_line = QImage{};
@@ -94,14 +92,14 @@ void SimpleTextItem::updateImpl()
     m_rect = line.naturalTextRect();
     auto r = line.glyphRuns();
 
-    if (r.size() > 0)
+    if(r.size() > 0)
     {
       m_line = newImage(m_rect.width(), m_rect.height());
 
       QPainter p{&m_line};
       auto& skin = score::Skin::instance();
 
-      if (m_color)
+      if(m_color)
         p.setPen(m_color->pen1);
       p.setBrush(skin.NoBrush);
       p.drawGlyphRun(QPointF{0, 0}, r[0]);

@@ -14,11 +14,8 @@ namespace score
 struct GUIApplicationContext : public score::ApplicationContext
 {
   explicit GUIApplicationContext(
-      const score::ApplicationSettings& a,
-      const ApplicationComponents& b,
-      DocumentManager& c,
-      score::MenuManager& d,
-      score::ToolbarManager& e,
+      const score::ApplicationSettings& a, const ApplicationComponents& b,
+      DocumentManager& c, score::MenuManager& d, score::ToolbarManager& e,
       score::ActionManager& f,
       const std::vector<std::unique_ptr<score::SettingsDelegateModel>>& g,
       QMainWindow* mw);
@@ -51,10 +48,7 @@ struct GUIApplicationContext : public score::ApplicationContext
    *
    * @see score::GUIApplicationPlugin
    */
-  const auto& applicationPlugins() const
-  {
-    return components.applicationPlugins();
-  }
+  const auto& applicationPlugins() const { return components.applicationPlugins(); }
 
   /**
    * @brief List of all the gui application-wide plug-ins

@@ -10,13 +10,13 @@ template <>
 void DataStreamReader::read(const score::CommandStack& stack)
 {
   std::vector<score::CommandData> undoStack, redoStack;
-  for (const auto& cmd : stack.undoable())
+  for(const auto& cmd : stack.undoable())
   {
     undoStack.emplace_back(*cmd);
   }
   readFrom(undoStack);
 
-  for (const auto& cmd : stack.redoable())
+  for(const auto& cmd : stack.redoable())
   {
     redoStack.emplace_back(*cmd);
   }

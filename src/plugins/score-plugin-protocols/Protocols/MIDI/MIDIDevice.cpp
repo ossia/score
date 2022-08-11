@@ -2,10 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MIDIDevice.hpp"
 
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <State/MessageListSerialization.hpp>
+
+#include <Device/Protocol/DeviceSettings.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Protocols/MIDI/MIDISpecificSettings.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/serialization/MimeVisitor.hpp>
@@ -21,15 +24,13 @@
 namespace Protocols
 {
 MIDIDevice::MIDIDevice(
-    const Device::DeviceSettings& settings,
-    const ossia::net::network_context_ptr& ctx)
+    const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
   using namespace ossia;
 
-  const auto set
-      = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
+  const auto set = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_capas.canRefreshTree = true;
   m_capas.canSerialize = !set.createWholeTree;
   m_capas.hasCallbacks = false;
@@ -52,22 +53,18 @@ bool MIDIDevice::reconnect()
         m_ctx, set.name.toStdString(), set.api);
     bool res = proto->set_info(ossia::net::midi::midi_info(
         static_cast<ossia::net::midi::midi_info::Type>(set.io),
-        set.endpoint.toStdString(),
-        set.name.toStdString(),
-        set.port,
-        set.virtualPort));
-    if (!res)
+        set.endpoint.toStdString(), set.name.toStdString(), set.port, set.virtualPort));
+    if(!res)
       return false;
 
-    auto dev
-        = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
+    auto dev = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
     dev->set_name(settings().name.toStdString());
-    if (set.createWholeTree)
+    if(set.createWholeTree)
       dev->create_full_tree();
     m_dev = std::move(dev);
     deviceChanged(nullptr, m_dev.get());
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << e.what();
   }
@@ -77,10 +74,9 @@ bool MIDIDevice::reconnect()
 
 void MIDIDevice::disconnect()
 {
-  if (connected())
+  if(connected())
   {
-    removeListening_impl(
-        m_dev->get_root_node(), State::Address{m_settings.name, {}});
+    removeListening_impl(m_dev->get_root_node(), State::Address{m_settings.name, {}});
   }
 
   m_callbacks.clear();
@@ -105,7 +101,7 @@ Device::Node MIDIDevice::refresh()
 {
   Device::Node device_node{settings(), nullptr};
 
-  if (!connected())
+  if(!connected())
   {
     return device_node;
   }
@@ -113,7 +109,7 @@ Device::Node MIDIDevice::refresh()
   {
     const auto& children = m_dev->get_root_node().children();
     device_node.reserve(children.size());
-    for (const auto& node : children)
+    for(const auto& node : children)
     {
       device_node.push_back(Device::ToDeviceExplorer(*node.get()));
     }
@@ -125,26 +121,21 @@ Device::Node MIDIDevice::refresh()
 
 bool MIDIDevice::isLearning() const
 {
-  auto& proto
-      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   return proto.learning();
 }
 
 void MIDIDevice::setLearning(bool b)
 {
-  if (!m_dev)
+  if(!m_dev)
     return;
-  auto& proto
-      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   auto& dev = *m_dev;
-  if (b)
+  if(b)
   {
-    dev.on_node_created.connect<&DeviceInterface::nodeCreated>(
-        (DeviceInterface*)this);
-    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
-        (DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
+    dev.on_node_created.connect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
+    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
     dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
         (DeviceInterface*)this);
     dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(

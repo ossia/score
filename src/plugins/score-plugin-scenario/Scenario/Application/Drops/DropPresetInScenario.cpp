@@ -1,15 +1,14 @@
-#include <Scenario/Application/Drops/DropPresetInScenario.hpp>
 #include <Scenario/Application/Drops/DropPresetInInterval.hpp>
-
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Application/Drops/DropPresetInScenario.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <QFile>
-#include <QUrl>
 #include <QFileInfo>
+#include <QUrl>
 
 namespace Scenario
 {
@@ -20,17 +19,15 @@ DropPresetInScenario::DropPresetInScenario()
 }
 
 bool DropPresetInScenario::drop(
-    const ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   QByteArray presetData;
   QString filename;
 
-  if (mime.hasUrls())
+  if(mime.hasUrls())
   {
-    if (QFile f{mime.urls()[0].toLocalFile()};
-        QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
+    if(QFile f{mime.urls()[0].toLocalFile()};
+       QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
     {
       filename = QFileInfo{f}.fileName();
       presetData = f.readAll();

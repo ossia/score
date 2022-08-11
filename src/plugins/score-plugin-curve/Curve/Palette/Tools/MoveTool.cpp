@@ -23,72 +23,55 @@ EditionToolForCreate::EditionToolForCreate(Curve::ToolPalette& sm)
 {
 }
 
-void EditionToolForCreate::on_pressed(
-    QPointF scenePoint,
-    Curve::Point curvePoint)
+void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint,
-      itemUnderMouse(scenePoint),
+      scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-        if (m_parentSM.editionSettings().tool() != Tool::SetSegment)
-          select(point->model(), m_parentSM.model().selectedChildren(), true);
-        else
-          select(point->model(), m_parentSM.model().selectedChildren());
-        localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
+    if(m_parentSM.editionSettings().tool() != Tool::SetSegment)
+      select(point->model(), m_parentSM.model().selectedChildren(), true);
+    else
+      select(point->model(), m_parentSM.model().selectedChildren());
+    localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
-        if (m_parentSM.editionSettings().tool() != Tool::SetSegment)
-          select(
-              segment->model(), m_parentSM.model().selectedChildren(), true);
-        else
-          select(segment->model(), m_parentSM.model().selectedChildren());
-        localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
-      },
-      [&]() {
-        localSM().postEvent(new ClickOnNothing_Event(curvePoint, nullptr));
-      });
+    if(m_parentSM.editionSettings().tool() != Tool::SetSegment)
+      select(segment->model(), m_parentSM.model().selectedChildren(), true);
+    else
+      select(segment->model(), m_parentSM.model().selectedChildren());
+    localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
+  },
+      [&]() { localSM().postEvent(new ClickOnNothing_Event(curvePoint, nullptr)); });
 }
 
-void EditionToolForCreate::on_moved(
-    QPointF scenePoint,
-    Curve::Point curvePoint)
+void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint,
-      itemUnderMouse(scenePoint),
+      scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-        localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
+    localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
-        localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
-      },
-      [&]() {
-        localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr));
-      });
+    localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
+  },
+      [&]() { localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr)); });
 }
 
-void EditionToolForCreate::on_released(
-    QPointF scenePoint,
-    Curve::Point curvePoint)
+void EditionToolForCreate::on_released(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint,
-      itemUnderMouse(scenePoint),
+      scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-        localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
+    localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
-        localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
-      },
-      [&]() {
-        localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr));
-      });
+    localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
+  },
+      [&]() { localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr)); });
 }
 
 SetSegmentTool::SetSegmentTool(
-    Curve::ToolPalette& sm,
-    const score::DocumentContext& context)
+    Curve::ToolPalette& sm, const score::DocumentContext& context)
     : EditionToolForCreate{sm}
     , m_co{sm.model(), context.commandStack}
 {
@@ -104,9 +87,7 @@ SetSegmentTool::SetSegmentTool(
   localSM().start();
 }
 
-CreateTool::CreateTool(
-    Curve::ToolPalette& sm,
-    const score::DocumentContext& context)
+CreateTool::CreateTool(Curve::ToolPalette& sm, const score::DocumentContext& context)
     : EditionToolForCreate{sm}
     , m_co{sm.model(), &sm.presenter(), context.commandStack}
 {
@@ -126,8 +107,7 @@ CreateTool::CreateTool(
 }
 
 CreatePenTool::CreatePenTool(
-    Curve::ToolPalette& sm,
-    const score::DocumentContext& context)
+    Curve::ToolPalette& sm, const score::DocumentContext& context)
     : EditionToolForCreate{sm}
     , m_co{&sm.presenter(), context.commandStack}
 {

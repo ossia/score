@@ -17,8 +17,7 @@
 SCORE_SERALIZE_DATASTREAM_DEFINE(Device::DeviceSettings)
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-DataStreamReader::read(const Device::DeviceSettings& n)
+SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::DeviceSettings& n)
 {
   m_stream << n.name << n.protocol;
 
@@ -27,10 +26,9 @@ DataStreamReader::read(const Device::DeviceSettings& n)
 
   auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
-  if (prot)
+  if(prot)
   {
-    prot->serializeProtocolSpecificSettings(
-        n.deviceSpecificSettings, this->toVariant());
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
   }
   else
   {
@@ -47,10 +45,9 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceSettings& n)
 
   auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
-  if (prot)
+  if(prot)
   {
-    n.deviceSpecificSettings
-        = prot->makeProtocolSpecificSettings(this->toVariant());
+    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
   }
   else
   {
@@ -69,10 +66,9 @@ SCORE_LIB_DEVICE_EXPORT void JSONReader::read(const Device::DeviceSettings& n)
 
   auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
-  if (prot)
+  if(prot)
   {
-    prot->serializeProtocolSpecificSettings(
-        n.deviceSpecificSettings, this->toVariant());
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
   }
   else
   {
@@ -88,12 +84,11 @@ SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::DeviceSettings& n)
   n.protocol <<= obj[strings.Protocol];
 
   auto pl = components.findInterfaces<Device::ProtocolFactoryList>();
-  if (pl)
+  if(pl)
   {
-    if (auto prot = pl->get(n.protocol))
+    if(auto prot = pl->get(n.protocol))
     {
-      n.deviceSpecificSettings
-          = prot->makeProtocolSpecificSettings(this->toVariant());
+      n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
     }
     else
     {

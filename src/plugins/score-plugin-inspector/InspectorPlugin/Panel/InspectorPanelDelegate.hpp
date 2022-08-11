@@ -16,8 +16,7 @@ private:
 
   const score::PanelStatus& defaultPanelStatus() const override;
 
-  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
-      override;
+  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm) override;
   void setNewSelection(const Selection& s) override;
 
   QWidget* m_widget{};

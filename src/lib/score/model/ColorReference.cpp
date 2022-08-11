@@ -12,7 +12,7 @@ std::optional<ColorRef> ColorRef::ColorFromString(const QString& txt) noexcept
 {
   auto res = score::Skin::instance().fromString(txt);
 
-  if (res)
+  if(res)
     return ColorRef(res);
   else
     return {};

@@ -1,7 +1,8 @@
 #pragma once
+#include <State/Unit.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/AutomationCommandFactory.hpp>
-#include <State/Unit.hpp>
 
 #include <score/command/PropertyCommand.hpp>
 
@@ -17,9 +18,5 @@ SCORE_COMMAND_DECL_T(Automation::SetMax)
 SCORE_COMMAND_DECL_T(Automation::SetTween)
 SCORE_COMMAND_DECL_T(Automation::SetUnit)
 
-PROPERTY_COMMAND_T(
-    Gradient,
-    SetGradientTween,
-    ProcessModel::p_tween,
-    "Set tween")
+PROPERTY_COMMAND_T(Gradient, SetGradientTween, ProcessModel::p_tween, "Set tween")
 SCORE_COMMAND_DECL_T(Gradient::SetGradientTween)

@@ -33,10 +33,7 @@ class SCORE_PLUGIN_CURVE_EXPORT Presenter final : public QObject
   W_OBJECT(Presenter)
 public:
   Presenter(
-      const score::DocumentContext& lst,
-      const Curve::Style&,
-      const Model&,
-      View*,
+      const score::DocumentContext& lst, const Curve::Style&, const Model&, View*,
       QObject* parent);
   virtual ~Presenter();
 
@@ -62,10 +59,7 @@ public:
   void enable();
   void disable();
 
-  Curve::EditionSettings& editionSettings() noexcept
-  {
-    return m_editionSettings;
-  }
+  Curve::EditionSettings& editionSettings() noexcept { return m_editionSettings; }
 
   void fillContextMenu(QMenu&, const QPoint&, const QPointF&);
 

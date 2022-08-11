@@ -4,13 +4,13 @@
 
 #include <State/Expression.hpp>
 
+#include <Scenario/Document/Event/EventModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-#include <Scenario/Document/Event/EventModel.hpp>
 
 namespace Scenario
 {
@@ -45,13 +45,8 @@ void SetCondition::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_condition >> m_previousCondition;
 }
 
-SetOffsetBehavior::SetOffsetBehavior(
-    const EventModel& event,
-    OffsetBehavior newval)
-    : score::PropertyCommand{
-        event,
-        "offsetBehavior",
-        QVariant::fromValue(newval)}
+SetOffsetBehavior::SetOffsetBehavior(const EventModel& event, OffsetBehavior newval)
+    : score::PropertyCommand{event, "offsetBehavior", QVariant::fromValue(newval)}
 {
 }
 }

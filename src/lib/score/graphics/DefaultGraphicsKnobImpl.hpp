@@ -1,9 +1,9 @@
 #pragma once
+#include <score/graphics/InfiniteScroller.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
 #include <score/widgets/DoubleSpinBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <score/graphics/InfiniteScroller.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -22,10 +22,7 @@ struct DefaultGraphicsKnobImpl
 {
   template <typename T>
   static void paint(
-      T& self,
-      const score::Skin& skin,
-      const QString& text,
-      QPainter* painter,
+      T& self, const score::Skin& skin, const QString& text, QPainter* painter,
       QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -46,22 +43,22 @@ struct DefaultGraphicsKnobImpl
 
     const double valueSpan = -self.m_value * totalSpan;
     double textDelta = 0.;
-    if (rw >= 30.)
+    if(rw >= 30.)
     {
       painter->setPen(skin.Base4.main.pen3_solid_round_round);
       textDelta = -10;
     }
-    else if (rw >= 20.)
+    else if(rw >= 20.)
     {
       painter->setPen(skin.Base4.main.pen2_solid_round_round);
       textDelta = -9;
     }
-    else if (rw >= 10.)
+    else if(rw >= 10.)
     {
       painter->setPen(skin.Base4.main.pen1_5);
       textDelta = -8;
     }
-    else if (rw >= 5.)
+    else if(rw >= 5.)
     {
       painter->setPen(skin.Base4.main.pen1);
       textDelta = -7;
@@ -89,8 +86,7 @@ struct DefaultGraphicsKnobImpl
     // Draw text
     painter->setFont(skin.Medium8Pt);
     painter->drawText(
-        QRectF{0., srect.height() + textDelta, srect.width(), 10.},
-        text,
+        QRectF{0., srect.height() + textDelta, srect.width(), 10.}, text,
         QTextOption(Qt::AlignCenter));
 
     painter->setRenderHint(QPainter::Antialiasing, false);
@@ -99,7 +95,7 @@ struct DefaultGraphicsKnobImpl
   template <typename T>
   static void mousePressEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (event->button() == Qt::LeftButton)
+    if(event->button() == Qt::LeftButton)
     {
       self.m_grab = true;
       InfiniteScroller::start(self, self.m_value);
@@ -111,10 +107,10 @@ struct DefaultGraphicsKnobImpl
   template <typename T>
   static void mouseMoveEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if ((event->buttons() & Qt::LeftButton) && self.m_grab)
+    if((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       double v = InfiniteScroller::move(event);
-      if (v != self.m_value)
+      if(v != self.m_value)
       {
         self.m_value = v;
         self.sliderMoved();
@@ -131,7 +127,7 @@ struct DefaultGraphicsKnobImpl
     if(self.m_grab)
     {
       double v = InfiniteScroller::move(event);
-      if (v != self.m_value)
+      if(v != self.m_value)
       {
         self.m_value = v;
         self.update();
@@ -141,7 +137,7 @@ struct DefaultGraphicsKnobImpl
     self.m_grab = false;
     self.sliderReleased();
 
-    if (event->button() == Qt::RightButton)
+    if(event->button() == Qt::RightButton)
     {
       contextMenuEvent(self, event->scenePos());
     }
@@ -165,30 +161,26 @@ struct DefaultGraphicsKnobImpl
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
       auto con = QObject::connect(
-          w,
-          SignalUtils::QDoubleSpinBox_valueChanged_double(),
-          &self,
+          w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
           [&self](double v) {
-            self.m_value = self.unmap(v);
-            self.sliderMoved();
-            self.update();
+        self.m_value = self.unmap(v);
+        self.sliderMoved();
+        self.update();
           });
 
       QObject::connect(
-          w,
-          &DoubleSpinboxWithEnter::editingFinished,
-          &self,
+          w, &DoubleSpinboxWithEnter::editingFinished, &self,
           [obj, con, self_p]() mutable {
-            if (obj != nullptr)
-            {
-              self_p->sliderReleased();
-              QObject::disconnect(con);
-              QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
-                scene->removeItem(obj);
-                delete obj;
-              });
-            }
-            obj = nullptr;
+        if(obj != nullptr)
+        {
+          self_p->sliderReleased();
+          QObject::disconnect(con);
+          QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
+            scene->removeItem(obj);
+            delete obj;
+          });
+        }
+        obj = nullptr;
           });
     });
   }

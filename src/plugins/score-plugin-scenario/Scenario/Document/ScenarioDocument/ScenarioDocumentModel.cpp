@@ -3,6 +3,12 @@
 
 #include "ScenarioDocumentModel.hpp"
 
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/IdentifierDebug.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
@@ -13,11 +19,6 @@
 #include <QDebug>
 #include <QFileInfo>
 
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Tempo/TempoProcess.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
@@ -38,8 +39,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   tn.setStartPoint(true);
   auto& itv = m_baseScenario->interval();
   // Set default durations
-  auto dur
-      = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
+  auto dur = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
 
   itv.duration.setRigid(false);
 
@@ -58,17 +58,14 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
   // Create the root scenario
   AddOnlyProcessToInterval cmd1{
-      itv,
-      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(),
-      QString{},
-      QPointF{}};
+      itv, Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{}, QPointF{}};
   cmd1.redo(ctx);
   itv.processes.begin()->setSlotHeight(1500);
 
   // Select the first state
   score::SelectionDispatcher d{ctx.selectionStack};
   auto scenar = qobject_cast<Scenario::ProcessModel*>(&*itv.processes.begin());
-  if (scenar)
+  if(scenar)
     d.select(scenar->startEvent());
 
   init();
@@ -80,12 +77,10 @@ void ScenarioDocumentModel::init()
   auto& doc_metadata = m_context.document.metadata();
 
   connect(
-      &doc_metadata,
-      &score::DocumentMetadata::fileNameChanged,
-      this,
+      &doc_metadata, &score::DocumentMetadata::fileNameChanged, this,
       [&](const QString& newName) {
-        QFileInfo info(newName);
-        itv.metadata().setName(info.completeBaseName());
+    QFileInfo info(newName);
+    itv.metadata().setName(info.completeBaseName());
       });
 }
 
@@ -95,12 +90,12 @@ void ScenarioDocumentModel::finishLoading()
   // Should be called only once after load and restore instead
 
   // Load cables
-  for (const auto& bytearray : qAsConst(m_savedCables))
+  for(const auto& bytearray : qAsConst(m_savedCables))
   {
     auto cbl = new Process::Cable{DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
     auto snk = cbl->sink().try_find(m_context);
-    if (src && snk)
+    if(src && snk)
     {
       src->addCable(*cbl);
       snk->addCable(*cbl);
@@ -109,21 +104,21 @@ void ScenarioDocumentModel::finishLoading()
     }
     else
     {
-      qWarning() << "Could not find either source or sink for cable "
-                 << cbl->id() << src << snk;
+      qWarning() << "Could not find either source or sink for cable " << cbl->id() << src
+                 << snk;
       delete cbl;
     }
   }
   m_savedCables.clear();
 
-  if (m_savedCablesJson.IsArray())
+  if(m_savedCablesJson.IsArray())
   {
-    for (const auto& json : m_savedCablesJson.GetArray())
+    for(const auto& json : m_savedCablesJson.GetArray())
     {
       auto cbl = new Process::Cable{JSONObject::Deserializer{json}, this};
       auto src = cbl->source().try_find(m_context);
       auto snk = cbl->sink().try_find(m_context);
-      if (src && snk)
+      if(src && snk)
       {
         src->addCable(*cbl);
         snk->addCable(*cbl);
@@ -132,8 +127,8 @@ void ScenarioDocumentModel::finishLoading()
       }
       else
       {
-        qWarning() << "Could not find either source or sink for cable "
-                   << cbl->id() << src << snk;
+        qWarning() << "Could not find either source or sink for cable " << cbl->id()
+                   << src << snk;
         delete cbl;
       }
     }
@@ -141,21 +136,16 @@ void ScenarioDocumentModel::finishLoading()
   }
 
   // Load buses
-  for (auto itv : this->busIntervals)
+  for(auto itv : this->busIntervals)
   {
     const_cast<IntervalModel*>(itv)->busChanged(true);
     connect(
-        itv,
-        &Scenario::IntervalModel::identified_object_destroying,
-        this,
-        &ScenarioDocumentModel::busDeleted,
-        Qt::UniqueConnection);
+        itv, &Scenario::IntervalModel::identified_object_destroying, this,
+        &ScenarioDocumentModel::busDeleted, Qt::UniqueConnection);
   }
 }
 
-ScenarioDocumentModel::~ScenarioDocumentModel()
-{
-}
+ScenarioDocumentModel::~ScenarioDocumentModel() { }
 
 IntervalModel& ScenarioDocumentModel::baseInterval() const
 {
@@ -164,22 +154,20 @@ IntervalModel& ScenarioDocumentModel::baseInterval() const
 
 void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
 {
-  if (!ossia::contains(busIntervals, itv))
+  if(!ossia::contains(busIntervals, itv))
   {
     busIntervals.push_back(itv);
     const_cast<IntervalModel*>(itv)->busChanged(true);
-    connect(
-        itv,
-        &Scenario::IntervalModel::identified_object_destroying,
-        this,
-        [=] { removeBus(itv); });
+    connect(itv, &Scenario::IntervalModel::identified_object_destroying, this, [=] {
+      removeBus(itv);
+    });
     busesChanged();
   }
 }
 
 void ScenarioDocumentModel::removeBus(const Scenario::IntervalModel* itv)
 {
-  if (ossia::contains(busIntervals, itv))
+  if(ossia::contains(busIntervals, itv))
   {
     ossia::remove_erase(busIntervals, itv);
     const_cast<IntervalModel*>(itv)->busChanged(false);
@@ -189,7 +177,7 @@ void ScenarioDocumentModel::removeBus(const Scenario::IntervalModel* itv)
 
 void ScenarioDocumentModel::busDeleted(const IdentifiedObjectAbstract* itv)
 {
-  if (ossia::contains(busIntervals, itv))
+  if(ossia::contains(busIntervals, itv))
   {
     ossia::remove_erase(busIntervals, itv);
     busesChanged();

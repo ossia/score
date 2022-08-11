@@ -2,6 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExpressionEditorWidget.hpp"
 
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
+
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -11,16 +14,13 @@
 #include <QDebug>
 #include <QVBoxLayout>
 
-#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
-#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ExpressionEditorWidget)
 W_OBJECT_IMPL(Scenario::ExpressionMenu)
 namespace Scenario
 {
 ExpressionEditorWidget::ExpressionEditorWidget(
-    const score::DocumentContext& doc,
-    QWidget* parent)
+    const score::DocumentContext& doc, QWidget* parent)
     : QWidget(parent)
     , m_context{doc}
 {
@@ -31,18 +31,16 @@ ExpressionEditorWidget::ExpressionEditorWidget(
 State::Expression ExpressionEditorWidget::expression()
 {
 
-  switch (m_relations.size())
+  switch(m_relations.size())
   {
     case 0:
       return {};
     case 1:
       return m_relations[0]->relation();
-    case 2:
-    {
+    case 2: {
       SCORE_ASSERT(m_relations[1]->binOperator());
       State::Expression root;
-      State::Expression& op
-          = root.emplace_back(*m_relations[1]->binOperator(), nullptr);
+      State::Expression& op = root.emplace_back(*m_relations[1]->binOperator(), nullptr);
       op.emplace_back(m_relations[0]->relation(), &op);
       op.emplace_back(m_relations[1]->relation(), &op);
       return root;
@@ -126,14 +124,14 @@ State::Expression ExpressionEditorWidget::expression()
 
 void ExpressionEditorWidget::setExpression(State::Expression e)
 {
-  for (auto& elt : m_relations)
+  for(auto& elt : m_relations)
   {
     delete elt;
   }
   m_relations.clear();
 
   exploreExpression(e);
-  if (!e.hasChildren())
+  if(!e.hasChildren())
     addNewTerm();
 
   m_expression = currentExpr();
@@ -148,9 +146,9 @@ void ExpressionEditorWidget::on_editFinished()
 {
   auto ex = currentExpr();
   auto e = State::parseExpression(ex);
-  if (m_expression == ex)
+  if(m_expression == ex)
     return;
-  if (!e && !ex.isEmpty())
+  if(!e && !ex.isEmpty())
   {
     qDebug() << "invalid expression ! " << ex;
     return;
@@ -172,14 +170,14 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
     return_type operator()(const State::Relation& rel) const
     {
       widg.addNewTerm();
-      if (!widg.m_relations.empty())
+      if(!widg.m_relations.empty())
         widg.m_relations.back()->setRelation(rel);
     }
 
     return_type operator()(const State::Pulse& p) const
     {
       widg.addNewTerm();
-      if (!widg.m_relations.empty())
+      if(!widg.m_relations.empty())
         widg.m_relations.back()->setPulse(p);
     }
 
@@ -192,14 +190,14 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
       widg.exploreExpression(b);
 
       const int num = widg.m_relations.size();
-      for (int i = 1; i < num; i++)
+      for(int i = 1; i < num; i++)
       {
         auto rel = widg.m_relations.at(i);
-        if (!rel->binOperator())
+        if(!rel->binOperator())
           rel->setOperator(op);
       }
 
-      if (!widg.m_relations.empty())
+      if(!widg.m_relations.empty())
         widg.m_relations.back()->setOperator(op);
     }
 
@@ -211,13 +209,10 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
 
     return_type operator()(const InvisibleRootNode) const
     {
-      if (e.childCount() > 0)
+      if(e.childCount() > 0)
         widg.exploreExpression(e.childAt(0));
     }
-    return_type operator()(const ossia::monostate&) const
-    {
-      SCORE_ASSERT(false);
-    }
+    return_type operator()(const ossia::monostate&) const { SCORE_ASSERT(false); }
   } visitor{expr, *this};
 
   return ossia::visit(visitor, expr.impl());
@@ -238,27 +233,20 @@ void ExpressionEditorWidget::addNewTerm()
   m_mainLayout->addWidget(relationEditor);
 
   connect(
-      relationEditor,
-      &SimpleExpressionEditorWidget::addTerm,
-      this,
+      relationEditor, &SimpleExpressionEditorWidget::addTerm, this,
       &ExpressionEditorWidget::addNewTermAndFinish);
   connect(
-      relationEditor,
-      &SimpleExpressionEditorWidget::removeTerm,
-      this,
+      relationEditor, &SimpleExpressionEditorWidget::removeTerm, this,
       &ExpressionEditorWidget::removeTermAndFinish);
   connect(
-      relationEditor,
-      &SimpleExpressionEditorWidget::editingFinished,
-      this,
-      &ExpressionEditorWidget::on_editFinished,
-      Qt::QueuedConnection);
+      relationEditor, &SimpleExpressionEditorWidget::editingFinished, this,
+      &ExpressionEditorWidget::on_editFinished, Qt::QueuedConnection);
 
-  if (m_relations.size() == 1)
+  if(m_relations.size() == 1)
   {
     m_relations[0]->enableRemoveButton(false);
   }
-  else if (m_relations.size() > 1)
+  else if(m_relations.size() > 1)
   {
     m_relations[m_relations.size() - 2]->enableAddButton(false);
     m_relations[0]->enableRemoveButton(true);
@@ -270,7 +258,7 @@ void ExpressionEditorWidget::addNewTerm()
 
 void ExpressionEditorWidget::addNewTermAndFinish()
 {
-  if (m_relations.size() < 2)
+  if(m_relations.size() < 2)
   {
     addNewTerm();
     on_editFinished();
@@ -285,10 +273,10 @@ void ExpressionEditorWidget::removeTermAndFinish(int index)
 
 void ExpressionEditorWidget::removeTerm(int index)
 {
-  if (m_relations.size() > 1)
+  if(m_relations.size() > 1)
   {
     const int n = std::ssize(m_relations);
-    for (int i = index + 1; i < n; i++)
+    for(int i = index + 1; i < n; i++)
     {
       m_relations.at(i)->decreaseId();
     }
@@ -297,7 +285,7 @@ void ExpressionEditorWidget::removeTerm(int index)
     m_relations[0]->enableRemoveButton(m_relations.size() > 1);
     // TODO the model should be updated here.
   }
-  else if (m_relations.size() == 1)
+  else if(m_relations.size() == 1)
   {
     // We just clear the expression
     resetExpression();

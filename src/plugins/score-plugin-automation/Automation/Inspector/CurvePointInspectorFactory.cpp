@@ -5,19 +5,17 @@
 #include "CurvePointInspectorWidget.hpp"
 
 #include <Curve/Point/CurvePointModel.hpp>
+
 #include <Automation/AutomationModel.hpp>
 
 namespace Automation
 {
 QWidget* PointInspectorFactory::make(
-    const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc,
+    const InspectedObjects& sourceElements, const score::DocumentContext& doc,
     QWidget* parent) const
 {
   return new PointInspectorWidget{
-      safe_cast<const Curve::PointModel&>(*sourceElements.first()),
-      doc,
-      parent};
+      safe_cast<const Curve::PointModel&>(*sourceElements.first()), doc, parent};
 }
 
 bool PointInspectorFactory::matches(const InspectedObjects& objects) const

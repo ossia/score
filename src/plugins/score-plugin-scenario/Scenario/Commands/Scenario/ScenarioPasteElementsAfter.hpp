@@ -1,8 +1,8 @@
 #pragma once
+#include <Process/Dataflow/Cable.hpp>
+
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
-#include <Process/Dataflow/Cable.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -26,15 +26,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      ScenarioPasteElementsAfter,
-      "Paste elements after sync")
+      CommandFactoryName(), ScenarioPasteElementsAfter, "Paste elements after sync")
 public:
   ScenarioPasteElementsAfter(
-      const Scenario::ProcessModel& path,
-      const Scenario::TimeSyncModel& attach_sync,
-      const rapidjson::Value& obj,
-      double scale);
+      const Scenario::ProcessModel& path, const Scenario::TimeSyncModel& attach_sync,
+      const rapidjson::Value& obj, double scale);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

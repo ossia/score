@@ -18,9 +18,9 @@ MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
   // For all magnetism handlers registered,
   // find the one which is closest to the origin position
   std::vector<MagneticInfo> results;
-  for (auto it = m_handlers.begin(); it != m_handlers.end();)
+  for(auto it = m_handlers.begin(); it != m_handlers.end();)
   {
-    if (it->first)
+    if(it->first)
     {
       results.push_back(it->second(obj, original));
       ++it;
@@ -33,7 +33,7 @@ MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
   }
 
   // No handler -> no magnetism
-  if (results.empty())
+  if(results.empty())
     return MagneticInfo{original, false};
 
   // Find the min of the distances and return the related Position
@@ -43,10 +43,10 @@ MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
   MagneticInfo min_pos = *it;
 
   ++it;
-  for (; it != results.end(); ++it)
+  for(; it != results.end(); ++it)
   {
     const int64_t d = std::abs((original - *it).impl);
-    if (d < min_distance)
+    if(d < min_distance)
     {
       min_distance = d;
       min_pos = *it;
@@ -60,16 +60,13 @@ MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
   return min_pos;
 }
 
-void MagnetismAdjuster::registerHandler(
-    QObject* context,
-    MagnetismHandler h) noexcept
+void MagnetismAdjuster::registerHandler(QObject* context, MagnetismHandler h) noexcept
 {
-  auto it = ossia::find_if(
-      m_handlers, [&](auto& p) { return p.first == context; });
-  if (it == m_handlers.end())
+  auto it = ossia::find_if(m_handlers, [&](auto& p) { return p.first == context; });
+  if(it == m_handlers.end())
     m_handlers.emplace_back(context, h);
 
-  if (context)
+  if(context)
   {
     QObject::connect(context, &QObject::destroyed, this, [=] {
       qDebug() << "Warning: MagnetismAdjuster::registerHandler: unregistering "
@@ -82,12 +79,11 @@ void MagnetismAdjuster::registerHandler(
 
 void MagnetismAdjuster::unregisterHandler(QObject* context) noexcept
 {
-  if (!context)
+  if(!context)
     return;
 
-  auto it = ossia::find_if(
-      m_handlers, [&](auto& p) { return p.first == context; });
-  if (it != m_handlers.end())
+  auto it = ossia::find_if(m_handlers, [&](auto& p) { return p.first == context; });
+  if(it != m_handlers.end())
   {
     m_handlers.erase(it);
     QObject::disconnect(context, nullptr, this, nullptr);

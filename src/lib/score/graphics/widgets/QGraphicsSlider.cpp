@@ -76,15 +76,10 @@ void QGraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 }
 
 void QGraphicsSlider::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this,
-      score::Skin::instance(),
-      QString::number(min + m_value * (max - min), 'f', 3),
-      painter,
-      widget);
+      *this, score::Skin::instance(),
+      QString::number(min + m_value * (max - min), 'f', 3), painter, widget);
 }
 }

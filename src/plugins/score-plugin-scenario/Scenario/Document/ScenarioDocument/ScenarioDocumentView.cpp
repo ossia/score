@@ -5,7 +5,12 @@
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 
-#include <Transport/DocumentPlugin.hpp>
+#include <Scenario/Application/Menus/TransportActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
@@ -35,12 +40,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <Scenario/Application/Menus/TransportActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <Transport/DocumentPlugin.hpp>
 
 #if defined(SCORE_WEBSOCKETS)
 #include "WebSocketView.hpp"
@@ -62,18 +62,16 @@ namespace
 static int defaultEditorRefreshRate()
 {
   const auto tcount = QThread::idealThreadCount();
-  if (tcount <= 4)
+  if(tcount <= 4)
     return 30;
-  else if (tcount <= 8)
+  else if(tcount <= 8)
     return 16;
   else
     return 8;
 }
 }
 ProcessGraphicsView::ProcessGraphicsView(
-    const score::GUIApplicationContext& ctx,
-    QGraphicsScene* scene,
-    QWidget* parent)
+    const score::GUIApplicationContext& ctx, QGraphicsScene* scene, QWidget* parent)
     : QGraphicsView{scene, parent}
     , m_app{ctx}
     , m_opengl{ctx.applicationSettings.opengl}
@@ -109,10 +107,10 @@ ProcessGraphicsView::~ProcessGraphicsView() { }
 
 void ProcessGraphicsView::scrollHorizontal(double dx)
 {
-  if (auto bar = horizontalScrollBar())
+  if(auto bar = horizontalScrollBar())
   {
     bar->setValue(bar->value() + dx);
-    if (m_opengl)
+    if(m_opengl)
       viewport()->update();
   }
 }
@@ -120,15 +118,14 @@ void ProcessGraphicsView::scrollHorizontal(double dx)
 QRectF ProcessGraphicsView::visibleRect() const noexcept
 {
   return QRectF{
-      this->mapToScene(QPoint{}),
-      this->mapToScene(this->rect().bottomRight())};
+      this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())};
 }
 
 void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
 {
   if(timebarVisible)
   {
-    if (currentView)
+    if(currentView)
     {
       auto pctg = currentTimebar->playPercentage();
 
@@ -153,7 +150,7 @@ void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 
   visibleRectChanged(visibleRect());
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
@@ -162,12 +159,12 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
   QGraphicsView::scrollContentsBy(dx, dy);
 
   this->scene()->update();
-  if (dx != 0)
+  if(dx != 0)
     scrolled(dx);
 
   visibleRectChanged(visibleRect());
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
@@ -182,10 +179,8 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   auto t = std::chrono::steady_clock::now();
   static int wheelCount = 0;
 
-  if (std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel)
-              .count()
-          < 16
-      && wheelCount < 3)
+  if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel).count() < 16
+     && wheelCount < 3)
   {
     wheelCount++;
     return;
@@ -195,7 +190,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 #endif
   QPoint angleDelta = event->angleDelta();
   QPointF delta = {angleDelta.x() / 8., angleDelta.y() / 8.};
-  if (m_hZoom)
+  if(m_hZoom)
   {
     QPoint pos =
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
@@ -207,7 +202,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     horizontalZoom(delta, mapToScene(pos));
     return;
   }
-  else if (m_vZoom)
+  else if(m_vZoom)
   {
     QPoint pos =
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
@@ -225,12 +220,12 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   const auto hsb = this->horizontalScrollBar();
   const auto vsb = this->verticalScrollBar();
 
-  if (pixDelta != QPoint{})
+  if(pixDelta != QPoint{})
   {
     hsb->setValue(hsb->value() - event->pixelDelta().x() / 2.);
     vsb->setValue(vsb->value() - event->pixelDelta().y() / 2.);
   }
-  else if (angleDelta != QPoint{})
+  else if(angleDelta != QPoint{})
   {
     struct MyWheelEvent : public QWheelEvent
     {
@@ -250,36 +245,36 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     };
     MyWheelEvent e{*event};
 
-    if (qAbs(event->angleDelta().x()) > qAbs(event->angleDelta().y()))
+    if(qAbs(event->angleDelta().x()) > qAbs(event->angleDelta().y()))
       QCoreApplication::sendEvent(hsb, &e);
     else
       QCoreApplication::sendEvent(vsb, &e);
   }
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
 void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 {
-  for (auto& plug : m_app.guiApplicationPlugins())
+  for(auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyPressEvent(*event);
   event->ignore();
 
   QGraphicsView::keyPressEvent(event);
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
 void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 {
-  for (auto& plug : m_app.guiApplicationPlugins())
+  for(auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyReleaseEvent(*event);
   event->ignore();
 
   QGraphicsView::keyReleaseEvent(event);
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
@@ -290,7 +285,7 @@ void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 
   QGraphicsView::focusOutEvent(event);
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
@@ -299,52 +294,48 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
   focusedOut();
   QGraphicsView::leaveEvent(event);
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
 void ProcessGraphicsView::checkAndRemoveCurrentDialog(QPoint pos)
 {
   // Close the small output panels (gain/pan, etc) if we're clicking somewhere else
-  if (auto dialog = this->scene()->activePanel())
+  if(auto dialog = this->scene()->activePanel())
   {
     const auto notChildOfDialog = [=](QGraphicsItem* item) {
-      if (!item)
+      if(!item)
         return true;
 
       auto parent = item->parentItem();
-      if (!parent || (parent != dialog && parent->parentItem() != dialog))
+      if(!parent || (parent != dialog && parent->parentItem() != dialog))
         return true;
 
       return false;
     };
     const auto other = itemAt(pos);
-    if (other)
+    if(other)
     {
-      switch (other->type())
+      switch(other->type())
       {
-        case Dataflow::PortItem::Type:
-        {
-          if (notChildOfDialog(other))
+        case Dataflow::PortItem::Type: {
+          if(notChildOfDialog(other))
           {
             delete dialog;
           }
           break;
         }
-        case Dataflow::CableItem::Type:
-        {
+        case Dataflow::CableItem::Type: {
           auto cable = static_cast<Dataflow::CableItem*>(other);
-          if (notChildOfDialog(cable->source())
-              && notChildOfDialog(cable->target()))
+          if(notChildOfDialog(cable->source()) && notChildOfDialog(cable->target()))
           {
             delete dialog;
           }
           break;
         }
-        default:
-        {
+        default: {
           const auto mapped_pos = other->mapToItem(dialog, QPointF{0, 0});
-          if (!dialog->contains(mapped_pos))
+          if(!dialog->contains(mapped_pos))
           {
             delete dialog;
           }
@@ -366,16 +357,16 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
   QGraphicsView::mousePressEvent(event);
 
   // Handle right-click menu in nodal view
-  if (event->button() & Qt::RightButton)
+  if(event->button() & Qt::RightButton)
   {
     const auto item = itemAt(event->pos());
-    if (!item)
+    if(!item)
     {
       emptyContextMenuRequested(event->pos());
     }
   }
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
@@ -383,14 +374,14 @@ void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
   QGraphicsView::mouseMoveEvent(event);
 
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
 void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
 {
   QGraphicsView::mouseReleaseEvent(event);
-  if (m_opengl)
+  if(m_opengl)
     viewport()->update();
 }
 
@@ -414,7 +405,7 @@ void ProcessGraphicsView::dragLeaveEvent(QDragLeaveEvent* event)
 
 void ProcessGraphicsView::dropEvent(QDropEvent* event)
 {
-  if (!itemAt(event->pos()))
+  if(!itemAt(event->pos()))
   {
     dropRequested(event->pos(), event->mimeData());
     event->accept();
@@ -444,7 +435,7 @@ void ProcessGraphicsView::contextMenuEvent(QContextMenuEvent* event)
 
 bool ProcessGraphicsView::event(QEvent* event)
 {
-  switch (event->type())
+  switch(event->type())
   {
     case QEvent::HoverEnter:
       hoverEnterEvent(static_cast<QHoverEvent*>(event));
@@ -457,13 +448,11 @@ bool ProcessGraphicsView::event(QEvent* event)
       return true;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0) && !defined(QT_NO_GESTURES)
-    case QEvent::NativeGesture:
-    {
+    case QEvent::NativeGesture: {
       auto gest = static_cast<QNativeGestureEvent*>(event);
       switch(gest->gestureType())
       {
-        case Qt::NativeGestureType::ZoomNativeGesture:
-        {
+        case Qt::NativeGestureType::ZoomNativeGesture: {
           double zoom = gest->value() * 100.;
           QPointF delta = {zoom, zoom};
 
@@ -485,21 +474,18 @@ bool ProcessGraphicsView::event(QEvent* event)
   }
 }
 
-void ProcessGraphicsView::hoverEnterEvent(QHoverEvent* event)
-{
-
-}
+void ProcessGraphicsView::hoverEnterEvent(QHoverEvent* event) { }
 
 void ProcessGraphicsView::hoverMoveEvent(QHoverEvent* event)
 {
   const auto scenePos = this->mapToScene(event->pos());
   auto items = this->scene()->items(scenePos);
-  auto set_tip = [&] (const QString& t) {
+  auto set_tip = [&](const QString& t) {
     QStatusTipEvent ev{t};
     auto obj = reinterpret_cast<QObject*>(this->m_app.mainWindow);
     obj->event(&ev);
   };
-  for (int i = 0; i < items.size(); ++i)
+  for(int i = 0; i < items.size(); ++i)
   {
     if(const auto& tooltip = items.at(i)->toolTip(); !tooltip.isEmpty())
     {
@@ -511,14 +497,10 @@ void ProcessGraphicsView::hoverMoveEvent(QHoverEvent* event)
   set_tip(QString{});
 }
 
-void ProcessGraphicsView::hoverLeaveEvent(QHoverEvent* event)
-{
-
-}
+void ProcessGraphicsView::hoverLeaveEvent(QHoverEvent* event) { }
 
 ScenarioDocumentView::ScenarioDocumentView(
-    const score::DocumentContext& ctx,
-    QObject* parent)
+    const score::DocumentContext& ctx, QObject* parent)
     : score::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_context{ctx}
@@ -532,9 +514,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
 
-  con(ctx.document.commandStack(),
-      &score::CommandStack::stackChanged,
-      this,
+  con(ctx.document.commandStack(), &score::CommandStack::stackChanged, this,
       [&] { m_view.viewport()->update(); });
 
 #if defined(SCORE_WEBSOCKETS)
@@ -544,10 +524,8 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_view.setStatusTip("Main score view. Drop things in here.");
   m_timeRulerView.setStatusTip(
       "The time ruler keeps track of time. Scroll by dragging it.");
-  m_minimapView.setStatusTip(
-      "A minimap which shows an overview of the topmost score");
-  m_view.setSizePolicy(
-      QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Expanding});
+  m_minimapView.setStatusTip("A minimap which shows an overview of the topmost score");
+  m_view.setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Expanding});
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
@@ -568,10 +546,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   largeView->setShortcut(tr("Ctrl+0"));
   connect(
-      largeView,
-      &QAction::triggered,
-      this,
-      [this] { setLargeView(); },
+      largeView, &QAction::triggered, this, [this] { setLargeView(); },
       Qt::QueuedConnection);
   con(m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
 
@@ -580,7 +555,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   {
     auto setupTimeRuler = [=](bool b) {
       delete m_timeRuler;
-      if (b)
+      if(b)
         m_timeRuler = new MusicalRuler{&m_timeRulerView};
       else
         m_timeRuler = new TimeRuler{&m_timeRulerView};
@@ -590,9 +565,8 @@ ScenarioDocumentView::ScenarioDocumentView(
       timeRulerChanged();
     };
 
-    con(scenario_settings, &Settings::Model::MeasureBarsChanged, this, [=](bool b) {
-      setupTimeRuler(b);
-    });
+    con(scenario_settings, &Settings::Model::MeasureBarsChanged, this,
+        [=](bool b) { setupTimeRuler(b); });
     setupTimeRuler(scenario_settings.getMeasureBars());
   }
 
@@ -631,13 +605,13 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   // Cursors
   con(this->view(), &ProcessGraphicsView::focusedOut, this, [&] {
-    auto& es = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
-                   .editionSettings();
+    auto& es
+        = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>().editionSettings();
     es.setTool(Scenario::Tool::Select);
   });
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   const bool opengl = ctx.app.applicationSettings.opengl;
-  if (opengl)
+  if(opengl)
   {
     // m_minimapView.setViewport(new QOpenGLWidget);
     // m_timeRulerView.setViewport(new QOpenGLWidget);
@@ -688,8 +662,7 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
 {
   const auto viewRect = m_view.viewport()->rect();
   return QRectF{
-      m_view.mapToScene(viewRect.topLeft()),
-      m_view.mapToScene(viewRect.bottomRight())};
+      m_view.mapToScene(viewRect.topLeft()), m_view.mapToScene(viewRect.bottomRight())};
 }
 
 void ScenarioDocumentView::showRulers(bool b)
@@ -702,7 +675,7 @@ void ScenarioDocumentView::ready()
 {
   const bool opengl = m_context.app.applicationSettings.opengl;
 
-  if (opengl)
+  if(opengl)
   {
     auto& scenario_settings = m_context.app.settings<Scenario::Settings::Model>();
     auto& transport = m_context.plugin<Transport::DocumentPlugin>();

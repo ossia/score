@@ -51,8 +51,7 @@ QString::number(prev->following->val()) : QString("none"))
 }
 */
 PenCommandObject::PenCommandObject(
-    Presenter* presenter,
-    const score::CommandStackFacade& stack)
+    Presenter* presenter, const score::CommandStackFacade& stack)
     : CommandObjectBase{presenter->model(), presenter, stack}
     , m_segment{Id<SegmentModel>{}, nullptr}
 {
@@ -78,7 +77,7 @@ void PenCommandObject::move()
   auto& middleEnd = std::get<1>(segts_tpl);
   auto& segts = std::get<2>(segts_tpl);
 
-  if (std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8)
+  if(std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8)
     return;
 
   auto dat_base = m_segment.toSegmentData();
@@ -90,12 +89,12 @@ void PenCommandObject::move()
 
   std::optional<std::size_t> middle_begin_p{};
   std::optional<std::size_t> middle_end_p{};
-  if (middleBegin)
+  if(middleBegin)
   {
     segts.push_back(*std::move(middleBegin));
     middle_begin_p = segts.size() - 1;
   }
-  if (middleEnd)
+  if(middleEnd)
   {
     segts.push_back(*std::move(middleEnd));
     middle_end_p = segts.size() - 1;
@@ -104,13 +103,13 @@ void PenCommandObject::move()
   segts.push_back(dat_base);
   SegmentData& dat = segts.back();
 
-  if (middle_begin_p && middle_end_p
-      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if(middle_begin_p && middle_end_p
+     && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     segts[*middle_end_p].id = getSegmentId(segts);
-    for (auto& seg : segts)
+    for(auto& seg : segts)
     {
-      if (seg.id == segts[*middle_end_p].following)
+      if(seg.id == segts[*middle_end_p].following)
       {
         seg.previous = segts[*middle_end_p].id;
         break;
@@ -118,7 +117,7 @@ void PenCommandObject::move()
     }
   }
 
-  if (middle_begin_p)
+  if(middle_begin_p)
   {
     SegmentData& seg = segts[*middle_begin_p];
     seg.end = m_minPress;
@@ -126,7 +125,7 @@ void PenCommandObject::move()
     dat.previous = seg.id;
   }
 
-  if (middle_end_p)
+  if(middle_end_p)
   {
     SegmentData& seg = segts[*middle_end_p];
     seg.start = m_maxPress;
@@ -141,8 +140,8 @@ void PenCommandObject::release()
 {
   auto segts_tpl = filterSegments();
   // First handle the case of a single point
-  if (m_segment.points().size() == 1
-      || (std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8))
+  if(m_segment.points().size() == 1
+     || (std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8))
   {
     cancel();
   }
@@ -170,13 +169,13 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   std::optional<std::size_t> middle_begin_p{};
   std::optional<std::size_t> middle_end_p{};
 
-  if (auto& middleBegin = std::get<0>(segts_tpl))
+  if(auto& middleBegin = std::get<0>(segts_tpl))
   {
     segts.push_back(*std::move(middleBegin));
     middle_begin_p = segts.size() - 1;
   }
 
-  if (auto& middleEnd = std::get<1>(segts_tpl))
+  if(auto& middleEnd = std::get<1>(segts_tpl))
   {
     segts.push_back(*std::move(middleEnd));
     middle_end_p = segts.size() - 1;
@@ -188,15 +187,15 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   { // Put the first one
     SegmentData& lin = lin_segments[0];
     lin.id = getSegmentId(segts);
-    if (lin_segments.size() > 1)
+    if(lin_segments.size() > 1)
       lin_segments[1].previous = lin.id;
     segts.push_back(std::move(lin));
   }
 
-  if (N > 1)
+  if(N > 1)
   {
     // Main loop
-    for (std::size_t i = 1; i < N - 1; i++)
+    for(std::size_t i = 1; i < N - 1; i++)
     {
       SegmentData& lin = lin_segments[i];
       lin.id = getSegmentId(segts);
@@ -218,15 +217,15 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 
   // Handle the case of the whole drawn curve being
   // contained in a single original segment
-  if (middle_begin_p && middle_end_p
-      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if(middle_begin_p && middle_end_p
+     && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     auto& mb = segts[*middle_begin_p];
     auto& me = segts[*middle_end_p];
     me.id = getSegmentId(segts);
-    for (auto& seg : segts)
+    for(auto& seg : segts)
     {
-      if (seg.id == mb.following)
+      if(seg.id == mb.following)
       {
         seg.previous = me.id;
         break;
@@ -236,7 +235,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 
   // Link the new segments
   auto& first_lin = segts[first_inserted_lin];
-  if (middle_begin_p)
+  if(middle_begin_p)
   {
     SegmentData& seg = segts[*middle_begin_p];
     seg.end = first_lin.start;
@@ -245,7 +244,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   }
 
   auto& last_lin = segts.back();
-  if (middle_end_p)
+  if(middle_end_p)
   {
     SegmentData& seg = segts[*middle_end_p];
     seg.start = last_lin.end;
@@ -260,15 +259,13 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 }
 
 std::tuple<
-    std::optional<SegmentData>,
-    std::optional<SegmentData>,
-    std::vector<SegmentData>>
+    std::optional<SegmentData>, std::optional<SegmentData>, std::vector<SegmentData>>
 PenCommandObject::filterSegments()
 {
   auto x = m_state->currentPoint.x();
-  if (x < m_minPress.x())
+  if(x < m_minPress.x())
     m_minPress = m_state->currentPoint;
-  if (x > m_maxPress.x())
+  if(x > m_maxPress.x())
     m_maxPress = m_state->currentPoint;
 
   m_segment.setStart(m_minPress);
@@ -281,31 +278,31 @@ PenCommandObject::filterSegments()
 
   // remove all segments that start after minPress and end after maxPress
   std::optional<SegmentData> middleBegin, middleEnd;
-  for (auto it = segts.begin(); it != segts.end();)
+  for(auto it = segts.begin(); it != segts.end();)
   {
     const SegmentData& segt = *it;
     auto start_x = segt.start.x();
     auto end_x = segt.end.x();
     bool to_delete = false;
-    if (start_x >= m_minPress.x() && end_x <= m_maxPress.x())
+    if(start_x >= m_minPress.x() && end_x <= m_maxPress.x())
     {
       to_delete = true;
     }
     else
     {
-      if (start_x <= m_minPress.x() && end_x >= m_minPress.x())
+      if(start_x <= m_minPress.x() && end_x >= m_minPress.x())
       {
         middleBegin = segt;
         to_delete = true;
       }
-      if (start_x <= m_maxPress.x() && end_x >= m_maxPress.x())
+      if(start_x <= m_maxPress.x() && end_x >= m_maxPress.x())
       {
         middleEnd = segt;
         to_delete = true;
       }
     }
 
-    if (to_delete)
+    if(to_delete)
     {
       it = segts.erase(it);
     }

@@ -43,10 +43,7 @@ class SCORE_LIB_PROCESS_EXPORT PortItem
   W_OBJECT(PortItem)
   Q_INTERFACES(QGraphicsItem)
 public:
-  PortItem(
-      const Process::Port& p,
-      const Process::Context& ctx,
-      QGraphicsItem* parent);
+  PortItem(const Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent);
   ~PortItem() override;
   const Process::Port& port() const { return m_port; }
 
@@ -69,10 +66,8 @@ public:
 
 protected:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -88,8 +83,7 @@ protected:
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
-  QVariant
-  itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
   const Process::Context& m_context;
   std::vector<QPointer<CableItem>> cables;
@@ -112,7 +106,8 @@ protected:
 SCORE_LIB_PROCESS_EXPORT
 score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* parent);
 
-ossia::small_vector<const Process::Port*, 16> getProcessPorts(const Process::ProcessModel& proc);
+ossia::small_vector<const Process::Port*, 16>
+getProcessPorts(const Process::ProcessModel& proc);
 }
 
 namespace score

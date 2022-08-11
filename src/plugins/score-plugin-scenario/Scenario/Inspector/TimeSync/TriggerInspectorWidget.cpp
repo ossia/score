@@ -2,6 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerInspectorWidget.hpp"
 
+#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
+
 #include <Inspector/InspectorWidgetBase.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -12,19 +17,12 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
-
 namespace Scenario
 {
 
 TriggerInspectorWidget::TriggerInspectorWidget(
-    const score::DocumentContext& doc,
-    const Command::TriggerCommandFactoryList& fact,
-    const TimeSyncModel& object,
-    Inspector::InspectorWidgetBase* parent)
+    const score::DocumentContext& doc, const Command::TriggerCommandFactoryList& fact,
+    const TimeSyncModel& object, Inspector::InspectorWidgetBase* parent)
     : QWidget{parent}
     , m_triggerCommandFactory{fact}
     , m_model{object}
@@ -35,13 +33,9 @@ TriggerInspectorWidget::TriggerInspectorWidget(
 
   m_exprEditor = new ExpressionEditorWidget{doc, this};
   connect(
-      m_exprEditor,
-      &ExpressionEditorWidget::editingFinished,
-      this,
+      m_exprEditor, &ExpressionEditorWidget::editingFinished, this,
       &TriggerInspectorWidget::on_triggerChanged);
-  con(m_model,
-      &TimeSyncModel::triggerChanged,
-      m_exprEditor,
+  con(m_model, &TimeSyncModel::triggerChanged, m_exprEditor,
       &ExpressionEditorWidget::setExpression);
 
   m_addTrigBtn = new QPushButton{tr("Enable trigger")};
@@ -54,36 +48,26 @@ TriggerInspectorWidget::TriggerInspectorWidget(
   on_triggerActiveChanged();
 
   connect(
-      m_addTrigBtn,
-      &QPushButton::released,
-      this,
+      m_addTrigBtn, &QPushButton::released, this,
       &TriggerInspectorWidget::createTrigger);
 
   connect(
-      m_menu.deleteAction,
-      &QAction::triggered,
-      this,
+      m_menu.deleteAction, &QAction::triggered, this,
       &TriggerInspectorWidget::removeTrigger);
-  con(m_menu,
-      &ExpressionMenu::expressionChanged,
-      this,
-      [=](const QString& str) {
-        auto trig = State::parseExpression(str);
-        if (!trig)
-        {
-          trig = State::defaultTrueExpression();
-        }
+  con(m_menu, &ExpressionMenu::expressionChanged, this, [=](const QString& str) {
+    auto trig = State::parseExpression(str);
+    if(!trig)
+    {
+      trig = State::defaultTrueExpression();
+    }
 
-        if (*trig != m_model.expression())
-        {
-          auto cmd
-              = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
-          m_parent->commandDispatcher()->submit(cmd);
-        }
-      });
-  con(m_model,
-      &TimeSyncModel::activeChanged,
-      this,
+    if(*trig != m_model.expression())
+    {
+      auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
+      m_parent->commandDispatcher()->submit(cmd);
+    }
+  });
+  con(m_model, &TimeSyncModel::activeChanged, this,
       &TriggerInspectorWidget::on_triggerActiveChanged);
 }
 
@@ -91,7 +75,7 @@ void TriggerInspectorWidget::on_triggerChanged()
 {
   auto trig = m_exprEditor->expression();
 
-  if (trig != m_model.expression())
+  if(trig != m_model.expression())
   {
     auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(trig)};
     m_parent->commandDispatcher()->submit(cmd);
@@ -104,9 +88,8 @@ void TriggerInspectorWidget::createTrigger()
   m_addTrigBtn->setVisible(false);
 
   auto cmd = m_triggerCommandFactory.make(
-      &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
-      m_model);
-  if (cmd)
+      &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand, m_model);
+  if(cmd)
     m_parent->commandDispatcher()->submit(cmd);
 }
 
@@ -116,9 +99,8 @@ void TriggerInspectorWidget::removeTrigger()
   m_addTrigBtn->setVisible(true);
 
   auto cmd = m_triggerCommandFactory.make(
-      &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand,
-      m_model);
-  if (cmd)
+      &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand, m_model);
+  if(cmd)
     m_parent->commandDispatcher()->submit(cmd);
 }
 

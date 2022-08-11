@@ -68,42 +68,42 @@ public:
   {
     static constexpr bool has_base = base_kind<T>::value;
 
-    if constexpr (has_base)
+    if constexpr(has_base)
     {
       readFrom((const typename T::base_type&)obj);
     }
     else
     {
-      if constexpr (
+      if constexpr(
           (is_template<T>::value && !is_abstract_base<T>::value
            && !is_identified_object<T>::value)
           || is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, T>::readFrom(*this, obj);
       }
-      else if constexpr (
+      else if constexpr(
           is_identified_object<T>::value && !is_entity<T>::value
           && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, typename T::object_type>::readFrom(*this, obj);
 
-        if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+        if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
           TSerializer<DataStream, T>::readFrom(*this, obj);
         else
           read(obj);
       }
-      else if constexpr (
+      else if constexpr(
           is_entity<T>::value && !is_abstract_base<T>::value
           && !is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, typename T::entity_type>::readFrom(*this, obj);
 
-        if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+        if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
           TSerializer<DataStream, T>::readFrom(*this, obj);
         else
           read(obj);
       }
-      else if constexpr (
+      else if constexpr(
           !is_identified_object<T>::value && is_abstract_base<T>::value
           && !is_custom_serialized<T>::value)
       {
@@ -112,35 +112,33 @@ public:
           sub.read(obj);
         });
       }
-      else if constexpr (
+      else if constexpr(
           is_identified_object<T>::value && !is_entity<T>::value
           && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           TSerializer<DataStream, IdentifiedObject<T>>::readFrom(sub, obj);
 
-          if constexpr (
-              is_custom_serialized<T>::value || is_template<T>::value)
+          if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
             TSerializer<DataStream, T>::readFrom(sub, obj);
           else
             sub.read(obj);
         });
       }
-      else if constexpr (
+      else if constexpr(
           is_entity<T>::value && is_abstract_base<T>::value
           && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           TSerializer<DataStream, score::Entity<T>>::readFrom(sub, obj);
 
-          if constexpr (
-              is_custom_serialized<T>::value || is_template<T>::value)
+          if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
             TSerializer<DataStream, T>::readFrom(sub, obj);
           else
             sub.read(obj);
         });
       }
-      else if constexpr (std::is_enum<T>::value)
+      else if constexpr(std::is_enum<T>::value)
       {
         static_assert(check_enum_size<T>::value);
         m_stream << (int32_t)obj;
@@ -239,14 +237,14 @@ public:
   template <typename T>
   void writeTo(T& obj)
   {
-    if constexpr (
+    if constexpr(
         (is_template<T>::value && !is_abstract_base<T>::value
          && !is_identified_object<T>::value)
         || is_custom_serialized<T>::value)
     {
       TSerializer<DataStream, T>::writeTo(*this, obj);
     }
-    else if constexpr (std::is_enum<T>::value)
+    else if constexpr(std::is_enum<T>::value)
     {
       static_assert(check_enum_size<T>::value);
       int32_t e;
@@ -314,8 +312,7 @@ template <typename T>
 struct TSerializer<DataStream, IdentifiedObject<T>>
 {
   template <typename U>
-  static void
-  readFrom(DataStream::Serializer& s, const IdentifiedObject<U>& obj)
+  static void readFrom(DataStream::Serializer& s, const IdentifiedObject<U>& obj)
   {
     SCORE_DEBUG_INSERT_DELIMITER2(s);
     s.stream() << obj.objectName();
@@ -346,7 +343,7 @@ struct TSerializer<DataStream, std::optional<T>>
   {
     s.stream() << static_cast<bool>(obj);
 
-    if (obj)
+    if(obj)
     {
       s.stream() << *obj;
     }
@@ -358,7 +355,7 @@ struct TSerializer<DataStream, std::optional<T>>
     bool b{};
     s.stream() >> b;
 
-    if (b)
+    if(b)
     {
       T val;
       s.stream() >> val;
@@ -375,8 +372,7 @@ struct TSerializer<DataStream, std::optional<T>>
 template <typename T>
 struct TSerializer<DataStream, QList<T>>
 {
-  static void readFrom(DataStream::Serializer& s, const QList<T>& obj)
-      = delete;
+  static void readFrom(DataStream::Serializer& s, const QList<T>& obj) = delete;
   static void writeTo(DataStream::Deserializer& s, QList<T>& obj) = delete;
 };
 
@@ -385,7 +381,7 @@ struct TSerializer<DataStream, std::array<T, N>>
 {
   static void readFrom(DataStream::Serializer& s, const std::array<T, N>& arr)
   {
-    for (std::size_t i = 0U; i < N; i++)
+    for(std::size_t i = 0U; i < N; i++)
       s.stream() << arr[i];
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
@@ -393,7 +389,7 @@ struct TSerializer<DataStream, std::array<T, N>>
 
   static void writeTo(DataStream::Deserializer& s, std::array<T, N>& arr)
   {
-    for (std::size_t i = 0U; i < N; i++)
+    for(std::size_t i = 0U; i < N; i++)
       s.stream() >> arr[i];
 
     SCORE_DEBUG_CHECK_DELIMITER2(s);
@@ -404,24 +400,22 @@ struct TSerializer<DataStream, std::array<T, N>>
 template <typename T, std::size_t N>
 struct TSerializer<DataStream, ossia::small_vector<T, N>>
 {
-  static void
-  readFrom(DataStream::Serializer& s, const ossia::small_vector<T, N>& arr)
+  static void readFrom(DataStream::Serializer& s, const ossia::small_vector<T, N>& arr)
   {
     s.stream() << (int32_t)arr.size();
-    for (std::size_t i = 0U; i < arr.size(); i++)
+    for(std::size_t i = 0U; i < arr.size(); i++)
       s.stream() << arr[i];
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void
-  writeTo(DataStream::Deserializer& s, ossia::small_vector<T, N>& arr)
+  static void writeTo(DataStream::Deserializer& s, ossia::small_vector<T, N>& arr)
   {
     int32_t sz;
 
     s.stream() >> sz;
     arr.resize(sz);
-    for (int32_t i = 0; i < sz; i++)
+    for(int32_t i = 0; i < sz; i++)
       s.stream() >> arr[i];
 
     SCORE_DEBUG_CHECK_DELIMITER2(s);
@@ -431,24 +425,22 @@ struct TSerializer<DataStream, ossia::small_vector<T, N>>
 template <typename T, std::size_t N>
 struct TSerializer<DataStream, ossia::static_vector<T, N>>
 {
-  static void
-  readFrom(DataStream::Serializer& s, const ossia::static_vector<T, N>& arr)
+  static void readFrom(DataStream::Serializer& s, const ossia::static_vector<T, N>& arr)
   {
     s.stream() << (int32_t)arr.size();
-    for (int32_t i = 0U; i < arr.size(); i++)
+    for(int32_t i = 0U; i < arr.size(); i++)
       s.stream() << arr[i];
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void
-  writeTo(DataStream::Deserializer& s, ossia::static_vector<T, N>& arr)
+  static void writeTo(DataStream::Deserializer& s, ossia::static_vector<T, N>& arr)
   {
     int32_t sz;
 
     s.stream() >> sz;
     arr.resize(sz);
-    for (int32_t i = 0U; i < sz; i++)
+    for(int32_t i = 0U; i < sz; i++)
       s.stream() >> arr[i];
 
     SCORE_DEBUG_CHECK_DELIMITER2(s);
@@ -465,8 +457,7 @@ operator<<(QDataStream& stream, const ossia::small_vector<T, N>& obj)
 }
 
 template <typename T, std::size_t N>
-OSSIA_INLINE QDataStream&
-operator>>(QDataStream& stream, ossia::small_vector<T, N>& obj)
+OSSIA_INLINE QDataStream& operator>>(QDataStream& stream, ossia::small_vector<T, N>& obj)
 {
   DataStreamWriter writer{stream.device()};
   writer.writeTo(obj);
@@ -477,18 +468,15 @@ operator>>(QDataStream& stream, ossia::small_vector<T, N>& obj)
 
 template <typename T, typename Alloc>
 struct TSerializer<
-    DataStream,
-    std::vector<T, Alloc>,
+    DataStream, std::vector<T, Alloc>,
     std::enable_if_t<
-        !is_QDataStreamSerializable<
-            typename std::vector<T, Alloc>::value_type>::value
+        !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value
         && !std::is_pointer_v<T> && !is_shared_ptr_v<T>>>
 {
-  static void
-  readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
+  static void readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
   {
     s.stream() << (int32_t)vec.size();
-    for (const auto& elt : vec)
+    for(const auto& elt : vec)
       s.readFrom(elt);
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
@@ -501,7 +489,7 @@ struct TSerializer<
 
     vec.clear();
     vec.resize(n);
-    for (int32_t i = 0; i < n; i++)
+    for(int32_t i = 0; i < n; i++)
     {
       s.writeTo(vec[i]);
     }
@@ -512,37 +500,36 @@ struct TSerializer<
 
 template <typename T, typename Alloc>
 struct TSerializer<
-    DataStream,
-    boost::container::vector<T, Alloc>,
+    DataStream, boost::container::vector<T, Alloc>,
     std::enable_if_t<
-    !is_QDataStreamSerializable<
-    typename std::vector<T, Alloc>::value_type>::value
-    && !std::is_pointer_v<T> && !is_shared_ptr_v<T>>>
+        !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value
+        && !std::is_pointer_v<T> && !is_shared_ptr_v<T>>>
 {
-    static void
-    readFrom(DataStream::Serializer& s, const boost::container::vector<T, Alloc>& vec)
-    {
-      s.stream() << (int32_t)vec.size();
-      for (const auto& elt : vec)
-        s.readFrom(elt);
+  static void
+  readFrom(DataStream::Serializer& s, const boost::container::vector<T, Alloc>& vec)
+  {
+    s.stream() << (int32_t)vec.size();
+    for(const auto& elt : vec)
+      s.readFrom(elt);
 
-      SCORE_DEBUG_INSERT_DELIMITER2(s);
+    SCORE_DEBUG_INSERT_DELIMITER2(s);
+  }
+
+  static void
+  writeTo(DataStream::Deserializer& s, boost::container::vector<T, Alloc>& vec)
+  {
+    int32_t n;
+    s.stream() >> n;
+
+    vec.clear();
+    vec.resize(n);
+    for(int32_t i = 0; i < n; i++)
+    {
+      s.writeTo(vec[i]);
     }
 
-    static void writeTo(DataStream::Deserializer& s, boost::container::vector<T, Alloc>& vec)
-    {
-      int32_t n;
-      s.stream() >> n;
-
-      vec.clear();
-      vec.resize(n);
-      for (int32_t i = 0; i < n; i++)
-      {
-        s.writeTo(vec[i]);
-      }
-
-      SCORE_DEBUG_CHECK_DELIMITER2(s);
-    }
+    SCORE_DEBUG_CHECK_DELIMITER2(s);
+  }
 };
 
 template <>
@@ -551,7 +538,7 @@ struct TSerializer<DataStream, std::vector<bool>>
   static void readFrom(DataStream::Serializer& s, const std::vector<bool>& vec)
   {
     s.stream() << (int32_t)vec.size();
-    for (bool elt : vec)
+    for(bool elt : vec)
       s.stream() << elt;
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
@@ -564,7 +551,7 @@ struct TSerializer<DataStream, std::vector<bool>>
 
     vec.clear();
     vec.resize(n);
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       bool b;
       s.stream() >> b;
@@ -577,16 +564,14 @@ struct TSerializer<DataStream, std::vector<bool>>
 
 template <typename T, typename Alloc>
 struct TSerializer<
-    DataStream,
-    std::vector<T, Alloc>,
-    std::enable_if_t<is_QDataStreamSerializable<
-        typename std::vector<T, Alloc>::value_type>::value>>
+    DataStream, std::vector<T, Alloc>,
+    std::enable_if_t<
+        is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value>>
 {
-  static void
-  readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
+  static void readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
   {
     s.stream() << (int32_t)vec.size();
-    for (const auto& elt : vec)
+    for(const auto& elt : vec)
       s.stream() << elt;
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
@@ -599,7 +584,7 @@ struct TSerializer<
 
     vec.clear();
     vec.resize(n);
-    for (int32_t i = 0; i < n; i++)
+    for(int32_t i = 0; i < n; i++)
     {
       s.stream() >> vec[i];
     }
@@ -610,35 +595,35 @@ struct TSerializer<
 
 template <typename T, typename Alloc>
 struct TSerializer<
-    DataStream,
-    boost::container::vector<T, Alloc>,
-    std::enable_if_t<is_QDataStreamSerializable<
-    typename std::vector<T, Alloc>::value_type>::value>>
+    DataStream, boost::container::vector<T, Alloc>,
+    std::enable_if_t<
+        is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value>>
 {
-    static void
-    readFrom(DataStream::Serializer& s, const boost::container::vector<T, Alloc>& vec)
-    {
-      s.stream() << (int32_t)vec.size();
-      for (const auto& elt : vec)
-        s.stream() << elt;
+  static void
+  readFrom(DataStream::Serializer& s, const boost::container::vector<T, Alloc>& vec)
+  {
+    s.stream() << (int32_t)vec.size();
+    for(const auto& elt : vec)
+      s.stream() << elt;
 
-      SCORE_DEBUG_INSERT_DELIMITER2(s);
+    SCORE_DEBUG_INSERT_DELIMITER2(s);
+  }
+
+  static void
+  writeTo(DataStream::Deserializer& s, boost::container::vector<T, Alloc>& vec)
+  {
+    int32_t n = 0;
+    s.stream() >> n;
+
+    vec.clear();
+    vec.resize(n);
+    for(int32_t i = 0; i < n; i++)
+    {
+      s.stream() >> vec[i];
     }
 
-    static void writeTo(DataStream::Deserializer& s, boost::container::vector<T, Alloc>& vec)
-    {
-      int32_t n = 0;
-      s.stream() >> n;
-
-      vec.clear();
-      vec.resize(n);
-      for (int32_t i = 0; i < n; i++)
-      {
-        s.stream() >> vec[i];
-      }
-
-      SCORE_DEBUG_CHECK_DELIMITER2(s);
-    }
+    SCORE_DEBUG_CHECK_DELIMITER2(s);
+  }
 };
 
 template <typename T>
@@ -648,7 +633,7 @@ struct TSerializer<DataStream, ossia::flat_set<T>>
   static void readFrom(DataStream::Serializer& s, const type& obj)
   {
     s.stream() << (int32_t)obj.size();
-    for (const auto& e : obj)
+    for(const auto& e : obj)
       s.stream() << e;
   }
 
@@ -656,7 +641,7 @@ struct TSerializer<DataStream, ossia::flat_set<T>>
   {
     int32_t n;
     s.stream() >> n;
-    for (; n-- > 0;)
+    for(; n-- > 0;)
     {
       T val;
       s.stream() >> val;
@@ -684,10 +669,7 @@ template <typename T>
 struct TSerializer<DataStream, std::shared_ptr<T>>
 {
   using type = std::shared_ptr<T>;
-  static void readFrom(DataStream::Serializer& s, const type& obj)
-  {
-    SCORE_ABORT;
-  }
+  static void readFrom(DataStream::Serializer& s, const type& obj) { SCORE_ABORT; }
 
   static void writeTo(DataStream::Deserializer& s, type& obj) { SCORE_ABORT; }
 };

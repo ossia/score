@@ -12,8 +12,7 @@ struct Node
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Other;
-    static const constexpr auto description
-        = "Shows all the available widgets";
+    static const constexpr auto description = "Shows all the available widgets";
     static const uuid_constexpr auto uuid
         = make_uuid("887507d3-8a56-4634-9ee3-a25d38050335");
 
@@ -30,18 +29,13 @@ struct Node
         Control::FloatKnob{"FloatKnob", -10, 20, 5},
         Control::LogFloatKnob{"LogFloatKnob", -10, 20, 5},
         Control::IntSlider{"IntSlider", -10, 20, 5},
-        Control::IntSpinBox{"IntSpinBox", -10, 20, 5},
-        Control::Toggle{"Toggle", true},
+        Control::IntSpinBox{"IntSpinBox", -10, 20, 5}, Control::Toggle{"Toggle", true},
         Control::ChooserToggle{"ChooserToggle", {"false", "true"}, true},
-        Control::LineEdit{"LineEdit", "henlo"},
-        Control::Button{"Bango"},
+        Control::LineEdit{"LineEdit", "henlo"}, Control::Button{"Bango"},
         Control::Widgets::QuantificationChooser(),
-        Control::Widgets::MusicalDurationChooser(),
-        Control::Widgets::DurationChooser(),
-        Control::Widgets::FreqSlider(),
-        Control::Widgets::LFOFreqSlider(),
-        Control::Widgets::FreqKnob(),
-        Control::Widgets::LFOFreqKnob(),
+        Control::Widgets::MusicalDurationChooser(), Control::Widgets::DurationChooser(),
+        Control::Widgets::FreqSlider(), Control::Widgets::LFOFreqSlider(),
+        Control::Widgets::FreqKnob(), Control::Widgets::LFOFreqKnob(),
         Control::Widgets::WaveformChooser());
   };
 

@@ -39,7 +39,7 @@ public:
 
   QVariant data(const QModelIndex& index, int) const override
   {
-    if (index.row() >= timeSyncs.size())
+    if(index.row() >= timeSyncs.size())
       return {};
 
     return timeSyncs[index.row()].prettyName;
@@ -68,62 +68,49 @@ private:
 public:
   WebSocketHandler()
   {
-    m_answers.insert(
-        std::make_pair("TriggerAdded", [this](const QJsonObject& obj) {
-          qDebug() << obj;
-          auto json_it = obj.find("Path");
-          if (json_it == obj.end())
-            return;
+    m_answers.insert(std::make_pair("TriggerAdded", [this](const QJsonObject& obj) {
+      qDebug() << obj;
+      auto json_it = obj.find("Path");
+      if(json_it == obj.end())
+        return;
 
-          auto it = std::find(
-              m_activeSyncs.timeSyncs.begin(),
-              m_activeSyncs.timeSyncs.end(),
-              *json_it);
-          if (it == m_activeSyncs.timeSyncs.end())
-          {
-            m_activeSyncs.apply([=]() {
-              m_activeSyncs.timeSyncs.emplace_back(SyncInfo{
-                  *json_it, obj[score::StringConstant().Name].toString()});
-            });
-          }
-        }));
+      auto it = std::find(
+          m_activeSyncs.timeSyncs.begin(), m_activeSyncs.timeSyncs.end(), *json_it);
+      if(it == m_activeSyncs.timeSyncs.end())
+      {
+        m_activeSyncs.apply([=]() {
+          m_activeSyncs.timeSyncs.emplace_back(
+              SyncInfo{*json_it, obj[score::StringConstant().Name].toString()});
+        });
+      }
+    }));
 
-    m_answers.insert(
-        std::make_pair("TriggerRemoved", [this](const QJsonObject& obj) {
-          qDebug() << obj;
-          auto json_it = obj.find("Path");
-          if (json_it == obj.end())
-            return;
+    m_answers.insert(std::make_pair("TriggerRemoved", [this](const QJsonObject& obj) {
+      qDebug() << obj;
+      auto json_it = obj.find("Path");
+      if(json_it == obj.end())
+        return;
 
-          auto it = std::find(
-              m_activeSyncs.timeSyncs.begin(),
-              m_activeSyncs.timeSyncs.end(),
-              *json_it);
-          if (it != m_activeSyncs.timeSyncs.end())
-          {
-            m_activeSyncs.apply([=]() { m_activeSyncs.timeSyncs.erase(it); });
-          }
-        }));
+      auto it = std::find(
+          m_activeSyncs.timeSyncs.begin(), m_activeSyncs.timeSyncs.end(), *json_it);
+      if(it != m_activeSyncs.timeSyncs.end())
+      {
+        m_activeSyncs.apply([=]() { m_activeSyncs.timeSyncs.erase(it); });
+      }
+    }));
 
     connect(
-        &m_server,
-        &QWebSocket::textMessageReceived,
-        this,
+        &m_server, &QWebSocket::textMessageReceived, this,
         &WebSocketHandler::processTextMessage);
     connect(
-        &m_server,
-        &QWebSocket::binaryMessageReceived,
-        this,
+        &m_server, &QWebSocket::binaryMessageReceived, this,
         &WebSocketHandler::processBinaryMessage);
     connect(&m_server, &QWebSocket::connected, this, [] { qDebug("yolooo"); });
     connect(
         &m_server,
         static_cast<void (QWebSocket::*)(QAbstractSocket::SocketError)>(
             &QWebSocket::error),
-        this,
-        [=](QAbstractSocket::SocketError) {
-          qDebug() << m_server.errorString();
-        });
+        this, [=](QAbstractSocket::SocketError) { qDebug() << m_server.errorString(); });
 
     m_server.open(QUrl("ws://147.210.128.72:10212"));
   }
@@ -139,17 +126,17 @@ public:
   {
     QJsonParseError error;
     auto doc = QJsonDocument::fromJson(std::move(message), &error);
-    if (error.error)
+    if(error.error)
       return;
 
     auto obj = doc.object();
     auto it = obj.find("Message");
-    if (it == obj.end())
+    if(it == obj.end())
       return;
 
     auto mess = it->toString();
     auto answer_it = m_answers.find(mess);
-    if (answer_it == m_answers.end())
+    if(answer_it == m_answers.end())
       return;
 
     answer_it->second(obj);
@@ -157,7 +144,7 @@ public:
 
   void on_rowPressed(int i)
   {
-    if (i >= m_activeSyncs.timeSyncs.size())
+    if(i >= m_activeSyncs.timeSyncs.size())
       return;
 
     auto tn = m_activeSyncs.timeSyncs[i];

@@ -16,9 +16,7 @@ class GeneratorDialog : public Process::ScriptDialog
 {
 public:
   GeneratorDialog(
-      const ProcessModel& model,
-      const score::DocumentContext& ctx,
-      QWidget* parent)
+      const ProcessModel& model, const score::DocumentContext& ctx, QWidget* parent)
       : Process::ScriptDialog{"exprtk", ctx, parent}
       , m_model{model}
   {
@@ -33,9 +31,7 @@ public:
     controls->addRow("Step (smaller is more precise)", step);
     lay->insertLayout(2, controls);
     connect(
-        step,
-        qOverload<double>(&QDoubleSpinBox::valueChanged),
-        this,
+        step, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
         [=](double step) { m_step = step; });
 
     expr.add_variable("t", t);
@@ -56,7 +52,7 @@ z := sin(7 * PI * t);
     this->setError(0, QString{});
     auto txt = this->text().toStdString();
     bool ok = expr.set_expression(txt);
-    if (!ok)
+    if(!ok)
     {
       setError(0, QString::fromStdString(expr.error()));
       return;
@@ -64,7 +60,7 @@ z := sin(7 * PI * t);
     else
     {
       ossia::spline3d_data data;
-      for (t = 0.; t < 1.; t += m_step)
+      for(t = 0.; t < 1.; t += m_step)
       {
         expr.value();
         data.points.push_back({x, y, z});

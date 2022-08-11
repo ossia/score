@@ -3,11 +3,10 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 
+#include <ossia/detail/nullable_variant.hpp>
 #include <ossia/editor/expression/operators.hpp>
 
 #include <QString>
-
-#include <ossia/detail/nullable_variant.hpp>
 
 namespace State
 {
@@ -48,10 +47,7 @@ struct SCORE_LIB_STATE_EXPORT Relation
     return *this;
   }
 
-  Relation(
-      RelationMember l,
-      ossia::expressions::comparator o,
-      RelationMember r)
+  Relation(RelationMember l, ossia::expressions::comparator o, RelationMember r)
       : lhs{std::move(l)}
       , op{o}
       , rhs{std::move(r)}
@@ -81,6 +77,5 @@ struct SCORE_LIB_STATE_EXPORT Pulse
   }
 };
 SCORE_LIB_STATE_EXPORT QString toString(const Pulse&);
-SCORE_LIB_STATE_EXPORT const QMap<ossia::expressions::comparator, QString>
-opToString();
+SCORE_LIB_STATE_EXPORT const QMap<ossia::expressions::comparator, QString> opToString();
 }

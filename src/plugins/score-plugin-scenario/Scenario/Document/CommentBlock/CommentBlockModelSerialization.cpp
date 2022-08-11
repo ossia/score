@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommentBlockModel.hpp"
 
+#include <State/Expression.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <State/Expression.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>

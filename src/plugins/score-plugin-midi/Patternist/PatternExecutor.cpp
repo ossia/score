@@ -2,12 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PatternExecutor.hpp"
 
-#include <score/tools/Bind.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
+
 #include <ossia/dataflow/port.hpp>
 
-#include <Patternist/PatternModel.hpp>
 #include <QTimer>
+
+#include <Patternist/PatternModel.hpp>
 
 namespace Patternist
 {
@@ -28,29 +30,28 @@ public:
     m_outlets.push_back(&out);
   }
 
-  void
-  run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
+  void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     using namespace ossia;
     if(tk.model_read_duration() == 0_tv)
       return;
 
     // TODO on bar change, reset to start of pattern?
-    if (auto date = tk.get_physical_quantification_date(
-            pattern.division, st.modelToSamples()))
+    if(auto date
+       = tk.get_physical_quantification_date(pattern.division, st.modelToSamples()))
     {
       last = current;
       auto& mess = out.target<ossia::midi_port>()->messages;
-      for (uint8_t note : in_flight)
+      for(uint8_t note : in_flight)
       {
         mess.push_back(libremidi::message::note_off(channel, note, 0));
         mess.back().timestamp = *date;
       }
       in_flight.clear();
 
-      for (Lane& lane : pattern.lanes)
+      for(Lane& lane : pattern.lanes)
       {
-        if (lane.pattern[current])
+        if(lane.pattern[current])
         {
           mess.push_back(libremidi::message::note_on(channel, lane.note, 64));
           mess.back().timestamp = *date;
@@ -63,12 +64,9 @@ public:
 };
 
 Executor::Executor(
-    Patternist::ProcessModel& element,
-    const Execution::Context& ctx,
-    QObject* parent)
-    : ::Execution::ProcessComponent_T<
-        Patternist::ProcessModel,
-        ossia::node_process>{element, ctx, "PatternComponent", parent}
+    Patternist::ProcessModel& element, const Execution::Context& ctx, QObject* parent)
+    : ::Execution::ProcessComponent_T<Patternist::ProcessModel, ossia::node_process>{
+        element, ctx, "PatternComponent", parent}
 {
   auto node = ossia::make_node<pattern_node>(*ctx.execState);
   node->channel = element.channel();
@@ -78,25 +76,17 @@ Executor::Executor(
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(element, &Patternist::ProcessModel::channelChanged, this, [=](int c) {
-    in_exec([=] { node->channel = c; });
-  });
-  con(element,
-      &Patternist::ProcessModel::currentPatternChanged,
-      this,
+  con(element, &Patternist::ProcessModel::channelChanged, this,
+      [=](int c) { in_exec([=] { node->channel = c; }); });
+  con(element, &Patternist::ProcessModel::currentPatternChanged, this,
       [=, &element](int c) {
-        in_exec([=, p = element.patterns()[c]] { node->pattern = p; });
-      });
-  con(element,
-      &Patternist::ProcessModel::patternsChanged,
-      this,
-      [=, &element]() {
-        in_exec([=, p = element.patterns()[element.currentPattern()]] {
-          node->pattern = p;
-        });
-      });
-  con(ctx.doc.execTimer, &QTimer::timeout,
-      this, [&element, node] {
+    in_exec([=, p = element.patterns()[c]] { node->pattern = p; });
+  });
+  con(element, &Patternist::ProcessModel::patternsChanged, this, [=, &element]() {
+    in_exec(
+        [=, p = element.patterns()[element.currentPattern()]] { node->pattern = p; });
+  });
+  con(ctx.doc.execTimer, &QTimer::timeout, this, [&element, node] {
     int c = node->last;
     element.execPosition(c);
   });
@@ -107,7 +97,5 @@ void Executor::stop()
   ProcessComponent::stop();
   this->process().execPosition(-1);
 }
-Executor::~Executor()
-{
-}
+Executor::~Executor() { }
 }

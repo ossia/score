@@ -1,7 +1,7 @@
 #pragma once
-#include <QGraphicsItem>
-
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
+#include <QGraphicsItem>
 
 class QGraphicsSceneMouseEvent;
 

@@ -16,8 +16,7 @@ public:
   }
 
   QWidget* make(
-      const InspectedObjects& sourceElements,
-      const score::DocumentContext& doc,
+      const InspectedObjects& sourceElements, const score::DocumentContext& doc,
       QWidget* parent) const override;
 
   bool matches(const InspectedObjects& objects) const override;

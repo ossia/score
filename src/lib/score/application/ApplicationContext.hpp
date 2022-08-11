@@ -23,9 +23,7 @@ struct DocumentContext;
 struct SCORE_LIB_BASE_EXPORT ApplicationContext
 {
   explicit ApplicationContext(
-      const score::ApplicationSettings&,
-      const ApplicationComponents&,
-      DocumentList& l,
+      const score::ApplicationSettings&, const ApplicationComponents&, DocumentList& l,
       const std::vector<std::unique_ptr<score::SettingsDelegateModel>>&);
   ApplicationContext(const ApplicationContext&) = delete;
   ApplicationContext(ApplicationContext&&) = delete;
@@ -41,9 +39,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
   template <typename T>
   T& settings() const
   {
-    for (auto& elt : this->m_settings)
+    for(auto& elt : this->m_settings)
     {
-      if (auto c = dynamic_cast<T*>(elt.get()))
+      if(auto c = dynamic_cast<T*>(elt.get()))
       {
         return *c;
       }

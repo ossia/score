@@ -63,8 +63,7 @@ class Model;
 }
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
-using reverse_time_function
-    = smallfun::function<TimeVal(const ossia::time_value&)>;
+using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
 using ExecutionCommand = smallfun::function<
     void(),
 #if defined(_MSC_VER) && !defined(NDEBUG)
@@ -72,9 +71,7 @@ using ExecutionCommand = smallfun::function<
 #else
     128,
 #endif
-    std::max(
-        (int)8,
-        (int)std::max(alignof(std::function<void()>), alignof(double))),
+    std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
     smallfun::Methods::Move>;
 using GCCommand = smallfun::function<
     void(),
@@ -83,9 +80,7 @@ using GCCommand = smallfun::function<
 #else
     128 + 4 * 8,
 #endif
-    std::max(
-        (int)8,
-        (int)std::max(alignof(std::function<void()>), alignof(double))),
+    std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
     smallfun::Methods::Move>;
 
 using ExecutionCommandQueue = ossia::spsc_queue<ExecutionCommand, 1024>;

@@ -22,8 +22,6 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-#include <score_git_info.hpp>
-
 #include <QApplication>
 #include <QByteArray>
 #include <QCryptographicHash>
@@ -35,6 +33,8 @@
 #include <QString>
 #include <QVector>
 #include <QWidget>
+
+#include <score_git_info.hpp>
 
 #include <stdexcept>
 #include <vector>
@@ -76,10 +76,9 @@ void Document::saveAsJson(JSONObject::Serializer& writer)
 
   writer.stream.Key("Plugins");
   writer.stream.StartArray();
-  for (const auto& plugin : model().pluginModels())
+  for(const auto& plugin : model().pluginModels())
   {
-    if (auto serializable_plugin
-        = qobject_cast<SerializableDocumentPlugin*>(plugin))
+    if(auto serializable_plugin = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
       writer.readFrom(*serializable_plugin);
     }
@@ -87,8 +86,7 @@ void Document::saveAsJson(JSONObject::Serializer& writer)
   writer.stream.EndArray();
 
   writer.stream.Key("Version");
-  writer.stream.Int(
-      context().app.applicationSettings.saveFormatVersion.value());
+  writer.stream.Int(context().app.applicationSettings.saveFormatVersion.value());
 
   writer.stream.Key("Commit");
   writer.stream.String(GIT_COMMIT);
@@ -113,10 +111,9 @@ QByteArray Document::saveAsByteArray()
   // Save the document plug-ins
   QVector<QPair<QByteArray, QByteArray>> documentPluginModels;
 
-  for (const auto& plugin : model().pluginModels())
+  for(const auto& plugin : model().pluginModels())
   {
-    if (auto serializable_plugin
-        = qobject_cast<SerializableDocumentPlugin*>(plugin))
+    if(auto serializable_plugin = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
       //static_assert(
       //    is_identified_object<SerializableDocumentPlugin>::value, "");
@@ -133,15 +130,13 @@ QByteArray Document::saveAsByteArray()
       QByteArray arr_before, arr_after;
       DataStream::Serializer s_before{&arr_before};
       s_before.readFrom(*serializable_plugin);
-      documentPluginModels.push_back(
-          {std::move(arr_before), std::move(arr_after)});
+      documentPluginModels.push_back({std::move(arr_before), std::move(arr_after)});
     }
   }
 
   writer << docByteArray << documentPluginModels;
 
-  auto hash = QCryptographicHash::hash(
-      global, QCryptographicHash::Algorithm::Sha512);
+  auto hash = QCryptographicHash::hash(global, QCryptographicHash::Algorithm::Sha512);
   writer << hash;
 
   // Indicate in the stack that the current position is saved
@@ -151,9 +146,7 @@ QByteArray Document::saveAsByteArray()
 
 // Load document
 Document::Document(
-    const QString& fileName,
-    DocumentDelegateFactory& factory,
-    QWidget* parentview,
+    const QString& fileName, DocumentDelegateFactory& factory, QWidget* parentview,
     QObject* parent)
     : QObject{parent}
     , m_metadata{fileName}
@@ -163,45 +156,37 @@ Document::Document(
 {
   loadModel(fileName, factory);
 
-  if (parentview)
+  if(parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter
-        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
   init();
 }
 
 Document::Document(
-    const QString& fileName,
-    const QByteArray& data,
-    SerializationIdentifier format,
-    DocumentDelegateFactory& factory,
-    QWidget* parentview,
-    QObject* parent)
-  : QObject{parent}
-  , m_metadata{fileName}
-  , m_commandStack{*this}
-  , m_objectLocker{this}
-  , m_context{*this}
+    const QString& fileName, const QByteArray& data, SerializationIdentifier format,
+    DocumentDelegateFactory& factory, QWidget* parentview, QObject* parent)
+    : QObject{parent}
+    , m_metadata{fileName}
+    , m_commandStack{*this}
+    , m_objectLocker{this}
+    , m_context{*this}
 {
   loadModel(fileName, data, format, factory);
 
-  if (parentview)
+  if(parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter
-        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
   init();
 }
 
 // Restore
 Document::Document(
-    const score::RestorableDocument& data,
-    DocumentDelegateFactory& factory,
-    QWidget* parentview,
-    QObject* parent)
+    const score::RestorableDocument& data, DocumentDelegateFactory& factory,
+    QWidget* parentview, QObject* parent)
     : QObject{parent}
     , m_metadata{data.filePath}
     , m_commandStack{*this}
@@ -211,24 +196,21 @@ Document::Document(
 {
   restoreModel(data.doc, factory);
 
-  if (parentview)
+  if(parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter
-        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
   init();
 }
 
-void Document::restoreModel(
-    const QByteArray& data,
-    DocumentDelegateFactory& factory)
+void Document::restoreModel(const QByteArray& data, DocumentDelegateFactory& factory)
 {
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
-  new (m_model) DocumentModel(this);
+  new(m_model) DocumentModel(this);
 
-  for (auto& appPlug : m_context.app.guiApplicationPlugins())
+  for(auto& appPlug : m_context.app.guiApplicationPlugins())
   {
     appPlug->on_initDocument(*this);
   }
@@ -236,11 +218,9 @@ void Document::restoreModel(
   m_model->loadDocumentAsByteArray(m_context, data, factory);
 }
 
-void Document::loadModel(
-    const QString& fileName,
-    DocumentDelegateFactory& factory)
+void Document::loadModel(const QString& fileName, DocumentDelegateFactory& factory)
 {
-  if (fileName.indexOf(".scorebin") != -1)
+  if(fileName.indexOf(".scorebin") != -1)
   {
     QFile f(fileName);
     f.open(QIODevice::ReadOnly);
@@ -249,12 +229,12 @@ void Document::loadModel(
 
     loadModel(fileName, data, DataStream::type(), factory);
   }
-  else if (fileName.indexOf(".score") != -1)
+  else if(fileName.indexOf(".score") != -1)
   {
     QFile f(fileName);
     f.open(QIODevice::ReadOnly);
     auto data = score::mapAsByteArray(f);
-    if (!data.isEmpty())
+    if(!data.isEmpty())
     {
       loadModel(fileName, data, JSONObject::type(), factory);
     }
@@ -271,35 +251,31 @@ void Document::loadModel(
 }
 
 void Document::loadModel(
-    const QString& fileName,
-    const QByteArray& data,
-    SerializationIdentifier format,
+    const QString& fileName, const QByteArray& data, SerializationIdentifier format,
     DocumentDelegateFactory& factory)
 {
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
-  new (m_model) DocumentModel(this);
+  new(m_model) DocumentModel(this);
 
-  for (auto& appPlug : m_context.app.guiApplicationPlugins())
+  for(auto& appPlug : m_context.app.guiApplicationPlugins())
   {
     appPlug->on_initDocument(*this);
   }
 
   switch(format)
   {
-    case DataStream::type():
-    {
+    case DataStream::type(): {
       m_model->loadDocumentAsByteArray(m_context, data, factory);
       break;
     }
-    case JSONObject::type():
-    {
+    case JSONObject::type(): {
       auto doc = readJson(data);
       bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
-      if (!ok)
+      if(!ok)
       {
         throw std::runtime_error(
-              "The save format is too old. Wait until the developers implement "
+            "The save format is too old. Wait until the developers implement "
             "loading of the older save format.");
       }
       m_model->loadDocumentAsJson(m_context, doc, factory);
@@ -309,9 +285,7 @@ void Document::loadModel(
 }
 
 Document::Document(
-    const QString& fileName,
-    DocumentDelegateFactory& factory,
-    QObject* parent)
+    const QString& fileName, DocumentDelegateFactory& factory, QObject* parent)
     : QObject{parent}
     , m_metadata{fileName}
     , m_commandStack{*this}
@@ -322,9 +296,7 @@ Document::Document(
 }
 
 void DocumentModel::loadDocumentAsByteArray(
-    score::DocumentContext& ctx,
-    const QByteArray& data,
-    DocumentDelegateFactory& fact)
+    score::DocumentContext& ctx, const QByteArray& data, DocumentDelegateFactory& fact)
 {
   // Deserialize the first parts
   QByteArray doc;
@@ -338,9 +310,7 @@ void DocumentModel::loadDocumentAsByteArray(
   QByteArray verif_arr;
   QDataStream writer(&verif_arr, QIODevice::WriteOnly);
   writer << doc << documentPluginModels;
-  if (QCryptographicHash::hash(
-          verif_arr, QCryptographicHash::Algorithm::Sha512)
-      != hash)
+  if(QCryptographicHash::hash(verif_arr, QCryptographicHash::Algorithm::Sha512) != hash)
   {
     throw std::runtime_error("Invalid file.");
   }
@@ -361,17 +331,16 @@ void DocumentModel::loadDocumentAsByteArray(
   auto& plugin_factories = ctx.app.interfaces<DocumentPluginFactoryList>();
   std::vector<score::DocumentPlugin*> docs(plug_n, nullptr);
 
-  for (int i = 0; i < plug_n; i++)
+  for(int i = 0; i < plug_n; i++)
   {
     const auto& plugin_raw = documentPluginModels[i];
 
     DataStream::Deserializer plug_writer{plugin_raw.first};
-    auto plug
-        = deserialize_interface(plugin_factories, plug_writer, ctx, this);
+    auto plug = deserialize_interface(plugin_factories, plug_writer, ctx, this);
 
     qDebug() << plug;
     docs[i] = plug;
-    if (plug)
+    if(plug)
     {
       this->addPluginModel(plug);
     }
@@ -386,12 +355,11 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
-    score::DocumentContext& ctx,
-    const rapidjson::Value& json,
+    score::DocumentContext& ctx, const rapidjson::Value& json,
     DocumentDelegateFactory& fact)
 {
   const auto& doc_obj = json.FindMember("Document");
-  if (doc_obj == json.MemberEnd())
+  if(doc_obj == json.MemberEnd())
     throw std::runtime_error(tr("Invalid document").toStdString());
 
   const auto& doc = (*doc_obj).value;
@@ -400,13 +368,12 @@ void DocumentModel::loadDocumentAsJson(
   // Load the plug-in models
   auto json_plugins = json["Plugins"].GetArray();
   auto& plugin_factories = ctx.app.interfaces<DocumentPluginFactoryList>();
-  for (const auto& plugin : json_plugins)
+  for(const auto& plugin : json_plugins)
   {
     JSONObject::Deserializer plug_writer{plugin};
-    auto plug
-        = deserialize_interface(plugin_factories, plug_writer, ctx, this);
+    auto plug = deserialize_interface(plugin_factories, plug_writer, ctx, this);
 
-    if (plug)
+    if(plug)
     {
       this->addPluginModel(plug);
     }
@@ -424,9 +391,7 @@ void DocumentModel::loadDocumentAsJson(
 // Load document model
 DocumentModel::DocumentModel(QObject* parent)
     : IdentifiedObject{
-        Id<DocumentModel>(score::id_generator::getFirstId()),
-        "DocumentModel",
-        parent}
+        Id<DocumentModel>(score::id_generator::getFirstId()), "DocumentModel", parent}
 {
 }
 

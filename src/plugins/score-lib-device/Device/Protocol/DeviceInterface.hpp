@@ -2,9 +2,10 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
-#include <ossia-qt/device_metatype.hpp>
 #include <ossia/detail/callback_container.hpp>
 #include <ossia/network/base/value_callback.hpp>
+
+#include <ossia-qt/device_metatype.hpp>
 
 #include <nano_signal_slot.hpp>
 #include <score_lib_device_export.h>
@@ -97,8 +98,7 @@ public:
 
   virtual void addAddress(const Device::FullAddressSettings&);
   virtual void updateAddress(
-      const State::Address& currentAddr,
-      const Device::FullAddressSettings& newAddr);
+      const State::Address& currentAddr, const Device::FullAddressSettings& newAddr);
   void removeNode(const State::Address&);
 
   void sendMessage(const State::Address& addr, const ossia::value& v);
@@ -142,9 +142,7 @@ public:
   void namespaceUpdated() E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, namespaceUpdated)
 
   // In case the device changed
-  void deviceChanged(
-      ossia::net::device_base* old_dev,
-      ossia::net::device_base* new_dev)
+  void deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev)
 
   /* If logging is enabled, these two signals may be sent
@@ -168,11 +166,8 @@ protected:
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);
   void removeListening_impl(
-      ossia::net::node_base& node,
-      State::Address addr,
-      std::vector<State::Address>&);
-  void
-  renameListening_impl(const State::Address& parent, const QString& newName);
+      ossia::net::node_base& node, State::Address addr, std::vector<State::Address>&);
+  void renameListening_impl(const State::Address& parent, const QString& newName);
   void setLogging_impl(DeviceLogging) const;
   void enableCallbacks();
   void disableCallbacks();
@@ -197,10 +192,7 @@ protected:
 
   using DeviceInterface::DeviceInterface;
 
-  ossia::net::device_base* getDevice() const final override
-  {
-    return m_dev.get();
-  }
+  ossia::net::device_base* getDevice() const final override { return m_dev.get(); }
 
   std::unique_ptr<ossia::net::device_base> m_dev;
   bool m_owned{true};
@@ -212,8 +204,7 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 createNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 
-SCORE_LIB_DEVICE_EXPORT Device::Node
-ToDeviceExplorer(const ossia::net::node_base& node);
+SCORE_LIB_DEVICE_EXPORT Device::Node ToDeviceExplorer(const ossia::net::node_base& node);
 
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
@@ -222,5 +213,6 @@ SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 
 SCORE_LIB_DEVICE_EXPORT
-void releaseDevice(ossia::net::network_context& ctx, std::unique_ptr<ossia::net::device_base> dev);
+void releaseDevice(
+    ossia::net::network_context& ctx, std::unique_ptr<ossia::net::device_base> dev);
 }

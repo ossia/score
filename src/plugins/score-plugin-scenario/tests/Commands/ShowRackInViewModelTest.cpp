@@ -3,10 +3,6 @@
 #include <Process/AbstractScenarioLayerModel.hpp>
 #include <Process/ProcessList.hpp>
 
-#include <score/document/DocumentInterface.hpp>
-
-#include <core/command/CommandStack.hpp>
-
 #include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
@@ -21,6 +17,10 @@
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/document/DocumentInterface.hpp>
+
+#include <core/command/CommandStack.hpp>
 
 using namespace score;
 using namespace Scenario::Command;
@@ -39,24 +39,22 @@ private:
     plist->registerProcess(new ScenarioFactory);
 
     // Setup
-    IntervalModel* interval = new IntervalModel{
-        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* interval
+        = new IntervalModel{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
     // Creation of a scenario with a interval
-    auto cmd_proc
-        = new AddProcessToInterval({{"IntervalModel", {}}}, "Scenario");
+    auto cmd_proc = new AddProcessToInterval({{"IntervalModel", {}}}, "Scenario");
     stack.redoAndPush(cmd_proc);
     auto scenarioId = cmd_proc->m_createdProcessId;
-    auto scenario
-        = static_cast<Scenario::ProcessModel*>(interval->process(scenarioId));
+    auto scenario = static_cast<Scenario::ProcessModel*>(interval->process(scenarioId));
 
     // Creation of a way to visualize what happens in the original interval
     auto cmd_rack = new AddRackToInterval(ObjectPath{{"IntervalModel", {}}});
     stack.redoAndPush(cmd_rack);
     auto rackId = cmd_rack->m_createdRackId;
 
-    auto cmd_slot = new AddSlotToRack(
-        ObjectPath{{"IntervalModel", {}}, {"RackModel", rackId}});
+    auto cmd_slot
+        = new AddSlotToRack(ObjectPath{{"IntervalModel", {}}, {"RackModel", rackId}});
     auto slotId = cmd_slot->m_createdSlotId;
     stack.redoAndPush(cmd_slot);
 
@@ -65,14 +63,9 @@ private:
         {{"IntervalModel", {}}, {"ScenarioModel", scenarioId}});
     stack.redoAndPush(cmd_lm);
 
-    auto viewmodel = interval->rackes()
-                         .front()
-                         ->getSlots()
-                         .front()
-                         ->layerModels()
-                         .front();
-    auto scenario_viewmodel
-        = dynamic_cast<AbstractScenarioViewModel*>(viewmodel);
+    auto viewmodel
+        = interval->rackes().front()->getSlots().front()->layerModels().front();
+    auto scenario_viewmodel = dynamic_cast<AbstractScenarioViewModel*>(viewmodel);
     // Put this in the tests for AbstractScenarioViewModel
     QVERIFY(scenario_viewmodel != nullptr);
     QCOMPARE(scenario_viewmodel->intervals().count(), 0);
@@ -95,8 +88,7 @@ private:
     QCOMPARE(scenario_viewmodel->intervals().count(), 1);
 
     // Check that the interval view model is properly instantiated
-    IntervalViewModel* interval_viewmodel
-        = scenario_viewmodel->intervals().front();
+    IntervalViewModel* interval_viewmodel = scenario_viewmodel->intervals().front();
     QCOMPARE(
         interval_viewmodel->model(),
         scenario->interval(cmd_event->m_cmd->m_createdIntervalId));
@@ -117,8 +109,8 @@ private:
     auto rack2Id = cmd_rack2->m_createdRackId;
 
     // Show the rack
-    auto cmd_showrack = new ShowRackInViewModel(
-        score::IDocument::path(interval_viewmodel), rack2Id);
+    auto cmd_showrack
+        = new ShowRackInViewModel(score::IDocument::path(interval_viewmodel), rack2Id);
     stack.redoAndPush(cmd_showrack);
     QCOMPARE(interval_viewmodel->isRackShown(), true);
     QCOMPARE(interval_viewmodel->shownRack(), rack2Id);

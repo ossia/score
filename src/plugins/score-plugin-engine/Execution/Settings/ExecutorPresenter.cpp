@@ -38,13 +38,13 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 
   // Clock used
   std::map<QString, ClockFactory::ConcreteKey> clockMap;
-  for (auto& fact : m.clockFactories())
+  for(auto& fact : m.clockFactories())
   {
     clockMap.insert(std::make_pair(fact.prettyName(), fact.concreteKey()));
   }
 
   con(v, &View::ExecutionListeningChanged, this, [&](auto val) {
-    if (val != m.getExecutionListening())
+    if(val != m.getExecutionListening())
     {
       m_disp.submit<SetModelExecutionListening>(this->model(this), val);
     }

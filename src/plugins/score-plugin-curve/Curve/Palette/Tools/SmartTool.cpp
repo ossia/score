@@ -23,17 +23,12 @@
 
 namespace Curve
 {
-SmartTool::SmartTool(
-    Curve::ToolPalette& sm,
-    const score::DocumentContext& context)
+SmartTool::SmartTool(Curve::ToolPalette& sm, const score::DocumentContext& context)
     : CurveTool{sm}
     , m_co{sm.model(), &sm.presenter(), context.commandStack}
 {
   m_state = new Curve::SelectionState{
-      context.selectionStack,
-      m_parentSM,
-      m_parentSM.presenter().view(),
-      &localSM()};
+      context.selectionStack, m_parentSM, m_parentSM.presenter().view(), &localSM()};
 
   localSM().setInitialState(m_state);
 
@@ -42,8 +37,7 @@ SmartTool::SmartTool(
 
     m_moveState->setObjectName("MovePointState");
 
-    score::make_transition<ClickOnPoint_Transition>(
-        m_state, m_moveState, *m_moveState);
+    score::make_transition<ClickOnPoint_Transition>(m_state, m_moveState, *m_moveState);
 
     m_moveState->addTransition(m_moveState, finishedState(), m_state);
 
@@ -56,48 +50,44 @@ SmartTool::SmartTool(
 void SmartTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint,
-      itemUnderMouse(scenePoint),
+      scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-        localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
-        m_nothingPressed = false;
+    localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
+    m_nothingPressed = false;
       },
       [&](const SegmentView* segment) {
-        localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
-        m_nothingPressed = false;
-      },
+    localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
+    m_nothingPressed = false;
+  },
       [&]() {
-        localSM().postEvent(new score::Press_Event);
-        m_nothingPressed = true;
+    localSM().postEvent(new score::Press_Event);
+    m_nothingPressed = true;
       });
 }
 
 void SmartTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
-  if (m_nothingPressed)
+  if(m_nothingPressed)
   {
     localSM().postEvent(new score::Move_Event);
   }
   else
   {
     mapTopItem(
-        scenePoint,
-        itemUnderMouse(scenePoint),
+        scenePoint, itemUnderMouse(scenePoint),
         [&](const PointView* point) {
-          localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
+      localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
         },
         [&](const SegmentView* segment) {
-          localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
-        },
-        [&]() {
-          localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr));
-        });
+      localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
+    },
+        [&]() { localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr)); });
   }
 }
 
 void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
 {
-  if (m_nothingPressed)
+  if(m_nothingPressed)
   {
     localSM().postEvent(new score::Release_Event); // select
     m_nothingPressed = false;
@@ -106,18 +96,15 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
   }
 
   mapTopItem(
-      scenePoint,
-      itemUnderMouse(scenePoint),
+      scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-        select(point->model(), m_parentSM.model().selectedChildren());
-        localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
+    select(point->model(), m_parentSM.model().selectedChildren());
+    localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
-        select(segment->model(), m_parentSM.model().selectedChildren());
-        localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
-      },
-      [&]() {
-        localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr));
-      });
+    select(segment->model(), m_parentSM.model().selectedChildren());
+    localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
+  },
+      [&]() { localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr)); });
 }
 }

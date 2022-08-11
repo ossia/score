@@ -17,21 +17,15 @@ ProcessComponentFactoryList::~ProcessComponentFactoryList() = default;
 void ProcessComponent::lazy_init() { }
 
 ProcessComponent::ProcessComponent(
-    Process::ProcessModel& proc,
-    const Context& ctx,
-    const QString& name,
+    Process::ProcessModel& proc, const Context& ctx, const QString& name,
     QObject* parent)
-    : Process::GenericProcessComponent<const Context>{
-        proc,
-        ctx,
-        name,
-        parent}
+    : Process::GenericProcessComponent<const Context>{proc, ctx, name, parent}
 {
 }
 
 void ProcessComponent::cleanup()
 {
-  if (const auto& proc = m_ossia_process)
+  if(const auto& proc = m_ossia_process)
   {
     this->system().setup.unregister_node(process(), proc->node);
     in_exec([proc] { proc->node.reset(); });

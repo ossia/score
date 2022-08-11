@@ -1,8 +1,8 @@
 #pragma once
-#include <score/command/Command.hpp>
-
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+
+#include <score/command/Command.hpp>
 
 namespace Process
 {
@@ -19,10 +19,8 @@ class MoveProcess final : public score::Command
   SCORE_COMMAND_DECL(CommandFactoryName(), MoveProcess, "Move a process")
 public:
   MoveProcess(
-      const IntervalModel& src,
-      const IntervalModel& tgt,
-      Id<Process::ProcessModel> processId,
-      bool addSlot = true);
+      const IntervalModel& src, const IntervalModel& tgt,
+      Id<Process::ProcessModel> processId, bool addSlot = true);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

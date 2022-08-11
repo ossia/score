@@ -4,6 +4,10 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
@@ -12,9 +16,6 @@
 #include <QPainter>
 #include <QPoint>
 
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 #include <cmath>
 
 class QGraphicsItem;
@@ -27,8 +28,7 @@ namespace Scenario
 static constexpr qreal fullViewHeaderBarX = 5.;
 static constexpr qreal fullViewHeaderBarY = 2.;
 FullViewIntervalHeader::FullViewIntervalHeader(
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent)
+    const score::DocumentContext& ctx, QGraphicsItem* parent)
     : IntervalHeader{parent}
     , m_bar{ctx, this}
 {
@@ -50,9 +50,7 @@ QRectF FullViewIntervalHeader::boundingRect() const
 }
 
 void FullViewIntervalHeader::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   // TODO find a better way to update this ?
   painter->setRenderHint(QPainter::Antialiasing, false);
@@ -63,7 +61,7 @@ void FullViewIntervalHeader::paint(
   // view.
   // We have to compute the visible part of the header
   auto view = getView(*this);
-  if (!view)
+  if(!view)
     return;
 
   // Note: if the interval always has its pos() in (0; 0), we can
@@ -76,19 +74,19 @@ void FullViewIntervalHeader::paint(
   const constexpr double min_x = fullViewHeaderBarX;
   const double max_x = view->width() - 30.;
 
-  if (text_left <= min_x)
+  if(text_left <= min_x)
   {
     // Compute the pixels needed to add to have top-left at 0
     x = x - text_left + min_x;
   }
-  else if (text_right >= max_x)
+  else if(text_right >= max_x)
   {
     // Compute the pixels needed to add to have top-right at max
     x = x - text_right + max_x;
   }
   x = std::max(x, 5.);
 
-  if (std::abs(m_bar.pos().x() - x) > 0.1)
+  if(std::abs(m_bar.pos().x() - x) > 0.1)
   {
     m_bar.setPos(x, fullViewHeaderBarY);
   }

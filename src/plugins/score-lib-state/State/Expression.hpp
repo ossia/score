@@ -31,8 +31,7 @@ enum class UnaryOperator
 };
 
 struct SCORE_LIB_STATE_EXPORT ExprData
-    : public score::
-          VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
+    : public score::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
 {
   // SCORE_SERIALIZE_FRIENDS
 
@@ -61,9 +60,7 @@ struct SCORE_LIB_STATE_EXPORT ExprData
   {
   }
 
-  ExprData(
-      score::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
-          data)
+  ExprData(score::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator> data)
       : VariantBasedNode{std::move(data)}
   {
   }
@@ -87,21 +84,18 @@ struct SCORE_LIB_STATE_EXPORT ExprData
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
 template <>
-class SCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final
-    : public State::ExprData
+class SCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final : public State::ExprData
 {
   //  friend struct TSerializer<DataStream, TreeNode<State::ExprData>>;
   //  friend struct TSerializer<JSONObject, void, TreeNode<State::ExprData>>;
 
   SCORE_LIB_STATE_EXPORT
-  friend bool operator!=(
-      const TreeNode<State::ExprData>& lhs,
-      const TreeNode<State::ExprData>& rhs);
+  friend bool
+  operator!=(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs);
 
   SCORE_LIB_STATE_EXPORT
-  friend bool operator==(
-      const TreeNode<State::ExprData>& lhs,
-      const TreeNode<State::ExprData>& rhs);
+  friend bool
+  operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs);
 
 public:
   QString toString() const;
@@ -125,8 +119,7 @@ public:
   // The parent has to be set afterwards.
   TreeNode(const TreeNode<State::ExprData>& other);
   TreeNode(TreeNode<State::ExprData>&& other);
-  TreeNode<State::ExprData>&
-  operator=(const TreeNode<State::ExprData>& source);
+  TreeNode<State::ExprData>& operator=(const TreeNode<State::ExprData>& source);
   TreeNode<State::ExprData>& operator=(TreeNode<State::ExprData>&& source);
 
   TreeNode(State::ExprData data, TreeNode* parent)

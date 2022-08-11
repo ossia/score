@@ -1,5 +1,6 @@
-#include <Nodal/Commands.hpp>
 #include <Process/ProcessList.hpp>
+
+#include <Nodal/Commands.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -12,10 +13,8 @@ namespace Nodal
 {
 
 CreateNode::CreateNode(
-    const Nodal::Model& nodal,
-    QPointF position,
-    const UuidKey<Process::ProcessModel>& process,
-    const QString& dat)
+    const Nodal::Model& nodal, QPointF position,
+    const UuidKey<Process::ProcessModel>& process, const QString& dat)
     : m_path{nodal}
     , m_pos{position}
     , m_uuid{process}
@@ -35,8 +34,7 @@ void CreateNode::redo(const score::DocumentContext& ctx) const
   auto& nodal = m_path.find(ctx);
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_uuid);
   SCORE_ASSERT(fac);
-  auto proc
-      = fac->make(nodal.duration(), m_data, m_createdNodeId, ctx, &nodal);
+  auto proc = fac->make(nodal.duration(), m_data, m_createdNodeId, ctx, &nodal);
 
   SCORE_ASSERT(proc);
   // todo handle these asserts
@@ -65,23 +63,20 @@ ReplaceAllNodes::ReplaceAllNodes(const Model& p, const QByteArray& new_data)
   DataStream::Serializer s1{&m_old_block};
   {
     s1.m_stream << (int32_t)p.nodes.size();
-    for (const auto& node : p.nodes)
+    for(const auto& node : p.nodes)
       s1.readFrom(node);
   }
 
-  m_old_cables = Dataflow::saveCables(
-      {const_cast<Nodal::Model*>(&p)},
-      ctx);
+  m_old_cables = Dataflow::saveCables({const_cast<Nodal::Model*>(&p)}, ctx);
 
   auto doc = readJson(new_data);
   JSONWriter wr{doc};
   m_new_cables = JsonValue{wr.obj["Cables"]}.to<Dataflow::SerializedCables>();
-  auto& document
-      = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+  auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
   // Note: when saving, the port's associated cables aren't saved ; it's the cable
   // which carry this information.
-  for (auto& c : m_new_cables)
+  for(auto& c : m_new_cables)
   {
     c.first = getStrongId(document.cables);
   }
@@ -107,10 +102,10 @@ void ReplaceAllNodes::undo(const score::DocumentContext& ctx) const
   {
     int32_t process_count = 0;
     s.m_stream >> process_count;
-    for (; process_count-- > 0;)
+    for(; process_count-- > 0;)
     {
       auto node = deserialize_interface(pl, s, ctx, &proc);
-      if (node)
+      if(node)
       {
         proc.nodes.add(node);
       }
@@ -141,11 +136,11 @@ void ReplaceAllNodes::redo(const score::DocumentContext& ctx) const
 
   static auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
   JSONWriter wr{doc};
-  for (const auto& json_vref : wr.obj["Nodes"].toArray())
+  for(const auto& json_vref : wr.obj["Nodes"].toArray())
   {
     JSONObject::Deserializer deserializer{json_vref};
     auto p = deserialize_interface(pl, deserializer, ctx, &proc);
-    if (p)
+    if(p)
       proc.nodes.add(p);
     else
       SCORE_TODO;
@@ -174,8 +169,7 @@ RemoveNode::RemoveNode(const Model& p, const Process::ProcessModel& n)
   s1.readFrom(n);
 
   m_cables = Dataflow::saveCables(
-      {const_cast<Process::ProcessModel*>(&n)},
-      score::IDocument::documentContext(p));
+      {const_cast<Process::ProcessModel*>(&n)}, score::IDocument::documentContext(p));
 }
 
 void RemoveNode::undo(const score::DocumentContext& ctx) const

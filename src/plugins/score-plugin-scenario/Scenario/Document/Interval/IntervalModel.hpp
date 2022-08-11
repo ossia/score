@@ -4,11 +4,10 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 
-#include <Scenario/Document/Interval/TimeSignatureMap.hpp>
-
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/Interval/TimeSignatureMap.hpp>
 #include <Scenario/Document/Metatypes.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
@@ -70,29 +69,21 @@ public:
 
   /** The class **/
   IntervalModel(
-      const Id<IntervalModel>&,
-      double yPos,
-      const score::DocumentContext& ctx,
+      const Id<IntervalModel>&, double yPos, const score::DocumentContext& ctx,
       QObject* parent);
 
   ~IntervalModel();
 
   // Serialization
   IntervalModel(
-      DataStream::Deserializer& vis,
-      const score::DocumentContext& ctx,
+      DataStream::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(
+      JSONObject::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(
+      DataStream::Deserializer&& vis, const score::DocumentContext& ctx,
       QObject* parent);
   IntervalModel(
-      JSONObject::Deserializer& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent);
-  IntervalModel(
-      DataStream::Deserializer&& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent);
-  IntervalModel(
-      JSONObject::Deserializer&& vis,
-      const score::DocumentContext& ctx,
+      JSONObject::Deserializer&& vis, const score::DocumentContext& ctx,
       QObject* parent);
 
   const score::DocumentContext& context() const noexcept { return m_context; }
@@ -259,8 +250,7 @@ public:
   void executingChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
 
-  void busChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
+  void busChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
 
   void graphalChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
@@ -268,19 +258,16 @@ public:
   PROPERTY(bool, muted READ muted WRITE setMuted NOTIFY mutedChanged)
   PROPERTY(bool, graphal READ graphal WRITE setGraphal NOTIFY graphalChanged)
   PROPERTY(
-      double,
-      heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
-          heightPercentageChanged)
+      double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
+                  heightPercentageChanged)
 
   PROPERTY(
-      bool,
-      timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY
-          hasTimeSignatureChanged)
+      bool, timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY
+                hasTimeSignatureChanged)
 
   PROPERTY(
-      ossia::musical_sync,
-      quantizationRate READ quantizationRate WRITE setQuantizationRate NOTIFY
-          quantizationRateChanged)
+      ossia::musical_sync, quantizationRate READ quantizationRate WRITE
+                               setQuantizationRate NOTIFY quantizationRateChanged)
 private:
   void on_addProcess(Process::ProcessModel&);
   void on_removingProcess(const Process::ProcessModel&);
@@ -325,8 +312,7 @@ bool isInFullView(const Process::ProcessModel& cstr) noexcept;
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool isBus(
-    const Scenario::IntervalModel& model,
-    const score::DocumentContext& ctx) noexcept;
+    const Scenario::IntervalModel& model, const score::DocumentContext& ctx) noexcept;
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 QPointF newProcessPosition(const Scenario::IntervalModel& model) noexcept;

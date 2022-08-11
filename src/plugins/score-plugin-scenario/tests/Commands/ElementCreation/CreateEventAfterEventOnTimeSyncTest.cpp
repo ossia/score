@@ -16,8 +16,8 @@ class CreateEventAfterEventOnTimeSyncTest : public QObject
 private:
   void CreateTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);
@@ -40,9 +40,7 @@ private:
         {
             {"ScenarioModel", {0}},
         },
-        scenar->startEvent()->id(),
-        eventCmd.createdTimeSync(),
-        TimeValue::fromMsecs(10),
+        scenar->startEvent()->id(), eventCmd.createdTimeSync(), TimeValue::fromMsecs(10),
         0.4);
 
     cmd.redo(ctx);
@@ -57,7 +55,7 @@ private:
       scenar->event(cmd.createdEvent());
       QFAIL("Event call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
 

@@ -1,10 +1,12 @@
 #pragma once
-#include <Device/Address/AddressSettings.hpp>
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/VecWidgets.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
@@ -22,9 +24,7 @@ public:
     m_domainSelector = new QComboBox{this};
     m_domainSelector->addItems({tr("Float"), tr("Vec")});
     connect(
-        m_domainSelector,
-        SignalUtils::QComboBox_currentIndexChanged_int(),
-        this,
+        m_domainSelector, SignalUtils::QComboBox_currentIndexChanged_int(), this,
         &AddressVecSettingsWidget<N>::on_domainTypeChange);
 
     m_domainFloatEdit = new State::NumericDomainWidget<float>{this};
@@ -32,23 +32,18 @@ public:
     m_domainVecEdit->setHidden(true);
 
     m_layout->insertRow(0, makeLabel(tr("Value"), this), m_valueEdit);
-    m_layout->insertRow(
-        1, makeLabel(tr("Domain Type"), this), m_domainSelector);
+    m_layout->insertRow(1, makeLabel(tr("Domain Type"), this), m_domainSelector);
     m_layout->insertRow(2, makeLabel(tr("Domain"), this), m_domainFloatEdit);
 
-    connect(
-        m_unit,
-        &State::UnitWidget::unitChanged,
-        this,
-        [=](const State::Unit& u) {
-          auto dom = ossia::get_unit_default_domain(u.get());
+    connect(m_unit, &State::UnitWidget::unitChanged, this, [=](const State::Unit& u) {
+      auto dom = ossia::get_unit_default_domain(u.get());
 
-          if (auto p = dom.v.target<ossia::vecf_domain<N>>())
-          {
-            m_domainVecEdit->set_domain(dom);
-            m_domainSelector->setCurrentIndex(1);
-          }
-        });
+      if(auto p = dom.v.target<ossia::vecf_domain<N>>())
+      {
+        m_domainVecEdit->set_domain(dom);
+        m_domainSelector->setCurrentIndex(1);
+      }
+    });
 
     m_domainSelector->setCurrentIndex(0);
   }
@@ -57,7 +52,7 @@ public:
   {
     auto settings = getCommonSettings();
     settings.value = m_valueEdit->value();
-    if (m_domainSelector->currentIndex() == 0)
+    if(m_domainSelector->currentIndex() == 0)
       settings.domain = m_domainFloatEdit->domain();
     else
       settings.domain = m_domainVecEdit->domain();
@@ -67,9 +62,8 @@ public:
   void setSettings(const Device::AddressSettings& settings) override
   {
     setCommonSettings(settings);
-    m_valueEdit->setValue(
-        State::convert::value<std::array<float, N>>(settings.value));
-    if (settings.domain.get().v.target<ossia::domain_base<float>>())
+    m_valueEdit->setValue(State::convert::value<std::array<float, N>>(settings.value));
+    if(settings.domain.get().v.target<ossia::domain_base<float>>())
     {
       m_domainFloatEdit->set_domain(settings.domain);
       m_domainSelector->setCurrentIndex(0);
@@ -99,11 +93,10 @@ public:
 
   void on_domainTypeChange(int id)
   {
-    switch (id)
+    switch(id)
     {
       // Float
-      case 0:
-      {
+      case 0: {
         m_layout->replaceWidget(
             m_domainVecEdit, m_domainFloatEdit, Qt::FindDirectChildrenOnly);
         m_domainVecEdit->setHidden(true);
@@ -113,8 +106,7 @@ public:
         break;
       }
       // Vec
-      case 1:
-      {
+      case 1: {
         m_layout->replaceWidget(
             m_domainFloatEdit, m_domainVecEdit, Qt::FindDirectChildrenOnly);
         m_domainVecEdit->setHidden(false);

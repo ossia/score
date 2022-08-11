@@ -1,9 +1,11 @@
 #pragma once
 
 #include <Gfx/Graph/RenderState.hpp>
-#include <verdigris>
-#include <QWindow>
+
 #include <QTabletEvent>
+#include <QWindow>
+
+#include <verdigris>
 namespace score::gfx
 {
 struct ScreenNode;
@@ -40,14 +42,11 @@ public:
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
 
-  void tabletMove(QTabletEvent* ev)
-  W_SIGNAL(tabletMove, ev);
+  void tabletMove(QTabletEvent* ev) W_SIGNAL(tabletMove, ev);
 
-  void mouseMove(QPointF screen, QPointF win)
-  W_SIGNAL(mouseMove, screen, win);
+  void mouseMove(QPointF screen, QPointF win) W_SIGNAL(mouseMove, screen, win);
 
-  void key(int key, const QString& t)
-  W_SIGNAL(key, key, t);
+  void key(int key, const QString& t) W_SIGNAL(key, key, t);
 
 private:
   std::shared_ptr<RenderState> state;

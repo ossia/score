@@ -1,5 +1,6 @@
 #pragma once
 #include <QtGui/qtguiglobal.h>
+
 #include <score_lib_base_export.h>
 
 #if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) && !defined(_MSC_VER)

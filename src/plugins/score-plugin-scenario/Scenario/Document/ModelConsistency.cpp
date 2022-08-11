@@ -36,7 +36,7 @@ bool ModelConsistency::warning() const
 
 void ModelConsistency::setValid(bool arg)
 {
-  if (m_valid == arg)
+  if(m_valid == arg)
     return;
 
   m_valid = arg;
@@ -45,7 +45,7 @@ void ModelConsistency::setValid(bool arg)
 
 void ModelConsistency::setWarning(bool warning)
 {
-  if (m_warning == warning)
+  if(m_warning == warning)
     return;
 
   m_warning = warning;

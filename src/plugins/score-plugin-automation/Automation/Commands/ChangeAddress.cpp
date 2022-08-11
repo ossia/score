@@ -2,15 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ChangeAddress.hpp"
 
-#include <Automation/AutomationModel.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Node/DeviceNode.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+
+#include <Curve/Point/CurvePointModel.hpp>
+
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
+#include <Automation/AutomationModel.hpp>
 
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -26,24 +30,18 @@
 namespace Automation
 {
 ChangeAddress::ChangeAddress(
-    const ProcessModel& autom,
-    const State::AddressAccessor& newval)
+    const ProcessModel& autom, const State::AddressAccessor& newval)
     : m_path{autom}
     , m_old{autom.address(), autom.min(), autom.max()}
     , m_new(Explorer::makeFullAddressAccessorSettings(
-          newval,
-          score::IDocument::documentContext(autom),
-          0.,
-          1.,
-          0.5))
+          newval, score::IDocument::documentContext(autom), 0., 1., 0.5))
 {
   Curve::CurveDomain c(m_new.domain.get(), m_new.value);
   m_new.domain.get() = ossia::make_domain(c.min, c.max);
 }
 
 ChangeAddress::ChangeAddress(
-    const ProcessModel& autom,
-    Device::FullAddressAccessorSettings newval)
+    const ProcessModel& autom, Device::FullAddressAccessorSettings newval)
     : m_path{autom}
     , m_old{autom.address(), autom.min(), autom.max()}
     , m_new{std::move(newval)}
@@ -53,8 +51,7 @@ ChangeAddress::ChangeAddress(
 }
 
 ChangeAddress::ChangeAddress(
-    const ProcessModel& autom,
-    const Device::FullAddressSettings& newval)
+    const ProcessModel& autom, const Device::FullAddressSettings& newval)
     : m_path{autom}
 {
   m_new.address = newval.address;

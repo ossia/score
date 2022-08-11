@@ -4,7 +4,8 @@
 #if __has_include(<catch2/catch.hpp>)
 #include <catch2/catch.hpp>
 
-TEST_CASE("", ""){
+TEST_CASE("", "")
+{
 
   using namespace ossia;
   using namespace Nodes::FactorOracle2MIDI;
@@ -17,7 +18,6 @@ TEST_CASE("", ""){
 
   Node node;
   Node::State state;
-
 
   // Send the start of a note, wait 100 time units
   ossia::token_request req;

@@ -36,24 +36,17 @@ public:
   initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx)
       = 0;
   virtual std::shared_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& settings,
-      const score::ApplicationContext& ctx)
+      const Audio::Settings::Model& settings, const score::ApplicationContext& ctx)
       = 0;
   virtual QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher&,
-      QWidget* parent)
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher&, QWidget* parent)
       = 0;
 
   static void addBufferSizeWidget(
-      QWidget& widg,
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v);
+      QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
   static void addSampleRateWidget(
-      QWidget& widg,
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v);
+      QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
 };
 
 class AudioFactoryList final : public score::InterfaceList<AudioFactory>

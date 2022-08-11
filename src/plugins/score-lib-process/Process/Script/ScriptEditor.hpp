@@ -5,9 +5,10 @@
 #include <score/tools/Bind.hpp>
 
 #include <QDialog>
-#include <string_view>
 
 #include <score_lib_process_export.h>
+
+#include <string_view>
 
 class QPlainTextEdit;
 class QTextEdit;
@@ -19,9 +20,7 @@ class SCORE_LIB_PROCESS_EXPORT ScriptDialog : public QDialog
 {
 public:
   ScriptDialog(
-      const std::string_view lang,
-      const score::DocumentContext& ctx,
-      QWidget* parent);
+      const std::string_view lang, const score::DocumentContext& ctx, QWidget* parent);
 
   QSize sizeHint() const override { return {800, 300}; }
   QString text() const noexcept;
@@ -42,35 +41,25 @@ class ProcessScriptEditDialog : public ScriptDialog
 {
 public:
   ProcessScriptEditDialog(
-      const Process_T& process,
-      const score::DocumentContext& ctx,
-      QWidget* parent)
+      const Process_T& process, const score::DocumentContext& ctx, QWidget* parent)
       : ScriptDialog{Spec_T::language, ctx, parent}
       , m_process{process}
   {
     setText((m_process.*Property_T::get)());
-    con(m_process,
-        &Process_T::errorMessage,
-        this,
-        &ProcessScriptEditDialog::setError);
-    con(m_process,
-        &IdentifiedObjectAbstract::identified_object_destroying,
-        this,
+    con(m_process, &Process_T::errorMessage, this, &ProcessScriptEditDialog::setError);
+    con(m_process, &IdentifiedObjectAbstract::identified_object_destroying, this,
         &QWidget::deleteLater);
-    con(m_process,
-        Property_T::notify,
-        this,
-        &ProcessScriptEditDialog::setText);
+    con(m_process, Property_T::notify, this, &ProcessScriptEditDialog::setText);
   }
 
   void on_accepted() override
   {
     this->setError(0, QString{});
-    if (this->text() != (m_process.*Property_T::get)())
+    if(this->text() != (m_process.*Property_T::get)())
     {
       // TODO try to see if we can make this a bit more efficient,
       // by passing the validated / transformed data to the command maybe ?
-      if (m_process.validate(this->text()))
+      if(m_process.validate(this->text()))
       {
         CommandDispatcher<>{m_context.commandStack}.submit(
             new score::StaticPropertyCommand<Property_T>{
@@ -81,11 +70,11 @@ public:
 
 protected:
   const Process_T& m_process;
-  void closeEvent(QCloseEvent *event) override {
-    const_cast<QWidget*&>(m_process.externalUI)=nullptr;
+  void closeEvent(QCloseEvent* event) override
+  {
+    const_cast<QWidget*&>(m_process.externalUI) = nullptr;
     m_process.externalUIVisible(false);
   }
-
 };
 
 }

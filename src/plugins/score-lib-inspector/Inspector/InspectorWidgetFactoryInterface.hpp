@@ -28,12 +28,9 @@ class InspectorWidgetBase;
  * in the inspector.
  *
  */
-class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory
-    : public score::InterfaceBase
+class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory : public score::InterfaceBase
 {
-  SCORE_INTERFACE(
-      InspectorWidgetFactory,
-      "e7098592-7e2f-400d-9b71-2628d7276f99")
+  SCORE_INTERFACE(InspectorWidgetFactory, "e7098592-7e2f-400d-9b71-2628d7276f99")
 public:
   static const constexpr bool ui_interface = true;
   using InspectedObjects = QList<const IdentifiedObjectAbstract*>;
@@ -45,8 +42,7 @@ public:
    * @return An inspector widget corresponding to the object.
    */
   virtual QWidget* make(
-      const InspectedObjects& sourceElement,
-      const score::DocumentContext& doc,
+      const InspectedObjects& sourceElement, const score::DocumentContext& doc,
       QWidget* parent) const = 0;
 
   virtual bool update(QWidget* cur, const InspectedObjects& obj) const;

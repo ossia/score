@@ -17,15 +17,14 @@ static Steinberg::Vst::IComponent*
 createComponent(VST3::Hosting::Module& mdl, const std::string& name)
 {
   const auto& factory = mdl.getFactory();
-  for (auto& class_info : factory.classInfos())
-    if (class_info.category() == kVstAudioEffectClass)
+  for(auto& class_info : factory.classInfos())
+    if(class_info.category() == kVstAudioEffectClass)
     {
-      if (name.empty() || name == class_info.name())
+      if(name.empty() || name == class_info.name())
       {
         Steinberg::Vst::IComponent* obj{};
         factory.get()->createInstance(
-            class_info.ID().data(),
-            Steinberg::Vst::IComponent::iid,
+            class_info.ID().data(), Steinberg::Vst::IComponent::iid,
             reinterpret_cast<void**>(&obj));
         return obj;
       }
@@ -53,7 +52,7 @@ void Plugin::loadAudioProcessor(ApplicationPlugin& ctx)
   Steinberg::Vst::IAudioProcessor* processor_ptr = nullptr;
   auto audio_iface_res = component->queryInterface(
       Steinberg::Vst::IAudioProcessor::iid, (void**)&processor_ptr);
-  if (audio_iface_res != Steinberg::kResultOk || !processor_ptr)
+  if(audio_iface_res != Steinberg::kResultOk || !processor_ptr)
     throw std::runtime_error(
         fmt::format("Couldn't get VST3 AudioProcessor interface ({})", path));
 
@@ -76,28 +75,28 @@ void Plugin::loadPresets()
   {
     auto res
         = controller->queryInterface(Steinberg::Vst::IUnitInfo::iid, (void**)&unit_ptr);
-    if (res != Steinberg::kResultOk || !unit_ptr)
+    if(res != Steinberg::kResultOk || !unit_ptr)
       return;
   }
 
   {
     auto res = component->queryInterface(
         Steinberg::Vst::IProgramListData::iid, (void**)&pl_ptr);
-    if (res != Steinberg::kResultOk || !pl_ptr)
+    if(res != Steinberg::kResultOk || !pl_ptr)
       pl_ptr = nullptr;
   }
 
   {
     auto res
         = component->queryInterface(Steinberg::Vst::IUnitData::iid, (void**)&udata_ptr);
-    if (res != Steinberg::kResultOk || !udata_ptr)
+    if(res != Steinberg::kResultOk || !udata_ptr)
       udata_ptr = nullptr;
   }
 
   this->units = unit_ptr;
 
   int banks = this->units->getProgramListCount();
-  if (banks > 0)
+  if(banks > 0)
   {
     this->units->getProgramListInfo(0, this->programs);
   }
@@ -111,7 +110,7 @@ void Plugin::loadProcessorStateToController()
   QDataStream write_stream{&arr, QIODevice::ReadWrite};
   Vst3DataStream stream{write_stream};
   // thanks steinberg doc not even up to date.... stream.setByteOrder (kLittleEndian);
-  if (this->component->getState(&stream) == kResultTrue)
+  if(this->component->getState(&stream) == kResultTrue)
   {
     QDataStream read_stream{arr};
     Vst3DataStream stream{read_stream};
@@ -124,10 +123,10 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
   Steinberg::Vst::IEditController* controller{};
   auto ctl_res = component->queryInterface(
       Steinberg::Vst::IEditController::iid, (void**)&controller);
-  if (ctl_res != Steinberg::kResultOk || !controller)
+  if(ctl_res != Steinberg::kResultOk || !controller)
   {
     Steinberg::TUID cid;
-    if (component->getControllerClassId(cid) == Steinberg::kResultTrue)
+    if(component->getControllerClassId(cid) == Steinberg::kResultTrue)
     {
       FUID f{cid};
       mdl->getFactory().get()->createInstance(
@@ -135,7 +134,7 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
     }
   }
 
-  if (!controller)
+  if(!controller)
   {
     qDebug() << "Couldn't get VST3 Controller interface : " << path.c_str();
     return;
@@ -153,14 +152,13 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
 
     IConnectionPoint* compICP{};
     IConnectionPoint* contrICP{};
-    if (component->queryInterface(IConnectionPoint::iid, (void**)&compICP) != kResultOk)
+    if(component->queryInterface(IConnectionPoint::iid, (void**)&compICP) != kResultOk)
       compICP = nullptr;
 
-    if (controller->queryInterface(IConnectionPoint::iid, (void**)&contrICP)
-        != kResultOk)
+    if(controller->queryInterface(IConnectionPoint::iid, (void**)&contrICP) != kResultOk)
       contrICP = nullptr;
 
-    if (compICP && contrICP)
+    if(compICP && contrICP)
     {
       compICP->connect(contrICP);
       contrICP->connect(compICP);
@@ -170,12 +168,12 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
   // Try to instantiate a view
   // r i d i c u l o u s
   Steinberg::IPlugView* view{};
-  if (!(view = controller->createView(Steinberg::Vst::ViewType::kEditor)))
+  if(!(view = controller->createView(Steinberg::Vst::ViewType::kEditor)))
   {
-    if (!(view = controller->createView(nullptr)))
+    if(!(view = controller->createView(nullptr)))
     {
-      if (controller->queryInterface(IPlugView::iid, (void**)&view)
-          == Steinberg::kResultOk)
+      if(controller->queryInterface(IPlugView::iid, (void**)&view)
+         == Steinberg::kResultOk)
       {
         view->addRef();
         // TODO don't forget to unref in that case *_*
@@ -184,7 +182,7 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
   }
 
   // Create a widget to put the view inside
-  if (view)
+  if(view)
   {
     this->view = view;
     this->hasUI
@@ -193,22 +191,18 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
 }
 
 void Plugin::load(
-    Model& model,
-    ApplicationPlugin& ctx,
-    const std::string& path,
-    const VST3::UID& uid,
-    double sample_rate,
-    int max_bs)
+    Model& model, ApplicationPlugin& ctx, const std::string& path, const VST3::UID& uid,
+    double sample_rate, int max_bs)
 {
   this->path = path;
   mdl = ctx.getModule(path);
-  if (!mdl)
+  if(!mdl)
     return;
   component = createComponent(*mdl, uid);
-  if (!component)
+  if(!component)
     return;
 
-  if (component->initialize(&ctx.m_host) != Steinberg::kResultOk)
+  if(component->initialize(&ctx.m_host) != Steinberg::kResultOk)
     throw std::runtime_error(
         fmt::format("Couldn't initialize VST3 component ({})", path));
 
@@ -227,8 +221,8 @@ void Plugin::start(double_t sample_rate, int max_bs)
 {
   // Some level of introspection
   auto sampleSize = Steinberg::Vst::kSample32;
-  if (processor->canProcessSampleSize(Steinberg::Vst::kSample64)
-      == Steinberg::kResultTrue)
+  if(processor->canProcessSampleSize(Steinberg::Vst::kSample64)
+     == Steinberg::kResultTrue)
   {
     sampleSize = Steinberg::Vst::kSample64;
     supportsDouble = true;
@@ -237,32 +231,32 @@ void Plugin::start(double_t sample_rate, int max_bs)
   Steinberg::Vst::ProcessSetup setup{
       Steinberg::Vst::kRealtime, sampleSize, max_bs, sample_rate};
 
-  if (processor->setupProcessing(setup) != Steinberg::kResultOk)
+  if(processor->setupProcessing(setup) != Steinberg::kResultOk)
     throw std::runtime_error(fmt::format("Couldn't setup VST3 processing ({})", path));
 
-  if (component->setActive(true) != Steinberg::kResultOk)
+  if(component->setActive(true) != Steinberg::kResultOk)
     throw std::runtime_error(fmt::format("Couldn't set VST3 active ({})", path));
 }
 
 void Plugin::stop()
 {
-  if (!component)
+  if(!component)
     return;
 
   component->setActive(false);
 
-  if (view)
+  if(view)
   {
     view = nullptr;
   }
 
-  if (controller)
+  if(controller)
   {
     controller->terminate();
     controller = nullptr;
   }
 
-  if (processor)
+  if(processor)
   {
     processor = nullptr;
   }

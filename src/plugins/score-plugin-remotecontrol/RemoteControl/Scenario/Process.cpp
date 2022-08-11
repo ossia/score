@@ -3,15 +3,9 @@
 #include <Process/Process.hpp>
 
 RemoteControl::ProcessComponent::ProcessComponent(
-    Process::ProcessModel& process,
-    DocumentPlugin& doc,
-    const QString& name,
+    Process::ProcessModel& process, DocumentPlugin& doc, const QString& name,
     QObject* parent)
-    : Process::GenericProcessComponent<DocumentPlugin>{
-        process,
-        doc,
-        name,
-        parent}
+    : Process::GenericProcessComponent<DocumentPlugin>{process, doc, name, parent}
 {
 }
 

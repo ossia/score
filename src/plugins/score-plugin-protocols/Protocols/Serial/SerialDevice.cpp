@@ -5,20 +5,23 @@
 #include "SerialDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
+
 #include <Protocols/Serial/SerialSpecificSettings.hpp>
 
-#include <ossia-qt/serial/serial_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
+
+#include <ossia-qt/serial/serial_protocol.hpp>
 
 #include <memory>
 
 namespace Protocols
 {
-SerialDevice::SerialDevice(const Device::DeviceSettings& settings,
-                           const ossia::net::network_context_ptr& ctx)
+SerialDevice::SerialDevice(
+    const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -51,16 +54,14 @@ bool SerialDevice::reconnect()
 
   try
   {
-    const auto& stgs
-        = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
+    const auto& stgs = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
 
     ossia::net::serial_configuration conf;
     conf.baud_rate = stgs.rate;
     conf.port = stgs.port.systemLocation().toStdString();
 
     m_dev = std::make_unique<ossia::net::serial_device>(
-        std::make_unique<ossia::net::serial_protocol>(
-            m_ctx, stgs.text.toUtf8(), conf),
+        std::make_unique<ossia::net::serial_protocol>(m_ctx, stgs.text.toUtf8(), conf),
         settings().name.toStdString());
 
     deviceChanged(nullptr, m_dev.get());
@@ -69,11 +70,11 @@ bool SerialDevice::reconnect()
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }

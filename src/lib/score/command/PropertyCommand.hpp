@@ -108,8 +108,7 @@ private:
 };
 
 template <typename T>
-struct StaticPropertyCommand
-    : score::PropertyCommand_T<T>::template command<void>::type
+struct StaticPropertyCommand : score::PropertyCommand_T<T>::template command<void>::type
 {
   using score::PropertyCommand_T<T>::template command<void>::type::type;
 };

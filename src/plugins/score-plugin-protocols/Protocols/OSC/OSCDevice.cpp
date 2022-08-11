@@ -3,9 +3,11 @@
 #include "OSCDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -22,8 +24,7 @@ namespace Protocols
 {
 
 OSCDevice::OSCDevice(
-    const Device::DeviceSettings& settings,
-    const ossia::net::network_context_ptr& ctx)
+    const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -42,7 +43,7 @@ bool OSCDevice::reconnect()
         = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
     if(auto proto = ossia::net::make_osc_protocol(m_ctx, stgs.configuration))
     {
-      if (stgs.rate)
+      if(stgs.rate)
       {
         auto rate = std::make_unique<ossia::net::rate_limiting_protocol>(
             std::chrono::milliseconds{*stgs.rate}, std::move(proto));
@@ -63,11 +64,11 @@ bool OSCDevice::reconnect()
       qDebug() << "Could not create OSC protocol";
     }
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "OSC Protocol error: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     SCORE_TODO;
   }
@@ -77,7 +78,7 @@ bool OSCDevice::reconnect()
 
 void OSCDevice::recreate(const Device::Node& n)
 {
-  for (auto& child : n)
+  for(auto& child : n)
   {
     addNode(child);
   }
@@ -85,26 +86,21 @@ void OSCDevice::recreate(const Device::Node& n)
 
 bool OSCDevice::isLearning() const
 {
-  auto& proto
-      = static_cast<ossia::net::osc_protocol_base&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::osc_protocol_base&>(m_dev->get_protocol());
   return proto.learning();
 }
 
 void OSCDevice::setLearning(bool b)
 {
-  if (!m_dev)
+  if(!m_dev)
     return;
-  auto& proto
-      = static_cast<ossia::net::osc_protocol_base&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::osc_protocol_base&>(m_dev->get_protocol());
   auto& dev = *m_dev;
-  if (b)
+  if(b)
   {
-    dev.on_node_created.connect<&DeviceInterface::nodeCreated>(
-        (DeviceInterface*)this);
-    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
-        (DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
+    dev.on_node_created.connect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
+    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
     dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
         (DeviceInterface*)this);
     dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(

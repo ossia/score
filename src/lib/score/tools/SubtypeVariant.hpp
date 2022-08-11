@@ -1,6 +1,7 @@
 #pragma once
-#include <brigand/algorithms/transform.hpp>
 #include <ossia/detail/variant.hpp>
+
+#include <brigand/algorithms/transform.hpp>
 
 #include <type_traits>
 
@@ -37,7 +38,7 @@ Variant make_subtype_variant(const Base& base)
 template <typename Variant, typename Base, typename Arg, typename... SubArgs>
 Variant make_subtype_variant(const Base& base)
 {
-  if (auto derived = dynamic_cast<const Arg*>(&base))
+  if(auto derived = dynamic_cast<const Arg*>(&base))
   {
     return Variant(derived);
   }
@@ -72,7 +73,7 @@ public:
   template <typename F>
   auto apply(F&& f)
   {
-    if (m_impl)
+    if(m_impl)
     {
       return ossia::visit(detail::dereference_visitor<F>{f}, m_impl);
     }

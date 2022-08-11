@@ -52,11 +52,11 @@ class AudioDevice;
 }
 namespace Execution
 {
-struct Queues {
+struct Queues
+{
 };
 class ExecutionController;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
-    : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
 public:
@@ -77,9 +77,7 @@ public:
     Context context;
   };
 
-  DocumentPlugin(
-      const score::DocumentContext& ctx,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext& ctx, QObject* parent);
 
   ~DocumentPlugin() override;
   void reload(Scenario::IntervalModel& doc);
@@ -101,10 +99,7 @@ public:
   void runAllCommands() const;
 
   void registerAction(ExecutionAction& act);
-  const std::vector<ExecutionAction*>& actions() const noexcept
-  {
-    return m_actions;
-  }
+  const std::vector<ExecutionAction*>& actions() const noexcept { return m_actions; }
 
   const Execution::Settings::Model& settings;
 

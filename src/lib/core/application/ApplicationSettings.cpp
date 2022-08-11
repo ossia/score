@@ -24,47 +24,42 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   opengl = false;
 #endif
   QCommandLineParser parser;
-  parser.setApplicationDescription(QObject::tr(
-      "score - An interactive sequencer for the intermedia arts."));
+  parser.setApplicationDescription(
+      QObject::tr("score - An interactive sequencer for the intermedia arts."));
   parser.addHelpOption();
   parser.addVersionOption();
   parser.addPositionalArgument(
       "file", QCoreApplication::translate("main", "Scenario to load."));
 
-  QCommandLineOption noGUI(
-      "no-gui", QCoreApplication::translate("main", "Disable GUI"));
+  QCommandLineOption noGUI("no-gui", QCoreApplication::translate("main", "Disable GUI"));
   parser.addOption(noGUI);
 
   QCommandLineOption noGL(
-      "no-opengl",
-      QCoreApplication::translate("main", "Disable OpenGL rendering"));
+      "no-opengl", QCoreApplication::translate("main", "Disable OpenGL rendering"));
   parser.addOption(noGL);
 
   QCommandLineOption noRestore(
-      "no-restore",
-      QCoreApplication::translate("main", "Disable auto-restore"));
+      "no-restore", QCoreApplication::translate("main", "Disable auto-restore"));
   parser.addOption(noRestore);
 
   QCommandLineOption autoplayOpt(
-      "autoplay",
-      QCoreApplication::translate("main", "Auto-play the loaded scenario"));
+      "autoplay", QCoreApplication::translate("main", "Auto-play the loaded scenario"));
   parser.addOption(autoplayOpt);
 
   QCommandLineOption waitLoadOpt(
       "wait",
       QCoreApplication::translate(
           "main", "Wait N seconds after loading, before playing."),
-      "N",
-      "0");
+      "N", "0");
   parser.addOption(waitLoadOpt);
 
 #if defined(__APPLE__)
   // Bogus macOS gatekeeper BS:
   // https://stackoverflow.com/questions/55562155/qt-application-for-mac-not-being-launched
-  for (auto it = cargs.begin(); it != cargs.end();)
+  for(auto it = cargs.begin(); it != cargs.end();)
   {
     auto& str = *it;
-    if (str.startsWith("-psn"))
+    if(str.startsWith("-psn"))
     {
       it = cargs.erase(it);
     }
@@ -75,7 +70,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   }
 #endif
 
-  if (cargs.contains("--help") || cargs.contains("--version"))
+  if(cargs.contains("--help") || cargs.contains("--version"))
   {
     QCoreApplication app(argc, argv);
     setQApplicationMetadata();
@@ -91,7 +86,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   // otherwise we get ./ossia-score foo.score -platform vnc
   // => {"foo.score", "vnc"}...
   QStringList args = parser.positionalArguments();
-  for(auto it = args.begin(); it != args.end(); )
+  for(auto it = args.begin(); it != args.end();)
   {
     if(QFile::exists(*it))
     {
@@ -107,14 +102,14 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   tryToRestore = !parser.isSet(noRestore);
   gui = !parser.isSet(noGUI);
   opengl &= !parser.isSet(noGL);
-  if (!gui)
+  if(!gui)
     tryToRestore = false;
   autoplay = parser.isSet(autoplayOpt) && args.size() == 1;
 
-  if (parser.isSet(waitLoadOpt))
+  if(parser.isSet(waitLoadOpt))
     waitAfterLoad = parser.value(waitLoadOpt).toInt();
 
-  if (!args.empty() && QFile::exists(args[0]))
+  if(!args.empty() && QFile::exists(args[0]))
   {
     loadList.push_back(args[0]);
   }
@@ -125,7 +120,7 @@ void setQApplicationMetadata()
   QCoreApplication::setOrganizationName("ossia");
   QCoreApplication::setOrganizationDomain("ossia.io");
   QCoreApplication::setApplicationName("score");
-  if (QString(SCORE_VERSION_EXTRA).isEmpty())
+  if(QString(SCORE_VERSION_EXTRA).isEmpty())
   {
     QCoreApplication::setApplicationVersion(QString("%1.%2.%3")
                                                 .arg(SCORE_VERSION_MAJOR)

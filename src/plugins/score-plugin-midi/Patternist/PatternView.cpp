@@ -15,6 +15,7 @@
 #include <QPainter>
 
 #include <Patternist/PatternModel.hpp>
+
 #include <score_plugin_midi_export.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Patternist::View)
@@ -28,13 +29,10 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
 {
   setFlag(QGraphicsItem::ItemClipsToShape);
   setFlag(QGraphicsItem::ItemClipsChildrenToShape);
-  con(model, &Patternist::ProcessModel::patternsChanged, this, [=] {
-    updateLanes();
-  });
-  con(model, &Patternist::ProcessModel::currentPatternChanged, this, [=] {
-    updateLanes();
-  });
-  con(model, &Patternist::ProcessModel::execPosition, this, [=] (int x) {
+  con(model, &Patternist::ProcessModel::patternsChanged, this, [=] { updateLanes(); });
+  con(model, &Patternist::ProcessModel::currentPatternChanged, this,
+      [=] { updateLanes(); });
+  con(model, &Patternist::ProcessModel::execPosition, this, [=](int x) {
     m_execPosition = x;
     update();
   });
@@ -46,16 +44,16 @@ View::~View() { }
 
 void View::updateLanes()
 {
-  if (!ossia::valid_index(m_model.currentPattern(), m_model.patterns()))
+  if(!ossia::valid_index(m_model.currentPattern(), m_model.patterns()))
     return;
   auto& cur_p = m_model.patterns()[m_model.currentPattern()];
-  if (cur_p.lanes.size() != m_lanes.size())
+  if(cur_p.lanes.size() != m_lanes.size())
   {
-    for (auto l : m_lanes)
+    for(auto l : m_lanes)
       delete l;
     m_lanes.clear();
 
-    for (std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
+    for(std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
     {
       auto sl = new score::QGraphicsNoteChooser{this};
 
@@ -63,11 +61,9 @@ void View::updateLanes()
       sl->setX(10);
       sl->setY(lane * 40);
 
-      connect(
-          sl,
-          &score::QGraphicsNoteChooser::sliderMoved,
-          this,
-          [this, sl, lane] { noteChanged(lane, sl->value()); });
+      connect(sl, &score::QGraphicsNoteChooser::sliderMoved, this, [this, sl, lane] {
+        noteChanged(lane, sl->value());
+      });
       connect(sl, &score::QGraphicsNoteChooser::sliderReleased, this, [this] {
         noteChangeFinished();
       });
@@ -76,7 +72,7 @@ void View::updateLanes()
   }
   else
   {
-    for (std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
+    for(std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
       m_lanes[lane]->setValue(cur_p.lanes[lane].note);
   }
 
@@ -90,7 +86,7 @@ static const constexpr double x0 = 42;
 static const constexpr double y0 = 2;
 void View::paint_impl(QPainter* painter) const
 {
-  if (!ossia::valid_index(m_model.currentPattern(), m_model.patterns()))
+  if(!ossia::valid_index(m_model.currentPattern(), m_model.patterns()))
     return;
 
   auto& style = score::Skin::instance();
@@ -98,38 +94,37 @@ void View::paint_impl(QPainter* painter) const
 
   // painter->setPen(Qt::white);
   auto& cur_p = m_model.patterns()[m_model.currentPattern()];
-  for (std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
+  for(std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
   {
     auto& l = cur_p.lanes[lane];
 
     // Draw the filled patterns
-    for (int i = 0; i < cur_p.length; i++)
+    for(int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
-          x0 + i * (box_side + box_spacing),
-          y0 + lane_height * lane,
-          box_side,
+          x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side,
           box_side};
 
-      if (l.pattern[i])
+      if(l.pattern[i])
       {
-        painter->setBrush((i != m_execPosition) ? style.Base4 : style.Base4.lighter.brush);
+        painter->setBrush(
+            (i != m_execPosition) ? style.Base4 : style.Base4.lighter.brush);
         painter->drawRect(rect);
       }
     }
 
     // Draw the empty patterns
-    for (int i = 0; i < cur_p.length; i++)
+    for(int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
-          x0 + i * (box_side + box_spacing),
-          y0 + lane_height * lane,
-          box_side,
+          x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side,
           box_side};
 
-      if (!l.pattern[i])
+      if(!l.pattern[i])
       {
-        painter->setBrush((i != m_execPosition) ? style.Emphasis2.main.brush : style.Emphasis2.lighter.brush);
+        painter->setBrush(
+            (i != m_execPosition) ? style.Emphasis2.main.brush
+                                  : style.Emphasis2.lighter.brush);
         painter->drawRect(rect);
       }
     }
@@ -139,17 +134,15 @@ void View::paint_impl(QPainter* painter) const
 void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   auto& cur_p = m_model.patterns()[m_model.currentPattern()];
-  for (std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
+  for(std::size_t lane = 0; lane < cur_p.lanes.size(); lane++)
   {
-    for (int i = 0; i < cur_p.length; i++)
+    for(int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
-          x0 + i * (box_side + box_spacing),
-          y0 + lane_height * lane,
-          box_side,
+          x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side,
           box_side};
 
-      if (rect.contains(event->pos()))
+      if(rect.contains(event->pos()))
       {
         toggled(lane, i);
         event->accept();

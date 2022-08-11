@@ -18,8 +18,8 @@ private:
     // only one event on a timeSync
     // the timeSync will be deleted too
 
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);
@@ -54,7 +54,7 @@ private:
       scenar->event(event_id);
       QFAIL("Event call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
     try
@@ -62,7 +62,7 @@ private:
       scenar->timeSync(tn_id);
       QFAIL("TimeSync call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
 
@@ -80,7 +80,7 @@ private:
       scenar->event(event_id);
       QFAIL("Event call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
     try
@@ -88,7 +88,7 @@ private:
       scenar->timeSync(tn_id);
       QFAIL("TimeSync call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
 
@@ -100,8 +100,8 @@ private:
     // two events on a same timeSync
     // test removing just one of them : the timeSync stay
 
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);
@@ -150,7 +150,7 @@ private:
       scenar->event(event_id);
       QFAIL("Event call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
 
@@ -158,12 +158,8 @@ private:
     QCOMPARE((int)scenar->events().size(), nbOfEvent);
     QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs);
     QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
-    QCOMPARE(
-        scenar->event(event_id)->previousIntervals().size(),
-        prevIntervalCount);
-    QCOMPARE(
-        scenar->event(event_id)->previousIntervals().first(),
-        prevIntervals[0]);
+    QCOMPARE(scenar->event(event_id)->previousIntervals().size(), prevIntervalCount);
+    QCOMPARE(scenar->event(event_id)->previousIntervals().first(), prevIntervals[0]);
 
     removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
@@ -174,7 +170,7 @@ private:
       scenar->event(event_id);
       QFAIL("Event call did not throw!");
     }
-    catch (...)
+    catch(...)
     {
     }
 

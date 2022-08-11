@@ -1,6 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/Layer/LayerContextMenu.hpp>
+
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/RemoveNotes.hpp>
 #include <Midi/Commands/ScaleNotes.hpp>
@@ -9,8 +12,6 @@
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <Midi/MidiView.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/Layer/LayerContextMenu.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -28,20 +29,18 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
-#include <wobjectimpl.h>
-
 #include <QAction>
 #include <QApplication>
 #include <QInputDialog>
 #include <QMenu>
+
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::Presenter)
 
 namespace Midi
 {
 Presenter::Presenter(
-    const Midi::ProcessModel& layer,
-    View* view,
-    const Process::Context& ctx,
+    const Midi::ProcessModel& layer, View* view, const Process::Context& ctx,
     QObject* parent)
     : LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
@@ -54,21 +53,19 @@ Presenter::Presenter(
   auto& model = layer;
 
   con(
-      model,
-      &ProcessModel::durationChanged,
-      this,
+      model, &ProcessModel::durationChanged, this,
       [&] {
-        for (auto note : m_notes)
-          updateNote(*note);
+    for(auto note : m_notes)
+      updateNote(*note);
       },
       Qt::QueuedConnection);
   con(model, &ProcessModel::notesNeedUpdate, this, [&] {
-    for (auto note : m_notes)
+    for(auto note : m_notes)
       updateNote(*note);
   });
 
   con(model, &ProcessModel::notesChanged, this, [&] {
-    for (auto note : m_notes)
+    for(auto note : m_notes)
     {
       delete note;
     }
@@ -76,7 +73,7 @@ Presenter::Presenter(
     m_notes.clear();
     m_selectedNotes.clear();
 
-    for (auto& note : model.notes)
+    for(auto& note : model.notes)
     {
       on_noteAdded(note);
     }
@@ -84,7 +81,7 @@ Presenter::Presenter(
 
   con(model, &ProcessModel::rangeChanged, this, [=](int min, int max) {
     m_view->setRange(min, max);
-    for (auto note : m_notes)
+    for(auto note : m_notes)
       updateNote(*note);
   });
   m_view->setRange(model.range().first, model.range().second);
@@ -97,7 +94,7 @@ Presenter::Presenter(
   });
 
   connect(m_view, &View::pressed, this, [&] {
-    for (NoteView* n : m_notes)
+    for(NoteView* n : m_notes)
       n->setSelected(false);
   });
 
@@ -108,35 +105,25 @@ Presenter::Presenter(
         new RemoveNotes{this->model(), selectedNotes()});
   });
 
-  for (auto& note : model.notes)
+  for(auto& note : model.notes)
   {
     on_noteAdded(note);
   }
 }
 
-Presenter::~Presenter()
-{
-}
+Presenter::~Presenter() { }
 
 void Presenter::fillContextMenu(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
+    QMenu& menu, QPoint pos, QPointF scenepos,
     const Process::LayerContextMenuManager& cm)
 {
   auto act = menu.addAction(tr("Rescale midi"));
   connect(act, &QAction::triggered, this, [&] {
     bool ok = true;
     double val = QInputDialog::getDouble(
-        qApp->activeWindow(),
-        tr("Rescale factor"),
-        tr("Rescale factor"),
-        1.0,
-        0.0001,
-        100.,
-        8,
-        &ok);
-    if (!ok)
+        qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0, 0.0001,
+        100., 8, &ok);
+    if(!ok)
       return;
 
     CommandDispatcher<> c{context().context.commandStack};
@@ -147,22 +134,15 @@ void Presenter::fillContextMenu(
   connect(act2, &QAction::triggered, this, [&] {
     bool ok = true;
     double val = QInputDialog::getDouble(
-        qApp->activeWindow(),
-        tr("Rescale factor"),
-        tr("Rescale factor"),
-        1.0,
-        0.0001,
-        100.,
-        8,
-        &ok);
-    if (!ok)
+        qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0, 0.0001,
+        100., 8, &ok);
+    if(!ok)
       return;
 
-    MacroCommandDispatcher<RescaleAllMidi> disp{
-        context().context.commandStack};
+    MacroCommandDispatcher<RescaleAllMidi> disp{context().context.commandStack};
     auto& doc = context().context.document.model();
     auto midi = doc.findChildren<Midi::ProcessModel*>();
-    for (auto ptr : midi)
+    for(auto ptr : midi)
     {
       disp.submit(new RescaleMidi{*ptr, val});
     }
@@ -174,14 +154,14 @@ void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
   m_view->setDefaultWidth(defaultWidth);
-  for (auto note : m_notes)
+  for(auto note : m_notes)
     updateNote(*note);
 }
 
 void Presenter::setHeight(qreal val)
 {
   m_view->setHeight(val);
-  for (auto note : m_notes)
+  for(auto note : m_notes)
     updateNote(*note);
 }
 
@@ -199,7 +179,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio zr)
 {
   m_zr = zr;
   m_view->setDefaultWidth(model().duration().toPixels(m_zr));
-  for (auto note : m_notes)
+  for(auto note : m_notes)
     updateNote(*note);
 }
 
@@ -217,13 +197,13 @@ const Midi::View& Presenter::view() const noexcept
 
 void Presenter::on_deselectOtherNotes()
 {
-  for (NoteView* n : m_notes)
+  for(NoteView* n : m_notes)
     n->setSelected(false);
 }
 
 void Presenter::on_noteChanged(NoteView& v)
 {
-  if (!m_origMovePitch)
+  if(!m_origMovePitch)
   {
     m_origMovePitch = v.note.pitch();
     m_origMoveStart = v.note.start();
@@ -239,20 +219,17 @@ void Presenter::on_noteChanged(NoteView& v)
       int(max
           - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
                 * this->m_view->visibleCount()),
-      min,
-      max);
+      min, max);
 
   auto notes = selectedNotes();
   auto it = ossia::find(notes, v.note.id());
-  if (it == notes.end())
+  if(it == notes.end())
   {
     notes = {v.note.id()};
   }
 
   m_moveDispatcher.submit(
-      model(),
-      notes,
-      note - *m_origMovePitch,
+      model(), notes, note - *m_origMovePitch,
       newPos.x() / m_view->defaultWidth() - *m_origMoveStart);
 }
 
@@ -269,7 +246,7 @@ void Presenter::on_noteScaled(const Note& note, double newScale)
 {
   auto notes = selectedNotes();
   auto it = ossia::find(notes, note.id());
-  if (it == notes.end())
+  if(it == notes.end())
   {
     notes = {note.id()};
   }
@@ -279,13 +256,11 @@ void Presenter::on_noteScaled(const Note& note, double newScale)
       new ScaleNotes{model(), notes, dt});
 }
 
-void Presenter::on_requestVelocityChange(
-    const Note& note,
-    double velocityDelta)
+void Presenter::on_requestVelocityChange(const Note& note, double velocityDelta)
 {
   auto notes = selectedNotes();
   auto it = ossia::find(notes, note.id());
-  if (it == notes.end())
+  if(it == notes.end())
   {
     notes = {note.id()};
   }
@@ -302,23 +277,23 @@ void Presenter::on_velocityChangeFinished()
 
 void Presenter::on_noteSelectionChanged(NoteView* v, bool ok)
 {
- if(ok)
-   m_selectedNotes.push_back(v);
- else
-   ossia::remove_erase(m_selectedNotes, v);
+  if(ok)
+    m_selectedNotes.push_back(v);
+  else
+    ossia::remove_erase(m_selectedNotes, v);
 
- Selection s;
- for(auto n : m_selectedNotes)
-   s.append(&n->note);
+  Selection s;
+  for(auto n : m_selectedNotes)
+    s.append(&n->note);
 
- context().context.selectionStack.pushNewSelection(s);
+  context().context.selectionStack.pushNewSelection(s);
 }
 
 void Presenter::updateNote(NoteView& v)
 {
   const auto noteRect = v.computeRect();
   const auto newPos = noteRect.topLeft();
-  if (newPos != v.pos())
+  if(newPos != v.pos())
   {
     v.setPos(newPos);
   }
@@ -340,16 +315,16 @@ void Presenter::on_noteRemoving(const Note& n)
     auto it = ossia::find_if(
         m_selectedNotes, [&](const auto& other) { return &other->note == &n; });
 
-    if (it != m_selectedNotes.end())
+    if(it != m_selectedNotes.end())
     {
       m_selectedNotes.erase(it);
     }
   }
   {
-    auto it = ossia::find_if(
-        m_notes, [&](const auto& other) { return &other->note == &n; });
+    auto it
+        = ossia::find_if(m_notes, [&](const auto& other) { return &other->note == &n; });
 
-    if (it != m_notes.end())
+    if(it != m_notes.end())
     {
       delete *it;
       m_notes.erase(it);
@@ -360,10 +335,10 @@ void Presenter::on_noteRemoving(const Note& n)
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
   auto songs = Midi::MidiTrack::parse(md, context().context);
-  if (songs.empty())
+  if(songs.empty())
     return;
   auto& song = songs.front();
-  if (song.tracks.empty())
+  if(song.tracks.empty())
     return;
 
   auto& track = song.tracks[0];
@@ -372,7 +347,7 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   // Scale notes so that the durations are relative to the ratio of the song
   // duration & constraint duration
   const double ratio = song.durationInMs / model().duration().msec();
-  for (auto& note : track.notes)
+  for(auto& note : track.notes)
   {
     note.setStart(ratio * note.start());
     note.setDuration(ratio * note.duration());

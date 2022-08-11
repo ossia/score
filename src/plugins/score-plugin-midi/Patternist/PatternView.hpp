@@ -1,6 +1,7 @@
 #pragma once
-#include <Process/LayerView.hpp>
 #include <State/Message.hpp>
+
+#include <Process/LayerView.hpp>
 
 namespace Process
 {
@@ -40,6 +41,5 @@ private:
 
   std::vector<score::QGraphicsNoteChooser*> m_lanes;
   int m_execPosition{-1};
-
 };
 }

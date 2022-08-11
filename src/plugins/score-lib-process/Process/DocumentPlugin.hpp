@@ -14,13 +14,11 @@ public:
   DataflowManager();
   ~DataflowManager();
 
-  using cable_map
-      = ossia::ptr_map<const Process::Cable*, Dataflow::CableItem*>;
+  using cable_map = ossia::ptr_map<const Process::Cable*, Dataflow::CableItem*>;
   using port_map = ossia::ptr_map<const Process::Port*, Dataflow::PortItem*>;
 
   Dataflow::CableItem* createCable(
-      const Process::Cable& cable,
-      const Process::Context& context,
+      const Process::Cable& cable, const Process::Context& context,
       QGraphicsScene* scene);
 
   cable_map& cables() noexcept { return m_cableMap; }

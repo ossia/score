@@ -2,17 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateState.hpp"
 
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
-
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -21,9 +21,7 @@ namespace Scenario
 namespace Command
 {
 CreateState::CreateState(
-    const Scenario::ProcessModel& scenario,
-    Id<EventModel> event,
-    double stateY)
+    const Scenario::ProcessModel& scenario, Id<EventModel> event, double stateY)
     : m_path{scenario}
     , m_createdName{RandomNameProvider::generateName<StateModel>()}
     , m_newState{getStrongId(scenario.states)}
@@ -32,9 +30,7 @@ CreateState::CreateState(
 {
 }
 CreateState::CreateState(
-    const Scenario::ProcessModel& scenario,
-    Id<StateModel> newId,
-    Id<EventModel> event,
+    const Scenario::ProcessModel& scenario, Id<StateModel> newId, Id<EventModel> event,
     double stateY)
     : m_path{scenario}
     , m_createdName{RandomNameProvider::generateName<StateModel>()}

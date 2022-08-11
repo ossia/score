@@ -47,9 +47,7 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
   header()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
-      header(),
-      &QWidget::customContextMenuRequested,
-      this,
+      header(), &QWidget::customContextMenuRequested, this,
       &DeviceExplorerView::headerMenuRequested);
 
   header()->setMaximumHeight(20);
@@ -79,18 +77,17 @@ QModelIndexList DeviceExplorerView::selectedDraggableIndexes() const
     return !(m->flags(index) & Qt::ItemIsDragEnabled);
   };
   indexes.erase(
-      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled),
-      indexes.end());
+      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled), indexes.end());
   return indexes;
 }
 
 void DeviceExplorerView::startDrag(Qt::DropActions)
 {
   QModelIndexList indexes = selectedDraggableIndexes();
-  if (indexes.count() > 0)
+  if(indexes.count() > 0)
   {
     QMimeData* data = QTreeView::model()->mimeData(indexes);
-    if (!data)
+    if(!data)
       return;
 
     QDrag* drag = new QDrag(this);
@@ -142,7 +139,7 @@ void DeviceExplorerView::setModel(QAbstractItemModel* model)
   m_hasProxy = false;
   QTreeView::setModel(model);
   // TODO review the save/restore system
-  if (model)
+  if(model)
   {
     setInitialColumnsSizes();
     //        restoreSettings();
@@ -156,7 +153,7 @@ void DeviceExplorerView::setModel(DeviceExplorerFilterProxyModel* model)
   QTreeView::setModel(static_cast<QAbstractItemModel*>(model));
   m_hasProxy = true;
 
-  if (model)
+  if(model)
   {
     setInitialColumnsSizes();
     //        restoreSettings();
@@ -167,7 +164,7 @@ void DeviceExplorerView::setModel(DeviceExplorerFilterProxyModel* model)
 
 DeviceExplorerModel* DeviceExplorerView::model()
 {
-  if (!m_hasProxy)
+  if(!m_hasProxy)
   {
     return static_cast<DeviceExplorerModel*>(QTreeView::model());
   }
@@ -181,10 +178,10 @@ DeviceExplorerModel* DeviceExplorerView::model()
 const DeviceExplorerModel* DeviceExplorerView::model() const
 {
   auto m = QTreeView::model();
-  if (!m)
+  if(!m)
     return nullptr;
 
-  if (!m_hasProxy)
+  if(!m_hasProxy)
   {
     return static_cast<const DeviceExplorerModel*>(m);
   }
@@ -201,20 +198,15 @@ void DeviceExplorerView::initActions()
   const int n = model()->columnCount();
   m_actions.reserve(n);
 
-  for (int i = 0; i < n; ++i)
+  for(int i = 0; i < n; ++i)
   {
     QAction* a = new QAction(
-        model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(),
-        this);
+        model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(), this);
     a->setCheckable(true);
 
     a->setChecked(!isColumnHidden(i));
 
-    connect(
-        a,
-        &QAction::toggled,
-        this,
-        &DeviceExplorerView::columnVisibilityChanged);
+    connect(a, &QAction::toggled, this, &DeviceExplorerView::columnVisibilityChanged);
     m_actions.append(a);
   }
 }
@@ -234,7 +226,7 @@ void DeviceExplorerView::columnVisibilityChanged(bool shown)
 
 void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
 {
-  if (k->key() == Qt::Key_Escape)
+  if(k->key() == Qt::Key_Escape)
   {
     clearSelection();
     k->accept();
@@ -245,10 +237,7 @@ void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
   }
 }
 
-void DeviceExplorerView::rowsInserted(
-    const QModelIndex& parent,
-    int start,
-    int end)
+void DeviceExplorerView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   QTreeView::rowsInserted(parent, start, end);
   created(parent, start, end);
@@ -259,7 +248,7 @@ void DeviceExplorerView::headerMenuRequested(const QPoint& pos)
   QMenu contextMenu(this);
   const int n = std::ssize(m_actions);
 
-  for (int i = 0; i < n; ++i)
+  for(int i = 0; i < n; ++i)
   {
     contextMenu.addAction(m_actions.at(i));
   }
@@ -268,8 +257,7 @@ void DeviceExplorerView::headerMenuRequested(const QPoint& pos)
 }
 
 void DeviceExplorerView::selectionChanged(
-    const QItemSelection& selected,
-    const QItemSelection& deselected)
+    const QItemSelection& selected, const QItemSelection& deselected)
 {
   QTreeView::selectionChanged(selected, deselected);
   selectionChanged();
@@ -285,12 +273,12 @@ QModelIndexList DeviceExplorerView::selectedIndexes() const
   QModelIndexList l = QTreeView::selectedIndexes();
 
   QModelIndexList l0;
-  Q_FOREACH (const QModelIndex& index, l)
+  Q_FOREACH(const QModelIndex& index, l)
   {
-    if (index.column() == col)
+    if(index.column() == col)
     {
 
-      if (!index.isValid())
+      if(!index.isValid())
       {
         qDebug() << " !!! invalid index in selection !!!";
       }
@@ -311,7 +299,7 @@ QModelIndexList DeviceExplorerView::selectedIndexes() const
 
 QModelIndex DeviceExplorerView::selectedIndex() const
 {
-  if (!m_hasProxy)
+  if(!m_hasProxy)
   {
     return currentIndex();
   }
@@ -324,23 +312,22 @@ QModelIndex DeviceExplorerView::selectedIndex() const
 
 void DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
 {
-  if (!m_hasProxy)
+  if(!m_hasProxy)
   {
     return setCurrentIndex(index);
   }
   else
   {
-    return setCurrentIndex(
-        static_cast<const QAbstractProxyModel*>(QTreeView::model())
-            ->mapFromSource(index));
+    return setCurrentIndex(static_cast<const QAbstractProxyModel*>(QTreeView::model())
+                               ->mapFromSource(index));
   }
 }
 void DeviceExplorerView::paintEvent(QPaintEvent* event)
 {
   QTreeView::paintEvent(event);
-  if (!this->isEnabled())
+  if(!this->isEnabled())
     return;
-  if (model() && model()->rowCount(rootIndex()) > 0)
+  if(model() && model()->rowCount(rootIndex()) > 0)
     return;
 
   QPainter p{this->viewport()};

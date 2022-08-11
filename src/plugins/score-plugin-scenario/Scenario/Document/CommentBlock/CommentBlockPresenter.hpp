@@ -24,9 +24,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockPresenter final : public QObject
   W_OBJECT(CommentBlockPresenter)
 public:
   CommentBlockPresenter(
-      const CommentBlockModel& model,
-      QGraphicsItem* parentView,
-      QObject* parent);
+      const CommentBlockModel& model, QGraphicsItem* parentView, QObject* parent);
 
   ~CommentBlockPresenter();
 

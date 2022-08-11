@@ -3,8 +3,8 @@
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
 
-#include <Scenario/Document/Interval/SlotHeader.hpp>
 #include <Scenario/Document/Interval/LayerData.hpp>
+#include <Scenario/Document/Interval/SlotHeader.hpp>
 
 #include <ossia/detail/variant.hpp>
 
@@ -26,10 +26,10 @@ struct LayerSlotPresenter
 
   double headerHeight() const noexcept
   {
-    if (!header)
+    if(!header)
       return SlotHeader::headerHeight();
 
-    if (!headerDelegate)
+    if(!headerDelegate)
       return header->headerHeight();
 
     return headerDelegate->boundingRect().height();
@@ -97,14 +97,8 @@ struct SlotPresenter : ossia::variant<LayerSlotPresenter, NodalSlotPresenter>
     {
       const Layer& lfun;
       const Nodal& nfun;
-      void operator()(const LayerSlotPresenter& pres) const
-      {
-        return lfun(pres);
-      }
-      void operator()(const NodalSlotPresenter& pres) const
-      {
-        return nfun(pres);
-      }
+      void operator()(const LayerSlotPresenter& pres) const { return lfun(pres); }
+      void operator()(const NodalSlotPresenter& pres) const { return nfun(pres); }
     } visitor{lfun, nfun};
     return ossia::visit(visitor, (const variant&)*this);
   }
@@ -123,9 +117,9 @@ struct SlotPresenter : ossia::variant<LayerSlotPresenter, NodalSlotPresenter>
 
   void cleanup(QGraphicsScene* sc)
   {
-    if (auto p = getLayerSlot())
+    if(auto p = getLayerSlot())
       p->cleanup(sc);
-    else if (auto p = getNodalSlot())
+    else if(auto p = getNodalSlot())
       p->cleanup();
   }
 };

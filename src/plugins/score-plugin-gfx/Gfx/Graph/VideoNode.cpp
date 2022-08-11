@@ -11,8 +11,7 @@ void VideoNodeBase::setScaleMode(ScaleMode s)
 }
 
 VideoNode::VideoNode(
-    std::shared_ptr<Video::VideoInterface> dec,
-    std::optional<double> nativeTempo,
+    std::shared_ptr<Video::VideoInterface> dec, std::optional<double> nativeTempo,
     QString f)
     : m_nativeTempo{nativeTempo}
 {
@@ -23,17 +22,16 @@ VideoNode::VideoNode(
 
 VideoNode::~VideoNode() { }
 
-score::gfx::NodeRenderer*
-VideoNode::createRenderer(RenderList& r) const noexcept
+score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcept
 {
-  return new VideoNodeRenderer{*this, const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
+  return new VideoNodeRenderer{
+      *this, const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
 }
 
 void VideoNode::seeked()
 {
   SCORE_TODO;
 }
-
 
 void VideoNode::process(const Message& msg)
 {
@@ -42,10 +40,7 @@ void VideoNode::process(const Message& msg)
   reader.readNextFrame(*this);
 }
 
-
-CameraNode::CameraNode(
-    std::shared_ptr<Video::VideoInterface> dec,
-    QString f)
+CameraNode::CameraNode(std::shared_ptr<Video::VideoInterface> dec, QString f)
 {
   this->m_filter = std::move(f);
   this->reader.m_decoder = std::move(dec);
@@ -54,23 +49,20 @@ CameraNode::CameraNode(
 
 CameraNode::~CameraNode() { }
 
-score::gfx::NodeRenderer*
-CameraNode::createRenderer(RenderList& r) const noexcept
+score::gfx::NodeRenderer* CameraNode::createRenderer(RenderList& r) const noexcept
 {
   return new VideoNodeRenderer{*this, const_cast<VideoFrameShare&>(reader)};
 }
 
 void CameraNode::process(const Message& msg)
 {
-  if (auto frame = reader.m_decoder->dequeue_frame())
+  if(auto frame = reader.m_decoder->dequeue_frame())
   {
     reader.updateCurrentFrame(frame);
   }
 
   reader.releaseFramesToFree();
 }
-
-
 
 std::shared_ptr<RefcountedFrame> VideoFrameShare::currentFrame() const noexcept
 {
@@ -105,22 +97,19 @@ void VideoFrameShare::updateCurrentFrame(AVFrame* frame)
   m_currentFrameIdx++;
 }
 
-VideoFrameShare::VideoFrameShare()
-{
-
-}
+VideoFrameShare::VideoFrameShare() { }
 
 VideoFrameShare::~VideoFrameShare()
 {
   auto& decoder = *m_decoder;
-  for (auto frame : m_framesToFree)
+  for(auto frame : m_framesToFree)
     decoder.release_frame(frame);
 }
 
 void VideoFrameShare::releaseFramesToFree()
 {
   // Give back the frames that aren't used by any thread anymore
-  for(auto it = m_framesInFlight.begin(); it != m_framesInFlight.end(); )
+  for(auto it = m_framesInFlight.begin(); it != m_framesInFlight.end();)
   {
     auto& frame = **it;
     if(frame.use_count == 1)
@@ -137,31 +126,24 @@ void VideoFrameShare::releaseFramesToFree()
   auto& decoder = *m_decoder;
 
   // Release frames from the previous update (which have necessarily been uploaded)
-  for (auto frame : m_framesToFree)
+  for(auto frame : m_framesToFree)
     decoder.release_frame(frame);
   m_framesToFree.clear();
 }
 
+VideoFrameReader::VideoFrameReader() { }
 
-
-VideoFrameReader::VideoFrameReader()
-{
-
-}
-
-VideoFrameReader::~VideoFrameReader()
-{
-
-}
+VideoFrameReader::~VideoFrameReader() { }
 
 void VideoFrameReader::readNextFrame(VideoNode& node)
 {
   auto& decoder = *m_decoder;
 
-  if (mustReadVideoFrame(node))
+  if(mustReadVideoFrame(node))
   {
     // Video files which require more precise timing handling
-    if (auto frame = VideoFrameReader::nextFrame(node, decoder, m_framesToFree, m_nextFrame))
+    if(auto frame
+       = VideoFrameReader::nextFrame(node, decoder, m_framesToFree, m_nextFrame))
     {
       updateCurrentFrame(frame);
 
@@ -183,14 +165,14 @@ bool VideoFrameReader::mustReadVideoFrame(const VideoNode& node)
   auto& decoder = *m_decoder;
 
   double tempoRatio = 1.;
-  if (nodem.m_nativeTempo)
+  if(nodem.m_nativeTempo)
     tempoRatio = (*nodem.m_nativeTempo) / 120.;
 
   auto current_time = nodem.standardUBO.time * tempoRatio; // In seconds
   auto next_frame_time = m_lastFrameTime;
 
   // pause
-  if (nodem.standardUBO.time == m_lastPlaybackTime)
+  if(nodem.standardUBO.time == m_lastPlaybackTime)
   {
     return false;
   }
@@ -198,9 +180,7 @@ bool VideoFrameReader::mustReadVideoFrame(const VideoNode& node)
 
   // what more can we do ?
   const double inv_fps
-      = decoder.fps > 0
-      ? (1. / (tempoRatio * decoder.fps))
-      : (1. / 24.);
+      = decoder.fps > 0 ? (1. / (tempoRatio * decoder.fps)) : (1. / 24.);
   next_frame_time += inv_fps;
 
   // If we are late
@@ -214,8 +194,9 @@ bool VideoFrameReader::mustReadVideoFrame(const VideoNode& node)
   return false;
 }
 
-
-AVFrame* VideoFrameReader::nextFrame(const VideoNode& node, Video::VideoInterface& decoder, std::vector<AVFrame*>& m_framesToFree, AVFrame*& m_nextFrame)
+AVFrame* VideoFrameReader::nextFrame(
+    const VideoNode& node, Video::VideoInterface& decoder,
+    std::vector<AVFrame*>& m_framesToFree, AVFrame*& m_nextFrame)
 {
   auto& nodem = const_cast<VideoNode&>(node);
 
@@ -227,9 +208,10 @@ AVFrame* VideoFrameReader::nextFrame(const VideoNode& node, Video::VideoInterfac
 
   if(auto frame = m_nextFrame)
   {
-    auto drift_in_frames = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
+    auto drift_in_frames
+        = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
 
-    if (abs(drift_in_frames) <= 1.)
+    if(abs(drift_in_frames) <= 1.)
     {
       // we can finally show this frame
       m_nextFrame = nullptr;
@@ -254,11 +236,12 @@ AVFrame* VideoFrameReader::nextFrame(const VideoNode& node, Video::VideoInterfac
     }
   }
 
-  while (auto frame = decoder.dequeue_frame())
+  while(auto frame = decoder.dequeue_frame())
   {
-    auto drift_in_frames = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
+    auto drift_in_frames
+        = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
 
-    if (abs(drift_in_frames) <= 1.)
+    if(abs(drift_in_frames) <= 1.)
     {
       m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
       return frame;
@@ -295,17 +278,15 @@ AVFrame* VideoFrameReader::nextFrame(const VideoNode& node, Video::VideoInterfac
 
   switch(prev.size())
   {
-    case 0:
-    {
+    case 0: {
       return nullptr;
     }
-    case 1:
-    {
+    case 1: {
       return prev.back(); // display the closest frame we got
     }
-    default:
-    {
-      for(std::size_t i = 0; i < prev.size() - 1; ++i) {
+    default: {
+      for(std::size_t i = 0; i < prev.size() - 1; ++i)
+      {
         m_framesToFree.push_back(prev[i]);
       }
       return prev.back();

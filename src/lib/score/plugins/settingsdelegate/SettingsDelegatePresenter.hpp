@@ -51,31 +51,29 @@ protected:
   score::SettingsCommandDispatcher m_disp;
 };
 
-using GlobalSettingsPresenter
-    = SettingsDelegatePresenter<SettingsDelegateModel>;
+using GlobalSettingsPresenter = SettingsDelegatePresenter<SettingsDelegateModel>;
 using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 }
 
-#define DEFERRED_SETTINGS_PRESENTER(Control)                   \
-  do                                                           \
-  {                                                            \
-    con(v, &View::Control##Changed, this, [&](auto val) {      \
-      if (val != m.get##Control())                             \
-      {                                                        \
-        m_disp.submitDeferredCommand<SetModel##Control>(       \
-            this->model(this), val);                           \
-      }                                                        \
-    });                                                        \
-                                                               \
-    con(m, &Model::Control##Changed, &v, &View::set##Control); \
-    v.set##Control(m.get##Control());                          \
-  } while (0)
+#define DEFERRED_SETTINGS_PRESENTER(Control)                                     \
+  do                                                                             \
+  {                                                                              \
+    con(v, &View::Control##Changed, this, [&](auto val) {                        \
+      if(val != m.get##Control())                                                \
+      {                                                                          \
+        m_disp.submitDeferredCommand<SetModel##Control>(this->model(this), val); \
+      }                                                                          \
+    });                                                                          \
+                                                                                 \
+    con(m, &Model::Control##Changed, &v, &View::set##Control);                   \
+    v.set##Control(m.get##Control());                                            \
+  } while(0)
 
 #define SETTINGS_PRESENTER(Control)                               \
   do                                                              \
   {                                                               \
     con(v, &View::Control##Changed, this, [&](auto val) {         \
-      if (val != m.get##Control())                                \
+      if(val != m.get##Control())                                 \
       {                                                           \
         m_disp.submit<SetModel##Control>(this->model(this), val); \
       }                                                           \
@@ -83,4 +81,4 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
                                                                   \
     con(m, &Model::Control##Changed, &v, &View::set##Control);    \
     v.set##Control(m.get##Control());                             \
-  } while (0)
+  } while(0)

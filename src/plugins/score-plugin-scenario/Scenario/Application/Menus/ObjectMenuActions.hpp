@@ -1,11 +1,11 @@
 #pragma once
+#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
+
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/selection/Selection.hpp>
-
-#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
 
 #include <ossia/detail/json.hpp>
 namespace Scenario
@@ -35,12 +35,9 @@ private:
   void pasteElements(QPoint);
   void pasteElements();
 
-  void
-  pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
-  void pasteElementsAfter(
-      const rapidjson::Value& obj);
+  void pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
+  void pasteElementsAfter(const rapidjson::Value& obj);
   void writeJsonToSelectedElements(const rapidjson::Value& obj);
-
 
   ScenarioDocumentModel* getScenarioDocModel() const;
   ScenarioDocumentPresenter* getScenarioDocPresenter() const;

@@ -23,8 +23,7 @@ private:
 };
 
 template <typename Component_T>
-using ProcessComponent
-    = ProcessComponentBase<Process::ProcessModel, Component_T>;
+using ProcessComponent = ProcessComponentBase<Process::ProcessModel, Component_T>;
 
 template <typename System_T>
 using GenericProcessComponent

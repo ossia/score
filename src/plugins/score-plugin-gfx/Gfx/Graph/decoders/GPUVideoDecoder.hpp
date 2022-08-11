@@ -5,8 +5,7 @@
 #include <Gfx/Graph/RenderState.hpp>
 #include <Video/VideoInterface.hpp>
 
-extern "C"
-{
+extern "C" {
 #include <libavutil/pixdesc.h>
 }
 namespace score::gfx
@@ -43,17 +42,12 @@ public:
    *
    * It returns a {vertex, fragment} shader pair.
    */
-  [[nodiscard]]
-  virtual std::pair<QShader, QShader> init(RenderList& r) = 0;
+  [[nodiscard]] virtual std::pair<QShader, QShader> init(RenderList& r) = 0;
 
   /**
    * @brief Decode and upload a video frame to the GPU.
    */
-  virtual void exec(
-      RenderList&,
-      QRhiResourceUpdateBatch& res,
-      AVFrame& frame)
-      = 0;
+  virtual void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) = 0;
 
   /**
    * @brief This method will release all the created samplers and textures.
@@ -66,12 +60,8 @@ public:
    * If possible, it tries to avoid a copy of pixels : pixels must not be freed before the
    * frame has been rendered.
    */
-  static QRhiTextureSubresourceUploadDescription createTextureUpload(
-      uint8_t* pixels,
-      int w,
-      int h,
-      int bytesPerPixel,
-      int stride);
+  static QRhiTextureSubresourceUploadDescription
+  createTextureUpload(uint8_t* pixels, int w, int h, int bytesPerPixel, int stride);
 
   static QString vertexShader() noexcept;
 
@@ -89,20 +79,13 @@ struct EmptyDecoder : GPUVideoDecoder
     }
   )_";
 
-  explicit EmptyDecoder()
-  {
-  }
+  explicit EmptyDecoder() { }
 
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     return score::gfx::makeShaders(r.state, vertexShader(), hashtag_no_filter);
   }
 
-  void exec(
-      RenderList&,
-      QRhiResourceUpdateBatch& res,
-      AVFrame& frame) override
-  {
-  }
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override { }
 };
 }

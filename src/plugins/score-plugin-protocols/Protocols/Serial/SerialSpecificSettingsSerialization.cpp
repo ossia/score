@@ -23,8 +23,8 @@ void DataStreamWriter::write(Protocols::SerialSpecificSettings& n)
   QString sn;
   m_stream >> sn >> n.text >> n.rate;
 
-  for (const auto& port : QSerialPortInfo::availablePorts())
-    if (port.serialNumber() == sn)
+  for(const auto& port : QSerialPortInfo::availablePorts())
+    if(port.serialNumber() == sn)
     {
       n.port = port;
       break;
@@ -45,8 +45,8 @@ template <>
 void JSONWriter::write(Protocols::SerialSpecificSettings& n)
 {
   auto sn = obj["Port"].toString();
-  for (const auto& port : QSerialPortInfo::availablePorts())
-    if (port.serialNumber() == sn)
+  for(const auto& port : QSerialPortInfo::availablePorts())
+    if(port.serialNumber() == sn)
     {
       n.port = port;
       break;

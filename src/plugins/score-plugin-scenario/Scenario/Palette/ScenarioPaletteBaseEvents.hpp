@@ -1,10 +1,10 @@
 #pragma once
 #include "ScenarioPoint.hpp"
 
+#include <Scenario/Document/Interval/Slot.hpp>
+
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/Clamp.hpp>
-
-#include <Scenario/Document/Interval/Slot.hpp>
 
 namespace score
 {
@@ -17,7 +17,7 @@ struct PositionedEvent<Scenario::Point> : public QEvent
   {
     // Here we artificially prevent to move over the header of the rack
     // so that the elements won't disappear in the void.
-    if (point.date.impl < 0)
+    if(point.date.impl < 0)
       point.date.impl = 0;
     point.y = clamp(point.y, 0.004, 0.99);
   }
@@ -51,9 +51,7 @@ struct PositionedScenarioEvent : public score::PositionedEvent<Scenario::Point>
 template <typename Element, int N>
 struct PositionedWithId_ScenarioEvent final : public PositionedScenarioEvent<N>
 {
-  PositionedWithId_ScenarioEvent(
-      const Id<Element>& tn_id,
-      const Scenario::Point& sp)
+  PositionedWithId_ScenarioEvent(const Id<Element>& tn_id, const Scenario::Point& sp)
       : PositionedScenarioEvent<N>{sp}
       , id{tn_id}
   {
@@ -139,14 +137,11 @@ static const constexpr int ReleaseOnRightBrace
 using ClickOnNothing_Event = PositionedScenarioEvent<ClickOnNothing>;
 using ClickOnTimeSync_Event
     = PositionedWithId_ScenarioEvent<TimeSyncModel, ClickOnTimeSync>;
-using ClickOnEvent_Event
-    = PositionedWithId_ScenarioEvent<EventModel, ClickOnEvent>;
+using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ClickOnEvent>;
 using ClickOnInterval_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnInterval>;
-using ClickOnState_Event
-    = PositionedWithId_ScenarioEvent<StateModel, ClickOnState>;
-using ClickOnTrigger_Event
-    = score::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
+using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ClickOnState>;
+using ClickOnTrigger_Event = score::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
 using ClickOnLeftBrace_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnLeftBrace>;
 using ClickOnRightBrace_Event
@@ -156,14 +151,11 @@ using ClickOnRightBrace_Event
 using MoveOnNothing_Event = PositionedScenarioEvent<MoveOnNothing>;
 using MoveOnTimeSync_Event
     = PositionedWithId_ScenarioEvent<TimeSyncModel, MoveOnTimeSync>;
-using MoveOnEvent_Event
-    = PositionedWithId_ScenarioEvent<EventModel, MoveOnEvent>;
+using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, MoveOnEvent>;
 using MoveOnInterval_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnInterval>;
-using MoveOnState_Event
-    = PositionedWithId_ScenarioEvent<StateModel, MoveOnState>;
-using MoveOnTrigger_Event
-    = score::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
+using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, MoveOnState>;
+using MoveOnTrigger_Event = score::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
 using MoveOnLeftBrace_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnLeftBrace>;
 using MoveOnRightBrace_Event
@@ -173,12 +165,10 @@ using MoveOnRightBrace_Event
 using ReleaseOnNothing_Event = PositionedScenarioEvent<ReleaseOnNothing>;
 using ReleaseOnTimeSync_Event
     = PositionedWithId_ScenarioEvent<TimeSyncModel, ReleaseOnTimeSync>;
-using ReleaseOnEvent_Event
-    = PositionedWithId_ScenarioEvent<EventModel, ReleaseOnEvent>;
+using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ReleaseOnEvent>;
 using ReleaseOnInterval_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnInterval>;
-using ReleaseOnState_Event
-    = PositionedWithId_ScenarioEvent<StateModel, ReleaseOnState>;
+using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ReleaseOnState>;
 using ReleaseOnTrigger_Event
     = score::NumberedWithPath_Event<TriggerModel, ReleaseOnTrigger>;
 using ReleaseOnLeftBrace_Event
@@ -228,8 +218,7 @@ struct MoveOnSlotHandle_Event : public score::NumberedEvent<MoveOnSlotHandle>
 
 // using ReleaseOnSlotHandle_Event
 //     = score::NumberedWithPath_Event<IntervalModel, ReleaseOnSlotHandle>;
-struct ReleaseOnSlotHandle_Event
-    : public score::NumberedEvent<ReleaseOnSlotHandle>
+struct ReleaseOnSlotHandle_Event : public score::NumberedEvent<ReleaseOnSlotHandle>
 {
   explicit ReleaseOnSlotHandle_Event(const SlotPath& p)
       : NumberedEvent<ReleaseOnSlotHandle>()
@@ -252,9 +241,8 @@ QString debug_StateMachineIDs()
   QString txt;
 
   auto object = static_cast<ScenarioElement>(N % 10);
-  auto modifier
-      = static_cast<score::Modifier_tagme>((N - object) % 1000 / 100);
-  switch (modifier)
+  auto modifier = static_cast<score::Modifier_tagme>((N - object) % 1000 / 100);
+  switch(modifier)
   {
     case score::Modifier_tagme::Click:
       txt += "Click on";
@@ -267,7 +255,7 @@ QString debug_StateMachineIDs()
       break;
   }
 
-  switch (object)
+  switch(object)
   {
     case ScenarioElement::Nothing:
       txt += "nothing";

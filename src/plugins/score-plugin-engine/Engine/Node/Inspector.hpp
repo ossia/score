@@ -1,12 +1,13 @@
 #pragma once
+#include <Process/Dataflow/PortListWidget.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+
 #include <Control/Widgets.hpp>
 #include <Engine/Node/Process.hpp>
 #include <Inspector/InspectorLayout.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <Process/Dataflow/PortListWidget.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 namespace Control
 {
@@ -16,19 +17,19 @@ void visit_ports(Vis&& visitor, const ControlProcess<Info>& proc)
   {
     std::size_t i = 0;
 
-    for (auto& port : Info::Metadata::audio_ins)
+    for(auto& port : Info::Metadata::audio_ins)
     {
       visitor(i, port);
       i++;
     }
 
-    for (auto& port : Info::Metadata::midi_ins)
+    for(auto& port : Info::Metadata::midi_ins)
     {
       visitor(i, port);
       i++;
     }
 
-    for (auto& port : Info::Metadata::value_ins)
+    for(auto& port : Info::Metadata::value_ins)
     {
       visitor(i, port);
       i++;
@@ -38,34 +39,33 @@ void visit_ports(Vis&& visitor, const ControlProcess<Info>& proc)
   {
     std::size_t i = 0;
 
-    for (auto& port : Info::Metadata::audio_outs)
+    for(auto& port : Info::Metadata::audio_outs)
     {
       visitor(i, port);
       i++;
     }
 
-    for (auto& port : Info::Metadata::midi_outs)
+    for(auto& port : Info::Metadata::midi_outs)
     {
       visitor(i, port);
       i++;
     }
 
-    for (auto& port : Info::Metadata::value_outs)
+    for(auto& port : Info::Metadata::value_outs)
     {
       visitor(i, port);
       i++;
     }
   }
   {
-    if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
+    if constexpr(ossia::safe_nodes::info_functions<Info>::control_count > 0)
     {
       auto start = ossia::safe_nodes::info_functions<Info>::control_start;
       std::size_t i = 0;
-      ossia::for_each_in_tuple(
-          Info::Metadata::controls, [&](const auto& ctrl) {
-            visitor(start + i, ctrl);
-            i++;
-          });
+      ossia::for_each_in_tuple(Info::Metadata::controls, [&](const auto& ctrl) {
+        visitor(start + i, ctrl);
+        i++;
+      });
     }
   }
 }
@@ -103,11 +103,7 @@ struct inlet_visitor
   {
     auto& inlet = *static_cast<Process::ControlInlet*>(object.inlets()[i]);
     Process::PortWidgetSetup::setupControl(
-        inlet,
-        ctrl.make_widget(ctrl, inlet, doc, self, self),
-        doc,
-        vlay,
-        self);
+        inlet, ctrl.make_widget(ctrl, inlet, doc, self, self), doc, vlay, self);
   }
 
   void operator()(std::size_t i, const ossia::safe_nodes::audio_out& out)

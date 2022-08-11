@@ -29,22 +29,16 @@ public:
   explicit DocumentBuilder(QObject* parentPresenter, QWidget* parentView);
 
   Document* newDocument(
-      const score::GUIApplicationContext& ctx,
-      const Id<DocumentModel>& id,
+      const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
       score::DocumentDelegateFactory& doctype);
   Document* loadDocument(
-      const score::GUIApplicationContext& ctx,
-      QString filename,
+      const score::GUIApplicationContext& ctx, QString filename,
       score::DocumentDelegateFactory& doctype);
   Document* loadDocument(
-      const score::GUIApplicationContext& ctx,
-      QString filename,
-      QByteArray data,
-      SerializationIdentifier format,
-      score::DocumentDelegateFactory& doctype);
+      const score::GUIApplicationContext& ctx, QString filename, QByteArray data,
+      SerializationIdentifier format, score::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
-      const score::GUIApplicationContext& ctx,
-      const score::RestorableDocument& doc,
+      const score::GUIApplicationContext& ctx, const score::RestorableDocument& doc,
       score::DocumentDelegateFactory& doctype);
 
 private:

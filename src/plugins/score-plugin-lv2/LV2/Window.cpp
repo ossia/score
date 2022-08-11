@@ -1,7 +1,8 @@
+#include <Process/Dataflow/Port.hpp>
+
 #include <LV2/ApplicationPlugin.hpp>
 #include <LV2/Window.hpp>
 #include <Media/Effect/Settings/Model.hpp>
-#include <Process/Dataflow/Port.hpp>
 
 #include <score/widgets/MarginLess.hpp>
 
@@ -17,17 +18,14 @@
 W_OBJECT_IMPL(LV2::Window)
 namespace LV2
 {
-Window::Window(
-    const Model& fx,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* parent)
     : m_model{fx}
 {
-  if (!fx.plugin)
+  if(!fx.plugin)
     throw std::runtime_error("Cannot create UI");
 
   bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
-  if (ontop)
+  if(ontop)
   {
     setWindowFlag(Qt::WindowStaysOnTopHint, true);
   }
@@ -45,29 +43,24 @@ Window::Window(
     LILV_FOREACH(uis, u, the_uis)
     {
       const LilvUI* this_ui = lilv_uis_get(the_uis, u);
-      if (lilv_ui_is_supported(
-              this_ui,
-              p.suil.ui_supported,
-              native_ui_type,
-              &fx.effectContext.ui_type))
+      if(lilv_ui_is_supported(
+             this_ui, p.suil.ui_supported, native_ui_type, &fx.effectContext.ui_type))
       {
         fx.effectContext.ui = this_ui;
         break;
       }
     }
   }
-  if (!fx.effectContext.ui)
+  if(!fx.effectContext.ui)
     throw std::runtime_error("UI not supported");
 
-  auto& plug
-      = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+  auto& plug = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
   // Set-up features and instantiate the plug-in ui
   const LV2_Feature parent_feature = {LV2_UI__parent, this};
   const LV2_Feature instance_feature
       = {"http://lv2plug.in/ns/ext/instance-access",
          lilv_instance_get_handle(fx.effectContext.instance)};
-  const LV2_Feature data_feature
-      = {LV2_DATA_ACCESS_URI, &fx.effectContext.data};
+  const LV2_Feature data_feature = {LV2_DATA_ACCESS_URI, &fx.effectContext.data};
   const LV2_Feature idle_feature = {LV2_UI__idleInterface, nullptr};
   const LV2_Feature* ui_features[] = {
 
@@ -82,34 +75,26 @@ Window::Window(
       &idle_feature,
       nullptr};
 
-  const char* bundle_uri
-      = lilv_node_as_uri(lilv_ui_get_bundle_uri(fx.effectContext.ui));
-  const char* binary_uri
-      = lilv_node_as_uri(lilv_ui_get_binary_uri(fx.effectContext.ui));
+  const char* bundle_uri = lilv_node_as_uri(lilv_ui_get_bundle_uri(fx.effectContext.ui));
+  const char* binary_uri = lilv_node_as_uri(lilv_ui_get_binary_uri(fx.effectContext.ui));
   char* bundle_path = lilv_file_uri_parse(bundle_uri, nullptr);
   char* binary_path = lilv_file_uri_parse(binary_uri, nullptr);
 
   auto& suil = plug.suil;
   fx.effectContext.ui_instance = suil.instance_new(
-      plug.lv2_context->ui_host,
-      (Model*)&fx,
-      native_ui_type_uri,
+      plug.lv2_context->ui_host, (Model*)&fx, native_ui_type_uri,
       lilv_node_as_uri(lilv_plugin_get_uri(fx.effectContext.plugin)),
       lilv_node_as_uri(lilv_ui_get_uri(fx.effectContext.ui)),
-      lilv_node_as_uri(fx.effectContext.ui_type),
-      bundle_path,
-      binary_path,
-      ui_features);
+      lilv_node_as_uri(fx.effectContext.ui_type), bundle_path, binary_path, ui_features);
 
   lilv_free(binary_path);
   lilv_free(bundle_path);
 
-  if (!fx.effectContext.ui_instance)
+  if(!fx.effectContext.ui_instance)
     throw std::runtime_error("UI creation error");
 
   // Setup the widget stuff
-  auto widget
-      = (QWidget*)suil.instance_get_widget(fx.effectContext.ui_instance);
+  auto widget = (QWidget*)suil.instance_get_widget(fx.effectContext.ui_instance);
 
   const int default_w = widget->width();
   const int default_h = widget->height();
@@ -124,30 +109,26 @@ Window::Window(
   QPointer<const Model> fx_ptr{&fx};
   connect(&ctx.coarseUpdateTimer, &QTimer::timeout, this, [&, fx_ptr] {
     // score -> UI
-    if (!fx_ptr)
+    if(!fx_ptr)
       return;
 
     {
       Message ev;
-      while (fx.plugin_events.try_dequeue(ev))
+      while(fx.plugin_events.try_dequeue(ev))
       {
         suil.instance_port_event(
-            fx.effectContext.ui_instance,
-            ev.index,
-            ev.body.size(),
-            ev.protocol,
+            fx.effectContext.ui_instance, ev.index, ev.body.size(), ev.protocol,
             ev.body.data());
       }
     }
 
     // UI -> score
     {
-      auto& plug
-          = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+      auto& plug = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
       Message ev;
-      while (fx.ui_events.try_dequeue(ev))
+      while(fx.ui_events.try_dequeue(ev))
       {
-        if (ev.protocol == 0)
+        if(ev.protocol == 0)
         {
           SCORE_ASSERT(ev.body.size() == sizeof(float));
 
@@ -165,7 +146,7 @@ Window::Window(
             fx.to_process_events.enqueue(std::move(ev));
           }
         }
-        else if (ev.protocol == plug.lv2_host_context.atom_eventTransfer)
+        else if(ev.protocol == plug.lv2_host_context.atom_eventTransfer)
         {
           fx.to_process_events.enqueue(std::move(ev));
         }
@@ -179,7 +160,7 @@ Window::Window(
 
   // Set initial control port values
   // TODO not good, because not all available controls are created as score ports
-  for (auto& e : fx.control_map)
+  for(auto& e : fx.control_map)
   {
     float f = ossia::convert<float>(e.second.first->value());
     suil.instance_port_event(
@@ -188,7 +169,7 @@ Window::Window(
 
   // Show ui and resize
   QTimer::singleShot(0, [=, &p] {
-    if (!is_resizable(p.lilv.me, *m_model.effectContext.ui))
+    if(!is_resizable(p.lilv.me, *m_model.effectContext.ui))
     {
       widget->setMinimumSize(default_w, default_h);
       widget->setMaximumSize(default_w, default_h);
@@ -222,11 +203,10 @@ void Window::resizeEvent(QResizeEvent* event)
 
 void Window::closeEvent(QCloseEvent* event)
 {
-  if (m_widget)
+  if(m_widget)
     m_widget->setParent(nullptr);
 
-  auto& p =
-  score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
 
   p.suil.instance_free(m_model.effectContext.ui_instance);
   m_model.effectContext.ui_instance = nullptr;
@@ -237,13 +217,11 @@ void Window::closeEvent(QCloseEvent* event)
 
 bool Window::is_resizable(LilvWorld* world, const LilvUI& ui)
 {
-  auto& plug
-      = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+  auto& plug = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
   auto& h = plug.lv2_host_context;
   auto s = lilv_ui_get_uri(&ui);
 
-  Lilv::Nodes fs_matches
-      = plug.lilv.find_nodes(s, h.optional_feature, h.fixed_size);
+  Lilv::Nodes fs_matches = plug.lilv.find_nodes(s, h.optional_feature, h.fixed_size);
   Lilv::Nodes nrs_matches
       = plug.lilv.find_nodes(s, h.optional_feature, h.no_user_resize);
 

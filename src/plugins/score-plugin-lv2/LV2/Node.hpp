@@ -12,15 +12,16 @@ template <typename OnExecStart, typename OnExecFinished>
 struct lv2_node final : public ossia::graph_node
 {
   LV2Data data;
-  ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax,
-      fParamInit, fOtherControls;
+  ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax, fParamInit,
+      fOtherControls;
   std::vector<ossia::float_vector> fCVs;
   std::vector<AtomBuffer> m_atom_ins, m_atom_outs;
   std::vector<ossia::small_vector<Message, 2>> m_message_for_atom_ins;
 
   LilvInstance* fInstance{};
   std::unique_ptr<uint8_t[]> timePositionBuffer{};
-  struct MatchedPort {
+  struct MatchedPort
+  {
     int port;
     AtomBuffer* buffer{};
   };
@@ -45,34 +46,34 @@ struct lv2_node final : public ossia::graph_node
     const std::size_t other_size = data.control_other_ports.size();
     const std::size_t num_ports = data.effect.plugin.get_num_ports();
 
-    if (audio_in_size > 0)
+    if(audio_in_size > 0)
     {
       m_inlets.push_back(new ossia::audio_inlet);
     }
-    if (audio_out_size > 0)
+    if(audio_out_size > 0)
     {
       m_outlets.push_back(new ossia::audio_outlet);
     }
 
-    for (std::size_t i = 0; i < cv_size; i++)
+    for(std::size_t i = 0; i < cv_size; i++)
     {
       m_inlets.push_back(new ossia::audio_inlet);
     }
 
-    for (std::size_t i = 0; i < midi_in_size; i++)
+    for(std::size_t i = 0; i < midi_in_size; i++)
     {
       m_inlets.push_back(new ossia::midi_inlet);
     }
-    for (std::size_t i = 0; i < midi_out_size; i++)
+    for(std::size_t i = 0; i < midi_out_size; i++)
     {
       m_outlets.push_back(new ossia::midi_outlet);
     }
 
-    for (std::size_t i = 0; i < control_in_size; i++)
+    for(std::size_t i = 0; i < control_in_size; i++)
     {
       m_inlets.push_back(new ossia::value_inlet);
     }
-    for (std::size_t i = 0; i < control_out_size; i++)
+    for(std::size_t i = 0; i < control_out_size; i++)
     {
       m_outlets.push_back(new ossia::value_outlet);
     }
@@ -81,7 +82,7 @@ struct lv2_node final : public ossia::graph_node
     fOutControls.resize(control_out_size);
     fOtherControls.resize(other_size);
     fCVs.resize(cv_size);
-    for (std::size_t i = 0; i < cv_size; i++)
+    for(std::size_t i = 0; i < cv_size; i++)
     {
       fCVs[i].resize(4096);
     }
@@ -96,20 +97,20 @@ struct lv2_node final : public ossia::graph_node
     fInstance = data.effect.instance;
     data.effect.instance = fInstance;
 
-    if (!fInstance)
+    if(!fInstance)
       throw std::runtime_error("Error while creating a LV2 plug-in");
 
     // MIDI
     m_atom_ins.reserve(midi_in_size);
     m_message_for_atom_ins.resize(midi_in_size);
-    for (std::size_t i = 0; i < midi_in_size; i++)
+    for(std::size_t i = 0; i < midi_in_size; i++)
     {
       m_atom_ins.emplace_back(
           2048, data.host.atom_chunk_id, data.host.midi_event_id, true);
     }
 
     m_atom_outs.reserve(midi_out_size);
-    for (std::size_t i = 0; i < midi_out_size; i++)
+    for(std::size_t i = 0; i < midi_out_size; i++)
     {
       m_atom_outs.emplace_back(
           2048, data.host.atom_chunk_id, data.host.midi_event_id, false);
@@ -117,37 +118,43 @@ struct lv2_node final : public ossia::graph_node
 
     // Timing
     // Note: some plug-ins have the timing port shared with the midi port, others have it separate
-    for (std::size_t i = 0; i < time_in_size; i++)
+    for(std::size_t i = 0; i < time_in_size; i++)
     {
       auto port_index = data.time_Position_ports[i];
 
       bool is_midi = false;
-      for(std::size_t midi_port_k = 0; midi_port_k < data.midi_in_ports.size(); midi_port_k++) {
+      for(std::size_t midi_port_k = 0; midi_port_k < data.midi_in_ports.size();
+          midi_port_k++)
+      {
         int midi_port_index = data.midi_in_ports[midi_port_k];
-        if(midi_port_index == port_index) {
-          m_atom_timePosition_midi.push_back(MatchedPort{port_index, &m_atom_ins[midi_port_k]});
+        if(midi_port_index == port_index)
+        {
+          m_atom_timePosition_midi.push_back(
+              MatchedPort{port_index, &m_atom_ins[midi_port_k]});
           is_midi = true;
           break;
         }
       }
 
-      if(!is_midi) {
+      if(!is_midi)
+      {
         // Allocate a new port
-        auto abuf = new AtomBuffer(256, data.host.atom_chunk_id, data.host.time_Position_id, true);
+        auto abuf = new AtomBuffer(
+            256, data.host.atom_chunk_id, data.host.time_Position_id, true);
         m_atom_timePosition_owned.push_back(MatchedPort{port_index, abuf});
       }
     }
 
     // Worker
-    if (lilv_plugin_has_feature(data.effect.plugin.me, data.host.work_schedule)
-        && lilv_plugin_has_extension_data(
-            data.effect.plugin.me, data.host.work_interface))
+    if(lilv_plugin_has_feature(data.effect.plugin.me, data.host.work_schedule)
+       && lilv_plugin_has_extension_data(
+           data.effect.plugin.me, data.host.work_interface))
     {
       data.effect.worker = static_cast<const LV2_Worker_Interface*>(
           lilv_instance_get_extension_data(fInstance, LV2_WORKER__interface));
     }
 
-    for (std::size_t i = 0; i < control_in_size; i++)
+    for(std::size_t i = 0; i < control_in_size; i++)
     {
       auto port_i = data.control_in_ports[i];
       fInControls[i] = fParamInit[port_i];
@@ -171,35 +178,34 @@ struct lv2_node final : public ossia::graph_node
     const std::size_t cv_size = data.cv_ports.size();
     const std::size_t other_size = data.control_other_ports.size();
 
-    for (std::size_t i = 0; i < control_in_size; i++)
+    for(std::size_t i = 0; i < control_in_size; i++)
     {
       lilv_instance_connect_port(fInstance, data.control_in_ports[i], &fInControls[i]);
     }
 
-    for (std::size_t i = 0; i < control_out_size; i++)
+    for(std::size_t i = 0; i < control_out_size; i++)
     {
-      lilv_instance_connect_port(
-          fInstance, data.control_out_ports[i], &fOutControls[i]);
+      lilv_instance_connect_port(fInstance, data.control_out_ports[i], &fOutControls[i]);
     }
 
-    for (std::size_t i = 0; i < cv_size; i++)
+    for(std::size_t i = 0; i < cv_size; i++)
     {
       lilv_instance_connect_port(fInstance, data.cv_ports[i], fCVs[i].data());
     }
 
-    for (std::size_t i = 0; i < other_size; i++)
+    for(std::size_t i = 0; i < other_size; i++)
     {
       lilv_instance_connect_port(
           fInstance, data.control_other_ports[i], &fOtherControls[i]);
     }
 
-    for (std::size_t i = 0; i < midi_in_size; i++)
+    for(std::size_t i = 0; i < midi_in_size; i++)
     {
       lilv_instance_connect_port(
           fInstance, data.midi_in_ports[i], &m_atom_ins[i].buf->atoms);
     }
 
-    for (std::size_t i = 0; i < midi_out_size; i++)
+    for(std::size_t i = 0; i < midi_out_size; i++)
     {
       auto& out_p = data.midi_out_ports[i];
       auto atoms = &m_atom_outs[i].buf->atoms;
@@ -208,10 +214,8 @@ struct lv2_node final : public ossia::graph_node
 
     for(auto& [index, port] : m_atom_timePosition_owned)
     {
-      lilv_instance_connect_port(
-          fInstance, index, &port->buf->atoms);
+      lilv_instance_connect_port(fInstance, index, &port->buf->atoms);
     }
-
   }
 
   void all_notes_off() noexcept override
@@ -231,43 +235,36 @@ struct lv2_node final : public ossia::graph_node
 
     // Copy midi
     int first_midi_idx = (audio_in_size > 0 ? 1 : 0) + cv_size;
-    for (std::size_t i = 0; i < m_atom_ins.size(); i++)
+    for(std::size_t i = 0; i < m_atom_ins.size(); i++)
     {
-      ossia::midi_port& ossia_port = this->m_inlets[i + first_midi_idx]
-                                         ->template cast<ossia::midi_port>();
+      ossia::midi_port& ossia_port
+          = this->m_inlets[i + first_midi_idx]->template cast<ossia::midi_port>();
       auto& lv2_port = m_atom_ins[i];
       Iterator it{lv2_port.buf};
 
       // Message from the UI
-      for (const Message& msg : this->m_message_for_atom_ins[i]) {
-        auto atom = (LV2_Atom*) msg.body.data();
-        auto atom_data = (const uint8_t*) LV2_ATOM_BODY(atom);
+      for(const Message& msg : this->m_message_for_atom_ins[i])
+      {
+        auto atom = (LV2_Atom*)msg.body.data();
+        auto atom_data = (const uint8_t*)LV2_ATOM_BODY(atom);
         it.write(0, 0, atom->type, atom->size, atom_data);
       }
 
       // MIDI input
-      for (const libremidi::message& msg : ossia_port.messages)
+      for(const libremidi::message& msg : ossia_port.messages)
       {
         it.write(
-            msg.timestamp,
-            0,
-            data.host.midi_event_id,
-            msg.bytes.size(),
+            msg.timestamp, 0, data.host.midi_event_id, msg.bytes.size(),
             msg.bytes.data());
       }
 
       // Copy timing for MIDI ports
       if(this->m_atom_timePosition_midi.size() != 0)
       {
-        const LV2_Atom *atom = (const LV2_Atom *) timePositionBuffer.get();
+        const LV2_Atom* atom = (const LV2_Atom*)timePositionBuffer.get();
 
         // Time position
-        it.write(
-            0,
-            0,
-            atom->type,
-            atom->size,
-            (const uint8_t *) LV2_ATOM_BODY(atom));
+        it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
       }
     }
 
@@ -277,28 +274,22 @@ struct lv2_node final : public ossia::graph_node
       auto& lv2_port = atoms;
       Iterator it{lv2_port->buf};
       {
-        const LV2_Atom *atom = (const LV2_Atom *) timePositionBuffer.get();
+        const LV2_Atom* atom = (const LV2_Atom*)timePositionBuffer.get();
 
         // Time position
-        it.write(
-            0,
-            0,
-            atom->type,
-            atom->size,
-            (const uint8_t *) LV2_ATOM_BODY(atom));
+        it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
       }
     }
 
-
     // Copy controls
     auto control_start = (audio_in_size > 0 ? 1 : 0) + midi_in_size + cv_size;
-    for (std::size_t i = control_start; i < control_in_size; i++)
+    for(std::size_t i = control_start; i < control_in_size; i++)
     {
       auto& in = m_inlets[i]->template cast<ossia::value_port>().get_data();
 
-      if (!in.empty())
+      if(!in.empty())
       {
-        if (auto f = in.back().value.template target<float>())
+        if(auto f = in.back().value.template target<float>())
         {
           fInControls[i - control_start] = *f;
         }
@@ -310,7 +301,7 @@ struct lv2_node final : public ossia::graph_node
   {
     LV2::HostContext& host = this->data.host;
     auto& forge = host.forge;
-    uint8_t *buffer = timePositionBuffer.get();
+    uint8_t* buffer = timePositionBuffer.get();
     lv2_atom_forge_set_buffer(&forge, buffer, 256);
     LV2_Atom_Forge_Frame frame;
     lv2_atom_forge_object(&forge, &frame, 0, host.time_Position_id);
@@ -339,7 +330,8 @@ struct lv2_node final : public ossia::graph_node
     lv2_atom_forge_int(&forge, 4);
 
     lv2_atom_forge_key(&forge, host.time_beatsPerBar_id);
-    lv2_atom_forge_float(&forge, 4 * double(tk.signature.upper) / double(tk.signature.lower));
+    lv2_atom_forge_float(
+        &forge, 4 * double(tk.signature.upper) / double(tk.signature.lower));
 
     lv2_atom_forge_key(&forge, host.time_beatsPerMinute_id);
     lv2_atom_forge_float(&forge, tk.tempo);
@@ -349,18 +341,17 @@ struct lv2_node final : public ossia::graph_node
 
   void postProcess(int64_t offset)
   {
-    if (data.effect.worker && data.effect.worker->work_response)
+    if(data.effect.worker && data.effect.worker->work_response)
     {
       std::vector<char> vec;
-      while(data.effect.worker_datas.try_dequeue(vec)) {
+      while(data.effect.worker_datas.try_dequeue(vec))
+      {
         data.effect.worker->work_response(
-            data.effect.instance->lv2_handle,
-            vec.size(),
-            vec.data());
+            data.effect.instance->lv2_handle, vec.size(), vec.data());
       }
     }
 
-    if (data.effect.worker && data.effect.worker->end_run)
+    if(data.effect.worker && data.effect.worker->end_run)
     {
       data.effect.worker->end_run(data.effect.instance->lv2_handle);
     }
@@ -372,10 +363,10 @@ struct lv2_node final : public ossia::graph_node
     // Copy midi
     // FIXME the line below definitely does not look right
     int first_midi_idx = (audio_out_size > 0 ? 1 : 0);
-    for (std::size_t i = 0; i < m_atom_outs.size(); i++)
+    for(std::size_t i = 0; i < m_atom_outs.size(); i++)
     {
-      ossia::midi_port& ossia_port = this->m_outlets[i + first_midi_idx]
-                                         ->template cast<ossia::midi_port>();
+      ossia::midi_port& ossia_port
+          = this->m_outlets[i + first_midi_idx]->template cast<ossia::midi_port>();
       AtomBuffer& lv2_port = m_atom_outs[i];
 
       const LV2::HostContext& host = this->data.host;
@@ -387,8 +378,8 @@ struct lv2_node final : public ossia::graph_node
           msg.timestamp = ev->time.frames;
           msg.bytes.resize(ev->body.size);
 
-          auto bytes = (uint8_t*) LV2_ATOM_BODY(&ev->body);
-          for (std::size_t i = 0; i < ev->body.size; i++)
+          auto bytes = (uint8_t*)LV2_ATOM_BODY(&ev->body);
+          for(std::size_t i = 0; i < ev->body.size; i++)
           {
             msg.bytes[i] = bytes[i];
           }
@@ -402,7 +393,7 @@ struct lv2_node final : public ossia::graph_node
 
     // Copy controls
     auto control_start = (audio_out_size > 0 ? 1 : 0) + midi_out_size;
-    for (std::size_t i = control_start; i < control_out_size; i++)
+    for(std::size_t i = control_start; i < control_out_size; i++)
     {
       auto& out = m_outlets[i]->template cast<ossia::value_port>();
 
@@ -412,15 +403,15 @@ struct lv2_node final : public ossia::graph_node
     // Callback to UI
     on_finished();
 
-    for (AtomBuffer& port : m_atom_ins)
+    for(AtomBuffer& port : m_atom_ins)
     {
       port.buf->reset(true);
     }
-    for (auto& [port, atoms] : m_atom_timePosition_owned)
+    for(auto& [port, atoms] : m_atom_timePosition_owned)
     {
       atoms->buf->reset(true);
     }
-    for (AtomBuffer& port : m_atom_outs)
+    for(AtomBuffer& port : m_atom_outs)
     {
       port.buf->reset(false);
     }
@@ -429,18 +420,17 @@ struct lv2_node final : public ossia::graph_node
       mqueue.clear();
   }
 
-  ~lv2_node() override {
+  ~lv2_node() override
+  {
     lilv_instance_deactivate(fInstance);
     if(!m_atom_timePosition_owned.empty())
       for(auto [port, atoms] : m_atom_timePosition_owned)
         delete atoms;
   }
 
-  void
-  run(const ossia::token_request& tk,
-      ossia::exec_state_facade st) noexcept override
+  void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
-    if (tk.date > tk.prev_date)
+    if(tk.date > tk.prev_date)
     {
       data.host.current = &data.effect;
       if(!data.time_Position_ports.empty())
@@ -457,17 +447,16 @@ struct lv2_node final : public ossia::graph_node
       out_vec.resize(audio_outs);
 
       connect_all_ports();
-      if (audio_ins > 0)
+      if(audio_ins > 0)
       {
         const auto& audio_in = m_inlets[0]->template cast<ossia::audio_port>();
-        for (std::size_t i = 0; i < audio_ins; i++)
+        for(std::size_t i = 0; i < audio_ins; i++)
         {
           in_vec[i].resize(samples);
-          if (audio_in.channels() > i)
+          if(audio_in.channels() > i)
           {
-            for (std::size_t j = 0;
-                 j < std::min(std::size_t(samples), audio_in.channel(i).size());
-                 j++)
+            for(std::size_t j = 0;
+                j < std::min(std::size_t(samples), audio_in.channel(i).size()); j++)
             {
               in_vec[i][j] = (float)audio_in.channel(i)[j];
             }
@@ -477,9 +466,9 @@ struct lv2_node final : public ossia::graph_node
         }
       }
 
-      if (audio_outs > 0)
+      if(audio_outs > 0)
       {
-        for (std::size_t i = 0; i < audio_outs; i++)
+        for(std::size_t i = 0; i < audio_outs; i++)
         {
           out_vec[i].resize(samples);
           lilv_instance_connect_port(
@@ -489,16 +478,15 @@ struct lv2_node final : public ossia::graph_node
 
       lilv_instance_run(fInstance, samples);
 
-      if (audio_outs > 0)
+      if(audio_outs > 0)
       {
-        auto& audio_out
-            = static_cast<ossia::audio_outlet*>(m_outlets[0])->data;
+        auto& audio_out = static_cast<ossia::audio_outlet*>(m_outlets[0])->data;
         audio_out.set_channels(audio_outs);
-        for (std::size_t i = 0; i < audio_outs; i++)
+        for(std::size_t i = 0; i < audio_outs; i++)
         {
           audio_out.channel(i).clear();
           audio_out.channel(i).reserve(samples);
-          for (int64_t j = 0; j < samples; j++)
+          for(int64_t j = 0; j < samples; j++)
           {
             audio_out.channel(i).push_back((double)out_vec[i][j]);
           }

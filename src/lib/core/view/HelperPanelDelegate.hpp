@@ -34,14 +34,8 @@ public:
 
   const PanelStatus& defaultPanelStatus() const override
   {
-    static const PanelStatus stat{
-        true,
-        true,
-        Qt::RightDockWidgetArea,
-        -100000,
-        "Info",
-        "info",
-        QKeySequence::HelpContents};
+    static const PanelStatus stat{true,   true,   Qt::RightDockWidgetArea,   -100000,
+                                  "Info", "info", QKeySequence::HelpContents};
     return stat;
   }
   QWidget* widg{};

@@ -14,8 +14,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
-  doc.model().addPluginModel(new DocumentPlugin{
-      doc.context(), &doc.model()});
+  doc.model().addPluginModel(new DocumentPlugin{doc.context(), &doc.model()});
 }
 
 }

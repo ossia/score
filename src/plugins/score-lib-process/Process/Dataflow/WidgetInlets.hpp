@@ -27,100 +27,66 @@ struct MultiSlider;
 struct Bargraph;
 }
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::FloatSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatSlider,
     "af2b4fc3-aecb-4c15-a5aa-1c573a239925")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::FloatKnob,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatKnob,
     "82427d27-084a-4ab6-9c4e-db83929a1200")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::LogFloatSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::LogFloatSlider,
     "5554eb67-bcc8-45ab-8ec2-37a3f191aa64")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::IntSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntSlider,
     "348b80a4-45dc-4f70-8f5f-6546c85089a2")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::IntSpinBox,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntSpinBox,
     "238399a0-7e81-47e3-896f-08e8856e2973")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Toggle,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Toggle,
     "fb27e4cb-ea7f-41e2-ad92-2354498c1b6b")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ChooserToggle,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ChooserToggle,
     "27d488b6-784b-4bfc-8e7f-e28ef030c248")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::LineEdit,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::LineEdit,
     "9ae797ea-d94c-4792-acec-9ec1932bae5d")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Enum,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Enum,
     "8b1d76c4-3838-4ac0-9b9c-c12bc5db8e8a")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ComboBox,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ComboBox,
     "485680cc-b8b9-4a01-acc7-3e8334bdc016")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Button,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Button,
     "feb87e84-e0d2-428f-96ff-a123ac964f59")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ImpulseButton,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ImpulseButton,
     "7cd210d3-ebd1-4f71-9de6-cccfb639cbc3")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::HSVSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::HSVSlider,
     "8f38638e-9f9f-48b0-ae36-1cba86ef5703")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::XYSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::XYSlider,
     "8093743c-584f-4bb9-97d4-6c7602f87116")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::XYZSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::XYZSlider,
     "bae00244-cd93-4893-a4ad-71489adb3fa1")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::MultiSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::MultiSlider,
     "25de6d71-1554-4fe1-bf3f-9cbf12bdadeb")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Bargraph,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Bargraph,
     "f6d740ce-acc0-44c0-932a-0a03345af84f")
 
 namespace Process
@@ -129,11 +95,7 @@ struct SCORE_LIB_PROCESS_EXPORT FloatSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(FloatSlider)
   FloatSlider(
-      float min,
-      float max,
-      float init,
-      const QString& name,
-      Id<Process::Port> id,
+      float min, float max, float init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~FloatSlider();
 
@@ -147,12 +109,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatKnob : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(FloatKnob)
   FloatKnob(
-        float min,
-        float max,
-        float init,
-        const QString& name,
-        Id<Process::Port> id,
-        QObject* parent);
+      float min, float max, float init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
   ~FloatKnob();
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
@@ -166,11 +124,7 @@ struct SCORE_LIB_PROCESS_EXPORT LogFloatSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LogFloatSlider)
   LogFloatSlider(
-      float min,
-      float max,
-      float init,
-      const QString& name,
-      Id<Process::Port> id,
+      float min, float max, float init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~LogFloatSlider();
 
@@ -185,11 +139,7 @@ struct SCORE_LIB_PROCESS_EXPORT IntSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntSlider)
   IntSlider(
-      int min,
-      int max,
-      int init,
-      const QString& name,
-      Id<Process::Port> id,
+      int min, int max, int init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~IntSlider();
 
@@ -204,11 +154,7 @@ struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntSpinBox)
   IntSpinBox(
-      int min,
-      int max,
-      int init,
-      const QString& name,
-      Id<Process::Port> id,
+      int min, int max, int init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~IntSpinBox();
 
@@ -222,11 +168,7 @@ struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Toggle)
-  Toggle(
-      bool init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+  Toggle(bool init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~Toggle();
 
   void setupExecution(ossia::inlet& inl) const noexcept override;
@@ -238,10 +180,7 @@ struct SCORE_LIB_PROCESS_EXPORT ChooserToggle : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(ChooserToggle)
   ChooserToggle(
-      QStringList alternatives,
-      bool init,
-      const QString& name,
-      Id<Process::Port> id,
+      QStringList alternatives, bool init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~ChooserToggle();
 
@@ -254,11 +193,7 @@ struct SCORE_LIB_PROCESS_EXPORT ChooserToggle : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LineEdit)
-  LineEdit(
-      QString init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+  LineEdit(QString init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~LineEdit();
 
   void setupExecution(ossia::inlet& inl) const noexcept override;
@@ -271,11 +206,8 @@ struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
   MODEL_METADATA_IMPL(ComboBox)
   std::vector<std::pair<QString, ossia::value>> alternatives;
   ComboBox(
-      std::vector<std::pair<QString, ossia::value>> values,
-      ossia::value init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+      std::vector<std::pair<QString, ossia::value>> values, ossia::value init,
+      const QString& name, Id<Process::Port> id, QObject* parent);
   ~ComboBox();
 
   const auto& getValues() const noexcept { return alternatives; }
@@ -295,20 +227,12 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
   std::vector<QString> values;
   std::vector<QString> pixmaps;
   Enum(
-      const std::vector<std::string>& dom,
-      std::vector<QString> pixmaps,
-      std::string init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+      const std::vector<std::string>& dom, std::vector<QString> pixmaps,
+      std::string init, const QString& name, Id<Process::Port> id, QObject* parent);
 
   Enum(
-      const QStringList& values,
-      std::vector<QString> pixmaps,
-      std::string init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+      const QStringList& values, std::vector<QString> pixmaps, std::string init,
+      const QString& name, Id<Process::Port> id, QObject* parent);
   ~Enum();
 
   const std::vector<QString>& getValues() const { return values; }
@@ -347,10 +271,7 @@ struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(HSVSlider)
   HSVSlider(
-      ossia::vec4f init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+      ossia::vec4f init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~HSVSlider();
 
   void setupExecution(ossia::inlet&) const noexcept override;
@@ -363,17 +284,10 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(XYSlider)
   XYSlider(
-      ossia::vec2f init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+      ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
   XYSlider(
-      ossia::vec2f min,
-      ossia::vec2f max,
-      ossia::vec2f init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+      ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, const QString& name,
+      Id<Process::Port> id, QObject* parent);
   ~XYSlider();
 
   auto getMin() const noexcept { return domain().get().convert_min<ossia::vec2f>(); }
@@ -387,17 +301,10 @@ struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(XYZSlider)
   XYZSlider(
-        ossia::vec3f init,
-        const QString& name,
-        Id<Process::Port> id,
-        QObject* parent);
+      ossia::vec3f init, const QString& name, Id<Process::Port> id, QObject* parent);
   XYZSlider(
-        ossia::vec3f min,
-        ossia::vec3f max,
-        ossia::vec3f init,
-        const QString& name,
-        Id<Process::Port> id,
-        QObject* parent);
+      ossia::vec3f min, ossia::vec3f max, ossia::vec3f init, const QString& name,
+      Id<Process::Port> id, QObject* parent);
   ~XYZSlider();
 
   auto getMin() const noexcept { return domain().get().convert_min<ossia::vec3f>(); }
@@ -411,10 +318,7 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(MultiSlider)
   MultiSlider(
-      ossia::value init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+      ossia::value init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~MultiSlider();
 
   ossia::value getMin() const noexcept;
@@ -430,11 +334,7 @@ struct SCORE_LIB_PROCESS_EXPORT Bargraph : public Process::ControlOutlet
 {
   MODEL_METADATA_IMPL(Bargraph)
   Bargraph(
-      float min,
-      float max,
-      float init,
-      const QString& name,
-      Id<Process::Port> id,
+      float min, float max, float init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~Bargraph();
 

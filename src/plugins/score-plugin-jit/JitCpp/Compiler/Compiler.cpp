@@ -1,19 +1,20 @@
 #include <JitCpp/Compiler/Compiler.hpp>
+
 #include <map>
 #if defined(_WIN64)
 #include "SectionMemoryManager.cpp"
 #endif
 
-
 namespace Jit
 {
 // TODO investigate https://stackoverflow.com/questions/1839965/dynamically-creating-functions-in-c
-struct GlobalAtExit {
+struct GlobalAtExit
+{
   int nextCompilerID{};
   int currentCompiler{};
-  std::map<int, std::vector<void(*)()>> functions;
+  std::map<int, std::vector<void (*)()>> functions;
 } globalAtExit;
-static void jitAtExit(void(*f)())
+static void jitAtExit(void (*f)())
 {
   globalAtExit.functions[globalAtExit.currentCompiler].push_back(f);
 }
@@ -64,7 +65,7 @@ JitCompiler::JitCompiler()
   sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
 
   LLJIT& JIT = *m_jit;
-  m_jit->getExecutionSession().setErrorReporter([&] (llvm::Error Err) {
+  m_jit->getExecutionSession().setErrorReporter([&](llvm::Error Err) {
     llvm::handleAllErrors(std::move(Err), [&](const llvm::ErrorInfoBase& EI) {
       const auto& mess = EI.message();
       this->m_errors += mess.c_str();
@@ -75,12 +76,16 @@ JitCompiler::JitCompiler()
   {
     llvm::orc::SymbolMap RuntimeInterposes;
 
-    RuntimeInterposes[m_mangler("atexit")] = {pointerToJITTargetAddress(&jitAtExit), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("atexit")]
+        = {pointerToJITTargetAddress(&jitAtExit), JITSymbolFlags::Exported};
 
 #if defined(_WIN64)
-    RuntimeInterposes[m_mangler("fprintf")] = {pointerToJITTargetAddress(&::fprintf), JITSymbolFlags::Exported};
-    RuntimeInterposes[m_mangler("vfprintf")] = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
-    RuntimeInterposes[m_mangler("__mingw_vfprintf")] = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("fprintf")]
+        = {pointerToJITTargetAddress(&::fprintf), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("vfprintf")]
+        = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("__mingw_vfprintf")]
+        = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
 
     // RuntimeInterposes[m_mangler("_CxxThrowException")] = {pointerToJITTargetAddress(&SEHFrameHandler::RaiseSEHException), JITSymbolFlags::Exported};
 #endif
@@ -121,28 +126,27 @@ JitCompiler::~JitCompiler()
 #endif
 }
 
-void
-JitCompiler::compile(const std::string& cppCode, const std::vector<std::string>& flags, CompilerOptions opts, llvm::orc::ThreadSafeContext& context)
+void JitCompiler::compile(
+    const std::string& cppCode, const std::vector<std::string>& flags,
+    CompilerOptions opts, llvm::orc::ThreadSafeContext& context)
 {
   using namespace llvm;
   using namespace llvm::orc;
   m_errors.clear();
 
-  auto module = m_driver.compileTranslationUnit(
-      cppCode, flags, opts, *context.getContext());
+  auto module
+      = m_driver.compileTranslationUnit(cppCode, flags, opts, *context.getContext());
 
-  if (!module)
+  if(!module)
   {
     throw Exception{module.takeError()};
   }
 
-  if (auto Err
-      = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
-      bool(Err))
+  if(auto Err = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
+     bool(Err))
   {
     throw Err;
   }
-
 
   globalAtExit.currentCompiler = globalAtExit.nextCompilerID++;
   m_atExitId = globalAtExit.currentCompiler;

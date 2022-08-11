@@ -15,8 +15,7 @@
 #include <sys/types.h>
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::CurveDomain& dom)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::CurveDomain& dom)
 {
   m_stream << dom.min << dom.max << dom.start << dom.end;
 }
@@ -28,13 +27,12 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::CurveDomain& dom)
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::Model& curve)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::Model& curve)
 {
   const auto& segments = curve.segments();
 
   m_stream << (int32_t)segments.size();
-  for (const auto& seg : segments)
+  for(const auto& seg : segments)
   {
     readFrom(seg);
   }
@@ -48,10 +46,10 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::Model& curve)
   m_stream >> size;
 
   auto& csl = components.interfaces<Curve::SegmentList>();
-  for (; size-- > 0;)
+  for(; size-- > 0;)
   {
     auto seg = deserialize_interface(csl, *this, &curve);
-    if (seg)
+    if(seg)
       curve.addSegment(seg);
     else
       SCORE_TODO;
@@ -72,11 +70,11 @@ SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::Model& curve)
 {
   auto& csl = components.interfaces<Curve::SegmentList>();
   const auto& segments = obj[strings.Segments].toArray();
-  for (const auto& segment : segments)
+  for(const auto& segment : segments)
   {
     JSONObject::Deserializer segment_deser{segment};
     auto seg = deserialize_interface(csl, segment_deser, &curve);
-    if (seg)
+    if(seg)
       curve.addSegment(seg);
     else
       SCORE_TODO;

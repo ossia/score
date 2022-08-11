@@ -1,15 +1,16 @@
 #pragma once
+#include <ossia/editor/scenario/time_signature.hpp>
+
 #include <QComboBox>
 #include <QLineEdit>
-#include <verdigris>
+
 #include <score_lib_base_export.h>
 
-#include <ossia/editor/scenario/time_signature.hpp>
+#include <verdigris>
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT QuantificationWidget
-    : public QComboBox
+class SCORE_LIB_BASE_EXPORT QuantificationWidget : public QComboBox
 {
   W_OBJECT(QuantificationWidget)
 public:
@@ -19,7 +20,7 @@ public:
   void setQuantification(double d);
 
   void quantificationChanged(double d)
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, quantificationChanged, d)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, quantificationChanged, d)
 };
 
 class SCORE_LIB_BASE_EXPORT TimeSignatureWidget : public QLineEdit

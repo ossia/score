@@ -4,8 +4,11 @@
 
 #include "JSAPIWrapper.hpp"
 
-#include <Execution/DocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <Execution/DocumentPlugin.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <JS/Qml/Metatypes.hpp>
@@ -14,27 +17,25 @@
 #include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Bind.hpp>
 
-#include <ossia-qt/invoke.hpp>
-#include <ossia-qt/js_utilities.hpp>
-#include <ossia-qt/time.hpp>
-#include <ossia-qt/token_request.hpp>
-#include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_edge_helpers.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/detail/ssize.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <ossia/detail/ssize.hpp>
+#include <ossia-qt/invoke.hpp>
+#include <ossia-qt/js_utilities.hpp>
+#include <ossia-qt/time.hpp>
+#include <ossia-qt/token_request.hpp>
 
 #include <QApplication>
 #include <QEventLoop>
 #include <QQmlComponent>
 #include <QQmlContext>
-
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <vector>
 
@@ -49,9 +50,7 @@ public:
 
   void setScript(const QString& val);
 
-  void
-  run(const ossia::token_request& t,
-      ossia::exec_state_facade) noexcept override;
+  void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
 
   ossia::execution_state& m_st;
   QQmlEngine* m_engine{};
@@ -71,9 +70,9 @@ public:
 
   void setControl(std::size_t index, const QVariant& val)
   {
-    if (index > m_jsInlets.size())
+    if(index > m_jsInlets.size())
       return;
-    if (auto v = qobject_cast<ValueInlet*>(m_jsInlets[index]))
+    if(auto v = qobject_cast<ValueInlet*>(m_jsInlets[index]))
       v->setValue(val);
   }
 
@@ -87,65 +86,55 @@ struct js_process final : public ossia::node_process
   js_node& js() const { return static_cast<js_node&>(*node); }
   void start() override
   {
-    if (auto obj = js().m_object)
-      if (obj->start().isCallable())
+    if(auto obj = js().m_object)
+      if(obj->start().isCallable())
         obj->start().call();
   }
   void stop() override
   {
-    if (auto obj = js().m_object)
-      if (obj->stop().isCallable())
+    if(auto obj = js().m_object)
+      if(obj->stop().isCallable())
         obj->stop().call();
   }
   void pause() override
   {
-    if (auto obj = js().m_object)
-      if (obj->pause().isCallable())
+    if(auto obj = js().m_object)
+      if(obj->pause().isCallable())
         obj->pause().call();
   }
   void resume() override
   {
-    if (auto obj = js().m_object)
-      if (obj->resume().isCallable())
+    if(auto obj = js().m_object)
+      if(obj->resume().isCallable())
         obj->resume().call();
   }
   void transport_impl(ossia::time_value date) override
   {
     QMetaObject::invokeMethod(
-        js().m_object,
-        "transport",
-        Qt::DirectConnection,
+        js().m_object, "transport", Qt::DirectConnection,
         Q_ARG(QVariant, double(date.impl)));
   }
   void offset_impl(ossia::time_value date) override
   {
     QMetaObject::invokeMethod(
-        js().m_object,
-        "offset",
-        Qt::DirectConnection,
+        js().m_object, "offset", Qt::DirectConnection,
         Q_ARG(QVariant, double(date.impl)));
   }
 };
 Component::Component(
-    JS::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    QObject* parent)
+    JS::ProcessModel& element, const ::Execution::Context& ctx, QObject* parent)
     : ::Execution::ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
-        element,
-        ctx,
-        "JSComponent",
-        parent}
+        element, ctx, "JSComponent", parent}
 {
-  std::shared_ptr<js_node> node = ossia::make_node<js_node>(*ctx.execState, *ctx.execState);
+  std::shared_ptr<js_node> node
+      = ossia::make_node<js_node>(*ctx.execState, *ctx.execState);
   this->node = node;
   auto proc = std::make_shared<js_process>(node);
   m_ossia_process = proc;
 
   on_scriptChange(element.qmlData());
-  con(element,
-      &JS::ProcessModel::qmlDataChanged,
-      this,
-      &Component::on_scriptChange, Qt::DirectConnection);
+  con(element, &JS::ProcessModel::qmlDataChanged, this, &Component::on_scriptChange,
+      Qt::DirectConnection);
 }
 
 Component::~Component() { }
@@ -157,7 +146,8 @@ void Component::on_scriptChange(const QString& script)
   auto old_node = std::dynamic_pointer_cast<js_node>(node);
 
   // 0. Unregister all the previous inlets / outlets
-  setup.unregister_node_soft(process().inlets(), process().outlets(), old_node, commands);
+  setup.unregister_node_soft(
+      process().inlets(), process().outlets(), old_node, commands);
 
   // 1. Create new inlet & outlet arrays
   ossia::inlets inls;
@@ -165,45 +155,41 @@ void Component::on_scriptChange(const QString& script)
   std::vector<Execution::ExecutionCommand> controlSetups;
 
   {
-    if (auto object = process().currentObject())
+    if(auto object = process().currentObject())
     {
       int idx = 0;
-      for (auto n : object->children())
+      for(auto n : object->children())
       {
-        if (auto ctrl_in = qobject_cast<ControlInlet*>(n))
+        if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
         {
           inls.push_back(new ossia::value_inlet);
           inls.back()->target<ossia::value_port>()->is_event = false;
 
           ++idx;
         }
-        else if (auto val_in = qobject_cast<ValueInlet*>(n))
+        else if(auto val_in = qobject_cast<ValueInlet*>(n))
         {
           inls.push_back(new ossia::value_inlet);
           auto& vp = *inls.back()->target<ossia::value_port>();
 
-          if (!val_in->is_control())
+          if(!val_in->is_control())
           {
             vp.is_event = true;
           }
           else
           {
-            auto ctrl = qobject_cast<Process::ControlInlet*>(
-                process().inlets()[idx]);
+            auto ctrl = qobject_cast<Process::ControlInlet*>(process().inlets()[idx]);
             SCORE_ASSERT(ctrl);
             vp.type = ctrl->value().get_type();
             vp.domain = ctrl->domain().get();
 
             disconnect(ctrl, nullptr, this, nullptr);
             connect(
-                ctrl,
-                &Process::ControlInlet::valueChanged,
-                this,
+                ctrl, &Process::ControlInlet::valueChanged, this,
                 [=](const ossia::value& val) {
-                  this->in_exec([old_node, val, idx] {
-                    old_node->setControl(
-                        idx, val.apply(ossia::qt::ossia_to_qvariant{}));
-                  });
+              this->in_exec([old_node, val, idx] {
+                old_node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
+              });
                 });
             controlSetups.push_back([old_node, val = ctrl->value(), idx] {
               old_node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
@@ -212,27 +198,27 @@ void Component::on_scriptChange(const QString& script)
 
           ++idx;
         }
-        else if (auto aud_in = qobject_cast<AudioInlet*>(n))
+        else if(auto aud_in = qobject_cast<AudioInlet*>(n))
         {
           inls.push_back(new ossia::audio_inlet);
 
           ++idx;
         }
-        else if (auto mid_in = qobject_cast<MidiInlet*>(n))
+        else if(auto mid_in = qobject_cast<MidiInlet*>(n))
         {
           inls.push_back(new ossia::midi_inlet);
 
           ++idx;
         }
-        else if (auto val_out = qobject_cast<ValueOutlet*>(n))
+        else if(auto val_out = qobject_cast<ValueOutlet*>(n))
         {
           outls.push_back(new ossia::value_outlet);
         }
-        else if (auto aud_out = qobject_cast<AudioOutlet*>(n))
+        else if(auto aud_out = qobject_cast<AudioOutlet*>(n))
         {
           outls.push_back(new ossia::audio_outlet);
         }
-        else if (auto mid_out = qobject_cast<MidiOutlet*>(n))
+        else if(auto mid_out = qobject_cast<MidiOutlet*>(n))
         {
           outls.push_back(new ossia::midi_outlet);
         }
@@ -241,8 +227,9 @@ void Component::on_scriptChange(const QString& script)
   }
 
   // Send the updates to the node
-  auto recable = std::shared_ptr<ossia::recabler>(new ossia::recabler{old_node, system().execGraph, inls, outls});
-  commands.push_back([old_node, script, recable] () mutable {
+  auto recable = std::shared_ptr<ossia::recabler>(
+      new ossia::recabler{old_node, system().execGraph, inls, outls});
+  commands.push_back([old_node, script, recable]() mutable {
     // Note: we need to do this because we try to keep the Javascript node around
     // because it's slow to recreate.
     // But this causes a lot of problems, it'd be better to do like e.g. the faust
@@ -254,7 +241,7 @@ void Component::on_scriptChange(const QString& script)
 
   commands.commands.reserve(commands.commands.size() + controlSetups.size());
   // OPTIMIZEME std::move algorithm
-  for (auto& cmd : controlSetups)
+  for(auto& cmd : controlSetups)
     commands.commands.push_back(std::move(cmd));
   controlSetups.clear();
 
@@ -262,11 +249,11 @@ void Component::on_scriptChange(const QString& script)
   SCORE_ASSERT(process().inlets().size() == inls.size());
   SCORE_ASSERT(process().outlets().size() == outls.size());
 
-  for (std::size_t i = 0; i < inls.size(); i++)
+  for(std::size_t i = 0; i < inls.size(); i++)
   {
     setup.register_inlet(*process().inlets()[i], inls[i], node, commands);
   }
-  for (std::size_t i = 0; i < outls.size(); i++)
+  for(std::size_t i = 0; i < outls.size(); i++)
   {
     setup.register_outlet(*process().outlets()[i], outls[i], node, commands);
   }
@@ -285,43 +272,43 @@ js_node::js_node(ossia::execution_state& st)
 void js_node::setupComponent(QQmlComponent& c)
 {
   auto object = c.create();
-  if ((m_object = qobject_cast<JS::Script*>(object)))
+  if((m_object = qobject_cast<JS::Script*>(object)))
   {
     m_object->setParent(m_engine);
     int input_i = 0;
     int output_i = 0;
 
-    for (auto n : m_object->children())
+    for(auto n : m_object->children())
     {
-      if (auto ctrl_in = qobject_cast<ControlInlet*>(n))
+      if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
       {
         m_jsInlets.push_back(ctrl_in);
         m_ctrlInlets.push_back({ctrl_in, m_inlets[input_i++]});
       }
-      else if (auto val_in = qobject_cast<ValueInlet*>(n))
+      else if(auto val_in = qobject_cast<ValueInlet*>(n))
       {
         m_jsInlets.push_back(val_in);
         m_valInlets.push_back({val_in, m_inlets[input_i++]});
       }
-      else if (auto aud_in = qobject_cast<AudioInlet*>(n))
+      else if(auto aud_in = qobject_cast<AudioInlet*>(n))
       {
         m_jsInlets.push_back(aud_in);
         m_audInlets.push_back({aud_in, m_inlets[input_i++]});
       }
-      else if (auto mid_in = qobject_cast<MidiInlet*>(n))
+      else if(auto mid_in = qobject_cast<MidiInlet*>(n))
       {
         m_jsInlets.push_back(mid_in);
         m_midInlets.push_back({mid_in, m_inlets[input_i++]});
       }
-      else if (auto val_out = qobject_cast<ValueOutlet*>(n))
+      else if(auto val_out = qobject_cast<ValueOutlet*>(n))
       {
         m_valOutlets.push_back({val_out, m_outlets[output_i++]});
       }
-      else if (auto aud_out = qobject_cast<AudioOutlet*>(n))
+      else if(auto aud_out = qobject_cast<AudioOutlet*>(n))
       {
         m_audOutlets.push_back({aud_out, m_outlets[output_i++]});
       }
-      else if (auto mid_out = qobject_cast<MidiOutlet*>(n))
+      else if(auto mid_out = qobject_cast<MidiOutlet*>(n))
       {
         m_midOutlets.push_back({mid_out, m_outlets[output_i++]});
       }
@@ -334,22 +321,24 @@ void js_node::setupComponent(QQmlComponent& c)
 }
 void js_node::setScript(const QString& val)
 {
-  if (!m_engine)
+  if(!m_engine)
   {
     m_engine = new QQmlEngine;
     m_execFuncs = new ExecStateWrapper{m_st, m_engine};
     m_engine->rootContext()->setContextProperty("Device", m_execFuncs);
 
-    QObject::connect(m_execFuncs, &ExecStateWrapper::system,
-                     qApp, [=] (const QString& code) {
+    QObject::connect(
+        m_execFuncs, &ExecStateWrapper::system, qApp,
+        [=](const QString& code) {
       std::thread{[=] { ::system(code.toStdString().c_str()); }}.detach();
-    }, Qt::QueuedConnection);
-
+        },
+        Qt::QueuedConnection);
 
     if(auto* js_panel = score::GUIAppContext().findPanel<JS::PanelDelegate>())
     {
-      QObject::connect(m_execFuncs, &ExecStateWrapper::exec,
-                       js_panel, &JS::PanelDelegate::evaluate, Qt::QueuedConnection);
+      QObject::connect(
+          m_execFuncs, &ExecStateWrapper::exec, js_panel, &JS::PanelDelegate::evaluate,
+          Qt::QueuedConnection);
     }
   }
 
@@ -365,16 +354,15 @@ void js_node::setScript(const QString& val)
   delete m_object;
   m_object = nullptr;
 
-  if (val.trimmed().startsWith("import"))
+  if(val.trimmed().startsWith("import"))
   {
     QQmlComponent c{m_engine};
     c.setData(val.toUtf8(), QUrl());
     const auto& errs = c.errors();
-    if (!errs.empty())
+    if(!errs.empty())
     {
       ossia::logger().error(
-          "Uncaught exception at line {} : {}",
-          errs[0].line(),
+          "Uncaught exception at line {} : {}", errs[0].line(),
           errs[0].toString().toStdString());
     }
     else
@@ -387,11 +375,10 @@ void js_node::setScript(const QString& val)
     qDebug() << "URL: " << val << QUrl::fromLocalFile(val);
     QQmlComponent c{m_engine, QUrl::fromLocalFile(val)};
     const auto& errs = c.errors();
-    if (!errs.empty())
+    if(!errs.empty())
     {
       ossia::logger().error(
-          "Uncaught exception at line {} : {}",
-          errs[0].line(),
+          "Uncaught exception at line {} : {}", errs[0].line(),
           errs[0].toString().toStdString());
     }
     else
@@ -402,46 +389,45 @@ void js_node::setScript(const QString& val)
 }
 
 void js_node::run(
-    const ossia::token_request& tk,
-    ossia::exec_state_facade estate) noexcept
+    const ossia::token_request& tk, ossia::exec_state_facade estate) noexcept
 {
-  if (!m_engine || !m_object)
+  if(!m_engine || !m_object)
     return;
 
   auto& tick = m_object->tick();
-  if (!tick.isCallable())
+  if(!tick.isCallable())
     return;
   // if (t.date == ossia::Zero)
   //   return;
 
   QEventLoop e;
   // Copy audio
-  for (std::size_t inl_i = 0; inl_i < m_audInlets.size(); inl_i++)
+  for(std::size_t inl_i = 0; inl_i < m_audInlets.size(); inl_i++)
   {
     auto& dat = m_audInlets[inl_i].second->target<ossia::audio_port>()->get();
 
     const int dat_size = std::ssize(dat);
     QVector<QVector<double>> audio(dat_size);
-    for (int i = 0; i < dat_size; i++)
+    for(int i = 0; i < dat_size; i++)
     {
       const int dat_i_size = dat[i].size();
       audio[i].resize(dat_i_size);
-      for (int j = 0; j < dat_i_size; j++)
+      for(int j = 0; j < dat_i_size; j++)
         audio[i][j] = dat[i][j];
     }
     m_audInlets[inl_i].first->setAudio(audio);
   }
 
   // Copy values
-  for (std::size_t i = 0; i < m_valInlets.size(); i++)
+  for(std::size_t i = 0; i < m_valInlets.size(); i++)
   {
     auto& vp = *m_valInlets[i].second->target<ossia::value_port>();
     auto& dat = vp.get_data();
 
     m_valInlets[i].first->clear();
-    if (dat.empty())
+    if(dat.empty())
     {
-      if (vp.is_event)
+      if(vp.is_event)
       {
         m_valInlets[i].first->setValue(QVariant{});
       }
@@ -452,25 +438,25 @@ void js_node::run(
     }
     else
     {
-      for (auto& val : dat)
+      for(auto& val : dat)
       {
         // TODO why not js_value_outbound_visitor ? it makes more sense.
         auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
         m_valInlets[i].first->setValue(qvar);
-        m_valInlets[i].first->addValue(QVariant::fromValue(
-            ValueMessage{(double)val.timestamp, std::move(qvar)}));
+        m_valInlets[i].first->addValue(
+            QVariant::fromValue(ValueMessage{(double)val.timestamp, std::move(qvar)}));
       }
     }
   }
 
   // Copy controls
-  for (std::size_t i = 0; i < m_ctrlInlets.size(); i++)
+  for(std::size_t i = 0; i < m_ctrlInlets.size(); i++)
   {
     auto& vp = *m_ctrlInlets[i].second->target<ossia::value_port>();
     auto& dat = vp.get_data();
 
     m_ctrlInlets[i].first->clear();
-    if (!dat.empty())
+    if(!dat.empty())
     {
       auto var = dat.back().value.apply(ossia::qt::ossia_to_qvariant{});
       m_ctrlInlets[i].first->setValue(std::move(var));
@@ -478,48 +464,47 @@ void js_node::run(
   }
 
   // Copy midi
-  for (std::size_t i = 0; i < m_midInlets.size(); i++)
+  for(std::size_t i = 0; i < m_midInlets.size(); i++)
   {
     auto& dat = m_midInlets[i].second->target<ossia::midi_port>()->messages;
     m_midInlets[i].first->setMidi(dat);
   }
 
-  if (m_tickCall.empty())
+  if(m_tickCall.empty())
     m_tickCall = {{}, {}};
 
   m_tickCall[0] = m_engine->toScriptValue(tk);
   m_tickCall[1] = m_engine->toScriptValue(estate);
 
   auto res = tick.call(m_tickCall);
-  if (res.isError())
+  if(res.isError())
   {
     qDebug() << "JS Error at " << res.property("lineNumber").toInt() << ": "
              << res.toString();
   }
 
   const auto [tick_start, d] = estate.timings(tk);
-  for (std::size_t i = 0; i < m_valOutlets.size(); i++)
+  for(std::size_t i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = *m_valOutlets[i].second->target<ossia::value_port>();
     const auto& v = m_valOutlets[i].first->value();
-    if (!v.isNull() && v.isValid())
+    if(!v.isNull() && v.isValid())
       dat.write_value(ossia::qt::qt_to_ossia{}(v), tick_start);
-    for (auto& v : m_valOutlets[i].first->values)
+    for(auto& v : m_valOutlets[i].first->values)
     {
-      dat.write_value(
-          ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
+      dat.write_value(ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
     }
     m_valOutlets[i].first->clear();
   }
 
-  for (std::size_t i = 0; i < m_midOutlets.size(); i++)
+  for(std::size_t i = 0; i < m_midOutlets.size(); i++)
   {
     auto& dat = *m_midOutlets[i].second->target<ossia::midi_port>();
-    for (const auto& mess : m_midOutlets[i].first->midi())
+    for(const auto& mess : m_midOutlets[i].first->midi())
     {
       libremidi::message m;
       m.bytes.resize(mess.size());
-      for (int j = 0; j < mess.size(); j++)
+      for(int j = 0; j < mess.size(); j++)
       {
         m.bytes[j] = mess[j];
       }
@@ -528,16 +513,16 @@ void js_node::run(
     m_midOutlets[i].first->clear();
   }
 
-  for (std::size_t out = 0; out < m_audOutlets.size(); out++)
+  for(std::size_t out = 0; out < m_audOutlets.size(); out++)
   {
     auto& src = m_audOutlets[out].first->audio();
     auto& snk = m_audOutlets[out].second->target<ossia::audio_port>()->get();
     snk.resize(src.size());
-    for (int chan = 0; chan < src.size(); chan++)
+    for(int chan = 0; chan < src.size(); chan++)
     {
       snk[chan].resize(src[chan].size() + tick_start);
 
-      for (int j = 0; j < src[chan].size(); j++)
+      for(int j = 0; j < src[chan].size(); j++)
         snk[chan][j + tick_start] = src[chan][j];
     }
   }

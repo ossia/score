@@ -2,10 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationExecution.hpp"
 
-#include <Curve/CurveConversion.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
+
+#include <Curve/CurveConversion.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -75,36 +77,24 @@ struct range_position
 };
 
 Component::Component(
-    ::Automation::ProcessModel& element,
-    const ::Execution::Context& ctx,
+    ::Automation::ProcessModel& element, const ::Execution::Context& ctx,
     QObject* parent)
-    : ProcessComponent_T{
-        element,
-        ctx,
-        "Executor::AutomationComponent",
-        parent}
+    : ProcessComponent_T{element, ctx, "Executor::AutomationComponent", parent}
 {
   node = ossia::make_node<ossia::nodes::automation>(*ctx.execState.get());
   m_ossia_process = std::make_shared<ossia::nodes::automation_process>(node);
 
-  con(element,
-      &Automation::ProcessModel::minChanged,
-      this,
+  con(element, &Automation::ProcessModel::minChanged, this,
       [this](const auto&) { this->recompute(); });
-  con(element,
-      &Automation::ProcessModel::maxChanged,
-      this,
+  con(element, &Automation::ProcessModel::maxChanged, this,
       [this](const auto&) { this->recompute(); });
 
   // TODO the tween case will reset the "running" value,
   // so it may not work perfectly.
-  con(element,
-      &Automation::ProcessModel::tweenChanged,
-      this,
+  con(element, &Automation::ProcessModel::tweenChanged, this,
       [this](const auto&) { this->recompute(); });
-  con(element, &Automation::ProcessModel::curveChanged, this, [this]() {
-    this->recompute();
-  });
+  con(element, &Automation::ProcessModel::curveChanged, this,
+      [this]() { this->recompute(); });
 
   recompute();
 }
@@ -113,10 +103,9 @@ Component::~Component() { }
 
 void Component::recompute()
 {
-  auto dest
-      = Execution::makeDestination(*system().execState, process().address());
+  auto dest = Execution::makeDestination(*system().execState, process().address());
 
-  if (dest)
+  if(dest)
   {
     auto& d = *dest;
     auto addressType = d.address().get_value_type();
@@ -124,12 +113,11 @@ void Component::recompute()
     auto curve = process().tween() ? on_curveChanged(addressType, d)
                                    : on_curveChanged(addressType, {});
 
-    if (curve)
+    if(curve)
     {
       in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::automation>(
                    OSSIAProcess().node),
-               curve,
-               d_ = d] { proc->set_behavior(curve); });
+               curve, d_ = d] { proc->set_behavior(curve); });
       return;
     }
   }
@@ -137,7 +125,7 @@ void Component::recompute()
   {
     auto curve = on_curveChanged_impl<float>({});
 
-    if (curve)
+    if(curve)
     {
       in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::automation>(
                    OSSIAProcess().node),
@@ -170,10 +158,9 @@ Component::on_curveChanged_impl(const std::optional<ossia::destination>& d)
   auto scale_y = [=](double val) -> Y_T { return val * (max - min) + min; };
 
   auto segt_data = process().curve().sortedSegments();
-  if (segt_data.size() != 0)
+  if(segt_data.size() != 0)
   {
-    return Engine::score_to_ossia::curve<double, Y_T>(
-        scale_x, scale_y, segt_data, d);
+    return Engine::score_to_ossia::curve<double, Y_T>(scale_x, scale_y, segt_data, d);
   }
   else
   {
@@ -182,10 +169,9 @@ Component::on_curveChanged_impl(const std::optional<ossia::destination>& d)
 }
 
 std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged(
-    ossia::val_type type,
-    const std::optional<ossia::destination>& d)
+    ossia::val_type type, const std::optional<ossia::destination>& d)
 {
-  switch (type)
+  switch(type)
   {
     case ossia::val_type::INT:
       return on_curveChanged_impl<int>(d);

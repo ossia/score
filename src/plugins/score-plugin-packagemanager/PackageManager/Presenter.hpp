@@ -16,8 +16,7 @@ class PluginSettingsPresenter : public score::GlobalSettingsPresenter
   W_OBJECT(PluginSettingsPresenter)
 public:
   PluginSettingsPresenter(
-      score::SettingsDelegateModel& model,
-      score::GlobalSettingsView& view,
+      score::SettingsDelegateModel& model, score::GlobalSettingsView& view,
       QObject* parent);
 
 private:

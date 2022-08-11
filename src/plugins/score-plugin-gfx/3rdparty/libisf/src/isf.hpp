@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/variant.hpp>
+
 #include <array>
 #include <optional>
 #include <stdexcept>
@@ -86,16 +87,8 @@ struct audioFFT_input
 struct input
 {
   using input_impl = ossia::variant<
-      float_input,
-      long_input,
-      event_input,
-      bool_input,
-      color_input,
-      point2d_input,
-      point3d_input,
-      image_input,
-      audio_input,
-      audioFFT_input>;
+      float_input, long_input, event_input, bool_input, color_input, point2d_input,
+      point3d_input, image_input, audio_input, audioFFT_input>;
 
   std::string name;
   std::string label;
@@ -143,9 +136,7 @@ public:
     GLSLSandBox
   };
   parser(
-      std::string vert,
-      std::string frag,
-      int glslVersion = 450,
+      std::string vert, std::string frag, int glslVersion = 450,
       ShaderType = ShaderType::Autodetect);
 
   descriptor data() const;

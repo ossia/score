@@ -26,7 +26,7 @@ void JSONReader::read(const Protocols::MinuitSpecificSettings& n)
   obj["OutPort"] = n.outputPort;
   obj["Host"] = n.host;
   obj["LocalName"] = n.localName;
-  if (n.rate)
+  if(n.rate)
     obj["Rate"] = *n.rate;
 }
 
@@ -37,6 +37,6 @@ void JSONWriter::write(Protocols::MinuitSpecificSettings& n)
   n.outputPort = obj["OutPort"].toInt();
   n.host = obj["Host"].toString();
   n.localName = obj["LocalName"].toString();
-  if (auto it = obj.tryGet("Rate"))
+  if(auto it = obj.tryGet("Rate"))
     n.rate = it->toInt();
 }

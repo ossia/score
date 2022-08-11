@@ -54,11 +54,8 @@ static QPointF myscale(QPointF first, QSizeF second)
 }
 
 Presenter::Presenter(
-    const score::DocumentContext& context,
-    const Curve::Style& style,
-    const Model& model,
-    View* view,
-    QObject* parent)
+    const score::DocumentContext& context, const Curve::Style& style, const Model& model,
+    View* view, QObject* parent)
     : QObject{parent}
     , m_curveSegments{context.app.interfaces<SegmentList>()}
     , m_model{model}
@@ -66,8 +63,7 @@ Presenter::Presenter(
     , m_commandDispatcher{context.commandStack}
     , m_style{style}
     , m_editionSettings{
-          context.app.guiApplicationPlugin<Curve::ApplicationPlugin>()
-              .editionSettings()}
+          context.app.guiApplicationPlugin<Curve::ApplicationPlugin>().editionSettings()}
 {
   // For each segment in the model, create a segment and relevant points in the
   // view.
@@ -75,11 +71,7 @@ Presenter::Presenter(
   setupView();
   setupSignals();
 
-  connect(
-      m_view,
-      &View::contextMenuRequested,
-      this,
-      &Presenter::contextMenuRequested);
+  connect(m_view, &View::contextMenuRequested, this, &Presenter::contextMenuRequested);
 }
 
 Presenter::~Presenter() { }
@@ -88,12 +80,12 @@ void Presenter::setRect(const QRectF& rect)
 {
   m_localRect = rect;
   // Positions
-  for (auto& curve_pt : m_points)
+  for(auto& curve_pt : m_points)
   {
     setPos(curve_pt);
   }
 
-  for (auto& curve_segt : m_segments)
+  for(auto& curve_segt : m_segments)
   {
     setPos(curve_segt);
   }
@@ -127,13 +119,11 @@ void Presenter::setupSignals()
     addPoint(new PointView{point, m_style, m_view});
   });
 
-  con(m_model, &Model::pointRemoved, this, [&](const Id<PointModel>& m) {
-    m_points.erase(m);
-  });
+  con(m_model, &Model::pointRemoved, this,
+      [&](const Id<PointModel>& m) { m_points.erase(m); });
 
-  con(m_model, &Model::segmentRemoved, this, [&](const Id<SegmentModel>& m) {
-    m_segments.erase(m);
-  });
+  con(m_model, &Model::segmentRemoved, this,
+      [&](const Id<SegmentModel>& m) { m_segments.erase(m); });
 
   con(m_model, &Model::cleared, this, [&]() {
     m_points.remove_all();
@@ -146,21 +136,18 @@ void Presenter::setupSignals()
 void Presenter::setupView()
 {
   // Initialize the elements
-  for (const auto& segment : m_model.segments())
+  for(const auto& segment : m_model.segments())
   {
     addSegment(new SegmentView{&segment, m_style, m_view});
   }
 
-  for (PointModel* pt : m_model.points())
+  for(PointModel* pt : m_model.points())
   {
     addPoint(new PointView{pt, m_style, m_view});
   }
 }
 
-void Presenter::fillContextMenu(
-    QMenu& menu,
-    const QPoint& pos,
-    const QPointF& scenepos)
+void Presenter::fillContextMenu(QMenu& menu, const QPoint& pos, const QPointF& scenepos)
 {
   menu.addSeparator();
 
@@ -170,22 +157,22 @@ void Presenter::fillContextMenu(
 
   auto typeMenu = menu.addMenu(tr("Type"));
   QMap<QString, QMenu*> menus;
-  for (const auto& seg : m_curveSegments)
+  for(const auto& seg : m_curveSegments)
   {
     auto text = seg.category();
     QMenu* menuToAdd{};
-    if (text.isEmpty())
+    if(text.isEmpty())
     {
       menuToAdd = typeMenu;
     }
-    else if (text == "hidden")
+    else if(text == "hidden")
     {
       continue;
     }
     else
     {
       auto it = menus.find(text);
-      if (it != menus.end())
+      if(it != menus.end())
       {
         menuToAdd = it.value();
       }
@@ -258,22 +245,14 @@ void Presenter::addSegment_impl(SegmentView* seg_view)
 void Presenter::setupPointConnections(PointView* pt_view)
 {
   connect(
-      pt_view,
-      &PointView::contextMenuRequested,
-      m_view,
-      &View::contextMenuRequested);
-  con(pt_view->model(), &PointModel::posChanged, this, [=]() {
-    setPos(*pt_view);
-  });
+      pt_view, &PointView::contextMenuRequested, m_view, &View::contextMenuRequested);
+  con(pt_view->model(), &PointModel::posChanged, this, [=]() { setPos(*pt_view); });
 }
 
 void Presenter::setupSegmentConnections(SegmentView* seg_view)
 {
   connect(
-      seg_view,
-      &SegmentView::contextMenuRequested,
-      m_view,
-      &View::contextMenuRequested);
+      seg_view, &SegmentView::contextMenuRequested, m_view, &View::contextMenuRequested);
 }
 
 void Presenter::modelReset()
@@ -290,29 +269,29 @@ void Presenter::modelReset()
     const int64_t model_points_n = m_model.points().size();
     const int64_t points_n = points.size();
     int64_t diff_points = model_points_n - points_n;
-    if (diff_points > 0)
+    if(diff_points > 0)
     {
       points.reserve(points_n + diff_points);
       newPoints.reserve(diff_points);
-      for (; diff_points-- > 0;)
+      for(; diff_points-- > 0;)
       {
         auto pt = new PointView{nullptr, m_style, m_view};
         points.push_back(pt);
         newPoints.push_back(pt);
       }
     }
-    else if (diff_points < 0)
+    else if(diff_points < 0)
     {
-      if (points_n + diff_points < 0)
+      if(points_n + diff_points < 0)
       {
-        for (auto p : points)
+        for(auto p : points)
           deleteGraphicsItem(p);
         points.clear();
       }
       else
       {
         int64_t inv_diff_points = -diff_points;
-        for (; inv_diff_points-- > 0;)
+        for(; inv_diff_points-- > 0;)
         {
           deleteGraphicsItem(points[points_n - inv_diff_points - 1]);
         }
@@ -326,29 +305,29 @@ void Presenter::modelReset()
     const int64_t model_segts_n = m_model.segments().size();
     const int64_t segts_n = segments.size();
     int64_t diff_segts = model_segts_n - segts_n;
-    if (diff_segts > 0)
+    if(diff_segts > 0)
     {
       segments.reserve(segts_n + diff_segts);
       newSegments.reserve(diff_segts);
-      for (; diff_segts-- > 0;)
+      for(; diff_segts-- > 0;)
       {
         auto seg = new SegmentView{nullptr, m_style, m_view};
         segments.push_back(seg);
         newSegments.push_back(seg);
       }
     }
-    else if (diff_segts < 0)
+    else if(diff_segts < 0)
     {
-      if (segts_n + diff_segts < 0)
+      if(segts_n + diff_segts < 0)
       {
-        for (auto s : segments)
+        for(auto s : segments)
           deleteGraphicsItem(s);
         segments.clear();
       }
       else
       {
         int64_t inv_diff_segts = -diff_segts;
-        for (; inv_diff_segts-- > 0;)
+        for(; inv_diff_segts-- > 0;)
         {
           deleteGraphicsItem(segments[segts_n - inv_diff_segts - 1]);
         }
@@ -363,7 +342,7 @@ void Presenter::modelReset()
   // 3. We set the data
   { // Points
     std::size_t i = 0;
-    for (auto point : m_model.points())
+    for(auto point : m_model.points())
     {
       points[i]->setModel(point);
       i++;
@@ -371,16 +350,16 @@ void Presenter::modelReset()
   }
   { // Segments
     std::size_t i = 0;
-    for (const auto& segment : m_model.segments())
+    for(const auto& segment : m_model.segments())
     {
       segments[i]->setModel(&segment);
       i++;
     }
   }
 
-  for (auto seg : newSegments)
+  for(auto seg : newSegments)
     setupSegmentConnections(seg);
-  for (auto pt : newPoints)
+  for(auto pt : newPoints)
     setupPointConnections(pt);
 
   // Now the ones that have a new model
@@ -388,11 +367,11 @@ void Presenter::modelReset()
   m_points.m_map.clear();
   m_segments.m_map.clear();
 
-  for (auto pt_view : points)
+  for(auto pt_view : points)
   {
     addPoint_impl(pt_view);
   }
-  for (auto seg_view : segments)
+  for(auto seg_view : segments)
   {
     addSegment_impl(seg_view);
   }
@@ -405,11 +384,11 @@ void Presenter::enableActions(bool b)
 
 void Presenter::enable()
 {
-  for (auto& segment : m_segments)
+  for(auto& segment : m_segments)
   {
     segment.enable();
   }
-  for (auto& point : m_points)
+  for(auto& point : m_points)
   {
     point.enable();
   }
@@ -419,11 +398,11 @@ void Presenter::enable()
 
 void Presenter::disable()
 {
-  for (auto& segment : m_segments)
+  for(auto& segment : m_segments)
   {
     segment.disable();
   }
-  for (auto& point : m_points)
+  for(auto& point : m_points)
   {
     point.disable();
   }
@@ -442,11 +421,11 @@ void Presenter::removeSelection()
   // If a point is selected, the segments linked to that point
   // will be deleted, too.
   const auto& c = m_model.selectedChildren();
-  for (const auto& elt : c)
+  for(const auto& elt : c)
   {
-    if (auto point = qobject_cast<const PointModel*>(elt.data()))
+    if(auto point = qobject_cast<const PointModel*>(elt.data()))
     {
-      if (point->previous() && point->following())
+      if(point->previous() && point->following())
       {
         segmentsToDelete.insert(*point->previous());
         segmentsToDelete.insert(*point->following());
@@ -461,7 +440,7 @@ void Presenter::removeSelection()
     */
   }
 
-  if (segmentsToDelete.empty())
+  if(segmentsToDelete.empty())
     return;
 
   double x0 = 0;
@@ -475,17 +454,17 @@ void Presenter::removeSelection()
   {
     // First look for the start and end segments
     {
-      for (auto& seg : newSegments)
+      for(auto& seg : newSegments)
       {
-        if (ossia::contains(segmentsToDelete, seg.id))
+        if(ossia::contains(segmentsToDelete, seg.id))
         {
-          if (!seg.previous)
+          if(!seg.previous)
           {
             firstRemoved = true;
             x0 = seg.start.x();
             y0 = seg.start.y();
           }
-          if (!seg.following)
+          if(!seg.following)
           {
             lastRemoved = true;
             x1 = seg.end.x();
@@ -497,35 +476,31 @@ void Presenter::removeSelection()
 
     // Then set the others
     auto it = newSegments.begin();
-    while (it != newSegments.end())
+    while(it != newSegments.end())
     {
-      if (ossia::contains(segmentsToDelete, it->id))
+      if(ossia::contains(segmentsToDelete, it->id))
       {
-        if (it->previous)
+        if(it->previous)
         {
-          auto prev_it
-              = ossia::find_if(newSegments, [&](const SegmentData& d) {
-                  return d.id == *it->previous;
-                });
-          if (prev_it != newSegments.end())
+          auto prev_it = ossia::find_if(
+              newSegments, [&](const SegmentData& d) { return d.id == *it->previous; });
+          if(prev_it != newSegments.end())
             prev_it->following = OptionalId<SegmentModel>{};
         }
-        if (it->following)
+        if(it->following)
         {
-          auto next_it
-              = ossia::find_if(newSegments, [&](const SegmentData& d) {
-                  return d.id == *it->following;
-                });
-          if (next_it != newSegments.end())
+          auto next_it = ossia::find_if(
+              newSegments, [&](const SegmentData& d) { return d.id == *it->following; });
+          if(next_it != newSegments.end())
             next_it->previous = OptionalId<SegmentModel>{};
         }
         it = newSegments.erase(it);
         continue;
       }
 
-      if (it->previous && ossia::contains(segmentsToDelete, it->previous))
+      if(it->previous && ossia::contains(segmentsToDelete, it->previous))
         it->previous = OptionalId<SegmentModel>{};
-      if (it->following && ossia::contains(segmentsToDelete, it->following))
+      if(it->following && ossia::contains(segmentsToDelete, it->following))
         it->following = OptionalId<SegmentModel>{};
 
       it++;
@@ -533,8 +508,8 @@ void Presenter::removeSelection()
   }
 
   // Recreate if appropriate
-  if (editionSettings().removePointBehaviour()
-      == RemovePointBehaviour::RemoveAndAddSegment)
+  if(editionSettings().removePointBehaviour()
+     == RemovePointBehaviour::RemoveAndAddSegment)
   {
     // Find the "holes" in the new segment list.
     ossia::sort(newSegments, [](const SegmentData& s1, const SegmentData& s2) {
@@ -542,7 +517,7 @@ void Presenter::removeSelection()
     });
 
     // First if there is no segments, we recreate one.
-    if (newSegments.empty())
+    if(newSegments.empty())
     {
       SegmentData d;
       d.start = QPointF{0, y0};
@@ -554,7 +529,7 @@ void Presenter::removeSelection()
     }
     else
     {
-      if (firstRemoved)
+      if(firstRemoved)
       {
         // Recreate a segment from x = 0 to the beginning of the first segment.
         auto it = newSegments.begin();
@@ -572,7 +547,7 @@ void Presenter::removeSelection()
         newSegments.insert(it, d);
       }
 
-      if (lastRemoved)
+      if(lastRemoved)
       {
         // Recreate a segment from x = 0 to the end of the last segment.
         auto it = newSegments.rbegin();
@@ -593,14 +568,14 @@ void Presenter::removeSelection()
 
     // Then try to fill the holes
     auto it = newSegments.begin();
-    for (; it != newSegments.end();)
+    for(; it != newSegments.end();)
     {
       // Check if it's the last segment
       auto next = it + 1;
-      if (next == newSegments.end())
+      if(next == newSegments.end())
         break;
 
-      if (it->following)
+      if(it->following)
       {
         it = next;
       }
@@ -631,17 +606,16 @@ void Presenter::removeSelection()
   m_commandDispatcher.submit(new UpdateCurve{m_model, std::move(newSegments)});
 }
 
-void Presenter::updateSegmentsType(
-    const UuidKey<Curve::SegmentFactory>& segment)
+void Presenter::updateSegmentsType(const UuidKey<Curve::SegmentFactory>& segment)
 {
   // They keep their start / end and previous / following but change type.
   auto factory = m_curveSegments.get(segment);
   auto this_type_base_data = factory->makeCurveSegmentData();
   auto newSegments = model().toCurveData();
 
-  for (auto& seg_data : newSegments)
+  for(auto& seg_data : newSegments)
   {
-    if (model().segments().at(seg_data.id).selection.get())
+    if(model().segments().at(seg_data.id).selection.get())
     {
       seg_data.type = segment;
       seg_data.specificSegmentData = this_type_base_data;

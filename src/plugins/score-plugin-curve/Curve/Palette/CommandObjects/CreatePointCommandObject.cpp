@@ -24,9 +24,7 @@ class CommandStackFacade;
 namespace Curve
 {
 CreatePointCommandObject::CreatePointCommandObject(
-    const Model& model,
-    Presenter* presenter,
-    const score::CommandStackFacade& stack)
+    const Model& model, Presenter* presenter, const score::CommandStackFacade& stack)
     : CommandObjectBase{model, presenter, stack}
 {
 }
@@ -38,19 +36,19 @@ void CreatePointCommandObject::on_press()
   // Save the start data.
   m_originalPress = m_state->currentPoint;
 
-  for (PointModel* pt : m_model.points())
+  for(PointModel* pt : m_model.points())
   {
     auto pt_x = pt->pos().x();
 
-    if (pt_x >= m_xmin && pt_x < m_originalPress.x())
+    if(pt_x >= m_xmin && pt_x < m_originalPress.x())
     {
       m_xmin = pt_x;
     }
-    if (pt_x <= m_xmax && pt_x > m_originalPress.x())
+    if(pt_x <= m_xmax && pt_x > m_originalPress.x())
     {
       m_xmax = pt_x;
     }
-    if (pt_x >= m_xLastPoint)
+    if(pt_x >= m_xLastPoint)
     {
       m_xLastPoint = pt_x;
     }
@@ -96,48 +94,44 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
   SegmentData* exactBefore = nullptr;
   SegmentData* exactAfter = nullptr;
   const auto current_x = m_state->currentPoint.x();
-  for (auto& segment : segments)
+  for(auto& segment : segments)
   {
-    if (segment.start.x() < current_x && current_x < segment.end.x())
+    if(segment.start.x() < current_x && current_x < segment.end.x())
       middle = &segment;
-    if (segment.end.x() == current_x)
+    if(segment.end.x() == current_x)
       exactBefore = &segment;
-    if (segment.start.x() == current_x)
+    if(segment.start.x() == current_x)
       exactAfter = &segment;
 
-    if (middle && exactBefore && exactAfter)
+    if(middle && exactBefore && exactAfter)
       break;
   }
 
   // Handle creation on an exact other point
-  if (exactBefore || exactAfter)
+  if(exactBefore || exactAfter)
   {
-    if (exactBefore)
+    if(exactBefore)
     {
       exactBefore->end = m_state->currentPoint;
     }
-    if (exactAfter)
+    if(exactAfter)
     {
       exactAfter->start = m_state->currentPoint;
     }
   }
-  else if (middle)
+  else if(middle)
   {
     // TODO refactor with MovePointState (line ~330)
     // The segment goes in the first half of "middle"
     SegmentData newSegment{
-        getSegmentId(segments),
-        middle->start,
-        m_state->currentPoint,
-        middle->previous,
-        middle->id,
-        middle->type,
+        getSegmentId(segments),     middle->start, m_state->currentPoint,
+        middle->previous,           middle->id,    middle->type,
         middle->specificSegmentData};
 
     auto prev_it = find(segments, middle->previous);
     // TODO we shouldn't have to test for this, only test if middle->previous
     // != id{}
-    if (prev_it != segments.end())
+    if(prev_it != segments.end())
     {
       (*prev_it).following = newSegment.id;
     }
@@ -161,17 +155,17 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
     SegmentData* seg_closest_from_left{};
     double seg_closest_from_right_x = 1.;
     SegmentData* seg_closest_from_right{};
-    for (SegmentData& segment : segments)
+    for(SegmentData& segment : segments)
     {
       auto seg_start_x = segment.start.x();
-      if (seg_start_x > current_x && seg_start_x < seg_closest_from_right_x)
+      if(seg_start_x > current_x && seg_start_x < seg_closest_from_right_x)
       {
         seg_closest_from_right_x = seg_start_x;
         seg_closest_from_right = &segment;
       }
 
       auto seg_end_x = segment.end.x();
-      if (seg_end_x < current_x && seg_end_x > seg_closest_from_left_x)
+      if(seg_end_x < current_x && seg_end_x > seg_closest_from_left_x)
       {
         seg_closest_from_left_x = seg_end_x;
         seg_closest_from_left = &segment;
@@ -192,7 +186,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
     newLeftSegment.start = {seg_closest_from_left_x, 0.};
     newLeftSegment.end = m_state->currentPoint;
 
-    if (seg_closest_from_left)
+    if(seg_closest_from_left)
     {
       newLeftSegment.start = seg_closest_from_left->end;
       newLeftSegment.previous = seg_closest_from_left->id;
@@ -202,7 +196,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
 
     // Create a curve segment for the right
     // If we are before 1.0 we wrap to 1.0.
-    if (current_x <= 1.0 || seg_closest_from_right)
+    if(current_x <= 1.0 || seg_closest_from_right)
     {
       {
         SegmentData newRightSegment;
@@ -211,15 +205,15 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
       }
       SegmentData& newRightSegment = segments.back();
       newRightSegment.type = Metadata<ConcreteKey_k, PowerSegment>::get();
-      newRightSegment.specificSegmentData = QVariant::fromValue(
-          PowerSegmentData{PowerSegmentData::linearGamma});
+      newRightSegment.specificSegmentData
+          = QVariant::fromValue(PowerSegmentData{PowerSegmentData::linearGamma});
       newRightSegment.start = m_state->currentPoint;
       newRightSegment.end = {seg_closest_from_right_x, 0.};
 
       newLeftSegment.following = newRightSegment.id;
       newRightSegment.previous = newLeftSegment.id;
 
-      if (seg_closest_from_right)
+      if(seg_closest_from_right)
       {
         newRightSegment.end = seg_closest_from_right->start;
         newRightSegment.following = seg_closest_from_right->id;

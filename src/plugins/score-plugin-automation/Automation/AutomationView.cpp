@@ -20,8 +20,7 @@ LayerView::LayerView(QGraphicsItem* parent)
 {
   setZValue(1);
   setFlags(
-      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
-      | ItemIsFocusable);
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
 }
 
@@ -31,13 +30,13 @@ void LayerView::paint_impl(QPainter* painter) const { }
 
 void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  if (event->mimeData())
+  if(event->mimeData())
     dropReceived(event->pos(), *event->mimeData());
 }
 
 QPixmap LayerView::pixmap() noexcept
 {
-  if (m_curveView)
+  if(m_curveView)
     return m_curveView->pixmap();
   else
     return QPixmap();

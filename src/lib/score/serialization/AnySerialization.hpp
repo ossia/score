@@ -26,12 +26,9 @@ struct SCORE_LIB_BASE_EXPORT any_serializer
   virtual ~any_serializer();
   virtual void apply(DataStream::Serializer&, const ossia::any&) = 0;
   virtual void apply(DataStream::Deserializer&, ossia::any&) = 0;
-  virtual void
-  apply(JSONObject::Serializer&, const std::string& key, const ossia::any&)
+  virtual void apply(JSONObject::Serializer&, const std::string& key, const ossia::any&)
       = 0;
-  virtual void
-  apply(JSONObject::Deserializer&, const std::string& key, ossia::any&)
-      = 0;
+  virtual void apply(JSONObject::Deserializer&, const std::string& key, ossia::any&) = 0;
   void cast_error(const char*);
 };
 
@@ -40,7 +37,7 @@ struct any_serializer_t final : public any_serializer
 {
   void apply(DataStream::Serializer& s, const ossia::any& val) override
   {
-    if (const T* ptr = std::any_cast<T>(&val))
+    if(const T* ptr = std::any_cast<T>(&val))
       s.stream() << *ptr;
     else
       cast_error("");
@@ -53,19 +50,15 @@ struct any_serializer_t final : public any_serializer
   }
 
   void apply(
-      JSONObject::Serializer& s,
-      const std::string& key,
-      const ossia::any& val) override
+      JSONObject::Serializer& s, const std::string& key, const ossia::any& val) override
   {
-    if (const T* ptr = std::any_cast<T>(&val))
+    if(const T* ptr = std::any_cast<T>(&val))
       s.obj[key] = *ptr;
     else
       cast_error("");
   }
-  void apply(
-      JSONObject::Deserializer& s,
-      const std::string& key,
-      ossia::any& val) override
+  void
+  apply(JSONObject::Deserializer& s, const std::string& key, ossia::any& val) override
   {
     T t;
     t <<= s.obj[key];
@@ -73,8 +66,7 @@ struct any_serializer_t final : public any_serializer
   }
 };
 
-using any_serializer_map
-    = score::hash_map<std::string, std::unique_ptr<any_serializer>>;
+using any_serializer_map = score::hash_map<std::string, std::unique_ptr<any_serializer>>;
 
 //! The serializers for types that go in ossia::any should fit in here.
 SCORE_LIB_BASE_EXPORT any_serializer_map& anySerializers();
@@ -99,7 +91,7 @@ struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, score::any_map>
     auto& st = s.stream();
 
     st << (int32_t)obj.size();
-    for (const auto& e : obj)
+    for(const auto& e : obj)
     {
       st << e.first;
       apply(s, e.first, e.second);
@@ -111,7 +103,7 @@ struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, score::any_map>
     auto& st = s.stream();
     int32_t n;
     st >> n;
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       std::string key;
       ossia::any value;
@@ -128,7 +120,7 @@ struct SCORE_LIB_BASE_EXPORT TSerializer<JSONObject, score::any_map>
   static void readFrom(JSONObject::Serializer& s, const score::any_map& obj)
   {
     s.stream.StartObject();
-    for (const auto& e : obj)
+    for(const auto& e : obj)
     {
       apply(s, e.first, e.second);
     }
@@ -137,7 +129,7 @@ struct SCORE_LIB_BASE_EXPORT TSerializer<JSONObject, score::any_map>
 
   static void writeTo(JSONObject::Deserializer& s, score::any_map& obj)
   {
-    for (const auto& m : s.base.GetObject())
+    for(const auto& m : s.base.GetObject())
     {
       const std::string str(m.name.GetString(), m.name.GetStringLength());
       apply(s, str, obj[str]);

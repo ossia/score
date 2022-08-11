@@ -1,10 +1,13 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
+
 #include <score/model/ColorReference.hpp>
 
-#include <ossia-qt/time.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+
+#include <ossia-qt/time.hpp>
 
 #include <QGlyphRun>
 #include <QGraphicsItem>
@@ -13,7 +16,6 @@
 #include <QPointer>
 #include <QTextLayout>
 
-#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <chrono>
@@ -71,10 +73,8 @@ public:
   TimeRuler(QGraphicsView*);
 
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   qreal graduationSpacing() const
   {
@@ -126,10 +126,8 @@ public:
   MusicalRuler(QGraphicsView*);
 
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void computeGraduationSpacing() override;
   void createRulerPath() override;
@@ -142,7 +140,6 @@ private:
 
   QGlyphRun getGlyphs(ossia::bar_time timings, ossia::bar_time increments);
   QTextLayout m_layout;
-  std::deque<std::tuple<ossia::bar_time, ossia::bar_time, QGlyphRun>>
-      m_stringCache;
+  std::deque<std::tuple<ossia::bar_time, ossia::bar_time, QGlyphRun>> m_stringCache;
 };
 }

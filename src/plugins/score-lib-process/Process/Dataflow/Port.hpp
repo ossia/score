@@ -1,8 +1,11 @@
 #pragma once
-#include <Process/Dataflow/PortType.hpp>
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
+
+#include <Process/Dataflow/PortType.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/plugins/SerializableInterface.hpp>
@@ -12,10 +15,11 @@
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/network/value/value.hpp>
 
+#include <QPointF>
+
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
 
-#include <QPointF>
 #include <verdigris>
 
 #if __cpp_constexpr >= 201907
@@ -44,54 +48,34 @@ class ControlInlet;
 class ControlOutlet;
 }
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Inlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Inlet,
     "8884228a-d197-4b0a-b6ca-d1fb15291559")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Outlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Outlet,
     "34e2c5a7-18c4-4759-b6cc-46feaeee06e2")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ValueInlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ValueInlet,
     "769dd38a-bfb3-4dc6-b52a-b6abb7afe2a3")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ValueOutlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ValueOutlet,
     "cff96158-cc72-46d7-99dc-b6038171375b")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::MidiInlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::MidiInlet,
     "c18adc77-e0e0-4ddf-a46c-43cb0719a890")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::MidiOutlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::MidiOutlet,
     "d8a3ed3d-b9c2-46f2-bdb3-d282a48481c6")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::AudioInlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::AudioInlet,
     "a1574bb0-cbd4-4c7d-9417-0c25cfd1187b")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::AudioOutlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::AudioOutlet,
     "a1d97535-18ac-444a-8417-0cbc1692d897")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ControlInlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ControlInlet,
     "9a13fb32-269a-47bf-99a9-930188c1f19c")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ControlOutlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ControlOutlet,
     "3620ea94-5991-41cf-89b3-11f842cc39d0")
 namespace Process
 {
@@ -161,8 +145,7 @@ public:
   void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged)
   void addressChanged(const State::AddressAccessor& address)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address)
-  void executionReset()
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, executionReset)
+  void executionReset() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, executionReset)
 
   PROPERTY(
       State::AddressAccessor,
@@ -201,8 +184,7 @@ public:
   ~Inlet() override;
 
   virtual void setupExecution(ossia::inlet&) const noexcept;
-  virtual void
-  forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
+  virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
   virtual void mapExecution(
       ossia::inlet&,
       const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept;
@@ -258,11 +240,14 @@ public:
   void setValue(const ossia::value& value);
   W_SLOT(setValue)
 
-  inline void setExecutionValue(const ossia::value& value){executionValueChanged(value);}
+  inline void setExecutionValue(const ossia::value& value)
+  {
+    executionValueChanged(value);
+  }
 
   void setDomain(const State::Domain& d)
   {
-    if (m_domain != d)
+    if(m_domain != d)
     {
       m_domain = d;
       domainChanged(d);
@@ -270,9 +255,7 @@ public:
   }
   W_SLOT(setDomain)
 
-  PROPERTY(
-      State::Domain,
-      domain READ domain WRITE setDomain NOTIFY domainChanged)
+  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
   PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 private:
   ossia::value m_value;
@@ -289,8 +272,7 @@ public:
   MODEL_METADATA_IMPL_HPP(Outlet)
 
   ~Outlet() override;
-  virtual void
-  forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
+  virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
   virtual void mapExecution(
       ossia::outlet&,
       const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept;
@@ -351,12 +333,10 @@ public:
     return Process::PortType::Audio;
   }
 
-  void forChildInlets(
-      const smallfun::function<void(Inlet&)>&) const noexcept override;
+  void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept override;
   void mapExecution(
       ossia::outlet&,
-      const smallfun::function<void(Inlet&, ossia::inlet&)>&)
-      const noexcept override;
+      const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept override;
 
   QByteArray saveData() const noexcept override;
   void loadData(const QByteArray& arr) noexcept override;
@@ -372,15 +352,12 @@ public:
 
   pan_weight pan() const;
   void setPan(pan_weight g);
-  void panChanged(pan_weight g)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, panChanged, g)
+  void panChanged(pan_weight g) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, panChanged, g)
 
   std::unique_ptr<Process::ControlInlet> gainInlet;
   std::unique_ptr<Process::ControlInlet> panInlet;
 
-  PROPERTY(
-      bool,
-      propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
+  PROPERTY(bool, propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
   PROPERTY(double, gain READ gain WRITE setGain NOTIFY gainChanged)
   PROPERTY(pan_weight, pan READ pan WRITE setPan NOTIFY panChanged)
 private:
@@ -472,14 +449,11 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d)
 
 public:
-  void setExecutionValue(const ossia::value& value)
-  {
-    executionValueChanged(value);
-  }
+  void setExecutionValue(const ossia::value& value) { executionValueChanged(value); }
 
   void setValue(const ossia::value& value)
   {
-    if (value != m_value)
+    if(value != m_value)
     {
       m_value = value;
       valueChanged(value);
@@ -489,7 +463,7 @@ public:
 
   void setDomain(const State::Domain& d)
   {
-    if (m_domain != d)
+    if(m_domain != d)
     {
       m_domain = d;
       domainChanged(d);
@@ -497,9 +471,7 @@ public:
   }
   W_SLOT(setDomain)
 
-  PROPERTY(
-      State::Domain,
-      domain READ domain WRITE setDomain NOTIFY domainChanged)
+  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
   PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 private:
   ossia::value m_value;
@@ -553,15 +525,12 @@ public:
 };
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Inlet>
-make_value_inlet(const Id<Process::Port>& c, QObject* parent);
+std::unique_ptr<Inlet> make_value_inlet(const Id<Process::Port>& c, QObject* parent);
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Outlet>
-make_value_outlet(const Id<Process::Port>& c, QObject* parent);
+std::unique_ptr<Outlet> make_value_outlet(const Id<Process::Port>& c, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<MidiInlet>
-make_midi_inlet(const Id<Process::Port>& c, QObject* parent);
+std::unique_ptr<MidiInlet> make_midi_inlet(const Id<Process::Port>& c, QObject* parent);
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<MidiOutlet>
 make_midi_outlet(const Id<Process::Port>& c, QObject* parent);

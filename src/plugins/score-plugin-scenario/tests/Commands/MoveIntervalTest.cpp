@@ -18,8 +18,8 @@ public:
 private:
   void MoveCommandTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     auto int_0_id = getStrongId(scenar->intervals());
     auto ev_0_id = getStrongId(scenar->events());
@@ -27,13 +27,8 @@ private:
     auto fv_0_id = Id<IntervalViewModel>{234};
     auto tb_0_id = getStrongId(scenar->timeSyncs());
     StandardCreationPolicy::createIntervalAndEndEventFromEvent(
-        *scenar,
-        scenar->startEvent()->id(),
-        std::chrono::milliseconds{34},
-        0.5,
-        int_0_id,
-        fv_0_id,
-        ev_0_id);
+        *scenar, scenar->startEvent()->id(), std::chrono::milliseconds{34}, 0.5,
+        int_0_id, fv_0_id, ev_0_id);
 
     IntervalData data{};
     data.id = int_0_id;

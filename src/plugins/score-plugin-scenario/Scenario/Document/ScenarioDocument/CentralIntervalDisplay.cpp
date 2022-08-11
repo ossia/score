@@ -1,15 +1,14 @@
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
-
-#include <score/application/GUIApplicationContext.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
 
 #include <Library/ProcessesItemModel.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/selection/SelectionStack.hpp>
 
 #include <QScrollBar>
@@ -37,10 +36,7 @@ void CentralIntervalDisplay::init()
   const auto& fact
       = parent.context().app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine = fact.make(
-      &DisplayedElementsToolPaletteFactory::make,
-      parent,
-      presenter,
-      interval,
+      &DisplayedElementsToolPaletteFactory::make, parent, presenter, interval,
       &view.baseItem());
 
   // Creation of the presenters
@@ -50,7 +46,9 @@ void CentralIntervalDisplay::init()
   auto itv_p = presenter.intervalPresenter();
 
   SCORE_ASSERT(itv_p);
-  QObject::connect(itv_p, &FullViewIntervalPresenter::intervalSelected, &parent, &ScenarioDocumentPresenter::setDisplayedInterval);
+  QObject::connect(
+      itv_p, &FullViewIntervalPresenter::intervalSelected, &parent,
+      &ScenarioDocumentPresenter::setDisplayedInterval);
 
   parent.on_viewReady();
   parent.updateMinimap();
@@ -58,12 +56,10 @@ void CentralIntervalDisplay::init()
 
   view.timeRuler().setGrid(itv_p->grid());
   QObject::connect(
-      &presenter,
-      &DisplayedElementsPresenter::requestFocusedPresenterChange,
+      &presenter, &DisplayedElementsPresenter::requestFocusedPresenterChange,
       &parent.focusManager(),
       static_cast<void (Process::ProcessFocusManager::*)(
-          QPointer<Process::LayerPresenter>)>(
-          &Process::ProcessFocusManager::focus));
+          QPointer<Process::LayerPresenter>)>(&Process::ProcessFocusManager::focus));
 }
 
 Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj)
@@ -81,11 +77,10 @@ Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj)
 void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
   // First try to see if an interval is selected.
-  auto createInParentInterval = [&]
-  {
+  auto createInParentInterval = [&] {
     auto sel = filterSelectionByType<IntervalModel>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Scenario::IntervalModel& itv = *sel.front();
 
@@ -104,7 +99,7 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
   {
     auto sel = filterSelectionByType<Process::Cable>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Cable& cbl = *sel.front();
       createProcessInCable(parent, dat, cbl);
@@ -115,13 +110,14 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
   // Else try to see if a process is selected.
   {
     auto sel = filterSelectionByType<Process::ProcessModel>(
-          parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+        parent.context().selectionStack.currentSelection());
+    if(sel.size() == 1)
     {
       const Process::ProcessModel& parentProcess = *sel.front();
       if(!parentProcess.outlets().empty())
       {
-        createProcessAfterPort(parent, dat, parentProcess, *parentProcess.outlets().front());
+        createProcessAfterPort(
+            parent, dat, parentProcess, *parentProcess.outlets().front());
       }
       else
       {
@@ -136,7 +132,7 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
   {
     auto sel = filterSelectionByType<Process::Port>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
@@ -147,9 +143,8 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
         else if(auto inl = qobject_cast<const Process::Outlet*>(&p))
           createProcessAfterPort(parent, dat, *parentProcess, *inl);
       }
-      else
-        if(createInParentInterval())
-          return;
+      else if(createInParentInterval())
+        return;
       return;
     }
   }
@@ -158,11 +153,10 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
 void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
 {
   // First try to see if an interval is selected.
-  auto createInParentInterval = [&]
-  {
+  auto createInParentInterval = [&] {
     auto sel = filterSelectionByType<IntervalModel>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Scenario::IntervalModel& itv = *sel.front();
 
@@ -181,7 +175,7 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   {
     auto sel = filterSelectionByType<Process::Cable>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Cable& cbl = *sel.front();
       loadPresetInCable(parent, dat, cbl);
@@ -192,13 +186,14 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   // Else try to see if a process is selected.
   {
     auto sel = filterSelectionByType<Process::ProcessModel>(
-          parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+        parent.context().selectionStack.currentSelection());
+    if(sel.size() == 1)
     {
       const Process::ProcessModel& parentProcess = *sel.front();
       if(!parentProcess.outlets().empty())
       {
-        loadPresetAfterPort(parent, dat, parentProcess, *parentProcess.outlets().front());
+        loadPresetAfterPort(
+            parent, dat, parentProcess, *parentProcess.outlets().front());
       }
       else
       {
@@ -213,7 +208,7 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
   {
     auto sel = filterSelectionByType<Process::Port>(
         parent.context().selectionStack.currentSelection());
-    if (sel.size() == 1)
+    if(sel.size() == 1)
     {
       const Process::Port& p = *sel.front();
       auto parentProcess = closestParentProcessBeforeInterval(&p);
@@ -225,9 +220,8 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
         else if(auto inl = qobject_cast<const Process::Outlet*>(&p))
           loadPresetAfterPort(parent, dat, *parentProcess, *inl);
       }
-      else
-        if(createInParentInterval())
-          return;
+      else if(createInParentInterval())
+        return;
       return;
     }
   }
@@ -236,13 +230,10 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
 void CentralIntervalDisplay::on_visibleRectChanged(const QRectF&)
 {
   auto& gv = parent.view().view();
-  if (auto p = presenter.intervalPresenter())
+  if(auto p = presenter.intervalPresenter())
     p->on_visibleRectChanged(gv.visibleRect());
 }
 
-void CentralIntervalDisplay::on_executionTimer()
-{
-
-}
+void CentralIntervalDisplay::on_executionTimer() { }
 
 }

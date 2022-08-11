@@ -17,9 +17,8 @@
  */
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    DataStream::Deserializer& des,
-    Args&&... args) -> typename FactoryList_T::object_type*
+    const FactoryList_T& factories, DataStream::Deserializer& des, Args&&... args) ->
+    typename FactoryList_T::object_type*
 {
   QByteArray b;
   des.stream() >> b;
@@ -30,24 +29,22 @@ auto deserialize_interface(
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     typename FactoryList_T::factory_type::ConcreteKey k;
-    TSerializer<
-        DataStream,
-        typename FactoryList_T::factory_type::ConcreteKey>::writeTo(sub, k);
+    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
+        sub, k);
 
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     // Get the factory
-    if (auto concrete_factory = factories.get(k))
+    if(auto concrete_factory = factories.get(k))
     {
       // Create the object
-      auto obj = concrete_factory->load(
-          sub.toVariant(), std::forward<Args>(args)...);
+      auto obj = concrete_factory->load(sub.toVariant(), std::forward<Args>(args)...);
 
       SCORE_DEBUG_CHECK_DELIMITER2(sub);
 
       return obj;
     }
   }
-  catch (...)
+  catch(...)
   {
   }
 
@@ -58,9 +55,8 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    DataStream::Deserializer&& des,
-    Args&&... args) -> typename FactoryList_T::object_type*
+    const FactoryList_T& factories, DataStream::Deserializer&& des, Args&&... args) ->
+    typename FactoryList_T::object_type*
 {
   QByteArray b;
   des.stream() >> b;
@@ -71,24 +67,22 @@ auto deserialize_interface(
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     typename FactoryList_T::factory_type::ConcreteKey k;
-    TSerializer<
-        DataStream,
-        typename FactoryList_T::factory_type::ConcreteKey>::writeTo(sub, k);
+    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
+        sub, k);
 
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     // Get the factory
-    if (auto concrete_factory = factories.get(k))
+    if(auto concrete_factory = factories.get(k))
     {
       // Create the object
-      auto obj = concrete_factory->load(
-          sub.toVariant(), std::forward<Args>(args)...);
+      auto obj = concrete_factory->load(sub.toVariant(), std::forward<Args>(args)...);
 
       SCORE_DEBUG_CHECK_DELIMITER2(sub);
 
       return obj;
     }
   }
-  catch (...)
+  catch(...)
   {
   }
 
@@ -99,28 +93,25 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    JSONObject::Deserializer& des,
-    Args&&... args) -> typename FactoryList_T::object_type*
+    const FactoryList_T& factories, JSONObject::Deserializer& des, Args&&... args) ->
+    typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier
   try
   {
     typename FactoryList_T::factory_type::ConcreteKey k;
     JSONWriter wr{des.obj[des.strings.uuid]};
-    TSerializer<
-        JSONObject,
-        typename FactoryList_T::factory_type::ConcreteKey>::writeTo(wr, k);
+    TSerializer<JSONObject, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
+        wr, k);
 
     // Get the factory
-    if (auto concrete_factory = factories.get(k))
+    if(auto concrete_factory = factories.get(k))
     {
       // Create the object
-      return concrete_factory->load(
-          des.toVariant(), std::forward<Args>(args)...);
+      return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
     }
   }
-  catch (...)
+  catch(...)
   {
   }
 
@@ -131,28 +122,25 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    JSONObject::Deserializer&& des,
-    Args&&... args) -> typename FactoryList_T::object_type*
+    const FactoryList_T& factories, JSONObject::Deserializer&& des, Args&&... args) ->
+    typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier
   try
   {
     typename FactoryList_T::factory_type::ConcreteKey k;
     JSONWriter wr{des.obj[des.strings.uuid]};
-    TSerializer<
-        JSONObject,
-        typename FactoryList_T::factory_type::ConcreteKey>::writeTo(wr, k);
+    TSerializer<JSONObject, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(
+        wr, k);
 
     // Get the factory
-    if (auto concrete_factory = factories.get(k))
+    if(auto concrete_factory = factories.get(k))
     {
       // Create the object
-      return concrete_factory->load(
-          des.toVariant(), std::forward<Args>(args)...);
+      return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
     }
   }
-  catch (...)
+  catch(...)
   {
   }
 

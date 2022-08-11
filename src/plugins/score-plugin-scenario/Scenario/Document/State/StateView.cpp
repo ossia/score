@@ -8,6 +8,10 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
 
@@ -19,9 +23,6 @@
 #include <QScreen>
 #include <qnamespace.h>
 
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::StateView)
 namespace Scenario
@@ -39,16 +40,14 @@ static const QPainterPath fullNonDilated{[] {
 static const QPainterPath smallDilated{[] {
   QPainterPath p;
   p.addEllipse(
-      {0, 0},
-      StateView::pointRadius * StateView::dilated,
+      {0, 0}, StateView::pointRadius * StateView::dilated,
       StateView::pointRadius * StateView::dilated);
   return p;
 }()};
 static const QPainterPath fullDilated{[] {
   QPainterPath p;
   p.addEllipse(
-      {0, 0},
-      StateView::fullRadius * StateView::dilated,
+      {0, 0}, StateView::fullRadius * StateView::dilated,
       StateView::fullRadius * StateView::dilated);
   return p;
 }()};
@@ -67,7 +66,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     , m_hasOverlay{true}
     , m_moving{}
 {
-  if (!is_hidpi())
+  if(!is_hidpi())
     this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
   this->setToolTip(QStringLiteral("State view"));
@@ -91,28 +90,25 @@ QRectF StateView::boundingRect() const
 }
 
 void StateView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = Process::Style::instance();
   painter->setPen(skin.NoPen());
 
-  if (m_containMessage)
+  if(m_containMessage)
   {
     painter->setBrush(skin.StateOutline());
-    if (m_dilated)
+    if(m_dilated)
       painter->drawPath(fullDilated);
     else
       painter->drawPath(fullNonDilated);
   }
 
-  if (m_execPing.running())
+  if(m_execPing.running())
   {
     const auto& nextPen = m_execPing.getNextPen(
-        skin.StateDot().color(),
-        skin.EventHappened().color(),
+        skin.StateDot().color(), skin.EventHappened().color(),
         skin.StateDot().main.pen_cosmetic);
     painter->setPen(nextPen);
     painter->setBrush(nextPen.brush());
@@ -127,7 +123,7 @@ void StateView::paint(
     painter->setPen(skin.StateTemporalPointPen(brush));
     painter->setBrush(brush);
   }
-  if (m_dilated)
+  if(m_dilated)
     painter->drawPath(smallDilated);
   else
     painter->drawPath(smallNonDilated);
@@ -158,10 +154,10 @@ void StateView::setSelected(bool b)
 
 void StateView::setStatus(ExecutionStatus status)
 {
-  if (m_status.get() == status)
+  if(m_status.get() == status)
     return;
   m_status.set(status);
-  if (status == ExecutionStatus::Happened)
+  if(status == ExecutionStatus::Happened)
   {
     m_execPing.start();
   }
@@ -180,25 +176,24 @@ void StateView::disableOverlay()
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
-  if (event->button() == Qt::MouseButton::LeftButton)
+  if(event->button() == Qt::MouseButton::LeftButton)
     m_presenter.pressed(event->scenePos());
   event->accept();
 }
 
 void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->buttons() & Qt::MiddleButton)
+  if(event->buttons() & Qt::MiddleButton)
   {
-    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
-            presenter().model().parent()))
+    if(auto si
+       = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
     {
       JSONReader r;
       copySelectedElementsToJson(
-          r,
-          *const_cast<ScenarioInterface*>(si),
+          r, *const_cast<ScenarioInterface*>(si),
           score::IDocument::documentContext(*m_presenter.model().parent()));
 
-      if (!r.empty())
+      if(!r.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
@@ -208,10 +203,10 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       }
     }
   }
-  if (m_moving
-      || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
-                 .manhattanLength()
-             > QApplication::startDragDistance())
+  if(m_moving
+     || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
+                .manhattanLength()
+            > QApplication::startDragDistance())
   {
     m_moving = true;
     m_presenter.moved(event->scenePos());
@@ -265,11 +260,11 @@ void StateView::setDilatation(bool val)
 
 void StateView::updateOverlay()
 {
-  if (m_hasOverlay)
+  if(m_hasOverlay)
   {
-    if (m_selected || m_hovered)
+    if(m_selected || m_hovered)
     {
-      if (m_overlays)
+      if(m_overlays)
         return;
 
       m_overlays = new StateOverlays{this};

@@ -14,8 +14,7 @@ class SCORE_PLUGIN_GFX_EXPORT GfxInputDevice : public Device::DeviceInterface
 {
 public:
   GfxInputDevice(
-      const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx);
+      const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
   virtual ~GfxInputDevice();
 
 protected:
@@ -29,16 +28,14 @@ protected:
   Device::Node refresh() override;
   void disconnect() override;
 
-  void
-  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
 };
 
 class SCORE_PLUGIN_GFX_EXPORT GfxOutputDevice : public Device::DeviceInterface
 {
 public:
   GfxOutputDevice(
-      const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx);
+      const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
   virtual ~GfxOutputDevice();
 
 protected:
@@ -52,8 +49,7 @@ protected:
   Device::Node refresh() override;
   void disconnect() override;
 
-  void
-  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
 };
 
 }

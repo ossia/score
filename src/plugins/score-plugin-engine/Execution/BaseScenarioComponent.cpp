@@ -3,8 +3,17 @@
 
 #include "BaseScenarioComponent.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>
@@ -14,15 +23,9 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
+
 #include <ossia-qt/invoke.hpp>
 
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Event/EventExecution.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Execution::BaseScenarioElement)
@@ -37,11 +40,19 @@ BaseScenarioElement::BaseScenarioElement(const Context& ctx, QObject* parent)
 
 BaseScenarioElement::~BaseScenarioElement() { }
 
-struct FinishCallback final : public ossia::time_sync_callback {
-  explicit FinishCallback(BaseScenarioElement& s): self{&s} { }
+struct FinishCallback final : public ossia::time_sync_callback
+{
+  explicit FinishCallback(BaseScenarioElement& s)
+      : self{&s}
+  {
+  }
 
-  void finished_evaluation(bool) override {
-    ossia::qt::run_async(self.data(), [s=self] { if(s) s->finished(); });
+  void finished_evaluation(bool) override
+  {
+    ossia::qt::run_async(self.data(), [s = self] {
+      if(s)
+        s->finished();
+    });
   }
 
   QPointer<BaseScenarioElement> self;
@@ -57,61 +68,45 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_scenario->add_time_sync(main_end_node);
 
   auto main_start_event = *main_start_node->emplace(
-      main_start_node->get_time_events().begin(),
-      [](auto&&...) {},
+      main_start_node->get_time_events().begin(), [](auto&&...) {},
       ossia::expressions::make_expression_true());
   auto main_end_event = *main_end_node->emplace(
-      main_end_node->get_time_events().begin(),
-      [](auto&&...) {},
+      main_end_node->get_time_events().begin(), [](auto&&...) {},
       ossia::expressions::make_expression_true());
 
   // TODO PlayDuration of base interval.
   // TODO PlayDuration of FullView
   auto main_interval = ossia::time_interval::create(
-      {},
-      *main_start_event,
-      *main_end_event,
+      {}, *main_start_event, *main_end_event,
       m_ctx.time(element.interval().duration.defaultDuration()),
       m_ctx.time(element.interval().duration.minDuration()),
       m_ctx.time(element.interval().duration.maxDuration()));
   m_ossia_scenario->add_time_interval(main_interval);
 
-  m_ossia_startTimeSync = std::make_shared<TimeSyncComponent>(
-      element.startTimeSync(), m_ctx, this);
-  m_ossia_endTimeSync = std::make_shared<TimeSyncComponent>(
-      element.endTimeSync(), m_ctx, this);
+  m_ossia_startTimeSync
+      = std::make_shared<TimeSyncComponent>(element.startTimeSync(), m_ctx, this);
+  m_ossia_endTimeSync
+      = std::make_shared<TimeSyncComponent>(element.endTimeSync(), m_ctx, this);
 
-  m_ossia_startEvent = std::make_shared<EventComponent>(
-      element.startEvent(), m_ctx, this);
-  m_ossia_endEvent = std::make_shared<EventComponent>(
-      element.endEvent(), m_ctx, this);
+  m_ossia_startEvent
+      = std::make_shared<EventComponent>(element.startEvent(), m_ctx, this);
+  m_ossia_endEvent = std::make_shared<EventComponent>(element.endEvent(), m_ctx, this);
 
   m_ossia_startState = std::make_shared<StateComponent>(
-      element.startState(),
-      main_start_event,
-      m_ctx,
-      this);
+      element.startState(), main_start_event, m_ctx, this);
   m_ossia_endState = std::make_shared<StateComponent>(
-      element.endState(),
-      main_end_event,
-      m_ctx,
-      this);
+      element.endState(), main_end_event, m_ctx, this);
 
   m_ossia_interval = std::make_shared<IntervalComponent>(
       element.interval(), std::shared_ptr<ossia::scenario>{}, m_ctx, this);
 
-  m_ossia_startTimeSync->onSetup(
-      main_start_node, m_ossia_startTimeSync->makeTrigger());
-  m_ossia_endTimeSync->onSetup(
-      main_end_node, m_ossia_endTimeSync->makeTrigger());
+  m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
+  m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(
-      main_start_event,
-      m_ossia_startEvent->makeExpression(),
-      (ossia::time_event::offset_behavior)element.startEvent()
-          .offsetBehavior());
+      main_start_event, m_ossia_startEvent->makeExpression(),
+      (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
   m_ossia_endEvent->onSetup(
-      main_end_event,
-      m_ossia_endEvent->makeExpression(),
+      main_end_event, m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
 
   m_ossia_startState->onSetup();
@@ -126,18 +121,17 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations(), true);
 
   m_ossia_scenario->start();
-  for (auto dev : m_ctx.execState->edit_devices())
+  for(auto dev : m_ctx.execState->edit_devices())
   {
-    if (dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
+    if(dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
     {
-      if (auto n = ossia::net::find_node(dev->get_root_node(), "/out/main"))
+      if(auto n = ossia::net::find_node(dev->get_root_node(), "/out/main"))
       {
-        if (auto param = n->get_parameter())
+        if(auto param = n->get_parameter())
         {
           auto node = main_interval->node;
           m_ctx.executionQueue.enqueue([=] {
-            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address
-                = param;
+            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param;
           });
           break;
         }
@@ -148,19 +142,19 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
 
 void BaseScenarioElement::cleanup()
 {
-  if (m_ossia_interval)
+  if(m_ossia_interval)
     m_ossia_interval->cleanup(m_ossia_interval);
-  if (m_ossia_startState)
+  if(m_ossia_startState)
     m_ossia_startState->cleanup(m_ossia_startState);
-  if (m_ossia_endState)
+  if(m_ossia_endState)
     m_ossia_endState->cleanup(m_ossia_startState);
-  if (m_ossia_startEvent)
+  if(m_ossia_startEvent)
     m_ossia_startEvent->cleanup();
-  if (m_ossia_endEvent)
+  if(m_ossia_endEvent)
     m_ossia_endEvent->cleanup();
-  if (m_ossia_startTimeSync)
+  if(m_ossia_startTimeSync)
     m_ossia_startTimeSync->cleanup();
-  if (m_ossia_endTimeSync)
+  if(m_ossia_endTimeSync)
     m_ossia_endTimeSync->cleanup();
   m_ossia_interval.reset();
   m_ossia_startState.reset();
@@ -214,8 +208,7 @@ StateComponent& BaseScenarioElement::endState() const
 }
 
 BaseScenarioRefContainer::BaseScenarioRefContainer(
-    Scenario::IntervalModel& interval,
-    Scenario::ScenarioInterface& s)
+    Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s)
     : m_interval{interval}
     , m_startState{s.state(interval.startState())}
     , m_endState{s.state(interval.endState())}

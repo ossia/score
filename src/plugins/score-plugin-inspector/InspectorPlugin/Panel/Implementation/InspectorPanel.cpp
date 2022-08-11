@@ -21,11 +21,8 @@ W_OBJECT_IMPL(InspectorPanel::InspectorPanelWidget)
 namespace InspectorPanel
 {
 InspectorPanelWidget::InspectorPanelWidget(
-    const Inspector::InspectorWidgetList& list,
-    score::SelectionStack& s,
-    QVBoxLayout* lay,
-    QWidget* parent,
-    QObject* parentObj)
+    const Inspector::InspectorWidgetList& list, score::SelectionStack& s,
+    QVBoxLayout* lay, QWidget* parent, QObject* parentObj)
     : QObject{parentObj}
     , m_parent{parent}
     , m_layout{lay}
@@ -40,15 +37,15 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 {
   QList<const IdentifiedObjectAbstract*> selectedObj;
   selectedObj.reserve(objects.size());
-  for (auto& elt : objects)
+  for(auto& elt : objects)
   {
-    if (elt)
+    if(elt)
       selectedObj.append(elt);
   }
 
-  if (m_currentInspector)
+  if(m_currentInspector)
   {
-    if (m_list.update(m_currentInspector, selectedObj))
+    if(m_list.update(m_currentInspector, selectedObj))
       return;
 
     m_currentInspector->setVisible(false);
@@ -58,12 +55,12 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
   }
 
   // All the objects selected ought to be in the same document.
-  if (!selectedObj.empty())
+  if(!selectedObj.empty())
   {
     auto& doc = score::IDocument::documentContext(*selectedObj.first());
 
     auto widgets = m_list.make(doc, selectedObj, m_parent);
-    if (!widgets.empty())
+    if(!widgets.empty())
     {
       m_layout->addWidget(widgets.first());
       m_currentInspector = widgets.first();
@@ -72,8 +69,8 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
     {
       QString name = "Inspector";
       auto obj = selectedObj.first();
-      if (auto meta = obj->findChild<score::ModelMetadata*>(
-              QString{}, Qt::FindDirectChildrenOnly))
+      if(auto meta
+         = obj->findChild<score::ModelMetadata*>(QString{}, Qt::FindDirectChildrenOnly))
       {
         name = meta->getName();
       }

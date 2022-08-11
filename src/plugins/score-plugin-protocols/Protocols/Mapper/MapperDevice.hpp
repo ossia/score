@@ -4,6 +4,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <Explorer/DefaultProtocolFactory.hpp>
 
 #include <verdigris>
@@ -13,8 +14,7 @@ operator<<(QDataStream& st, const std::vector<ossia::net::node_base*>& p)
 {
   return st;
 }
-inline QDataStream&
-operator>>(QDataStream& st, std::vector<ossia::net::node_base*>& p)
+inline QDataStream& operator>>(QDataStream& st, std::vector<ossia::net::node_base*>& p)
 {
   return st;
 }
@@ -54,12 +54,10 @@ private:
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+      const QVariant& data, const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,

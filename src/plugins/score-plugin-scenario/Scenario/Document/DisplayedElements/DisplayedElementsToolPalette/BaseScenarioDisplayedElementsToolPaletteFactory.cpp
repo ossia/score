@@ -4,9 +4,9 @@
 
 #include "BaseScenarioDisplayedElementsToolPalette.hpp"
 
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
 namespace Scenario
 {
@@ -14,10 +14,8 @@ class ScenarioDocumentPresenter;
 
 std::unique_ptr<GraphicsSceneToolPalette>
 BaseScenarioDisplayedElementsToolPaletteFactory::make(
-    ScenarioDocumentPresenter& pres,
-    DisplayedElementsPresenter& presenters,
-    const IntervalModel& interval,
-    QGraphicsItem* parent)
+    ScenarioDocumentPresenter& pres, DisplayedElementsPresenter& presenters,
+    const IntervalModel& interval, QGraphicsItem* parent)
 {
   return std::make_unique<BaseScenarioDisplayedElementsToolPalette>(pres, presenters);
 }

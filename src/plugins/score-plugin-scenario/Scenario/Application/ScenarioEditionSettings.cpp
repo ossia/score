@@ -5,6 +5,7 @@
 #include <Process/ExpandMode.hpp>
 
 #include <Scenario/Palette/Tool.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::EditionSettings)
 ExpandMode Scenario::EditionSettings::expandMode() const
@@ -19,7 +20,7 @@ Scenario::Tool Scenario::EditionSettings::tool() const
 
 void Scenario::EditionSettings::setExpandMode(ExpandMode expandMode)
 {
-  if (m_expandMode == expandMode)
+  if(m_expandMode == expandMode)
     return;
 
   m_expandMode = expandMode;
@@ -28,15 +29,15 @@ void Scenario::EditionSettings::setExpandMode(ExpandMode expandMode)
 
 void Scenario::EditionSettings::setTool(Scenario::Tool tool)
 {
-  if (m_execution)
+  if(m_execution)
     return;
 
-  if (tool != m_tool)
+  if(tool != m_tool)
   {
-    if (m_tool != Scenario::Tool::Playing)
+    if(m_tool != Scenario::Tool::Playing)
       m_previousTool = m_tool;
 
-    if (!isCreationTool(m_tool))
+    if(!isCreationTool(m_tool))
     {
       setLockMode(LockMode::Free);
     }
@@ -60,7 +61,7 @@ void Scenario::EditionSettings::setDefault()
 void Scenario::EditionSettings::restoreTool()
 {
   setTool(Scenario::Tool{m_previousTool});
-  if (!isCreationTool(m_tool))
+  if(!isCreationTool(m_tool))
   {
     setLockMode(LockMode::Free);
   }
@@ -73,7 +74,7 @@ LockMode Scenario::EditionSettings::lockMode() const
 
 void Scenario::EditionSettings::setLockMode(LockMode lockMode)
 {
-  if (m_lockMode == lockMode)
+  if(m_lockMode == lockMode)
     return;
 
   m_lockMode = lockMode;

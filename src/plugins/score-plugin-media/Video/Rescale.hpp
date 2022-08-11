@@ -3,15 +3,15 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 
-#include <Video/VideoInterface.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/VideoInterface.hpp>
 
-extern "C"
-{
+extern "C" {
 struct SwsContext;
 }
 
 #include <QDebug>
+
 #include <score_plugin_media_export.h>
 namespace Video
 {
@@ -22,7 +22,9 @@ public:
 
   void open(const VideoMetadata& src);
   void close();
-  void rescale(const VideoMetadata& src, FrameQueue& m_frames, AVFramePointer& frame, ReadFrame& read);
+  void rescale(
+      const VideoMetadata& src, FrameQueue& m_frames, AVFramePointer& frame,
+      ReadFrame& read);
 
 private:
   SwsContext* m_rescale{};

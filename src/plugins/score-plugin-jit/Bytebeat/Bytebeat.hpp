@@ -1,18 +1,19 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+
 #include <Scenario/Commands/ScriptEditCommand.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <JitCpp/EditScript.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
-
-#include <JitCpp/EditScript.hpp>
 
 #include <verdigris>
 
@@ -21,19 +22,9 @@ namespace Jit
 class BytebeatModel;
 }
 PROCESS_METADATA(
-    ,
-    Jit::BytebeatModel,
-    "608beeb7-e5c2-40a5-bd1a-aa7aec80f864",
-    "Jit",
-    "Bytebeat",
-    Process::ProcessCategory::Script,
-    "Audio",
-    "Run bytebeat code",
-    "ossia score",
-    QStringList{},
-    {},
-    {},
-    Process::ProcessFlags::SupportsAll)
+    , Jit::BytebeatModel, "608beeb7-e5c2-40a5-bd1a-aa7aec80f864", "Jit", "Bytebeat",
+    Process::ProcessCategory::Script, "Audio", "Run bytebeat code", "ossia score",
+    QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
 template <typename Fun_T>
@@ -51,9 +42,7 @@ class BytebeatModel : public Process::ProcessModel
   W_OBJECT(BytebeatModel)
 public:
   BytebeatModel(
-      TimeVal t,
-      const QString& jitProgram,
-      const Id<Process::ProcessModel>&,
+      TimeVal t, const QString& jitProgram, const Id<Process::ProcessModel>&,
       QObject* parent);
   ~BytebeatModel() override;
 
@@ -75,8 +64,7 @@ public:
 
   BytebeatFactory factory;
 
-  void errorMessage(int line, const QString& e)
-      W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
@@ -111,16 +99,12 @@ struct BytebeatLanguageSpec
 
 using BytebeatEffectFactory = Process::EffectProcessFactory_T<BytebeatModel>;
 using BytebeatLayerFactory = Process::EffectLayerFactory_T<
-    BytebeatModel,
-    Process::DefaultEffectItem,
+    BytebeatModel, Process::DefaultEffectItem,
     Process::ProcessScriptEditDialog<
-        BytebeatModel,
-        BytebeatModel::p_script,
-        BytebeatLanguageSpec>>;
+        BytebeatModel, BytebeatModel::p_script, BytebeatLanguageSpec>>;
 
 class BytebeatExecutor final
-    : public Execution::
-          ProcessComponent_T<Jit::BytebeatModel, ossia::node_process>
+    : public Execution::ProcessComponent_T<Jit::BytebeatModel, ossia::node_process>
 {
   COMPONENT_METADATA("dc4f88ae-ca36-4330-b0e7-8093a1793521")
 
@@ -128,24 +112,19 @@ public:
   static constexpr bool is_unique = true;
 
   BytebeatExecutor(
-      Jit::BytebeatModel& proc,
-      const Execution::Context& ctx,
-      QObject* parent);
+      Jit::BytebeatModel& proc, const Execution::Context& ctx, QObject* parent);
   ~BytebeatExecutor() override;
 };
-using BytebeatExecutorFactory
-    = Execution::ProcessComponentFactory_T<BytebeatExecutor>;
+using BytebeatExecutorFactory = Execution::ProcessComponentFactory_T<BytebeatExecutor>;
 }
 
 namespace Jit
 {
-class EditBytebeat
-    : public Scenario::EditScript<BytebeatModel, BytebeatModel::p_script>
+class EditBytebeat : public Scenario::EditScript<BytebeatModel, BytebeatModel::p_script>
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), EditBytebeat, "Edit a bytebeat")
 public:
-  using Scenario::EditScript<BytebeatModel, BytebeatModel::p_script>::
-      EditScript;
+  using Scenario::EditScript<BytebeatModel, BytebeatModel::p_script>::EditScript;
 };
 
 }
@@ -153,10 +132,8 @@ public:
 namespace score
 {
 template <>
-struct StaticPropertyCommand<Jit::BytebeatModel::p_script>
-    : Jit::EditBytebeat
+struct StaticPropertyCommand<Jit::BytebeatModel::p_script> : Jit::EditBytebeat
 {
   using Jit::EditBytebeat::EditBytebeat;
 };
 }
-

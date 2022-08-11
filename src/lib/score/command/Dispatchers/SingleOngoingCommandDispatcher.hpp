@@ -24,7 +24,7 @@ public:
   template <typename... Args>
   void submit(Args&&... args)
   {
-    if (!m_cmd)
+    if(!m_cmd)
     {
       stack().disableActions();
       m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
@@ -39,7 +39,7 @@ public:
 
   void commit()
   {
-    if (m_cmd)
+    if(m_cmd)
     {
       SendStrategy::Quiet::send(stack(), m_cmd.release());
       stack().enableActions();
@@ -48,7 +48,7 @@ public:
 
   void rollback()
   {
-    if (m_cmd)
+    if(m_cmd)
     {
       m_cmd->undo(stack().context());
       stack().enableActions();

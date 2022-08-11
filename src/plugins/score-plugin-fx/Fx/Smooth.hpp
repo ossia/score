@@ -15,9 +15,7 @@ struct NoiseFilter
   NoiseFilter()
       : dno_i{}
       , dno_v{
-            DeNoiser<double>{},
-            DeNoiser<double>{},
-            DeNoiser<double>{},
+            DeNoiser<double>{}, DeNoiser<double>{}, DeNoiser<double>{},
             DeNoiser<double>{}}
   {
   }
@@ -47,19 +45,17 @@ struct NoiseFilter
       ossia::value operator()(const ossia::vec4f& t) const
       {
         return ossia::make_vec(
-            nFilt->dno_v[0](t[0]),
-            nFilt->dno_v[1](t[1]),
-            nFilt->dno_v[2](t[2]),
+            nFilt->dno_v[0](t[0]), nFilt->dno_v[1](t[1]), nFilt->dno_v[2](t[2]),
             nFilt->dno_v[3](t[3]));
       }
 
       ossia::value operator()(const std::vector<ossia::value>& t) const
       {
         std::vector<ossia::value> ret = t;
-        while (nFilt->dno_v.size() < ret.size())
+        while(nFilt->dno_v.size() < ret.size())
           nFilt->dno_v.push_back(nFilt->dno_v.front());
 
-        for (std::size_t k = 0; k < ret.size(); k++)
+        for(std::size_t k = 0; k < ret.size(); k++)
           ret[k] = (float)nFilt->dno_v[k](ossia::convert<float>(ret[k]));
 
         return ret;
@@ -77,11 +73,11 @@ struct NoiseFilter
     {
       return ossia::apply(vis{this}, val.v);
     }
-    catch (std::exception& e)
+    catch(std::exception& e)
     {
       ossia::logger().error("{}", e.what());
     }
-    catch (...)
+    catch(...)
     {
       ossia::logger().error("error");
     }
@@ -92,35 +88,35 @@ struct NoiseFilter
   void set_amount(float amt)
   {
     dno_i.set_amount(amt);
-    for (auto& f : dno_v)
+    for(auto& f : dno_v)
       f.set_amount(amt);
   }
 
   void set_type(const type& t = OneEuro)
   {
     dno_i.set_type(t);
-    for (auto& f : dno_v)
+    for(auto& f : dno_v)
       f.set_type(t);
   }
 
   void set_freq(double freq) // 1e & LP
   {
     dno_i.set_freq(freq);
-    for (auto& f : dno_v)
+    for(auto& f : dno_v)
       f.set_freq(freq);
   }
 
   void set_cutoff(double cutoff) // 1e & LP
   {
     dno_i.set_cutoff(cutoff);
-    for (auto& f : dno_v)
+    for(auto& f : dno_v)
       f.set_cutoff(cutoff);
   }
 
   void set_beta(double beta) // 1e only
   {
     dno_i.set_1e_beta(beta);
-    for (auto& f : dno_v)
+    for(auto& f : dno_v)
       f.set_1e_beta(beta);
   }
 };
@@ -129,34 +125,30 @@ class NoiseState
 {
 public:
   ossia::value filter(
-      const ossia::value& value,
-      const std::string& type,
-      float amount,
-      float freq,
-      float cutoff,
-      float beta)
+      const ossia::value& value, const std::string& type, float amount, float freq,
+      float cutoff, float beta)
   {
-    if (type != prev_type)
+    if(type != prev_type)
     {
       nf.set_type(GetFilterType(type));
       prev_type = type;
     }
-    if (amount != prev_amount)
+    if(amount != prev_amount)
     {
       nf.set_amount(amount);
       prev_amount = amount;
     }
-    if (freq != prev_freq)
+    if(freq != prev_freq)
     {
       nf.set_freq(freq);
       prev_freq = freq;
     }
-    if (cutoff != prev_cutoff)
+    if(cutoff != prev_cutoff)
     {
       nf.set_cutoff(cutoff);
       prev_cutoff = cutoff;
     }
-    if (beta != prev_beta)
+    if(beta != prev_beta)
     {
       nf.set_beta(beta);
       prev_beta = beta;
@@ -176,11 +168,11 @@ private:
 
   type GetFilterType(std::string_view str) noexcept
   {
-    if (str == "LowPass")
+    if(str == "LowPass")
       return LowPass;
-    else if (str == "Average")
+    else if(str == "Average")
       return Average;
-    else if (str == "Median")
+    else if(str == "Median")
       return Median;
     return OneEuro;
   }
@@ -197,16 +189,15 @@ struct Node
     static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto kind = Process::ProcessCategory::Mapping | Process::ProcessCategory::Deprecated;
+    static const constexpr auto kind
+        = Process::ProcessCategory::Mapping | Process::ProcessCategory::Deprecated;
     static const constexpr auto description = "Filter noisy value stream";
     static const uuid_constexpr auto uuid
         = make_uuid("809c014d-7d02-45dc-8849-de7a7db5fe67");
 
     static const constexpr auto controls = tuplet::make_tuple(
         Control::make_enum(
-            "Type",
-            0U,
-            ossia::make_array("OneEuro", "LowPass", "Average", "Median")),
+            "Type", 0U, ossia::make_array("OneEuro", "LowPass", "Average", "Median")),
         Control::FloatKnob{"Amount", 0., 1., 0.1},
         Control::LogFloatSlider{"Freq (1e/LP)", 0.001, 300., 120.},
         Control::LogFloatSlider{"Cutoff (1e/LP)", 0.001, 10., 1.},
@@ -220,38 +211,26 @@ struct Node
   using control_policy = ossia::safe_nodes::last_tick;
 
   static void
-  run(const ossia::value_port& in,
-      const std::string& type,
-      float amount,
-      float freq,
-      float cutoff,
-      float beta,
-      ossia::value_port& out,
-      ossia::token_request t,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const ossia::value_port& in, const std::string& type, float amount, float freq,
+      float cutoff, float beta, ossia::value_port& out, ossia::token_request t,
+      ossia::exec_state_facade st, State& self)
   {
-    for (const ossia::timed_value& v : in.get_data())
+    for(const ossia::timed_value& v : in.get_data())
     {
       auto filtered = self.filter(v.value, type, amount, freq, cutoff, beta);
       out.write_value(filtered, v.timestamp); // TODO fix accuracy of timestamp
     }
 
-    if (!in.get_data().empty())
+    if(!in.get_data().empty())
     {
       self.last = in.get_data().back().value;
     }
   }
 
   static void item(
-      Process::Enum& type,
-      Process::FloatKnob& amount,
-      Process::LogFloatSlider& freq,
-      Process::LogFloatSlider& cutoff,
-      Process::FloatSlider& beta,
-      const Process::ProcessModel& process,
-      QGraphicsItem& parent,
-      QObject& context,
+      Process::Enum& type, Process::FloatKnob& amount, Process::LogFloatSlider& freq,
+      Process::LogFloatSlider& cutoff, Process::FloatSlider& beta,
+      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
       const Process::Context& doc)
   {
     using namespace Process;
@@ -313,9 +292,7 @@ struct Node
 
     static const constexpr auto controls = tuplet::make_tuple(
         Control::make_enum(
-            "Type",
-            0U,
-            ossia::make_array("OneEuro", "LowPass", "Average", "Median")),
+            "Type", 0U, ossia::make_array("OneEuro", "LowPass", "Average", "Median")),
         Control::FloatKnob{"Amount", 0., 1., 0.1},
         Control::LogFloatSlider{"Freq (1e/LP)", 0.001, 300., 120.},
         Control::LogFloatSlider{"Cutoff (1e/LP)", 0.001, 10., 1.},
@@ -330,31 +307,23 @@ struct Node
   using control_policy = ossia::safe_nodes::last_tick;
 
   static void
-  run(const ossia::value_port& in,
-      const std::string& type,
-      float amount,
-      float freq,
-      float cutoff,
-      float beta,
-      bool continuous,
-      ossia::value_port& out,
-      ossia::token_request t,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const ossia::value_port& in, const std::string& type, float amount, float freq,
+      float cutoff, float beta, bool continuous, ossia::value_port& out,
+      ossia::token_request t, ossia::exec_state_facade st, State& self)
   {
-    for (const ossia::timed_value& v : in.get_data())
+    for(const ossia::timed_value& v : in.get_data())
     {
       auto filtered = self.filter(v.value, type, amount, freq, cutoff, beta);
       out.write_value(filtered, v.timestamp); // TODO fix accuracy of timestamp
     }
 
-    if (!in.get_data().empty())
+    if(!in.get_data().empty())
     {
       self.last = in.get_data().back().value;
     }
     else
     {
-      if (continuous && self.last.valid())
+      if(continuous && self.last.valid())
       {
         auto filtered = self.filter(self.last, type, amount, freq, cutoff, beta);
         out.write_value(filtered, st.timings(t).start_sample);
@@ -363,15 +332,9 @@ struct Node
   }
 
   static void item(
-      Process::Enum& type,
-      Process::FloatKnob& amount,
-      Process::LogFloatSlider& freq,
-      Process::LogFloatSlider& cutoff,
-      Process::FloatSlider& beta,
-      Process::Toggle& cont,
-      const Process::ProcessModel& process,
-      QGraphicsItem& parent,
-      QObject& context,
+      Process::Enum& type, Process::FloatKnob& amount, Process::LogFloatSlider& freq,
+      Process::LogFloatSlider& cutoff, Process::FloatSlider& beta, Process::Toggle& cont,
+      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
       const Process::Context& doc)
   {
     using namespace Process;

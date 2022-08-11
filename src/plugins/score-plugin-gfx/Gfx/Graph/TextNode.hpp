@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Gfx/Graph/Node.hpp>
+
 #include <ossia/detail/packed_struct.hpp>
 
 #include <QFont>
@@ -17,8 +18,7 @@ public:
   explicit TextNode();
   virtual ~TextNode();
 
-  score::gfx::NodeRenderer*
-  createRenderer(RenderList& r) const noexcept override;
+  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   void process(const Message& msg) override;
   class Renderer;
@@ -35,6 +35,7 @@ public:
   QPen pen;
 
   std::atomic_bool mustRerender{true};
+
 private:
 };
 

@@ -1,18 +1,20 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+
 #include <Scenario/Commands/ScriptEditCommand.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <JitCpp/EditScript.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
-#include <JitCpp/EditScript.hpp>
 #include <score_plugin_jit_export.h>
 namespace AvndJit
 {
@@ -25,19 +27,9 @@ template <typename Fun_T>
 struct Driver;
 }
 PROCESS_METADATA(
-    ,
-    AvndJit::Model,
-    "193686f2-1f3b-45ce-9251-2e79ca06933b",
-    "Jit",
-    "Avendish",
-    Process::ProcessCategory::Script,
-    "Script",
-    "Avendish compilation process",
-    "ossia score",
-    QStringList{},
-    {},
-    {},
-    Process::ProcessFlags::SupportsAll)
+    , AvndJit::Model, "193686f2-1f3b-45ce-9251-2e79ca06933b", "Jit", "Avendish",
+    Process::ProcessCategory::Script, "Script", "Avendish compilation process",
+    "ossia score", QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
 namespace AvndJit
 {
 using NodeCompiler = Jit::Driver<ossia::graph_node*()>;
@@ -52,9 +44,7 @@ class Model : public Process::ProcessModel
   W_OBJECT(Model)
 public:
   Model(
-      TimeVal t,
-      const QString& jitProgram,
-      const Id<Process::ProcessModel>&,
+      TimeVal t, const QString& jitProgram, const Id<Process::ProcessModel>&,
       QObject* parent);
   ~Model() override;
 
@@ -76,8 +66,7 @@ public:
 
   std::shared_ptr<NodeFactory> factory;
 
-  void errorMessage(int line, const QString& e)
-      W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
   std::shared_ptr<NodeFactory> getJitFactory();
@@ -99,19 +88,14 @@ struct LanguageSpec
 
 using JitEffectFactory = Process::EffectProcessFactory_T<AvndJit::Model>;
 using LayerFactory = Process::EffectLayerFactory_T<
-    Model,
-    Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<
-        Model,
-        Model::p_script,
-        LanguageSpec>>;
+    Model, Process::DefaultEffectItem,
+    Process::ProcessScriptEditDialog<Model, Model::p_script, LanguageSpec>>;
 }
 
 namespace Process
 {
 template <>
-QString
-EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const noexcept;
+QString EffectProcessFactory_T<AvndJit::Model>::customConstructionData() const noexcept;
 
 template <>
 Process::Descriptor
@@ -121,33 +105,26 @@ EffectProcessFactory_T<AvndJit::Model>::descriptor(QString d) const noexcept;
 namespace AvndJit
 {
 class Executor final
-    : public Execution::
-          ProcessComponent_T<AvndJit::Model, ossia::node_process>
+    : public Execution::ProcessComponent_T<AvndJit::Model, ossia::node_process>
 {
   COMPONENT_METADATA("086fbfcf-44e9-4ea6-baad-b4f76e938d69")
 
 public:
   static constexpr bool is_unique = true;
 
-  Executor(
-      AvndJit::Model& proc,
-      const Execution::Context& ctx,
-      QObject* parent);
+  Executor(AvndJit::Model& proc, const Execution::Context& ctx, QObject* parent);
   ~Executor() override;
 };
-using JitEffectComponentFactory
-    = Execution::ProcessComponentFactory_T<Executor>;
+using JitEffectComponentFactory = Execution::ProcessComponentFactory_T<Executor>;
 }
 
 namespace AvndJit
 {
-class EditAvndScript
-    : public Scenario::EditScript<Model, Model::p_script>
+class EditAvndScript : public Scenario::EditScript<Model, Model::p_script>
 {
   SCORE_COMMAND_DECL(Jit::CommandFactoryName(), EditAvndScript, "Edit a C++ program")
 public:
-  using Scenario::EditScript<Model, Model::p_script>::
-      EditScript;
+  using Scenario::EditScript<Model, Model::p_script>::EditScript;
 };
 
 }
@@ -155,10 +132,8 @@ public:
 namespace score
 {
 template <>
-struct StaticPropertyCommand<AvndJit::Model::p_script>
-    : AvndJit::EditAvndScript
+struct StaticPropertyCommand<AvndJit::Model::p_script> : AvndJit::EditAvndScript
 {
   using AvndJit::EditAvndScript::EditAvndScript;
 };
 }
-

@@ -13,9 +13,7 @@ const CommandGroupKey& CommandFactoryName()
   return key;
 }
 
-ChangeSpline::ChangeSpline(
-    const ProcessModel& autom,
-    const ossia::spline3d_data& newval)
+ChangeSpline::ChangeSpline(const ProcessModel& autom, const ossia::spline3d_data& newval)
     : m_path{autom}
     , m_old{autom.spline()}
     , m_new{newval}
@@ -32,9 +30,7 @@ void ChangeSpline::redo(const score::DocumentContext& ctx) const
   m_path.find(ctx).setSpline(m_new);
 }
 
-void ChangeSpline::update(
-    const ProcessModel&,
-    const ossia::spline3d_data& newval)
+void ChangeSpline::update(const ProcessModel&, const ossia::spline3d_data& newval)
 {
   m_new = newval;
 }

@@ -19,7 +19,7 @@ using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
 AddressSettingsWidget*
 AddressSettingsFactory::operator()(ossia::val_type valueType) const
 {
-  switch (valueType)
+  switch(valueType)
   {
     case ossia::val_type::NONE:
       return new AddressNoneSettingsWidget;

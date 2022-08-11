@@ -3,9 +3,10 @@
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <JS/Qml/Metatypes.hpp>
 
-#include <ossia-qt/time.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/token_request.hpp>
+
+#include <ossia-qt/time.hpp>
 
 #include <QMatrix4x4>
 #include <QVector2D>
@@ -214,8 +215,7 @@ public:
   double get_quantification_date(double ratio) const noexcept;
   W_INVOKABLE(get_quantification_date)
 
-  double
-  get_physical_quantification_date(double rate, double ratio) const noexcept;
+  double get_physical_quantification_date(double rate, double ratio) const noexcept;
   W_INVOKABLE(get_physical_quantification_date)
 
   void set_end_time(double time) noexcept;
@@ -234,8 +234,7 @@ public:
   W_PROPERTY(double, tempo READ tempo FINAL)
 
   W_PROPERTY(
-      double,
-      musical_start_last_signature READ musical_start_last_signature FINAL)
+      double, musical_start_last_signature READ musical_start_last_signature FINAL)
   W_PROPERTY(double, musical_start_last_bar READ musical_start_last_bar FINAL)
   W_PROPERTY(double, musical_start_position READ musical_start_position FINAL)
   W_PROPERTY(double, musical_end_last_bar READ musical_end_last_bar FINAL)
@@ -249,7 +248,6 @@ struct SampleTimings
 {
   W_GADGET(SampleTimings)
 public:
-
   ossia::exec_state_facade::sample_timings tm{};
 
   int start_sample() const noexcept;

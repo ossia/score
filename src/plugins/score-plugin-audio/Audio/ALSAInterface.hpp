@@ -8,7 +8,8 @@ class QComboBox;
 namespace Audio
 {
 #if defined(OSSIA_AUDIO_ALSA)
-struct range {
+struct range
+{
   int min;
   int max;
 };
@@ -35,25 +36,20 @@ public:
   ALSAFactory();
   ~ALSAFactory() override;
 
-  void initialize(
-      Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+  void
+  initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
   void rescan();
 
   bool available() const noexcept override;
   QString prettyName() const override;
   std::shared_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+      const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
   void setCard(QComboBox* combo, QString val);
 
   QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override;
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override;
 };
 #endif
 }
-

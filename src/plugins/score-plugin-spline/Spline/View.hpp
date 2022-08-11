@@ -16,10 +16,7 @@ class View final : public Process::LayerView
 {
   W_OBJECT(View)
 public:
-  View(
-      const ProcessModel& m,
-      const Process::Context& ctx,
-      QGraphicsItem* parent);
+  View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent);
 
   void setSpline(ossia::spline_data d);
   const ossia::spline_data& spline() const noexcept;

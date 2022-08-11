@@ -19,15 +19,14 @@ LayerView::LayerView(QGraphicsItem* parent)
 {
   setZValue(1);
   this->setFlags(
-      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
-      | ItemIsFocusable);
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 }
 
 void LayerView::paint_impl(QPainter* painter) const { }
 
 QPixmap LayerView::pixmap() noexcept
 {
-  if (m_curveView)
+  if(m_curveView)
     return m_curveView->pixmap();
   else
     return QPixmap();

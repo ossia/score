@@ -1,30 +1,23 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 
-#include <Video/VideoInterface.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/VideoInterface.hpp>
 
-extern "C"
-{
+extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
 namespace Video
 {
-FrameQueue::FrameQueue()
-{
+FrameQueue::FrameQueue() { }
 
-}
-
-FrameQueue::~FrameQueue()
-{
-
-}
+FrameQueue::~FrameQueue() { }
 
 AVFramePointer FrameQueue::newFrame() noexcept
 {
   // We were working on a frame in this thread (e.g. during a seek, when retrying with EAGAIN..)
-  if (!m_decodeThreadFrameBuffer.empty())
+  if(!m_decodeThreadFrameBuffer.empty())
   {
     auto f = m_decodeThreadFrameBuffer.back();
     m_decodeThreadFrameBuffer.pop_back();
@@ -34,7 +27,7 @@ AVFramePointer FrameQueue::newFrame() noexcept
   // Frames freed from the rendering thread
   {
     AVFrame* f{};
-    if (released.try_dequeue(f))
+    if(released.try_dequeue(f))
     {
       return AVFramePointer{f};
     }
@@ -60,7 +53,7 @@ AVFrame* FrameQueue::dequeue() noexcept
   AVFrame* prev_f{};
 
   // We only want the latest frame
-  while (available.try_dequeue(f))
+  while(available.try_dequeue(f))
   {
     release(prev_f);
     prev_f = f;
@@ -86,9 +79,9 @@ AVFrame* FrameQueue::discard_and_dequeue() noexcept
   AVFrame* f{};
   AVFrame* prev_f{};
 
-  if (auto to_discard = m_discardUntil.exchange(nullptr))
+  if(auto to_discard = m_discardUntil.exchange(nullptr))
   {
-    while (available.try_dequeue(f) && f != to_discard)
+    while(available.try_dequeue(f) && f != to_discard)
     {
       release(f);
     }
@@ -96,9 +89,9 @@ AVFrame* FrameQueue::discard_and_dequeue() noexcept
     return to_discard;
   }
   // We only want the latest frame
-  while (available.try_dequeue(f))
+  while(available.try_dequeue(f))
   {
-    if (prev_f)
+    if(prev_f)
       release(prev_f);
     prev_f = f;
   }
@@ -109,9 +102,9 @@ AVFrame* FrameQueue::discard_and_dequeue_one() noexcept
 {
   AVFrame* f{};
 
-  if (auto to_discard = m_discardUntil.exchange(nullptr))
+  if(auto to_discard = m_discardUntil.exchange(nullptr))
   {
-    while (available.try_dequeue(f) && f != to_discard)
+    while(available.try_dequeue(f) && f != to_discard)
     {
       release(f);
     }
@@ -135,7 +128,7 @@ void FrameQueue::drain()
 {
   {
     AVFrame* frame{};
-    while (available.try_dequeue(frame))
+    while(available.try_dequeue(frame))
     {
       av_frame_free(&frame);
     }
@@ -146,12 +139,11 @@ void FrameQueue::drain()
   // enqueuing
   {
     AVFrame* frame{};
-    while (released.try_dequeue(frame))
+    while(released.try_dequeue(frame))
     {
       av_frame_free(&frame);
     }
   }
-
 
   for(auto f : m_decodeThreadFrameBuffer)
   {

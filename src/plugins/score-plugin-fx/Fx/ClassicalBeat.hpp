@@ -24,20 +24,16 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(ossia::value_port& res,
-      ossia::token_request tk,
-      ossia::exec_state_facade st)
+  run(ossia::value_port& res, ossia::token_request tk, ossia::exec_state_facade st)
   {
     using namespace ossia;
-    if (tk.forward())
+    if(tk.forward())
     {
       tk.metronome(
           st.modelToSamples(),
+          [&](int64_t start_sample) { res.write_value(ossia::impulse{}, start_sample); },
           [&](int64_t start_sample) {
-            res.write_value(ossia::impulse{}, start_sample);
-          },
-          [&](int64_t start_sample) {
-            res.write_value(ossia::impulse{}, start_sample);
+        res.write_value(ossia::impulse{}, start_sample);
           });
     }
   }

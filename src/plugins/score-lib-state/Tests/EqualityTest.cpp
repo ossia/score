@@ -1,13 +1,16 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
 #include "Utils.hpp"
+
 #include <State/Message.hpp>
+
 #include <core/application/MinimalApplication.hpp>
 
 #include <QMetaType>
 #include <QObject>
+
+#include <catch2/catch.hpp>
 
 TEST_CASE("equality", "equality")
 {

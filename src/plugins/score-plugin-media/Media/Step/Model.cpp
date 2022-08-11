@@ -13,11 +13,8 @@ namespace Step
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::
-        ProcessModel{duration, id, Metadata<ObjectKey_k, Model>::get(), parent}
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, Model>::get(), parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
   m_steps = {0.5f, 0.3f, 0.5f, 0.8f, 1.f, 0.f, 0.5f, 0.1f};
@@ -58,7 +55,7 @@ double Model::max() const
 
 void Model::setStepCount(int s)
 {
-  if (s != m_stepCount)
+  if(s != m_stepCount)
   {
     m_stepCount = s;
     m_steps.resize(s);
@@ -68,7 +65,7 @@ void Model::setStepCount(int s)
 
 void Model::setStepDuration(int s)
 {
-  if (s != m_stepDuration)
+  if(s != m_stepDuration)
   {
     m_stepDuration = s;
     stepDurationChanged(s);
@@ -77,7 +74,7 @@ void Model::setStepDuration(int s)
 
 void Model::setSteps(ossia::float_vector v)
 {
-  if (m_steps != v)
+  if(m_steps != v)
   {
     m_steps = std::move(v);
     stepsChanged();
@@ -86,7 +83,7 @@ void Model::setSteps(ossia::float_vector v)
 
 void Model::setMin(double v)
 {
-  if (m_min != v)
+  if(m_min != v)
   {
     m_min = v;
     minChanged(v);
@@ -95,7 +92,7 @@ void Model::setMin(double v)
 
 void Model::setMax(double v)
 {
-  if (m_max != v)
+  if(m_max != v)
   {
     m_max = v;
     maxChanged(v);
@@ -106,8 +103,8 @@ void Model::setMax(double v)
 template <>
 void DataStreamReader::read(const Media::Step::Model& proc)
 {
-  m_stream << *proc.outlet << proc.m_steps << proc.m_stepCount
-           << proc.m_stepDuration << proc.m_min << proc.m_max;
+  m_stream << *proc.outlet << proc.m_steps << proc.m_stepCount << proc.m_stepDuration
+           << proc.m_min << proc.m_max;
   insertDelimiter();
 }
 
@@ -115,8 +112,8 @@ template <>
 void DataStreamWriter::write(Media::Step::Model& proc)
 {
   proc.outlet = Process::load_value_outlet(*this, &proc);
-  m_stream >> proc.m_steps >> proc.m_stepCount >> proc.m_stepDuration
-      >> proc.m_min >> proc.m_max;
+  m_stream >> proc.m_steps >> proc.m_stepCount >> proc.m_stepDuration >> proc.m_min
+      >> proc.m_max;
   checkDelimiter();
 }
 

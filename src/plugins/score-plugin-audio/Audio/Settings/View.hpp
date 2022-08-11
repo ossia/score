@@ -25,8 +25,7 @@ public:
 
   void setDriver(AudioFactory::ConcreteKey k);
   void setDriverWidget(QWidget* w);
-  void DriverChanged(AudioFactory::ConcreteKey arg_1)
-      W_SIGNAL(DriverChanged, arg_1);
+  void DriverChanged(AudioFactory::ConcreteKey arg_1) W_SIGNAL(DriverChanged, arg_1);
 
   void setBufferSize(int);
   void BufferSizeChanged(int arg) W_SIGNAL(BufferSizeChanged, arg)

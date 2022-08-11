@@ -36,8 +36,7 @@ class InvalidProcessException : public std::runtime_error
 {
 public:
   InvalidProcessException(const QString& s)
-      : std::runtime_error{
-          (Metadata<PrettyName_k, T>::get() + ": " + s).toStdString()}
+      : std::runtime_error{(Metadata<PrettyName_k, T>::get() + ": " + s).toStdString()}
   {
   }
 };
@@ -48,16 +47,13 @@ class SCORE_LIB_PROCESS_EXPORT ProcessComponent
 {
   W_OBJECT(ProcessComponent)
   ABSTRACT_COMPONENT_METADATA(
-      Execution::ProcessComponent,
-      "d0f714de-c832-42d8-a605-60f5ffd0b7af")
+      Execution::ProcessComponent, "d0f714de-c832-42d8-a605-60f5ffd0b7af")
 
 public:
   static constexpr bool is_unique = true;
 
   ProcessComponent(
-      Process::ProcessModel& proc,
-      const Context& ctx,
-      const QString& name,
+      Process::ProcessModel& proc, const Context& ctx, const QString& name,
       QObject* parent);
 
   //! Reimplement this if the element needs two-phase initialization.
@@ -78,15 +74,9 @@ public:
 
 public:
   void nodeChanged(
-      const ossia::node_ptr& old_node,
-      const ossia::node_ptr& new_node,
+      const ossia::node_ptr& old_node, const ossia::node_ptr& new_node,
       Execution::Transaction* commands)
-      E_SIGNAL(
-          SCORE_LIB_PROCESS_EXPORT,
-          nodeChanged,
-          old_node,
-          new_node,
-          commands)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nodeChanged, old_node, new_node, commands)
 
 protected:
   std::shared_ptr<ossia::time_process> m_ossia_process;
@@ -96,8 +86,8 @@ template <typename Process_T, typename OSSIA_Process_T>
 struct ProcessComponent_T
     : public Process::GenericProcessComponent_T<ProcessComponent, Process_T>
 {
-  using Process::GenericProcessComponent_T<ProcessComponent, Process_T>::
-      GenericProcessComponent_T;
+  using Process::GenericProcessComponent_T<
+      ProcessComponent, Process_T>::GenericProcessComponent_T;
 
   OSSIA_Process_T& OSSIAProcess() const
   {
@@ -107,41 +97,37 @@ struct ProcessComponent_T
 
 class SCORE_LIB_PROCESS_EXPORT ProcessComponentFactory
     : public score::GenericComponentFactory<
-          Process::ProcessModel,
-          Execution::Context,
-          Execution::ProcessComponentFactory>
+          Process::ProcessModel, Execution::Context, Execution::ProcessComponentFactory>
 {
   SCORE_ABSTRACT_COMPONENT_FACTORY(Execution::ProcessComponent)
 public:
   virtual ~ProcessComponentFactory() override;
-  virtual std::shared_ptr<ProcessComponent> make(
-      Process::ProcessModel& proc,
-      const Context& ctx,
-      QObject* parent) const = 0;
+  virtual std::shared_ptr<ProcessComponent>
+  make(Process::ProcessModel& proc, const Context& ctx, QObject* parent) const = 0;
 };
 
 template <typename ProcessComponent_T>
 #if __cpp_lib_concepts >= 202002L
-requires std::constructible_from<ProcessComponent_T, typename ProcessComponent_T::model_type&, const Context&, QObject*>
+requires std::constructible_from<
+    ProcessComponent_T, typename ProcessComponent_T::model_type&, const Context&,
+    QObject*>
 #endif
 class ProcessComponentFactory_T
     : public score::GenericComponentFactoryImpl<
-          ProcessComponent_T,
-          ProcessComponentFactory>
+          ProcessComponent_T, ProcessComponentFactory>
 {
 public:
   using model_type = typename ProcessComponent_T::model_type;
   std::shared_ptr<ProcessComponent> make(
-      Process::ProcessModel& proc,
-      const Context& ctx,
+      Process::ProcessModel& proc, const Context& ctx,
       QObject* parent) const final override
   {
     try
     {
 #if defined(SCORE_DEBUG)
       // A bit slower but really makes backtraces simpler
-      auto comp = std::shared_ptr<ProcessComponent_T>(new ProcessComponent_T{
-          static_cast<model_type&>(proc), ctx, parent});
+      auto comp = std::shared_ptr<ProcessComponent_T>(
+          new ProcessComponent_T{static_cast<model_type&>(proc), ctx, parent});
 #else
       auto comp = std::make_shared<ProcessComponent_T>(
           static_cast<model_type&>(proc), ctx, parent);
@@ -149,12 +135,12 @@ public:
       comp->lazy_init();
       return comp;
     }
-    catch (const std::runtime_error& e)
+    catch(const std::runtime_error& e)
     {
       qDebug() << "Error during plug-in creation: " << e.what();
       return {};
     }
-    catch (...)
+    catch(...)
     {
       return {};
     }
@@ -163,9 +149,7 @@ public:
 
 class SCORE_LIB_PROCESS_EXPORT ProcessComponentFactoryList final
     : public score::GenericComponentFactoryList<
-          Process::ProcessModel,
-          Execution::Context,
-          Execution::ProcessComponentFactory>
+          Process::ProcessModel, Execution::Context, Execution::ProcessComponentFactory>
 {
 public:
   ~ProcessComponentFactoryList();

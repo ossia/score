@@ -2,13 +2,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-
-#include <QDebug>
-
-#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
@@ -23,6 +16,13 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+
+#include <QDebug>
 
 namespace Scenario
 {
@@ -66,10 +66,8 @@ class CreationState : public CreationStateBase<Scenario_T>
 {
 public:
   CreationState(
-      const ToolPalette_T& sm,
-      const score::CommandStackFacade& stack,
-      const Scenario_T& scenarioPath,
-      QState* parent)
+      const ToolPalette_T& sm, const score::CommandStackFacade& stack,
+      const Scenario_T& scenarioPath, QState* parent)
       : CreationStateBase<Scenario_T>{scenarioPath, parent}
       , m_parentSM{sm}
       , m_dispatcher{stack}
@@ -79,15 +77,14 @@ public:
 protected:
   void createToState_base(const Id<StateModel>& originalState)
   {
-    if (this->hoveredState)
+    if(this->hoveredState)
     {
       const bool graphal = isCreatingGraph();
       const bool differentParents
           = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
-            != Scenario::parentEvent(*this->hoveredState, m_parentSM.model())
-                   .timeSync();
+            != Scenario::parentEvent(*this->hoveredState, m_parentSM.model()).timeSync();
 
-      if (graphal && differentParents)
+      if(graphal && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval{
             this->m_scenario, originalState, *this->hoveredState, true};
@@ -100,8 +97,8 @@ protected:
       {
         // make sure the hovered corresponding timesync dont have a date prior
         // to original state date
-        if (getDate(m_parentSM.model(), originalState)
-            < getDate(m_parentSM.model(), *this->hoveredState))
+        if(getDate(m_parentSM.model(), originalState)
+           < getDate(m_parentSM.model(), *this->hoveredState))
         {
           auto cmd = new Scenario::Command::CreateInterval{
               this->m_scenario, originalState, *this->hoveredState};
@@ -116,24 +113,20 @@ protected:
 
   void createToEvent_base(const Id<StateModel>& originalState)
   {
-    if (this->hoveredEvent)
+    if(this->hoveredEvent)
     {
       const bool graphal = isCreatingGraph();
       const bool differentParents
           = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
             != m_parentSM.model().event(*this->hoveredEvent).timeSync();
-      const bool timeIsInOrder
-          = getDate(m_parentSM.model(), originalState)
-            < getDate(m_parentSM.model(), *this->hoveredEvent);
+      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState)
+                                 < getDate(m_parentSM.model(), *this->hoveredEvent);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
-      if ((graphal || timeIsInOrder) && differentParents)
+      if((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State{
-            this->m_scenario,
-            originalState,
-            *this->hoveredEvent,
-            this->currentPoint.y,
+            this->m_scenario, originalState, *this->hoveredEvent, this->currentPoint.y,
             graphal};
 
         m_dispatcher.submit(cmd);
@@ -146,25 +139,21 @@ protected:
 
   void createToTimeSync_base(const Id<StateModel>& originalState)
   {
-    if (this->hoveredTimeSync)
+    if(this->hoveredTimeSync)
     {
       const bool graphal = isCreatingGraph();
       const bool differentParents
           = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
             != *this->hoveredTimeSync;
-      const bool timeIsInOrder
-          = getDate(m_parentSM.model(), originalState)
-            < getDate(m_parentSM.model(), *this->hoveredTimeSync);
+      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState)
+                                 < getDate(m_parentSM.model(), *this->hoveredTimeSync);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
-      if ((graphal || timeIsInOrder) && differentParents)
+      if((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State_Event{
-            this->m_scenario,
-            originalState,
-            *this->hoveredTimeSync,
-            this->currentPoint.y,
-            graphal};
+            this->m_scenario, originalState, *this->hoveredTimeSync,
+            this->currentPoint.y, graphal};
 
         m_dispatcher.submit(cmd);
 
@@ -177,14 +166,12 @@ protected:
 
   void createToNothing_base(const Id<StateModel>& originalState)
   {
-    if (m_parentSM.editionSettings().tool() != Tool::CreateSequence)
+    if(m_parentSM.editionSettings().tool() != Tool::CreateSequence)
     {
       auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
           this->m_scenario,
           originalState, // Put there in createInitialState
-          this->currentPoint.date,
-          this->currentPoint.y,
-          isCreatingGraph()};
+          this->currentPoint.date, this->currentPoint.y, isCreatingGraph()};
 
       m_dispatcher.submit(cmd);
 
@@ -198,11 +185,9 @@ protected:
 
       // This
       auto cmd = Scenario::Command::CreateSequence::make(
-          this->m_parentSM.context().context,
-          this->m_parentSM.model(),
+          this->m_parentSM.context().context, this->m_parentSM.model(),
           originalState, // Put there in createInitialState
-          this->currentPoint.date,
-          this->currentPoint.y);
+          this->currentPoint.date, this->currentPoint.y);
 
       m_dispatcher.submitQuiet(cmd);
 
@@ -216,21 +201,20 @@ protected:
   void makeSnapshot()
   {
     const score::DocumentContext& ctx = this->m_parentSM.context().context;
-    if (!ctx.app.settings<Scenario::Settings::Model>().getSnapshotOnCreate())
+    if(!ctx.app.settings<Scenario::Settings::Model>().getSnapshotOnCreate())
       return;
 
     using namespace Command;
-    if (m_parentSM.editionSettings().tool() == Tool::CreateSequence)
+    if(m_parentSM.editionSettings().tool() == Tool::CreateSequence)
       return;
 
-    if (this->createdStates.empty())
+    if(this->createdStates.empty())
       return;
 
-    if (!this->createdIntervals.empty())
+    if(!this->createdIntervals.empty())
     {
-      const auto& cst
-          = m_parentSM.model().intervals.at(this->createdIntervals.last());
-      if (!cst.processes.empty())
+      const auto& cst = m_parentSM.model().intervals.at(this->createdIntervals.last());
+      if(!cst.processes.empty())
       {
         // In case of the presence of a sequence, we
         // only use the sequence's namespace, hence we don't need to make a
@@ -243,7 +227,7 @@ protected:
         = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
 
     State::MessageList messages = getSelectionSnapshot(device_explorer);
-    if (messages.empty())
+    if(messages.empty())
       return;
 
     m_dispatcher.submit(new AddMessagesToState{
@@ -253,8 +237,7 @@ protected:
   template <typename DestinationState, typename Function>
   void add_transition(QState* from, DestinationState* to, Function&& fun)
   {
-    using transition_type
-        = Transition_T<Scenario_T, DestinationState::value()>;
+    using transition_type = Transition_T<Scenario_T, DestinationState::value()>;
     auto trans = score::make_transition<transition_type>(from, to, *this);
     trans->setObjectName(QString::number(DestinationState::value()));
     QObject::connect(trans, &transition_type::triggered, this, fun);
@@ -263,16 +246,15 @@ protected:
   void commit()
   {
     this->makeSnapshot();
-    this->m_dispatcher
-        .template commit<Scenario::Command::CreationMetaCommand>();
+    this->m_dispatcher.template commit<Scenario::Command::CreationMetaCommand>();
 
     // Select all the created elements
     Selection sel;
-    if (!this->createdStates.empty())
+    if(!this->createdStates.empty())
     {
       auto& s = this->createdStates.back();
       auto sp = m_parentSM.model().states.find(s);
-      if (sp == m_parentSM.model().states.end())
+      if(sp == m_parentSM.model().states.end())
       {
         qDebug() << "Error: tried to select state but it did not exist";
       }
@@ -282,11 +264,11 @@ protected:
       }
     }
 
-    if (!this->createdIntervals.empty())
+    if(!this->createdIntervals.empty())
     {
       auto& i = this->createdIntervals.back();
       auto ip = m_parentSM.model().intervals.find(i);
-      if (ip == m_parentSM.model().intervals.end())
+      if(ip == m_parentSM.model().intervals.end())
       {
         qDebug() << "Error: tried to select interval but it did not exist";
       }
@@ -296,8 +278,7 @@ protected:
       }
     }
 
-    score::SelectionDispatcher d{
-        this->m_parentSM.context().context.selectionStack};
+    score::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
     d.select(sel);
     this->clearCreatedIds();
   }
@@ -310,8 +291,7 @@ protected:
 
   inline bool isCreatingGraph() const noexcept
   {
-    return this->m_parentSM.editionSettings().tool()
-           == Scenario::Tool::CreateGraph;
+    return this->m_parentSM.editionSettings().tool() == Scenario::Tool::CreateGraph;
   }
 
   const ToolPalette_T& m_parentSM;

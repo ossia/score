@@ -27,10 +27,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT Slot
       , frontProcess{std::move(fp)}
   {
   }
-  Slot(
-      std::vector<Id<Process::ProcessModel>> p,
-      Id<Process::ProcessModel> fp,
-      qreal h)
+  Slot(std::vector<Id<Process::ProcessModel>> p, Id<Process::ProcessModel> fp, qreal h)
       : processes{std::move(p)}
       , frontProcess{std::move(fp)}
       , height{h}

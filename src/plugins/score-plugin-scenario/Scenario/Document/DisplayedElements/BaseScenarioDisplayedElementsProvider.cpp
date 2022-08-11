@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "BaseScenarioDisplayedElementsProvider.hpp"
 
-#include <QObject>
-
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
@@ -11,10 +9,11 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
+#include <QObject>
+
 namespace Scenario
 {
-bool BaseScenarioDisplayedElementsProvider::matches(
-    const IntervalModel& cst) const
+bool BaseScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
 {
   return dynamic_cast<BaseScenario*>(cst.parent());
 }
@@ -22,7 +21,7 @@ bool BaseScenarioDisplayedElementsProvider::matches(
 DisplayedElementsContainer
 BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
-  if (auto parent_base = dynamic_cast<BaseScenario*>(cst.parent()))
+  if(auto parent_base = dynamic_cast<BaseScenario*>(cst.parent()))
   {
     return DisplayedElementsContainer{
         cst,
@@ -41,13 +40,10 @@ BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 
 DisplayedElementsPresenterContainer
 BaseScenarioDisplayedElementsProvider::make_presenters(
-    ZoomRatio zoom,
-    const IntervalModel& m,
-    const Process::Context& ctx,
-    QGraphicsItem* view_parent,
-    QObject* parent) const
+    ZoomRatio zoom, const IntervalModel& m, const Process::Context& ctx,
+    QGraphicsItem* view_parent, QObject* parent) const
 {
-  if (auto bs = dynamic_cast<BaseScenario*>(m.parent()))
+  if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))
   {
     return DisplayedElementsPresenterContainer{
         new FullViewIntervalPresenter{zoom, m, ctx, view_parent, parent},

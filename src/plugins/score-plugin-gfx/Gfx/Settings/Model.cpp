@@ -1,5 +1,7 @@
 #include <Gfx/Settings/Model.hpp>
+
 #include <score/gfx/Vulkan.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Settings::Model)
@@ -27,8 +29,7 @@ namespace Parameters
 */
 
 SETTINGS_PARAMETER_IMPL(GraphicsApi){
-    QStringLiteral("score_plugin_gfx/GraphicsApi"),
-    GraphicsApis{}.OpenGL};
+    QStringLiteral("score_plugin_gfx/GraphicsApi"), GraphicsApis{}.OpenGL};
 
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_gfx/Rate"), 60.0};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
@@ -68,15 +69,15 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
 {
   const auto apis = GraphicsApis{};
-  if (m_GraphicsApi == apis.Vulkan)
+  if(m_GraphicsApi == apis.Vulkan)
   {
     return score::gfx::Vulkan;
   }
-  else if (m_GraphicsApi == apis.Metal)
+  else if(m_GraphicsApi == apis.Metal)
   {
     return score::gfx::Metal;
   }
-  else if (m_GraphicsApi == apis.D3D11)
+  else if(m_GraphicsApi == apis.D3D11)
   {
     return score::gfx::D3D11;
   }

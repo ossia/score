@@ -1,9 +1,10 @@
 #pragma once
+#include <Process/Drop/ProcessDropHandler.hpp>
+
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Pd/PdProcess.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <QFileInfo>
 #include <QTimer>
@@ -22,14 +23,13 @@ class LibraryHandler final
 
   Library::Subcategories categories;
 
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override
   {
     // TODO relaunch whenever library path changes...
     const auto& key = Metadata<ConcreteKey_k, ProcessModel>::get();
     QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
+    if(node == QModelIndex{})
       return;
 
     categories.init(node, ctx);
@@ -54,9 +54,8 @@ class DropHandler final : public Process::ProcessDropHandler
   QSet<QString> fileExtensions() const noexcept override { return {"pd"}; }
 
   void dropPath(
-        std::vector<ProcessDrop>& vec,
-        const QString& filename,
-        const score::DocumentContext& ctx) const noexcept override
+      std::vector<ProcessDrop>& vec, const QString& filename,
+      const score::DocumentContext& ctx) const noexcept override
   {
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, Pd::ProcessModel>::get();

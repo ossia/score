@@ -23,13 +23,10 @@ class StateModel;
 namespace LocalTree
 {
 class Interval;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
-    : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
 public:
-  DocumentPlugin(
-      const score::DocumentContext& doc,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext& doc, QObject* parent);
 
   ~DocumentPlugin();
 

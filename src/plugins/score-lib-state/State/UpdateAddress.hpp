@@ -15,7 +15,6 @@ std::optional<State::Address>
 onUpdatableAddress(const State::Address& current, const QMimeData& mime);
 
 SCORE_LIB_STATE_EXPORT
-std::optional<State::AddressAccessor> onUpdatableAddress(
-    const State::AddressAccessor& current,
-    const QMimeData& mime);
+std::optional<State::AddressAccessor>
+onUpdatableAddress(const State::AddressAccessor& current, const QMimeData& mime);
 }

@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/command/Command.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Command.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/document/DocumentContext.hpp>
 
@@ -65,11 +65,11 @@ int CommandStack::size() const
 
 const Command* CommandStack::command(int index) const
 {
-  if (index < m_undoable.size())
+  if(index < m_undoable.size())
   {
     return m_undoable[index];
   }
-  else if ((index - m_undoable.size()) < m_redoable.size())
+  else if((index - m_undoable.size()) < m_redoable.size())
   {
     return m_redoable[m_redoable.size() - (index - m_undoable.size()) - 1];
   }
@@ -96,9 +96,9 @@ bool CommandStack::isAtSavedIndex() const
 
 void CommandStack::setIndexQuiet(int index)
 {
-  while (index >= 0 && currentIndex() != index)
+  while(index >= 0 && currentIndex() != index)
   {
-    if (index < currentIndex())
+    if(index < currentIndex())
       undoQuiet();
     else
       redoQuiet();
@@ -110,7 +110,7 @@ void CommandStack::setIndexQuiet(int index)
 
 void CommandStack::setIndex(int index)
 {
-  if (index != currentIndex())
+  if(index != currentIndex())
   {
     setIndexQuiet(index);
     localIndexChanged(index);
@@ -154,14 +154,14 @@ void CommandStack::push(Command* cmd)
     localCommand(cmd);
 
     // We lose the state we saved
-    if (currentIndex() < m_savedIndex)
+    if(currentIndex() < m_savedIndex)
       setSavedIndex(-1);
 
     // Push operation
     m_undoable.push(cmd);
     saveIndexChanged(m_savedIndex == this->currentIndex());
 
-    if (!m_redoable.empty())
+    if(!m_redoable.empty())
     {
       qDeleteAll(m_redoable);
       m_redoable.clear();
@@ -181,14 +181,14 @@ void CommandStack::pushQuiet(Command* cmd)
 {
   updateStack([&]() {
     // We lose the state we saved
-    if (currentIndex() < m_savedIndex)
+    if(currentIndex() < m_savedIndex)
       setSavedIndex(-1);
 
     // Push operation
     m_undoable.push(cmd);
     saveIndexChanged(m_savedIndex == this->currentIndex());
 
-    if (!m_redoable.empty())
+    if(!m_redoable.empty())
     {
       qDeleteAll(m_redoable);
       m_redoable.clear();
@@ -200,7 +200,7 @@ void CommandStack::pushQuiet(Command* cmd)
 
 void CommandStack::setSavedIndex(int index)
 {
-  if (index != m_savedIndex)
+  if(index != m_savedIndex)
   {
     m_savedIndex = index;
     saveIndexChanged(m_savedIndex == this->currentIndex());

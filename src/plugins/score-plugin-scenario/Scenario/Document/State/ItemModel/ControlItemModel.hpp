@@ -10,8 +10,7 @@ struct ControlMessage;
 namespace Scenario
 {
 class StateModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT ControlItemModel final
-    : public QAbstractItemModel
+class SCORE_PLUGIN_SCENARIO_EXPORT ControlItemModel final : public QAbstractItemModel
 {
 public:
   ControlItemModel(Scenario::StateModel& ctx, QObject* parent);
@@ -28,8 +27,7 @@ public:
   }
 
 private:
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override;
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override;
 
   QModelIndex parent(const QModelIndex& child) const override;
   int rowCount(const QModelIndex& parent) const override;

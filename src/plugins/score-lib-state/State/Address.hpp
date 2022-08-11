@@ -115,9 +115,7 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   explicit AddressAccessor(State::Address a) noexcept;
   AddressAccessor(State::Address a, const AccessorVector& v) noexcept;
   AddressAccessor(
-      State::Address a,
-      const AccessorVector& v,
-      const ossia::unit_t&) noexcept;
+      State::Address a, const AccessorVector& v, const ossia::unit_t&) noexcept;
 
   AddressAccessor& operator=(const Address& a);
   AddressAccessor& operator=(Address&& a);
@@ -153,20 +151,15 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessorHead
   QString toString() const;
 };
 
-SCORE_LIB_STATE_EXPORT std::optional<State::Address>
-parseAddress(const QString& str);
+SCORE_LIB_STATE_EXPORT std::optional<State::Address> parseAddress(const QString& str);
 SCORE_LIB_STATE_EXPORT std::optional<State::AddressAccessor>
 parseAddressAccessor(const QString& str);
 
 SCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::Address& a);
-SCORE_LIB_STATE_EXPORT QDebug
-operator<<(QDebug d, const DestinationQualifiers& a);
-SCORE_LIB_STATE_EXPORT QDebug
-operator<<(QDebug d, const State::AccessorVector& a);
-SCORE_LIB_STATE_EXPORT QDebug
-operator<<(QDebug d, const State::AddressAccessorHead& a);
-SCORE_LIB_STATE_EXPORT QDebug
-operator<<(QDebug d, const State::AddressAccessor& a);
+SCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const DestinationQualifiers& a);
+SCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AccessorVector& a);
+SCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessorHead& a);
+SCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessor& a);
 SCORE_LIB_STATE_EXPORT QStringList stringList(const State::Address& addr);
 }
 
@@ -185,13 +178,9 @@ struct SCORE_LIB_STATE_EXPORT hash<State::AddressAccessor>
 };
 }
 
-SCORE_SERIALIZE_DATASTREAM_DECLARE(
-    SCORE_LIB_STATE_EXPORT,
-    State::DestinationQualifiers)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::DestinationQualifiers)
 SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Address)
-SCORE_SERIALIZE_DATASTREAM_DECLARE(
-    SCORE_LIB_STATE_EXPORT,
-    State::AddressAccessor)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::AddressAccessor)
 
 Q_DECLARE_METATYPE(State::DestinationQualifiers)
 Q_DECLARE_METATYPE(State::Address)

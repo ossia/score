@@ -36,15 +36,14 @@ struct ExecutionStatusProperty
   ExecutionStatus get() const noexcept { return status; }
   void set(ExecutionStatus e) noexcept
   {
-    if (status != e)
+    if(status != e)
     {
       status = e;
     }
   }
   const score::Brush& eventStatusColor(const Process::Style&) const noexcept;
   const score::Brush& stateStatusColor(const Process::Style&) const noexcept;
-  const score::Brush&
-  conditionStatusColor(const Process::Style&) const noexcept;
+  const score::Brush& conditionStatusColor(const Process::Style&) const noexcept;
 };
 }
 

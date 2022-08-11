@@ -17,15 +17,11 @@ class ProcessModel;
 namespace Executor
 {
 class Component final
-    : public ::Execution::
-          ProcessComponent_T<YSFX::ProcessModel, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<YSFX::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("bf31e029-5695-4cd0-8c68-dbb423db0db7")
 public:
-  Component(
-      YSFX::ProcessModel& element,
-      const Execution::Context& ctx,
-      QObject* parent);
+  Component(YSFX::ProcessModel& element, const Execution::Context& ctx, QObject* parent);
   ~Component() override;
 
 private:

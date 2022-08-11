@@ -5,8 +5,11 @@ This file is used to define simple data structure to simplify the code when
 needed
 */
 
-#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+
+#include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
@@ -14,7 +17,6 @@ needed
 
 #include <QByteArray>
 
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario

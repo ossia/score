@@ -1,10 +1,11 @@
 #include "ProcessCreation.hpp"
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Commands/Properties.hpp>
+
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include <Library/ProcessesItemModel.hpp>
 
@@ -13,8 +14,7 @@
 namespace Scenario
 {
 void createProcessInCable(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Library::ProcessData& dat,
+    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
     const Process::Cable& cbl)
 {
   auto& orig_source = cbl.source().find(parent.context());
@@ -27,7 +27,8 @@ void createProcessInCable(
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
     auto pos = QPointF{};
-    if(auto parent_source_proc = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
+    if(auto parent_source_proc
+       = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
     {
       pos = parent_source_proc->position();
       pos.rx() += parent_source_proc->size().width() + 40;
@@ -60,8 +61,7 @@ void createProcessInCable(
 }
 
 void loadPresetInCable(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Process::Preset& dat,
+    Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
     const Process::Cable& cbl)
 {
   auto& orig_source = cbl.source().find(parent.context());
@@ -74,7 +74,8 @@ void loadPresetInCable(
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
     auto pos = QPointF{};
-    if(auto parent_source_proc = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
+    if(auto parent_source_proc
+       = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
     {
       pos = parent_source_proc->position();
       pos.rx() += parent_source_proc->size().width() + 40;
@@ -107,10 +108,8 @@ void loadPresetInCable(
 }
 
 void createProcessBeforePort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Library::ProcessData& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Inlet& p)
+    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
+    const Process::ProcessModel& parentProcess, const Process::Inlet& p)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Inlet*>(&p)))
   {
@@ -154,10 +153,8 @@ void createProcessBeforePort(
 }
 
 void createProcessAfterPort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Library::ProcessData& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Outlet& p)
+    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Outlet*>(&p)))
   {
@@ -198,12 +195,9 @@ void createProcessAfterPort(
   }
 }
 
-
 void loadPresetBeforePort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Process::Preset& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Inlet& p)
+    Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
+    const Process::ProcessModel& parentProcess, const Process::Inlet& p)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Inlet*>(&p)))
   {
@@ -247,10 +241,8 @@ void loadPresetBeforePort(
 }
 
 void loadPresetAfterPort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Process::Preset& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Outlet& p)
+    Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Outlet*>(&p)))
   {

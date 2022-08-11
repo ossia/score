@@ -1,9 +1,10 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Vst/Loader.hpp>
 
 #include <score/tools/std/Invoke.hpp>
@@ -17,24 +18,11 @@ class Model;
 class ControlInlet;
 }
 PROCESS_METADATA(
-    ,
-    vst::Model,
-    "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A",
-    "VST",
-    "VST",
-    Process::ProcessCategory::Other,
-    "Plugins",
-    "VST plug-in",
-    "VST is a trademark of Steinberg Media Technologies GmbH",
-    {},
-    {},
-    {},
+    , vst::Model, "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A", "VST", "VST",
+    Process::ProcessCategory::Other, "Plugins", "VST plug-in",
+    "VST is a trademark of Steinberg Media Technologies GmbH", {}, {}, {},
     Process::ProcessFlags::ExternalEffect)
-UUID_METADATA(
-    ,
-    Process::Port,
-    vst::ControlInlet,
-    "e523bc44-8599-4a04-94c1-04ce0d1a692a")
+UUID_METADATA(, Process::Port, vst::ControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
 DESCRIPTION_METADATA(, vst::Model, "")
 namespace vst
 {
@@ -50,20 +38,14 @@ struct AEffectWrapper
   {
   }
 
-  auto getParameter(int32_t index) const noexcept
-  {
-    return fx->getParameter(fx, index);
-  }
+  auto getParameter(int32_t index) const noexcept { return fx->getParameter(fx, index); }
   auto setParameter(int32_t index, float p) const noexcept
   {
     return fx->setParameter(fx, index, p);
   }
 
   auto dispatch(
-      int32_t opcode,
-      int32_t index = 0,
-      intptr_t value = 0,
-      void* ptr = nullptr,
+      int32_t opcode, int32_t index = 0, intptr_t value = 0, void* ptr = nullptr,
       float opt = 0.0f) const noexcept
   {
     return fx->dispatcher(fx, opcode, index, value, ptr, opt);
@@ -81,12 +63,9 @@ class Model final : public Process::ProcessModel
   friend class vst::CreateControl;
 
 public:
-      MODEL_METADATA_IMPL(Model)
+  MODEL_METADATA_IMPL(Model)
   Model(
-      TimeVal t,
-      const QString& name,
-      const Id<Process::ProcessModel>&,
-      QObject* parent);
+      TimeVal t, const QString& name, const Id<Process::ProcessModel>&, QObject* parent);
 
   ~Model() override;
   template <typename Impl>
@@ -106,10 +85,7 @@ public:
   {
     return Metadata<Category_k, Model>::get();
   }
-  QStringList tags() const noexcept override
-  {
-    return Metadata<Tags_k, Model>::get();
-  }
+  QStringList tags() const noexcept override { return Metadata<Tags_k, Model>::get(); }
   Process::ProcessFlags flags() const noexcept override;
   void setCreatingControls(bool ok) override;
 
@@ -135,20 +111,18 @@ public:
   void reloadPrograms();
 
   auto dispatch(
-      int32_t opcode,
-      int32_t index = 0,
-      intptr_t value = 0,
-      void* ptr = nullptr,
+      int32_t opcode, int32_t index = 0, intptr_t value = 0, void* ptr = nullptr,
       float opt = 0.0f)
   {
     return fx->dispatch(opcode, index, value, ptr, opt);
   }
   std::atomic_bool needIdle{};
+
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
   std::vector<Process::Preset> builtinPresets() const noexcept override;
-  
+
   QString getString(AEffectOpcodes op, int param);
   void setControlName(int fxnum, ControlInlet* ctrl);
   void init();
@@ -163,7 +137,8 @@ private:
   int32_t m_effectId{};
   bool m_createControls{};
 
-  struct vst_context_handler {
+  struct vst_context_handler
+  {
     Model& self;
     explicit vst_context_handler(Model& self);
     ~vst_context_handler();
@@ -173,11 +148,7 @@ private:
 // VSTModule* getPlugin(QString path);
 AEffect* getPluginInstance(int32_t id);
 intptr_t vst_host_callback(
-    AEffect* effect,
-    int32_t opcode,
-    int32_t index,
-    intptr_t value,
-    void* ptr,
+    AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
     float opt);
 }
 

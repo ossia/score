@@ -1,9 +1,9 @@
 #pragma once
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/Debug.hpp>
 #include <score/tools/SafeCast.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
 
 #include <memory>
 
@@ -36,7 +36,7 @@ public:
   template <typename TheCommand, typename... Args>
   void submit(Args&&... args)
   {
-    if (!m_cmd)
+    if(!m_cmd)
     {
       stack().disableActions();
       m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
@@ -46,7 +46,9 @@ public:
     {
       if(m_cmd->key() != TheCommand::static_key())
       {
-        throw std::runtime_error("Ongoing command mismatch: current command " + m_cmd->key().toString() + " does not match new command " + TheCommand{}.key().toString());
+        throw std::runtime_error(
+            "Ongoing command mismatch: current command " + m_cmd->key().toString()
+            + " does not match new command " + TheCommand{}.key().toString());
       }
 
       safe_cast<TheCommand*>(m_cmd.get())->update(std::forward<Args>(args)...);
@@ -58,7 +60,7 @@ public:
   //! For instance on mouse release.
   void commit()
   {
-    if (m_cmd)
+    if(m_cmd)
     {
       SendStrategy::Quiet::send(stack(), m_cmd.release());
       stack().enableActions();
@@ -68,7 +70,7 @@ public:
   //! If the command has to be reverted, for instance when pressing escape.
   void rollback()
   {
-    if (m_cmd)
+    if(m_cmd)
     {
       m_cmd->undo(stack().context());
       stack().enableActions();

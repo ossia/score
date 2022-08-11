@@ -14,7 +14,7 @@ bool EditionSettings::lockBetweenPoints() const
 
 void EditionSettings::setLockBetweenPoints(bool lockBetweenPoints)
 {
-  if (m_lockBetweenPoints == lockBetweenPoints)
+  if(m_lockBetweenPoints == lockBetweenPoints)
     return;
 
   m_lockBetweenPoints = lockBetweenPoints;
@@ -38,7 +38,7 @@ AddPointBehaviour EditionSettings::addPointBehaviour() const
 
 void EditionSettings::setSuppressOnOverlap(bool suppressOnOverlap)
 {
-  if (m_suppressOnOverlap == suppressOnOverlap)
+  if(m_suppressOnOverlap == suppressOnOverlap)
     return;
 
   m_suppressOnOverlap = suppressOnOverlap;
@@ -47,17 +47,16 @@ void EditionSettings::setSuppressOnOverlap(bool suppressOnOverlap)
 
 void EditionSettings::setStretchBothBounds(bool stretchBothBounds)
 {
-  if (m_stretchBothBounds == stretchBothBounds)
+  if(m_stretchBothBounds == stretchBothBounds)
     return;
 
   m_stretchBothBounds = stretchBothBounds;
   stretchBothBoundsChanged(stretchBothBounds);
 }
 
-void EditionSettings::setAddPointBehaviour(
-    Curve::AddPointBehaviour AddPointBehaviour)
+void EditionSettings::setAddPointBehaviour(Curve::AddPointBehaviour AddPointBehaviour)
 {
-  if (m_addPointBehaviour == AddPointBehaviour)
+  if(m_addPointBehaviour == AddPointBehaviour)
     return;
 
   m_addPointBehaviour = AddPointBehaviour;
@@ -66,7 +65,7 @@ void EditionSettings::setAddPointBehaviour(
 
 void EditionSettings::setTool(Tool tool)
 {
-  if (m_tool == tool)
+  if(m_tool == tool)
     return;
 
   m_tool = tool;
@@ -78,10 +77,9 @@ RemovePointBehaviour EditionSettings::removePointBehaviour() const
   return m_removePointBehaviour;
 }
 
-void EditionSettings::setRemovePointBehaviour(
-    RemovePointBehaviour removePointBehaviour)
+void EditionSettings::setRemovePointBehaviour(RemovePointBehaviour removePointBehaviour)
 {
-  if (m_removePointBehaviour == removePointBehaviour)
+  if(m_removePointBehaviour == removePointBehaviour)
     return;
 
   m_removePointBehaviour = removePointBehaviour;

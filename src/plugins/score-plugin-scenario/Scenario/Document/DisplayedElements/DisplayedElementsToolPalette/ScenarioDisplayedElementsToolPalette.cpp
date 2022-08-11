@@ -4,12 +4,6 @@
 
 #include <Process/TimeValue.hpp>
 
-#include <score/application/ApplicationContext.hpp>
-#include <score/graphics/GraphicsProxyObject.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
@@ -24,6 +18,12 @@
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/application/ApplicationContext.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+#include <score/tools/std/Optional.hpp>
+
 namespace Scenario
 {
 class EditionSettings;
@@ -33,24 +33,21 @@ ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
   return {
       TimeVal::fromPixels(point.x(), m_presenter.zoomRatio())
-      + m_presenters.startTimeSync().date(),
+          + m_presenters.startTimeSync().date(),
       0};
 }
 
 ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
-    const DisplayedElementsModel& model,
-    DisplayedElementsPresenter& presenter,
-    ScenarioDocumentPresenter& pres,
-    QGraphicsItem* view)
+    const DisplayedElementsModel& model, DisplayedElementsPresenter& presenter,
+    ScenarioDocumentPresenter& pres, QGraphicsItem* view)
     : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
     , m_presenters{presenter}
-    , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(
-          m_model.interval().parent())}
+    , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
-    , m_magnetic{(Process::MagnetismAdjuster&)m_context.context.app
-                     .interfaces<Process::MagnetismAdjuster>()}
+    , m_magnetic{(Process::MagnetismAdjuster&)
+                     m_context.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_view{*view}
     , m_editionSettings{m_context.context.app
                             .guiApplicationPlugin<ScenarioApplicationPlugin>()
@@ -70,8 +67,7 @@ DisplayedElementsPresenter& ScenarioDisplayedElementsToolPalette::presenter() co
   return m_presenters;
 }
 
-const Scenario::ProcessModel&
-ScenarioDisplayedElementsToolPalette::model() const
+const Scenario::ProcessModel& ScenarioDisplayedElementsToolPalette::model() const
 {
   return m_scenarioModel;
 }
@@ -94,22 +90,19 @@ void ScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool) { }
 void ScenarioDisplayedElementsToolPalette::on_pressed(QPointF point)
 {
   scenePoint = point;
-  m_state.on_pressed(
-      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+  m_state.on_pressed(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
 void ScenarioDisplayedElementsToolPalette::on_moved(QPointF point)
 {
   scenePoint = point;
-  m_state.on_moved(
-      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+  m_state.on_moved(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
 void ScenarioDisplayedElementsToolPalette::on_released(QPointF point)
 {
   scenePoint = point;
-  m_state.on_released(
-      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+  m_state.on_released(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
 void ScenarioDisplayedElementsToolPalette::on_cancel()

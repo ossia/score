@@ -2,6 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerModel.hpp"
 
+#include <State/MessageListSerialization.hpp>
+#include <State/ValueConversion.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/ItemModels/NodeDisplayMethods.hpp>
@@ -10,6 +13,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
+
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/DeviceList.hpp>
@@ -18,11 +22,9 @@
 #include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
 #include <Explorer/Explorer/DeviceExplorerView.hpp>
 #include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp> // TODO why here??!!
-#include <State/MessageListSerialization.hpp>
-#include <State/ValueConversion.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/CommandStackFacade.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -35,11 +37,12 @@
 #include <score/serialization/MimeVisitor.hpp>
 #include <score/widgets/MessageBox.hpp>
 
-#include <ossia-qt/name_utils.hpp>
+#include <ossia/detail/ssize.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
-#include <ossia/detail/ssize.hpp>
+
+#include <ossia-qt/name_utils.hpp>
 
 #include <QAbstractProxyModel>
 #include <QApplication>
@@ -61,9 +64,7 @@ static const QMap<Explorer::Column, QString> HEADERS{
     {Explorer::Column::Name, QObject::tr("Address")},
     {Explorer::Column::Value, QObject::tr("Value")}};
 
-DeviceExplorerModel::DeviceExplorerModel(
-    DeviceDocumentPlugin& plug,
-    QObject* parent)
+DeviceExplorerModel::DeviceExplorerModel(DeviceDocumentPlugin& plug, QObject* parent)
     : NodeBasedItemModel{parent}
     , m_devicePlugin{plug}
     , m_rootNode{plug.rootNode()}
@@ -84,19 +85,18 @@ DeviceDocumentPlugin& DeviceExplorerModel::deviceModel() const
 
 QModelIndexList DeviceExplorerModel::selectedIndexes() const
 {
-  if (!m_view)
+  if(!m_view)
   {
     return {};
   }
   else
   {
     // We have to do this check if we have a proxy
-    if (m_view->hasProxy())
+    if(m_view->hasProxy())
     {
       auto indexes = m_view->selectedIndexes();
-      for (auto& index : indexes)
-        index = static_cast<const QAbstractProxyModel*>(
-                    m_view->QTreeView::model())
+      for(auto& index : indexes)
+        index = static_cast<const QAbstractProxyModel*>(m_view->QTreeView::model())
                     ->mapToSource(index);
       return indexes;
     }
@@ -139,13 +139,12 @@ int DeviceExplorerModel::addDevice(Device::Node&& deviceNode)
 }
 
 void DeviceExplorerModel::updateDevice(
-    const QString& name,
-    const Device::DeviceSettings& dev)
+    const QString& name, const Device::DeviceSettings& dev)
 {
   int i = 0;
-  for (auto& n : m_rootNode)
+  for(auto& n : m_rootNode)
   {
-    if (n.get<Device::DeviceSettings>().name == name)
+    if(n.get<Device::DeviceSettings>().name == name)
     {
       n.set(dev);
 
@@ -158,9 +157,7 @@ void DeviceExplorerModel::updateDevice(
 }
 
 Device::Node* DeviceExplorerModel::addAddress(
-    Device::Node* parentNode,
-    const Device::AddressSettings& addressSettings,
-    int row)
+    Device::Node* parentNode, const Device::AddressSettings& addressSettings, int row)
 {
   SCORE_ASSERT(parentNode);
   SCORE_ASSERT(parentNode != &m_rootNode);
@@ -183,9 +180,7 @@ Device::Node* DeviceExplorerModel::addAddress(
 }
 
 void DeviceExplorerModel::addNode(
-    Device::Node* parentNode,
-    Device::Node&& child,
-    int row)
+    Device::Node* parentNode, Device::Node&& child, int row)
 {
   SCORE_ASSERT(parentNode);
   SCORE_ASSERT(parentNode != &m_rootNode);
@@ -205,8 +200,7 @@ void DeviceExplorerModel::addNode(
 }
 
 void DeviceExplorerModel::updateAddress(
-    Device::Node* node,
-    const Device::AddressSettings& addressSettings)
+    Device::Node* node, const Device::AddressSettings& addressSettings)
 {
   SCORE_ASSERT(node);
   SCORE_ASSERT(node != &m_rootNode);
@@ -216,16 +210,13 @@ void DeviceExplorerModel::updateAddress(
   nodeChanged(node);
 
   dataChanged(
-      modelIndexFromNode(*node, 0),
-      modelIndexFromNode(*node, (int)Column::Count - 1));
+      modelIndexFromNode(*node, 0), modelIndexFromNode(*node, (int)Column::Count - 1));
 }
 
 void DeviceExplorerModel::updateValue(
-    Device::Node* n,
-    const State::AddressAccessor& addr,
-    const ossia::value& v)
+    Device::Node* n, const State::AddressAccessor& addr, const ossia::value& v)
 {
-  if (!addr.qualifiers.get().accessors.empty())
+  if(!addr.qualifiers.get().accessors.empty())
   {
     SCORE_TODO;
   }
@@ -240,15 +231,14 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
     const Device::DeviceSettings& n) const
 {
   // No name -> no love
-  if (n.name.isEmpty())
+  if(n.name.isEmpty())
     return false;
 
   // Request from the protocol factory the protocol to see
   // if it is compatible.
   auto& context = m_devicePlugin.context().app;
-  auto prot
-      = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
-  if (!prot)
+  auto prot = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
+  if(!prot)
     return false;
 
   // Look for other childs in the same protocol.
@@ -258,25 +248,22 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
         const auto& set = child.get<Device::DeviceSettings>();
         return (set.name == n.name)
                || (set.protocol == n.protocol
-                   && !prot->checkCompatibility(
-                       n, child.get<Device::DeviceSettings>()));
+                   && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
       });
 }
 
 bool DeviceExplorerModel::checkDeviceEditable(
-    const QString& originalName,
-    const Device::DeviceSettings& n) const
+    const QString& originalName, const Device::DeviceSettings& n) const
 {
   // No name -> no love
-  if (n.name.isEmpty())
+  if(n.name.isEmpty())
     return false;
 
   // Request from the protocol factory the protocol to see
   // if it is compatible.
   auto& context = m_devicePlugin.context().app;
-  auto prot
-      = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
-  if (!prot)
+  auto prot = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
+  if(!prot)
     return false;
 
   // Look for other childs in the same protocol.
@@ -285,49 +272,44 @@ bool DeviceExplorerModel::checkDeviceEditable(
         SCORE_ASSERT(child.is<Device::DeviceSettings>());
         const auto& set = child.get<Device::DeviceSettings>();
         // Ignore the device that is being edited
-        if (set.name == originalName)
+        if(set.name == originalName)
           return false;
 
         return (set.name == n.name)
                || (set.protocol == n.protocol
-                   && !prot->checkCompatibility(
-                       n, child.get<Device::DeviceSettings>()));
+                   && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
       });
 }
 
 bool DeviceExplorerModel::checkAddressInstantiatable(
-    Device::Node& parent,
-    const Device::AddressSettings& addr)
+    Device::Node& parent, const Device::AddressSettings& addr)
 {
   SCORE_ASSERT(!parent.is<InvisibleRootNode>());
 
-  if (addr.name.isEmpty())
+  if(addr.name.isEmpty())
     return false;
 
-  return std::none_of(
-      parent.begin(), parent.end(), [&](const Device::Node& n) {
-        return n.get<Device::AddressSettings>().name == addr.name;
-      });
+  return std::none_of(parent.begin(), parent.end(), [&](const Device::Node& n) {
+    return n.get<Device::AddressSettings>().name == addr.name;
+  });
 }
 
 bool DeviceExplorerModel::checkAddressEditable(
-    Device::Node& parent,
-    const Device::AddressSettings& before,
+    Device::Node& parent, const Device::AddressSettings& before,
     const Device::AddressSettings& after)
 {
   SCORE_ASSERT(!parent.is<InvisibleRootNode>());
 
-  if (after.name.isEmpty())
+  if(after.name.isEmpty())
     return false;
 
-  auto it
-      = std::find_if(parent.begin(), parent.end(), [&](const Device::Node& n) {
-          return n.get<Device::AddressSettings>().name == after.name;
-        });
-  if (it != parent.end())
+  auto it = std::find_if(parent.begin(), parent.end(), [&](const Device::Node& n) {
+    return n.get<Device::AddressSettings>().name == after.name;
+  });
+  if(it != parent.end())
   {
     //  We didn't change name, it's ok
-    if (after.name == before.name)
+    if(after.name == before.name)
       return true;
     else
       return false;
@@ -354,21 +336,20 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
 {
   const int col = index.column();
 
-  if (col < 0 || col >= (int)Column::Count)
+  if(col < 0 || col >= (int)Column::Count)
   {
     return QVariant();
   }
 
   const Device::Node& n = nodeFromModelIndex(index);
-  if (role != Qt::ToolTipRole)
+  if(role != Qt::ToolTipRole)
   {
-    switch ((Column)col)
+    switch((Column)col)
     {
-      case Column::Name:
-      {
-        if (n.is<Device::AddressSettings>())
+      case Column::Name: {
+        if(n.is<Device::AddressSettings>())
           return Device::nameColumnData(n, role);
-        else if (n.is<Device::DeviceSettings>())
+        else if(n.is<Device::DeviceSettings>())
         {
           auto& dev_set = n.get<Device::DeviceSettings>();
           return Device::deviceNameColumnData(
@@ -389,10 +370,10 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
   else
   {
     // Tooltip
-    if (n.is<Device::AddressSettings>())
+    if(n.is<Device::AddressSettings>())
     {
       auto& addr_set = n.get<Device::AddressSettings>();
-      if (const auto& desc = ossia::net::get_description(addr_set))
+      if(const auto& desc = ossia::net::get_description(addr_set))
         return QString::fromStdString(*desc);
     }
     else
@@ -403,14 +384,12 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
   return {};
 }
 
-QVariant DeviceExplorerModel::headerData(
-    int section,
-    Qt::Orientation orientation,
-    int role) const
+QVariant
+DeviceExplorerModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+  if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
   {
-    if (section >= 0 && section < (int)Column::Count)
+    if(section >= 0 && section < (int)Column::Count)
     {
       return HEADERS[(Column)section];
     }
@@ -425,22 +404,22 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
   // by default QAbstractItemModel::flags(index); returns Qt::ItemIsEnabled |
   // Qt::ItemIsSelectable
 
-  if (index.isValid())
+  if(index.isValid())
   {
     const Device::Node& n = nodeFromModelIndex(index);
 
-    if (n.isSelectable())
+    if(n.isSelectable())
     {
       f |= Qt::ItemIsSelectable;
     }
 
     // we allow drag'n drop only from the name column
-    if (index.column() == (int)Column::Name)
+    if(index.column() == (int)Column::Name)
     {
       f |= Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
     }
 
-    if (n.isEditable() && index.column() == (int)Column::Value)
+    if(n.isEditable() && index.column() == (int)Column::Value)
     {
       f |= Qt::ItemIsEditable;
     }
@@ -463,23 +442,21 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
   It then sends a command that calls editData.
 */
 bool DeviceExplorerModel::setData(
-    const QModelIndex& index,
-    const QVariant& value,
-    int role)
+    const QModelIndex& index, const QVariant& value, int role)
 {
-  if (!index.isValid())
+  if(!index.isValid())
     return false;
 
   auto& n = nodeFromModelIndex(index);
 
-  if (!n.is<Device::AddressSettings>())
+  if(!n.is<Device::AddressSettings>())
     return false;
 
   auto col = Explorer::Column(index.column());
 
-  if (role == Qt::EditRole || role == Qt::CheckStateRole)
+  if(role == Qt::EditRole || role == Qt::CheckStateRole)
   {
-    if (col == Column::Value)
+    if(col == Column::Value)
     {
       // In this case we don't make a command, but we directly push the
       // new value.
@@ -487,16 +464,14 @@ bool DeviceExplorerModel::setData(
 
       // We may have to convert types.
       const ossia::value& orig = n.get<Device::AddressSettings>().value;
-      if (copy.v.which() != orig.v.which()
-          && !State::convert::convert(orig, copy))
+      if(copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
         return false;
 
       n.get<Device::AddressSettings>().value = copy;
 
       // Note : if we want to disable remote updating, we have to do it
       // here (e.g. if this becomes a settings)
-      m_devicePlugin.updateProxy.updateRemoteValue(
-          Device::address(n).address, copy);
+      m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n).address, copy);
 
       return true;
     }
@@ -504,16 +479,16 @@ bool DeviceExplorerModel::setData(
     {
       // Here we make a command because we change the structure of the tree.
       auto settings = n.get<Device::AddressSettings>();
-      if (col == Column::Name)
+      if(col == Column::Name)
       {
         const QString s = value.toString();
-        if (!s.isEmpty())
+        if(!s.isEmpty())
         {
           settings.name = s;
         }
       }
 
-      if (settings != n.get<Device::AddressSettings>())
+      if(settings != n.get<Device::AddressSettings>())
       {
         // We changed
         m_cmdQ.redoAndPush(new Explorer::Command::UpdateAddressSettings{
@@ -526,11 +501,7 @@ bool DeviceExplorerModel::setData(
   return false;
 }
 
-bool DeviceExplorerModel::setHeaderData(
-    int,
-    Qt::Orientation,
-    const QVariant&,
-    int)
+bool DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
 {
   return false; // we prevent editing the (column) headers
 }
@@ -542,9 +513,7 @@ bool DeviceExplorerModel::setHeaderData(
  * that edit the columns.
  */
 void DeviceExplorerModel::editData(
-    const Device::NodePath& path,
-    Explorer::Column column,
-    const ossia::value& value,
+    const Device::NodePath& path, Explorer::Column column, const ossia::value& value,
     int role)
 {
   Device::Node* node = path.toNode(&rootNode());
@@ -552,23 +521,20 @@ void DeviceExplorerModel::editData(
 }
 
 void DeviceExplorerModel::editData(
-    Device::Node& node,
-    Column column,
-    const ossia::value& value,
-    int role)
+    Device::Node& node, Column column, const ossia::value& value, int role)
 {
   SCORE_ASSERT(node.parent());
 
-  QModelIndex index = createIndex(
-      node.parent()->indexOfChild(&node), (int)column, node.parent());
+  QModelIndex index
+      = createIndex(node.parent()->indexOfChild(&node), (int)column, node.parent());
 
   QModelIndex changedTopLeft = index;
   QModelIndex changedBottomRight = index;
 
-  if (node.is<Device::DeviceSettings>())
+  if(node.is<Device::DeviceSettings>())
     return;
 
-  if (role == Qt::EditRole)
+  if(role == Qt::EditRole)
   {
     SCORE_TODO;
     /*
@@ -582,7 +548,7 @@ void DeviceExplorerModel::editData(
             }
         }
         else */
-    if (index.column() == (int)Column::Value)
+    if(index.column() == (int)Column::Value)
     {
       node.get<Device::AddressSettings>().value = value;
     }
@@ -595,20 +561,18 @@ QModelIndex DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
 {
   auto& node = nodeFromModelIndex(index);
 
-  if (!node.hasChildren())
+  if(!node.hasChildren())
   {
     return index;
   }
 
   return bottomIndex(createIndex(
-      node.childCount() - 1,
-      index.column(),
-      &node.childAt(node.childCount() - 1)));
+      node.childCount() - 1, index.column(), &node.childAt(node.childCount() - 1)));
 }
 
 bool DeviceExplorerModel::isDevice(QModelIndex index) const
 {
-  if (!index.isValid())
+  if(!index.isValid())
   {
     return false;
   }
@@ -653,22 +617,21 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
 {
   SelectedNodes nodes;
   ossia::transform(
-      indexes, std::back_inserter(nodes.parents), [&](const QModelIndex& idx) {
-        return &nodeFromModelIndex(idx);
-      });
+      indexes, std::back_inserter(nodes.parents),
+      [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
 
   ossia::remove_erase(nodes.parents, &m_rootNode);
 
   nodes.messages.reserve(nodes.messages.size() + nodes.parents.size());
-  if (nodes.parents.size() > 1)
+  if(nodes.parents.size() > 1)
   {
     // Filter messages
-    for (auto node : nodes.parents)
+    for(auto node : nodes.parents)
     {
-      if (node->is<Device::AddressSettings>())
+      if(node->is<Device::AddressSettings>())
       {
         auto& val = node->get<Device::AddressSettings>();
-        if (val.ioType == ossia::access_mode::SET)
+        if(val.ioType == ossia::access_mode::SET)
         {
           nodes.messages.push_back(node);
         }
@@ -678,10 +641,10 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
     // Filter parents
     nodes.parents = filterUniqueParents(nodes.parents);
   }
-  else if (nodes.parents.size() == 1)
+  else if(nodes.parents.size() == 1)
   {
     Device::Node* node = nodes.parents[0];
-    if (node->is<Device::AddressSettings>() && node->childCount() == 0)
+    if(node->is<Device::AddressSettings>() && node->childCount() == 0)
     {
       // If a single node is selected we copy it even if it is "get"
       nodes.messages = std::move(nodes.parents);
@@ -696,15 +659,14 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
   auto uniqueNodes = uniqueSelectedNodes(indexes);
 
   // Handle case of a single device which can have custom mimeData
-  if (uniqueNodes.parents.size() == 1
-      && uniqueNodes.parents[0]->is<Device::DeviceSettings>())
+  if(uniqueNodes.parents.size() == 1
+     && uniqueNodes.parents[0]->is<Device::DeviceSettings>())
   {
     auto node = uniqueNodes.parents[0];
-    if (node->is<Device::DeviceSettings>())
+    if(node->is<Device::DeviceSettings>())
     {
-      auto& dev = deviceModel().list().device(
-          node->get<Device::DeviceSettings>().name);
-      if (auto d = dev.mimeData())
+      auto& dev = deviceModel().list().device(node->get<Device::DeviceSettings>().name);
+      if(auto d = dev.mimeData())
         return d;
     }
   }
@@ -717,17 +679,17 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
   // The "MessagesList" part.
   State::MessageList messages;
   messages.reserve(uniqueNodes.parents.size() + uniqueNodes.messages.size());
-  for (const auto& node : uniqueNodes.parents)
+  for(const auto& node : uniqueNodes.parents)
   {
     Device::parametersList(*node, messages);
   }
 
-  for (const auto& node : uniqueNodes.messages)
+  for(const auto& node : uniqueNodes.messages)
   {
     messages.push_back(Device::message(*node));
   }
 
-  if (!messages.empty())
+  if(!messages.empty())
   {
     Mime<State::MessageList>::Serializer s{*mimeData};
     s.serialize(messages);
@@ -738,15 +700,12 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     Mime<Device::NodeList>::Serializer s{*mimeData};
     Device::NodeList vec;
     vec.reserve(uniqueNodes.parents.size() + uniqueNodes.messages.size());
-    vec.insert(
-        vec.end(), uniqueNodes.parents.begin(), uniqueNodes.parents.end());
-    vec.insert(
-        vec.end(), uniqueNodes.messages.begin(), uniqueNodes.messages.end());
+    vec.insert(vec.end(), uniqueNodes.parents.begin(), uniqueNodes.parents.end());
+    vec.insert(vec.end(), uniqueNodes.messages.begin(), uniqueNodes.messages.end());
     s.serialize(vec);
   }
 
-  if (messages.empty() && uniqueNodes.parents.empty()
-      && uniqueNodes.messages.empty())
+  if(messages.empty() && uniqueNodes.parents.empty() && uniqueNodes.messages.empty())
   {
     delete mimeData;
     return nullptr;
@@ -756,34 +715,31 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool DeviceExplorerModel::canDropMimeData(
-    const QMimeData* mimeData,
-    Qt::DropAction action,
-    int /*row*/,
-    int /*column*/,
+    const QMimeData* mimeData, Qt::DropAction action, int /*row*/, int /*column*/,
     const QModelIndex& parent) const
 {
-  if (action == Qt::IgnoreAction)
+  if(action == Qt::IgnoreAction)
   {
     return true;
   }
 
-  if (action != Qt::MoveAction && action != Qt::CopyAction)
+  if(action != Qt::MoveAction && action != Qt::CopyAction)
   {
     return false;
   }
 
-  if (!mimeData
-      || (!mimeData->hasFormat(score::mime::device())
-          && !mimeData->hasFormat(score::mime::address())))
+  if(!mimeData
+     || (!mimeData->hasFormat(score::mime::device())
+         && !mimeData->hasFormat(score::mime::address())))
   {
     return false;
   }
 
   const Device::Node& parentNode = nodeFromModelIndex(parent);
 
-  if (mimeData->hasFormat(score::mime::address()))
+  if(mimeData->hasFormat(score::mime::address()))
   {
-    if (&parentNode == &m_rootNode)
+    if(&parentNode == &m_rootNode)
     {
       return false;
     }
@@ -792,7 +748,7 @@ bool DeviceExplorerModel::canDropMimeData(
   {
     SCORE_ASSERT(mimeData->hasFormat(score::mime::device()));
 
-    if (&parentNode != &m_rootNode)
+    if(&parentNode != &m_rootNode)
     {
       return false;
     }
@@ -807,25 +763,22 @@ bool DeviceExplorerModel::canDropMimeData(
 // if dropMimeData returns true && action==Qt::MoveAction, removeRows is called
 // immediately after
 bool DeviceExplorerModel::dropMimeData(
-    const QMimeData* mimeData,
-    Qt::DropAction action,
-    int row,
-    int column,
+    const QMimeData* mimeData, Qt::DropAction action, int row, int column,
     const QModelIndex& parent)
 {
-  if (action == Qt::IgnoreAction)
+  if(action == Qt::IgnoreAction)
   {
     return true;
   }
 
-  if (action != Qt::MoveAction && action != Qt::CopyAction)
+  if(action != Qt::MoveAction && action != Qt::CopyAction)
   {
     return false;
   }
 
-  if (!mimeData
-      || (!mimeData->hasFormat(score::mime::device())
-          && !mimeData->hasFormat(score::mime::address())))
+  if(!mimeData
+     || (!mimeData->hasFormat(score::mime::device())
+         && !mimeData->hasFormat(score::mime::address())))
   {
     return false;
   }
@@ -834,13 +787,13 @@ bool DeviceExplorerModel::dropMimeData(
   Device::Node* parentNode = &m_rootNode;
   QString mimeType = score::mime::device();
 
-  if (mimeData->hasFormat(score::mime::address()))
+  if(mimeData->hasFormat(score::mime::address()))
   {
     parentIndex = parent;
     parentNode = &nodeFromModelIndex(parent);
     mimeType = score::mime::address();
 
-    if (parentNode == &m_rootNode)
+    if(parentNode == &m_rootNode)
     {
       return false;
     }
@@ -851,7 +804,7 @@ bool DeviceExplorerModel::dropMimeData(
     SCORE_ASSERT(mimeType == score::mime::device());
   }
 
-  if (parentNode)
+  if(parentNode)
   {
     // Note : when dropping a device,
     // if there is an existing device that would use the same ports, etc.
@@ -862,7 +815,7 @@ bool DeviceExplorerModel::dropMimeData(
     Device::Node n;
     deser.writeTo(n);
 
-    if (mimeType == score::mime::device())
+    if(mimeType == score::mime::device())
     {
       checkAndLoadDevice(n);
     }
@@ -879,27 +832,21 @@ void DeviceExplorerModel::checkAndLoadDevice(Device::Node n)
   // We ask the user to fix the incompatibilities by himself, maybe change
   // the name also.
   auto dialog = new DeviceEditDialog{
-      *this,
-      m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
-      DeviceEditDialog::Creating,
-      QApplication::activeWindow()};
+      *this, m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
+      DeviceEditDialog::Creating, QApplication::activeWindow()};
 
   dialog->setSettings(deviceSettings);
   dialog->setBrowserEnabled(false);
 
   connect(
-      dialog,
-      &QDialog::accepted,
-      this,
-      [this, dialog, node = std::move(n)]() mutable {
+      dialog, &QDialog::accepted, this, [this, dialog, node = std::move(n)]() mutable {
         auto new_settings = dialog->getSettings();
         auto& deviceSettings = *node.target<Device::DeviceSettings>();
         deviceSettings = new_settings;
-        if (!checkDeviceInstantiatable(deviceSettings))
+        if(!checkDeviceInstantiatable(deviceSettings))
         {
           score::warning(
-              m_devicePlugin.context().app.mainWindow,
-              "Error",
+              m_devicePlugin.context().app.mainWindow, "Error",
               "Could not create the device");
           dialog->deleteLater();
           return;
@@ -910,22 +857,17 @@ void DeviceExplorerModel::checkAndLoadDevice(Device::Node n)
         m_cmdQ.redoAndPush(cmd);
         dialog->deleteLater();
       });
-  connect(dialog, &QDialog::rejected, this, [dialog] {
-    dialog->deleteLater();
-  });
+  connect(dialog, &QDialog::rejected, this, [dialog] { dialog->deleteLater(); });
   dialog->show();
 }
 
-void DeviceExplorerModel::checkAndLoadDevice(
-    Device::DeviceSettings deviceSettings)
+void DeviceExplorerModel::checkAndLoadDevice(Device::DeviceSettings deviceSettings)
 {
   // We ask the user to fix the incompatibilities by himself, maybe change
   // the name also.
   auto dialog = new DeviceEditDialog{
-      *this,
-      m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
-      DeviceEditDialog::Creating,
-      QApplication::activeWindow()};
+      *this, m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
+      DeviceEditDialog::Creating, QApplication::activeWindow()};
 
   dialog->setSettings(deviceSettings);
   dialog->setBrowserEnabled(false);
@@ -933,11 +875,10 @@ void DeviceExplorerModel::checkAndLoadDevice(
   connect(dialog, &QDialog::accepted, this, [this, dialog] {
     auto node = dialog->getDevice();
     auto& deviceSettings = *node.target<Device::DeviceSettings>();
-    if (!checkDeviceInstantiatable(deviceSettings))
+    if(!checkDeviceInstantiatable(deviceSettings))
     {
       score::warning(
-          m_devicePlugin.context().app.mainWindow,
-          "Error",
+          m_devicePlugin.context().app.mainWindow, "Error",
           "Could not create the device");
       dialog->deleteLater();
       return;
@@ -948,9 +889,7 @@ void DeviceExplorerModel::checkAndLoadDevice(
     m_cmdQ.redoAndPush(cmd);
     dialog->deleteLater();
   });
-  connect(dialog, &QDialog::rejected, this, [dialog] {
-    dialog->deleteLater();
-  });
+  connect(dialog, &QDialog::rejected, this, [dialog] { dialog->deleteLater(); });
   dialog->show();
 }
 
@@ -958,7 +897,7 @@ void DeviceExplorerModel::debug_printPath(const Device::NodePath& path)
 {
   const int pathSize = std::ssize(path);
 
-  for (int i = 0; i < pathSize; ++i)
+  for(int i = 0; i < pathSize; ++i)
   {
     std::cerr << path.at(i) << " ";
   }
@@ -969,17 +908,16 @@ void DeviceExplorerModel::debug_printPath(const Device::NodePath& path)
 void DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
 {
   std::cerr << "indexes: " << indexes.size() << " nodes: \n";
-  Q_FOREACH (const QModelIndex& index, indexes)
+  Q_FOREACH(const QModelIndex& index, indexes)
   {
-    if (index.isValid())
+    if(index.isValid())
     {
-      std::cerr << " index.row=" << index.row() << " col=" << index.column()
-                << " ";
+      std::cerr << " index.row=" << index.row() << " col=" << index.column() << " ";
       Device::Node* n = &nodeFromModelIndex(index);
       std::cerr << " n=" << n << " ";
       Device::Node* parent = n->parent();
 
-      if (n == &m_rootNode)
+      if(n == &m_rootNode)
       {
         std::cerr << " rootNode parent=" << parent << "\n";
       }
@@ -987,8 +925,7 @@ void DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
       {
         std::cerr << " n->name=" << n->displayName().toStdString();
         std::cerr << " parent=" << parent;
-        std::cerr << " parent->name=" << parent->displayName().toStdString()
-                  << "\n";
+        std::cerr << " parent->name=" << parent->displayName().toStdString() << "\n";
       }
     }
     else
@@ -1009,11 +946,11 @@ State::MessageList getSelectionSnapshot(DeviceExplorerModel& model)
   // Conversion
   State::MessageList messages;
   messages.reserve(uniqueNodes.parents.size() + uniqueNodes.messages.size());
-  for (const auto& node : uniqueNodes.parents)
+  for(const auto& node : uniqueNodes.parents)
   {
     Device::parametersList(*node, messages);
   }
-  for (const auto& node : uniqueNodes.messages)
+  for(const auto& node : uniqueNodes.messages)
   {
     messages.push_back(Device::message(*node));
   }
@@ -1023,9 +960,8 @@ State::MessageList getSelectionSnapshot(DeviceExplorerModel& model)
 
 DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 {
-  auto plug = score::IDocument::documentContext(obj)
-                  .findPlugin<DeviceDocumentPlugin>();
-  if (plug)
+  auto plug = score::IDocument::documentContext(obj).findPlugin<DeviceDocumentPlugin>();
+  if(plug)
     return &plug->explorer();
   return nullptr;
 }
@@ -1037,17 +973,15 @@ DeviceExplorerModel& deviceExplorerFromObject(const QObject& obj)
   return *expl;
 }
 
-DeviceExplorerModel*
-try_deviceExplorerFromContext(const score::DocumentContext& ctx)
+DeviceExplorerModel* try_deviceExplorerFromContext(const score::DocumentContext& ctx)
 {
   auto plug = ctx.findPlugin<DeviceDocumentPlugin>();
-  if (plug)
+  if(plug)
     return &plug->explorer();
   return nullptr;
 }
 
-DeviceExplorerModel&
-deviceExplorerFromContext(const score::DocumentContext& ctx)
+DeviceExplorerModel& deviceExplorerFromContext(const score::DocumentContext& ctx)
 {
   auto expl = try_deviceExplorerFromContext(ctx);
   SCORE_ASSERT(expl);
@@ -1055,16 +989,13 @@ deviceExplorerFromContext(const score::DocumentContext& ctx)
 }
 
 Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
-    const State::AddressAccessor& addr,
-    const score::DocumentContext& ctx,
-    ossia::value min,
-    ossia::value max,
-    ossia::value val)
+    const State::AddressAccessor& addr, const score::DocumentContext& ctx,
+    ossia::value min, ossia::value max, ossia::value val)
 {
   // First try to find if there is a matching address
   // in the device explorer
   auto deviceexplorer = Explorer::try_deviceExplorerFromContext(ctx);
-  if (deviceexplorer)
+  if(deviceexplorer)
   {
     return Device::makeFullAddressAccessorSettings(
         addr, *deviceexplorer, std::move(min), std::move(max), std::move(val));

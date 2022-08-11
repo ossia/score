@@ -9,7 +9,8 @@ class SCORE_PLUGIN_GFX_EXPORT InvertYRenderer final
     : public score::gfx::OutputNodeRenderer
 {
 public:
-  explicit InvertYRenderer(score::gfx::TextureRenderTarget rt,  QRhiReadbackResult& readback);
+  explicit InvertYRenderer(
+      score::gfx::TextureRenderTarget rt, QRhiReadbackResult& readback);
 
   score::gfx::TextureRenderTarget m_inputTarget;
   score::gfx::TextureRenderTarget m_renderTarget;
@@ -22,10 +23,13 @@ public:
 
   score::gfx::MeshBuffers m_mesh{};
 
-  score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return m_inputTarget; }
+  score::gfx::TextureRenderTarget
+  renderTargetForInput(const score::gfx::Port& p) override
+  {
+    return m_inputTarget;
+  }
 
   void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb) override;
-
 
   void init(score::gfx::RenderList& renderer) override;
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override;

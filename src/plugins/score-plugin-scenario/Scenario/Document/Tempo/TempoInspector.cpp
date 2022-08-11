@@ -1,9 +1,12 @@
-#include <Scenario/Document/Tempo/TempoInspector.hpp>
+#include <Curve/Commands/MovePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
+
+#include <Scenario/Document/Tempo/TempoInspector.hpp>
+
 #include <Inspector/InspectorLayout.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <Curve/Commands/MovePoint.hpp>
 
 #include <QDoubleSpinBox>
 
@@ -11,16 +14,16 @@ namespace Scenario
 {
 
 TempoPointInspectorFactory::TempoPointInspectorFactory()
-  : InspectorWidgetFactory{}
+    : InspectorWidgetFactory{}
 {
 }
 
-QWidget* TempoPointInspectorFactory::make(const InspectedObjects& sourceElements, const score::DocumentContext& doc, QWidget* parent) const
+QWidget* TempoPointInspectorFactory::make(
+    const InspectedObjects& sourceElements, const score::DocumentContext& doc,
+    QWidget* parent) const
 {
   return new TempoPointInspectorWidget{
-    safe_cast<const Curve::PointModel&>(*sourceElements.first()),
-        doc,
-        parent};
+      safe_cast<const Curve::PointModel&>(*sourceElements.first()), doc, parent};
 }
 
 bool TempoPointInspectorFactory::matches(const InspectedObjects& objects) const
@@ -32,9 +35,10 @@ bool TempoPointInspectorFactory::matches(const InspectedObjects& objects) const
     return false;
 }
 
-TempoPointInspectorWidget::TempoPointInspectorWidget(const Curve::PointModel& model, const score::DocumentContext& doc, QWidget* parent)
-  : Curve::PointInspectorWidget{model, doc, parent}
-  , m_dispatcher{doc.dispatcher}
+TempoPointInspectorWidget::TempoPointInspectorWidget(
+    const Curve::PointModel& model, const score::DocumentContext& doc, QWidget* parent)
+    : Curve::PointInspectorWidget{model, doc, parent}
+    , m_dispatcher{doc.dispatcher}
 {
   auto automModel_base = safe_cast<Scenario::TempoProcess*>(model.parent()->parent());
 
@@ -48,16 +52,12 @@ TempoPointInspectorWidget::TempoPointInspectorWidget(const Curve::PointModel& mo
   m_YBox->setDecimals(4); // NOTE : settings ?
 
   connect(
-        m_YBox,
-        SignalUtils::QDoubleSpinBox_valueChanged_double(),
-        this,
-        &TempoPointInspectorWidget::on_pointChanged);
+      m_YBox, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+      &TempoPointInspectorWidget::on_pointChanged);
 
   connect(
-        m_YBox,
-        SignalUtils::QDoubleSpinBox_valueChanged_double(),
-        this,
-        &TempoPointInspectorWidget::on_editFinished);
+      m_YBox, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+      &TempoPointInspectorWidget::on_editFinished);
 
   m_layout->addRow("Value", m_YBox);
 }
@@ -67,8 +67,7 @@ void TempoPointInspectorWidget::on_pointChanged(double d)
   if(!m_model)
     return;
   auto& model = *m_model;
-  Curve::Point pos{
-      m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
+  Curve::Point pos{m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
   m_dispatcher.submit<Curve::MovePoint>(
       *safe_cast<Curve::Model*>(model.parent()), model.id(), pos);
 }

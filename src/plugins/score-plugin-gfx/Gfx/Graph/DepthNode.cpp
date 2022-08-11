@@ -1,4 +1,5 @@
 #include "depthnode.hpp"
+
 #include <ossia/detail/ssize.hpp>
 
 DepthNode::DepthNode(const QShader& compute)
@@ -42,15 +43,12 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
   {
   }
 
-  std::optional<QSize> renderTargetSize() const noexcept override
-  {
-    return {};
-  }
+  std::optional<QSize> renderTargetSize() const noexcept override { return {}; }
 
   TextureRenderTarget createRenderTarget(const RenderState& state) override
   {
     auto sz = state.size;
-    if (auto true_sz = renderTargetSize())
+    if(auto true_sz = renderTargetSize())
     {
       sz = *true_sz;
     }
@@ -68,10 +66,10 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     syms.add_constant("var_WIDTH", res.width());
     syms.add_constant("var_HEIGHT", res.height());
     int port_k = 0;
-    for (const isf::input& input : n.m_descriptor.inputs)
+    for(const isf::input& input : n.m_descriptor.inputs)
     {
       auto port = n.input[port_k];
-      if (ossia::get_if<isf::float_input>(&input.data))
+      if(ossia::get_if<isf::float_input>(&input.data))
       {
         syms.add_constant("var_" + input.name, *(float*)port->value);
       }
@@ -83,26 +81,26 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
       port_k++;
     }
 
-    if (auto expr = pass.width_expression; !expr.empty())
+    if(auto expr = pass.width_expression; !expr.empty())
     {
       boost::algorithm::replace_all(expr, "$", "var_");
       exprtk::expression<float> e;
       e.register_symbol_table(syms);
       exprtk::parser<float> parser;
       bool ok = parser.compile(expr, e);
-      if (ok)
+      if(ok)
         res.setWidth(e());
       else
         qDebug() << parser.error().c_str() << expr.c_str();
     }
-    if (auto expr = pass.height_expression; !expr.empty())
+    if(auto expr = pass.height_expression; !expr.empty())
     {
       boost::algorithm::replace_all(expr, "$", "var_");
       exprtk::expression<float> e;
       e.register_symbol_table(syms);
       exprtk::parser<float> parser;
       bool ok = parser.compile(expr, e);
-      if (ok)
+      if(ok)
         res.setHeight(e());
       else
         qDebug() << parser.error().c_str() << expr.c_str();
@@ -116,9 +114,9 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     QRhi& rhi = *renderer.state.rhi;
     auto& input = n.input;
     int cur_pos = 0;
-    for (auto in : input)
+    for(auto in : input)
     {
-      switch (in->type)
+      switch(in->type)
       {
         case Types::Empty:
           break;
@@ -128,41 +126,36 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
           break;
         case Types::Vec2:
           cur_pos += 8;
-          if (cur_pos % 8 != 0)
+          if(cur_pos % 8 != 0)
             cur_pos += 4;
           break;
         case Types::Vec3:
-          while (cur_pos % 16 != 0)
+          while(cur_pos % 16 != 0)
           {
             cur_pos += 4;
           }
           cur_pos += 12;
           break;
         case Types::Vec4:
-          while (cur_pos % 16 != 0)
+          while(cur_pos % 16 != 0)
           {
             cur_pos += 4;
           }
           cur_pos += 16;
           break;
-        case Types::Image:
-        {
+        case Types::Image: {
           auto sampler = rhi.newSampler(
-              QRhiSampler::Linear,
-              QRhiSampler::Linear,
-              QRhiSampler::None,
-              QRhiSampler::ClampToEdge,
-              QRhiSampler::ClampToEdge);
+              QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+              QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
           SCORE_ASSERT(sampler->create());
 
           auto texture = renderer.textureTargetForInputPort(*in);
           m_samplers.push_back({sampler, texture});
 
-          if (cur_pos % 8 != 0)
+          if(cur_pos % 8 != 0)
             cur_pos += 4;
 
-          *(float*)(n.m_materialData.get() + cur_pos)
-              = texture->pixelSize().width();
+          *(float*)(n.m_materialData.get() + cur_pos) = texture->pixelSize().width();
           *(float*)(n.m_materialData.get() + cur_pos + 4)
               = texture->pixelSize().height();
 
@@ -179,14 +172,11 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
   void initAudioTextures(Renderer& renderer)
   {
     QRhi& rhi = *renderer.state.rhi;
-    for (auto& texture : n.audio_textures)
+    for(auto& texture : n.audio_textures)
     {
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
 
       m_samplers.push_back({sampler, renderer.m_emptyTexture});
@@ -198,20 +188,17 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
   {
     QRhi& rhi = *renderer.state.rhi;
     auto& model_passes = n.m_descriptor.passes;
-    for (int i = 0, N = model_passes.size(); i < N - 1; i++)
+    for(int i = 0, N = model_passes.size(); i < N - 1; i++)
     {
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
 
       const QSize texSize = computeTextureSize(model_passes[i]);
 
-      const auto fmt = (model_passes[i].float_storage) ? QRhiTexture::RGBA32F
-                                                       : QRhiTexture::RGBA8;
+      const auto fmt
+          = (model_passes[i].float_storage) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
 
       auto tex = rhi.newTexture(
           fmt, texSize, 1, QRhiTexture::Flag{QRhiTexture::RenderTarget});
@@ -219,7 +206,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
 
       m_samplers.push_back({sampler, tex});
 
-      if (cur_pos % 8 != 0)
+      if(cur_pos % 8 != 0)
         cur_pos += 4;
 
       *(float*)(n.m_materialData.get() + cur_pos) = texSize.width();
@@ -229,19 +216,11 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     }
   }
 
-  Pipeline buildPassPipeline(
-      Renderer& renderer,
-      TextureRenderTarget tgt,
-      QRhiBuffer* processUBO)
+  Pipeline
+  buildPassPipeline(Renderer& renderer, TextureRenderTarget tgt, QRhiBuffer* processUBO)
   {
     return score::gfx::buildPipeline(
-        renderer,
-        n.mesh(),
-        n.m_vertexS,
-        n.m_fragmentS,
-        tgt,
-        processUBO,
-        m_materialUBO,
+        renderer, n.mesh(), n.m_vertexS, n.m_fragmentS, tgt, processUBO, m_materialUBO,
         m_samplers);
   };
 
@@ -261,24 +240,22 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
     pubo->create();
 
-    auto pip
-        = buildPassPipeline(renderer, TextureRenderTarget{tex, rp, rt}, pubo);
+    auto pip = buildPassPipeline(renderer, TextureRenderTarget{tex, rp, rt}, pubo);
     auto srb = pip.srb;
 
     // We have to replace the rendered-to texture by an empty one in each pass,
     // as RHI does not support both reading and writing to a texture in the same pass.
     {
       QVarLengthArray<QRhiShaderResourceBinding> bindings;
-      for (auto it = srb->cbeginBindings(); it != srb->cendBindings(); ++it)
+      for(auto it = srb->cbeginBindings(); it != srb->cendBindings(); ++it)
       {
         bindings.push_back(*it);
 
-        if (it->data()->type == QRhiShaderResourceBinding::SampledTexture)
+        if(it->data()->type == QRhiShaderResourceBinding::SampledTexture)
         {
-          if (it->data()->u.stex.texSamplers->tex == tex)
+          if(it->data()->u.stex.texSamplers->tex == tex)
           {
-            bindings.back().data()->u.stex.texSamplers->tex
-                = renderer.m_emptyTexture;
+            bindings.back().data()->u.stex.texSamplers->tex = renderer.m_emptyTexture;
           }
         }
       }
@@ -293,7 +270,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     // init()
     {
       const auto& mesh = n.mesh();
-      if (!m_meshBuffer)
+      if(!m_meshBuffer)
       {
         auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
         m_meshBuffer = mbuffer;
@@ -304,7 +281,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     QRhi& rhi = *renderer.state.rhi;
 
     m_materialSize = n.m_materialSize;
-    if (m_materialSize > 0)
+    if(m_materialSize > 0)
     {
       m_materialUBO = rhi.newBuffer(
           QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
@@ -316,7 +293,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     initAudioTextures(renderer);
 
     auto& model_passes = n.m_descriptor.passes;
-    if (!model_passes.empty())
+    if(!model_passes.empty())
     {
       int first_pass_sampler_idx = std::ssize(m_samplers);
 
@@ -324,7 +301,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
       initPassSamplers(renderer, cur_pos);
 
       // Then create the passes
-      for (int i = 0, N = model_passes.size(); i < N - 1; i++)
+      for(int i = 0, N = model_passes.size(); i < N - 1; i++)
       {
         auto target = m_samplers[first_pass_sampler_idx + i];
         auto pass = createPass(renderer, target);
@@ -347,8 +324,8 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
   void update(Renderer& renderer, QRhiResourceUpdateBatch& res) override
   {
     {
-      if (m_materialUBO && m_materialSize > 0
-          && materialChangedIndex != n.materialChanged)
+      if(m_materialUBO && m_materialSize > 0
+         && materialChangedIndex != n.materialChanged)
       {
         char* data = n.m_materialData.get();
         res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
@@ -357,29 +334,26 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     }
 
     QRhi& rhi = *renderer.state.rhi;
-    for (auto& audio : n.audio_textures)
+    for(auto& audio : n.audio_textures)
     {
       bool textureChanged = false;
       auto& [rhiSampler, rhiTexture] = audio.samplers[&renderer];
       const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
       int numSamples = curSz.width() * curSz.height();
-      if (numSamples != audio.data.size())
+      if(numSamples != audio.data.size())
       {
         delete rhiTexture;
         rhiTexture = nullptr;
         textureChanged = true;
       }
 
-      if (!rhiTexture)
+      if(!rhiTexture)
       {
-        if (audio.channels > 0)
+        if(audio.channels > 0)
         {
           int samples = audio.data.size() / audio.channels;
           rhiTexture = rhi.newTexture(
-              QRhiTexture::D32F,
-              {samples, audio.channels},
-              1,
-              QRhiTexture::Flag{});
+              QRhiTexture::D32F, {samples, audio.channels}, 1, QRhiTexture::Flag{});
           rhiTexture->create();
           textureChanged = true;
         }
@@ -390,15 +364,13 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
         }
       }
 
-      if (textureChanged)
+      if(textureChanged)
       {
         score::gfx::replaceTexture(
-            *m_p.srb,
-            rhiSampler,
-            rhiTexture ? rhiTexture : renderer.m_emptyTexture);
+            *m_p.srb, rhiSampler, rhiTexture ? rhiTexture : renderer.m_emptyTexture);
       }
 
-      if (rhiTexture)
+      if(rhiTexture)
       {
         QRhiTextureSubresourceUploadDescription subdesc(
             audio.data.data(), audio.data.size() * 4);
@@ -410,14 +382,11 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
 
     {
       // Update all the process UBOs
-      for (int i = 0, N = m_passes.size(); i < N; i++)
+      for(int i = 0, N = m_passes.size(); i < N; i++)
       {
         n.standardUBO.passIndex = i;
         res.updateDynamicBuffer(
-            m_passes[i].processUBO,
-            0,
-            sizeof(ProcessUBO),
-            &this->n.standardUBO);
+            m_passes[i].processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
       }
     }
   }
@@ -426,20 +395,20 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
   {
     // customRelease
     {
-      for (auto& texture : n.audio_textures)
+      for(auto& texture : n.audio_textures)
       {
         auto it = texture.samplers.find(&r);
-        if (it != texture.samplers.end())
+        if(it != texture.samplers.end())
         {
-          if (auto tex = it->second.second)
+          if(auto tex = it->second.second)
           {
-            if (tex != r.m_emptyTexture)
+            if(tex != r.m_emptyTexture)
               tex->deleteLater();
           }
         }
       }
 
-      for (auto& pass : m_passes)
+      for(auto& pass : m_passes)
       {
         // TODO do we also want to remove the last pass texture here ?!
         pass.p.release();
@@ -450,7 +419,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
       m_passes.clear();
     }
 
-    for (auto sampler : m_samplers)
+    for(auto sampler : m_samplers)
     {
       delete sampler.sampler;
       // texture isdeleted elsewxheree
@@ -468,9 +437,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
   void release(Renderer& r) override { releaseWithoutRenderTarget(r); }
 
   void runPass(
-      Renderer& renderer,
-      QRhiCommandBuffer& cb,
-      QRhiResourceUpdateBatch& res) override
+      Renderer& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch& res) override
   {
     // if(m_passes.empty())
     //   return RenderedNode::runPass(renderer, cb, res);
@@ -486,7 +453,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     auto updateBatch = &res;
 
     // Draw the passes
-    for (const auto& pass : m_passes)
+    for(const auto& pass : m_passes)
     {
       SCORE_ASSERT(pass.renderTarget.renderTarget);
       SCORE_ASSERT(pass.p.pipeline);
@@ -504,13 +471,10 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
         cb.setGraphicsPipeline(pipeline);
         cb.setShaderResources(srb);
 
-        if (texture)
+        if(texture)
         {
           cb.setViewport(QRhiViewport(
-              0,
-              0,
-              texture->pixelSize().width(),
-              texture->pixelSize().height()));
+              0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
         }
         else
         {
@@ -527,7 +491,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
 
       cb.endPass();
 
-      if (pass.p.pipeline != m_passes.back().p.pipeline)
+      if(pass.p.pipeline != m_passes.back().p.pipeline)
       {
         // Not the last pass: we have to use another resource batch
         updateBatch = renderer.state.rhi->nextResourceUpdateBatch();

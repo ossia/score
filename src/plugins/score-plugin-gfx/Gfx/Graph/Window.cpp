@@ -3,6 +3,7 @@
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(score::gfx::Window)
@@ -14,7 +15,7 @@ Window::Window(GraphicsApi graphicsApi)
 {
   setCursor(Qt::BlankCursor);
   // Tell the platform plugin what we want.
-  switch (m_api)
+  switch(m_api)
   {
     case OpenGL:
 #if QT_CONFIG(opengl)
@@ -46,19 +47,19 @@ void Window::init()
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 void Window::resizeSwapChain()
 {
-  if (m_swapChain)
+  if(m_swapChain)
   {
     m_hasSwapChain = m_swapChain->createOrResize();
     if(state)
       state->outputSize = m_swapChain->currentPixelSize();
-    if (onResize)
+    if(onResize)
       onResize();
   }
 }
 
 void Window::releaseSwapChain()
 {
-  if (m_swapChain && m_hasSwapChain)
+  if(m_swapChain && m_hasSwapChain)
   {
     m_hasSwapChain = false;
     m_swapChain->destroy();
@@ -68,41 +69,41 @@ void Window::releaseSwapChain()
 
 void Window::render()
 {
-  if (onUpdate)
+  if(onUpdate)
     onUpdate();
 
-  if (!m_swapChain)
+  if(!m_swapChain)
     return;
 
-  if (!m_hasSwapChain || m_notExposed)
+  if(!m_hasSwapChain || m_notExposed)
   {
     requestUpdate();
     return;
   }
 
-  if (m_swapChain->currentPixelSize() != m_swapChain->surfacePixelSize()
-      || m_newlyExposed)
+  if(m_swapChain->currentPixelSize() != m_swapChain->surfacePixelSize()
+     || m_newlyExposed)
   {
     resizeSwapChain();
-    if (!m_hasSwapChain)
+    if(!m_hasSwapChain)
       return;
     m_newlyExposed = false;
   }
 
-  if (m_canRender && state)
+  if(m_canRender && state)
   {
     QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
-    if (r == QRhi::FrameOpSwapChainOutOfDate)
+    if(r == QRhi::FrameOpSwapChainOutOfDate)
     {
       resizeSwapChain();
-      if (!m_hasSwapChain)
+      if(!m_hasSwapChain)
       {
         requestUpdate();
         return;
       }
       r = state->rhi->beginFrame(m_swapChain);
     }
-    if (r != QRhi::FrameOpSuccess)
+    if(r != QRhi::FrameOpSuccess)
     {
       requestUpdate();
       return;
@@ -116,17 +117,17 @@ void Window::render()
   else
   {
     QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
-    if (r == QRhi::FrameOpSwapChainOutOfDate)
+    if(r == QRhi::FrameOpSwapChainOutOfDate)
     {
       resizeSwapChain();
-      if (!m_hasSwapChain)
+      if(!m_hasSwapChain)
       {
         requestUpdate();
         return;
       }
       r = state->rhi->beginFrame(m_swapChain);
     }
-    if (r != QRhi::FrameOpSuccess)
+    if(r != QRhi::FrameOpSuccess)
     {
       requestUpdate();
       return;
@@ -134,8 +135,7 @@ void Window::render()
 
     auto buf = m_swapChain->currentFrameCommandBuffer();
     auto batch = state->rhi->nextResourceUpdateBatch();
-    buf->beginPass(
-        m_swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
+    buf->beginPass(m_swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
     buf->endPass();
 
     state->rhi->endFrame(m_swapChain, {});
@@ -145,30 +145,29 @@ void Window::render()
 
 void Window::exposeEvent(QExposeEvent*)
 {
-  if (!onWindowReady)
+  if(!onWindowReady)
   {
     return;
   }
-  if (isExposed() && !m_running)
+  if(isExposed() && !m_running)
   {
     m_running = true;
     init();
     resizeSwapChain();
   }
 
-  const QSize surfaceSize
-      = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();
+  const QSize surfaceSize = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();
 
-  if ((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
+  if((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
     m_notExposed = true;
 
-  if (isExposed() && m_running && m_notExposed && !surfaceSize.isEmpty())
+  if(isExposed() && m_running && m_notExposed && !surfaceSize.isEmpty())
   {
     m_notExposed = false;
     m_newlyExposed = true;
   }
 
-  if (isExposed() && !surfaceSize.isEmpty())
+  if(isExposed() && !surfaceSize.isEmpty())
     render();
 }
 
@@ -179,37 +178,34 @@ void Window::mouseDoubleClickEvent(QMouseEvent* ev)
 
 bool Window::event(QEvent* e)
 {
-  switch (e->type())
+  switch(e->type())
   {
     case QEvent::UpdateRequest:
       render();
       break;
 
-  case QEvent::TabletMove:
-  {
-    auto ev = static_cast<QTabletEvent*>(e);
-    this->tabletMove(ev);
-    break;
-  }
-  case QEvent::TabletPress:
-  case QEvent::TabletRelease:
-    break;
+    case QEvent::TabletMove: {
+      auto ev = static_cast<QTabletEvent*>(e);
+      this->tabletMove(ev);
+      break;
+    }
+    case QEvent::TabletPress:
+    case QEvent::TabletRelease:
+      break;
 
-    case QEvent::MouseMove:
-    {
+    case QEvent::MouseMove: {
       auto ev = static_cast<QMouseEvent*>(e);
       this->mouseMove(ev->screenPos(), ev->windowPos());
       break;
     }
-    case QEvent::KeyPress:
-    {
+    case QEvent::KeyPress: {
       auto ev = static_cast<QKeyEvent*>(e);
       this->key(ev->key(), ev->text());
       break;
     }
     case QEvent::PlatformSurface:
-      if (static_cast<QPlatformSurfaceEvent*>(e)->surfaceEventType()
-          == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed)
+      if(static_cast<QPlatformSurfaceEvent*>(e)->surfaceEventType()
+         == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed)
       {
         releaseSwapChain();
         m_running = false;

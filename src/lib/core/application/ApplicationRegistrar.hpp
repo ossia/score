@@ -1,6 +1,6 @@
 #pragma once
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/actions/Action.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/Addon.hpp>
@@ -42,12 +42,10 @@ public:
   void registerApplicationPlugin(ApplicationPlugin*);
 
   void registerCommands(CommandStore&& cmds);
-  void
-  registerCommands(const CommandGroupKey& k, CommandGeneratorMap&& cmds);
+  void registerCommands(const CommandGroupKey& k, CommandGeneratorMap&& cmds);
 
-  void registerFactories(score::hash_map<
-                         score::InterfaceKey,
-                         std::unique_ptr<InterfaceListBase>>&& cmds);
+  void registerFactories(
+      score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&& cmds);
   void registerFactory(std::unique_ptr<InterfaceListBase> cmds);
 
   ApplicationComponentsData& components() const { return m_components; }
@@ -56,16 +54,12 @@ protected:
   ApplicationComponentsData& m_components;
 };
 
-class SCORE_LIB_BASE_EXPORT GUIApplicationRegistrar
-    : public ApplicationRegistrar
+class SCORE_LIB_BASE_EXPORT GUIApplicationRegistrar : public ApplicationRegistrar
 {
 public:
   GUIApplicationRegistrar(
-      ApplicationComponentsData&,
-      const score::GUIApplicationContext&,
-      MenuManager&,
-      ToolbarManager&,
-      ActionManager&);
+      ApplicationComponentsData&, const score::GUIApplicationContext&, MenuManager&,
+      ToolbarManager&, ActionManager&);
   ~GUIApplicationRegistrar();
 
   // Register data from plugins

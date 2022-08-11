@@ -24,12 +24,12 @@ public:
 
   void setWidget(Widget* widg)
   {
-    if (m_widget)
+    if(m_widget)
       delete m_widget;
 
     m_widget = widg;
 
-    if (m_widget)
+    if(m_widget)
       m_lay->addWidget(m_widget);
   }
 

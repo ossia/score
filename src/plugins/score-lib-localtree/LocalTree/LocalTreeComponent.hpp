@@ -41,6 +41,5 @@ protected:
   std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
-using CommonComponent
-    = Component<score::GenericComponent<const score::DocumentContext>>;
+using CommonComponent = Component<score::GenericComponent<const score::DocumentContext>>;
 }

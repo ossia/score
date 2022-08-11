@@ -1,5 +1,4 @@
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
-
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
@@ -9,15 +8,16 @@
 
 #include <score/tools/Debug.hpp>
 
-#include <ossia/detail/flicks.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/flicks.hpp>
 
 #include <QElapsedTimer>
 
 namespace score::gfx
 {
 
-VideoNodeRenderer::VideoNodeRenderer(const VideoNodeBase& node, VideoFrameShare& frames) noexcept
+VideoNodeRenderer::VideoNodeRenderer(
+    const VideoNodeBase& node, VideoFrameShare& frames) noexcept
     : NodeRenderer{}
     , node{node}
     , reader{frames}
@@ -27,10 +27,7 @@ VideoNodeRenderer::VideoNodeRenderer(const VideoNodeBase& node, VideoFrameShare&
 {
 }
 
-VideoNodeRenderer::~VideoNodeRenderer()
-{
-}
-
+VideoNodeRenderer::~VideoNodeRenderer() { }
 
 Video::VideoMetadata& VideoNodeRenderer::decoder() const noexcept
 {
@@ -46,7 +43,7 @@ void VideoNodeRenderer::createGpuDecoder()
 {
   auto& model = (VideoNode&)(node);
   auto& filter = model.m_filter;
-  switch (m_currentFormat)
+  switch(m_currentFormat)
   {
     case AV_PIX_FMT_YUV420P:
     case AV_PIX_FMT_YUVJ420P:
@@ -82,13 +79,15 @@ void VideoNodeRenderer::createGpuDecoder()
       // Go from ARGB  xyzw
       //      to RGBA  yzwx
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::RGBA8, 4, this->decoder(), "processed.rgba = tex.yzwx; " + filter);
+          QRhiTexture::RGBA8, 4, this->decoder(),
+          "processed.rgba = tex.yzwx; " + filter);
       break;
     case AV_PIX_FMT_ABGR:
       // Go from ABGR  xyzw
       //      to BGRA  yzwx
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::BGRA8, 4, this->decoder(), "processed.bgra = tex.yzwx; " + filter);
+          QRhiTexture::BGRA8, 4, this->decoder(),
+          "processed.bgra = tex.yzwx; " + filter);
       break;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_GRAYF32LE:
@@ -99,41 +98,39 @@ void VideoNodeRenderer::createGpuDecoder()
 #endif
     case AV_PIX_FMT_GRAY8:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R8, 1, this->decoder(), "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+          QRhiTexture::R8, 1, this->decoder(),
+          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
     case AV_PIX_FMT_GRAY16:
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::R16, 2, this->decoder(), "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+          QRhiTexture::R16, 2, this->decoder(),
+          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
-    default:
-    {
+    default: {
       // try to read format as a 4cc
       std::string_view fourcc{(const char*)&m_currentFormat, 4};
 
-      if (fourcc == "Hap1")
+      if(fourcc == "Hap1")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC1, this->decoder(), filter);
-      else if (fourcc == "Hap5")
+      else if(fourcc == "Hap5")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC3, this->decoder(), filter);
-      else if (fourcc == "HapY")
+      else if(fourcc == "HapY")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC3,
-            this->decoder(),
-            HAPDefaultDecoder::ycocg_filter + filter);
-      else if (fourcc == "HapM")
+            QRhiTexture::BC3, this->decoder(), HAPDefaultDecoder::ycocg_filter + filter);
+      else if(fourcc == "HapM")
         m_gpu = std::make_unique<HAPMDecoder>(this->decoder(), filter);
-      else if (fourcc == "HapA")
+      else if(fourcc == "HapA")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC4, this->decoder(), filter);
-      else if (fourcc == "Hap7")
+      else if(fourcc == "Hap7")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC7, this->decoder(), filter);
 
-      if (!m_gpu)
+      if(!m_gpu)
       {
-        qDebug() << "Unhandled pixel format: "
-                 << av_get_pix_fmt_name(m_currentFormat);
+        qDebug() << "Unhandled pixel format: " << av_get_pix_fmt_name(m_currentFormat);
         m_gpu = std::make_unique<EmptyDecoder>();
       }
       break;
@@ -146,7 +143,7 @@ void VideoNodeRenderer::createGpuDecoder()
 
 void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
 {
-  if (m_gpu)
+  if(m_gpu)
   {
     m_gpu->release(r);
 
@@ -164,28 +161,20 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
 
 void VideoNodeRenderer::createPipelines(RenderList& r)
 {
-  if (m_gpu)
+  if(m_gpu)
   {
     auto shaders = m_gpu->init(r);
     SCORE_ASSERT(m_p.empty());
     score::gfx::defaultPassesInit(
-        m_p,
-        this->node.output[0]->edges,
-        r,
-        r.defaultTriangle(),
-        shaders.first,
-        shaders.second,
-        m_processUBO,
-        m_materialUBO,
-        m_gpu->samplers);
+        m_p, this->node.output[0]->edges, r, r.defaultTriangle(), shaders.first,
+        shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
   }
 }
 
 void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h)
 {
   // TODO won't work if VK is threaded and there are multiple windows
-  if (!m_gpu || fmt != m_currentFormat || w != m_currentWidth
-      || h != m_currentHeight)
+  if(!m_gpu || fmt != m_currentFormat || w != m_currentWidth || h != m_currentHeight)
   {
     m_currentFormat = fmt;
     m_currentWidth = w;
@@ -205,31 +194,32 @@ void VideoNodeRenderer::init(RenderList& renderer)
   auto& rhi = *renderer.state.rhi;
 
   const auto& mesh = renderer.defaultQuad();
-  if (!m_meshBuffer)
+  if(!m_meshBuffer)
   {
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
   }
 
-  #include <Gfx/Qt5CompatPush> // clang-format: keep
+#include <Gfx/Qt5CompatPush> // clang-format: keep
   m_processUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
   m_processUBO->create();
 
-  m_materialUBO = rhi.newBuffer(
-  QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+  m_materialUBO
+      = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
   m_materialUBO->create();
-  #include <Gfx/Qt5CompatPop> // clang-format: keep
+#include <Gfx/Qt5CompatPop> // clang-format: keep
 
-  if (!m_gpu)
+  if(!m_gpu)
     createGpuDecoder();
 
   createPipelines(renderer);
   m_recomputeScale = true;
 }
 
-void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
+void VideoNodeRenderer::runRenderPass(
+    RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
   score::gfx::quadRenderPass(m_meshBuffer, m_idxBuffer, renderer, cb, edge, m_p);
 }
@@ -240,8 +230,7 @@ void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& c
 // is not enough
 void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  res.updateDynamicBuffer(
-      m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
+  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
   auto reader_frame = reader.m_currentFrameIdx;
   if(reader_frame > this->m_currentFrameIdx)
@@ -262,7 +251,9 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
   if(m_recomputeScale || m_currentScaleMode != this->node.m_scaleMode)
   {
     m_currentScaleMode = this->node.m_scaleMode;
-    auto sz = computeScale(m_currentScaleMode, renderer.state.renderSize, QSizeF(m_currentWidth, m_currentHeight));
+    auto sz = computeScale(
+        m_currentScaleMode, renderer.state.renderSize,
+        QSizeF(m_currentWidth, m_currentHeight));
     Material mat;
     mat.scale_w = sz.width();
     mat.scale_h = sz.height();
@@ -272,27 +263,24 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
   }
 }
 
-void VideoNodeRenderer::displayFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res)
+void VideoNodeRenderer::displayFrame(
+    AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   if(frame.data[0] == nullptr)
     return;
 
   checkFormat(
-      renderer,
-      static_cast<AVPixelFormat>(frame.format),
-      frame.width,
-      frame.height);
+      renderer, static_cast<AVPixelFormat>(frame.format), frame.width, frame.height);
 
-  if (m_gpu)
+  if(m_gpu)
   {
     m_gpu->exec(renderer, res, frame);
   }
 }
 
-
 void VideoNodeRenderer::release(RenderList& r)
 {
-  if (m_gpu)
+  if(m_gpu)
     m_gpu->release(r);
 
   delete m_processUBO;

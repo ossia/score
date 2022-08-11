@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Curve/CurveView.hpp>
 #include <Process/LayerView.hpp>
+
+#include <Curve/CurveView.hpp>
 
 #include <verdigris>
 

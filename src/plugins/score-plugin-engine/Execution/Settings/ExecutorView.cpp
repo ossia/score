@@ -21,15 +21,25 @@ View::View()
   //auto group = new QGroupBox{tr("Advanced"), m_widg};
 
   //{ // general settings
-    auto lay = m_widg->layout();
+  auto lay = m_widg->layout();
 
-    SETTINGS_UI_TOGGLE_SETUP("Enable listening during execution\nIf this is disabled, the device explorer UI will not update the received values when the score is executing to save resources.", ExecutionListening);
-    SETTINGS_UI_TOGGLE_SETUP("Logging\nIf this is enabled, the inputs and outputs of the selected process will be logged in the message log.", Logging);
-    SETTINGS_UI_TOGGLE_SETUP("Benchmark\nIf this is enabled, processes will show their relative resource usage at the top right.", Bench);
-    //lay->addRow(group);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Enable listening during execution\nIf this is disabled, the device explorer UI "
+      "will not update the received values when the score is executing to save "
+      "resources.",
+      ExecutionListening);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Logging\nIf this is enabled, the inputs and outputs of the selected process will "
+      "be logged in the message log.",
+      Logging);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Benchmark\nIf this is enabled, processes will show their relative resource usage "
+      "at the top right.",
+      Bench);
+  //lay->addRow(group);
   //}
   // advanced settings
-/*
+  /*
   auto lay = new QFormLayout;
   lay->setSpacing(10);
   group->setLayout(lay);
@@ -41,11 +51,21 @@ View::View()
   // SETTINGS_UI_COMBOBOX_SETUP("Merging policy", Merging, MergingPolicies{});
   // SETTINGS_UI_COMBOBOX_SETUP("Commit policy", Commit, CommitPolicies{});
 
-  SETTINGS_UI_TOGGLE_SETUP("Parallel\nIf this is enabled, exeuction will be separated across multiple threads.", Parallel);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Parallel\nIf this is enabled, exeuction will be separated across multiple "
+      "threads.",
+      Parallel);
   // SETTINGS_UI_TOGGLE_SETUP("Use Score order", ScoreOrder);
 
-  SETTINGS_UI_TOGGLE_SETUP("Value compilation\nWhen doing 'Play from here', score will try to put all the devices in the state they should be if execution had gone through the whole score up to this point.", ValueCompilation);
-  SETTINGS_UI_TOGGLE_SETUP("Transport value compilation\nSame as above, but also when doing transport if we are already playing.", TransportValueCompilation);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Value compilation\nWhen doing 'Play from here', score will try to put all the "
+      "devices in the state they should be if execution had gone through the whole "
+      "score up to this point.",
+      ValueCompilation);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Transport value compilation\nSame as above, but also when doing transport if we "
+      "are already playing.",
+      TransportValueCompilation);
 }
 
 SETTINGS_UI_COMBOBOX_IMPL(Tick)

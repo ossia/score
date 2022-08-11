@@ -1,6 +1,7 @@
 #pragma once
-#include <Automation/AutomationModel.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
+
+#include <Automation/AutomationModel.hpp>
 #include <Recording/Record/RecordManager.hpp>
 
 namespace Recording
@@ -15,17 +16,12 @@ namespace Recording
  */
 struct ParameterPolicy
 {
-  void operator()(
-      const RecordData& proc,
-      const TimeVal& msecs,
-      double msec,
-      float val)
+  void operator()(const RecordData& proc, const TimeVal& msecs, double msec, float val)
   {
     auto last = proc.segment.points().rbegin();
     proc.segment.addPoint(msec - 1, last->second);
     proc.segment.addPoint(msec, val);
-    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())
-        ->setDuration(msecs);
+    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())->setDuration(msecs);
   }
 };
 
@@ -39,15 +35,10 @@ struct ParameterPolicy
  */
 struct MessagePolicy
 {
-  void operator()(
-      const RecordData& proc,
-      const TimeVal& msecs,
-      double msec,
-      float val)
+  void operator()(const RecordData& proc, const TimeVal& msecs, double msec, float val)
   {
     proc.segment.addPoint(msec, val);
-    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())
-        ->setDuration(msecs);
+    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())->setDuration(msecs);
   }
 };
 
@@ -67,7 +58,7 @@ struct RecordAutomationSubsequentCallbackVisitor
     const auto& proc_data = it->second;
 
     const constexpr std::size_t N = 2;
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       RecordingPolicy{}(proc_data[i], msecs, msec, val[i]);
     }
@@ -82,7 +73,7 @@ struct RecordAutomationSubsequentCallbackVisitor
     const auto& proc_data = it->second;
 
     const constexpr std::size_t N = 3;
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       RecordingPolicy{}(proc_data[i], msecs, msec, val[i]);
     }
@@ -97,7 +88,7 @@ struct RecordAutomationSubsequentCallbackVisitor
     const auto& proc_data = it->second;
 
     const constexpr std::size_t N = 4;
-    for (std::size_t i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       RecordingPolicy{}(proc_data[i], msecs, msec, val[i]);
     }

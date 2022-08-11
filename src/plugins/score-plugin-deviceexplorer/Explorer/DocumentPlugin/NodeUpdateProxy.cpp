@@ -4,13 +4,15 @@
 
 #include "DeviceDocumentPlugin.hpp"
 
+#include <State/Address.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <State/Address.hpp>
 
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -36,7 +38,7 @@ void NodeUpdateProxy::addDevice(const Device::Node& node)
 void NodeUpdateProxy::loadDevice(const Device::Node& node)
 {
   auto n = devModel.loadDeviceFromNode(node);
-  if (n)
+  if(n)
   {
     devModel.explorer().addDevice(std::move(*n));
   }
@@ -47,8 +49,7 @@ void NodeUpdateProxy::loadDevice(const Device::Node& node)
 }
 
 void NodeUpdateProxy::updateDevice(
-    const QString& name,
-    const Device::DeviceSettings& dev)
+    const QString& name, const Device::DeviceSettings& dev)
 {
   devModel.list().device(name).updateSettings(dev);
   devModel.explorer().updateDevice(name, dev);
@@ -72,12 +73,10 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
 }
 
 void NodeUpdateProxy::addAddress(
-    const Device::NodePath& parentPath,
-    const Device::AddressSettings& settings,
-    int row)
+    const Device::NodePath& parentPath, const Device::AddressSettings& settings, int row)
 {
   auto parentnode = parentPath.toNode(&devModel.rootNode());
-  if (!parentnode)
+  if(!parentnode)
     return;
 
   // Add in the device impl
@@ -87,9 +86,9 @@ void NodeUpdateProxy::addAddress(
   SCORE_ASSERT(dev_node.template is<Device::DeviceSettings>());
 
   // Make a full path
-  Device::FullAddressSettings full = Device::FullAddressSettings::make<
-      Device::FullAddressSettings::as_parent>(
-      settings, Device::address(*parentnode));
+  Device::FullAddressSettings full
+      = Device::FullAddressSettings::make<Device::FullAddressSettings::as_parent>(
+          settings, Device::address(*parentnode));
 
   // Add in the device implementation
   devModel.list()
@@ -120,25 +119,21 @@ void NodeUpdateProxy::addAddress(const Device::FullAddressSettings& full)
 }
 
 void NodeUpdateProxy::rec_addNode(
-    Device::NodePath parentPath,
-    const Device::Node& n,
-    int row)
+    Device::NodePath parentPath, const Device::Node& n, int row)
 {
   addAddress(parentPath, n.template get<Device::AddressSettings>(), row);
 
   parentPath.push_back(row);
 
   int r = 0;
-  for (const auto& child : n.children())
+  for(const auto& child : n.children())
   {
     rec_addNode(parentPath, child, r++);
   }
 }
 
 void NodeUpdateProxy::addNode(
-    const Device::NodePath& parentPath,
-    const Device::Node& node,
-    int row)
+    const Device::NodePath& parentPath, const Device::Node& node, int row)
 {
   SCORE_ASSERT(node.template is<Device::AddressSettings>());
 
@@ -146,41 +141,39 @@ void NodeUpdateProxy::addNode(
 }
 
 void NodeUpdateProxy::updateAddress(
-    const Device::NodePath& nodePath,
-    const Device::AddressSettings& settings)
+    const Device::NodePath& nodePath, const Device::AddressSettings& settings)
 {
   auto node = nodePath.toNode(&devModel.rootNode());
-  if (!node)
+  if(!node)
     return;
 
   const auto addr = Device::address(*node);
   // Make a full path
-  Device::FullAddressSettings full = Device::FullAddressSettings::make<
-      Device::FullAddressSettings::as_child>(settings, addr);
+  Device::FullAddressSettings full
+      = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(
+          settings, addr);
   full.address.path.last() = settings.name;
 
   // Update in the device implementation
-  devModel.list()
-      .device(addr.address.device)
-      .updateAddress(addr.address, full);
+  devModel.list().device(addr.address.device).updateAddress(addr.address, full);
 
   // Update in the device explorer
   devModel.explorer().updateAddress(node, settings);
 }
 
 void NodeUpdateProxy::removeNode(
-    const Device::NodePath& parentPath,
-    const Device::AddressSettings& settings)
+    const Device::NodePath& parentPath, const Device::AddressSettings& settings)
 {
   Device::Node* parentnode = parentPath.toNode(&devModel.rootNode());
-  if (!parentnode)
+  if(!parentnode)
     return;
 
   if(settings.name.contains('/'))
   {
     auto names = settings.name.split('/');
     const Device::Node* lastnode = parentnode;
-    for(auto& n : names) {
+    for(auto& n : names)
+    {
       auto res = findChildNode(*lastnode, n);
       if(!res)
       {
@@ -215,7 +208,6 @@ void NodeUpdateProxy::removeNode(
       lastnode = lastparentnode;
       lastparentnode = lastparentnode->parent();
       k--;
-
     }
   }
   else
@@ -244,17 +236,13 @@ void NodeUpdateProxy::removeNode(
 }
 
 void NodeUpdateProxy::addLocalAddress(
-    Device::Node& parentnode,
-    const Device::AddressSettings& settings,
-    int row)
+    Device::Node& parentnode, const Device::AddressSettings& settings, int row)
 {
   devModel.explorer().addAddress(&parentnode, settings, row);
 }
 
 void NodeUpdateProxy::addLocalAddresses(
-    Device::Node& parentnode,
-    Device::AddressSettings settings,
-    int row)
+    Device::Node& parentnode, Device::AddressSettings settings, int row)
 {
   // Find the first node that does not exist
   auto names = settings.name.split('/');
@@ -263,9 +251,8 @@ void NodeUpdateProxy::addLocalAddresses(
   const Device::Node* node = &parentnode;
   while(k < names.size())
   {
-    auto cld = ossia::find_if(node->children(), [&] (auto& node) {
-      return node.displayName() == names[k];
-    });
+    auto cld = ossia::find_if(
+        node->children(), [&](auto& node) { return node.displayName() == names[k]; });
 
     if(cld != node->children().end())
     {
@@ -292,14 +279,13 @@ void NodeUpdateProxy::addLocalAddresses(
 }
 
 void NodeUpdateProxy::updateLocalValue(
-    const State::AddressAccessor& addr,
-    const ossia::value& v)
+    const State::AddressAccessor& addr, const ossia::value& v)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr.address);
-  if (!n)
+  if(!n)
     return;
 
-  if (!n->template is<Device::AddressSettings>())
+  if(!n->template is<Device::AddressSettings>())
   {
     qDebug() << "Updating invalid node";
     return;
@@ -309,27 +295,26 @@ void NodeUpdateProxy::updateLocalValue(
 }
 
 void NodeUpdateProxy::updateLocalSettings(
-    const State::Address& addr,
-    const Device::AddressSettings& set,
+    const State::Address& addr, const Device::AddressSettings& set,
     Device::DeviceInterface& newdev)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
-  if (!n)
+  if(!n)
   {
     // FIXME A subtle bug is introduced if we want to add the root node...
-    if (addr.path.size() > 0)
+    if(addr.path.size() > 0)
     {
       auto parentAddr = addr;
       parentAddr.path.removeLast();
 
       Device::Node* parent
           = Device::try_getNodeFromAddress(devModel.rootNode(), parentAddr);
-      if (parent)
+      if(parent)
       {
         const auto& last = addr.path.back();
         auto it = ossia::find_if(
             *parent, [&](const auto& n) { return n.displayName() == last; });
-        if (it == parent->cend())
+        if(it == parent->cend())
         {
           addLocalNode(*parent, newdev.getNode(addr));
         }
@@ -342,7 +327,7 @@ void NodeUpdateProxy::updateLocalSettings(
     return;
   }
 
-  if (!n->template is<Device::AddressSettings>())
+  if(!n->template is<Device::AddressSettings>())
   {
     qDebug() << "Updating invalid node";
     return;
@@ -352,33 +337,31 @@ void NodeUpdateProxy::updateLocalSettings(
 }
 
 void NodeUpdateProxy::updateRemoteValue(
-    const State::Address& addr,
-    const ossia::value& val)
+    const State::Address& addr, const ossia::value& val)
 {
   // TODO add these checks everywhere.
-  if (auto dev = devModel.list().findDevice(addr.device))
+  if(auto dev = devModel.list().findDevice(addr.device))
   {
     // Update in the device implementation
     dev->sendMessage(addr, val);
   }
 }
 
-ossia::value
-NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
+ossia::value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
 {
   // TODO here and in the following function, we should still update
   // the device explorer.
   auto dev_p = devModel.list().findDevice(addr.device);
-  if (!dev_p)
+  if(!dev_p)
     return {};
 
   auto& dev = *dev_p;
 
   auto& n = Device::getNodeFromAddress(devModel.rootNode(), addr)
                 .template get<Device::AddressSettings>();
-  if (dev.capabilities().canRefreshValue)
+  if(dev.capabilities().canRefreshValue)
   {
-    if (auto val = dev.refresh(addr))
+    if(auto val = dev.refresh(addr))
     {
       n.value = *val;
     }
@@ -393,19 +376,19 @@ NodeUpdateProxy::try_refreshRemoteValue(const State::Address& addr) const
   // TODO here and in the following function, we should still update
   // the device explorer.
   auto dev_p = devModel.list().findDevice(addr.device);
-  if (!dev_p)
+  if(!dev_p)
     return {};
 
   auto& dev = *dev_p;
 
   auto node = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
-  if (!node)
+  if(!node)
     return {};
 
   auto& n = node->template get<Device::AddressSettings>();
-  if (dev.capabilities().canRefreshValue)
+  if(dev.capabilities().canRefreshValue)
   {
-    if (auto val = dev.refresh(addr))
+    if(auto val = dev.refresh(addr))
     {
       n.value = *val;
     }
@@ -414,15 +397,14 @@ NodeUpdateProxy::try_refreshRemoteValue(const State::Address& addr) const
   return n.value;
 }
 
-static void
-rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)
+static void rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)
 {
   // OPTIMIZEME
   auto val = dev.refresh(Device::address(n).address);
-  if (val)
+  if(val)
     n.template get<Device::AddressSettings>().value = *val;
 
-  for (auto& child : n)
+  for(auto& child : n)
   {
     rec_refreshRemoteValues(child, dev);
   }
@@ -431,16 +413,16 @@ rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)
 void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
 {
   // For each node, get its device.
-  for (auto n : nodes)
+  for(auto n : nodes)
   {
-    if (n->template is<Device::DeviceSettings>())
+    if(n->template is<Device::DeviceSettings>())
     {
       auto dev_name = n->template get<Device::DeviceSettings>().name;
       auto& dev = devModel.list().device(dev_name);
-      if (!dev.capabilities().canRefreshValue)
+      if(!dev.capabilities().canRefreshValue)
         continue;
 
-      for (auto& child : *n)
+      for(auto& child : *n)
       {
         rec_refreshRemoteValues(child, dev);
       }
@@ -449,7 +431,7 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
     {
       auto addr = Device::address(*n);
       auto& dev = devModel.list().device(addr.address.device);
-      if (!dev.capabilities().canRefreshValue)
+      if(!dev.capabilities().canRefreshValue)
         continue;
 
       rec_refreshRemoteValues(*n, dev);
@@ -459,7 +441,7 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
 
 void NodeUpdateProxy::addLocalNode(Device::Node& parent, Device::Node&& node)
 {
-  if (node.is<Device::AddressSettings>())
+  if(node.is<Device::AddressSettings>())
   {
     int row = parent.childCount();
     devModel.explorer().addNode(&parent, std::move(node), row);
@@ -470,14 +452,13 @@ void NodeUpdateProxy::removeLocalNode(const State::Address& addr)
 {
   auto parentAddr = addr;
   auto nodeName = parentAddr.path.takeLast();
-  auto parentNode
-      = Device::try_getNodeFromAddress(devModel.rootNode(), parentAddr);
-  if (parentNode)
+  auto parentNode = Device::try_getNodeFromAddress(devModel.rootNode(), parentAddr);
+  if(parentNode)
   {
     auto it = ossia::find_if(*parentNode, [&](const Device::Node& n) {
       return n.get<Device::AddressSettings>().name == nodeName;
     });
-    if (it != parentNode->end())
+    if(it != parentNode->end())
     {
       devModel.explorer().removeNode(it);
     }

@@ -1,6 +1,7 @@
 #pragma once
-#include <Dataflow/PortItem.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
+
+#include <Dataflow/PortItem.hpp>
 
 namespace Dataflow
 {
@@ -21,11 +22,8 @@ struct WidgetInletFactory : public AutomatablePortFactory
   }
 
   void setupInletInspector(
-      const Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override
+      const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override
   {
     auto& ctrl = static_cast<const Model_T&>(port);
     auto widg = Widget::make_widget(ctrl, ctrl, ctx, parent, parent);
@@ -33,10 +31,8 @@ struct WidgetInletFactory : public AutomatablePortFactory
   }
 
   QGraphicsItem* makeControlItem(
-      Process::ControlInlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context) override
+      Process::ControlInlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override
   {
     auto& ctrl = static_cast<Model_T&>(port);
     return Widget::make_item(ctrl, ctrl, ctx, nullptr, context);
@@ -65,11 +61,8 @@ struct WidgetOutletFactory : public Process::PortFactory
   }
 
   void setupOutletInspector(
-      const Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context) override
+      const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override
   {
     auto& ctrl = static_cast<const Model_T&>(port);
     auto widg = Widget::make_widget(ctrl, ctrl, ctx, parent, parent);
@@ -77,10 +70,8 @@ struct WidgetOutletFactory : public Process::PortFactory
   }
 
   QGraphicsItem* makeControlItem(
-      Process::ControlOutlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context) override
+      Process::ControlOutlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override
   {
     auto& ctrl = static_cast<Model_T&>(port);
     return Widget::make_item(ctrl, ctrl, ctx, nullptr, context);

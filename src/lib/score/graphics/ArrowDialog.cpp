@@ -18,9 +18,7 @@ ArrowDialog::ArrowDialog(QGraphicsScene* scene)
 }
 
 void ArrowDialog::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
   painter->setPen(skin.LightGray.lighter.pen1);
@@ -31,9 +29,8 @@ void ArrowDialog::paint(
 
 const QPainterPath& ArrowDialog::getPath(QSizeF sz)
 {
-  auto it = ossia::find_if(
-      paths, [=](const auto& pair) { return pair.first == sz; });
-  if (it == paths.end())
+  auto it = ossia::find_if(paths, [=](const auto& pair) { return pair.first == sz; });
+  if(it == paths.end())
   {
     return paths.emplace_back(sz, createPath(sz)).second;
   }

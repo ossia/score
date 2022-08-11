@@ -2,17 +2,19 @@
 
 #include <Process/Execution/ProcessComponent.hpp>
 
-#include <score/plugins/FactorySetup.hpp>
-
 #include <Bytebeat/Bytebeat.hpp>
 #include <JitCpp/ApplicationPlugin.hpp>
-#include <JitCpp/JitModel.hpp>
 #include <JitCpp/AvndJit.hpp>
+#include <JitCpp/JitModel.hpp>
 #include <Texgen/Texgen.hpp>
+
+#include <score/plugins/FactorySetup.hpp>
+
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/Signals.h>
 #include <llvm/Support/TargetSelect.h>
+
 #include <score_plugin_engine.hpp>
 #include <score_plugin_jit_commands_files.hpp>
 #include <score_plugin_library.hpp>
@@ -25,9 +27,9 @@
 score_plugin_jit::score_plugin_jit()
 {
   using namespace llvm;
-  #if defined(_WIN32)
-    SetProcessDEPPolicy(0);
-  #endif
+#if defined(_WIN32)
+  SetProcessDEPPolicy(0);
+#endif
   sys::PrintStackTraceOnErrorSignal({});
 
   atexit(llvm_shutdown);
@@ -39,47 +41,46 @@ score_plugin_jit::score_plugin_jit()
 score_plugin_jit::~score_plugin_jit() { }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_jit::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory,
-         Jit::JitEffectFactory
-         , Jit::BytebeatEffectFactory
+      FW<Process::ProcessModelFactory, Jit::JitEffectFactory, Jit::BytebeatEffectFactory
 #if defined(SCORE_PLUGIN_AVND)
-         , AvndJit::JitEffectFactory
+         ,
+         AvndJit::JitEffectFactory
 #endif
 #if defined(SCORE_JIT_HAS_TEXGEN)
-         , Jit::TexgenEffectFactory
+         ,
+         Jit::TexgenEffectFactory
 #endif
          >,
 
-      FW<Process::LayerFactory,
-         Jit::LayerFactory
-         , Jit::BytebeatLayerFactory
+      FW<Process::LayerFactory, Jit::LayerFactory, Jit::BytebeatLayerFactory
 #if defined(SCORE_PLUGIN_AVND)
-         , AvndJit::LayerFactory
+         ,
+         AvndJit::LayerFactory
 #endif
 #if defined(SCORE_JIT_HAS_TEXGEN)
-         , Jit::TexgenLayerFactory
+         ,
+         Jit::TexgenLayerFactory
 #endif
          >,
 
-      FW<Execution::ProcessComponentFactory,
-         Execution::JitEffectComponentFactory
-         , Jit::BytebeatExecutorFactory
+      FW<Execution::ProcessComponentFactory, Execution::JitEffectComponentFactory,
+         Jit::BytebeatExecutorFactory
 #if defined(SCORE_PLUGIN_AVND)
-         , AvndJit::JitEffectComponentFactory
+         ,
+         AvndJit::JitEffectComponentFactory
 #endif
 #if defined(SCORE_JIT_HAS_TEXGEN)
-         , Jit::TexgenExecutorFactory
+         ,
+         Jit::TexgenExecutorFactory
 #endif
          >>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_jit::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_jit::make_commands()
 {
   using namespace Jit;
   using namespace AvndJit;
@@ -92,8 +93,8 @@ score_plugin_jit::make_commands()
 
   return cmds;
 }
-score::GUIApplicationPlugin* score_plugin_jit::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_jit::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Jit::ApplicationPlugin{app};
 }

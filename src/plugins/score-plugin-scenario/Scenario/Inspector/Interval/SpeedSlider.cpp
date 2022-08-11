@@ -1,3 +1,6 @@
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
+
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -9,9 +12,6 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QWidget>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
 namespace Scenario
 {
@@ -26,22 +26,22 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
   lay->setVerticalSpacing(1);
 
   auto setSpeedFun = [=](double) {
-    if (m_model)
+    if(m_model)
     {
       auto& dur = ((IntervalModel&)(*m_model)).duration;
       auto s = m_slider->speed();
-      if (dur.speed() != s)
+      if(dur.speed() != s)
       {
         dur.setSpeed(s);
       }
     }
   };
 
-  if (withButtons)
+  if(withButtons)
   {
     // Buttons
     int btn_col = 0;
-    for (double factor : {0., 0.5, 1., 2., 5.})
+    for(double factor : {0., 0.5, 1., 2., 5.})
     {
       auto pb = new QPushButton{"× " + QString::number(factor), this};
 
@@ -50,9 +50,7 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
 
-      connect(pb, &QPushButton::clicked, this, [=] {
-        m_slider->setSpeed(factor);
-      });
+      connect(pb, &QPushButton::clicked, this, [=] { m_slider->setSpeed(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);
     }
   }
@@ -60,15 +58,15 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
   // Slider
   m_slider = new score::SpeedSlider{this};
   m_slider->showText = showText;
-  m_slider->setStatusTip(QObject::tr(
-                           "Change the execution speed \n"
-                           "Tempo"));
+  m_slider->setStatusTip(
+      QObject::tr("Change the execution speed \n"
+                  "Tempo"));
 
-  if (withButtons)
+  if(withButtons)
   {
     lay->addWidget(m_slider, 0, 0, 1, 5);
 
-    for (int i = 0; i < 5; i++)
+    for(int i = 0; i < 5; i++)
       lay->setColumnStretch(i, 0);
     lay->setColumnStretch(5, 10);
   }
@@ -83,7 +81,7 @@ SpeedWidget::~SpeedWidget() { }
 
 void SpeedWidget::setInterval(const IntervalModel& m)
 {
-  if (m_model)
+  if(m_model)
   {
     QObject::disconnect(&m_model->duration, nullptr, this, nullptr);
   }
@@ -92,14 +90,14 @@ void SpeedWidget::setInterval(const IntervalModel& m)
   m_slider->setSpeed(m.duration.speed());
 
   con(m.duration, &IntervalDurations::speedChanged, this, [=](double s) {
-    if (!qFuzzyCompare(s, m_slider->speed()))
+    if(!qFuzzyCompare(s, m_slider->speed()))
       m_slider->setSpeed(s);
   });
 }
 
 void SpeedWidget::unsetInterval()
 {
-  if (m_model)
+  if(m_model)
   {
     QObject::disconnect(&m_model->duration, nullptr, this, nullptr);
   }

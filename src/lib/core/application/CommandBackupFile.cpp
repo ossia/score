@@ -13,19 +13,17 @@ namespace score
 CommandStackBackup::CommandStackBackup(const CommandStack& stack)
 {
   // Load initial state
-  for (const auto& cmd : stack.m_undoable)
+  for(const auto& cmd : stack.m_undoable)
   {
     savedUndo.push(CommandData{*cmd});
   }
-  for (const auto& cmd : stack.m_redoable)
+  for(const auto& cmd : stack.m_redoable)
   {
     savedRedo.push(CommandData{*cmd});
   }
 }
 
-CommandBackupFile::CommandBackupFile(
-    const score::CommandStack& stack,
-    QObject* parent)
+CommandBackupFile::CommandBackupFile(const score::CommandStack& stack, QObject* parent)
     : QObject{parent}
     , m_stack{stack}
     , m_backup{m_stack}
@@ -34,15 +32,12 @@ CommandBackupFile::CommandBackupFile(
 
   m_file.open();
 
-
   // Initial backup so that the file is always in a loadable state.
   commit();
 }
 
 CommandBackupFile::CommandBackupFile(
-    const CommandStack& stack,
-    const QByteArray& restored,
-    QObject* parent)
+    const CommandStack& stack, const QByteArray& restored, QObject* parent)
     : QObject{parent}
     , m_stack{stack}
     , m_backup{m_stack}
@@ -68,12 +63,8 @@ void CommandBackupFile::init_connections()
   con(m_stack, &CommandStack::sig_push, this, &CommandBackupFile::on_push);
   con(m_stack, &CommandStack::sig_undo, this, &CommandBackupFile::on_undo);
   con(m_stack, &CommandStack::sig_redo, this, &CommandBackupFile::on_redo);
-  con(m_stack,
-      &CommandStack::sig_indexChanged,
-      this,
+  con(m_stack, &CommandStack::sig_indexChanged, this,
       &CommandBackupFile::on_indexChanged);
-
-
 }
 
 void CommandBackupFile::on_push()

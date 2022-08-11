@@ -13,8 +13,7 @@ namespace vst3
 class PlugFrame final : public Steinberg::IPlugFrame
 {
 public:
-  Steinberg::tresult
-  queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     *obj = nullptr;
     return Steinberg::kResultFalse;
@@ -34,7 +33,7 @@ public:
   Steinberg::tresult
   resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
-      wc.setSizeFromVst(*view, *newSize, w);
+    wc.setSizeFromVst(*view, *newSize, w);
     return Steinberg::kResultOk;
   }
 };
@@ -44,8 +43,7 @@ public:
 class PlugFrame final : public Steinberg::IPlugFrame
 {
 public:
-  Steinberg::tresult
-  queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     *obj = nullptr;
     return Steinberg::kResultFalse;

@@ -1,13 +1,11 @@
 #include "GraphicsTabLayout.hpp"
+
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
 #include <score/tools/Debug.hpp>
 namespace score
 {
 
-GraphicsTabLayout::~GraphicsTabLayout()
-{
-
-}
+GraphicsTabLayout::~GraphicsTabLayout() { }
 
 void GraphicsTabLayout::addTab(QString tab)
 {
@@ -27,8 +25,7 @@ void GraphicsTabLayout::layout()
   tab_bar->setPos(m_padding, m_padding);
   tab_bar->columns = m_tabs.size();
   tab_bar->updateRect();
-  connect(tab_bar, &score::QGraphicsEnum::currentIndexChanged,
-          this, [this] (int idx) {
+  connect(tab_bar, &score::QGraphicsEnum::currentIndexChanged, this, [this](int idx) {
     auto page = m_pages[idx];
     if(page != current)
     {

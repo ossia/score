@@ -44,8 +44,7 @@ SCORE_LIB_STATE_EXPORT vec4f value(const ossia::value& val);
 template <>
 SCORE_LIB_STATE_EXPORT list_t value(const ossia::value& val);
 
-SCORE_LIB_STATE_EXPORT bool
-convert(const ossia::value& orig, ossia::value& toConvert);
+SCORE_LIB_STATE_EXPORT bool convert(const ossia::value& orig, ossia::value& toConvert);
 
 // Adornishments to allow to differentiate between different value types, e.g.
 // 'a', ['a', 12], or "str" for a string.
@@ -66,8 +65,7 @@ SCORE_LIB_STATE_EXPORT const std::array<const QString, 11>&
 ValuePrettyTypesArray(); // For display to the user, translated
 SCORE_LIB_STATE_EXPORT const QStringList&
 ValuePrettyTypesList(); // For display to the user, translated
-SCORE_LIB_STATE_EXPORT const
-    std::array<std::pair<QString, ossia::val_type>, 10>&
-    ValuePrettyTypesMap();
+SCORE_LIB_STATE_EXPORT const std::array<std::pair<QString, ossia::val_type>, 10>&
+ValuePrettyTypesMap();
 }
 }

@@ -6,22 +6,21 @@
 #include <Library/LibraryWidget.hpp>
 #include <Library/RecursiveFilterProxy.hpp>
 
-#include <core/document/Document.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-#include <QMenu>
 #include <QApplication>
-#include <QVBoxLayout>
 #include <QDesktopServices>
+#include <QMenu>
+#include <QVBoxLayout>
 
 namespace Library
 {
 SystemLibraryWidget::SystemLibraryWidget(
-    const score::GUIApplicationContext& ctx,
-    QWidget* parent)
+    const score::GUIApplicationContext& ctx, QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new FileSystemRecursiveFilterProxy{this}}
@@ -31,12 +30,12 @@ SystemLibraryWidget::SystemLibraryWidget(
   m_proxy->setRecursiveFilteringEnabled(true);
 #endif
 
-  setStatusTip(QObject::tr(
-      "This panel shows the system library.\n"
-      "It is present by default in your user's Documents folder, \n"
-      "in a subfolder named ossia score library."
-      "A user-provided library is available on : \n"
-      "github.com/ossia/score-user-library"));
+  setStatusTip(
+      QObject::tr("This panel shows the system library.\n"
+                  "It is present by default in your user's Documents folder, \n"
+                  "in a subfolder named ossia score library."
+                  "A user-provided library is available on : \n"
+                  "github.com/ossia/score-user-library"));
   auto lay = new score::MarginLess<QVBoxLayout>;
 
   this->setLayout(lay);
@@ -62,7 +61,7 @@ SystemLibraryWidget::SystemLibraryWidget(
   auto sel = m_tv.selectionModel();
 
   m_tv.setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-  connect(&m_tv, &QTreeView::customContextMenuRequested, this, [&] (QPoint pos) {
+  connect(&m_tv, &QTreeView::customContextMenuRequested, this, [&](QPoint pos) {
     auto idx = m_tv.indexAt(pos);
     if(!idx.isValid())
       return;
@@ -83,7 +82,7 @@ SystemLibraryWidget::SystemLibraryWidget(
       sorting->setCheckable(true);
       sorting->setChecked(m_model->isSorting());
       menu->addAction(sorting);
-      connect(sorting, &QAction::triggered, this, [=] (bool checked) {
+      connect(sorting, &QAction::triggered, this, [=](bool checked) {
         m_model->setSorting(checked);
       });
     }
@@ -92,36 +91,38 @@ SystemLibraryWidget::SystemLibraryWidget(
     menu->deleteLater();
   });
 
-  connect(sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
+  connect(
+      sel, &QItemSelectionModel::currentRowChanged, this,
+      [&](const QModelIndex& idx, const QModelIndex&) {
     m_preview.hide();
     auto doc = ctx.docManager.currentDocument();
-    if (!doc)
+    if(!doc)
       return;
-    if (!idx.isValid())
+    if(!idx.isValid())
       return;
 
     delete m_previewChild;
     m_previewChild = nullptr;
 
     auto path = m_model->filePath(m_proxy->mapToSource(idx));
-    for (auto lib : libraryInterface(path))
+    for(auto lib : libraryInterface(path))
     {
-      if ((m_previewChild = lib->previewWidget(path, &m_preview)))
+      if((m_previewChild = lib->previewWidget(path, &m_preview)))
       {
         m_preview.layout()->addWidget(m_previewChild);
         m_preview.show();
       }
     }
-  });
+      });
   connect(&m_tv, &QTreeView::doubleClicked, this, [&](const QModelIndex& idx) {
     auto doc = ctx.docManager.currentDocument();
-    if (!doc)
+    if(!doc)
       return;
 
     auto path = m_model->filePath(m_proxy->mapToSource(idx));
-    for (auto lib : libraryInterface(path))
+    for(auto lib : libraryInterface(path))
     {
-      if (lib->onDoubleClick(path, doc->context()))
+      if(lib->onDoubleClick(path, doc->context()))
         return;
     }
   });
@@ -141,9 +142,7 @@ SystemLibraryWidget::SystemLibraryWidget(
     auto& settings = ctx.settings<Library::Settings::Model>();
     auto reset = [this, &settings] { setRoot(settings.getPackagesPath()); };
     reset();
-    con(settings, &Library::Settings::Model::RootPathChanged, this, [=] {
-      reset();
-    });
+    con(settings, &Library::Settings::Model::RootPathChanged, this, [=] { reset(); });
     con(settings, &Library::Settings::Model::rescanLibrary, this, [=] { reset(); });
   });
 #endif
@@ -158,7 +157,7 @@ void SystemLibraryWidget::setRoot(QString path)
   if(idx.isValid())
   {
     m_tv.setRootIndex(m_proxy->mapFromSource(idx));
-    for (int i = 1; i < m_model->columnCount(); ++i)
+    for(int i = 1; i < m_model->columnCount(); ++i)
       m_tv.hideColumn(i);
 
     m_tv.setEnabled(true);

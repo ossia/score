@@ -2,6 +2,7 @@
 #include "ExplorationWorker.hpp"
 
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <score/widgets/MessageBox.hpp>
@@ -28,32 +29,22 @@ class ExplorationWorkerWrapper final : public QObject
 public:
   template <typename OnSuccess_t>
   ExplorationWorkerWrapper(
-      OnSuccess_t&& success,
-      DeviceExplorerWidget& widg,
-      Device::DeviceInterface& dev)
+      OnSuccess_t&& success, DeviceExplorerWidget& widg, Device::DeviceInterface& dev)
       : worker{new ExplorationWorker{dev}}
       , m_widget{widg}
       , m_success{std::move(success)}
   {
     QObject::connect(
-        thread,
-        &QThread::started,
-        worker,
+        thread, &QThread::started, worker,
         [&]() { on_start(); }, // so that it runs on thread.
         Qt::QueuedConnection);
 
     QObject::connect(
-        worker,
-        &ExplorationWorker::finished,
-        this,
-        &ExplorationWorkerWrapper::on_finish,
+        worker, &ExplorationWorker::finished, this, &ExplorationWorkerWrapper::on_finish,
         Qt::QueuedConnection);
 
     QObject::connect(
-        worker,
-        &ExplorationWorker::failed,
-        this,
-        &ExplorationWorkerWrapper::on_fail,
+        worker, &ExplorationWorker::failed, this, &ExplorationWorkerWrapper::on_fail,
         Qt::QueuedConnection);
   }
 
@@ -79,7 +70,7 @@ private:
       worker->node = worker->dev.refresh();
       worker->finished();
     }
-    catch (std::runtime_error& e)
+    catch(std::runtime_error& e)
     {
       worker->failed(e.what());
     }
@@ -96,10 +87,9 @@ private:
   void on_fail(const QString& str)
   {
     score::warning(
-        QApplication::activeWindow(),
-        QObject::tr("Unable to refresh the device"),
-        QObject::tr("Unable to refresh the device: ")
-            + worker->dev.settings().name + QObject::tr(".\nCause: ") + str);
+        QApplication::activeWindow(), QObject::tr("Unable to refresh the device"),
+        QObject::tr("Unable to refresh the device: ") + worker->dev.settings().name
+            + QObject::tr(".\nCause: ") + str);
 
     m_widget.blockGUI(false);
     cleanup();
@@ -115,11 +105,8 @@ private:
 
 template <typename OnSuccess_t>
 static auto make_worker(
-    OnSuccess_t&& success,
-    DeviceExplorerWidget& widg,
-    Device::DeviceInterface& dev)
+    OnSuccess_t&& success, DeviceExplorerWidget& widg, Device::DeviceInterface& dev)
 {
-  return new ExplorationWorkerWrapper<OnSuccess_t>{
-      std::move(success), widg, dev};
+  return new ExplorationWorkerWrapper<OnSuccess_t>{std::move(success), widg, dev};
 }
 }

@@ -2,21 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioActions.hpp"
 
-#include <core/document/DocumentModel.hpp>
-#include <core/document/Document.hpp>
-
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
 namespace Scenario
 {
 
-const ScenarioInterface*
-focusedScenarioInterface(const score::DocumentContext& ctx)
+const ScenarioInterface* focusedScenarioInterface(const score::DocumentContext& ctx)
 {
-  if (auto layer = dynamic_cast<const Scenario::ScenarioInterface*>(
-          ctx.document.focusManager().get()))
+  if(auto layer = dynamic_cast<const Scenario::ScenarioInterface*>(
+         ctx.document.focusManager().get()))
   {
     return layer;
   }
@@ -24,10 +23,10 @@ focusedScenarioInterface(const score::DocumentContext& ctx)
   {
     auto model = dynamic_cast<Scenario::ScenarioDocumentModel*>(
         &ctx.document.model().modelDelegate());
-    if (model)
+    if(model)
     {
       auto& bs = model->baseScenario();
-      if (bs.focused())
+      if(bs.focused())
       {
         return &bs;
       }
@@ -38,8 +37,7 @@ focusedScenarioInterface(const score::DocumentContext& ctx)
 
 const ProcessModel* focusedScenarioModel(const score::DocumentContext& ctx)
 {
-  return dynamic_cast<const Scenario::ProcessModel*>(
-      ctx.document.focusManager().get());
+  return dynamic_cast<const Scenario::ProcessModel*>(ctx.document.focusManager().get());
 }
 
 EnableWhenScenarioModelObject::EnableWhenScenarioModelObject()
@@ -53,24 +51,23 @@ score::ActionConditionKey EnableWhenScenarioModelObject::static_key()
 }
 
 void EnableWhenScenarioModelObject::action(
-    score::ActionManager& mgr,
-    score::MaybeDocument doc)
+    score::ActionManager& mgr, score::MaybeDocument doc)
 {
-  if (!doc)
+  if(!doc)
   {
     setEnabled(mgr, false);
     return;
   }
 
   auto focus = doc->focus.get();
-  if (!focus)
+  if(!focus)
   {
     setEnabled(mgr, false);
     return;
   }
 
   auto proc = dynamic_cast<const Scenario::ProcessModel*>(focus);
-  if (!proc)
+  if(!proc)
   {
     setEnabled(mgr, false);
     return;
@@ -90,23 +87,20 @@ void EnableWhenScenarioModelObject::action(
   setEnabled(mgr, res);
 }
 
-EnableWhenScenarioInterfaceInstantObject::
-    EnableWhenScenarioInterfaceInstantObject()
+EnableWhenScenarioInterfaceInstantObject::EnableWhenScenarioInterfaceInstantObject()
     : score::ActionCondition{static_key()}
 {
 }
 
-score::ActionConditionKey
-EnableWhenScenarioInterfaceInstantObject::static_key()
+score::ActionConditionKey EnableWhenScenarioInterfaceInstantObject::static_key()
 {
   return score::ActionConditionKey{"ScenarioInterfaceInstantObject"};
 }
 
 void EnableWhenScenarioInterfaceInstantObject::action(
-    score::ActionManager& mgr,
-    score::MaybeDocument doc)
+    score::ActionManager& mgr, score::MaybeDocument doc)
 {
-  if (!doc)
+  if(!doc)
   {
     setEnabled(mgr, false);
     return;
@@ -134,10 +128,9 @@ score::ActionConditionKey EnableWhenScenarioInterfaceObject::static_key()
 }
 
 void EnableWhenScenarioInterfaceObject::action(
-    score::ActionManager& mgr,
-    score::MaybeDocument doc)
+    score::ActionManager& mgr, score::MaybeDocument doc)
 {
-  if (!doc)
+  if(!doc)
   {
     setEnabled(mgr, false);
     return;

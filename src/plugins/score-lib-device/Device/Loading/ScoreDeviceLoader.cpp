@@ -2,12 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScoreDeviceLoader.hpp"
 
+#include <State/Domain.hpp>
+#include <State/Value.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
-#include <State/Domain.hpp>
-#include <State/Value.hpp>
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/tools/File.hpp>
@@ -23,12 +24,12 @@ namespace Device
 
 bool loadDeviceFromScoreJSON(const rapidjson::Document& json, Node& node)
 {
-  if (!json.IsObject())
+  if(!json.IsObject())
   {
     return false;
   }
 
-  if (!json.HasMember("Device"))
+  if(!json.HasMember("Device"))
   {
     return false;
   }
@@ -41,7 +42,7 @@ bool loadDeviceFromScoreJSON(const rapidjson::Document& json, Node& node)
 bool loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node)
 {
   QFile doc{filePath};
-  if (!doc.open(QIODevice::ReadOnly))
+  if(!doc.open(QIODevice::ReadOnly))
   {
     qDebug() << "Unable to load the OSC device" << filePath;
     return false;

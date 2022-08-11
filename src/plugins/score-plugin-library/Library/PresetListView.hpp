@@ -2,9 +2,10 @@
 #include <Process/Preset.hpp>
 
 #include <QListView>
-#include <verdigris>
 
 #include <score_plugin_library_export.h>
+
+#include <verdigris>
 
 namespace Library
 {

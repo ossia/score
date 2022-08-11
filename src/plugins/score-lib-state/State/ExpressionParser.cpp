@@ -86,8 +86,7 @@ struct RelationMember_parser : qi::grammar<Iterator, State::RelationMember()>
 };
 
 /// Relation parsing
-struct RelationOperation_map
-    : qi::symbols<char, ossia::expressions::comparator>
+struct RelationOperation_map : qi::symbols<char, ossia::expressions::comparator>
 {
   RelationOperation_map()
   {
@@ -107,8 +106,7 @@ struct Relation_parser : qi::grammar<Iterator, State::Relation()>
       : Relation_parser::base_type(start)
   {
     using boost::spirit::qi::skip;
-    start %= skip(
-        boost::spirit::standard::space)[(rm_parser >> op_map >> rm2_parser)];
+    start %= skip(boost::spirit::standard::space)[(rm_parser >> op_map >> rm2_parser)];
   }
 
   RelationMember_parser<Iterator> rm_parser;
@@ -126,12 +124,9 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
     using boost::spirit::qi::lit;
     using boost::spirit::qi::skip;
     using boost::spirit::standard::string;
-    start
-        %= skip(
-               boost::spirit::standard::space)["%" >> addr >> "%" >> "impulse"]
-           | skip(boost::spirit::standard::space)
-               [lit('{') >> lit("%") >> addr >> lit("%") >> lit("impulse")
-                >> '}'];
+    start %= skip(boost::spirit::standard::space)["%" >> addr >> "%" >> "impulse"]
+             | skip(boost::spirit::standard::space)
+                 [lit('{') >> lit("%") >> addr >> lit("%") >> lit("impulse") >> '}'];
   }
 
   Address_parser<Iterator> addr;
@@ -163,11 +158,8 @@ template <typename tag>
 struct unop;
 
 using expr_raw = boost::variant<
-    State::Relation,
-    State::Pulse,
-    boost::recursive_wrapper<unop<op_not>>,
-    boost::recursive_wrapper<binop<op_and>>,
-    boost::recursive_wrapper<binop<op_xor>>,
+    State::Relation, State::Pulse, boost::recursive_wrapper<unop<op_not>>,
+    boost::recursive_wrapper<binop<op_and>>, boost::recursive_wrapper<binop<op_xor>>,
     boost::recursive_wrapper<binop<op_or>>>;
 
 template <typename tag>
@@ -202,15 +194,14 @@ struct Expression_parser : qi::grammar<It, expr_raw(), Skipper>
     expr_ = or_.alias();
 
     namespace bsi = boost::spirit;
-    or_ = (xor_ >> "or"
-           >> or_)[_val = phx::construct<binop<op_or>>(bsi::_1, bsi::_2)]
+    or_ = (xor_ >> "or" >> or_)[_val = phx::construct<binop<op_or>>(bsi::_1, bsi::_2)]
           | xor_[_val = bsi::_1];
-    xor_ = (and_ >> "xor"
-            >> xor_)[_val = phx::construct<binop<op_xor>>(bsi::_1, bsi::_2)]
-           | and_[_val = bsi::_1];
-    and_ = (not_ >> "and"
-            >> and_)[_val = phx::construct<binop<op_and>>(bsi::_1, bsi::_2)]
-           | not_[_val = bsi::_1];
+    xor_
+        = (and_ >> "xor" >> xor_)[_val = phx::construct<binop<op_xor>>(bsi::_1, bsi::_2)]
+          | and_[_val = bsi::_1];
+    and_
+        = (not_ >> "and" >> and_)[_val = phx::construct<binop<op_and>>(bsi::_1, bsi::_2)]
+          | not_[_val = bsi::_1];
     not_ = ("not" > simple)[_val = phx::construct<unop<op_not>>(bsi::_1)]
            | simple[_val = bsi::_1];
 
@@ -231,15 +222,9 @@ struct Expression_builder : boost::static_visitor<void>
   }
   State::Expression* m_current{};
 
-  void operator()(const State::Relation& rel)
-  {
-    m_current->emplace_back(rel, nullptr);
-  }
+  void operator()(const State::Relation& rel) { m_current->emplace_back(rel, nullptr); }
 
-  void operator()(const State::Pulse& rel)
-  {
-    m_current->emplace_back(rel, nullptr);
-  }
+  void operator()(const State::Pulse& rel) { m_current->emplace_back(rel, nullptr); }
 
   void operator()(const binop<op_and>& b)
   {
@@ -254,8 +239,7 @@ struct Expression_builder : boost::static_visitor<void>
     rec_binop(State::BinaryOperator::XOR, b.oper1, b.oper2);
   }
 
-  void
-  rec_binop(State::BinaryOperator binop, const expr_raw& l, const expr_raw& r)
+  void rec_binop(State::BinaryOperator binop, const expr_raw& l, const expr_raw& r)
   {
     m_current->emplace_back(binop, nullptr);
 
@@ -282,8 +266,7 @@ struct Expression_builder : boost::static_visitor<void>
 };
 }
 
-std::optional<State::Expression>
-State::parseExpression(const std::string& input)
+std::optional<State::Expression> State::parseExpression(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
   auto p = std::make_unique<Expression_parser<decltype(f)>>();
@@ -292,7 +275,7 @@ State::parseExpression(const std::string& input)
     expr_raw result;
     bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
 
-    if (!ok)
+    if(!ok)
     {
       return {};
     }
@@ -304,12 +287,12 @@ State::parseExpression(const std::string& input)
 
     return e;
   }
-  catch (const qi::expectation_failure<decltype(f)>& e)
+  catch(const qi::expectation_failure<decltype(f)>& e)
   {
     // SCORE_BREAKPOINT;
     return {};
   }
-  catch (...)
+  catch(...)
   {
     // SCORE_BREAKPOINT;
     return {};

@@ -1,27 +1,22 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
 
-#include <score/model/path/Path.hpp>
-
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <score/model/path/Path.hpp>
 
 namespace Dataflow
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      CreateCable,
-      "Create cable")
+      Scenario::Command::CommandFactoryName(), CreateCable, "Create cable")
 
 public:
   CreateCable(
-      const Scenario::ScenarioDocumentModel& dp,
-      Id<Process::Cable> theCable,
-      Process::CableType type,
-      const Process::Port& source,
-      const Process::Port& sink);
+      const Scenario::ScenarioDocumentModel& dp, Id<Process::Cable> theCable,
+      Process::CableType type, const Process::Port& source, const Process::Port& sink);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -40,9 +35,7 @@ private:
 class SCORE_PLUGIN_SCENARIO_EXPORT UpdateCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      UpdateCable,
-      "Update cable")
+      Scenario::Command::CommandFactoryName(), UpdateCable, "Update cable")
 
 public:
   UpdateCable(const Process::Cable& theCable, Process::CableType newDat);
@@ -62,14 +55,10 @@ private:
 class SCORE_PLUGIN_SCENARIO_EXPORT RemoveCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      RemoveCable,
-      "Remove cable")
+      Scenario::Command::CommandFactoryName(), RemoveCable, "Remove cable")
 
 public:
-  RemoveCable(
-      const Scenario::ScenarioDocumentModel& dp,
-      const Process::Cable& theCable);
+  RemoveCable(const Scenario::ScenarioDocumentModel& dp, const Process::Cable& theCable);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -11,7 +11,7 @@ W_OBJECT_IMPL(score::QGraphicsButton);
 namespace score
 {
 QGraphicsButton::QGraphicsButton(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
+    : QGraphicsItem{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -45,9 +45,7 @@ void QGraphicsButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 void QGraphicsButton::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -60,21 +58,16 @@ void QGraphicsButton::paint(
       = margin + 0.5f * (backgroundRectWidth - insideCircleWidth);
 
   painter->setPen(skin.NoPen);
-  painter->setBrush(
-      !m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
+  painter->setBrush(!m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
 
-  painter->drawEllipse(
-      QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
+  painter->drawEllipse(QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
 
-  if (m_pressed)
+  if(m_pressed)
   {
     painter->setPen(skin.Emphasis2.main.pen2);
     painter->setBrush(skin.NoBrush);
     painter->drawEllipse(QRectF{
-        insideCircleOffset,
-        insideCircleOffset,
-        insideCircleWidth,
-        insideCircleWidth});
+        insideCircleOffset, insideCircleOffset, insideCircleWidth, insideCircleWidth});
   }
 
   painter->setRenderHint(QPainter::Antialiasing, false);

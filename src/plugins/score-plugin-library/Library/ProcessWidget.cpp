@@ -1,16 +1,17 @@
 #include "ProcessWidget.hpp"
 
+#include <Process/ApplicationPlugin.hpp>
+#include <Process/ProcessList.hpp>
+
 #include <Library/ItemModelFilterLineEdit.hpp>
 #include <Library/LibraryWidget.hpp>
 #include <Library/PresetItemModel.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Library/RecursiveFilterProxy.hpp>
-#include <Process/ApplicationPlugin.hpp>
-#include <Process/ProcessList.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
-#include <score/widgets/MarginLess.hpp>
 #include <score/tools/File.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -48,47 +49,46 @@ public:
     m_io.setText(QString{});
     m_tags.setText(QString{});
 
-    if (d)
+    if(d)
     {
-      if (auto f = score::GUIAppContext()
-                       .interfaces<Process::ProcessFactoryList>()
-                       .get(d->key))
+      if(auto f
+         = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d->key))
       {
         setVisible(true);
         auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
 
-        if (!d->prettyName.isEmpty())
+        if(!d->prettyName.isEmpty())
           m_name.setText(d->prettyName);
         else
           m_name.setText(desc.prettyName);
 
-        if (!d->author.isEmpty())
+        if(!d->author.isEmpty())
           m_author.setText(tr("Provided by ") + d->author);
-        else if (!desc.author.isEmpty())
+        else if(!desc.author.isEmpty())
           m_author.setText(tr("Provided by ") + desc.author);
 
-        if (!d->description.isEmpty())
+        if(!d->description.isEmpty())
           m_description.setText(d->description);
-        else if (!desc.description.isEmpty())
+        else if(!desc.description.isEmpty())
           m_description.setText(desc.description);
 
         QString io;
-        if (desc.inlets)
+        if(desc.inlets)
         {
           io += QString::number(desc.inlets->size()) + tr(" input");
-          if (desc.inlets->size() > 1)
+          if(desc.inlets->size() > 1)
             io += "s";
         }
-        if (desc.inlets && desc.outlets)
+        if(desc.inlets && desc.outlets)
           io += ", ";
-        if (desc.outlets)
+        if(desc.outlets)
         {
           io += QString::number(desc.outlets->size()) + tr(" output");
-          if (desc.outlets->size() > 1)
+          if(desc.outlets->size() > 1)
             io += "s";
         }
         m_io.setText(io);
-        if (!desc.tags.empty())
+        if(!desc.tags.empty())
         {
           m_tags.setText(tr("Tags: ") + desc.tags.join(", "));
         }
@@ -106,9 +106,7 @@ public:
   QLabel m_tags;
 };
 
-ProcessWidget::ProcessWidget(
-    const score::GUIApplicationContext& ctx,
-    QWidget* parent)
+ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent)
     : QWidget{parent}
     , m_processModel{new ProcessesItemModel{ctx, this}}
     , m_presetModel{new PresetItemModel{ctx, this}}
@@ -126,8 +124,7 @@ ProcessWidget::ProcessWidget(
     auto processFilterProxy = new RecursiveFilterProxy{this};
     processFilterProxy->setSourceModel(m_processModel);
     processFilterProxy->setFilterKeyColumn(0);
-    slay->addWidget(
-        new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
+    slay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
     slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
     m_tv.setStatusTip(statusTip());
@@ -155,14 +152,16 @@ ProcessWidget::ProcessWidget(
   infoWidg->setStatusTip(statusTip());
   slay->addWidget(infoWidg, 1);
 
-  connect(&m_tv, &ProcessTreeView::selected, this, [=](const std::optional<Library::ProcessData>& pdata) {
+  connect(
+      &m_tv, &ProcessTreeView::selected, this,
+      [=](const std::optional<Library::ProcessData>& pdata) {
     m_preview.hide();
 
     // Update info widget
     infoWidg->setData(pdata);
 
     // Update the filter
-    if (pdata)
+    if(pdata)
     {
       presetFilterProxy->currentFilter = {pdata->key, pdata->customData};
     }
@@ -179,9 +178,9 @@ ProcessWidget::ProcessWidget(
     {
       if(QFile::exists(pdata->customData))
       {
-        for (auto lib : libraryInterface(pdata->customData))
+        for(auto lib : libraryInterface(pdata->customData))
         {
-          if ((m_previewChild = lib->previewWidget(pdata->customData, &m_preview)))
+          if((m_previewChild = lib->previewWidget(pdata->customData, &m_preview)))
           {
             m_preview.layout()->addWidget(m_previewChild);
             m_preview.show();
@@ -190,40 +189,42 @@ ProcessWidget::ProcessWidget(
         }
       }
     }
-  });
+      });
 
   auto preset_sel = m_lv.selectionModel();
-  connect(preset_sel, &QItemSelectionModel::currentRowChanged, this, [=](const QModelIndex& idx, const QModelIndex&) {
-            if(!idx.isValid())
-              return;
-            auto midx = presetFilterProxy->mapToSource(idx);
-            if(!midx.isValid())
-              return;
+  connect(
+      preset_sel, &QItemSelectionModel::currentRowChanged, this,
+      [=](const QModelIndex& idx, const QModelIndex&) {
+    if(!idx.isValid())
+      return;
+    auto midx = presetFilterProxy->mapToSource(idx);
+    if(!midx.isValid())
+      return;
 
-            if(!ossia::valid_index(midx.row(), m_presetModel->presets))
-              return;
+    if(!ossia::valid_index(midx.row(), m_presetModel->presets))
+      return;
 
-            m_preview.hide();
-            delete m_previewChild;
-            m_previewChild = nullptr;
+    m_preview.hide();
+    delete m_previewChild;
+    m_previewChild = nullptr;
 
-            const auto& preset = m_presetModel->presets[midx.row()];
+    const auto& preset = m_presetModel->presets[midx.row()];
 
-            for (auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
-            {
-              if ((m_previewChild = lib.previewWidget(preset, &m_preview)))
-              {
-                m_preview.layout()->addWidget(m_previewChild);
-                m_preview.show();
-                break;
-              }
-            }
-          });
+    for(auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
+    {
+      if((m_previewChild = lib.previewWidget(preset, &m_preview)))
+      {
+        m_preview.layout()->addWidget(m_previewChild);
+        m_preview.show();
+        break;
+      }
+    }
+      });
   m_lv.setMinimumHeight(100);
 
   auto& presetLib = ctx.applicationPlugin<Process::ApplicationPlugin>();
-  con(presetLib, &Process::ApplicationPlugin::savePreset,
-      this, [&] (const Process::ProcessModel* proc) {
+  con(presetLib, &Process::ApplicationPlugin::savePreset, this,
+      [&](const Process::ProcessModel* proc) {
     SCORE_ASSERT(proc);
     this->m_presetModel->savePreset(*proc);
   });
@@ -231,14 +232,18 @@ ProcessWidget::ProcessWidget(
 
 ProcessWidget::~ProcessWidget() { }
 
-QSet<QString> PresetLibraryHandler::acceptedFiles() const noexcept { return {"scp"}; }
+QSet<QString> PresetLibraryHandler::acceptedFiles() const noexcept
+{
+  return {"scp"};
+}
 
 QSet<QString> PresetLibraryHandler::acceptedMimeTypes() const noexcept
 {
   return {score::mime::processpreset()};
 }
 
-void PresetLibraryHandler::setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+void PresetLibraryHandler::setup(
+    ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {
   presetLib = &ctx.applicationPlugin<Process::ApplicationPlugin>();
   processes = &ctx.interfaces<Process::ProcessFactoryList>();
@@ -248,30 +253,31 @@ void PresetLibraryHandler::addPath(std::string_view path)
 {
   QFile f{QString::fromUtf8(path.data(), path.length())};
 
-  if (!f.open(QIODevice::ReadOnly))
+  if(!f.open(QIODevice::ReadOnly))
     return;
 
-  if (auto p = Process::Preset::fromJson(*processes, score::mapAsByteArray(f)))
+  if(auto p = Process::Preset::fromJson(*processes, score::mapAsByteArray(f)))
   {
     presetLib->addPreset(std::move(*p));
   }
 }
 
-bool PresetLibraryHandler::onDrop(const QMimeData& mime, int row, int column, const QDir& parent)
+bool PresetLibraryHandler::onDrop(
+    const QMimeData& mime, int row, int column, const QDir& parent)
 {
-  if (!mime.hasFormat(score::mime::processpreset()))
+  if(!mime.hasFormat(score::mime::processpreset()))
     return false;
 
   auto json = readJson(mime.data(score::mime::processpreset()));
-  if (!json.HasMember("Name"))
+  if(!json.HasMember("Name"))
     return true;
 
   auto basename = JsonValue{json["Name"]}.toString();
-  const QString filename = score::addUniqueSuffix(
-                       parent.absolutePath() + "/" + basename + ".scp");
+  const QString filename
+      = score::addUniqueSuffix(parent.absolutePath() + "/" + basename + ".scp");
 
   QFile f{filename};
-  if (!f.open(QIODevice::WriteOnly))
+  if(!f.open(QIODevice::WriteOnly))
     return false;
 
   f.write(mime.data(score::mime::processpreset()));

@@ -25,13 +25,9 @@ public:
     connect(editAction, &QAction::triggered, this, [=] {
       bool ok = false;
       auto str = QInputDialog::getText(
-          nullptr,
-          tr("Edit expression"),
-          tr("Edit expression"),
-          QLineEdit::Normal,
-          f().toString(),
-          &ok);
-      if (ok)
+          nullptr, tr("Edit expression"), tr("Edit expression"), QLineEdit::Normal,
+          f().toString(), &ok);
+      if(ok)
         expressionChanged(std::move(str));
     });
   }

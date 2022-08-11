@@ -10,10 +10,7 @@ class LayerPresenter;
 
 struct SCORE_LIB_PROCESS_EXPORT Context : public score::DocumentContext
 {
-  Context(
-      const score::DocumentContext& doc,
-      DataflowManager& dfm,
-      FocusDispatcher& d);
+  Context(const score::DocumentContext& doc, DataflowManager& dfm, FocusDispatcher& d);
 
   DataflowManager& dataflow;
   FocusDispatcher& focusDispatcher;

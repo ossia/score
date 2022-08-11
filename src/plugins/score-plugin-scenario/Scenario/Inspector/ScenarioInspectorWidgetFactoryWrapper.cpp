@@ -15,13 +15,10 @@
 
 namespace Scenario
 {
-ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper()
-{
-}
+ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper() { }
 
 QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
-    const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc,
+    const InspectedObjects& sourceElements, const score::DocumentContext& doc,
     QWidget* parent) const
 {
   std::set<const IntervalModel*> intervals;
@@ -29,22 +26,22 @@ QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
   std::set<const EventModel*> events;
   std::set<const StateModel*> states;
 
-  if (sourceElements.empty())
+  if(sourceElements.empty())
     return nullptr;
 
   auto scenar = dynamic_cast<ScenarioInterface*>(sourceElements[0]->parent());
   auto abstr = safe_cast<const IdentifiedObjectAbstract*>(sourceElements[0]);
 
-  for (auto elt : sourceElements)
+  for(auto elt : sourceElements)
   {
-    if (auto st = qobject_cast<const StateModel*>(elt))
+    if(auto st = qobject_cast<const StateModel*>(elt))
     {
-      if (scenar)
+      if(scenar)
       {
-        if (auto ev = scenar->findEvent(st->eventId()))
+        if(auto ev = scenar->findEvent(st->eventId()))
         {
           auto tn = scenar->findTimeSync(ev->timeSync());
-          if (!tn)
+          if(!tn)
             continue;
           states.insert(st);
           events.insert(ev);
@@ -52,64 +49,58 @@ QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
         }
       }
     }
-    else if (auto ev = qobject_cast<const EventModel*>(elt))
+    else if(auto ev = qobject_cast<const EventModel*>(elt))
     {
-      if (scenar)
+      if(scenar)
       {
         auto tn = scenar->findTimeSync(ev->timeSync());
-        if (!tn)
+        if(!tn)
           continue;
         events.insert(ev);
         timesyncs.insert(tn);
       }
     }
-    else if (auto tn = qobject_cast<const TimeSyncModel*>(elt))
+    else if(auto tn = qobject_cast<const TimeSyncModel*>(elt))
     {
       timesyncs.insert(tn);
     }
-    else if (auto cstr = qobject_cast<const IntervalModel*>(elt))
+    else if(auto cstr = qobject_cast<const IntervalModel*>(elt))
     {
       intervals.insert(cstr);
     }
   }
 
-  if (states.size() == 1 && intervals.empty())
+  if(states.size() == 1 && intervals.empty())
     return new StateInspectorWidget{**states.begin(), doc, parent};
-  if (events.size() == 1 && intervals.empty())
+  if(events.size() == 1 && intervals.empty())
     return new EventInspectorWidget{**events.begin(), doc, parent};
-  if (timesyncs.size() == 1 && intervals.empty())
+  if(timesyncs.size() == 1 && intervals.empty())
     return new TimeSyncInspectorWidget{**timesyncs.begin(), doc, parent};
 
-  if (intervals.size() == 1 && timesyncs.empty())
+  if(intervals.size() == 1 && timesyncs.empty())
   {
     return IntervalInspectorFactory{}.make({*intervals.begin()}, doc, parent);
   }
 
   return new SummaryInspectorWidget{
-      abstr,
-      intervals,
-      timesyncs,
-      events,
-      states,
-      doc,
-      parent}; // the default InspectorWidgetBase need
-               // an only IdentifiedObject : this will
+      abstr,  intervals, timesyncs, events,
+      states, doc,       parent}; // the default InspectorWidgetBase need
+                                  // an only IdentifiedObject : this will
   // be "abstr"
 }
 
 bool ScenarioInspectorWidgetFactoryWrapper::update(
-    QWidget* cur,
-    const QList<const IdentifiedObjectAbstract*>& obj) const
+    QWidget* cur, const QList<const IdentifiedObjectAbstract*>& obj) const
 {
-  if (obj.size() <= 1)
+  if(obj.size() <= 1)
     return false;
 
   auto w = qobject_cast<SummaryInspectorWidget*>(cur);
-  if (!w)
+  if(!w)
     return false;
 
   auto& ctx = score::IDocument::documentContext(*obj.front());
-  if (&ctx != &w->context())
+  if(&ctx != &w->context())
     return false;
 
   w->update(obj);
@@ -120,8 +111,7 @@ bool ScenarioInspectorWidgetFactoryWrapper::matches(
     const InspectedObjects& objects) const
 {
   return std::any_of(objects.begin(), objects.end(), [](const QObject* obj) {
-    return dynamic_cast<const StateModel*>(obj)
-           || dynamic_cast<const EventModel*>(obj)
+    return dynamic_cast<const StateModel*>(obj) || dynamic_cast<const EventModel*>(obj)
            || dynamic_cast<const TimeSyncModel*>(obj)
            || dynamic_cast<const IntervalModel*>(obj);
   });

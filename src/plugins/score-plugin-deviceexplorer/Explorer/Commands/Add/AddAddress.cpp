@@ -3,6 +3,7 @@
 #include "AddAddress.hpp"
 
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 
@@ -16,17 +17,15 @@ namespace Explorer
 namespace Command
 {
 AddAddress::AddAddress(
-    const DeviceDocumentPlugin& devplug,
-    const Device::NodePath& nodePath,
-    InsertMode insert,
-    const Device::AddressSettings& addressSettings)
+    const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath,
+    InsertMode insert, const Device::AddressSettings& addressSettings)
 {
   m_addressSettings = addressSettings;
 
   const Device::Node* parentNode{};
 
   // DeviceExplorerWidget prevents adding a sibling on a Device
-  switch (insert)
+  switch(insert)
   {
     case InsertMode::AsChild:
       parentNode = nodePath.toNode(&devplug.rootNode());
@@ -105,12 +104,11 @@ void AddAddress::deserializeImpl(DataStreamOutput& s)
 }
 
 AddWholeAddress::AddWholeAddress(
-    const DeviceDocumentPlugin& devplug,
-    const Device::FullAddressSettings& addr)
+    const DeviceDocumentPlugin& devplug, const Device::FullAddressSettings& addr)
 {
   m_addressSettings = addr;
 
-  if (devplug.list().findDevice(addr.address.device))
+  if(devplug.list().findDevice(addr.address.device))
   {
     // TODO
     /*

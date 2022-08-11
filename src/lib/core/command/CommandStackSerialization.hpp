@@ -9,10 +9,8 @@ namespace score
 {
 template <typename RedoFun>
 void loadCommandStack(
-    const score::ApplicationComponents& components,
-    DataStreamWriter& writer,
-    score::CommandStack& stack,
-    RedoFun redo_fun)
+    const score::ApplicationComponents& components, DataStreamWriter& writer,
+    score::CommandStack& stack, RedoFun redo_fun)
 {
   std::vector<score::CommandData> undoStack, redoStack;
   writer.writeTo(undoStack);
@@ -27,11 +25,11 @@ void loadCommandStack(
     stack.setSavedIndex(-1);
 
     bool ok = true;
-    for (const auto& elt : undoStack)
+    for(const auto& elt : undoStack)
     {
       auto cmd = components.instantiateUndoCommand(elt);
 
-      if (redo_fun(cmd))
+      if(redo_fun(cmd))
       {
         stack.undoable().push(cmd);
       }
@@ -42,9 +40,9 @@ void loadCommandStack(
       }
     }
 
-    if (ok)
+    if(ok)
     {
-      for (const auto& elt : redoStack)
+      for(const auto& elt : redoStack)
       {
         auto cmd = components.instantiateUndoCommand(elt);
 

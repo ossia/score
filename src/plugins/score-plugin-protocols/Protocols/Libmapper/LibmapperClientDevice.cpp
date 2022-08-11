@@ -6,8 +6,8 @@
 
 #include <ossia/protocols/libmapper/libmapper_protocol.hpp>
 
-
 #include <mapper/mapper.h>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::LibmapperClientDevice)
 
@@ -15,8 +15,7 @@ namespace Protocols
 {
 
 LibmapperClientDevice::LibmapperClientDevice(
-    const Device::DeviceSettings& settings,
-    const ossia::net::network_context_ptr& ctx)
+    const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -34,8 +33,7 @@ bool LibmapperClientDevice::reconnect()
 {
   disconnect();
 
-  auto stgs
-      = settings().deviceSpecificSettings.value<LibmapperClientSpecificSettings>();
+  auto stgs = settings().deviceSpecificSettings.value<LibmapperClientSpecificSettings>();
   if(!stgs.id.isEmpty())
   {
     try
@@ -46,7 +44,7 @@ bool LibmapperClientDevice::reconnect()
       m_dev->get_protocol().update(m_dev->get_root_node());
       deviceChanged(nullptr, m_dev.get());
     }
-    catch (...)
+    catch(...)
     {
       SCORE_TODO;
     }
@@ -61,12 +59,6 @@ void LibmapperClientDevice::disconnect()
 }
 }
 
-
-
-
-
-
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <QObject>
@@ -80,24 +72,17 @@ public:
   {
     const auto MPR_OBJ_ALL = MPR_OBJ_NEW | MPR_OBJ_MOD | MPR_OBJ_REM | MPR_OBJ_EXP;
     m_db = mpr_graph_new(MPR_OBJ_ALL);
-    mpr_graph_add_cb(
-          m_db,
-          scan_event, MPR_OBJ_ALL, this);
+    mpr_graph_add_cb(m_db, scan_event, MPR_OBJ_ALL, this);
 
     startTimer(100);
   }
 
-  void timerEvent(QTimerEvent*) override
-  {
-    mpr_graph_poll(m_db, 100);
-  }
+  void timerEvent(QTimerEvent*) override { mpr_graph_poll(m_db, 100); }
 
-  static void scan_event(mpr_graph db,
-                         mpr_obj obj,
-                         const mpr_graph_evt event,
-                         const void *user)
+  static void
+  scan_event(mpr_graph db, mpr_obj obj, const mpr_graph_evt event, const void* user)
   {
-    auto self = (LibmapperClientEnumerator*) user;
+    auto self = (LibmapperClientEnumerator*)user;
 
     switch(mpr_obj_get_type(obj))
     {
@@ -137,15 +122,14 @@ public:
   {
     auto name = mpr_obj_get_prop_as_str(obj, MPR_PROP_NAME, nullptr);
 
-    if (m_devices.count(name) == 1)
+    if(m_devices.count(name) == 1)
     {
       m_devices.erase(name);
       deviceRemoved(QString::fromStdString(name));
     }
   }
 
-  Device::DeviceSettings
-  settingsForInstance(const std::string& instance) const noexcept
+  Device::DeviceSettings settingsForInstance(const std::string& instance) const noexcept
   {
     using namespace std::literals;
 
@@ -153,14 +137,11 @@ public:
     set.name = QString::fromStdString(instance);
     set.protocol = LibmapperClientProtocolFactory::static_concreteKey();
     set.deviceSpecificSettings = QVariant::fromValue(
-          LibmapperClientSpecificSettings{QString::fromStdString(instance)});
+        LibmapperClientSpecificSettings{QString::fromStdString(instance)});
     return set;
   }
 
-  void enumerate(
-      std::function<void(const Device::DeviceSettings&)> f) const override
-  {
-  }
+  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override { }
 
 private:
   ossia::flat_set<std::string> m_devices;
@@ -184,8 +165,7 @@ LibmapperClientProtocolFactory::getEnumerator(const score::DocumentContext& ctx)
 }
 
 Device::DeviceInterface* LibmapperClientProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new LibmapperClientDevice{settings, plugin.networkContext()};
@@ -218,15 +198,13 @@ QVariant LibmapperClientProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void LibmapperClientProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<LibmapperClientSpecificSettings>(data, visitor);
 }
 
 bool LibmapperClientProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return true;
 }
@@ -234,14 +212,17 @@ bool LibmapperClientProtocolFactory::checkCompatibility(
 }
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <QFormLayout>
-#include <qlineedit.h>
-#include <QPushButton>
-#include <QVariant>
 #include <score/widgets/ComboBox.hpp>
 
-namespace Protocols {
-LibmapperClientProtocolSettingsWidget::LibmapperClientProtocolSettingsWidget(QWidget* parent)
+#include <QFormLayout>
+#include <QPushButton>
+#include <QVariant>
+#include <qlineedit.h>
+
+namespace Protocols
+{
+LibmapperClientProtocolSettingsWidget::LibmapperClientProtocolSettingsWidget(
+    QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
@@ -273,7 +254,6 @@ void LibmapperClientProtocolSettingsWidget::setSettings(
 }
 W_OBJECT_IMPL(Protocols::LibmapperClientProtocolSettingsWidget)
 
-
 template <>
 void DataStreamReader::read(const Protocols::LibmapperClientSpecificSettings& n)
 {
@@ -299,4 +279,3 @@ void JSONWriter::write(Protocols::LibmapperClientSpecificSettings& n)
 {
   n.id <<= obj["Id"];
 }
-

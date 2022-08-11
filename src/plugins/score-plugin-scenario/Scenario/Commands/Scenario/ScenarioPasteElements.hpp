@@ -1,8 +1,8 @@
 #pragma once
+#include <Process/Dataflow/Cable.hpp>
+
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
-#include <Process/Dataflow/Cable.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -22,17 +22,13 @@ class TimeSyncModel;
 class IntervalModel;
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      ScenarioPasteElements,
-      "Paste elements in scenario")
+      CommandFactoryName(), ScenarioPasteElements, "Paste elements in scenario")
 public:
   ScenarioPasteElements(
-      const Scenario::ProcessModel& path,
-      const rapidjson::Value& obj,
+      const Scenario::ProcessModel& path, const rapidjson::Value& obj,
       const Scenario::Point& pt);
 
   void undo(const score::DocumentContext& ctx) const override;

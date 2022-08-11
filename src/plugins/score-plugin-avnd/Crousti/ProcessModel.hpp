@@ -6,19 +6,21 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMetadata.hpp>
 
+#include <Crousti/Attributes.hpp>
+#include <Crousti/Concepts.hpp>
+#include <Crousti/Metadatas.hpp>
+
 #include <ossia/detail/typelist.hpp>
 
 #include <boost/pfr.hpp>
 
-#include <Crousti/Attributes.hpp>
-#include <Crousti/Concepts.hpp>
-#include <Crousti/Metadatas.hpp>
 #include <avnd/common/for_nth.hpp>
 #include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <avnd/introspection/messages.hpp>
 #include <avnd/wrappers/bus_host_process_adapter.hpp>
 #include <avnd/wrappers/metadatas.hpp>
+
 #include <score_plugin_engine.hpp>
 
 #if SCORE_PLUGIN_GFX
@@ -57,7 +59,7 @@ struct Metadata<Tags_k, oscr::ProcessModel<Info>>
   static QStringList get() noexcept
   {
     QStringList lst;
-    for (std::string_view tag : avnd::get_tags<Info>())
+    for(std::string_view tag : avnd::get_tags<Info>())
       lst.push_back(QString::fromUtf8(tag.data(), tag.size()));
     return lst;
   }
@@ -99,13 +101,12 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
   static Process::Descriptor get()
   {
 // literate programming goes brr
-#define if_exists(Expr, Else)         \
-  []                                  \
-  {                                   \
-    if constexpr (requires { Expr; }) \
-      return Expr;                    \
-    Else;                             \
-  }()
+#define if_exists(Expr, Else)        \
+  [] {                               \
+    if constexpr(requires { Expr; }) \
+      return Expr;                   \
+    Else;                            \
+      }()
     static Process::Descriptor desc
     {
       Metadata<PrettyName_k, oscr::ProcessModel<Info>>::get(),
@@ -124,7 +125,7 @@ struct Metadata<Process::ProcessFlags_k, oscr::ProcessModel<Info>>
 {
   static Process::ProcessFlags get() noexcept
   {
-    if constexpr (requires { Info::flags(); })
+    if constexpr(requires { Info::flags(); })
     {
       return Info::flags();
     }
@@ -184,9 +185,7 @@ struct InletInitFunc
   {
     constexpr auto name = avnd::get_name<T>();
     auto p = new Process::LineEdit{
-        "",
-        QString::fromUtf8(name.data(), name.size()),
-        Id<Process::Port>(inlet++),
+        "", QString::fromUtf8(name.data(), name.size()), Id<Process::Port>(inlet++),
         &self};
     p->hidden = true;
     ins.push_back(p);
@@ -195,11 +194,11 @@ struct InletInitFunc
   template <avnd::parameter T, std::size_t N>
   void operator()(const T& in, avnd::field_index<N>)
   {
-    if constexpr (avnd::control<T>)
+    if constexpr(avnd::control<T>)
     {
       auto p = oscr::make_control_in<Node, T>(
           avnd::field_index<N>{}, Id<Process::Port>(inlet), &self);
-      if constexpr (!std::is_same_v<std::decay_t<decltype(p)>, std::nullptr_t>)
+      if constexpr(!std::is_same_v<std::decay_t<decltype(p)>, std::nullptr_t>)
       {
         p->hidden = true;
         ins.push_back(p);
@@ -263,7 +262,7 @@ struct OutletInitFunc
   {
     auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
-    if (outlet == 1)
+    if(outlet == 1)
       p->setPropagate(true);
     outs.push_back(p);
   }
@@ -278,10 +277,10 @@ struct OutletInitFunc
   template <avnd::parameter T, std::size_t N>
   void operator()(const T& out, avnd::field_index<N>)
   {
-    if constexpr (avnd::control<T>)
+    if constexpr(avnd::control<T>)
     {
-      if (auto p = oscr::make_control_out<T>(
-              avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
+      if(auto p = oscr::make_control_out<T>(
+             avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
       {
         p->hidden = true;
         outs.push_back(p);
@@ -358,25 +357,20 @@ class ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent)
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
       : Process::ProcessModel{
-          duration,
-          id,
-          Metadata<ObjectKey_k, ProcessModel>::get(),
-          parent}
+          duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
   {
     metadata().setInstanceName(*this);
 
     avnd::port_visit_dispatcher<Info>(
         InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
 
-    if constexpr (requires { this->from_ui; })
+    if constexpr(requires { this->from_ui; })
     {
       this->from_ui = [](QByteArray arr) {};
     }
-    if constexpr (requires { this->to_ui; })
+    if constexpr(requires { this->to_ui; })
     {
       this->to_ui = [](QByteArray arr) {};
     }
@@ -411,11 +405,8 @@ struct TSerializer<DataStream, oscr::ProcessModel<Info>>
   static void writeTo(DataStream::Deserializer& s, model_type& obj)
   {
     Process::writePorts(
-        s,
-        s.components.interfaces<Process::PortFactoryList>(),
-        obj.m_inlets,
-        obj.m_outlets,
-        &obj);
+        s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets,
+        obj.m_outlets, &obj);
     s.checkDelimiter();
   }
 };
@@ -432,10 +423,7 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
   static void writeTo(JSONObject::Deserializer& s, model_type& obj)
   {
     Process::writePorts(
-        s,
-        s.components.interfaces<Process::PortFactoryList>(),
-        obj.m_inlets,
-        obj.m_outlets,
-        &obj);
+        s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets,
+        obj.m_outlets, &obj);
   }
 };

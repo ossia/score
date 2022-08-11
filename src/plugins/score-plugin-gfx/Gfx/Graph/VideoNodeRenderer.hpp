@@ -1,17 +1,17 @@
 #pragma once
-#include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
 #include <Video/VideoInterface.hpp>
 
 namespace score::gfx
 {
 class GPUVideoDecoder;
 
-class VideoNodeRenderer
-    : public NodeRenderer
+class VideoNodeRenderer : public NodeRenderer
 {
 public:
-  explicit VideoNodeRenderer(const VideoNodeBase& node, VideoFrameShare& frames) noexcept;
+  explicit VideoNodeRenderer(
+      const VideoNodeBase& node, VideoFrameShare& frames) noexcept;
   ~VideoNodeRenderer();
 
   VideoNodeRenderer() = delete;
@@ -27,10 +27,7 @@ public:
   void checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h);
 
   void init(RenderList& renderer) override;
-  void runRenderPass(
-      RenderList&,
-      QRhiCommandBuffer& commands,
-      Edge& edge) override;
+  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void release(RenderList& r) override;
@@ -49,7 +46,8 @@ private:
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
-  struct Material {
+  struct Material
+  {
     float scale_w{}, scale_h{};
   };
 

@@ -2,15 +2,15 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/Tools/ToolPalette.hpp>
 
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-
-#include <QPoint>
-
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/CreationToolState.hpp>
 #include <Scenario/Palette/Tools/PlayToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
+
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
 
 namespace score
 {
@@ -56,8 +56,7 @@ public:
   void desactivate(Scenario::Tool);
 
   QGraphicsItem* itemAt(
-      const Scenario::Point&,
-      const std::vector<QGraphicsItem*>& ignore) const noexcept;
+      const Scenario::Point&, const std::vector<QGraphicsItem*>& ignore) const noexcept;
 
 private:
   Scenario::Point ScenePointToScenarioPoint(QPointF point);
@@ -69,9 +68,7 @@ private:
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
   SmartTool<
-      ProcessModel,
-      Scenario::ToolPalette,
-      ScenarioView,
+      ProcessModel, Scenario::ToolPalette, ScenarioView,
       Scenario::MoveIntervalInScenario_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
@@ -82,10 +79,7 @@ private:
   PlayToolState m_playTool;
 
   ToolPaletteInputDispatcher<
-      Scenario::Tool,
-      ToolPalette,
-      Process::LayerContext,
-      Process::LayerView>
+      Scenario::Tool, ToolPalette, Process::LayerContext, Process::LayerView>
       m_inputDisp;
 };
 }

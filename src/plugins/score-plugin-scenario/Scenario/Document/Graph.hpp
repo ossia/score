@@ -4,10 +4,10 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/directed_graph.hpp>
 
+#include <QObject>
+
 #include <nano_observer.hpp>
 #include <score_plugin_scenario_export.h>
-
-#include <QObject>
 
 namespace Scenario
 {
@@ -85,9 +85,7 @@ private:
   Graph m_graph;
   bool m_cycles{};
 
-  score::hash_map<const Scenario::TimeSyncModel*, Graph::vertex_descriptor>
-      m_vertices;
-  score::hash_map<const Scenario::IntervalModel*, Graph::edge_descriptor>
-      m_edges;
+  score::hash_map<const Scenario::TimeSyncModel*, Graph::vertex_descriptor> m_vertices;
+  score::hash_map<const Scenario::IntervalModel*, Graph::edge_descriptor> m_edges;
 };
 }

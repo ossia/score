@@ -1,10 +1,12 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -21,8 +23,6 @@
 #include <score/serialization/MapSerialization.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 static_assert(is_template<Scenario::Rack>::value);
 static_assert(is_template<Scenario::FullRack>::value);
 template <>
@@ -33,15 +33,13 @@ DataStreamReader::read(const ossia::time_signature& slot)
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::write(ossia::time_signature& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(ossia::time_signature& slot)
 {
   m_stream >> slot.upper >> slot.lower;
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONReader::read(const ossia::time_signature& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const ossia::time_signature& slot)
 {
   stream.StartArray();
   stream.Int(slot.upper);
@@ -49,8 +47,7 @@ JSONReader::read(const ossia::time_signature& slot)
   stream.EndArray();
 }
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONWriter::write(ossia::time_signature& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(ossia::time_signature& slot)
 {
   const auto& arr = base.GetArray();
   slot.upper = arr[0].GetInt();
@@ -58,8 +55,7 @@ JSONWriter::write(ossia::time_signature& slot)
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamReader::read(const Scenario::Slot& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::Slot& slot)
 {
   m_stream << slot.processes << slot.frontProcess << slot.height << slot.nodal;
 }
@@ -90,22 +86,19 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::Slot& slot)
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamReader::read(const Scenario::FullSlot& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::FullSlot& slot)
 {
   m_stream << slot.process << slot.nodal;
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::write(Scenario::FullSlot& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::FullSlot& slot)
 {
   m_stream >> slot.process >> slot.nodal;
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONReader::read(const Scenario::FullSlot& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::FullSlot& slot)
 {
   stream.StartObject();
   obj[strings.Process] = slot.process;
@@ -120,15 +113,13 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::FullSlot& slot)
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamReader::read(const Scenario::SlotPath& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::SlotPath& slot)
 {
   m_stream << slot.interval << slot.index << slot.full_view;
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::write(Scenario::SlotPath& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::SlotPath& slot)
 {
   m_stream >> slot.interval >> slot.index >> slot.full_view;
 }
@@ -139,11 +130,10 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
 {
   insertDelimiter();
   m_stream << interval.m_graphal;
-  if (interval.m_graphal)
+  if(interval.m_graphal)
   {
-    m_stream << interval.duration << interval.m_startState
-             << interval.m_endState << interval.m_date
-             << interval.m_heightPercentage;
+    m_stream << interval.duration << interval.m_startState << interval.m_endState
+             << interval.m_date << interval.m_heightPercentage;
     return;
   }
 
@@ -152,7 +142,7 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
 
   // Processes
   m_stream << (int32_t)interval.processes.size();
-  for (const auto& process : interval.processes)
+  for(const auto& process : interval.processes)
   {
     readFrom(process);
   }
@@ -162,14 +152,12 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
 
   // Common data
 
-  m_stream << interval.m_signatures << interval.duration
-           << interval.m_startState << interval.m_endState
+  m_stream << interval.m_signatures << interval.duration << interval.m_startState
+           << interval.m_endState
 
            << interval.m_date << interval.m_heightPercentage
-           << interval.m_nodalFullViewSlotHeight
-           << interval.m_quantRate
-           << interval.m_zoom
-           << interval.m_center << interval.m_viewMode
+           << interval.m_nodalFullViewSlotHeight << interval.m_quantRate
+           << interval.m_zoom << interval.m_center << interval.m_viewMode
            << interval.m_smallViewShown << interval.m_hasSignature;
 
   insertDelimiter();
@@ -182,11 +170,10 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   checkDelimiter();
   bool gr{};
   m_stream >> gr;
-  if ((interval.m_graphal = gr))
+  if((interval.m_graphal = gr))
   {
-    m_stream >> interval.duration >> interval.m_startState
-        >> interval.m_endState >> interval.m_date
-        >> interval.m_heightPercentage;
+    m_stream >> interval.duration >> interval.m_startState >> interval.m_endState
+        >> interval.m_date >> interval.m_heightPercentage;
     return;
   }
 
@@ -199,11 +186,10 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   m_stream >> process_count;
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
-  for (; process_count-- > 0;)
+  for(; process_count-- > 0;)
   {
-    auto proc
-        = deserialize_interface(pl, *this, interval.context(), &interval);
-    if (proc)
+    auto proc = deserialize_interface(pl, *this, interval.context(), &interval);
+    if(proc)
     {
       // TODO why isn't AddProcess used here ?!
       interval.processes.add(proc);
@@ -218,17 +204,14 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   m_stream >> interval.m_smallView >> interval.m_fullView;
 
   // Common data
-  Scenario::IntervalModel::ViewMode vm{
-      Scenario::IntervalModel::ViewMode::Temporal};
+  Scenario::IntervalModel::ViewMode vm{Scenario::IntervalModel::ViewMode::Temporal};
   bool sv{};
   bool hs{};
-  m_stream >> interval.m_signatures >> interval.duration
-      >> interval.m_startState >> interval.m_endState
+  m_stream >> interval.m_signatures >> interval.duration >> interval.m_startState
+      >> interval.m_endState
 
       >> interval.m_date >> interval.m_heightPercentage
-      >> interval.m_nodalFullViewSlotHeight
-      >> interval.m_quantRate
-      >> interval.m_zoom
+      >> interval.m_nodalFullViewSlotHeight >> interval.m_quantRate >> interval.m_zoom
       >> interval.m_center >> vm >> sv >> hs;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
@@ -241,7 +224,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 JSONReader::read(const Scenario::IntervalModel& interval)
 {
-  if (interval.graphal())
+  if(interval.graphal())
   {
     obj["Graphal"] = true;
     readFrom(interval.duration);
@@ -289,10 +272,9 @@ JSONReader::read(const Scenario::IntervalModel& interval)
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONWriter::write(Scenario::IntervalModel& interval)
+SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& interval)
 {
-  if (auto it = obj.tryGet("Graphal"); it && it->toBool())
+  if(auto it = obj.tryGet("Graphal"); it && it->toBool())
   {
     interval.m_graphal = true;
     writeTo(interval.duration);
@@ -328,28 +310,27 @@ JSONWriter::write(Scenario::IntervalModel& interval)
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
   const auto& process_array = obj[strings.Processes].toArray();
-  for (const auto& json_vref : process_array)
+  for(const auto& json_vref : process_array)
   {
     JSONObject::Deserializer deserializer{json_vref};
-    auto proc = deserialize_interface(
-        pl, deserializer, interval.context(), &interval);
-    if (proc)
+    auto proc = deserialize_interface(pl, deserializer, interval.context(), &interval);
+    if(proc)
       interval.processes.add(proc);
     else
       SCORE_TODO;
   }
 
   auto sv_it = obj.constFind(strings.SmallViewRack);
-  if (sv_it != obj.constEnd())
+  if(sv_it != obj.constEnd())
   {
     interval.m_smallView <<= *sv_it;
     interval.m_smallViewShown = obj[strings.SmallViewShown].toBool();
   }
-  else if (!interval.processes.empty())
+  else if(!interval.processes.empty())
   {
     // To support old scores...
     Scenario::Slot s;
-    for (auto& proc : interval.processes)
+    for(auto& proc : interval.processes)
       s.processes.push_back(proc.id());
     s.frontProcess = s.processes.front();
     interval.m_smallView.push_back(s);
@@ -357,7 +338,7 @@ JSONWriter::write(Scenario::IntervalModel& interval)
   }
 
   auto fv_it = obj.constFind(strings.FullViewRack);
-  if (fv_it != obj.constEnd())
+  if(fv_it != obj.constEnd())
   {
     interval.m_fullView <<= *fv_it;
   }
@@ -365,13 +346,14 @@ JSONWriter::write(Scenario::IntervalModel& interval)
   {
     // Create a slot for every process
     interval.m_fullView.clear();
-    for (auto& proc : interval.processes)
+    for(auto& proc : interval.processes)
       interval.m_fullView.push_back(Scenario::FullSlot{proc.id()});
   }
 
   writeTo(interval.duration);
 
-  assign_with_default(interval.m_signatures, obj.tryGet("Signatures"), Scenario::TimeSignatureMap{});
+  assign_with_default(
+      interval.m_signatures, obj.tryGet("Signatures"), Scenario::TimeSignatureMap{});
 
   interval.m_startState <<= obj[strings.StartState];
   interval.m_endState <<= obj[strings.EndState];
@@ -379,13 +361,15 @@ JSONWriter::write(Scenario::IntervalModel& interval)
   interval.m_date <<= obj[strings.StartDate];
   interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
-  assign_with_default(interval.m_nodalFullViewSlotHeight, obj.tryGet("NodalSlotHeight"), 100.);
+  assign_with_default(
+      interval.m_nodalFullViewSlotHeight, obj.tryGet("NodalSlotHeight"), 100.);
   assign_with_default(interval.m_quantRate, obj.tryGet("QuantizationRate"), 0.);
 
   {
     int viewMode{};
-    assign_with_default(viewMode, obj.tryGet("ViewMode"), Scenario::IntervalModel::ViewMode::Temporal);
-    interval.m_viewMode = (Scenario::IntervalModel::ViewMode) viewMode;
+    assign_with_default(
+        viewMode, obj.tryGet("ViewMode"), Scenario::IntervalModel::ViewMode::Temporal);
+    interval.m_viewMode = (Scenario::IntervalModel::ViewMode)viewMode;
   }
 
   {
@@ -394,10 +378,9 @@ JSONWriter::write(Scenario::IntervalModel& interval)
     interval.m_hasSignature = sign;
   }
   auto zit = obj.constFind(strings.Zoom);
-  if (zit != obj.constEnd())
+  if(zit != obj.constEnd())
     interval.m_zoom = zit->toDouble();
   auto cit = obj.constFind(strings.Center);
-  if (cit != obj.constEnd() && cit->obj.IsNumber())
+  if(cit != obj.constEnd() && cit->obj.IsNumber())
     interval.m_center <<= *cit;
-
 }

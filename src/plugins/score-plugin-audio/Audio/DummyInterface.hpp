@@ -19,22 +19,16 @@ class DummyFactory final : public AudioFactory
 public:
   ~DummyFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(
-      Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+  void
+  initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
   }
 
-  QString prettyName() const override
-  {
-    return QObject::tr("Dummy (No audio)");
-  };
+  QString prettyName() const override { return QObject::tr("Dummy (No audio)"); };
   std::shared_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+      const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
-    return std::make_shared<ossia::dummy_engine>(
-        set.getRate(), set.getBufferSize());
+    return std::make_shared<ossia::dummy_engine>(set.getRate(), set.getBufferSize());
   }
 
   static void updateLabel(QLabel& l, int bs, int rate)
@@ -43,22 +37,17 @@ public:
   }
 
   QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override
   {
     auto w = new QWidget{parent};
     auto lay = new QFormLayout{w};
 
     auto timeLabel = new QLabel;
-    con(m,
-        &Audio::Settings::Model::BufferSizeChanged,
-        timeLabel,
+    con(m, &Audio::Settings::Model::BufferSizeChanged, timeLabel,
         [=, &m](int b) { updateLabel(*timeLabel, b, m.getRate()); });
-    con(m, &Audio::Settings::Model::RateChanged, timeLabel, [=, &m](int r) {
-      updateLabel(*timeLabel, m.getBufferSize(), r);
-    });
+    con(m, &Audio::Settings::Model::RateChanged, timeLabel,
+        [=, &m](int r) { updateLabel(*timeLabel, m.getBufferSize(), r); });
 
     updateLabel(*timeLabel, m.getBufferSize(), m.getRate());
 
@@ -69,11 +58,10 @@ public:
       lay->addRow(QObject::tr("Buffer size"), cb);
       cb->setRange(16, 10000);
       cb->setValue(m.getBufferSize());
-      QObject::connect(
-          cb, &QSlider::valueChanged, w, [cb, &v, &m, timeLabel](int i) {
-            v.BufferSizeChanged(cb->value());
-            updateLabel(*timeLabel, i, m.getRate());
-          });
+      QObject::connect(cb, &QSlider::valueChanged, w, [cb, &v, &m, timeLabel](int i) {
+        v.BufferSizeChanged(cb->value());
+        updateLabel(*timeLabel, i, m.getRate());
+      });
     }
 
     addSampleRateWidget(*w, m, v);

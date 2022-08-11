@@ -1,13 +1,15 @@
 #pragma once
+#include <Process/GenericProcessFactory.hpp>
+#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
+
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <Pd/Inspector/PdInspectorWidget.hpp>
 #include <Pd/PdProcess.hpp>
-#include <Process/GenericProcessFactory.hpp>
-#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 
-#include <QProcess>
 #include <QFileInfo>
+#include <QProcess>
+
 #include <z_libpd.h>
 namespace Pd
 {
@@ -68,22 +70,17 @@ struct UiWrapper : public QWidget
 {
   QPointer<const ProcessModel> m_model;
   std::shared_ptr<Pd::Instance> m_instance;
-  UiWrapper(
-      const ProcessModel& proc,
-      const score::DocumentContext& ctx,
-      QWidget* parent)
+  UiWrapper(const ProcessModel& proc, const score::DocumentContext& ctx, QWidget* parent)
       : m_model{&proc}
       , m_instance{proc.m_instance}
   {
     setGeometry(0, 0, 0, 0);
 
     connect(
-        &proc,
-        &IdentifiedObjectAbstract::identified_object_destroying,
-        this,
+        &proc, &IdentifiedObjectAbstract::identified_object_destroying, this,
         &QWidget::deleteLater);
     const auto& bin = locatePdBinary();
-    if (!bin.isEmpty())
+    if(!bin.isEmpty())
     {
       libpd_set_instance(m_instance->instance);
       libpd_start_gui(locatePdResourceFolder().toUtf8().constData());
@@ -92,8 +89,8 @@ struct UiWrapper : public QWidget
     startTimer(8);
   }
 
-
-  QString locatePdResourceFolder() noexcept {
+  QString locatePdResourceFolder() noexcept
+  {
 #if defined(__linux__)
     auto path = QStringLiteral("/usr/lib/pd");
     if(QFile::exists(path))
@@ -116,13 +113,13 @@ struct UiWrapper : public QWidget
       libpd_stop_gui();
     }
 
-    if (m_model)
+    if(m_model)
     {
       const_cast<QWidget*&>(m_model->externalUI) = nullptr;
       m_model->externalUIVisible(false);
     }
 
-    if (p)
+    if(p)
     {
       QWidget::closeEvent(event);
     }
@@ -137,7 +134,7 @@ struct UiWrapper : public QWidget
       libpd_stop_gui();
     }
 
-    if (m_model)
+    if(m_model)
     {
       const_cast<QWidget*&>(m_model->externalUI) = nullptr;
       m_model->externalUIVisible(false);
@@ -151,9 +148,6 @@ struct UiWrapper : public QWidget
   }
 };
 
-
 using LayerFactory = Process::EffectLayerFactory_T<
-    Pd::ProcessModel,
-    Process::DefaultEffectItem,
-    UiWrapper>;
+    Pd::ProcessModel, Process::DefaultEffectItem, UiWrapper>;
 }

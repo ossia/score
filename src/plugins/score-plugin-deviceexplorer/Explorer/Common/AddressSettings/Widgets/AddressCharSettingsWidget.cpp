@@ -2,10 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressCharSettingsWidget.hpp"
 
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/CharValueWidget.hpp>
+
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 #include <QChar>
 #include <QFormLayout>
@@ -34,8 +35,7 @@ Device::AddressSettings AddressCharSettingsWidget::getDefaultSettings() const
   return {};
 }
 
-void AddressCharSettingsWidget::setSettings(
-    const Device::AddressSettings& settings)
+void AddressCharSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
   m_valueEdit->setValue(settings.value);

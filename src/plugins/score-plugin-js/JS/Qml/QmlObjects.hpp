@@ -1,13 +1,15 @@
 #pragma once
+#include <State/Domain.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
-#include <State/Domain.hpp>
 
 #include <score/tools/Debug.hpp>
 
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/detail/ssize.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/ssize.hpp>
+#include <ossia/network/domain/domain.hpp>
+
 #include <QJSValue>
 #include <QObject>
 #include <QQmlListProperty>
@@ -30,13 +32,7 @@ public:
   virtual Process::Inlet* make(Id<Process::Port>&& id, QObject*) = 0;
   virtual bool is_control() const { return false; }
 
-  W_INLINE_PROPERTY_CREF(
-      QString,
-      address,
-      {},
-      address,
-      setAddress,
-      addressChanged)
+  W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
 
 class Outlet : public QObject
@@ -48,13 +44,7 @@ public:
   virtual ~Outlet() override;
   virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
-  W_INLINE_PROPERTY_CREF(
-      QString,
-      address,
-      {},
-      address,
-      setAddress,
-      addressChanged)
+  W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
 
 struct ValueMessage
@@ -126,8 +116,8 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::FloatSlider{
-        (float)m_min, (float)m_max, (float)m_init, objectName(), id, parent};
+    return new Process::FloatSlider{(float)m_min, (float)m_max, (float)m_init,
+                                    objectName(), id,           parent};
   }
 
   W_INLINE_PROPERTY_VALUE(qreal, init, {0.5}, init, setInit, initChanged)
@@ -146,8 +136,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::IntSlider{
-        m_min, m_max, m_init, objectName(), id, parent};
+    return new Process::IntSlider{m_min, m_max, m_init, objectName(), id, parent};
   }
 
   W_INLINE_PROPERTY_VALUE(int, init, {0}, init, setInit, initChanged)
@@ -166,15 +155,14 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::Enum{
-        m_choices, {}, current(), objectName(), id, parent};
+    return new Process::Enum{m_choices, {}, current(), objectName(), id, parent};
   }
 
   auto getValues() const { return choices(); }
 
   std::string current() const
   {
-    if (!m_choices.isEmpty() && ossia::valid_index(m_index, m_choices))
+    if(!m_choices.isEmpty() && ossia::valid_index(m_index, m_choices))
     {
       return m_choices[m_index].toStdString();
     }
@@ -182,13 +170,7 @@ public:
   }
 
   W_INLINE_PROPERTY_VALUE(int, index, {}, index, setIndex, indexChanged)
-  W_INLINE_PROPERTY_CREF(
-      QStringList,
-      choices,
-      {},
-      choices,
-      setChoices,
-      choicesChanged)
+  W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices, choicesChanged)
 };
 
 class Toggle : public ValueInlet
@@ -204,13 +186,7 @@ public:
     return new Process::Toggle{m_checked, objectName(), id, parent};
   }
 
-  W_INLINE_PROPERTY_VALUE(
-      bool,
-      checked,
-      {},
-      checked,
-      setChecked,
-      checkedChanged)
+  W_INLINE_PROPERTY_VALUE(bool, checked, {}, checked, setChecked, checkedChanged)
 };
 
 class LineEdit : public ValueInlet
@@ -272,7 +248,7 @@ public:
 
   QVector<double> channel(int i) const
   {
-    if (m_audio.size() > i)
+    if(m_audio.size() > i)
       return m_audio[i];
     return {};
   }
@@ -297,7 +273,7 @@ public:
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     auto p = new Process::AudioOutlet(id, parent);
-    if (id.val() == 0)
+    if(id.val() == 0)
       p->setPropagate(true);
     return p;
   }
@@ -339,13 +315,13 @@ public:
   void setMidi(const T& arr)
   {
     m_midi.clear();
-    for (const libremidi::message& mess : arr)
+    for(const libremidi::message& mess : arr)
     {
       const auto N = mess.size();
       QVector<int> m;
       m.resize(N);
 
-      for (std::size_t i = 0; i < N; i++)
+      for(std::size_t i = 0; i < N; i++)
         m[i] = mess.bytes[i];
 
       m_midi.push_back(QVariant::fromValue(m));
@@ -382,9 +358,9 @@ public:
   void setMessages(const QVariantList m)
   {
     m_midi.clear();
-    for (auto& v : m)
+    for(auto& v : m)
     {
-      if (v.canConvert<QVector<int>>())
+      if(v.canConvert<QVector<int>>())
         m_midi.push_back(v.value<QVector<int>>());
     }
   }
@@ -402,8 +378,7 @@ class Script : public QObject
   W_OBJECT(Script)
   W_CLASSINFO("DefaultProperty", "data")
   W_CLASSINFO(
-      "qt_QmlJSWrapperFactoryMethod",
-      "_q_createJSWrapper(QV4::ExecutionEngine*)")
+      "qt_QmlJSWrapperFactoryMethod", "_q_createJSWrapper(QV4::ExecutionEngine*)")
 
 public:
   QQmlListProperty<QObject> data() noexcept
@@ -415,16 +390,46 @@ public:
 #endif
   }
 
-  QJSValue& tick() /*Qt6: const*/ noexcept { return m_tick; }
-  void setTick(const QJSValue& v) { m_tick = v; }
-  QJSValue& start() /*Qt6: const*/ noexcept { return m_start; }
-  void setStart(const QJSValue& v) { m_start = v; }
-  QJSValue& stop() /*Qt6: const*/ noexcept { return m_stop; }
-  void setStop(const QJSValue& v) { m_stop = v; }
-  QJSValue& pause() /*Qt6: const*/ noexcept { return m_pause; }
-  void setPause(const QJSValue& v) { m_pause = v; }
-  QJSValue& resume() /*Qt6: const*/ noexcept { return m_resume; }
-  void setResume(const QJSValue& v) { m_resume = v; }
+  QJSValue& tick() /*Qt6: const*/ noexcept
+  {
+    return m_tick;
+  }
+  void setTick(const QJSValue& v)
+  {
+    m_tick = v;
+  }
+  QJSValue& start() /*Qt6: const*/ noexcept
+  {
+    return m_start;
+  }
+  void setStart(const QJSValue& v)
+  {
+    m_start = v;
+  }
+  QJSValue& stop() /*Qt6: const*/ noexcept
+  {
+    return m_stop;
+  }
+  void setStop(const QJSValue& v)
+  {
+    m_stop = v;
+  }
+  QJSValue& pause() /*Qt6: const*/ noexcept
+  {
+    return m_pause;
+  }
+  void setPause(const QJSValue& v)
+  {
+    m_pause = v;
+  }
+  QJSValue& resume() /*Qt6: const*/ noexcept
+  {
+    return m_resume;
+  }
+  void setResume(const QJSValue& v)
+  {
+    m_resume = v;
+  }
   W_PROPERTY(QJSValue, tick READ tick WRITE setTick CONSTANT)
   W_PROPERTY(QJSValue, start READ start WRITE setStart CONSTANT)
   W_PROPERTY(QJSValue, stop READ stop WRITE setStop CONSTANT)

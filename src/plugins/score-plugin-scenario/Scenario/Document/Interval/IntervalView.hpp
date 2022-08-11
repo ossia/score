@@ -1,13 +1,14 @@
 #pragma once
+#include <Scenario/Document/Interval/ExecutionState.hpp>
+#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score/graphics/TextItem.hpp>
 #include <score/model/ColorInterpolator.hpp>
 
 #include <QGraphicsItem>
 #include <qnamespace.h>
 
-#include <Scenario/Document/Interval/ExecutionState.hpp>
-#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>

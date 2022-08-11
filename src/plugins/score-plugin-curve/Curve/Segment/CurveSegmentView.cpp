@@ -4,9 +4,10 @@
 
 #include "CurveSegmentModel.hpp"
 
+#include <Process/Style/ScenarioStyle.hpp>
+
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/graphics/PainterPath.hpp>
 #include <score/model/Identifier.hpp>
@@ -28,13 +29,13 @@ W_OBJECT_IMPL(Curve::SegmentView)
 namespace Curve
 {
 SegmentView::SegmentView(
-    const SegmentModel* model,
-    const Curve::Style& style,
-    QGraphicsItem* parent)
+    const SegmentModel* model, const Curve::Style& style, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_style{style}
 {
-  this->setToolTip(QStringLiteral("Curve segment\nRight-click to change options. If the type is power, shift can be used to change its curvature."));
+  this->setToolTip(
+      QStringLiteral("Curve segment\nRight-click to change options. If the type is "
+                     "power, shift can be used to change its curvature."));
 
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setZValue(1);
@@ -46,28 +47,19 @@ SegmentView::SegmentView(
 
 void SegmentView::setModel(const SegmentModel* model)
 {
-  if (m_model)
+  if(m_model)
   {
     disconnect(
-        &m_model->selection,
-        &Selectable::changed,
-        this,
-        &SegmentView::setSelected);
-    disconnect(
-        m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
+        &m_model->selection, &Selectable::changed, this, &SegmentView::setSelected);
+    disconnect(m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
   }
 
   m_model = model;
 
-  if (m_model)
+  if(m_model)
   {
-    connect(
-        &m_model->selection,
-        &Selectable::changed,
-        this,
-        &SegmentView::setSelected);
-    connect(
-        m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
+    connect(&m_model->selection, &Selectable::changed, this, &SegmentView::setSelected);
+    connect(m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
 
     setSelected(m_model->selection.get());
   }
@@ -110,9 +102,7 @@ bool SegmentView::contains(const QPointF& pt) const
 }
 
 void SegmentView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(
       QPainter::RenderHint::Antialiasing, m_enabled && m_rect.width() > 10);
@@ -157,7 +147,7 @@ void SegmentView::recomputeStroke() const
     p.setWidth(12);
     return p;
   }()};
-  if (m_needsRecompute)
+  if(m_needsRecompute)
   {
     m_strokedShape = CurveSegmentStroker.createStroke(m_unstrokedShape);
     m_needsRecompute = false;
@@ -166,16 +156,16 @@ void SegmentView::recomputeStroke() const
 
 void SegmentView::updatePoints()
 {
-  if (m_model)
+  if(m_model)
   {
     // Get the length of the segment to scale.
     double len = m_model->end().x() - m_model->start().x();
-    if (len <= 1e-16)
+    if(len <= 1e-16)
       len = 1e-16;
     double startx = m_model->start().x() * m_rect.width() / len;
     double scalex = m_rect.width() / len;
 
-    if (m_enabled)
+    if(m_enabled)
       m_model->updateData(ossia::clamp(
           m_rect.width(), 2., 75.)); // Set the number of required points here.
     else
@@ -185,19 +175,19 @@ void SegmentView::updatePoints()
 
     const auto rect_height = m_rect.height();
     // Map to the scene coordinates
-    if (!pts.empty())
+    if(!pts.empty())
     {
       auto first = pts.front();
-      auto first_scaled = QPointF{
-          first.x() * scalex - startx, (1. - first.y()) * rect_height};
+      auto first_scaled
+          = QPointF{first.x() * scalex - startx, (1. - first.y()) * rect_height};
 
       m_unstrokedShape = QPainterPath{first_scaled};
       int n = std::ssize(pts);
-      for (int i = 1; i < n; i++)
+      for(int i = 1; i < n; i++)
       {
         auto next = pts[i];
-        m_unstrokedShape.lineTo(QPointF{
-            next.x() * scalex - startx, (1. - next.y()) * rect_height});
+        m_unstrokedShape.lineTo(
+            QPointF{next.x() * scalex - startx, (1. - next.y()) * rect_height});
       }
     }
   }
@@ -211,18 +201,18 @@ void SegmentView::updatePoints()
 
 void SegmentView::updatePen()
 {
-  if (m_enabled)
+  if(m_enabled)
   {
-    if (!m_tween)
+    if(!m_tween)
     {
-      if (!m_selected)
+      if(!m_selected)
         m_pen = &m_style.PenSegment;
       else
         m_pen = &m_style.PenSegmentSelected;
     }
     else
     {
-      if (!m_selected)
+      if(!m_selected)
         m_pen = &m_style.PenSegmentTween;
       else
         m_pen = &m_style.PenSegmentTweenSelected;

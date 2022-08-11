@@ -29,18 +29,15 @@ struct Node
 
   using control_policy = ossia::safe_nodes::default_tick;
   static void
-  run(const ossia::value_port& p1,
-      ossia::value_port& p2,
-      ossia::token_request,
-      ossia::exec_state_facade,
-      State& self)
+  run(const ossia::value_port& p1, ossia::value_port& p2, ossia::token_request,
+      ossia::exec_state_facade, State& self)
   {
     // returns -1, 0, 1 to say if we're going backwards, staying equal, or
     // going forward.
 
-    for (const auto& val : p1.get_data())
+    for(const auto& val : p1.get_data())
     {
-      if (!self.prev_value.valid())
+      if(!self.prev_value.valid())
       {
         self.prev_value = val.value;
         continue;
@@ -49,12 +46,12 @@ struct Node
       {
         ossia::value output;
 
-        if (self.prev_value < val.value)
+        if(self.prev_value < val.value)
         {
           output = 1;
           self.prev_value = val.value;
         }
-        else if (self.prev_value > val.value)
+        else if(self.prev_value > val.value)
         {
           output = -1;
           self.prev_value = val.value;

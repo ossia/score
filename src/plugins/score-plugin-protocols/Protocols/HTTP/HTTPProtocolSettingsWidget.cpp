@@ -5,9 +5,11 @@
 #include "HTTPProtocolFactory.hpp"
 #include "HTTPSpecificSettings.hpp"
 
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <Process/Script/ScriptWidget.hpp>
 
 #include <score/widgets/TextLabel.hpp>
 
@@ -64,12 +66,11 @@ Device::DeviceSettings HTTPProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void HTTPProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void HTTPProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   HTTPSpecificSettings specific;
-  if (settings.deviceSpecificSettings.canConvert<HTTPSpecificSettings>())
+  if(settings.deviceSpecificSettings.canConvert<HTTPSpecificSettings>())
   {
     specific = settings.deviceSpecificSettings.value<HTTPSpecificSettings>();
     m_codeEdit->setPlainText(specific.text);

@@ -1,11 +1,11 @@
 #pragma once
 
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
+
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 
 #include <score/selection/SelectionDispatcher.hpp>
-
-#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 
 #include <list>
 #include <vector>
@@ -30,8 +30,7 @@ class EventInspectorWidget final : public Inspector::InspectorWidgetBase
   W_OBJECT(EventInspectorWidget)
 public:
   explicit EventInspectorWidget(
-      const EventModel& object,
-      const score::DocumentContext& context,
+      const EventModel& object, const score::DocumentContext& context,
       QWidget* parent = nullptr);
 
 public:

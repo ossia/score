@@ -1,4 +1,6 @@
 #pragma once
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/ItemBounder.hpp>
 #include <score/widgets/MimeData.hpp>
@@ -7,8 +9,6 @@
 
 #include <QRect>
 #include <qnamespace.h>
-
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
 
 #include <verdigris>
 
@@ -28,10 +28,8 @@ public:
   TemporalIntervalHeader(TemporalIntervalPresenter& pres);
 
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
   void updateButtons();
   void updateOverlay();
   void setSelected(bool b);

@@ -68,8 +68,10 @@ struct FactoryInserter
   template <typename TheCommand>
   void operator()() const
   {
-    SCORE_ASSERT(bool(ossia::find_if(fact, [] (auto& e) { return e.first == TheCommand::static_key(); }) == fact.end()));
-    constexpr CommandFactory f = [] (const QByteArray& data) -> score::Command* {
+    SCORE_ASSERT(bool(
+        ossia::find_if(fact, [](auto& e) { return e.first == TheCommand::static_key(); })
+        == fact.end()));
+    constexpr CommandFactory f = [](const QByteArray& data) -> score::Command* {
       auto t = new TheCommand;
       t->deserialize(data);
       return t;

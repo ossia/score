@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RecordProviderFactory.hpp"
 
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <Recording/Commands/Record.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Recording::RecordContext)
 namespace Recording
@@ -14,9 +15,7 @@ namespace Recording
 RecordProvider::~RecordProvider() = default;
 RecorderFactory::~RecorderFactory() = default;
 
-RecordContext::RecordContext(
-    Scenario::ProcessModel& scenar,
-    Scenario::Point pt)
+RecordContext::RecordContext(Scenario::ProcessModel& scenar, Scenario::Point pt)
     : context{score::IDocument::documentContext(scenar)}
     , scenario{scenar}
     , explorer{Explorer::deviceExplorerFromContext(context)}
@@ -25,10 +24,7 @@ RecordContext::RecordContext(
 
 {
   connect(
-      this,
-      &RecordContext::startTimer,
-      this,
-      &RecordContext::on_startTimer,
+      this, &RecordContext::startTimer, this, &RecordContext::on_startTimer,
       Qt::QueuedConnection);
 }
 }

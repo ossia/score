@@ -12,8 +12,7 @@ namespace Curve
 {
 class Model;
 
-class SCORE_PLUGIN_CURVE_EXPORT UpdateCurve final
-    : public score::Command
+class SCORE_PLUGIN_CURVE_EXPORT UpdateCurve final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), UpdateCurve, "Update Curve")
 public:

@@ -5,7 +5,9 @@
 #include "OSCDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Protocols/LibraryDeviceEnumerator.hpp>
 #include <Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
@@ -64,74 +66,96 @@ ossia::net::osc_protocol_configuration readOSCConfig(const QByteArray& arr)
   return conf;
 }
 
-struct OSCCompatibleCheck {
-  const ossia::net::osc_protocol_configuration& config1, config2;
-  bool operator()(const ossia::net::udp_configuration& lhs, const ossia::net::udp_configuration& rhs) const noexcept
+struct OSCCompatibleCheck
+{
+  const ossia::net::osc_protocol_configuration &config1, config2;
+  bool operator()(
+      const ossia::net::udp_configuration& lhs,
+      const ossia::net::udp_configuration& rhs) const noexcept
   {
     if(lhs.local && rhs.local && lhs.local->port == rhs.local->port)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::unix_dgram_configuration& lhs, const ossia::net::unix_dgram_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::unix_dgram_configuration& lhs,
+      const ossia::net::unix_dgram_configuration& rhs) const noexcept
   {
     if(lhs.local && rhs.local && lhs.local->fd == rhs.local->fd)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::unix_stream_configuration& lhs, const ossia::net::unix_dgram_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::unix_stream_configuration& lhs,
+      const ossia::net::unix_dgram_configuration& rhs) const noexcept
   {
     if(rhs.local && lhs.fd == rhs.local->fd)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::unix_dgram_configuration& lhs, const ossia::net::unix_stream_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::unix_dgram_configuration& lhs,
+      const ossia::net::unix_stream_configuration& rhs) const noexcept
   {
     if(lhs.local && rhs.fd == lhs.local->fd)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::tcp_configuration& lhs, const ossia::net::tcp_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::tcp_configuration& lhs,
+      const ossia::net::tcp_configuration& rhs) const noexcept
   {
-    if(config1.mode == ossia::net::osc_protocol_configuration::HOST &&
-       config2.mode == ossia::net::osc_protocol_configuration::HOST &&
-       lhs.port == rhs.port)
+    if(config1.mode == ossia::net::osc_protocol_configuration::HOST
+       && config2.mode == ossia::net::osc_protocol_configuration::HOST
+       && lhs.port == rhs.port)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::ws_server_configuration& lhs, const ossia::net::ws_server_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::ws_server_configuration& lhs,
+      const ossia::net::ws_server_configuration& rhs) const noexcept
   {
-    if(config1.mode == ossia::net::osc_protocol_configuration::HOST &&
-       config2.mode == ossia::net::osc_protocol_configuration::HOST &&
-       lhs.port == rhs.port)
+    if(config1.mode == ossia::net::osc_protocol_configuration::HOST
+       && config2.mode == ossia::net::osc_protocol_configuration::HOST
+       && lhs.port == rhs.port)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::tcp_configuration& lhs, const ossia::net::ws_server_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::tcp_configuration& lhs,
+      const ossia::net::ws_server_configuration& rhs) const noexcept
   {
-    if(config1.mode == ossia::net::osc_protocol_configuration::HOST &&
-       config2.mode == ossia::net::osc_protocol_configuration::HOST &&
-       lhs.port == rhs.port)
+    if(config1.mode == ossia::net::osc_protocol_configuration::HOST
+       && config2.mode == ossia::net::osc_protocol_configuration::HOST
+       && lhs.port == rhs.port)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::ws_server_configuration& lhs, const ossia::net::tcp_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::ws_server_configuration& lhs,
+      const ossia::net::tcp_configuration& rhs) const noexcept
   {
-    if(config1.mode == ossia::net::osc_protocol_configuration::HOST &&
-       config2.mode == ossia::net::osc_protocol_configuration::HOST &&
-       lhs.port == rhs.port)
+    if(config1.mode == ossia::net::osc_protocol_configuration::HOST
+       && config2.mode == ossia::net::osc_protocol_configuration::HOST
+       && lhs.port == rhs.port)
       return false;
     return true;
   }
-  bool operator()(const ossia::net::unix_stream_configuration& lhs, const ossia::net::unix_stream_configuration& rhs) const noexcept
+  bool operator()(
+      const ossia::net::unix_stream_configuration& lhs,
+      const ossia::net::unix_stream_configuration& rhs) const noexcept
   {
-    if(config1.mode == ossia::net::osc_protocol_configuration::HOST &&
-       config2.mode == ossia::net::osc_protocol_configuration::HOST &&
-       lhs.fd == rhs.fd)
+    if(config1.mode == ossia::net::osc_protocol_configuration::HOST
+       && config2.mode == ossia::net::osc_protocol_configuration::HOST
+       && lhs.fd == rhs.fd)
       return false;
     return true;
   }
-  template<typename LHS, typename RHS>
-  bool operator()(const LHS&, const RHS&) const noexcept { return true; }
+  template <typename LHS, typename RHS>
+  bool operator()(const LHS&, const RHS&) const noexcept
+  {
+    return true;
+  }
 };
 
 Device::DeviceEnumerator*
@@ -142,25 +166,23 @@ OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
       {"json", "device", "touchosc", "xml"},
       OSCProtocolFactory::static_concreteKey(),
       [](const QByteArray& arr) {
-        auto copy = arr;
-        copy.detach();
+    auto copy = arr;
+    copy.detach();
 
-        return QVariant::fromValue(OSCSpecificSettings{
-            readOSCConfig(copy), std::nullopt, std::move(copy)});
+    return QVariant::fromValue(
+        OSCSpecificSettings{readOSCConfig(copy), std::nullopt, std::move(copy)});
       },
       ctx};
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& plugin,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new OSCDevice{settings, plugin.networkContext()};
 }
 
-const Device::DeviceSettings&
-OSCProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -178,25 +200,26 @@ Device::ProtocolSettingsWidget* OSCProtocolFactory::makeSettingsWidget()
   return new OSCProtocolSettingsWidget;
 }
 
-QVariant OSCProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant
+OSCProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<OSCSpecificSettings>(visitor);
 }
 
 void OSCProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<OSCSpecificSettings>(data, visitor);
 }
 
 bool OSCProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
   auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();
-  return a.name != b.name && visit(OSCCompatibleCheck{a_p.configuration, b_p.configuration}, a_p.configuration.transport, b_p.configuration.transport);
+  return a.name != b.name
+         && visit(
+             OSCCompatibleCheck{a_p.configuration, b_p.configuration},
+             a_p.configuration.transport, b_p.configuration.transport);
 }
 }

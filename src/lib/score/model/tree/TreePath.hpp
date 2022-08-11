@@ -46,10 +46,10 @@ public:
   {
     QModelIndex iter = index;
 
-    if (iter.isValid())
+    if(iter.isValid())
       reserve(4);
 
-    while (iter.isValid())
+    while(iter.isValid())
     {
       prepend(iter.row());
       iter = iter.parent();
@@ -60,11 +60,11 @@ public:
   TreePath(const T& node)
   {
     // We have to take care of the root node.
-    if (!node.parent())
+    if(!node.parent())
       return;
 
     auto iter = &node;
-    while (iter && iter->parent())
+    while(iter && iter->parent())
     {
       prepend(iter->parent()->indexOfChild(iter));
       iter = iter->parent();
@@ -78,9 +78,9 @@ public:
   {
     const int pathSize = size();
 
-    for (int i = 0; i < pathSize; ++i)
+    for(int i = 0; i < pathSize; ++i)
     {
-      if (at(i) < iter->childCount())
+      if(at(i) < iter->childCount())
       {
         iter = &iter->childAt(at(i));
       }
@@ -98,9 +98,9 @@ public:
   {
     const int pathSize = size();
 
-    for (int i = 0; i < pathSize; ++i)
+    for(int i = 0; i < pathSize; ++i)
     {
-      if (at(i) < iter->childCount())
+      if(at(i) < iter->childCount())
       {
         iter = &iter->childAt(at(i));
       }
@@ -120,8 +120,7 @@ struct is_custom_serialized<TreePath> : std::true_type
 };
 
 template <>
-struct TSerializer<DataStream, TreePath>
-    : TSerializer<DataStream, std::vector<int>>
+struct TSerializer<DataStream, TreePath> : TSerializer<DataStream, std::vector<int>>
 {
   static void readFrom(DataStream::Serializer& s, const TreePath& path)
   {

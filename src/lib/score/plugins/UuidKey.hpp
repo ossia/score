@@ -40,51 +40,24 @@ public:
   }
 
   constexpr uuid(const uuid& other) noexcept
-      : data{
-          other.data[0],
-          other.data[1],
-          other.data[2],
-          other.data[3],
-          other.data[4],
-          other.data[5],
-          other.data[6],
-          other.data[7],
-          other.data[8],
-          other.data[9],
-          other.data[10],
-          other.data[11],
-          other.data[12],
-          other.data[13],
-          other.data[14],
-          other.data[15]}
+      : data{other.data[0],  other.data[1],  other.data[2],  other.data[3],
+             other.data[4],  other.data[5],  other.data[6],  other.data[7],
+             other.data[8],  other.data[9],  other.data[10], other.data[11],
+             other.data[12], other.data[13], other.data[14], other.data[15]}
   {
   }
 
   constexpr uuid& operator=(const uuid& other) noexcept
   {
-    for (int i = 0; i < 16; i++)
+    for(int i = 0; i < 16; i++)
       data[i] = other.data[i];
     return *this;
   }
 
   constexpr uuid(uint8_t* other) noexcept
-      : data{
-          other[0],
-          other[1],
-          other[2],
-          other[3],
-          other[4],
-          other[5],
-          other[6],
-          other[7],
-          other[8],
-          other[9],
-          other[10],
-          other[11],
-          other[12],
-          other[13],
-          other[14],
-          other[15]}
+      : data{other[0],  other[1],  other[2],  other[3], other[4],  other[5],
+             other[6],  other[7],  other[8],  other[9], other[10], other[11],
+             other[12], other[13], other[14], other[15]}
   {
   }
 
@@ -98,9 +71,9 @@ public:
 
   constexpr bool is_nil() const noexcept
   {
-    for (std::size_t i = 0; i < sizeof(data); ++i)
+    for(std::size_t i = 0; i < sizeof(data); ++i)
     {
-      if (data[i] != 0U)
+      if(data[i] != 0U)
         return false;
     }
     return true;
@@ -118,15 +91,15 @@ public:
     // variant is stored in octet 7
     // which is index 8, since indexes count backwards
     unsigned char octet7 = data[8]; // octet 7 is array index 8
-    if ((octet7 & 0x80) == 0x00)
+    if((octet7 & 0x80) == 0x00)
     { // 0b0xxxxxxx
       return variant_ncs;
     }
-    else if ((octet7 & 0xC0) == 0x80)
+    else if((octet7 & 0xC0) == 0x80)
     { // 0b10xxxxxx
       return variant_rfc_4122;
     }
-    else if ((octet7 & 0xE0) == 0xC0)
+    else if((octet7 & 0xE0) == 0xC0)
     { // 0b110xxxxx
       return variant_microsoft;
     }
@@ -151,23 +124,23 @@ public:
     // version is stored in octet 9
     // which is index 6, since indexes count backwards
     uint8_t octet9 = data[6];
-    if ((octet9 & 0xF0) == 0x10)
+    if((octet9 & 0xF0) == 0x10)
     {
       return version_time_based;
     }
-    else if ((octet9 & 0xF0) == 0x20)
+    else if((octet9 & 0xF0) == 0x20)
     {
       return version_dce_security;
     }
-    else if ((octet9 & 0xF0) == 0x30)
+    else if((octet9 & 0xF0) == 0x30)
     {
       return version_name_based_md5;
     }
-    else if ((octet9 & 0xF0) == 0x40)
+    else if((octet9 & 0xF0) == 0x40)
     {
       return version_random_number_based;
     }
-    else if ((octet9 & 0xF0) == 0x50)
+    else if((octet9 & 0xF0) == 0x50)
     {
       return version_name_based_sha1;
     }
@@ -184,9 +157,9 @@ public:
 
 constexpr inline bool operator==(uuid const& lhs, uuid const& rhs) noexcept
 {
-  for (std::size_t i = 0; i < uuid::static_size(); ++i)
+  for(std::size_t i = 0; i < uuid::static_size(); ++i)
   {
-    if (lhs.data[i] != rhs.data[i])
+    if(lhs.data[i] != rhs.data[i])
       return false;
   }
   return true;
@@ -206,8 +179,8 @@ constexpr inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
 constexpr_algorithm inline bool operator<(uuid const& lhs, uuid const& rhs) noexcept
 {
   return std::lexicographical_compare(
-        lhs.data, lhs.data + uuid::static_size(),
-        rhs.data, rhs.data + uuid::static_size());
+      lhs.data, lhs.data + uuid::static_size(), rhs.data,
+      rhs.data + uuid::static_size());
 }
 
 constexpr_algorithm inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
@@ -229,10 +202,9 @@ constexpr_algorithm inline bool operator>=(uuid const& lhs, uuid const& rhs) noe
 constexpr inline std::size_t hash_value(uuid const& u) noexcept
 {
   std::size_t seed = 0;
-  for (uuid::const_iterator i = u.begin(), e = u.end(); i != e; ++i)
+  for(uuid::const_iterator i = u.begin(), e = u.end(); i != e; ++i)
   {
-    seed ^= static_cast<std::size_t>(*i) + 0x9e3779b9 + (seed << 6)
-            + (seed >> 2);
+    seed ^= static_cast<std::size_t>(*i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
   }
 
   return seed;
@@ -259,27 +231,27 @@ struct string_generator
 
     uint8_t u[16]{};
     int i = 0;
-    for (auto it_byte = u; it_byte != u + 16; ++it_byte, ++i)
+    for(auto it_byte = u; it_byte != u + 16; ++it_byte, ++i)
     {
-      if (it_byte != u)
+      if(it_byte != u)
       {
         c = *begin++;
       }
 
-      if (i == 4)
+      if(i == 4)
       {
         has_dashes = is_dash(c);
-        if (has_dashes)
+        if(has_dashes)
         {
           c = *begin++;
         }
       }
 
-      if (has_dashes)
+      if(has_dashes)
       {
-        if (i == 6 || i == 8 || i == 10)
+        if(i == 6 || i == 8 || i == 10)
         {
-          if (is_dash(c))
+          if(is_dash(c))
           {
             c = *begin++;
           }
@@ -302,7 +274,7 @@ struct string_generator
 private:
   static constexpr unsigned char get_value(char c)
   {
-    switch (c)
+    switch(c)
     {
       case '0':
         return 0;
@@ -347,10 +319,7 @@ private:
     }
   }
 
-  static constexpr unsigned char get_value(QChar c)
-  {
-    return get_value(c.toLatin1());
-  }
+  static constexpr unsigned char get_value(QChar c) { return get_value(c.toLatin1()); }
 
   static constexpr bool is_dash(char c) { return c == '-'; }
   static constexpr bool is_dash(QChar c) { return c.toLatin1() == '-'; }
@@ -374,7 +343,7 @@ using uuid_t = uuids::uuid;
     MSVC_BUGGY_CONSTEXPR const auto t                      \
         = score::uuids::string_generator::compute((text)); \
     return t;                                              \
-  } while (0)
+  } while(0)
 
 template <typename Tag>
 class UuidKey : score::uuid_t

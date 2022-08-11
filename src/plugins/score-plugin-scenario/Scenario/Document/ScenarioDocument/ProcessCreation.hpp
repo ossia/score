@@ -19,34 +19,24 @@ namespace Scenario
 class ScenarioDocumentPresenter;
 
 void createProcessInCable(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Library::ProcessData& dat,
+    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
     const Process::Cable& cbl);
 void loadPresetInCable(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Process::Preset& dat,
+    Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
     const Process::Cable& cbl);
 
 void createProcessBeforePort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Library::ProcessData& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Inlet& p);
+    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
+    const Process::ProcessModel& parentProcess, const Process::Inlet& p);
 void loadPresetBeforePort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Process::Preset& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Inlet& p);
+    Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
+    const Process::ProcessModel& parentProcess, const Process::Inlet& p);
 
 void createProcessAfterPort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Library::ProcessData& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Outlet& p);
+    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p);
 void loadPresetAfterPort(
-    Scenario::ScenarioDocumentPresenter& parent,
-    const Process::Preset& dat,
-    const Process::ProcessModel& parentProcess,
-    const Process::Outlet& p);
+    Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
+    const Process::ProcessModel& parentProcess, const Process::Outlet& p);
 
 }

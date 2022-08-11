@@ -1,7 +1,8 @@
 #pragma once
-#include <Midi/MidiProcess.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+
+#include <Midi/MidiProcess.hpp>
 class QComboBox;
 class QSpinBox;
 namespace Midi
@@ -11,8 +12,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -24,8 +24,7 @@ private:
   QSpinBox* m_max{};
 };
 class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+    : public Process::InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
   SCORE_CONCRETE("78f380ff-a405-47b6-9d3b-7022af996199")
 };

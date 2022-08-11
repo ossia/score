@@ -1,6 +1,7 @@
 #pragma once
-#include <LocalTree/LocalTreeComponent.hpp>
 #include <Process/ProcessComponent.hpp>
+
+#include <LocalTree/LocalTreeComponent.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/ComponentFactory.hpp>
@@ -10,19 +11,14 @@
 namespace LocalTree
 {
 class SCORE_LIB_PROCESS_EXPORT ProcessComponent
-    : public Component<
-          Process::GenericProcessComponent<const score::DocumentContext>>
+    : public Component<Process::GenericProcessComponent<const score::DocumentContext>>
 {
   ABSTRACT_COMPONENT_METADATA(
-      LocalTree::ProcessComponent,
-      "0732ab51-a052-4e2e-a1f7-9bf2926c199c")
+      LocalTree::ProcessComponent, "0732ab51-a052-4e2e-a1f7-9bf2926c199c")
 public:
   ProcessComponent(
-      ossia::net::node_base& node,
-      Process::ProcessModel& proc,
-      const score::DocumentContext& doc,
-      const QString& name,
-      QObject* parent);
+      ossia::net::node_base& node, Process::ProcessModel& proc,
+      const score::DocumentContext& doc, const QString& name, QObject* parent);
 
   virtual ~ProcessComponent();
 };
@@ -33,42 +29,36 @@ using ProcessComponent_T
 
 class SCORE_LIB_PROCESS_EXPORT ProcessComponentFactory
     : public score::GenericComponentFactory<
-          Process::ProcessModel,
-          score::DocumentContext,
+          Process::ProcessModel, score::DocumentContext,
           LocalTree::ProcessComponentFactory>
 {
   SCORE_ABSTRACT_COMPONENT_FACTORY(LocalTree::ProcessComponent)
 public:
   virtual ~ProcessComponentFactory();
   virtual ProcessComponent* make(
-      ossia::net::node_base& parent,
-      Process::ProcessModel& proc,
-      const score::DocumentContext& doc,
-      QObject* paren_objt) const = 0;
+      ossia::net::node_base& parent, Process::ProcessModel& proc,
+      const score::DocumentContext& doc, QObject* paren_objt) const = 0;
 };
 
 template <typename ProcessComponent_T>
 class ProcessComponentFactory_T
     : public score::GenericComponentFactoryImpl<
-          ProcessComponent_T,
-          ProcessComponentFactory>
+          ProcessComponent_T, ProcessComponentFactory>
 {
 public:
   using model_type = typename ProcessComponent_T::model_type;
   ProcessComponent* make(
-      ossia::net::node_base& parent,
-      Process::ProcessModel& proc,
-      const score::DocumentContext& doc,
-      QObject* paren_objt) const override
+      ossia::net::node_base& parent, Process::ProcessModel& proc,
+      const score::DocumentContext& doc, QObject* paren_objt) const override
   {
-    return new ProcessComponent_T{parent, static_cast<model_type&>(proc), doc, paren_objt};
+    return new ProcessComponent_T{
+        parent, static_cast<model_type&>(proc), doc, paren_objt};
   }
 };
 
 class SCORE_LIB_PROCESS_EXPORT ProcessComponentFactoryList final
     : public score::GenericComponentFactoryList<
-          Process::ProcessModel,
-          score::DocumentContext,
+          Process::ProcessModel, score::DocumentContext,
           LocalTree::ProcessComponentFactory>
 {
 public:

@@ -2,8 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DurationSectionWidget.hpp"
 
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
+#include <Scenario/Commands/Interval/SetMaxDuration.hpp>
+#include <Scenario/Commands/Interval/SetMinDuration.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <Inspector/InspectorSectionWidget.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -30,18 +43,6 @@
 #include <QString>
 #include <QWidget>
 #include <qnamespace.h>
-
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Commands/Interval/ResizeInterval.hpp>
-#include <Scenario/Commands/Interval/SetMaxDuration.hpp>
-#include <Scenario/Commands/Interval/SetMinDuration.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <chrono>
 namespace Scenario
@@ -103,9 +104,7 @@ class EditionGrid : public QWidget
 {
 public:
   EditionGrid(
-      const IntervalModel& m,
-      const score::DocumentContext& fac,
-      QFormLayout& lay,
+      const IntervalModel& m, const score::DocumentContext& fac, QFormLayout& lay,
       const Scenario::EditionSettings& set)
       : m_model{m}
       , m_dur{m.duration}
@@ -136,16 +135,10 @@ public:
     m_maxFiniteBox->setChecked(!m_dur.isMaxInfinite());
 
     connect(
-        m_minNonNullBox,
-        &QCheckBox::toggled,
-        this,
-        &EditionGrid::on_minNonNullToggled);
+        m_minNonNullBox, &QCheckBox::toggled, this, &EditionGrid::on_minNonNullToggled);
 
     connect(
-        m_maxFiniteBox,
-        &QCheckBox::toggled,
-        this,
-        &EditionGrid::on_maxFiniteToggled);
+        m_maxFiniteBox, &QCheckBox::toggled, this, &EditionGrid::on_maxFiniteToggled);
 
     // DISPLAY
     m_minNull = new TextLabel{tr("Null")};
@@ -174,31 +167,21 @@ public:
     editableGrid->addRow(maxboxwidg, maxstack);
 
     connect(
-        m_valueSpin,
-        &TimeSpinBox::editingFinished,
-        this,
+        m_valueSpin, &TimeSpinBox::editingFinished, this,
         &EditionGrid::on_durationsChanged);
     connect(
-        m_minSpin,
-        &TimeSpinBox::editingFinished,
-        this,
+        m_minSpin, &TimeSpinBox::editingFinished, this,
         &EditionGrid::on_durationsChanged);
     connect(
-        m_maxSpin,
-        &TimeSpinBox::editingFinished,
-        this,
+        m_maxSpin, &TimeSpinBox::editingFinished, this,
         &EditionGrid::on_durationsChanged);
 
     m_min = m_model.duration.minDuration();
     m_max = m_model.duration.maxDuration();
 
-    con(m_dur,
-        &IntervalDurations::minNullChanged,
-        this,
+    con(m_dur, &IntervalDurations::minNullChanged, this,
         &EditionGrid::on_modelMinNullChanged);
-    con(m_dur,
-        &IntervalDurations::maxInfiniteChanged,
-        this,
+    con(m_dur, &IntervalDurations::maxInfiniteChanged, this,
         &EditionGrid::on_modelMaxInfiniteChanged);
     minstack->setCurrentIndex(m_model.duration.isMinNull() ? 0 : 1);
     maxstack->setCurrentIndex(m_model.duration.isMaxInfinite() ? 0 : 1);
@@ -209,7 +192,7 @@ public:
     // it may cause unexpected changes in parent scenarios.
     auto mod_del = dynamic_cast<Scenario::ScenarioDocumentModel*>(
         &fac.document.model().modelDelegate());
-    if (isInFullView(m_model) && &m_model != &mod_del->baseInterval())
+    if(isInFullView(m_model) && &m_model != &mod_del->baseInterval())
     {
       m_valueSpin->setEnabled(false);
     }
@@ -217,14 +200,14 @@ public:
 
   ~EditionGrid()
   {
-    if (m_resizeCommand)
+    if(m_resizeCommand)
       delete m_resizeCommand;
   }
   void defaultDurationSpinboxChanged(ossia::time_value val)
   {
-    if (m_moveFactory)
+    if(m_moveFactory)
     {
-      if (m_resizeCommand)
+      if(m_resizeCommand)
       {
         m_moveFactory->update(*m_resizeCommand, m_model, val);
         m_resizeCommand->redo(m_dispatcher.stack().context());
@@ -233,7 +216,7 @@ public:
       {
         m_resizeCommand = m_moveFactory->make(
             m_model, val, m_editionSettings.expandMode(), LockMode::Free);
-        if (m_resizeCommand)
+        if(m_resizeCommand)
           m_resizeCommand->redo(m_dispatcher.stack().context());
       }
     }
@@ -241,7 +224,7 @@ public:
 
   void on_modelRigidityChanged(bool b)
   {
-    if (b)
+    if(b)
     {
       m_minNonNullBox->setHidden(b);
       m_minSpin->setHidden(b);
@@ -278,7 +261,7 @@ public:
 
   void on_modelDefaultDurationChanged(const TimeVal& dur)
   {
-    if (dur == m_valueSpin->time())
+    if(dur == m_valueSpin->time())
       return;
 
     m_valueSpin->setTime(dur);
@@ -286,7 +269,7 @@ public:
 
   void on_modelMinDurationChanged(const TimeVal& dur)
   {
-    if (dur == m_minSpin->time())
+    if(dur == m_minSpin->time())
       return;
 
     m_minSpin->setTime(dur);
@@ -295,7 +278,7 @@ public:
 
   void on_modelMaxDurationChanged(const TimeVal& dur)
   {
-    if (dur == m_maxSpin->time())
+    if(dur == m_maxSpin->time())
       return;
 
     m_maxSpin->setTime(dur);
@@ -304,20 +287,20 @@ public:
 
   void on_durationsChanged()
   {
-    if (m_dur.defaultDuration() != m_valueSpin->time())
+    if(m_dur.defaultDuration() != m_valueSpin->time())
     {
       defaultDurationSpinboxChanged(m_valueSpin->time());
-      if (m_resizeCommand)
+      if(m_resizeCommand)
         m_dispatcher.stack().push(m_resizeCommand);
       m_resizeCommand = nullptr;
     }
 
-    if (m_dur.minDuration() != m_minSpin->time())
+    if(m_dur.minDuration() != m_minSpin->time())
     {
       minDurationSpinboxChanged(m_minSpin->time());
       m_dispatcher.commit();
     }
-    if (m_dur.maxDuration() != m_maxSpin->time())
+    if(m_dur.maxDuration() != m_maxSpin->time())
     {
       maxDurationSpinboxChanged(m_maxSpin->time());
       m_dispatcher.commit();
@@ -353,8 +336,7 @@ public:
     using namespace Scenario::Command;
     if(val < m_model.duration.defaultDuration())
     {
-      m_dispatcher.submit<SetMinDuration>(
-          m_model, val, !m_minNonNullBox->isChecked());
+      m_dispatcher.submit<SetMinDuration>(m_model, val, !m_minNonNullBox->isChecked());
     }
   }
 
@@ -363,8 +345,7 @@ public:
     using namespace Scenario::Command;
     if(val >= m_model.duration.defaultDuration())
     {
-      m_dispatcher.submit<SetMaxDuration>(
-          m_model, val, !m_maxFiniteBox->isChecked());
+      m_dispatcher.submit<SetMaxDuration>(m_model, val, !m_maxFiniteBox->isChecked());
     }
   }
 
@@ -459,12 +440,10 @@ private:
 };
 */
 DurationWidget::DurationWidget(
-    const Scenario::EditionSettings& set,
-    QFormLayout& lay,
+    const Scenario::EditionSettings& set, QFormLayout& lay,
     IntervalInspectorWidget* parent)
     : QWidget{parent}
-    , m_editingWidget{
-          new EditionGrid{parent->model(), parent->context(), lay, set}}
+    , m_editingWidget{new EditionGrid{parent->model(), parent->context(), lay, set}}
 // , m_playingWidget{new PlayGrid{parent->model().duration}}
 {
   using namespace score;
@@ -475,12 +454,9 @@ DurationWidget::DurationWidget(
 
   // CONNECTIONS FROM MODEL
   // TODO these need to be updated when the default duration changes
-  con(dur,
-      &IntervalDurations::defaultDurationChanged,
-      this,
-      [](const TimeVal& t) {
+  con(dur, &IntervalDurations::defaultDurationChanged, this, [](const TimeVal& t) {
 
-      });
+  });
   con(dur, &IntervalDurations::minDurationChanged, this, [this](auto v) {
     // m_playingWidget->on_modelMinDurationChanged(v);
     m_editingWidget->on_modelMinDurationChanged(v);

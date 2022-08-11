@@ -1,15 +1,13 @@
 #pragma once
-#include <score/command/AggregateCommand.hpp>
-
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
+#include <score/command/AggregateCommand.hpp>
 
 namespace Dataflow
 {
 class CreateModulation final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      CreateModulation,
-      "Create modulation")
+      Scenario::Command::CommandFactoryName(), CreateModulation, "Create modulation")
 };
 }

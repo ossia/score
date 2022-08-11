@@ -37,11 +37,8 @@ class InspectorPanelWidget final : public QObject
 
 public:
   explicit InspectorPanelWidget(
-      const Inspector::InspectorWidgetList& list,
-      score::SelectionStack& s,
-      QVBoxLayout* lay,
-      QWidget* parent,
-      QObject* parentObj);
+      const Inspector::InspectorWidgetList& list, score::SelectionStack& s,
+      QVBoxLayout* lay, QWidget* parent, QObject* parentObj);
 
 public:
   /*!

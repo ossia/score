@@ -18,13 +18,11 @@ public:
   score_plugin_media();
   ~score_plugin_media() override;
 
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

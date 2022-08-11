@@ -3,8 +3,10 @@
 #include "MinuitDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
+
 #include <Protocols/Minuit/MinuitSpecificSettings.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
@@ -35,17 +37,14 @@ bool MinuitDevice::reconnect()
 
   try
   {
-    auto stgs
-        = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
+    auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
 
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::net::minuit_protocol>(
-            stgs.localName.toStdString(),
-            stgs.host.toStdString(),
-            stgs.inputPort,
+            stgs.localName.toStdString(), stgs.host.toStdString(), stgs.inputPort,
             stgs.outputPort);
 
-    if (stgs.rate)
+    if(stgs.rate)
     {
       ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
           std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
@@ -57,11 +56,11 @@ bool MinuitDevice::reconnect()
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }
@@ -71,7 +70,7 @@ bool MinuitDevice::reconnect()
 
 void MinuitDevice::recreate(const Device::Node& n)
 {
-  for (auto& child : n)
+  for(auto& child : n)
   {
     addNode(child);
   }

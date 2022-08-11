@@ -24,8 +24,7 @@ public:
 private:
   QModelIndexList selectedDraggableIndexes() const;
   void selectionChanged(
-      const QItemSelection& selected,
-      const QItemSelection& deselected) override;
+      const QItemSelection& selected, const QItemSelection& deselected) override;
   void startDrag(Qt::DropActions supportedActions) override;
   void mouseDoubleClickEvent(QMouseEvent* event) override;
   Library::ProcessData* dataFromViewIndex(QModelIndex);

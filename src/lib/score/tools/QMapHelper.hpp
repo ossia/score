@@ -8,7 +8,7 @@
  * TODO instead just stop using QMap and use std::unordered_map.
  */
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
+#if(QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
 template <typename T>
 struct QMapKeyAdaptor
 {

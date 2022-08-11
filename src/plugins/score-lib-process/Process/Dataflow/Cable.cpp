@@ -66,7 +66,7 @@ Path<Process::Inlet> Cable::sink() const
 
 void Cable::setType(CableType type)
 {
-  if (m_type == type)
+  if(m_type == type)
     return;
 
   m_type = type;
@@ -121,24 +121,21 @@ DataStreamReader::read<Process::Cable>(const Process::Cable& p)
   m_stream << p.toCableData();
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Cable>(Process::Cable& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Cable>(Process::Cable& p)
 {
   Process::CableData cd;
   m_stream >> cd;
   p.update(cd);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Cable>(const Process::Cable& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Cable>(const Process::Cable& p)
 {
   obj["Type"] = (int)p.m_type;
   obj["Source"] = p.m_source;
   obj["Sink"] = p.m_sink;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Cable>(Process::Cable& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Cable>(Process::Cable& p)
 {
   p.m_type = (Process::CableType)obj["Type"].toInt();
   p.m_source <<= obj["Source"];

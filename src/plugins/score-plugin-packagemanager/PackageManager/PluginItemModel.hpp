@@ -22,19 +22,17 @@ namespace PM
 {
 struct Package
 {
-  static std::optional<Package>
-  fromJson(const QJsonObject& obj) noexcept;
+  static std::optional<Package> fromJson(const QJsonObject& obj) noexcept;
 
   UuidKey<score::Addon> key; // Can be the same as plug-in's
 
   QString raw_name;
   QString name;
-  int version{}; // version of the add-on
-  QString target;  // version of score targeted by this version of the add-on
-  QString
-      kind;  // what kind of package it is (for now: "addon", "sdk", "library")
-  QUrl file; // URL to a file containing the current version.
-  QString url; // Link to the homepage of the package if any
+  int version{};  // version of the add-on
+  QString target; // version of score targeted by this version of the add-on
+  QString kind;   // what kind of package it is (for now: "addon", "sdk", "library")
+  QUrl file;      // URL to a file containing the current version.
+  QString url;    // Link to the homepage of the package if any
 
   QString shortDescription;
   QString longDescription;
@@ -70,8 +68,7 @@ private:
   };
   static constexpr const int ColumnCount = 4;
 
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override;
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override;
   QModelIndex parent(const QModelIndex& child) const override;
   int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
@@ -94,7 +91,7 @@ public:
   template <typename Fun>
   void updateAddon(UuidKey<score::Addon> k, Fun f)
   {
-    if (auto add = addon(k))
+    if(auto add = addon(k))
     {
       beginResetModel();
       f(*add);
@@ -107,7 +104,7 @@ private:
   {
     auto it = ossia::find_if(m_vec, [&](auto& add) { return add.key == k; });
 
-    if (it != m_vec.end())
+    if(it != m_vec.end())
       return &*it;
 
     return nullptr;

@@ -27,19 +27,15 @@ public:
   ScenarioTemporalLayerFactory(Scenario::EditionSettings&);
 
   Process::LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel&,
-      Process::LayerView*,
-      const Process::Context& context,
+      const Process::ProcessModel&, Process::LayerView*, const Process::Context& context,
       QObject* parent) const override;
 
   Process::LayerView* makeLayerView(
-      const Process::ProcessModel& viewmodel,
-      const Process::Context& context,
+      const Process::ProcessModel& viewmodel, const Process::Context& context,
       QGraphicsItem* parent) const override;
 
-  Process::MiniLayer* makeMiniLayer(
-      const Process::ProcessModel& view,
-      QGraphicsItem* parent) const override;
+  Process::MiniLayer*
+  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent) const override;
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override;
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override;

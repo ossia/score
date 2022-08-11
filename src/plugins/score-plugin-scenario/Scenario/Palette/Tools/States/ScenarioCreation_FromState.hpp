@@ -1,9 +1,6 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-#include <QApplication>
-#include <QFinalState>
-
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
@@ -19,28 +16,24 @@
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
+#include <QApplication>
+#include <QFinalState>
+
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
-class Creation_FromState final
-    : public CreationState<Scenario_T, ToolPalette_T>
+class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
 {
 public:
   Creation_FromState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      QState* parent)
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, QState* parent)
       : CreationState<Scenario_T, ToolPalette_T>{
-          stateMachine,
-          stack,
-          std::move(scenarioPath),
-          parent}
+          stateMachine, stack, std::move(scenarioPath), parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
-    QObject::connect(
-        finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
+    QObject::connect(finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
 
     auto mainState = new QState{this};
     {
@@ -56,8 +49,7 @@ public:
       released->addTransition(finalState);
 
       // Release
-      score::make_transition<ReleaseOnAnything_Transition>(
-          mainState, released);
+      score::make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
       // Pressed -> ...
       score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
@@ -119,10 +111,10 @@ public:
 
       // MoveOnEvent -> MoveOnState
       this->add_transition(move_event, move_state, [&]() {
-        if (this->clickedState && this->hoveredState)
+        if(this->clickedState && this->hoveredState)
         {
-          if (this->m_parentSM.model().state(*this->clickedState).eventId()
-              != this->m_parentSM.model().state(*this->hoveredState).eventId())
+          if(this->m_parentSM.model().state(*this->clickedState).eventId()
+             != this->m_parentSM.model().state(*this->hoveredState).eventId())
           {
             this->rollback();
             createToState();
@@ -170,23 +162,19 @@ public:
       });
 
       QObject::connect(move_nothing, &QState::entered, [&]() {
-        if (this->createdIntervals.empty() || this->createdEvents.empty())
+        if(this->createdIntervals.empty() || this->createdEvents.empty())
         {
           this->rollback();
           createToNothing();
           return;
         }
 
-        Scenario::EditionSettings& settings
-            = this->m_parentSM.editionSettings();
-        if (settings.tool() == Scenario::Tool::CreateGraph)
+        Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
+        if(settings.tool() == Scenario::Tool::CreateGraph)
         {
           this->m_dispatcher.template submit<MoveNewEvent>(
-              this->m_scenario,
-              this->createdIntervals.last(),
-              this->createdEvents.last(),
-              this->currentPoint.date,
-              this->currentPoint.y,
+              this->m_scenario, this->createdIntervals.last(),
+              this->createdEvents.last(), this->currentPoint.date, this->currentPoint.y,
               false);
           return;
         }
@@ -194,73 +182,62 @@ public:
         this->currentPoint.date = stateMachine.magnetic().getPosition(
             &stateMachine.model(), this->currentPoint.date);
 
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
+        if(this->currentPoint.date <= this->m_clickedPoint.date)
         {
-          this->currentPoint.date
-              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
+          this->currentPoint.date = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
           ;
         }
 
         auto sequence = settings.tool() == Tool::CreateSequence;
-        if (sequence)
+        if(sequence)
         {
-          if (this->clickedState)
+          if(this->clickedState)
           {
-            const auto& st
-                = this->m_parentSM.model().state(*this->clickedState);
+            const auto& st = this->m_parentSM.model().state(*this->clickedState);
             this->currentPoint.y = st.heightPercentage();
           }
         }
 
         this->m_dispatcher.template submit<MoveNewEvent>(
-            this->m_scenario,
-            this->createdIntervals.last(),
-            this->createdEvents.last(),
-            this->currentPoint.date,
-            this->currentPoint.y,
-            sequence);
+            this->m_scenario, this->createdIntervals.last(), this->createdEvents.last(),
+            this->currentPoint.date, this->currentPoint.y, sequence);
       });
 
       QObject::connect(move_event, &QState::entered, [&]() {
-        if (this->createdStates.empty())
+        if(this->createdStates.empty())
         {
           this->rollback();
           createToEvent();
           return;
         }
 
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
+        if(this->currentPoint.date <= this->m_clickedPoint.date)
         {
           return;
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {
-        if (this->createdStates.empty())
+        if(this->createdStates.empty())
         {
           this->rollback();
           createToTimeSync();
           return;
         }
 
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
+        if(this->currentPoint.date <= this->m_clickedPoint.date)
         {
           return;
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
-      QObject::connect(
-          released, &QState::entered, this, &Creation_FromState::commit);
+      QObject::connect(released, &QState::entered, this, &Creation_FromState::commit);
     }
 
     auto rollbackState = new QState{this};
@@ -277,7 +254,7 @@ private:
   void creationCheck(Fun&& fun)
   {
     const auto& scenar = this->m_parentSM.model();
-    if (!this->clickedState)
+    if(!this->clickedState)
       return;
     Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
     const bool sequence = settings.tool() == Tool::CreateSequence;
@@ -285,10 +262,10 @@ private:
     const bool graph_interval = settings.tool() == Scenario::Tool::CreateGraph;
     auto& st = scenar.state(*this->clickedState);
     auto& ev = Scenario::parentEvent(st, scenar);
-    if (ev.date() > this->currentPoint.date && !graph_interval)
+    if(ev.date() > this->currentPoint.date && !graph_interval)
       return;
 
-    if (new_event && !sequence)
+    if(new_event && !sequence)
     {
       // Create new event on the timesync
       auto tn = ev.timeSync();
@@ -302,7 +279,7 @@ private:
     }
     else
     {
-      if (!sequence)
+      if(!sequence)
       {
         // Create new state on the event
         auto cmd = new Scenario::Command::CreateState{
@@ -314,7 +291,7 @@ private:
       }
       else
       {
-        if (!st.nextInterval()) // TODO & deltaY < deltaX
+        if(!st.nextInterval()) // TODO & deltaY < deltaX
         {
           this->currentPoint.y = st.heightPercentage();
           fun(*this->clickedState);
@@ -337,52 +314,47 @@ private:
   // Note : clickedEvent is set at startEvent if clicking in the background.
   void createToNothing()
   {
-    creationCheck(
-        [&](const Id<StateModel>& id) { this->createToNothing_base(id); });
+    creationCheck([&](const Id<StateModel>& id) { this->createToNothing_base(id); });
   }
 
   void createToTimeSync()
   {
-    creationCheck(
-        [&](const Id<StateModel>& id) { this->createToTimeSync_base(id); });
+    creationCheck([&](const Id<StateModel>& id) { this->createToTimeSync_base(id); });
   }
 
   void createToEvent()
   {
-    if (this->clickedState)
+    if(this->clickedState)
     {
-      if (this->hoveredEvent
-          == this->m_parentSM.model().state(*this->clickedState).eventId())
+      if(this->hoveredEvent
+         == this->m_parentSM.model().state(*this->clickedState).eventId())
       {
         creationCheck([&](const Id<StateModel>& id) {});
       }
       else
       {
-        creationCheck(
-            [&](const Id<StateModel>& id) { this->createToEvent_base(id); });
+        creationCheck([&](const Id<StateModel>& id) { this->createToEvent_base(id); });
       }
     }
   }
 
   void createToState()
   {
-    if (this->hoveredState)
+    if(this->hoveredState)
     {
       auto& st = this->m_parentSM.model().states.at(*this->hoveredState);
-      if (!st.previousInterval())
+      if(!st.previousInterval())
       {
         // No previous interval -> we create a new interval and link it to
         // this state
-        creationCheck(
-            [&](const Id<StateModel>& id) { this->createToState_base(id); });
+        creationCheck([&](const Id<StateModel>& id) { this->createToState_base(id); });
       }
       else
       {
         // Previous interval -> we add a new state to the event and link to
         // it.
         this->hoveredEvent = st.eventId();
-        creationCheck(
-            [&](const Id<StateModel>& id) { this->createToEvent_base(id); });
+        creationCheck([&](const Id<StateModel>& id) { this->createToEvent_base(id); });
       }
     }
   }

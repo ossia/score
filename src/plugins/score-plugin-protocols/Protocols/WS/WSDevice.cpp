@@ -3,13 +3,16 @@
 #include "WSDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
+
 #include <Protocols/WS/WSSpecificSettings.hpp>
 
-#include <ossia-qt/websocket-generic-client/ws_generic_client_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
+
+#include <ossia-qt/websocket-generic-client/ws_generic_client_protocol.hpp>
 
 #include <memory>
 
@@ -45,11 +48,11 @@ bool WSDevice::reconnect()
 
     deviceChanged(nullptr, m_dev.get());
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }

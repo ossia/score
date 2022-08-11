@@ -1,14 +1,17 @@
 #pragma once
 
+#include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
+
 #include <Inspector/InspectorWidgetBase.hpp>
 
-#include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+
 #include <score_plugin_automation_export.h>
 
 class QDoubleSpinBox;
 class QWidget;
-namespace Inspector {
+namespace Inspector
+{
 class Layout;
 }
 namespace Curve
@@ -19,8 +22,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT PointInspectorWidget
 {
 public:
   explicit PointInspectorWidget(
-      const Curve::PointModel& model,
-      const score::DocumentContext& context,
+      const Curve::PointModel& model, const score::DocumentContext& context,
       QWidget* parent);
 
 protected:
@@ -38,8 +40,7 @@ class PointInspectorWidget final : public Curve::PointInspectorWidget
 {
 public:
   explicit PointInspectorWidget(
-      const Curve::PointModel& model,
-      const score::DocumentContext& context,
+      const Curve::PointModel& model, const score::DocumentContext& context,
       QWidget* parent);
 
 private:

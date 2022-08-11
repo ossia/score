@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Execution/ProcessComponent.hpp>
+
 #include <Vst/EffectModel.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
@@ -17,10 +18,7 @@ class Executor final
 public:
   static constexpr bool is_unique = true;
 
-  Executor(
-      vst::Model& proc,
-      const Execution::Context& ctx,
-      QObject* parent);
+  Executor(vst::Model& proc, const Execution::Context& ctx, QObject* parent);
 
 private:
   template <typename Node_T>

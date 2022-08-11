@@ -14,8 +14,12 @@ struct SCORE_LIB_BASE_EXPORT ObjectEditor : public score::InterfaceBase
 public:
   virtual ~ObjectEditor() override;
 
-  virtual bool copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx) = 0;
-  virtual bool paste(QPoint pos, QObject* focusedObject, const QMimeData& mime, const score::DocumentContext& ctx) = 0;
+  virtual bool copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
+      = 0;
+  virtual bool paste(
+      QPoint pos, QObject* focusedObject, const QMimeData& mime,
+      const score::DocumentContext& ctx)
+      = 0;
   virtual bool remove(const Selection& s, const score::DocumentContext& ctx) = 0;
 };
 

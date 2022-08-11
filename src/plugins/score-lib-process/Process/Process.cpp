@@ -4,8 +4,8 @@
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExpandMode.hpp>
-#include <Process/TimeValue.hpp>
 #include <Process/PresetHelpers.hpp>
+#include <Process/TimeValue.hpp>
 
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -46,17 +46,14 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
       {"Network", makeIcon(QStringLiteral(":/icons/sync.png"))},
       {"Monitoring", makeIcon(QStringLiteral(":/icons/ui.png"))}};
   static const QIcon invalid;
-  if (auto it = categoryIcon.find(category); it != categoryIcon.end())
+  if(auto it = categoryIcon.find(category); it != categoryIcon.end())
   {
     return it->second;
   }
   return invalid;
 }
 ProcessModel::ProcessModel(
-    TimeVal duration,
-    const Id<ProcessModel>& id,
-    const QString& name,
-    QObject* parent)
+    TimeVal duration, const Id<ProcessModel>& id, const QString& name, QObject* parent)
     : Entity{id, name, parent}
     , m_duration{std::move(duration)}
     , m_slotHeight{300}
@@ -64,15 +61,14 @@ ProcessModel::ProcessModel(
     , m_size{200, 100}
     , m_loops{false}
 {
-  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
-    prettyNameChanged();
-  });
+  con(metadata(), &score::ModelMetadata::NameChanged, this,
+      [=] { prettyNameChanged(); });
   connect(this, &Process::ProcessModel::resetExecution, this, [this] {
-        for(auto& p : this->m_inlets)
-          p->executionReset();
-        for(auto& p : this->m_outlets)
-          p->executionReset();
-      });
+    for(auto& p : this->m_inlets)
+      p->executionReset();
+    for(auto& p : this->m_outlets)
+      p->executionReset();
+  });
   // metadata().setInstanceName(*this);
 }
 
@@ -105,18 +101,16 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
-    prettyNameChanged();
-  });
+  con(metadata(), &score::ModelMetadata::NameChanged, this,
+      [=] { prettyNameChanged(); });
 }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
-    prettyNameChanged();
-  });
+  con(metadata(), &score::ModelMetadata::NameChanged, this,
+      [=] { prettyNameChanged(); });
 }
 
 QString ProcessModel::prettyName() const noexcept
@@ -124,26 +118,22 @@ QString ProcessModel::prettyName() const noexcept
   return metadata().getName();
 }
 
-void ProcessModel::setParentDuration(
-    ExpandMode mode,
-    const TimeVal& t) noexcept
+void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t) noexcept
 {
-  switch (mode)
+  switch(mode)
   {
     case ExpandMode::Scale:
       setDurationAndScale(t);
       break;
-    case ExpandMode::GrowShrink:
-    {
-      if (duration() < t)
+    case ExpandMode::GrowShrink: {
+      if(duration() < t)
         setDurationAndGrow(t);
       else
         setDurationAndShrink(t);
       break;
     }
-    case ExpandMode::ForceGrow:
-    {
-      if (duration() < t)
+    case ExpandMode::ForceGrow: {
+      if(duration() < t)
         setDurationAndGrow(t);
       break;
     }
@@ -193,17 +183,16 @@ void ProcessModel::setSelection(const Selection& s) const noexcept { }
 
 Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const noexcept
 {
-  for (auto e : m_inlets)
-    if (e->id() == p)
+  for(auto e : m_inlets)
+    if(e->id() == p)
       return e;
   return nullptr;
 }
 
-Process::Outlet*
-ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
+Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
 {
-  for (auto e : m_outlets)
-    if (e->id() == p)
+  for(auto e : m_outlets)
+    if(e->id() == p)
       return e;
   return nullptr;
 }
@@ -238,19 +227,16 @@ void ProcessModel::ancestorTempoChanged() { }
 void ProcessModel::forEachControl(
     smallfun::function<void(ControlInlet&, const ossia::value&)> f) const
 {
-  for (const auto& inlet : m_inlets)
+  for(const auto& inlet : m_inlets)
   {
-    if (auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
+    if(auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
     {
       f(*ctrl, ctrl->value());
     }
   }
 }
 
-void ProcessModel::setCreatingControls(bool ok)
-{
-
-}
+void ProcessModel::setCreatingControls(bool ok) { }
 
 bool ProcessModel::creatingControls() const noexcept
 {
@@ -259,7 +245,7 @@ bool ProcessModel::creatingControls() const noexcept
 
 void ProcessModel::setLoops(bool b)
 {
-  if (b != m_loops)
+  if(b != m_loops)
   {
     m_loops = b;
     loopsChanged(b);
@@ -268,7 +254,7 @@ void ProcessModel::setLoops(bool b)
 
 void ProcessModel::setStartOffset(TimeVal b)
 {
-  if (b != m_startOffset)
+  if(b != m_startOffset)
   {
     m_startOffset = b;
     startOffsetChanged(b);
@@ -277,10 +263,10 @@ void ProcessModel::setStartOffset(TimeVal b)
 
 void ProcessModel::setLoopDuration(TimeVal b)
 {
-  if (b.msec() < 0.1)
+  if(b.msec() < 0.1)
     b = TimeVal::fromMsecs(0.1);
 
-  if (b != m_loopDuration)
+  if(b != m_loopDuration)
   {
     m_loopDuration = b;
     loopDurationChanged(b);
@@ -299,7 +285,7 @@ QSizeF ProcessModel::size() const noexcept
 
 void ProcessModel::setPosition(const QPointF& v)
 {
-  if (v != m_position)
+  if(v != m_position)
   {
     m_position = v;
     positionChanged(v);
@@ -308,7 +294,7 @@ void ProcessModel::setPosition(const QPointF& v)
 
 void ProcessModel::setSize(const QSizeF& v)
 {
-  if (v != m_size)
+  if(v != m_size)
   {
     m_size = v;
     sizeChanged(v);
@@ -328,30 +314,30 @@ void ProcessModel::setSlotHeight(double v) noexcept
 
 ProcessModel* parentProcess(QObject* obj) noexcept
 {
-  if (obj)
+  if(obj)
     obj = obj->parent();
 
-  while (obj && !qobject_cast<ProcessModel*>(obj))
+  while(obj && !qobject_cast<ProcessModel*>(obj))
   {
     obj = obj->parent();
   }
 
-  if (obj)
+  if(obj)
     return static_cast<ProcessModel*>(obj);
   return nullptr;
 }
 
 const ProcessModel* parentProcess(const QObject* obj) noexcept
 {
-  if (obj)
+  if(obj)
     obj = obj->parent();
 
-  while (obj && !qobject_cast<const ProcessModel*>(obj))
+  while(obj && !qobject_cast<const ProcessModel*>(obj))
   {
     obj = obj->parent();
   }
 
-  if (obj)
+  if(obj)
     return static_cast<const ProcessModel*>(obj);
   return nullptr;
 }

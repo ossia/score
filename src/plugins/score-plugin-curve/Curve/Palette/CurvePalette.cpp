@@ -35,9 +35,8 @@ const Model& ToolPalette::model() const
 void ToolPalette::on_pressed(QPointF point)
 {
   scenePoint = point;
-  auto curvePoint
-      = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-  switch (editionSettings().tool())
+  auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+  switch(editionSettings().tool())
   {
     case Curve::Tool::Create:
       m_createTool.on_pressed(point, curvePoint);
@@ -59,9 +58,8 @@ void ToolPalette::on_pressed(QPointF point)
 void ToolPalette::on_moved(QPointF point)
 {
   scenePoint = point;
-  auto curvePoint
-      = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-  switch (editionSettings().tool())
+  auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+  switch(editionSettings().tool())
   {
     case Curve::Tool::Create:
       m_createTool.on_moved(point, curvePoint);
@@ -83,9 +81,8 @@ void ToolPalette::on_moved(QPointF point)
 void ToolPalette::on_released(QPointF point)
 {
   scenePoint = point;
-  auto curvePoint
-      = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-  switch (editionSettings().tool())
+  auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+  switch(editionSettings().tool())
   {
     case Curve::Tool::Create:
       m_createTool.on_released(point, curvePoint);
@@ -118,8 +115,7 @@ void ToolPalette::desactivate(Curve::Tool) { }
 void ToolPalette::createPoint(QPointF point)
 {
   scenePoint = point;
-  auto curvePoint
-      = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+  auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
 
   m_createTool.on_pressed(point, curvePoint);
   m_createTool.on_released(point, curvePoint);

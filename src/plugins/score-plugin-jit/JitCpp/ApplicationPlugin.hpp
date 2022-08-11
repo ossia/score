@@ -1,11 +1,11 @@
 #pragma once
+#include <JitCpp/AddonCompiler.hpp>
+
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <QFileSystemWatcher>
 #include <QSet>
 #include <QThread>
-
-#include <JitCpp/AddonCompiler.hpp>
 
 namespace Jit
 {

@@ -63,7 +63,7 @@ public:
     using type = Scenario::ElementTraits<Scenario::ScenarioInterface, T>;
     const auto& sc = (s.*type::accessor)();
     elements.reserve(elements.size() + sc.size());
-    for (auto& e : sc)
+    for(auto& e : sc)
     {
       elements.push_back(&e);
       visit(e);
@@ -72,9 +72,9 @@ public:
 
   void visit(Scenario::IntervalModel& c)
   {
-    for (auto& proc : c.processes)
+    for(auto& proc : c.processes)
     {
-      if (auto scenario = dynamic_cast<Scenario::ScenarioInterface*>(&proc))
+      if(auto scenario = dynamic_cast<Scenario::ScenarioInterface*>(&proc))
       {
         visit(*scenario);
       }

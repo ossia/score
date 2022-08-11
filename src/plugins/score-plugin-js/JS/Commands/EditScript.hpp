@@ -1,8 +1,8 @@
 #pragma once
+#include <Scenario/Commands/ScriptEditCommand.hpp>
+
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <JS/JSProcessModel.hpp>
-
-#include <Scenario/Commands/ScriptEditCommand.hpp>
 namespace JS
 {
 class EditJSScript

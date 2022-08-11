@@ -1,13 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/document/DocumentContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
@@ -46,11 +46,8 @@ const std::vector<DocumentPlugin*>& DocumentContext::pluginModels() const
 }
 
 Document::Document(
-    const QString& name,
-    const Id<DocumentModel>& id,
-    DocumentDelegateFactory& factory,
-    QWidget* parentview,
-    QObject* parent)
+    const QString& name, const Id<DocumentModel>& id, DocumentDelegateFactory& factory,
+    QWidget* parentview, QObject* parent)
     : QObject{parent}
     , m_metadata{name}
     , m_commandStack{*this}
@@ -66,14 +63,13 @@ Document::Document(
   // which requires the pointer to m_model to be initialized.
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
-  new (m_model) DocumentModel(id, m_context, factory, this);
+  new(m_model) DocumentModel(id, m_context, factory, this);
 
   // TODO don't build them / destroy them if !application.gui.
-  if (parentview)
+  if(parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter
-        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
 
   init();
@@ -84,20 +80,18 @@ Document::Document(
 
 void Document::init()
 {
-  con(m_selectionStack,
-      &SelectionStack::currentSelectionChanged,
-      this,
+  con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
       [&](const Selection& old, const Selection& s) {
-        Selection oldfiltered = old;
-        oldfiltered.removeAll(nullptr);
-        Selection filtered = s;
-        filtered.removeAll(nullptr);
-        for (auto& panel : m_context.app.panels())
-        {
-          panel.setNewSelection(filtered);
-        }
-        m_presenter->setNewSelection(oldfiltered, filtered);
-      });
+    Selection oldfiltered = old;
+    oldfiltered.removeAll(nullptr);
+    Selection filtered = s;
+    filtered.removeAll(nullptr);
+    for(auto& panel : m_context.app.panels())
+    {
+      panel.setNewSelection(filtered);
+    }
+    m_presenter->setNewSelection(oldfiltered, filtered);
+  });
 
   updateTimers();
 

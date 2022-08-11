@@ -4,6 +4,9 @@
 
 #include "JS/Commands/JSCommandFactory.hpp"
 
+#include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/ProcessFactory.hpp>
+
 #include <Execution/DocumentPlugin.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/Executor/Component.hpp>
@@ -13,8 +16,6 @@
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
-#include <Process/ProcessFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -43,10 +44,7 @@ class ModuleLibraryHandler final
 public:
   JS::PanelDelegate* panel{};
 
-  QSet<QString> acceptedFiles() const noexcept override
-  {
-    return {"mjs"};
-  }
+  QSet<QString> acceptedFiles() const noexcept override { return {"mjs"}; }
 
   bool add(const QString& path)
   {
@@ -66,8 +64,7 @@ public:
     add(QString::fromUtf8(path.data(), path.length()));
   }
 
-  bool
-  onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     return add(path);
   }
@@ -79,13 +76,9 @@ class ConsoleLibraryHandler final
 {
   SCORE_CONCRETE("21f405da-a249-4e39-b405-9173aff11b26")
 
-  QSet<QString> acceptedFiles() const noexcept override
-  {
-    return {"js"};
-  }
+  QSet<QString> acceptedFiles() const noexcept override { return {"js"}; }
 
-  bool
-  onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     QFile f{path};
     if(!f.open(QIODevice::ReadOnly))
@@ -111,24 +104,19 @@ class LibraryHandler final
 {
   SCORE_CONCRETE("5231ea8b-da66-4c6f-9e34-d9a79cbc494a")
 
-  QSet<QString> acceptedFiles() const noexcept override
-  {
-    return {"qml"};
-  }
+  QSet<QString> acceptedFiles() const noexcept override { return {"qml"}; }
 
-  static inline const QRegularExpression scoreImport{
-      "import Score [0-9].[0-9]"};
+  static inline const QRegularExpression scoreImport{"import Score [0-9].[0-9]"};
 
   Library::Subcategories categories;
 
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override
   {
     // TODO relaunch whenever library path changes...
     const auto& key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
     QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
+    if(node == QModelIndex{})
       return;
 
     categories.init(node, ctx);
@@ -148,7 +136,7 @@ class LibraryHandler final
 
     {
       auto matches = scoreImport.match(pdata.customData);
-      if (matches.hasMatch())
+      if(matches.hasMatch())
       {
         categories.add(file, std::move(pdata));
       }
@@ -160,14 +148,10 @@ class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("ad3a575a-f4a8-4a89-bb7e-bfd85f3430fe")
 
-  QSet<QString> fileExtensions() const noexcept override
-  {
-    return {"qml"};
-  }
+  QSet<QString> fileExtensions() const noexcept override { return {"qml"}; }
 
   void dropData(
-      std::vector<ProcessDrop>& vec,
-      const DroppedFile& data,
+      std::vector<ProcessDrop>& vec, const DroppedFile& data,
       const score::DocumentContext& ctx) const noexcept override
   {
     const auto& [filename, file] = data;
@@ -215,22 +199,19 @@ score_plugin_js::score_plugin_js()
 score_plugin_js::~score_plugin_js() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext,
-      FW<Process::ProcessModelFactory, JS::ProcessFactory>,
+      score::ApplicationContext, FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
-      FW<Library::LibraryInterface, JS::LibraryHandler, JS::ConsoleLibraryHandler, JS::ModuleLibraryHandler>,
+      FW<Library::LibraryInterface, JS::LibraryHandler, JS::ConsoleLibraryHandler,
+         JS::ModuleLibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
-      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
-      ctx, key);
+      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_js::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_js::make_commands()
 {
   using namespace JS;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

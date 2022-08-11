@@ -1,7 +1,6 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-extern "C"
-{
+extern "C" {
 #include <libavformat/avformat.h>
 }
 
@@ -65,106 +64,81 @@ struct YUV420Decoder : GPUVideoDecoder
 
     // Y
     {
-      auto tex
-          = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
       samplers.push_back({sampler, tex});
     }
 
     // U
     {
-      auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
       samplers.push_back({sampler, tex});
     }
 
     // V
     {
-      auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->create();
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(r.state,
-               vertexShader(), yuv420_filter);
+    return score::gfx::makeShaders(r.state, vertexShader(), yuv420_filter);
   }
 
-  void exec(
-      RenderList&,
-      QRhiResourceUpdateBatch& res,
-      AVFrame& frame) override
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
     setYPixels(res, frame.data[0], frame.linesize[0]);
     setUPixels(res, frame.data[1], frame.linesize[1]);
     setVPixels(res, frame.data[2], frame.linesize[2]);
   }
 
-  void setYPixels(
-      QRhiResourceUpdateBatch& res,
-      uint8_t* pixels,
-      int stride) const noexcept
+  void
+  setYPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = samplers[0].texture;
 
-    QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, w, h, 1, stride)};
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
     QRhiTextureUploadDescription desc{entry};
 
     res.uploadTexture(y_tex, desc);
   }
 
-  void setUPixels(
-      QRhiResourceUpdateBatch& res,
-      uint8_t* pixels,
-      int stride) const noexcept
+  void
+  setUPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
     const auto w = decoder.width / 2, h = decoder.height / 2;
     auto u_tex = samplers[1].texture;
 
-    QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, w, h, 1, stride)};
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
     QRhiTextureUploadDescription desc{entry};
 
     res.uploadTexture(u_tex, desc);
   }
 
-  void setVPixels(
-      QRhiResourceUpdateBatch& res,
-      uint8_t* pixels,
-      int stride) const noexcept
+  void
+  setVPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
     const auto w = decoder.width / 2, h = decoder.height / 2;
     auto v_tex = samplers[2].texture;
 
-    QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, w, h, 1, stride)};
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(v_tex, desc);
   }

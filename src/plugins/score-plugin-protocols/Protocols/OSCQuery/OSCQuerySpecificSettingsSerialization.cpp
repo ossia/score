@@ -23,7 +23,7 @@ template <>
 void JSONReader::read(const Protocols::OSCQuerySpecificSettings& n)
 {
   obj["Host"] = n.host;
-  if (n.rate)
+  if(n.rate)
     obj["Rate"] = *n.rate;
 }
 
@@ -31,6 +31,6 @@ template <>
 void JSONWriter::write(Protocols::OSCQuerySpecificSettings& n)
 {
   n.host = obj["Host"].toString();
-  if (auto it = obj.tryGet("Rate"))
+  if(auto it = obj.tryGet("Rate"))
     n.rate = it->toInt();
 }

@@ -1,11 +1,12 @@
 #include "Process.hpp"
 
 #include <Process/Dataflow/ControlWidgets.hpp>
-#include <Gfx/Images/ImageListChooser.hpp>
-#include <Gfx/Graph/Node.hpp>
-#include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/Images/ImageListChooser.hpp>
+#include <Gfx/TexturePort.hpp>
 
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/span.hpp>
@@ -56,35 +57,32 @@ namespace Gfx::Images
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
   m_inlets.push_back(
-        new Process::IntSpinBox{0, 0, 0, tr("Index"), Id<Process::Port>(0), this});
+      new Process::IntSpinBox{0, 0, 0, tr("Index"), Id<Process::Port>(0), this});
   {
-    auto opacity =
-        new Process::FloatSlider{0., 1., 1., tr("Opacity"), Id<Process::Port>(1), this};
+    auto opacity = new Process::FloatSlider{
+        0., 1., 1., tr("Opacity"), Id<Process::Port>(1), this};
     m_inlets.push_back(opacity);
   }
   {
-    auto pos = new Process::XYSlider{
-        ossia::vec2f{-5.0, -5.0},
-        ossia::vec2f{5.0, 5.0},
-        ossia::vec2f{0.0, 0.0},
-        tr("Position"),
-        Id<Process::Port>(2), this};
+    auto pos = new Process::XYSlider{ossia::vec2f{-5.0, -5.0}, ossia::vec2f{5.0, 5.0},
+                                     ossia::vec2f{0.0, 0.0},   tr("Position"),
+                                     Id<Process::Port>(2),     this};
     m_inlets.push_back(pos);
   }
 
   {
-    auto scaleX = new Process::FloatSlider{-1.f, 10.f, 1.f, tr("Scale X"), Id<Process::Port>(3), this};
+    auto scaleX = new Process::FloatSlider{
+        -1.f, 10.f, 1.f, tr("Scale X"), Id<Process::Port>(3), this};
     m_inlets.push_back(scaleX);
   }
   {
-    auto scaleY = new Process::FloatSlider{-1.f, 10.f, 1.f, tr("Scale Y"), Id<Process::Port>(4), this};
+    auto scaleY = new Process::FloatSlider{
+        -1.f, 10.f, 1.f, tr("Scale Y"), Id<Process::Port>(4), this};
     m_inlets.push_back(scaleY);
   }
 
@@ -96,10 +94,10 @@ Model::Model(
 
   {
     std::vector<std::pair<QString, ossia::value>> combo{
-      {"Single", (int) score::gfx::ImageMode::Single},
-      {"Clamp", (int) score::gfx::ImageMode::Clamped},
-      {"Tile", (int) score::gfx::ImageMode::Tiled},
-      {"Mirror", (int) score::gfx::ImageMode::Mirrored},
+        {"Single", (int)score::gfx::ImageMode::Single},
+        {"Clamp", (int)score::gfx::ImageMode::Clamped},
+        {"Tile", (int)score::gfx::ImageMode::Tiled},
+        {"Mirror", (int)score::gfx::ImageMode::Mirrored},
     };
     auto tile = new Process::ComboBox{combo, 0, tr("Tile"), Id<Process::Port>(6), this};
     m_inlets.push_back(tile);
@@ -118,15 +116,14 @@ void Model::on_imagesChanged(const ossia::value& v)
   m_currentImages = getImages(safe_cast<ImageListChooser*>(m_inlets[5])->value());
 
   int count = 0;
-  for (const auto& img : m_currentImages)
+  for(const auto& img : m_currentImages)
     count += img.frames.size();
 
   auto spinbox = safe_cast<Process::IntSpinBox*>(m_inlets[0]);
-  if (!m_currentImages.empty())
+  if(!m_currentImages.empty())
     spinbox->setDomain(ossia::make_domain(int(0), int(count) - 1));
   else
     spinbox->setDomain(ossia::make_domain(int(0), int(0)));
-
 }
 
 QString Model::prettyName() const noexcept
@@ -158,56 +155,55 @@ static bool isSupportedImage(const QFileInfo& filepath)
 static std::optional<score::gfx::Image> readImage(const QString& filename)
 {
   QFileInfo info{filename};
-  if (!isSupportedImage(info))
+  if(!isSupportedImage(info))
     return {};
 
   QImageReader reader{filename};
   reader.setBackgroundColor(Qt::transparent);
   std::vector<QImage> frames;
-  while (reader.canRead())
+  while(reader.canRead())
   {
     QImage img = reader.read();
 
-    if (img.isNull() || img.size() == QSize{})
+    if(img.isNull() || img.size() == QSize{})
       continue;
 
-    if (img.format() != QImage::Format_ARGB32)
+    if(img.format() != QImage::Format_ARGB32)
       img.convertTo(QImage::Format_ARGB32);
 
     frames.push_back(std::move(img));
   }
 
-  if (frames.empty())
+  if(frames.empty())
     return {};
 
   return score::gfx::Image{filename, std::move(frames)};
 }
 
 void DropHandler::dropCustom(
-    std::vector<ProcessDrop>& vec,
-    const QMimeData& data,
+    std::vector<ProcessDrop>& vec, const QMimeData& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  if (!data.hasUrls())
+  if(!data.hasUrls())
     return;
 
   Process::ProcessDropHandler::ProcessDrop p;
   p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
-  p.setup = [files = data.urls()](
-                Process::ProcessModel& m, score::Dispatcher& disp) {
+  p.setup = [files = data.urls()](Process::ProcessModel& m, score::Dispatcher& disp) {
     auto& proc = static_cast<Model&>(m);
     std::vector<score::gfx::Image> images;
 
-    for (const auto& url : files)
+    for(const auto& url : files)
     {
-      if (auto img = Gfx::ImageCache::instance().acquire(url.toLocalFile().toStdString()))
+      if(auto img = Gfx::ImageCache::instance().acquire(url.toLocalFile().toStdString()))
       {
         images.push_back(*std::move(img));
       }
     }
 
-    if (!images.empty())
-      disp.submit(new Process::SetControlValue{safe_cast<Process::ControlInlet&>(*proc.inlets()[5]), fromImageSet(images)});
+    if(!images.empty())
+      disp.submit(new Process::SetControlValue{
+          safe_cast<Process::ControlInlet&>(*proc.inlets()[5]), fromImageSet(images)});
   };
   vec.push_back(std::move(p));
   return;
@@ -261,7 +257,7 @@ template <>
 void DataStreamWriter::write(score::gfx::Image& proc)
 {
   m_stream >> proc.path;
-  if (auto img = Gfx::Images::readImage(proc.path))
+  if(auto img = Gfx::Images::readImage(proc.path))
     proc = *std::move(img);
 }
 
@@ -279,7 +275,7 @@ void JSONWriter::write(score::gfx::Image& proc)
 {
   const auto& obj = base.GetObject();
   proc.path = obj["Path"].GetString();
-  if (auto img = Gfx::Images::readImage(proc.path))
+  if(auto img = Gfx::Images::readImage(proc.path))
     proc = *std::move(img);
 }
 
@@ -295,11 +291,8 @@ template <>
 void DataStreamWriter::write(Gfx::Images::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
 
@@ -316,43 +309,44 @@ template <>
 void JSONWriter::write(Gfx::Images::Model& proc)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      proc.m_inlets,
-      proc.m_outlets,
-      &proc);
+      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
+      proc.m_outlets, &proc);
 
   // Update to newer versions
   if(proc.m_inlets.size() < 7)
   {
-      std::vector<std::pair<QString, ossia::value>> combo{
-        {"Single", (int) score::gfx::ImageMode::Single},
-        {"Clamp", (int) score::gfx::ImageMode::Clamped},
-        {"Tile", (int) score::gfx::ImageMode::Tiled},
-        {"Mirror", (int) score::gfx::ImageMode::Mirrored},
-      };
-      auto tile = new Process::ComboBox{combo, 0, QObject::tr("Tile"), Id<Process::Port>(6), &proc};
-      proc.m_inlets.push_back(tile);
+    std::vector<std::pair<QString, ossia::value>> combo{
+        {"Single", (int)score::gfx::ImageMode::Single},
+        {"Clamp", (int)score::gfx::ImageMode::Clamped},
+        {"Tile", (int)score::gfx::ImageMode::Tiled},
+        {"Mirror", (int)score::gfx::ImageMode::Mirrored},
+    };
+    auto tile = new Process::ComboBox{
+        combo, 0, QObject::tr("Tile"), Id<Process::Port>(6), &proc};
+    proc.m_inlets.push_back(tile);
   }
 
   proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
 }
 
-template <> void
-DataStreamReader::read<Gfx::Images::ImageListChooser>(const Gfx::Images::ImageListChooser& p)
+template <>
+void DataStreamReader::read<Gfx::Images::ImageListChooser>(
+    const Gfx::Images::ImageListChooser& p)
 {
   read((const Process::ControlInlet&)p);
 }
-template <> void
-DataStreamWriter::write<Gfx::Images::ImageListChooser>(Gfx::Images::ImageListChooser& p)
+template <>
+void DataStreamWriter::write<Gfx::Images::ImageListChooser>(
+    Gfx::Images::ImageListChooser& p)
 {
 }
-template <>  void
-JSONReader::read<Gfx::Images::ImageListChooser>(const Gfx::Images::ImageListChooser& p)
+template <>
+void JSONReader::read<Gfx::Images::ImageListChooser>(
+    const Gfx::Images::ImageListChooser& p)
 {
   read((const Process::ControlInlet&)p);
 }
-template <> void
-JSONWriter::write<Gfx::Images::ImageListChooser>(Gfx::Images::ImageListChooser& p)
+template <>
+void JSONWriter::write<Gfx::Images::ImageListChooser>(Gfx::Images::ImageListChooser& p)
 {
 }

@@ -5,13 +5,13 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <QApplication>
 #include <QDebug>
+#include <QTimer>
 
 #include <lilv/lilv.h>
 #include <lilv/lilvmm.hpp>
 
-#include <QApplication>
-#include <QTimer>
 #include <iostream>
 
 uint32_t LV2_Atom_Buffer::chunk_type;
@@ -29,15 +29,14 @@ struct WorkerData
   const void* data;
 };
 
-static LV2_URID
-do_uri_map(LV2_URI_Map_Callback_Data ptr, const char*, const char* val)
+static LV2_URID do_uri_map(LV2_URI_Map_Callback_Data ptr, const char*, const char* val)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
   auto& map = c.uri_map_left;
 
   std::string v{val};
   auto it = map.find(v);
-  if (it != map.end())
+  if(it != map.end())
   {
     return it->second;
   }
@@ -57,7 +56,7 @@ static LV2_URID do_map(LV2_URID_Map_Handle ptr, const char* val)
 
   std::string v{val};
   auto it = map.find(v);
-  if (it != map.end())
+  if(it != map.end())
   {
     return it->second;
   }
@@ -77,7 +76,7 @@ static const char* do_unmap(LV2_URID_Unmap_Handle ptr, LV2_URID val)
   auto& map = c.urid_map_right;
 
   auto it = map.find(val);
-  if (it != map.end())
+  if(it != map.end())
   {
     return it->second.data();
   }
@@ -93,29 +92,29 @@ do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
   LV2::EffectContext* cur = c.host.current;
 
-  if (cur && cur->worker)
+  if(cur && cur->worker)
   {
     auto& w = *cur->worker;
-    if (w.work)
+    if(w.work)
     {
       std::vector<char> cp;
       cp.resize(s);
-      for(uint32_t i = 0; i < s; i ++) cp[i] = ((const char*)data)[i];
+      for(uint32_t i = 0; i < s; i++)
+        cp[i] = ((const char*)data)[i];
       QTimer::singleShot(0, qApp, [cur, dat = std::move(cp)] {
-       cur->worker->work(
-          cur->instance->lv2_handle,
-          [](LV2_Worker_Respond_Handle sub_h,
-             uint32_t sub_s,
-             const void* sub_d) {
-            auto sub_c = static_cast<LV2::EffectContext*>(sub_h);
-            std::vector<char> worker_data;
-            worker_data.resize(sub_s);
-            std::copy_n((const char*)sub_d, sub_s, worker_data.data());
-            sub_c->worker_datas.enqueue(std::move(worker_data));
+        cur->worker->work(
+            cur->instance->lv2_handle,
+            [](LV2_Worker_Respond_Handle sub_h, uint32_t sub_s, const void* sub_d) {
+          auto sub_c = static_cast<LV2::EffectContext*>(sub_h);
+          std::vector<char> worker_data;
+          worker_data.resize(sub_s);
+          std::copy_n((const char*)sub_d, sub_s, worker_data.data());
+          sub_c->worker_datas.enqueue(std::move(worker_data));
 
-            return LV2_WORKER_SUCCESS;
-          }, cur, dat.size(), dat.data());
-                         });
+          return LV2_WORKER_SUCCESS;
+            },
+            cur, dat.size(), dat.data());
+      });
       return LV2_WORKER_SUCCESS;
     }
   }
@@ -128,8 +127,7 @@ do_worker_state(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
   return LV2_WORKER_ERR_UNKNOWN;
 }
 
-static int
-lv2_printf(LV2_Log_Handle handle, LV2_URID type, const char* format, ...)
+static int lv2_printf(LV2_Log_Handle handle, LV2_URID type, const char* format, ...)
 {
   va_list args;
   va_start(args, format);
@@ -138,15 +136,13 @@ lv2_printf(LV2_Log_Handle handle, LV2_URID type, const char* format, ...)
   return r;
 }
 
-static uint32_t
-do_event_ref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
+static uint32_t do_event_ref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
 {
   SCORE_TODO;
   return 0;
 }
 
-static uint32_t
-do_event_unref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
+static uint32_t do_event_unref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
 {
   SCORE_TODO;
   return 0;
@@ -187,36 +183,20 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
   static const int min = 0;
   static const int max = 4096;
   options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE,
-      0,
-      map.map(map.handle, LV2_BUF_SIZE__minBlockLength),
-      sizeof(min),
-      map.map(map.handle, LV2_ATOM__Int),
-      &min});
+      LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_BUF_SIZE__minBlockLength),
+      sizeof(min), map.map(map.handle, LV2_ATOM__Int), &min});
   options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE,
-      0,
-      map.map(map.handle, LV2_BUF_SIZE__maxBlockLength),
-      sizeof(max),
-      map.map(map.handle, LV2_ATOM__Int),
-      &max});
+      LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_BUF_SIZE__maxBlockLength),
+      sizeof(max), map.map(map.handle, LV2_ATOM__Int), &max});
   options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE,
-      0,
-      map.map(map.handle, LV2_CORE__sampleRate),
-      sizeof(sampleRate),
-      map.map(map.handle, LV2_ATOM__Double),
-      &sampleRate});
+      LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_CORE__sampleRate),
+      sizeof(sampleRate), map.map(map.handle, LV2_ATOM__Double), &sampleRate});
   options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE,
-      0,
-      map.map(map.handle, LV2_BUF_SIZE__sequenceSize),
-      sizeof(host.midi_buffer_size),
-      map.map(map.handle, LV2_ATOM__Int),
+      LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_BUF_SIZE__sequenceSize),
+      sizeof(host.midi_buffer_size), map.map(map.handle, LV2_ATOM__Int),
       &host.midi_buffer_size});
 
-  options.push_back(
-      LV2_Options_Option{LV2_OPTIONS_INSTANCE, 0, 0, 0, 0, nullptr});
+  options.push_back(LV2_Options_Option{LV2_OPTIONS_INSTANCE, 0, 0, 0, 0, nullptr});
 
   options_feature.data = options.data();
 
@@ -234,8 +214,7 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
   // lv2_features.push_back(&state_thread_safe_restore_feature);
   lv2_features.push_back(&bounded);
   lv2_features.push_back(&pow2);
-  lv2_features.push_back(
-      nullptr); // must be a null-terminated array per LV2 API.
+  lv2_features.push_back(nullptr); // must be a null-terminated array per LV2 API.
 }
 
 void LV2::GlobalContext::loadPlugins()
@@ -271,17 +250,15 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
     : host{h}
     , effect{ctx}
 {
-  for (auto res :
-       {effect.plugin.get_required_features(),
-        effect.plugin.get_optional_features()})
+  for(auto res :
+      {effect.plugin.get_required_features(), effect.plugin.get_optional_features()})
   {
-    std::cerr << effect.plugin.get_name().as_string() << " requires "
-              << std::endl;
+    std::cerr << effect.plugin.get_name().as_string() << " requires " << std::endl;
     auto it = res.begin();
-    while (it)
+    while(it)
     {
       auto node = res.get(it);
-      if (node.is_uri())
+      if(node.is_uri())
         std::cerr << "Required uri: " << node.as_uri() << std::endl;
       it = res.next(it);
     }
@@ -289,28 +266,28 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
   }
 
   const auto numports = effect.plugin.get_num_ports();
-  for (std::size_t i = 0; i < numports; i++)
+  for(std::size_t i = 0; i < numports; i++)
   {
     Lilv::Port port = effect.plugin.get_port_by_index(i);
 
     auto cl = port.get_classes();
     auto debug_port = [&] {
-      qDebug() << "Port "<<i<<" : " << lilv_node_as_string(port.get_name());
+      qDebug() << "Port " << i << " : " << lilv_node_as_string(port.get_name());
       auto beg = lilv_nodes_begin(cl);
-      while (!lilv_nodes_is_end(cl, beg))
+      while(!lilv_nodes_is_end(cl, beg))
       {
         auto node = lilv_nodes_get(cl, beg);
         qDebug() << " --> " << lilv_node_as_string(node);
         beg = lilv_nodes_next(cl, beg);
       }
     };
-    if (port.is_a(host.audio_class))
+    if(port.is_a(host.audio_class))
     {
-      if (port.is_a(host.input_class))
+      if(port.is_a(host.input_class))
       {
         audio_in_ports.push_back(i);
       }
-      else if (port.is_a(host.output_class))
+      else if(port.is_a(host.output_class))
       {
         audio_out_ports.push_back(i);
       }
@@ -321,15 +298,15 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
         debug_port();
       }
     }
-    else if (port.is_a(host.atom_class))
+    else if(port.is_a(host.atom_class))
     {
       if(port.supports_event(host.midi_event_class))
       {
-        if (port.is_a(host.input_class))
+        if(port.is_a(host.input_class))
         {
           midi_in_ports.push_back(i);
         }
-        else if (port.is_a(host.output_class))
+        else if(port.is_a(host.output_class))
         {
           midi_out_ports.push_back(i);
         }
@@ -342,12 +319,12 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
       }
       else
       {
-        if (port.is_a(host.input_class))
+        if(port.is_a(host.input_class))
         {
           qDebug() << "LV2: Atom input port not MIDI, not supported yet." << i;
           //atom_in_ports.push_back(i);
         }
-        else if (port.is_a(host.output_class))
+        else if(port.is_a(host.output_class))
         {
           qDebug() << "LV2: Atom output port not MIDI, not supported yet." << i;
           //atom_out_ports.push_back(i);
@@ -359,17 +336,17 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
         time_Position_ports.push_back(i);
       }
     }
-    else if (port.is_a(host.cv_class))
+    else if(port.is_a(host.cv_class))
     {
       cv_ports.push_back(i);
     }
-    else if (port.is_a(host.control_class))
+    else if(port.is_a(host.control_class))
     {
-      if (port.is_a(host.input_class))
+      if(port.is_a(host.input_class))
       {
         control_in_ports.push_back(i);
       }
-      else if (port.is_a(host.output_class))
+      else if(port.is_a(host.output_class))
       {
         control_out_ports.push_back(i);
       }

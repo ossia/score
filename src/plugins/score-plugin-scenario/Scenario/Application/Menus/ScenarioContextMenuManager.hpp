@@ -27,9 +27,7 @@ class ScenarioContextMenuManager final : public QObject
 {
 public:
   static void createProcessSelectorContextMenu(
-      const score::DocumentContext& docContext,
-      QMenu& menu,
-      const TemporalIntervalPresenter& slotp,
-      int slot_index);
+      const score::DocumentContext& docContext, QMenu& menu,
+      const TemporalIntervalPresenter& slotp, int slot_index);
 };
 }

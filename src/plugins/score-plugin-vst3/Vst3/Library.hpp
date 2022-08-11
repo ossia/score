@@ -15,8 +15,7 @@ class LibraryHandler final
   SCORE_CONCRETE("1d6ca523-628b-431a-9f70-87df92a63551")
 
   void registerVSTClass(
-      Library::ProcessNode& parent,
-      const AvailablePlugin& vst,
+      Library::ProcessNode& parent, const AvailablePlugin& vst,
       const VST3::Hosting::ClassInfo& cls)
   {
     MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
@@ -29,9 +28,9 @@ class LibraryHandler final
     //qDebug() << "UID: " << name << uid << (int)cls.ID().data()[0]<< (int)cls.ID().data()[1]<< (int)cls.ID().data()[12];
 
     Library::ProcessData classdata{{key, name, uid}, {}, vendor, desc};
-    if (parent.author.isEmpty())
+    if(parent.author.isEmpty())
       parent.author = vendor;
-    if (vst.classInfo.size() == 1)
+    if(vst.classInfo.size() == 1)
       parent.customData = uid;
     Library::addToLibrary(parent, std::move(classdata));
   }
@@ -42,7 +41,7 @@ class LibraryHandler final
     MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
+    if(node == QModelIndex{})
     {
       return;
     }
@@ -51,29 +50,26 @@ class LibraryHandler final
 
     auto& plug = ctx.applicationPlugin<vst3::ApplicationPlugin>();
 
-    auto reset_plugs = [=, &plug, &parent]
-    {
-      for (const auto& vst : plug.vst_infos)
+    auto reset_plugs = [=, &plug, &parent] {
+      for(const auto& vst : plug.vst_infos)
       {
-        if (vst.isValid)
+        if(vst.isValid)
         {
           Library::ProcessData parent_data{{key, vst.name, QString{}}, {}, {}, {}};
 
           const int numClasses = vst.classInfo.size();
-          switch (numClasses)
+          switch(numClasses)
           {
-            default:
-            {
+            default: {
               auto& node = Library::addToLibrary(parent, std::move(parent_data));
 
-              for (const auto& cls : vst.classInfo)
+              for(const auto& cls : vst.classInfo)
               {
                 registerVSTClass(node, vst, cls);
               }
               break;
             }
-            case 1:
-            {
+            case 1: {
               registerVSTClass(parent, vst, vst.classInfo[0]);
               break;
             }
@@ -86,16 +82,12 @@ class LibraryHandler final
 
     reset_plugs();
 
-    con(plug,
-        &vst3::ApplicationPlugin::vstChanged,
-        this,
-        [=, &model, &parent]
-        {
-          model.beginResetModel();
-          parent.resize(0);
-          reset_plugs();
-          model.endResetModel();
-        });
+    con(plug, &vst3::ApplicationPlugin::vstChanged, this, [=, &model, &parent] {
+      model.beginResetModel();
+      parent.resize(0);
+      reset_plugs();
+      model.endResetModel();
+    });
   }
 };
 }

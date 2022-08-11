@@ -12,8 +12,7 @@
 #include <QVariant>
 
 score::DocumentBackupManager::DocumentBackupManager(
-    const QByteArray& data,
-    score::Document& doc)
+    const QByteArray& data, score::Document& doc)
     : QObject{&doc}
     , m_doc{doc}
 {
@@ -27,8 +26,7 @@ score::DocumentBackupManager::DocumentBackupManager(
 }
 
 score::DocumentBackupManager::DocumentBackupManager(
-    const score::RestorableDocument& prev,
-    Document& doc)
+    const score::RestorableDocument& prev, Document& doc)
     : QObject{&doc}
     , m_doc{doc}
 {
@@ -78,8 +76,8 @@ void score::DocumentBackupManager::updateBackupData()
   auto existing_files = s.value("score/docs").toMap();
   existing_files.insert(
       crashDataFile().fileName(),
-      QVariant::fromValue(qMakePair(
-          m_doc.metadata().fileName(), crashCommandFile().fileName())));
+      QVariant::fromValue(
+          qMakePair(m_doc.metadata().fileName(), crashCommandFile().fileName())));
   s.setValue("score/docs", existing_files);
 #endif
 }

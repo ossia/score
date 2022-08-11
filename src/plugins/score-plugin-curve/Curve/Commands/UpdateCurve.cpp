@@ -12,24 +12,22 @@
 #include <cmath>
 namespace Curve
 {
-UpdateCurve::UpdateCurve(
-    const Model& model,
-    std::vector<SegmentData>&& segments)
+UpdateCurve::UpdateCurve(const Model& model, std::vector<SegmentData>&& segments)
     : m_model{std::move(model)}
     , m_oldCurveData{model.toCurveData()}
     , m_newCurveData{std::move(segments)}
 {
-  for (auto it = m_newCurveData.begin(); it != m_newCurveData.end(); ++it)
+  for(auto it = m_newCurveData.begin(); it != m_newCurveData.end(); ++it)
   {
     auto& sgt = *it;
     {
-      if (std::isnan(sgt.start.x()))
+      if(std::isnan(sgt.start.x()))
         sgt.start.setX(0.);
-      if (std::isnan(sgt.start.y()))
+      if(std::isnan(sgt.start.y()))
         sgt.start.setY(0.);
-      if (std::isnan(sgt.end.x()))
+      if(std::isnan(sgt.end.x()))
         sgt.end.setX(1.);
-      if (std::isnan(sgt.end.y()))
+      if(std::isnan(sgt.end.y()))
         sgt.end.setY(0.);
     }
   }
@@ -37,7 +35,7 @@ UpdateCurve::UpdateCurve(
   {
 
     std::sort(m_newCurveData.begin(), m_newCurveData.end());
-/*
+    /*
     qDebug() << "Printing map: ";
     for(auto elt : m_newCurveData)
     {
@@ -53,11 +51,9 @@ UpdateCurve::UpdateCurve(
     fflush(stderr);
 */
 
-
     SCORE_ASSERT(
         m_newCurveData.empty()
-        || (!m_newCurveData.front().previous
-            && !m_newCurveData.back().following));
+        || (!m_newCurveData.front().previous && !m_newCurveData.back().following));
   }
 }
 

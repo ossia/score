@@ -1,8 +1,10 @@
 #pragma once
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
+
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
@@ -25,31 +27,25 @@ public:
   void setupMenu(QMenu&, const score::DocumentContext& ctx) override;
   void on_createAutomation(const score::DocumentContext& m_context);
   virtual bool on_createAutomation(
-      const Scenario::IntervalModel& parent,
-      std::function<void(score::Command*)> macro,
+      const Scenario::IntervalModel& parent, std::function<void(score::Command*)> macro,
       const score::DocumentContext& m_context);
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
 
-class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortFactory
-    : public Process::PortFactory
+class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortFactory : public Process::PortFactory
 {
 public:
   ~AutomatablePortFactory() override = default;
 
 private:
   Dataflow::PortItem* makePortItem(
-      Process::Inlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Inlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context) override;
 
   Dataflow::PortItem* makePortItem(
-      Process::Outlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context) override;
 };
 

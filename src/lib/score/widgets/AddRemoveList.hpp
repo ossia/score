@@ -1,7 +1,9 @@
 #pragma once
 #include <QListWidget>
-#include <verdigris>
+
 #include <score_lib_base_export.h>
+
+#include <verdigris>
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT AddRemoveList : public QListWidget
@@ -21,8 +23,7 @@ public:
   void on_remove();
   void setCount(int i);
 
-  void changed()
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
+  void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
   static void sanitize(AddRemoveList* changed, const AddRemoveList* other);
 

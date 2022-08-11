@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressBoolSettingsWidget.hpp"
 
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 #include <QComboBox>
 #include <QFormLayout>
@@ -38,8 +39,7 @@ Device::AddressSettings AddressBoolSettingsWidget::getDefaultSettings() const
   return {};
 }
 
-void AddressBoolSettingsWidget::setSettings(
-    const Device::AddressSettings& settings)
+void AddressBoolSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
   m_cb->setCurrentIndex(State::convert::value<bool>(settings.value));

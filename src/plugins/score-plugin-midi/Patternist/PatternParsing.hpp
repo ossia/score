@@ -1,5 +1,6 @@
 #pragma once
 #include <Patternist/PatternModel.hpp>
+
 #include <vector>
 
 class QMimeData;

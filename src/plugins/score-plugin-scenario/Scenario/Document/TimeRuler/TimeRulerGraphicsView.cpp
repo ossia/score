@@ -4,14 +4,14 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QOpenGLWidget>
 #include <QWheelEvent>
-
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 namespace Scenario
 {

@@ -13,13 +13,13 @@ public:
   virtual ~GraphicsSceneTool() = default;
   void start()
   {
-    if (!localSM().isRunning())
+    if(!localSM().isRunning())
       localSM().start();
   }
 
   void stop()
   {
-    if (localSM().isRunning())
+    if(localSM().isRunning())
     {
       on_cancel();
       localSM().stop();

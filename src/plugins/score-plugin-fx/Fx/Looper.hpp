@@ -19,12 +19,9 @@ struct Node
     static const constexpr double recommended_height = 65;
 
     static const constexpr auto controls = tuplet::make_tuple(
-        Control::Widgets::LoopChooser(),
-        Control::Widgets::QuantificationChooser(),
-        Control::Toggle("Passthrough", true),
-        Control::Widgets::LoopPostActionChooser(),
-        Control::IntSpinBox("Bars", 0, 64, 4)
-        );
+        Control::Widgets::LoopChooser(), Control::Widgets::QuantificationChooser(),
+        Control::Toggle("Passthrough", true), Control::Widgets::LoopPostActionChooser(),
+        Control::IntSpinBox("Bars", 0, 64, 4));
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
   };
@@ -49,9 +46,7 @@ struct Node
     bool isPostRecording{false};
 
     static constexpr int64_t default_buffer_size = 192000 * 32;
-    void reset_elapsed()
-    {
-    }
+    void reset_elapsed() { }
     int channels() const noexcept { return actualChannels; }
     void set_channels(int chans)
     {
@@ -89,7 +84,8 @@ struct Node
   static void fade(const ossia::token_request& tk, State& state)
   {
     const double sr = state.sampleRate;
-    const double bar_samples =  sr * 4. * (double(tk.signature.upper) / tk.signature.lower) * (60. / tk.tempo);
+    const double bar_samples
+        = sr * 4. * (double(tk.signature.upper) / tk.signature.lower) * (60. / tk.tempo);
     const double total_samples = std::floor(state.postaction_bars * bar_samples);
 
     // If there are more samples than expected we crop
@@ -142,7 +138,9 @@ struct Node
     {
       state.recordStart = tk.prev_date;
       state.recordStartBar = tk.musical_start_position;
-      state.recordEndBar = tk.musical_start_position + (4. * double(tk.signature.upper) / tk.signature.lower) * state.postaction_bars;
+      state.recordEndBar = tk.musical_start_position
+                           + (4. * double(tk.signature.upper) / tk.signature.lower)
+                                 * state.postaction_bars;
       state.reset_elapsed();
     }
     else
@@ -157,23 +155,14 @@ struct Node
   }
 
   static void checkPostAction(
-      const std::string& postaction,
-      int postaction_bars,
-      const ossia::token_request& tk,
+      const std::string& postaction, int postaction_bars, const ossia::token_request& tk,
       State& st)
   {
-
   }
   static void
-  run(const ossia::audio_port& p1,
-      const std::string& mode,
-      float quantif,
-      bool passthrough,
-      const std::string& postaction,
-      int postaction_bars,
-      ossia::audio_port& p2,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
+  run(const ossia::audio_port& p1, const std::string& mode, float quantif,
+      bool passthrough, const std::string& postaction, int postaction_bars,
+      ossia::audio_port& p2, ossia::token_request tk, ossia::exec_state_facade st,
       State& state)
   {
     using namespace ossia;
@@ -190,10 +179,12 @@ struct Node
     if(quantif != 0 && tk.prev_date != 0_tv)
     {
       state.quantif = quantif;
-      if (auto time = tk.get_quantification_date(1. / quantif); time && time > tk.prev_date)
+      if(auto time = tk.get_quantification_date(1. / quantif);
+         time && time > tk.prev_date)
       {
         state.this_buffer_quantif_time = *time;
-        state.this_buffer_quantif_sample = tk.to_physical_time_in_tick(*time, st.modelToSamples());
+        state.this_buffer_quantif_sample
+            = tk.to_physical_time_in_tick(*time, st.modelToSamples());
       }
     }
     else
@@ -202,11 +193,11 @@ struct Node
     }
 
     auto m = Control::Widgets::GetLoopMode(mode);
-    if (m != state.quantizedPlayMode)
+    if(m != state.quantizedPlayMode)
     {
-      if (quantif != 0 && tk.prev_date != 0_tv)
+      if(quantif != 0 && tk.prev_date != 0_tv)
       {
-        if (auto& time = state.this_buffer_quantif_time)
+        if(auto& time = state.this_buffer_quantif_time)
         {
           // tempo = 60 -> 1 quarter = 1 second
           // tempo = 100 -> 1 quarter = 1 * 60/100 = 0.6 second
@@ -220,7 +211,8 @@ struct Node
               auto sub_tk = tk;
               sub_tk.set_end_time(*time - 1_tv);
 
-              preAction(p1, p2, sub_tk, st, state, postaction, postaction_bars, passthrough);
+              preAction(
+                  p1, p2, sub_tk, st, state, postaction, postaction_bars, passthrough);
             }
 
             // We can switch to the new mode
@@ -234,7 +226,8 @@ struct Node
               sub_tk.set_start_time(*time);
 
               changeAction(sub_tk, state);
-              preAction(p1, p2, sub_tk, st, state, postaction, postaction_bars, passthrough);
+              preAction(
+                  p1, p2, sub_tk, st, state, postaction, postaction_bars, passthrough);
             }
           }
           else
@@ -273,14 +266,9 @@ struct Node
   }
 
   static void preAction(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& state,
-      const std::string& postaction,
-      int postaction_bars,
-      bool passthrough)
+      const ossia::audio_port& p1, ossia::audio_port& p2, ossia::token_request tk,
+      ossia::exec_state_facade st, State& state, const std::string& postaction,
+      int postaction_bars, bool passthrough)
   {
     using namespace ossia;
     if(state.recordStartBar == -1.)
@@ -357,29 +345,21 @@ struct Node
   }
 
   static void action(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      const ossia::token_request& tk,
-      ossia::exec_state_facade st,
-      State& state,
-      bool echoRecord)
+      const ossia::audio_port& p1, ossia::audio_port& p2, const ossia::token_request& tk,
+      ossia::exec_state_facade st, State& state, bool echoRecord)
   {
     auto timings = st.timings(tk);
     action(p1, p2, state, timings.start_sample, timings.length, echoRecord);
   }
 
   static void action(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      State& state,
-      int64_t start,
-      int64_t length,
-      bool echoRecord)
+      const ossia::audio_port& p1, ossia::audio_port& p2, State& state, int64_t start,
+      int64_t length, bool echoRecord)
   {
-    switch (state.actualMode)
+    switch(state.actualMode)
     {
       case Control::Widgets::LoopMode::Play:
-        if (state.channels() == 0 || state.audio[0].size() == 0)
+        if(state.channels() == 0 || state.audio[0].size() == 0)
           stop(p1, p2, state, start, length);
         else
           play(p1, p2, state, start, length);
@@ -399,11 +379,8 @@ struct Node
   }
 
   static void play(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      State& state,
-      int64_t first_pos,
-      int64_t N)
+      const ossia::audio_port& p1, ossia::audio_port& p2, State& state,
+      int64_t first_pos, int64_t N)
   {
     // Copy input to output, and append input to buffer
     const auto chans = state.channels();
@@ -413,7 +390,7 @@ struct Node
       return;
 
     int64_t k = state.playbackPos;
-    for (int i = 0; i < chans; i++)
+    for(int i = 0; i < chans; i++)
     {
       auto& out = p2.channel(i);
       auto& record = state.audio[i];
@@ -421,9 +398,9 @@ struct Node
 
       out.resize(N);
       k = state.playbackPos;
-      if (state.playbackPos + N < chan_samples)
+      if(state.playbackPos + N < chan_samples)
       {
-        for (int64_t j = first_pos; j < N; j++)
+        for(int64_t j = first_pos; j < N; j++)
         {
           out[j] = record[k];
           k++;
@@ -433,7 +410,7 @@ struct Node
       {
         int64_t max = chan_samples - state.playbackPos;
         int64_t j = first_pos;
-        for (; j < max; j++)
+        for(; j < max; j++)
         {
           out[j] = record[k];
           k++;
@@ -445,7 +422,7 @@ struct Node
           k = 0;
 
           // TODO refactor sound_reader so that we can use it to have the proper repeated loop behaviour here...
-          for (; j < std::min(N, chan_samples); j++)
+          for(; j < std::min(N, chan_samples); j++)
           {
             out[j] = record[k];
             k++;
@@ -491,16 +468,13 @@ struct Node
 
   // We just copy input to output
   static void stop(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      State& state,
-      int64_t first_pos,
-      int64_t N)
+      const ossia::audio_port& p1, ossia::audio_port& p2, State& state,
+      int64_t first_pos, int64_t N)
   {
     const auto chans = p1.channels();
     p2.set_channels(chans);
 
-    for (std::size_t i = 0; i < chans; i++)
+    for(std::size_t i = 0; i < chans; i++)
     {
       auto& in = p1.channel(i);
       auto& out = p2.channel(i);
@@ -510,7 +484,7 @@ struct Node
 
       out.resize(samples);
 
-      for (int64_t j = first_pos; j < max; j++)
+      for(int64_t j = first_pos; j < max; j++)
       {
         out[j] = in[j];
       }
@@ -518,18 +492,15 @@ struct Node
   }
 
   static void record(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      State& state,
-      int64_t first_pos,
-      int64_t N)
+      const ossia::audio_port& p1, ossia::audio_port& p2, State& state,
+      int64_t first_pos, int64_t N)
   {
     // Copy input to output, and append input to buffer
     const auto chans = p1.channels();
     p2.set_channels(chans);
     state.set_channels(chans);
 
-    for (std::size_t i = 0; i < chans; i++)
+    for(std::size_t i = 0; i < chans; i++)
     {
       auto& in = p1.channel(i);
       auto& out = p2.channel(i);
@@ -542,7 +513,7 @@ struct Node
       record.resize(state.playbackPos + samples);
       int64_t k = state.playbackPos;
 
-      for (int64_t j = first_pos; j < max; j++)
+      for(int64_t j = first_pos; j < max; j++)
       {
         out[j] = in[j];
         record[k] = in[j];
@@ -553,18 +524,15 @@ struct Node
   }
 
   static void record_noecho(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      State& state,
-      int64_t first_pos,
-      int64_t N)
+      const ossia::audio_port& p1, ossia::audio_port& p2, State& state,
+      int64_t first_pos, int64_t N)
   {
     // Copy input to output, and append input to buffer
     const auto chans = p1.channels();
     p2.set_channels(chans);
     state.set_channels(chans);
 
-    for (std::size_t i = 0; i < chans; i++)
+    for(std::size_t i = 0; i < chans; i++)
     {
       auto& in = p1.channel(i);
       auto& record = state.audio[i];
@@ -575,7 +543,7 @@ struct Node
       record.resize(state.playbackPos + samples);
       int64_t k = state.playbackPos;
 
-      for (int64_t j = first_pos; j < max; j++)
+      for(int64_t j = first_pos; j < max; j++)
       {
         record[k] = in[j];
         k++;
@@ -585,11 +553,8 @@ struct Node
   }
 
   static void overdub(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      State& state,
-      int64_t first_pos,
-      int64_t N)
+      const ossia::audio_port& p1, ossia::audio_port& p2, State& state,
+      int64_t first_pos, int64_t N)
   {
     //! if we go past the end we have to start from the beginning ? or we keep
     //! extending ?
@@ -599,7 +564,7 @@ struct Node
     p2.set_channels(chans);
     state.set_channels(chans);
 
-    for (std::size_t i = 0; i < chans; i++)
+    for(std::size_t i = 0; i < chans; i++)
     {
       auto& in = p1.channel(i);
       auto& out = p2.channel(i);
@@ -612,7 +577,7 @@ struct Node
       out.resize(samples);
       int64_t k = state.playbackPos;
 
-      for (int64_t j = first_pos; j < max; j++)
+      for(int64_t j = first_pos; j < max; j++)
       {
         if(k >= record_samples)
           k = 0;
@@ -627,11 +592,8 @@ struct Node
   }
 
   static void overdub_noecho(
-      const ossia::audio_port& p1,
-      ossia::audio_port& p2,
-      State& state,
-      int64_t first_pos,
-      int64_t N)
+      const ossia::audio_port& p1, ossia::audio_port& p2, State& state,
+      int64_t first_pos, int64_t N)
   {
     //! if we go past the end we have to start from the beginning ? or we keep
     //! extending ?
@@ -641,7 +603,7 @@ struct Node
     p2.set_channels(chans);
     state.set_channels(chans);
 
-    for (std::size_t i = 0; i < chans; i++)
+    for(std::size_t i = 0; i < chans; i++)
     {
       auto& in = p1.channel(i);
       auto& out = p2.channel(i);
@@ -654,7 +616,7 @@ struct Node
       out.resize(samples);
       int64_t k = state.playbackPos;
 
-      for (int64_t j = first_pos; j < max; j++)
+      for(int64_t j = first_pos; j < max; j++)
       {
         if(k >= record_samples)
           k = 0;
@@ -669,14 +631,9 @@ struct Node
   }
 
   static void item(
-      Process::Enum& mode,
-      Process::ComboBox& quantif,
-      Process::Toggle& echo,
-      Process::Enum& playmode,
-      Process::IntSpinBox& playmode_bars,
-      const Process::ProcessModel& process,
-      QGraphicsItem& parent,
-      QObject& context,
+      Process::Enum& mode, Process::ComboBox& quantif, Process::Toggle& echo,
+      Process::Enum& playmode, Process::IntSpinBox& playmode_bars,
+      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
       const Process::Context& doc)
   {
     using namespace Process;
@@ -690,35 +647,20 @@ struct Node
     auto c0_bg = new score::BackgroundItem{&parent};
     c0_bg->setRect({0., 0., 340., 60});
     auto mode_item = makeControlNoText(
-        get<0>(Metadata::controls),
-        mode,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<0>(Metadata::controls), mode, parent, context, doc, portFactory);
     mode_item.root.setPos(c0, 10);
     mode_item.control.setPos({4, 0});
     mode_item.control.setRect({0, 0, 200, 30});
     mode_item.port.setPos({-8, 10});
 
     auto quant_item = makeControlNoText(
-        get<1>(Metadata::controls),
-        quantif,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<1>(Metadata::controls), quantif, parent, context, doc, portFactory);
     quant_item.root.setPos(c1, 10);
     quant_item.control.setPos({10, 0});
     quant_item.port.setPos({-3, 4});
 
     auto echo_item = makeControl(
-        get<2>(Metadata::controls),
-        echo,
-        parent,
-        context,
-        doc,
-        portFactory);
+        get<2>(Metadata::controls), echo, parent, context, doc, portFactory);
     echo_item.root.setPos(c1, 35);
     echo_item.control.setPos({10, 0});
     echo_item.port.setPos({-3, 4});

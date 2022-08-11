@@ -1,11 +1,12 @@
 #pragma once
 
 #if SCORE_PLUGIN_GFX
+#include <Process/ExecutionContext.hpp>
+
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderState.hpp>
-#include <Process/ExecutionContext.hpp>
 
 #include <QTimer>
 
@@ -60,13 +61,13 @@ void main() {
 template <typename C>
 constexpr auto usage()
 {
-  if constexpr (requires { C::vertex; })
+  if constexpr(requires { C::vertex; })
     return QRhiBuffer::VertexBuffer;
-  else if constexpr (requires { C::index; })
+  else if constexpr(requires { C::index; })
     return QRhiBuffer::IndexBuffer;
-  else if constexpr (requires { C::ubo; })
+  else if constexpr(requires { C::ubo; })
     return QRhiBuffer::UniformBuffer;
-  else if constexpr (requires { C::storage; })
+  else if constexpr(requires { C::storage; })
     return QRhiBuffer::StorageBuffer;
   else
   {
@@ -78,11 +79,11 @@ constexpr auto usage()
 template <typename C>
 constexpr auto buffer_type()
 {
-  if constexpr (requires { C::immutable; })
+  if constexpr(requires { C::immutable; })
     return QRhiBuffer::Immutable;
-  else if constexpr (requires { C::static_; })
+  else if constexpr(requires { C::static_; })
     return QRhiBuffer::Static;
-  else if constexpr (requires { C::dynamic; })
+  else if constexpr(requires { C::dynamic; })
     return QRhiBuffer::Dynamic;
   else
   {
@@ -94,7 +95,7 @@ constexpr auto buffer_type()
 template <typename C>
 auto samples(C c)
 {
-  if constexpr (requires { C::samples; })
+  if constexpr(requires { C::samples; })
     return c.samples;
   else
     return -1;
@@ -108,20 +109,20 @@ struct handle_release
   template <typename C>
   void operator()(C command)
   {
-    if constexpr (requires { C::deallocation; })
+    if constexpr(requires { C::deallocation; })
     {
-      if constexpr (
+      if constexpr(
           requires { C::vertex; } || requires { C::index; } || requires { C::ubo; })
       {
         auto buf = reinterpret_cast<QRhiBuffer*>(command.handle);
         buf->deleteLater();
       }
-      else if constexpr (requires { C::sampler; })
+      else if constexpr(requires { C::sampler; })
       {
         auto buf = reinterpret_cast<QRhiSampler*>(command.handle);
         buf->deleteLater();
       }
-      else if constexpr (requires { C::texture; })
+      else if constexpr(requires { C::texture; })
       {
         auto buf = reinterpret_cast<QRhiTexture*>(command.handle);
         buf->deleteLater();
@@ -149,14 +150,14 @@ struct handle_dispatch
   template <typename C>
   Res operator()(C command)
   {
-    if constexpr (requires { C::compute; })
+    if constexpr(requires { C::compute; })
     {
-      if constexpr (requires { C::dispatch; })
+      if constexpr(requires { C::dispatch; })
       {
         cb.dispatch(command.x, command.y, command.z);
         return {};
       }
-      else if constexpr (requires { C::begin; })
+      else if constexpr(requires { C::begin; })
       {
         cb.beginComputePass(res);
         cb.setComputePipeline(&pip);
@@ -164,7 +165,7 @@ struct handle_dispatch
 
         return {};
       }
-      else if constexpr (requires { C::end; })
+      else if constexpr(requires { C::end; })
       {
         cb.endComputePass(res);
         rhi.finish();
@@ -176,12 +177,12 @@ struct handle_dispatch
         return {};
       }
     }
-    else if constexpr (requires { C::readback; })
+    else if constexpr(requires { C::readback; })
     {
       // First handle the readback request
-      if constexpr (requires { C::request; })
+      if constexpr(requires { C::request; })
       {
-        if constexpr (requires { C::buffer; })
+        if constexpr(requires { C::buffer; })
         {
           using ret = typename C::return_type;
 
@@ -208,7 +209,7 @@ struct handle_dispatch
 
           return user_rb;
         }
-        else if constexpr (requires { C::texture; })
+        else if constexpr(requires { C::texture; })
         {
           using ret = typename C::return_type;
           QRhiReadbackResult readback;
@@ -220,9 +221,9 @@ struct handle_dispatch
           return {};
         }
       }
-      else if constexpr (requires { C::await; })
+      else if constexpr(requires { C::await; })
       {
-        if constexpr (requires { C::buffer; })
+        if constexpr(requires { C::buffer; })
         {
           using ret = typename C::return_type;
 
@@ -231,7 +232,7 @@ struct handle_dispatch
           return ret{
               .data = readback->data.data(), .size = (std::size_t)readback->data.size()};
         }
-        else if constexpr (requires { C::texture; })
+        else if constexpr(requires { C::texture; })
         {
           using ret = typename C::return_type;
 
@@ -264,22 +265,22 @@ struct handle_update
   template <typename C>
   Ret operator()(C command)
   {
-    if constexpr (requires { C::allocation; })
+    if constexpr(requires { C::allocation; })
     {
-      if constexpr (
+      if constexpr(
           requires { C::vertex; } || requires { C::index; })
       {
         auto buf = rhi.newBuffer(buffer_type<C>(), usage<C>(), command.size);
         buf->create();
         return reinterpret_cast<typename C::return_type>(buf);
       }
-      else if constexpr (requires { C::sampler; })
+      else if constexpr(requires { C::sampler; })
       {
         auto buf = rhi.newSampler({}, {}, {}, {}, {});
         buf->create();
         return reinterpret_cast<typename C::return_type>(buf);
       }
-      else if constexpr (
+      else if constexpr(
           requires { C::ubo; } || requires { C::storage; })
       {
         auto buf = rhi.newBuffer(buffer_type<C>(), usage<C>(), command.size);
@@ -290,7 +291,7 @@ struct handle_update
         srb_touched = true;
         return reinterpret_cast<typename C::return_type>(buf);
       }
-      else if constexpr (requires { C::texture; })
+      else if constexpr(requires { C::texture; })
       {
         auto tex = rhi.newTexture(
             QRhiTexture::RGBA8, QSize{command.width, command.height}, samples(command));
@@ -306,9 +307,9 @@ struct handle_update
         return {};
       }
     }
-    else if constexpr (requires { C::upload; })
+    else if constexpr(requires { C::upload; })
     {
-      if constexpr (requires { C::texture; })
+      if constexpr(requires { C::texture; })
       {
         QRhiTextureSubresourceUploadDescription sub{command.data, command.size};
         res.uploadTexture(
@@ -318,9 +319,9 @@ struct handle_update
       else
       {
         auto buf = reinterpret_cast<QRhiBuffer*>(command.handle);
-        if constexpr (requires { C::dynamic; })
+        if constexpr(requires { C::dynamic; })
           res.updateDynamicBuffer(buf, command.offset, command.size, command.data);
-        else if constexpr (
+        else if constexpr(
             requires { C::static_; } || requires { C::immutable; })
           res.uploadStaticBuffer(buf, command.offset, command.size, command.data);
         else
@@ -330,9 +331,9 @@ struct handle_update
         }
       }
     }
-    else if constexpr (requires { C::getter; })
+    else if constexpr(requires { C::getter; })
     {
-      if constexpr (requires { C::ubo; })
+      if constexpr(requires { C::ubo; })
       {
         auto buf = self.createdUbos.at(command.binding);
         return reinterpret_cast<typename C::return_type>(buf);
@@ -426,9 +427,9 @@ struct generate_shaders
   template <typename T>
   static constexpr std::string_view image_qualifier()
   {
-    if constexpr (requires { T::readonly; })
+    if constexpr(requires { T::readonly; })
       return "readonly";
-    else if constexpr (requires { T::writeonly; })
+    else if constexpr(requires { T::writeonly; })
       return "writeonly";
     else
       static_assert(T::readonly || T::writeonly);
@@ -442,9 +443,7 @@ struct generate_shaders
     void operator()(const T& field)
     {
       shader += fmt::format(
-          "layout(location = {}) in {} {};\n",
-          T::location(),
-          field_type(field.data),
+          "layout(location = {}) in {} {};\n", T::location(), field_type(field.data),
           T::name());
     }
   };
@@ -456,12 +455,10 @@ struct generate_shaders
     template <typename T>
     void operator()(const T& field)
     {
-      if constexpr (requires { field.location(); })
+      if constexpr(requires { field.location(); })
       {
         shader += fmt::format(
-            "layout(location = {}) out {} {};\n",
-            T::location(),
-            field_type(field.data),
+            "layout(location = {}) out {} {};\n", T::location(), field_type(field.data),
             T::name());
       }
     }
@@ -475,9 +472,7 @@ struct generate_shaders
     void operator()(const T& field)
     {
       shader += fmt::format(
-          "  {} {}{};\n",
-          field_type(field.value),
-          T::name(),
+          "  {} {}{};\n", field_type(field.value), T::name(),
           field_array(field.value) ? "[]" : "");
     }
   };
@@ -489,41 +484,36 @@ struct generate_shaders
     template <typename C>
     void operator()(const C& field)
     {
-      if constexpr (requires { C::sampler2D; })
+      if constexpr(requires { C::sampler2D; })
       {
         shader += fmt::format(
             "layout(binding = {}) uniform sampler2D {};\n\n", C::binding(), C::name());
       }
-      else if constexpr (requires { C::image2D; })
+      else if constexpr(requires { C::image2D; })
       {
         shader += fmt::format(
-            "layout(binding = {}, {}) {} uniform image2D {};\n\n",
-            C::binding(),
-            C::format(),
-            image_qualifier<C>(),
-            C::name());
+            "layout(binding = {}, {}) {} uniform image2D {};\n\n", C::binding(),
+            C::format(), image_qualifier<C>(), C::name());
       }
-      else if constexpr (requires { C::ubo; })
+      else if constexpr(requires { C::ubo; })
       {
         shader += fmt::format(
             "layout({}, binding = {}) uniform {}\n{{\n",
             "std140" // TODO
             ,
-            C::binding(),
-            C::name());
+            C::binding(), C::name());
 
         boost::pfr::for_each_field(field, write_binding{shader});
 
         shader += fmt::format("}};\n\n");
       }
-      else if constexpr (requires { C::buffer; })
+      else if constexpr(requires { C::buffer; })
       {
         shader += fmt::format(
             "layout({}, binding = {}) buffer {}\n{{\n",
             "std140" // TODO
             ,
-            C::binding(),
-            C::name());
+            C::binding(), C::name());
 
         boost::pfr::for_each_field(field, write_binding{shader});
 
@@ -538,24 +528,24 @@ struct generate_shaders
     using namespace gpp::qrhi;
     std::string shader = "#version 450\n\n";
 
-    if constexpr (requires { lay.vertex_input; })
+    if constexpr(requires { lay.vertex_input; })
       boost::pfr::for_each_field(lay.vertex_input, write_input{shader});
-    else if constexpr (requires { typename T::vertex_input; })
+    else if constexpr(requires { typename T::vertex_input; })
       boost::pfr::for_each_field(typename T::vertex_input{}, write_input{shader});
     else
       boost::pfr::for_each_field(
           DefaultPipeline::layout::vertex_input{}, write_input{shader});
 
-    if constexpr (requires { lay.vertex_output; })
+    if constexpr(requires { lay.vertex_output; })
       boost::pfr::for_each_field(lay.vertex_output, write_output{shader});
-    else if constexpr (requires { typename T::vertex_output; })
+    else if constexpr(requires { typename T::vertex_output; })
       boost::pfr::for_each_field(typename T::vertex_output{}, write_output{shader});
 
     shader += "\n";
 
-    if constexpr (requires { lay.bindings; })
+    if constexpr(requires { lay.bindings; })
       boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
-    else if constexpr (requires { typename T::bindings; })
+    else if constexpr(requires { typename T::bindings; })
       boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
 
     return shader;
@@ -566,21 +556,21 @@ struct generate_shaders
   {
     std::string shader = "#version 450\n\n";
 
-    if constexpr (requires { lay.fragment_input; })
+    if constexpr(requires { lay.fragment_input; })
       boost::pfr::for_each_field(lay.fragment_input, write_input{shader});
-    else if constexpr (requires { typename T::fragment_input; })
+    else if constexpr(requires { typename T::fragment_input; })
       boost::pfr::for_each_field(typename T::fragment_input{}, write_input{shader});
 
-    if constexpr (requires { lay.fragment_output; })
+    if constexpr(requires { lay.fragment_output; })
       boost::pfr::for_each_field(lay.fragment_output, write_output{shader});
-    else if constexpr (requires { typename T::fragment_output; })
+    else if constexpr(requires { typename T::fragment_output; })
       boost::pfr::for_each_field(typename T::fragment_output{}, write_output{shader});
 
     shader += "\n";
 
-    if constexpr (requires { lay.bindings; })
+    if constexpr(requires { lay.bindings; })
       boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
-    else if constexpr (requires { typename T::bindings; })
+    else if constexpr(requires { typename T::bindings; })
       boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
 
     return shader;
@@ -592,15 +582,15 @@ struct generate_shaders
     std::string fstr = "#version 450\n\n";
 
     fstr += "layout(";
-    if constexpr (requires { T::local_size_x(); })
+    if constexpr(requires { T::local_size_x(); })
     {
       fstr += fmt::format("local_size_x = {}, ", T::local_size_x());
     }
-    if constexpr (requires { T::local_size_y(); })
+    if constexpr(requires { T::local_size_y(); })
     {
       fstr += fmt::format("local_size_y = {}, ", T::local_size_y());
     }
-    if constexpr (requires { T::local_size_z(); })
+    if constexpr(requires { T::local_size_z(); })
     {
       fstr += fmt::format("local_size_z = {}, ", T::local_size_z());
     }
@@ -626,20 +616,16 @@ struct GpuControlOuts
   template <typename Node_T>
   void processControlOut(Node_T& state) const noexcept
   {
-    if (!this->control_outs.empty())
+    if(!this->control_outs.empty())
     {
       int parm_k = 0;
       avnd::parameter_output_introspection<Node_T>::for_all(
-          avnd::get_outputs(state),
-          [&]<avnd::parameter T>(const T& t)
-          {
-            queue.enqueue(
-                [v = oscr::to_ossia_value(t, t.value),
-                 port = control_outs[parm_k]]() mutable
-                {
-                  std::swap(port->value, v);
-                  port->changed = true;
-                });
+          avnd::get_outputs(state), [&]<avnd::parameter T>(const T& t) {
+            queue.enqueue([v = oscr::to_ossia_value(t, t.value),
+                           port = control_outs[parm_k]]() mutable {
+              std::swap(port->value, v);
+              port->changed = true;
+            });
 
             parm_k++;
           });
@@ -668,8 +654,7 @@ struct CustomGpuOutputNodeBase
     , GpuControlOuts
 {
   CustomGpuOutputNodeBase(
-      Execution::ExecutionCommandQueue& q,
-      Gfx::exec_controls&& ctls);
+      Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls);
   virtual ~CustomGpuOutputNodeBase() = default;
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
@@ -690,10 +675,8 @@ struct CustomGpuOutputNodeBase
   void onRendererChange() override;
 
   void createOutput(
-      score::gfx::GraphicsApi graphicsApi,
-      std::function<void()> onReady,
-      std::function<void()> onUpdate,
-      std::function<void()> onResize) override;
+      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
+      std::function<void()> onUpdate, std::function<void()> onResize) override;
 
   void destroyOutput() override;
   std::shared_ptr<score::gfx::RenderState> renderState() const override;

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <Process/TimeValue.hpp>
+
 #include <Execution/ContextMenu/PlayContextMenu.hpp>
 #include <Execution/ExecutionController.hpp>
-#include <Process/TimeValue.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
@@ -55,8 +56,7 @@ public:
   void prepareNewDocument() override;
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
-      override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
   QWidget* setupTimingWidget(QLabel*) const;
   void initLocalTreeNodes(LocalTree::DocumentPlugin&);

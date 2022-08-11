@@ -15,16 +15,13 @@ namespace score
  * Used only when reloading, because components have to be instantiated after
  * their entity.
  */
-class SCORE_LIB_BASE_EXPORT DataStreamSerializedComponents
-    : public score::Component
+class SCORE_LIB_BASE_EXPORT DataStreamSerializedComponents : public score::Component
 {
   COMMON_COMPONENT_METADATA("a0c8de61-c18f-4aca-8b21-cf71451f4970")
 public:
   static const constexpr bool is_unique = true;
   DataStreamSerializedComponents(
-      const Id<score::Component>& id,
-      DataStreamComponents obj,
-      QObject* parent);
+      const Id<score::Component>& id, DataStreamComponents obj, QObject* parent);
   virtual ~DataStreamSerializedComponents();
 
   //! Returns true if all components could be loaded
@@ -41,9 +38,7 @@ class SCORE_LIB_BASE_EXPORT JSONSerializedComponents : public score::Component
 public:
   static const constexpr bool is_unique = true;
   JSONSerializedComponents(
-      const Id<score::Component>& id,
-      JSONComponents obj,
-      QObject* parent);
+      const Id<score::Component>& id, JSONComponents obj, QObject* parent);
 
   virtual ~JSONSerializedComponents();
 
@@ -71,24 +66,17 @@ public:
   virtual InterfaceKey interfaceKey() const = 0;
 };
 
-struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory
-    : public score::InterfaceBase
+struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory : public score::InterfaceBase
 {
-  SCORE_INTERFACE(
-      SerializableComponentFactory,
-      "ffafadc2-0ce7-45d8-b673-d9238c37d018")
+  SCORE_INTERFACE(SerializableComponentFactory, "ffafadc2-0ce7-45d8-b673-d9238c37d018")
 public:
   ~SerializableComponentFactory() override;
   virtual score::SerializableComponent* make(
-      const Id<score::Component>& id,
-      const score::DocumentContext& ctx,
-      QObject* parent)
+      const Id<score::Component>& id, const score::DocumentContext& ctx, QObject* parent)
       = 0;
 
-  virtual score::SerializableComponent* load(
-      const VisitorVariant& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent)
+  virtual score::SerializableComponent*
+  load(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent)
       = 0;
 };
 
@@ -98,8 +86,7 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactoryList
   using object_type = score::SerializableComponent;
   ~SerializableComponentFactoryList();
   score::SerializableComponent* loadMissing(
-      const VisitorVariant& vis,
-      const score::DocumentContext& ctx,
+      const VisitorVariant& vis, const score::DocumentContext& ctx,
       QObject* parent) const;
 };
 
@@ -136,8 +123,7 @@ struct is_component_serializable
 
 template <typename T>
 struct is_component_serializable<
-    T,
-    std::enable_if_t<std::is_base_of<score::SerializableComponent, T>::value>>
+    T, std::enable_if_t<std::is_base_of<score::SerializableComponent, T>::value>>
 {
   using type = score::serializable_tag;
   static constexpr bool value = true;
@@ -146,31 +132,30 @@ struct is_component_serializable<
 template <typename Component_T, typename Fun>
 auto deserialize_component(score::Components& comps, Fun f)
 {
-  if (auto datastream_ser
-      = findComponent<DataStreamSerializedComponents>(comps))
+  if(auto datastream_ser = findComponent<DataStreamSerializedComponents>(comps))
   {
     auto& data = datastream_ser->data;
     auto it = data.find(Component_T::static_key());
-    if (it != data.end())
+    if(it != data.end())
     {
       DataStream::Deserializer des{it->second};
       auto res = f(des);
-      if (res)
+      if(res)
       {
         data.erase(it);
       }
       return res;
     }
   }
-  else if (auto json_ser = findComponent<JSONSerializedComponents>(comps))
+  else if(auto json_ser = findComponent<JSONSerializedComponents>(comps))
   {
     auto& data = json_ser->data;
     auto it = data.find(Component_T::static_key());
-    if (it != data.end())
+    if(it != data.end())
     {
       JSONObject::Deserializer des{it->second};
       auto res = f(des);
-      if (res)
+      if(res)
       {
         data.erase(it);
       }

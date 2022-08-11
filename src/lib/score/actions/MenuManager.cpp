@@ -92,9 +92,9 @@ StringKey<Menu> Menus::About()
 
 MenuManager::~MenuManager()
 {
-  for (auto& menu : m_container)
+  for(auto& menu : m_container)
   {
-    if (QMenu* m = menu.second.menu())
+    if(QMenu* m = menu.second.menu())
     {
       delete m;
     }
@@ -109,7 +109,7 @@ void MenuManager::insert(Menu val)
 
 void MenuManager::insert(std::vector<Menu> vals)
 {
-  for (auto& val : vals)
+  for(auto& val : vals)
   {
     insert(std::move(val));
   }

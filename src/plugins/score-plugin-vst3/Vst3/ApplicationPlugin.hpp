@@ -46,12 +46,12 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
     using namespace Steinberg::Vst;
     FUID classID(FUID::fromTUID(cid));
     FUID interfaceID(FUID::fromTUID(_iid));
-    if (classID == Vst::IMessage::iid && interfaceID == Vst::IMessage::iid)
+    if(classID == Vst::IMessage::iid && interfaceID == Vst::IMessage::iid)
     {
       *obj = new HostMessage;
       return kResultTrue;
     }
-    else if (
+    else if(
         classID == Vst::IAttributeList::iid && interfaceID == Vst::IAttributeList::iid)
     {
       *obj = Vst::HostAttributeList::make();
@@ -68,7 +68,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
     QUERY_INTERFACE(_iid, obj, FUnknown::iid, IHostApplication)
     QUERY_INTERFACE(_iid, obj, IHostApplication::iid, IHostApplication)
 
-    if (m_support.isPlugInterfaceSupported(_iid) == kResultTrue)
+    if(m_support.isPlugInterfaceSupported(_iid) == kResultTrue)
       return kResultOk;
 
     *obj = nullptr;

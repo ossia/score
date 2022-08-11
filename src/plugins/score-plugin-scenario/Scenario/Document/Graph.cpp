@@ -2,14 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Graph.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/ModelMetadata.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/connected_components.hpp>
+#include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/labeled_graph.hpp>
 #include <boost/graph/tiernan_all_cycles.hpp>
@@ -17,13 +24,6 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <QTimer>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <tsl/hopscotch_set.h>
 namespace Scenario
@@ -64,25 +64,21 @@ struct CycleDetector
   bool allIntersectGraphal(T& a, T& b)
   {
     ossia::small_vector<Id<IntervalModel>, 4> intersect;
-    a.sort([](const auto& lhs, const auto& rhs) {
-      return lhs.val() < rhs.val();
-    });
-    b.sort([](const auto& lhs, const auto& rhs) {
-      return lhs.val() < rhs.val();
-    });
+    a.sort([](const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
+    b.sort([](const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
     std::set_intersection(
         a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
 
-    for (const auto& itv : intersect)
+    for(const auto& itv : intersect)
     {
       auto& m = scenario.interval(itv);
-      if (!m.graphal())
+      if(!m.graphal())
       {
         return false;
       }
     }
 
-    for (const auto& itv : intersect)
+    for(const auto& itv : intersect)
     {
       auto& m = scenario.interval(itv);
       this_path_itvs.push_back(&m);
@@ -114,28 +110,24 @@ struct CycleDetector
   bool anyIntersectGraphal(T& a, T& b)
   {
     ossia::small_vector<Id<IntervalModel>, 4> intersect;
-    a.sort([](const auto& lhs, const auto& rhs) {
-      return lhs.val() < rhs.val();
-    });
-    b.sort([](const auto& lhs, const auto& rhs) {
-      return lhs.val() < rhs.val();
-    });
+    a.sort([](const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
+    b.sort([](const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
     std::set_intersection(
         a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
 
     bool ok = false;
-    for (const auto& itv : intersect)
+    for(const auto& itv : intersect)
     {
       auto& m = scenario.interval(itv);
-      if (m.graphal())
+      if(m.graphal())
       {
         ok = true;
       }
     }
 
-    if (ok)
+    if(ok)
     {
-      for (const auto& itv : intersect)
+      for(const auto& itv : intersect)
       {
         auto& m = scenario.interval(itv);
         this_path_itvs.push_back(&m);
@@ -168,12 +160,12 @@ struct CycleDetector
   {
     this_path_itvs.clear();
     bool has_non_graphal = false;
-    for (auto it = p.begin(); it != p.end(); ++it)
+    for(auto it = p.begin(); it != p.end(); ++it)
     {
       TimeSyncModel* this_ts = (TimeSyncModel*)g[*it];
       TimeSyncModel* next_ts = nullptr;
       auto next = it + 1;
-      if (next != p.end())
+      if(next != p.end())
       {
         next_ts = (TimeSyncModel*)g[*next];
       }
@@ -182,21 +174,20 @@ struct CycleDetector
         next_ts = (TimeSyncModel*)g[*p.begin()];
       }
 
-      if (!anyIntervalIsGraph(*this_ts, *next_ts))
+      if(!anyIntervalIsGraph(*this_ts, *next_ts))
         has_non_graphal = true;
       //if (!allIntervalsAreGraph(*this_ts, *next_ts))
       //  has_non_graphal = true;
     }
 
-    if (!has_non_graphal)
+    if(!has_non_graphal)
     {
       cycles = true;
-      for (auto itv : this_path_itvs)
+      for(auto itv : this_path_itvs)
         itv->consistency.setValid(false);
     }
   }
 };
-
 
 struct PathDetectorState
 {
@@ -208,30 +199,25 @@ struct PathDetector : public boost::default_dfs_visitor
   // because these geniuses of boost decided to pass the visitor by value...
   std::shared_ptr<PathDetectorState> state{std::make_shared<PathDetectorState>()};
 
-  void discover_vertex(
-      Scenario::Graph::vertex_descriptor i,
-      const Scenario::Graph& g)
+  void discover_vertex(Scenario::Graph::vertex_descriptor i, const Scenario::Graph& g)
   {
     state->nodes.insert(g[i]);
   }
 };
 
-
 TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
     : m_scenario{scenar}
 {
-  for (auto& tn : scenar.getTimeSyncs())
+  for(auto& tn : scenar.getTimeSyncs())
   {
     m_vertices[&tn] = boost::add_vertex(&tn, m_graph);
   }
 
-  for (auto& cst : scenar.getIntervals())
+  for(auto& cst : scenar.getIntervals())
   {
     m_edges[&cst] = boost::add_edge(
                         m_vertices[&Scenario::startTimeSync(cst, scenar)],
-                        m_vertices[&Scenario::endTimeSync(cst, scenar)],
-                        &cst,
-                        m_graph)
+                        m_vertices[&Scenario::endTimeSync(cst, scenar)], &cst, m_graph)
                         .first;
   }
 
@@ -241,24 +227,20 @@ TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
   scenar.timeSyncs.removed.connect<&TimenodeGraph::timeSyncsChanged>(this);
 }
 
-bool TimenodeGraph::hasPath(const TimeSyncModel& t1, const TimeSyncModel& t2) const noexcept
+bool TimenodeGraph::hasPath(
+    const TimeSyncModel& t1, const TimeSyncModel& t2) const noexcept
 {
   // First find the vertex matching the time sync after our interval
   auto first_vertex = vertices().at(&t1);
 
   // Do a depth-first search from where we're starting
   PathDetector vis;
-  std::vector<boost::default_color_type> color_map(
-      boost::num_vertices(graph()));
+  std::vector<boost::default_color_type> color_map(boost::num_vertices(graph()));
 
   boost::depth_first_visit(
-      graph(),
-      first_vertex,
-      vis,
+      graph(), first_vertex, vis,
       boost::make_iterator_property_map(
-          color_map.begin(),
-          boost::get(boost::vertex_index, graph()),
-          color_map[0]));
+          color_map.begin(), boost::get(boost::vertex_index, graph()), color_map[0]));
 
   return vis.state->nodes.contains((TimeSyncModel*)&t2);
 }
@@ -275,20 +257,19 @@ void TimenodeGraph::recompute()
   m_edges.clear();
   m_graph.clear();
 
-  for (auto& tn : m_scenario.getTimeSyncs())
+  for(auto& tn : m_scenario.getTimeSyncs())
   {
     m_vertices[&tn] = boost::add_vertex(&tn, m_graph);
   }
 
-  for (auto& cst : m_scenario.getIntervals())
+  for(auto& cst : m_scenario.getIntervals())
   {
     cst.consistency.setValid(true);
-    m_edges[&cst] = boost::add_edge(
-                        m_vertices[&Scenario::startTimeSync(cst, m_scenario)],
-                        m_vertices[&Scenario::endTimeSync(cst, m_scenario)],
-                        &cst,
-                        m_graph)
-                        .first;
+    m_edges[&cst]
+        = boost::add_edge(
+              m_vertices[&Scenario::startTimeSync(cst, m_scenario)],
+              m_vertices[&Scenario::endTimeSync(cst, m_scenario)], &cst, m_graph)
+              .first;
   }
 
   CycleDetector vis{m_scenario, m_cycles};
@@ -297,19 +278,17 @@ void TimenodeGraph::recompute()
 
 void TimenodeGraph::writeGraphviz()
 {
-  auto get_name
-      = [](auto* elt) { return elt->metadata().getName().toStdString(); };
+  auto get_name = [](auto* elt) { return elt->metadata().getName().toStdString(); };
 
   std::stringstream s;
   boost::write_graphviz(
-      s,
-      m_graph,
+      s, m_graph,
       [&](auto& out, const auto& v) {
-        out << "[label=\"" << get_name(this->m_graph[v]) << "\"]";
+    out << "[label=\"" << get_name(this->m_graph[v]) << "\"]";
       },
       [&](auto& out, const auto& v) {
-        out << "[label=\"" << get_name(this->m_graph[v]) << "\"]";
-      });
+    out << "[label=\"" << get_name(this->m_graph[v]) << "\"]";
+  });
 
   std::cout << s.str() << std::endl << std::flush;
 }
@@ -339,14 +318,16 @@ TimenodeGraphComponents TimenodeGraph::components()
 void TimenodeGraph::intervalsChanged(const IntervalModel&)
 {
   QTimer::singleShot(8, (QObject*)&m_scenario, [self = QPointer<TimenodeGraph>(this)] {
-    if(self) self->recompute();
+    if(self)
+      self->recompute();
   });
 }
 
 void TimenodeGraph::timeSyncsChanged(const TimeSyncModel&)
 {
   QTimer::singleShot(8, (QObject*)&m_scenario, [self = QPointer<TimenodeGraph>(this)] {
-    if(self) self->recompute();
+    if(self)
+      self->recompute();
   });
 }
 
@@ -373,8 +354,7 @@ bool TimenodeGraphComponents::isInMain(const IntervalModel& c) const
   auto rs = &scenario.startTimeSync();
 
   auto it = ossia::find_if(comps, [&](const auto& comp) {
-    return ossia::contains(comp.syncs, rs)
-           && ossia::contains(comp.intervals, &c);
+    return ossia::contains(comp.syncs, rs) && ossia::contains(comp.intervals, &c);
   });
   return it != comps.end();
 }
@@ -382,9 +362,8 @@ bool TimenodeGraphComponents::isInMain(const IntervalModel& c) const
 const TimenodeGraphConnectedComponent&
 TimenodeGraphComponents::component(const Scenario::TimeSyncModel& c) const
 {
-  auto it = ossia::find_if(comps, [&](const auto& comp) {
-    return ossia::contains(comp.syncs, &c);
-  });
+  auto it = ossia::find_if(
+      comps, [&](const auto& comp) { return ossia::contains(comp.syncs, &c); });
   SCORE_ASSERT(it != comps.end());
   return *it;
 }

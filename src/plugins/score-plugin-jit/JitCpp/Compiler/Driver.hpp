@@ -1,5 +1,6 @@
 #pragma once
 #include <JitCpp/Compiler/Compiler.hpp>
+
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/Support/PrettyStackTrace.h>
 
@@ -17,14 +18,13 @@ struct Driver
   }
 
   std::function<Fun_T> operator()(
-      const std::string& sourceCode,
-      const std::vector<std::string>& flags,
+      const std::string& sourceCode, const std::vector<std::string>& flags,
       CompilerOptions opts)
   {
     auto t0 = std::chrono::high_resolution_clock::now();
 
     auto sourceFileName = saveSourceFile(sourceCode);
-    if (!sourceFileName)
+    if(!sourceFileName)
       return {};
 
     std::string cpp = *sourceFileName;
@@ -40,15 +40,14 @@ struct Driver
     }
 
     auto jitedFn = jit.getFunction<Fun_T>(factory_name);
-    if (!jitedFn)
+    if(!jitedFn)
     {
       throw Exception{jitedFn.takeError()};
     }
 
     llvm::outs().flush();
     std::cerr << "\n\nADDON BUILD DURATION: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0)
-                     .count()
+              << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count()
               << " ms \n\n";
 
     return *jitedFn;

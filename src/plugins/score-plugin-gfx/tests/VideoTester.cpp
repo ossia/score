@@ -1,34 +1,40 @@
 #include "../../../../tests/Integration/score_integration.hpp"
-#include <verdigris>
-
-#include <QFile>
-#include <QFileInfo>
-#include <QUrl>
-#include <QMimeData>
-#include <wobjectimpl.h>
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <core/document/Document.hpp>
-#include <core/presenter/CoreApplicationPlugin.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/CoreApplicationPlugin.hpp>
+
+#include <QFile>
+#include <QFileInfo>
+#include <QMimeData>
+#include <QUrl>
+
+#include <wobjectimpl.h>
+
+#include <verdigris>
 #define private public
+#include <Explorer/Commands/Add/LoadDevice.hpp>
+
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
+
 #include <Engine/ApplicationPlugin.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/WindowDevice.hpp>
-#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
+
 #include <Scenario/Application/Drops/AutomationDropHandler.cpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.cpp>
-#include <Explorer/Commands/Add/LoadDevice.hpp>
 void VideoTest()
 {
   const auto& ctx = score::GUIAppContext();
 
   auto doc = ctx.docManager.newDocument(
-      ctx,
-      Id<score::DocumentModel>(0),
+      ctx, Id<score::DocumentModel>(0),
       *ctx.interfaces<score::DocumentDelegateList>().begin());
 
   qApp->processEvents();
@@ -75,30 +81,32 @@ void VideoTest()
 
   // Start execution
   auto& eng = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
-  QTimer::singleShot(100, [&] {
-                       eng.execution().play_interval(root_itv);
-                     });
+  QTimer::singleShot(100, [&] { eng.execution().play_interval(root_itv); });
   // Stop execution
   QTimer::singleShot(5000, [&ctx, doc] {
-                       ctx.docManager.forceCloseDocument(ctx, *doc);
-                       qApp->exit(0); });
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    qApp->exit(0);
+  });
 }
 
-#define SCORE_INTEGRATION_TEST2(TestFun)                            \
-                                                                   \
-int main(int argc, char** argv)                                    \
-{                                                                  \
-  QLocale::setDefault(QLocale::C);                                 \
-  std::setlocale(LC_ALL, "C");                                     \
-                                                                   \
-  score::MinimalGUIApplication app(argc, argv);                    \
-                                                                   \
-  QMetaObject::invokeMethod(&app, [] {                             \
-    TestFun();                                                     \
-    QApplication::processEvents();                                 \
-  }, Qt::QueuedConnection);                                        \
-                                                                   \
-  return app.exec();                                               \
-}
+#define SCORE_INTEGRATION_TEST2(TestFun)          \
+                                                  \
+  int main(int argc, char** argv)                 \
+  {                                               \
+    QLocale::setDefault(QLocale::C);              \
+    std::setlocale(LC_ALL, "C");                  \
+                                                  \
+    score::MinimalGUIApplication app(argc, argv); \
+                                                  \
+    QMetaObject::invokeMethod(                    \
+        &app,                                     \
+        [] {                                      \
+      TestFun();                                  \
+      QApplication::processEvents();              \
+        },                                        \
+        Qt::QueuedConnection);                    \
+                                                  \
+    return app.exec();                            \
+  }
 
 SCORE_INTEGRATION_TEST2(VideoTest)

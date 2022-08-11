@@ -46,8 +46,7 @@ class Transition_T<Scenario_T, ReleaseOnNothing> final
     : public MatchedTransition<Scenario_T, ReleaseOnNothing_Event>
 {
 public:
-  using MatchedTransition<Scenario_T, ReleaseOnNothing_Event>::
-      MatchedTransition;
+  using MatchedTransition<Scenario_T, ReleaseOnNothing_Event>::MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override

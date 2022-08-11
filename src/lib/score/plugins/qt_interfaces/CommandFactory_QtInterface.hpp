@@ -13,7 +13,6 @@ class SCORE_LIB_BASE_EXPORT CommandFactory_QtInterface
 public:
   virtual ~CommandFactory_QtInterface();
 
-  virtual std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands()
-      = 0;
+  virtual std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() = 0;
 };
 }

@@ -23,10 +23,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
   bool m_toggled{};
 
 public:
-  QGraphicsPixmapToggle(
-      QPixmap pressed,
-      QPixmap released,
-      QGraphicsItem* parent);
+  QGraphicsPixmapToggle(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
   void toggle();
   void setState(bool toggled);

@@ -24,12 +24,8 @@ class PointArraySegment;
 }
 
 CURVE_SEGMENT_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT,
-    Curve::PointArraySegment,
-    "c598b840-db67-4c8f-937a-46cfac87cb59",
-    "PointArray",
-    "PointArray",
-    "hidden")
+    SCORE_PLUGIN_CURVE_EXPORT, Curve::PointArraySegment,
+    "c598b840-db67-4c8f-937a-46cfac87cb59", "PointArray", "PointArray", "hidden")
 
 namespace Curve
 {
@@ -54,10 +50,7 @@ public:
   }
   PointArraySegment(const SegmentData& dat, QObject* parent);
 
-  PointArraySegment(
-      const PointArraySegment& other,
-      const id_type& id,
-      QObject* parent);
+  PointArraySegment(const PointArraySegment& other, const id_type& id, QObject* parent);
 
   PointArraySegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
@@ -100,7 +93,7 @@ public:
     PointArraySegmentData dat{min_x, max_x, min_y, max_y, {}};
 
     dat.m_points.reserve(m_points.size());
-    for (const auto& pt : m_points)
+    for(const auto& pt : m_points)
       dat.m_points.push_back({pt.first, pt.second});
 
     return QVariant::fromValue(std::move(dat));
@@ -113,10 +106,8 @@ public:
   void reset();
 
 public:
-  void minChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, minChanged, arg_1)
-  void maxChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, maxChanged, arg_1)
+  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, minChanged, arg_1)
+  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, maxChanged, arg_1)
 
 private:
   // Coordinates in {x, y}.
@@ -130,7 +121,6 @@ private:
 }
 
 SCORE_SERIALIZE_DATASTREAM_DECLARE(
-    SCORE_PLUGIN_CURVE_EXPORT,
-    Curve::PointArraySegmentData)
+    SCORE_PLUGIN_CURVE_EXPORT, Curve::PointArraySegmentData)
 Q_DECLARE_METATYPE(Curve::PointArraySegmentData)
 W_REGISTER_ARGTYPE(Curve::PointArraySegmentData)

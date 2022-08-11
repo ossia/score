@@ -39,7 +39,7 @@ bool Selectable::get() const noexcept
 
 void Selectable::set(bool v)
 {
-  if (m_val != v)
+  if(m_val != v)
   {
     m_val = v;
     changed(v);
@@ -51,8 +51,7 @@ namespace score
 
 SelectionStack::SelectionStack()
 {
-  connect(
-      this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);
+  connect(this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);
   m_unselectable.push(Selection{});
 }
 
@@ -83,7 +82,7 @@ void SelectionStack::clear()
 void SelectionStack::clearAllButLast()
 {
   Selection last;
-  if (canUnselect())
+  if(canUnselect())
     last = m_unselectable.top();
 
   m_unselectable.clear();
@@ -95,35 +94,32 @@ void SelectionStack::clearAllButLast()
 
 void SelectionStack::push(const Selection& selection)
 {
-  if (selection != m_unselectable.top())
+  if(selection != m_unselectable.top())
   {
     auto old = currentSelection();
     auto s = selection;
     auto it = s.begin();
-    while (it != s.end())
+    while(it != s.end())
     {
-      if (*it)
+      if(*it)
         ++it;
       else
         it = s.erase(it);
     }
 
     Foreach(s, [&](auto obj) {
-      if (m_connections.find(obj) == m_connections.end())
+      if(m_connections.find(obj) == m_connections.end())
       {
         QMetaObject::Connection con = connect(
-            obj,
-            &IdentifiedObjectAbstract::identified_object_destroyed,
-            this,
-            &SelectionStack::prune,
-            Qt::UniqueConnection);
+            obj, &IdentifiedObjectAbstract::identified_object_destroyed, this,
+            &SelectionStack::prune, Qt::UniqueConnection);
         m_connections.insert({obj, con});
       }
     });
 
     m_unselectable.push(s);
 
-    if (m_unselectable.size() > 50)
+    if(m_unselectable.size() > 50)
     {
       m_unselectable.removeFirst();
     }
@@ -139,7 +135,7 @@ void SelectionStack::unselect()
   auto old = currentSelection();
   m_reselectable.push(m_unselectable.pop());
 
-  if (m_unselectable.empty())
+  if(m_unselectable.empty())
     m_unselectable.push(Selection{});
 
   currentSelectionChanged(old, m_unselectable.top());
@@ -161,7 +157,7 @@ void SelectionStack::deselect()
 void SelectionStack::deselectObjects(const Selection& toDeselect)
 {
   Selection s = currentSelection();
-  for (auto& obj : toDeselect)
+  for(auto& obj : toDeselect)
   {
     s.removeAll(obj);
   }
@@ -177,19 +173,19 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
 {
   {
     int n = std::ssize(m_unselectable);
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       Selection& sel = m_unselectable[i];
       // OPTIMIZEME should be removeOne
       sel.removeAll(p);
 
-      for (auto it = sel.begin(); it != sel.end();)
+      for(auto it = sel.begin(); it != sel.end();)
       {
         // We prune the QPointer that might have been invalidated.
         // This is because if we remove multiple elements at the same time
         // some might still be in the list after the first destroyed() call;
         // they will be refreshed and may lead to crashes.
-        if ((*it).isNull())
+        if((*it).isNull())
         {
           it = sel.erase(it);
         }
@@ -203,13 +199,13 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
 
   {
     int n = std::ssize(m_reselectable);
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       Selection& sel = m_reselectable[i];
       sel.removeAll(p);
-      for (auto it = sel.begin(); it != sel.end();)
+      for(auto it = sel.begin(); it != sel.end();)
       {
-        if ((*it).isNull())
+        if((*it).isNull())
         {
           it = sel.erase(it);
         }
@@ -223,43 +219,41 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
 
   m_unselectable.erase(
       std::remove_if(
-          m_unselectable.begin(),
-          m_unselectable.end(),
+          m_unselectable.begin(), m_unselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_unselectable.end());
 
   m_reselectable.erase(
       std::remove_if(
-          m_reselectable.begin(),
-          m_reselectable.end(),
+          m_reselectable.begin(), m_reselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_reselectable.end());
 
-  if (m_unselectable.size() == 0)
+  if(m_unselectable.size() == 0)
     m_unselectable.push(Selection{});
 
   pruneConnections();
   currentSelectionChanged(m_unselectable.top(), m_unselectable.top());
 }
 
-static std::vector<IdentifiedObjectAbstract*> recursiveChildrenList(IdentifiedObjectAbstract* obj)
+static std::vector<IdentifiedObjectAbstract*>
+recursiveChildrenList(IdentifiedObjectAbstract* obj)
 {
   std::vector<IdentifiedObjectAbstract*> vec;
   vec.reserve(4 * obj->children().size());
   vec.push_back(obj);
 
   std::function<void(IdentifiedObjectAbstract*)> rec;
-  rec = [&] (IdentifiedObjectAbstract* parent)
-  {
-     const auto& children = parent->children();
-     for(auto it = children.cbegin(), end = children.cend(); it != end; ++it)
-     {
-       if(auto p = qobject_cast<IdentifiedObjectAbstract*>(*it))
-       {
-         vec.push_back(p);
-         rec(p);
-       }
-     }
+  rec = [&](IdentifiedObjectAbstract* parent) {
+    const auto& children = parent->children();
+    for(auto it = children.cbegin(), end = children.cend(); it != end; ++it)
+    {
+      if(auto p = qobject_cast<IdentifiedObjectAbstract*>(*it))
+      {
+        vec.push_back(p);
+        rec(p);
+      }
+    }
   };
   rec(obj);
 
@@ -273,7 +267,7 @@ void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)
   auto children = recursiveChildrenList(p);
   {
     int n = std::ssize(m_unselectable);
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       Selection& sel = m_unselectable[i];
       // OPTIMIZEME should be removeOne
@@ -281,13 +275,13 @@ void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)
       for(IdentifiedObjectAbstract* obj : children)
         sel.removeAll(obj);
 
-      for (auto it = sel.begin(); it != sel.end();)
+      for(auto it = sel.begin(); it != sel.end();)
       {
         // We prune the QPointer that might have been invalidated.
         // This is because if we remove multiple elements at the same time
         // some might still be in the list after the first destroyed() call;
         // they will be refreshed and may lead to crashes.
-        if ((*it).isNull())
+        if((*it).isNull())
         {
           it = sel.erase(it);
         }
@@ -301,16 +295,16 @@ void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)
 
   {
     int n = std::ssize(m_reselectable);
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       Selection& sel = m_reselectable[i];
 
       for(IdentifiedObjectAbstract* obj : children)
         sel.removeAll(obj);
 
-      for (auto it = sel.begin(); it != sel.end();)
+      for(auto it = sel.begin(); it != sel.end();)
       {
-        if ((*it).isNull())
+        if((*it).isNull())
         {
           it = sel.erase(it);
         }
@@ -324,19 +318,17 @@ void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)
 
   m_unselectable.erase(
       std::remove_if(
-          m_unselectable.begin(),
-          m_unselectable.end(),
+          m_unselectable.begin(), m_unselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_unselectable.end());
 
   m_reselectable.erase(
       std::remove_if(
-          m_reselectable.begin(),
-          m_reselectable.end(),
+          m_reselectable.begin(), m_reselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_reselectable.end());
 
-  if (m_unselectable.size() == 0)
+  if(m_unselectable.size() == 0)
     m_unselectable.push(Selection{});
 
   pruneConnections();
@@ -346,29 +338,29 @@ void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)
 void SelectionStack::pruneConnections()
 {
   ossia::flat_set<const IdentifiedObjectAbstract*> present;
-  for (auto& sel : m_unselectable)
+  for(auto& sel : m_unselectable)
   {
-    for (auto& obj : sel)
+    for(auto& obj : sel)
     {
       present.insert(obj.data());
     }
   }
-  for (auto& sel : m_reselectable)
+  for(auto& sel : m_reselectable)
   {
-    for (auto& obj : sel)
+    for(auto& obj : sel)
     {
       present.insert(obj.data());
     }
   }
 
   std::vector<const IdentifiedObjectAbstract*> to_remove;
-  for (auto& e : m_connections)
+  for(auto& e : m_connections)
   {
-    if (present.find(e.first) == present.end())
+    if(present.find(e.first) == present.end())
       to_remove.push_back(e.first);
   }
 
-  for (auto ptr : to_remove)
+  for(auto ptr : to_remove)
   {
     auto it = m_connections.find(ptr);
     QObject::disconnect(it->second);

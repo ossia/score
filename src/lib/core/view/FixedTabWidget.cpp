@@ -33,8 +33,7 @@ FixedTabWidget::FixedTabWidget() noexcept
   m_actGrp = new QActionGroup{m_buttons};
   m_actGrp->setExclusive(true);
 #if QT_VERSION > QT_VERSION_CHECK(5, 14, 0)
-  m_actGrp->setExclusionPolicy(
-      QActionGroup::ExclusionPolicy::ExclusiveOptional);
+  m_actGrp->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
 #endif
 }
 
@@ -55,17 +54,16 @@ QSize FixedTabWidget::sizeHint() const
 
 void FixedTabWidget::setTab(int index)
 {
-  if (m_actGrp->actions()[index]->isChecked())
+  if(m_actGrp->actions()[index]->isChecked())
     return;
 
   m_actGrp->actions()[index]->trigger();
 }
 
-struct DragOverToolButton final
-    : public QToolButton
+struct DragOverToolButton final : public QToolButton
 {
   explicit DragOverToolButton(QWidget* parent = nullptr) noexcept
-    : QToolButton{parent}
+      : QToolButton{parent}
   {
     setAcceptDrops(true);
   }
@@ -99,8 +97,7 @@ struct DragOverToolButton final
   int m_tm = 0;
 };
 
-std::pair<int, QAction*>
-FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
+std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
 {
   int idx = m_stack.addWidget(widg);
 
@@ -154,7 +151,7 @@ QAction* FixedTabWidget::addAction(QAction* act)
 
 void FixedTabWidget::paintEvent(QPaintEvent* ev)
 {
-  if (brush == QBrush())
+  if(brush == QBrush())
     return;
   QPainter p{this};
   p.setPen(Qt::transparent);

@@ -1,6 +1,7 @@
 #pragma once
-#include <score/gfx/OpenGL.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+
+#include <score/gfx/OpenGL.hpp>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QShaderBaker>
 #else
@@ -25,12 +26,14 @@ public:
   static const std::pair<QShader, QString>&
   get(const RenderState& v, const QByteArray& shader, QShader::Stage stage);
   static const std::pair<QShader, QString>&
-  get(GraphicsApi api, const QShaderVersion& v, const QByteArray& shader, QShader::Stage stage);
+  get(GraphicsApi api, const QShaderVersion& v, const QByteArray& shader,
+      QShader::Stage stage);
 
 private:
   ShaderCache();
 
-  struct Baker {
+  struct Baker
+  {
     explicit Baker(GraphicsApi api, const QShaderVersion& v);
 
     GraphicsApi api;

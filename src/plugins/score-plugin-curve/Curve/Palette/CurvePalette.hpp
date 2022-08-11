@@ -1,11 +1,12 @@
 #pragma once
+#include <Process/Tools/ToolPalette.hpp>
+
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Palette/Tools/MoveTool.hpp>
 #include <Curve/Palette/Tools/SmartTool.hpp>
-#include <Process/Tools/ToolPalette.hpp>
 
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
@@ -74,7 +75,6 @@ struct ToolPalette_T final : public ToolPalette
   {
   }
 
-  ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, Context_T, View>
-      m_inputDisp;
+  ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, Context_T, View> m_inputDisp;
 };
 }

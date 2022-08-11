@@ -28,7 +28,7 @@ public:
   Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     using namespace Steinberg;
-    if (FUID::fromTUID(_iid) == Steinberg::Vst::IComponentHandler2::iid)
+    if(FUID::fromTUID(_iid) == Steinberg::Vst::IComponentHandler2::iid)
     {
       *obj = static_cast<Steinberg::Vst::IComponentHandler2*>(this);
       return kResultOk;
@@ -42,27 +42,23 @@ public:
   Steinberg::tresult beginEdit(Steinberg::Vst::ParamID id) override
   {
     // TODO implement ongoingdispatcher
-    if (auto ctrl = m_model.controls.find(id); ctrl == m_model.controls.end())
+    if(auto ctrl = m_model.controls.find(id); ctrl == m_model.controls.end())
     {
-      ossia::qt::run_async(
-          &m_model,
-          [&proc = m_model, id]
-          {
-            if (auto ctrl = proc.controls.find(id); ctrl == proc.controls.end())
-            {
-              auto& ctx = score::IDocument::documentContext(proc);
-              CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(proc, id);
-            }
-          });
+      ossia::qt::run_async(&m_model, [&proc = m_model, id] {
+        if(auto ctrl = proc.controls.find(id); ctrl == proc.controls.end())
+        {
+          auto& ctx = score::IDocument::documentContext(proc);
+          CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(proc, id);
+        }
+      });
     }
     return Steinberg::kResultOk;
   }
 
   Steinberg::tresult performEdit(
-      Steinberg::Vst::ParamID id,
-      Steinberg::Vst::ParamValue valueNormalized) override
+      Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
   {
-    if (auto ctrl = m_model.controls.find(id); ctrl != m_model.controls.end())
+    if(auto ctrl = m_model.controls.find(id); ctrl != m_model.controls.end())
     {
       ctrl->second->setValue(valueNormalized);
     }

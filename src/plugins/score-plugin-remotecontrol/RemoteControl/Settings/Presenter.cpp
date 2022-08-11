@@ -21,7 +21,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   {
     // view -> model
     con(v, &View::enabledChanged, this, [&](auto val) {
-      if (val != m.getEnabled())
+      if(val != m.getEnabled())
       {
         m_disp.submit<SetModelEnabled>(this->model(this), val);
       }

@@ -1,6 +1,7 @@
 #pragma once
-#include <Mapping/MappingModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+
+#include <Mapping/MappingModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 class QWidget;
@@ -31,18 +32,15 @@ class InspectorWidget : public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:
-  void
-  on_sourceAddressChange(const Device::FullAddressAccessorSettings& newText);
+  void on_sourceAddressChange(const Device::FullAddressAccessorSettings& newText);
   void on_sourceMinValueChanged();
   void on_sourceMaxValueChanged();
 
-  void
-  on_targetAddressChange(const Device::FullAddressAccessorSettings& newText);
+  void on_targetAddressChange(const Device::FullAddressAccessorSettings& newText);
   void on_targetMinValueChanged();
   void on_targetMaxValueChanged();
 

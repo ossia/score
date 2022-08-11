@@ -1,26 +1,25 @@
 #include <Vst/Loader.hpp>
 
+#include <QFile>
 #include <QGuiApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QUrl>
 #include <QTimer>
-#include <QFile>
+#include <QUrl>
 #include <QWebSocket>
-#include <iostream>
-#include <set>
 #include <QWindow>
 
+#include <iostream>
+#include <set>
+
 intptr_t vst_host_callback(
-    AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
-    float opt)
+    AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt)
 {
   intptr_t result = 0;
 
-  switch (opcode)
+  switch(opcode)
   {
-    case audioMasterGetTime:
-    {
+    case audioMasterGetTime: {
       static VstTimeInfo time;
       time.samplePos = 0.;
       time.sampleRate = 44100.;
@@ -35,9 +34,8 @@ intptr_t vst_host_callback(
       time.smpteOffset = 0;
       time.smpteFrameRate = 0;
       time.samplesToNextClock = 512;
-      time.flags = kVstNanosValid | kVstPpqPosValid
-              | kVstTempoValid | kVstBarsValid | kVstTimeSigValid
-              | kVstClockValid;
+      time.flags = kVstNanosValid | kVstPpqPosValid | kVstTempoValid | kVstBarsValid
+                   | kVstTimeSigValid | kVstClockValid;
       result = reinterpret_cast<intptr_t>(&time);
       break;
     }
@@ -100,8 +98,7 @@ intptr_t vst_host_callback(
       break;
     case audioMasterCloseFileSelector:
       break;
-    case audioMasterCanDo:
-    {
+    case audioMasterCanDo: {
       static const std::set<std::string_view> supported{
           HostCanDos::canDoSendVstEvents,
           HostCanDos::canDoSendVstMidiEvent,
@@ -109,7 +106,7 @@ intptr_t vst_host_callback(
           HostCanDos::canDoSendVstMidiEventFlagIsRealtime,
           HostCanDos::canDoSizeWindow,
           HostCanDos::canDoHasCockosViewAsConfig};
-      if (supported.find(static_cast<const char*>(ptr)) != supported.end())
+      if(supported.find(static_cast<const char*>(ptr)) != supported.end())
         result = 1;
       break;
     }
@@ -129,7 +126,7 @@ QString load_vst(const QString& path, int id)
   try
   {
     bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-    if (!isFile)
+    if(!isFile)
     {
       std::cerr << "Invalid path: " << path.toStdString() << std::endl;
       return {};
@@ -137,9 +134,9 @@ QString load_vst(const QString& path, int id)
 
     vst::Module plugin{path.toStdString()};
 
-    if (auto m = plugin.getMain())
+    if(auto m = plugin.getMain())
     {
-      if (auto p = (AEffect*)m(vst_host_callback))
+      if(auto p = (AEffect*)m(vst_host_callback))
       {
         QJsonObject obj;
         obj["UniqueID"] = p->uniqueID;
@@ -156,7 +153,7 @@ QString load_vst(const QString& path, int id)
       }
     }
   }
-  catch (const std::runtime_error& e)
+  catch(const std::runtime_error& e)
   {
     std::cerr << e.what() << std::endl;
   }
@@ -165,11 +162,12 @@ QString load_vst(const QString& path, int id)
 
 int main(int argc, char** argv)
 {
-  if (argc > 1)
+  if(argc > 1)
   {
     int id = 0;
-    if(argc > 2) {
-        id = QString(argv[2]).toInt();
+    if(argc > 2)
+    {
+      id = QString(argv[2]).toInt();
     }
     QGuiApplication app(argc, argv);
     QWindow w;
@@ -185,7 +183,8 @@ int main(int argc, char** argv)
     QString json_ret;
 
     auto onReady = [&] {
-      if(socket_ready && vst_ready) {
+      if(socket_ready && vst_ready)
+      {
         socket.sendTextMessage(json_ret);
         socket.flush();
         socket.close();
@@ -200,18 +199,25 @@ int main(int argc, char** argv)
       onReady();
     });
 
-    QObject::connect(&socket, &QWebSocket::connected,
-            &app, [&] {
+    QObject::connect(&socket, &QWebSocket::connected, &app, [&] {
       socket_ready = true;
       onReady();
     });
 
-    QObject::connect(&socket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), &app,
-                     [&] { qDebug() << socket.errorString(); app.exit(1); });
-    QObject::connect(&socket, &QWebSocket::disconnected, &app,
-                     [&] { qDebug() << socket.errorString(); app.exit(1); });
+    QObject::connect(
+        &socket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), &app, [&] {
+          qDebug() << socket.errorString();
+          app.exit(1);
+        });
+    QObject::connect(&socket, &QWebSocket::disconnected, &app, [&] {
+      qDebug() << socket.errorString();
+      app.exit(1);
+    });
 
-    QTimer::singleShot(10000, [&] { qDebug() << "timeout"; qApp->exit(1); });
+    QTimer::singleShot(10000, [&] {
+      qDebug() << "timeout";
+      qApp->exit(1);
+    });
 
     socket.open(QUrl("ws://127.0.0.1:37587"));
     app.exec();

@@ -1,9 +1,9 @@
+#include <JitCpp/AddonCompiler.hpp>
+
 #include <core/application/MinimalApplication.hpp>
 
 #include <QFile>
 #include <QTextStream>
-
-#include <JitCpp/AddonCompiler.hpp>
 
 extern "C" Q_DECL_EXPORT void blah()
 {

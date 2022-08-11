@@ -35,8 +35,8 @@
 #define LV2_ATOM_HELPERS_H
 
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
-#include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/ext/atom/forge.h>
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
 
 #include <assert.h>
 #include <stdbool.h>
@@ -55,11 +55,7 @@ struct LV2_Atom_Buffer
 
   uint32_t capacity;
   LV2_Atom_Sequence atoms;
-  LV2_Atom_Buffer(
-      uint32_t capacity,
-      uint32_t ct,
-      uint32_t seq_type,
-      bool input)
+  LV2_Atom_Buffer(uint32_t capacity, uint32_t ct, uint32_t seq_type, bool input)
       : capacity{capacity}
   {
     chunk_type = ct;
@@ -69,7 +65,7 @@ struct LV2_Atom_Buffer
 
   void reset(bool input)
   {
-    if (input)
+    if(input)
     {
       atoms.atom.size = sizeof(LV2_Atom_Sequence_Body);
       atoms.atom.type = sequence_type;
@@ -86,7 +82,7 @@ struct LV2_Atom_Buffer
   //
   uint32_t get_size()
   {
-    if (atoms.atom.type == sequence_type)
+    if(atoms.atom.type == sequence_type)
       return atoms.atom.size - sizeof(LV2_Atom_Sequence_Body);
     else
       return 0;
@@ -139,7 +135,7 @@ struct Iterator
   //
   bool increment()
   {
-    if (!is_valid())
+    if(!is_valid())
       return false;
 
     LV2_Atom_Sequence* atoms = &buf->atoms;
@@ -155,7 +151,7 @@ struct Iterator
   //
   LV2_Atom_Event* get(uint8_t** data)
   {
-    if (!is_valid())
+    if(!is_valid())
       return NULL;
 
     auto atoms = &buf->atoms;
@@ -169,15 +165,12 @@ struct Iterator
 
   // Write an event at a LV2 atom:Sequence buffer iterator.
   bool write(
-      uint32_t frames,
-      uint32_t /*subframes*/,
-      uint32_t type,
-      uint32_t size,
+      uint32_t frames, uint32_t /*subframes*/, uint32_t type, uint32_t size,
       const uint8_t* data)
   {
     LV2_Atom_Sequence* atoms = &buf->atoms;
-    if (buf->capacity - sizeof(LV2_Atom) - atoms->atom.size
-        < sizeof(LV2_Atom_Event) + size)
+    if(buf->capacity - sizeof(LV2_Atom) - atoms->atom.size
+       < sizeof(LV2_Atom_Event) + size)
       return false;
 
     LV2_Atom_Event* ev
@@ -200,16 +193,12 @@ struct Iterator
 struct AtomBuffer
 {
   LV2_Atom_Buffer* buf{};
-  AtomBuffer(
-      uint32_t capacity,
-      uint32_t chunk_type,
-      uint32_t seq_type,
-      bool input)
+  AtomBuffer(uint32_t capacity, uint32_t chunk_type, uint32_t seq_type, bool input)
   {
     // Note : isn't the second sizeof redundant ?
     buf = (LV2_Atom_Buffer*)::operator new(
         sizeof(LV2_Atom_Buffer) + sizeof(LV2_Atom_Sequence) + capacity);
-    new (buf) LV2_Atom_Buffer(capacity, chunk_type, seq_type, input);
+    new(buf) LV2_Atom_Buffer(capacity, chunk_type, seq_type, input);
   }
 
   AtomBuffer() = delete;

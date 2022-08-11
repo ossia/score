@@ -1,6 +1,7 @@
 #pragma once
-#include <Media/Metro/MetroMetadata.hpp>
 #include <Process/Process.hpp>
+
+#include <Media/Metro/MetroMetadata.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -23,9 +24,7 @@ class Model final : public Process::ProcessModel
 
 public:
   explicit Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   ~Model() override;
 

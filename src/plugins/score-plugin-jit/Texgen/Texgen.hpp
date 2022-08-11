@@ -1,8 +1,6 @@
 #pragma once
 #if __has_include(<score_plugin_gfx.hpp>)
 #define SCORE_JIT_HAS_TEXGEN 1
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
@@ -11,11 +9,13 @@
 
 #include <Scenario/Commands/ScriptEditCommand.hpp>
 
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <JitCpp/EditScript.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
-
-#include <JitCpp/EditScript.hpp>
 
 #include <verdigris>
 
@@ -24,18 +24,9 @@ namespace Jit
 class TexgenModel;
 }
 PROCESS_METADATA(
-    ,
-    Jit::TexgenModel,
-    "b9a20181-2925-4ade-925e-a2fd05fcbf9b",
-    "Jit",
-    "Texture generator",
-    Process::ProcessCategory::Script,
-    "Visuals",
-    "Generate a texture",
-    "ossia score",
-    QStringList{},
-    {},
-    {},
+    , Jit::TexgenModel, "b9a20181-2925-4ade-925e-a2fd05fcbf9b", "Jit",
+    "Texture generator", Process::ProcessCategory::Script, "Visuals",
+    "Generate a texture", "ossia score", QStringList{}, {}, {},
     Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
@@ -54,9 +45,7 @@ class TexgenModel : public Process::ProcessModel
   W_OBJECT(TexgenModel)
 public:
   TexgenModel(
-      TimeVal t,
-      const QString& jitProgram,
-      const Id<Process::ProcessModel>&,
+      TimeVal t, const QString& jitProgram, const Id<Process::ProcessModel>&,
       QObject* parent);
   ~TexgenModel() override;
 
@@ -77,8 +66,7 @@ public:
 
   TexgenFactory factory;
 
-  void errorMessage(int line, const QString& e)
-      W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
@@ -113,42 +101,31 @@ struct TexgenLanguageSpec
 
 using TexgenEffectFactory = Process::EffectProcessFactory_T<TexgenModel>;
 using TexgenLayerFactory = Process::EffectLayerFactory_T<
-    TexgenModel,
-    Process::DefaultEffectItem,
+    TexgenModel, Process::DefaultEffectItem,
     Process::ProcessScriptEditDialog<
-        TexgenModel,
-        TexgenModel::p_script,
-        TexgenLanguageSpec>>;
+        TexgenModel, TexgenModel::p_script, TexgenLanguageSpec>>;
 
 class TexgenExecutor final
-    : public Execution::
-          ProcessComponent_T<Jit::TexgenModel, ossia::node_process>
+    : public Execution::ProcessComponent_T<Jit::TexgenModel, ossia::node_process>
 {
   COMPONENT_METADATA("ec4bd3af-8d81-4d92-9b53-86a34d8108f8")
 
 public:
   static constexpr bool is_unique = true;
 
-  TexgenExecutor(
-      Jit::TexgenModel& proc,
-      const Execution::Context& ctx,
-      QObject* parent);
+  TexgenExecutor(Jit::TexgenModel& proc, const Execution::Context& ctx, QObject* parent);
   ~TexgenExecutor() override;
 };
-using TexgenExecutorFactory
-    = Execution::ProcessComponentFactory_T<TexgenExecutor>;
+using TexgenExecutorFactory = Execution::ProcessComponentFactory_T<TexgenExecutor>;
 }
-
 
 namespace Jit
 {
-class EditTexgen
-    : public Scenario::EditScript<TexgenModel, TexgenModel::p_script>
+class EditTexgen : public Scenario::EditScript<TexgenModel, TexgenModel::p_script>
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), EditTexgen, "Edit a texture script")
 public:
-  using Scenario::EditScript<TexgenModel, TexgenModel::p_script>::
-      EditScript;
+  using Scenario::EditScript<TexgenModel, TexgenModel::p_script>::EditScript;
 };
 
 }
@@ -156,8 +133,7 @@ public:
 namespace score
 {
 template <>
-struct StaticPropertyCommand<Jit::TexgenModel::p_script>
-    : Jit::EditTexgen
+struct StaticPropertyCommand<Jit::TexgenModel::p_script> : Jit::EditTexgen
 {
   using Jit::EditTexgen::EditTexgen;
 };

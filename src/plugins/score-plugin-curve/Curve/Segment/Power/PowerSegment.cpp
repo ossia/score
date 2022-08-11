@@ -23,9 +23,7 @@ PowerSegment::PowerSegment(const SegmentData& dat, QObject* parent)
 }
 
 PowerSegment::PowerSegment(
-    const PowerSegment& other,
-    const IdentifiedObject::id_type& id,
-    QObject* parent)
+    const PowerSegment& other, const IdentifiedObject::id_type& id, QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}
     , gamma{other.gamma}
 {
@@ -58,14 +56,13 @@ static const pow_tables_t pow_tables = [] {
 
 void PowerSegment::updateData(int numInterp) const
 {
-  if (std::size_t(numInterp + 1) != m_data.size())
+  if(std::size_t(numInterp + 1) != m_data.size())
     m_valid = false;
-  if (!m_valid)
+  if(!m_valid)
   {
-    if (gamma == PowerSegmentData::linearGamma || start() == end()
-        || numInterp == 2)
+    if(gamma == PowerSegmentData::linearGamma || start() == end() || numInterp == 2)
     {
-      if (m_data.size() != 2)
+      if(m_data.size() != 2)
         m_data.resize(2);
       m_data[0] = start();
       m_data[1] = end();
@@ -81,9 +78,9 @@ void PowerSegment::updateData(int numInterp) const
       SCORE_ASSERT(numInterp <= 75);
 
       auto& pow_table = pow_tables[numInterp];
-      if (gamma < 1.)
+      if(gamma < 1.)
       {
-        for (int j = 0; j <= numInterp; j++)
+        for(int j = 0; j <= numInterp; j++)
         {
           const double pos_x = pow_table[j];
           m_data[numInterp - j]
@@ -93,7 +90,7 @@ void PowerSegment::updateData(int numInterp) const
       }
       else
       {
-        for (int j = 0; j <= numInterp; j++)
+        for(int j = 0; j <= numInterp; j++)
         {
           const double pos_x = 1. - pow_table[j];
           m_data[numInterp - j]
@@ -107,11 +104,10 @@ void PowerSegment::updateData(int numInterp) const
 
 double PowerSegment::valueAt(double x) const
 {
-  if (gamma == PowerSegmentData::linearGamma)
+  if(gamma == PowerSegmentData::linearGamma)
   {
     return start().y()
-           + (end().y() - start().y()) * (x - start().x())
-                 / (end().x() - start().x());
+           + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
   }
   else
   {
@@ -123,7 +119,7 @@ double PowerSegment::valueAt(double x) const
 
 void PowerSegment::setVerticalParameter(double p)
 {
-  if (start().y() < end().y())
+  if(start().y() < end().y())
     gamma = std::pow(16., -p);
   else
     gamma = std::pow(16., p);
@@ -139,14 +135,14 @@ QVariant PowerSegment::toSegmentSpecificData() const
 template <typename Y>
 ossia::curve_segment<Y> PowerSegment::makeFunction() const
 {
-  if (gamma == Curve::PowerSegmentData::linearGamma)
+  if(gamma == Curve::PowerSegmentData::linearGamma)
   {
     // We just return the linear one
     return ossia::curve_segment_linear<Y>{};
   }
   else
   {
-    if (gamma < 1.)
+    if(gamma < 1.)
     {
       return [gamma = gamma](double ratio, Y start, Y end) {
         return ossia::easing::ease{}(start, end, std::pow(ratio, gamma));
@@ -177,7 +173,7 @@ ossia::curve_segment<int> PowerSegment::makeIntFunction() const
 
 std::optional<double> PowerSegment::verticalParameter() const
 {
-  if (start().y() < end().y())
+  if(start().y() < end().y())
   {
     return -std::log(gamma) / std::log(16.);
   }

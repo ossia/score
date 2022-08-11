@@ -11,8 +11,8 @@
 
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentBackupManager.hpp>
+#include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
@@ -34,21 +34,18 @@ DocumentBuilder::DocumentBuilder(QObject* parentPresenter, QWidget* parentView)
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
-    const score::GUIApplicationContext& ctx,
-    const Id<DocumentModel>& id,
+    const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
-  QString docName
-      = "Untitled." + RandomNameProvider::generateShortRandomName();
+  QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
 
   // FIXME we can't access Library::Settings::Model here :'(
 #if !defined(__EMSCRIPTEN__)
   QSettings set;
-  if (auto library = set.value("Library/Path").toString();
-      QDir{library}.exists())
+  if(auto library = set.value("Library/Path").toString(); QDir{library}.exists())
   {
     auto templateDocument = QString{"%1/default.score"}.arg(library);
-    if (QFile::exists(templateDocument))
+    if(QFile::exists(templateDocument))
     {
       try
       {
@@ -59,29 +56,26 @@ Document* DocumentBuilder::newDocument(
         // TODO cables ?!
         return doc;
       }
-      catch (...)
+      catch(...)
       {
       }
     }
   }
 #endif
-  auto doc
-      = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
+  auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
-  for (auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())
+  for(auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())
   {
-    if (auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
-      doc->model().addPluginModel(fact->makeModel(
-          doc->context(),
-          &doc->model()));
+    if(auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
+      doc->model().addPluginModel(fact->makeModel(doc->context(), &doc->model()));
   }
 
-  for (auto& appPlug : ctx.guiApplicationPlugins())
+  for(auto& appPlug : ctx.guiApplicationPlugins())
   {
     appPlug->on_newDocument(*doc);
   }
 
-  for (auto& appPlug : ctx.guiApplicationPlugins())
+  for(auto& appPlug : ctx.guiApplicationPlugins())
   {
     appPlug->on_createdDocument(*doc);
   }
@@ -91,8 +85,7 @@ Document* DocumentBuilder::newDocument(
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
-    const score::GUIApplicationContext& ctx,
-    QString filename,
+    const score::GUIApplicationContext& ctx, QString filename,
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
@@ -100,12 +93,12 @@ Document* DocumentBuilder::loadDocument(
   try
   {
     doc = new Document{filename, doctype, m_parentView, m_parentPresenter};
-    for (auto& appPlug : ctx.guiApplicationPlugins())
+    for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
     }
 
-    for (auto& appPlug : ctx.guiApplicationPlugins())
+    for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_createdDocument(*doc);
     }
@@ -114,14 +107,14 @@ Document* DocumentBuilder::loadDocument(
 
     return doc;
   }
-  catch (std::runtime_error& e)
+  catch(std::runtime_error& e)
   {
-    if (m_parentView)
+    if(m_parentView)
       score::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 
-    if (!doclist.empty() && doclist.back() == doc)
+    if(!doclist.empty() && doclist.back() == doc)
       doclist.pop_back();
 
     delete doc;
@@ -131,23 +124,20 @@ Document* DocumentBuilder::loadDocument(
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
-    const score::GUIApplicationContext& ctx,
-    QString filename,
-    QByteArray data,
-    SerializationIdentifier format,
-    DocumentDelegateFactory& doctype)
+    const score::GUIApplicationContext& ctx, QString filename, QByteArray data,
+    SerializationIdentifier format, DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
   auto& doclist = ctx.documents.documents();
   try
   {
     doc = new Document{filename, data, format, doctype, m_parentView, m_parentPresenter};
-    for (auto& appPlug : ctx.guiApplicationPlugins())
+    for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
     }
 
-    for (auto& appPlug : ctx.guiApplicationPlugins())
+    for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_createdDocument(*doc);
     }
@@ -156,14 +146,14 @@ Document* DocumentBuilder::loadDocument(
 
     return doc;
   }
-  catch (std::runtime_error& e)
+  catch(std::runtime_error& e)
   {
-    if (m_parentView)
+    if(m_parentView)
       score::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 
-    if (!doclist.empty() && doclist.back() == doc)
+    if(!doclist.empty() && doclist.back() == doc)
       doclist.pop_back();
 
     delete doc;
@@ -173,8 +163,7 @@ Document* DocumentBuilder::loadDocument(
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
-    const score::GUIApplicationContext& ctx,
-    const score::RestorableDocument& restore,
+    const score::GUIApplicationContext& ctx, const score::RestorableDocument& restore,
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
@@ -184,14 +173,13 @@ Document* DocumentBuilder::restoreDocument(
     // Restoring behaves just like loading : we reload what was loaded
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
-    doc = new Document{
-        restore, doctype, m_parentView, m_parentPresenter};
-    for (auto& appPlug : ctx.guiApplicationPlugins())
+    doc = new Document{restore, doctype, m_parentView, m_parentPresenter};
+    for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
     }
 
-    for (auto& appPlug : ctx.guiApplicationPlugins())
+    for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_createdDocument(*doc);
     }
@@ -201,33 +189,30 @@ Document* DocumentBuilder::restoreDocument(
     // We restore the pre-crash command stack.
     DataStream::Deserializer writer(restore.commands);
     loadCommandStack(
-        ctx.components,
-        writer,
-        doc->commandStack(),
-        [doc](score::Command* cmd) {
+        ctx.components, writer, doc->commandStack(), [doc](score::Command* cmd) {
           try
           {
             cmd->redo(doc->context());
             return true;
           }
-          catch (...)
+          catch(...)
           {
-            qDebug() << "Error while replaying: "
-                     << cmd->key().toString().c_str() << cmd->description();
+            qDebug() << "Error while replaying: " << cmd->key().toString().c_str()
+                     << cmd->description();
             return false;
           }
         });
 
     return doc;
   }
-  catch (std::runtime_error& e)
+  catch(std::runtime_error& e)
   {
-    if (m_parentView)
+    if(m_parentView)
       score::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 
-    if (!doclist.empty() && doclist.back() == doc)
+    if(!doclist.empty() && doclist.back() == doc)
       doclist.pop_back();
 
     delete doc;

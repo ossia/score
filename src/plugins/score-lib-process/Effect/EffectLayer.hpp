@@ -28,10 +28,8 @@ class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
   W_OBJECT(EffectLayerPresenter)
 public:
   EffectLayerPresenter(
-      const Process::ProcessModel& model,
-      Process::LayerView* view,
-      const Process::Context& ctx,
-      QObject* parent);
+      const Process::ProcessModel& model, Process::LayerView* view,
+      const Process::Context& ctx, QObject* parent);
   ~EffectLayerPresenter() override;
 
   void setWidth(qreal width, qreal defaultWidth) override;
@@ -41,9 +39,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
   void parentGeometryChanged() override;
   void fillContextMenu(
-      QMenu& menu,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu& menu, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager&) final override;
 
 private:
@@ -52,29 +48,21 @@ private:
 
 SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(
-    const Process::ProcessModel& proc,
-    const Process::LayerFactory& factory,
-    const score::DocumentContext& ctx,
-    bool show);
+    const Process::ProcessModel& proc, const Process::LayerFactory& factory,
+    const score::DocumentContext& ctx, bool show);
 
 SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(
-    const Process::ProcessModel& proc,
-    const score::DocumentContext& ctx,
-    bool show);
+    const Process::ProcessModel& proc, const score::DocumentContext& ctx, bool show);
 
 SCORE_LIB_PROCESS_EXPORT
 QGraphicsItem* makeExternalUIButton(
-    const Process::ProcessModel& proc,
-    const score::DocumentContext& ctx,
-    QObject* self,
+    const Process::ProcessModel& proc, const score::DocumentContext& ctx, QObject* self,
     QGraphicsItem* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 score::QGraphicsDraggablePixmap* makePresetButton(
-    const Process::ProcessModel& proc,
-    const score::DocumentContext& ctx,
-    QObject* self,
+    const Process::ProcessModel& proc, const score::DocumentContext& ctx, QObject* self,
     QGraphicsItem* parent);
 
 SCORE_LIB_PROCESS_EXPORT

@@ -14,8 +14,8 @@ namespace score
 {
 
 QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent)
-  : m_min{0.f, 0.f}
-  , m_max{1.f, 1.f}
+    : m_min{0.f, 0.f}
+    , m_max{1.f, 1.f}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -23,12 +23,9 @@ QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent)
 }
 
 void QGraphicsXYChooser::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->fillRect(
-      QRectF{0, 0, 100, 100}, score::Skin::instance().Dark.main.brush);
+  painter->fillRect(QRectF{0, 0, 100, 100}, score::Skin::instance().Dark.main.brush);
 
   auto [x, y] = m_value;
   x = 100. * (x - m_min[0]) / (m_max[0] - m_min[0]);
@@ -46,9 +43,7 @@ std::array<float, 2> QGraphicsXYChooser::value() const
 
 ossia::vec2f QGraphicsXYChooser::scaledValue(float x, float y) const noexcept
 {
-  return {
-    m_min[0] + x * (m_max[0] - m_min[0]),
-    m_min[1] + y * (m_max[1] - m_min[1])};
+  return {m_min[0] + x * (m_max[0] - m_min[0]), m_min[1] + y * (m_max[1] - m_min[1])};
 }
 
 void QGraphicsXYChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
@@ -82,7 +77,7 @@ void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   m_grab = true;
 
   const ossia::vec2f newValue = scaledValue(newX, newY);
-  if (m_value != newValue)
+  if(m_value != newValue)
   {
     m_value = newValue;
     sliderMoved();
@@ -93,7 +88,7 @@ void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
+  if(m_grab)
   {
     const auto p = event->pos();
     float newX = qBound(0., p.x() / 100., 1.);
@@ -101,7 +96,7 @@ void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     m_grab = true;
 
     const ossia::vec2f newValue = scaledValue(newX, newY);
-    if (m_value != newValue)
+    if(m_value != newValue)
     {
       m_value = newValue;
       sliderMoved();
@@ -113,7 +108,7 @@ void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
+  if(m_grab)
   {
     const auto p = event->pos();
     float newX = qBound(0., p.x() / 100., 1.);
@@ -121,7 +116,7 @@ void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     m_grab = true;
 
     const ossia::vec2f newValue = scaledValue(newX, newY);
-    if (m_value != newValue)
+    if(m_value != newValue)
     {
       m_value = newValue;
       update();

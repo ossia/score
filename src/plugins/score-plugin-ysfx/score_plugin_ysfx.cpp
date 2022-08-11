@@ -2,17 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_ysfx.hpp"
 
-#include <YSFX/Commands/CommandFactory.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/ProcessFactory.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
-#include <YSFX/Executor/Component.hpp>
-#include <YSFX/ProcessFactory.hpp>
-#include <YSFX/ApplicationPlugin.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
-#include <Process/ProcessFactory.hpp>
+#include <YSFX/ApplicationPlugin.hpp>
+#include <YSFX/Commands/CommandFactory.hpp>
+#include <YSFX/Executor/Component.hpp>
+#include <YSFX/ProcessFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -34,21 +34,17 @@ class LibraryHandler final
 {
   SCORE_CONCRETE("95cc72d2-ab43-47fc-ad16-b8f7ef34a1e1")
 
-  QSet<QString> acceptedFiles() const noexcept override
-  {
-    return {"jsfx"};
-  }
+  QSet<QString> acceptedFiles() const noexcept override { return {"jsfx"}; }
 
   Library::Subcategories categories;
 
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override
   {
     // TODO relaunch whenever library path changes...
     const auto& key = Metadata<ConcreteKey_k, YSFX::ProcessModel>::get();
     QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
+    if(node == QModelIndex{})
       return;
 
     categories.init(node, ctx);
@@ -70,15 +66,11 @@ class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("8c4a1379-2a15-4833-83b4-c393f14d32db")
 
-  QSet<QString> fileExtensions() const noexcept override
-  {
-    return {"jsfx"};
-  }
+  QSet<QString> fileExtensions() const noexcept override { return {"jsfx"}; }
 
   void dropPath(
-        std::vector<ProcessDrop>& vec,
-        const QString& filename,
-        const score::DocumentContext& ctx) const noexcept override
+      std::vector<ProcessDrop>& vec, const QString& filename,
+      const score::DocumentContext& ctx) const noexcept override
   {
     QFileInfo finfo{filename};
     Process::ProcessDropHandler::ProcessDrop p;
@@ -92,20 +84,15 @@ class DropHandler final : public Process::ProcessDropHandler
 
 }
 
-score_plugin_ysfx::score_plugin_ysfx()
-{
-
-}
+score_plugin_ysfx::score_plugin_ysfx() { }
 
 score_plugin_ysfx::~score_plugin_ysfx() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_ysfx::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext,
-      FW<Process::ProcessModelFactory, YSFX::ProcessFactory>,
+      score::ApplicationContext, FW<Process::ProcessModelFactory, YSFX::ProcessFactory>,
       FW<Process::LayerFactory, YSFX::LayerFactory>,
       FW<Library::LibraryInterface, YSFX::LibraryHandler>,
       FW<Process::ProcessDropHandler, YSFX::DropHandler>,
@@ -113,8 +100,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_ysfx::factories(
       ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_ysfx::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_ysfx::make_commands()
 {
   using namespace YSFX;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
@@ -127,11 +113,11 @@ score_plugin_ysfx::make_commands()
   return cmds;
 }
 
-score::ApplicationPlugin* score_plugin_ysfx::make_applicationPlugin(const score::ApplicationContext& app)
+score::ApplicationPlugin*
+score_plugin_ysfx::make_applicationPlugin(const score::ApplicationContext& app)
 {
   return new YSFX::ApplicationPlugin{app};
 }
 
 #include <score/plugins/PluginInstances.hpp>
 SCORE_EXPORT_PLUGIN(score_plugin_ysfx)
-

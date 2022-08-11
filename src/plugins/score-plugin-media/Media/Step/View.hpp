@@ -1,6 +1,7 @@
 #pragma once
-#include <Media/Step/Commands.hpp>
 #include <Process/LayerView.hpp>
+
+#include <Media/Step/Commands.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/graphics/RectItem.hpp>
@@ -46,10 +47,7 @@ class Item final : public score::EmptyRectItem
 {
   W_OBJECT(Item)
 public:
-  explicit Item(
-      const Model&,
-      const Process::Context& ctx,
-      QGraphicsItem* parent);
+  explicit Item(const Model&, const Process::Context& ctx, QGraphicsItem* parent);
   ~Item();
 
   void setBarWidth(double v);
@@ -58,10 +56,8 @@ public:
   void change(int arg_1, float arg_2) W_SIGNAL(change, arg_1, arg_2);
 
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      final override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override;
@@ -73,9 +69,7 @@ private:
 };
 
 void updateSteps(
-    const Model& m,
-    SingleOngoingCommandDispatcher<Media::ChangeSteps>& disp,
-    std::size_t num,
-    float v);
+    const Model& m, SingleOngoingCommandDispatcher<Media::ChangeSteps>& disp,
+    std::size_t num, float v);
 
 }

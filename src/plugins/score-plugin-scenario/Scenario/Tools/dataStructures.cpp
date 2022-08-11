@@ -5,6 +5,10 @@
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/Identifier.hpp>
@@ -13,22 +17,18 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/MapSerialization.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
 {
 IntervalSaveData::IntervalSaveData(
-    const Scenario::IntervalModel& interval,
-    bool saveIntemporal)
+    const Scenario::IntervalModel& interval, bool saveIntemporal)
     : intervalPath{interval}
 {
   processes.reserve(interval.processes.size());
-  if (saveIntemporal)
+  if(saveIntemporal)
   {
-    for (const auto& process : interval.processes)
+    for(const auto& process : interval.processes)
     {
       QByteArray arr;
       DataStream::Serializer s{&arr};
@@ -38,9 +38,9 @@ IntervalSaveData::IntervalSaveData(
   }
   else
   {
-    for (const auto& process : interval.processes)
+    for(const auto& process : interval.processes)
     {
-      if (!(process.flags() & Process::ProcessFlags::TimeIndependent))
+      if(!(process.flags() & Process::ProcessFlags::TimeIndependent))
       {
         QByteArray arr;
         DataStream::Serializer s{&arr};
@@ -72,12 +72,12 @@ void IntervalSaveData::reload(Scenario::IntervalModel& interval) const
 {
   auto& comps = score::AppComponents();
   auto& procsfactories = comps.interfaces<Process::ProcessFactoryList>();
-  for (auto& sourceproc : processes)
+  for(auto& sourceproc : processes)
   {
     DataStream::Deserializer des{sourceproc};
-    auto proc = deserialize_interface(
-        procsfactories, des, interval.context(), &interval);
-    if (proc)
+    auto proc
+        = deserialize_interface(procsfactories, des, interval.context(), &interval);
+    if(proc)
       AddProcess(interval, proc);
     else
       SCORE_TODO;

@@ -31,11 +31,11 @@ void setTabWidth(QTextEdit& edit, int spaceCount)
 std::pair<QStyleSyntaxHighlighter*, QCompleter*>
 getLanguageStyle(const std::string_view language)
 {
-  if (language == "glsl" || language == "Glsl" || language == "GLSL")
+  if(language == "glsl" || language == "Glsl" || language == "GLSL")
   {
     return {new QGLSLHighlighter, new QGLSLCompleter};
   }
-  else if (language == "js" || language == "Js" || language == "JS")
+  else if(language == "js" || language == "Js" || language == "JS")
   {
     return {new QJSHighlighter, nullptr};
   }
@@ -49,11 +49,11 @@ QSyntaxStyle* getStyle()
 {
   static bool tried_to_load = false;
   static QSyntaxStyle style;
-  if (!tried_to_load)
+  if(!tried_to_load)
   {
     QFile fl(":/drakula.xml");
 
-    if (fl.open(QIODevice::ReadOnly))
+    if(fl.open(QIODevice::ReadOnly))
       style.load(score::mapAsByteArray(fl));
 
     tried_to_load = true;
@@ -61,8 +61,6 @@ QSyntaxStyle* getStyle()
   return &style;
 }
 }
-
-
 
 QTextEdit* createScriptWidget(const std::string_view language)
 {

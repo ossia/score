@@ -49,17 +49,14 @@ ApplicationInterface& ApplicationInterface::instance()
 
 GUIApplicationInterface& GUIApplicationInterface::instance()
 {
-  return *static_cast<GUIApplicationInterface*>(
-      ApplicationInterface::m_instance);
+  return *static_cast<GUIApplicationInterface*>(ApplicationInterface::m_instance);
 }
 
 GUIApplicationInterface::~GUIApplicationInterface() { }
 
 static void loadDefaultPlugins(
-    const score::GUIApplicationContext& ctx,
-    score::GUIApplicationRegistrar& r,
-    score::Settings& settings,
-    score::Presenter& presenter)
+    const score::GUIApplicationContext& ctx, score::GUIApplicationRegistrar& r,
+    score::Settings& settings, score::Presenter& presenter)
 {
   using namespace score;
   r.registerFactory(std::make_unique<DocumentDelegateList>());
@@ -77,20 +74,16 @@ static void loadDefaultPlugins(
 
   r.registerGUIApplicationPlugin(new CoreApplicationPlugin{ctx, presenter});
 
-  if (bool(presenter.view()))
+  if(bool(presenter.view()))
     r.registerGUIApplicationPlugin(new UndoApplicationPlugin{ctx});
 }
 
 void GUIApplicationInterface::loadPluginData(
-    score::Settings& settings,
-    score::Presenter& presenter)
+    score::Settings& settings, score::Presenter& presenter)
 {
   auto& ctx = presenter.applicationContext();
   score::GUIApplicationRegistrar registrar{
-      presenter.components(),
-      ctx,
-      presenter.menuManager(),
-      presenter.toolbarManager(),
+      presenter.components(), ctx, presenter.menuManager(), presenter.toolbarManager(),
       presenter.actionManager()};
   loadDefaultPlugins(ctx, registrar, settings, presenter);
 
@@ -109,39 +102,37 @@ void GUIApplicationInterface::loadPluginData(
 #else
   QSettings s;
 #endif
-  for (auto& elt : ctx.interfaces<score::SettingsDelegateFactoryList>())
+  for(auto& elt : ctx.interfaces<score::SettingsDelegateFactoryList>())
   {
     settings.setupSettingsPlugin(s, ctx, elt);
   }
 
-  if (presenter.view())
+  if(presenter.view())
   {
     presenter.setupGUI();
   }
-  for (score::ApplicationPlugin* app_plug : ctx.applicationPlugins())
+  for(score::ApplicationPlugin* app_plug : ctx.applicationPlugins())
   {
     app_plug->initialize();
   }
-  for (score::GUIApplicationPlugin* app_plug : ctx.guiApplicationPlugins())
+  for(score::GUIApplicationPlugin* app_plug : ctx.guiApplicationPlugins())
   {
     app_plug->initialize();
   }
 
-  if (presenter.view())
+  if(presenter.view())
   {
-    for (auto& panel_fac : ctx.interfaces<score::PanelDelegateFactoryList>())
+    for(auto& panel_fac : ctx.interfaces<score::PanelDelegateFactoryList>())
     {
       registrar.registerPanel(panel_fac);
     }
 
     auto& panels = registrar.components().panels;
-    std::sort(
-        panels.begin(), panels.end(), [](const auto& lhs, const auto& rhs) {
-          return lhs->defaultPanelStatus().priority
-                 < rhs->defaultPanelStatus().priority;
-        });
+    std::sort(panels.begin(), panels.end(), [](const auto& lhs, const auto& rhs) {
+      return lhs->defaultPanelStatus().priority < rhs->defaultPanelStatus().priority;
+    });
 
-    for (auto it = panels.rbegin(); it != panels.rend(); ++it)
+    for(auto it = panels.rbegin(); it != panels.rend(); ++it)
     {
       presenter.view()->setupPanel((*it).get());
     }
@@ -153,21 +144,18 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
 {
   auto plugin = &p;
   auto presenter = qApp->findChild<score::Presenter*>();
-  if (!presenter)
+  if(!presenter)
     return;
   auto& components = presenter->components();
   auto& context = this->context();
 
   score::GUIApplicationRegistrar registrar{
-      presenter->components(),
-      context,
-      presenter->menuManager(),
-      presenter->toolbarManager(),
-      presenter->actionManager()};
+      presenter->components(), context, presenter->menuManager(),
+      presenter->toolbarManager(), presenter->actionManager()};
 
-  if (auto i = dynamic_cast<score::FactoryList_QtInterface*>(plugin))
+  if(auto i = dynamic_cast<score::FactoryList_QtInterface*>(plugin))
   {
-    for (auto&& elt : i->factoryFamilies())
+    for(auto&& elt : i->factoryFamilies())
     {
       registrar.registerFactory(std::move(elt));
     }
@@ -175,23 +163,22 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
 
   std::vector<score::ApplicationPlugin*> ap;
   std::vector<score::GUIApplicationPlugin*> gap;
-  if (auto i = dynamic_cast<score::ApplicationPlugin_QtInterface*>(plugin))
+  if(auto i = dynamic_cast<score::ApplicationPlugin_QtInterface*>(plugin))
   {
-    if (auto plug = i->make_applicationPlugin(context))
+    if(auto plug = i->make_applicationPlugin(context))
     {
       ap.push_back(plug);
       registrar.registerApplicationPlugin(plug);
     }
 
-    if (auto plug = i->make_guiApplicationPlugin(context))
+    if(auto plug = i->make_guiApplicationPlugin(context))
     {
       gap.push_back(plug);
       registrar.registerGUIApplicationPlugin(plug);
     }
   }
 
-  if (auto commands_plugin
-      = dynamic_cast<score::CommandFactory_QtInterface*>(plugin))
+  if(auto commands_plugin = dynamic_cast<score::CommandFactory_QtInterface*>(plugin))
   {
     auto [key, cmds] = commands_plugin->make_commands();
     registrar.registerCommands(key, std::move(cmds));
@@ -199,45 +186,43 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
 
   ossia::small_vector<score::InterfaceBase*, 8> settings_ifaces;
   ossia::small_vector<score::InterfaceBase*, 8> panels_ifaces;
-  if (auto factories_plugin
-      = dynamic_cast<score::FactoryInterface_QtInterface*>(plugin))
+  if(auto factories_plugin = dynamic_cast<score::FactoryInterface_QtInterface*>(plugin))
   {
-    for (auto& factory_family : registrar.components().factories)
+    for(auto& factory_family : registrar.components().factories)
     {
       ossia::small_vector<score::InterfaceBase*, 8> ifaces;
       const score::ApplicationContext& base_ctx = context;
       // Register core factories
-      for (auto&& new_factory :
-           factories_plugin->factories(base_ctx, factory_family.first))
+      for(auto&& new_factory :
+          factories_plugin->factories(base_ctx, factory_family.first))
       {
         ifaces.push_back(new_factory.get());
         factory_family.second->insert(std::move(new_factory));
       }
 
       // Register GUI factories
-      for (auto&& new_factory :
-           factories_plugin->guiFactories(context, factory_family.first))
+      for(auto&& new_factory :
+          factories_plugin->guiFactories(context, factory_family.first))
       {
         ifaces.push_back(new_factory.get());
         factory_family.second->insert(std::move(new_factory));
       }
 
-      if (dynamic_cast<score::SettingsDelegateFactoryList*>(
-              factory_family.second.get()))
+      if(dynamic_cast<score::SettingsDelegateFactoryList*>(factory_family.second.get()))
       {
         settings_ifaces = std::move(ifaces);
       }
-      else if (dynamic_cast<score::PanelDelegateFactoryList*>(
-                   factory_family.second.get()))
+      else if(dynamic_cast<score::PanelDelegateFactoryList*>(
+                  factory_family.second.get()))
       {
         panels_ifaces = std::move(ifaces);
       }
     }
   }
 
-  for (auto plug : ap)
+  for(auto plug : ap)
     plug->initialize();
-  for (auto plug : gap)
+  for(auto plug : gap)
     plug->initialize();
 
 #if defined(__EMSCRIPTEN__)
@@ -250,25 +235,23 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
   QSettings s;
 #endif
   auto& settings = presenter->settings();
-  for (auto& elt : settings_ifaces)
+  for(auto& elt : settings_ifaces)
   {
     auto set = dynamic_cast<score::SettingsDelegateFactory*>(elt);
     SCORE_ASSERT(set);
     settings.setupSettingsPlugin(s, context, *set);
   }
 
-  if (presenter->view())
+  if(presenter->view())
   {
-    for (auto& panel_fac : panels_ifaces)
+    for(auto& panel_fac : panels_ifaces)
     {
-      auto p = static_cast<score::PanelDelegateFactory*>(panel_fac)->make(
-          context);
+      auto p = static_cast<score::PanelDelegateFactory*>(panel_fac)->make(context);
       p->setModel(std::nullopt); // TODO why not current document
       components.panels.push_back(std::move(p));
       presenter->view()->setupPanel(components.panels.back().get());
     }
   }
-
 }
 
 void GUIApplicationInterface::requestExit()
@@ -284,14 +267,9 @@ void GUIApplicationInterface::forceExit()
 }
 
 GUIApplicationContext::GUIApplicationContext(
-    const ApplicationSettings& a,
-    const ApplicationComponents& b,
-    DocumentManager& c,
-    MenuManager& d,
-    ToolbarManager& e,
-    ActionManager& f,
-    const std::vector<std::unique_ptr<SettingsDelegateModel>>& g,
-    QMainWindow* mw)
+    const ApplicationSettings& a, const ApplicationComponents& b, DocumentManager& c,
+    MenuManager& d, ToolbarManager& e, ActionManager& f,
+    const std::vector<std::unique_ptr<SettingsDelegateModel>>& g, QMainWindow* mw)
     : score::ApplicationContext{a, b, c, g}
     , docManager{c}
     , menus{d}
@@ -299,7 +277,7 @@ GUIApplicationContext::GUIApplicationContext(
     , actions{f}
     , mainWindow{mw}
 {
-  if (auto win = qobject_cast<score::View*>(mw))
+  if(auto win = qobject_cast<score::View*>(mw))
   {
     documentTabWidget = win->centralTabs;
   }

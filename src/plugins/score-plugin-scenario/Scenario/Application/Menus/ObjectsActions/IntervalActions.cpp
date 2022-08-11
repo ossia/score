@@ -2,6 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalActions.hpp"
 
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
+#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/application/ApplicationContext.hpp>
@@ -20,27 +34,11 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QToolBar>
-
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
-#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Process/ScenarioPresenter.hpp>
-#include <Scenario/Process/ScenarioView.hpp>
 namespace Scenario
 {
 // TODO you're better than this
-auto selectedIntervalsInCurrentDocument(
-    const score::GUIApplicationContext& appContext);
-auto selectedIntervalsInCurrentDocument(
-    const score::GUIApplicationContext& appContext)
+auto selectedIntervalsInCurrentDocument(const score::GUIApplicationContext& appContext);
+auto selectedIntervalsInCurrentDocument(const score::GUIApplicationContext& appContext)
 {
   QList<const Scenario::IntervalModel*> selected_elements;
   auto doc = appContext.documents.currentDocument();
@@ -48,10 +46,9 @@ auto selectedIntervalsInCurrentDocument(
     return selected_elements;
 
   auto sel = doc->selectionStack().currentSelection();
-  for (auto obj : sel)
+  for(auto obj : sel)
   {
-    if (auto casted_obj
-        = dynamic_cast<const Scenario::IntervalModel*>(obj.data()))
+    if(auto casted_obj = dynamic_cast<const Scenario::IntervalModel*>(obj.data()))
     {
       selected_elements.push_back(casted_obj);
     }
@@ -63,22 +60,21 @@ auto selectedIntervalsInCurrentDocument(
 IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
 {
-  if (!parent->context.applicationSettings.gui)
+  if(!parent->context.applicationSettings.gui)
     return;
   const auto& appContext = parent->context;
 
   m_addProcess = new QAction{tr("Add Process in interval"), this};
   connect(m_addProcess, &QAction::triggered, [&]() {
-    if (selectedIntervalsInCurrentDocument(appContext).isEmpty())
+    if(selectedIntervalsInCurrentDocument(appContext).isEmpty())
       return;
 
     auto& fact = appContext.interfaces<Process::ProcessFactoryList>();
     auto dialog = new AddProcessDialog{
         fact, Process::ProcessFlags::SupportsTemporal, qApp->activeWindow()};
 
-    dialog->on_okPressed = [this](auto k, const QString& data) {
-      addProcessInInterval(k, data);
-    };
+    dialog->on_okPressed
+        = [this](auto k, const QString& data) { addProcessInInterval(k, data); };
     dialog->launchWindow();
     dialog->deleteLater();
   });
@@ -86,14 +82,12 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
   m_showRacks = new QAction{tr("Show Racks"), this};
   m_showRacks->setShortcutContext(Qt::ApplicationShortcut);
   m_showRacks->setToolTip(tr("Show racks"));
-  connect(
-      m_showRacks, &QAction::triggered, this, &IntervalActions::on_showRacks);
+  connect(m_showRacks, &QAction::triggered, this, &IntervalActions::on_showRacks);
 
   m_hideRacks = new QAction{tr("Hide Racks"), this};
   m_hideRacks->setShortcutContext(Qt::ApplicationShortcut);
   m_hideRacks->setToolTip(tr("Hide racks"));
-  connect(
-      m_hideRacks, &QAction::triggered, this, &IntervalActions::on_hideRacks);
+  connect(m_hideRacks, &QAction::triggered, this, &IntervalActions::on_hideRacks);
 }
 
 IntervalActions::~IntervalActions() { }
@@ -111,8 +105,9 @@ void IntervalActions::makeGUIElements(score::GUIElements& ref)
   ref.actions.add<Actions::ShowRacks>(m_showRacks);
   ref.actions.add<Actions::HideRacks>(m_hideRacks);
 
-  auto& cond = m_parent->context.actions.condition<
-      score::EnableWhenSelectionContains<Scenario::IntervalModel>>();
+  auto& cond
+      = m_parent->context.actions
+            .condition<score::EnableWhenSelectionContains<Scenario::IntervalModel>>();
   cond.add<Actions::AddProcess>();
   cond.add<Actions::ShowRacks>();
   cond.add<Actions::HideRacks>();
@@ -126,43 +121,40 @@ void IntervalActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 
   cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
-        using namespace score;
-        auto sel = ctx.context.selectionStack.currentSelection();
-        if (sel.empty())
-          return;
+    using namespace score;
+    auto sel = ctx.context.selectionStack.currentSelection();
+    if(sel.empty())
+      return;
 
-        auto selectedIntervals = filterSelectionByType<IntervalModel>(sel);
+    auto selectedIntervals = filterSelectionByType<IntervalModel>(sel);
 
-        if (selectedIntervals.size() >= 1)
-        {
-          auto cstrSubmenu = menu.addMenu(tr("Interval"));
-          cstrSubmenu->setObjectName("Interval");
-          if (m_addProcess)
-          {
-            cstrSubmenu->addAction(m_addProcess);
-          }
-          cstrSubmenu->addAction(m_showRacks);
-          cstrSubmenu->addAction(m_hideRacks);
-        }
-      });
+    if(selectedIntervals.size() >= 1)
+    {
+      auto cstrSubmenu = menu.addMenu(tr("Interval"));
+      cstrSubmenu->setObjectName("Interval");
+      if(m_addProcess)
+      {
+        cstrSubmenu->addAction(m_addProcess);
+      }
+      cstrSubmenu->addAction(m_showRacks);
+      cstrSubmenu->addAction(m_hideRacks);
+    }
+  });
 
   ctxm.insert(std::move(cm));
 }
 
 void IntervalActions::addProcessInInterval(
-    const UuidKey<Process::ProcessModel>& processName,
-    const QString& data)
+    const UuidKey<Process::ProcessModel>& processName, const QString& data)
 {
-  auto selectedIntervals
-      = selectedIntervalsInCurrentDocument(m_parent->context);
-  if (selectedIntervals.isEmpty())
+  auto selectedIntervals = selectedIntervalsInCurrentDocument(m_parent->context);
+  if(selectedIntervals.isEmpty())
     return;
 
   using namespace Scenario::Command;
 
   Macro m{new AddProcessInNewSlot, m_parent->currentDocument()->context()};
-  if (auto p = m.createProcessInNewSlot(
-          **selectedIntervals.begin(), processName, data))
+  if(auto p = m.createProcessInNewSlot(**selectedIntervals.begin(), processName, data))
   {
     m.commit();
   }
@@ -170,13 +162,13 @@ void IntervalActions::addProcessInInterval(
 
 void IntervalActions::on_showRacks()
 {
-  if (auto doc = m_parent->currentDocument())
+  if(auto doc = m_parent->currentDocument())
   {
     auto selected_intervals = filterSelectionByType<IntervalModel>(
         doc->context().selectionStack.currentSelection());
-    for (const IntervalModel* c : selected_intervals)
+    for(const IntervalModel* c : selected_intervals)
     {
-      if (!c->processes.empty())
+      if(!c->processes.empty())
         const_cast<IntervalModel*>(c)->setSmallViewVisible(true);
     }
   }
@@ -184,13 +176,13 @@ void IntervalActions::on_showRacks()
 
 void IntervalActions::on_hideRacks()
 {
-  if (auto doc = m_parent->currentDocument())
+  if(auto doc = m_parent->currentDocument())
   {
     auto selected_intervals = filterSelectionByType<IntervalModel>(
         doc->context().selectionStack.currentSelection());
-    for (const IntervalModel* c : selected_intervals)
+    for(const IntervalModel* c : selected_intervals)
     {
-      if (!c->processes.empty())
+      if(!c->processes.empty())
         const_cast<IntervalModel*>(c)->setSmallViewVisible(false);
     }
   }

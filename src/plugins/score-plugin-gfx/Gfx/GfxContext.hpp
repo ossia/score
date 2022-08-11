@@ -51,7 +51,8 @@ public:
   void update_inputs();
   void updateGraph();
 
-  void send_message(score::gfx::Message&& msg) noexcept {
+  void send_message(score::gfx::Message&& msg) noexcept
+  {
     tick_messages.enqueue(std::move(msg));
   }
 
@@ -61,9 +62,7 @@ private:
   void remove_preview_output();
   void add_edge(Edge e);
   void remove_edge(Edge e);
-  void remove_node(
-      std::vector<std::unique_ptr<score::gfx::Node>>& nursery,
-      int32_t id);
+  void remove_node(std::vector<std::unique_ptr<score::gfx::Node>>& nursery, int32_t id);
 
   void timerEvent(QTimerEvent*) override;
   const score::DocumentContext& m_context;
@@ -73,22 +72,26 @@ private:
   score::gfx::Graph* m_graph{};
   QThread m_thread;
 
-  struct NodeCommand {
-    enum {
-        ADD_NODE
-      , ADD_PREVIEW_NODE
-      , REMOVE_NODE
-      , REMOVE_PREVIEW_NODE
-      , RELINK
+  struct NodeCommand
+  {
+    enum
+    {
+      ADD_NODE,
+      ADD_PREVIEW_NODE,
+      REMOVE_NODE,
+      REMOVE_PREVIEW_NODE,
+      RELINK
     } cmd{};
     int32_t index{};
     std::unique_ptr<score::gfx::Node> node;
   };
 
-  struct EdgeCommand {
-    enum {
-      CONNECT_PREVIEW_NODE
-    , DISCONNECT_PREVIEW_NODE
+  struct EdgeCommand
+  {
+    enum
+    {
+      CONNECT_PREVIEW_NODE,
+      DISCONNECT_PREVIEW_NODE
     } cmd{};
     Edge edge;
   };

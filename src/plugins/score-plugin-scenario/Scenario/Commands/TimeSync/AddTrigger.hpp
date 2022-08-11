@@ -2,14 +2,14 @@
 
 #include <State/Expression.hpp>
 
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-#include <Scenario/Commands/Interval/SetRigidity.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace Scenario
 {
@@ -39,7 +39,7 @@ public:
       : m_path{tn}
   {
     Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parent());
-    for (const auto& cstrId : intervalsBeforeTimeSync(*scenar, tn.id()))
+    for(const auto& cstrId : intervalsBeforeTimeSync(*scenar, tn.id()))
     {
       m_cmds.emplace_back(scenar->interval(cstrId), false);
     }
@@ -50,7 +50,7 @@ public:
     auto& tn = m_path.find(ctx);
     tn.setActive(false);
 
-    for (const auto& cmd : m_cmds)
+    for(const auto& cmd : m_cmds)
     {
       cmd.undo(ctx);
     }
@@ -61,7 +61,7 @@ public:
     auto& tn = m_path.find(ctx);
     tn.setActive(true);
 
-    for (const auto& cmd : m_cmds)
+    for(const auto& cmd : m_cmds)
     {
       cmd.redo(ctx);
     }
@@ -73,7 +73,7 @@ protected:
     s << m_path;
     s << (int32_t)m_cmds.size();
 
-    for (const auto& cmd : m_cmds)
+    for(const auto& cmd : m_cmds)
     {
       s << cmd.serialize();
     }
@@ -85,7 +85,7 @@ protected:
     s >> m_path;
     s >> n;
     m_cmds.resize(n);
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
       QByteArray a;
       s >> a;

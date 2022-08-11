@@ -38,10 +38,8 @@ public:
 private:
   QRectF boundingRect() const override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
@@ -74,17 +72,10 @@ public:
 
   void cleanup();
   void addView(
-      Process::LayerFactory& factory,
-      ZoomRatio zoomRatio,
-      const Process::Context& context,
-      QGraphicsItem* parentItem,
-      QObject* parent);
+      Process::LayerFactory& factory, ZoomRatio zoomRatio,
+      const Process::Context& context, QGraphicsItem* parentItem, QObject* parent);
   void setupView(
-      Layer& layer,
-      int idx,
-      qreal parentWidth,
-      qreal parent_default_width,
-      qreal w,
+      Layer& layer, int idx, qreal parentWidth, qreal parent_default_width, qreal w,
       qreal h);
 
   std::size_t count() const noexcept { return m_layers.size(); }
@@ -104,29 +95,19 @@ public:
   void putBehind() const;
 
   void on_zoomRatioChanged(
-      const Process::Context& lst,
-      ZoomRatio r,
-      qreal parentWidth,
-      qreal parent_default_width,
-      qreal slot_height,
-      QGraphicsItem* parentItem,
+      const Process::Context& lst, ZoomRatio r, qreal parentWidth,
+      qreal parent_default_width, qreal slot_height, QGraphicsItem* parentItem,
       QObject* parent);
 
   void updateLoops(
-      const Process::Context& lst,
-      ZoomRatio r,
-      qreal parentWidth,
-      qreal parent_default_width,
-      qreal slot_height,
-      QGraphicsItem* parentItem,
+      const Process::Context& lst, ZoomRatio r, qreal parentWidth,
+      qreal parent_default_width, qreal slot_height, QGraphicsItem* parentItem,
       QObject* parent);
 
   void parentGeometryChanged() const;
 
   void fillContextMenu(
-      QMenu& m,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu& m, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager& mgr) const;
 
   Process::GraphicsShapeItem* makeSlotHeaderDelegate() const;
@@ -155,8 +136,7 @@ public:
 
   const std::vector<Layer>& layers() const noexcept { return m_layers; }
 
-  static void
-  disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter);
+  static void disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter);
 
 private:
   const Process::ProcessModel* m_model{};

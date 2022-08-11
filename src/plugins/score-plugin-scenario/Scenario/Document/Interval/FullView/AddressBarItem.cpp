@@ -4,14 +4,15 @@
 
 #include "ClickableLabelItem.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/graphics/YPos.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 
 #include <QString>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <wobjectimpl.h>
 
 #include <cstddef>
@@ -20,13 +21,12 @@ W_OBJECT_IMPL(Scenario::AddressBarItem)
 
 namespace Scenario
 {
-AddressBarItem::AddressBarItem(
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent)
+AddressBarItem::AddressBarItem(const score::DocumentContext& ctx, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_ctx{ctx}
 {
-  this->setToolTip(tr("Address bar\nClick here to travel to the specific hierarchy level"));
+  this->setToolTip(
+      tr("Address bar\nClick here to travel to the specific hierarchy level"));
   this->setFlag(QGraphicsItem::ItemHasNoContents, true);
 }
 
@@ -40,11 +40,11 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
   double currentWidth = 0.;
 
   int i = -1;
-  for (auto& identifier : m_currentPath)
+  for(auto& identifier : m_currentPath)
   {
     i++;
-    if (!identifier.objectName().contains("IntervalModel")
-        && !identifier.objectName().contains("ConstraintModel"))
+    if(!identifier.objectName().contains("IntervalModel")
+       && !identifier.objectName().contains("ConstraintModel"))
       continue;
 
     auto thisPath = m_currentPath;
@@ -55,14 +55,11 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
     QString txt = thisObj.metadata().getName();
 
     auto lab = new ClickableLabelItem{
-        thisObj.metadata(),
-        [&](ClickableLabelItem*) { intervalSelected(&thisObj); },
-        txt,
-        this};
+        thisObj.metadata(), [&](ClickableLabelItem*) { intervalSelected(&thisObj); },
+        txt, this};
 
     lab->setIndex(i);
-    connect(
-        lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
+    connect(lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
 
     m_items.append(lab);
     lab->setPos(currentWidth, -4.);
@@ -89,9 +86,7 @@ QRectF AddressBarItem::boundingRect() const
 }
 
 void AddressBarItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 }
 
@@ -99,9 +94,9 @@ void AddressBarItem::redraw()
 {
   double currentWidth = 0.;
   int k = 0;
-  for (auto obj : m_items)
+  for(auto obj : m_items)
   {
-    if (k % 2 == 0)
+    if(k % 2 == 0)
     {
       obj->setPos(currentWidth, -4.);
     }

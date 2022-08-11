@@ -1,6 +1,7 @@
 #pragma once
-#include <Magnetism/MagneticInfo.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <Magnetism/MagneticInfo.hpp>
 
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>

@@ -5,9 +5,11 @@
 #include "MinuitProtocolFactory.hpp"
 #include "MinuitSpecificSettings.hpp"
 
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Protocols/RateWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <Protocols/RateWidget.hpp>
 
 #include <score/widgets/Pixmap.hpp>
 
@@ -49,21 +51,17 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
 #if defined(OSSIA_DNSSD)
   m_browser = new ZeroconfBrowser{"_minuit._tcp", this};
   auto pb = new QPushButton{
-      score::get_pixmap(QStringLiteral(":/icons/search.png")),
-      tr("Find devices..."),
+      score::get_pixmap(QStringLiteral(":/icons/search.png")), tr("Find devices..."),
       this};
   pb->setMinimumHeight(30);
+  connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
-      pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
-  connect(
-      m_browser,
-      &ZeroconfBrowser::sessionSelected,
-      this,
+      m_browser, &ZeroconfBrowser::sessionSelected, this,
       [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
-        m_deviceNameEdit->setText(name);
-        m_portInputSBox->setValue(port);
-        m_portOutputSBox->setValue(txt["RemotePort"].toInt());
-        m_localHostEdit->setText(ip);
+    m_deviceNameEdit->setText(name);
+    m_portInputSBox->setValue(port);
+    m_portOutputSBox->setValue(txt["RemotePort"].toInt());
+    m_localHostEdit->setText(ip);
       });
   layout->addWidget(pb);
 #endif
@@ -113,12 +111,11 @@ Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void MinuitProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void MinuitProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   MinuitSpecificSettings minuit;
-  if (settings.deviceSpecificSettings.canConvert<MinuitSpecificSettings>())
+  if(settings.deviceSpecificSettings.canConvert<MinuitSpecificSettings>())
   {
     minuit = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
     m_portInputSBox->setValue(minuit.inputPort);

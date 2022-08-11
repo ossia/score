@@ -39,11 +39,8 @@ class SCORE_LIB_BASE_EXPORT Presenter final : public QObject
 
 public:
   Presenter(
-      const score::ApplicationSettings& app,
-      score::Settings& set,
-      score::ProjectSettings& pset,
-      score::View* view,
-      QObject* parent);
+      const score::ApplicationSettings& app, score::Settings& set,
+      score::ProjectSettings& pset, score::View* view, QObject* parent);
 
   // Exit score
   bool exit();
@@ -59,10 +56,7 @@ public:
   void setupGUI();
 
   auto& documentManager() { return m_docManager; }
-  const ApplicationComponents& applicationComponents()
-  {
-    return m_components_readonly;
-  }
+  const ApplicationComponents& applicationComponents() { return m_components_readonly; }
   const GUIApplicationContext& applicationContext() { return m_context; }
 
   auto& components() { return m_components; }

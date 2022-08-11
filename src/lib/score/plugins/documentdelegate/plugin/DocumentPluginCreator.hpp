@@ -23,9 +23,7 @@ auto& addDocumentPlugin(score::Document& doc)
  */
 class SCORE_LIB_BASE_EXPORT DocumentPluginFactory : public score::InterfaceBase
 {
-  SCORE_INTERFACE(
-      DocumentPluginFactory,
-      "570faa0b-f100-4039-a2f0-b60347c4e581")
+  SCORE_INTERFACE(DocumentPluginFactory, "570faa0b-f100-4039-a2f0-b60347c4e581")
 public:
   virtual ~DocumentPluginFactory();
 
@@ -40,9 +38,7 @@ public:
   using object_type = DocumentPlugin;
   ~DocumentPluginFactoryList();
   object_type* loadMissing(
-      const VisitorVariant& vis,
-      score::DocumentContext& doc,
-      QObject* parent) const;
+      const VisitorVariant& vis, score::DocumentContext& doc, QObject* parent) const;
 };
 
 template <typename T>
@@ -50,9 +46,7 @@ class DocumentPluginFactory_T final : public score::DocumentPluginFactory
 {
 public:
   T* load(
-      const VisitorVariant& var,
-      score::DocumentContext& doc,
-      QObject* parent) override
+      const VisitorVariant& var, score::DocumentContext& doc, QObject* parent) override
   {
     return deserialize_dyn(var, [&](auto&& deserializer) {
       return new T{doc, deserializer, parent};
@@ -64,8 +58,7 @@ public:
     return Metadata<ConcreteKey_k, T>::get();
   }
 
-  UuidKey<score::DocumentPluginFactory>
-  concreteKey() const noexcept final override
+  UuidKey<score::DocumentPluginFactory> concreteKey() const noexcept final override
   {
     return Metadata<ConcreteKey_k, T>::get();
   }

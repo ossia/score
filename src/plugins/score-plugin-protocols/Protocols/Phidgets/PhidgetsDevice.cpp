@@ -6,8 +6,10 @@
 #include "PhidgetsDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
+
 #include <Protocols/Phidgets/PhidgetsSpecificSettings.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
@@ -33,10 +35,7 @@ PhidgetDevice::PhidgetDevice(const Device::DeviceSettings& settings)
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   connect(
-      this,
-      &PhidgetDevice::sig_command,
-      this,
-      &PhidgetDevice::slot_command,
+      this, &PhidgetDevice::sig_command, this, &PhidgetDevice::slot_command,
       Qt::QueuedConnection);
 
   reconnect();
@@ -44,7 +43,7 @@ PhidgetDevice::PhidgetDevice(const Device::DeviceSettings& settings)
 
 bool PhidgetDevice::reconnect()
 {
-  if (m_timer != -1)
+  if(m_timer != -1)
   {
     killTimer(m_timer);
     m_timer = -1;
@@ -57,8 +56,7 @@ bool PhidgetDevice::reconnect()
     // settings().deviceSpecificSettings.value<PhidgetSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::generic_device>(
-        std::make_unique<ossia::phidget_protocol>(),
-        settings().name.toStdString());
+        std::make_unique<ossia::phidget_protocol>(), settings().name.toStdString());
     deviceChanged(nullptr, m_dev.get());
     enableCallbacks();
     m_timer = startTimer(200);
@@ -80,11 +78,11 @@ bool PhidgetDevice::reconnect()
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }
@@ -94,20 +92,18 @@ bool PhidgetDevice::reconnect()
 
 void PhidgetDevice::slot_command()
 {
-  if (m_dev)
+  if(m_dev)
   {
-    auto proto
-        = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
+    auto proto = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
     proto->run_commands();
   }
 }
 
 void PhidgetDevice::timerEvent(QTimerEvent* event)
 {
-  if (m_dev)
+  if(m_dev)
   {
-    auto proto
-        = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
+    auto proto = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
     proto->run_command();
   }
 }

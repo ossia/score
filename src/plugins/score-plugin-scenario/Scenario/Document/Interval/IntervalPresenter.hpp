@@ -2,11 +2,12 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 
+#include <Scenario/Document/Interval/SlotPresenter.hpp>
+
 #include <score/model/Identifier.hpp>
 
 #include <QPoint>
 
-#include <Scenario/Document/Interval/SlotPresenter.hpp>
 #include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
 
@@ -31,12 +32,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter
 
 public:
   IntervalPresenter(
-      ZoomRatio zoom,
-      const IntervalModel& model,
-      IntervalView* view,
-      IntervalHeader* header,
-      const Process::Context& ctx,
-      QObject* parent);
+      ZoomRatio zoom, const IntervalModel& model, IntervalView* view,
+      IntervalHeader* header, const Process::Context& ctx, QObject* parent);
   virtual ~IntervalPresenter();
   virtual void updateScaling();
 
@@ -72,8 +69,7 @@ public:
 public:
   void pressed(QPointF arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
-  void moved(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
+  void moved(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(QPointF arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 

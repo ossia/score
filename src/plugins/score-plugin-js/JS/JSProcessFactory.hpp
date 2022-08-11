@@ -1,12 +1,13 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
-#include <JS/JSProcessMetadata.hpp>
-#include <JS/JSProcessModel.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <JS/JSProcessMetadata.hpp>
+#include <JS/JSProcessModel.hpp>
 
 namespace JS
 {
@@ -17,10 +18,7 @@ struct LanguageSpec
 
 using ProcessFactory = Process::ProcessFactory_T<JS::ProcessModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
-    ProcessModel,
-    Process::DefaultEffectItem,
+    ProcessModel, Process::DefaultEffectItem,
     Process::ProcessScriptEditDialog<
-        ProcessModel,
-        ProcessModel::p_script,
-        LanguageSpec>>;
+        ProcessModel, ProcessModel::p_script, LanguageSpec>>;
 }

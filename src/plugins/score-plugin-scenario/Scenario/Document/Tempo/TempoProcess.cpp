@@ -1,9 +1,10 @@
 #include "TempoProcess.hpp"
 
-#include <Curve/Segment/CurveSegmentModel.hpp>
-#include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TempoProcess)
@@ -11,9 +12,7 @@ namespace Scenario
 {
 
 TempoProcess::TempoProcess(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , tempo_inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
     , speed_inlet{Process::make_value_inlet(Id<Process::Port>(1), this)}
@@ -65,7 +64,7 @@ void TempoProcess::setDurationAndScale(const TimeVal& newDuration) noexcept
 void TempoProcess::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
-  if (m_curve->segments().size() == 0)
+  if(m_curve->segments().size() == 0)
   {
     setDuration(newDuration);
     return;
@@ -73,7 +72,7 @@ void TempoProcess::setDurationAndGrow(const TimeVal& newDuration) noexcept
 
   // Else, scale all the segments by the increase.
   double scale = duration() / newDuration;
-  for (auto& segment : m_curve->segments())
+  for(auto& segment : m_curve->segments())
   {
     Curve::Point pt = segment.start();
     pt.setX(pt.x() * scale);
@@ -91,7 +90,7 @@ void TempoProcess::setDurationAndGrow(const TimeVal& newDuration) noexcept
 void TempoProcess::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
-  if (m_curve->segments().size() == 0)
+  if(m_curve->segments().size() == 0)
   {
     setDuration(newDuration);
     return;
@@ -99,7 +98,7 @@ void TempoProcess::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
   // Else, scale all the segments by the increase.
   double scale = duration() / newDuration;
-  for (auto& segment : m_curve->segments())
+  for(auto& segment : m_curve->segments())
   {
     Curve::Point pt = segment.start();
     pt.setX(pt.x() * scale);

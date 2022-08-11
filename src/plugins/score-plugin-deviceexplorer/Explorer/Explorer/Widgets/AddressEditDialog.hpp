@@ -26,9 +26,7 @@ public:
   explicit AddressEditDialog(QWidget* parent);
 
   // Edition of an address
-  explicit AddressEditDialog(
-      const Device::AddressSettings& addr,
-      QWidget* parent);
+  explicit AddressEditDialog(const Device::AddressSettings& addr, QWidget* parent);
   ~AddressEditDialog();
 
   Device::AddressSettings getSettings() const override;

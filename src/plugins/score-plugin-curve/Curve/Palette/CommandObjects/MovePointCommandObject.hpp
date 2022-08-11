@@ -8,14 +8,11 @@ namespace Curve
 struct CurveSegmentMap;
 
 class Presenter;
-class SCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final
-    : public CommandObjectBase
+class SCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final : public CommandObjectBase
 {
 public:
   MovePointCommandObject(
-      const Model& model,
-      Presenter* presenter,
-      const score::CommandStackFacade& stack);
+      const Model& model, Presenter* presenter, const score::CommandStackFacade& stack);
   ~MovePointCommandObject();
 
   void on_press() override;
@@ -33,6 +30,5 @@ private:
   void setCurrentPoint(CurveSegmentMap& segments);
   void setTooltip(const Curve::Point& p);
   void unsetTooltip();
-
 };
 }

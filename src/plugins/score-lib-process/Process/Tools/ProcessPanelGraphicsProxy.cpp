@@ -20,9 +20,7 @@ QRectF ProcessPanelGraphicsProxy::boundingRect() const
 }
 
 void ProcessPanelGraphicsProxy::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setBrush(Process::Style::instance().ProcessPanelBackground());

@@ -13,9 +13,7 @@ namespace score
 {
 
 QGraphicsToggle::QGraphicsToggle(
-    const QString& textUntoggled,
-    const QString& textToggled,
-    QGraphicsItem* parent)
+    const QString& textUntoggled, const QString& textToggled, QGraphicsItem* parent)
     : m_textToggled(textToggled)
     , m_textUntoggled(textUntoggled)
 {
@@ -32,7 +30,7 @@ void QGraphicsToggle::toggle()
 
 void QGraphicsToggle::setState(bool toggled)
 {
-  if (toggled != m_toggled)
+  if(toggled != m_toggled)
   {
     m_toggled = toggled;
     update();
@@ -53,9 +51,7 @@ void QGraphicsToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 void QGraphicsToggle::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -73,8 +69,7 @@ void QGraphicsToggle::paint(
 
     painter->setPen(skin.Base4.main.pen1);
     painter->drawText(
-        QRectF{margin, margin, backgroundRectWidth, backgroundRectHeight},
-        m_textToggled,
+        QRectF{margin, margin, backgroundRectWidth, backgroundRectHeight}, m_textToggled,
         QTextOption(Qt::AlignCenter));
   }
   else
@@ -82,8 +77,7 @@ void QGraphicsToggle::paint(
     painter->setPen(skin.Gray.main.pen1);
     painter->drawText(
         QRectF{margin, margin, backgroundRectWidth, backgroundRectHeight},
-        m_textUntoggled,
-        QTextOption(Qt::AlignCenter));
+        m_textUntoggled, QTextOption(Qt::AlignCenter));
   }
 
   painter->setRenderHint(QPainter::Antialiasing, false);

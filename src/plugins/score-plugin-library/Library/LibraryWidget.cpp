@@ -16,11 +16,10 @@ std::vector<LibraryInterface*> libraryInterface(const QString& path)
 {
   static auto matches = [] {
     std::unordered_multimap<QString, LibraryInterface*> exp;
-    const auto& libs
-        = score::GUIAppContext().interfaces<LibraryInterfaceList>();
-    for (auto& lib : libs)
+    const auto& libs = score::GUIAppContext().interfaces<LibraryInterfaceList>();
+    for(auto& lib : libs)
     {
-      for (const auto& ext : lib.acceptedFiles())
+      for(const auto& ext : lib.acceptedFiles())
       {
         exp.insert({ext, &lib});
       }
@@ -31,7 +30,7 @@ std::vector<LibraryInterface*> libraryInterface(const QString& path)
   std::vector<LibraryInterface*> libs;
   auto [begin, end] = matches.equal_range(QFileInfo(path).suffix().toLower());
 
-  for (auto it = begin; it != end; ++it)
+  for(auto it = begin; it != end; ++it)
   {
     libs.push_back(it->second);
   }

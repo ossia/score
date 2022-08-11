@@ -1,11 +1,15 @@
 #include "score_plugin_nodal.hpp"
 
+#include <Process/DocumentPlugin.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
 #include <Nodal/CommandFactory.hpp>
 #include <Nodal/Executor.hpp>
 #include <Nodal/Layer.hpp>
 #include <Nodal/Process.hpp>
-#include <Process/DocumentPlugin.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/graphics/RectItem.hpp>
 #include <score/model/EntitySerialization.hpp>
@@ -23,8 +27,6 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <score_plugin_nodal_commands_files.hpp>
 /*
 namespace Nodal
@@ -187,17 +189,13 @@ score_plugin_nodal::score_plugin_nodal() { }
 
 score_plugin_nodal::~score_plugin_nodal() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_nodal::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_nodal::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Nodal::ProcessFactory>,
+      score::ApplicationContext, FW<Process::ProcessModelFactory, Nodal::ProcessFactory>,
       FW<Process::LayerFactory, Nodal::LayerFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Nodal::ProcessExecutorComponentFactory>,
+      FW<Execution::ProcessComponentFactory, Nodal::ProcessExecutorComponentFactory>,
       FW<score::ObjectEditor, Nodal::NodeEditor>
       //, FW<score::PanelDelegateFactory, Nodal::PanelDelegateFactory>
       //, FW<LocalTree::ProcessComponentFactory,
@@ -205,8 +203,7 @@ score_plugin_nodal::factories(
       >(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_nodal::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_nodal::make_commands()
 {
   using namespace Nodal;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

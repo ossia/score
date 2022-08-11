@@ -1,8 +1,9 @@
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+
+#include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
-#include <ossia/gfx/port_index.hpp>
 
 namespace score::gfx
 {
@@ -16,17 +17,13 @@ Node::~Node()
     delete port;
 }
 
-void Node::process(const Message& msg)
-{
-
-}
+void Node::process(const Message& msg) { }
 
 NodeModel::NodeModel() { }
 
 NodeModel::~NodeModel() { }
 
-score::gfx::NodeRenderer*
-NodeModel::createRenderer(RenderList& r) const noexcept
+score::gfx::NodeRenderer* NodeModel::createRenderer(RenderList& r) const noexcept
 {
   return new GenericNodeRenderer{*this};
 }
@@ -39,7 +36,7 @@ void ProcessNode::process(const ossia::token_request& tk)
   UBO.time = tk.date.impl / ossia::flicks_per_second<double>;
   UBO.timeDelta = UBO.time - prev_time;
 
-  if (tk.parent_duration.impl > 0)
+  if(tk.parent_duration.impl > 0)
     UBO.progress = tk.date.impl / double(tk.parent_duration.impl);
   else
     UBO.progress = 0.;
@@ -56,7 +53,7 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     void operator()(ossia::monostate) const noexcept { }
     void operator()(float& val) const noexcept
     {
-      if (!v.empty())
+      if(!v.empty())
         val = ossia::convert<float>(v[0]);
     }
     void operator()(ossia::vec2f& val) const noexcept
@@ -82,13 +79,12 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     void operator()(ossia::impulse) const noexcept { }
     void operator()(int v) const noexcept
     {
-      switch (type)
+      switch(type)
       {
         case Types::Int:
           memcpy(value, &v, 4);
           break;
-        case Types::Float:
-        {
+        case Types::Float: {
           float fv = v;
           memcpy(value, &fv, 4);
           break;
@@ -99,16 +95,14 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     }
     void operator()(float v) const noexcept
     {
-      switch (type)
+      switch(type)
       {
-        case Types::Int:
-        {
+        case Types::Int: {
           int iv = v;
           memcpy(value, &iv, 4);
           break;
         }
-        case Types::Float:
-        {
+        case Types::Float: {
           memcpy(value, &v, 4);
           break;
         }
@@ -118,16 +112,14 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     }
     void operator()(bool v) const noexcept
     {
-      switch (type)
+      switch(type)
       {
-        case Types::Int:
-        {
+        case Types::Int: {
           int iv = v;
           memcpy(value, &iv, 4);
           break;
         }
-        case Types::Float:
-        {
+        case Types::Float: {
           float fv = v;
           memcpy(value, &fv, 4);
           break;
@@ -138,16 +130,14 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     }
     void operator()(char v) const noexcept
     {
-      switch (type)
+      switch(type)
       {
-        case Types::Int:
-        {
+        case Types::Int: {
           int iv = v;
           memcpy(value, &iv, 4);
           break;
         }
-        case Types::Float:
-        {
+        case Types::Float: {
           float fv = v;
           memcpy(value, &fv, 4);
           break;
@@ -159,33 +149,28 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     void operator()(const std::string& v) const noexcept { }
     void operator()(ossia::vec2f v) const noexcept
     {
-      switch (type)
+      switch(type)
       {
-        case Types::Int:
-        {
+        case Types::Int: {
           int iv = v[0];
           memcpy(value, &iv, 4);
           break;
         }
-        case Types::Float:
-        {
+        case Types::Float: {
           float fv = v[0];
           memcpy(value, &fv, 4);
           break;
         }
-        case Types::Vec2:
-        {
+        case Types::Vec2: {
           memcpy(value, v.data(), 8);
           break;
         }
-        case Types::Vec3:
-        {
+        case Types::Vec3: {
           memcpy(value, v.data(), 8);
           *(reinterpret_cast<float*>(value) + 2) = 0.f;
           break;
         }
-        case Types::Vec4:
-        {
+        case Types::Vec4: {
           memcpy(value, v.data(), 8);
           *(reinterpret_cast<float*>(value) + 2) = 0.f;
           *(reinterpret_cast<float*>(value) + 3) = 0.f;
@@ -198,32 +183,27 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
 
     void operator()(ossia::vec3f v) const noexcept
     {
-      switch (type)
+      switch(type)
       {
-        case Types::Int:
-        {
+        case Types::Int: {
           int iv = v[0];
           memcpy(value, &iv, 4);
           break;
         }
-        case Types::Float:
-        {
+        case Types::Float: {
           float fv = v[0];
           memcpy(value, &fv, 4);
           break;
         }
-        case Types::Vec2:
-        {
+        case Types::Vec2: {
           memcpy(value, v.data(), 8);
           break;
         }
-        case Types::Vec3:
-        {
+        case Types::Vec3: {
           memcpy(value, v.data(), 12);
           break;
         }
-        case Types::Vec4:
-        {
+        case Types::Vec4: {
           memcpy(value, v.data(), 12);
           *(reinterpret_cast<float*>(value) + 3) = 0.f;
           break;
@@ -234,32 +214,27 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     }
     void operator()(ossia::vec4f v) const noexcept
     {
-      switch (type)
+      switch(type)
       {
-        case Types::Int:
-        {
+        case Types::Int: {
           int iv = v[0];
           memcpy(value, &iv, 4);
           break;
         }
-        case Types::Float:
-        {
+        case Types::Float: {
           float fv = v[0];
           memcpy(value, &fv, 4);
           break;
         }
-        case Types::Vec2:
-        {
+        case Types::Vec2: {
           memcpy(value, v.data(), 8);
           break;
         }
-        case Types::Vec3:
-        {
+        case Types::Vec3: {
           memcpy(value, v.data(), 12);
           break;
         }
-        case Types::Vec4:
-        {
+        case Types::Vec4: {
           memcpy(value, v.data(), 16);
           break;
         }
@@ -269,35 +244,30 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     }
     void operator()(const std::vector<ossia::value>& v) const noexcept
     {
-      if (v.empty())
+      if(v.empty())
         return;
 
-      switch (type)
+      switch(type)
       {
-        case Types::Int:
-        {
+        case Types::Int: {
           int iv = ossia::convert<int>(v[0]);
           memcpy(value, &iv, 4);
           break;
         }
-        case Types::Float:
-        {
+        case Types::Float: {
           float fv = ossia::convert<float>(v[0]);
           memcpy(value, &fv, 4);
           break;
         }
-        case Types::Vec2:
-        {
+        case Types::Vec2: {
           (*this)(ossia::convert<ossia::vec2f>(v));
           break;
         }
-        case Types::Vec3:
-        {
+        case Types::Vec3: {
           (*this)(ossia::convert<ossia::vec3f>(v));
           break;
         }
-        case Types::Vec4:
-        {
+        case Types::Vec4: {
           (*this)(ossia::convert<ossia::vec4f>(v));
           break;
         }
@@ -316,7 +286,7 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
 
 void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
 {
-  if (v.empty() || v[0].empty())
+  if(v.empty() || v[0].empty())
     return;
 
   assert(int(this->input.size()) > port);
@@ -335,9 +305,9 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
     tex.data.resize(v.size() * v[0].size());
 
     float* sample = tex.data.data();
-    for (auto& chan : v)
+    for(auto& chan : v)
     {
-      for (int i = 0, N = chan.size(); i < N; ++i, ++sample)
+      for(int i = 0, N = chan.size(); i < N; ++i, ++sample)
         *sample = chan[i];
     }
   }
@@ -347,10 +317,11 @@ void ProcessNode::process(const Message& msg)
   process(msg.token);
 
   int32_t p = 0;
-  for (const gfx_input& m : msg.input)
+  for(const gfx_input& m : msg.input)
   {
     auto sink = ossia::gfx::port_index{msg.node_id, p};
-    ossia::visit([this, sink] (const auto& v) { this->process(sink.port, v); }, std::move(m));
+    ossia::visit(
+        [this, sink](const auto& v) { this->process(sink.port, v); }, std::move(m));
 
     p++;
   }

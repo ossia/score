@@ -10,9 +10,7 @@ namespace score
 {
 
 QGraphicsPixmapButton::QGraphicsPixmapButton(
-    QPixmap pressed,
-    QPixmap released,
-    QGraphicsItem* parent)
+    QPixmap pressed, QPixmap released, QGraphicsItem* parent)
     : QGraphicsPixmapItem{released, parent}
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}

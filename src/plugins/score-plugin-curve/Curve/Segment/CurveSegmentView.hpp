@@ -28,9 +28,7 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentView final
   Q_INTERFACES(QGraphicsItem)
 public:
   SegmentView(
-      const SegmentModel* model,
-      const Curve::Style& style,
-      QGraphicsItem* parent);
+      const SegmentModel* model, const Curve::Style& style, QGraphicsItem* parent);
 
   const Id<SegmentModel>& id() const;
 
@@ -42,10 +40,8 @@ public:
   QPainterPath opaqueArea() const override;
   bool contains(const QPointF& pt) const override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   void setModel(const SegmentModel*);
   const SegmentModel& model() const { return *m_model; }

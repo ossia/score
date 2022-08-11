@@ -1,5 +1,7 @@
 #include "SharedInputSettings.hpp"
+
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -15,18 +17,15 @@ QString SharedInputProtocolFactory::category() const noexcept
 }
 
 Device::AddressDialog* SharedInputProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
     QWidget* parent)
 {
   return nullptr;
 }
 
 Device::AddressDialog* SharedInputProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    const Device::AddressSettings& set, const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx, QWidget* parent)
 {
   return nullptr;
 }
@@ -38,21 +37,19 @@ QVariant SharedInputProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void SharedInputProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+    const QVariant& data, const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<SharedInputSettings>(data, visitor);
 }
 
 bool SharedInputProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }
 
 SharedInputSettingsWidget::SharedInputSettingsWidget(QWidget* parent)
-  : ProtocolSettingsWidget(parent)
+    : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   checkForChanges(m_deviceNameEdit);
@@ -81,7 +78,6 @@ void SharedInputSettingsWidget::setSettings(const Device::DeviceSettings& settin
   const auto& set = settings.deviceSpecificSettings.value<SharedInputSettings>();
   m_shmPath->setText(set.path);
 }
-
 
 }
 template <>

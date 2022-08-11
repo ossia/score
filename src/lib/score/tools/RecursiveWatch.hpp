@@ -1,11 +1,14 @@
 #pragma once
-#include <QString>
-#include <QDir>
+#include <ossia/detail/string_map.hpp>
+
 #include <QDebug>
+#include <QDir>
+#include <QString>
+
+#include <score_lib_base_export.h>
+
 #include <functional>
 #include <vector>
-#include <ossia/detail/string_map.hpp>
-#include <score_lib_base_export.h>
 
 namespace score
 {
@@ -18,15 +21,13 @@ public:
     std::function<void(std::string_view)> removed;
   };
 
-  struct Watched {
+  struct Watched
+  {
     std::string ext;
     Callbacks callbacks;
   };
 
-  void setWatchedFolder(std::string root)
-  {
-    m_root = root;
-  }
+  void setWatchedFolder(std::string root) { m_root = root; }
 
   void registerWatch(std::string extension, Callbacks callbacks)
   {
@@ -40,6 +41,7 @@ public:
     m_root.clear();
     m_watched.clear();
   }
+
 private:
   std::string m_root;
   ossia::string_map<std::vector<Callbacks>> m_watched;

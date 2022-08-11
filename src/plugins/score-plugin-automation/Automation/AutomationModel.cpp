@@ -2,20 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationModel.hpp"
 
-#include <Automation/AutomationProcessMetadata.hpp>
-#include <Automation/State/AutomationState.hpp>
+#include <State/Address.hpp>
+
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/MinMaxFloatPort.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PrettyPortName.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
+
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Process/Dataflow/Cable.hpp>
-#include <Process/Dataflow/MinMaxFloatPort.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Dataflow/PrettyPortName.hpp>
-#include <Process/Dataflow/PortFactory.hpp>
-#include <Process/Dataflow/WidgetInlets.hpp>
-#include <State/Address.hpp>
+
+#include <Automation/AutomationProcessMetadata.hpp>
+#include <Automation/State/AutomationState.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
@@ -40,50 +43,34 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
   auto& out = *(Process::MinMaxFloatOutlet*)outlet.get();
   connect(
-      &out,
-      &Process::Port::addressChanged,
-      this,
+      &out, &Process::Port::addressChanged, this,
       [=](const State::AddressAccessor& arg) {
-        addressChanged(arg);
-        prettyNameChanged();
-        unitChanged(arg.qualifiers.get().unit);
-        m_curve->changed();
+    addressChanged(arg);
+    prettyNameChanged();
+    unitChanged(arg.qualifiers.get().unit);
+    m_curve->changed();
       });
   connect(
-        out.minInlet.get(),
-        &Process::FloatSlider::valueChanged,
-        this,
-        [=](const ossia::value& arg) {
-    minChanged(ossia::convert<float>(arg));
-  });
+      out.minInlet.get(), &Process::FloatSlider::valueChanged, this,
+      [=](const ossia::value& arg) { minChanged(ossia::convert<float>(arg)); });
   connect(
-        out.maxInlet.get(),
-        &Process::FloatSlider::valueChanged,
-        this,
-        [=](const ossia::value& arg) {
-    maxChanged(ossia::convert<float>(arg));
-  });
-  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] {
-    prettyNameChanged();
-  });
+      out.maxInlet.get(), &Process::FloatSlider::valueChanged, this,
+      [=](const ossia::value& arg) { maxChanged(ossia::convert<float>(arg)); });
+  connect(
+      outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{std::make_unique<Process::MinMaxFloatOutlet>(
-          Id<Process::Port>(0),
-          this)}
+    , outlet{std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), this)}
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(
-      Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -117,8 +104,7 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 QString ProcessModel::prettyName() const noexcept
 {
   auto& doc = score::IDocument::documentContext(*this);
-  if(auto name = Process::displayNameForPort(*outlet, doc);
-     !name.isEmpty())
+  if(auto name = Process::displayNameForPort(*outlet, doc); !name.isEmpty())
   {
     return name;
   }
@@ -141,7 +127,7 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
-  if (m_curve->segments().size() == 0)
+  if(m_curve->segments().size() == 0)
   {
     setDuration(newDuration);
     return;
@@ -149,7 +135,7 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 
   // Else, scale all the segments by the increase.
   double scale = duration() / newDuration;
-  for (auto& segment : m_curve->segments())
+  for(auto& segment : m_curve->segments())
   {
     Curve::Point pt = segment.start();
     pt.setX(pt.x() * scale);
@@ -167,13 +153,13 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
-  if (m_curve->segments().size() == 0)
+  if(m_curve->segments().size() == 0)
   {
     setDuration(newDuration);
     return;
   }
 
-  if (newDuration <= TimeVal::zero())
+  if(newDuration <= TimeVal::zero())
   {
     setDuration(TimeVal::zero());
     m_curve->clear();
@@ -182,7 +168,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
   // Else, scale all the segments by the increase.
   double scale = duration() / newDuration;
-  for (auto& segment : m_curve->segments())
+  for(auto& segment : m_curve->segments())
   {
     Curve::Point pt = segment.start();
     pt.setX(pt.x() * scale);
@@ -241,12 +227,14 @@ const ::State::AddressAccessor& ProcessModel::address() const
 
 double ProcessModel::min() const
 {
-  return ossia::convert<float>(((Process::MinMaxFloatOutlet&)(*outlet)).minInlet->value());
+  return ossia::convert<float>(
+      ((Process::MinMaxFloatOutlet&)(*outlet)).minInlet->value());
 }
 
 double ProcessModel::max() const
 {
-  return ossia::convert<float>(((Process::MinMaxFloatOutlet&)(*outlet)).maxInlet->value());
+  return ossia::convert<float>(
+      ((Process::MinMaxFloatOutlet&)(*outlet)).maxInlet->value());
 }
 
 void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
@@ -257,7 +245,7 @@ void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
 void ProcessModel::setMin(double arg)
 {
   auto& inlet = ((Process::MinMaxFloatOutlet&)(*outlet)).minInlet;
-  if (ossia::convert<float>(inlet->value()) == arg)
+  if(ossia::convert<float>(inlet->value()) == arg)
     return;
 
   inlet->setValue(arg);
@@ -268,7 +256,7 @@ void ProcessModel::setMin(double arg)
 void ProcessModel::setMax(double arg)
 {
   auto& inlet = ((Process::MinMaxFloatOutlet&)(*outlet)).maxInlet;
-  if (ossia::convert<float>(inlet->value()) == arg)
+  if(ossia::convert<float>(inlet->value()) == arg)
     return;
 
   inlet->setValue(arg);
@@ -283,7 +271,7 @@ State::Unit ProcessModel::unit() const
 
 void ProcessModel::setUnit(const State::Unit& u)
 {
-  if (u != unit())
+  if(u != unit())
   {
     auto addr = outlet->address();
     addr.qualifiers.get().unit = u;
@@ -300,7 +288,7 @@ bool ProcessModel::tween() const
 
 void ProcessModel::setTween(bool tween)
 {
-  if (m_tween == tween)
+  if(m_tween == tween)
     return;
 
   m_tween = tween;

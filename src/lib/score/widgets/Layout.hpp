@@ -16,12 +16,7 @@ public:
   {
     const auto nextRow = rowCount();
     addWidget(
-        new QLabel{std::move(text)},
-        nextRow,
-        0,
-        1,
-        1,
-        Qt::AlignHCenter | Qt::AlignTop);
+        new QLabel{std::move(text)}, nextRow, 0, 1, 1, Qt::AlignHCenter | Qt::AlignTop);
     addWidget(widg, nextRow, 1, 1, 1);
   }
 };

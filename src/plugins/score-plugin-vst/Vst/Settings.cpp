@@ -23,7 +23,7 @@ SettingsWidget::SettingsWidget() { }
 
 void SettingsWidget::setVstPaths(QStringList val)
 {
-  if (m_curitems != val)
+  if(m_curitems != val)
   {
     m_curitems = val;
     m_VstPaths->blockSignals(true);
@@ -78,16 +78,13 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
 
   m_VstPaths->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
-      m_VstPaths,
-      &QListWidget::customContextMenuRequested,
-      this,
-      [=](const QPoint& p) {
+      m_VstPaths, &QListWidget::customContextMenuRequested, this, [=](const QPoint& p) {
         QMenu* m = new QMenu;
         auto act = m->addAction("Remove");
         connect(act, &QAction::triggered, this, [=] {
           auto idx = m_VstPaths->currentRow();
 
-          if (ossia::valid_index(idx, m_curitems))
+          if(ossia::valid_index(idx, m_curitems))
           {
             m_VstPaths->takeItem(idx);
             m_curitems.removeAt(idx);
@@ -108,19 +105,16 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
 
   connect(pb, &QPushButton::clicked, this, [=] {
     auto path = QFileDialog::getExistingDirectory(splitter, tr("VST Path"));
-    if (!path.isEmpty())
+    if(!path.isEmpty())
     {
       m_VstPaths->addItem(path);
       m_curitems.push_back(path);
       VstPathsChanged(m_curitems);
     }
   });
-  auto& app_plug
-      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  auto& app_plug = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
-  connect(rescan, &QPushButton::clicked, this, [&] {
-    app_plug.rescanVSTs(m_curitems);
-  });
+  connect(rescan, &QPushButton::clicked, this, [&] { app_plug.rescanVSTs(m_curitems); });
 
   auto reloadVSTs = [=, &app_plug] {
     vst_ok->clearContents();
@@ -129,18 +123,16 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
     vst_bad->clearContents();
     vst_bad->setRowCount(0);
 
-    for (auto& plug : app_plug.vst_infos)
+    for(auto& plug : app_plug.vst_infos)
     {
-      if (plug.isValid)
+      if(plug.isValid)
       {
         auto row = vst_ok->rowCount();
         vst_ok->setRowCount(row + 1);
         vst_ok->setItem(
-            row,
-            0,
+            row, 0,
             new QTableWidgetItem{
-                plug.prettyName.isEmpty() ? plug.displayName
-                                          : plug.prettyName});
+                plug.prettyName.isEmpty() ? plug.displayName : plug.prettyName});
         vst_ok->setItem(row, 1, new QTableWidgetItem{plug.path});
       }
       else
@@ -148,11 +140,9 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
         auto row = vst_bad->rowCount();
         vst_bad->setRowCount(row + 1);
         vst_bad->setItem(
-            row,
-            0,
+            row, 0,
             new QTableWidgetItem{
-                plug.prettyName.isEmpty() ? plug.displayName
-                                          : plug.prettyName});
+                plug.prettyName.isEmpty() ? plug.displayName : plug.prettyName});
         vst_bad->setItem(row, 1, new QTableWidgetItem{plug.path});
       }
     }

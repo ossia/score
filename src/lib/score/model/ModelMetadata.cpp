@@ -7,8 +7,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/base/name_validation.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::ModelMetadata)
@@ -46,12 +47,12 @@ bool ModelMetadata::touchedName() const noexcept
 
 void ModelMetadata::setName(const QString& arg) noexcept
 {
-  if (m_scriptingName == arg)
+  if(m_scriptingName == arg)
   {
     return;
   }
 
-  if (parent() && parent()->parent())
+  if(parent() && parent()->parent())
   {
     // TODO use an object pool of some sorts instead
     static std::vector<QString> bros;
@@ -63,19 +64,19 @@ void ModelMetadata::setName(const QString& arg) noexcept
     std::size_t cur_bros_idx = 0;
     std::size_t cur_bros_size = bros.size();
 
-    for (auto c : cld)
+    for(auto c : cld)
     {
-      if (auto bro = qobject_cast<IdentifiedObjectAbstract*>(c))
+      if(auto bro = qobject_cast<IdentifiedObjectAbstract*>(c))
       {
         cld2 = &bro->children();
         cld2_N = cld2->size();
-        for (int j = 0; j < cld2_N; j++)
+        for(int j = 0; j < cld2_N; j++)
         {
-          if (auto m = qobject_cast<ModelMetadata*>((*cld2)[j]))
+          if(auto m = qobject_cast<ModelMetadata*>((*cld2)[j]))
           {
-            if (const QString& n = m->getName(); !n.isEmpty())
+            if(const QString& n = m->getName(); !n.isEmpty())
             {
-              if (cur_bros_idx < cur_bros_size)
+              if(cur_bros_idx < cur_bros_size)
               {
                 bros[cur_bros_idx] = n;
               }
@@ -94,7 +95,7 @@ void ModelMetadata::setName(const QString& arg) noexcept
 
     m_scriptingName = ossia::net::sanitize_name(arg, bros);
 
-    for (std::size_t i = 0; i < cur_bros_idx; i++)
+    for(std::size_t i = 0; i < cur_bros_idx; i++)
       bros[i].clear();
   }
   else
@@ -110,7 +111,7 @@ void ModelMetadata::setName(const QString& arg) noexcept
 
 void ModelMetadata::setComment(const QString& arg) noexcept
 {
-  if (m_comment == arg)
+  if(m_comment == arg)
   {
     return;
   }
@@ -122,7 +123,7 @@ void ModelMetadata::setComment(const QString& arg) noexcept
 
 void ModelMetadata::setColor(ColorRef arg) noexcept
 {
-  if (m_color == arg)
+  if(m_color == arg)
   {
     return;
   }
@@ -134,7 +135,7 @@ void ModelMetadata::setColor(ColorRef arg) noexcept
 
 void ModelMetadata::setLabel(const QString& arg) noexcept
 {
-  if (m_label == arg)
+  if(m_label == arg)
   {
     return;
   }
@@ -160,13 +161,12 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ColorRef& md)
   m_stream >> col_name;
 
   auto col = score::ColorRef::ColorFromString(col_name);
-  if (col)
+  if(col)
     md = *col;
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read(const score::ModelMetadata& md)
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::ModelMetadata& md)
 {
   m_stream << md.m_scriptingName << md.m_comment << md.m_color << md.m_label
            << md.m_touchedName;
@@ -202,11 +202,11 @@ SCORE_LIB_BASE_EXPORT void JSONWriter::write(score::ModelMetadata& md)
   md.m_comment = obj[strings.Comment].toString();
 
   const auto& color_val = obj[strings.Color];
-  if (color_val.isString())
+  if(color_val.isString())
   {
     auto col_name = color_val.toString();
     auto col = score::ColorRef::ColorFromString(col_name);
-    if (col)
+    if(col)
       md.m_color = *col;
     else
       md.m_color = score::Skin::instance().fromString("Transparent1");

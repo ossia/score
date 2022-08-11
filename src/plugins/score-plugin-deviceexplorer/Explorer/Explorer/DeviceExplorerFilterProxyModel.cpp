@@ -23,8 +23,7 @@ void DeviceExplorerFilterProxyModel::setColumn(Explorer::Column col)
   Return true if the item must be included in the model.
 */
 bool DeviceExplorerFilterProxyModel::filterAcceptsRow(
-    int srcRow,
-    const QModelIndex& srcParent) const
+    int srcRow, const QModelIndex& srcParent) const
 {
   // inspired from http://qt-project.org/forums/viewthread/7782/
   // The filter must accept rows that match themselves,
@@ -34,15 +33,14 @@ bool DeviceExplorerFilterProxyModel::filterAcceptsRow(
   // even if they themselves do not match, but if a a child node matches,
   // it will show the parent, but not its (non-matching) siblings.
 
-  if (filterAcceptsRowItself(srcRow, srcParent))
+  if(filterAcceptsRowItself(srcRow, srcParent))
   {
     return true;
   }
 
   // Accept if any of the parents is accepted on its own
-  for (QModelIndex parent = srcParent; parent.isValid();
-       parent = parent.parent())
-    if (filterAcceptsRowItself(parent.row(), parent.parent()))
+  for(QModelIndex parent = srcParent; parent.isValid(); parent = parent.parent())
+    if(filterAcceptsRowItself(parent.row(), parent.parent()))
     {
       return true;
     }
@@ -52,20 +50,18 @@ bool DeviceExplorerFilterProxyModel::filterAcceptsRow(
 }
 
 bool DeviceExplorerFilterProxyModel::filterAcceptsRowItself(
-    int srcRow,
-    const QModelIndex& srcParent) const
+    int srcRow, const QModelIndex& srcParent) const
 {
   const Explorer::Column col = m_col;
   QModelIndex index = sourceModel()->index(srcRow, (int)col, srcParent);
-  switch (col)
+  switch(col)
   {
     case Explorer::Column::Name:
     case Explorer::Column::Value:
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
       return sourceModel()->data(index).toString().contains(filterRegExp());
 #else
-      return sourceModel()->data(index).toString().contains(
-          filterRegularExpression());
+      return sourceModel()->data(index).toString().contains(filterRegularExpression());
 #endif
 
     default:
@@ -74,12 +70,11 @@ bool DeviceExplorerFilterProxyModel::filterAcceptsRowItself(
 }
 
 bool DeviceExplorerFilterProxyModel::hasAcceptedChildren(
-    int srcRow,
-    const QModelIndex& srcParent) const
+    int srcRow, const QModelIndex& srcParent) const
 {
   QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
 
-  if (!index.isValid())
+  if(!index.isValid())
   {
     return false;
   }
@@ -87,20 +82,20 @@ bool DeviceExplorerFilterProxyModel::hasAcceptedChildren(
   SCORE_ASSERT(index.model());
   const int childCount = index.model()->rowCount(index);
 
-  if (childCount == 0)
+  if(childCount == 0)
   {
     return false;
   }
 
-  for (int i = 0; i < childCount; ++i)
+  for(int i = 0; i < childCount; ++i)
   {
-    if (filterAcceptsRowItself(i, index))
+    if(filterAcceptsRowItself(i, index))
     {
       return true;
     }
 
     // recursive call : depth-first search
-    if (hasAcceptedChildren(i, index))
+    if(hasAcceptedChildren(i, index))
     {
       return true;
     }

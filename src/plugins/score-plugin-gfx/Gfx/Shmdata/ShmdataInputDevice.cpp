@@ -1,42 +1,40 @@
 #include "ShmdataInputDevice.hpp"
 
-#include <ossia/detail/flicks.hpp>
-
-#include <QDebug>
-#include <QElapsedTimer>
-
-#include <ossia/detail/fmt.hpp>
-
-#include <functional>
-
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <score/serialization/MimeVisitor.hpp>
-
-#include <ossia-qt/name_utils.hpp>
-#include <Video/Rescale.hpp>
-
-#include <QComboBox>
-#include <QFormLayout>
-#include <QMenu>
-#include <QMimeData>
 #include <Gfx/GfxApplicationPlugin.hpp>
-#include <wobjectimpl.h>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
-#include <shmdata/reader.hpp>
-#include <shmdata/console-logger.hpp>
-
 #include <Video/FrameQueue.hpp>
-#include <Video/GpuFormats.hpp>
 #include <Video/GStreamerCompatibility.hpp>
-
+#include <Video/GpuFormats.hpp>
+#include <Video/Rescale.hpp>
 #include <Video/VideoInterface.hpp>
 
+#include <score/serialization/MimeVisitor.hpp>
+
+#include <ossia/detail/flicks.hpp>
+#include <ossia/detail/fmt.hpp>
+
+#include <ossia-qt/name_utils.hpp>
+
+#include <QComboBox>
+#include <QDebug>
+#include <QElapsedTimer>
+#include <QFormLayout>
 #include <QLabel>
-extern "C"
-{
+#include <QMenu>
+#include <QMimeData>
+
+#include <shmdata/reader.hpp>
+
+#include <wobjectimpl.h>
+
+#include <functional>
+
+#include <shmdata/console-logger.hpp>
+extern "C" {
 #include <libavformat/avformat.h>
 }
 
@@ -69,35 +67,30 @@ class InputStream final : public ::Video::ExternalInput
 {
 public:
   explicit InputStream(const QString& path) noexcept
-    : m_path{path.toStdString()}
-    , m_receiver{std::in_place_t{},
-        m_path,
-        [this] (void* p, size_t sz) { on_data(p, sz); },
-        [this] (const std::string& s) { setup(s); },
-        [] () {},
-        &m_logger}
+      : m_path{path.toStdString()}
+      , m_receiver{
+            std::in_place_t{},
+            m_path,
+            [this](void* p, size_t sz) { on_data(p, sz); },
+            [this](const std::string& s) { setup(s); },
+            []() {},
+            &m_logger}
   {
     realTime = true;
   }
 
-  ~InputStream() noexcept
-  {
-    stop();
-  }
+  ~InputStream() noexcept { stop(); }
 
   bool start() noexcept override
   {
-    if (m_running)
+    if(m_running)
       return false;
 
     if(!m_receiver)
     {
       m_receiver.emplace(
-              m_path,
-              [this] (void* p, size_t sz) { on_data(p, sz); },
-              [this] (const std::string& s) { setup(s); },
-              [] () {},
-              &m_logger);
+          m_path, [this](void* p, size_t sz) { on_data(p, sz); },
+          [this](const std::string& s) { setup(s); }, []() {}, &m_logger);
     }
 
     m_running.store(true, std::memory_order_release);
@@ -115,16 +108,9 @@ public:
     m_frames.drain();
   }
 
+  AVFrame* dequeue_frame() noexcept override { return m_frames.dequeue(); }
 
-  AVFrame* dequeue_frame() noexcept override
-  {
-    return m_frames.dequeue();
-  }
-
-  void release_frame(AVFrame* frame) noexcept override
-  {
-    m_frames.release(frame);
-  }
+  void release_frame(AVFrame* frame) noexcept override { m_frames.release(frame); }
 
 private:
   void setup(const std::string& str)
@@ -142,7 +128,8 @@ private:
     int w = 0;
     int h = 0;
     double rate = 0.;
-    for(auto& elt : split) {
+    for(auto& elt : split)
+    {
       elt = elt.trimmed();
       if(elt.startsWith("format="))
       {
@@ -169,10 +156,12 @@ private:
         {
           elt.remove("(fraction)");
           auto parts = elt.split("/");
-          if(parts.size() == 2) {
+          if(parts.size() == 2)
+          {
             double num = parts[0].toDouble();
             double denom = parts[1].toDouble();
-            if(denom > 0) {
+            if(denom > 0)
+            {
               rate = num / denom;
             }
           }
@@ -280,7 +269,6 @@ private:
   std::optional<shmdata::Reader> m_receiver;
 };
 
-
 InputDevice::~InputDevice() { }
 
 bool InputDevice::reconnect()
@@ -292,7 +280,7 @@ bool InputDevice::reconnect()
     auto set = this->settings().deviceSpecificSettings.value<SharedInputSettings>();
 
     auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
-    if (plug)
+    if(plug)
     {
       auto stream = std::make_shared<InputStream>(set.path);
 
@@ -302,11 +290,11 @@ bool InputDevice::reconnect()
           this->settings().name.toStdString());
     }
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }
@@ -319,13 +307,15 @@ QString InputFactory::prettyName() const noexcept
   return QObject::tr("Shmdata Input");
 }
 
-Device::DeviceEnumerator* InputFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+InputFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
 
-Device::DeviceInterface*
-InputFactory::makeDevice(const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin, const score::DocumentContext& ctx)
+Device::DeviceInterface* InputFactory::makeDevice(
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
+    const score::DocumentContext& ctx)
 {
   return new InputDevice(settings, ctx);
 }

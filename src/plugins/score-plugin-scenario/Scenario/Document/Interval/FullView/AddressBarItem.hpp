@@ -1,11 +1,11 @@
 #pragma once
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/model/path/ObjectPath.hpp>
 
 #include <QGraphicsItem>
 #include <QList>
 #include <QRect>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <verdigris>
 
@@ -30,10 +30,8 @@ public:
   void setTargetObject(ObjectPath&&);
 
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
 public:
   void needRedraw() W_SIGNAL(needRedraw);

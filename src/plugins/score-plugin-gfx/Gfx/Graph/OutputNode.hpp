@@ -11,9 +11,7 @@ class SCORE_PLUGIN_GFX_EXPORT OutputNodeRenderer : public score::gfx::NodeRender
 {
 public:
   virtual ~OutputNodeRenderer();
-  virtual void finishFrame(
-      RenderList&,
-      QRhiCommandBuffer& commands);
+  virtual void finishFrame(RenderList&, QRhiCommandBuffer& commands);
 };
 
 class Window;
@@ -37,17 +35,16 @@ public:
   virtual void onRendererChange() = 0;
 
   virtual void createOutput(
-      GraphicsApi graphicsApi,
-      std::function<void()> onReady,
-      std::function<void()> onUpdate,
-      std::function<void()> onResize)
+      GraphicsApi graphicsApi, std::function<void()> onReady,
+      std::function<void()> onUpdate, std::function<void()> onResize)
       = 0;
 
   virtual void updateGraphicsAPI(GraphicsApi);
   virtual void destroyOutput() = 0;
   virtual std::shared_ptr<RenderState> renderState() const = 0;
 
-  struct Configuration {
+  struct Configuration
+  {
     // If set, the host is responsible for calling render() at this
     // rate (given in milliseconds)
     std::optional<double> manualRenderingRate;

@@ -1,4 +1,7 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+
 #include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/command/Command.hpp>
@@ -7,9 +10,6 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QByteArray>
-
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
@@ -24,14 +24,10 @@ namespace Command
 {
 class RemoveProcessFromInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveProcessFromInterval,
-      "Remove a process")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveProcessFromInterval, "Remove a process")
 public:
   RemoveProcessFromInterval(
-      const IntervalModel& cst,
-      Id<Process::ProcessModel> processId);
+      const IntervalModel& cst, Id<Process::ProcessModel> processId);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

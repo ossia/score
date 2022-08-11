@@ -3,13 +3,16 @@
 #include "HTTPDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
+
 #include <Protocols/HTTP/HTTPSpecificSettings.hpp>
 
-#include <ossia-qt/http/http_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
+
+#include <ossia-qt/http/http_protocol.hpp>
 
 #include <wobjectimpl.h>
 
@@ -33,8 +36,7 @@ bool HTTPDevice::reconnect()
 
   try
   {
-    auto stgs
-        = settings().deviceSpecificSettings.value<HTTPSpecificSettings>();
+    auto stgs = settings().deviceSpecificSettings.value<HTTPSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::http_device>(
         std::make_unique<ossia::net::http_protocol>(stgs.text.toUtf8()),
@@ -44,11 +46,11 @@ bool HTTPDevice::reconnect()
     enableCallbacks();
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }

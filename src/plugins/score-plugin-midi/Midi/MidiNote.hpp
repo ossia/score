@@ -43,10 +43,7 @@ struct NoteComparator
   {
     return lhs.m_start < rhs.m_start;
   }
-  bool operator()(const NoteData& lhs, double rhs) const
-  {
-    return lhs.m_start < rhs;
-  }
+  bool operator()(const NoteData& lhs, double rhs) const { return lhs.m_start < rhs; }
 };
 
 /**

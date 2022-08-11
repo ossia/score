@@ -20,25 +20,18 @@ namespace score
 /**
  * @brief Extend a document with custom data and systems.
  */
-class SCORE_LIB_BASE_EXPORT DocumentPlugin
-    : public QObject
+class SCORE_LIB_BASE_EXPORT DocumentPlugin : public QObject
 {
   W_OBJECT(DocumentPlugin)
 public:
-  DocumentPlugin(
-      const score::DocumentContext&,
-      const QString& name,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext&, const QString& name, QObject* parent);
 
   virtual ~DocumentPlugin();
 
   const score::DocumentContext& context() const { return m_context; }
 
   template <typename Impl>
-  explicit DocumentPlugin(
-      const score::DocumentContext& ctx,
-      Impl& vis,
-      QObject* parent)
+  explicit DocumentPlugin(const score::DocumentContext& ctx, Impl& vis, QObject* parent)
       : QObject{parent}
       , m_context{ctx}
   {

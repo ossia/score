@@ -1,19 +1,16 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 namespace Dataflow
 {
 class LoadCables final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      LoadCables,
-      "Remove cable")
+  SCORE_COMMAND_DECL(Scenario::Command::CommandFactoryName(), LoadCables, "Remove cable")
 
 public:
   LoadCables(const ObjectPath& p, const SerializedCables& c)

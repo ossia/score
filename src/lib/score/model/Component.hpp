@@ -21,8 +21,7 @@ struct lazy_init_t
  *
  * \todo Document more.
  */
-class SCORE_LIB_BASE_EXPORT Component
-    : public QObject
+class SCORE_LIB_BASE_EXPORT Component : public QObject
 {
   W_OBJECT(Component)
 public:
@@ -32,7 +31,6 @@ public:
 
   virtual UuidKey<score::Component> key() const noexcept = 0;
   virtual bool key_match(UuidKey<score::Component> other) const noexcept = 0;
-
 };
 
 /**
@@ -113,46 +111,43 @@ private:
 /**
  * \macro COMPONENT_METADATA
  */
-#define COMPONENT_METADATA(Uuid)                                              \
-public:                                                                       \
-  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept \
-  {                                                                           \
-    return_uuid(Uuid);                                                        \
-  }                                                                           \
-                                                                              \
-  UuidKey<score::Component> key() const noexcept final override               \
-  {                                                                           \
-    return static_key();                                                      \
-  }                                                                           \
-                                                                              \
-  bool key_match(UuidKey<score::Component> other)                             \
-      const noexcept final override                                           \
-  {                                                                           \
-    return static_key() == other                                              \
-           || base_component_type::base_key_match(other);                     \
-  }                                                                           \
-                                                                              \
+#define COMPONENT_METADATA(Uuid)                                                \
+public:                                                                         \
+  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept   \
+  {                                                                             \
+    return_uuid(Uuid);                                                          \
+  }                                                                             \
+                                                                                \
+  UuidKey<score::Component> key() const noexcept final override                 \
+  {                                                                             \
+    return static_key();                                                        \
+  }                                                                             \
+                                                                                \
+  bool key_match(UuidKey<score::Component> other) const noexcept final override \
+  {                                                                             \
+    return static_key() == other || base_component_type::base_key_match(other); \
+  }                                                                             \
+                                                                                \
 private:
 
 /**
  * \macro COMMON_COMPONENT_METADATA
  */
-#define COMMON_COMPONENT_METADATA(Uuid)                                       \
-public:                                                                       \
-  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept \
-  {                                                                           \
-    return_uuid(Uuid);                                                        \
-  }                                                                           \
-                                                                              \
-  UuidKey<score::Component> key() const noexcept final override               \
-  {                                                                           \
-    return static_key();                                                      \
-  }                                                                           \
-                                                                              \
-  bool key_match(UuidKey<score::Component> other)                             \
-      const noexcept final override                                           \
-  {                                                                           \
-    return static_key() == other;                                             \
-  }                                                                           \
-                                                                              \
+#define COMMON_COMPONENT_METADATA(Uuid)                                         \
+public:                                                                         \
+  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept   \
+  {                                                                             \
+    return_uuid(Uuid);                                                          \
+  }                                                                             \
+                                                                                \
+  UuidKey<score::Component> key() const noexcept final override                 \
+  {                                                                             \
+    return static_key();                                                        \
+  }                                                                             \
+                                                                                \
+  bool key_match(UuidKey<score::Component> other) const noexcept final override \
+  {                                                                             \
+    return static_key() == other;                                               \
+  }                                                                             \
+                                                                                \
 private:

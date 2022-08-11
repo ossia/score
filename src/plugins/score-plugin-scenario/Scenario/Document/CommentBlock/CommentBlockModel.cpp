@@ -7,10 +7,7 @@ W_OBJECT_IMPL(Scenario::CommentBlockModel)
 namespace Scenario
 {
 CommentBlockModel::CommentBlockModel(
-    const Id<CommentBlockModel>& id,
-    const TimeVal& date,
-    double yPos,
-    QObject* parent)
+    const Id<CommentBlockModel>& id, const TimeVal& date, double yPos, QObject* parent)
     : IdentifiedObject<CommentBlockModel>{id, "CommentBlockModel", parent}
     , m_date{date}
     , m_yposition{yPos}
@@ -19,7 +16,7 @@ CommentBlockModel::CommentBlockModel(
 
 void CommentBlockModel::setDate(const TimeVal& date)
 {
-  if (date != m_date)
+  if(date != m_date)
   {
     m_date = date;
     dateChanged(m_date);
@@ -38,7 +35,7 @@ double CommentBlockModel::heightPercentage() const
 
 void CommentBlockModel::setHeightPercentage(double y)
 {
-  if (y != m_yposition)
+  if(y != m_yposition)
   {
     m_yposition = y;
     heightPercentageChanged(y);
@@ -52,7 +49,7 @@ const QString CommentBlockModel::content() const
 
 void CommentBlockModel::setContent(const QString content)
 {
-  if (m_HTMLcontent == content)
+  if(m_HTMLcontent == content)
     return;
   m_HTMLcontent = content;
   contentChanged(m_HTMLcontent);

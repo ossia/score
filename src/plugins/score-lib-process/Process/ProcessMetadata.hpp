@@ -22,14 +22,14 @@ enum ProcessCategory : uint64_t
   Generator,   // lfo, etc
   MediaSource, // sound, video, image, etc
   Analyzer,
-  AudioEffect, // audio in and audio out
-  MidiEffect,  // midi in and midi out
-  Synth,       // midi in and audio out
-  Mapping,     // value in and value out
-  Script,      // JS, PD, etc
-  Structure,   // scenario, loop, etc
-  Visual,      // gfx processes
-  Deprecated = (1ULL << 63),      // gfx processes
+  AudioEffect,               // audio in and audio out
+  MidiEffect,                // midi in and midi out
+  Synth,                     // midi in and audio out
+  Mapping,                   // value in and value out
+  Script,                    // JS, PD, etc
+  Structure,                 // scenario, loop, etc
+  Visual,                    // gfx processes
+  Deprecated = (1ULL << 63), // gfx processes
 };
 
 struct Descriptor
@@ -46,44 +46,25 @@ struct Descriptor
 class Descriptor_k;
 }
 #define PROCESS_FLAGS_METADATA(Export, Model, Flags) \
-  TYPED_METADATA(                                    \
-      Export, Model, Process::ProcessFlags_k, Process::ProcessFlags, Flags)
+  TYPED_METADATA(Export, Model, Process::ProcessFlags_k, Process::ProcessFlags, Flags)
 
-#define PROCESS_METADATA(                                                \
-    Export,                                                              \
-    Model,                                                               \
-    Uuid,                                                                \
-    ObjectKey,                                                           \
-    PrettyName,                                                          \
-    CategoryEnum,                                                        \
-    Category,                                                            \
-    Desc,                                                                \
-    Author,                                                              \
-    Tags,                                                                \
-    InputSpec,                                                           \
-    OutputSpec,                                                          \
-    Flags)                                                               \
-  MODEL_METADATA(                                                        \
-      Export, Process::ProcessModel, Model, Uuid, ObjectKey, PrettyName) \
-  CATEGORY_METADATA(Export, Model, Category)                             \
-  TAGS_METADATA(Export, Model, Tags)                                     \
-  PROCESS_FLAGS_METADATA(Export, Model, (Process::ProcessFlags)(Flags))  \
-  template <>                                                            \
-  struct Export Metadata<::Process::Descriptor_k, Model>                 \
-  {                                                                      \
-    static ::Process::Descriptor get()                                   \
-    {                                                                    \
-      static const ::Process::Descriptor k{                              \
-          PrettyName,                                                    \
-          CategoryEnum,                                                  \
-          Category,                                                      \
-          Desc,                                                          \
-          Author,                                                        \
-          Tags,                                                          \
-          InputSpec,                                                     \
-          OutputSpec};                                                   \
-      return k;                                                          \
-    }                                                                    \
+#define PROCESS_METADATA(                                                             \
+    Export, Model, Uuid, ObjectKey, PrettyName, CategoryEnum, Category, Desc, Author, \
+    Tags, InputSpec, OutputSpec, Flags)                                               \
+  MODEL_METADATA(Export, Process::ProcessModel, Model, Uuid, ObjectKey, PrettyName)   \
+  CATEGORY_METADATA(Export, Model, Category)                                          \
+  TAGS_METADATA(Export, Model, Tags)                                                  \
+  PROCESS_FLAGS_METADATA(Export, Model, (Process::ProcessFlags)(Flags))               \
+  template <>                                                                         \
+  struct Export Metadata<::Process::Descriptor_k, Model>                              \
+  {                                                                                   \
+    static ::Process::Descriptor get()                                                \
+    {                                                                                 \
+      static const ::Process::Descriptor k{PrettyName, CategoryEnum, Category,        \
+                                           Desc,       Author,       Tags,            \
+                                           InputSpec,  OutputSpec};                   \
+      return k;                                                                       \
+    }                                                                                 \
   };
 
 #define PROCESS_METADATA_IMPL(Model)                        \

@@ -1,7 +1,8 @@
 #pragma once
-#include <Process/State/MessageNode.hpp>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
+
+#include <Process/State/MessageNode.hpp>
 
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
@@ -33,10 +34,7 @@ public:
    * @return nothing if the process doesn't have any "settable" address.
    * Else it returns the addresses that may change.
    */
-  virtual std::vector<State::AddressAccessor> matchingAddresses()
-  {
-    return {};
-  }
+  virtual std::vector<State::AddressAccessor> matchingAddresses() { return {}; }
 
   /**
    * @brief messages The current messages in this point of the process.
@@ -50,8 +48,7 @@ public:
    *
    */
   virtual State::MessageList setMessages(
-      const State::MessageList& newMessages,
-      const Process::MessageNode& currentState)
+      const State::MessageList& newMessages, const Process::MessageNode& currentState)
   {
     return messages();
   }

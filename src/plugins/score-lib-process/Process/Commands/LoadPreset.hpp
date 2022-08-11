@@ -1,9 +1,10 @@
 #pragma once
+#include <State/Value.hpp>
+#include <State/ValueSerialization.hpp>
+
 #include <Process/Commands/ProcessCommandFactory.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
-#include <State/Value.hpp>
-#include <State/ValueSerialization.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 namespace Process
@@ -11,10 +12,7 @@ namespace Process
 class ProcessModel;
 class SCORE_LIB_PROCESS_EXPORT LoadPreset final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Process::CommandFactoryName(),
-      LoadPreset,
-      "Set a control")
+  SCORE_COMMAND_DECL(Process::CommandFactoryName(), LoadPreset, "Set a control")
 
 public:
   LoadPreset(const Process::ProcessModel& obj, Process::Preset newval)

@@ -17,7 +17,7 @@ public:
 
   void setWidth(qreal w) noexcept
   {
-    if (m_width != w)
+    if(m_width != w)
     {
       prepareGeometryChange();
       m_width = w;
@@ -26,7 +26,7 @@ public:
 
   void setHeight(qreal h) noexcept
   {
-    if (m_height != h)
+    if(m_height != h)
     {
       prepareGeometryChange();
       m_height = h;
@@ -34,19 +34,15 @@ public:
   }
 
   QRectF boundingRect() const override { return {0, 0, m_width, m_height}; }
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
 
   QRectF computeRect() const noexcept;
   QPointF closestPos(QPointF note) const noexcept;
 
-
 private:
   bool canEdit() const;
-  QVariant
-  itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;

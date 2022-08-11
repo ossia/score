@@ -34,6 +34,5 @@ private:
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

@@ -19,7 +19,7 @@ QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent)
 template <typename T>
 QGraphicsSliderBase<T>::~QGraphicsSliderBase()
 {
-  if (this->impl->spinbox || this->impl->spinboxProxy)
+  if(this->impl->spinbox || this->impl->spinboxProxy)
     delete this->impl->spinboxProxy;
   delete impl;
 }
@@ -64,7 +64,7 @@ QRectF QGraphicsSliderBase<T>::handleRect() const
 template <typename T>
 QRectF QGraphicsSliderBase<T>::execHandleRect() const
 {
-  return {0,  6, static_cast<const T&>(*this).getExecHandleX(), 2};
+  return {0, 6, static_cast<const T&>(*this).getExecHandleX(), 2};
 }
 
 template <typename T>

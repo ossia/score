@@ -6,11 +6,12 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 #include <Faust/FaustDSPWrapper.hpp>
-#include <cmath>
 #include <faust/dsp/dsp.h>
 #include <faust/gui/GUI.h>
 #include <faust/gui/JSONUI.h>
 #include <faust/gui/meta.h>
+
+#include <cmath>
 #include <string.h>
 
 #include <utility>
@@ -43,18 +44,12 @@
     template <>
     struct Metadata<PrettyName_k, FaustDSP::Fx<mydsp>>
 {
-  static Q_DECL_RELAXED_CONSTEXPR const char* get()
-  {
-    return "==FAUST_NAME==";
-  }
+  static Q_DECL_RELAXED_CONSTEXPR const char* get() { return "==FAUST_NAME=="; }
 };
 template <>
 struct Metadata<ObjectKey_k, FaustDSP::Fx<mydsp>>
 {
-  static Q_DECL_RELAXED_CONSTEXPR const char* get()
-  {
-    return "==FAUST_NAME==";
-  }
+  static Q_DECL_RELAXED_CONSTEXPR const char* get() { return "==FAUST_NAME=="; }
 };
 template <>
 struct Metadata<ConcreteKey_k, FaustDSP::Fx<mydsp>>
@@ -85,8 +80,8 @@ private:
         FW<Process::LayerFactory, FaustDSP::LayerFactory<mydsp>>,
         // FW<Process::InspectorWidgetDelegateFactory,
         // Shader::InspectorFactory>,
-        FW<Execution::ProcessComponentFactory,
-           FaustDSP::ExecutorFactory<mydsp>>>(ctx, key);
+        FW<Execution::ProcessComponentFactory, FaustDSP::ExecutorFactory<mydsp>>>(
+        ctx, key);
   }
 };
 

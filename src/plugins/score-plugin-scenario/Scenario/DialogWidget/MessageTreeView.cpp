@@ -3,7 +3,12 @@
 #include "MessageTreeView.hpp"
 
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Process/State/MessageNode.hpp>
+
+#include <Scenario/Commands/State/RemoveMessageNodes.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -20,10 +25,6 @@
 #include <QResizeEvent>
 #include <qnamespace.h>
 
-#include <Scenario/Commands/State/RemoveMessageNodes.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-
 class QWidget;
 namespace Scenario
 {
@@ -35,8 +36,7 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   setAllColumnsShowFocus(true);
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
-  setEditTriggers(
-      QAbstractItemView::DoubleClicked | QAbstractItemView::AnyKeyPressed);
+  setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::AnyKeyPressed);
 
   setDragEnabled(true);
   setAcceptDrops(true);
@@ -52,18 +52,11 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   m_removeNodesAction->setShortcut(Qt::Key_Backspace);
   m_removeNodesAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_removeNodesAction->setEnabled(true);
-  connect(
-      m_removeNodesAction,
-      &QAction::triggered,
-      this,
-      &MessageTreeView::removeNodes);
+  connect(m_removeNodesAction, &QAction::triggered, this, &MessageTreeView::removeNodes);
   addAction(m_removeNodesAction);
 
   expandAll();
-  con(m_model.messages(),
-      &MessageItemModel::modelReset,
-      this,
-      &QTreeView::expandAll);
+  con(m_model.messages(), &MessageItemModel::modelReset, this, &QTreeView::expandAll);
 
   header()->resizeSection(
       (int)MessageItemModel::Column::Name,
@@ -85,15 +78,14 @@ void MessageTreeView::removeNodes()
   auto indexes = selectedIndexes();
 
   std::vector<const Process::MessageNode*> nodes;
-  for (auto index : indexes)
+  for(auto index : indexes)
   {
     auto& n = model().nodeFromModelIndex(index);
-    if (n.parent())
+    if(n.parent())
       nodes.push_back(&n);
   }
 
-  auto cmd
-      = new Command::RemoveMessageNodes(m_model, filterUniqueParents(nodes));
+  auto cmd = new Command::RemoveMessageNodes(m_model, filterUniqueParents(nodes));
 
   CommandDispatcher<> dispatcher{
       score::IDocument::documentContext(m_model).commandStack};

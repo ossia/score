@@ -3,31 +3,30 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxParameter.hpp>
-#include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
-#include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/InvertYRenderer.hpp>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 
+#include <score/gfx/OpenGL.hpp>
+
+#include <ossia/detail/fmt.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 
 #include <QFormLayout>
-#include <QOffscreenSurface>
+#include <QLabel>
 #include <QLineEdit>
-
+#include <QOffscreenSurface>
+#include <QSpinBox>
 #include <QtGui/private/qrhigles2_p_p.h>
 
-#include <shmdata/console-logger.hpp>
 #include <shmdata/writer.hpp>
-
-#include <ossia/detail/fmt.hpp>
-#include <QLabel>
-#include <QSpinBox>
-#include <score/gfx/OpenGL.hpp>
 
 #include <wobjectimpl.h>
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
+#include <shmdata/console-logger.hpp>
 
 namespace Gfx
 {
@@ -82,14 +81,13 @@ struct ShmdataOutputNode : score::gfx::OutputNode
   score::gfx::RenderList* renderer() const override;
 
   void createOutput(
-      score::gfx::GraphicsApi graphicsApi,
-      std::function<void()> onReady,
-      std::function<void()> onUpdate,
-      std::function<void()> onResize) override;
+      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
+      std::function<void()> onUpdate, std::function<void()> onResize) override;
   void destroyOutput() override;
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override;
-  score::gfx::OutputNodeRenderer* createRenderer(score::gfx::RenderList& r) const noexcept override;
+  score::gfx::OutputNodeRenderer*
+  createRenderer(score::gfx::RenderList& r) const noexcept override;
   Configuration configuration() const noexcept override;
 
   SharedOutputSettings m_settings;
@@ -104,8 +102,7 @@ class shmdata_output_device : public ossia::net::device_base
 
 public:
   shmdata_output_device(
-      const SharedOutputSettings& set,
-      std::unique_ptr<ossia::net::protocol_base> proto,
+      const SharedOutputSettings& set, std::unique_ptr<ossia::net::protocol_base> proto,
       std::string name)
       : ossia::net::device_base{std::move(proto)}
       , root{*this, new ShmdataOutputNode{set}, name}
@@ -120,7 +117,6 @@ public:
 namespace Gfx
 {
 
-
 ShmdataOutputNode::ShmdataOutputNode(const SharedOutputSettings& set)
     : OutputNode{}
     , m_settings{set}
@@ -134,22 +130,19 @@ bool ShmdataOutputNode::canRender() const
   return bool(m_writer);
 }
 
-void ShmdataOutputNode::startRendering()
-{
-}
-
+void ShmdataOutputNode::startRendering() { }
 
 void ShmdataOutputNode::render()
 {
-  if (m_update)
+  if(m_update)
     m_update();
 
   auto renderer = m_renderer.lock();
-  if (renderer && m_renderState)
+  if(renderer && m_renderState)
   {
     auto rhi = m_renderState->rhi;
     QRhiCommandBuffer* cb{};
-    if (rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    if(rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
       return;
 
     renderer->render(*cb);
@@ -164,16 +157,12 @@ void ShmdataOutputNode::render()
 
 score::gfx::OutputNode::Configuration ShmdataOutputNode::configuration() const noexcept
 {
-  return { .manualRenderingRate = 1000. / m_settings.rate };
+  return {.manualRenderingRate = 1000. / m_settings.rate};
 }
 
-void ShmdataOutputNode::onRendererChange()
-{
-}
+void ShmdataOutputNode::onRendererChange() { }
 
-void ShmdataOutputNode::stopRendering()
-{
-}
+void ShmdataOutputNode::stopRendering() { }
 
 void ShmdataOutputNode::setRenderer(std::shared_ptr<score::gfx::RenderList> r)
 {
@@ -186,15 +175,15 @@ score::gfx::RenderList* ShmdataOutputNode::renderer() const
 }
 
 void ShmdataOutputNode::createOutput(
-    score::gfx::GraphicsApi graphicsApi,
-    std::function<void()> onReady,
-    std::function<void()> onUpdate,
-    std::function<void()> onResize)
+    score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
+    std::function<void()> onUpdate, std::function<void()> onResize)
 {
-  m_writer = std::make_unique<shmdata::Writer>(m_settings.path.toStdString(),
-                                                      m_settings.width * m_settings.height * 4,
-                                                      fmt::format("video/x-raw,format=RGBA,width={},height={},framerate={}/1", m_settings.width, m_settings.height, int(m_settings.rate)),
-                                                      &m_logger);
+  m_writer = std::make_unique<shmdata::Writer>(
+      m_settings.path.toStdString(), m_settings.width * m_settings.height * 4,
+      fmt::format(
+          "video/x-raw,format=RGBA,width={},height={},framerate={}/1", m_settings.width,
+          m_settings.height, int(m_settings.rate)),
+      &m_logger);
   m_renderState = std::make_shared<score::gfx::RenderState>();
   m_update = onUpdate;
 
@@ -212,9 +201,7 @@ void ShmdataOutputNode::createOutput(
 
   auto rhi = m_renderState->rhi;
   m_texture = rhi->newTexture(
-      QRhiTexture::RGBA8,
-      m_renderState->renderSize,
-      1,
+      QRhiTexture::RGBA8, m_renderState->renderSize, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
   m_renderTarget = rhi->newTextureRenderTarget({m_texture});
@@ -236,10 +223,11 @@ std::shared_ptr<score::gfx::RenderState> ShmdataOutputNode::renderState() const
   return m_renderState;
 }
 
-
-score::gfx::OutputNodeRenderer* ShmdataOutputNode::createRenderer(score::gfx::RenderList& r) const noexcept
+score::gfx::OutputNodeRenderer*
+ShmdataOutputNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
-  score::gfx::TextureRenderTarget rt{m_texture, nullptr, m_renderState->renderPassDescriptor, m_renderTarget};
+  score::gfx::TextureRenderTarget rt{
+      m_texture, nullptr, m_renderState->renderPassDescriptor, m_renderTarget};
   return new Gfx::InvertYRenderer{rt, const_cast<QRhiReadbackResult&>(m_readback)};
 }
 
@@ -252,21 +240,20 @@ bool ShmdataOutputDevice::reconnect()
   try
   {
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
-    if (plug)
+    if(plug)
     {
       auto set = m_settings.deviceSpecificSettings.value<SharedOutputSettings>();
       m_protocol = new gfx_protocol_base{plug->exec};
       m_dev = std::make_unique<shmdata_output_device>(
-          set,
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+          set, std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           m_settings.name.toStdString());
     }
   }
-  catch (std::exception& e)
+  catch(std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
   }
-  catch (...)
+  catch(...)
   {
     // TODO save the reason of the non-connection.
   }
@@ -285,8 +272,7 @@ QString ShmdataOutputProtocolFactory::prettyName() const noexcept
 }
 
 Device::DeviceInterface* ShmdataOutputProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const Explorer::DeviceDocumentPlugin& doc,
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& doc,
     const score::DocumentContext& ctx)
 {
   return new ShmdataOutputDevice(settings, ctx);
@@ -316,14 +302,15 @@ ShmdataOutputSettingsWidget::ShmdataOutputSettingsWidget(QWidget* parent)
   m_deviceNameEdit->setText("Shmdata Out");
   ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Shmdata path");
 
-  auto helpLabel = new QLabel{tr("To test, use the following command: \n"
-                                 "$ gst-launch-1.0 shmdatasrc socket-path=<THE PATH> ! videoconvert ! xvimagesink")};
+  auto helpLabel
+      = new QLabel{tr("To test, use the following command: \n"
+                      "$ gst-launch-1.0 shmdatasrc socket-path=<THE PATH> ! "
+                      "videoconvert ! xvimagesink")};
   helpLabel->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
   m_layout->addRow(helpLabel);
 
   setSettings(ShmdataOutputProtocolFactory{}.defaultSettings());
 }
-
 
 Device::DeviceSettings ShmdataOutputSettingsWidget::getSettings() const
 {

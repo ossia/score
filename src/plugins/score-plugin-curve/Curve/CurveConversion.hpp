@@ -32,36 +32,29 @@ struct CurveTraits<double>
 };
 
 template <
-    typename X_T,
-    typename Y_T,
-    typename XScaleFun,
-    typename YScaleFun,
+    typename X_T, typename Y_T, typename XScaleFun, typename YScaleFun,
     typename Segments>
 std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
-    XScaleFun scale_x,
-    YScaleFun scale_y,
-    const Segments& segments,
+    XScaleFun scale_x, YScaleFun scale_y, const Segments& segments,
     const std::optional<ossia::destination>& tween)
 {
   auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
 
   auto start = segments[0]->start();
-  if (start.x() == 0.)
+  if(start.x() == 0.)
   {
     curve->set_x0(scale_x(start.x()));
     curve->set_y0(scale_y(start.y()));
   }
 
-  for (const auto& score_segment : segments)
+  for(const auto& score_segment : segments)
   {
     auto end = score_segment->end();
     curve->add_point(
-        (score_segment->*CurveTraits<Y_T>::fun)(),
-        scale_x(end.x()),
-        scale_y(end.y()));
+        (score_segment->*CurveTraits<Y_T>::fun)(), scale_x(end.x()), scale_y(end.y()));
   }
 
-  if (tween)
+  if(tween)
   {
     curve->set_y0_destination(*tween);
   }
@@ -71,27 +64,25 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
 
 // Simpler curve, between [0; 1]
 template <typename Segments>
-ossia::curve<double, float> floatCurve(
-    const Segments& segments,
-    const std::optional<ossia::destination>& tween)
+ossia::curve<double, float>
+floatCurve(const Segments& segments, const std::optional<ossia::destination>& tween)
 {
   ossia::curve<double, float> curve;
 
   auto start = segments[0]->start();
-  if (start.x() == 0.)
+  if(start.x() == 0.)
   {
     curve.set_x0(start.x());
     curve.set_y0(start.y());
   }
 
-  for (const auto& score_segment : segments)
+  for(const auto& score_segment : segments)
   {
     auto end = score_segment->end();
-    curve.add_point(
-        (score_segment->*CurveTraits<float>::fun)(), end.x(), end.y());
+    curve.add_point((score_segment->*CurveTraits<float>::fun)(), end.x(), end.y());
   }
 
-  if (tween)
+  if(tween)
   {
     curve.set_y0_destination(*tween);
   }

@@ -45,7 +45,7 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 
     // If we cannot find the key, it means that it's a new setting.
     // Hence we set the default value both in the QSettings and in the model.
-    if (!set.contains(e.key))
+    if(!set.contains(e.key))
     {
       set.setValue(e.key, QVariant::fromValue(e.def));
       (model.*param_type::set)(e.def);
@@ -82,8 +82,7 @@ void setupDefaultSettings(QSettings&, const T& tuple, Model& model)
     SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)      \
   };
 
-#define SCORE_SETTINGS_PARAMETER(ModelType, Name) \
-  SCORE_SETTINGS_COMMAND(ModelType, Name)
+#define SCORE_SETTINGS_PARAMETER(ModelType, Name) SCORE_SETTINGS_COMMAND(ModelType, Name)
 
 #define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)   \
   struct Set##ModelType##Name final                        \
@@ -96,22 +95,24 @@ void setupDefaultSettings(QSettings&, const T& tuple, Model& model)
 #define SCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \
   SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_PARAMETER_HPP(Export, Type, Name)                  \
-public:                                                                   \
-  Type get##Name() const;                                                 \
-  void set##Name(Type);                                                   \
-  void Name##Changed(Type arg)                                            \
-      E_SIGNAL2(Export##S, Export, Name##Changed, arg) PROPERTY(          \
-          Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed) \
+#define SCORE_SETTINGS_PARAMETER_HPP(Export, Type, Name)                        \
+public:                                                                         \
+  Type get##Name() const;                                                       \
+  void set##Name(Type);                                                         \
+  void Name##Changed(Type arg) E_SIGNAL2(Export##S, Export, Name##Changed, arg) \
+      PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed)  \
 private:
 
 #if !defined(__EMSCRIPTEN__)
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
-  Type ModelType::get##Name() const { return m_##Name; }             \
+  Type ModelType::get##Name() const                                  \
+  {                                                                  \
+    return m_##Name;                                                 \
+  }                                                                  \
                                                                      \
   void ModelType::set##Name(Type val)                                \
   {                                                                  \
-    if (val == m_##Name)                                             \
+    if(val == m_##Name)                                              \
       return;                                                        \
                                                                      \
     m_##Name = val;                                                  \
@@ -122,11 +123,14 @@ private:
   }
 #else
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
-  Type ModelType::get##Name() const { return m_##Name; }    \
+  Type ModelType::get##Name() const                         \
+  {                                                         \
+    return m_##Name;                                        \
+  }                                                         \
                                                             \
   void ModelType::set##Name(Type val)                       \
   {                                                         \
-    if (val == m_##Name)                                    \
+    if(val == m_##Name)                                     \
       return;                                               \
                                                             \
     m_##Name = val;                                         \
@@ -136,11 +140,14 @@ private:
 #endif
 
 #define SCORE_PROJECTSETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
-  Type ModelType::get##Name() const { return m_##Name; }           \
+  Type ModelType::get##Name() const                                \
+  {                                                                \
+    return m_##Name;                                               \
+  }                                                                \
                                                                    \
   void ModelType::set##Name(Type val)                              \
   {                                                                \
-    if (val == m_##Name)                                           \
+    if(val == m_##Name)                                            \
       return;                                                      \
                                                                    \
     m_##Name = val;                                                \

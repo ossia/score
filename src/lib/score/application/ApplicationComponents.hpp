@@ -7,6 +7,7 @@
 #include <score/tools/SafeCast.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
+
 #include <ossia/detail/hash.hpp>
 
 #include <score_lib_base_export.h>
@@ -25,8 +26,7 @@ class GUIApplicationPlugin;
 class PanelDelegate;
 
 using FindCommandKey = std::pair<CommandGroupKey, CommandKey>;
-struct CommandKeyHash
-    : std::hash<std::string>
+struct CommandKeyHash : std::hash<std::string>
 {
   std::size_t operator()(const FindCommandKey& val) const noexcept
   {
@@ -36,7 +36,7 @@ struct CommandKeyHash
     return seed;
   }
 };
-struct CommandStore: score::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>
+struct CommandStore : score::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>
 {
 public:
   using hopscotch_map::hopscotch_map;
@@ -48,18 +48,17 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
   ~ApplicationComponentsData();
   ApplicationComponentsData(const ApplicationComponentsData&) = delete;
   ApplicationComponentsData(ApplicationComponentsData&&) = delete;
-  ApplicationComponentsData& operator=(const ApplicationComponentsData&)
-      = delete;
+  ApplicationComponentsData& operator=(const ApplicationComponentsData&) = delete;
   ApplicationComponentsData& operator=(ApplicationComponentsData&&) = delete;
 
-  InterfaceListBase* findInterfaceList(const UuidKey<score::InterfaceBase>& k) const noexcept;
+  InterfaceListBase*
+  findInterfaceList(const UuidKey<score::InterfaceBase>& k) const noexcept;
 
   std::vector<score::Addon> addons;
   std::vector<ApplicationPlugin*> appPlugins;
   std::vector<GUIApplicationPlugin*> guiAppPlugins;
 
-  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>
-      factories;
+  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>> factories;
 
   CommandStore commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
@@ -81,9 +80,9 @@ public:
   template <typename T>
   T& applicationPlugin() const
   {
-    for (auto& elt : m_data.appPlugins)
+    for(auto& elt : m_data.appPlugins)
     {
-      if (auto c = dynamic_cast<T*>(elt))
+      if(auto c = dynamic_cast<T*>(elt))
       {
         return *c;
       }
@@ -96,9 +95,9 @@ public:
   template <typename T>
   T& guiApplicationPlugin() const
   {
-    for (auto& elt : m_data.guiAppPlugins)
+    for(auto& elt : m_data.guiAppPlugins)
     {
-      if (auto c = dynamic_cast<T*>(elt))
+      if(auto c = dynamic_cast<T*>(elt))
       {
         return *c;
       }
@@ -111,9 +110,9 @@ public:
   template <typename T>
   T* findApplicationPlugin() const
   {
-    for (auto& elt : m_data.appPlugins)
+    for(auto& elt : m_data.appPlugins)
     {
-      if (auto c = dynamic_cast<T*>(elt))
+      if(auto c = dynamic_cast<T*>(elt))
       {
         return c;
       }
@@ -125,9 +124,9 @@ public:
   template <typename T>
   T* findGuiApplicationPlugin() const
   {
-    for (auto& elt : m_data.guiAppPlugins)
+    for(auto& elt : m_data.guiAppPlugins)
     {
-      if (auto c = dynamic_cast<T*>(elt))
+      if(auto c = dynamic_cast<T*>(elt))
       {
         return c;
       }
@@ -141,9 +140,9 @@ public:
   template <typename T>
   T& panel() const
   {
-    for (auto& elt : m_data.panels)
+    for(auto& elt : m_data.panels)
     {
-      if (auto c = dynamic_cast<T*>(elt.get()))
+      if(auto c = dynamic_cast<T*>(elt.get()))
       {
         return *c;
       }
@@ -156,9 +155,9 @@ public:
   template <typename T>
   T* findPanel() const
   {
-    for (auto& elt : m_data.panels)
+    for(auto& elt : m_data.panels)
     {
-      if (auto c = dynamic_cast<T*>(elt.get()))
+      if(auto c = dynamic_cast<T*>(elt.get()))
       {
         return c;
       }
@@ -171,8 +170,7 @@ public:
   const T* findInterfaces() const
   {
     static_assert(
-        T::factory_list_tag,
-        "This needs to be called with a factory list class");
+        T::factory_list_tag, "This needs to be called with a factory list class");
 
     return static_cast<T*>(m_data.findInterfaceList(T::static_interfaceKey()));
   }
@@ -181,11 +179,10 @@ public:
   const T& interfaces() const
   {
     static_assert(
-        T::factory_list_tag,
-        "This needs to be called with a factory list class");
+        T::factory_list_tag, "This needs to be called with a factory list class");
 
     if(auto ptr = m_data.findInterfaceList(T::static_interfaceKey()))
-       return *safe_cast<T*>(ptr);
+      return *safe_cast<T*>(ptr);
 
     SCORE_ABORT;
     throw;

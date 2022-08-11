@@ -1,8 +1,9 @@
 #include "Commands.hpp"
 
+#include <Process/Dataflow/PortSerialization.hpp>
+
 #include <Vst/Control.hpp>
 #include <Vst/EffectModel.hpp>
-#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 namespace vst
@@ -86,8 +87,7 @@ RemoveControl::RemoveControl(const Model& obj, Id<Process::Port> id)
     SCORE_ASSERT(vst_inlet);
   }
   m_control = score::marshall<DataStream>(inlet);
-  m_cables
-      = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
+  m_cables = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
 }
 
 RemoveControl::~RemoveControl() { }

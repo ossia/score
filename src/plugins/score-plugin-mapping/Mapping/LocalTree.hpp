@@ -10,16 +10,10 @@ class MappingComponent final : public ProcessComponent_T<Mapping::ProcessModel>
 
 public:
   MappingComponent(
-      ossia::net::node_base& parent,
-      Mapping::ProcessModel& proc,
-      const score::DocumentContext& ctx,
-      QObject* parent_obj)
+      ossia::net::node_base& parent, Mapping::ProcessModel& proc,
+      const score::DocumentContext& ctx, QObject* parent_obj)
       : ProcessComponent_T<Mapping::ProcessModel>{
-          parent,
-          proc,
-          ctx,
-          "MappingComponent",
-          parent_obj}
+          parent, proc, ctx, "MappingComponent", parent_obj}
   {
     add<Mapping::ProcessModel::p_sourceMin>(proc);
     add<Mapping::ProcessModel::p_sourceMax>(proc);

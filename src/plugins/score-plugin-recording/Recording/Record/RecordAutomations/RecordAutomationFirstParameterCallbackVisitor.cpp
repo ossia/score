@@ -2,8 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RecordAutomationFirstParameterCallbackVisitor.hpp"
 
-#include <Automation/AutomationModel.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
+
+#include <Automation/AutomationModel.hpp>
 
 namespace Recording
 {
@@ -16,7 +17,7 @@ void RecordAutomationFirstCallbackVisitor::operator()(std::array<float, 2> val)
   const auto& proc_data = it->second;
 
   const constexpr std::size_t N = 2;
-  for (std::size_t i = 0; i < N; i++)
+  for(std::size_t i = 0; i < N; i++)
     proc_data[i].segment.addPoint(0, val[i]);
 }
 
@@ -28,7 +29,7 @@ void RecordAutomationFirstCallbackVisitor::operator()(std::array<float, 3> val)
   const auto& proc_data = it->second;
 
   const constexpr std::size_t N = 3;
-  for (std::size_t i = 0; i < N; i++)
+  for(std::size_t i = 0; i < N; i++)
     proc_data[i].segment.addPoint(0, val[i]);
 }
 
@@ -40,7 +41,7 @@ void RecordAutomationFirstCallbackVisitor::operator()(std::array<float, 4> val)
   const auto& proc_data = it->second;
 
   const constexpr std::size_t N = 4;
-  for (std::size_t i = 0; i < N; i++)
+  for(std::size_t i = 0; i < N; i++)
     proc_data[i].segment.addPoint(0, val[i]);
 }
 

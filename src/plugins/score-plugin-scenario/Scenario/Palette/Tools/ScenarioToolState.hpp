@@ -1,13 +1,13 @@
 #pragma once
-#include <score/model/Identifier.hpp>
-#include <score/statemachine/GraphicsSceneTool.hpp>
-
-#include <QGraphicsItem>
-
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/ObjectMapper.hpp>
+
+#include <score/model/Identifier.hpp>
+#include <score/statemachine/GraphicsSceneTool.hpp>
+
+#include <QGraphicsItem>
 
 #include <chrono>
 
@@ -24,16 +24,14 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
 
 template <typename PresenterContainer, typename IdToIgnore>
 QList<Id<typename PresenterContainer::model_type>> getCollidingModels(
-    const PresenterContainer& array,
-    const QVector<IdToIgnore>& ids,
-    QPointF scenePt)
+    const PresenterContainer& array, const QVector<IdToIgnore>& ids, QPointF scenePt)
 {
   using namespace std;
   QList<Id<typename PresenterContainer::model_type>> colliding;
 
-  for (const auto& elt : array)
+  for(const auto& elt : array)
   {
-    if (!ids.contains(elt.id()) && isUnderMouse(elt.view(), scenePt))
+    if(!ids.contains(elt.id()) && isUnderMouse(elt.view(), scenePt))
     {
       colliding.push_back(elt.model().id());
     }
@@ -58,32 +56,21 @@ public:
 
 protected:
   template <
-      typename EventFun,
-      typename StateFun,
-      typename TimeSyncFun,
-      typename IntervalFun,
-      typename LeftBraceFun,
-      typename RightBraceFun,
-      typename SlotHandleFun,
+      typename EventFun, typename StateFun, typename TimeSyncFun, typename IntervalFun,
+      typename LeftBraceFun, typename RightBraceFun, typename SlotHandleFun,
       typename NothingFun>
   void mapTopItem(
-      const QGraphicsItem* item,
-      StateFun st_fun,
-      EventFun ev_fun,
-      TimeSyncFun tn_fun,
-      IntervalFun cst_fun,
-      LeftBraceFun lbrace_fun,
-      RightBraceFun rbrace_fun,
-      SlotHandleFun handle_fun,
-      NothingFun nothing_fun) const
+      const QGraphicsItem* item, StateFun st_fun, EventFun ev_fun, TimeSyncFun tn_fun,
+      IntervalFun cst_fun, LeftBraceFun lbrace_fun, RightBraceFun rbrace_fun,
+      SlotHandleFun handle_fun, NothingFun nothing_fun) const
   {
-    if (!item)
+    if(!item)
     {
       nothing_fun();
       return;
     }
     auto tryFun = [=](auto fun, const auto& id) {
-      if (id)
+      if(id)
         fun(*id);
       else
         nothing_fun();
@@ -94,7 +81,7 @@ protected:
     // The itemToXXXId methods check that we are in the correct scenario, too.
     auto parent = &this->m_palette.model();
 
-    switch (item->type())
+    switch(item->type())
     {
       case ItemType::Condition:
         tryFun(ev_fun, itemToConditionId(item, parent));
@@ -133,17 +120,15 @@ protected:
         tryFun(st_fun, itemToStateId(item, parent));
         break;
 
-      case ItemType::SlotFooter:
-      {
-        if (auto slot = itemToIntervalFromFooter(item, parent))
+      case ItemType::SlotFooter: {
+        if(auto slot = itemToIntervalFromFooter(item, parent))
           handle_fun(*slot);
         else
           nothing_fun();
         break;
       }
-      case ItemType::SlotFooterDelegate:
-      {
-        if (auto slot = itemToIntervalFromFooter(item->parentItem(), parent))
+      case ItemType::SlotFooterDelegate: {
+        if(auto slot = itemToIntervalFromFooter(item->parentItem(), parent))
           handle_fun(*slot);
         else
           nothing_fun();

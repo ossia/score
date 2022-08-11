@@ -6,11 +6,10 @@ namespace Process
 {
 
 ChangePortSettings::ChangePortSettings(
-    const Process::Port& p,
-    Device::FullAddressAccessorSettings addr)
-  : m_model{p}
-  , m_old{p.settings()}
-  , m_new{std::move(addr)}
+    const Process::Port& p, Device::FullAddressAccessorSettings addr)
+    : m_model{p}
+    , m_old{p.settings()}
+    , m_new{std::move(addr)}
 {
 }
 

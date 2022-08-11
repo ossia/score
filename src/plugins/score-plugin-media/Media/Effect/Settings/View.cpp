@@ -28,9 +28,9 @@ View::View()
   auto& ctx = score::AppContext();
   auto& tabs = ctx.interfaces<PluginSettingsFactoryList>();
 
-  for (auto& tab : tabs)
+  for(auto& tab : tabs)
   {
-    if (auto widg = tab.make(ctx))
+    if(auto widg = tab.make(ctx))
     {
       m_widg->addTab(widg, tab.name());
     }

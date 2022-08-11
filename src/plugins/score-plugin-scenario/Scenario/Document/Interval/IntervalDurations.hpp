@@ -40,14 +40,14 @@ public:
 
   TimeVal minDuration() const
   {
-    if (m_isMinNull)
+    if(m_isMinNull)
       return TimeVal::zero();
     return m_minDuration;
   }
 
   TimeVal maxDuration() const
   {
-    if (m_isMaxInfinite)
+    if(m_isMaxInfinite)
       return TimeVal{TimeVal::infinity};
     return m_maxDuration;
   }
@@ -75,7 +75,7 @@ public:
   void setMaxInfinite(bool isMaxInfinite);
   void setSpeed(double Speed)
   {
-    if (m_speed == Speed)
+    if(m_speed == Speed)
       return;
 
     m_speed = Speed;
@@ -114,23 +114,14 @@ public:
   void guiDurationChanged(TimeVal guiDuration)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, guiDurationChanged, guiDuration)
 
-  PROPERTY(
-      double,
-      speed READ speed WRITE setSpeed NOTIFY speedChanged,
-      W_Final)
+  PROPERTY(double, speed READ speed WRITE setSpeed NOTIFY speedChanged, W_Final)
   PROPERTY(
       bool,
-      isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY
-          maxInfiniteChanged,
+      isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged,
       W_Final)
   PROPERTY(
-      bool,
-      isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged,
-      W_Final)
-  PROPERTY(
-      bool,
-      isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged,
-      W_Final)
+      bool, isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged, W_Final)
+  PROPERTY(bool, isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged, W_Final)
   PROPERTY(
       double,
       percentage READ playPercentage WRITE setPlayPercentage NOTIFY
@@ -138,16 +129,13 @@ public:
       W_Final)
   PROPERTY(
       TimeVal,
-      guiDuration READ guiDuration WRITE setGuiDuration NOTIFY
-          guiDurationChanged,
+      guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged,
       W_Final)
   PROPERTY(
-      TimeVal,
-      max READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged,
+      TimeVal, max READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged,
       W_Final)
   PROPERTY(
-      TimeVal,
-      min READ minDuration WRITE setMinDuration NOTIFY minDurationChanged,
+      TimeVal, min READ minDuration WRITE setMinDuration NOTIFY minDurationChanged,
       W_Final)
   PROPERTY(
       TimeVal,

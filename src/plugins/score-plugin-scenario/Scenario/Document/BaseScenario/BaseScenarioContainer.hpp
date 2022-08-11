@@ -1,11 +1,12 @@
 #pragma once
+#include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <tuple>
@@ -21,8 +22,7 @@ class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer
-    : public ScenarioInterface
+class SCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInterface
 {
   SCORE_SERIALIZE_FRIENDS
 public:
@@ -30,12 +30,9 @@ public:
   {
   };
   explicit BaseScenarioContainer(
-      const score::DocumentContext& ctx,
-      QObject* parentObject);
+      const score::DocumentContext& ctx, QObject* parentObject);
   explicit BaseScenarioContainer(
-      no_init,
-      const score::DocumentContext& ctx,
-      QObject* parentObject);
+      no_init, const score::DocumentContext& ctx, QObject* parentObject);
 
   virtual ~BaseScenarioContainer() override;
   const score::DocumentContext& context() const noexcept { return m_context; }
@@ -59,13 +56,11 @@ public:
     return {m_startNode, m_endNode};
   }
 
-  IntervalModel*
-  findInterval(const Id<IntervalModel>& id) const final override;
+  IntervalModel* findInterval(const Id<IntervalModel>& id) const final override;
 
   EventModel* findEvent(const Id<EventModel>& id) const final override;
 
-  TimeSyncModel*
-  findTimeSync(const Id<TimeSyncModel>& id) const final override;
+  TimeSyncModel* findTimeSync(const Id<TimeSyncModel>& id) const final override;
 
   StateModel* findState(const Id<StateModel>& id) const final override;
 
@@ -88,10 +83,7 @@ public:
   StateModel& startState() const;
   StateModel& endState() const;
 
-  score::IndirectArray<IntervalModel, 1> intervals() const
-  {
-    return m_interval;
-  }
+  score::IndirectArray<IntervalModel, 1> intervals() const { return m_interval; }
   score::IndirectArray<EventModel, 2> events() const
   {
     return {m_startEvent, m_endEvent};
@@ -121,12 +113,7 @@ protected:
   auto elements() const
   {
     return std::make_tuple(
-        m_startNode,
-        m_endNode,
-        m_startEvent,
-        m_endEvent,
-        m_startState,
-        m_endState,
+        m_startNode, m_endNode, m_startEvent, m_endEvent, m_startState, m_endState,
         m_interval);
   }
 

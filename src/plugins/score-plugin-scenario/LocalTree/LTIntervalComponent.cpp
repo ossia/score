@@ -2,8 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalComponent.hpp"
 
-#include <Process/Dataflow/Port.hpp>
 #include <State/Expression.hpp>
+
+#include <Process/Dataflow/Port.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -13,10 +14,10 @@ namespace State::convert
 template <>
 State::AddressAccessor value(const ossia::value& val)
 {
-  if (val.get_type() == ossia::val_type::STRING)
+  if(val.get_type() == ossia::val_type::STRING)
   {
-    if (auto res = State::parseAddressAccessor(
-            QString::fromStdString(*val.target<std::string>())))
+    if(auto res
+       = State::parseAddressAccessor(QString::fromStdString(*val.target<std::string>())))
       return *res;
   }
   return {};
@@ -67,10 +68,7 @@ namespace LocalTree
 {
 template <typename Property, typename Object>
 auto add_value_property(
-    ossia::net::node_base& n,
-    Object& obj,
-    const std::string& name,
-    QObject* context)
+    ossia::net::node_base& n, Object& obj, const std::string& name, QObject* context)
 {
   auto node = n.create_child(name);
   SCORE_ASSERT(node);
@@ -86,58 +84,53 @@ class DefaultProcessComponent final : public ProcessComponent
   COMMON_COMPONENT_METADATA("0b801b8f-41db-49ca-a396-c26aadf3f1b5")
 public:
   DefaultProcessComponent(
-      ossia::net::node_base& node,
-      Process::ProcessModel& proc,
-      const score::DocumentContext& doc,
-      QObject* parent)
+      ossia::net::node_base& node, Process::ProcessModel& proc,
+      const score::DocumentContext& doc, QObject* parent)
       : ProcessComponent{node, proc, doc, "ProcessComponent", parent}
   {
     try
     {
-      for (Process::Inlet* inlet : proc.inlets())
+      for(Process::Inlet* inlet : proc.inlets())
       {
-        if (auto control = dynamic_cast<Process::ControlInlet*>(inlet))
+        if(auto control = dynamic_cast<Process::ControlInlet*>(inlet))
         {
-          if (!inlet->exposed().isEmpty())
+          if(!inlet->exposed().isEmpty())
           {
             m_properties.push_back(add_property<Process::Inlet::p_address>(
                 this->node(), *inlet, inlet->exposed().toStdString(), this));
             auto& port_node = m_properties.back()->addr.get_node();
-            m_properties.push_back(
-                add_value_property<Process::ControlInlet::p_value>(
-                    port_node, *control, "value", this));
+            m_properties.push_back(add_value_property<Process::ControlInlet::p_value>(
+                port_node, *control, "value", this));
           }
         }
       }
 
-      for (auto& outlet : proc.outlets())
+      for(auto& outlet : proc.outlets())
       {
-        if (auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
+        if(auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
         {
-          if (!outlet->exposed().isEmpty())
+          if(!outlet->exposed().isEmpty())
           {
             m_properties.push_back(add_property<Process::Outlet::p_address>(
                 this->node(), *outlet, outlet->exposed().toStdString(), this));
             auto& port_node = m_properties.back()->addr.get_node();
-            m_properties.push_back(
-                add_value_property<Process::ControlOutlet::p_value>(
-                    port_node, *control, "value", this));
+            m_properties.push_back(add_value_property<Process::ControlOutlet::p_value>(
+                port_node, *control, "value", this));
           }
         }
       }
     }
-    catch (...)
+    catch(...)
     {
     }
   }
 };
 
 IntervalBase::IntervalBase(
-    ossia::net::node_base& parent,
-    Scenario::IntervalModel& interval,
-    const score::DocumentContext& doc,
-    QObject* parent_comp)
-    : parent_t{parent, interval.metadata(), interval, doc, "IntervalComponent", parent_comp}
+    ossia::net::node_base& parent, Scenario::IntervalModel& interval,
+    const score::DocumentContext& doc, QObject* parent_comp)
+    : parent_t{parent, interval.metadata(), interval,
+               doc,    "IntervalComponent", parent_comp}
     , m_processesNode{*node().create_child("processes")}
 {
   using namespace Scenario;
@@ -151,27 +144,23 @@ IntervalBase::IntervalBase(
   add<IntervalModel::p_muted>(interval);
 }
 
-ProcessComponent* IntervalBase::make(
-    ProcessComponentFactory& factory,
-    Process::ProcessModel& process)
+ProcessComponent*
+IntervalBase::make(ProcessComponentFactory& factory, Process::ProcessModel& process)
 {
   return factory.make(m_processesNode, process, system(), this);
 }
 
-ProcessComponent* IntervalBase::make(
-    Process::ProcessModel& process)
+ProcessComponent* IntervalBase::make(Process::ProcessModel& process)
 {
-  if (!process.metadata().getName().isEmpty())
+  if(!process.metadata().getName().isEmpty())
   {
-    return new DefaultProcessComponent{
-        m_processesNode, process, system(), this};
+    return new DefaultProcessComponent{m_processesNode, process, system(), this};
   }
   return nullptr;
 }
 
 bool IntervalBase::removing(
-    const Process::ProcessModel& cst,
-    const ProcessComponent& comp)
+    const Process::ProcessModel& cst, const ProcessComponent& comp)
 {
   return true;
 }

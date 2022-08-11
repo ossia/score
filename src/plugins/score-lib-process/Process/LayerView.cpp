@@ -20,9 +20,9 @@ HeaderDelegate::~HeaderDelegate() { }
 LayerView::~LayerView()
 {
   const auto& items = childItems();
-  for (auto item : items)
+  for(auto item : items)
   {
-    if (item->type() == Dataflow::CableItem::Type)
+    if(item->type() == Dataflow::CableItem::Type)
     {
       item->setParentItem(nullptr);
     }
@@ -44,12 +44,12 @@ LayerView::LayerView(QGraphicsItem* parent)
 
 void LayerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  if (auto p = parentItem())
+  if(auto p = parentItem())
     p->unsetCursor();
 }
 void LayerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  if (auto p = parentItem())
+  if(auto p = parentItem())
     p->unsetCursor();
 }
 
@@ -59,9 +59,7 @@ QRectF LayerView::boundingRect() const
 }
 
 void LayerView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   paint_impl(painter);
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
@@ -73,7 +71,7 @@ void LayerView::paint(
 
 void LayerView::setHeight(qreal height) noexcept
 {
-  if (height != m_height)
+  if(height != m_height)
   {
     prepareGeometryChange();
     m_height = height;
@@ -83,7 +81,7 @@ void LayerView::setHeight(qreal height) noexcept
 
 void LayerView::setWidth(qreal width) noexcept
 {
-  if (width != m_width)
+  if(width != m_width)
   {
     prepareGeometryChange();
     m_width = width;
@@ -95,7 +93,7 @@ QPixmap LayerView::pixmap() noexcept
 {
   // Retrieve the bounding rect
   QRect rect = boundingRect().toRect();
-  if (rect.isNull() || !rect.isValid())
+  if(rect.isNull() || !rect.isValid())
   {
     return QPixmap();
   }
@@ -112,7 +110,7 @@ QPixmap LayerView::pixmap() noexcept
   painter.translate(-rect.topLeft());
   paint(&painter, &item, nullptr);
   const auto& items = childItems();
-  for (QGraphicsItem* child : items)
+  for(QGraphicsItem* child : items)
   {
     painter.save();
     painter.translate(child->mapToParent(pos()));
@@ -128,11 +126,11 @@ QPixmap LayerView::pixmap() noexcept
 void LayerView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   const auto& formats = event->mimeData()->formats();
-  if (formats.contains(score::mime::layerdata()))
+  if(formats.contains(score::mime::layerdata()))
   {
     event->accept();
   }
-  else if (formats.contains(score::mime::processpreset()))
+  else if(formats.contains(score::mime::processpreset()))
   {
     // TODO check if this is the right process
     event->accept();
@@ -150,7 +148,7 @@ void LayerView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   const auto& formats = event->mimeData()->formats();
-  if (formats.contains(score::mime::processpreset()))
+  if(formats.contains(score::mime::processpreset()))
   {
     event->accept();
     presetDropReceived(event->pos(), *event->mimeData());
@@ -172,9 +170,7 @@ QRectF MiniLayer::boundingRect() const
 }
 
 void MiniLayer::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   paint_impl(painter);
 }

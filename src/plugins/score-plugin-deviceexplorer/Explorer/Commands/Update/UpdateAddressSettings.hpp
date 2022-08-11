@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
@@ -17,13 +18,10 @@ namespace Command
 class UpdateAddressSettings final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      UpdateAddressSettings,
-      "Update an address")
+      DeviceExplorerCommandFactoryName(), UpdateAddressSettings, "Update an address")
 public:
   UpdateAddressSettings(
-      const DeviceDocumentPlugin& devplug,
-      const Device::NodePath& node,
+      const DeviceDocumentPlugin& devplug, const Device::NodePath& node,
       const Device::AddressSettings& parameters);
 
   void undo(const score::DocumentContext& ctx) const override;

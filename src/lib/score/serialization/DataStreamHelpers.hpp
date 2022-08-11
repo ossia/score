@@ -18,11 +18,11 @@
 #include <QVector3D>
 #include <QVector4D>
 #include <QtContainerFwd>
+
 #include <score_lib_base_export.h>
 
 #include <memory>
 #include <string>
-
 #include <type_traits>
 
 template <typename T>
@@ -51,22 +51,22 @@ static constexpr bool is_qpointer_v = is_qpointer<T>::value;
   do                                 \
   {                                  \
     insertDelimiter();               \
-  } while (0)
+  } while(0)
 #define SCORE_DEBUG_INSERT_DELIMITER2(Vis) \
   do                                       \
   {                                        \
     Vis.insertDelimiter();                 \
-  } while (0)
+  } while(0)
 #define SCORE_DEBUG_CHECK_DELIMITER \
   do                                \
   {                                 \
     checkDelimiter();               \
-  } while (0)
+  } while(0)
 #define SCORE_DEBUG_CHECK_DELIMITER2(Vis) \
   do                                      \
   {                                       \
     Vis.checkDelimiter();                 \
-  } while (0)
+  } while(0)
 #else
 #define SCORE_DEBUG_INSERT_DELIMITER
 #define SCORE_DEBUG_INSERT_DELIMITER2(Vis)
@@ -96,9 +96,7 @@ struct is_QDataStreamSerializable : std::false_type
 
 template <class T>
 struct is_QDataStreamSerializable<
-    T,
-    enable_if_QDataStreamSerializable<typename std::decay<T>::type>>
-    : std::true_type
+    T, enable_if_QDataStreamSerializable<typename std::decay<T>::type>> : std::true_type
 {
 };
 
@@ -109,10 +107,9 @@ SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& s, char& c);
 
 SCORE_LIB_BASE_EXPORT QDataStream&
 operator<<(QDataStream& stream, const std::string& obj);
-SCORE_LIB_BASE_EXPORT QDataStream&
-operator>>(QDataStream& stream, std::string& obj);
+SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& stream, std::string& obj);
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+#if(QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
 template <typename T>
 typename std::enable_if<std::is_enum<T>::value, QDataStream&>::type&
 operator<<(QDataStream& s, const T& t)
@@ -139,7 +136,7 @@ struct DataStreamOutput
   QDataStream& stream;
 };
 
-#if (INTPTR_MAX == INT64_MAX) && !defined(__APPLE__) && !defined(_WIN32)
+#if(INTPTR_MAX == INT64_MAX) && !defined(__APPLE__) && !defined(_WIN32)
 #define SCORE_INT64_IS_QINT64
 #endif
 
@@ -166,7 +163,7 @@ inline QDataStream& operator>>(QDataStream& s, int64_t& val)
 }
 #endif
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+#if(QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 #if defined(__APPLE__) || defined(__EMSCRIPTEN__)
 inline QDataStream& operator<<(QDataStream& s, std::size_t val)
 {
@@ -239,7 +236,7 @@ DATASTREAM_QT_BUILTIN(QVariant)
 DATASTREAM_QT_BUILTIN(std::string)
 
 template <typename T>
-DataStreamInput& operator<<(DataStreamInput& s, const QList<T>& obj) = delete;                                                        \
+DataStreamInput& operator<<(DataStreamInput& s, const QList<T>& obj) = delete;
 template <typename T>
 DataStreamOutput& operator>>(DataStreamOutput& s, const QList<T>& obj) = delete;
 
@@ -255,11 +252,10 @@ DataStreamOutput& operator>>(DataStreamOutput& s, const QHash<K, V>& obj) = dele
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 template <typename T>
-DataStreamInput& operator<<(DataStreamInput& s, const QVector<T>& obj) = delete;                                                        \
+DataStreamInput& operator<<(DataStreamInput& s, const QVector<T>& obj) = delete;
 template <typename T>
-DataStreamOutput& operator>>(DataStreamOutput& s,const QVector<T>& obj) = delete;
+DataStreamOutput& operator>>(DataStreamOutput& s, const QVector<T>& obj) = delete;
 #endif
-
 
 template <typename T, std::enable_if_t<std::is_enum_v<T>>* = nullptr>
 OSSIA_INLINE DataStreamInput& operator<<(DataStreamInput& s, const T& obj)

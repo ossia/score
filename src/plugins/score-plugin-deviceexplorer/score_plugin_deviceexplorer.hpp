@@ -33,8 +33,7 @@ public:
 
 private:
   // Factory for protocols
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext& ctx,
@@ -44,6 +43,5 @@ private:
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

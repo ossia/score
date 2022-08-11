@@ -1,9 +1,10 @@
 #pragma once
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/PropertyCommand.hpp>
 
 #include <Interpolation/InterpolationProcess.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Interpolation
 {
@@ -11,16 +12,12 @@ class ProcessModel;
 class ChangeAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      ChangeAddress,
+      Scenario::Command::CommandFactoryName(), ChangeAddress,
       "Change Interpolation Address")
 public:
   ChangeAddress(
-      const ProcessModel& proc,
-      const State::AddressAccessor& addr,
-      const ossia::value& start,
-      const ossia::value& end,
-      const State::Unit& u);
+      const ProcessModel& proc, const State::AddressAccessor& addr,
+      const ossia::value& start, const ossia::value& end, const State::Unit& u);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;
@@ -39,17 +36,14 @@ private:
 };
 
 void ChangeInterpolationAddress(
-    const Interpolation::ProcessModel& proc,
-    const ::State::AddressAccessor& addr,
+    const Interpolation::ProcessModel& proc, const ::State::AddressAccessor& addr,
     CommandDispatcher<>& disp);
 
 // MOVEME && should apply to both Interpolation and Automation
 class SetTween final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      SetTween,
-      "Set interpolation tween")
+      Scenario::Command::CommandFactoryName(), SetTween, "Set interpolation tween")
 public:
   SetTween(const ProcessModel& path, bool newval)
       : score::PropertyCommand{std::move(path), "tween", newval}

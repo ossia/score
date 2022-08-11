@@ -1,5 +1,6 @@
 #include <JitCpp/AddonCompiler.hpp>
 #include <JitCpp/Compiler/Driver.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Jit::AddonCompiler)
@@ -21,10 +22,7 @@ namespace Jit
 AddonCompiler::AddonCompiler()
 {
   connect(
-      this,
-      &AddonCompiler::submitJob,
-      this,
-      &AddonCompiler::on_job,
+      this, &AddonCompiler::submitJob, this, &AddonCompiler::on_job,
       Qt::QueuedConnection);
   //this->moveToThread(&m_thread);
   //m_thread.start();
@@ -37,9 +35,7 @@ AddonCompiler::~AddonCompiler()
 }
 
 void AddonCompiler::on_job(
-    std::string id,
-    std::string cpp,
-    std::vector<std::string> flags,
+    std::string id, std::string cpp, std::vector<std::string> flags,
     CompilerOptions opts)
 {
   try
@@ -59,7 +55,7 @@ void AddonCompiler::on_job(
     qDebug() << "Calling compiler...";
     auto jitedFn = (*ctx.back())(cpp, flags, opts);
 
-    if (!jitedFn)
+    if(!jitedFn)
     {
       qDebug() << "could not compile plug-in: no factory";
       jobFailed();
@@ -68,7 +64,7 @@ void AddonCompiler::on_job(
 
     qDebug() << "Invoking instance...";
     auto instance = jitedFn();
-    if (!instance)
+    if(!instance)
     {
       qDebug() << "could not compile plug-in: no instance";
       jobFailed();
@@ -80,7 +76,7 @@ void AddonCompiler::on_job(
       jobCompleted(instance);
     }
   }
-  catch (const std::runtime_error& e)
+  catch(const std::runtime_error& e)
   {
     qDebug() << "could not compile plug-in: " << e.what();
     jobFailed();

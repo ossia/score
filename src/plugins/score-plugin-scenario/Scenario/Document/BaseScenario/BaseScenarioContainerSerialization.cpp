@@ -2,16 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "BaseScenarioContainer.hpp"
 
-#include <score/document/DocumentContext.hpp>
-#include <score/model/EntitySerialization.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
@@ -34,8 +34,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
-  base_scenario.m_interval = new IntervalModel{
-      *this, base_scenario.context(), base_scenario.m_parent};
+  base_scenario.m_interval
+      = new IntervalModel{*this, base_scenario.context(), base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{*this, base_scenario.m_parent};
   base_scenario.m_endNode = new TimeSyncModel{*this, base_scenario.m_parent};
@@ -48,10 +48,8 @@ DataStreamWriter::write(Scenario::BaseScenarioContainer& base_scenario)
   base_scenario.m_endState
       = new StateModel{*this, base_scenario.context(), base_scenario.m_parent};
 
-  Scenario::SetPreviousInterval(
-      *base_scenario.m_endState, *base_scenario.m_interval);
-  Scenario::SetNextInterval(
-      *base_scenario.m_startState, *base_scenario.m_interval);
+  Scenario::SetPreviousInterval(*base_scenario.m_endState, *base_scenario.m_interval);
+  Scenario::SetNextInterval(*base_scenario.m_startState, *base_scenario.m_interval);
 }
 
 template <>
@@ -76,8 +74,7 @@ JSONWriter::write(Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
   base_scenario.m_interval = new IntervalModel{
-      JSONObject::Deserializer{obj["Constraint"]},
-      base_scenario.context(),
+      JSONObject::Deserializer{obj["Constraint"]}, base_scenario.context(),
       base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{
@@ -91,16 +88,12 @@ JSONWriter::write(Scenario::BaseScenarioContainer& base_scenario)
       JSONObject::Deserializer{obj["EndEvent"]}, base_scenario.m_parent};
 
   base_scenario.m_startState = new StateModel{
-      JSONObject::Deserializer{obj["StartState"]},
-      base_scenario.context(),
+      JSONObject::Deserializer{obj["StartState"]}, base_scenario.context(),
       base_scenario.m_parent};
   base_scenario.m_endState = new StateModel{
-      JSONObject::Deserializer{obj["EndState"]},
-      base_scenario.context(),
+      JSONObject::Deserializer{obj["EndState"]}, base_scenario.context(),
       base_scenario.m_parent};
 
-  Scenario::SetPreviousInterval(
-      *base_scenario.m_endState, *base_scenario.m_interval);
-  Scenario::SetNextInterval(
-      *base_scenario.m_startState, *base_scenario.m_interval);
+  Scenario::SetPreviousInterval(*base_scenario.m_endState, *base_scenario.m_interval);
+  Scenario::SetNextInterval(*base_scenario.m_startState, *base_scenario.m_interval);
 }

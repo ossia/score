@@ -2,12 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDisplayedElementsProvider.hpp"
 
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <QObject>
-
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
@@ -17,6 +11,12 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <QObject>
 
 namespace Scenario
 {
@@ -28,8 +28,7 @@ bool ScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
 DisplayedElementsContainer
 ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
-  if (auto parent_scenario
-      = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
+  if(auto parent_scenario = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
   {
     auto& sst = parent_scenario->states.at(cst.startState());
     auto& est = parent_scenario->states.at(cst.endState());
@@ -48,15 +47,11 @@ ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
   return {};
 }
 
-DisplayedElementsPresenterContainer
-ScenarioDisplayedElementsProvider::make_presenters(
-    ZoomRatio zoom,
-    const IntervalModel& m,
-    const Process::Context& ctx,
-    QGraphicsItem* view_parent,
-    QObject* parent) const
+DisplayedElementsPresenterContainer ScenarioDisplayedElementsProvider::make_presenters(
+    ZoomRatio zoom, const IntervalModel& m, const Process::Context& ctx,
+    QGraphicsItem* view_parent, QObject* parent) const
 {
-  if (auto sm = dynamic_cast<Scenario::ProcessModel*>(m.parent()))
+  if(auto sm = dynamic_cast<Scenario::ProcessModel*>(m.parent()))
   {
     const auto& startState = sm->states.at(m.startState());
     const auto& endState = sm->states.at(m.endState());
@@ -84,8 +79,7 @@ bool DefaultDisplayedElementsProvider::matches(const IntervalModel& cst) const
 DisplayedElementsContainer
 DefaultDisplayedElementsProvider::make(IntervalModel& cst) const
 {
-  if (auto parent_scenario
-      = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
+  if(auto parent_scenario = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
   {
     auto& sst = parent_scenario->state(cst.startState());
     auto& est = parent_scenario->state(cst.endState());
@@ -104,15 +98,11 @@ DefaultDisplayedElementsProvider::make(IntervalModel& cst) const
   return {};
 }
 
-DisplayedElementsPresenterContainer
-DefaultDisplayedElementsProvider::make_presenters(
-    ZoomRatio zoom,
-    const IntervalModel& m,
-    const Process::Context& ctx,
-    QGraphicsItem* view_parent,
-    QObject* parent) const
+DisplayedElementsPresenterContainer DefaultDisplayedElementsProvider::make_presenters(
+    ZoomRatio zoom, const IntervalModel& m, const Process::Context& ctx,
+    QGraphicsItem* view_parent, QObject* parent) const
 {
-  if (auto sm = dynamic_cast<Scenario::ScenarioInterface*>(m.parent()))
+  if(auto sm = dynamic_cast<Scenario::ScenarioInterface*>(m.parent()))
   {
     const auto& startState = sm->state(m.startState());
     const auto& endState = sm->state(m.endState());

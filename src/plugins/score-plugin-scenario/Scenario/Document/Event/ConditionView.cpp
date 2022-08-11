@@ -4,6 +4,8 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Document/Event/EventModel.hpp>
+
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -12,7 +14,6 @@
 #include <QVector>
 #include <qnamespace.h>
 
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ConditionView)
 namespace Scenario
@@ -25,8 +26,7 @@ static const QPainterPath conditionTrianglePath{[] {
   s.setJoinStyle(Qt::RoundJoin);
   s.setWidth(2);
 
-  p.addPolygon(
-      QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
+  p.addPolygon(QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
   p.closeSubpath();
 
   return (p + s.createStroke(p)).simplified();
@@ -48,24 +48,18 @@ QRectF ConditionView::boundingRect() const
   constexpr qreal m_width = 40.;
   constexpr double penWidth = 0.;
   return QRectF{
-      -penWidth,
-      -penWidth,
-      m_width + penWidth,
-      m_height + ConditionCHeight + penWidth};
+      -penWidth, -penWidth, m_width + penWidth, m_height + ConditionCHeight + penWidth};
 }
 
 void ConditionView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& style = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   const score::Brush& col
       = !m_selected
-            ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(
-                style)
+            ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
             : style.IntervalSelected();
 
   painter->setPen(style.ConditionPen(col));
@@ -84,7 +78,7 @@ void ConditionView::paint(
 
 void ConditionView::changeHeight(qreal newH)
 {
-  if (qFuzzyCompare(m_height, newH))
+  if(qFuzzyCompare(m_height, newH))
     return;
   setHeight(newH);
 }
@@ -101,14 +95,12 @@ void ConditionView::setHeight(qreal newH)
   m_height = newH;
 
   m_Cpath = QPainterPath();
-  static constexpr const QSizeF conditionCSize{
-      ConditionCHeight, ConditionCHeight};
+  static constexpr const QSizeF conditionCSize{ConditionCHeight, ConditionCHeight};
 
   const auto brect = boundingRect();
   QRectF rect(brect.topLeft(), conditionCSize);
   QRectF bottomRect(
-      QPointF(
-          brect.bottomLeft().x(), brect.bottomLeft().y() - ConditionCHeight),
+      QPointF(brect.bottomLeft().x(), brect.bottomLeft().y() - ConditionCHeight),
       conditionCSize);
 
   m_Cpath.moveTo(brect.width() / 2., 2.);
@@ -125,7 +117,7 @@ void ConditionView::setHeight(qreal newH)
 
 void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::MouseButton::LeftButton && contains(event->pos()))
+  if(event->button() == Qt::MouseButton::LeftButton && contains(event->pos()))
   {
     event->accept();
     pressed(event->scenePos());

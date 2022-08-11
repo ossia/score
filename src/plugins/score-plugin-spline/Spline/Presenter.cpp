@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Focus/FocusDispatcher.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -11,35 +13,30 @@
 
 #include <QTimer>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Spline/Model.hpp>
 #include <Spline/Presenter.hpp>
 #include <Spline/View.hpp>
+
 #include <wobjectimpl.h>
 namespace Spline
 {
 Presenter::Presenter(
-    const Spline::ProcessModel& layer,
-    View* view,
-    const Process::Context& ctx,
+    const Spline::ProcessModel& layer, View* view, const Process::Context& ctx,
     QObject* parent)
     : LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
 {
   putToFront();
-  con(layer, &ProcessModel::splineChanged, this, [&] {
-    m_view->setSpline(layer.spline());
-  });
+  con(layer, &ProcessModel::splineChanged, this,
+      [&] { m_view->setSpline(layer.spline()); });
 
   m_view->setSpline(layer.spline());
   connect(m_view, &View::changed, this, [&] {
     context().context.dispatcher.submit<ChangeSpline>(layer, m_view->spline());
   });
-  connect(m_view, &View::released, this, [&] {
-    context().context.dispatcher.commit();
-  });
+  connect(m_view, &View::released, this, [&] { context().context.dispatcher.commit(); });
 
-  if (auto itv = Scenario::closestParentInterval(layer.parent()))
+  if(auto itv = Scenario::closestParentInterval(layer.parent()))
   {
     auto& dur = itv->duration;
     con(ctx.execTimer, &QTimer::timeout, this, [this, &dur] {
@@ -49,12 +46,10 @@ Presenter::Presenter(
       }
     });
 
-    con(layer, &ProcessModel::stopExecution, this, [this] {
-      ((View*)m_view)->setPlayPercentage(0.f);
-    });
-    con(layer, &ProcessModel::resetExecution, this, [this] {
-      ((View*)m_view)->setPlayPercentage(0.f);
-    });
+    con(layer, &ProcessModel::stopExecution, this,
+        [this] { ((View*)m_view)->setPlayPercentage(0.f); });
+    con(layer, &ProcessModel::resetExecution, this,
+        [this] { ((View*)m_view)->setPlayPercentage(0.f); });
   }
 }
 

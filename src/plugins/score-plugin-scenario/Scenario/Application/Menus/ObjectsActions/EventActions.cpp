@@ -4,22 +4,6 @@
 
 #include <Process/ProcessContext.hpp>
 
-#include <score/actions/ActionManager.hpp>
-#include <score/actions/MenuManager.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/widgets/SetIcons.hpp>
-#include <score/selection/SelectionStack.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-
-#include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
-
-#include <QAction>
-#include <QMenu>
-#include <QSet>
-#include <QToolBar>
-
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
@@ -31,6 +15,22 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/MenuManager.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/widgets/SetIcons.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+
+#include <QAction>
+#include <QMenu>
+#include <QSet>
+#include <QToolBar>
+
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
@@ -38,23 +38,18 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
     , m_triggerCommandFactory{
           parent->context.interfaces<Command::TriggerCommandFactoryList>()}
 {
-  if (!parent->context.applicationSettings.gui)
+  if(!parent->context.applicationSettings.gui)
     return;
   using namespace score;
 
   /// Add Trigger ///
   m_addTrigger = new QAction{tr("Enable trigger"), this};
-  connect(
-      m_addTrigger,
-      &QAction::triggered,
-      this,
-      &EventActions::addTriggerToTimeSync);
+  connect(m_addTrigger, &QAction::triggered, this, &EventActions::addTriggerToTimeSync);
   m_addTrigger->setEnabled(false);
 
   m_addTrigger->setToolTip(tr("Enable trigger"));
   setIcons(
-      m_addTrigger,
-      QStringLiteral(":/icons/trigger_on.png"),
+      m_addTrigger, QStringLiteral(":/icons/trigger_on.png"),
       QStringLiteral(":/icons/trigger_hover.png"),
       QStringLiteral(":/icons/trigger_off.png"),
       QStringLiteral(":/icons/trigger_disabled.png"));
@@ -62,33 +57,25 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   /// Remove Trigger ///
   m_removeTrigger = new QAction{tr("Disable trigger"), this};
   connect(
-      m_removeTrigger,
-      &QAction::triggered,
-      this,
+      m_removeTrigger, &QAction::triggered, this,
       &EventActions::removeTriggerFromTimeSync);
   m_removeTrigger->setEnabled(false);
 
   /// Add Condition ///
   m_addCondition = new QAction{tr("Add Condition"), this};
-  connect(
-      m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
+  connect(m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
   m_addCondition->setEnabled(false);
 
   m_addCondition->setToolTip(tr("Add Condition"));
   setIcons(
-      m_addCondition,
-      QStringLiteral(":/icons/condition_on.png"),
+      m_addCondition, QStringLiteral(":/icons/condition_on.png"),
       QStringLiteral(":/icons/condition_hover.png"),
       QStringLiteral(":/icons/condition_off.png"),
       QStringLiteral(":/icons/condition_disabled.png"));
 
   /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
-  connect(
-      m_removeCondition,
-      &QAction::triggered,
-      this,
-      &EventActions::removeCondition);
+  connect(m_removeCondition, &QAction::triggered, this, &EventActions::removeCondition);
   m_removeCondition->setEnabled(false);
 }
 
@@ -107,8 +94,8 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   ref.actions.add<Actions::AddCondition>(m_addCondition);
   ref.actions.add<Actions::RemoveCondition>(m_removeCondition);
 
-  auto& cond = m_parent->context.actions
-                   .condition<EnableWhenScenarioInterfaceInstantObject>();
+  auto& cond
+      = m_parent->context.actions.condition<EnableWhenScenarioInterfaceInstantObject>();
   cond.add<Actions::AddTrigger>();
   cond.add<Actions::RemoveTrigger>();
   cond.add<Actions::AddCondition>();
@@ -122,19 +109,19 @@ void EventActions::addTriggerToTimeSync()
 
   auto& ctx = m_parent->currentDocument()->context();
   auto si = focusedScenarioInterface(ctx);
-  if (!si)
+  if(!si)
     return;
 
   auto selectedTimeSyncs = selectedElements(si->getTimeSyncs());
 
-  if (selectedTimeSyncs.empty())
+  if(selectedTimeSyncs.empty())
   {
     // take tn from a selected event
     auto selectedEvents = selectedElements(si->getEvents());
-    if (selectedEvents.empty())
+    if(selectedEvents.empty())
     {
       auto selectedStates = selectedElements(si->getStates());
-      if (!selectedStates.empty())
+      if(!selectedStates.empty())
       {
         auto& tn = Scenario::parentTimeSync(*selectedStates.front(), *si);
         selectedTimeSyncs.push_back(&tn);
@@ -157,13 +144,12 @@ void EventActions::addTriggerToTimeSync()
   auto& selectedSync = *selectedTimeSyncs.begin();
 
   auto cmd = m_triggerCommandFactory.make(
-      &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
-      *selectedSync);
+      &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand, *selectedSync);
 
-  if (cmd)
+  if(cmd)
   {
     dispatcher().submit(cmd);
-    if (selectedSync->active())
+    if(selectedSync->active())
     {
       score::SelectionDispatcher disp{ctx.selectionStack};
       disp.select(*selectedSync);
@@ -174,14 +160,14 @@ void EventActions::addTriggerToTimeSync()
 void EventActions::addCondition()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  if (!si)
+  if(!si)
     return;
 
   auto selectedEvents = selectedElements(si->getEvents());
-  if (selectedEvents.empty())
+  if(selectedEvents.empty())
   {
     auto selectedStates = selectedElements(si->getStates());
-    if (!selectedStates.empty())
+    if(!selectedStates.empty())
     {
       auto& ev = Scenario::parentEvent(*selectedStates.front(), *si);
       selectedEvents.push_back(&ev);
@@ -193,10 +179,9 @@ void EventActions::addCondition()
   }
 
   const EventModel& ev = *selectedEvents.front();
-  if (ev.condition() == State::Expression{})
+  if(ev.condition() == State::Expression{})
   {
-    auto cmd = new Scenario::Command::SetCondition{
-        ev, State::defaultTrueExpression()};
+    auto cmd = new Scenario::Command::SetCondition{ev, State::defaultTrueExpression()};
     dispatcher().submit(cmd);
   }
 }
@@ -204,14 +189,14 @@ void EventActions::addCondition()
 void EventActions::removeCondition()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  if (!si)
+  if(!si)
     return;
 
   auto selectedEvents = selectedElements(si->getEvents());
-  if (selectedEvents.empty())
+  if(selectedEvents.empty())
   {
     auto selectedStates = selectedElements(si->getStates());
-    if (!selectedStates.empty())
+    if(!selectedStates.empty())
     {
       auto& ev = Scenario::parentEvent(*selectedStates.front(), *si);
       selectedEvents.push_back(&ev);
@@ -223,7 +208,7 @@ void EventActions::removeCondition()
   }
 
   const EventModel& ev = *selectedEvents.front();
-  if (ev.condition() != State::Expression{})
+  if(ev.condition() != State::Expression{})
   {
     auto cmd = new Scenario::Command::SetCondition{ev, State::Expression{}};
     dispatcher().submit(cmd);
@@ -234,13 +219,13 @@ void EventActions::removeTriggerFromTimeSync()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
   auto selectedTimeSyncs = selectedElements(si->getTimeSyncs());
-  if (selectedTimeSyncs.empty())
+  if(selectedTimeSyncs.empty())
   {
     auto selectedEvents = selectedElements(si->getEvents());
-    if (selectedEvents.empty())
+    if(selectedEvents.empty())
     {
       auto selectedStates = selectedElements(si->getStates());
-      if (selectedStates.empty())
+      if(selectedStates.empty())
       {
         return;
       }
@@ -263,14 +248,13 @@ void EventActions::removeTriggerFromTimeSync()
       &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand,
       **selectedTimeSyncs.begin());
 
-  if (cmd)
+  if(cmd)
     dispatcher().submit(cmd);
 }
 
 CommandDispatcher<> EventActions::dispatcher()
 {
-  CommandDispatcher<> disp{
-      m_parent->currentDocument()->context().commandStack};
+  CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
   return disp;
 }
 }

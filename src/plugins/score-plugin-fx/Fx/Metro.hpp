@@ -25,15 +25,14 @@ struct Node
     static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = tuplet::make_tuple(
-        Control::Widgets::MusicalDurationChooser(),
-        Control::Widgets::LFOFreqSlider(),
+        Control::Widgets::MusicalDurationChooser(), Control::Widgets::LFOFreqSlider(),
         Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false});
   };
 
   static constexpr int64_t
   get_period(bool use_tempo, double quantif, double freq, double tempo, int sr)
   {
-    if (use_tempo)
+    if(use_tempo)
     {
       const auto whole_dur = 240. / tempo;
       const auto whole_samples = whole_dur * sr;
@@ -53,23 +52,17 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(float quantif,
-      float freq,
-      bool val,
-      ossia::value_port& res,
-      ossia::token_request tk,
-      ossia::exec_state_facade st)
+  run(float quantif, float freq, bool val, ossia::value_port& res,
+      ossia::token_request tk, ossia::exec_state_facade st)
   {
-    if (tk.date > tk.prev_date)
+    if(tk.date > tk.prev_date)
     {
-      const auto period
-          = get_period(val, quantif, freq, tk.tempo, st.sampleRate());
+      const auto period = get_period(val, quantif, freq, tk.tempo, st.sampleRate());
       const auto next = next_date(tk.prev_date, period * st.samplesToModel());
-      if (tk.in_range(next))
+      if(tk.in_range(next))
       {
         res.write_value(
-            ossia::impulse{},
-            tk.to_physical_time_in_tick(next, st.modelToSamples()));
+            ossia::impulse{}, tk.to_physical_time_in_tick(next, st.modelToSamples()));
       }
     }
   }

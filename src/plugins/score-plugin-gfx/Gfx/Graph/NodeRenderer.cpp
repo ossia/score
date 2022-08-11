@@ -2,6 +2,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <score/tools/Debug.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 namespace score::gfx
@@ -10,13 +11,9 @@ namespace score::gfx
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
 void defaultPassesInit(
-      PassMap& passes,
-      const std::vector<Edge*>& edges,
-      RenderList& renderer,
-      const Mesh& mesh,
-      const QShader& v, const QShader& f,
-      QRhiBuffer* processUBO, QRhiBuffer* matUBO,
-      const std::vector<Sampler>& samplers)
+    PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
+    const Mesh& mesh, const QShader& v, const QShader& f, QRhiBuffer* processUBO,
+    QRhiBuffer* matUBO, const std::vector<Sampler>& samplers)
 {
   SCORE_ASSERT(passes.empty());
   for(Edge* edge : edges)
@@ -25,29 +22,18 @@ void defaultPassesInit(
     if(rt.renderTarget)
     {
       passes.emplace_back(
-            edge,
-            score::gfx::buildPipeline(
-              renderer,
-              mesh,
-              v, f,
-              rt,
-              processUBO, matUBO,
-              samplers)
-            );
+          edge, score::gfx::buildPipeline(
+                    renderer, mesh, v, f, rt, processUBO, matUBO, samplers));
     }
   }
 }
 
 void defaultRenderPass(
-    QRhiBuffer* m_meshBuffer,
-    QRhiBuffer* m_idxBuffer,
-    RenderList& renderer,
-    const Mesh& mesh,
-    QRhiCommandBuffer& cb,
-    Edge& edge,
-    PassMap& passes)
+    QRhiBuffer* m_meshBuffer, QRhiBuffer* m_idxBuffer, RenderList& renderer,
+    const Mesh& mesh, QRhiCommandBuffer& cb, Edge& edge, PassMap& passes)
 {
-  auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
+  auto it
+      = ossia::find_if(passes, [ptr = &edge](const auto& p) { return p.first == ptr; });
   SCORE_ASSERT(it != passes.end());
   {
     const auto sz = renderer.state.renderSize;
@@ -67,14 +53,11 @@ void defaultRenderPass(
 }
 
 void quadRenderPass(
-    QRhiBuffer* m_meshBuffer,
-    QRhiBuffer* m_idxBuffer,
-    RenderList& renderer,
-    QRhiCommandBuffer& cb,
-    Edge& edge,
-    PassMap& passes)
+    QRhiBuffer* m_meshBuffer, QRhiBuffer* m_idxBuffer, RenderList& renderer,
+    QRhiCommandBuffer& cb, Edge& edge, PassMap& passes)
 {
-  auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
+  auto it
+      = ossia::find_if(passes, [ptr = &edge](const auto& p) { return p.first == ptr; });
   SCORE_ASSERT(it != passes.end());
   {
     const auto sz = renderer.state.renderSize;
@@ -94,12 +77,12 @@ void quadRenderPass(
 TextureRenderTarget GenericNodeRenderer::renderTargetForInput(const Port& p)
 {
   SCORE_TODO;
-  return { };
+  return {};
 }
 
 void GenericNodeRenderer::defaultMeshInit(RenderList& renderer, const Mesh& mesh)
 {
-  if (!m_meshBuffer)
+  if(!m_meshBuffer)
   {
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
@@ -119,28 +102,16 @@ void GenericNodeRenderer::processUBOInit(RenderList& renderer)
 void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh)
 {
   score::gfx::defaultPassesInit(
-        m_p,
-        this->node.output[0]->edges,
-        renderer,
-        mesh,
-        m_vertexS,
-        m_fragmentS,
-        m_processUBO,
-        m_material.buffer,
-        m_samplers);
+      m_p, this->node.output[0]->edges, renderer, mesh, m_vertexS, m_fragmentS,
+      m_processUBO, m_material.buffer, m_samplers);
 }
 
-void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f)
+void GenericNodeRenderer::defaultPassesInit(
+    RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f)
 {
   score::gfx::defaultPassesInit(
-      m_p,
-      this->node.output[0]->edges,
-      renderer,
-      mesh,
-      v, f,
-      m_processUBO,
-      m_material.buffer,
-      m_samplers);
+      m_p, this->node.output[0]->edges, renderer, mesh, v, f, m_processUBO,
+      m_material.buffer, m_samplers);
 }
 
 void GenericNodeRenderer::init(RenderList& renderer)
@@ -154,13 +125,13 @@ void GenericNodeRenderer::init(RenderList& renderer)
   defaultPassesInit(renderer, mesh);
 }
 
-void GenericNodeRenderer::defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res)
+void GenericNodeRenderer::defaultUBOUpdate(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  res.updateDynamicBuffer(
-      m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
+  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
-  if (m_material.buffer && m_material.size > 0
-      && materialChangedIndex != node.materialChanged)
+  if(m_material.buffer && m_material.size > 0
+     && materialChangedIndex != node.materialChanged)
   {
     char* data = node.m_materialData.get();
     res.updateDynamicBuffer(m_material.buffer, 0, m_material.size, data);
@@ -168,16 +139,14 @@ void GenericNodeRenderer::defaultUBOUpdate(RenderList& renderer, QRhiResourceUpd
   }
 }
 
-void GenericNodeRenderer::update(
-    RenderList& renderer,
-    QRhiResourceUpdateBatch& res)
+void GenericNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   defaultUBOUpdate(renderer, res);
 }
 
 void GenericNodeRenderer::defaultRelease(RenderList&)
 {
-  for (auto sampler : m_samplers)
+  for(auto sampler : m_samplers)
   {
     delete sampler.sampler;
     // texture isdeleted elsewxheree
@@ -198,45 +167,29 @@ void GenericNodeRenderer::defaultRelease(RenderList&)
 }
 
 void NodeRenderer::runInitialPasses(
-    RenderList&,
-    QRhiCommandBuffer& commands,
-    QRhiResourceUpdateBatch*& res,
-    Edge& e)
+    RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res, Edge& e)
 {
-
 }
 
-void NodeRenderer::runRenderPass(
-    RenderList&,
-    QRhiCommandBuffer& commands,
-    Edge& edge)
-{
+void NodeRenderer::runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) {
 }
 
 void GenericNodeRenderer::defaultRenderPass(
-    RenderList& renderer,
-    const Mesh& mesh,
-    QRhiCommandBuffer& cb,
-    Edge& edge)
+    RenderList& renderer, const Mesh& mesh, QRhiCommandBuffer& cb, Edge& edge)
 {
-  defaultRenderPass(renderer,mesh,cb,edge,m_p);
+  defaultRenderPass(renderer, mesh, cb, edge, m_p);
 }
 
 void GenericNodeRenderer::defaultRenderPass(
-      RenderList& renderer,
-      const Mesh& mesh,
-      QRhiCommandBuffer& cb,
-      Edge& edge,
-      PassMap& passes)
+    RenderList& renderer, const Mesh& mesh, QRhiCommandBuffer& cb, Edge& edge,
+    PassMap& passes)
 {
-  score::gfx::defaultRenderPass(m_meshBuffer, m_idxBuffer,
-                    renderer, mesh, cb, edge, passes);
+  score::gfx::defaultRenderPass(
+      m_meshBuffer, m_idxBuffer, renderer, mesh, cb, edge, passes);
 }
 
 void GenericNodeRenderer::runRenderPass(
-    RenderList& renderer,
-    QRhiCommandBuffer& cb,
-    Edge& edge)
+    RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
   const auto& mesh = renderer.defaultTriangle();
   defaultRenderPass(renderer, mesh, cb, edge);
@@ -251,9 +204,9 @@ score::gfx::NodeRenderer::NodeRenderer() noexcept { }
 
 score::gfx::NodeRenderer::~NodeRenderer() { }
 
-void NodeRenderer::inputAboutToFinish(RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&)
+void NodeRenderer::inputAboutToFinish(
+    RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&)
 {
-
 }
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep

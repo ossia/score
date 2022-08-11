@@ -7,14 +7,13 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <Spline/Model.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Spline::ProcessModel)
 namespace Spline
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
         ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
@@ -40,22 +39,20 @@ void ProcessModel::init()
   outlet->setName("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(),
-      &Process::Port::addressChanged,
-      this,
+      outlet.get(), &Process::Port::addressChanged, this,
       [=](const State::AddressAccessor& arg) {
-        addressChanged(arg);
-        prettyNameChanged();
-        unitChanged(arg.qualifiers.get().unit);
+    addressChanged(arg);
+    prettyNameChanged();
+    unitChanged(arg.qualifiers.get().unit);
       });
-  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
+  connect(
+      outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
 }
 
 QString ProcessModel::prettyName() const noexcept
 {
   auto& doc = score::IDocument::documentContext(*this);
-  if(auto name = Process::displayNameForPort(*outlet, doc);
-      !name.isEmpty())
+  if(auto name = Process::displayNameForPort(*outlet, doc); !name.isEmpty())
   {
     return name;
   }
@@ -100,7 +97,7 @@ State::Unit ProcessModel::unit() const
 
 void ProcessModel::setUnit(const State::Unit& u)
 {
-  if (u != unit())
+  if(u != unit())
   {
     auto addr = outlet->address();
     addr.qualifiers.get().unit = u;

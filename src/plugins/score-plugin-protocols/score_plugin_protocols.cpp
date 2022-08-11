@@ -4,6 +4,7 @@
 #include "score_plugin_protocols.hpp"
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+
 #include <Protocols/ProtocolLibrary.hpp>
 #include <Protocols/Settings/Factory.hpp>
 
@@ -68,10 +69,8 @@ score_plugin_protocols::score_plugin_protocols()
 
 score_plugin_protocols::~score_plugin_protocols() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_protocols::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_protocols::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
@@ -95,8 +94,7 @@ score_plugin_protocols::factories(
 #endif
 #if defined(OSSIA_PROTOCOL_MIDI)
          ,
-         Protocols::MIDIInputProtocolFactory,
-         Protocols::MIDIOutputProtocolFactory
+         Protocols::MIDIInputProtocolFactory, Protocols::MIDIOutputProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
          ,
@@ -123,21 +121,20 @@ score_plugin_protocols::factories(
          Protocols::LeapmotionProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
-  ,
-  Protocols::WiimoteProtocolFactory
+         ,
+         Protocols::WiimoteProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_ARTNET)
          ,
          Protocols::ArtnetProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_LIBMAPPER)
-      ,
-      Protocols::LibmapperClientProtocolFactory
+         ,
+         Protocols::LibmapperClientProtocolFactory
 #endif
          >,
       FW<score::SettingsDelegateFactory, Protocols::Settings::Factory>,
-      FW<Library::LibraryInterface,
-         Protocols::OSCLibraryHandler
+      FW<Library::LibraryInterface, Protocols::OSCLibraryHandler
 #if __has_include(<QQmlEngine>)
          ,
          Protocols::QMLLibraryHandler

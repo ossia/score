@@ -29,9 +29,7 @@ QRectF SeparatorItem::boundingRect() const
 }
 
 void SeparatorItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = Process::Style::instance();
   const Q_DECL_RELAXED_CONSTEXPR QRectF rect{1., 1., 4., 9.};
@@ -45,22 +43,16 @@ void SeparatorItem::paint(
 }
 
 ClickableLabelItem::ClickableLabelItem(
-    score::ModelMetadata& metadata,
-    ClickHandler&& onClick,
-    const QString& text,
+    score::ModelMetadata& metadata, ClickHandler&& onClick, const QString& text,
     QGraphicsItem* parent)
     : score::SimpleTextItem{score::Skin::instance().Light.main, parent}
     , m_onClick{std::move(onClick)}
 {
   setText(text);
-  connect(
-      &metadata,
-      &score::ModelMetadata::NameChanged,
-      this,
-      [&](const QString& name) {
-        setText(name);
-        textChanged();
-      });
+  connect(&metadata, &score::ModelMetadata::NameChanged, this, [&](const QString& name) {
+    setText(name);
+    textChanged();
+  });
 
   this->setFont(score::Skin::instance().Bold10Pt);
   this->setAcceptHoverEvents(true);

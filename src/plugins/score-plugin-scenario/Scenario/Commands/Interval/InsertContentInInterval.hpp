@@ -1,10 +1,10 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-
+#include <Process/Dataflow/Cable.hpp>
 #include <Process/ExpandMode.hpp>
 
-#include <Process/Dataflow/Cable.hpp>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
@@ -26,20 +26,14 @@ class IntervalModel;
 
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT PasteProcessesInInterval final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT PasteProcessesInInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      PasteProcessesInInterval,
-      "Paste processes in a interval")
+      CommandFactoryName(), PasteProcessesInInterval, "Paste processes in a interval")
 public:
   PasteProcessesInInterval(
-      rapidjson::Value::Array sourceProcesses,
-      rapidjson::Value::Array sourceCables,
-      const IntervalModel& targetInterval,
-      ExpandMode mode,
-      QPointF origin);
+      rapidjson::Value::Array sourceProcesses, rapidjson::Value::Array sourceCables,
+      const IntervalModel& targetInterval, ExpandMode mode, QPointF origin);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

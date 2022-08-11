@@ -29,14 +29,12 @@ public:
 private:
   QWidget* widget() override;
   const score::PanelStatus& defaultPanelStatus() const override;
-  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
-      override;
+  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm) override;
 
   ProjectLibraryWidget* m_widget{};
 };
 
-class SCORE_PLUGIN_LIBRARY_EXPORT ProcessPanel final
-    : public score::PanelDelegate
+class SCORE_PLUGIN_LIBRARY_EXPORT ProcessPanel final : public score::PanelDelegate
 {
 public:
   ProcessPanel(const score::GUIApplicationContext& ctx);

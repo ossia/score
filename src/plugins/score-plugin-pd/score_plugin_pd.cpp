@@ -14,8 +14,7 @@
 #include <score_plugin_deviceexplorer.hpp>
 #include <score_plugin_pd_commands_files.hpp>
 #include <score_plugin_scenario.hpp>
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_pd::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_pd::make_commands()
 {
   using namespace Pd;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
@@ -28,12 +27,10 @@ score_plugin_pd::make_commands()
   return cmds;
 }
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_pd::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Pd::ProcessFactory>,
+      score::ApplicationContext, FW<Process::ProcessModelFactory, Pd::ProcessFactory>,
       FW<Process::InspectorWidgetDelegateFactory, Pd::InspectorFactory>,
       FW<Process::LayerFactory, Pd::LayerFactory>,
       FW<Library::LibraryInterface, Pd::LibraryHandler>,
@@ -49,8 +46,7 @@ score_plugin_pd::score_plugin_pd()
 auto score_plugin_pd::required() const -> std::vector<score::PluginKey>
 {
   return {
-      score_plugin_scenario::static_key(),
-      score_plugin_deviceexplorer::static_key()};
+      score_plugin_scenario::static_key(), score_plugin_deviceexplorer::static_key()};
 }
 
 score_plugin_pd::~score_plugin_pd() { }

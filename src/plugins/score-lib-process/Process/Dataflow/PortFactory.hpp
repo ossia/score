@@ -27,53 +27,35 @@ public:
 
   // Just the port
   virtual Dataflow::PortItem* makePortItem(
-      Process::Inlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Inlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context);
   virtual Dataflow::PortItem* makePortItem(
-      Process::Outlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context);
 
   // Just the control
   virtual QGraphicsItem* makeControlItem(
-      Process::ControlInlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
+      Process::ControlInlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context);
   virtual QGraphicsItem* makeControlItem(
-      Process::ControlOutlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
+      Process::ControlOutlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context);
 
   // Port + control + text
   QGraphicsItem* makeFullItem(
-      Process::ControlInlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::ControlInlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context);
   QGraphicsItem* makeFullItem(
-      Process::ControlOutlet& port,
-      const Process::Context& ctx,
-      QGraphicsItem* parent,
+      Process::ControlOutlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context);
 
   // Widget stuff
   virtual void setupInletInspector(
-      const Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context);
+      const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context);
   virtual void setupOutletInspector(
-      const Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context);
+      const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context);
 
   virtual PortItemLayout defaultLayout() const noexcept;
 };
@@ -109,29 +91,19 @@ private:
 
 SCORE_LIB_PROCESS_EXPORT
 void readPorts(
-    DataStreamReader& wr,
-    const Process::Inlets& ins,
-    const Process::Outlets& outs);
+    DataStreamReader& wr, const Process::Inlets& ins, const Process::Outlets& outs);
 
 SCORE_LIB_PROCESS_EXPORT
 void readPorts(
-    JSONReader& obj,
-    const Process::Inlets& ins,
-    const Process::Outlets& outs);
+    JSONReader& obj, const Process::Inlets& ins, const Process::Outlets& outs);
 
 SCORE_LIB_PROCESS_EXPORT
 void writePorts(
-    DataStreamWriter& wr,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ins,
-    Process::Outlets& outs,
-    QObject* parent);
+    DataStreamWriter& wr, const Process::PortFactoryList& pl, Process::Inlets& ins,
+    Process::Outlets& outs, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 void writePorts(
-    const JSONWriter& obj,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ins,
-    Process::Outlets& outs,
-    QObject* parent);
+    const JSONWriter& obj, const Process::PortFactoryList& pl, Process::Inlets& ins,
+    Process::Outlets& outs, QObject* parent);
 }

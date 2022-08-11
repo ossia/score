@@ -28,33 +28,28 @@ struct hash<std::pair<QString, QString>>
 template <>
 struct hash<std::tuple<QString, QString, QString, QString>>
 {
-  std::size_t operator()(
-      const std::tuple<QString, QString, QString, QString>& p) const noexcept
+  std::size_t
+  operator()(const std::tuple<QString, QString, QString, QString>& p) const noexcept
   {
-    return qHash(std::get<0>(p)) ^ qHash(std::get<1>(p))
-           ^ qHash(std::get<2>(p)) ^ qHash(std::get<3>(p));
+    return qHash(std::get<0>(p)) ^ qHash(std::get<1>(p)) ^ qHash(std::get<2>(p))
+           ^ qHash(std::get<3>(p));
   }
 };
 }
 static auto& iconMap()
 {
-  static tsl::
-      hopscotch_map<std::tuple<QString, QString, QString, QString>, QIcon>
-          icons;
+  static tsl::hopscotch_map<std::tuple<QString, QString, QString, QString>, QIcon> icons;
   return icons;
 }
 
 void setIcons(
-    QAction* action,
-    const QString& iconOn,
-    const QString& iconOff,
-    const QString& iconDisable,
-    bool enableHover)
+    QAction* action, const QString& iconOn, const QString& iconOff,
+    const QString& iconDisable, bool enableHover)
 {
   auto& map = iconMap();
   auto pair = std::make_tuple(iconOn, iconOff, iconDisable, QString{});
   auto it = map.find(pair);
-  if (it != map.end())
+  if(it != map.end())
   {
     action->setIcon(it.value());
   }
@@ -65,7 +60,7 @@ void setIcons(
     QPixmap off = score::get_pixmap(iconOff);
     QPixmap disable = score::get_pixmap(iconDisable);
     icon.addPixmap(on, QIcon::Mode::Selected);
-    if (enableHover)
+    if(enableHover)
     {
       icon.addPixmap(on, QIcon::Mode::Active);
       icon.addPixmap(on, QIcon::Mode::Active, QIcon::State::On);
@@ -79,16 +74,13 @@ void setIcons(
   }
 }
 void setIcons(
-    QAction* action,
-    const QString& iconOn,
-    const QString& iconHover,
-    const QString& iconOff,
-    const QString& iconDisable)
+    QAction* action, const QString& iconOn, const QString& iconHover,
+    const QString& iconOff, const QString& iconDisable)
 {
   auto& map = iconMap();
   auto pair = std::make_tuple(iconOn, iconOff, iconDisable, QString{});
   auto it = map.find(pair);
-  if (it != map.end())
+  if(it != map.end())
   {
     action->setIcon(it.value());
   }
@@ -117,31 +109,25 @@ QIcon makeIcon(const QString& icon)
 }
 
 QIcon makeIcons(
-    const QString& iconOn,
-    const QString& iconOff,
-    const QString& iconDisabled)
+    const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconOff, iconDisabled);
 }
 
 QIcon makeIcons(
-    const QString& iconOn,
-    const QString& iconHover,
-    const QString& iconOff,
+    const QString& iconOn, const QString& iconHover, const QString& iconOff,
     const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconHover, iconOff, iconDisabled);
 }
 
 QIcon genIconFromPixmaps(
-    const QString& iconOn,
-    const QString& iconOff,
-    const QString& iconDisabled)
+    const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
   auto& map = iconMap();
   auto pair = std::make_tuple(iconOn, iconOff, iconDisabled, QString{});
   auto it = map.find(pair);
-  if (it != map.end())
+  if(it != map.end())
   {
     return it.value();
   }
@@ -166,15 +152,13 @@ QIcon genIconFromPixmaps(
 }
 
 QIcon genIconFromPixmaps(
-    const QString& iconOn,
-    const QString& iconHover,
-    const QString& iconOff,
+    const QString& iconOn, const QString& iconHover, const QString& iconOff,
     const QString& iconDisabled)
 {
   auto& map = iconMap();
   auto pair = std::make_tuple(iconOn, iconOff, iconDisabled, iconHover);
   auto it = map.find(pair);
-  if (it != map.end())
+  if(it != map.end())
   {
     return it.value();
   }
@@ -205,14 +189,14 @@ QPixmap get_pixmap(QString str)
 {
   QPixmap img;
   static const bool gui = score::AppContext().applicationSettings.gui;
-  if (!gui)
+  if(!gui)
     return img;
 
-  if (qApp->devicePixelRatio() >= 2.0)
+  if(qApp->devicePixelRatio() >= 2.0)
   {
     auto newstr = str;
     newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
-    if (QFile::exists(newstr))
+    if(QFile::exists(newstr))
     {
       img.setDevicePixelRatio(2.);
       str = newstr;
@@ -230,14 +214,14 @@ QImage get_image(QString str)
 {
   QImage img;
   static const bool gui = score::AppContext().applicationSettings.gui;
-  if (!gui)
+  if(!gui)
     return img;
 
-  if (qApp->devicePixelRatio() >= 2.0)
+  if(qApp->devicePixelRatio() >= 2.0)
   {
     auto newstr = str;
     newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
-    if (QFile::exists(newstr))
+    if(QFile::exists(newstr))
     {
       img.setDevicePixelRatio(2.);
       str = newstr;

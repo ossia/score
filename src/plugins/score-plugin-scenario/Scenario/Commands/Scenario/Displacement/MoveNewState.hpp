@@ -1,11 +1,11 @@
 #pragma once
 
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -26,16 +26,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewState final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MoveNewState, "Move a new state")
 public:
-  MoveNewState(
-      const Scenario::ProcessModel& scenar,
-      Id<StateModel> stateId,
-      double y);
+  MoveNewState(const Scenario::ProcessModel& scenar, Id<StateModel> stateId, double y);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void
-  update(const Path<Scenario::ProcessModel>&, const Id<StateModel>&, double y)
+  void update(const Path<Scenario::ProcessModel>&, const Id<StateModel>&, double y)
   {
     m_y = y;
   }

@@ -27,8 +27,7 @@ ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx)
 
 void ApplicationPlugin::initialize() { }
 
-GUIApplicationPlugin::GUIApplicationPlugin(
-    const score::GUIApplicationContext& app)
+GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app)
     : context{app}
 {
 }
@@ -55,8 +54,7 @@ bool GUIApplicationPlugin::handleStartup()
 void GUIApplicationPlugin::prepareNewDocument() { }
 
 void GUIApplicationPlugin::on_documentChanged(
-    score::Document* olddoc,
-    score::Document* newdoc)
+    score::Document* olddoc, score::Document* newdoc)
 {
 }
 

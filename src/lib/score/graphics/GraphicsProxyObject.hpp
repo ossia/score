@@ -17,10 +17,8 @@ public:
 
   QRectF boundingRect() const override { return {}; }
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
   {
   }
 

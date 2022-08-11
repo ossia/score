@@ -25,8 +25,8 @@ using TransportInterface = Transport::TransportInterface;
 struct Context;
 class Clock;
 class BaseScenarioElement;
-using exec_setup_fun = std::function<
-    void(const Execution::Context&, Execution::BaseScenarioElement&)>;
+using exec_setup_fun
+    = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ExecutionController : public QObject
 {
 public:
@@ -53,11 +53,9 @@ public:
   void request_play_global(bool);
   void request_play_local(bool);
   void request_play_interval(
-      Scenario::IntervalModel&,
-      exec_setup_fun setup = {},
+      Scenario::IntervalModel&, exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
-  void request_stop_interval(
-      Scenario::IntervalModel&);
+  void request_stop_interval(Scenario::IntervalModel&);
   void request_stop();
 
 private:
@@ -72,12 +70,10 @@ private:
   void on_play_local(bool b);
 
   void play_interval(
-      Scenario::IntervalModel&,
-      exec_setup_fun setup = {},
+      Scenario::IntervalModel&, exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
 
-  void stop_interval(
-      Scenario::IntervalModel&);
+  void stop_interval(Scenario::IntervalModel&);
   void ensure_audio_engine();
 
   void on_play_local(bool, ::TimeVal t);

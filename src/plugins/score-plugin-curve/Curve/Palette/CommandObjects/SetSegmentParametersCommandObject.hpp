@@ -21,9 +21,7 @@ class StateBase;
 class SetSegmentParametersCommandObject
 {
 public:
-  SetSegmentParametersCommandObject(
-      const Model&,
-      const score::CommandStackFacade&);
+  SetSegmentParametersCommandObject(const Model&, const score::CommandStackFacade&);
 
   void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
 
@@ -42,8 +40,7 @@ private:
   Curve::StateBase* m_state{};
   QPointF m_originalPress;
   ossia::flat_map<
-      Id<Curve::SegmentModel>,
-      std::pair<std::optional<double>, std::optional<double>>>
+      Id<Curve::SegmentModel>, std::pair<std::optional<double>, std::optional<double>>>
       m_orig;
 };
 }

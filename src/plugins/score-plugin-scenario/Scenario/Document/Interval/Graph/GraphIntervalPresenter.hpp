@@ -1,4 +1,6 @@
 #pragma once
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score/model/ColorInterpolator.hpp>
 #include <score/model/Identifier.hpp>
 
@@ -6,7 +8,6 @@
 #include <QObject>
 #include <QPainterPath>
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -31,11 +32,8 @@ class GraphalIntervalPresenter
 
 public:
   GraphalIntervalPresenter(
-      const IntervalModel& model,
-      const StateView& start,
-      const StateView& end,
-      const Process::Context& ctx,
-      QGraphicsItem* parent = nullptr);
+      const IntervalModel& model, const StateView& start, const StateView& end,
+      const Process::Context& ctx, QGraphicsItem* parent = nullptr);
 
   const Id<IntervalModel>& id() const;
   const IntervalModel& model() const;
@@ -45,8 +43,7 @@ public:
 
   void pressed(QPointF arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
-  void moved(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
+  void moved(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(QPointF arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 
@@ -54,10 +51,8 @@ public:
 
   void resize();
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
   QPainterPath shape() const override;
   QPainterPath opaqueArea() const override;
   bool contains(const QPointF& point) const override;

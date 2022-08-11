@@ -16,9 +16,9 @@ ActionManager::ActionManager()
 
 ActionManager::~ActionManager()
 {
-  for (auto& act : m_container)
+  for(auto& act : m_container)
   {
-    if (QAction* a = act.second.action())
+    if(QAction* a = act.second.action())
     {
       delete a;
     }
@@ -34,7 +34,7 @@ void ActionManager::insert(Action val)
 
 void ActionManager::insert(std::vector<Action> vals)
 {
-  for (auto& val : vals)
+  for(auto& val : vals)
   {
     insert(std::move(val));
   }
@@ -48,20 +48,15 @@ void ActionManager::reset(score::Document* doc)
   QObject::disconnect(selectionConnection);
 
   MaybeDocument mdoc{};
-  if (doc)
+  if(doc)
   {
     mdoc = &doc->context();
 
-    focusConnection
-        = con(doc->focusManager(), &FocusManager::changed, this, [=] {
-            focusChanged(mdoc);
-          });
+    focusConnection = con(
+        doc->focusManager(), &FocusManager::changed, this, [=] { focusChanged(mdoc); });
     selectionConnection = con(
-        doc->selectionStack(),
-        &SelectionStack::currentSelectionChanged,
-        this,
-        [=] { this->selectionChanged(mdoc); },
-        Qt::QueuedConnection);
+        doc->selectionStack(), &SelectionStack::currentSelectionChanged, this,
+        [=] { this->selectionChanged(mdoc); }, Qt::QueuedConnection);
   }
 
   // Reset all the actions
@@ -93,8 +88,7 @@ void ActionManager::onFocusChange(std::shared_ptr<ActionCondition> cond)
 void ActionManager::onSelectionChange(std::shared_ptr<ActionCondition> cond)
 {
   SCORE_ASSERT(bool(cond));
-  SCORE_ASSERT(
-      m_selectionConditions.find(cond->key()) == m_selectionConditions.end());
+  SCORE_ASSERT(m_selectionConditions.find(cond->key()) == m_selectionConditions.end());
 
   auto p = std::make_pair(cond->key(), std::move(cond));
   m_conditions.insert(p);
@@ -104,8 +98,7 @@ void ActionManager::onSelectionChange(std::shared_ptr<ActionCondition> cond)
 void ActionManager::onCustomChange(std::shared_ptr<ActionCondition> cond)
 {
   SCORE_ASSERT(bool(cond));
-  SCORE_ASSERT(
-      m_customConditions.find(cond->key()) == m_customConditions.end());
+  SCORE_ASSERT(m_customConditions.find(cond->key()) == m_customConditions.end());
 
   auto p = std::make_pair(cond->key(), std::move(cond));
   m_conditions.insert(p);
@@ -114,7 +107,7 @@ void ActionManager::onCustomChange(std::shared_ptr<ActionCondition> cond)
 
 void ActionManager::documentChanged(MaybeDocument doc)
 {
-  for (auto& c_pair : m_docConditions)
+  for(auto& c_pair : m_docConditions)
   {
     ActionCondition& cond = *c_pair.second;
     cond.action(*this, doc);
@@ -123,7 +116,7 @@ void ActionManager::documentChanged(MaybeDocument doc)
 
 void ActionManager::focusChanged(MaybeDocument doc)
 {
-  for (auto& c_pair : m_focusConditions)
+  for(auto& c_pair : m_focusConditions)
   {
     ActionCondition& cond = *c_pair.second;
     cond.action(*this, doc);
@@ -132,7 +125,7 @@ void ActionManager::focusChanged(MaybeDocument doc)
 
 void ActionManager::selectionChanged(MaybeDocument doc)
 {
-  for (auto& c_pair : m_selectionConditions)
+  for(auto& c_pair : m_selectionConditions)
   {
     ActionCondition& cond = *c_pair.second;
     cond.action(*this, doc);
@@ -141,7 +134,7 @@ void ActionManager::selectionChanged(MaybeDocument doc)
 
 void ActionManager::resetCustomActions(MaybeDocument doc)
 {
-  for (auto& c_pair : m_customConditions)
+  for(auto& c_pair : m_customConditions)
   {
     ActionCondition& cond = *c_pair.second;
     cond.action(*this, doc);
