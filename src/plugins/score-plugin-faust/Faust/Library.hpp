@@ -22,11 +22,11 @@ class LibraryHandler final
   QSet<QString> acceptedFiles() const noexcept override { return {"dsp"}; }
 
   static inline const QRegularExpression nameExpr{
-      R"_(declare name "([a-zA-Z0-9_-]+)";)_"};
+      R"_(declare name "([a-zA-Z0-9_\-]+)";)_"};
   static inline const QRegularExpression authorExpr{
-      R"_(declare author "([a-zA-Z0-9_-]+)";)_"};
+      R"_(declare author "([a-zA-Z0-9_\-]+)";)_"};
   static inline const QRegularExpression descExpr{
-      R"_(declare description "([a-zA-Z0-9.<>\(\):/~, _-]+)";)_"};
+      R"_(declare description "([a-zA-Z0-9.<>\(\):/~, _\-]+)";)_"};
 
   Library::Subcategories categories;
 

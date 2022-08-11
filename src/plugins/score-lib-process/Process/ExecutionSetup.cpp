@@ -303,7 +303,7 @@ void set_destination_impl(
     auto p = n->get_parameter();
     if (p)
     {
-      append([=] {
+      append([s, port, p, qual=qual, g] {
         s->unregister_port(*port);
         port->address = p;
         if (ossia::value_port* dat
