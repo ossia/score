@@ -3,9 +3,62 @@
 namespace score::gfx
 {
 
-Mesh::Mesh() { }
+Mesh::Mesh() = default;
 
-Mesh::~Mesh() { }
+Mesh::~Mesh() = default;
+
+#include <Gfx/Qt5CompatPush> // clang-format: keep
+MeshBuffers Mesh::init(QRhi& rhi) const noexcept
+{
+  auto mesh_buf = rhi.newBuffer(
+      QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer,
+      vertexArray.size() * sizeof(float));
+  mesh_buf->setName("Mesh::mesh_buf");
+  mesh_buf->create();
+
+  MeshBuffers ret{mesh_buf, nullptr};
+  return ret;
+}
+
+void Mesh::update(MeshBuffers& bufs, QRhiResourceUpdateBatch& res) const noexcept
+{
+  res.uploadStaticBuffer(bufs.mesh, 0, bufs.mesh->size(), this->vertexArray.data());
+}
+
+void Mesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
+{
+  if(cullMode == QRhiGraphicsPipeline::None)
+  {
+    pip.setDepthTest(false);
+    pip.setDepthWrite(false);
+  }
+  else
+  {
+    pip.setDepthTest(true);
+    pip.setDepthWrite(true);
+  }
+
+  pip.setTopology(this->topology);
+  pip.setCullMode(this->cullMode);
+  pip.setFrontFace(this->frontFace);
+
+  QRhiVertexInputLayout inputLayout;
+  inputLayout.setBindings(this->vertexBindings.begin(), this->vertexBindings.end());
+  inputLayout.setAttributes(
+      this->vertexAttributes.begin(), this->vertexAttributes.end());
+  pip.setVertexInputLayout(inputLayout);
+}
+
+void Mesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
+{
+  assert(bufs.mesh);
+  assert(bufs.mesh->usage().testFlag(QRhiBuffer::VertexBuffer));
+  setupBindings(bufs, cb);
+
+  cb.draw(vertexCount);
+}
+
+#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 PlainMesh::PlainMesh(tcb::span<const float> vtx, int count)
 {
@@ -16,11 +69,11 @@ PlainMesh::PlainMesh(tcb::span<const float> vtx, int count)
 }
 
 void PlainMesh::setupBindings(
-    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
+    const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
-  const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
+  const QRhiCommandBuffer::VertexInput bindings[] = {{bufs.mesh, 0}};
 
-  cb.setVertexInput(0, 1, bindings, idxData);
+  cb.setVertexInput(0, 1, bindings, bufs.index);
 }
 
 const char* PlainMesh::defaultVertexShader() const noexcept
@@ -75,82 +128,6 @@ void main()
 )_";
 }
 
-TextureNormalMesh::TextureNormalMesh(
-    tcb::span<const float> vtx, tcb::span<const unsigned int> idx, int count)
-{
-  vertexBindings.push_back({8 * sizeof(float)});
-  // int binding, int location, Format format, quint32 offset
-  vertexAttributes.push_back({0, 0, QRhiVertexInputAttribute::Float3, 0});
-  vertexAttributes.push_back(
-      {0, 1, QRhiVertexInputAttribute::Float3, 3 * sizeof(float)});
-  vertexAttributes.push_back(
-      {0, 2, QRhiVertexInputAttribute::Float2, 6 * sizeof(float)});
-
-  vertexArray = vtx;
-  indexArray = idx;
-  vertexCount = count;
-}
-
-void TextureNormalMesh::setupBindings(
-    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
-{
-  const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
-
-  cb.setVertexInput(0, 1, bindings, idxData, 0, QRhiCommandBuffer::IndexUInt32);
-}
-
-const char* TextureNormalMesh::defaultVertexShader() const noexcept
-{
-  return R"_(#version 450
-layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 vertexNormal;
-layout(location = 2) in vec2 vertexTexCoord;
-
-layout(location = 0) out vec3 esVertex;
-layout(location = 1) out vec3 esNormal;
-layout(location = 2) out vec2 v_texcoord;
-
-layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
-vec2 renderSize;
-};
-
-layout(std140, binding = 1) uniform process_t {
-  float time;
-  float timeDelta;
-  float progress;
-
-  int passIndex;
-  int frameIndex;
-
-  vec4 date;
-  vec4 mouse;
-  vec4 channelTime;
-
-  float sampleRate;
-};
-layout(std140, binding = 2) uniform model_t {
-mat4 matrixModelViewProjection;
-mat4 matrixModelView;
-mat4 matrixModel;
-mat4 matrixView;
-mat4 matrixProjection;
-mat3 matrixNormal;
-};
-
-out gl_PerVertex { vec4 gl_Position; };
-
-void main()
-{
-    esVertex = vec3(matrixModelView * vec4(position, 1.0));
-    esNormal = matrixNormal * vec3(vertexNormal);
-    v_texcoord = vertexTexCoord;
-    gl_Position = clipSpaceCorrMatrix * matrixModelViewProjection * vec4(position, 1.0);
-}
-)_";
-}
-
 PlainTriangle::PlainTriangle()
     : PlainMesh{data, 3}
 {
@@ -168,10 +145,10 @@ TexturedTriangle::TexturedTriangle(bool flipped)
 }
 
 void TexturedTriangle::setupBindings(
-    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
+    const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[]
-      = {{&vtxData, 0}, {&vtxData, 3 * 2 * sizeof(float)}};
+      = {{bufs.mesh, 0}, {bufs.mesh, 3 * 2 * sizeof(float)}};
 
   cb.setVertexInput(0, 2, bindings);
 }
@@ -182,11 +159,12 @@ TexturedQuad::TexturedQuad(bool flipped)
 }
 
 void TexturedQuad::setupBindings(
-    QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
+    const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[]
-      = {{&vtxData, 0}, {&vtxData, 4 * 2 * sizeof(float)}};
+      = {{bufs.mesh, 0}, {bufs.mesh, 4 * 2 * sizeof(float)}};
 
   cb.setVertexInput(0, 2, bindings);
 }
+
 }

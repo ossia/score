@@ -414,7 +414,7 @@ void RenderedISFNode::initPasses(
   m_passes.emplace_back(&edge, std::move(passes));
 }
 
-void RenderedISFNode::init(RenderList& renderer)
+void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
 
@@ -424,7 +424,7 @@ void RenderedISFNode::init(RenderList& renderer)
                                                         : &renderer.defaultQuad();
     if(!m_meshBuffer)
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh);
+      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh, res);
       m_meshBuffer = mbuffer;
       m_idxBuffer = ibuffer;
     }
@@ -664,9 +664,7 @@ void RenderedISFNode::runInitialPasses(
 
       assert(this->m_meshBuffer);
       assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      m_mesh->setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
-
-      cb.draw(m_mesh->vertexCount);
+      m_mesh->draw({this->m_meshBuffer, this->m_idxBuffer}, cb);
     }
     cb.endPass();
 
@@ -710,11 +708,7 @@ void RenderedISFNode::runRenderPass(
         cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
       }
 
-      assert(this->m_meshBuffer);
-      assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      m_mesh->setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
-
-      cb.draw(m_mesh->vertexCount);
+      m_mesh->draw({this->m_meshBuffer, this->m_idxBuffer}, cb);
     }
   }
 
@@ -894,7 +888,7 @@ void SimpleRenderedISFNode::initPass(
   m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
 }
 
-void SimpleRenderedISFNode::init(RenderList& renderer)
+void SimpleRenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
 
@@ -905,7 +899,7 @@ void SimpleRenderedISFNode::init(RenderList& renderer)
 
     if(!m_meshBuffer)
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh);
+      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh, res);
       m_meshBuffer = mbuffer;
       m_idxBuffer = ibuffer;
     }
@@ -1077,11 +1071,7 @@ void SimpleRenderedISFNode::runRenderPass(
         cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
       }
 
-      assert(this->m_meshBuffer);
-      assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      m_mesh->setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
-
-      cb.draw(m_mesh->vertexCount);
+      m_mesh->draw({this->m_meshBuffer, this->m_idxBuffer}, cb);
     }
   }
 }

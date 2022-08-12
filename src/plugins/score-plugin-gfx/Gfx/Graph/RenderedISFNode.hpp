@@ -52,7 +52,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 
   TextureRenderTarget renderTargetForInput(const Port& p) override;
 
-  void init(RenderList& renderer) override;
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void release(RenderList& r) override;
 
@@ -120,7 +120,7 @@ struct SimpleRenderedISFNode : score::gfx::NodeRenderer
 
   TextureRenderTarget renderTargetForInput(const Port& p) override;
 
-  void init(RenderList& renderer) override;
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void release(RenderList& r) override;
 

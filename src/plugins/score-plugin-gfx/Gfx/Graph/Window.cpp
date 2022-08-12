@@ -76,7 +76,9 @@ void Window::render()
     return;
 
   if(onUpdate)
+  {
     onUpdate();
+  }
 
   if(!m_swapChain)
     return;
@@ -149,7 +151,7 @@ void Window::render()
   requestUpdate();
 }
 
-void Window::exposeEvent(QExposeEvent*)
+void Window::exposeEvent(QExposeEvent* ev)
 {
   if(!onWindowReady)
   {
@@ -211,18 +213,18 @@ bool Window::event(QEvent* e)
     }
     case QEvent::PlatformSurface:
       if(static_cast<QPlatformSurfaceEvent*>(e)->surfaceEventType()
-         == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed)
-      {
+         == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed) // fallthrough
+      case QEvent::Close: {
         releaseSwapChain();
         m_running = false;
         m_hasSwapChain = false;
         m_notExposed = true;
+        m_closed = true;
       }
-
       break;
 
-    default:
-      break;
+      default:
+        break;
   }
 
   return QWindow::event(e);

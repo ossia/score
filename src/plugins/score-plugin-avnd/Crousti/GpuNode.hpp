@@ -143,23 +143,11 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
     ps->setSampleCount(1);
 
-    ps->setDepthTest(false);
-    ps->setDepthWrite(false);
-    ps->setTopology(QRhiGraphicsPipeline::TriangleStrip);
-    // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-    // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
+    mesh.preparePipeline(*ps);
 
     auto [v, f]
         = score::gfx::makeShaders(renderer.state, parent.vertex, parent.fragment);
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, f}});
-
-    QRhiVertexInputLayout inputLayout;
-    inputLayout.setBindings(mesh.vertexBindings.begin(), mesh.vertexBindings.end());
-    inputLayout.setAttributes(
-        mesh.vertexAttributes.begin(), mesh.vertexAttributes.end());
-
-    // TODO adapt mesh to expected binding (or report an error)
-    ps->setVertexInputLayout(inputLayout);
 
     SCORE_ASSERT(rt.renderPass);
     ps->setRenderPassDescriptor(rt.renderPass);
@@ -199,12 +187,12 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     createdUbos[ubo_type::binding()] = ubo;
   }
 
-  void init(score::gfx::RenderList& renderer) override
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     if(!m_meshBuffer)
     {
       auto& mesh = renderer.defaultTriangle();
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
       m_meshBuffer = mbuffer;
       m_idxBuffer = ibuffer;
     }
@@ -393,7 +381,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   {
     auto& mesh = renderer.defaultTriangle();
     score::gfx::defaultRenderPass(
-        m_meshBuffer, m_idxBuffer, renderer, mesh, commands, edge, m_p);
+        renderer, mesh, {m_meshBuffer, m_idxBuffer}, commands, edge, m_p);
 
     // Copy the data to the model node
     if(!this->states.empty())

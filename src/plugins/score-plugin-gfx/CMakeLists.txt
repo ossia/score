@@ -72,6 +72,7 @@ set(HDRS
     Gfx/Text/Process.hpp
     Gfx/Text/Layer.hpp
 
+    Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/Window.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/Node.hpp

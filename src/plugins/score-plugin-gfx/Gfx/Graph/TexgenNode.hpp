@@ -67,10 +67,10 @@ struct TexgenNode : NodeModel
     ~Rendered() { }
 
     QRhiTexture* texture{};
-    void init(RenderList& renderer) override
+    void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
     {
       const auto& mesh = renderer.defaultTriangle();
-      defaultMeshInit(renderer, mesh);
+      defaultMeshInit(renderer, mesh, res);
       processUBOInit(renderer);
       m_material.init(renderer, node.input, m_samplers);
       std::tie(m_vertexS, m_fragmentS)

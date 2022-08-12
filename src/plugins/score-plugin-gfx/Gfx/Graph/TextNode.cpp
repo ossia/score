@@ -112,11 +112,11 @@ private:
     m_uploaded = false;
   }
 
-  void init(RenderList& renderer) override
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     rerender();
     const auto& mesh = renderer.defaultQuad();
-    defaultMeshInit(renderer, mesh);
+    defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
     std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(

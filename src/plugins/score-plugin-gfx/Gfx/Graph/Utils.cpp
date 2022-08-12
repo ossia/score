@@ -249,35 +249,22 @@ Pipeline buildPipeline(
 
   ps->setSampleCount(1);
 
-  if(mesh.cullMode == QRhiGraphicsPipeline::None)
-  {
-    ps->setDepthTest(false);
-    ps->setDepthWrite(false);
-  }
-  else
-  {
-    ps->setDepthTest(true);
-    ps->setDepthWrite(true);
-  }
-
-  ps->setTopology(mesh.topology);
-  ps->setCullMode(mesh.cullMode);
-  ps->setFrontFace(mesh.frontFace);
+  mesh.preparePipeline(*ps);
 
   ps->setShaderStages(
       {{QRhiShaderStage::Vertex, vertexS}, {QRhiShaderStage::Fragment, fragmentS}});
-
-  QRhiVertexInputLayout inputLayout;
-  inputLayout.setBindings(mesh.vertexBindings.begin(), mesh.vertexBindings.end());
-  inputLayout.setAttributes(mesh.vertexAttributes.begin(), mesh.vertexAttributes.end());
-  ps->setVertexInputLayout(inputLayout);
 
   ps->setShaderResourceBindings(srb);
 
   SCORE_ASSERT(rt.renderPass);
   ps->setRenderPassDescriptor(rt.renderPass);
 
-  SCORE_ASSERT(ps->create());
+  if(!ps->create())
+  {
+    qDebug() << "Warning! Pipeline not created";
+    delete ps;
+    ps = nullptr;
+  }
   return {ps, srb};
 }
 

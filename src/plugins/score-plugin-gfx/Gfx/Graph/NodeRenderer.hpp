@@ -20,7 +20,7 @@ public:
   virtual void
   inputAboutToFinish(RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&);
 
-  virtual void init(RenderList& renderer) = 0;
+  virtual void init(RenderList& renderer, QRhiResourceUpdateBatch& res) = 0;
   virtual void update(RenderList& renderer, QRhiResourceUpdateBatch& res) = 0;
 
   virtual void runInitialPasses(
@@ -41,13 +41,13 @@ void defaultPassesInit(
 
 SCORE_PLUGIN_GFX_EXPORT
 void defaultRenderPass(
-    QRhiBuffer* meshBuffer, QRhiBuffer* idxBuffer, RenderList& renderer,
-    const Mesh& mesh, QRhiCommandBuffer& cb, Edge& edge, PassMap& passes);
+    RenderList& renderer, const Mesh& mesh, const MeshBuffers& bufs,
+    QRhiCommandBuffer& cb, Edge& edge, PassMap& passes);
 
 SCORE_PLUGIN_GFX_EXPORT
 void quadRenderPass(
-    QRhiBuffer* meshBuffer, QRhiBuffer* idxBuffer, RenderList& renderer,
-    QRhiCommandBuffer& cb, Edge& edge, PassMap& passes);
+    RenderList& renderer, const MeshBuffers& bufs, QRhiCommandBuffer& cb, Edge& edge,
+    PassMap& passes);
 
 /**
  * @brief Generic renderer.
@@ -76,8 +76,7 @@ public:
   // Pipeline
   PassMap m_p;
 
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
+  MeshBuffers m_meshbufs;
 
   QRhiBuffer* m_processUBO{};
 
@@ -88,13 +87,14 @@ public:
   const score::gfx::Mesh* m_mesh{};
 
   // Render loop
-  void defaultMeshInit(RenderList& renderer, const Mesh& mesh);
+  void
+  defaultMeshInit(RenderList& renderer, const Mesh& mesh, QRhiResourceUpdateBatch& res);
   void processUBOInit(RenderList& renderer);
   void defaultPassesInit(RenderList& renderer, const Mesh& mesh);
   void defaultPassesInit(
       RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f);
 
-  void init(RenderList& renderer) override;
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
 
   void defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void defaultMeshUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);

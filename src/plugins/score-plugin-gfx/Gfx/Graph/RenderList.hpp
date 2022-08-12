@@ -30,14 +30,19 @@ public:
   void init();
 
   /**
+   * @brief Initial resource update batch.
+   *
+   * See QRhiResourceUpdateBatch::merge for documentation on this
+   */
+  [[nodiscard]] QRhiResourceUpdateBatch* initialBatch() const noexcept;
+
+  /**
    * @brief Create buffers for a mesh and mark them for upload.
    *
    * The meshes used by the nodes are cached
    * (as most are just rendering on a full-screen triangle, which we can reuse).
    */
-  MeshBuffers initMeshBuffer(const Mesh& mesh);
-  MeshBuffers initDynamicMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& res);
-  MeshBuffers updateDynamicMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& res);
+  MeshBuffers initMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& res);
 
   /**
    * @brief Update / upload this RenderList's shared data
@@ -84,11 +89,6 @@ public:
   RenderState& state;
 
   using Buffers = std::pair<const Mesh* const, MeshBuffers>;
-  /**
-   * @brief Buffers corresponding to the meshes to upload before rendering starts.
-   */
-  ossia::small_vector<Buffers, 4> buffersToUpload;
-  ossia::small_vector<Buffers, 4> dynamicBuffersToUpload;
 
   /**
    * @brief Nodes present in this RenderList, in order
@@ -99,6 +99,9 @@ public:
    * @brief Renderers - one per node.
    */
   std::vector<score::gfx::NodeRenderer*> renderers;
+
+  /** @brief Clear the renderers so that they get reinitialized on the next frame */
+  void clearRenderers();
 
   /**
    * @brief Texture to use when a texture is missing
@@ -126,6 +129,7 @@ public:
 private:
   OutputUBO m_outputUBOData;
 
+  QRhiResourceUpdateBatch* m_initialBatch{};
   // Material
   QRhiBuffer* m_outputUBO{};
   QRhiTexture* m_emptyTexture{};
@@ -134,7 +138,6 @@ private:
    * @brief Cache of vertex buffers.
    */
   ossia::flat_map<const Mesh*, MeshBuffers> m_vertexBuffers;
-  ossia::flat_map<const Mesh*, MeshBuffers> m_dynamicVertexBuffers;
 
   /**
    * @brief Last size used by this renderer.

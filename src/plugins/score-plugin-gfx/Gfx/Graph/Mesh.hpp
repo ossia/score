@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/ProcessFlags.hpp>
+
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/span.hpp>
 
@@ -8,33 +10,56 @@
 
 namespace score::gfx
 {
+struct MeshBuffers
+{
+  QRhiBuffer* mesh{};
+  QRhiBuffer* index{};
+};
 /**
  * @brief Data model for meshes.
  */
 struct SCORE_PLUGIN_GFX_EXPORT Mesh
 {
+public:
   explicit Mesh();
   virtual ~Mesh();
 
+  enum Flag
+  {
+    HasPosition = SCORE_FLAG(1),
+    HasTexCoord = SCORE_FLAG(2),
+    HasColor = SCORE_FLAG(3),
+    HasNormals = SCORE_FLAG(4),
+    HasTangents = SCORE_FLAG(5),
+  };
+  using Flags = QFlags<Flag>;
+
+  [[nodiscard]] virtual Flags flags() const noexcept = 0;
+
+  [[nodiscard]] virtual MeshBuffers init(QRhi& rhi) const noexcept;
+
+  virtual void update(MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept;
+
   /** @brief Setup bindings according to the input triangle data */
-  virtual void setupBindings(
-      QRhiBuffer& vtxData, QRhiBuffer* idxData,
-      QRhiCommandBuffer& cb) const noexcept = 0;
+  virtual void
+  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept = 0;
+
+  virtual void preparePipeline(QRhiGraphicsPipeline& pip) const noexcept;
+  virtual void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept;
 
   /** @brief A basic vertex shader that is going to work with this mesh. */
   virtual const char* defaultVertexShader() const noexcept = 0;
 
+protected:
+  using pip = QRhiGraphicsPipeline;
+  pip::Topology topology = pip::Topology::TriangleStrip;
+  pip::CullMode cullMode = pip::CullMode::None;
+  pip::FrontFace frontFace = pip::FrontFace::CW;
+
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
-
   tcb::span<const float> vertexArray;
-  tcb::span<const unsigned int> indexArray;
   int vertexCount{};
-  int indexCount{};
-  QRhiGraphicsPipeline::Topology topology
-      = QRhiGraphicsPipeline::Topology::TriangleStrip;
-  QRhiGraphicsPipeline::CullMode cullMode = QRhiGraphicsPipeline::CullMode::None;
-  QRhiGraphicsPipeline::FrontFace frontFace = QRhiGraphicsPipeline::FrontFace::CW;
 
 private:
   Mesh(const Mesh&) = delete;
@@ -43,16 +68,16 @@ private:
   Mesh& operator=(Mesh&&) = delete;
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS(Mesh::Flags);
 /**
  * @brief A mesh with only position attributes.
  */
 struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : Mesh
 {
   explicit PlainMesh(tcb::span<const float> vtx, int count);
-
-  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept override;
-
+  [[nodiscard]] Flags flags() const noexcept override { return HasPosition; }
+  void
+  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
   const char* defaultVertexShader() const noexcept override;
 };
 
@@ -62,20 +87,10 @@ struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : Mesh
 struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : Mesh
 {
   explicit TexturedMesh(tcb::span<const float> vtx, int count);
-
-  const char* defaultVertexShader() const noexcept override;
-};
-
-/**
- * @brief A mesh with positions, texture coordinates, and normals.
- */
-struct SCORE_PLUGIN_GFX_EXPORT TextureNormalMesh : Mesh
-{
-  explicit TextureNormalMesh(
-      tcb::span<const float> vtx, tcb::span<const unsigned int> idx, int count);
-
-  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept override;
+  [[nodiscard]] Flags flags() const noexcept override
+  {
+    return HasPosition | HasTexCoord;
+  }
 
   const char* defaultVertexShader() const noexcept override;
 };
@@ -109,8 +124,8 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedTriangle final : TexturedMesh
 
   explicit TexturedTriangle(bool flipped = false);
 
-  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept override;
+  void
+  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
 };
 
 /**
@@ -131,13 +146,8 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedQuad final : TexturedMesh
 
   explicit TexturedQuad(bool flipped = false);
 
-  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept override;
+  void
+  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
 };
 
-struct MeshBuffers
-{
-  QRhiBuffer* mesh{};
-  QRhiBuffer* index{};
-};
 }

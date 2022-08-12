@@ -189,14 +189,14 @@ void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int
   }
 }
 
-void VideoNodeRenderer::init(RenderList& renderer)
+void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   auto& rhi = *renderer.state.rhi;
 
   const auto& mesh = renderer.defaultQuad();
   if(!m_meshBuffer)
   {
-    auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+    auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
   }
@@ -221,7 +221,8 @@ void VideoNodeRenderer::init(RenderList& renderer)
 void VideoNodeRenderer::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
-  score::gfx::quadRenderPass(m_meshBuffer, m_idxBuffer, renderer, cb, edge, m_p);
+  score::gfx::quadRenderPass(
+      renderer, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
 }
 
 // TODO if we have multiple renderers for the same video, we must always keep

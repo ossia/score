@@ -27,7 +27,7 @@ class GenericNodeRenderer;
 class NodeRenderer;
 
 using gfx_input = ossia::variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::geometry>;
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list>;
 
 /**
  * @brief Messages sent from the execution thread to the rendering thread
@@ -142,13 +142,13 @@ public:
    * If not set, then a relevant default geometry for the node
    * will be used, e.g. a full-screen quad or triangle
    */
-  std::optional<ossia::geometry> geometry;
+  std::optional<ossia::mesh_list> geometry;
 
   void process(Message&& msg) override;
   void process(const ossia::token_request& tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
-  void process(int32_t port, const ossia::geometry& v);
+  void process(int32_t port, const ossia::mesh_list& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
 };
 

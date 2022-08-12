@@ -245,10 +245,10 @@ struct GfxRenderer final : GenericTexgenRenderer
     }
   }
 
-  void init(score::gfx::RenderList& renderer) override
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    defaultMeshInit(renderer, mesh);
+    defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
     std::tie(m_vertexS, m_fragmentS)

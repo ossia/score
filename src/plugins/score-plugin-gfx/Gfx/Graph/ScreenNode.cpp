@@ -460,7 +460,7 @@ public:
   }
 
   ~BasicRenderer() { }
-  void init(RenderList& renderer) override { }
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override { }
   void release(RenderList&) override { }
@@ -493,13 +493,13 @@ public:
 
   ~ScaledRenderer() { }
 
-  void init(RenderList& renderer) override
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize);
 
     const auto& mesh = renderer.defaultTriangle();
-    m_mesh = renderer.initMeshBuffer(mesh);
+    m_mesh = renderer.initMeshBuffer(mesh, res);
     static const constexpr auto gl_filter = R"_(#version 450
       layout(location = 0) in vec2 v_texcoord;
       layout(location = 0) out vec4 fragColor;
@@ -554,13 +554,8 @@ public:
       cb.setShaderResources(m_p.srb);
       cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
-      assert(this->m_mesh.mesh);
-      assert(this->m_mesh.mesh->usage().testFlag(QRhiBuffer::VertexBuffer));
-
       const auto& mesh = renderer.defaultTriangle();
-      mesh.setupBindings(*this->m_mesh.mesh, this->m_mesh.index, cb);
-
-      cb.draw(mesh.vertexCount);
+      mesh.draw(this->m_mesh, cb);
     }
     cb.endPass();
   }

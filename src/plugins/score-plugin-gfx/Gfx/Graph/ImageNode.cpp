@@ -331,12 +331,12 @@ private:
   }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
-  void init(RenderList& renderer) override
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
     const auto& rs = renderer.state;
     const Mesh& mesh = renderer.defaultQuad();
-    defaultMeshInit(renderer, mesh);
+    defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
@@ -536,12 +536,12 @@ private:
   }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
-  void init(RenderList& renderer) override
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
     const auto& rs = renderer.state;
     const auto& mesh = renderer.defaultQuad();
-    defaultMeshInit(renderer, mesh);
+    defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
@@ -754,10 +754,10 @@ private:
   ~Renderer() { }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
-  void init(RenderList& renderer) override
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    defaultMeshInit(renderer, mesh);
+    defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
     std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(

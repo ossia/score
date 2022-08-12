@@ -10,123 +10,16 @@
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh)
+MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& res)
 {
   if(auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
     return it->second;
 
-  auto& rhi = *state.rhi;
-  auto mesh_buf = rhi.newBuffer(
-      QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer,
-      mesh.vertexArray.size() * sizeof(float));
-  mesh_buf->setName("RenderList::mesh_buf");
-  mesh_buf->create();
-
-  QRhiBuffer* idx_buf{};
-  if(!mesh.indexArray.empty())
-  {
-    idx_buf = rhi.newBuffer(
-        QRhiBuffer::Immutable, QRhiBuffer::IndexBuffer,
-        mesh.indexArray.size() * sizeof(unsigned int));
-    idx_buf->setName("RenderList::idx_buf");
-    idx_buf->create();
-  }
-
-  MeshBuffers ret{mesh_buf, idx_buf};
+  MeshBuffers ret = mesh.init(*state.rhi);
+  mesh.update(ret, res);
   m_vertexBuffers.insert({&mesh, ret});
-  buffersToUpload.push_back({&mesh, ret});
+
   return ret;
-}
-
-MeshBuffers
-RenderList::initDynamicMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& rb)
-{
-  auto it = m_vertexBuffers.find(&mesh);
-  SCORE_ASSERT(it == m_vertexBuffers.end());
-
-  auto& rhi = *state.rhi;
-  auto mesh_buf = rhi.newBuffer(
-      QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer,
-      mesh.vertexArray.size() * sizeof(float));
-
-  qDebug() << "initialize mesh buffer: "
-           << "vertex: " << mesh.vertexArray.size()
-           << mesh.vertexArray.size() * sizeof(float)
-           << "index: " << mesh.indexArray.size()
-           << mesh.indexArray.size() * sizeof(unsigned int);
-
-  mesh_buf->setName("RenderList::dyn_mesh_buf");
-  mesh_buf->create();
-
-  QRhiBuffer* idx_buf{};
-  if(!mesh.indexArray.empty())
-  {
-    idx_buf = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::IndexBuffer,
-        mesh.indexArray.size() * sizeof(unsigned int));
-    idx_buf->setName("RenderList::dyn_idx_buf");
-    idx_buf->create();
-  }
-
-  MeshBuffers ret{mesh_buf, idx_buf};
-  auto res = m_dynamicVertexBuffers.insert({&mesh, ret});
-  assert(res.second);
-
-  SCORE_ASSERT(!mesh.vertexArray.empty());
-  rb.updateDynamicBuffer(mesh_buf, 0, mesh_buf->size(), mesh.vertexArray.data());
-  if(idx_buf)
-  {
-    SCORE_ASSERT(!mesh.indexArray.empty());
-    rb.updateDynamicBuffer(idx_buf, 0, idx_buf->size(), mesh.indexArray.data());
-  }
-  return ret;
-}
-
-MeshBuffers
-RenderList::updateDynamicMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& rb)
-{
-  auto it = m_dynamicVertexBuffers.find(&mesh);
-  SCORE_ASSERT(it != m_dynamicVertexBuffers.end());
-
-  auto& [m, meshbuf] = *it;
-  if(auto sz = mesh.vertexArray.size() * sizeof(float); sz != meshbuf.mesh->size())
-  {
-    meshbuf.mesh->destroy();
-    meshbuf.mesh->setSize(sz);
-    meshbuf.mesh->create();
-  }
-
-  if(meshbuf.index)
-  {
-    // FIXME what if index disappears
-    if(auto sz = mesh.indexArray.size() * sizeof(unsigned int);
-       sz != meshbuf.index->size())
-    {
-      meshbuf.index->destroy();
-      meshbuf.index->setSize(sz);
-      meshbuf.index->create();
-    }
-    else
-    {
-    }
-  }
-  else
-  {
-    // FIXME what if index appears
-  }
-
-  rb.updateDynamicBuffer(meshbuf.mesh, 0, meshbuf.mesh->size(), mesh.vertexArray.data());
-  if(meshbuf.index)
-  {
-    rb.updateDynamicBuffer(
-        meshbuf.index, 0, meshbuf.index->size(), mesh.indexArray.data());
-  }
-  else
-  {
-    qDebug() << "no index";
-  }
-
-  return meshbuf;
 }
 
 RenderList::RenderList(OutputNode& output, const std::shared_ptr<RenderState>& state)
@@ -171,6 +64,13 @@ void RenderList::init()
   m_emptyTexture->create();
 
   m_lastSize = state.renderSize;
+
+  m_initialBatch = state.rhi->nextResourceUpdateBatch();
+}
+
+QRhiResourceUpdateBatch* RenderList::initialBatch() const noexcept
+{
+  return m_initialBatch;
 }
 
 void RenderList::release()
@@ -186,16 +86,7 @@ void RenderList::release()
     delete bufs.second.index;
   }
 
-  for(auto bufs : m_dynamicVertexBuffers)
-  {
-    delete bufs.second.mesh;
-    delete bufs.second.index;
-  }
-
   m_vertexBuffers.clear();
-  m_dynamicVertexBuffers.clear();
-  buffersToUpload.clear();
-  dynamicBuffersToUpload.clear();
 
   delete m_outputUBO;
   m_outputUBO = nullptr;
@@ -224,7 +115,7 @@ void RenderList::maybeRebuild()
     // the render targets of subsequent nodes must be initialized
     for(auto node : renderers)
     {
-      node->init(*this);
+      node->init(*this, *this->m_initialBatch);
     }
 
     m_lastSize = outputSize;
@@ -254,6 +145,14 @@ QImage RenderList::adaptImage(const QImage& frame)
   //if(m_flip)
   //  res = std::move(res).mirrored();
   //return res;
+}
+
+void RenderList::clearRenderers()
+{
+  renderers.clear();
+
+  // Necessary so that we re-go through init() on the next frame
+  m_built = false;
 }
 
 const Mesh& RenderList::defaultQuad() const noexcept
@@ -305,7 +204,16 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   SCORE_ASSERT(m_outputUBO);
   SCORE_ASSERT(m_emptyTexture);
 
-  auto updateBatch = state.rhi->nextResourceUpdateBatch();
+  QRhiResourceUpdateBatch* updateBatch{};
+  if(m_initialBatch)
+  {
+    updateBatch = m_initialBatch;
+    m_initialBatch = nullptr;
+  }
+  else
+  {
+    updateBatch = state.rhi->nextResourceUpdateBatch();
+  }
   update(*updateBatch);
 
   // For each texture input port
@@ -443,20 +351,6 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
     m_outputUBOData.renderSize[1] = this->m_lastSize.height();
 
     res.updateDynamicBuffer(m_outputUBO, 0, sizeof(OutputUBO), &m_outputUBOData);
-  }
-
-  // This does not work: this means that on the first frame the quads are not uplaoded
-  // yet and pipelines cannot be created
-  if(Q_UNLIKELY(!buffersToUpload.empty()))
-  {
-    for(auto [mesh, buf] : buffersToUpload)
-    {
-      res.uploadStaticBuffer(buf.mesh, 0, buf.mesh->size(), mesh->vertexArray.data());
-      if(buf.index)
-        res.uploadStaticBuffer(buf.index, 0, buf.index->size(), mesh->indexArray.data());
-    }
-
-    buffersToUpload.clear();
   }
 }
 

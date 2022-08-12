@@ -26,7 +26,7 @@ public:
   void setupGpuDecoder(RenderList& r);
   void checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h);
 
-  void init(RenderList& renderer) override;
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;

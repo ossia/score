@@ -261,7 +261,7 @@ void Graph::relinkGraph()
     r.nodes.clear();
     r.nodes.push_back(out);
 
-    r.renderers.clear();
+    r.clearRenderers();
 
     auto& model_nodes = r.nodes;
     {
@@ -307,10 +307,10 @@ void Graph::relinkGraph()
           break;
         }
 
-        for(auto node : r.renderers)
-        {
-          node->init(r);
-        }
+        //         for(auto node : r.renderers)
+        //         {
+        //           node->init(r);
+        //         }
       }
       else if(model_nodes.size() == 1)
       {
@@ -399,8 +399,9 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
 
     if(model_nodes.size() > 1)
     {
+      auto batch = r.initialBatch();
       for(auto node : r.renderers)
-        node->init(r);
+        node->init(r, *batch);
     }
   }
 

@@ -13,13 +13,14 @@ InvertYRenderer::InvertYRenderer(
 {
 }
 
-void InvertYRenderer::init(score::gfx::RenderList& renderer)
+void InvertYRenderer::init(
+    score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   m_renderTarget = score::gfx::createRenderTarget(
       renderer.state, QRhiTexture::Format::RGBA8, m_inputTarget.texture->pixelSize());
 
   const auto& mesh = renderer.defaultTriangle();
-  m_mesh = renderer.initMeshBuffer(mesh);
+  m_mesh = renderer.initMeshBuffer(mesh, res);
 
   // We need to have a pass to invert the Y coordinate to go
   // from GL direction (Y up) to normal video (Y down)
@@ -83,13 +84,8 @@ void InvertYRenderer::finishFrame(
     cb.setShaderResources(m_p.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
-    assert(this->m_mesh.mesh);
-    assert(this->m_mesh.mesh->usage().testFlag(QRhiBuffer::VertexBuffer));
-
     const auto& mesh = renderer.defaultTriangle();
-    mesh.setupBindings(*this->m_mesh.mesh, this->m_mesh.index, cb);
-
-    cb.draw(mesh.vertexCount);
+    mesh.draw(this->m_mesh, cb);
   }
 
   auto next = renderer.state.rhi->nextResourceUpdateBatch();
