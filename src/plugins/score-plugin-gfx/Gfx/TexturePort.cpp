@@ -96,6 +96,7 @@ public:
     {
       // Take back ownership of the window
       qwindow->setParent(nullptr);
+      qwindow->close();
       QChildEvent ev(QEvent::ChildRemoved, qwindow);
       ((QObject*)container)->event(&ev);
     }
