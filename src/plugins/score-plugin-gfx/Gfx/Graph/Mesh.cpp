@@ -8,7 +8,7 @@ Mesh::Mesh() = default;
 Mesh::~Mesh() = default;
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-MeshBuffers Mesh::init(QRhi& rhi) const noexcept
+MeshBuffers BasicMesh::init(QRhi& rhi) const noexcept
 {
   auto mesh_buf = rhi.newBuffer(
       QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer,
@@ -20,12 +20,12 @@ MeshBuffers Mesh::init(QRhi& rhi) const noexcept
   return ret;
 }
 
-void Mesh::update(MeshBuffers& bufs, QRhiResourceUpdateBatch& res) const noexcept
+void BasicMesh::update(MeshBuffers& bufs, QRhiResourceUpdateBatch& res) const noexcept
 {
   res.uploadStaticBuffer(bufs.mesh, 0, bufs.mesh->size(), this->vertexArray.data());
 }
 
-void Mesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
+void BasicMesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
 {
   if(cullMode == QRhiGraphicsPipeline::None)
   {
@@ -49,7 +49,7 @@ void Mesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
   pip.setVertexInputLayout(inputLayout);
 }
 
-void Mesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
+void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
   assert(bufs.mesh);
   assert(bufs.mesh->usage().testFlag(QRhiBuffer::VertexBuffer));

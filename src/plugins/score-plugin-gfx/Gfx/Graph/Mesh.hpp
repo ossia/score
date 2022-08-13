@@ -36,31 +36,18 @@ public:
 
   [[nodiscard]] virtual Flags flags() const noexcept = 0;
 
-  [[nodiscard]] virtual MeshBuffers init(QRhi& rhi) const noexcept;
+  [[nodiscard]] virtual MeshBuffers init(QRhi& rhi) const noexcept = 0;
 
-  virtual void update(MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept;
-
-  /** @brief Setup bindings according to the input triangle data */
-  virtual void
-  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept = 0;
-
-  virtual void preparePipeline(QRhiGraphicsPipeline& pip) const noexcept;
-  virtual void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept;
+  virtual void update(MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept = 0;
+  virtual void preparePipeline(QRhiGraphicsPipeline& pip) const noexcept = 0;
+  virtual void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept = 0;
 
   /** @brief A basic vertex shader that is going to work with this mesh. */
   virtual const char* defaultVertexShader() const noexcept = 0;
 
 protected:
-  using pip = QRhiGraphicsPipeline;
-  pip::Topology topology = pip::Topology::TriangleStrip;
-  pip::CullMode cullMode = pip::CullMode::None;
-  pip::FrontFace frontFace = pip::FrontFace::CW;
-
-  ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
-  ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
-  tcb::span<const float> vertexArray;
-  int vertexCount{};
-
+  /*
+*/
 private:
   Mesh(const Mesh&) = delete;
   Mesh(Mesh&&) = delete;
@@ -69,22 +56,45 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Mesh::Flags);
+
+struct BasicMesh : Mesh
+{
+  using Mesh::Mesh;
+  [[nodiscard]] virtual MeshBuffers init(QRhi& rhi) const noexcept override;
+  void update(MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept override;
+  void preparePipeline(QRhiGraphicsPipeline& pip) const noexcept override;
+  void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
+  virtual void
+  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept = 0;
+
+  using pip = QRhiGraphicsPipeline;
+  pip::Topology topology = pip::Topology::TriangleStrip;
+  pip::CullMode cullMode = pip::CullMode::None;
+  pip::FrontFace frontFace = pip::FrontFace::CW;
+
+  ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
+  ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
+
+  tcb::span<const float> vertexArray;
+  int vertexCount{};
+};
+
 /**
  * @brief A mesh with only position attributes.
  */
-struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : Mesh
+struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : BasicMesh
 {
   explicit PlainMesh(tcb::span<const float> vtx, int count);
   [[nodiscard]] Flags flags() const noexcept override { return HasPosition; }
+  const char* defaultVertexShader() const noexcept override;
   void
   setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
-  const char* defaultVertexShader() const noexcept override;
 };
 
 /**
  * @brief A mesh with positions and texture coordinates.
  */
-struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : Mesh
+struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : BasicMesh
 {
   explicit TexturedMesh(tcb::span<const float> vtx, int count);
   [[nodiscard]] Flags flags() const noexcept override

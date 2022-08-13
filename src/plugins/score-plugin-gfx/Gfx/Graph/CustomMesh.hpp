@@ -11,8 +11,14 @@ namespace score::gfx
 class CustomMesh : public score::gfx::Mesh
 {
   ossia::mesh_list geom;
-  tcb::span<const unsigned int> indexArray;
-  int indexCount{};
+
+  using pip = QRhiGraphicsPipeline;
+  pip::Topology topology = pip::Topology::TriangleStrip;
+  pip::CullMode cullMode = pip::CullMode::None;
+  pip::FrontFace frontFace = pip::FrontFace::CW;
+
+  ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
+  ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
 
 public:
   explicit CustomMesh(const ossia::mesh_list& g) { reload(g); }
@@ -20,21 +26,27 @@ public:
 #include <Gfx/Qt5CompatPush> // clang-format: keep
   [[nodiscard]] MeshBuffers init(QRhi& rhi) const noexcept override
   {
-    auto mesh_buf = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer,
-        vertexArray.size() * sizeof(float));
+    if(geom.meshes.empty())
+      return {};
+    if(geom.meshes[0].buffers.empty())
+      return {};
+
+    const auto vtx_buf_size = geom.meshes[0].buffers[0].size;
+    auto mesh_buf
+        = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer, vtx_buf_size);
     mesh_buf->setName("Mesh::mesh_buf");
     mesh_buf->create();
 
     QRhiBuffer* idx_buf{};
-    if(!indexArray.empty())
+    if(geom.meshes[0].buffers.size() > 1)
     {
-      // FIXME use sizeof(unsigned short) if uint16
-      idx_buf = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::IndexBuffer,
-          indexArray.size() * sizeof(unsigned int));
-      idx_buf->setName("Mesh::idx_buf");
-      idx_buf->create();
+      if(const auto idx_buf_size = geom.meshes[0].buffers[1].size; idx_buf_size > 0)
+      {
+        idx_buf
+            = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::IndexBuffer, idx_buf_size);
+        idx_buf->setName("Mesh::idx_buf");
+        idx_buf->create();
+      }
     }
 
     MeshBuffers ret{mesh_buf, idx_buf};
@@ -43,8 +55,14 @@ public:
 
   void update(MeshBuffers& meshbuf, QRhiResourceUpdateBatch& rb) const noexcept override
   {
-    auto& mesh = *this;
-    if(auto sz = mesh.vertexArray.size() * sizeof(float); sz != meshbuf.mesh->size())
+    if(geom.meshes.empty())
+      return;
+    if(geom.meshes[0].buffers.empty())
+      return;
+
+    void* idx_buf_data = nullptr;
+    const auto vtx_buf = geom.meshes[0].buffers[0];
+    if(auto sz = vtx_buf.size; sz != meshbuf.mesh->size())
     {
       meshbuf.mesh->destroy();
       meshbuf.mesh->setSize(sz);
@@ -53,16 +71,23 @@ public:
 
     if(meshbuf.index)
     {
-      // FIXME what if index disappears
-      if(auto sz = mesh.indexArray.size() * sizeof(unsigned int);
-         sz != meshbuf.index->size())
+      const auto idx_buf = geom.meshes[0].buffers[1];
+      if(geom.meshes[0].buffers.size() > 1)
       {
-        meshbuf.index->destroy();
-        meshbuf.index->setSize(sz);
-        meshbuf.index->create();
-      }
-      else
-      {
+        if(const auto idx_buf_size = idx_buf.size; idx_buf_size > 0)
+        {
+          idx_buf_data = idx_buf.data.get();
+          // FIXME what if index disappears
+          if(auto sz = idx_buf.size; sz != meshbuf.index->size())
+          {
+            meshbuf.index->destroy();
+            meshbuf.index->setSize(sz);
+            meshbuf.index->create();
+          }
+          else
+          {
+          }
+        }
       }
     }
     else
@@ -70,12 +95,10 @@ public:
       // FIXME what if index appears
     }
 
-    rb.updateDynamicBuffer(
-        meshbuf.mesh, 0, meshbuf.mesh->size(), mesh.vertexArray.data());
+    rb.updateDynamicBuffer(meshbuf.mesh, 0, meshbuf.mesh->size(), vtx_buf.data.get());
     if(meshbuf.index)
     {
-      rb.updateDynamicBuffer(
-          meshbuf.index, 0, meshbuf.index->size(), mesh.indexArray.data());
+      rb.updateDynamicBuffer(meshbuf.index, 0, meshbuf.index->size(), idx_buf_data);
     }
   }
 #include <Gfx/Qt5CompatPop> // clang-format: keep
@@ -111,20 +134,40 @@ public:
   {
     vertexBindings.clear();
     vertexAttributes.clear();
-    vertexArray = {};
-    vertexCount = 0;
-    indexArray = {};
-    indexCount = 0;
+  }
+
+  void preparePipeline(QRhiGraphicsPipeline& pip) const noexcept override
+  {
+    if(cullMode == QRhiGraphicsPipeline::None)
+    {
+      pip.setDepthTest(false);
+      pip.setDepthWrite(false);
+    }
+    else
+    {
+      pip.setDepthTest(true);
+      pip.setDepthWrite(true);
+    }
+
+    pip.setTopology(this->topology);
+    pip.setCullMode(this->cullMode);
+    pip.setFrontFace(this->frontFace);
+
+    QRhiVertexInputLayout inputLayout;
+    inputLayout.setBindings(this->vertexBindings.begin(), this->vertexBindings.end());
+    inputLayout.setAttributes(
+        this->vertexAttributes.begin(), this->vertexAttributes.end());
+    pip.setVertexInputLayout(inputLayout);
   }
 
   void reload(const ossia::mesh_list& ml)
   {
     this->geom = ml;
 
-    qDebug() << "Replacing geometry: " << this->geom.meshes.size();
     if(this->geom.meshes.size() == 0)
     {
-      clear();
+      qDebug() << "Clearing geometry: ";
+      //  clear();
       return;
     }
 
@@ -147,21 +190,7 @@ public:
           attr.offset);
     }
 
-    if(!g.buffers.empty())
-    {
-      vertexArray = tcb::span<const float>(
-          (float*)g.buffers[0].data.get(), g.buffers[0].size / sizeof(float));
-      vertexCount = g.vertices;
-
-      if(g.index.buffer >= 0 && g.index.buffer < g.buffers.size())
-      {
-        auto& index_buf = g.buffers[g.index.buffer];
-        indexArray = tcb::span<const uint32_t>(
-            (uint32_t*)index_buf.data.get(), index_buf.size / sizeof(uint32_t));
-        indexCount = g.indices;
-      }
-    }
-    else
+    if(g.buffers.empty())
     {
       qDebug() << "Error: empty buffer !";
       clear();
@@ -172,43 +201,40 @@ public:
     frontFace = (QRhiGraphicsPipeline::FrontFace)g.front_face;
   }
 
-  void
-  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override
-  {
-    SCORE_ASSERT(this->geom.meshes.size() > 0);
-    auto& g = this->geom.meshes[0];
-    const auto sz = g.input.size();
-
-    QVarLengthArray<QRhiCommandBuffer::VertexInput> bindings(sz);
-
-    int i = 0;
-    for(auto& in : g.input)
-    {
-      bindings[i++] = {bufs.mesh, in.offset};
-    }
-
-    if(g.index.buffer >= 0)
-    {
-      const auto idxFmt = g.index.format == decltype(g.index)::uint16
-                              ? QRhiCommandBuffer::IndexUInt32
-                              : QRhiCommandBuffer::IndexUInt32;
-      cb.setVertexInput(0, sz, bindings.data(), bufs.index, g.index.offset, idxFmt);
-    }
-    else
-      cb.setVertexInput(0, sz, bindings.data());
-  }
-
   void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override
   {
-    setupBindings(bufs, cb);
+    for(auto& g : this->geom.meshes)
+    {
+      const auto sz = g.input.size();
 
-    if(indexCount > 0)
-    {
-      cb.drawIndexed(indexCount);
-    }
-    else
-    {
-      cb.draw(vertexCount);
+      QVarLengthArray<QRhiCommandBuffer::VertexInput> bindings(sz);
+
+      int i = 0;
+      for(auto& in : g.input)
+      {
+        bindings[i++] = {bufs.mesh, in.offset};
+      }
+
+      if(g.index.buffer >= 0)
+      {
+        const auto idxFmt = g.index.format == decltype(g.index)::uint16
+                                ? QRhiCommandBuffer::IndexUInt32
+                                : QRhiCommandBuffer::IndexUInt32;
+        cb.setVertexInput(0, sz, bindings.data(), bufs.index, g.index.offset, idxFmt);
+      }
+      else
+      {
+        cb.setVertexInput(0, sz, bindings.data());
+      }
+
+      if(g.index.buffer > -1)
+      {
+        cb.drawIndexed(g.indices);
+      }
+      else
+      {
+        cb.draw(g.vertices);
+      }
     }
   }
 
