@@ -220,7 +220,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     createdUbos[ubo_type::binding()] = ubo;
   }
 
-  void init(score::gfx::RenderList& renderer) override
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     // Create the global shared inputs
     avnd::input_introspection<Node_T>::for_all(
