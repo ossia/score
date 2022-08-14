@@ -221,6 +221,26 @@ void IntSpinBox::setupExecution(ossia::inlet& inl) const noexcept
 
 IntSpinBox::~IntSpinBox() { }
 
+TimeChooser::TimeChooser(
+    float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(ossia::vec2f{init, 1.f});
+  setDomain(ossia::make_domain(ossia::vec2f{min, 0.f}, ossia::vec2f{max, 1.f}));
+  setName(name);
+}
+
+TimeChooser::~TimeChooser() { }
+
+void TimeChooser::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::VEC2F;
+  // port.type = ossia::second_u{};
+  // port.domain = domain().get();
+}
+
 Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
@@ -565,6 +585,29 @@ JSONReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::TimeChooser>(const Process::TimeChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::TimeChooser>(Process::TimeChooser& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::TimeChooser>(const Process::TimeChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::TimeChooser>(Process::TimeChooser& p)
 {
 }
 

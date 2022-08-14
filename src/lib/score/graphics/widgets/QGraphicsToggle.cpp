@@ -14,7 +14,8 @@ namespace score
 
 QGraphicsToggle::QGraphicsToggle(
     const QString& textUntoggled, const QString& textToggled, QGraphicsItem* parent)
-    : m_textToggled(textToggled)
+    : QGraphicsItem{parent}
+    , m_textToggled(textToggled)
     , m_textUntoggled(textUntoggled)
 {
   auto& skin = score::Skin::instance();

@@ -28,11 +28,10 @@ public:
 
   void toggle();
   void setState(bool toggled);
+  bool state() const noexcept { return m_toggled; }
 
-public:
   void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1)
 
-private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;

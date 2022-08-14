@@ -41,6 +41,10 @@ include_directories("${3RDPARTY_FOLDER}/avendish/include")
 add_library(
   score_plugin_avnd
 
+  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/ADSR.hpp"
+  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/AudioFilters.hpp"
+
+
   Avnd/Factories.hpp
 
   Crousti/Attributes.hpp
@@ -72,6 +76,8 @@ target_link_libraries(score_plugin_avnd
     score_plugin_engine
     score_plugin_media
     libremidi
+    $<BUILD_INTERFACE:dspfilters>
+    $<BUILD_INTERFACE:gamma>
   )
 if(TARGET score_plugin_gfx)
   target_link_libraries(score_plugin_avnd PUBLIC score_plugin_gfx)

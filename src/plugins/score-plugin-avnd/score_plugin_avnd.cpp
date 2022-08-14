@@ -31,7 +31,15 @@
 
 #include <boost/pfr.hpp>
 
+#include <halp/log.hpp>
+
 #include <score_plugin_engine.hpp>
+
+#include <avnd/../../examples/Advanced/Utilities/ADSR.hpp>
+#include <avnd/../../examples/Advanced/Utilities/AudioFilters.hpp>
+#include <avnd/../../examples/Advanced/Utilities/Bitcrush.hpp>
+#include <avnd/../../examples/Advanced/Utilities/Echo.hpp>
+#include <avnd/../../examples/Advanced/Utilities/Flanger.hpp>
 
 #define AVND_TEST_BUILD 0
 #if AVND_TEST_BUILD
@@ -101,18 +109,18 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace oscr;
-#if AVND_TEST_BUILD
-  using namespace examples;
-  using namespace examples::helpers;
-
   struct config
   {
     using logger_type = halp::basic_logger;
   };
-#endif
+  auto fx = oscr::instantiate_fx<
+      ao::ADSR, ao::Lowpass, ao::Highpass, ao::Lowshelf, ao::Highshelf, ao::Bandpass,
+      ao::Bandstop, ao::Bandshelf, ao::Bitcrush, ao::Echo, ao::Flanger>(ctx, key);
 
-  return oscr::instantiate_fx<
 #if AVND_TEST_BUILD
+  using namespace examples;
+  using namespace examples::helpers;
+  auto debug_fx = oscr::instantiate_fx<
       oscr::Granolette, examples::helpers::FFTDisplay, examples::helpers::MessageBusUi,
       examples::helpers::AdvancedUi, Addition, Callback, Controls, Logger<config>,
       examples::Lowpass, examples::helpers::Lowpass, examples::Messages,
@@ -134,9 +142,13 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
       examples::GpuFilterExample, examples::GpuRawExample, examples::GpuSolidColorExample
 #endif
       ,
-      TrivialGeneratorExample, TrivialFilterExample, ZeroDependencyAudioEffect
+      TrivialGeneratorExample, TrivialFilterExample, ZeroDependencyAudioEffect>(
+      ctx, key);
+  fx.insert(
+      fx.end(), std::make_move_iterator(debug_fx.begin()),
+      std::make_move_iterator(debug_fx.end()));
 #endif
-      >(ctx, key);
+  return fx;
 }
 std::vector<score::PluginKey> score_plugin_avnd::required() const
 {

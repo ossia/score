@@ -67,3 +67,9 @@
 [submodule "3rdparty/outcome"]
 	path = 3rdparty/outcome
 	url = https://github.com/ned14/outcome
+[submodule "3rdparty/DSPFilters"]
+	path = 3rdparty/DSPFilters
+	url = https://github.com/jcelerier/DSPFilters
+[submodule "3rdparty/Gamma"]
+	path = 3rdparty/Gamma
+	url = https://github.com/LancePutnam/Gamma

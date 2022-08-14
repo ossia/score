@@ -44,6 +44,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
              Process::LogFloatSlider, WidgetFactory::LogFloatSlider>,
          Dataflow::WidgetInletFactory<Process::IntSlider, WidgetFactory::IntSlider>,
          Dataflow::WidgetInletFactory<Process::IntSpinBox, WidgetFactory::IntSpinBox>,
+         Dataflow::WidgetInletFactory<Process::TimeChooser, WidgetFactory::TimeChooser>,
          Dataflow::WidgetInletFactory<Process::Toggle, WidgetFactory::Toggle>,
          Dataflow::WidgetInletFactory<Process::Button, WidgetFactory::Button>,
          Dataflow::WidgetInletFactory<

@@ -325,6 +325,65 @@ struct IntSpinBox
   }
 };
 
+struct TimeChooser
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    using namespace Process;
+    return DefaultControlLayouts::knob();
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
+  {
+    // FIXME
+    return nullptr;
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsTimeChooser{nullptr};
+    // bindFloatDomain(slider, inlet, *sl);
+    sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
+
+    QObject::connect(
+        sl, &score::QGraphicsTimeChooser::sliderMoved, context, [sl, &inlet, &ctx] {
+          sl->knob.moving = true;
+          sl->combo.moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+        });
+    QObject::connect(
+        sl, &score::QGraphicsTimeChooser::sliderReleased, context, [sl, &inlet, &ctx] {
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+          ctx.dispatcher.commit();
+          sl->knob.moving = false;
+          sl->combo.moving = false;
+        });
+
+    QObject::connect(
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
+          if(!sl->knob.moving && !sl->combo.moving)
+          {
+            sl->setValue(ossia::convert<ossia::vec2f>(val));
+          }
+        });
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl, [sl](const ossia::value& val) {
+          sl->setExecutionValue(ossia::convert<ossia::vec2f>(val));
+        });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl,
+        &score::QGraphicsTimeChooser::resetExecution);
+
+    return sl;
+  }
+};
+
 struct Toggle
 {
   static Process::PortItemLayout layout() noexcept

@@ -90,9 +90,14 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["Catch2"] = License{"https://github.com/catchorg/Catch2", Catch2_LICENSE};
   map["ConcurrentQueue"] = License{
       "https://github.com/cameron314/concurrentqueue", concurrentqueue_LICENSE};
+  map["CTRE"] = License{
+      "https://github.com/hanickadot/compile-time-regular-expressions", CTRE_LICENSE};
   map["dno"] = License{"https://github.com/thibaudk/dno", dno_LICENSE};
   map["DNS-SD"] = License{"", dnssd_LICENSE};
   map["dr_libs"] = License{"https://github.com/mackron/dr_libs", dr_libs_LICENSE};
+  map["DSPFilters"] = License{
+      "https://github.com/olilarkin/dspfilters",
+      "DSPFilters, by Vinnie Falco and others (MIT)"};
   map["flat"] = License{
       "https://github.com/jcelerier/flat", "Based on https://github.com/pubby/flat\n",
       flat_LICENSE};
@@ -101,6 +106,7 @@ AboutDialog::AboutDialog(QWidget* parent)
       "Based on https://github.com/skarupke/flat_hash_map\n"};
   map["Flicks"] = License{"https://github.com/OculusVR/Flicks", Flicks_LICENSE};
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
+  map["Gamma"] = License{"https://github.com/LancePutnam/Gamma", Gamma_LICENSE};
   map["Gist"] = License{"https://github.com/adamstark/Gist", Gist_LICENSE};
   map["span"] = License{"https://github.com/tcbrindle/span", span_LICENSE};
   map["HAP Codec"] = License{"", hap_LICENSE};

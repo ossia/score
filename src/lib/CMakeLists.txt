@@ -279,6 +279,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSelectablePixmapToggle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSliderBase.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsTimeChooser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsToggle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYChooser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZChooser.hpp"
@@ -454,6 +455,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsPixmapToggle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSelectablePixmapToggle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsSlider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsTimeChooser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsToggle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYChooser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZChooser.cpp"
@@ -623,12 +625,15 @@ if(NOT _score_license_written)
   AddLicenseFile(license_text Brigand "${OSSIA_3RDPARTY_FOLDER}/brigand/LICENSE")
   AddLicenseFile(license_text Catch2 "${OSSIA_3RDPARTY_FOLDER}/Catch2/LICENSE.txt")
   AddLicenseFile(license_text concurrentqueue "${OSSIA_3RDPARTY_FOLDER}/concurrentqueue/LICENSE.md")
+  AddLicenseFile(license_text CTRE "${OSSIA_3RDPARTY_FOLDER}/compile-time-regular-expressions/LICENSE")
   AddLicenseFile(license_text dno "${OSSIA_3RDPARTY_FOLDER}/dno/LICENSE")
   AddLicenseFile(license_text dnssd "${OSSIA_3RDPARTY_FOLDER}/Servus/3rdparty/dnssd/LICENSE")
   AddLicenseFile(license_text dr_libs "${OSSIA_3RDPARTY_FOLDER}/dr_libs/LICENSE")
+  # AddLicenseFile(license_text DSPFilters "${CMAKE_SOURCE_DIR}/3rdparty/DSPFilters/LICENSE") # defined in .cpp
   AddLicenseFile(license_text flat "${OSSIA_3RDPARTY_FOLDER}/flat/LICENSE_1_0.txt")
   AddLicenseFile(license_text Flicks "${OSSIA_3RDPARTY_FOLDER}/Flicks/LICENSE")
   AddLicenseFile(license_text fmt "${OSSIA_3RDPARTY_FOLDER}/fmt/LICENSE.rst")
+  AddLicenseFile(license_text Gamma "${CMAKE_SOURCE_DIR}/3rdparty/Gamma/LICENSE")
   AddLicenseFile(license_text Gist "${CMAKE_SOURCE_DIR}/3rdparty/Gist/LICENSE.txt")
   AddLicenseFile(license_text hap "${CMAKE_SOURCE_DIR}/3rdparty/hap/LICENSE")
   AddLicenseFile(license_text hsluv "${CMAKE_SOURCE_DIR}/3rdparty/phantomstyle/LICENSE-hsluv-c.md")

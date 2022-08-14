@@ -12,6 +12,7 @@ struct FloatKnob;
 struct LogFloatSlider;
 struct IntSlider;
 struct IntSpinBox;
+struct TimeChooser;
 struct Toggle;
 struct ChooserToggle;
 struct ComboBox;
@@ -52,6 +53,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ChooserToggle,
     "27d488b6-784b-4bfc-8e7f-e28ef030c248")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::TimeChooser,
+    "b631d9b7-cbe3-4d9c-b470-f139e348aecb")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::LineEdit,
@@ -166,6 +170,20 @@ struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
   auto getMax() const noexcept { return domain().get().convert_max<int>(); }
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT TimeChooser : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(TimeChooser)
+  TimeChooser(
+      float min, float max, float init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~TimeChooser();
+
+  auto getMin() const noexcept { return domain().get().convert_min<float>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
   using Process::ControlInlet::ControlInlet;
 };
 

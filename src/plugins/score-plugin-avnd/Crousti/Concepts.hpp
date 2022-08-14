@@ -254,6 +254,11 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       }
     }
   }
+  else if constexpr(widg.widget == avnd::widget_type::time_chooser)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    return new Process::TimeChooser{c.min, c.max, c.init, qname, id, parent};
+  }
   else if constexpr(widg.widget == avnd::widget_type::range)
   {
     constexpr auto c = avnd::get_range<T>();

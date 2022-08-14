@@ -164,7 +164,7 @@ struct setup_Impl0
   const std::shared_ptr<ExecNode>& node_ptr;
   QObject* parent;
 
-  template <typename Field, std::size_t N>
+  template <typename Field, std::size_t NPred, std::size_t NField>
   struct con_unvalidated
   {
     const Execution::Context& ctx;
@@ -172,14 +172,14 @@ struct setup_Impl0
     Field& field;
     void operator()(const ossia::value& val)
     {
-      constexpr auto control_index = N;
+      constexpr auto control_index = NPred;
 
       using control_value_type = std::decay_t<decltype(Field::value)>;
 
       if(auto node = weak_node.lock())
       {
         control_value_type v;
-        oscr::from_ossia_value(field, val, v);
+        node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
         ctx.executionQueue.enqueue(
             control_updater<ExecNode, control_value_type, control_index>{
                 weak_node, std::move(v)});
@@ -189,14 +189,14 @@ struct setup_Impl0
 
   template <typename Field, std::size_t N, std::size_t NField>
   constexpr void
-  operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
+  operator()(Field& param, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
   {
     if(auto inlet
        = dynamic_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField)))
     {
       // Initialize the control with the current value of the inlet if it is not an optional
       if constexpr(!requires { param.value.reset(); })
-        oscr::from_ossia_value(param, inlet->value(), param.value);
+        node_ptr->from_ossia_value(param, inlet->value(), param.value, nf);
 
       if_possible(param.update(node_ptr->impl.state));
 
@@ -204,7 +204,7 @@ struct setup_Impl0
       std::weak_ptr<ExecNode> weak_node = node_ptr;
       QObject::connect(
           inlet, &Process::ControlInlet::valueChanged, parent,
-          con_unvalidated<Field, N>{ctx, weak_node, param});
+          con_unvalidated<Field, N, NField>{ctx, weak_node, param});
     }
     // Else it's an unhandled value inlet
   }
