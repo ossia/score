@@ -9,7 +9,6 @@ endif()
 set(PD_MULTI ON CACHE INTERNAL "")
 set(CMAKE_C_VISIBILITY_PRESET "hidden")
 add_subdirectory("${3RDPARTY_FOLDER}/libpd" "${CMAKE_BINARY_DIR}/libpd")
-#set_target_properties(libpd PROPERTIES UNITY_BUILD 0)
 set_target_properties(libpd_static PROPERTIES UNITY_BUILD 0)
 
 if(NOT TARGET libpd_static)

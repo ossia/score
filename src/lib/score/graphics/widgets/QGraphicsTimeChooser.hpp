@@ -4,6 +4,8 @@
 #include <score/graphics/widgets/QGraphicsKnob.hpp>
 #include <score/graphics/widgets/QGraphicsToggle.hpp>
 
+#include <ossia/network/value/vec.hpp>
+
 #include <QGraphicsItem>
 #include <QObject>
 
