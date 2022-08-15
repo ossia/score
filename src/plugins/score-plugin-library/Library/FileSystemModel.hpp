@@ -78,6 +78,7 @@ public:
     }
   }
 
+#if defined(__clang__)
   static constexpr bool supportsDisablingSorting() noexcept
   {
     return []<typename T>(T * fsm) constexpr
@@ -96,7 +97,7 @@ public:
       if constexpr(T::supportsDisablingSorting())
       {
         static_assert(T::supportsDisablingSorting());
-        self.setOption(T::DontSort, b);
+        self.setOption(T::DontSort, !b);
       }
         }(*this);
   }
@@ -115,6 +116,17 @@ public:
       }
     }(*this);
   }
+#else
+  static constexpr bool supportsDisablingSorting() noexcept
+  {
+    return false;
+  }
+  void setSorting(bool b) noexcept { }
+  bool isSorting() noexcept
+  {
+    return true;
+  }
+#endif
 
   Qt::ItemFlags flags(const QModelIndex& index) const override
   {
@@ -127,7 +139,10 @@ public:
     return f;
   }
 
-  QStringList mimeTypes() const override { return m_mimeTypes; }
+  QStringList mimeTypes() const override
+  {
+    return m_mimeTypes;
+  }
 
   bool dropMimeData(
       const QMimeData* data, Qt::DropAction action, int row, int column,
