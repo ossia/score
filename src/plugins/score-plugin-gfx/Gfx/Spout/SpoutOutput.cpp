@@ -151,7 +151,7 @@ struct SpoutNode final : score::gfx::OutputNode
       void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb) override
       {
       }
-      void init(score::gfx::RenderList& renderer) override { }
+      void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
       void
       update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
       {
