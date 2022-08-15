@@ -43,6 +43,10 @@ add_library(
 
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/ADSR.hpp"
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/AudioFilters.hpp"
+  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Bitcrush.hpp"
+  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Dynamics.hpp"
+  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Echo.hpp"
+  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Flanger.hpp"
 
 
   Avnd/Factories.hpp

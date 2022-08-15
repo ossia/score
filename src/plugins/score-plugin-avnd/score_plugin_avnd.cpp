@@ -38,6 +38,7 @@
 #include <avnd/../../examples/Advanced/Utilities/ADSR.hpp>
 #include <avnd/../../examples/Advanced/Utilities/AudioFilters.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Bitcrush.hpp>
+#include <avnd/../../examples/Advanced/Utilities/Dynamics.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Echo.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Flanger.hpp>
 
@@ -115,7 +116,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
   };
   auto fx = oscr::instantiate_fx<
       ao::ADSR, ao::Lowpass, ao::Highpass, ao::Lowshelf, ao::Highshelf, ao::Bandpass,
-      ao::Bandstop, ao::Bandshelf, ao::Bitcrush, ao::Echo, ao::Flanger>(ctx, key);
+      ao::Bandstop, ao::Bandshelf, ao::Bitcrush, ao::Compressor, ao::Limiter, ao::Echo,
+      ao::Flanger>(ctx, key);
 
 #if AVND_TEST_BUILD
   using namespace examples;
