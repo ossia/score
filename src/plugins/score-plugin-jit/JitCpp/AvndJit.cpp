@@ -15,7 +15,9 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#if __has_include(<Gfx/TexturePort.hpp>)
 #include <Gfx/TexturePort.hpp>
+#endif
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/DeleteAll.hpp>
@@ -109,8 +111,12 @@ struct inlet_vis
 
   Process::Inlet* operator()(const ossia::geometry_port& p) const noexcept
   {
+#if __has_include(<Gfx/TexturePort.hpp>)
     auto i = new Gfx::GeometryInlet{getStrongId(self.inlets()), &self};
     return i;
+#else
+    return nullptr;
+#endif
   }
 
   Process::Inlet* operator()(const ossia::midi_port& p) const noexcept
@@ -223,7 +229,10 @@ struct inlet_vis
     }
   }
 
-  Process::Inlet* operator()() const noexcept { return nullptr; }
+  Process::Inlet* operator()() const noexcept
+  {
+    return nullptr;
+  }
 };
 
 struct outlet_vis
@@ -237,8 +246,12 @@ struct outlet_vis
 
   Process::Outlet* operator()(const ossia::geometry_port& p) const noexcept
   {
+#if __has_include(<Gfx/TexturePort.hpp>)
     auto i = new Gfx::GeometryOutlet{getStrongId(self.inlets()), &self};
     return i;
+#else
+    return nullptr;
+#endif
   }
 
   Process::Outlet* operator()(const ossia::midi_port& p) const noexcept
@@ -252,7 +265,10 @@ struct outlet_vis
     auto i = new Process::ValueOutlet{getStrongId(self.outlets()), &self};
     return i;
   }
-  Process::Outlet* operator()() const noexcept { return nullptr; }
+  Process::Outlet* operator()() const noexcept
+  {
+    return nullptr;
+  }
 };
 
 std::shared_ptr<NodeFactory> Model::getJitFactory()
