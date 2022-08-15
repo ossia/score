@@ -68,14 +68,14 @@ private:
   {
     return {};
   }
-  void init(score::gfx::RenderList& renderer) override
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
     const auto& mesh = renderer.defaultQuad();
     if(!m_meshBuffer)
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
       m_meshBuffer = mbuffer;
       m_idxBuffer = ibuffer;
     }

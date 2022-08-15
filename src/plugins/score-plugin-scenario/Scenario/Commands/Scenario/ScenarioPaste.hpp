@@ -10,6 +10,10 @@
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/flat_map.hpp>
+
+#include <unordered_map>
+
 namespace Scenario
 {
 
