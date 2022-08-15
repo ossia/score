@@ -93,7 +93,7 @@ private:
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
     if (servers.count != 0)
     {
-      if (NSDictionary *desc = findServer(servers, node.settings.path)) 
+      if (NSDictionary *desc = findServer(servers, node.settings.path))
       {
         m_receiver = [[SYPHON_CLIENT_UNIQUE_CLASS_NAME alloc]
             initWithServerDescription:desc
@@ -260,7 +260,7 @@ private:
       score::gfx::Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    score::gfx::quadRenderPass(m_meshBuffer, m_idxBuffer, renderer, cb, edge, m_p);
+    score::gfx::quadRenderPass(renderer, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
   }
 
   void release(score::gfx::RenderList& r) override
@@ -377,7 +377,7 @@ public:
 
     f(set);
   }
-  
+
   void enumerate(
       std::function<void(const Device::DeviceSettings&)> f) const override
   {

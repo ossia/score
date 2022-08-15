@@ -200,7 +200,7 @@ private:
       score::gfx::Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    score::gfx::quadRenderPass(m_meshBuffer, m_idxBuffer, renderer, cb, edge, m_p);
+    score::gfx::quadRenderPass(renderer, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
   }
 
   void release(score::gfx::RenderList& r) override
