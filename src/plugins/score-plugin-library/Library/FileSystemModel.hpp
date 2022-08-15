@@ -78,7 +78,7 @@ public:
     }
   }
 
-  static consteval bool supportsDisablingSorting() noexcept
+  static constexpr bool supportsDisablingSorting() noexcept
   {
     return []<typename T>(T * fsm) constexpr
     {
