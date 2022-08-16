@@ -530,6 +530,9 @@ static LilvState* state_from_instance(const LV2::Model& ctx)
 
 static QByteArray readLV2State(const LV2::Model& eff)
 {
+  if(!eff.plugin)
+    return {};
+
   auto& global = *eff.hostContext->global;
   const auto state = state_from_instance(eff);
   auto str = lilv_state_to_string(
@@ -544,6 +547,9 @@ static QByteArray readLV2State(const LV2::Model& eff)
 
 static void restoreLV2State(LV2::Model& eff, const QByteArray& str)
 {
+  if(!eff.plugin)
+    return;
+
   auto& global = *eff.hostContext->global;
   const auto state = lilv_state_new_from_string(
       eff.hostContext->world.me, &global.map, str.constData());
