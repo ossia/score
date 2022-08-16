@@ -124,11 +124,15 @@ struct UpdateUI
     , MetaDataUI
 {
   Proc& fx;
+  Process::Inlets& toRemove;
+  Process::Outlets& toRemoveO;
   std::size_t i = 1;
   std::size_t o = 1;
 
-  UpdateUI(Proc& sfx)
+  UpdateUI(Proc& sfx, Process::Inlets& toRemove, Process::Outlets& toRemoveO)
       : fx{sfx}
+      , toRemove{toRemove}
+      , toRemoveO{toRemoveO}
   {
   }
 
@@ -145,6 +149,18 @@ struct UpdateUI
   {
   }
 
+  void replace(Process::Inlet*& oldinl, Process::Inlet* newinl)
+  {
+    toRemove.push_back(oldinl);
+    oldinl = newinl;
+  }
+
+  void replace(Process::Outlet*& oldoutl, Process::Outlet* newoutl)
+  {
+    toRemoveO.push_back(oldoutl);
+    oldoutl = newoutl;
+  }
+
   void addButton(const char* label, FAUSTFLOAT* zone) override
   {
     if(i < fx.inlets().size())
@@ -156,12 +172,7 @@ struct UpdateUI
       else
       {
         auto id = fx.inlets()[i]->id();
-        fx.controlRemoved(*fx.inlets()[i]);
-        delete fx.inlets()[i];
-
-        auto inl = new Process::Button{label, id, &fx};
-        fx.inlets()[i] = inl;
-        // TODO REUSE ADDRESS ?
+        replace(fx.inlets()[i], new Process::Button{label, id, &fx});
       }
     }
     else
@@ -186,12 +197,7 @@ struct UpdateUI
       else
       {
         auto id = fx.inlets()[i]->id();
-        fx.controlRemoved(*fx.inlets()[i]);
-        delete fx.inlets()[i];
-
-        auto inl = new Process::Toggle{bool(*zone), label, id, &fx};
-        fx.inlets()[i] = inl;
-        // TODO REUSE ADDRESS ?
+        replace(fx.inlets()[i], new Process::Toggle{bool(*zone), label, id, &fx});
       }
     }
     else
@@ -215,12 +221,9 @@ struct UpdateUI
         if(isKnob(zone))
         {
           auto id = fx.inlets()[i]->id();
-          fx.controlRemoved(*fx.inlets()[i]);
-          delete fx.inlets()[i];
-
           auto inl = new Process::FloatKnob{
               (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
-          fx.inlets().push_back(inl);
+          replace(fx.inlets()[i], inl);
         }
         else
         {
@@ -243,31 +246,25 @@ struct UpdateUI
         else
         {
           auto id = fx.inlets()[i]->id();
-          fx.controlRemoved(*fx.inlets()[i]);
-          delete fx.inlets()[i];
-
           auto inl = new Process::FloatSlider{
               (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
-          fx.inlets().push_back(inl);
+          replace(fx.inlets()[i], inl);
         }
       }
       else
       {
         auto id = fx.inlets()[i]->id();
-        fx.controlRemoved(*fx.inlets()[i]);
-        delete fx.inlets()[i];
-
         if(isKnob(zone))
         {
           auto inl = new Process::FloatKnob{
               (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
-          fx.inlets().push_back(inl);
+          replace(fx.inlets()[i], inl);
         }
         else
         {
           auto inl = new Process::FloatSlider{
               (float)min, (float)max, (float)init, label, getStrongId(fx.inlets()), &fx};
-          fx.inlets().push_back(inl);
+          replace(fx.inlets()[i], inl);
         }
       }
     }
@@ -319,12 +316,9 @@ struct UpdateUI
       else
       {
         auto id = fx.outlets()[o]->id();
-        fx.controlRemoved(*fx.outlets()[o]);
-        delete fx.outlets()[o];
-
         auto inl
             = new Process::Bargraph{(float)min, (float)max, (float)min, label, id, &fx};
-        fx.outlets()[o] = inl;
+        replace(fx.outlets()[o], inl);
       }
     }
     else

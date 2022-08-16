@@ -317,28 +317,38 @@ void FaustEffectModel::reload()
         faust_factory.reset();
 
         dsp_poly_factories.push_back(faust_poly_factory);
+        Process::Inlets toRemove;
+        Process::Outlets toRemoveO;
         if(had_poly_dsp)
         {
           // updating an existing DSP
           // Try to reuse controls
-          Faust::UpdateUI<decltype(*this), true> ui{*this};
+          Faust::UpdateUI<decltype(*this), true> ui{*this, toRemove, toRemoveO};
           ui.i = 2;
+          ui.o = 1;
           faust_poly_object->buildUserInterface(&ui);
 
-          Process::Inlets toRemove;
           for(std::size_t i = ui.i; i < m_inlets.size(); i++)
           {
             toRemove.push_back(m_inlets[i]);
           }
           m_inlets.resize(ui.i);
 
+          for(std::size_t i = ui.o; i < m_outlets.size(); i++)
+          {
+            toRemoveO.push_back(m_outlets[i]);
+          }
+          m_outlets.resize(ui.o);
+
           score::clearAndDeleteLater(toRemove, inlets_to_clear);
+          score::clearAndDeleteLater(toRemoveO, outlets_to_clear);
         }
         else if((!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
         {
           // Try to reuse controls
-          Faust::UpdateUI<decltype(*this), false> ui{*this};
+          Faust::UpdateUI<decltype(*this), false> ui{*this, toRemove, toRemoveO};
           ui.i = 2;
+          ui.o = 1;
           faust_poly_object->buildUserInterface(&ui);
         }
         else
@@ -371,25 +381,33 @@ void FaustEffectModel::reload()
     faust_factory.reset(fac, deleteDSPFactory);
 
     dsp_factories.push_back(faust_factory);
+    Process::Inlets toRemove;
+    Process::Outlets toRemoveO;
     if(had_dsp)
     {
       // Try to reuse controls
-      Faust::UpdateUI<decltype(*this), true> ui{*this};
+      Faust::UpdateUI<decltype(*this), true> ui{*this, toRemove, toRemoveO};
       faust_object->buildUserInterface(&ui);
 
-      Process::Inlets toRemove;
       for(std::size_t i = ui.i; i < m_inlets.size(); i++)
       {
         toRemove.push_back(m_inlets[i]);
       }
       m_inlets.resize(ui.i);
 
+      for(std::size_t i = ui.o; i < m_outlets.size(); i++)
+      {
+        toRemoveO.push_back(m_outlets[i]);
+      }
+      m_outlets.resize(ui.o);
+
       score::clearAndDeleteLater(toRemove, inlets_to_clear);
+      score::clearAndDeleteLater(toRemoveO, outlets_to_clear);
     }
     else if((!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
     {
       // loading - controls already exist but not linked to the dsp
-      Faust::UpdateUI<decltype(*this), false> ui{*this};
+      Faust::UpdateUI<decltype(*this), false> ui{*this, toRemove, toRemoveO};
       faust_object->buildUserInterface(&ui);
     }
     else
@@ -561,8 +579,8 @@ void FaustEffectComponent::setupExecutionControls(
   for(std::size_t i = firstControlIndex, N = proc.inlets().size(); i < N; i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-    *node->controls[i - firstControlIndex].second
-        = ossia::convert<float>(inlet->value());
+
+    node->set_control(i - firstControlIndex, ossia::convert<float>(inlet->value()));
     auto inl = this->node->root_inputs()[i];
     auto& vp = *inl->target<ossia::value_port>();
     vp.type = inlet->value().get_type();
@@ -660,20 +678,32 @@ void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
 
 void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
 {
-  using faust_type = ossia::nodes::faust_fx;
   auto& proc = process();
   auto& ctx = system();
   proc.faust_object->init(ctx.execState->sampleRate);
-  auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_object);
-  this->node = node;
 
-  if(!m_ossia_process)
-    m_ossia_process = std::make_shared<ossia::node_process>(node);
+  auto setup = [&](auto& node) {
+    this->node = node;
+    if(!m_ossia_process)
+      m_ossia_process = std::make_shared<ossia::node_process>(node);
+    else
+      ctx.setup.replace_node(m_ossia_process, node, transaction);
+    setupExecutionControls(node, 1);
+    setupExecutionControlOutlets(node, 1);
+  };
+
+  if(proc.faust_object->getNumInputs() == 1 && proc.faust_object->getNumOutputs() == 1)
+  {
+    using faust_type = ossia::nodes::faust_mono_fx;
+    auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_object);
+    setup(node);
+  }
   else
-    ctx.setup.replace_node(m_ossia_process, node, transaction);
-
-  setupExecutionControls(node, 1);
-  setupExecutionControlOutlets(node, 1);
+  {
+    using faust_type = ossia::nodes::faust_fx;
+    auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_object);
+    setup(node);
+  }
 }
 
 }
