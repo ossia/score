@@ -64,11 +64,16 @@ void DefaultEffectItem::reset()
   m_ports.clear();
 
   m_layout = new score::GraphicsDefaultLayout{this};
-  recreate();
+  m_needRecreate = true;
+  QMetaObject::invokeMethod(this, &DefaultEffectItem::recreate, Qt::QueuedConnection);
 }
 
 void DefaultEffectItem::recreate()
 {
+  if(!m_needRecreate)
+    return;
+  m_needRecreate = false;
+
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
   LayoutBuilderBase b{
@@ -76,6 +81,7 @@ void DefaultEffectItem::recreate()
       m_layout, {m_layout}};
   for(auto& e : m_effect.inlets())
   {
+    SCORE_ASSERT(e->parent());
     if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
     {
       auto item = b.makePort(*inlet);
@@ -88,6 +94,7 @@ void DefaultEffectItem::recreate()
 
   for(auto& e : m_effect.outlets())
   {
+    SCORE_ASSERT(e->parent());
     if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
     {
       auto item = b.makePort(*outlet);

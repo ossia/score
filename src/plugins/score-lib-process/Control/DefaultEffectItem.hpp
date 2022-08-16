@@ -53,5 +53,7 @@ private:
 
   struct Port;
   std::vector<Port> m_ports;
+
+  bool m_needRecreate{};
 };
 }
