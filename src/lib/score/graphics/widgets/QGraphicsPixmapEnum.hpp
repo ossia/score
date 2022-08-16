@@ -36,6 +36,8 @@ public:
       else
         on_images.emplace_back(score::get_pixmap(pixmaps[i]));
     }
+
+    setupDefaultColumns(N);
   }
 
   QGraphicsPixmapEnum(
@@ -52,7 +54,10 @@ public:
       else
         on_images.emplace_back(score::get_pixmap(pixmaps[i]));
     }
+    setupDefaultColumns(array.size());
   }
+
+  void setupDefaultColumns(int N);
 
   QGraphicsPixmapEnum(QGraphicsItem* parent);
 

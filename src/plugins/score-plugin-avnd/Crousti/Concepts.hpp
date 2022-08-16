@@ -313,7 +313,16 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     constexpr auto c = avnd::get_range<T>();
     auto enums = to_enum_range(c.values);
     auto init = enums[c.init];
-    return new Process::Enum{std::move(enums), {}, std::move(init), qname, id, parent};
+    std::vector<QString> pixmaps;
+    if constexpr(requires { c.pixmaps; })
+    {
+      for(auto& pix : c.pixmaps)
+      {
+        pixmaps.push_back(QString::fromLatin1(pix.data(), pix.size()));
+      }
+    }
+    return new Process::Enum{
+        std::move(enums), pixmaps, std::move(init), qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::xy)
   {

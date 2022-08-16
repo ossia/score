@@ -19,6 +19,53 @@ QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
+void QGraphicsPixmapEnum::setupDefaultColumns(int N)
+{
+  switch(N)
+  {
+    case 0:
+    case 1:
+      this->columns = 1;
+      this->rows = 1;
+      break;
+    case 2:
+    case 3:
+    case 5:
+      this->columns = N;
+      this->rows = 1;
+      break;
+    case 4:
+      this->columns = 2;
+      this->rows = 2;
+      break;
+    case 6:
+      this->columns = 3;
+      this->rows = 2;
+      break;
+    case 8:
+      this->columns = 4;
+      this->rows = 2;
+      break;
+    case 9:
+      this->columns = 3;
+      this->rows = 3;
+      break;
+    case 10:
+      this->columns = 5;
+      this->rows = 2;
+      break;
+    case 16:
+      this->columns = 4;
+      this->rows = 4;
+      break;
+    default:
+      this->columns = std::ceil(double(N) / 2. + 0.5);
+      this->rows = 2;
+      break;
+  }
+
+  updateRect();
+}
 void QGraphicsPixmapEnum::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
