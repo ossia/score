@@ -231,7 +231,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     }
     else
     {
-      return new Process::Toggle{c.init, qname, id, parent};
+      return new Process::Toggle{bool(c.init), qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::slider)

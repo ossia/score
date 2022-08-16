@@ -17,6 +17,8 @@
 
 #include <ossia/detail/ssize.hpp>
 
+#include <ossia-qt/invoke.hpp>
+
 #include <QGraphicsScene>
 namespace Process
 {
@@ -65,7 +67,7 @@ void DefaultEffectItem::reset()
 
   m_layout = new score::GraphicsDefaultLayout{this};
   m_needRecreate = true;
-  QMetaObject::invokeMethod(this, &DefaultEffectItem::recreate, Qt::QueuedConnection);
+  ossia::qt::run_async(this, &DefaultEffectItem::recreate);
 }
 
 void DefaultEffectItem::recreate()
