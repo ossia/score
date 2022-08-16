@@ -23,8 +23,8 @@ class BytebeatModel;
 }
 PROCESS_METADATA(
     , Jit::BytebeatModel, "608beeb7-e5c2-40a5-bd1a-aa7aec80f864", "Jit", "Bytebeat",
-    Process::ProcessCategory::Script, "Audio", "Run bytebeat code", "ossia score",
-    QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
+    Process::ProcessCategory::Script, "Audio/Generators", "Run bytebeat code",
+    "ossia score", QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
 template <typename Fun_T>

@@ -73,3 +73,6 @@
 [submodule "3rdparty/Gamma"]
 	path = 3rdparty/Gamma
 	url = https://github.com/LancePutnam/Gamma
+[submodule "3rdparty/Aether"]
+	path = 3rdparty/Aether
+	url = https://github.com/jcelerier/Aether.git

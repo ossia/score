@@ -9,7 +9,7 @@ struct Node
   {
     static const constexpr auto prettyName = "Gain";
     static const constexpr auto objectKey = "Gain";
-    static const constexpr auto category = "Audio";
+    static const constexpr auto category = "Audio/Utilities";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
