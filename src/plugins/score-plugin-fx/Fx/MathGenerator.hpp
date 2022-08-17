@@ -49,6 +49,13 @@ static void miniMathItem(
       = makeControlNoText(get<0>(controls), edit, parent, context, doc, portFactory);
   edit_item.control.setTextWidth(100);
   edit_item.control.setPos(15, 0);
+
+  if(auto obj = dynamic_cast<score::ResizeableItem*>(&parent))
+  {
+    QObject::connect(
+        &edit_item.control, &Process::LineEditItem::sizeChanged, obj,
+        &score::ResizeableItem::childrenSizeChanged);
+  }
 }
 
 static void mathItem(

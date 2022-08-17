@@ -152,10 +152,22 @@ QModelIndex ProcessesItemModel::find(const Process::ProcessModelFactory::Concret
     auto proc_it = cat.begin();
     for(int i = 0; i < cat.childCount(); ++proc_it, ++i)
     {
-      auto& proc = *proc_it;
+      ProcessNode& proc = *proc_it;
       if(proc.key == k)
       {
         return createIndex(i, 0, &proc);
+      }
+      else if(proc.hasChildren())
+      {
+        auto subproc_it = proc.begin();
+        for(int j = 0; j < proc.childCount(); ++subproc_it, ++j)
+        {
+          ProcessNode& subproc = *subproc_it;
+          if(subproc.key == k)
+          {
+            return createIndex(j, 0, &subproc);
+          }
+        }
       }
     }
   }
