@@ -315,13 +315,14 @@ void NodeItem::createContentItem()
   auto& model = m_model;
   // Body
   auto& fact = ctx.app.interfaces<Process::LayerFactoryList>();
+  score::ResizeableItem* resizeable{};
   if(auto factory = fact.findDefaultFactory(model))
   {
     if(auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
       m_contentSize = m_fx->boundingRect().size();
-      connect(fx, &score::ResizeableItem::sizeChanged, this, &NodeItem::updateSize);
+      resizeable = fx;
     }
     else if(auto fx = factory->makeLayerView(model, ctx, this))
     {
@@ -344,8 +345,10 @@ void NodeItem::createContentItem()
 
   if(!m_fx)
   {
-    m_fx = new Process::DefaultEffectItem{model, ctx, this};
+    auto fx = new Process::DefaultEffectItem{model, ctx, this};
+    m_fx = fx;
     m_contentSize = m_fx->boundingRect().size();
+    resizeable = fx;
   }
 
   if(m_fx->toolTip().isEmpty())
@@ -372,6 +375,20 @@ void NodeItem::createContentItem()
 
   if(m_model.size() != m_contentSize)
     const_cast<Process::ProcessModel&>(m_model).setSize(m_contentSize);
+
+  if(resizeable)
+  {
+    connect(resizeable, &score::ResizeableItem::sizeChanged,
+            this, [this] (QSizeF sz){
+              double w = std::max(minimalContentWidth(), sz.width());
+              double h = std::max(minimalContentHeight(), sz.height());
+              m_contentSize = QSizeF{w, h};
+
+              updateSize();
+              updateZoomRatio();
+              updateTitlePos();
+            });
+  }
 }
 
 double NodeItem::minimalContentWidth() const noexcept

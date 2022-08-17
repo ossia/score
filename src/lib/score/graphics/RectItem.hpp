@@ -16,6 +16,7 @@ public:
   ~ResizeableItem();
 
   void sizeChanged(QSizeF sz) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, sz)
+  void childrenSizeChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, childrenSizeChanged);
 
   enum
   {

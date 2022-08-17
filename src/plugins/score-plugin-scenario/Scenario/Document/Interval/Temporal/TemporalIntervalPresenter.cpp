@@ -344,10 +344,10 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 
     SCORE_ASSERT(slot >= 0);
     SCORE_ASSERT(curslot >= 0);
-    SCORE_ASSERT(curslot < m_model.smallView().size());
+    SCORE_ASSERT(curslot < std::ssize(m_model.smallView()));
     auto& modelCurslot = m_model.smallView()[curslot];
     CommandDispatcher<> disp{this->m_context.commandStack};
-    if(slot < m_model.smallView().size())
+    if(slot < std::ssize(m_model.smallView()))
     {
       auto& modelSlot = m_model.smallView()[slot];
       if(qApp->keyboardModifiers() & Qt::ALT || modelCurslot.processes.size() == 1

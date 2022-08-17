@@ -24,6 +24,8 @@
 #include <QPalette>
 #include <QTextDocument>
 
+#include <verdigris>
+
 #include <private/qwidgettextcontrol_p.h>
 
 #include <score_lib_process_export.h>
@@ -45,6 +47,23 @@ struct SCORE_LIB_PROCESS_EXPORT DefaultControlLayouts
   static Process::PortItemLayout chooser_toggle() noexcept;
 };
 
+struct SCORE_LIB_PROCESS_EXPORT LineEditItem : public QGraphicsTextItem
+{
+  W_OBJECT(LineEditItem)
+public:
+  LineEditItem()
+  {
+    setTextInteractionFlags(Qt::TextEditorInteraction);
+    auto ctl = this->findChild<QWidgetTextControl*>();
+    if(ctl)
+    {
+      ctl->setAcceptRichText(false);
+    }
+  }
+
+  void sizeChanged(QSizeF sz)
+  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, sz)
+};
 }
 
 namespace WidgetFactory
@@ -630,24 +649,13 @@ struct LineEdit
 
     return sl;
   }
-  struct LineEditItem : public QGraphicsTextItem
-  {
-    LineEditItem()
-    {
-      setTextInteractionFlags(Qt::TextEditorInteraction);
-      auto ctl = this->findChild<QWidgetTextControl*>();
-      if(ctl)
-      {
-        ctl->setAcceptRichText(false);
-      }
-    }
-  };
+
   template <typename T, typename Control_T>
-  static LineEditItem* make_item(
+  static Process::LineEditItem* make_item(
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new LineEditItem{};
+    auto sl = new Process::LineEditItem{};
     sl->setTextWidth(180.);
     sl->setDefaultTextColor(QColor{"#E0B01E"});
     sl->setCursor(Qt::IBeamCursor);
@@ -655,12 +663,18 @@ struct LineEdit
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
     auto doc = sl->document();
-    QObject::connect(doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx] {
+    QObject::connect(doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx, r=sl->boundingRect()] () mutable {
       auto cur_str = ossia::convert<std::string>(inlet.value());
       if(cur_str != doc->toPlainText().toStdString())
       {
         CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
             inlet, doc->toPlainText().toStdString());
+      }
+
+      if(r != sl->boundingRect())
+      {
+        r = sl->boundingRect();
+        sl->sizeChanged(r.size());
       }
     });
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {

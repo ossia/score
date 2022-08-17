@@ -97,55 +97,11 @@ struct CustomUISetup
   }
 };
 
-struct AutoUISetup
-{
-  const Process::Inlets& inlets;
-  QGraphicsItem& parent;
-  QObject& context;
-  const Process::Context& doc;
-  const Process::PortFactoryList& portFactory
-      = doc.app.interfaces<Process::PortFactoryList>();
-
-  std::size_t i = 0;
-  std::size_t ctl_i = 0;
-
-  std::vector<QRectF> controlRects;
-  template <typename Info>
-  AutoUISetup(
-      Info&&, const Process::Inlets& inlets, QGraphicsItem& parent, QObject& context,
-      const Process::Context& doc)
-      : inlets{inlets}
-      , parent{parent}
-      , context{context}
-      , doc{doc}
-  {
-    i = ossia::safe_nodes::info_functions<Info>::control_start;
-    ossia::for_each_in_tuple(Info::Metadata::controls, *this);
-  }
-
-  // Create a single control
-  template <typename T>
-  void operator()(const T& ctrl)
-  {
-    auto inlet = static_cast<Process::ControlInlet*>(inlets[i]);
-    auto csetup = Process::controlSetup(
-        [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-      return factory.makePortItem(inlet, doc, item, parent);
-        },
-        [&](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-      return ctrl.make_item(ctrl, inlet, doc, item, parent);
-    },
-         [&](int j) { return controlRects[j].size(); }, [&] { return ctrl.name; });
-    auto res = Process::createControl(
-        ctl_i, csetup, *inlet, portFactory, doc, &parent, &context);
-    controlRects.push_back(res.itemRect);
-    i++;
-    ctl_i++;
-  }
-};
-
 template <typename Info>
-class ControlLayerFactory final : public Process::LayerFactory
+requires(
+    HasCustomLayer<Info>::value
+    || HasCustomUI<Info>::value) class ControlLayerFactory final
+    : public Process::LayerFactory
 {
 public:
   virtual ~ControlLayerFactory() = default;
@@ -189,21 +145,12 @@ private:
       auto view = static_cast<typename Info::Layer*>(v);
       return new Process::EffectLayerPresenter{lm, view, context, parent};
     }
-    else
+    else if constexpr(HasCustomUI<Info>::value)
     {
       auto view = safe_cast<Process::EffectLayerView*>(v);
       auto pres = new Process::EffectLayerPresenter{lm, view, context, parent};
 
-      if constexpr(HasCustomUI<Info>::value)
-      {
-        Control::CustomUISetup<Info>{lm.inlets(), lm.outlets(), lm,
-                                     *view,       *view,        context};
-      }
-      else if constexpr(ossia::safe_nodes::info_functions<Info>::control_count > 0)
-      {
-        Control::AutoUISetup{Info{}, lm.inlets(), *view, *view, context};
-      }
-
+      Control::CustomUISetup<Info>{lm.inlets(), lm.outlets(), lm, *view, *view, context};
       return pres;
     }
   }
@@ -217,20 +164,17 @@ private:
       // We want to go through the makeLayerPresenter case here
       return nullptr;
     }
-    else
+    else if constexpr(HasCustomUI<Info>::value)
     {
       auto rootItem = new score::EmptyRectItem{parent};
-      if constexpr(HasCustomUI<Info>::value)
-      {
-        Control::CustomUISetup<Info>{proc.inlets(), proc.outlets(), proc,
-                                     *rootItem,     *rootItem,      ctx};
-      }
-      else if constexpr(ossia::safe_nodes::info_functions<Info>::control_count > 0)
-      {
-        Control::AutoUISetup{Info{}, proc.inlets(), *rootItem, *rootItem, ctx};
-      }
+      Control::CustomUISetup<Info>{proc.inlets(), proc.outlets(), proc,
+                                   *rootItem,     *rootItem,      ctx};
 
       rootItem->fitChildrenRect();
+
+      QObject::connect(
+          rootItem, &score::ResizeableItem::childrenSizeChanged, rootItem,
+          &score::EmptyRectItem::fitChildrenRect);
       return rootItem;
     }
   }

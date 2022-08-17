@@ -55,6 +55,17 @@ DefaultEffectItem::DefaultEffectItem(
       &effect, &Process::ProcessModel::inletsChanged, this, &DefaultEffectItem::reset);
   QObject::connect(
       &effect, &Process::ProcessModel::outletsChanged, this, &DefaultEffectItem::reset);
+
+  connect(this, &score::ResizeableItem::childrenSizeChanged, this, [this] {
+    if(m_layout)
+    {
+      auto& lay = *m_layout;
+      lay.layout();
+      lay.fitChildrenRect();
+
+      this->setRect(m_layout->rect());
+    }
+  });
 }
 
 DefaultEffectItem::~DefaultEffectItem() { }
@@ -65,7 +76,6 @@ void DefaultEffectItem::reset()
   m_layout = nullptr;
   m_ports.clear();
 
-  m_layout = new score::GraphicsDefaultLayout{this};
   m_needRecreate = true;
   ossia::qt::run_async(this, &DefaultEffectItem::recreate);
 }
@@ -78,6 +88,7 @@ void DefaultEffectItem::recreate()
 
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
+  m_layout = new score::GraphicsDefaultLayout{this};
   LayoutBuilderBase b{
       *this,    m_ctx,     portFactory, m_effect.inlets(), m_effect.outlets(),
       m_layout, {m_layout}};
