@@ -108,6 +108,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["Flicks"] = License{"https://github.com/OculusVR/Flicks", Flicks_LICENSE};
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
   map["Gamma"] = License{"https://github.com/LancePutnam/Gamma", Gamma_LICENSE};
+  map["Guitarix"] = License{"https://guitarix.org", Guitarix_LICENSE};
   map["Gist"] = License{"https://github.com/adamstark/Gist", Gist_LICENSE};
   map["span"] = License{"https://github.com/tcbrindle/span", span_LICENSE};
   map["HAP Codec"] = License{"", hap_LICENSE};

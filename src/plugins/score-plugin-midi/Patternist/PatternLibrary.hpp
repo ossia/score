@@ -66,7 +66,6 @@ class DropHandler final : public Process::ProcessDropHandler
     auto pat = parsePattern(content);
     if(pat.lanes.size() > 0)
     {
-
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
       p.creation.prettyName = QFileInfo{filename}.baseName();

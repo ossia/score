@@ -282,13 +282,6 @@ void FaustEffectModel::reload()
     return;
   }
 
-  // Foreign function API not supported with llvm_dsp
-  if(fac->getDSPCode().find("ffunction") != str.npos)
-  {
-    deleteDSPFactory(fac);
-    return;
-  }
-
   auto obj = fac->createDSPInstance();
   if(!obj)
     return;
