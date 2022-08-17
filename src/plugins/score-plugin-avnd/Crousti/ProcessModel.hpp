@@ -154,6 +154,20 @@ struct Metadata<ConcreteKey_k, oscr::ProcessModel<Info>>
 namespace oscr
 {
 
+template <typename T>
+auto& modelPort(auto& ports, int index)
+{
+  // We have to adjust before accessing a port as there is the first "fake"
+  // port if the processor takes audio by argument
+  if constexpr(avnd::audio_argument_processor<T>)
+    index += 1;
+
+  // The "messages" ports also go before
+  index += avnd::messages_introspection<T>::size;
+
+  return ports[index];
+}
+
 inline void setupNewPort(const auto& spec, auto* obj)
 {
   obj->setName(fromStringView(avnd::get_name(spec)));
@@ -385,6 +399,49 @@ public:
     if constexpr(requires { this->to_ui; })
     {
       this->to_ui = [](QByteArray arr) {};
+    }
+  }
+  ProcessModel(
+      const TimeVal& duration, const QString& custom,
+      const Id<Process::ProcessModel>& id, QObject* parent)
+      : Process::ProcessModel{
+          duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+  {
+    metadata().setInstanceName(*this);
+
+    avnd::port_visit_dispatcher<Info>(
+        InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
+
+    if constexpr(requires { this->from_ui; })
+    {
+      this->from_ui = [](QByteArray arr) {};
+    }
+    if constexpr(requires { this->to_ui; })
+    {
+      this->to_ui = [](QByteArray arr) {};
+    }
+
+    if constexpr(avnd::control_input_introspection<Info>::size > 0)
+    {
+      constexpr auto idx
+          = avnd::control_input_introspection<Info>::index_to_field_index(0);
+      setupInitialStringPort(idx, custom);
+    }
+    else if constexpr(avnd::file_input_introspection<Info>::size > 0)
+    {
+      constexpr auto idx = avnd::file_input_introspection<Info>::index_to_field_index(0);
+      setupInitialStringPort(idx, custom);
+    }
+  }
+
+  void setupInitialStringPort(int idx, const QString& custom) noexcept
+  {
+    Process::Inlet* port = modelPort<Info>(this->inlets(), idx);
+    auto pp = safe_cast<Process::ControlInlet*>(port);
+
+    if(pp->value().target<std::string>())
+    {
+      pp->setValue(custom.toStdString());
     }
   }
 

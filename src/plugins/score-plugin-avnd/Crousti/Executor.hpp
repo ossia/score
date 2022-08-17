@@ -37,20 +37,6 @@ namespace oscr
 namespace
 {
 
-template <typename T>
-auto& modelPort(auto& ports, int index)
-{
-  // We have to adjust before accessing a port as there is the first "fake"
-  // port if the processor takes audio by argument
-  if constexpr(avnd::audio_argument_processor<T>)
-    index += 1;
-
-  // The "messages" ports also go before
-  index += avnd::messages_introspection<T>::size;
-
-  return ports[index];
-}
-
 static QString filenameFromPort(const ossia::value& value)
 {
   if(auto str = value.target<std::string>())
