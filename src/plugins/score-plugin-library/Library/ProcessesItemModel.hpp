@@ -43,8 +43,11 @@ class SCORE_PLUGIN_LIBRARY_EXPORT ProcessesItemModel
     , public Nano::Observer
 {
 public:
-  using QAbstractItemModel::beginResetModel;
-  using QAbstractItemModel::endResetModel;
+  using QAbstractItemModel::beginInsertRows;
+  using QAbstractItemModel::endInsertRows;
+
+  using QAbstractItemModel::beginRemoveRows;
+  using QAbstractItemModel::endRemoveRows;
 
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 

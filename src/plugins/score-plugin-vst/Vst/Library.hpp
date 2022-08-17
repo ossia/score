@@ -30,13 +30,13 @@ class LibraryHandler final
     auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
     parent.key = {};
 
-    auto& fx = parent.emplace_back(
-        Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
-    auto& inst = parent.emplace_back(
-        Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
     auto& plug = ctx.applicationPlugin<vst::ApplicationPlugin>();
 
-    auto reset_plugs = [=, &plug, &inst, &fx] {
+    auto reset_plugs = [=, &plug, &parent] {
+      auto& fx = parent.emplace_back(
+          Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
+      auto& inst = parent.emplace_back(
+          Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
       for(const auto& vst : plug.vst_infos)
       {
         if(vst.isValid)
@@ -59,12 +59,15 @@ class LibraryHandler final
 
     reset_plugs();
 
-    con(plug, &vst::ApplicationPlugin::vstChanged, this, [=, &model, &fx, &inst] {
-      model.beginResetModel();
-      fx.resize(0);
-      inst.resize(0);
+    con(plug, &vst::ApplicationPlugin::vstChanged, this,
+        [&model, node, &parent, reset_plugs] {
+      model.beginRemoveRows(node, 0, 1);
+      parent.resize(0);
+      model.endRemoveRows();
+
+      model.beginInsertRows(node, 0, 1);
       reset_plugs();
-      model.endResetModel();
+      model.endInsertRows();
     });
   }
 };

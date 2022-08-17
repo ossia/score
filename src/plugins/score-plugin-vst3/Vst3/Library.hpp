@@ -82,11 +82,22 @@ class LibraryHandler final
 
     reset_plugs();
 
-    con(plug, &vst3::ApplicationPlugin::vstChanged, this, [=, &model, &parent] {
-      model.beginResetModel();
+    con(plug, &vst3::ApplicationPlugin::vstChanged, this,
+        [&plug, &model, node, &parent, reset_plugs] {
+      model.beginRemoveRows(node, 0, parent.childCount());
       parent.resize(0);
-      reset_plugs();
-      model.endResetModel();
+      model.endRemoveRows();
+
+      int k = 0;
+      for(const auto& vst : plug.vst_infos)
+        if(vst.isValid)
+          k++;
+      if(k > 0)
+      {
+        model.beginInsertRows(node, 0, k - 1);
+        reset_plugs();
+        model.endInsertRows();
+      }
     });
   }
 };
