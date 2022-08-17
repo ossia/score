@@ -18,7 +18,10 @@ struct InfiniteScroller
   {
     currentDelta = 0.;
     origValue = orig;
+
+#if !defined(__EMSCRIPTEN__)
     self.setCursor(QCursor(Qt::BlankCursor));
+#endif
     currentGeometry = qApp->primaryScreen()->availableGeometry();
   }
 

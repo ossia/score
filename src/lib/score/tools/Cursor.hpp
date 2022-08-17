@@ -95,14 +95,18 @@ void showCursor();
 
 inline void hideCursor(bool hasCursor)
 {
+#if !defined(__EMSCRIPTEN__)
   if(QGuiApplication::overrideCursor())
     QGuiApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
   else
     QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+#endif
 }
 inline void showCursor()
 {
+#if !defined(__EMSCRIPTEN__)
   QGuiApplication::restoreOverrideCursor();
+#endif
 }
 #endif
 }
