@@ -82,4 +82,20 @@ void ThreadPool::releaseThread()
     m_threads.reset();
   }
 }
+
+TaskPool& TaskPool::instance()
+{
+  static TaskPool t;
+  t.init();
+  return t;
+}
+
+void TaskPool::init()
+{
+  if(threads.empty())
+  {
+    threads.push_back(ThreadPool::instance().acquireThread());
+  }
+}
+
 }

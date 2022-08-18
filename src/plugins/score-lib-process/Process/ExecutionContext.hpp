@@ -91,6 +91,8 @@ using GCCommandQueue = moodycamel::ConcurrentQueue<GCCommand>;
 //!
 struct SCORE_LIB_PROCESS_EXPORT Context
 {
+  std::weak_ptr<void> alias;
+
   const score::DocumentContext& doc;
   const std::atomic_bool& created;
 

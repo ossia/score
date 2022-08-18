@@ -18,12 +18,18 @@
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
+#include <ossia-qt/invoke.hpp>
+
+#include <QGuiApplication>
+
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GpuNode.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #endif
 
 #include <Media/AudioDecoder.hpp>
+
+#include <score/tools/ThreadPool.hpp>
 
 #include <QTimer>
 
@@ -32,6 +38,20 @@
 #include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <libremidi/reader.hpp>
+namespace avnd
+{
+template <typename T>
+concept port_can_process = requires(T t)
+{
+  T::process({});
+};
+template <typename T>
+concept has_worker = requires(T t)
+{
+  t.worker.request = {};
+};
+}
+
 namespace oscr
 {
 namespace
@@ -265,6 +285,15 @@ struct setup_Impl0
         });
   }
 
+  template <typename Field>
+  static auto executePortPreprocess(auto& file)
+  {
+    using field_file_type = decltype(Field::file);
+    field_file_type ffile;
+    ffile.bytes = decltype(ffile.bytes)(file.data.constData(), file.file.size());
+    ffile.filename = file.filename;
+    return Field::process(ffile);
+  }
   template <avnd::raw_file_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
@@ -273,6 +302,7 @@ struct setup_Impl0
 
     using file_ports = avnd::raw_file_input_introspection<Node>;
     using elt = typename file_ports::template nth_element<N>;
+    using field_file_type = decltype(Field::file);
     constexpr bool has_text = requires
     {
       decltype(elt::file)::text;
@@ -285,8 +315,21 @@ struct setup_Impl0
     // First we can load it directly since execution hasn't started yet
     if(auto hdl = loadRawfile(inlet, has_text, has_mmap))
     {
-      node_ptr->file_loaded(
-          hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+      if constexpr(avnd::port_can_process<Field>)
+      {
+        // FIXME also do it when we get a run-time message from the exec engine,
+        // OSC, etc
+        auto func = executePortPreprocess<Field>(*hdl);
+        node_ptr->file_loaded(
+            hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        if(func)
+          func(node_ptr->impl.effect);
+      }
+      else
+      {
+        node_ptr->file_loaded(
+            hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+      }
     }
 
     // Connect to changes
@@ -298,15 +341,34 @@ struct setup_Impl0
       if(auto n = weak_node.lock())
         if(auto file = loadRawfile(inlet, has_text, has_mmap))
         {
-          ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
-            auto n = weak_node.lock();
-            if(!n)
-              return;
+          if constexpr(avnd::port_can_process<Field>)
+          {
+            auto func = executePortPreprocess<Field>(*file);
+            ctx.executionQueue.enqueue(
+                [f = std::move(file), weak_node, ff = std::move(func)]() mutable {
+              auto n = weak_node.lock();
+              if(!n)
+                return;
 
-            // We store the sound file handle returned in this lambda so that it gets
-            // GC'd in the main thread
-            n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-          });
+              // We store the sound file handle returned in this lambda so that it gets
+              // GC'd in the main thread
+              n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+              if(ff)
+                ff(n->impl.effect);
+            });
+          }
+          else
+          {
+            ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
+              auto n = weak_node.lock();
+              if(!n)
+                return;
+
+              // We store the sound file handle returned in this lambda so that it gets
+              // GC'd in the main thread
+              n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+            });
+          }
         }
         });
   }
@@ -648,6 +710,72 @@ public:
             MessageBusSender{this->process().to_ui}(std::move(bb));
           });
         };
+      }
+
+      if constexpr(avnd::has_worker<Node>)
+      {
+        // This is pretty complicated because this is a complete round-trip:
+        // First the object calls worker.request("foo", bar);
+        // We send that as a message to the main thread
+        // We dispatch the call to worker::work("foo", bar);
+        // If it works, this gives us a function that we have to call back on the DSP thread
+        //
+        using worker_type = decltype(eff.effect.worker);
+        for(auto& eff : eff.effects())
+        {
+          std::weak_ptr eff_ptr = std::shared_ptr<Node>(this->node, &eff);
+          std::weak_ptr qed_ptr = std::shared_ptr<Execution::EditionCommandQueue>(
+              ctx.alias.lock(), &ctx.editionQueue);
+          std::weak_ptr qex_ptr = std::shared_ptr<Execution::ExecutionCommandQueue>(
+              ctx.alias.lock(), &ctx.executionQueue);
+          auto& worker = eff.worker;
+
+          eff.worker.request
+              = [qed_ptr = std::move(qed_ptr), qex_ptr = std::move(qex_ptr),
+                 eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) {
+            // This happens in the DSP / processor thread
+            std::shared_ptr qed = qed_ptr.lock();
+            if(!qed)
+              return;
+
+            qed->enqueue([qex_ptr = std::move(qex_ptr), eff_ptr = std::move(eff_ptr),
+                          ... ff = std::forward<Args>(f)]() mutable {
+              // Main thread
+              if(!eff_ptr.lock())
+                return;
+
+              // The reason we do this in the main thread and not directly as a result
+              // of eff.worker.request is that QMetaObject::invokeMethod used for QThread
+              // may allocate
+              score::TaskPool::instance().submit(
+                  [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
+                   ... ff = std::forward<Args>(ff)]() mutable {
+                // Worker thread
+                auto res = worker_type::work(std::forward<Args>(ff)...);
+                if(!res)
+                  return;
+
+                // Execution queue is spsc from main thread to an exec thread, we cannot just do it here
+                ossia::qt::run_async(
+                    qApp, [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
+                           res = std::move(res)] {
+                      // Main thread
+                      std::shared_ptr qex = qex_ptr.lock();
+                      if(!qex)
+                        return;
+
+                      qex->enqueue([eff_ptr = std::move(eff_ptr), res = std::move(res)] {
+                        // DSP / processor thread
+                        if(auto p = eff_ptr.lock())
+                        {
+                          res(*p);
+                        }
+                      });
+                    });
+              });
+            });
+          };
+        }
       }
 
       // Engine to ui controls

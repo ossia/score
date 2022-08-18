@@ -49,7 +49,7 @@ DocumentPlugin::ContextData::ContextData(const score::DocumentContext& ctx)
     : setupContext{context}
     , context
 {
-  ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, setupContext,
+  {}, ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, setupContext,
       execGraph, execState
 #if(__cplusplus > 201703L) && !defined(_MSC_VER)
       ,
@@ -65,6 +65,7 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
     , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_ctxData{std::make_shared<ContextData>(ctx)}
 {
+  m_ctxData->context.alias = m_ctxData;
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   local_device = devs.list().localDevice();
@@ -125,6 +126,10 @@ DocumentPlugin::~DocumentPlugin()
   }
   if(audio_device)
     delete audio_device;
+  if(m_ctxData)
+  {
+    m_ctxData->context.alias.reset();
+  }
 }
 
 void DocumentPlugin::on_finished()
@@ -324,9 +329,11 @@ void DocumentPlugin::clear()
   if(m_ctxData)
   {
     m_ctxData->m_created = false;
+    m_ctxData->context.alias.reset();
   }
   m_ctxData.reset();
   m_ctxData = std::make_shared<ContextData>(this->m_context);
+  m_ctxData->context.alias = m_ctxData;
 
   auto& model = this->m_context.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(
