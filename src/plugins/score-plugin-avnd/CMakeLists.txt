@@ -44,6 +44,7 @@ add_library(
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/ADSR.hpp"
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/AudioFilters.hpp"
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Bitcrush.hpp"
+  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Convolver.hpp"
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Dynamics.hpp"
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Echo.hpp"
   "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Flanger.hpp"
@@ -83,6 +84,12 @@ target_link_libraries(score_plugin_avnd
     $<BUILD_INTERFACE:dspfilters>
     $<BUILD_INTERFACE:gamma>
   )
+if(TARGET kfr_dft)
+  target_link_libraries(score_plugin_avnd PRIVATE
+    "$<BUILD_INTERFACE:kfr>"
+    "$<BUILD_INTERFACE:kfr_dft>"
+  )
+endif()
 if(TARGET score_plugin_gfx)
   target_link_libraries(score_plugin_avnd PUBLIC score_plugin_gfx)
 endif()

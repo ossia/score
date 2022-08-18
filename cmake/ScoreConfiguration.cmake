@@ -133,6 +133,14 @@ elseif (has_std_1z_flag)
   set(CXX_VERSION_FLAG cxx_std_17)
 endif ()
 
+
+check_cxx_compiler_flag(-fopenmp-simd has_fopenmp_simd_flag)
+if(MSVC)
+  add_compile_options(-openmp:experimental)
+elseif(has_fopenmp_simd_flag)
+  add_compile_options(-fopenmp-simd)
+endif()
+
 if(CMAKE_UNITY_BUILD)
   set(SCORE_PCH 0)
 endif()
