@@ -40,7 +40,9 @@
 #include <avnd/../../examples/Advanced/Utilities/ADSR.hpp>
 #include <avnd/../../examples/Advanced/Utilities/AudioFilters.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Bitcrush.hpp>
+#if __has_include(<kfr/dft/convolution.hpp>)
 #include <avnd/../../examples/Advanced/Utilities/Convolver.hpp>
+#endif
 #include <avnd/../../examples/Advanced/Utilities/Dynamics.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Echo.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Flanger.hpp>
@@ -118,7 +120,11 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
     using logger_type = halp::basic_logger;
   };
   auto fx = oscr::instantiate_fx<
-      Aether::Object, ao::ADSR, ao::Convolver, ao::Lowpass, ao::Highpass, ao::Lowshelf,
+      Aether::Object, ao::ADSR
+    #if __has_include(<kfr/dft/convolution.hpp>)
+      , ao::Convolver
+    #endif
+      , ao::Lowpass, ao::Highpass, ao::Lowshelf,
       ao::Highshelf, ao::Bandpass, ao::Bandstop, ao::Bandshelf, ao::Bitcrush,
       ao::Compressor, ao::Limiter, ao::Echo, ao::Flanger, ao::StereoMixer>(ctx, key);
 
