@@ -109,7 +109,7 @@ public:
 
     if constexpr(has_base)
     {
-      readFrom((const typename T::base_type&)obj);
+      readFrom((const typename T::score_base_type&)obj);
     }
     else if constexpr(std::is_enum_v<T>)
     {

@@ -42,7 +42,7 @@ class ProcessModel final : public Process::ProcessModel
   W_OBJECT(ProcessModel)
 
 public:
-  using base_type = Process::ProcessModel;
+  using score_base_type = Process::ProcessModel;
   explicit ProcessModel(
       const TimeVal& duration, const QString& pdpatch,
       const Id<Process::ProcessModel>& id, QObject* parent);

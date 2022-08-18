@@ -178,7 +178,7 @@ class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
 {
   W_OBJECT(Inlet)
 public:
-  using base_type = Inlet;
+  using score_base_type = Inlet;
   MODEL_METADATA_IMPL_HPP(Inlet)
 
   ~Inlet() override;
@@ -268,7 +268,7 @@ class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  using base_type = Outlet;
+  using score_base_type = Outlet;
   MODEL_METADATA_IMPL_HPP(Outlet)
 
   ~Outlet() override;

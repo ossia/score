@@ -63,7 +63,7 @@ struct base_kind
 };
 
 template <typename T>
-struct base_kind<T, std::enable_if_t<!std::is_same_v<T, typename T::base_type>>>
+struct base_kind<T, std::enable_if_t<!std::is_same_v<T, typename T::score_base_type>>>
 {
   using type = has_base;
   static constexpr bool value = true;

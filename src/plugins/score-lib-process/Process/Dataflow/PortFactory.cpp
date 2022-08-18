@@ -5,7 +5,6 @@
 
 namespace Process
 {
-
 void readPorts(
     DataStreamReader& wr, const Process::Inlets& ins, const Process::Outlets& outs)
 {
