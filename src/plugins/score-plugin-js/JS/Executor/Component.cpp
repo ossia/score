@@ -3,6 +3,11 @@
 #include "Component.hpp"
 
 #include "JSAPIWrapper.hpp"
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <JS/Qml/ValueTypes.Qt5.hpp>
+#else
+#include <JS/Qml/ValueTypes.Qt6.hpp>
+#endif
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -473,8 +478,13 @@ void js_node::run(
   if(m_tickCall.empty())
     m_tickCall = {{}, {}};
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   m_tickCall[0] = m_engine->toScriptValue(tk);
   m_tickCall[1] = m_engine->toScriptValue(estate);
+#else
+  m_tickCall[0] = m_engine->toScriptValue(TokenRequestValueType{tk});
+  m_tickCall[1] = m_engine->toScriptValue(ExecutionStateValueType{estate});
+#endif
 
   auto res = tick.call(m_tickCall);
   if(res.isError())

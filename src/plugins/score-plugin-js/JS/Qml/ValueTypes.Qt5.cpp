@@ -1,4 +1,4 @@
-#include <JS/Qml/ValueTypes.hpp>
+#include <JS/Qml/ValueTypes.Qt5.hpp>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <ossia-qt/token_request.hpp>

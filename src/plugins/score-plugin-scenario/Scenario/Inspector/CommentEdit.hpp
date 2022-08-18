@@ -9,9 +9,8 @@ class CommentEdit final : public QTextEdit
 {
   W_OBJECT(CommentEdit)
 public:
-  template <typename... Args>
-  CommentEdit(Args&&... args)
-      : QTextEdit{std::forward<Args>(args)...}
+  CommentEdit(const QString& comment, QWidget* parent)
+      : QTextEdit{comment, parent}
   {
     setMouseTracking(true);
   }

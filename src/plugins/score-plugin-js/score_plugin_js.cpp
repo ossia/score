@@ -12,7 +12,13 @@
 #include <JS/Executor/Component.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
-#include <JS/Qml/ValueTypes.hpp>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <JS/Qml/ValueTypes.Qt5.hpp>
+#else
+#include <JS/Qml/ValueTypes.Qt6.hpp>
+#endif
+
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>

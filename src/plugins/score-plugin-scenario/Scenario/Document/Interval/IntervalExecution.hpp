@@ -81,6 +81,7 @@ public:
   IntervalComponentBase(
       Scenario::IntervalModel& score_cst, const std::shared_ptr<ossia::scenario>& scenar,
       const Context& ctx, QObject* parent);
+  IntervalComponentBase() = delete;
   IntervalComponentBase(const IntervalComponentBase&) = delete;
   IntervalComponentBase(IntervalComponentBase&&) = delete;
   IntervalComponentBase& operator=(const IntervalComponentBase&) = delete;
@@ -135,6 +136,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalComponent final
   W_OBJECT(IntervalComponent)
 
 public:
+  IntervalComponent() = delete;
   template <typename... Args>
   IntervalComponent(Args&&... args)
       : PolymorphicComponentHierarchyManager{

@@ -11,8 +11,12 @@ find_package(${QT_VERSION} OPTIONAL_COMPONENTS Qml)
 if(NOT TARGET ${QT_PREFIX}::Qml)
   return()
 endif()
-if(NOT TARGET score_plugin_engine)
-  return()
+
+if(${QT_PREFIX} MATCHES "Qt6")
+  find_package(${QT_VERSION} COMPONENTS QmlIntegration)
+  if(NOT TARGET ${QT_PREFIX}::QmlIntegration)
+    return()
+  endif()
 endif()
 
 # Files & main target
@@ -26,7 +30,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Metatypes.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
@@ -44,7 +48,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_js.cpp"
 )
@@ -61,4 +65,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_deviceexplorer score_plugin_protocols
                      score_plugin_media)
 
+if(TARGET ${QT_PREFIX}::QmlIntegration)
+  set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QmlIntegration)
+endif()
 setup_score_plugin(${PROJECT_NAME})
