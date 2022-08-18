@@ -30,11 +30,11 @@
 template <typename T>
 requires requires(T t)
 {
-  registerCustomForeignFunction(t);
+  registerForeignFunction(t);
 }
 auto do_registerCustomForeignFunction(const T& str)
 {
-  registerCustomForeignFunction(str);
+  registerForeignFunction(str);
 }
 
 template <typename T>
