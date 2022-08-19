@@ -2,9 +2,12 @@
 #include <QAbstractEventDispatcher>
 #include <QThread>
 
+#include <blockingconcurrentqueue.h>
 #include <score_lib_base_export.h>
+#include <smallfun.hpp>
 
 #include <memory>
+#include <thread>
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT ThreadPool
@@ -29,21 +32,20 @@ private:
 class SCORE_LIB_BASE_EXPORT TaskPool
 {
 public:
+  TaskPool();
+  ~TaskPool();
   static TaskPool& instance();
 
-  void init();
-
   template <typename F>
-  void submit(F&& func)
+  void post(F&& func)
   {
-    init();
-    auto t = threads.back();
-
-    auto disp = QAbstractEventDispatcher::instance(t);
-    QMetaObject::invokeMethod(disp, std::forward<F>(func));
+    m_queue.enqueue(std::forward<F>(func));
   }
 
 private:
-  std::vector<QThread*> threads;
+  using task = smallfun::function<void()>;
+  moodycamel::BlockingConcurrentQueue<task> m_queue;
+  std::array<std::thread, 2> m_threads;
+  std::atomic_bool m_running{};
 };
 }

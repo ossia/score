@@ -83,19 +83,29 @@ void ThreadPool::releaseThread()
   }
 }
 
-TaskPool& TaskPool::instance()
+TaskPool::TaskPool()
 {
-  static TaskPool t;
-  t.init();
-  return t;
+  m_running = true;
+  for(auto& t : m_threads)
+  {
+    t = std::thread{[this] {
+      while(m_running)
+      {
+        task t{};
+        if(m_queue.wait_dequeue_timed(t, 100000))
+        {
+          t();
+        }
+      }
+    }};
+  }
 }
 
-void TaskPool::init()
+TaskPool::~TaskPool() { }
+TaskPool& TaskPool::instance()
 {
-  if(threads.empty())
-  {
-    threads.push_back(ThreadPool::instance().acquireThread());
-  }
+  static TaskPool t{};
+  return t;
 }
 
 }

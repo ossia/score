@@ -634,168 +634,180 @@ public:
       ptr.reset(node);
       this->node = ptr;
 
-      using control_inputs_type = avnd::control_input_introspection<Node>;
-      using soundfile_inputs_type = avnd::soundfile_input_introspection<Node>;
-      using midifile_inputs_type = avnd::midifile_input_introspection<Node>;
-      using raw_file_inputs_type = avnd::raw_file_input_introspection<Node>;
-      using control_outputs_type = avnd::control_output_introspection<Node>;
-      avnd::effect_container<Node>& eff = node->impl;
-
-      // UI controls to engine
-      if constexpr(control_inputs_type::size > 0)
-      {
-        // Initialize all the controls in the node with the current value.
-        // And update the node when the UI changes
-        control_inputs_type::for_all_n2(
-            avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
-      }
-      if constexpr(soundfile_inputs_type::size > 0)
-      {
-        soundfile_inputs_type::for_all_n2(
-            avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
-      }
-      if constexpr(midifile_inputs_type::size > 0)
-      {
-        midifile_inputs_type::for_all_n2(
-            avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
-      }
-      if constexpr(raw_file_inputs_type::size > 0)
-      {
-        raw_file_inputs_type::for_all_n2(
-            avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
-      }
-
-      // Update everything
-      {
-        for(auto& state : eff.full_state())
-        {
-          avnd::input_introspection<Node>::for_all(state.inputs, [&](auto& field) {
-            if_possible(field.update(state.effect));
-          });
-        }
-      }
-
-      // Custom UI messages to engine
-      if constexpr(avnd::has_gui_to_processor_bus<Node>)
-      {
-        element.from_ui = [p = QPointer{this}, &eff](QByteArray b) {
-          if(!p)
-            return;
-
-          p->in_exec([mess = std::move(b), &eff] {
-            using refl = avnd::function_reflection<&Node::process_message>;
-            static_assert(refl::count <= 1);
-
-            if constexpr(refl::count == 0)
-            {
-              // no arguments, just call it
-              eff.effect.process_message();
-            }
-            else if constexpr(refl::count == 1)
-            {
-              using arg_type = avnd::first_argument<&Node::process_message>;
-              std::decay_t<arg_type> arg;
-              MessageBusReader b{mess};
-              b(arg);
-              eff.effect.process_message(std::move(arg));
-            }
-          });
-        };
-      }
-
-      if constexpr(avnd::has_processor_to_gui_bus<Node>)
-      {
-        eff.effect.send_message = [this](auto b) mutable {
-          this->in_edit([this, bb = std::move(b)]() mutable {
-            MessageBusSender{this->process().to_ui}(std::move(bb));
-          });
-        };
-      }
-
-      if constexpr(avnd::has_worker<Node>)
-      {
-        // This is pretty complicated because this is a complete round-trip:
-        // First the object calls worker.request("foo", bar);
-        // We send that as a message to the main thread
-        // We dispatch the call to worker::work("foo", bar);
-        // If it works, this gives us a function that we have to call back on the DSP thread
-        //
-        using worker_type = decltype(eff.effect.worker);
-        for(auto& eff : eff.effects())
-        {
-          std::weak_ptr eff_ptr = std::shared_ptr<Node>(this->node, &eff);
-          std::weak_ptr qed_ptr = std::shared_ptr<Execution::EditionCommandQueue>(
-              ctx.alias.lock(), &ctx.editionQueue);
-          std::weak_ptr qex_ptr = std::shared_ptr<Execution::ExecutionCommandQueue>(
-              ctx.alias.lock(), &ctx.executionQueue);
-          auto& worker = eff.worker;
-
-          eff.worker.request
-              = [qed_ptr = std::move(qed_ptr), qex_ptr = std::move(qex_ptr),
-                 eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) {
-            // This happens in the DSP / processor thread
-            std::shared_ptr qed = qed_ptr.lock();
-            if(!qed)
-              return;
-
-            qed->enqueue([qex_ptr = std::move(qex_ptr), eff_ptr = std::move(eff_ptr),
-                          ... ff = std::forward<Args>(f)]() mutable {
-              // Main thread
-              if(!eff_ptr.lock())
-                return;
-
-              // The reason we do this in the main thread and not directly as a result
-              // of eff.worker.request is that QMetaObject::invokeMethod used for QThread
-              // may allocate
-              score::TaskPool::instance().submit(
-                  [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
-                   ... ff = std::forward<Args>(ff)]() mutable {
-                // Worker thread
-                auto res = worker_type::work(std::forward<Args>(ff)...);
-                if(!res)
-                  return;
-
-                // Execution queue is spsc from main thread to an exec thread, we cannot just do it here
-                ossia::qt::run_async(
-                    qApp, [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
-                           res = std::move(res)] {
-                      // Main thread
-                      std::shared_ptr qex = qex_ptr.lock();
-                      if(!qex)
-                        return;
-
-                      qex->enqueue([eff_ptr = std::move(eff_ptr), res = std::move(res)] {
-                        // DSP / processor thread
-                        if(auto p = eff_ptr.lock())
-                        {
-                          res(*p);
-                        }
-                      });
-                    });
-              });
-            });
-          };
-        }
-      }
-
-      // Engine to ui controls
-      if constexpr(control_inputs_type::size > 0 || control_outputs_type::size > 0)
-      {
-        // Update the value in the UI
-        std::weak_ptr<safe_node<Node>> weak_node = ptr;
-        ExecutorGuiUpdate<Node> timer_action{weak_node, element};
-        timer_action();
-
-        con(
-            ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [=] { timer_action(); },
-            Qt::QueuedConnection);
-      }
+      connect_message_bus(element, ctx, ptr);
+      connect_worker(element, ctx, ptr);
+      connect_controls(element, ctx, ptr);
+      update_controls(ptr);
 
       // To call prepare() after evertyhing is ready
       node->audio_configuration_changed();
     }
 
     this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
+  }
+
+  void connect_controls(
+      ProcessModel<Node>& element, const ::Execution::Context& ctx,
+      std::shared_ptr<safe_node<Node>>& ptr)
+  {
+    using control_inputs_type = avnd::control_input_introspection<Node>;
+    using soundfile_inputs_type = avnd::soundfile_input_introspection<Node>;
+    using midifile_inputs_type = avnd::midifile_input_introspection<Node>;
+    using raw_file_inputs_type = avnd::raw_file_input_introspection<Node>;
+    using control_outputs_type = avnd::control_output_introspection<Node>;
+
+    // UI controls to engine
+    avnd::effect_container<Node>& eff = ptr->impl;
+
+    if constexpr(control_inputs_type::size > 0)
+    {
+      // Initialize all the controls in the node with the current value.
+      // And update the node when the UI changes
+      control_inputs_type::for_all_n2(
+          avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
+    }
+    if constexpr(soundfile_inputs_type::size > 0)
+    {
+      soundfile_inputs_type::for_all_n2(
+          avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
+    }
+    if constexpr(midifile_inputs_type::size > 0)
+    {
+      midifile_inputs_type::for_all_n2(
+          avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
+    }
+    if constexpr(raw_file_inputs_type::size > 0)
+    {
+      raw_file_inputs_type::for_all_n2(
+          avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
+    }
+
+    // Engine to ui controls
+    if constexpr(control_inputs_type::size > 0 || control_outputs_type::size > 0)
+    {
+      // Update the value in the UI
+      std::weak_ptr<safe_node<Node>> weak_node = ptr;
+      ExecutorGuiUpdate<Node> timer_action{weak_node, element};
+      timer_action();
+
+      con(
+          ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [=] { timer_action(); },
+          Qt::QueuedConnection);
+    }
+  }
+
+  void connect_message_bus(
+      ProcessModel<Node>& element, const ::Execution::Context& ctx,
+      std::shared_ptr<safe_node<Node>>& ptr)
+  {
+    // Custom UI messages to engine
+    avnd::effect_container<Node>& eff = ptr->impl;
+    if constexpr(avnd::has_gui_to_processor_bus<Node>)
+    {
+      element.from_ui = [p = QPointer{this}, &eff](QByteArray b) {
+        if(!p)
+          return;
+
+        p->in_exec([mess = std::move(b), &eff] {
+          using refl = avnd::function_reflection<&Node::process_message>;
+          static_assert(refl::count <= 1);
+
+          if constexpr(refl::count == 0)
+          {
+            // no arguments, just call it
+            eff.effect.process_message();
+          }
+          else if constexpr(refl::count == 1)
+          {
+            using arg_type = avnd::first_argument<&Node::process_message>;
+            std::decay_t<arg_type> arg;
+            MessageBusReader b{mess};
+            b(arg);
+            eff.effect.process_message(std::move(arg));
+          }
+        });
+      };
+    }
+
+    if constexpr(avnd::has_processor_to_gui_bus<Node>)
+    {
+      eff.effect.send_message = [this](auto b) mutable {
+        this->in_edit([this, bb = std::move(b)]() mutable {
+          MessageBusSender{this->process().to_ui}(std::move(bb));
+        });
+      };
+    }
+  }
+
+  void connect_worker(
+      ProcessModel<Node>& element, const ::Execution::Context& ctx,
+      std::shared_ptr<safe_node<Node>>& ptr)
+  {
+    if constexpr(avnd::has_worker<Node>)
+    {
+      avnd::effect_container<Node>& eff = ptr->impl;
+      // Initialize the thread pool to make sure we don't get an issue later on
+      auto& tq = score::TaskPool::instance();
+      // This is pretty complicated because this is a complete round-trip:
+      // First the object calls worker.request("foo", bar);
+      // We send that as a message to the main thread
+      // We dispatch the call to worker::work("foo", bar);
+      // If it works, this gives us a function that we have to call back on the DSP thread
+      //
+      using worker_type = decltype(eff.effect.worker);
+      for(auto& eff : eff.effects())
+      {
+        std::weak_ptr eff_ptr = std::shared_ptr<Node>(this->node, &eff);
+        std::weak_ptr qex_ptr = std::shared_ptr<Execution::ExecutionCommandQueue>(
+            ctx.alias.lock(), &ctx.executionQueue);
+        auto& worker = eff.worker;
+
+        eff.worker.request
+            = [&tq, qex_ptr = std::move(qex_ptr),
+               eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) {
+          // This happens in the DSP / processor thread
+          tq.post([eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
+                   ... ff = std::forward<Args>(f)]() mutable {
+            // Worker thread
+            auto res = worker_type::work(std::forward<Args>(ff)...);
+            if(!res)
+              return;
+
+            // Execution queue is spsc from main thread to an exec thread, we cannot just do it
+            // in the thread-pool
+            ossia::qt::run_async(
+                qApp, [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
+                       res = std::move(res)] {
+                  // Main thread
+                  std::shared_ptr qex = qex_ptr.lock();
+                  if(!qex)
+                    return;
+
+                  qex->enqueue([eff_ptr = std::move(eff_ptr), res = std::move(res)] {
+                    // DSP / processor thread
+                    if(auto p = eff_ptr.lock())
+                    {
+                      res(*p);
+                    }
+                  });
+                });
+          });
+        };
+      }
+    }
+  }
+
+  // Update everything
+  void update_controls(std::shared_ptr<safe_node<Node>>& ptr)
+  {
+    avnd::effect_container<Node>& eff = ptr->impl;
+    {
+      for(auto& state : eff.full_state())
+      {
+        avnd::input_introspection<Node>::for_all(
+            state.inputs, [&](auto& field) { if_possible(field.update(state.effect)); });
+      }
+    }
   }
 
   void cleanup() override
