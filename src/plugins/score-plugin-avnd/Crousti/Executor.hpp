@@ -636,6 +636,9 @@ public:
 
       connect_message_bus(element, ctx, ptr);
       connect_worker(element, ctx, ptr);
+
+      node->finish_init();
+
       connect_controls(element, ctx, ptr);
       update_controls(ptr);
 
@@ -746,14 +749,8 @@ public:
     if constexpr(avnd::has_worker<Node>)
     {
       avnd::effect_container<Node>& eff = ptr->impl;
-      // Initialize the thread pool to make sure we don't get an issue later on
+      // Initialize the thread pool beforehand
       auto& tq = score::TaskPool::instance();
-      // This is pretty complicated because this is a complete round-trip:
-      // First the object calls worker.request("foo", bar);
-      // We send that as a message to the main thread
-      // We dispatch the call to worker::work("foo", bar);
-      // If it works, this gives us a function that we have to call back on the DSP thread
-      //
       using worker_type = decltype(eff.effect.worker);
       for(auto& eff : eff.effects())
       {
@@ -765,30 +762,37 @@ public:
         eff.worker.request
             = [&tq, qex_ptr = std::move(qex_ptr),
                eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) {
-          // This happens in the DSP / processor thread
+          // request() is invoked in the DSP / processor thread
+          // and just posts the task to the thread pool
           tq.post([eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
                    ... ff = std::forward<Args>(f)]() mutable {
-            // Worker thread
+            // This happens in the worker thread
+            // If for some reason the object has already been removed, not much
+            // reason to perform the work
+            if(!eff_ptr.lock())
+              return;
+
             auto res = worker_type::work(std::forward<Args>(ff)...);
             if(!res)
               return;
 
-            // Execution queue is spsc from main thread to an exec thread, we cannot just do it
-            // in the thread-pool
+            // Execution queue is currently spsc from main thread to an exec thread,
+            // we cannot just yeet the result back from the thread-pool
             ossia::qt::run_async(
                 qApp, [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
-                       res = std::move(res)] {
+                       res = std::move(res)]() mutable {
                   // Main thread
                   std::shared_ptr qex = qex_ptr.lock();
                   if(!qex)
                     return;
 
-                  qex->enqueue([eff_ptr = std::move(eff_ptr), res = std::move(res)] {
-                    // DSP / processor thread
-                    if(auto p = eff_ptr.lock())
-                    {
-                      res(*p);
-                    }
+                  qex->enqueue(
+                      [eff_ptr = std::move(eff_ptr), res = std::move(res)]() mutable {
+                // DSP / processor thread
+                // We need res to be mutable so that the worker can use it to e.g. store
+                // old data which will be freed back in the main thread
+                if(auto p = eff_ptr.lock())
+                  res(*p);
                   });
                 });
           });
