@@ -11,9 +11,9 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QOffscreenSurface>
-#include <QtGui/private/qrhigles2_p_p.h>
-
 #include <Spout/SpoutSender.h>
+
+#include <QtGui/private/qrhigles2_p_p.h>
 
 #include <wobjectimpl.h>
 
