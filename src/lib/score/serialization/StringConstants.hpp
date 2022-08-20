@@ -127,4 +127,8 @@ struct StringConstants
 };
 
 SCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();
+
+SCORE_LIB_BASE_EXPORT
+QString toNumber(double v) noexcept;
+QString toNumber(int v) noexcept;
 }

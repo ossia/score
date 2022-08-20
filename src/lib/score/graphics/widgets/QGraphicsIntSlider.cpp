@@ -2,6 +2,7 @@
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/graphics/widgets/QGraphicsIntSlider.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/StringConstants.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -110,7 +111,7 @@ void QGraphicsIntSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(), QString::number(value()), painter, widget);
+      *this, score::Skin::instance(), score::toNumber(value()), painter, widget);
 }
 
 double QGraphicsIntSlider::getHandleX() const

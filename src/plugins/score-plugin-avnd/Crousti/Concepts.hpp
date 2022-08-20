@@ -344,6 +344,58 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       return new Process::XYSlider{{mx, my}, {Mx, My}, {ix, iy}, qname, id, parent};
     }
   }
+  else if constexpr(widg.widget == avnd::widget_type::xyz)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    if constexpr(requires {
+                   c.min == 0.f;
+                   c.max == 0.f;
+                   c.init == 0.f;
+                 })
+    {
+      return new Process::XYZSlider{
+          {c.min, c.min, c.min},
+          {c.max, c.max, c.max},
+          {c.init, c.init, c.init},
+          qname,
+          id,
+          parent};
+    }
+    else
+    {
+      auto [mx, my, mz] = c.min;
+      auto [Mx, My, Mz] = c.max;
+      auto [ix, iy, iz] = c.init;
+      return new Process::XYZSlider{{mx, my, mz}, {Mx, My, Mz}, {ix, iy, iz},
+                                    qname,        id,           parent};
+    }
+  }
+  else if constexpr(widg.widget == avnd::widget_type::xyz_spinbox)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    if constexpr(requires {
+                   c.min == 0.f;
+                   c.max == 0.f;
+                   c.init == 0.f;
+                 })
+    {
+      return new Process::XYZSpinboxes{
+          {c.min, c.min, c.min},
+          {c.max, c.max, c.max},
+          {c.init, c.init, c.init},
+          qname,
+          id,
+          parent};
+    }
+    else
+    {
+      auto [mx, my, mz] = c.min;
+      auto [Mx, My, Mz] = c.max;
+      auto [ix, iy, iz] = c.init;
+      return new Process::XYZSpinboxes{{mx, my, mz}, {Mx, My, Mz}, {ix, iy, iz},
+                                       qname,        id,           parent};
+    }
+  }
   else if constexpr(widg.widget == avnd::widget_type::color)
   {
     constexpr auto c = avnd::get_range<T>();

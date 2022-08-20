@@ -24,11 +24,11 @@
 #include <QPalette>
 #include <QTextDocument>
 
-#include <verdigris>
-
 #include <private/qwidgettextcontrol_p.h>
 
 #include <score_lib_process_export.h>
+
+#include <verdigris>
 namespace Process
 {
 
@@ -61,8 +61,7 @@ public:
     }
   }
 
-  void sizeChanged(QSizeF sz)
-  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, sz)
+  void sizeChanged(QSizeF sz) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, sz)
 };
 }
 
@@ -663,7 +662,9 @@ struct LineEdit
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
     auto doc = sl->document();
-    QObject::connect(doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx, r=sl->boundingRect()] () mutable {
+    QObject::connect(
+        doc, &QTextDocument::contentsChanged, context,
+        [=, &inlet, &ctx, r = sl->boundingRect()]() mutable {
       auto cur_str = ossia::convert<std::string>(inlet.value());
       if(cur_str != doc->toPlainText().toStdString())
       {
@@ -676,7 +677,7 @@ struct LineEdit
         r = sl->boundingRect();
         sl->sizeChanged(r.size());
       }
-    });
+        });
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
       auto str = QString::fromStdString(ossia::convert<std::string>(val));
       if(str != doc->toPlainText())
@@ -1046,13 +1047,15 @@ struct XYZSpinboxes
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsXYZSpinboxChooser{nullptr};
-    sl->setValue(ossia::convert<ossia::vec3f>(inlet.value()));
     bindVec3Domain(slider, inlet, *sl);
+    sl->setValue(
+        LinearNormalizer::to01(*sl, ossia::convert<ossia::vec3f>(inlet.value())));
 
     QObject::connect(
         sl, &score::QGraphicsXYZSpinboxChooser::sliderMoved, context, [=, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(
+              inlet, LinearNormalizer::from01(*sl, sl->value()));
         });
     QObject::connect(
         sl, &score::QGraphicsXYZSpinboxChooser::sliderReleased, context, [&ctx, sl]() {
@@ -1062,7 +1065,7 @@ struct XYZSpinboxes
 
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
       if(!sl->moving)
-        sl->setValue(ossia::convert<ossia::vec3f>(val));
+        sl->setValue(LinearNormalizer::to01(*sl, ossia::convert<ossia::vec3f>(val)));
     });
 
     return sl;

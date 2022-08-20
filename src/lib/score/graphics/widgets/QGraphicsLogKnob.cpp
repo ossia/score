@@ -1,6 +1,7 @@
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
 #include <score/graphics/widgets/QGraphicsLogKnob.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/StringConstants.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 
@@ -100,7 +101,7 @@ void QGraphicsLogKnob::paint(
 {
   DefaultGraphicsKnobImpl::paint(
       *this, score::Skin::instance(),
-      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
-      painter, widget);
+      score::toNumber(ossia::normalized_to_log(min, max - min, value())), painter,
+      widget);
 }
 }

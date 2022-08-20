@@ -421,16 +421,19 @@ public:
       this->to_ui = [](QByteArray arr) {};
     }
 
-    if constexpr(avnd::control_input_introspection<Info>::size > 0)
-    {
-      constexpr auto idx
-          = avnd::control_input_introspection<Info>::index_to_field_index(0);
-      setupInitialStringPort(idx, custom);
-    }
-    else if constexpr(avnd::file_input_introspection<Info>::size > 0)
+    if constexpr(avnd::file_input_introspection<Info>::size > 0)
     {
       constexpr auto idx = avnd::file_input_introspection<Info>::index_to_field_index(0);
       setupInitialStringPort(idx, custom);
+    }
+    else if constexpr(avnd::control_input_introspection<Info>::size > 0)
+    {
+      constexpr auto idx
+          = avnd::control_input_introspection<Info>::index_to_field_index(0);
+      using type =
+          typename avnd::control_input_introspection<Info>::template nth_element<0>;
+      if constexpr(avnd::string_ish<decltype(type::value)>)
+        setupInitialStringPort(idx, custom);
     }
   }
 

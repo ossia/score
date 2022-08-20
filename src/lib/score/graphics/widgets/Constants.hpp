@@ -1,5 +1,7 @@
 #pragma once
 #include <QRectF>
+
+#include <score_lib_base_export.h>
 namespace score
 {
 static const constexpr QRectF defaultSliderSize{0., 0., 60., 23.};
@@ -9,5 +11,4 @@ static const constexpr QRectF defaultToggleSize{0., 0., 60., 20.};
 
 struct DoubleSpinboxWithEnter;
 struct DefaultGraphicsSliderImpl;
-
 }

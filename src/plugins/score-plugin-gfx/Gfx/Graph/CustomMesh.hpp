@@ -172,7 +172,6 @@ public:
     }
 
     auto& g = this->geom.meshes[0];
-    qDebug() << g.vertices << g.bindings.size() << g.attributes.size() << g.input.size();
 
     vertexBindings.clear();
     for(auto& binding : g.bindings)

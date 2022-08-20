@@ -42,6 +42,78 @@ struct LinearNormalizer
       max = min + 1;
     return from01(min, max - min, val);
   }
+
+  template <typename T>
+  static ossia::vec2f to01(const T& slider, ossia::vec2f val) noexcept
+  {
+    ossia::vec2f res;
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    res[0] = to01(min[0], max[0] - min[0], val[0]);
+    res[1] = to01(min[1], max[1] - min[1], val[1]);
+    return res;
+  }
+
+  template <typename T>
+  static ossia::vec2f from01(const T& slider, ossia::vec2f val) noexcept
+  {
+    ossia::vec2f res;
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    res[0] = from01(min[0], max[0] - min[0], val[0]);
+    res[1] = from01(min[1], max[1] - min[1], val[1]);
+    return res;
+  }
+
+  template <typename T>
+  static ossia::vec3f to01(const T& slider, ossia::vec3f val) noexcept
+  {
+    ossia::vec3f res;
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    res[0] = to01(min[0], max[0] - min[0], val[0]);
+    res[1] = to01(min[1], max[1] - min[1], val[1]);
+    res[2] = to01(min[2], max[2] - min[2], val[2]);
+    return res;
+  }
+
+  template <typename T>
+  static ossia::vec3f from01(const T& slider, ossia::vec3f val) noexcept
+  {
+    ossia::vec3f res;
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    res[0] = from01(min[0], max[0] - min[0], val[0]);
+    res[1] = from01(min[1], max[1] - min[1], val[1]);
+    res[2] = from01(min[2], max[2] - min[2], val[2]);
+    return res;
+  }
+
+  template <typename T>
+  static ossia::vec4f to01(const T& slider, ossia::vec4f val) noexcept
+  {
+    ossia::vec4f res;
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    res[0] = to01(min[0], max[0] - min[0], val[0]);
+    res[1] = to01(min[1], max[1] - min[1], val[1]);
+    res[2] = to01(min[2], max[2] - min[2], val[2]);
+    res[3] = to01(min[3], max[3] - min[3], val[3]);
+    return res;
+  }
+
+  template <typename T>
+  static ossia::vec4f from01(const T& slider, ossia::vec4f val) noexcept
+  {
+    ossia::vec4f res;
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    res[0] = from01(min[0], max[0] - min[0], val[0]);
+    res[1] = from01(min[1], max[1] - min[1], val[1]);
+    res[2] = from01(min[2], max[2] - min[2], val[2]);
+    res[3] = from01(min[3], max[3] - min[3], val[3]);
+    return res;
+  }
 };
 
 struct LogNormalizer

@@ -1,6 +1,7 @@
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
 #include <score/graphics/widgets/QGraphicsKnob.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/StringConstants.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -91,9 +92,7 @@ void QGraphicsKnob::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const double val = map(m_value);
-  const double abs = std::abs(val);
-  int pres = abs < 10. ? 3 : abs < 100. ? 2 : abs < 1000. ? 1 : 0;
   DefaultGraphicsKnobImpl::paint(
-      *this, score::Skin::instance(), QString::number(val, 'f', pres), painter, widget);
+      *this, score::Skin::instance(), score::toNumber(val), painter, widget);
 }
 }

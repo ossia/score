@@ -2,6 +2,7 @@
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/graphics/widgets/QGraphicsSlider.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/StringConstants.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 
@@ -79,7 +80,7 @@ void QGraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(),
-      QString::number(min + m_value * (max - min), 'f', 3), painter, widget);
+      *this, score::Skin::instance(), score::toNumber(min + m_value * (max - min)),
+      painter, widget);
 }
 }

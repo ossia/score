@@ -2,6 +2,7 @@
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/graphics/widgets/QGraphicsLogSlider.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/StringConstants.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -92,7 +93,7 @@ void QGraphicsLogSlider::paint(
 {
   DefaultGraphicsSliderImpl::paint(
       *this, score::Skin::instance(),
-      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
-      painter, widget);
+      score::toNumber(ossia::normalized_to_log(min, max - min, value())), painter,
+      widget);
 }
 }

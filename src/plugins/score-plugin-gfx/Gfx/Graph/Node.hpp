@@ -27,7 +27,8 @@ class GenericNodeRenderer;
 class NodeRenderer;
 
 using gfx_input = ossia::variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list>;
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list,
+    ossia::transform3d>;
 
 /**
  * @brief Messages sent from the execution thread to the rendering thread
@@ -149,6 +150,7 @@ public:
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
   void process(int32_t port, const ossia::mesh_list& v);
+  void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
 };
 

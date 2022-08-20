@@ -1,6 +1,7 @@
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/StringConstants.hpp>
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -112,7 +113,7 @@ struct PaintVisitor
       SliderWrapper<float> slider{self, {v[i]}, {v[i]}};
       slider.rect.moveTop(i * (defaultSliderSize.height() + 4));
       DefaultGraphicsSliderImpl::paint(
-          slider, skin, QString::number(self.min + v[i] * (self.max - self.min), 'f', 3),
+          slider, skin, score::toNumber(self.min + v[i] * (self.max - self.min)),
           &painter, &widget);
     }
   }

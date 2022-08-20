@@ -319,6 +319,8 @@ void ProcessNode::process(int32_t port, const ossia::mesh_list& v)
   ++this->geometryChanged;
 }
 
+void ProcessNode::process(int32_t port, const ossia::transform3d& v) { }
+
 void ProcessNode::process(Message&& msg)
 {
   process(msg.token);
