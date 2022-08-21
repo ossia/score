@@ -14,6 +14,8 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSpinbox final
 {
   W_OBJECT(QGraphicsSpinbox)
   Q_INTERFACES(QGraphicsItem)
+  Q_DISABLE_COPY(QGraphicsSpinbox)
+
   friend struct DefaultGraphicsKnobImpl;
   QRectF m_rect{0., 0., 40., 20.};
 

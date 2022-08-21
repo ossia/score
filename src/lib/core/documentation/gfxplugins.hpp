@@ -19,15 +19,16 @@
  * ```
  *
  * ```
- * packed_struct MyShaderParameters {
+ * #pragma pack(push, 1)
+ * struct MyShaderParameters {
  *    int foo;
  *    float bar[2];
  * } my_params;
- * end_packed_struct
+ * #pragma pack(pop)
  * ```
  *
- * The struct must respect GLSL std140 rules; helper macros are defined in <ossia/detail/packed_struct.hpp>
- * (they are not sufficient ! sometimes additional padding is needed).
+ * The struct must respect GLSL std140 rules; sometimes additional explicit padding is needed
+ * even with pragma pack.
  *
  * - Add matching ports in the constructor:
  *

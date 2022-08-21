@@ -2,8 +2,6 @@
 
 #include <Gfx/Graph/Node.hpp>
 
-#include <ossia/detail/packed_struct.hpp>
-
 namespace score::gfx
 {
 enum ImageMode
@@ -27,6 +25,8 @@ public:
 
   class PreloadedRenderer;
   class OnTheFlyRenderer;
+
+#pragma pack(push, 1)
   struct UBO
   {
     int currentImageIndex{};
@@ -35,6 +35,7 @@ public:
     float scale[2]{1., 1.};
     float imageSize[2]{1., 1.};
   } ubo;
+#pragma pack(pop)
 
   std::atomic_int imagesChanged{};
   std::atomic<ImageMode> tile{};

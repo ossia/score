@@ -1,15 +1,14 @@
 #pragma once
-#include <ossia/detail/packed_struct.hpp>
 
 #include <cstdint>
 
 namespace score::gfx
 {
-
+#pragma pack(push, 1)
 /**
  * @brief UBO specific to individual processes / nodes.
  */
-packed_struct ProcessUBO
+struct ProcessUBO
 {
   float time{};
   float timeDelta{};
@@ -24,12 +23,11 @@ packed_struct ProcessUBO
 
   float sampleRate{};
 };
-end_packed_struct
 
-    /**
+/**
  * @brief UBO shared across all entities shown with the same camera.
  */
-    packed_struct ModelCameraUBO
+struct ModelCameraUBO
 {
   float mvp[16]{};
   float mv[16]{};
@@ -39,7 +37,6 @@ end_packed_struct
   float modelNormal[9]{};
   float padding[3]; // Needed as a mat3 needs a bit more space...
 };
-end_packed_struct
 
     static_assert(
         sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3));
@@ -47,13 +44,13 @@ end_packed_struct
 /**
  * @brief UBO shared across all entities shown on the same output.
  */
-packed_struct OutputUBO
+struct OutputUBO
 {
   float clipSpaceCorrMatrix[16]{};
   float texcoordAdjust[2]{};
 
   float renderSize[2]{};
 };
-end_packed_struct
 
+#pragma pack(pop)
 }
