@@ -26,7 +26,7 @@ private:
 
 public:
   float min{}, max{};
-  explicit QGraphicsSpinbox(QGraphicsItem* parent);
+  QGraphicsSpinbox(QGraphicsItem* parent);
   ~QGraphicsSpinbox();
 
   void setValue(float r);

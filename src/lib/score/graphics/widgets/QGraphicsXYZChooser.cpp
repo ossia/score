@@ -162,7 +162,7 @@ QRectF QGraphicsXYZChooser::boundingRect() const
 }
 
 QGraphicsXYZSpinboxChooser::QGraphicsXYZSpinboxChooser(QGraphicsItem* parent)
-    : m_sb{QGraphicsSpinbox{this}, QGraphicsSpinbox{this}, QGraphicsSpinbox{this}}
+    : m_sb{this, this, this}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
