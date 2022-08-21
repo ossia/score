@@ -126,6 +126,8 @@ public:
    */
   const score::gfx::Mesh& defaultTriangle() const noexcept;
 
+  int samples() const noexcept { return m_samples; }
+
 private:
   OutputUBO m_outputUBOData;
 
@@ -146,6 +148,7 @@ private:
 
   int m_minTexSize{};
   int m_maxTexSize{};
+  int m_samples{1};
 
   bool m_flip{};
 

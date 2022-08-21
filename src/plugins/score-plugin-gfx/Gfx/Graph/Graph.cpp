@@ -449,10 +449,17 @@ void Graph::addEdge(Port* source, Port* sink)
   auto it = ossia::find_if(
       m_edges, [=](Edge* e) { return e->source == source && e->sink == sink; });
 
-  SCORE_SOFT_ASSERT(it == m_edges.end());
-
   if(it == m_edges.end())
+  {
     m_edges.push_back(new Edge{source, sink});
+  }
+#if defined(SCORE_DEBUG)
+  else
+  {
+    qDebug() << "Tried to add edge between " << source << sink << "\n   ==> "
+             << source->node << sink->node;
+  }
+#endif
 }
 
 void Graph::removeEdge(Port* source, Port* sink)

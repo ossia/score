@@ -7,18 +7,27 @@
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* tex)
+TextureRenderTarget
+createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples)
 {
   TextureRenderTarget ret;
   ret.texture = tex;
 
-  ret.renderBuffer
-      = state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, tex->pixelSize(), 1);
-  ret.renderBuffer->create();
+  ret.colorRenderBuffer
+      = state.rhi->newRenderBuffer(QRhiRenderBuffer::Color, tex->pixelSize(), samples);
+  ret.colorRenderBuffer->create();
 
-  QRhiColorAttachment color0{ret.texture};
+  ret.depthRenderBuffer = state.rhi->newRenderBuffer(
+      QRhiRenderBuffer::DepthStencil, tex->pixelSize(), samples);
+  ret.depthRenderBuffer->create();
 
-  auto renderTarget = state.rhi->newTextureRenderTarget({color0, ret.renderBuffer});
+  QRhiTextureRenderTargetDescription desc;
+  QRhiColorAttachment color0(ret.colorRenderBuffer);
+  color0.setResolveTexture(tex);
+  desc.setDepthStencilBuffer(ret.depthRenderBuffer);
+  desc.setColorAttachments({color0});
+
+  auto renderTarget = state.rhi->newTextureRenderTarget(desc);
   SCORE_ASSERT(renderTarget);
 
   auto renderPass = renderTarget->newCompatibleRenderPassDescriptor();
@@ -33,12 +42,12 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* te
 }
 
 TextureRenderTarget createRenderTarget(
-    const RenderState& state, QRhiTexture::Format fmt, QSize sz,
+    const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples,
     QRhiTexture::Flags flags)
 {
   auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget | flags);
   SCORE_ASSERT(texture->create());
-  return createRenderTarget(state, texture);
+  return createRenderTarget(state, texture, samples);
 }
 
 void replaceBuffer(
@@ -247,7 +256,7 @@ Pipeline buildPipeline(
   premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
   ps->setTargetBlends({premulAlphaBlend});
 
-  ps->setSampleCount(1);
+  ps->setSampleCount(renderer.samples());
 
   mesh.preparePipeline(*ps);
 

@@ -107,7 +107,8 @@ struct Pipeline
 struct TextureRenderTarget
 {
   QRhiTexture* texture{};
-  QRhiRenderBuffer* renderBuffer{};
+  QRhiRenderBuffer* colorRenderBuffer{};
+  QRhiRenderBuffer* depthRenderBuffer{};
   QRhiRenderPassDescriptor* renderPass{};
   QRhiRenderTarget* renderTarget{};
 
@@ -120,8 +121,11 @@ struct TextureRenderTarget
       delete texture;
       texture = nullptr;
 
-      delete renderBuffer;
-      renderBuffer = nullptr;
+      delete colorRenderBuffer;
+      colorRenderBuffer = nullptr;
+
+      delete depthRenderBuffer;
+      depthRenderBuffer = nullptr;
 
       delete renderPass;
       renderPass = nullptr;
@@ -145,7 +149,8 @@ struct Image
  * @brief Create a render target from a texture.
  */
 SCORE_PLUGIN_GFX_EXPORT
-TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* tex);
+TextureRenderTarget
+createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples);
 
 /**
  * @brief Create a render target from a texture format and size.
@@ -154,7 +159,7 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* te
  */
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(
-    const RenderState& state, QRhiTexture::Format fmt, QSize sz,
+    const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples,
     QRhiTexture::Flags = {});
 
 SCORE_PLUGIN_GFX_EXPORT

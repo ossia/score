@@ -105,7 +105,8 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     constexpr auto flags = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore;
     auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
     SCORE_ASSERT(texture->create());
-    m_rts[port] = score::gfx::createRenderTarget(renderer.state, texture);
+    m_rts[port]
+        = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
     return texture;
   }
 

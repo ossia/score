@@ -4,13 +4,17 @@
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <Gfx/InvertYRenderer.hpp>
+#include <Gfx/Settings/Model.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
 
 #include <QtGui/private/qrhinull_p.h>
 
 #ifndef QT_NO_OPENGL
+#include <Gfx/Settings/Model.hpp>
+
 #include <QOffscreenSurface>
 #include <QtGui/private/qrhigles2_p.h>
 #endif
@@ -39,6 +43,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   auto st = std::make_shared<RenderState>();
   RenderState& state = *st;
   state.api = graphicsApi;
+  state.samples = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
 
 #ifndef QT_NO_OPENGL
   if(graphicsApi == OpenGL)
@@ -50,6 +55,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
 
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
+    params.format.setSamples(state.samples);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
     state.renderSize = window.size();
@@ -316,10 +322,10 @@ void ScreenNode::createOutput(
       m_depthStencil = m_window->state->rhi->newRenderBuffer(
           QRhiRenderBuffer::DepthStencil,
           QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
-          1, QRhiRenderBuffer::UsedWithSwapChainOnly);
+          m_window->state->samples, QRhiRenderBuffer::UsedWithSwapChainOnly);
       m_swapChain->setWindow(m_window.get());
       m_swapChain->setDepthStencil(m_depthStencil);
-      m_swapChain->setSampleCount(1);
+      m_swapChain->setSampleCount(m_window->state->samples);
       m_swapChain->setFlags({});
       m_window->state->renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();
@@ -428,6 +434,19 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
   {
     destroyOutput();
   }
+  else if(this->m_window)
+  {
+    if(this->m_window->state)
+    {
+      const int samples
+          = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
+
+      if(this->m_window->state->samples != samples)
+      {
+        destroyOutput();
+      }
+    }
+  }
 }
 
 std::shared_ptr<score::gfx::RenderState> ScreenNode::renderState() const
@@ -496,7 +515,8 @@ public:
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     m_inputTarget = score::gfx::createRenderTarget(
-        renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize);
+        renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize,
+        renderer.samples());
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);
@@ -531,6 +551,7 @@ public:
 
     m_renderTarget.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
     m_renderTarget.renderPass = renderer.state.renderPassDescriptor;
+
     m_p = score::gfx::buildPipeline(
         renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
         m_samplers);

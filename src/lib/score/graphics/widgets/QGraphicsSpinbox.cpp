@@ -2,6 +2,7 @@
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/graphics/widgets/QGraphicsSpinbox.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/StringConstants.hpp>
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/math.hpp>

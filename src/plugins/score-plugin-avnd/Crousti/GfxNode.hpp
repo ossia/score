@@ -145,7 +145,8 @@ struct GfxRenderer final : GenericTexgenRenderer
     constexpr auto flags = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
     auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
     SCORE_ASSERT(texture->create());
-    m_rts[port] = score::gfx::createRenderTarget(renderer.state, texture);
+    m_rts[port]
+        = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
   }
 
   void createOutput(score::gfx::RenderList& renderer, QSize size)

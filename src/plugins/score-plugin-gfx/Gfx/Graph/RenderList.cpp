@@ -2,6 +2,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Settings/Model.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -26,6 +27,7 @@ RenderList::RenderList(OutputNode& output, const std::shared_ptr<RenderState>& s
     : m_state{state}
     , output{output}
     , state{*m_state}
+    , m_samples{state->samples}
 {
 }
 

@@ -1,4 +1,7 @@
 #include <Gfx/Graph/Window.hpp>
+#include <Gfx/Settings/Model.hpp>
+
+#include <score/application/ApplicationContext.hpp>
 
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
@@ -19,10 +22,16 @@ Window::Window(GraphicsApi graphicsApi)
   {
     case OpenGL:
 #if QT_CONFIG(opengl)
+    {
       setSurfaceType(OpenGLSurface);
-      setFormat(QRhiGles2InitParams::adjustedFormat());
+      auto fmt = QRhiGles2InitParams::adjustedFormat();
+      const int samples
+          = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
+      fmt.setSamples(samples);
+      setFormat(fmt);
+    }
 #endif
-      break;
+    break;
     case Vulkan:
       setSurfaceType(VulkanSurface);
       break;

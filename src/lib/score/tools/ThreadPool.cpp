@@ -101,7 +101,13 @@ TaskPool::TaskPool()
   }
 }
 
-TaskPool::~TaskPool() { }
+TaskPool::~TaskPool()
+{
+  m_running = false;
+  for(auto& t : m_threads)
+    t.join();
+}
+
 TaskPool& TaskPool::instance()
 {
   static TaskPool t{};

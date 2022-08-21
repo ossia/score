@@ -37,6 +37,7 @@ struct RenderState
   QOffscreenSurface* surface{};
   QSize renderSize{};
   QSize outputSize{};
+  int samples{1};
   GraphicsApi api{};
   QShaderVersion version{};
 };

@@ -24,6 +24,8 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
   con(settings, &Gfx::Settings::Model::GraphicsApiChanged, this,
       &GfxContext::recompute_graph);
+  con(settings, &Gfx::Settings::Model::SamplesChanged, this,
+      &GfxContext::recompute_graph);
   con(settings, &Gfx::Settings::Model::RateChanged, this, &GfxContext::recompute_graph);
   con(settings, &Gfx::Settings::Model::VSyncChanged, this, &GfxContext::recompute_graph);
 

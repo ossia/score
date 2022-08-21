@@ -141,7 +141,8 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
         SCORE_ASSERT(sampler->create());
 
         auto rt = score::gfx::createRenderTarget(
-            renderer.state, QRhiTexture::RGBA8, renderer.state.renderSize);
+            renderer.state, QRhiTexture::RGBA8, renderer.state.renderSize,
+            renderer.samples());
         auto texture = rt.texture;
         samplers.push_back({sampler, texture});
 
@@ -293,8 +294,8 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     else if(auto psampler = ossia::get_if<PersistSampler>(&target))
     {
       // Intermediary pass
-      renderTarget
-          = score::gfx::createRenderTarget(renderer.state, psampler->textures[0]);
+      renderTarget = score::gfx::createRenderTarget(
+          renderer.state, psampler->textures[0], renderer.samples());
       m_innerPassTargets.push_back(renderTarget);
       renderTarget.texture->setName("ISFNode::createPass::renderTarget.texture");
       renderTarget.renderTarget->setName(
@@ -332,8 +333,8 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         // as we can't use a texture both as sampler and render target
         ret.second.processUBO = ret.first.processUBO;
         ret.second.p = ret.first.p;
-        ret.second.renderTarget
-            = score::gfx::createRenderTarget(renderer.state, psampler->textures[1]);
+        ret.second.renderTarget = score::gfx::createRenderTarget(
+            renderer.state, psampler->textures[1], renderer.samples());
         m_innerPassTargets.push_back(ret.second.renderTarget);
         ret.second.renderTarget.texture->setName(
             "ISFNode::createPass::ret.second.renderTarget.texture");
