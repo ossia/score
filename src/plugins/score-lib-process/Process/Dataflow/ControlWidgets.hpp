@@ -3,11 +3,13 @@
 #include <Process/Dataflow/ControlWidgetDomains.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
@@ -685,6 +687,75 @@ struct LineEdit
     });
 
     return sl;
+  }
+};
+
+struct ProgramPortScriptDialog : Process::ScriptDialog
+{
+  ProgramPortScriptDialog(
+      std::string_view language, const Process::ControlInlet& port,
+      const score::DocumentContext& ctx, QWidget* parent)
+      : ScriptDialog{language, ctx, parent}
+      , m_port{port}
+  {
+    this->setText(QString::fromStdString(ossia::convert<std::string>(port.value())));
+    con(m_port, &IdentifiedObjectAbstract::identified_object_destroying, this,
+        &QWidget::deleteLater);
+  }
+
+  void on_accepted() override
+  {
+    this->setError(0, QString{});
+    auto cur = ossia::convert<std::string>(m_port.value());
+    auto next = this->text().toStdString();
+    if(next != cur)
+    {
+      CommandDispatcher<>{m_context.commandStack}.submit(
+          new Process::SetControlValue{m_port, next});
+    }
+  }
+
+  const Process::ControlInlet& m_port;
+};
+
+struct ProgramEdit
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::lineedit();
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
+  {
+    auto toggle = new QPushButton{QObject::tr("Edit..."), parent};
+    QObject::connect(toggle, &QPushButton::clicked, context, [=, &inlet, &ctx] {
+      createDialog(inlet, ctx);
+    });
+    return toggle;
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto toggle = new score::QGraphicsTextButton{QObject::tr("Edit..."), nullptr};
+
+    QObject::connect(
+        toggle, &score::QGraphicsTextButton::pressed, context,
+        [=, &inlet, &ctx] { createDialog(inlet, ctx); });
+
+    return toggle;
+  }
+
+  static void
+  createDialog(const Process::ControlInlet& inlet, const score::DocumentContext& ctx)
+  {
+    auto dial = new ProgramPortScriptDialog{"", inlet, ctx, nullptr};
+    dial->exec();
   }
 };
 

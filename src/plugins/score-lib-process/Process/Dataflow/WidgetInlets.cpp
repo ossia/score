@@ -306,6 +306,23 @@ void LineEdit::setupExecution(ossia::inlet& inl) const noexcept
 
 LineEdit::~LineEdit() { }
 
+ProgramEdit::ProgramEdit(QString init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init.toStdString());
+  setName(name);
+}
+
+void ProgramEdit::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::STRING;
+  port.domain = domain().get();
+}
+
+ProgramEdit::~ProgramEdit() { }
+
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
@@ -674,6 +691,29 @@ JSONReader::read<Process::LineEdit>(const Process::LineEdit& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::LineEdit>(Process::LineEdit& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::ProgramEdit>(const Process::ProgramEdit& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::ProgramEdit>(Process::ProgramEdit& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::ProgramEdit>(const Process::ProgramEdit& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::ProgramEdit>(Process::ProgramEdit& p)
 {
 }
 

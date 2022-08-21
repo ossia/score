@@ -126,7 +126,6 @@ QRectF QGraphicsEnum::boundingRect() const
 void QGraphicsEnum::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->setRenderHint(QPainter::Antialiasing, false);
   auto& style = score::Skin::instance();
 
   const QPen& text = style.Gray.main.pen1;

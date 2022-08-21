@@ -110,9 +110,9 @@ void SimpleTextItem::updateImpl()
 }
 
 QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
-    : SimpleTextItem{score::Skin::instance().Base1.main, parent}
+    : QGraphicsItem{parent}
 {
-  setText(std::move(text));
+  m_string = std::move(text);
 }
 
 void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -129,6 +129,28 @@ void QGraphicsTextButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsTextButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
+}
+
+QRectF QGraphicsTextButton::boundingRect() const
+{
+  return {0, 0, 60, 20};
+}
+
+void QGraphicsTextButton::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  auto& skin = score::Skin::instance();
+
+  const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
+  painter->drawRoundedRect(brect, 1, 1);
+
+  if(!m_string.isEmpty())
+  {
+    painter->setPen(skin.Base4.main.pen2);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->setFont(skin.Medium10Pt);
+    painter->drawText(brect, m_string, QTextOption(Qt::AlignCenter));
+  }
 }
 
 }

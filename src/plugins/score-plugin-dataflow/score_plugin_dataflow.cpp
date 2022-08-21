@@ -52,6 +52,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::WidgetInletFactory<
              Process::ChooserToggle, WidgetFactory::ChooserToggle>,
          Dataflow::WidgetInletFactory<Process::LineEdit, WidgetFactory::LineEdit>,
+         Dataflow::WidgetInletFactory<Process::ProgramEdit, WidgetFactory::ProgramEdit>,
          Dataflow::WidgetInletFactory<Process::ComboBox, WidgetFactory::ComboBox>,
          Dataflow::WidgetInletFactory<Process::Enum, WidgetFactory::Enum>,
          Dataflow::WidgetInletFactory<Process::HSVSlider, WidgetFactory::HSVSlider>,

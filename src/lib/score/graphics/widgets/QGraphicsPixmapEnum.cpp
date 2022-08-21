@@ -69,7 +69,6 @@ void QGraphicsPixmapEnum::setupDefaultColumns(int N)
 void QGraphicsPixmapEnum::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->setRenderHint(QPainter::Antialiasing, false);
   auto& style = score::Skin::instance();
 
   const QBrush& bg = style.NoBrush;

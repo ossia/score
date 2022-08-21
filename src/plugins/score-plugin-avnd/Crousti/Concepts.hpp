@@ -301,7 +301,10 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   else if constexpr(widg.widget == avnd::widget_type::lineedit)
   {
     constexpr auto c = avnd::get_range<T>();
-    return new Process::LineEdit{c.init.data(), qname, id, parent};
+    if constexpr(avnd::program_parameter<T>)
+      return new Process::ProgramEdit{c.init.data(), qname, id, parent};
+    else
+      return new Process::LineEdit{c.init.data(), qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::combobox)
   {

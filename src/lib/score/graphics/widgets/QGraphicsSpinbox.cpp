@@ -88,7 +88,6 @@ void QGraphicsSpinbox::paint(
   auto& skin = score::Skin::instance();
   const double val = map(m_value);
   auto text = score::toNumber(val);
-  painter->setRenderHint(QPainter::Antialiasing, false);
 
   painter->setPen(skin.NoPen);
   painter->setBrush(skin.Emphasis2.main.brush);
