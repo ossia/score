@@ -23,3 +23,10 @@ apt-get install -qq --force-yes \
      libclang-10-dev
 
 source ci/common.deps.sh
+
+(
+  cd 3rdparty/libossia/3rdparty/verdigris
+  git checkout for_old_compilers
+)
+
+

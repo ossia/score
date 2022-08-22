@@ -19,3 +19,8 @@ apt-get install -qq --force-yes \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev
 
 source ci/common.deps.sh
+
+(
+  cd 3rdparty/libossia/3rdparty/verdigris
+  git checkout for_old_compilers
+)
