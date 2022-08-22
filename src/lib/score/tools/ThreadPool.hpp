@@ -43,7 +43,15 @@ public:
   }
 
 private:
-  using task = smallfun::function<void()>;
+  using task = smallfun::function<
+      void(),
+#if defined(_MSC_VER) && !defined(NDEBUG)
+      256,
+#else
+      128,
+#endif
+      std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
+      smallfun::Methods::Move>;
   moodycamel::BlockingConcurrentQueue<task> m_queue;
   std::array<std::thread, 2> m_threads;
   std::atomic_bool m_running{};
