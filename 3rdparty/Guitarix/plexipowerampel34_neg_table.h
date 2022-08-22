@@ -68,7 +68,8 @@ struct tableplexipowerampel34_neg_imp {
 	-0.825626016395,-0.826855114143,-0.828066007852,-0.829258831036,-0.830433715874
 	}
 };
-
+ 
+GUITARIX_EXPORT
 double always_inline plexipowerampel34_negclip(double x) {
     double f = fabs(x);
     f = f * plexipowerampel34_neg_table.istep;

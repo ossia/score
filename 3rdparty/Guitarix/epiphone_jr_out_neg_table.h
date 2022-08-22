@@ -69,6 +69,7 @@ struct tableepiphone_jr_out_neg_imp {
 	}
 };
 
+GUITARIX_EXPORT
 double always_inline epiphone_jr_out_negclip(double x) {
     double f = fabs(x);
     f = f * epiphone_jr_out_neg_table.istep;

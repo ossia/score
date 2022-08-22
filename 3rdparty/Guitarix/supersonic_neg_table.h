@@ -68,7 +68,8 @@ struct tablesupersonic_neg_imp {
 	-0.466108562050,-0.466288485050,-0.466456922145,-0.466613963030,-0.466759705100
 	}
 };
-
+ 
+GUITARIX_EXPORT
 double always_inline supersonic_negclip(double x) {
     double f = fabs(x);
     f = f * supersonic_neg_table.istep;

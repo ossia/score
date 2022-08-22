@@ -68,7 +68,8 @@ struct tableorangedarkterrorp3_neg_imp {
 	0.824639258678,0.826603641244,0.828553524150,0.830488999495,0.832410158846
 	}
 };
-
+ 
+GUITARIX_EXPORT
 double always_inline orangedarkterrorp3_negclip(double x) {
     double f = fabs(x);
     f = f * orangedarkterrorp3_neg_table.istep;

@@ -69,6 +69,7 @@ struct tableprinceton_imp {
 	}
 };
 
+GUITARIX_EXPORT
 double always_inline princetonclip(double x) {
     double f = fabs(x);
     f = f * princeton_table.istep;

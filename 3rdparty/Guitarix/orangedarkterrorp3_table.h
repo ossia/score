@@ -69,6 +69,7 @@ struct tableorangedarkterrorp3_imp {
 	}
 };
 
+GUITARIX_EXPORT
 double always_inline orangedarkterrorp3clip(double x) {
     double f = fabs(x);
     f = f * orangedarkterrorp3_table.istep;

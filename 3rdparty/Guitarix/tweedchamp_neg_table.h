@@ -69,6 +69,7 @@ struct tabletweedchamp_neg_imp {
 	}
 };
 
+GUITARIX_EXPORT
 double always_inline tweedchamp_negclip(double x) {
     double f = fabs(x);
     f = f * tweedchamp_neg_table.istep;

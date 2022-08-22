@@ -69,6 +69,7 @@ struct tablesupersonic_imp {
 	}
 };
 
+GUITARIX_EXPORT
 double always_inline supersonicclip(double x) {
     double f = fabs(x);
     f = f * supersonic_table.istep;

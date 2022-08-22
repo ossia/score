@@ -44,10 +44,18 @@ add_library(${PROJECT_NAME}
 )
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-target_compile_definitions(${PROJECT_NAME}
-  PUBLIC
-    FAUSTFLOAT=double
-)
+
+if(WIN32)
+  target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+      FAUSTFLOAT=float
+  )
+else()
+  target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+      FAUSTFLOAT=double
+  )
+endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_media
                      ${FAUST_LIBRARIES}
@@ -63,7 +71,7 @@ ExternalProject_Add(
     faustlibs
     PREFIX ""
     GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
-    GIT_TAG 9b05121c8357705280397cdfe47b52c87f00dc3c 
+    GIT_TAG cf12b8bda9bb5513303a11746e50629a78524cd3 
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
@@ -83,6 +91,7 @@ endif()
 if(TARGET SndFile::sndfile)
   target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
 endif()
+
 if(SCORE_FAUST_TESTER)
   add_executable(FaustTester Tests/FaustTester.cpp)
   target_compile_features(FaustTester PRIVATE cxx_std_20)

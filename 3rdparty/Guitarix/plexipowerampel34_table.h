@@ -69,6 +69,7 @@ struct tableplexipowerampel34_imp {
 	}
 };
 
+GUITARIX_EXPORT
 double always_inline plexipowerampel34clip(double x) {
     double f = fabs(x);
     f = f * plexipowerampel34_table.istep;

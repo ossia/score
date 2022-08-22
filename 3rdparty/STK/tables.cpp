@@ -1,11 +1,11 @@
 
 #if defined(_MSC_VER)
-#define STK_EXPORT __declspec(dllexport)
+#define STK_EXPORT extern "C" __declspec(dllexport)
+#elif defined(_WIN32)
+#define STK_EXPORT extern "C" __attribute__((visibility("default"))) __declspec(dllexport)
 #else
-#define STK_EXPORT extern "C" [[gnu::visibility("default")]]
+#define STK_EXPORT extern "C" __attribute__((visibility("default")))
 #endif
-
-
 
 #include "bass.h"
 #include "harpsichord.h"

@@ -68,7 +68,7 @@ endif()
 target_compile_definitions(${APPNAME} PUBLIC
     $<$<CONFIG:Debug>:SCORE_SOURCE_DIR="${SCORE_ROOT_SOURCE_DIR}">
 )
-if(TARGET score_plugin_jit)
+if(TARGET score_plugin_jit OR TARGET score_plugin_faust)
   set_target_properties(${APPNAME} PROPERTIES ENABLE_EXPORTS 1)
   if(MINGW OR MSYS)
     target_link_libraries(${APPNAME} PUBLIC -Wl,--stack,16777216)

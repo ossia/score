@@ -27,6 +27,10 @@
 
 #include "Guitarix/tables.cpp"
 #include "STK/tables.cpp"
+
+STK_EXPORT int signbit(float x)
+{ return x < 0.; }
+
 template <typename T>
 requires requires(T t)
 {
@@ -50,6 +54,9 @@ score_plugin_faust::score_plugin_faust()
   llvm::InitializeAllAsmParsers();
 #endif
 
+  // cmath
+  do_registerCustomForeignFunction("signbit");
+  
   // Guitarix functions
   do_registerCustomForeignFunction("Ftube");
   do_registerCustomForeignFunction("Ranode");
@@ -63,6 +70,18 @@ score_plugin_faust::score_plugin_faust()
   do_registerCustomForeignFunction("asymhardclip");
   do_registerCustomForeignFunction("asymhardclip2");
   do_registerCustomForeignFunction("symclip");
+  
+  do_registerCustomForeignFunction("epiphone_jr_out_negclip");
+  do_registerCustomForeignFunction("epiphone_jr_outclip");
+  do_registerCustomForeignFunction("orangedarkterrorp3_negclip");
+  do_registerCustomForeignFunction("orangedarkterrorp3clip");
+  do_registerCustomForeignFunction("plexipowerampel34_negclip");
+  do_registerCustomForeignFunction("plexipowerampel34clip");
+  do_registerCustomForeignFunction("princetonclip");
+  do_registerCustomForeignFunction("supersonic_negclip");
+  do_registerCustomForeignFunction("supersonicclip");
+  do_registerCustomForeignFunction("tweedchamp_negclip");
+  do_registerCustomForeignFunction("tweedchampclip");
 
   // STK functions
   do_registerCustomForeignFunction("loadPreset");
