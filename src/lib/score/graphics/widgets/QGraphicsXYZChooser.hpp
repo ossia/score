@@ -59,7 +59,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYZSpinboxChooser final
   W_OBJECT(QGraphicsXYZSpinboxChooser)
   Q_INTERFACES(QGraphicsItem)
   QRectF m_rect{0., 0., 150., 24.};
-  QGraphicsSpinbox m_sb[3];
+  QGraphicsSpinbox m_x, m_y, m_z;
 
 private:
   bool m_grab{};
