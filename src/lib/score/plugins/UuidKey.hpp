@@ -54,7 +54,7 @@ public:
     return *this;
   }
 
-  constexpr uuid(uint8_t* other) noexcept
+  constexpr uuid(uint8_t (&other)[16]) noexcept
       : data{other[0],  other[1],  other[2],  other[3], other[4],  other[5],
              other[6],  other[7],  other[8],  other[9], other[10], other[11],
              other[12], other[13], other[14], other[15]}
@@ -332,7 +332,7 @@ using uuid_t = uuids::uuid;
 }
 
 #if defined(_MSC_VER)
-#define MSVC_BUGGY_CONSTEXPR
+#define MSVC_BUGGY_CONSTEXPR constexpr
 #else
 #define MSVC_BUGGY_CONSTEXPR constexpr
 #endif
@@ -340,7 +340,7 @@ using uuid_t = uuids::uuid;
 #define return_uuid(text)                                  \
   do                                                       \
   {                                                        \
-    MSVC_BUGGY_CONSTEXPR const auto t                      \
+    constexpr const auto t                                 \
         = score::uuids::string_generator::compute((text)); \
     return t;                                              \
   } while(0)

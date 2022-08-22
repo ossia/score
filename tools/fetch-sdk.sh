@@ -94,10 +94,10 @@ else
 
   # Download boost
   (
-    BOOST="$BOOST_VER.zip"
+    BOOST="$BOOST_VER.tar.gz"
     curl -L -0 "$BOOST_SDK/$BOOST" --output "$BOOST"
     mkdir -p "$SDK_DIR/boost/include"
-    7z x "$BOOST"
+    tar xaf "$BOOST"
     mv boost_*/boost "$SDK_DIR/boost/include/"
   )
 
