@@ -26,7 +26,7 @@ double DryTapAmpT60harpsichord_points[16*2] = {
 	107.198,0.494	};
 extern LookupTable DryTapAmpT60harpsichord;
 LookupTable DryTapAmpT60harpsichord(&DryTapAmpT60harpsichord_points[0], 16);
-STK_EXPORT float getValueDryTapAmpT60harpsichord (float index){
+STK_EXPORT double getValueDryTapAmpT60harpsichord (double index){
 	return DryTapAmpT60harpsichord.getValue(index);
 }
 
@@ -44,7 +44,7 @@ double releaseLoopGainharpsichord_points[10*2] = {
 extern LookupTable releaseLoopGainharpsichord;
 LookupTable releaseLoopGainharpsichord(&releaseLoopGainharpsichord_points[0], 10);
 
-STK_EXPORT float getValueReleaseLoopGainharpsichord(float index){
+STK_EXPORT double getValueReleaseLoopGainharpsichord(double index){
 	return releaseLoopGainharpsichord.getValue(index);
 }
 
@@ -71,7 +71,7 @@ double loopFilterb0harpsichord_points[18*2] = {
 extern LookupTable loopFilterb0harpsichord;
 LookupTable loopFilterb0harpsichord(&loopFilterb0harpsichord_points[0], 18);
 
-STK_EXPORT float getValueLoopFilterb0harpsichord(float index){
+STK_EXPORT double getValueLoopFilterb0harpsichord(double index){
 	return loopFilterb0harpsichord.getValue(index);
 }
 
@@ -98,7 +98,7 @@ double loopFilterb1harpsichord_points[18*2] = {
 extern LookupTable loopFilterb1harpsichord;
 LookupTable loopFilterb1harpsichord(&loopFilterb1harpsichord_points[0], 18);
 
-STK_EXPORT float getValueLoopFilterb1harpsichord(float index){
+STK_EXPORT double getValueLoopFilterb1harpsichord(double index){
 	return loopFilterb1harpsichord.getValue(index);
 }
 
@@ -125,7 +125,7 @@ double loopFilterb2harpsichord_points[18*2] = {
 extern LookupTable loopFilterb2harpsichord;
 LookupTable loopFilterb2harpsichord(&loopFilterb2harpsichord_points[0], 18);
 
-STK_EXPORT float getValueLoopFilterb2harpsichord(float index){
+STK_EXPORT double getValueLoopFilterb2harpsichord(double index){
 	return loopFilterb2harpsichord.getValue(index);
 }
 
@@ -152,7 +152,7 @@ double loopFiltera1harpsichord_points[18*2] = {
 extern LookupTable loopFiltera1harpsichord;
 LookupTable loopFiltera1harpsichord(&loopFiltera1harpsichord_points[0], 18);
 
-STK_EXPORT float getValueLoopFiltera1harpsichord(float index){
+STK_EXPORT double getValueLoopFiltera1harpsichord(double index){
 	return loopFiltera1harpsichord.getValue(index);
 }
 
@@ -179,6 +179,6 @@ double loopFiltera2harpsichord_points[18*2] = {
 extern LookupTable loopFiltera2harpsichord;
 LookupTable loopFiltera2harpsichord(&loopFiltera2harpsichord_points[0], 18);
 
-STK_EXPORT float getValueLoopFiltera2harpsichord(float index){
+STK_EXPORT double getValueLoopFiltera2harpsichord(double index){
 	return loopFiltera2harpsichord.getValue(index);
 }

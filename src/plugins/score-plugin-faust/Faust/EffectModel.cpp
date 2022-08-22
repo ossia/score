@@ -230,7 +230,7 @@ void FaustEffectModel::reload()
   }
 
   const char* triple =
-#if defined(_MSC_VER)
+#if defined(_WIN32)
       "x86_64-pc-windows-msvc"
 #elif defined(__emscripten__)
       "wasm32-unknown-unknown-wasm"

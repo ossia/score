@@ -431,99 +431,99 @@ LookupTable bq4_gEarBalled(&bq4_gEarBalled_points[0], 6);
 
 //************************************************************************
 
-STK_EXPORT float getValueDryTapAmpT60piano (float index){
+STK_EXPORT double getValueDryTapAmpT60piano (double index){
 	return DryTapAmpT60piano.getValue(index);
 }
 
-STK_EXPORT float getValueSustainPedalLevel (float index){
+STK_EXPORT double getValueSustainPedalLevel (double index){
 	return sustainPedalLevel.getValue(index);
 }
 
-STK_EXPORT float getValueLoudPole(float index){
+STK_EXPORT double getValueLoudPole(double index){
 	return loudPole.getValue(index);
 }
 
-STK_EXPORT float getValuePoleValue(float index){
+STK_EXPORT double getValuePoleValue(double index){
 	return softPole.getValue(index);
 }
 
-STK_EXPORT float getValueLoudGain(float index){
+STK_EXPORT double getValueLoudGain(double index){
 	return loudGain.getValue(index);
 }
 
-STK_EXPORT float getValueSoftGain(float index){
+STK_EXPORT double getValueSoftGain(double index){
 	return softGain.getValue(index);
 }
 
-STK_EXPORT float getValueDCBa1piano(float index){
+STK_EXPORT double getValueDCBa1piano(double index){
 	return DCBa1piano.getValue(index);
 }
 
-STK_EXPORT float getValuer1_1db(float index){
+STK_EXPORT double getValuer1_1db(double index){
 	return r1_1db.getValue(index);
 }
 
-STK_EXPORT float getValuer1_2db(float index){
+STK_EXPORT double getValuer1_2db(double index){
 	return r1_2db.getValue(index);
 }
 
-STK_EXPORT float getValuer2db(float index){
+STK_EXPORT double getValuer2db(double index){
 	return r2db.getValue(index);
 }
 
-STK_EXPORT float getValuer3db(float index){
+STK_EXPORT double getValuer3db(double index){
 	return r3db.getValue(index);
 }
 
-STK_EXPORT float getValueSecondStageAmpRatio(float index){
+STK_EXPORT double getValueSecondStageAmpRatio(double index){
 	return secondStageAmpRatio.getValue(index);
 }
 
-STK_EXPORT float getValueSecondPartialFactor(float index){
+STK_EXPORT double getValueSecondPartialFactor(double index){
 	return secondPartialFactor.getValue(index);
 }
 
-STK_EXPORT float getValueThirdPartialFactor(float index){
+STK_EXPORT double getValueThirdPartialFactor(double index){
 	return thirdPartialFactor.getValue(index);
 }
 
-STK_EXPORT float getValueBq4_gEarBalled(float index){
+STK_EXPORT double getValueBq4_gEarBalled(double index){
 	return bq4_gEarBalled.getValue(index);
 }
 
-STK_EXPORT float getValueStrikePosition(float index){
+STK_EXPORT double getValueStrikePosition(double index){
 	return strikePosition.getValue(index);
 }
 
-STK_EXPORT float getValueEQBandWidthFactor(float index){
+STK_EXPORT double getValueEQBandWidthFactor(double index){
 	return EQBandwidthFactor.getValue(index);
 }
 
-STK_EXPORT float getValueEQGain(float index){
+STK_EXPORT double getValueEQGain(double index){
 	return EQGain.getValue(index);
 }
 
-STK_EXPORT float getValueDetuningHz(float index){
+STK_EXPORT double getValueDetuningHz(double index){
 	return detuningHz.getValue(index);
 }
 
-STK_EXPORT float getValueSingleStringDecayRate(float index){
+STK_EXPORT double getValueSingleStringDecayRate(double index){
 	return singleStringDecayRate.getValue(index);
 }
 
-STK_EXPORT float getValueSingleStringZero(float index){
+STK_EXPORT double getValueSingleStringZero(double index){
 	return singleStringZero.getValue(index);
 }
 
-STK_EXPORT float getValueSingleStringPole(float index){
+STK_EXPORT double getValueSingleStringPole(double index){
 	return singleStringPole.getValue(index);
 }
 
-STK_EXPORT float getValueStiffnessCoefficient(float index){
+STK_EXPORT double getValueStiffnessCoefficient(double index){
 	return stiffnessCoefficient.getValue(index);
 }
 
-STK_EXPORT float getValueReleaseLoopGainpiano(float index){
+STK_EXPORT double getValueReleaseLoopGainpiano(double index){
 	return releaseLoopGainpiano.getValue(index);
 }
 
@@ -552,7 +552,7 @@ double loopFilterb0piano_points[18*2] = {
 extern LookupTable loopFilterb0piano;
 LookupTable loopFilterb0piano(&loopFilterb0piano_points[0], 18);
 
-STK_EXPORT float getValueLoopFilterb0piano(float index){
+STK_EXPORT double getValueLoopFilterb0piano(double index){
 	return loopFilterb0piano.getValue(index);
 }
 
@@ -579,7 +579,7 @@ double loopFilterb1piano_points[18*2] = {
 extern LookupTable loopFilterb1piano;
 LookupTable loopFilterb1piano(&loopFilterb1piano_points[0], 18);
 
-STK_EXPORT float getValueLoopFilterb1piano(float index){
+STK_EXPORT double getValueLoopFilterb1piano(double index){
 	return loopFilterb1piano.getValue(index);
 }
 
@@ -606,7 +606,7 @@ double loopFilterb2piano_points[18*2] = {
 extern LookupTable loopFilterb2piano;
 LookupTable loopFilterb2piano(&loopFilterb2piano_points[0], 18);
 
-STK_EXPORT float getValueLoopFilterb2piano(float index){
+STK_EXPORT double getValueLoopFilterb2piano(double index){
 	return loopFilterb2piano.getValue(index);
 }
 
@@ -633,7 +633,7 @@ double loopFiltera1piano_points[18*2] = {
 extern LookupTable loopFiltera1piano;
 LookupTable loopFiltera1piano(&loopFiltera1piano_points[0], 18);
 
-STK_EXPORT float getValueLoopFiltera1piano(float index){
+STK_EXPORT double getValueLoopFiltera1piano(double index){
 	return loopFiltera1piano.getValue(index);
 }
 
@@ -660,7 +660,7 @@ double loopFiltera2piano_points[18*2] = {
 extern LookupTable loopFiltera2piano;
 LookupTable loopFiltera2piano(&loopFiltera2piano_points[0], 18);
 
-STK_EXPORT float getValueLoopFiltera2piano(float index){
+STK_EXPORT double getValueLoopFiltera2piano(double index){
 	return loopFiltera2piano.getValue(index);
 }
 
@@ -690,7 +690,7 @@ double bassLoopFilterb0piano_points[19*2] = {
 extern LookupTable bassLoopFilterb0piano;
 LookupTable bassLoopFilterb0piano(&bassLoopFilterb0piano_points[0], 18);
 
-STK_EXPORT float getValueBassLoopFilterb0piano(float index){
+STK_EXPORT double getValueBassLoopFilterb0piano(double index){
 	return bassLoopFilterb0piano.getValue(index);
 }
 
@@ -718,7 +718,7 @@ double bassLoopFilterb1piano_points[19*2] = {
 extern LookupTable bassLoopFilterb1piano;
 LookupTable bassLoopFilterb1piano(&bassLoopFilterb1piano_points[0], 18);
 
-STK_EXPORT float getValueBassLoopFilterb1piano(float index){
+STK_EXPORT double getValueBassLoopFilterb1piano(double index){
 	return bassLoopFilterb1piano.getValue(index);
 }
 
@@ -746,6 +746,6 @@ double bassLoopFiltera1piano_points[19*2] = {
 extern LookupTable bassLoopFiltera1piano;
 LookupTable bassLoopFiltera1piano(&bassLoopFiltera1piano_points[0], 18);
 
-STK_EXPORT float getValueBassLoopFiltera1piano(float index){
+STK_EXPORT double getValueBassLoopFiltera1piano(double index){
 	return bassLoopFiltera1piano.getValue(index);
 }

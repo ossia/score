@@ -56,8 +56,8 @@ double LookupTable::getValue(double x)
 //********************************
 //stick for modal synthesis
 //********************************
-STK_EXPORT float readMarmstk1(int index){
-	static float marmstk1[TABLE_SIZE/4] = {
+STK_EXPORT double readMarmstk1(int index){
+	static double marmstk1[TABLE_SIZE/4] = {
 		0.000579833984375, -0.003417968750000, 0.015930175781250, -0.037689208984375, 0.062866210937500, 
 		0.168640136718750, -0.226287841796875, -0.020233154296875, 0.017120361328125, 0.032745361328125, 
 		0.028198242187500, -0.065704345703125, 0.102355957031250, -0.135375976562500, -0.088378906250000, 

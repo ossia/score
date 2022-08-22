@@ -30,7 +30,7 @@ double bassLoopFilterb0_points[19*2] = {
 extern LookupTable bassLoopFilterb0;
 LookupTable bassLoopFilterb0(&bassLoopFilterb0_points[0], 18);
 
-STK_EXPORT float getValueBassLoopFilterb0(float index){
+STK_EXPORT double getValueBassLoopFilterb0(double index){
 	return bassLoopFilterb0.getValue(index);
 }
 
@@ -58,7 +58,7 @@ double bassLoopFilterb1bass_points[19*2] = {
 extern LookupTable bassLoopFilterb1bass;
 LookupTable bassLoopFilterb1bass(&bassLoopFilterb1bass_points[0], 18);
 
-STK_EXPORT float getValueBassLoopFilterb1bass(float index){
+STK_EXPORT double getValueBassLoopFilterb1bass(double index){
 	return bassLoopFilterb1bass.getValue(index);
 }
 
@@ -86,6 +86,6 @@ double bassLoopFiltera1bass_points[19*2] = {
 extern LookupTable bassLoopFiltera1bass;
 LookupTable bassLoopFiltera1bass(&bassLoopFiltera1bass_points[0], 18);
 
-STK_EXPORT float getValueBassLoopFiltera1bass(float index){
+STK_EXPORT double getValueBassLoopFiltera1bass(double index){
 	return bassLoopFiltera1bass.getValue(index);
 }
