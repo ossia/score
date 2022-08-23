@@ -481,8 +481,14 @@ extern PFNWGLGETSWAPINTERVALEXTPROC    wglGetSwapIntervalEXT;
 // ------------------------------
 // PBO extensions
 // ------------------------------
-typedef ptrdiff_t GLsizeiptr;
-typedef ptrdiff_t GLintptr;
+#ifdef _WIN64
+typedef signed long long int GLsizeiptr;
+typedef signed long long int GLintptr;
+#else
+typedef signed long int      GLsizeiptr;
+typedef signed long int      GLintptr;
+#endif
+
 typedef void   (APIENTRY *glGenBuffersPROC)    (GLsizei n, const GLuint* buffers);
 typedef void   (APIENTRY *glDeleteBuffersPROC) (GLsizei n, const GLuint* buffers);
 typedef void   (APIENTRY *glBindBufferPROC)    (GLenum target, const GLuint buffer);
