@@ -26,7 +26,10 @@ source ci/common.deps.sh
 
 (
   cd 3rdparty/libossia/3rdparty/verdigris
-  git checkout for_old_compilers
+  git remote -v
+  PAGER=none git branch -a
+  git status
+  
+  git fetch origin for_old_compilers
+  git checkout FETCH_HEAD
 )
-
-
