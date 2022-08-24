@@ -127,6 +127,10 @@ static void setup_x11()
       }
     }
   }
+
+  // Wayland as of Qt 6.3 does not seem to support QRhi properly especially on nvidia
+  if(!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
+    qputenv("QT_QPA_PLATFORM", "xcb");
 #endif
 }
 
