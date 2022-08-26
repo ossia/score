@@ -56,7 +56,10 @@ score_lib_process::score_lib_process()
   qRegisterMetaType<Process::pan_weight>();
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<TimeVal>();
+
+#if defined(OSSIA_SMALL_VECTOR)
   qRegisterMetaTypeStreamOperators<Process::pan_weight>();
+#endif
 #endif
 }
 score_lib_process::~score_lib_process() = default;

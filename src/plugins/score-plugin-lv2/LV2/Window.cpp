@@ -36,7 +36,11 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
   setLayout(lay);
 
   // Find a relevant ui
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   const auto native_ui_type_uri = "http://lv2plug.in/ns/extensions/ui#Qt5UI";
+#else
+  const auto native_ui_type_uri = "http://lv2plug.in/ns/extensions/ui#Qt6UI";
+#endif
   {
     auto the_uis = lilv_plugin_get_uis(fx.plugin);
     auto native_ui_type = lilv_new_uri(p.lilv.me, native_ui_type_uri);

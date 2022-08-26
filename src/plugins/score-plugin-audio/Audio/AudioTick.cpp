@@ -12,7 +12,7 @@ tick_fun makePauseTick(const score::ApplicationContext& app)
     actions.push_back(&act);
   }
 
-  return [actions = std::move(actions)](const ossia::audio_tick_state& t) {
+  return [actions = std::move(actions)](const ossia::audio_tick_state& t) mutable {
     execution_status.store(ossia::transport_status::stopped);
 
     for(int chan = 0; chan < t.n_out; chan++)

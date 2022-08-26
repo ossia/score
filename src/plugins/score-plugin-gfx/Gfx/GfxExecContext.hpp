@@ -18,6 +18,9 @@ class SCORE_PLUGIN_GFX_EXPORT GfxExecutionAction final
 public:
   GfxExecutionAction(GfxContext& w);
 
+  score::gfx::Message allocateMessage(int inputs);
+  void releaseMessage(score::gfx::Message&&);
+
   void startTick(const ossia::audio_tick_state& st) override;
   void setEdge(port_index source, port_index sink);
   void endTick(const ossia::audio_tick_state& st) override;

@@ -31,9 +31,10 @@ void gfx_exec_node::run(
     }
   }
 
-  score::gfx::Message msg;
+  score::gfx::Message msg = exec_context->allocateMessage(this->m_inlets.size() + 1);
   msg.node_id = id;
-  msg.token = tk;
+  msg.token.date = tk.date;
+  msg.token.parent_duration = tk.parent_duration;
   msg.input.resize(this->m_inlets.size());
   int inlet_i = 0;
   for(ossia::inlet* inlet : this->m_inlets)

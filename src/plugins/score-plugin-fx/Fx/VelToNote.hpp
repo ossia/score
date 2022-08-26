@@ -59,7 +59,7 @@ struct Node
     std::vector<NoteIn> running_notes;
   };
 
-  using control_policy = ossia::safe_nodes::default_tick;
+  using control_policy = ossia::safe_nodes::default_tick_controls;
   struct val_visitor
   {
     State& st;

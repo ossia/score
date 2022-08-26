@@ -41,7 +41,7 @@ struct Node
     std::vector<NoteIn> running_notes;
   };
 
-  using control_policy = ossia::safe_nodes::default_tick;
+  using control_policy = ossia::safe_nodes::default_tick_controls;
 
   static void
   run(const ossia::midi_port& p1, const ossia::timed_vec<float>& startq,

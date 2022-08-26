@@ -237,6 +237,14 @@ void DocumentPlugin::makeGraph()
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;
 
+  auto& p = ossia::audio_buffer_pool::instance();
+  for(int i = 0; i < 500; i++)
+  {
+    auto v = p.acquire();
+    v.reserve(execState->bufferSize);
+    p.release(std::move(v));
+  }
+
   ossia::graph_setup_options opt;
   opt.parallel = settings.getParallel();
   if(settings.getLogging())
@@ -257,6 +265,7 @@ void DocumentPlugin::makeGraph()
   else if(sched == sched_t.Dynamic)
     opt.scheduling = ossia::graph_setup_options::Dynamic;
 
+  opt.scheduling = ossia::graph_setup_options::StaticFixed;
   execGraph = ossia::make_graph(opt);
 }
 

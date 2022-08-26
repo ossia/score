@@ -91,7 +91,7 @@ inline void connectPropagated(
 
     if(outs[propagated]->which() == ossia::audio_port::which)
     {
-      auto cable = ossia::make_edge(
+      auto cable = g.allocate_edge(
           ossia::immediate_glutton_connection{}, outs[propagated],
           interval_node->root_inputs()[0], process_node, interval_node);
       g.connect(cable);
@@ -122,7 +122,7 @@ inline void updatePropagated(
         return;
     }
 
-    auto cable = ossia::make_edge(
+    auto cable = g.allocate_edge(
         ossia::immediate_glutton_connection{}, outs[port_idx],
         interval_node->root_inputs()[0], process_node, interval_node);
     g.connect(cable);

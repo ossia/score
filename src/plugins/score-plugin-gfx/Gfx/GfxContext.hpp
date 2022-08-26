@@ -3,6 +3,7 @@
 
 #include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/dataflow/token_request.hpp>
+#include <ossia/detail/buffer_pool.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/mutex.hpp>
@@ -109,6 +110,8 @@ private:
   int m_timer{-1};
 
   ossia::flat_map<int, score::gfx::OutputNode*> m_manualTimers;
+
+  ossia::object_pool<std::vector<score::gfx::gfx_input>> m_buffers;
 };
 
 }

@@ -149,7 +149,7 @@ IntervalComponentBase::IntervalComponentBase(
             {
               auto& cables = cst->node->root_outputs()[0]->cables();
               SCORE_ASSERT(cables.size() == 0);
-              auto cable = ossia::make_edge(
+              auto cable = graph->allocate_edge(
                   ossia::immediate_glutton_connection{}, cst->node->root_outputs()[0],
                   scenar->node->root_inputs()[0], cst->node, scenar->node);
               graph->connect(cable);
@@ -181,7 +181,29 @@ void IntervalComponent::init()
   {
     if(interval().muted())
     {
-      OSSIAInterval()->mute(true);
+      m_ossia_interval->mute(true);
+    }
+    auto procs = interval().processes.size();
+    if(procs > 0)
+    {
+      int safe_procs = 2 * (procs + 16);
+      this->m_processes.reserve(safe_procs);
+      m_ossia_interval->reserve_processes(safe_procs);
+
+      int audio_outs = 0;
+      for(auto& p : interval().processes)
+      {
+        auto& outs = p.outlets();
+        for(auto& o : outs)
+        {
+          if(o->type() == Process::PortType::Audio)
+            audio_outs++;
+        }
+      }
+
+      const int safe_ins = 2 * (audio_outs + 1);
+      ((ossia::nodes::forward_node*)m_ossia_interval->node.get())
+          ->audio_in.sources.reserve(safe_ins);
     }
     init_hierarchy();
 

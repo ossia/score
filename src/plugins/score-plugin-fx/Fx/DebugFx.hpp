@@ -39,7 +39,7 @@ struct Node
         Control::Widgets::WaveformChooser());
   };
 
-  using control_policy = ossia::safe_nodes::default_tick;
+  using control_policy = ossia::safe_nodes::default_tick_controls;
   template <typename... Args>
   static void run(Args&&...)
   {

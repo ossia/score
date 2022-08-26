@@ -35,10 +35,16 @@ using gfx_input = ossia::variant<
  *
  * The input is the array of controls of the execution node.
  */
+struct Timings
+{
+  ossia::time_value date{};
+  ossia::time_value parent_duration{};
+};
+
 struct Message
 {
   int32_t node_id{};
-  ossia::token_request token{};
+  Timings token{};
   std::vector<gfx_input> input;
 };
 /**
@@ -146,7 +152,7 @@ public:
   std::optional<ossia::mesh_list> geometry;
 
   void process(Message&& msg) override;
-  void process(const ossia::token_request& tk);
+  void process(Timings tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
   void process(int32_t port, const ossia::mesh_list& v);

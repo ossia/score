@@ -52,6 +52,8 @@ StateComponentBase::StateComponentBase(
     , m_node{ossia::make_node<ossia::nodes::state_writer>(
           *ctx.execState, Engine::score_to_ossia::state(element, ctx))}
 {
+  m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
+
   system().setup.register_node({}, {}, m_node);
 
   connect(&element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
@@ -168,10 +170,7 @@ StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c
 
 StateComponent::~StateComponent() { }
 
-void StateComponent::onSetup()
-{
-  m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
-}
+void StateComponent::onSetup() { }
 
 void StateComponent::init()
 {

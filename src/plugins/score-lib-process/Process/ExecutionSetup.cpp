@@ -108,25 +108,25 @@ void SetupContext::connectCable(Process::Cable& cable)
     switch(cable.type())
     {
       case Process::CableType::ImmediateStrict: {
-        edge = ossia::make_edge(
+        edge = context.execGraph->allocate_edge(
             ossia::immediate_strict_connection{}, std::move(source_port),
             std::move(sink_port), std::move(source_node), std::move(sink_node));
         break;
       }
       case Process::CableType::ImmediateGlutton: {
-        edge = ossia::make_edge(
+        edge = context.execGraph->allocate_edge(
             ossia::immediate_glutton_connection{}, std::move(source_port),
             std::move(sink_port), std::move(source_node), std::move(sink_node));
         break;
       }
       case Process::CableType::DelayedStrict: {
-        edge = ossia::make_edge(
+        edge = context.execGraph->allocate_edge(
             ossia::delayed_strict_connection{}, std::move(source_port),
             std::move(sink_port), std::move(source_node), std::move(sink_node));
         break;
       }
       case Process::CableType::DelayedGlutton: {
-        edge = ossia::make_edge(
+        edge = context.execGraph->allocate_edge(
             ossia::delayed_glutton_connection{}, std::move(source_port),
             std::move(sink_port), std::move(source_node), std::move(sink_node));
         break;

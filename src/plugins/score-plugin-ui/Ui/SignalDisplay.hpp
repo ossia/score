@@ -38,7 +38,7 @@ struct Node
         = tuplet::make_tuple(Control::OutControl{"value"});
   };
 
-  using control_policy = ossia::safe_nodes::precise_tick;
+  using control_policy = ossia::safe_nodes::default_tick_controls;
 
   static void
   run(const ossia::value_port& in, ossia::timed_vec<ossia::value>& out_value,
@@ -168,11 +168,10 @@ struct Node
         = tuplet::make_tuple(Control::InControl{"value"});
   };
 
-  using control_policy = ossia::safe_nodes::default_tick;
+  using control_policy = ossia::safe_nodes::last_tick;
 
   static void
-  run(const ossia::timed_vec<ossia::value>& in, ossia::token_request tk,
-      ossia::exec_state_facade st)
+  run(const ossia::value& in, ossia::token_request tk, ossia::exec_state_facade st)
   {
   }
 

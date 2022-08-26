@@ -76,3 +76,6 @@
 [submodule "3rdparty/Aether"]
 	path = 3rdparty/Aether
 	url = https://github.com/jcelerier/Aether.git
+[submodule "3rdparty/mimalloc"]
+	path = 3rdparty/mimalloc
+	url = https://github.com/microsoft/mimalloc

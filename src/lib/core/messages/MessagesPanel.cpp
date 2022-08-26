@@ -164,6 +164,12 @@ MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext&
   g_messagesPanel = this;
 }
 
+MessagesPanelDelegate::~MessagesPanelDelegate()
+{
+  g_messagesPanel = nullptr;
+  qInstallMessageHandler(SafeQApplication::DebugOutput);
+}
+
 VisibilityNotifying<QListView>* MessagesPanelDelegate::widget()
 {
   return m_widget;

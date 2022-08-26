@@ -34,6 +34,7 @@
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/nodes/forward_node.hpp>
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
@@ -70,7 +71,11 @@ ScenarioComponentBase::ScenarioComponentBase(
 
   // Setup of the OSSIA API Part
   m_ossia_process = std::make_shared<ossia::scenario>();
+
   node = m_ossia_process->node;
+  ((ossia::nodes::forward_node*)this->node.get())
+      ->audio_in.sources.reserve(element.intervals.size() * 2);
+
   connect(
       this, &ScenarioComponentBase::sig_eventCallback, this,
       &ScenarioComponentBase::eventCallback, Qt::QueuedConnection);
@@ -451,7 +456,7 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
 
     if(prop)
     {
-      auto cable = ossia::make_edge(
+      auto cable = g->allocate_edge(
           ossia::immediate_glutton_connection{}, ossia_cst->node->root_outputs()[0],
           proc->node->root_inputs()[0], ossia_cst->node, proc->node);
       g->connect(cable);
@@ -495,12 +500,15 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
 
   std::weak_ptr<ScenarioComponentBase> thisP
       = std::dynamic_pointer_cast<ScenarioComponentBase>(shared_from_this());
-  auto ev_cb = [weak_ev, thisP](ossia::time_event::status st) {
+  std::weak_ptr qed_ptr = std::shared_ptr<Execution::EditionCommandQueue>(
+      this->system().alias.lock(), &this->system().editionQueue);
+  auto ev_cb = [qed_ptr, weak_ev, thisP](ossia::time_event::status st) {
     if(auto elt = weak_ev.lock())
     {
       if(auto sc = thisP.lock())
       {
-        sc->sig_eventCallback(elt, st);
+        if(auto q = qed_ptr.lock())
+          q->enqueue([=] { sc->sig_eventCallback(elt, st); });
       }
     }
   };

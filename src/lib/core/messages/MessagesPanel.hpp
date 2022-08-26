@@ -55,6 +55,7 @@ class SCORE_LIB_BASE_EXPORT MessagesPanelDelegate final
 
 public:
   MessagesPanelDelegate(const score::GUIApplicationContext& ctx);
+  ~MessagesPanelDelegate();
 
   void push(const QString& str, const QColor& col);
   void qtLog(const std::string& str);

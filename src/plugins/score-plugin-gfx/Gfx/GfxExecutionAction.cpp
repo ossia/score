@@ -9,6 +9,31 @@ GfxExecutionAction::GfxExecutionAction(GfxContext& w)
     : ui{&w}
 {
   prev_edges.reserve(100);
+
+  // Fixme: do the same for audio & geometry buffers
+  for(int i = 0; i < 100; i++)
+  {
+    std::vector<score::gfx::gfx_input> mbuf;
+    mbuf.reserve(16);
+    ui->m_buffers.release(std::move(mbuf));
+  }
+}
+
+score::gfx::Message GfxExecutionAction::allocateMessage(int inputs)
+{
+  score::gfx::Message m{
+      .node_id = {},
+      .token = {},
+      .input = ui->m_buffers.acquire(),
+  };
+  m.input.clear();
+  m.input.reserve(8);
+  return m;
+}
+
+void GfxExecutionAction::releaseMessage(score::gfx::Message&& m)
+{
+  ui->m_buffers.release(std::move(m.input));
 }
 
 void GfxExecutionAction::startTick(const ossia::audio_tick_state& st) { }

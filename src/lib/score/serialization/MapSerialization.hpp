@@ -88,13 +88,13 @@ struct TSerializer<JSONObject, std::unordered_map<T, U>> : MapSerializer
 {
 };
 
-#if(INTPTR_MAX == INT64_MAX)
+#if !defined(OSSIA_NO_FAST_CONTAINERS)
 template <typename T, typename U>
-struct TSerializer<DataStream, ska::flat_hash_map<T, U>> : MapSerializer
+struct TSerializer<DataStream, ossia::fast_hash_map<T, U>> : MapSerializer
 {
 };
 template <typename T, typename U>
-struct TSerializer<JSONObject, ska::flat_hash_map<T, U>> : MapSerializer
+struct TSerializer<JSONObject, ossia::fast_hash_map<T, U>> : MapSerializer
 {
 };
 #endif

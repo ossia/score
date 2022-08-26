@@ -18,12 +18,13 @@ Settings::Settings() { }
 
 Settings::~Settings()
 {
-  if(m_settingsView)
-    m_settingsView->deleteLater();
+  delete m_settingsView;
+  // if(m_settingsView)
+  //   m_settingsView->deleteLater();
   for(auto& ptr : m_settings)
   {
     auto p = ptr.release();
-    p->deleteLater();
+    delete p; //p->deleteLater();
   }
 }
 

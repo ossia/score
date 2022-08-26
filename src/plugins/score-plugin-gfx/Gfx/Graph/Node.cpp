@@ -28,7 +28,7 @@ score::gfx::NodeRenderer* NodeModel::createRenderer(RenderList& r) const noexcep
   return new GenericNodeRenderer{*this};
 }
 
-void ProcessNode::process(const ossia::token_request& tk)
+void ProcessNode::process(Timings tk)
 {
   score::gfx::ProcessUBO& UBO = this->standardUBO;
   auto prev_time = UBO.time;
