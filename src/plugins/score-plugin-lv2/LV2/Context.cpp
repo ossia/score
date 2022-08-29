@@ -4,6 +4,7 @@
 #include <LV2/Context.hpp>
 
 #include <score/tools/Debug.hpp>
+#include <score/tools/ThreadPool.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -86,6 +87,35 @@ static const char* do_unmap(LV2_URID_Unmap_Handle ptr, LV2_URID val)
   }
 }
 
+struct worker
+{
+  LV2::HostContext* host;
+  LV2::EffectContext* fx;
+  std::vector<char> dat;
+
+  void operator()()
+  {
+    // 3. Process the work
+    fx->worker->work(
+        fx->instance->lv2_handle, &worker::work_done, this, dat.size(), dat.data());
+
+    // Give back the worker buffer
+    host->release_worker_data(std::move(dat));
+  }
+
+  static LV2_Worker_Status
+  work_done(LV2_Worker_Respond_Handle sub_h, uint32_t sub_s, const void* sub_d)
+  {
+    // 4. Send the data back to the audio thread
+    auto& self = *(worker*)sub_h;
+    auto response_data = self.host->acquire_worker_data((const char*)sub_d, sub_s);
+
+    self.fx->worker_datas.enqueue(std::move(response_data));
+
+    return LV2_WORKER_SUCCESS;
+  }
+};
+
 static LV2_Worker_Status
 do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
 {
@@ -97,24 +127,13 @@ do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
     auto& w = *cur->worker;
     if(w.work)
     {
-      std::vector<char> cp;
-      cp.resize(s);
-      for(uint32_t i = 0; i < s; i++)
-        cp[i] = ((const char*)data)[i];
-      QTimer::singleShot(0, qApp, [cur, dat = std::move(cp)] {
-        cur->worker->work(
-            cur->instance->lv2_handle,
-            [](LV2_Worker_Respond_Handle sub_h, uint32_t sub_s, const void* sub_d) {
-          auto sub_c = static_cast<LV2::EffectContext*>(sub_h);
-          std::vector<char> worker_data;
-          worker_data.resize(sub_s);
-          std::copy_n((const char*)sub_d, sub_s, worker_data.data());
-          sub_c->worker_datas.enqueue(std::move(worker_data));
+      // 1. Acquire a buffer to copy the data in audio thread
+      std::vector<char> cp = c.host.acquire_worker_data((const char*)data, s);
 
-          return LV2_WORKER_SUCCESS;
-            },
-            cur, dat.size(), dat.data());
-      });
+      // 2. Move that buffer to the thread pool
+      auto& tq = score::TaskPool::instance();
+      tq.post(worker{.host = &c.host, .fx = cur, .dat = std::move(cp)});
+
       return LV2_WORKER_SUCCESS;
     }
   }

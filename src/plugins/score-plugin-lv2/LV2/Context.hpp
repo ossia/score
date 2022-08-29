@@ -24,6 +24,7 @@
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/detail/small_vector.hpp>
 
 #include <boost/bimap.hpp>
@@ -111,6 +112,21 @@ struct HostContext
   LV2_URID time_frame_id{};
   LV2_URID time_framesPerSecond_id{};
   LV2_URID time_speed_id{};
+
+  std::vector<char> acquire_worker_data(const char* data, uint32_t s) noexcept
+  {
+    std::vector<char> cp;
+    worker_datas_pool.try_dequeue(cp);
+    cp.assign(data, data + s);
+    return cp;
+  }
+
+  void release_worker_data(std::vector<char>&& v) noexcept
+  {
+    worker_datas_pool.enqueue(std::move(v));
+  }
+
+  ossia::mpmc_queue<std::vector<char>> worker_datas_pool{};
 };
 
 struct EffectContext
@@ -123,7 +139,7 @@ struct EffectContext
   const LilvNode* ui_type{};
   SuilInstance* ui_instance{};
 
-  moodycamel::ReaderWriterQueue<std::vector<char>> worker_datas;
+  ossia::mpmc_queue<std::vector<char>> worker_datas;
 };
 
 struct GlobalContext
@@ -206,6 +222,6 @@ struct Message
 {
   uint32_t index;
   uint32_t protocol;
-  ossia::small_vector<uint8_t, 8> body;
+  ossia::small_vector<uint8_t, 32> body;
 };
 }

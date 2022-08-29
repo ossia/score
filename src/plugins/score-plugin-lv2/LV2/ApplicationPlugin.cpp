@@ -11,6 +11,7 @@
 #include <Media/Effect/Settings/Model.hpp>
 
 #include <score/tools/Bind.hpp>
+#include <score/tools/ThreadPool.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
 
@@ -74,6 +75,15 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 
   lv2_context->ui_host
       = suil.host_new(LV2::on_uiMessage, LV2::port_index, nullptr, nullptr);
+
+  // initialize thread-pool & some initial data buffers
+  score::TaskPool::instance();
+  for(int i = 0; i < 100; i++)
+  {
+    std::vector<char> v;
+    v.reserve(65535);
+    lv2_host_context.release_worker_data(std::move(v));
+  }
 }
 
 void ApplicationPlugin::initialize()
