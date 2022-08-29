@@ -22,6 +22,7 @@
 
 #include <QCheckBox>
 #include <QGraphicsItem>
+#include <QGraphicsSceneDragDropEvent>
 #include <QLineEdit>
 #include <QPalette>
 #include <QTextDocument>
@@ -60,6 +61,16 @@ public:
     if(ctl)
     {
       ctl->setAcceptRichText(false);
+    }
+  }
+
+  void dropEvent(QGraphicsSceneDragDropEvent* drop) override
+  {
+    QGraphicsTextItem::dropEvent(drop);
+    const auto& urlList = drop->mimeData()->urls();
+    
+    if(!urlList.isEmpty()) {
+      this->setPlainText(urlList[0].toLocalFile());
     }
   }
 
