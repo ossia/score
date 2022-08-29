@@ -33,26 +33,24 @@ ERect Window::getRect(AEffect& e)
 }
 
 Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
-    : Window{e, ctx}
+    : PluginWindow{ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop(), parent}
+    , m_model{e}
 {
-  setAttribute(Qt::WA_DeleteOnClose, true);
+  if(!e.fx)
+    throw std::runtime_error("Cannot create UI");
+
+  initNativeWindow(e, ctx);
 
   connect(
       &ctx.coarseUpdateTimer, &QTimer::timeout, this, &Window::refreshTimer,
       Qt::UniqueConnection);
 
-  bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
-  if(ontop)
-  {
-    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
-  }
   e.externalUIVisible(true);
   e.fx->ui_opened = true;
 }
 
 Window::~Window()
 {
-
   if(auto eff = effect.lock())
   {
     if(eff->ui_opened)

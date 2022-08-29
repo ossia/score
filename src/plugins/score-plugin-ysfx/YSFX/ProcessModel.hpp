@@ -6,7 +6,7 @@
 #include <YSFX/ProcessMetadata.hpp>
 #include <ysfx.h>
 
-#include <QDialog>
+#include <score/widgets/PluginWindow.hpp>
 
 #include <score_plugin_ysfx_export.h>
 
@@ -50,7 +50,7 @@ private:
   QString m_script;
 };
 
-class Window : public QDialog
+class Window : public score::PluginWindow
 {
 public:
   Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent);
@@ -73,7 +73,7 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
   void paintEvent(QPaintEvent* event) override;
-  void timerEvent(QTimerEvent* event) override;
+  void refreshTimer();
 };
 
 using LayerFactory

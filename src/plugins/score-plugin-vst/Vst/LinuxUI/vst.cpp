@@ -36,12 +36,8 @@ void Window::setup_rect(QWidget* container, int width, int height)
   container->setBaseSize({width, height});
 }
 
-Window::Window(const Model& e, const score::DocumentContext& ctx)
-    : m_model{e}
+void Window::initNativeWindow(const Model& e, const score::DocumentContext& ctx)
 {
-  if(!e.fx)
-    throw std::runtime_error("Cannot create UI");
-
   effect = e.fx;
   AEffect& fx = *e.fx->fx;
 

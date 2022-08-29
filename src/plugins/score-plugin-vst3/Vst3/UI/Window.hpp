@@ -4,8 +4,8 @@
 #include <Vst3/UI/WindowContainer.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/widgets/PluginWindow.hpp>
 
-#include <QDialog>
 #include <QResizeEvent>
 #include <QWindow>
 
@@ -17,7 +17,7 @@ namespace vst3
 WindowContainer createVstWindowContainer(
     Window& parentWindow, const Model& e, const score::DocumentContext& ctx);
 
-class Window : public QDialog
+class Window : public score::PluginWindow
 {
   const Model& m_model;
   WindowContainer container;

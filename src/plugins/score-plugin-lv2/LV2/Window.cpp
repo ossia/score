@@ -19,17 +19,11 @@ W_OBJECT_IMPL(LV2::Window)
 namespace LV2
 {
 Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* parent)
-    : m_model{fx}
+    : PluginWindow{ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop(), parent}
+    , m_model{fx}
 {
   if(!fx.plugin)
     throw std::runtime_error("Cannot create UI");
-
-  bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
-  if(ontop)
-  {
-    setWindowFlag(Qt::WindowStaysOnTopHint, true);
-  }
-  setAttribute(Qt::WA_DeleteOnClose, true);
 
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
   auto lay = new score::MarginLess<QHBoxLayout>;
@@ -183,7 +177,8 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
     else
     {
       using namespace std;
-      resize(min(800, default_w), min(800, default_h));
+
+      resize(min(1920, default_w), min(1080, default_h));
     }
   });
 

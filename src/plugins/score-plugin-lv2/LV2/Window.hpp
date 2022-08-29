@@ -1,14 +1,14 @@
 #pragma once
 #include <LV2/EffectModel.hpp>
 
-#include <QDialog>
+#include <score/widgets/PluginWindow.hpp>
 
 #include <verdigris>
 
 namespace LV2
 {
 
-class Window final : public QDialog
+class Window final : public score::PluginWindow
 {
   W_OBJECT(Window)
 public:

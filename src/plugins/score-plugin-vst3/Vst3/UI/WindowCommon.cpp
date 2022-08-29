@@ -5,23 +5,15 @@
 namespace vst3
 {
 Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
-    : QDialog{parent}
+    : PluginWindow{ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop(), parent}
     , m_model{e}
 {
+  if(!e.fx)
+    throw std::runtime_error("Cannot create UI");
+
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   container = createVstWindowContainer(*this, e, ctx);
-
-  bool ontop
-      = score::AppContext().settings<Media::Settings::Model>().getVstAlwaysOnTop();
-  if(ontop)
-  {
-    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
-  }
-  else
-  {
-    setWindowFlags(windowFlags() | Qt::WindowCloseButtonHint);
-  }
   show();
 
   e.externalUIVisible(true);

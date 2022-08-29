@@ -12,6 +12,8 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <Media/Effect/Settings/Model.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -194,10 +196,9 @@ void ProcessModel::loadPreset(const Process::Preset& preset)
 }
 
 Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent)
-    : m_model{e}
+    : PluginWindow{ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop(), parent}
+    , m_model{e}
 {
-  setAttribute(Qt::WA_DeleteOnClose, true);
-
   fx = e.fx;
   e.externalUIVisible(true);
   const_cast<QWidget*&>(m_model.externalUI) = this;
@@ -243,7 +244,9 @@ Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget
 
   update();
 
-  startTimer(16, Qt::CoarseTimer);
+  connect(
+      &ctx.coarseUpdateTimer, &QTimer::timeout, this, &Window::refreshTimer,
+      Qt::UniqueConnection);
 }
 
 Window::~Window()
@@ -468,7 +471,7 @@ void Window::paintEvent(QPaintEvent* event)
   event->accept();
 }
 
-void YSFX::Window::timerEvent(QTimerEvent* event)
+void Window::refreshTimer()
 {
   update();
 }
