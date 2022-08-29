@@ -26,9 +26,16 @@ struct Graph;
 class GenericNodeRenderer;
 class NodeRenderer;
 
+#if BOOST_VERSION < 107900
+// Old boost: small_vector was not nothrow-move-constructible so we remove the check there.
+using gfx_input = ossia::slow_variant<
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list,
+    ossia::transform3d>;
+#else
 using gfx_input = ossia::variant<
     ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list,
     ossia::transform3d>;
+#endif
 
 /**
  * @brief Messages sent from the execution thread to the rendering thread
