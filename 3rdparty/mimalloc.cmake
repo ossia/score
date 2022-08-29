@@ -27,3 +27,9 @@ else()
 endif()
 
 add_subdirectory(3rdparty/mimalloc)
+
+if(TARGET mimalloc)
+  set_target_properties(mimalloc PROPERTIES UNITY_BUILD 0)
+elseif(TARGET mimalloc-static)
+  set_target_properties(mimalloc-static PROPERTIES UNITY_BUILD 0)
+endif()
