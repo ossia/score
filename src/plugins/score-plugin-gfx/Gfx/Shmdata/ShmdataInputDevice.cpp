@@ -237,20 +237,8 @@ private:
       frame->height = this->height;
 
       // Here we need to copy the buffer.
-      uint8_t* storage{};
-      // Reuse allocated memory if any
-      if(frame->data[0])
-      {
-        storage = frame->data[0];
-      }
-      else
-      {
-        // We got a new frame, init it
-        auto buf = av_buffer_alloc(sz);
-        storage = buf->data;
-        frame->buf[0] = buf;
-        ::Video::initFrameFromRawData(frame.get(), storage, sz);
-      }
+      const auto storage = Video::initFrameBuffer(*frame, sz);
+      ::Video::initFrameFromRawData(frame.get(), storage, sz);
 
       // Copy the content as we're going on *adventures*
       memcpy(storage, p, sz);

@@ -79,11 +79,10 @@ void VideoFrameShare::updateCurrentFrame(AVFrame* frame)
   auto old_frame = this->m_currentFrame;
 
   {
-    m_frameLock.lock();
+    std::lock_guard l{m_frameLock};
     this->m_currentFrame = std::make_shared<RefcountedFrame>();
     this->m_currentFrame->frame = frame;
     this->m_currentFrame->use_count = 1;
-    m_frameLock.unlock();
   }
 
   if(old_frame)

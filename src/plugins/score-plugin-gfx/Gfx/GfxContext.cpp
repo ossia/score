@@ -227,7 +227,9 @@ void GfxContext::update_inputs()
       auto& node = it->second;
       node->process(std::move(msg));
     }
-    m_buffers.release(std::move(msg).input);
+
+    if(msg.input.capacity() > 0)
+      m_buffers.release(std::move(msg).input);
   }
 }
 

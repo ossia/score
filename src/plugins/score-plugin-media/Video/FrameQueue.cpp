@@ -10,6 +10,27 @@ extern "C" {
 
 namespace Video
 {
+
+uint8_t* initFrameBuffer(AVFrame& frame, std::size_t bytes)
+{
+  // Here we need to copy the buffer.
+  uint8_t* storage{};
+  // Reuse allocated memory if any
+  if(frame.data[0])
+  {
+    storage = frame.data[0];
+  }
+  else
+  {
+    // We got a new frame, init it
+    auto buf = av_buffer_alloc(bytes);
+    storage = buf->data;
+    frame.buf[0] = buf;
+    frame.data[0] = storage;
+  }
+  return storage;
+}
+
 FrameQueue::FrameQueue() { }
 
 FrameQueue::~FrameQueue() { }
@@ -34,7 +55,10 @@ AVFramePointer FrameQueue::newFrame() noexcept
   }
 
   // We actually need to allocate :throw_up_emoji:
-  return AVFramePointer{av_frame_alloc()};
+  auto new_frame = av_frame_alloc();
+  new_frame->buf[0] = nullptr;
+  new_frame->data[0] = nullptr;
+  return AVFramePointer{new_frame};
 }
 
 void FrameQueue::enqueue_decoding_error(AVFrame* f)
