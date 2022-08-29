@@ -22,6 +22,7 @@
 
 #include <QCheckBox>
 #include <QGraphicsItem>
+#include <QGraphicsSceneDragDropEvent>
 #include <QLineEdit>
 #include <QPalette>
 #include <QTextDocument>
@@ -62,6 +63,16 @@ public:
       ctl->setAcceptRichText(false);
     }
   }
+
+  void dropEvent(QGraphicsSceneDragDropEvent* drop) override
+     {
+         QGraphicsTextItem::dropEvent(drop);
+         QList<QUrl> urlList = drop->mimeData()->urls();
+         if(!urlList.isEmpty()){
+            QUrl newFileUrl = urlList[0];
+            this->setPlainText(newFileUrl.toLocalFile());
+         }
+     }
 
   void sizeChanged(QSizeF sz) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, sz)
 };
