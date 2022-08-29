@@ -237,7 +237,7 @@ private:
       frame->height = this->height;
 
       // Here we need to copy the buffer.
-      const auto storage = Video::initFrameBuffer(*frame, sz);
+      const auto storage = ::Video::initFrameBuffer(*frame, sz);
       ::Video::initFrameFromRawData(frame.get(), storage, sz);
 
       // Copy the content as we're going on *adventures*
