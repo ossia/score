@@ -138,13 +138,6 @@ jobs:
         run: |
           ./ci/jammy.deploy.sh
 
-      - name: Upload build
-        uses: actions/upload-artifact@v2
-        with:
-          name: jammy-amd64
-          path: |
-            *.deb
-
   jammy_clang:
     name: Ubuntu (Jammy, Clang)
     runs-on: ubuntu-latest
@@ -169,3 +162,64 @@ jobs:
       - name: Build
         run: |
           CC=clang-14 CXX=clang++-14 LDFLAGS=-fuse-ld=lld ./ci/jammy.build.sh
+
+  jammy_qt6_gcc:
+    name: Ubuntu (Jammy, Qt6, GCC)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:jammy
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/jammy-qt6.deps.sh
+
+      - name: Build
+        run: |
+          CC=gcc-12 CXX=g++-12 LDFLAGS= ./ci/jammy-qt6.build.sh
+
+      - name: Deploy
+        run: |
+          ./ci/jammy.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v2
+        with:
+          name: jammy-amd64
+          path: |
+            *.deb
+
+  jammy_qt6_clang:
+    name: Ubuntu (Jammy, Qt6 Clang)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:jammy
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/jammy-qt6.deps.sh
+
+      - name: Build
+        run: |
+          CC=clang-14 CXX=clang++-14 LDFLAGS=-fuse-ld=lld ./ci/jammy-qt6.build.sh

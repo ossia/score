@@ -95,7 +95,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/suse.deps.sh
+          ./ci/suse-leap.deps.sh
 
       - name: Build
         run: |
@@ -120,7 +120,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/suse.deps.sh
+          ./ci/suse-tumbleweed.deps.sh
 
       - name: Build
         run: |
