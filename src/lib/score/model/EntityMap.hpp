@@ -58,6 +58,7 @@ public:
   mutable Nano::Signal<void(const T&)> removing;
   mutable Nano::Signal<void(const T&)> removed;
   mutable Nano::Signal<void()> orderChanged;
+  mutable Nano::Signal<void()> replaced;
 
   void add(T* t) INLINE_EXPORT { EntityMapInserter<T>{}.add(*this, t); }
 
@@ -101,6 +102,18 @@ public:
     {
       remove(*m_map.begin());
     }
+  }
+
+  void replace(IdContainer<T>&& new_map)
+  {
+    for(T& m : m_map)
+      delete &m;
+
+    m_map.clear();
+    m_map.m_map = std::move(new_map.m_map);
+    m_map.m_order = std::move(new_map.m_order);
+
+    replaced();
   }
 
 private:

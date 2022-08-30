@@ -50,6 +50,7 @@ private:
   void updateNote(NoteView&);
   void on_noteAdded(const Note&);
   void on_noteRemoving(const Note&);
+  void on_notesReplaced();
   void on_drop(const QPointF& pos, const QMimeData&);
 
   std::vector<Id<Note>> selectedNotes() const;

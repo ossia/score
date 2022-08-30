@@ -103,8 +103,10 @@ void ReplaceNotes::undo(const score::DocumentContext& ctx) const
   model.notes.clear();
   model.setDuration(m_olddur);
 
+  IdContainer<Note> new_notes;
   for(auto& note : m_old)
-    model.notes.add(new Note{note.first, note.second, &model});
+    new_notes.insert(new Note{note.first, note.second, &model});
+  model.notes.replace(std::move(new_notes));
 
   model.setRange(m_oldmin, m_oldmax);
 }
@@ -115,8 +117,10 @@ void ReplaceNotes::redo(const score::DocumentContext& ctx) const
   model.notes.clear();
   model.setDuration(m_newdur);
 
+  IdContainer<Note> new_notes;
   for(auto& note : m_new)
-    model.notes.add(new Note{note.first, note.second, &model});
+    new_notes.insert(new Note{note.first, note.second, &model});
+  model.notes.replace(std::move(new_notes));
 
   model.setRange(m_newmin, m_newmax);
 }

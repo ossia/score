@@ -87,6 +87,7 @@ Presenter::Presenter(
   m_view->setRange(model.range().first, model.range().second);
   model.notes.added.connect<&Presenter::on_noteAdded>(this);
   model.notes.removing.connect<&Presenter::on_noteRemoving>(this);
+  model.notes.replaced.connect<&Presenter::on_notesReplaced>(this);
 
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     CommandDispatcher<>{context().context.commandStack}.submit(
@@ -329,6 +330,19 @@ void Presenter::on_noteRemoving(const Note& n)
       delete *it;
       m_notes.erase(it);
     }
+  }
+}
+
+void Presenter::on_notesReplaced()
+{
+  m_selectedNotes.clear();
+  for(auto& n : m_notes)
+    delete n;
+  m_notes.clear();
+
+  for(auto& note : this->model().notes)
+  {
+    on_noteAdded(note);
   }
 }
 

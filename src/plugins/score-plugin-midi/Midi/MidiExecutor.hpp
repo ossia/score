@@ -31,9 +31,9 @@ public:
   Component(Midi::ProcessModel& element, const Execution::Context& ctx, QObject* parent);
   ~Component() override;
 
-private:
   void on_noteAdded(const Midi::Note&);
   void on_noteRemoved(const Midi::Note&);
+  void on_notesReplaced();
 
   ossia::nodes::note_data to_note(const NoteData& n);
 };
