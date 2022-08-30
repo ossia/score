@@ -1,6 +1,9 @@
+#include <Media/Effect/Settings/Model.hpp>
 #include <Vst3/UI/Linux/PlugFrame.hpp>
 #include <Vst3/UI/PlugFrame.hpp>
 #include <Vst3/UI/Window.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
 
 namespace vst3
 {
@@ -10,8 +13,6 @@ Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* paren
 {
   if(!e.fx)
     throw std::runtime_error("Cannot create UI");
-
-  setAttribute(Qt::WA_DeleteOnClose, true);
 
   container = createVstWindowContainer(*this, e, ctx);
   show();

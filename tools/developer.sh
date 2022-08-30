@@ -227,13 +227,43 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     QT_CMAKE_FLAG='-DQT_VERSION=Qt6;6.2'
   fi
 
-  echo "ls: " 
-  ls
+  if command -v clang-16 ; then
+    CC=clang-16
+    CXX=clang++-16
+  elif command -v clang-16 ; then
+    CC=clang-15
+    CXX=clang++-15
+  elif command -v clang-14 ; then
+    CC=clang-14
+    CXX=clang++-14
+  elif command -v clang-13 ; then
+    CC=clang-13
+    CXX=clang++-13
+  elif command -v clang ; then
+    CC=clang
+    CXX=clang++
+  else
+    CC=/usr/bin/cc
+    CXX=/usr/bin/c++
+  fi
+
+  if [[ command -v ld.mold ]]; then
+    LFLAG='-fuse-ld=mold'
+  elif [[ command -v ld.lld ]]; then
+    LFLAG='-fuse-ld=lld'
+  else
+    LFLAG=''
+  fi
 
   if [[ ! -f ./ossia-score ]]; then
     cmake -Wno-dev \
         .. \
         -GNinja \
+        -DCMAKE_C_COMPILER=$CC \
+        -DCMAKE_CXX_COMPILER=$CXX \
+        -DCMAKE_EXE_LINKER_FLAGS="$LFLAG" \
+        -DCMAKE_SHARED_LINKER_FLAGS="$LFLAG" \
+        -DCMAKE_MODULE_LINKER_FLAGS="$LFLAG" \
         $QT_CMAKE_FLAG \
         -DCMAKE_BUILD_TYPE=Debug \
         -DSCORE_PCH=1 \
