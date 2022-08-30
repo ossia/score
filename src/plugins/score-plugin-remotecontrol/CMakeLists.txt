@@ -6,6 +6,10 @@ if(NOT TARGET ${QT_PREFIX}::WebSockets)
   return()
 endif()
 
+if(NOT TARGET score_plugin_js)
+  message(FATAL_ERROR "Remote control plug-in requires score_plugin_js.")
+  return()
+endif()
 # General initialization
 score_common_setup()
 

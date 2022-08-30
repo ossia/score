@@ -12,7 +12,7 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
-#include <QtQmlIntegration/QtQmlIntegration>
+#include <QtQml/qqmlregistration.h>
 
 #include <verdigris>
 

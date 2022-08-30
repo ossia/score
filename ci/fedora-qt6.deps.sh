@@ -17,6 +17,7 @@ dnf -y install \
      lilv-devel suil-devel \
      fftw-devel \
      avahi-devel \
+     libxkbcommon-x11-devel libxkbcommon-devel \
      bluez-libs-devel \
      qt6-qtbase-devel \
      qt6-qtbase-private-devel \

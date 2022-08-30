@@ -1,13 +1,15 @@
 #!/bin/bash -eu
 echo "Running on OSTYPE: '$OSTYPE'"
+DISTRO=""
+CODENAME=""
 
 command -v git >/dev/null 2>&1 || { echo >&2 "Please install git."; exit 1; }
 
 if [[ -d ../.git ]]; then
   cd ..
-fi
-
-if [[ ! -d .git ]]; then
+elif [[ -d score/.git ]]; then
+  cd score
+elif [[ ! -d .git ]]; then
   git clone --recursive -j16 https://github.com/ossia/score
   cd score
 fi
@@ -31,8 +33,8 @@ detect_deps_script() {
         QT=5
         return 0;;
       jammy)
-        DEPS=jammy-qt6
-        QT=6
+        DEPS=jammy
+        QT=5
         return 0;;
       leap)
         DEPS=suse-leap
@@ -50,12 +52,12 @@ detect_deps_script() {
         QT=6
         return 0;;
       debian)
-        DEPS=jammy-qt6
-        QT=6
+        DEPS=jammy
+        QT=5
         return 0;;
       ubuntu)
-        DEPS=jammy-qt6
-        QT=6
+        DEPS=jammy
+        QT=5
         return 0;;
       fedora)
         DEPS=fedora-qt6
@@ -108,18 +110,19 @@ detect_linux_qt_version() {
 
 detect_linux_distro() {
     DISTRO=$(awk -F'=' '/^ID=/ {gsub("\"","",$2); print tolower($2) } ' /etc/*-release 2> /dev/null)
+    CODENAME=""
     QT=6
     case "$DISTRO" in
       arch)
         return 0;;
       debian)
-        DISTRO_CODENAME=$(cat /etc/*-release  | grep CODENAME | head -n 1 | cut -d= -f2)
-        if [[ "$DISTRO_CODENAME" == "" ]]; then
-          DISTRO_CODENAME=sid
+        CODENAME=$(cat /etc/*-release  | grep CODENAME | head -n 1 | cut -d= -f2)
+        if [[ "$CODENAME" == "" ]]; then
+          CODENAME=sid
         fi
         return 0;;
       ubuntu)
-        DISTRO_CODENAME=$(cat /etc/*-release | grep CODENAME | head -n 1 | cut -d= -f2)
+        CODENAME=$(cat /etc/*-release | grep CODENAME | head -n 1 | cut -d= -f2)
         return 0;;
       fedora)
         return 0;;
@@ -162,9 +165,9 @@ detect_linux_distro() {
 
     if command -v apt >/dev/null 2>&1; then
       DISTRO=debian
-      DISTRO_CODENAME=$(cat /etc/*-release | grep CODENAME | head -n 1 | cut -d= -f2)
-      if [[ "$DISTRO_CODENAME" == "" ]]; then
-        DISTRO_CODENAME=sid
+      CODENAME=$(cat /etc/*-release | grep CODENAME | head -n 1 | cut -d= -f2)
+      if [[ "$CODENAME" == "" ]]; then
+        CODENAME=sid
       fi
       return 0
     fi
@@ -176,19 +179,19 @@ detect_linux_distro() {
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
   command -v brew >/dev/null 2>&1 || { echo >&2 "Please install Homebrew."; exit 1; }
-  (brew list | grep qt >/dev/null) && { echo >&2 "Please remove qt@5 as it is incompatible with the required Homebrew Qt 6 package"; exit 1; }
+  (brew list | grep qt@5 >/dev/null) && { echo >&2 "Please remove qt@5 as it is incompatible with the required Homebrew Qt 6 package"; exit 1; }
   
   echo "[developer.sh] Installing dependencies"
   brew update
   brew upgrade
-  brew install ninja qt boost cmake ffmpeg fftw portaudio sdl lv2 lilv suil freetype
+  brew install ninja qt boost cmake ffmpeg fftw portaudio sdl lv2 lilv freetype
   brew cleanup
   
   echo "[developer.sh] Configuring"
   mkdir -p build-developer
   cd build-developer
   
-  if [[ -f ./score ]]; then
+  if [[ ! -f ./score ]]; then
     cmake -Wno-dev \
         .. \
         -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt \
@@ -210,7 +213,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 (
   echo "[developer.sh] Installing dependencies"
   detect_linux_distro
-  detect_qt_version
+  detect_linux_qt_version
   detect_deps_script
   source "ci/$DEPS.deps.sh"
   
@@ -218,13 +221,16 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   mkdir -p build-developer
   cd build-developer
 
-  if [[ "$QT" == 5 ]]; 
+  if [[ "$QT" == 5 ]]; then
     QT_CMAKE_FLAG=''
   else
     QT_CMAKE_FLAG='-DQT_VERSION=Qt6;6.2'
   fi
 
-  if [[ -f ./ossia-score ]]; then
+  echo "ls: " 
+  ls
+
+  if [[ ! -f ./ossia-score ]]; then
     cmake -Wno-dev \
         .. \
         -GNinja \

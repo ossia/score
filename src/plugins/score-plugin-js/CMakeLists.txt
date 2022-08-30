@@ -14,9 +14,6 @@ endif()
 
 if(${QT_PREFIX} MATCHES "Qt6")
   find_package(${QT_VERSION} COMPONENTS QmlIntegration)
-  if(NOT TARGET ${QT_PREFIX}::QmlIntegration)
-    return()
-  endif()
 endif()
 
 # Files & main target
@@ -65,8 +62,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_deviceexplorer score_plugin_protocols
                      score_plugin_media)
 
-if(TARGET ${QT_PREFIX}::QmlIntegration)
+if(${QT_PREFIX} MATCHES "Qt6")
   set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
+endif()
+
+if(TARGET ${QT_PREFIX}::QmlIntegration)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QmlIntegration)
 endif()
+
 setup_score_plugin(${PROJECT_NAME})
