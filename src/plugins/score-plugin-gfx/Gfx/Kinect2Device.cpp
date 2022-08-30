@@ -11,6 +11,7 @@
 
 #include <QComboBox>
 #include <QFormLayout>
+#include <QLabel>
 #include <QMenu>
 #include <QMimeData>
 
@@ -22,7 +23,98 @@
 
 #include <wobjectimpl.h>
 
-namespace Gfx
+#include <iostream>
+
+namespace Gfx::Kinect2
+{
+struct kinect2_settings
+{
+  std::string device;
+  bool rgb{};
+  bool ir{};
+  bool depth{};
+};
+
+struct kinect2_camera
+{
+  kinect2_camera();
+  ~kinect2_camera();
+
+  void load(kinect2_settings);
+  void start();
+  void stop();
+
+  ::Video::FrameQueue rgbFrames;
+  ::Video::FrameQueue irFrames;
+  ::Video::FrameQueue depthFrames;
+
+  void processColor(libfreenect2::Frame* frame);
+  void processDepth(libfreenect2::Frame* frame);
+  void processIR(libfreenect2::Frame* frame);
+
+private:
+  void loop();
+  void process(
+      libfreenect2::Frame* colorFrame, libfreenect2::Frame* irFrame,
+      libfreenect2::Frame* depthFrame);
+
+  libfreenect2::Freenect2Device* m_dev{};
+  libfreenect2::PacketPipeline* m_pipeline{};
+  libfreenect2::FrameListener* m_listener{};
+  libfreenect2::FrameMap m_frames;
+  //std::thread m_thread;
+  std::atomic_bool m_running{};
+  int types{};
+};
+
+class kinect2_decoder : public ::Video::ExternalInput
+{
+  ::Video::FrameQueue& queue;
+
+public:
+  const QString filter;
+  kinect2_decoder(
+      ::Video::FrameQueue& queue, int width, int height, AVPixelFormat format,
+      QString filter)
+      : queue{queue}
+      , filter{filter}
+  {
+    this->width = width;
+    this->height = height;
+    this->pixel_format = format;
+    this->fps = 30;
+    this->realTime = true;
+    this->dts_per_flicks = 0;
+    this->flicks_per_dts = 0;
+  }
+
+  ~kinect2_decoder() { queue.drain(); }
+
+  bool start() noexcept override;
+  void stop() noexcept override;
+  AVFrame* dequeue_frame() noexcept override { return queue.dequeue(); }
+
+  void release_frame(AVFrame* frame) noexcept override { return queue.release(frame); }
+};
+
+class kinect2_protocol : public ossia::net::protocol_base
+{
+public:
+  kinect2_camera kinect2;
+  kinect2_protocol(const kinect2_settings& stgs);
+
+  bool pull(ossia::net::parameter_base&) override;
+  bool push(const ossia::net::parameter_base&, const ossia::value& v) override;
+  bool push_raw(const ossia::net::full_parameter_data&) override;
+  bool observe(ossia::net::parameter_base&, bool) override;
+  bool update(ossia::net::node_base& node_base) override;
+
+  void start_execution() override;
+  void stop_execution() override;
+};
+}
+
+namespace Gfx::Kinect2
 {
 struct Kinect2Context
 {
@@ -47,6 +139,36 @@ private:
 };
 
 kinect2_camera::kinect2_camera() { }
+
+struct Listener : libfreenect2::FrameListener
+{
+
+  // FrameListener interface
+  kinect2_camera& self;
+
+public:
+  Listener(kinect2_camera& self, int types)
+      : self{self}
+  {
+  }
+  bool onNewFrame(libfreenect2::Frame::Type type, libfreenect2::Frame* frame) override
+  {
+    switch(type)
+    {
+      case libfreenect2::Frame::Type::Color:
+        self.processColor(frame);
+        break;
+      case libfreenect2::Frame::Type::Depth:
+        self.processDepth(frame);
+        break;
+      case libfreenect2::Frame::Type::Ir:
+        self.processIR(frame);
+        break;
+    }
+
+    return false;
+  }
+};
 
 void kinect2_camera::load(kinect2_settings set)
 {
@@ -82,7 +204,11 @@ void kinect2_camera::load(kinect2_settings set)
     set.device = freenect2.getDefaultDeviceSerialNumber();
 
   m_dev = freenect2.openDevice(set.device, m_pipeline);
-
+  if(!m_dev)
+  {
+    qDebug("Could not create Kinect device");
+    return;
+  }
   types = 0;
   if(set.rgb)
     types |= libfreenect2::Frame::Color;
@@ -91,7 +217,7 @@ void kinect2_camera::load(kinect2_settings set)
   if(set.depth)
     types |= libfreenect2::Frame::Depth;
 
-  m_listener = new libfreenect2::SyncMultiFrameListener(types);
+  m_listener = new Listener(*this, types);
 
   m_dev->setColorFrameListener(m_listener);
   m_dev->setIrAndDepthFrameListener(m_listener);
@@ -132,41 +258,20 @@ void kinect2_camera::start()
   }
 
   m_running = true;
-  m_thread = std::thread{[this] { this->loop(); }};
 }
 
 void kinect2_camera::stop()
 {
+  bool was_running = m_running;
   m_running = false;
-  if(m_dev)
+  if(m_dev && was_running)
   {
-    if(m_thread.joinable())
-      m_thread.join();
     m_dev->stop();
+    qDebug("stopped");
   }
 }
 
-void kinect2_camera::loop()
-{
-  while(m_running)
-  {
-    libfreenect2::FrameMap frames;
-    if(!m_listener->waitForNewFrame(frames, 2000))
-    {
-      return;
-    }
-
-    process(
-        frames[libfreenect2::Frame::Color], frames[libfreenect2::Frame::Ir],
-        frames[libfreenect2::Frame::Depth]);
-
-    m_listener->release(frames);
-  }
-}
-
-void kinect2_camera::process(
-    libfreenect2::Frame* colorFrame, libfreenect2::Frame* irFrame,
-    libfreenect2::Frame* depthFrame)
+void kinect2_camera::processColor(libfreenect2::Frame* colorFrame)
 {
   if(rgbFrames.size() < 16)
   {
@@ -174,54 +279,137 @@ void kinect2_camera::process(
     {
       auto f = rgbFrames.newFrame();
       const auto bytes = frame->width * frame->height * frame->bytes_per_pixel;
-      if(!f->data[0])
-        f->data[0] = (uint8_t*)malloc(bytes);
-      memcpy(f->data[0], frame->data, bytes);
 
+      const auto storage = Video::initFrameBuffer(*f, bytes);
+      memcpy(storage, frame->data, bytes);
       f->linesize[0] = frame->width * frame->bytes_per_pixel;
       f->format = AVPixelFormat::AV_PIX_FMT_BGR0;
       f->best_effort_timestamp = 0;
+      f->width = frame->width;
+      f->height = frame->height;
 
-      rgbFrames.enqueue(f);
+      rgbFrames.enqueue(f.release());
     }
   }
-
+}
+void kinect2_camera::processIR(libfreenect2::Frame* irFrame)
+{
   if(irFrames.size() < 16)
   {
     if(libfreenect2::Frame* frame = irFrame)
     {
       auto f = irFrames.newFrame();
       const auto bytes = frame->width * frame->height * frame->bytes_per_pixel;
-      if(!f->data[0])
-        f->data[0] = (uint8_t*)malloc(bytes);
-      memcpy(f->data[0], frame->data, bytes);
 
+      const auto storage = Video::initFrameBuffer(*f, bytes);
+      memcpy(storage, frame->data, bytes);
       f->linesize[0] = frame->width * frame->bytes_per_pixel;
       f->format = AVPixelFormat::AV_PIX_FMT_GRAYF32LE;
       f->best_effort_timestamp = 0;
+      f->width = frame->width;
+      f->height = frame->height;
 
-      irFrames.enqueue(f);
+      irFrames.enqueue(f.release());
     }
   }
+}
 
+void kinect2_camera::processDepth(libfreenect2::Frame* depthFrame)
+{
   if(depthFrames.size() < 16)
   {
     if(libfreenect2::Frame* frame = depthFrame)
     {
       auto f = depthFrames.newFrame();
       const auto bytes = frame->width * frame->height * frame->bytes_per_pixel;
-      if(!f->data[0])
-        f->data[0] = (uint8_t*)malloc(bytes);
-      memcpy(f->data[0], frame->data, bytes);
 
+      const auto storage = Video::initFrameBuffer(*f, bytes);
+      memcpy(storage, frame->data, bytes);
       f->linesize[0] = frame->width * frame->bytes_per_pixel;
       f->format = AVPixelFormat::AV_PIX_FMT_GRAYF32LE;
       f->best_effort_timestamp = 0;
+      f->width = frame->width;
+      f->height = frame->height;
 
-      depthFrames.enqueue(f);
+      depthFrames.enqueue(f.release());
     }
   }
 }
+
+class kinect2_parameter : public ossia::gfx::texture_input_parameter
+{
+  GfxExecutionAction* context{};
+
+public:
+  std::shared_ptr<kinect2_decoder> decoder;
+  int32_t node_id{};
+  score::gfx::CameraNode* node{};
+
+  kinect2_parameter(
+      const std::shared_ptr<kinect2_decoder>& dec, ossia::net::node_base& n,
+      GfxExecutionAction& ctx)
+      : ossia::gfx::texture_input_parameter{n}
+      , context{&ctx}
+      , decoder{dec}
+      , node{new score::gfx::CameraNode(decoder, dec->filter)}
+  {
+    node_id = context->ui->register_node(std::unique_ptr<score::gfx::CameraNode>(node));
+  }
+
+  void pull_texture(port_index idx) override
+  {
+    context->setEdge(port_index{this->node_id, 0}, idx);
+
+    score::gfx::Message m;
+    m.node_id = node_id;
+    context->ui->send_message(std::move(m));
+  }
+
+  virtual ~kinect2_parameter() { context->ui->unregister_node(node_id); }
+};
+
+class kinect2_node : public ossia::net::node_base
+{
+  ossia::net::device_base& m_device;
+  node_base* m_parent{};
+  std::unique_ptr<kinect2_parameter> m_parameter;
+
+public:
+  kinect2_node(
+      const std::shared_ptr<kinect2_decoder>& settings, GfxExecutionAction& ctx,
+      ossia::net::device_base& dev, std::string name)
+      : m_device{dev}
+      , m_parameter{std::make_unique<kinect2_parameter>(settings, *this, ctx)}
+  {
+    m_name = std::move(name);
+  }
+
+  kinect2_parameter* get_parameter() const override { return m_parameter.get(); }
+
+private:
+  ossia::net::device_base& get_device() const override { return m_device; }
+  ossia::net::node_base* get_parent() const override { return m_parent; }
+  ossia::net::node_base& set_name(std::string) override { return *this; }
+  ossia::net::parameter_base* create_parameter(ossia::val_type) override
+  {
+    return m_parameter.get();
+  }
+  bool remove_parameter() override { return false; }
+
+  std::unique_ptr<ossia::net::node_base> make_child(const std::string& name) override
+  {
+    return {};
+  }
+  void removing_child(ossia::net::node_base& node_base) override { }
+};
+
+class kinect2_device : public ossia::net::generic_device
+{
+public:
+  kinect2_device(
+      const kinect2_settings& settings, GfxExecutionAction& ctx,
+      std::unique_ptr<kinect2_protocol> proto, std::string name);
+};
 
 kinect2_device::kinect2_device(
     const kinect2_settings& settings, GfxExecutionAction& ctx,
@@ -231,24 +419,24 @@ kinect2_device::kinect2_device(
   auto& k = ((kinect2_protocol*)m_protocol.get())->kinect2;
   if(settings.rgb)
   {
-    auto decoder = std::make_shared<kinect2_decoder>(
-        k.rgbFrames, 1920, 1080, AV_PIX_FMT_BGR0, QString{});
+    auto decoder = std::shared_ptr<kinect2_decoder>(
+        new kinect2_decoder{k.rgbFrames, 1920, 1080, AV_PIX_FMT_BGR0, QString{}});
     this->add_child(
         std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "rgb"));
   }
   if(settings.ir)
   {
-    auto decoder = std::make_shared<kinect2_decoder>(
+    auto decoder = std::shared_ptr<kinect2_decoder>(new kinect2_decoder{
         k.irFrames, 512, 424, AV_PIX_FMT_GRAYF32LE,
-        "processed.rgb = tex.rgb / 4000; processed.a = 1;");
+        "processed.rgb = tex.rrr / 4000; processed.a = 1;"});
     this->add_child(
         std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "ir"));
   }
   if(settings.depth)
   {
-    auto decoder = std::make_shared<kinect2_decoder>(
+    auto decoder = std::shared_ptr<kinect2_decoder>(new kinect2_decoder{
         k.depthFrames, 512, 424, AV_PIX_FMT_GRAYF32LE,
-        "processed.rgb = tex.rgb / 4000; processed.a = 1;");
+        "processed.rgb = tex.rrr / 4000; processed.a = 1;"});
     this->add_child(
         std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "depth"));
   }
@@ -295,51 +483,24 @@ void kinect2_protocol::stop_execution()
   kinect2.stop();
 }
 
+bool kinect2_decoder::start() noexcept
+{
+  return true;
 }
 
-W_OBJECT_IMPL(Gfx::Kinect2Device)
+void kinect2_decoder::stop() noexcept { }
 
-namespace Gfx
-{
-Kinect2Device::~Kinect2Device() { }
-
-bool Kinect2Device::reconnect()
-{
-  disconnect();
-
-  try
-  {
-    auto set = this->settings().deviceSpecificSettings.value<Kinect2Settings>();
-    kinect2_settings ossia_stgs{set.input.toStdString(), set.rgb, set.ir, set.depth};
-
-    auto plug = m_ctx.findPlugin<DocumentPlugin>();
-    if(plug)
-    {
-      m_protocol = new kinect2_protocol{ossia_stgs};
-      m_dev = std::make_unique<kinect2_device>(
-          ossia_stgs, plug->exec, std::unique_ptr<kinect2_protocol>(m_protocol),
-          this->settings().name.toStdString());
-    }
-    // TODOengine->reload(&proto);
-  }
-  catch(std::exception& e)
-  {
-    qDebug() << "Could not connect: " << e.what();
-  }
-  catch(...)
-  {
-    // TODO save the reason of the non-connection.
-  }
-
-  return connected();
 }
+
+namespace Gfx::Kinect2
+{
 
 class Kinect2Enumerator : public Device::DeviceEnumerator
 {
 public:
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    auto& freenect2 = Kinect2Context::instance().freenect2;
+    auto& freenect2 = Kinect2::Kinect2Context::instance().freenect2;
     const int numDevices = freenect2.enumerateDevices();
 
     for(int i = 0; i < numDevices; i++)
@@ -354,90 +515,24 @@ public:
         s.name += QStringLiteral("_%1").arg(i);
       }
 
-      s.protocol = Kinect2ProtocolFactory::static_concreteKey();
+      s.protocol = ProtocolFactory::static_concreteKey();
       s.deviceSpecificSettings = QVariant::fromValue(sset);
       f(s);
     }
   }
 };
 
-QString Kinect2ProtocolFactory::prettyName() const noexcept
+class Kinect2SettingsWidget final : public SharedInputSettingsWidget
 {
-  return QObject::tr("Kinect 2");
-}
+public:
+  Kinect2SettingsWidget(QWidget* parent = nullptr);
 
-QString Kinect2ProtocolFactory::category() const noexcept
-{
-  return StandardCategories::video;
-}
-
-Device::DeviceEnumerator*
-Kinect2ProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return new Kinect2Enumerator;
-}
-
-Device::DeviceInterface* Kinect2ProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
-{
-  return new Kinect2Device(settings, ctx);
-}
-
-const Device::DeviceSettings& Kinect2ProtocolFactory::defaultSettings() const noexcept
-{
-  static const Device::DeviceSettings settings = [&]() {
-    Device::DeviceSettings s;
-    s.protocol = concreteKey();
-    s.name = "Kinect2";
-    Kinect2Settings specif;
-    specif.rgb = true;
-    specif.ir = true;
-    specif.depth = true;
-    s.deviceSpecificSettings = QVariant::fromValue(specif);
-    return s;
-  }();
-  return settings;
-}
-
-Device::AddressDialog* Kinect2ProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::AddressDialog* Kinect2ProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set, const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx, QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::ProtocolSettingsWidget* Kinect2ProtocolFactory::makeSettingsWidget()
-{
-  return new Kinect2SettingsWidget;
-}
-
-QVariant
-Kinect2ProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
-{
-  return makeProtocolSpecificSettings_T<Kinect2Settings>(visitor);
-}
-
-void Kinect2ProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
-{
-  serializeProtocolSpecificSettings_T<Kinect2Settings>(data, visitor);
-}
-
-bool Kinect2ProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
-{
-  return a.name != b.name;
-}
+  Device::DeviceSettings getSettings() const override;
+  void setSettings(const Device::DeviceSettings& settings) override;
+};
 
 Kinect2SettingsWidget::Kinect2SettingsWidget(QWidget* parent)
-    : ProtocolSettingsWidget(parent)
+    : SharedInputSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
@@ -445,11 +540,6 @@ Kinect2SettingsWidget::Kinect2SettingsWidget(QWidget* parent)
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
   setLayout(layout);
 
-  setDefaults();
-}
-
-void Kinect2SettingsWidget::setDefaults()
-{
   m_deviceNameEdit->setText("Kinect2");
 }
 
@@ -457,7 +547,7 @@ Device::DeviceSettings Kinect2SettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = m_settings;
   s.name = m_deviceNameEdit->text();
-  s.protocol = Kinect2ProtocolFactory::static_concreteKey();
+  s.protocol = ProtocolFactory::static_concreteKey();
   return s;
 }
 
@@ -467,24 +557,113 @@ void Kinect2SettingsWidget::setSettings(const Device::DeviceSettings& settings)
   m_deviceNameEdit->setText(settings.name);
 }
 
+class InputDevice final : public Gfx::GfxInputDevice
+{
+public:
+  using GfxInputDevice::GfxInputDevice;
+  ~InputDevice();
+
+private:
+  bool reconnect() override;
+  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
+
+  kinect2_protocol* m_protocol{};
+  mutable std::unique_ptr<kinect2_device> m_dev;
+};
+
+InputDevice::~InputDevice() { }
+
+bool InputDevice::reconnect()
+{
+  disconnect();
+
+  try
+  {
+    auto set = this->settings().deviceSpecificSettings.value<Kinect2Settings>();
+
+    auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
+    if(plug)
+    {
+      kinect2_settings s{
+          .device = set.input.toStdString(),
+          .rgb = set.rgb,
+          .ir = set.ir,
+          .depth = set.depth};
+      s.rgb = true;
+      s.ir = true;
+      s.depth = true;
+
+      m_protocol = new kinect2_protocol{s};
+      m_dev = std::make_unique<kinect2_device>(
+          s, plug->exec, std::unique_ptr<kinect2_protocol>(m_protocol),
+          this->settings().name.toStdString());
+    }
+  }
+  catch(std::exception& e)
+  {
+    qDebug() << "Could not connect: " << e.what();
+  }
+  catch(...)
+  {
+    // TODO save the reason of the non-connection.
+  }
+
+  return connected();
+}
+
+QString ProtocolFactory::prettyName() const noexcept
+{
+  return QObject::tr("Kinect Input");
+}
+
+Device::DeviceEnumerator*
+ProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
+}
+
+Device::DeviceInterface* ProtocolFactory::makeDevice(
+    const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
+    const score::DocumentContext& ctx)
+{
+  return new InputDevice(settings, ctx);
+}
+
+const Device::DeviceSettings& ProtocolFactory::defaultSettings() const noexcept
+{
+  static const Device::DeviceSettings settings = [&]() {
+    Device::DeviceSettings s;
+    s.protocol = concreteKey();
+    s.name = "Kinect";
+    Kinect2Settings specif;
+    s.deviceSpecificSettings = QVariant::fromValue(specif);
+    return s;
+  }();
+  return settings;
+}
+
+Device::ProtocolSettingsWidget* ProtocolFactory::makeSettingsWidget()
+{
+  return new Kinect2SettingsWidget;
+}
 }
 
 template <>
-void DataStreamReader::read(const Gfx::Kinect2Settings& n)
+void DataStreamReader::read(const Gfx::Kinect2::Kinect2Settings& n)
 {
   m_stream << n.input << n.rgb << n.ir << n.depth;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Gfx::Kinect2Settings& n)
+void DataStreamWriter::write(Gfx::Kinect2::Kinect2Settings& n)
 {
   m_stream >> n.input >> n.rgb >> n.ir >> n.depth;
   checkDelimiter();
 }
 
 template <>
-void JSONReader::read(const Gfx::Kinect2Settings& n)
+void JSONReader::read(const Gfx::Kinect2::Kinect2Settings& n)
 {
   obj["Input"] = n.input;
   obj["RGB"] = n.rgb;
@@ -493,7 +672,7 @@ void JSONReader::read(const Gfx::Kinect2Settings& n)
 }
 
 template <>
-void JSONWriter::write(Gfx::Kinect2Settings& n)
+void JSONWriter::write(Gfx::Kinect2::Kinect2Settings& n)
 {
   n.input = obj["Input"].toString();
   n.rgb = obj["RGB"].toBool();

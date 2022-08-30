@@ -36,7 +36,7 @@ set(SYPHON_SRCS
 endif()
 
 find_package(freenect2)
-if(NOT "${freenect2_LIBRARIES}")
+if(NOT freenect2_LIBRARIES)
   set(freenect2_FOUND FALSE)
 endif()
 if(freenect2_FOUND)

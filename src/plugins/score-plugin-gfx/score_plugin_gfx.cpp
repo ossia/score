@@ -58,9 +58,9 @@ score_plugin_gfx::score_plugin_gfx()
 #endif
 
 #if defined(HAS_FREENECT2)
-  qRegisterMetaType<Gfx::Kinect2Settings>();
+  qRegisterMetaType<Gfx::Kinect2::Kinect2Settings>();
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Gfx::Kinect2Settings>();
+  // FIXME qRegisterMetaTypeStreamOperators<Gfx::Kinect2::Kinect2Settings>();
 #endif
 #endif
 }
@@ -87,7 +87,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
 #endif
 #if defined(HAS_FREENECT2)
          ,
-         Gfx::Kinect2ProtocolFactory
+         Gfx::Kinect2::ProtocolFactory
 #endif
          >,
       FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
