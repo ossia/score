@@ -4,8 +4,18 @@ source ci/common.setup.sh
 
 PACKAGES=
 if [[ ! -f /usr/lib/libjack.so ]]; then
-  PACKAGES+=jack2
+  PACKAGES+=" jack2 "
 fi
+if [[ ! -f /usr/lib/libfontconfig.so ]]; then
+  PACKAGES+=" fontconfig "
+fi
+if [[ ! -f /usr/lib/libharfbuzz.so ]]; then
+  PACKAGES+=" harfbuzz "
+fi
+if [[ ! -f /usr/lib/libfreetype.so ]]; then
+  PACKAGES+=" freetype2 "
+fi
+
 
 $SUDO pacman -S --noconfirm \
    $PACKAGES \
@@ -17,7 +27,7 @@ $SUDO pacman -S --noconfirm \
    brotli double-conversion zstd glib2 libb2 pcre2 \
    libxkbcommon libxkbcommon-x11 \
    vulkan-headers vulkan-icd-loader \
-   mesa freetype2 harfbuzz fontconfig libglvnd \
+   mesa libglvnd \
    libdrm tslib udev zstd \
    xcb-proto xcb-util xcb-util-cursor xcb-util-image \
    xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
