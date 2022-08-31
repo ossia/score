@@ -84,6 +84,7 @@ else
   mkdir "$SDK_DIR"
   cd "$SDK_DIR"
 
+  if [[ ! -f "$SDK_DIR/llvm/bin/clang.exe" ]] ; then
   (
     SDK_ARCHIVE=sdk-mingw.7z
     curl -L -O "$BASE_SDK/$SDK_ARCHIVE"
@@ -93,6 +94,7 @@ else
   ls "$SDK_DIR"
 
   # Download boost
+  if [[ ! -d "$SDK_DIR/boost" ]] ; then
   (
     BOOST="$BOOST_VER.tar.gz"
     curl -L -0 "$BOOST_SDK/$BOOST" --output "$BOOST"
@@ -100,6 +102,29 @@ else
     tar xaf "$BOOST"
     mv boost_*/boost "$SDK_DIR/boost/include/"
   )
+
+  # Download cmake
+  if [[ ! -d "$SDK_DIR/CMake" ]] ; then
+    if ! command -v cmake >/dev/null 2>&1 ; then
+    (
+      echo "CMake not found, installing..."
+      curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.24.1/cmake-3.24.1-windows-x86_64.msi --output cmake.msi
+      msiexec -a cmake.msi -quiet -qn -norestart TARGETDIR=c:\\ossia-sdk
+    )
+    fi
+  fi
+
+  # Download ninja
+  if [[ ! -f "$SDK_DIR/llvm/bin/ninja.exe" ]] ; then
+    if ! command -v ninja >/dev/null 2>&1 ; then
+    (
+      curl -L -0 https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip --output ninja-win.zip
+      7z x ninja-win.zip
+      mv ninja.exe "$SDK_DIR/llvm/bin/"
+      rm ninja-win.zip
+    )
+    fi
+  fi
 
   # Then the score headers
   # SCORE_SDK_ARCHIVE=windows-sdk.zip

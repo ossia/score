@@ -207,7 +207,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   cmake --build .
 
   if [[ -f ossia-score ]]; then
-    echo "[developer.sh] Build successful, you can run $PWD/score"
+    echo "[developer.sh] Build successful, you can run $PWD/score."
+    echo "[developer.sh] To rebuild, run: 'cd $PWD; cmake --build .'"
   fi
 )
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -218,10 +219,6 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   detect_deps_script
   source "ci/$DEPS.deps.sh"
   
-  echo "[developer.sh] Configuring"
-  mkdir -p build-developer
-  cd build-developer
-
   if [[ "$QT" == 5 ]]; then
     QT_CMAKE_FLAG=''
   else
@@ -256,6 +253,10 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     LFLAG=''
   fi
 
+  echo "[developer.sh] Configuring"
+  mkdir -p build-developer
+  cd build-developer
+
   if [[ ! -f ./ossia-score ]]; then
     cmake -Wno-dev \
         .. \
@@ -276,11 +277,39 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 
   if [[ -f ossia-score ]]; then
     echo "[developer.sh] Build successful, you can run $PWD/ossia-score"
+    echo "[developer.sh] To rebuild, run: 'cd $PWD; cmake --build .'"
   fi
 )
-
 else
 (
-    tools/fetch-sdk.sh
+  echo "[developer.sh] Installing dependencies"
+  source tools/fetch-sdk.sh
+
+  PATH="%PATH%:/c/ossia-sdk/llvm/bin"
+  if [[ -d /c/ossia-sdk/CMake/bin ]]; then
+    PATH="%PATH%:/c/ossia-sdk/CMake/bin"
+  fi 
+  
+  echo "[developer.sh] Configuring"
+  mkdir -p build-developer
+  cd build-developer
+
+  if [[ ! -f ./ossia-score ]]; then
+    cmake -Wno-dev \
+        .. \
+        -GNinja \
+        -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
+        -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DSCORE_PCH=1
+  fi
+  
+  echo "[developer.sh] Building in $PWD"
+  cmake --build .
+
+  if [[ -f ossia-score ]]; then
+    echo "[developer.sh] Build successful, you can run $PWD/ossia-score"
+    echo "[developer.sh] To rebuild, run: 'cd $PWD; cmake --build .'"
+  fi
 )
 fi
