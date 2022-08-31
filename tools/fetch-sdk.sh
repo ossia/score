@@ -84,13 +84,28 @@ else
   mkdir "$SDK_DIR"
   cd "$SDK_DIR"
 
+  # Download cmake
+  if [[ ! -d "$SDK_DIR/cmake" ]] ; then
+    if ! command -v cmake >/dev/null 2>&1 ; then
+      echo "CMake not found, installing..."
+      curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.24.1/cmake-3.24.1-windows-x86_64.zip --output cmake.zip
+      unzip -qq cmake.zip
+      mv cmake-3.24.1-windows-x86_64 cmake
+    fi
+  fi
+
+  if [[ -d "$SDK_DIR/cmake" ]] ; then
+    export PATH="$PATH:$SDK_DIR/cmake/bin"
+  fi
+
   if [[ ! -f "$SDK_DIR/llvm/bin/clang.exe" ]] ; then
   (
     SDK_ARCHIVE=sdk-mingw.7z
     curl -L -O "$BASE_SDK/$SDK_ARCHIVE"
-    7z x "sdk-mingw.7z"
+    cmake -E tar xzf "sdk-mingw.7z"
     rm "sdk-mingw.7z"
   )
+  fi
   ls "$SDK_DIR"
 
   # Download boost
@@ -101,25 +116,18 @@ else
     mkdir -p "$SDK_DIR/boost/include"
     tar xaf "$BOOST"
     mv boost_*/boost "$SDK_DIR/boost/include/"
+    rm *.gz
+    rm -rf $BOOST
   )
-
-  # Download cmake
-  if [[ ! -d "$SDK_DIR/CMake" ]] ; then
-    if ! command -v cmake >/dev/null 2>&1 ; then
-    (
-      echo "CMake not found, installing..."
-      curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.24.1/cmake-3.24.1-windows-x86_64.msi --output cmake.msi
-      msiexec -a cmake.msi -quiet -qn -norestart TARGETDIR=c:\\ossia-sdk
-    )
-    fi
   fi
+
 
   # Download ninja
   if [[ ! -f "$SDK_DIR/llvm/bin/ninja.exe" ]] ; then
     if ! command -v ninja >/dev/null 2>&1 ; then
     (
       curl -L -0 https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip --output ninja-win.zip
-      7z x ninja-win.zip
+      tar xaf ninja-win.zip
       mv ninja.exe "$SDK_DIR/llvm/bin/"
       rm ninja-win.zip
     )

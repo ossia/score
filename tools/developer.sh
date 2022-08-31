@@ -285,19 +285,23 @@ else
   echo "[developer.sh] Installing dependencies"
   source tools/fetch-sdk.sh
 
-  PATH="%PATH%:/c/ossia-sdk/llvm/bin"
-  if [[ -d /c/ossia-sdk/CMake/bin ]]; then
-    PATH="%PATH%:/c/ossia-sdk/CMake/bin"
+  PATH="$PATH:/c/ossia-sdk/llvm/bin"
+  if [[ -d /c/ossia-sdk/cmake/bin ]]; then
+    PATH="$PATH:/c/ossia-sdk/cmake/bin"
   fi 
   
   echo "[developer.sh] Configuring"
   mkdir -p build-developer
   cd build-developer
 
+  cp -f /c/ossia-sdk/llvm/bin/libunwind.dll .
+  cp -f /c/ossia-sdk/llvm/bin/libc++.dll .
+  cp -f /c/ossia-sdk/llvm/x86_64-w64-mingw32/bin/libwinpthread-1.dll .
   if [[ ! -f ./ossia-score ]]; then
     cmake -Wno-dev \
         .. \
         -GNinja \
+        -DOSSIA_SDK=c:/ossia-sdk \
         -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
         -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
         -DCMAKE_BUILD_TYPE=Debug \
