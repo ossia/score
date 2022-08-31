@@ -1,15 +1,17 @@
 #!/bin/bash -eux
 
-echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+source ci/common.setup.sh
 
-apt-get update -qq
-apt-get install -qq --force-yes software-properties-common wget
+echo 'debconf debconf/frontend select Noninteractive' | $SUDO debconf-set-selections
 
-apt purge --auto-remove cmake
-wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
+$SUDO apt-get update -qq
+$SUDO apt-get install -qq --force-yes software-properties-common wget
 
-apt-get install -qq --force-yes \
+$SUDO apt purge --auto-remove cmake
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | $SUDO tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+$SUDO apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
+
+$SUDO apt-get install -qq --force-yes \
     --allow-change-held-packages \
     --allow-downgrades \
     --allow-remove-essential \

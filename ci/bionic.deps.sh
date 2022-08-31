@@ -1,12 +1,14 @@
 #!/bin/bash -eux
 
-apt-get update -qq
-apt-get install -qq software-properties-common wget
+source ci/common.setup.sh
 
-wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+$SUDO apt-get update -qq
+$SUDO apt-get install -qq software-properties-common wget
 
-apt-get install -qq --force-yes \
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | $SUDO tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+$SUDO apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+
+$SUDO apt-get install -qq --force-yes \
      gcc-8 g++-8 \
      binutils clang-10 clang++-10 \
      libasound-dev \

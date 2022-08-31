@@ -1,11 +1,13 @@
 #!/bin/bash -eux
 
+source ci/common.setup.sh
+
 PACKAGES=
 if [[ ! -f /usr/lib/libjack.so ]]; then
   PACKAGES+=jack2
 fi
 
-pacman -S --noconfirm \
+$SUDO pacman -S --noconfirm \
    $PACKAGES \
    cmake ninja gcc llvm clang boost \
    icu \

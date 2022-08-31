@@ -1,7 +1,8 @@
-#!/bin/bash -eu
+#!/bin/bash -eux
 echo "Running on OSTYPE: '$OSTYPE'"
 DISTRO=""
 CODENAME=""
+SUDO=$(command -v sudo 2>/dev/null)
 
 command -v git >/dev/null 2>&1 || { echo >&2 "Please install git."; exit 1; }
 
@@ -79,7 +80,6 @@ detect_deps_script() {
 
 detect_linux_qt_version() {
     QT=6
-    SUDO=$(command -v sudo 2>/dev/null)
     case "$DISTRO" in
       arch)
         $SUDO pacman -Syyu

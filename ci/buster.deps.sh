@@ -1,10 +1,12 @@
 #!/bin/bash -eux
 
-echo 'deb http://deb.debian.org/debian buster-backports main contrib non-free' >> /etc/apt/sources.list
+source ci/common.setup.sh
 
-apt-get update -qq
-apt-get -t buster-backports install -qq --force-yes cmake
-apt-get install -qq --force-yes \
+$SUDO echo 'deb http://deb.debian.org/debian buster-backports main contrib non-free' >> /etc/apt/sources.list
+
+$SUDO apt-get update -qq
+$SUDO apt-get -t buster-backports install -qq --force-yes cmake
+$SUDO apt-get install -qq --force-yes \
      binutils gcc g++ clang \
      libasound-dev \
      ninja-build \

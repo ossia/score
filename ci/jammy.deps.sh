@@ -1,9 +1,11 @@
 #!/bin/bash -eux
 
-echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+source ci/common.setup.sh
 
-apt-get update -qq
-apt-get install -y \
+echo 'debconf debconf/frontend select Noninteractive' | $SUDO debconf-set-selections
+
+$SUDO apt-get update -qq
+$SUDO apt-get install -y \
     --allow-change-held-packages \
     --allow-downgrades \
     --allow-remove-essential \

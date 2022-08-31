@@ -1,8 +1,10 @@
 #!/bin/bash -eux
 
+source ci/common.setup.sh
+
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
-zypper -n install \
+$SUDO zypper -n install \
    cmake ninja gcc11 gcc11-c++ \
    llvm-devel \
    libjack-devel alsa-devel \

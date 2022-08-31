@@ -1,8 +1,10 @@
 #!/bin/bash -eux
 
+source ci/common.setup.sh
+
 # libsdl2-dev libsdl2-2.0-0
-apt-get update -qq
-apt-get install -qq --force-yes \
+$SUDO apt-get update -qq
+$SUDO apt-get install -qq --force-yes \
      binutils gcc g++ clang cmake \
      libasound-dev \
      ninja-build \
