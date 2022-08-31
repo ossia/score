@@ -228,19 +228,19 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     QT_CMAKE_FLAG='-DQT_VERSION=Qt6;6.2'
   fi
 
-  if command -v clang-16 ; then
+  if command -v clang++-16 ; then
     CC=clang-16
     CXX=clang++-16
-  elif command -v clang-16 ; then
+  elif command -v clang++-15 ; then
     CC=clang-15
     CXX=clang++-15
-  elif command -v clang-14 ; then
+  elif command -v clang++-14 ; then
     CC=clang-14
     CXX=clang++-14
-  elif command -v clang-13 ; then
+  elif command -v clang++-13 ; then
     CC=clang-13
     CXX=clang++-13
-  elif command -v clang ; then
+  elif command -v clang++ ; then
     CC=clang
     CXX=clang++
   else
