@@ -79,28 +79,29 @@ detect_deps_script() {
 
 detect_linux_qt_version() {
     QT=6
+    SUDO=$(command -v sudo 2>/dev/null)
     case "$DISTRO" in
       arch)
-        pacman -Syyu
+        $SUDO pacman -Syyu
         return 0;;
       debian)
-        apt update
+        $SUDO apt update
         (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || QT=5
         return 0;;
       ubuntu)
-        apt update
+        $SUDO apt update
         (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || QT=5
         return 0;;
       fedora)
-        dnf update
+        $SUDO dnf update
         (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || QT=5
         return 0;;
       centos)
-        dnf update
+        $SUDO dnf update
         (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || QT=5
         return 0;;
       suse)
-        zypper update
+        $SUDO zypper update
         return 0;;
     esac
 
@@ -247,9 +248,9 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     CXX=/usr/bin/c++
   fi
 
-  if [[ command -v ld.mold ]]; then
+  if command -v ld.mold ; then
     LFLAG='-fuse-ld=mold'
-  elif [[ command -v ld.lld ]]; then
+  elif command -v ld.lld ; then
     LFLAG='-fuse-ld=lld'
   else
     LFLAG=''
