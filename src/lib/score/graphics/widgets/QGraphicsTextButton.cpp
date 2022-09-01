@@ -12,9 +12,9 @@ namespace score {
 
 
 QGraphicsTextButton::QGraphicsTextButton(QGraphicsItem *parent,QString text)
-: SimpleTextItem{score::Skin::instance().Base1.main, parent}
+  : QGraphicsItem{parent}
 {
-    setText(text);
+    setText(std::move(text));
     auto& skin = score::Skin::instance();
     setCursor(skin.CursorPointingHand);
 }
@@ -30,7 +30,7 @@ void QGraphicsTextButton::bang()
 void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     m_pressed = true;
-    pressed(true);
+    pressed();
     update();
     event->accept();
 
@@ -38,7 +38,7 @@ void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsTextButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     m_pressed = true;
-    pressed(true);
+    pressed();
     update();
     event->accept();
 
@@ -47,7 +47,7 @@ void QGraphicsTextButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsTextButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_pressed = false;
-  pressed(false);
+  pressed();
   update();
   event->accept();
 }
@@ -72,15 +72,13 @@ void QGraphicsTextButton::paint(
       !m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
 
   painter->drawRect(boundingRect());
-//  painter->drawEllipse(
-//      QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
 
-  painter->fillRect(boundingRect(),Qt::blue);
   if (m_pressed)
   {
-//    painter->setPen(skin.Emphasis2.main.pen2);
-    painter->fillRect(boundingRect(),Qt::red);
+    painter->drawRect(boundingRect());
   }
+//  SimpleTextItem::paint(painter,option,widget);
+  painter->drawText(m_rect.topLeft(),m_string);
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 }

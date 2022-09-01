@@ -789,56 +789,40 @@ struct FileChooser{
     {
 
 
-      auto bt = new QPushButton{parent} ;
-//      auto act = new QAction{bt};
+      auto sl = new QLineEdit{parent} ;
+      auto act = new QAction{sl};
 
-      bt->setStatusTip(QObject::tr("Opening a File"));
-      bt->setIcon(QIcon(":/icons/search.png"));
-      bt->setText(QObject::tr("Open File"));
+      act->setStatusTip(QObject::tr("Opening a File"));
+      act->setIcon(QIcon(":/icons/search.png"));
+      sl->setPlaceholderText(QObject::tr("Open File"));
       const QString filter = "Media File ("+inlet.filters()+")";
       auto on_open = [=,&inlet]{
-        bt->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
+        sl->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
       };
-//      QObject::connect(bt, &QPushButton::pressed, on_open);
-   /*   QObject::connect(
-          bt,
-          &score::QGraphicsTextButton::pressed,
-          context,
-          [=,&inlet,&ctx](bool pressed){
 
-      });*/
+      QObject::connect(sl, &QLineEdit::returnPressed, on_open);
+      QObject::connect(act,&QAction::triggered, on_open);
+      sl->addAction(act,QLineEdit::TrailingPosition);
 
-    bt->setText(
-        QString::fromStdString(ossia::convert<std::string>(inlet.value())));
-//    sl->setContentsMargins(0, 0, 0, 0);
-//    sl->setMaximumWidth(70);
-//    QObject::connect(
-//        bt, &QLineEdit::editingFinished, context, [bt, &inlet, &ctx]() {
-//          CommandDispatcher<>{ctx.commandStack}
-//              .submit<SetControlValue<Control_T>>(
-//                  inlet, bt->text().toStdString());
-//        });
+      sl->setText(
+              QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+      sl->setContentsMargins(0, 0, 0, 0);
+      sl->setMaximumWidth(70);
 
-//    QObject::connect(
-//        &inlet, &Control_T::valueChanged, bt, [bt](const ossia::value& val) {
-//          bt->setText(
-//              QString::fromStdString(ossia::convert<std::string>(val)));
-//        });
-
-    return bt;
+      QObject::connect(
+              sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
+                CommandDispatcher<>{ctx.commandStack}
+                    .submit<SetControlValue<Control_T>>(
+                        inlet, sl->text().toStdString());
+              });
+      QObject::connect(
+          &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
+            sl->setText(
+                QString::fromStdString(ossia::convert<std::string>(val)));
+            });
+      return sl;
   }
-   /* struct LineEditItem : public QGraphicsTextItem
-    {
-      LineEditItem()
-      {
-        setTextInteractionFlags(Qt::TextEditorInteraction);
-        auto ctl = this->findChild<QWidgetTextControl*>();
-        if (ctl)
-        {
-          ctl->setAcceptRichText(false);
-        }
-      }
-    };*/
+
     template <typename T, typename Control_T>
     static score::QGraphicsTextButton* make_item(
         const T& slider,
@@ -847,32 +831,25 @@ struct FileChooser{
         QGraphicsItem* parent,
         QObject* context)
     {
-      auto bt = new score::QGraphicsTextButton{parent,"hello"};
-//      sl->setTextWidth(180.);
-      // bt->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
-//      sl->setDefaultTextColor(QColor{"#E0B01E"});
-//      sl->setCursor(Qt::IBeamCursor);
+      auto bt = new score::QGraphicsTextButton{parent,"Open File"};
+      const QString filter = "Media File ("+inlet.filters()+")";
+      auto on_open = [=,&inlet]{
+        bt->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
+      };
+      QObject::connect(bt, &score::QGraphicsTextButton::pressed, on_open);
+       bt->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+
 
 //      sl->setPlainText(
 //          QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
-     /* auto doc = sl->document();
+
       QObject::connect(
-          doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx] {
-            auto cur_str = ossia::convert<std::string>(inlet.value());
-            if (cur_str != doc->toPlainText().toStdString())
-            {
-              CommandDispatcher<>{ctx.commandStack}
-                  .submit<SetControlValue<Control_T>>(
-                      inlet, doc->toPlainText().toStdString());
-            }
-          });*/
-      /*QObject::connect(
-          &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+          &inlet, &Control_T::valueChanged, bt, [=](const ossia::value& val) {
             auto str = QString::fromStdString(ossia::convert<std::string>(val));
-            if (str != doc->toPlainText())
-              doc->setPlainText(str);
-          });*/
+            if (str != bt->text())
+              bt->setText(str);
+          });
 
       return bt;
     }

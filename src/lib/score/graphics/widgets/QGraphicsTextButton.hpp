@@ -11,7 +11,8 @@
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT QGraphicsTextButton final
-    : public score::SimpleTextItem
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(QGraphicsTextButton)
 
@@ -19,8 +20,11 @@ class SCORE_LIB_BASE_EXPORT QGraphicsTextButton final
 public:
   QGraphicsTextButton(QGraphicsItem* parent,QString text="");
 
-  void pressed(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed,b);
+  void pressed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed);
   void bang();
+
+  const QString& text() const noexcept{return m_string;}
+  void setText(const QString& s){m_string=std::move(s);}
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -30,7 +34,9 @@ private:
         QPainter* painter,
         const QStyleOptionGraphicsItem* option,
         QWidget* widget) final override;
-  };
+  QRectF m_rect;
+  QString m_string;
+};
 }
 
 

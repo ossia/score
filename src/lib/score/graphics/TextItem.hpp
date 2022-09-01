@@ -22,17 +22,16 @@ protected:
   void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT SimpleTextItem
+class SCORE_LIB_BASE_EXPORT SimpleTextItem final
     : public QObject
     , public QGraphicsItem
 {
 public:
   SimpleTextItem(const score::BrushSet& col, QGraphicsItem*);
 
-  QRectF boundingRect() const final override;
+  QRectF boundingRect() const final override; 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       final override;
-
 
   void setFont(const QFont& f);
   void setText(const QString& s);

@@ -54,6 +54,9 @@ void SimpleTextItem::setFont(const QFont& f)
   updateImpl();
 }
 
+const QString& SimpleTextItem::text() const noexcept{
+  return m_string;
+}
 void SimpleTextItem::setText(const QString& s)
 {
   m_string = std::move(s);
