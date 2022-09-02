@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TextItem.hpp"
 
-#include <score/graphics/Graphics<<<<<<< HEADItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
