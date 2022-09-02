@@ -3,7 +3,6 @@ echo "Running on OSTYPE: '$OSTYPE'"
 DISTRO=""
 CODENAME=""
 SUDO=$(command -v sudo 2>/dev/null)
-
 command -v git >/dev/null 2>&1 || { echo >&2 "Please install git."; exit 1; }
 
 if [[ -d ../.git ]]; then
@@ -13,6 +12,13 @@ elif [[ -d score/.git ]]; then
 elif [[ ! -d .git ]]; then
   git clone --recursive -j16 https://github.com/ossia/score
   cd score
+fi
+SCORE_PATH=$PWD
+if [[ "$#" -eq 0 ]];
+  then
+  BUILD_DIR=build-developer
+elif [[ "$# " -eq 1 ]]; then
+  BUILD_DIR=$1
 fi
 
 detect_deps_script() {
@@ -189,12 +195,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   brew cleanup
   
   echo "[developer.sh] Configuring"
-  mkdir -p build-developer
-  cd build-developer
+  mkdir -p $BUILD_DIR
+  cd $BUILD_DIR
   
   if [[ ! -f ./score ]]; then
     cmake -Wno-dev \
-        .. \
+        $SCORE_PATH \
         -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt \
         -GNinja \
         -DCMAKE_BUILD_TYPE=Debug \
@@ -254,12 +260,12 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   fi
 
   echo "[developer.sh] Configuring"
-  mkdir -p build-developer
-  cd build-developer
+  mkdir -p $BUILD_DIR
+  cd $BUILD_DIR
 
   if [[ ! -f ./ossia-score ]]; then
     cmake -Wno-dev \
-        .. \
+        $SCORE_PATH \
         -GNinja \
         -DCMAKE_C_COMPILER=$CC \
         -DCMAKE_CXX_COMPILER=$CXX \
@@ -291,15 +297,15 @@ else
   fi 
   
   echo "[developer.sh] Configuring"
-  mkdir -p build-developer
-  cd build-developer
+  mkdir -p $BUILD_DIR
+  cd $BUILD_DIR
 
   cp -f /c/ossia-sdk/llvm/bin/libunwind.dll .
   cp -f /c/ossia-sdk/llvm/bin/libc++.dll .
   cp -f /c/ossia-sdk/llvm/x86_64-w64-mingw32/bin/libwinpthread-1.dll .
   if [[ ! -f ./ossia-score ]]; then
     cmake -Wno-dev \
-        .. \
+        $SCORE_PATH \
         -GNinja \
         -DOSSIA_SDK=c:/ossia-sdk \
         -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
