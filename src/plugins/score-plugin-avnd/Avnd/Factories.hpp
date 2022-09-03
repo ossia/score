@@ -236,6 +236,12 @@ instantiate_fx(const score::ApplicationContext& ctx, const score::InterfaceKey& 
 
   return v;
 }
+
+template <typename T>
+void custom_factories(
+    std::vector<std::unique_ptr<score::InterfaceBase>>& fx,
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key);
+
 }
 
 namespace Avnd = oscr;

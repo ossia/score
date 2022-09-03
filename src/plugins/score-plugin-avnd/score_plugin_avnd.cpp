@@ -106,7 +106,13 @@
  */
 
 #include <Avnd/Factories.hpp>
+#include <Avnd/Logger.hpp>
 #include <halp/meta.hpp>
+
+namespace grph
+{
+class Graph;
+}
 
 score_plugin_avnd::score_plugin_avnd() = default;
 score_plugin_avnd::~score_plugin_avnd() = default;
@@ -117,43 +123,44 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
   using namespace oscr;
   struct config
   {
-    using logger_type = halp::basic_logger;
+    using logger_type = oscr::Logger;
   };
   auto fx = oscr::instantiate_fx<
       Aether::Object, ao::ADSR
-    #if __has_include(<kfr/dft/convolution.hpp>)
-      , ao::Convolver
-    #endif
-      , ao::Lowpass, ao::Highpass, ao::Lowshelf,
-      ao::Highshelf, ao::Bandpass, ao::Bandstop, ao::Bandshelf, ao::Bitcrush,
-      ao::Compressor, ao::Limiter, ao::Echo, ao::Flanger, ao::StereoMixer>(ctx, key);
+#if __has_include(<kfr/dft/convolution.hpp>)
+      ,
+      ao::Convolver
+#endif
+      ,
+      ao::Lowpass, ao::Highpass, ao::Lowshelf, ao::Highshelf, ao::Bandpass, ao::Bandstop,
+      ao::Bandshelf, ao::Bitcrush, ao::Compressor, ao::Limiter, ao::Echo, ao::Flanger,
+      ao::StereoMixer>(ctx, key);
+
+  custom_factories<grph::Graph>(fx, ctx, key);
 
 #if AVND_TEST_BUILD
-  using namespace examples;
-  using namespace examples::helpers;
+  namespace E = examples;
+  namespace EH = examples::helpers;
   auto debug_fx = oscr::instantiate_fx<
-      oscr::Granolette, examples::helpers::FFTDisplay, examples::helpers::MessageBusUi,
-      examples::helpers::AdvancedUi, Addition, Callback, Controls, Logger<config>,
-      examples::Lowpass, examples::helpers::Lowpass, examples::Messages,
-      examples::helpers::Messages<config>, examples::helpers::Midi,
-      examples::helpers::WhiteNoise, examples::helpers::Peak,
-      examples::helpers::PerBusAsArgs, examples::helpers::PerBusAsPortsFixed,
-      examples::helpers::PerBusAsPortsDynamic, examples::helpers::PerSampleAsArgs,
-      examples::helpers::PerSampleAsPorts, examples::helpers::Sine, examples::Init,
-      litterpower_ports::CCC, examples::Midi, examples::Minimal, examples::Modular,
-      examples::PerSampleProcessor, examples::PerSampleProcessor2, examples::Presets,
-      examples::SampleAccurateControls, examples::Sine, examples::Ui, Distortion,
-      AudioEffectExample, AudioSidechainExample, EmptyExample,
-      SampleAccurateGeneratorExample, SampleAccurateFilterExample, ControlGallery
+      oscr::Granolette, EH::FFTDisplay, EH::MessageBusUi, EH::AdvancedUi, E::Addition,
+      E::Callback, EH::Controls, EH::Logger<config>, E::Lowpass, EH::Lowpass,
+      E::Messages, EH::Messages<config>, EH::Midi, EH::WhiteNoise, EH::Peak,
+      EH::PerBusAsArgs, EH::PerBusAsPortsFixed, EH::PerBusAsPortsDynamic,
+      EH::PerSampleAsArgs, EH::PerSampleAsPorts, EH::Sine, E::Init,
+      litterpower_ports::CCC, E::Midi, E::Minimal, E::Modular, E::PerSampleProcessor,
+      E::PerSampleProcessor2, E::Presets, E::SampleAccurateControls, E::Sine, E::Ui,
+      E::Distortion, E::AudioEffectExample, E::AudioSidechainExample, E::EmptyExample,
+      E::SampleAccurateGeneratorExample, E::SampleAccurateFilterExample,
+      E::ControlGallery
 //      , RawPortsExample
 //      , Synth
 #if SCORE_PLUGIN_GFX
       ,
-      TextureGeneratorExample, TextureFilterExample, examples::GpuComputeExample,
-      examples::GpuFilterExample, examples::GpuRawExample, examples::GpuSolidColorExample
+      E::TextureGeneratorExample, E::TextureFilterExample, E::GpuComputeExample,
+      E::GpuFilterExample, E::GpuRawExample, E::GpuSolidColorExample
 #endif
       ,
-      TrivialGeneratorExample, TrivialFilterExample, ZeroDependencyAudioEffect>(
+      E::TrivialGeneratorExample, E::TrivialFilterExample, E::ZeroDependencyAudioEffect>(
       ctx, key);
   fx.insert(
       fx.end(), std::make_move_iterator(debug_fx.begin()),

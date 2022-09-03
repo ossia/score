@@ -70,6 +70,7 @@ add_library(
 
   score_plugin_avnd.hpp
   score_plugin_avnd.cpp
+  score_plugin_avnd.graph.cpp
 )
 
 target_include_directories(score_plugin_avnd
