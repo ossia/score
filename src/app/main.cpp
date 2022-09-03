@@ -542,8 +542,15 @@ struct failsafe
 };
 }
 
+struct array
+{
+  std::atomic_int cnts[16] = {0};
+  std::atomic_int64_t mems[16] = {0};
+} tl_array;
+
 int main(int argc, char** argv)
 {
+
   struct failsafe failsafe;
 
 #if defined(__APPLE__)
@@ -606,6 +613,23 @@ int main(int argc, char** argv)
   });*/
 #endif
 
+  QTimer x;
+  x.connect(&x, &QTimer::timeout, [] {
+    /*
+    mi_stats_print(nullptr);
+    */
+    fprintf(
+        stderr, "%d %d %d %d %d %d %d %d\n", tl_array.cnts[0].load(),
+        tl_array.cnts[1].load(), tl_array.cnts[2].load(), tl_array.cnts[3].load(),
+        tl_array.cnts[4].load(), tl_array.cnts[5].load(), tl_array.cnts[6].load(),
+        tl_array.cnts[7].load());
+    fprintf(
+        stderr, "%ld %ld %ld %ld %ld %ld %ld %ld\n\n", tl_array.mems[0].load(),
+        tl_array.mems[1].load(), tl_array.mems[2].load(), tl_array.mems[3].load(),
+        tl_array.mems[4].load(), tl_array.mems[5].load(), tl_array.mems[6].load(),
+        tl_array.mems[7].load());
+  });
+  x.start(1000);
   int res = app.exec();
 
   return res;
@@ -646,3 +670,395 @@ WinMain(HINSTANCE, HINSTANCE, LPSTR /*cmdParamarg*/, int /* cmdShow */)
 }
 
 #endif
+
+extern std::optional<int64_t> audio_thread_id;
+
+#include <malloc.h>
+#include <stdlib.h>
+
+#include <memory>
+#include <memory_resource>
+#include <new>
+
+static char buf[1024 * 1024];
+static std::pmr::monotonic_buffer_resource linear_storage(buf, std::size(buf));
+// 2261274
+[[nodiscard]] void* operator new(std::size_t count)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[0]++;
+    tl_array.mems[0] += count;
+  }
+  return malloc(count);
+}
+
+// 40906
+[[nodiscard]] void* operator new[](std::size_t count)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[1]++;
+    tl_array.mems[1] += count;
+  }
+  return malloc(count);
+}
+
+// 15
+[[nodiscard]] void* operator new(std::size_t count, std::align_val_t al)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[2]++;
+    tl_array.mems[2] += count;
+  }
+  return malloc(count);
+}
+
+// 0
+[[nodiscard]] void* operator new[](std::size_t count, std::align_val_t al)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[3]++;
+    tl_array.mems[3] += count;
+  }
+  return ::aligned_alloc((size_t)al, count);
+}
+
+// 170
+[[nodiscard]] void* operator new(std::size_t count, const std::nothrow_t& tag) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[4]++;
+    tl_array.mems[4] += count;
+  }
+  return malloc(count);
+}
+
+// 35
+[[nodiscard]] void* operator new[](std::size_t count, const std::nothrow_t& tag) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[5]++;
+    tl_array.mems[5] += count;
+  }
+  return malloc(count);
+}
+
+// 0
+[[nodiscard]] void*
+operator new(std::size_t count, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[6]++;
+    tl_array.mems[6] += count;
+  }
+  return ::aligned_alloc((size_t)al, count);
+}
+
+// 0
+[[nodiscard]] void*
+operator new[](std::size_t count, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[7]++;
+    tl_array.mems[7] += count;
+  }
+  return ::aligned_alloc((size_t)al, count);
+}
+
+void operator delete(void* ptr) noexcept { }
+void operator delete[](void* ptr) noexcept { }
+
+void operator delete(void* ptr, std::align_val_t al) noexcept { }
+void operator delete[](void* ptr, std::align_val_t al) noexcept { }
+
+void operator delete(void* ptr, std::size_t sz) noexcept { }
+void operator delete[](void* ptr, std::size_t sz) noexcept { }
+
+void operator delete(void* ptr, std::size_t sz, std::align_val_t al) noexcept { }
+
+void operator delete[](void* ptr, std::size_t sz, std::align_val_t al) noexcept { }
+
+void operator delete(void* ptr, const std::nothrow_t&) noexcept { }
+void operator delete[](void* ptr, const std::nothrow_t&) noexcept { }
+void operator delete(void* ptr, std::align_val_t al, const std::nothrow_t&) noexcept { }
+void operator delete[](void* ptr, std::align_val_t al, const std::nothrow_t&) noexcept {
+}
+
+/*
+#include <array>
+#include <chrono>
+#include <numeric>
+#include <sstream>
+#include <thread>
+#include <vector>
+
+using Nanoseconds = std::chrono::nanoseconds;
+using Microseconds = std::chrono::microseconds;
+using Milliseconds = std::chrono::milliseconds;
+using Clock = std::chrono::steady_clock;
+
+struct fts_allocator
+{
+  void* alloc(const size_t size);
+  void free(void* ptr);
+
+  fts_allocator();
+  ~fts_allocator();
+  void* allocInternal(const size_t size, std::align_val_t align = std::align_val_t{16})
+  {
+    auto allocRelTime = (Clock::now() - _timeBegin);
+
+    // Perform actual malloc
+    // auto ptr = ::malloc(size, (std::size_t)align);
+    void* ptr;
+    if((std::size_t)align <= _Alignof(max_align_t))
+    {
+      ptr = ::malloc(size);
+    }
+    else
+    {
+      ptr = ::malloc(size + (std::size_t)align);
+      posix_memalign(&ptr, (std::size_t)align, size);
+    }
+
+    // AllocEntry = a allocSize ptr threadId timestamp
+    std::array<char, 256> buf;
+    int len = std::snprintf(
+        buf.data(), buf.size(), "a %lld %p %d %lld\n", (long long int)size, ptr,
+        gettid(), (long long int)allocRelTime.count());
+    std::fwrite(buf.data(), 1, len, _file);
+
+    return ptr;
+  }
+  void freeInternal(void* ptr);
+
+  Clock::time_point _timeBegin;
+  FILE* _file = nullptr;
+};
+
+void* fts_allocator::alloc(const size_t size)
+{
+  return allocInternal(size);
+}
+
+void fts_allocator::free(void* ptr)
+{
+  return freeInternal(ptr);
+}
+
+fts_allocator::fts_allocator()
+{
+  // Initialize time so we can store relative timestamps
+  _timeBegin = Clock::now();
+
+  // Open a journal file
+  _file = std::fopen("/tmp/alloc_journal.txt", "w");
+  assert(_file);
+}
+
+fts_allocator::~fts_allocator()
+{
+  // Close the journal
+  std::fclose(_file);
+  _file = nullptr;
+}
+
+void fts_allocator::freeInternal(void* ptr)
+{
+  auto freeRelTime = (Clock::now() - _timeBegin);
+
+  ::free(ptr);
+  // FreeEntry = f ptr threadId timestamp
+  std::array<char, 256> buf;
+  int len = std::snprintf(
+      buf.data(), buf.size(), "f %p %d %lld\n", ptr, gettid(),
+      (long long int)freeRelTime.count());
+  std::fwrite(buf.data(), 1, len, _file);
+}
+
+static fts_allocator& ff()
+{
+  static fts_allocator x;
+  return x;
+}
+
+#include <malloc.h>
+#include <stdlib.h>
+
+#include <memory>
+#include <memory_resource>
+#include <new>
+
+// 2261274
+[[gnu::visibility(("default"))]] [[nodiscard]] void* operator new(std::size_t count)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[0]++;
+    tl_array.mems[0] += count;
+  }
+  return ff().allocInternal(count);
+}
+
+// 40906
+
+[[gnu::visibility(("default"))]] [[nodiscard]] void* operator new[](std::size_t count)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[1]++;
+    tl_array.mems[1] += count;
+  }
+  return ff().allocInternal(count);
+}
+
+// 15
+
+[[gnu::visibility(("default"))]] [[nodiscard]] void*
+operator new(std::size_t count, std::align_val_t al)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[2]++;
+    tl_array.mems[2] += count;
+  }
+  return ff().allocInternal(count);
+}
+
+// 0
+
+[[gnu::visibility(("default"))]] [[nodiscard]] void*
+operator new[](std::size_t count, std::align_val_t al)
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[3]++;
+    tl_array.mems[3] += count;
+  }
+  return ::aligned_alloc((size_t)al, count);
+}
+
+// 170
+
+[[gnu::visibility(("default"))]]
+
+[[nodiscard]] void*
+operator new(std::size_t count, const std::nothrow_t& tag) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[4]++;
+    tl_array.mems[4] += count;
+  }
+  return ff().allocInternal(count);
+}
+
+// 35
+
+[[gnu::visibility(("default"))]] [[nodiscard]] void*
+operator new[](std::size_t count, const std::nothrow_t& tag) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[5]++;
+    tl_array.mems[5] += count;
+  }
+  return ff().allocInternal(count);
+}
+
+// 0
+
+[[gnu::visibility(("default"))]] [[nodiscard]] void*
+operator new(std::size_t count, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[6]++;
+    tl_array.mems[6] += count;
+  }
+  return ff().allocInternal(count, al);
+}
+
+// 0
+
+[[gnu::visibility(("default"))]] [[nodiscard]] void*
+operator new[](std::size_t count, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+  if(gettid() == audio_thread_id)
+  {
+    tl_array.cnts[7]++;
+    tl_array.mems[7] += count;
+  }
+  return ff().allocInternal(count, al);
+}
+
+[[gnu::visibility(("default"))]] void operator delete(void* ptr) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+[[gnu::visibility(("default"))]] void operator delete[](void* ptr) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+
+[[gnu::visibility(("default"))]] void
+operator delete(void* ptr, std::align_val_t al) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+[[gnu::visibility(("default"))]] void
+operator delete[](void* ptr, std::align_val_t al) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+
+[[gnu::visibility(("default"))]] void operator delete(void* ptr, std::size_t sz) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+[[gnu::visibility(("default"))]] void
+operator delete[](void* ptr, std::size_t sz) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+
+[[gnu::visibility(("default"))]] void
+operator delete(void* ptr, std::size_t sz, std::align_val_t al) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+
+[[gnu::visibility(("default"))]] void
+operator delete[](void* ptr, std::size_t sz, std::align_val_t al) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+
+[[gnu::visibility(("default"))]] void
+operator delete(void* ptr, const std::nothrow_t&) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+[[gnu::visibility(("default"))]] void
+operator delete[](void* ptr, const std::nothrow_t&) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+[[gnu::visibility(("default"))]] void
+operator delete(void* ptr, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+[[gnu::visibility(("default"))]] void
+operator delete[](void* ptr, std::align_val_t al, const std::nothrow_t&) noexcept
+{
+  return ff().freeInternal(ptr);
+}
+*/
