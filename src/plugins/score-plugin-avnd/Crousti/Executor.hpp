@@ -33,8 +33,10 @@
 
 #include <QTimer>
 
+#include <avnd/binding/ossia/data_node.hpp>
 #include <avnd/binding/ossia/mono_audio_node.hpp>
 #include <avnd/binding/ossia/node.hpp>
+#include <avnd/binding/ossia/ossia_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <libremidi/reader.hpp>

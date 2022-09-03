@@ -80,7 +80,7 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: Latest
-StatementMacros: ['E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT']
+StatementMacros: ['define_get_property', 'type_or_value_qualification', 'type_or_value_reflection', 'type_or_value_accessors', 'E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT', 'halp__enum', 'halp__enum_combobox', 'halp_meta', 'halp_flag', 'halp_flags', 'gpp_attribute', 'gpp_compute', 'halp_lambda', 'halp_free_fun', 'halp_free_fun_t', 'halp_mem_fun', 'halp_mem_fun_t', 'E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT']
 TabWidth: 2
 UseTab: Never
 
