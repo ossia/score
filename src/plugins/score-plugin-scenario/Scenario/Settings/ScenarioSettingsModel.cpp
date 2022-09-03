@@ -85,10 +85,10 @@ QString Model::getSkin() const
   return m_Skin;
 }
 
-void Model::setSkin(const QString& skin)
+void Model::initSkin(const QString& skin)
 {
-  if(m_Skin == skin)
-    return;
+  m_Skin = skin;
+
   if(!score::AppContext().applicationSettings.gui)
     return;
 
@@ -115,33 +115,20 @@ void Model::setSkin(const QString& skin)
     qDebug() << "could not open" << f.fileName();
   }
 
-  m_Skin = skin;
+  SkinChanged(skin);
+}
+
+void Model::setSkin(const QString& skin)
+{
+  if(m_Skin == skin)
+    return;
+
+  initSkin(skin);
 
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::Skin.key, m_Skin);
 #endif
-  SkinChanged(skin);
-}
-
-QString Model::getDefaultEditor() const
-{
-  return m_DefaultEditor;
-}
-
-void Model::setDefaultEditor(QString val)
-{
-  if(val == m_DefaultEditor)
-    return;
-
-  m_DefaultEditor = val;
-
-#if !defined(__EMSCRIPTEN__)
-  QSettings s;
-  s.setValue(Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
-#endif
-
-  DefaultEditorChanged(val);
 }
 
 TimeVal Model::getDefaultDuration() const
@@ -149,7 +136,7 @@ TimeVal Model::getDefaultDuration() const
   return m_DefaultDuration;
 }
 
-void Model::setDefaultDuration(TimeVal val)
+void Model::initDefaultDuration(TimeVal val)
 {
   val = std::max(val, TimeVal::fromMsecs(100));
 
@@ -158,17 +145,22 @@ void Model::setDefaultDuration(TimeVal val)
 
   m_DefaultDuration = val;
 
+  DefaultDurationChanged(val);
+}
+void Model::setDefaultDuration(TimeVal val)
+{
+  initDefaultDuration(val);
+
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
 #endif
-
-  DefaultDurationChanged(val);
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, DefaultEditor)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MeasureBars)

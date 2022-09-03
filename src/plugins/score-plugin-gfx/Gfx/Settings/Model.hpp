@@ -38,12 +38,11 @@ public:
 public:
   score::gfx::GraphicsApi graphicsApiEnum() const noexcept;
   QString getGraphicsApi() const;
+  void initGraphicsApi(QString);
   void setGraphicsApi(QString);
   void GraphicsApiChanged(QString arg)
       E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, GraphicsApiChanged, arg)
-  PROPERTY(
-      QString, GraphicsApi, &Model::getGraphicsApi, &Model::setGraphicsApi,
-      &Model::GraphicsApiChanged)
+  SCORE_SETTINGS_PROPERTY(QString, GraphicsApi)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)

@@ -35,7 +35,10 @@ public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   QString getSkin() const;
+  void initSkin(const QString&);
   void setSkin(const QString&);
+  void SkinChanged(const QString& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, DefaultEditor)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, double, GraphicZoom)
@@ -50,9 +53,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, int, ExecutionRefreshRate)
 
 public:
-  void SkinChanged(const QString& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1)
-  PROPERTY(QString, Skin READ getSkin WRITE setSkin NOTIFY SkinChanged, W_Final)
+  SCORE_SETTINGS_PROPERTY(QString, Skin)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, DefaultEditor)

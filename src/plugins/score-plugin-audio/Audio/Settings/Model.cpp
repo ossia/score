@@ -60,6 +60,49 @@ Audio::AudioFactory::ConcreteKey Model::getDriver() const
   return m_Driver;
 }
 
+void Model::initDriver(Audio::AudioFactory::ConcreteKey val)
+{
+  // Reset to default in case of invalid parameters.
+  auto& ctx = score::AppContext();
+  auto& factories = ctx.interfaces<AudioFactoryList>();
+  auto iface = factories.get(val);
+  if(!iface)
+  {
+    val = Parameters::Driver.def;
+    iface = factories.get(val);
+    if(!iface)
+    {
+      val = DummyFactory::static_concreteKey();
+      iface = factories.get(val);
+    }
+  }
+
+  if(val == m_Driver)
+    return;
+
+  m_Driver = val;
+
+  // SDL
+  if(m_Driver
+     == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+         "28b88e91-c5f0-4f13-834f-aa333d14aa81")})
+  {
+    setRate(48000);
+    setBufferSize(1024);
+  }
+
+#if !defined(__EMSCRIPTEN__)
+  // Special case for dummy driver: set reasonable values
+  if(m_Driver
+     == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+         "13dabcc3-9cda-422f-a8c7-5fef5c220677")})
+  {
+    m_Rate = 44100;
+    m_BufferSize = 1024;
+  }
+#endif
+  iface->initialize(*this, ctx);
+}
 void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 {
   // Reset to default in case of invalid parameters.
@@ -115,6 +158,16 @@ int Model::getRate() const
   return m_Rate;
 }
 
+void Model::initRate(int val)
+{
+  if(val <= 0)
+    val = 44100;
+  if(val == m_Rate)
+    return;
+
+  m_Rate = val;
+}
+
 void Model::setRate(int val)
 {
   if(val <= 0)
@@ -134,6 +187,16 @@ void Model::setRate(int val)
 int Model::getBufferSize() const
 {
   return m_BufferSize;
+}
+
+void Model::initBufferSize(int val)
+{
+  if(val <= 0)
+    val = 512;
+  if(val == m_BufferSize)
+    return;
+
+  m_BufferSize = val;
 }
 
 void Model::setBufferSize(int val)

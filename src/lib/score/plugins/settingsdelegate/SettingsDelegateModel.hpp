@@ -48,13 +48,13 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
     if(!set.contains(e.key))
     {
       set.setValue(e.key, QVariant::fromValue(e.def));
-      (model.*param_type::set)(e.def);
+      (model.*param_type::init)(e.def);
     }
     else
     {
       // We fetch the value from the settings.
       auto val = set.value(e.key).template value<data_type>();
-      (model.*param_type::set)(val);
+      (model.*param_type::init)(val);
     }
   });
 }
@@ -95,12 +95,28 @@ void setupDefaultSettings(QSettings&, const T& tuple, Model& model)
 #define SCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \
   SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_PARAMETER_HPP(Export, Type, Name)                        \
-public:                                                                         \
-  Type get##Name() const;                                                       \
-  void set##Name(Type);                                                         \
-  void Name##Changed(Type arg) E_SIGNAL2(Export##S, Export, Name##Changed, arg) \
-      PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed)  \
+#define SCORE_SETTINGS_PROPERTY(Type, Name)                                 \
+  W_PROPERTY(                                                               \
+      Type, Name, &W_ThisType::get##Name, &W_ThisType::set##Name, W_Notify, \
+      &W_ThisType::Name##Changed)                                           \
+  struct p_##Name                                                           \
+  {                                                                         \
+    using param_type = Type;                                                \
+    using model_type = W_ThisType;                                          \
+    static const constexpr auto name = #Name;                               \
+    static const constexpr auto get = &W_ThisType::get##Name;               \
+    static const constexpr auto set = &W_ThisType::set##Name;               \
+    static const constexpr auto notify = &W_ThisType::Name##Changed;        \
+    static const constexpr auto init = &W_ThisType::init##Name;             \
+  };
+
+#define SCORE_SETTINGS_PARAMETER_HPP(Export, Type, Name)                         \
+public:                                                                          \
+  Type get##Name() const;                                                        \
+  void init##Name(Type);                                                         \
+  void set##Name(Type);                                                          \
+  void Name##Changed(Type arg) E_SIGNAL2(Export##S, Export, Name##Changed, arg); \
+  SCORE_SETTINGS_PROPERTY(Type, Name)                                            \
 private:
 
 #if !defined(__EMSCRIPTEN__)
@@ -110,6 +126,12 @@ private:
     return m_##Name;                                                 \
   }                                                                  \
                                                                      \
+  void ModelType::init##Name(Type val)                               \
+  {                                                                  \
+    m_##Name = val;                                                  \
+                                                                     \
+    Name##Changed(val);                                              \
+  }                                                                  \
   void ModelType::set##Name(Type val)                                \
   {                                                                  \
     if(val == m_##Name)                                              \
@@ -128,14 +150,17 @@ private:
     return m_##Name;                                        \
   }                                                         \
                                                             \
+  void ModelType::init##Name(Type val, QSettings* set)      \
+  {                                                         \
+    m_##Name = val;                                         \
+    Name##Changed(val);                                     \
+  }                                                         \
   void ModelType::set##Name(Type val)                       \
   {                                                         \
     if(val == m_##Name)                                     \
       return;                                               \
                                                             \
-    m_##Name = val;                                         \
-                                                            \
-    Name##Changed(val);                                     \
+    init##Name(std::move(val));                             \
   }
 #endif
 
@@ -145,11 +170,15 @@ private:
     return m_##Name;                                               \
   }                                                                \
                                                                    \
+  void ModelType::init##Name(Type val)                             \
+  {                                                                \
+    m_##Name = val;                                                \
+    Name##Changed(val);                                            \
+  }                                                                \
   void ModelType::set##Name(Type val)                              \
   {                                                                \
     if(val == m_##Name)                                            \
       return;                                                      \
                                                                    \
-    m_##Name = val;                                                \
-    Name##Changed(val);                                            \
+    init##Name(std::move(val));                                    \
   }
