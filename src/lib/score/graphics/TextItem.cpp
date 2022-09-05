@@ -141,19 +141,8 @@ QRectF QGraphicsTextButton::boundingRect() const
 void QGraphicsTextButton::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = score::Skin::instance();
 
-  const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
-  painter->drawRoundedRect(brect, 1, 1);
+}*/
 
-  if(!m_string.isEmpty())
-  {
-    painter->setPen(skin.Base4.main.pen2);
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->setFont(skin.Medium10Pt);
-    painter->drawText(brect, m_string, QTextOption(Qt::AlignCenter));
-  }
-}
 
-*/
 }

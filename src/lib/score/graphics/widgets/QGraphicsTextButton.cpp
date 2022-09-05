@@ -11,12 +11,13 @@ W_OBJECT_IMPL(score::QGraphicsTextButton);
 namespace score {
 
 
-QGraphicsTextButton::QGraphicsTextButton(QGraphicsItem *parent,QString text)
+QGraphicsTextButton::QGraphicsTextButton(QString text,QGraphicsItem *parent)
   : QGraphicsItem{parent}
 {
     setText(std::move(text));
     auto& skin = score::Skin::instance();
     setCursor(skin.CursorPointingHand);
+
 }
 void QGraphicsTextButton::bang()
 {
@@ -58,6 +59,18 @@ void QGraphicsTextButton::paint(
     QWidget* widget)
 {
   auto& skin = score::Skin::instance();
+
+  const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
+  painter->drawRoundedRect(brect, 1, 1);
+
+  if(!m_string.isEmpty())
+  {
+    painter->setPen(skin.Base4.main.pen2);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->setFont(skin.Medium10Pt);
+    painter->drawText(brect, m_string, QTextOption(Qt::AlignCenter));
+  }
+  /*auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   constexpr const double margin = 2.;
@@ -80,8 +93,12 @@ void QGraphicsTextButton::paint(
 //  SimpleTextItem::paint(painter,option,widget);
   painter->drawText(m_rect.topLeft(),m_string);
 
-  painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->setRenderHint(QPainter::Antialiasing, false);*/
 }
 
+QRectF QGraphicsTextButton::boundingRect() const
+{
+  return m_rect;
+}
 
 }

@@ -18,13 +18,14 @@ class SCORE_LIB_BASE_EXPORT QGraphicsTextButton final
 
   bool m_pressed{};
 public:
-  QGraphicsTextButton(QGraphicsItem* parent,QString text="");
+  QGraphicsTextButton(QString text,QGraphicsItem* parent);
 
   void pressed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed);
   void bang();
 
   const QString& text() const noexcept{return m_string;}
   void setText(const QString& s){m_string=std::move(s);}
+  QRectF boundingRect() const override;
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

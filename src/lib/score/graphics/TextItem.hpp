@@ -22,7 +22,7 @@ protected:
   void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT SimpleTextItem final
+class SCORE_LIB_BASE_EXPORT SimpleTextItem
     : public QObject
     , public QGraphicsItem
 {
@@ -37,6 +37,7 @@ public:
   void setText(const QString& s);
   void setText(std::string_view s);
   void setColor(const score::BrushSet& c);
+  const QString& text() const noexcept;
 
 private:
   SimpleTextItem() = delete;
@@ -52,8 +53,8 @@ private:
   QString m_string;
   QImage m_line;
 };
-/*
-class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
+
+/*class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
     : public QObject
     , public QGraphicsItem
 {
@@ -72,7 +73,7 @@ protected:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QString m_string;
-};
+};*/
 }
-*/
-}
+
+
