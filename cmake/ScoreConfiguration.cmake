@@ -30,7 +30,7 @@ option(SCORE_COVERAGE "Enable coverage" OFF)
 option(SCORE_INSTALL_HEADERS "Install headers" OFF)
 
 option(SCORE_FX_DESIGNER "FX GUI designer" OFF)
-
+option(SCORE_FAST_DEV_BUILD "Disables some features for faster development" OFF)
 set(CMAKE_DEBUG_POSTFIX "")
 if(APPLE)
   set(SCORE_OPENGL ON)

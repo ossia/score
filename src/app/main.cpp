@@ -156,6 +156,11 @@ static void setup_suil()
 static void setup_gtk()
 {
 #if defined(__linux__)
+  if(qEnvironmentVariableIsSet("SCORE_DISABLE_AUDIOPLUGINS"))
+    return;
+  if(qEnvironmentVariableIsSet("SCORE_DISABLE_LV2"))
+    return;
+
   helper_dylibs.gtk2 = dlopen("libgtk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
   if(helper_dylibs.gtk2)
   {
@@ -183,6 +188,11 @@ static void setup_gtk()
 static void setup_gdk()
 {
 #if defined(__linux__)
+  if(qEnvironmentVariableIsSet("SCORE_DISABLE_AUDIOPLUGINS"))
+    return;
+  if(qEnvironmentVariableIsSet("SCORE_DISABLE_LV2"))
+    return;
+
   static bool gtk3_loaded{};
   dl_iterate_phdr(
       [](struct dl_phdr_info* info, size_t size, void* data) -> int {

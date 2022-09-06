@@ -7,6 +7,10 @@ if(NOT TARGET score_plugin_media)
   return()
 endif()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 find_package(Lilv)
 find_package(Suil)
 find_path(LV2_PATH lv2/lv2plug.in/ns/ext/atom/atom.h)

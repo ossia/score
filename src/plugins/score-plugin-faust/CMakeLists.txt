@@ -6,6 +6,10 @@ if(MSVC)
   return()
 endif()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 if(NOT TARGET score_plugin_media)
   return()
 endif()

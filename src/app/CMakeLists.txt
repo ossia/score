@@ -73,10 +73,12 @@ else()
   set(SCORE_MIMALLOC_TARGET mimalloc)
 endif()
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES Emscripten)
-  target_link_libraries(${APPNAME} PUBLIC
-    $<LINK_ONLY:${SCORE_MIMALLOC_TARGET}>
-  )
+if(NOT asan IN_LIST CNINJA_FEATURES)
+  if(NOT CMAKE_SYSTEM_NAME MATCHES Emscripten)
+    target_link_libraries(${APPNAME} PUBLIC
+      $<LINK_ONLY:${SCORE_MIMALLOC_TARGET}>
+    )
+  endif()
 endif()
 
 target_compile_definitions(${APPNAME} PUBLIC

@@ -7,6 +7,10 @@ if(NOT TARGET score_plugin_media)
   return()
 endif()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*arm.*")
   return()
 endif()

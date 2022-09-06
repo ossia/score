@@ -415,9 +415,10 @@ void custom_factories<grph::Graph>(
     std::vector<std::unique_ptr<score::InterfaceBase>>& fx,
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
+  /*s
   static auto w = new GraphWidget;
   w->show();
-  /*
+
   using namespace oscr;
   auto res = oscr::instantiate_fx<grph::Graph>(ctx, key);
   fx.insert(

@@ -4,6 +4,10 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
   return()
 endif()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 # Find dependencies
 find_package(LLVM PATHS ${LLVM_DIR})
 if(Qt5Core_VERSION_STRING)

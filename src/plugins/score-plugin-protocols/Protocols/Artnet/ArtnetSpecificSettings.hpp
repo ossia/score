@@ -59,7 +59,8 @@ struct ArtnetSpecificSettings
   enum
   {
     ArtNet,
-    E131
+    E131,
+    DMXUSBPRO,
   } transport{ArtNet};
 };
 }

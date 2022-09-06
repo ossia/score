@@ -6,6 +6,10 @@ endif()
 
 score_common_setup()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 # Packages
 find_package(Freetype)
 

@@ -13,6 +13,9 @@
 #include <ossia/protocols/artnet/artnet_protocol.hpp>
 #include <ossia/protocols/artnet/dmx_parameter.hpp>
 #include <ossia/protocols/artnet/e131_protocol.hpp>
+#include <ossia/protocols/artnet/dmxusbpro_protocol.hpp>
+
+#include <QSerialPortInfo>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::ArtnetDevice)
@@ -137,6 +140,33 @@ bool ArtnetDevice::reconnect()
         auto& proto = *artnet_proto;
         auto dev = std::make_unique<ossia::net::generic_device>(
             std::move(artnet_proto), settings().name.toStdString());
+
+        for(auto& fixt : set.fixtures)
+        {
+          addArtnetFixture(*dev, proto.buffer(), fixt);
+        }
+        m_dev = std::move(dev);
+        break;
+      }
+      case ArtnetSpecificSettings::DMXUSBPRO: {
+        ossia::net::serial_configuration sock_conf;
+
+        for(auto& p : QSerialPortInfo::availablePorts())
+        {
+          if(p.portName() == set.host)
+          {
+            sock_conf.port = p.systemLocation().toStdString();
+            break;
+          }
+        }
+
+        sock_conf.baud_rate = 115200;
+
+        auto artnet_proto
+            = std::make_unique<ossia::net::dmxusbpro_protocol>(m_ctx, conf, sock_conf);
+        auto& proto = *artnet_proto;
+        auto dev = std::make_unique<ossia::net::generic_device>(
+              std::move(artnet_proto), settings().name.toStdString());
 
         for(auto& fixt : set.fixtures)
         {

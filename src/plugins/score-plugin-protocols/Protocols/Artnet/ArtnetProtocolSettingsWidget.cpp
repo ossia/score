@@ -27,6 +27,7 @@
 #include <QTimer>
 #include <QTreeWidget>
 #include <QVariant>
+#include <QSerialPortInfo>
 
 #include <wobjectimpl.h>
 
@@ -631,7 +632,26 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_universe->setRange(1, 65539);
 
   m_transport = new QComboBox{this};
-  m_transport->addItems({"ArtNet", "E1.31 (sACN)"});
+  m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO"});
+
+  connect(m_transport, &QComboBox::currentIndexChanged, this, [=] (int idx) {
+
+    m_host->clear();
+   switch(idx)
+   {
+     case 0:
+     case 1:
+       m_host->addItems(score::list_ipv4());
+       break;
+     case 2:
+     {
+       for(auto port : QSerialPortInfo::availablePorts())
+         m_host->addItem(port.portName());
+       break;
+     }
+   }
+
+  });
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
@@ -727,9 +747,18 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
   ArtnetSpecificSettings settings{};
   settings.fixtures = this->m_fixtures;
   settings.host = this->m_host->currentText();
-  settings.transport = this->m_transport->currentIndex() == 0
-                           ? ArtnetSpecificSettings::ArtNet
-                           : ArtnetSpecificSettings::E131;
+  switch(this->m_transport->currentIndex() )
+  {
+    case 0:
+      settings.transport = ArtnetSpecificSettings::ArtNet;
+      break;
+    case 1:
+      settings.transport = ArtnetSpecificSettings::E131;
+      break;
+    case 2:
+      settings.transport = ArtnetSpecificSettings::DMXUSBPRO;
+      break;
+  }
 
   settings.rate = this->m_rate->value();
   settings.universe = this->m_universe->value();

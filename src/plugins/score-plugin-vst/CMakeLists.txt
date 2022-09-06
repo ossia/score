@@ -6,6 +6,10 @@ if(NOT TARGET score_plugin_media)
   return()
 endif()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 # Packages
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
 if(NOT TARGET ${QT_PREFIX}::WebSockets)
