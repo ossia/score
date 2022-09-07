@@ -1,5 +1,5 @@
 #include <ossia/detail/config.hpp>
-#if defined(OSSIA_PROTOCOL_ARTNET)
+#if 1 || defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetProtocolFactory.hpp"
 #include "ArtnetProtocolSettingsWidget.hpp"
 #include "ArtnetSpecificSettings.hpp"
@@ -634,9 +634,8 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_transport = new QComboBox{this};
   m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO"});
 
-  connect(m_transport, &QComboBox::currentIndexChanged, this, [=] (int idx) {
-
-    m_host->clear();
+  connect(m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
+   m_host->clear();
    switch(idx)
    {
      case 0:
