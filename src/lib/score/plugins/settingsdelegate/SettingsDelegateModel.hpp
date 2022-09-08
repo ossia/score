@@ -150,7 +150,7 @@ private:
     return m_##Name;                                        \
   }                                                         \
                                                             \
-  void ModelType::init##Name(Type val, QSettings* set)      \
+  void ModelType::init##Name(Type val)                      \
   {                                                         \
     m_##Name = val;                                         \
     Name##Changed(val);                                     \
