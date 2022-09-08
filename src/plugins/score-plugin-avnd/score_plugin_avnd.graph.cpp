@@ -27,6 +27,7 @@ struct Port
 
   QString name;
   QPointF pos;
+  QGraphicsItem* widget{};
 };
 
 struct EdgeItem : public QGraphicsItem
@@ -88,10 +89,9 @@ struct NodeItem : public QGraphicsItem
   void setLabel(QString label) { m_label = label; }
   void addInlet(QString name)
   {
-    int n = m_inlets.size();
     m_inlets.emplace_back(name);
-    m_inlets.back().pos
-        = firstInletPos() + QPointF{radius / 2., radius / 2. + n * diameter};
+
+    updateRect();
   }
   void addOutlet(QString name)
   {
@@ -99,26 +99,40 @@ struct NodeItem : public QGraphicsItem
     m_outlets.emplace_back(name);
     m_outlets.back().pos
         = firstOutletPos() + QPointF{radius / 2., radius / 2. + n * diameter};
-
-    qDebug() << m_outlets.back().pos;
   }
 
   void updateRect()
   {
-    int max_port = std::max(m_inlets.size(), m_outlets.size());
-    double max_h = 20 * max_port + 10;
     double max_w = 5 * m_label.length() + 40;
 
     prepareGeometryChange();
-    m_rect = QRectF{0, 0, max_w, max_h};
 
+    auto cur_pos = firstInletPos() + QPointF{radius / 2., radius / 2.};
     for(int i = 0; i < m_inlets.size(); i++)
-      m_inlets[i].pos
-          = firstInletPos() + QPointF{radius / 2., radius / 2. + i * diameter};
+    {
+      m_inlets[i].pos = cur_pos;
+      if(auto w = m_inlets[i].widget)
+        cur_pos.ry() += w->boundingRect().height() + 5.;
+      else
+        cur_pos.ry() += diameter;
+    }
+
+    double max_h = cur_pos.y();
+    if(!m_inlets.empty())
+    {
+      if(m_inlets.back().widget)
+      { max_h += m_inlets.back().widget->boundingRect().height();}
+      else { max_h += m_inlets.back().pos.y() + radius; }
+    }
 
     for(int i = 0; i < m_outlets.size(); i++)
       m_outlets[i].pos
           = firstOutletPos() + QPointF{radius / 2., radius / 2. + i * diameter};
+
+    if(!m_outlets.empty())
+        max_h = std::max(m_outlets.back().pos.y() + radius, max_h);
+
+    m_rect = QRectF{0, 0, max_w, max_h};
     update();
   }
   QRectF rect() const noexcept { return m_rect; }
@@ -316,11 +330,34 @@ protected:
   }
 };
 
+template<typename F>
+QGraphicsItem* makeidget(const F& field, QGraphicsItem* parent)
+{
+  if constexpr(avnd::control<F>)
+  {
+    constexpr auto widg = avnd::get_widget<F>();
+    if constexpr(widg.widget == avnd::widget_type::slider)
+    {
+     auto c = new score::QGraphicsSlider{parent};
+     c->setRange(0., 1.);
+     return c;
+    }
+    else if constexpr(widg.widget == avnd::widget_type::spinbox)
+    {
+     auto c = new score::QGraphicsSpinbox{parent};
+     c->setRange(0., 1.);
+     return c;
+    }
+    else if constexpr(widg.widget == avnd::widget_type::lineedit)
+    {
+     return new Process::LineEditItem{parent};
+    }
+  }
+  return nullptr;
+
+}
 struct GraphWidget : public QSplitter
 {
-  using T = grph::my_graph;
-  using node = T::node;
-
   QListWidget items;
   QGraphicsScene scene;
   View view;
@@ -347,6 +384,10 @@ public:
           factories[idx.row()]();
         });
 
+
+    using T = grph::expression_graph;
+    using node = T::node;
+
     auto f = [this]<typename N>(N&& n) {
       this->items.addItem(QString::fromUtf8(avnd::get_name<N>()));
       factories.push_back([this, n]() mutable {
@@ -362,6 +403,10 @@ public:
         {
           ins::for_all(avnd::get_inputs(n), [it]<typename F>(const F& field) {
             it->addInlet(QString::fromUtf8(avnd::get_name<F>()));
+            if(auto w = makeidget<F>(field, it)) {
+              it->m_inlets.back().widget = w;
+              w->setZValue(10);
+            }
           });
         }
         using outs = avnd::output_introspection<N>;
@@ -415,10 +460,9 @@ void custom_factories<grph::Graph>(
     std::vector<std::unique_ptr<score::InterfaceBase>>& fx,
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
-  /*s
   static auto w = new GraphWidget;
   w->show();
-
+  /*
   using namespace oscr;
   auto res = oscr::instantiate_fx<grph::Graph>(ctx, key);
   fx.insert(

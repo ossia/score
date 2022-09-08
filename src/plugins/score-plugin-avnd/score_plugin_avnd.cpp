@@ -136,7 +136,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
       ao::Bandshelf, ao::Bitcrush, ao::Compressor, ao::Limiter, ao::Echo, ao::Flanger,
       ao::StereoMixer>(ctx, key);
 
-  custom_factories<grph::Graph>(fx, ctx, key);
+  //custom_factories<grph::Graph>(fx, ctx, key);
 
 #if AVND_TEST_BUILD
   namespace E = examples;

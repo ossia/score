@@ -54,7 +54,8 @@ struct SCORE_LIB_PROCESS_EXPORT LineEditItem : public QGraphicsTextItem
 {
   W_OBJECT(LineEditItem)
 public:
-  LineEditItem()
+  explicit LineEditItem(QGraphicsItem* parent)
+  : QGraphicsTextItem{parent}
   {
     setTextInteractionFlags(Qt::TextEditorInteraction);
     auto ctl = this->findChild<QWidgetTextControl*>();
@@ -68,7 +69,7 @@ public:
   {
     QGraphicsTextItem::dropEvent(drop);
     const auto& urlList = drop->mimeData()->urls();
-    
+
     if(!urlList.isEmpty()) {
       this->setPlainText(urlList[0].toLocalFile());
     }
@@ -667,7 +668,7 @@ struct LineEdit
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new Process::LineEditItem{};
+    auto sl = new Process::LineEditItem{parent};
     sl->setTextWidth(180.);
     sl->setDefaultTextColor(QColor{"#E0B01E"});
     sl->setCursor(Qt::IBeamCursor);
