@@ -47,7 +47,7 @@
 #include <avnd/../../examples/Advanced/Utilities/Echo.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Flanger.hpp>
 #include <avnd/../../examples/Advanced/Utilities/StereoMixer.hpp>
-#define AVND_TEST_BUILD 0
+#define AVND_TEST_BUILD 1 //TODO revert back
 #if AVND_TEST_BUILD
 #include <avnd/../../examples/Helpers/Controls.hpp>
 #include <avnd/../../examples/Helpers/FFTDisplay.hpp>

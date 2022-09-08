@@ -220,9 +220,6 @@ struct InletInitFunc
         return "";
       }
     };
-//    QStringList filtersList;
-//    if_possible(filtersList = T::filters());
-//    QString filters = filtersList.join(" ");
     QString filters = getFilters(in);
     auto p = new Process::FileChooser{
         "",

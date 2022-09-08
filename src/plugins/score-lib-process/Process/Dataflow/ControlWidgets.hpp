@@ -10,8 +10,8 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/TextItem.hpp>
-#include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/graphics/widgets/QGraphicsTextButton.hpp>
+#include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -70,7 +70,7 @@ public:
 
   void dropEvent(QGraphicsSceneDragDropEvent* drop) override
   {
-    QGraphicsTextItem::dropEvent(drop);
+    QGraphicsItem::dropEvent(drop);
     const auto& urlList = drop->mimeData()->urls();
 
     if(!urlList.isEmpty()) {
@@ -831,7 +831,7 @@ struct FileChooser{
         QGraphicsItem* parent,
         QObject* context)
     {
-      auto bt = new score::QGraphicsTextButton{parent,"Open File"};
+      auto bt = new score::QGraphicsTextButton{"Open File",parent};
       const QString filter = "Media File ("+inlet.filters()+")";
       auto on_open = [=,&inlet]{
         bt->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
