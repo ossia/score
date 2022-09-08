@@ -255,7 +255,12 @@ if(OSSIA_PROTOCOL_WIIMOTE)
 endif()
 
 if(OSSIA_PROTOCOL_ARTNET)
+  # Needed for listing serial ports for DMX USB
+  find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)
+  if(TARGET ${QT_PREFIX}::SerialPort)
     target_sources(${PROJECT_NAME} PRIVATE ${ARTNET_HDRS} ${ARTNET_SRCS})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::SerialPort)
+  endif()
 endif()
 
 target_link_libraries(${PROJECT_NAME}
