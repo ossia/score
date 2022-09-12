@@ -301,15 +301,18 @@ std::shared_ptr<NodeFactory> Model::getJitFactory()
     auto str = fx_text.toStdString();
     str += R"_(
 #include <avnd/binding/ossia/all.hpp>
+#include <avnd/binding/ossia/node.hpp>
+#include <avnd/binding/ossia/data_node.hpp>
+#include <avnd/binding/ossia/mono_audio_node.hpp>
+#include <avnd/binding/ossia/ossia_audio_node.hpp>
+#include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <avnd/binding/ossia/configure.hpp>
 __attribute__ ((visibility("default")))
 extern "C" ossia::graph_node* avnd_factory() {
   using type = decltype(avnd::configure<oscr::config, Node>())::type;
-  return new oscr::safe_node<type>(44100, 512);
+  return new oscr::safe_node<type>(44100, 512, 0);
 }
 )_";
-    //str = "#include <cmath>"
-    //      "";
     jit_factory = std::make_shared<NodeFactory>(
         (*m_compiler)(str, {}, Jit::CompilerOptions{false}));
 

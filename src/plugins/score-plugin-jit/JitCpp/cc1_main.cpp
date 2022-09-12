@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <clang/Basic/DiagnosticSema.h>
 #undef CALLBACK
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/Stack.h"
@@ -275,6 +276,7 @@ llvm::Error cc1_main(ArrayRef<const char*> Argv, const char* Argv0, void* MainAd
       LLVMErrorHandler, static_cast<void*>(&Clang->getDiagnostics()));
 
   DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
+  Clang->getDiagnostics().setSeverity(clang::diag::ext_constexpr_function_never_constant_expr, diag::Severity::Ignored, {});
   if(!Success)
   {
     return llvm::make_error<llvm::StringError>(
