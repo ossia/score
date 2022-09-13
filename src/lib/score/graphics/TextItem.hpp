@@ -53,27 +53,6 @@ private:
   QString m_string;
   QImage m_line;
 };
-
-/*class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
-    : public QObject
-    , public QGraphicsItem
-{
-  W_OBJECT(QGraphicsTextButton)
-public:
-  QGraphicsTextButton(QString text, QGraphicsItem* parent);
-
-public:
-  void pressed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed)
-  QRectF boundingRect() const final override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-      final override;
-
-protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  QString m_string;
-};*/
 }
 
 

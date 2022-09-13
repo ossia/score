@@ -4,6 +4,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QTimer>
+#include <QTextLayout>
+
 
 #include <wobjectimpl.h>
 
@@ -16,6 +18,7 @@ QGraphicsTextButton::QGraphicsTextButton(QString text,QGraphicsItem *parent)
 {
     setText(std::move(text));
     auto& skin = score::Skin::instance();
+    updateBounds();
     setCursor(skin.CursorPointingHand);
 
 }
@@ -70,35 +73,25 @@ void QGraphicsTextButton::paint(
     painter->setFont(skin.Medium10Pt);
     painter->drawText(brect, m_string, QTextOption(Qt::AlignCenter));
   }
-  /*auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
 
-  constexpr const double margin = 2.;
-  const double insideCircleWidth = boundingRect().width();
-  const double backgroundRectWidth = insideCircleWidth + 2*margin;
+}
+void QGraphicsTextButton::updateBounds(){
+    auto& skin = score::Skin::instance();
+    if(m_string.isEmpty())
+        m_string = "Open File";
+    QTextLayout layout(m_string,skin.Medium12Pt);
+    layout.beginLayout();
+    auto line = layout.createLine();
+    layout.endLayout();
 
-  const double insideCircleOffset
-      = margin + 0.5f * (backgroundRectWidth - insideCircleWidth);
+    m_rect = line.naturalTextRect();
 
-  painter->setPen(skin.NoPen);
-  painter->setBrush(
-      !m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
-
-  painter->drawRect(boundingRect());
-
-  if (m_pressed)
-  {
-    painter->drawRect(boundingRect());
-  }
-//  SimpleTextItem::paint(painter,option,widget);
-  painter->drawText(m_rect.topLeft(),m_string);
-
-  painter->setRenderHint(QPainter::Antialiasing, false);*/
 }
 
 QRectF QGraphicsTextButton::boundingRect() const
 {
-  return m_rect;
+    return m_rect;
+
 }
 
 }

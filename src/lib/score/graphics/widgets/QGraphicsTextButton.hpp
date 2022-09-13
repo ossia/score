@@ -24,13 +24,14 @@ public:
   void bang();
 
   const QString& text() const noexcept{return m_string;}
-  void setText(const QString& s){m_string=std::move(s);}
+  void setText(const QString& s){m_string=std::move(s); updateBounds();}
   QRectF boundingRect() const override;
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void updateBounds();
   void paint(
         QPainter* painter,
         const QStyleOptionGraphicsItem* option,
