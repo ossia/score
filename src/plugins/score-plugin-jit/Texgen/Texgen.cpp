@@ -121,7 +121,7 @@ void TexgenModel::reload()
 
   try
   {
-    jit_factory = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{true});
+    jit_factory = (*m_compiler).operator()<TexgenFunction>(fx_text.toStdString(), {}, CompilerOptions{true});
     assert(jit_factory);
 
     if(!jit_factory)

@@ -30,10 +30,9 @@ PROCESS_METADATA(
     Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
-template <typename Fun_T>
 struct Driver;
 using TexgenFunction = void(unsigned char* rgb, int width, int height, int t);
-using TexgenCompiler = Driver<TexgenFunction>;
+using TexgenCompiler = Driver;
 using TexgenFactory = std::function<TexgenFunction>;
 class TexgenModel : public Process::ProcessModel
 {

@@ -25,10 +25,9 @@ PROCESS_METADATA(
     QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
-template <typename Fun_T>
 struct Driver;
 
-using NodeCompiler = Driver<ossia::graph_node*()>;
+using NodeCompiler = Driver;
 using NodeFactory = std::function<ossia::graph_node*()>;
 
 class JitEffectModel : public Process::ProcessModel

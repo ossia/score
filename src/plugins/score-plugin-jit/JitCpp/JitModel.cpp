@@ -299,7 +299,7 @@ std::shared_ptr<NodeFactory> JitEffectModel::getJitFactory()
   try
   {
     jit_factory = std::make_shared<NodeFactory>(
-        (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{false}));
+        (*m_compiler).operator()<ossia::graph_node*()>(fx_text.toStdString(), {}, CompilerOptions{false}));
 
     if(!(*jit_factory))
       return nullptr;

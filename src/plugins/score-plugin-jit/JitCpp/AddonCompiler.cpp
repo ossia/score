@@ -43,7 +43,7 @@ void AddonCompiler::on_job(
     // TODO this is needed because if the jit_plugin instance is removed,
     // function calls to this plug-in will crash. We must detect when a plugin
     // is not necessary anymore and remove it.
-    using compiler_t = Driver<score::Plugin_QtInterface*()>;
+    using compiler_t = Driver;
 
     static std::list<std::unique_ptr<compiler_t>> ctx;
 
@@ -53,7 +53,7 @@ void AddonCompiler::on_job(
     ctx.push_back(std::make_unique<compiler_t>("plugin_instance_" + id));
 
     qDebug() << "Calling compiler...";
-    auto jitedFn = (*ctx.back())(cpp, flags, opts);
+    auto jitedFn = (*ctx.back()).operator()<score::Plugin_QtInterface*()>(cpp, flags, opts);
 
     if(!jitedFn)
     {

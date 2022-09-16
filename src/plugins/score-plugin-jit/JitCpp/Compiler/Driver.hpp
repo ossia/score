@@ -7,7 +7,6 @@
 namespace Jit
 {
 
-template <typename Fun_T>
 struct Driver
 {
   Driver(const std::string& fname)
@@ -17,6 +16,7 @@ struct Driver
   {
   }
 
+  template <typename Fun_T>
   std::function<Fun_T> operator()(
       const std::string& sourceCode, const std::vector<std::string>& flags,
       CompilerOptions opts)

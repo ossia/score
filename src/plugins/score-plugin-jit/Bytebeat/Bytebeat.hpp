@@ -27,10 +27,9 @@ PROCESS_METADATA(
     "ossia score", QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
-template <typename Fun_T>
 struct Driver;
 using BytebeatFunction = void(double* input, int size, int time);
-using BytebeatCompiler = Driver<BytebeatFunction>;
+using BytebeatCompiler = Driver;
 using BytebeatFactory = std::function<BytebeatFunction>;
 class BytebeatModel : public Process::ProcessModel
 {

@@ -23,7 +23,6 @@ class Model;
 
 namespace Jit
 {
-template <typename Fun_T>
 struct Driver;
 }
 PROCESS_METADATA(
@@ -32,8 +31,9 @@ PROCESS_METADATA(
     "ossia score", QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
 namespace AvndJit
 {
-using NodeCompiler = Jit::Driver<ossia::graph_node*()>;
-using NodeFactory = std::function<ossia::graph_node*()>;
+using NodeCompiler = Jit::Driver;
+using NodeFunction = ossia::graph_node*(int, double);
+using NodeFactory = std::function<NodeFunction>;
 class Model : public Process::ProcessModel
 {
   friend class JitUI;
