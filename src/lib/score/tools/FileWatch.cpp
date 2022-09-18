@@ -15,7 +15,7 @@ static int64_t get_mtime(const QString& path)
   if(!f.exists())
     return 0;
 
-  return std::max(f.lastModified().toMSecsSinceEpoch(), f.birthTime().toMSecsSinceEpoch());
+  return f.lastModified().toMSecsSinceEpoch();
 }
 
 FileWatch::FileWatch() noexcept
