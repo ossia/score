@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
 
+#include <score/application/ApplicationServices.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/Skin.hpp>
@@ -334,6 +335,12 @@ Application::~Application()
 
   score::DocumentBackups::clear();
   QCoreApplication::processEvents();
+
+  auto& svc = score::AppServices();
+  svc.filewatch.reset();
+  svc.taskpool.reset();
+  svc.threadpool.reset();
+
   delete m_app;
 }
 

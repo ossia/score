@@ -109,6 +109,7 @@
 #include <Avnd/Logger.hpp>
 #include <halp/meta.hpp>
 
+#include "include.avnd.cpp"
 namespace grph
 {
 class Graph;
@@ -137,6 +138,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
       ao::StereoMixer>(ctx, key);
 
   //custom_factories<grph::Graph>(fx, ctx, key);
+  all_custom_factories(fx, ctx, key);
 
 #if AVND_TEST_BUILD
   namespace E = examples;

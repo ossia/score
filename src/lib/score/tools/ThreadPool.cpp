@@ -1,5 +1,5 @@
 #include <score/tools/ThreadPool.hpp>
-
+#include <score/application/ApplicationServices.hpp>
 #include <thread>
 #if __has_include(<sys/resource.h>)
 #include <sys/resource.h>
@@ -28,8 +28,11 @@ ThreadPool::~ThreadPool()
 
 ThreadPool& ThreadPool::instance()
 {
-  static ThreadPool threads;
-  return threads;
+  static std::once_flag init{};
+  std::call_once(init, [] {
+    score::AppServices().threadpool.emplace();
+  });
+  return *score::AppServices().threadpool;
 }
 
 QThread* ThreadPool::acquireThread()
@@ -105,13 +108,18 @@ TaskPool::~TaskPool()
 {
   m_running = false;
   for(auto& t : m_threads)
+  {
     t.join();
+  }
 }
 
 TaskPool& TaskPool::instance()
 {
-  static TaskPool t{};
-  return t;
+  static std::once_flag init{};
+  std::call_once(init, [] {
+    score::AppServices().taskpool.emplace();
+  });
+  return *score::AppServices().taskpool;
 }
 
 }

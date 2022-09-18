@@ -1,0 +1,19 @@
+#include "@AVND_MAIN_FILE@"
+
+
+#include <Avnd/Factories.hpp>
+
+namespace oscr
+{
+template <>
+void custom_factories<@AVND_QUALIFIED@>(
+    std::vector<std::unique_ptr<score::InterfaceBase>>& fx,
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key)
+{
+  using namespace oscr;
+  auto res = oscr::instantiate_fx<@AVND_QUALIFIED@>(ctx, key);
+  fx.insert(
+      fx.end(), std::make_move_iterator(res.begin()),
+      std::make_move_iterator(res.end()));
+}
+}

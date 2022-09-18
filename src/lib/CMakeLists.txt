@@ -86,6 +86,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/ToolbarManager.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationComponents.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationContext.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationServices.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/application/GUIApplicationContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/AggregateCommand.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Command.hpp"
@@ -219,6 +220,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/SubtypeVariant.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ObjectMatches.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FileWatch.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ForEach.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Bind.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/SafeCast.hpp"
@@ -373,6 +375,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationComponents.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationServices.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/Action.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/ActionManager.cpp"
@@ -426,6 +429,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/File.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FileWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.cpp"

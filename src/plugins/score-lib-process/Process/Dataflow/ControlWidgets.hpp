@@ -10,8 +10,8 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/TextItem.hpp>
-#include <score/graphics/widgets/QGraphicsTextButton.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
+#include <score/graphics/widgets/QGraphicsTextButton.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -22,13 +22,12 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QCheckBox>
+#include <QFileDialog>
 #include <QGraphicsItem>
 #include <QGraphicsSceneDragDropEvent>
 #include <QLineEdit>
 #include <QPalette>
 #include <QTextDocument>
-
-#include <QFileDialog>
 
 #include <private/qwidgettextcontrol_p.h>
 
@@ -58,7 +57,7 @@ struct SCORE_LIB_PROCESS_EXPORT LineEditItem : public QGraphicsTextItem
   W_OBJECT(LineEditItem)
 public:
   explicit LineEditItem(QGraphicsItem* parent)
-  : QGraphicsTextItem{parent}
+      : QGraphicsTextItem{parent}
   {
     setTextInteractionFlags(Qt::TextEditorInteraction);
     auto ctl = this->findChild<QWidgetTextControl*>();
@@ -73,7 +72,8 @@ public:
     QGraphicsItem::dropEvent(drop);
     const auto& urlList = drop->mimeData()->urls();
 
-    if(!urlList.isEmpty()) {
+    if(!urlList.isEmpty())
+    {
       this->setPlainText(urlList[0].toLocalFile());
     }
   }
@@ -705,7 +705,6 @@ struct LineEdit
   }
 };
 
-
 struct ProgramPortScriptDialog : Process::ScriptDialog
 {
   ProgramPortScriptDialog(
@@ -774,86 +773,84 @@ struct ProgramEdit
     dial->exec();
   }
 };
-struct FileChooser{
-    static Process::PortItemLayout layout() noexcept
-    {
-      return Process::DefaultControlLayouts::lineedit();
-    }
+
+struct FileChooser
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::lineedit();
+  }
   template <typename T, typename Control_T>
-    static auto make_widget(
-        const T& slider,
-        Control_T& inlet,
-        const score::DocumentContext& ctx,
-        QWidget* parent,
-        QObject* context)
-    {
+  static auto make_widget(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
+  {
+    auto sl = new QLineEdit{parent};
+    auto act = new QAction{sl};
 
+    act->setStatusTip(QObject::tr("Opening a File"));
+    act->setIcon(QIcon(":/icons/search.png"));
+    sl->setPlaceholderText(QObject::tr("Open File"));
+    const QString filter = "Media File (" + inlet.filters() + ")";
+    auto on_open = [=, &inlet] {
+      sl->setText(QFileDialog::getOpenFileName(nullptr, "Open File", {}, filter)
+                      .split("/")
+                      .back());
+    };
 
-      auto sl = new QLineEdit{parent} ;
-      auto act = new QAction{sl};
+    QObject::connect(sl, &QLineEdit::returnPressed, on_open);
+    QObject::connect(act, &QAction::triggered, on_open);
+    sl->addAction(act, QLineEdit::TrailingPosition);
 
-      act->setStatusTip(QObject::tr("Opening a File"));
-      act->setIcon(QIcon(":/icons/search.png"));
-      sl->setPlaceholderText(QObject::tr("Open File"));
-      const QString filter = "Media File ("+inlet.filters()+")";
-      auto on_open = [=,&inlet]{
-        sl->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
-      };
+    sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+    sl->setContentsMargins(0, 0, 0, 0);
+    sl->setMaximumWidth(70);
 
-      QObject::connect(sl, &QLineEdit::returnPressed, on_open);
-      QObject::connect(act,&QAction::triggered, on_open);
-      sl->addAction(act,QLineEdit::TrailingPosition);
-
-      sl->setText(
-              QString::fromStdString(ossia::convert<std::string>(inlet.value())));
-      sl->setContentsMargins(0, 0, 0, 0);
-      sl->setMaximumWidth(70);
-
-      QObject::connect(
-              sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-                CommandDispatcher<>{ctx.commandStack}
-                    .submit<SetControlValue<Control_T>>(
-                        inlet, sl->text().toStdString());
-              });
-      QObject::connect(
-          &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
-            sl->setText(
-                QString::fromStdString(ossia::convert<std::string>(val)));
-            });
-      return sl;
+    QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, sl->text().toStdString());
+    });
+    QObject::connect(
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
+          sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
+        });
+    return sl;
   }
 
-    template <typename T, typename Control_T>
-    static score::QGraphicsTextButton* make_item(
-        const T& slider,
-        Control_T& inlet,
-        const score::DocumentContext& ctx,
-        QGraphicsItem* parent,
-        QObject* context)
-    {
-      auto bt = new score::QGraphicsTextButton{"Open File",parent};
-      const QString filter = "Media File ("+inlet.filters()+")";
-      auto on_open = [=,&inlet]{
-        bt->setText(QFileDialog::getOpenFileName(nullptr,"Open File",{},filter).split("/").back());
-      };
-      QObject::connect(bt, &score::QGraphicsTextButton::pressed, on_open);
-       bt->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+  template <typename T, typename Control_T>
+  static score::QGraphicsTextButton* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
+    auto on_open = [bt, &inlet, &ctx] {
+      qDebug() << inlet.filters();
+      auto filename = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
+      if(filename.isEmpty())
+        return;
 
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, filename.toStdString());
+    };
+    QObject::connect(bt, &score::QGraphicsTextButton::pressed, on_open);
+    auto set = [=](const ossia::value& val) {
+      auto str = QString::fromStdString(ossia::convert<std::string>(val));
+      if(str != bt->text())
+      {
+        if(!str.isEmpty())
+          bt->setText(str.split("/").back());
+        else
+          bt->setText("Choose a file...");
+      }
+    };
 
-//      sl->setPlainText(
-//          QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+    set(slider.value());
+    QObject::connect(&inlet, &Control_T::valueChanged, bt, set);
 
-
-      QObject::connect(
-          &inlet, &Control_T::valueChanged, bt, [=](const ossia::value& val) {
-            auto str = QString::fromStdString(ossia::convert<std::string>(val));
-            if (str != bt->text())
-              bt->setText(str);
-          });
-
-      return bt;
-    }
+    return bt;
+  }
 };
+
 struct Enum
 {
   static Process::PortItemLayout layout() noexcept

@@ -193,42 +193,79 @@ struct InletInitFunc
     ins.push_back(p);
   }
 
-  template <typename T>
-  requires avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::raw_file_port<T>
-  void operator()(const T& in, auto idx)
+  static QString toFilters(const QSet<QString>& exts)
   {
-    constexpr auto name = avnd::get_name<T>();
-    auto getFilters = [] <typename P> (P& p)
+    QString res;
+    for(const auto& s : exts)
     {
-      if constexpr(requires { P::filters().sound; })
-      {
-        QSet<QString> sound_exts = Media::Sound::DropHandler{}.fileExtensions();
-        QString res;
-        for(QString s  : sound_exts)
-        {
-           res.append(s);
-        }
+      res += "*.";
+      res += s;
+      res += " ";
+    }
+    if(!exts.empty())
+      res.resize(res.size() - 2);
+    return res;
+  }
 
-        return res;
-      }
-      else if constexpr(avnd::string_ish<P>)
+  template <typename P>
+  static QString getFilters(P& p)
+  {
+    if constexpr(requires { P::filters(); })
+    {
+      using filter = decltype(P::filters());
+      if constexpr(requires { filter::sound; } || requires { filter::audio; })
       {
-          return p.filters();
+        return QString{"Sound files (%1)"}.arg(toFilters(Media::Sound::DropHandler{}.fileExtensions()));
+      }
+      else if constexpr(requires { filter::video; })
+      {
+        // FIXME refactor supported formats with Video process
+        QSet<QString> files = {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
+                  "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
+        return QString{"Videos (%1)"}.arg(toFilters(files));
+      }
+      else if constexpr(requires { filter::image; })
+      {
+        // FIXME refactor supported formats with Image List Chooser
+        return QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"};
+      }
+      else if constexpr(requires { filter::midi; })
+      {
+        return "MIDI (*.mid)";
+      }
+      else if constexpr(avnd::string_ish<filter>)
+      {
+        return fromStringView(p.filters());
       }
       else
       {
         return "";
       }
-    };
-    QString filters = getFilters(in);
+    }
+    else
+    {
+      return "";
+    }
+  }
+  template <typename T>
+  requires avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::raw_file_port<T>
+  void operator()(const T& in, auto idx)
+  {
+    constexpr auto name = avnd::get_name<T>();
+
+    qDebug() << getFilters(in);
     auto p = new Process::FileChooser{
         "",
-        filters,
+        getFilters(in),
         QString::fromUtf8(name.data(), name.size()),
         Id<Process::Port>(inlet++),
         &self};
     p->hidden = true;
     ins.push_back(p);
+
+    if constexpr(requires { T::file_watch; }) {
+      p->enableFileWatch();
+    }
   }
 
   template <avnd::parameter T, std::size_t N>

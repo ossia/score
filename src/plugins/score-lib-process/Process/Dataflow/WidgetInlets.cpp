@@ -2,7 +2,13 @@
 
 #include <score/plugins/SerializableHelpers.hpp>
 
+#include <score/tools/FileWatch.hpp>
+#include <QCoreApplication>
+
 #include <ossia/dataflow/port.hpp>
+#include <wobjectimpl.h>
+
+W_OBJECT_IMPL(Process::FileChooser)
 namespace Process
 {
 Enum::Enum(DataStream::Deserializer& vis, QObject* parent)
@@ -344,7 +350,47 @@ void FileChooser::setupExecution(ossia::inlet& inl) const noexcept
   port.domain = domain().get();
 }
 
-FileChooser::~FileChooser() { }
+void FileChooser::enableFileWatch()
+{
+
+  auto fun = std::make_shared<std::function<void()>>([ptr=QPointer{this}] () mutable{
+    QMetaObject::invokeMethod(qApp, [ptr=std::move(ptr)] {
+      if(ptr)
+      {
+        // This will trigger a reload
+        // FIXME make it work with execution value changes
+        ptr->valueChanged(ptr->value());
+      }
+    });
+  });
+
+  auto& f = score::FileWatch::instance();
+  f.add(QString::fromStdString(ossia::convert<std::string>(this->value())), fun);
+
+  connect(this, &Process::FileChooser::valueChanged,
+          this, [cur_s=ossia::convert<std::string>(this->value()), fun] (const ossia::value& v) mutable
+  {
+    auto new_s = ossia::convert<std::string>(v);
+    if(new_s != cur_s)
+    {
+      auto& f = score::FileWatch::instance();
+      f.remove(QString::fromStdString(cur_s), fun);
+      f.add(QString::fromStdString(new_s), fun);
+      cur_s = new_s;
+    }
+  });
+
+  connect(this, &Process::FileChooser::destroying,
+          this, [this, fun] {
+    auto& f = score::FileWatch::instance();
+    f.remove(QString::fromStdString(ossia::convert<std::string>(this->value())), fun);
+  });
+}
+
+FileChooser::~FileChooser()
+{
+  destroying();
+}
 
 
 Button::Button(const QString& name, Id<Port> id, QObject* parent)

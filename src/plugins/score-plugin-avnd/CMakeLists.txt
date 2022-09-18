@@ -36,18 +36,19 @@ if(NOT COROUTINES_WORKING)
   endif()
 endif()
 
+set(AVND_FOLDER "${3RDPARTY_FOLDER}/avendish")
 unset(CMAKE_REQUIRED_FLAGS)
-include_directories("${3RDPARTY_FOLDER}/avendish/include")
+include_directories("${AVND_FOLDER}/include")
 add_library(
   score_plugin_avnd
 
-  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/ADSR.hpp"
-  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/AudioFilters.hpp"
-  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Bitcrush.hpp"
-  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Convolver.hpp"
-  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Dynamics.hpp"
-  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Echo.hpp"
-  "${3RDPARTY_FOLDER}/avendish/examples/Advanced/Utilities/Flanger.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Utilities/AudioFilters.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Utilities/Bitcrush.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Utilities/Convolver.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Utilities/Dynamics.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Utilities/Echo.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Utilities/Flanger.hpp"
 
 
   Avnd/Factories.hpp
@@ -76,7 +77,7 @@ add_library(
 
 target_include_directories(score_plugin_avnd
   PUBLIC
-    "${3RDPARTY_FOLDER}/avendish/include"
+    "${AVND_FOLDER}/include"
 )
 target_link_libraries(score_plugin_avnd
   PUBLIC
@@ -133,3 +134,73 @@ target_precompile_headers(score_plugin_avnd PRIVATE
   Crousti/ProcessModel.hpp
   Crousti/Widgets.hpp
 )
+
+
+set(AVND_ADDITIONAL_CLASSES)
+set(AVND_CUSTOM_FACTORIES)
+function(avnd_make_score)
+
+  cmake_parse_arguments(AVND "" "TARGET;MAIN_FILE;MAIN_CLASS;NAMESPACE" "" ${ARGN})
+
+  if(AVND_NAMESPACE)
+    set(AVND_QUALIFIED "${AVND_NAMESPACE}::${AVND_MAIN_CLASS}")
+  else()
+    set(AVND_QUALIFIED "${AVND_MAIN_CLASS}")
+  endif()
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/prototype.cpp.in"
+    "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
+    @ONLY
+    NEWLINE_STYLE LF
+  )
+
+  target_sources(score_plugin_avnd PRIVATE
+    "${AVND_MAIN_FILE}"
+    "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
+  )
+
+  if(AVND_NAMESPACE)
+    set(txt "namespace ${AVND_NAMESPACE} { struct ${AVND_MAIN_CLASS}; } \n")
+    set(txtf "::oscr::custom_factories<${AVND_NAMESPACE}::${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
+  else()
+    set(txt "struct ${AVND_MAIN_CLASS}; \n")
+    set(txtf "::oscr::custom_factories<${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
+  endif()
+
+  set(AVND_ADDITIONAL_CLASSES "${AVND_ADDITIONAL_CLASSES}\n${txt}\n" PARENT_SCOPE)
+  set(AVND_CUSTOM_FACTORIES "${AVND_CUSTOM_FACTORIES}\n${txtf}\n" PARENT_SCOPE)
+endfunction()
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiReader.hpp"
+  TARGET midireader
+  MAIN_CLASS MidiFileReader
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiFilter.hpp"
+  TARGET midifilter
+  MAIN_CLASS MidiFilter
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiScroller.hpp"
+  TARGET midiscroller
+  MAIN_CLASS MidiScroller
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiScaler.hpp"
+  TARGET midiscaler
+  MAIN_CLASS MidiScaler
+  NAMESPACE mtk
+)
+
+file(CONFIGURE OUTPUT
+     "${CMAKE_BINARY_DIR}/include.avnd.cpp"
+     CONTENT "${AVND_ADDITIONAL_CLASSES}\nvoid all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"
+     NEWLINE_STYLE LF)
+

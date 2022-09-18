@@ -29,7 +29,7 @@ struct XYZSpinboxes;
 struct MultiSlider;
 
 struct Bargraph;
-}
+} // namespace Process
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatSlider,
     "af2b4fc3-aecb-4c15-a5aa-1c573a239925")
@@ -63,11 +63,8 @@ UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::LineEdit,
     "9ae797ea-d94c-4792-acec-9ec1932bae5d")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::FileChooser,
-    "40833147-4c42-4b8b-bb80-0b1d15dae129"
-    )
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FileChooser,
+    "40833147-4c42-4b8b-bb80-0b1d15dae129")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ProgramEdit,
     "de15c0da-429b-49d3-bb07-7c41f5f205c8")
@@ -236,19 +233,23 @@ struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT FileChooser : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(FileChooser)
+  W_OBJECT(FileChooser)
+public:
   FileChooser(
-      QString init,
-      QString filters,
-      const QString& name,
-      Id<Process::Port> id,
+      QString init, QString filters, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~FileChooser();
-  void setupExecution(ossia::inlet& inl) const noexcept override;
-  const QString& filters() const  noexcept { return m_filters;};
-  void  setFilters(QString nf) {m_filters = nf;}
   using Process::ControlInlet::ControlInlet;
+
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+  const QString& filters() const noexcept { return m_filters; };
+  void setFilters(QString nf) { m_filters = std::move(nf); }
+
+  void enableFileWatch();
+  void destroying() W_SIGNAL(destroying);
+
 private:
-   QString m_filters;
+  QString m_filters;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet
@@ -422,4 +423,4 @@ struct SCORE_LIB_PROCESS_EXPORT Bargraph : public Process::ControlOutlet
   using Process::ControlOutlet::ControlOutlet;
 };
 
-}
+} // namespace Process
