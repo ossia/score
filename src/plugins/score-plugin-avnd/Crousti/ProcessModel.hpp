@@ -13,7 +13,6 @@
 #include <ossia/detail/typelist.hpp>
 
 #include <boost/pfr.hpp>
-
 #include <avnd/common/for_nth.hpp>
 #include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/ui.hpp>
@@ -22,6 +21,7 @@
 #include <avnd/wrappers/metadatas.hpp>
 
 #include <score_plugin_engine.hpp>
+#include <Media/Sound/Drop/SoundDrop.hpp>
 
 #if SCORE_PLUGIN_GFX
 #include <Gfx/TexturePort.hpp>
@@ -198,8 +198,34 @@ struct InletInitFunc
   void operator()(const T& in, auto idx)
   {
     constexpr auto name = avnd::get_name<T>();
-    auto p = new Process::LineEdit{
-        "", QString::fromUtf8(name.data(), name.size()), Id<Process::Port>(inlet++),
+    auto getFilters = [] <typename P> (P& p)
+    {
+      if constexpr(requires { P::filters().sound; })
+      {
+        QSet<QString> sound_exts = Media::Sound::DropHandler{}.fileExtensions();
+        QString res;
+        for(QString s  : sound_exts)
+        {
+           res.append(s);
+        }
+
+        return res;
+      }
+      else if constexpr(avnd::string_ish<P>)
+      {
+          return p.filters();
+      }
+      else
+      {
+        return "";
+      }
+    };
+    QString filters = getFilters(in);
+    auto p = new Process::FileChooser{
+        "",
+        filters,
+        QString::fromUtf8(name.data(), name.size()),
+        Id<Process::Port>(inlet++),
         &self};
     p->hidden = true;
     ins.push_back(p);

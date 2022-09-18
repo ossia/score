@@ -25,9 +25,10 @@ struct SCORE_PLUGIN_MEDIA_EXPORT DroppedAudioFiles
 class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("bc57983b-c29e-4b12-8afe-9d6ffbcb7a94")
-
+  public:
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
+private:
   void dropCustom(
       std::vector<ProcessDrop>& drops, const QMimeData& data,
       const score::DocumentContext& ctx) const noexcept override;

@@ -323,6 +323,30 @@ void ProgramEdit::setupExecution(ossia::inlet& inl) const noexcept
 
 ProgramEdit::~ProgramEdit() { }
 
+FileChooser::FileChooser(
+    QString init,
+    QString filters,
+    const QString& name,
+    Id<Port> id,
+    QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init.toStdString());
+  setName(name);
+  m_filters = filters;
+}
+
+void FileChooser::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::STRING;
+  port.domain = domain().get();
+}
+
+FileChooser::~FileChooser() { }
+
+
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
@@ -717,6 +741,36 @@ JSONWriter::write<Process::ProgramEdit>(Process::ProgramEdit& p)
 {
 }
 
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::FileChooser>(const Process::FileChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  m_stream << p.filters();
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::FileChooser>(Process::FileChooser& p)
+{
+  QString f;
+  m_stream >> f;
+  p.setFilters(f);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::FileChooser>(const Process::FileChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  obj["Filters"] = p.filters();
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::FileChooser>(Process::FileChooser& p)
+{
+  QString f;
+  f <<= obj["Filters"];
+  p.setFilters(f);
+}
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Enum>(const Process::Enum& p)

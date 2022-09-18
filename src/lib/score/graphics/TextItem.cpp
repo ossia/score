@@ -11,7 +11,6 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TextItem)
-W_OBJECT_IMPL(score::QGraphicsTextButton)
 namespace score
 {
 
@@ -55,6 +54,9 @@ void SimpleTextItem::setFont(const QFont& f)
   updateImpl();
 }
 
+const QString& SimpleTextItem::text() const noexcept{
+  return m_string;
+}
 void SimpleTextItem::setText(const QString& s)
 {
   m_string = std::move(s);
@@ -107,50 +109,6 @@ void SimpleTextItem::updateImpl()
   }
 
   update();
-}
-
-QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-{
-  m_string = std::move(text);
-}
-
-void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-  pressed();
-  event->accept();
-}
-
-void QGraphicsTextButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-}
-
-void QGraphicsTextButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-}
-
-QRectF QGraphicsTextButton::boundingRect() const
-{
-  return {0, 0, 60, 20};
-}
-
-void QGraphicsTextButton::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-  auto& skin = score::Skin::instance();
-
-  const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
-  painter->drawRoundedRect(brect, 1, 1);
-
-  if(!m_string.isEmpty())
-  {
-    painter->setPen(skin.Base4.main.pen2);
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->setFont(skin.Medium10Pt);
-    painter->drawText(brect, m_string, QTextOption(Qt::AlignCenter));
-  }
 }
 
 }
