@@ -110,39 +110,5 @@ void SimpleTextItem::updateImpl()
 
   update();
 }
-/*
-QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-{
-  m_string = std::move(text);
-}
-
-void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-  pressed();
-  event->accept();
-}
-
-void QGraphicsTextButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-}
-
-void QGraphicsTextButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-}
-
-QRectF QGraphicsTextButton::boundingRect() const
-{
-  return {0, 0, 60, 20};
-}
-
-void QGraphicsTextButton::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-
-}*/
-
 
 }
