@@ -74,11 +74,12 @@ else()
 endif()
 
 if(NOT asan IN_LIST CNINJA_FEATURES)
-  if(NOT CMAKE_SYSTEM_NAME MATCHES Emscripten)
-    target_link_libraries(${APPNAME} PUBLIC
-      $<LINK_ONLY:${SCORE_MIMALLOC_TARGET}>
-    )
-  endif()
+#  disable mimalloc until we find out why it causes jack to be stuck..;
+#  if(NOT CMAKE_SYSTEM_NAME MATCHES Emscripten)
+#    target_link_libraries(${APPNAME} PUBLIC
+#      $<LINK_ONLY:${SCORE_MIMALLOC_TARGET}>
+#    )
+#  endif()
 endif()
 
 target_compile_definitions(${APPNAME} PUBLIC
