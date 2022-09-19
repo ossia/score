@@ -767,7 +767,7 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression midi_regex{"(midiin|notein|controlin)"};
+      static const QRegularExpression midi_regex{"(midiin|notein|ctlin)"};
       auto m = midi_regex.match(patch);
       if(m.hasMatch())
       {
@@ -780,7 +780,7 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression midi_regex{"(midiiout|noteout|controlout)"};
+      static const QRegularExpression midi_regex{"(midiiout|noteout|ctlout)"};
       auto m = midi_regex.match(patch);
       if(m.hasMatch())
       {
