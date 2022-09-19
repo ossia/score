@@ -1,6 +1,7 @@
 #include "FileWatch.hpp"
 
 #include <score/application/ApplicationServices.hpp>
+#include <ossia-qt/invoke.hpp>
 
 #include <QFile>
 #include <QDateTime>
@@ -76,7 +77,7 @@ void FileWatch::timerEvent(QTimerEvent* ev)
     return;
 
   // This executes in the thread:
-  QMetaObject::invokeMethod(this, [this] {
+  ossia::qt::run_async(this, [this] {
     map_type cur_map;
     {
       std::lock_guard l{m_mtx};
@@ -109,7 +110,7 @@ void FileWatch::timerEvent(QTimerEvent* ev)
           it->second.mtime = elt.mtime;
       }
     }
-  }, Qt::QueuedConnection);
+  });
 }
 
 }
