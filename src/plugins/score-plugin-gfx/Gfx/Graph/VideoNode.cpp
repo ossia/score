@@ -200,8 +200,10 @@ AVFrame* VideoFrameReader::nextFrame(
   auto& nodem = const_cast<VideoNode&>(node);
 
   //double expected_frame = nodem.standardUBO.time / decoder.fps;
+  double fps = decoder.fps > 0. ? decoder.fps : 24.;
+
   double current_flicks = nodem.standardUBO.time * ossia::flicks_per_second<double>;
-  double flicks_per_frame = ossia::flicks_per_second<double> / 25.;
+  double flicks_per_frame = ossia::flicks_per_second<double> / fps;
 
   ossia::small_vector<AVFrame*, 8> prev{};
 
