@@ -67,7 +67,9 @@ void RenderList::init()
 
   m_lastSize = state.renderSize;
 
+  SCORE_ASSERT(!m_initialBatch);
   m_initialBatch = state.rhi->nextResourceUpdateBatch();
+  SCORE_ASSERT(m_initialBatch);
 }
 
 QRhiResourceUpdateBatch* RenderList::initialBatch() const noexcept
@@ -95,6 +97,13 @@ void RenderList::release()
 
   delete m_emptyTexture;
   m_emptyTexture = nullptr;
+
+  // If nothing happened
+  if(m_initialBatch)
+  {
+    m_initialBatch->release();
+    m_initialBatch = nullptr;
+  }
 
   m_ready = false;
   m_built = false;
@@ -295,7 +304,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         }
 
         if(node != &output)
+        {
+          updateBatch->release();
           updateBatch = state.rhi->nextResourceUpdateBatch();
+        }
       }
     }
   }
@@ -319,6 +331,8 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
     }
 
     output_renderer->finishFrame(*this, commands);
+
+    updateBatch->release();
   }
 }
 
