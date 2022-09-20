@@ -1,8 +1,8 @@
 #pragma once
-#include "ossia/network/value/vec.hpp"
-#include "ossia/network/value/value.hpp"
-//#include "ossia/network/domain/clamp.cpp" // Is that OK to include .cpp files ?
 #include <score/graphics/widgets/Constants.hpp>
+
+#include <ossia/network/value/value.hpp>
+#include <ossia/network/value/vec.hpp>
 
 #include <QGraphicsItem>
 #include <QObject>
@@ -39,12 +39,10 @@ public:
   ossia::vec2f value() const noexcept;
   ossia::vec2f m_execValue{};
   void setExecutionValue(ossia::vec2f); // TODO
-  void resetExecution();               // TODO
+  void resetExecution();                // TODO
 
-  void startChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, startChanged, arg_1)
-  void endChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, endChanged, arg_1)
+  void startChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, startChanged, arg_1)
+  void endChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, endChanged, arg_1)
 
   void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
@@ -52,13 +50,11 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
   qreal y_factor{0.005};
-  qreal d2s, d2c, d2e, ypos, ydiff;
-  double val1, val2;
+  qreal d2s{}, d2c{}, d2e{}, ypos{}, ydiff{};
+  double val1{}, val2{};
 
   bool m_hasExec{};
 
@@ -69,12 +65,7 @@ private:
     END,
     NONE
   };
-  Handle handle;
-
-  QRectF rangeRect{
-      boundingRect().width() * m_start,
-      boundingRect().top(),
-      boundingRect().width() * (m_end - m_start),
-      boundingRect().height()};
+  Handle handle{};
+  QRectF rangeRect{};
 };
 }

@@ -301,11 +301,8 @@ struct IntRangeSlider
 
   template <typename T, typename Control_T>
   static auto make_widget(
-      const T& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      QObject* context)
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
   {
     // TODO
     return nullptr;
@@ -313,102 +310,91 @@ struct IntRangeSlider
 
   template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
-      const T& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context)
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new score::QGraphicsRangeSlider{nullptr};
+    auto sl = new score::QGraphicsRangeSlider{parent};
     bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
     QObject::connect(
-          sl, &score::QGraphicsRangeSlider::sliderMoved,
-          context, [=, &inlet, &ctx] {
-      sl->moving = true;
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
-    });
+        sl, &score::QGraphicsRangeSlider::sliderMoved, context, [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+        });
     QObject::connect(
-          sl, &score::QGraphicsRangeSlider::sliderReleased, context, [&ctx, sl]() {
-      ctx.dispatcher.commit();
-      sl->moving = false;
-    });
+        sl, &score::QGraphicsRangeSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-    QObject::connect(
-          &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
-      if (!sl->moving)
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
         sl->setValue(ossia::convert<ossia::vec2f>(val));
     });
     QObject::connect(
-          &inlet, &Control_T::executionValueChanged, sl, [=](const ossia::value& val) {
-      // TODO
-      // sl->setExecutionValue(ossia::convert<ossia::vec2f>(val));
-    });
+        &inlet, &Control_T::executionValueChanged, sl, [=](const ossia::value& val) {
+          // TODO
+          // sl->setExecutionValue(ossia::convert<ossia::vec2f>(val));
+        });
     QObject::connect(
-          &inlet, &Control_T::executionReset, sl, &score::QGraphicsRangeSlider::resetExecution);
+        &inlet, &Control_T::executionReset, sl,
+        &score::QGraphicsRangeSlider::resetExecution);
 
     return sl;
   }
 };
 struct FloatRangeSlider
 {
-    static Process::PortItemLayout layout() noexcept
-    {
-      return Process::DefaultControlLayouts::slider();
-    }
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::slider();
+  }
 
-    template <typename T, typename Control_T>
-    static auto make_widget(
-        const T& slider,
-        Control_T& inlet,
-        const score::DocumentContext& ctx,
-        QWidget* parent,
-        QObject* context)
-    {
-      // TODO
-      return nullptr;
-    }
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
+  {
+    // TODO
+    return nullptr;
+  }
 
-    template <typename T, typename Control_T>
-    static QGraphicsItem* make_item(
-        const T& slider,
-        Control_T& inlet,
-        const score::DocumentContext& ctx,
-        QGraphicsItem* parent,
-        QObject* context)
-    {
-      auto sl = new score::QGraphicsRangeSlider{nullptr};
-      bindFloatDomain(slider, inlet, *sl);
-      sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsRangeSlider{nullptr};
+    bindFloatDomain(slider, inlet, *sl);
+    sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
-      QObject::connect(
-            sl, &score::QGraphicsRangeSlider::sliderMoved,
-            context, [=, &inlet, &ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
-      });
-      QObject::connect(
-            sl, &score::QGraphicsRangeSlider::sliderReleased, context, [&ctx, sl]() {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &score::QGraphicsRangeSlider::sliderMoved, context, [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+        });
+    QObject::connect(
+        sl, &score::QGraphicsRangeSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(
-            &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
-        if (!sl->moving)
-          sl->setValue(ossia::convert<ossia::vec2f>(val));
-      });
-      QObject::connect(
-            &inlet, &Control_T::executionValueChanged, sl, [=](const ossia::value& val) {
-        // TODO
-        // sl->setExecutionValue(ossia::convert<ossia::vec2f>(val));
-      });
-      QObject::connect(
-            &inlet, &Control_T::executionReset, sl, &score::QGraphicsRangeSlider::resetExecution);
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(ossia::convert<ossia::vec2f>(val));
+    });
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl, [=](const ossia::value& val) {
+          // TODO
+          // sl->setExecutionValue(ossia::convert<ossia::vec2f>(val));
+        });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl,
+        &score::QGraphicsRangeSlider::resetExecution);
 
-      return sl;
-    }
+    return sl;
+  }
 };
 
 struct IntSpinBox
@@ -944,7 +930,8 @@ struct FileChooser
     auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
     auto on_open = [bt, &inlet, &ctx] {
       qDebug() << inlet.filters();
-      auto filename = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
+      auto filename
+          = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
       if(filename.isEmpty())
         return;
 
