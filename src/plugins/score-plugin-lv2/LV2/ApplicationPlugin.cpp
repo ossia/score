@@ -69,9 +69,13 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     , lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)}
     , lv2_host_context{lv2_context.get(), nullptr, lv2_context->features(), lilv}
 {
-  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
-    if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_LV2"))
-      lv2_context->loadPlugins();
+  if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+    return;
+
+  if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_LV2"))
+    return;
+
+  lv2_context->loadPlugins();
 
   lv2_context->ui_host
       = suil.host_new(LV2::on_uiMessage, LV2::port_index, nullptr, nullptr);
