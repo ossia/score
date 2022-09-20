@@ -241,23 +241,53 @@ int seek_to_frame(AVFormatContext* format, AVStream* stream, int frameIndex)
 }
 */
 
+static int64_t to_av_time_base(AVRational tb, int64_t dts)
+{
+  constexpr auto av_tb = AVRational{1, AV_TIME_BASE};
+  return av_rescale_q(dts, tb, av_tb);
+}
+
 bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
   if(m_stream >= int(m_formatContext->nb_streams))
     return false;
 
   const auto stream = m_formatContext->streams[m_stream];
-  const int64_t dts = flicks * dts_per_flicks;
+  // Seeking with stream == -1 means that it is done AV_TIME_BASE
+  constexpr auto av_tb = AVRational{1, AV_TIME_BASE};
+  constexpr auto av_dts_per_flicks
+      = (av_tb.den / (av_tb.num * ossia::flicks_per_second<double>));
+
+  const auto dts = flicks * av_dts_per_flicks;
+
+  const auto codec_tb = m_codecContext ? m_codecContext->time_base : stream->time_base;
 
   // Don't seek if we're less than 0.2 second close to the request
   // unit of the timestamps in seconds: stream->time_base.num / stream->time_base.den
-  const int64_t min_dts_delta = (0.2 * stream->time_base.den) / stream->time_base.num;
-  if(std::abs(dts - m_last_dequeued_dts) <= min_dts_delta)
-    return false;
 
-    // TODO - maybe we should also store the "last dequeued dts" from the
-    // decoder side - this way no need to seek if we are in the interval
-    // const bool seek_forward = dts >= this->m_last_dequeued_dts;
+  // qDebug() << "Codec pkt_timebase: " << m_codecContext->pkt_timebase.num
+  //          << m_codecContext->pkt_timebase.den;
+  // qDebug() << "Codec timebase: " << m_codecContext->time_base.num
+  //          << m_codecContext->time_base.den;
+  // qDebug() << "Stream timebase: " << stream->time_base.num << stream->time_base.den;
+  // qDebug() << "AV timebase: " << av_tb.num << av_tb.den;
+  const auto last_av_dts = to_av_time_base(codec_tb, m_last_dequeued_dts);
+  // qDebug() << "????" << m_last_dequeued_dts << last_av_dts;
+  const int64_t min_dts_delta = (0.2 * av_tb.den) / av_tb.num;
+  // qDebug() << AV_TIME_BASE << min_dts_delta << dts << last_av_dts << dts - last_av_dts
+  //          << (std::abs(dts - last_av_dts) <= min_dts_delta);
+  if(std::abs(dts - last_av_dts) <= min_dts_delta)
+  {
+    // Let's always ensure that we seek to zero when asked no matter what
+    if(dts != 0)
+    {
+      return false;
+    }
+  }
+
+  // TODO - maybe we should also store the "last dequeued dts" from the
+  // decoder side - this way no need to seek if we are in the interval
+  // const bool seek_forward = dts >= this->m_last_dequeued_dts;
 #if LIBAVFORMAT_VERSION_MAJOR >= 59
   const int64_t start = 0;
 #else
@@ -289,13 +319,19 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
       break;
     }
 
+    /*
+    // Rescale the packet's dts into AV_TIME_BASE
+    auto max_dts = r.frame->pkt_dts + r.frame->pkt_duration;
+    auto max_av_dts = to_av_time_base(codec_tb, max_dts);
+    //av_rescale_q(max_dts, stream->time_base, tb);
     // we're starting to see correct frames, try to get close to the dts we want.
-    while(r.frame->pkt_dts + r.frame->pkt_duration < dts)
+    while(max_av_dts < dts)
     {
       r = read_one_frame(AVFramePointer{r.frame}, pkt);
       if(r.error == AVERROR_EOF || !r.frame)
         break;
     }
+    */
   } while(0);
 
   if(r.frame)
