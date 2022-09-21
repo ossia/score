@@ -365,7 +365,7 @@ struct FloatRangeSlider
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new score::QGraphicsRangeSlider{nullptr};
+    auto sl = new score::QGraphicsRangeSlider{parent};
     bindFloatDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
@@ -929,7 +929,6 @@ struct FileChooser
   {
     auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
     auto on_open = [bt, &inlet, &ctx] {
-      qDebug() << inlet.filters();
       auto filename
           = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
       if(filename.isEmpty())

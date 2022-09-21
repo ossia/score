@@ -10,7 +10,7 @@ W_OBJECT_IMPL(score::QGraphicsRangeSlider);
 namespace score
 {
 QGraphicsRangeSlider::QGraphicsRangeSlider(QGraphicsItem* parent)
-    : rangeRect{
+    : m_rangeRect{
         m_rect.width() * m_start, m_rect.top(), m_rect.width() * (m_end - m_start),
         m_rect.height()}
 {
@@ -24,6 +24,7 @@ void QGraphicsRangeSlider::setStart(double start)
   if(m_start != start)
   {
     m_start = start;
+    updateRect();
     update();
   }
 }
@@ -34,6 +35,7 @@ void QGraphicsRangeSlider::setEnd(double end)
   if(m_end != end)
   {
     m_end = end;
+    updateRect();
     update();
   }
 }
@@ -91,6 +93,7 @@ void QGraphicsRangeSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
     else
       handle = NONE;
   }
+  event->accept();
 }
 
 void QGraphicsRangeSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
@@ -99,11 +102,11 @@ void QGraphicsRangeSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     case START:
       d2s = event->pos().x() - m_start * m_rect.width();
-      m_start = std::clamp(m_start + d2s / m_rect.width(), 0., 1.);
+      m_start = std::clamp(m_start + d2s / m_rect.width(), 0., m_end - 0.001);
       break;
     case END:
       d2e = event->pos().x() - m_end * m_rect.width();
-      m_end = std::clamp(m_end + d2e / m_rect.width(), 0., 1.);
+      m_end = std::clamp(m_end + d2e / m_rect.width(), m_start + 0.001, 1.);
       break;
     case CENTER:
       d2c = event->pos().x() - (m_start + (m_end - m_start) / 2) * m_rect.width();
@@ -117,24 +120,38 @@ void QGraphicsRangeSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     case NONE:
       break;
   }
-  rangeRect
-      = {m_rect.width() * m_start, m_rect.top(), m_rect.width() * (m_end - m_start),
-         m_rect.height()};
-
+  updateRect();
+  sliderMoved();
   update();
+  event->accept();
+}
+
+void QGraphicsRangeSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  mouseMoveEvent(event);
+  sliderReleased();
+  event->accept();
 }
 
 void QGraphicsRangeSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-
   auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
 
   painter->fillRect(boundingRect(), skin.Emphasis2.main.brush);
-  painter->fillRect(rangeRect, skin.Base4.main.brush);
+  painter->fillRect(m_rangeRect, skin.Base4.main.brush);
 
-  painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->setPen(skin.Base4.lighter.pen1);
+  auto linesRect = m_rangeRect.adjusted(0, 1, 0, 0);
+  painter->drawLine(linesRect.topLeft(), linesRect.bottomLeft());
+  painter->drawLine(linesRect.topRight(), linesRect.bottomRight());
+}
+
+void QGraphicsRangeSlider::updateRect()
+{
+  m_rangeRect
+      = {m_rect.width() * m_start, m_rect.top(), m_rect.width() * (m_end - m_start),
+         m_rect.height()};
 }
 
 QRectF QGraphicsRangeSlider::boundingRect() const

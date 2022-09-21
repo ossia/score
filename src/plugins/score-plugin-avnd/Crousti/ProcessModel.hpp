@@ -9,10 +9,12 @@
 #include <Crousti/Attributes.hpp>
 #include <Crousti/Concepts.hpp>
 #include <Crousti/Metadatas.hpp>
+#include <Media/Sound/Drop/SoundDrop.hpp>
 
 #include <ossia/detail/typelist.hpp>
 
 #include <boost/pfr.hpp>
+
 #include <avnd/common/for_nth.hpp>
 #include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/ui.hpp>
@@ -21,7 +23,6 @@
 #include <avnd/wrappers/metadatas.hpp>
 
 #include <score_plugin_engine.hpp>
-#include <Media/Sound/Drop/SoundDrop.hpp>
 
 #if SCORE_PLUGIN_GFX
 #include <Gfx/TexturePort.hpp>
@@ -202,8 +203,8 @@ struct InletInitFunc
       res += s;
       res += " ";
     }
-    if(!exts.empty())
-      res.resize(res.size() - 2);
+    if(!res.isEmpty())
+      res.resize(res.size() - 1);
     return res;
   }
 
@@ -213,15 +214,17 @@ struct InletInitFunc
     if constexpr(requires { P::filters(); })
     {
       using filter = decltype(P::filters());
-      if constexpr(requires { filter::sound; } || requires { filter::audio; })
+      if constexpr(
+          requires { filter::sound; } || requires { filter::audio; })
       {
-        return QString{"Sound files (%1)"}.arg(toFilters(Media::Sound::DropHandler{}.fileExtensions()));
+        return QString{"Sound files (%1)"}.arg(
+            toFilters(Media::Sound::DropHandler{}.fileExtensions()));
       }
       else if constexpr(requires { filter::video; })
       {
         // FIXME refactor supported formats with Video process
         QSet<QString> files = {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
-                  "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
+                               "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
         return QString{"Videos (%1)"}.arg(toFilters(files));
       }
       else if constexpr(requires { filter::image; })
@@ -255,15 +258,13 @@ struct InletInitFunc
 
     qDebug() << getFilters(in);
     auto p = new Process::FileChooser{
-        "",
-        getFilters(in),
-        QString::fromUtf8(name.data(), name.size()),
-        Id<Process::Port>(inlet++),
-        &self};
+        "", getFilters(in), QString::fromUtf8(name.data(), name.size()),
+        Id<Process::Port>(inlet++), &self};
     p->hidden = true;
     ins.push_back(p);
 
-    if constexpr(requires { T::file_watch; }) {
+    if constexpr(requires { T::file_watch; })
+    {
       p->enableFileWatch();
     }
   }

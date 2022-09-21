@@ -265,12 +265,14 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     if constexpr(std::is_integral_v<value_type>)
     {
       auto [start, end] = c.init;
-      return new Process::IntRangeSlider{c.min, c.max, {(int)start, (int)end}, qname, id, parent};
+      return new Process::IntRangeSlider{c.min, c.max, {(float)start, (float)end},
+                                         qname, id,    parent};
     }
     else
     {
       auto [start, end] = c.init;
-      return new Process::FloatRangeSlider{c.min, c.max, {(float)start, (float)end}, qname, id, parent};
+      return new Process::FloatRangeSlider{c.min, c.max, {(float)start, (float)end},
+                                           qname, id,    parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)

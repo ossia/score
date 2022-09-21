@@ -49,9 +49,11 @@ public:
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
+  void updateRect();
   qreal y_factor{0.005};
   qreal d2s{}, d2c{}, d2e{}, ypos{}, ydiff{};
   double val1{}, val2{};
@@ -66,6 +68,6 @@ private:
     NONE
   };
   Handle handle{};
-  QRectF rangeRect{};
+  QRectF m_rangeRect{};
 };
 }
