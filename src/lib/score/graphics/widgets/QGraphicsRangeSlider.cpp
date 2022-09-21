@@ -5,6 +5,9 @@
 #include <QPainter>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <numeric>
 W_OBJECT_IMPL(score::QGraphicsRangeSlider);
 
 namespace score

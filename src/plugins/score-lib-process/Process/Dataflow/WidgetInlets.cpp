@@ -1,11 +1,14 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/plugins/SerializableHelpers.hpp>
-
 #include <score/tools/FileWatch.hpp>
-#include <QCoreApplication>
 
 #include <ossia/dataflow/port.hpp>
+
+#include <ossia-qt/invoke.hpp>
+
+#include <QCoreApplication>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Process::FileChooser)
@@ -209,13 +212,9 @@ void IntSlider::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 IntRangeSlider::IntRangeSlider(
-    int min,
-    int max,
-    ossia::vec2f init,
-    const QString& name,
-    Id<Port> id,
+    int min, int max, ossia::vec2f init, const QString& name, Id<Port> id,
     QObject* parent)
-  : ControlInlet{id, parent}
+    : ControlInlet{id, parent}
 {
   hidden = true;
   setValue(init);
@@ -233,13 +232,9 @@ void IntRangeSlider::setupExecution(ossia::inlet& inl) const noexcept
 }
 
 FloatRangeSlider::FloatRangeSlider(
-    float min,
-    float max,
-    ossia::vec2f init,
-    const QString& name,
-    Id<Port> id,
+    float min, float max, ossia::vec2f init, const QString& name, Id<Port> id,
     QObject* parent)
-  : ControlInlet{id, parent}
+    : ControlInlet{id, parent}
 {
   hidden = true;
   setValue(init);
@@ -378,11 +373,7 @@ void ProgramEdit::setupExecution(ossia::inlet& inl) const noexcept
 ProgramEdit::~ProgramEdit() { }
 
 FileChooser::FileChooser(
-    QString init,
-    QString filters,
-    const QString& name,
-    Id<Port> id,
-    QObject* parent)
+    QString init, QString filters, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
@@ -400,9 +391,8 @@ void FileChooser::setupExecution(ossia::inlet& inl) const noexcept
 
 void FileChooser::enableFileWatch()
 {
-
-  auto fun = std::make_shared<std::function<void()>>([ptr=QPointer{this}] () mutable{
-    QMetaObject::invokeMethod(qApp, [ptr=std::move(ptr)] {
+  auto fun = std::make_shared<std::function<void()>>([ptr = QPointer{this}]() mutable {
+    ossia::qt::run_async(qApp, [ptr = std::move(ptr)] {
       if(ptr)
       {
         // This will trigger a reload
@@ -415,9 +405,10 @@ void FileChooser::enableFileWatch()
   auto& f = score::FileWatch::instance();
   f.add(QString::fromStdString(ossia::convert<std::string>(this->value())), fun);
 
-  connect(this, &Process::FileChooser::valueChanged,
-          this, [cur_s=ossia::convert<std::string>(this->value()), fun] (const ossia::value& v) mutable
-  {
+  connect(
+      this, &Process::FileChooser::valueChanged, this,
+      [cur_s = ossia::convert<std::string>(this->value()),
+       fun](const ossia::value& v) mutable {
     auto new_s = ossia::convert<std::string>(v);
     if(new_s != cur_s)
     {
@@ -426,10 +417,9 @@ void FileChooser::enableFileWatch()
       f.add(QString::fromStdString(new_s), fun);
       cur_s = new_s;
     }
-  });
+      });
 
-  connect(this, &Process::FileChooser::destroying,
-          this, [this, fun] {
+  connect(this, &Process::FileChooser::destroying, this, [this, fun] {
     auto& f = score::FileWatch::instance();
     f.remove(QString::fromStdString(ossia::convert<std::string>(this->value())), fun);
   });
@@ -439,7 +429,6 @@ FileChooser::~FileChooser()
 {
   destroying();
 }
-
 
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
