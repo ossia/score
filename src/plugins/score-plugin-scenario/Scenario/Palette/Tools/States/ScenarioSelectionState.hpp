@@ -3,6 +3,7 @@
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/State/StateView.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Palette/Tools/StateSelection.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 
 #include <score/statemachine/CommonSelectionState.hpp>
@@ -70,6 +71,7 @@ public:
     Selection sel;
 
     auto& presenter = m_parentSM.presenter();
+    auto& model = m_parentSM.model();
 
     for(const auto& elt : presenter.getIntervals())
     {
@@ -108,9 +110,10 @@ public:
     }
     for(const auto& elt : presenter.getStates())
     {
+      auto& m = elt.model();
       if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
       {
-        sel.append(elt.model());
+        doStateSelection(sel, m, model);
       }
     }
 

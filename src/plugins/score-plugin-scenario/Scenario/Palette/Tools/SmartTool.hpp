@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Palette/Tools/ScenarioToolState.hpp>
+#include <Scenario/Palette/Tools/StateSelection.hpp>
 #include <Scenario/Palette/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioSelectionState.hpp>
 #include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
@@ -95,9 +96,11 @@ public:
         {
       const auto& elt = this->m_palette.presenter().state(id);
 
+      Selection sel;
+      doStateSelection(sel, elt.model(), this->m_palette.model());
+
       m_state->dispatcher.select(filterSelections(
-          &elt.model(), this->m_palette.model().selectedChildren(),
-          m_state->multiSelection()));
+          sel, this->m_palette.model().selectedChildren(), m_state->multiSelection()));
 
       this->localSM().postEvent(new ClickOnState_Event{id, sp});
       m_nothingPressed = false;
