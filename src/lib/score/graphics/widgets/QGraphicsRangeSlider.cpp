@@ -51,8 +51,8 @@ void QGraphicsRangeSlider::setValue(ossia::vec2f value)
 
 void QGraphicsRangeSlider::setExecutionValue(ossia::vec2f v)
 {
-  m_execValue[0] = ossia::clamp(v[0], 0., 1.);
-  m_execValue[1] = ossia::clamp(v[1], 0., 1.);
+  m_execValue[0] = std::clamp(v[0], 0.f, 1.f);
+  m_execValue[1] = std::clamp(v[1], 0.f, 1.f);
   m_hasExec = true;
   update();
 }
