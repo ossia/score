@@ -6,6 +6,7 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
+#include <Scenario/Inspector/ObjectTree/SearchWidget.hpp>
 
 #include <QAbstractItemModel>
 #include <QContextMenuEvent>
@@ -131,23 +132,6 @@ private:
   score::SelectionStack& m_stack;
   ObjectWidget* m_objects{};
   score::SelectionDispatcher m_selectionDispatcher;
-};
-
-class SearchWidget final : public score::SearchLineEdit
-{
-public:
-  SearchWidget(const score::GUIApplicationContext& ctx);
-
-  void toggle() { this->isHidden() ? this->show() : this->hide(); }
-
-private:
-  void search() override;
-
-  void dragEnterEvent(QDragEnterEvent* event) override;
-  void dropEvent(QDropEvent* event) override;
-  void on_findAddresses(QStringList strlst);
-
-  const score::GUIApplicationContext& m_ctx;
 };
 
 class SelectionStackWidget final : public QWidget

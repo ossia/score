@@ -70,7 +70,6 @@ SCORE_LIB_STATE_EXPORT QString toString(const Relation&);
 struct SCORE_LIB_STATE_EXPORT Pulse
 {
   State::Address address;
-
   friend bool operator==(const Pulse& lhs, const Pulse& rhs)
   {
     return lhs.address == rhs.address;
