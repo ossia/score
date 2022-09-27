@@ -1425,6 +1425,44 @@ void SearchWidget::on_findAddresses(QStringList strlst)
   search();
 }
 
+static void selectProcessPortsWithAddress(
+    const std::vector<State::AddressAccessor>& addresses, Process::ProcessModel& proc,
+    Selection& sel)
+{
+  auto search = [&sel, &addresses](auto& port) {
+    auto& port_addr = port.address();
+    for(auto& search_addr : addresses)
+    {
+      if(port_addr.address == search_addr.address)
+      {
+        sel.append(port);
+        break;
+      }
+    }
+
+    port.forChildInlets([&](Process::Inlet& p) {
+      for(auto& search_addr : addresses)
+      {
+        if(p.address().address == search_addr.address)
+        {
+          sel.append(&p);
+          break;
+        }
+      }
+    });
+  };
+
+  for(const Process::Inlet* port : proc.inlets())
+  {
+    search(*port);
+  }
+
+  for(const Process::Outlet* port : proc.outlets())
+  {
+    search(*port);
+  }
+}
+
 void SearchWidget::search()
 {
   const QString& stxt = text();
@@ -1515,6 +1553,13 @@ void SearchWidget::search()
       }
       else if(auto interval = qobject_cast<const IntervalModel*>(obj))
       {
+        for(auto& proc : interval->processes)
+        {
+          selectProcessPortsWithAddress(addresses, proc, sel);
+
+          add_if_contains(proc, stxt, sel);
+        }
+
         add_if_contains(*interval, stxt, sel);
       }
     }
