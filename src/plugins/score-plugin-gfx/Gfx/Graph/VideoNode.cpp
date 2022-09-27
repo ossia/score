@@ -42,6 +42,7 @@ void VideoNode::process(Message&& msg)
 
 CameraNode::CameraNode(std::shared_ptr<Video::VideoInterface> dec, QString f)
 {
+  this->m_scaleMode = ScaleMode::Stretch;
   this->m_filter = std::move(f);
   this->reader.m_decoder = std::move(dec);
   output.push_back(new Port{this, {}, Types::Image, {}});
