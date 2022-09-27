@@ -28,6 +28,8 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <ossia-qt/invoke.hpp>
+
 #include <QAction>
 #include <QDebug>
 #include <QHeaderView>
@@ -1379,12 +1381,14 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     , m_ctx{ctx}
 {
   setAcceptDrops(true);
-  if(auto widget = Explorer::findDeviceExplorerWidgetInstance(score::GUIAppContext()))
-  {
-    connect(
-        widget, &Explorer::DeviceExplorerWidget::findAddresses, this,
-        &SearchWidget::on_findAddresses);
-  }
+  ossia::qt::run_async(this, [this] {
+    if(auto widget = Explorer::findDeviceExplorerWidgetInstance(score::GUIAppContext()))
+    {
+      connect(
+          widget, &Explorer::DeviceExplorerWidget::findAddresses, this,
+          &SearchWidget::on_findAddresses);
+    }
+  });
 }
 
 template <typename T>
