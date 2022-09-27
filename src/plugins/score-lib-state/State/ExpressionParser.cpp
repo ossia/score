@@ -95,7 +95,8 @@ struct RelationOperation_map : qi::symbols<char, ossia::expressions::comparator>
         "<", ossia::expressions::comparator::LOWER)(
         ">", ossia::expressions::comparator::GREATER)(
         "!=", ossia::expressions::comparator::DIFFERENT)(
-        "==", ossia::expressions::comparator::EQUAL);
+        "==", ossia::expressions::comparator::EQUAL)(
+        "contains", ossia::expressions::comparator::CONTAINS);
   }
 };
 

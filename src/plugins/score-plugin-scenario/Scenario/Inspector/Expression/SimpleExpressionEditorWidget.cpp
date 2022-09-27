@@ -39,6 +39,7 @@ static const auto& ExpressionEditorComparators()
       {ExpressionEditorComparator::Lower, "<"},
       {ExpressionEditorComparator::GreaterEqual, QString::fromUtf8("≥")},
       {ExpressionEditorComparator::LowerEqual, QString::fromUtf8("≤")},
+      {ExpressionEditorComparator::Contains, QString::fromUtf8("Contains")},
       {ExpressionEditorComparator::Pulse, "Pulse"},
       {ExpressionEditorComparator::AlwaysTrue, "Always"},
       {ExpressionEditorComparator::AlwaysFalse, "Never"}};
@@ -349,6 +350,7 @@ void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
     case ExpressionEditorComparator::Lower:
     case ExpressionEditorComparator::GreaterEqual:
     case ExpressionEditorComparator::LowerEqual:
+    case ExpressionEditorComparator::Contains:
       m_address->setEnabled(true);
       m_value->setEnabled(true);
       m_address->setVisible(true);
@@ -397,6 +399,8 @@ QString SimpleExpressionEditorWidget::currentRelation()
       return addr + " <= " + m_value->text();
     case ExpressionEditorComparator::Different:
       return addr + " != " + m_value->text();
+    case ExpressionEditorComparator::Contains:
+      return addr + " contains " + m_value->text();
 
     case ExpressionEditorComparator::Pulse:
       return addr + " impulse";

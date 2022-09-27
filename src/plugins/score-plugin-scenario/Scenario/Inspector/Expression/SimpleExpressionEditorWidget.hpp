@@ -35,6 +35,7 @@ enum ExpressionEditorComparator
   Lower,
   GreaterEqual,
   LowerEqual,
+  Contains,
 
   // Additional ones
   Pulse,
