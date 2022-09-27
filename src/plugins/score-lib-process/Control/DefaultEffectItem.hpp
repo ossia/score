@@ -51,9 +51,6 @@ private:
   const Process::ProcessModel& m_effect;
   const Process::Context& m_ctx;
 
-  struct Port;
-  std::vector<Port> m_ports;
-
   bool m_needRecreate{};
 };
 }

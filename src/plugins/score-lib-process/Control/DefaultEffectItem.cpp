@@ -22,12 +22,7 @@
 #include <QGraphicsScene>
 namespace Process
 {
-struct DefaultEffectItem::Port
-{
-  score::EmptyRectItem* root;
-  Dataflow::PortItem* port;
-  QRectF rect;
-};
+
 DefaultEffectItem::DefaultEffectItem(
     const Process::ProcessModel& effect, const Process::Context& doc,
     QGraphicsItem* root)
@@ -74,7 +69,6 @@ void DefaultEffectItem::reset()
 {
   delete m_layout;
   m_layout = nullptr;
-  m_ports.clear();
 
   m_needRecreate = true;
   ossia::qt::run_async(this, &DefaultEffectItem::recreate);
@@ -92,6 +86,7 @@ void DefaultEffectItem::recreate()
   LayoutBuilderBase b{
       *this,    m_ctx,     portFactory, m_effect.inlets(), m_effect.outlets(),
       m_layout, {m_layout}};
+
   for(auto& e : m_effect.inlets())
   {
     SCORE_ASSERT(e->parent());

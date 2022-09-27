@@ -23,6 +23,8 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia-qt/invoke.hpp>
+
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
@@ -142,8 +144,12 @@ void NodeItem::createWithDecorations()
   else
     m_contentSize = QSizeF{minimalContentWidth(), minimalContentHeight()};
 
-  resetInlets();
-  resetOutlets();
+  // This is because if it's a DefaultEffectItem the ports are created asynchronously
+  // Thus they are added to the vertical lists instead of the actual items
+  ossia::qt::run_async(this, [this] {
+    resetInlets();
+    resetOutlets();
+  });
   connect(&process, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
   connect(
       &process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
@@ -378,16 +384,15 @@ void NodeItem::createContentItem()
 
   if(resizeable)
   {
-    connect(resizeable, &score::ResizeableItem::sizeChanged,
-            this, [this] (QSizeF sz){
-              double w = std::max(minimalContentWidth(), sz.width());
-              double h = std::max(minimalContentHeight(), sz.height());
-              m_contentSize = QSizeF{w, h};
+    connect(resizeable, &score::ResizeableItem::sizeChanged, this, [this](QSizeF sz) {
+      double w = std::max(minimalContentWidth(), sz.width());
+      double h = std::max(minimalContentHeight(), sz.height());
+      m_contentSize = QSizeF{w, h};
 
-              updateSize();
-              updateZoomRatio();
-              updateTitlePos();
-            });
+      updateSize();
+      updateZoomRatio();
+      updateTitlePos();
+    });
   }
 }
 
