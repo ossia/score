@@ -30,6 +30,61 @@ bool operator==(const Process::StateNodeData& lhs, const Process::StateNodeData&
          && lhs.values.priorities == rhs.values.priorities
          && lhs.values.userValue == rhs.values.userValue;
 }
+
+bool hasMatchingAddress(
+    const MessageNode& root, const std::vector<State::AddressAccessor>& addresses,
+    State::MessageList& msglist, std::vector<QString>& converted_addresses)
+{
+  for(const auto& addr : addresses)
+  {
+    // OPTIMIZEME
+    // First check for whole addresses
+    auto nodes = Process::try_getNodesFromAddress(const_cast<MessageNode&>(root), addr);
+
+    if(!nodes.empty())
+      return true;
+
+    // Then check in the case an address is part of another?
+    if(hasMatchingText(root, addr.address.toString(), msglist, converted_addresses))
+      return true;
+  }
+  return false;
+}
+
+bool hasMatchingText(
+    const MessageNode& root, const QString& txt, State::MessageList& msglist,
+    std::vector<QString>& converted_addresses)
+{
+  if(!converted_addresses.empty())
+  {
+    for(const auto& mess : converted_addresses)
+    {
+      if(mess.contains(txt))
+      {
+        return true;
+      }
+    }
+  }
+  else
+  {
+    if(msglist.empty())
+      msglist = Process::flatten(root);
+
+    for(const auto& mess : msglist)
+    {
+      auto mess_str = mess.address.address.toString();
+      if(mess_str.contains(txt))
+      {
+        return true;
+      }
+      else
+      {
+        converted_addresses.push_back(std::move(mess_str));
+      }
+    }
+  }
+  return false;
+}
 }
 
 #if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES

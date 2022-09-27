@@ -1413,11 +1413,13 @@ void add_if_contains(
 void SearchWidget::on_findAddresses(QStringList strlst)
 {
   QString searchTxt = "address=";
-  for(auto str : strlst)
+  if(!strlst.empty())
+    searchTxt += strlst.first();
+
+  for(int i = 1; i < strlst.size(); i++)
   {
-    searchTxt += str;
-    if(str != strlst.back())
-      searchTxt += ",";
+    searchTxt += ",";
+    searchTxt += strlst[i];
   }
   setText(searchTxt);
   search();
@@ -1460,7 +1462,9 @@ void SearchWidget::search()
   {
     auto opt = State::parseAddressAccessor(stxt);
     if(opt)
+    {
       addresses.push_back(*opt);
+    }
   }
 
   auto* doc = m_ctx.documents.currentDocument();
@@ -1470,54 +1474,32 @@ void SearchWidget::search()
 
   if(scenarioModel)
   {
+    State::MessageList listCache;
+    std::vector<QString> messagesCache;
     // Serialize ALL the things
     for(const auto& obj : scenarioModel->children())
     {
       if(auto state = qobject_cast<const StateModel*>(obj))
       {
-        bool flag = false; // used to break loop at several point to avoid adding
-                           // the same object severals time and to sped-up main loop
+        listCache.clear();
+        messagesCache.clear();
 
-        State::MessageList list = Process::flatten(state->messages().rootNode());
+        auto& root = state->messages().rootNode();
 
-        for(const auto& addr : addresses)
-        {
-          auto nodes
-              = Process::try_getNodesFromAddress(state->messages().rootNode(), addr);
+        // First look for addresses containing the looked-up address
+        bool must_add
+            = Process::hasMatchingAddress(root, addresses, listCache, messagesCache);
 
-          if(!nodes.empty())
-          {
-            sel.append(state);
-            flag = true;
-            continue;
-          }
+        // If not found, then look for addresses containing the raw string
+        if(!must_add)
+          must_add = Process::hasMatchingText(root, stxt, listCache, messagesCache);
+        // FIXME look into state processes?
 
-          for(auto mess : list)
-          {
-            if(mess.address.address.toString().contains(addr.address.toString()))
-            {
-              sel.append(state);
-              flag = true;
-              continue;
-            }
-          }
-          if(flag)
-            continue;
-        }
-        if(flag)
-          continue;
-        for(auto mess : list)
-        {
-          if(mess.address.address.toString().contains(stxt))
-          {
-            sel.append(state);
-            flag = true;
-            continue;
-          }
-        }
-        if(flag)
-          continue;
-        add_if_contains(*state, stxt, sel);
+        // Try to add if the searched text is in the name of the state
+        if(must_add)
+          sel.append(state);
+        else
+          add_if_contains(*state, stxt, sel);
       }
       else if(auto event = qobject_cast<const EventModel*>(obj))
       {

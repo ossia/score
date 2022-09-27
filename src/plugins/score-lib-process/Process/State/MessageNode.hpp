@@ -82,6 +82,12 @@ SCORE_LIB_PROCESS_EXPORT std::vector<Process::MessageNode*>
 try_getNodesFromAddress(Process::MessageNode& root, const State::AddressAccessor& addr);
 SCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
 SCORE_LIB_PROCESS_EXPORT State::MessageList getUserMessages(const MessageNode&);
+SCORE_LIB_PROCESS_EXPORT bool hasMatchingAddress(
+    const MessageNode& root, const std::vector<State::AddressAccessor>& addr,
+    State::MessageList& msglist, std::vector<QString>& converted_addresses);
+SCORE_LIB_PROCESS_EXPORT bool hasMatchingText(
+    const MessageNode& root, const QString& text, State::MessageList& msglist,
+    std::vector<QString>& converted_addresses);
 }
 
 #if SCORE_EXTERN_TEMPLATES_IN_SHARED_LIBRARIES
