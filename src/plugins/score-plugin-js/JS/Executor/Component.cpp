@@ -344,6 +344,34 @@ void js_node::setScript(const QString& val)
       QObject::connect(
           m_execFuncs, &ExecStateWrapper::exec, js_panel, &JS::PanelDelegate::evaluate,
           Qt::QueuedConnection);
+      QObject::connect(
+          m_execFuncs, &ExecStateWrapper::compute, m_execFuncs,
+          [=](const QString& code, const QString& cbname) {
+        // Exec thread
+
+        // Callback ran in UI thread
+        auto cb = [=](QVariant v) {
+          // Go back to exec thread, we have to go through the normal engine exec ctx
+          ossia::qt::run_async(m_execFuncs, [=] {
+            auto mo = m_object->metaObject();
+            for(int i = 0; i < mo->methodCount(); i++)
+            {
+              if(mo->method(i).name() == cbname)
+              {
+                mo->method(i).invoke(
+                    m_object, Qt::DirectConnection, QGenericReturnArgument(),
+                    QArgument<QVariant>{"v", v});
+              }
+            }
+          });
+        };
+
+        // Go to ui thread
+        ossia::qt::run_async(js_panel, [js_panel, code, cb]() {
+          js_panel->compute(code, cb); // This invokes cb
+        });
+          },
+          Qt::DirectConnection);
     }
   }
 

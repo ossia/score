@@ -30,6 +30,7 @@ public:
   void write(const QString& address, const QVariant& value);
   W_SLOT(write);
   void exec(const QString& code) W_SIGNAL(exec, code);
+  void compute(const QString& code, const QString& cb) W_SIGNAL(compute, code, cb);
 
   void system(const QString& code) W_SIGNAL(system, code);
 

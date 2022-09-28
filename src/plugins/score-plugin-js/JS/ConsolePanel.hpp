@@ -54,6 +54,7 @@
 #include <QPlainTextEdit>
 #include <QScrollBar>
 #include <QVBoxLayout>
+#include <QtMath>
 
 #include <wobjectimpl.h>
 
@@ -71,6 +72,106 @@ public:
     return {};
   }
   W_SLOT(readFile)
+
+  QString layoutTextLines(QString text, QString font, int pointSize, int maxWidth)
+  {
+    if(text.isEmpty())
+      return text;
+    if(std::all_of(text.begin(), text.end(), [](const QChar& c) {
+         return c.isLetterOrNumber();
+       }))
+      return text;
+    if(pointSize <= 0)
+      return text;
+    if(maxWidth <= 0)
+      maxWidth = 0;
+
+    QString cur = text;
+    QFontMetrics m{QFont(font, pointSize)};
+
+    if(m.boundingRect(cur).width() < maxWidth)
+      return cur;
+
+    int last_inserted_linebreak = 0;
+    while(true)
+    {
+      // Go to the last line break
+      int start_search_index = last_inserted_linebreak;
+      int last_line_break = cur.lastIndexOf('\n', last_inserted_linebreak);
+      if(last_line_break != -1)
+      {
+        start_search_index = last_line_break + 1;
+        if(start_search_index >= (cur.size() - 1))
+          break;
+      }
+
+      int min_index_for_break = start_search_index;
+      int last_breakable_char = -1;
+      bool broken = false;
+      // Try to find the most characters that fit in maxWidth
+      for(int j = start_search_index; j < cur.size(); j++)
+      {
+        if(!cur[j].isLetterOrNumber())
+          last_breakable_char = j;
+
+        QString line = cur.mid(start_search_index, j - start_search_index);
+        if(m.boundingRect(line).width() < maxWidth)
+        {
+          min_index_for_break++;
+        }
+        else
+        {
+          // We have to break.
+          if(last_breakable_char == -1)
+          {
+            break; // Go to the "No more characters to break" loop
+          }
+          else
+          {
+            cur.insert(last_breakable_char + 1, '\n');
+            last_inserted_linebreak = last_breakable_char + 1;
+            broken = true;
+            break;
+          }
+        }
+      }
+      if(broken)
+        continue;
+
+      // We're actually good
+      if(m.boundingRect(cur.mid(start_search_index)).width() < maxWidth)
+        break;
+
+      // No more characters to break, we continue until the next one
+      if(last_breakable_char == -1)
+      {
+        for(int j = min_index_for_break; j < cur.size(); j++)
+        {
+          if(!cur[j].isLetterOrNumber())
+          {
+            // Insert a break after it
+            cur.insert(j + 1, '\n');
+            last_inserted_linebreak = j + 1;
+            broken = true;
+            break;
+          }
+        }
+        if(broken)
+          continue;
+
+        // No more characters to break at all, end there
+        break;
+      }
+
+      // To make sure that we eventually terminate:
+      last_inserted_linebreak++;
+      if(last_inserted_linebreak >= cur.size() - 1)
+        break;
+    }
+
+    return cur;
+  }
+  W_SLOT(layoutTextLines)
 };
 
 struct ActionContext : public QObject
@@ -979,6 +1080,25 @@ public:
     else if(!res.isUndefined())
     {
       m_edit->appendPlainText(res.toString() + "\n");
+    }
+  }
+
+  void compute(const QString& txt, std::function<void(QVariant)> r)
+  {
+    m_edit->appendPlainText("> " + txt);
+    auto res = m_engine.evaluate(txt);
+    if(res.isError())
+    {
+      m_edit->appendPlainText("ERROR: " + res.toString() + "\n");
+    }
+    else if(!res.isUndefined())
+    {
+      if(r)
+        r(res.toVariant());
+    }
+    else
+    {
+      qDebug() << res.toString();
     }
   }
 
