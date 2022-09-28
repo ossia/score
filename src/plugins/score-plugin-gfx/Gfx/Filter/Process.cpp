@@ -73,7 +73,9 @@ Model::~Model() { }
 
 bool Model::validate(const ShaderSource& txt) const noexcept
 {
-  const auto& [_, error] = ProgramCache::instance().get(txt);
+  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
+  QShaderVersion version = QShaderVersion(100);
+  const auto& [_, error] = ProgramCache::instance().get(api, version, txt);
   if(!error.isEmpty())
   {
     this->errorMessage(error);
@@ -104,9 +106,13 @@ void Model::setFragment(QString f)
 
 void Model::setProgram(const ShaderSource& f)
 {
+  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
+  QShaderVersion version = QShaderVersion(100);
+
   setVertex(f.vertex);
   setFragment(f.fragment);
-  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
+  if(const auto& [processed, error] = ProgramCache::instance().get(api, version, f);
+     bool(processed))
   {
     auto inls = score::clearAndDeleteLater(m_inlets);
     m_processedProgram = *processed;

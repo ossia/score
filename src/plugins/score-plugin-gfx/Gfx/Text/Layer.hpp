@@ -7,6 +7,6 @@
 
 namespace Gfx::Text
 {
-using LayerFactory
-    = Process::EffectLayerFactory_T<Gfx::Text::Model, Process::DefaultEffectItem>;
+//using LayerFactory
+//    = Process::EffectLayerFactory_T<Gfx::Text::Model, Process::DefaultEffectItem>;
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include <Gfx/Graph/RenderState.hpp>
+
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/hash_map.hpp>
@@ -123,7 +125,8 @@ struct SCORE_PLUGIN_GFX_EXPORT ProgramCache
 {
   static ProgramCache& instance() noexcept;
   std::pair<std::optional<ProcessedProgram>, QString>
-  get(const ShaderSource& program) noexcept;
+  get(const score::gfx::GraphicsApi api, QShaderVersion version,
+      const ShaderSource& program) noexcept;
 
   ossia::fast_hash_map<ShaderSource, ProcessedProgram> programs;
 };

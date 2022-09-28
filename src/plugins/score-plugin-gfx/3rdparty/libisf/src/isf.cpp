@@ -14,28 +14,6 @@ namespace
 {
 static constexpr struct glsl45_t
 {
-  static constexpr auto defaultVertexShader = R"_(#version 450
-
-layout(location = 0) in vec2 position;
-layout(location = 1) in vec2 texcoord;
-//layout(location = 0) out vec2 isf_TexCoord;
-layout(location = 0) out vec2 isf_FragNormCoord;
-
-layout(std140, binding = 0) uniform renderer_t {
-  mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
-
-  vec2 RENDERSIZE;
-};
-
-void main()
-{
-  gl_Position = clipSpaceCorrMatrix * vec4( position, 0.0, 1.0 );
-//  isf_TexCoord = texcoord;
-  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
-}
-)_";
-
   static constexpr auto vertexPrelude = R"_(#version 450
 
 layout(location = 0) in vec2 position;
@@ -53,6 +31,13 @@ void isf_vertShaderInit()
 }
 )_";
 
+  static constexpr auto vertexDefaultMain = R"_(
+void main()
+{
+  isf_vertShaderInit();
+}
+)_";
+
   static constexpr auto fragmentPrelude = R"_(#version 450
 //layout(location = 0) in vec2 isf_TexCoord;
 layout(location = 0) in vec2 isf_FragNormCoord;
@@ -66,7 +51,14 @@ layout(std140, binding = 0) uniform renderer_t {
   vec2 texcoordAdjust;
 
   vec2 RENDERSIZE;
-};
+} isf_renderer_uniforms;
+
+// This dance is needed because otherwise
+// spirv-cross may generate different struct names in the vertex & fragment, causing crashes..
+// but we have to keep compat with ISF
+mat4 clipSpaceCorrMatrix = isf_renderer_uniforms.clipSpaceCorrMatrix;
+vec2 texcoordAdjust = isf_renderer_uniforms.texcoordAdjust;
+vec2 RENDERSIZE = isf_renderer_uniforms.RENDERSIZE;
 
 //vec2 isf_FragCoord = vec2(isf_TexCoord.x, texcoordAdjust.y + texcoordAdjust.x * isf_TexCoord.y);
 //vec2 isf_FragNormCoord = vec2(isf_TexCoord.x, texcoordAdjust.y + texcoordAdjust.x * isf_TexCoord.y) / RENDERSIZE;
@@ -81,12 +73,19 @@ layout(std140, binding = 1) uniform process_t {
   int FRAMEINDEX;
 
   vec4 DATE;
-};
+} isf_process_uniforms;
+
+float TIME = isf_process_uniforms.TIME;
+float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
+float PROGRESS = isf_process_uniforms.PROGRESS;
+int PASSINDEX = isf_process_uniforms.PASSINDEX;
+int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
+vec4 DATE = isf_process_uniforms.DATE;
 )_";
 
   static constexpr auto defaultFunctions =
       R"_(
-#define TEX_DIMENSIONS(tex) _ ## tex ## _imgRect.zw
+#define TEX_DIMENSIONS(tex) isf_material_uniforms._ ## tex ## _imgRect.zw
 //#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
 //#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
 //#define IMG_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
@@ -713,7 +712,7 @@ void parser::parse_isf()
       {
         if(m_sourceVertex.empty())
         {
-          m_vertex = GLSL45.defaultVertexShader;
+          m_vertex = GLSL45.vertexPrelude;
           simpleVS = true;
         }
         else if(m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
@@ -735,31 +734,44 @@ void parser::parse_isf()
       if(!d.inputs.empty() || !d.passes.empty())
       {
         std::string samplers;
+        std::string globalvars;
         material_ubos += "layout(std140, binding = 2) uniform material_t {\n";
         for(const isf::input& val : d.inputs)
         {
-          auto [text, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
+          auto [type, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
 
           if(isSampler)
           {
             samplers += "layout(binding = ";
             samplers += std::to_string(binding);
             samplers += ") ";
-            samplers += text;
+            samplers += type;
             samplers += ' ';
             samplers += val.name;
             samplers += ";\n";
 
-            material_ubos += "vec4 _" + val.name + "_imgRect;\n";
+            auto imgRect_varname = "_" + val.name + "_imgRect";
+            material_ubos += "vec4 " + imgRect_varname + ";\n";
+            // See comment above regarding little dance to make spirv-cross happy
+            globalvars += "vec4 " + imgRect_varname + " = isf_material_uniforms."
+                          + imgRect_varname + ";\n";
 
             binding++;
           }
           else
           {
-            material_ubos += text;
+            material_ubos += type;
             material_ubos += ' ';
             material_ubos += val.name;
             material_ubos += ";\n";
+
+            // See comment above regarding little dance to make spirv-cross happy
+            globalvars += type;
+            globalvars += ' ';
+            globalvars += val.name;
+            globalvars += " = isf_material_uniforms.";
+            globalvars += val.name;
+            globalvars += ";\n";
           }
         }
 
@@ -776,17 +788,25 @@ void parser::parse_isf()
           binding++;
         }
 
-        material_ubos += "};\n";
+        material_ubos += "} isf_material_uniforms;\n";
+        material_ubos += "\n";
+        material_ubos += globalvars;
         material_ubos += "\n";
 
         material_ubos += samplers;
       }
 
+      m_vertex += material_ubos;
       if(!simpleVS)
       {
-        m_vertex += material_ubos;
         m_vertex += GLSL45.vertexInitFunc;
       }
+      else
+      {
+        m_vertex += GLSL45.vertexInitFunc;
+        m_vertex += GLSL45.vertexDefaultMain;
+      }
+
       m_fragment += material_ubos;
       m_fragment += GLSL45.defaultFunctions;
       break;

@@ -122,7 +122,10 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
 {
   ShaderSource program = programFromFragmentShaderPath(path, {});
 
-  if(const auto& [processed, error] = ProgramCache::instance().get(program);
+  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
+  QShaderVersion version = QShaderVersion(100);
+  if(const auto& [processed, error]
+     = ProgramCache::instance().get(api, version, program);
      bool(processed))
   {
     m_program = *processed;
@@ -141,7 +144,11 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
   auto frag = obj["Fragment"].GetString();
   auto vert = obj["Vertex"].GetString();
   ShaderSource program{vert, frag};
-  if(const auto& [processed, error] = ProgramCache::instance().get(program);
+
+  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
+  QShaderVersion version = QShaderVersion(100);
+  if(const auto& [processed, error]
+     = ProgramCache::instance().get(api, version, program);
      bool(processed))
   {
     m_program = *std::move(processed);

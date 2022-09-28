@@ -36,7 +36,8 @@ const std::pair<QShader, QString>& ShaderCache::get(
     return it->second;
 
   b.baker.setSourceString(shader, stage);
-  auto res = b.shaders.insert({shader, {b.baker.bake(), b.baker.errorMessage()}});
+  QShader baked = b.baker.bake();
+  auto res = b.shaders.insert({shader, {std::move(baked), b.baker.errorMessage()}});
   return res.first->second;
 }
 

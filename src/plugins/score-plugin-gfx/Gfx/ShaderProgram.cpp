@@ -215,8 +215,9 @@ ProgramCache& ProgramCache::instance() noexcept
   return cache;
 }
 
-std::pair<std::optional<ProcessedProgram>, QString>
-ProgramCache::get(const ShaderSource& program) noexcept
+std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(
+    const score::gfx::GraphicsApi api, QShaderVersion version,
+    const ShaderSource& program) noexcept
 {
   auto it = programs.find(program);
   if(it != programs.end())
