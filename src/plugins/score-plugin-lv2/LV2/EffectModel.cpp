@@ -285,20 +285,22 @@ bool Model::hasExternalUI() const noexcept
     return false;
 
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
-  const auto native_ui_type_uri = "http://lv2plug.in/ns/extensions/ui#Qt5UI";
+  auto& host_ui_uri = p.lv2_host_context.host_ui_type;
   auto the_uis = lilv_plugin_get_uis(plugin);
-  auto native_ui_type = lilv_new_uri(p.lilv.me, native_ui_type_uri);
+
+  bool supported = false;
   LILV_FOREACH(uis, u, the_uis)
   {
     const LilvUI* this_ui = lilv_uis_get(the_uis, u);
-    if(lilv_ui_is_supported(
-           this_ui, p.suil.ui_supported, native_ui_type, &effectContext.ui_type))
-    {
-      return true;
-    }
+    supported |= lilv_ui_is_supported(
+        this_ui, p.suil.ui_supported, host_ui_uri.me, &effectContext.ui_type);
+
+    if(supported)
+      break;
   }
 
-  return false;
+  lilv_uis_free(the_uis);
+  return supported;
 }
 
 void Model::readPlugin()

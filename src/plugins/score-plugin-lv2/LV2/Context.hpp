@@ -91,6 +91,8 @@ struct HostContext
   Lilv::Node fixed_size{make_node(LV2_UI__fixedSize)};
   Lilv::Node no_user_resize{make_node(LV2_UI__noUserResize)};
 
+  Lilv::Node host_ui_type{make_node("http://lv2plug.in/ns/extensions/ui#Qt5UI")};
+
   int32_t midi_buffer_size = 2048;
   LV2_URID midi_event_id{};
   LV2_URID atom_chunk_id{};
