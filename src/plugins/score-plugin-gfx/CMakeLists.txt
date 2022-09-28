@@ -72,7 +72,11 @@ set(HDRS
     Gfx/Text/Process.hpp
     Gfx/Text/Layer.hpp
 
+    Gfx/Graph/CommonUBOs.hpp
     Gfx/Graph/CustomMesh.hpp
+    Gfx/Graph/DepthNode.hpp
+    Gfx/Graph/OutputNode.hpp
+    Gfx/Graph/Scale.hpp
     Gfx/Graph/Window.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/Node.hpp
@@ -110,11 +114,14 @@ set(HDRS
     Gfx/GfxExecContext.hpp
     Gfx/GfxParameter.hpp
     Gfx/GfxDevice.hpp
+    Gfx/GfxInputDevice.hpp
     Gfx/InvertYRenderer.hpp
     Gfx/TexturePort.hpp
     Gfx/ShaderProgram.hpp
     Gfx/SharedInputSettings.hpp
     Gfx/SharedOutputSettings.hpp
+    Gfx/Qt5CompatPush
+    Gfx/Qt5CompatPop
 
     Gfx/CameraDevice.hpp
     Gfx/WindowDevice.hpp
