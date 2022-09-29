@@ -24,7 +24,11 @@ Window::Window(GraphicsApi graphicsApi)
 #if QT_CONFIG(opengl)
     {
       setSurfaceType(OpenGLSurface);
+#if QT_VERSION < QT_VERSION_CHECK(6, 4, 0)
       auto fmt = QRhiGles2InitParams::adjustedFormat();
+#else
+      auto fmt = QSurfaceFormat::defaultFormat();
+#endif
       const int samples
           = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
       fmt.setSamples(samples);
