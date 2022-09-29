@@ -26,11 +26,17 @@ bool DropPresetInScenario::drop(
 
   if(mime.hasUrls())
   {
-    if(QFile f{mime.urls()[0].toLocalFile()};
-       QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
+    QFile f{mime.urls()[0].toLocalFile()};
+    const auto ext = QFileInfo{f}.suffix();
+    if(ext == "scp" && f.open(QIODevice::ReadOnly))
     {
       filename = QFileInfo{f}.fileName();
       presetData = f.readAll();
+    }
+    else
+    {
+      // We do not want to catch every file
+      return false;
     }
   }
   else if(mime.hasFormat(score::mime::processpreset()))

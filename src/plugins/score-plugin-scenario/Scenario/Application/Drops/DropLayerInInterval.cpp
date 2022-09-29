@@ -86,10 +86,16 @@ void DropLayerInInterval::perform(
   else
   {
     // Just create a new process
-    if(json.HasMember(score::StringConstant().Process)
-       && json.HasMember(score::StringConstant().uuid))
+    if(auto proc = json.FindMember(score::StringConstant().Process);
+       proc != json.MemberEnd())
     {
-      m.loadProcessInSlot(interval, json);
+      if(proc->value.IsObject())
+      {
+        if(proc->value.HasMember(score::StringConstant().uuid))
+        {
+          m.loadProcessInSlot(interval, json);
+        }
+      }
     }
     else
     {
