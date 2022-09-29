@@ -300,6 +300,7 @@ void IntervalComponent::onSetup(
     bool root)
 {
   m_ossia_interval = ossia_cst;
+  Transaction t{context()};
 
 #if defined(OSSIA_EXECUTION_LOG)
   m_ossia_interval->name = this->interval().metadata().getName().toStdString();
@@ -345,7 +346,7 @@ void IntervalComponent::onSetup(
 
     if(Q_UNLIKELY(interval().graphal()))
     {
-      in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
+      t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
         ossia_cst->set_stateless_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
                 [weak_self, &edit](bool running, ossia::time_value date) {
@@ -358,7 +359,7 @@ void IntervalComponent::onSetup(
     }
     else
     {
-      in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
+      t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
         ossia_cst->set_stateless_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
                 [weak_self, &edit](bool running, ossia::time_value date) {
@@ -373,13 +374,15 @@ void IntervalComponent::onSetup(
 
   // set-up the interval ports
   {
+
     auto [inputsToRegister, outputsToRegister] = portsToRegister(interval());
     if(!inputsToRegister.empty() || !outputsToRegister.empty())
     {
       system().setup.register_node(
-          inputsToRegister, outputsToRegister, m_ossia_interval->node);
+          inputsToRegister, outputsToRegister, m_ossia_interval->node, t);
     }
   }
+  t.run_all_in_exec();
 
   init();
 }
