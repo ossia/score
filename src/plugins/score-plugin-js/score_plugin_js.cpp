@@ -35,8 +35,6 @@
 #include <score_plugin_js_commands_files.hpp>
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(JS::JsUtils)
-W_OBJECT_IMPL(JS::EditJsContext)
 W_OBJECT_IMPL(JS::ActionContext)
 namespace JS
 {

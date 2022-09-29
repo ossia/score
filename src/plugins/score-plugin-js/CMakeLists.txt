@@ -26,9 +26,11 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Metatypes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.hpp"
@@ -44,9 +46,18 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.curve.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.device.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.metaobject.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.ossia.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.port.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.scenario.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_js.cpp"
 )
 
