@@ -3,6 +3,7 @@
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
 
+#include <QDebug>
 #include <QFileInfo>
 
 namespace JS

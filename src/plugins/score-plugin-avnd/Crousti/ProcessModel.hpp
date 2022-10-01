@@ -16,6 +16,7 @@
 #include <boost/pfr.hpp>
 
 #include <avnd/common/for_nth.hpp>
+#include <avnd/concepts/file_port.hpp>
 #include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <avnd/introspection/messages.hpp>
@@ -238,7 +239,8 @@ struct InletInitFunc
       }
       else if constexpr(avnd::string_ish<filter>)
       {
-        return fromStringView(p.filters());
+        constexpr auto text_filters = P::filters();
+        return fromStringView(P::filters());
       }
       else
       {
@@ -256,14 +258,13 @@ struct InletInitFunc
   {
     constexpr auto name = avnd::get_name<T>();
 
-    qDebug() << getFilters(in);
     auto p = new Process::FileChooser{
         "", getFilters(in), QString::fromUtf8(name.data(), name.size()),
         Id<Process::Port>(inlet++), &self};
     p->hidden = true;
     ins.push_back(p);
 
-    if constexpr(requires { T::file_watch; })
+    if constexpr(avnd::tag_file_watch<T>)
     {
       p->enableFileWatch();
     }

@@ -392,7 +392,7 @@ void FileChooser::setupExecution(ossia::inlet& inl) const noexcept
 void FileChooser::enableFileWatch()
 {
   auto fun = std::make_shared<std::function<void()>>([ptr = QPointer{this}]() mutable {
-    ossia::qt::run_async(qApp, [ptr = std::move(ptr)] {
+    ossia::qt::run_async(qApp, [ptr] {
       if(ptr)
       {
         // This will trigger a reload

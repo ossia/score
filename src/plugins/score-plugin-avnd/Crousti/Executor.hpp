@@ -39,20 +39,8 @@
 #include <avnd/binding/ossia/ossia_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <avnd/concepts/ui.hpp>
+#include <avnd/concepts/worker.hpp>
 #include <libremidi/reader.hpp>
-namespace avnd
-{
-template <typename T>
-concept port_can_process = requires(T t)
-{
-  T::process({});
-};
-template <typename T>
-concept has_worker = requires(T t)
-{
-  t.worker.request = {};
-};
-}
 
 namespace oscr
 {

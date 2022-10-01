@@ -1,11 +1,12 @@
 #include "FileWatch.hpp"
 
 #include <score/application/ApplicationServices.hpp>
+
 #include <ossia-qt/invoke.hpp>
 
-#include <QFile>
-#include <QDateTime>
 #include <QApplication>
+#include <QDateTime>
+#include <QFile>
 #include <QFileInfo>
 
 namespace score
@@ -37,9 +38,7 @@ FileWatch::~FileWatch()
 FileWatch& FileWatch::instance()
 {
   static std::once_flag init{};
-  std::call_once(init, [] {
-    score::AppServices().filewatch.emplace();
-  });
+  std::call_once(init, [] { score::AppServices().filewatch.emplace(); });
   return *score::AppServices().filewatch;
 }
 
@@ -54,7 +53,7 @@ void FileWatch::add(QString path, comparable_function cb)
   }
   else
   {
-    m_map.emplace(path, watch{.mtime = mtime, .functions { std::move(cb) }});
+    m_map.emplace(path, watch{.mtime = mtime, .functions{std::move(cb)}});
   }
 }
 
@@ -84,7 +83,11 @@ void FileWatch::timerEvent(QTimerEvent* ev)
       cur_map = m_map;
     }
 
-    struct pair { QString path; int64_t mtime; };
+    struct pair
+    {
+      QString path;
+      int64_t mtime;
+    };
     boost::container::small_vector<pair, 4> vec;
 
     for(auto& [path, watch] : cur_map)
