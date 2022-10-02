@@ -16,6 +16,8 @@ W_OBJECT_IMPL(JS::FloatSlider)
 W_OBJECT_IMPL(JS::IntSlider)
 W_OBJECT_IMPL(JS::Enum)
 W_OBJECT_IMPL(JS::Toggle)
+W_OBJECT_IMPL(JS::Button)
+W_OBJECT_IMPL(JS::Impulse)
 W_OBJECT_IMPL(JS::LineEdit)
 
 W_GADGET_IMPL(JS::ValueMessage)
@@ -83,7 +85,14 @@ void ValueOutlet::setValue(QVariant value)
   if(m_value == value)
     return;
 
-  m_value = value;
+  if(QJSValue qjsv = value.value<QJSValue>(); !qjsv.isError() && !qjsv.isNull())
+  {
+    m_value = qjsv.toVariant();
+  }
+  else
+  {
+    m_value = value;
+  }
 }
 
 void ValueOutlet::addValue(qreal timestamp, QVariant t)
@@ -151,6 +160,8 @@ Outlet::~Outlet() { }
 FloatSlider::~FloatSlider() = default;
 IntSlider::~IntSlider() = default;
 Toggle::~Toggle() = default;
+Button::~Button() = default;
+Impulse::~Impulse() = default;
 Enum::~Enum() = default;
 LineEdit::~LineEdit() = default;
 }

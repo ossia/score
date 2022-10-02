@@ -46,21 +46,15 @@ UUID_METADATA(
     "348b80a4-45dc-4f70-8f5f-6546c85089a2")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::IntRangeSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntRangeSlider,
     "0c1902bc-e282-11ec-8fea-0242ac120002")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::FloatRangeSlider,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatRangeSlider,
     "73ae3e85-0c91-497e-b612-b1391f87ac72")
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::IntSpinBox,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntSpinBox,
     "238399a0-7e81-47e3-896f-08e8856e2973")
 
 UUID_METADATA(
@@ -185,12 +179,8 @@ struct SCORE_LIB_PROCESS_EXPORT IntRangeSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntRangeSlider)
   IntRangeSlider(
-        int min,
-        int max,
-        ossia::vec2f init,
-        const QString& name,
-        Id<Process::Port> id,
-        QObject* parent);
+      int min, int max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
   ~IntRangeSlider();
 
   auto getMin() const noexcept { return domain().get().convert_min<int>(); }
@@ -204,12 +194,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatRangeSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(FloatRangeSlider)
   FloatRangeSlider(
-        float min,
-        float max,
-        ossia::vec2f init,
-        const QString& name,
-        Id<Process::Port> id,
-        QObject* parent);
+      float min, float max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
   ~FloatRangeSlider();
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
@@ -374,6 +360,8 @@ struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
 struct SCORE_LIB_PROCESS_EXPORT ImpulseButton : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(ImpulseButton)
+  W_OBJECT(ImpulseButton)
+public:
   ImpulseButton(const QString& name, Id<Process::Port> id, QObject* parent);
   ~ImpulseButton();
 

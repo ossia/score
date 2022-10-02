@@ -12,6 +12,7 @@
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Process::FileChooser)
+W_OBJECT_IMPL(Process::ImpulseButton)
 namespace Process
 {
 Enum::Enum(DataStream::Deserializer& vis, QObject* parent)

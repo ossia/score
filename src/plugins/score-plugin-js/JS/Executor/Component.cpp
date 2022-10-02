@@ -80,6 +80,13 @@ public:
     if(auto v = qobject_cast<ValueInlet*>(m_jsInlets[index]))
       v->setValue(val);
   }
+  void impulse(std::size_t index)
+  {
+    if(index > m_jsInlets.size())
+      return;
+    if(auto v = qobject_cast<Impulse*>(m_jsInlets[index]))
+      v->impulse();
+  }
 
 private:
   void setupComponent(QQmlComponent& c);
@@ -177,28 +184,35 @@ void Component::on_scriptChange(const QString& script)
           inls.push_back(new ossia::value_inlet);
           auto& vp = *inls.back()->target<ossia::value_port>();
 
-          if(!val_in->is_control())
+          vp.is_event = !val_in->isEvent();
+          if(auto ctrl = qobject_cast<Process::ControlInlet*>(process().inlets()[idx]))
           {
-            vp.is_event = true;
-          }
-          else
-          {
-            auto ctrl = qobject_cast<Process::ControlInlet*>(process().inlets()[idx]);
-            SCORE_ASSERT(ctrl);
             vp.type = ctrl->value().get_type();
             vp.domain = ctrl->domain().get();
 
             disconnect(ctrl, nullptr, this, nullptr);
-            connect(
-                ctrl, &Process::ControlInlet::valueChanged, this,
-                [=](const ossia::value& val) {
-              this->in_exec([old_node, val, idx] {
+            if(auto impulse = qobject_cast<Process::ImpulseButton*>(ctrl))
+            {
+              connect(
+                  ctrl, &Process::ControlInlet::valueChanged, this,
+                  [=](const ossia::value& val) {
+                this->in_exec([old_node, idx] { old_node->impulse(idx); });
+                  });
+            }
+            else
+            {
+              // Common case
+              connect(
+                  ctrl, &Process::ControlInlet::valueChanged, this,
+                  [=](const ossia::value& val) {
+                this->in_exec([old_node, val, idx] {
+                  old_node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
+                });
+                  });
+              controlSetups.push_back([old_node, val = ctrl->value(), idx] {
                 old_node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
               });
-                });
-            controlSetups.push_back([old_node, val = ctrl->value(), idx] {
-              old_node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
-            });
+            }
           }
 
           ++idx;

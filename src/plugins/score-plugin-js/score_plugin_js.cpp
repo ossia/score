@@ -188,6 +188,8 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::IntSlider>("Score", 1, 0, "IntSlider");
   qmlRegisterType<JS::Enum>("Score", 1, 0, "Enum");
   qmlRegisterType<JS::Toggle>("Score", 1, 0, "Toggle");
+  qmlRegisterType<JS::Impulse>("Score", 1, 0, "Impulse");
+  qmlRegisterType<JS::Button>("Score", 1, 0, "Button");
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
   qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
 

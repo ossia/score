@@ -30,7 +30,7 @@ public:
   using QObject::QObject;
   virtual ~Inlet() override;
   virtual Process::Inlet* make(Id<Process::Port>&& id, QObject*) = 0;
-  virtual bool is_control() const { return false; }
+  virtual bool isEvent() const { return false; }
 
   W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
@@ -112,7 +112,7 @@ class FloatSlider : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~FloatSlider() override;
-  bool is_control() const override { return true; }
+  bool isEvent() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -132,7 +132,7 @@ class IntSlider : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~IntSlider() override;
-  bool is_control() const override { return true; }
+  bool isEvent() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -151,7 +151,7 @@ class Enum : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~Enum() override;
-  bool is_control() const override { return true; }
+  bool isEvent() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -180,13 +180,45 @@ class Toggle : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~Toggle() override;
-  bool is_control() const override { return true; }
+  bool isEvent() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     return new Process::Toggle{m_checked, objectName(), id, parent};
   }
 
   W_INLINE_PROPERTY_VALUE(bool, checked, {}, checked, setChecked, checkedChanged)
+};
+
+class Button : public ValueInlet
+{
+  W_OBJECT(Button)
+
+public:
+  using ValueInlet::ValueInlet;
+  virtual ~Button() override;
+  bool isEvent() const override { return true; }
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    return new Process::Button{objectName(), id, parent};
+  }
+
+  W_INLINE_PROPERTY_VALUE(bool, checked, {}, checked, setChecked, checkedChanged)
+};
+
+class Impulse : public ValueInlet
+{
+  W_OBJECT(Impulse)
+
+public:
+  using ValueInlet::ValueInlet;
+  virtual ~Impulse() override;
+  bool isEvent() const override { return false; }
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    return new Process::ImpulseButton{objectName(), id, parent};
+  }
+
+  void impulse() W_SIGNAL(impulse);
 };
 
 class LineEdit : public ValueInlet
@@ -196,7 +228,7 @@ class LineEdit : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~LineEdit() override;
-  bool is_control() const override { return true; }
+  bool isEvent() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     return new Process::LineEdit{m_text, objectName(), id, parent};
