@@ -61,6 +61,7 @@ public:
   QQmlEngine* m_engine{};
   std::vector<Inlet*> m_jsInlets;
   std::vector<std::pair<ControlInlet*, ossia::inlet_ptr>> m_ctrlInlets;
+  std::vector<std::pair<Impulse*, ossia::inlet_ptr>> m_impulseInlets;
   std::vector<std::pair<ValueInlet*, ossia::inlet_ptr>> m_valInlets;
   std::vector<std::pair<ValueOutlet*, ossia::outlet_ptr>> m_valOutlets;
   std::vector<std::pair<AudioInlet*, ossia::inlet_ptr>> m_audInlets;
@@ -299,7 +300,12 @@ void js_node::setupComponent(QQmlComponent& c)
 
     for(auto n : m_object->children())
     {
-      if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
+      if(auto imp_in = qobject_cast<Impulse*>(n))
+      {
+        m_jsInlets.push_back(imp_in);
+        m_impulseInlets.push_back({imp_in, m_inlets[input_i++]});
+      }
+      else if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
       {
         m_jsInlets.push_back(ctrl_in);
         m_ctrlInlets.push_back({ctrl_in, m_inlets[input_i++]});
@@ -391,6 +397,7 @@ void js_node::setScript(const QString& val)
 
   m_jsInlets.clear();
   m_ctrlInlets.clear();
+  m_impulseInlets.clear();
   m_valInlets.clear();
   m_audInlets.clear();
   m_midInlets.clear();
@@ -493,6 +500,19 @@ void js_node::run(
         m_valInlets[i].first->addValue(
             QVariant::fromValue(ValueMessage{(double)val.timestamp, std::move(qvar)}));
       }
+    }
+  }
+
+  // Impulses are handed separately
+
+  for(std::size_t i = 0; i < m_impulseInlets.size(); i++)
+  {
+    auto& vp = *m_impulseInlets[i].second->target<ossia::value_port>();
+    auto& dat = vp.get_data();
+
+    for(int k = 0; k < dat.size(); k++)
+    {
+      m_impulseInlets[i].first->impulse();
     }
   }
 
