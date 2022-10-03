@@ -46,6 +46,12 @@ public:
   void createOSCDevice(QString name, QString host, int in, int out);
   W_SLOT(createOSCDevice)
 
+  void createQMLWebSocketDevice(QString name, QString text);
+  W_SLOT(createQMLWebSocketDevice)
+
+  void createQMLSerialDevice(QString name, QString port, QString text);
+  W_SLOT(createQMLSerialDevice)
+
   void createAddress(QString addr, QString type);
   W_SLOT(createAddress)
 

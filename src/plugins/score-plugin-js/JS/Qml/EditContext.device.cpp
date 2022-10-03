@@ -2,10 +2,21 @@
 
 #include <JS/Qml/EditContext.hpp>
 
+#include <ossia-config.hpp>
+#if defined(OSSIA_PROTOCOL_WEBSOCKETS)
+#include <Protocols/WS/WSProtocolFactory.hpp>
+#include <Protocols/WS/WSSpecificSettings.hpp>
+#endif
+
+#if defined(OSSIA_PROTOCOL_SERIAL)
+#include <Protocols/Serial/SerialProtocolFactory.hpp>
+#include <Protocols/Serial/SerialSpecificSettings.hpp>
+#endif
+
 // #include <Protocols/OSC/OSCProtocolFactory.hpp>
 // #include <Protocols/OSC/OSCSpecificSettings.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
-// #include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter_data.hpp>
@@ -30,6 +41,59 @@ void EditJsContext::createOSCDevice(QString name, QString host, int in, int out)
   auto [m, _] = macro();
   m->submit(new Explorer::Command::LoadDevice{plug, std::move(set)});
   */
+}
+
+void EditJsContext::createQMLWebSocketDevice(QString name, QString text)
+{
+#if defined(OSSIA_PROTOCOL_WEBSOCKETS)
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  Device::DeviceSettings set;
+  set.name = name;
+  set.deviceSpecificSettings
+      = QVariant::fromValue(Protocols::WSSpecificSettings{"", text});
+  set.protocol = Protocols::WSProtocolFactory::static_concreteKey();
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
+#endif
+}
+
+void EditJsContext::createQMLSerialDevice(QString name, QString port, QString text)
+{
+#if defined(OSSIA_PROTOCOL_SERIAL)
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  QSerialPortInfo info;
+  for(auto& p : QSerialPortInfo::availablePorts())
+  {
+    if(p.portName() == port)
+    {
+      info = p;
+      break;
+    }
+  }
+  if(info.isNull())
+  {
+    qDebug() << "Serial port " << port << " was not found";
+    return;
+  }
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  Device::DeviceSettings set;
+  set.name = name;
+  set.deviceSpecificSettings
+      = QVariant::fromValue(Protocols::SerialSpecificSettings{info, text, 0});
+  set.protocol = Protocols::SerialProtocolFactory::static_concreteKey();
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
+#endif
 }
 
 QString EditJsContext::deviceToJson(QString name)
