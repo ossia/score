@@ -66,6 +66,7 @@ void ControlInlet::setValue(QVariant value)
     return;
 
   m_value = value;
+  valueChanged(m_value);
 }
 
 ValueOutlet::ValueOutlet(QObject* parent)

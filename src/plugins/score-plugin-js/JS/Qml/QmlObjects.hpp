@@ -101,8 +101,9 @@ public:
 
   void clear() { m_value = QVariant{}; }
   void setValue(QVariant value);
+  void valueChanged(QVariant value) W_SIGNAL(valueChanged, value);
 
-  W_PROPERTY(QVariant, value READ value)
+  W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
 };
 
 class FloatSlider : public ValueInlet
