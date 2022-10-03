@@ -40,6 +40,9 @@ public:
 
   const score::DocumentContext* ctx();
 
+  QString deviceToJson(QString addr);
+  W_SLOT(deviceToJson)
+
   void createOSCDevice(QString name, QString host, int in, int out);
   W_SLOT(createOSCDevice)
 
