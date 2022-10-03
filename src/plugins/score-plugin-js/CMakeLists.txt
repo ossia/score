@@ -53,6 +53,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.ossia.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.port.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.scenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.ui.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.cpp"

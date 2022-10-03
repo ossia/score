@@ -172,6 +172,10 @@ public:
   QVariantList selectedObjects();
   W_SLOT(selectedObjects)
 
+  /// UI ///
+  QVariant prompt(QVariant v);
+  W_SLOT(prompt)
+
 private:
   void submit(Macro& m, score::Command* c);
 };
