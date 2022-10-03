@@ -59,7 +59,10 @@ QVariant EditJsContext::prompt(QVariant v)
       auto widget = new score::DoubleSlider{Qt::Horizontal, dial};
       widget->setRange(min, max);
       if(auto init = v["init"]; init.isValid())
-        widget->setValue(init.toDouble());
+      {
+        if(max > min)
+          widget->setValue((init.toDouble() - min) / (max - min));
+      }
       lay->addRow(v["name"].toString(), widget);
       return [=] { return min + widget->value() * (max - min); };
     }
