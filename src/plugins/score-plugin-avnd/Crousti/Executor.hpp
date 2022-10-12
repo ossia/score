@@ -621,6 +621,8 @@ public:
           = std::hash<ObjectPath>{}(Path<Process::ProcessModel>{element}.unsafePath());
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate(), id};
       node->prepare(*ctx.execState.get()); // Preparation of the ossia side
+
+      if_possible(node->impl.effect.ossia_state = st);
       ptr.reset(node);
       this->node = ptr;
 
