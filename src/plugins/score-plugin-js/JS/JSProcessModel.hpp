@@ -16,6 +16,9 @@ namespace JS
 {
 class Script;
 class ProcessModel;
+
+void setupEngineImportPaths(QQmlEngine& engine) noexcept;
+
 struct ComponentCache
 {
 public:

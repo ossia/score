@@ -20,10 +20,12 @@ W_OBJECT_IMPL(JS::Button)
 W_OBJECT_IMPL(JS::Impulse)
 W_OBJECT_IMPL(JS::LineEdit)
 
-W_GADGET_IMPL(JS::ValueMessage)
+W_GADGET_IMPL(JS::InValueMessage)
+W_GADGET_IMPL(JS::OutValueMessage)
 W_GADGET_IMPL(JS::MidiMessage)
 
-auto disregard_me = &JS::ValueMessage::staticMetaObject;
+auto disregard_me = &JS::InValueMessage::staticMetaObject;
+auto disregard_me_1 = &JS::OutValueMessage::staticMetaObject;
 auto disregard_me_2 = &JS::MidiMessage::staticMetaObject;
 namespace JS
 {
@@ -46,6 +48,7 @@ void ValueInlet::setValue(QVariant value)
     return;
 
   m_value = value;
+  valueChanged(value);
 }
 
 ControlInlet::ControlInlet(QObject* parent)
@@ -76,27 +79,17 @@ ValueOutlet::ValueOutlet(QObject* parent)
 
 ValueOutlet::~ValueOutlet() { }
 
-QVariant ValueOutlet::value() const
+const QJSValue& ValueOutlet::value() const
 {
   return m_value;
 }
 
-void ValueOutlet::setValue(QVariant value)
+void ValueOutlet::setValue(const QJSValue& value)
 {
-  if(m_value == value)
-    return;
-
-  if(QJSValue qjsv = value.value<QJSValue>(); !qjsv.isError() && !qjsv.isNull())
-  {
-    m_value = qjsv.toVariant();
-  }
-  else
-  {
-    m_value = value;
-  }
+  m_value = value;
 }
 
-void ValueOutlet::addValue(qreal timestamp, QVariant t)
+void ValueOutlet::addValue(qreal timestamp, QJSValue t)
 {
   values.push_back({timestamp, std::move(t)});
 }

@@ -19,7 +19,7 @@
 #include <libremidi/message.hpp>
 
 #include <verdigris>
-
+W_REGISTER_ARGTYPE(QJSValue)
 namespace JS
 {
 class Inlet : public QObject
@@ -47,9 +47,9 @@ public:
   W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
 
-struct ValueMessage
+struct InValueMessage
 {
-  W_GADGET(ValueMessage)
+  W_GADGET(InValueMessage)
 
 public:
   qreal timestamp;
@@ -57,6 +57,18 @@ public:
   W_PROPERTY(qreal, timestamp MEMBER timestamp)
   W_PROPERTY(QVariant, value MEMBER value)
 };
+
+struct OutValueMessage
+{
+  W_GADGET(OutValueMessage)
+
+public:
+  qreal timestamp;
+  QJSValue value;
+  W_PROPERTY(qreal, timestamp MEMBER timestamp)
+  W_PROPERTY(QJSValue, value MEMBER value)
+};
+
 class ValueInlet : public Inlet
 {
   W_OBJECT(ValueInlet)
@@ -78,9 +90,10 @@ public:
   void clear() { m_values.clear(); }
   void setValue(QVariant value);
   void addValue(QVariant&& val) { m_values.append(std::move(val)); }
+  void valueChanged(QVariant value) W_SIGNAL(valueChanged, value);
 
   W_PROPERTY(QVariantList, values READ values)
-  W_PROPERTY(QVariant, value READ value)
+  W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
 };
 
 class ControlInlet : public Inlet
@@ -242,17 +255,17 @@ class ValueOutlet : public Outlet
 {
   W_OBJECT(ValueOutlet)
 
-  QVariant m_value;
+  QJSValue m_value;
 
 public:
-  std::vector<ValueMessage> values;
+  std::vector<OutValueMessage> values;
 
   ValueOutlet(QObject* parent = nullptr);
   virtual ~ValueOutlet() override;
-  QVariant value() const;
+  const QJSValue& value() const;
   void clear()
   {
-    m_value = QVariant{};
+    m_value = QJSValue{};
     values.clear();
   }
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
@@ -261,12 +274,12 @@ public:
   }
 
 public:
-  void setValue(QVariant value);
+  void setValue(const QJSValue& value);
   W_SLOT(setValue);
-  void addValue(qreal timestamp, QVariant t);
+  void addValue(qreal timestamp, QJSValue t);
   W_SLOT(addValue);
 
-  W_PROPERTY(QVariant, value READ value WRITE setValue)
+  W_PROPERTY(QJSValue, value READ value WRITE setValue)
 };
 
 class AudioInlet : public Inlet
@@ -490,12 +503,22 @@ inline QDataStream& operator>>(QDataStream& i, JS::MidiMessage& sel)
   SCORE_ABORT;
   return i;
 }
-inline QDataStream& operator<<(QDataStream& i, const JS::ValueMessage& sel)
+inline QDataStream& operator<<(QDataStream& i, const JS::InValueMessage& sel)
 {
   SCORE_ABORT;
   return i;
 }
-inline QDataStream& operator>>(QDataStream& i, JS::ValueMessage& sel)
+inline QDataStream& operator>>(QDataStream& i, JS::InValueMessage& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream& operator<<(QDataStream& i, const JS::OutValueMessage& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream& operator>>(QDataStream& i, JS::OutValueMessage& sel)
 {
   SCORE_ABORT;
   return i;

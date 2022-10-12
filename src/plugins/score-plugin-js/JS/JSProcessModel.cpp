@@ -11,7 +11,9 @@
 #include <Process/PresetHelpers.hpp>
 
 #include <JS/Qml/QmlObjects.hpp>
+#include <Library/LibrarySettings.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -21,16 +23,31 @@
 #include <core/document/Document.hpp>
 
 #include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
 
 #include <wobjectimpl.h>
 
+#include <mutex>
 #include <vector>
 W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
+
+void setupEngineImportPaths(QQmlEngine& eng) noexcept
+{
+  // eng.importModule(
+  //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
+  //     "tonal.mjs");
+  for(auto& p :
+      score::AppContext().settings<Library::Settings::Model>().getIncludePaths())
+  {
+    eng.addImportPath(p);
+  }
+}
+
 ProcessModel::ProcessModel(
     const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
     QObject* parent)
@@ -244,6 +261,7 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
   }
 }
 
+static std::once_flag qml_dummy_engine_setup{};
 Script* ComponentCache::get(
     const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
 {
@@ -268,11 +286,16 @@ Script* ComponentCache::get(
   else
   {
     static QQmlEngine dummyEngine;
+    std::call_once(qml_dummy_engine_setup, [] { setupEngineImportPaths(dummyEngine); });
 
     auto comp = std::make_unique<QQmlComponent>(&dummyEngine);
     if(!isFile)
     {
-      comp->setData(str, QUrl());
+      auto& lib = score::AppContext().settings<Library::Settings::Model>();
+      // FIXME QTBUG-107204
+      QString path = lib.getDefaultLibraryPath() + QDir::separator() + "Scripts"
+                     + QDir::separator() + "include" + QDir::separator() + "Script.qml";
+      comp->setData(str, QUrl::fromLocalFile(path));
     }
     else
     {

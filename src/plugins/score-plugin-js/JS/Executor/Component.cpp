@@ -17,6 +17,7 @@
 #include <JS/ConsolePanel.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <JS/Qml/Metatypes.hpp>
+#include <Library/LibrarySettings.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
@@ -38,6 +39,7 @@
 #include <ossia-qt/token_request.hpp>
 
 #include <QApplication>
+#include <QDir>
 #include <QEventLoop>
 #include <QQmlComponent>
 #include <QQmlContext>
@@ -71,6 +73,7 @@ public:
   JS::Script* m_object{};
   ExecStateWrapper* m_execFuncs{};
   QJSValueList m_tickCall;
+  std::size_t m_gcIndex{};
 
   void setupComponent_gui(JS::Script*);
 
@@ -411,7 +414,14 @@ void js_node::setScript(const QString& val)
   if(val.trimmed().startsWith("import"))
   {
     QQmlComponent c{m_engine};
-    c.setData(val.toUtf8(), QUrl());
+    {
+      auto& lib = score::AppContext().settings<Library::Settings::Model>();
+      // FIXME QTBUG-107204
+      QString path = lib.getDefaultLibraryPath() + QDir::separator() + "Scripts"
+                     + QDir::separator() + "include" + QDir::separator();
+
+      c.setData(val.toUtf8(), QUrl::fromLocalFile(path));
+    }
     const auto& errs = c.errors();
     if(!errs.empty())
     {
@@ -498,7 +508,7 @@ void js_node::run(
         auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
         m_valInlets[i].first->setValue(qvar);
         m_valInlets[i].first->addValue(
-            QVariant::fromValue(ValueMessage{(double)val.timestamp, std::move(qvar)}));
+            QVariant::fromValue(InValueMessage{(double)val.timestamp, std::move(qvar)}));
       }
     }
   }
@@ -559,12 +569,14 @@ void js_node::run(
   for(std::size_t i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = *m_valOutlets[i].second->target<ossia::value_port>();
-    const auto& v = m_valOutlets[i].first->value();
-    if(!v.isNull() && v.isValid())
-      dat.write_value(ossia::qt::qt_to_ossia{}(v), tick_start);
+    const QJSValue& v = m_valOutlets[i].first->value();
+    if(!v.isNull() && !v.isError())
+    {
+      dat.write_value(ossia::qt::value_from_js(v), tick_start);
+    }
     for(auto& v : m_valOutlets[i].first->values)
     {
-      dat.write_value(ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
+      dat.write_value(ossia::qt::value_from_js(std::move(v.value)), v.timestamp);
     }
     m_valOutlets[i].first->clear();
   }
@@ -600,7 +612,8 @@ void js_node::run(
   }
 
   e.processEvents();
-  m_engine->collectGarbage();
+  if(m_gcIndex++ % 64 == 0)
+    m_engine->collectGarbage();
 }
 }
 }
