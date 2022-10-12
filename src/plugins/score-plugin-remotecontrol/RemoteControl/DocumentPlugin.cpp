@@ -23,6 +23,7 @@
 #include <RemoteControl/DocumentPlugin.hpp>
 #include <RemoteControl/Scenario/Scenario.hpp>
 #include <RemoteControl/Settings/Model.hpp>
+
 namespace RemoteControl
 {
 using namespace std::literals;
@@ -129,6 +130,59 @@ void DocumentPlugin::cleanup()
   m_root = nullptr;
 }
 
+ObjectPath fromString(const QString& str)
+{
+  auto res = str.split("/");
+  if(res.empty())
+    return {};
+  if(res[0].isEmpty())
+    res.pop_front();
+  if(res.empty())
+    return {};
+
+  ObjectIdentifierVector i;
+  for(const QString& is : res)
+  {
+    int idx = is.lastIndexOf('.');
+    if(idx == -1)
+      return {};
+    auto name = is.mid(0, idx);
+    auto index = is.mid(idx + 1);
+
+    bool ok = false;
+    int num = index.toInt(&ok);
+    if(!ok)
+      return {};
+
+    i.emplace_back(name, num);
+  }
+
+  return ObjectPath{std::move(i)};
+}
+
+template <typename T>
+static Path<T> readPathFromValue(const rapidjson::Value& val)
+{
+  if(val.IsString())
+  {
+    auto str = QString::fromUtf8(val.GetString(), val.GetStringLength());
+
+    auto path = fromString(str);
+    if(path.vec().empty())
+      return {};
+
+    return Path<T>(std::move(path), typename Path<T>::UnsafeDynamicCreation{});
+  }
+  else if(val.IsArray())
+  {
+    return score::unmarshall<Path<T>>(val);
+  }
+  else
+  {
+    return {};
+  }
+}
+
 Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
     : m_server{"i-score-ctrl", QWebSocketServer::NonSecureMode}
     , m_dev{doc.plugin<Explorer::DeviceDocumentPlugin>()}
@@ -145,7 +199,7 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
         if(it == obj.MemberEnd())
           return;
 
-        auto path = score::unmarshall<Path<Scenario::TimeSyncModel>>(it->value);
+        auto path = readPathFromValue<Scenario::TimeSyncModel>(it->value);
         if(!path.valid())
           return;
 
