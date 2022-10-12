@@ -31,6 +31,8 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QAction>
+#include <QApplication>
+#include <QClipboard>
 #include <QDebug>
 #include <QHeaderView>
 #include <QMenu>
@@ -1157,6 +1159,12 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       return;
 
     QMenu* m = new QMenu{this};
+    m->addAction(tr("Copy remote control path"), [ptr] {
+      auto path = score::IDocument::unsafe_path(*ptr);
+
+      auto& cb = *qApp->clipboard();
+      cb.setText(path.toString());
+    });
 
     if(auto cst = qobject_cast<Scenario::IntervalModel*>(ptr))
     {
