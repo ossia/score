@@ -11,7 +11,7 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
 
   using value_type_list = ossia::tl<
       float, int, ossia::vec2f, ossia::vec3f, ossia::vec4f, ossia::impulse, bool,
-      std::string, std::vector<ossia::value>, char>;
+      std::string, std::vector<ossia::value>, ossia::value_map_type>;
 
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
@@ -59,7 +59,7 @@ void apply_typeonly(
     case value_variant_type::Type::Type8:
       return functor(typeholder<std::vector<ossia::value>>{}, var);
     case value_variant_type::Type::Type9:
-      return functor(typeholder<char>{}, var);
+      return functor(typeholder<value_map_type>{}, var);
     default:
       throw;
   }

@@ -33,8 +33,6 @@ AddressSettingsFactory::operator()(ossia::val_type valueType) const
       return new AddressBoolSettingsWidget;
     case ossia::val_type::LIST:
       return new AddressListSettingsWidget;
-    case ossia::val_type::CHAR:
-      return new AddressCharSettingsWidget;
     case ossia::val_type::IMPULSE:
       return new AddressImpulseSettingsWidget;
     case ossia::val_type::VEC2F:
@@ -43,6 +41,8 @@ AddressSettingsFactory::operator()(ossia::val_type valueType) const
       return new AddressVecSettingsWidget<3>;
     case ossia::val_type::VEC4F:
       return new AddressVecSettingsWidget<4>;
+    case ossia::val_type::MAP:
+      return nullptr;
   }
   return nullptr;
 }

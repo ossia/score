@@ -153,13 +153,6 @@ parseControlValue(PatchSpec::Control& ctl, const QStringList& args, int& i)
         return int(v);
       break;
     }
-    case ossia::val_type::CHAR: {
-      bool ok{true};
-      int v = args[i].toInt(&ok);
-      if(ok)
-        return int(v);
-      break;
-    }
     case ossia::val_type::VEC2F:
       SCORE_TODO;
       break;
@@ -170,6 +163,9 @@ parseControlValue(PatchSpec::Control& ctl, const QStringList& args, int& i)
       SCORE_TODO;
       break;
     case ossia::val_type::LIST:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::MAP:
       SCORE_TODO;
       break;
     case ossia::val_type::STRING:
@@ -221,22 +217,6 @@ void parseControlDataRange(
       }
       break;
     }
-    case ossia::val_type::CHAR: {
-      if(i < args.size() - 1)
-      {
-        bool ok{true};
-        min_domain = args[i].toInt(&ok);
-        if(!ok)
-          min_domain = std::nullopt;
-
-        i++;
-        ok = true;
-        max_domain = args[i].toInt(&ok);
-        if(!ok)
-          max_domain = std::nullopt;
-      }
-      break;
-    }
     case ossia::val_type::VEC2F:
       SCORE_TODO;
       break;
@@ -247,6 +227,9 @@ void parseControlDataRange(
       SCORE_TODO;
       break;
     case ossia::val_type::LIST:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::MAP:
       SCORE_TODO;
       break;
     case ossia::val_type::STRING: {
@@ -467,9 +450,6 @@ Process::Inlet* makeInletFromSpec(
           case ossia::val_type::INT:
             inl = widgetFuncMap.at("intslider")(ctl, id, parent);
             break;
-          case ossia::val_type::CHAR:
-            inl = widgetFuncMap.at("intslider")(ctl, id, parent);
-            break;
           case ossia::val_type::BOOL:
             inl = widgetFuncMap.at("toggle")(ctl, id, parent);
             break;
@@ -485,6 +465,7 @@ Process::Inlet* makeInletFromSpec(
           case ossia::val_type::STRING:
             inl = widgetFuncMap.at("lineedit")(ctl, id, parent);
             break;
+          case ossia::val_type::MAP:
           case ossia::val_type::NONE:
             break;
         }

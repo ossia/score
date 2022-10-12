@@ -61,7 +61,13 @@ struct NoiseFilter
         return ret;
       }
 
-      NoiseFilter* nFilt;
+      ossia::value operator()(const ossia::value_map_type& t) const
+      {
+        // FIXME
+        return t;
+      }
+
+      NoiseFilter* nFilt{};
 
       vis(NoiseFilter* parent)
           : nFilt{parent}

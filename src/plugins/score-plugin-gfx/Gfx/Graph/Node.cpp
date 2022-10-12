@@ -275,6 +275,8 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
           break;
       }
     }
+
+    void operator()(const ossia::value_map_type& v) const noexcept { }
   };
 
   assert(int(this->input.size()) > port);

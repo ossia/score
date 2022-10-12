@@ -45,9 +45,6 @@ struct ossia_to_pd_value
       case ossia::val_type::BOOL:
         libpd_add_float(value.get<bool>());
         break;
-      case ossia::val_type::CHAR:
-        libpd_add_float(value.get<char>());
-        break;
       case ossia::val_type::STRING:
         libpd_add_symbol(value.get<std::string>().c_str());
         break;
@@ -73,6 +70,8 @@ struct ossia_to_pd_value
       case ossia::val_type::IMPULSE:
         libpd_add_float(1.f);
         break;
+
+      case ossia::val_type::MAP:
       default:
         break;
     }
@@ -87,6 +86,8 @@ struct ossia_to_pd_value
     }
     libpd_finish_list(mess);
   }
+
+  void operator()(const ossia::value_map_type& v) const { }
 
   void operator()(const ossia::vec2f& v) const
   {

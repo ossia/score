@@ -61,6 +61,17 @@ QVariant convert(const ossia::value& val)
 
       return arr;
     }
+    return_type operator()(const ossia::value_map_type& t) const
+    {
+      QVariantMap arr;
+
+      for(const auto& [k, v] : t)
+      {
+        arr.insert(QString::fromStdString(k), ossia::apply_nonnull(*this, v));
+      }
+
+      return arr;
+    }
     return_type operator()() const { return {}; }
   };
 

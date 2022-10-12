@@ -33,7 +33,10 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <core/document/Document.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/string_map.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>

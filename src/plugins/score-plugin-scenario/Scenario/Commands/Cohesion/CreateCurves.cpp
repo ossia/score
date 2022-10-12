@@ -131,6 +131,11 @@ struct CategorizedAddress
       count += 1; // TODO not really precise... we should go check what the
                   // number of automations should really be created
   }
+  void operator()(
+      const ossia::value_map_type& v, const Device::FullAddressAccessorSettings& addr)
+  {
+    // Create an automation for each submember?
+  }
 
   int count = 0;
   int automCount() { return count; }
@@ -310,6 +315,8 @@ struct AddressAccessorCurveCreator
     }
   }
 
+  void operator()(const ossia::value_map_type& v) { }
+
   void operator()() { }
 };
 
@@ -407,6 +414,10 @@ struct CategorizedAddresses
     {
       list_addr.push_back(addr);
     }
+  }
+  void
+  operator()(const ossia::value_map_type& v, const Device::FullAddressSettings& addr)
+  {
   }
 
   int automCount()

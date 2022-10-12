@@ -6,6 +6,8 @@
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
 
+#include <boost/container/flat_map.hpp>
+
 #include <unordered_map>
 
 struct MapSerializer
@@ -128,4 +130,14 @@ struct TSerializer<JSONObject, ossia::flat_map<T, U>>
   {
     ArraySerializer::writeTo(s, obj.container);
   }
+};
+
+template <typename T, typename U>
+struct TSerializer<DataStream, boost::container::flat_map<T, U>> : MapSerializer
+{
+};
+
+template <typename T, typename U>
+struct TSerializer<JSONObject, boost::container::flat_map<T, U>> : MapSerializer
+{
 };

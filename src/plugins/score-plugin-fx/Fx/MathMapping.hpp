@@ -114,9 +114,6 @@ struct GenericMathMapping
         case ossia::val_type::FLOAT:
           self.x = *v.value.target<float>();
           break;
-        case ossia::val_type::CHAR:
-          self.x = *v.value.target<char>();
-          break;
         case ossia::val_type::BOOL:
           self.x = *v.value.target<bool>() ? 1.f : 0.f;
           break;
@@ -175,9 +172,6 @@ struct GenericMathMapping
           break;
         case ossia::val_type::FLOAT:
           array_run_scalar(*v.value.target<float>());
-          break;
-        case ossia::val_type::CHAR:
-          array_run_scalar(*v.value.target<char>());
           break;
         case ossia::val_type::BOOL:
           array_run_scalar(*v.value.target<bool>() ? 1.f : 0.f);

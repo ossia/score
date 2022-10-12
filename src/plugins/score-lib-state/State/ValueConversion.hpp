@@ -43,6 +43,8 @@ template <>
 SCORE_LIB_STATE_EXPORT vec4f value(const ossia::value& val);
 template <>
 SCORE_LIB_STATE_EXPORT list_t value(const ossia::value& val);
+template <>
+SCORE_LIB_STATE_EXPORT ossia::value_map_type value(const ossia::value& val);
 
 SCORE_LIB_STATE_EXPORT bool convert(const ossia::value& orig, ossia::value& toConvert);
 

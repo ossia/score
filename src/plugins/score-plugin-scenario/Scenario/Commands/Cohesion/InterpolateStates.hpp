@@ -99,6 +99,12 @@ struct get_curve_domain
     return d;
   }
 
+  Curve::CurveDomain
+  operator()(const ossia::value_map_type& start, const ossia::value_map_type& end)
+  {
+    return {};
+  }
+
   template <typename T>
   Curve::CurveDomain operator()(const T& start, const T& end)
   {

@@ -1111,26 +1111,26 @@ template <>
 struct TSerializer<JSONObject, QVariantMap>
 {
   using type = QVariantMap;
-  static void readFrom(JSONObject::Serializer& s, const type& obj)
-  {
-    SCORE_ABORT;
-    /*
-    QJsonArray arr;
-    arr.append(toJsonValue(obj.first));
-    arr.append(toJsonValue(obj.second));
-    s.val = std::move(arr);
-    */
-  }
+  static void readFrom(JSONObject::Serializer& s, const type& obj) = delete;
+  //   {
+  //     SCORE_ABORT;
+  //     /*
+  //     QJsonArray arr;
+  //     arr.append(toJsonValue(obj.first));
+  //     arr.append(toJsonValue(obj.second));
+  //     s.val = std::move(arr);
+  //     */
+  //   }
 
-  static void writeTo(JSONObject::Deserializer& s, type& obj)
-  {
-    SCORE_ABORT;
-    /*
-    const auto arr = s.val.toArray();
-    obj.first = fromJsonValue<T>(arr[0]);
-    obj.second = fromJsonValue<U>(arr[1]);
-    */
-  }
+  static void writeTo(JSONObject::Deserializer& s, type& obj) = delete;
+  //  {
+  //    SCORE_ABORT;
+  //    /*
+  //    const auto arr = s.val.toArray();
+  //    obj.first = fromJsonValue<T>(arr[0]);
+  //    obj.second = fromJsonValue<U>(arr[1]);
+  //    */
+  //  }
 };
 
 template <typename T>
