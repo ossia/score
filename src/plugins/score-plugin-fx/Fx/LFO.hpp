@@ -112,6 +112,8 @@ struct Node
         const auto [tick_start, d] = st.timings(tk);
         out.write_value(ampl * new_val + offset, tick_start);
       };
+
+      custom_phase = custom_phase * ossia::pi;
       switch(*it)
       {
         case Sin:
