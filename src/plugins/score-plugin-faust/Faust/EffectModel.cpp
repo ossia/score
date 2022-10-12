@@ -63,24 +63,12 @@ namespace Faust
 
 static std::vector<std::string> getLibpaths()
 {
-  std::vector<std::string> ret;
-
   auto& lib = score::AppContext().settings<Library::Settings::Model>();
-  QDirIterator dir{lib.getPackagesPath(), QDirIterator::FollowSymlinks};
 
-  while(dir.hasNext())
-  {
-    dir.next();
-    if(dir.fileInfo().isDir())
-    {
-      QDir d{dir.filePath() + QDir::separator() + "library"};
-      if(d.exists() && !d.isEmpty())
-      {
+  std::vector<std::string> ret;
+  for(auto& path : lib.getIncludePaths())
+    ret.push_back(path.toStdString());
 
-        ret.push_back(d.canonicalPath().toStdString());
-      }
-    }
-  }
   return ret;
 }
 

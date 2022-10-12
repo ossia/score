@@ -58,6 +58,9 @@ public:
 
   void rescanLibrary() E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, rescanLibrary)
 
+  // List of include paths for the various script languages in score
+  QStringList getIncludePaths() const noexcept;
+
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_LIBRARY_EXPORT, QString, RootPath)
 private:
 };

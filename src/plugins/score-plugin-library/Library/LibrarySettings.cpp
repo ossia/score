@@ -10,6 +10,7 @@
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QStandardPaths>
@@ -78,6 +79,54 @@ QString Model::getUserPresetsPath() const noexcept
 QString Model::getSDKPath() const noexcept
 {
   return m_RootPath + "/sdk";
+}
+
+QStringList Model::getIncludePaths() const noexcept
+{
+  QStringList ret;
+
+  // Add everything in the current project folder
+  // FIXME!
+
+  // Add everything in the user lib
+  {
+    QString defaultLibPath = getUserLibraryPath() + QDir::separator() + "scripts"
+                             + QDir::separator() + "include";
+    if(QFileInfo(defaultLibPath).isDir())
+    {
+      ret.push_back(std::move(defaultLibPath));
+    }
+  }
+
+  // Add everything in the custom packages
+  {
+    QDirIterator dir{getPackagesPath(), QDirIterator::FollowSymlinks};
+
+    while(dir.hasNext())
+    {
+      dir.next();
+      if(dir.fileInfo().isDir())
+      {
+        QDir d{dir.filePath() + QDir::separator() + "library"};
+        if(d.exists() && !d.isEmpty())
+        {
+          ret.push_back(d.canonicalPath());
+        }
+      }
+    }
+  }
+
+  // Add everything in the default package
+  {
+    QString defaultLibPath = getDefaultLibraryPath() + QDir::separator() + "Scripts"
+                             + QDir::separator() + "include";
+    if(QFileInfo(defaultLibPath).isDir())
+    {
+      ret.push_back(std::move(defaultLibPath));
+    }
+  }
+
+  return ret;
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, RootPath)
