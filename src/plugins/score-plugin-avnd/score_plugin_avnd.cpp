@@ -105,16 +105,11 @@
  * This file instantiates the classes that are provided by this plug-in.
  */
 
+#include "include.avnd.cpp"
+
 #include <Avnd/Factories.hpp>
 #include <Avnd/Logger.hpp>
 #include <halp/meta.hpp>
-
-#include "include.avnd.cpp"
-namespace grph
-{
-class Graph;
-}
-
 score_plugin_avnd::score_plugin_avnd() = default;
 score_plugin_avnd::~score_plugin_avnd() = default;
 
@@ -137,7 +132,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
       ao::Bandshelf, ao::Bitcrush, ao::Compressor, ao::Limiter, ao::Echo, ao::Flanger,
       ao::StereoMixer>(ctx, key);
 
-  //custom_factories<grph::Graph>(fx, ctx, key);
   all_custom_factories(fx, ctx, key);
 
 #if AVND_TEST_BUILD

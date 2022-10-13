@@ -69,9 +69,7 @@ add_library(
   Crousti/ProcessModel.hpp
   Crousti/Widgets.hpp
 
-  score_plugin_avnd.gradient_scrub.cpp
-
-  score_plugin_avnd.graph.cpp
+#  score_plugin_avnd.graph.cpp
 
   score_plugin_avnd.hpp
   score_plugin_avnd.cpp
