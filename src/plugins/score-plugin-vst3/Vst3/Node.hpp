@@ -272,6 +272,7 @@ public:
     }
     m_vstData.inputEvents
         = (m_inputEvents.getEventCount() > 0) ? &m_inputEvents : nullptr;
+    m_vstData.outputEvents = &m_outputEvents;
   }
 
   void dispatchMidi(ossia::midi_port& port, int index)
@@ -368,6 +369,53 @@ public:
         default:
           break;
       }
+    }
+  }
+
+  void readbackMidi()
+  {
+    using VstEvent = Steinberg::Vst::Event;
+
+    const int audioBusCount = std::ssize(m_audioOutputChannels);
+    const int N = m_outputEvents.getEventCount();
+
+    for(int i = 0; i < N; i++)
+    {
+      auto event_p = m_outputEvents.getEventByIndex(i);
+      if(!event_p)
+        continue;
+      VstEvent& e = *event_p;
+
+      int bus = e.busIndex;
+      auto& port = *m_outlets[bus + audioBusCount]->template target<ossia::midi_port>();
+
+      libremidi::message mess;
+
+      switch(e.type)
+      {
+        case VstEvent::kNoteOnEvent: {
+          if(e.noteOn.velocity > 0.f)
+            mess = libremidi::message::note_on(
+                e.noteOn.channel, e.noteOn.pitch, e.noteOn.velocity * 127.f);
+          else
+            mess = libremidi::message::note_off(e.noteOn.channel, e.noteOn.pitch, 0.);
+          break;
+        }
+        case VstEvent::kNoteOffEvent: {
+          mess = libremidi::message::note_off(e.noteOff.channel, e.noteOff.pitch, 0.);
+          break;
+        }
+        case VstEvent::kPolyPressureEvent: {
+          mess = libremidi::message::poly_pressure(
+              e.noteOff.channel, e.polyPressure.pitch, e.polyPressure.pressure * 127.f);
+          break;
+        }
+        default:
+          break;
+      }
+
+      mess.timestamp = e.sampleOffset;
+      port.messages.push_back(std::move(mess));
     }
   }
 
@@ -579,6 +627,8 @@ public:
       {
         processFloat(samples);
       }
+
+      this->readbackMidi();
     }
   }
 
