@@ -187,7 +187,7 @@ constexpr auto to_const_char_array(const std::array<std::string_view, N>& val)
 }
 
 template <std::size_t N>
-constexpr auto to_combobox_range(const std::string_view (&val)[N])
+auto to_combobox_range(const std::string_view (&val)[N])
 {
   std::vector<std::pair<QString, ossia::value>> vec;
   for(int i = 0; i < N; i++)
@@ -196,7 +196,7 @@ constexpr auto to_combobox_range(const std::string_view (&val)[N])
 }
 
 template <std::size_t N>
-constexpr auto to_combobox_range(const std::array<std::string_view, N>& val)
+auto to_combobox_range(const std::array<std::string_view, N>& val)
 {
   std::vector<std::pair<QString, ossia::value>> vec;
   for(int i = 0; i < N; i++)
