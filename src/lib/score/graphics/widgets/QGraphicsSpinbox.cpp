@@ -9,6 +9,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsSpinbox);
+W_OBJECT_IMPL(score::QGraphicsIntSpinbox);
 
 namespace score
 {
@@ -88,6 +89,97 @@ void QGraphicsSpinbox::paint(
 {
   auto& skin = score::Skin::instance();
   const double val = map(m_value);
+  auto text = score::toNumber(val);
+
+  painter->setPen(skin.NoPen);
+  painter->setBrush(skin.Emphasis2.main.brush);
+
+  // Draw rect
+  const QRectF brect = boundingRect();
+  painter->drawRoundedRect(brect, 1, 1);
+
+  // Draw text
+  painter->setPen(skin.Base4.main.pen1);
+  painter->setFont(skin.Medium8Pt);
+  const auto textrect = brect.adjusted(2, 3, -2, -2);
+  painter->drawText(textrect, text, QTextOption(Qt::AlignLeft));
+}
+
+QGraphicsIntSpinbox::QGraphicsIntSpinbox(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+{
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+  min = -100;
+  max = 100;
+}
+
+QGraphicsIntSpinbox::~QGraphicsIntSpinbox() = default;
+
+void QGraphicsIntSpinbox::setValue(double v)
+{
+  m_value = unmap(v);
+  update();
+}
+
+void QGraphicsIntSpinbox::setExecutionValue(double v)
+{
+  m_execValue = ossia::clamp(v, min, max);
+  m_hasExec = true;
+  update();
+}
+
+void QGraphicsIntSpinbox::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
+void QGraphicsIntSpinbox::setRange(double min, double max)
+{
+  this->min = min;
+  this->max = max;
+  update();
+}
+
+int QGraphicsIntSpinbox::value() const
+{
+  return map(m_value);
+}
+
+void QGraphicsIntSpinbox::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_value = 0.5;
+  sliderMoved();
+  sliderReleased();
+  update();
+}
+
+void QGraphicsIntSpinbox::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mousePressEvent(*this, event);
+}
+
+void QGraphicsIntSpinbox::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseMoveEvent(*this, event);
+}
+
+void QGraphicsIntSpinbox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
+}
+
+QRectF QGraphicsIntSpinbox::boundingRect() const
+{
+  return m_rect;
+}
+
+void QGraphicsIntSpinbox::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  auto& skin = score::Skin::instance();
+  const int val = map(m_value);
   auto text = score::toNumber(val);
 
   painter->setPen(skin.NoPen);

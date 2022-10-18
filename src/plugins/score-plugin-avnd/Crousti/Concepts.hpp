@@ -186,6 +186,24 @@ constexpr auto to_const_char_array(const std::array<std::string_view, N>& val)
   return choices_cstr;
 }
 
+template <std::size_t N>
+constexpr auto to_combobox_range(const std::string_view (&val)[N])
+{
+  std::vector<std::pair<QString, ossia::value>> vec;
+  for(int i = 0; i < N; i++)
+    vec.emplace_back(val[i].data(), i);
+  return vec;
+}
+
+template <std::size_t N>
+constexpr auto to_combobox_range(const std::array<std::string_view, N>& val)
+{
+  std::vector<std::pair<QString, ossia::value>> vec;
+  for(int i = 0; i < N; i++)
+    vec.emplace_back(val[i].data(), i);
+  return vec;
+}
+
 std::vector<std::pair<QString, ossia::value>> to_combobox_range(const auto& in)
 {
   std::vector<std::pair<QString, ossia::value>> vec;

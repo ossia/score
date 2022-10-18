@@ -146,6 +146,45 @@ struct DefaultGraphicsKnobImpl
   }
 
   template <typename T>
+  requires std::is_integral_v<std::decay_t<decltype(std::declval<T>().value())>>
+  static void contextMenuEvent(T& self, QPointF pos)
+  {
+    QTimer::singleShot(0, [&, self_p = &self, pos] {
+      auto w = new SpinboxWithEnter;
+      w->setRange(self.min, self.max);
+
+      w->setValue(self.map(self.m_value));
+      auto obj = self.scene()->addWidget(
+          w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+      obj->setPos(pos);
+
+      QTimer::singleShot(0, w, [w] { w->setFocus(); });
+
+      auto con = QObject::connect(
+          w, SignalUtils::QSpinBox_valueChanged_int(), &self, [&self](double v) {
+            self.m_value = self.unmap(v);
+            self.sliderMoved();
+            self.update();
+          });
+
+      QObject::connect(
+          w, &SpinboxWithEnter::editingFinished, &self, [obj, con, self_p]() mutable {
+            if(obj != nullptr)
+            {
+              self_p->sliderReleased();
+              QObject::disconnect(con);
+              QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
+                scene->removeItem(obj);
+                delete obj;
+              });
+            }
+            obj = nullptr;
+          });
+    });
+  }
+
+  template <typename T>
+  requires std::is_floating_point_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
     QTimer::singleShot(0, [&, self_p = &self, pos] {

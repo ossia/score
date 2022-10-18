@@ -432,17 +432,17 @@ struct IntSpinBox
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new score::QGraphicsIntSlider{nullptr};
-    sl->setValue(ossia::convert<int>(inlet.value()));
+    auto sl = new score::QGraphicsIntSpinbox{nullptr};
     bindIntDomain(slider, inlet, *sl);
+    sl->setValue(ossia::convert<int>(inlet.value()));
 
     QObject::connect(
-        sl, &score::QGraphicsIntSlider::sliderMoved, context, [=, &inlet, &ctx] {
+        sl, &score::QGraphicsIntSpinbox::sliderMoved, context, [=, &inlet, &ctx] {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
         });
     QObject::connect(
-        sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
+        sl, &score::QGraphicsIntSpinbox::sliderReleased, context, [&ctx, sl]() {
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -459,7 +459,7 @@ struct IntSpinBox
         });
     QObject::connect(
         &inlet, &Control_T::executionReset, sl,
-        &score::QGraphicsIntSlider::resetExecution);
+        &score::QGraphicsIntSpinbox::resetExecution);
 
     return sl;
   }
