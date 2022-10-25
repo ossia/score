@@ -127,11 +127,12 @@ QVariant deviceNameColumnData(const Device::Node& node, bool connected, int role
 
   switch(role)
   {
-    case Qt::DisplayRole:
-    case Qt::EditRole: {
+    case Qt::DisplayRole: {
       const auto& name = node.get<DeviceSettings>().name;
       return connected ? name : name + " (disconnected)";
     }
+    case Qt::EditRole:
+      return node.get<DeviceSettings>().name;
     case Qt::FontRole: {
       if(!connected)
         return italicFont;
