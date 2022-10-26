@@ -4,6 +4,7 @@
 
 #include <Gfx/Graph/RenderList.hpp>
 
+#include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
 
 #include <QOffscreenSurface>
@@ -39,13 +40,19 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
   m_renderState = std::make_shared<score::gfx::RenderState>();
 
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-  QRhiGles2InitParams params;
-  params.fallbackSurface = m_renderState->surface;
+  score::GLCapabilities caps;
 
-  m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params);
+  {
+    QRhiGles2InitParams params;
+    params.fallbackSurface = m_renderState->surface;
+    caps.setupFormat(params.format);
+    m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params);
+  }
 
   m_renderState->renderSize = QSize(1000, 1000);
+  m_renderState->outputSize = QSize(1000, 1000);
   m_renderState->api = score::gfx::GraphicsApi::OpenGL;
+  m_renderState->version = caps.qShaderVersion;
 }
 
 void CustomGpuOutputNodeBase::process(score::gfx::Message&& msg)

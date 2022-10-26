@@ -14,6 +14,96 @@
 
 namespace oscr
 {
+template <typename F>
+constexpr QRhiTexture::Format textureFormat()
+{
+  constexpr std::string_view fmt = F::format();
+
+  if(fmt == "rgba" || fmt == "rgba8")
+    return QRhiTexture::RGBA8;
+  else if(fmt == "bgra" || fmt == "bgra8")
+    return QRhiTexture::BGRA8;
+  else if(fmt == "r8")
+    return QRhiTexture::R8;
+  else if(fmt == "rg8")
+    return QRhiTexture::RG8;
+  else if(fmt == "r16")
+    return QRhiTexture::R16;
+  else if(fmt == "rg16")
+    return QRhiTexture::RG16;
+  else if(fmt == "red_or_alpha8")
+    return QRhiTexture::RED_OR_ALPHA8;
+  else if(fmt == "rgba16f")
+    return QRhiTexture::RGBA16F;
+  else if(fmt == "rgba32f")
+    return QRhiTexture::RGBA32F;
+  else if(fmt == "r16f")
+    return QRhiTexture::R16F;
+  else if(fmt == "r32")
+    return QRhiTexture::R32F;
+  else if(fmt == "rgb10a2")
+    return QRhiTexture::RGB10A2;
+
+  else if(fmt == "d16")
+    return QRhiTexture::D16;
+  else if(fmt == "d24")
+    return QRhiTexture::D24;
+  else if(fmt == "d24s8")
+    return QRhiTexture::D24S8;
+  else if(fmt == "d32f")
+    return QRhiTexture::D32F;
+
+  else if(fmt == "bc1")
+    return QRhiTexture::BC1;
+  else if(fmt == "bc2")
+    return QRhiTexture::BC2;
+  else if(fmt == "bc3")
+    return QRhiTexture::BC3;
+  else if(fmt == "bc4")
+    return QRhiTexture::BC4;
+  else if(fmt == "bc5")
+    return QRhiTexture::BC5;
+  else if(fmt == "bc6h")
+    return QRhiTexture::BC6H;
+  else if(fmt == "bc7")
+    return QRhiTexture::BC7;
+  else if(fmt == "etc2_rgb8")
+    return QRhiTexture::ETC2_RGB8;
+  else if(fmt == "etc2_rgb8a1")
+    return QRhiTexture::ETC2_RGB8A1;
+  else if(fmt == "etc2_rgb8a8")
+    return QRhiTexture::ETC2_RGBA8;
+  else if(fmt == "astc_4x4")
+    return QRhiTexture::ASTC_4x4;
+  else if(fmt == "astc_5x4")
+    return QRhiTexture::ASTC_5x4;
+  else if(fmt == "astc_5x5")
+    return QRhiTexture::ASTC_5x5;
+  else if(fmt == "astc_6x5")
+    return QRhiTexture::ASTC_6x5;
+  else if(fmt == "astc_6x6")
+    return QRhiTexture::ASTC_6x6;
+  else if(fmt == "astc_8x5")
+    return QRhiTexture::ASTC_8x5;
+  else if(fmt == "astc_8x6")
+    return QRhiTexture::ASTC_8x6;
+  else if(fmt == "astc_8x8")
+    return QRhiTexture::ASTC_8x8;
+  else if(fmt == "astc_10x5")
+    return QRhiTexture::ASTC_10x5;
+  else if(fmt == "astc_10x6")
+    return QRhiTexture::ASTC_10x6;
+  else if(fmt == "astc_10x8")
+    return QRhiTexture::ASTC_10x8;
+  else if(fmt == "astc_10x10")
+    return QRhiTexture::ASTC_10x10;
+  else if(fmt == "astc_12x10")
+    return QRhiTexture::ASTC_12x10;
+  else if(fmt == "astc_12x12")
+    return QRhiTexture::ASTC_12x12;
+  else
+    return QRhiTexture::RGBA8;
+}
 // Compute nodes that do not have any texture output so that they can get pulled
 // must drive things internally instead
 template <typename Node_T>
@@ -99,11 +189,12 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     return it->second;
   }
 
-  QRhiTexture* createInput(score::gfx::RenderList& renderer, int k, QSize size)
+  QRhiTexture* createInput(
+      score::gfx::RenderList& renderer, int k, QRhiTexture::Format fmt, QSize size)
   {
     auto port = parent.input[k];
     constexpr auto flags = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore;
-    auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
+    auto texture = renderer.state.rhi->newTexture(fmt, size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port]
         = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
@@ -198,7 +289,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   requires avnd::image_port<F>
   void init_input(score::gfx::RenderList& renderer, avnd::field_reflection<Idx, F> field)
   {
-    auto tex = createInput(renderer, sampler_k++, renderer.state.renderSize);
+    using bindings_type = decltype(Node_T::layout::bindings);
+    using image_type = std::decay_t<decltype(bindings_type{}.*F::image())>;
+    auto tex = createInput(
+        renderer, sampler_k++, oscr::textureFormat<image_type>(),
+        renderer.state.renderSize);
 
     using sampler_type = typename avnd::member_reflection<F::image()>::member_type;
     createdTexs[sampler_type::binding()] = tex;
