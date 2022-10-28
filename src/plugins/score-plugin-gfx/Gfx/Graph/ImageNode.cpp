@@ -46,14 +46,14 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
-  vec2 imageSize;
+  vec2 _imageSize;
 } mat;
 out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
   float viewportAspect = renderSize.x / renderSize.y;
-  float imageAspect = mat.imageSize.x / mat.imageSize.y;
+  float imageAspect = mat._imageSize.x / mat._imageSize.y;
 
   vec2 pos = position;
   // Aspect ratio
@@ -85,7 +85,7 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
-  vec2 imageSize;
+  vec2 _imageSize;
 } mat;
 
 layout(binding=3) uniform sampler2D y_tex;
@@ -96,7 +96,7 @@ layout(location = 0) out vec4 fragColor;
 vec2 norm_texcoord(vec2 tc)
 {
   vec2 tex_sz = textureSize(y_tex, 0);
-  return tc * mat.imageSize / tex_sz;
+  return tc * mat._imageSize / tex_sz;
 }
 
 void main ()
@@ -117,7 +117,7 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
-  vec2 imageSize;
+  vec2 _imageSize;
 } mat;
 
 layout(binding=3) uniform sampler2D y_tex;
@@ -128,13 +128,13 @@ layout(location = 0) out vec4 fragColor;
 vec2 norm_texcoord(vec2 tc)
 {
   vec2 tex_sz = textureSize(y_tex, 0);
-  return tc * mat.imageSize / tex_sz;
+  return tc * mat._imageSize / tex_sz;
 }
 
 void main ()
 {
   float viewportAspect = renderSize.x / renderSize.y;
-  float imageAspect = mat.imageSize.x / mat.imageSize.y;
+  float imageAspect = mat._imageSize.x / mat._imageSize.y;
 
   vec2 pos = v_texcoord;
   // Aspect ratio
