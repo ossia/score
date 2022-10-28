@@ -25,12 +25,16 @@ constexpr QRhiTexture::Format textureFormat()
     return QRhiTexture::BGRA8;
   else if(fmt == "r8")
     return QRhiTexture::R8;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   else if(fmt == "rg8")
     return QRhiTexture::RG8;
+#endif
   else if(fmt == "r16")
     return QRhiTexture::R16;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   else if(fmt == "rg16")
     return QRhiTexture::RG16;
+#endif
   else if(fmt == "red_or_alpha8")
     return QRhiTexture::RED_OR_ALPHA8;
   else if(fmt == "rgba16f")
@@ -41,15 +45,20 @@ constexpr QRhiTexture::Format textureFormat()
     return QRhiTexture::R16F;
   else if(fmt == "r32")
     return QRhiTexture::R32F;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   else if(fmt == "rgb10a2")
     return QRhiTexture::RGB10A2;
+#endif
 
   else if(fmt == "d16")
     return QRhiTexture::D16;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   else if(fmt == "d24")
     return QRhiTexture::D24;
   else if(fmt == "d24s8")
     return QRhiTexture::D24S8;
+#endif
   else if(fmt == "d32f")
     return QRhiTexture::D32F;
 
