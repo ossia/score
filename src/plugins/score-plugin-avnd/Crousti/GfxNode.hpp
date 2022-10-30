@@ -69,8 +69,9 @@ struct GenericTexgenNode
   } ubo;
 
   QImage image;
-  GenericTexgenNode(Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls)
-      : GpuControlOuts{q, std::move(ctls)}
+  GenericTexgenNode(
+      std::weak_ptr<Execution::ExecutionCommandQueue>&& q, Gfx::exec_controls&& ctls)
+      : GpuControlOuts{std::move(q), std::move(ctls)}
   {
   }
 
@@ -394,9 +395,9 @@ struct GfxNode final : GenericTexgenNode
   std::shared_ptr<Node_T> node;
 
   GfxNode(
-      std::shared_ptr<Node_T> n, Execution::ExecutionCommandQueue& q,
+      std::shared_ptr<Node_T> n, std::weak_ptr<Execution::ExecutionCommandQueue> q,
       Gfx::exec_controls ctls)
-      : GenericTexgenNode{q, std::move(ctls)}
+      : GenericTexgenNode{std::move(q), std::move(ctls)}
       , node{std::move(n)}
 
   {

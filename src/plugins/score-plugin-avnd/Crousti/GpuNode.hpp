@@ -55,7 +55,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   QRhiTexture* createInput(score::gfx::RenderList& renderer, int k, QSize size)
   {
     auto port = parent.input[k];
-    constexpr auto flags = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
+    constexpr auto flags = QRhiTexture::RenderTarget;
     auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port]
@@ -216,6 +216,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         states.push_back({});
         auto ps = createRenderPipeline(renderer, rt);
         ps->setShaderResourceBindings(srb);
+
         m_p.emplace_back(edge, score::gfx::Pipeline{ps, srb});
 
         // No update step: we can directly create the pipeline here
@@ -239,7 +240,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
       avnd::gpu_uniform_introspection<Node_T>::for_all(
           avnd::get_inputs<Node_T>(state), [&]<avnd::uniform_port F>(const F& t) {
-            using input_type = std::decay_t<F>;
+            //using input_type = std::decay_t<F>;
             using uniform_type =
                 typename avnd::member_reflection<F::uniform()>::member_type;
             using ubo_type = typename avnd::member_reflection<F::uniform()>::class_type;
@@ -257,8 +258,9 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       // Then run the update loop, which is a bit complicated
       // as we have to take into account that buffers could be allocated, freed, etc.
       // and thus updated in the shader resource bindings
-      int k = 0;
-      for(score::gfx::Edge* edge : this->parent.output[0]->edges)
+      SCORE_ASSERT(states.size() == m_p.size());
+      //SCORE_SOFT_ASSERT(state.size() == edges);
+      for(int k = 0; k < states.size(); k++)
       {
         auto& state = states[k];
         auto& pass = m_p[k].second;
@@ -286,7 +288,6 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
           SCORE_ASSERT(pass.srb->create());
           SCORE_ASSERT(pass.pipeline->create());
         }
-        k++;
       }
       m_createdPipeline = true;
       tmp.clear();
@@ -307,10 +308,9 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
           gpp::qrhi::handle_release handler{*r.state.rhi};
           visit(handler, promise.current_command);
         }
-        state.release();
       }
-      states.clear();
     }
+    states.clear();
 
     // Release the allocated mesh buffers
     m_meshBuffer = nullptr;
@@ -395,8 +395,9 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 template <typename Node_T>
 struct CustomGpuNode final : CustomGpuNodeBase
 {
-  CustomGpuNode(Execution::ExecutionCommandQueue& q, Gfx::exec_controls ctls)
-      : CustomGpuNodeBase{q, std::move(ctls)}
+  CustomGpuNode(
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls)
+      : CustomGpuNodeBase{std::move(q), std::move(ctls)}
   {
     using texture_inputs = avnd::gpu_sampler_introspection<Node_T>;
     using texture_outputs = avnd::gpu_attachment_introspection<Node_T>;

@@ -610,7 +610,7 @@ namespace oscr
 {
 struct GpuControlOuts
 {
-  Execution::ExecutionCommandQueue& queue;
+  std::weak_ptr<Execution::ExecutionCommandQueue> queue;
   Gfx::exec_controls control_outs;
 
   template <typename Node_T>
@@ -618,11 +618,15 @@ struct GpuControlOuts
   {
     if(!this->control_outs.empty())
     {
+      auto q = this->queue.lock();
+      if(!q)
+        return;
+      auto& qq = *q;
       int parm_k = 0;
       avnd::parameter_output_introspection<Node_T>::for_all(
           avnd::get_outputs(state), [&]<avnd::parameter T>(const T& t) {
-            queue.enqueue([v = oscr::to_ossia_value(t, t.value),
-                           port = control_outs[parm_k]]() mutable {
+            qq.enqueue([v = oscr::to_ossia_value(t, t.value),
+                        port = control_outs[parm_k]]() mutable {
               std::swap(port->value, v);
               port->changed = true;
             });
@@ -637,8 +641,9 @@ struct CustomGpuNodeBase
     : score::gfx::Node
     , GpuControlOuts
 {
-  CustomGpuNodeBase(Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls)
-      : GpuControlOuts{q, std::move(ctls)}
+  CustomGpuNodeBase(
+      std::weak_ptr<Execution::ExecutionCommandQueue>&& q, Gfx::exec_controls&& ctls)
+      : GpuControlOuts{std::move(q), std::move(ctls)}
   {
   }
 
@@ -654,7 +659,7 @@ struct CustomGpuOutputNodeBase
     , GpuControlOuts
 {
   CustomGpuOutputNodeBase(
-      Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls);
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls);
   virtual ~CustomGpuOutputNodeBase() = default;
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};

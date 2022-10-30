@@ -34,8 +34,8 @@ customMessageProcess(const score::gfx::Message& msg, score::gfx::Message& last_m
 }
 
 CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
-    Execution::ExecutionCommandQueue& q, Gfx::exec_controls&& ctls)
-    : GpuControlOuts{q, std::move(ctls)}
+    std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls)
+    : GpuControlOuts{std::move(q), std::move(ctls)}
 {
   m_renderState = std::make_shared<score::gfx::RenderState>();
 
