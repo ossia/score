@@ -17,10 +17,10 @@ source /opt/ossia-sdk-wasm/emsdk/emsdk_env.sh
    -DQT_VERSION="Qt6;6.4" \
    -DOSSIA_PCH=0 \
    -DSCORE_PCH=0 \
-   -DCMAKE_C_FLAGS='-pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx ' \
-   -DCMAKE_CXX_FLAGS='-pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx  '  \
-   -DCMAKE_EXE_LINKER_FLAGS='-sASYNCIFY -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx  ' \
-   -DCMAKE_SHARED_LINKER_FLAGS='-sASYNCIFY -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx '
+   -DCMAKE_C_FLAGS='-pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 ' \
+   -DCMAKE_CXX_FLAGS='-pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 '  \
+   -DCMAKE_EXE_LINKER_FLAGS='-sASYNCIFY -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 ' \
+   -DCMAKE_SHARED_LINKER_FLAGS='-sASYNCIFY -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 '
 
 cmake --build .
 
