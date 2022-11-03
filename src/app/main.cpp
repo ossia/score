@@ -255,7 +255,9 @@ struct increase_timer_precision
 
 static void disable_denormals()
 {
-#if defined(__SSE3__)
+#if defined(__EMSCRIPTEN__)
+  // do nothing
+#elif defined(__SSE3__)
   // See https://en.wikipedia.org/wiki/Denormal_number
   // and
   // http://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x
