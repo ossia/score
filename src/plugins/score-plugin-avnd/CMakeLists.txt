@@ -204,3 +204,24 @@ file(CONFIGURE OUTPUT
      CONTENT "${AVND_ADDITIONAL_CLASSES}\nvoid all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"
      NEWLINE_STYLE LF)
 
+
+### Tests ###
+if(TARGET Catch2::Catch2WithMain)
+function(addAvndTest TESTNAME TESTSRCS)
+    add_executable(Avnd_${TESTNAME} ${TESTSRCS})
+    setup_score_common_test_features(Avnd_${TESTNAME})
+
+    target_include_directories(Avnd_${TESTNAME}
+      PUBLIC
+        "${AVND_FOLDER}/include"
+    )
+    target_link_libraries(Avnd_${TESTNAME} PRIVATE ossia Catch2::Catch2WithMain score_plugin_avnd)
+    add_test(Avnd_${TESTNAME}_target Avnd_${TESTNAME})
+endFunction()
+
+# Commands
+addAvndTest(ossia_value_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/from_ossia_value_Test.cpp")
+endif()
+
+set(CMAKE_AUTOMOC OFF)
