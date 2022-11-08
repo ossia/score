@@ -309,7 +309,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   }
   { // Load Examples
     QSettings settings;
-    auto library_path = settings.value("Library/Path").toString();
+    auto library_path = settings.value("Library/RootPath").toString();
     InteractiveLabel* label = new InteractiveLabel{
         titleFont, qApp->tr("Examples"), "file://" + library_path, this};
     label->setPixmaps(

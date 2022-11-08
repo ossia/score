@@ -42,7 +42,7 @@ Document* DocumentBuilder::newDocument(
   // FIXME we can't access Library::Settings::Model here :'(
 #if !defined(__EMSCRIPTEN__)
   QSettings set;
-  if(auto library = set.value("Library/Path").toString(); QDir{library}.exists())
+  if(auto library = set.value("Library/RootPath").toString(); QDir{library}.exists())
   {
     auto templateDocument = QString{"%1/default.score"}.arg(library);
     if(QFile::exists(templateDocument))
