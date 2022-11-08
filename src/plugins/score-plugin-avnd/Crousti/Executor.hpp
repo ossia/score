@@ -67,6 +67,7 @@ static auto loadSoundfile(Process::ControlInlet* inlet, double rate)
       auto hdl = std::make_shared<ossia::audio_data>();
       hdl->data = std::move(dec->second);
       hdl->path = str.toStdString();
+      hdl->rate = rate;
       return hdl;
     }
   }

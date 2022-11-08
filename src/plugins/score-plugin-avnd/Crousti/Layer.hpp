@@ -23,21 +23,21 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   using inputs_type = typename avnd::input_introspection<Info>::type;
   using outputs_type = typename avnd::output_introspection<Info>::type;
 
-  template <typename T>
-  QGraphicsItem* createControl(auto T::*member)
+  QGraphicsItem* createControl(auto... member)
   {
-    if constexpr(requires { ((inputs_type{}).*member); })
+    if constexpr(requires { ((inputs_type{}).*....*member); })
     {
-      const int index = avnd::index_in_struct(inputs_type{}, member);
+      const int index = avnd::index_in_struct(inputs_type{}, member...);
       return makeInlet(index);
+    }
+    else if constexpr(requires { ((outputs_type{}).*....*member); })
+    {
+      const int index = avnd::index_in_struct(outputs_type{}, member...);
+      return makeOutlet(index);
     }
     else
     {
-      if constexpr(requires { ((outputs_type{}).*member); })
-      {
-        const int index = avnd::index_in_struct(outputs_type{}, member);
-        return makeOutlet(index);
-      }
+      static_assert(sizeof...(member) < 0, "not_a_member_of_inputs_or_outputs");
     }
 
     return nullptr;
@@ -68,6 +68,12 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     }
   }
 
+  template <typename... T>
+  requires(sizeof...(T) > 1) QGraphicsItem* createWidget(T... recursive_members)
+  {
+    return createControl(recursive_members...);
+  }
+
   template <typename T>
   QGraphicsItem* createCustom(T& item)
   {
@@ -95,7 +101,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     */
 
   template <typename Item>
-  void subLayout(Item& item, score::GraphicsLayout* new_l)
+  void subLayout(Item& item, score::GraphicsLayout* new_l, auto... recursive_members)
   {
     auto old_l = layout;
     setupLayout(item, *new_l);
@@ -106,11 +112,11 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       using namespace boost::pfr;
       using namespace boost::pfr::detail;
-      constexpr int N = avnd::fields_count_unsafe<Item>();
+      constexpr int N = boost::pfr::tuple_size_v<Item>;
       auto t = boost::pfr::detail::tie_as_tuple(item, size_t_<N>{});
       [&]<std::size_t... I>(std::index_sequence<I...>)
       {
-        (this->walkLayout(sequence_tuple::get<I>(t)), ...);
+        (this->walkLayout(sequence_tuple::get<I>(t), recursive_members...), ...);
       }
       (make_index_sequence<N>{});
     }
@@ -119,7 +125,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   }
 
   template <typename Item>
-  void walkLayout(Item& item)
+  void walkLayout(Item& item, auto... recursive_members)
   {
     if constexpr(avnd::spacing_layout<Item>)
     {
@@ -133,19 +139,19 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     }
     else if constexpr(avnd::container_layout<Item>)
     {
-      subLayout(item, new score::GraphicsLayout{layout});
+      subLayout(item, new score::GraphicsLayout{layout}, recursive_members...);
     }
     else if constexpr(avnd::hbox_layout<Item> || avnd::group_layout<Item>)
     {
-      subLayout(item, new score::GraphicsHBoxLayout{layout});
+      subLayout(item, new score::GraphicsHBoxLayout{layout}, recursive_members...);
     }
     else if constexpr(avnd::vbox_layout<Item>)
     {
-      subLayout(item, new score::GraphicsVBoxLayout{layout});
+      subLayout(item, new score::GraphicsVBoxLayout{layout}, recursive_members...);
     }
     else if constexpr(avnd::split_layout<Item>)
     {
-      subLayout(item, new score::GraphicsSplitLayout{layout});
+      subLayout(item, new score::GraphicsSplitLayout{layout}, recursive_members...);
     }
     else if constexpr(avnd::grid_layout<Item>)
     {
@@ -153,13 +159,13 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       {
         auto new_l = new score::GraphicsGridColumnsLayout{layout};
         new_l->setColumns(Item::columns());
-        subLayout(item, new_l);
+        subLayout(item, new_l, recursive_members...);
       }
       else if constexpr(requires { Item::rows(); })
       {
         auto new_l = new score::GraphicsGridRowsLayout{layout};
         new_l->setRows(Item::rows());
-        subLayout(item, new_l);
+        subLayout(item, new_l, recursive_members...);
       }
     }
     else if constexpr(avnd::tab_layout<Item>)
@@ -168,12 +174,12 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       avnd::for_each_field_ref(
           item, [&]<typename F>(F field) { new_l->addTab(F::name()); });
 
-      subLayout(item, new_l);
+      subLayout(item, new_l, recursive_members...);
     }
     else if constexpr(avnd::control_layout<Item>)
     {
       // Widget with some metadata.. FIXME
-      if(auto widg = createWidget(item.control))
+      if(auto widg = createWidget(recursive_members..., item.control))
         setupItem(item, *widg);
     }
     else if constexpr(avnd::custom_layout<Item>)
@@ -182,16 +188,20 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       if(auto widg = createCustom(item))
         setupItem(item, *widg);
     }
+    else if constexpr(avnd::recursive_group_layout<Item>)
+    {
+      walkLayout(item.ui, recursive_members..., item.group);
+    }
     else if constexpr(avnd::has_layout<Item>)
     {
       // Treat it like group
-      subLayout(item, new score::GraphicsLayout{layout});
+      subLayout(item, new score::GraphicsLayout{layout}, recursive_members...);
     }
     else
     {
       // Normal widget, e.g. just a const char*
       if(auto widg = createWidget(item))
-        setupItem(item, *widg);
+        setupItem(item, *widg, recursive_members...);
     }
   }
 };
