@@ -23,11 +23,11 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>
+#include <QSerialPortInfo>
 #include <QTableWidget>
 #include <QTimer>
 #include <QTreeWidget>
 #include <QVariant>
-#include <QSerialPortInfo>
 
 #include <wobjectimpl.h>
 
@@ -397,9 +397,7 @@ public:
       const auto filepath = iterator.next();
       if(QFileInfo fi{filepath}; fi.suffix() == "json")
       {
-        const std::string_view req{
-            "https://raw.githubusercontent.com/OpenLightingProject/"
-            "open-fixture-library/master/schemas/fixture.json"};
+        const std::string_view req{"fixture.json"};
         score::findStringInFile(filepath, req, [&](QFile& f) {
           unsigned char* data = f.map(0, f.size());
 
@@ -634,23 +632,22 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_transport = new QComboBox{this};
   m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO"});
 
-  connect(m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
-   m_host->clear();
-   switch(idx)
-   {
-     case 0:
-     case 1:
-       m_host->addItems(score::list_ipv4());
-       break;
-     case 2:
-     {
-       for(auto port : QSerialPortInfo::availablePorts())
-         m_host->addItem(port.portName());
-       break;
-     }
-   }
-
-  });
+  connect(
+      m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int idx) {
+        m_host->clear();
+        switch(idx)
+        {
+          case 0:
+          case 1:
+            m_host->addItems(score::list_ipv4());
+            break;
+          case 2: {
+            for(auto port : QSerialPortInfo::availablePorts())
+              m_host->addItem(port.portName());
+            break;
+          }
+        }
+      });
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
@@ -746,7 +743,7 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
   ArtnetSpecificSettings settings{};
   settings.fixtures = this->m_fixtures;
   settings.host = this->m_host->currentText();
-  switch(this->m_transport->currentIndex() )
+  switch(this->m_transport->currentIndex())
   {
     case 0:
       settings.transport = ArtnetSpecificSettings::ArtNet;
