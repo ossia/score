@@ -896,11 +896,12 @@ struct FileChooser
     act->setStatusTip(QObject::tr("Opening a File"));
     act->setIcon(QIcon(":/icons/search.png"));
     sl->setPlaceholderText(QObject::tr("Open File"));
-    const QString filter = "Media File (" + inlet.filters() + ")";
     auto on_open = [=, &inlet] {
-      sl->setText(QFileDialog::getOpenFileName(nullptr, "Open File", {}, filter)
-                      .split("/")
-                      .back());
+      auto filename
+          = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
+      if(filename.isEmpty())
+        return;
+      sl->setText(filename);
     };
 
     QObject::connect(sl, &QLineEdit::returnPressed, on_open);
@@ -909,7 +910,7 @@ struct FileChooser
 
     sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
     sl->setContentsMargins(0, 0, 0, 0);
-    sl->setMaximumWidth(70);
+    //sl->setMaximumWidth(70);
 
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
