@@ -313,6 +313,7 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/spdlog/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/SmallFunction/smallfun/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/span/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/tuplet/include")
+include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/unordered_dense/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/verdigris/src")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/mparkvariant/include")
 
