@@ -248,8 +248,8 @@ struct Node
 
     static const constexpr auto controls = tuplet::tuple{
         Control::Widgets::LFOFreqKnob(),
-        Control::FloatKnob{"Ampl.", 0., 2., 1.},
-        Control::FloatKnob{"Offset", -1., 1., 0.0},
+        Control::FloatKnob{"Ampl.", 0., 2., 0.5},
+        Control::FloatKnob{"Offset", -1., 1., 0.5},
         Control::FloatKnob{"Jitter", 0., 1., 0.},
         Control::FloatKnob{"Phase", -1., 1., 0.},
         Control::Widgets::WaveformChooser(),
