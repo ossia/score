@@ -568,17 +568,19 @@ void js_node::run(
   const auto [tick_start, d] = estate.timings(tk);
   for(std::size_t i = 0; i < m_valOutlets.size(); i++)
   {
-    auto& dat = *m_valOutlets[i].second->target<ossia::value_port>();
-    const QJSValue& v = m_valOutlets[i].first->value();
-    if(!v.isNull() && !v.isError())
+    auto& ossia_port = *m_valOutlets[i].second->target<ossia::value_port>();
+    auto& js_port = *m_valOutlets[i].first;
+
+    const QJSValue& v = js_port.value();
+    if(!v.isNull() && !v.isError() && !v.isUndefined())
     {
-      dat.write_value(ossia::qt::value_from_js(v), tick_start);
+      ossia_port.write_value(ossia::qt::value_from_js(v), tick_start);
     }
-    for(auto& v : m_valOutlets[i].first->values)
+    for(auto& v : js_port.values)
     {
-      dat.write_value(ossia::qt::value_from_js(std::move(v.value)), v.timestamp);
+      ossia_port.write_value(ossia::qt::value_from_js(std::move(v.value)), v.timestamp);
     }
-    m_valOutlets[i].first->clear();
+    js_port.clear();
   }
 
   for(std::size_t i = 0; i < m_midOutlets.size(); i++)
