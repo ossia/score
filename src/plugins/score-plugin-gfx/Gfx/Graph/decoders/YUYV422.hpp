@@ -126,7 +126,7 @@ void main() {
    // the original texture x coord is even or odd.
    vec4 uyvy = texture(u_tex, v_texcoord);
    float Y;
-   if (fract(floor(texcoord.x * renderer.renderSize.x + 0.5) / 2.0) > 0.0)
+   if (fract(floor(v_texcoord.x * renderer.renderSize.x + 0.5) / 2.0) > 0.0)
        Y = uyvy.a;       // odd so choose Y1
    else
        Y = uyvy.g;       // even so choose Y0
