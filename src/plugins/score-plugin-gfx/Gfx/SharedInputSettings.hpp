@@ -17,7 +17,7 @@ class QSpinBox;
 class QLineEdit;
 namespace Gfx
 {
-struct SharedInputSettings
+struct SCORE_PLUGIN_GFX_EXPORT SharedInputSettings
 {
   QString path;
 };
@@ -46,7 +46,8 @@ public:
       const Device::DeviceSettings& b) const noexcept override;
 };
 
-class SharedInputSettingsWidget : public Device::ProtocolSettingsWidget
+class SCORE_PLUGIN_GFX_EXPORT SharedInputSettingsWidget
+    : public Device::ProtocolSettingsWidget
 {
 public:
   SharedInputSettingsWidget(QWidget* parent = nullptr);
@@ -64,6 +65,6 @@ protected:
 
 }
 
-SCORE_SERIALIZE_DATASTREAM_DECLARE(, Gfx::SharedInputSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_GFX_EXPORT, Gfx::SharedInputSettings);
 Q_DECLARE_METATYPE(Gfx::SharedInputSettings)
 W_REGISTER_ARGTYPE(Gfx::SharedInputSettings)

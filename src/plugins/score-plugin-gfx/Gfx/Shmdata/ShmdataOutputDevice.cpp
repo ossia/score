@@ -196,6 +196,7 @@ void ShmdataOutputNode::createOutput(
   m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
 #include <Gfx/Qt5CompatPush> // clang-format: keep
   m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
+  m_renderState->outputSize = m_renderState->renderSize;
   m_renderState->api = score::gfx::GraphicsApi::OpenGL;
   m_renderState->version = caps.qShaderVersion;
 
