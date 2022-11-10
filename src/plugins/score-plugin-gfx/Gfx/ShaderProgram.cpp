@@ -25,7 +25,7 @@ QStringList shaderIncludePaths()
   // FIXME refactor that !
   auto& lib_settings = score::AppContext().settings<Library::Settings::Model>();
   {
-    QString lib_path = lib_settings.getPackagesPath() + "/lygia";
+    QString lib_path = lib_settings.getPackagesPath();
     if(QDir{}.exists(lib_path))
       shaderIncludePath.append(lib_path);
   }

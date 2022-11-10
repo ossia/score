@@ -57,7 +57,7 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Mesh::Flags);
 
-struct BasicMesh : Mesh
+struct SCORE_PLUGIN_GFX_EXPORT BasicMesh : Mesh
 {
   using Mesh::Mesh;
   [[nodiscard]] virtual MeshBuffers init(QRhi& rhi) const noexcept override;
