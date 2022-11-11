@@ -411,6 +411,62 @@ avnd_make_score(
   NAMESPACE mtk
 )
 
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Ports/Essentia/stats/Entropy.hpp"
+  TARGET essentia_entropy
+  MAIN_CLASS Entropy
+  NAMESPACE essentia_ports
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/Patternal/Patternal.hpp"
+  TARGET patternal
+  MAIN_CLASS Processor
+  NAMESPACE patternal
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/Patternal/Melodial.hpp"
+  TARGET melodial
+  MAIN_CLASS Processor
+  NAMESPACE melodial
+)
+
+avnd_make_score(
+  MAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/AddressTools.hpp"
+  TARGET pattern_unfolder
+  MAIN_CLASS PatternUnfolder
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Helpers/GradientScrubber.hpp"
+  TARGET gradient_scrub
+  MAIN_CLASS GradientScrub
+  NAMESPACE examples::helpers
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/Utilities/Tweener.hpp"
+  TARGET tweener
+  MAIN_CLASS Tweener
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Gpu/SolidColor.hpp"
+  TARGET gpu_solid_color
+  MAIN_CLASS GpuSolidColorExample
+  NAMESPACE examples
+)
+
+avnd_make_score(
+  MAIN_FILE "${AVND_FOLDER}/examples/Gpu/Compute.hpp"
+  TARGET gpu_compute
+  MAIN_CLASS GpuComputeExample
+  NAMESPACE examples
+)
+
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"
      CONTENT "${AVND_ADDITIONAL_CLASSES}\nvoid all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"

@@ -83,10 +83,8 @@
 #include <avnd/../../examples/Tutorial/TrivialGeneratorExample.hpp>
 #include <avnd/../../examples/Tutorial/ZeroDependencyAudioEffect.hpp>
 // #include <avnd/../../examples/Tutorial/Synth.hpp>
-#include <avnd/../../examples/Gpu/Compute.hpp>
 #include <avnd/../../examples/Gpu/DrawRaw.hpp>
 #include <avnd/../../examples/Gpu/DrawWithHelpers.hpp>
-#include <avnd/../../examples/Gpu/SolidColor.hpp>
 #include <avnd/../../examples/Ports/LitterPower/CCC.hpp>
 #include <avnd/../../examples/Tutorial/AudioSidechainExample.hpp>
 #include <avnd/../../examples/Tutorial/ControlGallery.hpp>
@@ -152,8 +150,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
 //      , Synth
 #if SCORE_PLUGIN_GFX
       ,
-      E::TextureGeneratorExample, E::TextureFilterExample, E::GpuComputeExample,
-      E::GpuFilterExample, E::GpuRawExample, E::GpuSolidColorExample
+      E::TextureGeneratorExample, E::TextureFilterExample, E::GpuFilterExample,
+      E::GpuRawExample
 #endif
       ,
       E::TrivialGeneratorExample, E::TrivialFilterExample, E::ZeroDependencyAudioEffect>(
