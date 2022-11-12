@@ -201,7 +201,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       // Normal widget, e.g. just a const char*
       if(auto widg = createWidget(item))
-        setupItem(item, *widg, recursive_members...);
+        setupItem(item, *widg);
     }
   }
 };

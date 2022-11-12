@@ -352,13 +352,16 @@ set(AVND_ADDITIONAL_CLASSES)
 set(AVND_CUSTOM_FACTORIES)
 function(avnd_make_score)
 
-  cmake_parse_arguments(AVND "" "TARGET;MAIN_FILE;MAIN_CLASS;NAMESPACE" "" ${ARGN})
+  cmake_parse_arguments(AVND "" "TARGET;MAIN_CLASS;NAMESPACE" "SOURCES" ${ARGN})
 
   if(AVND_NAMESPACE)
     set(AVND_QUALIFIED "${AVND_NAMESPACE}::${AVND_MAIN_CLASS}")
   else()
     set(AVND_QUALIFIED "${AVND_MAIN_CLASS}")
   endif()
+
+  list(GET AVND_SOURCES 0 AVND_MAIN_FILE)
+
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/prototype.cpp.in"
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
@@ -367,7 +370,7 @@ function(avnd_make_score)
   )
 
   target_sources(score_plugin_avnd PRIVATE
-    "${AVND_MAIN_FILE}"
+    ${AVND_SOURCES}
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
   )
 
@@ -384,87 +387,99 @@ function(avnd_make_score)
 endfunction()
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiReader.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiReader.hpp"
   TARGET midireader
   MAIN_CLASS MidiFileReader
   NAMESPACE mtk
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiFilter.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiFilter.hpp"
   TARGET midifilter
   MAIN_CLASS MidiFilter
   NAMESPACE mtk
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiScroller.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiScroller.hpp"
   TARGET midiscroller
   MAIN_CLASS MidiScroller
   NAMESPACE mtk
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiScaler.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiScaler.hpp"
   TARGET midiscaler
   MAIN_CLASS MidiScaler
   NAMESPACE mtk
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Ports/Essentia/stats/Entropy.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Ports/Essentia/stats/Entropy.hpp"
   TARGET essentia_entropy
   MAIN_CLASS Entropy
   NAMESPACE essentia_ports
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/Patternal/Patternal.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Patternal/Patternal.hpp"
   TARGET patternal
   MAIN_CLASS Processor
   NAMESPACE patternal
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/Patternal/Melodial.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Patternal/Melodial.hpp"
   TARGET melodial
   MAIN_CLASS Processor
   NAMESPACE melodial
 )
 
 avnd_make_score(
-  MAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/AddressTools.hpp"
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/AddressTools.hpp"
   TARGET pattern_unfolder
   MAIN_CLASS PatternUnfolder
   NAMESPACE avnd_tools
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Helpers/GradientScrubber.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Helpers/GradientScrubber.hpp"
   TARGET gradient_scrub
   MAIN_CLASS GradientScrub
   NAMESPACE examples::helpers
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Advanced/Utilities/Tweener.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Tweener.hpp"
   TARGET tweener
   MAIN_CLASS Tweener
   NAMESPACE ao
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Gpu/SolidColor.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Gpu/SolidColor.hpp"
   TARGET gpu_solid_color
   MAIN_CLASS GpuSolidColorExample
   NAMESPACE examples
 )
 
 avnd_make_score(
-  MAIN_FILE "${AVND_FOLDER}/examples/Gpu/Compute.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Gpu/Compute.hpp"
   TARGET gpu_compute
   MAIN_CLASS GpuComputeExample
   NAMESPACE examples
+)
+
+
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
+  TARGET kabang
+  MAIN_CLASS Kabang
+  NAMESPACE kbng
 )
 
 file(CONFIGURE OUTPUT
