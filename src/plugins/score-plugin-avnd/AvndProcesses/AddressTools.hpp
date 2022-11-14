@@ -3,7 +3,11 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/network/common/path.hpp>
 
+#include <QCoreApplication>
+#include <QTimer>
+
 #include <halp/controls.hpp>
+#include <halp/meta.hpp>
 
 namespace avnd_tools
 {

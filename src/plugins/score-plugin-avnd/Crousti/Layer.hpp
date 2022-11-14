@@ -22,17 +22,19 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
 {
   using inputs_type = typename avnd::input_introspection<Info>::type;
   using outputs_type = typename avnd::output_introspection<Info>::type;
+  inputs_type temp_inputs;
+  outputs_type temp_outputs;
 
   QGraphicsItem* createControl(auto... member)
   {
     if constexpr(requires { ((inputs_type{}).*....*member); })
     {
-      const int index = avnd::index_in_struct(inputs_type{}, member...);
+      int index = avnd::index_in_struct(temp_inputs, member...);
       return makeInlet(index);
     }
     else if constexpr(requires { ((outputs_type{}).*....*member); })
     {
-      const int index = avnd::index_in_struct(outputs_type{}, member...);
+      int index = avnd::index_in_struct(temp_outputs, member...);
       return makeOutlet(index);
     }
     else

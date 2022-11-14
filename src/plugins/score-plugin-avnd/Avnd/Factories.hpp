@@ -9,8 +9,8 @@
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
-#include <score/graphics/widgets/QGraphicsSlider.hpp>
 #include <score/graphics/widgets/QGraphicsRangeSlider.hpp>
+#include <score/graphics/widgets/QGraphicsSlider.hpp>
 
 #include <ossia/detail/for_each.hpp>
 
