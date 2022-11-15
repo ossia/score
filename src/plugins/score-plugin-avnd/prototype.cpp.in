@@ -1,5 +1,24 @@
+// clang-format off
+#include <ossia/detail/config.hpp>
+
 #include "@AVND_MAIN_FILE@"
 
+#cmakedefine AVND_REFLECTION_HELPERS
+#if defined(AVND_REFLECTION_HELPERS)
+#include <avnd/common/aggregates.hpp>
+#include <avnd/concepts/port.hpp>
+#include <avnd/concepts/message.hpp>
+#include <avnd/common/index.hpp>
+
+#include "@AVND_REFLECTION_HELPERS_PRE@"
+
+#include <avnd/concepts/generic.hpp>
+#include <avnd/introspection/input.hpp>
+#include <avnd/introspection/output.hpp>
+#include <avnd/introspection/messages.hpp>
+
+#include "@AVND_REFLECTION_HELPERS@"
+#endif
 
 #include <Avnd/Factories.hpp>
 
@@ -11,9 +30,8 @@ void custom_factories<@AVND_QUALIFIED@>(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
   using namespace oscr;
-  auto res = oscr::instantiate_fx<@AVND_QUALIFIED@>(ctx, key);
-  fx.insert(
-      fx.end(), std::make_move_iterator(res.begin()),
-      std::make_move_iterator(res.end()));
+  oscr::instantiate_fx<@AVND_QUALIFIED@>(fx, ctx, key);
 }
 }
+
+// clang-format on

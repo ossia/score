@@ -27,6 +27,31 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   set(CMAKE_REQUIRED_FLAGS "-std=c++20 -fcoroutines")
 endif()
 
+
+if(TARGET clang-cpp)
+  add_executable(avnd_source_parser SourceParser/SourceParser.cpp)
+
+  target_link_libraries(avnd_source_parser PRIVATE
+    clang
+    clang-cpp
+    LLVM
+    fmt
+  )
+
+  target_precompile_headers(avnd_source_parser PRIVATE
+
+     <clang/ASTMatchers/ASTMatchFinder.h>
+     <clang/ASTMatchers/ASTMatchers.h>
+     <clang/Frontend/FrontendActions.h>
+     <clang/Tooling/CommonOptionsParser.h>
+     <clang/Tooling/Tooling.h>
+     <llvm/Support/CommandLine.h>
+
+     <cstdio>
+     <iostream>
+  )
+endif()
+
 check_cxx_source_compiles("#include <coroutine>\nint main() {}" COROUTINES_WORKING)
 if(NOT COROUTINES_WORKING)
   check_cxx_source_compiles("#include <experimental/coroutine>\nint main() {}" EXPERIMENTAL_COROUTINES_WORKING)
@@ -73,7 +98,6 @@ add_library(
 
   score_plugin_avnd.hpp
   score_plugin_avnd.cpp
-
 
 
   "${AVND_FOLDER}/include/avnd/binding/clap/all.hpp"
@@ -329,6 +353,7 @@ endif()
 
 setup_score_plugin(score_plugin_avnd)
 
+if(NOT TARGET avnd_source_parser)
 target_precompile_headers(score_plugin_avnd PRIVATE
   Avnd/Factories.hpp
 
@@ -346,6 +371,7 @@ target_precompile_headers(score_plugin_avnd PRIVATE
   Crousti/ProcessModel.hpp
   Crousti/Widgets.hpp
 )
+endif()
 
 
 set(AVND_ADDITIONAL_CLASSES)
@@ -362,6 +388,16 @@ function(avnd_make_score)
 
   list(GET AVND_SOURCES 0 AVND_MAIN_FILE)
 
+  if(TARGET avnd_source_parser)
+    set(AVND_REFLECTION_HELPERS_PRE "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.refl.pre.hpp")
+    set(AVND_REFLECTION_HELPERS "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.refl.hpp")
+    add_custom_command(
+      OUTPUT "${AVND_REFLECTION_HELPERS}"
+      COMMAND avnd_source_parser "${AVND_QUALIFIED}" "${AVND_MAIN_FILE}" "${AVND_REFLECTION_HELPERS}"
+      DEPENDS avnd_source_parser
+    )
+  endif()
+
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/prototype.cpp.in"
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
@@ -373,6 +409,13 @@ function(avnd_make_score)
     ${AVND_SOURCES}
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
   )
+
+  if(TARGET avnd_source_parser)
+    target_sources(score_plugin_avnd PRIVATE
+      "${AVND_REFLECTION_HELPERS}"
+    )
+    target_compile_definitions(score_plugin_avnd PRIVATE AVND_USE_TUPLET_TUPLE=1)
+  endif()
 
   if(AVND_NAMESPACE)
     set(txt "namespace ${AVND_NAMESPACE} { struct ${AVND_MAIN_CLASS}; } \n")

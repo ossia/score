@@ -192,11 +192,10 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 };
 
 template <typename... Nodes>
-std::vector<std::unique_ptr<score::InterfaceBase>>
-instantiate_fx(const score::ApplicationContext& ctx, const score::InterfaceKey& key)
+static void instantiate_fx(
+    std::vector<std::unique_ptr<score::InterfaceBase>>& v,
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
-  std::vector<std::unique_ptr<score::InterfaceBase>> v;
-
   if(key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     //static_assert((requires { std::declval<Nodes>().run({}, {}); } && ...));
@@ -234,8 +233,6 @@ instantiate_fx(const score::ApplicationContext& ctx, const score::InterfaceKey& 
     };
     (fun.template operator()<Nodes>(reflect_mapped_controls<Nodes>{}), ...);
   }
-
-  return v;
 }
 
 template <typename T>

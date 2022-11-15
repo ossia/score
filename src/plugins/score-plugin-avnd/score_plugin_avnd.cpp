@@ -103,9 +103,11 @@
  * This file instantiates the classes that are provided by this plug-in.
  */
 
-#include "include.avnd.cpp"
-
+// clang-format off
 #include <Avnd/Factories.hpp>
+#include "include.avnd.cpp"
+// clang-format on
+
 #include <Avnd/Logger.hpp>
 #include <halp/meta.hpp>
 score_plugin_avnd::score_plugin_avnd() = default;
@@ -119,23 +121,34 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
   {
     using logger_type = oscr::Logger;
   };
-  auto fx = oscr::instantiate_fx<
-      Aether::Object, ao::ADSR
+  std::vector<std::unique_ptr<score::InterfaceBase>> fx;
+  oscr::instantiate_fx<Aether::Object>(fx, ctx, key);
+  oscr::instantiate_fx<ao::ADSR>(fx, ctx, key);
+
 #if __has_include(<kfr/dft/convolution.hpp>)
-      ,
-      ao::Convolver
+  oscr::instantiate_fx<ao::Convolver>(fx, ctx, key);
 #endif
-      ,
-      ao::Lowpass, ao::Highpass, ao::Lowshelf, ao::Highshelf, ao::Bandpass, ao::Bandstop,
-      ao::Bandshelf, ao::Bitcrush, ao::Compressor, ao::Limiter, ao::Echo, ao::Flanger,
-      ao::StereoMixer>(ctx, key);
+
+  oscr::instantiate_fx<ao::Lowpass>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Highpass>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Lowshelf>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Highshelf>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Bandpass>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Bandstop>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Bandshelf>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Bitcrush>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Compressor>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Limiter>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Echo>(fx, ctx, key);
+  oscr::instantiate_fx<ao::Flanger>(fx, ctx, key);
+  oscr::instantiate_fx<ao::StereoMixer>(fx, ctx, key);
 
   all_custom_factories(fx, ctx, key);
 
 #if AVND_TEST_BUILD
   namespace E = examples;
   namespace EH = examples::helpers;
-  auto debug_fx = oscr::instantiate_fx<
+  oscr::instantiate_fx<
       oscr::Granolette, EH::FFTDisplay, EH::MessageBusUi, EH::AdvancedUi, E::Addition,
       E::Callback, EH::Controls, EH::Logger<config>, E::Lowpass, EH::Lowpass,
       E::Messages, EH::Messages<config>, EH::Midi, EH::WhiteNoise, EH::Peak,
@@ -155,10 +168,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
 #endif
       ,
       E::TrivialGeneratorExample, E::TrivialFilterExample, E::ZeroDependencyAudioEffect>(
-      ctx, key);
-  fx.insert(
-      fx.end(), std::make_move_iterator(debug_fx.begin()),
-      std::make_move_iterator(debug_fx.end()));
+      fx, ctx, key);
 #endif
   return fx;
 }
