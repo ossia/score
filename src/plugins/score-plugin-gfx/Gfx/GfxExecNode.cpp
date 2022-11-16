@@ -88,14 +88,14 @@ void gfx_exec_node::run(
         // to prevent going through the CPU there
         auto& p = inlet->cast<ossia::geometry_port>();
         {
-          if(p.flags & ossia::geometry_port::dirty_meshes)
+          //if(p.flags & ossia::geometry_port::dirty_meshes)
           {
             // FIXME If the cables, or address have changed
             // We likely want to reload the geometry in any case
             // .. or do we?
-            msg.input[inlet_i] = std::move(p.meshes);
+            msg.input[inlet_i] = p.meshes;
           }
-          if(p.flags & ossia::geometry_port::dirty_transform)
+          //if(p.flags & ossia::geometry_port::dirty_transform)
           {
             // FIXME very very ugly
             msg.input.emplace_back(p.transform);

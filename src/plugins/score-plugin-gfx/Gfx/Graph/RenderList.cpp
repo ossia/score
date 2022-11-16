@@ -1,3 +1,4 @@
+#include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -18,7 +19,7 @@ MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch
 
   MeshBuffers ret = mesh.init(*state.rhi);
   mesh.update(ret, res);
-  m_vertexBuffers.insert({&mesh, ret});
+  m_vertexBuffers.insert({const_cast<Mesh*>(&mesh), ret});
 
   return ret;
 }
@@ -91,6 +92,7 @@ void RenderList::release()
   }
 
   m_vertexBuffers.clear();
+  m_customMeshCache.clear();
 
   delete m_outputUBO;
   m_outputUBO = nullptr;
@@ -156,6 +158,39 @@ QImage RenderList::adaptImage(const QImage& frame)
   //if(m_flip)
   //  res = std::move(res).mirrored();
   //return res;
+}
+
+RenderList::Buffers RenderList::acquireMesh(
+    const ossia::mesh_list_ptr& p, QRhiResourceUpdateBatch& res) noexcept
+{
+  if(auto it = m_customMeshCache.find(p); it != m_customMeshCache.end())
+  {
+    auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(it->second));
+
+    if(m)
+    {
+      auto meshbufs_it = this->m_vertexBuffers.find(m);
+      SCORE_ASSERT(meshbufs_it != this->m_vertexBuffers.end());
+      auto mb = meshbufs_it->second;
+
+      // FIX the thraed-unsafety: basically, we need to
+      // have some level of double- or triple-buffering
+      if(auto cur_idx = p->dirty_index; m->dirtyGeometryIndex != cur_idx)
+      {
+        m->reload(*p);
+        m->update(mb, res);
+        m->dirtyGeometryIndex = cur_idx;
+      }
+
+      return {m, mb};
+    }
+  }
+
+  auto m = new CustomMesh{*p};
+  auto meshbufs = initMeshBuffer(*m, res);
+
+  this->m_customMeshCache[p] = m;
+  return {m, meshbufs};
 }
 
 void RenderList::clearRenderers()

@@ -21,6 +21,7 @@ class CustomMesh : public score::gfx::Mesh
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
 
 public:
+  int64_t dirtyGeometryIndex{-1};
   explicit CustomMesh(const ossia::mesh_list& g) { reload(g); }
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep

@@ -33,7 +33,7 @@ using gfx_input = ossia::slow_variant<
     ossia::transform3d>;
 #else
 using gfx_input = ossia::variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list,
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list_ptr,
     ossia::transform3d>;
 #endif
 
@@ -156,13 +156,13 @@ public:
    * If not set, then a relevant default geometry for the node
    * will be used, e.g. a full-screen quad or triangle
    */
-  std::optional<ossia::mesh_list> geometry;
+  std::shared_ptr<ossia::mesh_list> geometry;
 
   void process(Message&& msg) override;
   void process(Timings tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
-  void process(int32_t port, const ossia::mesh_list& v);
+  void process(int32_t port, const ossia::mesh_list_ptr& v);
   void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
 };

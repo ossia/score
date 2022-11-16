@@ -140,19 +140,23 @@ void GenericNodeRenderer::defaultUBOUpdate(
 void GenericNodeRenderer::defaultMeshUpdate(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  if(node.hasGeometryChanged(geometryChangedIndex))
+  // 2 things to separate:
+  // - A mesh's geometry can change because it's a kind of dynamic mesh
+  //   which gets changed live
+  // - The mesh did not change but we must update it here
+  //   because e.g. the connected node changed
+  // Uploaded meshes must be stored in the renderer.
+  // We know they can be freed when shared_ptr of mesh goes to zero
+
+  // Note: idea for maintaining consistency between engine and UI thread:
+  // adding markers that indicate the messages for a frame.
+  // e.g. special message "frame 2353 messages start .... 2353 end" and a variable that indicates
+  // the last fully written frame so that wwith peek() we can check that we are going to get only
+  // the messages relevant for a frame.
+  // Or... just put all of one frame's message in one vector and push that one at the end of the audio frame.
+  if(node.hasGeometryChanged(geometryChangedIndex) && node.geometry)
   {
-    if(auto m = const_cast<CustomMesh*>(dynamic_cast<const CustomMesh*>(m_mesh)))
-    {
-      m->reload(*node.geometry);
-      m_mesh->update(m_meshbufs, res);
-      // m_meshbufs = renderer.updateDynamicMeshBuffer(*m_mesh, res);
-    }
-    else
-    {
-      m_mesh = new CustomMesh{*node.geometry};
-      m_meshbufs = renderer.initMeshBuffer(*m_mesh, res);
-    }
+    std::tie(m_mesh, m_meshbufs) = renderer.acquireMesh(node.geometry, res);
   }
 }
 

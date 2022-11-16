@@ -89,6 +89,8 @@ public:
   RenderState& state;
 
   using Buffers = std::pair<const Mesh* const, MeshBuffers>;
+  Buffers
+  acquireMesh(const ossia::mesh_list_ptr&, QRhiResourceUpdateBatch& res) noexcept;
 
   /**
    * @brief Nodes present in this RenderList, in order
@@ -139,7 +141,9 @@ private:
   /**
    * @brief Cache of vertex buffers.
    */
-  ossia::flat_map<const Mesh*, MeshBuffers> m_vertexBuffers;
+  ossia::flat_map<Mesh*, MeshBuffers> m_vertexBuffers;
+
+  ossia::flat_map<ossia::mesh_list_ptr, Mesh*> m_customMeshCache;
 
   /**
    * @brief Last size used by this renderer.
