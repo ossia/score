@@ -514,16 +514,16 @@ avnd_make_score(
 )
 
 
-avnd_make_score(
-  SOURCES
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
-  TARGET kabang
-  MAIN_CLASS Kabang
-  NAMESPACE kbng
-)
+# avnd_make_score(
+#   SOURCES
+#     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
+#     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
+#     "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
+#     "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
+#   TARGET kabang
+#   MAIN_CLASS Kabang
+#   NAMESPACE kbng
+# )
 
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"
