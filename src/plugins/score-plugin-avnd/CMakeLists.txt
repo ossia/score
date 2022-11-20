@@ -486,6 +486,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Sweeper.hpp"
+  TARGET pattern_sweeper
+  MAIN_CLASS PatternSweeper
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Helpers/GradientScrubber.hpp"
   TARGET gradient_scrub
   MAIN_CLASS GradientScrub

@@ -18,35 +18,45 @@ namespace avnd_tools
 // input: [1, 34, 6, 4]
 // -> writes 1 on foo.1/value, 34 on foo.2/value, etc
 
-struct PatternUnfolder
+struct PatternObject
+{
+  ossia::exec_state_facade ossia_state;
+  std::optional<ossia::traversal::path> m_path;
+  std::vector<ossia::net::node_base*> roots;
+};
+
+struct PatternSelector: halp::lineedit<"Pattern", "">
+{
+  void update(PatternObject& p)
+  {
+    if(!p.ossia_state.impl)
+      return;
+    p.m_path = ossia::traversal::make_path(value);
+
+    ossia::execution_state& st = *p.ossia_state.impl;
+    const auto& rdev = st.exec_devices();
+    p.roots.clear();
+    for(auto& dev : rdev)
+    {
+      p.roots.push_back(&dev->get_root_node());
+    }
+    ossia::traversal::apply(*p.m_path, p.roots);
+  }
+};
+
+struct PatternUnfolder : PatternObject
 {
   halp_meta(name, "Pattern applier")
+  halp_meta(author, "ossia team")
+  halp_meta(category, "Control/Data processing")
+  halp_meta(description, "Send a message to all nodes matching a pattern")
   halp_meta(c_name, "avnd_pattern_apply")
   halp_meta(uuid, "44a55ee1-c2c9-43d5-a655-8eaedaff394c")
-
-  ossia::exec_state_facade ossia_state;
 
   struct
   {
     halp::val_port<"Input", ossia::value> input;
-    struct : halp::lineedit<"Pattern", "">
-    {
-      void update(PatternUnfolder& p)
-      {
-        if(!p.ossia_state.impl)
-          return;
-        p.m_path = ossia::traversal::make_path(value);
-
-        ossia::execution_state& st = *p.ossia_state.impl;
-        const auto& rdev = st.exec_devices();
-        p.roots.clear();
-        for(auto& dev : rdev)
-        {
-          p.roots.push_back(&dev->get_root_node());
-        }
-        ossia::traversal::apply(*p.m_path, p.roots);
-      }
-    } pattern;
+    PatternSelector pattern;
   } inputs;
 
   struct
@@ -54,9 +64,6 @@ struct PatternUnfolder
 
   } outputs;
 
-  std::optional<ossia::traversal::path> m_path;
-
-  std::vector<ossia::net::node_base*> roots;
   void operator()()
   {
     if(!m_path)
