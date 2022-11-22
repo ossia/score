@@ -189,6 +189,14 @@ file(CONFIGURE
   /* #undef OSSIA_QML_SCORE */
   #define OSSIA_EDITOR
   #define OSSIA_PARALLEL
+
+  // FFT support
+  #define OSSIA_ENABLE_FFT
+  #define OSSIA_ENABLE_KFR
+
+  #define OSSIA_FFT_KFR
+
+  #define OSSIA_CALLBACK_CONTAINER_MUTEX std::mutex
 ")
 
 foreach(_lib ${SCORE_PLUGINS})

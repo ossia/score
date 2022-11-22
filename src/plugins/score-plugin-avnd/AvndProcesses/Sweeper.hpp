@@ -1,5 +1,4 @@
 #pragma once
-#include <AvndProcesses/AddressTools.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/network/common/path.hpp>
@@ -7,6 +6,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 
+#include <AvndProcesses/AddressTools.hpp>
 #include <halp/audio.hpp>
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
@@ -36,7 +36,10 @@ struct PatternSweeper : PatternObject
     PatternSelector pattern;
 
     halp::time_chooser<"Interval"> time;
-    struct { halp__enum("Mode", Upwards, Upwards, Downwards, UpDown, RandomWalk, Random); } mode;
+    struct
+    {
+      halp__enum("Mode", Upwards, Upwards, Downwards, UpDown, RandomWalk, Random);
+    } mode;
   } inputs;
 
   struct
@@ -46,7 +49,11 @@ struct PatternSweeper : PatternObject
 
   std::size_t current_parameter = 0;
   double last_message_sent_pos = std::numeric_limits<double>::lowest();
-  enum { up, down } direction{up};
+  enum
+  {
+    up,
+    down
+  } direction{up};
   rnd::pcg pcg_state;
 
   void prepare()
@@ -65,60 +72,57 @@ struct PatternSweeper : PatternObject
     using mode = decltype(inputs.mode)::enum_type;
     switch(inputs.mode)
     {
-    case mode::Upwards:
-      current_parameter++;
-      current_parameter = current_parameter % this->roots.size();
-      break;
-    case mode::Downwards:
-      if(current_parameter == 0)
-        current_parameter = this->roots.size() - 1;
-      else
-        current_parameter--;
-      break;
-    case mode::UpDown:
-    {
-      case_updown:
-      if(direction == up)
-      {
-        if(current_parameter + 1 == this->roots.size())
-        {
-          direction = down;
-          current_parameter--;
-        }
-        else
-        {
-          current_parameter++;
-        }
-      }
-      else
-      {
+      case mode::Upwards:
+        current_parameter++;
+        current_parameter = current_parameter % this->roots.size();
+        break;
+      case mode::Downwards:
         if(current_parameter == 0)
+          current_parameter = this->roots.size() - 1;
+        else
+          current_parameter--;
+        break;
+      case mode::UpDown: {
+      case_updown:
+        if(direction == up)
         {
-          direction = up;
-          current_parameter++;
+          if(current_parameter + 1 == this->roots.size())
+          {
+            direction = down;
+            current_parameter--;
+          }
+          else
+          {
+            current_parameter++;
+          }
         }
         else
         {
-          current_parameter--;
+          if(current_parameter == 0)
+          {
+            direction = up;
+            current_parameter++;
+          }
+          else
+          {
+            current_parameter--;
+          }
         }
+        break;
       }
-      break;
-    }
-    case mode::RandomWalk:
-    {
-      if(std::bernoulli_distribution{}(pcg_state))
-        direction = up;
-      else
-        direction = down;
-      goto case_updown;
-      break;
-    }
-    case mode::Random:
-    {
-      auto dist = std::uniform_int_distribution<int>(0, std::ssize(this->roots) - 1);
-      current_parameter = dist(pcg_state);
-      break;
-    }
+      case mode::RandomWalk: {
+        if(std::bernoulli_distribution{}(pcg_state))
+          direction = up;
+        else
+          direction = down;
+        goto case_updown;
+        break;
+      }
+      case mode::Random: {
+        auto dist = std::uniform_int_distribution<int>(0, std::ssize(this->roots) - 1);
+        current_parameter = dist(pcg_state);
+        break;
+      }
     }
   }
 
@@ -138,7 +142,8 @@ struct PatternSweeper : PatternObject
     {
       if(auto p = roots[current_parameter]->get_parameter())
       {
-        QTimer::singleShot(1, qApp, [p, v] { p->push_value(v); });
+        p->push_value(v);
+        //QTimer::singleShot(1, qApp, [p, v] { p->push_value(v); });
       }
 
       next();
