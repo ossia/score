@@ -16,8 +16,9 @@ cmake $SCORE_DIR \
  -DSCORE_DEPLOYMENT_BUILD=1 \
  -DOSSIA_ENABLE_KFR=0 \
  -DOSSIA_ENABLE_FFTW=0 \
- -DCMAKE_INSTALL_PREFIX=install
-
+ -DCMAKE_INSTALL_PREFIX=install \
+ -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--version-script,$SCORE_DIR/cmake/Deployment/Linux/AppImage/version" \
+ -DCMAKE_EXE_LINKER_FLAGS="-Wl,--version-script,$SCORE_DIR/cmake/Deployment/Linux/AppImage/version"
 
 cmake --build .
 cmake --build . --target install/strip
