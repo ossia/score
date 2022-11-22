@@ -127,6 +127,10 @@ if(UNIX AND NOT APPLE)
   target_link_libraries(${APPNAME} PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
+if(SCORE_LINKER_SCRIPT)
+  target_link_libraries(${APPNAME} PRIVATE "-Wl,--version-script,$SCORE_LINKER_SCRIPT")
+endif()
+
 if(APPLE)
     find_library(CFLIB CoreFoundation)
     find_library(FLIB Foundation)
