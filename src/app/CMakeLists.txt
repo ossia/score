@@ -128,7 +128,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if(SCORE_LINKER_SCRIPT)
-  target_link_libraries(${APPNAME} PRIVATE "-Wl,--version-script,$SCORE_LINKER_SCRIPT")
+  target_link_libraries(${APPNAME} PRIVATE "-Wl,--version-script,${SCORE_LINKER_SCRIPT}")
 endif()
 
 if(APPLE)
