@@ -9,6 +9,7 @@
 #include <Gfx/Syphon/SyphonHelpers.hpp>
 #include <QtGui/private/qrhigles2_p_p.h>
 #include <QOpenGLContext>
+#include <QOffscreenSurface>
 #include <QFormLayout>
 #include <QLabel>
 

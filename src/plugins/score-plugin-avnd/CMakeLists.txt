@@ -10,7 +10,7 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
     endif()
   endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
     return()
   endif()
 endif()
@@ -482,6 +482,13 @@ avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/AddressTools.hpp"
   TARGET pattern_unfolder
   MAIN_CLASS PatternUnfolder
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Combiner.hpp"
+  TARGET pattern_combiner
+  MAIN_CLASS PatternCombiner
   NAMESPACE avnd_tools
 )
 

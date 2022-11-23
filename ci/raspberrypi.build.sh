@@ -19,11 +19,6 @@ cmake $SCORE_DIR \
  -DCMAKE_INSTALL_PREFIX=install \
  -DSCORE_LINKER_SCRIPT="$SCORE_DIR/cmake/Deployment/Linux/AppImage/version"
 
-echo "checking: '$SCORE_DIR/cmake/Deployment/Linux/AppImage/version'"
-ls "$SCORE_DIR/cmake/Deployment/Linux/AppImage"
-cat "$SCORE_DIR/cmake/Deployment/Linux/AppImage/version"
-
-
 cmake --build .
 cmake --build . --target install/strip
 

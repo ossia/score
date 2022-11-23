@@ -25,7 +25,7 @@ struct PatternObject
   std::vector<ossia::net::node_base*> roots;
 };
 
-struct PatternSelector: halp::lineedit<"Pattern", "">
+struct PatternSelector : halp::lineedit<"Pattern", "">
 {
   void update(PatternObject& p)
   {
