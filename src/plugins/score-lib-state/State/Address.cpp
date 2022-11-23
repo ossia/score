@@ -150,7 +150,11 @@ bool Address::validateString(const QString& str)
 
 bool Address::validateFragment(const QString& s)
 {
-  return ossia::all_of(s, &ossia::net::is_valid_character_for_name<QChar>);
+  return ossia::all_of(s, [](QChar c) {
+    constexpr std::string_view pmatch_chars = "_~(): .*?,{}[]-";
+    return c.isLetterOrNumber()
+           || (pmatch_chars.find(c.toLatin1()) != std::string_view::npos);
+  });
 }
 
 std::optional<Address> Address::fromString(const QString& str)
