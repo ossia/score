@@ -1,7 +1,7 @@
 #include "SearchWidget.hpp"
 // SearchWidget
-#include <State/MessageListSerialization.hpp>
 #include <State/Expression.hpp>
+#include <State/MessageListSerialization.hpp>
 
 #include <Device/Node/NodeListMimeSerialization.hpp>
 
@@ -18,16 +18,16 @@
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/widgets/ArrowButton.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <ossia-qt/invoke.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <ossia-qt/invoke.hpp>
 
+#include <ossia-qt/invoke.hpp>
 
 //TODO remove test
 #include "SearchReplaceWidget.hpp"
-namespace Scenario {
+namespace Scenario
+{
 
 SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     : score::SearchLineEdit{nullptr}
@@ -38,10 +38,12 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     if(auto widget = Explorer::findDeviceExplorerWidgetInstance(score::GUIAppContext()))
     {
       connect(
-            widget, &Explorer::DeviceExplorerWidget::findAddresses, this,
-            &SearchWidget::on_findAddresses);
+          widget, &Explorer::DeviceExplorerWidget::findAddresses, this,
+          &SearchWidget::on_findAddresses);
     }
   });
+
+  /*
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/search.png"));
   act->setStatusTip(tr("Find And Replace"));
@@ -51,7 +53,7 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     SearchReplaceWidget* sr = new SearchReplaceWidget(m_ctx);
     sr->show();
   });
-
+  */
 }
 void SearchWidget::dragEnterEvent(QDragEnterEvent* event)
 {
@@ -75,10 +77,7 @@ void SearchWidget::on_findAddresses(QStringList strlst)
   }
   setText(searchTxt);
   search();
-
-
 }
-
 
 void SearchWidget::dropEvent(QDropEvent* ev)
 {
@@ -136,7 +135,6 @@ void add_if_contains(
     sel.append(o);
   }
 }
-
 
 static void selectProcessPortsWithAddress(
     const std::vector<State::AddressAccessor>& addresses, Process::ProcessModel& proc,
@@ -281,6 +279,5 @@ void SearchWidget::search()
   score::SelectionDispatcher d{doc->context().selectionStack};
   d.select(sel);
 }
-
 
 }

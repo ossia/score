@@ -122,7 +122,6 @@ static void selectProcessPortsWithAddress(
 
 void SearchReplaceWidget::search()
 {
-
   if(!m_oldAddress.isSet())
   {
     return;
@@ -233,7 +232,6 @@ void SearchReplaceWidget::replace()
   {
     if(auto state = qobject_cast<const StateModel*>(obj))
     {
-      auto& root = state->messages().rootNode();
       //TODO maybe implement a better ver of RenameAddressInState ?
       disp.submit(new Command::RenameAddressInState(
           *state, State::AddressAccessor{m_oldAddress},
@@ -260,6 +258,7 @@ void SearchReplaceWidget::replace()
 
   disp.commit();
 }
+
 QString SearchReplaceWidget::getObjectName(const QObject* o)
 {
   auto& ctx = m_ctx.documents.currentDocument()->context();
@@ -314,6 +313,7 @@ QString SearchReplaceWidget::getObjectName(const QObject* o)
     res += " - Output )";
     return res;
   }
+  return {};
 }
 
 }
