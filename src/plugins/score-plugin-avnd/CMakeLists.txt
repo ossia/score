@@ -514,6 +514,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Calibrator.hpp"
+  TARGET calibrator
+  MAIN_CLASS Calibrator
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Gpu/SolidColor.hpp"
   TARGET gpu_solid_color
   MAIN_CLASS GpuSolidColorExample

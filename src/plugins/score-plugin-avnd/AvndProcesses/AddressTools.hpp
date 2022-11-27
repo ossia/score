@@ -3,9 +3,6 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/network/common/path.hpp>
 
-#include <QCoreApplication>
-#include <QTimer>
-
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
@@ -31,15 +28,27 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
   {
     if(!p.ossia_state.impl)
       return;
+    if(value.empty())
+    {
+      p.m_path = {};
+      p.roots.clear();
+      return;
+    }
+
     p.m_path = ossia::traversal::make_path(value);
 
     ossia::execution_state& st = *p.ossia_state.impl;
     const auto& rdev = st.exec_devices();
     p.roots.clear();
+
+    if(!p.m_path)
+      return;
+
     for(auto& dev : rdev)
     {
       p.roots.push_back(&dev->get_root_node());
     }
+
     ossia::traversal::apply(*p.m_path, p.roots);
   }
 };
@@ -70,17 +79,14 @@ struct PatternUnfolder : PatternObject
       return;
 
     auto process = [this](const std::vector<ossia::value>& vec) {
-      QTimer::singleShot(1, qApp, [roots = this->roots, vec] {
-        const auto N = std::min(roots.size(), vec.size());
-        for(std::size_t i = 0; i < N; i++)
+      const auto N = std::min(roots.size(), vec.size());
+      for(std::size_t i = 0; i < N; i++)
+      {
+        if(auto p = roots[i]->get_parameter())
         {
-          if(auto p = roots[i]->get_parameter())
-          {
-            // Needs to be done in main thread because of the QJSEngine in serial_protocols
-            p->push_value(vec[i]);
-          }
+          p->push_value(vec[i]);
         }
-      });
+      }
     };
 
     if(auto vvec = inputs.input.value.target<std::vector<ossia::value>>())

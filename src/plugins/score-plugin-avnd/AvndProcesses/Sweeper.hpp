@@ -129,21 +129,19 @@ struct PatternSweeper : PatternObject
   using tick = halp::tick_musical;
   void operator()(const halp::tick_musical& tk)
   {
+    auto elapsed_ns = (tk.position_in_nanoseconds - last_message_sent_pos);
     if(!m_path || this->roots.empty())
       return;
 
-    auto elapsed_ns = (tk.position_in_nanoseconds - last_message_sent_pos);
     if(elapsed_ns < inputs.time.value * 1e9)
       return;
     last_message_sent_pos = tk.position_in_nanoseconds;
 
-    auto& v = inputs.input.value;
     if(current_parameter >= 0 && current_parameter < this->roots.size())
     {
       if(auto p = roots[current_parameter]->get_parameter())
       {
-        p->push_value(v);
-        //QTimer::singleShot(1, qApp, [p, v] { p->push_value(v); });
+        p->push_value(inputs.input.value);
       }
 
       next();
