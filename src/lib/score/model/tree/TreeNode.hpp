@@ -204,6 +204,30 @@ public:
   bool hasChildren() const noexcept { return !m_children.empty(); }
 
   const auto& children() const noexcept { return m_children; }
+
+  auto takeChildren() noexcept
+  {
+    auto cld = std::move(m_children);
+    m_children.clear();
+
+    for(auto& child : cld)
+      child.setParent(nullptr);
+
+    return cld;
+  }
+
+  void moveChildren(TreeNode& newParent) noexcept
+  {
+    auto cld = std::move(m_children);
+    m_children.clear();
+
+    for(TreeNode& child : cld)
+    {
+      // This will repoint things correctly
+      newParent.push_back(std::move(child));
+    }
+  }
+
   void reserve(std::size_t s) noexcept
   {
     // m_children.reserve(s);

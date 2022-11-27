@@ -43,18 +43,27 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     }
   });
 
-  /*
+  if(auto acts = this->actions(); !acts.empty())
+  {
+    auto a = acts.back();
+    this->removeAction(a);
+    delete a;
+  }
+
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/search.png"));
   act->setStatusTip(tr("Find And Replace"));
   addAction(act, QLineEdit::TrailingPosition);
-  connect(act, &QAction::triggered, [=]()
-  {
-    SearchReplaceWidget* sr = new SearchReplaceWidget(m_ctx);
+  connect(act, &QAction::triggered, this, [=] {
+    auto sr = new SearchReplaceWidget(m_ctx);
+    auto txt = this->text();
+    if(txt.startsWith("address="))
+      txt.remove("address=");
+    sr->setFindTarget(txt);
     sr->show();
   });
-  */
 }
+
 void SearchWidget::dragEnterEvent(QDragEnterEvent* event)
 {
   const auto& formats = event->mimeData()->formats();

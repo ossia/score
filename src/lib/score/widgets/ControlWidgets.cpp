@@ -28,8 +28,8 @@ SearchLineEdit::SearchLineEdit(QWidget* parent)
   act->setStatusTip(tr("Filter with the given text"));
   addAction(act, QLineEdit::TrailingPosition);
 
-  connect(this, &QLineEdit::returnPressed, [&]() { search(); });
-  connect(act, &QAction::triggered, [&]() { search(); });
+  connect(this, &QLineEdit::returnPressed, this, [&]() { search(); });
+  connect(act, &QAction::triggered, this, [&]() { search(); });
 }
 
 SearchLineEdit::~SearchLineEdit() { }

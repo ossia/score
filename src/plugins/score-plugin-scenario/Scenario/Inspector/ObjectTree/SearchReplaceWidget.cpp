@@ -46,8 +46,8 @@ SearchReplaceWidget::SearchReplaceWidget(const score::GUIApplicationContext& ctx
   form->addRow(buttons);
 
   connect(
-      findLine, &QLineEdit::returnPressed, [=]() { setFindTarget(findLine->text()); });
-  connect(findButton, &QPushButton::pressed, [=]() {
+      findLine, &QLineEdit::editingFinished, [=] { setFindTarget(findLine->text()); });
+  connect(findButton, &QPushButton::pressed, [=] {
     search();
     resultList->clear();
     for(const auto o : m_matches)
@@ -62,7 +62,7 @@ SearchReplaceWidget::SearchReplaceWidget(const score::GUIApplicationContext& ctx
     }
   });
 
-  connect(replaceLine, &QLineEdit::returnPressed, [=]() {
+  connect(replaceLine, &QLineEdit::editingFinished, [=]() {
     setReplaceTarget(replaceLine->text());
   });
   connect(replaceButton, &QPushButton::pressed, [=]() { replace(); });
@@ -83,43 +83,6 @@ void SearchReplaceWidget::setReplaceTarget(const QString& rTarget)
     m_newAddress = addr.value();
   }
 }
-static void selectProcessPortsWithAddress(
-    const std::vector<State::AddressAccessor>& addresses, Process::ProcessModel& proc,
-    Selection& sel)
-{
-  auto search = [&sel, &addresses](auto& port) {
-    auto& port_addr = port.address();
-    for(auto& search_addr : addresses)
-    {
-      if(port_addr.address == search_addr.address)
-      {
-        sel.append(port);
-        break;
-      }
-    }
-
-    port.forChildInlets([&](Process::Inlet& p) {
-      for(auto& search_addr : addresses)
-      {
-        if(p.address().address == search_addr.address)
-        {
-          sel.append(&p);
-          break;
-        }
-      }
-    });
-  };
-
-  for(const Process::Inlet* port : proc.inlets())
-  {
-    search(*port);
-  }
-
-  for(const Process::Outlet* port : proc.outlets())
-  {
-    search(*port);
-  }
-}
 
 void SearchReplaceWidget::search()
 {
@@ -133,7 +96,6 @@ void SearchReplaceWidget::search()
     std::vector<State::AddressAccessor> addresses;
     addresses.push_back(State::AddressAccessor{m_oldAddress});
     auto* doc = m_ctx.documents.currentDocument();
-    auto scenarioModel = doc->focusManager().get();
 
     QList<QObject*> itemsToSearch;
     if(auto selection = doc->selectionStack().currentSelection(); !selection.empty())
@@ -151,10 +113,11 @@ void SearchReplaceWidget::search()
           = doc->findChildren<QObject*>(QString{}, Qt::FindChildrenRecursively);
     }
     ossia::remove_duplicates(itemsToSearch);
+    if(itemsToSearch.empty())
+      return;
 
     Selection sel{};
 
-    if(scenarioModel)
     {
       State::MessageList listCache;
       std::vector<QString> messagesCache;
@@ -163,14 +126,13 @@ void SearchReplaceWidget::search()
       {
         if(auto state = qobject_cast<const StateModel*>(obj))
         {
-          listCache.clear();
-          messagesCache.clear();
-
           auto& root = state->messages().rootNode();
 
           // First look for addresses containing the looked-up address
           bool must_add
               = Process::hasMatchingAddress(root, addresses, listCache, messagesCache);
+          listCache.clear();
+          messagesCache.clear();
 
           // If not found, then look for addresses containing the raw string
           //          if(!must_add)
@@ -191,57 +153,38 @@ void SearchReplaceWidget::search()
         }
         else if(auto ts = qobject_cast<const TimeSyncModel*>(obj))
         {
-
           if(State::findAddressInExpression(ts->expression(), m_oldAddress))
             m_matches.push_back(obj);
           sel.append(*ts);
         }
+        else if(auto port = qobject_cast<Process::Inlet*>(obj))
+        {
+          if(State::addressIsChildOf(m_oldAddress, port->address().address))
+          {
+            m_matches.push_back(port);
+          }
+        }
+        else if(auto port = qobject_cast<Process::Outlet*>(obj))
+        {
+          if(State::addressIsChildOf(m_oldAddress, port->address().address))
+          {
+            m_matches.push_back(port);
+          }
+        }
+        /*
         else if(auto cmt = qobject_cast<const CommentBlockModel*>(obj))
         {
         }
         else if(auto interval = qobject_cast<const IntervalModel*>(obj))
         {
-          for(auto& proc : interval->processes)
-          {
-            selectProcessPortsWithAddress(addresses, proc, sel);
-            for(Process::Inlet* inlet : proc.inlets())
-            {
-              if(sel.contains(inlet))
-              {
-                m_matches.push_back(inlet);
-              }
-            }
-            for(Process::Outlet* outlet : proc.outlets())
-            {
-              if(sel.contains(outlet))
-              {
-                m_matches.push_back(outlet);
-              }
-            }
-            sel.append(proc);
-          }
         }
+        */
       }
     }
-    score::SelectionDispatcher d{doc->context().selectionStack};
-    d.select(sel);
+    ossia::remove_duplicates(m_matches);
+    // score::SelectionDispatcher d{doc->context().selectionStack};
+    // d.select(sel);
   }
-}
-
-static auto
-replaceAddressPart(const State::AddressAccessor& old, const State::Address& replacement)
-{
-  State::AddressAccessor ret;
-  ret.address = {replacement.device, old.address.path};
-  ret.qualifiers = old.qualifiers;
-
-  for(int i = 0, N = std::min(ret.address.path.size(), replacement.path.size()); i < N;
-      i++)
-  {
-    ret.address.path[i] = replacement.path[i];
-  }
-
-  return ret;
 }
 
 void SearchReplaceWidget::replace()
@@ -251,19 +194,12 @@ void SearchReplaceWidget::replace()
   if(!m_newAddress.isSet() || m_newAddress.path.isEmpty())
     return;
 
-  // FIXME: this isn't good
-  // We want to be able to replace e.g.
-  // Serial:/foo with Test:/bar in every address that contains it, e.g.
-  // Test:/bar/toto/123
-
   for(auto* obj : m_matches)
   {
     if(auto state = qobject_cast<const StateModel*>(obj))
     {
-      //TODO maybe implement a better ver of RenameAddressInState ?
-      disp.submit(new Command::RenameAddressInState(
-          *state, State::AddressAccessor{m_oldAddress},
-          State::AddressAccessor{m_newAddress}));
+      disp.submit(
+          new Command::RenameAddressesInState(*state, m_oldAddress, m_newAddress));
     }
     else if(auto event = qobject_cast<EventModel*>(obj))
     {
@@ -280,7 +216,9 @@ void SearchReplaceWidget::replace()
 
     else if(auto port = qobject_cast<Process::Port*>(obj))
     {
-      disp.submit(new Process::ChangePortAddress(*port, m_newAddress));
+      auto addr = port->address();
+      State::rerootAddress(addr.address, m_oldAddress, m_newAddress);
+      disp.submit(new Process::ChangePortAddress(*port, addr));
     }
   }
 

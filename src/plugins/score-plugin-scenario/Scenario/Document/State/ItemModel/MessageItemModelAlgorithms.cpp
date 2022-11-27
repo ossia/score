@@ -84,6 +84,56 @@ try_getNodeFromString(Process::MessageNode& n, const State::AddressAccessor& add
   return nullptr;
 }
 
+Process::MessageNode* getNodeFromString_impl(
+    Process::MessageNode& n, QStringList::const_iterator begin,
+    QStringList::const_iterator end)
+{
+  const auto path_n = end - begin;
+
+  Process::MessageNode* node = &n;
+  for(int i = 0; i < path_n; i++)
+  {
+    auto it = ossia::find_if(
+        *node, [&](const auto& cur_node) { return cur_node.name.name == *begin; });
+
+    if(it == node->end())
+    {
+      // We have to start adding sub-nodes from here.
+      for(int k = i; k < path_n; k++)
+      {
+        node = &node->emplace_back(Process::StateNodeData{*begin, {}, {}}, nullptr);
+        ++begin;
+      }
+
+      break;
+    }
+    else
+    {
+      node = &*it;
+      ++begin;
+    }
+  }
+
+  return node;
+}
+
+static Process::MessageNode*
+getNodeFromString(Process::MessageNode& n, const State::Address& address)
+{
+  Process::MessageNode* device{};
+  for(auto& child : n)
+  {
+    if(child.displayName() == address.device)
+    {
+      device = &child;
+    }
+  }
+  if(!device)
+    device = &n.emplace_back(Process::StateNodeData{address.device, {}, {}}, nullptr);
+
+  return getNodeFromString_impl(*device, address.path.begin(), address.path.end());
+}
+
 static bool removable(const Process::MessageNode& node)
 {
   return node.values.empty() && !node.hasChildren();
@@ -288,6 +338,18 @@ static void rec_updateTree(
   cleanupNode(node);
 }
 
+static bool match_basic(const QString& cur_node, const State::Address& address, int i)
+{
+  if(i == 0)
+  {
+    return address.device == cur_node;
+  }
+  else
+  {
+    return address.path[i - 1] == cur_node;
+  }
+}
+
 static bool match(
     const State::AddressAccessorHead& cur_node, const State::AddressAccessor& mess,
     int i)
@@ -400,6 +462,49 @@ static void rename_impl(
 
         node->name.qualifiers = new_addr.qualifiers;
       }
+    }
+  }
+}
+
+static void find_and_replace_impl(
+    Process::MessageNode& base, const State::Address& old_addr,
+    const State::Address& new_addr)
+{
+  const auto path_n = old_addr.path.size() + 1;
+
+  Process::MessageNode* node = &base;
+
+  bool found = false;
+  for(int i = 0; i < path_n; i++)
+  {
+    auto it = ossia::find_if(*node, [&](const auto& cur_node) {
+      return match_basic(cur_node.name.name, old_addr, i);
+    });
+
+    if(it != node->end())
+    {
+      node = &*it;
+
+      if(i == path_n - 1)
+        found = true;
+    }
+  }
+
+  if(found)
+  {
+    // Get the node for the replacement
+    auto replacementRoot = getNodeFromString(base, new_addr);
+
+    // Move the node
+    node->moveChildren(*replacementRoot);
+
+    // If the previous node did not have a message, remove it
+    if(!node->hasValue())
+    {
+      auto node_p = node->parent();
+      auto it = node_p->begin();
+      std::advance(it, node_p->indexOfChild(node));
+      node_p->erase(it);
     }
   }
 }
@@ -693,6 +798,13 @@ void renameAddress(
     const State::AddressAccessor& newAddr)
 {
   rename_impl(rootNode, oldAddr, newAddr);
+}
+
+void findAndReplaceAddresses(
+    Process::MessageNode& rootNode, const State::Address& oldAddr,
+    const State::Address& newAddr)
+{
+  find_and_replace_impl(rootNode, oldAddr, newAddr);
 }
 
 }

@@ -54,6 +54,7 @@ void RenameAddressInState::undo(const score::DocumentContext& ctx) const
 
 void RenameAddressInState::redo(const score::DocumentContext& ctx) const
 {
+  // FIXME! This does not take into account the process messages
   auto& state = m_state.find(ctx);
   Scenario::renameAddress(state.messages(), m_oldName, m_newName);
 }
@@ -68,12 +69,26 @@ void RenameAddressInState::deserializeImpl(DataStreamOutput& s)
   s >> m_state >> m_oldName >> m_newName;
 }
 
-AddMessagesToState::AddMessagesToState(
-    const Scenario::StateModel& state, const State::MessageList& messages)
-    : m_path{state}
+RenameAddressesInState::RenameAddressesInState(
+    const Scenario::StateModel& state, const State::Address& find,
+    const State::Address& replace)
 {
+  m_path = state;
   m_oldState = state.messages().rootNode();
-  m_newState = m_oldState;
+  m_newState = state.messages().rootNode();
+
+  Scenario::findAndReplaceAddresses(m_newState, find, replace);
+}
+
+ReplaceState::ReplaceState(
+    const StateModel& state, const Process::MessageNode& oldnode,
+    const Process::MessageNode& newnode, const State::MessageList& messages)
+{
+  m_path = state;
+  m_oldState = oldnode;
+  m_newState = newnode;
+
+  // FIXME only difference with the one below is the lack of "newstate", this can be refactored
 
   // TODO backup all the processes, not just the messages.
 
@@ -120,7 +135,13 @@ AddMessagesToState::AddMessagesToState(
   updateTreeWithMessageList(m_newState, messages);
 }
 
-void AddMessagesToState::undo(const score::DocumentContext& ctx) const
+ReplaceState::ReplaceState(
+    const Scenario::StateModel& state, const State::MessageList& messages)
+    : ReplaceState{state, state.messages().rootNode(), Process::MessageNode{}, messages}
+{
+}
+
+void ReplaceStateBase::undo(const score::DocumentContext& ctx) const
 {
   auto& sm = m_path.find(ctx);
   auto& model = sm.messages();
@@ -140,20 +161,27 @@ void AddMessagesToState::undo(const score::DocumentContext& ctx) const
   }
 }
 
-void AddMessagesToState::redo(const score::DocumentContext& ctx) const
+void ReplaceStateBase::redo(const score::DocumentContext& ctx) const
 {
   auto& model = m_path.find(ctx).messages();
   model = m_newState;
 }
 
-void AddMessagesToState::serializeImpl(DataStreamInput& d) const
+void ReplaceStateBase::serializeImpl(DataStreamInput& d) const
 {
   d << m_path << m_oldState << m_newState << m_previousBackup << m_followingBackup;
 }
 
-void AddMessagesToState::deserializeImpl(DataStreamOutput& d)
+void ReplaceStateBase::deserializeImpl(DataStreamOutput& d)
 {
   d >> m_path >> m_oldState >> m_newState >> m_previousBackup >> m_followingBackup;
+}
+
+AddMessagesToState::AddMessagesToState(
+    const Scenario::StateModel& state, const State::MessageList& messages)
+    : ReplaceState{
+        state, state.messages().rootNode(), state.messages().rootNode(), messages}
+{
 }
 
 AddControlMessagesToState::AddControlMessagesToState(

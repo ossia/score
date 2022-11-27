@@ -443,6 +443,60 @@ onUpdatableAddress(const State::Address& current, const QMimeData& mime)
   return {};
 }
 
+bool addressIsChildOf(
+    const State::Address& root, const State::Address& maybe_child) noexcept
+{
+  if(root.device != maybe_child.device)
+    return false;
+
+  if(root.path.length() > maybe_child.path.length())
+    return false;
+
+  for(int i = 0; i < root.path.length(); i++)
+    if(root.path[i] != maybe_child.path[i])
+      return false;
+
+  return true;
+}
+
+State::Address
+replaceAddressPart(const State::Address& old, const State::Address& replacement) noexcept
+{
+  State::Address ret;
+  ret = {replacement.device, old.path};
+
+  for(int i = 0, N = std::min(ret.path.size(), replacement.path.size()); i < N; i++)
+  {
+    ret.path[i] = replacement.path[i];
+  }
+
+  return ret;
+}
+
+State::AddressAccessor replaceAddressPart(
+    const State::AddressAccessor& old, const State::Address& replacement) noexcept
+{
+  State::AddressAccessor ret;
+  ret.address = {replacement.device, old.address.path};
+  ret.qualifiers = old.qualifiers;
+
+  for(int i = 0, N = std::min(ret.address.path.size(), replacement.path.size()); i < N;
+      i++)
+  {
+    ret.address.path[i] = replacement.path[i];
+  }
+
+  return ret;
+}
+
+void rerootAddress(
+    State::Address& current, const State::Address& oldRoot,
+    const State::Address& newRoot)
+{
+  if(State::addressIsChildOf(oldRoot, current))
+    current = replaceAddressPart(current, newRoot);
+}
+
 }
 
 std::size_t std::hash<State::Address>::operator()(const State::Address& k) const

@@ -151,6 +151,23 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessorHead
   QString toString() const;
 };
 
+SCORE_LIB_STATE_EXPORT
+bool addressIsChildOf(
+    const State::Address& root, const State::Address& maybe_child) noexcept;
+
+SCORE_LIB_STATE_EXPORT
+State::Address replaceAddressPart(
+    const State::Address& old, const State::Address& replacement) noexcept;
+
+SCORE_LIB_STATE_EXPORT
+State::AddressAccessor replaceAddressPart(
+    const State::AddressAccessor& old, const State::Address& replacement) noexcept;
+
+SCORE_LIB_STATE_EXPORT
+void rerootAddress(
+    State::Address& current, const State::Address& oldRoot,
+    const State::Address& newRoot);
+
 SCORE_LIB_STATE_EXPORT std::optional<State::Address> parseAddress(const QString& str);
 SCORE_LIB_STATE_EXPORT std::optional<State::AddressAccessor>
 parseAddressAccessor(const QString& str);

@@ -23,6 +23,9 @@ void updateTreeWithMessageList(Process::MessageNode& rootNode, State::MessageLis
 void renameAddress(
     Process::MessageNode& rootNode, const State::AddressAccessor& oldAddr,
     const State::AddressAccessor& newAddr);
+void findAndReplaceAddresses(
+    Process::MessageNode& rootNode, const State::Address& oldAddr,
+    const State::Address& newAddr);
 
 // Messages from a process
 void updateTreeWithMessageList(

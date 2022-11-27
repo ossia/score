@@ -30,14 +30,34 @@ bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
 
 bool findAddressInExpression(const State::Expression& expr, const State::Address& addr)
 {
-
   if(auto rel = expr.target<Relation>())
   {
-    return (rel->lhs == addr) || (rel->rhs == addr);
+    if(auto r = rel->lhs.target<State::Address>())
+    {
+      if(State::addressIsChildOf(addr, *r))
+        return true;
+    }
+    else if(auto r = rel->lhs.target<State::AddressAccessor>())
+    {
+      if(State::addressIsChildOf(addr, r->address))
+        return true;
+    }
+
+    if(auto r = rel->rhs.target<State::Address>())
+    {
+      if(State::addressIsChildOf(addr, *r))
+        return true;
+    }
+    else if(auto r = rel->rhs.target<State::AddressAccessor>())
+    {
+      if(State::addressIsChildOf(addr, r->address))
+        return true;
+    }
+    return false;
   }
   else if(auto puls = expr.target<Pulse>())
   {
-    return (puls->address == addr);
+    return (State::addressIsChildOf(addr, puls->address));
   }
   else if(expr.hasChildren())
   {
@@ -60,19 +80,27 @@ void replaceAddress(
 {
   if(auto rel = expr.target<State::Relation>())
   {
-    if(rel->lhs == oldAddr)
+    if(auto addr = rel->lhs.target<State::Address>())
     {
-      rel->lhs = newAddr;
+      rerootAddress(*addr, oldAddr, newAddr);
     }
-    else if(rel->rhs == oldAddr)
+    else if(auto addr = rel->lhs.target<State::AddressAccessor>())
     {
-      rel->rhs = newAddr;
+      rerootAddress(addr->address, oldAddr, newAddr);
+    }
+
+    if(auto addr = rel->rhs.target<State::Address>())
+    {
+      rerootAddress(*addr, oldAddr, newAddr);
+    }
+    else if(auto addr = rel->rhs.target<State::AddressAccessor>())
+    {
+      rerootAddress(addr->address, oldAddr, newAddr);
     }
   }
   else if(auto puls = expr.target<State::Pulse>())
   {
-    if(puls->address == oldAddr)
-      puls->address = State::Address{newAddr};
+    rerootAddress(puls->address, oldAddr, newAddr);
   }
   else if(expr.hasChildren())
   {
