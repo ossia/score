@@ -382,7 +382,7 @@ void IntervalComponent::onSetup(
           inputsToRegister, outputsToRegister, m_ossia_interval->node, t);
     }
   }
-  t.run_all_in_exec();
+  t.run_all();
 
   init();
 }
