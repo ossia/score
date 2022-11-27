@@ -141,12 +141,14 @@ void SearchReplaceWidget::search()
       for(QObject* ptr : selection)
       {
         itemsToSearch.push_back(ptr);
-        itemsToSearch.append(ptr->findChildren<QObject*>(Qt::FindChildrenRecursively));
+        itemsToSearch.append(
+            ptr->findChildren<QObject*>(QString{}, Qt::FindChildrenRecursively));
       }
     }
     else
     {
-      itemsToSearch = doc->findChildren<QObject*>(Qt::FindChildrenRecursively);
+      itemsToSearch
+          = doc->findChildren<QObject*>(QString{}, Qt::FindChildrenRecursively);
     }
     ossia::remove_duplicates(itemsToSearch);
 

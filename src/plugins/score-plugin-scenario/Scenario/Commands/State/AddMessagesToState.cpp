@@ -24,6 +24,15 @@ namespace Command
 
 RenameAddressInState::RenameAddressInState(
     const Scenario::StateModel& state, const State::AddressAccessor& old,
+    const State::AddressAccessor& replacement)
+    : m_state{state}
+    , m_oldName{old}
+    , m_newName{replacement}
+{
+}
+
+RenameAddressInState::RenameAddressInState(
+    const Scenario::StateModel& state, const State::AddressAccessor& old,
     const State::AddressAccessorHead& name)
     : m_state{state}
     , m_oldName{old}

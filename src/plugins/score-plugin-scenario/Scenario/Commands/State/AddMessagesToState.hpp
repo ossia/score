@@ -56,6 +56,9 @@ public:
   RenameAddressInState(
       const Scenario::StateModel& state, const State::AddressAccessor& old,
       const State::AddressAccessorHead& name);
+  RenameAddressInState(
+      const Scenario::StateModel& state, const State::AddressAccessor& old,
+      const State::AddressAccessor& replacement);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
