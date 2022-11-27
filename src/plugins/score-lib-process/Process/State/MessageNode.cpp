@@ -293,6 +293,14 @@ try_getNodesFromAddress(Process::MessageNode& root, const State::AddressAccessor
     }
   }
 
+  // If the address only contains the device we return that
+  if(addr.address.path.empty())
+  {
+    if(node->name.name == addr.address.device)
+      vec.push_back(node);
+    return vec;
+  }
+
   // We return all the elements that match, without caring about the
   // qualifiers.
   {

@@ -29,6 +29,7 @@ SearchReplaceWidget::SearchReplaceWidget(const score::GUIApplicationContext& ctx
     : QDialog{nullptr}
     , m_ctx{ctx}
 {
+  setAttribute(Qt::WA_DeleteOnClose);
   QFormLayout* form = new QFormLayout();
   this->setLayout(form);
   QLineEdit* findLine = new QLineEdit();
@@ -133,15 +134,30 @@ void SearchReplaceWidget::search()
     addresses.push_back(State::AddressAccessor{m_oldAddress});
     auto* doc = m_ctx.documents.currentDocument();
     auto scenarioModel = doc->focusManager().get();
+
+    QList<QObject*> itemsToSearch;
+    if(auto selection = doc->selectionStack().currentSelection(); !selection.empty())
+    {
+      for(QObject* ptr : selection)
+      {
+        itemsToSearch.push_back(ptr);
+        itemsToSearch.append(ptr->findChildren<QObject*>(Qt::FindChildrenRecursively));
+      }
+    }
+    else
+    {
+      itemsToSearch = doc->findChildren<QObject*>(Qt::FindChildrenRecursively);
+    }
+    ossia::remove_duplicates(itemsToSearch);
+
     Selection sel{};
 
-    std::vector<QObject*> obj;
     if(scenarioModel)
     {
       State::MessageList listCache;
       std::vector<QString> messagesCache;
       // Serialize ALL the things
-      for(const auto& obj : scenarioModel->children())
+      for(const auto& obj : itemsToSearch)
       {
         if(auto state = qobject_cast<const StateModel*>(obj))
         {
@@ -162,9 +178,6 @@ void SearchReplaceWidget::search()
           // Try to add if the searched text is in the name of the state
           if(must_add)
             m_matches.push_back(obj);
-          //          else
-          //            return;
-          //            add_if_contains(*state, stxt, sel);
         }
         else if(auto event = qobject_cast<const EventModel*>(obj))
         {
@@ -173,7 +186,6 @@ void SearchReplaceWidget::search()
             m_matches.push_back(obj);
             sel.append(*event);
           }
-          //            add_if_contains(*event, stxt, sel);
         }
         else if(auto ts = qobject_cast<const TimeSyncModel*>(obj))
         {
@@ -181,13 +193,9 @@ void SearchReplaceWidget::search()
           if(State::findAddressInExpression(ts->expression(), m_oldAddress))
             m_matches.push_back(obj);
           sel.append(*ts);
-          //            add_if_contains(*ts, stxt, sel);
         }
         else if(auto cmt = qobject_cast<const CommentBlockModel*>(obj))
-        { /*
-           if(State::findAddressInExpression(expr,addresses[0].address))
-                    m_matches.push_back(obj);*/
-          //            add_if_contains(*cmt, stxt, sel);
+        {
         }
         else if(auto interval = qobject_cast<const IntervalModel*>(obj))
         {
@@ -208,11 +216,8 @@ void SearchReplaceWidget::search()
                 m_matches.push_back(outlet);
               }
             }
-            //                        add_if_contains(proc, stxt, sel);
             sel.append(proc);
           }
-
-          //          add_if_contains(*interval, stxt, sel);
         }
       }
     }
@@ -221,12 +226,33 @@ void SearchReplaceWidget::search()
   }
 }
 
+static auto
+replaceAddressPart(const State::AddressAccessor& old, const State::Address& replacement)
+{
+  State::AddressAccessor ret;
+  ret.address = {replacement.device, old.address.path};
+  ret.qualifiers = old.qualifiers;
+
+  for(int i = 0, N = std::min(ret.address.path.size(), replacement.path.size()); i < N;
+      i++)
+  {
+    ret.address.path[i] = replacement.path[i];
+  }
+
+  return ret;
+}
+
 void SearchReplaceWidget::replace()
 {
   auto& ctx = m_ctx.documents.currentDocument()->context();
   MacroCommandDispatcher<Command::ReplaceAddresses> disp{ctx.commandStack};
-  if(!m_newAddress.isSet() && m_newAddress.path.isEmpty())
+  if(!m_newAddress.isSet() || m_newAddress.path.isEmpty())
     return;
+
+  // FIXME: this isn't good
+  // We want to be able to replace e.g.
+  // Serial:/foo with Test:/bar in every address that contains it, e.g.
+  // Test:/bar/toto/123
 
   for(auto* obj : m_matches)
   {
@@ -235,7 +261,7 @@ void SearchReplaceWidget::replace()
       //TODO maybe implement a better ver of RenameAddressInState ?
       disp.submit(new Command::RenameAddressInState(
           *state, State::AddressAccessor{m_oldAddress},
-          State::AddressAccessorHead{m_newAddress.path.back(), {}}));
+          State::AddressAccessor{m_newAddress}));
     }
     else if(auto event = qobject_cast<EventModel*>(obj))
     {

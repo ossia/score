@@ -28,62 +28,64 @@ bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
   return lhs.toString() < rhs.toString();
 }
 
-bool findAddressInExpression(const State::Expression& expr, const State::Address& addr){
+bool findAddressInExpression(const State::Expression& expr, const State::Address& addr)
+{
 
-
-
-    if(auto rel = expr.target<Relation>())
+  if(auto rel = expr.target<Relation>())
+  {
+    return (rel->lhs == addr) || (rel->rhs == addr);
+  }
+  else if(auto puls = expr.target<Pulse>())
+  {
+    return (puls->address == addr);
+  }
+  else if(expr.hasChildren())
+  {
+    if(expr.childCount() == 1)
     {
-      return (rel->lhs == addr)||(rel->rhs == addr);
+      return findAddressInExpression(expr.childAt(0), addr);
     }
-    else if (auto puls = expr.target<Pulse>())
+    else
     {
-          return (puls->address == addr);
+      return findAddressInExpression(expr.childAt(0), addr)
+             || findAddressInExpression(expr.childAt(1), addr);
     }
-    else if(expr.hasChildren())
-    {
-      if(expr.childCount()==1){
-        return findAddressInExpression(expr.childAt(0),addr);
-      }
-      else
-      {
-        return findAddressInExpression(expr.childAt(0),addr)||findAddressInExpression(expr.childAt(1),addr);
-      }
-    }
+  }
   return false;
 }
 
-void replaceAddress(State::Expression& expr,
-                 const State::Address& oldAddr,
-                    const State::Address& newAddr){
-
-    if(auto rel = expr.target<State::Relation>())
+void replaceAddress(
+    State::Expression& expr, const State::Address& oldAddr,
+    const State::Address& newAddr)
+{
+  if(auto rel = expr.target<State::Relation>())
+  {
+    if(rel->lhs == oldAddr)
     {
-        if(rel->lhs == oldAddr){
-            rel->lhs = newAddr;
-        }
-        else if (rel->rhs == oldAddr)
-        {
-            rel->rhs = newAddr;
-        }
+      rel->lhs = newAddr;
     }
-    else if (auto puls = expr.target<State::Pulse>())
+    else if(rel->rhs == oldAddr)
     {
-          if(puls->address == oldAddr)
-            puls->address = State::Address{newAddr};
+      rel->rhs = newAddr;
     }
-    else if(expr.hasChildren())
+  }
+  else if(auto puls = expr.target<State::Pulse>())
+  {
+    if(puls->address == oldAddr)
+      puls->address = State::Address{newAddr};
+  }
+  else if(expr.hasChildren())
+  {
+    if(expr.childCount() == 1)
     {
-      if(expr.childCount()==1){
-        replaceAddress(expr.childAt(0),oldAddr,newAddr);
-      }
-      else
-      {
-        replaceAddress(expr.childAt(0),oldAddr,newAddr);
-        replaceAddress(expr.childAt(1),oldAddr,newAddr);
-      }
+      replaceAddress(expr.childAt(0), oldAddr, newAddr);
     }
-
+    else
+    {
+      replaceAddress(expr.childAt(0), oldAddr, newAddr);
+      replaceAddress(expr.childAt(1), oldAddr, newAddr);
+    }
+  }
 }
 
 }
