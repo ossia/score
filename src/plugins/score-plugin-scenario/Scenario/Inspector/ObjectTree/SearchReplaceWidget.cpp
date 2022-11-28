@@ -15,6 +15,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Process/ScenarioSelection.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 
 #include <core/document/Document.hpp>

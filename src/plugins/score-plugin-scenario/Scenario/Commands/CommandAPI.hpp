@@ -11,6 +11,8 @@
 #include <score/command/PropertyCommand.hpp>
 #include <score/document/DocumentContext.hpp>
 
+#include <ossia/detail/span.hpp>
+
 #include <memory>
 
 namespace Curve

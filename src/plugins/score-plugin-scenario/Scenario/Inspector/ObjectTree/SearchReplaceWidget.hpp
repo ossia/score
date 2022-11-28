@@ -5,6 +5,10 @@
 #include <QDialog>
 
 #include <vector>
+namespace score
+{
+struct GUIApplicationContext;
+}
 namespace Scenario
 {
 class SearchReplaceWidget : public QDialog

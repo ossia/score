@@ -1,13 +1,19 @@
 #pragma once
 
 #include <score/widgets/SearchLineEdit.hpp>
-#include <QContextMenuEvent>
 
-namespace Scenario {
+#include <QContextMenuEvent>
+namespace score
+{
+struct GUIApplicationContext;
+}
+
+namespace Scenario
+{
 class SearchWidget final : public score::SearchLineEdit
 {
 public:
-  SearchWidget(const score::GUIApplicationContext& ctx);
+  explicit SearchWidget(const score::GUIApplicationContext& ctx);
 
   void toggle() { this->isHidden() ? this->show() : this->hide(); }
 

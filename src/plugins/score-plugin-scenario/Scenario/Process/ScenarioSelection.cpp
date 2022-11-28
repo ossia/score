@@ -2,6 +2,10 @@
 
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/document/DocumentContext.hpp>
+
+#include <core/document/Document.hpp>
+
 namespace Scenario
 {
 

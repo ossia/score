@@ -14,7 +14,7 @@
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
-#include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/widgets/ArrowButton.hpp>
 #include <score/widgets/SetIcons.hpp>
