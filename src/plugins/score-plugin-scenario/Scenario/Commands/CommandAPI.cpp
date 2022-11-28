@@ -1,3 +1,4 @@
+#include <Process/Commands/EditPort.hpp>
 #include <Process/Commands/LoadPreset.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -376,6 +377,42 @@ void Macro::addMessages(const StateModel& state, State::MessageList msgs)
   m.submit(new AddMessagesToState{state, std::move(msgs)});
 }
 
+void Macro::findAndReplace(
+    tcb::span<QObject*> sel, const State::Address& m_oldAddress,
+    const State::Address& m_newAddress)
+{
+  if(!m_newAddress.isSet() || m_newAddress.path.isEmpty())
+    return;
+
+  for(auto* obj : sel)
+  {
+    if(auto state = qobject_cast<const StateModel*>(obj))
+    {
+      m.submit(new Command::RenameAddressesInState(*state, m_oldAddress, m_newAddress));
+    }
+    else if(auto event = qobject_cast<EventModel*>(obj))
+    {
+      auto expr = event->condition();
+      State::replaceAddress(expr, m_oldAddress, m_newAddress);
+      m.submit(new Command::SetCondition(*event, std::move(expr)));
+    }
+    else if(auto ts = qobject_cast<TimeSyncModel*>(obj))
+    {
+      auto expr = ts->expression();
+      State::replaceAddress(expr, m_oldAddress, m_newAddress);
+      m.submit(new Command::SetTrigger(*ts, expr));
+    }
+
+    else if(auto port = qobject_cast<Process::Port*>(obj))
+    {
+      auto addr = port->address();
+      State::rerootAddress(addr.address, m_oldAddress, m_newAddress);
+      m.submit(new Process::ChangePortAddress(*port, addr));
+    }
+  }
+
+  m.commit();
+}
 std::vector<Process::ProcessModel*>
 Macro::automate(const IntervalModel& cst, const QString& str)
 {

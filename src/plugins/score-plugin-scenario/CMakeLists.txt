@@ -589,6 +589,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioExecution.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioSelection.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsView.cpp"

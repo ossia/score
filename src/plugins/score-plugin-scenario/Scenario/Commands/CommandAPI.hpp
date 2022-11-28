@@ -166,6 +166,10 @@ public:
 
   void addMessages(const Scenario::StateModel& state, State::MessageList msgs);
 
+  void findAndReplace(
+      tcb::span<QObject*> sel, const State::Address& oldRoot,
+      const State::Address& newRoot);
+
   std::vector<Process::ProcessModel*>
   automate(const Scenario::IntervalModel& scenar, const QString& addr);
 

@@ -14,4 +14,8 @@ inline bool selectionHasScenarioElements(const Selection& sel)
 
   return true;
 }
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+std::vector<QObject*>
+findByAddress(const score::DocumentContext& ctx, const State::Address& root);
 }
