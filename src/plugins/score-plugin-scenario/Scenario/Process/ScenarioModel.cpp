@@ -140,6 +140,9 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
+  if(duration() == TimeVal::zero())
+    return;
+
   double scale = newDuration / duration();
 
   for(auto& timesync : timeSyncs)

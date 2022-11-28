@@ -245,15 +245,41 @@ SCORE_PLUGIN_SCENARIO_EXPORT void IntervalDurations::Algorithms::changeAllDurati
 SCORE_PLUGIN_SCENARIO_EXPORT void IntervalDurations::Algorithms::scaleAllDurations(
     IntervalModel& cstr, const TimeVal& time)
 {
+  if(time.impl <= 0)
+  {
+    cstr.duration.setDefaultDuration(TimeVal::zero());
+    cstr.duration.setMinDuration(TimeVal::zero());
+    cstr.duration.setMaxDuration(TimeVal::zero());
+    return;
+  }
+
   if(cstr.duration.defaultDuration() != time)
   {
     // Note: the OSSIA implementation requires min <= dur <= max at all time
     // and will throw if not the case. Hence this order.
+
     auto ratio = time / cstr.duration.defaultDuration();
+
+    const bool same_min
+        = (cstr.duration.defaultDuration() == cstr.duration.minDuration());
+    const bool same_max
+        = (cstr.duration.defaultDuration() == cstr.duration.maxDuration());
+
     cstr.duration.setDefaultDuration(time);
 
-    cstr.duration.setMinDuration(cstr.duration.minDuration() * ratio);
-    cstr.duration.setMaxDuration(cstr.duration.maxDuration() * ratio);
+    TimeVal newmin = same_min ? time : TimeVal{cstr.duration.minDuration() * ratio};
+    if(newmin.impl > time.impl)
+      newmin.impl = time.impl - 1;
+    if(newmin.impl < 0)
+      newmin.impl = 0;
+
+    TimeVal newmax = same_max ? cstr.duration.defaultDuration()
+                              : TimeVal{cstr.duration.maxDuration() * ratio};
+    if(newmax.impl < time.impl)
+      newmax.impl = time.impl + 1;
+
+    cstr.duration.setMinDuration(newmin);
+    cstr.duration.setMaxDuration(newmax);
   }
 }
 }
