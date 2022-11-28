@@ -100,10 +100,23 @@ public:
       {
         sel.append(elt.model());
       }
+      else if(
+          elt.model().active()
+          && area.intersects(elt.trigger().boundingRect().translated(elt.view()->pos())))
+      {
+        sel.append(elt.model());
+      }
     }
     for(const auto& elt : presenter.getEvents())
     {
       if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+      {
+        sel.append(elt.model());
+      }
+      else if(
+          elt.view()->conditionItem().isVisible()
+          && area.intersects(
+              elt.view()->conditionItem().boundingRect().translated(elt.view()->pos())))
       {
         sel.append(elt.model());
       }
