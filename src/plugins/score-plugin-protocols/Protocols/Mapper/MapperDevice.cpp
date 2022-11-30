@@ -393,6 +393,27 @@ public:
   sig_recv(mapper_parameter* p, ossia::net::parameter_base* s, const ossia::value& v)
       W_SIGNAL(sig_recv, p, s, v);
 
+  static bool isAddressValueArray(const QJSValue& v)
+  {
+    if(!v.isArray())
+      return false;
+    const int len = v.property("length").toInt();
+    if(len == 0)
+      return true;
+    for(int i = 0; i < len; i++)
+    {
+      if(const auto& obj = v.property(i); obj.isObject())
+      {
+        if(obj.hasProperty("address") && obj.hasProperty("value"))
+          continue;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   void slot_push(mapper_parameter* param, const ossia::value& v)
   {
     auto& addr = *param;
@@ -419,15 +440,23 @@ public:
       {
         if(res.isArray())
         {
-          const auto r = apply_reply(res);
-          auto cb = param->stop_callbacks();
-          std::lock_guard g{dat.source_lock};
-          auto N = std::min(r.size(), dat.source.size());
-          for(std::size_t i = 0; i < N; i++)
+          if(isAddressValueArray(res))
           {
-            if(r[i].valid() && dat.source[i])
+            std::lock_guard l{m_rootLock};
+            apply_reply(m_device->get_root_node(), m_roots, res);
+          }
+          else
+          {
+            const auto r = apply_reply(res);
+            auto cb = param->stop_callbacks();
+            std::lock_guard g{dat.source_lock};
+            auto N = std::min(r.size(), dat.source.size());
+            for(std::size_t i = 0; i < N; i++)
             {
-              dat.source[i]->push_value(r[i]);
+              if(r[i].valid() && dat.source[i])
+              {
+                dat.source[i]->push_value(r[i]);
+              }
             }
           }
         }
