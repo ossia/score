@@ -460,7 +460,7 @@ public:
   {
     if(!p->data().read.isCallable())
     {
-      p->set_value(v);
+      p->push_value(v);
     }
     else
     {
@@ -477,12 +477,12 @@ public:
         }
         else
         {
-          p->set_value(qt::value_from_js(std::move(res)));
+          p->push_value(qt::value_from_js(std::move(res)));
         }
       }
       else
       {
-        p->set_value(qt::value_from_js(std::move(res)));
+        p->push_value(qt::value_from_js(std::move(res)));
       }
     }
   }
