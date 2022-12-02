@@ -87,6 +87,8 @@ void AudioDevice::disconnect()
 {
   // TODO handle listening ??
   setLogging_impl(Device::get_cur_logging(isLogging()));
+  auto d = std::move(m_dev);
+  deviceChanged(d.get(), nullptr);
   m_dev.reset();
 }
 
@@ -94,6 +96,7 @@ bool AudioDevice::reconnect()
 {
   disconnect();
 
+  auto old_dev = m_dev.get();
   try
   {
     m_protocol = new ossia::audio_protocol;
@@ -128,6 +131,9 @@ bool AudioDevice::reconnect()
   }
 
   qDebug() << "Audio device emits changed:" << this;
+  if(m_dev.get() != old_dev)
+    deviceChanged(old_dev, m_dev.get());
+
   changed();
   return connected();
 }
