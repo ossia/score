@@ -18,6 +18,8 @@ public:
   double dataWidth() const { return m_dataWidth; }
 
 public:
+  void dropPoint(double pos, QColor arg_2)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, dropPoint, pos, arg_2);
   void setColor(double pos, QColor arg_2)
       E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, setColor, pos, arg_2);
   void movePoint(double old, double cur)
@@ -32,6 +34,11 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   ossia::flat_map<double, QColor> m_colors;
   ossia::flat_map<double, QColor> m_origColors;

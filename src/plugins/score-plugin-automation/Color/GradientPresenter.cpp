@@ -15,6 +15,38 @@
 #include <wobjectimpl.h>
 namespace Gradient
 {
+
+ProcessModel::gradient_colors addPointToGradient(
+    const ProcessModel::gradient_colors& current, double np, QColor* new_color = nullptr)
+{
+  auto color_or = [&](QColor p) noexcept { return new_color ? *new_color : p; };
+
+  auto new_grad = current;
+  auto prev = new_grad.lower_bound(np);
+  if(prev == new_grad.begin())
+  {
+    new_grad.insert(std::make_pair(np, color_or(prev->second)));
+  }
+  if(prev == new_grad.end())
+  {
+    if(!new_grad.empty())
+    {
+      prev = new_grad.begin();
+      new_grad.insert(std::make_pair(np, color_or(prev->second)));
+    }
+    else
+    {
+      new_grad.insert(std::make_pair(np, color_or(QColor{Qt::black})));
+    }
+  }
+  else
+  {
+    prev--;
+    new_grad.insert(std::make_pair(np, color_or(prev->second)));
+  }
+  return new_grad;
+}
+
 Presenter::Presenter(
     const Gradient::ProcessModel& layer, View* view, const Process::Context& ctx,
     QObject* parent)
@@ -28,31 +60,12 @@ Presenter::Presenter(
 
   m_view->setGradient(layer.gradient());
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
-    auto np = pos.x() / m_view->dataWidth();
-    auto new_grad = layer.gradient();
-    auto prev = new_grad.lower_bound(np);
-    if(prev == new_grad.begin())
-    {
-      new_grad.insert(std::make_pair(np, prev->second));
-    }
-    if(prev == new_grad.end())
-    {
-      if(!new_grad.empty())
-      {
-        prev = new_grad.begin();
-        new_grad.insert(std::make_pair(np, prev->second));
-      }
-      else
-      {
-        new_grad.insert(std::make_pair(np, QColor{Qt::black}));
-      }
-    }
-    else
-    {
-      prev--;
-      new_grad.insert(std::make_pair(np, prev->second));
-    }
-
+    auto new_grad = addPointToGradient(layer.gradient(), pos.x() / m_view->dataWidth());
+    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
+        layer, new_grad);
+  });
+  connect(m_view, &View::dropPoint, this, [&](double pos, QColor c) {
+    auto new_grad = addPointToGradient(layer.gradient(), pos / m_view->dataWidth(), &c);
     CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
         layer, new_grad);
   });
@@ -123,5 +136,4 @@ void Presenter::parentGeometryChanged()
 {
   m_view->setDataWidth(m_process.duration().toPixels(m_zoomRatio));
 }
-
 }
