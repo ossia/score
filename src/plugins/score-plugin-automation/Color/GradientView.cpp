@@ -4,6 +4,7 @@
 
 #include <score/graphics/GraphicsItem.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/dataspace/value_with_unit.hpp>
