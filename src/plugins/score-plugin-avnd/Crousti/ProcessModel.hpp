@@ -170,9 +170,26 @@ auto& modelPort(auto& ports, int index)
   return ports[index];
 }
 
-inline void setupNewPort(const auto& spec, auto* obj)
+template <typename T>
+inline void setupNewPort(Process::Port* obj)
 {
-  obj->setName(fromStringView(avnd::get_name(spec)));
+  constexpr auto name = avnd::get_name<T>();
+  obj->setName(fromStringView(name));
+
+  if constexpr(constexpr auto desc = avnd::get_description<T>(); !desc.empty())
+    obj->setDescription(fromStringView(desc));
+}
+
+template <std::size_t N, typename T>
+inline void setupNewPort(const avnd::field_reflection<N, T>& spec, Process::Port* obj)
+{
+  setupNewPort<T>(obj);
+}
+
+template <typename T>
+inline void setupNewPort(const T& spec, Process::Port* obj)
+{
+  setupNewPort<T>(obj);
 }
 
 template <typename Node>
