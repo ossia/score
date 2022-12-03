@@ -173,7 +173,12 @@ auto& modelPort(auto& ports, int index)
 template <typename T>
 inline void setupNewPort(Process::Port* obj)
 {
-  constexpr auto name = avnd::get_name<T>();
+  //FIXME
+#if !defined(__APPLE__)
+  constexpr
+#endif
+      auto name
+      = avnd::get_name<T>();
   obj->setName(fromStringView(name));
 
   if constexpr(constexpr auto desc = avnd::get_description<T>(); !desc.empty())
