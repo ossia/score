@@ -1,3 +1,4 @@
+
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
@@ -7,10 +8,33 @@
 
 #include <score/tools/Debug.hpp>
 
+#if defined(RENDERDOC_PROFILING)
+#include "renderdoc_app.h"
+
+#include <dlfcn.h>
+#endif
+
 #include <iostream>
 
 namespace score::gfx
 {
+
+#if defined(RENDERDOC_PROFILING)
+auto renderdoc_api = [] {
+  RENDERDOC_API_1_5_0* rdoc_api{};
+  void* mod = dlopen("/usr/lib/librenderdoc.so", RTLD_NOW | RTLD_LOCAL);
+  assert(mod);
+  {
+    auto RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+    assert(RENDERDOC_GetAPI);
+    int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, (void**)&rdoc_api);
+    assert(ret == 1);
+    assert(rdoc_api != nullptr);
+  }
+  return rdoc_api;
+}();
+#endif
+
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& res)
 {
@@ -276,6 +300,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
     NodeRenderer* node;
   };
 
+#if defined(RENDERDOC_PROFILING)
+  if(renderdoc_api)
+    renderdoc_api->StartFrameCapture(NULL, NULL);
+#endif
+
   ossia::small_pod_vector<EdgePair, 4> prevRenderers;
   for(auto it = this->nodes.rbegin(); it != this->nodes.rend(); ++it)
   {
@@ -369,6 +398,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
     updateBatch->release();
   }
+
+#if defined(RENDERDOC_PROFILING)
+  if(renderdoc_api)
+    renderdoc_api->EndFrameCapture(NULL, NULL);
+#endif
 }
 
 void RenderList::update(QRhiResourceUpdateBatch& res)
