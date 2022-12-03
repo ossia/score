@@ -386,6 +386,9 @@ public:
   {
     m_thread.exit();
     m_thread.wait();
+
+    delete m_component;
+    delete m_engine;
   }
 
   void sig_push(mapper_parameter* p, const ossia::value& v) W_SIGNAL(sig_push, p, v);
