@@ -19,6 +19,7 @@ Settings::Settings() { }
 Settings::~Settings()
 {
   delete m_settingsView;
+  delete m_settingsPresenter;
   // if(m_settingsView)
   //   m_settingsView->deleteLater();
   for(auto& ptr : m_settings)

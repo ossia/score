@@ -67,6 +67,11 @@ Presenter::Presenter(
     m_view->setPresenter(this);
 }
 
+Presenter::~Presenter()
+{
+
+}
+
 bool Presenter::exit()
 {
   return m_docManager.closeAllDocuments(m_context);

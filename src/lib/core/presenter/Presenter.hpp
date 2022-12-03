@@ -41,7 +41,7 @@ public:
   Presenter(
       const score::ApplicationSettings& app, score::Settings& set,
       score::ProjectSettings& pset, score::View* view, QObject* parent);
-
+  ~Presenter();
   // Exit score
   bool exit();
 
