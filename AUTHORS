@@ -1,30 +1,34 @@
 The ossia score software has been developed partly during 
-multiple French public research projects : ANR Virage, ANR OSSIA.
+multiple French public research projects : ANR Virage, ANR OSSIA, SNI i-score, and thanks to our many generous donators.
 
 SCRIME (https://scrime.u-bordeaux.fr/)
 LaBRI (https://www.labri.fr)
 Blue Yeti (https://www.blueyeti.fr)
 GMEA (http://gmea.net/)
+celtera (http://celtera.dev/)
 
 Developers:
-Jean-Michaël Celerier (LaBRI / Blue Yeti / celtera.dev / ossia.io / independently)
+Jean-Michaël Celerier (SCRIME / LaBRI / Blue Yeti / celtera.dev / ossia.io / Concordia University / independently)
 Théo de la Hogue (GMEA)
-Nicolas Vuaille (LaBRI)
+Nicolas Vuaille (SCRIME / LaBRI)
 Akané Lévy (Independently)
+Robin Montfermé (SCRIME / LaBRI)
 
 Authors:
 Pascal Baltazar (L'Arboretum)
-Clément Bossut (LaBRI)
-Jaime Chao (LaBRI)
+Clément Bossut (SCRIME / LaBRI)
+Jaime Chao (SCRIME / LaBRI)
 Jean-Michel Couturier (Blue Yeti)
-Myriam Desainte-Catherine (LaBRI)
-Jean-Michaël Celerier (LaBRI / Blue Yeti / celtera.dev / ossia.io / independently)
+Myriam Desainte-Catherine (SCRIME / LaBRI)
+Jean-Michaël Celerier (SCRIME / LaBRI / Blue Yeti / celtera.dev / ossia.io / Concordia University / independently)
 Akané Lévy (Independently)
+Robin Montfermé (SCRIME / LaBRI)
 
 
 The ossia team is thankful to:
 Renaud Rubiano
 Antoine Villeret
+All our dedicated internship students over the years
 The OpenCollective fund
 The donors
 And all contributors listed at https://github.com/ossia/score/graphs/contributors
