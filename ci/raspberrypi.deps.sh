@@ -5,13 +5,10 @@ pacman -Syyu --noconfirm
 pacman -S wget ninja cmake tar sed --noconfirm
 
 export SDK_ARCHIVE=sdk-rpi.tar.xz
-wget -nv https://github.com/ossia/score-sdk/releases/download/sdk26/$SDK_ARCHIVE -O $SDK_ARCHIVE
+wget -nv https://github.com/ossia/score-sdk/releases/download/sdk27/$SDK_ARCHIVE -O $SDK_ARCHIVE
 mkdir -p /opt/ossia-sdk-rpi
 tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-rpi/
 
-wget -nv https://raw.githubusercontent.com/ossia/sdk/master/ARM/RPi4/toolchain.cmake -O /opt/ossia-sdk-rpi/toolchain.cmake
-
 rm *.tar.*
-
 
 source ci/common.deps.sh
