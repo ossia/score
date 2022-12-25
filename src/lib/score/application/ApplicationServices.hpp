@@ -1,7 +1,9 @@
 #pragma once
-#include <score/tools/ThreadPool.hpp>
 #include <score/tools/FileWatch.hpp>
 #include <score/tools/RecursiveWatch.hpp>
+#include <score/tools/ThreadPool.hpp>
+
+#include <optional>
 
 namespace score
 {
