@@ -3,7 +3,8 @@
 
 #include <score_lib_base_export.h>
 
-#if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) && !defined(_MSC_VER)
+#if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) \
+    && __has_include(<vulkan/vulkan.h>) && !defined(_MSC_VER)
 #define QT_HAS_VULKAN 1
 
 class QVulkanInstance;
