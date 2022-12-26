@@ -12,6 +12,7 @@ cmake $SCORE_DIR \
  -DCMAKE_BUILD_TYPE=Release \
  -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi/toolchain.cmake \
  -DOSSIA_SDK=/opt/ossia-sdk-rpi/pi/sysroot/opt/ossia-sdk-rpi \
+ -DCMAKE_CXX_FLAGS="-DCMT_FORCE_NON_CLANG=1 -flax-vector-conversions -Wno-psabi" \
  -DSCORE_DEPLOYMENT_BUILD=1 \
  -DOSSIA_ENABLE_KFR=0 \
  -DOSSIA_ENABLE_FFTW=0 \
