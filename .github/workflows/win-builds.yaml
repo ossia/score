@@ -119,10 +119,10 @@ jobs:
       - name: Dependencies
         shell: bash
         run: |
-          ./ci/win32.deps.sh
+          ./ci/win32msvc.deps.sh
 
       - name: Build
         shell: cmd
         run: |
-          call "%cd%\ci\win32store.build.cmd"
+          call "%cd%\ci\win32msvc.build.cmd"
 
