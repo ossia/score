@@ -40,8 +40,8 @@ namespace Automation
 void ProcessModel::init()
 {
   outlet->setName("Out");
-  m_outlets.push_back(outlet.get());
-  auto& out = *(Process::MinMaxFloatOutlet*)outlet.get();
+  auto& out = *safe_cast<Process::MinMaxFloatOutlet*>(outlet.get());
+  m_outlets.push_back(&out);
   connect(
       &out, &Process::Port::addressChanged, this,
       [=](const State::AddressAccessor& arg) {
@@ -50,14 +50,14 @@ void ProcessModel::init()
     unitChanged(arg.qualifiers.get().unit);
     m_curve->changed();
       });
+  connect(&out, &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
+
   connect(
       out.minInlet.get(), &Process::FloatSlider::valueChanged, this,
       [=](const ossia::value& arg) { minChanged(ossia::convert<float>(arg)); });
   connect(
       out.maxInlet.get(), &Process::FloatSlider::valueChanged, this,
       [=](const ossia::value& arg) { maxChanged(ossia::convert<float>(arg)); });
-  connect(
-      outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
 }
 
 ProcessModel::ProcessModel(
@@ -89,6 +89,23 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     , m_endState{new ProcessState{*this, 1., this}}
 {
   vis.writeTo(*this);
+
+  auto out = dynamic_cast<Process::MinMaxFloatOutlet*>(outlet.get());
+  if(!out)
+  {
+    if(outlet.get())
+    {
+      auto new_out
+          = std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), this);
+      new_out->takeCables(std::move(*outlet));
+      new_out->setSettings(outlet->settings());
+      this->m_outlets.clear();
+      auto p = new_out.get();
+      outlet = std::move(new_out);
+      this->m_outlets.push_back(p);
+      this->outletsChanged();
+    }
+  }
   init();
 }
 
@@ -204,6 +221,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setCurve_impl()
 {
+  return;
   connect(m_curve, &Curve::Model::changed, this, [&]() {
     m_startState->messagesChanged(m_startState->messages());
     m_endState->messagesChanged(m_endState->messages());
@@ -315,5 +333,4 @@ Process::Preset ProcessModel::savePreset() const noexcept
   p.data = r.toByteArray();
   return p;
 }
-
 }

@@ -365,6 +365,7 @@ void DocumentModel::loadDocumentAsJson(
   const auto& doc = (*doc_obj).value;
   this->setId(getStrongId(ctx.app.documents.documents()));
 
+  /*
   // Load the plug-in models
   auto json_plugins = json["Plugins"].GetArray();
   auto& plugin_factories = ctx.app.interfaces<DocumentPluginFactoryList>();
@@ -382,6 +383,7 @@ void DocumentModel::loadDocumentAsJson(
       SCORE_TODO;
     }
   }
+  */
 
   // Load the model
   JSONObject::Deserializer doc_writer{doc};

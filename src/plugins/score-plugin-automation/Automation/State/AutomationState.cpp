@@ -99,6 +99,7 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 
 ::State::MessageList ProcessState::messages() const
 {
+  return {};
   if(!process().address().address.device.isEmpty())
   {
     auto mess = message();

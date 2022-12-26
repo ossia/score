@@ -47,6 +47,7 @@ template <>
 void JSONWriter::write(JS::ProcessModel& proc)
 {
   proc.setScript(obj["Script"].toString());
+  return;
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);

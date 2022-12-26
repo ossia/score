@@ -57,6 +57,7 @@ JSONReader::read(const Scenario::TimeSyncModel& timesync)
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::TimeSyncModel& timesync)
 {
+  timesync.metadata().setLabel(QString{});
   timesync.m_date <<= obj[strings.Date];
   timesync.m_events <<= obj[strings.Events];
 

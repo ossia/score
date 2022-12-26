@@ -54,4 +54,10 @@ SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::DeviceExplorerNode& n)
     res <<= *it;
     n = std::move(res);
   }
+  else if(auto it = obj.tryGet("AddressSettings"))
+  {
+    Device::AddressSettings res;
+    res <<= *it;
+    n = std::move(res);
+  }
 }

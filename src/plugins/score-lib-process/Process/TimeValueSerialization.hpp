@@ -62,7 +62,8 @@ struct TSerializer<JSONObject, TimeVal>
     using namespace std::literals;
     if(Q_LIKELY(s.base.IsInt64()))
     {
-      tv.impl = s.base.GetInt64();
+      // tv.impl = s.base.GetInt64();
+      tv = TimeVal::fromMsecs(s.base.GetInt64());
     }
     else if(s.base.IsUint64())
     {
@@ -71,13 +72,11 @@ struct TSerializer<JSONObject, TimeVal>
                << s.base.GetUint64();
       tv.impl = ossia::time_value::infinity;
     }
-    /*
-    else if (s.base.IsDouble())
+    else if(s.base.IsDouble())
     {
       // Assuming old file format, which was in milliseconds
       tv = TimeVal::fromMsecs(s.base.GetDouble());
     }
-    */
     else
     {
       qDebug() << "Warning: could not load a TimeVal";

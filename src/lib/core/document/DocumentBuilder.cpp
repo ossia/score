@@ -95,7 +95,7 @@ Document* DocumentBuilder::loadDocument(
     doc = new Document{filename, doctype, m_parentView, m_parentPresenter};
     for(auto& appPlug : ctx.guiApplicationPlugins())
     {
-      appPlug->on_loadedDocument(*doc);
+      appPlug->on_newDocument(*doc);
     }
 
     for(auto& appPlug : ctx.guiApplicationPlugins())

@@ -576,6 +576,7 @@ bool DocumentManager::preparingNewDocument() const
 bool DocumentManager::checkAndUpdateJson(
     rapidjson::Value& obj, const score::GUIApplicationContext& ctx)
 {
+  return true;
   if(obj.GetType() != rapidjson::kObjectType)
     return false;
 

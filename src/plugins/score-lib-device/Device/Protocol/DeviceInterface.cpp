@@ -317,6 +317,8 @@ const QString& DeviceInterface::name() const
 
 void DeviceInterface::addNode(const Device::Node& n)
 {
+  SCORE_ASSERT(n.parent());
+  SCORE_ASSERT(n.is<Device::AddressSettings>());
   auto full = Device::FullAddressSettings::make<Device::FullAddressSettings::as_parent>(
       n.get<Device::AddressSettings>(), Device::address(*n.parent()));
 

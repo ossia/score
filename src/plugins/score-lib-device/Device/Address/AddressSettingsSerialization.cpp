@@ -65,7 +65,20 @@ void JSONWriter::write(Device::AddressSettingsCommon& n)
 
   n.repetitionFilter = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
 
-  n.value <<= obj[strings.Value];
+  if(auto value = obj.tryGet(strings.Value))
+  {
+    n.value <<= *value;
+  }
+  else
+  {
+    // Old format
+    ossia::value v;
+    write(v);
+    n.value = std::move(v);
+
+    qDebug() << "Reading value: " << ossia::value_to_pretty_string(n.value).c_str();
+  }
+
   n.domain <<= obj[strings.Domain];
 
   if(auto ext = obj.tryGet(strings.Extended))

@@ -97,7 +97,9 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::StateModel& s)
     s.m_controlItemModel->replaceWith(std::move(ctrls));
   }
 
+  /*
   // Processes plugins
   EntityMapSerializer::writeTo<Process::ProcessFactoryList>(
       JSONWriter(obj[strings.StateProcesses].obj), s.stateProcesses, s.m_context, &s);
+  */
 }
