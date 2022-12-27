@@ -247,6 +247,7 @@ void DocumentPlugin::makeGraph()
 
   ossia::graph_setup_options opt;
   opt.parallel = settings.getParallel();
+  opt.parallel_threads = settings.getThreads();
   if(settings.getLogging())
     opt.log = ossia::logger_ptr();
   if(settings.getBench())

@@ -29,6 +29,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   //SETTINGS_PRESENTER(Commit);
   //SETTINGS_PRESENTER(Tick);
   SETTINGS_PRESENTER(Parallel);
+  SETTINGS_PRESENTER(Threads);
   SETTINGS_PRESENTER(Logging);
   SETTINGS_PRESENTER(Bench);
   SETTINGS_PRESENTER(ExecutionListening);

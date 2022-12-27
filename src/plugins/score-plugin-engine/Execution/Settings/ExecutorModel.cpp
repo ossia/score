@@ -24,6 +24,7 @@ SETTINGS_PARAMETER_IMPL(Clock){
     QStringLiteral("score_plugin_engine/Clock"),
     Dataflow::ClockFactory::static_concreteKey()};
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_engine/Rate"), 50};
+SETTINGS_PARAMETER_IMPL(Threads){QStringLiteral("score_plugin_engine/Threads"), 8};
 SETTINGS_PARAMETER_IMPL(Scheduling){
     QStringLiteral("score_plugin_engine/Scheduling"), SchedulingPolicies{}.StaticTC};
 SETTINGS_PARAMETER_IMPL(Ordering){
@@ -49,7 +50,7 @@ SETTINGS_PARAMETER_IMPL(TransportValueCompilation){
 static auto list()
 {
   return std::tie(
-      Clock, Rate, Scheduling, Ordering, Merging, Commit, Tick, Parallel,
+      Clock, Rate, Threads, Scheduling, Ordering, Merging, Commit, Tick, Parallel,
       ExecutionListening, Logging, Bench, ScoreOrder, ValueCompilation,
       TransportValueCompilation);
 }
@@ -108,6 +109,7 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Merging)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Commit)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Tick)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, Threads)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Parallel)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ExecutionListening)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Logging)
