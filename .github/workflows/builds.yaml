@@ -215,39 +215,3 @@ jobs:
           force: true
           directory: './site'
           repository: 'ossia/score-web'
-
-  rpi:
-    name: RaspberryPi
-    runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest
-
-    steps:
-      - name: Install git
-        run: |
-          pacman -Syy --noconfirm
-          pacman -S git --noconfirm
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/raspberrypi.deps.sh
-
-      - name: Build
-        run: |
-          ./ci/raspberrypi.build.sh
-
-      - name: Deploy
-        run: |
-          ./ci/raspberrypi.deploy.sh
-
-      - name: Upload build
-        uses: actions/upload-artifact@v2
-        with:
-          name: raspberry-pi-aarch32
-          path: |
-            *.tar.gz
