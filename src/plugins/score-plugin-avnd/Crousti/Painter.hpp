@@ -199,6 +199,11 @@ public:
       impl.transaction.commit = [] {};
       impl.transaction.rollback = [] {};
     }
+
+    if constexpr(requires { impl.update = [this] {}; })
+    {
+      impl.update = [this] { this->update(); };
+    }
   }
 
   // Case T&
@@ -207,6 +212,11 @@ public:
   {
     this->setFlag(ItemClipsToShape);
     this->setFlag(ItemClipsChildrenToShape);
+
+    if constexpr(requires { impl.update = [this] {}; })
+    {
+      impl.update = [this] { this->update(); };
+    }
   }
 
   QRectF boundingRect() const override
