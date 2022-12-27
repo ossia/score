@@ -198,6 +198,14 @@ void JSONWriter::write(Gradient::ProcessModel& autom)
 {
   JSONWriter writer{obj["Outlet"]};
   autom.outlet = Process::load_value_outlet(writer, &autom);
+  SCORE_ASSERT(autom.outlet);
+  if(autom.outlet->address() == State::AddressAccessor{})
+  {
+    // Set as ARGB to keep compat with previous versions
+    State::AddressAccessor addr;
+    addr.qualifiers.get().unit = ossia::argb_u{};
+    autom.outlet->setAddress(addr);
+  }
 
   autom.setTween(obj["Tween"].toBool());
   autom.m_colors <<= obj["Gradient"];
