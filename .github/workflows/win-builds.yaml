@@ -110,6 +110,7 @@ jobs:
         uses: jurplel/install-qt-action@v3
         with:
           version: 6.4.*
+          modules: qtwebsockets qtserialport qtscxml
 
       - name: Set up Visual Studio shell
         uses: egor-tensin/vs-shell@v2
