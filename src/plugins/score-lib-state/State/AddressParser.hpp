@@ -31,7 +31,7 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
     dev = +qi::char_(std::string(ossia::net::device_characters()));
     member_elt = +qi::char_(std::string(ossia::net::pattern_match_characters()));
     path %= (+("/" >> member_elt) | "/");
-    start %= dev >> ":" >> path;
+    start %= -dev >> ":" >> path;
   }
 
   qi::rule<Iterator, QString()> dev;

@@ -272,7 +272,11 @@ AddressAccessor& AddressAccessor::operator=(Address&& a)
 
 QString AddressAccessor::toString() const
 {
-  return address.toString() + State::toString(qualifiers);
+  const auto addr = address.toString();
+  if(Q_UNLIKELY(addr.isEmpty()))
+    return QLatin1String(":/") + State::toString(qualifiers);
+  else
+    return addr + State::toString(qualifiers);
 }
 
 QString AddressAccessor::toString_unsafe() const

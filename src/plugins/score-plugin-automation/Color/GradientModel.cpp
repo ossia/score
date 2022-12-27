@@ -7,6 +7,8 @@
 #include <score/tools/Bind.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/color.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <QColor>
 
@@ -26,6 +28,10 @@ ProcessModel::ProcessModel(
   m_colors.insert(std::make_pair(0.2, QColor(Qt::black)));
   m_colors.insert(std::make_pair(0.8, QColor(Qt::white)));
 
+  State::AddressAccessor addr;
+  addr.qualifiers.get().unit = ossia::rgba_u{};
+  outlet->setAddress(addr);
+
   metadata().setInstanceName(*this);
   init();
 }
@@ -36,10 +42,25 @@ void ProcessModel::init()
 {
   outlet->setName("Out");
   auto update_invalid_address = [=](const State::AddressAccessor& addr) {
-    if(addr.qualifiers.get() != ossia::destination_qualifiers{{}, ossia::argb_u{}})
+    State::AddressAccessor copy = addr;
+    auto& qual = copy.qualifiers.get();
+
+    bool change = false;
+    // Check if it's any color unit
+    if(qual.unit.which() != ossia::unit_t{ossia::rgba_u{}}.which())
     {
-      State::AddressAccessor copy = addr;
-      copy.qualifiers = ossia::destination_qualifiers{{}, ossia::argb_u{}};
+      qual.unit = ossia::rgba_u{};
+      change = true;
+    }
+
+    if(!qual.accessors.empty())
+    {
+      qual.accessors = {};
+      change = true;
+    }
+
+    if(change)
+    {
       outlet->setAddress(std::move(copy));
     }
     prettyNameChanged();

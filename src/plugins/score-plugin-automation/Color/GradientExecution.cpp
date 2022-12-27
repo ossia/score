@@ -7,6 +7,8 @@
 #include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/gradient.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
+
 namespace Gradient
 {
 namespace RecreateOnPlay
@@ -18,11 +20,28 @@ Component::Component(
         element, ctx, "Executor::GradientComponent", parent}
 {
   auto node = ossia::make_node<ossia::nodes::gradient>(*ctx.execState.get());
+
+  {
+    auto unit = element.outlet->address().qualifiers.get().unit;
+    if(!unit)
+      unit = ossia::argb_u{};
+    node->root_outputs()[0]->target<ossia::value_port>()->type = unit;
+  }
+
   this->node = node;
   m_ossia_process = std::make_shared<ossia::nodes::gradient_process>(node);
 
   con(*element.outlet, &Process::Port::addressChanged, this,
-      [=](const auto&) { this->in_exec([node] { node->tween = std::nullopt; }); });
+      [=](const State::AddressAccessor& c) {
+    auto unit = c.qualifiers.get().unit;
+    if(!unit)
+      unit = ossia::argb_u{};
+
+    this->in_exec([node, unit] {
+      node->tween = std::nullopt;
+      node->root_outputs()[0]->target<ossia::value_port>()->type = unit;
+    });
+  });
 
   // TODO the tween case will reset the "running" value,
   // so it may not work perfectly.

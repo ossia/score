@@ -18,6 +18,7 @@
 #include <score/plugins/SerializableHelpers.hpp>
 
 #include <ossia/dataflow/port.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <ossia-qt/name_utils.hpp>
 #include <ossia-qt/value_metatypes.hpp>
@@ -1080,7 +1081,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Port>(const Process::Por
     obj["Exposed"] = p.m_exposed;
   if(!p.m_description.isEmpty())
     obj["Description"] = p.m_description;
-  if(!(p.m_address.address.path.isEmpty() && p.m_address.address.device.isEmpty()))
+  if(!(p.m_address.address.path.isEmpty() && p.m_address.address.device.isEmpty()
+       && p.m_address.qualifiers.get() == ossia::destination_qualifiers{}))
     obj["Address"] = p.m_address;
 }
 template <>
