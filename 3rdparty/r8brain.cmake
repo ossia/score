@@ -2,7 +2,7 @@ add_library(r8brain STATIC
     "${CMAKE_CURRENT_LIST_DIR}/libossia/3rdparty/r8brain-free-src/r8bbase.cpp"
 )
 
-if(NOT MSVC)
+if(NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
   if(CMAKE_BUILD_TYPE MATCHES ".*Deb.*")
     target_compile_options(r8brain PRIVATE -O3 -march=native)
   endif()

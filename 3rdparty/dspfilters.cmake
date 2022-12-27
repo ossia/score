@@ -18,7 +18,7 @@ add_library(dspfilters STATIC
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/source/State.cpp"
 )
 
-if(NOT MSVC)
+if(NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
   if(CMAKE_BUILD_TYPE MATCHES ".*Deb.*")
     target_compile_options(dspfilters PRIVATE -O3 -march=native)
   endif()
