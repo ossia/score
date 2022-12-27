@@ -34,6 +34,8 @@ public:
   void deserializeImpl(DataStreamOutput&) override;
 
 protected:
+  void updateProcessMessages(
+      const Scenario::StateModel& state, const State::MessageList& messages);
   Path<StateModel> m_path;
 
   Process::MessageNode m_oldState, m_newState;

@@ -139,6 +139,15 @@ public:
   void setSteps(QObject* process, QVector<double> points);
   W_SLOT(setSteps)
 
+  QVariantList messages(QObject* state);
+  W_SLOT(messages)
+
+  void setMessages(QObject* state, QVariantList msgs);
+  W_SLOT(setMessages)
+
+  void replaceAddress(QObjectList objects, QString before, QString after);
+  W_SLOT(replaceAddress)
+
   void automate(QObject* interval, QString addr);
   W_SLOT(automate, (QObject*, QString))
 

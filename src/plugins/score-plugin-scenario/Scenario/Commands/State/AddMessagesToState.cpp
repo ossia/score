@@ -75,9 +75,12 @@ RenameAddressesInState::RenameAddressesInState(
 {
   m_path = state;
   m_oldState = state.messages().rootNode();
-  m_newState = state.messages().rootNode();
+  Process::MessageNode newState = m_oldState;
 
-  Scenario::findAndReplaceAddresses(m_newState, find, replace);
+  Scenario::findAndReplaceAddresses(newState, find, replace);
+
+  auto list = flatten(newState);
+  updateProcessMessages(state, list);
 }
 
 ReplaceState::ReplaceState(
@@ -88,6 +91,54 @@ ReplaceState::ReplaceState(
   m_oldState = oldnode;
   m_newState = newnode;
 
+  updateProcessMessages(state, messages);
+}
+
+ReplaceState::ReplaceState(
+    const Scenario::StateModel& state, const State::MessageList& messages)
+    : ReplaceState{state, state.messages().rootNode(), Process::MessageNode{}, messages}
+{
+}
+
+void ReplaceStateBase::undo(const score::DocumentContext& ctx) const
+{
+  auto& sm = m_path.find(ctx);
+  auto& model = sm.messages();
+  model = m_oldState;
+  // TODO we should reset the model
+
+  // Restore the state of the processes.
+  for(const ProcessStateWrapper& prevProc : sm.previousProcesses())
+  {
+    prevProc.process().setMessages(
+        m_previousBackup.at(prevProc.process().process().id()), m_oldState);
+  }
+  for(const ProcessStateWrapper& nextProc : sm.followingProcesses())
+  {
+    nextProc.process().setMessages(
+        m_followingBackup.at(nextProc.process().process().id()), m_oldState);
+  }
+}
+
+void ReplaceStateBase::redo(const score::DocumentContext& ctx) const
+{
+  auto& model = m_path.find(ctx).messages();
+  model = m_newState;
+}
+
+void ReplaceStateBase::serializeImpl(DataStreamInput& d) const
+{
+  d << m_path << m_oldState << m_newState << m_previousBackup << m_followingBackup;
+}
+
+void ReplaceStateBase::deserializeImpl(DataStreamOutput& d)
+{
+  d >> m_path >> m_oldState >> m_newState >> m_previousBackup >> m_followingBackup;
+}
+
+void ReplaceStateBase::updateProcessMessages(
+    const Scenario::StateModel& state, const State::MessageList& messages)
+{
   // FIXME only difference with the one below is the lack of "newstate", this can be refactored
 
   // TODO backup all the processes, not just the messages.
@@ -133,48 +184,6 @@ ReplaceState::ReplaceState(
   // WARNING we are in the future
 
   updateTreeWithMessageList(m_newState, messages);
-}
-
-ReplaceState::ReplaceState(
-    const Scenario::StateModel& state, const State::MessageList& messages)
-    : ReplaceState{state, state.messages().rootNode(), Process::MessageNode{}, messages}
-{
-}
-
-void ReplaceStateBase::undo(const score::DocumentContext& ctx) const
-{
-  auto& sm = m_path.find(ctx);
-  auto& model = sm.messages();
-  model = m_oldState;
-  // TODO we should reset the model
-
-  // Restore the state of the processes.
-  for(const ProcessStateWrapper& prevProc : sm.previousProcesses())
-  {
-    prevProc.process().setMessages(
-        m_previousBackup.at(prevProc.process().process().id()), m_oldState);
-  }
-  for(const ProcessStateWrapper& nextProc : sm.followingProcesses())
-  {
-    nextProc.process().setMessages(
-        m_followingBackup.at(nextProc.process().process().id()), m_oldState);
-  }
-}
-
-void ReplaceStateBase::redo(const score::DocumentContext& ctx) const
-{
-  auto& model = m_path.find(ctx).messages();
-  model = m_newState;
-}
-
-void ReplaceStateBase::serializeImpl(DataStreamInput& d) const
-{
-  d << m_path << m_oldState << m_newState << m_previousBackup << m_followingBackup;
-}
-
-void ReplaceStateBase::deserializeImpl(DataStreamOutput& d)
-{
-  d >> m_path >> m_oldState >> m_newState >> m_previousBackup >> m_followingBackup;
 }
 
 AddMessagesToState::AddMessagesToState(

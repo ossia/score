@@ -2,12 +2,15 @@
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <JS/Commands/ScriptMacro.hpp>
 #include <JS/Qml/EditContext.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
 
 #include <QTime>
 namespace JS
@@ -49,6 +52,7 @@ void EditJsContext::automate(QObject* interval, QString addr)
   auto [m, _] = macro(*doc);
   m->automate(*itv, addr);
 }
+
 EditJsContext::MacroClear EditJsContext::macro(const score::DocumentContext& doc)
 {
   if(m_macro)
@@ -334,6 +338,78 @@ void EditJsContext::remove(QObject* obj)
       m->removeElements(*scenar, {static_cast<IdentifiedObjectAbstract*>(obj)});
     }
   }
+}
+
+QVariantList EditJsContext::messages(QObject* obj)
+{
+  QVariantList ret;
+  if(!obj)
+    return ret;
+
+  auto doc = ctx();
+  if(!doc)
+    return ret;
+
+  auto s = qobject_cast<Scenario::StateModel*>(obj);
+  if(!s)
+    return ret;
+
+  auto msgs = Process::flatten(s->messages().rootNode());
+  for(const auto& msg : msgs)
+  {
+    ret.push_back(QVariantMap{
+        {"address", msg.address.toString()},
+        {"value", msg.value.apply(ossia::qt::ossia_to_qvariant{})}});
+  }
+  return ret;
+}
+
+void EditJsContext::setMessages(QObject* obj, QVariantList msgs)
+{
+  if(!obj)
+    return;
+
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto s = qobject_cast<Scenario::StateModel*>(obj);
+  if(!s)
+    return;
+
+  State::MessageList state_msgs;
+  for(const QVariant& msg : msgs)
+  {
+    const QVariantMap& obj = msg.toMap();
+    if(auto addr = State::parseAddressAccessor(obj["address"].toString()))
+      if(auto val = ossia::qt::qt_to_ossia{}(obj["value"]); val.valid())
+        state_msgs.push_back(State::Message{std::move(*addr), std::move(val)});
+  }
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Scenario::Command::ReplaceState{*s, state_msgs});
+}
+
+void EditJsContext::replaceAddress(QObjectList objects, QString before, QString after)
+{
+  if(objects.empty())
+    return;
+
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto addr_before = State::parseAddress(before);
+  if(!addr_before)
+    return;
+
+  auto addr_after = State::parseAddress(after);
+  if(!addr_after)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->findAndReplace(objects, *addr_before, *addr_after);
+  // Score.replaceAddress(Score.selectedObjects(), "dlight:/", "toto:/");
 }
 
 }

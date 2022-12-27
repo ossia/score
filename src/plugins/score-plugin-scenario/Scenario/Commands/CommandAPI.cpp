@@ -381,10 +381,21 @@ void Macro::findAndReplace(
     tcb::span<QObject*> sel, const State::Address& m_oldAddress,
     const State::Address& m_newAddress)
 {
-  if(!m_newAddress.isSet() || m_newAddress.path.isEmpty())
+  if(!m_newAddress.isSet())
     return;
 
-  for(auto* obj : sel)
+  std::set<QObject*> objs;
+  for(auto o : sel)
+  {
+    if(auto it = objs.find(o); it != objs.end())
+      continue;
+
+    objs.insert(o);
+    auto cld = o->findChildren<QObject*>(Qt::FindChildrenRecursively);
+    objs.insert(cld.begin(), cld.end());
+  }
+
+  for(auto* obj : objs)
   {
     if(auto state = qobject_cast<const StateModel*>(obj))
     {
