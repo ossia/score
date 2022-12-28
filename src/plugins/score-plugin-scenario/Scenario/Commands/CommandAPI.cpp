@@ -391,7 +391,7 @@ void Macro::findAndReplace(
       continue;
 
     objs.insert(o);
-    auto cld = o->findChildren<QObject*>(Qt::FindChildrenRecursively);
+    auto cld = o->findChildren<QObject*>();
     objs.insert(cld.begin(), cld.end());
   }
 

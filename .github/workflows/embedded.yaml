@@ -1,4 +1,4 @@
-name: Linux distro build
+name: Embedded build
 
 on: push
 
