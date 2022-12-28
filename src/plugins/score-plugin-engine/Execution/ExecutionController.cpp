@@ -135,7 +135,7 @@ ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx
 
     connect(
         acts.action<Reinitialize>().action(), &QAction::triggered, this,
-        &ExecutionController::on_reinitialize, Qt::QueuedConnection);
+        &ExecutionController::trigger_reinitialize, Qt::QueuedConnection);
 
     connect(
         &m_scenario.execution(), &Scenario::ScenarioExecution::playAtDate, this,
