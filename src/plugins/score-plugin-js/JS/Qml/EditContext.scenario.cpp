@@ -407,9 +407,14 @@ void EditJsContext::replaceAddress(QObjectList objects, QString before, QString 
   if(!addr_after)
     return;
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  auto objs = objects.toVector();
+#else
+  auto& objs = objects;
+#endif
+
   auto [m, _] = macro(*doc);
-  m->findAndReplace(objects, *addr_before, *addr_after);
-  // Score.replaceAddress(Score.selectedObjects(), "dlight:/", "toto:/");
+  m->findAndReplace(objs, *addr_before, *addr_after);
 }
 
 }
