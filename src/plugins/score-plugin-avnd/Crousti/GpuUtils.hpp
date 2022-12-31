@@ -613,6 +613,8 @@ struct GpuControlOuts
   std::weak_ptr<Execution::ExecutionCommandQueue> queue;
   Gfx::exec_controls control_outs;
 
+  int instance{};
+
   template <typename Node_T>
   void processControlOut(Node_T& state) const noexcept
   {
@@ -688,6 +690,18 @@ struct CustomGpuOutputNodeBase
 
   Configuration configuration() const noexcept override;
 };
+
+template <typename Node_T, typename Node>
+void prepareNewState(Node_T& node, const Node& parent)
+{
+  if constexpr(avnd::can_prepare<Node_T>)
+  {
+    using prepare_type = avnd::first_argument<&Node_T::prepare>;
+    prepare_type t;
+    if_possible(t.instance = parent.instance);
+    node.prepare(t);
+  }
+}
 
 }
 

@@ -535,6 +535,8 @@ public:
       : Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>{
           element, ctx, "Executor::ProcessModel<Info>", p}
   {
+    const auto id
+        = std::hash<ObjectPath>{}(Path<Process::ProcessModel>{element}.unsafePath());
 #if SCORE_PLUGIN_GFX
     if constexpr(is_gpu<Node>)
     {
@@ -602,16 +604,16 @@ public:
       std::unique_ptr<score::gfx::Node> ptr;
       if constexpr(GpuGraphicsNode2<Node>)
       {
-        ptr.reset(new CustomGpuNode<Node>(qex_ptr, node->control_outs));
+        ptr.reset(new CustomGpuNode<Node>(qex_ptr, node->control_outs, id));
       }
       else if constexpr(GpuComputeNode2<Node>)
       {
-        ptr.reset(new GpuComputeNode<Node>(qex_ptr, node->control_outs));
+        ptr.reset(new GpuComputeNode<Node>(qex_ptr, node->control_outs, id));
       }
       else if constexpr(GpuNode<Node>)
       {
-        ptr.reset(
-            new GfxNode<Node>(std::make_shared<Node>(), qex_ptr, node->control_outs));
+        ptr.reset(new GfxNode<Node>(
+            std::make_shared<Node>(), qex_ptr, node->control_outs, id));
       }
       node->id = gfx_exec.ui->register_node(std::move(ptr));
       node_id = node->id;
@@ -621,8 +623,6 @@ public:
     {
       auto st = ossia::exec_state_facade{ctx.execState.get()};
       std::shared_ptr<safe_node<Node>> ptr;
-      const auto id
-          = std::hash<ObjectPath>{}(Path<Process::ProcessModel>{element}.unsafePath());
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate(), id};
       node->prepare(*ctx.execState.get()); // Preparation of the ossia side
 

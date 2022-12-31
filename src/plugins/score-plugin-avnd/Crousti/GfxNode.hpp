@@ -396,11 +396,11 @@ struct GfxNode final : GenericTexgenNode
 
   GfxNode(
       std::shared_ptr<Node_T> n, std::weak_ptr<Execution::ExecutionCommandQueue> q,
-      Gfx::exec_controls ctls)
+      Gfx::exec_controls ctls, int id)
       : GenericTexgenNode{std::move(q), std::move(ctls)}
       , node{std::move(n)}
-
   {
+    this->instance = id;
     for(std::size_t i = 0; i < texture_inputs::size; i++)
     {
       input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
@@ -409,6 +409,8 @@ struct GfxNode final : GenericTexgenNode
     {
       output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
     }
+
+    prepareNewState(*node, *this);
   }
 
   score::gfx::NodeRenderer*

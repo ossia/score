@@ -128,9 +128,11 @@ template <typename Node_T>
 struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
 {
   GpuComputeNode(
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls)
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id)
       : ComputeNodeBaseType<Node_T>{std::move(q), std::move(ctls)}
   {
+    this->instance = id;
+
     using texture_inputs = avnd::gpu_image_input_introspection<Node_T>;
     using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
 
@@ -189,6 +191,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
       : ComputeRendererBaseType<Node_T>{}
       , parent{p}
   {
+    prepareNewState(state, parent);
   }
 
   score::gfx::TextureRenderTarget

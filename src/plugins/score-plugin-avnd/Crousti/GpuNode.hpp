@@ -214,6 +214,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       if(rt.renderTarget)
       {
         states.push_back({});
+        prepareNewState(states.back(), parent);
+
         auto ps = createRenderPipeline(renderer, rt);
         ps->setShaderResourceBindings(srb);
 
@@ -396,9 +398,11 @@ template <typename Node_T>
 struct CustomGpuNode final : CustomGpuNodeBase
 {
   CustomGpuNode(
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls)
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id)
       : CustomGpuNodeBase{std::move(q), std::move(ctls)}
   {
+    this->instance = id;
+
     using texture_inputs = avnd::gpu_sampler_introspection<Node_T>;
     using texture_outputs = avnd::gpu_attachment_introspection<Node_T>;
 
