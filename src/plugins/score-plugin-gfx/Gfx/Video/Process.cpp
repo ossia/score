@@ -4,6 +4,7 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Settings/Model.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Media/Tempo.hpp>
 
@@ -31,14 +32,39 @@ Model::Model(
 
 Model::~Model() { }
 
+::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
+{
+  static const Gfx::Settings::HardwareVideoDecoder decoders;
+  ::Video::DecoderConfiguration conf;
+  auto& set = score::AppContext().settings<Gfx::Settings::Model>();
+  conf.decoder = "";
+  if(auto hw = set.getHardwareDecode(); !hw.isEmpty() && hw != decoders.None)
+  {
+    if(hw == decoders.CUDA)
+      conf.hardwareAcceleration = AV_PIX_FMT_CUDA;
+    else if(hw == decoders.QSV)
+      conf.hardwareAcceleration = AV_PIX_FMT_QSV;
+    else if(hw == decoders.VDPAU)
+      conf.hardwareAcceleration = AV_PIX_FMT_VDPAU;
+    else if(hw == decoders.VAAPI)
+      conf.hardwareAcceleration = AV_PIX_FMT_VAAPI;
+    else if(hw == decoders.D3D)
+      conf.hardwareAcceleration = AV_PIX_FMT_D3D11;
+    else if(hw == decoders.DXVA)
+      conf.hardwareAcceleration = AV_PIX_FMT_DXVA2_VLD;
+  }
+  return conf;
+}
+
 void Model::setPath(const QString& f)
 {
   if(f == m_path)
     return;
 
   m_path = f;
-  m_decoder = std::make_shared<video_decoder>();
-  m_decoder->load(m_path.toStdString(), 60.);
+
+  m_decoder = std::make_shared<video_decoder>(videoDecoderConfiguration());
+  m_decoder->load(m_path.toStdString());
   setLoopDuration(TimeVal{m_decoder->duration()});
   pathChanged(f);
 }

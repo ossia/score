@@ -31,13 +31,15 @@ namespace Parameters
 SETTINGS_PARAMETER_IMPL(GraphicsApi){
     QStringLiteral("score_plugin_gfx/GraphicsApi"), GraphicsApis{}.OpenGL};
 
+SETTINGS_PARAMETER_IMPL(HardwareDecode){
+    QStringLiteral("score_plugin_gfx/HardwareDecode"), "None"};
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_gfx/Rate"), 60.0};
 SETTINGS_PARAMETER_IMPL(Samples){QStringLiteral("score_plugin_gfx/Samples"), 1};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
 
 static auto list()
 {
-  return std::tie(GraphicsApi, Samples, Rate, VSync);
+  return std::tie(GraphicsApi, HardwareDecode, Samples, Rate, VSync);
 }
 }
 
@@ -58,6 +60,29 @@ Gfx::Settings::GraphicsApis::operator QStringList() const noexcept
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
   lst += Metal;
+#endif
+  return lst;
+}
+
+Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
+{
+  QStringList lst;
+  lst += None;
+  lst += QSV;
+  lst += CUDA;
+
+#if defined(__APPLE__)
+  lst += VideoToolbox;
+#endif
+
+#if defined(__linux__)
+  lst += VDPAU;
+  lst += VAAPI;
+#endif
+
+#if defined(_WIN32)
+  lst += D3D;
+  lst += DXVA;
 #endif
   return lst;
 }
@@ -89,6 +114,7 @@ score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, GraphicsApi)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, HardwareDecode)
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, Rate)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, Samples)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VSync)

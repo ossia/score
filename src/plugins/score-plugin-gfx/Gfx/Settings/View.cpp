@@ -24,6 +24,8 @@ View::View()
 
   auto lay = m_widg->layout();
   SETTINGS_UI_COMBOBOX_SETUP("Graphics API", GraphicsApi, GraphicsApis{});
+  SETTINGS_UI_COMBOBOX_SETUP(
+      "Hardware Video Decoding", HardwareDecode, HardwareVideoDecoder{});
 
   static constexpr int aa_values[]{1, 2, 4, 8, 16};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Multisampling AA", Samples, aa_values);
@@ -38,6 +40,7 @@ QWidget* View::getWidget()
 }
 
 SETTINGS_UI_COMBOBOX_IMPL(GraphicsApi)
+SETTINGS_UI_COMBOBOX_IMPL(HardwareDecode)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Samples)
 SETTINGS_UI_DOUBLE_SPINBOX_IMPL(Rate)
 SETTINGS_UI_TOGGLE_IMPL(VSync)

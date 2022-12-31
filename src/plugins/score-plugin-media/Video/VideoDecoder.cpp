@@ -21,6 +21,7 @@ extern "C" {
 namespace Video
 {
 static char global_errbuf[512];
+
 VideoInterface::~VideoInterface() { }
 
 void FreeAVFrame::operator()(AVFrame* f) const noexcept
@@ -28,7 +29,10 @@ void FreeAVFrame::operator()(AVFrame* f) const noexcept
   av_frame_free(&f);
 }
 
-VideoDecoder::VideoDecoder() noexcept { }
+VideoDecoder::VideoDecoder(DecoderConfiguration conf) noexcept
+    : m_conf{std::move(conf)}
+{
+}
 
 VideoDecoder::~VideoDecoder() noexcept
 {
@@ -37,12 +41,12 @@ VideoDecoder::~VideoDecoder() noexcept
 
 std::shared_ptr<VideoDecoder> VideoDecoder::clone() const noexcept
 {
-  auto ptr = std::make_shared<VideoDecoder>();
-  ptr->load(this->m_inputFile, {});
+  auto ptr = std::make_shared<VideoDecoder>(m_conf);
+  ptr->load(this->m_inputFile);
   return ptr;
 }
 
-bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcept
+bool VideoDecoder::load(const std::string& inputFile) noexcept
 {
   close_file();
 
@@ -171,6 +175,7 @@ ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
   {
     av_buffer_unref(&frame->buf[0]);
   }
+
   while((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
     if(packet.stream_index == m_stream)
@@ -428,8 +433,33 @@ bool VideoDecoder::open_stream() noexcept
           height = codecPar->height;
           fps = av_q2d(stream->avg_frame_rate);
 
+          auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec);
+          if(hw_dev_ctx && hw_codec)
+          {
+            m_codec = hw_codec;
+          }
+
           m_codecContext = avcodec_alloc_context3(m_codec);
           avcodec_parameters_to_context(m_codecContext, stream->codecpar);
+
+          if(hw_dev_ctx)
+          {
+            m_codecContext->hw_device_ctx = hw_dev_ctx;
+            m_codecContext->get_format
+                = +[](AVCodecContext* ctx, const AVPixelFormat* p) {
+                    {
+                      while(*p != AV_PIX_FMT_NONE)
+                      {
+                        auto fmt = ffmpegHardwareDecodingFormats(*p).format;
+                        if(fmt != AV_PIX_FMT_NONE)
+                          return fmt;
+                        ++p;
+                      }
+
+                      return AV_PIX_FMT_NONE;
+                    }
+                  };
+          }
 
           m_codecContext->framerate = av_guess_frame_rate(m_formatContext, stream, NULL);
           m_codecContext->pkt_timebase = stream->time_base;
@@ -459,6 +489,66 @@ bool VideoDecoder::open_stream() noexcept
   return res;
 }
 
+using codec_map_type = std::map<AVCodecID, const char*>;
+/*
+ *
+    static const codec_map_type codecs{
+        {AV_CODEC_ID_AV1, "av1_cuvid"},          {AV_CODEC_ID_H264, "h264_cuvid"},
+        {AV_CODEC_ID_HEVC, "hevc_cuvid"},        {AV_CODEC_ID_MJPEG, "mjpeg_cuvid"},
+        {AV_CODEC_ID_MPEG1VIDEO, "mpeg1_cuvid"}, {AV_CODEC_ID_MPEG2VIDEO, "mpeg2_cuvid"},
+        {AV_CODEC_ID_MPEG4, "mpeg4_cuvid"},      {AV_CODEC_ID_VC1, "vc1_cuvid"},
+        {AV_CODEC_ID_VP8, "vp8_cuvid"},          {AV_CODEC_ID_VP9, "vp9_cuvid"},
+    };
+    */
+static std::string hwCodecMap(std::string name, AVHWDeviceType device)
+{
+  switch(device)
+  {
+    case AV_HWDEVICE_TYPE_CUDA:
+      return name + "_cuvid";
+    case AV_HWDEVICE_TYPE_QSV:
+      return name + "_qsv";
+    case AV_HWDEVICE_TYPE_VDPAU:
+      return name + "_vdpau";
+    case AV_HWDEVICE_TYPE_VAAPI:
+      return name + "_vaapi";
+    case AV_HWDEVICE_TYPE_D3D11VA:
+      return name + "_d3d11va";
+    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+      return name;
+    default:
+      return {};
+  }
+}
+std::pair<AVBufferRef*, const AVCodec*>
+VideoDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
+{
+  if(m_conf.hardwareAcceleration == AV_PIX_FMT_NONE)
+    return {};
+
+  const auto device = ffmpegHardwareDecodingFormats(m_conf.hardwareAcceleration).device;
+  if(device == AV_HWDEVICE_TYPE_NONE)
+    return {};
+
+  // Look for a correct codec
+  auto mapped = hwCodecMap(detected_codec.name, device);
+  if(mapped.empty())
+    return {};
+
+  auto codec = mapped == detected_codec.name
+                   ? &detected_codec // VideoToolbox case
+                   : avcodec_find_decoder_by_name(mapped.c_str());
+  if(!codec)
+    return {};
+
+  AVBufferRef* hw_device_ctx{};
+  int ret = av_hwdevice_ctx_create(&hw_device_ctx, device, "auto", nullptr, 0);
+  if(ret != 0)
+    return {};
+
+  return {av_buffer_ref(hw_device_ctx), codec};
+}
+
 void VideoDecoder::close_video() noexcept
 {
   if(m_codecContext)
@@ -475,6 +565,10 @@ void VideoDecoder::close_video() noexcept
   m_stream = -1;
 }
 
+}
+
+namespace Video
+{
 ReadFrame VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
 {
   ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get());
@@ -496,6 +590,21 @@ ReadFrame VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame)
   return read;
 }
 
+static void listHardwareDecodeTextureFormats(AVFrame* frame)
+{
+  AVPixelFormat* arr = {};
+  av_hwframe_transfer_get_formats(
+      frame->hw_frames_ctx,
+      AVHWFrameTransferDirection::AV_HWFRAME_TRANSFER_DIRECTION_FROM, &arr, 0);
+  for(auto p = arr; *p != AV_PIX_FMT_NONE; ++p)
+  {
+    auto desc = av_pix_fmt_desc_get(*p);
+    if(desc)
+      qDebug() << "supported format : " << desc->name;
+  }
+  av_free(arr);
+}
+
 ReadFrame
 readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame)
 {
@@ -513,6 +622,24 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
     }
 
     ret = avcodec_receive_frame(codecContext, frame);
+
+    // Process hardware acceleration
+    if(formatIsHardwareDecoded(AVPixelFormat(frame->format)))
+    {
+      AVFrame* sw_frame = av_frame_alloc();
+      sw_frame->width = frame->width;
+      sw_frame->height = frame->height;
+      sw_frame->format = AV_PIX_FMT_NONE;
+
+      av_hwframe_transfer_data(sw_frame, frame, 0);
+      sw_frame->pts = frame->pts;
+
+      frame = sw_frame;
+    }
+    else
+    {
+    }
+
     if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
     {
       qDebug() << "avcodec_receive_frame: "
