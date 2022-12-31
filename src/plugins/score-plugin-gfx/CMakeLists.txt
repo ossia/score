@@ -98,6 +98,7 @@ set(HDRS
     Gfx/Graph/Utils.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/HAP.hpp
+    Gfx/Graph/decoders/NV12.hpp
     Gfx/Graph/decoders/RGBA.hpp
     Gfx/Graph/decoders/YUV420.hpp
     Gfx/Graph/decoders/YUV422.hpp

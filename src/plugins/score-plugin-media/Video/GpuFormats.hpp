@@ -15,6 +15,8 @@ inline bool formatNeedsDecoding(AVPixelFormat fmt)
   {
     // Supported formats for gpu decoding
     case AV_PIX_FMT_YUV420P:
+    case AV_PIX_FMT_NV12:
+    case AV_PIX_FMT_NV21:
     case AV_PIX_FMT_YUVJ420P:
     case AV_PIX_FMT_YUVJ422P:
     case AV_PIX_FMT_YUV422P:

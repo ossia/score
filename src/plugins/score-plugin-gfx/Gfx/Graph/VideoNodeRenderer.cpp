@@ -1,6 +1,7 @@
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
+#include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
 #include <Gfx/Graph/decoders/YUV422.hpp>
@@ -58,6 +59,12 @@ void VideoNodeRenderer::createGpuDecoder()
       break;
     case AV_PIX_FMT_YUYV422:
       m_gpu = std::make_unique<YUYV422Decoder>(this->decoder());
+      break;
+    case AV_PIX_FMT_NV12:
+      m_gpu = std::make_unique<NV12Decoder>(this->decoder(), false);
+      break;
+    case AV_PIX_FMT_NV21:
+      m_gpu = std::make_unique<NV12Decoder>(this->decoder(), true);
       break;
     case AV_PIX_FMT_RGB0:
       m_gpu = std::make_unique<PackedDecoder>(
