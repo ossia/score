@@ -62,10 +62,20 @@ public:
   W_SLOT(setName)
 
   QObject* createBox(QObject* obj, QString startTime, QString duration, double y);
-  W_SLOT(createBox)
+  W_SLOT(createBox, (QObject*, QString, QString, double))
+
+  QObject*
+  createBox(QObject* obj, double startTimeFlicks, double durationFlicks, double y);
+  W_SLOT(createBox, (QObject*, double, double, double))
+
+  QObject* createState(QObject* ev, double y);
+  W_SLOT(createState)
 
   QObject* createIntervalAfter(QObject* obj, QString duration, double y);
   W_SLOT(createIntervalAfter)
+
+  QObject* createIntervalBetween(QObject* startState, QObject* endState);
+  W_SLOT(createIntervalBetween)
 
   QObject* port(QObject* obj, QString name);
   W_SLOT(port)

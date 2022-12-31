@@ -196,6 +196,42 @@ EditJsContext::createBox(QObject* obj, QString startTime, QString duration, doub
   return &itv;
 }
 
+QObject* EditJsContext::createBox(
+    QObject* obj, double startTimeFlicks, double durationFlicks, double y)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto scenar = qobject_cast<Scenario::ProcessModel*>(obj);
+  if(!scenar)
+    return nullptr;
+
+  auto t0 = TimeVal(startTimeFlicks);
+  auto tdur = TimeVal(durationFlicks);
+
+  auto [m, _] = macro(*doc);
+  auto& itv = m->createBox(*scenar, t0, t0 + tdur, y);
+  return &itv;
+}
+
+QObject* EditJsContext::createState(QObject* ev, double y)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+
+  auto e = qobject_cast<Scenario::EventModel*>(ev);
+  if(!e)
+    return nullptr;
+
+  auto scenar = qobject_cast<Scenario::ProcessModel*>(e->parent());
+  if(!scenar)
+    return nullptr;
+
+  auto [m, _] = macro(*doc);
+  return &m->createState(*scenar, e->id(), y);
+}
+
 QObject* EditJsContext::createIntervalAfter(QObject* obj, QString duration, double y)
 {
   auto doc = ctx();
@@ -227,6 +263,30 @@ QObject* EditJsContext::createIntervalAfter(QObject* obj, QString duration, doub
     return &itv;
   }
 }
+
+QObject* EditJsContext::createIntervalBetween(QObject* sState, QObject* eState)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+
+  auto startState = qobject_cast<Scenario::StateModel*>(sState);
+  if(!startState || startState->nextInterval())
+    return nullptr;
+
+  auto endState = qobject_cast<Scenario::StateModel*>(eState);
+  if(!endState || endState->previousInterval())
+    return nullptr;
+
+  auto scenar = qobject_cast<Scenario::ProcessModel*>(sState->parent());
+  if(!scenar)
+    return nullptr;
+
+  auto [m, _] = macro(*doc);
+  auto& itv = m->createInterval(*scenar, startState->id(), endState->id());
+  return &itv;
+}
+
 QObject* EditJsContext::startState(QObject* obj)
 {
   auto doc = ctx();
@@ -234,7 +294,17 @@ QObject* EditJsContext::startState(QObject* obj)
     return nullptr;
   auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
   if(!itv)
-    return nullptr;
+  {
+    // Maybe it's the start state of the scenario ?
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(obj);
+    if(!scenar)
+      return nullptr;
+    auto& ev = scenar->startEvent();
+    if(ev.states().empty())
+      return nullptr;
+    return &scenar->states.at(*ev.states().begin());
+  }
+
   auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
   if(!scenar)
     return nullptr;
@@ -249,7 +319,14 @@ QObject* EditJsContext::startEvent(QObject* obj)
     return nullptr;
   auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
   if(!itv)
-    return nullptr;
+  {
+    // Maybe it's the start event of the scenario ?
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(obj);
+    if(!scenar)
+      return nullptr;
+    return &scenar->startEvent();
+  }
+
   auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
   if(!scenar)
     return nullptr;
@@ -264,7 +341,13 @@ QObject* EditJsContext::startSync(QObject* obj)
     return nullptr;
   auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
   if(!itv)
-    return nullptr;
+  {
+    // Maybe it's the start event of the scenario ?
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(obj);
+    if(!scenar)
+      return nullptr;
+    return &scenar->startTimeSync();
+  }
   auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
   if(!scenar)
     return nullptr;
