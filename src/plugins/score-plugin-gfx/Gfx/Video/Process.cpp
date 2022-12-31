@@ -119,13 +119,13 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
   return {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
-          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
+          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
   return {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
-          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
+          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
 }
 
 std::optional<TimeVal> guessVideoDuration(const QString& path)

@@ -247,7 +247,7 @@ struct InletInitFunc
       {
         // FIXME refactor supported formats with Video process
         QSet<QString> files = {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
-                               "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2"};
+                               "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
         return QString{"Videos (%1)"}.arg(toFilters(files));
       }
       else if constexpr(requires { filter::image; })
