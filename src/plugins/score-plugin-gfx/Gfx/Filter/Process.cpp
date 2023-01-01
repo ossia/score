@@ -202,10 +202,20 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const long_input& v)
     {
       std::vector<std::pair<QString, ossia::value>> alternatives;
-      for(std::size_t i = 0; i < v.values.size() && i < v.labels.size(); i++)
+      std::size_t value_idx = 0;
+      for(; value_idx < v.values.size() && value_idx < v.labels.size(); value_idx++)
       {
-        alternatives.emplace_back(QString::fromStdString(v.labels[i]), (int)v.values[i]);
+        alternatives.emplace_back(
+            QString::fromStdString(v.labels[value_idx]), (int)v.values[value_idx]);
       }
+
+      // If there are more values than labels:
+      for(; value_idx < v.values.size(); value_idx++)
+      {
+        int val = (int)v.values[value_idx];
+        alternatives.emplace_back(QString::number(val), val);
+      }
+
       auto port = new Process::ComboBox(
           std::move(alternatives), (int)v.def, QString::fromStdString(input.name),
           Id<Process::Port>(i), &self);
