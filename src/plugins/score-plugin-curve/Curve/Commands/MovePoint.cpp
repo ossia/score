@@ -25,6 +25,17 @@ MovePoint::MovePoint(
     if(p->id() == m_pointId)
     {
       m_oldPoint = p->pos();
+
+      // Otherwise sometimes we have the case where we loose precision in
+      // inspector edition: the point ends up moving past the next one
+      // if e.g. drawing a square wave and changing a point on the same X tha n
+      // another
+      if(std::abs(m_oldPoint.x() - m_newPoint.x()) < 0.0001)
+      {
+        qDebug() << m_oldPoint.x() - m_newPoint.x();
+        m_newPoint.rx() = m_oldPoint.x();
+      }
+
       break;
     }
   }
@@ -59,6 +70,7 @@ void MovePoint::redo(const score::DocumentContext& ctx) const
         curve.segments().at(*p->previous()).setEnd(m_newPoint);
       if(p->following())
         curve.segments().at(*p->following()).setStart(m_newPoint);
+
       p->setPos(m_newPoint);
       break;
     }

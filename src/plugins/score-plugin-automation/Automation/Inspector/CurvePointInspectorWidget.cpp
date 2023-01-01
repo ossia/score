@@ -131,7 +131,7 @@ void PointInspectorWidget::on_editXFinished()
     return;
 
   auto& model = *m_model;
-  Curve::Point pos{m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
+  Curve::Point pos{m_XBox->value() / m_xFactor, m_model->pos().y()};
   if(std::abs(pos.x() - model.pos().x()) < 0.0001)
     return;
 
@@ -216,7 +216,7 @@ void PointInspectorWidget::on_pointYChanged(double d)
 {
   if(!m_model)
     return;
-  Curve::Point pos{m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
+  Curve::Point pos{m_model->pos().x(), (m_YBox->value() - m_Ymin) / m_yFactor};
   m_dispatcher.submit<Curve::MovePoint>(
       *safe_cast<Curve::Model*>(m_model->parent()), m_model->id(), pos);
 }
