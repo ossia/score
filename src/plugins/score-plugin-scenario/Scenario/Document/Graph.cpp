@@ -17,7 +17,6 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <boost/graph/labeled_graph.hpp>
 #include <boost/graph/tiernan_all_cycles.hpp>
 #include <boost/graph/topological_sort.hpp>
@@ -278,6 +277,7 @@ void TimenodeGraph::recompute()
 
 void TimenodeGraph::writeGraphviz()
 {
+  #if 0
   auto get_name = [](auto* elt) { return elt->metadata().getName().toStdString(); };
 
   std::stringstream s;
@@ -291,6 +291,8 @@ void TimenodeGraph::writeGraphviz()
   });
 
   std::cout << s.str() << std::endl << std::flush;
+
+  #endif
 }
 /*
 TimenodeGraphComponents TimenodeGraph::components()

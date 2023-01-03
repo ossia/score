@@ -12,7 +12,6 @@
 #include <ossia/detail/ssize.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <boost/graph/topological_sort.hpp>
 
 namespace score::gfx
@@ -20,6 +19,7 @@ namespace score::gfx
 template <typename Graph_T, typename IO>
 void print_graph(Graph_T& g, IO& stream)
 {
+  #if 0
   std::stringstream s;
   boost::write_graphviz(
       s, g,
@@ -41,6 +41,7 @@ void print_graph(Graph_T& g, IO& stream)
       [](auto&&...) {});
 
   stream << s.str() << "\n";
+  #endif
 }
 
 using Vertex = score::gfx::Node*;

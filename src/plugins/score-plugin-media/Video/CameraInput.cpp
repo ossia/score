@@ -9,7 +9,7 @@ extern "C" {
 #include <Video/GpuFormats.hpp>
 
 #include <score/tools/Debug.hpp>
-
+#include <ossia/detail/fmt.hpp>
 #include <QDebug>
 #include <QElapsedTimer>
 

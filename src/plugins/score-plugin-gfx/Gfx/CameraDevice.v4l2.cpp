@@ -9,12 +9,24 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/pixfmt.h>
 }
-#if __has_include(<libv4l2.h>)
-#include <linux/videodev2.h>
 
+#include <linux/videodev2.h>
 #include <fcntl.h>
-#include <libv4l2.h>
-#endif
+#include <unistd.h>
+
+// libv4l2.h is sometimes not here...
+extern "C"
+{
+int v4l2_open(const char *file, int oflag, ...);
+int v4l2_close(int fd);
+int v4l2_dup(int fd);
+int v4l2_ioctl(int fd, unsigned long int request, ...);
+ssize_t v4l2_read(int fd, void *buffer, size_t n);
+ssize_t v4l2_write(int fd, const void *buffer, size_t n);
+void *v4l2_mmap(void *start, size_t length, int prot, int flags,
+		int fd, int64_t offset);
+int v4l2_munmap(void *_start, size_t length);
+}
 
 namespace Gfx
 {

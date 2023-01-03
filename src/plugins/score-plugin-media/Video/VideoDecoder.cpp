@@ -520,7 +520,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 #if LIBAVFORMAT_VERSION_MAJOR >= 59
   const int64_t start = 0;
 #else
-  const int64_t start = stream->first_dts;
+  const int64_t start = m_avstream->first_dts;
 #endif
 
   if(avformat_seek_file(m_formatContext, -1, INT64_MIN, start + dts, INT64_MAX, 0))
