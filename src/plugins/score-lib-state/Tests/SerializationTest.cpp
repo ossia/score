@@ -3,7 +3,7 @@
 #define CATCH_CONFIG_MAIN
 #include "Utils.hpp"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 using namespace score;
 TEST_CASE("serializationTest", "serializationTest")

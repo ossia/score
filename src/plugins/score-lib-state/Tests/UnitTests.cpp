@@ -9,7 +9,7 @@
 
 #include <ossia/network/dataspace/dataspace.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 TEST_CASE("deserialize", "deserialize")
 {

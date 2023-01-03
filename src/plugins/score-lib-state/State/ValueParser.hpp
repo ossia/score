@@ -21,8 +21,6 @@
 #include <ossia/network/dataspace/dataspace_parse.hpp>
 
 #include <boost/fusion/adapted.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/qi_lit.hpp>

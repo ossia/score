@@ -2,7 +2,7 @@
 
 #define CATCH_CONFIG_MAIN 1
 #if __has_include(<catch2/catch.hpp>)
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 TEST_CASE("", "")
 {

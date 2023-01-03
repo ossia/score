@@ -137,7 +137,6 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
 // 90% of the boolean expr. parsing was taken from the stackoverflow answer :
 // http://stackoverflow.com/a/8707598/1495627
 namespace qi = boost::spirit::qi;
-namespace phx = boost::phoenix;
 
 struct op_or
 {
@@ -184,6 +183,28 @@ struct unop
   expr_raw oper1;
 };
 
+template <typename Op>
+struct ExpressionOpConstruct
+{
+  void operator()(
+      boost::fusion::vector<expr_raw, expr_raw> x, auto& context,
+      qi::unused_type) const noexcept
+  {
+    at_c<0>(context.attributes) = binop<Op>(at_c<0>(x), at_c<1>(x));
+  }
+  void operator()(expr_raw x, auto& context, qi::unused_type) const noexcept
+  {
+    at_c<0>(context.attributes) = unop<Op>(x);
+  }
+};
+
+struct ExpressionOpIdent
+{
+  void operator()(expr_raw x, auto& context, qi::unused_type) const noexcept
+  {
+    at_c<0>(context.attributes) = x;
+  }
+};
 template <typename It, typename Skipper = qi::space_type>
 struct Expression_parser : qi::grammar<It, expr_raw(), Skipper>
 {
@@ -195,16 +216,14 @@ struct Expression_parser : qi::grammar<It, expr_raw(), Skipper>
     expr_ = or_.alias();
 
     namespace bsi = boost::spirit;
-    or_ = (xor_ >> "or" >> or_)[_val = phx::construct<binop<op_or>>(bsi::_1, bsi::_2)]
-          | xor_[_val = bsi::_1];
-    xor_
-        = (and_ >> "xor" >> xor_)[_val = phx::construct<binop<op_xor>>(bsi::_1, bsi::_2)]
-          | and_[_val = bsi::_1];
-    and_
-        = (not_ >> "and" >> and_)[_val = phx::construct<binop<op_and>>(bsi::_1, bsi::_2)]
-          | not_[_val = bsi::_1];
-    not_ = ("not" > simple)[_val = phx::construct<unop<op_not>>(bsi::_1)]
-           | simple[_val = bsi::_1];
+    or_ = (xor_ >> "or" >> or_)[ExpressionOpConstruct<op_or>{}]
+          | xor_[ExpressionOpIdent{}];
+    xor_ = (and_ >> "xor" >> xor_)[ExpressionOpConstruct<op_xor>{}]
+           | and_[ExpressionOpIdent{}];
+    and_ = (not_ >> "and" >> and_)[ExpressionOpConstruct<op_and>{}]
+           | not_[ExpressionOpIdent{}];
+    not_ = ("not" > simple)[ExpressionOpConstruct<op_not>{}]
+           | simple[ExpressionOpIdent{}];
 
     simple = (('{' >> expr_ >> '}') | relation_ | pulse_);
   }

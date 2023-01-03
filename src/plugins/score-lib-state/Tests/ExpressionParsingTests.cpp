@@ -46,7 +46,7 @@ bool validate(const State::Expression& expr)
 #include <QObject>
 #include <QString>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 using namespace score;
 #include <State/ValueConversion.hpp>

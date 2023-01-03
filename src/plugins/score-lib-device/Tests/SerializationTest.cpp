@@ -8,7 +8,7 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/VariantSerialization.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 using namespace score;
 TEST_CASE("serializationTest", "serializationTest")

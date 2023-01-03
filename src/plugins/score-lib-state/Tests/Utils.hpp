@@ -14,11 +14,13 @@
 
 static auto init = [] {
   static score::MinimalApplication app;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<State::Address>();
 
   QMetaType::registerComparators<State::MessageList>();
   qRegisterMetaTypeStreamOperators<State::Message>();
   qRegisterMetaTypeStreamOperators<State::MessageList>();
   qRegisterMetaTypeStreamOperators<ossia::value>();
+#endif
   return 0;
 }();
