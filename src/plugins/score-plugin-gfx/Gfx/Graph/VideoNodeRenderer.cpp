@@ -97,6 +97,14 @@ void VideoNodeRenderer::createGpuDecoder()
           "processed.bgra = tex.yzwx; " + filter);
       break;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
+    case AV_PIX_FMT_GBRPF32LE:
+      m_gpu = std::make_unique<PlanarDecoder>(
+          QRhiTexture::R32F, 4, "gbr", this->decoder(), filter);
+      break;
+    case AV_PIX_FMT_GBRAPF32LE:
+      m_gpu = std::make_unique<PlanarDecoder>(
+          QRhiTexture::R32F, 4, "gbra", this->decoder(), filter);
+      break;
     case AV_PIX_FMT_GRAYF32LE:
     case AV_PIX_FMT_GRAYF32BE:
       m_gpu = std::make_unique<PackedDecoder>(

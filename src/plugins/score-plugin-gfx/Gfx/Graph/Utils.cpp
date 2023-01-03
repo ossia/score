@@ -13,8 +13,8 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples)
   TextureRenderTarget ret;
   ret.texture = tex;
 
-  ret.colorRenderBuffer
-      = state.rhi->newRenderBuffer(QRhiRenderBuffer::Color, tex->pixelSize(), samples);
+  ret.colorRenderBuffer = state.rhi->newRenderBuffer(
+      QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
   ret.colorRenderBuffer->create();
 
   ret.depthRenderBuffer = state.rhi->newRenderBuffer(
