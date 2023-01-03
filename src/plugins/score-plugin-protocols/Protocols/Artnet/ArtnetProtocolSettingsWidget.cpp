@@ -1,5 +1,5 @@
 #include <ossia/detail/config.hpp>
-#if 1 || defined(OSSIA_PROTOCOL_ARTNET)
+#if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetProtocolFactory.hpp"
 #include "ArtnetProtocolSettingsWidget.hpp"
 #include "ArtnetSpecificSettings.hpp"
