@@ -714,5 +714,9 @@
         <file>icons/preset_snapshot_off@2x.png</file>
         <file>icons/preset_snapshot_on.png</file>
         <file>icons/preset_snapshot_on@2x.png</file>
+        <file>icons/net_sync_off.png</file>
+        <file>icons/net_sync_off@2x.png</file>
+        <file>icons/net_sync_on.png</file>
+        <file>icons/net_sync_on@2x.png</file>
     </qresource>
 </RCC>
