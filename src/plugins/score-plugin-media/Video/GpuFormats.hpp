@@ -5,6 +5,10 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h>
+#include <libavutil/version.h>
+#if __has_include(<libavutil/hwcontext.h>)
+#include <libavutil/hwcontext.h>
+#endif
 struct AVCodecContext;
 }
 
@@ -12,6 +16,9 @@ namespace Video
 {
 inline constexpr bool formatIsHardwareDecoded(AVPixelFormat fmt) noexcept
 {
+#if LIBAVUTIL_VERSION_MAJOR < 57
+  return false;
+#else
   switch(fmt)
   {
     case AV_PIX_FMT_VAAPI:
@@ -25,6 +32,7 @@ inline constexpr bool formatIsHardwareDecoded(AVPixelFormat fmt) noexcept
     default:
       return false;
   }
+#endif
 }
 
 inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
@@ -64,6 +72,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
   }
 }
 
+#if LIBAVUTIL_VERSION_MAJOR >= 57
 // Get hardware pix format
 struct HWAccelFormats
 {
@@ -127,7 +136,7 @@ inline constexpr bool ffmpegCanDoHardwareDecoding(AVCodecID id) noexcept
       return false;
   }
 }
-
+#endif
 }
 
 #endif

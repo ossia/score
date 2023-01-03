@@ -34,15 +34,18 @@ bool LibAVDecoder::open_codec_context(
     VideoInterface& self, const AVStream* stream,
     std::function<void(AVCodecContext&)> setup)
 {
+#if LIBAVUTIL_VERSION_MAJOR >= 57
   auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec);
   if(hw_dev_ctx && hw_codec)
   {
     m_codec = hw_codec;
   }
+#endif
 
   m_codecContext = avcodec_alloc_context3(m_codec);
   avcodec_parameters_to_context(m_codecContext, stream->codecpar);
 
+#if LIBAVUTIL_VERSION_MAJOR >= 57
   if(hw_dev_ctx)
   {
     m_codecContext->hw_device_ctx = hw_dev_ctx;
@@ -58,6 +61,7 @@ bool LibAVDecoder::open_codec_context(
       return AV_PIX_FMT_NONE;
     };
   }
+#endif
 
   // m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
   // m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
@@ -111,6 +115,7 @@ static std::string hwCodecMap(std::string name, AVHWDeviceType device)
 std::pair<AVBufferRef*, const AVCodec*>
 LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
 {
+#if LIBAVUTIL_VERSION_MAJOR >= 57
   if(m_conf.hardwareAcceleration == AV_PIX_FMT_NONE)
     return {};
 
@@ -135,6 +140,9 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
     return {};
 
   return {av_buffer_ref(hw_device_ctx), codec};
+#else
+  return {};
+#endif
 }
 
 ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
@@ -161,6 +169,7 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame)
 
 static void listHardwareDecodeTextureFormats(AVFrame* frame)
 {
+#if LIBAVUTIL_VERSION_MAJOR >= 57
   AVPixelFormat* arr = {};
   av_hwframe_transfer_get_formats(
       frame->hw_frames_ctx,
@@ -172,6 +181,7 @@ static void listHardwareDecodeTextureFormats(AVFrame* frame)
       qDebug() << "supported format : " << desc->name;
   }
   av_free(arr);
+#endif
 }
 
 // Mainly used for HAP which we do not want to decode through ffmpeg
@@ -211,6 +221,7 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
 
     ret = avcodec_receive_frame(codecContext, frame);
 
+#if LIBAVUTIL_VERSION_MAJOR >= 57
     // Process hardware acceleration
     if(formatIsHardwareDecoded(AVPixelFormat(frame->format)))
     {
@@ -224,6 +235,7 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
 
       frame = sw_frame;
     }
+#endif
 
     if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
     {
