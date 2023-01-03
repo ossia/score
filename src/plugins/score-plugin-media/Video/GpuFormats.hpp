@@ -1,7 +1,7 @@
 #pragma once
 #include <Media/Libav.hpp>
 
-#if 1 || SCORE_HAS_LIBAV
+#if SCORE_HAS_LIBAV
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h>

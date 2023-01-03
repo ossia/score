@@ -20,7 +20,6 @@ extern "C" {
 #include <functional>
 namespace Video
 {
-static char global_errbuf[512];
 
 void LibAVDecoder::init_scaler(VideoInterface& self) noexcept
 {
@@ -205,8 +204,7 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
     {
       if(ret != AVERROR_EOF)
       {
-        qDebug() << "avcodec_send_packet: "
-                 << av_make_error_string(global_errbuf, sizeof(global_errbuf), ret);
+        qDebug() << "avcodec_send_packet: " << av_to_string(ret);
       }
       return {nullptr, ret};
     }
@@ -229,8 +227,7 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
 
     if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
     {
-      qDebug() << "avcodec_receive_frame: "
-               << av_make_error_string(global_errbuf, sizeof(global_errbuf), ret);
+      qDebug() << "avcodec_receive_frame: " << av_to_string(ret);
       return {nullptr, ret};
     }
     else
@@ -413,8 +410,7 @@ ReadFrame LibAVDecoder::read_one_frame_raw(AVFramePointer frame, AVPacket& packe
   }
   if(res != 0 && res != AVERROR_EOF)
   {
-    qDebug() << "Error while reading a frame: "
-             << av_make_error_string(global_errbuf, sizeof(global_errbuf), res);
+    qDebug() << "Error while reading a frame: " << av_to_string(res);
   }
   av_packet_unref(&packet);
   return {nullptr, res};
@@ -446,7 +442,7 @@ ReadFrame LibAVDecoder::read_one_frame_avcodec(AVFramePointer frame, AVPacket& p
   if(res != 0 && res != AVERROR_EOF)
   {
     // qDebug() << "Error while reading a frame: "
-    //          << av_make_error_string(global_errbuf, sizeof(global_errbuf), res);
+    //          << av_to_string(res);
   }
   av_packet_unref(&packet);
   return {nullptr, res};

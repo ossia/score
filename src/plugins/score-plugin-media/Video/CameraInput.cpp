@@ -82,13 +82,13 @@ bool CameraInput::start() noexcept
 
   if(ret < 0)
   {
-    qDebug() << "avformat_open_input" << av_err2str(ret);
+    qDebug() << "avformat_open_input" << av_to_string(ret);
 
     // Let's try with the default settings if the requested settings did not work:
     ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr);
     if(ret < 0)
     {
-      qDebug() << "avformat_open_input" << av_err2str(ret);
+      qDebug() << "avformat_open_input" << av_to_string(ret);
 
       close_file();
       return false;
@@ -98,7 +98,7 @@ bool CameraInput::start() noexcept
   ret = avformat_find_stream_info(m_formatContext, nullptr);
   if(ret < 0)
   {
-    qDebug() << "avformat_find_stream_info" << av_err2str(ret);
+    qDebug() << "avformat_find_stream_info" << av_to_string(ret);
     close_file();
     return false;
   }
