@@ -15,122 +15,13 @@
 #include <QMimeData>
 
 #include <wobjectimpl.h>
-extern "C" {
-#include <libavdevice/avdevice.h>
-#include <libavutil/opt.h>
-}
-#if defined(_WIN32)
-#include <dshow.h>
-#endif
 
 W_OBJECT_IMPL(Gfx::CameraDevice)
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::CameraSettings);
 namespace Gfx
 {
-
-#if defined(_WIN32)
-static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
-{
-  REFGUID category = CLSID_VideoInputDeviceCategory;
-  IEnumMoniker* pEnum = nullptr;
-  {
-    // Create the System Device Enumerator.
-    ICreateDevEnum* pDevEnum;
-    HRESULT hr = CoCreateInstance(
-        CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDevEnum));
-
-    if(SUCCEEDED(hr))
-    {
-      // Create an enumerator for the category.
-      hr = pDevEnum->CreateClassEnumerator(category, &pEnum, 0);
-      if(hr == S_FALSE)
-      {
-        hr = VFW_E_NOT_FOUND; // The category is empty. Treat as an error.
-      }
-      pDevEnum->Release();
-    }
-  }
-
-  if(pEnum)
-  {
-    IMoniker* pMoniker = nullptr;
-    while(pEnum->Next(1, &pMoniker, NULL) == S_OK)
-    {
-      QString prettyName;
-      CameraSettings settings;
-      settings.input = "dshow";
-      IPropertyBag* pPropBag;
-      HRESULT hr = pMoniker->BindToStorage(0, 0, IID_PPV_ARGS(&pPropBag));
-      if(FAILED(hr))
-      {
-        pMoniker->Release();
-        continue;
-      }
-
-      VARIANT var;
-      VariantInit(&var);
-
-      // Get description or friendly name.
-      hr = pPropBag->Read(L"Description", &var, 0);
-      if(FAILED(hr))
-      {
-        hr = pPropBag->Read(L"FriendlyName", &var, 0);
-      }
-      if(SUCCEEDED(hr))
-      {
-        prettyName = QString::fromWCharArray(var.bstrVal);
-        settings.device = "video=" + QString::fromWCharArray(var.bstrVal);
-        VariantClear(&var);
-      }
-
-      hr = pPropBag->Read(L"DevicePath", &var, 0);
-      if(SUCCEEDED(hr))
-      {
-        // The device path is not intended for display.
-        // TODO why doesn't this work with ffmpeg :/
-        // settings.device = "video=" + QString::fromWCharArray(var.bstrVal);
-        VariantClear(&var);
-      }
-
-      if(!settings.device.isEmpty() && !prettyName.isEmpty())
-      {
-        func(settings, prettyName);
-      }
-      pPropBag->Release();
-      pMoniker->Release();
-    }
-  }
-}
-#else
-static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
-{
-  // weird type needed because things became const in ffmpeg 4.4...
-  decltype(av_input_video_device_next(nullptr)) fmt = nullptr;
-
-  while((fmt = av_input_video_device_next(fmt)))
-  {
-    AVDeviceInfoList* device_list = nullptr;
-    avdevice_list_input_sources(fmt, nullptr, nullptr, &device_list);
-
-    if(device_list)
-    {
-      for(int i = 0; i < device_list->nb_devices; i++)
-      {
-        auto dev = device_list->devices[i];
-        QString devname = QString("%1 (%2: %3)")
-                              .arg(dev->device_name)
-                              .arg(fmt->long_name)
-                              .arg(fmt->name);
-        // TODO see AVDeviceCapabilitiesQuery and try to show some stream info ?
-        func({QString(fmt->name).split(",").front(), dev->device_name}, devname);
-      }
-      avdevice_free_list_devices(&device_list);
-      device_list = nullptr;
-    }
-  }
-}
-#endif
+void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func);
 
 CameraDevice::~CameraDevice() { }
 
@@ -148,7 +39,7 @@ bool CameraDevice::reconnect()
 
       cam->load(
           set.input.toStdString(), set.device.toStdString(), set.size.width(),
-          set.size.height(), set.fps);
+          set.size.height(), set.fps, set.codec, set.pixelformat);
 
       m_protocol = new video_texture_input_protocol{std::move(cam), plug->exec};
       m_dev = std::make_unique<video_texture_input_device>(
@@ -176,7 +67,7 @@ class CameraEnumerator : public Device::DeviceEnumerator
 public:
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    enumerateDevices([&](const CameraSettings& set, QString name) {
+    enumerateCameraDevices([&](const CameraSettings& set, QString name) {
       Device::DeviceSettings s;
       s.name = name;
       s.protocol = CameraProtocolFactory::static_concreteKey();
@@ -307,14 +198,16 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 template <>
 void DataStreamReader::read(const Gfx::CameraSettings& n)
 {
-  m_stream << n.input << n.device << n.size.width() << n.size.height() << n.fps;
+  m_stream << n.input << n.device << n.size.width() << n.size.height() << n.fps
+           << n.codec << n.pixelformat;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::CameraSettings& n)
 {
-  m_stream >> n.input >> n.device >> n.size.rwidth() >> n.size.rheight() >> n.fps;
+  m_stream >> n.input >> n.device >> n.size.rwidth() >> n.size.rheight() >> n.fps
+      >> n.codec >> n.pixelformat;
   checkDelimiter();
 }
 
@@ -325,6 +218,8 @@ void JSONReader::read(const Gfx::CameraSettings& n)
   obj["Device"] = n.device;
   obj["Size"] = n.size;
   obj["FPS"] = n.fps;
+  obj["Codec"] = n.codec;
+  obj["PixelFormat"] = n.pixelformat;
 }
 
 template <>
@@ -334,4 +229,8 @@ void JSONWriter::write(Gfx::CameraSettings& n)
   n.device = obj["Device"].toString();
   n.size <<= obj["Size"];
   n.fps = obj["FPS"].toDouble();
+  if(auto codec = obj.tryGet("Codec"))
+    n.codec = codec->toInt();
+  if(auto format = obj.tryGet("PixelFormat"))
+    n.pixelformat = format->toInt();
 }

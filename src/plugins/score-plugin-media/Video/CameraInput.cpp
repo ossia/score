@@ -31,22 +31,20 @@ CameraInput::~CameraInput() noexcept
 
 bool CameraInput::load(
     const std::string& inputKind, const std::string& inputDevice, int w, int h,
-    double fps) noexcept
+    double fps, int codec, int pixelfmt) noexcept
 {
   close_file();
   m_inputKind = inputKind;
   m_inputDevice = inputDevice;
 
+  this->width = w;
+  this->height = h;
+  this->fps = fps;
+  this->m_requestedCodec = (AVCodecID)codec;
+  this->m_requestedPixfmt = (AVPixelFormat)pixelfmt;
+
   auto ifmt = av_find_input_format(m_inputKind.c_str());
-  if(ifmt)
-  {
-    qDebug() << ifmt->name << ifmt->long_name;
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return (bool)ifmt;
 }
 
 bool CameraInput::start() noexcept
@@ -62,20 +60,45 @@ bool CameraInput::start() noexcept
   m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
   m_formatContext->flags |= AVFMT_FLAG_NOBUFFER;
 
-  /* TODO it seems that things work without that
-  AVDictionary *options = nullptr;
-  av_dict_set(&options, "framerate", std::to_string((int)fps).c_str(), 0);
-  av_dict_set(&options, "input_format", format.c_str(), 0); // this one seems failing
-  av_dict_set(&options, "video_size", fmt::format("{}x{}", w, h).c_str(), 0);
-  */
-  if(avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr) != 0)
+  AVDictionary* options = nullptr;
+
+  if(auto codec_name = avcodec_get_name(this->m_requestedCodec))
+    av_dict_set(&options, "input_format", codec_name, 0);
+
+  // FIXME support pixel format choosing
+
+  if(fps > 0.)
+    av_dict_set_int(&options, "framerate", fps, 0);
+
+  if(this->width > 0 && this->height > 0)
   {
-    close_file();
-    return false;
+    av_dict_set(
+        &options, "video_size", fmt::format("{}x{}", this->width, this->height).c_str(),
+        0);
   }
 
-  if(avformat_find_stream_info(m_formatContext, nullptr) < 0)
+  int ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, &options);
+  av_dict_free(&options);
+
+  if(ret < 0)
   {
+    qDebug() << "avformat_open_input" << av_err2str(ret);
+
+    // Let's try with the default settings if the requested settings did not work:
+    ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr);
+    if(ret < 0)
+    {
+      qDebug() << "avformat_open_input" << av_err2str(ret);
+
+      close_file();
+      return false;
+    }
+  }
+
+  ret = avformat_find_stream_info(m_formatContext, nullptr);
+  if(ret < 0)
+  {
+    qDebug() << "avformat_find_stream_info" << av_err2str(ret);
     close_file();
     return false;
   }
@@ -115,11 +138,13 @@ void CameraInput::buffer_thread() noexcept
     {
       if(auto f = read_frame_impl())
       {
-
         m_frames.enqueue(f);
       }
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(4));
+
+    // Wait either half the expected framerate or 4 ms
+    int wait_ms = std::clamp((this->fps > 0.) ? (1000. / fps) / 2. : 4, 1., 100.);
+    std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
   }
 }
 
@@ -151,46 +176,17 @@ AVFrame* CameraInput::read_frame_impl() noexcept
 {
   ReadFrame res;
 
-  if(m_stream != -1)
+  if(m_avstream)
   {
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
 
     do
     {
-      res = read_one_frame(m_frames.newFrame(), packet);
+      res = read_one_frame_avcodec(m_frames.newFrame(), packet);
     } while(res.error == AVERROR(EAGAIN));
   }
   return res.frame;
-}
-
-ReadFrame CameraInput::read_one_frame(AVFramePointer frame, AVPacket& packet)
-{
-  int res{};
-  while((res = av_read_frame(m_formatContext, &packet)) >= 0)
-  {
-    if(packet.stream_index == m_stream)
-    {
-      {
-        SCORE_ASSERT(m_codecContext);
-        auto res = enqueue_frame(&packet, std::move(frame));
-
-        av_packet_unref(&packet);
-        return res;
-      }
-
-      av_packet_unref(&packet);
-      break;
-    }
-
-    av_packet_unref(&packet);
-  }
-  // if (res != 0 && res != AVERROR_EOF)
-  //   qDebug() << "Error while reading a frame: "
-  //            << av_make_error_string(
-  //                   global_errbuf, sizeof(global_errbuf), res);
-  av_packet_unref(&packet);
-  return {nullptr, res};
 }
 
 bool CameraInput::open_stream() noexcept
@@ -203,36 +199,35 @@ bool CameraInput::open_stream() noexcept
     return false;
   }
 
-  m_stream = -1;
+  m_avstream = nullptr;
 
   for(unsigned int i = 0; i < m_formatContext->nb_streams; i++)
   {
-    auto codecpar = m_formatContext->streams[i]->codecpar;
-    if(codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+    auto stream = m_formatContext->streams[i];
+    auto codecPar = stream->codecpar;
+
+    qDebug() << codecPar->codec_id;
+
+    if((m_codec = avcodec_find_decoder(codecPar->codec_id)))
     {
-      m_stream = i;
-      m_codec = avcodec_find_decoder(codecpar->codec_id);
+      qDebug() << "Codec: " << m_codec->long_name << m_codec->name;
+    }
 
-      if(m_codec)
+    if(codecPar->codec_type == AVMEDIA_TYPE_VIDEO)
+    {
+      if((m_codec = avcodec_find_decoder(codecPar->codec_id)))
       {
-        m_codecContext = avcodec_alloc_context3(m_codec);
-        avcodec_parameters_to_context(m_codecContext, codecpar);
+        m_avstream = stream;
+        pixel_format = static_cast<AVPixelFormat>(codecPar->format);
+        width = codecPar->width;
+        height = codecPar->height;
+        fps = av_q2d(m_avstream->avg_frame_rate);
 
-        m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
-        m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
-
-        res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
-        pixel_format = static_cast<AVPixelFormat>(codecpar->format);
-        width = codecpar->width;
-        height = codecpar->height;
-        fps = av_q2d(m_formatContext->streams[i]->avg_frame_rate);
-
-        if(Video::formatNeedsDecoding(pixel_format))
-        {
-          m_rescale.open(*this);
-          pixel_format = AV_PIX_FMT_RGBA;
-        }
-        break;
+        res = open_codec_context(*this, stream, [=](AVCodecContext& ctx) {
+          ctx.framerate = av_guess_frame_rate(m_formatContext, (AVStream*)stream, NULL);
+          m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
+          m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
+        });
       }
     }
   }
@@ -257,29 +252,7 @@ void CameraInput::close_stream() noexcept
 
   m_codecContext = nullptr;
   m_codec = nullptr;
-  m_stream = -1;
+  m_avstream = nullptr;
 }
-
-ReadFrame CameraInput::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
-{
-  ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get());
-  if(!read.frame)
-  {
-    this->m_frames.enqueue_decoding_error(frame.release());
-    return read;
-  }
-
-  if(m_rescale)
-  {
-    m_rescale.rescale(*this, m_frames, frame, read);
-  }
-  else
-  {
-    // it is already stored in "read" but well
-    read.frame = frame.release();
-  }
-  return read;
-}
-
 }
 #endif

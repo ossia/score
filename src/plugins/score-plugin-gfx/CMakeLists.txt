@@ -42,6 +42,7 @@ endif()
 if(freenect2_FOUND)
   set(KINECT2_SRCS Gfx/Kinect2Device.hpp Gfx/Kinect2Device.cpp)
 endif()
+
 # Source files
 set(HDRS
     Gfx/CommandFactory.hpp
@@ -274,15 +275,19 @@ if(APPLE)
 endif()
 
 if(WIN32)
+  target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.win32.cpp)
+
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
-endif()
+elseif(APPLE)
+  target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.libav.cpp)
 
-if(APPLE)
   add_subdirectory("${3RDPARTY_FOLDER}/Syphon-Framework" "${CMAKE_CURRENT_BINARY_DIR}/Syphon")
   target_link_libraries(${PROJECT_NAME} PRIVATE Syphon)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SYPHON)
+else()
+  target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.v4l2.cpp)
 endif()
 
 if(freenect2_FOUND)

@@ -51,5 +51,6 @@ private:
 
 SCORE_PLUGIN_MEDIA_EXPORT
 uint8_t* initFrameBuffer(AVFrame& frame, std::size_t bytes);
+
 }
 #endif

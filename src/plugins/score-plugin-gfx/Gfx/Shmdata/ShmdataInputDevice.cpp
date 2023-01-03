@@ -219,7 +219,7 @@ private:
       ::Video::ReadFrame read{frame, 0};
 
       ::Video::AVFramePointer dummy;
-      m_rescale.rescale(*this, m_frames, dummy, read);
+      m_rescale.rescale(m_frames, dummy, read);
 
       for(int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
         frame->data[i] = nullptr;

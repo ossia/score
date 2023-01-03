@@ -30,7 +30,9 @@ public:
   virtual void stop() noexcept = 0;
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final : public ExternalInput
+class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final
+    : public ExternalInput
+    , public LibAVDecoder
 {
 public:
   CameraInput() noexcept;
@@ -38,7 +40,7 @@ public:
 
   bool load(
       const std::string& inputDevice, const std::string& format, int w, int h,
-      double fps) noexcept;
+      double fps, int codec, int pixelfmt) noexcept;
 
   bool start() noexcept override;
   void stop() noexcept override;
@@ -52,22 +54,17 @@ private:
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_stream() noexcept;
-  ReadFrame enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept;
   ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
-  void init_scaler() noexcept;
 
   static const constexpr int frames_to_buffer = 1;
 
+  AVCodecID m_requestedCodec{AV_CODEC_ID_NONE};
+  AVPixelFormat m_requestedPixfmt{AV_PIX_FMT_NONE};
+
   std::thread m_thread;
-  FrameQueue m_frames;
 
   std::string m_inputKind;
   std::string m_inputDevice;
-  AVFormatContext* m_formatContext{};
-  AVCodecContext* m_codecContext{};
-  Rescale m_rescale;
-  const AVCodec* m_codec{};
-  int m_stream{-1};
 
   std::atomic_bool m_running{};
 };

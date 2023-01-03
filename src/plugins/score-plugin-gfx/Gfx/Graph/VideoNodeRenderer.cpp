@@ -247,7 +247,9 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
 
     //std::lock_guard<std::mutex> lck{const_cast<VideoNode&>(node).reader.m_frameLock};
     if((m_currentFrame = reader.currentFrame()))
+    {
       displayFrame(*m_currentFrame->frame, renderer, res);
+    }
 
     if(old_frame)
       old_frame->use_count--;

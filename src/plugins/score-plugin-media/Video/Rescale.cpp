@@ -16,6 +16,7 @@ void Rescale::open(const VideoMetadata& src)
   // Allocate a rescale context
   qDebug() << "allocating a rescaler for format"
            << av_get_pix_fmt_name(src.pixel_format);
+  m_src = &src;
   m_rescale = sws_getContext(
       src.width, src.height, src.pixel_format, src.width, src.height, AV_PIX_FMT_RGBA,
       SWS_FAST_BILINEAR, NULL, NULL, NULL);
@@ -30,10 +31,9 @@ void Rescale::close()
   }
 }
 
-void Rescale::rescale(
-    const VideoMetadata& src, FrameQueue& m_frames, AVFramePointer& frame,
-    ReadFrame& read)
+void Rescale::rescale(FrameQueue& m_frames, AVFramePointer& frame, ReadFrame& read)
 {
+  auto& src = *m_src;
   // alloc an rgb frame
   auto rgb = m_frames.newFrame().release();
   // FIXME check if there isn't already a buffer allocated

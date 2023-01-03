@@ -224,6 +224,7 @@ void Model::setupIsf(const isf::descriptor& desc)
       self.controlAdded(port->id());
       return port;
     }
+
     Process::Inlet* operator()(const event_input& v)
     {
       auto port = new Process::Button(
