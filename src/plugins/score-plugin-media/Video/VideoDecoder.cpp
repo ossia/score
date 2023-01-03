@@ -99,8 +99,10 @@ static std::string hwCodecMap(std::string name, AVHWDeviceType device)
       return name + "_vdpau";
     case AV_HWDEVICE_TYPE_VAAPI:
       return name + "_vaapi";
+    case AV_HWDEVICE_TYPE_DXVA2:
+      return name + "_dxva2";
     case AV_HWDEVICE_TYPE_D3D11VA:
-      return name + "_d3d11va";
+      return name + "_d3d11va2";
     case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
       return name;
     default:

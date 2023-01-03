@@ -21,6 +21,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(GraphicsApi);
   SETTINGS_PRESENTER(HardwareDecode);
   SETTINGS_PRESENTER(Samples);
+  SETTINGS_PRESENTER(DecodingThreads);
   SETTINGS_PRESENTER(Rate);
   SETTINGS_PRESENTER(VSync);
 }

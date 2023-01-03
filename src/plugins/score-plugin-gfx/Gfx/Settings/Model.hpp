@@ -38,6 +38,7 @@ class Model : public score::SettingsDelegateModel
 
   QString m_GraphicsApi{};
   QString m_HardwareDecode{};
+  int m_DecodingThreads{1};
   double m_Rate{};
   int m_Samples{1};
   bool m_VSync{};
@@ -46,6 +47,7 @@ public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, QString, HardwareDecode)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, DecodingThreads)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, double, Rate)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Samples)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, bool, VSync)
@@ -62,6 +64,7 @@ public:
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)
 SCORE_SETTINGS_PARAMETER(Model, HardwareDecode)
+SCORE_SETTINGS_PARAMETER(Model, DecodingThreads)
 SCORE_SETTINGS_PARAMETER(Model, Rate)
 SCORE_SETTINGS_PARAMETER(Model, Samples)
 SCORE_SETTINGS_PARAMETER(Model, VSync)

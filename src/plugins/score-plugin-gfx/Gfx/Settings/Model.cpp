@@ -4,6 +4,9 @@
 
 #include <wobjectimpl.h>
 
+extern "C" {
+#include <libavcodec/codec.h>
+}
 W_OBJECT_IMPL(Gfx::Settings::Model)
 namespace Gfx::Settings
 {
@@ -35,11 +38,13 @@ SETTINGS_PARAMETER_IMPL(HardwareDecode){
     QStringLiteral("score_plugin_gfx/HardwareDecode"), "None"};
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_gfx/Rate"), 60.0};
 SETTINGS_PARAMETER_IMPL(Samples){QStringLiteral("score_plugin_gfx/Samples"), 1};
+SETTINGS_PARAMETER_IMPL(DecodingThreads){
+    QStringLiteral("score_plugin_gfx/DecodingThreads"), 2};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
 
 static auto list()
 {
-  return std::tie(GraphicsApi, HardwareDecode, Samples, Rate, VSync);
+  return std::tie(GraphicsApi, HardwareDecode, DecodingThreads, Samples, Rate, VSync);
 }
 }
 
@@ -68,21 +73,33 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
 {
   QStringList lst;
   lst += None;
-  lst += QSV;
-  lst += CUDA;
+
+  if(avcodec_find_decoder_by_name("mjpeg_qsv")
+     || avcodec_find_decoder_by_name("h264_qsv"))
+    lst += QSV;
+
+  if(avcodec_find_decoder_by_name("mjpeg_cuvid")
+     || avcodec_find_decoder_by_name("h264_cuvid"))
+    lst += CUDA;
 
 #if defined(__APPLE__)
   lst += VideoToolbox;
 #endif
 
 #if defined(__linux__)
-  lst += VDPAU;
-  lst += VAAPI;
+  if(auto c = avcodec_find_decoder_by_name("h264_vdpau"))
+    lst += VDPAU;
+
+  if(auto c = avcodec_find_decoder_by_name("mjpeg_vaapi"))
+    lst += VAAPI;
 #endif
 
 #if defined(_WIN32)
-  lst += D3D;
-  lst += DXVA;
+  if(auto c = avcodec_find_decoder_by_name("h264_dxva2"))
+    lst += DXVA;
+
+  if(auto c = avcodec_find_decoder_by_name("h264_d3d11va2"))
+    lst += D3D;
 #endif
   return lst;
 }
@@ -117,6 +134,7 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, GraphicsApi)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, HardwareDecode)
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, Rate)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, Samples)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, DecodingThreads)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VSync)
 
 }

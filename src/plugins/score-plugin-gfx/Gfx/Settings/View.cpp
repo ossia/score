@@ -27,6 +27,9 @@ View::View()
   SETTINGS_UI_COMBOBOX_SETUP(
       "Hardware Video Decoding", HardwareDecode, HardwareVideoDecoder{});
 
+  static constexpr int t_values[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+  SETTINGS_UI_NUM_COMBOBOX_SETUP("Decoding threads", DecodingThreads, t_values);
+
   static constexpr int aa_values[]{1, 2, 4, 8, 16};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Multisampling AA", Samples, aa_values);
   SETTINGS_UI_DOUBLE_SPINBOX_SETUP("Rate (if no VSync)", Rate);
@@ -41,6 +44,7 @@ QWidget* View::getWidget()
 
 SETTINGS_UI_COMBOBOX_IMPL(GraphicsApi)
 SETTINGS_UI_COMBOBOX_IMPL(HardwareDecode)
+SETTINGS_UI_NUM_COMBOBOX_IMPL(DecodingThreads)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Samples)
 SETTINGS_UI_DOUBLE_SPINBOX_IMPL(Rate)
 SETTINGS_UI_TOGGLE_IMPL(VSync)
