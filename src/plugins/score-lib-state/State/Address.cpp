@@ -467,11 +467,20 @@ State::Address
 replaceAddressPart(const State::Address& old, const State::Address& replacement) noexcept
 {
   State::Address ret;
-  ret = {replacement.device, old.path};
+  //  ret = {replacement.device, old.path};
+  ret.device = replacement.device;
+  //  ret.path = old.path;
 
-  for(int i = 0, N = std::min(ret.path.size(), replacement.path.size()); i < N; i++)
+  //  for(int i = 0, N = std::min(ret.path.size(), replacement.path.size()); i < N; i++)
+  //  for(int i = 0, N = std::max(ret.path.size(), replacement.path.size()); i < N; i++)
+  for(int i = 0; i < replacement.path.size(); i++)
   {
-    ret.path[i] = replacement.path[i];
+    //    ret.path[i] = replacement.path[i];
+    ret.path.push_back(replacement.path[i]);
+  }
+  for(int i = 0; i < old.path.size(); i++)
+  {
+    ret.path.push_back(old.path[i]);
   }
 
   return ret;
