@@ -21,6 +21,8 @@
 #include <ossia/network/dataspace/dataspace_parse.hpp>
 
 #include <boost/fusion/adapted.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/sequence/intrinsic/at.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/qi_lit.hpp>
