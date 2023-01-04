@@ -190,11 +190,12 @@ struct ExpressionOpConstruct
       boost::fusion::vector<expr_raw, expr_raw> x, auto& context,
       qi::unused_type) const noexcept
   {
-    at_c<0>(context.attributes) = binop<Op>(at_c<0>(x), at_c<1>(x));
+    boost::fusion::at_c<0>(context.attributes)
+        = binop<Op>(boost::fusion::at_c<0>(x), boost::fusion::at_c<1>(x));
   }
   void operator()(expr_raw x, auto& context, qi::unused_type) const noexcept
   {
-    at_c<0>(context.attributes) = unop<Op>(x);
+    boost::fusion::at_c<0>(context.attributes) = unop<Op>(x);
   }
 };
 
@@ -202,7 +203,7 @@ struct ExpressionOpIdent
 {
   void operator()(expr_raw x, auto& context, qi::unused_type) const noexcept
   {
-    at_c<0>(context.attributes) = x;
+    boost::fusion::at_c<0>(context.attributes) = x;
   }
 };
 template <typename It, typename Skipper = qi::space_type>
