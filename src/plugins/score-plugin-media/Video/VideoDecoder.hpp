@@ -30,7 +30,7 @@ public:
   explicit VideoDecoder(DecoderConfiguration) noexcept;
   ~VideoDecoder() noexcept;
 
-  std::shared_ptr<VideoDecoder> clone() const noexcept;
+  bool open(const std::string& inputFile) noexcept;
   bool load(const std::string& inputFile) noexcept;
 
   int64_t duration() const noexcept;

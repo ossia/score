@@ -56,7 +56,7 @@ public:
   AudioDecoder(int rate);
   ~AudioDecoder();
   static std::optional<AudioInfo> do_probe(const QString& path);
-  void decode(const QString& path, audio_handle hdl);
+  void decode(const QString& path, int track, audio_handle hdl);
 
   static std::optional<std::pair<AudioInfo, audio_array>>
   decode_synchronous(const QString& path, int rate);
@@ -66,6 +66,7 @@ public:
   int32_t fileSampleRate{};
   int32_t convertedSampleRate{};
   int32_t channels{};
+  int32_t track{-1};
   std::size_t decoded{};
 
 public:

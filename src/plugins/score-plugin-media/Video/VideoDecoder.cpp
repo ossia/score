@@ -13,6 +13,7 @@ extern "C" {
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flicks.hpp>
+#include <ossia/detail/libav.hpp>
 
 #include <QDebug>
 #include <QElapsedTimer>
@@ -139,15 +140,22 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
   if(ret != 0)
     return {};
 
-  return {av_buffer_ref(hw_device_ctx), codec};
+  return {hw_device_ctx, codec};
 #else
   return {};
 #endif
 }
 
-ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
+ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
 {
+  auto frame = m_frames.newFrame();
+
   ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get());
+  if(read.error == AVERROR_EOF)
+  {
+    m_finished = true;
+  }
+
   if(!read.frame)
   {
     this->m_frames.enqueue_decoding_error(frame.release());
@@ -212,42 +220,44 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
     int ret = avcodec_send_packet(codecContext, pkt);
     if(ret < 0)
     {
-      if(ret != AVERROR_EOF)
+      if(ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
       {
-        qDebug() << "avcodec_send_packet: " << av_to_string(ret);
+        qDebug() << "avcodec_send_packet: " << av_to_string(ret) << ret;
       }
       return {nullptr, ret};
     }
 
     ret = avcodec_receive_frame(codecContext, frame);
 
-#if LIBAVUTIL_VERSION_MAJOR >= 57
-    // Process hardware acceleration
-    if(formatIsHardwareDecoded(AVPixelFormat(frame->format)))
+    if(ret < 0)
     {
-      AVFrame* sw_frame = av_frame_alloc();
-      sw_frame->width = frame->width;
-      sw_frame->height = frame->height;
-      sw_frame->format = AV_PIX_FMT_NONE;
-
-      av_hwframe_transfer_data(sw_frame, frame, 0);
-      sw_frame->pts = frame->pts;
-
-      frame = sw_frame;
-    }
-#endif
-
-    if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-    {
-      qDebug() << "avcodec_receive_frame: " << av_to_string(ret);
       return {nullptr, ret};
     }
     else
     {
       if(frame->pts >= 0)
+      {
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+        // Process hardware acceleration
+        if(formatIsHardwareDecoded(AVPixelFormat(frame->format)))
+        {
+          AVFrame* sw_frame = av_frame_alloc();
+          sw_frame->width = frame->width;
+          sw_frame->height = frame->height;
+          sw_frame->format = AV_PIX_FMT_NONE;
+
+          av_hwframe_transfer_data(sw_frame, frame, 0);
+          sw_frame->pts = frame->pts;
+
+          return {sw_frame, ret};
+        }
+#endif
         return {frame, ret};
+      }
       else
+      {
         return {nullptr, ret};
+      }
     }
   }
 
@@ -255,11 +265,6 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
 }
 
 VideoInterface::~VideoInterface() { }
-
-void FreeAVFrame::operator()(AVFrame* f) const noexcept
-{
-  av_frame_free(&f);
-}
 
 VideoDecoder::VideoDecoder(DecoderConfiguration conf) noexcept
 {
@@ -271,14 +276,7 @@ VideoDecoder::~VideoDecoder() noexcept
   close_file();
 }
 
-std::shared_ptr<VideoDecoder> VideoDecoder::clone() const noexcept
-{
-  auto ptr = std::make_shared<VideoDecoder>(m_conf);
-  ptr->load(this->m_inputFile);
-  return ptr;
-}
-
-bool VideoDecoder::load(const std::string& inputFile) noexcept
+bool VideoDecoder::open(const std::string& inputFile) noexcept
 {
   close_file();
 
@@ -302,15 +300,23 @@ bool VideoDecoder::load(const std::string& inputFile) noexcept
     return false;
   }
 
-  m_running.store(true, std::memory_order_release);
-  // TODO use a thread pool
-  m_thread = std::thread{[this] { this->buffer_thread(); }};
-
   int64_t secs = m_formatContext->duration / AV_TIME_BASE;
   int64_t us = m_formatContext->duration % AV_TIME_BASE;
 
   m_duration = secs * ossia::flicks_per_second<int64_t>;
   m_duration += us * ossia::flicks_per_millisecond<int64_t> / 1000;
+
+  return true;
+}
+
+bool VideoDecoder::load(const std::string& inputFile) noexcept
+{
+  if(!open(inputFile))
+    return false;
+
+  m_running.store(true, std::memory_order_release);
+  // TODO use a thread pool
+  m_thread = std::thread{[this] { this->buffer_thread(); }};
 
   return true;
 }
@@ -353,7 +359,7 @@ void VideoDecoder::buffer_thread() noexcept
     {
       std::unique_lock lck{m_condMut};
       m_condVar.wait(lck, [&] {
-        return m_frames.size() < frames_to_buffer / 2
+        return (m_frames.size() < frames_to_buffer / 2 && !m_finished)
                || !m_running.load(std::memory_order_acquire) || (m_seekTo != -1);
       });
       if(!m_running.load(std::memory_order_acquire))
@@ -364,7 +370,7 @@ void VideoDecoder::buffer_thread() noexcept
         seek_impl(seek);
       }
 
-      if(m_frames.size() < (frames_to_buffer / 2))
+      if(m_frames.size() < (frames_to_buffer / 2) && !m_finished)
       {
         if(auto f = read_frame_impl())
         {
@@ -391,7 +397,10 @@ void VideoDecoder::close_file() noexcept
   // Clear the fmt context
   if(m_formatContext)
   {
+    avio_flush(m_formatContext->pb);
+    avformat_flush(m_formatContext);
     avformat_close_input(&m_formatContext);
+    avformat_free_context(m_formatContext);
     m_formatContext = nullptr;
   }
 
@@ -399,8 +408,9 @@ void VideoDecoder::close_file() noexcept
   m_frames.drain();
 }
 
-ReadFrame LibAVDecoder::read_one_frame_raw(AVFramePointer frame, AVPacket& packet)
+ReadFrame LibAVDecoder::read_one_frame_raw(AVPacket& packet)
 {
+  auto frame = m_frames.newFrame();
   int res{};
   if(frame->buf[0])
     av_buffer_unref(&frame->buf[0]);
@@ -420,17 +430,24 @@ ReadFrame LibAVDecoder::read_one_frame_raw(AVFramePointer frame, AVPacket& packe
       av_packet_unref(&packet);
     }
   }
+
   if(res != 0 && res != AVERROR_EOF)
   {
-    qDebug() << "Error while reading a frame: " << av_to_string(res);
+    // qDebug() << "Error while reading a frame: "
+    //          << av_to_string(res);
+  }
+  else if(res == AVERROR_EOF)
+  {
+    m_finished = true;
   }
   av_packet_unref(&packet);
   return {nullptr, res};
 }
 
-ReadFrame LibAVDecoder::read_one_frame_avcodec(AVFramePointer frame, AVPacket& packet)
+ReadFrame LibAVDecoder::read_one_frame_avcodec(AVPacket& packet)
 {
   int res{};
+  av_packet_unref(&packet);
   while((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
     if(packet.stream_index == m_avstream->index)
@@ -440,7 +457,7 @@ ReadFrame LibAVDecoder::read_one_frame_avcodec(AVFramePointer frame, AVPacket& p
       av_packet_rescale_ts(
           &packet, this->m_avstream->time_base, this->m_codecContext->time_base);
 
-      auto ret_frame = enqueue_frame(&packet, std::move(frame));
+      auto ret_frame = enqueue_frame(&packet);
 
       av_packet_unref(&packet);
       return ret_frame;
@@ -456,16 +473,20 @@ ReadFrame LibAVDecoder::read_one_frame_avcodec(AVFramePointer frame, AVPacket& p
     // qDebug() << "Error while reading a frame: "
     //          << av_to_string(res);
   }
+  else if(res == AVERROR_EOF)
+  {
+    m_finished = true;
+  }
   av_packet_unref(&packet);
   return {nullptr, res};
 }
 
-ReadFrame LibAVDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
+ReadFrame LibAVDecoder::read_one_frame(AVPacket& packet)
 {
   if(m_conf.useAVCodec)
-    return read_one_frame_avcodec(std::move(frame), packet);
+    return read_one_frame_avcodec(packet);
   else
-    return read_one_frame_raw(std::move(frame), packet);
+    return read_one_frame_raw(packet);
 }
 /*
 // https://stackoverflow.com/a/44468529/1495627
@@ -498,7 +519,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   constexpr auto av_dts_per_flicks
       = (av_tb.den / (av_tb.num * ossia::flicks_per_second<double>));
 
-  const auto dts = flicks * av_dts_per_flicks;
+  const int64_t dts = flicks * av_dts_per_flicks;
 
   const auto codec_tb
       = m_codecContext ? m_codecContext->time_base : m_avstream->time_base;
@@ -535,16 +556,11 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   const int64_t start = m_avstream->first_dts;
 #endif
 
-  if(avformat_seek_file(m_formatContext, -1, INT64_MIN, start + dts, INT64_MAX, 0))
+  if(!ossia::seek_to_flick(m_formatContext, m_codecContext, m_avstream, flicks))
   {
-    qDebug() << "Failed to seek for time " << dts;
+    qDebug() << "Failed to seek for time ";
     return false;
   }
-
-  if(m_codecContext)
-    avcodec_flush_buffers(m_codecContext);
-
-  AVPacket pkt{};
 
   ReadFrame r;
   do
@@ -552,7 +568,15 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     // First flush the buffer or smth
     do
     {
-      r = read_one_frame(m_frames.newFrame(), pkt);
+      if(r.frame)
+      {
+        av_frame_free(&r.frame);
+      }
+
+      auto pkt = av_packet_alloc();
+      r = read_one_frame(*pkt);
+      av_packet_unref(pkt);
+      av_packet_free(&pkt);
     } while(r.error == AVERROR(EAGAIN));
 
     if(r.error == AVERROR_EOF || !r.frame)
@@ -584,6 +608,9 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   {
     av_frame_free(&r.frame);
   }
+
+  m_finished = false;
+
   return true;
 }
 
@@ -593,13 +620,24 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
 
   if(m_avstream)
   {
-    AVPacket packet;
-    memset(&packet, 0, sizeof(AVPacket));
+    auto packet = av_packet_alloc();
 
     do
     {
-      res = read_one_frame(m_frames.newFrame(), packet);
+      av_packet_unref(packet);
+      res = read_one_frame(*packet);
+
+      if(res.error == AVERROR_EOF)
+      {
+        m_finished = true;
+        av_packet_unref(packet);
+        av_packet_free(&packet);
+        return res.frame;
+      }
     } while(res.error == AVERROR(EAGAIN));
+
+    av_packet_unref(packet);
+    av_packet_free(&packet);
   }
   return res.frame;
 }
@@ -692,8 +730,9 @@ void VideoDecoder::close_video() noexcept
 {
   if(m_codecContext)
   {
-    avcodec_close(m_codecContext);
+    avcodec_flush_buffers(m_codecContext);
     avcodec_free_context(&m_codecContext);
+
     m_codecContext = nullptr;
     m_codec = nullptr;
   }
@@ -702,6 +741,5 @@ void VideoDecoder::close_video() noexcept
 
   m_avstream = nullptr;
 }
-
 }
 #endif

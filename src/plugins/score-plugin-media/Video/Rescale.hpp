@@ -41,7 +41,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT DecoderConfiguration
 
 struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
 {
-  ReadFrame enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept;
+  ReadFrame enqueue_frame(const AVPacket* pkt) noexcept;
   std::pair<AVBufferRef*, const AVCodec*> open_hwdec(const AVCodec&) noexcept;
 
   bool open_codec_context(
@@ -50,9 +50,9 @@ struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
   void init_scaler(VideoInterface& self) noexcept;
   void load_packet_in_frame(const AVPacket& packet, AVFrame& frame);
 
-  ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
-  ReadFrame read_one_frame_raw(AVFramePointer frame, AVPacket& packet);
-  ReadFrame read_one_frame_avcodec(AVFramePointer frame, AVPacket& packet);
+  ReadFrame read_one_frame(AVPacket& packet);
+  ReadFrame read_one_frame_raw(AVPacket& packet);
+  ReadFrame read_one_frame_avcodec(AVPacket& packet);
 
   DecoderConfiguration m_conf;
 
@@ -63,6 +63,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
 
   FrameQueue m_frames;
   Rescale m_rescale;
+  bool m_finished{};
 };
 
 }

@@ -435,7 +435,6 @@ struct AVCodecContext_Free
   void operator()(AVCodecContext* ctx) const noexcept
   {
 #if SCORE_HAS_LIBAV
-    avcodec_close(ctx);
     avcodec_free_context(&ctx);
 #endif
   }
@@ -564,7 +563,7 @@ double AudioDecoder::read_length(const QString& path)
   return 0;
 }
 
-void AudioDecoder::decode(const QString& path, audio_handle hdl)
+void AudioDecoder::decode(const QString& path, int trackToUse, audio_handle hdl)
 {
 #if SCORE_HAS_LIBAV
   SCORE_ASSERT(hdl);
@@ -589,6 +588,7 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
     info = *it;
   }
 
+  track = trackToUse;
   decoded = 0;
   fileSampleRate = info.fileRate;
   channels = info.channels;
@@ -743,17 +743,30 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       throw std::runtime_error("Couldn't find stream information");
 
     AVStream* stream{};
-
-    // Find the first audio stream
-    for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
+    if(track >= 0 && track < (int)fmt_ctx->nb_streams)
     {
-      if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && !stream)
+      stream = fmt_ctx->streams[track];
+      for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
       {
-        stream = fmt_ctx->streams[i];
+        if(int(i) != track)
+        {
+          fmt_ctx->streams[i]->discard = AVDISCARD_ALL;
+        }
       }
-      else
+    }
+    else
+    {
+      // Find the first audio stream
+      for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
       {
-        fmt_ctx->streams[i]->discard = AVDISCARD_ALL;
+        if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && !stream)
+        {
+          stream = fmt_ctx->streams[i];
+        }
+        else
+        {
+          fmt_ctx->streams[i]->discard = AVDISCARD_ALL;
+        }
       }
     }
 

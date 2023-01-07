@@ -10,7 +10,7 @@
 
 #include <avnd/binding/ossia/from_value.hpp>
 #include <avnd/binding/ossia/to_value.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
 

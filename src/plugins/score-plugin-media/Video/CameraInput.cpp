@@ -9,7 +9,9 @@ extern "C" {
 #include <Video/GpuFormats.hpp>
 
 #include <score/tools/Debug.hpp>
+
 #include <ossia/detail/fmt.hpp>
+
 #include <QDebug>
 #include <QElapsedTimer>
 
@@ -183,7 +185,7 @@ AVFrame* CameraInput::read_frame_impl() noexcept
 
     do
     {
-      res = read_one_frame_avcodec(m_frames.newFrame(), packet);
+      res = read_one_frame_avcodec(packet);
     } while(res.error == AVERROR(EAGAIN));
   }
   return res.frame;
@@ -245,7 +247,7 @@ void CameraInput::close_stream() noexcept
 {
   if(m_codecContext)
   {
-    avcodec_close(m_codecContext);
+    avcodec_free_context(&m_codecContext);
   }
 
   m_rescale.close();

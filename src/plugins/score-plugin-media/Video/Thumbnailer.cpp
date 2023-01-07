@@ -15,6 +15,8 @@ extern "C" {
 }
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/libav.hpp>
+
 #include <QDebug>
 
 #include <wobjectimpl.h>
@@ -145,7 +147,6 @@ VideoThumbnailer::~VideoThumbnailer()
 
   if(m_codecContext)
   {
-    avcodec_close(m_codecContext);
     avcodec_free_context(&m_codecContext);
     m_codecContext = nullptr;
     m_codec = nullptr;
@@ -153,6 +154,8 @@ VideoThumbnailer::~VideoThumbnailer()
 
   if(m_formatContext)
   {
+    avio_flush(m_formatContext->pb);
+    avformat_flush(m_formatContext);
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
   }
@@ -175,50 +178,48 @@ void VideoThumbnailer::onRequest(int64_t req, QVector<int64_t> flicks)
 
 QImage VideoThumbnailer::process(int64_t flicks)
 {
-  AVFrame* res{};
-  bool ok{};
+  AVFramePointer res;
   // 1. Seek
   {
     const int64_t dts = flicks * dts_per_flicks;
-
-    //constexpr int64_t min_dts_delta = 20000;
-    //if(std::abs(dts - m_last_dts) < min_dts_delta)
-    //  return {};
 
     // TODO - maybe we should also store the "last dequeued dts" from the
     // decoder side - this way no need to seek if we are in the interval
 
     const bool seek_forward = dts >= this->m_last_dts;
-    if(av_seek_frame(
-           m_formatContext, m_stream, dts, seek_forward ? 0 : AVSEEK_FLAG_BACKWARD)
-       < 0)
+    int flags = seek_forward ? 0 : AVSEEK_FLAG_BACKWARD;
+    flags |= ossia::OSSIA_LIBAV_SEEK_ROUGH;
+    if(!ossia::seek_to_flick(
+           m_formatContext, m_codecContext, m_formatContext->streams[m_stream], flicks,
+           flags))
     {
       qDebug() << "VideoThumbnailer: Failed to seek for time " << dts;
       return {};
     }
 
-    avcodec_flush_buffers(m_codecContext);
+    AVFramePointer frame{av_frame_alloc()};
 
-    AVFrame* frame = av_frame_alloc();
-
-    AVPacket packet{};
-    av_init_packet(&packet);
+    AVPacket* packet = av_packet_alloc();
 
     int k = 0;
   retry_decode:
-    while(av_read_frame(m_formatContext, &packet) >= 0 && k < 5)
+    av_packet_unref(packet);
+    while(av_read_frame(m_formatContext, packet) >= 0 && k < 5)
     {
       k++;
-      if(packet.stream_index != m_stream)
+      if(packet->stream_index != m_stream)
+      {
         qDebug() << "packet.stream_index != m_stream";
+        av_packet_unref(packet);
+        goto retry_decode;
+      }
 
-      int ret = avcodec_send_packet(m_codecContext, &packet);
+      int ret = avcodec_send_packet(m_codecContext, packet);
       if(ret < 0)
       {
         if(ret == AVERROR(EAGAIN))
         {
-          av_packet_unref(&packet);
-          av_init_packet(&packet);
+          av_packet_unref(packet);
           goto retry_decode;
         }
         else if(ret == AVERROR_EOF)
@@ -233,13 +234,12 @@ QImage VideoThumbnailer::process(int64_t flicks)
         }
       }
 
-      ret = avcodec_receive_frame(m_codecContext, frame);
+      ret = avcodec_receive_frame(m_codecContext, frame.get());
       if(ret < 0)
       {
         if(ret == AVERROR(EAGAIN))
         {
-          av_packet_unref(&packet);
-          av_init_packet(&packet);
+          av_packet_unref(packet);
           goto retry_decode;
         }
         else if(ret == AVERROR_EOF)
@@ -256,23 +256,25 @@ QImage VideoThumbnailer::process(int64_t flicks)
       {
         if(frame->pkt_dts >= dts)
         {
-          res = frame;
-          ok = true;
+          res = std::move(frame);
 
-          av_packet_unref(&packet);
-          packet = AVPacket{};
+          av_packet_unref(packet);
           break;
         }
       }
 
-      av_packet_unref(&packet);
-      packet = AVPacket{};
+      av_packet_unref(packet);
     }
-    m_last_dts = frame->pkt_dts;
 
+    if(frame)
+      m_last_dts = frame->pkt_dts;
+    else if(res)
+      m_last_dts = res->pkt_dts;
+
+    av_packet_unref(packet);
+    av_packet_free(&packet);
     if(!res)
     {
-      av_frame_free(&frame);
       return {};
     }
   }
@@ -282,7 +284,6 @@ QImage VideoThumbnailer::process(int64_t flicks)
   uint8_t* data[1] = {(uint8_t*)img.bits()};
   sws_scale(m_rescale, res->data, res->linesize, 0, this->height, data, m_rgb->linesize);
 
-  av_frame_free(&res);
   return img;
 }
 

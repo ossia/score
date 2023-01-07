@@ -46,7 +46,7 @@ public:
     m_name.setText(QFileInfo{path}.fileName());
     m_reader.on_finishedDecoding.connect<&AudioPreviewWidget::on_finishedDecoding>(
         *this);
-    m_reader.load(path, path, DecodingMethod::Libav);
+    m_reader.load({path, path, DecodingMethod::Libav});
 
     m_playPixmap = score::get_pixmap(":/icons/play_off.png");
     m_stopPixmap = score::get_pixmap(":/icons/stop_off.png");

@@ -10,6 +10,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/dummy.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>
+#include <ossia/dataflow/nodes/sound_libav.hpp>
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
 #include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <ossia/detail/pod_vector.hpp>
@@ -66,6 +67,18 @@ public:
 
         commands.run_all();
       }
+      void operator()(const Media::AudioFile::LibavStreamReader& r) const noexcept
+      {
+        Execution::Transaction commands{component.system()};
+
+        auto node = ossia::make_node<ossia::nodes::sound_libav>(
+            *component.system().execState.get());
+        component.node = node;
+        component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
+        update_libav(node, r, component, commands);
+
+        commands.run_all();
+      }
       void operator()(const Media::AudioFile::SndfileReader& r) const noexcept
       {
         Execution::Transaction commands{component.system()};
@@ -104,27 +117,54 @@ public:
     {
       Execution::SoundComponent& component;
       void operator()(ossia::monostate) const noexcept { return; }
+
+      void replace_node(
+          const std::shared_ptr<ossia::graph_node>& old_node,
+          const std::shared_ptr<ossia::graph_node>& n,
+          Execution::Transaction& commands) const noexcept
+      {
+        component.system().setup.unregister_node(
+            component.process(), old_node, commands);
+        component.system().setup.register_node(component.process(), n, commands);
+        component.system().setup.replace_node(component.OSSIAProcessPtr(), n, commands);
+        component.nodeChanged(old_node, n, &commands);
+      }
+
       void
       operator()(const std::shared_ptr<Media::AudioFile::LibavReader>& r) const noexcept
       {
         Execution::Transaction commands{component.system()};
         auto old_node = component.node;
 
-        if(auto n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
+        if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
         {
-          update_ref(n, r, component, commands);
+          update_ref(nr, r, component, commands);
         }
         else
         {
-          n = ossia::make_node<ossia::nodes::sound_ref>(
+          auto n = ossia::make_node<ossia::nodes::sound_ref>(
               *component.system().execState.get());
           update_ref(n, r, component, commands);
-          component.system().setup.unregister_node(
-              component.process(), old_node, commands);
-          component.system().setup.register_node(component.process(), n, commands);
-          component.system().setup.replace_node(
-              component.OSSIAProcessPtr(), n, commands);
-          component.nodeChanged(old_node, n, &commands);
+          this->replace_node(old_node, n, commands);
+        }
+
+        commands.run_all();
+      }
+      void operator()(const Media::AudioFile::LibavStreamReader& r) const noexcept
+      {
+        Execution::Transaction commands{component.system()};
+        auto old_node = component.node;
+
+        if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_libav>(old_node))
+        {
+          update_libav(nr, r, component, commands);
+        }
+        else
+        {
+          auto n = ossia::make_node<ossia::nodes::sound_libav>(
+              *component.system().execState.get());
+          update_libav(n, r, component, commands);
+          this->replace_node(old_node, n, commands);
         }
 
         commands.run_all();
@@ -134,21 +174,16 @@ public:
         Execution::Transaction commands{component.system()};
         auto old_node = component.node;
 
-        if(auto n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
+        if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
         {
-          update_sndfile(n, r, component, commands);
+          update_sndfile(nr, r, component, commands);
         }
         else
         {
-          n = ossia::make_node<ossia::nodes::sound_ref>(
+          auto n = ossia::make_node<ossia::nodes::sound_ref>(
               *component.system().execState.get());
           update_sndfile(n, r, component, commands);
-          component.system().setup.unregister_node(
-              component.process(), old_node, commands);
-          component.system().setup.register_node(component.process(), n, commands);
-          component.system().setup.replace_node(
-              component.OSSIAProcessPtr(), n, commands);
-          component.nodeChanged(old_node, n, &commands);
+          this->replace_node(old_node, n, commands);
         }
 
         commands.run_all();
@@ -161,21 +196,16 @@ public:
         Execution::Transaction commands{component.system()};
         auto old_node = component.node;
 
-        if(auto n = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(old_node))
+        if(auto nm = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(old_node))
         {
-          update_mmap(n, r, component, commands);
+          update_mmap(nm, r, component, commands);
         }
         else
         {
-          n = ossia::make_node<ossia::nodes::sound_mmap>(
+          auto n = ossia::make_node<ossia::nodes::sound_mmap>(
               *component.system().execState.get());
           update_mmap(n, r, component, commands);
-          component.system().setup.unregister_node(
-              component.process(), old_node, commands);
-          component.system().setup.register_node(component.process(), n, commands);
-          component.system().setup.replace_node(
-              component.OSSIAProcessPtr(), n, commands);
-          component.nodeChanged(old_node, n, &commands);
+          this->replace_node(old_node, n, commands);
         }
 
         commands.run_all();
@@ -183,6 +213,27 @@ public:
     } _{component};
 
     ossia::apply(_, handle->m_impl);
+  }
+
+  static void update_libav(
+      const std::shared_ptr<ossia::nodes::sound_libav>& n,
+      const Media::AudioFile::LibavStreamReader& r, Execution::SoundComponent& component,
+      Execution::Transaction& commands)
+  {
+    auto& p = component.process();
+    commands.push_back([n, r = r, samplerate = component.system().execState->sampleRate,
+                        tempo = component.process().nativeTempo(),
+                        res = make_resampler(component.process()),
+                        upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
+      ossia::libav_handle h;
+      h.open(r.path, r.stream, samplerate);
+
+      n->set_sound(std::move(h));
+      n->set_start(start);
+      n->set_upmix(upmix);
+      n->set_resampler(std::move(*res));
+      n->set_native_tempo(tempo);
+    });
   }
 
   static void update_ref(
@@ -263,6 +314,9 @@ SoundComponent::SoundComponent(
     else if(
         auto n_mmap = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
       in_exec([n_mmap, ff = std::move(f)]() mutable { ff(*n_mmap); });
+    else if(
+        auto n_lav = std::dynamic_pointer_cast<ossia::nodes::sound_libav>(this->node))
+      in_exec([n_lav, ff = std::move(f)]() mutable { ff(*n_lav); });
   };
 
   con(element, &Media::Sound::ProcessModel::startChannelChanged, this, [=, &element] {

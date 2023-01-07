@@ -3,6 +3,8 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/flat_set.hpp>
+
 namespace score::gfx
 {
 void VideoNodeBase::setScaleMode(ScaleMode s)
@@ -101,9 +103,24 @@ VideoFrameShare::VideoFrameShare() { }
 
 VideoFrameShare::~VideoFrameShare()
 {
+  ossia::flat_set<AVFrame*> remaining;
+
   auto& decoder = *m_decoder;
+  if(m_currentFrame && m_currentFrame->frame)
+    remaining.insert(m_currentFrame->frame);
+
+  for(auto frame : m_framesInFlight)
+  {
+    if(frame)
+      remaining.insert(frame->frame);
+  }
   for(auto frame : m_framesToFree)
-    decoder.release_frame(frame);
+  {
+    remaining.insert(frame);
+  }
+
+  for(auto f : remaining)
+    decoder.release_frame(f);
 }
 
 void VideoFrameShare::releaseFramesToFree()

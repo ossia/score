@@ -56,6 +56,7 @@ private:
 };
 }
 
+PROPERTY_COMMAND_T(Media, ChangeStream, Sound::ProcessModel::p_stream, "Change stream")
 PROPERTY_COMMAND_T(
     Media, ChangeStart, Sound::ProcessModel::p_startChannel, "Change start channel")
 PROPERTY_COMMAND_T(
@@ -64,6 +65,7 @@ PROPERTY_COMMAND_T(
     Media, ChangeStretchMode, Sound::ProcessModel::p_stretchMode, "Change stretch mode")
 PROPERTY_COMMAND_T(
     Media, ChangeTempo, Sound::ProcessModel::p_nativeTempo, "Change file tempo")
+SCORE_COMMAND_DECL_T(Media::ChangeStream)
 SCORE_COMMAND_DECL_T(Media::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::ChangeUpmix)
 SCORE_COMMAND_DECL_T(Media::ChangeTempo)

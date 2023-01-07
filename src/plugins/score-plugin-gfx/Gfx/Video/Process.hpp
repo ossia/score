@@ -33,7 +33,7 @@ public:
 
   ~Model() override;
 
-  const std::shared_ptr<video_decoder>& decoder() const noexcept { return m_decoder; }
+  std::shared_ptr<video_decoder> makeDecoder() const noexcept;
 
   QString path() const noexcept { return m_path; }
   void setPath(const QString& f);
@@ -66,7 +66,6 @@ public:
 
 private:
   QString m_path;
-  std::shared_ptr<video_decoder> m_decoder;
   score::gfx::ScaleMode m_scaleMode{};
   double m_nativeTempo{};
   bool m_ignoreTempo{};

@@ -170,8 +170,8 @@ struct MetronomeSounds
   const std::unique_ptr<Media::AudioFile> tick{[this] {
     auto f = std::make_unique<Media::AudioFile>();
     f->load(
-        root + "/metro_tick.wav", root + "/metro_tick.wav",
-        Media::DecodingMethod::Libav);
+        {root + "/metro_tick.wav", root + "/metro_tick.wav",
+         Media::DecodingMethod::Libav});
 
     while(f->samples() != f->decodedSamples())
     {
@@ -183,8 +183,8 @@ struct MetronomeSounds
   const std::unique_ptr<Media::AudioFile> tock{[this] {
     auto f = std::make_unique<Media::AudioFile>();
     f->load(
-        root + "/metro_tock.wav", root + "/metro_tock.wav",
-        Media::DecodingMethod::Libav);
+        {root + "/metro_tock.wav", root + "/metro_tock.wav",
+         Media::DecodingMethod::Libav});
 
     while(f->samples() != f->decodedSamples())
     {

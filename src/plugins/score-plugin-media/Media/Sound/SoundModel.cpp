@@ -51,12 +51,12 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel() { }
 
-void ProcessModel::loadFile(const QString& file)
+void ProcessModel::loadFile(const QString& file, int stream)
 {
   m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
 
-  m_file
-      = AudioFileManager::instance().get(file, score::IDocument::documentContext(*this));
+  m_file = AudioFileManager::instance().get(
+      file, stream, score::IDocument::documentContext(*this));
 
   m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 }
@@ -65,7 +65,7 @@ void ProcessModel::reload()
 {
   if(m_file)
   {
-    loadFile(m_file->absoluteFileName());
+    loadFile(m_file->absoluteFileName(), m_stream);
     on_mediaChanged();
   }
 }
@@ -74,6 +74,7 @@ void ProcessModel::setFile(const QString& file)
 {
   if(file != m_file->originalFile())
   {
+    m_stream = -1;
     loadFile(file);
 
     if(auto tempo = m_file->knownTempo())
@@ -91,9 +92,9 @@ void ProcessModel::setFile(const QString& file)
   }
 }
 
-void ProcessModel::setFileForced(const QString& file)
+void ProcessModel::setFileForced(const QString& file, int stream)
 {
-  loadFile(file);
+  loadFile(file, stream);
 
   on_mediaChanged();
   prettyNameChanged();
@@ -112,6 +113,11 @@ const std::shared_ptr<AudioFile>& ProcessModel::file() const
 QString ProcessModel::prettyName() const noexcept
 {
   return m_file->empty() ? Process::ProcessModel::prettyName() : m_file->fileName();
+}
+
+int ProcessModel::stream() const noexcept
+{
+  return m_stream;
 }
 
 int ProcessModel::upmixChannels() const noexcept
@@ -150,6 +156,17 @@ void ProcessModel::setStartChannel(int startChannel)
 
   m_startChannel = startChannel;
   startChannelChanged(m_startChannel);
+}
+
+void ProcessModel::setStream(int stream)
+{
+  if(m_stream == stream)
+    return;
+
+  m_stream = stream;
+
+  reload();
+  streamChanged(m_stream);
 }
 
 void ProcessModel::setNativeTempo(double t)
@@ -201,8 +218,9 @@ void ProcessModel::ancestorTempoChanged()
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
-  m_stream << proc.m_file->originalFile() << *proc.outlet << proc.m_upmixChannels
-           << proc.m_startChannel << proc.m_mode << proc.m_nativeTempo;
+  m_stream << proc.m_upmixChannels << proc.m_startChannel << proc.m_mode
+           << proc.m_nativeTempo << proc.m_stream << proc.m_file->originalFile()
+           << *proc.outlet;
 
   insertDelimiter();
 }
@@ -210,13 +228,14 @@ void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 {
+  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode
+      >> proc.m_nativeTempo >> proc.m_stream;
+
   QString s;
   m_stream >> s;
-  proc.loadFile(s);
+  proc.loadFile(s, proc.m_stream);
   proc.outlet = load_audio_outlet(*this, &proc);
 
-  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode
-      >> proc.m_nativeTempo;
   checkDelimiter();
 }
 
@@ -229,16 +248,22 @@ void JSONReader::read(const Media::Sound::ProcessModel& proc)
   obj["Start"] = proc.m_startChannel;
   obj["Mode"] = (int)proc.m_mode;
   obj["Tempo"] = proc.m_nativeTempo;
+  obj["Stream"] = proc.m_stream;
 }
 
 template <>
 void JSONWriter::write(Media::Sound::ProcessModel& proc)
 {
-  proc.loadFile(obj["File"].toString());
-  JSONWriter writer{obj["Outlet"]};
-  proc.outlet = Process::load_audio_outlet(writer, &proc);
   proc.m_upmixChannels = obj["Upmix"].toInt();
   proc.m_startChannel = obj["Start"].toInt();
   proc.m_mode = (ossia::audio_stretch_mode)obj["Mode"].toInt();
   proc.m_nativeTempo = obj["Tempo"].toDouble();
+  if(auto stream = obj.tryGet("Stream"))
+  {
+    proc.m_stream = stream->toInt();
+  }
+
+  proc.loadFile(obj["File"].toString(), proc.m_stream);
+  JSONWriter writer{obj["Outlet"]};
+  proc.outlet = Process::load_audio_outlet(writer, &proc);
 }

@@ -82,6 +82,10 @@ private:
 
   int64_t m_n{};
   int64_t m_processed_n{-1};
+
+  std::shared_ptr<AudioFile> m_currentFile;
+  Media::AudioFile::ViewHandle m_currentView;
+  std::atomic_bool m_abort{};
 };
 
 }

@@ -53,6 +53,8 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
 
 LayerView::~LayerView()
 {
+  m_cpt->stop();
+
   ossia::qt::run_async(m_cpt, &QObject::deleteLater);
   m_cpt = nullptr;
 
@@ -94,6 +96,12 @@ void LayerView::recompute() const
 
   if(auto view = getView(*this))
   {
+    // By default we try to force a render of everything, but it's too slow with very large files
+    double minutes
+        = double(m_model.file()->decodedSamples()) / m_model.file()->sampleRate();
+    if(minutes > 10)
+      m_renderAll = false;
+
     // On the first render we render the whole thing
     double x0 = m_renderAll ? 0 : mapFromScene(view->mapToScene(0, 0)).x();
     double xf

@@ -23,7 +23,7 @@ public:
       const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo,
       GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
-      , m_decoder{dec->clone()}
+      , m_decoder{dec}
   {
     auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
     impl = n.get();
@@ -90,13 +90,13 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     Gfx::Video::Model& element, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{element, ctx, "VideoExecutorComponent", parent}
 {
-  if(element.decoder())
+  if(auto dec = element.makeDecoder())
   {
     std::optional<double> tempo;
     if(!element.ignoreTempo())
       tempo = element.nativeTempo();
     auto n = ossia::make_node<video_node>(
-        *ctx.execState, element.decoder(), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
+        *ctx.execState, dec, tempo, ctx.doc.plugin<DocumentPlugin>().exec);
 
     for(auto* outlet : element.outlets())
     {

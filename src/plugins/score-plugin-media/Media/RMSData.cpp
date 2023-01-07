@@ -179,7 +179,7 @@ RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
   {
     for(std::size_t k = 0; k < channels; k++)
     {
-      const int64_t val = begin[k];
+      const float val = begin[k];
       sum[k] = abs_max(sum[k], val);
     }
   }

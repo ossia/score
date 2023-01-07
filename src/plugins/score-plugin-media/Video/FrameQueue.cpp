@@ -35,6 +35,10 @@ FrameQueue::FrameQueue() { }
 
 FrameQueue::~FrameQueue() { }
 
+void FreeAVFrame::operator()(AVFrame* f) const noexcept
+{
+  av_frame_free(&f);
+}
 AVFramePointer FrameQueue::newFrame() noexcept
 {
   // We were working on a frame in this thread (e.g. during a seek, when retrying with EAGAIN..)
@@ -169,9 +173,9 @@ void FrameQueue::drain()
     }
   }
 
-  for(auto f : m_decodeThreadFrameBuffer)
+  for(auto frame : m_decodeThreadFrameBuffer)
   {
-    av_frame_free(&f);
+    av_frame_free(&frame);
   }
   m_decodeThreadFrameBuffer.clear();
 }

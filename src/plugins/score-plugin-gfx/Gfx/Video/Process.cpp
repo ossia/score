@@ -6,6 +6,8 @@
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Settings/Model.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <Media/Commands/ChangeAudioFile.hpp>
+#include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
 
 #include <QFileInfo>
@@ -15,24 +17,55 @@
 W_OBJECT_IMPL(Gfx::Video::Model)
 namespace Gfx::Video
 {
-
-Model::Model(
-    const TimeVal& duration, const QString& path, const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::ProcessModel{duration, id, "VideoProcess", parent}
-    , m_nativeTempo{120}
+struct VideoProps
 {
-  metadata().setInstanceName(*this);
-  setLoops(true);
-  setNativeTempo(Media::tempoAtStartDate(*this));
-  setPath(path);
+  TimeVal duration;
 
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
+  struct Stream
+  {
+    AVMediaType type;
+    std::string name;
+  };
+  std::vector<AVMediaType> streams;
+};
+
+static std::optional<VideoProps> guessVideoProps(const QString& path)
+{
+  AVFormatContext* ctx = avformat_alloc_context();
+  int ret = avformat_open_input(&ctx, path.toStdString().c_str(), nullptr, nullptr);
+  if(ret == 0)
+  {
+    avformat_find_stream_info(ctx, nullptr);
+    if(ctx->nb_streams == 0)
+      return std::nullopt;
+
+    VideoProps ret;
+
+    // Parse streams
+    for(std::size_t i = 0; i < ctx->nb_streams; i++)
+    {
+      ret.streams.push_back(ctx->streams[i]->codecpar->codec_type);
+    }
+
+    // Parse duration
+    int64_t duration = ctx->duration;
+    auto flicks_per_av_time_base = ossia::flicks_per_second<double> / AV_TIME_BASE;
+    ret.duration = TimeVal{(int64_t)(duration * flicks_per_av_time_base)};
+
+    avformat_close_input(&ctx);
+    avformat_free_context(ctx);
+
+    return ret;
+  }
+  else
+  {
+    avformat_close_input(&ctx);
+    avformat_free_context(ctx);
+    return std::nullopt;
+  }
 }
 
-Model::~Model() { }
-
-::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
+static ::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
 {
   static const Gfx::Settings::HardwareVideoDecoder decoders;
   ::Video::DecoderConfiguration conf;
@@ -56,6 +89,35 @@ Model::~Model() { }
   return conf;
 }
 
+Model::Model(
+    const TimeVal& duration, const QString& path, const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Process::ProcessModel{duration, id, "VideoProcess", parent}
+    , m_nativeTempo{120}
+{
+  metadata().setInstanceName(*this);
+  setLoops(true);
+  setNativeTempo(Media::tempoAtStartDate(*this));
+  setPath(path);
+
+  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
+}
+
+Model::~Model() { }
+
+std::shared_ptr<video_decoder> Model::makeDecoder() const noexcept
+try
+{
+  auto dec = std::make_shared<video_decoder>(videoDecoderConfiguration());
+  if(!dec->load(m_path.toStdString()))
+    return {};
+  return dec;
+}
+catch(...)
+{
+  return {};
+}
+
 void Model::setPath(const QString& f)
 {
   if(f == m_path)
@@ -63,9 +125,13 @@ void Model::setPath(const QString& f)
 
   m_path = f;
 
-  m_decoder = std::make_shared<video_decoder>(videoDecoderConfiguration());
-  m_decoder->load(m_path.toStdString());
-  setLoopDuration(TimeVal{m_decoder->duration()});
+  {
+    // FIXME store the metadatas in cache instead of reopening the video every time
+    video_decoder decoder(videoDecoderConfiguration());
+    decoder.open(m_path.toStdString());
+
+    setLoopDuration(TimeVal{decoder.duration()});
+  }
   pathChanged(f);
 }
 
@@ -128,39 +194,43 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
           "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
 }
 
-std::optional<TimeVal> guessVideoDuration(const QString& path)
-{
-  AVFormatContext* ctx = avformat_alloc_context();
-  int ret = avformat_open_input(&ctx, path.toStdString().c_str(), nullptr, nullptr);
-  if(ret == 0)
-  {
-    avformat_find_stream_info(ctx, nullptr);
-    int64_t duration = ctx->duration;
-    avformat_close_input(&ctx);
-    avformat_free_context(ctx);
-    auto flicks_per_av_time_base = ossia::flicks_per_second<double> / AV_TIME_BASE;
-    return TimeVal{(int64_t)(duration * flicks_per_av_time_base)};
-  }
-  else
-  {
-    avformat_close_input(&ctx);
-    avformat_free_context(ctx);
-    return std::nullopt;
-  }
-}
-
 void DropHandler::dropPath(
     std::vector<ProcessDrop>& vec, const QString& filename,
     const score::DocumentContext& ctx) const noexcept
 {
   Process::ProcessDropHandler::ProcessDrop p;
-  p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
   p.creation.prettyName = QFileInfo{filename}.baseName();
   p.creation.customData = filename;
 
-  // Invalid duration -> means that we could not open the file or do anything useful from it
-  if((p.duration = guessVideoDuration(filename)))
-    vec.push_back(std::move(p));
+  if(auto props = guessVideoProps(filename))
+  {
+    p.duration = props->duration;
+
+    // First all the video streams
+    for(std::size_t i = 0; i < props->streams.size(); i++)
+    {
+      if(props->streams[i] == AVMEDIA_TYPE_VIDEO)
+      {
+        p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
+        p.setup = {};
+        vec.push_back(p);
+      }
+    }
+
+    // Then all the audio streams
+    for(std::size_t i = 0; i < props->streams.size(); i++)
+    {
+      if(props->streams[i] == AVMEDIA_TYPE_AUDIO)
+      {
+        p.creation.key = Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get();
+        p.setup = [i](Process::ProcessModel& proc, score::Dispatcher& disp) {
+          auto& p = safe_cast<Media::Sound::ProcessModel&>(proc);
+          disp.submit(new Media::ChangeStream(p, (int)i));
+        };
+        vec.push_back(p);
+      }
+    }
+  }
 }
 
 }

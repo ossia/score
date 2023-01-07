@@ -58,11 +58,12 @@ public:
    * - Will not reload metadata such as tempo, etc.
    * - Will still reload the file even if it's the same file name.
    */
-  void setFileForced(const QString& file);
+  void setFileForced(const QString& file, int stream = -1);
 
   std::shared_ptr<AudioFile>& file();
   const std::shared_ptr<AudioFile>& file() const;
 
+  int stream() const noexcept;
   int upmixChannels() const noexcept;
   int startChannel() const noexcept;
   double nativeTempo() const noexcept;
@@ -70,6 +71,7 @@ public:
 
   void setUpmixChannels(int upmixChannels);
   void setStartChannel(int startChannel);
+  void setStream(int stream);
   void setNativeTempo(double);
   void setStretchMode(ossia::audio_stretch_mode);
 
@@ -81,12 +83,14 @@ public:
   void fileChanged() W_SIGNAL(fileChanged);
   void scoreTempoChanged() W_SIGNAL(scoreTempoChanged);
   void nativeTempoChanged(double t) W_SIGNAL(nativeTempoChanged, t);
+  void streamChanged(int stream) W_SIGNAL(streamChanged, stream);
   void upmixChannelsChanged(int upmixChannels)
       W_SIGNAL(upmixChannelsChanged, upmixChannels);
   void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
   void stretchModeChanged(ossia::audio_stretch_mode mode)
       W_SIGNAL(stretchModeChanged, mode);
 
+  PROPERTY(int, stream READ stream WRITE setStream NOTIFY streamChanged, W_Final)
   PROPERTY(
       int,
       startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged,
@@ -106,7 +110,7 @@ public:
       W_Final)
 
 private:
-  void loadFile(const QString& str);
+  void loadFile(const QString& str, int stream = -1);
   void reload();
   void init();
 
@@ -118,6 +122,7 @@ private:
   int m_startChannel{};
   ossia::audio_stretch_mode m_mode{};
   double m_nativeTempo{};
+  int m_stream{-1};
 };
 }
 }

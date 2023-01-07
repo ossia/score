@@ -38,7 +38,10 @@ WaveformComputer::WaveformComputer()
 
 WaveformComputer::~WaveformComputer() { }
 
-void WaveformComputer::stop() { }
+void WaveformComputer::stop()
+{
+  m_abort.store(true, std::memory_order_release);
+}
 
 struct WaveformComputerImpl
 {
@@ -58,7 +61,7 @@ struct WaveformComputerImpl
         ossia::small_vector<float, 8>& out) noexcept;
     using minmax_frame_fun_t = bool (*)(
         LoopWrapper& h, int64_t start_frame, int64_t end_frame,
-        ossia::small_vector<std::pair<float, float>, 8>& out) noexcept;
+        ossia::small_vector<FloatPair, 8>& out) noexcept;
 
     frame_fun_t frame_impl{};
     absmax_frame_fun_t absmax_frame_impl{};
@@ -67,18 +70,19 @@ struct WaveformComputerImpl
     // TODO could be worth memoizing in a thread_local vector for absmax / minmax if we have a lot
     // of loops
 
-    bool frame(int64_t start_frame, ossia::small_vector<float, 8>& out)
+    bool frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept
     {
       return frame_impl(*this, start_frame, out);
     }
     bool absmax_frame(
-        int64_t start_frame, int64_t end_frame, ossia::small_vector<float, 8>& out)
+        int64_t start_frame, int64_t end_frame,
+        ossia::small_vector<float, 8>& out) noexcept
     {
       return absmax_frame_impl(*this, start_frame, end_frame, out);
     }
     bool minmax_frame(
         int64_t start_frame, int64_t end_frame,
-        ossia::small_vector<std::pair<float, float>, 8>& out)
+        ossia::small_vector<FloatPair, 8>& out) noexcept
     {
       return minmax_frame_impl(*this, start_frame, end_frame, out);
     }
@@ -115,7 +119,7 @@ struct WaveformComputerImpl
     }
     static bool normal_minmax_frame(
         LoopWrapper& h, int64_t start_frame, int64_t end_frame,
-        ossia::small_vector<std::pair<float, float>, 8>& out) noexcept
+        ossia::small_vector<FloatPair, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + start_frame;
       const int64_t end = h.start_offset + end_frame;
@@ -169,7 +173,7 @@ struct WaveformComputerImpl
     }
     static bool loop_minmax_frame(
         LoopWrapper& h, int64_t start_frame, int64_t end_frame,
-        ossia::small_vector<std::pair<float, float>, 8>& out) noexcept
+        ossia::small_vector<FloatPair, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + (start_frame % h.duration);
       const int64_t end = h.start_offset + (end_frame % h.duration);
@@ -339,7 +343,7 @@ struct WaveformComputerImpl
     infos.logical_max_pixel ;       x_samples++, x_pixels++
           )
       {
-        if(computer.m_redraw_count > redraw_number)
+        if(check_abort())
         {
           pool.giveBack(images);
           return;
@@ -401,7 +405,7 @@ struct WaveformComputerImpl
           x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
           x_samples++, x_pixels++)
       {
-        if(!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
+        if(check_abort(x_pixels))
         {
           pool.giveBack(images);
           return;
@@ -433,18 +437,27 @@ struct WaveformComputerImpl
     computer.ready(std::move(images), result);
   }
 
+  bool check_abort(int64_t x_samples) const noexcept
+  {
+    // Check every 16 pixel columns to not put too much overload on the atomic load
+    return ((x_samples & 0xF) == 0)
+           // Check if we have to stop
+           && (computer.m_abort.load(std::memory_order_acquire)
+               // Check if we have to force a redraw and we're late
+               || (!computer.m_forceRedraw && computer.m_redraw_count > redraw_number));
+  }
+
   void compute_mean_minmax(const SizeInfos infos)
   {
     // QPainter* p = (QPainter*) alloca(sizeof(QPainter) * infos.nchannels);
     QVector<QImage*> images;
-
     {
       // QPainterCleanup _{p, infos.nchannels};
 
       if(!initImages(images, infos /*, p, _*/))
         return;
 
-      ossia::small_vector<std::pair<float, float>, 8> mean_sample(infos.nchannels);
+      ossia::small_vector<FloatPair, 8> mean_sample(infos.nchannels);
 
       const float pix_ratio = infos.pixel_ratio;
       for(int32_t x_samples = infos.physical_x0,
@@ -452,7 +465,7 @@ struct WaveformComputerImpl
           x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
           x_samples++, x_pixels++)
       {
-        if(!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
+        if(check_abort(x_pixels))
         {
           pool.giveBack(images);
           return;
@@ -464,7 +477,6 @@ struct WaveformComputerImpl
         bool ok = handle.minmax_frame(start_sample, end_sample, mean_sample);
         if(!ok)
           break;
-
         for(int k = 0; k < infos.nchannels; k++)
         {
           const int min_value = ossia::clamp(
@@ -508,7 +520,7 @@ struct WaveformComputerImpl
         x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
         x_samples++, x_pixels++)
     {
-      if(!computer.m_forceRedraw && computer.m_redraw_count > redraw_number)
+      if(check_abort(x_pixels))
       {
         pool.giveBack(images);
         return;
@@ -656,6 +668,9 @@ struct WaveformComputerImpl
 
 void WaveformComputer::on_recompute(WaveformRequest&& req, int64_t n)
 {
+  if(m_abort.load(std::memory_order_acquire))
+    return;
+
   if(m_redraw_count > n)
     return;
 
@@ -673,6 +688,9 @@ void WaveformComputer::on_recompute(WaveformRequest&& req, int64_t n)
 
 void WaveformComputer::timerEvent(QTimerEvent* event)
 {
+  if(m_abort.load(std::memory_order_acquire))
+    return;
+
   auto& file = m_currentRequest.file;
   if(!file)
     return;
@@ -688,10 +706,15 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
     return;
   }
 
-  auto dataHandle = file->handle();
+  if(file != m_currentFile)
+  {
+    m_currentView = file->handle();
+    m_currentFile = file;
+  }
+
   const double rate = file->sampleRate();
   WaveformComputerImpl::LoopWrapper loopHandle{
-      dataHandle, file->decodedSamples(),
+      m_currentView, file->decodedSamples(),
       m_currentRequest.startOffset.toSample(rate * m_currentRequest.tempo_ratio),
       m_currentRequest.loopDuration.toSample(rate * m_currentRequest.tempo_ratio)};
   if(m_currentRequest.loops)

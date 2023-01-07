@@ -458,7 +458,7 @@ void Graph::addEdge(Port* source, Port* sink)
   else
   {
     qDebug() << "Tried to add edge between " << source << sink << "\n   ==> "
-             << source->node << sink->node;
+             << typeid(*source->node).name() << typeid(*sink->node).name();
   }
 #endif
 }
