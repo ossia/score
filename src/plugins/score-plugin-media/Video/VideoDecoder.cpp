@@ -46,7 +46,8 @@ bool LibAVDecoder::open_codec_context(
     std::function<void(AVCodecContext&)> setup)
 {
   auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec);
-  m_codec = hw_codec;
+  if(hw_dev_ctx)
+    m_codec = hw_codec;
   m_codecContext = avcodec_alloc_context3(m_codec);
   m_codecContext->hwaccel_context = nullptr;
 
