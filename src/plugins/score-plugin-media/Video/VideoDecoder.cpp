@@ -1,11 +1,6 @@
-#include <Media/Libav.hpp>
-
 #include "VideoDecoder.hpp"
 
-#include <iostream>
-#include <QTimer>
-#include <QApplication>
-
+#include <Media/Libav.hpp>
 #include <Video/GpuFormats.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -13,17 +8,20 @@
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/libav.hpp>
 
+#include <QApplication>
 #include <QDebug>
 #include <QElapsedTimer>
-#include <thread>
+#include <QTimer>
 
 #include <functional>
+#include <iostream>
+#include <thread>
 
 #if SCORE_HAS_LIBAV
 
 extern "C" {
-#include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
@@ -47,26 +45,39 @@ bool LibAVDecoder::open_codec_context(
     VideoInterface& self, const AVStream* stream,
     std::function<void(AVCodecContext&)> setup)
 {
+  auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec);
+  m_codec = hw_codec;
   m_codecContext = avcodec_alloc_context3(m_codec);
   m_codecContext->hwaccel_context = nullptr;
 
   avcodec_parameters_to_context(m_codecContext, stream->codecpar);
 
 #if LIBAVUTIL_VERSION_MAJOR >= 57
-  auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec);
   if(hw_dev_ctx)
   {
     m_codecContext->hw_device_ctx = hw_dev_ctx;
+    m_codecContext->opaque = (void*)this;
 
     m_codecContext->get_format = +[](AVCodecContext* ctx, const AVPixelFormat* p) {
-      while(*p != AV_PIX_FMT_NONE)
+      //qDebug() << "device: " << av_pix_fmt_desc_get(ctx->pix_fmt)->name;
+
+      if(auto self = (LibAVDecoder*)ctx->opaque)
       {
-        auto fmt = ffmpegHardwareDecodingFormats(*p).format;
-        if(fmt != AV_PIX_FMT_NONE)
+        while(*p != AV_PIX_FMT_NONE)
         {
-          return fmt;
+          //qDebug() << av_pix_fmt_desc_get(*p)->name;
+          // Check if the format matches the one we want from the expected HWDec
+          if(*p == self->m_conf.hardwareAcceleration)
+          {
+            // Check if the format is indeed available
+            auto fmt = ffmpegHardwareDecodingFormats(*p).format;
+            if(fmt != AV_PIX_FMT_NONE)
+            {
+              return fmt;
+            }
+          }
+          ++p;
         }
-        ++p;
       }
 
       return ctx->pix_fmt;
@@ -74,16 +85,16 @@ bool LibAVDecoder::open_codec_context(
   }
 #endif
 
-  // m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
-  // m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
-  #if defined(__APPLE__)
+// m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
+// m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
+#if defined(__APPLE__)
   if(hw_dev_ctx)
   {
     m_codecContext->thread_count = 1;
     m_codecContext->thread_type = FF_THREAD_SLICE;
   }
   else
-  #endif
+#endif
   {
     m_codecContext->thread_count = m_conf.threads;
     if(m_conf.threads > 0)
@@ -160,7 +171,10 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
   if(ret != 0)
     return {};
 
-  return {hw_device_ctx, codec};
+  if(m_conf.hardwareAcceleration == AV_PIX_FMT_QSV)
+    return {hw_device_ctx, codec};
+  else
+    return {hw_device_ctx, &detected_codec};
 #else
   return {};
 #endif
@@ -723,7 +737,7 @@ bool VideoDecoder::open_stream() noexcept
 
           res = open_codec_context(*this, m_avstream, [=](AVCodecContext& ctx) {
             ctx.framerate
-                 = av_guess_frame_rate(m_formatContext, (AVStream*)m_avstream, NULL);
+                = av_guess_frame_rate(m_formatContext, (AVStream*)m_avstream, NULL);
             m_codecContext->pkt_timebase = m_avstream->time_base;
             // m_codecContext->codec_id = m_codec->id;
           });
@@ -751,8 +765,10 @@ void VideoDecoder::close_video() noexcept
   if(m_codecContext)
   {
     avcodec_flush_buffers(m_codecContext);
+#if defined(__APPLE__)
     if(m_codecContext->hwaccel_context)
       av_videotoolbox_default_free(m_codecContext);
+#endif
     avcodec_free_context(&m_codecContext);
 
     m_codecContext = nullptr;

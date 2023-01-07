@@ -14,6 +14,51 @@ struct AVCodecContext;
 
 namespace Video
 {
+
+inline bool hardwareDecoderIsAvailable(AVPixelFormat p) noexcept
+{
+  switch(p)
+  {
+#if defined(__linux__)
+    case AV_PIX_FMT_VAAPI: {
+      static const bool ok = avcodec_find_decoder_by_name("mjpeg_vaapi");
+      return ok;
+    }
+    case AV_PIX_FMT_VDPAU: {
+      static const bool ok = avcodec_find_decoder_by_name("h264_vdpau");
+      return ok;
+    }
+#endif
+#if defined(_WIN32)
+    case AV_PIX_FMT_DXVA2_VLD: {
+      static const bool ok = avcodec_find_decoder_by_name("h264_dxva2");
+      return ok;
+    }
+    case AV_PIX_FMT_D3D11: {
+      static const bool ok = avcodec_find_decoder_by_name("h264_d3d11va2");
+      return ok;
+    }
+#endif
+#if defined(__APPLE__)
+    case AV_PIX_FMT_VIDEOTOOLBOX:
+      return true;
+#endif
+      // Cross-platform pix formats
+    case AV_PIX_FMT_CUDA: {
+      static const bool ok = avcodec_find_decoder_by_name("mjpeg_cuvid")
+                             || avcodec_find_decoder_by_name("h264_cuvid");
+      return ok;
+    }
+    case AV_PIX_FMT_QSV: {
+      static const bool ok = avcodec_find_decoder_by_name("mjpeg_qsv")
+                             || avcodec_find_decoder_by_name("h264_qsv");
+      return ok;
+    }
+    default:
+      return false;
+  }
+}
+
 inline constexpr bool formatIsHardwareDecoded(AVPixelFormat fmt) noexcept
 {
 #if LIBAVUTIL_VERSION_MAJOR < 57
@@ -88,24 +133,38 @@ inline constexpr HWAccelFormats ffmpegHardwareDecodingFormats(AVPixelFormat p) n
   {
 #if defined(__linux__)
     case AV_PIX_FMT_VAAPI:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_VAAPI))
+        return {};
       return {AV_PIX_FMT_VAAPI, AV_HWDEVICE_TYPE_VAAPI};
     case AV_PIX_FMT_VDPAU:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_VDPAU))
+        return {};
       return {AV_PIX_FMT_VDPAU, AV_HWDEVICE_TYPE_VDPAU};
 #endif
 #if defined(_WIN32)
     case AV_PIX_FMT_DXVA2_VLD:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_DXVA2_VLD))
+        return {};
       return {AV_PIX_FMT_DXVA2_VLD, AV_HWDEVICE_TYPE_DXVA2};
     case AV_PIX_FMT_D3D11:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_D3D11))
+        return {};
       return {AV_PIX_FMT_D3D11, AV_HWDEVICE_TYPE_D3D11VA};
 #endif
 #if defined(__APPLE__)
     case AV_PIX_FMT_VIDEOTOOLBOX:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_VIDEOTOOLBOX))
+        return {};
       return {AV_PIX_FMT_VIDEOTOOLBOX, AV_HWDEVICE_TYPE_VIDEOTOOLBOX};
 #endif
       // Cross-platform pix formats
     case AV_PIX_FMT_CUDA:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_CUDA))
+        return {};
       return {AV_PIX_FMT_CUDA, AV_HWDEVICE_TYPE_CUDA};
     case AV_PIX_FMT_QSV:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_QSV))
+        return {};
       return {AV_PIX_FMT_QSV, AV_HWDEVICE_TYPE_QSV};
       //       case AV_PIX_FMT_VULKAN:
       //         return {AV_PIX_FMT_VULKAN, AV_HWDEVICE_TYPE_VULKAN};
