@@ -2,6 +2,7 @@
 #include <Media/RMSData.hpp>
 
 #include <QFileInfo>
+#include <QDebug>
 
 namespace Media
 {

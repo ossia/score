@@ -85,6 +85,8 @@ static ::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
       conf.hardwareAcceleration = AV_PIX_FMT_D3D11;
     else if(hw == decoders.DXVA)
       conf.hardwareAcceleration = AV_PIX_FMT_DXVA2_VLD;
+    else if(hw == decoders.VideoToolbox)
+      conf.hardwareAcceleration = AV_PIX_FMT_VIDEOTOOLBOX;
   }
   return conf;
 }

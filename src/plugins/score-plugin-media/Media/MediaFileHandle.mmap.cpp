@@ -2,6 +2,7 @@
 #include <Media/RMSData.hpp>
 
 #include <QFileInfo>
+#include <QDebug>
 #include <QStorageInfo>
 
 #define DR_WAV_NO_STDIO
