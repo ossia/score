@@ -62,7 +62,7 @@ void GfxExecutionAction::endTick(const ossia::audio_tick_state& st)
   }
   if(edges_cache != prev_edges)
   {
-    std::sort(edges_cache.begin(), edges_cache.end());
+    ossia::remove_duplicates(edges_cache);
     if(edges_cache != prev_edges)
     {
       {
