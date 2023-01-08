@@ -11,7 +11,7 @@ struct FrameComputer
   const int64_t start_frame;
   const int64_t end_frame;
   ossia::small_vector<T, 8>& sum;
-  static constexpr const Fun_T fun;
+  static constexpr const Fun_T fun{};
 
   void operator()(ossia::monostate) const noexcept { }
 
