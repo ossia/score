@@ -10,11 +10,10 @@ cmake $SCORE_DIR \
  -GNinja \
  -DCMAKE_UNITY_BUILD=1 \
  -DCMAKE_BUILD_TYPE=Release \
- -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi-aarch64/toolchain.cmake \
+ -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi-aarch64/toolchain.aarch64.llvm.cmake \
  -DOSSIA_SDK=/opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi \
- -DCMAKE_CXX_FLAGS="-DCMT_FORCE_NON_CLANG=1 -flax-vector-conversions -Wno-psabi" \
  -DSCORE_DEPLOYMENT_BUILD=1 \
- -DOSSIA_ENABLE_KFR=0 \
+ -DOSSIA_ENABLE_KFR=1 \
  -DOSSIA_ENABLE_FFTW=0 \
  -DCMAKE_INSTALL_PREFIX=install \
  -DSCORE_LINKER_SCRIPT="$SCORE_DIR/cmake/Deployment/Linux/AppImage/version"
