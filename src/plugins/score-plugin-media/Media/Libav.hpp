@@ -1,6 +1,4 @@
 #pragma once
-#if !defined(__EMSCRIPTEN__)
-
 #if __has_include(<libavcodec/avcodec.h>) && \
     __has_include(<libavformat/avformat.h>) && \
     __has_include(<libavdevice/avdevice.h>) && \
@@ -19,7 +17,5 @@ static inline QString av_to_string(int errnum)
   av_strerror(errnum, err, 512);
   return QString::fromUtf8(err);
 }
-
-#endif
 
 #endif
