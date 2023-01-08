@@ -11,7 +11,7 @@ score_common_setup()
 
 find_package(${QT_VERSION} REQUIRED Gui)
 
-if(NOT TARGET avformat)
+if(NOT TARGET avformat AND NOT EMSCRIPTEN)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
 endif()
 
@@ -219,10 +219,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    snappy # for HAP
 )
 
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    avcodec avformat swresample avutil avdevice score_plugin_media
-)
+if(EMSCRIPTEN)
+  target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_media)
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      avcodec avformat swresample avutil avdevice score_plugin_media
+  )
+endif()
 
 if(TARGET shmdata)
   target_sources(${PROJECT_NAME}

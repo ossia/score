@@ -143,9 +143,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 ### FFMPEG ###
-if(EMSCRIPTEN AND OSSIA_SDK)
-  target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_SDK}/ffmpeg/include)
-  target_link_libraries(${PROJECT_NAME} PRIVATE
+if(EMSCRIPTEN)
+  target_include_directories(${PROJECT_NAME} PUBLIC ${OSSIA_SDK}/ffmpeg/include)
+  target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--start-group
     /opt/ossia-sdk-wasm/ffmpeg/lib/libavcodec.a
     /opt/ossia-sdk-wasm/ffmpeg/lib/libavdevice.a
