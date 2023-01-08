@@ -95,11 +95,8 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
 #endif
 
 #if defined(_WIN32)
-  if(auto c = avcodec_find_decoder_by_name("h264_dxva2"))
-    lst += DXVA;
-
-  if(auto c = avcodec_find_decoder_by_name("h264_d3d11va2"))
-    lst += D3D;
+  lst += DXVA;
+  lst += D3D;
 #endif
   return lst;
 }

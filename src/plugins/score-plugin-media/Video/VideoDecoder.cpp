@@ -88,14 +88,12 @@ bool LibAVDecoder::open_codec_context(
 
 // m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
 // m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
-#if defined(__APPLE__)
   if(hw_dev_ctx)
   {
     m_codecContext->thread_count = 1;
     m_codecContext->thread_type = FF_THREAD_SLICE;
   }
   else
-#endif
   {
     m_codecContext->thread_count = m_conf.threads;
     if(m_conf.threads > 0)
@@ -136,9 +134,7 @@ static std::string hwCodecMap(std::string name, AVHWDeviceType device)
     case AV_HWDEVICE_TYPE_VAAPI:
       return name + "_vaapi";
     case AV_HWDEVICE_TYPE_DXVA2:
-      return name + "_dxva2";
     case AV_HWDEVICE_TYPE_D3D11VA:
-      return name + "_d3d11va2";
     case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
       return name;
     default:

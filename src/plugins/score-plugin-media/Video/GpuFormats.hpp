@@ -30,14 +30,10 @@ inline bool hardwareDecoderIsAvailable(AVPixelFormat p) noexcept
     }
 #endif
 #if defined(_WIN32)
-    case AV_PIX_FMT_DXVA2_VLD: {
-      static const bool ok = avcodec_find_decoder_by_name("h264_dxva2");
-      return ok;
-    }
-    case AV_PIX_FMT_D3D11: {
-      static const bool ok = avcodec_find_decoder_by_name("h264_d3d11va2");
-      return ok;
-    }
+    case AV_PIX_FMT_DXVA2_VLD:
+      return true;
+    case AV_PIX_FMT_D3D11:
+      return true;
 #endif
 #if defined(__APPLE__)
     case AV_PIX_FMT_VIDEOTOOLBOX:
