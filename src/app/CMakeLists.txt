@@ -56,7 +56,7 @@ set(SRCS
 if(EMSCRIPTEN)
   qt_add_executable(${APPNAME} MANUAL_FINALIZATION ${SRCS})
 else()
-  add_executable(score-main WIN32 ${SRCS})
+  add_executable(score WIN32 ${SRCS})
 endif()
 
 #target_link_libraries(score-main PRIVATE ${APPNAME})
