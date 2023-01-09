@@ -112,7 +112,7 @@ find_package(${QT_VERSION} REQUIRED
 )
 
 if(NOT Qt5Core_VERSION_STRING)
-  find_package(${QT_VERSION} REQUIRED COMPONENTS StateMachine OpenGLWidgets)
+  find_package(${QT_VERSION} REQUIRED COMPONENTS StateMachine OpenGLWidgets Qml QmlIntegration)
 endif()
 
 enable_testing()
