@@ -67,7 +67,7 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
       node = cld;
     else
     {
-      qDebug() << "looking for" << path << " -- last found: " << node->get_name()
+      qDebug() << "looking for" << path << " -- last found: " << node->get_name().c_str()
                << "\n";
       return {};
     }
@@ -108,7 +108,7 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
       {
         qDebug() << "looking for" << Device::address(path).address << " " << i << " "
                  << vec.size() << " " << vec[i]->displayName()
-                 << " -- last found: " << node->get_name() << "\n";
+                 << " -- last found: " << node->get_name().c_str() << "\n";
         return {};
       }
     }
