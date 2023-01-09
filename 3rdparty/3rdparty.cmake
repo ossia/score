@@ -7,11 +7,11 @@ include(3rdparty/mimalloc.cmake)
 include(3rdparty/dspfilters.cmake)
 include(3rdparty/gamma.cmake)
 include(3rdparty/r8brain.cmake)
+include(3rdparty/snappy.cmake)
 
 if(EMSCRIPTEN)
   return()
 endif()
 include(3rdparty/shmdata.cmake)
 include(3rdparty/sndfile.cmake)
-include(3rdparty/snappy.cmake)
 
