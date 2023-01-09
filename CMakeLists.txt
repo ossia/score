@@ -112,7 +112,10 @@ find_package(${QT_VERSION} REQUIRED
 )
 
 if(NOT Qt5Core_VERSION_STRING)
-  find_package(${QT_VERSION} REQUIRED COMPONENTS StateMachine OpenGLWidgets Qml QmlIntegration ShaderTools)
+  find_package(${QT_VERSION} REQUIRED COMPONENTS StateMachine OpenGLWidgets Qml ShaderTools)
+  if(EMSCRIPTEN)
+    find_package(${QT_VERSION} REQUIRED COMPONENTS QmlIntegration) 
+  endif()
 endif()
 
 enable_testing()
