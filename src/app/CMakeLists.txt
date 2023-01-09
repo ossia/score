@@ -41,19 +41,24 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
 
   add_link_options("--bind")
 
-  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+  # set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
 
-#add_executable(score-main WIN32 AppLauncher.cpp)
-add_executable(${APPNAME} WIN32
+set(SRCS 
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 
   "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomcolor.cpp"
   "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomstyle.cpp"
-
 )
+
+if(EMSCRIPTEN)
+  qt_add_executable(${APPNAME} MANUAL_FINALIZATION ${SRCS})
+else()
+  add_executable(score-main WIN32 ${SRCS})
+endif()
+
 #target_link_libraries(score-main PRIVATE ${APPNAME})
 
 ossia_set_visibility(${APPNAME})
@@ -249,3 +254,7 @@ include(ScoreDeployment)
 
 disable_qt_plugins(${APPNAME})
 enable_minimal_qt_plugins(${APPNAME})
+
+if(EMSCRIPTEN)
+  qt_finalize_executable(${APPNAME})
+endif()

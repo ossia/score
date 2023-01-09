@@ -8,7 +8,7 @@ git init
 git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
 git config --local user.name "github-actions[bot]"
 
-mv /build/ossia-score.js .
+mv /build/*.js .
 mv /build/ossia-score.wasm .
 mv $SCORE_DIR/cmake/Deployment/WASM/* .
 
