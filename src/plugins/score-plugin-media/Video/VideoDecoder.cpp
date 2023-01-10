@@ -133,6 +133,8 @@ static std::string hwCodecMap(std::string name, AVHWDeviceType device)
       return name + "_vdpau";
     case AV_HWDEVICE_TYPE_VAAPI:
       return name + "_vaapi";
+    case AV_HWDEVICE_TYPE_DRM:
+      return name + "_v4l2m2m";
     case AV_HWDEVICE_TYPE_DXVA2:
     case AV_HWDEVICE_TYPE_D3D11VA:
     case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
@@ -166,9 +168,13 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
   AVBufferRef* hw_device_ctx{};
   int ret = av_hwdevice_ctx_create(&hw_device_ctx, device, nullptr, nullptr, 0);
   if(ret != 0)
+  {
+    qDebug() << "Error while opening hardware decoder: " << av_to_string(ret);
     return {};
+  }
 
-  if(m_conf.hardwareAcceleration == AV_PIX_FMT_QSV)
+  if(m_conf.hardwareAcceleration == AV_PIX_FMT_QSV
+     || m_conf.hardwareAcceleration == AV_PIX_FMT_DRM_PRIME)
     return {hw_device_ctx, codec};
   else
     return {hw_device_ctx, &detected_codec};

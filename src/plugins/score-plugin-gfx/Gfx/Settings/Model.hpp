@@ -29,6 +29,7 @@ struct HardwareVideoDecoder
   const QString D3D{"Direct3D 11"};
   const QString DXVA{"DXVA2"};
   const QString VideoToolbox{"Video Toolbox"};
+  const QString V4L2{"V4L2-M2M"};
   operator QStringList() const noexcept;
 };
 

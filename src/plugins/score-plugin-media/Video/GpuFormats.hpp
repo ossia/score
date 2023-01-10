@@ -20,6 +20,12 @@ inline bool hardwareDecoderIsAvailable(AVPixelFormat p) noexcept
   switch(p)
   {
 #if defined(__linux__)
+#if defined(__arm__) || defined(__aarch64__)
+    case AV_PIX_FMT_DRM_PRIME: {
+      static const bool ok = avcodec_find_decoder_by_name("h264_v4l2m2m");
+      return ok;
+    }
+#endif
     case AV_PIX_FMT_VAAPI: {
       static const bool ok = avcodec_find_decoder_by_name("mjpeg_vaapi");
       return ok;
@@ -69,6 +75,7 @@ inline constexpr bool formatIsHardwareDecoded(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_CUDA:
     case AV_PIX_FMT_QSV:
     case AV_PIX_FMT_VIDEOTOOLBOX:
+    case AV_PIX_FMT_DRM_PRIME:
       return true;
     default:
       return false;
@@ -128,6 +135,10 @@ inline constexpr HWAccelFormats ffmpegHardwareDecodingFormats(AVPixelFormat p) n
   switch(p)
   {
 #if defined(__linux__)
+    case AV_PIX_FMT_DRM_PRIME:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_DRM_PRIME))
+        return {};
+      return {AV_PIX_FMT_DRM_PRIME, AV_HWDEVICE_TYPE_DRM};
     case AV_PIX_FMT_VAAPI:
       if(!hardwareDecoderIsAvailable(AV_PIX_FMT_VAAPI))
         return {};
