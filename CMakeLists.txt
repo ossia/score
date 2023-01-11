@@ -48,7 +48,11 @@ if(APPLE)
 endif()
 
 if(NOT QT_VERSION)
-  set(QT_VERSION Qt5 5.9)
+  if("${QT_QMAKE_EXECUTABLE}" MATCHES ".*qmake6")
+    set(QT_VERSION Qt6 6.2)
+  else()
+    set(QT_VERSION Qt5 5.9)
+  endif()
 endif()
 
 # QT_PREFIX: Qt5 / Qt6
