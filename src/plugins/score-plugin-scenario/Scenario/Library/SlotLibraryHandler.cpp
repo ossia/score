@@ -61,6 +61,7 @@ bool ScenarioLibraryHandler::onDrop(
   {
     auto obj = readJson(mime.data(score::mime::scenariodata()));
     const auto& states = obj["States"].GetArray();
+    const auto& intervals = obj["Intervals"].GetArray();
     if(states.Size() == 1 && obj["Intervals"].GetArray().Size() == 0)
     {
       const auto& state = states[0];
@@ -79,7 +80,9 @@ bool ScenarioLibraryHandler::onDrop(
     }
     else
     {
-      auto basename = "Scenario";
+      const auto& interval = intervals[0];
+      auto basename = JsonValue{interval["Metadata"]["ScriptingName"]}.toString();
+
       QString filename
           = score::addUniqueSuffix(parent.absolutePath() + "/" + basename + ".scenario");
 
