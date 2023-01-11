@@ -55,7 +55,6 @@ jobs:
       matrix:
         include:
           - { sys: mingw64, env: x86_64 }
-          - { sys: mingw32, env: i686 }
           - { sys: ucrt64,  env: ucrt-x86_64 }
           - { sys: clang64, env: clang-x86_64 }
     steps:
