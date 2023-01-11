@@ -37,13 +37,20 @@ struct Channel
 {
   QString name;
   FixtureCapabilities capabilities;
+  std::vector<QString> fineChannels;
   int defaultValue{};
+};
+
+struct ModeInfo
+{
+  std::vector<QString> channelNames;
 };
 
 struct Fixture
 {
   QString fixtureName;
   QString modeName;
+  ModeInfo mode;
   std::vector<Channel> controls;
   int address{};
 };

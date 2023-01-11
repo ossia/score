@@ -90,14 +90,14 @@ void JSONWriter::write(Protocols::Artnet::RangeCapability& n)
 template <>
 void DataStreamReader::read(const Protocols::Artnet::Channel& n)
 {
-  m_stream << n.name << n.defaultValue << n.capabilities;
+  m_stream << n.name << n.defaultValue << n.capabilities << n.fineChannels;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::Artnet::Channel& n)
 {
-  m_stream >> n.name >> n.defaultValue >> n.capabilities;
+  m_stream >> n.name >> n.defaultValue >> n.capabilities >> n.fineChannels;
   checkDelimiter();
 }
 
@@ -108,6 +108,7 @@ void JSONReader::read(const Protocols::Artnet::Channel& n)
   obj["Name"] = n.name;
   obj["DefaultValue"] = n.defaultValue;
   obj["Capabilities"] = n.capabilities;
+  obj["FineChannels"] = n.fineChannels;
   stream.EndObject();
 }
 
@@ -117,19 +118,49 @@ void JSONWriter::write(Protocols::Artnet::Channel& n)
   n.name <<= obj["Name"];
   n.defaultValue <<= obj["DefaultValue"];
   n.capabilities <<= obj["Capabilities"];
+  if(auto fc = obj.tryGet("FineChannels"))
+    n.fineChannels <<= *fc;
+}
+
+template <>
+void DataStreamReader::read(const Protocols::Artnet::ModeInfo& n)
+{
+  m_stream << n.channelNames;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Protocols::Artnet::ModeInfo& n)
+{
+  m_stream >> n.channelNames;
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Protocols::Artnet::ModeInfo& n)
+{
+  stream.StartObject();
+  obj["ChannelNames"] = n.channelNames;
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Protocols::Artnet::ModeInfo& n)
+{
+  n.channelNames <<= obj["ChannelNames"];
 }
 
 template <>
 void DataStreamReader::read(const Protocols::Artnet::Fixture& n)
 {
-  m_stream << n.fixtureName << n.modeName << n.controls << n.address;
+  m_stream << n.fixtureName << n.modeName << n.mode << n.controls << n.address;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::Artnet::Fixture& n)
 {
-  m_stream >> n.fixtureName >> n.modeName >> n.controls >> n.address;
+  m_stream >> n.fixtureName >> n.modeName >> n.mode >> n.controls >> n.address;
   checkDelimiter();
 }
 
@@ -139,6 +170,7 @@ void JSONReader::read(const Protocols::Artnet::Fixture& n)
   stream.StartObject();
   obj["Name"] = n.fixtureName;
   obj["Mode"] = n.modeName;
+  obj["ModeInfo"] = n.mode;
   obj["Address"] = n.address;
   obj["Channels"] = n.controls;
   stream.EndObject();
@@ -149,6 +181,8 @@ void JSONWriter::write(Protocols::Artnet::Fixture& n)
 {
   n.fixtureName <<= obj["Name"];
   n.modeName <<= obj["Mode"];
+  if(auto mi = obj.tryGet("ModeInfo"))
+    n.mode <<= *mi;
   n.address <<= obj["Address"];
   n.controls <<= obj["Channels"];
 }

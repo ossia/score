@@ -38,6 +38,7 @@ namespace Protocols
 struct FixtureMode
 {
   QString name;
+  std::vector<QString> allChannels;
   std::vector<Artnet::Channel> channels;
 
   QString content() const noexcept
@@ -83,11 +84,12 @@ public:
       {
         Artnet::Channel chan;
         chan.name = chan_it->name.GetString();
+        auto& jchan = chan_it->value;
 
-        if(chan_it->value.IsObject())
+        if(jchan.IsObject())
         {
-          if(auto default_it = chan_it->value.FindMember("defaultValue");
-             default_it != chan_it->value.MemberEnd())
+          if(auto default_it = jchan.FindMember("defaultValue");
+             default_it != jchan.MemberEnd())
           {
             if(default_it->value.IsNumber())
             {
@@ -104,8 +106,31 @@ public:
             }
           }
 
-          if(auto capability_it = chan_it->value.FindMember("capability");
-             capability_it != chan_it->value.MemberEnd())
+          if(auto fineChannels_it = jchan.FindMember("fineChannelAliases");
+             fineChannels_it != jchan.MemberEnd())
+          {
+            const auto& fineChannels = fineChannels_it->value;
+            if(fineChannels.IsArray())
+            {
+              const auto& fc = fineChannels.GetArray();
+              for(auto& val : fc)
+              {
+                if(val.IsString())
+                {
+                  chan.fineChannels.push_back(
+                      QString::fromUtf8(val.GetString(), val.GetStringLength()));
+                }
+                else
+                {
+                  chan.fineChannels.clear();
+                  break;
+                }
+              }
+            }
+          }
+
+          if(auto capability_it = jchan.FindMember("capability");
+             capability_it != jchan.MemberEnd())
           {
             Artnet::SingleCapability cap;
             if(auto effectname_it = capability_it->value.FindMember("effectName");
@@ -119,8 +144,8 @@ public:
             cap.type = capability_it->value["type"].GetString();
             chan.capabilities = std::move(cap);
           }
-          else if(auto capabilities_it = chan_it->value.FindMember("capabilities");
-                  capabilities_it != chan_it->value.MemberEnd())
+          else if(auto capabilities_it = jchan.FindMember("capabilities");
+                  capabilities_it != jchan.MemberEnd())
           {
             std::vector<Artnet::RangeCapability> caps;
             for(const auto& capa : capabilities_it->value.GetArray())
@@ -183,6 +208,8 @@ public:
                 {
                   m.channels.push_back(matched_channel_it->second);
                 }
+                m.allChannels.push_back(
+                    QString::fromUtf8(channel.GetString(), channel.GetStringLength()));
               }
             }
           }
@@ -589,10 +616,13 @@ public:
     if(!ossia::valid_index(mode_index, m_currentFixture->modes))
       return f;
 
+    auto& mode = m_currentFixture->modes[mode_index];
+
     f.fixtureName = m_currentFixture->name;
     f.modeName = m_mode.currentText();
+    f.mode.channelNames = mode.allChannels;
     f.address = m_address.value();
-    f.controls = m_currentFixture->modes[mode_index].channels;
+    f.controls = mode.channels;
 
     return f;
   }

@@ -12,8 +12,8 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/protocols/artnet/artnet_protocol.hpp>
 #include <ossia/protocols/artnet/dmx_parameter.hpp>
-#include <ossia/protocols/artnet/e131_protocol.hpp>
 #include <ossia/protocols/artnet/dmxusbpro_protocol.hpp>
+#include <ossia/protocols/artnet/e131_protocol.hpp>
 
 #include <QSerialPortInfo>
 
@@ -49,13 +49,25 @@ static void addArtnetFixture(
   if(!fixt_node)
     return;
 
-  // For each channel, a sub-node that goes [0-255]
+  // For each channel, a sub-node that goes [0-255] or more depending on bit depth
   int k = fix.address;
   for(auto& chan : fix.controls)
   {
     auto chan_node = fixt_node->create_child(chan.name.toStdString());
     auto chan_param = std::make_unique<ossia::net::dmx_parameter>(*chan_node, buffer, k);
     auto& p = *chan_param;
+
+    // FIXME this only works if the channels are joined for now
+    int bytes = 1;
+    for(auto& name : chan.fineChannels)
+    {
+      if(ossia::contains(fix.mode.channelNames, name))
+      {
+        bytes++;
+      }
+    }
+    p.m_bytes = bytes;
+
     chan_node->set_parameter(std::move(chan_param));
     p.set_default_value(chan.defaultValue);
     p.set_value(chan.defaultValue);
@@ -166,7 +178,7 @@ bool ArtnetDevice::reconnect()
             = std::make_unique<ossia::net::dmxusbpro_protocol>(m_ctx, conf, sock_conf);
         auto& proto = *artnet_proto;
         auto dev = std::make_unique<ossia::net::generic_device>(
-              std::move(artnet_proto), settings().name.toStdString());
+            std::move(artnet_proto), settings().name.toStdString());
 
         for(auto& fixt : set.fixtures)
         {
