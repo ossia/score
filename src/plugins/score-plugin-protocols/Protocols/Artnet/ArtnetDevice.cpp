@@ -109,7 +109,7 @@ static void addArtnetFixture(
 
     ossia::visit(vis, chan.capabilities);
 
-    k++;
+    k += bytes;
   }
 }
 }
