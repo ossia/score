@@ -50,15 +50,24 @@ static void addArtnetFixture(
     return;
 
   // For each channel, a sub-node that goes [0-255] or more depending on bit depth
-  int k = fix.address;
   for(auto& chan : fix.controls)
   {
+    // Get the dmx offset of this channel:
+    auto channel_it = ossia::find(fix.mode.channelNames, chan.name);
+    if(channel_it == chan.fineChannels.end())
+      continue;
+    const int channel_offset = std::distance(fix.mode.channelNames.begin(), channel_it);
+    const int dmx_channel = fix.address + channel_offset;
+
     auto chan_node = fixt_node->create_child(chan.name.toStdString());
-    auto chan_param = std::make_unique<ossia::net::dmx_parameter>(*chan_node, buffer, k);
+    auto chan_param
+        = std::make_unique<ossia::net::dmx_parameter>(*chan_node, buffer, dmx_channel);
+
     auto& p = *chan_param;
 
     // FIXME this only works if the channels are joined for now
     int bytes = 1;
+
     for(auto& name : chan.fineChannels)
     {
       if(ossia::contains(fix.mode.channelNames, name))
@@ -105,11 +114,9 @@ static void addArtnetFixture(
             ossia::net::set_description(*cld, capa.comment.toStdString());
         }
       }
-    } vis{*chan_node, buffer, k};
+    } vis{*chan_node, buffer, dmx_channel};
 
     ossia::visit(vis, chan.capabilities);
-
-    k += bytes;
   }
 }
 }

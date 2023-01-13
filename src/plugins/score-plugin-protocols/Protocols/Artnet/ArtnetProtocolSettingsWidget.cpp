@@ -46,11 +46,11 @@ struct FixtureMode
     QString str;
     str.reserve(500);
     int k = 0;
-    for(auto& chan : channels)
+    for(auto& chan : allChannels)
     {
       str += QString::number(k);
       str += ": \t";
-      str += chan.name;
+      str += chan.isEmpty() ? "<No function>" : chan;
       str += "\n";
       k++;
     }
@@ -210,6 +210,10 @@ public:
                 }
                 m.allChannels.push_back(
                     QString::fromUtf8(channel.GetString(), channel.GetStringLength()));
+              }
+              else
+              {
+                m.allChannels.push_back({});
               }
             }
           }
