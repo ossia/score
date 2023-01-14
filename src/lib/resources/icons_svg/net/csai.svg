@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   id="Calque_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 16 24"
+   xml:space="preserve"
+   sodipodi:docname="csai.svg"
+   width="16"
+   height="24"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="2556"
+   inkscape:window-height="454"
+   id="namedview13"
+   showgrid="false"
+   inkscape:zoom="9.530887"
+   inkscape:cx="-24.499294"
+   inkscape:cy="5.9805556"
+   inkscape:window-x="0"
+   inkscape:window-y="965"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="layer2"
+   inkscape:showpageshadow="2"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1" />
+<style
+   type="text/css"
+   id="style2">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#808080;}
+</style>
+<title
+   id="title4">boutons</title>
+<rect
+   x="-2.930819"
+   y="-9.6875639"
+   class="st0"
+   width="27.9"
+   height="27.9"
+   id="rect6"
+   style="display:none;fill:#3d3d3d" />
+<path
+   class="st1"
+   d="m 25.469181,18.712435 h -28.9 v -28.9 h 28.9 z m -27.9,-1 h 26.9 V -9.1875647 h -26.9 z"
+   id="path8"
+   inkscape:connector-curvature="0"
+   style="display:none;fill:#000100" />
+
+<g
+   inkscape:groupmode="layer"
+   id="layer2"
+   inkscape:label="Icon"
+   transform="translate(-3.430819,-29.287565)"><path
+     id="path15"
+     style="opacity:1;fill:none;stroke:#646464;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round;stroke-dashoffset:0;paint-order:stroke fill markers;stroke-opacity:1;stroke-dasharray:0.00023,4.6"
+     d="M 13.781705,49.896655 C 11.345828,52.094332 5.1575683,50.903405 5.0914373,45.67149 5.0579893,43.025302 5.1090933,40.538879 5.1023703,37.187581 5.0915453,31.792198 11.03125,30.487852 13.56609,32.570607"
+     sodipodi:nodetypes="cssc" /><path
+     id="path52334"
+     style="opacity:1;fill:none;stroke:#646464;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dashoffset:4.8;stroke-opacity:1;paint-order:stroke fill markers;stroke-dasharray:none"
+     d="m 13.781705,49.896655 c -2.435877,2.197677 -8.624137,1.00675 -8.690268,-4.225165 -0.03345,-2.646188 0.01766,-5.132611 0.01093,-8.483909 -0.01083,-5.395383 5.92888,-6.699729 8.46372,-4.616974"
+     sodipodi:nodetypes="cssc" /></g></svg>
