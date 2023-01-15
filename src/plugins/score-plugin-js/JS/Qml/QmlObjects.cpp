@@ -2,6 +2,10 @@
 
 #include <JS/Qml/Metatypes.hpp>
 
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::Inlet)
 W_OBJECT_IMPL(JS::Outlet)
@@ -36,6 +40,82 @@ ValueInlet::ValueInlet(QObject* parent)
 }
 
 ValueInlet::~ValueInlet() { }
+
+int ValueInlet::length() const noexcept
+{
+  switch(this->m_value.type())
+  {
+    case QVariant::Type::Vector2D:
+      return 2;
+    case QVariant::Type::Vector3D:
+      return 3;
+    case QVariant::Type::Vector4D:
+      return 4;
+    case QVariant::Type::List: {
+      const auto& lst = this->m_value.value<QVariantList>();
+      return lst.size();
+    }
+    default: {
+      if(this->m_value.canConvert<QVariantList>())
+      {
+        const auto& lst = this->m_value.value<QVariantList>();
+        return lst.size();
+      }
+      break;
+    }
+  }
+  return 0;
+}
+
+QVariant ValueInlet::at(int index) const noexcept
+{
+  switch(this->m_value.type())
+  {
+    case QVariant::Type::Vector2D: {
+      if(index == 0)
+        return this->m_value.value<QVector2D>().x();
+      else if(index == 1)
+        return this->m_value.value<QVector2D>().y();
+      break;
+    }
+    case QVariant::Type::Vector3D: {
+      if(index == 0)
+        return this->m_value.value<QVector3D>().x();
+      else if(index == 1)
+        return this->m_value.value<QVector3D>().y();
+      else if(index == 2)
+        return this->m_value.value<QVector3D>().z();
+      break;
+    }
+    case QVariant::Type::Vector4D: {
+      if(index == 0)
+        return this->m_value.value<QVector4D>().x();
+      else if(index == 1)
+        return this->m_value.value<QVector4D>().y();
+      else if(index == 2)
+        return this->m_value.value<QVector4D>().z();
+      else if(index == 3)
+        return this->m_value.value<QVector4D>().w();
+      break;
+    }
+    case QVariant::Type::List: {
+      const auto& lst = this->m_value.value<QVariantList>();
+      if(index >= 0 && index < lst.size())
+        return lst[index];
+      break;
+    }
+    default: {
+      if(this->m_value.canConvert<QVariantList>())
+      {
+        const auto& lst = this->m_value.value<QVariantList>();
+        if(index >= 0 && index < lst.size())
+          return lst[index];
+      }
+      break;
+    }
+  }
+  return {};
+}
 
 QVariant ValueInlet::value() const
 {
@@ -145,6 +225,23 @@ void MidiOutlet::clear()
 const QVector<QVector<int>>& MidiOutlet::midi() const
 {
   return m_midi;
+}
+
+void AudioOutlet::setChannel(int i, const QJSValue& v)
+{
+  if(i < 0)
+    i = 0;
+  if(i + 1 > std::ssize(m_audio))
+    m_audio.resize(i + 1);
+
+  int n = v.property("length").toNumber();
+  auto& arr = m_audio[i];
+  arr.resize(n);
+  double* data = arr.data();
+  for(int s = 0; s < n; s++)
+  {
+    data[s] = v.property(s).toNumber();
+  }
 }
 
 Inlet::~Inlet() { }

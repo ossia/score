@@ -26,6 +26,7 @@ if("clang" STREQUAL "${CNINJA_COMPILER}" OR "gcc" STREQUAL "${CNINJA_COMPILER}")
       " -Wno-four-char-constants"
       # " -Wweak-vtables"
       " -ftemplate-backtrace-limit=0"
+      " -Wno-extra-semi"
     )
   elseif("gcc" STREQUAL "${CNINJA_COMPILER}")
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=shadow -Wno-error=switch -Wno-error=switch-enum -Wno-error=empty-body -Wno-error=overloaded-virtual -Wno-error=suggest-final-methods -Wno-error=suggest-final-types -Wno-error=suggest-override -Wno-error=maybe-uninitialized")

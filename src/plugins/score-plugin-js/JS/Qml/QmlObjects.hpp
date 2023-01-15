@@ -87,6 +87,12 @@ public:
     return new Process::ValueInlet(id, parent);
   }
 
+  int length() const noexcept;
+  W_SLOT(length)
+
+  QVariant at(int index) const noexcept;
+  W_SLOT(at)
+
   void clear() { m_values.clear(); }
   void setValue(QVariant value);
   void addValue(QVariant&& val) { m_values.append(std::move(val)); }
@@ -326,15 +332,7 @@ public:
 
   const QVector<QVector<double>>& audio() const;
 
-  void setChannel(int i, QVector<double> v)
-  {
-    if(i < 0)
-      i = 0;
-    if(i + 1 > std::ssize(m_audio))
-      m_audio.resize(i + 1);
-
-    m_audio[i] = v;
-  }
+  void setChannel(int i, const QJSValue& v);
   W_INVOKABLE(setChannel)
 private:
   QVector<QVector<double>> m_audio;
@@ -436,46 +434,16 @@ public:
 #endif
   }
 
-  QJSValue& tick() /*Qt6: const*/ noexcept
-  {
-    return m_tick;
-  }
-  void setTick(const QJSValue& v)
-  {
-    m_tick = v;
-  }
-  QJSValue& start() /*Qt6: const*/ noexcept
-  {
-    return m_start;
-  }
-  void setStart(const QJSValue& v)
-  {
-    m_start = v;
-  }
-  QJSValue& stop() /*Qt6: const*/ noexcept
-  {
-    return m_stop;
-  }
-  void setStop(const QJSValue& v)
-  {
-    m_stop = v;
-  }
-  QJSValue& pause() /*Qt6: const*/ noexcept
-  {
-    return m_pause;
-  }
-  void setPause(const QJSValue& v)
-  {
-    m_pause = v;
-  }
-  QJSValue& resume() /*Qt6: const*/ noexcept
-  {
-    return m_resume;
-  }
-  void setResume(const QJSValue& v)
-  {
-    m_resume = v;
-  }
+  QJSValue& tick() /*Qt6: const*/ noexcept { return m_tick; }
+  void setTick(const QJSValue& v) { m_tick = v; }
+  QJSValue& start() /*Qt6: const*/ noexcept { return m_start; }
+  void setStart(const QJSValue& v) { m_start = v; }
+  QJSValue& stop() /*Qt6: const*/ noexcept { return m_stop; }
+  void setStop(const QJSValue& v) { m_stop = v; }
+  QJSValue& pause() /*Qt6: const*/ noexcept { return m_pause; }
+  void setPause(const QJSValue& v) { m_pause = v; }
+  QJSValue& resume() /*Qt6: const*/ noexcept { return m_resume; }
+  void setResume(const QJSValue& v) { m_resume = v; }
   W_PROPERTY(QJSValue, tick READ tick WRITE setTick CONSTANT)
   W_PROPERTY(QJSValue, start READ start WRITE setStart CONSTANT)
   W_PROPERTY(QJSValue, stop READ stop WRITE setStop CONSTANT)

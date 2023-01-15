@@ -7,6 +7,8 @@
 #include <score_plugin_jit_export.h>
 
 #include <verdigris>
+
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #undef RESET
 namespace score
 {
