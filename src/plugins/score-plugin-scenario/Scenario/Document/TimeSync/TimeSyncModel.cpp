@@ -85,6 +85,24 @@ void TimeSyncModel::setEvents(const TimeSyncModel::EventIdVec& events)
   m_events = events;
 }
 
+void TimeSyncModel::setNetworkGroup(const QString& group)
+{
+  if(group != m_networkGroup)
+  {
+    m_networkGroup = group;
+    networkGroupChanged(group);
+  }
+}
+
+void TimeSyncModel::setNetworkFlags(Process::NetworkFlags flags)
+{
+  if(flags != m_networkFlags)
+  {
+    m_networkFlags = flags;
+    networkFlagsChanged(flags);
+  }
+}
+
 void TimeSyncModel::setExpression(const State::Expression& expression)
 {
   if(m_expression == expression)

@@ -24,6 +24,9 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
   const QPixmap snapshot_off;
   const QPixmap snapshot_on;
 
+  const QPixmap net_sync_off;
+  const QPixmap net_sync_on;
+
   const QPixmap close_off;
   const QPixmap close_on;
 

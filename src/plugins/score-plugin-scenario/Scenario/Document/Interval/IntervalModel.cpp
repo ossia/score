@@ -233,6 +233,24 @@ void IntervalModel::setTimeSignatureMap(const TimeSignatureMap& map)
   }
 }
 
+void IntervalModel::setNetworkGroup(const QString& group)
+{
+  if(group != m_networkGroup)
+  {
+    m_networkGroup = group;
+    networkGroupChanged(group);
+  }
+}
+
+void IntervalModel::setNetworkFlags(Process::NetworkFlags flags)
+{
+  if(flags != m_networkFlags)
+  {
+    m_networkFlags = flags;
+    networkFlagsChanged(flags);
+  }
+}
+
 ossia::musical_sync IntervalModel::quantizationRate() const noexcept
 {
   return m_quantRate;

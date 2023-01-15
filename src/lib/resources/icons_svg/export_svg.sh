@@ -11,7 +11,7 @@ fi
 
 if [[ -d "$svg_dir" ]]; then
 echo "DIR $svg_dir"
-        for f in `find $svg_dir -type f -name "*.svg"` ; do
+        for f in `find $svg_dir -xtype f -name "*.svg"` ; do
                 filename=$(basename $f)
                 extension="${filename##*.}"
                 filename="${filename%.*}"

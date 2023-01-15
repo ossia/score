@@ -197,6 +197,22 @@ public:
   void setStartMarker(TimeVal t);
   TimeVal startMarker() const noexcept;
 
+  QString networkGroup() const noexcept { return m_networkGroup; }
+  void setNetworkGroup(const QString& b);
+  void networkGroupChanged(const QString& b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, networkGroupChanged, b)
+  PROPERTY(
+      QString,
+      networkGroup READ networkGroup WRITE setNetworkGroup NOTIFY networkGroupChanged)
+
+  Process::NetworkFlags networkFlags() const noexcept { return m_networkFlags; }
+  void setNetworkFlags(Process::NetworkFlags b);
+  void networkFlagsChanged(Process::NetworkFlags b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, networkFlagsChanged, b)
+  PROPERTY(
+      Process::NetworkFlags,
+      networkFlags READ networkFlags WRITE setNetworkFlags NOTIFY networkFlagsChanged)
+
   void hasTimeSignatureChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTimeSignatureChanged, arg_1)
   void timeSignaturesChanged(const TimeSignatureMap& arg_1)
@@ -295,6 +311,10 @@ private:
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
+
+  QString m_networkGroup{};
+  Process::NetworkFlags m_networkFlags{};
+
   IntervalExecutionState m_executionState : 2;
   ViewMode m_viewMode : 1;
   bool m_smallViewShown : 1;

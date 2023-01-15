@@ -161,6 +161,22 @@ public:
       bool, creatingControls READ creatingControls WRITE setCreatingControls NOTIFY
                 creatingControlsChanged)
 
+  QString networkGroup() const noexcept { return m_networkGroup; }
+  void setNetworkGroup(const QString& b);
+  void networkGroupChanged(const QString& b)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkGroupChanged, b)
+  PROPERTY(
+      QString,
+      networkGroup READ networkGroup WRITE setNetworkGroup NOTIFY networkGroupChanged)
+
+  Process::NetworkFlags networkFlags() const noexcept { return m_networkFlags; }
+  void setNetworkFlags(Process::NetworkFlags b);
+  void networkFlagsChanged(Process::NetworkFlags b)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkFlagsChanged, b)
+  PROPERTY(
+      Process::NetworkFlags,
+      networkFlags READ networkFlags WRITE setNetworkFlags NOTIFY networkFlagsChanged)
+
   // FIXME ugh
   QWidget* externalUI{};
 
@@ -218,6 +234,8 @@ private:
   TimeVal m_loopDuration{};
   QPointF m_position{};
   QSizeF m_size{};
+  QString m_networkGroup{};
+  Process::NetworkFlags m_networkFlags{};
   bool m_loops{};
 };
 

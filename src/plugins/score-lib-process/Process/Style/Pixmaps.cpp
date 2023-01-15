@@ -42,6 +42,9 @@ Pixmaps::Pixmaps() noexcept
     , snapshot_off{score::get_pixmap(":/icons/preset_snapshot_off.png")}
     , snapshot_on{score::get_pixmap(":/icons/preset_snapshot_on.png")}
 
+    , net_sync_off{score::get_pixmap(":/icons/net_16/pfa.png")}
+    , net_sync_on{score::get_pixmap(":/icons/net_16/pssa.png")}
+
     , close_off{score::get_pixmap(":/icons/close_on.png")}
     , close_on{score::get_pixmap(":/icons/close_off.png")}
 

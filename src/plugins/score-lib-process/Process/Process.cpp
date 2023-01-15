@@ -281,6 +281,24 @@ void ProcessModel::setLoopDuration(TimeVal b)
   }
 }
 
+void ProcessModel::setNetworkGroup(const QString& group)
+{
+  if(group != m_networkGroup)
+  {
+    m_networkGroup = group;
+    networkGroupChanged(group);
+  }
+}
+
+void ProcessModel::setNetworkFlags(Process::NetworkFlags flags)
+{
+  if(flags != m_networkFlags)
+  {
+    m_networkFlags = flags;
+    networkFlagsChanged(flags);
+  }
+}
+
 QPointF ProcessModel::position() const noexcept
 {
   return m_position;

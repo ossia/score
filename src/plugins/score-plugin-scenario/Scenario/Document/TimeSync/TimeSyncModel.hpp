@@ -2,6 +2,7 @@
 #include <State/Expression.hpp>
 
 #include <Process/Dataflow/TimeSignature.hpp>
+#include <Process/ProcessFlags.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
@@ -81,6 +82,22 @@ public:
   void setWaiting(bool);
   bool waiting() const noexcept;
 
+  QString networkGroup() const noexcept { return m_networkGroup; }
+  void setNetworkGroup(const QString& b);
+  void networkGroupChanged(const QString& b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, networkGroupChanged, b)
+  PROPERTY(
+      QString,
+      networkGroup READ networkGroup WRITE setNetworkGroup NOTIFY networkGroupChanged)
+
+  Process::NetworkFlags networkFlags() const noexcept { return m_networkFlags; }
+  void setNetworkFlags(Process::NetworkFlags b);
+  void networkFlagsChanged(Process::NetworkFlags b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, networkFlagsChanged, b)
+  PROPERTY(
+      Process::NetworkFlags,
+      networkFlags READ networkFlags WRITE setNetworkFlags NOTIFY networkFlagsChanged)
+
 public:
   void dateChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
@@ -119,6 +136,8 @@ private:
 
   EventIdVec m_events;
   ossia::musical_sync m_musicalSync{-1.};
+  QString m_networkGroup{};
+  Process::NetworkFlags m_networkFlags{};
   bool m_active{false};
   bool m_autotrigger{false};
   bool m_startPoint{false};

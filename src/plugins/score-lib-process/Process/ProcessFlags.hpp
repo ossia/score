@@ -1,7 +1,10 @@
 #pragma once
 #include <ossia/detail/config.hpp>
 
+#include <wobjectdefs.h>
+
 #include <cinttypes>
+
 namespace Process
 {
 class ProcessModel;
@@ -73,4 +76,35 @@ constexpr ProcessFlags operator|=(ProcessFlags& a, ProcessFlags b) noexcept
  * \brief Metadata to retrieve the ProcessFlags of a process
  */
 class ProcessFlags_k;
+
+enum NetworkFlags : int8_t
+{
+  //! Set: compensated / unset: uncompensated
+  Uncompensated = 0,
+  Compensated = SCORE_FLAG(0),
+
+  //! Set: sync / unset: async
+  Async = 0,
+  Sync = SCORE_FLAG(1),
+
+  //! 00: Free
+  //! 01: Mixed
+  //! 10: Mixed(?)
+  //! 11: Fully shared
+  Free = 0,
+  Mixed = SCORE_FLAG(2),
+  Shared = SCORE_FLAG(2) | SCORE_FLAG(3),
+};
+
+constexpr NetworkFlags operator|(NetworkFlags a, NetworkFlags b) noexcept
+{
+  return NetworkFlags((int8_t)a | (int8_t)b);
 }
+
+constexpr NetworkFlags operator|=(NetworkFlags& a, NetworkFlags b) noexcept
+{
+  return a = a | b;
+}
+}
+
+W_REGISTER_ARGTYPE(Process::NetworkFlags)

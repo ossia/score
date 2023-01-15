@@ -81,6 +81,24 @@ void EventModel::setOffsetBehavior(OffsetBehavior f)
   }
 }
 
+void EventModel::setNetworkGroup(const QString& group)
+{
+  if(group != m_networkGroup)
+  {
+    m_networkGroup = group;
+    networkGroupChanged(group);
+  }
+}
+
+void EventModel::setNetworkFlags(Process::NetworkFlags flags)
+{
+  if(flags != m_networkFlags)
+  {
+    m_networkFlags = flags;
+    networkFlagsChanged(flags);
+  }
+}
+
 const QBrush& EventModel::color(const Process::Style& skin) const noexcept
 {
   if(m_status.get() == ExecutionStatus::Editing)
