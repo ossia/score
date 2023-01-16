@@ -294,6 +294,7 @@ elseif(EMSCRIPTEN)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.libav.cpp)
 else()
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.v4l2.cpp)
+  target_link_libraries(${PROJECT_NAME} PRIVATE v4l2 bz2)
 endif()
 
 if(freenect2_FOUND)

@@ -46,7 +46,7 @@ bool LibAVDecoder::open_codec_context(
     std::function<void(AVCodecContext&)> setup)
 {
   auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec);
-  if(hw_dev_ctx)
+  if(hw_codec)
     m_codec = hw_codec;
   m_codecContext = avcodec_alloc_context3(m_codec);
   m_codecContext->hwaccel_context = nullptr;
@@ -165,6 +165,13 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
   if(!codec)
     return {};
 
+  if(m_conf.hardwareAcceleration == AV_PIX_FMT_DRM_PRIME) {
+    // FIXME right now this is just used for V4L2M2M: 
+    // we basically just want to map h264 to h264_v4l2m2m, 
+    // this isn't a true "hwdevice" accel
+    return {nullptr, codec};
+  }
+
   AVBufferRef* hw_device_ctx{};
   int ret = av_hwdevice_ctx_create(&hw_device_ctx, device, nullptr, nullptr, 0);
   if(ret != 0)
@@ -173,8 +180,7 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
     return {};
   }
 
-  if(m_conf.hardwareAcceleration == AV_PIX_FMT_QSV
-     || m_conf.hardwareAcceleration == AV_PIX_FMT_DRM_PRIME)
+  if(m_conf.hardwareAcceleration == AV_PIX_FMT_QSV)
     return {hw_device_ctx, codec};
   else
     return {hw_device_ctx, &detected_codec};
@@ -255,12 +261,12 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
   if(codecContext && pkt && frame)
   {
     int ret = avcodec_send_packet(codecContext, pkt);
-    if(ret < 0)
+    // avcodec_send_packet: if it's EAGAIN then we *have* to read through avcodec_receive_frame
+    if(ret < 0 && ret != AVERROR(EAGAIN))
     {
-      if(ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-      {
+      if(ret != AVERROR_EOF)
         qDebug() << "avcodec_send_packet: " << av_to_string(ret) << ret;
-      }
+
       return {nullptr, ret};
     }
 
@@ -483,7 +489,11 @@ ReadFrame LibAVDecoder::read_one_frame_raw(AVPacket& packet)
 
 ReadFrame LibAVDecoder::read_one_frame_avcodec(AVPacket& packet)
 {
+  ReadFrame ret_frame;
   int res{};
+
+int z = 0;
+  do_read_frame:
   av_packet_unref(&packet);
   while((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
@@ -494,8 +504,12 @@ ReadFrame LibAVDecoder::read_one_frame_avcodec(AVPacket& packet)
       av_packet_rescale_ts(
           &packet, this->m_avstream->time_base, this->m_codecContext->time_base);
 
-      auto ret_frame = enqueue_frame(&packet);
-
+      ret_frame = enqueue_frame(&packet);
+      if(ret_frame.error == AVERROR(EAGAIN))
+      {
+        if(z++ < 100)
+          goto do_read_frame;
+      }
       av_packet_unref(&packet);
       return ret_frame;
     }

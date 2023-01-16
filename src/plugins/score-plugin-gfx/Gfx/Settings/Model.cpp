@@ -87,6 +87,11 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
 #endif
 
 #if defined(__linux__)
+#if defined(__arm__) || defined(__aarch64__)
+  if(auto c = avcodec_find_decoder_by_name("h264_v4l2m2m"))
+    lst += V4L2;
+#endif
+
   if(auto c = avcodec_find_decoder_by_name("h264_vdpau"))
     lst += VDPAU;
 
