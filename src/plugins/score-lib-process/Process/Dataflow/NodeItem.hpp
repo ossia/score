@@ -92,6 +92,7 @@ private:
   // Title
   QGraphicsItem* m_uiButton{};
   QGraphicsItem* m_presetButton{};
+  QGraphicsItem* m_netButton{};
   score::SimpleTextItem* m_label{};
 
   QSizeF m_contentSize{};

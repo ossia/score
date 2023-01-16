@@ -15,6 +15,8 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
+class TimeSyncModel;
+
 class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final
     : public QObject
     , public QGraphicsItem
@@ -23,7 +25,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final
   Q_INTERFACES(QGraphicsItem)
 
 public:
-  TriggerView(QGraphicsItem* parent);
+  TriggerView(const TimeSyncModel& model, QGraphicsItem* parent);
   static const constexpr int Type = ItemType::Trigger;
   int type() const final override { return Type; }
 
@@ -54,6 +56,8 @@ private:
   void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
 
   const QPixmap& currentPixmap() const noexcept;
+
+  const TimeSyncModel& m_model;
 
   int m_currentFrame{};
   int m_frameDirection{};

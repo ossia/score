@@ -101,6 +101,8 @@ void NodeItem::createWithDecorations()
 
   m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
   m_presetButton = Process::makePresetButton(process, ctx, this, this);
+  m_netButton = new score::QGraphicsPixmapToggle{
+      pixmaps.net_sync_node_header_on, pixmaps.net_sync_node_header_off, this};
 
   auto& skin = score::Skin::instance();
   m_label = new score::SimpleTextItem{skin.Light.main, this};
@@ -240,6 +242,11 @@ void NodeItem::updateTitlePos()
   if(m_presetButton)
   {
     m_presetButton->setPos({x0, UiY0});
+    x0 += UiX0 + SpacingIcon * 2.;
+  }
+  if(m_netButton)
+  {
+    m_netButton->setPos({x0, UiY0});
     x0 += UiX0 + SpacingIcon * 2.;
   }
 

@@ -94,6 +94,9 @@ enum NetworkFlags : int8_t
   Free = 0,
   Mixed = SCORE_FLAG(2),
   Shared = SCORE_FLAG(2) | SCORE_FLAG(3),
+
+  Inactive = 0,
+  Active = SCORE_FLAG(4)
 };
 
 constexpr NetworkFlags operator|(NetworkFlags a, NetworkFlags b) noexcept

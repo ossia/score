@@ -27,7 +27,7 @@ TimeSyncPresenter::TimeSyncPresenter(
     : QObject{parent}
     , m_model{model}
     , m_view{new TimeSyncView{*this, parentview}}
-    , m_triggerView{new TriggerView{m_view}}
+    , m_triggerView{new TriggerView{model, m_view}}
 {
   con(m_model.selection, &Selectable::changed, this, [=](bool b) {
     m_view->setSelected(b);
