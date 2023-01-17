@@ -19,6 +19,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EventComponent final : public Execution::Comp
   W_OBJECT(EventComponent)
   COMMON_COMPONENT_METADATA("02c41de0-3a8c-44da-ae03-68a0ca26a7d0")
 public:
+  static constexpr bool is_unique = true;
   EventComponent(
       const Scenario::EventModel& element, const Execution::Context& ctx,
       QObject* parent);

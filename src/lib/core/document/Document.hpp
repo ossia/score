@@ -56,6 +56,8 @@ class SCORE_LIB_BASE_EXPORT Document final : public QObject
 public:
   ~Document();
 
+  void blockAllSignals();
+
   const DocumentMetadata& metadata() const noexcept { return m_metadata; }
   DocumentMetadata& metadata() noexcept { return m_metadata; }
 

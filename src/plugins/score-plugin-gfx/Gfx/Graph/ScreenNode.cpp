@@ -397,6 +397,9 @@ void ScreenNode::destroyOutput()
   if(!m_window)
     return;
 
+  delete m_depthStencil;
+  m_depthStencil = nullptr;
+
   if(auto s = m_window->state)
   {
     delete s->renderPassDescriptor;
@@ -584,7 +587,7 @@ public:
   void release(RenderList&) override
   {
     m_p.release();
-    delete m_inputTarget.texture;
+    m_inputTarget.release();
     for(auto& s : m_samplers)
     {
       delete s.sampler;

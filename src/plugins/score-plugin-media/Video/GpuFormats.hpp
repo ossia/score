@@ -20,12 +20,10 @@ inline bool hardwareDecoderIsAvailable(AVPixelFormat p) noexcept
   switch(p)
   {
 #if defined(__linux__)
-#if defined(__arm__) || defined(__aarch64__)
     case AV_PIX_FMT_DRM_PRIME: {
       static const bool ok = avcodec_find_decoder_by_name("h264_v4l2m2m");
       return ok;
     }
-#endif
     case AV_PIX_FMT_VAAPI: {
       static const bool ok = avcodec_find_decoder_by_name("mjpeg_vaapi");
       return ok;

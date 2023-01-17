@@ -273,6 +273,8 @@ void DocumentManager::forceCloseDocument(
     plug->on_documentClosing();
   }
 
+  doc.blockAllSignals();
+
   if(m_view)
     m_view->closeDocument(doc.view());
 

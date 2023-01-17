@@ -44,6 +44,9 @@ struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
   ReadFrame enqueue_frame(const AVPacket* pkt) noexcept;
   std::pair<AVBufferRef*, const AVCodec*> open_hwdec(const AVCodec&) noexcept;
 
+  int init_codec_context(
+      const AVCodec* codec, AVBufferRef* hw_dev_ctx, const AVStream* stream,
+      std::function<void(AVCodecContext&)> setup);
   bool open_codec_context(
       VideoInterface& self, const AVStream* stream,
       std::function<void(AVCodecContext&)> setup);

@@ -137,13 +137,17 @@ Document::~Document()
   // to be deleted before the model.
   // (Else we would have to fine-grain the deletion of the selection stack).
 
-  m_commandStack.blockSignals(true);
-  m_selectionStack.blockSignals(true);
-  m_focus.blockSignals(true);
-
+  blockAllSignals();
   delete m_presenter;
   delete m_view;
   delete m_model;
+}
+
+void Document::blockAllSignals()
+{
+  m_commandStack.blockSignals(true);
+  m_selectionStack.blockSignals(true);
+  m_focus.blockSignals(true);
 }
 
 const Id<DocumentModel>& Document::id() const noexcept

@@ -32,6 +32,32 @@ extern "C" {
 
 namespace Video
 {
+static auto get_format_for_codeccontext(AVCodecContext* ctx, const AVPixelFormat* p)
+{
+  //qDebug() << "device: " << av_pix_fmt_desc_get(ctx->pix_fmt)->name;
+
+  if(auto self = (LibAVDecoder*)ctx->opaque)
+  {
+    while(*p != AV_PIX_FMT_NONE)
+    {
+      //qDebug() << av_pix_fmt_desc_get(*p)->name;
+      // Check if the format matches the one we want from the expected HWDec
+      if(*p == self->m_conf.hardwareAcceleration)
+      {
+        // Check if the format is indeed available
+        auto fmt = ffmpegHardwareDecodingFormats(*p).format;
+        if(fmt != AV_PIX_FMT_NONE)
+        {
+          return fmt;
+        }
+      }
+      ++p;
+    }
+  }
+
+  return ctx->pix_fmt;
+}
+
 void LibAVDecoder::init_scaler(VideoInterface& self) noexcept
 {
   if(!Video::formatNeedsDecoding(self.pixel_format))
@@ -41,59 +67,27 @@ void LibAVDecoder::init_scaler(VideoInterface& self) noexcept
   self.pixel_format = AV_PIX_FMT_RGBA;
 }
 
-bool LibAVDecoder::open_codec_context(
-    VideoInterface& self, const AVStream* stream,
+int LibAVDecoder::init_codec_context(
+    const AVCodec* codec, AVBufferRef* hw_dev_ctx, const AVStream* stream,
     std::function<void(AVCodecContext&)> setup)
 {
-  auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec);
-  if(hw_codec)
-    m_codec = hw_codec;
-  m_codecContext = avcodec_alloc_context3(m_codec);
-  m_codecContext->hwaccel_context = nullptr;
+  m_codecContext = avcodec_alloc_context3(codec);
 
   avcodec_parameters_to_context(m_codecContext, stream->codecpar);
 
+  // m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
+  // m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
 #if LIBAVUTIL_VERSION_MAJOR >= 57
   if(hw_dev_ctx)
   {
     m_codecContext->hw_device_ctx = hw_dev_ctx;
     m_codecContext->opaque = (void*)this;
-
-    m_codecContext->get_format = +[](AVCodecContext* ctx, const AVPixelFormat* p) {
-      //qDebug() << "device: " << av_pix_fmt_desc_get(ctx->pix_fmt)->name;
-
-      if(auto self = (LibAVDecoder*)ctx->opaque)
-      {
-        while(*p != AV_PIX_FMT_NONE)
-        {
-          //qDebug() << av_pix_fmt_desc_get(*p)->name;
-          // Check if the format matches the one we want from the expected HWDec
-          if(*p == self->m_conf.hardwareAcceleration)
-          {
-            // Check if the format is indeed available
-            auto fmt = ffmpegHardwareDecodingFormats(*p).format;
-            if(fmt != AV_PIX_FMT_NONE)
-            {
-              return fmt;
-            }
-          }
-          ++p;
-        }
-      }
-
-      return ctx->pix_fmt;
-    };
-  }
-#endif
-
-// m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
-// m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
-  if(hw_dev_ctx)
-  {
+    m_codecContext->get_format = get_format_for_codeccontext;
     m_codecContext->thread_count = 1;
     m_codecContext->thread_type = FF_THREAD_SLICE;
   }
   else
+#endif
   {
     m_codecContext->thread_count = m_conf.threads;
     if(m_conf.threads > 0)
@@ -103,11 +97,37 @@ bool LibAVDecoder::open_codec_context(
   SCORE_ASSERT(setup);
   setup(*m_codecContext);
 
-  bool res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
+  int err = avcodec_open2(m_codecContext, codec, nullptr);
+  if(err < 0)
+  {
+    qDebug() << "avcodec_open2: " << av_to_string(err);
+    avcodec_free_context(&m_codecContext);
+  }
+  return err;
+}
 
-  if(res)
+bool LibAVDecoder::open_codec_context(
+    VideoInterface& self, const AVStream* stream,
+    std::function<void(AVCodecContext&)> setup)
+{
+  if(auto [hw_dev_ctx, hw_codec] = open_hwdec(*m_codec); hw_codec)
+  {
+    int err = init_codec_context(hw_codec, hw_dev_ctx, stream, setup);
+    if(err == 0)
+    {
+      init_scaler(self);
+      return true;
+    }
+  }
+
+  // Maybe opening an HW accel failed, we retry in software mode
+  int err = init_codec_context(m_codec, nullptr, stream, setup);
+  if(err == 0)
+  {
     init_scaler(self);
-  return res;
+    return true;
+  }
+  return false;
 }
 
 /*
@@ -165,9 +185,10 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
   if(!codec)
     return {};
 
-  if(m_conf.hardwareAcceleration == AV_PIX_FMT_DRM_PRIME) {
-    // FIXME right now this is just used for V4L2M2M: 
-    // we basically just want to map h264 to h264_v4l2m2m, 
+  if(m_conf.hardwareAcceleration == AV_PIX_FMT_DRM_PRIME)
+  {
+    // FIXME right now this is just used for V4L2M2M:
+    // we basically just want to map h264 to h264_v4l2m2m,
     // this isn't a true "hwdevice" accel
     return {nullptr, codec};
   }
@@ -492,8 +513,8 @@ ReadFrame LibAVDecoder::read_one_frame_avcodec(AVPacket& packet)
   ReadFrame ret_frame;
   int res{};
 
-int z = 0;
-  do_read_frame:
+  int z = 0;
+do_read_frame:
   av_packet_unref(&packet);
   while((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
