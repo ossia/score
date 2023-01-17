@@ -32,6 +32,7 @@ extern "C" {
 
 namespace Video
 {
+#if LIBAVUTIL_VERSION_MAJOR >= 57
 static auto get_format_for_codeccontext(AVCodecContext* ctx, const AVPixelFormat* p)
 {
   //qDebug() << "device: " << av_pix_fmt_desc_get(ctx->pix_fmt)->name;
@@ -57,6 +58,7 @@ static auto get_format_for_codeccontext(AVCodecContext* ctx, const AVPixelFormat
 
   return ctx->pix_fmt;
 }
+#endif
 
 void LibAVDecoder::init_scaler(VideoInterface& self) noexcept
 {
