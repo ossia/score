@@ -548,7 +548,7 @@ avnd_make_score(
 
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"
-     CONTENT "${AVND_ADDITIONAL_CLASSES}\nvoid all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"
+     CONTENT "${AVND_ADDITIONAL_CLASSES}\nstatic void all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"
      NEWLINE_STYLE LF)
 
 
