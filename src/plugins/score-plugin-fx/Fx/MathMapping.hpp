@@ -3,6 +3,7 @@
 
 namespace Nodes
 {
+
 template <typename State>
 struct GenericMathMapping
 {
@@ -230,6 +231,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
+    using code_writer = MathMappingCodeWriter<Node>;
     static const constexpr auto prettyName = "Expression Value Filter";
     static const constexpr auto objectKey = "MathMapping";
     static const constexpr auto category = "Control/Mappings";
@@ -524,6 +526,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
+    using code_writer = MathMappingCodeWriter<Node>;
     static const constexpr auto prettyName = "Micromap";
     static const constexpr auto objectKey = "MicroMapping";
     static const constexpr auto category = "Control/Mappings";
