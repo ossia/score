@@ -120,6 +120,11 @@ QString ProcessModel::prettyName() const noexcept
   return metadata().getName();
 }
 
+std::unique_ptr<CodeWriter> ProcessModel::codeWriter(CodeFormat) const noexcept
+{
+  return {};
+}
+
 void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t) noexcept
 {
   switch(mode)
@@ -357,4 +362,12 @@ const ProcessModel* parentProcess(const QObject* obj) noexcept
     return static_cast<const ProcessModel*>(obj);
   return nullptr;
 }
+
+CodeWriter::CodeWriter(const ProcessModel& p) noexcept
+    : self{p}
+{
+}
+
+CodeWriter::~CodeWriter() { }
+
 }
