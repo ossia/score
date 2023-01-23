@@ -381,6 +381,16 @@ public:
   }
 
   ~ControlProcess() override { }
+
+  std::unique_ptr<Process::CodeWriter>
+  codeWriter(Process::CodeFormat) const noexcept override
+  {
+    if constexpr(requires { sizeof(typename Info::Metadata::code_writer); })
+    {
+      return std::make_unique<typename Info::Metadata::code_writer>(*this);
+    }
+    return {};
+  }
 };
 }
 

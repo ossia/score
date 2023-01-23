@@ -50,6 +50,30 @@ class LayerFactory;
 struct Inlets;
 struct Outlets;
 
+struct SCORE_LIB_PROCESS_EXPORT CodeWriter
+{
+  const ProcessModel& self;
+  explicit CodeWriter(const ProcessModel& p) noexcept;
+  virtual ~CodeWriter();
+
+  CodeWriter() = delete;
+  CodeWriter(const CodeWriter&) = delete;
+  CodeWriter(CodeWriter&&) = delete;
+  CodeWriter& operator=(const CodeWriter&) = delete;
+  CodeWriter& operator=(CodeWriter&&) = delete;
+
+  std::string variable;
+
+  virtual std::string typeName() const noexcept = 0;
+  virtual std::string accessInlet(const Id<Process::Port>& id) const noexcept = 0;
+  virtual std::string accessOutlet(const Id<Process::Port>& id) const noexcept = 0;
+  virtual std::string execute() const noexcept = 0;
+};
+
+enum class CodeFormat
+{
+  Cpp
+};
 /**
  * @brief The Process class
  *
@@ -83,6 +107,7 @@ public:
   virtual QString category() const noexcept = 0;
   virtual QStringList tags() const noexcept = 0;
   virtual ProcessFlags flags() const noexcept = 0;
+  virtual std::unique_ptr<CodeWriter> codeWriter(CodeFormat) const noexcept;
 
   //// Features of a process
   /// Duration
