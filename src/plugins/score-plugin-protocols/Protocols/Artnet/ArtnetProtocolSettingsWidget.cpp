@@ -391,7 +391,6 @@ public:
     if(auto it = doc.FindMember("name"); it != doc.MemberEnd())
     {
       QString name = it->value.GetString();
-
       int newRowPosition = 0;
       auto other_fixture_it = manufacturer.begin();
       while(other_fixture_it != manufacturer.end()
@@ -572,6 +571,7 @@ public:
     m_setupLayout.addRow(tr("Channels"), &m_content);
     m_setupLayoutContainer.addStretch(0);
     m_setupLayoutContainer.addWidget(&m_buttons);
+    m_address.setValue(1);
     connect(&m_buttons, &QDialogButtonBox::accepted, this, &AddFixtureDialog::accept);
     connect(&m_buttons, &QDialogButtonBox::rejected, this, &AddFixtureDialog::reject);
 
@@ -605,6 +605,7 @@ public:
     int numChannels = mode.channels.size();
     m_address.setRange(0, 512 - numChannels);
 
+
     m_content.setText(mode.content());
   }
 
@@ -627,6 +628,7 @@ public:
     f.mode.channelNames = mode.allChannels;
     f.address = m_address.value();
     f.controls = mode.channels;
+
 
     return f;
   }
