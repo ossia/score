@@ -1,7 +1,8 @@
 #include <ossia/detail/config.hpp>
 
 #include <QDebug>
-#if defined(OSSIA_PROTOCOL_ARTNET)
+//#if defined(OSSIA_PROTOCOL_ARTNET)
+#if 1
 #include "ArtnetDevice.hpp"
 #include "ArtnetSpecificSettings.hpp"
 
@@ -102,21 +103,21 @@ static void addArtnetFixture(
             name = capa.effectName.toStdString();
           else
             name = capa.type.toStdString();
-
           auto cld = node.create_child(name);
           auto cld_p = std::make_unique<ossia::net::dmx_parameter>(
               *cld, buffer, k, capa.range.first, capa.range.second);
           cld_p->set_value(int(capa.range.first));
           cld->set_parameter(std::move(cld_p));
-
           assert(dynamic_cast<ossia::net::dmx_parameter*>(cld->get_parameter()));
           if(!capa.comment.isEmpty())
             ossia::net::set_description(*cld, capa.comment.toStdString());
         }
+
       }
     } vis{*chan_node, buffer, dmx_channel};
 
     ossia::visit(vis, chan.capabilities);
+    p.set_value(chan.defaultValue);
   }
 }
 }
