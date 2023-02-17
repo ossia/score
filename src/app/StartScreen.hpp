@@ -311,7 +311,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     QSettings settings;
     auto library_path = settings.value("Library/RootPath").toString();
     InteractiveLabel* label = new InteractiveLabel{
-        titleFont, qApp->tr("Examples"), "file://" + library_path, this};
+        titleFont, qApp->tr("Examples"), "https://github.com/ossia/score-examples", this};
     label->setPixmaps(
         score::get_pixmap(":/icons/load_examples_off.png"),
         score::get_pixmap(":/icons/load_examples_on.png"));
