@@ -1,3 +1,6 @@
+#include <Fx/MathGenerator.hpp>
+
+#include <QList>
 #include <QString>
 
 #include <string>
@@ -79,7 +82,54 @@ std::string exprtk_to_cpp(std::string exprtk) noexcept
   replace_line(split.back());
   code += "o = " + split.back() + ";\n";
 
-  return "{\n" + pre + "\n" + code.toStdString() + "\n" + post + "\n}\n";
+  return pre + "\n" + code.toStdString() + "\n" + post;
+}
+
+std::string MathMappingCodeWriter::typeName() const noexcept
+{
+  return "ExprtkMapper";
+}
+
+std::string
+MathMappingCodeWriter::accessInlet(const Id<Process::Port>& id) const noexcept
+{
+  // FIXME we should not have the LineEdit input
+  const Process::Inlet& inl = *this->self.inlet(id);
+  std::string var;
+  if(inl.name() == "in")
+    var = "in";
+  else if(inl.name() == "Param (a)")
+    var = "a";
+  else if(inl.name() == "Param (b)")
+    var = "b";
+  else if(inl.name() == "Param (c)")
+    var = "c";
+  else
+  {
+    return "ERROR: " + inl.name().toStdString();
+  }
+
+  return fmt::format("({}.inputs.{}.value)", variable, var);
+}
+
+std::string
+MathMappingCodeWriter::accessOutlet(const Id<Process::Port>& id) const noexcept
+{
+  return fmt::format("({}.outputs.out.value)", variable);
+}
+
+std::string MathMappingCodeWriter::execute() const noexcept
+{
+  auto it = ossia::find_if(this->self.inlets(), [](Process::Inlet* inl) {
+    return inl->name().contains("Expression");
+  });
+  SCORE_ASSERT(it != this->self.inlets().end());
+  Process::LineEdit& inl = *safe_cast<Process::LineEdit*>(*it);
+  return fmt::format(
+      R"_({{
+    {}({});
+}})_",
+      exprtk_to_cpp(inl.value().get<std::string>()), variable);
 }
 
 }

@@ -368,7 +368,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    using code_writer = MathMappingCodeWriter<Node>;
+    using code_writer = MathMappingCodeWriter;
     static const constexpr auto prettyName = "Expression Value Filter";
     static const constexpr auto objectKey = "MathMapping";
     static const constexpr auto category = "Control/Mappings";
@@ -663,7 +663,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    using code_writer = MathMappingCodeWriter<Node>;
+    using code_writer = MathMappingCodeWriter;
     static const constexpr auto prettyName = "Micromap";
     static const constexpr auto objectKey = "MicroMapping";
     static const constexpr auto category = "Control/Mappings";
