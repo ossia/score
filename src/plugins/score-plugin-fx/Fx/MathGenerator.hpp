@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Node/SimpleApi.hpp>
 
+#include <ossia/detail/fmt.hpp>
 #include <ossia/math/math_expression.hpp>
 
 #include <boost/core/demangle.hpp>
@@ -11,49 +12,14 @@ namespace Nodes
 
 std::string exprtk_to_cpp(std::string exprtk) noexcept;
 
-template <typename T>
 struct MathMappingCodeWriter : public Process::CodeWriter
 {
   using Process::CodeWriter::CodeWriter;
 
-  std::string typeName() const noexcept override { return "ExprtkMapper"; }
-  std::string accessInlet(const Id<Process::Port>& id) const noexcept override
-  {
-    // FIXME we should not have the LineEdit input
-    const Process::Inlet& inl = *this->self.inlet(id);
-    std::string var;
-    if(inl.name() == "in")
-      var = "in";
-    else if(inl.name() == "Param (a)")
-      var = "a";
-    else if(inl.name() == "Param (b)")
-      var = "b";
-    else if(inl.name() == "Param (c)")
-      var = "c";
-    else
-    {
-      return "ERROR: " + inl.name().toStdString();
-    }
-
-    return fmt::format("({}.inputs.{}.value)", variable, var);
-  }
-  std::string accessOutlet(const Id<Process::Port>& id) const noexcept override
-  {
-    return fmt::format("({}.outputs.out.value)", variable);
-  }
-  std::string execute() const noexcept override
-  {
-    auto it = ossia::find_if(this->self.inlets(), [](Process::Inlet* inl) {
-      return inl->name().contains("Expression");
-    });
-    SCORE_ASSERT(it != this->self.inlets().end());
-    Process::LineEdit& inl = *safe_cast<Process::LineEdit*>(*it);
-    return fmt::format(
-        R"_({{
-    {}();
-}})_",
-        exprtk_to_cpp(inl.value().get<std::string>()));
-  }
+  std::string typeName() const noexcept override;
+  std::string accessInlet(const Id<Process::Port>& id) const noexcept override;
+  std::string accessOutlet(const Id<Process::Port>& id) const noexcept override;
+  std::string execute() const noexcept override;
 };
 template <typename State>
 static void setMathExpressionTiming(
@@ -150,7 +116,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    using code_writer = MathMappingCodeWriter<Node>;
+    using code_writer = MathMappingCodeWriter;
     static const constexpr auto prettyName = "Expression Value Generator";
     static const constexpr auto objectKey = "MathGenerator";
     static const constexpr auto category = "Control/Generators";
@@ -367,4 +333,5 @@ struct Node
   }
 };
 }
+
 }
