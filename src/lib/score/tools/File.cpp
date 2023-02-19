@@ -68,6 +68,27 @@ locateFilePath(const QString& filename, const score::DocumentContext& ctx) noexc
   return QFileInfo{path}.absoluteFilePath();
 }
 
+QString
+relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept
+{
+  const QFileInfo info{filename};
+  QString path = filename;
+
+  if(info.isAbsolute())
+  {
+    const QFileInfo docroot{ctx.document.metadata().fileName()};
+    const auto& docpath = docroot.canonicalPath();
+    if(path.startsWith(docpath))
+    {
+      path.remove(0, docpath.length());
+      if(path.startsWith('/'))
+        path.removeFirst();
+    }
+  }
+
+  return path;
+}
+
 PathInfo::PathInfo(std::string_view v) noexcept
     : absoluteFilePath{v}
 {

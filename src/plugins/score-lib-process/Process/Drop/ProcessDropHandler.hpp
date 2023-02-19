@@ -6,6 +6,7 @@
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <QByteArray>
 #include <QMimeData>
@@ -32,7 +33,7 @@ public:
 
   struct DroppedFile
   {
-    QString filename;
+    score::FilePath filename;
     QByteArray data;
   };
 
@@ -48,8 +49,8 @@ public:
       const score::DocumentContext& ctx) const noexcept;
 
   void getFileDrops(
-      std::vector<ProcessDrop>& drops, const QMimeData& mime, const QString& path,
-      const score::DocumentContext& ctx) const noexcept;
+      std::vector<ProcessDrop>& drops, const QMimeData& mime,
+      const score::FilePath& path, const score::DocumentContext& ctx) const noexcept;
 
   virtual QSet<QString> mimeTypes() const noexcept;
   virtual QSet<QString> fileExtensions() const noexcept;
@@ -60,7 +61,7 @@ protected:
       const score::DocumentContext& ctx) const noexcept;
 
   virtual void dropPath(
-      std::vector<ProcessDrop>& drops, const QString& data,
+      std::vector<ProcessDrop>& drops, const score::FilePath& path,
       const score::DocumentContext& ctx) const noexcept;
 
   virtual void dropData(

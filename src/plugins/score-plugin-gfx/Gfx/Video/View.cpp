@@ -24,8 +24,9 @@ View::View(const Model& model, QGraphicsItem* parent)
 {
   this->setAcceptDrops(true);
   setFlag(ItemClipsToShape, true);
-  con(model, &Model::pathChanged, this, &View::onPathChanged);
-  onPathChanged(model.path());
+  con(model, &Model::pathChanged, this,
+      [this, &model] { onPathChanged(model.absolutePath()); });
+  onPathChanged(model.absolutePath());
 }
 
 View::~View()

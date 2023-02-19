@@ -1,5 +1,6 @@
 #pragma once
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <QFileInfo>
 
@@ -7,15 +8,6 @@
 
 namespace score
 {
-
-//! Will also look where the save file is located.
-//! TODO in the future also look in a "common" library folder.
-SCORE_LIB_BASE_EXPORT
-QString
-locateFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept;
-
-SCORE_LIB_BASE_EXPORT
-QString addUniqueSuffix(const QString& fileName);
 
 // Used instead of QFileInfo
 // as it does a stat which can be super expensive

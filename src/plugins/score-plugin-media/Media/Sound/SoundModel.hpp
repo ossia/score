@@ -52,6 +52,7 @@ public:
    * Will load a new audio file, load its tempo, etc
    */
   void setFile(const QString& file);
+  QString userFilePath() const noexcept;
 
   /**
    * Forces the reloading of only the audio data in a new file.
@@ -117,6 +118,7 @@ private:
   void ancestorStartDateChanged() override;
   void ancestorTempoChanged() override;
 
+  QString m_userFilePath{};
   std::shared_ptr<AudioFile> m_file;
   int m_upmixChannels{};
   int m_startChannel{};

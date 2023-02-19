@@ -5,6 +5,7 @@
 #include <Media/Tempo.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/tools/File.hpp>
 
 #include <QRegularExpression>
 
@@ -55,8 +56,11 @@ void ProcessModel::loadFile(const QString& file, int stream)
 {
   m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
 
-  m_file = AudioFileManager::instance().get(
-      file, stream, score::IDocument::documentContext(*this));
+  m_userFilePath = file;
+  auto& ctx = score::IDocument::documentContext(*this);
+
+  m_file
+      = AudioFileManager::instance().get(score::locateFilePath(file, ctx), stream, ctx);
 
   m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 }
@@ -65,14 +69,14 @@ void ProcessModel::reload()
 {
   if(m_file)
   {
-    loadFile(m_file->absoluteFileName(), m_stream);
+    loadFile(m_userFilePath, m_stream);
     on_mediaChanged();
   }
 }
 
 void ProcessModel::setFile(const QString& file)
 {
-  if(file != m_file->originalFile())
+  if(file != m_userFilePath)
   {
     m_stream = -1;
     loadFile(file);
@@ -92,8 +96,14 @@ void ProcessModel::setFile(const QString& file)
   }
 }
 
+QString ProcessModel::userFilePath() const noexcept
+{
+  return m_userFilePath;
+}
+
 void ProcessModel::setFileForced(const QString& file, int stream)
 {
+  m_userFilePath = file;
   loadFile(file, stream);
 
   on_mediaChanged();
@@ -219,8 +229,7 @@ template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
   m_stream << proc.m_upmixChannels << proc.m_startChannel << proc.m_mode
-           << proc.m_nativeTempo << proc.m_stream << proc.m_file->originalFile()
-           << *proc.outlet;
+           << proc.m_nativeTempo << proc.m_stream << proc.m_userFilePath << *proc.outlet;
 
   insertDelimiter();
 }
@@ -229,11 +238,9 @@ template <>
 void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 {
   m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode
-      >> proc.m_nativeTempo >> proc.m_stream;
+      >> proc.m_nativeTempo >> proc.m_stream >> proc.m_userFilePath;
 
-  QString s;
-  m_stream >> s;
-  proc.loadFile(s, proc.m_stream);
+  proc.loadFile(proc.m_userFilePath, proc.m_stream);
   proc.outlet = load_audio_outlet(*this, &proc);
 
   checkDelimiter();
@@ -242,7 +249,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 template <>
 void JSONReader::read(const Media::Sound::ProcessModel& proc)
 {
-  obj["File"] = proc.m_file->originalFile();
+  obj["File"] = proc.m_userFilePath;
   obj["Outlet"] = *proc.outlet;
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;

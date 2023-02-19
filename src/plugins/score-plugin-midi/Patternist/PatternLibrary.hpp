@@ -68,7 +68,7 @@ class DropHandler final : public Process::ProcessDropHandler
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
-      p.creation.prettyName = QFileInfo{filename}.baseName();
+      p.creation.prettyName = filename.basename;
       p.setup = [pat = std::move(pat)](
                     Process::ProcessModel& m, score::Dispatcher& disp) mutable {
         auto& proc = static_cast<Patternist::ProcessModel&>(m);

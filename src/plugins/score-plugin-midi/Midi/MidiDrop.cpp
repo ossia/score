@@ -50,7 +50,7 @@ void DropHandler::dropData(
           p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
 
           if(t.name.isEmpty())
-            p.creation.prettyName = QFileInfo{filename}.baseName();
+            p.creation.prettyName = filename.basename;
           else
             p.creation.prettyName = t.name;
 

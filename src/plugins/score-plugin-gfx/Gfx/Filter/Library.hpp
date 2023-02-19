@@ -30,7 +30,7 @@ class DropHandler final : public Process::ProcessDropHandler
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   void dropPath(
-      std::vector<ProcessDrop>&, const QString& data,
+      std::vector<ProcessDrop>&, const score::FilePath& data,
       const score::DocumentContext& ctx) const noexcept override;
 };
 }

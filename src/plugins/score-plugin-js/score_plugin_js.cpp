@@ -161,7 +161,7 @@ class DropHandler final : public Process::ProcessDropHandler
     const auto& [filename, file] = data;
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
-    p.creation.prettyName = QFileInfo{filename}.baseName();
+    p.creation.prettyName = filename.basename;
     p.creation.customData = std::move(file);
 
     vec.push_back(std::move(p));

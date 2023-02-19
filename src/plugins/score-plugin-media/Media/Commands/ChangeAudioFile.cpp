@@ -13,6 +13,8 @@
 #include <score/command/CommandData.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/tools/FilePath.hpp>
+
 namespace Media
 {
 ChangeAudioFile::ChangeAudioFile(
@@ -29,7 +31,7 @@ ChangeAudioFile::ChangeAudioFile(
   }
 
   const auto& db = AudioDecoder::database();
-  auto& info = db[m_new];
+  auto& info = db[score::locateFilePath(m_new, ctx)];
   m_newdur = info.duration();
 
   if(auto itv = qobject_cast<Scenario::IntervalModel*>(model.parent()))

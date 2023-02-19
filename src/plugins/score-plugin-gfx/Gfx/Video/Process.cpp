@@ -10,6 +10,8 @@
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
 
+#include <score/tools/File.hpp>
+
 #include <QFileInfo>
 
 #include <wobjectimpl.h>
@@ -113,13 +115,18 @@ std::shared_ptr<video_decoder> Model::makeDecoder() const noexcept
 try
 {
   auto dec = std::make_shared<video_decoder>(videoDecoderConfiguration());
-  if(!dec->load(m_path.toStdString()))
+  if(!dec->load(absolutePath().toStdString()))
     return {};
   return dec;
 }
 catch(...)
 {
   return {};
+}
+
+QString Model::absolutePath() const noexcept
+{
+  return score::locateFilePath(m_path, score::IDocument::documentContext(*this));
 }
 
 void Model::setPath(const QString& f)
@@ -132,7 +139,7 @@ void Model::setPath(const QString& f)
   {
     // FIXME store the metadatas in cache instead of reopening the video every time
     video_decoder decoder(videoDecoderConfiguration());
-    decoder.open(m_path.toStdString());
+    decoder.open(absolutePath().toStdString());
 
     setLoopDuration(TimeVal{decoder.duration()});
   }
@@ -199,14 +206,14 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
 }
 
 void DropHandler::dropPath(
-    std::vector<ProcessDrop>& vec, const QString& filename,
+    std::vector<ProcessDrop>& vec, const score::FilePath& filename,
     const score::DocumentContext& ctx) const noexcept
 {
   Process::ProcessDropHandler::ProcessDrop p;
-  p.creation.prettyName = QFileInfo{filename}.baseName();
-  p.creation.customData = filename;
+  p.creation.prettyName = filename.basename;
+  p.creation.customData = filename.relative;
 
-  if(auto props = guessVideoProps(filename))
+  if(auto props = guessVideoProps(filename.absolute))
   {
     p.duration = props->duration;
 

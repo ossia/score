@@ -67,7 +67,7 @@ void DropHandler::dropCustom(
     p.creation.key = Metadata<ConcreteKey_k, Sound::ProcessModel>::get();
     p.creation.prettyName = QFileInfo{file.first}.baseName();
     p.duration = file.second;
-    p.setup = [f = std::move(file.first), song_t = *p.duration,
+    p.setup = [f = score::relativizeFilePath(file.first, ctx), song_t = *p.duration,
                &ctx](Process::ProcessModel& m, score::Dispatcher& disp) {
       auto& proc = static_cast<Sound::ProcessModel&>(m);
       disp.submit(new Media::ChangeAudioFile{proc, std::move(f), ctx});

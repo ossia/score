@@ -62,13 +62,13 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
 }
 
 void DropHandler::dropPath(
-    std::vector<ProcessDrop>& vec, const QString& filename,
+    std::vector<ProcessDrop>& vec, const score::FilePath& filename,
     const score::DocumentContext& ctx) const noexcept
 {
   Process::ProcessDropHandler::ProcessDrop p;
   p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
-  p.creation.prettyName = QFileInfo{filename}.baseName();
-  p.creation.customData = filename;
+  p.creation.prettyName = filename.basename;
+  p.creation.customData = filename.relative;
 
   vec.push_back(std::move(p));
 }

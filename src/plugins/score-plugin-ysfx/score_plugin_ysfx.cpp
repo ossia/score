@@ -69,14 +69,13 @@ class DropHandler final : public Process::ProcessDropHandler
   QSet<QString> fileExtensions() const noexcept override { return {"jsfx"}; }
 
   void dropPath(
-      std::vector<ProcessDrop>& vec, const QString& filename,
+      std::vector<ProcessDrop>& vec, const score::FilePath& filename,
       const score::DocumentContext& ctx) const noexcept override
   {
-    QFileInfo finfo{filename};
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
-    p.creation.prettyName = finfo.completeBaseName();
-    p.creation.customData = finfo.absoluteFilePath();
+    p.creation.prettyName = filename.basename;
+    p.creation.customData = filename.relative;
 
     vec.push_back(std::move(p));
   }

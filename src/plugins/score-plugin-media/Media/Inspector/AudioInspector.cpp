@@ -16,7 +16,7 @@ InspectorWidget::InspectorWidget(
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
     , m_dispatcher{doc.commandStack}
-    , m_edit{object.file()->originalFile(), this}
+    , m_edit{object.userFilePath(), this}
     , m_start{this}
     , m_upmix{this}
 {
@@ -74,7 +74,7 @@ InspectorWidget::InspectorWidget(
   });
 
   con(process(), &Sound::ProcessModel::fileChanged, this,
-      [&] { m_edit.setText(object.file()->originalFile()); });
+      [&] { m_edit.setText(object.userFilePath()); });
 
   con(m_edit, &QLineEdit::editingFinished, this, [&]() {
     m_dispatcher.submit(new ChangeAudioFile(

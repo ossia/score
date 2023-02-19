@@ -1,5 +1,7 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 
+#include <score/tools/File.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QFile>
@@ -32,7 +34,7 @@ void ProcessDropHandler::getMimeDrops(
 
 void ProcessDropHandler::getFileDrops(
     std::vector<ProcessDropHandler::ProcessDrop>& drops, const QMimeData& mime,
-    const QString& path, const score::DocumentContext& ctx) const noexcept
+    const score::FilePath& path, const score::DocumentContext& ctx) const noexcept
 {
   // Check for handling through paths
   auto old_sz = drops.size();
@@ -41,9 +43,9 @@ void ProcessDropHandler::getFileDrops(
     return;
 
   // Fall back to manual handling
-  if(QFile file{path}; file.open(QIODevice::ReadOnly))
+  if(QFile file{path.absolute}; file.open(QIODevice::ReadOnly))
   {
-    dropData(drops, {QFileInfo{file}.absoluteFilePath(), file.readAll()}, ctx);
+    dropData(drops, {path, file.readAll()}, ctx);
   }
 }
 
@@ -64,7 +66,7 @@ void ProcessDropHandler::dropCustom(
 }
 
 void ProcessDropHandler::dropPath(
-    std::vector<ProcessDropHandler::ProcessDrop>&, const QString& data,
+    std::vector<ProcessDropHandler::ProcessDrop>&, const score::FilePath& data,
     const score::DocumentContext& ctx) const noexcept
 {
 }
@@ -117,6 +119,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   for(const auto& url : mime.urls())
   {
     auto path = url.toLocalFile();
+
     QFileInfo f{path};
     if(f.exists())
     {
@@ -131,7 +134,12 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
           return res;
 
         // Then fall back to the normal mime data drop
-        handler.getFileDrops(res, mime, path, ctx);
+        score::FilePath p{
+            .absolute = path,
+            .relative = score::relativizeFilePath(path, ctx),
+            .filename = f.fileName(),
+            .basename = f.baseName()};
+        handler.getFileDrops(res, mime, p, ctx);
       }
     }
   }

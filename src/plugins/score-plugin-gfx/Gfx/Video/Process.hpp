@@ -35,6 +35,7 @@ public:
 
   std::shared_ptr<video_decoder> makeDecoder() const noexcept;
 
+  QString absolutePath() const noexcept;
   QString path() const noexcept { return m_path; }
   void setPath(const QString& f);
   void pathChanged(const QString& f) W_SIGNAL(pathChanged, f);
@@ -88,7 +89,7 @@ public:
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   void dropPath(
-      std::vector<ProcessDrop>& vec, const QString& filename,
+      std::vector<ProcessDrop>& vec, const score::FilePath& filename,
       const score::DocumentContext& ctx) const noexcept override;
 };
 
