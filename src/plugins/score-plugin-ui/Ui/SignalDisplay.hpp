@@ -95,6 +95,11 @@ struct Node
           float float_time = *val[0].target<float>();
           float float_val = *val[1].target<float>();
 
+          // Handle looping: clear when we jump back in time
+          if(!m_values.empty())
+            if(float_time < m_values.back().first)
+              m_values.clear();
+
           m_values.emplace_back(float_time, float_val);
 
           if(float_val < min)
