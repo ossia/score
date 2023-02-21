@@ -152,6 +152,10 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
         storeTextureRectUniform(materialData, cur_pos, renderer.state.renderSize);
         break;
       }
+
+      case Types::Audio:
+        storeTextureRectUniform(materialData, cur_pos, QSize{1024, 2});
+        break;
       default:
         break;
     }
@@ -479,19 +483,15 @@ void RenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
   else
     n.standardUBO.passIndex = m_passes.size() - 1;
 
-  // Update material
-  if(m_materialUBO && m_materialSize > 0 && n.hasMaterialChanged(materialChangedIndex))
-  {
-    char* data = n.m_material_data.get();
-    res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
-  }
-
   // Update audio textures
   for(auto& audio : n.m_audio_textures)
   {
     if(std::optional<Sampler> sampl
-       = m_audioTex.updateAudioTexture(audio, renderer, res))
+       = m_audioTex.updateAudioTexture(audio, renderer, n.m_material_data.get(), res))
     {
+      // Audio texture changed, this means the material needs update
+      materialChangedIndex = -1;
+
       auto& [rhiSampler, tex] = *sampl;
       for(auto& [e, p] : m_passes)
       {
@@ -503,6 +503,13 @@ void RenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
               *pass.p.srb, rhiSampler, tex ? tex : &renderer.emptyTexture());
       }
     }
+  }
+
+  // Update material
+  if(m_materialUBO && m_materialSize > 0 && n.hasMaterialChanged(materialChangedIndex))
+  {
+    char* data = n.m_material_data.get();
+    res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
   }
 
   // Update all the process UBOs
@@ -648,6 +655,7 @@ void RenderedISFNode::runInitialPasses(
 
     // TODO need to free stuff
     cb.beginPass(rt, Qt::black, {1.0f, 0}, updateBatch);
+    updateBatch = nullptr;
     {
       cb.setGraphicsPipeline(pipeline);
       cb.setShaderResources(srb);
@@ -782,7 +790,8 @@ void AudioTextureUpload::processSpectral(
 }
 
 std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
-    AudioTexture& audio, RenderList& renderer, QRhiResourceUpdateBatch& res)
+    AudioTexture& audio, RenderList& renderer, char* materialData,
+    QRhiResourceUpdateBatch& res)
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
   QRhi& rhi = *renderer.state.rhi;
@@ -807,6 +816,13 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     {
       int samples = audio.data.size() / audio.channels;
       int pixelWidth = samples / (audio.fft ? 2 : 1);
+
+      float* rectUniform
+          = reinterpret_cast<float*>(materialData + audio.rectUniformOffset);
+      rectUniform[0] = 0.f;
+      rectUniform[1] = 0.f;
+      rectUniform[2] = pixelWidth;
+      rectUniform[3] = audio.channels;
 
       m_fft.reset(samples);
 
@@ -945,13 +961,6 @@ void SimpleRenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch
 
   n.standardUBO.passIndex = 0;
 
-  // Update material
-  if(m_materialUBO && m_materialSize > 0 && n.hasMaterialChanged(materialChangedIndex))
-  {
-    char* data = n.m_material_data.get();
-    res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
-  }
-
   // Update audio textures
   if(!n.m_audio_textures.empty())
     m_audioTex.emplace();
@@ -959,8 +968,11 @@ void SimpleRenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch
   for(auto& audio : n.m_audio_textures)
   {
     if(std::optional<Sampler> sampl
-       = m_audioTex->updateAudioTexture(audio, renderer, res))
+       = m_audioTex->updateAudioTexture(audio, renderer, n.m_material_data.get(), res))
     {
+      // Texture changed -> material changed
+      materialChangedIndex = -1;
+
       auto& [rhiSampler, tex] = *sampl;
       for(auto& [e, pass] : m_passes)
       {
@@ -968,6 +980,13 @@ void SimpleRenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch
             *pass.p.srb, rhiSampler, tex ? tex : &renderer.emptyTexture());
       }
     }
+  }
+
+  // Update material
+  if(m_materialUBO && m_materialSize > 0 && n.hasMaterialChanged(materialChangedIndex))
+  {
+    char* data = n.m_material_data.get();
+    res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
   }
 
   // Update all the process UBOs

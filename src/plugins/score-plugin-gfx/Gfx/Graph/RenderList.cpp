@@ -21,13 +21,13 @@ namespace score::gfx
 
 #if defined(RENDERDOC_PROFILING)
 auto renderdoc_api = [] {
-  RENDERDOC_API_1_5_0* rdoc_api{};
+  RENDERDOC_API_1_6_0* rdoc_api{};
   void* mod = dlopen("/usr/lib/librenderdoc.so", RTLD_NOW | RTLD_LOCAL);
   assert(mod);
   {
     auto RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
     assert(RENDERDOC_GetAPI);
-    int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, (void**)&rdoc_api);
+    int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_6_0, (void**)&rdoc_api);
     assert(ret == 1);
     assert(rdoc_api != nullptr);
   }
@@ -349,6 +349,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           SCORE_ASSERT(rt.renderTarget);
 
           commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
+          updateBatch = nullptr;
 
           QRhiResourceUpdateBatch* res{};
           for(auto [edge, node] : prevRenderers)
@@ -365,11 +366,12 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             renderer->inputAboutToFinish(*this, *input, res);
           }
           commands.endPass(res);
+          res = nullptr;
         }
 
         if(node != &output)
         {
-          updateBatch->release();
+          SCORE_ASSERT(!updateBatch);
           updateBatch = state.rhi->nextResourceUpdateBatch();
         }
       }
@@ -386,6 +388,9 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
     if(this->output.configuration().outputNeedsRenderPass)
     {
+      if(!updateBatch)
+        updateBatch = state.rhi->nextResourceUpdateBatch();
+
       // FIXME remove this hack
       score::gfx::Port p;
       score::gfx::Edge dummy{&p, &p};
@@ -394,9 +399,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       output_renderer->runRenderPass(*this, commands, dummy);
     }
 
-    output_renderer->finishFrame(*this, commands);
+    output_renderer->finishFrame(*this, commands, updateBatch);
 
-    updateBatch->release();
+    if(updateBatch)
+      updateBatch->release();
   }
 
 #if defined(RENDERDOC_PROFILING)

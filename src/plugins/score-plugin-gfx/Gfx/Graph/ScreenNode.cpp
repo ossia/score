@@ -568,9 +568,12 @@ public:
     // m_rt.renderPass = state->renderPassDescriptor;
   }
 
-  void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb) override
+  void finishFrame(
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
+      QRhiResourceUpdateBatch*& res) override
   {
-    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, nullptr);
+    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+    res = nullptr;
     {
       const auto sz = renderer.state.outputSize;
 

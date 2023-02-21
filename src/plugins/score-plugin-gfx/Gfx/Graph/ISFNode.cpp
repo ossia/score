@@ -51,9 +51,9 @@ struct isf_input_size_vis
 
   void operator()(const isf::image_input&) noexcept { (*this)(isf::color_input{}); }
 
-  void operator()(const isf::audio_input&) noexcept { }
+  void operator()(const isf::audio_input&) noexcept { (*this)(isf::color_input{}); }
 
-  void operator()(const isf::audioFFT_input&) noexcept { }
+  void operator()(const isf::audioFFT_input&) noexcept { (*this)(isf::color_input{}); }
 };
 
 struct isf_input_port_vis
@@ -146,10 +146,8 @@ struct isf_input_port_vis
     sz += 4 * 4;
   }
 
-  void operator()(const isf::image_input& in) noexcept
+  void add_texture_imgrect()
   {
-    self.input.push_back(new Port{&self, {}, Types::Image, {}});
-
     // Also add the vec4 imgRect uniform:
     while(sz % 16 != 0)
     {
@@ -165,12 +163,20 @@ struct isf_input_port_vis
     sz += 4 * 4;
   }
 
+  void operator()(const isf::image_input& in) noexcept
+  {
+    self.input.push_back(new Port{&self, {}, Types::Image, {}});
+    add_texture_imgrect();
+  }
+
   void operator()(const isf::audio_input& audio) noexcept
   {
     self.m_audio_textures.push_back({});
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
+    add_texture_imgrect();
+    data.rectUniformOffset = this->sz - 4 * 4;
   }
 
   void operator()(const isf::audioFFT_input& audio) noexcept
@@ -180,6 +186,8 @@ struct isf_input_port_vis
     data.fixedSize = audio.max;
     data.fft = true;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
+    add_texture_imgrect();
+    data.rectUniformOffset = this->sz - 4 * 4;
   }
 };
 

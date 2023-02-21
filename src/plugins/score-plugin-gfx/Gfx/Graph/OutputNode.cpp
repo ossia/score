@@ -10,6 +10,9 @@ void OutputNode::updateGraphicsAPI(GraphicsApi) { }
 
 OutputNodeRenderer::~OutputNodeRenderer() { }
 
-void OutputNodeRenderer::finishFrame(RenderList&, QRhiCommandBuffer& commands) { }
+void OutputNodeRenderer::finishFrame(
+    RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res)
+{
+}
 
 }

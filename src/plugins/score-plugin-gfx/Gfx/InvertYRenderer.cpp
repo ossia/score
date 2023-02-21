@@ -76,9 +76,11 @@ void InvertYRenderer::release(score::gfx::RenderList&)
 }
 
 void InvertYRenderer::finishFrame(
-    score::gfx::RenderList& renderer, QRhiCommandBuffer& cb)
+    score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
+    QRhiResourceUpdateBatch*& res)
 {
-  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, nullptr);
+  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+  res = nullptr;
   {
     const auto sz = renderer.state.renderSize;
     cb.setGraphicsPipeline(m_p.pipeline);
@@ -94,6 +96,8 @@ void InvertYRenderer::finishFrame(
   QRhiReadbackDescription rb(m_renderTarget.texture);
   next->readBackTexture(rb, &m_readback);
   cb.endPass(next);
+
+  next = nullptr;
 }
 
 }

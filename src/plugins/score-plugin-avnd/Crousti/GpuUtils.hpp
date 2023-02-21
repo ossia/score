@@ -160,6 +160,7 @@ struct handle_dispatch
       else if constexpr(requires { C::begin; })
       {
         cb.beginComputePass(res);
+        res = nullptr;
         cb.setComputePipeline(&pip);
         cb.setShaderResources(pip.shaderResourceBindings());
 
@@ -168,6 +169,7 @@ struct handle_dispatch
       else if constexpr(requires { C::end; })
       {
         cb.endComputePass(res);
+        res = nullptr;
         rhi.finish();
         return {};
       }

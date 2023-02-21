@@ -37,7 +37,8 @@ struct AudioTextureUpload
       AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture);
 
   [[nodiscard]] std::optional<Sampler> updateAudioTexture(
-      AudioTexture& audio, RenderList& renderer, QRhiResourceUpdateBatch& res);
+      AudioTexture& audio, RenderList& renderer, char* materialData,
+      QRhiResourceUpdateBatch& res);
 
 private:
   std::vector<float> m_scratchpad;
