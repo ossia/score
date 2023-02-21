@@ -195,7 +195,15 @@ struct setup_Impl0
       if constexpr(!requires { param.value.reset(); })
         node_ptr->from_ossia_value(param, inlet->value(), param.value, nf);
 
-      if_possible(param.update(node_ptr->impl.state));
+      {
+        avnd::effect_container<Node>& eff = node_ptr->impl;
+        {
+          for(auto& state : eff.full_state())
+          {
+            if_possible(param.update(state.effect));
+          }
+        }
+      }
 
       // Connect to changes
       std::weak_ptr<ExecNode> weak_node = node_ptr;
@@ -294,14 +302,8 @@ struct setup_Impl0
     using file_ports = avnd::raw_file_input_introspection<Node>;
     using elt = typename file_ports::template nth_element<N>;
     using field_file_type = decltype(Field::file);
-    constexpr bool has_text = requires
-    {
-      decltype(elt::file)::text;
-    };
-    constexpr bool has_mmap = requires
-    {
-      decltype(elt::file)::mmap;
-    };
+    constexpr bool has_text = requires { decltype(elt::file)::text; };
+    constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
 
     // First we can load it directly since execution hasn't started yet
     if(auto hdl = loadRawfile(inlet, has_text, has_mmap))
