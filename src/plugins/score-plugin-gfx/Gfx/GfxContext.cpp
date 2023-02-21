@@ -354,7 +354,14 @@ void GfxContext::run_commands()
       add_preview_output(*safe_cast<score::gfx::OutputNode*>(out));
   }
 
-  nursery.clear();
+  // This will force the nodes to be deleted in the main thread a bit later
+  // as for some reason when the ScreenNode is deleted, it still gets rendered to...
+  if(!nursery.empty())
+  {
+    QTimer::singleShot(
+        100, qApp, [nodes = std::move(nursery)]() mutable { nodes.clear(); });
+    nursery.clear();
+  }
 }
 
 void GfxContext::updateGraph()
