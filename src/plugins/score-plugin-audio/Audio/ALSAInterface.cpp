@@ -306,7 +306,8 @@ void ALSAFactory::rescan()
   auto n = hints;
   while(*n)
   {
-    if(auto name = snd.device_name_get_hint(*n, "NAME"); strcmp("null", name))
+    auto name = snd.device_name_get_hint(*n, "NAME");
+    if(strcmp("null", name) != 0)
     {
       AlsaCard card;
       card.raw_name = name;
@@ -356,9 +357,8 @@ void ALSAFactory::rescan()
         snd.pcm_close(pcm);
         devices.push_back(card);
       }
-
-      free(name);
     }
+    free(name);
     ++n;
   }
 
