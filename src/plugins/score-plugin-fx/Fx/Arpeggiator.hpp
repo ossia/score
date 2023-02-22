@@ -5,6 +5,14 @@
 
 namespace Nodes
 {
+template <typename T>
+static void duplicate_vector(T& vec)
+{
+  const int N = vec.size();
+  vec.reserve(N * 2);
+  for(int i = 0; i < N; i++)
+    vec.push_back(vec[i]);
+}
 namespace Arpeggiator
 {
 struct Node
@@ -55,13 +63,13 @@ struct Node
           break;
         case 2:
           arpeggiate(2);
-          arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
-          std::reverse(arpeggio.begin() + notes.container.size(), arpeggio.end());
+          duplicate_vector(arpeggio);
+          std::reverse(arpeggio.begin() + notes.size(), arpeggio.end());
           break;
         case 3:
           arpeggiate(2);
-          arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
-          std::reverse(arpeggio.begin(), arpeggio.begin() + notes.container.size());
+          duplicate_vector(arpeggio);
+          std::reverse(arpeggio.begin(), arpeggio.begin() + notes.size());
           break;
         case 4:
           arpeggio.clear();
