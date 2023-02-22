@@ -269,6 +269,8 @@ target_link_libraries(${PROJECT_NAME}
           score_lib_base score_lib_device score_plugin_deviceexplorer
           score_plugin_library
           ossia
+        PRIVATE
+          re2
 )
 
 if(OSSIA_DNSSD)

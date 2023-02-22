@@ -85,10 +85,7 @@ public:
 #endif
   }
 
-  operator bool() const
-  {
-    return bool(impl);
-  }
+  operator bool() const { return bool(impl); }
 
 private:
   void* impl{};
