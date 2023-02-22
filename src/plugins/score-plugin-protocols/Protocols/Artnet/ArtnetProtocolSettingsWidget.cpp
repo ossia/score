@@ -29,12 +29,34 @@
 #include <QTreeWidget>
 #include <QVariant>
 
+#include <re2/re2.h>
+
+#include <ctre.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Protocols::ArtnetProtocolSettingsWidget)
 
 namespace Protocols
 {
+
+struct Pixel
+{
+  int16_t x{}, y{}, z{};
+  QString name;
+};
+
+struct PixelGroup
+{
+  QString name;
+  std::vector<int> pixels; // Indices in pixels array of PixelMatrix
+};
+
+struct PixelMatrix
+{
+  std::vector<Pixel> pixels;
+  std::vector<PixelGroup> groups;
+};
+
 struct FixtureMode
 {
   QString name;
@@ -58,127 +80,496 @@ struct FixtureMode
   }
 };
 
+static constexpr auto leq_rexp_str = ctll::fixed_string{R"_(<=([0-9]+))_"};
+static constexpr auto geq_rexp_str = ctll::fixed_string{R"_(>=([0-9]+))_"};
+static constexpr auto lst_rexp_str = ctll::fixed_string{R"_(<([0-9]+))_"};
+static constexpr auto gst_rexp_str = ctll::fixed_string{R"_(>([0-9]+))_"};
+static constexpr auto eq_rexp_str = ctll::fixed_string{R"_(=([0-9]+))_"};
+static constexpr auto arith1_rexp_str = ctll::fixed_string{R"_(([0-9]+)n)_"};
+static constexpr auto arith_rexp_str = ctll::fixed_string{R"_(([0-9]+)n\+([0-9]+))_"};
+
+static constexpr auto leq_rex = ctre::match<leq_rexp_str>;
+static constexpr auto geq_rex = ctre::match<geq_rexp_str>;
+static constexpr auto lst_rex = ctre::match<lst_rexp_str>;
+static constexpr auto gst_rex = ctre::match<gst_rexp_str>;
+static constexpr auto eq_rex = ctre::match<eq_rexp_str>;
+static constexpr auto arith1_rex = ctre::match<arith1_rexp_str>;
+static constexpr auto arith_rex = ctre::match<arith_rexp_str>;
+
 class FixtureData
 {
 public:
+  using ChannelMap = std::unordered_map<QString, Artnet::Channel>;
   QString name{};
   QStringList tags{};
   QIcon icon{};
 
+  PixelMatrix matrix{};
+
   std::vector<FixtureMode> modes{};
+
+  // Function returns false if the item must be filtered
+  static std::function<bool(int)> constraint_pos(std::string_view cst) noexcept
+  {
+    // Invalid constraint : we keep the item
+    if(cst.empty())
+      return [](int p) { return true; };
+
+    if(cst == "even")
+      return [](int p) { return (p % 2) == 0; };
+    else if(cst == "odd")
+      return [](int p) { return (p % 2) == 1; };
+    else if(auto [whole, n] = leq_rex(cst); whole)
+      return [num = n.to_number()](int p) { return p <= num; };
+    else if(auto [whole, n] = geq_rex(cst); whole)
+      return [num = n.to_number()](int p) { return p >= num; };
+    else if(auto [whole, n] = lst_rex(cst); whole)
+      return [num = n.to_number()](int p) { return p < num; };
+    else if(auto [whole, n] = gst_rex(cst); whole)
+      return [num = n.to_number()](int p) { return p > num; };
+    else if(auto [whole, n] = eq_rex(cst); whole)
+      return [num = n.to_number()](int p) { return p == num; };
+    else if(auto [whole, n, r] = arith_rex(cst); whole)
+    {
+      if(int num = n.to_number(); num > 0)
+      {
+        return [num, rem = r.to_number()](int p) { return (p % num) == rem; };
+      }
+    }
+    else if(auto [whole, n] = arith1_rex(cst); whole)
+    {
+      if(int num = n.to_number(); num > 0)
+      {
+        return [num](int p) { return (p % num) == 0; };
+      }
+    }
+
+    return [](int p) { return false; };
+  }
+
+  static std::function<bool(const QString&)>
+  constraint_name(std::string_view cst) noexcept
+  {
+    // Invalid constraint : we keep the item
+    if(cst.empty())
+      return [](const QString& p) { return true; };
+
+    return [rexp = std::make_shared<RE2>(cst)](const QString& p) {
+      return RE2::FullMatch(p.toStdString(), *rexp);
+    };
+  }
+
+  static std::vector<int> filter_constraints(
+      const std::vector<Pixel>& pixels, const std::vector<std::string_view>& x_cst,
+      const std::vector<std::string_view>& y_cst,
+      const std::vector<std::string_view>& z_cst,
+      const std::vector<std::string_view>& name_cst) noexcept
+  {
+    std::vector<int> matching;
+    std::vector<std::function<bool(const Pixel&)>> filters;
+
+    for(auto& c : x_cst)
+      if(auto f = constraint_pos(c))
+        filters.push_back([f](const Pixel& p) { return f(p.x); });
+    for(auto& c : y_cst)
+      if(auto f = constraint_pos(c))
+        filters.push_back([f](const Pixel& p) { return f(p.y); });
+    for(auto& c : z_cst)
+      if(auto f = constraint_pos(c))
+        filters.push_back([f](const Pixel& p) { return f(p.z); });
+    for(auto& c : name_cst)
+      if(auto f = constraint_name(c))
+        filters.push_back([f](const Pixel& p) { return f(p.name); });
+
+    for(int i = 0; i < pixels.size(); i++)
+    {
+      if(pixels[i].name.isEmpty())
+        continue;
+
+      bool filtered = false;
+      for(auto& func : filters)
+        if(filtered = !func(pixels[i]))
+          break;
+
+      if(!filtered)
+        matching.push_back(i);
+    }
+
+    return matching;
+  }
+
+  void loadMatrix(const rapidjson::Value& mat)
+  {
+    using namespace std::literals;
+    // First parse the pixels
+    if(auto pk_it = mat.FindMember("pixelKeys");
+       pk_it != mat.MemberEnd() && pk_it->value.IsArray())
+    {
+      const auto& pk_z = pk_it->value.GetArray();
+      const int16_t dim_z = pk_z.Size();
+      for(int16_t z = 0; z < dim_z; ++z)
+      {
+        if(pk_z[z].IsArray())
+        {
+          const auto& pk_y = pk_z[z].GetArray();
+          const int16_t dim_y = pk_y.Size();
+          for(int16_t y = 0; y < dim_y; ++y)
+          {
+            if(pk_y[y].IsArray())
+            {
+              const auto& pk_x = pk_y[y].GetArray();
+              const int16_t dim_x = pk_x.Size();
+              for(int16_t x = 0; x < dim_x; ++x)
+              {
+                if(pk_x[x].IsString())
+                {
+                  matrix.pixels.push_back(
+                      Pixel{.x = x, .y = y, .z = z, .name = pk_x[x].GetString()});
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    else if(auto pc_it = mat.FindMember("pixelCount");
+            pc_it != mat.MemberEnd() && pc_it->value.IsArray())
+    {
+      const auto& pc = pc_it->value.GetArray();
+      if(pc.Size() != 3)
+        return;
+      if(!pc[0].IsInt() || !pc[1].IsInt() || !pc[2].IsInt())
+        return;
+      const int16_t dim_x = pc[0].GetInt();
+      const int16_t dim_y = pc[1].GetInt();
+      const int16_t dim_z = pc[2].GetInt();
+
+      matrix.pixels.reserve(dim_x * dim_y * dim_z);
+
+      auto get_name = (dim_y == 1 && dim_z == 1)
+                          ? [](int x, int y, int z) { return QString::number(x + 1); }
+                      : dim_z == 1
+                          ? [](int x, int y,
+                               int z) { return QString("%1 %2").arg(x + 1).arg(y + 1); }
+                          : [](int x, int y, int z) {
+        return QString("%1 %2 %3").arg(x + 1).arg(y + 1).arg(z + 1);
+                        };
+      for(int16_t x = 0; x < dim_x; x++)
+        for(int16_t y = 0; y < dim_y; y++)
+          for(int16_t z = 0; z < dim_z; z++)
+            matrix.pixels.push_back(
+                Pixel{.x = x, .y = y, .z = z, .name = get_name(x, y, z)});
+    }
+
+    if(matrix.pixels.empty())
+      return;
+
+    // Then parse the groups
+    if(auto gg_it = mat.FindMember("pixelGroups");
+       gg_it != mat.MemberEnd() && gg_it->value.IsObject())
+    {
+      for(auto g_it = gg_it->value.MemberBegin(); g_it != gg_it->value.MemberEnd();
+          ++g_it)
+      {
+        PixelGroup gp;
+        gp.name = g_it->name.GetString();
+
+        auto& g = g_it->value;
+
+        if(g.IsString())
+        {
+          if(g.GetString() == "all"sv)
+          {
+            // All the pixels are in the group
+            gp.pixels.reserve(matrix.pixels.size());
+            for(int i = 0; i < matrix.pixels.size(); i++)
+              gp.pixels.push_back(i);
+          }
+        }
+        else if(g.IsArray())
+        {
+          // A specific list of pixels is in the group
+          const auto& pxg = g.GetArray();
+          for(auto& px : pxg)
+          {
+            if(px.IsString())
+            {
+              QString px_name = px.GetString();
+              auto px_it = ossia::find_if(
+                  matrix.pixels, [=](auto& pix) { return pix.name == px_name; });
+              if(px_it != matrix.pixels.end())
+              {
+                gp.pixels.push_back(std::distance(matrix.pixels.begin(), px_it));
+              }
+            }
+          }
+        }
+        else if(g.IsObject())
+        {
+          // Filter constraints
+          std::vector<std::string_view> x_cst, y_cst, z_cst, name_cst;
+          if(auto x_cst_it = g.FindMember("x");
+             x_cst_it != g.MemberEnd() && x_cst_it->value.IsArray())
+          {
+            for(const auto& v : x_cst_it->value.GetArray())
+              if(v.IsString())
+                x_cst.push_back(v.GetString());
+          }
+          if(auto y_cst_it = g.FindMember("y");
+             y_cst_it != g.MemberEnd() && y_cst_it->value.IsArray())
+          {
+            for(const auto& v : y_cst_it->value.GetArray())
+              if(v.IsString())
+                y_cst.push_back(v.GetString());
+          }
+          if(auto z_cst_it = g.FindMember("z");
+             z_cst_it != g.MemberEnd() && z_cst_it->value.IsArray())
+          {
+            for(const auto& v : z_cst_it->value.GetArray())
+              if(v.IsString())
+                z_cst.push_back(v.GetString());
+          }
+          if(auto n_cst_it = g.FindMember("name");
+             n_cst_it != g.MemberEnd() && n_cst_it->value.IsArray())
+          {
+            for(const auto& v : n_cst_it->value.GetArray())
+              if(v.IsString())
+                name_cst.push_back(v.GetString());
+          }
+          gp.pixels = filter_constraints(matrix.pixels, x_cst, y_cst, z_cst, name_cst);
+        }
+
+        matrix.groups.push_back(std::move(gp));
+      }
+    }
+  }
+
+  ChannelMap loadChannels(const rapidjson::Value& val)
+  {
+    ChannelMap channels;
+    for(auto chan_it = val.MemberBegin(); chan_it != val.MemberEnd(); ++chan_it)
+    {
+      Artnet::Channel chan;
+      chan.name = chan_it->name.GetString();
+      auto& jchan = chan_it->value;
+
+      if(jchan.IsObject())
+      {
+        if(auto default_it = jchan.FindMember("defaultValue");
+           default_it != jchan.MemberEnd())
+        {
+          if(default_it->value.IsNumber())
+          {
+            chan.defaultValue = default_it->value.GetDouble();
+          }
+          else if(default_it->value.IsString())
+          {
+            // TODO parse strings...
+            // From a quick grep in the library the only used string so far is "50%" so we optimize on that.
+            // PRs accepted :D
+            std::string_view str = default_it->value.GetString();
+            if(str == "50%")
+              chan.defaultValue = 127;
+          }
+        }
+
+        if(auto fineChannels_it = jchan.FindMember("fineChannelAliases");
+           fineChannels_it != jchan.MemberEnd())
+        {
+          const auto& fineChannels = fineChannels_it->value;
+          if(fineChannels.IsArray())
+          {
+            const auto& fc = fineChannels.GetArray();
+            for(auto& val : fc)
+            {
+              if(val.IsString())
+              {
+                chan.fineChannels.push_back(
+                    QString::fromUtf8(val.GetString(), val.GetStringLength()));
+              }
+              else
+              {
+                chan.fineChannels.clear();
+                break;
+              }
+            }
+          }
+        }
+
+        if(auto capability_it = jchan.FindMember("capability");
+           capability_it != jchan.MemberEnd())
+        {
+          Artnet::SingleCapability cap;
+          if(auto effectname_it = capability_it->value.FindMember("effectName");
+             effectname_it != capability_it->value.MemberEnd())
+            cap.effectName = effectname_it->value.GetString();
+
+          if(auto comment_it = capability_it->value.FindMember("comment");
+             comment_it != capability_it->value.MemberEnd())
+            cap.comment = comment_it->value.GetString();
+
+          cap.type = capability_it->value["type"].GetString();
+          chan.capabilities = std::move(cap);
+        }
+        else if(auto capabilities_it = jchan.FindMember("capabilities");
+                capabilities_it != jchan.MemberEnd())
+        {
+          std::vector<Artnet::RangeCapability> caps;
+          for(const auto& capa : capabilities_it->value.GetArray())
+          {
+            QString type = capa["type"].GetString();
+            if(type != "NoFunction")
+            {
+              Artnet::RangeCapability cap;
+              if(auto effectname_it = capa.FindMember("effectName");
+                 effectname_it != capa.MemberEnd())
+                cap.effectName = effectname_it->value.GetString();
+
+              if(auto comment_it = capa.FindMember("comment");
+                 comment_it != capa.MemberEnd())
+                cap.comment = comment_it->value.GetString();
+
+              cap.type = std::move(type);
+              {
+                const auto& range_arr = capa["dmxRange"].GetArray();
+                cap.range = {range_arr[0].GetInt(), range_arr[1].GetInt()};
+              }
+              caps.push_back(std::move(cap));
+            }
+          }
+
+          chan.capabilities = std::move(caps);
+        }
+      }
+
+      channels[chan.name] = std::move(chan);
+    }
+    return channels;
+  }
+
+  void addTemplateToMode(
+      FixtureMode& m, const rapidjson::Value& repeatFor, std::string_view channelOrder,
+      const std::vector<QString>& templateChannels, const ChannelMap& templates)
+  {
+    // FIXME TODO
+    if(channelOrder != "perPixel")
+      return;
+
+    auto addTemplates = [&m, &templates, &templateChannels](const QString& pixelKey) {
+      for(const QString& channel : templateChannels)
+      {
+        // Locate the template for each channel
+        auto template_it = templates.find(channel);
+        if(template_it != templates.end())
+        {
+          QString name = template_it->first;
+          name.replace("$pixelKey", pixelKey);
+
+          // Write the channel
+          m.channels.push_back(template_it->second);
+          m.channels.back().name = name;
+          m.allChannels.push_back(name);
+        }
+      }
+    };
+
+    if(repeatFor.IsString())
+    {
+      std::string_view rf = repeatFor.GetString();
+      if(rf == "eachPixelABC")
+      {
+        auto sortedPixels = this->matrix.pixels;
+        ossia::sort(sortedPixels, [](const Pixel& p1, const Pixel& p2) {
+          return p1.name < p2.name;
+        });
+
+        for(const Pixel& pixel : sortedPixels)
+        {
+          addTemplates(pixel.name);
+        }
+      }
+      else if(rf == "eachPixelGroup")
+      {
+        for(const PixelGroup& group : this->matrix.groups)
+        {
+          addTemplates(group.name);
+        }
+      }
+      else if(rf.starts_with("eachPixel"))
+      {
+        rf = rf.substr(strlen("eachPixel"));
+        if(!rf.size() == 3)
+          return;
+        decltype(&Pixel::x) accessors[3];
+        for(int i = 0; i < 3; i++)
+        {
+          switch(rf[i])
+          {
+            case 'x':
+            case 'X':
+              accessors[i] = &Pixel::x;
+              break;
+            case 'y':
+            case 'Y':
+              accessors[i] = &Pixel::y;
+              break;
+            case 'z':
+            case 'Z':
+              accessors[i] = &Pixel::z;
+              break;
+            default:
+              return;
+          }
+        }
+
+        auto sortedPixels = this->matrix.pixels;
+        ossia::sort(sortedPixels, [=](const Pixel& p1, const Pixel& p2) {
+          return std::array<int16_t, 3>{
+                     p1.*(accessors[2]), p1.*(accessors[1]), p1.*(accessors[0])}
+                 < std::array<int16_t, 3>{
+                     p2.*(accessors[2]), p2.*(accessors[1]), p2.*(accessors[0])};
+        });
+
+        for(const Pixel& pixel : sortedPixels)
+        {
+          addTemplates(pixel.name);
+        }
+      }
+    }
+    else if(repeatFor.IsArray())
+    {
+      // It's specific pixel groups or pixels
+      for(const auto& entity_v : repeatFor.GetArray())
+      {
+        if(!entity_v.IsString())
+          continue;
+
+        addTemplates(entity_v.GetString());
+      }
+    }
+  }
 
   void loadModes(const rapidjson::Document& doc)
   {
     modes.clear();
-    std::unordered_map<QString, Artnet::Channel> channels;
-    {
-      auto it = doc.FindMember("availableChannels");
-      if(it == doc.MemberEnd())
-        return;
+    ChannelMap channels;
+    if(auto it = doc.FindMember("availableChannels"); it != doc.MemberEnd())
+      if(it->value.IsObject())
+        channels = loadChannels(it->value);
 
-      if(!it->value.IsObject())
-        return;
+    ChannelMap templateChannels;
+    if(auto it = doc.FindMember("templateChannels"); it != doc.MemberEnd())
+      if(it->value.IsObject())
+        templateChannels = loadChannels(it->value);
 
-      for(auto chan_it = it->value.MemberBegin(); chan_it != it->value.MemberEnd();
-          ++chan_it)
-      {
-        Artnet::Channel chan;
-        chan.name = chan_it->name.GetString();
-        auto& jchan = chan_it->value;
+    if(channels.empty() && templateChannels.empty())
+      return;
 
-        if(jchan.IsObject())
-        {
-          if(auto default_it = jchan.FindMember("defaultValue");
-             default_it != jchan.MemberEnd())
-          {
-            if(default_it->value.IsNumber())
-            {
-              chan.defaultValue = default_it->value.GetDouble();
-            }
-            else if(default_it->value.IsString())
-            {
-              // TODO parse strings...
-              // From a quick grep in the library the only used string so far is "50%" so we optimize on that.
-              // PRs accepted :D
-              std::string_view str = default_it->value.GetString();
-              if(str == "50%")
-                chan.defaultValue = 127;
-            }
-          }
+    if(auto it = doc.FindMember("matrix"); it != doc.MemberEnd())
+      if(it->value.IsObject())
+        loadMatrix(it->value);
 
-          if(auto fineChannels_it = jchan.FindMember("fineChannelAliases");
-             fineChannels_it != jchan.MemberEnd())
-          {
-            const auto& fineChannels = fineChannels_it->value;
-            if(fineChannels.IsArray())
-            {
-              const auto& fc = fineChannels.GetArray();
-              for(auto& val : fc)
-              {
-                if(val.IsString())
-                {
-                  chan.fineChannels.push_back(
-                      QString::fromUtf8(val.GetString(), val.GetStringLength()));
-                }
-                else
-                {
-                  chan.fineChannels.clear();
-                  break;
-                }
-              }
-            }
-          }
-
-          if(auto capability_it = jchan.FindMember("capability");
-             capability_it != jchan.MemberEnd())
-          {
-            Artnet::SingleCapability cap;
-            if(auto effectname_it = capability_it->value.FindMember("effectName");
-               effectname_it != capability_it->value.MemberEnd())
-              cap.effectName = effectname_it->value.GetString();
-
-            if(auto comment_it = capability_it->value.FindMember("comment");
-               comment_it != capability_it->value.MemberEnd())
-              cap.comment = comment_it->value.GetString();
-
-            cap.type = capability_it->value["type"].GetString();
-            chan.capabilities = std::move(cap);
-          }
-          else if(auto capabilities_it = jchan.FindMember("capabilities");
-                  capabilities_it != jchan.MemberEnd())
-          {
-            std::vector<Artnet::RangeCapability> caps;
-            for(const auto& capa : capabilities_it->value.GetArray())
-            {
-              QString type = capa["type"].GetString();
-              if(type != "NoFunction")
-              {
-                Artnet::RangeCapability cap;
-                if(auto effectname_it = capa.FindMember("effectName");
-                   effectname_it != capa.MemberEnd())
-                  cap.effectName = effectname_it->value.GetString();
-
-                if(auto comment_it = capa.FindMember("comment");
-                   comment_it != capa.MemberEnd())
-                  cap.comment = comment_it->value.GetString();
-
-                cap.type = std::move(type);
-                {
-                  const auto& range_arr = capa["dmxRange"].GetArray();
-                  cap.range = {range_arr[0].GetInt(), range_arr[1].GetInt()};
-                }
-                caps.push_back(std::move(cap));
-              }
-            }
-
-            chan.capabilities = std::move(caps);
-          }
-        }
-
-        channels[chan.name] = std::move(chan);
-      }
-    }
-
+    using namespace std::literals;
     {
       auto it = doc.FindMember("modes");
       if(it == doc.MemberEnd())
@@ -210,6 +601,41 @@ public:
                 }
                 m.allChannels.push_back(
                     QString::fromUtf8(channel.GetString(), channel.GetStringLength()));
+              }
+              else if(channel.IsObject())
+              {
+                if(auto insert_it = channel.FindMember("insert");
+                   insert_it != channel.MemberEnd() && insert_it->value.IsString()
+                   && insert_it->value.GetString() == "matrixChannels"sv)
+                {
+                  auto repeatFor_it = channel.FindMember("repeatFor");
+                  if(repeatFor_it == channel.MemberEnd())
+                    continue;
+                  auto channelOrder_it = channel.FindMember("channelOrder");
+                  auto templateChannels_it = channel.FindMember("templateChannels");
+                  std::string channelOrder = channelOrder_it != channel.MemberEnd()
+                                                     && channelOrder_it->value.IsString()
+                                                 ? channelOrder_it->value.GetString()
+                                                 : "";
+
+                  std::vector<QString> modeChannels;
+                  if(templateChannels_it != channel.MemberEnd()
+                     && templateChannels_it->value.IsArray())
+                  {
+                    const auto& arr = templateChannels_it->value.GetArray();
+                    for(auto& c : arr)
+                    {
+                      if(c.IsString())
+                        modeChannels.push_back(c.GetString());
+                      else
+                        modeChannels.push_back({});
+                    }
+                  }
+
+                  addTemplateToMode(
+                      m, repeatFor_it->value, channelOrder, modeChannels,
+                      templateChannels);
+                }
               }
               else
               {
@@ -728,8 +1154,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
       rows_to_remove.insert(item->row());
     }
 
-    for(auto it = rows_to_remove.container.rbegin();
-        it != rows_to_remove.container.rend(); ++it)
+    for(auto it = rows_to_remove.rbegin(); it != rows_to_remove.rend(); ++it)
     {
       m_fixtures.erase(m_fixtures.begin() + *it);
     }

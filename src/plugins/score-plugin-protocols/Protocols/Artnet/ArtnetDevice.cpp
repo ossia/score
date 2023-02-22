@@ -53,10 +53,10 @@ static void addArtnetFixture(
   for(auto& chan : fix.controls)
   {
     // Get the dmx offset of this channel:
-    auto channel_it = ossia::find(fix.mode.channelNames, chan.name);
-    if(channel_it == chan.fineChannels.end())
+    const int channel_offset
+        = ossia::index_in_container(fix.mode.channelNames, chan.name);
+    if(channel_offset == -1)
       continue;
-    const int channel_offset = std::distance(fix.mode.channelNames.begin(), channel_it);
     const int dmx_channel = fix.address + channel_offset;
 
     auto chan_node = fixt_node->create_child(chan.name.toStdString());
