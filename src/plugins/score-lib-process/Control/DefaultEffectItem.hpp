@@ -39,10 +39,6 @@ private:
   template <typename T>
   void setupPort(T& port, const Process::PortFactoryList& portFactory);
 
-  void on_controlAdded(const Id<Process::Port>& p);
-  void on_controlRemoved(const Process::Port& p);
-  void on_controlOutletAdded(const Id<Process::Port>& p);
-  void on_controlOutletRemoved(const Process::Port& p);
   void reset();
   void recreate();
   void updateRect();
