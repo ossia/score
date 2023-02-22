@@ -82,7 +82,7 @@ relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) n
     {
       path.remove(0, docpath.length());
       if(path.startsWith('/'))
-        path.removeFirst();
+        path.remove(0, 1);
     }
   }
 
