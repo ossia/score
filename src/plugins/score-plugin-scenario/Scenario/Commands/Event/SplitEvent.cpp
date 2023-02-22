@@ -109,7 +109,8 @@ void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
     auto& newEvent = scenar.event(id);
 
     SCORE_ASSERT(newEvent.states().size() == 1);
-    const auto& stateId = newEvent.states().front();
+    //!! not a const ref because we remove it afterwards
+    auto stateId = newEvent.states().front();
     {
       auto& st = scenar.state(stateId);
       newEvent.removeState(stateId);
