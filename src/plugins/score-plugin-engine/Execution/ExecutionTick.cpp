@@ -221,7 +221,7 @@ Audio::tick_fun makeBenchmarkTick(
 
       helper->m_context->m_editionQueue.enqueue([plugPtr, bench, total]() mutable {
         if(plugPtr)
-          plugPtr->sig_bench(std::move(bench), total);
+          plugPtr->slot_bench(std::move(bench), total);
       });
 
       for(auto& p : bench)

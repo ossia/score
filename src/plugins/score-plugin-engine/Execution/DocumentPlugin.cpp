@@ -91,9 +91,6 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
   connect(
       this, &DocumentPlugin::finished, this, &DocumentPlugin::on_finished,
       Qt::DirectConnection);
-  connect(
-      this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench,
-      Qt::QueuedConnection);
 }
 
 void DocumentPlugin::recreateBase()
