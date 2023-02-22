@@ -45,6 +45,7 @@ public:
   ~Settings();
 
   void setupView();
+  void teardownView();
 
   Settings(const Settings&) = delete;
   Settings(Settings&&) = delete;

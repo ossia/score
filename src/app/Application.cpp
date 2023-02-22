@@ -331,6 +331,8 @@ Application::Application(
 Application::~Application()
 {
   this->setParent(nullptr);
+  m_settings.teardownView();
+  // FIXME projectSettings?
   delete m_view;
   delete m_presenter;
   delete m_startScreen;
