@@ -107,13 +107,13 @@ void SelectionStack::push(const Selection& selection)
         it = s.erase(it);
     }
 
-    Foreach(s, [&](auto obj) {
-      if(m_connections.find(obj) == m_connections.end())
+    Foreach(s, [&](const QPointer<IdentifiedObjectAbstract>& obj) {
+      if(m_connections.find(obj.data()) == m_connections.end())
       {
         QMetaObject::Connection con = connect(
             obj, &IdentifiedObjectAbstract::identified_object_destroyed, this,
             &SelectionStack::prune, Qt::UniqueConnection);
-        m_connections.insert({obj, con});
+        m_connections.insert({obj.data(), con});
       }
     });
 
