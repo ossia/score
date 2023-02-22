@@ -15,8 +15,6 @@
 #include <QMimeData>
 #include <QTimer>
 
-#include <map>
-
 namespace Library
 {
 
@@ -69,7 +67,7 @@ void ProcessesItemModel::rescan()
 {
   auto& procs = context.interfaces<Process::ProcessFactoryList>();
 
-  std::map<QString, std::vector<Process::ProcessModelFactory*>> sorted;
+  ossia::flat_map<QString, std::vector<Process::ProcessModelFactory*>> sorted;
   for(Process::ProcessModelFactory& proc : procs)
   {
     static_assert((1LL << 63) == (1ULL << 63));

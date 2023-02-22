@@ -270,7 +270,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     auto& m_model = *cm;
     // We remove all that is selected,
     // And set the bounds correctly
-    std::set<Id<SegmentModel>> segmentsToDelete;
+    ossia::hash_set<Id<SegmentModel>> segmentsToDelete;
 
     // First find the segments that will be deleted.
     // If a point is selected, the segments linked to that point

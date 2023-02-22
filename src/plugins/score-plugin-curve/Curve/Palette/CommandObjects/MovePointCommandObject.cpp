@@ -33,7 +33,7 @@ class CommandStackFacade;
 namespace Curve
 {
 using SegmentMapImpl
-    = ossia::fast_hash_map<Id<SegmentModel>, SegmentData, CurveDataHash>;
+    = ossia::hash_map<Id<SegmentModel>, SegmentData, CurveDataHash>;
 
 struct CurveSegmentMap : SegmentMapImpl
 {

@@ -39,7 +39,7 @@ struct CommandKeyHash : std::hash<std::string>
 struct CommandStore : score::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>
 {
 public:
-  using hopscotch_map::hopscotch_map;
+  using score::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>::hash_map;
 };
 
 struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData

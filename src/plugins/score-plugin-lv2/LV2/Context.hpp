@@ -158,12 +158,12 @@ public:
   std::vector<LV2_Options_Option> options;
 
   LV2_URID urid_map_cur = 1;
-  ossia::fast_hash_map<std::string, LV2_URID> urid_map_left;
-  ossia::fast_hash_map<LV2_URID, std::string> urid_map_right;
+  ossia::hash_map<std::string, LV2_URID> urid_map_left;
+  ossia::hash_map<LV2_URID, std::string> urid_map_right;
 
   LV2_URI_Map_Feature uri_map{};
   LV2_URID uri_map_cur = 1;
-  ossia::fast_hash_map<std::string, LV2_URID> uri_map_left;
+  ossia::hash_map<std::string, LV2_URID> uri_map_left;
 
   LV2_URID_Map map{};
   LV2_URID_Unmap unmap{};

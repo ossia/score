@@ -10,7 +10,7 @@ class SEHFrameHandler
 {
   typedef SingleSectionMemoryManager::EHFrameInfos EHFrameInfos;
   typedef std::vector<std::pair<DWORD, DWORD>> ImageRanges;
-  typedef std::map<uintptr_t, ImageRanges> ImageBaseMap;
+  typedef ossia::flat_map<uintptr_t, ImageRanges> ImageBaseMap;
   ImageBaseMap m_Map;
 
   static void MergeRanges(ImageRanges& Ranges);

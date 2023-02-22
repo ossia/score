@@ -91,7 +91,7 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  using address_map = ossia::fast_hash_map<int32_t, State::AddressAccessor>;
+  using address_map = ossia::hash_map<int32_t, State::AddressAccessor>;
   Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>

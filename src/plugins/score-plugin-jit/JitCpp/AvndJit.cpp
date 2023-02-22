@@ -273,7 +273,7 @@ struct outlet_vis
 
 std::shared_ptr<NodeFactory> Model::getJitFactory()
 {
-  static std::map<QByteArray, std::shared_ptr<NodeFactory>> facts;
+  static ossia::flat_map<QByteArray, std::shared_ptr<NodeFactory>> facts;
 
   auto fx_text = m_text.toUtf8();
   if(fx_text.isEmpty())

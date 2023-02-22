@@ -36,8 +36,8 @@ public:
     for(auto it = propsToUpdate.timesyncs.cbegin(); it != propsToUpdate.timesyncs.cend();
         ++it)
     {
-      auto& curTimenodeToUpdate = scenario.timeSync(it.key());
-      auto& curTimenodePropertiesToUpdate = it.value();
+      auto& curTimenodeToUpdate = scenario.timeSync(it->first);
+      auto& curTimenodePropertiesToUpdate = it->second;
 
       curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.newDate);
 
@@ -91,8 +91,8 @@ public:
     for(auto it = propsToUpdate.timesyncs.cbegin(); it != propsToUpdate.timesyncs.cend();
         ++it)
     {
-      auto& curTimenodeToUpdate = scenario.timeSync(it.key());
-      auto& curTimenodePropertiesToUpdate = it.value();
+      auto& curTimenodeToUpdate = scenario.timeSync(it->first);
+      auto& curTimenodePropertiesToUpdate = it->second;
 
       curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.oldDate);
 

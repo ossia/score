@@ -134,7 +134,7 @@ bool LibAVDecoder::open_codec_context(
 
 /*
  *
-    using codec_map_type = std::map<AVCodecID, const char*>;
+    using codec_map_type = ossia::flat_map<AVCodecID, const char*>;
     static const codec_map_type codecs{
         {AV_CODEC_ID_AV1, "av1_cuvid"},          {AV_CODEC_ID_H264, "h264_cuvid"},
         {AV_CODEC_ID_HEVC, "hevc_cuvid"},        {AV_CODEC_ID_MJPEG, "mjpeg_cuvid"},

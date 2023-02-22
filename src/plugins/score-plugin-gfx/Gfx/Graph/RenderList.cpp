@@ -8,6 +8,7 @@
 
 #include <score/tools/Debug.hpp>
 
+//#define RENDERDOC_PROFILING 0
 #if defined(RENDERDOC_PROFILING)
 #include "renderdoc_app.h"
 

@@ -1,6 +1,6 @@
 #include <JitCpp/Compiler/Compiler.hpp>
 
-#include <map>
+#include <ossia/detail/flat_map.hpp>
 #if defined(_WIN64)
 #include "SectionMemoryManager.cpp"
 #endif
@@ -12,7 +12,7 @@ struct GlobalAtExit
 {
   int nextCompilerID{};
   int currentCompiler{};
-  std::map<int, std::vector<void (*)()>> functions;
+  ossia::flat_map<int, std::vector<void (*)()>> functions;
 } globalAtExit;
 static void jitAtExit(void (*f)())
 {

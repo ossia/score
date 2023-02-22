@@ -12,9 +12,9 @@
 // template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template class SCORE_LIB_BASE_EXPORT
-    tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
+    ossia::hash_map<UuidKey<score::SerializableComponent>, QByteArray>;
 template class SCORE_LIB_BASE_EXPORT
-    tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+    ossia::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 #endif
 #endif
 

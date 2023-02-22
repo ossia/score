@@ -168,7 +168,7 @@ EncapsData EncapsulateElements(
   double bottomY = 0;
   {
     using comp_t = StartDateComparator<IntervalModel>;
-    using set_t = std::set<const IntervalModel*, comp_t>;
+    using set_t = ossia::flat_set<const IntervalModel*, comp_t>;
 
     set_t the_set(comp_t{&scenar});
     the_set.insert(cat.selectedIntervals.begin(), cat.selectedIntervals.end());
@@ -176,7 +176,7 @@ EncapsData EncapsulateElements(
   }
   {
     using comp_t = EndDateComparator;
-    using set_t = std::set<const IntervalModel*, comp_t>;
+    using set_t = ossia::flat_set<const IntervalModel*, comp_t>;
 
     set_t the_set(comp_t{&scenar});
     the_set.insert(cat.selectedIntervals.begin(), cat.selectedIntervals.end());

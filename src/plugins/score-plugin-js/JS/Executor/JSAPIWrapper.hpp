@@ -38,7 +38,7 @@ private:
   ossia::execution_state& devices;
 
   const ossia::destination_t& find_address(const QString&);
-  ossia::fast_hash_map<QString, ossia::destination_t> m_address_cache;
+  ossia::hash_map<QString, ossia::destination_t> m_address_cache;
   // TODO share cash across
 };
 }

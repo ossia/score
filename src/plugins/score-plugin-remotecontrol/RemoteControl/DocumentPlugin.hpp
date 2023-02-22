@@ -147,7 +147,7 @@ private:
     Path<Scenario::IntervalModel> p;
   };
 
-  ossia::fast_hash_map<int64_t, IntervalData> m_intervals;
+  ossia::hash_map<int64_t, IntervalData> m_intervals;
 
   Interval* m_root{};
 };

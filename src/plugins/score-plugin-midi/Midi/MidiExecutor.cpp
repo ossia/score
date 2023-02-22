@@ -15,7 +15,7 @@ static midi_node::note_set to_ossia(Component& c)
 {
   midi_node::note_set notes;
   auto& element = c.process();
-  notes.container.reserve(element.notes.size());
+  notes.reserve(element.notes.size());
   for(const auto& n : element.notes)
   {
     auto data = n.noteData();

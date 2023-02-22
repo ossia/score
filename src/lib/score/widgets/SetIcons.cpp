@@ -7,12 +7,12 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QDebug>
 #include <QFile>
 #include <QGuiApplication>
 #include <QScreen>
-
-#include <tsl/hopscotch_map.h>
 
 namespace std
 {
@@ -38,7 +38,8 @@ struct hash<std::tuple<QString, QString, QString, QString>>
 }
 static auto& iconMap()
 {
-  static tsl::hopscotch_map<std::tuple<QString, QString, QString, QString>, QIcon> icons;
+  static ossia::hash_map<std::tuple<QString, QString, QString, QString>, QIcon>
+      icons;
   return icons;
 }
 
@@ -51,7 +52,7 @@ void setIcons(
   auto it = map.find(pair);
   if(it != map.end())
   {
-    action->setIcon(it.value());
+    action->setIcon(it->second);
   }
   else
   {
@@ -82,7 +83,7 @@ void setIcons(
   auto it = map.find(pair);
   if(it != map.end())
   {
-    action->setIcon(it.value());
+    action->setIcon(it->second);
   }
   else
   {
@@ -129,7 +130,7 @@ QIcon genIconFromPixmaps(
   auto it = map.find(pair);
   if(it != map.end())
   {
-    return it.value();
+    return it->second;
   }
   else
   {
@@ -160,7 +161,7 @@ QIcon genIconFromPixmaps(
   auto it = map.find(pair);
   if(it != map.end())
   {
-    return it.value();
+    return it->second;
   }
   else
   {

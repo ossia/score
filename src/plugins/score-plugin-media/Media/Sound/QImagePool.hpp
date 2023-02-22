@@ -39,7 +39,7 @@ struct QImagePool
   };
 
   static const constexpr int max_count = 100;
-  using pool_t = ossia::fast_hash_map<std::pair<int, int>, Images>;
+  using pool_t = ossia::hash_map<std::pair<int, int>, Images>;
   pool_t pool TS_GUARDED_BY(m_mtx);
   std::mutex m_mtx;
 

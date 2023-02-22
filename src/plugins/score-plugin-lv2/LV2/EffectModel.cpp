@@ -38,7 +38,7 @@ namespace LV2
 {
 std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
 {
-  static tsl::hopscotch_map<QString, const LilvPlugin*> plug_map;
+  static ossia::hash_map<QString, const LilvPlugin*> plug_map;
   if(auto it = plug_map.find(path); it != plug_map.end())
   {
     if(it->second)
@@ -154,7 +154,7 @@ struct LV2PluginChooserDialog : public QDialog
   QListWidget m_plugins;
   QDialogButtonBox m_buttons;
 
-  std::map<QString, QVector<QString>> m_categories_map;
+  ossia::flat_map<QString, QVector<QString>> m_categories_map;
 };
 }
 namespace Process

@@ -51,7 +51,7 @@ struct PreviewInputVisitor
 struct PreviewPresetVisitor
 {
   score::gfx::ISFNode& node;
-  std::map<int, ossia::value>& controls;
+  ossia::flat_map<int, ossia::value>& controls;
   int i{};
   void operator()(const isf::float_input& v)
   {
@@ -155,7 +155,7 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
     setup();
     if(m_isf)
     {
-      std::map<int, ossia::value> controls;
+      ossia::flat_map<int, ossia::value> controls;
       for(const auto& arr : obj["Controls"].GetArray())
       {
         controls[arr[0].GetInt()] = JsonValue{arr[1]}.to<ossia::value>();

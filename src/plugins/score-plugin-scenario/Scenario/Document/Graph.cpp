@@ -24,7 +24,7 @@
 
 #include <QTimer>
 
-#include <tsl/hopscotch_set.h>
+#include <ossia/detail/hash_map.hpp>
 namespace Scenario
 {
 /*
@@ -190,7 +190,7 @@ struct CycleDetector
 
 struct PathDetectorState
 {
-  tsl::hopscotch_set<Scenario::TimeSyncModel*> nodes;
+  ossia::hash_set<Scenario::TimeSyncModel*> nodes;
 };
 
 struct PathDetector : public boost::default_dfs_visitor

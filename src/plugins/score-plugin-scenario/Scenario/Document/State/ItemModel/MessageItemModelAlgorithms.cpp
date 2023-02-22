@@ -669,7 +669,7 @@ static void rec_removeUserValue(Process::MessageNode& node)
 
 static bool rec_cleanup(Process::MessageNode& node)
 {
-  std::set<const Process::MessageNode*> toRemove;
+  ossia::hash_set<const Process::MessageNode*> toRemove;
   for(auto& child : node)
   {
     bool canEraseChild = rec_cleanup(child);

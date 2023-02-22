@@ -60,8 +60,8 @@ public:
   mutable moodycamel::ReaderWriterQueue<Message>
       to_process_events; // from score to process
 
-  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
-  ossia::fast_hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
+  ossia::hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
+  ossia::hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
 
 private:
   void reload();

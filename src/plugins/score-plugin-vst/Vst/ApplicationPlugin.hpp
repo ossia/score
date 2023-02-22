@@ -52,7 +52,7 @@ public:
   void vstChanged() W_SIGNAL(vstChanged)
 
   std::vector<VSTInfo> vst_infos;
-  ossia::fast_hash_map<int32_t, vst::Module*> vst_modules;
+  ossia::hash_map<int32_t, vst::Module*> vst_modules;
 
   const std::thread::id m_tid{std::this_thread::get_id()};
   auto mainThreadId() const noexcept { return m_tid; }

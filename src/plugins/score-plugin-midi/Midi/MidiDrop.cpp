@@ -122,7 +122,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
   return {};
 }
 
-using midi_note_map = std::map<int, Midi::NoteData>;
+using midi_note_map = ossia::flat_map<int, Midi::NoteData>;
 
 static constexpr const char* gm_midi_names[]
     = {"Acoustic Grand Piano",

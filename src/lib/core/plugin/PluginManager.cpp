@@ -260,7 +260,7 @@ std::optional<score::Addon> makeAddon(
     const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
-  using Funmap = std::map<QString, std::function<void(QJsonValue)>>;
+  using Funmap = ossia::hash_map<QString, std::function<void(QJsonValue)>>;
 
   score::Addon add;
 

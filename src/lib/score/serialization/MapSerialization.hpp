@@ -72,35 +72,62 @@ struct MapSerializer
   }
 };
 
-template <typename T, typename U>
-struct TSerializer<DataStream, tsl::hopscotch_map<T, U>> : MapSerializer
+template <typename T, typename U, typename H, typename E, typename A>
+struct TSerializer<DataStream, std::unordered_map<T, U, H, E, A>> : MapSerializer
 {
 };
-template <typename T, typename U>
-struct TSerializer<JSONObject, tsl::hopscotch_map<T, U>> : MapSerializer
-{
-};
-
-template <typename T, typename U>
-struct TSerializer<DataStream, std::unordered_map<T, U>> : MapSerializer
-{
-};
-template <typename T, typename U>
-struct TSerializer<JSONObject, std::unordered_map<T, U>> : MapSerializer
+template <typename T, typename U, typename H, typename E, typename A>
+struct TSerializer<JSONObject, std::unordered_map<T, U, H, E, A>> : MapSerializer
 {
 };
 
 #if !defined(OSSIA_NO_FAST_CONTAINERS)
-template <typename T, typename U>
-struct TSerializer<DataStream, ossia::fast_hash_map<T, U>> : MapSerializer
+template <typename T, typename U, typename H, typename E, typename A>
+struct TSerializer<DataStream, ankerl::unordered_dense::map<T, U, H, E, A>>
+    : MapSerializer
 {
 };
-template <typename T, typename U>
-struct TSerializer<JSONObject, ossia::fast_hash_map<T, U>> : MapSerializer
+template <typename T, typename U, typename H, typename E, typename A>
+struct TSerializer<JSONObject, ankerl::unordered_dense::map<T, U, H, E, A>>
+    : MapSerializer
 {
 };
 #endif
 
+template <typename T, typename U>
+struct TSerializer<DataStream, boost::container::dtl::pair<T, U>>
+{
+  using type = boost::container::dtl::pair<T, U>;
+  static void readFrom(DataStream::Serializer& s, const type& obj)
+  {
+    s.m_stream << obj.first << obj.second;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, type& obj)
+  {
+    s.m_stream >> obj.first >> obj.second;
+  }
+};
+
+template <typename T, typename U>
+struct TSerializer<JSONObject, boost::container::dtl::pair<T, U>>
+{
+  using type = boost::container::dtl::pair<T, U>;
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
+  {
+    s.stream.StartArray();
+    s.readFrom(obj.first);
+    s.readFrom(obj.second);
+    s.stream.EndArray();
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
+  {
+    const auto& arr = s.base.GetArray();
+    obj.first <<= JsonValue{arr[0]};
+    obj.second <<= JsonValue{arr[1]};
+  }
+};
 template <typename T, typename U>
 struct TSerializer<DataStream, ossia::flat_map<T, U>>
 {
@@ -108,12 +135,12 @@ struct TSerializer<DataStream, ossia::flat_map<T, U>>
   using pair_type = typename type::value_type;
   static void readFrom(DataStream::Serializer& s, const type& obj)
   {
-    s.m_stream << obj.container;
+    s.m_stream << obj.tree().get_sequence_cref();
   }
 
   static void writeTo(DataStream::Deserializer& s, type& obj)
   {
-    s.m_stream >> obj.container;
+    s.m_stream >> obj.tree().get_sequence_ref();
   }
 };
 
@@ -123,12 +150,12 @@ struct TSerializer<JSONObject, ossia::flat_map<T, U>>
   using type = ossia::flat_map<T, U>;
   static void readFrom(JSONObject::Serializer& s, const type& obj)
   {
-    ArraySerializer::readFrom(s, obj.container);
+    ArraySerializer::readFrom(s, obj.tree().get_sequence_cref());
   }
 
   static void writeTo(JSONObject::Deserializer& s, type& obj)
   {
-    ArraySerializer::writeTo(s, obj.container);
+    ArraySerializer::writeTo(s, obj.tree().get_sequence_ref());
   }
 };
 

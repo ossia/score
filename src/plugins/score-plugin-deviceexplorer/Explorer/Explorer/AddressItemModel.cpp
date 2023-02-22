@@ -184,11 +184,11 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
       {
         auto it = after.extendedAttributes.begin();
         std::advance(it, idx);
-        if(it.key() == onet::text_description())
+        if(it->first == onet::text_description())
         {
-          it.value() = value.toString().toStdString();
+          it->second = value.toString().toStdString();
         }
-        else if(it.key() == onet::text_tags())
+        else if(it->first == onet::text_tags())
         {
           // TODO
         }
@@ -196,20 +196,20 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
         {
           if(value.canConvert<ossia::value>())
           {
-            it.value() = value.value<ossia::value>();
+            it->second = value.value<ossia::value>();
           }
         }
         else if(it->first == onet::text_refresh_rate())
         {
-          it.value() = value.toInt();
+          it->second = value.toInt();
         }
         else if(it->first == onet::text_value_step_size())
         {
-          it.value() = value.toDouble();
+          it->second = value.toDouble();
         }
         else if(it->first == onet::text_priority())
         {
-          it.value() = value.toInt();
+          it->second = value.toInt();
         }
       }
     }
@@ -349,7 +349,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
             {
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
-              auto str = QString::fromStdString(it.key());
+              auto str = QString::fromStdString(it->first);
               if(!str.isEmpty())
                 str[0] = str[0].toUpper();
               for(int i = 1; i < str.size(); i++)

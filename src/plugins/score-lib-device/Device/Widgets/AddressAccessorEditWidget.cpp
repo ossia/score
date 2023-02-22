@@ -199,7 +199,7 @@ public:
     else
     {
       auto dist = std::distance(messages.begin(), it);
-      it.underlying->second = as->value;
+      it->second = as->value;
       this->item(dist)->setText(textFromMessage(addr.address, as->value));
     }
   }
@@ -239,7 +239,7 @@ public:
     auto selected = m_learn.currentRow();
     if(ossia::valid_index(selected, m_learn.messages))
     {
-      selectedAddress = &m_learn.messages.container[selected].first;
+      selectedAddress = &m_learn.messages.tree().get_sequence_cref()[selected].first;
       accept();
     }
     else

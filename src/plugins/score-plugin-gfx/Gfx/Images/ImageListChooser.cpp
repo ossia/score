@@ -130,7 +130,7 @@ private:
   void on_removeItem()
   {
     auto indices = table->selectionModel()->selectedIndexes();
-    fc::flat_set<ossia::small_pod_vector<int, 16>, std::greater<>> rows;
+    boost::container::flat_set<int, std::greater<int>, ossia::small_pod_vector<int, 16>> rows;
     for(auto& index : indices)
       rows.insert(index.row());
     for(int index : rows)

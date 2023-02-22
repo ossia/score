@@ -97,7 +97,7 @@ public:
   mutable Nano::Signal<void(const factory_type&)> added;
 
 protected:
-  ossia::fast_hash_map<
+  ossia::hash_map<
       typename OfflineAction::ConcreteKey, std::unique_ptr<OfflineAction>>
       map;
 

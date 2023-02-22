@@ -28,7 +28,7 @@ public:
     std::shared_ptr<Execution::ProcessComponent> comp;
   };
 
-  ossia::fast_hash_map<Id<Process::ProcessModel>, RegisteredNode> m_nodes;
+  ossia::hash_map<Id<Process::ProcessModel>, RegisteredNode> m_nodes;
 
   ::Execution::ProcessComponent*
   make(Execution::ProcessComponentFactory& factory, Process::ProcessModel& process);

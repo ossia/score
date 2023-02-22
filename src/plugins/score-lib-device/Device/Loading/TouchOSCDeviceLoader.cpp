@@ -34,7 +34,7 @@ struct TouchOscControl
   double max{0.01};
 };
 
-using TouchOSCControlMap = std::map<QString, TouchOscControl>;
+using TouchOSCControlMap = ossia::flat_map<QString, TouchOscControl>;
 
 void handleTouchOSC(TouchOSCControlMap& layout, Device::Node& node)
 {

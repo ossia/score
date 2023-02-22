@@ -12,14 +12,15 @@
 #include <ossia/detail/logger.hpp>
 
 #include <QGuiApplication>
+#include <QTimer>
 namespace Gfx
 {
 
 GfxContext::GfxContext(const score::DocumentContext& ctx)
     : m_context{ctx}
 {
-  new_edges.container.reserve(100);
-  edges.container.reserve(100);
+  new_edges.reserve(100);
+  edges.reserve(100);
 
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
   con(settings, &Gfx::Settings::Model::GraphicsApiChanged, this,
@@ -250,11 +251,10 @@ void GfxContext::remove_node(
     auto node = node_it->second.get();
 
     // Remove the node from the timers if it's in there
-    for(auto timer_it = m_manualTimers.container.begin();
-        timer_it != m_manualTimers.container.end();)
+    for(auto timer_it = m_manualTimers.begin(); timer_it != m_manualTimers.end();)
     {
       if(timer_it->second == node)
-        timer_it = m_manualTimers.container.erase(timer_it);
+        timer_it = m_manualTimers.erase(timer_it);
       else
         ++timer_it;
     }

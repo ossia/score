@@ -3,7 +3,7 @@
 
 #include <Scenario/Document/Graph.hpp>
 
-#include <tsl/hopscotch_set.h>
+#include <ossia/detail/hash_map.hpp>
 
 namespace Execution
 {
@@ -18,10 +18,10 @@ struct PlayFromIntervalScenarioPruner
   Scenario::IntervalModel& interval;
   TimeVal time;
 
-  tsl::hopscotch_set<Scenario::IntervalModel*> intervalsToKeep() const;
+  ossia::hash_set<Scenario::IntervalModel*> intervalsToKeep() const;
 
   bool toRemove(
-      const tsl::hopscotch_set<Scenario::IntervalModel*>& toKeep,
+      const ossia::hash_set<Scenario::IntervalModel*>& toKeep,
       Scenario::IntervalModel& cst) const;
 
   void operator()(const Context& exec_ctx, const BaseScenarioElement& bs);

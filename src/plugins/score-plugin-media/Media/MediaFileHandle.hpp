@@ -279,7 +279,7 @@ private:
     QString file;
     int stream{-1};
   };
-  ossia::fast_hash_map<StreamInfo, std::shared_ptr<AudioFile>, StreamInfo::hash>
+  ossia::hash_map<StreamInfo, std::shared_ptr<AudioFile>, StreamInfo::hash>
       m_handles;
 };
 

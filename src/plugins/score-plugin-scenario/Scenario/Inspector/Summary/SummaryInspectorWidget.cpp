@@ -18,9 +18,11 @@ W_OBJECT_IMPL(Scenario::SummaryInspectorWidget)
 namespace Scenario
 {
 SummaryInspectorWidget::SummaryInspectorWidget(
-    const IdentifiedObjectAbstract* obj, const std::set<const IntervalModel*>& intervals,
-    const std::set<const TimeSyncModel*>& timesyncs,
-    const std::set<const EventModel*>& events, const std::set<const StateModel*>& states,
+    const IdentifiedObjectAbstract* obj,
+    const ossia::hash_set<const IntervalModel*>& intervals,
+    const ossia::hash_set<const TimeSyncModel*>& timesyncs,
+    const ossia::hash_set<const EventModel*>& events,
+    const ossia::hash_set<const StateModel*>& states,
     const score::DocumentContext& context, QWidget* parent)
     : InspectorWidgetBase{*obj, context, parent, tr("Summary")}
 {

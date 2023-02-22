@@ -503,11 +503,11 @@ void DeviceInterface::renameListening_impl(
   std::vector<std::pair<State::Address, callback_pair>> saved_elts;
   for(auto it = m_callbacks.begin(); it != m_callbacks.end();)
   {
-    if(is_parent(parent, it.key()))
+    if(is_parent(parent, it->first))
     {
-      State::Address addr = it.key();
+      State::Address addr = it->first;
       addr.path[parent.path.size() - 1] = newName;
-      saved_elts.push_back({std::move(addr), it.value()});
+      saved_elts.push_back({std::move(addr), it->second});
       it = m_callbacks.erase(it);
     }
     else

@@ -144,16 +144,16 @@ void View::paint_impl(QPainter* painter) const
   if(flicks_advance < ossia::flicks_per_millisecond<double>)
     return;
 
-  auto& images = m_images.container;
+  auto& images = m_images;
 
-  auto it = m_images.lower_bound(start * flicks_advance).underlying;
+  auto it = m_images.lower_bound(start * flicks_advance);
   if(it != images.cbegin())
     --it;
 
   for(int i = 0; i < count; i++)
   {
     int64_t flicks = (start + i) * flicks_advance;
-    it = ossia::closest_next_element<int64_t, QImage, int64_t>(
+    it = ossia::closest_next_element(
         it, images.cend(), flicks);
     if(it != images.end())
     {

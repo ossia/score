@@ -96,7 +96,7 @@ public:
 
   std::shared_ptr<AEffectWrapper> fx{};
 
-  ossia::fast_hash_map<int, ControlInlet*> controls;
+  ossia::hash_map<int, ControlInlet*> controls;
 
   void removeControl(const Id<Process::Port>&);
   void removeControl(int fxnum);

@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QStack>
 
-#include <tsl/hopscotch_map.h>
+#include <ossia/detail/hash_map.hpp>
 
 #include <verdigris>
 
@@ -67,7 +67,7 @@ private:
   QStack<Selection> m_unselectable;
   QStack<Selection> m_reselectable;
 
-  tsl::hopscotch_map<const IdentifiedObjectAbstract*, QMetaObject::Connection>
+  ossia::hash_map<const IdentifiedObjectAbstract*, QMetaObject::Connection>
       m_connections;
 };
 }

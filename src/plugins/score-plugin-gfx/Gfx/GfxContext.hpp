@@ -68,7 +68,7 @@ private:
   void timerEvent(QTimerEvent*) override;
   const score::DocumentContext& m_context;
   int32_t index{};
-  ossia::fast_hash_map<int32_t, NodePtr> nodes;
+  ossia::hash_map<int32_t, NodePtr> nodes;
 
   score::gfx::Graph* m_graph{};
   QThread m_thread;

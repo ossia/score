@@ -26,7 +26,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <functional>
-#include <map>
 #include <utility>
 #include <vector>
 

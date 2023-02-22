@@ -35,7 +35,6 @@
 
 #include <wobjectimpl.h>
 
-#include <map>
 #include <utility>
 W_OBJECT_IMPL(Scenario::IntervalModel)
 
@@ -1024,7 +1023,7 @@ QPointF newProcessPosition(const IntervalModel& cst) noexcept
 {
   static ossia::flat_set<double> autoPos;
   autoPos.clear();
-  autoPos.container.reserve(100);
+  autoPos.reserve(100);
   for(const Process::ProcessModel& proc : cst.processes)
   {
     const auto p = proc.position();

@@ -11,8 +11,8 @@
 #include <QMimeData>
 #include <QSet>
 
-#include <tsl/hopscotch_map.h>
-#include <tsl/hopscotch_set.h>
+#include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 namespace Library
 {
@@ -81,14 +81,9 @@ public:
 #if defined(__clang__)
   static constexpr bool supportsDisablingSorting() noexcept
   {
-    return []<typename T>(T * fsm) constexpr
-    {
-      return requires
-      {
-        fsm->setOption(T::DontSort);
-      };
-    }
-    ((QFileSystemModel*)nullptr);
+    return []<typename T>(T* fsm) constexpr {
+      return requires { fsm->setOption(T::DontSort); };
+    }((QFileSystemModel*)nullptr);
   }
 
   void setSorting(bool b) noexcept
@@ -117,15 +112,9 @@ public:
     }(*this);
   }
 #else
-  static constexpr bool supportsDisablingSorting() noexcept
-  {
-    return false;
-  }
+  static constexpr bool supportsDisablingSorting() noexcept { return false; }
   void setSorting(bool b) noexcept { }
-  bool isSorting() noexcept
-  {
-    return true;
-  }
+  bool isSorting() noexcept { return true; }
 #endif
 
   Qt::ItemFlags flags(const QModelIndex& index) const override
@@ -139,10 +128,7 @@ public:
     return f;
   }
 
-  QStringList mimeTypes() const override
-  {
-    return m_mimeTypes;
-  }
+  QStringList mimeTypes() const override { return m_mimeTypes; }
 
   bool dropMimeData(
       const QMimeData* data, Qt::DropAction action, int row, int column,
@@ -155,7 +141,7 @@ public:
       auto it = m_mimeActions.find(fmt);
       if(it != m_mimeActions.end())
       {
-        if(it.value()->onDrop(*data, row, column, d))
+        if(it->second->onDrop(*data, row, column, d))
           return true;
       }
     }
@@ -176,6 +162,6 @@ public:
   }
 
   QStringList m_mimeTypes;
-  tsl::hopscotch_map<QString, LibraryInterface*> m_mimeActions;
+  ossia::hash_map<QString, LibraryInterface*> m_mimeActions;
 };
 }

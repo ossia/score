@@ -48,7 +48,7 @@ public:
   {
     using meta_t = MetaContextMenu<T>;
     SCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());
-    return m_container.find(meta_t::static_key()).value();
+    return m_container.find(meta_t::static_key())->second;
   }
 
   template <typename T>
@@ -56,7 +56,7 @@ public:
   {
     using meta_t = MetaContextMenu<T>;
     SCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());
-    return m_container.find(meta_t::static_key()).value();
+    return m_container.find(meta_t::static_key())->second;
   }
 
   auto& get() { return m_container; }
@@ -67,22 +67,25 @@ private:
 };
 }
 
-#define SCORE_PROCESS_DECLARE_CONTEXT_MENU(Export, Type)                      \
-  namespace ContextMenus                                                      \
-  {                                                                           \
-  class Type;                                                                 \
-  }                                                                           \
-  namespace Process                                                           \
-  {                                                                           \
-  template <>                                                                 \
-  class Export MetaContextMenu<ContextMenus::Type>                            \
-  {                                                                           \
-  public:                                                                     \
-    static LayerContextMenu make() { return LayerContextMenu{static_key()}; } \
-                                                                              \
-    static StringKey<Process::LayerContextMenu> static_key()                  \
-    {                                                                         \
-      return StringKey<Process::LayerContextMenu>{#Type};                     \
-    }                                                                         \
-  };                                                                          \
+#define SCORE_PROCESS_DECLARE_CONTEXT_MENU(Export, Type)     \
+  namespace ContextMenus                                     \
+  {                                                          \
+  class Type;                                                \
+  }                                                          \
+  namespace Process                                          \
+  {                                                          \
+  template <>                                                \
+  class Export MetaContextMenu<ContextMenus::Type>           \
+  {                                                          \
+  public:                                                    \
+    static LayerContextMenu make()                           \
+    {                                                        \
+      return LayerContextMenu{static_key()};                 \
+    }                                                        \
+                                                             \
+    static StringKey<Process::LayerContextMenu> static_key() \
+    {                                                        \
+      return StringKey<Process::LayerContextMenu>{#Type};    \
+    }                                                        \
+  };                                                         \
   }

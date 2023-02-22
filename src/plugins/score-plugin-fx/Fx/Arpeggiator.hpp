@@ -74,7 +74,7 @@ struct Node
         case 4:
           arpeggio.clear();
           arpeggio.resize(1);
-          for(std::pair note : notes.container)
+          for(std::pair note : notes)
           {
             arpeggio[0].push_back(note);
           }
@@ -97,8 +97,8 @@ struct Node
     void arpeggiate(int size_mult)
     {
       arpeggio.clear();
-      arpeggio.reserve(notes.container.size() * size_mult);
-      for(std::pair note : notes.container)
+      arpeggio.reserve(notes.size() * size_mult);
+      for(std::pair note : notes)
       {
         arpeggio.push_back(chord{note});
       }

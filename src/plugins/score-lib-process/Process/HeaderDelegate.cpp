@@ -41,7 +41,7 @@ namespace Process
 static auto& glyphCache() noexcept
 {
   // FIXME LRU
-  static ossia::fast_hash_map<std::pair<QString, const QPen*>, QPixmap> cache;
+  static ossia::hash_map<std::pair<QString, const QPen*>, QPixmap> cache;
   return cache;
 }
 

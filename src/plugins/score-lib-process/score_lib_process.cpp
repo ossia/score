@@ -41,7 +41,7 @@ Dataflow::CableItem* DataflowManager::createCable(
   else if(it->second == nullptr)
   {
     auto item = new Dataflow::CableItem{*ptr, m_context, nullptr};
-    it.value() = item;
+    it->second = item;
     if(!item->parentItem() && scene)
       scene->addItem(item);
     return item;

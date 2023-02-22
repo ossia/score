@@ -83,7 +83,7 @@ private:
   void changeEvent(QEvent*) override;
   void resizeEvent(QResizeEvent*) override;
 
-  std::map<QWidget*, DocumentView*> m_documents;
+  ossia::hash_map<QWidget*, DocumentView*> m_documents;
   std::vector<QPair<PanelDelegate*, QWidget*>> m_leftPanels;
   std::vector<QPair<PanelDelegate*, QWidget*>> m_rightPanels;
 

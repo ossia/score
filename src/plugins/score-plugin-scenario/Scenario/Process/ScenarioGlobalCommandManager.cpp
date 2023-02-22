@@ -167,12 +167,14 @@ template <typename T>
 auto make_ordered(const Scenario::ProcessModel& scenario)
 {
   using comp_t = StartDateComparator<T>;
-  using set_t = std::set<const T*, comp_t>;
+  using set_t = ossia::flat_set<const T*, comp_t>;
 
   set_t the_set(comp_t{&scenario});
 
   auto cont = Scenario::ElementTraits<Scenario::ProcessModel, T>::accessor;
-  for(auto& tn : selectedElements(cont(scenario)))
+  const auto& sel = selectedElements(cont(scenario));
+  the_set.reserve(sel.size());
+  for(auto& tn : sel)
   {
     the_set.insert(tn);
   }

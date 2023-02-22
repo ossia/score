@@ -2,7 +2,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 
-#include <tsl/hopscotch_map.h>
+#include <ossia/detail/hash_map.hpp>
 
 #include <list>
 #include <vector>
@@ -39,7 +39,7 @@ public:
   using model_type = Model;
   using order_t = std::list<Element*>;
   using map_t
-      = tsl::hopscotch_map<Id<Model>, std::pair<Element*, typename order_t::iterator>>;
+      = ossia::hash_map<Id<Model>, std::pair<Element*, typename order_t::iterator>>;
   map_t m_map;
   order_t m_order;
 
@@ -183,7 +183,7 @@ class IdContainer<
 {
 public:
   using model_type = Model;
-  tsl::hopscotch_map<Id<Model>, Element*> m_map;
+  ossia::hash_map<Id<Model>, Element*> m_map;
 
   std::vector<Element*> as_vec() const INLINE_EXPORT
   {

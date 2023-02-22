@@ -61,7 +61,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       }
 
       // put the new date
-      auto& val = tn_it.value();
+      auto& val = tn_it->second;
       val.newDate = val.oldDate + deltaTime;
     }
 
@@ -121,7 +121,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             auto it = elementsProperties.timesyncs.find(startTnodeId);
             if(it != elementsProperties.timesyncs.cend())
             {
-              date = it.value().newDate;
+              date = it->second.newDate;
             }
             else
             {
@@ -138,7 +138,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             TimeVal deltaBounds
                 = newDefaultDuration - curInterval.duration.defaultDuration();
 
-            auto& val = cur_interval_it.value();
+            auto& val = cur_interval_it->second;
             val.newMin = curInterval.duration.minDuration() + deltaBounds;
             val.newMax = curInterval.duration.maxDuration() + deltaBounds;
 
@@ -156,7 +156,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
         const int64_t opposite{-maxNegativeDelta.impl};
         for(auto it = elementsProperties.timesyncs.begin(); it != elementsProperties.timesyncs.end(); ++it)
         {
-          it.value().newDate.impl += opposite;
+          it->second.newDate.impl += opposite;
         }
         elementsProperties.intervals.clear();
         processesToSave.clear();

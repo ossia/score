@@ -211,7 +211,7 @@ protected:
     ossia::value_port* port{};
   };
 
-  ossia::fast_hash_map<Steinberg::Vst::ParamID, std::size_t> queue_map;
+  ossia::hash_map<Steinberg::Vst::ParamID, std::size_t> queue_map;
 
 public:
   ossia::small_vector<vst_control, 16> controls;

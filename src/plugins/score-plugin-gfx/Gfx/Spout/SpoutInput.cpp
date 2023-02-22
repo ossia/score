@@ -296,7 +296,7 @@ public:
 
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    std::set<std::string> senders;
+    ossia::hash_set<std::string> senders;
     if(!m_senders.GetSenderNames(&senders))
       return;
 

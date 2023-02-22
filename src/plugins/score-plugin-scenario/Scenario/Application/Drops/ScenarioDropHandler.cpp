@@ -43,7 +43,7 @@ MagneticStates magneticStates(
   EventModel& start_ev = scenario.startEvent();
   SCORE_ASSERT(!start_ev.states().empty());
 
-  static ossia::fast_hash_map<Id<EventModel>, ossia::time_value> eventDates;
+  static ossia::hash_map<Id<EventModel>, ossia::time_value> eventDates;
   eventDates.clear();
 
   for(auto& ev : scenario.events)

@@ -1139,12 +1139,12 @@ struct TSerializer<JSONObject, ossia::flat_set<T>>
   using type = ossia::flat_set<T>;
   static void readFrom(JSONObject::Serializer& s, const type& obj)
   {
-    ArraySerializer::readFrom(s, obj.container);
+    ArraySerializer::readFrom(s, obj.tree().get_sequence_cref());
   }
 
   static void writeTo(JSONObject::Deserializer& s, type& obj)
   {
-    ArraySerializer::writeTo(s, obj.container);
+    ArraySerializer::writeTo(s, obj.tree().get_sequence_ref());
   }
 };
 

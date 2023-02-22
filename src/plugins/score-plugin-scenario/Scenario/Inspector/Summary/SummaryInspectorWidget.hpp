@@ -1,8 +1,9 @@
 #pragma once
 #include <Inspector/InspectorWidgetBase.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <list>
-#include <set>
 #include <vector>
 #include <verdigris>
 
@@ -25,11 +26,11 @@ class SummaryInspectorWidget final : public Inspector::InspectorWidgetBase
 public:
   SummaryInspectorWidget(
       const IdentifiedObjectAbstract* obj,
-      const std::set<const IntervalModel*>& intervals,
-      const std::set<const TimeSyncModel*>& timesyncs,
-      const std::set<const EventModel*>& events,
-      const std::set<const StateModel*>& states, const score::DocumentContext& context,
-      QWidget* parent = nullptr);
+      const ossia::hash_set<const IntervalModel*>& intervals,
+      const ossia::hash_set<const TimeSyncModel*>& timesyncs,
+      const ossia::hash_set<const EventModel*>& events,
+      const ossia::hash_set<const StateModel*>& states,
+      const score::DocumentContext& context, QWidget* parent = nullptr);
   ~SummaryInspectorWidget() override;
 
   void update(const QList<const IdentifiedObjectAbstract*>&);

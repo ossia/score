@@ -14,6 +14,7 @@
 #include <score/tools/ListNetworkAddresses.hpp>
 
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
 
 #include <QComboBox>
@@ -676,7 +677,7 @@ std::vector<QString> fixturesLibraryPaths()
 ossia::flat_map<QString, QString> readManufacturers(const rapidjson::Document& doc)
 {
   ossia::flat_map<QString, QString> map;
-  map.container.reserve(100);
+  map.reserve(100);
   if(!doc.IsObject())
     return map;
 

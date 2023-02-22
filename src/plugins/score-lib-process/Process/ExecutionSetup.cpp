@@ -427,7 +427,7 @@ void SetupContext::unregister_inlet(
     if(ossia_port_it != inlets.end())
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
-      context.executionQueue.enqueue([ws, ossia_port = ossia_port_it.value().second] {
+      context.executionQueue.enqueue([ws, ossia_port = ossia_port_it->second.second] {
         if(auto state = ws.lock())
           state->unregister_port(*ossia_port);
       });
@@ -479,7 +479,7 @@ void SetupContext::unregister_inlet(
     if(ossia_port_it != inlets.end())
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
-      commands.push_back([ws, ossia_port = ossia_port_it.value().second] {
+      commands.push_back([ws, ossia_port = ossia_port_it->second.second] {
         if(auto state = ws.lock())
           state->unregister_port(*ossia_port);
       });

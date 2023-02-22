@@ -317,7 +317,7 @@ public:
 
   callback_stopper stop_callbacks() { return *this; }
   std::atomic_bool m_stop_callbacks = false;
-  ossia::fast_hash_map<
+  ossia::hash_map<
       const ossia::net::node_base*, ossia::net::parameter_base::iterator>
       callbacks;
 };
@@ -623,7 +623,7 @@ private:
   std::vector<ossia::net::node_base*> m_roots;
 
   std::mutex m_timersLock;
-  ossia::fast_hash_map<int, mapper_parameter*> m_timers;
+  ossia::hash_map<int, mapper_parameter*> m_timers;
 };
 
 using mapper_device = ossia::net::wrapped_device<mapper_node, mapper_protocol>;

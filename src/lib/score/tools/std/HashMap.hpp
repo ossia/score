@@ -3,11 +3,13 @@
 
 #include <ossia/detail/config.hpp>
 
-#include <tsl/hopscotch_map.h>
+#include <ossia/detail/hash_map.hpp>
 namespace score
 {
-template <typename... Args>
-using hash_map = tsl::hopscotch_map<Args...>;
+template <
+    class Key, class T, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
+    class AllocatorOrContainer = std::allocator<std::pair<Key, T>>>
+using hash_map = ossia::hash_map<Key, T, Hash, KeyEqual, AllocatorOrContainer>;
 
 template <typename Map>
 void optimize_hash_map(Map& map)
@@ -18,6 +20,6 @@ void optimize_hash_map(Map& map)
 }
 
 template <typename T, typename U>
-struct is_template<score::hash_map<T, U>> : std::true_type
+struct is_template<ossia::hash_map<T, U>> : std::true_type
 {
 };

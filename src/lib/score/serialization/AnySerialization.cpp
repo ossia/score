@@ -24,7 +24,7 @@ void apply(DataStreamReader& s, const std::string& key, const ossia::any& v)
   auto it = ser.find(key);
   if(it != ser.end())
   {
-    it.value()->apply(s, v);
+    it->second->apply(s, v);
   }
   else
   {
@@ -38,7 +38,7 @@ void apply(DataStreamWriter& s, const std::string& key, ossia::any& v)
   auto it = ser.find(key);
   if(it != ser.end())
   {
-    it.value()->apply(s, v);
+    it->second->apply(s, v);
   }
   else
   {
@@ -52,7 +52,7 @@ void apply(JSONWriter& s, const std::string& key, ossia::any& v)
   auto it = ser.find(key);
   if(it != ser.end())
   {
-    it.value()->apply(s, key, v);
+    it->second->apply(s, key, v);
   }
   else
   {
@@ -66,7 +66,7 @@ void apply(JSONReader& s, const std::string& key, const ossia::any& v)
   auto it = ser.find(key);
   if(it != ser.end())
   {
-    it.value()->apply(s, key, v);
+    it->second->apply(s, key, v);
   }
   else
   {

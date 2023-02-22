@@ -105,7 +105,7 @@ void AddProcessDialog::updateProcesses(const QString& str)
 
 void AddProcessDialog::setup()
 {
-  std::set<QString, std::less<>> categories;
+  ossia::flat_set<QString, std::less<>> categories;
   for(const auto& factory : m_factoryList)
   {
     auto cat = factory.category();

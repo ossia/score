@@ -2,6 +2,8 @@
 
 #include <score/widgets/DoubleSlider.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QDialog>
 #include <QFormLayout>
 #include <QJSValue>
@@ -41,7 +43,7 @@ QVariant EditJsContext::prompt(QVariant v)
   // give us the content / state of the widget after the dialog's executed.
   using result_func = std::function<QVariant()>;
 
-  std::map<QString, std::function<result_func(QVariantMap&)>> factories;
+  ossia::hash_map<QString, std::function<result_func(QVariantMap&)>> factories;
   factories["slider"] = [=](QVariantMap& v) -> result_func {
     auto min = v["min"].toDouble();
     auto max = v["max"].toDouble();

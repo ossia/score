@@ -21,10 +21,9 @@
 static_assert(is_template<UuidKey<struct tag>>::value);
 static_assert(is_template<std::vector<float>>::value);
 static_assert(is_template<std::array<float, 2>>::value);
-static_assert(is_template<tsl::hopscotch_map<int, int>>::value);
+static_assert(is_template<ossia::hash_map<int, int>>::value);
 static_assert(is_template<std::map<int, int>>::value);
 static_assert(is_template<std::unordered_map<int, int>>::value);
-static_assert(is_template<ossia::fast_hash_map<int, int>>::value);
 static_assert(is_template<ossia::any_map>::value);
 static_assert(is_template<ossia::flat_map<int, int>>::value);
 static_assert(is_template<ossia::flat_set<int>>::value);

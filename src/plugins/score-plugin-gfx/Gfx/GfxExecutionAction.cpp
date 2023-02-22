@@ -68,7 +68,7 @@ void GfxExecutionAction::endTick(const ossia::audio_tick_state& st)
       {
         std::lock_guard l{ui->edges_lock};
 
-        ui->new_edges.container.assign(edges_cache.begin(), edges_cache.end());
+        ui->new_edges.tree().get_sequence_ref().assign(edges_cache.begin(), edges_cache.end());
       }
 
       std::swap(edges_cache, prev_edges);

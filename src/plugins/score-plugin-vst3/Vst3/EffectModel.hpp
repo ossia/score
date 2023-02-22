@@ -63,7 +63,7 @@ public:
 
   Plugin fx{};
 
-  ossia::fast_hash_map<Steinberg::Vst::ParamID, ControlInlet*> controls;
+  ossia::hash_map<Steinberg::Vst::ParamID, ControlInlet*> controls;
 
   void removeControl(const Id<Process::Port>&);
   void removeControl(Steinberg::Vst::ParamID fxnum);
@@ -95,7 +95,7 @@ private:
   QByteArray m_savedProcessorState;
   QByteArray m_savedControllerState;
 
-  ossia::fast_hash_map<Steinberg::Vst::ParamID, int32_t> m_paramToIndex;
+  ossia::hash_map<Steinberg::Vst::ParamID, int32_t> m_paramToIndex;
 
   void closePlugin();
   void initFx();

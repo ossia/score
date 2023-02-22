@@ -3,6 +3,8 @@
 #include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <ossia/detail/flat_map.hpp>
+
 #include <QGuiApplication>
 #include <QListWidget>
 #include <QPlainTextEdit>
@@ -74,7 +76,7 @@ AboutDialog::AboutDialog(QWidget* parent)
       return lhs.compare(rhs, Qt::CaseInsensitive) < 0;
     }
   };
-  std::map<QString, License, CaseInsensitiveCompare> map;
+  ossia::flat_map<QString, License, CaseInsensitiveCompare> map;
 
   map["Qt"] = License{"https://www.qt.io", "GNU General Public License v3"};
   map["Boost"] = License{"https://www.boost.org", "Boost Software License 1.0"};
@@ -99,12 +101,6 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["DSPFilters"] = License{
       "https://github.com/olilarkin/dspfilters",
       "DSPFilters, by Vinnie Falco and others (MIT)"};
-  map["flat"] = License{
-      "https://github.com/jcelerier/flat", "Based on https://github.com/pubby/flat\n",
-      flat_LICENSE};
-  map["flat_hash_map"] = License{
-      "https://github.com/jcelerier/flat_hash_map",
-      "Based on https://github.com/skarupke/flat_hash_map\n"};
   map["Flicks"] = License{"https://github.com/OculusVR/Flicks", Flicks_LICENSE};
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
   map["Gamma"] = License{"https://github.com/LancePutnam/Gamma", Gamma_LICENSE};
@@ -113,8 +109,6 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["span"] = License{"https://github.com/tcbrindle/span", span_LICENSE};
   map["HAP Codec"] = License{"", hap_LICENSE};
   map["hsluvc"] = License{"", hsluv_LICENSE};
-  map["hopscotch-map"]
-      = License{"https://github.com/tessil/hopscotch-map", hopscotchmap_LICENSE};
   map["KFR"] = License{"https://github.com/kfrlib/kfr", kfr_LICENSE};
   map["libartnet"] = License{
       "https://github.com/OpenLightingArchitecture/libartnet", libartnet_LICENSE};

@@ -63,7 +63,7 @@ public:
 
 private:
   QWebSocket m_server;
-  std::map<QString, std::function<void(const QJsonObject&)>> m_answers;
+  ossia::hash_map<QString, std::function<void(const QJsonObject&)>> m_answers;
 
 public:
   WebSocketHandler()

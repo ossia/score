@@ -82,9 +82,9 @@ using JSONComponents
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 #if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
 extern template class SCORE_LIB_BASE_EXPORT
-    tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
+    ossia::fast_hash_map<UuidKey<score::SerializableComponent>, QByteArray>;
 extern template class SCORE_LIB_BASE_EXPORT
-    tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+    ossia::fast_hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 #endif
 #endif
 

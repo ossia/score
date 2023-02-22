@@ -93,7 +93,7 @@ private:
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
-  ossia::fast_hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>>
+  ossia::hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>>
       m_connections;
 
   void asyncConnect(Device::DeviceInterface& newdev);

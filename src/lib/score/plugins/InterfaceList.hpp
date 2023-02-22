@@ -129,7 +129,7 @@ public:
   mutable Nano::Signal<void(const factory_type&)> added;
 
 protected:
-  ossia::fast_hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
+  ossia::hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
       map;
 
 private:

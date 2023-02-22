@@ -26,7 +26,7 @@ public:
 
   pattern_node()
   {
-    in_flight.container.reserve(32);
+    in_flight.reserve(32);
     m_outlets.push_back(&out);
   }
 

@@ -19,8 +19,6 @@
 #include <QKeyEvent>
 #include <QPainter>
 
-#include <tsl/hopscotch_map.h>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::CableItem)
 namespace Dataflow
@@ -105,7 +103,7 @@ CableItem::~CableItem()
   auto& p = plug.cables();
   auto it = p.find(&m_cable);
   if(it != p.end())
-    it.value() = nullptr;
+    it->second = nullptr;
 }
 
 static const QPainterPathStroker& cableStroker()

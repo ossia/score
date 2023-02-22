@@ -26,7 +26,7 @@ PutProcessBefore::PutProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash->second.second;
   auto next = it2_order++;
   if(next != seq.end())
   {
@@ -64,14 +64,14 @@ void PutProcessBefore::putBefore(
   // 1. Find elements
   auto it2_hash = hash.find(t2);
   SCORE_ASSERT(it2_hash != hash.end());
-  auto& it2_order = it2_hash.value().second;
+  auto& it2_order = it2_hash->second.second;
 
   if(t1)
   {
     // put before t1
     auto it1_hash = hash.find(*t1);
     SCORE_ASSERT(it1_hash != hash.end());
-    auto& it1_order = it1_hash.value().second;
+    auto& it1_order = it1_hash->second.second;
 
     auto new_it2 = seq.insert(it1_order, *it2_order);
     seq.erase(it2_order);
@@ -113,7 +113,7 @@ PutStateProcessBefore::PutStateProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash->second.second;
   auto next = it2_order++;
   if(next != seq.end())
   {
@@ -151,14 +151,14 @@ void PutStateProcessBefore::putBefore(
   // 1. Find elements
   auto it2_hash = hash.find(t2);
   SCORE_ASSERT(it2_hash != hash.end());
-  auto& it2_order = it2_hash.value().second;
+  auto& it2_order = it2_hash->second.second;
 
   if(t1)
   {
     // put before t1
     auto it1_hash = hash.find(*t1);
     SCORE_ASSERT(it1_hash != hash.end());
-    auto& it1_order = it1_hash.value().second;
+    auto& it1_order = it1_hash->second.second;
 
     auto new_it2 = seq.insert(it1_order, *it2_order);
     seq.erase(it2_order);

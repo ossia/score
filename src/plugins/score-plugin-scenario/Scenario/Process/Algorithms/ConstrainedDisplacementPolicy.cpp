@@ -38,7 +38,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     }
     else
     {
-      const IntervalProperties& c = it.value();
+      const IntervalProperties& c = it->second;
       if(c.oldDefault < min)
         min = c.oldDefault;
     }
@@ -57,7 +57,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     }
     else
     {
-      const IntervalProperties& c = it.value();
+      const IntervalProperties& c = it->second;
       if(c.oldDefault < max)
         max = c.oldDefault;
     }
@@ -87,7 +87,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     auto it = elementsProperties.intervals.find(id);
     if(it != elementsProperties.intervals.end())
     {
-      auto& c = it.value();
+      auto& c = it->second;
       c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
       c.newMax = c.oldMax + dt;
 
@@ -118,7 +118,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     auto it = elementsProperties.intervals.find(id);
     if(it != elementsProperties.intervals.end())
     {
-      auto& c = it.value();
+      auto& c = it->second;
       c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
       c.newMax = c.oldMax - dt;
 
@@ -147,7 +147,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
   auto it = elementsProperties.timesyncs.find(tn.id());
   if(it != elementsProperties.timesyncs.end())
   {
-    it.value().newDate = it.value().oldDate + dt;
+    it->second.newDate = it->second.oldDate + dt;
   }
   else
   {

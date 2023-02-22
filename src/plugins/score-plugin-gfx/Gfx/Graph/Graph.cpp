@@ -9,6 +9,7 @@
 #include <score/gfx/Vulkan.hpp>
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
@@ -19,7 +20,7 @@ namespace score::gfx
 template <typename Graph_T, typename IO>
 void print_graph(Graph_T& g, IO& stream)
 {
-  #if 0
+#if 0
   std::stringstream s;
   boost::write_graphviz(
       s, g,
@@ -41,13 +42,13 @@ void print_graph(Graph_T& g, IO& stream)
       [](auto&&...) {});
 
   stream << s.str() << "\n";
-  #endif
+#endif
 }
 
 using Vertex = score::gfx::Node*;
 using GraphImpl
     = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Vertex>;
-using VertexMap = std::map<score::gfx::Node*, GraphImpl::vertex_descriptor>;
+using VertexMap = ossia::hash_map<score::gfx::Node*, GraphImpl::vertex_descriptor>;
 static void graphwalk(
     score::gfx::Node* node, std::vector<score::gfx::Node*>& list, GraphImpl& g,
     VertexMap& m)

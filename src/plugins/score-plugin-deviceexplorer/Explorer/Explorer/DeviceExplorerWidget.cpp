@@ -1139,7 +1139,7 @@ void DeviceExplorerWidget::removeNodes()
     }
   };
 
-  std::set<Device::NodePath, PathComparator> paths;
+  ossia::flat_set<Device::NodePath, PathComparator> paths;
   for(const auto& n : filterUniqueParents(nodes))
   {
     if(n->is<Device::DeviceSettings>())

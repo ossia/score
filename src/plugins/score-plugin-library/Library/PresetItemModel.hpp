@@ -4,8 +4,6 @@
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
 
-#include <map>
-
 namespace score
 {
 struct GUIApplicationContext;

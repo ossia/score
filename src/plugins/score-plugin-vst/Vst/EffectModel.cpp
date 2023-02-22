@@ -483,7 +483,7 @@ intptr_t vst_host_callback(
     case audioMasterCloseFileSelector:
       break;
     case audioMasterCanDo: {
-      static const std::set<std::string_view> supported{
+      static const ossia::flat_set<std::string_view> supported{
           HostCanDos::canDoSendVstEvents,
           HostCanDos::canDoSendVstMidiEvent,
           HostCanDos::canDoSendVstTimeInfo,

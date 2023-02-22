@@ -25,7 +25,7 @@ class LibraryHandler final : public Library::LibraryInterface
 
     auto plugs = world.get_all_plugins();
 
-    std::map<QString, QVector<QString>> categories;
+    ossia::flat_map<QString, QVector<QString>> categories;
 
     auto it = plugs.begin();
     while(!plugs.is_end(it))

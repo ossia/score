@@ -155,7 +155,7 @@ void AudioDevice::setupNode(
   if(kind_it == attr.end())
     return; // it will be added automatically
 
-  auto kind = ossia::any_cast<std::string>(kind_it.value());
+  auto kind = ossia::any_cast<std::string>(kind_it->second);
   if(kind == "in")
   {
     auto chans = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));

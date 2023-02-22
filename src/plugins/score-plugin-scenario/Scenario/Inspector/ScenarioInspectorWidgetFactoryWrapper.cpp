@@ -21,10 +21,10 @@ QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
     const InspectedObjects& sourceElements, const score::DocumentContext& doc,
     QWidget* parent) const
 {
-  std::set<const IntervalModel*> intervals;
-  std::set<const TimeSyncModel*> timesyncs;
-  std::set<const EventModel*> events;
-  std::set<const StateModel*> states;
+  ossia::hash_set<const IntervalModel*> intervals;
+  ossia::hash_set<const TimeSyncModel*> timesyncs;
+  ossia::hash_set<const EventModel*> events;
+  ossia::hash_set<const StateModel*> states;
 
   if(sourceElements.empty())
     return nullptr;

@@ -23,8 +23,8 @@ namespace Execution
 
 struct dfs_visitor_state
 {
-  tsl::hopscotch_set<Scenario::IntervalModel*> intervals;
-  tsl::hopscotch_set<Scenario::TimeSyncModel*> nodes;
+  ossia::hash_set<Scenario::IntervalModel*> intervals;
+  ossia::hash_set<Scenario::TimeSyncModel*> nodes;
 };
 
 struct dfs_visitor : public boost::default_dfs_visitor
@@ -42,7 +42,7 @@ struct dfs_visitor : public boost::default_dfs_visitor
   }
 };
 
-tsl::hopscotch_set<Scenario::IntervalModel*>
+ossia::hash_set<Scenario::IntervalModel*>
 PlayFromIntervalScenarioPruner::intervalsToKeep() const
 {
   if(auto sc = dynamic_cast<const Scenario::ProcessModel*>(&scenar))
@@ -74,7 +74,7 @@ PlayFromIntervalScenarioPruner::intervalsToKeep() const
 }
 
 bool PlayFromIntervalScenarioPruner::toRemove(
-    const tsl::hopscotch_set<Scenario::IntervalModel*>& toKeep,
+    const ossia::hash_set<Scenario::IntervalModel*>& toKeep,
     Scenario::IntervalModel& cst) const
 {
   auto c_addr = &cst;

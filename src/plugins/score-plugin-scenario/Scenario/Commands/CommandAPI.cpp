@@ -384,7 +384,7 @@ void Macro::findAndReplace(
   if(!m_newAddress.isSet())
     return;
 
-  std::set<QObject*> objs;
+  ossia::hash_set<QObject*> objs;
   for(auto o : sel)
   {
     if(auto it = objs.find(o); it != objs.end())
