@@ -51,6 +51,11 @@ public:
   void firstMessageReceived() W_SIGNAL(firstMessageReceived);
 
 private:
+  void messageCallback_sig(const State::Address& addr, const ossia::value& val)
+      W_SIGNAL(messageCallback_sig, addr, val)
+  void parameterCallback_sig(const State::Address& addr, const ossia::value& val)
+      W_SIGNAL(parameterCallback_sig, addr, val)
+
   void messageCallback(const State::Address& addr, const ossia::value& val);
   void parameterCallback(const State::Address& addr, const ossia::value& val);
 

@@ -49,6 +49,7 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   segt->addPoint(0, start_y);
 
   autom.curve().addSegment(segt);
+  segt->reserve(65537);
   return RecordData{cmd_proc, cmd_layer, autom.curve(), *segt, addr.unit};
 }
 

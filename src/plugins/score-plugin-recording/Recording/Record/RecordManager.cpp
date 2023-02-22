@@ -75,6 +75,12 @@ AutomationRecorder::AutomationRecorder(RecordContext& ctx)
     : context{ctx}
     , m_settings{context.context.app.settings<Curve::Settings::Model>()}
 {
+  connect(
+      this, &AutomationRecorder::parameterCallback_sig, this,
+      &AutomationRecorder::parameterCallback);
+  connect(
+      this, &AutomationRecorder::messageCallback_sig, this,
+      &AutomationRecorder::messageCallback);
 }
 
 bool AutomationRecorder::setup(const Box& box, const RecordListening& recordListening)
@@ -107,14 +113,15 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
       continue;
 
     dev.addToListening(addresses[i]);
-    // Add a custom callback.
+    // Add a custom callback. Note that the callback is executed from random devices threads,
+    // not necessarily the main one...
     if(curve_mode == Curve::Settings::Mode::Parameter)
     {
-      dev.valueUpdated.connect<&AutomationRecorder::parameterCallback>(*this);
+      dev.valueUpdated.connect<&AutomationRecorder::parameterCallback_sig>(*this);
     }
     else
     {
-      dev.valueUpdated.connect<&AutomationRecorder::messageCallback>(*this);
+      dev.valueUpdated.connect<&AutomationRecorder::messageCallback_sig>(*this);
     }
 
     m_recordCallbackConnections.push_back(&dev);
@@ -136,11 +143,11 @@ void AutomationRecorder::stop()
     {
       if(curve_mode == Curve::Settings::Mode::Parameter)
       {
-        dev->valueUpdated.disconnect<&AutomationRecorder::parameterCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::parameterCallback_sig>(*this);
       }
       else
       {
-        dev->valueUpdated.disconnect<&AutomationRecorder::messageCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::messageCallback_sig>(*this);
       }
     }
   }

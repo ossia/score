@@ -38,10 +38,10 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   auto& scenario_plugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
   connect(
       &scenario_plugin.execution(), &ScenarioExecution::startRecording, this,
-      &ApplicationPlugin::record);
+      &ApplicationPlugin::record, Qt::QueuedConnection);
   connect(
       &scenario_plugin.execution(), &ScenarioExecution::startRecordingMessages, this,
-      &ApplicationPlugin::recordMessages);
+      &ApplicationPlugin::recordMessages, Qt::QueuedConnection);
   connect(
       &scenario_plugin.execution(),
       &ScenarioExecution::stopRecording, // TODO this seems useless
