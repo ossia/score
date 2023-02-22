@@ -152,7 +152,7 @@ void Presenter::on_controlRemoved(const Process::Port& port)
       auto parent_item = it->root;
       auto h = parent_item->boundingRect().height();
       delete parent_item;
-      m_ports.erase(it);
+      it = m_ports.erase(it);
 
       for(; it != m_ports.end(); ++it)
       {
