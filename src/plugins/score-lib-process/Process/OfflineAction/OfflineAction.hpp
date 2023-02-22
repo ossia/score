@@ -1,11 +1,10 @@
 #pragma once
 #include <score/plugins/InterfaceList.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 
 #include <score_lib_process_export.h>
-
-#include <unordered_map>
 namespace score
 {
 class Command;
@@ -97,11 +96,10 @@ public:
   mutable Nano::Signal<void(const factory_type&)> added;
 
 protected:
-  ossia::hash_map<
-      typename OfflineAction::ConcreteKey, std::unique_ptr<OfflineAction>>
+  ossia::hash_map<typename OfflineAction::ConcreteKey, std::unique_ptr<OfflineAction>>
       map;
 
-  std::unordered_map<UuidKey<Process::ProcessModel>, OfflineActions> actionsMap;
+  ossia::hash_map<UuidKey<Process::ProcessModel>, OfflineActions> actionsMap;
 
   void optimize() noexcept final override
   {

@@ -11,6 +11,8 @@
 
 #include <score/command/PropertyCommand.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 namespace Gfx
 {
 std::vector<score::gfx::Image> getImages(const ossia::value& val);
@@ -26,7 +28,7 @@ public:
   static ImageCache& instance() noexcept;
 
 private:
-  std::unordered_map<std::string, std::pair<int, score::gfx::Image>> m_images;
+  ossia::hash_map<std::string, std::pair<int, score::gfx::Image>> m_images;
 };
 }
 W_REGISTER_ARGTYPE(score::gfx::Image)

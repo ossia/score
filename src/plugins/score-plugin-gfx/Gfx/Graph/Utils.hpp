@@ -5,9 +5,9 @@
 #include <Gfx/Graph/Scale.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
-#include <score_plugin_gfx_export.h>
+#include <ossia/detail/hash_map.hpp>
 
-#include <unordered_map>
+#include <score_plugin_gfx_export.h>
 
 namespace score::gfx
 {
@@ -30,7 +30,7 @@ struct Sampler
  */
 struct AudioTexture
 {
-  std::unordered_map<RenderList*, Sampler> samplers;
+  ossia::hash_map<RenderList*, Sampler> samplers;
 
   std::vector<float> data;
   int channels{};

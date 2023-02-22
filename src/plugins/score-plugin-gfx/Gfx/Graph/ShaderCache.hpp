@@ -8,7 +8,9 @@
 #include <QtShaderTools/private/qshaderbaker_p.h>
 #endif
 
-#include <unordered_map>
+#include <score/tools/std/StringHash.hpp>
+
+#include <ossia/detail/hash_map.hpp>
 
 namespace score::gfx
 {
@@ -39,7 +41,7 @@ private:
     GraphicsApi api;
     QShaderVersion version;
     QShaderBaker baker;
-    std::unordered_map<QByteArray, std::pair<QShader, QString>> shaders;
+    ossia::hash_map<QByteArray, std::pair<QShader, QString>> shaders;
   };
 
   std::vector<std::unique_ptr<Baker>> m_bakers;

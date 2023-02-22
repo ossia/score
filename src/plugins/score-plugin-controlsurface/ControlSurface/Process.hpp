@@ -10,8 +10,6 @@
 
 #include <ossia/detail/hash_map.hpp>
 
-#include <unordered_map>
-
 namespace Device
 {
 struct FullAddressAccessorSettings;
@@ -80,7 +78,7 @@ struct NodeObserver : public QObject
     Identifier id;
   };
 
-  std::unordered_map<Device::Node*, AvailableNode> available;
+  ossia::hash_map<Device::Node*, AvailableNode> available;
   std::vector<AvailableNode> missing;
 };
 

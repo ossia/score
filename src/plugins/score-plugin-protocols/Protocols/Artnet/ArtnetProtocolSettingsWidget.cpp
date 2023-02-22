@@ -100,7 +100,7 @@ static constexpr auto arith_rex = ctre::match<arith_rexp_str>;
 class FixtureData
 {
 public:
-  using ChannelMap = std::unordered_map<QString, Artnet::Channel>;
+  using ChannelMap = ossia::hash_map<QString, Artnet::Channel>;
   QString name{};
   QStringList tags{};
   QIcon icon{};

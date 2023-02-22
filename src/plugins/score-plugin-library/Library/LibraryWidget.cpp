@@ -8,14 +8,13 @@
 
 #include <QFileInfo>
 
-#include <unordered_map>
 namespace Library
 {
 
 std::vector<LibraryInterface*> libraryInterface(const QString& path)
 {
   static auto matches = [] {
-    std::unordered_multimap<QString, LibraryInterface*> exp;
+    ossia::hash_multimap<QString, LibraryInterface*> exp;
     const auto& libs = score::GUIAppContext().interfaces<LibraryInterfaceList>();
     for(auto& lib : libs)
     {

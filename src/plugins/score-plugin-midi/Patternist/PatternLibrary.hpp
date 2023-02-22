@@ -13,8 +13,6 @@
 #include <Patternist/PatternModel.hpp>
 #include <Patternist/PatternParsing.hpp>
 
-#include <unordered_map>
-
 namespace Patternist
 {
 class LibraryHandler final

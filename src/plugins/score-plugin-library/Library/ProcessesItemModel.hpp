@@ -11,13 +11,14 @@
 #include <score/tools/std/Optional.hpp>
 #include <score/tools/std/StringHash.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QDir>
 #include <QIcon>
 
 #include <nano_observer.hpp>
 #include <score_plugin_library_export.h>
 
-#include <unordered_map>
 #include <verdigris>
 
 namespace score
@@ -86,7 +87,7 @@ struct Subcategories
   Library::ProcessNode* parent{};
   QDir libraryFolder;
   std::string libraryFolderPath{};
-  std::unordered_map<QString, Library::ProcessNode*> categories;
+  ossia::hash_map<QString, Library::ProcessNode*> categories;
 
   void init(const QModelIndex& idx, const score::ApplicationContext& ctx)
   {

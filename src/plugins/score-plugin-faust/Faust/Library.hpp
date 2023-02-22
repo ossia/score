@@ -10,8 +10,6 @@
 
 #include <Faust/EffectModel.hpp>
 
-#include <unordered_map>
-
 namespace Faust
 {
 class LibraryHandler final

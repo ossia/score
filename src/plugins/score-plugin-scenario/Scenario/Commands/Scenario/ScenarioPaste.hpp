@@ -11,8 +11,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <ossia/detail/flat_map.hpp>
-
-#include <unordered_map>
+#include <ossia/detail/hash_map.hpp>
 
 namespace Scenario
 {
@@ -32,7 +31,7 @@ ossia::flat_map<Id<Process::Cable>, Process::CableData> mapCopiedCables(
   ossia::flat_map<Id<Process::Cable>, Process::CableData> cable_map;
 
   {
-    std::unordered_map<Id<CopiedObjects>, Id<CopiedObjects>> id_map;
+    ossia::hash_map<Id<CopiedObjects>, Id<CopiedObjects>> id_map;
     {
       int i = 0;
       for(CopiedObjects* interval : intervals)

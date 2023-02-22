@@ -9,8 +9,6 @@
 #include <QFileInfo>
 #include <QTimer>
 
-#include <unordered_map>
-
 namespace Pd
 {
 class LibraryHandler final

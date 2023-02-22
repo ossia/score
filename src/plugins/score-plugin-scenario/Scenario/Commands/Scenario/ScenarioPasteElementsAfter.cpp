@@ -34,7 +34,6 @@
 
 #include <cstddef>
 #include <limits>
-#include <unordered_map>
 #include <vector>
 namespace Scenario
 {

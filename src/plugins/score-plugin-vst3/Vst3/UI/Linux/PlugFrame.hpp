@@ -5,6 +5,7 @@
 #include <Vst3/UI/WindowContainer.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QDebug>
 #include <QSocketNotifier>
@@ -17,7 +18,6 @@
 #include <dlfcn.h>
 
 #include <memory>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -112,7 +112,7 @@ class GlobalSocketHandlers : public QObject
   XcbConnection xcb;
 
 public:
-  std::unordered_map<int, std::vector<Linux::IEventHandler*>> handlers;
+  ossia::hash_map<int, std::vector<Linux::IEventHandler*>> handlers;
   GlobalSocketHandlers()
   {
     if(xcb.notifiers)

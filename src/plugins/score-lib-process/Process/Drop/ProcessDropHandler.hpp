@@ -8,13 +8,14 @@
 #include <score/plugins/InterfaceList.hpp>
 #include <score/tools/FilePath.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QByteArray>
 #include <QMimeData>
 
 #include <score_lib_process_export.h>
 
 #include <string>
-#include <unordered_map>
 
 namespace Process
 {
@@ -83,8 +84,8 @@ public:
 
 private:
   void initCaches() const;
-  mutable std::unordered_map<std::string, ProcessDropHandler*> m_perMimeTypes{};
-  mutable std::unordered_map<std::string, ProcessDropHandler*> m_perFileExtension{};
+  mutable ossia::hash_map<std::string, ProcessDropHandler*> m_perMimeTypes{};
+  mutable ossia::hash_map<std::string, ProcessDropHandler*> m_perFileExtension{};
   mutable std::size_t m_lastCacheSize{};
 };
 }

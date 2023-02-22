@@ -1,12 +1,13 @@
 #pragma once
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
+#include <ossia/detail/hash_map.hpp>
+
 #include <QDebug>
 
 #include <score_plugin_media_export.h>
 
 #include <string>
-#include <unordered_map>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -16,10 +17,10 @@ extern "C" {
 namespace Video
 {
 
-inline const std::unordered_map<std::string, AVPixelFormat>& gstreamerToLibav()
+inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
 {
   static const auto map = [] {
-    std::unordered_map<std::string, AVPixelFormat> format_map;
+    ossia::hash_map<std::string, AVPixelFormat> format_map;
 
     /*
     * @GST_VIDEO_FORMAT_I420: planar 4:2:0 YUV
