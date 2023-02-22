@@ -4,6 +4,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/std/StringHash.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/plugin/PluginManager.hpp>
