@@ -87,6 +87,7 @@ public:
   void setMaxY(double y) { max_y = y; }
 
   const auto& points() const { return m_points; }
+  void reserve(std::size_t p);
 
   QVariant toSegmentSpecificData() const override
   {

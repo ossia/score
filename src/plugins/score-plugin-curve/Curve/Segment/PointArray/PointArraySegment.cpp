@@ -260,6 +260,8 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
 
   return vec;
 }
+
+void PointArraySegment::reserve(std::size_t p) { m_points.reserve(p); }
 template <typename T>
 struct point_array_executor
 {
