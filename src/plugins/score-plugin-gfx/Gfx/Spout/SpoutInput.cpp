@@ -11,6 +11,8 @@
 
 #include <Spout/SpoutReceiver.h>
 
+#include <set>
+
 #include <wobjectimpl.h>
 
 namespace Gfx::Spout
@@ -296,7 +298,7 @@ public:
 
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    ossia::hash_set<std::string> senders;
+    std::set<std::string> senders;
     if(!m_senders.GetSenderNames(&senders))
       return;
 
