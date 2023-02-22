@@ -1,11 +1,18 @@
 #pragma once
 #include <Media/Libav.hpp>
+
 #if SCORE_HAS_LIBAV
 #include <Video/VideoInterface.hpp>
 
 #include <ossia/detail/lockfree_queue.hpp>
 
 #include <score_plugin_media_export.h>
+
+#if defined(SCORE_LIBAV_FRAME_DEBUGGING)
+#include <mutex>
+#define BOOST_STACKTRACE_USE_BACKTRACE 1
+#include <boost/stacktrace.hpp>
+#endif
 
 #include <atomic>
 #include <vector>
@@ -15,6 +22,33 @@ struct AVFrame;
 }
 namespace Video
 {
+
+#if defined(SCORE_LIBAV_FRAME_DEBUGGING)
+inline struct frame_counters
+{
+  std::mutex mtx;
+  struct fc
+  {
+    AVFrame* frame{};
+    boost::stacktrace::stacktrace st;
+  };
+  std::vector<fc> allocated;
+  void allocate(AVFrame*);
+  void deallocate(AVFrame*);
+} frame_counts;
+#define SCORE_LIBAV_FRAME_ALLOC_CHECK(f) frame_counts.allocate(f)
+#define SCORE_LIBAV_FRAME_DEALLOC_CHECK(f) frame_counts.deallocate(f)
+#else
+#define SCORE_LIBAV_FRAME_ALLOC_CHECK(f) \
+  do                                     \
+  {                                      \
+  } while(0)
+#define SCORE_LIBAV_FRAME_DEALLOC_CHECK(f) \
+  do                                       \
+  {                                        \
+  } while(0)
+#endif
+
 struct SCORE_PLUGIN_MEDIA_EXPORT FrameQueue
 {
 public:

@@ -41,8 +41,11 @@ void Rescale::rescale(FrameQueue& m_frames, AVFramePointer& frame, ReadFrame& re
   {
     // FIXME this happens with e.g. gstreamer white noise over shmdata
     // qDebug() << "Warning ! frame buffer already allocated";
+
+    SCORE_LIBAV_FRAME_DEALLOC_CHECK(rgb);
     av_frame_free(&rgb);
     rgb = av_frame_alloc();
+    SCORE_LIBAV_FRAME_ALLOC_CHECK(rgb);
   }
   av_frame_copy_props(rgb, read.frame);
   rgb->width = src.width;

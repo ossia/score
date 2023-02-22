@@ -308,6 +308,7 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
         if(formatIsHardwareDecoded(AVPixelFormat(frame->format)))
         {
           AVFrame* sw_frame = av_frame_alloc();
+          SCORE_LIBAV_FRAME_ALLOC_CHECK(sw_frame);
           sw_frame->width = frame->width;
           sw_frame->height = frame->height;
           sw_frame->format = AV_PIX_FMT_NONE;
@@ -644,6 +645,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     {
       if(r.frame)
       {
+        SCORE_LIBAV_FRAME_DEALLOC_CHECK(r.frame);
         av_frame_free(&r.frame);
       }
 
@@ -680,6 +682,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   }
   else
   {
+    SCORE_LIBAV_FRAME_DEALLOC_CHECK(r.frame);
     av_frame_free(&r.frame);
   }
 
