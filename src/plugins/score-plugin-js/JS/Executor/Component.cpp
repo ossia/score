@@ -54,6 +54,7 @@ class js_node final : public ossia::graph_node
 {
 public:
   js_node(ossia::execution_state& st);
+  ~js_node();
 
   void setScript(const QString& val);
 
@@ -290,6 +291,11 @@ void Component::on_scriptChange(const QString& script)
 js_node::js_node(ossia::execution_state& st)
     : m_st{st}
 {
+}
+
+js_node::~js_node()
+{
+  delete m_engine;
 }
 
 void js_node::setupComponent(QQmlComponent& c)
