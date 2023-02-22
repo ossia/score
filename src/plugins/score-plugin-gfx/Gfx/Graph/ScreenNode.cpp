@@ -160,8 +160,15 @@ ScreenNode::~ScreenNode()
   {
     delete m_window->state->renderPassDescriptor;
     m_window->state->renderPassDescriptor = nullptr;
+
+    delete m_depthStencil;
+    m_depthStencil = nullptr;
+
     delete m_window->state->rhi;
     m_window->state->rhi = nullptr;
+
+    delete m_window->state->surface;
+    m_window->state->surface = nullptr;
   }
 }
 

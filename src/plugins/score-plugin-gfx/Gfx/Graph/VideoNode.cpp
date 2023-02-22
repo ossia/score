@@ -1,10 +1,10 @@
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
+#include <Video/FrameQueue.hpp>
 
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flat_set.hpp>
-
 namespace score::gfx
 {
 void VideoNodeBase::setScaleMode(ScaleMode s)
@@ -150,7 +150,10 @@ void VideoFrameShare::releaseFramesToFree()
 
 VideoFrameReader::VideoFrameReader() { }
 
-VideoFrameReader::~VideoFrameReader() { }
+VideoFrameReader::~VideoFrameReader()
+{
+  m_framesToFree.push_back(m_nextFrame);
+}
 
 void VideoFrameReader::readNextFrame(VideoNode& node)
 {
