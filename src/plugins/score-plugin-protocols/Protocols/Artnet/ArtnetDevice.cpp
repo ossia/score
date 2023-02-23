@@ -129,14 +129,26 @@ bool ArtnetDevice::reconnect()
     const auto& set = m_settings.deviceSpecificSettings.value<ArtnetSpecificSettings>();
 
     ossia::net::dmx_config conf;
-    conf.autocreate = set.fixtures.empty();
+    conf.autocreate = ossia::net::dmx_config::no_auto;
+    if(set.fixtures.empty())
+    {
+      if(set.transport == ArtnetSpecificSettings::ArtNet)
+      {
+        conf.autocreate = ossia::net::dmx_config::channel_index;
+      }
+      else
+      {
+        conf.autocreate = ossia::net::dmx_config::just_index;
+      }
+    }
     conf.frequency = set.rate;
     conf.universe = set.universe;
     conf.multicast = true;
 
     switch(set.transport)
     {
-      case ArtnetSpecificSettings::ArtNet: {
+      case ArtnetSpecificSettings::ArtNet:
+      case ArtnetSpecificSettings::ArtNetV2: {
         auto artnet_proto = std::make_unique<ossia::net::artnet_protocol>(m_ctx, conf);
         auto& proto = *artnet_proto;
         auto dev = std::make_unique<ossia::net::generic_device>(

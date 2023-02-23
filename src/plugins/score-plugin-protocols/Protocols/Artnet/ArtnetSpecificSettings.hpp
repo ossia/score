@@ -65,10 +65,11 @@ struct ArtnetSpecificSettings
   int universe{1};
   enum
   {
-    ArtNet,
+    ArtNet, // Artnet:/Channel-{}
     E131,
     DMXUSBPRO,
-  } transport{ArtNet};
+    ArtNetV2, // Artnet:/{}
+  } transport{ArtNetV2};
 };
 }
 

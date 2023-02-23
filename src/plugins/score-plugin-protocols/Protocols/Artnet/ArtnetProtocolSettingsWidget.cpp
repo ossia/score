@@ -72,7 +72,7 @@ struct FixtureMode
     int k = 0;
     for(auto& chan : allChannels)
     {
-      str += QString::number(k);
+      str += QString::number(k + 1);
       str += ": \t";
       str += chan.isEmpty() ? "<No function>" : chan;
       str += "\n";
@@ -993,6 +993,8 @@ public:
       updateParameters(newFixt);
     };
 
+    m_address.setRange(1, 512);
+
     m_setupLayoutContainer.addLayout(&m_setupLayout);
     m_setupLayout.addRow(tr("Name"), &m_name);
     m_setupLayout.addRow(tr("Address"), &m_address);
@@ -1030,8 +1032,8 @@ public:
       return;
 
     const FixtureMode& mode = m_currentFixture->modes[mode_index];
-    int numChannels = mode.channels.size();
-    m_address.setRange(0, 512 - numChannels);
+    int numChannels = mode.allChannels.size();
+    m_address.setRange(1, 513 - numChannels);
 
     m_content.setText(mode.content());
   }
@@ -1053,7 +1055,7 @@ public:
     f.fixtureName = m_currentFixture->name;
     f.modeName = m_mode.currentText();
     f.mode.channelNames = mode.allChannels;
-    f.address = m_address.value();
+    f.address = m_address.value() - 1;
     f.controls = mode.channels;
 
     return f;
@@ -1177,7 +1179,7 @@ void ArtnetProtocolSettingsWidget::updateTable()
   {
     auto name_item = new QTableWidgetItem{fixt.fixtureName};
     auto mode_item = new QTableWidgetItem{fixt.modeName};
-    auto address = new QTableWidgetItem{QString::number(fixt.address)};
+    auto address = new QTableWidgetItem{QString::number(fixt.address + 1)};
     auto controls = new QTableWidgetItem{QString::number(fixt.controls.size())};
     name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -1207,7 +1209,7 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
   switch(this->m_transport->currentIndex())
   {
     case 0:
-      settings.transport = ArtnetSpecificSettings::ArtNet;
+      settings.transport = ArtnetSpecificSettings::ArtNetV2;
       break;
     case 1:
       settings.transport = ArtnetSpecificSettings::E131;
