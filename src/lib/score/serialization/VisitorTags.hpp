@@ -7,46 +7,15 @@
 
 //! \see SerializableInterface
 template <typename T>
-using enable_if_abstract_base =
-    typename std::enable_if_t<std::decay<T>::type::is_abstract_base_tag::value>;
-
-template <class, class Enable = void>
-struct is_abstract_base : std::false_type
-{
-};
-
-template <class T>
-struct is_abstract_base<T, enable_if_abstract_base<T>> : std::true_type
-{
-};
+concept abstract_base = std::decay_t<T>::is_abstract_base_tag::value;
 
 //! \see IdentifiedObject
 template <typename T>
-using enable_if_object = typename std::enable_if_t<T::identified_object_tag>;
-
-template <class, class Enable = void>
-struct is_identified_object : std::false_type
-{
-};
-
-template <class T>
-struct is_identified_object<T, enable_if_object<T>> : std::true_type
-{
-};
+concept identified_object = T::identified_object_tag;
 
 //! \see Entity
 template <typename T>
-using enable_if_entity = typename std::enable_if_t<T::entity_tag>;
-
-template <class, class Enable = void>
-struct is_entity : std::false_type
-{
-};
-
-template <class T>
-struct is_entity<T, enable_if_entity<T>> : std::true_type
-{
-};
+concept identified_entity = T::entity_tag;
 
 struct has_no_base
 {
@@ -110,74 +79,70 @@ struct visitor_default_tag
 {
 };
 
-template <typename T, typename = void>
+template <typename T>
 struct serialization_tag
 {
   using type = visitor_default_tag;
 };
 
 template <typename T>
-struct serialization_tag<
-    T, std::enable_if_t<
-           !is_identified_object<T>::value && is_abstract_base<T>::value
-           && !is_custom_serialized<T>::value>>
+  requires(!identified_object<T> && abstract_base<T> && !is_custom_serialized<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_abstract_tag;
 };
 
 template <typename T>
-struct serialization_tag<
-    T, std::enable_if_t<
-           is_identified_object<T>::value && !is_entity<T>::value
-           && !is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
+  requires(
+      identified_object<T> && !identified_entity<T> && !abstract_base<T>
+      && !is_custom_serialized<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_object_tag;
 };
 
 template <typename T>
-struct serialization_tag<
-    T, std::enable_if_t<
-           is_identified_object<T>::value && !is_entity<T>::value
-           && is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
+  requires(
+      identified_object<T> && !identified_entity<T> && abstract_base<T>
+      && !is_custom_serialized<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_abstract_object_tag;
 };
 
 template <typename T>
-struct serialization_tag<
-    T, std::enable_if_t<
-           is_entity<T>::value && !is_abstract_base<T>::value
-           && !is_custom_serialized<T>::value>>
+  requires(identified_entity<T> && !abstract_base<T> && !is_custom_serialized<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_entity_tag;
 };
 
 template <typename T>
-struct serialization_tag<
-    T, std::enable_if_t<
-           is_entity<T>::value && is_abstract_base<T>::value
-           && !is_custom_serialized<T>::value>>
+  requires(identified_entity<T> && abstract_base<T> && !is_custom_serialized<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_abstract_entity_tag;
 };
 
 template <typename T>
-struct serialization_tag<
-    T, std::enable_if_t<
-           is_template<T>::value && !is_abstract_base<T>::value
-           && !is_identified_object<T>::value && !is_custom_serialized<T>::value>>
+  requires(
+      is_template<T>::value
+      && !abstract_base<T> && !identified_object<T> && !is_custom_serialized<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_template_tag;
 };
 
 template <typename T>
-struct serialization_tag<T, std::enable_if_t<is_custom_serialized<T>::value>>
+  requires(is_custom_serialized<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_template_tag;
 };
 
 template <typename T>
-struct serialization_tag<T, std::enable_if_t<std::is_enum<T>::value>>
+  requires(std::is_enum<T>::value)
+struct serialization_tag<T>
 {
   using type = visitor_enum_tag;
 };

@@ -53,9 +53,8 @@ T* presenterDelegate(const Document& d)
   return nullptr;
 }
 
-template <
-    typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegatePresenter, T>::value>* = nullptr>
+template <typename T>
+  requires(std::is_base_of<DocumentDelegatePresenter, T>::value)
 T* get(const Document& d)
 {
   return presenterDelegate<T>(d);
@@ -67,9 +66,8 @@ T* try_presenterDelegate(const Document& d)
   return dynamic_cast<T*>(presenterDelegate_generic(d));
 }
 
-template <
-    typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegatePresenter, T>::value>* = nullptr>
+template <typename T>
+  requires(std::is_base_of<DocumentDelegatePresenter, T>::value)
 T* try_get(const Document& d)
 {
   return try_presenterDelegate<T>(d);
@@ -85,9 +83,8 @@ T& modelDelegate(const Document& d)
   return safe_cast<T&>(modelDelegate_generic(d));
 }
 
-template <
-    typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegateModel, T>::value>* = nullptr>
+template <typename T>
+  requires(std::is_base_of<DocumentDelegateModel, T>::value)
 T& get(const Document& d)
 {
   return modelDelegate<T>(d);
@@ -101,9 +98,8 @@ T* try_modelDelegate(const Document& d)
   return dynamic_cast<T*>(&modelDelegate_generic(d));
 }
 
-template <
-    typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegateModel, T>::value>* = nullptr>
+template <typename T>
+  requires(std::is_base_of<DocumentDelegateModel, T>::value)
 T* try_get(const Document& d)
 {
   return try_modelDelegate<T>(d);

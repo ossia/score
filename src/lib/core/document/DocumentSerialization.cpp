@@ -120,11 +120,11 @@ QByteArray Document::saveAsByteArray()
       //static_assert(
       //    (is_identified_object<SerializableDocumentPlugin>::value
       //     && !is_entity<SerializableDocumentPlugin>::value
-      //     && is_abstract_base<SerializableDocumentPlugin>::value
+      //     && abstract_base<SerializableDocumentPlugin>
       //     && !is_custom_serialized<SerializableDocumentPlugin>::value),
       //    "");
       static_assert(
-          (is_abstract_base<SerializableDocumentPlugin>::value
+          (abstract_base<SerializableDocumentPlugin>
            && !is_custom_serialized<SerializableDocumentPlugin>::value),
           "");
       QByteArray arr_before, arr_after;

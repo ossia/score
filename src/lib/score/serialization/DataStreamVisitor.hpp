@@ -75,15 +75,14 @@ public:
     else
     {
       if constexpr(
-          (is_template<T>::value && !is_abstract_base<T>::value
-           && !is_identified_object<T>::value)
+          (is_template<T>::value && !abstract_base<T> && !identified_object<T>)
           || is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, T>::readFrom(*this, obj);
       }
       else if constexpr(
-          is_identified_object<T>::value && !is_entity<T>::value
-          && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+          identified_object<T> && !identified_entity<T> && !abstract_base<T>
+          && !is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, typename T::object_type>::readFrom(*this, obj);
 
@@ -93,8 +92,7 @@ public:
           read(obj);
       }
       else if constexpr(
-          is_entity<T>::value && !is_abstract_base<T>::value
-          && !is_custom_serialized<T>::value)
+          identified_entity<T> && !abstract_base<T> && !is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, typename T::entity_type>::readFrom(*this, obj);
 
@@ -104,8 +102,7 @@ public:
           read(obj);
       }
       else if constexpr(
-          !is_identified_object<T>::value && is_abstract_base<T>::value
-          && !is_custom_serialized<T>::value)
+          !identified_object<T> && abstract_base<T> && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           // Read the implementation of the base object
@@ -113,8 +110,8 @@ public:
         });
       }
       else if constexpr(
-          is_identified_object<T>::value && !is_entity<T>::value
-          && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+          identified_object<T> && !identified_entity<T> && abstract_base<T>
+          && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           TSerializer<DataStream, IdentifiedObject<T>>::readFrom(sub, obj);
@@ -126,8 +123,7 @@ public:
         });
       }
       else if constexpr(
-          is_entity<T>::value && is_abstract_base<T>::value
-          && !is_custom_serialized<T>::value)
+          identified_entity<T> && abstract_base<T> && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           TSerializer<DataStream, score::Entity<T>>::readFrom(sub, obj);
@@ -238,8 +234,7 @@ public:
   void writeTo(T& obj)
   {
     if constexpr(
-        (is_template<T>::value && !is_abstract_base<T>::value
-         && !is_identified_object<T>::value)
+        (is_template<T>::value && !abstract_base<T> && !identified_object<T>)
         || is_custom_serialized<T>::value)
     {
       TSerializer<DataStream, T>::writeTo(*this, obj);
@@ -274,7 +269,8 @@ private:
   QDataStream m_stream_impl;
 };
 
-template <typename T, std::enable_if_t<!std::is_enum_v<T>>*>
+template <typename T>
+  requires(!std::is_enum_v<T>)
 DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
 {
   DataStreamReader reader{s.stream.device()};
@@ -282,7 +278,8 @@ DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
   return s;
 }
 
-template <typename T, std::enable_if_t<!std::is_enum_v<T>>*>
+template <typename T>
+  requires(!std::is_enum_v<T>)
 DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
 {
   DataStreamWriter writer{s.stream.device()};
@@ -467,11 +464,10 @@ OSSIA_INLINE QDataStream& operator>>(QDataStream& stream, ossia::small_vector<T,
 #endif
 
 template <typename T, typename Alloc>
-struct TSerializer<
-    DataStream, std::vector<T, Alloc>,
-    std::enable_if_t<
-        !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value
-        && !std::is_pointer_v<T> && !is_shared_ptr_v<T>>>
+  requires(
+      !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>
+      && !std::is_pointer_v<T> && !is_shared_ptr_v<T>)
+struct TSerializer<DataStream, std::vector<T, Alloc>>
 {
   static void readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
   {
@@ -499,11 +495,10 @@ struct TSerializer<
 };
 
 template <typename T, typename Alloc>
-struct TSerializer<
-    DataStream, boost::container::vector<T, Alloc>,
-    std::enable_if_t<
-        !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value
-        && !std::is_pointer_v<T> && !is_shared_ptr_v<T>>>
+  requires(
+      !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>
+      && !std::is_pointer_v<T> && !is_shared_ptr_v<T>)
+struct TSerializer<DataStream, boost::container::vector<T, Alloc>>
 {
   static void
   readFrom(DataStream::Serializer& s, const boost::container::vector<T, Alloc>& vec)
@@ -563,10 +558,8 @@ struct TSerializer<DataStream, std::vector<bool>>
 };
 
 template <typename T, typename Alloc>
-struct TSerializer<
-    DataStream, std::vector<T, Alloc>,
-    std::enable_if_t<
-        is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value>>
+  requires(is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>)
+struct TSerializer<DataStream, std::vector<T, Alloc>>
 {
   static void readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
   {
@@ -594,10 +587,8 @@ struct TSerializer<
 };
 
 template <typename T, typename Alloc>
-struct TSerializer<
-    DataStream, boost::container::vector<T, Alloc>,
-    std::enable_if_t<
-        is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value>>
+  requires(is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>)
+struct TSerializer<DataStream, boost::container::vector<T, Alloc>>
 {
   static void
   readFrom(DataStream::Serializer& s, const boost::container::vector<T, Alloc>& vec)

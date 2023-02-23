@@ -93,9 +93,8 @@ auto getStrongId(const score::dynvector_impl<Id<T>>& v)
   return Id<T>{score::id_generator::getNextId(v)};
 }
 
-template <
-    typename Container,
-    std::enable_if_t<std::is_pointer<typename Container::value_type>::value>* = nullptr>
+template <typename Container>
+  requires(std::is_pointer<typename Container::value_type>::value)
 auto getStrongId(const Container& v)
     -> Id<typename std::remove_pointer<typename Container::value_type>::type>
 {
@@ -111,9 +110,8 @@ auto getStrongId(const Container& v)
   return local_id_t{score::id_generator::getNextId(ids)};
 }
 
-template <
-    typename Container,
-    std::enable_if_t<!std::is_pointer<typename Container::value_type>::value>* = nullptr>
+template <typename Container>
+  requires(!std::is_pointer<typename Container::value_type>::value)
 auto getStrongId(const Container& v) -> Id<typename Container::value_type>
 {
   using namespace std;

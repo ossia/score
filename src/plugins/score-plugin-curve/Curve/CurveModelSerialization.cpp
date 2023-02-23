@@ -13,7 +13,10 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <sys/types.h>
-
+static_assert(is_template<IdContainer<Curve::SegmentModel>>::value);
+static_assert(std::is_same_v<
+              serialization_tag<IdContainer<Curve::SegmentModel>>::type,
+              visitor_template_tag>);
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::CurveDomain& dom)
 {

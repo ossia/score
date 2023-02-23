@@ -50,45 +50,38 @@ public:
   const auto& selectionConditions() const { return m_selectionConditions; }
   const auto& customConditions() const { return m_customConditions; }
 
-  template <
-      typename Condition_T,
-      typename enable_if_base_of<DocumentActionCondition, Condition_T>::type = nullptr>
+  template <typename Condition_T>
+    requires(std::is_base_of_v<DocumentActionCondition, Condition_T>)
   auto& condition() const
   {
     return *m_docConditions.at(Condition_T::static_key());
   }
-  template <
-      typename Condition_T,
-      typename enable_if_base_of<FocusActionCondition, Condition_T>::type = nullptr>
+  template <typename Condition_T>
+    requires(std::is_base_of_v<FocusActionCondition, Condition_T>)
   auto& condition() const
   {
     return *m_focusConditions.at(Condition_T::static_key());
   }
-  template <
-      typename Condition_T,
-      typename enable_if_base_of<SelectionActionCondition, Condition_T>::type = nullptr>
+  template <typename Condition_T>
+    requires(std::is_base_of_v<SelectionActionCondition, Condition_T>)
   auto& condition() const
   {
     return *m_selectionConditions.at(Condition_T::static_key());
   }
-  template <
-      typename Condition_T,
-      typename enable_if_base_of<CustomActionCondition, Condition_T>::type = nullptr>
+  template <typename Condition_T>
+    requires(std::is_base_of_v<CustomActionCondition, Condition_T>)
   auto& condition() const
   {
     return *m_customConditions.at(Condition_T::static_key());
   }
 
-  template <
-      typename Condition_T,
-      typename std::enable_if<
-          !std::is_base_of<DocumentActionCondition, Condition_T>::value
-              && !std::is_base_of<FocusActionCondition, Condition_T>::value
-              && !std::is_base_of<SelectionActionCondition, Condition_T>::value
-              && !std::is_base_of<CustomActionCondition, Condition_T>::value
-              && std::is_base_of<ActionCondition, Condition_T>::value,
-          void*>::type
-      = nullptr>
+  template <typename Condition_T>
+    requires(
+        !std::is_base_of_v<DocumentActionCondition, Condition_T>
+        && !std::is_base_of_v<FocusActionCondition, Condition_T>
+        && !std::is_base_of_v<SelectionActionCondition, Condition_T>
+        && !std::is_base_of_v<CustomActionCondition, Condition_T>
+        && std::is_base_of_v<ActionCondition, Condition_T>)
   auto& condition() const
   {
     return *m_conditions.at(Condition_T::static_key());

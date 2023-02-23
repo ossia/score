@@ -56,7 +56,7 @@ public:
       f();
   }
   template <typename Models>
-  const score::EntityMap<Process::ProcessModel>& models() const
+  const auto& models() const
   {
     static_assert(
         std::is_same<Models, Process::ProcessModel>::value,
@@ -65,12 +65,8 @@ public:
     return m_model->stateProcesses;
   }
 
-  const score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
-  processes() const
-  {
-    return m_processes;
-  }
-  const Scenario::StateModel& state() const
+  const auto& processes() const { return m_processes; }
+  const auto& state() const
   {
     SCORE_ASSERT(m_model);
     return *m_model;

@@ -160,26 +160,30 @@ public:
 
   // TODO do the same for ids
   // TODO make it work only for upcasts
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U>
+    requires(in_relationship<U, Object>::value)
   Path(const Path<U>& other) noexcept
       : m_impl{other.m_impl.vec()}
   {
   }
 
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U>
+    requires(in_relationship<U, Object>::value)
   Path(Path<U>&& other) noexcept
       : m_impl{std::move(other.m_impl.vec())}
   {
   }
 
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U>
+    requires(in_relationship<U, Object>::value)
   Path& operator=(const Path<U>& other) noexcept
   {
     m_impl = other.m_impl;
     return *this;
   }
 
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <typename U>
+    requires(in_relationship<U, Object>::value)
   Path& operator=(Path<U>&& other) noexcept
   {
     m_impl = std::move(other.m_impl);

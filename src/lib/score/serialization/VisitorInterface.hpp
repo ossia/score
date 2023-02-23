@@ -33,8 +33,7 @@ struct VisitorVariant
  * is a deserializer.
  */
 template <typename DeserializerVisitor>
-using enable_if_deserializer = typename std::enable_if_t<
-    std::decay<DeserializerVisitor>::type::is_visitor_tag::value>;
+concept IsDeserializer = std::decay_t<DeserializerVisitor>::is_visitor_tag::value;
 
 // Declaration of common friends for classes that serialize themselves
 #define SCORE_SERIALIZE_FRIENDS    \

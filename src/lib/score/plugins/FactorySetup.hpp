@@ -68,12 +68,13 @@ void fill_ptr_vector(
   });
 }
 
-template <typename T, typename Enable = void>
+template <typename T>
 struct has_ui : public std::false_type
 {
 };
 template <typename T>
-struct has_ui<T, std::enable_if_t<T::ui_interface>>
+  requires(T::ui_interface)
+struct has_ui<T>
 {
   static const constexpr bool value = T::ui_interface;
 };

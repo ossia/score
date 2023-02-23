@@ -70,7 +70,7 @@ IntervalModel::IntervalModel(
 IntervalModel::~IntervalModel()
 {
   static_assert(
-      is_entity<IntervalModel>::value && !is_abstract_base<IntervalModel>::value
+      identified_entity<IntervalModel> && !abstract_base<IntervalModel>
           && !is_custom_serialized<IntervalModel>::value,
       "");
   processes.clear();

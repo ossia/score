@@ -66,9 +66,7 @@ public:
   Note(const Id<Note>& id, QObject* parent);
   Note(const Id<Note>& id, NoteData n, QObject* parent);
 
-  template <
-      typename DeserializerVisitor,
-      enable_if_deserializer<DeserializerVisitor>* = nullptr>
+  template <IsDeserializer DeserializerVisitor>
   Note(DeserializerVisitor&& vis, QObject* parent)
       : IdentifiedObject<Note>{vis, parent}
   {

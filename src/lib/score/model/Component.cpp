@@ -72,7 +72,7 @@ DataStreamSerializedComponents::DataStreamSerializedComponents(
     , data(std::move(obj))
 {
   static_assert(is_identified_object<SerializableComponent>::value, "");
-  static_assert(is_abstract_base<SerializableComponent>::value, "");
+  static_assert(abstract_base<SerializableComponent>, "");
   static_assert(
       std::is_same<
           serialization_tag<SerializableComponent>::type,

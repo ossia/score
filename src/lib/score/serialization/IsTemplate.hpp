@@ -74,6 +74,16 @@ struct is_template<T<X, u>> : std::true_type
 };
 #endif
 
+// For IdContainer
+template <template <class, bool> class T, class A, bool C>
+struct is_template<T<A, C>> : std::true_type
+{
+};
+template <template <class, class, bool> class T, class A, class B, bool C>
+struct is_template<T<A, B, C>> : std::true_type
+{
+};
+
 template <class>
 struct is_custom_serialized : std::false_type
 {

@@ -83,22 +83,12 @@ static constexpr bool is_qpointer_v = is_qpointer<T>::value;
  * Generally, it is used with QByteArrays, but it works with any QIODevice.
  */
 template <typename T>
-using enable_if_QDataStreamSerializable = typename std::enable_if_t<
+concept is_QDataStreamSerializable =
     std::is_arithmetic<T>::value || std::is_same<T, QStringList>::value
     || std::is_same<T, QVector2D>::value || std::is_same<T, QVector3D>::value
     || std::is_same<T, QVector4D>::value || std::is_same<T, QPointF>::value
-    || std::is_same<T, QPoint>::value || std::is_same<T, std::string>::value>;
+    || std::is_same<T, QPoint>::value || std::is_same<T, std::string>::value;
 
-template <class, class Enable = void>
-struct is_QDataStreamSerializable : std::false_type
-{
-};
-
-template <class T>
-struct is_QDataStreamSerializable<
-    T, enable_if_QDataStreamSerializable<typename std::decay<T>::type>> : std::true_type
-{
-};
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& s, char c);
@@ -178,10 +168,12 @@ inline QDataStream& operator>>(QDataStream& s, std::size_t& val)
 #endif
 #endif
 
-template <typename T, std::enable_if_t<!std::is_enum_v<T>>* = nullptr>
+template <typename T>
+requires (!std::is_enum_v<T>)
 DataStreamInput& operator<<(DataStreamInput& s, const T& obj);
 
-template <typename T, std::enable_if_t<!std::is_enum_v<T>>* = nullptr>
+template <typename T>
+requires (!std::is_enum_v<T>)
 DataStreamOutput& operator>>(DataStreamOutput& s, T& obj);
 
 #define DATASTREAM_QT_BUILTIN(T)                                \
@@ -257,14 +249,16 @@ template <typename T>
 DataStreamOutput& operator>>(DataStreamOutput& s, const QVector<T>& obj) = delete;
 #endif
 
-template <typename T, std::enable_if_t<std::is_enum_v<T>>* = nullptr>
+template <typename T>
+  requires (std::is_enum_v<T>)
 OSSIA_INLINE DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
 {
   s.stream << obj;
   return s;
 }
 
-template <typename T, std::enable_if_t<std::is_enum_v<T>>* = nullptr>
+template <typename T>
+  requires (std::is_enum_v<T>)
 OSSIA_INLINE DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
 {
   s.stream >> obj;

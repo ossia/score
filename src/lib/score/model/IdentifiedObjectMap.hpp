@@ -31,9 +31,8 @@ class IdContainer
  * * `get<1>()` gets the ordered (like std::vector) iterator.
  */
 template <typename Element, typename Model>
-class IdContainer<
-    Element, Model,
-    std::enable_if_t<std::is_base_of<IdentifiedObject<Model>, Element>::value>>
+  requires std::is_base_of_v<IdentifiedObject<Model>, Element>
+class IdContainer<Element, Model, true>
 {
 public:
   using model_type = Model;

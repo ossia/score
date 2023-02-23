@@ -120,15 +120,14 @@ public:
     else
     {
       if constexpr(
-          (is_template<T>::value && !is_abstract_base<T>::value
-           && !is_identified_object<T>::value)
+          (is_template<T>::value && !abstract_base<T> && !identified_object<T>)
           || is_custom_serialized<T>::value)
       {
         TSerializer<JSONObject, T>::readFrom(*this, obj);
       }
       else if constexpr(
-          is_identified_object<T>::value && !is_entity<T>::value
-          && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+          identified_object<T> && !identified_entity<T> && !abstract_base<T>
+          && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         TSerializer<JSONObject, typename T::object_type>::readFrom(*this, obj);
@@ -141,8 +140,7 @@ public:
         stream.EndObject();
       }
       else if constexpr(
-          is_entity<T>::value && !is_abstract_base<T>::value
-          && !is_custom_serialized<T>::value)
+          identified_entity<T> && !abstract_base<T> && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         TSerializer<JSONObject, typename T::entity_type>::readFrom(*this, obj);
@@ -154,8 +152,7 @@ public:
         stream.EndObject();
       }
       else if constexpr(
-          !is_identified_object<T>::value && is_abstract_base<T>::value
-          && !is_custom_serialized<T>::value)
+          !identified_object<T> && abstract_base<T> && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
@@ -165,8 +162,8 @@ public:
         stream.EndObject();
       }
       else if constexpr(
-          is_identified_object<T>::value && !is_entity<T>::value
-          && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+          identified_object<T> && !identified_entity<T> && abstract_base<T>
+          && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
@@ -180,8 +177,7 @@ public:
         stream.EndObject();
       }
       else if constexpr(
-          is_entity<T>::value && is_abstract_base<T>::value
-          && !is_custom_serialized<T>::value)
+          identified_entity<T> && abstract_base<T> && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
@@ -460,8 +456,7 @@ public:
   void writeTo(T& obj)
   {
     if constexpr(
-        (is_template<T>::value && !is_abstract_base<T>::value
-         && !is_identified_object<T>::value)
+        (is_template<T>::value && !abstract_base<T> && !identified_object<T>)
         || is_custom_serialized<T>::value)
     {
       TSerializer<JSONObject, T>::writeTo(*this, obj);

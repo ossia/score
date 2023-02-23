@@ -77,9 +77,7 @@ public:
   ~StateModel() override;
 
   // Load
-  template <
-      typename DeserializerVisitor,
-      enable_if_deserializer<DeserializerVisitor>* = nullptr>
+  template <IsDeserializer DeserializerVisitor>
   StateModel(
       DeserializerVisitor&& vis, const score::DocumentContext& ctx, QObject* parent)
       : Entity{vis, parent}

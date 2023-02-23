@@ -30,9 +30,7 @@ public:
       const Id<BaseScenario>& id, const score::DocumentContext& ctx,
       QObject* parentObject);
 
-  template <
-      typename DeserializerVisitor,
-      enable_if_deserializer<DeserializerVisitor>* = nullptr>
+  template <IsDeserializer DeserializerVisitor>
   BaseScenario(
       DeserializerVisitor&& vis, const score::DocumentContext& ctx, QObject* parent)
       : IdentifiedObject{vis, parent}
