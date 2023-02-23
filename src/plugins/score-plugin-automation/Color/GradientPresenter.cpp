@@ -19,20 +19,21 @@ namespace Gradient
 ProcessModel::gradient_colors addPointToGradient(
     const ProcessModel::gradient_colors& current, double np, QColor* new_color = nullptr)
 {
-  auto color_or = [&](QColor p) noexcept { return new_color ? *new_color : p; };
 
   auto new_grad = current;
   auto prev = new_grad.lower_bound(np);
+  auto prev_color = prev->second;
+  auto color_or = [=](QColor p) noexcept { return new_color ? *new_color : p; };
   if(prev == new_grad.begin())
   {
-    new_grad.insert(std::make_pair(np, color_or(prev->second)));
+    new_grad.insert(std::make_pair(np, color_or(prev_color)));
   }
   if(prev == new_grad.end())
   {
     if(!new_grad.empty())
     {
       prev = new_grad.begin();
-      new_grad.insert(std::make_pair(np, color_or(prev->second)));
+      new_grad.insert(std::make_pair(np, color_or(prev_color)));
     }
     else
     {
@@ -42,7 +43,7 @@ ProcessModel::gradient_colors addPointToGradient(
   else
   {
     prev--;
-    new_grad.insert(std::make_pair(np, color_or(prev->second)));
+    new_grad.insert(std::make_pair(np, color_or(prev_color)));
   }
   return new_grad;
 }
