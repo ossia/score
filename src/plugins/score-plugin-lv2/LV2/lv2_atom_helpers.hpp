@@ -54,7 +54,7 @@ struct LV2_Atom_Buffer
   static uint32_t chunk_type;
 
   uint32_t capacity;
-  LV2_Atom_Sequence atoms;
+  alignas(8) LV2_Atom_Sequence atoms;
   LV2_Atom_Buffer(uint32_t capacity, uint32_t ct, uint32_t seq_type, bool input)
       : capacity{capacity}
   {
@@ -92,6 +92,7 @@ struct LV2_Atom_Buffer
   LV2_Atom_Sequence* get_sequence(LV2_Atom_Buffer* buf) { return &buf->atoms; }
 };
 
+static_assert(__builtin_offsetof(LV2_Atom_Buffer, atoms) == 8);
 // An iterator over an atom:Sequence buffer.
 //
 struct Iterator
