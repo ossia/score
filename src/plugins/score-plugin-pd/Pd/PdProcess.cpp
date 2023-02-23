@@ -40,9 +40,9 @@ Instance::~Instance()
   pdinstance_free(instance);
 }
 
-auto initTypeMap()
+static const auto& initTypeMap()
 {
-  ossia::flat_map<QString, ossia::val_type> widgetTypeMap{
+  static ossia::flat_map<QString, ossia::val_type> widgetTypeMap{
       {"floatslider", ossia::val_type::FLOAT},
       {"logfloatslider", ossia::val_type::FLOAT},
       {"intslider", ossia::val_type::INT},
@@ -54,7 +54,15 @@ auto initTypeMap()
       {"button", ossia::val_type::IMPULSE},
       {"hsvslider", ossia::val_type::VEC4F},
       {"xyslider", ossia::val_type::VEC2F},
-      {"multislider", ossia::val_type::LIST}};
+      {"multislider", ossia::val_type::LIST},
+      {"colorchooser", ossia::val_type::VEC4F},
+      {"text", ossia::val_type::STRING},
+      {"checkbox", ossia::val_type::BOOL},
+      {"bang", ossia::val_type::IMPULSE},
+      {"pulse", ossia::val_type::IMPULSE},
+      {"impulse", ossia::val_type::IMPULSE},
+  };
+
   return widgetTypeMap;
 }
 enum pd_thing_to_parse
@@ -69,7 +77,7 @@ enum pd_thing_to_parse
   defaultv
 };
 
-void parseControlTypeAttributes(PatchSpec::Control& ctl, const QStringList& args)
+static void parseControlTypeAttributes(PatchSpec::Control& ctl, const QStringList& args)
 {
   pd_thing_to_parse next_is{};
   // First look for the type
@@ -126,7 +134,7 @@ void parseControlTypeAttributes(PatchSpec::Control& ctl, const QStringList& args
   }
 }
 
-std::optional<ossia::value>
+static std::optional<ossia::value>
 parseControlValue(PatchSpec::Control& ctl, const QStringList& args, int& i)
 {
   switch(*ctl.deduced_type)
@@ -174,7 +182,7 @@ parseControlValue(PatchSpec::Control& ctl, const QStringList& args, int& i)
   return std::nullopt;
 }
 
-void parseControlDataRange(
+static void parseControlDataRange(
     PatchSpec::Control& ctl, const QStringList& args, int& i,
     std::optional<ossia::value>& min_domain, std::optional<ossia::value>& max_domain,
     std::optional<ossia::domain>& domain)
@@ -247,7 +255,8 @@ void parseControlDataRange(
     }
   }
 }
-void parseControlDataAttributes(PatchSpec::Control& ctl, const QStringList& args)
+
+static void parseControlDataAttributes(PatchSpec::Control& ctl, const QStringList& args)
 {
   pd_thing_to_parse next_is{};
   std::optional<ossia::value> min_domain{}, max_domain{};
@@ -304,7 +313,7 @@ void parseControlDataAttributes(PatchSpec::Control& ctl, const QStringList& args
     ctl.domain = ossia::make_domain(*min_domain, *max_domain);
 }
 
-PatchSpec::Control parseControlSpec(QString var)
+static PatchSpec::Control parseControlSpec(QString var)
 {
   var = var.replace("\n", " ");
   QStringList splitted = var.split(" ");
@@ -320,11 +329,11 @@ PatchSpec::Control parseControlSpec(QString var)
   return ctl;
 }
 
-const auto& initFuncMap()
+static const auto& initFuncMap()
 {
-  using InletFunc = std::function<Process::Inlet*(
-      const PatchSpec::Control&, const Id<Process::Port>&, QObject*)>;
-  static ossia::static_flat_map<QString, InletFunc, 32> widgetFuncMap{
+  using InletFunc = Process::
+      Inlet* (*)(const PatchSpec::Control&, const Id<Process::Port>&, QObject*);
+  static ossia::hash_map<QString, InletFunc> widgetFuncMap{
       {"floatslider",
        [](const PatchSpec::Control& ctl, const Id<Process::Port>& id,
           QObject* parent) -> Process::Inlet* {
@@ -407,13 +416,18 @@ const auto& initFuncMap()
                                Inlet* {
     return new Process::MultiSlider{std::vector<ossia::value>{}, ctl.name, id, parent};
        }}};
-  widgetFuncMap["colorchooser"] = widgetFuncMap["hsvslider"];
-  widgetFuncMap["enum"] = widgetFuncMap["combobox"];
-  widgetFuncMap["text"] = widgetFuncMap["lineedit"];
-  widgetFuncMap["checkbox"] = widgetFuncMap["toggle"];
-  widgetFuncMap["bang"] = widgetFuncMap["button"];
-  widgetFuncMap["pulse"] = widgetFuncMap["button"];
-  widgetFuncMap["impulse"] = widgetFuncMap["button"];
+  widgetFuncMap.reserve(widgetFuncMap.size() * 4);
+
+  // Note: we cast to make a copy as otherwise this may be a reference..
+  // but the left hand side may introduce
+  // new values in the map and invalidate them
+  widgetFuncMap["colorchooser"] = InletFunc(widgetFuncMap["hsvslider"]);
+  widgetFuncMap["enum"] = InletFunc(widgetFuncMap["combobox"]);
+  widgetFuncMap["text"] = InletFunc(widgetFuncMap["lineedit"]);
+  widgetFuncMap["checkbox"] = InletFunc(widgetFuncMap["toggle"]);
+  widgetFuncMap["bang"] = InletFunc(widgetFuncMap["button"]);
+  widgetFuncMap["pulse"] = InletFunc(widgetFuncMap["button"]);
+  widgetFuncMap["impulse"] = InletFunc(widgetFuncMap["button"]);
   return widgetFuncMap;
 }
 Process::Inlet* makeInletFromSpec(
