@@ -88,19 +88,35 @@ public:
 
   IntervalModel* findInterval(const Id<IntervalModel>& id) const final override
   {
-    return ossia::ptr_find(intervals, id);
+    if(auto it = intervals.map().m_map.find(id); it != intervals.map().m_map.end())
+    {
+      return it->second.first;
+    }
+    return nullptr;
   }
   EventModel* findEvent(const Id<EventModel>& id) const final override
   {
-    return ossia::ptr_find(events, id);
+    if(auto it = events.map().m_map.find(id); it != events.map().m_map.end())
+    {
+      return it->second.first;
+    }
+    return nullptr;
   }
   TimeSyncModel* findTimeSync(const Id<TimeSyncModel>& id) const final override
   {
-    return ossia::ptr_find(timeSyncs, id);
+    if(auto it = timeSyncs.map().m_map.find(id); it != timeSyncs.map().m_map.end())
+    {
+      return it->second.first;
+    }
+    return nullptr;
   }
   StateModel* findState(const Id<StateModel>& id) const final override
   {
-    return ossia::ptr_find(states, id);
+    if(auto it = states.map().m_map.find(id); it != states.map().m_map.end())
+    {
+      return it->second.first;
+    }
+    return nullptr;
   }
 
   IntervalModel& interval(const Id<IntervalModel>& intervalId) const final override
