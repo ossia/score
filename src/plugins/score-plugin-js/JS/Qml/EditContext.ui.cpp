@@ -1,5 +1,6 @@
 #include <JS/Qml/EditContext.hpp>
 
+#include <score/tools/std/StringHash.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 
 #include <ossia/detail/hash_map.hpp>
