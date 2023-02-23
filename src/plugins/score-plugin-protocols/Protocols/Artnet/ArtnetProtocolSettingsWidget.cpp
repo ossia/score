@@ -16,6 +16,7 @@
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/string_algorithms.hpp>
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -496,7 +497,7 @@ public:
           addTemplates(group.name);
         }
       }
-      else if(rf.starts_with("eachPixel"))
+      else if(ossia::string_starts_with(rf, "eachPixel"))
       {
         rf = rf.substr(strlen("eachPixel"));
         if(!rf.size() == 3)
