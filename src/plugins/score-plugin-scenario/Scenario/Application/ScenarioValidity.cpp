@@ -7,6 +7,8 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/tools/MapCopy.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
@@ -135,7 +137,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     */
   }
 
-  std::vector st(scenar.states.map().m_order.begin(), scenar.states.map().m_order.end());
+  std::vector st = shallow_copy(scenar.states);
   for(StateModel* sstate : st)
   {
     auto& state = *sstate;

@@ -67,7 +67,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
 public:
   using ProcessVector = std::list<ProcessStateWrapper>;
 
-  score::EntityMap<Process::ProcessModel> stateProcesses;
+  score::EntityMap<Process::ProcessModel, true> stateProcesses;
   Selectable selection;
 
   StateModel(

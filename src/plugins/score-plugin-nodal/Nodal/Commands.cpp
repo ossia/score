@@ -129,7 +129,7 @@ void ReplaceAllNodes::redo(const score::DocumentContext& ctx) const
   auto& proc = m_path.find(ctx);
   proc.nodes.clear();
   SCORE_ASSERT(proc.nodes.unsafe_map().m_map.size() == 0);
-  SCORE_ASSERT(proc.nodes.unsafe_map().m_order.size() == 0);
+  //SCORE_ASSERT(proc.nodes.unsafe_map().m_order.size() == 0);
 
   // Add new nodes
   auto doc = readJson(m_new_block);

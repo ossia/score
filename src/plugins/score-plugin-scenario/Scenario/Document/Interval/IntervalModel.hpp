@@ -61,7 +61,7 @@ public:
   std::unique_ptr<Process::AudioOutlet> outlet;
 
   /** Properties of the class **/
-  score::EntityMap<Process::ProcessModel> processes;
+  score::EntityMap<Process::ProcessModel, true> processes;
 
   Selectable selection;
   ModelConsistency consistency{nullptr};

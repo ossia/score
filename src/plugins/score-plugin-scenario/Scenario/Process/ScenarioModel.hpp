@@ -90,7 +90,7 @@ public:
   {
     if(auto it = intervals.map().m_map.find(id); it != intervals.map().m_map.end())
     {
-      return it->second.first;
+      return it->second;
     }
     return nullptr;
   }
@@ -98,7 +98,7 @@ public:
   {
     if(auto it = events.map().m_map.find(id); it != events.map().m_map.end())
     {
-      return it->second.first;
+      return it->second;
     }
     return nullptr;
   }
@@ -106,7 +106,7 @@ public:
   {
     if(auto it = timeSyncs.map().m_map.find(id); it != timeSyncs.map().m_map.end())
     {
-      return it->second.first;
+      return it->second;
     }
     return nullptr;
   }
@@ -114,7 +114,7 @@ public:
   {
     if(auto it = states.map().m_map.find(id); it != states.map().m_map.end())
     {
-      return it->second.first;
+      return it->second;
     }
     return nullptr;
   }

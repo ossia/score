@@ -13,16 +13,16 @@ template class SCORE_PLUGIN_SCENARIO_EXPORT
     score::EntityMap<Scenario::CommentBlockModel>;
 
 template class SCORE_PLUGIN_SCENARIO_EXPORT
-    IdContainer<Scenario::StatePresenter, Scenario::StateModel, void>;
+    IdContainer<Scenario::StatePresenter, Scenario::StateModel, false>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT
-    IdContainer<Scenario::EventPresenter, Scenario::EventModel, void>;
+    IdContainer<Scenario::EventPresenter, Scenario::EventModel, false>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT
-    IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel, void>;
+    IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel, false>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT
-    IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel, void>;
+    IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel, false>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT
-    IdContainer<Scenario::GraphalIntervalPresenter, Scenario::IntervalModel, void>;
+    IdContainer<Scenario::GraphalIntervalPresenter, Scenario::IntervalModel, false>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT
-    IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel, void>;
+    IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel, false>;
 
 #endif

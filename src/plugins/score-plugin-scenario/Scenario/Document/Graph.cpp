@@ -11,6 +11,7 @@
 
 #include <score/model/ModelMetadata.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
@@ -23,8 +24,6 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <QTimer>
-
-#include <ossia/detail/hash_map.hpp>
 namespace Scenario
 {
 /*
@@ -277,7 +276,7 @@ void TimenodeGraph::recompute()
 
 void TimenodeGraph::writeGraphviz()
 {
-  #if 0
+#if 0
   auto get_name = [](auto* elt) { return elt->metadata().getName().toStdString(); };
 
   std::stringstream s;
@@ -292,7 +291,7 @@ void TimenodeGraph::writeGraphviz()
 
   std::cout << s.str() << std::endl << std::flush;
 
-  #endif
+#endif
 }
 /*
 TimenodeGraphComponents TimenodeGraph::components()

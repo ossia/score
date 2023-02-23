@@ -86,5 +86,5 @@ private:
 }
 
 #if !defined(SCORE_ALL_UNITY)
-extern template class IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+//extern template class IdContainer<Curve::SegmentView, Curve::SegmentModel>;
 #endif

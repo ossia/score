@@ -3,14 +3,14 @@
 
 #include <vector>
 
-template <typename T>
-std::vector<T*> shallow_copy(const IdContainer<T>& m)
+template <typename T, typename M, bool B>
+std::vector<T*> shallow_copy(const IdContainer<T, M, B>& m)
 {
   return m.as_vec();
 }
 
-template <typename T>
-std::vector<T*> shallow_copy(const score::EntityMap<T>& m)
+template <typename T, bool B>
+std::vector<T*> shallow_copy(const score::EntityMap<T, B>& m)
 {
   return shallow_copy(m.map());
 }

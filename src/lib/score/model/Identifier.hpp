@@ -7,10 +7,10 @@
 
 namespace score
 {
-template <typename T>
+template <typename T, bool Order>
 class EntityMap;
 }
-template <typename Element, typename Model, typename Map>
+template <typename Element, typename Model, bool Order>
 class IdContainer;
 template <typename T>
 class IdentifiedObject;
@@ -56,11 +56,12 @@ template <typename tag, typename impl>
 class id_base_t
 {
   friend tag;
-  friend class score::EntityMap<tag>;
+  friend class score::EntityMap<tag, false>;
+  friend class score::EntityMap<tag, true>;
   friend class IdentifiedObject<tag>;
 
   // TODO Try to only have Map as a template type here
-  template <typename Element, typename Model, typename Map>
+  template <typename Element, typename Model, bool Order>
   friend class IdContainer;
 
 public:

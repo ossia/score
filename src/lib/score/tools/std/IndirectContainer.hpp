@@ -20,27 +20,27 @@ struct indirect_iterator
 
   base_iterator_t it;
 
-  self_type operator++()
+  self_type operator++() noexcept
   {
     ++it;
     return *this;
   }
-  self_type operator++(int)
+  self_type operator++(int) noexcept
   {
     self_type i = *this;
     it++;
     return i;
   }
 
-  value_type& operator*() { return **it; }
-  value_type* operator->() { return *it; }
-  bool operator==(const self_type& rhs) const { return it == rhs.it; }
-  bool operator!=(const self_type& rhs) const { return it != rhs.it; }
-  bool operator<(const self_type& rhs) const { return it < rhs.it; }
+  value_type& operator*() const noexcept { return **it; }
+  value_type* operator->() const noexcept { return *it; }
+  bool operator==(const self_type& rhs) const noexcept { return it == rhs.it; }
+  bool operator!=(const self_type& rhs) const noexcept { return it != rhs.it; }
+  bool operator<(const self_type& rhs) const noexcept { return it < rhs.it; }
 };
 
 template <typename T>
-indirect_iterator<T> make_indirect_iterator(const T& it)
+indirect_iterator<T> make_indirect_iterator(const T& it) noexcept
 {
   return indirect_iterator<T>{it};
 }
@@ -59,23 +59,23 @@ struct indirect_ptr_iterator
 
   base_iterator_t it;
 
-  self_type operator++()
+  self_type operator++() noexcept
   {
     ++it;
     return *this;
   }
-  self_type operator++(int)
+  self_type operator++(int) noexcept
   {
     self_type i = *this;
     it++;
     return i;
   }
 
-  auto& operator*() { return **it; }
-  auto operator->() { return it; }
-  bool operator==(const self_type& rhs) const { return it == rhs.it; }
-  bool operator!=(const self_type& rhs) const { return it != rhs.it; }
-  bool operator<(const self_type& rhs) const { return it < rhs.it; }
+  auto& operator*() const noexcept { return **it; }
+  auto operator->() const noexcept { return it; }
+  bool operator==(const self_type& rhs) const noexcept { return it == rhs.it; }
+  bool operator!=(const self_type& rhs) const noexcept { return it != rhs.it; }
+  bool operator<(const self_type& rhs) const noexcept { return it < rhs.it; }
 };
 
 template <typename T>
@@ -99,23 +99,23 @@ struct indirect_map_iterator
 
   base_iterator_t it;
 
-  self_type operator++()
+  self_type operator++() noexcept
   {
     ++it;
     return *this;
   }
-  self_type operator++(int)
+  self_type operator++(int) noexcept
   {
     self_type i = *this;
     it++;
     return i;
   }
 
-  auto& operator*() { return *it->second; }
-  auto operator->() { return it->second.get(); }
-  bool operator==(const self_type& rhs) const { return it == rhs.it; }
-  bool operator!=(const self_type& rhs) const { return it != rhs.it; }
-  bool operator<(const self_type& rhs) const { return it < rhs.it; }
+  auto& operator*() const noexcept { return *it->second; }
+  auto operator->() const noexcept { return it->second; }
+  bool operator==(const self_type& rhs) const noexcept { return it == rhs.it; }
+  bool operator!=(const self_type& rhs) const noexcept { return it != rhs.it; }
+  bool operator<(const self_type& rhs) const noexcept { return it < rhs.it; }
 };
 
 template <typename T>
@@ -130,6 +130,8 @@ class IndirectContainer : std::vector<T*, U>
 public:
   using ctnr_t = std::vector<T*, U>;
   using ctnr_t::ctnr_t;
+  using ctnr_t::reserve;
+  using ctnr_t::resize;
   using value_type = T;
 
   auto begin() noexcept { return make_indirect_ptr_iterator(ctnr_t::begin()); }
@@ -185,42 +187,42 @@ class IndirectArray
 public:
   using value_type = T;
   template <typename... Args>
-  IndirectArray(Args&&... args)
+  IndirectArray(Args&&... args) noexcept
       : array{{std::forward<Args>(args)...}}
   {
   }
 
-  auto begin() { return make_indirect_ptr_iterator(array.begin()); }
-  auto end() { return make_indirect_ptr_iterator(array.end()); }
-  auto begin() const { return make_indirect_ptr_iterator(array.begin()); }
-  auto end() const { return make_indirect_ptr_iterator(array.end()); }
-  auto cbegin() const { return make_indirect_ptr_iterator(array.cbegin()); }
-  auto cend() const { return make_indirect_ptr_iterator(array.cend()); }
+  auto begin() noexcept { return make_indirect_ptr_iterator(array.begin()); }
+  auto end() noexcept { return make_indirect_ptr_iterator(array.end()); }
+  auto begin() const noexcept { return make_indirect_ptr_iterator(array.begin()); }
+  auto end() const noexcept { return make_indirect_ptr_iterator(array.end()); }
+  auto cbegin() const noexcept { return make_indirect_ptr_iterator(array.cbegin()); }
+  auto cend() const noexcept { return make_indirect_ptr_iterator(array.cend()); }
 
-  auto& operator[](int pos) { return *array[pos]; }
-  auto& operator[](int pos) const { return *array[pos]; }
+  auto& operator[](int pos) noexcept { return *array[pos]; }
+  auto& operator[](int pos) const noexcept { return *array[pos]; }
 };
 
 template <typename Map_T>
 class IndirectMap
 {
 public:
-  auto begin() { return make_indirect_iterator(map.begin()); }
-  auto begin() const { return make_indirect_iterator(map.begin()); }
+  auto begin() noexcept { return make_indirect_iterator(map.begin()); }
+  auto begin() const noexcept { return make_indirect_iterator(map.begin()); }
 
-  auto cbegin() { return make_indirect_iterator(map.cbegin()); }
-  auto cbegin() const { return make_indirect_iterator(map.cbegin()); }
+  auto cbegin() noexcept { return make_indirect_iterator(map.cbegin()); }
+  auto cbegin() const noexcept { return make_indirect_iterator(map.cbegin()); }
 
-  auto end() { return make_indirect_iterator(map.end()); }
-  auto end() const { return make_indirect_iterator(map.end()); }
+  auto end() noexcept { return make_indirect_iterator(map.end()); }
+  auto end() const noexcept { return make_indirect_iterator(map.end()); }
 
-  auto cend() { return make_indirect_iterator(map.cend()); }
-  auto cend() const { return make_indirect_iterator(map.cend()); }
+  auto cend() noexcept { return make_indirect_iterator(map.cend()); }
+  auto cend() const noexcept { return make_indirect_iterator(map.cend()); }
 
-  auto empty() const { return map.empty(); }
+  auto empty() const noexcept { return map.empty(); }
 
   template <typename K>
-  auto find(K&& key)
+  auto find(K&& key) const noexcept
   {
     return map.find(std::forward<K>(key));
   }
@@ -243,24 +245,24 @@ class IndirectUnorderedMap
 
 public:
   using value_type = typename base_iterator_t::value_type;
-  IndirectUnorderedMap() { }
+  IndirectUnorderedMap() noexcept = default;
 
-  auto begin() { return make_indirect_map_iterator(map.begin()); }
-  auto begin() const { return make_indirect_map_iterator(map.begin()); }
+  auto begin() noexcept { return make_indirect_map_iterator(map.begin()); }
+  auto begin() const noexcept { return make_indirect_map_iterator(map.begin()); }
 
-  auto cbegin() { return make_indirect_map_iterator(map.cbegin()); }
-  auto cbegin() const { return make_indirect_map_iterator(map.cbegin()); }
+  auto cbegin() noexcept { return make_indirect_map_iterator(map.cbegin()); }
+  auto cbegin() const noexcept { return make_indirect_map_iterator(map.cbegin()); }
 
-  auto end() { return make_indirect_map_iterator(map.end()); }
-  auto end() const { return make_indirect_map_iterator(map.end()); }
+  auto end() noexcept { return make_indirect_map_iterator(map.end()); }
+  auto end() const noexcept { return make_indirect_map_iterator(map.end()); }
 
-  auto cend() { return make_indirect_map_iterator(map.cend()); }
-  auto cend() const { return make_indirect_map_iterator(map.cend()); }
+  auto cend() noexcept { return make_indirect_map_iterator(map.cend()); }
+  auto cend() const noexcept { return make_indirect_map_iterator(map.cend()); }
 
-  auto empty() const { return map.empty(); }
+  auto empty() const noexcept { return map.empty(); }
 
   template <typename K>
-  auto find(K&& key) const
+  auto find(K&& key) const noexcept
   {
     return make_indirect_map_iterator(map.find(std::forward<K>(key)));
   }

@@ -6,10 +6,10 @@
 
 namespace score
 {
-template <typename T>
-class EntityMapInserter<score::Entity<T>>
+template <typename T, bool Ordered>
+class EntityMapInserter<score::Entity<T>, Ordered>
 {
-  void add(EntityMap<T>& map, T* obj)
+  void add(EntityMap<T, Ordered>& map, T* obj)
   {
     SCORE_ASSERT(obj);
 

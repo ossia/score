@@ -5,9 +5,6 @@
 #include <score/model/ModelMetadata.hpp>
 
 #include <ossia/network/base/name_validation.hpp>
-template <typename T>
-class EntityMapInserter;
-
 namespace score
 {
 /**

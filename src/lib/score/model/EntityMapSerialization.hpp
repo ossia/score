@@ -63,13 +63,13 @@ struct EntityMapSerializer
   }
 };
 
-template <typename T>
-struct TSerializer<DataStream, score::EntityMap<T>> : EntityMapSerializer
+template <typename T, bool O>
+struct TSerializer<DataStream, score::EntityMap<T, O>> : EntityMapSerializer
 {
 };
 
-template <typename T>
-struct TSerializer<JSONObject, score::EntityMap<T>> : EntityMapSerializer
+template <typename T, bool O>
+struct TSerializer<JSONObject, score::EntityMap<T, O>> : EntityMapSerializer
 {
 };
 

@@ -1051,8 +1051,8 @@ struct TSerializer<JSONObject, std::array<float, N>> : ArraySerializer
 {
 };
 
-template <typename T, typename U, typename V>
-struct TSerializer<JSONObject, IdContainer<T, U, V>> : ArraySerializer
+template <typename T, typename U, bool O>
+struct TSerializer<JSONObject, IdContainer<T, U, O>> : ArraySerializer
 {
 };
 

@@ -9,13 +9,13 @@ namespace score
 {
 template <typename T>
 class Entity;
-template <typename T>
+template <typename T, bool Ordered>
 class EntityMap;
-template <typename T>
+template <typename T, bool Ordered>
 class EntityMapInserter
 {
 public:
-  void add(EntityMap<T>& map, T* t);
+  void add(EntityMap<T, Ordered>& map, T* t);
 };
 
 /**
@@ -31,23 +31,23 @@ public:
  * itself, to prevent a double-free.
  *
  */
-template <typename T>
+template <typename T, bool Ordered = false>
 class EntityMap
 {
 public:
   // The real interface starts here
   using value_type = T;
-  auto begin() const INLINE_EXPORT { return m_map.begin(); }
-  auto rbegin() const INLINE_EXPORT { return m_map.rbegin(); }
-  auto cbegin() const INLINE_EXPORT { return m_map.cbegin(); }
-  auto end() const INLINE_EXPORT { return m_map.end(); }
-  auto rend() const INLINE_EXPORT { return m_map.rend(); }
-  auto cend() const INLINE_EXPORT { return m_map.cend(); }
-  auto size() const INLINE_EXPORT { return m_map.size(); }
-  bool empty() const INLINE_EXPORT { return m_map.empty(); }
-  auto& unsafe_map() INLINE_EXPORT { return m_map; }
-  const auto& map() const INLINE_EXPORT { return m_map; }
-  const auto& get() const INLINE_EXPORT { return m_map.m_map; }
+  OSSIA_INLINE auto begin() const INLINE_EXPORT { return m_map.begin(); }
+  // OSSIA_INLINE auto rbegin() const INLINE_EXPORT { return m_map.rbegin(); }
+  OSSIA_INLINE auto cbegin() const INLINE_EXPORT { return m_map.cbegin(); }
+  OSSIA_INLINE auto end() const INLINE_EXPORT { return m_map.end(); }
+  // OSSIA_INLINE auto rend() const INLINE_EXPORT { return m_map.rend(); }
+  OSSIA_INLINE auto cend() const INLINE_EXPORT { return m_map.cend(); }
+  OSSIA_INLINE auto size() const INLINE_EXPORT { return m_map.size(); }
+  OSSIA_INLINE bool empty() const INLINE_EXPORT { return m_map.empty(); }
+  OSSIA_INLINE auto& unsafe_map() INLINE_EXPORT { return m_map; }
+  OSSIA_INLINE const auto& map() const INLINE_EXPORT { return m_map; }
+  OSSIA_INLINE const auto& get() const INLINE_EXPORT { return m_map.m_map; }
   T& at(const Id<T>& id) INLINE_EXPORT { return m_map.at(id); }
   T& at(const Id<T>& id) const INLINE_EXPORT { return m_map.at(id); }
   auto find(const Id<T>& id) const INLINE_EXPORT { return m_map.find(id); }
@@ -60,7 +60,7 @@ public:
   mutable Nano::Signal<void()> orderChanged;
   mutable Nano::Signal<void()> replaced;
 
-  void add(T* t) INLINE_EXPORT { EntityMapInserter<T>{}.add(*this, t); }
+  void add(T* t) INLINE_EXPORT { EntityMapInserter<T, Ordered>{}.add(*this, t); }
 
   void erase(T& elt) INLINE_EXPORT
   {
@@ -88,12 +88,24 @@ public:
   void remove(const Id<T>& id) INLINE_EXPORT
   {
     auto it = m_map.m_map.find(id);
-    auto& elt = *it->second.first;
+    if constexpr(Ordered)
+    {
+      auto& elt = *it->second.first;
 
-    removing(elt);
-    m_map.remove(it);
-    removed(elt);
-    delete &elt;
+      removing(elt);
+      m_map.remove(it);
+      removed(elt);
+      delete &elt;
+    }
+    else
+    {
+      auto& elt = *it->second;
+
+      removing(elt);
+      m_map.remove(it);
+      removed(elt);
+      delete &elt;
+    }
   }
 
   void clear() INLINE_EXPORT
@@ -104,24 +116,27 @@ public:
     }
   }
 
-  void replace(IdContainer<T>&& new_map)
+  void replace(IdContainer<T, T, Ordered>&& new_map)
   {
     for(T& m : m_map)
       delete &m;
 
     m_map.clear();
     m_map.m_map = std::move(new_map.m_map);
-    m_map.m_order = std::move(new_map.m_order);
+    if constexpr(Ordered)
+    {
+      m_map.m_order = std::move(new_map.m_order);
+    }
 
     replaced();
   }
 
 private:
-  IdContainer<T> m_map;
+  IdContainer<T, T, Ordered> m_map;
 };
 
-template <typename T>
-void EntityMapInserter<T>::add(EntityMap<T>& map, T* t)
+template <typename T, bool O>
+void EntityMapInserter<T, O>::add(EntityMap<T, O>& map, T* t)
 {
   SCORE_ASSERT(t);
   map.unsafe_map().insert(t);
