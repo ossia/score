@@ -238,6 +238,9 @@ struct Node
       switch(msg.get_message_type())
       {
         case libremidi::message_type::NOTE_ON: {
+          if(msg.bytes[1] >= 128)
+            continue;
+
           // map to scale
           if(auto index = find_closest_index(scale, msg.bytes[1]))
           {
@@ -267,6 +270,9 @@ struct Node
           break;
         }
         case libremidi::message_type::NOTE_OFF: {
+          if(msg.bytes[1] >= 128)
+            continue;
+
           auto it = self.map.find(msg.bytes[1]);
           if(it != self.map.end())
           {
