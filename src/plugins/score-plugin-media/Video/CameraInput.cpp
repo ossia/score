@@ -44,6 +44,7 @@ bool CameraInput::load(
   this->fps = fps;
   this->m_requestedCodec = (AVCodecID)codec;
   this->m_requestedPixfmt = (AVPixelFormat)pixelfmt;
+  this->m_conf.ignorePTS = realTime;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
   return (bool)ifmt;
@@ -70,7 +71,7 @@ bool CameraInput::start() noexcept
   // FIXME support pixel format choosing
 
   if(fps > 0.)
-    av_dict_set_int(&options, "framerate", fps, 0);
+    av_dict_set(&options, "framerate", std::to_string(fps).c_str(), 0);
 
   if(this->width > 0 && this->height > 0)
   {
@@ -144,8 +145,8 @@ void CameraInput::buffer_thread() noexcept
       }
     }
 
-    // Wait either half the expected framerate or 4 ms
-    int wait_ms = std::clamp((this->fps > 0.) ? (1000. / fps) / 2. : 4, 1., 100.);
+    // Wait either a fraction of the expected framerate or 4 ms
+    int wait_ms = std::clamp((this->fps > 0.) ? (1000. / fps) / 4. : 4, 1., 100.);
     std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
   }
 }
@@ -207,8 +208,8 @@ bool CameraInput::open_stream() noexcept
   {
     auto stream = m_formatContext->streams[i];
     auto codecPar = stream->codecpar;
-
-    qDebug() << codecPar->codec_id;
+    if(!codecPar)
+      continue;
 
     if((m_codec = avcodec_find_decoder(codecPar->codec_id)))
     {
@@ -223,7 +224,8 @@ bool CameraInput::open_stream() noexcept
         pixel_format = static_cast<AVPixelFormat>(codecPar->format);
         width = codecPar->width;
         height = codecPar->height;
-        fps = av_q2d(m_avstream->avg_frame_rate);
+        if(m_avstream->avg_frame_rate.num != 0 && m_avstream->avg_frame_rate.den != 0)
+          fps = av_q2d(m_avstream->avg_frame_rate);
 
         res = open_codec_context(*this, stream, [=](AVCodecContext& ctx) {
           ctx.framerate = av_guess_frame_rate(m_formatContext, (AVStream*)stream, NULL);

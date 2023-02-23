@@ -47,6 +47,12 @@ score_plugin_media::score_plugin_media()
   avcodec_register_all();
 #endif
   avdevice_register_all();
+
+  if(LIBAVFORMAT_VERSION_INT != avformat_version())
+  {
+    qFatal("Run-time FFMPEG libraries are different than the one score is built against, "
+           "this will cause crashes. Aborting.");
+  }
 #endif
 
   qRegisterMetaType<Media::Sound::ComputedWaveform>();

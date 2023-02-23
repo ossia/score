@@ -125,6 +125,7 @@ set(HDRS
     Gfx/Qt5CompatPush
     Gfx/Qt5CompatPop
 
+    Gfx/CameraSettings.hpp
     Gfx/CameraDevice.hpp
     Gfx/WindowDevice.hpp
 
@@ -285,7 +286,7 @@ if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
 elseif(APPLE)
-  target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.libav.cpp)
+  target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 
   add_subdirectory("${3RDPARTY_FOLDER}/Syphon-Framework" "${CMAKE_CURRENT_BINARY_DIR}/Syphon")
   target_link_libraries(${PROJECT_NAME} PRIVATE Syphon)

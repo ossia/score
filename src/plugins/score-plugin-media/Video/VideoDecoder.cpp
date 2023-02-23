@@ -216,7 +216,7 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
 {
   auto frame = m_frames.newFrame();
 
-  ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get());
+  ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get(), this->m_conf.ignorePTS);
   if(read.error == AVERROR_EOF)
   {
     m_finished = true;
@@ -279,7 +279,7 @@ void LibAVDecoder::load_packet_in_frame(const AVPacket& packet, AVFrame& frame)
 }
 
 ReadFrame
-readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame)
+readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame, bool ignorePts)
 {
   if(codecContext && pkt && frame)
   {
@@ -301,7 +301,7 @@ readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame
     }
     else
     {
-      if(frame->pts >= 0)
+      if(ignorePts || frame->pts >= 0)
       {
 #if LIBAVUTIL_VERSION_MAJOR >= 57
         // Process hardware acceleration

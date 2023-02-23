@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/CameraSettings.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxInputDevice.hpp>
@@ -20,19 +21,9 @@ class QComboBox;
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
+
 namespace Gfx
 {
-struct CameraSettings
-{
-  QString input;
-  QString device;
-  QSize size{};
-  double fps{};
-
-  int codec{0};        // an AVCodecID, we just use int to not leak the header...
-  int pixelformat{-1}; // an AVPixelFormat ; same
-};
-
 class CameraProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("d615690b-f2e2-447b-b70e-a800552db69c")

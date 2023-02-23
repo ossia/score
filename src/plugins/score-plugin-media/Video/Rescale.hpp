@@ -37,6 +37,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT DecoderConfiguration
   std::string decoder;
   int threads{};
   bool useAVCodec{true};
+  bool ignorePTS{false};
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
