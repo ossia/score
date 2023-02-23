@@ -263,11 +263,17 @@ void DeviceExplorerWidget::buildGUI()
   m_addressView->horizontalHeader()->setCascadingSectionResizes(true);
   m_addressView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   m_addressView->horizontalHeader()->setStretchLastSection(true);
+  m_addressView->horizontalHeader()->setResizeContentsPrecision(-1);
   m_addressView->setAlternatingRowColors(true);
   m_addressView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   m_addressView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   m_addressView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+  m_addressView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   m_addressView->verticalHeader()->setDefaultSectionSize(14);
+  m_addressView->verticalHeader()->setResizeContentsPrecision(-1);
+  connect(
+      m_addressView->horizontalHeader(), &QHeaderView::sectionResized, m_addressView,
+      &QTableView::resizeRowsToContents);
 
   m_addressView->setModel(m_addressModel);
   connect(
@@ -732,6 +738,7 @@ void DeviceExplorerWidget::updateAddressView()
   if(n.is<Device::AddressSettings>())
   {
     m_addressModel->setState(model(), Device::NodePath(n), make(n));
+    m_addressView->resizeRowsToContents();
   }
   else
   {
