@@ -3,31 +3,6 @@ name: Linux distro build
 on: push
 
 jobs:
-  buster:
-    name: Debian Buster
-    runs-on: ubuntu-latest
-    container:
-      image: debian:buster
-
-    steps:
-      - name: Install git
-        run: |
-          apt-get update -qq
-          apt-get install -qq --force-yes git
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/buster.deps.sh
-
-      - name: Build
-        run: |
-          ./ci/buster.build.sh
-
   bullseye:
     name: Debian Bullseye
     runs-on: ubuntu-latest
