@@ -100,6 +100,7 @@ static void addArtnetFixture(
       {
         std::vector<std::pair<std::string, uint8_t>> values;
         std::string comment;
+        std::string default_preset;
 
         // Parse all capabilities
         for(auto& capa : v)
@@ -110,6 +111,9 @@ static void addArtnetFixture(
           else
             name = capa.type.toStdString();
 
+          if(chan.defaultValue >= capa.range.first
+             && chan.defaultValue < capa.range.second)
+            default_preset = name;
           values.push_back({name, capa.range.first});
         }
 
@@ -146,19 +150,35 @@ static void addArtnetFixture(
           return;
 
         auto chan_node = fixt_node.create_child(chan.name.toStdString());
-        auto chan_param = std::make_unique<ossia::net::dmx_enum_parameter>(
-            *chan_node, buffer, dmx_channel, values);
+        auto chan_param = std::make_unique<ossia::net::dmx_parameter>(
+            *chan_node, buffer, dmx_channel);
 
-        auto& node = *chan_node;
-        auto& p = *chan_param;
-
-        p.set_default_value(values.front().first);
-        p.set_value(values.front().first);
+        chan_param->set_default_value(chan.defaultValue);
+        chan_param->set_value(chan.defaultValue);
+        auto& chan_param_ref = *chan_param;
 
         if(!comment.empty())
-          ossia::net::set_description(node, std::move(comment));
+          ossia::net::set_description(*chan_node, comment);
 
         chan_node->set_parameter(std::move(chan_param));
+        {
+          auto chan_enumnode = chan_node->create_child("preset");
+          auto chan_enumparam = std::make_unique<ossia::net::dmx_enum_parameter>(
+              *chan_enumnode, chan_param_ref, values);
+
+          auto& node = *chan_enumnode;
+          auto& p = *chan_enumparam;
+
+          if(default_preset.empty())
+            default_preset = values.front().first;
+          p.set_default_value(default_preset);
+          p.set_value(default_preset);
+
+          if(!comment.empty())
+            ossia::net::set_description(node, std::move(comment));
+
+          chan_enumnode->set_parameter(std::move(chan_enumparam));
+        }
       }
     } vis{fix, chan, *fixt_node, buffer, dmx_channel};
 

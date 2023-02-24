@@ -616,7 +616,7 @@ public:
       else if(ossia::string_starts_with(rf, "eachPixel"))
       {
         rf = rf.substr(strlen("eachPixel"));
-        if(!rf.size() == 3)
+        if(rf.size() != 3)
           return;
         decltype(&Pixel::x) accessors[3];
         for(int i = 0; i < 3; i++)
