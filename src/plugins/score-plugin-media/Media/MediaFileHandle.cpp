@@ -40,7 +40,7 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   {
     const auto& info = probe(path);
 
-    if(info->fileRate == rate)
+    if(info && info->fileRate == rate)
       return DecodingMethod::Mmap;
     else
       return DecodingMethod::Libav;
@@ -50,7 +50,7 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
       || path.endsWith("aif", Qt::CaseInsensitive))
   {
     const auto& info = probe(path);
-    if(info->fileRate == rate)
+    if(info && info->fileRate == rate)
       return DecodingMethod::Sndfile;
     else
       return DecodingMethod::Libav;
