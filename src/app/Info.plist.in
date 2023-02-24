@@ -43,6 +43,9 @@
 
     <key>NSMicrophoneUsageDescription</key>
     <string>ossia score needs microphone permission for audio input.</string>
+    
+    <key>NSCameraUsageDescription</key>
+    <string>ossia score needs camera permission for video input.</string>
 
     <key>CFBundleDocumentTypes</key>
     <array>
