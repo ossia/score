@@ -47,6 +47,10 @@ struct ImageListChooser : public Process::ControlInlet
       const std::vector<QString>& init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~ImageListChooser();
+  ImageListChooser(DataStream::Deserializer& vis, QObject* parent);
+  ImageListChooser(JSONObject::Deserializer& vis, QObject* parent);
+  ImageListChooser(DataStream::Deserializer&& vis, QObject* parent);
+  ImageListChooser(JSONObject::Deserializer&& vis, QObject* parent);
 
   using Process::ControlInlet::ControlInlet;
 };

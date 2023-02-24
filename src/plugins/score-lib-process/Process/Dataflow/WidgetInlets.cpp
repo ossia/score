@@ -15,11 +15,6 @@ W_OBJECT_IMPL(Process::FileChooser)
 W_OBJECT_IMPL(Process::ImpulseButton)
 namespace Process
 {
-Enum::Enum(DataStream::Deserializer& vis, QObject* parent)
-    : ControlInlet{vis, parent}
-{
-  vis.writeTo(*this);
-}
 Enum::Enum(
     const std::vector<std::string>& dom, std::vector<QString> pixmaps, std::string init,
     const QString& name, Id<Port> id, QObject* parent)
@@ -53,6 +48,11 @@ Enum::Enum(
 
 Enum::~Enum() { }
 
+Enum::Enum(DataStream::Deserializer& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
 Enum::Enum(JSONObject::Deserializer& vis, QObject* parent)
     : ControlInlet{vis, parent}
 {

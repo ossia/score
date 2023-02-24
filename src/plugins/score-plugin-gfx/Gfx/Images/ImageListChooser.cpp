@@ -6,6 +6,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
 
@@ -21,6 +22,27 @@
 #include <verdigris>
 namespace Gfx::Images
 {
+
+ImageListChooser::ImageListChooser(DataStream::Deserializer& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ImageListChooser::ImageListChooser(JSONObject::Deserializer& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ImageListChooser::ImageListChooser(DataStream::Deserializer&& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ImageListChooser::ImageListChooser(JSONObject::Deserializer&& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
 
 ImageListChooser::~ImageListChooser() { }
 ImageListChooser::ImageListChooser(
@@ -41,11 +63,13 @@ class EditableTable : public QWidget
 {
   W_OBJECT(EditableTable)
 public:
+  const score::DocumentContext& ctx;
   QListView* table{};
   QStandardItemModel* model{};
 
-  EditableTable(QWidget* parent = nullptr)
+  EditableTable(const score::DocumentContext& c, QWidget* parent = nullptr)
       : QWidget{parent}
+      , ctx{c}
   {
     setContentsMargins(0, 0, 0, 0);
     auto lay = new QVBoxLayout{this};
@@ -70,6 +94,7 @@ public:
 
   void addCheckedItem(QString f)
   {
+    f = score::relativizeFilePath(f, ctx);
     auto path = new QStandardItem{f};
     model->insertRow(model->rowCount(), QList<QStandardItem*>{path});
   }
@@ -130,7 +155,8 @@ private:
   void on_removeItem()
   {
     auto indices = table->selectionModel()->selectedIndexes();
-    boost::container::flat_set<int, std::greater<int>, ossia::small_pod_vector<int, 16>> rows;
+    boost::container::flat_set<int, std::greater<int>, ossia::small_pod_vector<int, 16>>
+        rows;
     for(auto& index : indices)
       rows.insert(index.row());
     for(int index : rows)
@@ -144,7 +170,7 @@ QWidget* WidgetFactory::ImageListChooserItems::make_widget(
     const Gfx::Images::ImageListChooser& inlet, const score::DocumentContext& ctx,
     QWidget* parent, QObject* context)
 {
-  auto widg = new EditableTable;
+  auto widg = new EditableTable{ctx};
   auto vec = ossia::convert<std::vector<ossia::value>>(inlet.value());
   for(auto& val : vec)
   {

@@ -330,24 +330,60 @@ void JSONWriter::write(Gfx::Images::Model& proc)
   proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
 }
 
+static std::vector<ossia::value>
+imagePathsToRelative(const Gfx::Images::ImageListChooser& p)
+{
+  // Hack: we temporarily change the value to relative paths
+  auto& ctx = score::IDocument::documentContext(p);
+  auto values = ossia::convert<std::vector<ossia::value>>(p.value());
+  for(auto& v : values)
+  {
+    v = score::relativizeFilePath(
+            QString::fromStdString(ossia::convert<std::string>(v)), ctx)
+            .toStdString();
+  }
+  return values;
+}
+static std::vector<ossia::value> imagePathsToAbsolute(
+    const Gfx::Images::ImageListChooser& p, std::vector<ossia::value> values)
+{
+  // Hack: we temporarily change the value to relative paths
+  auto& ctx = score::IDocument::documentContext(p);
+  for(auto& v : values)
+  {
+    v = score::locateFilePath(
+            QString::fromStdString(ossia::convert<std::string>(v)), ctx)
+            .toStdString();
+  }
+  return values;
+}
 template <>
 void DataStreamReader::read<Gfx::Images::ImageListChooser>(
     const Gfx::Images::ImageListChooser& p)
 {
   read((const Process::ControlInlet&)p);
+  readFrom(imagePathsToRelative(p));
 }
 template <>
 void DataStreamWriter::write<Gfx::Images::ImageListChooser>(
     Gfx::Images::ImageListChooser& p)
 {
+  std::vector<ossia::value> values;
+  writeTo(values);
+  p.m_value = imagePathsToAbsolute(p, values);
 }
+
 template <>
 void JSONReader::read<Gfx::Images::ImageListChooser>(
     const Gfx::Images::ImageListChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  obj[strings.Value] = imagePathsToRelative(p);
+  obj[strings.Domain] = p.m_domain;
 }
+
 template <>
 void JSONWriter::write<Gfx::Images::ImageListChooser>(Gfx::Images::ImageListChooser& p)
 {
+  p.m_value
+      = imagePathsToAbsolute(p, ossia::convert<std::vector<ossia::value>>(p.m_value));
 }
