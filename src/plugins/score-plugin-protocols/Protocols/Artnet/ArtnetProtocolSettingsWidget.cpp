@@ -82,6 +82,18 @@ struct FixtureMode
   }
 };
 
+struct WheelSlot
+{
+  QString type;
+  QString name;
+};
+
+struct Wheel
+{
+  QString name;
+  std::vector<WheelSlot> wheelslots;
+};
+
 static constexpr auto leq_rexp_str = ctll::fixed_string{R"_(<=([0-9]+))_"};
 static constexpr auto geq_rexp_str = ctll::fixed_string{R"_(>=([0-9]+))_"};
 static constexpr auto lst_rexp_str = ctll::fixed_string{R"_(<([0-9]+))_"};
@@ -108,7 +120,54 @@ public:
 
   PixelMatrix matrix{};
 
+  std::vector<Wheel> wheels{};
   std::vector<FixtureMode> modes{};
+
+  static std::vector<Wheel> loadWheels(const rapidjson::Value& value) noexcept
+  {
+    std::vector<Wheel> wheels{};
+    if(!value.IsObject())
+      return wheels;
+
+    for(auto w_it = value.MemberBegin(); w_it != value.MemberEnd(); ++w_it)
+    {
+      if(!w_it->value.IsObject())
+        continue;
+
+      Wheel wh;
+      wh.name = w_it->name.GetString();
+
+      const auto& w = w_it->value.GetObject();
+      if(auto s_it = w.FindMember("slots"); s_it != w.MemberEnd())
+      {
+        if(!s_it->value.IsArray())
+          continue;
+
+        for(const auto& s : s_it->value.GetArray())
+        {
+          if(!s.IsObject())
+            continue;
+
+          WheelSlot ws;
+          if(auto nm_it = s.FindMember("name"); nm_it != s.MemberEnd())
+          {
+            if(nm_it->value.IsString())
+              ws.name = nm_it->value.GetString();
+          }
+          if(auto t_it = s.FindMember("type"); t_it != s.MemberEnd())
+          {
+            if(t_it->value.IsString())
+              ws.type = t_it->value.GetString();
+          }
+          wh.wheelslots.push_back(std::move(ws));
+        }
+      }
+
+      wheels.push_back(std::move(wh));
+    }
+
+    return wheels;
+  }
 
   // Function returns false if the item must be filtered
   static std::function<bool(int)> constraint_pos(std::string_view cst) noexcept
@@ -346,6 +405,31 @@ public:
     }
   }
 
+  QString getWheelName(QString channelName, int wheelSlot) const noexcept
+  {
+    // It's 1-indexed...
+    wheelSlot--;
+    if(wheelSlot < 0)
+      return {};
+    for(auto& wh : this->wheels)
+    {
+      if(wh.name == channelName)
+      {
+        if(wheelSlot < std::ssize(wh.wheelslots))
+        {
+          const auto& w = wh.wheelslots[wheelSlot];
+          if(!w.name.isEmpty())
+            return w.name;
+          else if(!w.type.isEmpty())
+            return w.type;
+        }
+        break;
+      }
+    }
+
+    return {};
+  }
+
   ChannelMap loadChannels(const rapidjson::Value& val)
   {
     ChannelMap channels;
@@ -419,13 +503,45 @@ public:
           std::vector<Artnet::RangeCapability> caps;
           for(const auto& capa : capabilities_it->value.GetArray())
           {
+            if(!capa.HasMember("type"))
+              continue;
+
             QString type = capa["type"].GetString();
             if(type != "NoFunction")
             {
               Artnet::RangeCapability cap;
               if(auto effectname_it = capa.FindMember("effectName");
                  effectname_it != capa.MemberEnd())
+              {
                 cap.effectName = effectname_it->value.GetString();
+              }
+              else if(type.startsWith("Wheel"))
+              {
+                QString whName = chan.name;
+                if(auto wh_it = capa.FindMember("wheel"); wh_it != capa.MemberEnd())
+                {
+                  if(wh_it->value.IsString())
+                    whName = wh_it->value.GetString();
+                }
+
+                if(auto idx_it = capa.FindMember("slotNumber");
+                   idx_it != capa.MemberEnd())
+                {
+                  if(idx_it->value.IsInt())
+                  {
+                    cap.effectName = getWheelName(whName, idx_it->value.GetInt());
+                  }
+                  else if(idx_it->value.IsDouble())
+                  {
+                    double v = idx_it->value.GetDouble();
+                    double lo = std::floor(v);
+                    double hi = std::ceil(v);
+                    cap.effectName = QString("Split %1 %2")
+                                         .arg(getWheelName(whName, lo))
+                                         .arg(getWheelName(whName, hi));
+                  }
+                }
+              }
 
               if(auto comment_it = capa.FindMember("comment");
                  comment_it != capa.MemberEnd())
@@ -554,6 +670,12 @@ public:
   void loadModes(const rapidjson::Document& doc)
   {
     modes.clear();
+    wheels.clear();
+
+    if(auto it = doc.FindMember("wheels"); it != doc.MemberEnd())
+      if(it->value.IsObject())
+        wheels = loadWheels(it->value);
+
     ChannelMap channels;
     if(auto it = doc.FindMember("availableChannels"); it != doc.MemberEnd())
       if(it->value.IsObject())
