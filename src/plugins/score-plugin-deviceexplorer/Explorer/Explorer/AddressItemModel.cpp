@@ -688,6 +688,47 @@ private:
   QDoubleSpinBox m_edit;
 };
 
+class ComboValueWidget final : public AddressValueWidget
+{
+public:
+  ComboValueWidget(std::vector<ossia::value> values, QWidget* parent)
+      : AddressValueWidget{parent}
+      , m_values{std::move(values)}
+  {
+    m_edit.setContentsMargins(0, 0, 0, 0);
+    this->setFocusProxy(&m_edit);
+    m_lay.addWidget(&m_edit);
+
+    for(auto& v : m_values)
+    {
+      m_edit.addItem(State::convert::toPrettyString(v));
+    }
+  }
+
+  ossia::value get() const override
+  {
+    int idx = m_edit.currentIndex();
+    if(idx < 0)
+      return {};
+    if(idx >= std::ssize(m_values))
+      return {};
+    return m_values[idx];
+  }
+
+  void set(ossia::value t) override
+  {
+    int idx = ossia::index_in_container(m_values, t);
+    if(idx == -1)
+      return;
+    m_edit.setCurrentIndex(idx);
+  }
+
+private:
+  score::MarginLess<QHBoxLayout> m_lay{this};
+  QComboBox m_edit;
+  std::vector<ossia::value> m_values;
+};
+
 class ListValueWidget final : public AddressValueWidget
 {
 public:
@@ -759,7 +800,13 @@ AddressValueWidget* make_value_widget(Device::FullAddressSettings addr, QWidget*
 
   auto& dom = addr.domain.get();
   auto min = dom.get_min(), max = dom.get_max();
-  if(min.valid() && max.valid() && addr.value.valid())
+  auto vals = ossia::get_values(dom);
+
+  if(!vals.empty())
+  {
+    return new ComboValueWidget{std::move(vals), parent};
+  }
+  else if(min.valid() && max.valid() && addr.value.valid())
   {
     switch(addr.value.get_type())
     {

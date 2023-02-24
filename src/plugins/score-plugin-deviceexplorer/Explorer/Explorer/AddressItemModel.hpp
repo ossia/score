@@ -77,7 +77,7 @@ private:
 class AddressItemDelegate final : public QStyledItemDelegate
 {
 public:
-  AddressItemDelegate(QObject* parent = 0);
+  explicit AddressItemDelegate(QObject* parent = 0);
   ~AddressItemDelegate();
 
 private:
