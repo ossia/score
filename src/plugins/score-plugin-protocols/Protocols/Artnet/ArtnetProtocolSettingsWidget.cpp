@@ -718,11 +718,31 @@ public:
             {
               if(channel.IsString())
               {
-                auto matched_channel_it = channels.find(channel.GetString());
-                if(matched_channel_it != channels.end())
+                if(auto matched_channel_it = channels.find(channel.GetString());
+                   matched_channel_it != channels.end())
                 {
                   m.channels.push_back(matched_channel_it->second);
                 }
+                else
+                {
+                  // Channel is hardcoded with an existing template name
+                  // FIXME maybe this happens with pixels too?
+                  QString ch = channel.GetString();
+                  for(const auto& tc : templateChannels)
+                  {
+                    for(const auto& g : this->matrix.groups)
+                    {
+                      QString repl = QString(tc.first).replace("$pixelKey", g.name);
+                      if(repl == ch)
+                      {
+                        m.channels.push_back(tc.second);
+                        m.channels.back().name = ch;
+                        goto could_match_channel;
+                      }
+                    }
+                  }
+                }
+              could_match_channel:
                 m.allChannels.push_back(
                     QString::fromUtf8(channel.GetString(), channel.GetStringLength()));
               }
