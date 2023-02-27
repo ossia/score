@@ -2,6 +2,9 @@
 
 #include <core/document/Document.hpp>
 
+#include <QDir>
+#include <QSettings>
+
 #include <iostream>
 namespace score
 {
@@ -56,7 +59,17 @@ locateFilePath(const QString& filename, const score::DocumentContext& ctx) noexc
   const QFileInfo info{filename};
   QString path = filename;
 
-  if(!info.isAbsolute())
+  if(filename.startsWith("<PROJECT>:"))
+  {
+    const QFileInfo docroot{ctx.document.metadata().fileName()};
+    path.replace("<PROJECT>:", docroot.canonicalPath() + "/");
+  }
+  else if(filename.startsWith("<LIBRARY>:"))
+  {
+    QSettings set;
+    path.replace("<LIBRARY>:", set.value("Library/RootPath").toString() + "/");
+  }
+  else if(!info.isAbsolute())
   {
     const QFileInfo docroot{ctx.document.metadata().fileName()};
     path = docroot.canonicalPath();
@@ -78,11 +91,30 @@ relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) n
   {
     const QFileInfo docroot{ctx.document.metadata().fileName()};
     const auto& docpath = docroot.canonicalPath();
+    // 1. Check for whether the file is in the project's folder
     if(path.startsWith(docpath))
     {
       path.remove(0, docpath.length());
-      if(path.startsWith('/'))
+      while(path.startsWith('/'))
         path.remove(0, 1);
+
+      path.prepend("<PROJECT>:");
+    }
+    else
+    {
+      // 2. Check whether it's in the user library
+      QSettings set;
+      if(auto library = set.value("Library/RootPath").toString(); QDir{library}.exists())
+      {
+        if(path.startsWith(library))
+        {
+          path.remove(0, library.length());
+          if(path.startsWith('/'))
+            path.remove(0, 1);
+
+          path.prepend("<LIBRARY>:");
+        }
+      }
     }
   }
 

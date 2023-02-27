@@ -11,6 +11,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/DeleteAll.hpp>
+#include <score/tools/FilePath.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/String.hpp>
 
@@ -195,6 +196,7 @@ static bool faustIsMidi(llvm_dsp& dsp)
 
 void FaustEffectModel::reload()
 {
+  auto& ctx = score::IDocument::documentContext(*this);
   score::delete_later<Process::Inlets> inlets_to_clear;
   score::delete_later<Process::Outlets> outlets_to_clear;
 
@@ -207,7 +209,7 @@ void FaustEffectModel::reload()
   if(QFile f{fx_text}; f.open(QIODevice::ReadOnly))
   {
     QFileInfo fi{f};
-    m_path = fi.absolutePath();
+    m_path = score::relativizeFilePath(fi.absolutePath(), ctx);
     fx_text = f.readAll();
     m_text = fx_text;
     m_declareName = fi.completeBaseName();
@@ -231,7 +233,7 @@ void FaustEffectModel::reload()
 #endif
       ;
 
-  std::string fx_path = m_path.toStdString();
+  std::string fx_path = score::locateFilePath(m_path, ctx).toStdString();
   auto str = fx_text.toStdString();
 
   std::vector<const char*> argv;
