@@ -43,11 +43,13 @@ template <typename Info>
 class ProcessModel;
 }
 template <typename Info>
+  requires avnd::has_name<Info>
 struct Metadata<PrettyName_k, oscr::ProcessModel<Info>>
 {
   static constexpr const char* get() noexcept { return avnd::get_name<Info>().data(); }
 };
 template <typename Info>
+  requires avnd::has_category<Info>
 struct Metadata<Category_k, oscr::ProcessModel<Info>>
 {
   static constexpr const char* get() noexcept
@@ -55,6 +57,13 @@ struct Metadata<Category_k, oscr::ProcessModel<Info>>
     return avnd::get_category<Info>().data();
   }
 };
+template <typename Info>
+  requires(!avnd::has_category<Info>)
+struct Metadata<Category_k, oscr::ProcessModel<Info>>
+{
+  static constexpr const char* get() noexcept { return ""; }
+};
+
 template <typename Info>
 struct Metadata<Tags_k, oscr::ProcessModel<Info>>
 {
@@ -104,18 +113,24 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
   {
 // literate programming goes brr
 #define if_exists(Expr, Else)        \
-  [] {                               \
+  []() noexcept {                    \
     if constexpr(requires { Expr; }) \
       return Expr;                   \
     Else;                            \
       }()
+
+#define if_attribute(Attr)                             \
+  []() noexcept -> QString {                           \
+    if constexpr(avnd::has_##Attr<Info>)               \
+      return fromStringView(avnd::get_##Attr<Info>()); \
+    else                                               \
+      return QString{};                                \
+  }()
     static Process::Descriptor desc
     {
       Metadata<PrettyName_k, oscr::ProcessModel<Info>>::get(),
           if_exists(Info::kind(), else return Process::ProcessCategory::Other;),
-          Metadata<Category_k, oscr::ProcessModel<Info>>::get(),
-          fromStringView(avnd::get_description<Info>()),
-          fromStringView(avnd::get_author<Info>()),
+          if_attribute(category), if_attribute(description), if_attribute(author),
           Metadata<Tags_k, oscr::ProcessModel<Info>>::get(), inletDescription(),
           outletDescription()
     };
@@ -275,7 +290,7 @@ struct InletInitFunc
     }
   }
   template <typename T>
-  requires avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::raw_file_port<T>
+    requires avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::raw_file_port<T>
   void operator()(const T& in, auto idx)
   {
     constexpr auto name = avnd::get_name<T>();
