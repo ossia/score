@@ -33,7 +33,7 @@ struct Input
       ossia::exec_state_facade st)
   {
     auto& msbs = msb.get_data();
-    auto& lsbs = msb.get_data();
+    auto& lsbs = lsb.get_data();
     if(msbs.empty() && lsbs.empty())
       return;
 
