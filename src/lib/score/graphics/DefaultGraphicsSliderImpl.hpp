@@ -77,7 +77,7 @@ struct DefaultGraphicsSliderImpl
 
       const auto srect = self.sliderRect();
       const auto posX = event->pos().x() - srect.x();
-      double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
+      double curPos = self.from01(ossia::clamp(posX, 0., srect.width()) / srect.width());
       if(curPos != self.m_value)
       {
         self.m_value = curPos;
@@ -96,7 +96,7 @@ struct DefaultGraphicsSliderImpl
     {
       const auto srect = self.sliderRect();
       const auto posX = event->pos().x() - srect.x();
-      double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
+      double curPos = self.from01(ossia::clamp(posX, 0., srect.width()) / srect.width());
       if(curPos != self.m_value)
       {
         self.m_value = curPos;
@@ -114,7 +114,7 @@ struct DefaultGraphicsSliderImpl
     {
       const auto srect = self.sliderRect();
       const auto posX = event->pos().x() - srect.x();
-      double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
+      double curPos = self.from01(ossia::clamp(posX, 0., srect.width()) / srect.width());
       if(curPos != self.m_value)
       {
         self.m_value = curPos;

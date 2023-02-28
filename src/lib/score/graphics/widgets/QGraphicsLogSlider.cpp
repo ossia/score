@@ -48,6 +48,11 @@ void QGraphicsLogSlider::resetExecution()
   update();
 }
 
+double QGraphicsLogSlider::from01(double v) const noexcept
+{
+  return v;
+}
+
 double QGraphicsLogSlider::value() const
 {
   return m_value;

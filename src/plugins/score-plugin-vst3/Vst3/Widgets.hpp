@@ -52,6 +52,7 @@ public:
       Steinberg::Vst::IEditController* fx, Steinberg::Vst::ParamID num,
       QGraphicsItem* parent);
 
+  static double from01(double v) { return v; }
   static double map(double v) { return v; }
   static double unmap(double v) { return v; }
 

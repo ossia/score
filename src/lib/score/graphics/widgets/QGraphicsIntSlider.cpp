@@ -22,15 +22,30 @@ QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
   setCursor(skin.CursorPointingHand);
 }
 
+double QGraphicsIntSlider::from01(double v) const noexcept
+{
+  return v * (max - min) + min;
+}
+
+double QGraphicsIntSlider::map(double v) const noexcept
+{
+  return v;
+}
+
+double QGraphicsIntSlider::unmap(double v) const noexcept
+{
+  return v;
+}
+
 void QGraphicsIntSlider::setValue(int v)
 {
-  m_value = ossia::clamp(v, m_min, m_max);
+  m_value = ossia::clamp(v, min, max);
   update();
 }
 
 void QGraphicsIntSlider::setExecutionValue(int v)
 {
-  m_execValue = ossia::clamp(v, m_min, m_max);
+  m_execValue = ossia::clamp(v, min, max);
   m_hasExec = true;
   update();
 }
@@ -43,8 +58,8 @@ void QGraphicsIntSlider::resetExecution()
 
 void QGraphicsIntSlider::setRange(int min, int max)
 {
-  m_min = min;
-  m_max = max;
+  this->min = min;
+  this->max = max;
   update();
 }
 
@@ -55,56 +70,17 @@ int QGraphicsIntSlider::value() const
 
 void QGraphicsIntSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(isInHandle(event->pos()))
-  {
-    m_grab = true;
-  }
-
-  const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  int res = std::floor(m_min + curPos * (m_max - m_min));
-  if(res != m_value)
-  {
-    m_value = res;
-    sliderMoved();
-    update();
-  }
-
-  event->accept();
+  DefaultGraphicsSliderImpl::mousePressEvent(*this, event);
 }
 
 void QGraphicsIntSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
-  {
-    const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    int res = std::floor(m_min + curPos * (m_max - m_min));
-    if(res != m_value)
-    {
-      m_value = res;
-      sliderMoved();
-      update();
-    }
-  }
-  event->accept();
+  DefaultGraphicsSliderImpl::mouseMoveEvent(*this, event);
 }
 
 void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
-  {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    int res = std::floor(m_min + curPos * (m_max - m_min));
-    if(res != m_value)
-    {
-      m_value = res;
-      update();
-    }
-    sliderReleased();
-    m_grab = false;
-  }
-  event->accept();
+  DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
 void QGraphicsIntSlider::paint(
@@ -116,15 +92,15 @@ void QGraphicsIntSlider::paint(
 
 double QGraphicsIntSlider::getHandleX() const
 {
-  if(m_max != m_min)
-    return sliderRect().width() * ((double(m_value) - m_min) / (m_max - m_min));
+  if(max != min)
+    return sliderRect().width() * ((double(m_value) - min) / (max - min));
   return 0;
 }
 
 double QGraphicsIntSlider::getExecHandleX() const
 {
-  if(m_max != m_min)
-    return sliderRect().width() * ((double(m_execValue) - m_min) / (m_max - m_min));
+  if(max != min)
+    return sliderRect().width() * ((double(m_execValue) - min) / (max - min));
   return 0;
 }
 

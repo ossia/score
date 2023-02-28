@@ -53,6 +53,7 @@ public:
   friend struct score::DefaultGraphicsSliderImpl;
   GraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent);
 
+  static double from01(double v) { return v; }
   static double map(double v) { return v; }
   static double unmap(double v) { return v; }
 

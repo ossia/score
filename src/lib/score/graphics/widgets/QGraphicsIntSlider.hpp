@@ -19,12 +19,18 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
   Q_INTERFACES(QGraphicsItem)
   friend struct DefaultGraphicsSliderImpl;
   friend struct QGraphicsSliderBase<QGraphicsIntSlider>;
-  int m_value{}, m_execValue{}, m_min{}, m_max{};
+  int m_value{}, m_execValue{};
   bool m_grab{};
   bool m_hasExec{};
 
 public:
-  QGraphicsIntSlider(QGraphicsItem* parent);
+  int min{}, max{};
+
+  explicit QGraphicsIntSlider(QGraphicsItem* parent);
+
+  double from01(double v) const noexcept;
+  double unmap(double v) const noexcept;
+  double map(double v) const noexcept;
 
   void setValue(int v);
   void setExecutionValue(int v);

@@ -39,6 +39,7 @@ public:
   void setExecutionValue(double v);
   void resetExecution();
 
+  double from01(double v) const noexcept;
   double map(double v) const noexcept;
   double unmap(double v) const noexcept;
 

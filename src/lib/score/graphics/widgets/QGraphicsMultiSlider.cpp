@@ -62,6 +62,8 @@ struct SliderWrapper
 
   bool& m_hasExec{parent.m_hasExec};
 
+  // FIXME this needs to call the underlying widgets
+  double from01(double v) const noexcept { return v; }
   double unmap(double v) const noexcept { return (v - min) / (max - min); }
   double map(double v) const noexcept { return (v * (max - min)) + min; }
 
