@@ -78,6 +78,7 @@ AVFramePointer FrameQueue::newFrame() noexcept
   {
     auto f = m_decodeThreadFrameBuffer.back();
     m_decodeThreadFrameBuffer.pop_back();
+    av_frame_unref(f);
     return AVFramePointer{f};
   }
 
@@ -86,6 +87,7 @@ AVFramePointer FrameQueue::newFrame() noexcept
     AVFrame* f{};
     if(released.try_dequeue(f))
     {
+      av_frame_unref(f);
       return AVFramePointer{f};
     }
   }
