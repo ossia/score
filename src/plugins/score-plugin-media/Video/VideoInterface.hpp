@@ -12,12 +12,16 @@ struct AVPacket;
 
 namespace Video
 {
-struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata
+struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
 {
   int width{};
   int height{};
-  double fps{};
   AVPixelFormat pixel_format = AVPixelFormat(-1);
+};
+
+struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat
+{
+  double fps{};
   bool realTime{};
   double flicks_per_dts{};
   double dts_per_flicks{};
@@ -42,7 +46,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT FreeAVFrame
 
 using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
 
-ReadFrame
-readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame, bool ignorePts);
+ReadFrame readVideoFrame(
+    AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame, bool ignorePts);
 }
 #endif

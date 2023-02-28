@@ -52,10 +52,10 @@ struct NV12Decoder : GPUVideoDecoder
     fragColor.b = dot(yuv, B_cf);
   })_";
 
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
   bool nv21{};
 
-  NV12Decoder(Video::VideoMetadata& d, bool inverted)
+  NV12Decoder(Video::ImageFormat& d, bool inverted)
       : decoder{d}
       , nv21{inverted}
   {

@@ -170,14 +170,14 @@ void main ()
   static inline const QString ycocg_filter
       = QStringLiteral("processed = processYCoCg(processed);\n");
 
-  HAPDefaultDecoder(QRhiTexture::Format fmt, Video::VideoMetadata& d, QString f = "")
+  HAPDefaultDecoder(QRhiTexture::Format fmt, Video::ImageFormat& d, QString f = "")
       : format{fmt}
       , decoder{d}
       , filter{f}
   {
   }
   QRhiTexture::Format format;
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
   QString filter;
 
   std::pair<QShader, QShader> init(RenderList& r) override
@@ -248,12 +248,12 @@ void main ()
   fragColor = processTexture(processYCoCg(ycocg, alpha));
 })_");
 
-  HAPMDecoder(Video::VideoMetadata& d, QString f = "")
+  HAPMDecoder(Video::ImageFormat& d, QString f = "")
       : decoder{d}
       , filter{f}
   {
   }
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
   QString filter;
   std::pair<QShader, QShader> init(RenderList& r) override
   {

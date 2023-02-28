@@ -216,7 +216,8 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
 {
   auto frame = m_frames.newFrame();
 
-  ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get(), this->m_conf.ignorePTS);
+  ReadFrame read
+      = readVideoFrame(m_codecContext, pkt, frame.get(), this->m_conf.ignorePTS);
   if(read.error == AVERROR_EOF)
   {
     m_finished = true;
@@ -278,8 +279,8 @@ void LibAVDecoder::load_packet_in_frame(const AVPacket& packet, AVFrame& frame)
   frame.pkt_duration = packet.duration;
 }
 
-ReadFrame
-readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame, bool ignorePts)
+ReadFrame readVideoFrame(
+    AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame, bool ignorePts)
 {
   if(codecContext && pkt && frame)
   {

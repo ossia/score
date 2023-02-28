@@ -50,12 +50,12 @@ struct YUV420Decoder : GPUVideoDecoder
     fragColor.b = dot(yuv, B_cf);
   })_";
 
-  YUV420Decoder(Video::VideoMetadata& d)
+  YUV420Decoder(Video::ImageFormat& d)
       : decoder{d}
   {
   }
 
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
 
   std::pair<QShader, QShader> init(RenderList& r) override
   {

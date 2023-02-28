@@ -36,12 +36,12 @@ QRhiTextureSubresourceUploadDescription GPUVideoDecoder::createTextureUpload(
   }
   else
   {
-    QByteArray data{w * h, Qt::Uninitialized};
+    QByteArray data(w * h * bytesPerPixel, Qt::Uninitialized);
     for(int r = 0; r < h; r++)
     {
-      const char* input = reinterpret_cast<const char*>(pixels + stride * r);
+      const char* row = reinterpret_cast<const char*>(pixels + stride * r);
       char* output = data.data() + rowBytes * r;
-      std::copy(input, input + rowBytes, output);
+      std::copy(row, row + rowBytes, output);
     }
     subdesc.setData(std::move(data));
   }

@@ -48,12 +48,12 @@ void main()
 }
 )_";
 
-  YUV422Decoder(Video::VideoMetadata& d)
+  YUV422Decoder(Video::ImageFormat& d)
       : decoder{d}
   {
   }
 
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;

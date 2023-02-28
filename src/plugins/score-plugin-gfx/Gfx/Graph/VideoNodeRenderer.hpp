@@ -53,9 +53,7 @@ private:
 
   std::unique_ptr<GPUVideoDecoder> m_gpu;
 
-  AVPixelFormat m_currentFormat = AVPixelFormat(-1);
-  int m_currentWidth = 0;
-  int m_currentHeight = 0;
+  Video::ImageFormat m_frameFormat{};
   score::gfx::ScaleMode m_currentScaleMode{};
 
   std::shared_ptr<RefcountedFrame> m_currentFrame{};

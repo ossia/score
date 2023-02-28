@@ -34,7 +34,7 @@ struct PackedDecoder : GPUVideoDecoder
     })_";
 
   PackedDecoder(
-      QRhiTexture::Format fmt, int bytes_per_pixel, Video::VideoMetadata& d,
+      QRhiTexture::Format fmt, int bytes_per_pixel, Video::ImageFormat& d,
       QString f = "")
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
@@ -44,7 +44,7 @@ struct PackedDecoder : GPUVideoDecoder
   }
   QRhiTexture::Format format;
   int bytes_per_pixel{}; // bpp/8 !
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
   QString filter;
 
   std::pair<QShader, QShader> init(RenderList& r) override
@@ -120,7 +120,7 @@ struct PlanarDecoder : GPUVideoDecoder
 
   PlanarDecoder(
       QRhiTexture::Format fmt, int bytes_per_pixel, QString planes,
-      Video::VideoMetadata& d, QString f = "")
+      Video::ImageFormat& d, QString f = "")
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
       , planes{planes}
@@ -131,7 +131,7 @@ struct PlanarDecoder : GPUVideoDecoder
   QRhiTexture::Format format;
   int bytes_per_pixel{}; // bpp/8 !
   QString planes{};
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
   QString filter;
 
   std::pair<QShader, QShader> init(RenderList& r) override
@@ -248,7 +248,7 @@ void main()
 )_";
 
   PackedRectDecoder(
-      QRhiTexture::Format fmt, int bytes_per_pixel, Video::VideoMetadata& d,
+      QRhiTexture::Format fmt, int bytes_per_pixel, Video::ImageFormat& d,
       QString f = "")
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
@@ -258,7 +258,7 @@ void main()
   }
   QRhiTexture::Format format;
   int bytes_per_pixel{}; // bpp/8 !
-  Video::VideoMetadata& decoder;
+  Video::ImageFormat& decoder;
   QString filter;
 
   std::pair<QShader, QShader> init(RenderList& r) override
