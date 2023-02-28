@@ -34,6 +34,12 @@ void onCreateCable(
 
 namespace
 {
+static std::optional<Process::PortType> portDragType{};
+enum PortDragDirection
+{
+  DragSourceIsInlet,
+  DragSourceIsOutlet
+} portDragDirection{};
 static QLineF portDragLineCoords{};
 static PortItem* magneticDropPort{};
 struct Ellipses
@@ -397,43 +403,53 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
     magneticDropPort->update();
   }
 
-  auto items = scene.items({pt.x() - 8, pt.y() - 8, 16, 16});
-  PortItem** closePorts = (PortItem**)alloca(items.size() * sizeof(PortItem*));
-  int count = 0;
-  for(auto item : items)
+  if(portDragType)
   {
-    if(item->type() == QGraphicsItem::UserType + 700)
+    auto items = scene.items({pt.x() - 8, pt.y() - 8, 16, 16});
+    PortItem** closePorts = (PortItem**)alloca(items.size() * sizeof(PortItem*));
+    int count = 0;
+    for(auto item : items)
     {
-      closePorts[count++] = safe_cast<PortItem*>(item);
-    }
-  }
-
-  if(count > 0)
-  {
-    QPointF cur_center{};
-    double cur_length = 1000.;
-    PortItem* cur_port{};
-    for(int i = 0; i < count; i++)
-    {
-      auto port = closePorts[i];
-      auto port_center
-          = port->mapToScene(((QGraphicsItem*)port)->boundingRect().center());
-      if(double length = QLineF{port_center, pt}.length(); length < cur_length)
+      if(item->type() == QGraphicsItem::UserType + 700)
       {
-        cur_length = length;
-        cur_port = port;
-        cur_center = port_center;
+        auto port = safe_cast<PortItem*>(item);
+        if(portDragDirection == DragSourceIsInlet && !port->m_inlet)
+        {
+          if(portDragType == port->port().type())
+          {
+            closePorts[count++] = port;
+          }
+        }
       }
     }
 
-    portDragLineCoords.setP2(cur_center);
-    magneticDropPort = cur_port;
-    if(magneticDropPort)
+    if(count > 0)
     {
-      magneticDropPort->m_diam = 12;
-      magneticDropPort->update();
+      QPointF cur_center{};
+      double cur_length = 1000.;
+      PortItem* cur_port{};
+      for(int i = 0; i < count; i++)
+      {
+        auto port = closePorts[i];
+        auto port_center
+            = port->mapToScene(((QGraphicsItem*)port)->boundingRect().center());
+        if(double length = QLineF{port_center, pt}.length(); length < cur_length)
+        {
+          cur_length = length;
+          cur_port = port;
+          cur_center = port_center;
+        }
+      }
+
+      portDragLineCoords.setP2(cur_center);
+      magneticDropPort = cur_port;
+      if(magneticDropPort)
+      {
+        magneticDropPort->m_diam = 12;
+        magneticDropPort->update();
+      }
+      return;
     }
-    return;
   }
   magneticDropPort = nullptr;
   portDragLineCoords.setP2(pt);
@@ -499,6 +515,7 @@ public:
         magneticDropPort->dropEvent(ev);
         magneticDropPort->m_diam = 8;
         magneticDropPort->update();
+        portDragType = std::nullopt;
         return true;
       }
     }
@@ -515,6 +532,8 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     QPointer<QDrag> d{new QDrag{this}};
     QMimeData* m = new QMimeData;
+    portDragType = this->m_port.type();
+    portDragDirection = this->m_inlet ? DragSourceIsInlet : DragSourceIsOutlet;
     portDragLineCoords
         = QLineF{scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
     portDragLine = new DragLine{portDragLineCoords};
@@ -601,9 +620,15 @@ void PortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 
 void PortItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  prepareGeometryChange();
-  m_diam = 12.;
-  update();
+  if(portDragType && *portDragType == this->port().type())
+  {
+    if(portDragDirection == DragSourceIsInlet && !this->m_inlet)
+    {
+      prepareGeometryChange();
+      m_diam = 12.;
+      update();
+    }
+  }
   event->accept();
 }
 

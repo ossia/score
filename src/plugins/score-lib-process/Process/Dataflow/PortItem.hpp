@@ -92,7 +92,6 @@ protected:
 public:
   double m_diam = 8.;
 
-protected:
   bool m_visible{true};
   bool m_inlet{true};
   bool m_highlight{true};
