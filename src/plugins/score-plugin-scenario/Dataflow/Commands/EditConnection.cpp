@@ -15,7 +15,17 @@ CreateCable::CreateCable(
 
   if(source.type() == Process::PortType::Audio)
   {
-    m_previousPropagate = static_cast<const Process::AudioOutlet&>(source).propagate();
+    if(auto sinkProcess = Process::parentProcess(&sink))
+    {
+      for(auto& outlets : sinkProcess->outlets())
+      {
+        if(outlets->type() == Process::PortType::Audio)
+        {
+          m_previousPropagate
+              = static_cast<const Process::AudioOutlet&>(source).propagate();
+        }
+      }
+    }
   }
 }
 
@@ -27,7 +37,7 @@ void CreateCable::undo(const score::DocumentContext& ctx) const
   m_dat.sink.find(ctx).removeCable(ext);
   m_model.find(ctx).cables.remove(m_cable);
 
-  if(m_previousPropagate)
+  if(m_previousPropagate && *m_previousPropagate)
   {
     static_cast<Process::AudioOutlet&>(source).setPropagate(true);
   }

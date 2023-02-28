@@ -29,7 +29,7 @@ private:
   Path<Scenario::ScenarioDocumentModel> m_model;
   Id<Process::Cable> m_cable;
   Process::CableData m_dat;
-  bool m_previousPropagate{};
+  std::optional<bool> m_previousPropagate{};
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT UpdateCable final : public score::Command
