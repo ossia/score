@@ -1,12 +1,14 @@
 #pragma once
 #include <Process/Dataflow/PortListWidget.hpp>
 
+#include <Dataflow/ControlInletItem.hpp>
+#include <Dataflow/ControlOutletItem.hpp>
 #include <Dataflow/PortItem.hpp>
 
 namespace Dataflow
 {
 template <typename T, typename Widget>
-struct WidgetInletFactory : public AutomatablePortFactory
+struct WidgetInletFactory : public Dataflow::ControlInletFactory
 {
   using Model_T = T;
   UuidKey<Process::Port> concreteKey() const noexcept override
@@ -45,7 +47,7 @@ struct WidgetInletFactory : public AutomatablePortFactory
 };
 
 template <typename T, typename Widget>
-struct WidgetOutletFactory : public Process::PortFactory
+struct WidgetOutletFactory : public Dataflow::ControlOutletFactory
 {
   using Model_T = T;
   UuidKey<Process::Port> concreteKey() const noexcept override

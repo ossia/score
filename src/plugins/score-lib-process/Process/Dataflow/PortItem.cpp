@@ -320,7 +320,8 @@ PortItem::PortItem(
         [&](QPointF sp, QPoint p) {
       auto menu = new QMenu{};
       setupMenu(*menu, ctx);
-      menu->exec(p);
+      if(!menu->actions().empty())
+        menu->exec(p);
       menu->deleteLater();
         });
   }
