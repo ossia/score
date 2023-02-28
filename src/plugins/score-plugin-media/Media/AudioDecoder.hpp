@@ -30,22 +30,7 @@ struct AudioInfo
   std::optional<double> tempo;
 
   // Duration
-  TimeVal duration() const noexcept
-  {
-    if(fileRate == 0 || fileLength == 0)
-      return TimeVal::zero();
-
-    if(tempo)
-    {
-      return TimeVal::fromMsecs(
-          1000. * (double(fileLength) / double(fileRate))
-          * (*tempo / ossia::root_tempo));
-    }
-    else
-    {
-      return TimeVal::fromMsecs(1000. * (double(fileLength) / double(fileRate)));
-    }
-  }
+  TimeVal duration() const noexcept;
 };
 
 class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder : public QObject

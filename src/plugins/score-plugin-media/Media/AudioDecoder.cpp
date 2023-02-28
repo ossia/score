@@ -905,4 +905,27 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
 #endif
   return;
 }
+
+TimeVal AudioInfo::duration() const noexcept
+{
+  if(fileRate == 0 || fileLength == 0)
+    return TimeVal::zero();
+
+  if(tempo)
+  {
+    // These aren't "real" milliseconds, but the "model" / "UI" milliseconds that
+    // are tempo-invariant, e.g. 2000 msec = 1 4/4 bar
+    double model_msecs
+        = 1000. * (double(fileLength) / double(fileRate)) * (*tempo / ossia::root_tempo);
+
+    model_msecs = std::round(model_msecs / 100.) * 100.;
+    TimeVal msecs = TimeVal::fromMsecs(model_msecs);
+    return msecs;
+  }
+  else
+  {
+    return TimeVal::fromMsecs(1000. * (double(fileLength) / double(fileRate)));
+  }
+}
+
 }
