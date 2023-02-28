@@ -102,10 +102,12 @@ void LayerPresenter::onDrop(const QPointF& p, const QMimeData& mime)
   {
     return;
   }
+  auto path
+      = score::relativizeFilePath(drops.files.front().first, this->m_context.context);
   CommandDispatcher<> disp{context().context.commandStack};
   disp.submit<Media::ChangeAudioFile>(
-      static_cast<const Sound::ProcessModel&>(m_process),
-      std::move(drops.files.front().first), context().context);
+      static_cast<const Sound::ProcessModel&>(m_process), std::move(path),
+      context().context);
 }
 }
 }

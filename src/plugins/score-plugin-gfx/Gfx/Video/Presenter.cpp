@@ -109,9 +109,10 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   if(!handler.fileExtensions().contains(file.suffix().toLower()))
     return;
 
+  auto path
+      = score::relativizeFilePath(file.absoluteFilePath(), this->m_context.context);
   CommandDispatcher<> disp{m_context.context.commandStack};
-  disp.submit<ChangeVideo>(
-      static_cast<const Video::Model&>(model()), file.absoluteFilePath());
+  disp.submit<ChangeVideo>(static_cast<const Video::Model&>(model()), path);
 }
 
 }
