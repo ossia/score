@@ -17,14 +17,18 @@ CreateCable::CreateCable(
   {
     if(auto sinkProcess = Process::parentProcess(&sink))
     {
+      bool ok = false;
       for(auto& outlets : sinkProcess->outlets())
       {
         if(outlets->type() == Process::PortType::Audio)
         {
-          m_previousPropagate
-              = static_cast<const Process::AudioOutlet&>(source).propagate();
+          ok = true;
+          break;
         }
       }
+      if(ok)
+        m_previousPropagate
+            = static_cast<const Process::AudioOutlet&>(source).propagate();
     }
   }
 }
