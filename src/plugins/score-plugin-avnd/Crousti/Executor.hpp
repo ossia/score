@@ -47,18 +47,20 @@ namespace oscr
 namespace
 {
 
-static QString filenameFromPort(const ossia::value& value)
+static QString
+filenameFromPort(const ossia::value& value, const score::DocumentContext& ctx)
 {
   if(auto str = value.target<std::string>())
-    return QString::fromStdString(*str).trimmed();
+    return score::locateFilePath(QString::fromStdString(*str).trimmed(), ctx);
   return {};
 }
 
 // TODO refactor this into a generic explicit soundfile loaded mechanism
-static auto loadSoundfile(Process::ControlInlet* inlet, double rate)
+static auto loadSoundfile(
+    Process::ControlInlet* inlet, const score::DocumentContext& ctx, double rate)
 {
   // Initialize the control with the current soundfile
-  if(auto str = filenameFromPort(inlet->value()); !str.isEmpty())
+  if(auto str = filenameFromPort(inlet->value(), ctx); !str.isEmpty())
   {
     auto dec = Media::AudioDecoder::decode_synchronous(str, rate);
 
@@ -75,10 +77,11 @@ static auto loadSoundfile(Process::ControlInlet* inlet, double rate)
 }
 
 using midifile_handle = std::shared_ptr<oscr::midifile_data>;
-static midifile_handle loadMidifile(Process::ControlInlet* inlet)
+static midifile_handle
+loadMidifile(Process::ControlInlet* inlet, const score::DocumentContext& ctx)
 {
   // Initialize the control with the current soundfile
-  if(auto str = filenameFromPort(inlet->value()); !str.isEmpty())
+  if(auto str = filenameFromPort(inlet->value(), ctx); !str.isEmpty())
   {
     QFile f(str);
     if(!f.open(QIODevice::ReadOnly))
@@ -97,10 +100,12 @@ static midifile_handle loadMidifile(Process::ControlInlet* inlet)
 }
 
 using raw_file_handle = std::shared_ptr<raw_file_data>;
-static raw_file_handle loadRawfile(Process::ControlInlet* inlet, bool text, bool mmap)
+static raw_file_handle loadRawfile(
+    Process::ControlInlet* inlet, const score::DocumentContext& ctx, bool text,
+    bool mmap)
 {
   // Initialize the control with the current soundfile
-  if(auto filename = filenameFromPort(inlet->value()); !filename.isEmpty())
+  if(auto filename = filenameFromPort(inlet->value(), ctx); !filename.isEmpty())
   {
     if(!QFile::exists(filename))
       return {};
@@ -129,10 +134,11 @@ static raw_file_handle loadRawfile(Process::ControlInlet* inlet, bool text, bool
 }
 
 static auto loadSoundfile(
-    Process::ControlInlet* inlet, const std::shared_ptr<ossia::execution_state>& st)
+    Process::ControlInlet* inlet, const score::DocumentContext& ctx,
+    const std::shared_ptr<ossia::execution_state>& st)
 {
   const double rate = ossia::exec_state_facade{st.get()}.sampleRate();
-  return loadSoundfile(inlet, rate);
+  return loadSoundfile(inlet, ctx, rate);
 }
 }
 
@@ -221,7 +227,7 @@ struct setup_Impl0
         = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadSoundfile(inlet, ctx.execState))
+    if(auto hdl = loadSoundfile(inlet, ctx.doc, ctx.execState))
       node_ptr->soundfile_loaded(
           hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
 
@@ -234,7 +240,7 @@ struct setup_Impl0
          weak_st = std::move(weak_st)] {
       if(auto n = weak_node.lock())
         if(auto st = weak_st.lock())
-          if(auto file = loadSoundfile(inlet, st))
+          if(auto file = loadSoundfile(inlet, ctx.doc, st))
           {
             ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
               auto n = weak_node.lock();
@@ -257,7 +263,7 @@ struct setup_Impl0
         = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadMidifile(inlet))
+    if(auto hdl = loadMidifile(inlet, ctx.doc))
       node_ptr->midifile_loaded(
           hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
 
@@ -268,7 +274,7 @@ struct setup_Impl0
         inlet, &Process::ControlInlet::valueChanged, parent,
         [inlet, &ctx = this->ctx, weak_node = std::move(weak_node)] {
       if(auto n = weak_node.lock())
-        if(auto file = loadMidifile(inlet))
+        if(auto file = loadMidifile(inlet, ctx.doc))
         {
           ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
             auto n = weak_node.lock();
@@ -306,7 +312,7 @@ struct setup_Impl0
     constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadRawfile(inlet, has_text, has_mmap))
+    if(auto hdl = loadRawfile(inlet, ctx.doc, has_text, has_mmap))
     {
       if constexpr(avnd::port_can_process<Field>)
       {
@@ -332,7 +338,7 @@ struct setup_Impl0
         inlet, &Process::ControlInlet::valueChanged, parent,
         [inlet, &ctx = this->ctx, weak_node = std::move(weak_node)] {
       if(auto n = weak_node.lock())
-        if(auto file = loadRawfile(inlet, has_text, has_mmap))
+        if(auto file = loadRawfile(inlet, ctx.doc, has_text, has_mmap))
         {
           if constexpr(avnd::port_can_process<Field>)
           {
