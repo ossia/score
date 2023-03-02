@@ -3,62 +3,6 @@ name: Ubuntu build
 on: push
 
 jobs:
-  bionic_gcc:
-    name: Ubuntu (Bionic, GCC 8)
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:bionic
-
-    steps:
-      - name: Install git
-        run: |
-          apt-get update -qq
-          apt-get install -qq software-properties-common
-          add-apt-repository ppa:git-core/ppa
-          apt-get update -qq
-          apt-get install -qq --force-yes git
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/bionic.deps.sh
-
-      - name: Build
-        run: |
-          CC=gcc-8 CXX=g++-8 ./ci/bionic.build.sh
-
-  bionic_clang:
-    name: Ubuntu (Bionic, Clang 10)
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:bionic
-
-    steps:
-      - name: Install git
-        run: |
-          apt-get update -qq
-          apt-get install -qq software-properties-common
-          add-apt-repository ppa:git-core/ppa
-          apt-get update -qq
-          apt-get install -qq --force-yes git
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/bionic.deps.sh
-
-      - name: Build
-        run: |
-          CC=clang-10 CXX=clang++-10 ./ci/bionic.build.sh
-
   focal_gcc:
     name: Ubuntu (Focal, GCC)
     runs-on: ubuntu-latest
@@ -83,7 +27,7 @@ jobs:
       - name: Build
         run: |
           CC=gcc-10 CXX=g++-10 ./ci/focal.build.sh
-          
+
   focal_clang:
     name: Ubuntu (Focal, Clang)
     runs-on: ubuntu-latest
