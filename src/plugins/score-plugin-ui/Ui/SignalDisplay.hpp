@@ -36,6 +36,11 @@ struct Node
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr auto control_outs
         = tuplet::make_tuple(Control::OutControl{"value"});
+
+    enum
+    {
+      loops_by_default
+    };
   };
 
   using control_policy = ossia::safe_nodes::default_tick_controls;

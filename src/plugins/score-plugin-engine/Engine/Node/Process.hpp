@@ -366,6 +366,11 @@ public:
     metadata().setInstanceName(*this);
 
     Control::PortSetup::init<Info>(*this);
+
+    if constexpr(requires { Info::Metadata::loops_by_default; })
+    {
+      setLoops(true);
+    }
   }
 
   template <typename Impl>
