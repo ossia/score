@@ -111,7 +111,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
   if(!res.empty())
   {
-    qDebug() << "handled through getMimeDrops";
+    // qDebug() << "handled through getMimeDrops";
     return res;
   }
 
@@ -131,7 +131,10 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
         // First check if a custom drop is in order, which handles everything.
         if(handleCustomDrop(handler))
+        {
+          // qDebug() << "handled through getCustomDrops";
           return res;
+        }
 
         // Then fall back to the normal mime data drop
         score::FilePath p{
@@ -145,6 +148,8 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   }
 
   // TODO Fix Sound::DropHandler::drop so that we don't need to do that
+  // and remove the custom drop mechanism above (problem is that customData is empty)
+  /*
   {
     auto comp = [](auto& lhs, auto& rhs) {
       return lhs.creation.customData < rhs.creation.customData;
@@ -156,16 +161,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
     qDebug() << "handled through getFileDrops";
     return res;
   }
-  //
-  //   if(!res.empty())
-  //     return res;
-  //
-  //   // Look up the old way
-  //   for (Process::ProcessDropHandler& h : *this)
-  //   {
-  //     if (res = h.getDrops(mime, ctx); !res.empty())
-  //       break;
-  //   }
+  */
   return res;
 }
 

@@ -23,6 +23,10 @@ ProjectLibraryWidget::ProjectLibraryWidget(
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new FileSystemRecursiveFilterProxy{this}}
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+  m_proxy->setRecursiveFilteringEnabled(true);
+#endif
+
   auto lay = new score::MarginLess<QVBoxLayout>;
   setStatusTip(
       QObject::tr("This panel shows the project library.\n"
@@ -50,6 +54,7 @@ ProjectLibraryWidget::ProjectLibraryWidget(
     }
   });
   m_tv.setAcceptDrops(true);
+  m_tv.setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 }
 
 ProjectLibraryWidget::~ProjectLibraryWidget() { }

@@ -31,9 +31,6 @@ class SimpleTextItem;
 namespace Dataflow
 {
 class PortItem;
-}
-namespace Dataflow
-{
 class CableItem;
 struct DragMoveFilter;
 class SCORE_LIB_PROCESS_EXPORT PortItem
