@@ -526,8 +526,8 @@ do_read_frame:
     {
       SCORE_ASSERT(m_codecContext);
 
-      av_packet_rescale_ts(
-          &packet, this->m_avstream->time_base, this->m_codecContext->time_base);
+      //av_packet_rescale_ts(
+      //     &packet, this->m_avstream->time_base, this->m_codecContext->pkt_timebase);
 
       ret_frame = enqueue_frame(&packet);
       if(ret_frame.error == AVERROR(EAGAIN))
@@ -598,7 +598,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   const int64_t dts = flicks * av_dts_per_flicks;
 
   const auto codec_tb
-      = m_codecContext ? m_codecContext->time_base : m_avstream->time_base;
+      = m_codecContext ? m_codecContext->pkt_timebase : m_avstream->time_base;
 
   // Don't seek if we're less than 0.2 second close to the request
   // unit of the timestamps in seconds: stream->time_base.num / stream->time_base.den
@@ -788,7 +788,7 @@ bool VideoDecoder::open_stream() noexcept
 
           if(m_codecContext)
           {
-            auto tb = m_codecContext->time_base;
+            auto tb = m_codecContext->pkt_timebase;
             dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
             flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
           }
