@@ -14,11 +14,12 @@ namespace Video
 void Rescale::open(const VideoMetadata& src)
 {
   // Allocate a rescale context
-  qDebug() << "allocating a rescaler for format"
+  qDebug() << "allocating a rescaler for format" << src.pixel_format
            << av_get_pix_fmt_name(src.pixel_format);
   m_src = &src;
+  m_rescaleFormat = (AVPixelFormat)src.pixel_format;
   m_rescale = sws_getContext(
-      src.width, src.height, src.pixel_format, src.width, src.height, AV_PIX_FMT_RGBA,
+      src.width, src.height, m_rescaleFormat, src.width, src.height, AV_PIX_FMT_RGBA,
       SWS_FAST_BILINEAR, NULL, NULL, NULL);
 }
 
@@ -34,6 +35,16 @@ void Rescale::close()
 void Rescale::rescale(FrameQueue& m_frames, AVFramePointer& frame, ReadFrame& read)
 {
   auto& src = *m_src;
+  if(read.frame->format != m_rescaleFormat)
+  {
+    qDebug() << "Actual format we getting: " << read.frame->format
+             << av_get_pix_fmt_name((AVPixelFormat)read.frame->format);
+    m_rescaleFormat = (AVPixelFormat)read.frame->format;
+    sws_freeContext(m_rescale);
+    m_rescale = sws_getContext(
+        src.width, src.height, m_rescaleFormat, src.width, src.height, AV_PIX_FMT_RGBA,
+        SWS_FAST_BILINEAR, NULL, NULL, NULL);
+  }
   // alloc an rgb frame
   auto rgb = m_frames.newFrame().release();
   // FIXME check if there isn't already a buffer allocated

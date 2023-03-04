@@ -29,6 +29,7 @@ public:
 private:
   const VideoMetadata* m_src{};
   SwsContext* m_rescale{};
+  AVPixelFormat m_rescaleFormat{};
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT DecoderConfiguration
