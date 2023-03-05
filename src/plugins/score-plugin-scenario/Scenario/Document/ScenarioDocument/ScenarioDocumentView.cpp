@@ -609,17 +609,20 @@ ScenarioDocumentView::ScenarioDocumentView(
         = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>().editionSettings();
     es.setTool(Scenario::Tool::Select);
   });
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   const bool opengl = ctx.app.applicationSettings.opengl;
   if(opengl)
   {
     // m_minimapView.setViewport(new QOpenGLWidget);
     // m_timeRulerView.setViewport(new QOpenGLWidget);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QGLFormat fmt;
     fmt.setSamples(4);
     fmt.setSampleBuffers(true);
     fmt.setSwapInterval(1);
     auto vp = new QGLWidget{fmt};
+#else
+    auto vp = new QOpenGLWidget{};
+#endif
     m_view.setViewport(vp);
 
     // m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
@@ -633,7 +636,6 @@ ScenarioDocumentView::ScenarioDocumentView(
     m_timer = startTimer(defaultEditorRefreshRate());
   }
   else
-#endif
   {
     // m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
