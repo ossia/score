@@ -18,7 +18,7 @@ class LibraryHandler final
       Library::ProcessNode& parent, const AvailablePlugin& vst,
       const VST3::Hosting::ClassInfo& cls)
   {
-    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
+    constexpr static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     auto name = QString::fromStdString(cls.name());
     auto vendor = QString::fromStdString(cls.vendor());
@@ -38,7 +38,7 @@ class LibraryHandler final
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
+    constexpr static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     QModelIndex node = model.find(key);
     if(node == QModelIndex{})

@@ -25,18 +25,8 @@ namespace Control
 {
 
 template <typename Item>
-concept HasItem = requires
-{
-  &Item::item;
-}
-|| requires
-{
-  Item{}.item(0);
-}
-|| requires
-{
-  sizeof(typename Item::Layer);
-};
+concept HasItem = requires { &Item::item; } || requires { Item{}.item(0); }
+                  || requires { sizeof(typename Item::Layer); };
 
 struct Meta_base : public ossia::safe_nodes::base_metadata
 {
@@ -99,9 +89,9 @@ struct score_generic_plugin final
     : public score::FactoryInterface_QtInterface
     , public score::Plugin_QtInterface
 {
-  static MSVC_BUGGY_CONSTEXPR score::PluginKey static_key() { return T::Metadata::uuid; }
+  static constexpr score::PluginKey static_key() { return T::Metadata::uuid; }
 
-  score::PluginKey key() const final override { return static_key(); }
+  constexpr score::PluginKey key() const final override { return static_key(); }
 
   score::Version version() const override { return score::Version{1}; }
 

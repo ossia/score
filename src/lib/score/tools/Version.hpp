@@ -12,23 +12,41 @@ namespace score
 class Version
 {
 public:
-  explicit Version(int32_t v)
+  explicit constexpr Version(int32_t v) noexcept
       : m_impl{v}
   {
   }
-  Version(const Version&) = default;
-  Version(Version&&) = default;
-  Version& operator=(const Version&) = default;
-  Version& operator=(Version&&) = default;
+  constexpr Version(const Version&) = default;
+  constexpr Version(Version&&) = default;
+  constexpr Version& operator=(const Version&) = default;
+  constexpr Version& operator=(Version&&) = default;
 
-  bool operator==(Version other) const { return m_impl == other.m_impl; }
-  bool operator!=(Version other) const { return m_impl != other.m_impl; }
-  bool operator<(Version other) const { return m_impl < other.m_impl; }
-  bool operator>(Version other) const { return m_impl > other.m_impl; }
-  bool operator<=(Version other) const { return m_impl <= other.m_impl; }
-  bool operator>=(Version other) const { return m_impl >= other.m_impl; }
+  constexpr bool operator==(Version other) const noexcept
+  {
+    return m_impl == other.m_impl;
+  }
+  constexpr bool operator!=(Version other) const noexcept
+  {
+    return m_impl != other.m_impl;
+  }
+  constexpr bool operator<(Version other) const noexcept
+  {
+    return m_impl < other.m_impl;
+  }
+  constexpr bool operator>(Version other) const noexcept
+  {
+    return m_impl > other.m_impl;
+  }
+  constexpr bool operator<=(Version other) const noexcept
+  {
+    return m_impl <= other.m_impl;
+  }
+  constexpr bool operator>=(Version other) const noexcept
+  {
+    return m_impl >= other.m_impl;
+  }
 
-  int32_t value() const { return m_impl; }
+  constexpr int32_t value() const noexcept { return m_impl; }
 
 private:
   int32_t m_impl = 0;
@@ -41,6 +59,6 @@ template <>
 struct hash<score::Version>
 {
 public:
-  std::size_t operator()(const score::Version& s) const { return s.value(); }
+  std::size_t operator()(const score::Version& s) const noexcept { return s.value(); }
 };
 }

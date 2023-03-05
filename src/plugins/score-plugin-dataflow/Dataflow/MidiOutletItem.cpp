@@ -20,7 +20,7 @@ void MidiOutletFactory::setupOutletInspector(
     Inspector::Layout& lay, QObject* context)
 {
 #if defined(SCORE_PLUGIN_PROTOCOLS)
-  static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
+  static const constexpr auto midi_uuid
       = Protocols::MIDIOutputProtocolFactory::static_concreteKey();
 
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();

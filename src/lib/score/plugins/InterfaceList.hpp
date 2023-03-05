@@ -90,7 +90,7 @@ public:
     return FactoryType::static_interfaceKey();
   }
 
-  score::InterfaceKey interfaceKey() const noexcept final override
+  constexpr score::InterfaceKey interfaceKey() const noexcept final override
   {
     return FactoryType::static_interfaceKey();
   }
@@ -129,8 +129,7 @@ public:
   mutable Nano::Signal<void(const factory_type&)> added;
 
 protected:
-  ossia::hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
-      map;
+  ossia::hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>> map;
 
 private:
   void optimize() noexcept final override

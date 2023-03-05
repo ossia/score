@@ -91,21 +91,20 @@ extern template class SCORE_LIB_BASE_EXPORT
 /**
  * \macro ABSTRACT_COMPONENT_METADATA
  */
-#define ABSTRACT_COMPONENT_METADATA(Type, Uuid)                               \
-public:                                                                       \
-  using base_component_type = Type;                                           \
-                                                                              \
-  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept \
-  {                                                                           \
-    return_uuid(Uuid);                                                        \
-  }                                                                           \
-                                                                              \
-  static MSVC_BUGGY_CONSTEXPR bool base_key_match(                            \
-      UuidKey<score::Component> other) noexcept                               \
-  {                                                                           \
-    return static_key() == other;                                             \
-  }                                                                           \
-                                                                              \
+#define ABSTRACT_COMPONENT_METADATA(Type, Uuid)                                  \
+public:                                                                          \
+  using base_component_type = Type;                                              \
+                                                                                 \
+  static constexpr UuidKey<score::Component> static_key() noexcept               \
+  {                                                                              \
+    return_uuid(Uuid);                                                           \
+  }                                                                              \
+                                                                                 \
+  static constexpr bool base_key_match(UuidKey<score::Component> other) noexcept \
+  {                                                                              \
+    return static_key() == other;                                                \
+  }                                                                              \
+                                                                                 \
 private:
 
 /**
@@ -113,17 +112,18 @@ private:
  */
 #define COMPONENT_METADATA(Uuid)                                                \
 public:                                                                         \
-  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept   \
+  static constexpr UuidKey<score::Component> static_key() noexcept              \
   {                                                                             \
     return_uuid(Uuid);                                                          \
   }                                                                             \
                                                                                 \
-  UuidKey<score::Component> key() const noexcept final override                 \
+  constexpr UuidKey<score::Component> key() const noexcept final override       \
   {                                                                             \
     return static_key();                                                        \
   }                                                                             \
                                                                                 \
-  bool key_match(UuidKey<score::Component> other) const noexcept final override \
+  constexpr bool key_match(UuidKey<score::Component> other)                     \
+      const noexcept final override                                             \
   {                                                                             \
     return static_key() == other || base_component_type::base_key_match(other); \
   }                                                                             \
@@ -135,7 +135,7 @@ private:
  */
 #define COMMON_COMPONENT_METADATA(Uuid)                                         \
 public:                                                                         \
-  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept   \
+  static constexpr UuidKey<score::Component> static_key() noexcept              \
   {                                                                             \
     return_uuid(Uuid);                                                          \
   }                                                                             \

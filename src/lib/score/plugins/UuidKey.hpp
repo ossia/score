@@ -331,18 +331,11 @@ SCORE_LIB_BASE_EXPORT QByteArray toByteArray(score::uuids::uuid const& u);
 using uuid_t = uuids::uuid;
 }
 
-#if defined(_MSC_VER)
-#define MSVC_BUGGY_CONSTEXPR constexpr
-#else
-#define MSVC_BUGGY_CONSTEXPR constexpr
-#endif
-
-#define return_uuid(text)                                  \
-  do                                                       \
-  {                                                        \
-    constexpr const auto t                                 \
-        = score::uuids::string_generator::compute((text)); \
-    return t;                                              \
+#define return_uuid(text)                                                     \
+  do                                                                          \
+  {                                                                           \
+    constexpr const auto t = score::uuids::string_generator::compute((text)); \
+    return t;                                                                 \
   } while(0)
 
 template <typename Tag>
