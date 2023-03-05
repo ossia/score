@@ -19,7 +19,6 @@
 
 #include <QApplication>
 #include <QCloseEvent>
-#include <QDockWidget>
 #include <QPainter>
 #include <QPushButton>
 #include <QScreen>

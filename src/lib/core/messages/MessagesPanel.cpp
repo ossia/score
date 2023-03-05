@@ -12,7 +12,6 @@
 
 #include <ossia-qt/invoke.hpp>
 
-#include <QDockWidget>
 #include <QFileInfo>
 #include <QListView>
 #include <QMenu>

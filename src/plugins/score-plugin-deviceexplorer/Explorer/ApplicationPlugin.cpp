@@ -16,8 +16,6 @@
 
 #include <ossia-qt/qt_logger.hpp>
 
-#include <QDockWidget>
-
 #include <vector>
 
 struct VisitorVariant;

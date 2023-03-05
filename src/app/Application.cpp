@@ -228,7 +228,11 @@ static void setQApplicationSettings(QApplication& m_app)
   //  pal.setBrush(QPalette::Dark, QColor("#808080"));
   // pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
-  constexpr const int defaultFontSize = 10;
+#if defined(__APPLE__) && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  constexpr const double defaultFontSize = 10. * 96. / 72.;
+#else
+  constexpr const double defaultFontSize = 10.;
+#endif
 
   QFont f("Ubuntu", defaultFontSize);
   f.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
@@ -403,7 +407,9 @@ void Application::init()
   this->setObjectName("Application");
   this->setParent(m_app);
 #if !defined(__EMSCRIPTEN__)
+#if QT_CONFIG(library)
   m_app->addLibraryPath(m_app->applicationDirPath() + "/plugins");
+#endif
 #endif
 #if defined(_MSC_VER)
   QDir::setCurrent(qApp->applicationDirPath());
