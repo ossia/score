@@ -14,7 +14,7 @@ jobs:
       - name: Install git
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -qq --force-yes git doxygen binutils gcc g++ clang clang++ \
+          sudo apt-get install -qq --force-yes git doxygen binutils build-essential clang \
             libasound-dev \
             libfftw3-dev \
             libsuil-dev liblilv-dev lv2-dev \
