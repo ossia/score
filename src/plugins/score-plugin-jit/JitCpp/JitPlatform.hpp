@@ -588,7 +588,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   {
     auto src_include_dirs
         = {"/3rdparty/libossia/src",
-           "/3rdparty/libossia/3rdparty/boost_1_79_0",
+           "/3rdparty/libossia/3rdparty/boost_1_81_0",
            "/3rdparty/libossia/3rdparty/mparkvariant/include",
            "/3rdparty/libossia/3rdparty/nano-signal-slot/include",
            "/3rdparty/libossia/3rdparty/spdlog/include",
