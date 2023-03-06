@@ -8,6 +8,9 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QDir>
+#include <QFileInfo>
+#include <QProcess>
 #include <QTimer>
 
 #include <lilv/lilv.h>
@@ -238,6 +241,41 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
 
 void LV2::GlobalContext::loadPlugins()
 {
+#if defined(__linux__)
+  if(!qEnvironmentVariableIsSet("LV2_PATH"))
+  {
+    QProcess proc;
+    proc.setProgram("ldconfig");
+    proc.setArguments({"-p"});
+    proc.start();
+    proc.waitForFinished();
+    auto lst = proc.readAllStandardOutput().split('\n');
+
+    for(auto& l : lst)
+    {
+      if(l.contains("libc.so.6"))
+      {
+#if __x86_64__
+        if(!l.contains("64"))
+          continue;
+#endif
+        auto parts = l.split('>');
+        if(parts.size() == 2)
+        {
+          QFileInfo libc{parts[1].trimmed()};
+          if(QFileInfo lv2_folder{libc.path() + "/lv2"};
+             lv2_folder.exists() && lv2_folder.isDir())
+          {
+            const std::string lv2_path = lv2_folder.absoluteFilePath().toStdString();
+            qDebug() << "Setting lv2 path to : " << lv2_path.c_str();
+            qputenv("LV2_PATH", lv2_path.c_str());
+            break;
+          }
+        }
+      }
+    }
+  }
+#endif
   host.world.load_all();
 
   // Atom stuff
