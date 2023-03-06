@@ -2,8 +2,8 @@
 set -o pipefail
 
 export OSSIA_SDK=/opt/ossia-sdk
-export QT_DIR=$OSSIA_SDK/qt5-static
-export QTDIR=$OSSIA_SDK/qt5-static
+export QT_DIR=$OSSIA_SDK/qt6-static
+export QTDIR=$OSSIA_SDK/qt6-static
 export NPROC=$(nproc)
 export PATH=$OSSIA_SDK/llvm/bin:$PATH
 export GIT=/usr/bin/git
@@ -34,7 +34,9 @@ export SCORE_DIR=/score
 
     cninja $SOURCE_DIR $TOOLCHAIN -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-      -DOSSIA_SDK=$OSSIA_SDK
+      -DOSSIA_SDK=$OSSIA_SDK \
+      -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
+      -DQT_VERSION="Qt6"
 
     (
       cd build*
@@ -57,7 +59,7 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
 # Copy needed libraries and remove system ones
 (
     cd $APP_DIR
-    mkdir -p ./usr/lib/qt5/qml
+    mkdir -p ./usr/lib/qt6/qml
 
     # Fonts
     mkdir -p ./usr/bin/lib/fonts
@@ -140,12 +142,14 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
     rm -f usr/lib/liblz4.so.1 || true
     rm -f usr/lib/liblzma.so.5 || true
     rm -f usr/lib/libpcre.so.1 || true
+    rm -f usr/lib/libpcre2-8.so.0 || true
     rm -f usr/lib/libselinux.so.1 || true
     rm -f usr/lib/libsystemd.so.0 || true
+    rm -f usr/lib/libOpenGL.so.0 || true
     # rm -f usr/lib/libtinfo.so.5 || true
 
     rm -rf usr/lib/cmake || true
-    rm -rf usr/lib/qt5 || true
+    rm -rf usr/lib/qt6 || true
 
 
     # Delete potentially dangerous libraries

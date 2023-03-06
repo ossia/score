@@ -1,12 +1,19 @@
 find_path(
     Suil_INCLUDE_DIR suil/suil.h
     HINTS
+        "${OSSIA_SDK}/lv2/include/suil-0"
         /usr/include/suil-0
         /usr/local/include/suil-0
     )
 
 set(Suil_NAMES suil suil-0)
-find_library(Suil_LIBRARY NAMES ${Suil_NAMES})
+find_library(Suil_LIBRARY 
+  NAMES
+    suil 
+    suil-0
+  HINTS
+    "${OSSIA_SDK}/lv2/lib64"
+)
 
 if(Suil_INCLUDE_DIR AND Suil_LIBRARY)
   set(Suil_FOUND TRUE)

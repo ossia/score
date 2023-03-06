@@ -22,6 +22,8 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}"
       "${OSSIA_SDK}/SDL2"
       "${OSSIA_SDK}/SDL2/cmake"
+      "${OSSIA_SDK}/qt6-static-debug"
+      "${OSSIA_SDK}/qt6-static"
       "${OSSIA_SDK}/qt5-static-debug"
       "${OSSIA_SDK}/qt5-static"
       "${OSSIA_SDK}/llvm"
@@ -39,6 +41,9 @@ if(OSSIA_SDK)
       "${CMAKE_PREFIX_PATH}")
 
   set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
+
+  include_directories("${OSSIA_SDK}/pipewire/include/pipewire-0.3")
+  include_directories("${OSSIA_SDK}/pipewire/include/spa-0.2")
 endif()
 
 project(score LANGUAGES C CXX)

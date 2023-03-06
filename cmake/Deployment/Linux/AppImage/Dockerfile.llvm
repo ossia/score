@@ -10,9 +10,9 @@ RUN yum -y install  gcc-toolset-11  \
            wget xz git cmake xcb-util xcb-util-devel libX11-devel libXrender-devel libXi-devel dbus-devel glib2-devel mesa-libGL-devel  \
     nasm libxkbcommon-x11-devel alsa-lib-devel glib2-devel libxcb-devel xcb-util xcb-util-image xcb-util-keysyms xcb-util-image-devel xcb-util-renderutil-devel \
     vulkan vulkan-devel xcb-util-wm xcb-util-wm-devel libxkbcommon-devel libXcomposite-devel xcb-util-keysyms-devel \
+    xcb-util-cursor-devel \
     libxcb-devel pulseaudio-libs-devel \
     rsync \
-    pipewire-devel \
     bluez-libs-devel avahi-devel  wayland-devel  wayland-protocols-devel libwayland-egl libwayland-cursor libwayland-client ninja-build 
 
 
@@ -21,6 +21,14 @@ RUN ls \
     && tar xaf cninja-*.tar.gz \
     && rm -rf cninja-*.tar.gz \
     && mv cninja /usr/bin/
+
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.26.0-rc5/cmake-3.26.0-rc5-linux-x86_64.tar.gz \
+    && tar xaf cmake-3.26.0-rc5-linux-x86_64.tar.gz \
+    && rm cmake-3.26.0-rc5-linux-x86_64.tar.gz \
+    && mv cmake-3.26.0-rc5-linux-x86_64 /cmake 
+
+ENV PATH="/cmake/bin:${PATH}"
 
 #ADD Recipe.llvm /Recipe.llvm
 #RUN bash -ex Recipe.llvm

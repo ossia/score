@@ -2,7 +2,7 @@
 
 mkdir -p "$INCLUDE/qt"
 
-cp -rf "$OSSIA_SDK/qt5-static/include/." "$INCLUDE/qt/"
+cp -rf "$OSSIA_SDK/qt6-static/include/." "$INCLUDE/qt/"
 
 if [[ -d "$OSSIA_SDK/llvm-libs/include" ]]; then
   cp -rf "$OSSIA_SDK/llvm-libs/include/." "$INCLUDE/"

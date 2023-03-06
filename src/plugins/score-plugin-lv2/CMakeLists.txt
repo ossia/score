@@ -13,7 +13,10 @@ endif()
 
 find_package(Lilv)
 find_package(Suil)
-find_path(LV2_PATH lv2/lv2plug.in/ns/ext/atom/atom.h)
+find_path(LV2_PATH lv2/lv2plug.in/ns/ext/atom/atom.h
+  HINTS
+    "${OSSIA_SDK}/lv2/include"
+)
 
 if(NOT TARGET Lilv OR NOT TARGET Suil OR NOT LV2_PATH)
   return()
@@ -53,6 +56,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 # Lilv is used in API header, it must stay public
 target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
-target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
+target_include_directories(${PROJECT_NAME} 
+  PRIVATE 
+    3rdparty/readerwriterqueue
+    ${LV2_PATH}
+)
 
 setup_score_plugin(${PROJECT_NAME})
