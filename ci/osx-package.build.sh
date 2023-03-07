@@ -6,7 +6,10 @@ export SDK_DIR="$PWD/SDK"
 export PATH=/usr/local/bin:$PATH
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-xcrun /usr/local/bin/cninja macos-release-10.13 -- -DOSSIA_SDK=$OSSIA_SDK -DCMAKE_INSTALL_PREFIX="$PWD/install"
+xcrun /usr/local/bin/cninja macos-release-10.13 -- \
+  -DQT_VERSION="Qt6" \
+  -DOSSIA_SDK="$OSSIA_SDK" \
+  -DCMAKE_INSTALL_PREFIX="$PWD/install"
 (
 cd build-*
 xcrun cmake --install . --strip --component OssiaScore
