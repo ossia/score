@@ -289,15 +289,18 @@ Application::Application(int& argc, char** argv)
   QCoreApplication::setApplicationName("score");
 
 #if !defined(__EMSCRIPTEN__)
-  QSettings s;
-  if(s.contains("Skin/Zoom"))
+  if(!qEnvironmentVariableIsSet("QT_SCALE_FACTOR"))
   {
-    double zoom = s.value("Skin/Zoom").toDouble();
-    if(zoom != 1.)
+    QSettings s;
+    if(s.contains("Skin/Zoom"))
     {
-      zoom = qBound(1.0, zoom, 10.);
-      qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
-      qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", "PassThrough");
+      double zoom = s.value("Skin/Zoom").toDouble();
+      if(zoom != 1.)
+      {
+        zoom = qBound(1.0, zoom, 10.);
+        qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+        qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", "PassThrough");
+      }
     }
   }
 #endif
