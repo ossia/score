@@ -103,7 +103,7 @@ EventInspectorWidget::EventInspectorWidget(
         m_exprEditor, &ExpressionEditorWidget::resetExpression, this,
         &EventInspectorWidget::on_conditionReset);
     con(object, &EventModel::conditionChanged, m_exprEditor,
-        &ExpressionEditorWidget::setExpression);
+        &ExpressionEditorWidget::setExpression, Qt::QueuedConnection);
 
     m_exprEditor->setMenu(m_menu.menu);
 

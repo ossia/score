@@ -36,7 +36,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
       m_exprEditor, &ExpressionEditorWidget::editingFinished, this,
       &TriggerInspectorWidget::on_triggerChanged);
   con(m_model, &TimeSyncModel::triggerChanged, m_exprEditor,
-      &ExpressionEditorWidget::setExpression);
+      &ExpressionEditorWidget::setExpression, Qt::QueuedConnection);
 
   m_addTrigBtn = new QPushButton{tr("Enable trigger")};
 

@@ -234,10 +234,10 @@ void ExpressionEditorWidget::addNewTerm()
 
   connect(
       relationEditor, &SimpleExpressionEditorWidget::addTerm, this,
-      &ExpressionEditorWidget::addNewTermAndFinish);
+      &ExpressionEditorWidget::addNewTermAndFinish, Qt::QueuedConnection);
   connect(
       relationEditor, &SimpleExpressionEditorWidget::removeTerm, this,
-      &ExpressionEditorWidget::removeTermAndFinish);
+      &ExpressionEditorWidget::removeTermAndFinish, Qt::QueuedConnection);
   connect(
       relationEditor, &SimpleExpressionEditorWidget::editingFinished, this,
       &ExpressionEditorWidget::on_editFinished, Qt::QueuedConnection);
