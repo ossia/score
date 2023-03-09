@@ -29,10 +29,10 @@ jobs:
           ./ci/bullseye.build.sh
 
   fedora:
-    name: Fedora 33
+    name: Fedora 37
     runs-on: ubuntu-latest
     container:
-      image: fedora:33
+      image: fedora:latest
 
     steps:
       - name: Install git
@@ -46,7 +46,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/fedora.deps.sh
+          ./ci/fedora-qt6.deps.sh
 
       - name: Build
         run: |

@@ -9,6 +9,7 @@ cmake .. \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DYNAMIC_PLUGINS=1 \
   -DCMAKE_UNITY_BUILD=1 \
+  -DQT_VERSION=Qt5 \
   -DSCORE_DISABLED_PLUGINS=score-plugin-vst3 
 
 cmake --build .
