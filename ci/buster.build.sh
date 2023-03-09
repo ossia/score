@@ -15,6 +15,7 @@ cmake $SCORE_DIR \
   -DOSSIA_ENABLE_KFR=0 \
   -DOSSIA_ENABLE_FFTW=1 \
   -DSCORE_PCH=1 \
+  -DQT_VERSION=Qt5 \
   -DSCORE_DISABLED_PLUGINS=score-plugin-vst3
 
 cmake --build .

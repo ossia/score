@@ -15,7 +15,6 @@ source /opt/ossia-sdk-wasm/emsdk/emsdk_env.sh
    -DCMAKE_UNITY_BUILD=1 \
    -DCPU_ARCH=sse41 \
    -DKFR_ARCH=sse41 \
-   -DQT_VERSION="Qt6;6.4" \
    -DOSSIA_PCH=0 \
    -DSCORE_PCH=0 \
    -DOSSIA_SDK=/opt/ossia-sdk-wasm/ \

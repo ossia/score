@@ -9,7 +9,6 @@ cd build
 
 cmake $SCORE_DIR \
   -GNinja \
-  -DQT_VERSION="Qt6;6.2" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DISABLED_PLUGINS="score-plugin-vst3;score-plugin-jit;score-plugin-faust" \

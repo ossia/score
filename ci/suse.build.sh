@@ -10,6 +10,7 @@ export CXX=g++-11
 
 cmake $SCORE_DIR \
   -GNinja \
+  -DQT_VERSION=Qt5 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DYNAMIC_PLUGINS=1 \
