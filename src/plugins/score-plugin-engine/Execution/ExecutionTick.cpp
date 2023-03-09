@@ -218,11 +218,13 @@ Audio::tick_fun makeBenchmarkTick(
 
       auto t1 = std::chrono::steady_clock::now();
       auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-
+#if !defined(_MSC_VER)
+      //FIXME: MSVC unordered_map isn't move noexcept so it does not work here in Debug
       helper->m_context->m_editionQueue.enqueue([plugPtr, bench, total]() mutable {
         if(plugPtr)
           plugPtr->slot_bench(std::move(bench), total);
       });
+#endif
 
       for(auto& p : bench)
       {

@@ -13,10 +13,6 @@ set(CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/cmake/cmake-modules")
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
-if(APPLE AND EXISTS /usr/local/opt/qt5)
-  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
-endif()
-
 if(OSSIA_SDK)
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}"
@@ -24,8 +20,6 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/SDL2/cmake"
       "${OSSIA_SDK}/qt6-static-debug"
       "${OSSIA_SDK}/qt6-static"
-      "${OSSIA_SDK}/qt5-static-debug"
-      "${OSSIA_SDK}/qt5-static"
       "${OSSIA_SDK}/llvm"
       "${OSSIA_SDK}/llvm-libs"
       "${OSSIA_SDK}/fftw"
@@ -53,11 +47,7 @@ if(APPLE)
 endif()
 
 if(NOT QT_VERSION)
-  if("${QT_QMAKE_EXECUTABLE}" MATCHES ".*qmake6")
-    set(QT_VERSION Qt6 6.2)
-  else()
-    set(QT_VERSION Qt5 5.9)
-  endif()
+  set(QT_VERSION Qt6 6.2)
 endif()
 
 # QT_PREFIX: Qt5 / Qt6
@@ -100,8 +90,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED 20)
 
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /std:c++latest /Zc:__cplusplus /Zc:preprocessor /permissive- /volatile:iso")
-  add_definitions(/D_HAS_AUTO_PTR_ETC=1
-                  /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1
+  add_definitions(/D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1
                   /DNOMINMAX
                   /DWIN32_LEAN_AND_MEAN
                   )
@@ -139,10 +128,8 @@ set(SCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(SCORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 include_directories("${SCORE_ROOT_BINARY_DIR}")
-include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/variant/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/nano-signal-slot")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/brigand")
-include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/hopscotch-map/src")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")

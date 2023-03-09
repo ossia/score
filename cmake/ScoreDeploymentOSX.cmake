@@ -44,8 +44,8 @@ endif()
 
 get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_FILE} PATH)
 get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
-set(QT_PLUGINS_DIR "${Qt5Widgets_DIR}/../../../plugins")
-set(QT_QML_PLUGINS_DIR "${Qt5Widgets_DIR}/../../../qml")
+set(QT_PLUGINS_DIR "${Qt6Widgets_DIR}/../../../plugins")
+set(QT_QML_PLUGINS_DIR "${Qt6Widgets_DIR}/../../../qml")
 
 set(plugin_dest_dir "${APPNAME}.app/Contents/PlugIns")
 set(qtconf_dest_dir "${APPNAME}.app/Contents/Resources")

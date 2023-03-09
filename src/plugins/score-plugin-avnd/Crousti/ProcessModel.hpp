@@ -76,6 +76,18 @@ struct Metadata<Tags_k, oscr::ProcessModel<Info>>
   }
 };
 
+template<typename T>
+concept has_kind = requires { T::kind(); };
+
+template<typename T>
+auto get_kind()
+{ 
+  if constexpr (has_kind<T>)
+    return T::kind();
+  else
+    return Process::ProcessCategory::Other;
+}
+
 template <typename Info>
 struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
 {

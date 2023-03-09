@@ -283,13 +283,22 @@ uint8_t* SingleSectionMemoryManager::allocateDataSection(
 }
 
 void SingleSectionMemoryManager::reserveAllocationSpace(
-    uintptr_t CodeSize, uint32_t CodeAlign, uintptr_t ROSize, uint32_t ROAlign,
-    uintptr_t RWSize, uint32_t RWAlign)
+    uintptr_t CodeSize, llvm_helper::Align CodeAlign_, uintptr_t ROSize, llvm_helper::Align ROAlign_,
+    uintptr_t RWSize, llvm_helper::Align RWAlign_)
 {
   // FIXME: Ideally this should be one contiguous block, with Code, ROData,
   // and RWData pointing to sub-blocks within, but setting the correct
   // permissions for that wouldn't work unless we over-allocated to have each
   // Block.Base aligned on a page boundary.
+  #if LLVM_VERSION_MAJOR < 17
+  uint32_t CodeAlign = CodeAlign_;
+  uint32_t ROAlign = ROAlign_;
+  uint32_t RWAlign = RWAlign_;
+  #else
+  uint32_t CodeAlign = CodeAlign_.value();
+  uint32_t ROAlign = ROAlign_.value();
+  uint32_t RWAlign = RWAlign_.value();
+  #endif
   const unsigned SecID = 0;
   Code.Reset(
       SectionMemoryManager::allocateCodeSection(CodeSize, CodeAlign, SecID, "code"),

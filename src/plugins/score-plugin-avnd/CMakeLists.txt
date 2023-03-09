@@ -16,15 +16,18 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
 endif()
 
 # Check for coroutines support
+
 include(CheckCXXSourceCompiles)
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
     set(CMAKE_REQUIRED_FLAGS "-std=c++20 -fcoroutines-ts")
+    set(COROUTINES_FLAGS " -fcoroutines-ts")
   else()
     set(CMAKE_REQUIRED_FLAGS "-std=c++20")
   endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   set(CMAKE_REQUIRED_FLAGS "-std=c++20 -fcoroutines")
+  set(COROUTINES_FLAGS " -fcoroutines")
 endif()
 
 
@@ -334,17 +337,11 @@ if(TARGET score_plugin_gfx)
 endif()
 
 if(NOT AVND_DISABLE_COROUTINES)
-  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+  if(COROUTINES_FLAG)
     target_compile_options(
-        score_plugin_avnd
-        PUBLIC
-          -fcoroutines
-    )
-  elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
-    target_compile_options(
-        score_plugin_avnd
-        PUBLIC
-          -fcoroutines-ts
+      score_plugin_avnd
+      PUBLIC
+        ${COROUTINES_FLAG}
     )
   endif()
 else()

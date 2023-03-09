@@ -1,11 +1,12 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+// clang-format off
 #if defined(_WIN32)
 #if !defined(_MSC_VER)
-#include <mmsystem.h>
 #include <ntdef.h>
 #include <windows.h>
+#include <mmsystem.h>
 extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(
     ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
 #else
@@ -28,6 +29,7 @@ extern "C" void sincos(double x, double* sin, double* cos)
 }
 #endif
 #endif
+// clang-format on
 
 #include "Application.hpp"
 

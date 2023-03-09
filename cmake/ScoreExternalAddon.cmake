@@ -130,14 +130,17 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
 
 set(CMAKE_PREFIX_PATH
     "${OSSIA_SDK}"
+    "${OSSIA_SDK}/SDL2"
     "${OSSIA_SDK}/SDL2/cmake"
-    "${OSSIA_SDK}/qt5-static"
+    "${OSSIA_SDK}/qt6-static"
     "${OSSIA_SDK}/llvm-libs"
     "${OSSIA_SDK}/llvm"
     "${OSSIA_SDK}/fftw"
     "${OSSIA_SDK}/zlib"
     "${OSSIA_SDK}/faust"
     "${OSSIA_SDK}/openssl"
+    "${OSSIA_SDK}/portaudio/lib64/cmake"
+    "${OSSIA_SDK}/portaudio/lib64/cmake/portaudio"
     "${OSSIA_SDK}/portaudio/lib/cmake"
     "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
     "${CMAKE_PREFIX_PATH}")
@@ -145,15 +148,16 @@ set(CMAKE_PREFIX_PATH
 set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
 
 
-find_package(Qt5 5.9 REQUIRED COMPONENTS
+find_package(Qt6 6.2 REQUIRED COMPONENTS
   Core
   Widgets
   Gui
   Network
   Qml
+  StateMachine
 )
 
-find_package(Qt5 5.9 OPTIONAL_COMPONENTS ShaderTools)
+find_package(Qt6 6.2 OPTIONAL_COMPONENTS ShaderTools)
 
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
 
@@ -231,7 +235,7 @@ file(GENERATE
 
 target_link_libraries(score_lib_base
   INTERFACE
-    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Qml Qt5::WidgetsPrivate Qt5::GuiPrivate Qt5::CorePrivate
+    Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::Qml Qt6::WidgetsPrivate Qt6::GuiPrivate Qt6::CorePrivate
 )
 
 if(APPLE)
@@ -255,11 +259,11 @@ target_link_libraries(score_plugin_engine INTERFACE score_lib_device score_lib_i
 target_link_libraries(score_plugin_media INTERFACE score_plugin_engine)
 target_link_libraries(score_plugin_gfx INTERFACE score_plugin_engine)
 
-if(TARGET Qt5::ShaderTools)
-  target_link_libraries(score_plugin_gfx INTERFACE Qt5::ShaderTools)
+if(TARGET Qt6::ShaderTools)
+  target_link_libraries(score_plugin_gfx INTERFACE Qt6::ShaderTools)
 endif()
 
-if(TARGET Qt5::ShaderTools)
+if(TARGET Qt6::ShaderTools)
   target_link_libraries(score_plugin_avnd INTERFACE score_plugin_gfx score_plugin_engine score_plugin_media)
 endif()
 include(CheckCXXCompilerFlag)

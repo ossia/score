@@ -35,6 +35,10 @@ detect_deps_script() {
         DEPS=bullseye
         QT=5
         return 0;;
+      bookworm)
+        DEPS=bookworm
+        QT=6
+        return 0;;
       focal)
         DEPS=focal
         QT=5
@@ -231,7 +235,16 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     QT_CMAKE_FLAG='-DQT_VERSION=Qt6;6.2'
   fi
 
-  if command -v clang++-16 ; then
+  elif command -v clang++-19 ; then
+    CC=clang-19
+    CXX=clang++-19
+  elif command -v clang++-18 ; then
+    CC=clang-18
+    CXX=clang++-18
+  elif command -v clang++-17 ; then
+    CC=clang-17
+    CXX=clang++-17
+  elif command -v clang++-16 ; then
     CC=clang-16
     CXX=clang++-16
   elif command -v clang++-15 ; then

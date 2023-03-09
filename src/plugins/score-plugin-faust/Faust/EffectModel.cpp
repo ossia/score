@@ -585,10 +585,14 @@ void FaustEffectComponent::setupExecutionControls(
       [weak_node, firstControlIndex, &proc] {
     if(auto node = weak_node.lock())
     {
-      for(std::size_t i = firstControlIndex; i < proc.inlets().size(); i++)
+      for(int i = firstControlIndex; i < std::ssize(proc.inlets()); i++)
       {
         auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-        inlet->setExecutionValue(*node->controls[i - firstControlIndex].second);
+        int idx = i - firstControlIndex;
+        if(idx >= 0 && idx < node->controls.size())
+          inlet->setExecutionValue(*node->controls[i - firstControlIndex].second);
+        else
+          qDebug() << idx << node->controls.size();
       }
     }
       });

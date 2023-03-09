@@ -120,14 +120,12 @@ target_compile_definitions(score_plugin_jit
 find_library(CLANG_REWRITE_FRONTEND_LIB clangRewriteFrontend)
 if(LLVM_VERSION VERSION_LESS "10.*" OR (UNIX AND NOT APPLE AND SCORE_DEPLOYMENT_BUILD AND ${CLANG_REWRITE_FRONTEND_LIB}) OR OSSIA_SDK)
   set(CLANG_LIBS
-    clangARCMigrate
     clangBasic
     clangCodeGen
     clangDriver
     clangFrontend
     clangFrontendTool
     clangRewriteFrontend
-    clangARCMigrate
     clangStaticAnalyzerFrontend
     clangParse
     clangSerialization
@@ -143,6 +141,10 @@ if(LLVM_VERSION VERSION_LESS "10.*" OR (UNIX AND NOT APPLE AND SCORE_DEPLOYMENT_
     clangCrossTU
     clangIndex
   )
+  
+  if(LLVM_VERSION VERSION_LESS "17.*")
+    set(CLANG_LIBS ${CLANG_LIBS} clangARCMigrate)
+  endif()
 else()
   set(CLANG_LIBS
       clang

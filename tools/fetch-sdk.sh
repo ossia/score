@@ -88,9 +88,9 @@ else
   if [[ ! -d "$SDK_DIR/cmake" ]] ; then
     if ! command -v cmake >/dev/null 2>&1 ; then
       echo "CMake not found, installing..."
-      curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.24.1/cmake-3.24.1-windows-x86_64.zip --output cmake.zip
+      curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.26.0-rc6/cmake-3.26.0-rc6-windows-x86_64.zip --output cmake.zip
       unzip -qq cmake.zip
-      mv cmake-3.24.1-windows-x86_64 cmake
+      mv cmake-3.26.0-rc6-windows-x86_64 cmake
     fi
   fi
 

@@ -62,18 +62,20 @@ install(
 )
 
 
-if(EXISTS "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll")
+if(EXISTS "${QT_DLL_DIR}/Qt6Core${DEBUG_CHAR}.dll")
   install(FILES
-    "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5Widgets${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5Network${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5Xml${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5Svg${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5OpenGL${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5WebSockets${DEBUG_CHAR}.dll"
-    "${QT_DLL_DIR}/Qt5SerialPort${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6Core${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6Gui${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6Widgets${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6Network${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6Xml${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6Svg${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6Qml${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6OpenGL${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6WebSockets${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6SerialPort${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6StateMachine${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt6ShaderTools${DEBUG_CHAR}.dll"
     DESTINATION "${SCORE_BIN_INSTALL_DIR}")
 
   # Qt plug-ins

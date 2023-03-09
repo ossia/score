@@ -10,7 +10,12 @@
 
 #include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/StringRef.h>
+
+#if LLVM_VERSION_MAJOR >= 17
+#include <llvm/TargetParser/Host.h>
+#else
 #include <llvm/Support/Host.h>
+#endif
 
 #include <ciso646>
 #include <iostream>

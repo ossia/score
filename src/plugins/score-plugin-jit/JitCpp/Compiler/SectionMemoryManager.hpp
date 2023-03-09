@@ -2,6 +2,15 @@
 
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 
+#if LLVM_VERSION_MAJOR < 17
+namespace llvm_helper {
+  using Align = uint32_t;
+}
+#else
+namespace llvm_helper {
+  using Align = llvm::Align;
+}
+#endif
 class SingleSectionMemoryManager : public llvm::SectionMemoryManager
 {
   struct Block
@@ -20,8 +29,8 @@ public:
       uintptr_t Size, unsigned Align, unsigned ID, llvm::StringRef Name, bool RO) final;
 
   void reserveAllocationSpace(
-      uintptr_t CodeSize, uint32_t CodeAlign, uintptr_t ROSize, uint32_t ROAlign,
-      uintptr_t RWSize, uint32_t RWAlign) final;
+      uintptr_t CodeSize, llvm_helper::Align CodeAlign, uintptr_t ROSize, llvm_helper::Align ROAlign,
+      uintptr_t RWSize, llvm_helper::Align RWAlign) final;
 
   bool needsToReserveAllocationSpace() override { return true; }
 

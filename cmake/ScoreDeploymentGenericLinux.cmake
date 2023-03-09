@@ -8,16 +8,16 @@ get_filename_component(QT_SO_DIR ${QtCore_LOCATION} PATH)
 # TODO Same than for windows deployment
 file(GLOB ICU_SOS "${QT_SO_DIR}/libicu*.so*")
 file(GLOB QT_SOS
-  "${QT_SO_DIR}/libQt5Core.so*"
-  "${QT_SO_DIR}/libQt5Gui.so*"
-  "${QT_SO_DIR}/libQt5Widgets.so*"
-  "${QT_SO_DIR}/libQt5Network.so*"
-  "${QT_SO_DIR}/libQt5Xml.so*"
-  "${QT_SO_DIR}/libQt5Svg.so*"
-  "${QT_SO_DIR}/libQt5Qml.so*"
-  "${QT_SO_DIR}/libQt5OpenGL.so*"
-  "${QT_SO_DIR}/libQt5WebSockets.so*"
-  "${QT_SO_DIR}/libQt5XcbQpa.so*")
+  "${QT_SO_DIR}/libQt6Core.so*"
+  "${QT_SO_DIR}/libQt6Gui.so*"
+  "${QT_SO_DIR}/libQt6Widgets.so*"
+  "${QT_SO_DIR}/libQt6Network.so*"
+  "${QT_SO_DIR}/libQt6Xml.so*"
+  "${QT_SO_DIR}/libQt6Svg.so*"
+  "${QT_SO_DIR}/libQt6Qml.so*"
+  "${QT_SO_DIR}/libQt6OpenGL.so*"
+  "${QT_SO_DIR}/libQt6WebSockets.so*"
+  "${QT_SO_DIR}/libQt6XcbQpa.so*")
 
 install(FILES
   ${ICU_SOS}
