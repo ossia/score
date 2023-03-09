@@ -4,6 +4,7 @@ source ci/common.setup.sh
 
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
+$SUDO zypper -n remove busybox-which
 $SUDO zypper -n install \
    cmake ninja gcc gcc-c++ \
    llvm-devel \
