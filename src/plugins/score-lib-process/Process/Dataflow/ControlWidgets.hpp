@@ -92,8 +92,8 @@ using SetControlValue = typename std::conditional_t<
 
 template <typename Normalizer, typename T>
 using ConcreteNormalizer = std::conditional_t<
-    std::is_base_of_v<
-        Process::ControlInlet, T> || std::is_base_of_v<Process::ControlOutlet, T>,
+    std::is_base_of_v<Process::ControlInlet, T>
+        || std::is_base_of_v<Process::ControlOutlet, T>,
     UpdatingNormalizer<Normalizer, T>, FixedNormalizer<Normalizer>>;
 template <typename ControlUI, typename Normalizer, bool Control>
 struct FloatControl
@@ -102,9 +102,8 @@ struct FloatControl
   {
     using namespace Process;
     if constexpr(
-        std::is_same_v<
-            score::QGraphicsKnob,
-            ControlUI> || std::is_same_v<score::QGraphicsLogKnob, ControlUI>)
+        std::is_same_v<score::QGraphicsKnob, ControlUI>
+        || std::is_same_v<score::QGraphicsLogKnob, ControlUI>)
     {
       return DefaultControlLayouts::knob();
     }
@@ -460,6 +459,78 @@ struct IntSpinBox
     QObject::connect(
         &inlet, &Control_T::executionReset, sl,
         &score::QGraphicsIntSpinbox::resetExecution);
+
+    return sl;
+  }
+};
+
+struct FloatSpinBox
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::spinbox();
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
+  {
+    auto sl = new QDoubleSpinBox{parent};
+    bindFloatDomain(slider, inlet, *sl);
+    sl->setValue(ossia::convert<float>(inlet.value()));
+    sl->setContentsMargins(0, 0, 0, 0);
+
+    QObject::connect(
+        sl, SignalUtils::QDoubleSpinBox_valueChanged_double(), context,
+        [&inlet, &ctx](double val) {
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, val);
+        });
+
+    QObject::connect(
+        &inlet, &Control_T::valueChanged, sl,
+        [sl](const ossia::value& val) { sl->setValue(ossia::convert<float>(val)); });
+
+    return sl;
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    ConcreteNormalizer<LinearNormalizer, T> norm{slider};
+
+    auto sl = new score::QGraphicsSpinbox{nullptr};
+    bindFloatDomain(slider, inlet, *sl);
+    sl->setValue(norm.to01(ossia::convert<float>(inlet.value())));
+
+    QObject::connect(
+        sl, &score::QGraphicsSpinbox::sliderMoved, context,
+        [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
+        });
+    QObject::connect(
+        sl, &score::QGraphicsSpinbox::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(norm.to01(ossia::convert<float>(val)));
+    });
+
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl, [=](const ossia::value& val) {
+          if(!sl->moving)
+            sl->setExecutionValue(norm.to01(ossia::convert<float>(val)));
+        });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl,
+        &score::QGraphicsSpinbox::resetExecution);
 
     return sl;
   }
@@ -1294,6 +1365,54 @@ struct XYZSlider
     return sl;
   }
 };
+
+struct XYSpinboxes
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::pad();
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
+  {
+    SCORE_TODO;
+    return nullptr; // TODO
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsXYSpinboxChooser{nullptr};
+    bindVec2Domain(slider, inlet, *sl);
+    sl->setValue(
+        LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(inlet.value())));
+
+    QObject::connect(
+        sl, &score::QGraphicsXYSpinboxChooser::sliderMoved, context, [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(
+              inlet, LinearNormalizer::from01(*sl, sl->value()));
+        });
+    QObject::connect(
+        sl, &score::QGraphicsXYSpinboxChooser::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(val)));
+    });
+
+    return sl;
+  }
+};
+
 struct XYZSpinboxes
 {
   static Process::PortItemLayout layout() noexcept

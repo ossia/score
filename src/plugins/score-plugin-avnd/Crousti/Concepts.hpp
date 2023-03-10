@@ -302,8 +302,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     }
     else
     {
-      // FIXME do a FloatSpinBox
-      return new Process::FloatSlider{c.min, c.max, c.init, qname, id, parent};
+      return new Process::FloatSpinBox{c.min, c.max, c.init, qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::knob)
@@ -400,6 +399,26 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       auto [ix, iy, iz] = c.init;
       return new Process::XYZSlider{{mx, my, mz}, {Mx, My, Mz}, {ix, iy, iz},
                                     qname,        id,           parent};
+    }
+  }
+  else if constexpr(widg.widget == avnd::widget_type::xy_spinbox)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    if constexpr(requires {
+                   c.min == 0.f;
+                   c.max == 0.f;
+                   c.init == 0.f;
+                 })
+    {
+      return new Process::XYSpinboxes{
+          {c.min, c.min}, {c.max, c.max}, {c.init, c.init}, qname, id, parent};
+    }
+    else
+    {
+      auto [mx, my] = c.min;
+      auto [Mx, My] = c.max;
+      auto [ix, iy] = c.init;
+      return new Process::XYZSpinboxes{{mx, my}, {Mx, My}, {ix, iy}, qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::xyz_spinbox)

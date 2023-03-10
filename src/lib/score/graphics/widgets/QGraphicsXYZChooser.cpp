@@ -9,6 +9,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsXYZChooser);
+W_OBJECT_IMPL(score::QGraphicsXYSpinboxChooser);
 W_OBJECT_IMPL(score::QGraphicsXYZSpinboxChooser);
 
 namespace score
@@ -161,6 +162,77 @@ QRectF QGraphicsXYZChooser::boundingRect() const
   return QRectF{0, 0, 140, 100};
 }
 
+QGraphicsXYSpinboxChooser::QGraphicsXYSpinboxChooser(QGraphicsItem* parent)
+    : m_x{this}
+    , m_y{this}
+{
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+  setRange();
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+  this->setFlag(ItemHasNoContents);
+
+  m_x.setPos(0, 2);
+  m_y.setPos(45, 2);
+
+  connect(
+      &m_x, &QGraphicsSpinbox::sliderMoved, this,
+      &QGraphicsXYSpinboxChooser::sliderMoved);
+  connect(
+      &m_y, &QGraphicsSpinbox::sliderMoved, this,
+      &QGraphicsXYSpinboxChooser::sliderMoved);
+  connect(
+      &m_x, &QGraphicsSpinbox::sliderReleased, this,
+      &QGraphicsXYSpinboxChooser::sliderReleased);
+  connect(
+      &m_y, &QGraphicsSpinbox::sliderReleased, this,
+      &QGraphicsXYSpinboxChooser::sliderReleased);
+}
+
+QGraphicsXYSpinboxChooser::~QGraphicsXYSpinboxChooser() = default;
+
+void QGraphicsXYSpinboxChooser::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+}
+
+std::array<float, 2> QGraphicsXYSpinboxChooser::value() const noexcept
+{
+  return {m_x.value(), m_y.value()};
+}
+
+std::array<float, 2> QGraphicsXYSpinboxChooser::getMin() const noexcept
+{
+  return {m_x.min, m_y.min};
+}
+std::array<float, 2> QGraphicsXYSpinboxChooser::getMax() const noexcept
+{
+  return {m_x.max, m_y.max};
+}
+
+ossia::vec2f QGraphicsXYSpinboxChooser::scaledValue(float x, float y) const noexcept
+{
+  return {m_x.min + x * (m_x.max - m_x.min), m_y.min + y * (m_y.max - m_y.min)};
+}
+
+void QGraphicsXYSpinboxChooser::setValue(ossia::vec2f v)
+{
+  m_x.setValue(v[0]);
+  m_y.setValue(v[1]);
+  update();
+}
+
+void QGraphicsXYSpinboxChooser::setRange(ossia::vec2f min, ossia::vec2f max)
+{
+  m_x.setRange(min[0], max[0]);
+  m_y.setRange(min[1], max[1]);
+}
+
+QRectF QGraphicsXYSpinboxChooser::boundingRect() const
+{
+  return m_rect;
+}
+
 QGraphicsXYZSpinboxChooser::QGraphicsXYZSpinboxChooser(QGraphicsItem* parent)
     : m_x{this}
     , m_y{this}
@@ -221,8 +293,7 @@ ossia::vec3f
 QGraphicsXYZSpinboxChooser::scaledValue(float x, float y, float z) const noexcept
 {
   return {
-      m_x.min + x * (m_x.max - m_x.min),
-      m_y.min + y * (m_y.max - m_y.min),
+      m_x.min + x * (m_x.max - m_x.min), m_y.min + y * (m_y.max - m_y.min),
       m_z.min + z * (m_z.max - m_z.min)};
 }
 

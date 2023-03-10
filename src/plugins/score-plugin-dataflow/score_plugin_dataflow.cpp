@@ -43,9 +43,13 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::WidgetInletFactory<
              Process::LogFloatSlider, WidgetFactory::LogFloatSlider>,
          Dataflow::WidgetInletFactory<Process::IntSlider, WidgetFactory::IntSlider>,
-         Dataflow::WidgetInletFactory<Process::IntRangeSlider, WidgetFactory::IntRangeSlider>,
-         Dataflow::WidgetInletFactory<Process::FloatRangeSlider, WidgetFactory::FloatRangeSlider>,
+         Dataflow::WidgetInletFactory<
+             Process::IntRangeSlider, WidgetFactory::IntRangeSlider>,
+         Dataflow::WidgetInletFactory<
+             Process::FloatRangeSlider, WidgetFactory::FloatRangeSlider>,
          Dataflow::WidgetInletFactory<Process::IntSpinBox, WidgetFactory::IntSpinBox>,
+         Dataflow::WidgetInletFactory<
+             Process::FloatSpinBox, WidgetFactory::FloatSpinBox>,
          Dataflow::WidgetInletFactory<Process::TimeChooser, WidgetFactory::TimeChooser>,
          Dataflow::WidgetInletFactory<Process::Toggle, WidgetFactory::Toggle>,
          Dataflow::WidgetInletFactory<Process::Button, WidgetFactory::Button>,
@@ -61,6 +65,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::WidgetInletFactory<Process::HSVSlider, WidgetFactory::HSVSlider>,
          Dataflow::WidgetInletFactory<Process::XYSlider, WidgetFactory::XYSlider>,
          Dataflow::WidgetInletFactory<Process::XYZSlider, WidgetFactory::XYZSlider>,
+         Dataflow::WidgetInletFactory<Process::XYSpinboxes, WidgetFactory::XYSpinboxes>,
          Dataflow::WidgetInletFactory<
              Process::XYZSpinboxes, WidgetFactory::XYZSpinboxes>,
          Dataflow::WidgetInletFactory<Process::MultiSlider, WidgetFactory::MultiSlider>,

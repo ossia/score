@@ -52,6 +52,42 @@ private:
       override;
 };
 
+class SCORE_LIB_BASE_EXPORT QGraphicsXYSpinboxChooser final
+    : public QObject
+    , public QGraphicsItem
+{
+  W_OBJECT(QGraphicsXYSpinboxChooser)
+  Q_INTERFACES(QGraphicsItem)
+  QRectF m_rect{0., 0., 150., 24.};
+  QGraphicsSpinbox m_x, m_y;
+
+private:
+  bool m_grab{};
+
+public:
+  explicit QGraphicsXYSpinboxChooser(QGraphicsItem* parent);
+  ~QGraphicsXYSpinboxChooser();
+
+  void setPoint(const QPointF& r);
+  void setValue(ossia::vec2f v);
+  void setRange(ossia::vec2f min = {0.f, 0.f}, ossia::vec2f max = {1.f, 1.f});
+  ossia::vec2f value() const noexcept;
+  ossia::vec2f getMin() const noexcept;
+  ossia::vec2f getMax() const noexcept;
+
+  bool moving = false;
+
+public:
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+
+private:
+  ossia::vec2f scaledValue(float x, float y) const noexcept;
+  QRectF boundingRect() const override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override;
+};
+
 class SCORE_LIB_BASE_EXPORT QGraphicsXYZSpinboxChooser final
     : public QObject
     , public QGraphicsItem

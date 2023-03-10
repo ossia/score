@@ -518,6 +518,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/RangeFilter.hpp"
+  TARGET range_filter
+  MAIN_CLASS RangeFilter
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Gpu/SolidColor.hpp"
   TARGET gpu_solid_color
   MAIN_CLASS GpuSolidColorExample

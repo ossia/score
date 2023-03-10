@@ -14,6 +14,7 @@ struct IntSlider;
 struct IntRangeSlider;
 struct FloatRangeSlider;
 struct IntSpinBox;
+struct FloatSpinBox;
 struct TimeChooser;
 struct Toggle;
 struct ChooserToggle;
@@ -27,6 +28,7 @@ struct ImpulseButton;
 struct HSVSlider;
 struct XYSlider;
 struct XYZSlider;
+struct XYSpinboxes;
 struct XYZSpinboxes;
 struct MultiSlider;
 struct Bargraph;
@@ -56,6 +58,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntSpinBox,
     "238399a0-7e81-47e3-896f-08e8856e2973")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatSpinBox,
+    "10d62b0d-5bc9-4ac9-9540-9e8ac0c24947")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Toggle,
@@ -103,6 +108,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::XYZSlider,
     "bae00244-cd93-4893-a4ad-71489adb3fa1")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::XYSpinboxes,
+    "0adbbdda-fda4-451e-91cc-1da731bde9d5")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::XYZSpinboxes,
     "377e8205-b442-4d54-8832-3761def522b2")
@@ -220,6 +228,20 @@ struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
+struct SCORE_LIB_PROCESS_EXPORT FloatSpinBox : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(FloatSpinBox)
+  FloatSpinBox(
+      float min, float max, float init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~FloatSpinBox();
+
+  auto getMin() const noexcept { return domain().get().convert_min<float>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+};
 struct SCORE_LIB_PROCESS_EXPORT TimeChooser : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(TimeChooser)
@@ -412,6 +434,23 @@ struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<ossia::vec3f>(); }
   auto getMax() const noexcept { return domain().get().convert_max<ossia::vec3f>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT XYSpinboxes : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(XYSpinboxes)
+  XYSpinboxes(
+      ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
+  XYSpinboxes(
+      ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, const QString& name,
+      Id<Process::Port> id, QObject* parent);
+  ~XYSpinboxes();
+
+  auto getMin() const noexcept { return domain().get().convert_min<ossia::vec2f>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<ossia::vec2f>(); }
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;

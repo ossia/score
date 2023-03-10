@@ -271,6 +271,25 @@ void IntSpinBox::setupExecution(ossia::inlet& inl) const noexcept
 
 IntSpinBox::~IntSpinBox() { }
 
+FloatSpinBox::FloatSpinBox(
+    float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setName(name);
+}
+
+void FloatSpinBox::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::FLOAT;
+  port.domain = domain().get();
+}
+
+FloatSpinBox::~FloatSpinBox() { }
+
 TimeChooser::TimeChooser(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
@@ -536,6 +555,26 @@ XYZSpinboxes::XYZSpinboxes(
   setDomain(ossia::make_domain(ossia::vec3f{0., 0., 0.}, ossia::vec3f{1., 1., 1.}));
 }
 
+XYSpinboxes::XYSpinboxes(
+    ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, const QString& name,
+    Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setName(name);
+  setDomain(ossia::make_domain(min, max));
+}
+
+XYSpinboxes::~XYSpinboxes() { }
+
+void XYSpinboxes::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::VEC2F;
+  port.domain = domain().get();
+}
+
 XYZSpinboxes::XYZSpinboxes(
     ossia::vec3f min, ossia::vec3f max, ossia::vec3f init, const QString& name,
     Id<Port> id, QObject* parent)
@@ -754,6 +793,29 @@ JSONReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::FloatSpinBox>(const Process::FloatSpinBox& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::FloatSpinBox>(Process::FloatSpinBox& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::FloatSpinBox>(const Process::FloatSpinBox& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::FloatSpinBox>(Process::FloatSpinBox& p)
 {
 }
 
@@ -1058,6 +1120,29 @@ JSONReader::read<Process::XYZSlider>(const Process::XYZSlider& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write<Process::XYZSlider>(Process::XYZSlider& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::XYSpinboxes>(const Process::XYSpinboxes& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::XYSpinboxes>(Process::XYSpinboxes& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::XYSpinboxes>(const Process::XYSpinboxes& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::XYSpinboxes>(Process::XYSpinboxes& p)
 {
 }
 
