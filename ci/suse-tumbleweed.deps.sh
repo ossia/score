@@ -4,6 +4,9 @@ source ci/common.setup.sh
 
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
+# removing busybox-which removes git
+source ci/common.deps.sh
+
 $SUDO zypper -n remove busybox-which
 $SUDO zypper -n install \
    cmake ninja gcc gcc-c++ \
@@ -23,5 +26,3 @@ $SUDO zypper -n install \
    qt6-qml-devel qt6-qml-private-devel \
    ffmpeg-5-libavcodec-devel ffmpeg-5-libavdevice-devel ffmpeg-5-libavfilter-devel ffmpeg-5-libavformat-devel ffmpeg-5-libswresample-devel
 
-
-source ci/common.deps.sh
