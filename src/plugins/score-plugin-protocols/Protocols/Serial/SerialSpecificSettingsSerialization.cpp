@@ -36,7 +36,9 @@ void DataStreamWriter::write(Protocols::SerialSpecificSettings& n)
 template <>
 void JSONReader::read(const Protocols::SerialSpecificSettings& n)
 {
-  obj["Port"] = n.port.serialNumber();
+  obj["Port"] = n.port.portName();
+  obj["PortLocation"] = n.port.systemLocation();
+  obj["PortSN"] = n.port.systemLocation();
   obj["Text"] = n.text;
   obj["Rate"] = n.rate;
 }
@@ -44,13 +46,32 @@ void JSONReader::read(const Protocols::SerialSpecificSettings& n)
 template <>
 void JSONWriter::write(Protocols::SerialSpecificSettings& n)
 {
-  auto sn = obj["Port"].toString();
+  QString name, sn, location;
+
+  name = obj["Port"].toString();
+  if(auto opt_sn = obj.tryGet("PortSN"))
+    sn = opt_sn->toString();
+  if(auto opt_loc = obj.tryGet("PortLocation"))
+    location = opt_loc->toString();
+
   for(const auto& port : QSerialPortInfo::availablePorts())
-    if(port.serialNumber() == sn)
+  {
+    if(!sn.isEmpty() && port.serialNumber() == sn)
     {
       n.port = port;
       break;
     }
+    if(!location.isEmpty() && port.systemLocation() == location)
+    {
+      n.port = port;
+      break;
+    }
+    if(!name.isEmpty() && port.portName() == name)
+    {
+      n.port = port;
+      break;
+    }
+  }
 
   n.text = obj["Text"].toString();
   n.rate = obj["Rate"].toInt();
