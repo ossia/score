@@ -42,13 +42,20 @@ struct Pitch
 
     void filter(ossia::audio_port& in)
     {
+      while(hipass.size() < in.channels())
+      {
+        hipass.emplace_back(kfr::to_sos(
+            kfr::iir_highpass(kfr::butterworth<kfr::fbase>(12), 200, this->rate)));
+      }
+
+      int c = 0;
       for(ossia::audio_channel& chan : in)
       {
-        hipass.apply(chan.data(), chan.size());
+        hipass[c++].apply(chan.data(), chan.size());
       }
     }
 
-    kfr::biquad_filter<kfr::fbase, 32> hipass;
+    std::vector<kfr::biquad_filter<kfr::fbase, 32>> hipass;
   };
 #else
   using State = GistState;
