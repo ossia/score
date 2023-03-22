@@ -140,23 +140,29 @@ struct GfxRenderer final : GenericTexgenRenderer
     return it->second;
   }
 
-  void createInput(score::gfx::RenderList& renderer, int k, QSize size)
+  template <typename Tex>
+  void createInput(
+      score::gfx::RenderList& renderer, int k, const Tex& texture_spec, QSize size)
   {
     auto port = parent.input[k];
     constexpr auto flags = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
-    auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
+    auto texture = renderer.state.rhi->newTexture(
+        gpp::qrhi::textureFormat<Tex>(), size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port]
         = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
   }
 
-  void createOutput(score::gfx::RenderList& renderer, QSize size)
+  template <typename Tex>
+  void
+  createOutput(score::gfx::RenderList& renderer, const Tex& texture_spec, QSize size)
   {
     auto& rhi = *renderer.state.rhi;
     QRhiTexture* texture = &renderer.emptyTexture();
     if(size.width() > 0 && size.height() > 0)
     {
-      texture = rhi.newTexture(QRhiTexture::RGBA8, size, 1, QRhiTexture::Flag{});
+      texture = rhi.newTexture(
+          gpp::qrhi::textureFormat<Tex>(), size, 1, QRhiTexture::Flag{});
 
       texture->create();
     }
@@ -169,8 +175,8 @@ struct GfxRenderer final : GenericTexgenRenderer
     m_samplers.push_back({sampler, texture});
   }
 
-  QRhiTexture* updateTexture(
-      score::gfx::RenderList& renderer, int k, const avnd::cpu_texture auto& cpu_tex)
+  template <avnd::cpu_texture Tex>
+  QRhiTexture* updateTexture(score::gfx::RenderList& renderer, int k, const Tex& cpu_tex)
   {
     auto& [sampler, texture] = m_samplers[k];
     if(texture)
@@ -185,7 +191,7 @@ struct GfxRenderer final : GenericTexgenRenderer
     {
       QRhiTexture* oldtex = texture;
       QRhiTexture* newtex = renderer.state.rhi->newTexture(
-          QRhiTexture::RGBA8, QSize{cpu_tex.width, cpu_tex.height}, 1,
+          gpp::qrhi::textureFormat<Tex>(), QSize{cpu_tex.width, cpu_tex.height}, 1,
           QRhiTexture::Flag{});
       newtex->create();
       for(auto& [edge, pass] : this->m_p)
@@ -263,7 +269,7 @@ struct GfxRenderer final : GenericTexgenRenderer
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
           avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
             auto sz = renderer.state.renderSize;
-            createInput(renderer, k, sz);
+            createInput(renderer, k, t.texture, sz);
             t.texture.width = sz.width();
             t.texture.height = sz.height();
             k++;
@@ -276,7 +282,7 @@ struct GfxRenderer final : GenericTexgenRenderer
       int k = 0;
       avnd::cpu_texture_output_introspection<Node_T>::for_all(
           avnd::get_outputs<Node_T>(state), [&](auto& t) {
-            createOutput(renderer, QSize{t.texture.width, t.texture.height});
+            createOutput(renderer, t.texture, QSize{t.texture.width, t.texture.height});
             k++;
           });
     }

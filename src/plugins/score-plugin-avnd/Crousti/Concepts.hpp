@@ -552,31 +552,4 @@ struct multichannel_audio
   }
 };
 
-struct rgba_texture
-{
-  enum format
-  {
-    RGBA
-  };
-  unsigned char* bytes{};
-  int width{};
-  int height{};
-  bool changed{};
-
-  static auto allocate(int width, int height)
-  {
-    using namespace boost::container;
-    return vector<unsigned char>(width * height * 4, default_init);
-  }
-
-  void update(unsigned char* data, int w, int h)
-  {
-    bytes = data;
-    width = w;
-    height = h;
-    changed = true;
-  }
-};
-
-static_assert(avnd::cpu_texture<rgba_texture>);
 }
