@@ -5,7 +5,9 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include <Crousti/GfxNode.hpp>
+#include <Crousti/CpuAnalysisNode.hpp>
+#include <Crousti/CpuFilterNode.hpp>
+#include <Crousti/CpuGeneratorNode.hpp>
 #include <Crousti/GpuComputeNode.hpp>
 #include <Crousti/GpuNode.hpp>
 #include <Crousti/MessageBus.hpp>
@@ -620,8 +622,7 @@ public:
       }
       else if constexpr(GpuNode<Node>)
       {
-        ptr.reset(new GfxNode<Node>(
-            std::make_shared<Node>(), qex_ptr, node->control_outs, id));
+        ptr.reset(new GfxNode<Node>(qex_ptr, node->control_outs, id));
       }
       node->id = gfx_exec.ui->register_node(std::move(ptr));
       node_id = node->id;

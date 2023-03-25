@@ -16,6 +16,8 @@
 #include <fmt/format.h>
 #include <gpp/layout.hpp>
 
+#include <score_plugin_avnd_export.h>
+
 namespace gpp::qrhi
 {
 template <typename F>
@@ -843,6 +845,20 @@ struct GpuControlOuts
   }
 };
 
+struct SCORE_PLUGIN_AVND_EXPORT CustomGfxNodeBase : score::gfx::NodeModel
+{
+  virtual ~CustomGfxNodeBase();
+
+  score::gfx::Message last_message;
+  void process(score::gfx::Message&& msg) override;
+};
+struct SCORE_PLUGIN_AVND_EXPORT CustomGfxOutputNodeBase : score::gfx::OutputNode
+{
+  virtual ~CustomGfxOutputNodeBase();
+
+  score::gfx::Message last_message;
+  void process(score::gfx::Message&& msg) override;
+};
 struct CustomGpuNodeBase
     : score::gfx::Node
     , GpuControlOuts
@@ -860,13 +876,13 @@ struct CustomGpuNodeBase
   void process(score::gfx::Message&& msg) override;
 };
 
-struct CustomGpuOutputNodeBase
+struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
     : score::gfx::OutputNode
     , GpuControlOuts
 {
   CustomGpuOutputNodeBase(
       std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls);
-  virtual ~CustomGpuOutputNodeBase() = default;
+  virtual ~CustomGpuOutputNodeBase();
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};

@@ -33,6 +33,9 @@ customMessageProcess(const score::gfx::Message& msg, score::gfx::Message& last_m
   }
 }
 
+CustomGfxNodeBase::~CustomGfxNodeBase() = default;
+CustomGfxOutputNodeBase::~CustomGfxOutputNodeBase() = default;
+
 CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
     std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls)
     : GpuControlOuts{std::move(q), std::move(ctls)}
@@ -54,6 +57,7 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
   m_renderState->api = score::gfx::GraphicsApi::OpenGL;
   m_renderState->version = caps.qShaderVersion;
 }
+CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase() = default;
 
 void CustomGpuOutputNodeBase::process(score::gfx::Message&& msg)
 {
@@ -120,6 +124,16 @@ score::gfx::OutputNode::Configuration
 CustomGpuOutputNodeBase::configuration() const noexcept
 {
   return {.manualRenderingRate = 1000. / 60., .outputNeedsRenderPass = true};
+}
+
+void CustomGfxNodeBase::process(score::gfx::Message&& msg)
+{
+  customMessageProcess(msg, last_message);
+}
+
+void CustomGfxOutputNodeBase::process(score::gfx::Message&& msg)
+{
+  customMessageProcess(msg, last_message);
 }
 
 void CustomGpuNodeBase::process(score::gfx::Message&& msg)

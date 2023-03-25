@@ -83,6 +83,9 @@ add_library(
 
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
+  Crousti/CpuAnalysisNode.hpp
+  Crousti/CpuFilterNode.hpp
+  Crousti/CpuGeneratorNode.hpp
   Crousti/Executor.hpp
   Crousti/GfxNode.hpp
   Crousti/GpuNode.hpp
