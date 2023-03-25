@@ -73,6 +73,11 @@ public:
   virtual NodeRenderer* createRenderer(RenderList& r) const noexcept = 0;
 
   /**
+   * @brief Whenever render nodes are added / removed
+   */
+  virtual void renderedNodesChanged();
+
+  /**
    * @brief Process a message from the execution engine
    */
   virtual void process(Message&& msg);

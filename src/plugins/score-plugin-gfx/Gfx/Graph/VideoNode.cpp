@@ -1,5 +1,6 @@
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
+#include <Video/CameraInput.hpp>
 #include <Video/FrameQueue.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -42,7 +43,7 @@ void VideoNode::process(Message&& msg)
   reader.readNextFrame(*this);
 }
 
-CameraNode::CameraNode(std::shared_ptr<Video::VideoInterface> dec, QString f)
+CameraNode::CameraNode(std::shared_ptr<Video::ExternalInput> dec, QString f)
 {
   this->m_scaleMode = ScaleMode::Stretch;
   this->m_filter = std::move(f);
@@ -59,12 +60,27 @@ score::gfx::NodeRenderer* CameraNode::createRenderer(RenderList& r) const noexce
 
 void CameraNode::process(Message&& msg)
 {
-  if(auto frame = reader.m_decoder->dequeue_frame())
+  if(this->renderedNodes.size() > 0)
   {
-    reader.updateCurrentFrame(frame);
+    if(auto frame = reader.m_decoder->dequeue_frame())
+    {
+      reader.updateCurrentFrame(frame);
+    }
   }
 
   reader.releaseFramesToFree();
+}
+
+void CameraNode::renderedNodesChanged()
+{
+  if(this->renderedNodes.size() == 0)
+  {
+    reader.releaseAllFrames();
+    if(must_stop.exchange(false))
+    {
+      static_cast<::Video::ExternalInput*>(reader.m_decoder.get())->stop();
+    }
+  }
 }
 
 std::shared_ptr<RefcountedFrame> VideoFrameShare::currentFrame() const noexcept
@@ -103,21 +119,30 @@ VideoFrameShare::VideoFrameShare() { }
 
 VideoFrameShare::~VideoFrameShare()
 {
+  releaseAllFrames();
+}
+
+void VideoFrameShare::releaseAllFrames()
+{
   ossia::flat_set<AVFrame*> remaining;
 
   auto& decoder = *m_decoder;
   if(m_currentFrame && m_currentFrame->frame)
     remaining.insert(m_currentFrame->frame);
+  m_currentFrame.reset();
 
-  for(auto frame : m_framesInFlight)
+  for(auto& frame : m_framesInFlight)
   {
     if(frame)
       remaining.insert(frame->frame);
   }
+  m_framesInFlight.clear();
+
   for(auto frame : m_framesToFree)
   {
     remaining.insert(frame);
   }
+  m_framesToFree.clear();
 
   for(auto f : remaining)
     decoder.release_frame(f);

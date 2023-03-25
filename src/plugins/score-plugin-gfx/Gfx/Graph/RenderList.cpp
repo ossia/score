@@ -62,6 +62,7 @@ RenderList::~RenderList()
   for(auto node : this->nodes)
   {
     node->renderedNodes.erase(this);
+    node->renderedNodesChanged();
   }
   for(auto node : renderers)
   {

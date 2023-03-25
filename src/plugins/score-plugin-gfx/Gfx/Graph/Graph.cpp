@@ -131,6 +131,7 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
   for(auto node : m_nodes)
   {
     node->renderedNodes.clear();
+    node->renderedNodesChanged();
   }
 
   for(auto& renderer : m_renderers)
@@ -282,6 +283,7 @@ void Graph::relinkGraph()
             if((rn = node->createRenderer(r)))
             {
               node->renderedNodes.emplace(&r, rn);
+              node->renderedNodesChanged();
               //rn->init(r);
             }
             else
@@ -360,6 +362,7 @@ static bool createNodeRenderer(score::gfx::Node& node, RenderList& r)
     // Register the rendered nodes with their parents
     SCORE_ASSERT(node.renderedNodes.find(&r) == node.renderedNodes.end());
     node.renderedNodes.emplace(&r, rn);
+    node.renderedNodesChanged();
     return true;
   }
 

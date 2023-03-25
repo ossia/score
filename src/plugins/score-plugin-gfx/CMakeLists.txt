@@ -189,6 +189,7 @@ set(SRCS
     Gfx/InvertYRenderer.cpp
     Gfx/CameraDevice.cpp
     Gfx/WindowDevice.cpp
+    Gfx/GfxInputDevice.cpp
 
     Gfx/Settings/Model.cpp
     Gfx/Settings/Presenter.cpp

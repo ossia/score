@@ -17,6 +17,7 @@ Node::~Node()
     delete port;
 }
 
+void Node::renderedNodesChanged() { }
 void Node::process(Message&& msg) { }
 
 NodeModel::NodeModel() { }

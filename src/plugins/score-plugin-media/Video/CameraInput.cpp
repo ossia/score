@@ -159,6 +159,9 @@ void CameraInput::close_file() noexcept
   if(m_thread.joinable())
     m_thread.join();
 
+  // Remove frames that were in flight
+  m_frames.drain();
+
   // Clear the stream
   close_stream();
 
@@ -170,9 +173,6 @@ void CameraInput::close_file() noexcept
   }
 
   m_rescale.close();
-
-  // Remove frames that were in flight
-  m_frames.drain();
 }
 
 AVFrame* CameraInput::read_frame_impl() noexcept

@@ -11,6 +11,7 @@ extern "C" {
 namespace Video
 {
 struct VideoInterface;
+class ExternalInput;
 }
 namespace score::gfx
 {
@@ -31,6 +32,7 @@ struct VideoFrameShare
   std::shared_ptr<RefcountedFrame> currentFrame() const noexcept;
   void updateCurrentFrame(AVFrame* frame);
   void releaseFramesToFree();
+  void releaseAllFrames();
 
   std::shared_ptr<Video::VideoInterface> m_decoder;
 
@@ -102,26 +104,31 @@ private:
   std::optional<double> m_nativeTempo;
 };
 
+}
+
+namespace score::gfx
+{
 /**
  * @brief Model for rendering a camera feed
  */
 class SCORE_PLUGIN_GFX_EXPORT CameraNode : public VideoNodeBase
 {
 public:
-  CameraNode(std::shared_ptr<Video::VideoInterface> dec, QString f = {});
+  CameraNode(std::shared_ptr<Video::ExternalInput> dec, QString f = {});
 
   virtual ~CameraNode();
 
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   void process(Message&& msg) override;
+  void renderedNodesChanged() override;
 
   VideoFrameShare reader;
 
+  std::atomic_bool must_stop{};
+
 private:
   friend VideoNodeRenderer;
-
-  std::shared_ptr<RefcountedFrame> m_currentFrame{};
 };
 
 }
