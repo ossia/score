@@ -1009,7 +1009,15 @@ struct FileChooser
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
           inlet, filename.toStdString());
     };
-    QObject::connect(bt, &score::QGraphicsTextButton::pressed, on_open);
+    auto on_set = [bt, &inlet, &ctx](const QString& filename) {
+      if(filename.isEmpty())
+        return;
+
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, filename.toStdString());
+    };
+    QObject::connect(bt, &score::QGraphicsTextButton::pressed, &inlet, on_open);
+    QObject::connect(bt, &score::QGraphicsTextButton::dropped, &inlet, on_set);
     auto set = [=](const ossia::value& val) {
       auto str = QString::fromStdString(ossia::convert<std::string>(val));
       if(str != bt->text())
