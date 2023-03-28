@@ -100,8 +100,15 @@ void GfxContext::add_edge(Edge edge)
       assert(source_node_it->second);
       assert(sink_node_it->second);
 
-      auto source_port = source_node_it->second->output[edge.first.port];
-      auto sink_port = sink_node_it->second->input[edge.second.port];
+      auto& source_ports = source_node_it->second->output;
+      auto& sink_ports = sink_node_it->second->input;
+
+      SCORE_ASSERT(source_ports.size() > 0);
+      SCORE_ASSERT(sink_ports.size() > 0);
+      SCORE_ASSERT(source_ports.size() > edge.first.port);
+      SCORE_ASSERT(sink_ports.size() > edge.second.port);
+      auto source_port = source_ports[edge.first.port];
+      auto sink_port = sink_ports[edge.second.port];
 
       m_graph->addEdge(source_port, sink_port);
     }
