@@ -11,7 +11,9 @@
 
 #include <wobjectimpl.h>
 
+W_OBJECT_IMPL(Process::FileChooserBase)
 W_OBJECT_IMPL(Process::FileChooser)
+W_OBJECT_IMPL(Process::AudioFileChooser)
 W_OBJECT_IMPL(Process::ImpulseButton)
 namespace Process
 {
@@ -392,7 +394,7 @@ void ProgramEdit::setupExecution(ossia::inlet& inl) const noexcept
 
 ProgramEdit::~ProgramEdit() { }
 
-FileChooser::FileChooser(
+FileChooserBase::FileChooserBase(
     QString init, QString filters, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
@@ -402,14 +404,14 @@ FileChooser::FileChooser(
   m_filters = filters;
 }
 
-void FileChooser::setupExecution(ossia::inlet& inl) const noexcept
+void FileChooserBase::setupExecution(ossia::inlet& inl) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::STRING;
   port.domain = domain().get();
 }
 
-void FileChooser::enableFileWatch()
+void FileChooserBase::enableFileWatch()
 {
   auto fun = std::make_shared<std::function<void()>>([ptr = QPointer{this}]() mutable {
     ossia::qt::run_async(qApp, [ptr] {
@@ -445,10 +447,26 @@ void FileChooser::enableFileWatch()
   });
 }
 
-FileChooser::~FileChooser()
+FileChooserBase::~FileChooserBase()
 {
   destroying();
 }
+
+FileChooser::FileChooser(
+    QString init, QString filters, const QString& name, Id<Port> id, QObject* parent)
+    : FileChooserBase{init, filters, name, id, parent}
+{
+}
+
+FileChooser::~FileChooser() { }
+
+AudioFileChooser::AudioFileChooser(
+    QString init, QString filters, const QString& name, Id<Port> id, QObject* parent)
+    : FileChooserBase{init, filters, name, id, parent}
+{
+}
+
+AudioFileChooser::~AudioFileChooser() { }
 
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
@@ -961,6 +979,38 @@ JSONWriter::write<Process::FileChooser>(Process::FileChooser& p)
   f <<= obj["Filters"];
   p.setFilters(f);
 }
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::AudioFileChooser>(const Process::AudioFileChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  m_stream << p.filters();
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::AudioFileChooser>(Process::AudioFileChooser& p)
+{
+  QString f;
+  m_stream >> f;
+  p.setFilters(f);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::AudioFileChooser>(const Process::AudioFileChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  obj["Filters"] = p.filters();
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::AudioFileChooser>(Process::AudioFileChooser& p)
+{
+  QString f;
+  f <<= obj["Filters"];
+  p.setFilters(f);
+}
+
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Enum>(const Process::Enum& p)

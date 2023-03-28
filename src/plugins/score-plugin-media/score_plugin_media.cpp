@@ -1,8 +1,12 @@
 #include "score_plugin_media.hpp"
 
+#include <Process/Dataflow/WidgetInlets.hpp>
+
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
+#include <Dataflow/WidgetInletFactory.hpp>
 #include <Library/LibraryInterface.hpp>
+#include <Media/AudioFileChooserWidget.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/Libav.hpp>
@@ -50,8 +54,9 @@ score_plugin_media::score_plugin_media()
 
   if(LIBAVFORMAT_VERSION_INT != avformat_version())
   {
-    qFatal("Run-time FFMPEG libraries are different than the one score is built against, "
-           "this will cause crashes. Aborting.");
+    qFatal(
+        "Run-time FFMPEG libraries are different than the one score is built against, "
+        "this will cause crashes. Aborting.");
   }
 #endif
 
@@ -109,7 +114,11 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          Execution::MergerComponentFactory>,
       FW<Process::ProcessDropHandler, Media::Sound::DropHandler>,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
-      FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>>(ctx, key);
+      FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>,
+      FW<Process::PortFactory, Dataflow::WidgetInletFactory<
+                                   Process::AudioFileChooser, Media::AudioFileChooser>>
+
+      >(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

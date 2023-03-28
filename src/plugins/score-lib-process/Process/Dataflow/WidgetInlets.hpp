@@ -22,6 +22,7 @@ struct ComboBox;
 struct LineEdit;
 struct ProgramEdit;
 struct FileChooser;
+struct AudioFileChooser;
 struct Enum;
 struct Button;
 struct ImpulseButton;
@@ -79,6 +80,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FileChooser,
     "40833147-4c42-4b8b-bb80-0b1d15dae129")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::AudioFileChooser,
+    "c347b510-927a-4924-9da1-c76871623567")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ProgramEdit,
     "de15c0da-429b-49d3-bb07-7c41f5f205c8")
@@ -291,15 +295,15 @@ struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 
   using Process::ControlInlet::ControlInlet;
 };
-struct SCORE_LIB_PROCESS_EXPORT FileChooser : public Process::ControlInlet
+
+struct SCORE_LIB_PROCESS_EXPORT FileChooserBase : public Process::ControlInlet
 {
-  MODEL_METADATA_IMPL(FileChooser)
-  W_OBJECT(FileChooser)
+  W_OBJECT(FileChooserBase)
 public:
-  FileChooser(
+  FileChooserBase(
       QString init, QString filters, const QString& name, Id<Process::Port> id,
       QObject* parent);
-  ~FileChooser();
+  ~FileChooserBase();
   using Process::ControlInlet::ControlInlet;
 
   void setupExecution(ossia::inlet& inl) const noexcept override;
@@ -311,6 +315,29 @@ public:
 
 private:
   QString m_filters;
+};
+struct SCORE_LIB_PROCESS_EXPORT FileChooser : public FileChooserBase
+{
+  MODEL_METADATA_IMPL(FileChooser)
+  W_OBJECT(FileChooser)
+public:
+  FileChooser(
+      QString init, QString filters, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~FileChooser();
+  using Process::FileChooserBase::FileChooserBase;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT AudioFileChooser : public FileChooserBase
+{
+  MODEL_METADATA_IMPL(AudioFileChooser)
+  W_OBJECT(AudioFileChooser)
+public:
+  AudioFileChooser(
+      QString init, QString filters, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~AudioFileChooser();
+  using Process::FileChooserBase::FileChooserBase;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet

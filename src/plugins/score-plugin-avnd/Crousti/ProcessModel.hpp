@@ -76,13 +76,13 @@ struct Metadata<Tags_k, oscr::ProcessModel<Info>>
   }
 };
 
-template<typename T>
+template <typename T>
 concept has_kind = requires { T::kind(); };
 
-template<typename T>
+template <typename T>
 auto get_kind()
-{ 
-  if constexpr (has_kind<T>)
+{
+  if constexpr(has_kind<T>)
     return T::kind();
   else
     return Process::ProcessCategory::Other;
@@ -301,8 +301,37 @@ struct InletInitFunc
       return "";
     }
   }
+
   template <typename T>
-    requires avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::raw_file_port<T>
+    requires avnd::soundfile_port<T>
+  void operator()(const T& in, auto idx)
+  {
+    constexpr auto name = avnd::get_name<T>();
+    Process::FileChooserBase* p{};
+    if constexpr(requires { T::waveform; })
+    {
+      p = new Process::AudioFileChooser{
+          "", getFilters(in), QString::fromUtf8(name.data(), name.size()),
+          Id<Process::Port>(inlet++), &self};
+    }
+    else
+    {
+      p = new Process::FileChooser{
+          "", getFilters(in), QString::fromUtf8(name.data(), name.size()),
+          Id<Process::Port>(inlet++), &self};
+    }
+
+    p->hidden = true;
+    ins.push_back(p);
+
+    if constexpr(avnd::tag_file_watch<T>)
+    {
+      p->enableFileWatch();
+    }
+  }
+
+  template <typename T>
+    requires avnd::midifile_port<T> || avnd::raw_file_port<T>
   void operator()(const T& in, auto idx)
   {
     constexpr auto name = avnd::get_name<T>();

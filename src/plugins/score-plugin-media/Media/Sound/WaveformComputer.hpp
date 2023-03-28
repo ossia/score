@@ -55,7 +55,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT WaveformComputer : public QObject
 {
   W_OBJECT(WaveformComputer)
 public:
-  WaveformComputer();
+  WaveformComputer(bool threaded = true);
   ~WaveformComputer();
 
   void stop();

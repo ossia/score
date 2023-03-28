@@ -228,6 +228,21 @@ AudioFileManager::get(const QString& path, int stream, const score::DocumentCont
   return r;
 }
 
+std::shared_ptr<AudioFile> AudioFileManager::get(const QString& abspath, int stream)
+{
+  // TODO what would be a good garbage collection mechanism ?
+  StreamInfo k{abspath, stream};
+  if(auto it = m_handles.find(k); it != m_handles.end())
+  {
+    return it->second;
+  }
+
+  auto r = std::make_shared<AudioFile>();
+  r->load({abspath, abspath, DecodingMethod::Invalid, stream});
+  m_handles.insert({k, r});
+  return r;
+}
+
 AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
 {
   struct

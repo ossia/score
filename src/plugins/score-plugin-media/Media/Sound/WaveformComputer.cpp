@@ -19,7 +19,7 @@
 W_OBJECT_IMPL(Media::Sound::WaveformComputer)
 namespace Media::Sound
 {
-WaveformComputer::WaveformComputer()
+WaveformComputer::WaveformComputer(bool threaded)
 {
   connect(
       this, &WaveformComputer::recompute, this,
@@ -32,8 +32,11 @@ WaveformComputer::WaveformComputer()
       Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);
 
-  auto& inst = score::ThreadPool::instance();
-  this->moveToThread(inst.acquireThread());
+  if(threaded)
+  {
+    auto& inst = score::ThreadPool::instance();
+    this->moveToThread(inst.acquireThread());
+  }
 }
 
 WaveformComputer::~WaveformComputer() { }

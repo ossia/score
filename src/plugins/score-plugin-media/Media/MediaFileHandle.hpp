@@ -258,6 +258,8 @@ public:
   std::shared_ptr<AudioFile>
   get(const QString&, int stream, const score::DocumentContext&);
 
+  std::shared_ptr<AudioFile> get(const QString& absolutePath, int stream);
+
 private:
   struct StreamInfo
   {
@@ -279,8 +281,7 @@ private:
     QString file;
     int stream{-1};
   };
-  ossia::hash_map<StreamInfo, std::shared_ptr<AudioFile>, StreamInfo::hash>
-      m_handles;
+  ossia::hash_map<StreamInfo, std::shared_ptr<AudioFile>, StreamInfo::hash> m_handles;
 };
 
 /**

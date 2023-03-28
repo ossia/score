@@ -16,6 +16,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioArray.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Libav.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioFileChooserWidget.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
@@ -110,6 +111,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroExecutor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroModel.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioFileChooserWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.libav.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.libavstream.cpp"
