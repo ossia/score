@@ -116,7 +116,7 @@ void LocalDevice::init()
 
     if(auto plug = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
     {
-      QPointer<LocalDevice> self;
+      QPointer<LocalDevice> self = this;
       plug->networkContext()->context.post(
           [=, name = m_dev.get_name()] { exposeZeroconf(name, set, self); });
     }
