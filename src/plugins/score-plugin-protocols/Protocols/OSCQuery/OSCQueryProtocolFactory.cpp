@@ -15,13 +15,12 @@
 #include <QNetworkReply>
 
 #if defined(OSSIA_DNSSD)
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/basic_resolver.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include <Protocols/DNSSDDeviceEnumerator.hpp>
 
 #include <servus/listener.h>
 #include <servus/servus.h>
 #endif
+
 #include <ossia/network/base/device.hpp>
 
 #include <QEventLoop>
@@ -32,49 +31,19 @@
 namespace Protocols
 {
 #if defined(OSSIA_DNSSD)
-class OSCQueryEnumerator final
-    : public Device::DeviceEnumerator
-    , public servus::Listener
+class OSCQueryEnumerator final : public DNSSDEnumerator
 {
 public:
   OSCQueryEnumerator()
-      : m_serv{"_oscjson._tcp"}
+      : DNSSDEnumerator{"_oscjson._tcp"}
   {
-    m_serv.addListener(static_cast<servus::Listener*>(this));
-    m_serv.beginBrowsing(servus::Interface::IF_ALL);
-    m_serv.browse(100);
-    m_timer = startTimer(250);
-  }
-  ~OSCQueryEnumerator()
-  {
-    killTimer(m_timer);
-    m_serv.removeListener(this);
-    m_serv.endBrowsing();
+    start();
   }
 
 private:
-  mutable QNetworkAccessManager m_http;
-
-  // Servus API
-  void instanceAdded(const std::string& instance) override
-  {
-    if(m_instances.count(instance) == 0)
-    {
-      m_instances.insert(instance);
-      settingsForInstance(instance);
-    }
-  }
-
-  void instanceRemoved(const std::string& instance) override
-  {
-    if(m_instances.count(instance) != 0)
-    {
-      m_instances.erase(instance);
-      deviceRemoved(QString::fromStdString(instance));
-    }
-  }
-
-  void settingsForInstance(const std::string& instance) noexcept
+  void addNewDevice(
+      const std::string& instance, const std::string& ip,
+      const std::string& port) noexcept override
   {
     using namespace std::literals;
 
@@ -82,47 +51,7 @@ private:
     set.name = QString::fromStdString(instance);
     set.protocol = OSCQueryProtocolFactory::static_concreteKey();
 
-    std::string ip = m_serv.get(instance, "servus_host");
-    if(ip.empty())
-    {
-      ip = m_serv.get(instance, "servus_ip");
-    }
-
-#if defined(_WIN32)
-    if(!ip.empty() && ip.back() == '.')
-      ip.pop_back();
-#endif
-
-    std::string port = m_serv.get(instance, "servus_port");
     bool websockets = m_serv.get(instance, "WebSockets") == "true"sv;
-
-    try
-    {
-      boost::asio::io_service io_service;
-
-      boost::asio::ip::tcp::resolver resolver(io_service);
-      boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(
-          boost::asio::ip::tcp::v4(), ip, port,
-          boost::asio::ip::resolver_base::numeric_service);
-
-      boost::asio::ip::tcp::resolver::iterator end;
-      while(iter != end)
-      {
-        if(iter->endpoint().address().is_loopback())
-        {
-          ip = "localhost";
-          break;
-        }
-        else
-        {
-          ip = iter->endpoint().address().to_string();
-          ++iter;
-        }
-      }
-    }
-    catch(...)
-    {
-    }
 
     {
       QString req = QString("http://%1:%2/?HOST_INFO")
@@ -164,18 +93,9 @@ private:
     }
   }
 
-  // DeviceEnumerator API
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override { }
-
-  void timerEvent(QTimerEvent* ev) override
-  {
-    m_serv.browse(0);
-  }
-
-  servus::Servus m_serv;
-  ossia::flat_set<std::string> m_instances;
-  int m_timer{-1};
+  mutable QNetworkAccessManager m_http;
 };
+
 #endif
 
 QString OSCQueryProtocolFactory::prettyName() const noexcept

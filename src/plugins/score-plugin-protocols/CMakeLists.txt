@@ -17,6 +17,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/ProtocolLibrary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/RateWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/LibraryDeviceEnumerator.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/DNSSDDeviceEnumerator.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_protocols.hpp"
 )
@@ -27,6 +28,7 @@ set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/View.cpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/LibraryDeviceEnumerator.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/DNSSDDeviceEnumerator.cpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_protocols.cpp"
 )

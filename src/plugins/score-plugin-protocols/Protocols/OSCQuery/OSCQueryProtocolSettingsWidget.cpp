@@ -22,9 +22,6 @@
 #include <QPushButton>
 #include <QString>
 #include <QVariant>
-#if defined(OSSIA_DNSSD)
-#include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
-#endif
 namespace Protocols
 {
 OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
