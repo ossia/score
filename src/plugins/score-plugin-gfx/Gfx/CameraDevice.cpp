@@ -87,10 +87,10 @@ QString CameraProtocolFactory::category() const noexcept
   return StandardCategories::video;
 }
 
-Device::DeviceEnumerator*
-CameraProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+CameraProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new CameraEnumerator;
+  return {{"Streams", new CameraEnumerator}};
 }
 
 Device::DeviceInterface* CameraProtocolFactory::makeDevice(

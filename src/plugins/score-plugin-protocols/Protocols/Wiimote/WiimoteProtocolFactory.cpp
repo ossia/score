@@ -22,12 +22,6 @@ QString WiimoteProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator*
-WiimoteProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)

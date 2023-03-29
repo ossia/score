@@ -31,17 +31,10 @@ QString LocalProtocolFactory::category() const noexcept
   return StandardCategories::util;
 }
 
-Device::DeviceEnumerator*
-LocalProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  qDebug() << "updating local" << settings.name;
   auto doc = ctx.findPlugin<LocalTree::DocumentPlugin>();
   if(doc)
   {

@@ -414,12 +414,6 @@ QString WindowProtocolFactory::category() const noexcept
   return StandardCategories::video;
 }
 
-Device::DeviceEnumerator*
-WindowProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::DeviceInterface* WindowProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)

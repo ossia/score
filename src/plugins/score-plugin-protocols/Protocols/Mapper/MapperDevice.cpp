@@ -317,8 +317,7 @@ public:
 
   callback_stopper stop_callbacks() { return *this; }
   std::atomic_bool m_stop_callbacks = false;
-  ossia::hash_map<
-      const ossia::net::node_base*, ossia::net::parameter_base::iterator>
+  ossia::hash_map<const ossia::net::node_base*, ossia::net::parameter_base::iterator>
       callbacks;
 };
 using mapper_node = ossia::net::wrapped_node<mapper_parameter_data, mapper_parameter>;
@@ -741,10 +740,10 @@ QString MapperProtocolFactory::category() const noexcept
   return StandardCategories::util;
 }
 
-Device::DeviceEnumerator*
-MapperProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+MapperProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new LibraryDeviceEnumerator{
+  auto library_enumerator = new LibraryDeviceEnumerator{
       "Ossia.Mapper",
       {"qml"},
       MapperProtocolFactory::static_concreteKey(),
@@ -752,6 +751,8 @@ MapperProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
     return QVariant::fromValue(MapperSpecificSettings{arr});
       },
       ctx};
+
+  return {{"Library", library_enumerator}};
 }
 
 Device::DeviceInterface* MapperProtocolFactory::makeDevice(

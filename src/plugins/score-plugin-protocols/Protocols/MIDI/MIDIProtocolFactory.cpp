@@ -144,10 +144,10 @@ QString MIDIInputProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator*
-MIDIInputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+MIDIInputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>;
+  return {{"Inputs", new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>}};
 }
 
 Device::DeviceInterface* MIDIInputProtocolFactory::makeDevice(
@@ -219,10 +219,10 @@ QString MIDIOutputProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator*
-MIDIOutputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+MIDIOutputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>;
+  return {{"Outputs", new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>}};
 }
 
 Device::DeviceInterface* MIDIOutputProtocolFactory::makeDevice(

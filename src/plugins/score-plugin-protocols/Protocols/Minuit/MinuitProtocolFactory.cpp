@@ -25,12 +25,6 @@ QString MinuitProtocolFactory::category() const noexcept
   return StandardCategories::osc;
 }
 
-Device::DeviceEnumerator*
-MinuitProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 int MinuitProtocolFactory::visualPriority() const noexcept
 {
   return 1;

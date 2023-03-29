@@ -22,8 +22,8 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("2835e6da-9b55-4029-9802-e1c817acbdc1")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
-  Device::DeviceEnumerator*
-  getEnumerator(const score::DocumentContext& ctx) const override;
+  Device::DeviceEnumerators
+  getEnumerators(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,

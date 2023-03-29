@@ -37,7 +37,7 @@ public:
   void deviceRemoved(const QString& s)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceRemoved, s)
 };
-
+using DeviceEnumerators = std::vector<std::pair<QString, Device::DeviceEnumerator*>>;
 class SCORE_LIB_DEVICE_EXPORT ProtocolFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(ProtocolFactory, "3f69d72e-318d-42dc-b48c-a806036592f1")
@@ -69,7 +69,7 @@ public:
    * will show up first in the protocol list */
   virtual int visualPriority() const noexcept;
 
-  virtual DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const = 0;
+  virtual DeviceEnumerators getEnumerators(const score::DocumentContext& ctx) const;
 
   virtual DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
@@ -90,7 +90,8 @@ public:
 
   // Save
   virtual void serializeProtocolSpecificSettings(
-      const QVariant& data, const VisitorVariant& visitor) const = 0;
+      const QVariant& data, const VisitorVariant& visitor) const
+      = 0;
 
   template <typename T>
   void serializeProtocolSpecificSettings_T(
@@ -110,8 +111,8 @@ public:
 
   // Returns true if the two devicesettings can coexist at the same time.
   virtual bool checkCompatibility(
-      const Device::DeviceSettings& a,
-      const Device::DeviceSettings& b) const noexcept = 0;
+      const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
+      = 0;
 };
 }
 

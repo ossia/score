@@ -158,10 +158,10 @@ struct OSCCompatibleCheck
   }
 };
 
-Device::DeviceEnumerator*
-OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+OSCProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new LibraryDeviceEnumerator{
+  auto library_enumerator = new LibraryDeviceEnumerator{
       "9a42de4b-f6eb-4bca-9564-01b975f601b9",
       {"json", "device", "touchosc", "xml"},
       OSCProtocolFactory::static_concreteKey(),
@@ -173,6 +173,8 @@ OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
         OSCSpecificSettings{readOSCConfig(copy), std::nullopt, std::move(copy)});
       },
       ctx};
+
+  return {{"Library", library_enumerator}};
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(

@@ -32,10 +32,10 @@ QString WSProtocolFactory::category() const noexcept
 {
   return StandardCategories::web;
 }
-Device::DeviceEnumerator*
-WSProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+WSProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new LibraryDeviceEnumerator{
+  auto library_enumerator = new LibraryDeviceEnumerator{
       "Ossia.WebSockets",
       {"qml"},
       WSProtocolFactory::static_concreteKey(),
@@ -43,6 +43,8 @@ WSProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
     return QVariant::fromValue(WSSpecificSettings{{}, arr});
       },
       ctx};
+
+  return {{"Library", library_enumerator}};
 }
 
 Device::DeviceInterface* WSProtocolFactory::makeDevice(

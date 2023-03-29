@@ -18,6 +18,12 @@ int ProtocolFactory::visualPriority() const noexcept
   return 0;
 }
 
+DeviceEnumerators
+ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
+{
+  return {};
+}
+
 DeviceEnumerator::~DeviceEnumerator() { }
 
 }

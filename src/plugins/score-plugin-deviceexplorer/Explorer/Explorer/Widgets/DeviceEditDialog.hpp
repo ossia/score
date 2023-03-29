@@ -64,12 +64,13 @@ private:
   const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
   Mode m_mode{};
-  std::unique_ptr<Device::DeviceEnumerator> m_enumerator{};
+  std::vector<std::pair<QString, std::unique_ptr<Device::DeviceEnumerator>>>
+      m_enumerators{};
 
   QDialogButtonBox* m_buttonBox{};
   QPushButton* m_okButton{};
   QTreeWidget* m_protocols{};
-  QListWidget* m_devices{};
+  QTreeWidget* m_devices{};
   QWidget* m_main{};
   QLabel* m_protocolsLabel{};
   QLabel* m_devicesLabel{};

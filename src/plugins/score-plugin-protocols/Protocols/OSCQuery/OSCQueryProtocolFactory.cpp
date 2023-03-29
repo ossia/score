@@ -113,21 +113,19 @@ int OSCQueryProtocolFactory::visualPriority() const noexcept
   return 2;
 }
 
-Device::DeviceEnumerator*
-OSCQueryProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+OSCQueryProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
 #if defined(OSSIA_DNSSD)
   try
   {
-    return new OSCQueryEnumerator;
+    return {{"Network", new OSCQueryEnumerator}};
   }
   catch(...)
   {
-    return nullptr;
   }
-#else
-  return nullptr;
 #endif
+  return {};
 }
 
 Device::DeviceInterface* OSCQueryProtocolFactory::makeDevice(

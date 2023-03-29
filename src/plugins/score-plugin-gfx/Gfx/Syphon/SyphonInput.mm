@@ -394,9 +394,9 @@ public:
 };
 
 
-Device::DeviceEnumerator* InputFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators InputFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new SyphonEnumerator;
+  return {{"Sources", new SyphonEnumerator}};
 }
 
 Device::DeviceInterface*

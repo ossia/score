@@ -202,10 +202,10 @@ QString AudioProtocolFactory::category() const noexcept
   return StandardCategories::audio;
 }
 
-Device::DeviceEnumerator*
-AudioProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+AudioProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return {};
 }
 
 Device::DeviceInterface* AudioProtocolFactory::makeDevice(

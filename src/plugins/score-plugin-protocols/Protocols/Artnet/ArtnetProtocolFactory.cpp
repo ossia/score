@@ -29,12 +29,6 @@ QString ArtnetProtocolFactory::category() const noexcept
   return StandardCategories::lights;
 }
 
-Device::DeviceEnumerator*
-ArtnetProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::DeviceInterface* ArtnetProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)

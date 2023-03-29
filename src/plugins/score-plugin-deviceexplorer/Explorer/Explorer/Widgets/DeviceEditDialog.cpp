@@ -93,8 +93,10 @@ DeviceEditDialog::DeviceEditDialog(
     gridLayout->addWidget(m_protocols, 1, 0);
   }
 
-  m_devices = new QListWidget{this};
-  m_devices->setFixedWidth(140);
+  m_devices = new QTreeWidget{this};
+  m_devices->header()->hide();
+  m_devices->setSelectionMode(QAbstractItemView::SingleSelection);
+  // m_devices->setFixedWidth(140);
   gridLayout->addWidget(m_devices, 1, 1);
   {
     m_devicesLabel = new QLabel{tr("Devices"), this};
@@ -120,9 +122,7 @@ DeviceEditDialog::DeviceEditDialog(
 
   connect(
       m_protocols, &QTreeView::activated, this, [this] { selectedProtocolChanged(); });
-  connect(m_devices, &QListWidget::currentRowChanged, this, [this] {
-    selectedDeviceChanged();
-  });
+  connect(m_devices, &QTreeView::activated, this, [this] { selectedDeviceChanged(); });
 
   if(m_protocols->topLevelItemCount() > 0)
   {
@@ -137,6 +137,14 @@ DeviceEditDialog::DeviceEditDialog(
   setAcceptEnabled(false);
 }
 
+static void setCategoryStyle(QTreeWidgetItem* catItem)
+{
+  auto font = catItem->font(0);
+  font.setPixelSize(13);
+  font.setBold(true);
+  catItem->setFont(0, font);
+  catItem->setExpanded(true);
+}
 DeviceEditDialog::~DeviceEditDialog() { }
 
 void DeviceEditDialog::initAvailableProtocols()
@@ -157,7 +165,7 @@ void DeviceEditDialog::initAvailableProtocols()
   {
     auto& prot = *prot_pair;
     auto cat_list = m_protocols->findItems(prot.category(), Qt::MatchFixedString);
-    QTreeWidgetItem* categoryItem;
+    QTreeWidgetItem* categoryItem{};
     if(cat_list.size() == 0)
     {
       categoryItem = new QTreeWidgetItem;
@@ -179,12 +187,7 @@ void DeviceEditDialog::initAvailableProtocols()
 
   for(int i = 0; i < m_protocols->topLevelItemCount(); i++)
   {
-    auto catItem = m_protocols->topLevelItem(i);
-    catItem->setExpanded(true);
-    auto font = catItem->font(0);
-    font.setPixelSize(13);
-    font.setBold(true);
-    catItem->setFont(0, font);
+    setCategoryStyle(m_protocols->topLevelItem(i));
   }
 
   m_protocols->setRootIsDecorated(false);
@@ -194,14 +197,18 @@ void DeviceEditDialog::initAvailableProtocols()
 
 void DeviceEditDialog::selectedDeviceChanged()
 {
-  if(!m_devices->isVisible() || m_devices->count() == 0)
+  if(!m_devices->isVisible())
     return;
+
+  if(m_devices->selectedItems().isEmpty())
+    return;
+
   auto item = m_devices->currentItem();
   if(!item)
     return;
 
-  auto name = item->text();
-  auto data = item->data(Qt::UserRole).value<Device::DeviceSettings>();
+  auto name = item->text(0);
+  auto data = item->data(0, Qt::UserRole).value<Device::DeviceSettings>();
   if(m_protocolWidget)
     m_protocolWidget->setSettings(data);
 
@@ -228,10 +235,7 @@ void DeviceEditDialog::selectedProtocolChanged()
     return;
 
   // Clear listener
-  if(m_enumerator)
-  {
-    m_enumerator.reset();
-  }
+  m_enumerators.clear();
 
   // Clear devices
   m_devices->clear();
@@ -247,26 +251,51 @@ void DeviceEditDialog::selectedProtocolChanged()
   }
 
   auto protocol = m_protocolList.get(key);
-  m_enumerator.reset(protocol->getEnumerator(*doc));
-  if(m_enumerator)
+  for(auto [name, e] : protocol->getEnumerators(*doc))
+    m_enumerators.emplace_back(name, e);
+  if(!m_enumerators.empty())
   {
     m_devices->setVisible(true);
     m_devicesLabel->setVisible(true);
+    m_devices->setRootIsDecorated(false);
+    m_devices->setExpandsOnDoubleClick(false);
 
-    auto addItem = [&](const Device::DeviceSettings& settings) {
-      auto item = new QListWidgetItem;
-      item->setText(settings.name);
-      item->setData(Qt::UserRole, QVariant::fromValue(settings));
-      m_devices->addItem(item);
-    };
-    auto rmItem = [&](const QString& name) {
-      auto items = m_devices->findItems(name, Qt::MatchExactly);
-      for(auto item : items)
-        delete m_devices->takeItem(m_devices->row(item));
-    };
-    connect(m_enumerator.get(), &Device::DeviceEnumerator::deviceAdded, this, addItem);
-    connect(m_enumerator.get(), &Device::DeviceEnumerator::deviceRemoved, this, rmItem);
-    m_enumerator->enumerate(addItem);
+    for(auto& [name, e] : m_enumerators)
+    {
+      auto cat = new QTreeWidgetItem{};
+      setCategoryStyle(cat);
+      cat->setText(0, name);
+      cat->setFlags(Qt::ItemIsEnabled);
+      m_devices->addTopLevelItem(cat);
+
+      auto addItem = [&, cat](const Device::DeviceSettings& settings) {
+        auto item = new QTreeWidgetItem;
+        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+        item->setText(0, settings.name);
+        item->setData(0, Qt::UserRole, QVariant::fromValue(settings));
+        cat->addChild(item);
+        cat->setExpanded(true);
+      };
+      auto rmItem = [&, cat](const QString& name) {
+        for(int i = 0; i < cat->childCount();)
+        {
+          auto cld = cat->child(i);
+          if(cld->text(0) == name)
+          {
+            cat->removeChild(cld);
+            continue;
+          }
+          else
+          {
+            i++;
+          }
+        }
+      };
+
+      connect(e.get(), &Device::DeviceEnumerator::deviceAdded, this, addItem);
+      connect(e.get(), &Device::DeviceEnumerator::deviceRemoved, this, rmItem);
+      e->enumerate(addItem);
+    }
   }
   else
   {
@@ -347,7 +376,7 @@ void DeviceEditDialog::setBrowserEnabled(bool st)
 {
   if(!st)
   {
-    m_enumerator.reset();
+    m_enumerators.clear();
 
     delete m_protocols;
     m_protocols = nullptr;

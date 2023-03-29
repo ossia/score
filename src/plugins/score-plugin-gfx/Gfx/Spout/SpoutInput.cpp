@@ -316,10 +316,10 @@ public:
   }
 };
 
-Device::DeviceEnumerator*
-InputFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+InputFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new SpoutEnumerator;
+  return {{"Sources", new SpoutEnumerator}};
 }
 
 Device::DeviceInterface* InputFactory::makeDevice(

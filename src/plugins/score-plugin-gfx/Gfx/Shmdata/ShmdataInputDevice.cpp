@@ -295,12 +295,6 @@ QString InputFactory::prettyName() const noexcept
   return QObject::tr("Shmdata Input");
 }
 
-Device::DeviceEnumerator*
-InputFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::DeviceInterface* InputFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)

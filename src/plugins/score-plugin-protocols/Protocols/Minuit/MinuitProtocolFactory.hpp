@@ -10,8 +10,6 @@ class MinuitProtocolFactory final : public DefaultProtocolFactory
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
   int visualPriority() const noexcept override;
-  Device::DeviceEnumerator*
-  getEnumerator(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,

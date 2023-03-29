@@ -49,10 +49,10 @@ QString JoystickProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator*
-JoystickProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+JoystickProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new JoystickEnumerator;
+  return {{"Devices", new JoystickEnumerator}};
 }
 
 Device::DeviceInterface* JoystickProtocolFactory::makeDevice(

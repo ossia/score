@@ -30,10 +30,10 @@ QString SerialProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator*
-SerialProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+SerialProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new LibraryDeviceEnumerator{
+  auto library_enumerator = new LibraryDeviceEnumerator{
       "Ossia.Serial",
       {"qml"},
       SerialProtocolFactory::static_concreteKey(),
@@ -41,6 +41,8 @@ SerialProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
     return QVariant::fromValue(SerialSpecificSettings{{}, arr});
       },
       ctx};
+
+  return {{"Library", library_enumerator}};
 }
 
 Device::DeviceInterface* SerialProtocolFactory::makeDevice(

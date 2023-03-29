@@ -17,12 +17,6 @@ QString SharedOutputProtocolFactory::category() const noexcept
   return StandardCategories::video;
 }
 
-Device::DeviceEnumerator*
-SharedOutputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
 Device::AddressDialog* SharedOutputProtocolFactory::makeAddAddressDialog(
     const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
     QWidget* parent)

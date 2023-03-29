@@ -24,10 +24,10 @@ QString HTTPProtocolFactory::category() const noexcept
   return StandardCategories::web;
 }
 
-Device::DeviceEnumerator*
-HTTPProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+HTTPProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return new LibraryDeviceEnumerator{
+  auto library_enumerator = new LibraryDeviceEnumerator{
       "Ossia.Http",
       {"qml"},
       HTTPProtocolFactory::static_concreteKey(),
@@ -35,6 +35,8 @@ HTTPProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
     return QVariant::fromValue(HTTPSpecificSettings{arr});
       },
       ctx};
+
+  return {{"Library", library_enumerator}};
 }
 
 Device::DeviceInterface* HTTPProtocolFactory::makeDevice(
