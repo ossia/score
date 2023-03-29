@@ -12,6 +12,10 @@
 #include <Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 
+#if defined(OSSIA_DNSSD)
+#include <Protocols/DNSSDDeviceEnumerator.hpp>
+#endif
+
 #include <ossia/network/base/device.hpp>
 
 #include <QObject>
@@ -158,6 +162,73 @@ struct OSCCompatibleCheck
   }
 };
 
+#if defined(OSSIA_DNSSD)
+class OSCTCPEnumerator final : public DNSSDEnumerator
+{
+public:
+  OSCTCPEnumerator()
+      : DNSSDEnumerator{"_osc._tcp"}
+  {
+    start();
+  }
+
+private:
+  void addNewDevice(
+      const std::string& instance, const std::string& ip,
+      const std::string& port) noexcept override
+  {
+    qDebug() << instance.c_str() << ip.c_str() << ":" << port.c_str();
+    using namespace std::literals;
+
+    Device::DeviceSettings set;
+    set.name = QString::fromStdString(instance);
+    set.protocol = OSCProtocolFactory::static_concreteKey();
+
+    OSCSpecificSettings sub;
+    ossia::net::tcp_configuration conf;
+    conf.host = ip;
+    conf.port = std::stoi(port);
+    sub.configuration.transport = conf;
+
+    set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
+    deviceAdded(set);
+  }
+};
+
+class OSCUDPEnumerator final : public DNSSDEnumerator
+{
+public:
+  OSCUDPEnumerator()
+      : DNSSDEnumerator{"_osc._udp"}
+  {
+    start();
+  }
+
+private:
+  void addNewDevice(
+      const std::string& instance, const std::string& ip,
+      const std::string& port) noexcept override
+  {
+    qDebug() << instance.c_str() << ip.c_str() << ":" << port.c_str();
+    using namespace std::literals;
+
+    Device::DeviceSettings set;
+    set.name = QString::fromStdString(instance);
+    set.protocol = OSCProtocolFactory::static_concreteKey();
+
+    OSCSpecificSettings sub;
+    ossia::net::udp_configuration udp;
+
+    udp.local = ossia::net::receive_socket_configuration{"0.0.0.0", 9996};
+    udp.remote = ossia::net::send_socket_configuration{ip, uint16_t(std::stoi(port))};
+    sub.configuration.transport = udp;
+
+    set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
+    deviceAdded(set);
+  }
+};
+#endif
+
 Device::DeviceEnumerators
 OSCProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
@@ -174,7 +245,15 @@ OSCProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
       },
       ctx};
 
-  return {{"Library", library_enumerator}};
+  return {
+      {"Library", library_enumerator}
+
+#if defined(OSSIA_DNSSD)
+      ,
+      {"UDP", new OSCUDPEnumerator{}},
+      {"TCP", new OSCTCPEnumerator{}}
+#endif
+  };
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(

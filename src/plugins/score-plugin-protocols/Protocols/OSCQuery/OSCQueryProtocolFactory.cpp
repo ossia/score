@@ -16,9 +16,6 @@
 
 #if defined(OSSIA_DNSSD)
 #include <Protocols/DNSSDDeviceEnumerator.hpp>
-
-#include <servus/listener.h>
-#include <servus/servus.h>
 #endif
 
 #include <ossia/network/base/device.hpp>

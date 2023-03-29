@@ -40,19 +40,29 @@ public:
     m_remotePort = new QSpinBox(this);
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
+    m_remotePort->setWhatsThis(
+        tr("This is where the other software listens from incoming messages. Score will "
+           "send packets to this port."));
     parent->checkForChanges(m_remotePort);
 
     m_localPort = new QSpinBox(this);
     m_localPort->setRange(0, 65535);
     m_localPort->setValue(9997);
+    m_localPort->setWhatsThis(
+        tr("This is where the other software sends feedback messages to. Score will "
+           "listen for incoming OSC messages on this port."));
     parent->checkForChanges(m_localPort);
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
+    m_host->setWhatsThis(
+        tr("This is the IP address of the computer the OSC-compatible software is "
+           "located on. You can use 127.0.0.1 if the software runs on the same machine "
+           "than score."));
 
     layout->addRow(tr("Device listening port"), m_remotePort);
+    layout->addRow(tr("Device host"), m_host);
     layout->addRow(tr("score listening port"), m_localPort);
-    layout->addRow(tr("Host"), m_host);
   }
 
   ossia::net::udp_configuration settings() const noexcept
@@ -96,9 +106,15 @@ public:
     m_remotePort = new QSpinBox(this);
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
+    m_remotePort->setWhatsThis(
+        tr("This is the communication port used for the TCP connection."));
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
+    m_host->setWhatsThis(
+        tr("This is the IP address of the computer the OSC-compatible software is "
+           "located on. You can use 127.0.0.1 if the software runs on the same machine "
+           "than score."));
 
     m_framing = new QComboBox{this};
     m_framing->addItems({"Size prefixing", "SLIP"});

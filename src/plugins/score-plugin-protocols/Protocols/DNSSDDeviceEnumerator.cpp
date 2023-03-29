@@ -27,8 +27,10 @@ void DNSSDEnumerator::start()
 {
   // Note: must be called in the constructor of child classes, never in the parent
   // class as the addNewDevice virtual method is still pure virtual
-  m_serv.beginBrowsing(servus::Interface::IF_ALL);
-  m_serv.browse(100);
+  QTimer::singleShot(1, this, [this] {
+    m_serv.beginBrowsing(servus::Interface::IF_ALL);
+    m_serv.browse(100);
+  });
 }
 
 void DNSSDEnumerator::enumerate(
