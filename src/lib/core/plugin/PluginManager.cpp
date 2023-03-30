@@ -126,8 +126,8 @@ QStringList addonsDir()
 #if !defined(SCORE_DEPLOYMENT_BUILD)
   l << "addons";
 #endif
-  l << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first()
-           + "/score/addons";
+  auto library_path = QSettings{}.value("Library/RootPath").toString() + "/packages";
+  l << library_path;
   return l;
 }
 

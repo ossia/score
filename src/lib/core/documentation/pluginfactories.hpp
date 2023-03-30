@@ -192,9 +192,12 @@
  *   * src
  *   * windows-x86
  *   * windows-amd64
+ *   * windows-arm64
  *   * darwin-amd64
+ *   * darwin-arm64
  *   * linux-amd64
  *   * linux-arm
+ *   * linux-arm64
  * * Currently score only supports `src` which means that the plug-in will be built from source.
  *
  * The value should be a link to a zipped addon package for the relevant
