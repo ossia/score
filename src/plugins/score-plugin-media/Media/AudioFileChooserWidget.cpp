@@ -6,6 +6,7 @@
 
 #include <QGraphicsView>
 #include <QPainter>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsWaveformButton)

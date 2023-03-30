@@ -114,7 +114,7 @@ QStringList pluginsDir()
 #endif
   QString pwd = QDir{}.absolutePath() + "/plugins";
 
-  if(pwd != l[0])
+  if(l.empty() || pwd != l[0])
     l << pwd;
   return l;
 }
