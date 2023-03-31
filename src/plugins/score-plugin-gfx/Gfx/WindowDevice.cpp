@@ -224,7 +224,7 @@ public:
         if(const auto& w = m_screen->window())
         {
           const auto sz = w->size();
-          const auto win = ev->posF();
+          const auto win = ev->position();
           scaled_tablet_win->push_value(
               ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
           abs_tablet_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});

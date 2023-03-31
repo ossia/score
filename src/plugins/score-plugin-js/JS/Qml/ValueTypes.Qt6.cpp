@@ -144,7 +144,12 @@ qreal Vec3fValueType::dotProduct(const QVector3D& vec) const
 
 QVector3D Vec3fValueType::times(const QMatrix4x4& m) const
 {
-  return v * m;
+  auto vv = v.toVector4D();
+  auto vr = vv * m;
+  if(vr.w() == 1.0f)
+    return QVector3D(vr.x(), vr.y(), vr.z());
+  else
+    return QVector3D(vr.x() / vr.w(), vr.y() / vr.w(), vr.z() / vr.w());
 }
 
 QVector3D Vec3fValueType::times(const QVector3D& vec) const

@@ -140,18 +140,19 @@ struct BarSpinBox
 
     self.m_origFlicks = self.m_flicks;
     self.m_travelledY = 0;
-    self.m_prevY = event->globalPos().y();
-    if(event->x() < bar_w)
+    self.m_prevY = event->globalPosition().y();
+    auto x = event->position().x();
+    if(x < bar_w)
     {
       self.m_grab = TimeSpinBox::Bar;
       event->accept();
     }
-    else if(event->x() > q_start && event->x() < sq_start)
+    else if(x > q_start && x < sq_start)
     {
       self.m_grab = TimeSpinBox::Quarter;
       event->accept();
     }
-    else if(event->x() > sq_start && event->x() < cent_start)
+    else if(x > sq_start && x < cent_start)
     {
       self.m_grab = TimeSpinBox::Semiquaver;
       event->accept();
@@ -165,9 +166,9 @@ struct BarSpinBox
 
   void mouseMove(QMouseEvent* event)
   {
-    int pixelsTraveled = self.m_prevY - event->globalPos().y();
+    int pixelsTraveled = self.m_prevY - event->globalPosition().y();
     self.m_travelledY += pixelsTraveled;
-    self.m_prevY = event->globalPos().y();
+    self.m_prevY = event->globalPosition().y();
 
     double subdivDelta = std::floor(self.m_travelledY / 6.);
 
@@ -276,18 +277,19 @@ struct SecondSpinBox
 
     self.m_origFlicks = self.m_flicks;
     self.m_travelledY = 0;
-    self.m_prevY = event->globalPos().y();
-    if(event->x() < bar_w)
+    self.m_prevY = event->globalPosition().y();
+    auto x = event->position().x();
+    if(x < bar_w)
     {
       self.m_grab = TimeSpinBox::Bar;
       event->accept();
     }
-    else if(event->x() > q_start && event->x() < sq_start)
+    else if(x > q_start && x < sq_start)
     {
       self.m_grab = TimeSpinBox::Quarter;
       event->accept();
     }
-    else if(event->x() > sq_start && event->x() < cent_start)
+    else if(x > sq_start && x < cent_start)
     {
       self.m_grab = TimeSpinBox::Semiquaver;
       event->accept();
@@ -301,9 +303,9 @@ struct SecondSpinBox
 
   void mouseMove(QMouseEvent* event)
   {
-    int pixelsTraveled = self.m_prevY - event->globalPos().y();
+    int pixelsTraveled = self.m_prevY - event->globalPosition().y();
     self.m_travelledY += pixelsTraveled;
-    self.m_prevY = event->globalPos().y();
+    self.m_prevY = event->globalPosition().y();
 
     double subdivDelta = std::floor(self.m_travelledY / 6.);
 
@@ -671,7 +673,8 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
   }
   else
   {
-    QTimer::singleShot(0, [this, pos = ev->globalPos()] { createPopup(pos); });
+    QTimer::singleShot(
+        0, [this, pos = ev->globalPosition().toPoint()] { createPopup(pos); });
   }
   ev->ignore();
 }

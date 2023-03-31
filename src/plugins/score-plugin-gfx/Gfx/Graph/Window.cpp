@@ -216,7 +216,7 @@ bool Window::event(QEvent* e)
 
     case QEvent::MouseMove: {
       auto ev = static_cast<QMouseEvent*>(e);
-      this->mouseMove(ev->screenPos(), ev->windowPos());
+      this->mouseMove(ev->globalPosition(), ev->scenePosition());
       break;
     }
     case QEvent::KeyPress: {

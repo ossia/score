@@ -79,17 +79,17 @@ void IntSlider::mousePressEvent(QMouseEvent* event)
 {
   if(event->button() == Qt::MouseButton::RightButton)
   {
-    createPopup(event->globalPos());
+    createPopup(event->globalPosition().toPoint());
   }
   else if(event->button() == Qt::MouseButton::LeftButton)
   {
-    updateValue(event->localPos());
+    updateValue(event->position());
   }
 }
 
 void IntSlider::mouseMoveEvent(QMouseEvent* event)
 {
-  updateValue(event->localPos());
+  updateValue(event->position());
   sliderMoved(m_value);
 }
 

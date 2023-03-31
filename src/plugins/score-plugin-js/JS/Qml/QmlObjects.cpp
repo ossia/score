@@ -43,15 +43,15 @@ ValueInlet::~ValueInlet() { }
 
 int ValueInlet::length() const noexcept
 {
-  switch(this->m_value.type())
+  switch(this->m_value.typeId())
   {
-    case QVariant::Type::Vector2D:
+    case QMetaType::QVector2D:
       return 2;
-    case QVariant::Type::Vector3D:
+    case QMetaType::QVector3D:
       return 3;
-    case QVariant::Type::Vector4D:
+    case QMetaType::QVector4D:
       return 4;
-    case QVariant::Type::List: {
+    case QMetaType::QVariantList: {
       const auto& lst = this->m_value.value<QVariantList>();
       return lst.size();
     }
@@ -69,16 +69,16 @@ int ValueInlet::length() const noexcept
 
 QVariant ValueInlet::at(int index) const noexcept
 {
-  switch(this->m_value.type())
+  switch(this->m_value.typeId())
   {
-    case QVariant::Type::Vector2D: {
+    case QMetaType::QVector2D: {
       if(index == 0)
         return this->m_value.value<QVector2D>().x();
       else if(index == 1)
         return this->m_value.value<QVector2D>().y();
       break;
     }
-    case QVariant::Type::Vector3D: {
+    case QMetaType::QVector3D: {
       if(index == 0)
         return this->m_value.value<QVector3D>().x();
       else if(index == 1)
@@ -87,7 +87,7 @@ QVariant ValueInlet::at(int index) const noexcept
         return this->m_value.value<QVector3D>().z();
       break;
     }
-    case QVariant::Type::Vector4D: {
+    case QMetaType::QVector4D: {
       if(index == 0)
         return this->m_value.value<QVector4D>().x();
       else if(index == 1)
@@ -98,7 +98,7 @@ QVariant ValueInlet::at(int index) const noexcept
         return this->m_value.value<QVector4D>().w();
       break;
     }
-    case QVariant::Type::List: {
+    case QMetaType::QVariantList: {
       const auto& lst = this->m_value.value<QVariantList>();
       if(index >= 0 && index < lst.size())
         return lst[index];

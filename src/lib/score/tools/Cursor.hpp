@@ -66,7 +66,7 @@ inline QPoint globalPos(QMouseEvent* event)
   }
   return QPoint(loc.x, loc.y);
 #else
-  return event->globalPos();
+  return event->globalPosition().toPoint();
 #endif
 }
 

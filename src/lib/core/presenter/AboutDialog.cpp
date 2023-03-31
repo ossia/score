@@ -270,7 +270,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 void AboutDialog::mousePressEvent(QMouseEvent* event)
 {
-  QPointF pos = event->localPos();
+  QPointF pos = event->position();
   if(m_mouseAreaOssiaScore.contains(pos))
   {
     QDesktopServices::openUrl(QUrl("https://ossia.io/"));
@@ -292,7 +292,7 @@ void AboutDialog::mousePressEvent(QMouseEvent* event)
 
 void AboutDialog::mouseMoveEvent(QMouseEvent* event)
 {
-  QPointF pos = event->localPos();
+  QPointF pos = event->position();
   if(m_mouseAreaOssiaScore.contains(pos) || m_mouseAreaLabri.contains(pos)
      || m_mouseAreaScrime.contains(pos) || m_mouseAreaBlueYeti.contains(pos))
   {

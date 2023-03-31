@@ -405,9 +405,9 @@ void ProcessGraphicsView::dragLeaveEvent(QDragLeaveEvent* event)
 
 void ProcessGraphicsView::dropEvent(QDropEvent* event)
 {
-  if(!itemAt(event->pos()))
+  if(!itemAt(event->position().toPoint()))
   {
-    dropRequested(event->pos(), event->mimeData());
+    dropRequested(event->position().toPoint(), event->mimeData());
     event->accept();
   }
   else
@@ -456,8 +456,8 @@ bool ProcessGraphicsView::event(QEvent* event)
           double zoom = gest->value() * 100.;
           QPointF delta = {zoom, zoom};
 
-          QPoint pos = this->mapFromGlobal(gest->globalPos());
-          horizontalZoom(delta, mapToScene(pos));
+          QPointF pos = this->mapFromGlobal(gest->globalPosition());
+          horizontalZoom(delta, mapToScene(pos.toPoint()));
 
           return true;
         }
@@ -478,7 +478,7 @@ void ProcessGraphicsView::hoverEnterEvent(QHoverEvent* event) { }
 
 void ProcessGraphicsView::hoverMoveEvent(QHoverEvent* event)
 {
-  const auto scenePos = this->mapToScene(event->pos());
+  const auto scenePos = this->mapToScene(event->position().toPoint());
   auto items = this->scene()->items(scenePos);
   auto set_tip = [&](const QString& t) {
     QStatusTipEvent ev{t};
