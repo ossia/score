@@ -106,7 +106,7 @@ if(APPLE)
     INTERFACE
       -Wl,-undefined,dynamic_lookup
   )
-else()
+elseif(NOT WIN32)
   target_link_libraries(score_lib_base
     INTERFACE
       -Wl,--allow-shlib-undefined
