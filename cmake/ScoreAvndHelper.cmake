@@ -16,7 +16,7 @@ function(avnd_score_plugin_finalize)
 
   # Generate the score_plugin_foo.cpp
   configure_file(
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd/plugin_prototype.cpp.in"
+    "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.cpp.in"
     "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
     @ONLY
     NEWLINE_STYLE LF
@@ -53,7 +53,7 @@ function(avnd_score_plugin_add)
 #   endif()
 
   configure_file(
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd/prototype.cpp.in"
+    "${SCORE_AVND_SOURCE_DIR}/prototype.cpp.in"
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
     @ONLY
     NEWLINE_STYLE LF

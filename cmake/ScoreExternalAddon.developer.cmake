@@ -1,3 +1,11 @@
+# Useful variables
+set(3RDPARTY_FOLDER "${SCORE_SOURCE_DIR}/3rdparty/")
+set(OSSIA_3RDPARTY_FOLDER "${SCORE_SOURCE_DIR}/3rdparty/libossia/3rdparty")
+set(SCORE_ROOT_SOURCE_DIR "${SCORE_SOURCE_DIR}")
+set(SCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(SCORE_SRC "${SCORE_SOURCE_DIR}/src")
+set(SCORE_AVND_SOURCE_DIR "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${SCORE_SOURCE_DIR}/cmake"

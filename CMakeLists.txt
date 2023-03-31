@@ -112,7 +112,7 @@ find_package(${QT_VERSION} REQUIRED
 if(NOT Qt5Core_VERSION_STRING)
   find_package(${QT_VERSION} REQUIRED COMPONENTS StateMachine OpenGLWidgets Qml ShaderTools)
   if(EMSCRIPTEN)
-    find_package(${QT_VERSION} REQUIRED COMPONENTS QmlIntegration) 
+    find_package(${QT_VERSION} REQUIRED COMPONENTS QmlIntegration)
   endif()
 endif()
 
@@ -125,6 +125,7 @@ include(3rdparty/3rdparty.cmake)
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(SCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(SCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(SCORE_AVND_SOURCE_DIR "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 set(SCORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 include_directories("${SCORE_ROOT_BINARY_DIR}")

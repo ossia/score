@@ -579,3 +579,14 @@ addAvndTest(ossia_value_Test
 endif()
 
 set(CMAKE_AUTOMOC OFF)
+
+if(SCORE_INSTALL_HEADERS)
+  install(
+    FILES
+      prototype.cpp.in
+      plugin_prototype.cpp.in
+    DESTINATION lib/cmake/score
+    COMPONENT Devel
+    OPTIONAL
+  )
+endif()

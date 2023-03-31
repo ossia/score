@@ -10,6 +10,7 @@ export LIB="$DST/usr/lib"
 
 mkdir -p "$INCLUDE"
 mkdir -p "$LIB"
+mkdir -p "$LIB/cmake/score"
 
 export SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source $SCRIPTDIR/create-sdk-common.sh

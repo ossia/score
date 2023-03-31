@@ -1,3 +1,6 @@
+# Useful variables
+set(SCORE_AVND_SOURCE_DIR "${SCORE_SDK}/lib/cmake/score")
+
 # Find the clang version
 file(GLOB CLANG_RESOURCE_DIR "${SCORE_SDK}/lib/clang/*")
 

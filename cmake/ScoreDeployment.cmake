@@ -45,4 +45,20 @@ include(ScoreDeploymentWindows)
 include(ScoreDeploymentWindowsStore)
 endif()
 
+if(SCORE_INSTALL_HEADERS)
+  install(
+    FILES
+      ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreAvndHelper.cmake
+      ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreExternalAddon.cmake
+      ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreExternalAddon.developer.cmake
+      ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreExternalAddon.sdk.cmake
+      ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreFunctions.cmake
+      ${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreTargetSetup.cmake
+    DESTINATION lib/cmake/score
+    COMPONENT Devel
+    OPTIONAL
+  )
+endif()
+
+
 include(CPack)

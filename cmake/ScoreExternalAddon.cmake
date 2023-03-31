@@ -5,8 +5,10 @@ endif()
 enable_language(C)
 enable_language(CXX)
 
-if(NOT SCORE_SOURCE_DIR)
-  message(FATAL_ERROR "Please set SCORE_SOURCE_DIR to score's root source folder (/home/foo/score)")
+if(NOT EXISTS "${SCORE_SOURCE_DIR}")
+  if(NOT EXISTS "${SCORE_SDK}")
+    message(FATAL_ERROR "Please set SCORE_SOURCE_DIR to score's root source folder (/home/foo/score) or SCORE_SDK to the SDK folder")
+  endif()
 endif()
 
 if(NOT OSSIA_SDK)
@@ -49,14 +51,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 5000)
-
-
-set(3RDPARTY_FOLDER "${SCORE_SOURCE_DIR}/3rdparty/")
-set(OSSIA_3RDPARTY_FOLDER "${SCORE_SOURCE_DIR}/3rdparty/libossia/3rdparty")
-set(SCORE_ROOT_SOURCE_DIR "${SCORE_SOURCE_DIR}")
-set(SCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-set(SCORE_SRC "${SCORE_SOURCE_DIR}/src")
-
 
 set(SCORE_PLUGINS
   LIB_BASE
