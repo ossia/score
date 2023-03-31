@@ -25,12 +25,17 @@ foreach(_lib ${SCORE_PLUGINS})
   target_compile_definitions(score_${_lib_lc} INTERFACE SCORE_${_lib})
 endforeach()
 
+if(IS_DIRECTORY "${SCORE_SDK}/include/x86_64-unknown-linux-gnu/c++/v1")
+  target_compile_options(score_lib_base INTERFACE
+    "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/x86_64-unknown-linux-gnu/c++/v1"
+  )
+endif()
+
 target_compile_options(score_lib_base INTERFACE
   -std=c++2a
   -fPIC
   -nostdinc
   -nostdlib
-  "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/x86_64-unknown-linux-gnu/c++/v1"
   "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/c++/v1/"
   "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include"
   "SHELL:-Xclang -internal-isystem -Xclang ${CLANG_RESOURCE_DIR}/include"
