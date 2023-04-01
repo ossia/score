@@ -48,7 +48,12 @@ export SCORE_DIR=/score
       fi
 
       cmake --install . --component Devel --prefix "$SDK_DIR/usr"
-      rm -rf "$SDK_DIR/usr/lib"
+      (
+        cd "$SDK_DIR/usr/lib"
+        echo "== content of $SDK_DIR/usr/lib"
+        find .
+        find . -name '*.a' -exec rm -rf {} \;
+      )
     )
 )
 

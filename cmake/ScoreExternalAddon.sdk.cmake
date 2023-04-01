@@ -35,20 +35,27 @@ if(IS_DIRECTORY "${SCORE_SDK}/include/x86_64-unknown-linux-gnu/c++/v1")
 endif()
 
 target_compile_options(score_lib_base INTERFACE
-  -std=c++2a
+  -std=c++20
   -fPIC
-  -nostdinc
-  -nostdlib
-  "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/c++/v1/"
-  "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include"
-  "SHELL:-Xclang -internal-isystem -Xclang ${CLANG_RESOURCE_DIR}/include"
-  "SHELL:-resource-dir ${CLANG_RESOURCE_DIR}"
 )
 
-target_link_libraries(score_lib_base INTERFACE
-  -nostdlib++
-  -Wl,--retain-symbols-file="${CMAKE_CURRENT_BINARY_DIR}/retained-symbols.txt"
-)
+if(NOT APPLE)
+  target_compile_options(score_lib_base INTERFACE
+    -nostdinc
+    -nostdlib
+    "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/c++/v1/"
+    "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include"
+    "SHELL:-Xclang -internal-isystem -Xclang ${CLANG_RESOURCE_DIR}/include"
+    "SHELL:-resource-dir ${CLANG_RESOURCE_DIR}"
+  )
+endif()
+
+if(NOT WIN32)
+  target_link_libraries(score_lib_base INTERFACE
+    -nostdlib++
+    -Wl,--retain-symbols-file="${CMAKE_CURRENT_BINARY_DIR}/retained-symbols.txt"
+  )
+endif()
 
 target_include_directories(score_lib_base SYSTEM INTERFACE
   "${SCORE_SDK}/include/score"
