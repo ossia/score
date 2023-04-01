@@ -39,7 +39,11 @@ target_compile_options(score_lib_base INTERFACE
   -fPIC
 )
 
-if(NOT APPLE)
+if(APPLE)
+  target_include_directories(score_lib_base SYSTEM INTERFACE
+    "${SCORE_SDK}/include/"
+  )
+else()
   target_compile_options(score_lib_base INTERFACE
     -nostdinc
     -nostdlib
