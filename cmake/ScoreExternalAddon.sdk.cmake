@@ -95,6 +95,13 @@ target_compile_definitions(score_lib_base INTERFACE
   BOOST_ASIO_DISABLE_CONCEPTS=1
   BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING
   BOOST_MULTI_INDEX_ENABLE_SAFE_MODE
+
+  QT_NO_LINKED_LIST
+  QT_NO_JAVA_STYLE_ITERATORS
+  QT_NO_USING_NAMESPACE
+  QT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+  QT_USE_QSTRINGBUILDER
+
   QT_CORE_LIB
   QT_GUI_LIB
   QT_NETWORK_LIB
@@ -107,6 +114,7 @@ target_compile_definitions(score_lib_base INTERFACE
   QT_WEBSOCKETS_LIB
   QT_WIDGETS_LIB
   QT_XML_LIB
+
   RAPIDJSON_HAS_STDSTRING=1
   # SCORE_DEBUG
   TINYSPLINE_DOUBLE_PRECISION
@@ -114,5 +122,15 @@ target_compile_definitions(score_lib_base INTERFACE
   QT_STATIC=1
 )
 
-function(setup_score_plugin)
+function(setup_score_plugin PluginName)
+  set_target_properties(${PluginName} PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
+  )
+
+  install(TARGETS "${PluginName}"
+    LIBRARY DESTINATION plugins
+    ARCHIVE DESTINATION static_plugins
+    RUNTIME DESTINATION bin/plugins
+  )
 endfunction()
