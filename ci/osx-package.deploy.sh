@@ -3,8 +3,7 @@ export TAG=$GITTAGNOV
 
 export HOMEBREW_NO_AUTO_UPDATE=1
 export SRC_PATH=$PWD
-brew install graphicsmagick imagemagick npm
-npm install --global create-dmg
+brew install graphicsmagick imagemagick create-dmg
 
 cd $SRC_PATH/install/
 

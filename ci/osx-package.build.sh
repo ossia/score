@@ -9,13 +9,26 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 xcrun /usr/local/bin/cninja macos-release -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install"
+
 (
-cd build-*
-xcrun cmake --install . --strip --component OssiaScore
-xcrun cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
+  cd build-*
+  echo "Installing OssiaScore: "
+  xcrun cmake --install . --strip --component OssiaScore
 )
 
-./ci/create-sdk-mac.sh
+
+(
+  cd build-*
+  echo "Installing Devel: "
+  xcrun cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
+)
+
+ls "$SDK_DIR/usr"
+
+(
+  echo "./ci/create-sdk-mac.sh"
+  ./ci/create-sdk-mac.sh
+)
 
 (
   cd SDK
