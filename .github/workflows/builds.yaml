@@ -22,7 +22,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/bullseye.deps.sh
+          ./ci/bullseye-qt6.deps.sh
 
       - name: Build
         run: |
@@ -101,33 +101,8 @@ jobs:
         run: |
           ./ci/suse.build.sh
 
-  arch:
-    name: ArchLinux
-    runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest
-
-    steps:
-      - name: Install git
-        run: |
-          pacman -Syy --noconfirm
-          pacman -S git --noconfirm
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/archlinux.deps.sh
-
-      - name: Build
-        run: |
-          ./ci/archlinux.build.sh
-
   archqt6:
-    name: ArchLinux-Qt6
+    name: ArchLinux
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
