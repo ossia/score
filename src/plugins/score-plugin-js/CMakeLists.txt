@@ -13,7 +13,7 @@ if(NOT TARGET ${QT_PREFIX}::Qml)
 endif()
 
 if(${QT_PREFIX} MATCHES "Qt6")
-  find_package(${QT_VERSION} COMPONENTS QmlIntegration)
+  find_package(${QT_VERSION} OPTIONAL_COMPONENTS QmlIntegration)
 endif()
 
 # Files & main target
