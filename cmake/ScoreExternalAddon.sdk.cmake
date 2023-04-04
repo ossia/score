@@ -6,7 +6,7 @@ file(GLOB CLANG_RESOURCE_DIR "${SCORE_SDK}/lib/clang/*")
 list(GET CLANG_RESOURCE_DIR 0 CLANG_RESOURCE_DIR)
 string(STRIP "${CLANG_RESOURCE_DIR}" CLANG_RESOURCE_DIR)
 
-# Find the Qt version
+# Find the Qt version
 file(GLOB QTCORE_FILES LIST_DIRECTORIES true "${SCORE_SDK}/include/qt/QtCore/*")
 
 foreach(dir ${QTCORE_FILES})
@@ -16,12 +16,6 @@ foreach(dir ${QTCORE_FILES})
     continue()
   endif()
 endforeach()
-
-# Only export plugin_instance
-file(GENERATE
-     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/retained-symbols.txt"
-     CONTENT "plugin_instance"
-)
 
 # Create all the targets for the score plug-ins
 foreach(_lib ${SCORE_PLUGINS})
@@ -40,32 +34,44 @@ target_compile_options(score_lib_base INTERFACE
   -std=c++20
   -fPIC
 )
+target_compile_options(score_lib_base INTERFACE
+  -nostdinc
+  -nostdlib
+  "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/c++/v1/"
+  "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include"
+  "SHELL:-Xclang -internal-isystem -Xclang ${CLANG_RESOURCE_DIR}/include"
+  "SHELL:-resource-dir ${CLANG_RESOURCE_DIR}"
+)
 
 if(APPLE)
-  target_include_directories(score_lib_base SYSTEM INTERFACE
-    "${SCORE_SDK}/include/"
+  target_compile_options(score_lib_base SYSTEM INTERFACE 
+    -nostdinc++
   )
-else()
-  target_compile_options(score_lib_base INTERFACE
-    -nostdinc
-    -nostdlib
-    "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include/c++/v1/"
-    "SHELL:-Xclang -internal-isystem -Xclang ${SCORE_SDK}/include"
-    "SHELL:-Xclang -internal-isystem -Xclang ${CLANG_RESOURCE_DIR}/include"
-    "SHELL:-resource-dir ${CLANG_RESOURCE_DIR}"
+  target_include_directories(score_lib_base SYSTEM INTERFACE 
+    "${SCORE_SDK}/include/macos-sdks"
   )
 endif()
 
-if(NOT WIN32)
+# Only export plugin_instance
+if(WIN32)
+  target_link_libraries(score_lib_base INTERFACE
+    "${SCORE_SDK}/lib/libscore.dll.a"
+  )
+elseif(APPLE)
+  target_link_libraries(score_lib_base INTERFACE
+    -nostdlib++
+    -Wl,-exported_symbol,plugin_instance
+    -Wl,-no_fixup_chains
+  )
+else()
+  file(GENERATE
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/retained-symbols.txt"
+    CONTENT "plugin_instance"
+  )
   target_link_libraries(score_lib_base INTERFACE
     -nostdlib++
     -Wl,--retain-symbols-file="${CMAKE_CURRENT_BINARY_DIR}/retained-symbols.txt"
   )
-else()
-  target_link_libraries(score_lib_base INTERFACE
-    "${SCORE_SDK}/lib/libscore.dll.a"
-  )
-
 endif()
 
 target_include_directories(score_lib_base SYSTEM INTERFACE
