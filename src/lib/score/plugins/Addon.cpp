@@ -15,7 +15,7 @@ QString addonArchitecture()
 #elif BOOST_OS_LINUX
   arch += "linux-";
 #elif BOOST_OS_MACOS
-  arch += "darwin-amd64";
+  arch += "darwin-";
 #else
   arch += "unknown-";
 #endif

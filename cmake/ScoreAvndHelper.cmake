@@ -3,7 +3,7 @@ function(avnd_score_plugin_init)
 
   if(NOT TARGET ${AVND_BASE_TARGET})
     add_library(
-      ${AVND_BASE_TARGET}
+      ${AVND_BASE_TARGET} MODULE
     )
   endif()
 

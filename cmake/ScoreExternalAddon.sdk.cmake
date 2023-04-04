@@ -44,7 +44,7 @@ target_compile_options(score_lib_base INTERFACE
 )
 
 if(APPLE)
-  target_compile_options(score_lib_base SYSTEM INTERFACE 
+  target_compile_options(score_lib_base INTERFACE 
     -nostdinc++
   )
   target_include_directories(score_lib_base SYSTEM INTERFACE 
@@ -61,8 +61,9 @@ elseif(APPLE)
   target_link_libraries(score_lib_base INTERFACE
     -nostdlib++
     -Wl,-exported_symbol,plugin_instance
-    -Wl,-no_fixup_chains
   )
+#     -Wl,-no_fixup_chains
+
 else()
   file(GENERATE
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/retained-symbols.txt"
@@ -140,6 +141,9 @@ target_compile_definitions(score_lib_base INTERFACE
 )
 
 function(setup_score_plugin PluginName)
+  if(APPLE)
+    set_property(TARGET ${PluginName} PROPERTY BUNDLE True)
+  endif()
   set_target_properties(${PluginName} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"

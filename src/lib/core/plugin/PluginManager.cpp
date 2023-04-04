@@ -126,7 +126,7 @@ QStringList addonsDir()
 #if !defined(SCORE_DEPLOYMENT_BUILD)
   l << "addons";
 #endif
-  auto library_path = QSettings{}.value("Library/RootPath").toString() + "/packages";
+  QString library_path = QSettings{}.value("Library/RootPath").toString() + "/packages";
   l << library_path;
   return l;
 }
