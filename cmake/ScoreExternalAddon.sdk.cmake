@@ -3,6 +3,8 @@ set(SCORE_AVND_SOURCE_DIR "${SCORE_SDK}/lib/cmake/score")
 
 # Find the clang version
 file(GLOB CLANG_RESOURCE_DIR "${SCORE_SDK}/lib/clang/*")
+list(GET CLANG_RESOURCE_DIR 0 CLANG_RESOURCE_DIR)
+string(STRIP "${CLANG_RESOURCE_DIR}" CLANG_RESOURCE_DIR)
 
 # Find the Qt version
 file(GLOB QTCORE_FILES LIST_DIRECTORIES true "${SCORE_SDK}/include/qt/QtCore/*")
@@ -59,6 +61,11 @@ if(NOT WIN32)
     -nostdlib++
     -Wl,--retain-symbols-file="${CMAKE_CURRENT_BINARY_DIR}/retained-symbols.txt"
   )
+else()
+  target_link_libraries(score_lib_base INTERFACE
+    "${SCORE_SDK}/lib/libscore.dll.a"
+  )
+
 endif()
 
 target_include_directories(score_lib_base SYSTEM INTERFACE

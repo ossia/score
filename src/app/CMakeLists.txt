@@ -238,6 +238,10 @@ if(WIN32)
     TARGETS ${APPNAME}
     RUNTIME DESTINATION .
     COMPONENT OssiaScore)
+  install(
+    TARGETS ${APPNAME}
+    ARCHIVE DESTINATION lib
+    COMPONENT Devel)
 elseif(APPLE)
   install(
     TARGETS ${APPNAME}

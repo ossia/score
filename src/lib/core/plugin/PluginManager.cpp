@@ -163,7 +163,7 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError>
 loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
-#if QT_CONFIG(library) && !defined(__EMSCRIPTEN__)
+#if !defined(__EMSCRIPTEN__)
 
   // Check if it is blacklisted
   if(isBlacklisted(fileName))
