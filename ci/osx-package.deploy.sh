@@ -29,7 +29,15 @@ echo " === create dmg === "
 # Create a .dmg
 cp $SRC_PATH/LICENSE.txt license.txt
 security unlock-keychain -p travis build.keychain
-create-dmg 'score.app'
+create-dmg \
+  --volname "ossia score $TAG" \
+  --window-pos 200 120 \
+  --window-size 800 400 \
+  --icon-size 100 \
+  --app-drop-link 600 185 \
+  --icon score.app 200 190 \
+  --hide-extension score.app \
+  'score.dmg' 'score.app'
 ls
 
 echo " === notarize === "
