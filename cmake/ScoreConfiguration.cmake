@@ -149,16 +149,6 @@ if(CMAKE_VERSION VERSION_LESS 3.17)
   set(SCORE_PCH 0)
 endif()
 
-# Useful header files
-include(WriteCompilerDetectionHeader)
-write_compiler_detection_header(
-  FILE score_compiler_detection.hpp
-  PREFIX SCORE
-  COMPILERS GNU Clang AppleClang MSVC
-  FEATURES cxx_relaxed_constexpr
-  VERSION 3.1
-)
-
 # Commit and version information
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
   include(GetGitRevisionDescription)

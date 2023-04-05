@@ -44,10 +44,10 @@ target_compile_options(score_lib_base INTERFACE
 )
 
 if(APPLE)
-  target_compile_options(score_lib_base INTERFACE 
+  target_compile_options(score_lib_base INTERFACE
     -nostdinc++
   )
-  target_include_directories(score_lib_base SYSTEM INTERFACE 
+  target_include_directories(score_lib_base SYSTEM INTERFACE
     "${SCORE_SDK}/include/macos-sdks"
   )
 endif()
@@ -149,9 +149,13 @@ function(setup_score_plugin PluginName)
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
   )
 
-  install(TARGETS "${PluginName}"
-    LIBRARY DESTINATION plugins
-    ARCHIVE DESTINATION static_plugins
-    RUNTIME DESTINATION bin/plugins
-  )
+  if(WIN32)
+    install(TARGETS "${PluginName}"
+      RUNTIME DESTINATION plugins
+    )
+  else()
+    install(TARGETS "${PluginName}"
+      LIBRARY DESTINATION plugins
+    )
+  endif()
 endfunction()
