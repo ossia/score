@@ -33,14 +33,14 @@ rsync -ar "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_V
 for fw in IOKit CFNetwork CoreFoundation CoreAudio CoreText Foundation DiskArbitration Accelerate AudioToolbox Security SystemConfiguration CoreGraphics ApplicationServices CoreServices Carbon Cocoa; do
   echo "$fw"
   mkdir -p "$INCLUDE/macos-sdks/$fw"
-  rsync -ar $XCODE_MACOS_FRAMEWORKS/$fw.framework/Headers/ "$INCLUDE/macos-sdks/$fw/"
+  rsync -ar $XCODE_MACOS_FRAMEWORKS/$fw.framework/Headers/ "$INCLUDE/macos-sdks/$fw/" || true
 
   if [[ -d $XCODE_MACOS_FRAMEWORKS/$fw.framework/Versions/A/Frameworks/ ]]; then
     for subfw_path in $XCODE_MACOS_FRAMEWORKS/$fw.framework/Versions/A/Frameworks/* ; do
       subfw=$(basename $subfw_path | cut -d'.' -f1)
       echo "  :: $subfw"
       mkdir -p "$INCLUDE/macos-sdks/$subfw"
-      rsync -ar $subfw_path/Headers/ "$INCLUDE/macos-sdks/$subfw/"
+      rsync -ar $subfw_path/Headers/ "$INCLUDE/macos-sdks/$subfw/" || true
     done
   fi
 done
