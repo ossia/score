@@ -60,9 +60,8 @@ if(WIN32)
 elseif(APPLE)
   target_link_libraries(score_lib_base INTERFACE
     -nostdlib++
-    -Wl,-exported_symbol,plugin_instance
+    -Wl,-exported_symbol,_plugin_instance
   )
-#     -Wl,-no_fixup_chains
 
 else()
   file(GENERATE
@@ -141,9 +140,6 @@ target_compile_definitions(score_lib_base INTERFACE
 )
 
 function(setup_score_plugin PluginName)
-  if(APPLE)
-    set_property(TARGET ${PluginName} PROPERTY BUNDLE True)
-  endif()
   set_target_properties(${PluginName} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"

@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
   cmake_policy(VERSION 3.18)
 endif()
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.26)
+  cmake_policy(VERSION 3.26)
+endif()
 
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
