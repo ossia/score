@@ -145,6 +145,12 @@ function(setup_score_plugin PluginName)
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
   )
 
+  if(APPLE)
+    set_target_properties(${PluginName} PROPERTIES
+      SUFFIX .dylib
+    )
+  endif()
+
   if(WIN32)
     install(TARGETS "${PluginName}"
       RUNTIME DESTINATION plugins
