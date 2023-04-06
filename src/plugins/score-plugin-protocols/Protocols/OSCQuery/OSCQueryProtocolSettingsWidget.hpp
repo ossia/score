@@ -26,6 +26,7 @@ protected:
 protected:
   QLineEdit* m_deviceNameEdit{};
   QLineEdit* m_localHostEdit{};
+  QSpinBox* m_localPort{};
 
   RateWidget* m_rate{};
 };

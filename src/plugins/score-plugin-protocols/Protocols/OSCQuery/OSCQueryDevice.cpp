@@ -197,7 +197,7 @@ void OSCQueryDevice::slot_createDevice()
   try
   {
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
-        = std::make_unique<mirror_proto>(m_ctx, stgs.host.toStdString());
+        = std::make_unique<mirror_proto>(m_ctx, stgs.host.toStdString(), stgs.localPort);
 
     auto& p = static_cast<mirror_proto&>(*ossia_settings);
     m_mirror = &p;
