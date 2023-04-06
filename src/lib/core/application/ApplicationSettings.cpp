@@ -18,11 +18,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 {
   arguments = cargs;
 
-#if defined(__linux__) || defined(_WIN32)
-  opengl = true;
-#else
   opengl = false;
-#endif
   QCommandLineParser parser;
   parser.setApplicationDescription(
       QObject::tr("score - An interactive sequencer for the intermedia arts."));
@@ -37,6 +33,10 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   QCommandLineOption noGL(
       "no-opengl", QCoreApplication::translate("main", "Disable OpenGL rendering"));
   parser.addOption(noGL);
+
+  QCommandLineOption GL(
+      "opengl", QCoreApplication::translate("main", "Enable OpenGL rendering"));
+  parser.addOption(GL);
 
   QCommandLineOption noRestore(
       "no-restore", QCoreApplication::translate("main", "Disable auto-restore"));
@@ -101,7 +101,11 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
   tryToRestore = !parser.isSet(noRestore);
   gui = !parser.isSet(noGUI);
-  opengl &= !parser.isSet(noGL);
+  if(parser.isSet(GL))
+    opengl = true;
+  if(parser.isSet(noGL))
+    opengl = false;
+
   if(!gui)
     tryToRestore = false;
   autoplay = parser.isSet(autoplayOpt) && args.size() == 1;
