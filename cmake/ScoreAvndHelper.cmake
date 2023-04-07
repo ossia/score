@@ -28,6 +28,29 @@ function(avnd_score_plugin_finalize)
 
   setup_score_plugin(${AVND_BASE_TARGET})
   target_link_libraries(${AVND_BASE_TARGET} PUBLIC score_plugin_engine score_plugin_avnd)
+  if(APPLE)
+    set(PLUGIN_PLATFORM "darwin-amd64")
+  elseif(WIN32)
+    set(PLUGIN_PLATFORM "windows-amd64")
+  else()
+    set(PLUGIN_PLATFORM "linux-amd64")
+  endif()
+
+  get_target_property(PLUGIN_BINARY "${AVND_BASE_TARGET}" OUTPUT_NAME)
+
+  file(GENERATE OUTPUT plugins/localaddon.json
+    CONTENT
+      "{
+  \"${PLUGIN_PLATFORM}\": \"$<TARGET_FILE_NAME:${AVND_BASE_TARGET}>\",
+  \"name\": \"${AVND_BASE_TARGET}\",
+  \"raw_name\": \"${AVND_BASE_TARGET}\",
+  \"version\": \"${AVND_PLUGIN_VERSION}\",
+  \"kind\": \"Sample addon\",
+  \"short\": \"Sample addon\",
+  \"long\": \"Sample addon\",
+  \"key\": \"${AVND_PLUGIN_UUID}\"
+}"
+  )
 
 endfunction()
 
