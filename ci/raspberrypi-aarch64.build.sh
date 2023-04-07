@@ -8,10 +8,11 @@ cd /build
 
 cmake $SCORE_DIR \
  -GNinja \
- -DQT_VERSION=Qt5 \
+ -DQT_VERSION=Qt6 \
  -DCMAKE_UNITY_BUILD=1 \
  -DCMAKE_BUILD_TYPE=Release \
- -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi-aarch64/toolchain.aarch64.llvm.cmake \
+ -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi-aarch64/toolchain.aarch64.llvm-host.cmake \
+ -DCMAKE_PREFIX_PATH=/opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi/qt6-static/lib/cmake \
  -DOSSIA_SDK=/opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi \
  -DSCORE_DEPLOYMENT_BUILD=1 \
  -DOSSIA_ENABLE_KFR=1 \

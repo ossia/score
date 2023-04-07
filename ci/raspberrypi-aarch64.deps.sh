@@ -2,7 +2,7 @@
 
 # Note: this is run from an ArchLinux container due to too recent glibc
 pacman -Syyu --noconfirm
-pacman -S wget ninja cmake tar sed --noconfirm
+pacman -S wget ninja cmake tar sed clang --noconfirm
 
 export SDK_ARCHIVE=sdk-rpi-aarch64.tar.xz
 wget -nv https://github.com/ossia/score-sdk/releases/download/sdk27/$SDK_ARCHIVE -O $SDK_ARCHIVE
