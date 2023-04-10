@@ -432,9 +432,11 @@ struct ExecutorGuiUpdate
     }
     if(ok)
     {
-      avnd::control_input_introspection<Node>::for_all_n2(
-          avnd::get_inputs<Node>(node.impl),
-          ApplyEngineControlChangeToUI<Node>{arr, element});
+      for(auto& state : node.impl.full_state())
+      {
+        avnd::control_input_introspection<Node>::for_all_n2(
+            state.inputs, ApplyEngineControlChangeToUI<Node>{arr, element});
+      }
     }
   }
 
@@ -671,8 +673,12 @@ public:
     {
       // Initialize all the controls in the node with the current value.
       // And update the node when the UI changes
-      control_inputs_type::for_all_n2(
-          avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
+
+      for(auto& state : eff.full_state())
+      {
+        control_inputs_type::for_all_n2(
+            state.inputs, setup_Impl0<Node>{element, ctx, ptr, this});
+      }
     }
     if constexpr(soundfile_inputs_type::size > 0)
     {

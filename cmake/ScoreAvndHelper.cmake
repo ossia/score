@@ -52,6 +52,9 @@ function(avnd_score_plugin_finalize)
 }"
   )
 
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/plugins/localaddon.json
+          DESTINATION plugins/)
+
 endfunction()
 
 function(avnd_score_plugin_add)

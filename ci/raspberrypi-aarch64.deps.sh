@@ -5,7 +5,7 @@ pacman -Syyu --noconfirm
 pacman -S wget ninja cmake tar sed clang --noconfirm
 
 export SDK_ARCHIVE=sdk-rpi-aarch64.tar.xz
-wget -nv https://github.com/ossia/score-sdk/releases/download/sdk27/$SDK_ARCHIVE -O $SDK_ARCHIVE
+wget -nv https://github.com/ossia/score-sdk/releases/download/sdk28/$SDK_ARCHIVE -O $SDK_ARCHIVE
 mkdir -p /opt/ossia-sdk-rpi-aarch64
 tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-rpi-aarch64/
 
