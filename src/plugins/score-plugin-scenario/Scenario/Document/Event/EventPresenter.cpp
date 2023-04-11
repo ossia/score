@@ -42,6 +42,8 @@ EventPresenter::EventPresenter(
 {
   // The scenario catches this :
   con(m_model.selection, &Selectable::changed, m_view, &EventView::setSelected);
+  con(m_model, &EventModel::networkFlagsChanged, m_view,
+      [&] { m_view->conditionItem().updateShape(); });
 
   con(m_model.metadata(), &score::ModelMetadata::ColorChanged, m_view,
       [this] { m_view->update(); });

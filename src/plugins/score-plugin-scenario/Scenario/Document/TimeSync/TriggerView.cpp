@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerView.hpp"
 
+#include <Scenario/Document/NetworkMetadata.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <score/model/Skin.hpp>
@@ -174,7 +175,7 @@ const QPixmap& TriggerView::currentPixmap() const noexcept
   }
   else
   {
-    const auto f = m_model.networkFlags();
+    const auto f = Scenario::networkFlags(m_model);
     using enum Process::NetworkFlags;
     if(f & Shared)
     {

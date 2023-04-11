@@ -104,6 +104,14 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     m_portStartX += 12;
   }
 
+  // Net sync mode
+  {
+    auto rec_btn = new score::QGraphicsPixmapToggle{
+        pixmaps.net_sync_slot_header_on, pixmaps.net_sync_slot_header_off, this};
+    rec_btn->setPos(m_portStartX, 0);
+    m_portStartX += 12;
+  }
+
   if(flags & Process::ProcessFlags::Recordable)
   {
     auto rec_btn

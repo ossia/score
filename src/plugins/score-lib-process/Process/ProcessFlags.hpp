@@ -77,31 +77,28 @@ constexpr ProcessFlags operator|=(ProcessFlags& a, ProcessFlags b) noexcept
  */
 class ProcessFlags_k;
 
-enum NetworkFlags : int8_t
+enum NetworkFlags : uint16_t
 {
-  //! Set: compensated / unset: uncompensated
-  Uncompensated = 0,
-  Compensated = SCORE_FLAG(0),
+  InheritCompensation = 0,
+  Uncompensated = SCORE_FLAG(1),
+  Compensated = SCORE_FLAG(2),
 
-  //! Set: sync / unset: async
-  Async = 0,
-  Sync = SCORE_FLAG(1),
+  InheritSync = 0,
+  Async = SCORE_FLAG(3),
+  Sync = SCORE_FLAG(4),
 
-  //! 00: Free
-  //! 01: Mixed
-  //! 10: Mixed(?)
-  //! 11: Fully shared
-  Free = 0,
-  Mixed = SCORE_FLAG(2),
-  Shared = SCORE_FLAG(2) | SCORE_FLAG(3),
+  InheritShare = 0,
+  Free = SCORE_FLAG(5),
+  Mixed = SCORE_FLAG(6),
+  Shared = SCORE_FLAG(7),
 
   Inactive = 0,
-  Active = SCORE_FLAG(4)
+  Active = SCORE_FLAG(8)
 };
 
 constexpr NetworkFlags operator|(NetworkFlags a, NetworkFlags b) noexcept
 {
-  return NetworkFlags((int8_t)a | (int8_t)b);
+  return NetworkFlags((uint16_t)a | (uint16_t)b);
 }
 
 constexpr NetworkFlags operator|=(NetworkFlags& a, NetworkFlags b) noexcept

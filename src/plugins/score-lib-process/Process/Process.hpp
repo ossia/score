@@ -162,20 +162,21 @@ public:
                 creatingControlsChanged)
 
   QString networkGroup() const noexcept { return m_networkGroup; }
-  void setNetworkGroup(const QString& b);
-  void networkGroupChanged(const QString& b)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkGroupChanged, b)
+  virtual void setNetworkGroup(const QString& b);
+  void networkGroupChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkGroupChanged)
   PROPERTY(
       QString,
       networkGroup READ networkGroup WRITE setNetworkGroup NOTIFY networkGroupChanged)
 
   Process::NetworkFlags networkFlags() const noexcept { return m_networkFlags; }
-  void setNetworkFlags(Process::NetworkFlags b);
-  void networkFlagsChanged(Process::NetworkFlags b)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkFlagsChanged, b)
+  virtual void setNetworkFlags(Process::NetworkFlags b);
+  void networkFlagsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkFlagsChanged)
   PROPERTY(
       Process::NetworkFlags,
       networkFlags READ networkFlags WRITE setNetworkFlags NOTIFY networkFlagsChanged)
+
+  virtual void ancestorNetworkFlagsChanged();
+  virtual void ancestorNetworkGroupChanged();
 
   // FIXME ugh
   QWidget* externalUI{};

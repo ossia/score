@@ -269,6 +269,40 @@ void ProcessModel::ancestorTempoChanged()
     itv.ancestorTempoChanged();
 }
 
+void ProcessModel::setNetworkGroup(const QString& group)
+{
+  Process::ProcessModel::setNetworkGroup(group);
+  ancestorNetworkGroupChanged();
+}
+
+void ProcessModel::setNetworkFlags(Process::NetworkFlags flags)
+{
+  Process::ProcessModel::setNetworkFlags(flags);
+  ancestorNetworkFlagsChanged();
+}
+
+void ProcessModel::ancestorNetworkFlagsChanged()
+{
+  networkFlagsChanged();
+  for(auto& itv : intervals)
+    itv.ancestorNetworkFlagsChanged();
+  for(auto& itv : events)
+    itv.networkFlagsChanged();
+  for(auto& itv : timeSyncs)
+    itv.networkFlagsChanged();
+}
+
+void ProcessModel::ancestorNetworkGroupChanged()
+{
+  networkGroupChanged();
+  for(auto& itv : intervals)
+    itv.ancestorNetworkGroupChanged();
+  for(auto& itv : events)
+    itv.networkGroupChanged();
+  for(auto& itv : timeSyncs)
+    itv.networkGroupChanged();
+}
+
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {
   // TODO we must not paste but replace !

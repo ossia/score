@@ -28,6 +28,7 @@ public:
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
   void changeHeight(qreal newH);
+  void updateShape();
 
   void setSelected(bool selected);
 
@@ -50,5 +51,6 @@ private:
   QPainterPath m_strokedCpath;
   qreal m_height{0.};
   bool m_selected{false};
+  bool m_dotted{false};
 };
 }

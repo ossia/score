@@ -199,6 +199,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Event/EventExecution.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Metatypes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Minimap/Minimap.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/NetworkMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Graph.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ModelConsistency.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp"
@@ -488,6 +489,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Graph.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/NetworkMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenario.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioEditor.cpp"

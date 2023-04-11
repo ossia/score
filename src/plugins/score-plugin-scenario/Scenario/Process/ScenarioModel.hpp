@@ -169,9 +169,13 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
+  void setNetworkGroup(const QString& b) override;
+  void setNetworkFlags(Process::NetworkFlags b) override;
   void ancestorStartDateChanged() override;
   void ancestorTempoChanged() override;
 
+  void ancestorNetworkFlagsChanged() override;
+  void ancestorNetworkGroupChanged() override;
   Selection selectableChildren() const noexcept override;
 
 public:

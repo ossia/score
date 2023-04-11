@@ -14,6 +14,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/NetworkMetadata.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
@@ -205,6 +206,26 @@ void IntervalModel::ancestorTempoChanged()
   }
 }
 
+void IntervalModel::ancestorNetworkFlagsChanged()
+{
+  if(m_networkFlags != Scenario::networkFlags(*this))
+  {
+    networkFlagsChanged();
+    for(auto& proc : processes)
+      proc.ancestorNetworkFlagsChanged();
+  }
+}
+
+void IntervalModel::ancestorNetworkGroupChanged()
+{
+  if(m_networkGroup.isEmpty() || m_networkGroup == "parent")
+  {
+    networkGroupChanged();
+    for(auto& proc : processes)
+      proc.ancestorNetworkGroupChanged();
+  }
+}
+
 void IntervalModel::addSignature(TimeVal t, ossia::time_signature sig)
 {
   m_signatures[t] = sig;
@@ -238,7 +259,7 @@ void IntervalModel::setNetworkGroup(const QString& group)
   if(group != m_networkGroup)
   {
     m_networkGroup = group;
-    networkGroupChanged(group);
+    networkGroupChanged();
   }
 }
 
@@ -247,7 +268,7 @@ void IntervalModel::setNetworkFlags(Process::NetworkFlags flags)
   if(flags != m_networkFlags)
   {
     m_networkFlags = flags;
-    networkFlagsChanged(flags);
+    networkFlagsChanged();
   }
 }
 

@@ -5,6 +5,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/NetworkMetadata.hpp>
 
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
@@ -62,7 +63,15 @@ void ConditionView::paint(
             ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
             : style.IntervalSelected();
 
-  painter->setPen(style.ConditionPen(col));
+  auto& c = col.main;
+  if(m_dotted)
+  {
+    painter->setPen(c.pen2_dotted_square_miter);
+  }
+  else
+  {
+    painter->setPen(c.pen2);
+  }
   painter->setBrush(style.NoBrush());
   painter->drawPath(m_Cpath);
 
@@ -94,25 +103,7 @@ void ConditionView::setHeight(qreal newH)
   prepareGeometryChange();
   m_height = newH;
 
-  m_Cpath = QPainterPath();
-  static constexpr const QSizeF conditionCSize{ConditionCHeight, ConditionCHeight};
-
-  const auto brect = boundingRect();
-  QRectF rect(brect.topLeft(), conditionCSize);
-  QRectF bottomRect(
-      QPointF(brect.bottomLeft().x(), brect.bottomLeft().y() - ConditionCHeight),
-      conditionCSize);
-
-  m_Cpath.moveTo(brect.width() / 2., 2.);
-  m_Cpath.arcTo(rect, 60., 120.);
-  m_Cpath.lineTo(0., m_height + ConditionCHeight / 2.);
-  m_Cpath.arcTo(bottomRect, -180., 120.);
-
-  QPainterPathStroker stk;
-  stk.setWidth(1.);
-  m_strokedCpath = stk.createStroke(m_Cpath);
-
-  this->update();
+  updateShape();
 }
 
 void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -127,20 +118,56 @@ void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     event->ignore();
   }
 }
+
+void ConditionView::updateShape()
+{
+  m_Cpath.clear();
+  static constexpr const QSizeF conditionCSize{ConditionCHeight, ConditionCHeight};
+
+  const auto brect = boundingRect();
+  QRectF rect(brect.topLeft(), conditionCSize);
+  QRectF bottomRect(
+      QPointF(brect.bottomLeft().x(), brect.bottomLeft().y() - ConditionCHeight),
+      conditionCSize);
+
+  const auto nf = Scenario::networkFlags(m_model);
+  m_dotted = nf & Process::NetworkFlags::Free;
+  if(nf & Process::NetworkFlags::Compensated)
+  {
+    m_Cpath.moveTo(brect.width() / 2., 0);
+    m_Cpath.lineTo(0., 0.);
+    m_Cpath.lineTo(0., m_height + ConditionCHeight);
+    m_Cpath.lineTo(brect.width() / 2., m_height + ConditionCHeight);
+  }
+  else
+  {
+    m_Cpath.moveTo(brect.width() / 2., 2.);
+    m_Cpath.arcTo(rect, 60., 120.);
+    m_Cpath.lineTo(0., m_height + ConditionCHeight / 2.);
+    m_Cpath.arcTo(bottomRect, -180., 120.);
+  }
+
+  QPainterPathStroker stk;
+  stk.setWidth(1.);
+  m_strokedCpath = stk.createStroke(m_Cpath);
+
+  this->update();
 }
 
-QPainterPath Scenario::ConditionView::shape() const
+QPainterPath ConditionView::shape() const
 {
   return m_strokedCpath;
 }
 
-bool Scenario::ConditionView::contains(const QPointF& point) const
+bool ConditionView::contains(const QPointF& point) const
 {
   return m_Cpath.contains(point) || m_strokedCpath.contains(point)
          || conditionTrianglePath.contains(point);
 }
 
-QPainterPath Scenario::ConditionView::opaqueArea() const
+QPainterPath ConditionView::opaqueArea() const
 {
   return m_strokedCpath;
+}
+
 }

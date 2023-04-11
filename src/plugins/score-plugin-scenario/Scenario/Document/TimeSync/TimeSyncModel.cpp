@@ -90,7 +90,7 @@ void TimeSyncModel::setNetworkGroup(const QString& group)
   if(group != m_networkGroup)
   {
     m_networkGroup = group;
-    networkGroupChanged(group);
+    networkGroupChanged();
   }
 }
 
@@ -99,7 +99,7 @@ void TimeSyncModel::setNetworkFlags(Process::NetworkFlags flags)
   if(flags != m_networkFlags)
   {
     m_networkFlags = flags;
-    networkFlagsChanged(flags);
+    networkFlagsChanged();
   }
 }
 
