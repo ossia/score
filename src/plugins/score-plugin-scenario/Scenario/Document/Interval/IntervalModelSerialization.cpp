@@ -157,8 +157,9 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
 
            << interval.m_date << interval.m_heightPercentage
            << interval.m_nodalFullViewSlotHeight << interval.m_quantRate
-           << interval.m_zoom << interval.m_center << interval.m_viewMode
-           << interval.m_smallViewShown << interval.m_hasSignature;
+           << interval.m_zoom << interval.m_center << interval.m_networkGroup
+           << interval.m_networkFlags << interval.m_viewMode << interval.m_smallViewShown
+           << interval.m_hasSignature;
 
   insertDelimiter();
 }
@@ -212,7 +213,8 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
 
       >> interval.m_date >> interval.m_heightPercentage
       >> interval.m_nodalFullViewSlotHeight >> interval.m_quantRate >> interval.m_zoom
-      >> interval.m_center >> vm >> sv >> hs;
+      >> interval.m_center >> interval.m_networkGroup >> interval.m_networkFlags >> vm
+      >> sv >> hs;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
   interval.m_hasSignature = hs;
@@ -265,6 +267,8 @@ JSONReader::read(const Scenario::IntervalModel& interval)
 
   obj[strings.Zoom] = interval.m_zoom;
   obj[strings.Center] = interval.m_center;
+  obj["NetworkGroup"] = interval.m_networkGroup;
+  obj["NetworkFlags"] = interval.m_networkFlags;
   obj["ViewMode"] = (int)interval.m_viewMode;
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
 
@@ -383,4 +387,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
   auto cit = obj.constFind(strings.Center);
   if(cit != obj.constEnd() && cit->obj.IsNumber())
     interval.m_center <<= *cit;
+
+  assign_with_default(interval.m_networkGroup, obj.tryGet("NetworkGroup"), QString{});
+  assign_with_default(
+      interval.m_networkFlags, obj.tryGet("NetworkFlags"), Process::NetworkFlags{});
 }

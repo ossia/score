@@ -34,7 +34,7 @@ DataStreamReader::read(const Process::ProcessModel& process)
 {
   m_stream << process.m_duration << process.m_slotHeight << process.m_startOffset
            << process.m_loopDuration << process.m_position << process.m_size
-           << process.m_loops;
+           << process.m_networkGroup << process.m_networkFlags << process.m_loops;
 }
 
 // We only load the members of the process here.
@@ -43,7 +43,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ProcessModel& pro
 {
   m_stream >> process.m_duration >> process.m_slotHeight >> process.m_startOffset
       >> process.m_loopDuration >> process.m_position >> process.m_size
-      >> process.m_loops;
+      >> process.m_networkGroup >> process.m_networkFlags >> process.m_loops;
 }
 
 template <>
@@ -55,6 +55,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ProcessModel& proc
   obj["LoopDuration"] = process.loopDuration();
   obj["Pos"] = process.m_position;
   obj["Size"] = process.m_size;
+  obj["NetworkGroup"] = process.m_networkGroup;
+  obj["NetworkFlags"] = process.m_networkFlags;
   obj["Loops"] = process.loops();
 }
 
@@ -74,4 +76,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ProcessModel& process)
   assign_with_default(process.m_loops, obj.tryGet("Loops"), false);
   assign_with_default(process.m_position, obj.tryGet("Pos"), QPointF{});
   assign_with_default(process.m_size, obj.tryGet("Size"), QSize(200, 200));
+  assign_with_default(process.m_networkGroup, obj.tryGet("NetworkGroup"), QString{});
+  assign_with_default(
+      process.m_networkFlags, obj.tryGet("NetworkFlags"), Process::NetworkFlags{});
 }

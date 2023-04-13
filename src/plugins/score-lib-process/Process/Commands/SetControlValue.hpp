@@ -21,6 +21,8 @@ public:
   void redo(const score::DocumentContext& ctx) const final override;
   void update(const Process::ControlInlet& obj, ossia::value newval);
 
+  const Path<Process::ControlInlet>& path() const noexcept { return m_path; }
+
 protected:
   void serializeImpl(DataStreamInput& stream) const final override;
   void deserializeImpl(DataStreamOutput& stream) final override;

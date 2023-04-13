@@ -24,8 +24,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
 {
   m_stream << timesync.m_date << timesync.m_events << timesync.m_musicalSync
-           << timesync.m_active << timesync.m_autotrigger << timesync.m_startPoint
-           << timesync.m_expression;
+           << timesync.m_networkGroup << timesync.m_networkFlags << timesync.m_active
+           << timesync.m_autotrigger << timesync.m_startPoint << timesync.m_expression;
 
   insertDelimiter();
 }
@@ -35,8 +35,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
 {
   m_stream >> timesync.m_date >> timesync.m_events >> timesync.m_musicalSync
-      >> timesync.m_active >> timesync.m_autotrigger >> timesync.m_startPoint
-      >> timesync.m_expression;
+      >> timesync.m_networkGroup >> timesync.m_networkFlags >> timesync.m_active
+      >> timesync.m_autotrigger >> timesync.m_startPoint >> timesync.m_expression;
 
   checkDelimiter();
 }
@@ -48,6 +48,8 @@ JSONReader::read(const Scenario::TimeSyncModel& timesync)
   obj[strings.Date] = timesync.date();
   obj[strings.Events] = timesync.m_events;
   obj["MusicalSync"] = timesync.m_musicalSync;
+  obj["NetworkGroup"] = timesync.m_networkGroup;
+  obj["NetworkFlags"] = timesync.m_networkFlags;
   obj[strings.AutoTrigger] = timesync.m_autotrigger;
   obj["Start"] = timesync.m_startPoint;
   obj[strings.Active] = timesync.m_active;
@@ -61,6 +63,9 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::TimeSyncModel& tim
   timesync.m_events <<= obj[strings.Events];
 
   assign_with_default(timesync.m_musicalSync, obj.tryGet("MusicalSync"), 1.0);
+  assign_with_default(timesync.m_networkGroup, obj.tryGet("NetworkGroup"), QString{});
+  assign_with_default(
+      timesync.m_networkFlags, obj.tryGet("NetworkFlags"), Process::NetworkFlags{});
   assign_with_default(timesync.m_autotrigger, obj.tryGet("AutoTrigger"), false);
   assign_with_default(timesync.m_startPoint, obj.tryGet("Start"), false);
 
