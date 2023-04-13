@@ -505,6 +505,20 @@ void Application::initDocuments()
       m_presenter->documentManager().loadFile(ctx, doc);
   }
 
+  if(appSettings.gui)
+  {
+    auto sqa = safe_cast<SafeQApplication*>(m_app);
+    connect(sqa, &SafeQApplication::fileOpened, this, [&](const QString& file) {
+      m_presenter->documentManager().loadFile(ctx, file);
+    });
+  }
+
+#if defined(QT_FEATURE_thread)
+#if QT_FEATURE_thread == 1
+  QThreadPool::globalInstance()->setMaxThreadCount(2);
+#endif
+#endif
+
   // The plug-ins have the ability to override the boot process.
   for(auto plug : ctx.guiApplicationPlugins())
   {
@@ -512,14 +526,6 @@ void Application::initDocuments()
     {
       return;
     }
-  }
-
-  if(appSettings.gui)
-  {
-    auto sqa = safe_cast<SafeQApplication*>(m_app);
-    connect(sqa, &SafeQApplication::fileOpened, this, [&](const QString& file) {
-      m_presenter->documentManager().loadFile(ctx, file);
-    });
   }
 
   // Try to reload if there was a crash
@@ -545,12 +551,6 @@ void Application::initDocuments()
 // If nothing was reloaded, open a normal document
 #if !defined(SCORE_SPLASH_SCREEN)
   openNewDocument();
-#endif
-
-#if defined(QT_FEATURE_thread)
-#if QT_FEATURE_thread == 1
-  QThreadPool::globalInstance()->setMaxThreadCount(2);
-#endif
 #endif
 }
 
