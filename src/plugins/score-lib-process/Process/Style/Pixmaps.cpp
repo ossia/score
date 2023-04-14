@@ -42,11 +42,19 @@ Pixmaps::Pixmaps() noexcept
     , snapshot_off{score::get_pixmap(":/icons/preset_snapshot_off.png")}
     , snapshot_on{score::get_pixmap(":/icons/preset_snapshot_on.png")}
 
-    , net_sync_slot_header_off{score::get_pixmap(":/icons/net_16/pfa.png")}
-    , net_sync_slot_header_on{score::get_pixmap(":/icons/net_16/pssa.png")}
+    , net_sync_slot_header_pfi{score::get_pixmap(":/icons/net_16/pfi.png")}
+    , net_sync_slot_header_pfa{score::get_pixmap(":/icons/net_16/pfa.png")}
+    , net_sync_slot_header_psai{score::get_pixmap(":/icons/net_16/psai.png")}
+    , net_sync_slot_header_psaa{score::get_pixmap(":/icons/net_16/psaa.png")}
+    , net_sync_slot_header_pssi{score::get_pixmap(":/icons/net_16/pssi.png")}
+    , net_sync_slot_header_pssa{score::get_pixmap(":/icons/net_16/pssa.png")}
 
-    , net_sync_node_header_off{score::get_pixmap(":/icons/net_20/pfa.png")}
-    , net_sync_node_header_on{score::get_pixmap(":/icons/net_20/pssa.png")}
+    , net_sync_node_header_pfi{score::get_pixmap(":/icons/net_24/pfi.png")}
+    , net_sync_node_header_pfa{score::get_pixmap(":/icons/net_24/pfa.png")}
+    , net_sync_node_header_psai{score::get_pixmap(":/icons/net_24/psai.png")}
+    , net_sync_node_header_psaa{score::get_pixmap(":/icons/net_24/psaa.png")}
+    , net_sync_node_header_pssi{score::get_pixmap(":/icons/net_24/pssi.png")}
+    , net_sync_node_header_pssa{score::get_pixmap(":/icons/net_24/pssa.png")}
 
     , close_off{score::get_pixmap(":/icons/close_on.png")}
     , close_on{score::get_pixmap(":/icons/close_off.png")}

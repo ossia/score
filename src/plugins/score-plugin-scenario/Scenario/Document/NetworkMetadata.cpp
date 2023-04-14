@@ -63,8 +63,10 @@ static Process::NetworkFlags findNetworkFlags(const auto& p) noexcept
   const auto share = findNetworkFlag(
       p, Process::NetworkFlags::Free | Process::NetworkFlags::Shared
              | Process::NetworkFlags::Mixed);
+  const auto active
+      = (Process::NetworkFlags)(p.networkFlags() & Process::NetworkFlags::Active);
 
-  return compensated | sync | share;
+  return compensated | sync | share | active;
 }
 
 Process::NetworkFlags networkFlags(const Process::ProcessModel& p) noexcept

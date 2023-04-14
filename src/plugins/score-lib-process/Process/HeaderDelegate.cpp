@@ -12,6 +12,7 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/YPos.hpp>
+#include <score/graphics/widgets/QGraphicsPixmapMultichoice.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/std/StringHash.hpp>
 
@@ -90,6 +91,72 @@ static double minPortWidth()
   return 20.;
 }
 
+// FIXME: need to access Scenario::networkFlags here due to the hierarchy
+// FIXME: same thing in Node header
+static void setupProcessNetworkToggleState(
+    const Process::ProcessModel& process, score::QGraphicsPixmapMultichoice* rec_btn,
+    int size)
+{
+  auto& pixmaps = Process::Pixmaps::instance();
+  auto flags = process.networkFlags();
+  if(flags & Process::NetworkFlags::Active)
+  {
+    if(size == 16)
+    {
+      rec_btn->setPixmaps(
+          {pixmaps.net_sync_slot_header_pfa, pixmaps.net_sync_slot_header_psaa,
+           pixmaps.net_sync_slot_header_pssa});
+    }
+    else if(size == 24)
+    {
+      rec_btn->setPixmaps(
+          {pixmaps.net_sync_node_header_pfa, pixmaps.net_sync_node_header_psaa,
+           pixmaps.net_sync_node_header_pssa});
+    }
+  }
+  else
+  {
+    if(size == 16)
+    {
+      rec_btn->setPixmaps(
+          {pixmaps.net_sync_slot_header_pfi, pixmaps.net_sync_slot_header_psai,
+           pixmaps.net_sync_slot_header_pssi});
+    }
+    else if(size == 24)
+    {
+      rec_btn->setPixmaps(
+          {pixmaps.net_sync_node_header_pfi, pixmaps.net_sync_node_header_psai,
+           pixmaps.net_sync_node_header_pssi});
+    }
+  }
+
+  if(flags & Process::NetworkFlags::Shared)
+  {
+    if(flags & Process::NetworkFlags::Compensated)
+      rec_btn->setState(2);
+    else
+      rec_btn->setState(1);
+  }
+  else if(flags & Process::NetworkFlags::Free)
+  {
+    rec_btn->setState(0);
+  }
+}
+
+score::QGraphicsPixmapMultichoice* setupProcessNetworkToggle(
+    const Process::ProcessModel& process, int size, QGraphicsItem* parent)
+{
+  auto rec_btn = new score::QGraphicsPixmapMultichoice{parent};
+  setupProcessNetworkToggleState(process, rec_btn, size);
+
+  QObject::connect(
+      &process, &Process::ProcessModel::networkFlagsChanged, rec_btn,
+      [&process, rec_btn, size] {
+    setupProcessNetworkToggleState(process, rec_btn, size);
+      });
+  return rec_btn;
+}
+
 DefaultHeaderDelegate::DefaultHeaderDelegate(
     const Process::ProcessModel& m, const Process::Context& doc)
     : HeaderDelegate{m, doc}
@@ -106,10 +173,9 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
 
   // Net sync mode
   {
-    auto rec_btn = new score::QGraphicsPixmapToggle{
-        pixmaps.net_sync_slot_header_on, pixmaps.net_sync_slot_header_off, this};
+    auto rec_btn = setupProcessNetworkToggle(m, 16, this);
     rec_btn->setPos(m_portStartX, 0);
-    m_portStartX += 12;
+    m_portStartX += 14;
   }
 
   if(flags & Process::ProcessFlags::Recordable)

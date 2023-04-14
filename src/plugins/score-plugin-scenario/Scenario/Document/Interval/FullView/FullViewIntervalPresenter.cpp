@@ -372,9 +372,9 @@ void FullViewIntervalPresenter::updateProcessShape(
   slot.headerDelegate->setSize(QSizeF{
       std::max(0., width - SlotHeader::handleWidth() - SlotHeader::menuWidth()),
       SlotHeader::headerHeight()});
-  slot.headerDelegate->setX(30);
+  slot.headerDelegate->setX(15);
   slot.footerDelegate->setSize(QSizeF{width, SlotFooter::footerHeight()});
-  slot.footerDelegate->setX(30);
+  slot.footerDelegate->setX(15);
 
   ld.parentGeometryChanged();
 }

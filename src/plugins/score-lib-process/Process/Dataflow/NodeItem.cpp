@@ -18,6 +18,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/TextItem.hpp>
+#include <score/graphics/widgets/QGraphicsPixmapMultichoice.hpp>
 #include <score/model/Skin.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
@@ -35,6 +36,10 @@
 
 namespace Process
 {
+
+// In HeaderDelegate.cpp
+score::QGraphicsPixmapMultichoice* setupProcessNetworkToggle(
+    const Process::ProcessModel& process, int size, QGraphicsItem* parent);
 
 static const constexpr qreal TitleHeight = 20.;
 //static const constexpr qreal TitleX0 = 15;
@@ -101,8 +106,7 @@ void NodeItem::createWithDecorations()
 
   m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
   m_presetButton = Process::makePresetButton(process, ctx, this, this);
-  m_netButton = new score::QGraphicsPixmapToggle{
-      pixmaps.net_sync_node_header_on, pixmaps.net_sync_node_header_off, this};
+  m_netButton = Process::setupProcessNetworkToggle(process, 24, this);
 
   auto& skin = score::Skin::instance();
   m_label = new score::SimpleTextItem{skin.Light.main, this};

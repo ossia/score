@@ -24,11 +24,19 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
   const QPixmap snapshot_off;
   const QPixmap snapshot_on;
 
-  const QPixmap net_sync_slot_header_off;
-  const QPixmap net_sync_slot_header_on;
+  const QPixmap net_sync_slot_header_pfi;
+  const QPixmap net_sync_slot_header_pfa;
+  const QPixmap net_sync_slot_header_psai;
+  const QPixmap net_sync_slot_header_psaa;
+  const QPixmap net_sync_slot_header_pssi;
+  const QPixmap net_sync_slot_header_pssa;
 
-  const QPixmap net_sync_node_header_off;
-  const QPixmap net_sync_node_header_on;
+  const QPixmap net_sync_node_header_pfi;
+  const QPixmap net_sync_node_header_pfa;
+  const QPixmap net_sync_node_header_psai;
+  const QPixmap net_sync_node_header_psaa;
+  const QPixmap net_sync_node_header_pssi;
+  const QPixmap net_sync_node_header_pssa;
 
   const QPixmap close_off;
   const QPixmap close_on;
