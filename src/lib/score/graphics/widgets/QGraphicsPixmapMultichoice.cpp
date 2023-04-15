@@ -1,5 +1,8 @@
 #include <score/graphics/widgets/QGraphicsPixmapMultichoice.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Debug.hpp>
+
+#include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 

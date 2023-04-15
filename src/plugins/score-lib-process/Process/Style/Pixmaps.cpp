@@ -49,12 +49,12 @@ Pixmaps::Pixmaps() noexcept
     , net_sync_slot_header_pssi{score::get_pixmap(":/icons/net_16/pssi.png")}
     , net_sync_slot_header_pssa{score::get_pixmap(":/icons/net_16/pssa.png")}
 
-    , net_sync_node_header_pfi{score::get_pixmap(":/icons/net_24/pfi.png")}
-    , net_sync_node_header_pfa{score::get_pixmap(":/icons/net_24/pfa.png")}
-    , net_sync_node_header_psai{score::get_pixmap(":/icons/net_24/psai.png")}
-    , net_sync_node_header_psaa{score::get_pixmap(":/icons/net_24/psaa.png")}
-    , net_sync_node_header_pssi{score::get_pixmap(":/icons/net_24/pssi.png")}
-    , net_sync_node_header_pssa{score::get_pixmap(":/icons/net_24/pssa.png")}
+    , net_sync_node_header_pfi{score::get_pixmap(":/icons/net_20/pfi.png")}
+    , net_sync_node_header_pfa{score::get_pixmap(":/icons/net_20/pfa.png")}
+    , net_sync_node_header_psai{score::get_pixmap(":/icons/net_20/psai.png")}
+    , net_sync_node_header_psaa{score::get_pixmap(":/icons/net_20/psaa.png")}
+    , net_sync_node_header_pssi{score::get_pixmap(":/icons/net_20/pssi.png")}
+    , net_sync_node_header_pssa{score::get_pixmap(":/icons/net_20/pssa.png")}
 
     , close_off{score::get_pixmap(":/icons/close_on.png")}
     , close_on{score::get_pixmap(":/icons/close_off.png")}

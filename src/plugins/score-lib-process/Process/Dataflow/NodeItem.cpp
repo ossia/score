@@ -106,7 +106,7 @@ void NodeItem::createWithDecorations()
 
   m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
   m_presetButton = Process::makePresetButton(process, ctx, this, this);
-  m_netButton = Process::setupProcessNetworkToggle(process, 24, this);
+  m_netButton = Process::setupProcessNetworkToggle(process, 20, this);
 
   auto& skin = score::Skin::instance();
   m_label = new score::SimpleTextItem{skin.Light.main, this};
@@ -246,11 +246,11 @@ void NodeItem::updateTitlePos()
   if(m_presetButton)
   {
     m_presetButton->setPos({x0, UiY0});
-    x0 += UiX0 + SpacingIcon * 2.;
+    x0 += UiX0 + SpacingIcon;
   }
   if(m_netButton)
   {
-    m_netButton->setPos({x0, UiY0});
+    m_netButton->setPos({x0, UiY0 - 2});
     x0 += UiX0 + SpacingIcon * 2.;
   }
 

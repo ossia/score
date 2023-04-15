@@ -107,7 +107,7 @@ static void setupProcessNetworkToggleState(
           {pixmaps.net_sync_slot_header_pfa, pixmaps.net_sync_slot_header_psaa,
            pixmaps.net_sync_slot_header_pssa});
     }
-    else if(size == 24)
+    else
     {
       rec_btn->setPixmaps(
           {pixmaps.net_sync_node_header_pfa, pixmaps.net_sync_node_header_psaa,
@@ -122,7 +122,7 @@ static void setupProcessNetworkToggleState(
           {pixmaps.net_sync_slot_header_pfi, pixmaps.net_sync_slot_header_psai,
            pixmaps.net_sync_slot_header_pssi});
     }
-    else if(size == 24)
+    else
     {
       rec_btn->setPixmaps(
           {pixmaps.net_sync_node_header_pfi, pixmaps.net_sync_node_header_psai,
