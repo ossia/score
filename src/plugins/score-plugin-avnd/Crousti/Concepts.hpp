@@ -418,7 +418,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       auto [mx, my] = c.min;
       auto [Mx, My] = c.max;
       auto [ix, iy] = c.init;
-      return new Process::XYZSpinboxes{{mx, my}, {Mx, My}, {ix, iy}, qname, id, parent};
+      return new Process::XYSpinboxes{{mx, my}, {Mx, My}, {ix, iy}, qname, id, parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::xyz_spinbox)
