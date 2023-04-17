@@ -2,9 +2,11 @@ function(avnd_score_plugin_init)
   cmake_parse_arguments(AVND "" "BASE_TARGET" "" ${ARGN})
 
   if(NOT TARGET ${AVND_BASE_TARGET})
-    add_library(
-      ${AVND_BASE_TARGET} MODULE
-    )
+    if(SCORE_STATIC_PLUGINS)
+      add_library(${AVND_BASE_TARGET} STATIC)
+    else()
+      add_library(${AVND_BASE_TARGET} MODULE)
+    endif()
   endif()
 
   set(AVND_ADDITIONAL_CLASSES "" PARENT_SCOPE)
@@ -28,6 +30,12 @@ function(avnd_score_plugin_finalize)
 
   setup_score_plugin(${AVND_BASE_TARGET})
   target_link_libraries(${AVND_BASE_TARGET} PUBLIC score_plugin_engine score_plugin_avnd)
+
+  if(SCORE_STATIC_PLUGINS)
+    return()
+  endif()
+
+  # Setup for dynamic plug-in generation
   if(APPLE)
     set(PLUGIN_PLATFORM "darwin-amd64")
   elseif(WIN32)
@@ -53,8 +61,7 @@ function(avnd_score_plugin_finalize)
   )
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/plugins/localaddon.json
-          DESTINATION plugins/)
-
+          DESTINATION .)
 endfunction()
 
 function(avnd_score_plugin_add)

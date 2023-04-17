@@ -153,13 +153,13 @@ function(setup_score_plugin PluginName)
 
   if(WIN32)
     install(TARGETS "${PluginName}"
-      RUNTIME DESTINATION plugins
+      RUNTIME DESTINATION .
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION imports
     )
   else()
     install(TARGETS "${PluginName}"
-      LIBRARY DESTINATION plugins
+      LIBRARY DESTINATION .
     )
   endif()
 endfunction()

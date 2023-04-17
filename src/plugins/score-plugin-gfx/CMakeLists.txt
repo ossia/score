@@ -260,8 +260,6 @@ if(APPLE)
     find_library(CoreFoundation_FK CoreFoundation)
     find_library(AudioToolbox_FK AudioToolbox)
     find_library(VideoToolbox_FK VideoToolbox)
-    find_package(BZip2 REQUIRED)
-    find_package(ZLIB REQUIRED)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${QuartzCore_FK}
@@ -275,9 +273,17 @@ if(APPLE)
         ${CoreFoundation_FK}
         ${AudioToolbox_FK}
         ${VideoToolbox_FK}
+        )
+
+    # If we build against homebrew's ffmpeg we do not need those
+    if(OSSIA_SDK)
+      find_package(BZip2 REQUIRED)
+      find_package(ZLIB REQUIRED)
+      target_link_libraries(${PROJECT_NAME} PRIVATE
         BZip2::BZip2
         ZLIB::ZLIB
-        )
+      )
+    endif()
 endif()
 
 if(WIN32)
