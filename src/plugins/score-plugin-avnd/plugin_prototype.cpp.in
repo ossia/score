@@ -1,4 +1,6 @@
 // clang-format off
+#include "@AVND_BASE_TARGET@.hpp"
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
