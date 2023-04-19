@@ -1,0 +1,20 @@
+// clang-format off
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/Interface.hpp>
+#include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+class @AVND_BASE_TARGET@ final
+  : public score::FactoryInterface_QtInterface
+  , public score::Plugin_QtInterface
+{
+  SCORE_PLUGIN_METADATA(@AVND_PLUGIN_VERSION@, "@AVND_PLUGIN_UUID@")
+public:
+  @AVND_BASE_TARGET@();
+  ~@AVND_BASE_TARGET@() override;
+private:
+  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
+          const score::ApplicationContext& ctx,
+          const score::InterfaceKey& key) const override;
+  std::vector<score::PluginKey> required() const override;
+};

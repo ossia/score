@@ -16,7 +16,13 @@ endfunction()
 function(avnd_score_plugin_finalize)
   cmake_parse_arguments(AVND "" "BASE_TARGET;PLUGIN_VERSION;PLUGIN_UUID" "" ${ARGN})
 
-  # Generate the score_plugin_foo.cpp
+  # Generate the score_plugin_foo.{h,c}pp
+  configure_file(
+    "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.hpp.in"
+    "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.hpp"
+    @ONLY
+    NEWLINE_STYLE LF
+  )
   configure_file(
     "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.cpp.in"
     "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"

@@ -10,34 +10,24 @@
 #include <Avnd/Factories.hpp>
 @AVND_ADDITIONAL_CLASSES@
 
-class @AVND_BASE_TARGET@ final
-  : public score::FactoryInterface_QtInterface
-  , public score::Plugin_QtInterface
-{
-  SCORE_PLUGIN_METADATA(@AVND_PLUGIN_VERSION@, "@AVND_PLUGIN_UUID@")
-public:
-  @AVND_BASE_TARGET@();
-  ~@AVND_BASE_TARGET@() override;
-private:
-  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
-          const score::ApplicationContext& ctx,
-          const score::InterfaceKey& key) const override
-  {
-    std::vector<std::unique_ptr<score::InterfaceBase>> fx;
-
-    @AVND_CUSTOM_FACTORIES@
-
-    return fx;
-  }
-
-  std::vector<score::PluginKey> required() const override
-  {
-    return {score_plugin_engine::static_key()};
-  }
-};
-
 @AVND_BASE_TARGET@::@AVND_BASE_TARGET@() = default;
 @AVND_BASE_TARGET@::~@AVND_BASE_TARGET@() = default;
+
+std::vector<std::unique_ptr<score::InterfaceBase>> @AVND_BASE_TARGET@::factories(
+        const score::ApplicationContext& ctx,
+        const score::InterfaceKey& key) const
+{
+  std::vector<std::unique_ptr<score::InterfaceBase>> fx;
+
+  @AVND_CUSTOM_FACTORIES@
+
+  return fx;
+}
+
+std::vector<score::PluginKey> @AVND_BASE_TARGET@::required() const
+{
+  return {score_plugin_engine::static_key()};
+}
 
 #include <score/plugins/PluginInstances.hpp>
 SCORE_EXPORT_PLUGIN(@AVND_BASE_TARGET@)

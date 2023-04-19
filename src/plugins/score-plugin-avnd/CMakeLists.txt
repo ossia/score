@@ -584,6 +584,7 @@ if(SCORE_INSTALL_HEADERS)
   install(
     FILES
       prototype.cpp.in
+      plugin_prototype.hpp.in
       plugin_prototype.cpp.in
     DESTINATION lib/cmake/score
     COMPONENT Devel
