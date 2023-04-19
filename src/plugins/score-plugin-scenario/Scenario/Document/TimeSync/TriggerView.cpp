@@ -176,12 +176,11 @@ const QPixmap& TriggerView::currentPixmap() const noexcept
   else
   {
     const auto f = Scenario::networkFlags(m_model);
-    using enum Process::NetworkFlags;
-    if(f & Shared)
+    if(f & Process::NetworkFlags::Shared)
     {
-      if(f & Compensated)
+      if(f & Process::NetworkFlags::Compensated)
       {
-        if(f & Active)
+        if(f & Process::NetworkFlags::Active)
         {
           [[likely]];
           return pixs.net_tssa;
@@ -193,7 +192,7 @@ const QPixmap& TriggerView::currentPixmap() const noexcept
       }
       else
       {
-        if(f & Active)
+        if(f & Process::NetworkFlags::Active)
         {
           return pixs.net_tsaa;
         }
@@ -205,7 +204,7 @@ const QPixmap& TriggerView::currentPixmap() const noexcept
     }
     else
     {
-      if(f & Active)
+      if(f & Process::NetworkFlags::Active)
       {
         return pixs.net_tfa;
       }
