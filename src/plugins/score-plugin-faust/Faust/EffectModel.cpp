@@ -225,7 +225,7 @@ void FaustEffectModel::reload()
 #elif defined(__emscripten__)
       "wasm32-unknown-unknown-wasm"
 #elif defined(__aarch64__)
-      ""
+      "aarch64-none-linux-gnueabi"
 #elif defined(__arm__)
       "arm-none-linux-gnueabihf"
 #else
