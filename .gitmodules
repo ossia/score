@@ -1,8 +1,8 @@
 [submodule "3rdparty/QProgressIndicator"]
-	path = src/lib/3rdparty/QProgressIndicator
+	path = 3rdparty/QProgressIndicator
 	url = https://github.com/jcelerier/QProgressIndicator
 [submodule "3rdparty/Qt-Color-Widgets"]
-	path = src/lib/3rdparty/Qt-Color-Widgets
+	path = 3rdparty/Qt-Color-Widgets
 	url = https://github.com/jcelerier/Qt-Color-Widgets.git
 [submodule "Documentation/Doxygen/doxygen-bootstrapped"]
 	path = docs/Doxygen/doxygen-bootstrapped

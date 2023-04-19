@@ -319,7 +319,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TextLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/WidgetWrapper.hpp"
 
-     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.h"
+     "${3RDPARTY_FOLDER}/QProgressIndicator/QProgressIndicator.h"
 
      "${3RDPARTY_FOLDER}/QMenuView/qmenuview.h"
      "${3RDPARTY_FOLDER}/QMenuView/qmenuview_p.h"
@@ -522,26 +522,26 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/FixedTabWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.cpp"
+"${3RDPARTY_FOLDER}/QProgressIndicator/QProgressIndicator.cpp"
 
-# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_list_widget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/gradient_slider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_line_edit.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/swatch.cpp"
-# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/bound_color_selector.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_palette_widget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_palette_model.cpp"
-# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_2d_slider.cpp"
-# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/abstract_widget_list.cpp"
-# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_delegate.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_utils.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_dialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_palette.cpp"
-# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_selector.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_preview.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/hue_slider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_wheel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_names.cpp"
+# "${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_list_widget.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/gradient_slider.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_line_edit.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/swatch.cpp"
+# "${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/bound_color_selector.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_palette_widget.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_palette_model.cpp"
+# "${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_2d_slider.cpp"
+# "${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/abstract_widget_list.cpp"
+# "${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_delegate.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_utils.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_dialog.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_palette.cpp"
+# "${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_selector.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_preview.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/hue_slider.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_wheel.cpp"
+"${3RDPARTY_FOLDER}/Qt-Color-Widgets/src/color_names.cpp"
 )
 
 add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
@@ -582,10 +582,10 @@ if(TARGET ${QT_PREFIX}::StateMachine)
     PRIVATE ${QT_PREFIX}::StateMachine
   )
 endif()
-target_include_directories(score_lib_base PUBLIC 3rdparty/QProgressIndicator)
-target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets)
-target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/src)
-target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/QtColorWidgets)
+target_include_directories(score_lib_base PUBLIC ${3RDPARTY_FOLDER}/QProgressIndicator)
+target_include_directories(score_lib_base PUBLIC ${3RDPARTY_FOLDER}/Qt-Color-Widgets)
+target_include_directories(score_lib_base PUBLIC ${3RDPARTY_FOLDER}/Qt-Color-Widgets/src)
+target_include_directories(score_lib_base PUBLIC ${3RDPARTY_FOLDER}/Qt-Color-Widgets/QtColorWidgets)
 target_include_directories(score_lib_base PUBLIC ${OSSIA_3RDPARTY_FOLDER}/verdigris/src)
 
 setup_score_library(score_lib_base)
