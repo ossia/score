@@ -98,7 +98,7 @@ static void setupProcessNetworkToggleState(
     int size)
 {
   auto& pixmaps = Process::Pixmaps::instance();
-  auto flags = process.networkFlags();
+  auto flags = Process::networkFlags(process);
   if(flags & Process::NetworkFlags::Active)
   {
     if(size == 16)

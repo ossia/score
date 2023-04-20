@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
 #include <Process/Preset.hpp>
-#include <Process/ProcessFlags.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/NetworkProperties.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -54,6 +54,7 @@ using Outlets = ossia::small_vector<Process::Outlet*, 4>;
 class SCORE_LIB_PROCESS_EXPORT ProcessModel
     : public score::Entity<ProcessModel>
     , public score::SerializableInterface<ProcessModel>
+    , public Process::NetworkProperties
 {
   W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
@@ -161,22 +162,19 @@ public:
       bool, creatingControls READ creatingControls WRITE setCreatingControls NOTIFY
                 creatingControlsChanged)
 
-  QString networkGroup() const noexcept { return m_networkGroup; }
-  virtual void setNetworkGroup(const QString& b);
+  void setNetworkGroup(const QString& b) override;
+  void ancestorNetworkGroupChanged() override;
   void networkGroupChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkGroupChanged)
   PROPERTY(
       QString,
       networkGroup READ networkGroup WRITE setNetworkGroup NOTIFY networkGroupChanged)
 
-  Process::NetworkFlags networkFlags() const noexcept { return m_networkFlags; }
-  virtual void setNetworkFlags(Process::NetworkFlags b);
+  void setNetworkFlags(Process::NetworkFlags b) override;
+  void ancestorNetworkFlagsChanged() override;
   void networkFlagsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, networkFlagsChanged)
   PROPERTY(
       Process::NetworkFlags,
       networkFlags READ networkFlags WRITE setNetworkFlags NOTIFY networkFlagsChanged)
-
-  virtual void ancestorNetworkFlagsChanged();
-  virtual void ancestorNetworkGroupChanged();
 
   // FIXME ugh
   QWidget* externalUI{};
@@ -235,8 +233,6 @@ private:
   TimeVal m_loopDuration{};
   QPointF m_position{};
   QSizeF m_size{};
-  QString m_networkGroup{};
-  Process::NetworkFlags m_networkFlags{};
   bool m_loops{};
 };
 

@@ -48,6 +48,7 @@ class TempoProcess;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
     : public score::Entity<IntervalModel>
+    , public Process::NetworkProperties
     , public Nano::Observer
 {
   W_OBJECT(IntervalModel)
@@ -185,8 +186,6 @@ public:
 
   void ancestorStartDateChanged();
   void ancestorTempoChanged();
-  void ancestorNetworkFlagsChanged();
-  void ancestorNetworkGroupChanged();
 
   void addSignature(TimeVal t, ossia::time_signature sig);
   void removeSignature(TimeVal t);
@@ -199,15 +198,15 @@ public:
   void setStartMarker(TimeVal t);
   TimeVal startMarker() const noexcept;
 
-  QString networkGroup() const noexcept { return m_networkGroup; }
-  void setNetworkGroup(const QString& b);
+  void setNetworkGroup(const QString& b) override;
+  void ancestorNetworkGroupChanged() override;
   void networkGroupChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, networkGroupChanged)
   PROPERTY(
       QString,
       networkGroup READ networkGroup WRITE setNetworkGroup NOTIFY networkGroupChanged)
 
-  Process::NetworkFlags networkFlags() const noexcept { return m_networkFlags; }
-  void setNetworkFlags(Process::NetworkFlags b);
+  void setNetworkFlags(Process::NetworkFlags b) override;
+  void ancestorNetworkFlagsChanged() override;
   void networkFlagsChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, networkFlagsChanged)
   PROPERTY(
       Process::NetworkFlags,
@@ -311,9 +310,6 @@ private:
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
-
-  QString m_networkGroup{};
-  Process::NetworkFlags m_networkFlags{};
 
   IntervalExecutionState m_executionState : 2;
   ViewMode m_viewMode : 1;

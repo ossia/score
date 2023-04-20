@@ -303,6 +303,7 @@ void ProcessModel::ancestorNetworkFlagsChanged()
 {
   networkFlagsChanged();
 }
+
 void ProcessModel::ancestorNetworkGroupChanged()
 {
   networkGroupChanged();
