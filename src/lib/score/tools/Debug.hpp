@@ -108,6 +108,6 @@
 #if defined(SCORE_STATIC_PLUGINS)
 #define INLINE_EXPORT
 #else
-#define INLINE_EXPORT Q_DECL_EXPORT
+#define INLINE_EXPORT __attribute__((visibility("default")))
 #endif
 #endif
