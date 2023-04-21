@@ -14,25 +14,31 @@ function(avnd_score_plugin_init)
 endfunction()
 
 function(avnd_score_plugin_finalize)
-  cmake_parse_arguments(AVND "" "BASE_TARGET;PLUGIN_VERSION;PLUGIN_UUID" "" ${ARGN})
+  cmake_parse_arguments(AVND "CUSTOM_PLUGIN" "BASE_TARGET;PLUGIN_VERSION;PLUGIN_UUID" "" ${ARGN})
 
-  # Generate the score_plugin_foo.{h,c}pp
-  configure_file(
-    "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.hpp.in"
-    "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.hpp"
-    @ONLY
-    NEWLINE_STYLE LF
-  )
-  configure_file(
-    "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.cpp.in"
-    "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
-    @ONLY
-    NEWLINE_STYLE LF
-  )
-
-  target_sources(${AVND_BASE_TARGET} PRIVATE
-    "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
-  )
+  if(NOT AVND_CUSTOM_PLUGIN)
+    # Generate the score_plugin_foo.{h,c}pp
+    configure_file(
+      "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.hpp.in"
+      "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.hpp"
+      @ONLY
+      NEWLINE_STYLE LF
+    )
+    configure_file(
+      "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.cpp.in"
+      "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+      @ONLY
+      NEWLINE_STYLE LF
+    )
+    target_sources(${AVND_BASE_TARGET} PRIVATE
+      "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+    )
+  else()
+    file(CONFIGURE OUTPUT
+         "${CMAKE_BINARY_DIR}/include.${AVND_BASE_TARGET}.cpp"
+         CONTENT "${AVND_ADDITIONAL_CLASSES}\nstatic void all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"
+         NEWLINE_STYLE LF)
+  endif()
 
   setup_score_plugin(${AVND_BASE_TARGET})
   target_link_libraries(${AVND_BASE_TARGET} PUBLIC score_plugin_engine score_plugin_avnd)
