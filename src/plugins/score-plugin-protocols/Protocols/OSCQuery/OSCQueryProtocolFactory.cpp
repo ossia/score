@@ -74,14 +74,17 @@ private:
       connect(ret, &QNetworkReply::finished, this, [=]() mutable {
         auto doc = QJsonDocument::fromJson(ret->readAll());
         QString newName = doc.object()["NAME"].toString();
+
         if(!newName.isEmpty())
           set.name = newName;
-
+        QString ws_ip = doc.object()["WS_IP"].toString();
+        QString ws_port = doc.object()["WS_PORT"].toString();
+        websockets |= (!ws_ip.isEmpty() || !ws_port.isEmpty());
         OSCQuerySpecificSettings sub;
         sub.host = QString("%1://%2:%3")
                        .arg(websockets ? "ws" : "http")
-                       .arg(ip.c_str())
-                       .arg(port.c_str());
+                       .arg(ws_ip.isEmpty() ? ip.c_str() : ws_ip)
+                       .arg(ws_port.isEmpty() ? port.c_str() : ws_port);
 
         set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
         deviceAdded(set);
