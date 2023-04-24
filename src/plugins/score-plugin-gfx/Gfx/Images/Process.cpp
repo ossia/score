@@ -377,7 +377,7 @@ template <>
 void JSONReader::read<Gfx::Images::ImageListChooser>(
     const Gfx::Images::ImageListChooser& p)
 {
-  obj[strings.Value] = imagePathsToRelative(p);
+  obj[strings.Value] = ossia::value(imagePathsToRelative(p));
   obj[strings.Domain] = p.m_domain;
 }
 
