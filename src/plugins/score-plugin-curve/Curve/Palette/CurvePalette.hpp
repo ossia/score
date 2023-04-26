@@ -69,7 +69,7 @@ private:
 template <typename Context_T>
 struct ToolPalette_T final : public ToolPalette
 {
-  ToolPalette_T(Context_T& ctx, Presenter& pres)
+  ToolPalette_T(const Context_T& ctx, Presenter& pres)
       : ToolPalette{ctx.context, pres}
       , m_inputDisp{pres.view(), *this, ctx}
   {

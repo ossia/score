@@ -7,13 +7,15 @@
 #include <QGraphicsItem>
 #include <QTableWidget>
 
+#include <score_plugin_gfx_export.h>
+
 namespace Gfx::Images
 {
 struct ImageListChooser;
 }
 
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT, Process::Port, Gfx::Images::ImageListChooser,
+    SCORE_PLUGIN_GFX_EXPORT, Process::Port, Gfx::Images::ImageListChooser,
     "e9e711ca-62c6-43b7-bb51-bbb9ca1e0306")
 
 namespace WidgetFactory

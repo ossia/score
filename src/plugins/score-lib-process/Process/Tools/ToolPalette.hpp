@@ -14,7 +14,7 @@ class ToolPaletteInputDispatcher : public QObject
 {
 public:
   ToolPaletteInputDispatcher(
-      const Input_T& input, ToolPalette_T& palette, Context_T& context)
+      const Input_T& input, ToolPalette_T& palette, const Context_T& context)
       : m_palette{palette}
       , m_context{context}
       , m_currentTool{palette.editionSettings().tool()}
@@ -89,7 +89,7 @@ public:
 
 private:
   ToolPalette_T& m_palette;
-  Context_T& m_context;
+  const Context_T& m_context;
   QPointF m_currentPoint;
   Tool_T m_currentTool;
 
