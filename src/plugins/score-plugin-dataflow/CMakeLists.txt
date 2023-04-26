@@ -9,6 +9,7 @@ set(HDRS
     Dataflow/CableInspector.hpp
     Dataflow/ControlInletItem.hpp
     Dataflow/ControlOutletItem.hpp
+    Dataflow/CurveInlet.hpp
     Dataflow/MidiInletItem.hpp
     Dataflow/MidiOutletItem.hpp
     Dataflow/AudioInletItem.hpp
@@ -24,6 +25,7 @@ set(SRCS
     Dataflow/PortItem.cpp
     Dataflow/ControlInletItem.cpp
     Dataflow/ControlOutletItem.cpp
+    Dataflow/CurveInlet.cpp
     Dataflow/MidiInletItem.cpp
     Dataflow/MidiOutletItem.cpp
     Dataflow/AudioInletItem.cpp

@@ -39,6 +39,7 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
     const std::optional<ossia::destination>& tween)
 {
   auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
+  curve->reserve(segments.size() + 1);
 
   auto start = segments[0]->start();
   if(start.x() == 0.)

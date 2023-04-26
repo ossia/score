@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurvePalette.hpp"
 
+#include <score/tools/Debug.hpp>
 namespace Curve
 {
 
@@ -13,6 +14,7 @@ ToolPalette::ToolPalette(const score::DocumentContext& ctx, Presenter& pres)
     , m_setSegmentTool{*this, ctx}
     , m_createPenTool{*this, ctx}
 {
+  SCORE_ASSERT(m_presenter.view().scene());
 }
 
 ToolPalette::~ToolPalette() { }

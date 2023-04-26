@@ -9,6 +9,7 @@
 #include <Dataflow/CableInspector.hpp>
 #include <Dataflow/ControlInletItem.hpp>
 #include <Dataflow/ControlOutletItem.hpp>
+#include <Dataflow/CurveInlet.hpp>
 #include <Dataflow/DropPortInScenario.hpp>
 #include <Dataflow/MidiInletItem.hpp>
 #include <Dataflow/MidiOutletItem.hpp>
@@ -69,6 +70,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::WidgetInletFactory<
              Process::XYZSpinboxes, WidgetFactory::XYZSpinboxes>,
          Dataflow::WidgetInletFactory<Process::MultiSlider, WidgetFactory::MultiSlider>,
+         Dataflow::WidgetInletFactory<
+             Dataflow::CurveInlet, WidgetFactory::CurveInletItems>,
          Dataflow::WidgetOutletFactory<Process::Bargraph, WidgetFactory::Bargraph>>>(
       ctx, key);
 }

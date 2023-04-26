@@ -661,6 +661,7 @@ public:
       std::shared_ptr<safe_node<Node>>& ptr)
   {
     using control_inputs_type = avnd::control_input_introspection<Node>;
+    using curve_inputs_type = avnd::curve_input_introspection<Node>;
     using soundfile_inputs_type = avnd::soundfile_input_introspection<Node>;
     using midifile_inputs_type = avnd::midifile_input_introspection<Node>;
     using raw_file_inputs_type = avnd::raw_file_input_introspection<Node>;
@@ -677,6 +678,17 @@ public:
       for(auto& state : eff.full_state())
       {
         control_inputs_type::for_all_n2(
+            state.inputs, setup_Impl0<Node>{element, ctx, ptr, this});
+      }
+    }
+    if constexpr(curve_inputs_type::size > 0)
+    {
+      // Initialize all the controls in the node with the current value.
+      // And update the node when the UI changes
+
+      for(auto& state : eff.full_state())
+      {
+        curve_inputs_type::for_all_n2(
             state.inputs, setup_Impl0<Node>{element, ctx, ptr, this});
       }
     }

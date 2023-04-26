@@ -351,7 +351,7 @@ struct InletInitFunc
   template <avnd::parameter T, std::size_t N>
   void operator()(const T& in, avnd::field_index<N>)
   {
-    if constexpr(avnd::control<T>)
+    if constexpr(avnd::control<T> || avnd::curve_port<T>)
     {
       auto p = oscr::make_control_in<Node, T>(
           avnd::field_index<N>{}, Id<Process::Port>(inlet), &self);
@@ -478,6 +478,13 @@ struct OutletInitFunc
     outs.push_back(p);
   }
 #endif
+
+  void operator()(const avnd::curve_port auto& out, auto idx)
+  {
+    auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+  }
 
   void operator()(const avnd::callback auto& out, auto idx)
   {

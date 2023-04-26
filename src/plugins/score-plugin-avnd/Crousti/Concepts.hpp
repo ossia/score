@@ -3,6 +3,8 @@
 #include <Process/ProcessFlags.hpp>
 #include <Process/ProcessMetadata.hpp>
 
+#include <Dataflow/CurveInlet.hpp>
+
 #include <score/plugins/UuidKey.hpp>
 
 #include <ossia/dataflow/audio_port.hpp>
@@ -231,7 +233,11 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
 
   // FIXME log normalization & friends
 
-  if constexpr(widg.widget == avnd::widget_type::bang)
+  if constexpr(avnd::curve_port<T>)
+  {
+    return new Dataflow::CurveInlet(id, parent);
+  }
+  else if constexpr(widg.widget == avnd::widget_type::bang)
   {
     return new Process::ImpulseButton{qname, id, parent};
   }

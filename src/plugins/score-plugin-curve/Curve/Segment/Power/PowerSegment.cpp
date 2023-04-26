@@ -11,6 +11,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
+#include <ossia/editor/curve/curve_segment/power.hpp>
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::PowerSegmentData)
 namespace Curve
@@ -142,18 +143,7 @@ ossia::curve_segment<Y> PowerSegment::makeFunction() const
   }
   else
   {
-    if(gamma < 1.)
-    {
-      return [gamma = gamma](double ratio, Y start, Y end) {
-        return ossia::easing::ease{}(start, end, std::pow(ratio, gamma));
-      };
-    }
-    else
-    {
-      return [gamma = gamma](double ratio, Y start, Y end) {
-        return ossia::easing::ease{}(start, end, std::pow(ratio, gamma));
-      };
-    }
+    return ossia::curve_segment_power<Y, decltype(gamma)>{{gamma}};
   }
 }
 ossia::curve_segment<double> PowerSegment::makeDoubleFunction() const

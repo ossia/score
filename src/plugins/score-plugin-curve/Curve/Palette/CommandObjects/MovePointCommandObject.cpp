@@ -32,8 +32,7 @@ class CommandStackFacade;
 
 namespace Curve
 {
-using SegmentMapImpl
-    = ossia::hash_map<Id<SegmentModel>, SegmentData, CurveDataHash>;
+using SegmentMapImpl = ossia::hash_map<Id<SegmentModel>, SegmentData, CurveDataHash>;
 
 struct CurveSegmentMap : SegmentMapImpl
 {
@@ -50,8 +49,11 @@ MovePointCommandObject::~MovePointCommandObject() { }
 
 static QString getPrettyText(QPointF pt, Curve::Presenter& p) noexcept
 {
-  return static_cast<Curve::CurveProcessModel*>(p.model().parent())
-      ->prettyValue(pt.x(), pt.y());
+  if(auto parent = qobject_cast<Curve::CurveProcessModel*>(p.model().parent()))
+  {
+    return parent->prettyValue(pt.x(), pt.y());
+  }
+  return {};
 }
 void MovePointCommandObject::on_press()
 {
