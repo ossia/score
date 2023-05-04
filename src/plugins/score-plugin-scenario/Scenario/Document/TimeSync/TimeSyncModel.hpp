@@ -39,7 +39,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncModel final
 
 public:
   /** Properties of the class **/
-  Selectable selection;
+  Selectable selection{this};
 
   /** The class **/
   TimeSyncModel(const Id<TimeSyncModel>& id, const TimeVal& date, QObject* parent);

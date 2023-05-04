@@ -105,7 +105,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
   W_OBJECT(Port)
   SCORE_SERIALIZE_FRIENDS
 public:
-  Selectable selection;
+  Selectable selection{this};
   bool hidden{};
 
   void addCable(const Process::Cable& c);

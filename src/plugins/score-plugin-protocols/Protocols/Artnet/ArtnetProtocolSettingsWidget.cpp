@@ -249,7 +249,7 @@ public:
 
       bool filtered = false;
       for(auto& func : filters)
-        if(filtered = !func(pixels[i]))
+        if((filtered = !func(pixels[i])))
           break;
 
       if(!filtered)

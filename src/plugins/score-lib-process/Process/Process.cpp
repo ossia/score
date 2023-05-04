@@ -179,7 +179,15 @@ Selection ProcessModel::selectedChildren() const noexcept
   return {};
 }
 
-void ProcessModel::setSelection(const Selection& s) const noexcept { }
+void ProcessModel::setSelection(const Selection& s) const noexcept
+{
+  // OPTIMIZEME
+  auto cld = this->findChildren<Selectable*>();
+  for(Selectable* child : cld)
+  {
+    child->set(s.contains(child->parent()));
+  }
+}
 
 Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const noexcept
 {

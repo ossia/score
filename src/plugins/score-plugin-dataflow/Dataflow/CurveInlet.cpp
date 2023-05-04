@@ -7,8 +7,10 @@
 #include <Curve/CurveStyle.hpp>
 #include <Curve/CurveView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
-#include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Curve/Segment/CurveSegmentList.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/RectItem.hpp>
@@ -185,6 +187,7 @@ CurveInlet::CurveInlet(DataStream::Deserializer& vis, QObject* parent)
     , m_curve{new Curve::Model{Id<Curve::Model>{0}, this}}
 {
   vis.writeTo(*this);
+  this->init();
 }
 
 CurveInlet::CurveInlet(JSONObject::Deserializer& vis, QObject* parent)
@@ -192,6 +195,7 @@ CurveInlet::CurveInlet(JSONObject::Deserializer& vis, QObject* parent)
     , m_curve{new Curve::Model{Id<Curve::Model>{0}, this}}
 {
   vis.writeTo(*this);
+  this->init();
 }
 
 CurveInlet::CurveInlet(DataStream::Deserializer&& vis, QObject* parent)
@@ -199,6 +203,7 @@ CurveInlet::CurveInlet(DataStream::Deserializer&& vis, QObject* parent)
     , m_curve{new Curve::Model{Id<Curve::Model>{0}, this}}
 {
   vis.writeTo(*this);
+  this->init();
 }
 
 CurveInlet::CurveInlet(JSONObject::Deserializer&& vis, QObject* parent)
@@ -206,6 +211,7 @@ CurveInlet::CurveInlet(JSONObject::Deserializer&& vis, QObject* parent)
     , m_curve{new Curve::Model{Id<Curve::Model>{0}, this}}
 {
   vis.writeTo(*this);
+  this->init();
 }
 
 CurveInlet::~CurveInlet() { }
@@ -213,26 +219,12 @@ CurveInlet::CurveInlet(Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
     , m_curve{new Curve::Model{Id<Curve::Model>{0}, this}}
 {
-  auto s1 = new Curve::LinearSegment(Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
 
   s1->setStart({0., 0.});
   s1->setEnd({1., 1.});
 
   m_curve->addSegment(s1);
-
-  this->init();
-}
-CurveInlet::CurveInlet(
-    const std::vector<QString>& init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
-    , m_curve{new Curve::Model{Id<Curve::Model>{0}, this}}
-{
-  hidden = true;
-  std::vector<ossia::value> init_v;
-  for(auto& v : init)
-    init_v.push_back(v.toStdString());
-  setValue(std::move(init_v));
-  setName(name);
 
   this->init();
 }
@@ -248,12 +240,23 @@ void CurveInlet::on_curveChange()
 
   std::vector<ossia::value> segments;
   segments.reserve(sorted.size());
+  auto& fact = score::GUIAppContext().interfaces<Curve::SegmentList>();
   for(const Curve::SegmentModel* v : sorted)
   {
     std::vector<ossia::value> segment;
     segment.reserve(3);
     segment.push_back(ossia::vec2f{(float)v->start().x(), (float)v->start().y()});
     segment.push_back(ossia::vec2f{(float)v->end().x(), (float)v->end().y()});
+    if(auto power = qobject_cast<const Curve::PowerSegment*>(v))
+    {
+      segment.push_back(power->gamma);
+    }
+    else
+    {
+      auto sf = fact.get(v->concreteKey());
+
+      segment.push_back(sf->prettyName().toStdString());
+    }
     segments.push_back(std::move(segment));
   }
 
@@ -265,30 +268,6 @@ QWidget* WidgetFactory::CurveInletItems::make_widget(
     const Dataflow::CurveInlet& slider, const Dataflow::CurveInlet& inlet,
     const score::DocumentContext& ctx, QWidget* parent, QObject* context)
 {
-  /*
-  auto widg = new EditableTable{ctx};
-  auto vec = ossia::convert<std::vector<ossia::value>>(inlet.value());
-  for(auto& val : vec)
-  {
-    if(const std::string* str = val.target<std::string>())
-    {
-      widg->addCheckedItem(QString::fromStdString(*str));
-    }
-  }
-
-  QObject::connect(widg, &EditableTable::itemsChanged, context, [widg, &inlet, &ctx]() {
-    CommandDispatcher<> disp{ctx.commandStack};
-    disp.submit<Process::SetControlValue>(inlet, widg->value());
-  });
-
-  QObject::connect(
-      &inlet, &Gfx::Images::CurveInlet::valueChanged, widg,
-      [widg](const ossia::value& val) {
-    widg->setItems(ossia::convert<std::vector<ossia::value>>(val));
-      });
-
-  return widg;
-*/
   return new QLabel{"Unimplemented"};
 }
 
@@ -304,26 +283,27 @@ template <>
 void DataStreamReader::read<Dataflow::CurveInlet>(const Dataflow::CurveInlet& p)
 {
   read((const Process::ControlInlet&)p);
-  // readFrom(imagePathsToRelative(p));
+  readFrom(*p.m_curve);
 }
 template <>
 void DataStreamWriter::write<Dataflow::CurveInlet>(Dataflow::CurveInlet& p)
 {
-  std::vector<ossia::value> values;
-  writeTo(values);
-  // p.m_value = imagePathsToAbsolute(p, values);
+  delete p.m_curve;
+  p.m_curve = new Curve::Model{*this, &p};
 }
 
 template <>
 void JSONReader::read<Dataflow::CurveInlet>(const Dataflow::CurveInlet& p)
 {
-  // obj[strings.Value] = ossia::value(imagePathsToRelative(p));
+  read((const Process::ControlInlet&)p);
   obj[strings.Domain] = p.m_domain;
+  obj["Curve"] = *p.m_curve;
 }
 
 template <>
 void JSONWriter::write<Dataflow::CurveInlet>(Dataflow::CurveInlet& p)
 {
-  // p.m_value
-  //     = imagePathsToAbsolute(p, ossia::convert<std::vector<ossia::value>>(p.m_value));
+  delete p.m_curve;
+  JSONObject::Deserializer curve_deser{obj["Curve"]};
+  p.m_curve = new Curve::Model{curve_deser, &p};
 }

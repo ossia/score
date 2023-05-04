@@ -61,7 +61,7 @@ class Note final : public IdentifiedObject<Note>
   SCORE_SERIALIZE_FRIENDS
 
 public:
-  Selectable selection;
+  Selectable selection{this};
 
   Note(const Id<Note>& id, QObject* parent);
   Note(const Id<Note>& id, NoteData n, QObject* parent);

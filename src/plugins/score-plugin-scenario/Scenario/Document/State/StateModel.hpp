@@ -68,7 +68,7 @@ public:
   using ProcessVector = std::list<ProcessStateWrapper>;
 
   score::EntityMap<Process::ProcessModel, true> stateProcesses;
-  Selectable selection;
+  Selectable selection{this};
 
   StateModel(
       const Id<StateModel>& id, const Id<EventModel>& eventId, double yPos,

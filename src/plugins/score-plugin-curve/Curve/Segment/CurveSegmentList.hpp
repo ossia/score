@@ -2,9 +2,13 @@
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 
 #include <score/plugins/InterfaceList.hpp>
+
+#include <score_plugin_curve_export.h>
+
 namespace Curve
 {
-class SegmentList final : public score::InterfaceList<SegmentFactory>
+class SCORE_PLUGIN_CURVE_EXPORT SegmentList final
+    : public score::InterfaceList<SegmentFactory>
 {
 public:
   using object_type = Curve::SegmentModel;

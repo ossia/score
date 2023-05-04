@@ -35,6 +35,7 @@ struct SCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 
 class SCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
 {
+  W_OBJECT(PowerSegment)
 public:
   MODEL_METADATA_IMPL(PowerSegment)
   using data_type = PowerSegmentData;

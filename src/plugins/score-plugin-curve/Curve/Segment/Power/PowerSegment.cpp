@@ -13,6 +13,9 @@
 #include <ossia/editor/curve/curve_segment/linear.hpp>
 #include <ossia/editor/curve/curve_segment/power.hpp>
 
+#include <wobjectimpl.h>
+
+W_OBJECT_IMPL(Curve::PowerSegment)
 SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::PowerSegmentData)
 namespace Curve
 {

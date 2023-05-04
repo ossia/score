@@ -4,8 +4,6 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <Curve/CurveView.hpp>
-
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -14,11 +12,12 @@
 #include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
-#include <Automation/AutomationPresenter.hpp>
 #include <Effect/EffectLayer.hpp>
 
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
+#include <QApplication>
 #include <QDrag>
 #include <QGraphicsView>
 #include <QMimeData>

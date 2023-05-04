@@ -28,7 +28,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockModel final
   SCORE_SERIALIZE_FRIENDS
 
 public:
-  Selectable selection;
+  Selectable selection{this};
 
   CommentBlockModel(
       const Id<CommentBlockModel>& id, const TimeVal& date, double yPos,

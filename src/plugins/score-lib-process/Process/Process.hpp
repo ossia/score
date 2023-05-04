@@ -58,7 +58,7 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModel
   W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
 public:
-  Selectable selection;
+  Selectable selection{this};
   ProcessModel(
       TimeVal duration, const Id<ProcessModel>& id, const QString& name,
       QObject* parent);

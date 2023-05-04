@@ -14,7 +14,7 @@ class SCORE_LIB_BASE_EXPORT Selectable final : public QObject
 {
   W_OBJECT(Selectable)
 public:
-  Selectable();
+  explicit Selectable(QObject* parent);
   virtual ~Selectable();
 
   bool get() const noexcept;

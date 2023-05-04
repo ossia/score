@@ -56,7 +56,7 @@ class SCORE_LIB_PROCESS_EXPORT Cable final : public IdentifiedObject<Cable>
   SCORE_SERIALIZE_FRIENDS
 
 public:
-  Selectable selection;
+  Selectable selection{this};
   Cable() = delete;
   ~Cable();
   Cable(const Cable&) = delete;

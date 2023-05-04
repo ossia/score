@@ -36,7 +36,7 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
 public:
   using data_vector = std::vector<
       QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
-  Selectable selection;
+  Selectable selection{this};
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);
 

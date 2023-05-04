@@ -63,7 +63,7 @@ public:
   /** Properties of the class **/
   score::EntityMap<Process::ProcessModel, true> processes;
 
-  Selectable selection;
+  Selectable selection{this};
   ModelConsistency consistency{nullptr};
   IntervalDurations duration{*this};
 

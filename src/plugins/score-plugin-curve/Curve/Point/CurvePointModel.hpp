@@ -18,7 +18,7 @@ class SCORE_PLUGIN_CURVE_EXPORT PointModel final : public IdentifiedObject<Point
 {
   W_OBJECT(PointModel)
 public:
-  Selectable selection;
+  Selectable selection{this};
   PointModel(const Id<PointModel>& id, QObject* parent);
 
   const OptionalId<SegmentModel>& previous() const;

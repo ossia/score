@@ -40,7 +40,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public score::Entity<Event
 
 public:
   /** Public properties of the class **/
-  Selectable selection;
+  Selectable selection{this};
 
   /** The class **/
   EventModel(

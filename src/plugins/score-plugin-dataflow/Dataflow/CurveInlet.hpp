@@ -47,9 +47,6 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT CurveInlet : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(CurveInlet)
   CurveInlet(Id<Process::Port> id, QObject* parent);
-  CurveInlet(
-      const std::vector<QString>& init, const QString& name, Id<Process::Port> id,
-      QObject* parent);
   ~CurveInlet();
   CurveInlet(DataStream::Deserializer& vis, QObject* parent);
   CurveInlet(JSONObject::Deserializer& vis, QObject* parent);

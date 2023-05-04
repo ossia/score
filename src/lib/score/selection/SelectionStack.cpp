@@ -25,7 +25,10 @@ void Selection::removeDuplicates()
   ossia::remove_duplicates(*this);
 }
 
-Selectable::Selectable() { }
+Selectable::Selectable(QObject* parent)
+    : QObject{parent}
+{
+}
 
 Selectable::~Selectable()
 {
