@@ -12,6 +12,7 @@ struct OSCSpecificSettings
 {
   ossia::net::osc_protocol_configuration configuration;
   std::optional<int> rate{};
+  bool bonjour{};
 
   // Note: this one is not saved, it is only used
   // to allow loading a .json file as an OSC device

@@ -1,6 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
+#include <ossia/network/zeroconf/zeroconf.hpp>
+
 namespace Protocols
 {
 class OSCDevice final : public Device::OwningDeviceInterface
@@ -17,5 +19,6 @@ public:
 
 private:
   const ossia::net::network_context_ptr& m_ctx;
+  ossia::net::zeroconf_server m_zeroconf{};
 };
 }

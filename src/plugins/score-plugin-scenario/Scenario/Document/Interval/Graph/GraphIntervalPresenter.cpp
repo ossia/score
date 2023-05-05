@@ -76,7 +76,7 @@ void GraphalIntervalPresenter::resize()
     auto p1 = m_start.pos();
     auto p2 = m_end.pos();
 
-    auto rect = QRectF{p1, p2};
+    const auto rect = QRectF{p1, p2};
     auto nrect = rect.normalized();
     this->setPos(nrect.topLeft());
     nrect.translate(-nrect.topLeft().x(), -nrect.topLeft().y());
@@ -84,9 +84,9 @@ void GraphalIntervalPresenter::resize()
     p1 = mapFromParent(p1);
     p2 = mapFromParent(p2);
 
-    bool x_dir = p1.x() > p2.x();
-    auto& first = x_dir ? p1 : p2;
-    auto& last = !x_dir ? p1 : p2;
+    const bool x_dir = p1.x() > p2.x();
+    const auto& first = x_dir ? p1 : p2;
+    const auto& last = !x_dir ? p1 : p2;
     if(x_dir)
     {
       p1.rx() -= 4.;
@@ -98,18 +98,22 @@ void GraphalIntervalPresenter::resize()
       p2.rx() -= 4.;
     }
 
-    int half_length = std::floor(0.5 * (last.x() - first.x()));
+    const auto length = last.x() - first.x();
+    if(std::abs(length) > std::numeric_limits<int>::max() * 1e-5)
+      return;
 
-    auto y_direction = last.y() > first.y() ? 1 : -1;
-    auto offset_y = y_direction * half_length / 10.f;
+    const int half_length = std::floor(0.5 * length);
+
+    const auto y_direction = last.y() > first.y() ? 1 : -1;
+    const auto offset_y = y_direction * half_length / 10.f;
 
     m_path.moveTo(first.x(), first.y());
     m_path.cubicTo(
         first.x() + half_length, first.y() + offset_y, last.x() - half_length,
         last.y() - offset_y, last.x(), last.y());
 
-    auto cur = m_path.currentPosition();
-    auto angle = m_path.angleAtPercent(0.95);
+    const auto cur = m_path.currentPosition();
+    const auto angle = m_path.angleAtPercent(0.95);
     {
       if(!x_dir)
       {

@@ -38,6 +38,7 @@ private:
   void setDefaults();
   QLineEdit* m_deviceNameEdit{};
   RateWidget* m_rate{};
+  QCheckBox* m_bonjour{};
   QComboBox* m_transport{};
   QComboBox* m_oscVersion{};
   QStackedLayout* m_transportLayout{};

@@ -411,14 +411,14 @@ void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
 {
   // TODO put it in the right order before 1.0 final.
   // TODO same for minuit, etc..
-  m_stream << n.configuration << n.rate << n.jsonToLoad;
+  m_stream << n.configuration << n.rate << n.bonjour << n.jsonToLoad;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::OSCSpecificSettings& n)
 {
-  m_stream >> n.configuration >> n.rate >> n.jsonToLoad;
+  m_stream >> n.configuration >> n.rate >> n.bonjour >> n.jsonToLoad;
   checkDelimiter();
 }
 
@@ -428,6 +428,8 @@ void JSONReader::read(const Protocols::OSCSpecificSettings& n)
   obj["Config"] = n.configuration;
   if(n.rate)
     obj["Rate"] = *n.rate;
+  if(n.bonjour)
+    obj["Bonjour"] = true;
 }
 
 template <>
@@ -452,4 +454,6 @@ void JSONWriter::write(Protocols::OSCSpecificSettings& n)
 
   if(auto it = obj.tryGet("Rate"))
     n.rate = it->toInt();
+
+  assign_with_default(n.bonjour, obj.tryGet("Bonjour"), false);
 }

@@ -241,7 +241,7 @@ OSCProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
     copy.detach();
 
     return QVariant::fromValue(
-        OSCSpecificSettings{readOSCConfig(copy), std::nullopt, std::move(copy)});
+        OSCSpecificSettings{readOSCConfig(copy), std::nullopt, false, std::move(copy)});
       },
       ctx};
 

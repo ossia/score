@@ -379,6 +379,10 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   m_rate = new RateWidget{this};
   m_rate->setRate({});
 
+  m_bonjour = new QCheckBox{this};
+  m_bonjour->setWhatsThis(
+      tr("If checked, the OSC device will expose itself over Bonjour with _osc._udp"));
+
   m_transport = new QComboBox{this};
   m_transport->addItems(
       {"UDP", "TCP", "Serial port", "Unix Datagram", "Unix Stream", "Websocket Client",
@@ -418,6 +422,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("OSC Version"), m_oscVersion);
   layout->addRow(tr("Rate limit"), m_rate);
+  layout->addRow(tr("Bonjour"), m_bonjour);
   layout->addRow(tr("Protocol"), m_transport);
   layout->addRow(m_transportLayout);
 }
@@ -467,6 +472,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   using osc_version_t = decltype(ossia::net::osc_protocol_configuration::version);
   osc.configuration.version = static_cast<osc_version_t>(m_oscVersion->currentIndex());
   osc.rate = m_rate->rate();
+  osc.bonjour = m_bonjour->isChecked();
   osc.jsonToLoad.clear();
 
   // TODO list.append(m_namespaceFilePathEdit->text());
@@ -505,6 +511,7 @@ void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
     m_settings = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
     m_oscVersion->setCurrentIndex(m_settings.configuration.version);
     m_rate->setRate(m_settings.rate);
+    m_bonjour->setChecked(m_settings.bonjour);
     struct vis
     {
       OSCProtocolSettingsWidget& self;

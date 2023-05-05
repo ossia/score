@@ -41,21 +41,46 @@ bool OSCDevice::reconnect()
   {
     const OSCSpecificSettings& stgs
         = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
+    const auto& name = settings().name.toStdString();
     if(auto proto = ossia::net::make_osc_protocol(m_ctx, stgs.configuration))
     {
       if(stgs.rate)
       {
         auto rate = std::make_unique<ossia::net::rate_limiting_protocol>(
             std::chrono::milliseconds{*stgs.rate}, std::move(proto));
-        m_dev = std::make_unique<ossia::net::generic_device>(
-            std::move(rate), settings().name.toStdString());
+        m_dev = std::make_unique<ossia::net::generic_device>(std::move(rate), name);
       }
       else
       {
-        m_dev = std::make_unique<ossia::net::generic_device>(
-            std::move(proto), settings().name.toStdString());
+        m_dev = std::make_unique<ossia::net::generic_device>(std::move(proto), name);
       }
 
+      if(m_dev)
+      {
+        if(stgs.bonjour)
+        {
+          if(auto udp = ossia_variant_alias::get_if<ossia::net::udp_configuration>(
+                 &stgs.configuration.transport))
+          {
+            m_zeroconf = ossia::net::make_zeroconf_server(
+                name, "_osc._udp", "", udp->local->port, 0);
+          }
+          else if(
+              auto tcp = ossia_variant_alias::get_if<ossia::net::tcp_configuration>(
+                  &stgs.configuration.transport))
+          {
+            m_zeroconf
+                = ossia::net::make_zeroconf_server(name, "_osc._tcp", "", tcp->port, 0);
+          }
+          else if(
+              auto ws = ossia_variant_alias::get_if<ossia::net::ws_server_configuration>(
+                  &stgs.configuration.transport))
+          {
+            m_zeroconf
+                = ossia::net::make_zeroconf_server(name, "_osc._ws", "", ws->port, 0);
+          }
+        }
+      }
       deviceChanged(nullptr, m_dev.get());
       setLogging_impl(Device::get_cur_logging(isLogging()));
     }
