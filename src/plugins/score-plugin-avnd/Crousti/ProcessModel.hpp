@@ -627,7 +627,7 @@ public:
       {
         int index = ossia::index_in_container(this->self.inlets(), id);
         return fmt::format(
-            "(avnd::parameter_input_introspection<decltype({})>::get<{}>({}.inputs)."
+            "(avnd::input_introspection<decltype({})>::get<{}>({}.inputs)."
             "value)",
             variable, index, variable);
       }
@@ -635,7 +635,7 @@ public:
       {
         int index = ossia::index_in_container(this->self.outlets(), id);
         return fmt::format(
-            "(avnd::parameter_output_introspection<decltype({})>::get<{}>({}.outputs)."
+            "(avnd::output_introspection<decltype({})>::get<{}>({}.outputs)."
             "value)",
             variable, index, variable);
       }
