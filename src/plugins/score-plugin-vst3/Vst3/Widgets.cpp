@@ -169,7 +169,7 @@ void VSTEffectItem::setupInlet(
 
   // TODO useless, find a way to remove
   static const auto& portFactory
-      = score::GUIAppContext().interfaces<Process::PortFactoryList>();
+      = score::AppContext().interfaces<Process::PortFactoryList>();
   auto ctl = Process::createControl(i, csetup, inlet, portFactory, doc, this, this);
 
   if(fx.fx.controller->getParameterCount() >= VST_DEFAULT_PARAM_NUMBER_CUTOFF)

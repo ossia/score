@@ -74,10 +74,15 @@ score_plugin_audio::score_plugin_audio()
 
 score_plugin_audio::~score_plugin_audio() { }
 
+score::ApplicationPlugin*
+score_plugin_audio::make_applicationPlugin(const score::ApplicationContext& app)
+{
+  return new Audio::ApplicationPlugin{app};
+}
 score::GUIApplicationPlugin*
 score_plugin_audio::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
-  return new Audio::ApplicationPlugin{app};
+  return new Audio::GUIApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>

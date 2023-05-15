@@ -4,10 +4,10 @@
 namespace Transport
 {
 
-class ApplicationPlugin final : public score::GUIApplicationPlugin
+class ApplicationPlugin final : public score::ApplicationPlugin
 {
 public:
-  ApplicationPlugin(const score::GUIApplicationContext& app);
+  ApplicationPlugin(const score::ApplicationContext& app);
 
 protected:
   void on_createdDocument(score::Document& doc) override;

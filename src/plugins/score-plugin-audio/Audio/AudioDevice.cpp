@@ -103,7 +103,7 @@ bool AudioDevice::reconnect()
     m_dev = std::make_shared<ossia::net::generic_device>(
         std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio");
     auto& engine
-        = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
+        = score::AppContext().applicationPlugin<Audio::ApplicationPlugin>().audio;
     if(!engine)
       return false;
 

@@ -52,7 +52,7 @@ public:
     if(d)
     {
       if(auto f
-         = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d->key))
+         = score::AppContext().interfaces<Process::ProcessFactoryList>().get(d->key))
       {
         setVisible(true);
         auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
@@ -210,7 +210,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
     const auto& preset = m_presetModel->presets[midx.row()];
 
-    for(auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
+    for(auto& lib : score::AppContext().interfaces<LibraryInterfaceList>())
     {
       if((m_previewChild = lib.previewWidget(preset, &m_preview)))
       {

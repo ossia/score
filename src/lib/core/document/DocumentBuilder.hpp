@@ -37,6 +37,12 @@ public:
   Document* loadDocument(
       const score::GUIApplicationContext& ctx, QString filename, QByteArray data,
       SerializationIdentifier format, score::DocumentDelegateFactory& doctype);
+  Document* loadDocument(
+      const score::ApplicationContext& ctx, QString filename, QByteArray data,
+      SerializationIdentifier format, score::DocumentDelegateFactory& doctype);
+  Document* loadDocument(
+      const score::ApplicationContext& ctx, QString filename,
+      SerializationIdentifier format, score::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
       const score::GUIApplicationContext& ctx, const score::RestorableDocument& doc,
       score::DocumentDelegateFactory& doctype);

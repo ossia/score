@@ -207,7 +207,7 @@ void NodeItem::resetInlets()
   m_inlets.clear();
   const qreal x = InletX0;
   qreal y = m_label ? InletY0 : InletY0 - 10.;
-  auto& portFactory = score::GUIAppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for(Process::Inlet* port : m_model.inlets())
   {
     if(port->hidden)

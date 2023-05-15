@@ -25,7 +25,7 @@ struct GUIApplicationContext : public score::ApplicationContext
    *
    * @see score::PanelDelegate
    */
-  auto panels() const { return components.panels(); }
+  auto panels() const noexcept { return components.panels(); }
 
   /**
    * @brief Access to a specific PanelDelegate
@@ -38,43 +38,19 @@ struct GUIApplicationContext : public score::ApplicationContext
     return components.panel<T>();
   }
   template <typename T>
-  T* findPanel() const
+  T* findPanel() const noexcept
   {
     return components.findPanel<T>();
   }
-
-  /**
-   * @brief List of all the application-wide plug-ins
-   *
-   * @see score::GUIApplicationPlugin
-   */
-  const auto& applicationPlugins() const { return components.applicationPlugins(); }
 
   /**
    * @brief List of all the gui application-wide plug-ins
    *
    * @see score::GUIApplicationPlugin
    */
-  const auto& guiApplicationPlugins() const
+  const auto& guiApplicationPlugins() const noexcept
   {
     return components.guiApplicationPlugins();
-  }
-
-  /**
-   * @brief Access a specific application plug-in instance.
-   *
-   * @see score::GUIApplicationPlugin
-   */
-  template <typename T>
-  T& applicationPlugin() const
-  {
-    return components.applicationPlugin<T>();
-  }
-
-  template <typename T>
-  T* findApplicationPlugin() const
-  {
-    return components.findApplicationPlugin<T>();
   }
 
   /**
@@ -89,9 +65,23 @@ struct GUIApplicationContext : public score::ApplicationContext
   }
 
   template <typename T>
-  T* findGuiApplicationPlugin() const
+  T* findGuiApplicationPlugin() const noexcept
   {
     return components.findGuiApplicationPlugin<T>();
+  }
+
+  void forAppPlugins(auto func) const
+      noexcept(noexcept(func(*components.applicationPlugins()[0])))
+  {
+    for(auto& appPlug : components.applicationPlugins())
+    {
+      func(*appPlug);
+    }
+
+    for(auto& appPlug : components.guiApplicationPlugins())
+    {
+      func(*appPlug);
+    }
   }
 
   DocumentManager& docManager;

@@ -162,8 +162,28 @@ DocumentManager::~DocumentManager()
 
   m_documents.clear();
   m_currentDocument = nullptr;
-  if(m_recentFiles)
-    delete m_recentFiles;
+  delete m_recentFiles;
+}
+
+Document*
+DocumentManager::setupDocument(const score::ApplicationContext& ctx, Document* doc)
+{
+  if(doc)
+  {
+    auto it = ossia::find(m_documents, doc);
+    if(it == m_documents.end())
+      m_documents.push_back(doc);
+
+    setCurrentDocument(ctx, doc);
+
+    doc->ready();
+  }
+  else
+  {
+    setCurrentDocument(ctx, m_documents.empty() ? nullptr : m_documents.front());
+  }
+
+  return doc;
 }
 
 Document*
@@ -195,6 +215,21 @@ DocumentManager::setupDocument(const score::GUIApplicationContext& ctx, Document
 }
 
 void DocumentManager::setCurrentDocument(
+    const score::ApplicationContext& ctx, Document* doc)
+{
+  if(doc == m_currentDocument)
+    return;
+
+  auto old = m_currentDocument;
+  m_currentDocument = doc;
+
+  ctx.forAppPlugins(
+      [old, this](auto& ctrl) { ctrl.on_documentChanged(old, m_currentDocument); });
+
+  documentChanged(m_currentDocument);
+}
+
+void DocumentManager::setCurrentDocument(
     const score::GUIApplicationContext& ctx, Document* doc)
 {
   if(doc == m_currentDocument)
@@ -218,10 +253,9 @@ void DocumentManager::setCurrentDocument(
     }
   }
 
-  for(auto& ctrl : ctx.guiApplicationPlugins())
-  {
-    ctrl->on_documentChanged(old, m_currentDocument);
-  }
+  ctx.forAppPlugins(
+      [old, this](auto& ctrl) { ctrl.on_documentChanged(old, m_currentDocument); });
+
   documentChanged(m_currentDocument);
 }
 
@@ -229,7 +263,7 @@ bool DocumentManager::closeDocument(
     const score::GUIApplicationContext& ctx, Document& doc)
 {
   // Warn the user if he might loose data
-  if(!doc.commandStack().isAtSavedIndex())
+  if(m_view && !doc.commandStack().isAtSavedIndex())
   {
     QMessageBox msgBox;
     msgBox.setText(tr("The document has been modified."));
@@ -548,13 +582,17 @@ void DocumentManager::closeVirginDocument(const score::GUIApplicationContext& ct
   }
 }
 
+void DocumentManager::prepareNewDocument(const score::ApplicationContext& ctx)
+{
+  m_preparingNewDocument = true;
+  ctx.forAppPlugins([=](auto& appPlugin) { appPlugin.prepareNewDocument(); });
+  m_preparingNewDocument = false;
+}
+
 void DocumentManager::prepareNewDocument(const score::GUIApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
-  for(GUIApplicationPlugin* appPlugin : ctx.guiApplicationPlugins())
-  {
-    appPlugin->prepareNewDocument();
-  }
+  ctx.forAppPlugins([=](auto& appPlugin) { appPlugin.prepareNewDocument(); });
   m_preparingNewDocument = false;
 }
 

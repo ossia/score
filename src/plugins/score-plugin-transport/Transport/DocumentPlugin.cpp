@@ -17,8 +17,8 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
 
 DocumentPlugin::~DocumentPlugin() { }
 
-ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
-    : GUIApplicationPlugin{app}
+ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
+    : score::ApplicationPlugin{app}
 {
 }
 

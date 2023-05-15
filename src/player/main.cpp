@@ -4,9 +4,14 @@
 
 int main(int argc, char** argv)
 {
-  if (argc > 1)
+  if(argc > 1)
   {
-    score::Player p;
+    // Create a player instance
+    std::atomic_bool ready{};
+    score::Player p{[&] { ready = true; }};
+
+    while(!ready)
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     p.load(argv[1]);
     p.play();
     std::this_thread::sleep_for(std::chrono::seconds(5));

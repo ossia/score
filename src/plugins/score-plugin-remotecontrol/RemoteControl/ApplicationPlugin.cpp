@@ -7,8 +7,8 @@
 #include <RemoteControl/DocumentPlugin.hpp>
 namespace RemoteControl
 {
-ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
-    : GUIApplicationPlugin{app}
+ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
+    : score::ApplicationPlugin{app}
 {
 }
 

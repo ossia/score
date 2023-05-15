@@ -17,8 +17,8 @@ class PlayerImpl;
 class SCORE_PLAYER_EXPORT Player
 {
 public:
-  Player();
-  Player(std::string plugin_path);
+  Player(std::function<void()> onReady);
+  Player(std::string plugin_path, std::function<void()> onReady);
   ~Player();
 
   void setPort(int port);

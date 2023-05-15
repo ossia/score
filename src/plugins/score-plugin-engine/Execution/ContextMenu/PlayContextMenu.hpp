@@ -18,6 +18,7 @@ class ScenarioPresenter;
 namespace Engine
 {
 class ApplicationPlugin;
+class GUIApplicationPlugin;
 }
 
 namespace Execution
@@ -26,7 +27,7 @@ class PlayContextMenu final : public QObject
 {
 public:
   PlayContextMenu(
-      Engine::ApplicationPlugin& plug, const score::GUIApplicationContext& ctx);
+      Engine::GUIApplicationPlugin& plug, const score::GUIApplicationContext& ctx);
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
   void setEnabled(bool);

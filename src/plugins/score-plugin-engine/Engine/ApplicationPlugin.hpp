@@ -42,32 +42,48 @@ namespace Engine
 
 class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
     : public QObject
-    , public score::GUIApplicationPlugin
+    , public score::ApplicationPlugin
 {
 public:
-  ApplicationPlugin(const score::GUIApplicationContext& app);
+  ApplicationPlugin(const score::ApplicationContext& app);
   ~ApplicationPlugin() override;
 
   void initialize() override;
 
   bool handleStartup() override;
-  score::GUIElements makeGUIElements() override;
 
   void prepareNewDocument() override;
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
-
-  QWidget* setupTimingWidget(QLabel*) const;
-  void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
   Execution::ExecutionController& execution() { return m_execution; }
 
 private:
-  Execution::PlayContextMenu m_playActions;
   Execution::ExecutionController m_execution;
+};
 
+class SCORE_PLUGIN_ENGINE_EXPORT GUIApplicationPlugin final
+    : public QObject
+    , public score::GUIApplicationPlugin
+{
+public:
+  GUIApplicationPlugin(const score::GUIApplicationContext& app);
+  ~GUIApplicationPlugin() override;
+
+  Execution::ExecutionController& execution() { return m_execution; }
+
+  void initialize() override;
+  score::GUIElements makeGUIElements() override;
+  void on_createdDocument(score::Document& doc) override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
+  void initLocalTreeNodes(LocalTree::DocumentPlugin&);
+
+  QWidget* setupTimingWidget(QLabel*) const;
+
+private:
+  Execution::ExecutionController& m_execution;
   Scenario::SpeedWidget* m_speedSlider{};
   QAction* m_musicalAct{};
+  Execution::PlayContextMenu m_playActions;
 };
 }

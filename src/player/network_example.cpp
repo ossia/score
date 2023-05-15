@@ -3,13 +3,16 @@
 #include "player.hpp"
 
 #include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/value/format_value.hpp>
 
 #include <QCoreApplication>
+
+#include <iostream>
 int main(int argc, char** argv)
 {
   QCoreApplication app(argc, argv);
   // Create a player instance
-  score::Player p;
+  score::Player p{[] {}};
 
   // Create a device
   ossia::net::generic_device dev;
@@ -20,8 +23,9 @@ int main(int argc, char** argv)
   // Add a custom callback on the device
   auto address = ossia::net::create_node(dev, "/foo/bar")
                      .create_parameter(ossia::val_type::FLOAT);
-  address->add_callback(
-      [](const ossia::value& val) { std::cerr << val << std::endl; });
+  address->add_callback([](const ossia::value& val) {
+    std::cerr << ossia::value_to_pretty_string(val) << std::endl;
+  });
 
   // The device will replace the implementation that will be loaded with the
   // same name.

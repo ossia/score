@@ -1,8 +1,15 @@
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ProcessList.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/model/ComponentSerialization.hpp>
@@ -26,16 +33,13 @@
 #include <core/plugin/PluginManager.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-#include <ossia-qt/device/qml_device.hpp>
 #include <ossia/context.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 
+#include <ossia-qt/device/qml_device.hpp>
+
 #include <QCoreApplication>
 
-#include <Execution/DocumentPlugin.hpp>
-#include <Execution/IntervalComponent.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
-#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <score_player_export.h>
 namespace Network
 {
@@ -43,10 +47,11 @@ class NetworkDocumentPlugin;
 }
 namespace score
 {
-class SCORE_PLAYER_EXPORT PlayerImpl : public QObject,
-                                       public ApplicationInterface
+class SCORE_PLAYER_EXPORT PlayerImpl
+    : public QObject
+    , public ApplicationInterface
 {
-  Q_OBJECT
+  W_OBJECT(PlayerImpl)
 
 public:
   PlayerImpl();
@@ -80,16 +85,15 @@ public:
 
   void stop();
 
-  void loadPlugins(
-      ApplicationRegistrar& registrar, const ApplicationContext& context);
+  void loadPlugins(ApplicationRegistrar& registrar, const ApplicationContext& context);
 
 public:
-  void sig_play();
-  void sig_stop();
-  void sig_close();
-  void sig_loadFile(QString);
-  void sig_setPort(int);
-  void sig_registerDevice(ossia::net::device_base*);
+  void sig_play() W_SIGNAL(sig_play);
+  void sig_stop() W_SIGNAL(sig_stop);
+  void sig_close() W_SIGNAL(sig_close);
+  void sig_loadFile(QString f) W_SIGNAL(sig_loadFile, f);
+  void sig_setPort(int p) W_SIGNAL(sig_setPort, p);
+  void sig_registerDevice(ossia::net::device_base* d) W_SIGNAL(sig_registerDevice, d);
 
 private:
   void setupLoadedDocument();
@@ -108,10 +112,9 @@ private:
   ApplicationComponentsData m_compData;
 
   ApplicationComponents m_components{m_compData};
-  DocumentList m_documents;
+  DocumentManager m_documents{nullptr, nullptr};
   std::vector<std::unique_ptr<SettingsDelegateModel>> m_settings;
-  ApplicationContext m_appContext{m_globSettings, m_components, m_documents,
-                                  m_settings};
+  ApplicationContext m_appContext{m_globSettings, m_components, m_documents, m_settings};
 
   // Document-specific
   std::unique_ptr<Document> m_currentDocument;

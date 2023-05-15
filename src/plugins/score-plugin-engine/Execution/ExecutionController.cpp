@@ -112,15 +112,26 @@
 
 namespace Execution
 {
+ExecutionController::ExecutionController(const score::ApplicationContext& ctx)
+    : context{ctx}
+{
+}
+
 ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx)
     : context{ctx}
-    , m_scenario{ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()}
-    , m_actions{m_scenario.transportActions()}
 {
-  if(ctx.applicationSettings.gui)
+}
+
+void ExecutionController::setup_actions()
+{
+  if(context.applicationSettings.gui)
   {
-    auto& acts = ctx.actions;
     using namespace Actions;
+    auto& ctx = score::GUIAppContext();
+    auto& acts = ctx.actions;
+
+    auto& scenario = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    this->m_actions = &scenario.transportActions();
     connect(
         acts.action<Play>().action(), &QAction::triggered, this,
         &ExecutionController::request_play_local, Qt::QueuedConnection);
@@ -138,7 +149,7 @@ ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx
         &ExecutionController::trigger_reinitialize, Qt::QueuedConnection);
 
     connect(
-        &m_scenario.execution(), &Scenario::ScenarioExecution::playAtDate, this,
+        &scenario.execution(), &Scenario::ScenarioExecution::playAtDate, this,
         &ExecutionController::request_play_from_here);
   }
 }
@@ -200,19 +211,22 @@ void ExecutionController::trigger_play()
 {
   if(!m_intervalsToPlay.empty())
   {
-    m_actions.onPlayLocal();
+    if(m_actions)
+      m_actions->onPlayLocal();
     for(auto& to_play : m_intervalsToPlay)
       play_interval(to_play.interval, std::move(to_play.setup), to_play.t);
     m_intervalsToPlay.clear();
   }
   else if(this->m_requestLocalPlay)
   {
-    m_actions.onPlayLocal();
+    if(m_actions)
+      m_actions->onPlayLocal();
     on_play_local(true);
   }
   else
   {
-    m_actions.onPlayGlobal();
+    if(m_actions)
+      m_actions->onPlayGlobal();
     on_play_global(true);
   }
 
@@ -225,13 +239,15 @@ void ExecutionController::trigger_play()
 
 void ExecutionController::trigger_pause()
 {
-  m_actions.onPause();
+  if(m_actions)
+    m_actions->onPause();
   on_pause();
 }
 
 void ExecutionController::trigger_stop()
 {
-  m_actions.onStop();
+  if(m_actions)
+    m_actions->onStop();
   on_stop();
 
   // See note above
@@ -240,7 +256,8 @@ void ExecutionController::trigger_stop()
 
 void ExecutionController::trigger_reinitialize()
 {
-  m_actions.onStop();
+  if(m_actions)
+    m_actions->onStop();
   on_reinitialize();
 
   // See note above
@@ -415,20 +432,23 @@ void ExecutionController::request_play_from_here(TimeVal t)
     on_play_local(true, t);
 
     // FIXME this ends up calling play_interval again...
-    auto act = this->context.actions.action<Actions::Play>().action();
-    act->trigger();
+    if(this->context.applicationSettings.gui)
+    {
+      auto act = score::GUIAppContext().actions.action<Actions::Play>().action();
+      act->trigger();
+    }
   }
 }
 
 void ExecutionController::ensure_audio_engine()
 {
-  auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
+  auto& audio_engine = this->context.applicationPlugin<Audio::ApplicationPlugin>();
   if(!audio_engine.audio)
   {
-    if(this->context.mainWindow)
+    if(this->context.applicationSettings.gui)
     {
       score::warning(
-          this->context.mainWindow, tr("Cannot play"),
+          score::GUIAppContext().mainWindow, tr("Cannot play"),
           tr("Cannot start playback. It looks like the audio engine is not "
              "running.\n"
              "Check the audio settings in the software settings to ensure "
@@ -498,7 +518,7 @@ void ExecutionController::play_interval(
 
       if(this->context.applicationSettings.gui)
       {
-        if(auto w = Explorer::findDeviceExplorerWidgetInstance(this->context))
+        if(auto w = Explorer::findDeviceExplorerWidgetInstance(score::GUIAppContext()))
         {
           w->setEditable(false);
         }
@@ -660,11 +680,15 @@ void ExecutionController::reset_after_stop()
     }
 
     // If we can we resume listening
-    if(!context.docManager.preparingNewDocument())
+    if(context.applicationSettings.gui)
     {
-      auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
-      if(explorer)
-        explorer->deviceModel().listening().restore();
+      auto& guictx = score::GUIAppContext();
+      if(!guictx.docManager.preparingNewDocument())
+      {
+        auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
+        if(explorer)
+          explorer->deviceModel().listening().restore();
+      }
     }
   }
 
@@ -684,7 +708,8 @@ void ExecutionController::reset_edition()
   // Reset edition for the device explorer
   if(context.applicationSettings.gui)
   {
-    if(auto w = Explorer::findDeviceExplorerWidgetInstance(context))
+    auto& gctx = score::GUIAppContext();
+    if(auto w = Explorer::findDeviceExplorerWidgetInstance(gctx))
     {
       w->setEditable(true);
     }
@@ -711,17 +736,21 @@ void ExecutionController::on_reinitialize()
     if(!exec_plug)
       return;
 
-    auto explorer = Explorer::try_deviceExplorerFromObject(doc);
+    if(context.applicationSettings.gui)
+    {
+      auto& gctx = score::GUIAppContext();
+      auto explorer = Explorer::try_deviceExplorerFromObject(doc);
 
-    // Disable listening for everything
-    if(explorer)
-      if(!ctx.app.settings<Execution::Settings::Model>().getExecutionListening())
-        explorer->deviceModel().listening().stop();
+      // Disable listening for everything
+      if(explorer)
+        if(!ctx.app.settings<Execution::Settings::Model>().getExecutionListening())
+          explorer->deviceModel().listening().stop();
 
-    // If we can we resume listening
-    if(explorer)
-      if(!context.docManager.preparingNewDocument())
-        explorer->deviceModel().listening().restore();
+      // If we can we resume listening
+      if(explorer)
+        if(!gctx.docManager.preparingNewDocument())
+          explorer->deviceModel().listening().restore();
+    }
 
     on_stop();
 

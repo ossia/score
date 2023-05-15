@@ -20,6 +20,8 @@ public:
   virtual ~score_plugin_audio();
 
 private:
+  score::ApplicationPlugin*
+  make_applicationPlugin(const score::ApplicationContext& app) override;
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 

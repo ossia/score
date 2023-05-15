@@ -26,7 +26,7 @@ namespace Dataflow
 Clock::Clock(const Execution::Context& ctx)
     : Execution::Clock{ctx}
     , m_default{ctx}
-    , m_audio{context.doc.app.guiApplicationPlugin<Audio::ApplicationPlugin>()}
+    , m_audio{context.doc.app.applicationPlugin<Audio::ApplicationPlugin>()}
     , m_plug{context.doc.plugin<Execution::DocumentPlugin>()}
 {
 }

@@ -520,13 +520,15 @@ void Application::initDocuments()
 #endif
 
   // The plug-ins have the ability to override the boot process.
-  for(auto plug : ctx.guiApplicationPlugins())
-  {
-    if(plug->handleStartup())
+  bool startup_handled = false;
+  ctx.forAppPlugins([this, &startup_handled](auto& app_plug) {
+    if(!startup_handled && app_plug.handleStartup())
     {
-      return;
+      startup_handled = true;
     }
-  }
+  });
+  if(startup_handled)
+    return;
 
   // Try to reload if there was a crash
   if(appSettings.tryToRestore)

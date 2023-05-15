@@ -23,8 +23,8 @@ public:
   virtual ~score_plugin_remotecontrol();
 
 private:
-  score::GUIApplicationPlugin*
-  make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
+  score::ApplicationPlugin*
+  make_applicationPlugin(const score::ApplicationContext& app) override;
 
   std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 

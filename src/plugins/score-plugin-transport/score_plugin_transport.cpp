@@ -16,16 +16,16 @@ score_plugin_transport::factoryFamilies()
 {
   return make_ptr_vector<score::InterfaceListBase, Transport::TransportInterfaceList>();
 }
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_transport::guiFactories(
-    const score::GUIApplicationContext& ctx, const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_transport::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::GUIApplicationContext,
+      score::ApplicationContext,
       FW<Transport::TransportInterface, Transport::DirectTransport>>(ctx, key);
 }
 
-score::GUIApplicationPlugin* score_plugin_transport::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::ApplicationPlugin*
+score_plugin_transport::make_applicationPlugin(const score::ApplicationContext& app)
 {
   return new Transport::ApplicationPlugin{app};
 }

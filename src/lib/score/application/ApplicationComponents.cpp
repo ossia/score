@@ -14,7 +14,7 @@
 
 namespace score
 {
-ApplicationComponentsData::ApplicationComponentsData() = default;
+ApplicationComponentsData::ApplicationComponentsData() noexcept = default;
 ApplicationComponentsData::~ApplicationComponentsData()
 {
   commands.clear();

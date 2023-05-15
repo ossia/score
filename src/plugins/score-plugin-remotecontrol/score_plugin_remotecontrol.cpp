@@ -13,8 +13,8 @@ score_plugin_remotecontrol::score_plugin_remotecontrol() { }
 
 score_plugin_remotecontrol::~score_plugin_remotecontrol() { }
 
-score::GUIApplicationPlugin* score_plugin_remotecontrol::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::ApplicationPlugin*
+score_plugin_remotecontrol::make_applicationPlugin(const score::ApplicationContext& app)
 {
   return new RemoteControl::ApplicationPlugin{app};
 }

@@ -210,10 +210,8 @@ void Document::restoreModel(const QByteArray& data, DocumentDelegateFactory& fac
   m_model = allocator.allocate(1);
   new(m_model) DocumentModel(this);
 
-  for(auto& appPlug : m_context.app.guiApplicationPlugins())
-  {
-    appPlug->on_initDocument(*this);
-  }
+  m_context.app.forAppPlugins(
+      [this](auto& app_plug) { app_plug.on_initDocument(*this); });
 
   m_model->loadDocumentAsByteArray(m_context, data, factory);
 }
@@ -258,10 +256,8 @@ void Document::loadModel(
   m_model = allocator.allocate(1);
   new(m_model) DocumentModel(this);
 
-  for(auto& appPlug : m_context.app.guiApplicationPlugins())
-  {
-    appPlug->on_initDocument(*this);
-  }
+  m_context.app.forAppPlugins(
+      [this](auto& app_plug) { app_plug.on_initDocument(*this); });
 
   switch(format)
   {

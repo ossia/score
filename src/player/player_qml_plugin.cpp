@@ -2,10 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "player_qml_plugin.hpp"
 
-#include <ossia-qt/qml_plugin.hpp>
 #include <ossia/context.hpp>
 #include <ossia/detail/logger.hpp>
 
+#include <ossia-qt/qml_plugin.hpp>
+
+#include <QQmlEngine>
 
 #include <spdlog/sinks/android_sink.h>
 
@@ -17,51 +19,46 @@ struct qt_log_sink final : public spdlog::sinks::sink
   void log(const spdlog::details::log_msg& msg) override
   {
     QMessageLogger m;
-    switch (msg.level)
+    switch(msg.level)
     {
       case spdlog::level::info:
-      case spdlog::level::trace:
-      {
-        m.info("%s", msg.raw.c_str());
+      case spdlog::level::trace: {
+        m.info("%s", msg.payload.data());
         break;
       }
-      case spdlog::level::debug:
-      {
-        m.debug("%s", msg.raw.c_str());
+      case spdlog::level::debug: {
+        m.debug("%s", msg.payload.data());
         break;
       }
-      case spdlog::level::warn:
-      {
-        m.warning("%s", msg.raw.c_str());
+      case spdlog::level::warn: {
+        m.warning("%s", msg.payload.data());
         break;
       }
       case spdlog::level::err:
-      case spdlog::level::critical:
-      {
-        m.critical("%s", msg.raw.c_str());
+      case spdlog::level::critical: {
+        m.critical("%s", msg.payload.data());
         break;
       }
-      case spdlog::level::off:
-      {
+      case spdlog::level::off: {
         break;
       }
     }
   }
 
-  void flush() override
-  {
-  }
+  void set_pattern(const std::string& pattern) override { }
+  void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override { }
+  void flush() override { }
 };
 
 QMLPlayer::QMLPlayer()
 {
   m_player.init();
+#if defined(OSSIA_QML_DEVICE)
   registerDevice(&ossia::qt::qml_singleton_device::instance());
+#endif
 }
 
-QMLPlayer::~QMLPlayer()
-{
-}
+QMLPlayer::~QMLPlayer() { }
 
 int QMLPlayer::port() const
 {
@@ -85,13 +82,15 @@ void QMLPlayer::stop()
 
 void QMLPlayer::registerDevice(ossia::qt::qml_device* dev)
 {
-  if (dev)
+#if defined(OSSIA_QML_DEVICE)
+  if(dev)
     m_player.registerDevice(&dev->device());
+#endif
 }
 
 void QMLPlayer::setPort(int p)
 {
-  if (m_port != p)
+  if(m_port != p)
   {
     m_port = p;
     m_player.sig_setPort(p);
@@ -99,9 +98,7 @@ void QMLPlayer::setPort(int p)
   }
 }
 
-PlayerPlugin::PlayerPlugin()
-{
-}
+PlayerPlugin::PlayerPlugin() { }
 
 void PlayerPlugin::registerTypes(const char* uri)
 {
@@ -115,7 +112,5 @@ void PlayerPlugin::registerTypes(const char* uri)
   ossia::qt::qml_plugin::reg(uri);
 }
 
-PlayerPlugin::~PlayerPlugin()
-{
-}
+PlayerPlugin::~PlayerPlugin() { }
 }

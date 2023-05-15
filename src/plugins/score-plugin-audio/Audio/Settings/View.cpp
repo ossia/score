@@ -24,7 +24,7 @@ View::View()
   // Driver combo-box
   m_Driver = new QComboBox{m_widg};
   lay->addRow(tr("Driver"), m_Driver);
-  auto& list = score::GUIAppContext().interfaces<AudioFactoryList>();
+  auto& list = score::AppContext().interfaces<AudioFactoryList>();
   for(AudioFactory& drv : list)
   {
     if(drv.available())

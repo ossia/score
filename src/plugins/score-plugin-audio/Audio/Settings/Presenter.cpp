@@ -82,7 +82,7 @@ QIcon Presenter::settingsIcon()
 
 void Presenter::loadDriver(const UuidKey<AudioFactory>& val)
 {
-  auto& list = score::GUIAppContext().interfaces<AudioFactoryList>();
+  auto& list = score::AppContext().interfaces<AudioFactoryList>();
   auto factory = list.get(val);
   auto& m = this->model(this);
   auto& v = this->view(this);

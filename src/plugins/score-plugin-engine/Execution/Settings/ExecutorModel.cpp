@@ -99,6 +99,7 @@ Transport::TransportInterface* Model::getTransport() const
     }
   }
 #endif
+
   return m_transportInterfaces.get(Transport::DirectTransport::static_concreteKey());
 }
 

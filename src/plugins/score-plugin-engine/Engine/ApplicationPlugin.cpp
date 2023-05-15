@@ -37,10 +37,10 @@
 
 namespace Engine
 {
-ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
+GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
+    , m_execution{ctx.applicationPlugin<ApplicationPlugin>().execution()}
     , m_playActions{*this, ctx}
-    , m_execution{ctx}
 {
   if(ctx.applicationSettings.gui)
   {
@@ -49,10 +49,26 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   }
 }
 
+GUIApplicationPlugin::~GUIApplicationPlugin()
+{
+  // The scenarios playing should already have been stopped by virtue of
+  // aboutToClose.
+}
+ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
+    : score::ApplicationPlugin{ctx}
+    , m_execution{ctx}
+{
+}
+
 ApplicationPlugin::~ApplicationPlugin()
 {
   // The scenarios playing should already have been stopped by virtue of
   // aboutToClose.
+}
+
+void ApplicationPlugin::initialize()
+{
+  m_execution.init_transport();
 }
 
 bool ApplicationPlugin::handleStartup()
@@ -72,7 +88,7 @@ bool ApplicationPlugin::handleStartup()
   return false;
 }
 
-void ApplicationPlugin::initialize()
+void GUIApplicationPlugin::initialize()
 {
   // Update the clock widget
   // See TransportActions::makeGUIElements
@@ -121,15 +137,13 @@ void ApplicationPlugin::initialize()
       //}
     });
   }
-
-  m_execution.init_transport();
 }
 
-QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
+QWidget* GUIApplicationPlugin::setupTimingWidget(QLabel* time_label) const
 {
   auto timer = new QTimer{time_label};
   time_label->setStatusTip(tr("Elapsed time since the beginning of playback"));
-  connect(timer, &QTimer::timeout, this, [=] {
+  connect(timer, &QTimer::timeout, this, [this, time_label] {
     auto t = m_execution.execution_time();
     if(t == TimeVal::zero())
     {
@@ -159,7 +173,7 @@ QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
   return time_label;
 }
 
-score::GUIElements ApplicationPlugin::makeGUIElements()
+score::GUIElements GUIApplicationPlugin::makeGUIElements()
 {
   GUIElements e;
 
@@ -225,6 +239,8 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     }
   }
 
+  this->execution().setup_actions();
+
   return e;
 }
 
@@ -235,16 +251,20 @@ void ApplicationPlugin::on_initDocument(score::Document& doc)
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
+  score::addDocumentPlugin<Execution::DocumentPlugin>(doc);
+}
+
+void GUIApplicationPlugin::on_createdDocument(score::Document& doc)
+{
   LocalTree::DocumentPlugin* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
   if(lt)
   {
     lt->init();
     initLocalTreeNodes(*lt);
   }
-  score::addDocumentPlugin<Execution::DocumentPlugin>(doc);
 }
 
-void ApplicationPlugin::on_documentChanged(
+void GUIApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
   if(olddoc)
@@ -328,10 +348,11 @@ void ApplicationPlugin::prepareNewDocument()
   // TODO what if JACK is stuck? force-stop after some time ?
 }
 
-void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
+void GUIApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
 {
   auto& appplug = *this;
   auto& root = lt.device().get_root_node();
+  auto& execution = m_execution;
 
   {
     auto n = root.create_child("running");
@@ -356,10 +377,10 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [=] {
+      ossia::qt::run_async(this, [v, &execution] {
         if(auto val = v.target<bool>())
         {
-          execution().request_play_from_localtree(*val);
+          execution.request_play_from_localtree(*val);
         }
       });
     });
@@ -371,10 +392,10 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [=] {
+      ossia::qt::run_async(this, [v, &execution] {
         if(auto val = v.target<bool>())
         {
-          execution().request_play_global_from_localtree(*val);
+          execution.request_play_global_from_localtree(*val);
         }
       });
     });
@@ -388,8 +409,8 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_transport_address->set_access(ossia::access_mode::SET);
     local_transport_address->set_unit(ossia::millisecond_u{});
     local_transport_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [=] {
-        execution().request_transport_from_localtree(
+      ossia::qt::run_async(this, [v, &execution] {
+        execution.request_transport_from_localtree(
             TimeVal::fromMsecs(ossia::convert<float>(v)));
       });
     });
@@ -402,7 +423,8 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
-      ossia::qt::run_async(this, [=] { execution().request_stop_from_localtree(); });
+      ossia::qt::run_async(
+          this, [&execution] { execution.request_stop_from_localtree(); });
     });
   }
 
@@ -414,7 +436,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
       ossia::qt::run_async(
-          this, [=] { execution().request_reinitialize_from_localtree(); });
+          this, [&execution] { execution.request_reinitialize_from_localtree(); });
     });
   }
   {
@@ -423,8 +445,8 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     address->set_value(ossia::impulse{});
     address->set_access(ossia::access_mode::SET);
     address->add_callback([&](const ossia::value&) {
-      ossia::qt::run_async(this, [=] {
-        execution().request_stop_from_localtree();
+      ossia::qt::run_async(this, [&execution] {
+        execution.request_stop_from_localtree();
 
         QTimer::singleShot(
             500, [] { score::GUIApplicationInterface::instance().forceExit(); });

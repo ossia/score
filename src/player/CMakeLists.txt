@@ -59,3 +59,7 @@ setup_score_common_lib_features(score_player_plugin)
 setup_score_common_exe_features(player)
 setup_score_common_exe_features(player_device)
 setup_score_common_exe_features(player_network)
+
+ossia_set_visibility(player)
+ossia_set_visibility(player_device)
+ossia_set_visibility(player_network)

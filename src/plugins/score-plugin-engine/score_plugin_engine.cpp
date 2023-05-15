@@ -48,10 +48,16 @@ score_plugin_engine::score_plugin_engine()
 
 score_plugin_engine::~score_plugin_engine() { }
 
+score::ApplicationPlugin*
+score_plugin_engine::make_applicationPlugin(const score::ApplicationContext& app)
+{
+  return new Engine::ApplicationPlugin{app};
+}
+
 score::GUIApplicationPlugin*
 score_plugin_engine::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
-  return new Engine::ApplicationPlugin{app};
+  return new Engine::GUIApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>

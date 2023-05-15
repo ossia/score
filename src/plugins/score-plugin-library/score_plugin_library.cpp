@@ -18,6 +18,13 @@ score_plugin_library::factoryFamilies()
 {
   return make_ptr_vector<score::InterfaceListBase, Library::LibraryInterfaceList>();
 }
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_library::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+{
+  return instantiate_factories<
+      score::ApplicationContext,
+      FW<score::SettingsDelegateFactory, Library::Settings::Factory>>(ctx, key);
+}
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_library::guiFactories(
     const score::GUIApplicationContext& ctx, const score::InterfaceKey& key) const
 {
@@ -26,8 +33,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_library::guiFact
       FW<score::PanelDelegateFactory, Library::UserPanelFactory,
          Library::ProjectPanelFactory, Library::ProcessPanelFactory>,
       FW<Library::LibraryInterface, Library::LibraryDocumentLoader,
-         Library::PresetLibraryHandler>,
-      FW<score::SettingsDelegateFactory, Library::Settings::Factory>>(ctx, key);
+         Library::PresetLibraryHandler>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

@@ -18,10 +18,10 @@ public:
   ~score_plugin_transport() override;
 
 private:
-  std::vector<std::unique_ptr<score::InterfaceBase>> guiFactories(
-      const score::GUIApplicationContext&,
+  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
+      const score::ApplicationContext&,
       const score::InterfaceKey& factoryName) const override;
   std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
-  score::GUIApplicationPlugin*
-  make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
+  score::ApplicationPlugin*
+  make_applicationPlugin(const score::ApplicationContext& app) override;
 };

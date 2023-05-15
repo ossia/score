@@ -44,8 +44,8 @@ public:
 
 struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
 {
-  ApplicationComponentsData();
-  ~ApplicationComponentsData();
+  ApplicationComponentsData() noexcept;
+  ~ApplicationComponentsData() noexcept;
   ApplicationComponentsData(const ApplicationComponentsData&) = delete;
   ApplicationComponentsData(ApplicationComponentsData&&) = delete;
   ApplicationComponentsData& operator=(const ApplicationComponentsData&) = delete;
@@ -67,19 +67,20 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
 class SCORE_LIB_BASE_EXPORT ApplicationComponents
 {
 public:
-  ApplicationComponents(const score::ApplicationComponentsData& d)
+  ApplicationComponents(const score::ApplicationComponentsData& d) noexcept
       : m_data(d)
   {
   }
 
   // Getters for plugin-registered things
-  const auto& applicationPlugins() const { return m_data.appPlugins; }
-  const auto& guiApplicationPlugins() const { return m_data.guiAppPlugins; }
-  const auto& addons() const { return m_data.addons; }
+  const auto& applicationPlugins() const noexcept { return m_data.appPlugins; }
+  const auto& guiApplicationPlugins() const noexcept { return m_data.guiAppPlugins; }
+  const auto& addons() const noexcept { return m_data.addons; }
 
   template <typename T>
   T& applicationPlugin() const
   {
+    static_assert(std::is_base_of_v<score::ApplicationPlugin, T>);
     for(auto& elt : m_data.appPlugins)
     {
       if(auto c = dynamic_cast<T*>(elt))
@@ -95,6 +96,7 @@ public:
   template <typename T>
   T& guiApplicationPlugin() const
   {
+    static_assert(std::is_base_of_v<score::GUIApplicationPlugin, T>);
     for(auto& elt : m_data.guiAppPlugins)
     {
       if(auto c = dynamic_cast<T*>(elt))
@@ -108,8 +110,9 @@ public:
   }
 
   template <typename T>
-  T* findApplicationPlugin() const
+  T* findApplicationPlugin() const noexcept
   {
+    static_assert(std::is_base_of_v<score::ApplicationPlugin, T>);
     for(auto& elt : m_data.appPlugins)
     {
       if(auto c = dynamic_cast<T*>(elt))
@@ -122,8 +125,9 @@ public:
   }
 
   template <typename T>
-  T* findGuiApplicationPlugin() const
+  T* findGuiApplicationPlugin() const noexcept
   {
+    static_assert(std::is_base_of_v<score::GUIApplicationPlugin, T>);
     for(auto& elt : m_data.guiAppPlugins)
     {
       if(auto c = dynamic_cast<T*>(elt))
@@ -135,7 +139,7 @@ public:
     return nullptr;
   }
 
-  auto panels() const { return wrap_indirect(m_data.panels); }
+  auto panels() const noexcept { return wrap_indirect(m_data.panels); }
 
   template <typename T>
   T& panel() const
@@ -153,7 +157,7 @@ public:
   }
 
   template <typename T>
-  T* findPanel() const
+  T* findPanel() const noexcept
   {
     for(auto& elt : m_data.panels)
     {
@@ -167,7 +171,7 @@ public:
   }
 
   template <typename T>
-  const T* findInterfaces() const
+  const T* findInterfaces() const noexcept
   {
     static_assert(
         T::factory_list_tag, "This needs to be called with a factory list class");

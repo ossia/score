@@ -12,16 +12,17 @@ class audio_engine;
 
 namespace Audio
 {
+class GUIApplicationPlugin;
 class AudioPreviewExecutor;
 class SCORE_PLUGIN_AUDIO_EXPORT ApplicationPlugin final
     : public QObject
-    , public score::GUIApplicationPlugin
+    , public score::ApplicationPlugin
 {
-public:
-  ApplicationPlugin(const score::GUIApplicationContext& app);
-  ~ApplicationPlugin() override;
+  friend class GUIApplicationPlugin;
 
-  score::GUIElements makeGUIElements() override;
+public:
+  ApplicationPlugin(const score::ApplicationContext& app);
+  ~ApplicationPlugin() override;
 
   std::shared_ptr<ossia::audio_engine> audio;
 
@@ -30,8 +31,6 @@ private:
   void stop_engine();
   void start_engine();
 
-  QAction* m_audioEngineAct{};
-
   bool m_updating_audio = false;
   void initialize() override;
 
@@ -39,7 +38,23 @@ private:
 
   void timerEvent(QTimerEvent*) override;
 
+  QAction* m_audioEngineAct{};
   std::vector<std::shared_ptr<ossia::audio_engine>> previous_audio;
 };
 
+class SCORE_PLUGIN_AUDIO_EXPORT GUIApplicationPlugin final
+    : public QObject
+    , public score::GUIApplicationPlugin
+{
+public:
+  GUIApplicationPlugin(const score::GUIApplicationContext& app);
+  ~GUIApplicationPlugin() override;
+
+private:
+  ApplicationPlugin& m_appPlug;
+
+  void initialize() override;
+
+  score::GUIElements makeGUIElements() override;
+};
 }

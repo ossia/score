@@ -58,6 +58,7 @@ public:
   auto recentFiles() const { return m_recentFiles; }
 
   // Document management
+  Document* setupDocument(const score::ApplicationContext& ctx, score::Document* doc);
   Document* setupDocument(const score::GUIApplicationContext& ctx, score::Document* doc);
 
   template <typename... Args>
@@ -76,6 +77,13 @@ public:
   }
 
   template <typename... Args>
+  Document* loadPlayerDocument(const score::ApplicationContext& ctx, Args&&... args)
+  {
+    prepareNewDocument(ctx);
+    return setupDocument(ctx, m_builder.loadDocument(ctx, std::forward<Args>(args)...));
+  }
+
+  template <typename... Args>
   void restoreDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
@@ -85,6 +93,7 @@ public:
   // Restore documents after a crash
   void restoreDocuments(const score::GUIApplicationContext& ctx);
 
+  void setCurrentDocument(const score::ApplicationContext& ctx, Document* doc);
   void setCurrentDocument(const score::GUIApplicationContext& ctx, Document* doc);
 
   // Returns true if the document was closed.
@@ -119,6 +128,7 @@ public:
 
 private:
   void closeVirginDocument(const score::GUIApplicationContext& ctx);
+  void prepareNewDocument(const score::ApplicationContext& ctx);
   void prepareNewDocument(const score::GUIApplicationContext& ctx);
 
   static bool updateJson(

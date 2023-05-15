@@ -360,7 +360,7 @@ void DocumentPlugin::on_documentClosing()
   if(m_base && m_base->active())
   {
     m_base->baseInterval().stop();
-    m_context.app.guiApplicationPlugin<Engine::ApplicationPlugin>()
+    m_context.app.applicationPlugin<Engine::ApplicationPlugin>()
         .execution()
         .request_stop();
     clear();
@@ -435,7 +435,7 @@ bool DocumentPlugin::isPlaying() const
 
 const ExecutionController& DocumentPlugin::executionController() const noexcept
 {
-  return m_context.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution();
+  return m_context.app.applicationPlugin<Engine::ApplicationPlugin>().execution();
 }
 
 std::shared_ptr<ossia::audio_protocol> DocumentPlugin::audioProto()

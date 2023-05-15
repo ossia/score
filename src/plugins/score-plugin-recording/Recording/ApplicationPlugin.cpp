@@ -24,7 +24,7 @@
 #include <core/document/Document.hpp>
 
 #include <QAction>
-#include <QApplication>
+#include <QCoreApplication>
 #include <qnamespace.h>
 
 namespace Recording
@@ -47,7 +47,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       &ScenarioExecution::stopRecording, // TODO this seems useless
       this, &ApplicationPlugin::stopRecord);
 
-  m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+  m_ossiaplug = &ctx.applicationPlugin<Engine::ApplicationPlugin>();
 
   if(ctx.applicationSettings.gui)
   {
@@ -63,7 +63,7 @@ void ApplicationPlugin::record(Scenario::ProcessModel* scenar, Scenario::Point p
     return;
 
   m_stopAction->trigger();
-  QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+  QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
   m_currentContext = std::make_unique<Recording::RecordContext>(*scenar, pt);
   m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(*m_currentContext);
@@ -91,7 +91,7 @@ void ApplicationPlugin::recordMessages(
     return;
 
   m_stopAction->trigger();
-  QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+  QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
   m_currentContext = std::make_unique<Recording::RecordContext>(*scenar, pt);
   m_recMessagesManager

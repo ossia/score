@@ -24,8 +24,7 @@ public:
   void registerDevice(ossia::qt::qml_device*);
   void setPort(int);
 
-public:
-  void portChanged(int port);
+  Q_SIGNAL void portChanged(int port);
 
 private:
   PlayerImpl m_player;

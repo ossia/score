@@ -138,7 +138,7 @@ DropProcessInScenario::DropProcessInScenario() { }
 void DropProcessInScenario::init()
 {
   const auto& handlers
-      = score::GUIAppContext().interfaces<Process::ProcessDropHandlerList>();
+      = score::AppContext().interfaces<Process::ProcessDropHandlerList>();
   for(auto& handler : handlers)
   {
     for(auto& type : handler.mimeTypes())

@@ -85,6 +85,39 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
     return components.instantiateUndoCommand(cmd);
   }
 
+  /**
+   * @brief List of all the application-wide plug-ins
+   *
+   * @see score::GUIApplicationPlugin
+   */
+  const auto& applicationPlugins() const { return components.applicationPlugins(); }
+
+  /**
+   * @brief Access a specific application plug-in instance.
+   *
+   * @see score::GUIApplicationPlugin
+   */
+  template <typename T>
+  T& applicationPlugin() const
+  {
+    return components.applicationPlugin<T>();
+  }
+
+  template <typename T>
+  T* findApplicationPlugin() const
+  {
+    return components.findApplicationPlugin<T>();
+  }
+
+  void forAppPlugins(auto func) const
+      noexcept(noexcept(func(*components.applicationPlugins()[0])))
+  {
+    for(auto& appPlug : components.applicationPlugins())
+    {
+      func(*appPlug);
+    }
+  }
+
   const score::DocumentContext* currentDocument() const noexcept;
 
   //! Access to start-up command-line settings

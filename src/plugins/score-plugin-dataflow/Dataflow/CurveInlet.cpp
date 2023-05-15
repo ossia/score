@@ -240,7 +240,7 @@ void CurveInlet::on_curveChange()
 
   std::vector<ossia::value> segments;
   segments.reserve(sorted.size());
-  auto& fact = score::GUIAppContext().interfaces<Curve::SegmentList>();
+  auto& fact = score::AppContext().interfaces<Curve::SegmentList>();
   for(const Curve::SegmentModel* v : sorted)
   {
     std::vector<ossia::value> segment;

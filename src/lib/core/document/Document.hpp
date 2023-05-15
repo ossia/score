@@ -35,6 +35,8 @@ class DocumentDelegateFactory;
 class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
+class PlayerDocumentBuilder;
+class DocumentBuilder;
 
 /**
  * @brief The Document class is the central part of the software.
@@ -50,6 +52,7 @@ class DocumentView;
 class SCORE_LIB_BASE_EXPORT Document final : public QObject
 {
   W_OBJECT(Document)
+  friend class PlayerDocumentBuilder;
   friend class DocumentBuilder;
   friend struct DocumentContext;
 

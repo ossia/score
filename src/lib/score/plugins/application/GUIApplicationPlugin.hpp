@@ -40,6 +40,55 @@ public:
    */
   virtual void initialize();
 
+  /**
+   * @brief handleStartup
+   * Returns true if the start-up was handled by this plug-in.
+   */
+  virtual bool handleStartup();
+
+  /**
+   * @brief on_initDocument
+   * Will be called after the document has been created,
+   * for new, load, and restore, and before anything is loaded.
+   */
+  virtual void on_initDocument(score::Document& doc);
+
+  /**
+   * @brief on_newDocument
+   * Will be called only when a new, empty document is created;
+   * classes inheriting from SerializableDocumentPlugin should be
+   * instantiated and added to the document at this point.
+   */
+  virtual void on_newDocument(score::Document& doc);
+
+  /**
+   * @brief on_loadedDocument
+   * Will be called only after a document has been loaded
+   */
+  virtual void on_loadedDocument(score::Document& doc);
+
+  /**
+   * @brief on_createdDocument
+   * Will be called after either on_newDocument or on_loadedDocument
+   * was called on every plug-in.
+   */
+  virtual void on_createdDocument(score::Document& doc);
+  /**
+   * @brief prepareNewDocument
+   * Will be called just before a document switch.
+   * It is possible to check if we are in the process
+   * of document switching via DocumentManager::preparingNewDocument.
+   */
+  virtual void prepareNewDocument();
+
+  /**
+   * @brief on_documentChanged
+   * Will be called after a document switch.
+   * If newdoc isn't null, it means that it is currently being
+   * focused by score.
+   */
+  virtual void on_documentChanged(score::Document* olddoc, score::Document* newdoc);
+
   virtual ~ApplicationPlugin();
 
   const score::ApplicationContext& context;

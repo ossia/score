@@ -30,8 +30,11 @@ using exec_setup_fun
 class SCORE_PLUGIN_ENGINE_EXPORT ExecutionController : public QObject
 {
 public:
-  ExecutionController(const score::GUIApplicationContext& ctx);
+  explicit ExecutionController(const score::ApplicationContext& ctx);
+  explicit ExecutionController(const score::GUIApplicationContext& ctx);
   ~ExecutionController();
+
+  void setup_actions();
 
   TransportInterface& transport() const noexcept;
   void init_transport();
@@ -96,9 +99,8 @@ private:
   score::Document* currentDocument() const;
   std::unique_ptr<Execution::Clock> makeClock(const Execution::Context&);
 
-  const score::GUIApplicationContext& context;
-  Scenario::ScenarioApplicationPlugin& m_scenario;
-  Scenario::TransportActions& m_actions;
+  const score::ApplicationContext& context;
+  Scenario::TransportActions* m_actions{};
   std::unique_ptr<Execution::Clock> m_clock;
   Transport::TransportInterface* m_transport{};
 

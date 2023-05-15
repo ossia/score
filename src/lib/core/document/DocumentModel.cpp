@@ -20,10 +20,8 @@ DocumentModel::DocumentModel(
     : IdentifiedObject{id, "DocumentModel", parent}
 {
   fact.make(ctx, m_model, this);
-  for(auto& appPlug : ctx.app.guiApplicationPlugins())
-  {
-    appPlug->on_initDocument(ctx.document);
-  }
+  ctx.app.forAppPlugins(
+      [&doc = ctx.document](auto& app_plug) { app_plug.on_initDocument(doc); });
 }
 
 DocumentModel::~DocumentModel()

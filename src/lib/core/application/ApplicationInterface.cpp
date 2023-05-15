@@ -111,14 +111,8 @@ void GUIApplicationInterface::loadPluginData(
   {
     presenter.setupGUI();
   }
-  for(score::ApplicationPlugin* app_plug : ctx.applicationPlugins())
-  {
-    app_plug->initialize();
-  }
-  for(score::GUIApplicationPlugin* app_plug : ctx.guiApplicationPlugins())
-  {
-    app_plug->initialize();
-  }
+
+  ctx.forAppPlugins([this](auto& app_plug) { app_plug.initialize(); });
 
   if(presenter.view())
   {

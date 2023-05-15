@@ -51,8 +51,7 @@ void EditJsContext::play(QObject* obj)
 
 void EditJsContext::stop()
 {
-  auto plug
-      = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  auto plug = score::GUIAppContext().findApplicationPlugin<Engine::ApplicationPlugin>();
   if(plug)
     plug->execution().request_stop();
 }

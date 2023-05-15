@@ -27,6 +27,26 @@ ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx)
 
 void ApplicationPlugin::initialize() { }
 
+bool ApplicationPlugin::handleStartup()
+{
+  return false;
+}
+
+void ApplicationPlugin::prepareNewDocument() { }
+
+void ApplicationPlugin::on_documentChanged(
+    score::Document* olddoc, score::Document* newdoc)
+{
+}
+
+void ApplicationPlugin::on_initDocument(score::Document& doc) { }
+
+void ApplicationPlugin::on_newDocument(score::Document& doc) { }
+
+void ApplicationPlugin::on_loadedDocument(score::Document& doc) { }
+
+void ApplicationPlugin::on_createdDocument(score::Document& doc) { }
+
 GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app)
     : context{app}
 {
