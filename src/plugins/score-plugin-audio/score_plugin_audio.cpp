@@ -86,16 +86,24 @@ score_plugin_audio::factoryFamilies()
   return make_ptr_vector<score::InterfaceListBase, Audio::AudioFactoryList>();
 }
 
+template <typename... Args>
+auto add_factories(
+    std::vector<std::unique_ptr<score::InterfaceBase>>& vec, const auto& ctx,
+    const score::InterfaceKey& key) noexcept
+{
+  ossia::for_each_type_if_tagged<Args...>([&](auto t) {
+    using fw_t = typename decltype(t)::type;
+    return fw_t{}(ctx, key, vec);
+  });
+}
+
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
-  using namespace Audio;
-  auto only_dummy_audio = qEnvironmentVariableIntValue("SCORE_ONLY_DUMMY_AUDIO") > 0;
-
-  if(only_dummy_audio)
+  std::vector<std::unique_ptr<score::InterfaceBase>> vec;
   {
-    return instantiate_factories<
-        score::ApplicationContext, FW<Audio::AudioFactory, Audio::DummyFactory>,
+    // Common stuff
+    add_factories<
         FW<Device::ProtocolFactory
 #if defined(OSSIA_PROTOCOL_AUDIO)
            ,
@@ -103,50 +111,92 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories
 #endif
            >,
         FW<score::SettingsDelegateFactory, Audio::Settings::Factory>,
-        FW<Execution::ExecutionAction, Audio::AudioPreviewExecutor>>(ctx, key);
+        FW<Execution::ExecutionAction, Audio::AudioPreviewExecutor>>(vec, ctx, key);
   }
-  else
-  {
 
-    return instantiate_factories<
-        score::ApplicationContext,
-        FW<Audio::AudioFactory, Audio::DummyFactory
+  using namespace Audio;
+  auto only_dummy_audio = qEnvironmentVariableIntValue("SCORE_ONLY_DUMMY_AUDIO") > 0;
+  auto forced_backend = qEnvironmentVariable("SCORE_AUDIO_BACKEND").toLower();
+  if(only_dummy_audio)
+  {
+    add_factories<FW<Audio::AudioFactory, Audio::DummyFactory>>(vec, ctx, key);
+    return vec;
+  }
+  else if(!forced_backend.isEmpty())
+  {
+    if(forced_backend == "sdl")
+    {
+#if defined(OSSIA_AUDIO_SDL)
+      add_factories<FW<Audio::AudioFactory, Audio::SDLFactory>>(vec, ctx, key);
+      return vec;
+#endif
+    }
+    else if(forced_backend == "jack")
+    {
 #if defined(OSSIA_AUDIO_JACK)
-           ,
-           Audio::JackFactory
+      add_factories<FW<Audio::AudioFactory, Audio::JackFactory>>(vec, ctx, key);
+      return vec;
+#endif
+    }
+    else if(forced_backend == "pipewire")
+    {
+#if defined(OSSIA_AUDIO_PIPEWIRE)
+      add_factories<FW<Audio::AudioFactory, Audio::PipeWireAudioFactory>>(vec, ctx, key);
+      return vec;
+#endif
+    }
+    else if(forced_backend == "alsa")
+    {
+#if __has_include(<alsa/asoundlib.h>)
+      add_factories<FW<Audio::AudioFactory, Audio::ALSAFactory>>(vec, ctx, key);
+      return vec;
+#endif
+    }
+    else if(forced_backend == "dummy")
+    {
+      add_factories<FW<Audio::AudioFactory, Audio::DummyFactory>>(vec, ctx, key);
+      return vec;
+    }
+  }
+
+  add_factories<
+      FW<Audio::AudioFactory, Audio::DummyFactory
+#if defined(OSSIA_AUDIO_JACK)
+         ,
+         Audio::JackFactory
 #endif
 // #if defined(OSSIA_AUDIO_PULSEAUDIO)
 //          ,
 //          Audio::PulseAudioFactory
 // #endif
+#if __has_include(<alsa/asoundlib.h>)
+         ,
+         Audio::ALSAFactory
+#endif
 #if defined(OSSIA_AUDIO_PORTAUDIO)
 #if __has_include(<pa_asio.h>)
-           ,
-           Audio::ASIOFactory
+         ,
+         Audio::ASIOFactory
 #endif
 //#if __has_include(<pa_win_wdmks.h>)
 //         ,
 //         Audio::WDMKSFactory
 //#endif
 #if __has_include(<pa_win_wasapi.h>)
-           ,
-           Audio::WASAPIFactory
+         ,
+         Audio::WASAPIFactory
 #endif
 //#if __has_include(<pa_win_wmme.h>)
 //         ,
 //         Audio::MMEFactory
 //#endif
 #if __has_include(<pa_linux_alsa.h>)
-           ,
-           Audio::ALSAPortAudioFactory
-#endif
-#if __has_include(<alsa/asoundlib.h>)
-           ,
-           Audio::ALSAFactory
+         ,
+         Audio::ALSAPortAudioFactory
 #endif
 #if __has_include(<pa_mac_core.h>)
-           ,
-           Audio::CoreAudioFactory
+         ,
+         Audio::CoreAudioFactory
 #endif
 #if !__has_include(<pa_asio.h>) && \
     !__has_include(<pa_win_wdmks.h>) && \
@@ -154,29 +204,21 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories
     !__has_include(<pa_win_wmme.h>) && \
     !__has_include(<pa_linux_alsa.h>) && \
     !__has_include(<pa_mac_core.h>)
-           ,
-           Audio::PortAudioFactory
+         ,
+         Audio::PortAudioFactory
 #endif
 #endif
 #if defined(OSSIA_AUDIO_SDL)
-           ,
-           Audio::SDLFactory
+         ,
+         Audio::SDLFactory
 #endif
 #if defined(OSSIA_AUDIO_PIPEWIRE)
-           ,
-           Audio::PipeWireAudioFactory
+         ,
+         Audio::PipeWireAudioFactory
 #endif
-           >,
+         >>(vec, ctx, key);
 
-        FW<Device::ProtocolFactory
-#if defined(OSSIA_PROTOCOL_AUDIO)
-           ,
-           Dataflow::AudioProtocolFactory
-#endif
-           >,
-        FW<score::SettingsDelegateFactory, Audio::Settings::Factory>,
-        FW<Execution::ExecutionAction, Audio::AudioPreviewExecutor>>(ctx, key);
-  }
+  return vec;
 }
 
 auto score_plugin_audio::required() const -> std::vector<score::PluginKey>

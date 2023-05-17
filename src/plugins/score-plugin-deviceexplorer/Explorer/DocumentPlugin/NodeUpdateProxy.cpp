@@ -186,10 +186,8 @@ void NodeUpdateProxy::removeNode(
       }
     }
 
-    int k = int(names.size()) - 1;
-    Device::Node* lastparentnode = lastnode->parent();
-
     {
+      Device::Node* lastparentnode = lastnode->parent();
       auto addr = Device::address(*lastnode);
 
       // Remove from the device implementation
@@ -207,7 +205,6 @@ void NodeUpdateProxy::removeNode(
 
       lastnode = lastparentnode;
       lastparentnode = lastparentnode->parent();
-      k--;
     }
   }
   else

@@ -62,6 +62,29 @@ Audio::AudioFactory::ConcreteKey Model::getDriver() const
 
 void Model::initDriver(Audio::AudioFactory::ConcreteKey val)
 {
+  if(auto env = qEnvironmentVariable("SCORE_AUDIO_BACKEND"); !env.isEmpty())
+  {
+    QByteArray uid;
+    env = env.toLower();
+    if(env == "dummy")
+      uid = "13dabcc3-9cda-422f-a8c7-5fef5c220677";
+    else if(env == "jack")
+      uid = "7ff2af00-f2f5-4930-beec-0e2d21eda195";
+    else if(env == "sdl")
+      uid = "28b88e91-c5f0-4f13-834f-aa333d14aa81";
+    else if(env == "pipewire")
+      uid = "687d49cf-b58d-430f-8358-ec02cb50be36";
+    else if(env == "alsa")
+      uid = "a390218a-a951-4cda-b4ee-c41d2df44236";
+
+    if(!uid.isEmpty())
+    {
+      const char* data = uid.data();
+      using uid_t = const char(&)[37];
+      val = Audio::AudioFactory::ConcreteKey{
+          score::uuids::string_generator::compute((uid_t)*data)};
+    }
+  }
   // Reset to default in case of invalid parameters.
   auto& ctx = score::AppContext();
   auto& factories = ctx.interfaces<AudioFactoryList>();
@@ -87,8 +110,16 @@ void Model::initDriver(Audio::AudioFactory::ConcreteKey val)
      == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
          "28b88e91-c5f0-4f13-834f-aa333d14aa81")})
   {
-    setRate(48000);
-    setBufferSize(1024);
+    if(m_Rate != 48000)
+    {
+      m_Rate = 48000;
+      RateChanged(m_Rate);
+    }
+    if(m_BufferSize != 1024)
+    {
+      m_BufferSize = 1024;
+      BufferSizeChanged(m_BufferSize);
+    }
   }
 
 #if !defined(__EMSCRIPTEN__)
@@ -97,8 +128,16 @@ void Model::initDriver(Audio::AudioFactory::ConcreteKey val)
      == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
          "13dabcc3-9cda-422f-a8c7-5fef5c220677")})
   {
-    m_Rate = 44100;
-    m_BufferSize = 1024;
+    if(m_Rate != 44100)
+    {
+      m_Rate = 44100;
+      RateChanged(m_Rate);
+    }
+    if(m_BufferSize != 1024)
+    {
+      m_BufferSize = 1024;
+      BufferSizeChanged(m_BufferSize);
+    }
   }
 #endif
   iface->initialize(*this, ctx);
