@@ -613,15 +613,19 @@ void ExecutionController::stop_clock()
   {
     auto clock = std::move(m_clock);
     m_clock.reset();
-    try
-    {
-      clock->stop();
-    }
-    catch(...)
-    {
-      qDebug() << "Error while stopping the clock. There is likely an audio "
-                  "hardware issue.";
-    }
+    if(auto scenar = currentScenarioModel())
+      if(auto exec_plug = scenar->context().findPlugin<Execution::DocumentPlugin>())
+      {
+        try
+        {
+          clock->stop();
+        }
+        catch(...)
+        {
+          qDebug() << "Error while stopping the clock. There is likely an audio "
+                      "hardware issue.";
+        }
+      }
   }
 }
 
