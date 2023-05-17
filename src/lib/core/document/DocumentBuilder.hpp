@@ -11,6 +11,7 @@ class Document;
 class DocumentBackupManager;
 class DocumentDelegateFactory;
 class DocumentModel;
+struct ApplicationContext;
 struct GUIApplicationContext;
 struct RestorableDocument;
 

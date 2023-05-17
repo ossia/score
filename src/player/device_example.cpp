@@ -4,12 +4,18 @@
 
 #include <ossia/network/generic/generic_device.hpp>
 
+#include <QByteArray>
 #include <QtEnvironmentVariables>
 
 #include <iostream>
 int main()
 {
   qputenv("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
+  qputenv("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  qputenv("SCORE_DISABLE_LV2", "1");
+  qputenv("SCORE_AUDIO_BACKEND", "jack");
+  qputenv("QT_NO_GLIB", "1");
+  qputenv("QT_QPA_PLATFORM", "minimal");
   qunsetenv("QT_LOGGING_RULES");
   // Create a device
   ossia::net::generic_device dev;
@@ -37,6 +43,8 @@ int main()
 
   // Load a file
   p.load("/home/jcelerier/test-simple-audio.score");
+
+  std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Execution occurs in a separate thread
   p.play();

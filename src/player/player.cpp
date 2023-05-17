@@ -6,22 +6,27 @@
 
 #include <Device/Protocol/DeviceInterface.hpp>
 
+#include <Scenario/Process/ScenarioModel.hpp>
+
+#include <Engine/ApplicationPlugin.hpp>
+#include <Execution/Clock/DataflowClock.hpp>
+#include <Execution/ExecutionController.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 
 #include <score/model/ComponentSerialization.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
 #include <ossia/detail/logger.hpp>
-#include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/base/device.hpp>
 
 #include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
 #if defined(SCORE_PLUGIN_AUDIO)
 #include <Audio/Settings/Model.hpp>
 #endif
 
 #if defined(SCORE_ADDON_NETWORK)
+
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
 #include <Network/Document/ClientPolicy.hpp>
@@ -30,11 +35,18 @@
 #include <Network/PlayerPlugin.hpp>
 #include <Network/Settings/NetworkSettingsModel.hpp>
 #endif
+#include <wobjectimpl.h>
 
 #if defined(SCORE_STATIC_PLUGINS)
 #include <score_static_plugins.hpp>
 #endif
 W_OBJECT_IMPL(score::PlayerImpl)
+
+class QConfFileSettingsPrivate
+{
+  void flush();
+};
+void QConfFileSettingsPrivate::flush() { }
 
 namespace score
 {
@@ -73,10 +85,13 @@ PlayerImpl::~PlayerImpl()
 
 void PlayerImpl::init()
 {
+  srand(time(NULL));
+
   m_globSettings.tryToRestore = false;
   m_globSettings.gui = false;
   m_globSettings.opengl = false;
   m_globSettings.autoplay = false;
+
   ossia::context c;
   // Load global plug-in data
   ApplicationRegistrar reg(m_compData);
@@ -90,27 +105,23 @@ void PlayerImpl::init()
 
   loadPlugins(reg, m_appContext);
 
-  QSettings s("OSSIA", "score");
-  for (auto& plugin : m_appContext.interfaces<SettingsDelegateFactoryList>())
+  QSettings s("ossia.io", "player");
+  // s.setValue(
+  //     "Audio/Driver", QVariant::fromValue(Audio::AudioFactory::ConcreteKey{
+  //                         score::uuids::string_generator::compute(
+  //                             "28b88e91-c5f0-4f13-834f-aa333d14aa81")}));
+  s.setValue(
+      "score_plugin_engine/Clock",
+      QVariant::fromValue(Dataflow::ClockFactory::static_concreteKey()));
+  s.setValue(
+      "Network/ClientName",
+      QString::fromStdString(fmt::format("player.{}", rand() % 10000)));
+  for(auto& plugin : m_appContext.interfaces<SettingsDelegateFactoryList>())
   {
     m_settings.push_back(plugin.makeModel(s, m_appContext));
   }
 
-#if defined(SCORE_ADDON_NETWORK)
-  auto& ns = m_appContext.settings<Network::Settings::Model>();
-  srand(time(NULL));
-  ns.setClientName(QString::fromStdString(fmt::format("player.{}", rand() % 10000)));
-#endif
-
   m_appContext.forAppPlugins([](auto& app_plug) { app_plug.initialize(); });
-
-#if 0 // defined(SCORE_PLUGIN_AUDIO)
-  auto& exec_settings = m_appContext.settings<Execution::Settings::Model>();
-  exec_settings.setClock(
-      Audio::AudioStreamEngine::AudioClockFactory::static_concreteKey());
-  auto& audio_settings = m_appContext.settings<Audio::Settings::Model>();
-  audio_settings.setDriver("PortAudio");
-#endif
 
 #if defined(SCORE_ADDON_NETWORK)
   auto& netplug = m_components.applicationPlugin<Network::PlayerPlugin>();
@@ -169,7 +180,7 @@ void PlayerImpl::closeDocument()
   {
     stop();
 
-    m_execPlugin->clear();
+    //m_execPlugin->clear();
 
     for(auto dev : m_ownedDevices)
       releaseDevice(dev);
@@ -223,30 +234,14 @@ void PlayerImpl::setupLoadedDocument()
   const score::DocumentContext& ctx = m_currentDocument->context();
   assert(((std::intptr_t)&ctx.document) != 0);
 
+  m_devicesPlugin = &ctx.plugin<Explorer::DeviceDocumentPlugin>();
   m_localTreePlugin = &ctx.plugin<LocalTree::DocumentPlugin>();
-  SCORE_ASSERT(m_localTreePlugin);
+  m_execPlugin = &ctx.plugin<Execution::DocumentPlugin>();
   // m_localTreePlugin = new LocalTree::DocumentPlugin{ctx, nullptr};
   // m_localTreePlugin->init();
 
-  m_execPlugin = &ctx.plugin<
-      Execution::DocumentPlugin>(); // new Execution::DocumentPlugin{ctx, nullptr};
-  SCORE_ASSERT(m_execPlugin);
+  qDebug() << "Ready to play";
 
-#if 0
-  // DocumentModel& doc_model = m_currentDocument->model();
-  // doc_model.addPluginModel(m_localTreePlugin);
-  // doc_model.addPluginModel(m_execPlugin);
-#if defined(SCORE_PLUGIN_AUDIO)
-  auto& audio_ctx
-      = m_components.applicationPlugin<Audio::AudioStreamEngine::ApplicationPlugin>()
-            .context();
-  doc_model.addPluginModel(new Audio::AudioStreamEngine::DocumentPlugin{
-      audio_ctx, ctx, Id<DocumentPlugin>{997}, nullptr});
-#endif
-#endif
-  m_devicesPlugin = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-
-  SCORE_ASSERT(m_devicesPlugin);
   for(ossia::net::device_base* dev : m_ownedDevices)
   {
     Device::DeviceInterface* d
@@ -301,38 +296,26 @@ void PlayerImpl::close()
     m_app->exit(0);
 }
 
-void PlayerImpl::prepare_play()
-{
-  DocumentModel& doc_model = m_currentDocument->model();
-  Scenario::IntervalModel& root_cst
-      = safe_cast<Scenario::ScenarioDocumentModel&>(doc_model.modelDelegate())
-            .baseInterval();
-  m_execPlugin->reload(root_cst);
-  auto& exec_ctx = m_execPlugin->context();
-
-  auto& exec_settings = m_appContext.settings<Execution::Settings::Model>();
-  m_clock = exec_settings.makeClock(exec_ctx);
-}
+void PlayerImpl::prepare_play() { }
 
 void PlayerImpl::do_play()
 {
-  m_clock->play(TimeVal::zero());
+  this->context()
+      .applicationPlugin<Engine::ApplicationPlugin>()
+      .execution()
+      .request_play_global(true);
 }
 
 void PlayerImpl::stop()
 {
-  if(m_clock)
-    m_clock->stop();
-
+  this->context()
+      .applicationPlugin<Engine::ApplicationPlugin>()
+      .execution()
+      .request_stop();
 #if defined(SCORE_ADDON_NETWORK)
   if(m_networkPlugin)
     m_networkPlugin->on_stop();
 #endif
-
-  if(m_execPlugin)
-    m_execPlugin->clear();
-
-  m_clock.reset();
 }
 
 const ApplicationContext& PlayerImpl::context() const

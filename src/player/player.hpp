@@ -2,6 +2,7 @@
 #include <score_player_export.h>
 
 #include <atomic>
+#include <functional>
 #include <string>
 #include <thread>
 namespace ossia
