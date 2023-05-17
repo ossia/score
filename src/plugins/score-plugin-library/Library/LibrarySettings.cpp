@@ -25,11 +25,7 @@ namespace Library::Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(RootPath){QStringLiteral("Library/RootPath"), []() -> QString {
-                                    auto paths = QStandardPaths::standardLocations(
-                                        QStandardPaths::DocumentsLocation);
-                                    return paths[0] + "/ossia/score";
-                                  }()};
+SETTINGS_PARAMETER_IMPL(RootPath){QStringLiteral("Library/RootPath"), ""};
 
 static auto list()
 {
@@ -48,6 +44,15 @@ static void initUserLibrary(const QDir& userlib)
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
+  if(m_RootPath.isEmpty())
+  {
+    // Note : not done in the SETTINGS_PARAMETER_IMPL as it does not work well due to
+    // being init before main()
+    auto paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    auto default_root = paths[0] + "/ossia/score";
+
+    setRootPath(default_root);
+  }
 
   for(auto& path : {getPackagesPath(), getUserLibraryPath()})
   {
