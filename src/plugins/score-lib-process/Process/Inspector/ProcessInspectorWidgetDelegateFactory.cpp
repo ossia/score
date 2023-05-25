@@ -8,6 +8,7 @@
 #include <Process/ProcessList.hpp>
 
 #include <Effect/EffectLayer.hpp>
+#include <Inspector/InspectorLayout.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -27,6 +28,17 @@
 namespace Process
 {
 InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
+void InspectorWidgetDelegateFactory::addButtons(
+    const Process::ProcessModel&, const score::DocumentContext& doc, QBoxLayout* layout,
+    QWidget* parent) const
+{
+}
+
+bool InspectorWidgetDelegateFactory::matchesProcess(
+    const ProcessModel& proc, const score::DocumentContext& doc, QWidget* parent) const
+{
+  return matchesProcess(proc);
+}
 
 QWidget* InspectorWidgetDelegateFactory::make(
     const InspectedObjects& objects, const score::DocumentContext& doc,
@@ -38,7 +50,7 @@ QWidget* InspectorWidgetDelegateFactory::make(
   auto obj = objects.first();
   if(auto p = qobject_cast<const Process::ProcessModel*>(obj))
   {
-    return make_process(*p, doc, parent);
+    return makeProcess(*p, doc, parent);
   }
   return nullptr;
 }
@@ -51,44 +63,49 @@ bool InspectorWidgetDelegateFactory::matches(const InspectedObjects& objects) co
   auto obj = objects.first();
   if(auto p = qobject_cast<const Process::ProcessModel*>(obj))
   {
-    return matches_process(*p);
+    return matchesProcess(*p);
   }
   return false;
 }
-
+namespace
+{
 class InspectorWidget : public QWidget
 {
   QPointer<ProcessModel> m_proc;
 
 public:
+  QHBoxLayout* m_buttons{};
   InspectorWidget(
       const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
       QWidget* parent)
       : QWidget{parent}
       , m_proc{&const_cast<Process::ProcessModel&>(process)}
   {
-    auto lay = new QVBoxLayout{this};
+    auto lay = new Inspector::VBoxLayout{this};
 
-    auto label = new TextLabel{process.metadata().getName(), this};
+    auto label = new TextLabel{
+        QStringLiteral("Process (%1)").arg(process.metadata().getName()), this};
     auto f = label->font();
     f.setBold(true);
-    f.setPixelSize(18);
+    f.setPixelSize(12); // See InspectorWidgetBase
     label->setFont(f);
     lay->addWidget(label);
+
     QWidget* loop_w{};
     QFormLayout* loop_lay{};
-    QHBoxLayout* btn_lay{};
 
     auto initButtonsLayout = [&] {
+      m_buttons = new QHBoxLayout;
+      m_buttons->setContentsMargins(0, 0, 0, 0);
+      lay->addLayout(m_buttons);
+
       loop_w = new QWidget;
       loop_lay = new QFormLayout(loop_w);
       loop_lay->setContentsMargins(1, 1, 1, 1);
       loop_lay->setSpacing(2);
       lay->addWidget(loop_w);
-
-      btn_lay = new QHBoxLayout;
-      loop_lay->addRow(btn_lay);
     };
+
     if(!(process.flags() & ProcessFlags::TimeIndependent))
     {
       initButtonsLayout();
@@ -116,7 +133,7 @@ public:
           if(b != loop_btn->isChecked())
             loop_btn->setChecked(b);
         });
-        btn_lay->addWidget(loop_btn);
+        m_buttons->addWidget(loop_btn);
       }
 
       // Start offset
@@ -184,7 +201,7 @@ public:
         uiToggle->setChecked(v);
       });
 
-      btn_lay->addWidget(uiToggle);
+      m_buttons->addWidget(uiToggle);
     }
 
     if(process.flags() & ProcessFlags::CanCreateControls)
@@ -208,7 +225,7 @@ public:
         auto& p = const_cast<Process::ProcessModel&>(process);
         p.setCreatingControls(state);
       });
-      btn_lay->addWidget(controlsToggle);
+      m_buttons->addWidget(controlsToggle);
     }
 
     if(w)
@@ -237,13 +254,16 @@ public:
     }
   }
 };
+}
 
 QWidget* InspectorWidgetDelegateFactory::wrap(
     const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
-    QWidget* parent)
+    QWidget* parent) const
 {
   auto widg = new InspectorWidget{process, doc, w, parent};
-
+  addButtons(process, doc, widg->m_buttons, widg);
+  widg->m_buttons->addStretch(1);
   return widg;
 }
+
 }

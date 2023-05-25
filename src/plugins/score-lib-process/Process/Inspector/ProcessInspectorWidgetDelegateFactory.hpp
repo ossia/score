@@ -5,6 +5,7 @@
 #include <score/tools/SafeCast.hpp>
 
 #include <score_lib_process_export.h>
+class QBoxLayout;
 namespace Process
 {
 class ProcessModel;
@@ -22,17 +23,19 @@ class SCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegateFactory
 {
 public:
   ~InspectorWidgetDelegateFactory() override;
-  virtual QWidget* make_process(
+  virtual QWidget* makeProcess(
       const Process::ProcessModel&, const score::DocumentContext& doc,
-      QWidget* parent) const = 0;
-  virtual bool matches_process(const Process::ProcessModel&) const = 0;
-
-  bool matches_process(
-      const Process::ProcessModel& proc, const score::DocumentContext& doc,
       QWidget* parent) const
-  {
-    return matches_process(proc);
-  }
+      = 0;
+  virtual bool matchesProcess(const Process::ProcessModel&) const = 0;
+
+  virtual void addButtons(
+      const Process::ProcessModel&, const score::DocumentContext& doc,
+      QBoxLayout* layout, QWidget* parent) const;
+
+  bool matchesProcess(
+      const Process::ProcessModel& proc, const score::DocumentContext& doc,
+      QWidget* parent) const;
 
   QWidget* make(
       const InspectedObjects& objects, const score::DocumentContext& doc,
@@ -40,16 +43,16 @@ public:
   bool matches(const InspectedObjects& objects) const final override;
 
 protected:
-  static QWidget* wrap(
+  QWidget* wrap(
       const Process::ProcessModel& process, const score::DocumentContext& doc,
-      QWidget* widg, QWidget* parent);
+      QWidget* widg, QWidget* parent) const;
 };
 
 template <typename Process_T, typename Widget_T>
 class InspectorWidgetDelegateFactory_T : public Process::InspectorWidgetDelegateFactory
 {
 private:
-  QWidget* make_process(
+  QWidget* makeProcess(
       const Process::ProcessModel& process, const score::DocumentContext& doc,
       QWidget* parent) const override
   {
@@ -58,27 +61,10 @@ private:
     return wrap(process, doc, w, parent);
   }
 
-  bool matches_process(const Process::ProcessModel& process) const override
+  bool matchesProcess(const Process::ProcessModel& process) const override
   {
     return dynamic_cast<const Process_T*>(&process);
   }
 };
 
-class DefaultInspectorWidgetDelegateFactory
-    : public Process::InspectorWidgetDelegateFactory
-{
-  SCORE_CONCRETE("07c0f07b-f996-4aa9-88b9-664486ddbb00")
-private:
-  QWidget* make_process(
-      const Process::ProcessModel& process, const score::DocumentContext& doc,
-      QWidget* parent) const override
-  {
-    return wrap(process, doc, nullptr, parent);
-  }
-
-  bool matches_process(const Process::ProcessModel& process) const override
-  {
-    return true;
-  }
-};
 }

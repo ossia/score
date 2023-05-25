@@ -244,7 +244,26 @@ void ScenarioApplicationPlugin::initialize()
   {
     auto& pw = const_cast<Inspector::InspectorWidgetList&>(
         context.interfaces<Inspector::InspectorWidgetList>());
-    pw.insert(std::make_unique<Process::DefaultInspectorWidgetDelegateFactory>());
+
+    class DefaultInspectorWidgetDelegateFactory final
+        : public Process::InspectorWidgetDelegateFactory
+    {
+      SCORE_CONCRETE("07c0f07b-f996-4aa9-88b9-664486ddbb00")
+    private:
+      QWidget* makeProcess(
+          const Process::ProcessModel& process, const score::DocumentContext& doc,
+          QWidget* parent) const override
+      {
+        return wrap(process, doc, nullptr, parent);
+      }
+
+      bool matchesProcess(const Process::ProcessModel& process) const override
+      {
+        return true;
+      }
+    };
+
+    pw.insert(std::make_unique<DefaultInspectorWidgetDelegateFactory>());
   }
 }
 

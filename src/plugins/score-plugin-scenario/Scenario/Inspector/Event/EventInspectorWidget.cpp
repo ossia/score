@@ -74,17 +74,19 @@ EventInspectorWidget::EventInspectorWidget(
 
   ////// BODY
   /// Information
-  auto infoWidg = new QWidget;
-  auto infoLay = new score::MarginLess<QFormLayout>{infoWidg};
+  auto btnLay = new score::MarginLess<QHBoxLayout>;
 
   // timeSync
   auto timeSync = object.timeSync();
   auto tnBtn = SelectionButton::make(
-      tr("Parent Sync"), &scenar->timeSync(timeSync), m_selectionDispatcher, infoWidg);
+      tr("Parent Sync"), &scenar->timeSync(timeSync), m_selectionDispatcher, this);
 
-  infoLay->addWidget(tnBtn);
+  tnBtn->setIconSize(QSize{28, 28});
+  tnBtn->setAutoRaise(true);
+  btnLay->addWidget(tnBtn);
 
-  m_properties.push_back(infoWidg);
+  btnLay->addStretch(1);
+  ((QBoxLayout*)m_metadata->layout())->insertLayout(0, btnLay);
 
   m_properties.push_back(new TextLabel{tr("Condition")});
   // Condition
@@ -94,6 +96,8 @@ EventInspectorWidget::EventInspectorWidget(
     expr_widg->setContentsMargins(0, 0, 0, 0);
     auto expr_lay
         = new QHBoxLayout{expr_widg}; // new score::MarginLess<QHBoxLayout>{expr_widg};
+    expr_lay->setContentsMargins(0, 0, 0, 0);
+    expr_lay->setSpacing(3);
 
     m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
     connect(

@@ -126,19 +126,13 @@ to the root of a score.)_"));
 
   m_trigwidg = new TriggerInspectorWidget{
       ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(), m_model, this};
-  {
-    QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    spacerWidget->setVisible(true);
-    m_btnLayout.addWidget(spacerWidget);
-  }
 
-  m_btnLayout.layout()->setContentsMargins(0, 0, 0, 0);
+  m_btnLayout.setContentsMargins(0, 0, 0, 0);
+  m_btnLayout.addStretch(1);
 
-  auto btns = new QWidget(this);
-  btns->setLayout(&m_btnLayout);
-  updateAreaLayout(
-      {btns, m_date, musicalSync, new TextLabel{tr("Trigger")}, m_trigwidg});
+  ((QBoxLayout*)m_metadata->layout())->insertLayout(0, &m_btnLayout);
+
+  updateAreaLayout({m_date, musicalSync, new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();

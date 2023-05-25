@@ -150,20 +150,17 @@ public:
   score::EntityMap<StateModel> states;
   score::EntityMap<CommentBlockModel> comments;
 
-public:
   void intervalMoved(const Scenario::IntervalModel* arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalMoved, arg_1)
 
   void locked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, locked)
   void unlocked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, unlocked)
 
-public:
   void lock() { locked(); };
   W_SLOT(lock)
   void unlock() { unlocked(); };
   W_SLOT(unlock)
 
-private:
   //// ProcessModel specifics ////
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;

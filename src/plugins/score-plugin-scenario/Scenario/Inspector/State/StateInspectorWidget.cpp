@@ -320,25 +320,11 @@ StateInspectorWidget::StateInspectorWidget(
     m_btnLayout.addWidget(snapshot);
   }
   */
-  {
-    QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    spacerWidget->setVisible(true);
-    m_btnLayout.addWidget(spacerWidget);
-  }
 
   m_btnLayout.setContentsMargins(0, 0, 0, 0);
+  m_btnLayout.addStretch(1);
 
-  //auto btns = new QWidget(this);
-  //btns->setLayout(&m_btnLayout);
   ((QBoxLayout*)metadata->layout())->insertLayout(0, &m_btnLayout);
-  //properties.push_back(btns);
-  //{
-  //  auto frame = new QFrame;
-  //  frame->setFrameShape(QFrame::HLine);
-  //  frame->setFrameShadow(QFrame::Sunken);
-  //  properties.push_back(frame);
-  //}
 
   {
     auto tab = new QTabWidget;

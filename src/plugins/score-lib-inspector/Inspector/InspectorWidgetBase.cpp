@@ -26,7 +26,6 @@ InspectorWidgetBase::InspectorWidgetBase(
     , m_commandDispatcher(new CommandDispatcher<>{ctx.commandStack})
 {
   m_layout = new VBoxLayout;
-  // m_layout->setSpacing(5);
 
   setLayout(m_layout);
 
@@ -45,7 +44,7 @@ InspectorWidgetBase::InspectorWidgetBase(
   scrollArea->setSizePolicy(
       QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;
-  m_scrollAreaLayout = new QVBoxLayout{scrollAreaContentWidget};
+  m_scrollAreaLayout = new VBoxLayout{scrollAreaContentWidget};
   m_scrollAreaLayout->setSizeConstraint(QLayout::SetMinimumSize);
   scrollArea->setWidget(scrollAreaContentWidget);
 

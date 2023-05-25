@@ -1,34 +1,30 @@
 #pragma once
+#include <ossia/detail/config.hpp>
+
 #include <QWidget>
 
 #include <score_lib_process_export.h>
 namespace Process
 {
 class ProcessModel;
-class SCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegate : public QWidget
-{
-public:
-  using QWidget::QWidget;
-  virtual ~InspectorWidgetDelegate();
-};
 
 template <typename Process_T>
-class InspectorWidgetDelegate_T : public InspectorWidgetDelegate
+class InspectorWidgetDelegate_T : public QWidget
 {
 public:
-  InspectorWidgetDelegate_T(const Process_T& process, QWidget* parent)
-      : InspectorWidgetDelegate{parent}
+  OSSIA_INLINE
+  InspectorWidgetDelegate_T(const Process_T& process, QWidget* parent) noexcept
+      : QWidget{parent}
       , m_process{process}
   {
   }
 
-  ~InspectorWidgetDelegate_T() = default;
+  OSSIA_INLINE ~InspectorWidgetDelegate_T() noexcept = default;
 
-  const Process_T& process() const noexcept { return m_process; }
+  OSSIA_INLINE const Process_T& process() const noexcept { return m_process; }
 
 private:
   const Process_T& m_process;
 };
 
-class ProcessModel;
 }
