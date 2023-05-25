@@ -1,13 +1,20 @@
 #include "ObjectItemModel.hpp"
 
+#include <State/MessageListSerialization.hpp>
+
+#include <Device/Node/NodeListMimeSerialization.hpp>
+
+#include <Process/OfflineAction/OfflineAction.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Interval/SetProcessPosition.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
@@ -26,8 +33,8 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/ArrowButton.hpp>
 #include <score/widgets/TextLabel.hpp>
-
 
 #include <QAction>
 #include <QApplication>
@@ -36,17 +43,6 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QToolButton>
-
-
-#include <State/MessageListSerialization.hpp>
-
-#include <Device/Node/NodeListMimeSerialization.hpp>
-
-#include <Process/OfflineAction/OfflineAction.hpp>
-
-#include <Scenario/Commands/CommandAPI.hpp>
-#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <score/widgets/ArrowButton.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ObjectItemModel)
@@ -90,7 +86,7 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
       auto& parent_ev = Scenario::parentEvent(*st, scenar);
       auto& parent_ts = Scenario::parentTimeSync(parent_ev, scenar);
-      if(parent_ev.states().size() > 1 || parent_ev.condition() != State::Expression{})
+      if(parent_ev.states().size() > 1 || parent_ev.active())
       {
         if(parent_ts.events().size() > 1 || parent_ts.active())
           root.push_back(&parent_ts);
@@ -1371,6 +1367,5 @@ void NeighbourSelector::selectDown()
     m_selectionDispatcher.select(sel);
   }
 }
-
 
 }

@@ -44,7 +44,7 @@ void setupRemoveMacro(const Scenario::ProcessModel& scenar, Selection sel, T& ma
       }
       else if(auto ev = dynamic_cast<const Scenario::EventModel*>(obj.data()))
       {
-        if(ev->condition().childCount() > 0)
+        if(ev->active())
         {
           macro.submit(new SetCondition{*ev, State::Expression{}});
         }

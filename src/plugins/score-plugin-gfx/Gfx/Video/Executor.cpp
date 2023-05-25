@@ -38,7 +38,18 @@ public:
       exec_context->ui->unregister_node(id);
   }
 
-  std::string label() const noexcept override { return "Gfx::video_node"; }
+  std::string label() const noexcept override
+  {
+    if(this->m_decoder)
+    {
+      const auto& name = this->m_decoder->file();
+      return "Gfx::video_node: " + name;
+    }
+    else
+    {
+      return "Gfx::video_node (null)";
+    }
+  }
 
   video_decoder& decoder() const noexcept { return *m_decoder; }
 

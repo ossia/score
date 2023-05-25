@@ -276,7 +276,7 @@ StateInspectorWidget::StateInspectorWidget(
   {
     auto condition = new QToolButton;
     condition->setCheckable(true);
-    condition->setChecked(Scenario::parentTimeSync(m_model, *scenar).active());
+    condition->setChecked(Scenario::parentEvent(m_model, *scenar).active());
     condition->setToolTip(tr("Condition (C)"));
     condition->setStatusTip(tr("Condition (C)"));
     condition->setIcon(makeIcons(

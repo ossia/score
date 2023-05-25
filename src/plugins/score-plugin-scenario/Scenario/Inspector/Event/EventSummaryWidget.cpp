@@ -30,7 +30,7 @@ EventSummaryWidget::EventSummaryWidget(
   mainLay->addWidget(new TextLabel{object.date().toString()}, 0, 3, 1, 3);
   mainLay->addWidget(eventBtn, 0, 6, 1, 1);
 
-  if(!object.condition().toString().isEmpty())
+  if(object.active())
   {
     auto cond = new TextLabel{object.condition().toString()};
     cond->setWordWrap(true);

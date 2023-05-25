@@ -397,11 +397,11 @@ void IntervalComponent::slot_callback(bool running, ossia::time_value date)
   if(!m_interval)
     return;
 
+  auto& cstdur = interval().duration;
   if(m_ossia_interval)
   {
     if(running)
     {
-      auto& cstdur = interval().duration;
       const auto& maxdur = cstdur.maxDuration();
 
       auto currentTime = this->context().reverseTime(date);

@@ -72,6 +72,8 @@ public:
   void translate(const TimeVal& deltaTime);
   ExecutionStatus status() const noexcept;
 
+  bool active() const noexcept;
+
   void setCondition(const State::Expression& arg);
   void setDate(const TimeVal& date);
   void setStatus(Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);

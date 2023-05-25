@@ -33,6 +33,8 @@ public:
   bool open(const std::string& inputFile) noexcept;
   bool load(const std::string& inputFile) noexcept;
 
+  const std::string& file() const noexcept { return m_inputFile; }
+
   int64_t duration() const noexcept;
 
   void seek(int64_t flicks);

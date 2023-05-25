@@ -179,7 +179,7 @@ void EventActions::addCondition()
   }
 
   const EventModel& ev = *selectedEvents.front();
-  if(ev.condition() == State::Expression{})
+  if(!ev.active())
   {
     auto cmd = new Scenario::Command::SetCondition{ev, State::defaultTrueExpression()};
     dispatcher().submit(cmd);
@@ -208,7 +208,7 @@ void EventActions::removeCondition()
   }
 
   const EventModel& ev = *selectedEvents.front();
-  if(ev.condition() != State::Expression{})
+  if(ev.active())
   {
     auto cmd = new Scenario::Command::SetCondition{ev, State::Expression{}};
     dispatcher().submit(cmd);

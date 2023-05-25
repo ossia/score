@@ -99,6 +99,11 @@ ExecutionStatus EventModel::status() const noexcept
   return m_status.get();
 }
 
+bool EventModel::active() const noexcept
+{
+  return m_condition.childCount() > 0;
+}
+
 void EventModel::addState(const Id<StateModel>& ds)
 {
   if(ossia::contains(m_states, ds))

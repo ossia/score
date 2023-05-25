@@ -373,7 +373,7 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
     else
     {
       // remove condition on selected Events
-      if(e->condition() != State::Expression{})
+      if(e->active())
       {
         e->setCondition({});
       }
