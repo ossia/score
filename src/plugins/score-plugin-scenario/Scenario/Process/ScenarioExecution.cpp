@@ -115,7 +115,7 @@ void ScenarioComponentBase::playInterval(const Scenario::IntervalModel& itv)
     in_exec([proc, ossia_c, rate = quantRate] {
       // FIXME this is incorrect for sub-scenarios.
       // We have to adjust with parent_metrics.delta !
-      proc->start_interval(*ossia_c, rate);
+      proc->request_start_interval(*ossia_c, rate);
     });
 
     startIntervalExecution(itv.id());
@@ -154,7 +154,7 @@ void ScenarioComponentBase::stopInterval(const Scenario::IntervalModel& itv)
     in_exec([proc, ossia_c, rate = quantRate] {
       // FIXME this is incorrect for sub-scenarios.
       // We have to adjust with parent_metrics.delta !
-      proc->stop_interval(*ossia_c, rate);
+      proc->request_stop_interval(*ossia_c, rate);
     });
 
     stopIntervalExecution(itv.id());
@@ -184,6 +184,14 @@ void ScenarioComponent::lazy_init()
       m_checker->computeDisplacement(m_pastTn, m_properties);
     }
   }
+
+  ossia_sc->set_exclusive(process().exclusive());
+  connect(
+      &process(), &Scenario::ProcessModel::exclusiveChanged, this,
+      [ossia_sc = std::weak_ptr(ossia_sc)](bool ex) {
+    if(auto sc = ossia_sc.lock())
+      sc->set_exclusive(ex);
+      });
 
   /* TODO reinstate settings
   if (ctx.doc.app.settings<Settings::Model>().getScoreOrder())

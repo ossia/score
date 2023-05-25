@@ -42,6 +42,7 @@
 
 #include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
+#include <Scenario/Inspector/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <Scenario/Process/ScenarioExecution.hpp>
@@ -236,7 +237,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
          Scenario::DropLayerInInterval, Scenario::DropScoreInInterval,
          Scenario::AutomationDropHandler, Scenario::DropPresetInInterval>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper,
-         Scenario::TempoPointInspectorFactory
+         Scenario::TempoPointInspectorFactory, Scenario::InspectorWidgetDelegateFactory
          //          , Interpolation::StateInspectorFactory
          //          , Interpolation::InspectorFactory
          >,

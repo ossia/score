@@ -36,6 +36,7 @@ void DataStreamReader::read(const Scenario::ProcessModel& scenario)
   m_stream << scenario.m_startTimeSyncId;
   m_stream << scenario.m_startEventId;
   m_stream << scenario.m_startStateId;
+  m_stream << scenario.m_exclusive;
 
   // Intervals
   const auto& intervals = scenario.intervals;
@@ -95,6 +96,7 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   m_stream >> scenario.m_startTimeSyncId;
   m_stream >> scenario.m_startEventId;
   m_stream >> scenario.m_startStateId;
+  m_stream >> scenario.m_exclusive;
 
   // Intervals
   int32_t interval_count;
@@ -164,6 +166,7 @@ void JSONReader::read(const Scenario::ProcessModel& scenario)
   obj["StartTimeNodeId"] = scenario.m_startTimeSyncId;
   obj["StartEventId"] = scenario.m_startEventId;
   obj["StartStateId"] = scenario.m_startStateId;
+  obj["Exclusive"] = scenario.m_exclusive;
 
   obj["TimeNodes"] = scenario.timeSyncs;
   obj["Events"] = scenario.events;
@@ -193,6 +196,11 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   else
   {
     scenario.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &scenario);
+  }
+
+  if(auto excl = obj.tryGet("Exclusive"))
+  {
+    scenario.m_exclusive = excl->toBool();
   }
 
   if(obj["uuid"].toString() == "995d41a8-0f10-4152-971d-e4c033579a02")

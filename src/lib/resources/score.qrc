@@ -718,5 +718,11 @@
         <file>icons/net_sync_off@2x.png</file>
         <file>icons/net_sync_on.png</file>
         <file>icons/net_sync_on@2x.png</file>
+        <file>icons/exclusive_off.png</file>
+        <file>icons/exclusive_off@2x.png</file>
+        <file>icons/exclusive_on.png</file>
+        <file>icons/exclusive_on@2x.png</file>
+        <file>icons/exclusive_hover.png</file>
+        <file>icons/exclusive_hover@2x.png</file>
     </qresource>
 </RCC>

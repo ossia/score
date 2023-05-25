@@ -170,9 +170,10 @@ public:
   void ancestorTempoChanged() override;
 
   Selection selectableChildren() const noexcept override;
-
-public:
   Selection selectedChildren() const noexcept override;
+
+  INLINE_PROPERTY_VALUE(
+      bool, exclusive, = false, exclusive, setExclusive, exclusiveChanged)
 
 private:
   void loadPreset(const Process::Preset& preset) override;
