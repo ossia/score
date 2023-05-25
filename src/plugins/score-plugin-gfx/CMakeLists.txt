@@ -158,6 +158,7 @@ set(SRCS
     Gfx/Text/Process.cpp
 
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
+    Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/Node.cpp
     Gfx/Graph/Graph.cpp
     Gfx/Graph/RenderList.cpp
