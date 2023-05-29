@@ -32,6 +32,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <QDebug>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 

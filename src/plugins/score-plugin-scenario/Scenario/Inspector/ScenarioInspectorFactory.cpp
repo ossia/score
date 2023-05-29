@@ -3,6 +3,7 @@
 #include <Scenario/Commands/Scenario/Properties.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <QBoxLayout>

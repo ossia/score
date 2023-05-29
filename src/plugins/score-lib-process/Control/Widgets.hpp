@@ -213,7 +213,7 @@ struct IntSlider final
   void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::INT;
-    v->domain = ossia::domain_base<int>(this->min, this->max);
+    v->domain = ossia::domain_base<int32_t>(this->min, this->max);
   }
 };
 
@@ -257,7 +257,7 @@ struct IntSpinBox final
   void setup_exec(auto& v) const
   {
     v->type = ossia::val_type::INT;
-    v->domain = ossia::domain_base<int>(this->min, this->max);
+    v->domain = ossia::domain_base<int32_t>(this->min, this->max);
   }
 };
 

@@ -318,7 +318,7 @@ void apply_typeonly(
     case domain_base_variant::Type::Type1:
       return functor(typeholder<ossia::domain_base<bool>>{}, var);
     case domain_base_variant::Type::Type2:
-      return functor(typeholder<ossia::domain_base<int>>{}, var);
+      return functor(typeholder<ossia::domain_base<int32_t>>{}, var);
     case domain_base_variant::Type::Type3:
       return functor(typeholder<ossia::domain_base<float>>{}, var);
     case domain_base_variant::Type::Type5:
@@ -389,7 +389,7 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
 
   using value_type_list = ossia::tl<
       ossia::domain_base<ossia::impulse>, ossia::domain_base<bool>,
-      ossia::domain_base<int>, ossia::domain_base<float>,
+      ossia::domain_base<int32_t>, ossia::domain_base<float>,
       ossia::domain_base<std::string>, ossia::vector_domain, ossia::vecf_domain<2>,
       ossia::vecf_domain<3>, ossia::vecf_domain<4>, ossia::domain_base<ossia::value>>;
 

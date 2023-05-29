@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/detail/variant.hpp>
 
-#include <brigand/algorithms/transform.hpp>
+#include <boost/mp11/algorithm.hpp>
 
 #include <type_traits>
 
@@ -28,11 +28,22 @@ struct dereference_visitor
 };
 
 template <typename Variant, typename Base>
-Variant make_subtype_variant(const Base& base)
+Variant make_subtype_variant(const Base&)
 {
   // The type does not match any
   // in the proposed types for the variant.
   return Variant{};
+}
+
+template <typename Variant, typename Base, typename Arg, typename... SubArgs>
+Variant make_subtype_variant(Base& base)
+{
+  if(auto derived = dynamic_cast<Arg*>(&base))
+  {
+    return Variant(derived);
+  }
+
+  return make_subtype_variant<Variant, Base, SubArgs...>(base);
 }
 
 template <typename Variant, typename Base, typename Arg, typename... SubArgs>
@@ -60,12 +71,17 @@ template <typename Base, typename... Args>
 class SubtypeVariant
 {
   using arg_list = ossia::variant<Args...>;
-  using ptr_list = brigand::transform<arg_list, std::add_pointer<brigand::_1>>;
+  using ptr_list = boost::mp11::mp_transform<std::add_pointer_t, arg_list>;
 
   ptr_list m_impl;
 
 public:
-  SubtypeVariant(const Base& b)
+  explicit SubtypeVariant(Base& b)
+      : m_impl(detail::make_subtype_variant<ptr_list, Base, Args...>(b))
+  {
+  }
+
+  explicit SubtypeVariant(const Base& b)
       : m_impl(detail::make_subtype_variant<ptr_list, Base, Args...>(b))
   {
   }

@@ -94,7 +94,6 @@
 #include <avnd/../../examples/Tutorial/SampleAccurateGeneratorExample.hpp>
 #include <avnd/../../examples/Tutorial/TextureGeneratorExample.hpp>
 #endif
-#include <brigand/sequences/list.hpp>
 
 #include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #include <avnd/../../examples/Helpers/PeakBandFFTPort.hpp>

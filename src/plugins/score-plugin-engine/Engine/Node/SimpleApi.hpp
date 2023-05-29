@@ -66,7 +66,7 @@ instantiate_fx(const score::ApplicationContext& ctx, const score::InterfaceKey& 
   }
   else if(key == Process::LayerFactory::static_interfaceKey())
   {
-    ossia::for_each_tagged(brigand::list<Nodes...>{}, [&](auto t) {
+    ossia::for_each_tagged(boost::mp11::mp_list<Nodes...>{}, [&](auto t) {
       using type = typename decltype(t)::type;
       if constexpr(HasItem<type>)
       {
