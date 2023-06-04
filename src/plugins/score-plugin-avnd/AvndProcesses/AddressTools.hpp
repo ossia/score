@@ -26,6 +26,7 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
 {
   void update(PatternObject& p)
   {
+    current_object = &p;
     if(!p.ossia_state.impl)
       return;
     if(value.empty())
@@ -36,7 +37,15 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
     }
 
     p.m_path = ossia::traversal::make_path(value);
+    reprocess();
+  }
 
+  void reprocess()
+  {
+    if(!current_object)
+      return;
+
+    auto& p = *current_object;
     ossia::execution_state& st = *p.ossia_state.impl;
     const auto& rdev = st.exec_devices();
     p.roots.clear();
@@ -46,11 +55,43 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
 
     for(auto& dev : rdev)
     {
+      if(devices_observed.find(dev) == devices_observed.end())
+      {
+        devices_observed.insert(dev);
+        dev->on_node_created.connect<&PatternSelector::mark_dirty>(this);
+        dev->on_node_removing.connect<&PatternSelector::mark_dirty>(this);
+      }
       p.roots.push_back(&dev->get_root_node());
     }
 
+    for(auto it = devices_observed.begin(); it != devices_observed.end();)
+    {
+      if(!ossia::contains(rdev, *it))
+        it = devices_observed.erase(it);
+      else
+        ++it;
+    }
+
     ossia::traversal::apply(*p.m_path, p.roots);
+    devices_dirty = false;
   }
+
+  ~PatternSelector()
+  {
+    reprocess();
+    for(auto* dev : devices_observed)
+    {
+      dev->on_node_created.disconnect<&PatternSelector::mark_dirty>(this);
+      dev->on_node_removing.disconnect<&PatternSelector::mark_dirty>(this);
+    }
+  }
+
+  void mark_dirty(ossia::net::node_base&) { devices_dirty = true; }
+
+  PatternObject* current_object{};
+  bool devices_dirty = false;
+
+  ossia::flat_set<ossia::net::device_base*> devices_observed;
 };
 
 struct PatternUnfolder : PatternObject

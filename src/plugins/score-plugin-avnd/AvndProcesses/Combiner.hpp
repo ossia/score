@@ -37,6 +37,8 @@ struct PatternCombiner : PatternObject
       return;
 
     current_values.clear();
+    if(inputs.pattern.devices_dirty)
+      inputs.pattern.reprocess();
     for(auto in : this->roots)
     {
       if(auto p = in->get_parameter())
