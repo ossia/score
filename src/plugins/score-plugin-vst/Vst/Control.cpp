@@ -19,6 +19,7 @@
 #include <score/widgets/TextLabel.hpp>
 
 #include <QMenu>
+#include <QTimer>
 #include <QToolButton>
 
 #include <wobjectimpl.h>

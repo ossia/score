@@ -15,6 +15,7 @@
 #include <QFileInfo>
 #include <QListView>
 #include <QMenu>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 

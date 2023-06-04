@@ -262,7 +262,8 @@ QWidget* InspectorWidgetDelegateFactory::wrap(
 {
   auto widg = new InspectorWidget{process, doc, w, parent};
   addButtons(process, doc, widg->m_buttons, widg);
-  widg->m_buttons->addStretch(1);
+  if(widg->m_buttons)
+    widg->m_buttons->addStretch(1);
   return widg;
 }
 

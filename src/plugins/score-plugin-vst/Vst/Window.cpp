@@ -3,6 +3,8 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <QTimer>
+
 #include <wobjectimpl.h>
 
 namespace vst

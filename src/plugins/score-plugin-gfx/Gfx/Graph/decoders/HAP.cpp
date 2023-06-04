@@ -32,7 +32,6 @@ HAPDecoder::HAPSection HAPDecoder::HAPSection::read(const uint8_t* bytes)
 void HAPDecoder::exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame)
 {
   auto section = HAPSection::read(frame.data[0]);
-  qDebug() << "Decoding HAP:" << section.type;
   if(section.type == 0x0D)
     return;
 

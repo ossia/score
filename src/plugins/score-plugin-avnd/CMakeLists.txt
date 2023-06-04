@@ -343,7 +343,7 @@ function(avnd_make_score)
     target_sources(score_plugin_avnd PRIVATE
       "${AVND_REFLECTION_HELPERS}"
     )
-    target_compile_definitions(score_plugin_avnd PRIVATE AVND_USE_TUPLET_TUPLE=1)
+    target_compile_definitions(score_plugin_avnd PUBLIC AVND_USE_TUPLET_TUPLE=1)
   endif()
 
   if(AVND_NAMESPACE)

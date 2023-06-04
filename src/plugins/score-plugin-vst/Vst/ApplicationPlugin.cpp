@@ -16,6 +16,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#include <QTimer>
 #include <QWebSocket>
 
 #include <wobjectimpl.h>
