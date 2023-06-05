@@ -156,7 +156,7 @@ struct Ellipses
 };
 }
 const QPixmap&
-PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
+PortItem::portImage(Process::PortType t, bool inlet, bool smol, bool light) noexcept
 {
   static const Ellipses ellipses;
   int n;
@@ -186,7 +186,7 @@ PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noe
   {
     if(inlet)
     {
-      if(small)
+      if(smol)
       {
         return ellipses.SmallEllipsesInLight[n];
       }
@@ -197,7 +197,7 @@ PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noe
     }
     else
     {
-      if(small)
+      if(smol)
       {
         return ellipses.SmallEllipsesOutLight[n];
       }
@@ -211,7 +211,7 @@ PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noe
   {
     if(inlet)
     {
-      if(small)
+      if(smol)
       {
         return ellipses.SmallEllipsesIn[n];
       }
@@ -222,7 +222,7 @@ PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noe
     }
     else
     {
-      if(small)
+      if(smol)
       {
         return ellipses.SmallEllipsesOut[n];
       }
