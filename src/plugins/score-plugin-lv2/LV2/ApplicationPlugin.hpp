@@ -24,7 +24,7 @@ class ApplicationPlugin
 {
   W_OBJECT(ApplicationPlugin)
 public:
-  ApplicationPlugin(const score::ApplicationContext& app);
+  explicit ApplicationPlugin(const score::ApplicationContext& app);
   void initialize() override;
   ~ApplicationPlugin() override;
 
