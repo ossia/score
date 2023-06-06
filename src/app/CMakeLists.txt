@@ -5,7 +5,14 @@ score_write_static_plugins_header()
 include(CheckSymbolExists)
 enable_testing()
 set(APPNAME "score")
+
+# PIE / PIC has some issues with PCH...
 set(CMAKE_POSITION_INDEPENDENT_CODE 1)
+if(SCORE_PCH)
+  if(UNIX AND NOT APPLE)
+    add_compile_options(-fPIC)
+  endif()
+endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   add_link_options("SHELL:-s ASSERTIONS=0")
