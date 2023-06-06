@@ -227,7 +227,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   detect_linux_distro
   detect_linux_qt_version
   detect_deps_script
-  source "ci/$DEPS.deps.sh"
+  $SUDO "ci/$DEPS.deps.sh"
   
   if [[ "$QT" == 5 ]]; then
     QT_CMAKE_FLAG=''

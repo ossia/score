@@ -6,7 +6,7 @@ dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-
 
 # TODO fix SDL2-devel SDL2-static -fPIC issue
 
-dnf -y install \
+dnf -y --allowerasing install \
      clang \
      cmake ninja-build \
      ffmpeg-devel \

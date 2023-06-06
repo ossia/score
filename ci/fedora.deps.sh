@@ -8,7 +8,7 @@ $SUDO dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-no
 
 # TODO fix SDL2-devel SDL2-static -fPIC issue
 
-$SUDO dnf -y install \
+$SUDO dnf -y --allowerasing install \
      cmake ninja-build \
      ffmpeg-devel llvm-devel \
      alsa-lib-devel portaudio-devel \
