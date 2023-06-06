@@ -128,7 +128,7 @@ target_link_libraries(score_lib_base
 )
 
 if(TARGET Qt6::ShaderTools)
-  target_link_libraries(score_plugin_gfx INTERFACE Qt6::ShaderTools)
+  target_link_libraries(score_plugin_gfx INTERFACE Qt6::ShaderTools Qt6::ShaderToolsPrivate)
 endif()
 
 
