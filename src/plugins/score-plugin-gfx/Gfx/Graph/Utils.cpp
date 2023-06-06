@@ -553,9 +553,7 @@ QSizeF computeScale(ScaleMode mode, QSizeF viewport, QSizeF texture)
           texture.height() / new_tex_size1.height()};
     }
     case score::gfx::ScaleMode::Original: {
-      return {
-          2. * texture.width() / viewport.width(),
-          2. * texture.height() / viewport.height()};
+      return {texture.width() / viewport.width(), texture.height() / viewport.height()};
     }
     case score::gfx::ScaleMode::Stretch:
     default:
