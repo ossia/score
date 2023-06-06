@@ -7,7 +7,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
@@ -59,7 +59,7 @@ jobs:
           - { sys: clang64, env: clang-x86_64 }
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
@@ -101,7 +101,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 

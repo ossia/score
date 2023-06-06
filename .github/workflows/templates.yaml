@@ -22,7 +22,7 @@ jobs:
           sudo apt-get install -qq --force-yes git rename perl
 
       - name: Checkout template
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: ossia-templates/${{ matrix.template }}
           submodules: "recursive"
@@ -85,7 +85,7 @@ jobs:
 
     steps:
       - name: Checkout score
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: "recursive"
           path: score
