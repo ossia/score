@@ -18,10 +18,10 @@ SETTINGS_PARAMETER_IMPL(Driver)
           "e75cb711-613f-4f15-834f-398ab1807470")}
 #elif defined(__linux__)
       Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
-          "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")} // ALSA
+          "687d49cf-b58d-430f-8358-ec02cb50be36")} // PipeWire
 #elif defined(__EMSCRIPTEN__)
       Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
-          "28b88e91-c5f0-4f13-834f-aa333d14aa81")} // ALSA
+          "28b88e91-c5f0-4f13-834f-aa333d14aa81")} // SDL
 #else
       Audio::AudioFactory::ConcreteKey
   {
