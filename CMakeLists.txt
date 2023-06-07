@@ -97,6 +97,10 @@ if(MSVC)
                   /DNOMINMAX
                   /DWIN32_LEAN_AND_MEAN
                   )
+elseif(APPLE AND SCORE_PCH)
+    set(CMAKE_OBJC_FLAGS "${CMAKE_OBJC_FLAGS} -faligned-allocation ")
+    set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -faligned-allocation ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-allocation ")
 endif()
 
 if(MSYS OR MINGW)
