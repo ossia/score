@@ -121,7 +121,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
     using logger_type = oscr::Logger;
   };
   std::vector<std::unique_ptr<score::InterfaceBase>> fx;
+  #if !defined(_MSC_VER)
   oscr::instantiate_fx<Aether::Object>(fx, ctx, key);
+  #endif
   oscr::instantiate_fx<ao::ADSR>(fx, ctx, key);
 
 #if __has_include(<kfr/dft/convolution.hpp>)
