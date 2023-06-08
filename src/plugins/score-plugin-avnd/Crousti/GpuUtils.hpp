@@ -517,7 +517,7 @@ struct handle_update
     {
       if constexpr(requires { C::texture; })
       {
-        QRhiTextureSubresourceUploadDescription sub{command.data, command.size};
+        QRhiTextureSubresourceUploadDescription sub(command.data, command.size);
         res.uploadTexture(
             reinterpret_cast<QRhiTexture*>(command.handle),
             QRhiTextureUploadDescription{{0, 0, sub}});

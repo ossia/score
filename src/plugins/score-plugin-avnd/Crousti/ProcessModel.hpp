@@ -124,6 +124,10 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
   static Process::Descriptor get()
   {
 // literate programming goes brr
+#if defined(_MSC_VER)
+#define if_exists(Expr, Else) []() noexcept { if(false) {} Else; } ()
+#define if_attribute(Attr) QString{}
+#else
 #define if_exists(Expr, Else)        \
   []() noexcept {                    \
     if constexpr(requires { Expr; }) \
@@ -138,6 +142,7 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
     else                                               \
       return QString{};                                \
   }()
+#endif
     static Process::Descriptor desc
     {
       Metadata<PrettyName_k, oscr::ProcessModel<Info>>::get(),
