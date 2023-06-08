@@ -92,6 +92,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED 20)
 
 if(MSVC)
+  if(NOT OSSIA_SDK)
+    message(FATAL_ERROR "
+For building on MSVC, it is required to extract:
+     https://github.com/ossia/sdk/releases/download/sdk18/sdk-msvc-release.zip
+in c:\\score-sdk-msvc and pass -DOSSIA_SDK=c:\\score-sdk-msvc to CMake. 
+For Debug builds, use score-msvc-debug.zip and extract it to c:\\score-sdk-msvc-debug.
+Note that the builds made through MSYS2 using clang are better as more feature are supported 
+and clang optimizes more than MSVC.
+")
+  endif()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /std:c++latest /Zc:__cplusplus /Zc:preprocessor /permissive- /volatile:iso")
   add_definitions(/D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1
                   /DNOMINMAX
