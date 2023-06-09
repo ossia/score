@@ -23,7 +23,7 @@ stages:
       - job: Win32
         displayName: Win32
         pool:
-          vmImage: "windows-2019"
+          vmImage: "windows-2022"
 
         steps:
           - checkout: self
