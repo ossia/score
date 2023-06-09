@@ -9,6 +9,7 @@ cmake %SCORE_DIR% ^
   -DOSSIA_SDK=c:\ossia-sdk-msvc ^
   -DCMAKE_INSTALL_PREFIX=install ^
   -DCMAKE_UNITY_BUILD=1 ^
+  -DSCORE_DISABLED_PLUGINS=score-plugin-avnd ^
   -DSCORE_DEPLOYMENT_BUILD=1
 
 cmake --build . --config Debug
