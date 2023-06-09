@@ -35,7 +35,9 @@
 
 #include <score_plugin_engine.hpp>
 
+#if !defined(_MSC_VER)
 #include <Aether/src/aether_dsp.cpp>
+#endif
 
 #include <avnd/../../examples/Advanced/Utilities/ADSR.hpp>
 #include <avnd/../../examples/Advanced/Utilities/AudioFilters.hpp>
