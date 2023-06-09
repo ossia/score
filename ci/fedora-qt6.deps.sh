@@ -28,6 +28,7 @@ dnf -y --allowerasing install \
      qt6-qttools-devel \
      qt6-qtwebsockets-devel \
      qt6-qtdeclarative-devel \
-     qt6-qtdeclarative-private-devel
+     qt6-qtdeclarative-private-devel \
+     pipewire-devel
 
 source ci/common.deps.sh
