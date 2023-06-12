@@ -1,0 +1,39 @@
+name: Debian build
+
+on: push
+
+jobs:
+  debian:
+    name: Debian
+    runs-on: ubuntu-latest
+    container:
+      image: debian:${{ matrix.distro }}
+
+    strategy:
+      matrix:
+        include:
+          - { distro: bullseye, CC: gcc,       CXX: g++ }
+          - { distro: bookworm, CC: clang,     CXX: clang++ }
+          - { distro: bookworm, CC: clang-15,  CXX: clang++-15 }
+          - { distro: bookworm, CC: gcc,       CXX: g++ }
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/${{ matrix.distro }}.deps.sh
+
+      - name: Build
+        env:
+          CC: ${{ matrix.CC }}
+          CXX: ${{ matrix.CXX }}
+        run: |
+          ./ci/${{ matrix.distro }}.build.sh

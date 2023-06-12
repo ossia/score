@@ -3,12 +3,21 @@ name: Ubuntu build
 on: push
 
 jobs:
-  jammy_qt6_gcc:
-    name: Ubuntu (Jammy, Qt6, GCC)
+  jammy:
+    name: Ubuntu 
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:jammy
 
+    strategy:
+      matrix:
+        include:
+          - { deploy: true , distro: jammy, CC: gcc-12,    CXX: g++-12,     LDFLAGS: "" }
+          - { deploy: false, distro: jammy, CC: clang-14,  CXX: clang++-14, LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: true,  distro: lunar, CC: gcc,       CXX: g++,     LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: false, distro: lunar, CC: clang,     CXX: clang++, LDFLAGS: "-fuse-ld=lld" }
+
+    container:
+      image: ubuntu:${{ matrix.distro }}
+      
     steps:
       - name: Install git
         run: |
@@ -22,44 +31,24 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/jammy-qt6.deps.sh
+          ./ci/${{ matrix.distro }}.deps.sh
 
       - name: Build
+        env:
+          CC: ${{ matrix.CC }}
+          CXX: ${{ matrix.CXX }}
+          LDFLAGS: ${{ matrix.LDFLAGS }}
         run: |
-          CC=gcc-12 CXX=g++-12 LDFLAGS= ./ci/jammy-qt6.build.sh
+          ./ci/${{ matrix.distro }}.build.sh
 
       - name: Deploy
         run: |
-          ./ci/jammy.deploy.sh
+          ./ci/${{ matrix.distro }}.deploy.sh
 
       - name: Upload build
         uses: actions/upload-artifact@v2
+        if: matrix.deploy 
         with:
-          name: jammy-amd64
+          name: ${{ matrix.distro }}-amd64
           path: |
             *.deb
-
-  jammy_qt6_clang:
-    name: Ubuntu (Jammy, Qt6 Clang)
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:jammy
-
-    steps:
-      - name: Install git
-        run: |
-          apt-get update -qq
-          apt-get install -qq --force-yes git
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/jammy-qt6.deps.sh
-
-      - name: Build
-        run: |
-          CC=clang-14 CXX=clang++-14 LDFLAGS=-fuse-ld=lld ./ci/jammy-qt6.build.sh
