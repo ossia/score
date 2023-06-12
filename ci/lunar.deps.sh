@@ -29,6 +29,7 @@ $SUDO apt-get install -y \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libpipewire-0.3-dev \
+     libclang-dev llvm-dev \
      libvulkan-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \

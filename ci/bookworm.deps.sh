@@ -10,7 +10,8 @@ $SUDO apt-get install -qq --force-yes \
      ninja-build \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \
-     libclang-13-dev llvm-13-dev \
+     libclang-dev llvm-dev \
+     libclang-15-dev llvm-15-dev \
      libdrm-dev libgbm-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
      qt6-declarative-dev qt6-declarative-dev-tools qt6-declarative-private-dev \
