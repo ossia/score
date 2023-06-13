@@ -1,6 +1,6 @@
 <img src="https://i.imgur.com/BL6J8Jh.png" width="500">
 
-[![Financial Contributors on Open Collective](https://opencollective.com/ossia/all/badge.svg?label=financial+contributors)](https://opencollective.com/ossia) [![Discord](https://img.shields.io/discord/928307671579394179.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/8Hzm4UduaS) [![join the chat at https://gitter.im/ossia/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ossia/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/badge/dynamic/json?color=success&label=downloads&query=%24.downloads&url=https%3A%2F%2Fossia.io%2Fdownload-stats.json)](https://github.com/ossia/score/releases) [![Version](https://img.shields.io/github/release/ossia/score.svg)](https://github.com/ossia/score/releases)
+[![Financial Contributors on Open Collective](https://opencollective.com/ossia/all/badge.svg?label=financial+contributors)](https://opencollective.com/ossia) [![Discord](https://img.shields.io/discord/928307671579394179.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/8Hzm4UduaS) [![join the chat at https://gitter.im/ossia/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ossia/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/badge/dynamic/json?color=success&label=downloads&query=%24.downloads&url=https%3A%2F%2Fossia.io%2Fdownload-stats.json)](https://github.com/ossia/score/releases) [![Version](https://img.shields.io/github/release/ossia/score.svg)](https://github.com/ossia/score/releases) [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
 
 [**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows.
 
@@ -23,14 +23,20 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 * Linux: make executable (right click -> permissions or `chmod +x`) and run the AppImage.
 
 ## Build status
-* Official Win/Mac/Linux releases: [![Azure Pipelines](https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2)](https://dev.azure.com/ossia/libossia/_build?definitionId=2)
-* ArchLinux, OpenSUSE, Fedora, Debian, WASM, Raspberry Pi: [![Linux distro build](https://github.com/ossia/score/workflows/Linux%20distro%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Linux+distro+build%22)
-* Ubuntu Bionic, Focal on GCC, Clang: [![Ubuntu build](https://github.com/ossia/score/workflows/Ubuntu%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Ubuntu+build%22)
-* macOS (with Brew): [![macOS build](https://github.com/ossia/score/workflows/macOS%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22macOS+build%22)
-* Windows (MSVC, MinGW): [![Windows build](https://github.com/ossia/score/actions/workflows/win-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/win-builds.yaml)
-* Raspberry Pi (ARMv7, AArch64): [![Raspberry Pi build](https://github.com/ossia/score/actions/workflows/embedded.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/embedded.yaml)
-* [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
-* ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
+
+| Platform                                  | Status                                                                                                                                                                           |
+|-------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Official Linux / macOS / Windows releases | [ ![ Azure Pipelines ]( https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2 ) ]( https://dev.azure.com/ossia/libossia/_build?definitionId=2 ) |
+| ArchLinux, OpenSUSE, Fedora               | [![Linux distros](https://github.com/ossia/score/actions/workflows/builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/builds.yaml)                         |
+| macOS (Homebrew)                          | [![macOS](https://github.com/ossia/score/actions/workflows/mac-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/mac-builds.yaml)                         |
+| Windows (MSYS2, MSVC 2022)                | [![Windows](https://github.com/ossia/score/actions/workflows/win-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/win-builds.yaml)                       |
+| Debian (Bullseye, Bookworm)               | [![Debian](https://github.com/ossia/score/actions/workflows/debian-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/debian-builds.yaml)                  |
+| Ubuntu (Jammy 22.04, Lunar 23.04)         | [![Ubuntu](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml)                  |
+| Raspberry Pi (Bullseye AArch64)           | [![RPi](https://github.com/ossia/score/actions/workflows/embedded.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/embedded.yaml)                               |
+| WebAssembly                               | [![WASM](https://github.com/ossia/score/actions/workflows/wasm.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/wasm.yaml)                                      |
+
+ 
+ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
 
 In order to build score, follow the [documentation](https://ossia.io/score-docs/development/build-from-source.html).
 
