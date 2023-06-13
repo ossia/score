@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cinst -y ninja
-cinst -y rsync
+choco install -y ninja
+choco install -y rsync
 
 (
 set -x
