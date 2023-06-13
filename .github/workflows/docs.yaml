@@ -23,7 +23,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/jammy-qt6.deps.sh
+          ./ci/jammy.deps.sh
 
       - name: Configure
         run: |
