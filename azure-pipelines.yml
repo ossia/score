@@ -32,8 +32,8 @@ stages:
           - bash: |
               source ci/win32.deps.sh
 
-          - script: |
-              call ci/win32.build.cmd
+          - bash: |
+              source ci/win32.build.sh
 
           - bash: |
               source ci/win32.deploy.sh
