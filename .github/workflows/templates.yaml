@@ -54,7 +54,7 @@ jobs:
               common_flags: "-GNinja -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe -DCMAKE_UNITY_BUILD=1",
               debug_flags: "-DCMAKE_BUILD_TYPE=Debug",
               release_flags: "-DCMAKE_BUILD_TYPE=Release",
-              dependencies: "cinst ninja",
+              dependencies: "choco install -y ninja",
               sdk: "/c/ossia-sdk",
             }
           - {
