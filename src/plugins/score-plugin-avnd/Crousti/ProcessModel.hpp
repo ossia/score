@@ -4,6 +4,7 @@
 #include <Process/ProcessFactory.hpp>
 
 #include <Crousti/Attributes.hpp>
+#include <Crousti/CodeWriter.hpp>
 #include <Crousti/Concepts.hpp>
 #include <Crousti/Metadata.hpp>
 #include <Crousti/Metadatas.hpp>
@@ -11,6 +12,7 @@
 #include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <ossia/detail/typelist.hpp>
+#include <ossia/network/value/format_value.hpp>
 
 #include <boost/pfr.hpp>
 
@@ -664,36 +666,7 @@ public:
   std::unique_ptr<Process::CodeWriter>
   codeWriter(Process::CodeFormat) const noexcept override
   {
-    struct w : Process::CodeWriter
-    {
-      using Process::CodeWriter::CodeWriter;
-
-      std::string typeName() const noexcept override
-      {
-        return boost::core::demangle(typeid(Info).name());
-      }
-      std::string accessInlet(const Id<Process::Port>& id) const noexcept override
-      {
-        int index = ossia::index_in_container(this->self.inlets(), id);
-        return fmt::format(
-            "(avnd::input_introspection<decltype({})>::get<{}>({}.inputs)."
-            "value)",
-            variable, index, variable);
-      }
-      std::string accessOutlet(const Id<Process::Port>& id) const noexcept override
-      {
-        int index = ossia::index_in_container(this->self.outlets(), id);
-        return fmt::format(
-            "(avnd::output_introspection<decltype({})>::get<{}>({}.outputs)."
-            "value)",
-            variable, index, variable);
-      }
-      std::string execute() const noexcept override
-      {
-        return fmt::format("{}();", variable);
-      }
-    };
-    return std::make_unique<w>(*this);
+    return std::make_unique<Crousti::CodeWriter<Info>>(*this);
   };
 };
 }

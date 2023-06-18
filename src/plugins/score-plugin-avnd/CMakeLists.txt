@@ -83,12 +83,19 @@ set(HALP_HEADERS
   "${AVND_FOLDER}/include/halp/midi.hpp"
   "${AVND_FOLDER}/include/halp/callback.hpp"
   "${AVND_FOLDER}/include/halp/compat/gamma.hpp"
+  "${AVND_FOLDER}/include/halp/controls.hpp"
+  "${AVND_FOLDER}/include/halp/controls.basic.hpp"
+  "${AVND_FOLDER}/include/halp/controls.buttons.hpp"
+  "${AVND_FOLDER}/include/halp/controls.enums.hpp"
+  # "${AVND_FOLDER}/include/halp/controls.sliders.gcc10.hpp"
+  "${AVND_FOLDER}/include/halp/controls.sliders.hpp"
   "${AVND_FOLDER}/include/halp/controls_fmt.hpp"
   "${AVND_FOLDER}/include/halp/custom_widgets.hpp"
   "${AVND_FOLDER}/include/halp/curve.hpp"
   "${AVND_FOLDER}/include/halp/fft.hpp"
   "${AVND_FOLDER}/include/halp/file_port.hpp"
   "${AVND_FOLDER}/include/halp/geometry.hpp"
+  "${AVND_FOLDER}/include/halp/gradient_port.hpp"
   "${AVND_FOLDER}/include/halp/inline.hpp"
   "${AVND_FOLDER}/include/halp/layout.hpp"
   "${AVND_FOLDER}/include/halp/log.hpp"
@@ -97,6 +104,7 @@ set(HALP_HEADERS
   "${AVND_FOLDER}/include/halp/meta.hpp"
   "${AVND_FOLDER}/include/halp/reactive_value.hpp"
   "${AVND_FOLDER}/include/halp/sample_accurate_controls.hpp"
+  "${AVND_FOLDER}/include/halp/soundfile_port.hpp"
   "${AVND_FOLDER}/include/halp/static_string.hpp"
   "${AVND_FOLDER}/include/halp/texture.hpp"
   "${AVND_FOLDER}/include/halp/texture_formats.hpp"
@@ -120,6 +128,7 @@ add_library(
   AvndDevices/AvndDevice.hpp
 
   Crousti/Attributes.hpp
+  Crousti/CodeWriter.hpp
   Crousti/Concepts.hpp
   Crousti/CpuAnalysisNode.hpp
   Crousti/CpuFilterNode.hpp

@@ -85,6 +85,41 @@ std::string exprtk_to_cpp(std::string exprtk) noexcept
   return pre + "\n" + code.toStdString() + "\n" + post;
 }
 
+std::string MathMappingCodeWriter::initializer() const noexcept
+{
+
+  Process::ControlInlet*
+      a{}; // = this->self.findChild<Process::ControlInlet*>("Param (a)");
+  Process::ControlInlet*
+      b{}; // = this->self.findChild<Process::ControlInlet*>("Param (b)");
+  Process::ControlInlet*
+      c{}; // = this->self.findChild<Process::ControlInlet*>("Param (c)");
+
+  for(auto& i : this->self.inlets())
+  {
+    if(auto cc = qobject_cast<Process::ControlInlet*>(i))
+    {
+      if(cc->name() == "Param (a)")
+        a = cc;
+      else if(cc->name() == "Param (b)")
+        b = cc;
+      else if(cc->name() == "Param (c)")
+        c = cc;
+    }
+  }
+  if(a && b && c)
+  {
+    return fmt::format(
+        ".inputs = {{.a = {{ {} }}, .b = {{ {} }}, .c = {{ {} }} }}",
+        ossia::convert<float>(a->value()), ossia::convert<float>(b->value()),
+        ossia::convert<float>(c->value()));
+  }
+  else
+  {
+    return "";
+  }
+}
+
 std::string MathMappingCodeWriter::typeName() const noexcept
 {
   return "ExprtkMapper";

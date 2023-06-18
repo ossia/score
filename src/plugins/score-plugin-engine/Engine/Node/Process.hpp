@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/CodeWriter.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMetadata.hpp>
@@ -383,13 +384,13 @@ public:
   ~ControlProcess() override { }
 
   std::unique_ptr<Process::CodeWriter>
-  codeWriter(Process::CodeFormat) const noexcept override
+  codeWriter(Process::CodeFormat fmt) const noexcept override
   {
     if constexpr(requires { sizeof(typename Info::Metadata::code_writer); })
     {
       return std::make_unique<typename Info::Metadata::code_writer>(*this);
     }
-    return {};
+    return Process::ProcessModel::codeWriter(fmt);
   }
 };
 }

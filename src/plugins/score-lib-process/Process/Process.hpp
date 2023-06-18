@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/PortForward.hpp>
+#include <Process/CodeFormat.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/Preset.hpp>
 #include <Process/ProcessFlags.hpp>
@@ -49,31 +50,8 @@ class ProcessModel;
 class LayerFactory;
 struct Inlets;
 struct Outlets;
+class CodeWriter;
 
-struct SCORE_LIB_PROCESS_EXPORT CodeWriter
-{
-  const ProcessModel& self;
-  explicit CodeWriter(const ProcessModel& p) noexcept;
-  virtual ~CodeWriter();
-
-  CodeWriter() = delete;
-  CodeWriter(const CodeWriter&) = delete;
-  CodeWriter(CodeWriter&&) = delete;
-  CodeWriter& operator=(const CodeWriter&) = delete;
-  CodeWriter& operator=(CodeWriter&&) = delete;
-
-  std::string variable;
-
-  virtual std::string typeName() const noexcept = 0;
-  virtual std::string accessInlet(const Id<Process::Port>& id) const noexcept = 0;
-  virtual std::string accessOutlet(const Id<Process::Port>& id) const noexcept = 0;
-  virtual std::string execute() const noexcept = 0;
-};
-
-enum class CodeFormat
-{
-  Cpp
-};
 /**
  * @brief The Process class
  *
