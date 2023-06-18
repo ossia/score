@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/CodeWriter.hpp>
+
 #include <Engine/Node/SimpleApi.hpp>
 
 #include <ossia/detail/fmt.hpp>
@@ -16,6 +18,7 @@ struct MathMappingCodeWriter : public Process::CodeWriter
 {
   using Process::CodeWriter::CodeWriter;
 
+  std::string initializer() const noexcept override;
   std::string typeName() const noexcept override;
   std::string accessInlet(const Id<Process::Port>& id) const noexcept override;
   std::string accessOutlet(const Id<Process::Port>& id) const noexcept override;
