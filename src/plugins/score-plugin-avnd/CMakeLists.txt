@@ -715,12 +715,12 @@ avnd_make_score(
   NAMESPACE ao
 )
 
-avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Automation.hpp"
-  TARGET automation
-  MAIN_CLASS Automation
-  NAMESPACE ao
-)
+# avnd_make_score(
+#   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Automation.hpp"
+#   TARGET automation
+#   MAIN_CLASS Automation
+#   NAMESPACE ao
+# )
 
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"
