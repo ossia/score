@@ -4,7 +4,7 @@ mkdir build
 cd build
 
 export PATH=$PATH:/c/ossia-sdk/llvm/bin
-cmake -GNinja %BUILD_SOURCESDIRECTORY% \
+cmake -GNinja $BUILD_SOURCESDIRECTORY \
   -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
   -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
   -DOSSIA_SDK=c:/ossia-sdk \
