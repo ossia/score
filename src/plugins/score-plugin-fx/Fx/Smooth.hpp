@@ -138,6 +138,11 @@ public:
     {
       nf.set_type(GetFilterType(type));
       prev_type = type;
+      // Reset the values to make sure they get updated once the filter has been changed
+      prev_amount = INFINITY;
+      prev_freq = INFINITY;
+      prev_cutoff = INFINITY;
+      prev_beta = INFINITY;
     }
     if(amount != prev_amount)
     {
