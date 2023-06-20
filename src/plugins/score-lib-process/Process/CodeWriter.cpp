@@ -39,6 +39,7 @@ std::string DummyCodeWriter::accessOutlet(const Id<Port>& id) const noexcept
 
 std::string DummyCodeWriter::execute() const noexcept
 {
+  qDebug() << "!! Generating Dummy code writing for: " << typeid(self).name();
   return {};
 }
 
@@ -66,18 +67,18 @@ std::string AvndCodeWriter::accessInlet(const Id<Port>& id) const noexcept
 {
   int index = ossia::index_in_container(this->self.inlets(), id);
   return fmt::format(
-      "(avnd::input_introspection<decltype({})>::get<{}>({}.inputs)."
+      "(avnd::input_introspection<{}>::field<{}>({}.inputs)."
       "value)",
-      variable, index, variable);
+      typeName(), index, variable);
 }
 
 std::string AvndCodeWriter::accessOutlet(const Id<Port>& id) const noexcept
 {
   int index = ossia::index_in_container(this->self.outlets(), id);
   return fmt::format(
-      "(avnd::output_introspection<decltype({})>::get<{}>({}.outputs)."
+      "(avnd::output_introspection<{}>::field<{}>({}.outputs)."
       "value)",
-      variable, index, variable);
+      typeName(), index, variable);
 }
 
 std::string AvndCodeWriter::execute() const noexcept
