@@ -82,20 +82,11 @@ score::uuids::uuid make_field_uuid(uint64_t is_input, uint64_t index)
   return node_uuid;
 }
 
-template <typename Node, typename FieldIndex>
-struct CustomFloatControl : public Process::ControlInlet
+struct CustomFloatControlBase : public Process::ControlInlet
 {
-  static key_type static_concreteKey() noexcept
-  {
-    return make_field_uuid<Node>(true, FieldIndex{});
-  }
-  key_type concreteKey() const noexcept override { return static_concreteKey(); }
-  void serialize_impl(const VisitorVariant& vis) const noexcept override
-  {
-    score::serialize_dyn(vis, *this);
-  }
+  using Process::ControlInlet::ControlInlet;
 
-  CustomFloatControl(
+  CustomFloatControlBase(
       float min, float max, float init, const QString& name, Id<Process::Port> id,
       QObject* parent)
       : ControlInlet{id, parent}
@@ -106,18 +97,34 @@ struct CustomFloatControl : public Process::ControlInlet
     setName(name);
   }
 
-  ~CustomFloatControl() { }
-
   auto getMin() const noexcept { return domain().get().template convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().template convert_max<float>(); }
+
   void setupExecution(ossia::inlet& inl) const noexcept override
   {
     auto& port = **safe_cast<ossia::value_inlet*>(&inl);
     port.type = ossia::val_type::FLOAT;
     port.domain = domain().get();
   }
+};
 
-  using Process::ControlInlet::ControlInlet;
+template <typename Node, typename FieldIndex>
+struct CustomFloatControl : public CustomFloatControlBase
+{
+  using CustomFloatControlBase::CustomFloatControlBase;
+
+  static key_type static_concreteKey() noexcept
+  {
+    return make_field_uuid<Node>(true, FieldIndex{});
+  }
+  key_type concreteKey() const noexcept override { return static_concreteKey(); }
+
+  void serialize_impl(const VisitorVariant& vis) const noexcept override
+  {
+    score::serialize_dyn(vis, *this);
+  }
+
+  ~CustomFloatControl() = default;
 };
 
 }
@@ -283,7 +290,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     constexpr auto c = avnd::get_range<T>();
     return new Process::TimeChooser{c.min, c.max, c.init, qname, id, parent};
   }
-  else if constexpr(widg.widget == avnd::widget_type::range)
+  else if constexpr(widg.widget == avnd::widget_type::range_slider)
   {
     constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
@@ -297,6 +304,22 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       auto [start, end] = c.init;
       return new Process::FloatRangeSlider{c.min, c.max, {(float)start, (float)end},
                                            qname, id,    parent};
+    }
+  }
+  else if constexpr(widg.widget == avnd::widget_type::range_spinbox)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    if constexpr(std::is_integral_v<value_type>)
+    {
+      auto [start, end] = c.init;
+      return new Process::IntRangeSpinBox{c.min, c.max, {(float)start, (float)end},
+                                          qname, id,    parent};
+    }
+    else
+    {
+      auto [start, end] = c.init;
+      return new Process::FloatRangeSpinBox{c.min, c.max, {(float)start, (float)end},
+                                            qname, id,    parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)

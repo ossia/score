@@ -13,18 +13,18 @@ namespace WidgetFactory
 
 struct LinearNormalizer
 {
-  static constexpr float to01(float min, float range, float val) noexcept
+  static constexpr double to01(double min, double range, double val) noexcept
   {
     return (val - min) / range;
   }
 
-  static constexpr float from01(float min, float range, float val) noexcept
+  static constexpr double from01(double min, double range, double val) noexcept
   {
     return min + val * range;
   }
 
   template <typename T>
-  static float to01(const T& slider, float val) noexcept
+  static double to01(const T& slider, double val) noexcept
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
@@ -34,7 +34,7 @@ struct LinearNormalizer
   }
 
   template <typename T>
-  static float from01(const T& slider, float val) noexcept
+  static double from01(const T& slider, double val) noexcept
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
@@ -118,18 +118,18 @@ struct LinearNormalizer
 
 struct LogNormalizer
 {
-  static float to01(float min, float range, float val) noexcept
+  static double to01(double min, double range, double val) noexcept
   {
     return ossia::log_to_normalized(min, range, val);
   }
 
-  static float from01(float min, float range, float val) noexcept
+  static double from01(double min, double range, double val) noexcept
   {
     return ossia::normalized_to_log(min, range, val);
   }
 
   template <typename T>
-  static float to01(const T& slider, float val) noexcept
+  static double to01(const T& slider, double val) noexcept
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
@@ -139,7 +139,7 @@ struct LogNormalizer
   }
 
   template <typename T>
-  static float from01(const T& slider, float val) noexcept
+  static double from01(const T& slider, double val) noexcept
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
@@ -152,8 +152,8 @@ struct LogNormalizer
 template <typename Norm_T>
 struct FixedNormalizer
 {
-  float min{};
-  float max{};
+  double min{};
+  double max{};
   template <typename T>
   FixedNormalizer(const T& slider)
   {
@@ -163,12 +163,12 @@ struct FixedNormalizer
       max = min + 1;
   }
 
-  constexpr float to01(float val) const noexcept
+  constexpr double to01(double val) const noexcept
   {
     return Norm_T::to01(min, max - min, val);
   }
 
-  constexpr float from01(float val) const noexcept
+  constexpr double from01(double val) const noexcept
   {
     return Norm_T::from01(min, max - min, val);
   }
@@ -184,9 +184,9 @@ struct UpdatingNormalizer
   {
   }
 
-  constexpr float to01(float val) const noexcept { return Norm_T::to01(slider, val); }
+  constexpr double to01(double val) const noexcept { return Norm_T::to01(slider, val); }
 
-  constexpr float from01(float val) const noexcept
+  constexpr double from01(double val) const noexcept
   {
     return Norm_T::from01(slider, val);
   }

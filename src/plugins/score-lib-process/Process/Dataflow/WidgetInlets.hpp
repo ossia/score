@@ -13,6 +13,8 @@ struct LogFloatSlider;
 struct IntSlider;
 struct IntRangeSlider;
 struct FloatRangeSlider;
+struct IntRangeSpinBox;
+struct FloatRangeSpinBox;
 struct IntSpinBox;
 struct FloatSpinBox;
 struct TimeChooser;
@@ -51,10 +53,16 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntRangeSlider,
     "0c1902bc-e282-11ec-8fea-0242ac120002")
-
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatRangeSlider,
     "73ae3e85-0c91-497e-b612-b1391f87ac72")
+
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntRangeSpinBox,
+    "54dc640b-4385-4a5a-b9da-e44fe63701d9")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatRangeSpinBox,
+    "25be1f08-a3fb-4ce3-a34e-4d8f54f15874")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::IntSpinBox,
@@ -209,6 +217,36 @@ struct SCORE_LIB_PROCESS_EXPORT FloatRangeSlider : public Process::ControlInlet
       float min, float max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~FloatRangeSlider();
+
+  auto getMin() const noexcept { return domain().get().convert_min<float>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT IntRangeSpinBox : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(IntRangeSpinBox)
+  IntRangeSpinBox(
+      int min, int max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~IntRangeSpinBox();
+
+  auto getMin() const noexcept { return domain().get().convert_min<int>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<int>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT FloatRangeSpinBox : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(FloatRangeSpinBox)
+  FloatRangeSpinBox(
+      float min, float max, ossia::vec2f init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~FloatRangeSpinBox();
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }

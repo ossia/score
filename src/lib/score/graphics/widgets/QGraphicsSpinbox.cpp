@@ -1,4 +1,4 @@
-#include <score/graphics/DefaultGraphicsKnobImpl.hpp>
+#include <score/graphics/DefaultGraphicsSpinboxImpl.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/graphics/widgets/QGraphicsSpinbox.hpp>
 #include <score/model/Skin.hpp>
@@ -66,17 +66,17 @@ void QGraphicsSpinbox::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsSpinbox::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  DefaultGraphicsKnobImpl::mousePressEvent(*this, event);
+  DefaultGraphicsSpinboxImpl::mousePressEvent(*this, event);
 }
 
 void QGraphicsSpinbox::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  DefaultGraphicsKnobImpl::mouseMoveEvent(*this, event);
+  DefaultGraphicsSpinboxImpl::mouseMoveEvent(*this, event);
 }
 
 void QGraphicsSpinbox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
+  DefaultGraphicsSpinboxImpl::mouseReleaseEvent(*this, event);
 }
 
 QRectF QGraphicsSpinbox::boundingRect() const
@@ -87,22 +87,10 @@ QRectF QGraphicsSpinbox::boundingRect() const
 void QGraphicsSpinbox::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = score::Skin::instance();
   const double val = map(m_value);
-  auto text = score::toNumber(val);
 
-  painter->setPen(skin.NoPen);
-  painter->setBrush(skin.Emphasis2.main.brush);
-
-  // Draw rect
-  const QRectF brect = boundingRect();
-  painter->drawRoundedRect(brect, 1, 1);
-
-  // Draw text
-  painter->setPen(skin.Base4.main.pen1);
-  painter->setFont(skin.Medium8Pt);
-  const auto textrect = brect.adjusted(2, 3, -2, -2);
-  painter->drawText(textrect, text, QTextOption(Qt::AlignLeft));
+  DefaultGraphicsSpinboxImpl::paint(
+      *this, score::Skin::instance(), score::toNumber(val), painter, widget);
 }
 
 QGraphicsIntSpinbox::QGraphicsIntSpinbox(QGraphicsItem* parent)
@@ -157,17 +145,17 @@ void QGraphicsIntSpinbox::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsIntSpinbox::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  DefaultGraphicsKnobImpl::mousePressEvent(*this, event);
+  DefaultGraphicsSpinboxImpl::mousePressEvent(*this, event);
 }
 
 void QGraphicsIntSpinbox::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  DefaultGraphicsKnobImpl::mouseMoveEvent(*this, event);
+  DefaultGraphicsSpinboxImpl::mouseMoveEvent(*this, event);
 }
 
 void QGraphicsIntSpinbox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
+  DefaultGraphicsSpinboxImpl::mouseReleaseEvent(*this, event);
 }
 
 QRectF QGraphicsIntSpinbox::boundingRect() const
@@ -180,20 +168,9 @@ void QGraphicsIntSpinbox::paint(
 {
   auto& skin = score::Skin::instance();
   const int val = map(m_value);
-  auto text = score::toNumber(val);
 
-  painter->setPen(skin.NoPen);
-  painter->setBrush(skin.Emphasis2.main.brush);
-
-  // Draw rect
-  const QRectF brect = boundingRect();
-  painter->drawRoundedRect(brect, 1, 1);
-
-  // Draw text
-  painter->setPen(skin.Base4.main.pen1);
-  painter->setFont(skin.Medium8Pt);
-  const auto textrect = brect.adjusted(2, 3, -2, -2);
-  painter->drawText(textrect, text, QTextOption(Qt::AlignLeft));
+  DefaultGraphicsSpinboxImpl::paint(
+      *this, score::Skin::instance(), score::toNumber(val), painter, widget);
 }
 
 }

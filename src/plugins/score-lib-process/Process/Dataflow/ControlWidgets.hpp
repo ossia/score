@@ -12,6 +12,8 @@
 #include <score/graphics/TextItem.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/graphics/widgets/QGraphicsTextButton.hpp>
+#include <score/graphics/widgets/QGraphicsXYSpinbox.hpp>
+#include <score/graphics/widgets/QGraphicsXYZSpinbox.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -391,6 +393,52 @@ struct FloatRangeSlider
     QObject::connect(
         &inlet, &Control_T::executionReset, sl,
         &score::QGraphicsRangeSlider::resetExecution);
+
+    return sl;
+  }
+};
+struct FloatRangeSpinBox
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::pad();
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context)
+  {
+    SCORE_TODO;
+    return nullptr; // TODO
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsXYSpinboxChooser{true, nullptr};
+    bindVec2Domain(slider, inlet, *sl);
+    sl->setValue(
+        LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(inlet.value())));
+
+    QObject::connect(
+        sl, &score::QGraphicsXYSpinboxChooser::sliderMoved, context, [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(
+              inlet, LinearNormalizer::from01(*sl, sl->value()));
+        });
+    QObject::connect(
+        sl, &score::QGraphicsXYSpinboxChooser::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(val)));
+    });
 
     return sl;
   }
@@ -1395,7 +1443,7 @@ struct XYSpinboxes
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new score::QGraphicsXYSpinboxChooser{nullptr};
+    auto sl = new score::QGraphicsXYSpinboxChooser{false, nullptr};
     bindVec2Domain(slider, inlet, *sl);
     sl->setValue(
         LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(inlet.value())));

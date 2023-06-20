@@ -12,6 +12,7 @@ struct InfiniteScroller
 {
   static inline QRectF currentGeometry{};
   static inline double origValue{};
+  static inline double currentSpeed{};
   static inline double currentDelta{};
 
   static void start(QGraphicsItem& self, double orig)
@@ -25,17 +26,17 @@ struct InfiniteScroller
     currentGeometry = qApp->primaryScreen()->availableGeometry();
   }
 
-  static double move(QGraphicsSceneMouseEvent* event)
+  static void move_free(QGraphicsSceneMouseEvent* event)
   {
     auto delta = (event->screenPos().y() - event->lastScreenPos().y());
     double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.2 : 1.;
     if(std::abs(delta) < 500)
     {
+      currentSpeed = ratio * delta;
       currentDelta += ratio * delta;
     }
 
     const double max = currentGeometry.height();
-
     if(event->screenPos().y() <= 100)
     {
       score::setCursorPos(QPointF(event->screenPos().x(), max - 101));
@@ -44,7 +45,13 @@ struct InfiniteScroller
     {
       score::setCursorPos(QPointF(event->screenPos().x(), 101));
     }
+  }
 
+  static double move(QGraphicsSceneMouseEvent* event)
+  {
+    move_free(event);
+
+    const double max = currentGeometry.height();
     double v = origValue - currentDelta / max;
     if(v <= 0.)
     {

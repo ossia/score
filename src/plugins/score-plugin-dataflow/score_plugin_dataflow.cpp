@@ -48,6 +48,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
              Process::IntRangeSlider, WidgetFactory::IntRangeSlider>,
          Dataflow::WidgetInletFactory<
              Process::FloatRangeSlider, WidgetFactory::FloatRangeSlider>,
+         Dataflow::WidgetInletFactory<
+             Process::IntRangeSpinBox, WidgetFactory::FloatRangeSpinBox>,
+         Dataflow::WidgetInletFactory<
+             Process::FloatRangeSpinBox, WidgetFactory::FloatRangeSpinBox>,
          Dataflow::WidgetInletFactory<Process::IntSpinBox, WidgetFactory::IntSpinBox>,
          Dataflow::WidgetInletFactory<
              Process::FloatSpinBox, WidgetFactory::FloatSpinBox>,

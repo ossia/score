@@ -7,7 +7,7 @@
 #include <verdigris>
 namespace score
 {
-struct DefaultGraphicsKnobImpl;
+struct DefaultGraphicsSpinboxImpl;
 class SCORE_LIB_BASE_EXPORT QGraphicsSpinbox final
     : public QObject
     , public QGraphicsItem
@@ -16,7 +16,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSpinbox final
   Q_INTERFACES(QGraphicsItem)
   Q_DISABLE_COPY(QGraphicsSpinbox)
 
-  friend struct DefaultGraphicsKnobImpl;
+  friend struct DefaultGraphicsSpinboxImpl;
   QRectF m_rect{0., 0., 40., 20.};
 
 private:
@@ -63,7 +63,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSpinbox final
   Q_INTERFACES(QGraphicsItem)
   Q_DISABLE_COPY(QGraphicsIntSpinbox)
 
-  friend struct DefaultGraphicsKnobImpl;
+  friend struct DefaultGraphicsSpinboxImpl;
   QRectF m_rect{0., 0., 40., 20.};
 
 private:

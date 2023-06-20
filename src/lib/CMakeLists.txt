@@ -287,6 +287,8 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsToggle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYChooser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZChooser.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYSpinbox.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZSpinbox.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/AddRemoveList.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.hpp"
@@ -470,6 +472,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsToggle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYChooser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZChooser.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYSpinbox.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsXYZSpinbox.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/AddRemoveList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.cpp"
