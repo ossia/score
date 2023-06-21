@@ -82,12 +82,18 @@ file(CONFIGURE
   /* #undef OSSIA_QML_SCORE */
   #define OSSIA_EDITOR
   #define OSSIA_PARALLEL
+  #define OSSIA_SCENARIO_DATAFLOW
 
   // FFT support
   #define OSSIA_ENABLE_FFT
   #define OSSIA_ENABLE_KFR
 
   #define OSSIA_FFT_KFR
+
+  #define OSSIA_HAS_FMT
+  #define OSSIA_HAS_RE2
+  #define OSSIA_HAS_CTRE
+  #define OSSIA_HAS_RAPIDFUZZ
 
   #define OSSIA_CALLBACK_CONTAINER_MUTEX std::mutex
 ")
