@@ -715,6 +715,51 @@ void ProcessModel::init()
   m_instance = std::make_shared<Instance>();
 }
 
+static void add_pd_search_paths(const QString& folder)
+{
+  // Add the path of the patch folder to pd's search path
+  libpd_add_to_search_path(folder.toUtf8().data());
+
+  // Add Pd global search paths
+
+  // Note: we use QString to make sure things do not disappear with AppImage's /usr clearing
+  QSet<QString> paths;
+  if(QDir f(QStringLiteral("/usr/lib64/pd/extra")); f.exists())
+    paths.insert(f.canonicalPath());
+  if(QDir f(QStringLiteral("/usr/lib/pd/extra")); f.exists())
+    paths.insert(f.canonicalPath());
+
+  // home
+  auto home = qgetenv("HOME");
+  if(QDir f(home + QStringLiteral("/.local/lib/pd/extra")); f.exists())
+    paths.insert(f.canonicalPath());
+
+  // pd install path
+  {
+    auto pd_path = locatePdBinary();
+    QFileInfo f(pd_path);
+    QDir d = f.dir();
+
+    if(d.cd("extra"))
+    {
+      paths.insert(d.canonicalPath());
+    }
+    else
+    {
+      if(d.cdUp())
+      {
+        if(d.cd("extra"))
+        {
+          paths.insert(d.canonicalPath());
+        }
+      }
+    }
+  }
+
+  for(auto& path : paths)
+    libpd_add_to_search_path(path.toStdString().c_str());
+}
+
 void ProcessModel::setScript(const QString& script)
 {
   m_script = score::locateFilePath(script, score::IDocument::documentContext(*this));
@@ -855,7 +900,7 @@ void ProcessModel::setScript(const QString& script)
   // Open
   QFileInfo fileinfo{f};
   auto folder = fileinfo.canonicalPath();
-  libpd_add_to_search_path(folder.toUtf8().data());
+  add_pd_search_paths(folder);
 
   m_instance->file_handle
       = libpd_openfile(fileinfo.fileName().toUtf8().data(), folder.toUtf8().data());
