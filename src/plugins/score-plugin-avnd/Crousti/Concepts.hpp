@@ -19,6 +19,7 @@
 #include <avnd/concepts/audio_port.hpp>
 #include <avnd/concepts/channels.hpp>
 #include <avnd/concepts/gfx.hpp>
+#include <avnd/concepts/curve.hpp>
 #include <avnd/concepts/midi_port.hpp>
 #include <avnd/concepts/parameter.hpp>
 #include <avnd/wrappers/metadatas.hpp>
