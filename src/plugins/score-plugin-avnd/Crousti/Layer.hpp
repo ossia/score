@@ -25,17 +25,51 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   inputs_type temp_inputs;
   outputs_type temp_outputs;
 
-  QGraphicsItem* createControl(auto... member)
+  typename Info::ui* rootUi{};
+
+  template <typename Item>
+  void setupControl(Process::ControlInlet* inl, Item& item)
+  {
+    if constexpr(requires { sizeof(Item::value); })
+    {
+      oscr::from_ossia_value(inl->value(), item.value);
+      if constexpr(requires { rootUi->on_control_update(); })
+      {
+        QObject::connect(
+            inl, &Process::ControlInlet::valueChanged, &context,
+            [rui = rootUi, layout = this->layout, &item](const ossia::value& v) {
+          oscr::from_ossia_value(v, item.value);
+
+          rui->on_control_update();
+          layout->update();
+            });
+      }
+      else
+      {
+        QObject::connect(
+            inl, &Process::ControlInlet::valueChanged, &context,
+            [layout = this->layout, &item](const ossia::value& v) {
+          oscr::from_ossia_value(v, item.value);
+          layout->update();
+            });
+      }
+    }
+  }
+  template <typename Item>
+  QGraphicsItem* createControl(Item& item, auto... member)
   {
     if constexpr(requires { ((inputs_type{}).*....*member); })
     {
       int index = avnd::index_in_struct(temp_inputs, member...);
-      return makeInlet(index);
+      auto [port, qitem] = makeInlet(index);
+      setupControl(port, item);
+      return qitem;
     }
     else if constexpr(requires { ((outputs_type{}).*....*member); })
     {
       int index = avnd::index_in_struct(temp_outputs, member...);
-      return makeOutlet(index);
+      auto [port, qitem] = makeOutlet(index);
+      return qitem;
     }
     else
     {
@@ -45,48 +79,84 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     return nullptr;
   }
 
-  template <typename T>
-  QGraphicsItem* createWidget(const T& item)
+  template <typename Item, typename T>
+  QGraphicsItem* createWidget(Item& it, const T& member)
   {
     if constexpr(requires {
                    {
-                     item
+                     member
                      } -> std::convertible_to<std::string_view>;
                  })
     {
-      return makeLabel(item);
+      return makeLabel(member);
     }
     else if constexpr(requires {
                         {
-                          item.text
+                          member.text
                           } -> std::convertible_to<std::string_view>;
                       })
     {
-      return makeLabel(item.text);
+      return makeLabel(member.text);
     }
     else
     {
-      return createControl(item);
+      return createControl(it, member);
     }
   }
 
-  template <typename... T>
-  requires(sizeof...(T) > 1) QGraphicsItem* createWidget(T... recursive_members)
+  template <typename Item, typename... T>
+    requires(sizeof...(T) > 1)
+  QGraphicsItem* createWidget(Item& item, T... recursive_members)
   {
-    return createControl(recursive_members...);
+    return createControl(item, recursive_members...);
   }
 
-  template <typename T>
-  QGraphicsItem* createCustom(T& item)
+  template <typename Item>
+  QGraphicsItem* createCustom(Item& item)
   {
-    if constexpr(requires { sizeof(typename T::item_type); })
+    // if constexpr(requires { sizeof(typename Item::item_type); })
+    // {
+    //   return new oscr::CustomItem<typename Item::item_type>{};
+    // }
+    // else
+    // {
+    // }
+    return new oscr::CustomItem<Item&>{item};
+  }
+
+  template <typename Item>
+  QGraphicsItem* createCustomControl(Item& item, auto... member)
+  {
+    if constexpr(requires { ((inputs_type{}).*....*member); })
     {
-      return new oscr::CustomItem<typename T::item_type>{};
+      int index = avnd::index_in_struct(temp_inputs, member...);
+
+      if(auto* port = qobject_cast<Process::ControlInlet*>(inlets[index]))
+      {
+        auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
+        setupControl(port, item);
+        return qitem;
+      }
+      return nullptr;
+    }
+    else if constexpr(requires { ((outputs_type{}).*....*member); })
+    {
+      int index = avnd::index_in_struct(temp_outputs, member...);
+
+      if(auto* port = qobject_cast<Process::ControlOutlet*>(outlets[index]))
+      {
+        auto qitem = new oscr::CustomControl<Item&>{item};
+        setupControl(port, item);
+        return qitem;
+      }
+      return nullptr;
     }
     else
     {
-      return new oscr::CustomItem<T&>{item};
+      static_assert(sizeof...(member) < 0, "not_a_member_of_inputs_or_outputs");
     }
+
+    return nullptr;
   }
 
   /*
@@ -181,7 +251,13 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     else if constexpr(avnd::control_layout<Item>)
     {
       // Widget with some metadata.. FIXME
-      if(auto widg = createWidget(recursive_members..., item.control))
+      if(auto widg = createWidget(item, recursive_members..., item.control))
+        setupItem(item, *widg);
+    }
+    else if constexpr(avnd::custom_control_layout<Item>)
+    {
+      // Widget with some metadata.. FIXME
+      if(auto widg = createCustomControl(item, recursive_members..., item.control))
         setupItem(item, *widg);
     }
     else if constexpr(avnd::custom_layout<Item>)
@@ -202,7 +278,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     else
     {
       // Normal widget, e.g. just a const char*
-      if(auto widg = createWidget(item))
+      if(auto widg = createWidget(item, item))
         setupItem(item, *widg);
     }
   }
@@ -301,7 +377,7 @@ private:
       struct Item : score::EmptyRectItem
       {
         using score::EmptyRectItem::EmptyRectItem;
-        typename Info::ui impl;
+        typename Info::ui ui;
       };
       return new Item{parent};
     }
@@ -320,17 +396,10 @@ private:
     LayoutBuilder<Info> b{
         *rootItem, ctx, ctx.app.interfaces<Process::PortFactoryList>(), proc.inlets(),
         proc.outlets()};
+    b.rootUi = &rootItem->ui;
 
-    // Layout stuff
-    if constexpr(requires { rootItem->ui; })
-    {
-      b.walkLayout(rootItem->ui);
-    }
-    else
-    {
-      static constexpr typename Info::ui ui;
-      b.walkLayout(ui);
-    }
+    b.walkLayout(rootItem->ui);
+
     b.finalizeLayout(rootItem);
 
     rootItem->fitChildrenRect();

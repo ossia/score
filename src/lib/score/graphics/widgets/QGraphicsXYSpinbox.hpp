@@ -20,7 +20,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYSpinboxChooser final
 {
   W_OBJECT(QGraphicsXYSpinboxChooser)
   Q_INTERFACES(QGraphicsItem)
-  friend class DefaultGraphicsSpinboxImpl;
+  friend struct DefaultGraphicsSpinboxImpl;
   QRectF m_rect{0., 0., 150., 24.};
   QGraphicsSpinbox m_x, m_y;
 

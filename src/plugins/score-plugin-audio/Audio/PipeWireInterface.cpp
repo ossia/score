@@ -99,7 +99,6 @@ std::shared_ptr<ossia::audio_engine> PipeWireAudioFactory::make_engine(
     eng->autoconnect();
   }
 
-  //ossia::libpipewire::instance().main_loop_run(this->m_client->loop);
   return eng;
 }
 

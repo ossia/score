@@ -26,22 +26,23 @@ QGraphicsItem* LayoutBuilderBase::makePort(Process::ControlOutlet& port)
   return nullptr;
 }
 
-QGraphicsItem* LayoutBuilderBase::makeInlet(int index)
+std::pair<Process::ControlInlet*, QGraphicsItem*> LayoutBuilderBase::makeInlet(int index)
 {
   if(auto* port = qobject_cast<Process::ControlInlet*>(inlets[index]))
   {
-    return makePort(*port);
+    return {port, makePort(*port)};
   }
-  return nullptr;
+  return {};
 }
 
-QGraphicsItem* LayoutBuilderBase::makeOutlet(int index)
+std::pair<Process::ControlOutlet*, QGraphicsItem*>
+LayoutBuilderBase::makeOutlet(int index)
 {
   if(auto* port = qobject_cast<Process::ControlOutlet*>(outlets[index]))
   {
-    return makePort(*port);
+    return {port, makePort(*port)};
   }
-  return nullptr;
+  return {};
 }
 
 QGraphicsItem* LayoutBuilderBase::makeLabel(std::string_view item)

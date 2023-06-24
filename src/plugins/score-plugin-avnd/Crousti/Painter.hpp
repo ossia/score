@@ -184,38 +184,19 @@ public:
   // Item may be T::item_type or T&
   using item_type = std::decay_t<Item>;
 
-  // Case T::item_type
-  explicit CustomItem()
-  {
-    this->setFlag(ItemClipsToShape);
-    this->setFlag(ItemClipsChildrenToShape);
-    if constexpr(requires { impl.transaction; })
-    {
-      impl.transaction.start = [] {};
-      impl.transaction.update = [this](const auto& value) {
-        impl.value = value; //impl.value_to_control(Control{}
-        update();
-      };
-      impl.transaction.commit = [] {};
-      impl.transaction.rollback = [] {};
-    }
-
-    if constexpr(requires { impl.update = [this] {}; })
-    {
-      impl.update = [this] { this->update(); };
-    }
-  }
+  // // Case T::item_type
+  // explicit CustomItem() { init(); }
 
   // Case T&
-  explicit CustomItem(Item item_init)
-      : impl{item_init}
+  explicit CustomItem(Item t)
+      : impl{t}
   {
-    this->setFlag(ItemClipsToShape);
-    this->setFlag(ItemClipsChildrenToShape);
+    this->setFlag(QGraphicsItem::ItemClipsToShape);
+    this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
 
-    if constexpr(requires { impl.update = [this] {}; })
+    if constexpr(requires { this->impl.update = [this] {}; })
     {
-      impl.update = [this] { this->update(); };
+      this->impl.update = [this] { this->update(); };
     }
   }
 
@@ -348,7 +329,35 @@ protected:
     update();
   }
 
-private:
+protected:
   Item impl;
+};
+
+template <typename Item>
+class CustomControl : public CustomItem<Item>
+{
+public:
+  OngoingCommandDispatcher cmd;
+  explicit CustomControl(
+      Item item_init, Process::ControlInlet& ctl, const score::DocumentContext& ctx)
+      : CustomItem<Item>{item_init}
+      , cmd{ctx.commandStack}
+  {
+    if constexpr(requires { this->impl.transaction; })
+    {
+      this->impl.transaction.start = [] {
+
+      };
+      this->impl.transaction.update = [this, &ctl](const auto& value) {
+        auto val = oscr::to_ossia_value(value);
+        cmd.submit<Process::SetControlValue>(ctl, val);
+
+        this->impl.value = value; //impl.value_to_control(Control{}
+        this->update();
+      };
+      this->impl.transaction.commit = [this] { cmd.commit(); };
+      this->impl.transaction.rollback = [this] { cmd.rollback(); };
+    }
+  }
 };
 }
