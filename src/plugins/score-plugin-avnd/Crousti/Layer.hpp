@@ -114,13 +114,6 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   template <typename Item>
   QGraphicsItem* createCustom(Item& item)
   {
-    // if constexpr(requires { sizeof(typename Item::item_type); })
-    // {
-    //   return new oscr::CustomItem<typename Item::item_type>{};
-    // }
-    // else
-    // {
-    // }
     return new oscr::CustomItem<Item&>{item};
   }
 
@@ -403,6 +396,8 @@ private:
     b.finalizeLayout(rootItem);
 
     rootItem->fitChildrenRect();
+
+    if_possible(b.rootUi->on_control_update());
 
     return rootItem;
   }
