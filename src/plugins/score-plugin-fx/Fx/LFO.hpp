@@ -4,6 +4,7 @@
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/math.hpp>
 
+#include <fmt/format.h>
 #include <rnd/random.hpp>
 #include <tuplet/tuple.hpp>
 
