@@ -181,7 +181,6 @@ std::string list_inputs(std::string file, std::span<char*> orig_argv)
         "-I" LAFAJOL_SOURCE_DIR "/3rdparty/libossia/3rdparty/span/include",
         "-I" LAFAJOL_SOURCE_DIR "/3rdparty/libossia/3rdparty/tuplet/include",
         "-I" LAFAJOL_SOURCE_DIR "/3rdparty/libossia/3rdparty/unordered_dense/include",
-        "-I" LAFAJOL_SOURCE_DIR "/3rdparty/libossia/3rdparty/mparkvariant/include",
         "-I" LAFAJOL_SOURCE_DIR "/3rdparty/libossia/3rdparty/rubberband/rubberband/",
         "-I" LAFAJOL_SOURCE_DIR "/3rdparty/libossia/3rdparty/r8brain-free-src",
         "-I" LAFAJOL_SOURCE_DIR "/3rdparty/libossia/3rdparty/",
