@@ -7,6 +7,11 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
+    struct code_writer : Process::AvndCodeWriter
+    {
+      using Process::AvndCodeWriter::AvndCodeWriter;
+      std::string typeName() const noexcept override { return "Gain"; }
+    };
     static const constexpr auto prettyName = "Gain";
     static const constexpr auto objectKey = "Gain";
     static const constexpr auto category = "Audio/Utilities";

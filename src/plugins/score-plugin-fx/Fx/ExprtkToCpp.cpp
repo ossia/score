@@ -173,7 +173,7 @@ std::string exprtk_to_cpp(std::string exprtk) noexcept
   }
 
   return pre + "\n" + code.toStdString() + "\n"
-         + post;
+         + post + "\n}\n";
 }
 
 }

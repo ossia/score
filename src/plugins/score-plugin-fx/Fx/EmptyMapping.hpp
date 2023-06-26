@@ -8,6 +8,11 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
+    struct code_writer : Process::AvndCodeWriter
+    {
+      using Process::AvndCodeWriter::AvndCodeWriter;
+      std::string typeName() const noexcept override { return "Copy"; }
+    };
     static const constexpr auto prettyName = "Empty value mapper";
     static const constexpr auto objectKey = "EmptyValueMapper";
     static const constexpr auto category = "Control/Mappings";
