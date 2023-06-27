@@ -43,32 +43,14 @@ ls
 echo " === notarize === "
 # Notarize the .dmg
 security unlock-keychain -p travis build.keychain
-xcrun altool --notarize-app \
-    -t osx \
-    -f *.dmg \
-    --primary-bundle-id "io.ossia.score" \
-    -u jeanmichael.celerier@gmail.com \
-    -p "@env:MAC_ALTOOL_PASSWORD" >altool.log
+xcrun notarytool submit *.dmg \
+  --team-id "GRW9MHZ724" \
+  --apple-id "jeanmichael.celerier@gmail.com" \
+  --password "@env:MAC_ALTOOL_PASSWORD" \
+  --progress \
+  --wait
 
-REQ_UUID=$(cat altool.log | grep Request | awk ' { print $3 } ')
-
-# Wait until the notarization process completes to staple the result to the dmg file
-sleep 30
-for seconds in 30 30 30 30 30; do
-    echo " -> checking for notarization... "
-    RES=$(xcrun altool --notarization-info $REQ_UUID -u jeanmichael.celerier@gmail.com -p "@env:MAC_ALTOOL_PASSWORD" --output-format xml)
-    if [[ $(echo "$RES" | grep Approved) ]]; then
-        xcrun stapler staple *.dmg
-        echo "Stapling successful !"
-        break
-    elif [[ $(echo "$RES" | grep -i progress) ]]; then
-        sleep $seconds
-    else
-        echo "Stapling failed ! Displaying log..."
-        echo "$RES"
-        exit 1
-    fi
-done
+xcrun stapler staple *.dmg
 
 mv *.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
 mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"
