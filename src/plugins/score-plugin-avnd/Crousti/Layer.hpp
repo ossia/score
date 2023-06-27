@@ -244,13 +244,13 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     else if constexpr(avnd::control_layout<Item>)
     {
       // Widget with some metadata.. FIXME
-      if(auto widg = createWidget(item, recursive_members..., item.control))
+      if(auto widg = createWidget(item, recursive_members..., item.model))
         setupItem(item, *widg);
     }
     else if constexpr(avnd::custom_control_layout<Item>)
     {
       // Widget with some metadata.. FIXME
-      if(auto widg = createCustomControl(item, recursive_members..., item.control))
+      if(auto widg = createCustomControl(item, recursive_members..., item.model))
         setupItem(item, *widg);
     }
     else if constexpr(avnd::custom_layout<Item>)
