@@ -348,7 +348,7 @@ void IntervalComponent::onSetup(
     if(Q_UNLIKELY(interval().graphal()))
     {
       t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
-        ossia_cst->set_stateless_callback(
+        ossia_cst->set_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
                 [weak_self, &edit](bool running, ossia::time_value date) {
           edit.enqueue([weak_self, running, date] {
@@ -361,7 +361,7 @@ void IntervalComponent::onSetup(
     else
     {
       t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
-        ossia_cst->set_stateless_callback(
+        ossia_cst->set_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
                 [weak_self, &edit](bool running, ossia::time_value date) {
           edit.enqueue([weak_self, running, date] {
