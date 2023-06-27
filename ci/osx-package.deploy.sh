@@ -66,6 +66,7 @@ for seconds in 30 30 30 30 30; do
     else
         echo "Stapling failed ! Displaying log..."
         echo "$RES"
+        exit 1
     fi
 done
 
