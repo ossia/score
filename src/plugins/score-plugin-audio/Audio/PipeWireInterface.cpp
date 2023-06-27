@@ -21,28 +21,36 @@
 namespace Audio
 {
 PipeWireAudioFactory::PipeWireAudioFactory()
-    : m_client{std::make_shared<ossia::pipewire_context>()}
+try : m_client{std::make_shared<ossia::pipewire_context>()}
 {
-  if(int fd = m_client->get_fd(); fd != -1)
   {
-    m_fd = new QSocketNotifier{fd, QSocketNotifier::Read};
-    connect(m_fd, &QSocketNotifier::activated, this, [clt = m_client] {
-      if(auto lp = clt->lp)
-      {
-        int result = pw_loop_iterate(lp, 0);
-        if(result < 0)
-          qDebug() << "pw_loop_iterate: " << spa_strerror(result);
-      }
-    });
-    m_fd->setEnabled(true);
+    if(int fd = m_client->get_fd(); fd != -1)
+    {
+      m_fd = new QSocketNotifier{fd, QSocketNotifier::Read};
+      connect(m_fd, &QSocketNotifier::activated, this, [clt = m_client] {
+        if(auto lp = clt->lp)
+        {
+          int result = pw_loop_iterate(lp, 0);
+          if(result < 0)
+            qDebug() << "pw_loop_iterate: " << spa_strerror(result);
+        }
+      });
+      m_fd->setEnabled(true);
+    }
   }
+}
+catch(...)
+{
 }
 
 PipeWireAudioFactory::~PipeWireAudioFactory()
 {
-  m_client->synchronize();
-  delete m_fd;
-  m_client.reset();
+  if(m_client)
+  {
+    m_client->synchronize();
+    delete m_fd;
+    m_client.reset();
+  }
 }
 
 QString PipeWireAudioFactory::prettyName() const
@@ -51,8 +59,13 @@ QString PipeWireAudioFactory::prettyName() const
 }
 
 bool PipeWireAudioFactory::available() const noexcept
+try
 {
   return ossia::libpipewire::instance().init;
+}
+catch(...)
+{
+  return false;
 }
 
 void PipeWireAudioFactory::initialize(
