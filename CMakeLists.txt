@@ -56,7 +56,6 @@ endif()
 # QT_PREFIX: Qt5 / Qt6
 list(GET QT_VERSION 0 QT_PREFIX)
 
-
 set(SCORE_VERSION_MAJOR 3)
 set(SCORE_VERSION_MINOR 1)
 set(SCORE_VERSION_PATCH 11)
@@ -124,13 +123,14 @@ find_package(${QT_VERSION} REQUIRED
                Gui
                Network
                Xml
+               StateMachine
+               OpenGLWidgets
+               Qml
+               ShaderTools
 )
 
-if(NOT Qt5Core_VERSION_STRING)
-  find_package(${QT_VERSION} REQUIRED COMPONENTS StateMachine OpenGLWidgets Qml ShaderTools)
-  if(EMSCRIPTEN)
-    find_package(${QT_VERSION} REQUIRED COMPONENTS QmlIntegration)
-  endif()
+if(EMSCRIPTEN)
+  find_package(${QT_VERSION} REQUIRED COMPONENTS QmlIntegration)
 endif()
 
 enable_testing()
@@ -147,7 +147,6 @@ set(SCORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 include_directories("${SCORE_ROOT_BINARY_DIR}")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/nano-signal-slot")
-include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/brigand")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
@@ -181,6 +180,4 @@ if(INTEGRATION_TESTING)
   setup_score_tests(tests/Integration)
 endif()
 
-# include(GenerateQMake)
-# include(GenerateUnity)
 include(CTest)

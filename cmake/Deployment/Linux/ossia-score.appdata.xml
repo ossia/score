@@ -2,7 +2,7 @@
 <component type="desktop-application">
 	<id>ossia-score</id>
 	<metadata_license>CC0-1.0</metadata_license>
-	<project_license>CECILL-2.1</project_license>
+	<project_license>GPL-3.0</project_license>
 	<name>ossia score</name>
 	<summary>Interactive intermedia sequencer</summary>
 	<description>

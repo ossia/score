@@ -169,6 +169,4 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
 )
 
-# cp $SOURCE_DIR/cmake/Deployment/Linux/AppImage/qt.conf $APP_DIR/usr/bin/
-
 $SOURCE_DIR/ci/create-sdk-linux.sh

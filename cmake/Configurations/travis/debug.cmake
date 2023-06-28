@@ -1,9 +1,0 @@
-set(CMAKE_BUILD_TYPE Debug CACHE INTERNAL "")
-set(SCORE_PCH True)
-
-set(SCORE_AUDIO_PLUGINS True CACHE INTERNAL "")
-if(NOT DEFINED SCORE_DEPLOYMENT_BUILD)
-  set(SCORE_DEPLOYMENT_BUILD False)
-endif()
-
-include(default-plugins)

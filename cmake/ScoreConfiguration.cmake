@@ -110,27 +110,19 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE GCC_VERSION)
 
-  if (GCC_VERSION VERSION_LESS 8)
-    message(FATAL_ERROR "score requires at least g++-8 to build. ")
-  endif()
   if (GCC_VERSION VERSION_LESS 10)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts")
+    message(FATAL_ERROR "score requires at least g++-10 to build. ")
   endif()
 endif()
 
+check_cxx_compiler_flag(-std=c++2b has_std_2b_flag)
 check_cxx_compiler_flag(-std=c++20 has_std_20_flag)
 check_cxx_compiler_flag(-std=c++2a has_std_2a_flag)
-check_cxx_compiler_flag(-std=c++17 has_std_17_flag)
-check_cxx_compiler_flag(-std=c++1z has_std_1z_flag)
 
 if (has_std_20_flag)
   set(CXX_VERSION_FLAG cxx_std_20)
 elseif (has_std_2a_flag)
   set(CXX_VERSION_FLAG cxx_std_20)
-elseif (has_std_17_flag)
-  set(CXX_VERSION_FLAG cxx_std_17)
-elseif (has_std_1z_flag)
-  set(CXX_VERSION_FLAG cxx_std_17)
 endif ()
 
 
