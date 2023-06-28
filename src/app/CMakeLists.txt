@@ -213,15 +213,6 @@ if(FFTW3_HAS_THREADS)
 endif()
 setup_score_common_exe_features(${APPNAME})
 
-if(WIN32)
-    file(GENERATE
-        OUTPUT "${CMAKE_BINARY_DIR}/qt.conf"
-        CONTENT  "[Platforms]
-WindowsArguments = fontengine=freetype
-"
-         )
-endif()
-
 if(UNIX AND NOT APPLE)
   if(NOT EXISTS "${CMAKE_BINARY_DIR}/run.sh")
       get_target_property(QtCore_LIB ${QT_PREFIX}::Core LOCATION)

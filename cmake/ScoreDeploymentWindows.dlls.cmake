@@ -29,7 +29,6 @@ include(InstallRequiredSystemLibraries)
 install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
         DESTINATION ${SCORE_BIN_INSTALL_DIR}
         COMPONENT OssiaScore)
-endif()
 
 # Qt Libraries
 get_target_property(QtCore_LOCATION ${QT_PREFIX}::Core LOCATION)
@@ -39,7 +38,6 @@ if(NOT OSSIA_STATIC)
   install(FILES "$<TARGET_FILE:ossia>"
           DESTINATION ${SCORE_BIN_INSTALL_DIR})
 endif()
-
 
 if(EXISTS "${QT_DLL_DIR}/Qt6Core${DEBUG_CHAR}.dll")
   install(FILES

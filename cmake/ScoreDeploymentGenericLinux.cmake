@@ -24,13 +24,6 @@ install(FILES
   ${QT_SOS}
   DESTINATION ${SCORE_BIN_INSTALL_DIR})
 
-# Qt conf file
-install(
-  FILES
-    "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/qt.conf"
-  DESTINATION
-    ${SCORE_BIN_INSTALL_DIR})
-
 # Qt Platform Plugin
 install(FILES
   "${QT_SO_DIR}/../plugins/platforms/libqxcb.so"

@@ -32,11 +32,13 @@ if(SCORE_INSTALL_HEADERS)
 endif()
 
 # Files & main target
-if(Qt5Core_VERSION_STRING)
-  qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
-else()
-  qt_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
-endif()
+include(ScoreQtConf)
+
+qt_add_resources(QRCS 
+  "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc"
+  "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc"
+)
+
 set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.hpp"
