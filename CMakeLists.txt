@@ -11,7 +11,6 @@ set(CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Configurations"
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Configurations/travis"
     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/cmake"
     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/cmake/cmake-modules")
 
@@ -49,9 +48,7 @@ if(APPLE)
   enable_language(OBJCXX)
 endif()
 
-if(NOT QT_VERSION)
-  set(QT_VERSION Qt6 6.2)
-endif()
+set(QT_VERSION Qt6 6.2)
 
 # QT_PREFIX: Qt5 / Qt6
 list(GET QT_VERSION 0 QT_PREFIX)
@@ -69,8 +66,7 @@ if(NOT SCORE_DYNAMIC_PLUGINS)
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
-  message(FATAL_ERROR "No build type defined. Please set CMAKE_BUILD_TYPE to Debug, Release, RelWithDebInfo...")
-  return()
+  message("No build type defined. Please set CMAKE_BUILD_TYPE to Debug, Release, RelWithDebInfo...")
 endif()
 
 include(all-plugins)

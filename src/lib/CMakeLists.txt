@@ -1,8 +1,9 @@
 if(APPLE)
-project(score_lib_base LANGUAGES CXX OBJC OBJCXX)
+  project(score_lib_base LANGUAGES CXX OBJC OBJCXX)
 else()
-project(score_lib_base LANGUAGES CXX)
+  project(score_lib_base LANGUAGES CXX)
 endif()
+
 score_common_setup()
 
 # Packages
@@ -647,7 +648,6 @@ if(NOT _score_license_written)
   AddLicenseFile(license_text ossia "${CMAKE_SOURCE_DIR}/3rdparty/libossia/LICENSE")
   AddLicenseFile(license_text score "${CMAKE_SOURCE_DIR}/LICENSE.txt")
   AddLicenseFile(license_text Aether "${CMAKE_SOURCE_DIR}/3rdparty/Aether/LICENSE.md")
-  AddLicenseFile(license_text Brigand "${OSSIA_3RDPARTY_FOLDER}/brigand/LICENSE")
   AddLicenseFile(license_text Catch2 "${OSSIA_3RDPARTY_FOLDER}/Catch2/LICENSE.txt")
   AddLicenseFile(license_text concurrentqueue "${OSSIA_3RDPARTY_FOLDER}/concurrentqueue/LICENSE.md")
   AddLicenseFile(license_text CTRE "${OSSIA_3RDPARTY_FOLDER}/compile-time-regular-expressions/LICENSE")
@@ -655,7 +655,6 @@ if(NOT _score_license_written)
   AddLicenseFile(license_text dnssd "${OSSIA_3RDPARTY_FOLDER}/Servus/3rdparty/dnssd/LICENSE")
   AddLicenseFile(license_text dr_libs "${OSSIA_3RDPARTY_FOLDER}/dr_libs/LICENSE")
   # AddLicenseFile(license_text DSPFilters "${CMAKE_SOURCE_DIR}/3rdparty/DSPFilters/LICENSE") # defined in .cpp
-  AddLicenseFile(license_text flat "${OSSIA_3RDPARTY_FOLDER}/flat/LICENSE_1_0.txt")
   AddLicenseFile(license_text Flicks "${OSSIA_3RDPARTY_FOLDER}/Flicks/LICENSE")
   AddLicenseFile(license_text fmt "${OSSIA_3RDPARTY_FOLDER}/fmt/LICENSE.rst")
   AddLicenseFile(license_text Gamma "${CMAKE_SOURCE_DIR}/3rdparty/Gamma/LICENSE")

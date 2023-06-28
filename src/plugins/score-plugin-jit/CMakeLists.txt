@@ -13,19 +13,13 @@ endif()
 
 # Find dependencies
 find_package(LLVM PATHS ${LLVM_DIR})
-if(Qt5Core_VERSION_STRING)
-  if(${Qt5Core_VERSION_STRING} VERSION_LESS 5.15)
-    message(" -- JIT plug-in only supported for Qt 5.15+")
-    return()
-  endif()
-endif()
 
 if(NOT LLVM_FOUND)
   message(" -- LLVM was not found, skipping JIT plug-in")
   return()
 endif()
 
-if(LLVM_VERSION VERSION_GREATER_EQUAL "13.0")
+if(LLVM_VERSION VERSION_GREATER_EQUAL "15.0")
   message(" -- LLVM version: ${LLVM_VERSION}")
 else()
   message(" -- LLVM Version ${LLVM_VERSION} incompatible, skipping JIT plug-in")
