@@ -243,7 +243,7 @@ endif()
 if(WIN32)
   install(
     TARGETS ${APPNAME}
-    RUNTIME DESTINATION .
+    RUNTIME DESTINATION "${SCORE_BIN_INSTALL_DIR}"
     COMPONENT OssiaScore)
   install(
     TARGETS ${APPNAME}

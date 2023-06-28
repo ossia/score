@@ -3,6 +3,12 @@ enable_testing()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
+if(SCORE_FHS_BUILD)
+  set(SCORE_BIN_INSTALL_DIR bin)
+else()
+  set(SCORE_BIN_INSTALL_DIR .)
+endif()
+
 add_subdirectory(lib)
 add_subdirectory(plugins)
 

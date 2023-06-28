@@ -75,7 +75,7 @@ if(APPLE AND SCORE_DEPLOYMENT_BUILD)
 elseif(WIN32)
   install(
     TARGETS ossia-score-vst3puppet
-    RUNTIME DESTINATION .
+    RUNTIME DESTINATION "${SCORE_BIN_INSTALL_DIR}"
     COMPONENT OssiaScore)
 else()
   install(
