@@ -39,6 +39,12 @@ qt_add_resources(QRCS
   "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc"
 )
 
+set_source_files_properties(
+  ${QRCS}
+  PROPERTIES
+    SKIP_UNITY_BUILD_INCLUSION 1
+)
+
 set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.hpp"
