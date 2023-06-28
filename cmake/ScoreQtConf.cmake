@@ -23,32 +23,13 @@ Prefix = .
 ")
   endif()
   
-  file(CONFIGURE 
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+  file(
+    WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
     CONTENT "${SCORE_QTCONF_CONTENT}"
     NEWLINE_STYLE UNIX
   )
   
-  file(CONFIGURE 
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc"
-    CONTENT 
-"<RCC>
-  <qresource prefix=\"/\">
-    <file alias=\"qt/etc/qt.conf\">qt.conf</file>
-  </qresource>
-</RCC>
-"
-    NEWLINE_STYLE UNIX
-  )
+  configure_file("${SCORE_ROOT_SOURCE_DIR}/cmake/qtconf.used.qrc" "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc")
 else()
-  file(CONFIGURE 
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc"
-    CONTENT 
-"<RCC>
-  <qresource prefix=\"/\">
-  </qresource>
-</RCC>
-"
-    NEWLINE_STYLE UNIX
-  )
+  configure_file("${SCORE_ROOT_SOURCE_DIR}/cmake/qtconf.empty.qrc" "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc")
 endif()
