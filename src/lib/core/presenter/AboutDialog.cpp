@@ -89,7 +89,6 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["TinySpline"] = License{"https://github.com/msteinbeck/tinyspline", "MIT License"};
 
   map["Aether"] = License{"https://github.com/Dougal-S/Aether", Aether_LICENSE};
-  map["Brigand"] = License{"https://github.com/edouarda/brigand", Brigand_LICENSE};
   map["Catch2"] = License{"https://github.com/catchorg/Catch2", Catch2_LICENSE};
   map["ConcurrentQueue"] = License{
       "https://github.com/cameron314/concurrentqueue", concurrentqueue_LICENSE};
