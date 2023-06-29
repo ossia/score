@@ -5,7 +5,7 @@ source ci/common.setup.sh
 echo 'deb http://deb.debian.org/debian bullseye-backports main' | $SUDO tee -a /etc/apt/sources.list
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
-$SUDO apt-get install -qq --force-yes \
+$SUDO apt-get install -qq --force-yes -t bullseye-backports \
      binutils gcc g++ clang-13 cmake \
      libasound-dev \
      ninja-build \
