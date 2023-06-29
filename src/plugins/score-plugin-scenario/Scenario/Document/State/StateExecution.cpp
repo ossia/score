@@ -50,17 +50,21 @@ StateComponentBase::StateComponentBase(
     , m_model{&element}
     , m_ev{std::move(ev)}
     , m_node{ossia::make_node<ossia::nodes::state_writer>(
-          *ctx.execState, Engine::score_to_ossia::state(element, ctx))}
+          *ctx.execState, Engine::score_to_ossia::state(element, *ctx.execState))}
 {
   m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
 
   system().setup.register_node({}, {}, m_node);
 
-  connect(&element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
-    in_exec([n = m_node, x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
-      n->data = std::move(x);
-    });
-  });
+  connect(
+      &element, &Scenario::StateModel::sig_statesUpdated, this,
+      [this, st = std::weak_ptr{ctx.execState}] {
+    if(auto dl = st.lock())
+    {
+      in_exec([n = m_node, x = Engine::score_to_ossia::state(*m_model, *dl),
+               dl]() mutable { n->data = std::move(x); });
+    }
+      });
 
   connect(
       &element, &Scenario::StateModel::sig_controlMessagesUpdated, this,

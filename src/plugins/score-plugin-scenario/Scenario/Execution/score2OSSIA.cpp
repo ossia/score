@@ -3,6 +3,8 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
@@ -61,16 +63,14 @@ message(const State::Message& mess, const ossia::execution_state& deviceList)
 
 void state(
     ossia::state& parent, const Scenario::StateModel& score_state,
-    const Execution::Context& ctx)
+    const ossia::execution_state& dl)
 {
   auto& elts = parent;
 
   // For all elements where IOType != Invalid,
   // we add the elements to the state.
 
-  SCORE_ASSERT(ctx.execState);
-  auto& dl = *ctx.execState;
-  score_state.messages().rootNode().visit([&](const auto& n) {
+  score_state.messages().rootNode().visit([&elts, &dl](const auto& n) {
     const auto& val = n.value();
     if(val)
     {
@@ -91,11 +91,41 @@ void state(
 }
 
 ossia::state
-state(const Scenario::StateModel& score_state, const Execution::Context& ctx)
+state(const Scenario::StateModel& score_state, const ossia::execution_state& dl)
 {
   ossia::state s;
-  Engine::score_to_ossia::state(s, score_state, ctx);
+  Engine::score_to_ossia::state(s, score_state, dl);
   return s;
+}
+
+void play_state_from_ui(
+    const Scenario::StateModel& score_state, const Execution::Context& ctx)
+{
+  if(ctx.execState)
+  {
+    // FIXME that does not look thread-safe at all !
+    // what if devices are being added/removed in the exec thread !
+    ossia::state s;
+    Engine::score_to_ossia::state(s, score_state, *ctx.execState);
+    s.launch();
+  }
+  else
+  {
+    // Create a temporary execution_state...
+    auto execState = std::make_shared<ossia::execution_state>();
+
+    // Fill its devices
+    auto& devs = ctx.doc.plugin<Explorer::DeviceDocumentPlugin>();
+    devs.list().apply([&execState](auto& dev) {
+      if(auto d = dev.getDevice())
+      {
+        execState->register_device(d);
+      }
+    });
+
+    auto state = Engine::score_to_ossia::state(score_state, *execState);
+    state.launch();
+  }
 }
 
 static ossia::destination

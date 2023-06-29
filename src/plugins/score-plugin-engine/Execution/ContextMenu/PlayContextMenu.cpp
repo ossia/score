@@ -49,8 +49,7 @@ PlayContextMenu::PlayContextMenu(
 
       for(const StateModel* state : selectedElements(sm->getStates()))
       {
-        auto ossia_state = Engine::score_to_ossia::state(*state, r_ctx);
-        ossia_state.launch();
+        Engine::score_to_ossia::play_state_from_ui(*state, r_ctx);
       }
     }
   });
@@ -124,8 +123,7 @@ PlayContextMenu::PlayContextMenu(
         [has_changed] { *has_changed = true; });
 
     // Send our state
-    auto ossia_state = Engine::score_to_ossia::state(score_state, r_ctx);
-    ossia_state.launch();
+    Engine::score_to_ossia::play_state_from_ui(score_state, r_ctx);
 
     // Revert the ui color
     QTimer::singleShot(250, &score_state, [&score_state, old_status, con, has_changed] {

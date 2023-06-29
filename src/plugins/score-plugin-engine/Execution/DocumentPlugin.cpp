@@ -381,32 +381,7 @@ void DocumentPlugin::playStartState()
     return;
   auto& sm = scenar->baseScenario().startState();
 
-  // FIXME that does not look thread-safe at all !
-  // what if devices are being added/removed in the exec thread !
-  if(m_ctxData->execState)
-  {
-    auto state = Engine::score_to_ossia::state(sm, this->context());
-    state.launch();
-  }
-  else
-  {
-    // Create a temporary execution_state...
-    m_ctxData->execState = std::make_shared<ossia::execution_state>();
-
-    // Fill its devices
-    auto& devs = this->context().doc.plugin<Explorer::DeviceDocumentPlugin>();
-    devs.list().apply([this](auto& dev) {
-      if(auto d = dev.getDevice())
-      {
-        m_ctxData->execState->register_device(d);
-      }
-    });
-
-    auto state = Engine::score_to_ossia::state(sm, this->context());
-    state.launch();
-
-    m_ctxData->execState.reset();
-  }
+  Engine::score_to_ossia::play_state_from_ui(sm, this->context());
 }
 
 void DocumentPlugin::playStopState()
@@ -416,14 +391,7 @@ void DocumentPlugin::playStopState()
   if(!scenar)
     return;
   auto& sm = scenar->baseScenario().endState();
-
-  // FIXME that does not look thread-safe at all !
-  // what if devices are being added/removed in the exec thread !
-  if(m_ctxData->execState)
-  {
-    auto state = Engine::score_to_ossia::state(sm, this->context());
-    state.launch();
-  }
+  Engine::score_to_ossia::play_state_from_ui(sm, this->context());
 }
 
 bool DocumentPlugin::isPlaying() const

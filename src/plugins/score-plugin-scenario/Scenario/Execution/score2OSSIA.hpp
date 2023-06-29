@@ -30,11 +30,15 @@ namespace score_to_ossia
 
 void state(
     ossia::state& ossia_state, const Scenario::StateModel& score_state,
-    const Execution::Context& ctx);
+    const ossia::execution_state& ctx);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 ossia::state
-state(const Scenario::StateModel& score_state, const Execution::Context& ctx);
+state(const Scenario::StateModel& score_state, const ossia::execution_state& ctx);
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+void play_state_from_ui(
+    const Scenario::StateModel& score_state, const Execution::Context& ctx);
 
 ossia::expression_ptr
 condition_expression(const State::Expression& expr, const ossia::execution_state&);
