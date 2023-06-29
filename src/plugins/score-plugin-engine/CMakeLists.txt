@@ -104,4 +104,9 @@ if(OSSIA_PROTOCOL_AUDIO)
       Execution/Clock/DataflowClock.cpp
     )
 endif()
+
+if(OSSIA_ENABLE_JACK)
+  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:jack::jack>)
+endif()
+
 setup_score_plugin(${PROJECT_NAME})

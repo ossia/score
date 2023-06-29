@@ -42,9 +42,16 @@
 #include <avnd/../../examples/Advanced/Utilities/ADSR.hpp>
 #include <avnd/../../examples/Advanced/Utilities/AudioFilters.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Bitcrush.hpp>
+
 #if __has_include(<kfr/dft/convolution.hpp>)
+#include <kfr/kfr.h>
+#if QT_VERSION_CHECK(KFR_VERSION_MAJOR, KFR_VERSION_MINOR, KFR_VERSION_PATCH) \
+    >= QT_VERSION_CHECK(5, 0, 2)
 #include <avnd/../../examples/Advanced/Utilities/Convolver.hpp>
+#define AVND_HAS_CONVOLVER 1
 #endif
+#endif
+
 #include <avnd/../../examples/Advanced/Utilities/Dynamics.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Echo.hpp>
 #include <avnd/../../examples/Advanced/Utilities/Flanger.hpp>
@@ -123,12 +130,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
     using logger_type = oscr::Logger;
   };
   std::vector<std::unique_ptr<score::InterfaceBase>> fx;
-  #if !defined(_MSC_VER)
+#if !defined(_MSC_VER)
   oscr::instantiate_fx<Aether::Object>(fx, ctx, key);
-  #endif
+#endif
   oscr::instantiate_fx<ao::ADSR>(fx, ctx, key);
 
-#if __has_include(<kfr/dft/convolution.hpp>)
+#if AVND_HAS_CONVOLVER
   oscr::instantiate_fx<ao::Convolver>(fx, ctx, key);
 #endif
 

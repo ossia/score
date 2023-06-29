@@ -57,10 +57,26 @@ if(OSSIA_PROTOCOL_AUDIO)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
-        PUBLIC
+        PRIVATE
           ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
           score_lib_base score_lib_device score_lib_state score_plugin_scenario score_plugin_deviceexplorer
           ossia
 )
+
+if(OSSIA_ENABLE_PORTAUDIO)
+  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:PortAudio::PortAudio>)
+endif()
+
+if(OSSIA_ENABLE_JACK)
+  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:jack::jack>)
+endif()
+
+if(OSSIA_ENABLE_PIPEWIRE)
+  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:pipewire::pipewire>)
+endif()
+
+if(OSSIA_ENABLE_SDL)
+  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:ossia::sdl2>)
+endif()
 
 setup_score_plugin(${PROJECT_NAME})
