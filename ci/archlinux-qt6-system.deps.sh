@@ -32,6 +32,6 @@ $SUDO pacman -S --noconfirm --needed \
    xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
    qt6-base qt6-shadertools qt6-tools qt6-5compat qt6-declarative qt6-scxml qt6-websockets qt6-serialport \
    fmt spdlog rapidjson rubberband libsamplerate libsndfile \
-   wiiuse re2 catch2 snappy mimalloc
+   wiiuse re2 catch2 snappy mimalloc rapidfuzz-cpp pd vst3sdk
 
 source ci/common.deps.sh
