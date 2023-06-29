@@ -16,20 +16,20 @@ option(SCORE_PCH "Use precompiled headers. Will make the build faster." OFF)
 
 option(INTEGRATION_TESTING "Run integration tests" OFF)
 
-option(SCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths" OFF)
+option(SCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths, plugins will go in /usr/lib/score/lib<blabla>.so" OFF)
 
 option(SCORE_IEEE "Use a graphical skin adapted to publication" OFF)
 option(SCORE_WEBSOCKETS "Run a websocket server in the scenario" OFF)
 option(SCORE_TESTBED "Enable the testbed. See Tests/testbed/README" OFF)
 option(SCORE_PLAYER "Build standalone player" OFF)
 option(SCORE_FHS_BUILD "For installing in Linux distros /usr hierarchy" OFF)
+option(SCORE_USE_SYSTEM_LIBRARIES "Try to use system libraries as far as possible" OFF)
 option(DEFINE_SCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
 
 option(SCORE_COVERAGE "Enable coverage" OFF)
 
 option(SCORE_INSTALL_HEADERS "Install headers" OFF)
 
-option(SCORE_FX_DESIGNER "FX GUI designer" OFF)
 option(SCORE_FAST_DEV_BUILD "Disables some features for faster development" OFF)
 set(CMAKE_DEBUG_POSTFIX "")
 if(APPLE)

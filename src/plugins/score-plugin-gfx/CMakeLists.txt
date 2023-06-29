@@ -219,8 +219,14 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PUBLIC
   score_lib_base  score_lib_localtree score_lib_process score_plugin_dataflow score_plugin_engine
    ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate
-   snappy # for HAP
 )
+
+# for HAP
+if(TARGET Snappy::snappy)
+  target_link_libraries(${PROJECT_NAME} PUBLIC Snappy::snappy)
+elseif(TARGET snappy)
+  target_link_libraries(${PROJECT_NAME} PUBLIC snappy)
+endif()
 
 if(EMSCRIPTEN)
   target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_media)

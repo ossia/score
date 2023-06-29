@@ -215,14 +215,29 @@ endif()
 
 
 # Rubberband and sample rate conversion
+if(TARGET rubberband)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     rubberband
-    samplerate
-)
+  )
+endif()
+
+if(TARGET SampleRate::samplerate)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      SampleRate::samplerate
+    )
+elseif(TARGET samplerate)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      samplerate
+    )
+endif()
 
 if(TARGET SndFile::sndfile)
   target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
+elseif(TARGET sndfile)
+  target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)
 endif()
 
 setup_score_plugin(${PROJECT_NAME})

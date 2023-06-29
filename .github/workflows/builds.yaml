@@ -100,3 +100,29 @@ jobs:
       - name: Build
         run: |
           ./ci/archlinux-qt6.build.sh
+
+
+  archqt6system:
+    name: ArchLinux (System)
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Install git
+        run: |
+          pacman -Syy --noconfirm
+          pacman -S git --noconfirm
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/archlinux-qt6-system.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/archlinux-qt6-system.build.sh
