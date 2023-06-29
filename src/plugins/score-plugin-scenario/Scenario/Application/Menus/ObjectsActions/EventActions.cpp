@@ -14,6 +14,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioSelection.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -21,6 +22,7 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/ObjectMatches.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -102,7 +104,29 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   cond.add<Actions::RemoveCondition>();
 }
 
-void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm) { }
+void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
+{
+  using namespace Process;
+  Process::LayerContextMenu cm = MetaContextMenu<ContextMenus::EventContextMenu>::make();
+  Process::LayerContextMenu st = MetaContextMenu<ContextMenus::StateContextMenu>::make();
+  st.functions.push_back(
+      [](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
+    using namespace score;
+
+    auto sel = ctx.context.selectionStack.currentSelection();
+    if(sel.empty())
+      return;
+
+    if(ossia::any_of(sel, matches<Scenario::StateModel>{}))
+    {
+      auto submenu = menu.addMenu(tr("State"));
+      submenu->setObjectName("State");
+    }
+  });
+
+  ctxm.insert(std::move(cm));
+  ctxm.insert(std::move(st));
+}
 
 void EventActions::addTriggerToTimeSync()
 {

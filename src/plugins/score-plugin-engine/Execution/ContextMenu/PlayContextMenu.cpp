@@ -217,6 +217,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
   Process::LayerContextMenu& scenario_cm
       = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
   Process::LayerContextMenu& cst_cm = ctxm.menu<ContextMenus::IntervalContextMenu>();
+  Process::LayerContextMenu& state_cm = ctxm.menu<ContextMenus::StateContextMenu>();
 
   cst_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
@@ -233,24 +234,21 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     }
   });
 
-  SCORE_TODO;
-  /*
   state_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
-        using namespace score;
-        auto sel = ctx.context.selectionStack.currentSelection();
-        if (!Scenario::selectionHasScenarioElements(sel))
-          return;
+    using namespace score;
+    auto sel = ctx.context.selectionStack.currentSelection();
+    if(!Scenario::selectionHasScenarioElements(sel))
+      return;
 
-        if (ossia::any_of(sel, matches<Scenario::StateModel>{}))
-        {
-          auto stateSubmenu = menu.findChild<QMenu*>("State");
-          SCORE_ASSERT(stateSubmenu);
+    if(ossia::any_of(sel, matches<Scenario::StateModel>{}))
+    {
+      auto stateSubmenu = menu.findChild<QMenu*>("State");
+      SCORE_ASSERT(stateSubmenu);
 
-          stateSubmenu->addAction(m_playStates);
-        }
-      });
-  */
+      stateSubmenu->addAction(m_playStates);
+    }
+  });
 
   scenario_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF scenept, const Process::LayerContext& ctx) {
