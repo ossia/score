@@ -9,6 +9,10 @@ wget -nv https://github.com/ossia/score-sdk/releases/download/sdk28/$SDK_ARCHIVE
 mkdir -p /opt/ossia-sdk-rpi-aarch64
 tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-rpi-aarch64/
 
+wget -nv https://github.com/ossia/score-sdk/releases/download/sdk28/icu72.tar.gz -O icu72.tar.gz
+tar xaf icu71.tar.gz
+mv libicu* /usr/lib/
+
 rm *.tar.*
 
 source ci/common.deps.sh
