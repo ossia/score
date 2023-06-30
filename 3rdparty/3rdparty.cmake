@@ -5,7 +5,7 @@ disable_qt_plugins(QCodeEditor)
 
 include(3rdparty/dspfilters.cmake)
 include(3rdparty/gamma.cmake)
-# include(3rdparty/r8brain.cmake)
+include(3rdparty/r8brain.cmake)
 
 if(SCORE_USE_SYSTEM_LIBRARIES)
   find_package(mimalloc GLOBAL CONFIG)
