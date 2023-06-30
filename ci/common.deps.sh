@@ -1,8 +1,6 @@
 #!/bin/bash
 
 (
-ls
-pwd
 cd src/addons
 
 if [[ ! -d iscore-addon-network ]]; then
