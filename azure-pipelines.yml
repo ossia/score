@@ -87,14 +87,14 @@ stages:
               source ci/osx-package.deps.sh
             env:
               MAC_CODESIGN_PASSWORD: $(codesign)
-              MAC_ALTOOL_PASSWORD: $(altool)
+              MAC_ALTOOL_PASSWORD: $(testvar)
           - bash: |
               source ci/osx-package.build.sh
           - bash: |
               source ci/osx-package.deploy.sh
             env:
               MAC_CODESIGN_PASSWORD: $(codesign)
-              MAC_ALTOOL_PASSWORD: $(altool)
+              MAC_ALTOOL_PASSWORD: $(testvar)
 
           - task: PublishPipelineArtifact@1
             inputs:

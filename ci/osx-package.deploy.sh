@@ -46,11 +46,12 @@ security unlock-keychain -p travis build.keychain
 xcrun notarytool submit *.dmg \
   --team-id "GRW9MHZ724" \
   --apple-id "jeanmichael.celerier@gmail.com" \
-  --password "@env:MAC_ALTOOL_PASSWORD" \
+  --password "$MAC_ALTOOL_PASSWORD" \
   --progress \
   --wait
 
 xcrun stapler staple *.dmg
+xcrun stapler validate *.dmg
 
 mv *.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
 mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"
