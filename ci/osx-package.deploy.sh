@@ -53,5 +53,7 @@ xcrun notarytool submit *.dmg \
 xcrun stapler staple *.dmg
 xcrun stapler validate *.dmg
 
+[[ $? == 0 ]] || exit 1
+
 mv *.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
 mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"
