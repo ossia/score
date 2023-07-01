@@ -1,3 +1,8 @@
+if(OSSIA_SDK AND APPLE)
+  set(Lilv_FOUND FALSE)
+  return()
+endif()
+
 find_path(
     Lilv_INCLUDE_DIR lilv/lilv.h
     HINTS
@@ -6,9 +11,9 @@ find_path(
         /usr/local/include/lilv-0
     )
 
-find_library(Lilv_LIBRARY 
-  NAMES 
-    lilv 
+find_library(Lilv_LIBRARY
+  NAMES
+    lilv
     lilv-0
   HINTS
     "${OSSIA_SDK}/lv2/lib64"
@@ -39,8 +44,8 @@ if(Lilv_FOUND)
       find_library(Sratom_LIBRARY NAMES sratom-0 HINTS "${OSSIA_SDK}/lv2/lib64")
       find_library(Zix_LIBRARY NAMES zix-0 HINTS "${OSSIA_SDK}/lv2/lib64")
       add_library(Lilv STATIC IMPORTED GLOBAL)
-      target_link_libraries(Lilv 
-        INTERFACE 
+      target_link_libraries(Lilv
+        INTERFACE
           ${Serd_LIBRARY} ${Sord_LIBRARY} ${Sratom_LIBRARY} ${Suil_LIBRARY} ${Zix_LIBRARY}
       )
     endif()

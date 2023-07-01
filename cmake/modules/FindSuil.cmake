@@ -1,3 +1,8 @@
+if(OSSIA_SDK AND APPLE)
+  set(Suil_FOUND FALSE)
+  return()
+endif()
+
 find_path(
     Suil_INCLUDE_DIR suil/suil.h
     HINTS
@@ -7,9 +12,9 @@ find_path(
     )
 
 set(Suil_NAMES suil suil-0)
-find_library(Suil_LIBRARY 
+find_library(Suil_LIBRARY
   NAMES
-    suil 
+    suil
     suil-0
   HINTS
     "${OSSIA_SDK}/lv2/lib64"

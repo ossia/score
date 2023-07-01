@@ -21,9 +21,9 @@ sign_app() {
 echo " === code signing === "
 security unlock-keychain -p travis build.keychain
 
-sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "score.app/Contents/MacOS/ossia-score-vstpuppet.app"
-sign_app "$SRC_PATH/src/vst3puppet/entitlements.plist" "score.app/Contents/MacOS/ossia-score-vst3puppet.app"
-sign_app "$SRC_PATH/src/app/entitlements.plist" "score.app"
+sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vstpuppet.app"
+sign_app "$SRC_PATH/src/vst3puppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vst3puppet.app"
+sign_app "$SRC_PATH/src/app/entitlements.plist" "ossia score.app"
 
 echo " === create dmg === "
 # Create a .dmg
@@ -35,9 +35,9 @@ create-dmg \
   --window-size 800 400 \
   --icon-size 100 \
   --app-drop-link 600 185 \
-  --icon score.app 200 190 \
-  --hide-extension score.app \
-  'score.dmg' 'score.app'
+  --icon "ossia score.app" 200 190 \
+  --hide-extension "ossia score.app" \
+  'score.dmg' 'ossia score.app'
 ls
 
 echo " === notarize === "

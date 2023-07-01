@@ -19,7 +19,7 @@ Read more on [https://ossia.io](https://ossia.io), come ask questions on the [fo
 Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://github.com/ossia/score/releases/latest).
 
 * Windows: install and run.
-* macOS: open the `.dmg` and drop `score.app` in Applications.
+* macOS: open the `.dmg` and drop `ossia score.app` in Applications.
 * Linux: make executable (right click -> permissions or `chmod +x`) and run the AppImage. 
 
 ## Build status
