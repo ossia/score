@@ -148,19 +148,12 @@ if(APPLE)
     find_library(FLIB Foundation)
     target_sources(${APPNAME} PRIVATE mac_main.m)
     target_link_libraries(${APPNAME} PRIVATE ${CFLIB} ${FLIB})
-
-    if(SCORE_DEPLOYMENT_BUILD)
-      set(ICON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.icns")
-      set_source_files_properties(${ICON_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-
-      target_sources(${APPNAME} PRIVATE ${ICON_SRC})
-      set_target_properties(${APPNAME} PROPERTIES MACOSX_BUNDLE TRUE)
-    endif()
 endif()
 
 if(WIN32)
   target_link_libraries(${APPNAME} PRIVATE ntdll)
 endif()
+
 if(IOS)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   find_library(COREAUDIO_LIBRARY CoreAudio)

@@ -3,9 +3,16 @@ if(NOT APPLE)
 endif()
 
 set(BUNDLENAME "ossia score.app")
+
+set(ICON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.icns")
+set_source_files_properties(${ICON_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+target_sources(${APPNAME} PRIVATE ${ICON_SRC})
+
 set_target_properties(
   ${APPNAME}
   PROPERTIES
+    MACOSX_BUNDLE TRUE
+    OUTPUT_NAME "ossia score"
     MACOSX_BUNDLE_INFO_STRING "ossia score, an interactive sequencer for the intermedia arts"
     MACOSX_BUNDLE_GUI_IDENTIFIER "io.ossia.score"
     MACOSX_BUNDLE_LONG_VERSION_STRING "${SCORE_VERSION}"
