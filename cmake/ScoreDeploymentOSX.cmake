@@ -1,12 +1,15 @@
-if(APPLE)
+if(NOT APPLE)
+  return()
+endif()
 
+set(BUNDLENAME "ossia score.app")
 set_target_properties(
   ${APPNAME}
   PROPERTIES
     MACOSX_BUNDLE_INFO_STRING "ossia score, an interactive sequencer for the intermedia arts"
     MACOSX_BUNDLE_GUI_IDENTIFIER "io.ossia.score"
     MACOSX_BUNDLE_LONG_VERSION_STRING "${SCORE_VERSION}"
-    MACOSX_BUNDLE_BUNDLE_NAME "score"
+    MACOSX_BUNDLE_BUNDLE_NAME "ossia score"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${SCORE_VERSION}"
     MACOSX_BUNDLE_BUNDLE_VERSION "${SCORE_VERSION}"
     MACOSX_BUNDLE_COPYRIGHT "ossia.io"
@@ -16,7 +19,7 @@ set_target_properties(
 
 # Copy our dylibs if necessary
 if(NOT SCORE_STATIC_PLUGINS)
-    set(SCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/")
+    set(SCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins/")
 
     function(score_copy_osx_plugin theTarget)
       add_custom_command(
@@ -26,7 +29,7 @@ if(NOT SCORE_STATIC_PLUGINS)
 
     # Copy score plugins into the app bundle
     add_custom_command(TARGET ${APPNAME} POST_BUILD
-                       COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/)
+                       COMMAND mkdir -p "${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins/")
 
     foreach(plugin ${SCORE_PLUGINS_LIST})
       score_copy_osx_plugin(${plugin})
@@ -47,9 +50,9 @@ get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
 set(QT_PLUGINS_DIR "${Qt6Widgets_DIR}/../../../plugins")
 set(QT_QML_PLUGINS_DIR "${Qt6Widgets_DIR}/../../../qml")
 
-set(plugin_dest_dir "${APPNAME}.app/Contents/PlugIns")
-set(qtconf_dest_dir "${APPNAME}.app/Contents/Resources")
-set(qml_dest_dir "${APPNAME}.app/Contents/Resources/qml")
+set(plugin_dest_dir "${BUNDLENAME}/Contents/PlugIns")
+set(qtconf_dest_dir "${BUNDLENAME}/Contents/Resources")
+set(qml_dest_dir "${BUNDLENAME}/Contents/Resources/qml")
 
 # If we are in a dynamic build of qt
 if(EXISTS "${QT_PLUGINS_DIR}/platforms/libqcocoa.dylib")
@@ -64,7 +67,7 @@ if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-faust/faustlibs-prefix/s
     DIRECTORY
       "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs/"
     DESTINATION
-      "${APPNAME}.app/Contents/Resources/Faust"
+      "${BUNDLENAME}/Contents/Resources/Faust"
     COMPONENT OssiaScore
       PATTERN ".git" EXCLUDE
       PATTERN "doc" EXCLUDE
@@ -82,7 +85,7 @@ if(QT_STATIC)
     install(CODE "
         set(BU_CHMOD_BUNDLE_ITEMS ON)
 
-        get_filename_component(SCORE_ABSOLUTE_PATH \"\${CMAKE_INSTALL_PREFIX}/${APPNAME}.app\" ABSOLUTE)
+        get_filename_component(SCORE_ABSOLUTE_PATH \"\${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}\" ABSOLUTE)
 
         include(BundleUtilities)
         fixup_bundle(
@@ -100,7 +103,7 @@ elseif(SCORE_STATIC_PLUGINS)
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(
-          \"\${CMAKE_INSTALL_PREFIX}/${APPNAME}.app\"
+          \"\${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}\"
           \"\${QTPLUGINS};\${QMLPLUGINS}\"
           \"${QT_LIBRARY_DIR}\")
 
@@ -111,11 +114,11 @@ elseif(SCORE_STATIC_PLUGINS)
 else()
     set(CMAKE_INSTALL_RPATH "plugins")
     foreach(plugin ${SCORE_PLUGINS_LIST})
-        list(APPEND SCORE_BUNDLE_INSTALLED_PLUGINS "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/lib${plugin}.dylib")
+        list(APPEND SCORE_BUNDLE_INSTALLED_PLUGINS "${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins/lib${plugin}.dylib")
     endforeach()
 
     install(CODE "
-      message(${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins)
+      message(\"${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins\")
         file(GLOB_RECURSE QTPLUGINS
             \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
         file(GLOB_RECURSE QMLPLUGINS
@@ -125,7 +128,7 @@ else()
         fixup_bundle(
            \"${CMAKE_INSTALL_PREFIX}/ossia score.app\"
            \"\${QTPLUGINS};\${QMLPLUGINS};${SCORE_BUNDLE_INSTALLED_PLUGINS}\"
-       \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/3rdparty/libossia/src;${CMAKE_BINARY_DIR}/src/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
+       \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/3rdparty/libossia/src;${CMAKE_BINARY_DIR}/src/lib;${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins/\"
         )
 message(\"${SCORE_ROOT_SOURCE_DIR}/cmake/Deployment/OSX/set_rpath.sh\"
           \"${CMAKE_INSTALL_PREFIX}/ossia score.app/Contents\")
@@ -136,5 +139,3 @@ execute_process(COMMAND
 endif()
 
 set(CPACK_GENERATOR "DragNDrop")
-
-endif()
