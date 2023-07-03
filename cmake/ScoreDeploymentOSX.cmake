@@ -24,6 +24,11 @@ set_target_properties(
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
 )
 
+install(
+  TARGETS ${APPNAME}
+  BUNDLE DESTINATION .
+  COMPONENT OssiaScore)
+  
 # Copy our dylibs if necessary
 if(NOT SCORE_STATIC_PLUGINS)
     set(SCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins/")

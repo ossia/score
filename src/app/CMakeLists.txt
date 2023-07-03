@@ -234,10 +234,7 @@ if(WIN32)
     ARCHIVE DESTINATION lib
     COMPONENT Devel)
 elseif(APPLE)
-  install(
-    TARGETS ${APPNAME}
-    BUNDLE DESTINATION .
-    COMPONENT OssiaScore)
+  # done in ScoreDeploymentOSX
 else() # Linux
   install(
     TARGETS ${APPNAME}
