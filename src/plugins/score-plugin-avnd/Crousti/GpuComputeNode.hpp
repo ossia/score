@@ -10,7 +10,6 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 namespace oscr
 {
@@ -433,7 +432,6 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   }
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 template <typename Node_T>
 inline score::gfx::OutputNodeRenderer*

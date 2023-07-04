@@ -233,7 +233,7 @@ public:
       m_points.clear();
 
       auto& path = m_curveShape;
-      clearPainterPath(path);
+      path.clear();
 
       auto pt = mapToCanvas(evaluate(0));
       m_points.push_back(pt);
@@ -265,7 +265,7 @@ public:
     if(m_play > 0)
     {
       auto& path = m_playShape;
-      clearPainterPath(path);
+      path.clear();
 
       const double percentage = qBound(0.f, m_play, 1.f) * N;
       const double start = std::floor(percentage);
@@ -291,7 +291,7 @@ public:
     }
     else
     {
-      clearPainterPath(m_playShape);
+      m_playShape.clear();
     }
   }
 

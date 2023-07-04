@@ -61,8 +61,8 @@ const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
 
 void TemporalIntervalView::updatePaths()
 {
-  clearPainterPath(solidPath);
-  clearPainterPath(playedSolidPath);
+  solidPath.clear();
+  playedSolidPath.clear();
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -184,7 +184,7 @@ void TemporalIntervalView::drawPlayDashedPath(
 
 void TemporalIntervalView::updatePlayPaths()
 {
-  clearPainterPath(playedSolidPath);
+  playedSolidPath.clear();
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();

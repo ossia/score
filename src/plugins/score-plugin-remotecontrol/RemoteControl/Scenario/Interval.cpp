@@ -40,7 +40,7 @@ struct RemoteMessages
     r.obj[score::StringConstant().Name] = process.metadata().getName();
     r.obj[score::StringConstant().Label] = process.metadata().getLabel();
 
-    Process::Inlets controls;
+    ossia::small_vector<Process::Inlet*, 4> controls;
     process.forEachControl([&](auto& inl, auto& val) { controls.push_back(&inl); });
     r.obj["Controls"] = controls;
     r.stream.EndObject();

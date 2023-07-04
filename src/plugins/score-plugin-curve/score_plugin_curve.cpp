@@ -23,9 +23,6 @@ SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::EasingData)
 score_plugin_curve::score_plugin_curve()
 {
   qRegisterMetaType<Curve::Settings::Mode>();
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Curve::Settings::Mode>();
-#endif
 }
 
 score_plugin_curve::~score_plugin_curve() = default;

@@ -4,6 +4,7 @@
 
 #include <Device/Address/AddressSettings.hpp>
 
+#include <Process/Dataflow/PortForward.hpp>
 #include <Process/Dataflow/PortType.hpp>
 
 #include <score/model/IdentifiedObject.hpp>
@@ -79,9 +80,6 @@ UUID_METADATA(
     "3620ea94-5991-41cf-89b3-11f842cc39d0")
 namespace Process
 {
-using Inlets = ossia::small_vector<Process::Inlet*, 4>;
-using Outlets = ossia::small_vector<Process::Outlet*, 4>;
-using pan_weight = ossia::small_vector<double, 2>;
 
 // Used to know where to layout items for a given
 // kind of port.
@@ -542,8 +540,6 @@ SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioOutlet>
 make_audio_outlet(const Id<Process::Port>& c, QObject* parent);
 
-using Inlets = ossia::small_vector<Process::Inlet*, 4>;
-using Outlets = ossia::small_vector<Process::Outlet*, 4>;
 }
 
 DEFAULT_MODEL_METADATA(Process::Port, "Port")

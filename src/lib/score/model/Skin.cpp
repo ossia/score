@@ -103,10 +103,8 @@ Skin::Skin() noexcept
           SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
           SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
   MonoFont.setFamilies({"APCCourier-Bold"});
   MonoFontSmall.setFamilies({"Ubuntu"});
-#endif
   MonoFont.setFixedPitch(true);
 
   for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})

@@ -3,9 +3,7 @@
 
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <score/model/tree/TreeNodeSerialization.hpp>
-#endif
 #include <score/model/tree/VariantBasedNode.hpp>
 #include <score/tools/std/Optional.hpp>
 
@@ -32,7 +30,7 @@ enum class UnaryOperator
 
 struct SCORE_LIB_STATE_EXPORT ExprData
     : public score::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
-  {
+{
   // SCORE_SERIALIZE_FRIENDS
 
   ExprData() = default;
@@ -193,9 +191,11 @@ SCORE_LIB_STATE_EXPORT bool isTrueExpression(const QString&);
 SCORE_LIB_STATE_EXPORT bool isEmptyExpression(const QString&);
 
 SCORE_LIB_STATE_EXPORT
-bool findAddressInExpression(const State::Expression& expr,const State::Address& addr);
+bool findAddressInExpression(const State::Expression& expr, const State::Address& addr);
 SCORE_LIB_STATE_EXPORT
-void replaceAddress(State::Expression& expr, const State::Address& oldAddr, const State::Address& newAddr);
+void replaceAddress(
+    State::Expression& expr, const State::Address& oldAddr,
+    const State::Address& newAddr);
 }
 
 JSON_METADATA(State::Address, "Address")
@@ -208,5 +208,3 @@ JSON_METADATA(State::BinaryOperator, "BinOp")
 SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Expression)
 Q_DECLARE_METATYPE(State::Expression)
 W_REGISTER_ARGTYPE(State::Expression)
-
-

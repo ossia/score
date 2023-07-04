@@ -425,14 +425,7 @@ class Script : public QObject
       "qt_QmlJSWrapperFactoryMethod", "_q_createJSWrapper(QV4::ExecutionEngine*)")
 
 public:
-  QQmlListProperty<QObject> data() noexcept
-  {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-    return {this, &m_data};
-#else
-    return {this, m_data};
-#endif
-  }
+  QQmlListProperty<QObject> data() noexcept { return {this, &m_data}; }
 
   QJSValue& tick() /*Qt6: const*/ noexcept { return m_tick; }
   void setTick(const QJSValue& v) { m_tick = v; }

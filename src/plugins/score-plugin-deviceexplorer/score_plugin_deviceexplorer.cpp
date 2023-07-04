@@ -44,13 +44,6 @@ score_plugin_deviceexplorer::score_plugin_deviceexplorer()
   qRegisterMetaType<Device::AddressSettings>();
   qRegisterMetaType<Device::FullAddressSettings>();
   qRegisterMetaType<Device::FullAddressAccessorSettings>();
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
-  qRegisterMetaTypeStreamOperators<Device::DeviceSettings>();
-  qRegisterMetaTypeStreamOperators<Device::AddressSettings>();
-  qRegisterMetaTypeStreamOperators<Device::FullAddressSettings>();
-  qRegisterMetaTypeStreamOperators<Device::FullAddressAccessorSettings>();
-#endif
 
   auto& anySer = score::anySerializers();
   ossia::for_each_in_tuple(

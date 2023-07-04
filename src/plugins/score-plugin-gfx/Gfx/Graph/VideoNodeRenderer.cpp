@@ -209,7 +209,6 @@ void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
     m_idxBuffer = ibuffer;
   }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
   m_processUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
   m_processUBO->create();
@@ -217,7 +216,6 @@ void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   m_materialUBO
       = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
   m_materialUBO->create();
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
   if(!m_gpu)
     createGpuDecoder();

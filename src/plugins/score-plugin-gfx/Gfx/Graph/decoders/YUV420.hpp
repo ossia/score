@@ -6,7 +6,6 @@ extern "C" {
 
 namespace score::gfx
 {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 /**
  * @brief Decodes YUV420 videos.
@@ -144,5 +143,4 @@ struct YUV420Decoder : GPUVideoDecoder
   }
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }

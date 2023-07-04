@@ -1,6 +1,4 @@
 #pragma once
-#include <QObject>
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <JS/Qml/Metatypes.hpp>
 
 #include <ossia/dataflow/graph_node.hpp>
@@ -9,6 +7,7 @@
 #include <ossia-qt/time.hpp>
 
 #include <QMatrix4x4>
+#include <QObject>
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
@@ -287,4 +286,3 @@ public:
 
 Q_DECLARE_METATYPE(JS::TokenRequestValueType)
 Q_DECLARE_METATYPE(JS::SampleTimings)
-#endif

@@ -24,7 +24,6 @@ public:
   int64_t dirtyGeometryIndex{-1};
   explicit CustomMesh(const ossia::mesh_list& g) { reload(g); }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
   [[nodiscard]] MeshBuffers init(QRhi& rhi) const noexcept override
   {
     if(geom.meshes.empty())
@@ -102,7 +101,6 @@ public:
       rb.updateDynamicBuffer(meshbuf.index, 0, meshbuf.index->size(), idx_buf_data);
     }
   }
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
   Flags flags() const noexcept override
   {

@@ -305,7 +305,6 @@ auto samples(C c)
     return -1;
 }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 struct handle_release
 {
@@ -559,7 +558,6 @@ struct handle_update
   }
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 struct generate_shaders
 {

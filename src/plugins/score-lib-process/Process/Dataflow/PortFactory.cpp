@@ -8,8 +8,8 @@ namespace Process
 void readPorts(
     DataStreamReader& wr, const Process::Inlets& ins, const Process::Outlets& outs)
 {
-  wr.m_stream << ins;
-  wr.m_stream << outs;
+  wr.m_stream << static_cast<const ossia::small_vector<Process::Inlet*, 4>&>(ins);
+  wr.m_stream << static_cast<const ossia::small_vector<Process::Outlet*, 4>&>(outs);
 }
 
 void writePorts(
@@ -33,8 +33,9 @@ void writePorts(
 }
 void readPorts(JSONReader& obj, const Process::Inlets& ins, const Process::Outlets& outs)
 {
-  obj.obj["Inlets"] = ins;
-  obj.obj["Outlets"] = outs;
+  obj.obj["Inlets"] = static_cast<const ossia::small_vector<Process::Inlet*, 4>&>(ins);
+  obj.obj["Outlets"]
+      = static_cast<const ossia::small_vector<Process::Outlet*, 4>&>(outs);
 }
 void writePorts(
     const JSONWriter& obj, const Process::PortFactoryList& pl, Process::Inlets& ins,

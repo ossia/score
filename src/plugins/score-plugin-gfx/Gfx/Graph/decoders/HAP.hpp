@@ -11,7 +11,6 @@ extern "C" {
 
 namespace score::gfx
 {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 /**
  * @brief Base class for HAP ((c) Vidvox) decoding
  */
@@ -148,5 +147,4 @@ void main ()
   std::unique_ptr<char[]> m_alphaBuffer = std::make_unique<char[]>(1024 * 1024 * 16);
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }

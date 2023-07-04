@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/PortForward.hpp>
 #include <Process/ExecutionContext.hpp>
 
 #include <score/tools/std/HashMap.hpp>
@@ -20,11 +21,7 @@ namespace Process
 {
 class ProcessModel;
 class ProcessModel;
-class Inlet;
-class Outlet;
 class Cable;
-using Inlets = ossia::small_vector<Process::Inlet*, 4>;
-using Outlets = ossia::small_vector<Process::Outlet*, 4>;
 }
 
 namespace State

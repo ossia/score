@@ -88,7 +88,6 @@ struct SpoutNode final : score::gfx::OutputNode
       score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
       std::function<void()> onUpdate, std::function<void()> onResize) override
   {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
     m_spout = std::make_shared<SpoutSender>();
     m_renderState = std::make_shared<score::gfx::RenderState>();
     m_update = onUpdate;
@@ -98,9 +97,7 @@ struct SpoutNode final : score::gfx::OutputNode
     params.fallbackSurface = m_renderState->surface;
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
-#include <Gfx/Qt5CompatPop> // clang-format: keep
     m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-#include <Gfx/Qt5CompatPush> // clang-format: keep
     m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
     m_renderState->api = score::gfx::GraphicsApi::OpenGL;
     m_renderState->version = caps.qShaderVersion;
@@ -182,7 +179,6 @@ private:
   bool m_created{};
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 SpoutDevice::~SpoutDevice() { }
 

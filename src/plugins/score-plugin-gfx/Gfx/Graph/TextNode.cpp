@@ -79,7 +79,6 @@ TextNode::~TextNode()
   m_materialData.release();
 }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 class TextNode::Renderer : public GenericNodeRenderer
 {
 public:
@@ -192,7 +191,6 @@ private:
   std::vector<std::pair<score::gfx::Edge*, QRhiTexture*>> m_textures;
   bool m_uploaded = false;
 };
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 NodeRenderer* TextNode::createRenderer(RenderList& r) const noexcept
 {

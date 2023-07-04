@@ -7,7 +7,6 @@
 namespace score::gfx
 {
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 static void storeTextureRectUniform(char* buffer, int& cur_pos, QSize texSize)
 {
@@ -534,7 +533,6 @@ void RenderedISFNode::release(RenderList& r)
 {
   // customRelease
   {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
     for(auto [edge, rt] : m_rts)
     {
@@ -614,7 +612,6 @@ void RenderedISFNode::release(RenderList& r)
 
   m_meshBuffer = nullptr;
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }
 
 void RenderedISFNode::runInitialPasses(
@@ -793,7 +790,6 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     AudioTexture& audio, RenderList& renderer, char* materialData,
     QRhiResourceUpdateBatch& res)
 {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
   QRhi& rhi = *renderer.state.rhi;
   bool textureChanged = false;
   auto it = audio.samplers.find(&renderer);
@@ -854,13 +850,11 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
   }
 }
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }
 
 namespace score::gfx
 {
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 SimpleRenderedISFNode::SimpleRenderedISFNode(const ISFNode& node) noexcept
     : score::gfx::NodeRenderer{}
     , n{const_cast<ISFNode&>(node)}
@@ -1098,5 +1092,4 @@ void SimpleRenderedISFNode::runRenderPass(
 
 SimpleRenderedISFNode::~SimpleRenderedISFNode() { }
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }

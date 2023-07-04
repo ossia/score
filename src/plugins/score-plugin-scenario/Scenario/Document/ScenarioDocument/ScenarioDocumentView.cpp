@@ -47,10 +47,6 @@
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QGLWidget>
-#endif
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
 W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
@@ -192,25 +188,13 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   QPointF delta = {angleDelta.x() / 8., angleDelta.y() / 8.};
   if(m_hZoom)
   {
-    QPoint pos =
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-        event->pos()
-#else
-        event->position().toPoint()
-#endif
-        ;
+    QPoint pos = event->position().toPoint();
     horizontalZoom(delta, mapToScene(pos));
     return;
   }
   else if(m_vZoom)
   {
-    QPoint pos =
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-        event->pos()
-#else
-        event->position().toPoint()
-#endif
-        ;
+    QPoint pos = event->position().toPoint();
     verticalZoom(delta, mapToScene(pos));
     return;
   }
@@ -232,15 +216,8 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
       MyWheelEvent(const QWheelEvent& other)
           : QWheelEvent{other}
       {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        p.ry() /= 4.;
-        pixelD.ry() /= 4.;
-        angleD /= 4.;
-        qt4D /= 4.;
-#else
         this->m_angleDelta.ry() /= 4.;
         this->m_pixelDelta.ry() /= 4.;
-#endif
       }
     };
     MyWheelEvent e{*event};
@@ -447,7 +424,7 @@ bool ProcessGraphicsView::event(QEvent* event)
       hoverMoveEvent(static_cast<QHoverEvent*>(event));
       return true;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0) && !defined(QT_NO_GESTURES)
+#if !defined(QT_NO_GESTURES)
     case QEvent::NativeGesture: {
       auto gest = static_cast<QNativeGestureEvent*>(event);
       switch(gest->gestureType())
@@ -614,15 +591,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   {
     // m_minimapView.setViewport(new QOpenGLWidget);
     // m_timeRulerView.setViewport(new QOpenGLWidget);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QGLFormat fmt;
-    fmt.setSamples(4);
-    fmt.setSampleBuffers(true);
-    fmt.setSwapInterval(1);
-    auto vp = new QGLWidget{fmt};
-#else
     auto vp = new QOpenGLWidget{};
-#endif
     m_view.setViewport(vp);
 
     // m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);

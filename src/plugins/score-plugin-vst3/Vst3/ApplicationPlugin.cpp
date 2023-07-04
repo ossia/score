@@ -33,7 +33,7 @@ Q_DECLARE_METATYPE(std::vector<vst3::AvailablePlugin>)
 W_REGISTER_ARGTYPE(std::vector<vst3::AvailablePlugin>)
 
 template <>
-void DataStreamReader::read<VST3::Hosting::ClassInfo>(const VST3::Hosting::ClassInfo& pp)
+void DataStreamReader::read(const VST3::Hosting::ClassInfo& pp)
 {
   auto& p = const_cast<VST3::Hosting::ClassInfo&>(pp);
   auto& d = p.get();
@@ -42,7 +42,7 @@ void DataStreamReader::read<VST3::Hosting::ClassInfo>(const VST3::Hosting::Class
            << (const uint32_t&)d.classFlags;
 }
 template <>
-void DataStreamWriter::write<VST3::Hosting::ClassInfo>(VST3::Hosting::ClassInfo& p)
+void DataStreamWriter::write(VST3::Hosting::ClassInfo& p)
 {
   auto& d = p.get();
   std::string clsid;
@@ -55,12 +55,12 @@ void DataStreamWriter::write<VST3::Hosting::ClassInfo>(VST3::Hosting::ClassInfo&
 }
 
 template <>
-void DataStreamReader::read<vst3::AvailablePlugin>(const vst3::AvailablePlugin& p)
+void DataStreamReader::read(const vst3::AvailablePlugin& p)
 {
   m_stream << p.path << p.name << p.classInfo << p.isValid;
 }
 template <>
-void DataStreamWriter::write<vst3::AvailablePlugin>(vst3::AvailablePlugin& p)
+void DataStreamWriter::write(vst3::AvailablePlugin& p)
 {
   m_stream >> p.path >> p.name >> p.classInfo >> p.isValid;
 }
@@ -94,11 +94,6 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
 {
   qRegisterMetaType<AvailablePlugin>();
   qRegisterMetaType<std::vector<AvailablePlugin>>();
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<AvailablePlugin>();
-  qRegisterMetaTypeStreamOperators<std::vector<AvailablePlugin>>();
-#endif
 
 #if QT_CONFIG(process)
   m_wsServer.listen({}, 37588);

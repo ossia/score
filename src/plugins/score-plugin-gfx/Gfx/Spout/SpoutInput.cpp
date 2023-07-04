@@ -36,7 +36,6 @@ public:
   class Renderer;
 };
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 class SpoutInputNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
@@ -167,7 +166,6 @@ private:
 
       if(metadata.width > 0 && metadata.height > 0)
       {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
         m_pixels.resize(w * h * 4);
         tex->destroy();
         tex->setPixelSize(QSize(w, h));
@@ -175,7 +173,6 @@ private:
         for(auto& pass : m_p)
           pass.second.srb->create();
         mustUpload = true;
-#include <Gfx/Qt5CompatPop> // clang-format: keep
       }
       else
       {
@@ -233,7 +230,6 @@ private:
   ::SpoutReceiver m_receiver;
   std::vector<char> m_pixels;
 };
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 score::gfx::NodeRenderer*
 SpoutInputNode::createRenderer(score::gfx::RenderList& r) const noexcept

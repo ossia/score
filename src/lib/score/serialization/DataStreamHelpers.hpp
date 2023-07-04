@@ -90,30 +90,9 @@ concept is_QDataStreamSerializable =
     || std::is_same<T, QPoint>::value || std::is_same<T, std::string>::value;
 
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& s, char c);
-SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& s, char& c);
-#endif
-
 SCORE_LIB_BASE_EXPORT QDataStream&
 operator<<(QDataStream& stream, const std::string& obj);
 SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& stream, std::string& obj);
-
-#if(QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
-template <typename T>
-typename std::enable_if<std::is_enum<T>::value, QDataStream&>::type&
-operator<<(QDataStream& s, const T& t)
-{
-  return s << static_cast<typename std::underlying_type<T>::type>(t);
-}
-
-template <typename T>
-typename std::enable_if<std::is_enum<T>::value, QDataStream&>::type&
-operator>>(QDataStream& s, T& t)
-{
-  return s >> reinterpret_cast<typename std::underlying_type<T>::type&>(t);
-}
-#endif
 
 class QIODevice;
 
@@ -153,7 +132,6 @@ inline QDataStream& operator>>(QDataStream& s, int64_t& val)
 }
 #endif
 
-#if(QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 #if defined(__APPLE__) || defined(__EMSCRIPTEN__)
 inline QDataStream& operator<<(QDataStream& s, std::size_t val)
 {
@@ -165,7 +143,6 @@ inline QDataStream& operator>>(QDataStream& s, std::size_t& val)
   s >> (quint64&)val;
   return s;
 }
-#endif
 #endif
 
 template <typename T>
@@ -241,13 +218,6 @@ template <typename K, typename V>
 DataStreamInput& operator<<(DataStreamInput& s, const QHash<K, V>& obj) = delete;
 template <typename K, typename V>
 DataStreamOutput& operator>>(DataStreamOutput& s, const QHash<K, V>& obj) = delete;
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-template <typename T>
-DataStreamInput& operator<<(DataStreamInput& s, const QVector<T>& obj) = delete;
-template <typename T>
-DataStreamOutput& operator>>(DataStreamOutput& s, const QVector<T>& obj) = delete;
-#endif
 
 template <typename T>
   requires (std::is_enum_v<T>)

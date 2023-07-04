@@ -60,7 +60,6 @@ void Window::init()
   onWindowReady();
 }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 void Window::resizeSwapChain()
 {
   if(m_swapChain)
@@ -81,7 +80,6 @@ void Window::releaseSwapChain()
     m_swapChain->destroy();
   }
 }
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 void Window::render()
 {

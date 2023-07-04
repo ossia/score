@@ -71,7 +71,7 @@ void GraphalIntervalPresenter::resize()
 {
   prepareGeometryChange();
 
-  clearPainterPath(m_path);
+  m_path.clear();
   {
     auto p1 = m_start.pos();
     auto p2 = m_end.pos();

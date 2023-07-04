@@ -10,9 +10,6 @@
 #include <Scenario/Document/Interval/TimeSignatureMap.hpp>
 #include <Scenario/Document/Metatypes.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-#include <score/serialization/MapSerialization.hpp>
-#endif
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -20,6 +17,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 

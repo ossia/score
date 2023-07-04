@@ -50,21 +50,10 @@ public:
     req.setRawHeader("User-Agent", "curl/7.35.0");
 
     req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     req.setAttribute(
         QNetworkRequest::RedirectPolicyAttribute,
         QNetworkRequest::UserVerifiedRedirectPolicy);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-    req.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-#endif
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    req.setAttribute(QNetworkRequest::HTTP2AllowedAttribute, true);
-    req.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
-#else
     req.setAttribute(QNetworkRequest::Http2AllowedAttribute, true);
-#endif
 
     auto reply = get(req);
     connect(reply, &QNetworkReply::redirected, reply, &QNetworkReply::redirectAllowed);
@@ -93,11 +82,7 @@ public:
 
 protected:
   void paintEvent(QPaintEvent* event) override;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  void enterEvent(QEvent* event) override;
-#else
   void enterEvent(QEnterEvent* event) override;
-#endif
   void leaveEvent(QEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
 
@@ -173,11 +158,7 @@ void InteractiveLabel::paintEvent(QPaintEvent* event)
   painter.drawText(textRect, m_title);
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-void InteractiveLabel::enterEvent(QEvent* event)
-#else
 void InteractiveLabel::enterEvent(QEnterEvent* event)
-#endif
 {
   if(!m_interactive)
     return;

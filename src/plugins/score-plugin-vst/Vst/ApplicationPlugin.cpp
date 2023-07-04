@@ -27,13 +27,13 @@ SCORE_SERALIZE_DATASTREAM_DEFINE(std::vector<vst::VSTInfo>)
 // TODO remove me in a few versions
 static bool vst_invalid_format = false;
 template <>
-void DataStreamReader::read<vst::VSTInfo>(const vst::VSTInfo& p)
+void DataStreamReader::read(const vst::VSTInfo& p)
 {
   m_stream << p.path << p.prettyName << p.displayName << p.author << p.uniqueID
            << p.controls << p.isSynth << p.isValid;
 }
 template <>
-void DataStreamWriter::write<vst::VSTInfo>(vst::VSTInfo& p)
+void DataStreamWriter::write(vst::VSTInfo& p)
 {
   if(!vst_invalid_format)
     m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID
@@ -60,11 +60,6 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 {
   qRegisterMetaType<VSTInfo>();
   qRegisterMetaType<std::vector<VSTInfo>>();
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<VSTInfo>();
-  qRegisterMetaTypeStreamOperators<std::vector<VSTInfo>>();
-#endif
 
 #if QT_CONFIG(process)
   m_wsServer.listen({}, 37587);

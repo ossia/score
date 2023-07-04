@@ -96,9 +96,8 @@ void FullViewIntervalView::drawPlayDashedPath(
 
 void FullViewIntervalView::updatePaths()
 {
-
-  clearPainterPath(solidPath);
-  clearPainterPath(playedSolidPath);
+  solidPath.clear();
+  playedSolidPath.clear();
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -167,7 +166,7 @@ void FullViewIntervalView::drawPaths(
 
 void FullViewIntervalView::updatePlayPaths()
 {
-  clearPainterPath(playedSolidPath);
+  playedSolidPath.clear();
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();

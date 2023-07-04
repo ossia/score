@@ -486,12 +486,12 @@ void AudioOutlet::setGain(double gain)
   gainChanged(m_gain);
 }
 
-ossia::small_vector<double, 2> AudioOutlet::pan() const
+Process::pan_weight AudioOutlet::pan() const
 {
   return m_pan;
 }
 
-void AudioOutlet::setPan(ossia::small_vector<double, 2> pan)
+void AudioOutlet::setPan(Process::pan_weight pan)
 {
   if(m_pan == pan)
     return;
@@ -1056,15 +1056,14 @@ displayNameForPort(const Process::Port& outlet, const score::DocumentContext& do
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Port>(const Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::Port& p)
 {
   insertDelimiter();
   m_stream << p.hidden << p.m_name << p.m_exposed << p.m_description << p.m_address;
   insertDelimiter();
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Port& p)
 {
   checkDelimiter();
   m_stream >> p.hidden >> p.m_name >> p.m_exposed >> p.m_description >> p.m_address;
@@ -1072,7 +1071,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Po
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Port>(const Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Port& p)
 {
   obj["Hidden"] = (bool)p.hidden;
   if(!p.m_name.isEmpty())
@@ -1086,7 +1085,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Port>(const Process::Por
     obj["Address"] = p.m_address;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Port>(Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Port& p)
 {
   p.hidden = obj["Hidden"].toBool();
   if(auto it = obj.tryGet("Custom"))
@@ -1100,159 +1099,143 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Port>(Process::Port& p)
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Inlet>(const Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::Inlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Inlet>(Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Inlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Inlet>(const Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Inlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Inlet>(Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Inlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::AudioInlet>(const Process::AudioInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::AudioInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::AudioInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::AudioInlet>(const Process::AudioInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::AudioInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::AudioInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::MidiInlet>(const Process::MidiInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::MidiInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::MidiInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::MidiInlet>(const Process::MidiInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::MidiInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::MidiInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlInlet& p)
 {
   // read((Process::Inlet&)p);
   readFrom(p.m_value);
   readFrom(p.m_domain);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ControlInlet& p)
 {
   writeTo(p.m_value);
   writeTo(p.m_domain);
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ControlInlet& p)
 {
   // read((Process::Inlet&)p);
   obj[strings.Value] = p.m_value;
   obj[strings.Domain] = p.m_domain;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ControlInlet& p)
 {
   p.m_value <<= obj[strings.Value];
   p.m_domain <<= obj[strings.Domain];
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Outlet>(const Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::Outlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Outlet>(Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Outlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Outlet>(const Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Outlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Outlet>(Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Outlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::AudioOutlet& p)
 {
   // read((Process::Outlet&)p);
-  m_stream << *p.gainInlet << *p.panInlet << p.m_gain << p.m_pan << p.m_propagate;
+  m_stream << *p.gainInlet << *p.panInlet << p.m_gain
+           << static_cast<const ossia::small_vector<double, 2>&>(p.m_pan)
+           << p.m_propagate;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::AudioOutlet& p)
 {
   p.gainInlet = Process::load_control_inlet(*this, &p);
   p.panInlet = Process::load_control_inlet(*this, &p);
-  m_stream >> p.m_gain >> p.m_pan >> p.m_propagate;
+  m_stream >> p.m_gain >> static_cast<ossia::small_vector<double, 2>&>(p.m_pan)
+      >> p.m_propagate;
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::AudioOutlet& p)
 {
   // read((Process::Outlet&)p);
   obj["GainInlet"] = *p.gainInlet;
   obj["PanInlet"] = *p.panInlet;
 
   obj["Gain"] = p.m_gain;
-  obj["Pan"] = p.m_pan;
+  obj["Pan"] = static_cast<const ossia::small_vector<double, 2>&>(p.m_pan);
   obj["Propagate"] = p.m_propagate;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::AudioOutlet& p)
 {
   if(auto it = obj.tryGet("GainInlet"))
   {
@@ -1275,110 +1258,106 @@ JSONWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
   }
 
   p.m_gain = obj["Gain"].toDouble();
-  p.m_pan <<= obj["Pan"];
+  static_cast<ossia::small_vector<double, 2>&>(p.m_pan) <<= obj["Pan"];
   p.m_propagate = obj["Propagate"].toBool();
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::MidiOutlet>(const Process::MidiOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::MidiOutlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::MidiOutlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::MidiOutlet>(const Process::MidiOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::MidiOutlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::MidiOutlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlOutlet& p)
 {
   // read((Process::Outlet&)p);
   readFrom(p.m_value);
   readFrom(p.m_domain);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ControlOutlet& p)
 {
   writeTo(p.m_value);
   writeTo(p.m_domain);
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ControlOutlet& p)
 {
   // read((Process::Outlet&)p);
   obj[strings.Value] = p.m_value;
   obj[strings.Domain] = p.m_domain;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ControlOutlet& p)
 {
   p.m_value <<= obj[strings.Value];
   p.m_domain <<= obj[strings.Domain];
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ValueInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ValueInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ValueInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ValueInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ValueOutlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ValueOutlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ValueOutlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ValueOutlet& p)
 {
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::pan_weight& p)
+{
+  this->m_stream << static_cast<const ossia::small_vector<double, 2>&>(p);
+  // read((Process::Outlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::pan_weight& p)
+{
+  this->m_stream >> static_cast<ossia::small_vector<double, 2>&>(p);
 }

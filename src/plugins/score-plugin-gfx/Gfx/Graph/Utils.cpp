@@ -6,20 +6,14 @@
 
 namespace score::gfx
 {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 TextureRenderTarget
 createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples)
 {
   TextureRenderTarget ret;
   ret.texture = tex;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  ret.colorRenderBuffer = state.rhi->newRenderBuffer(
-      QRhiRenderBuffer::Color, tex->pixelSize(), samples, {});
-#else
   ret.colorRenderBuffer = state.rhi->newRenderBuffer(
       QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
-#endif
   ret.colorRenderBuffer->create();
 
   ret.depthRenderBuffer = state.rhi->newRenderBuffer(
@@ -166,18 +160,11 @@ void replaceSampler(
   {
     if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       SCORE_ASSERT(b.data()->u.stex.count >= 1);
       if(b.data()->u.stex.texSamplers[0].sampler == oldSampler)
       {
         b.data()->u.stex.texSamplers[0].sampler = newSampler;
       }
-#else
-      if(b.data()->u.stex.sampler == oldSampler)
-      {
-        b.data()->u.stex.sampler = newSampler;
-      }
-#endif
     }
   }
 
@@ -195,18 +182,11 @@ void replaceTexture(
   {
     if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       SCORE_ASSERT(b.data()->u.stex.count >= 1);
       if(b.data()->u.stex.texSamplers[0].sampler == sampler)
       {
         b.data()->u.stex.texSamplers[0].tex = newTexture;
       }
-#else
-      if(b.data()->u.stex.sampler == sampler)
-      {
-        b.data()->u.stex.tex = newTexture;
-      }
-#endif
     }
   }
 
@@ -226,17 +206,10 @@ void replaceTexture(
     auto& binding = *bindings.back().data();
     if(binding.type == QRhiShaderResourceBinding::SampledTexture)
     {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       if(binding.u.stex.texSamplers[0].tex == old_tex)
       {
         binding.u.stex.texSamplers[0].tex = new_tex;
       }
-#else
-      if(binding.u.stex.tex == old_tex)
-      {
-        binding.u.stex.tex = new_tex;
-      }
-#endif
     }
   }
   srb.setBindings(bindings.begin(), bindings.end());
@@ -460,8 +433,6 @@ void DefaultShaderMaterial::init(
     }
   }
 }
-
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 QSize resizeTextureSize(QSize sz, int min, int max) noexcept
 {

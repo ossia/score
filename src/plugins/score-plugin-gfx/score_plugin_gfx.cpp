@@ -51,17 +51,8 @@ score_plugin_gfx::score_plugin_gfx()
   qRegisterMetaType<Gfx::SharedOutputSettings>();
   qRegisterMetaType<Gfx::CameraSettings>();
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Gfx::SharedInputSettings>();
-  qRegisterMetaTypeStreamOperators<Gfx::SharedInputSettings>();
-  qRegisterMetaTypeStreamOperators<Gfx::CameraSettings>();
-#endif
-
 #if defined(HAS_FREENECT2)
   qRegisterMetaType<Gfx::Kinect2::Kinect2Settings>();
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  // FIXME qRegisterMetaTypeStreamOperators<Gfx::Kinect2::Kinect2Settings>();
-#endif
 #endif
 }
 

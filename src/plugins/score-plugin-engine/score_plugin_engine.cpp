@@ -40,10 +40,6 @@ score_plugin_engine::score_plugin_engine()
   qRegisterMetaType<ossia::bench_map>("BenchMap");
   qRegisterMetaType<Execution::ClockFactory::ConcreteKey>(
       "Execution::ClockFactory::ConcreteKey");
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>(
-      "Execution::ClockFactory::ConcreteKey");
-#endif
 }
 
 score_plugin_engine::~score_plugin_engine() { }

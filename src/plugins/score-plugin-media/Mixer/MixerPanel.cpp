@@ -264,7 +264,7 @@ public:
       double l = sin((1. - d) * ossia::half_pi);
       double r = sin(d * ossia::half_pi);
       m_context.dispatcher.submit<Process::SetPan>(
-          *m_model->outlet, ossia::pan_weight{l, r});
+          *m_model->outlet, Process::pan_weight{{l, r}});
     });
     con(m_panSlider, &PanSliderWidget::sliderReleased, this,
         [this] { m_context.dispatcher.commit(); });

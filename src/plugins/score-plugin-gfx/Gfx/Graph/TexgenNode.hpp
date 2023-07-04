@@ -59,7 +59,6 @@ struct TexgenNode : NodeModel
     float position[2];
   } ubo;
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
   struct Rendered : GenericNodeRenderer
   {
     using GenericNodeRenderer::GenericNodeRenderer;
@@ -138,6 +137,5 @@ struct TexgenNode : NodeModel
   }
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 }

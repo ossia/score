@@ -56,20 +56,11 @@ private:
                         .arg(QString::fromStdString(port));
 
       QNetworkRequest qreq{QUrl(req)};
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       qreq.setTransferTimeout(1000);
-#endif
       QPointer<QNetworkReply> ret = m_http.get(qreq);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-      connect(
-          ret, &QNetworkReply::errorOccurred, this,
-#else
-      connect(
-          ret, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error), this,
-#endif
-          [] {});
+      connect(ret, &QNetworkReply::errorOccurred, this, [] {});
 #if QT_CONFIG(ssl)
-      connect(ret, &QNetworkReply::sslErrors, this, []{});
+      connect(ret, &QNetworkReply::sslErrors, this, [] {});
 #endif
       connect(ret, &QNetworkReply::finished, this, [=]() mutable {
         auto doc = QJsonDocument::fromJson(ret->readAll());

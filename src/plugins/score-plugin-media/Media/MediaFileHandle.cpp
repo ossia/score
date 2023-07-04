@@ -1,5 +1,6 @@
 #include "MediaFileHandle.hpp"
 
+#include <Audio/Settings/Model.hpp>
 #include <Media/AudioDecoder.hpp>
 #include <Media/RMSData.hpp>
 
@@ -13,18 +14,12 @@
 #include <core/document/Document.hpp>
 
 #include <ossia/detail/apply.hpp>
-#include <ossia/detail/ssize.hpp>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-#include <QRegularExpression>
-#endif
-
-#include <Audio/Settings/Model.hpp>
-
 #include <ossia/detail/libav.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QDebug>
 #include <QFileInfo>
+#include <QRegularExpression>
 
 namespace Media
 {
@@ -129,12 +124,7 @@ bool AudioFile::isSupported(const QFile& file)
   constexpr auto rex = ".(wav|mp3|m4a|ogg|flac|aif|aiff|w64|ape|wv|wma)";
   return file.exists()
          && file.fileName().contains(
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-             QRegularExpression(rex, QRegularExpression::CaseInsensitiveOption)
-#else
-             QRegExp(rex, Qt::CaseInsensitive)
-#endif
-         );
+             QRegularExpression(rex, QRegularExpression::CaseInsensitiveOption));
 }
 
 int64_t AudioFile::samples() const

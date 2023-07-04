@@ -686,354 +686,354 @@ Bargraph::~Bargraph() { }
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
+DataStreamReader::read(const Process::FloatSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
+DataStreamWriter::write(Process::FloatSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
+JSONReader::read(const Process::FloatSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
+JSONWriter::write(Process::FloatSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::FloatKnob>(const Process::FloatKnob& p)
+DataStreamReader::read(const Process::FloatKnob& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::FloatKnob>(Process::FloatKnob& p)
+DataStreamWriter::write(Process::FloatKnob& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::FloatKnob>(const Process::FloatKnob& p)
+JSONReader::read(const Process::FloatKnob& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::FloatKnob>(Process::FloatKnob& p)
+JSONWriter::write(Process::FloatKnob& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::LogFloatSlider>(const Process::LogFloatSlider& p)
+DataStreamReader::read(const Process::LogFloatSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
+DataStreamWriter::write(Process::LogFloatSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::LogFloatSlider>(const Process::LogFloatSlider& p)
+JSONReader::read(const Process::LogFloatSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
+JSONWriter::write(Process::LogFloatSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::IntSlider>(const Process::IntSlider& p)
+DataStreamReader::read(const Process::IntSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::IntSlider>(Process::IntSlider& p)
+DataStreamWriter::write(Process::IntSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::IntSlider>(const Process::IntSlider& p)
+JSONReader::read(const Process::IntSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::IntSlider>(Process::IntSlider& p)
+JSONWriter::write(Process::IntSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::IntRangeSlider>(const Process::IntRangeSlider& p)
+DataStreamReader::read(const Process::IntRangeSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::IntRangeSlider>(Process::IntRangeSlider& p)
+DataStreamWriter::write(Process::IntRangeSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::IntRangeSlider>(const Process::IntRangeSlider& p)
-{
-  read((const Process::ControlInlet&)p);
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::IntRangeSlider>(Process::IntRangeSlider& p)
-{
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::FloatRangeSlider>(const Process::FloatRangeSlider& p)
+JSONReader::read(const Process::IntRangeSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::FloatRangeSlider>(Process::FloatRangeSlider& p)
+JSONWriter::write(Process::IntRangeSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::FloatRangeSlider>(const Process::FloatRangeSlider& p)
+DataStreamReader::read(const Process::FloatRangeSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::FloatRangeSlider>(Process::FloatRangeSlider& p)
+DataStreamWriter::write(Process::FloatRangeSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::FloatRangeSlider& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::FloatRangeSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::IntRangeSpinBox>(const Process::IntRangeSpinBox& p)
+DataStreamReader::read(const Process::IntRangeSpinBox& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::IntRangeSpinBox>(Process::IntRangeSpinBox& p)
+DataStreamWriter::write(Process::IntRangeSpinBox& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::IntRangeSpinBox>(const Process::IntRangeSpinBox& p)
-{
-  read((const Process::ControlInlet&)p);
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::IntRangeSpinBox>(Process::IntRangeSpinBox& p)
-{
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::FloatRangeSpinBox>(const Process::FloatRangeSpinBox& p)
+JSONReader::read(const Process::IntRangeSpinBox& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::FloatRangeSpinBox>(Process::FloatRangeSpinBox& p)
+JSONWriter::write(Process::IntRangeSpinBox& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::FloatRangeSpinBox>(const Process::FloatRangeSpinBox& p)
+DataStreamReader::read(const Process::FloatRangeSpinBox& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::FloatRangeSpinBox>(Process::FloatRangeSpinBox& p)
+DataStreamWriter::write(Process::FloatRangeSpinBox& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::FloatRangeSpinBox& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::FloatRangeSpinBox& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
+DataStreamReader::read(const Process::IntSpinBox& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
+DataStreamWriter::write(Process::IntSpinBox& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
+JSONReader::read(const Process::IntSpinBox& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
+JSONWriter::write(Process::IntSpinBox& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::FloatSpinBox>(const Process::FloatSpinBox& p)
+DataStreamReader::read(const Process::FloatSpinBox& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::FloatSpinBox>(Process::FloatSpinBox& p)
+DataStreamWriter::write(Process::FloatSpinBox& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::FloatSpinBox>(const Process::FloatSpinBox& p)
+JSONReader::read(const Process::FloatSpinBox& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::FloatSpinBox>(Process::FloatSpinBox& p)
+JSONWriter::write(Process::FloatSpinBox& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::TimeChooser>(const Process::TimeChooser& p)
+DataStreamReader::read(const Process::TimeChooser& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::TimeChooser>(Process::TimeChooser& p)
+DataStreamWriter::write(Process::TimeChooser& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::TimeChooser>(const Process::TimeChooser& p)
+JSONReader::read(const Process::TimeChooser& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::TimeChooser>(Process::TimeChooser& p)
+JSONWriter::write(Process::TimeChooser& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Toggle>(const Process::Toggle& p)
+DataStreamReader::read(const Process::Toggle& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Toggle>(Process::Toggle& p)
+DataStreamWriter::write(Process::Toggle& p)
 {
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Toggle>(const Process::Toggle& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Toggle& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Toggle>(Process::Toggle& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Toggle& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
+DataStreamReader::read(const Process::ChooserToggle& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
+DataStreamWriter::write(Process::ChooserToggle& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
+JSONReader::read(const Process::ChooserToggle& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
+JSONWriter::write(Process::ChooserToggle& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::LineEdit>(const Process::LineEdit& p)
+DataStreamReader::read(const Process::LineEdit& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::LineEdit>(Process::LineEdit& p)
+DataStreamWriter::write(Process::LineEdit& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::LineEdit>(const Process::LineEdit& p)
+JSONReader::read(const Process::LineEdit& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::LineEdit>(Process::LineEdit& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::LineEdit& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ProgramEdit>(const Process::ProgramEdit& p)
+DataStreamReader::read(const Process::ProgramEdit& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ProgramEdit>(Process::ProgramEdit& p)
+DataStreamWriter::write(Process::ProgramEdit& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ProgramEdit>(const Process::ProgramEdit& p)
+JSONReader::read(const Process::ProgramEdit& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ProgramEdit>(Process::ProgramEdit& p)
+JSONWriter::write(Process::ProgramEdit& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::FileChooser>(const Process::FileChooser& p)
+DataStreamReader::read(const Process::FileChooser& p)
 {
   read((const Process::ControlInlet&)p);
   m_stream << p.filters();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::FileChooser>(Process::FileChooser& p)
+DataStreamWriter::write(Process::FileChooser& p)
 {
   QString f;
   m_stream >> f;
@@ -1041,14 +1041,14 @@ DataStreamWriter::write<Process::FileChooser>(Process::FileChooser& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::FileChooser>(const Process::FileChooser& p)
+JSONReader::read(const Process::FileChooser& p)
 {
   read((const Process::ControlInlet&)p);
   obj["Filters"] = p.filters();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::FileChooser>(Process::FileChooser& p)
+JSONWriter::write(Process::FileChooser& p)
 {
   QString f;
   f <<= obj["Filters"];
@@ -1057,14 +1057,14 @@ JSONWriter::write<Process::FileChooser>(Process::FileChooser& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::AudioFileChooser>(const Process::AudioFileChooser& p)
+DataStreamReader::read(const Process::AudioFileChooser& p)
 {
   read((const Process::ControlInlet&)p);
   m_stream << p.filters();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::AudioFileChooser>(Process::AudioFileChooser& p)
+DataStreamWriter::write(Process::AudioFileChooser& p)
 {
   QString f;
   m_stream >> f;
@@ -1072,14 +1072,14 @@ DataStreamWriter::write<Process::AudioFileChooser>(Process::AudioFileChooser& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::AudioFileChooser>(const Process::AudioFileChooser& p)
+JSONReader::read(const Process::AudioFileChooser& p)
 {
   read((const Process::ControlInlet&)p);
   obj["Filters"] = p.filters();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::AudioFileChooser>(Process::AudioFileChooser& p)
+JSONWriter::write(Process::AudioFileChooser& p)
 {
   QString f;
   f <<= obj["Filters"];
@@ -1088,25 +1088,25 @@ JSONWriter::write<Process::AudioFileChooser>(Process::AudioFileChooser& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Enum>(const Process::Enum& p)
+DataStreamReader::read(const Process::Enum& p)
 {
   read((const Process::ControlInlet&)p);
   m_stream << p.values << p.pixmaps;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Enum>(Process::Enum& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Enum& p)
 {
   m_stream >> p.values >> p.pixmaps;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Enum>(const Process::Enum& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Enum& p)
 {
   read((const Process::ControlInlet&)p);
   obj["Values"] = p.values;
   obj["Pixmaps"] = p.pixmaps;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Enum>(Process::Enum& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Enum& p)
 {
   p.values <<= obj["Values"];
   p.pixmaps <<= obj["Pixmaps"];
@@ -1114,238 +1114,238 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Enum>(Process::Enum& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ComboBox>(const Process::ComboBox& p)
+DataStreamReader::read(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&)p);
   m_stream << p.alternatives;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ComboBox>(Process::ComboBox& p)
+DataStreamWriter::write(Process::ComboBox& p)
 {
   m_stream >> p.alternatives;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ComboBox>(const Process::ComboBox& p)
+JSONReader::read(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&)p);
   obj["Values"] = p.alternatives;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::ComboBox>(Process::ComboBox& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ComboBox& p)
 {
   p.alternatives <<= obj["Values"];
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Button>(const Process::Button& p)
+DataStreamReader::read(const Process::Button& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Button>(Process::Button& p)
+DataStreamWriter::write(Process::Button& p)
 {
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Button>(const Process::Button& p)
-{
-  read((const Process::ControlInlet&)p);
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Button>(Process::Button& p)
-{
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::ImpulseButton>(const Process::ImpulseButton& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Button& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ImpulseButton>(Process::ImpulseButton& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Button& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ImpulseButton>(const Process::ImpulseButton& p)
+DataStreamReader::read(const Process::ImpulseButton& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ImpulseButton>(Process::ImpulseButton& p)
+DataStreamWriter::write(Process::ImpulseButton& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::ImpulseButton& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::ImpulseButton& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
+DataStreamReader::read(const Process::HSVSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
+DataStreamWriter::write(Process::HSVSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
+JSONReader::read(const Process::HSVSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
+JSONWriter::write(Process::HSVSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::XYSlider>(const Process::XYSlider& p)
+DataStreamReader::read(const Process::XYSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::XYSlider>(Process::XYSlider& p)
+DataStreamWriter::write(Process::XYSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::XYSlider>(const Process::XYSlider& p)
+JSONReader::read(const Process::XYSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::XYSlider>(Process::XYSlider& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::XYSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::XYZSlider>(const Process::XYZSlider& p)
+DataStreamReader::read(const Process::XYZSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::XYZSlider>(Process::XYZSlider& p)
+DataStreamWriter::write(Process::XYZSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::XYZSlider>(const Process::XYZSlider& p)
+JSONReader::read(const Process::XYZSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::XYZSlider>(Process::XYZSlider& p)
+JSONWriter::write(Process::XYZSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::XYSpinboxes>(const Process::XYSpinboxes& p)
+DataStreamReader::read(const Process::XYSpinboxes& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::XYSpinboxes>(Process::XYSpinboxes& p)
+DataStreamWriter::write(Process::XYSpinboxes& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::XYSpinboxes>(const Process::XYSpinboxes& p)
+JSONReader::read(const Process::XYSpinboxes& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::XYSpinboxes>(Process::XYSpinboxes& p)
+JSONWriter::write(Process::XYSpinboxes& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::XYZSpinboxes>(const Process::XYZSpinboxes& p)
+DataStreamReader::read(const Process::XYZSpinboxes& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::XYZSpinboxes>(Process::XYZSpinboxes& p)
+DataStreamWriter::write(Process::XYZSpinboxes& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::XYZSpinboxes>(const Process::XYZSpinboxes& p)
+JSONReader::read(const Process::XYZSpinboxes& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::XYZSpinboxes>(Process::XYZSpinboxes& p)
+JSONWriter::write(Process::XYZSpinboxes& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::MultiSlider>(const Process::MultiSlider& p)
+DataStreamReader::read(const Process::MultiSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MultiSlider>(Process::MultiSlider& p)
+DataStreamWriter::write(Process::MultiSlider& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::MultiSlider>(const Process::MultiSlider& p)
+JSONReader::read(const Process::MultiSlider& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::MultiSlider>(Process::MultiSlider& p)
+JSONWriter::write(Process::MultiSlider& p)
 {
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Bargraph>(const Process::Bargraph& p)
+DataStreamReader::read(const Process::Bargraph& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Bargraph>(Process::Bargraph& p)
+DataStreamWriter::write(Process::Bargraph& p)
 {
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Bargraph>(const Process::Bargraph& p)
+JSONReader::read(const Process::Bargraph& p)
 {
   read((const Process::ControlInlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Bargraph>(Process::Bargraph& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Bargraph& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<QString>(const QString& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const QString& p)
 {
   m_stream << p;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<QString>(QString& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(QString& p)
 {
   m_stream >> p;
 }

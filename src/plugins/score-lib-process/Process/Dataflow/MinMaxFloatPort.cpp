@@ -85,7 +85,7 @@ void MinMaxFloatOutlet::mapExecution(
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
+DataStreamReader::read(const Process::MinMaxFloatOutlet& p)
 {
   // read((Process::Inlet&)p);
   m_stream << *p.minInlet << *p.maxInlet;
@@ -93,7 +93,7 @@ DataStreamReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOut
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
+DataStreamWriter::write(Process::MinMaxFloatOutlet& p)
 {
   static auto& il = components.interfaces<Process::PortFactoryList>();
 
@@ -103,7 +103,7 @@ DataStreamWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& 
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
+JSONReader::read(const Process::MinMaxFloatOutlet& p)
 {
   // read((Process::Inlet&)p);
   obj["MinInlet"] = *p.minInlet;
@@ -112,7 +112,7 @@ JSONReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
+JSONWriter::write(Process::MinMaxFloatOutlet& p)
 {
   static auto& il = components.interfaces<Process::PortFactoryList>();
 

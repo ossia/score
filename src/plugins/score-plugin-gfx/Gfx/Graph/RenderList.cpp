@@ -36,7 +36,6 @@ auto renderdoc_api = [] {
 }();
 #endif
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch& res)
 {
   if(auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
@@ -447,5 +446,4 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
   }
 }
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }

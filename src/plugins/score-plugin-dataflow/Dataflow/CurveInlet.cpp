@@ -280,20 +280,20 @@ QGraphicsItem* WidgetFactory::CurveInletItems::make_item(
 }
 
 template <>
-void DataStreamReader::read<Dataflow::CurveInlet>(const Dataflow::CurveInlet& p)
+void DataStreamReader::read(const Dataflow::CurveInlet& p)
 {
   read((const Process::ControlInlet&)p);
   readFrom(*p.m_curve);
 }
 template <>
-void DataStreamWriter::write<Dataflow::CurveInlet>(Dataflow::CurveInlet& p)
+void DataStreamWriter::write(Dataflow::CurveInlet& p)
 {
   delete p.m_curve;
   p.m_curve = new Curve::Model{*this, &p};
 }
 
 template <>
-void JSONReader::read<Dataflow::CurveInlet>(const Dataflow::CurveInlet& p)
+void JSONReader::read(const Dataflow::CurveInlet& p)
 {
   read((const Process::ControlInlet&)p);
   obj[strings.Domain] = p.m_domain;
@@ -301,7 +301,7 @@ void JSONReader::read<Dataflow::CurveInlet>(const Dataflow::CurveInlet& p)
 }
 
 template <>
-void JSONWriter::write<Dataflow::CurveInlet>(Dataflow::CurveInlet& p)
+void JSONWriter::write(Dataflow::CurveInlet& p)
 {
   delete p.m_curve;
   JSONObject::Deserializer curve_deser{obj["Curve"]};

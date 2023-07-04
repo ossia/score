@@ -47,9 +47,7 @@ void InvertYRenderer::init(
         QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
     sampler->setName("FullScreenImageNode::sampler");
-#include <Gfx/Qt5CompatPush>
     sampler->create();
-#include <Gfx/Qt5CompatPop>
 
     m_samplers.push_back({sampler, this->m_inputTarget.texture});
   }

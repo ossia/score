@@ -108,7 +108,6 @@ QMenu* PanelDelegate::addMenu(QMenu* cur, QStringList names)
 
 void PanelDelegate::importModule(const QString& path)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
   QJSValue mod = m_engine.importModule(path);
   if(auto init = mod.property("initialize"); init.isCallable())
     init.call();
@@ -166,7 +165,6 @@ void PanelDelegate::importModule(const QString& path)
   auto obj = m_engine.globalObject();
   obj.setProperty(QFileInfo{path}.baseName(), mod);
   m_edit->appendPlainText(mod.toString());
-#endif
 }
 
 QWidget* PanelDelegate::widget()

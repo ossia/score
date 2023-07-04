@@ -6,7 +6,6 @@ extern "C" {
 
 namespace score::gfx
 {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 struct PackedDecoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450
@@ -303,5 +302,4 @@ void main()
     res.uploadTexture(y_tex, desc);
   }
 };
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }

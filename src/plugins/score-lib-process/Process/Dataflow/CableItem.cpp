@@ -188,7 +188,7 @@ void CableItem::resize()
 {
   prepareGeometryChange();
 
-  clearPainterPath(m_path);
+  m_path.clear();
   if(m_p1 && m_p2)
   {
     auto p1 = m_p1->scenePos() + QPointF(6., 6.) * m_p1->sceneTransform().m11();

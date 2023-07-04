@@ -2,15 +2,11 @@
 #include <Gfx/Graph/RenderState.hpp>
 
 #include <score/gfx/OpenGL.hpp>
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QShaderBaker>
-#else
-#include <QtShaderTools/private/qshaderbaker_p.h>
-#endif
-
 #include <score/tools/std/StringHash.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+
+#include <QtShaderTools/private/qshaderbaker_p.h>
 
 namespace score::gfx
 {

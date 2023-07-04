@@ -509,19 +509,10 @@ std::size_t std::hash<State::Address>::operator()(const State::Address& k) const
   using std::size_t;
   using std::string;
 
-// Compute individual hash values for first,
-// second and third and combine them using XOR
-// and bit shifting:
-#if(QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
+  // Compute individual hash values for first,
+  // second and third and combine them using XOR
+  // and bit shifting:
   return ((qHash(k.device) ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
-#else
-  auto h = qHash(k.device);
-  for(const auto& elt : k.path)
-  {
-    h = (h ^ (qHash(elt) << 1)) >> 1;
-  }
-  return h;
-#endif
 }
 
 namespace std

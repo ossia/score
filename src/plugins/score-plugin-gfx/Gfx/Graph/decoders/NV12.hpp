@@ -6,7 +6,6 @@ extern "C" {
 
 namespace score::gfx
 {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 /**
  * @brief Decodes NV12 videos.
@@ -132,5 +131,4 @@ struct NV12Decoder : GPUVideoDecoder
   }
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 }

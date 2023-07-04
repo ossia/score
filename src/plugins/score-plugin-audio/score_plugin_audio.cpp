@@ -45,13 +45,6 @@ score_plugin_audio::score_plugin_audio()
   qRegisterMetaType<Audio::Settings::ExternalTransport>(
       "Audio::Settings::ExternalTransport");
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
-      "Audio::AudioFactory::ConcreteKey");
-  qRegisterMetaTypeStreamOperators<Audio::Settings::ExternalTransport>(
-      "Audio::Settings::ExternalTransport");
-#endif
-
   auto only_dummy_audio = qEnvironmentVariableIntValue("SCORE_ONLY_DUMMY_AUDIO") > 0;
 
   if(!only_dummy_audio)

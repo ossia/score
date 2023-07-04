@@ -431,10 +431,6 @@ static void setup_app_flags()
   qputenv("QT_FONT_DPI", "96");
 #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qputenv("QT_STYLE_OVERRIDE", "phantom");
-#endif
-
   if(!qEnvironmentVariableIsSet("QT_SUBPIXEL_AA_TYPE"))
     qputenv("QT_SUBPIXEL_AA_TYPE", "RGB");
 
@@ -448,9 +444,7 @@ static void setup_app_flags()
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents, true);
 #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   QCoreApplication::setAttribute(Qt::AA_DontShowShortcutsInContextMenus, false);
-#endif
 #if defined(__linux__)
   // Else things look horrible on KDE plasma, etc
   qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");

@@ -12,13 +12,7 @@
 #include <JS/Executor/Component.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <JS/Qml/ValueTypes.Qt5.hpp>
-#else
 #include <JS/Qml/ValueTypes.Qt6.hpp>
-#endif
-
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
@@ -173,6 +167,7 @@ W_OBJECT_IMPL(JS::Script)
 
 score_plugin_js::score_plugin_js()
 {
+  // FIXME
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   JS::registerQmlValueTypeProvider();
 #endif
@@ -195,11 +190,9 @@ score_plugin_js::score_plugin_js()
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaType<JS::SampleTimings>();
   qRegisterMetaType<JS::TokenRequestValueType>();
   qRegisterMetaType<JS::ExecutionStateValueType>();
-#endif
 }
 
 score_plugin_js::~score_plugin_js() = default;

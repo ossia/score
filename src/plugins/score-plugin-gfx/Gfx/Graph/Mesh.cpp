@@ -7,7 +7,6 @@ Mesh::Mesh() = default;
 
 Mesh::~Mesh() = default;
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 MeshBuffers BasicMesh::init(QRhi& rhi) const noexcept
 {
   auto mesh_buf = rhi.newBuffer(
@@ -58,7 +57,6 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
   cb.draw(vertexCount);
 }
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 PlainMesh::PlainMesh(tcb::span<const float> vtx, int count)
 {

@@ -358,14 +358,14 @@ static std::vector<ossia::value> imagePathsToAbsolute(
   return values;
 }
 template <>
-void DataStreamReader::read<Gfx::Images::ImageListChooser>(
+void DataStreamReader::read(
     const Gfx::Images::ImageListChooser& p)
 {
   read((const Process::ControlInlet&)p);
   readFrom(imagePathsToRelative(p));
 }
 template <>
-void DataStreamWriter::write<Gfx::Images::ImageListChooser>(
+void DataStreamWriter::write(
     Gfx::Images::ImageListChooser& p)
 {
   std::vector<ossia::value> values;
@@ -374,7 +374,7 @@ void DataStreamWriter::write<Gfx::Images::ImageListChooser>(
 }
 
 template <>
-void JSONReader::read<Gfx::Images::ImageListChooser>(
+void JSONReader::read(
     const Gfx::Images::ImageListChooser& p)
 {
   obj[strings.Value] = ossia::value(imagePathsToRelative(p));
@@ -382,7 +382,7 @@ void JSONReader::read<Gfx::Images::ImageListChooser>(
 }
 
 template <>
-void JSONWriter::write<Gfx::Images::ImageListChooser>(Gfx::Images::ImageListChooser& p)
+void JSONWriter::write(Gfx::Images::ImageListChooser& p)
 {
   p.m_value
       = imagePathsToAbsolute(p, ossia::convert<std::vector<ossia::value>>(p.m_value));

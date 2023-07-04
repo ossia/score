@@ -23,9 +23,7 @@ ProjectLibraryWidget::ProjectLibraryWidget(
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new FileSystemRecursiveFilterProxy{this}}
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   m_proxy->setRecursiveFilteringEnabled(true);
-#endif
 
   auto lay = new score::MarginLess<QVBoxLayout>;
   setStatusTip(

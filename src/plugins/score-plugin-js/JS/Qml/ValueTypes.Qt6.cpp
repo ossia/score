@@ -1,6 +1,5 @@
 #include <JS/Qml/ValueTypes.Qt6.hpp>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <ossia-qt/token_request.hpp>
 
 #include <private/qqmlglobal_p.h>
@@ -529,5 +528,3 @@ SampleTimings ExecutionStateValueType::timings(TokenRequestValueType tk) const n
   return SampleTimings{req.timings(tk.req)};
 }
 }
-
-#endif

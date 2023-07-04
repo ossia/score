@@ -6,7 +6,6 @@
 namespace oscr
 {
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 template <typename Node_T>
   requires(
       avnd::texture_input_introspection<Node_T>::size > 0
@@ -159,7 +158,6 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
   }
 };
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 template <typename Node_T>
   requires(

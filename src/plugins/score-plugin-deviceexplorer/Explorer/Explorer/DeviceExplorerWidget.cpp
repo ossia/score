@@ -72,11 +72,7 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QPair>
-#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
-#include <QRegExp>
-#else
 #include <QRegularExpression>
-#endif
 #include <QSize>
 #include <QStackedLayout>
 #include <QString>
@@ -134,11 +130,7 @@ public:
     if(!v)
       return;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    const QString& current_filter = m->filterRegExp().pattern();
-#else
     const QString& current_filter = m->filterRegularExpression().pattern();
-#endif
     const QString& new_filter = text();
 
     if(current_filter.isEmpty())
@@ -148,12 +140,8 @@ public:
 
     if(new_filter != current_filter)
     {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-      m->setFilterRegExp(QRegExp(new_filter, Qt::CaseInsensitive, QRegExp::FixedString));
-#else
       m->setFilterFixedString(new_filter);
       m->setFilterCaseSensitivity(Qt::CaseInsensitive);
-#endif
       if(new_filter.isEmpty())
       {
         // Restore the indices

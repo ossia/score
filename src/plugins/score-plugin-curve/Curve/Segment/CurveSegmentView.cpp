@@ -193,7 +193,7 @@ void SegmentView::updatePoints()
   }
   else
   {
-    clearPainterPath(m_unstrokedShape);
+    m_unstrokedShape.clear();
   }
   m_needsRecompute = true;
   update();

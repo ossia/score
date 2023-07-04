@@ -26,9 +26,7 @@ SystemLibraryWidget::SystemLibraryWidget(
     , m_proxy{new FileSystemRecursiveFilterProxy{this}}
     , m_preview{this}
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   m_proxy->setRecursiveFilteringEnabled(true);
-#endif
 
   setStatusTip(
       QObject::tr("This panel shows the system library.\n"
@@ -42,10 +40,8 @@ SystemLibraryWidget::SystemLibraryWidget(
 
   m_proxy->setSourceModel(m_model);
   m_proxy->setFilterKeyColumn(0);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   auto il = new ItemModelFilterLineEdit{*m_proxy, m_tv, this};
   lay->addWidget(il);
-#endif
   lay->addWidget(&m_tv);
   lay->addWidget(&m_preview);
   m_tv.setModel(m_proxy);
@@ -129,7 +125,6 @@ SystemLibraryWidget::SystemLibraryWidget(
   m_tv.setAcceptDrops(true);
   m_tv.setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   QTimer::singleShot(1000, [this, il, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();
     il->reset = [this, &settings] { setRoot(settings.getPackagesPath()); };
@@ -137,15 +132,6 @@ SystemLibraryWidget::SystemLibraryWidget(
     con(settings, &Library::Settings::Model::RootPathChanged, this, il->reset);
     con(settings, &Library::Settings::Model::rescanLibrary, this, il->reset);
   });
-#else
-  QTimer::singleShot(1000, [this, &ctx] {
-    auto& settings = ctx.settings<Library::Settings::Model>();
-    auto reset = [this, &settings] { setRoot(settings.getPackagesPath()); };
-    reset();
-    con(settings, &Library::Settings::Model::RootPathChanged, this, [=] { reset(); });
-    con(settings, &Library::Settings::Model::rescanLibrary, this, [=] { reset(); });
-  });
-#endif
 }
 
 SystemLibraryWidget::~SystemLibraryWidget() { }

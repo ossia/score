@@ -25,13 +25,8 @@ CGLContextObj nativeContext(QRhi& rhi)
 {
   auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
   QOpenGLContext* ctx = handles->context;
-  #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  auto pc = ctx->nativeHandle().value<QCocoaNativeContext>();
-  return [pc.context() CGLContextObj];
-  #else
   auto pc = ctx->nativeInterface<QNativeInterface::QCocoaGLContext>();
   return [pc->nativeContext() CGLContextObj];
-  #endif
 }
 
 struct SyphonNode final : score::gfx::OutputNode

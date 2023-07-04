@@ -32,9 +32,7 @@ FixedTabWidget::FixedTabWidget() noexcept
 
   m_actGrp = new QActionGroup{m_buttons};
   m_actGrp->setExclusive(true);
-#if QT_VERSION > QT_VERSION_CHECK(5, 14, 0)
   m_actGrp->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
-#endif
 }
 
 QActionGroup* FixedTabWidget::actionGroup() const noexcept

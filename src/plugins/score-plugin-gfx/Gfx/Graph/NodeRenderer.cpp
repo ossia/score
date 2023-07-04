@@ -9,7 +9,6 @@
 namespace score::gfx
 {
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 void defaultPassesInit(
     PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
@@ -232,6 +231,5 @@ void NodeRenderer::inputAboutToFinish(
 {
 }
 
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 }

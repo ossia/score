@@ -327,14 +327,7 @@ QWidget* JackFactory::make_settings(
   auto w = new QWidget{parent};
   auto lay = new QFormLayout{w};
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-  QTimer::singleShot(
-      1000, w,
-#else
-  QTimer::singleShot(
-      1000,
-#endif
-      [=, &m, &v, &m_disp] {
+  QTimer::singleShot(1000, w, [=, &m, &v, &m_disp] {
     try
     {
       setupSettingsWidget(w, lay, m, v, m_disp);
@@ -343,7 +336,7 @@ QWidget* JackFactory::make_settings(
     {
       qDebug("Could not set up JACK !");
     }
-      });
+  });
 
   return w;
 }

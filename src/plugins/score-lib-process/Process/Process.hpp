@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Dataflow/PortForward.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/Preset.hpp>
 #include <Process/ProcessFlags.hpp>
@@ -43,8 +44,8 @@ class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;
 class LayerFactory;
-using Inlets = ossia::small_vector<Process::Inlet*, 4>;
-using Outlets = ossia::small_vector<Process::Outlet*, 4>;
+struct Inlets;
+struct Outlets;
 
 /**
  * @brief The Process class

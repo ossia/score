@@ -270,7 +270,6 @@ ImagesNode::~ImagesNode()
   m_materialData.release();
 }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 static QRhiSampler* createSampler(ImageMode tile, QRhi& rhi)
 {
   QRhiSampler::AddressMode am{};
@@ -683,7 +682,6 @@ private:
   QRhiTexture* m_texture{};
   bool m_uploaded = false;
 };
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 NodeRenderer* ImagesNode::createRenderer(RenderList& r) const noexcept
 {
@@ -744,7 +742,6 @@ FullScreenImageNode::FullScreenImageNode(QImage dec)
 
 FullScreenImageNode::~FullScreenImageNode() { }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 class FullScreenImageNode::Renderer : public GenericNodeRenderer
 {
 public:
@@ -820,7 +817,6 @@ private:
   QRhiTexture* m_texture{};
   bool m_uploaded = false;
 };
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 NodeRenderer* FullScreenImageNode::createRenderer(RenderList& r) const noexcept
 {

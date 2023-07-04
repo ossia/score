@@ -804,24 +804,24 @@ void JSONWriter::write(vst3::Model& eff)
 }
 
 template <>
-void DataStreamReader::read<vst3::ControlInlet>(const vst3::ControlInlet& p)
+void DataStreamReader::read(const vst3::ControlInlet& p)
 {
   m_stream << (uint32_t)p.fxNum << p.m_value;
 }
 template <>
-void DataStreamWriter::write<vst3::ControlInlet>(vst3::ControlInlet& p)
+void DataStreamWriter::write(vst3::ControlInlet& p)
 {
   m_stream >> (uint32_t&)p.fxNum >> p.m_value;
 }
 
 template <>
-void JSONReader::read<vst3::ControlInlet>(const vst3::ControlInlet& p)
+void JSONReader::read(const vst3::ControlInlet& p)
 {
   obj["FxNum"] = (uint32_t)p.fxNum;
   obj["Value"] = p.value();
 }
 template <>
-void JSONWriter::write<vst3::ControlInlet>(vst3::ControlInlet& p)
+void JSONWriter::write(vst3::ControlInlet& p)
 {
   p.fxNum = obj["FxNum"].toInt();
   p.setValue(obj["Value"].toDouble());

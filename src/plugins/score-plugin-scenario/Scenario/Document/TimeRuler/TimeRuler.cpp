@@ -119,11 +119,12 @@ void layoutTimeText(
         "{0}.{1}.{2}", timings.bars + 1, timings.quarters + 1,
         timings.semiquavers + 1)));
 
-/*
+    /*
     layout.setText(
           QString::fromStdString(
             fmt::format("{0}.{1}.{2}.{3:03}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1, timings.cents)));
-*/  }
+*/
+  }
 }
 
 QGlyphRun MusicalRuler::getGlyphs(ossia::bar_time timings, ossia::bar_time increments)
@@ -357,7 +358,7 @@ void TimeRuler::createRulerPath()
   m_marks.clear();
   m_marks.reserve(16);
 
-  clearPainterPath(m_path);
+  m_path.clear();
 
   if(m_width == 0)
   {

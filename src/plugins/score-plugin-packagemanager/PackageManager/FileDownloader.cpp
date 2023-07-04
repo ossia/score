@@ -15,21 +15,10 @@ FileDownloader::FileDownloader(QUrl imageUrl)
   req.setRawHeader("User-Agent", "curl/7.35.0");
 
   req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
   req.setAttribute(
       QNetworkRequest::RedirectPolicyAttribute,
       QNetworkRequest::SameOriginRedirectPolicy);
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-  req.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
-#endif
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-  req.setAttribute(QNetworkRequest::HTTP2AllowedAttribute, true);
-  req.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
-#else
   req.setAttribute(QNetworkRequest::Http2AllowedAttribute, true);
-#endif
 
   m_mgr.get(req);
 }
