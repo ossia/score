@@ -9,9 +9,9 @@ ProcessStateDataInterface::ProcessStateDataInterface(
     : IdentifiedObject{Id<ProcessStateDataInterface>{}, "", parent}
     , m_model{model}
 {
-  connect(this, &ProcessStateDataInterface::stateChanged, this, [&]() {
-    messagesChanged(this->messages());
-  });
+  connect(
+      this, &ProcessStateDataInterface::stateChanged, this,
+      &ProcessStateDataInterface::messagesChanged);
 }
 
 ProcessStateDataInterface::~ProcessStateDataInterface() = default;

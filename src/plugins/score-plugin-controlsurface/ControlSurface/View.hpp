@@ -3,6 +3,7 @@
 
 #include <Process/LayerView.hpp>
 
+#include <QMimeData>
 namespace Process
 {
 class Port;
@@ -22,7 +23,7 @@ public:
   explicit View(QGraphicsItem* parent);
   ~View() override;
 
-  void addressesDropped(State::MessageList lst) W_SIGNAL(addressesDropped, lst);
+  void addressesDropped(const QMimeData* lst) W_SIGNAL(addressesDropped, lst);
 
 private:
   void paint_impl(QPainter*) const override;
@@ -37,3 +38,5 @@ private:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
 }
+
+W_REGISTER_ARGTYPE(const QMimeData*)

@@ -1,4 +1,6 @@
 
+#include <State/MessageListSerialization.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Style/Pixmaps.hpp>
@@ -36,7 +38,9 @@ Presenter::Presenter(
     : Process::LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
 {
-  connect(view, &View::addressesDropped, this, [this, &layer](State::MessageList lst) {
+  connect(view, &View::addressesDropped, this, [this, &layer](const QMimeData* msg) {
+    Mime<State::MessageList>::Deserializer des(*msg);
+    auto lst = des.deserialize();
     if(lst.empty())
       return;
 

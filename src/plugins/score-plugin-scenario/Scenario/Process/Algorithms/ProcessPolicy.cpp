@@ -26,12 +26,13 @@ AddProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
   if(!state)
     return;
 
-  auto prev_proc_fun = [&](const State::MessageList& ml) {
+  auto prev_proc_fun = [&, state]() {
     // TODO have some collapsing between all the processes of a state
     // NOTE how to prevent these states from being played
     // twice ? mark them ?
     // TODO which one should be sent ? the ones
     // from the process ?
+    const auto& ml = state->messages();
     auto& messages = statemodel.messages();
 
     for(const ProcessStateWrapper& next_proc : statemodel.followingProcesses())
@@ -48,7 +49,7 @@ AddProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
   QObject::connect(
       state, &ProcessStateDataInterface::messagesChanged, &wrapper, prev_proc_fun);
 
-  prev_proc_fun(state->messages());
+  prev_proc_fun();
 }
 
 static void
@@ -58,7 +59,8 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
   if(!state)
     return;
 
-  auto next_proc_fun = [&](const State::MessageList& ml) {
+  auto next_proc_fun = [&, state]() {
+    const auto& ml = state->messages();
     auto& messages = statemodel.messages();
 
     for(const ProcessStateWrapper& prev_proc : statemodel.previousProcesses())
@@ -75,7 +77,7 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
   QObject::connect(
       state, &ProcessStateDataInterface::messagesChanged, &wrapper, next_proc_fun);
 
-  next_proc_fun(state->messages());
+  next_proc_fun();
 }
 
 static void

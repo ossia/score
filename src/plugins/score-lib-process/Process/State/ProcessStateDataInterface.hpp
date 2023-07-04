@@ -62,8 +62,7 @@ public:
    * Sent whenever the messages in the process changed.
    *
    */
-  void messagesChanged(const State::MessageList& arg_1)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, messagesChanged, arg_1)
+  void messagesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, messagesChanged)
 
 private:
   Process::ProcessModel& m_model;

@@ -35,7 +35,7 @@ endif()
 # Files & main target
 include(ScoreQtConf)
 
-qt_add_resources(QRCS 
+qt_add_resources(QRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc"
   "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc"
 )
