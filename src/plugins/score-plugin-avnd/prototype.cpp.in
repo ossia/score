@@ -26,7 +26,7 @@ namespace oscr
 {
 template <>
 void custom_factories<@AVND_QUALIFIED@>(
-    std::vector<std::unique_ptr<score::InterfaceBase>>& fx,
+    std::vector<score::InterfaceBase*>& fx,
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
   using namespace oscr;

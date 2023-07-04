@@ -26,7 +26,7 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_pd::make_comm
 
   return cmds;
 }
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_pd::factories(
+std::vector<score::InterfaceBase*> score_plugin_pd::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

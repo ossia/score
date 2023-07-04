@@ -32,7 +32,7 @@ using LayerFactory = Process::EffectLayerFactory_T<
 score_plugin_spline3d::score_plugin_spline3d() = default;
 score_plugin_spline3d::~score_plugin_spline3d() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_spline3d::factories(
+std::vector<score::InterfaceBase*> score_plugin_spline3d::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

@@ -54,7 +54,7 @@ score_plugin_vst::make_guiApplicationPlugin(const score::GUIApplicationContext& 
   return new vst::GUIApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst::factories(
+std::vector<score::InterfaceBase*> score_plugin_vst::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

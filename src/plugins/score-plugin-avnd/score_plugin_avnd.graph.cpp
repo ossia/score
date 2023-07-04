@@ -457,7 +457,7 @@ struct MidiFileOctaver
 };
 template <>
 void custom_factories<grph::Graph>(
-    std::vector<std::unique_ptr<score::InterfaceBase>>& fx,
+    std::vector<score::InterfaceBase*>& fx,
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
   static auto w = new GraphWidget;

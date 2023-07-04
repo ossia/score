@@ -58,7 +58,7 @@ score_plugin_gfx::score_plugin_gfx()
 
 score_plugin_gfx::~score_plugin_gfx() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
+std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

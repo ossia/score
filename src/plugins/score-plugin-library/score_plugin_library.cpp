@@ -18,7 +18,7 @@ score_plugin_library::factoryFamilies()
 {
   return make_ptr_vector<score::InterfaceListBase, Library::LibraryInterfaceList>();
 }
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_library::guiFactories(
+std::vector<score::InterfaceBase*> score_plugin_library::guiFactories(
     const score::GUIApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

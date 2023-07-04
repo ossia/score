@@ -147,7 +147,7 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_faust::make_c
   return cmds;
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_faust::factories(
+std::vector<score::InterfaceBase*> score_plugin_faust::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

@@ -31,33 +31,14 @@
 
 #include <boost/pfr.hpp>
 
-#include <halp/log.hpp>
-
 #include <score_plugin_engine.hpp>
-
-#if !defined(_MSC_VER)
-#include <Aether/src/aether_dsp.cpp>
-#endif
-
-#include <avnd/../../examples/Advanced/Utilities/ADSR.hpp>
-#include <avnd/../../examples/Advanced/Utilities/AudioFilters.hpp>
-#include <avnd/../../examples/Advanced/Utilities/Bitcrush.hpp>
-
-#if __has_include(<kfr/dft/convolution.hpp>)
-#include <kfr/kfr.h>
-#if QT_VERSION_CHECK(KFR_VERSION_MAJOR, KFR_VERSION_MINOR, KFR_VERSION_PATCH) \
-    >= QT_VERSION_CHECK(5, 0, 2)
-#include <avnd/../../examples/Advanced/Utilities/Convolver.hpp>
-#define AVND_HAS_CONVOLVER 1
-#endif
-#endif
-
-#include <avnd/../../examples/Advanced/Utilities/Dynamics.hpp>
-#include <avnd/../../examples/Advanced/Utilities/Echo.hpp>
-#include <avnd/../../examples/Advanced/Utilities/Flanger.hpp>
-#include <avnd/../../examples/Advanced/Utilities/StereoMixer.hpp>
 #define AVND_TEST_BUILD 0
 #if AVND_TEST_BUILD
+#include <ossia/detail/logger.hpp>
+
+#include <Avnd/Logger.hpp>
+#include <halp/log.hpp>
+
 #include <avnd/../../examples/Helpers/Controls.hpp>
 #include <avnd/../../examples/Helpers/FFTDisplay.hpp>
 #include <avnd/../../examples/Helpers/ImageUi.hpp>
@@ -92,8 +73,10 @@
 #include <avnd/../../examples/Tutorial/TrivialGeneratorExample.hpp>
 #include <avnd/../../examples/Tutorial/ZeroDependencyAudioEffect.hpp>
 // #include <avnd/../../examples/Tutorial/Synth.hpp>
+#include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
 #include <avnd/../../examples/Gpu/DrawRaw.hpp>
 #include <avnd/../../examples/Gpu/DrawWithHelpers.hpp>
+#include <avnd/../../examples/Helpers/PeakBandFFTPort.hpp>
 #include <avnd/../../examples/Ports/LitterPower/CCC.hpp>
 #include <avnd/../../examples/Tutorial/AudioSidechainExample.hpp>
 #include <avnd/../../examples/Tutorial/ControlGallery.hpp>
@@ -104,9 +87,6 @@
 #include <avnd/../../examples/Tutorial/TextureGeneratorExample.hpp>
 #endif
 
-#include <avnd/../../examples/Advanced/Granular/Granolette.hpp>
-#include <avnd/../../examples/Helpers/PeakBandFFTPort.hpp>
-
 /**
  * This file instantiates the classes that are provided by this plug-in.
  */
@@ -116,46 +96,49 @@
 #include "include.avnd.cpp"
 // clang-format on
 
-#include <Avnd/Logger.hpp>
 #include <halp/meta.hpp>
+
+namespace oscr
+{
+void instantiate_audiofilters(
+    std::vector<score::InterfaceBase*>& fx, const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key);
+void instantiate_aether(
+    std::vector<score::InterfaceBase*>& fx, const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key);
+void instantiate_convolver(
+    std::vector<score::InterfaceBase*>& fx, const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key);
+}
+#include <boost/ptr_container/ptr_vector.hpp>
 score_plugin_avnd::score_plugin_avnd() = default;
 score_plugin_avnd::~score_plugin_avnd() = default;
-
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_avnd::factories(
+std::vector<score::InterfaceBase*> score_plugin_avnd::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace oscr;
+
+  std::vector<score::InterfaceBase*> fx;
+
+  std::vector<score::InterfaceBase*> fxtt;
+
+  // score_plugin_avnd.aether.cpp
+  instantiate_aether(fx, ctx, key);
+
+  // score_plugin_avnd.filters.cpp
+  instantiate_audiofilters(fx, ctx, key);
+
+  // score_plugin_avnd.convolver.cpp
+  instantiate_convolver(fx, ctx, key);
+
+  // cmake-generated .cpp's
+  all_custom_factories(fx, ctx, key);
+
+#if AVND_TEST_BUILD
   struct config
   {
     using logger_type = oscr::Logger;
   };
-  std::vector<std::unique_ptr<score::InterfaceBase>> fx;
-#if !defined(_MSC_VER)
-  oscr::instantiate_fx<Aether::Object>(fx, ctx, key);
-#endif
-  oscr::instantiate_fx<ao::ADSR>(fx, ctx, key);
-
-#if AVND_HAS_CONVOLVER
-  oscr::instantiate_fx<ao::Convolver>(fx, ctx, key);
-#endif
-
-  oscr::instantiate_fx<ao::Lowpass>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Highpass>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Lowshelf>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Highshelf>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Bandpass>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Bandstop>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Bandshelf>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Bitcrush>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Compressor>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Limiter>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Echo>(fx, ctx, key);
-  oscr::instantiate_fx<ao::Flanger>(fx, ctx, key);
-  oscr::instantiate_fx<ao::StereoMixer>(fx, ctx, key);
-
-  all_custom_factories(fx, ctx, key);
-
-#if AVND_TEST_BUILD
   namespace E = examples;
   namespace EH = examples::helpers;
   oscr::instantiate_fx<

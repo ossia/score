@@ -47,7 +47,7 @@
 score_plugin_fx::score_plugin_fx() = default;
 score_plugin_fx::~score_plugin_fx() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
+std::vector<score::InterfaceBase*> score_plugin_fx::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return Control::instantiate_fx<

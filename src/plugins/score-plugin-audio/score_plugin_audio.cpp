@@ -81,7 +81,7 @@ score_plugin_audio::factoryFamilies()
 
 template <typename... Args>
 auto add_factories(
-    std::vector<std::unique_ptr<score::InterfaceBase>>& vec, const auto& ctx,
+    std::vector<score::InterfaceBase*>& vec, const auto& ctx,
     const score::InterfaceKey& key) noexcept
 {
   ossia::for_each_type_if_tagged<Args...>([&](auto t) {
@@ -90,10 +90,10 @@ auto add_factories(
   });
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories(
+std::vector<score::InterfaceBase*> score_plugin_audio::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
-  std::vector<std::unique_ptr<score::InterfaceBase>> vec;
+  std::vector<score::InterfaceBase*> vec;
   {
     // Common stuff
     add_factories<

@@ -24,7 +24,7 @@ using ScenarioFactory = Process::ProcessFactory_T<Scenario::ProcessModel>;
 class ScenarioTemporalLayerFactory final : public Process::LayerFactory
 {
 public:
-  ScenarioTemporalLayerFactory(Scenario::EditionSettings&);
+  explicit ScenarioTemporalLayerFactory(Scenario::EditionSettings&);
 
   Process::LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel&, Process::LayerView*, const Process::Context& context,

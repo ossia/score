@@ -82,14 +82,14 @@ void registerPluginsImpl(
         for(auto&& new_factory :
             factories_plugin->factories(base_ctx, factory_family.first))
         {
-          factory_family.second->insert(std::move(new_factory));
+          factory_family.second->insert(std::unique_ptr<InterfaceBase>(new_factory));
         }
 
         // Register GUI factories
         for(auto&& new_factory :
             factories_plugin->guiFactories(context, factory_family.first))
         {
-          factory_family.second->insert(std::move(new_factory));
+          factory_family.second->insert(std::unique_ptr<InterfaceBase>(new_factory));
         }
       }
     }

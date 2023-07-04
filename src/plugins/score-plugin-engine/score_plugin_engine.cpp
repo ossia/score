@@ -58,7 +58,7 @@ score_plugin_engine::factoryFamilies()
       Execution::ClockFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_engine::factories(
+std::vector<score::InterfaceBase*> score_plugin_engine::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Scenario;

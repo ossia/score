@@ -19,7 +19,7 @@ public:
   score_plugin_vst();
   ~score_plugin_vst() override;
 
-  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
+  std::vector<score::InterfaceBase*> factories(
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
 

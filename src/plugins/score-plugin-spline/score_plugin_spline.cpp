@@ -30,7 +30,7 @@ using SplineLayerFactory
 score_plugin_spline::score_plugin_spline() = default;
 score_plugin_spline::~score_plugin_spline() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_spline::factories(
+std::vector<score::InterfaceBase*> score_plugin_spline::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

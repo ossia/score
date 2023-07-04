@@ -88,7 +88,7 @@ score_plugin_media::factoryFamilies()
       score::InterfaceListBase, Media::Settings::PluginSettingsFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories(
+std::vector<score::InterfaceBase*> score_plugin_media::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

@@ -192,16 +192,16 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
       for(auto&& new_factory :
           factories_plugin->factories(base_ctx, factory_family.first))
       {
-        ifaces.push_back(new_factory.get());
-        factory_family.second->insert(std::move(new_factory));
+        ifaces.push_back(new_factory);
+        factory_family.second->insert(std::unique_ptr<InterfaceBase>(new_factory));
       }
 
       // Register GUI factories
       for(auto&& new_factory :
           factories_plugin->guiFactories(context, factory_family.first))
       {
-        ifaces.push_back(new_factory.get());
-        factory_family.second->insert(std::move(new_factory));
+        ifaces.push_back(new_factory);
+        factory_family.second->insert(std::unique_ptr<InterfaceBase>(new_factory));
       }
 
       if(dynamic_cast<score::SettingsDelegateFactoryList*>(factory_family.second.get()))

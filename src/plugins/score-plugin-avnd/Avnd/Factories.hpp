@@ -193,7 +193,7 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 
 template <typename... Nodes>
 static void instantiate_fx(
-    std::vector<std::unique_ptr<score::InterfaceBase>>& v,
+    std::vector<score::InterfaceBase*>& v,
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
   if(key == Execution::ProcessComponentFactory::static_interfaceKey())
@@ -237,7 +237,7 @@ static void instantiate_fx(
 
 template <typename T>
 void custom_factories(
-    std::vector<std::unique_ptr<score::InterfaceBase>>& fx,
+    std::vector<score::InterfaceBase*>& fx,
     const score::ApplicationContext& ctx, const score::InterfaceKey& key);
 
 }

@@ -15,11 +15,11 @@
 @AVND_BASE_TARGET@::@AVND_BASE_TARGET@() = default;
 @AVND_BASE_TARGET@::~@AVND_BASE_TARGET@() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> @AVND_BASE_TARGET@::factories(
+std::vector<score::InterfaceBase*> @AVND_BASE_TARGET@::factories(
         const score::ApplicationContext& ctx,
         const score::InterfaceKey& key) const
 {
-  std::vector<std::unique_ptr<score::InterfaceBase>> fx;
+  std::vector<score::InterfaceBase*> fx;
 
   @AVND_CUSTOM_FACTORIES@
 

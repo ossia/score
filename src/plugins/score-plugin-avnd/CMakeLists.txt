@@ -131,7 +131,10 @@ add_library(
   Crousti/ProcessModel.hpp
   Crousti/Widgets.hpp
 
-#  score_plugin_avnd.graph.cpp
+# score_plugin_avnd.graph.cpp
+  score_plugin_avnd.aether.cpp
+  score_plugin_avnd.convolver.cpp
+  score_plugin_avnd.filters.cpp
 
   score_plugin_avnd.hpp
   score_plugin_avnd.cpp
@@ -357,6 +360,50 @@ function(avnd_make_score)
   set(AVND_ADDITIONAL_CLASSES "${AVND_ADDITIONAL_CLASSES}\n${txt}\n" PARENT_SCOPE)
   set(AVND_CUSTOM_FACTORIES "${AVND_CUSTOM_FACTORIES}\n${txtf}\n" PARENT_SCOPE)
 endfunction()
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
+  TARGET adsr
+  MAIN_CLASS ADSR
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Bitcrush.hpp"
+  TARGET bitcrush
+  MAIN_CLASS Bitcrush
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Dynamics.hpp"
+  TARGET compressor
+  MAIN_CLASS Compressor
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Dynamics.hpp"
+  TARGET limiter
+  MAIN_CLASS Limiter
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Echo.hpp"
+  TARGET echo
+  MAIN_CLASS Echo
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Flanger.hpp"
+  TARGET flanger
+  MAIN_CLASS Flanger
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/StereoMixer.hpp"
+  TARGET stereo_mixer
+  MAIN_CLASS StereoMixer
+  NAMESPACE ao
+)
+
 
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiReader.hpp"

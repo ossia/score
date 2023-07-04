@@ -73,7 +73,7 @@ score_plugin_deviceexplorer::factoryFamilies()
       Device::DeviceModelProviderList, Explorer::ListeningHandlerFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
+std::vector<score::InterfaceBase*>
 score_plugin_deviceexplorer::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {

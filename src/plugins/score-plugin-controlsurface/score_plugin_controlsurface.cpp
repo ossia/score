@@ -14,7 +14,7 @@ score_plugin_controlsurface::score_plugin_controlsurface() { }
 
 score_plugin_controlsurface::~score_plugin_controlsurface() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
+std::vector<score::InterfaceBase*>
 score_plugin_controlsurface::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {

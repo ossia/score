@@ -48,10 +48,10 @@ template <typename Node>
 using LayerFactory = ControlLayerFactory<Node>;
 
 template <typename... Nodes>
-std::vector<std::unique_ptr<score::InterfaceBase>>
+std::vector<score::InterfaceBase*>
 instantiate_fx(const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
-  std::vector<std::unique_ptr<score::InterfaceBase>> vec;
+  std::vector<score::InterfaceBase*> vec;
   if(key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     (vec.emplace_back(
@@ -98,7 +98,7 @@ struct score_generic_plugin final
   score_generic_plugin() = default;
   ~score_generic_plugin() override = default;
 
-  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
+  std::vector<score::InterfaceBase*> factories(
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& key) const override
   {

@@ -27,7 +27,7 @@
 score_plugin_analysis::score_plugin_analysis() = default;
 score_plugin_analysis::~score_plugin_analysis() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_analysis::factories(
+std::vector<score::InterfaceBase*> score_plugin_analysis::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return Control::instantiate_fx<

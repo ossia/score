@@ -40,7 +40,7 @@ score_plugin_jit::score_plugin_jit()
 
 score_plugin_jit::~score_plugin_jit() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_jit::factories(
+std::vector<score::InterfaceBase*> score_plugin_jit::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

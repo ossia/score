@@ -42,7 +42,7 @@ score_plugin_lv2::make_applicationPlugin(const score::ApplicationContext& app)
   return new LV2::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_lv2::factories(
+std::vector<score::InterfaceBase*> score_plugin_lv2::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   if(!has_libsuil)

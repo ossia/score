@@ -197,7 +197,7 @@ score_plugin_js::score_plugin_js()
 
 score_plugin_js::~score_plugin_js() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
+std::vector<score::InterfaceBase*> score_plugin_js::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

@@ -25,7 +25,7 @@ score_plugin_dataflow::score_plugin_dataflow() { }
 
 score_plugin_dataflow::~score_plugin_dataflow() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factories(
+std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

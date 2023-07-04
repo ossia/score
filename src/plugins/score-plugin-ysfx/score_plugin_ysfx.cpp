@@ -87,7 +87,7 @@ score_plugin_ysfx::score_plugin_ysfx() { }
 
 score_plugin_ysfx::~score_plugin_ysfx() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_ysfx::factories(
+std::vector<score::InterfaceBase*> score_plugin_ysfx::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

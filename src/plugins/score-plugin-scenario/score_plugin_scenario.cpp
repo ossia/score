@@ -184,11 +184,11 @@ struct FactoryBuilder<
   {
     using namespace Scenario;
     auto& appPlugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
-    return std::make_unique<ScenarioTemporalLayerFactory>(appPlugin.editionSettings());
+    return new ScenarioTemporalLayerFactory(appPlugin.editionSettings());
   }
 };
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factories(
+std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Scenario;
@@ -254,7 +254,7 @@ score_plugin_scenario::make_commands()
   return cmds;
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::guiFactories(
+std::vector<score::InterfaceBase*> score_plugin_scenario::guiFactories(
     const score::GUIApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Scenario;

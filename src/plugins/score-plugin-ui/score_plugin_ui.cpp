@@ -13,7 +13,7 @@
 score_plugin_ui::score_plugin_ui() = default;
 score_plugin_ui::~score_plugin_ui() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_ui::factories(
+std::vector<score::InterfaceBase*> score_plugin_ui::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return Control::instantiate_fx<Ui::SignalDisplay::Node, Ui::Display::Node>(ctx, key);

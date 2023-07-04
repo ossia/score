@@ -9,7 +9,7 @@ score_plugin_packagemanager::score_plugin_packagemanager() { }
 
 score_plugin_packagemanager::~score_plugin_packagemanager() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
+std::vector<score::InterfaceBase*>
 score_plugin_packagemanager::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {

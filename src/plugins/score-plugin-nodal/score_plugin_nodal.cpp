@@ -189,7 +189,7 @@ score_plugin_nodal::score_plugin_nodal() { }
 
 score_plugin_nodal::~score_plugin_nodal() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_nodal::factories(
+std::vector<score::InterfaceBase*> score_plugin_nodal::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

@@ -26,9 +26,7 @@ auto make_ptr_vector() noexcept
   std::vector<std::unique_ptr<Base_T>> vec;
 
   vec.reserve(sizeof...(Args));
-  ossia::for_each_type_tagged<Args...>([&](auto tag) {
-    vec.push_back(std::make_unique<typename decltype(tag)::type>());
-  });
+  (vec.push_back(std::unique_ptr<Base_T>((Base_T*)new Args)), ...);
 
   return vec;
 }
@@ -45,27 +43,24 @@ template <
     typename Factory_T>
 struct FactoryBuilder // sorry padre for I have sinned
 {
-  static auto make(const Context_T& ctx)
+  static score::InterfaceBase* make(const Context_T& ctx)
   {
     if constexpr(std::is_constructible_v<Factory_T, const Context_T&>)
-      return std::make_unique<Factory_T>(ctx);
+      return new Factory_T(ctx);
     else
-      return std::make_unique<Factory_T>();
+      return new Factory_T();
   }
 };
 
 /**
  * @brief Fills an existing vector with factories instantiations
  */
-template <typename Context_T, typename Base_T, typename... Args>
+template <typename Context_T, typename... Args>
 void fill_ptr_vector(
-    const Context_T& context, std::vector<std::unique_ptr<Base_T>>& vec) noexcept
+    const Context_T& context, std::vector<score::InterfaceBase*>& vec) noexcept
 {
   vec.reserve(sizeof...(Args));
-  ossia::for_each_type_tagged<Args...>([&](auto tag) {
-    vec.push_back(
-        FactoryBuilder<Context_T, typename decltype(tag)::type>::make(context));
-  });
+  (vec.push_back(FactoryBuilder<Context_T, Args>::make(context)), ...);
 }
 
 template <typename T>
@@ -95,7 +90,7 @@ struct FW_T
   template <typename Context_T>
   bool operator()(
       const Context_T& ctx, const score::InterfaceKey& fact,
-      std::vector<std::unique_ptr<score::InterfaceBase>>& vec) noexcept
+      std::vector<score::InterfaceBase*>& vec) noexcept
   {
     if constexpr(has_ui<Factory_T>::value)
     {
@@ -107,7 +102,8 @@ struct FW_T
 
     if(fact == Factory_T::static_interfaceKey())
     {
-      fill_ptr_vector<Context_T, score::InterfaceBase, Types_T...>(ctx, vec);
+      vec.reserve(sizeof...(Types_T));
+      (vec.push_back(FactoryBuilder<Context_T, Types_T>::make(ctx)), ...);
       return true;
     }
 
@@ -139,7 +135,7 @@ using FW = FW_T<Factory_T, Args...>;
 template <typename Context_T, typename... Args>
 auto instantiate_factories(const Context_T& ctx, const score::InterfaceKey& key) noexcept
 {
-  std::vector<std::unique_ptr<score::InterfaceBase>> vec;
+  std::vector<score::InterfaceBase*> vec;
 
   ossia::for_each_type_if_tagged<Args...>([&](auto t) {
     using fw_t = typename decltype(t)::type;

@@ -69,7 +69,7 @@ score_plugin_protocols::score_plugin_protocols()
 
 score_plugin_protocols::~score_plugin_protocols() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_protocols::factories(
+std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

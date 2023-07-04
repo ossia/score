@@ -16,7 +16,7 @@ public:
   ~score_plugin_library() override;
 
 private:
-  std::vector<std::unique_ptr<score::InterfaceBase>> guiFactories(
+  std::vector<score::InterfaceBase*> guiFactories(
       const score::GUIApplicationContext&,
       const score::InterfaceKey& factoryName) const override;
   std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;

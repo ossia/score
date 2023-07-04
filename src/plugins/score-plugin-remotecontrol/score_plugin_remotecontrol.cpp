@@ -26,7 +26,7 @@ score_plugin_remotecontrol::factoryFamilies()
       score::InterfaceListBase, RemoteControl::ProcessComponentFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_remotecontrol::factories(
+std::vector<score::InterfaceBase*> score_plugin_remotecontrol::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<

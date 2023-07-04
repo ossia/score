@@ -39,7 +39,7 @@ using MappingLayerFactory = Curve::CurveLayerFactory_T<
 score_plugin_mapping::score_plugin_mapping() = default;
 score_plugin_mapping::~score_plugin_mapping() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_mapping::factories(
+std::vector<score::InterfaceBase*> score_plugin_mapping::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Mapping;

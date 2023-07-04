@@ -24,7 +24,7 @@ public:
   ~score_plugin_inspector() override;
 
   // Panel interface
-  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
+  std::vector<score::InterfaceBase*> factories(
       const score::ApplicationContext&,
       const score::InterfaceKey& factoryName) const override;
 

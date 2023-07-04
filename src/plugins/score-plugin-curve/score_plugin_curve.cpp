@@ -27,7 +27,7 @@ score_plugin_curve::score_plugin_curve()
 
 score_plugin_curve::~score_plugin_curve() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_curve::factories(
+std::vector<score::InterfaceBase*> score_plugin_curve::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& factoryName) const
 {
   using namespace Curve;
