@@ -1,11 +1,16 @@
 #!/bin/bash
 
 export SCORE_DIR=$PWD
+CMAKE_PATH=($PWD/cmake-*)
+export PATH=$CMAKE_PATH/bin:$PATH
 
 mkdir -p /build || true
 cd /build
 
-if command -v gcc-13; then
+if command -v gcc-14; then
+  export CC=gcc-14
+  export CXX=g++-14
+elif command -v gcc-13; then
   export CC=gcc-13
   export CXX=g++-13
 elif command -v gcc-12; then

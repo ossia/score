@@ -5,7 +5,7 @@ source ci/common.setup.sh
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
 $SUDO zypper -n install \
-   cmake ninja gcc12 gcc12-c++ \
+   ninja gcc12 gcc12-c++ \
    llvm-devel \
    libjack-devel alsa-devel \
    portaudio-devel \
@@ -20,7 +20,11 @@ $SUDO zypper -n install \
    qt6-shadertools-devel qt6-shadertools-private-devel \
    qt6-websockets-devel qt6-serialport-devel  \
    qt6-qml-devel qt6-qml-private-devel \
-   ffmpeg-4-libavcodec-devel ffmpeg-4-libavdevice-devel ffmpeg-4-libavfilter-devel ffmpeg-4-libavformat-devel ffmpeg-4-libswresample-devel
+   ffmpeg-4-libavcodec-devel ffmpeg-4-libavdevice-devel ffmpeg-4-libavfilter-devel ffmpeg-4-libavformat-devel ffmpeg-4-libswresample-devel \
+   curl
 
+curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-linux-x86_64.tar.gz --output cmake.tgz
+tar xaf cmake.tgz
+rm cmake.tgz
 
 source ci/common.deps.sh
