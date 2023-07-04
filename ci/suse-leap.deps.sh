@@ -21,7 +21,7 @@ $SUDO zypper -n install \
    qt6-websockets-devel qt6-serialport-devel  \
    qt6-qml-devel qt6-qml-private-devel \
    ffmpeg-4-libavcodec-devel ffmpeg-4-libavdevice-devel ffmpeg-4-libavfilter-devel ffmpeg-4-libavformat-devel ffmpeg-4-libswresample-devel \
-   curl
+   curl gzip
 
 curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-linux-x86_64.tar.gz --output cmake.tgz
 tar xaf cmake.tgz
