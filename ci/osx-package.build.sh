@@ -10,6 +10,10 @@ xcrun /usr/local/bin/cninja macos-release -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install"
 
+find . -type f -name 'ossia score' \
+  | grep '.' \
+  || exit 1
+
 (
   cd build-*
   echo "Installing OssiaScore: "

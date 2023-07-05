@@ -100,8 +100,9 @@ public:
   void positionChanged(QPointF p) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, positionChanged, p)
   void sizeChanged(QSizeF p) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, p)
 
-  PROPERTY(QPointF, position READ position WRITE setPosition NOTIFY positionChanged)
-  PROPERTY(QSizeF, size READ size WRITE setSize NOTIFY sizeChanged)
+  PROPERTY(
+      QPointF, position W_READ position W_WRITE setPosition W_NOTIFY positionChanged)
+  PROPERTY(QSizeF, size W_READ size W_WRITE setSize W_NOTIFY sizeChanged)
 
   /// States. The process has ownership.
   virtual ProcessStateDataInterface* startStateData() const noexcept;
@@ -136,7 +137,7 @@ public:
   bool loops() const noexcept { return m_loops; }
   void setLoops(bool b);
   void loopsChanged(bool b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopsChanged, b)
-  PROPERTY(bool, loops READ loops WRITE setLoops NOTIFY loopsChanged)
+  PROPERTY(bool, loops W_READ loops W_WRITE setLoops W_NOTIFY loopsChanged)
 
   TimeVal startOffset() const noexcept { return m_startOffset; }
   void setStartOffset(TimeVal b);
@@ -144,22 +145,22 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startOffsetChanged, b)
   PROPERTY(
       TimeVal,
-      startOffset READ startOffset WRITE setStartOffset NOTIFY startOffsetChanged)
+      startOffset W_READ startOffset W_WRITE setStartOffset W_NOTIFY startOffsetChanged)
 
   TimeVal loopDuration() const noexcept { return m_loopDuration; }
   void setLoopDuration(TimeVal b);
   void loopDurationChanged(TimeVal b)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopDurationChanged, b)
   PROPERTY(
-      TimeVal,
-      loopDuration READ loopDuration WRITE setLoopDuration NOTIFY loopDurationChanged)
+      TimeVal, loopDuration W_READ loopDuration W_WRITE setLoopDuration W_NOTIFY
+                   loopDurationChanged)
 
   virtual void setCreatingControls(bool ok);
   bool creatingControls() const noexcept;
   void creatingControlsChanged(bool b)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, creatingControlsChanged, b)
   PROPERTY(
-      bool, creatingControls READ creatingControls WRITE setCreatingControls NOTIFY
+      bool, creatingControls W_READ creatingControls W_WRITE setCreatingControls W_NOTIFY
                 creatingControlsChanged)
 
   // FIXME ugh

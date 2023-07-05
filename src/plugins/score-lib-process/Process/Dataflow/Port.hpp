@@ -147,8 +147,8 @@ public:
 
   PROPERTY(
       State::AddressAccessor,
-      address READ address WRITE setAddress NOTIFY addressChanged)
-  PROPERTY(QString, name READ name WRITE setName NOTIFY nameChanged)
+      address W_READ address W_WRITE setAddress W_NOTIFY addressChanged)
+  PROPERTY(QString, name W_READ name W_WRITE setName W_NOTIFY nameChanged)
 
   virtual QByteArray saveData() const noexcept;
   virtual void loadData(const QByteArray& arr) noexcept;
@@ -253,8 +253,8 @@ public:
   }
   W_SLOT(setDomain)
 
-  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
-  PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
+  PROPERTY(State::Domain, domain W_READ domain W_WRITE setDomain W_NOTIFY domainChanged)
+  PROPERTY(ossia::value, value W_READ value W_WRITE setValue W_NOTIFY valueChanged)
 private:
   ossia::value m_value;
   State::Domain m_domain;
@@ -355,9 +355,10 @@ public:
   std::unique_ptr<Process::ControlInlet> gainInlet;
   std::unique_ptr<Process::ControlInlet> panInlet;
 
-  PROPERTY(bool, propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
-  PROPERTY(double, gain READ gain WRITE setGain NOTIFY gainChanged)
-  PROPERTY(pan_weight, pan READ pan WRITE setPan NOTIFY panChanged)
+  PROPERTY(
+      bool, propagate W_READ propagate W_WRITE setPropagate W_NOTIFY propagateChanged)
+  PROPERTY(double, gain W_READ gain W_WRITE setGain W_NOTIFY gainChanged)
+  PROPERTY(pan_weight, pan W_READ pan W_WRITE setPan W_NOTIFY panChanged)
 private:
   double m_gain{};
   pan_weight m_pan;
@@ -469,8 +470,8 @@ public:
   }
   W_SLOT(setDomain)
 
-  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
-  PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
+  PROPERTY(State::Domain, domain W_READ domain W_WRITE setDomain W_NOTIFY domainChanged)
+  PROPERTY(ossia::value, value W_READ value W_WRITE setValue W_NOTIFY valueChanged)
 private:
   ossia::value m_value;
   State::Domain m_domain;
