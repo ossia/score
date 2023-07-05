@@ -72,13 +72,13 @@
     }                                                  \
   } while(false)
 #else
-#define SCORE_ASSERT(arg)                              \
-  do                                                   \
-  {                                                    \
-    if(bool score_assert_b = !!(arg); !score_assert_b) \
-    {                                                  \
-      throw std::runtime_error("Error: " #arg);        \
-    }                                                  \
+#define SCORE_ASSERT(arg)                                   \
+  do                                                        \
+  {                                                         \
+    if(bool score_assert_b = !!(arg); !score_assert_b)      \
+    {                                                       \
+      throw std::runtime_error("Assertion failure: " #arg); \
+    }                                                       \
   } while(false)
 #endif
 
@@ -88,7 +88,7 @@
     if(bool score_assert_b = !!(arg); !score_assert_b) \
     {                                                  \
       SCORE_BREAKPOINT;                                \
-      qDebug() << "Error: " #arg;                      \
+      qDebug() << "Assertion failure: " #arg;          \
     }                                                  \
   } while(false)
 

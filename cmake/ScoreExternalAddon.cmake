@@ -107,3 +107,4 @@ elseif(NOT WIN32)
   )
 endif()
 
+include(ScoreAvndHelper)

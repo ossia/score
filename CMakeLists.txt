@@ -88,9 +88,9 @@ if(MSVC)
     message(FATAL_ERROR "
 For building on MSVC, it is required to extract:
      https://github.com/ossia/sdk/releases/download/sdk18/sdk-msvc-release.zip
-in c:\\score-sdk-msvc and pass -DOSSIA_SDK=c:\\score-sdk-msvc to CMake. 
+in c:\\score-sdk-msvc and pass -DOSSIA_SDK=c:\\score-sdk-msvc to CMake.
 For Debug builds, use score-msvc-debug.zip and extract it to c:\\score-sdk-msvc-debug.
-Note that the builds made through MSYS2 using clang are better as more feature are supported 
+Note that the builds made through MSYS2 using clang are better as more feature are supported
 and clang optimizes more than MSVC.
 ")
   endif()
@@ -127,8 +127,9 @@ if(EMSCRIPTEN)
 endif()
 
 enable_testing()
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
+include(ScoreFunctions)
+include(ScoreAvndHelper)
+include(ScoreConfiguration)
 
 include(3rdparty/3rdparty.cmake)
 
