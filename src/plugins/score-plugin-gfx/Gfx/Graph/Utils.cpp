@@ -55,17 +55,18 @@ void replaceBuffer(
   // const auto bufType = newBuffer->resourceType();
   for(QRhiShaderResourceBinding& b : tmp)
   {
-    if(b.data()->binding == binding)
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->binding == binding)
     {
-      switch(b.data()->type)
+      switch(d->type)
       {
         case QRhiShaderResourceBinding::Type::UniformBuffer:
-          b.data()->u.ubuf.buf = newBuffer;
+          d->u.ubuf.buf = newBuffer;
           break;
         case QRhiShaderResourceBinding::Type::BufferLoad:
         case QRhiShaderResourceBinding::Type::BufferStore:
         case QRhiShaderResourceBinding::Type::BufferLoadStore:
-          b.data()->u.sbuf.buf = newBuffer;
+          d->u.sbuf.buf = newBuffer;
           break;
         default:
           break;
@@ -79,11 +80,12 @@ void replaceSampler(
 {
   for(QRhiShaderResourceBinding& b : tmp)
   {
-    if(b.data()->binding == binding)
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->binding == binding)
     {
-      if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+      if(d->type == QRhiShaderResourceBinding::Type::SampledTexture)
       {
-        b.data()->u.stex.texSamplers[0].sampler = newSampler;
+        d->u.stex.texSamplers[0].sampler = newSampler;
       }
     }
   }
@@ -94,17 +96,18 @@ void replaceTexture(
 {
   for(QRhiShaderResourceBinding& b : tmp)
   {
-    if(b.data()->binding == binding)
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->binding == binding)
     {
-      switch(b.data()->type)
+      switch(d->type)
       {
         case QRhiShaderResourceBinding::Type::SampledTexture:
-          b.data()->u.stex.texSamplers[0].tex = newTexture;
+          d->u.stex.texSamplers[0].tex = newTexture;
           break;
         case QRhiShaderResourceBinding::Type::ImageLoad:
         case QRhiShaderResourceBinding::Type::ImageStore:
         case QRhiShaderResourceBinding::Type::ImageLoadStore:
-          b.data()->u.simage.tex = newTexture;
+          d->u.simage.tex = newTexture;
           break;
         default:
           break;
@@ -158,12 +161,13 @@ void replaceSampler(
   tmp.assign(srb.cbeginBindings(), srb.cendBindings());
   for(QRhiShaderResourceBinding& b : tmp)
   {
-    if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
-      SCORE_ASSERT(b.data()->u.stex.count >= 1);
-      if(b.data()->u.stex.texSamplers[0].sampler == oldSampler)
+      SCORE_ASSERT(d->u.stex.count >= 1);
+      if(d->u.stex.texSamplers[0].sampler == oldSampler)
       {
-        b.data()->u.stex.texSamplers[0].sampler = newSampler;
+        d->u.stex.texSamplers[0].sampler = newSampler;
       }
     }
   }
@@ -180,12 +184,13 @@ void replaceTexture(
   tmp.assign(srb.cbeginBindings(), srb.cendBindings());
   for(QRhiShaderResourceBinding& b : tmp)
   {
-    if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
-      SCORE_ASSERT(b.data()->u.stex.count >= 1);
-      if(b.data()->u.stex.texSamplers[0].sampler == sampler)
+      SCORE_ASSERT(d->u.stex.count >= 1);
+      if(d->u.stex.texSamplers[0].sampler == sampler)
       {
-        b.data()->u.stex.texSamplers[0].tex = newTexture;
+        d->u.stex.texSamplers[0].tex = newTexture;
       }
     }
   }
@@ -203,12 +208,14 @@ void replaceTexture(
   {
     bindings.push_back(*it);
 
-    auto& binding = *bindings.back().data();
-    if(binding.type == QRhiShaderResourceBinding::SampledTexture)
+    auto& binding = bindings.back();
+
+    auto& d = *reinterpret_cast<QRhiShaderResourceBinding::Data*>(&binding);
+    if(d.type == QRhiShaderResourceBinding::SampledTexture)
     {
-      if(binding.u.stex.texSamplers[0].tex == old_tex)
+      if(d.u.stex.texSamplers[0].tex == old_tex)
       {
-        binding.u.stex.texSamplers[0].tex = new_tex;
+        d.u.stex.texSamplers[0].tex = new_tex;
       }
     }
   }

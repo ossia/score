@@ -81,12 +81,13 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   ossia::flat_map<int, QRhiBuffer*> createdUbos;
   ossia::flat_map<int, QRhiTexture*> createdTexs;
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
   std::vector<QRhiBufferReadbackResult*> bufReadbacks;
-  std::vector<QRhiReadbackResult*> texReadbacks;
-
   void addReadback(QRhiBufferReadbackResult* r) { bufReadbacks.push_back(r); }
-  void addReadback(QRhiReadbackResult* r) { texReadbacks.push_back(r); }
+#endif
 
+  std::vector<QRhiReadbackResult*> texReadbacks;
+  void addReadback(QRhiReadbackResult* r) { texReadbacks.push_back(r); }
   GpuComputeRenderer(const GpuComputeNode<Node_T>& p)
       : ComputeRendererBaseType<Node_T>{}
       , parent{p}
@@ -407,9 +408,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     }
 
     // Clear the readbacks
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
     for(auto rb : this->bufReadbacks)
       delete rb;
     this->bufReadbacks.clear();
+#endif
     for(auto rb : this->texReadbacks)
       delete rb;
     this->texReadbacks.clear();
@@ -431,7 +434,6 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   {
   }
 };
-
 
 template <typename Node_T>
 inline score::gfx::OutputNodeRenderer*

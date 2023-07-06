@@ -6,7 +6,11 @@
 
 #include <ossia/detail/hash_map.hpp>
 
+#if __has_include(<QtShaderTools/rhi/qshaderbaker.h>)
+#include <QtShaderTools/rhi/qshaderbaker.h>
+#else
 #include <QtShaderTools/private/qshaderbaker_p.h>
+#endif
 
 namespace score::gfx
 {

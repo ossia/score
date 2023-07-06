@@ -19,7 +19,12 @@
 #include <QLineEdit>
 #include <QOffscreenSurface>
 #include <QSpinBox>
+
+#if __has_include(<QtGui/rhi/qrhi_platform.h>)
+#include <QtGui/rhi/qrhi_platform.h>
+#else
 #include <QtGui/private/qrhigles2_p_p.h>
+#endif
 
 #include <shmdata/writer.hpp>
 

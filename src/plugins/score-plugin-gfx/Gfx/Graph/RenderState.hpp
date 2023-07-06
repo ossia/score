@@ -1,6 +1,10 @@
 #pragma once
 #include <QtGui/private/qrhi_p.h>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+using QRhiBufferReadbackResult = QRhiReadbackResult;
+#endif
+
 class QOffscreenSurface;
 namespace score::gfx
 {

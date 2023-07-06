@@ -305,7 +305,6 @@ auto samples(C c)
     return -1;
 }
 
-
 struct handle_release
 {
   QRhi& rhi;
@@ -557,7 +556,6 @@ struct handle_update
     return {};
   }
 };
-
 
 struct generate_shaders
 {
