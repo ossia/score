@@ -21,14 +21,14 @@ struct Outlets;
 
 struct Inlets : ossia::small_vector<Process::Inlet*, 4>
 {
-  using small_vector::small_vector;
+  using ossia::small_vector<Process::Inlet*, 4>::small_vector;
 };
 struct Outlets : ossia::small_vector<Process::Outlet*, 4>
 {
-  using small_vector::small_vector;
+  using ossia::small_vector<Process::Outlet*, 4>::small_vector;
 };
 struct pan_weight : ossia::small_vector<double, 2>
 {
-  using small_vector::small_vector;
+  using ossia::small_vector<double, 2>::small_vector;
 };
 }
