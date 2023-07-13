@@ -35,6 +35,7 @@
 #include <avnd/../../examples/Raw/Presets.hpp>
 #include <avnd/../../examples/Raw/SampleAccurateControls.hpp>
 #include <avnd/../../examples/Raw/Sines.hpp>
+#include <avnd/../../examples/Raw/SpanControls.hpp>
 #include <avnd/../../examples/Raw/Ui.hpp>
 #include <avnd/../../examples/Tutorial/AudioEffectExample.hpp>
 #include <avnd/../../examples/Tutorial/TextureFilterExample.hpp>
@@ -68,6 +69,9 @@ void instantiate_tests(
   };
   namespace E = examples;
   namespace EH = examples::helpers;
+
+  oscr::instantiate_fx<examples::SpanControls>(fx, ctx, key);
+
   oscr::instantiate_fx<
       oscr::Granolette, EH::FFTDisplay, EH::MessageBusUi, EH::AdvancedUi, E::Addition,
       E::Callback, EH::Controls, EH::Logger<config>, E::Lowpass, EH::Lowpass,
