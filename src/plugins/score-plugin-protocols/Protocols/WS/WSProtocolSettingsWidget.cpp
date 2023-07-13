@@ -69,7 +69,9 @@ void WSProtocolSettingsWidget::parseHost()
 {
   auto engine = new QQmlEngine;
   auto comp = new QQmlComponent{engine};
-  connect(comp, &QQmlComponent::statusChanged, this, [=](QQmlComponent::Status status) {
+  connect(
+      comp, &QQmlComponent::statusChanged, this,
+      [this, comp, engine](QQmlComponent::Status status) {
     switch(status)
     {
       case QQmlComponent::Status::Ready: {
@@ -86,7 +88,7 @@ void WSProtocolSettingsWidget::parseHost()
     }
     comp->deleteLater();
     engine->deleteLater();
-  });
+      });
 
   comp->setData(m_codeEdit->document()->toPlainText().toUtf8(), QUrl{});
 }

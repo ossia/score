@@ -77,14 +77,15 @@ Executor::Executor(
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element, &Patternist::ProcessModel::channelChanged, this,
-      [=](int c) { in_exec([=] { node->channel = c; }); });
+      [this, node](int c) { in_exec([=] { node->channel = c; }); });
   con(element, &Patternist::ProcessModel::currentPatternChanged, this,
-      [=, &element](int c) {
-    in_exec([=, p = element.patterns()[c]] { node->pattern = p; });
+      [this, node, &element](int c) {
+    in_exec([node, p = element.patterns()[c]] { node->pattern = p; });
   });
-  con(element, &Patternist::ProcessModel::patternsChanged, this, [=, &element]() {
+  con(element, &Patternist::ProcessModel::patternsChanged, this,
+      [this, node, &element]() {
     in_exec(
-        [=, p = element.patterns()[element.currentPattern()]] { node->pattern = p; });
+        [node, p = element.patterns()[element.currentPattern()]] { node->pattern = p; });
   });
   con(ctx.doc.execTimer, &QTimer::timeout, this, [&element, node] {
     int c = node->last;

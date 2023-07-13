@@ -118,7 +118,7 @@ public:
       : score::SearchLineEdit{&parent}
       , m_widget{parent}
   {
-    connect(this, &QLineEdit::textEdited, this, [=] { search(); });
+    connect(this, &QLineEdit::textEdited, this, [this] { search(); });
   }
 
   void search() override
@@ -176,7 +176,7 @@ public:
     lay->addWidget(m_list);
     lay->addWidget(buttonBox);
 
-    con(dev, &Device::DeviceInterface::pathAdded, this, [=](const State::Address& a) {
+    con(dev, &Device::DeviceInterface::pathAdded, this, [this](const State::Address& a) {
       m_list->addItem(a.toString());
       m_list->scrollToBottom();
     });
@@ -268,7 +268,7 @@ void DeviceExplorerWidget::buildGUI()
       m_ntView,
       static_cast<void (DeviceExplorerView::*)()>(&DeviceExplorerView::selectionChanged),
       this,
-      [=] {
+      [this] {
     updateAddressView();
     updateActions();
       },
@@ -871,7 +871,7 @@ void DeviceExplorerWidget::refresh()
     if(!dev.connected())
       return;
     auto wrkr = make_worker(
-        [=](Device::Node&& node) {
+        [this, m](Device::Node&& node) {
       auto cmd = new Explorer::Command::ReplaceDevice{
           m->deviceModel(), m_ntView->selectedIndex().row(), std::move(node)};
 

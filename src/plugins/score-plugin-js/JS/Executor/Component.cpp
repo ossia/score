@@ -196,7 +196,7 @@ void Component::on_scriptChange(const QString& script)
             {
               connect(
                   ctrl, &Process::ControlInlet::valueChanged, this,
-                  [=](const ossia::value& val) {
+                  [this, old_node, idx](const ossia::value& val) {
                 this->in_exec([old_node, idx] { old_node->impulse(idx); });
                   });
             }
@@ -205,7 +205,7 @@ void Component::on_scriptChange(const QString& script)
               // Common case
               connect(
                   ctrl, &Process::ControlInlet::valueChanged, this,
-                  [=](const ossia::value& val) {
+                  [this, old_node, idx](const ossia::value& val) {
                 this->in_exec([old_node, val, idx] {
                   old_node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
                 });
@@ -359,8 +359,8 @@ void js_node::setScript(const QString& val)
 
     QObject::connect(
         m_execFuncs, &ExecStateWrapper::system, qApp,
-        [=](const QString& code) {
-      std::thread{[=] { ::system(code.toStdString().c_str()); }}.detach();
+        [this](const QString& code) {
+      std::thread{[code] { ::system(code.toStdString().c_str()); }}.detach();
         },
         Qt::QueuedConnection);
 
@@ -371,13 +371,13 @@ void js_node::setScript(const QString& val)
           Qt::QueuedConnection);
       QObject::connect(
           m_execFuncs, &ExecStateWrapper::compute, m_execFuncs,
-          [=](const QString& code, const QString& cbname) {
+          [this, js_panel](const QString& code, const QString& cbname) {
         // Exec thread
 
         // Callback ran in UI thread
-        auto cb = [=](QVariant v) {
+        auto cb = [this, cbname](QVariant v) {
           // Go back to exec thread, we have to go through the normal engine exec ctx
-          ossia::qt::run_async(m_execFuncs, [=] {
+          ossia::qt::run_async(m_execFuncs, [this, v, cbname] {
             auto mo = m_object->metaObject();
             for(int i = 0; i < mo->methodCount(); i++)
             {

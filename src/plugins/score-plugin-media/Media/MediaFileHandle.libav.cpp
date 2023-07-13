@@ -1,8 +1,8 @@
 #include <Media/MediaFileHandle.hpp>
 #include <Media/RMSData.hpp>
 
-#include <QFileInfo>
 #include <QDebug>
+#include <QFileInfo>
 
 namespace Media
 {
@@ -32,7 +32,7 @@ void AudioFile::load_libav(int rate)
     {
       connect(
           &r.decoder, &AudioDecoder::newData, this,
-          [=] {
+          [this] {
         const auto& r = **m_impl.target<std::shared_ptr<LibavReader>>();
         std::vector<tcb::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
@@ -51,7 +51,7 @@ void AudioFile::load_libav(int rate)
 
       connect(
           &r.decoder, &AudioDecoder::finishedDecoding, this,
-          [=] {
+          [this] {
         const auto& r = **m_impl.target<std::shared_ptr<LibavReader>>();
         std::vector<tcb::span<const audio_sample>> samples;
         auto& handle = r.handle->data;

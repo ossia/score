@@ -111,7 +111,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_exprEditor->setMenu(m_menu.menu);
 
-    con(m_menu, &ExpressionMenu::expressionChanged, this, [=](const QString& str) {
+    con(m_menu, &ExpressionMenu::expressionChanged, this, [this](const QString& str) {
       if(!m_model)
         return;
       auto cond = State::parseExpression(str);
@@ -127,7 +127,7 @@ EventInspectorWidget::EventInspectorWidget(
       }
     });
 
-    connect(m_menu.deleteAction, &QAction::triggered, this, [=] {
+    connect(m_menu.deleteAction, &QAction::triggered, this, [this] {
       auto cmd = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
       m_commandDispatcher.submit(cmd);
     });
@@ -147,10 +147,10 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_offsetBehavior->setCurrentIndex((int)object.offsetBehavior());
     con(object, &EventModel::offsetBehaviorChanged, this,
-        [=](OffsetBehavior b) { m_offsetBehavior->setCurrentIndex((int)b); });
+        [this](OffsetBehavior b) { m_offsetBehavior->setCurrentIndex((int)b); });
     connect(
         m_offsetBehavior, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-        [=](int idx) {
+        [this](int idx) {
       if(!m_model)
         return;
       if(idx != (int)m_model->offsetBehavior())

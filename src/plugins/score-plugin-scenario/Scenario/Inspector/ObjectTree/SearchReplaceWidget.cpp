@@ -48,9 +48,10 @@ SearchReplaceWidget::SearchReplaceWidget(const score::GUIApplicationContext& ctx
   buttons->addWidget(replaceButton);
   form->addRow(buttons);
 
-  connect(
-      findLine, &QLineEdit::editingFinished, [=] { setFindTarget(findLine->text()); });
-  connect(findButton, &QPushButton::pressed, [=] {
+  connect(findLine, &QLineEdit::editingFinished, [this, findLine] {
+    setFindTarget(findLine->text());
+  });
+  connect(findButton, &QPushButton::pressed, [this, resultList] {
     search();
     resultList->clear();
     for(const auto o : m_matches)
@@ -65,10 +66,10 @@ SearchReplaceWidget::SearchReplaceWidget(const score::GUIApplicationContext& ctx
     }
   });
 
-  connect(replaceLine, &QLineEdit::editingFinished, [=]() {
+  connect(replaceLine, &QLineEdit::editingFinished, [this, replaceLine]() {
     setReplaceTarget(replaceLine->text());
   });
-  connect(replaceButton, &QPushButton::pressed, [=]() { replace(); });
+  connect(replaceButton, &QPushButton::pressed, [this]() { replace(); });
 }
 void SearchReplaceWidget::setFindTarget(const QString& fTarget)
 {

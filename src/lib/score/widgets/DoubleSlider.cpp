@@ -114,7 +114,7 @@ void DoubleSlider::createPopup(QPoint pos)
   w->setValue(map(m_value));
   w->setDecimals(3);
   QObject::connect(
-      w, SignalUtils::QDoubleSpinBox_valueChanged_double(), this, [=](double v) {
+      w, SignalUtils::QDoubleSpinBox_valueChanged_double(), this, [this](double v) {
         this->setValue(this->unmap(v));
         sliderMoved(this->value());
       });

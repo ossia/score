@@ -39,7 +39,7 @@ StringValueSetDialog::StringValueSetDialog(QWidget* parent)
   lay->addLayout(m_lay = new score::MarginLess<QVBoxLayout>);
 
   auto addbutton = new QPushButton{tr("+"), this};
-  connect(addbutton, &QPushButton::pressed, this, [=] { addRow(""); });
+  connect(addbutton, &QPushButton::pressed, this, [this] { addRow(""); });
   lay->addWidget(addbutton);
 
   auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};

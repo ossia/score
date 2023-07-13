@@ -1239,20 +1239,21 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO"});
 
   connect(
-      m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int idx) {
-        m_host->clear();
-        switch(idx)
-        {
-          case 0:
-          case 1:
-            m_host->addItems(score::list_ipv4());
-            break;
-          case 2: {
-            for(auto port : QSerialPortInfo::availablePorts())
-              m_host->addItem(port.portName());
-            break;
-          }
-        }
+      m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      [this](int idx) {
+    m_host->clear();
+    switch(idx)
+    {
+      case 0:
+      case 1:
+        m_host->addItems(score::list_ipv4());
+        break;
+      case 2: {
+        for(auto port : QSerialPortInfo::availablePorts())
+          m_host->addItem(port.portName());
+        break;
+      }
+    }
       });
 
   auto layout = new QFormLayout;
@@ -1281,7 +1282,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   btns->addWidget(m_rmFixture);
   layout->addRow(btns);
 
-  connect(m_addFixture, &QPushButton::clicked, this, [=] {
+  connect(m_addFixture, &QPushButton::clicked, this, [this] {
     auto dial = new AddFixtureDialog{*this};
     if(dial->exec() == QDialog::Accepted)
     {
@@ -1293,7 +1294,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
       }
     }
   });
-  connect(m_rmFixture, &QPushButton::clicked, this, [=] {
+  connect(m_rmFixture, &QPushButton::clicked, this, [this] {
     ossia::flat_set<int> rows_to_remove;
     for(auto item : m_fixturesWidget->selectedItems())
     {

@@ -44,7 +44,7 @@ CableItem::CableItem(
 
   SCORE_ASSERT(canCreateCable(c, plug));
 
-  con(c.selection, &Selectable::changed, this, [=](bool b) {
+  con(c.selection, &Selectable::changed, this, [this](bool b) {
     if(m_p1 && m_p2)
     {
       if(b)

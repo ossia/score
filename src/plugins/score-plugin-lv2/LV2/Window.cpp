@@ -162,7 +162,7 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
   }
 
   // Show ui and resize
-  QTimer::singleShot(0, [=, &p] {
+  QTimer::singleShot(0, [this, widget, default_w, default_h, &p] {
     if(!is_resizable(p.lilv.me, *m_model.effectContext.ui))
     {
       widget->setMinimumSize(default_w, default_h);

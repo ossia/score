@@ -19,7 +19,7 @@ public:
       , m_proxy{proxy}
       , m_view{tv}
   {
-    connect(this, &QLineEdit::textEdited, this, [=] { search(); });
+    connect(this, &QLineEdit::textEdited, this, [this] { search(); });
   }
 
   void search() override

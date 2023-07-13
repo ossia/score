@@ -39,7 +39,7 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& doc, QObject* paren
 
   con(
       set, &Settings::Model::EnabledChanged, this,
-      [=](bool b) {
+      [this](bool b) {
     if(b)
       create();
     else
@@ -365,12 +365,12 @@ void Receiver::onNewConnection()
 {
   WSClient client{m_server.nextPendingConnection()};
 
-  connect(client.socket, &QWebSocket::textMessageReceived, this, [=](const auto& b) {
-    this->processTextMessage(b, client);
-  });
-  connect(client.socket, &QWebSocket::binaryMessageReceived, this, [=](const auto& b) {
-    this->processBinaryMessage(b, client);
-  });
+  connect(
+      client.socket, &QWebSocket::textMessageReceived, this,
+      [this, client](const auto& b) { this->processTextMessage(b, client); });
+  connect(
+      client.socket, &QWebSocket::binaryMessageReceived, this,
+      [this, client](const auto& b) { this->processBinaryMessage(b, client); });
   connect(client.socket, &QWebSocket::disconnected, this, &Receiver::socketDisconnected);
 
   {

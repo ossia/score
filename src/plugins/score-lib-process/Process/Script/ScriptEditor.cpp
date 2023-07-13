@@ -38,7 +38,7 @@ ScriptDialog::ScriptDialog(
       QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
-  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
+  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [this] {
     m_error->clear();
   });
   lay->addWidget(bbox);
@@ -96,7 +96,7 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
 
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
-  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
+  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [this] {
     m_error->clear();
   });
 

@@ -16,7 +16,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
   con(m_addonsWatch, &QFileSystemWatcher::directoryChanged, this, [&](const QString& a) {
-    QTimer::singleShot(5000, this, [=] { rescanAddons(); });
+    QTimer::singleShot(5000, this, [this] { rescanAddons(); });
   });
   con(m_addonsWatch, &QFileSystemWatcher::fileChanged, this,
       &ApplicationPlugin::updateAddon);

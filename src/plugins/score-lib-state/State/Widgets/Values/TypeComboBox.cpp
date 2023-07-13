@@ -38,7 +38,7 @@ TypeComboBox::TypeComboBox(QWidget* parent)
   }
   addItem(arr[n - 1], QVariant::fromValue(ossia::val_type::NONE));
 
-  connect(this, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
+  connect(this, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {
     changed(this->itemData(i).value<ossia::val_type>());
   });
 }

@@ -18,7 +18,8 @@ MiniScenarioView::MiniScenarioView(const ProcessModel& sc, QGraphicsItem* p)
   m_scenario.intervals.added.connect<&MiniScenarioView::on_elementChanged>(this);
   m_scenario.intervals.removed.connect<&MiniScenarioView::on_elementChanged>(this);
 
-  connect(&m_scenario, &Scenario::ProcessModel::intervalMoved, this, [=] { update(); });
+  connect(
+      &m_scenario, &Scenario::ProcessModel::intervalMoved, this, [this] { update(); });
 }
 
 void MiniScenarioView::paint_impl(QPainter* p) const

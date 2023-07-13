@@ -102,7 +102,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
     if(!ws)
       return;
 
-    connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
+    connect(ws, &QWebSocket::textMessageReceived, this, [this, ws](const QString& txt) {
       processIncomingMessage(txt);
       ws->deleteLater();
     });
@@ -285,7 +285,7 @@ parseSubCategories(const std::string& str) noexcept
   std::stringstream stream(str);
   std::string item;
   while(std::getline(stream, item, '|'))
-    vec.emplace_back(move(item));
+    vec.emplace_back(std::move(item));
   return vec;
 }
 

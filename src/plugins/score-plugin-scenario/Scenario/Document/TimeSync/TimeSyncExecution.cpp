@@ -34,7 +34,7 @@ TimeSyncComponent::TimeSyncComponent(
   con(element, &Scenario::TimeSyncModel::activeChanged, this,
       &TimeSyncComponent::updateTrigger);
   con(element, &Scenario::TimeSyncModel::autotriggerChanged, this,
-      [=](bool b) { in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); }); });
+      [this](bool b) { in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); }); });
   con(element, &Scenario::TimeSyncModel::triggerChanged, this,
       &TimeSyncComponent::updateTrigger);
 

@@ -70,7 +70,7 @@ void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
   full_slot_drag_overlay = new SlotDragOverlay{*this, Slot::FullView};
   connect(
       full_slot_drag_overlay, &SlotDragOverlay::dropBefore, this,
-      [=](int slot) {
+      [this, curslot](int slot) {
     CommandDispatcher<>{this->m_context.commandStack}
         .submit<Command::ChangeSlotPosition>(
             this->m_model, Slot::RackView::FullView, curslot, slot);
@@ -121,30 +121,33 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   });
 
   auto& settings = m_context.app.settings<Scenario::Settings::Model>();
-  con(m_model, &IntervalModel::timeSignaturesChanged, this, [=] { updateTimeBars(); });
-  con(m_model, &IntervalModel::hasTimeSignatureChanged, this, [=] { updateTimeBars(); });
-  ::bind(settings, Settings::Model::p_MeasureBars{}, this, [=](bool show) {
+  con(m_model, &IntervalModel::timeSignaturesChanged, this,
+      [this] { updateTimeBars(); });
+  con(m_model, &IntervalModel::hasTimeSignatureChanged, this,
+      [this] { updateTimeBars(); });
+  ::bind(settings, Settings::Model::p_MeasureBars{}, this, [this](bool show) {
     this->m_timebars->lightBars.setVisible(show);
     this->m_timebars->lighterBars.setVisible(show);
   });
 
   // Slots
-  con(m_model, &IntervalModel::rackChanged, this, [=](Slot::RackView t) {
+  con(m_model, &IntervalModel::rackChanged, this, [this](Slot::RackView t) {
     if(t == Slot::FullView)
       on_rackChanged();
   });
 
-  con(m_model, &IntervalModel::slotAdded, this, [=](const SlotId& s) {
+  con(m_model, &IntervalModel::slotAdded, this, [this](const SlotId& s) {
     if(s.fullView())
       on_rackChanged();
   });
 
-  con(m_model, &IntervalModel::slotRemoved, this, [=](const SlotId& s) {
+  con(m_model, &IntervalModel::slotRemoved, this, [this](const SlotId& s) {
     if(s.fullView())
       on_rackChanged();
   });
 
-  con(m_model, &IntervalModel::slotsSwapped, this, [=](int i, int j, Slot::RackView v) {
+  con(m_model, &IntervalModel::slotsSwapped, this,
+      [this](int i, int j, Slot::RackView v) {
     if(v == Slot::FullView)
       on_rackChanged();
   });
@@ -157,7 +160,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   // Execution
   con(
       interval, &IntervalModel::executionEvent, this,
-      [=](Scenario::IntervalExecutionEvent ev) {
+      [this](Scenario::IntervalExecutionEvent ev) {
     switch(ev)
     {
       case IntervalExecutionEvent::Playing:
@@ -182,7 +185,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
 
   // Drops
   con(*this->view(), &IntervalView::dropReceived, this,
-      [=](const QPointF& pos, const QMimeData& mime) {
+      [this](const QPointF& pos, const QMimeData& mime) {
     m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
         m_context, m_model, {}, mime);
   });
@@ -399,7 +402,7 @@ void FullViewIntervalPresenter::updateProcessShape(NodalSlotPresenter& slot, int
 void FullViewIntervalPresenter::updateProcessShape(int idx)
 {
   auto& slt = m_slots.at(idx);
-  slt.visit([=](auto& slot) { updateProcessShape(slot, idx); });
+  slt.visit([this, idx](auto& slot) { updateProcessShape(slot, idx); });
 }
 
 void FullViewIntervalPresenter::on_slotRemoved(int pos)

@@ -133,7 +133,7 @@ public:
         node->add_child(std::move(abs_node));
       }
 
-      m_screen->onMouseMove = [=](QPointF screen, QPointF win) {
+      m_screen->onMouseMove = [this, scaled_win, abs_win](QPointF screen, QPointF win) {
         if(const auto& w = m_screen->window())
         {
           auto sz = w->size();
@@ -220,7 +220,7 @@ public:
         node->add_child(std::move(scale_node));
       }
 
-      m_screen->onTabletMove = [=](QTabletEvent* ev) {
+      m_screen->onTabletMove = [=, this](QTabletEvent* ev) {
         if(const auto& w = m_screen->window())
         {
           const auto sz = w->size();
@@ -305,7 +305,7 @@ public:
         node->add_child(std::move(text_node));
       }
 
-      m_screen->onKey = [=](int key, const QString& text) {
+      m_screen->onKey = [press_param, text_param](int key, const QString& text) {
         press_param->push_value(key);
         text_param->push_value(text.toStdString());
       };

@@ -79,7 +79,7 @@ static auto loadSoundfile(
 }
 
 using midifile_handle = std::shared_ptr<oscr::midifile_data>;
-static midifile_handle
+inline midifile_handle
 loadMidifile(Process::ControlInlet* inlet, const score::DocumentContext& ctx)
 {
   // Initialize the control with the current soundfile
@@ -102,7 +102,7 @@ loadMidifile(Process::ControlInlet* inlet, const score::DocumentContext& ctx)
 }
 
 using raw_file_handle = std::shared_ptr<raw_file_data>;
-static raw_file_handle loadRawfile(
+inline raw_file_handle loadRawfile(
     Process::ControlInlet* inlet, const score::DocumentContext& ctx, bool text,
     bool mmap)
 {
@@ -135,7 +135,7 @@ static raw_file_handle loadRawfile(
   return {};
 }
 
-static auto loadSoundfile(
+inline auto loadSoundfile(
     Process::ControlInlet* inlet, const score::DocumentContext& ctx,
     const std::shared_ptr<ossia::execution_state>& st)
 {
@@ -309,7 +309,6 @@ struct setup_Impl0
 
     using file_ports = avnd::raw_file_input_introspection<Node>;
     using elt = typename file_ports::template nth_element<N>;
-    using field_file_type = decltype(Field::file);
     constexpr bool has_text = requires { decltype(elt::file)::text; };
     constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
 

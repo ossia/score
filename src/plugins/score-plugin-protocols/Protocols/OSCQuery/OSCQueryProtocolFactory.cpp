@@ -62,7 +62,9 @@ private:
 #if QT_CONFIG(ssl)
       connect(ret, &QNetworkReply::sslErrors, this, [] {});
 #endif
-      connect(ret, &QNetworkReply::finished, this, [=]() mutable {
+      connect(
+          ret, &QNetworkReply::finished, this,
+          [this, ret, set, websockets, ip, port]() mutable {
         auto doc = QJsonDocument::fromJson(ret->readAll());
         QString newName = doc.object()["NAME"].toString();
 
@@ -80,7 +82,7 @@ private:
         set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
         deviceAdded(set);
         ret->deleteLater();
-      });
+          });
     }
   }
 

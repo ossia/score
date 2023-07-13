@@ -327,7 +327,7 @@ QWidget* JackFactory::make_settings(
   auto w = new QWidget{parent};
   auto lay = new QFormLayout{w};
 
-  QTimer::singleShot(1000, w, [=, &m, &v, &m_disp] {
+  QTimer::singleShot(1000, w, [this, &m, &v, &m_disp, w, lay] {
     try
     {
       setupSettingsWidget(w, lay, m, v, m_disp);

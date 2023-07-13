@@ -64,7 +64,7 @@ bool ApplicationPlugin::handleStartup()
       // TODO what happens if we load multiple documents ?
       QTimer::singleShot(
           (1 + context.applicationSettings.waitAfterLoad) * 1000, &m_execution,
-          [=] { m_execution.request_play_local(true); });
+          [this] { m_execution.request_play_local(true); });
       return true;
     }
   }
@@ -129,7 +129,7 @@ QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
 {
   auto timer = new QTimer{time_label};
   time_label->setStatusTip(tr("Elapsed time since the beginning of playback"));
-  connect(timer, &QTimer::timeout, this, [=] {
+  connect(timer, &QTimer::timeout, this, [this, time_label] {
     auto t = m_execution.execution_time();
     if(t == TimeVal::zero())
     {
@@ -185,7 +185,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
           QStringLiteral(":/icons/nodal_on.png"),
           QStringLiteral(":/icons/nodal_disabled.png"));
 
-      connect(timeline_act, &QAction::toggled, this, [=](bool checked) {
+      connect(timeline_act, &QAction::toggled, this, [this, timeline_act](bool checked) {
         if(!checked)
         {
           setIcons(
@@ -343,11 +343,11 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     {
       auto& play_action = appplug.context.actions.action<Actions::Play>();
       connect(
-          play_action.action(), &QAction::toggled, &lt, [=] { p->push_value(true); });
+          play_action.action(), &QAction::toggled, &lt, [p] { p->push_value(true); });
 
       auto& stop_action = context.actions.action<Actions::Stop>();
       connect(
-          stop_action.action(), &QAction::toggled, &lt, [=] { p->push_value(false); });
+          stop_action.action(), &QAction::toggled, &lt, [p] { p->push_value(false); });
     }
   }
   {
@@ -356,7 +356,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [=] {
+      ossia::qt::run_async(this, [this, v] {
         if(auto val = v.target<bool>())
         {
           execution().request_play_from_localtree(*val);
@@ -371,7 +371,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [=] {
+      ossia::qt::run_async(this, [this, v] {
         if(auto val = v.target<bool>())
         {
           execution().request_play_global_from_localtree(*val);
@@ -388,7 +388,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_transport_address->set_access(ossia::access_mode::SET);
     local_transport_address->set_unit(ossia::millisecond_u{});
     local_transport_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [=] {
+      ossia::qt::run_async(this, [this, v] {
         execution().request_transport_from_localtree(
             TimeVal::fromMsecs(ossia::convert<float>(v)));
       });
@@ -402,7 +402,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
-      ossia::qt::run_async(this, [=] { execution().request_stop_from_localtree(); });
+      ossia::qt::run_async(this, [this] { execution().request_stop_from_localtree(); });
     });
   }
 
@@ -414,7 +414,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
       ossia::qt::run_async(
-          this, [=] { execution().request_reinitialize_from_localtree(); });
+          this, [this] { execution().request_reinitialize_from_localtree(); });
     });
   }
   {
@@ -423,7 +423,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     address->set_value(ossia::impulse{});
     address->set_access(ossia::access_mode::SET);
     address->add_callback([&](const ossia::value&) {
-      ossia::qt::run_async(this, [=] {
+      ossia::qt::run_async(this, [this] {
         execution().request_stop_from_localtree();
 
         QTimer::singleShot(
@@ -439,7 +439,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     address->set_access(ossia::access_mode::BI);
     address->add_callback([&](const ossia::value& v) {
       int val = v.get<int>();
-      ossia::qt::run_async(this, [=] {
+      ossia::qt::run_async(this, [this, val] {
         if(context.applicationSettings.gui)
         {
           QTabWidget* docs = context.mainWindow->centralWidget()->findChild<QTabWidget*>(
@@ -461,7 +461,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     address->set_access(ossia::access_mode::BI);
     address->add_callback([&](const ossia::value& v) {
       auto val = QString::fromStdString(v.get<std::string>());
-      ossia::qt::run_async(this, [=, device = std::move(val)] {
+      ossia::qt::run_async(this, [this, device = std::move(val)] {
         auto doc = currentDocument();
         if(!doc)
           return;

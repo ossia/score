@@ -137,7 +137,7 @@ public:
         setInfos(devices[dev_idx]);
       }
     }
-    con(m, &Model::changed, this, [=, &m] { setCard(card_list, m.getCardOut()); });
+    con(m, &Model::changed, this, [this, &m] { setCard(card_list, m.getCardOut()); });
   }
   void setCard(QComboBox* combo, QString val)
   {

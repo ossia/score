@@ -105,7 +105,7 @@ void IntSlider::createPopup(QPoint pos)
   w->setValue(m_value);
   w->setRange(m_min, m_max);
 
-  QObject::connect(w, SignalUtils::QSpinBox_valueChanged_int(), this, [=](int v) {
+  QObject::connect(w, SignalUtils::QSpinBox_valueChanged_int(), this, [this](int v) {
     this->setValue(v);
     sliderMoved(this->value());
   });

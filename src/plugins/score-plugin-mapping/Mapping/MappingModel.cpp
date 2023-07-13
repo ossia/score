@@ -71,14 +71,14 @@ void ProcessModel::init()
 
   connect(
       inlet.get(), &Process::Port::addressChanged, this,
-      [=](const State::AddressAccessor& arg) {
+      [this](const State::AddressAccessor& arg) {
     sourceAddressChanged(arg);
     prettyNameChanged();
     m_curve->changed();
       });
   connect(
       outlet.get(), &Process::Port::addressChanged, this,
-      [=](const State::AddressAccessor& arg) {
+      [this](const State::AddressAccessor& arg) {
     targetAddressChanged(arg);
     prettyNameChanged();
     m_curve->changed();

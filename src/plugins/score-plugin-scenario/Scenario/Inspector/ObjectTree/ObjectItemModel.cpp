@@ -152,9 +152,9 @@ void ObjectItemModel::setupConnections()
     {
       auto& scenar = Scenario::parentScenario(*tn);
       m_itemCon.push_back(
-          connect(tn, &TimeSyncModel::newEvent, this, [=] { recompute(); }));
+          connect(tn, &TimeSyncModel::newEvent, this, [this] { recompute(); }));
       m_itemCon.push_back(
-          connect(tn, &TimeSyncModel::eventRemoved, this, [=] { recompute(); }));
+          connect(tn, &TimeSyncModel::eventRemoved, this, [this] { recompute(); }));
 
       for(const auto& ev : tn->events())
       {
@@ -162,7 +162,7 @@ void ObjectItemModel::setupConnections()
         {
           m_aliveMap.insert(eptr, eptr);
           m_itemCon.push_back(
-              connect(eptr, &EventModel::statesChanged, this, [=] { recompute(); }));
+              connect(eptr, &EventModel::statesChanged, this, [this] { recompute(); }));
           for(const auto& st : eptr->states())
           {
             if(auto* sptr = scenar.findState(st))
@@ -188,7 +188,7 @@ void ObjectItemModel::setupConnections()
       auto& e = *ev;
       m_aliveMap.insert(&e, &e);
       m_itemCon.push_back(
-          con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
+          con(e, &EventModel::statesChanged, this, [this] { recompute(); }));
 
       for(const auto& st : e.states())
       {
@@ -218,7 +218,7 @@ void ObjectItemModel::setupConnections()
         m_aliveMap.insert(&sp, &sp);
     }
 
-    m_itemCon.push_back(connect(obj, &QObject::destroyed, this, [=] {
+    m_itemCon.push_back(connect(obj, &QObject::destroyed, this, [this, obj] {
       m_root.removeOne(obj);
       cleanConnections();
 
@@ -810,7 +810,7 @@ bool ObjectItemModel::dropMimeData(
 
   auto p = (QObject*)parent.internalPointer();
 
-  auto move_in_itv = [=](auto itv, std::size_t row) {
+  auto move_in_itv = [this, other](auto itv, std::size_t row) {
     if(other->parent() != itv)
       return false;
 
@@ -837,7 +837,7 @@ bool ObjectItemModel::dropMimeData(
     return true;
   };
 
-  auto move_in_state = [=](auto sta, std::size_t row) {
+  auto move_in_state = [this, other](auto sta, std::size_t row) {
     if(other->parent() != sta)
       return false;
 
@@ -961,7 +961,7 @@ SelectionStackWidget::SelectionStackWidget(
   connect(m_up, &QToolButton::pressed, [&]() { m_selector.selectUp(); });
   connect(m_down, &QToolButton::pressed, [&]() { m_selector.selectDown(); });
 
-  con(m_stack, &score::SelectionStack::currentSelectionChanged, this, [=] {
+  con(m_stack, &score::SelectionStack::currentSelectionChanged, this, [this] {
     m_prev->setEnabled(m_stack.canUnselect());
     m_next->setEnabled(m_stack.canReselect());
     m_left->setEnabled(m_selector.hasLeft());
@@ -1164,7 +1164,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
     {
       auto addproc = new QAction{tr("Add process"), m};
       m->addAction(addproc);
-      connect(addproc, &QAction::triggered, this, [=] {
+      connect(addproc, &QAction::triggered, this, [this, state] {
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
         auto dialog
             = new AddProcessDialog{fact, Process::ProcessFlags::SupportsState, this};
@@ -1184,7 +1184,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       {
         auto deleteact = new QAction{tr("Remove"), m};
         m->addAction(deleteact);
-        connect(deleteact, &QAction::triggered, this, [=] {
+        connect(deleteact, &QAction::triggered, this, [this, state, proc] {
           CommandDispatcher<> c{m_ctx.commandStack};
           c.submit<Scenario::Command::RemoveStateProcess>(*state, proc->id());
         });
@@ -1193,13 +1193,13 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       {
         auto deleteact = new QAction{tr("Remove"), m};
         m->addAction(deleteact);
-        connect(deleteact, &QAction::triggered, this, [=] {
+        connect(deleteact, &QAction::triggered, this, [this, itv, proc] {
           CommandDispatcher<> c{m_ctx.commandStack};
           c.submit<Scenario::Command::RemoveProcessFromInterval>(*itv, proc->id());
         });
         auto duplicate = new QAction{tr("Duplicate"), m};
         m->addAction(duplicate);
-        connect(duplicate, &QAction::triggered, this, [=] {
+        connect(duplicate, &QAction::triggered, this, [this, itv, proc] {
           CommandDispatcher<> c{m_ctx.commandStack};
           c.submit<Scenario::Command::DuplicateOnlyProcessToInterval>(*itv, *proc);
         });

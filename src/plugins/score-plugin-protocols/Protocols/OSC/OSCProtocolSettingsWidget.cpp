@@ -416,7 +416,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
 
   connect(
       m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
-      [=](int idx) { m_transportLayout->setCurrentIndex(idx); });
+      [this](int idx) { m_transportLayout->setCurrentIndex(idx); });
 
   auto layout = new QFormLayout{this};
   layout->addRow(tr("Name"), m_deviceNameEdit);

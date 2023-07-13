@@ -31,7 +31,7 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
   }
   connect(
       m_cpt, &WaveformComputer::ready, this,
-      [=](QVector<QImage*> img, ComputedWaveform wf) {
+      [this](QVector<QImage*> img, ComputedWaveform wf) {
     {
       QImagePool::instance().giveBack(m_images);
       m_images = std::move(img);

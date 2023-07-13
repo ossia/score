@@ -66,7 +66,7 @@ void LocalTree::DocumentPlugin::init()
 
   con(
       set, &Explorer::Settings::Model::LocalTreeChanged, this,
-      [=](bool b) {
+      [this](bool b) {
     if(b)
       create();
     else

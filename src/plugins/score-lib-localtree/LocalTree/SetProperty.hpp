@@ -19,8 +19,9 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
       : BaseCallbackWrapper{param_addr}
       , setFun{prop}
   {
-    callbackIt = addr.add_callback(
-        [=](const ossia::value& v) { ossia::qt::run_async(qApp, [=] { setFun(v); }); });
+    callbackIt = addr.add_callback([this](const ossia::value& v) {
+      ossia::qt::run_async(qApp, [this, v] { setFun(v); });
+    });
 
     // addr.set_value(typename ossia::qt_property_converter<T>::type{});
   }

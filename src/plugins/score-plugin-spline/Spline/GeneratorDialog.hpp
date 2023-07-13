@@ -32,7 +32,7 @@ public:
     lay->insertLayout(2, controls);
     connect(
         step, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
-        [=](double step) { m_step = step; });
+        [this](double step) { m_step = step; });
 
     expr.add_variable("t", t);
     expr.add_variable("x", x);

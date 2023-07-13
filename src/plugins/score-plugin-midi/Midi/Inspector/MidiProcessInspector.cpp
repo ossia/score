@@ -28,7 +28,7 @@ InspectorWidget::InspectorWidget(
 
     vlay->addRow(tr("Channel"), m_chan);
     m_chan->setValue(model.channel());
-    con(model, &ProcessModel::channelChanged, this, [=](int n) {
+    con(model, &ProcessModel::channelChanged, this, [this](int n) {
       if(m_chan->value() != n)
         m_chan->setValue(n);
     });
@@ -55,12 +55,12 @@ InspectorWidget::InspectorWidget(
     vlay->addRow(tr("Min"), m_min);
     vlay->addRow(tr("Max"), m_max);
 
-    con(model, &ProcessModel::rangeChanged, this, [=](int min, int max) {
+    con(model, &ProcessModel::rangeChanged, this, [this](int min, int max) {
       m_min->setValue(min);
       m_max->setValue(max);
     });
 
-    connect(m_min, &QSpinBox::editingFinished, this, [=, &model, &doc] {
+    connect(m_min, &QSpinBox::editingFinished, this, [this, &model, &doc] {
       auto n = m_min->value();
       if(model.range().first != n)
       {
@@ -68,7 +68,7 @@ InspectorWidget::InspectorWidget(
         d.submit(new SetRange{model, n, m_max->value()});
       }
     });
-    connect(m_max, &QSpinBox::editingFinished, this, [=, &model, &doc] {
+    connect(m_max, &QSpinBox::editingFinished, this, [this, &model, &doc] {
       auto n = m_max->value();
       if(model.range().second != n)
       {

@@ -256,7 +256,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     // and the event is processed before this is deleted, but after the interval
     // is, so we have to double-check
     QPointer<IntervalModel> itv = &displayedElements.interval();
-    QTimer::singleShot(0, this, [=] {
+    QTimer::singleShot(0, this, [this, itv] {
       if(itv)
         restoreZoom();
     });
@@ -676,7 +676,7 @@ void ScenarioDocumentPresenter::restoreZoom()
 void ScenarioDocumentPresenter::on_viewReady()
 {
   auto itv = QPointer<IntervalModel>{&displayedInterval()};
-  QTimer::singleShot(0, this, [=] {
+  QTimer::singleShot(0, this, [this, itv] {
     if(!itv)
       return;
 
@@ -954,10 +954,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
       setDisplayedInterval(&model().baseInterval());
     });
   }
-  m_durationConnection
-      = con(interval.duration, &IntervalDurations::guiDurationChanged, this, [=] {
-          updateMinimap();
-        });
+  m_durationConnection = con(
+      interval.duration, &IntervalDurations::guiDurationChanged, this,
+      [this, itv] { updateMinimap(); });
 
   // Setup of the layer in the minimap
   delete m_miniLayer;
@@ -973,7 +972,8 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
         m_miniLayer->setHeight(40);
         m_miniLayer->setWidth(view().minimap().width());
         view().minimap().scene()->addItem(m_miniLayer);
-        con(proc, &Process::ProcessModel::identified_object_destroying, this, [=] {
+        con(proc, &Process::ProcessModel::identified_object_destroying, this,
+            [this, itv] {
           delete m_miniLayer;
           m_miniLayer = nullptr;
         });
@@ -1082,7 +1082,7 @@ void ScenarioDocumentPresenter::goUpALevel()
 void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Selection& s)
 {
   auto process = m_focusManager.focusedModel();
-  auto clearProcessSelection = [=](Process::ProcessModel* process) {
+  auto clearProcessSelection = [this](Process::ProcessModel* process) {
     if(process)
     {
       process->setSelection(Selection{});

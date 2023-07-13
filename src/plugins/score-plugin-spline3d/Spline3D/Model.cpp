@@ -40,13 +40,14 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
   connect(
       outlet.get(), &Process::Port::addressChanged, this,
-      [=](const State::AddressAccessor& arg) {
+      [this](const State::AddressAccessor& arg) {
     addressChanged(arg);
     prettyNameChanged();
     unitChanged(arg.qualifiers.get().unit);
       });
-  connect(
-      outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
+  connect(outlet.get(), &Process::Port::cablesChanged, this, [this] {
+    prettyNameChanged();
+  });
 }
 
 QString ProcessModel::prettyName() const noexcept

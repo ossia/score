@@ -119,19 +119,19 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     m_portStartX += 18;
   }
 
-  con(m_model, &Process::ProcessModel::prettyNameChanged, this, [=] {
+  con(m_model, &Process::ProcessModel::prettyNameChanged, this, [this] {
     updateText();
     update();
   });
 
-  con(m_model, &Process::ProcessModel::inletsChanged, this, [=] { updatePorts(); });
+  con(m_model, &Process::ProcessModel::inletsChanged, this, [this] { updatePorts(); });
   updatePorts();
 
   con(m_model, &Process::ProcessModel::benchmark, this,
-      [=](double d) { updateBench(d); });
+      [this](double d) { updateBench(d); });
   con(
       m_model.selection, &Selectable::changed, this,
-      [=](bool b) {
+      [this](bool b) {
     m_sel = b;
     updateText();
     update();
@@ -260,7 +260,7 @@ DefaultFooterDelegate::DefaultFooterDelegate(
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorScaleV);
   setFlag(ItemHasNoContents, true);
-  con(model, &Process::ProcessModel::outletsChanged, this, [=] { updatePorts(); });
+  con(model, &Process::ProcessModel::outletsChanged, this, [this] { updatePorts(); });
   updatePorts();
 }
 

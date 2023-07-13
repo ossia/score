@@ -154,7 +154,7 @@ void NodeItem::createWithDecorations()
   connect(
       &process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
 
-  connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [=](bool b) {
+  connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [this](bool b) {
     if(b)
     {
       createContentItem();

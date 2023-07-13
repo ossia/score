@@ -86,7 +86,7 @@ void ApplicationPlugin::on_documentChanged(
     {
       if(auto qw = messages->widget())
       {
-        auto func = [=, &devices](bool visible) {
+        auto func = [this, &devices, messages](bool visible) {
           disableConnections();
           if(visible)
           {

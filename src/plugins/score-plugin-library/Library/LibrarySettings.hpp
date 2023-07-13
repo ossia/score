@@ -20,11 +20,11 @@ public:                                                               \
 private:                                                              \
   QLineEdit* m_##Control{};
 
-#define SETTINGS_UI_PATH_SETUP(Text, Control)                   \
-  m_##Control = new QLineEdit{m_widg};                          \
-  lay->addRow(tr(Text), m_##Control);                           \
-  connect(m_##Control, &QLineEdit::editingFinished, this, [=] { \
-    Control##Changed(m_##Control->text());                      \
+#define SETTINGS_UI_PATH_SETUP(Text, Control)                      \
+  m_##Control = new QLineEdit{m_widg};                             \
+  lay->addRow(tr(Text), m_##Control);                              \
+  connect(m_##Control, &QLineEdit::editingFinished, this, [this] { \
+    Control##Changed(m_##Control->text());                         \
   });
 
 #define SETTINGS_UI_PATH_IMPL(Control) \

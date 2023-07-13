@@ -78,7 +78,7 @@ SystemLibraryWidget::SystemLibraryWidget(
       sorting->setCheckable(true);
       sorting->setChecked(m_model->isSorting());
       menu->addAction(sorting);
-      connect(sorting, &QAction::triggered, this, [=](bool checked) {
+      connect(sorting, &QAction::triggered, this, [this](bool checked) {
         m_model->setSorting(checked);
       });
     }

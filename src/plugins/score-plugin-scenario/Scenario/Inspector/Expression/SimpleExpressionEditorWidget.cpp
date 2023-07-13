@@ -142,8 +142,8 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   // Connections
 
-  connect(m_rmBtn, &QToolButton::clicked, this, [=]() { removeTerm(id); });
-  connect(m_addBtn, &QToolButton::clicked, this, [=]() { addTerm(); });
+  connect(m_rmBtn, &QToolButton::clicked, this, [this]() { removeTerm(id); });
+  connect(m_addBtn, &QToolButton::clicked, this, [this]() { addTerm(); });
 
   /// EDIT FINISHED
   connect(m_address, &Device::AddressAccessorEditWidget::addressChanged, this, [&]() {

@@ -242,11 +242,13 @@ llvm::Error cc1_main(ArrayRef<const char*> Argv, const char* Argv0, void* MainAd
   bool Success
       = CompilerInvocation::CreateFromArgs(Clang->getInvocation(), Argv, *Diags);
 
+#if LLVM_VERSION_MAJOR < 17
   if(Clang->getFrontendOpts().TimeTrace)
   {
     llvm::timeTraceProfilerInitialize(
         Clang->getFrontendOpts().TimeTraceGranularity, Argv0);
   }
+#endif
 
 #if LLVM_VERSION_MAJOR >= 13
   if(!Clang->hasSourceManager())

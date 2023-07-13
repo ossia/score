@@ -180,7 +180,7 @@ DocumentManager::setupDocument(const score::GUIApplicationContext& ctx, Document
       m_view->addDocumentView(doc->view());
       connect(
           &doc->metadata(), &DocumentMetadata::fileNameChanged, this,
-          [=](const QString& s) { m_view->on_fileNameChanged(doc->view(), s); });
+          [this, doc](const QString& s) { m_view->on_fileNameChanged(doc->view(), s); });
     }
     setCurrentDocument(ctx, doc);
 

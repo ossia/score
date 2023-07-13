@@ -40,7 +40,7 @@ public:
     m_layout->insertRow(0, makeLabel(tr("Value"), this), m_valueSBox);
     m_layout->insertRow(1, makeLabel(tr("Domain"), this), m_domainEdit);
 
-    connect(m_unit, &State::UnitWidget::unitChanged, this, [=](const State::Unit& u) {
+    connect(m_unit, &State::UnitWidget::unitChanged, this, [this](const State::Unit& u) {
       auto dom = ossia::get_unit_default_domain(u.get());
 
       if(auto p = dom.v.target<ossia::domain_base<float>>())

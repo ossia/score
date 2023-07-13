@@ -187,7 +187,7 @@ QWidget* PortAudioFactory::make_settings(
   addSampleRateWidget(*w, m, v);
   auto rate = w->findChild<QComboBox*>("Rate");
 
-  auto updateRates = [=] {
+  auto updateRates = [this, rate, card_in, card_out] {
     updateSampleRates(
         rate, devices[card_in->itemData(card_in->currentIndex()).toInt()],
         devices[card_out->itemData(card_in->currentIndex()).toInt()]);
@@ -235,9 +235,10 @@ QWidget* PortAudioFactory::make_settings(
     };
 
     QObject::connect(
-        card_in, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [=](int i) {
-          update_dev(devices[card_in->itemData(i).toInt()]);
-          updateRates();
+        card_in, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
+        [this, update_dev, card_in, updateRates](int i) {
+      update_dev(devices[card_in->itemData(i).toInt()]);
+      updateRates();
         });
 
     if(m.getCardIn().isEmpty())
@@ -279,9 +280,10 @@ QWidget* PortAudioFactory::make_settings(
     };
 
     QObject::connect(
-        card_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [=](int i) {
-          update_dev(devices[card_out->itemData(i).toInt()]);
-          updateRates();
+        card_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
+        [this, update_dev, card_out, updateRates](int i) {
+      update_dev(devices[card_out->itemData(i).toInt()]);
+      updateRates();
         });
 
     if(m.getCardOut().isEmpty())
@@ -305,7 +307,7 @@ QWidget* PortAudioFactory::make_settings(
   }
   addBufferSizeWidget(*w, m, v);
 
-  con(m, &Model::changed, &v, [=, &m] {
+  con(m, &Model::changed, &v, [this, card_in, card_out, &m] {
     setCardIn(card_in, m.getCardIn());
     setCardOut(card_out, m.getCardOut());
   });

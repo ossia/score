@@ -31,7 +31,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
   {
     QObject::connect(
         &m_model, Property::notify, context,
-        [=] {
+        [this] {
       auto newVal = converter_t::convert((m_model.*Property::get)());
       try
       {

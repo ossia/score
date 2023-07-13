@@ -52,11 +52,13 @@ void ActionManager::reset(score::Document* doc)
   {
     mdoc = &doc->context();
 
-    focusConnection = con(
-        doc->focusManager(), &FocusManager::changed, this, [=] { focusChanged(mdoc); });
+    focusConnection
+        = con(doc->focusManager(), &FocusManager::changed, this, [this, mdoc] {
+            focusChanged(mdoc);
+          });
     selectionConnection = con(
         doc->selectionStack(), &SelectionStack::currentSelectionChanged, this,
-        [=] { this->selectionChanged(mdoc); }, Qt::QueuedConnection);
+        [this, mdoc] { this->selectionChanged(mdoc); }, Qt::QueuedConnection);
   }
 
   // Reset all the actions

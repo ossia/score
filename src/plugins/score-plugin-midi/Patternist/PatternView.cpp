@@ -29,10 +29,11 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
 {
   setFlag(QGraphicsItem::ItemClipsToShape);
   setFlag(QGraphicsItem::ItemClipsChildrenToShape);
-  con(model, &Patternist::ProcessModel::patternsChanged, this, [=] { updateLanes(); });
+  con(model, &Patternist::ProcessModel::patternsChanged, this,
+      [this] { updateLanes(); });
   con(model, &Patternist::ProcessModel::currentPatternChanged, this,
-      [=] { updateLanes(); });
-  con(model, &Patternist::ProcessModel::execPosition, this, [=](int x) {
+      [this] { updateLanes(); });
+  con(model, &Patternist::ProcessModel::execPosition, this, [this](int x) {
     m_execPosition = x;
     update();
   });

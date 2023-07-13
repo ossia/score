@@ -83,7 +83,7 @@ OSCQueryDevice::OSCQueryDevice(
       Qt::QueuedConnection);
   connect(
       this, &OSCQueryDevice::sig_disconnect, this,
-      [=] {
+      [this] {
     // TODO how to notify the GUI ?
     m_connected = false;
       },
@@ -216,7 +216,7 @@ void OSCQueryDevice::slot_createDevice()
 
     deviceChanged(nullptr, m_dev.get());
 
-    //p.set_command_callback([=] { sig_command(); });
+    //p.set_command_callback([this] { sig_command(); });
     p.on_connection_closed.connect<&OSCQueryDevice::sig_disconnect>(*this);
     p.on_connection_failure.connect<&OSCQueryDevice::sig_disconnect>(*this);
 

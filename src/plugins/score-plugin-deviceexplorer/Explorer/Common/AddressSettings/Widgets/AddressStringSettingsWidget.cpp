@@ -28,7 +28,7 @@ AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
   m_layout->insertRow(0, makeLabel(tr("Text"), this), m_valueEdit);
   m_layout->insertRow(1, makeLabel(tr("Domain"), this), pb);
 
-  connect(pb, &QPushButton::clicked, this, [=] {
+  connect(pb, &QPushButton::clicked, this, [this] {
     auto vals = m_values->values();
     if(!m_values->exec())
     {

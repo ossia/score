@@ -75,7 +75,9 @@ AddProcessDialog::AddProcessDialog(
     }
   };
   connect(m_processes, &QListWidget::itemDoubleClicked, this, accept_item);
-  connect(add, &QPushButton::clicked, [=] { accept_item(m_processes->currentItem()); });
+  connect(add, &QPushButton::clicked, [this, accept_item] {
+    accept_item(m_processes->currentItem());
+  });
 
   setup();
   hide();

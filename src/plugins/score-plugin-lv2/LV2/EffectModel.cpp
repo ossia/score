@@ -136,7 +136,7 @@ struct LV2PluginChooserDialog : public QDialog
     con(m_plugins, &QListWidget::itemDoubleClicked, this, accept_item);
 
     con(m_buttons, &QDialogButtonBox::accepted, this,
-        [=] { accept_item(m_plugins.currentItem()); });
+        [this, accept_item] { accept_item(m_plugins.currentItem()); });
   }
 
   void updateProcesses(const QString& str)

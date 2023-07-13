@@ -78,22 +78,23 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
 
   m_VstPaths->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
-      m_VstPaths, &QListWidget::customContextMenuRequested, this, [=](const QPoint& p) {
-        QMenu* m = new QMenu;
-        auto act = m->addAction("Remove");
-        connect(act, &QAction::triggered, this, [=] {
-          auto idx = m_VstPaths->currentRow();
+      m_VstPaths, &QListWidget::customContextMenuRequested, this,
+      [this](const QPoint& p) {
+    QMenu* m = new QMenu;
+    auto act = m->addAction("Remove");
+    connect(act, &QAction::triggered, this, [this] {
+      auto idx = m_VstPaths->currentRow();
 
-          if(ossia::valid_index(idx, m_curitems))
-          {
-            m_VstPaths->takeItem(idx);
-            m_curitems.removeAt(idx);
-            VstPathsChanged(m_curitems);
-          }
-        });
+      if(ossia::valid_index(idx, m_curitems))
+      {
+        m_VstPaths->takeItem(idx);
+        m_curitems.removeAt(idx);
+        VstPathsChanged(m_curitems);
+      }
+    });
 
-        m->exec(m_VstPaths->mapToGlobal(p));
-        m->deleteLater();
+    m->exec(m_VstPaths->mapToGlobal(p));
+    m->deleteLater();
       });
 
   vstPathWidgetLayout->addRow(tr("VST paths"), m_VstPaths);
@@ -103,7 +104,7 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
   splitter->setStretchFactor(0, 1);
   splitter->setCollapsible(0, false);
 
-  connect(pb, &QPushButton::clicked, this, [=] {
+  connect(pb, &QPushButton::clicked, this, [this, splitter] {
     auto path = QFileDialog::getExistingDirectory(splitter, tr("VST Path"));
     if(!path.isEmpty())
     {

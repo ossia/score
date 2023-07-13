@@ -73,7 +73,7 @@ QuantificationWidget::QuantificationWidget(QWidget* parent)
   addItems(
       {tr("Parent"), tr("Free"), tr("8 bars"), tr("4 bars"), tr("2 bars"), tr("1 bar "),
        tr("1/2   "), tr("1/4   "), tr("1/8   "), tr("1/16  "), tr("1/32  ")});
-  connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int idx) {
+  connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int idx) {
     quantificationChanged(quantificationForIndex(idx));
   });
 }

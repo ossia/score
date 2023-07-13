@@ -114,7 +114,7 @@ ScenarioPresenter::ScenarioPresenter(
 
   connect(
       m_view, &ScenarioView::dragEnter, this,
-      [=](const QPointF& pos, const QMimeData& mime) {
+      [this](const QPointF& pos, const QMimeData& mime) {
     try
     {
       m_context.context.app.interfaces<Scenario::DropHandlerList>().dragEnter(
@@ -127,7 +127,7 @@ ScenarioPresenter::ScenarioPresenter(
       });
   connect(
       m_view, &ScenarioView::dragMove, this,
-      [=](const QPointF& pos, const QMimeData& mime) {
+      [this](const QPointF& pos, const QMimeData& mime) {
     try
     {
       m_context.context.app.interfaces<Scenario::DropHandlerList>().dragMove(
@@ -140,7 +140,7 @@ ScenarioPresenter::ScenarioPresenter(
       });
   connect(
       m_view, &ScenarioView::dragLeave, this,
-      [=](const QPointF& pos, const QMimeData& mime) {
+      [this](const QPointF& pos, const QMimeData& mime) {
     try
     {
       stopDrawDragLine();
@@ -154,7 +154,7 @@ ScenarioPresenter::ScenarioPresenter(
       });
   connect(
       m_view, &ScenarioView::dropReceived, this,
-      [=](const QPointF& pos, const QMimeData& mime) {
+      [this](const QPointF& pos, const QMimeData& mime) {
     try
     {
       stopDrawDragLine();
@@ -173,7 +173,7 @@ ScenarioPresenter::ScenarioPresenter(
 
   auto& es
       = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>().editionSettings();
-  con(es, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
+  con(es, &EditionSettings::toolChanged, this, [this](Scenario::Tool t) {
     auto& skin = score::Skin::instance();
     switch(t)
     {
@@ -784,13 +784,15 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
   m_viewInterface.on_eventMoved(*ev_pres);
 
   con(*ev_pres, &EventPresenter::extentChanged, this,
-      [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
+      [this, ev_pres](const VerticalExtent&) {
+    m_viewInterface.on_eventMoved(*ev_pres);
+  });
 
   con(event_model, &EventModel::dateChanged, this,
-      [=](const TimeVal&) { m_viewInterface.on_eventMoved(*ev_pres); });
+      [this, ev_pres](const TimeVal&) { m_viewInterface.on_eventMoved(*ev_pres); });
 
   con(event_model, &EventModel::timeSyncChanged, this,
-      [=](const Id<TimeSyncModel>& old_id, const Id<TimeSyncModel>& new_id) {
+      [this, ev_pres](const Id<TimeSyncModel>& old_id, const Id<TimeSyncModel>& new_id) {
     auto& old_t = m_timeSyncs.at(old_id);
     old_t.removeEvent(ev_pres);
     updateTimeSyncExtent(old_t);
@@ -813,7 +815,7 @@ void ScenarioPresenter::on_timeSyncCreated(const TimeSyncModel& timeSync_model)
 
   m_viewInterface.on_timeSyncMoved(*ts_pres);
 
-  auto updateSyncPos = [=] { m_viewInterface.on_timeSyncMoved(*ts_pres); };
+  auto updateSyncPos = [this, ts_pres] { m_viewInterface.on_timeSyncMoved(*ts_pres); };
   con(*ts_pres, &TimeSyncPresenter::extentChanged, this, updateSyncPos);
   con(timeSync_model, &TimeSyncModel::dateChanged, this, updateSyncPos);
 
@@ -943,11 +945,12 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 
     con(interval, &IntervalModel::slotRemoved, this, updateHeight);
 
-    connect(cst_pres, &TemporalIntervalPresenter::heightPercentageChanged, this, [=]() {
+    connect(
+        cst_pres, &TemporalIntervalPresenter::heightPercentageChanged, this,
+        [this, cst_pres]() { m_viewInterface.on_intervalMoved(*cst_pres); });
+    con(interval, &IntervalModel::dateChanged, this, [this, cst_pres](const TimeVal&) {
       m_viewInterface.on_intervalMoved(*cst_pres);
     });
-    con(interval, &IntervalModel::dateChanged, this,
-        [=](const TimeVal&) { m_viewInterface.on_intervalMoved(*cst_pres); });
     connect(
         cst_pres, &TemporalIntervalPresenter::askUpdate, this,
         &ScenarioPresenter::on_askUpdate);
@@ -972,9 +975,9 @@ void ScenarioPresenter::on_commentCreated(const CommentBlockModel& comment_block
   m_viewInterface.on_commentMoved(*cmt_pres);
 
   con(comment_block_model, &CommentBlockModel::dateChanged, this,
-      [=](const TimeVal&) { m_viewInterface.on_commentMoved(*cmt_pres); });
+      [this, cmt_pres](const TimeVal&) { m_viewInterface.on_commentMoved(*cmt_pres); });
   con(comment_block_model, &CommentBlockModel::heightPercentageChanged, this,
-      [=](double y) { m_viewInterface.on_commentMoved(*cmt_pres); });
+      [this, cmt_pres](double y) { m_viewInterface.on_commentMoved(*cmt_pres); });
 
   // Selection
   connect(cmt_pres, &CommentBlockPresenter::selected, this, [&]() {

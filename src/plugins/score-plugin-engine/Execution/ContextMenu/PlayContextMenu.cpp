@@ -38,7 +38,7 @@ PlayContextMenu::PlayContextMenu(
 
   /// Right-click actions
   m_playStates = new QAction{tr("Play (States)"), this};
-  connect(m_playStates, &QAction::triggered, [=]() {
+  connect(m_playStates, &QAction::triggered, [this]() {
     auto ctx = m_ctx.currentDocument();
     if(!ctx)
       return;
@@ -73,7 +73,7 @@ PlayContextMenu::PlayContextMenu(
     }
   });
   m_playEvents = new QAction{tr("Play (Events)"), this};
-  connect(m_playEvents, &QAction::triggered, [=] {
+  connect(m_playEvents, &QAction::triggered, [this] {
     /*
     if (auto sm = parent->focusedScenarioModel())
     {
@@ -90,7 +90,7 @@ PlayContextMenu::PlayContextMenu(
 
   /// Play tool ///
   con(exec_signals, &Scenario::ScenarioExecution::playState, this,
-      [=](const Scenario::ScenarioInterface* scenar, const Id<StateModel>& id) {
+      [this](const Scenario::ScenarioInterface* scenar, const Id<StateModel>& id) {
     auto ctx = m_ctx.currentDocument();
     if(!ctx)
       return;
@@ -169,7 +169,7 @@ PlayContextMenu::PlayContextMenu(
 
   /// Record signals ///
   m_recordAutomations = new QAction{tr("Record automations from here"), this};
-  connect(m_recordAutomations, &QAction::triggered, [=, &exec_signals]() {
+  connect(m_recordAutomations, &QAction::triggered, [this, &exec_signals]() {
     const auto& recdata = m_recordAutomations->data().value<ScenarioRecordInitData>();
     if(!recdata.presenter)
       return;
@@ -187,7 +187,7 @@ PlayContextMenu::PlayContextMenu(
   });
 
   m_recordMessages = new QAction{tr("Record messages from here"), this};
-  connect(m_recordMessages, &QAction::triggered, [=, &exec_signals]() {
+  connect(m_recordMessages, &QAction::triggered, [this, &exec_signals]() {
     const auto& recdata = m_recordMessages->data().value<ScenarioRecordInitData>();
     if(!recdata.presenter)
       return;

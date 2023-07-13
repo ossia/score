@@ -28,7 +28,7 @@ Event::Event(
 
   QObject::connect(
       &event, &Scenario::EventModel::conditionChanged, this,
-      [=](const ::State::Expression& cond) {
+      [this, exp_a](const ::State::Expression& cond) {
     m_setting = true;
     // TODO try to simplify the other get / set properties like this
     ossia::value newVal = cond.toString().toStdString();

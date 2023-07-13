@@ -26,17 +26,17 @@ public:
   {
     {
       auto pb = addAction("+1");
-      connect(pb, &QAction::triggered, this, [=] { advance(1); });
+      connect(pb, &QAction::triggered, this, [this] { advance(1); });
     }
 
     {
       auto pb = addAction("+5");
-      connect(pb, &QAction::triggered, this, [=] { advance(5); });
+      connect(pb, &QAction::triggered, this, [this] { advance(5); });
     }
 
     {
       auto pb = addAction("+100");
-      connect(pb, &QAction::triggered, this, [=] { advance(100); });
+      connect(pb, &QAction::triggered, this, [this] { advance(100); });
     }
   }
 
@@ -69,7 +69,7 @@ private:
     {
       context.doc.app.mainWindow->addToolBar(Qt::ToolBarArea::BottomToolBarArea, m_widg);
     }
-    QObject::connect(m_widg, &TimeWidget::advance, this, [=](int val) {
+    QObject::connect(m_widg, &TimeWidget::advance, this, [this](int val) {
       using namespace ossia;
       ossia::time_interval& itv = *scenario->baseInterval().OSSIAInterval();
       ossia::time_value time{val};
@@ -113,7 +113,7 @@ class ClockFactory final : public Execution::ClockFactory
   makeTimeFunction(const score::DocumentContext& ctx) const override
   {
     constexpr double rate = 44100;
-    return [=](const TimeVal& v) -> ossia::time_value {
+    return [this](const TimeVal& v) -> ossia::time_value {
       return v.isInfinite()
                  ? ossia::Infinite
                  : ossia::time_value{std::llround(rate * v.msec() / 1000.)};
@@ -124,7 +124,7 @@ class ClockFactory final : public Execution::ClockFactory
   makeReverseTimeFunction(const score::DocumentContext& ctx) const override
   {
     constexpr double rate = 44100;
-    return [=](const ossia::time_value& v) -> TimeVal {
+    return [this](const ossia::time_value& v) -> TimeVal {
       return v.infinite() ? TimeVal::infinite()
                           : TimeVal::fromMsecs(1000. * v.impl / rate);
     };

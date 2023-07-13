@@ -779,7 +779,7 @@ bool VideoDecoder::open_stream() noexcept
           height = codecPar->height;
           fps = av_q2d(m_avstream->avg_frame_rate);
 
-          res = open_codec_context(*this, m_avstream, [=](AVCodecContext& ctx) {
+          res = open_codec_context(*this, m_avstream, [this](AVCodecContext& ctx) {
             ctx.framerate
                 = av_guess_frame_rate(m_formatContext, (AVStream*)m_avstream, NULL);
             m_codecContext->pkt_timebase = m_avstream->time_base;

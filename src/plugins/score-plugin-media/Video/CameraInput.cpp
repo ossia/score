@@ -227,7 +227,7 @@ bool CameraInput::open_stream() noexcept
         if(m_avstream->avg_frame_rate.num != 0 && m_avstream->avg_frame_rate.den != 0)
           fps = av_q2d(m_avstream->avg_frame_rate);
 
-        res = open_codec_context(*this, stream, [=](AVCodecContext& ctx) {
+        res = open_codec_context(*this, stream, [this, stream](AVCodecContext& ctx) {
           ctx.framerate = av_guess_frame_rate(m_formatContext, (AVStream*)stream, NULL);
           m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
           m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;

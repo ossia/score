@@ -176,7 +176,7 @@ void Model::insertSegment(SegmentModel* m)
 
   // TODO have indexes on the points with the start and end
   // curve segments
-  connect(m, &SegmentModel::startChanged, this, [=]() {
+  connect(m, &SegmentModel::startChanged, this, [this, m]() {
     for(PointModel* pt : m_points)
     {
       if(pt->following() == m->id())
@@ -186,7 +186,7 @@ void Model::insertSegment(SegmentModel* m)
       }
     }
   });
-  connect(m, &SegmentModel::endChanged, this, [=]() {
+  connect(m, &SegmentModel::endChanged, this, [this, m]() {
     for(PointModel* pt : m_points)
     {
       if(pt->previous() == m->id())

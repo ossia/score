@@ -273,10 +273,10 @@ public:
 
     con(
         m_type, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-        [=] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
+        [this] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
     con(
         m_channels, &QSpinBox::editingFinished, this,
-        [=] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
+        [this] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
 
     m_mapping.setAlternatingRowColors(true);
     m_mapping.setCornerButtonEnabled(false);

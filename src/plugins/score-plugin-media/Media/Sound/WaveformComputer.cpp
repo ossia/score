@@ -23,11 +23,12 @@ WaveformComputer::WaveformComputer(bool threaded)
 {
   connect(
       this, &WaveformComputer::recompute, this,
-      [=](WaveformRequest req) {
+      [this](WaveformRequest req) {
     int64_t n = ++m_redraw_count;
 
-    ossia::qt::run_async(
-        this, [=, r = std::move(req)]() mutable { on_recompute(std::move(r), n); });
+    ossia::qt::run_async(this, [this, r = std::move(req), n]() mutable {
+      on_recompute(std::move(r), n);
+    });
       },
       Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);

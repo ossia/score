@@ -44,7 +44,7 @@ void ProcessModel::init()
   auto& out = *(Process::MinMaxFloatOutlet*)outlet.get();
   connect(
       &out, &Process::Port::addressChanged, this,
-      [=](const State::AddressAccessor& arg) {
+      [this](const State::AddressAccessor& arg) {
     addressChanged(arg);
     prettyNameChanged();
     unitChanged(arg.qualifiers.get().unit);
@@ -52,12 +52,13 @@ void ProcessModel::init()
       });
   connect(
       out.minInlet.get(), &Process::FloatSlider::valueChanged, this,
-      [=](const ossia::value& arg) { minChanged(ossia::convert<float>(arg)); });
+      [this](const ossia::value& arg) { minChanged(ossia::convert<float>(arg)); });
   connect(
       out.maxInlet.get(), &Process::FloatSlider::valueChanged, this,
-      [=](const ossia::value& arg) { maxChanged(ossia::convert<float>(arg)); });
-  connect(
-      outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
+      [this](const ossia::value& arg) { maxChanged(ossia::convert<float>(arg)); });
+  connect(outlet.get(), &Process::Port::cablesChanged, this, [this] {
+    prettyNameChanged();
+  });
 }
 
 ProcessModel::ProcessModel(

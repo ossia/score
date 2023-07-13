@@ -22,7 +22,7 @@ public:
       , deleteAction{menu->addAction(QObject::tr("Disable"))}
       , editAction{menu->addAction(QObject::tr("Edit"))}
   {
-    connect(editAction, &QAction::triggered, this, [=] {
+    connect(editAction, &QAction::triggered, this, [this, f = std::move(f)] {
       bool ok = false;
       auto str = QInputDialog::getText(
           nullptr, tr("Edit expression"), tr("Edit expression"), QLineEdit::Normal,

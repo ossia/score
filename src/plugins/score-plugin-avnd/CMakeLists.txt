@@ -135,6 +135,8 @@ add_library(
   score_plugin_avnd.aether.cpp
   score_plugin_avnd.convolver.cpp
   score_plugin_avnd.filters.cpp
+  score_plugin_avnd.tests.cpp
+  score_plugin_avnd.tests2.cpp
 
   score_plugin_avnd.hpp
   score_plugin_avnd.cpp

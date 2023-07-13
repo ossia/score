@@ -221,12 +221,12 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
   output->updateGraphicsAPI(graphicsApi);
   if(!output->canRender())
   {
-    auto onReady = [=] {
+    auto onReady = [this, output] {
       if(output->canRender())
         createOutputRenderList(*output);
     };
 
-    auto onResize = [=] { recreateOutputRenderList(*output); };
+    auto onResize = [this, output] { recreateOutputRenderList(*output); };
 
     auto onUpdate = [this] {
       switch(this->m_outputs.size())

@@ -10,7 +10,7 @@ StyleInterface::~StyleInterface() { }
 
 void Style::init(const score::Skin& s)
 {
-  QObject::connect(&s, &score::Skin::changed, [=] { this->update(); });
+  QObject::connect(&s, &score::Skin::changed, [this] { this->update(); });
   update();
 }
 

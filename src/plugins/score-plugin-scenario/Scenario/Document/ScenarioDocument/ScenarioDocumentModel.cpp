@@ -158,9 +158,9 @@ void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
   {
     busIntervals.push_back(itv);
     const_cast<IntervalModel*>(itv)->busChanged(true);
-    connect(itv, &Scenario::IntervalModel::identified_object_destroying, this, [=] {
-      removeBus(itv);
-    });
+    connect(
+        itv, &Scenario::IntervalModel::identified_object_destroying, this,
+        [this, itv] { removeBus(itv); });
     busesChanged();
   }
 }

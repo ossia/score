@@ -493,7 +493,7 @@ void PluginSettingsView::installAddon(const Package& addon)
       = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
   zdl::download_and_extract(
       addon.file, QDir{installPath}.absolutePath(),
-      [=](const std::vector<QString>& res) {
+      [this, installPath, addon](const std::vector<QString>& res) {
     reset_progress();
     if(res.empty())
       return;
@@ -523,8 +523,8 @@ void PluginSettingsView::installAddon(const Package& addon)
             .arg(addon.name)
             .arg(QFileInfo(installPath).absoluteFilePath()));
       },
-      [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-      [=] {
+      [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+      [this, addon] {
     reset_progress();
     QMessageBox::warning(
         m_widget, tr("Download failed"),
@@ -556,7 +556,7 @@ void PluginSettingsView::installSDK()
 
   zdl::download_and_extract(
       sdk_url, QFileInfo{sdk_path}.absoluteFilePath(),
-      [=](const std::vector<QString>& res) {
+      [this](const std::vector<QString>& res) {
     reset_progress();
     if(res.empty())
       return;
@@ -567,7 +567,7 @@ void PluginSettingsView::installSDK()
 
     set_info();
       },
-      [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+      [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
       [this] {
     reset_progress();
     QMessageBox::warning(
@@ -588,11 +588,11 @@ void PluginSettingsView::installLibrary(const Package& addon)
 
   zdl::download_and_extract(
       addon.file, QFileInfo{destination}.absoluteFilePath(),
-      [=](const std::vector<QString>& res) {
+      [this, addon, destination](const std::vector<QString>& res) {
     on_packageInstallSuccess(addon, destination, res);
       },
-      [=](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-      [=] { on_packageInstallFailure(addon); });
+      [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+      [this, addon] { on_packageInstallFailure(addon); });
 }
 
 void PluginSettingsView::on_packageInstallSuccess(

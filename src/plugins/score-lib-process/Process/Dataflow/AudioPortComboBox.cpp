@@ -24,7 +24,7 @@ AudioPortComboBox::AudioPortComboBox(
     m_address.address.path.push_back(first_child);
   }
 
-  connect(this, &QComboBox::currentTextChanged, [=](const QString& str) {
+  connect(this, &QComboBox::currentTextChanged, [this](const QString& str) {
     if(str == "None")
     {
       if(m_address.address != m_root)

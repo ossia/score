@@ -822,9 +822,10 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
       if(cb_it == m_callbacks.end())
       {
         m_callbacks.insert(
-            {addr, {ossia_addr, ossia_addr->add_callback([=](const ossia::value& val) {
-                      valueUpdated(addr, val);
-                    })}});
+            {addr,
+             {ossia_addr,
+              ossia_addr->add_callback(
+                  [this, addr](const ossia::value& val) { valueUpdated(addr, val); })}});
       }
 
       valueUpdated(addr, ossia_addr->value());

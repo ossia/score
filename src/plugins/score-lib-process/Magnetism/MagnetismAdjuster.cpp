@@ -68,7 +68,7 @@ void MagnetismAdjuster::registerHandler(QObject* context, MagnetismHandler h) no
 
   if(context)
   {
-    QObject::connect(context, &QObject::destroyed, this, [=] {
+    QObject::connect(context, &QObject::destroyed, this, [this, context] {
       qDebug() << "Warning: MagnetismAdjuster::registerHandler: unregistering "
                   "happened in unnatural ways: "
                << context->objectName();

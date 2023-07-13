@@ -280,7 +280,7 @@ void ProcessGraphicsView::checkAndRemoveCurrentDialog(QPoint pos)
   // Close the small output panels (gain/pan, etc) if we're clicking somewhere else
   if(auto dialog = this->scene()->activePanel())
   {
-    const auto notChildOfDialog = [=](QGraphicsItem* item) {
+    const auto notChildOfDialog = [this, dialog](QGraphicsItem* item) {
       if(!item)
         return true;
 
@@ -530,7 +530,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   // Time Ruler
 
   {
-    auto setupTimeRuler = [=](bool b) {
+    auto setupTimeRuler = [this, largeView](bool b) {
       delete m_timeRuler;
       if(b)
         m_timeRuler = new MusicalRuler{&m_timeRulerView};
@@ -543,7 +543,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     };
 
     con(scenario_settings, &Settings::Model::MeasureBarsChanged, this,
-        [=](bool b) { setupTimeRuler(b); });
+        [setupTimeRuler](bool b) { setupTimeRuler(b); });
     setupTimeRuler(scenario_settings.getMeasureBars());
   }
 

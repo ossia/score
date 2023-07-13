@@ -67,7 +67,7 @@ InspectorWidget::InspectorWidget(
         combo->setCurrentIndex(idx);
     });
 
-    connect(cb, &QCheckBox::toggled, this, [=](bool t) {
+    connect(cb, &QCheckBox::toggled, this, [this](bool t) {
       if((!t) != this->process().ignoreTempo())
       {
         this->m_dispatcher.submit<ChangeIgnoreTempo>(this->process(), !t);
@@ -75,20 +75,22 @@ InspectorWidget::InspectorWidget(
     });
 
     connect(
-        spin, SignalUtils::SpinBox_valueChanged<QDoubleSpinBox>(), this, [=](double t) {
-          if(t != this->process().nativeTempo())
-          {
-            this->m_dispatcher.submit<ChangeTempo>(this->process(), t);
-          }
+        spin, SignalUtils::SpinBox_valueChanged<QDoubleSpinBox>(), this,
+        [this](double t) {
+      if(t != this->process().nativeTempo())
+      {
+        this->m_dispatcher.submit<ChangeTempo>(this->process(), t);
+      }
         });
 
     connect(
-        combo, qOverload<int>(&QComboBox::currentIndexChanged), &object, [=](int idx) {
-          auto new_mode = (score::gfx::ScaleMode)idx;
-          if(new_mode != this->process().scaleMode())
-          {
-            this->m_dispatcher.submit<ChangeVideoScaleMode>(this->process(), new_mode);
-          }
+        combo, qOverload<int>(&QComboBox::currentIndexChanged), &object,
+        [this](int idx) {
+      auto new_mode = (score::gfx::ScaleMode)idx;
+      if(new_mode != this->process().scaleMode())
+      {
+        this->m_dispatcher.submit<ChangeVideoScaleMode>(this->process(), new_mode);
+      }
         });
 
     lay->addRow(tr("Scale"), combo);

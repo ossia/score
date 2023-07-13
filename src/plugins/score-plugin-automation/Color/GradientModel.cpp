@@ -41,7 +41,7 @@ ProcessModel::~ProcessModel() { }
 void ProcessModel::init()
 {
   outlet->setName("Out");
-  auto update_invalid_address = [=](const State::AddressAccessor& addr) {
+  auto update_invalid_address = [this](const State::AddressAccessor& addr) {
     State::AddressAccessor copy = addr;
     auto& qual = copy.qualifiers.get();
 
@@ -66,8 +66,9 @@ void ProcessModel::init()
     prettyNameChanged();
   };
   con(*outlet, &Process::Outlet::addressChanged, this, update_invalid_address);
-  connect(
-      outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
+  connect(outlet.get(), &Process::Port::cablesChanged, this, [this] {
+    prettyNameChanged();
+  });
   update_invalid_address(outlet->address());
   m_outlets.push_back(outlet.get());
 }

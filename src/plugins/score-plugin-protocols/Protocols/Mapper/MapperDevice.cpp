@@ -342,14 +342,14 @@ public:
     QObject::connect(
         this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
     con(m_devices, &observable_device_roots::rootsChanged, this,
-        [=](std::vector<ossia::net::node_base*> r) {
+        [this](std::vector<ossia::net::node_base*> r) {
       m_roots = std::move(r);
       reset_tree();
     });
 
     QObject::connect(
         m_component, &QQmlComponent::statusChanged, this,
-        [=](QQmlComponent::Status status) {
+        [this](QQmlComponent::Status status) {
       qDebug() << status;
       qDebug() << m_component->errorString();
       if(!m_device)

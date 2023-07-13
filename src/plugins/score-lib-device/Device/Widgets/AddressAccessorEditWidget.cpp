@@ -40,7 +40,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
   m_qualifiers = new State::DestinationQualifierWidget{this};
   connect(
       m_qualifiers, &State::DestinationQualifierWidget::qualifiersChanged, this,
-      [=](const auto& qual) {
+      [this](const auto& qual) {
     if(m_address.address.qualifiers != qual)
     {
       m_address.address.qualifiers = qual;
@@ -65,7 +65,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
-  connect(act, &QAction::triggered, [=]() { m_qualifiers->chooseQualifier(); });
+  connect(act, &QAction::triggered, [this]() { m_qualifiers->chooseQualifier(); });
 
   {
     auto& plist = ctx.app.interfaces<DeviceModelProviderList>();

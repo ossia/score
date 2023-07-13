@@ -191,7 +191,7 @@ void TemporalIntervalHeader::updateOverlay()
 
     connect(
         m_rackButton, &score::QGraphicsSelectablePixmapToggle::toggled, &m_presenter,
-        [=] { ((TemporalIntervalPresenter&)m_presenter).changeRackState(); });
+        [this] { ((TemporalIntervalPresenter&)m_presenter).changeRackState(); });
 
     m_rackButton->setSelected(overlayVisible);
     m_overlay = true;
@@ -215,7 +215,8 @@ void TemporalIntervalHeader::updateOverlay()
     connect(
         m_mute, &score::QGraphicsPixmapToggle::toggled, &m_presenter,
         [&itv](bool b) { ((IntervalModel&)itv).setMuted(b); });
-    con(itv, &IntervalModel::mutedChanged, m_mute, [=](bool b) { m_mute->setState(b); });
+    con(itv, &IntervalModel::mutedChanged, m_mute,
+        [this](bool b) { m_mute->setState(b); });
   }
 
   /// Play ///

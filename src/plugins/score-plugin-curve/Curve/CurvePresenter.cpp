@@ -246,7 +246,8 @@ void Presenter::setupPointConnections(PointView* pt_view)
 {
   connect(
       pt_view, &PointView::contextMenuRequested, m_view, &View::contextMenuRequested);
-  con(pt_view->model(), &PointModel::posChanged, this, [=]() { setPos(*pt_view); });
+  con(pt_view->model(), &PointModel::posChanged, this,
+      [this, pt_view]() { setPos(*pt_view); });
 }
 
 void Presenter::setupSegmentConnections(SegmentView* seg_view)

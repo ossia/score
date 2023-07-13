@@ -36,7 +36,7 @@ public:
     });
     */
 
-    auto setNameFun = [=](const QString& newName_qstring) {
+    auto setNameFun = [this](const QString& newName_qstring) {
       const auto newName = newName_qstring.toStdString();
       const auto curName = node.get_name();
 

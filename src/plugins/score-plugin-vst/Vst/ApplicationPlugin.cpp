@@ -68,7 +68,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     if(!ws)
       return;
 
-    connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
+    connect(ws, &QWebSocket::textMessageReceived, this, [this, ws](const QString& txt) {
       processIncomingMessage(txt);
       ws->deleteLater();
     });

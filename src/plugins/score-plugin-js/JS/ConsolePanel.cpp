@@ -32,7 +32,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   lay->addWidget(m_lineEdit, 0);
 
   // TODO ctrl-space !
-  connect(m_lineEdit, &QLineEdit::editingFinished, this, [=] {
+  connect(m_lineEdit, &QLineEdit::editingFinished, this, [this] {
     auto txt = m_lineEdit->text();
     if(!txt.isEmpty())
     {

@@ -38,7 +38,7 @@ NodalIntervalView::NodalIntervalView(
 
   con(
       model, &IntervalModel::executionEvent, this,
-      [=](IntervalExecutionEvent ev) {
+      [this](IntervalExecutionEvent ev) {
     if(ev == IntervalExecutionEvent::Finished)
       on_playPercentageChanged(0., TimeVal{});
       },

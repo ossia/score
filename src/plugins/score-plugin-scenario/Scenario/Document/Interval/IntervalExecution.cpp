@@ -348,27 +348,25 @@ void IntervalComponent::onSetup(
     if(Q_UNLIKELY(interval().graphal()))
     {
       t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
-        ossia_cst->set_callback(
-            smallfun::function<void(bool, ossia::time_value), 32>{
-                [weak_self, &edit](bool running, ossia::time_value date) {
+        ossia_cst->set_callback(smallfun::function<void(bool, ossia::time_value), 32>{
+            [weak_self, &edit](bool running, ossia::time_value date) {
           edit.enqueue([weak_self, running, date] {
             if(auto self = weak_self.lock())
               self->graph_slot_callback(running, date);
           });
-            }});
+        }});
       });
     }
     else
     {
       t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
-        ossia_cst->set_callback(
-            smallfun::function<void(bool, ossia::time_value), 32>{
-                [weak_self, &edit](bool running, ossia::time_value date) {
+        ossia_cst->set_callback(smallfun::function<void(bool, ossia::time_value), 32>{
+            [weak_self, &edit](bool running, ossia::time_value date) {
           edit.enqueue([weak_self, running, date] {
             if(auto self = weak_self.lock())
               self->slot_callback(running, date);
           });
-            }});
+        }});
       });
     }
   }
@@ -503,7 +501,7 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
       QObject::connect(
           &proc.selection, &Selectable::changed, plug.get(),
           [this, n = oproc->node](bool ok) {
-        in_exec([=] {
+        in_exec([n, ok] {
           if(n)
             n->set_logging(ok);
         });
@@ -512,7 +510,7 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
       // Looping
       oproc->set_loops(proc.loops());
       con(proc, &Process::ProcessModel::loopsChanged, this,
-          [this, p = oproc](bool b) { in_exec([=] { p->set_loops(b); }); });
+          [this, p = oproc](bool b) { in_exec([p, b] { p->set_loops(b); }); });
 
       oproc->set_loop_duration(system().time(proc.loopDuration()));
       con(proc, &Process::ProcessModel::loopDurationChanged, this,
@@ -574,7 +572,7 @@ IntervalComponentBase::removing(const Process::ProcessModel& e, ProcessComponent
     }
     c.cleanup();
 
-    return [=] { m_processes.erase(it); };
+    return [this, it] { m_processes.erase(it); };
   }
   return {};
 }

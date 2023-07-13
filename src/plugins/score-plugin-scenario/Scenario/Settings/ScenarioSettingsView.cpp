@@ -176,7 +176,7 @@ View::View()
 
     auto ls = new QPushButton{tr("Browse...")};
     ls->setMaximumWidth(100);
-    connect(ls, &QPushButton::clicked, this, [=] {
+    connect(ls, &QPushButton::clicked, this, [this, skinPath] {
       auto f = QFileDialog::getOpenFileName(
           nullptr, tr("Load skin"), skinPath, tr("*.json"));
       if(!f.isEmpty())
@@ -209,9 +209,10 @@ View::View()
     lay->addRow(tr("Skin"), subw);
 
     connect(
-        m_skin, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int index) {
-          auto skinPath = m_skin->itemData(index).toString();
-          SkinChanged(skinPath);
+        m_skin, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [this](int index) {
+      auto skinPath = m_skin->itemData(index).toString();
+      SkinChanged(skinPath);
         });
   }
 
@@ -220,7 +221,7 @@ View::View()
     auto sublay = new score::MarginLess<QHBoxLayout>{subw};
     m_editor = new QLineEdit{};
     auto btn = new QPushButton{tr("Browse..."), m_widg};
-    connect(btn, &QPushButton::pressed, this, [=] {
+    connect(btn, &QPushButton::pressed, this, [this, subw] {
       auto file = QFileDialog::getOpenFileName(subw, tr("Default editor"));
       if(!file.isEmpty())
       {
@@ -229,7 +230,7 @@ View::View()
       }
     });
 
-    connect(m_editor, &QLineEdit::editingFinished, this, [=] {
+    connect(m_editor, &QLineEdit::editingFinished, this, [this] {
       DefaultEditorChanged(m_editor->text());
     });
     sublay->addWidget(m_editor);
@@ -262,9 +263,9 @@ View::View()
 
   // Default duration
   m_defaultDur = new score::TimeSpinBox;
-  connect(m_defaultDur, &score::TimeSpinBox::timeChanged, this, [=](const TimeVal& t) {
-    DefaultDurationChanged(t);
-  });
+  connect(
+      m_defaultDur, &score::TimeSpinBox::timeChanged, this,
+      [this](const TimeVal& t) { DefaultDurationChanged(t); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   m_sequence = new QCheckBox{tr("Auto-Sequence"), m_widg};

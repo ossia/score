@@ -47,8 +47,8 @@ public:
   {
     const auto& model = static_cast<model_t&>(m_model);
 
-    con(model, &model_t::minChanged, this, [=] { updateText(); });
-    con(model, &model_t::maxChanged, this, [=] { updateText(); });
+    con(model, &model_t::minChanged, this, [this] { updateText(); });
+    con(model, &model_t::maxChanged, this, [this] { updateText(); });
   }
 
   void updateText() override

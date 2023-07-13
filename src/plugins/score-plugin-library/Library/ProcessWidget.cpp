@@ -154,7 +154,8 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
   connect(
       &m_tv, &ProcessTreeView::selected, this,
-      [=](const std::optional<Library::ProcessData>& pdata) {
+      [this, infoWidg,
+       presetFilterProxy](const std::optional<Library::ProcessData>& pdata) {
     m_preview.hide();
 
     // Update info widget
@@ -194,7 +195,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
   auto preset_sel = m_lv.selectionModel();
   connect(
       preset_sel, &QItemSelectionModel::currentRowChanged, this,
-      [=](const QModelIndex& idx, const QModelIndex&) {
+      [this, presetFilterProxy](const QModelIndex& idx, const QModelIndex&) {
     if(!idx.isValid())
       return;
     auto midx = presetFilterProxy->mapToSource(idx);

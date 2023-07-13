@@ -25,7 +25,7 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
   lay->setHorizontalSpacing(1);
   lay->setVerticalSpacing(1);
 
-  auto setSpeedFun = [=](double) {
+  auto setSpeedFun = [this](double) {
     if(m_model)
     {
       auto& dur = ((IntervalModel&)(*m_model)).duration;
@@ -50,7 +50,9 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
 
-      connect(pb, &QPushButton::clicked, this, [=] { m_slider->setSpeed(factor); });
+      connect(pb, &QPushButton::clicked, this, [this, factor] {
+        m_slider->setSpeed(factor);
+      });
       lay->addWidget(pb, 1, btn_col++, 1, 1);
     }
   }
@@ -89,7 +91,7 @@ void SpeedWidget::setInterval(const IntervalModel& m)
   m_model = &m;
   m_slider->setSpeed(m.duration.speed());
 
-  con(m.duration, &IntervalDurations::speedChanged, this, [=](double s) {
+  con(m.duration, &IntervalDurations::speedChanged, this, [this](double s) {
     if(!qFuzzyCompare(s, m_slider->speed()))
       m_slider->setSpeed(s);
   });

@@ -75,8 +75,9 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept
   Process::Descriptor desc;
   auto& app = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
-  auto it = ossia::find_if(
-      app.vst_infos, [=](const vst::VSTInfo& vst) { return vst.uniqueID == d.toInt(); });
+  auto it = ossia::find_if(app.vst_infos, [this, d](const vst::VSTInfo& vst) {
+    return vst.uniqueID == d.toInt();
+  });
   if(it != app.vst_infos.end())
   {
     desc.prettyName = it->displayName;
@@ -345,7 +346,8 @@ intptr_t vst_host_callback(
         if(vst && vst->externalUI)
         {
           auto window = ((Window*)vst->externalUI);
-          ossia::qt::run_async(window, [=] { window->resize(index, value); });
+          ossia::qt::run_async(
+              window, [window, index, value] { window->resize(index, value); });
         }
         result = 1;
         break;
@@ -371,7 +373,7 @@ intptr_t vst_host_callback(
       case audioMasterUpdateDisplay: {
         if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
         {
-          ossia::qt::run_async(vst, [=] {
+          ossia::qt::run_async(vst, [vst] {
             vst->reloadControls();
             vst->reloadPrograms();
           });
@@ -384,7 +386,7 @@ intptr_t vst_host_callback(
         {
           if(vst->flags() & Process::CreateControls)
           {
-            ossia::qt::run_async(vst, [=] {
+            ossia::qt::run_async(vst, [vst, index, opt] {
               auto ctrl_it = vst->controls.find(index);
               if(ctrl_it != vst->controls.end())
               {
@@ -653,7 +655,7 @@ void Model::initFx()
 
   auto& app = ctx.applicationPlugin<vst::ApplicationPlugin>();
   auto it = ossia::find_if(
-      app.vst_infos, [=](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
+      app.vst_infos, [this](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
 
   if(it != app.vst_infos.end())
   {

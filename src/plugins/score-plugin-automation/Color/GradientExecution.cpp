@@ -32,7 +32,7 @@ Component::Component(
   m_ossia_process = std::make_shared<ossia::nodes::gradient_process>(node);
 
   con(*element.outlet, &Process::Port::addressChanged, this,
-      [=](const State::AddressAccessor& c) {
+      [this, node](const State::AddressAccessor& c) {
     auto unit = c.qualifiers.get().unit;
     if(!unit)
       unit = ossia::argb_u{};
@@ -45,7 +45,7 @@ Component::Component(
 
   // TODO the tween case will reset the "running" value,
   // so it may not work perfectly.
-  con(element, &Gradient::ProcessModel::tweenChanged, this, [=](bool b) {
+  con(element, &Gradient::ProcessModel::tweenChanged, this, [this, node](bool b) {
     this->in_exec([=] {
       node->tween = std::nullopt;
       node->mustTween = b;

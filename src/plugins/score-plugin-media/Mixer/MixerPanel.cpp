@@ -158,7 +158,7 @@ public:
     con(slider, &AudioSliderWidget::valueChanged, this,
         [&](double d) { param.push_value(d); });
     idx = param.add_callback(
-        [=](const ossia::value& v) { slider.setValue(ossia::convert<float>(v)); });
+        [this](const ossia::value& v) { slider.setValue(ossia::convert<float>(v)); });
     param.get_node().about_to_be_deleted.connect<&AudioDeviceSlider::onParamRemoved>(
         *this);
   }
@@ -382,7 +382,7 @@ public:
     if(auto audio = aplug.list().audioDevice())
     {
       auto dev = static_cast<Dataflow::AudioDevice*>(audio);
-      connect(dev, &Dataflow::AudioDevice::changed, this, [=] {
+      connect(dev, &Dataflow::AudioDevice::changed, this, [this, dev] {
         setupDevice(dev);
         setupBuses();
       });

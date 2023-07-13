@@ -108,7 +108,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     busWidg->setAutoRaise(true);
     busWidg->setIconSize(QSize{28, 28});
 
-    connect(busWidg, &QToolButton::toggled, this, [=, &ctx, &doc](bool b) {
+    connect(busWidg, &QToolButton::toggled, this, [this, &ctx, &doc](bool b) {
       bool is_bus = ossia::contains(doc.busIntervals, &m_model);
       if((b && !is_bus) || (!b && is_bus))
       {
@@ -137,7 +137,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     sigWidg->setChecked(this->m_model.hasTimeSignature());
     sigWidg->setIconSize(QSize{28, 28});
 
-    connect(sigWidg, &QToolButton::toggled, this, [=](bool b) {
+    connect(sigWidg, &QToolButton::toggled, this, [this](bool b) {
       if(b != this->m_model.hasTimeSignature())
       {
         this->commandDispatcher()->submit<Command::SetHasTimeSignature>(m_model, b);

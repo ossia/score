@@ -22,8 +22,9 @@ static void jitAtExit(void (*f)())
 void setTargetOptions(llvm::TargetOptions& opts)
 {
   opts.EmulatedTLS = false;
+#if LLVM_VERSION_MAJOR <= 15
   opts.ExplicitEmulatedTLS = false;
-
+#endif
   opts.UnsafeFPMath = true;
   opts.NoInfsFPMath = true;
   opts.NoNaNsFPMath = true;
@@ -76,18 +77,27 @@ JitCompiler::JitCompiler()
   {
     llvm::orc::SymbolMap RuntimeInterposes;
 
-    RuntimeInterposes[m_mangler("atexit")]
-        = {pointerToJITTargetAddress(&jitAtExit), JITSymbolFlags::Exported};
+#if LLVM_VERSION_MAJOR < 17
+#define toAddress pointerToJITTargetAddress
+#else
+    static const auto toAddress = [](auto ptr) {
+      auto res = pointerToJITTargetAddress(&jitAtExit);
+      return llvm::orc::ExecutorAddr(res);
+    };
+#endif
+
+    RuntimeInterposes[m_mangler("atexit")] = llvm::orc::SymbolMap::mapped_type{
+        toAddress(&jitAtExit), JITSymbolFlags::Exported};
 
 #if defined(_WIN64)
     RuntimeInterposes[m_mangler("fprintf")]
-        = {pointerToJITTargetAddress(&::fprintf), JITSymbolFlags::Exported};
+        = {toAddress(&::fprintf), JITSymbolFlags::Exported};
     RuntimeInterposes[m_mangler("vfprintf")]
-        = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
+        = {toAddress(&::vfprintf), JITSymbolFlags::Exported};
     RuntimeInterposes[m_mangler("__mingw_vfprintf")]
-        = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
+        = {toAddress(&::vfprintf), JITSymbolFlags::Exported};
 
-    // RuntimeInterposes[m_mangler("_CxxThrowException")] = {pointerToJITTargetAddress(&SEHFrameHandler::RaiseSEHException), JITSymbolFlags::Exported};
+    // RuntimeInterposes[m_mangler("_CxxThrowException")] = {toAddress(&SEHFrameHandler::RaiseSEHException), JITSymbolFlags::Exported};
 #endif
 
     if(!RuntimeInterposes.empty())

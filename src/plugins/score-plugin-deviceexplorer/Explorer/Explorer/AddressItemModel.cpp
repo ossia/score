@@ -630,11 +630,11 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
 
-    connect(&m_slider, &score::IntSlider::valueChanged, this, [=](int v) {
+    connect(&m_slider, &score::IntSlider::valueChanged, this, [this](int v) {
       m_edit.setValue(v);
     });
 
-    connect(&m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [=](int v) {
+    connect(&m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [this](int v) {
       m_slider.setValue(v);
     });
 
@@ -666,13 +666,13 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
 
-    connect(&m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
-      m_edit.setValue(min + v * (max - min));
-    });
+    connect(
+        &m_slider, &score::DoubleSlider::valueChanged, this,
+        [this, min, max](double v) { m_edit.setValue(min + v * (max - min)); });
 
     connect(
         &m_edit, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
-        [=](double v) { m_slider.setValue((v - min) / (max - min)); });
+        [this, min, max](double v) { m_slider.setValue((v - min) / (max - min)); });
 
     m_lay.addWidget(&m_slider);
     m_lay.addWidget(&m_edit);

@@ -151,7 +151,7 @@ MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext&
                   "is not behaving as it should"));
   m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
-      m_widget, &QListView::customContextMenuRequested, this, [=](const QPoint& pos) {
+      m_widget, &QListView::customContextMenuRequested, this, [this](const QPoint& pos) {
         QMenu m{};
         auto act = m.addAction(QObject::tr("Clear"));
         auto res = m.exec(QCursor::pos());
@@ -191,7 +191,7 @@ const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
 
 void MessagesPanelDelegate::qtLog(const std::string& str)
 {
-  ossia::qt::run_async(this, [=] {
+  ossia::qt::run_async(this, [this, str] {
     if(m_itemModel && m_widget)
     {
       push(QString::fromStdString(str), score::log::dark4);

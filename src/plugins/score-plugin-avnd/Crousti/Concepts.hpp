@@ -18,8 +18,8 @@
 #include <avnd/common/struct_reflection.hpp>
 #include <avnd/concepts/audio_port.hpp>
 #include <avnd/concepts/channels.hpp>
-#include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/curve.hpp>
+#include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/midi_port.hpp>
 #include <avnd/concepts/parameter.hpp>
 #include <avnd/wrappers/metadatas.hpp>
@@ -492,7 +492,6 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
 template <typename T, std::size_t N>
 auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
 {
-  using value_type = as_type(T::value);
   constexpr auto name = avnd::get_name<T>();
   constexpr auto widg = avnd::get_widget<T>();
   QString qname = QString::fromUtf8(name.data(), name.size());

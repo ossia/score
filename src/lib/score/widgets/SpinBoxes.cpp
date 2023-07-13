@@ -692,7 +692,7 @@ void SpeedSlider::createPopup(QPoint pos)
 
     QObject::connect(
         w, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
-        [=](double v) { this->setValue(valueFromSpeed(v / ossia::root_tempo)); });
+        [this](double v) { this->setValue(valueFromSpeed(v / ossia::root_tempo)); });
   }
   else
   {
@@ -702,7 +702,7 @@ void SpeedSlider::createPopup(QPoint pos)
 
     QObject::connect(
         w, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
-        [=](double v) { this->setValue(valueFromSpeed(v)); });
+        [this](double v) { this->setValue(valueFromSpeed(v)); });
   }
 
   w->show();

@@ -53,7 +53,7 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   m_list->setModel(m_model);
 
   connect(
-      m_list, &QListView::doubleClicked, this, [=](const QModelIndex&) { accept(); });
+      m_list, &QListView::doubleClicked, this, [this](const QModelIndex&) { accept(); });
 
   lay->addWidget(m_list);
 
@@ -84,7 +84,7 @@ ZeroconfBrowser::~ZeroconfBrowser()
 QAction* ZeroconfBrowser::makeAction()
 {
   QAction* act = new QAction(tr("Browse for server"), this);
-  connect(act, &QAction::triggered, m_dialog, [=] { m_dialog->exec(); });
+  connect(act, &QAction::triggered, m_dialog, [this] { m_dialog->exec(); });
 
   return act;
 }

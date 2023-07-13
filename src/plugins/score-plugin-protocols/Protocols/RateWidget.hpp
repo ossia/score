@@ -31,7 +31,7 @@ public:
     lay->setStretch(0, 1);
     lay->setStretch(1, 20);
 
-    connect(m_check, &QCheckBox::toggled, this, [=](bool t) {
+    connect(m_check, &QCheckBox::toggled, this, [this](bool t) {
       rateChanged(std::optional<int>{});
       m_spin->setEnabled(t);
     });

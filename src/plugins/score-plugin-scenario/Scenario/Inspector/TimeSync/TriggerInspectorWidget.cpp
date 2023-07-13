@@ -54,7 +54,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
   connect(
       m_menu.deleteAction, &QAction::triggered, this,
       &TriggerInspectorWidget::removeTrigger);
-  con(m_menu, &ExpressionMenu::expressionChanged, this, [=](const QString& str) {
+  con(m_menu, &ExpressionMenu::expressionChanged, this, [this](const QString& str) {
     auto trig = State::parseExpression(str);
     if(!trig)
     {

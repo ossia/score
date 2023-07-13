@@ -54,7 +54,7 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
   act->setIcon(QIcon(":/icons/search.png"));
   act->setStatusTip(tr("Find And Replace"));
   addAction(act, QLineEdit::TrailingPosition);
-  connect(act, &QAction::triggered, this, [=] {
+  connect(act, &QAction::triggered, this, [this] {
     auto sr = new SearchReplaceWidget(m_ctx);
     auto txt = this->text();
     if(txt.startsWith("address="))

@@ -498,7 +498,7 @@ FaustEffectComponent::FaustEffectComponent(
 {
   connect(
       &proc, &Faust::FaustEffectModel::changed, this,
-      [=] {
+      [this, &ctx] {
     for(auto& c : this->m_controlConnections)
       QObject::disconnect(c);
     m_controlConnections.clear();

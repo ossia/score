@@ -35,7 +35,7 @@ UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
 
   // Fill dataspace. Unit is filled each time the dataspace changes
   m_dataspace->addItem(tr("None"), QVariant::fromValue(State::Unit{}));
-  ossia::for_each_tagged(ossia::dataspace_u_list{}, [=](auto d) {
+  ossia::for_each_tagged(ossia::dataspace_u_list{}, [this](auto d) {
     // For each dataspace, add its text to the combo box
     using dataspace_type =
         typename ossia::matching_unit_u_list<typename decltype(d)::type>::type;
@@ -48,11 +48,12 @@ UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
 
   // Signals
   connect(
-      m_dataspace, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
-        on_dataspaceChanged(m_dataspace->itemData(i).value<State::Unit>());
+      m_dataspace, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      [this](int i) {
+    on_dataspaceChanged(m_dataspace->itemData(i).value<State::Unit>());
       });
 
-  connect(m_unit, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
+  connect(m_unit, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {
     unitChanged(m_unit->itemData(i).value<State::Unit>());
   });
 }
@@ -79,7 +80,7 @@ void UnitWidget::setUnit(const State::Unit& unit)
 
     // Then set the correct unit
     ossia::apply_nonnull(
-        [=](auto dataspace) { m_unit->setCurrentIndex(dataspace.which()); }, u.v);
+        [this](auto dataspace) { m_unit->setCurrentIndex(dataspace.which()); }, u.v);
   }
   else
   {
@@ -105,12 +106,12 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
 
       // First lift ourselves in the dataspace realm
       ossia::apply_nonnull(
-          [=](auto dataspace) -> void {
+          [this](auto dataspace) -> void {
             // Then For each unit in the dataspace, add it to the unit
             // combobox.
             using typelist =
                 typename ossia ::matching_unit_u_list<decltype(dataspace)>::type;
-            ossia::for_each_tagged(typelist{}, [=](auto u) {
+            ossia::for_each_tagged(typelist{}, [this](auto u) {
               using unit_type = typename decltype(u)::type;
               ossia::string_view text = ossia::unit_traits<unit_type>::text()[0];
 

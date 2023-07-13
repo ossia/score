@@ -73,7 +73,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   con(
       interval, &IntervalModel::executionEvent, this,
-      [=](Scenario::IntervalExecutionEvent ev) {
+      [this, head](Scenario::IntervalExecutionEvent ev) {
     switch(ev)
     {
       case IntervalExecutionEvent::Playing:
@@ -135,7 +135,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   // Drop
   con(v, &TemporalIntervalView::dropReceived, this,
-      [=](const QPointF& pos, const QMimeData& mime) {
+      [this](const QPointF& pos, const QMimeData& mime) {
     m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
         m_context, m_model, {}, mime);
   });
@@ -157,7 +157,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   connect(
       head, &TemporalIntervalHeader::dropReceived, this,
-      [=](const QPointF& pos, const QMimeData& mime) {
+      [this](const QPointF& pos, const QMimeData& mime) {
     m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
         m_context, m_model, pos, mime);
       });
@@ -171,25 +171,26 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   con(m_model, &IntervalModel::smallViewVisibleChanged, this,
       &TemporalIntervalPresenter::on_rackVisibleChanged);
 
-  con(m_model, &IntervalModel::rackChanged, this, [=](Slot::RackView t) {
+  con(m_model, &IntervalModel::rackChanged, this, [this](Slot::RackView t) {
     if(t == Slot::SmallView)
     {
       on_rackChanged();
     }
   });
-  con(m_model, &IntervalModel::slotAdded, this, [=](SlotId s) {
+  con(m_model, &IntervalModel::slotAdded, this, [this](SlotId s) {
     if(s.smallView())
     {
       createSlot(s.index, m_model.smallView()[s.index]);
     }
   });
 
-  con(m_model, &IntervalModel::slotsSwapped, this, [=](int i, int j, Slot::RackView v) {
+  con(m_model, &IntervalModel::slotsSwapped, this,
+      [this](int i, int j, Slot::RackView v) {
     if(v == Slot::SmallView)
       on_rackChanged();
   });
 
-  con(m_model, &IntervalModel::slotRemoved, this, [=](SlotId s) {
+  con(m_model, &IntervalModel::slotRemoved, this, [this](SlotId s) {
     if(s.smallView())
       on_slotRemoved(s.index);
   });
@@ -200,17 +201,17 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   });
 
   con(m_model, &IntervalModel::layerAdded, this,
-      [=](SlotId s, const Id<Process::ProcessModel>& proc) {
+      [this](SlotId s, const Id<Process::ProcessModel>& proc) {
     if(s.smallView())
       createLayer(s.index, m_model.processes.at(proc));
   });
   con(m_model, &IntervalModel::layerRemoved, this,
-      [=](SlotId s, const Id<Process::ProcessModel>& proc) {
+      [this](SlotId s, const Id<Process::ProcessModel>& proc) {
     if(s.smallView())
       removeLayer(m_model.processes.at(proc));
   });
   con(m_model, &IntervalModel::frontLayerChanged, this,
-      [=](int pos, OptionalId<Process::ProcessModel> proc) {
+      [this](int pos, OptionalId<Process::ProcessModel> proc) {
     if(pos >= std::ssize(m_slots))
       return;
 
@@ -338,7 +339,7 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
   temporal_slot_drag_overlay = new SlotDragOverlay{*this, Slot::SmallView};
   connect(
       temporal_slot_drag_overlay, &SlotDragOverlay::dropBefore, this,
-      [=](int slot) {
+      [this, curslot](int slot) {
     if(slot == curslot)
       return;
 
@@ -381,7 +382,7 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 
   connect(
       temporal_slot_drag_overlay, &SlotDragOverlay::dropIn, this,
-      [=](int slot) {
+      [this, curslot](int slot) {
     if(slot == curslot)
       return;
 
@@ -662,7 +663,7 @@ void TemporalIntervalPresenter::createLayer(
         con(proc,
             &IdentifiedObjectAbstract::identified_object_destroying,
             this,
-            [=] { QObject::disconnect(con_id); });
+            [this] { QObject::disconnect(con_id); });
     */
     auto& slot = m_model.smallView().at(slot_i);
     auto frontLayer = slot.frontProcess;
@@ -1131,12 +1132,12 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   int i = 0;
   for(SlotPresenter& slot : m_slots)
   {
-    slot.visit([=](const auto& slot) { setHeaderWidth(slot, w); });
+    slot.visit([this, w](const auto& slot) { setHeaderWidth(slot, w); });
 
     const auto slot_height = m_model.smallView()[i].height;
 
     slot.visit(
-        [=](LayerSlotPresenter& slot) {
+        [this, w, slot_height, i](LayerSlotPresenter& slot) {
       for(LayerData& ld : slot.layers)
       {
         ld.setWidth(w, w);
@@ -1148,7 +1149,7 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
         on_layerModelPutToFront(i, slot.layers.front().model());
       }
         },
-        [=](const NodalSlotPresenter& slot) {
+        [this, w, slot_height](const NodalSlotPresenter& slot) {
       slot.view->setRect({0, 0, w, slot_height});
     });
 

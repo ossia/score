@@ -52,7 +52,7 @@ public:
     lay->addLayout(m_lay = new score::MarginLess<QVBoxLayout>);
 
     auto addbutton = new QPushButton{tr("+"), this};
-    connect(addbutton, &QPushButton::pressed, this, [=] { addRow({}); });
+    connect(addbutton, &QPushButton::pressed, this, [this] { addRow({}); });
     lay->addWidget(addbutton);
 
     auto buttonBox
@@ -149,16 +149,16 @@ public:
     m_min->setEnabled(false);
     m_max->setEnabled(false);
 
-    connect(m_minCB, &QCheckBox::stateChanged, this, [=](int st) {
+    connect(m_minCB, &QCheckBox::stateChanged, this, [this](int st) {
       m_min->setEnabled(bool(st));
     });
-    connect(m_maxCB, &QCheckBox::stateChanged, this, [=](int st) {
+    connect(m_maxCB, &QCheckBox::stateChanged, this, [this](int st) {
       m_max->setEnabled(bool(st));
     });
     auto pb = new QPushButton{tr("Values"), this};
     lay->addWidget(pb);
 
-    connect(pb, &QPushButton::clicked, this, [=] {
+    connect(pb, &QPushButton::clicked, this, [this] {
       NumericValueSetDialog<T> dial{this};
       dial.setValues(m_values);
 

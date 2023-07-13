@@ -22,10 +22,10 @@ QString LeapmotionProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator*
-LeapmotionProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators
+LeapmotionProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return {};
 }
 
 Device::DeviceInterface* LeapmotionProtocolFactory::makeDevice(

@@ -350,7 +350,7 @@ ScenarioComponentBase::removing(const Scenario::IntervalModel& e, IntervalCompon
 
     c.cleanup(it->second);
 
-    return [=] { m_ossia_intervals.erase(it); };
+    return [this, it] { m_ossia_intervals.erase(it); };
   }
   return {};
 }
@@ -372,7 +372,7 @@ ScenarioComponentBase::removing(const Scenario::TimeSyncModel& e, TimeSyncCompon
     }
     it->second->cleanup();
 
-    return [=] { m_ossia_timesyncs.erase(it); };
+    return [this, it] { m_ossia_timesyncs.erase(it); };
   }
   return {};
 }
@@ -394,14 +394,14 @@ ScenarioComponentBase::removing(const Scenario::EventModel& e, EventComponent& c
           ev->cleanup();
         });
         c.cleanup();
-        return [=] { m_ossia_timeevents.erase(ev_it); };
+        return [this, ev_it] { m_ossia_timeevents.erase(ev_it); };
       }
     }
 
     // Timesync does not exist anymore:
     m_ctx.executionQueue.enqueue([ev = c.OSSIAEvent()] { ev->cleanup(); });
     c.cleanup();
-    return [=] { m_ossia_timeevents.erase(ev_it); };
+    return [this, ev_it] { m_ossia_timeevents.erase(ev_it); };
   }
   return {};
 }
@@ -413,7 +413,7 @@ ScenarioComponentBase::removing(const Scenario::StateModel& e, StateComponent& c
   if(it != m_ossia_states.end())
   {
     c.onDelete();
-    return [=] { m_ossia_states.erase(it); };
+    return [this, it] { m_ossia_states.erase(it); };
   }
   return {};
 }
@@ -516,7 +516,7 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
       if(auto sc = thisP.lock())
       {
         if(auto q = qed_ptr.lock())
-          q->enqueue([=] { sc->sig_eventCallback(elt, st); });
+          q->enqueue([sc, elt, st] { sc->sig_eventCallback(elt, st); });
       }
     }
   };
@@ -529,7 +529,8 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
 
   connect(
       &ev, &Scenario::EventModel::timeSyncChanged, this,
-      [=](const Id<Scenario::TimeSyncModel>& old_ts_id,
+      [this, ossia_ev](
+          const Id<Scenario::TimeSyncModel>& old_ts_id,
           const Id<Scenario::TimeSyncModel>& new_ts_id) {
     auto old_ts = m_ossia_timesyncs.at(old_ts_id);
     auto new_ts = m_ossia_timesyncs.at(new_ts_id);

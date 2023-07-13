@@ -66,13 +66,13 @@ MetadataWidget::MetadataWidget(
   m_labelLine.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   m_metadataLayout.addWidget(&m_labelLine);
   con(metadata, &score::ModelMetadata::LabelChanged, this,
-      [=](const auto& str) { m_labelLine.setText(str); });
+      [this](const auto& str) { m_labelLine.setText(str); });
 
   // comments
   m_comments.setMaximumHeight(50);
   m_comments.setPlaceholderText(tr("Comments"));
   con(metadata, &score::ModelMetadata::CommentChanged, this,
-      [=](const auto& str) { m_comments.setText(str); });
+      [this](const auto& str) { m_comments.setText(str); });
 
   m_metadataLayout.addWidget(&m_comments);
 
@@ -96,7 +96,7 @@ MetadataWidget::MetadataWidget(
     //    20 * m_palette_widget->palette().count() / forced_rows);
     m_palette_widget->setMaximumHeight(20 * forced_rows);
 
-    connect(m_palette_widget, &Swatch::selectedChanged, this, [=](int idx) {
+    connect(m_palette_widget, &Swatch::selectedChanged, this, [this](int idx) {
       auto colors = color_palette.palette(0).colors();
 
       if(idx == colors.size() - 1)
@@ -115,7 +115,7 @@ MetadataWidget::MetadataWidget(
     });
 
     con(metadata, &score::ModelMetadata::ColorChanged, this,
-        [=](const score::ColorRef& str) {
+        [this](const score::ColorRef& str) {
       auto palette = m_palette_widget->palette();
       auto color = str.getBrush().color();
       for(int i = 0; i < palette.count(); i++)
@@ -131,10 +131,10 @@ MetadataWidget::MetadataWidget(
   }
 
   con(m_labelLine, &QLineEdit::editingFinished,
-      [=]() { labelChanged(m_labelLine.text()); });
+      [this]() { labelChanged(m_labelLine.text()); });
 
   con(m_comments, &CommentEdit::editingFinished,
-      [=]() { commentsChanged(m_comments.toPlainText()); });
+      [this]() { commentsChanged(m_comments.toPlainText()); });
 
   con(metadata, &score::ModelMetadata::metadataChanged, this,
       &MetadataWidget::updateAsked);

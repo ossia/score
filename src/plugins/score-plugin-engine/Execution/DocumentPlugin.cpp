@@ -83,7 +83,7 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
   devs.list().apply([this](auto& d) { on_deviceAdded(&d); });
   con(devs.list(), &Device::DeviceList::deviceAdded, this,
       &DocumentPlugin::on_deviceAdded);
-  con(devs.list(), &Device::DeviceList::deviceRemoved, this, [=](auto* dev) {
+  con(devs.list(), &Device::DeviceList::deviceRemoved, this, [this](auto* dev) {
     if(auto d = dev->getDevice())
       unregisterDevice(d);
   });
@@ -98,7 +98,7 @@ void DocumentPlugin::recreateBase()
   m_base = std::make_shared<BaseScenarioElement>(m_ctxData->context, this);
   connect(
       m_base.get(), &Execution::BaseScenarioElement::finished, this,
-      [=] {
+      [this] {
     auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
     stop_action.action()->trigger();
       },
@@ -453,7 +453,7 @@ void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
   {
     connect(
         dev, &Device::DeviceInterface::deviceChanged, this,
-        [=](ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
+        [this](ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
       if(old_dev)
         unregisterDevice(old_dev);
       if(new_dev)

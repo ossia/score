@@ -72,7 +72,7 @@ void ApplicationPlugin::record(Scenario::ProcessModel* scenar, Scenario::Point p
   {
     connect(
         &m_recManager->recorder, &Recording::AutomationRecorder::firstMessageReceived,
-        this, [=]() { m_ossiaplug->execution().on_record(pt.date); },
+        this, [this, pt]() { m_ossiaplug->execution().on_record(pt.date); },
         Qt::QueuedConnection);
   }
 
@@ -102,7 +102,8 @@ void ApplicationPlugin::recordMessages(
     connect(
         &m_recMessagesManager->recorder,
         &Recording::MessageRecorder::firstMessageReceived, this,
-        [=]() { m_ossiaplug->execution().on_record(pt.date); }, Qt::QueuedConnection);
+        [this, pt]() { m_ossiaplug->execution().on_record(pt.date); },
+        Qt::QueuedConnection);
   }
 
   auto res = m_recMessagesManager->setup();

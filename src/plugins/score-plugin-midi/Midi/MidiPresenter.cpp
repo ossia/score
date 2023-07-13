@@ -79,7 +79,7 @@ Presenter::Presenter(
     }
   });
 
-  con(model, &ProcessModel::rangeChanged, this, [=](int min, int max) {
+  con(model, &ProcessModel::rangeChanged, this, [this](int min, int max) {
     m_view->setRange(min, max);
     for(auto note : m_notes)
       updateNote(*note);

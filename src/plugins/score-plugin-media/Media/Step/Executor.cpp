@@ -28,7 +28,7 @@ StepComponent::StepComponent(
   con(element, &Media::Step::Model::stepsChanged, this, &StepComponent::recompute);
   con(element, &Media::Step::Model::minChanged, this, &StepComponent::recompute);
   con(element, &Media::Step::Model::maxChanged, this, &StepComponent::recompute);
-  con(element, &Media::Step::Model::stepDurationChanged, this, [=] {
+  con(element, &Media::Step::Model::stepDurationChanged, this, [this, node] {
     in_exec([node, dur = process().stepDuration()]() mutable {
       node->dur = ossia::time_value{int64_t(dur)};
     });

@@ -29,11 +29,11 @@ TimeSyncPresenter::TimeSyncPresenter(
     , m_view{new TimeSyncView{*this, parentview}}
     , m_triggerView{new TriggerView{m_view}}
 {
-  con(m_model.selection, &Selectable::changed, this, [=](bool b) {
+  con(m_model.selection, &Selectable::changed, this, [this](bool b) {
     m_view->setSelected(b);
     m_triggerView->setSelected(b);
   });
-  con(m_model, &TimeSyncModel::waitingChanged, this, [=](bool b) {
+  con(m_model, &TimeSyncModel::waitingChanged, this, [this](bool b) {
     if(b)
       m_triggerView->onWaitStart();
     else
@@ -41,10 +41,10 @@ TimeSyncPresenter::TimeSyncPresenter(
   });
 
   con(m_model.metadata(), &score::ModelMetadata::ColorChanged, this,
-      [=](const score::ColorRef& c) { m_view->changeColor(c.getBrush()); });
+      [this](const score::ColorRef& c) { m_view->changeColor(c.getBrush()); });
   con(m_model.metadata(), &score::ModelMetadata::LabelChanged, this,
-      [=](const auto& t) { m_view->setLabel(t); });
-  con(m_model, &TimeSyncModel::activeChanged, this, [=] {
+      [this](const auto& t) { m_view->setLabel(t); });
+  con(m_model, &TimeSyncModel::activeChanged, this, [this] {
     m_view->setTriggerActive(m_model.active());
     m_triggerView->setVisible(m_model.active());
     m_triggerView->setToolTip(m_model.expression().toString());
@@ -63,7 +63,7 @@ TimeSyncPresenter::TimeSyncPresenter(
   con(m_model, &TimeSyncModel::triggerChanged, this,
       [&](const State::Expression& t) { m_triggerView->setToolTip(t.toString()); });
 
-  connect(m_triggerView, &TriggerView::pressed, &m_model, [=](QPointF sp) {
+  connect(m_triggerView, &TriggerView::pressed, &m_model, [this](QPointF sp) {
     m_model.triggeredByGui();
     pressed(sp);
   });

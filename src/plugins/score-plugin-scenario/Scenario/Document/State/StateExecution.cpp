@@ -121,7 +121,7 @@ StateComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& pr
       QObject::connect(
           &proc.selection, &Selectable::changed, plug.get(),
           [this, n = oproc->node](bool ok) {
-        in_exec([=] {
+        in_exec([n, ok] {
           if(n)
             n->set_logging(ok);
         });
@@ -166,7 +166,7 @@ StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c
     });
     c.cleanup();
 
-    return [=] { m_processes.erase(it); };
+    return [this, it] { m_processes.erase(it); };
   }
 
   return {};

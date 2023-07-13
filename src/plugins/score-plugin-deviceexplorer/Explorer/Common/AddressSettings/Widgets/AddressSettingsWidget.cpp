@@ -208,7 +208,7 @@ AccessModeComboBox::AccessModeComboBox(QWidget* parent)
     addItem(io_map[i], (int)i);
   }
 
-  connect(this, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
+  connect(this, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {
     changed((ossia::access_mode)this->itemData(i).toInt());
   });
 }
@@ -242,7 +242,7 @@ BoundingModeComboBox::BoundingModeComboBox(QWidget* parent)
   {
     addItem(it.value(), (int)it.key());
   }
-  connect(this, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
+  connect(this, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {
     changed((ossia::bounding_mode)this->itemData(i).toInt());
   });
 }

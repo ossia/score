@@ -321,7 +321,7 @@ public:
       {
         if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, [=] {
+          dispatchMidi(timings.start_sample, [this, timings] {
             processDouble(timings.start_sample, timings.length);
           });
         }
@@ -334,7 +334,7 @@ public:
       {
         if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, [=] {
+          dispatchMidi(timings.start_sample, [this, timings] {
             processFloat(timings.start_sample, timings.length);
           });
         }

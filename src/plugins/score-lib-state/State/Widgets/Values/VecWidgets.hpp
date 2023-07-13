@@ -43,7 +43,7 @@ public:
       box->setMaximum(9999);
       box->setValue(0);
 
-      connect(box, &QDoubleSpinBox::editingFinished, this, [=] { changed(); });
+      connect(box, &QDoubleSpinBox::editingFinished, this, [this] { changed(); });
 
       lay->addWidget(box);
       m_boxes[i] = box;

@@ -76,7 +76,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       QStringLiteral(":/icons/select_and_move_off.png"),
       QStringLiteral(":/icons/select_and_move_disabled.png"));
 
-  connect(m_selecttool, &QAction::toggled, this, [=](bool b) {
+  connect(m_selecttool, &QAction::toggled, this, [this](bool b) {
     if(b && m_parent->editionSettings().tool() != Scenario::Tool::Select)
       m_parent->editionSettings().setTool(Scenario::Tool::Select);
   });
@@ -91,7 +91,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       QStringLiteral(":/icons/create_off.png"),
       QStringLiteral(":/icons/create_disabled.png"));
 
-  connect(m_createtool, &QAction::triggered, this, [=](bool b) {
+  connect(m_createtool, &QAction::triggered, this, [this](bool b) {
     if(b && m_parent->editionSettings().tool() != Scenario::Tool::Create)
       m_parent->editionSettings().setTool(Scenario::Tool::Create);
   });
@@ -105,7 +105,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       QStringLiteral(":/icons/play_to_off.png"),
       QStringLiteral(":/icons/play_to_disabled.png"));
 
-  connect(m_playtool, &QAction::triggered, this, [=](bool b) {
+  connect(m_playtool, &QAction::triggered, this, [this](bool b) {
     if(b && m_parent->editionSettings().tool() != Scenario::Tool::Play)
       m_parent->editionSettings().setTool(Scenario::Tool::Play);
   });
@@ -118,7 +118,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       QStringLiteral(":/icons/clip_duration_off.png"),
       QStringLiteral(":/icons/clip_duration_disabled.png"));
 
-  connect(m_lockAction, &QAction::toggled, this, [=](bool val) {
+  connect(m_lockAction, &QAction::toggled, this, [this](bool val) {
     m_parent->editionSettings().setLockMode(
         val ? LockMode::Constrained : LockMode::Free);
   });
@@ -131,7 +131,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_scaleAction->setChecked(false);
   m_scaleAction->setToolTip(tr("Scale mode (Alt)"));
 
-  connect(m_scaleAction, &QAction::toggled, this, [=](bool b) {
+  connect(m_scaleAction, &QAction::toggled, this, [this](bool b) {
     if(b)
       m_parent->editionSettings().setExpandMode(ExpandMode::Scale);
     else
@@ -152,7 +152,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       &ToolMenuActions::keyReleased);
 
   con(parent->editionSettings(), &Scenario::EditionSettings::toolChanged, this,
-      [=](Scenario::Tool t) {
+      [this](Scenario::Tool t) {
     switch(t)
     {
       case Scenario::Tool::Create:
@@ -182,7 +182,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   });
 
   con(parent->editionSettings(), &Scenario::EditionSettings::lockModeChanged, this,
-      [=](LockMode lm) {
+      [this](LockMode lm) {
     if(lm)
     {
       if(!m_lockAction->isChecked())
