@@ -14,6 +14,7 @@ struct GlobalAtExit
   int currentCompiler{};
   ossia::flat_map<int, std::vector<void (*)()>> functions;
 } globalAtExit;
+
 static void jitAtExit(void (*f)())
 {
   globalAtExit.functions[globalAtExit.currentCompiler].push_back(f);
@@ -22,7 +23,7 @@ static void jitAtExit(void (*f)())
 void setTargetOptions(llvm::TargetOptions& opts)
 {
   opts.EmulatedTLS = false;
-#if LLVM_VERSION_MAJOR <= 15
+#if LLVM_VERSION_MAJOR < 17
   opts.ExplicitEmulatedTLS = false;
 #endif
   opts.UnsafeFPMath = true;
@@ -77,7 +78,7 @@ JitCompiler::JitCompiler()
   {
     llvm::orc::SymbolMap RuntimeInterposes;
 
-#if LLVM_VERSION_MAJOR < 17
+#if LLVM_VERSION_MAJOR < 18
 #define toAddress pointerToJITTargetAddress
 #else
     static const auto toAddress = [](auto ptr) {
@@ -129,11 +130,7 @@ JitCompiler::~JitCompiler()
   globalAtExit.functions.erase(m_atExitId);
 
   // TODO __dso_handle deinit ?
-#if LLVM_VERSION_MAJOR >= 11
   (void)m_jit->deinitialize(m_jit->getMainJITDylib());
-#else
-  m_jit->runDestructors();
-#endif
 }
 
 void JitCompiler::compile(
@@ -161,11 +158,7 @@ void JitCompiler::compile(
   globalAtExit.currentCompiler = globalAtExit.nextCompilerID++;
   m_atExitId = globalAtExit.currentCompiler;
 
-#if LLVM_VERSION_MAJOR >= 11
   (void)m_jit->initialize(m_jit->getMainJITDylib());
-#else
-  m_jit->runConstructors();
-#endif
 }
 
 }

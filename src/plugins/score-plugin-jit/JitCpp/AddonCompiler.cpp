@@ -4,19 +4,7 @@
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Jit::AddonCompiler)
-#if defined(__linux__) && LLVM_VERSION_MAJOR <= 10
-#include <score_plugin_jit_export.h>
-SCORE_PLUGIN_JIT_EXPORT int atexit(void (*__func)(void)) __THROW
-{
-  return 0;
-}
-#endif
 
-#if defined(WIN32)
-namespace llvm::orc
-{
-}
-#endif
 namespace Jit
 {
 AddonCompiler::AddonCompiler()
@@ -53,7 +41,8 @@ void AddonCompiler::on_job(
     ctx.push_back(std::make_unique<compiler_t>("plugin_instance_" + id));
 
     qDebug() << "Calling compiler...";
-    auto jitedFn = (*ctx.back()).operator()<score::Plugin_QtInterface*()>(cpp, flags, opts);
+    auto jitedFn
+        = (*ctx.back()).operator()<score::Plugin_QtInterface*()>(cpp, flags, opts);
 
     if(!jitedFn)
     {
