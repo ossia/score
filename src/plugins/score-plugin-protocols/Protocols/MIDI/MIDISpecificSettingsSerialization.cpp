@@ -37,16 +37,22 @@ template <>
 void JSONWriter::write(Protocols::MIDISpecificSettings& n)
 {
   n.io <<= obj["IO"];
+
+#if 0
   n.endpoint = obj["Endpoint"].toString();
   n.port = obj["Port"].toInt();
+#endif
+
   if(auto it = obj.tryGet("CreateWholeTree"))
     n.createWholeTree = it->toBool();
   else
     n.createWholeTree = true;
+
   if(auto it = obj.tryGet("API"))
     n.api = (libremidi::API)it->toInt();
   else
-    n.api = libremidi::default_platform_api();
+    n.api = libremidi::midi1::default_api();
+
   if(auto it = obj.tryGet("VirtualPort"))
     n.virtualPort = it->toBool();
   else

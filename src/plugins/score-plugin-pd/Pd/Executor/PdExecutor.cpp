@@ -283,40 +283,42 @@ PdGraphNode::PdGraphNode(
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(
-          (velocity > 0) ? libremidi::message::note_on(channel, pitch, velocity)
-                         : libremidi::message::note_off(channel, pitch, velocity));
+          (velocity > 0)
+              ? libremidi::channel_events::note_on(channel, pitch, velocity)
+              : libremidi::channel_events::note_off(channel, pitch, velocity));
     }
   });
   libpd_set_controlchangehook([](int channel, int controller, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(
-          libremidi::message::control_change(channel, controller, value + 8192));
+          libremidi::channel_events::control_change(channel, controller, value + 8192));
     }
   });
 
   libpd_set_programchangehook([](int channel, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::message::program_change(channel, value));
+      v->messages.push_back(libremidi::channel_events::program_change(channel, value));
     }
   });
   libpd_set_pitchbendhook([](int channel, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::message::pitch_bend(channel, value));
+      v->messages.push_back(libremidi::channel_events::pitch_bend(channel, value));
     }
   });
   libpd_set_aftertouchhook([](int channel, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::message::aftertouch(channel, value));
+      v->messages.push_back(libremidi::channel_events::aftertouch(channel, value));
     }
   });
   libpd_set_polyaftertouchhook([](int channel, int pitch, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::message::poly_pressure(channel, pitch, value));
+      v->messages.push_back(
+          libremidi::channel_events::poly_pressure(channel, pitch, value));
     }
   });
   libpd_set_midibytehook([](int port, int byte) {

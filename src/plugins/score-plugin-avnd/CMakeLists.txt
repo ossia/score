@@ -41,18 +41,20 @@ if(TARGET clang-cpp)
     fmt
   )
 
-  target_precompile_headers(avnd_source_parser PRIVATE
+  if(SCORE_PCH)
+    target_precompile_headers(avnd_source_parser PRIVATE
 
-     <clang/ASTMatchers/ASTMatchFinder.h>
-     <clang/ASTMatchers/ASTMatchers.h>
-     <clang/Frontend/FrontendActions.h>
-     <clang/Tooling/CommonOptionsParser.h>
-     <clang/Tooling/Tooling.h>
-     <llvm/Support/CommandLine.h>
+       <clang/ASTMatchers/ASTMatchFinder.h>
+       <clang/ASTMatchers/ASTMatchers.h>
+       <clang/Frontend/FrontendActions.h>
+       <clang/Tooling/CommonOptionsParser.h>
+       <clang/Tooling/Tooling.h>
+       <llvm/Support/CommandLine.h>
 
-     <cstdio>
-     <iostream>
-  )
+       <cstdio>
+       <iostream>
+    )
+  endif()
 endif()
 
 check_cxx_source_compiles("#include <coroutine>\nint main() {}" COROUTINES_WORKING)
@@ -285,6 +287,7 @@ endif()
 
 setup_score_plugin(score_plugin_avnd)
 
+if(SCORE_PCH)
 if(NOT TARGET avnd_source_parser)
 target_precompile_headers(score_plugin_avnd PRIVATE
   Avnd/Factories.hpp
@@ -306,7 +309,7 @@ target_precompile_headers(score_plugin_avnd PRIVATE
   ${HALP_HEADERS}
 )
 endif()
-
+endif()
 
 set(AVND_ADDITIONAL_CLASSES)
 set(AVND_CUSTOM_FACTORIES)

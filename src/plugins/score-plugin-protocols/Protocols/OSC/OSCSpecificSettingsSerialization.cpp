@@ -17,14 +17,14 @@ JSON_METADATA(ossia::net::ws_server_configuration, "WSServer")
 template <>
 void DataStreamReader::read(const ossia::net::socket_configuration& n)
 {
-  m_stream << n.host << n.port;
+  m_stream << n.host << n.port << n.broadcast;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(ossia::net::socket_configuration& n)
 {
-  m_stream >> n.host >> n.port;
+  m_stream >> n.host >> n.port >> n.broadcast;
   checkDelimiter();
 }
 
@@ -34,6 +34,7 @@ void JSONReader::read(const ossia::net::socket_configuration& n)
   stream.StartObject();
   obj["Host"] = n.host;
   obj["Port"] = (int)n.port;
+  obj["Broadcast"] = n.broadcast;
   stream.EndObject();
 }
 
@@ -42,6 +43,8 @@ void JSONWriter::write(ossia::net::socket_configuration& n)
 {
   n.host = obj["Host"].toStdString();
   n.port = obj["Port"].toInt();
+  if(auto bc = obj.tryGet("Broadcast"))
+    n.broadcast = bc->toBool();
 }
 
 template <>

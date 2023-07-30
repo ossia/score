@@ -395,18 +395,20 @@ public:
       {
         case VstEvent::kNoteOnEvent: {
           if(e.noteOn.velocity > 0.f)
-            mess = libremidi::message::note_on(
+            mess = libremidi::channel_events::note_on(
                 e.noteOn.channel, e.noteOn.pitch, e.noteOn.velocity * 127.f);
           else
-            mess = libremidi::message::note_off(e.noteOn.channel, e.noteOn.pitch, 0.);
+            mess = libremidi::channel_events::note_off(
+                e.noteOn.channel, e.noteOn.pitch, 0.);
           break;
         }
         case VstEvent::kNoteOffEvent: {
-          mess = libremidi::message::note_off(e.noteOff.channel, e.noteOff.pitch, 0.);
+          mess = libremidi::channel_events::note_off(
+              e.noteOff.channel, e.noteOff.pitch, 0.);
           break;
         }
         case VstEvent::kPolyPressureEvent: {
-          mess = libremidi::message::poly_pressure(
+          mess = libremidi::channel_events::poly_pressure(
               e.noteOff.channel, e.polyPressure.pitch, e.polyPressure.pressure * 127.f);
           break;
         }

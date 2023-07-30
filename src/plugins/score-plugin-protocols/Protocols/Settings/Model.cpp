@@ -52,15 +52,15 @@ libremidi::API Model::getMidiApiAsEnum() const noexcept
   else if(m_MidiAPI == "UWP")
     api = libremidi::API::WINDOWS_UWP;
   else if(m_MidiAPI == "CoreMidi")
-    api = libremidi::API::MACOSX_CORE;
+    api = libremidi::API::COREMIDI;
   else if(m_MidiAPI == "ALSA (sequencer)")
-    api = libremidi::API::LINUX_ALSA_SEQ;
+    api = libremidi::API::ALSA_SEQ;
   else if(m_MidiAPI == "ALSA (raw)")
-    api = libremidi::API::LINUX_ALSA_RAW;
+    api = libremidi::API::ALSA_RAW;
   else if(m_MidiAPI == "JACK")
-    api = libremidi::API::UNIX_JACK;
+    api = libremidi::API::JACK_MIDI;
   else if(m_MidiAPI == "Emscripten")
-    api = libremidi::API::EMSCRIPTEN_WEBMIDI;
+    api = libremidi::API::WEBMIDI;
   return api;
 }
 

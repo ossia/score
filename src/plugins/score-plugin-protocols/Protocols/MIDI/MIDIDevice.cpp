@@ -50,10 +50,11 @@ bool MIDIDevice::reconnect()
   try
   {
     auto proto = std::make_unique<ossia::net::midi::midi_protocol>(
-        m_ctx, set.name.toStdString(), set.api);
-    bool res = proto->set_info(ossia::net::midi::midi_info(
-        static_cast<ossia::net::midi::midi_info::Type>(set.io),
-        set.endpoint.toStdString(), set.name.toStdString(), set.port, set.virtualPort));
+        m_ctx, set.handle.display_name, set.api);
+
+    bool res = proto->set_info(ossia::net::midi::midi_info{
+        static_cast<ossia::net::midi::midi_info::Type>(set.io), set.handle,
+        set.virtualPort});
     if(!res)
       return false;
 

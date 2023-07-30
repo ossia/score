@@ -253,7 +253,7 @@ struct Node
             auto it = self.map.find(msg.bytes[1]);
             if(it != self.map.end())
             {
-              midi_out.messages.push_back(libremidi::message::note_off(
+              midi_out.messages.push_back(libremidi::channel_events::note_off(
                   res.get_channel(), it->second.pitch, res.bytes[2]));
               midi_out.messages.back().timestamp = offset;
               midi_out.messages.push_back(res);
@@ -276,7 +276,7 @@ struct Node
           auto it = self.map.find(msg.bytes[1]);
           if(it != self.map.end())
           {
-            midi_out.messages.push_back(libremidi::message::note_off(
+            midi_out.messages.push_back(libremidi::channel_events::note_off(
                 msg.get_channel(), it->second.pitch, msg.bytes[2]));
             midi_out.messages.back().timestamp = offset;
             self.map.erase(it);
@@ -302,11 +302,11 @@ struct Node
         if((*index + transp) != note.pitch)
         {
           midi_out.messages.push_back(
-              libremidi::message::note_off(note.chan, note.pitch, note.vel));
+              libremidi::channel_events::note_off(note.chan, note.pitch, note.vel));
           note.pitch = *index + transp;
           midi_out.messages.back().timestamp = offset;
           midi_out.messages.push_back(
-              libremidi::message::note_on(note.chan, note.pitch, note.vel));
+              libremidi::channel_events::note_on(note.chan, note.pitch, note.vel));
           midi_out.messages.back().timestamp = offset + 1;
         }
       }

@@ -71,7 +71,8 @@ struct Node
       if(new_note > 127)
         break;
 
-      auto non = libremidi::message::note_on(m.get_channel(), new_note, m.bytes[2]);
+      auto non
+          = libremidi::channel_events::note_on(m.get_channel(), new_note, m.bytes[2]);
       non.timestamp = m.timestamp;
       op.messages.push_back(non);
     }
@@ -88,7 +89,8 @@ struct Node
       if(new_note > 127)
         break;
 
-      auto noff = libremidi::message::note_off(m.get_channel(), new_note, m.bytes[2]);
+      auto noff
+          = libremidi::channel_events::note_off(m.get_channel(), new_note, m.bytes[2]);
       noff.timestamp = m.timestamp;
       op.messages.push_back(noff);
     }

@@ -53,6 +53,13 @@ public:
            "listen for incoming OSC messages on this port."));
     parent->checkForChanges(m_localPort);
 
+    m_broadcast = new QCheckBox{this};
+    m_broadcast->setCheckState(Qt::Unchecked);
+    m_broadcast->setWhatsThis(tr("Broadcast to every device in the IP broadcast range"));
+    connect(m_broadcast, &QCheckBox::stateChanged, this, [this](int checked) {
+      m_host->setEnabled(!checked);
+    });
+
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
     m_host->setWhatsThis(
@@ -61,6 +68,7 @@ public:
            "than score."));
 
     layout->addRow(tr("Device listening port"), m_remotePort);
+    layout->addRow(tr("Broadcast"), m_broadcast);
     layout->addRow(tr("Device host"), m_host);
     layout->addRow(tr("score listening port"), m_localPort);
   }
@@ -71,7 +79,8 @@ public:
     conf.local = ossia::net::receive_socket_configuration{
         "0.0.0.0", (uint16_t)m_localPort->value()};
     conf.remote = ossia::net::send_socket_configuration{
-        m_host->text().toStdString(), (uint16_t)m_remotePort->value()};
+        m_host->text().toStdString(), (uint16_t)m_remotePort->value(),
+        m_broadcast->isChecked()};
     return conf;
   }
 
@@ -81,6 +90,7 @@ public:
     {
       m_remotePort->setValue(conf.remote->port);
       m_host->setText(QString::fromStdString(conf.remote->host));
+      m_broadcast->setChecked(conf.remote->broadcast);
     }
     if(conf.local)
     {
@@ -91,6 +101,7 @@ public:
 private:
   QSpinBox* m_localPort{};
   QSpinBox* m_remotePort{};
+  QCheckBox* m_broadcast{};
   QLineEdit* m_host{};
 };
 

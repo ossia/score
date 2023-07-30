@@ -2,6 +2,7 @@
 #include <QString>
 
 #include <libremidi/api.hpp>
+#include <libremidi/observer_configuration.hpp>
 
 #include <verdigris>
 
@@ -9,17 +10,17 @@ namespace Protocols
 {
 struct MIDISpecificSettings
 {
+  libremidi::port_information handle;
+
   enum class IO
   {
     In,
     Out
   } io{};
-  QString endpoint;
-  QString name;
-  int port{};
   libremidi::API api{};
-  bool createWholeTree{};
   bool virtualPort{};
+
+  bool createWholeTree{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::MIDISpecificSettings)

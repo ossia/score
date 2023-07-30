@@ -72,7 +72,7 @@ struct Node
       {
         if(start == 0.f) // No quantification, start directly
         {
-          auto no = libremidi::message::note_on(note.chan, note.pitch, note.vel);
+          auto no = libremidi::channel_events::note_on(note.chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
 
           p2.messages.push_back(no);
@@ -85,7 +85,8 @@ struct Node
           else if(duration == 0.f)
           {
             // Stop at the next sample
-            auto noff = libremidi::message::note_off(note.chan, note.pitch, note.vel);
+            auto noff
+                = libremidi::channel_events::note_off(note.chan, note.pitch, note.vel);
             noff.timestamp = no.timestamp;
             p2.messages.push_back(noff);
           }
@@ -106,7 +107,7 @@ struct Node
       else
       {
         // Just stop
-        auto noff = libremidi::message::note_off(note.chan, note.pitch, note.vel);
+        auto noff = libremidi::channel_events::note_off(note.chan, note.pitch, note.vel);
         noff.timestamp = in.timestamp;
         p2.messages.push_back(noff);
       }
@@ -119,7 +120,7 @@ struct Node
       auto& note = *it;
       if(note.date > tk.prev_date && note.date.impl < tk.date.impl)
       {
-        auto no = libremidi::message::note_on(
+        auto no = libremidi::channel_events::note_on(
             note.note.chan, note.note.pitch, note.note.vel);
         no.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
         p2.messages.push_back(no);
@@ -132,7 +133,7 @@ struct Node
         else if(duration == 0.f)
         {
           // Stop at the next sample
-          auto noff = libremidi::message::note_off(
+          auto noff = libremidi::channel_events::note_off(
               note.note.chan, note.note.pitch, note.note.vel);
           noff.timestamp = no.timestamp;
           p2.messages.push_back(noff);
@@ -151,7 +152,7 @@ struct Node
       auto& note = *it;
       if(note.date > tk.prev_date && note.date.impl < tk.date.impl)
       {
-        auto noff = libremidi::message::note_off(
+        auto noff = libremidi::channel_events::note_off(
             note.note.chan, note.note.pitch, note.note.vel);
         noff.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
         p2.messages.push_back(noff);

@@ -779,7 +779,6 @@ public:
         std::weak_ptr eff_ptr = std::shared_ptr<Node>(this->node, &eff);
         std::weak_ptr qex_ptr = std::shared_ptr<Execution::ExecutionCommandQueue>(
             ctx.alias.lock(), &ctx.executionQueue);
-        auto& worker = eff.worker;
 
         eff.worker.request
             = [&tq, qex_ptr = std::move(qex_ptr),

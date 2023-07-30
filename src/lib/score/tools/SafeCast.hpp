@@ -1,6 +1,8 @@
 #pragma once
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/config.hpp>
+
 #include <exception>
 
 #ifdef SCORE_DEBUG
@@ -29,5 +31,9 @@ catch(const std::exception& e)
   SCORE_ABORT;
 }
 #else
-#define safe_cast static_cast
+template <typename T, typename U>
+constexpr OSSIA_INLINE T safe_cast(U&& other)
+{
+  return static_cast<T>(other);
+}
 #endif
