@@ -5,13 +5,17 @@ on: push
 jobs:
   brew:
     name: macOS (Brew)
-    runs-on: macos-12
+    runs-on: macos-13
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Dependencies
         run: |
