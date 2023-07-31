@@ -135,7 +135,7 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, [&, self_p = &self, pos] {
+    QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
       self.impl->spinbox = w;
       w->setRange(self.min, self.max);

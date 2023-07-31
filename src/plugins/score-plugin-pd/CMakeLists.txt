@@ -6,6 +6,10 @@ if(MSVC)
   return()
 endif()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 set(PD_MULTI ON CACHE INTERNAL "")
 set(CMAKE_C_VISIBILITY_PRESET "hidden")
 add_subdirectory("${3RDPARTY_FOLDER}/libpd" "${CMAKE_BINARY_DIR}/libpd")

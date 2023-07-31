@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(score_plugin_analysis LANGUAGES CXX)
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 add_library(
   score_plugin_analysis
   Analysis/Centroid.hpp

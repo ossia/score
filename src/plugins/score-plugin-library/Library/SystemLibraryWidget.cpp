@@ -125,7 +125,7 @@ SystemLibraryWidget::SystemLibraryWidget(
   m_tv.setAcceptDrops(true);
   m_tv.setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 
-  QTimer::singleShot(1000, [this, il, &ctx] {
+  QTimer::singleShot(1000, this, [this, il, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();
     il->reset = [this, &settings] { setRoot(settings.getPackagesPath()); };
     il->reset();

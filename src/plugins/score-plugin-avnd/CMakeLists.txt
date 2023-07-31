@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(score_plugin_avnd LANGUAGES CXX)
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
   # Basically what does not work is clang 13 + libstdc++ due to coroutines
   if(NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN AND NOT SCORE_DEPLOYMENT_BUILD)

@@ -4,6 +4,10 @@ if(NOT TARGET score_plugin_engine)
     return()
 endif()
 
+if(SCORE_FAST_DEV_BUILD)
+  return()
+endif()
+
 score_common_setup()
 
 # Packages

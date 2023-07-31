@@ -208,6 +208,12 @@ namespace score
 {
 void RecursiveWatch::scan() const
 {
+#if !defined(SCORE_DEPLOYMENT_BUILD)
+  static const bool disable_library = qEnvironmentVariableIsSet("SCORE_DISABLE_LIBRARY");
+  if(Q_UNLIKELY(disable_library))
+    return;
+#endif
+
   for_all_files(m_root, [this](std::string_view path) {
     if(path.empty())
       return;
@@ -224,5 +230,4 @@ void RecursiveWatch::scan() const
     }
   });
 }
-
 }

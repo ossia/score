@@ -149,7 +149,7 @@ struct DefaultGraphicsKnobImpl
   requires std::is_integral_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, [&, self_p = &self, pos] {
+    QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
       auto w = new SpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -187,7 +187,7 @@ struct DefaultGraphicsKnobImpl
   requires std::is_floating_point_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, [&, self_p = &self, pos] {
+    QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
       w->setRange(self.min, self.max);
 
