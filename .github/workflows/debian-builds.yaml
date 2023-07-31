@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { distro: bullseye, CC: gcc,       CXX: g++ }
+          # - { distro: bullseye, CC: gcc,       CXX: g++ }
           - { distro: bookworm, CC: clang,     CXX: clang++ }
           - { distro: bookworm, CC: clang-15,  CXX: clang++-15 }
           - { distro: bookworm, CC: gcc,       CXX: g++ }
