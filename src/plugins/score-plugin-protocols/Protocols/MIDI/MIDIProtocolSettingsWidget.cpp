@@ -58,7 +58,6 @@ Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
   s.protocol = MIDIInputProtocolFactory::static_concreteKey();
   midi.createWholeTree = m_createWhole->isChecked();
   midi.virtualPort = m_virtualPort->isChecked();
-  midi.name = s.name;
   s.deviceSpecificSettings = QVariant::fromValue(midi);
 
   return s;
@@ -70,7 +69,6 @@ void MIDIInputSettingsWidget::setSettings(const Device::DeviceSettings& settings
   const auto& s = m_current.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_createWhole->setChecked(s.createWholeTree);
   m_virtualPort->setChecked(s.virtualPort);
-  m_name->setText(s.name);
 
   // Clean up the name a bit
   auto pretty_name = settings.name;
@@ -119,7 +117,6 @@ Device::DeviceSettings MIDIOutputSettingsWidget::getSettings() const
   s.protocol = MIDIOutputProtocolFactory::static_concreteKey();
   midi.createWholeTree = m_createWhole->isChecked();
   midi.virtualPort = m_virtualPort->isChecked();
-  midi.name = s.name;
 
   s.deviceSpecificSettings = QVariant::fromValue(midi);
 
@@ -132,7 +129,6 @@ void MIDIOutputSettingsWidget::setSettings(const Device::DeviceSettings& setting
   const auto& s = m_current.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_createWhole->setChecked(s.createWholeTree);
   m_virtualPort->setChecked(s.virtualPort);
-  m_name->setText(s.name);
 
   // Clean up the name a bit
   auto prettyName = settings.name;

@@ -105,6 +105,22 @@ elseif(APPLE AND SCORE_PCH)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-allocation ")
 endif()
 
+if(SCORE_PCH)
+  if(NOT MSVC)
+    # Needed due to kfrlib injecting these flags:
+    # error: current translation unit is compiled with the target feature '+sse2' but the AST file was not
+    # error: current translation unit is compiled with the target feature '-sse3' but the AST file was not
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES x86)
+      if(APPLE)
+        set(CMAKE_OBJC_FLAGS "${CMAKE_OBJC_FLAGS} -msse2 -mno-sse3 ")
+        set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -msse2 -mno-sse3 ")
+      endif()
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -mno-sse3 ")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -msse2 -mno-sse3 ")
+    endif()
+  endif()
+endif()
+
 if(MSYS OR MINGW)
   find_package(ZLIB)
 endif()

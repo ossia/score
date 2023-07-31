@@ -387,6 +387,8 @@ struct JsonValue
   int32_t toInt() const noexcept { return obj.GetInt(); }
   bool toBool() const noexcept { return obj.GetBool(); }
   double toDouble() const noexcept { return obj.GetDouble(); }
+  int64_t toInt64() const noexcept { return obj.GetInt64(); }
+  uint64_t toUInt64() const noexcept { return obj.GetUint64(); }
   bool isDouble() const noexcept { return obj.IsDouble(); }
   auto toArray() const noexcept { return obj.GetArray(); }
   auto toObject() const noexcept { return obj.GetObject(); }

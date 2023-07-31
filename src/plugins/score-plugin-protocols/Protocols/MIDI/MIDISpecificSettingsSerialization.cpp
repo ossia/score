@@ -9,26 +9,33 @@
 template <>
 void DataStreamReader::read(const Protocols::MIDISpecificSettings& n)
 {
-  m_stream << n.io << n.endpoint << n.port << n.api << n.createWholeTree
-           << n.virtualPort;
+  m_stream << n.io << n.api << n.createWholeTree << n.virtualPort << n.handle.port
+           << n.handle.manufacturer << n.handle.device_name << n.handle.port_name
+           << n.handle.display_name;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::MIDISpecificSettings& n)
 {
-  m_stream >> n.io >> n.endpoint >> n.port >> n.api >> n.createWholeTree
-      >> n.virtualPort;
+  m_stream >> n.io >> n.api >> n.createWholeTree >> n.virtualPort >> n.handle.port
+      >> n.handle.manufacturer >> n.handle.device_name >> n.handle.port_name
+      >> n.handle.display_name;
   checkDelimiter();
 }
 
 template <>
 void JSONReader::read(const Protocols::MIDISpecificSettings& n)
 {
-  obj["IO"] = n.io;
   obj["API"] = n.api;
-  obj["Endpoint"] = n.endpoint;
-  obj["Port"] = (int)n.port;
+  obj["IO"] = n.io;
+
+  obj["Port"] = n.handle.port;
+  obj["Manufacturer"] = n.handle.manufacturer;
+  obj["DeviceName"] = n.handle.device_name;
+  obj["PortName"] = n.handle.port_name;
+  obj["DisplayName"] = n.handle.display_name;
+
   obj["CreateWholeTree"] = n.createWholeTree;
   obj["VirtualPort"] = n.virtualPort;
 }
@@ -38,10 +45,20 @@ void JSONWriter::write(Protocols::MIDISpecificSettings& n)
 {
   n.io <<= obj["IO"];
 
-#if 0
-  n.endpoint = obj["Endpoint"].toString();
-  n.port = obj["Port"].toInt();
-#endif
+  if(auto ep = obj.tryGet("Endpoint"))
+  {
+    // Old save format
+    n.handle.port_name = ep->toStdString();
+    n.handle.display_name = ep->toStdString();
+  }
+  else
+  {
+    n.handle.port = obj["Port"].toUInt64();
+    n.handle.manufacturer = obj["Manufacturer"].toStdString();
+    n.handle.device_name = obj["DeviceName"].toStdString();
+    n.handle.port_name = obj["PortName"].toStdString();
+    n.handle.display_name = obj["DisplayName"].toStdString();
+  }
 
   if(auto it = obj.tryGet("CreateWholeTree"))
     n.createWholeTree = it->toBool();
