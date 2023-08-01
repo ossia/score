@@ -84,8 +84,6 @@ stages:
               secureFile: "ossia-cert.p12"
 
           - bash: |
-              ls /Applications/ 
-              ls /Applications/Xcode*
               source ci/osx-package.deps.sh
             env:
               MAC_CODESIGN_PASSWORD: $(codesign)
