@@ -9,7 +9,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
   ECHO_OUTPUT_VARIABLE
 )
-set_cache(CMAKE_OSX_SYSROOT "${XCODE_PATH}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
+set_cache(CMAKE_OSX_SYSROOT "${XCODE_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
 
 string(APPEND CMAKE_C_FLAGS_INIT " -march=core2 -mtune=haswell")
 string(APPEND CMAKE_CXX_FLAGS_INIT " -march=core2 -mtune=haswell")
