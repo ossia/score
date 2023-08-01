@@ -3,7 +3,13 @@ cninja_require(static-release)
 cninja_require(linkerwarnings=no)
 cninja_require(era=10.15)
 
-set_cache(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
+execute_process(
+  COMMAND xcode-select --print-path
+  OUTPUT_VARIABLE XCODE_PATH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ECHO_OUTPUT_VARIABLE
+)
+set_cache(CMAKE_OSX_SYSROOT "${XCODE_PATH}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
 
 string(APPEND CMAKE_C_FLAGS_INIT " -march=core2 -mtune=haswell")
 string(APPEND CMAKE_CXX_FLAGS_INIT " -march=core2 -mtune=haswell")
