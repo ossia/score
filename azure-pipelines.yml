@@ -23,7 +23,7 @@ stages:
       - job: Win32
         displayName: Win32
         pool:
-          vmImage: "windows-2022"
+          vmImage: "windows-latest"
 
         steps:
           - checkout: self
@@ -48,7 +48,7 @@ stages:
       - job: AppImage
         displayName: AppImage
         pool:
-          vmImage: "ubuntu-20.04"
+          vmImage: "ubuntu-latest"
 
         steps:
           - checkout: self
@@ -84,6 +84,8 @@ stages:
               secureFile: "ossia-cert.p12"
 
           - bash: |
+              ls /Applications/ 
+              ls /Applications/Xcode*
               source ci/osx-package.deps.sh
             env:
               MAC_CODESIGN_PASSWORD: $(codesign)
@@ -104,7 +106,7 @@ stages:
       - job: Tarball
         displayName: Tarball
         pool:
-          vmImage: "ubuntu-20.04"
+          vmImage: "ubuntu-latest"
 
         steps:
           - checkout: self
