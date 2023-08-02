@@ -1,6 +1,7 @@
 #pragma once
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/common/path.hpp>
 
 #include <halp/controls.hpp>

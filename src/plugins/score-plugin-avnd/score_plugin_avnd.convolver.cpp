@@ -1,3 +1,5 @@
+#include <Avnd/Factories.hpp>
+
 #if __has_include(<kfr/dft/convolution.hpp>)
 #include <kfr/kfr.h>
 #if QT_VERSION_CHECK(KFR_VERSION_MAJOR, KFR_VERSION_MINOR, KFR_VERSION_PATCH) \
@@ -7,7 +9,6 @@
 #endif
 #endif
 
-#include <Avnd/Factories.hpp>
 namespace oscr
 {
 void instantiate_convolver(

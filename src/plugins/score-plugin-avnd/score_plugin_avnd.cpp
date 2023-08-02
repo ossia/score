@@ -23,7 +23,7 @@
 #include <score_plugin_engine.hpp>
 
 // clang-format off
-//#include <Avnd/Factories.hpp>
+#include <Avnd/Factories.hpp>
 #include "include.avnd.cpp"
 // clang-format on
 

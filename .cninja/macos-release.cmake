@@ -11,10 +11,10 @@ execute_process(
 )
 set_cache(CMAKE_OSX_SYSROOT "${XCODE_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
 
-string(APPEND CMAKE_C_FLAGS_INIT " -march=core2 -mtune=haswell")
-string(APPEND CMAKE_CXX_FLAGS_INIT " -march=core2 -mtune=haswell")
+string(APPEND CMAKE_C_FLAGS_INIT " -march=sandybridge -mtune=haswell")
+string(APPEND CMAKE_CXX_FLAGS_INIT " -march=sandybridge -mtune=haswell")
 
-
+set_cache(KFR_ARCH avx)
 set_cache(BUILD_SHARED_LIBS OFF)
 set_cache(CMAKE_INSTALL_MESSAGE NEVER)
 
