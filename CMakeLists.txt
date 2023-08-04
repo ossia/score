@@ -163,9 +163,6 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/avendish/include/")
-if(BOOST_ROOT)
-  include_directories(SYSTEM "${BOOST_ROOT}")
-endif()
 
 set(SCORE_LIBRARIES_LIST CACHE INTERNAL "List of libraries")
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
