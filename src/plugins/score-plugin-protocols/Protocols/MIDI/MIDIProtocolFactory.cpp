@@ -15,13 +15,8 @@
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <QObject>
-#if defined(__EMSCRIPTEN__)
-#define LIBREMIDI_HEADER_ONLY 1
-#define LIBREMIDI_EMSCRIPTEN 1
 #include <libremidi/libremidi.hpp>
-#else
-#include <libremidi/libremidi.hpp>
-#endif
+
 namespace Device
 {
 class DeviceInterface;
