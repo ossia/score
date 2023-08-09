@@ -11,6 +11,7 @@ extern "C" {
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/fmt.hpp>
+#include <ossia/detail/thread.hpp>
 
 #include <QDebug>
 #include <QElapsedTimer>
@@ -114,7 +115,10 @@ bool CameraInput::start() noexcept
 
   m_running.store(true, std::memory_order_release);
   // TODO use a thread pool
-  m_thread = std::thread{[this] { this->buffer_thread(); }};
+  m_thread = std::thread{[this] {
+    ossia::set_thread_name("ossia camera");
+    this->buffer_thread();
+  }};
   return true;
 }
 

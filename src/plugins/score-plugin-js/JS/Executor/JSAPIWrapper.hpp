@@ -2,6 +2,7 @@
 #include <score/tools/std/StringHash.hpp>
 
 #include <ossia/dataflow/dataflow_fwd.hpp>
+#include <ossia/dataflow/value_port.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/network/common/path.hpp>
 
@@ -39,6 +40,7 @@ private:
 
   const ossia::destination_t& find_address(const QString&);
   ossia::hash_map<QString, ossia::destination_t> m_address_cache;
+  ossia::value_port m_port_cache;
   // TODO share cash across
 };
 }

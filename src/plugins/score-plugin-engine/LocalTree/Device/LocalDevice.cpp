@@ -99,6 +99,9 @@ void LocalDevice::init()
   if(!m_proto)
     return;
 
+  if(qEnvironmentVariableIsSet("SCORE_DISABLE_LOCALTREE"))
+    return;
+
 #if defined(OSSIA_PROTOCOL_OSCQUERY) && !defined(__EMSCRIPTEN__)
   try
   {

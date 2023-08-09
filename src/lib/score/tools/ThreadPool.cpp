@@ -4,6 +4,7 @@
 #if __has_include(<sys/resource.h>)
 #include <sys/resource.h>
 #endif
+#include <ossia/detail/thread.hpp>
 
 namespace score
 {
@@ -55,6 +56,7 @@ QThread* ThreadPool::acquireThread()
       if(lim.rlim_cur > m_threads[i].stackSize())
         m_threads[i].setStackSize(lim.rlim_cur);
 #endif
+      m_threads[i].setObjectName(QString("ossia uitask %1").arg(i));
       m_threads[i].start();
     }
     m_currentThread = 0;
@@ -89,9 +91,11 @@ void ThreadPool::releaseThread()
 TaskPool::TaskPool()
 {
   m_running = true;
+  int i = 0;
   for(auto& t : m_threads)
   {
-    t = std::thread{[this] {
+    t = std::thread{[this, i = i++] {
+      ossia::set_thread_name("ossia task " + std::to_string(i));
       while(m_running)
       {
         task t{};

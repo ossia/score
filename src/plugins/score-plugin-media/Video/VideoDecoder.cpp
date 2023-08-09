@@ -7,6 +7,7 @@
 
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/libav.hpp>
+#include <ossia/detail/thread.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -384,7 +385,10 @@ bool VideoDecoder::load(const std::string& inputFile) noexcept
 
   m_running.store(true, std::memory_order_release);
   // TODO use a thread pool
-  m_thread = std::thread{[this] { this->buffer_thread(); }};
+  m_thread = std::thread{[this] {
+    ossia::set_thread_name("ossia video");
+    this->buffer_thread();
+  }};
 
   return true;
 }

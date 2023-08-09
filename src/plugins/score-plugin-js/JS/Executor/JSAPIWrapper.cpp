@@ -126,12 +126,13 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
 {
   if(const auto& addr = find_address(address))
   {
-    auto val = ossia::qt::qt_to_ossia{}(value);
+    m_port_cache.get_data().clear();
+    m_port_cache.get_data().emplace_back(ossia::qt::qt_to_ossia{}(value));
 
     ossia::apply_to_destination(
         addr, devices.exec_devices(),
         [&](ossia::net::parameter_base* addr, bool unique) {
-      devices.insert(*addr, ossia::typed_value{val});
+      devices.insert(*addr, m_port_cache);
         },
         ossia::do_nothing_for_nodes{});
   }

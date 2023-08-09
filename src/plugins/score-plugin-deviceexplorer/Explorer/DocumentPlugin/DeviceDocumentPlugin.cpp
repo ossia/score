@@ -30,6 +30,7 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <ossia/detail/logger.hpp>
+#include <ossia/detail/thread.hpp>
 #include <ossia/network/context.hpp>
 
 #include <ossia-qt/invoke.hpp>
@@ -90,6 +91,7 @@ void DeviceDocumentPlugin::init()
   startTimer(8);
 #else
   m_asioThread = std::thread{[this] {
+    ossia::set_thread_name("ossia asio");
     while(m_processMessages)
     {
       m_asioContext->run();
@@ -216,6 +218,7 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
     // Instantiate a real device.
     auto& fact = m_context.app.interfaces<Device::ProtocolFactoryList>();
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
+    SCORE_ASSERT(proto);
     Device::DeviceInterface* newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 
