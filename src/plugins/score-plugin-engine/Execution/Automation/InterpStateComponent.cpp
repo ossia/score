@@ -27,6 +27,7 @@ public:
 private:
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
+    /*
     for(auto& [dest, drive] : m_drives)
     {
       auto val = ossia::apply(
@@ -35,6 +36,7 @@ private:
           drive);
       e.insert(dest.address(), ossia::typed_value{std::move(val)});
     }
+*/
   }
 
   drives_vector m_drives;

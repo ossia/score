@@ -16,7 +16,7 @@ set(HDRS
   Execution/ExecutionTick.hpp
   Execution/ExecutionController.hpp
 
-  Execution/Automation/InterpStateComponent.hpp
+  # Execution/Automation/InterpStateComponent.hpp
 
   Execution/Settings/ExecutorModel.hpp
   Execution/Settings/ExecutorPresenter.hpp
@@ -62,7 +62,7 @@ set(SRCS
   Execution/ExecutionTick.cpp
   Execution/ExecutionController.cpp
 
-  Execution/Automation/InterpStateComponent.cpp
+  # Execution/Automation/InterpStateComponent.cpp
   Execution/Clock/ClockFactory.cpp
   Execution/Clock/DefaultClock.cpp
 
