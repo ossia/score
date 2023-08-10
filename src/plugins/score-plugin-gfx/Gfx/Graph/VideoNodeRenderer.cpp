@@ -5,8 +5,10 @@
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
 #include <Gfx/Graph/decoders/YUV420P10.hpp>
+#include <Gfx/Graph/decoders/YUV420P12.hpp>
 #include <Gfx/Graph/decoders/YUV422.hpp>
 #include <Gfx/Graph/decoders/YUV422P10.hpp>
+#include <Gfx/Graph/decoders/YUV422P12.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -46,6 +48,7 @@ void VideoNodeRenderer::createGpuDecoder()
   auto& filter = model.m_filter;
   switch(m_frameFormat.pixel_format)
   {
+    // 420P
     case AV_PIX_FMT_YUV420P:
     case AV_PIX_FMT_YUVJ420P:
       m_gpu = std::make_unique<YUV420Decoder>(m_frameFormat);
@@ -53,18 +56,8 @@ void VideoNodeRenderer::createGpuDecoder()
     case AV_PIX_FMT_YUV420P10LE:
       m_gpu = std::make_unique<YUV420P10Decoder>(m_frameFormat);
       break;
-    case AV_PIX_FMT_YUV422P10LE:
-      m_gpu = std::make_unique<YUV422P10Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUVJ422P:
-    case AV_PIX_FMT_YUV422P:
-      m_gpu = std::make_unique<YUV422Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_UYVY422:
-      m_gpu = std::make_unique<UYVY422Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUYV422:
-      m_gpu = std::make_unique<YUYV422Decoder>(m_frameFormat);
+    case AV_PIX_FMT_YUV420P12LE:
+      m_gpu = std::make_unique<YUV420P12Decoder>(m_frameFormat);
       break;
     case AV_PIX_FMT_NV12:
       m_gpu = std::make_unique<NV12Decoder>(m_frameFormat, false);
@@ -72,6 +65,28 @@ void VideoNodeRenderer::createGpuDecoder()
     case AV_PIX_FMT_NV21:
       m_gpu = std::make_unique<NV12Decoder>(m_frameFormat, true);
       break;
+
+    // 422P
+    case AV_PIX_FMT_YUVJ422P:
+    case AV_PIX_FMT_YUV422P:
+      m_gpu = std::make_unique<YUV422Decoder>(m_frameFormat);
+      break;
+    case AV_PIX_FMT_YUV422P10LE:
+      m_gpu = std::make_unique<YUV422P10Decoder>(m_frameFormat);
+      break;
+    case AV_PIX_FMT_YUV422P12LE:
+      m_gpu = std::make_unique<YUV422P12Decoder>(m_frameFormat);
+      break;
+
+    // YUYV
+    case AV_PIX_FMT_UYVY422:
+      m_gpu = std::make_unique<UYVY422Decoder>(m_frameFormat);
+      break;
+    case AV_PIX_FMT_YUYV422:
+      m_gpu = std::make_unique<YUYV422Decoder>(m_frameFormat);
+      break;
+
+    // RGBA
     case AV_PIX_FMT_RGB0:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::RGBA8, 4, m_frameFormat, "processed.a = 1.0; " + filter);
@@ -100,6 +115,8 @@ void VideoNodeRenderer::createGpuDecoder()
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::BGRA8, 4, m_frameFormat, "processed.bgra = tex.yzwx; " + filter);
       break;
+
+      // Grey
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_GBRPF32LE:
       m_gpu = std::make_unique<PlanarDecoder>(
@@ -115,6 +132,7 @@ void VideoNodeRenderer::createGpuDecoder()
           = std::make_unique<PackedDecoder>(QRhiTexture::R32F, 4, m_frameFormat, filter);
       break;
 #endif
+
     case AV_PIX_FMT_GRAY8:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::R8, 1, m_frameFormat,

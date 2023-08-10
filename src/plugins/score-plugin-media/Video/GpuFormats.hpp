@@ -106,7 +106,9 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
 
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_YUV420P10LE:
+    case AV_PIX_FMT_YUV420P12LE:
     case AV_PIX_FMT_YUV422P10LE:
+    case AV_PIX_FMT_YUV422P12LE:
     case AV_PIX_FMT_GBRPF32LE:
     case AV_PIX_FMT_GBRAPF32LE:
     case AV_PIX_FMT_GRAYF32LE:
