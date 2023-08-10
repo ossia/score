@@ -81,7 +81,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   ossia::flat_map<int, QRhiBuffer*> createdUbos;
   ossia::flat_map<int, QRhiTexture*> createdTexs;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION < QT_VERSION_CHECK(6, 6, 0)
   std::vector<QRhiBufferReadbackResult*> bufReadbacks;
   void addReadback(QRhiBufferReadbackResult* r) { bufReadbacks.push_back(r); }
 #endif
@@ -408,7 +408,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     }
 
     // Clear the readbacks
-#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION < QT_VERSION_CHECK(6, 6, 0)
     for(auto rb : this->bufReadbacks)
       delete rb;
     this->bufReadbacks.clear();

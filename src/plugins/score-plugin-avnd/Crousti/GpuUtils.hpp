@@ -142,7 +142,7 @@ constexpr QRhiTexture::Format textureFormat()
     return QRhiTexture::R16;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   else if constexpr(requires { F::RG16; })
-    return QRhiTexture::RG8;
+    return QRhiTexture::RG16;
 #endif
   else if constexpr(requires { F::RED_OR_ALPHA8; })
     return QRhiTexture::RED_OR_ALPHA8;
@@ -390,7 +390,11 @@ struct handle_dispatch
         {
           using ret = typename C::return_type;
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 6, 0)
           auto readback = new QRhiBufferReadbackResult;
+#else
+          auto readback = new QRhiReadbackResult;
+#endif
           self.addReadback(readback);
 
           // this is e.g. a buffer_awaiter
@@ -431,7 +435,11 @@ struct handle_dispatch
         {
           using ret = typename C::return_type;
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 6, 0)
           auto readback = reinterpret_cast<QRhiBufferReadbackResult*>(command.handle);
+#else
+          auto readback = reinterpret_cast<QRhiReadbackResult*>(command.handle);
+#endif
 
           return ret{
               .data = readback->data.data(), .size = (std::size_t)readback->data.size()};
