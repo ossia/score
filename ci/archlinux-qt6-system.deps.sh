@@ -16,6 +16,7 @@ if [[ ! -f /usr/lib/libfreetype.so ]]; then
   PACKAGES+=" freetype2 "
 fi
 
+$SUDO pacman -Syyu --noconfirm
 $SUDO pacman -S --noconfirm --needed \
    $PACKAGES \
    cmake ninja gcc llvm clang boost \
