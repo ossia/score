@@ -8,59 +8,63 @@ namespace score::gfx
 {
 
 /**
- * @brief Decodes YUV422 videos.
+ * @brief Decodes YUV420 videos.
  *
- * Adapted from YUV420 Roxlu code and
- * softpixel.com/~cwright/programming/colorspace/yuv
+ * Method was taken from
+ * https://www.roxlu.com/2014/039/decoding-h264-and-yuv420p-playback
  */
-
-struct YUV422Decoder : GPUVideoDecoder
+struct YUV420P10Decoder : GPUVideoDecoder
 {
-  static const constexpr auto yuv422_filter = R"_(#version 450
+  static const constexpr auto yuv420_filter = R"_(#version 450
 
-layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
+  layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
 
-vec2 renderSize;
-} renderer;
+  vec2 renderSize;
+  } renderer;
 
-layout(binding=3) uniform sampler2D y_tex;
-layout(binding=4) uniform sampler2D u_tex;
-layout(binding=5) uniform sampler2D v_tex;
+  layout(binding=3) uniform sampler2D y_tex;
+  layout(binding=4) uniform sampler2D u_tex;
+  layout(binding=5) uniform sampler2D v_tex;
 
-layout(location = 0) in vec2 v_texcoord;
-layout(location = 0) out vec4 fragColor;
+  layout(location = 0) in vec2 v_texcoord;
+  layout(location = 0) out vec4 fragColor;
 
-// See softpixel.com/~cwright/programming/colorspace/yuv
-const vec3 offset = vec3(0., -0.5, -0.5);
-const mat3 coeff = mat3(1.0   ,  1.0   , 1.0,
-                        0.0   , -0.3455, 1.7790,
-                        1.4075, -0.7169, 0.);
-void main()
-{
-    float y = texture(y_tex, v_texcoord).r;
-    float u = texture(u_tex, v_texcoord).r;
-    float v = texture(v_tex, v_texcoord).r;
+  const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);
+  const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);
+  const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
+  const vec3 offset = vec3(-0.0625, -0.5, -0.5);
 
-    fragColor = vec4(coeff * (vec3(y,u,v) + offset), 1);
-}
-)_";
+  void main ()
+  {
+    float y = 64. * texture(y_tex, v_texcoord).r;
+    float u = 64. * texture(u_tex, v_texcoord).r;
+    float v = 64. * texture(v_tex, v_texcoord).r;
+    vec3 yuv = vec3(y,u,v);
+    yuv += offset;
+    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    fragColor.r = dot(yuv, R_cf);
+    fragColor.g = dot(yuv, G_cf);
+    fragColor.b = dot(yuv, B_cf);
+  })_";
 
-  explicit YUV422Decoder(Video::ImageFormat& d)
+  explicit YUV420P10Decoder(Video::ImageFormat& d)
       : decoder{d}
   {
   }
 
   Video::ImageFormat& decoder;
+
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
-
     const auto w = decoder.width, h = decoder.height;
+    const auto fmt = QRhiTexture::R16;
+
     // Y
     {
-      auto tex = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(fmt, {w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -72,7 +76,7 @@ void main()
 
     // U
     {
-      auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(fmt, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -84,7 +88,7 @@ void main()
 
     // V
     {
-      auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(fmt, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -94,7 +98,7 @@ void main()
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(r.state, vertexShader(), yuv422_filter);
+    return score::gfx::makeShaders(r.state, vertexShader(), yuv420_filter);
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
@@ -110,20 +114,19 @@ void main()
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = samplers[0].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
-
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
     QRhiTextureUploadDescription desc{entry};
+
     res.uploadTexture(y_tex, desc);
   }
 
   void
   setUPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    const auto w = decoder.width / 2, h = decoder.height;
+    const auto w = decoder.width / 2, h = decoder.height / 2;
     auto u_tex = samplers[1].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
-
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
     QRhiTextureUploadDescription desc{entry};
 
     res.uploadTexture(u_tex, desc);
@@ -132,11 +135,10 @@ void main()
   void
   setVPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    const auto w = decoder.width / 2, h = decoder.height;
+    const auto w = decoder.width / 2, h = decoder.height / 2;
     auto v_tex = samplers[2].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
-
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(v_tex, desc);
   }

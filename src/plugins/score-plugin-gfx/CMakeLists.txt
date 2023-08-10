@@ -106,7 +106,9 @@ set(HDRS
     Gfx/Graph/decoders/NV12.hpp
     Gfx/Graph/decoders/RGBA.hpp
     Gfx/Graph/decoders/YUV420.hpp
+    Gfx/Graph/decoders/YUV420P10.hpp
     Gfx/Graph/decoders/YUV422.hpp
+    Gfx/Graph/decoders/YUV422P10.hpp
     Gfx/Graph/decoders/YUYV422.hpp
 
     Gfx/Settings/Model.hpp

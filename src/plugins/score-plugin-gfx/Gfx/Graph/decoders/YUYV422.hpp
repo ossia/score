@@ -44,7 +44,7 @@ void main() {
 }
 )_";
 
-  YUYV422Decoder(Video::ImageFormat& d)
+  explicit YUYV422Decoder(Video::ImageFormat& d)
       : decoder{d}
   {
   }

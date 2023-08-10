@@ -4,7 +4,9 @@
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
+#include <Gfx/Graph/decoders/YUV420P10.hpp>
 #include <Gfx/Graph/decoders/YUV422.hpp>
+#include <Gfx/Graph/decoders/YUV422P10.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -47,6 +49,12 @@ void VideoNodeRenderer::createGpuDecoder()
     case AV_PIX_FMT_YUV420P:
     case AV_PIX_FMT_YUVJ420P:
       m_gpu = std::make_unique<YUV420Decoder>(m_frameFormat);
+      break;
+    case AV_PIX_FMT_YUV420P10LE:
+      m_gpu = std::make_unique<YUV420P10Decoder>(m_frameFormat);
+      break;
+    case AV_PIX_FMT_YUV422P10LE:
+      m_gpu = std::make_unique<YUV422P10Decoder>(m_frameFormat);
       break;
     case AV_PIX_FMT_YUVJ422P:
     case AV_PIX_FMT_YUV422P:

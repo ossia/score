@@ -49,7 +49,7 @@ struct YUV420Decoder : GPUVideoDecoder
     fragColor.b = dot(yuv, B_cf);
   })_";
 
-  YUV420Decoder(Video::ImageFormat& d)
+  explicit YUV420Decoder(Video::ImageFormat& d)
       : decoder{d}
   {
   }
@@ -60,10 +60,11 @@ struct YUV420Decoder : GPUVideoDecoder
   {
     auto& rhi = *r.state.rhi;
     const auto w = decoder.width, h = decoder.height;
+    const auto fmt = QRhiTexture::R8;
 
     // Y
     {
-      auto tex = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(fmt, {w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -75,7 +76,7 @@ struct YUV420Decoder : GPUVideoDecoder
 
     // U
     {
-      auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(fmt, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -87,7 +88,7 @@ struct YUV420Decoder : GPUVideoDecoder
 
     // V
     {
-      auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(fmt, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
