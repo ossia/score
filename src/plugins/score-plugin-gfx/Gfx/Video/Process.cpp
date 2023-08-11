@@ -114,8 +114,8 @@ Model::~Model() { }
 std::shared_ptr<video_decoder> Model::makeDecoder() const noexcept
 try
 {
-  auto dec = std::make_shared<video_decoder>(videoDecoderConfiguration());
-  if(!dec->load(absolutePath().toStdString()))
+  auto dec = std::make_shared<::Video::VideoDecoder>(videoDecoderConfiguration());
+  if(!dec->open(absolutePath().toStdString()))
     return {};
   return dec;
 }
@@ -138,7 +138,7 @@ void Model::setPath(const QString& f)
 
   {
     // FIXME store the metadatas in cache instead of reopening the video every time
-    video_decoder decoder(videoDecoderConfiguration());
+    ::Video::VideoDecoderThreaded decoder(videoDecoderConfiguration());
     decoder.open(absolutePath().toStdString());
 
     setLoopDuration(TimeVal{decoder.duration()});

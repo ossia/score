@@ -15,6 +15,7 @@ class ExternalInput;
 }
 namespace score::gfx
 {
+class VideoNodeRendererBase;
 class VideoNodeRenderer;
 class VideoNode;
 
@@ -70,6 +71,7 @@ class SCORE_PLUGIN_GFX_EXPORT VideoNodeBase : public ProcessNode
 public:
   void setScaleMode(score::gfx::ScaleMode s);
 
+  friend VideoNodeRendererBase;
   friend VideoNodeRenderer;
 
 protected:

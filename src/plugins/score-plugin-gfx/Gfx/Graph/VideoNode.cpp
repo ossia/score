@@ -2,6 +2,7 @@
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
 #include <Video/CameraInput.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/VideoDecoder.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -27,8 +28,10 @@ VideoNode::~VideoNode() { }
 
 score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcept
 {
-  return new VideoNodeRenderer{
-      *this, const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
+  return new BasicVideoNodeRenderer{
+      *this, std::dynamic_pointer_cast<::Video::VideoDecoder>(reader.m_decoder)};
+  //return new VideoNodeRenderer{
+  //    *this, const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
 }
 
 void VideoNode::seeked()

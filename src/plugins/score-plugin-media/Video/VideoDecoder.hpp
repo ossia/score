@@ -22,7 +22,7 @@ extern "C" {
 
 namespace Video
 {
-class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder final
+class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder
     : public VideoInterface
     , public LibAVDecoder
 {
@@ -31,41 +31,52 @@ public:
   ~VideoDecoder() noexcept;
 
   bool open(const std::string& inputFile) noexcept;
-  bool load(const std::string& inputFile) noexcept;
 
   const std::string& file() const noexcept { return m_inputFile; }
 
   int64_t duration() const noexcept;
 
   void seek(int64_t flicks);
-
-  AVFrame* dequeue_frame() noexcept override;
   void release_frame(AVFrame*) noexcept override;
+  void read_next_frame();
+  AVFrame* dequeue_frame() noexcept override;
 
-private:
-  void buffer_thread() noexcept;
-  void close_file() noexcept;
-  bool seek_impl(int64_t dts) noexcept;
   AVFrame* read_frame_impl() noexcept;
+  bool seek_impl(int64_t dts) noexcept;
+
+protected:
   bool open_stream() noexcept;
   void close_video() noexcept;
+  void close() noexcept;
 
   static const constexpr int frames_to_buffer = 16;
 
   std::string m_inputFile;
-
-  std::thread m_thread;
-  std::mutex m_condMut;
-  std::condition_variable m_condVar;
-
   int64_t m_duration{}; // in flicks
 
   std::atomic_int64_t m_seekTo = -1;
   std::atomic_int64_t m_last_dequeued_dts = 0;
   std::atomic_int64_t m_dequeued = 0;
+};
+
+class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoderThreaded : public VideoDecoder
+{
+public:
+  using VideoDecoder::VideoDecoder;
+  ~VideoDecoderThreaded() noexcept;
+  bool load(const std::string& inputFile) noexcept;
+
+  AVFrame* dequeue_frame() noexcept override;
+
+private:
+  void close_file() noexcept;
+  void buffer_thread() noexcept;
+
+  std::thread m_thread;
+  std::mutex m_condMut;
+  std::condition_variable m_condVar;
 
   std::atomic_bool m_running{};
 };
-
 }
 #endif

@@ -342,30 +342,30 @@ VideoDecoder::VideoDecoder(DecoderConfiguration conf) noexcept
 
 VideoDecoder::~VideoDecoder() noexcept
 {
-  close_file();
+  close();
 }
 
 bool VideoDecoder::open(const std::string& inputFile) noexcept
 {
-  close_file();
+  close();
 
   m_inputFile = inputFile;
 
   if(avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
   {
-    close_file();
+    close();
     return false;
   }
 
   if(avformat_find_stream_info(m_formatContext, nullptr) < 0)
   {
-    close_file();
+    close();
     return false;
   }
 
   if(!open_stream())
   {
-    close_file();
+    close();
     return false;
   }
 
@@ -374,21 +374,6 @@ bool VideoDecoder::open(const std::string& inputFile) noexcept
 
   m_duration = secs * ossia::flicks_per_second<int64_t>;
   m_duration += us * ossia::flicks_per_millisecond<int64_t> / 1000;
-
-  return true;
-}
-
-bool VideoDecoder::load(const std::string& inputFile) noexcept
-{
-  if(!open(inputFile))
-    return false;
-
-  m_running.store(true, std::memory_order_release);
-  // TODO use a thread pool
-  m_thread = std::thread{[this] {
-    ossia::set_thread_name("ossia video");
-    this->buffer_thread();
-  }};
 
   return true;
 }
@@ -403,66 +388,13 @@ void VideoDecoder::seek(int64_t flicks)
   m_seekTo = flicks;
 }
 
-AVFrame* VideoDecoder::dequeue_frame() noexcept
-{
-  auto f = m_frames.discard_and_dequeue_one();
-  if(f)
-  {
-    m_last_dequeued_dts = f->pkt_dts;
-  }
-  m_condVar.notify_one();
-  return f;
-}
-
 void VideoDecoder::release_frame(AVFrame* frame) noexcept
 {
   m_frames.release(frame);
 }
 
-void VideoDecoder::buffer_thread() noexcept
+void VideoDecoder::close() noexcept
 {
-  while(m_running.load(std::memory_order_acquire))
-  {
-    if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
-    {
-      seek_impl(seek);
-    }
-    else
-    {
-      std::unique_lock lck{m_condMut};
-      m_condVar.wait(lck, [&] {
-        return (m_frames.size() < frames_to_buffer / 2 && !m_finished)
-               || !m_running.load(std::memory_order_acquire) || (m_seekTo != -1);
-      });
-      if(!m_running.load(std::memory_order_acquire))
-        return;
-
-      if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
-      {
-        seek_impl(seek);
-      }
-
-      if(m_frames.size() < (frames_to_buffer / 2) && !m_finished)
-      {
-        if(auto f = read_frame_impl())
-        {
-          m_frames.enqueue(f);
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(4));
-      }
-    }
-  }
-}
-
-void VideoDecoder::close_file() noexcept
-{
-  // Stop the running status
-  m_running.store(false, std::memory_order_release);
-  m_condVar.notify_one();
-
-  if(m_thread.joinable())
-    m_thread.join();
-
   // Clear the stream
   close_video();
 
@@ -826,6 +758,103 @@ void VideoDecoder::close_video() noexcept
   m_rescale.close();
 
   m_avstream = nullptr;
+}
+
+void VideoDecoder::read_next_frame()
+{
+  if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+  {
+    seek_impl(seek);
+  }
+
+  if(auto f = read_frame_impl())
+  {
+    m_frames.enqueue(f);
+  }
+}
+AVFrame* VideoDecoder::dequeue_frame() noexcept
+{
+  auto f = m_frames.discard_and_dequeue_one();
+  if(f)
+  {
+    m_last_dequeued_dts = f->pkt_dts;
+  }
+  return f;
+}
+///////////////
+
+VideoDecoderThreaded::~VideoDecoderThreaded() noexcept
+{
+  close_file();
+}
+
+bool VideoDecoderThreaded::load(const std::string& inputFile) noexcept
+{
+  if(!open(inputFile))
+    return false;
+
+  m_running.store(true, std::memory_order_release);
+  // TODO use a thread pool
+  m_thread = std::thread{[this] {
+    ossia::set_thread_name("ossia video");
+    this->buffer_thread();
+  }};
+
+  return true;
+}
+
+AVFrame* VideoDecoderThreaded::dequeue_frame() noexcept
+{
+  auto f = VideoDecoder::dequeue_frame();
+  m_condVar.notify_one();
+  return f;
+}
+
+void VideoDecoderThreaded::buffer_thread() noexcept
+{
+  while(m_running.load(std::memory_order_acquire))
+  {
+    if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+    {
+      seek_impl(seek);
+    }
+    else
+    {
+      std::unique_lock lck{m_condMut};
+      m_condVar.wait(lck, [&] {
+        return (m_frames.size() < frames_to_buffer / 2 && !m_finished)
+               || !m_running.load(std::memory_order_acquire) || (m_seekTo != -1);
+      });
+      if(!m_running.load(std::memory_order_acquire))
+        return;
+
+      if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+      {
+        seek_impl(seek);
+      }
+
+      if(m_frames.size() < (frames_to_buffer / 2) && !m_finished)
+      {
+        if(auto f = read_frame_impl())
+        {
+          m_frames.enqueue(f);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(4));
+      }
+    }
+  }
+}
+
+void VideoDecoderThreaded::close_file() noexcept
+{
+  // Stop the running status
+  m_running.store(false, std::memory_order_release);
+  m_condVar.notify_one();
+
+  if(m_thread.joinable())
+    m_thread.join();
+
+  close();
 }
 }
 #endif
