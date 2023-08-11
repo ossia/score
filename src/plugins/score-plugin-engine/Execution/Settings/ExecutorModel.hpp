@@ -46,7 +46,12 @@ struct CommitPolicies
   const QString Ordered{"Ordered"};
   const QString Priorized{"Priorized"};
   const QString Merged{"Merged"};
-  operator QStringList() const { return {Default, Ordered, Priorized, Merged}; }
+  const QString MergedThreaded{"MergedThreaded"};
+  const QString DirectThreaded{"DirectThreaded"};
+  operator QStringList() const
+  {
+    return {Default, Ordered, Priorized, Merged, MergedThreaded, DirectThreaded};
+  }
 };
 struct TickPolicies
 {

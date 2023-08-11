@@ -58,6 +58,10 @@ void Clock::play_impl(const TimeVal& t)
     opt.commit = ossia::tick_setup_options::Priorized;
   else if(commit == Execution::Settings::CommitPolicies{}.Merged)
     opt.commit = ossia::tick_setup_options::Merged;
+  else if(commit == Execution::Settings::CommitPolicies{}.MergedThreaded)
+    opt.commit = ossia::tick_setup_options::MergedThreaded;
+  else if(commit == Execution::Settings::CommitPolicies{}.DirectThreaded)
+    opt.commit = ossia::tick_setup_options::DirectThreaded;
 
   if(m_plug.settings.getBench() && m_plug.contextData()->bench)
   {
