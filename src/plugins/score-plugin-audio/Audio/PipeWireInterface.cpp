@@ -147,8 +147,7 @@ void PipeWireAudioFactory::setupSettingsWidget(
     m_client = std::make_shared<ossia::pipewire_context>();
   }
 
-  auto loop = m_client->main_loop;
-  if(!loop)
+  if(!m_client->registry)
   {
     on_noPipeWire();
     return;
