@@ -793,7 +793,7 @@ public:
             if(!eff_ptr.lock())
               return;
 
-            auto res = worker_type::work(std::forward<Args>(ff)...);
+            auto res = worker_type::work(std::forward<decltype(ff)>(ff)...);
             if(!res)
               return;
 
