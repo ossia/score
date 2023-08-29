@@ -20,6 +20,7 @@ Component::Component(
         element, ctx, "Executor::GradientComponent", parent}
 {
   auto node = ossia::make_node<ossia::nodes::gradient>(*ctx.execState.get());
+  node->process_dur = element.duration();
 
   {
     auto unit = element.outlet->address().qualifiers.get().unit;
@@ -94,8 +95,8 @@ void Component::recompute()
   auto g = process().gradient();
 
   s.executionQueue.enqueue(
-      [proc = std::dynamic_pointer_cast<gradient>(OSSIAProcess().node), g] {
-    proc->set_gradient(to_ossia_gradient(g));
+      [proc = std::dynamic_pointer_cast<gradient>(OSSIAProcess().node), grad = to_ossia_gradient(g)] () mutable {
+          proc->set_gradient(std::move(grad));
   });
 }
 }
