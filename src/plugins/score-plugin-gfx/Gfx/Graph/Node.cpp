@@ -9,6 +9,7 @@ namespace score::gfx
 {
 Node::Node() { }
 
+void Node::update() { }
 Node::~Node()
 {
   for(auto port : input)

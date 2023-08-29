@@ -38,9 +38,29 @@ void VideoNode::seeked()
 
 void VideoNode::process(Message&& msg)
 {
-  ProcessNode::process(msg.token);
+  m_lastToken = msg.token;
+
+  m_timer.start();
+}
+
+void VideoNode::update()
+{
+  if(m_pause)
+  {
+    m_timer.restart();
+    return;
+  }
+
+  ProcessNode::process(m_lastToken);
+  auto elapsed = m_timer.nsecsElapsed() / 1e9;
+  this->standardUBO.time += elapsed;
 
   reader.readNextFrame(*this);
+}
+
+void VideoNode::pause(bool b)
+{
+  m_pause = b;
 }
 
 CameraNode::CameraNode(std::shared_ptr<Video::ExternalInput> dec, QString f)
@@ -192,6 +212,8 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
     {
       updateCurrentFrame(frame);
 
+      auto& nodem = const_cast<VideoNode&>(node);
+      m_lastPlaybackTime = nodem.standardUBO.time;
       m_lastFrameTime
           = (decoder.flicks_per_dts * frame->pts) / ossia::flicks_per_second<double>;
       m_timer.restart();
@@ -199,6 +221,11 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
   }
 
   releaseFramesToFree();
+}
+
+void VideoFrameReader::pause(bool p)
+{
+  m_timer.restart();
 }
 
 bool VideoFrameReader::mustReadVideoFrame(const VideoNode& node)
@@ -211,17 +238,17 @@ bool VideoFrameReader::mustReadVideoFrame(const VideoNode& node)
 
   double tempoRatio = 1.;
   if(nodem.m_nativeTempo)
+  {
+    if(*nodem.m_nativeTempo <= 0.)
+    {
+      return false;
+    }
+
     tempoRatio = (*nodem.m_nativeTempo) / 120.;
+  }
 
   auto current_time = nodem.standardUBO.time * tempoRatio; // In seconds
   auto next_frame_time = m_lastFrameTime;
-
-  // pause
-  if(nodem.standardUBO.time == m_lastPlaybackTime)
-  {
-    return false;
-  }
-  m_lastPlaybackTime = nodem.standardUBO.time;
 
   // what more can we do ?
   const double inv_fps

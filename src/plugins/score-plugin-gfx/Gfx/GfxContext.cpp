@@ -241,6 +241,11 @@ void GfxContext::update_inputs()
     if(msg.input.capacity() > 0)
       m_buffers.release(std::move(msg).input);
   }
+
+  for(auto& n : nodes)
+  {
+    n.second->update();
+  }
 }
 
 void GfxContext::remove_node(

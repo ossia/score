@@ -93,8 +93,16 @@ public:
   {
     static_cast<video_node&>(*node).decoder().seek(this->m_start_offset.impl);
   }
-  void pause() override { }
-  void resume() override { }
+  void pause() override
+  {
+    auto& vnode = static_cast<video_node&>(*node);
+    vnode.impl->pause(true);
+  }
+  void resume() override
+  {
+    auto& vnode = static_cast<video_node&>(*node);
+    vnode.impl->pause(false);
+  }
 };
 
 ProcessExecutorComponent::ProcessExecutorComponent(

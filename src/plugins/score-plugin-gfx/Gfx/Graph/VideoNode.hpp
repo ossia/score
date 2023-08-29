@@ -57,6 +57,8 @@ struct VideoFrameReader : VideoFrameShare
   bool mustReadVideoFrame(const VideoNode& node);
   void readNextFrame(VideoNode& node);
 
+  void pause(bool p);
+
 private:
   QElapsedTimer m_timer;
   AVFrame* m_nextFrame{};
@@ -94,16 +96,21 @@ public:
   void seeked();
 
   void process(Message&& msg) override;
+  void update() override;
 
   VideoFrameReader reader;
+
+  void pause(bool);
 
 private:
   friend VideoFrameReader;
   friend VideoNodeRenderer;
 
   std::optional<double> m_nativeTempo;
+  Timings m_lastToken{};
+  QElapsedTimer m_timer;
+  std::atomic_bool m_pause{};
 };
-
 }
 
 namespace score::gfx

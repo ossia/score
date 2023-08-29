@@ -81,6 +81,7 @@ public:
    * @brief Process a message from the execution engine
    */
   virtual void process(Message&& msg);
+  virtual void update();
 
   /**
    * @brief Input ports of that node.

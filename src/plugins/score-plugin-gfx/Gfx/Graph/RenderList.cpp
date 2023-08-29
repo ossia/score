@@ -347,6 +347,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         {
           SCORE_ASSERT(node->renderedNodes.find(this) != node->renderedNodes.end());
           auto rt = node->renderedNodes.find(this)->second->renderTargetForInput(*input);
+
           SCORE_ASSERT(rt.renderTarget);
 
           commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
