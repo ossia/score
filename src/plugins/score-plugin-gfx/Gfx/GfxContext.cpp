@@ -36,7 +36,8 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   rate = 1000. / qBound(1.0, rate, 1000.);
 
   QMetaObject::invokeMethod(
-      this, [this, rate] { m_timer = startTimer(rate); }, Qt::QueuedConnection);
+      this, [this, rate] { m_timer = startTimer(rate, Qt::PreciseTimer); },
+      Qt::QueuedConnection);
 }
 
 GfxContext::~GfxContext()
@@ -175,7 +176,7 @@ void GfxContext::recompute_graph()
 #if defined(SCORE_THREADED_GFX)
     if(api == Vulkan)
     {
-      //:startTimer(rate);
+      //:startTimer(rate, Qt::PreciseTimer);
       moveToThread(&m_thread);
       m_thread.start();
     }
@@ -185,7 +186,8 @@ void GfxContext::recompute_graph()
   else
   {
     QMetaObject::invokeMethod(
-        this, [this, rate] { m_timer = startTimer(rate); }, Qt::QueuedConnection);
+        this, [this, rate] { m_timer = startTimer(rate, Qt::PreciseTimer); },
+        Qt::QueuedConnection);
   }
 
   // This starts the timers which control the actual render rate of various things
@@ -211,7 +213,7 @@ void GfxContext::add_preview_output(score::gfx::OutputNode& node)
   rate = 1000. / qBound(1.0, rate, 1000.);
 
   if(m_timer == -1)
-    m_timer = startTimer(rate);
+    m_timer = startTimer(rate, Qt::PreciseTimer);
 }
 
 void GfxContext::recompute_connections()
