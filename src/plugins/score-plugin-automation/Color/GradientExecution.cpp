@@ -80,6 +80,7 @@ static ossia::hunter_lab to_ossia_color(QColor c)
 static auto to_ossia_gradient(const Gradient::ProcessModel::gradient_colors& c)
 {
   gradient::grad_type g;
+
   for(auto& e : c)
   {
     g.insert(std::make_pair(e.first, to_ossia_color(e.second)));
