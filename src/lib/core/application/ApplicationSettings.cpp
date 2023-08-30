@@ -42,6 +42,10 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
       "no-restore", QCoreApplication::translate("main", "Disable auto-restore"));
   parser.addOption(noRestore);
 
+  QCommandLineOption forceRestore(
+      "force-restore", QCoreApplication::translate("main", "Force auto-restore"));
+  parser.addOption(forceRestore);
+
   QCommandLineOption autoplayOpt(
       "autoplay", QCoreApplication::translate("main", "Auto-play the loaded scenario"));
   parser.addOption(autoplayOpt);
@@ -100,6 +104,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   }
 
   tryToRestore = !parser.isSet(noRestore);
+  this->forceRestore = parser.isSet(forceRestore);
   gui = !parser.isSet(noGUI);
   if(parser.isSet(GL))
     opengl = true;

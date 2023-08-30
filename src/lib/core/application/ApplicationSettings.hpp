@@ -18,6 +18,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! If true, will ask the user if he wants to restore upon loading.
   bool tryToRestore = true;
 
+  //! Force restoring last session, mainly useful for debugging
+  bool forceRestore = false;
+
   //! If true, will show the GUI upon loading.
   bool gui = true;
 

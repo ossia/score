@@ -380,7 +380,7 @@ void Application::init()
 #endif
 
 #if defined(SCORE_SPLASH_SCREEN)
-  if(appSettings.gui && appSettings.loadList.empty())
+  if(appSettings.gui && !appSettings.forceRestore && appSettings.loadList.empty())
   {
     m_startScreen = new score::StartScreen{this->context().docManager.recentFiles()};
     m_startScreen->show();
@@ -439,7 +439,14 @@ void Application::initDocuments()
   }
 
   // Try to reload if there was a crash
-  if(appSettings.tryToRestore)
+  if(appSettings.forceRestore)
+  {
+    if(score::OpenDocumentsFile::exists())
+    {
+      m_presenter->documentManager().restoreDocuments(ctx);
+    }
+  }
+  else if(appSettings.tryToRestore)
   {
 #if defined(SCORE_SPLASH_SCREEN)
     if(m_startScreen && score::OpenDocumentsFile::exists())
