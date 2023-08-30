@@ -22,10 +22,11 @@ if(NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
   if(CMAKE_BUILD_TYPE MATCHES ".*Deb.*")
     target_compile_options(dspfilters PRIVATE -O3 -march=native)
   endif()
+  target_compile_options(dspfilters PRIVATE -w)
 endif()
 
 target_include_directories(
   dspfilters
-  PUBLIC
+  PUBLIC SYSTEM
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/include"
 )

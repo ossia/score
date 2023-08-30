@@ -46,7 +46,6 @@ if(APPLE)
   enable_language(OBJC)
   enable_language(OBJCXX)
 endif()
-
 set(QT_VERSION Qt6 6.2)
 
 # QT_PREFIX: Qt5 / Qt6

@@ -115,6 +115,22 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   endif()
 endif()
 
+check_cxx_compiler_flag(-Wno-gnu-anonymous-struct has_w_gnu_anonymous_struct_flag)
+check_cxx_compiler_flag(-Wno-nested-anon-types has_w_nested_anon_types_flag)
+check_cxx_compiler_flag(-Wno-dtor-name has_w_dtor_name_flag)
+
+if(has_w_gnu_anonymous_struct_flag)
+  add_compile_options(-Wno-gnu-anonymous-struct)
+endif()
+
+if(has_w_nested_anon_types_flag)
+  add_compile_options(-Wno-nested-anon-types)
+endif()
+
+if(has_w_dtor_name_flag)
+  add_compile_options(-Wno-dtor-name)
+endif()
+
 check_cxx_compiler_flag(-std=c++2b has_std_2b_flag)
 check_cxx_compiler_flag(-std=c++20 has_std_20_flag)
 check_cxx_compiler_flag(-std=c++2a has_std_2a_flag)
@@ -124,7 +140,6 @@ if (has_std_20_flag)
 elseif (has_std_2a_flag)
   set(CXX_VERSION_FLAG cxx_std_20)
 endif ()
-
 
 check_cxx_compiler_flag(-fopenmp-simd has_fopenmp_simd_flag)
 if(MSVC)
