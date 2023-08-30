@@ -172,14 +172,17 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, ExecutionRefreshRate)
 double getNewLayerHeight(
     const score::ApplicationContext& ctx, const Process::ProcessModel& proc) noexcept
 {
-  double h = 100;
-  const auto& fact = ctx.interfaces<Process::LayerFactoryList>().get(proc.concreteKey());
-
-  if(auto opt_h = fact->recommendedHeight())
+  double h = -1.;
+  if(const auto& fact
+     = ctx.interfaces<Process::LayerFactoryList>().get(proc.concreteKey()))
   {
-    h = *opt_h;
+    if(auto opt_h = fact->recommendedHeight())
+    {
+      h = *opt_h;
+    }
   }
-  else
+
+  if(h == -1.)
   {
     h = ctx.settings<Scenario::Settings::Model>().getSlotHeight();
   }

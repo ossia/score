@@ -954,9 +954,10 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
       setDisplayedInterval(&model().baseInterval());
     });
   }
-  m_durationConnection = con(
-      interval.duration, &IntervalDurations::guiDurationChanged, this,
-      [this, itv] { updateMinimap(); });
+  m_durationConnection
+      = con(interval.duration, &IntervalDurations::guiDurationChanged, this, [this] {
+          updateMinimap();
+        });
 
   // Setup of the layer in the minimap
   delete m_miniLayer;
@@ -972,8 +973,7 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
         m_miniLayer->setHeight(40);
         m_miniLayer->setWidth(view().minimap().width());
         view().minimap().scene()->addItem(m_miniLayer);
-        con(proc, &Process::ProcessModel::identified_object_destroying, this,
-            [this, itv] {
+        con(proc, &Process::ProcessModel::identified_object_destroying, this, [this] {
           delete m_miniLayer;
           m_miniLayer = nullptr;
         });
