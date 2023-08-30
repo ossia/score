@@ -19,7 +19,7 @@ namespace Gfx::Text
 class text_node final : public gfx_exec_node
 {
 public:
-  text_node(GfxExecutionAction& ctx)
+  explicit text_node(GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
     id = exec_context->ui->register_node(std::make_unique<score::gfx::TextNode>());

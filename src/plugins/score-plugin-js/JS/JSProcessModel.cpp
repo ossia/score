@@ -27,6 +27,7 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
+#include <QQuickItem>
 
 #include <wobjectimpl.h>
 
@@ -221,7 +222,7 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 
   scriptOk();
 
-  qmlDataChanged(data);
+  qmlDataChanged(data, isGpu());
   inletsChanged();
   outletsChanged();
 
@@ -231,6 +232,15 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 Script* ProcessModel::currentObject() const noexcept
 {
   return m_cache.tryGet(m_qmlData, m_isFile);
+}
+
+bool ProcessModel::isGpu() const noexcept
+{
+  if(auto script = currentObject())
+  {
+    return script->findChild<JS::TextureOutlet*>() != nullptr;
+  }
+  return false;
 }
 
 ComponentCache::ComponentCache() { }

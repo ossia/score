@@ -328,6 +328,11 @@ if(freenect2_FOUND)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${freenect2_LIBRARIES})
 endif()
 
+if(TARGET ${QT_PREFIX}::Quick)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE ${QT_PREFIX}::Quick
+  )
+endif()
 if(TARGET ${QT_PREFIX}::OpenGLWidgets)
   target_link_libraries(${PROJECT_NAME}
     PRIVATE ${QT_PREFIX}::OpenGLWidgets

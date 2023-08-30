@@ -27,7 +27,11 @@ public:
   ~Component() override;
 
 private:
-  void on_scriptChange(const QString& script);
+  void on_scriptChange(const QString& script, bool gpu);
+  std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
+  on_cpuScriptChange(const QString& script, Execution::Transaction& trans);
+  std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
+  on_gpuScriptChange(const QString& script, Execution::Transaction& trans);
   Process::Inlets m_oldInlets;
   Process::Outlets m_oldOutlets;
 };

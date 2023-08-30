@@ -4,6 +4,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <Gfx/TexturePort.hpp>
+
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -13,6 +15,7 @@
 #include <QJSValue>
 #include <QObject>
 #include <QQmlListProperty>
+#include <QQuickItem>
 #include <QVariant>
 #include <QVector>
 
@@ -77,7 +80,7 @@ class ValueInlet : public Inlet
   QVariantList m_values;
 
 public:
-  ValueInlet(QObject* parent = nullptr);
+  explicit ValueInlet(QObject* parent = nullptr);
   virtual ~ValueInlet() override;
   QVariant value() const;
   QVariantList values() const { return m_values; }
@@ -109,7 +112,7 @@ class ControlInlet : public Inlet
   QVariant m_value;
 
 public:
-  ControlInlet(QObject* parent = nullptr);
+  explicit ControlInlet(QObject* parent = nullptr);
   virtual ~ControlInlet() override;
   QVariant value() const;
 
@@ -266,7 +269,7 @@ class ValueOutlet : public Outlet
 public:
   std::vector<OutValueMessage> values;
 
-  ValueOutlet(QObject* parent = nullptr);
+  explicit ValueOutlet(QObject* parent = nullptr);
   virtual ~ValueOutlet() override;
   const QJSValue& value() const;
   void clear()
@@ -293,7 +296,7 @@ class AudioInlet : public Inlet
   W_OBJECT(AudioInlet)
 
 public:
-  AudioInlet(QObject* parent = nullptr);
+  explicit AudioInlet(QObject* parent = nullptr);
   virtual ~AudioInlet() override;
   const QVector<QVector<double>>& audio() const;
   void setAudio(const QVector<QVector<double>>& audio);
@@ -320,7 +323,7 @@ class AudioOutlet : public Outlet
   W_OBJECT(AudioOutlet)
 
 public:
-  AudioOutlet(QObject* parent = nullptr);
+  explicit AudioOutlet(QObject* parent = nullptr);
   virtual ~AudioOutlet() override;
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -353,7 +356,7 @@ class MidiInlet : public Inlet
   W_OBJECT(MidiInlet)
 
 public:
-  MidiInlet(QObject* parent = nullptr);
+  explicit MidiInlet(QObject* parent = nullptr);
   virtual ~MidiInlet() override;
   template <typename T>
   void setMidi(const T& arr)
@@ -389,7 +392,7 @@ class MidiOutlet : public Outlet
   W_OBJECT(MidiOutlet)
 
 public:
-  MidiOutlet(QObject* parent = nullptr);
+  explicit MidiOutlet(QObject* parent = nullptr);
   virtual ~MidiOutlet() override;
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -415,6 +418,27 @@ public:
 
 private:
   QVector<QVector<int>> m_midi;
+};
+
+class TextureOutlet : public Outlet
+{
+  W_OBJECT(TextureOutlet)
+
+public:
+  explicit TextureOutlet(QObject* parent = nullptr);
+  virtual ~TextureOutlet() override;
+  Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    auto p = new Gfx::TextureOutlet(id, parent);
+    return p;
+  }
+
+  QQuickItem* item() /*Qt6: const*/ noexcept { return m_item; }
+  void setItem(QQuickItem* v) { m_item = v; }
+
+  W_PROPERTY(QQuickItem*, item READ item WRITE setItem CONSTANT)
+private:
+  QQuickItem* m_item{};
 };
 
 class Script : public QObject

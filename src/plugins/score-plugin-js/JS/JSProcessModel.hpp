@@ -63,6 +63,7 @@ public:
   const QByteArray& qmlData() const noexcept { return m_qmlData; }
 
   JS::Script* currentObject() const noexcept;
+  bool isGpu() const noexcept;
 
   ~ProcessModel() override;
 
@@ -72,7 +73,8 @@ public:
   void scriptOk() W_SIGNAL(scriptOk);
   void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
 
-  void qmlDataChanged(const QString& arg_1) W_SIGNAL(qmlDataChanged, arg_1);
+  void qmlDataChanged(const QString& arg_1, bool gpu)
+      W_SIGNAL(qmlDataChanged, arg_1, gpu);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:

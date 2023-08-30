@@ -16,6 +16,7 @@ W_OBJECT_IMPL(JS::MidiInlet)
 W_OBJECT_IMPL(JS::MidiOutlet)
 W_OBJECT_IMPL(JS::AudioInlet)
 W_OBJECT_IMPL(JS::AudioOutlet)
+W_OBJECT_IMPL(JS::TextureOutlet)
 W_OBJECT_IMPL(JS::FloatSlider)
 W_OBJECT_IMPL(JS::IntSlider)
 W_OBJECT_IMPL(JS::Enum)
@@ -202,6 +203,13 @@ const QVector<QVector<double>>& AudioOutlet::audio() const
 {
   return m_audio;
 }
+
+TextureOutlet::TextureOutlet(QObject* parent)
+    : Outlet{parent}
+{
+}
+
+TextureOutlet::~TextureOutlet() { }
 
 MidiInlet::MidiInlet(QObject* parent)
     : Inlet{parent}

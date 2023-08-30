@@ -11,13 +11,9 @@ endif()
 score_common_setup()
 
 # Packages
-find_package(${QT_VERSION} OPTIONAL_COMPONENTS Qml)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS Qml QmlIntegration Quick)
 if(NOT TARGET ${QT_PREFIX}::Qml)
   return()
-endif()
-
-if(${QT_PREFIX} MATCHES "Qt6")
-  find_package(${QT_VERSION} OPTIONAL_COMPONENTS QmlIntegration)
 endif()
 
 # Files & main target
@@ -28,6 +24,9 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/ExecutionHelpers.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/CPUNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/GPUNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.hpp"
@@ -46,6 +45,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/CPUNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/GPUNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
@@ -78,10 +79,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_deviceexplorer score_plugin_protocols
                      score_plugin_media)
 
-if(${QT_PREFIX} MATCHES "Qt6")
-  set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
-endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
 
+if(TARGET ${QT_PREFIX}::Quick AND TARGET score_plugin_gfx)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::Quick ${QT_PREFIX}::QuickPrivate score_plugin_gfx)
+endif()
 if(TARGET ${QT_PREFIX}::QmlIntegration)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QmlIntegration)
 endif()
