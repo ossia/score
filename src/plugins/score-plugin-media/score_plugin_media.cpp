@@ -52,11 +52,17 @@ score_plugin_media::score_plugin_media()
 #endif
   avdevice_register_all();
 
-  if(LIBAVFORMAT_VERSION_INT != avformat_version())
+  if((!qEnvironmentVariableIsSet("SCORE_SKIP_FFMPEG_CHECK"))
+     && ((LIBAVFORMAT_VERSION_INT != avformat_version())
+         || (LIBAVCODEC_VERSION_INT != avcodec_version())
+         || (LIBAVUTIL_VERSION_INT != avutil_version())
+         || (LIBAVDEVICE_VERSION_INT != avdevice_version())))
   {
+
     qFatal(
         "Run-time FFMPEG libraries are different than the one score is built against, "
-        "this will cause crashes. Aborting.");
+        "this will cause crashes. Aborting.\n\nTo force running despite the likely "
+        "crashes, set SCORE_SKIP_FFMPEG_CHECK=1 environment variable.");
   }
 #endif
 
