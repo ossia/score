@@ -52,8 +52,14 @@ static const QPainterPath& triangle{[] {
 
 void View::paint_impl(QPainter* p) const
 {
+  auto v = ::getView(*this);
+  if(!v)
+    return;
+
+  const auto view_left = v->mapToScene(QPoint(0., 0.)).x();
+  const auto view_right = v->mapToScene(QPoint(v->width(), 0.)).x();
+
   const auto rect = boundingRect();
-  const auto W = rect.width();
   switch(m_colors.size())
   {
     case 0:
@@ -65,83 +71,51 @@ void View::paint_impl(QPainter* p) const
     default:
       break;
   }
-  bool drawFull = false;
 
-  if(auto v = ::getView(*this))
+  auto it1 = m_colors.begin();
+  double pos_1 = 0.;
+  double pos_2 = it1->first * m_dataWidth;
+  auto col_1 = it1->second;
+  auto col_2 = it1->second;
+  const auto h = boundingRect().height();
+
+  // From 0. to it1->first: fill with solid color
+  if(auto pos_2_scene = mapToScene(pos_2, 0.); !(pos_2_scene.x() < view_left))
   {
-    const auto view_left = v->mapToScene(QPoint(0., 0.)).x();
-    const auto view_right = v->mapToScene(QPoint(v->width(), 0.)).x();
-
-    const auto item_left = this->mapToScene(QPointF(0., 0.)).x();
-    const auto item_right = this->mapToScene(QPointF(W, 0.)).x();
-
-    if(item_left >= view_left && item_right <= view_right)
-    {
-      drawFull = true;
-    }
-    else
-    {
-      // Find the index of the first gradient before view_left
-      double view_left_percent = (view_left - item_left) / W;
-      double view_right_percent = (view_right - item_left) / W;
-
-      double left_start = 0.;
-      double right_end = 1.;
-      auto left_it = this->m_colors.lower_bound(view_left_percent);
-      if(left_it != this->m_colors.begin())
-      {
-        --left_it;
-        left_start = left_it->first;
-      }
-
-      auto right_it = this->m_colors.upper_bound(view_right_percent);
-      if(right_it != this->m_colors.end())
-        right_end = right_it->first;
-
-      const double left_item_pos = left_start * W;
-      const double right_item_pos = right_end * W;
-
-      constexpr auto map = [](double input, double input_start, double input_end) {
-        constexpr auto output_start = 0.;
-        constexpr auto output_end = 1.;
-        return output_start
-               + ((output_end - output_start) / (input_end - input_start))
-                     * (input - input_start);
-      };
-
-      // Only fill between the gradient stops visible on screen
-      QLinearGradient g{QPointF{0, 0}, QPointF{1, 0.}};
-      g.setCoordinateMode(QGradient::CoordinateMode::ObjectMode);
-      for(const auto& [pos, col] : m_colors)
-      {
-        if(pos >= left_start && pos <= right_end)
-        {
-          const double mapped_pos = map(pos, left_start, right_end);
-          g.setColorAt(mapped_pos, col);
-        }
-      }
-
-      p->fillRect(
-          QRectF(left_item_pos, 0, right_item_pos - left_item_pos, rect.height()), g);
-    }
+    p->fillRect(QRectF(pos_1, 0., pos_2, h), col_1);
   }
-  else
+  pos_1 = it1->first;
+  ++it1;
+
+  // Fill all the gradients
+  QLinearGradient g{QPointF{0, 0}, QPointF{1, 0}};
+  g.setCoordinateMode(QGradient::CoordinateMode::ObjectMode);
+  for(; it1 != m_colors.end(); ++it1)
   {
-    drawFull = true;
+    pos_2 = it1->first * m_dataWidth;
+    col_2 = it1->second;
+
+    auto pos_1_scene = mapToScene(pos_1, 0.);
+    auto pos_2_scene = mapToScene(pos_2, 0.);
+    if(!(pos_2_scene.x() < view_left || pos_1_scene.x() > view_right))
+    {
+      g.setColorAt(0., col_1);
+      g.setColorAt(1., col_2);
+
+      p->fillRect(QRectF(pos_1, 0., pos_2 - pos_1, h), g);
+    }
+    pos_1 = pos_2;
+    col_1 = col_2;
   }
 
-  if(drawFull)
+  // Last solid color block
+  if(auto pos_1_scene = mapToScene(pos_2, 0.); !(pos_1_scene.x() > view_right))
   {
-    QLinearGradient g{QPointF{0, 0}, QPointF{m_dataWidth, 0.}};
-    for(const auto& col : m_colors)
-    {
-      g.setColorAt(col.first, col.second);
-    }
-    p->fillRect(rect, g);
+    p->fillRect(QRectF(pos_2, 0., m_dataWidth, h), col_2);
   }
 
-  QPen pen(QColor::fromRgba(qRgba(200, 200, 200, 150)), 1);
-  QBrush br(Qt::gray);
+  const QPen pen(QColor::fromRgba(qRgba(200, 200, 200, 150)), 1);
+  const QBrush br(Qt::gray);
   p->setPen(pen);
   p->setBrush(br);
   for(const auto& col : m_colors)
