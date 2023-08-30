@@ -6,6 +6,8 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flat_set.hpp>
+
+#include <QGuiApplication>
 namespace score::gfx
 {
 void VideoNodeBase::setScaleMode(ScaleMode s)
@@ -140,6 +142,12 @@ VideoFrameShare::VideoFrameShare() { }
 VideoFrameShare::~VideoFrameShare()
 {
   releaseAllFrames();
+  QMetaObject::invokeMethod(
+      qApp,
+      [dec = std::move(m_decoder)] {
+
+      },
+      Qt::QueuedConnection);
 }
 
 void VideoFrameShare::releaseAllFrames()

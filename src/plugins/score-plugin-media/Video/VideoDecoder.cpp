@@ -463,6 +463,9 @@ void VideoDecoder::close_file() noexcept
   if(m_thread.joinable())
     m_thread.join();
 
+  // Remove frames that were in flight
+  m_frames.drain();
+
   // Clear the stream
   close_video();
 
@@ -475,9 +478,6 @@ void VideoDecoder::close_file() noexcept
     avformat_free_context(m_formatContext);
     m_formatContext = nullptr;
   }
-
-  // Remove frames that were in flight
-  m_frames.drain();
 }
 
 ReadFrame LibAVDecoder::read_one_frame_raw(AVPacket& packet)
