@@ -697,6 +697,8 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
           {
             if(auto pos = proc.magneticPosition(o, t))
             {
+              pos->time += itv.date();
+
               if(std::abs(pos->time.impl - t.impl)
                  < std::abs(closestTimeSyncT.impl - t.impl))
                 closestTimeSyncT = pos->time;

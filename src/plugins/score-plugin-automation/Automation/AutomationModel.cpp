@@ -13,6 +13,7 @@
 
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
@@ -317,4 +318,20 @@ Process::Preset ProcessModel::savePreset() const noexcept
   return p;
 }
 
+std::optional<Process::MagneticInfo>
+ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
+{
+  double pos = t.impl / double(this->duration().impl);
+  if(this->m_curve->points().empty())
+    return {};
+  double closest = this->m_curve->points().front()->pos().x();
+
+  for(auto pt : this->m_curve->points())
+  {
+    if(std::abs(pos - pt->pos().x()) < std::abs(pos - closest))
+      closest = pt->pos().x();
+  }
+
+  return Process::MagneticInfo{TimeVal(closest * duration().impl), true};
+}
 }

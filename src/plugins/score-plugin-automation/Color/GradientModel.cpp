@@ -6,6 +6,7 @@
 
 #include <score/tools/Bind.hpp>
 
+#include <ossia/detail/closest_element.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/color.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
@@ -172,7 +173,7 @@ ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {
   double pos = t.impl / double(this->duration().impl);
 
-  auto it = m_colors.lower_bound(pos);
+  auto it = ossia::closest_element_it(m_colors, pos);
   if(it != m_colors.end())
     return Process::MagneticInfo{TimeVal(it->first * this->duration().impl), true};
   return {};
