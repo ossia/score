@@ -5,6 +5,7 @@
 #include <ossia/detail/algorithms.hpp>
 
 #include <QDebug>
+#include <QGuiApplication>
 namespace Process
 {
 
@@ -15,6 +16,9 @@ MagnetismAdjuster::~MagnetismAdjuster() noexcept { }
 MagneticInfo
 MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
 {
+  if(qApp->keyboardModifiers() & Qt::ControlModifier)
+    return {original, false};
+
   // For all magnetism handlers registered,
   // find the one which is closest to the origin position
   std::vector<MagneticInfo> results;
