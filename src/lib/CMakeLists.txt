@@ -559,6 +559,13 @@ set(SRCS
 
 add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
+get_property(CMAKE_GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+set_source_files_properties( "${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp"
+    PROPERTIES
+     COMPILE_DEFINITIONS
+      "-DCMAKE_GENERATOR_IS_MULTI_CONFIG=$<BOOL:${CMAKE_GENERATOR_IS_MULTI_CONFIG}>;-DCMAKE_GENERATOR_CONFIGURATION=\"$<CONFIG>\""
+)
+
 if(APPLE)
     find_library(AppKit_FK AppKit)
     find_library(AppServices_FK ApplicationServices)

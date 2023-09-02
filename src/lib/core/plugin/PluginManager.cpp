@@ -102,20 +102,35 @@ namespace PluginLoader
 QStringList pluginsDir()
 {
   QStringList l;
+
+  // Handle the case of Multi-Config generators
+  QDir appdir = QCoreApplication::applicationDirPath();
+
+  QString plugins = "/plugins";
+
+  if constexpr(CMAKE_GENERATOR_IS_MULTI_CONFIG)
+  {
+    plugins = "/.." + plugins;
+    ;
+    plugins += "/";
+    plugins += CMAKE_GENERATOR_CONFIGURATION;
+  }
+
 #if defined(_WIN32)
-  l << (QCoreApplication::applicationDirPath() + "/plugins");
+  l << (QCoreApplication::applicationDirPath() + plugins);
 #elif defined(__linux__)
-  l << QCoreApplication::applicationDirPath() + "/plugins"
+  l << QCoreApplication::applicationDirPath() + plugins
     << QCoreApplication::applicationDirPath() + "/../lib/score"
     << "/usr/lib/score";
 #elif defined(__APPLE__) && defined(__MACH__)
-  l << QCoreApplication::applicationDirPath() + "/plugins"
-    << QCoreApplication::applicationDirPath() + "../Frameworks/score/plugins";
+  l << QCoreApplication::applicationDirPath() + plugins
+    << QCoreApplication::applicationDirPath() + "../Frameworks/score" + plugins;
 #endif
-  QString pwd = QDir{}.absolutePath() + "/plugins";
+  QString pwd = QDir{}.absolutePath() + plugins;
 
   if(l.empty() || pwd != l[0])
     l << pwd;
+
   return l;
 }
 
