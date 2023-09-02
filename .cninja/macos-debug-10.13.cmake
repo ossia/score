@@ -1,6 +1,6 @@
 cninja_require(compiler=xcode)
 cninja_require(static-debug)
-cninja_require(linkerwarnings=no)
+cninja_require(linker-warnings=no)
 cninja_require(era=10.13)
 
 set_cache(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)

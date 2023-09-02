@@ -1,5 +1,5 @@
 cninja_require(static-release)
-cninja_require(linkerwarnings=no)
+cninja_require(linker-warnings=no)
 
 set_cache(BUILD_SHARED_LIBS OFF)
 set_cache(CMAKE_INSTALL_MESSAGE NEVER)

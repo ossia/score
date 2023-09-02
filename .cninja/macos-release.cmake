@@ -1,6 +1,6 @@
 cninja_require(compiler=xcode)
 cninja_require(static-release)
-cninja_require(linkerwarnings=no)
+cninja_require(linker-warnings=no)
 cninja_require(era=10.15)
 
 execute_process(

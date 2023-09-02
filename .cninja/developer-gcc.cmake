@@ -1,6 +1,6 @@
 cninja_require(compiler=gcc)
 cninja_require(lld)
-cninja_require(linkerwarnings)
+cninja_require(linker-warnings)
 cninja_require(debugsyms)
 cninja_require(debugsplit)
 cninja_require(score-warnings)
