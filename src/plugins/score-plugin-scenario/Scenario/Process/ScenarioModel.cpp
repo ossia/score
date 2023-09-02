@@ -297,4 +297,13 @@ Process::Preset ProcessModel::savePreset() const noexcept
   p.data = r.toByteArray();
   return p;
 }
+
+Scenario::ProcessModel* closestParentScenario(const QObject* parentObj) noexcept
+{
+  while(parentObj && !qobject_cast<const Scenario::ProcessModel*>(parentObj))
+  {
+    parentObj = parentObj->parent();
+  }
+  return static_cast<Scenario::ProcessModel*>(const_cast<QObject*>(parentObj));
+}
 }

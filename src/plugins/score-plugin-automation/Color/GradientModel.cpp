@@ -167,6 +167,16 @@ Process::Preset ProcessModel::savePreset() const noexcept
   return p;
 }
 
+std::optional<Process::MagneticInfo>
+ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
+{
+  double pos = t.impl / double(this->duration().impl);
+
+  auto it = m_colors.lower_bound(pos);
+  if(it != m_colors.end())
+    return Process::MagneticInfo{TimeVal(it->first * this->duration().impl), true};
+  return {};
+}
 }
 
 template <>

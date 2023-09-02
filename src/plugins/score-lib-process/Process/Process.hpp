@@ -5,6 +5,8 @@
 #include <Process/ProcessFlags.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <Magnetism/MagneticInfo.hpp>
+
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/Identifier.hpp>
@@ -22,6 +24,7 @@
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
 
+#include <optional>
 #include <vector>
 #include <verdigris>
 
@@ -132,6 +135,10 @@ public:
 
   virtual void forEachControl(
       smallfun::function<void(Process::ControlInlet&, const ossia::value&)>) const;
+
+  // Magnetism
+  virtual std::optional<Process::MagneticInfo>
+  magneticPosition(const QObject* o, const TimeVal t) const noexcept;
 
   // Clip duration things
   bool loops() const noexcept { return m_loops; }

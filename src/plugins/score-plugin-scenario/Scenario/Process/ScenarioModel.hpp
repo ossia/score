@@ -203,6 +203,8 @@ private:
 
   std::unique_ptr<TimenodeGraph> m_graph;
 };
+
+Scenario::ProcessModel* closestParentScenario(const QObject* parentObj) noexcept;
 }
 // TODO this ought to go in Selection.hpp ?
 template <typename Vector>

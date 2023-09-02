@@ -620,6 +620,10 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
   TimeVal scenarioT = t;
   TimeVal closestTimeSyncT = TimeVal::fromMsecs(std::numeric_limits<int32_t>::max());
   bool snapToScenario{};
+  bool foundMagnetism = false;
+
+  // Priority order:
+  // 1. In the object's parent process
   if(auto given_ts = qobject_cast<const Scenario::TimeSyncModel*>(o))
   {
     if(auto scenario = qobject_cast<Scenario::ProcessModel*>(given_ts->parent()))
@@ -639,9 +643,79 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
       {
         scenarioT = closestTimeSyncT;
         snapToScenario = true;
+        foundMagnetism = true;
       }
     }
   }
+
+  auto is_parent = [](QObject* const parent, const QObject* child) {
+    while((child = child->parent()))
+    {
+      if(child == parent)
+        return true;
+    }
+    return false;
+  };
+
+  // 2. In the processes around
+  if(!foundMagnetism)
+  {
+    for(auto& proc : this->model().processes)
+    {
+      if(!is_parent(&proc, o))
+      {
+        if(auto pos = proc.magneticPosition(o, t))
+        {
+          if(std::abs(pos->time.impl - t.impl)
+             < std::abs(closestTimeSyncT.impl - t.impl))
+            closestTimeSyncT = pos->time;
+        }
+      }
+    }
+
+    double delta = std::abs((closestTimeSyncT - t).toPixels(m_zoomRatio));
+    if(delta < 10)
+    {
+      scenarioT = closestTimeSyncT;
+      snapToScenario = true;
+      foundMagnetism = true;
+    }
+  }
+
+  // 3. In the child processes around the closest scenario to the moved object
+
+  if(!foundMagnetism)
+  {
+    auto parentScenar = Scenario::closestParentScenario(o);
+    if(parentScenar)
+    {
+      for(auto& itv : parentScenar->intervals)
+      {
+        for(auto& proc : itv.processes)
+        {
+          if(!is_parent(&proc, o))
+          {
+            if(auto pos = proc.magneticPosition(o, t))
+            {
+              if(std::abs(pos->time.impl - t.impl)
+                 < std::abs(closestTimeSyncT.impl - t.impl))
+                closestTimeSyncT = pos->time;
+            }
+          }
+        }
+      }
+    }
+
+    double delta = std::abs((closestTimeSyncT - t).toPixels(m_zoomRatio));
+    if(delta < 10)
+    {
+      scenarioT = closestTimeSyncT;
+      snapToScenario = true;
+      foundMagnetism = true;
+    }
+  }
+
+  // 4. That's all, don't search deeper
 
   if(!m_settings.getMagneticMeasures() || !m_settings.getMeasureBars())
     return {scenarioT, snapToScenario};

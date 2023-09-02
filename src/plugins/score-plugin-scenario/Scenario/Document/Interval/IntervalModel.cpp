@@ -1057,13 +1057,13 @@ QPointF newProcessPosition(const IntervalModel& cst) noexcept
 }
 
 // TODO refactor by grepping for _cast.*IntervalModel
-IntervalModel* closestParentInterval(QObject* parentObj) noexcept
+IntervalModel* closestParentInterval(const QObject* parentObj) noexcept
 {
-  while(parentObj && !qobject_cast<Scenario::IntervalModel*>(parentObj))
+  while(parentObj && !qobject_cast<const Scenario::IntervalModel*>(parentObj))
   {
     parentObj = parentObj->parent();
   }
-  return static_cast<IntervalModel*>(parentObj);
+  return static_cast<IntervalModel*>(const_cast<QObject*>(parentObj));
 }
 
 TimeVal timeDelta(const IntervalModel* self, const IntervalModel* parent)

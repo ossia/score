@@ -323,7 +323,7 @@ struct ParentTimeInfo
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-IntervalModel* closestParentInterval(QObject*) noexcept;
+IntervalModel* closestParentInterval(const QObject*) noexcept;
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel*);

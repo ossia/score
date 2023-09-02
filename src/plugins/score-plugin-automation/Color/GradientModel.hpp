@@ -63,6 +63,9 @@ private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
 
+  std::optional<Process::MagneticInfo>
+  magneticPosition(const QObject* o, const TimeVal t) const noexcept override;
+
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
