@@ -39,20 +39,6 @@ void ApplicationPlugin::setupConnections(
       &devices, &Device::DeviceList::logOutbound, &messages,
       [&messages](const QString& str) { messages.push(str, score::log::dark2); },
       Qt::QueuedConnection);
-
-  for(const auto& sink : ossia::logger().sinks())
-  {
-    if(auto qt_sink = dynamic_cast<ossia::qt::log_sink*>(&*sink))
-    {
-      m_error = QObject::connect(
-          qt_sink, &ossia::qt::log_sink::l, &messages,
-          [&messages](spdlog::level::level_enum l, const QString& m) {
-        messages.push(m, score::log::dark3);
-          },
-          Qt::QueuedConnection);
-      break;
-    }
-  }
 }
 
 void ApplicationPlugin::on_newDocument(score::Document& doc)
