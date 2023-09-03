@@ -1,5 +1,6 @@
 #include "GPUNode.hpp"
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
@@ -386,3 +387,4 @@ void gpu_exec_node::setScript(const QString& str)
   id = exec_context->ui->register_node(std::move(n));
 }
 }
+#endif

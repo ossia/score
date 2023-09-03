@@ -130,6 +130,7 @@ void Component::on_scriptChange(const QString& script, bool gpu)
 std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
 Component::on_gpuScriptChange(const QString& script, Execution::Transaction& commands)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   auto node = std::dynamic_pointer_cast<gpu_exec_node>(this->node);
   std::weak_ptr<Gfx::gfx_exec_node> weak_node = node;
   int script_index = ++node->script_index;
@@ -299,6 +300,9 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
   SCORE_ASSERT(process().inlets().size() == inls.size());
   SCORE_ASSERT(process().outlets().size() == outls.size());
   return {std::move(inls), std::move(outls), std::move(controlSetups)};
+#else
+  return {};
+#endif
 }
 
 std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>

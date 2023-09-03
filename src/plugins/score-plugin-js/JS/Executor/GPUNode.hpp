@@ -1,11 +1,12 @@
 #pragma once
+#include <qobjectdefs.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxExecNode.hpp>
 
 namespace JS
 {
-class GpuNode;
-
 class gpu_exec_node final : public Gfx::gfx_exec_node
 {
 public:
@@ -18,3 +19,4 @@ public:
   void setScript(const QString& str);
 };
 }
+#endif
