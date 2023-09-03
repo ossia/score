@@ -86,6 +86,7 @@ jobs:
       - name: Install git
         run: |
           pacman -Syy --noconfirm
+          pacman -S glibc --noconfirm
           pacman -S git --noconfirm
 
       - name: Checkout code
@@ -112,6 +113,7 @@ jobs:
       - name: Install git
         run: |
           pacman -Syy --noconfirm
+          pacman -S glibc --noconfirm
           pacman -S git --noconfirm
 
       - name: Checkout code
