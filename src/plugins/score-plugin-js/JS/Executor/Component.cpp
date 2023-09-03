@@ -37,6 +37,7 @@ Component::Component(
   }
   else
   {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     std::shared_ptr<gpu_exec_node> node = ossia::make_node<gpu_exec_node>(
         *ctx.execState, ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
     this->node = node;
@@ -44,6 +45,11 @@ Component::Component(
     m_ossia_process = std::make_shared<ossia::node_process>(node);
 
     on_scriptChange(element.qmlData(), true);
+#else
+    throw std::runtime_error(
+        "GPU Nodes not supported in this build of score, use a distribution with an "
+        "up-to-date version of Qt.");
+#endif
   }
 
   con(element, &JS::ProcessModel::qmlDataChanged, this, &Component::on_scriptChange,
