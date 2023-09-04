@@ -236,10 +236,12 @@ Script* ProcessModel::currentObject() const noexcept
 
 bool ProcessModel::isGpu() const noexcept
 {
+#if defined(SCORE_HAS_GPU_JS)
   if(auto script = currentObject())
   {
     return script->findChild<JS::TextureOutlet*>() != nullptr;
   }
+#endif
   return false;
 }
 

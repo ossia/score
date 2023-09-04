@@ -1,6 +1,6 @@
 #include "GPUNode.hpp"
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>

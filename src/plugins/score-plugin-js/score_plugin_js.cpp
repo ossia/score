@@ -177,7 +177,9 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::ValueOutlet>("Score", 1, 0, "ValueOutlet");
   qmlRegisterType<JS::AudioInlet>("Score", 1, 0, "AudioInlet");
   qmlRegisterType<JS::AudioOutlet>("Score", 1, 0, "AudioOutlet");
+#if defined(SCORE_HAS_GPU_JS)
   qmlRegisterType<JS::TextureOutlet>("Score", 1, 0, "TextureOutlet");
+#endif
   qmlRegisterType<JS::MidiInlet>("Score", 1, 0, "MidiInlet");
   qmlRegisterType<JS::MidiOutlet>("Score", 1, 0, "MidiOutlet");
   qmlRegisterType<JS::FloatSlider>("Score", 1, 0, "FloatSlider");

@@ -1,7 +1,7 @@
 #pragma once
 #include <qobjectdefs.h>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxExecNode.hpp>
 

@@ -4,7 +4,9 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/TexturePort.hpp>
+#endif
 
 #include <score/tools/Debug.hpp>
 
@@ -420,6 +422,7 @@ private:
   QVector<QVector<int>> m_midi;
 };
 
+#if defined(SCORE_HAS_GPU_JS)
 class TextureOutlet : public Outlet
 {
   W_OBJECT(TextureOutlet)
@@ -440,6 +443,7 @@ public:
 private:
   QQuickItem* m_item{};
 };
+#endif
 
 class Script : public QObject
 {

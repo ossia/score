@@ -81,8 +81,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
 
-if(TARGET ${QT_PREFIX}::Quick AND TARGET score_plugin_gfx)
+if(TARGET ${QT_PREFIX}::Quick AND TARGET score_plugin_gfx AND ${Qt6_VERSION} VERSION_GREATER_EQUAL 6.5.0)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::Quick ${QT_PREFIX}::QuickPrivate score_plugin_gfx)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_HAS_GPU_JS)
 endif()
 if(TARGET ${QT_PREFIX}::QmlIntegration)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QmlIntegration)

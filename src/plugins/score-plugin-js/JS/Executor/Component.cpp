@@ -37,7 +37,7 @@ Component::Component(
   }
   else
   {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#if defined(SCORE_HAS_GPU_JS)
     std::shared_ptr<gpu_exec_node> node = ossia::make_node<gpu_exec_node>(
         *ctx.execState, ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
     this->node = node;
@@ -136,7 +136,7 @@ void Component::on_scriptChange(const QString& script, bool gpu)
 std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
 Component::on_gpuScriptChange(const QString& script, Execution::Transaction& commands)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#if defined(SCORE_HAS_GPU_JS)
   auto node = std::dynamic_pointer_cast<gpu_exec_node>(this->node);
   std::weak_ptr<Gfx::gfx_exec_node> weak_node = node;
   int script_index = ++node->script_index;

@@ -16,7 +16,9 @@ W_OBJECT_IMPL(JS::MidiInlet)
 W_OBJECT_IMPL(JS::MidiOutlet)
 W_OBJECT_IMPL(JS::AudioInlet)
 W_OBJECT_IMPL(JS::AudioOutlet)
+#if defined(SCORE_HAS_GPU_JS)
 W_OBJECT_IMPL(JS::TextureOutlet)
+#endif
 W_OBJECT_IMPL(JS::FloatSlider)
 W_OBJECT_IMPL(JS::IntSlider)
 W_OBJECT_IMPL(JS::Enum)
@@ -204,12 +206,14 @@ const QVector<QVector<double>>& AudioOutlet::audio() const
   return m_audio;
 }
 
+#if defined(SCORE_HAS_GPU_JS)
 TextureOutlet::TextureOutlet(QObject* parent)
     : Outlet{parent}
 {
 }
 
 TextureOutlet::~TextureOutlet() { }
+#endif
 
 MidiInlet::MidiInlet(QObject* parent)
     : Inlet{parent}
