@@ -27,7 +27,6 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
-#include <QQuickItem>
 
 #include <wobjectimpl.h>
 
