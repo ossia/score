@@ -17,13 +17,14 @@
 #include <QJSValue>
 #include <QObject>
 #include <QQmlListProperty>
-#include <QQuickItem>
 #include <QVariant>
 #include <QVector>
 
 #include <libremidi/message.hpp>
 
 #include <verdigris>
+
+class QQuickItem;
 W_REGISTER_ARGTYPE(QJSValue)
 namespace JS
 {
