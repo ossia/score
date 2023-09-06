@@ -114,8 +114,8 @@ Model::~Model() { }
 std::shared_ptr<video_decoder> Model::makeDecoder() const noexcept
 try
 {
-  auto dec = std::make_shared<::Video::VideoDecoder>(videoDecoderConfiguration());
-  if(!dec->open(absolutePath().toStdString()))
+  auto dec = std::make_shared<::Video::VideoDecoderThreaded>(videoDecoderConfiguration());
+  if(!dec->load(absolutePath().toStdString()))
     return {};
   return dec;
 }

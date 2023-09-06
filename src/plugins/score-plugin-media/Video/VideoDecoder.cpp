@@ -797,6 +797,7 @@ bool VideoDecoderThreaded::load(const std::string& inputFile) noexcept
   // TODO use a thread pool
   m_thread = std::thread{[this] {
     ossia::set_thread_name("ossia video");
+    ossia::set_thread_pinned(ossia::thread_type::GpuTask, 0);
     this->buffer_thread();
   }};
 

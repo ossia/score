@@ -10,7 +10,7 @@
 
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/logger.hpp>
-
+#include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QTimer>
 namespace Gfx

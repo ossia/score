@@ -239,6 +239,7 @@ void FaustEffectModel::reload()
   std::vector<const char*> argv;
   argv.push_back(sizeof(FAUSTFLOAT) == 4 ? "-single" : "-double");
   argv.push_back("-vec");
+  argv.push_back("-fun");
 
   if(!fx_path.empty())
   {

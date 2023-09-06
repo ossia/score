@@ -55,7 +55,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
 
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
-    params.format.setSamples(state.samples);
+    //params.format.setSamples(state.samples);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
     state.renderSize = window.size();

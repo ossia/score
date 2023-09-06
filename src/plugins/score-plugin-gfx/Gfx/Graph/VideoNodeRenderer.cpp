@@ -353,6 +353,7 @@ void BasicVideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatc
     else
     {
       this->m_video->seek(0);
+      m_prevFrame = -1;
     }
   }
 
