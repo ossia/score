@@ -203,18 +203,25 @@ elseif(FFmpeg_FOUND)
 
   # If we build against homebrew's ffmpeg we do not need those
   if(OSSIA_SDK)
-    find_package(BZip2 REQUIRED)
-    find_package(ZLIB REQUIRED)
-    find_package(LibLZMA)
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-      BZip2::BZip2
-      ZLIB::ZLIB
-    )
+    find_package(ZLIB)
+    if(TARGET ZLIB::ZLIB)
+      target_link_libraries(${PROJECT_NAME} PRIVATE
+        ZLIB::ZLIB
+      )
+    endif()
 
+    find_package(BZip2)
+    if(TARGET BZip2::BZip2)
+      target_link_libraries(${PROJECT_NAME} PRIVATE
+        BZip2::BZip2
+      )
+    endif()
+
+    find_package(LibLZMA)
     if(TARGET LibLZMA::LibLZMA)
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-      LibLZMA::LibLZMA
-    )
+      target_link_libraries(${PROJECT_NAME} PRIVATE
+        LibLZMA::LibLZMA
+      )
     endif()
   endif()
   target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
