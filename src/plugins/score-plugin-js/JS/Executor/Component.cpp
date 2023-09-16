@@ -10,7 +10,6 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
-#include <Gfx/GfxApplicationPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
 
 #include <score/tools/Bind.hpp>
