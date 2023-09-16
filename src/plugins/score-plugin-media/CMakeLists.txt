@@ -192,24 +192,31 @@ elseif(FFmpeg_FOUND)
           ${VideoToolbox_FK}
       )
 
-      # If we build against homebrew's ffmpeg we do not need those
-      if(OSSIA_SDK)
-        find_package(BZip2 REQUIRED)
-        find_package(ZLIB REQUIRED)
-        target_link_libraries(${PROJECT_NAME} PRIVATE
-          BZip2::BZip2
-          ZLIB::ZLIB
-        )
-      endif()
   endif()
 
   if(WIN32)
-      target_link_libraries(${PROJECT_NAME} PRIVATE evr mf mfplat strmiids quartz vfw32)
-      if(MSVC)
-        target_link_libraries(${PROJECT_NAME} PRIVATE mfplay mfreadwrite mfuuid)
-      endif()
+    target_link_libraries(${PROJECT_NAME} PRIVATE evr mf mfplat strmiids quartz vfw32)
+    if(MSVC)
+      target_link_libraries(${PROJECT_NAME} PRIVATE mfplay mfreadwrite mfuuid)
+    endif()
   endif()
 
+  # If we build against homebrew's ffmpeg we do not need those
+  if(OSSIA_SDK)
+    find_package(BZip2 REQUIRED)
+    find_package(ZLIB REQUIRED)
+    find_package(LibLZMA)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+      BZip2::BZip2
+      ZLIB::ZLIB
+    )
+
+    if(TARGET LibLZMA::LibLZMA)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+      LibLZMA::LibLZMA
+    )
+    endif()
+  endif()
   target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 endif()
 

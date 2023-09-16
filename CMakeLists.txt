@@ -15,7 +15,10 @@ set(CMAKE_MODULE_PATH
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
 if(OSSIA_SDK)
-  set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
+  if(UNIX AND NOT APPLE)
+    set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
+  endif()
+
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}"
       "${OSSIA_SDK}/SDL2"
@@ -33,6 +36,14 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/portaudio"
       "${OSSIA_SDK}/portaudio/lib"
       "${OSSIA_SDK}/portaudio/lib/cmake"
+      "${OSSIA_SDK}/sysroot"
+      "${OSSIA_SDK}/sysroot/lib"
+      "${OSSIA_SDK}/sysroot/lib/cmake"
+      "${OSSIA_SDK}/sysroot/lib/cmake/freetype"
+      "${OSSIA_SDK}/sysroot/lib/cmake/harfbuzz"
+      "${OSSIA_SDK}/sysroot/lib/cmake/liblzma"
+      "${OSSIA_SDK}/sysroot/lib/cmake/Snappy"
+      "${OSSIA_SDK}/sysroot/lib/cmake/zstd"
 
       "${OSSIA_SDK}/SDL2/lib64"
       "${OSSIA_SDK}/qt6-static-debug/lib64"
@@ -50,12 +61,14 @@ if(OSSIA_SDK)
 
       "${CMAKE_PREFIX_PATH}")
 
+  set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/sysroot/lib/pkgconfig")
+
   if(EXISTS "${OSSIA_SDK}/ffmpeg/lib64/pkgconfig")
     set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib64/pkgconfig")
   else()
     set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
   endif()
-
+  
   include_directories("${OSSIA_SDK}/pipewire/include/pipewire-0.3")
   include_directories("${OSSIA_SDK}/pipewire/include/spa-0.2")
 endif()

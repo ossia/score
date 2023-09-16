@@ -136,7 +136,7 @@ if(LLVM_VERSION VERSION_LESS "10.*" OR (UNIX AND NOT APPLE AND SCORE_DEPLOYMENT_
     clangIndex
   )
   
-  if(LLVM_VERSION VERSION_LESS "17.*")
+  if(LLVM_VERSION VERSION_LESS "16.*")
     set(CLANG_LIBS ${CLANG_LIBS} clangARCMigrate)
   endif()
 else()
