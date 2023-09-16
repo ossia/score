@@ -3,7 +3,6 @@
 #include "Component.hpp"
 
 #include "CPUNode.hpp"
-#include "GPUNode.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -11,6 +10,12 @@
 
 #include <Execution/DocumentPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
+
+#if defined(SCORE_HAS_GPU_JS)
+#include "GPUNode.hpp"
+
+#include <Gfx/GfxApplicationPlugin.hpp>
+#endif
 
 #include <score/tools/Bind.hpp>
 
