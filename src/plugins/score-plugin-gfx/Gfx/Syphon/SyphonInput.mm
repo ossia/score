@@ -14,7 +14,7 @@
 #include <QLabel>
 
 #include <wobjectimpl.h>
-#include <QtGui/private/qrhigles2_p_p.h>
+#include <score/gfx/QRhiGles2.hpp>
 
 namespace Gfx::Syphon
 {

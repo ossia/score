@@ -7,7 +7,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 
 #include <Gfx/Syphon/SyphonHelpers.hpp>
-#include <QtGui/private/qrhigles2_p_p.h>
+#include <score/gfx/QRhiGles2.hpp>
 #include <QOpenGLContext>
 #include <QOffscreenSurface>
 #include <QFormLayout>
