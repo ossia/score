@@ -15,10 +15,10 @@ set(CMAKE_MODULE_PATH
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
 if(OSSIA_SDK)
+  set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}"
       "${OSSIA_SDK}/SDL2"
-      "${OSSIA_SDK}/SDL2/cmake"
       "${OSSIA_SDK}/qt6-static-debug"
       "${OSSIA_SDK}/qt6-static"
       "${OSSIA_SDK}/llvm"
@@ -28,14 +28,33 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/faust"
       "${OSSIA_SDK}/openssl"
       "${OSSIA_SDK}/freetype"
+      "${OSSIA_SDK}/harfbuzz"
       "${OSSIA_SDK}/ysfx"
-      "${OSSIA_SDK}/portaudio/lib64/cmake"
-      "${OSSIA_SDK}/portaudio/lib64/cmake/portaudio"
+      "${OSSIA_SDK}/portaudio"
+      "${OSSIA_SDK}/portaudio/lib"
       "${OSSIA_SDK}/portaudio/lib/cmake"
-      "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
+
+      "${OSSIA_SDK}/SDL2/lib64"
+      "${OSSIA_SDK}/qt6-static-debug/lib64"
+      "${OSSIA_SDK}/qt6-static/lib64"
+      "${OSSIA_SDK}/llvm-libs/lib64"
+      "${OSSIA_SDK}/fftw/lib64"
+      "${OSSIA_SDK}/zlib/lib64"
+      "${OSSIA_SDK}/faust/lib64"
+      "${OSSIA_SDK}/openssl/lib64"
+      "${OSSIA_SDK}/freetype/lib64"
+      "${OSSIA_SDK}/harfbuzz/lib64"
+      "${OSSIA_SDK}/ysfx/lib64"
+      "${OSSIA_SDK}/portaudio/lib64"
+      "${OSSIA_SDK}/portaudio/lib64/cmake"
+
       "${CMAKE_PREFIX_PATH}")
 
-  set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
+  if(EXISTS "${OSSIA_SDK}/ffmpeg/lib64/pkgconfig")
+    set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib64/pkgconfig")
+  else()
+    set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
+  endif()
 
   include_directories("${OSSIA_SDK}/pipewire/include/pipewire-0.3")
   include_directories("${OSSIA_SDK}/pipewire/include/spa-0.2")
