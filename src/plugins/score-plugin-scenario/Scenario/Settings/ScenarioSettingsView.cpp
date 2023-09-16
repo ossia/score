@@ -104,8 +104,13 @@ public:
       auto item = list.currentItem();
       if(!item)
         return;
+#if QT_VERSION >= QT_VERSION_CHECK(6,6,0)
+      if(!QColor::isValidColorName(txt))
+        return;
+#else
       if(!QColor::isValidColor(txt))
         return;
+#endif
       auto c = QColor(txt);
       auto brush = s.fromString(item->text());
       if(brush->color() != c)

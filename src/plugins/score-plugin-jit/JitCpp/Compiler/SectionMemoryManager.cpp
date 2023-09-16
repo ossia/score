@@ -290,7 +290,7 @@ void SingleSectionMemoryManager::reserveAllocationSpace(
   // and RWData pointing to sub-blocks within, but setting the correct
   // permissions for that wouldn't work unless we over-allocated to have each
   // Block.Base aligned on a page boundary.
-  #if LLVM_VERSION_MAJOR < 17
+  #if LLVM_VERSION_MAJOR < 16
   uint32_t CodeAlign = CodeAlign_;
   uint32_t ROAlign = ROAlign_;
   uint32_t RWAlign = RWAlign_;

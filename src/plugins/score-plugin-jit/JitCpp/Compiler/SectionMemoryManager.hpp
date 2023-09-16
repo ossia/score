@@ -2,7 +2,7 @@
 
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 
-#if LLVM_VERSION_MAJOR < 17
+#if LLVM_VERSION_MAJOR < 16
 namespace llvm_helper {
   using Align = uint32_t;
 }
