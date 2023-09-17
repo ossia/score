@@ -1302,6 +1302,15 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     Device::Node* parent = (insert == InsertMode::AsChild) ? &node : node.parent();
 
     auto stgs = dial->getSettings();
+
+    // Clean-up the address entered by the user with some common typos
+    stgs.name = stgs.name.trimmed();
+    if(stgs.name.startsWith('/'))
+      stgs.name.removeFirst();
+    while(stgs.name.contains(QLatin1StringView("//")))
+      stgs.name.remove(QLatin1StringView("//"));
+    stgs.name = stgs.name.trimmed();
+
     auto addr_request = stgs.name.toStdString();
     auto [names, is_brace_exp] = ossia::net::expand_address(addr_request);
     if(is_brace_exp || stgs.name.contains('/'))
