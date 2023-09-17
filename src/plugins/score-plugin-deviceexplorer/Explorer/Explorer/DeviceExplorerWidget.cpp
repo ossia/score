@@ -1306,7 +1306,7 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     // Clean-up the address entered by the user with some common typos
     stgs.name = stgs.name.trimmed();
     if(stgs.name.startsWith('/'))
-      stgs.name.removeFirst();
+      stgs.name.remove(0, 1);
     while(stgs.name.contains(QLatin1StringView("//")))
       stgs.name.remove(QLatin1StringView("//"));
     stgs.name = stgs.name.trimmed();
