@@ -414,7 +414,8 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
       if(item->type() == QGraphicsItem::UserType + 700)
       {
         auto port = safe_cast<PortItem*>(item);
-        if(portDragDirection == DragSourceIsInlet && !port->m_inlet)
+        if((portDragDirection == DragSourceIsInlet && !port->m_inlet)
+           || (portDragDirection == DragSourceIsOutlet && port->m_inlet))
         {
           if(portDragType == port->port().type())
           {
@@ -623,7 +624,8 @@ void PortItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   if(portDragType && *portDragType == this->port().type())
   {
-    if(portDragDirection == DragSourceIsInlet && !this->m_inlet)
+    if((portDragDirection == DragSourceIsInlet && !this->m_inlet)
+       || (portDragDirection == DragSourceIsOutlet && this->m_inlet))
     {
       prepareGeometryChange();
       m_diam = 12.;
