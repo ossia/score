@@ -32,6 +32,7 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/state/state.hpp>
 
+#include <QGuiApplication>
 #include <QMainWindow>
 
 #include <Transport/DocumentPlugin.hpp>
@@ -505,7 +506,13 @@ void ExecutionController::play_interval(
       }
     }
 
-    exec_plug->reload(cst);
+    // Ignores the top-level condition / triggers if any
+    bool forcePlay{};
+    if(this->context.applicationSettings.gui)
+    {
+      forcePlay = qApp->keyboardModifiers() & Qt::ControlModifier;
+    }
+    exec_plug->reload(forcePlay, cst);
 
     auto& c = exec_plug->context();
     m_clock = makeClock(c);
@@ -579,7 +586,7 @@ void ExecutionController::on_record(::TimeVal t)
     if(auto exec_plug = scenar->context().findPlugin<Execution::DocumentPlugin>())
     {
       // Listening isn't stopped here.
-      exec_plug->reload(scenar->baseInterval());
+      exec_plug->reload(false, scenar->baseInterval());
       m_clock = makeClock(exec_plug->context());
       m_clock->play(t);
 

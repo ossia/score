@@ -80,7 +80,7 @@ public:
   DocumentPlugin(const score::DocumentContext& ctx, QObject* parent);
 
   ~DocumentPlugin() override;
-  void reload(Scenario::IntervalModel& doc);
+  void reload(bool forcePlay, Scenario::IntervalModel& doc);
   void clear();
 
   void on_documentClosing() override;

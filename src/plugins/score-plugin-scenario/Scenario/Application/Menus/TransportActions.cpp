@@ -189,6 +189,8 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   }
 
   ref.actions.add<Actions::Play>(m_play);
+
+  m_play->setShortcuts(QList<QKeySequence>{Qt::Key_Space, tr("Ctrl+Space")});
   ref.actions.add<Actions::PlayGlobal>(m_playGlobal);
   ref.actions.add<Actions::Stop>(m_stop);
   // ref.actions.add<Actions::GoToStart>(m_goToStart);

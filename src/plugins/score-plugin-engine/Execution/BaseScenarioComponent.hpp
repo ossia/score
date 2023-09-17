@@ -86,7 +86,7 @@ public:
   BaseScenarioElement(const Context&, QObject* parent);
   ~BaseScenarioElement();
 
-  void init(BaseScenarioRefContainer);
+  void init(bool forcePlay, BaseScenarioRefContainer);
   void cleanup();
   bool active() const { return bool(m_ossia_interval); }
 

@@ -267,7 +267,7 @@ void DocumentPlugin::makeGraph()
   execGraph = ossia::make_graph(opt);
 }
 
-void DocumentPlugin::reload(Scenario::IntervalModel& cst)
+void DocumentPlugin::reload(bool forcePlay, Scenario::IntervalModel& cst)
 {
   if(m_base)
   {
@@ -298,7 +298,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   SCORE_ASSERT(parent);
 
   recreateBase();
-  m_base->init(BaseScenarioRefContainer{cst, *parent});
+  m_base->init(forcePlay, BaseScenarioRefContainer{cst, *parent});
   m_ctxData->m_created = true;
 
   auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();

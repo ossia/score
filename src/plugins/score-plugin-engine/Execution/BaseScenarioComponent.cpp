@@ -58,7 +58,7 @@ struct FinishCallback final : public ossia::time_sync_callback
   QPointer<BaseScenarioElement> self;
 };
 
-void BaseScenarioElement::init(BaseScenarioRefContainer element)
+void BaseScenarioElement::init(bool forcePlay, BaseScenarioRefContainer element)
 {
   m_ossia_scenario = std::make_shared<ossia::scenario>();
 
@@ -100,8 +100,20 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_interval = std::make_shared<IntervalComponent>(
       element.interval(), std::shared_ptr<ossia::scenario>{}, m_ctx, this);
 
-  m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
-  m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
+  if(forcePlay)
+  {
+    m_ossia_startTimeSync->onSetup(
+        main_start_node, ossia::expressions::make_expression_true());
+    m_ossia_endTimeSync->onSetup(
+        main_end_node, ossia::expressions::make_expression_false());
+  }
+  else
+  {
+    m_ossia_startTimeSync->onSetup(
+        main_start_node, m_ossia_startTimeSync->makeTrigger());
+    m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
+  }
+
   m_ossia_startEvent->onSetup(
       main_start_event, m_ossia_startEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
