@@ -14,6 +14,7 @@ export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSIO
 export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk28
 export BOOST_VER=boost_1_83_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
+export CMAKE_VERSION=3.27.5
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
@@ -76,9 +77,9 @@ else
   if [[ ! -d "$SDK_DIR/cmake" ]] ; then
     if ! command -v cmake >/dev/null 2>&1 ; then
       echo "CMake not found, installing..."
-      curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-windows-x86_64.zip --output cmake.zip
+      curl -L -0 https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-windows-x86_64.zip --output cmake.zip
       unzip -qq cmake.zip
-      mv cmake-3.26.4-windows-x86_64 cmake
+      mv cmake-$CMAKE_VERSION-windows-x86_64 cmake
     fi
   fi
 
@@ -89,12 +90,23 @@ else
   if [[ ! -f "$SDK_DIR/llvm/bin/clang.exe" ]] ; then
   (
     SDK_ARCHIVE=sdk-mingw.7z
+    echo "<< downloading sdk >>"
     curl -L -O "$BASE_SDK/$SDK_ARCHIVE"
-    cmake -E tar xzf "sdk-mingw.7z"
-    rm "sdk-mingw.7z"
+
+    echo "<< downloading 7z >>"
+    curl -L "https://www.7-zip.org/a/7zr.exe" -o 7z.exe
+    
+    echo "<< extracting sdk >>"
+    ./7z.exe x sdk-mingw.7z
+    
+    rm "sdk-mingw.7z" "7z.exe"
   )
   fi
   ls "$SDK_DIR"
+  
+  if [[ ! -f "$SDK_DIR/llvm/bin/clang.exe" ]] ; then
+    exit 1
+  fi
 
   # Download boost
   if [[ ! -d "$SDK_DIR/boost" ]] ; then
