@@ -1307,8 +1307,8 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     stgs.name = stgs.name.trimmed();
     if(stgs.name.startsWith('/'))
       stgs.name.remove(0, 1);
-    while(stgs.name.contains(QLatin1StringView("//")))
-      stgs.name.remove(QLatin1StringView("//"));
+    while(stgs.name.contains(QLatin1String("//")))
+      stgs.name.remove(QLatin1String("//"));
     stgs.name = stgs.name.trimmed();
 
     auto addr_request = stgs.name.toStdString();
