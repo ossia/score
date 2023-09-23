@@ -109,13 +109,8 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
+                     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets  ${QT_PREFIX}::StateMachine
                      score_lib_base score_lib_process score_lib_state)
 
 setup_score_plugin(${PROJECT_NAME})
 
-if(TARGET ${QT_PREFIX}::StateMachine)
-  target_link_libraries(${PROJECT_NAME}
-    PUBLIC ${QT_PREFIX}::StateMachine
-  )
-endif()

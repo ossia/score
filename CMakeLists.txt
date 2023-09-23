@@ -197,8 +197,11 @@ include_directories(SYSTEM "${3RDPARTY_FOLDER}/avendish/include/")
 
 set(SCORE_LIBRARIES_LIST CACHE INTERNAL "List of libraries")
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
+set(SCORE_FEATURES_LIST CACHE INTERNAL "List of features")
 
 add_subdirectory(src)
+
+include(cmake/ScoreFeatureCheck.cmake)
 
 if(SCORE_TESTBED)
   add_subdirectory(Tests/testbed)

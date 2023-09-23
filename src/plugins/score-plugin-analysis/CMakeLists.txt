@@ -48,6 +48,7 @@ target_include_directories(score_plugin_analysis PRIVATE "${3RDPARTY_FOLDER}/Gis
 target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine)
 if(TARGET kfr)
   target_link_libraries(score_plugin_analysis PUBLIC "$<BUILD_INTERFACE:kfr>")
+  list(APPEND SCORE_FEATURES_LIST analysis_kfr)
 endif()
 setup_score_plugin(score_plugin_analysis)
 

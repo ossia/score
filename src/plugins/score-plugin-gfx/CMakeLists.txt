@@ -232,8 +232,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 # for HAP
 if(TARGET Snappy::snappy)
   target_link_libraries(${PROJECT_NAME} PUBLIC Snappy::snappy)
+  list(APPEND SCORE_FEATURES_LIST hap)
 elseif(TARGET snappy)
   target_link_libraries(${PROJECT_NAME} PUBLIC snappy)
+  list(APPEND SCORE_FEATURES_LIST hap)
 endif()
 
 if(EMSCRIPTEN)
@@ -261,6 +263,7 @@ if(TARGET shmdata)
     PRIVATE
       SCORE_HAS_SHMDATA
   )
+  list(APPEND SCORE_FEATURES_LIST shmdata)
 endif()
 
 if(APPLE)
@@ -307,12 +310,14 @@ if(WIN32)
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
+  list(APPEND SCORE_FEATURES_LIST spout)
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 
   add_subdirectory("${3RDPARTY_FOLDER}/Syphon-Framework" "${CMAKE_CURRENT_BINARY_DIR}/Syphon")
   target_link_libraries(${PROJECT_NAME} PRIVATE Syphon)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SYPHON)
+  list(APPEND SCORE_FEATURES_LIST syphon)
 elseif(EMSCRIPTEN)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.libav.cpp)
 else()
@@ -321,6 +326,7 @@ else()
   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES aarch64)
     target_link_libraries(${PROJECT_NAME} PRIVATE v4l2 bz2)
   endif()
+  list(APPEND SCORE_FEATURES_LIST v4l2)
 endif()
 
 if(freenect2_FOUND)
@@ -328,29 +334,8 @@ if(freenect2_FOUND)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${freenect2_LIBRARIES})
 endif()
 
-if(TARGET ${QT_PREFIX}::Quick)
-  target_link_libraries(${PROJECT_NAME}
-    PRIVATE ${QT_PREFIX}::Quick
-  )
-endif()
-if(TARGET ${QT_PREFIX}::OpenGLWidgets)
-  target_link_libraries(${PROJECT_NAME}
-    PRIVATE ${QT_PREFIX}::OpenGLWidgets
-  )
-endif()
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
-
-if(SCORE_INSTALL_HEADERS)
-  install(
-    FILES
-      Gfx/Qt5CompatPush
-      Gfx/Qt5CompatPop
-    DESTINATION include/score/Gfx
-    COMPONENT Devel
-    OPTIONAL
-  )
-endif()
 
 if(SCORE_ISF_TESTER)
 add_executable(ISFTester tests/ISFTester.cpp)

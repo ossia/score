@@ -7,7 +7,6 @@
 #include <Gfx/ShaderProgram.hpp>
 
 #include <QHBoxLayout>
-#include <QOpenGLWidget>
 namespace score::gfx
 {
 class ISFNode;

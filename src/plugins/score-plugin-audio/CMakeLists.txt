@@ -65,18 +65,22 @@ target_link_libraries(${PROJECT_NAME}
 
 if(OSSIA_ENABLE_PORTAUDIO)
   target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:PortAudio::PortAudio>)
+  list(APPEND SCORE_FEATURES_LIST portaudio)
 endif()
 
 if(OSSIA_ENABLE_JACK)
   target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:jack::jack>)
+  list(APPEND SCORE_FEATURES_LIST jack)
 endif()
 
 if(OSSIA_ENABLE_PIPEWIRE)
   target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:pipewire::pipewire>)
+  list(APPEND SCORE_FEATURES_LIST pipewire)
 endif()
 
 if(OSSIA_ENABLE_SDL)
   target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:ossia::sdl2>)
+  list(APPEND SCORE_FEATURES_LIST sdl)
 endif()
 
 setup_score_plugin(${PROJECT_NAME})

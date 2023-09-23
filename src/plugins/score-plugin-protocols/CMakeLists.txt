@@ -207,61 +207,74 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_OSC)
     target_sources(${PROJECT_NAME} PRIVATE ${OSC_HDRS} ${OSC_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_osc)
 endif()
 
 if(OSSIA_PROTOCOL_MINUIT)
     target_sources(${PROJECT_NAME} PRIVATE ${MINUIT_HDRS} ${MINUIT_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_minuit)
 endif()
 
 if(OSSIA_PROTOCOL_OSCQUERY)
   target_sources(${PROJECT_NAME} PRIVATE ${OSCQUERY_HDRS} ${OSCQUERY_SRCS})
+  list(APPEND SCORE_FEATURES_LIST protocol_oscquery)
 endif()
 
 if(OSSIA_PROTOCOL_MIDI)
     target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_midi)
 endif()
 
 if(OSSIA_PROTOCOL_HTTP)
     target_sources(${PROJECT_NAME} PRIVATE ${HTTP_HDRS} ${HTTP_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_http)
 endif()
 
 if(OSSIA_PROTOCOL_WEBSOCKETS)
     target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_ws)
 endif()
 
 if(OSSIA_PROTOCOL_LIBMAPPER)
   target_sources(${PROJECT_NAME} PRIVATE ${LIBMAPPER_CLIENT_SRCS})
   target_link_libraries(${PROJECT_NAME} PRIVATE mapper)
+  list(APPEND SCORE_FEATURES_LIST protocol_libmapper)
 endif()
 
 if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
     find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::SerialPort)
+    list(APPEND SCORE_FEATURES_LIST protocol_serial)
 endif()
 
 if(OSSIA_PROTOCOL_PHIDGETS)
     target_sources(${PROJECT_NAME} PRIVATE ${PHIDGETS_HDRS} ${PHIDGETS_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_phidgets)
 endif()
 
 if(OSSIA_PROTOCOL_JOYSTICK)
     target_sources(${PROJECT_NAME} PRIVATE ${JOYSTICK_HDRS} ${JOYSTICK_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_joystick)
 endif()
 
 if(OSSIA_PROTOCOL_LEAPMOTION)
   target_sources(${PROJECT_NAME} PRIVATE ${LEAPMOTION_HDRS} ${LEAPMOTION_SRCS})
+  list(APPEND SCORE_FEATURES_LIST protocol_leapmotion)
 endif()
 
 if(OSSIA_PROTOCOL_WIIMOTE)
     target_sources(${PROJECT_NAME} PRIVATE ${WIIMOTE_HDRS} ${WIIMOTE_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_wiimote)
 endif()
 
 if(OSSIA_PROTOCOL_ARTNET)
   # Needed for listing serial ports for DMX USB
   find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)
-  if(TARGET ${QT_PREFIX}::SerialPort)
+  if(TARGET "${QT_PREFIX}::SerialPort")
     target_sources(${PROJECT_NAME} PRIVATE ${ARTNET_HDRS} ${ARTNET_SRCS})
     target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::SerialPort)
+    list(APPEND SCORE_FEATURES_LIST protocol_artnet)
   endif()
 endif()
 
@@ -280,9 +293,10 @@ if(OSSIA_DNSSD)
   target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_3RDPARTY_FOLDER}/Servus)
 endif()
 
-if(TARGET ${QT_PREFIX}::Qml)
+if(TARGET "${QT_PREFIX}::Qml")
     target_sources(${PROJECT_NAME} PRIVATE ${MAPPER_SRCS})
     target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::Qml)
+    list(APPEND SCORE_FEATURES_LIST protocol_mapper)
 endif()
 
 if(WIN32)

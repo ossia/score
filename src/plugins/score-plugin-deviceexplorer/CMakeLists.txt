@@ -140,6 +140,7 @@ if(OSSIA_DNSSD)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE Servus_iface)
   target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_3RDPARTY_FOLDER}/Servus)
+  list(APPEND SCORE_FEATURES_LIST dnssd)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::Core ${QT_PREFIX}::Network)
 
