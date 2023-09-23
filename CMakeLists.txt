@@ -33,6 +33,7 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/freetype"
       "${OSSIA_SDK}/harfbuzz"
       "${OSSIA_SDK}/ysfx"
+      "${OSSIA_SDK}/pipewire"
       "${OSSIA_SDK}/portaudio"
       "${OSSIA_SDK}/portaudio/lib"
       "${OSSIA_SDK}/portaudio/lib/cmake"
