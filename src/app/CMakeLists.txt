@@ -245,7 +245,7 @@ endif()
 include(ScoreDeployment)
 
 disable_qt_plugins(${APPNAME})
-enable_minimal_qt_plugins(${APPNAME})
+enable_minimal_qt_plugins(${APPNAME} 1)
 
 if(EMSCRIPTEN)
   qt_finalize_executable(${APPNAME})

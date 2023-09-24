@@ -60,4 +60,4 @@ else()
 endif()
 
 disable_qt_plugins(ossia-score-vstpuppet)
-enable_minimal_qt_plugins(ossia-score-vstpuppet)
+enable_minimal_qt_plugins(ossia-score-vstpuppet 0)
