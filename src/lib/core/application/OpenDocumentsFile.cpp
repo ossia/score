@@ -9,9 +9,15 @@ namespace score
 {
 QString OpenDocumentsFile::path()
 {
-  static QString path = []() -> QString {
-    auto paths = QStandardPaths::standardLocations(QStandardPaths::TempLocation);
-    return paths.first() + "/score_open_docs";
+  static const QString path = []() -> QString {
+    static const auto username = []() -> QString {
+      auto username = qEnvironmentVariable("USER");
+      if(username.isEmpty())
+        username = qEnvironmentVariable("USERNAME");
+      return username;
+    }();
+    const auto paths = QStandardPaths::standardLocations(QStandardPaths::TempLocation);
+    return paths.first() + "/score_open_docs." + username;
   }();
 
   return path;
