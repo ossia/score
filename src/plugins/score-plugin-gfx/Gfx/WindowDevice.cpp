@@ -60,6 +60,9 @@ class window_device : public ossia::net::device_base
 public:
   ~window_device()
   {
+    m_screen->onMouseMove = [](QPointF, QPointF) {};
+    m_screen->onTabletMove = [](QTabletEvent*) {};
+    m_screen->onKey = [](int, const QString&) {};
     m_protocol->stop();
 
     {
@@ -68,6 +71,7 @@ public:
 
     m_protocol.reset();
   }
+
   window_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
       : ossia::net::device_base{std::move(proto)}
       , m_screen{createScreenNode()}
