@@ -1,4 +1,6 @@
 #pragma once
+#include <JS/Qml/QmlObjects.hpp>
+
 #include <QJSValue>
 #include <QObject>
 #include <QString>
@@ -20,5 +22,3 @@ public:
   W_SLOT(layoutTextLines)
 };
 }
-
-W_REGISTER_ARGTYPE(QJSValue)
