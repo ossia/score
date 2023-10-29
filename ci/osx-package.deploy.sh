@@ -29,7 +29,11 @@ echo " === create dmg === "
 # Create a .dmg
 cp $SRC_PATH/LICENSE.txt license.txt
 security unlock-keychain -p travis build.keychain
-create-dmg \
+
+echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+echo waiting...; while pgrep XProtect; do sleep 3; done;
+
+sudo create-dmg \
   --volname "ossia score $TAG" \
   --window-pos 200 120 \
   --window-size 800 400 \
