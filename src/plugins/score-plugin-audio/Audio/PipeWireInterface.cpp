@@ -21,27 +21,29 @@
 namespace Audio
 {
 PipeWireAudioFactory::PipeWireAudioFactory()
-try
 {
-  m_client = std::make_shared<ossia::pipewire_context>();
+  try
   {
-    if(int fd = m_client->get_fd(); fd != -1)
+    m_client = std::make_shared<ossia::pipewire_context>();
     {
-      m_fd = new QSocketNotifier{fd, QSocketNotifier::Read};
-      connect(m_fd, &QSocketNotifier::activated, this, [clt = m_client] {
-        if(auto lp = clt->lp)
-        {
-          int result = pw_loop_iterate(lp, 0);
-          if(result < 0)
-            qDebug() << "pw_loop_iterate: " << spa_strerror(result);
-        }
-      });
-      m_fd->setEnabled(true);
+      if(int fd = m_client->get_fd(); fd != -1)
+      {
+        m_fd = new QSocketNotifier{fd, QSocketNotifier::Read};
+        connect(m_fd, &QSocketNotifier::activated, this, [clt = m_client] {
+          if(auto lp = clt->lp)
+          {
+            int result = pw_loop_iterate(lp, 0);
+            if(result < 0)
+              qDebug() << "pw_loop_iterate: " << spa_strerror(result);
+          }
+        });
+        m_fd->setEnabled(true);
+      }
     }
   }
-}
-catch(...)
-{
+  catch(...)
+  {
+  }
 }
 
 PipeWireAudioFactory::~PipeWireAudioFactory()
