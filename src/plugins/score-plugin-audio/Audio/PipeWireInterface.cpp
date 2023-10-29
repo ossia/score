@@ -21,8 +21,9 @@
 namespace Audio
 {
 PipeWireAudioFactory::PipeWireAudioFactory()
-try : m_client{std::make_shared<ossia::pipewire_context>()}
+try
 {
+  m_client = std::make_shared<ossia::pipewire_context>();
   {
     if(int fd = m_client->get_fd(); fd != -1)
     {
@@ -120,16 +121,6 @@ void PipeWireAudioFactory::setupSettingsWidget(
     score::SettingsCommandDispatcher& m_disp)
 {
   using Model = Audio::Settings::Model;
-
-#if defined(_WIN32)
-  {
-    if(!ossia::has_jackd_process())
-    {
-      qDebug() << "JACK server not running?";
-      throw std::runtime_error("Audio error: no JACK server");
-    }
-  }
-#endif
 
   auto on_noPipeWire = [&] {
     auto label = new QLabel{QObject::tr("PipeWire does not seem to be running.")};
