@@ -93,7 +93,7 @@ void DropLayerInInterval::perform(
       {
         if(proc->value.HasMember(score::StringConstant().uuid))
         {
-          m.loadProcessInSlot(interval, json);
+          m.loadProcessInSlot(interval, proc->value);
         }
       }
     }

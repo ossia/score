@@ -125,45 +125,50 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
   return createProcessInNewSlot(interval, key, data, newProcessPosition(interval));
 }
 
+void Macro::createViewForNewProcess(
+    const IntervalModel& interval, const Process::ProcessModel& proc)
+{
+  const auto flags = proc.flags();
+  if(!(flags & Process::ProcessFlags::TimeIndependent))
+  {
+    if(flags & Process::ProcessFlags::PutInNewSlot)
+    {
+      addLayerInNewSlot(interval, proc);
+    }
+    else
+    {
+      const auto& sv = interval.smallView();
+      if(sv.empty())
+      {
+        addLayerInNewSlot(interval, proc);
+      }
+      else
+      {
+        auto it = ossia::find_if(sv, [](const Slot& slt) { return slt.nodal == false; });
+        if(it != sv.end())
+        {
+          addLayer(interval, it - sv.begin(), proc);
+        }
+        else
+        {
+          addLayerInNewSlot(interval, proc);
+        }
+      }
+    }
+  }
+  else
+  {
+    showRack(interval);
+  }
+}
+
 Process::ProcessModel* Macro::createProcessInNewSlot(
     const IntervalModel& interval, const UuidKey<Process::ProcessModel>& key,
     const QString& data, const QPointF& pos)
 {
   if(auto proc = createProcess(interval, key, data, pos))
   {
-    const auto flags = proc->flags();
-    if(!(flags & Process::ProcessFlags::TimeIndependent))
-    {
-      if(flags & Process::ProcessFlags::PutInNewSlot)
-      {
-        addLayerInNewSlot(interval, *proc);
-      }
-      else
-      {
-        const auto& sv = interval.smallView();
-        if(sv.empty())
-        {
-          addLayerInNewSlot(interval, *proc);
-        }
-        else
-        {
-          auto it
-              = ossia::find_if(sv, [](const Slot& slt) { return slt.nodal == false; });
-          if(it != sv.end())
-          {
-            addLayer(interval, it - sv.begin(), *proc);
-          }
-          else
-          {
-            addLayerInNewSlot(interval, *proc);
-          }
-        }
-      }
-    }
-    else
-    {
-      showRack(interval);
-    }
+    createViewForNewProcess(interval, *proc);
     return proc;
   }
   return nullptr;
@@ -194,13 +199,27 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
 }
 
 Process::ProcessModel*
-Macro::loadProcessInSlot(const IntervalModel& interval, const rapidjson::Value& procdata)
+Macro::loadProcess(const IntervalModel& interval, const rapidjson::Value& procdata)
 {
-  auto process_cmd = new LoadLayerInInterval{interval, procdata};
+  auto process_cmd
+      = new LoadOnlyLayerInInterval{interval, getStrongId(interval.processes), procdata};
   m.submit(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
   if(it != interval.processes.end())
+  {
     return &(*it);
+  }
+  return nullptr;
+}
+
+Process::ProcessModel*
+Macro::loadProcessInSlot(const IntervalModel& interval, const rapidjson::Value& procdata)
+{
+  if(auto p = loadProcess(interval, procdata))
+  {
+    createViewForNewProcess(interval, *p);
+    return p;
+  }
   return nullptr;
 }
 

@@ -203,10 +203,7 @@ bool DropScoreInInterval::drop(
       Scenario::Command::Macro m{new Command::DropProcessInIntervalMacro, doc};
       for(auto& json : itv["Processes"].GetArray())
       {
-        rapidjson::Value v{rapidjson::kObjectType};
-        v.AddMember("Process", json, obj.GetAllocator());
-
-        m.loadProcessInSlot(interval, v);
+        m.loadProcessInSlot(interval, json);
       }
 
       // Reload cables

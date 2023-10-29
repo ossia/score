@@ -1,7 +1,10 @@
 #include "ScenarioEditor.hpp"
 
+#include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
@@ -66,14 +69,93 @@ static bool pasteInScenario(
 
   if(!obj.IsObject() || obj.MemberCount() == 0)
     return false;
-  if(!obj.HasMember("TimeNodes"))
-    return false;
+  if(obj.HasMember("TimeNodes"))
+  {
 
-  // TODO check json validity
-  // Submit the paste command
-  auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
-  CommandDispatcher<>{ctx.commandStack}.submit(cmd);
-  return true;
+    // TODO check json validity
+    // Submit the paste command
+    auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
+    CommandDispatcher<>{ctx.commandStack}.submit(cmd);
+    return true;
+  }
+  else if(obj.HasMember("Processes") && obj.HasMember("Cables"))
+  {
+    // Create a box
+    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, ctx};
+
+    auto proc_it = obj.FindMember("Processes");
+    if(proc_it == obj.MemberEnd() || !proc_it->value.IsArray())
+      return false;
+
+    auto cables_it = obj.FindMember("Cables");
+    if(cables_it == obj.MemberEnd() || !cables_it->value.IsArray())
+      return false;
+
+    const auto processes = proc_it->value.GetArray();
+    if(processes.Empty())
+      return true;
+
+    // Find max duration
+    TimeVal t = TimeVal::fromMsecs(10);
+    for(auto& proc : processes)
+    {
+      if(!proc.IsObject())
+        return false;
+
+      auto dur = proc.FindMember("Duration");
+      if(dur == proc.MemberEnd())
+        return false;
+      if(!dur->value.IsNumber())
+        return false;
+      auto d = dur->value.GetDouble();
+      if(d > t.impl)
+        t.impl = d;
+    }
+
+    auto& interval
+        = m.createBox(sm, origin.date, TimeVal(origin.date.impl + t.impl), origin.y);
+
+    for(auto& proc : processes)
+    {
+      if(proc.IsObject())
+      {
+        if(proc.HasMember(score::StringConstant().uuid))
+        {
+          m.loadProcessInSlot(interval, proc);
+        }
+      }
+    }
+
+    {
+      auto new_path = score::IDocument::path(interval).unsafePath();
+
+      // !!! FIXME this looks like it's not valid, use
+      // serializedCablesFromCableJson instead, no ?
+      auto cables = JsonValue{cables_it->value}.to<Dataflow::SerializedCables>();
+
+      for(auto& cable : cables)
+      {
+        qDebug() << cable.second.source.unsafePath().toString();
+        qDebug() << cable.second.sink.unsafePath().toString();
+      }
+      auto& document
+          = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+
+      for(auto& c : cables)
+      {
+        c.first = getStrongId(document.cables);
+      }
+      m.loadCables(new_path, cables);
+    }
+
+    m.commit();
+
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 static bool pasteInInterval(
@@ -190,11 +272,25 @@ bool ScenarioEditor::paste(
       }
       else
       {
+        // FIXME proper nodal position
         return pasteInInterval(*obj, QPointF{0., 0.}, mime, ctx);
       }
     }
     else if(auto obj = qobject_cast<StateModel*>(sel.at(0)))
     {
+      // Try to paste messages in state? Should be done elsewhere..
+    }
+    else if(auto obj = qobject_cast<Scenario::ProcessModel*>(sel.at(0)))
+    {
+      // Do nothing, handled below as we really need the position in the view
+    }
+    else if(auto obj = qobject_cast<Process::ProcessModel*>(sel.at(0)))
+    {
+      if(auto itv = Scenario::closestParentInterval(obj))
+      {
+        // FIXME proper nodal position
+        return pasteInInterval(*itv, QPointF{0., 0.}, mime, ctx);
+      }
     }
   }
 

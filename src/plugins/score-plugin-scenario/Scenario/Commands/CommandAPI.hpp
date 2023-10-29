@@ -90,11 +90,16 @@ public:
         this->createProcessInNewSlot(interval, Metadata<ConcreteKey_k, T>::get(), data));
   }
 
+  Process::ProcessModel*
+  loadProcess(const Scenario::IntervalModel& interval, const rapidjson::Value& procdata);
   Process::ProcessModel* loadProcessInSlot(
       const Scenario::IntervalModel& interval, const rapidjson::Value& procdata);
   Process::ProcessModel* loadProcessFromPreset(
       const IntervalModel& interval, const Process::Preset& preset,
       QPointF pos = QPointF{});
+
+  void createViewForNewProcess(
+      const IntervalModel& interval, const Process::ProcessModel& proc);
 
   void clearInterval(const Scenario::IntervalModel&);
 

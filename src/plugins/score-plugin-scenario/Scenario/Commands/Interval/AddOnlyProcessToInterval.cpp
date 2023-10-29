@@ -124,8 +124,7 @@ Process::ProcessModel& LoadOnlyLayerInInterval::redo(
     IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
-  JSONWriter r{m_data};
-  const auto& obj = r.obj[score::StringConstant().Process];
+  const JsonValue obj{m_data.GetObject()};
   auto key = obj[score::StringConstant().uuid].to<UuidKey<Process::ProcessModel>>();
 
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);

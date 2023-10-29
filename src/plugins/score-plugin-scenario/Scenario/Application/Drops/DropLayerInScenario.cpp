@@ -53,6 +53,7 @@ bool DropLayerInScenario::drop(
   const Scenario::ProcessModel& scenar = pres.model();
   const Scenario::Point pt = pres.toScenarioPoint(pos);
 
+  // FIXME this does not look like it should be in msecs
   const TimeVal t = TimeVal::fromMsecs(json["Duration"].GetDouble());
 
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
