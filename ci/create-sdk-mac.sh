@@ -2,6 +2,7 @@
 
 : "$SDK_DIR"
 : "$SCORE_DIR"
+: "$XCODE_ROOT"
 
 export OSSIA_SDK="/opt/ossia-sdk-x86_64"
 export DST="$SDK_DIR"
@@ -15,7 +16,7 @@ mkdir -p "$LIB/cmake/score"
 export SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source $SCRIPTDIR/create-sdk-common.sh
 
-export XCODE=/Applications/Xcode.app/Contents/Developer
+export XCODE=$XCODE_ROOT/Contents/Developer
 export XCODE_MACOS_SDK=$XCODE/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 export XCODE_MACOS_FRAMEWORKS=$XCODE_MACOS_SDK/System/Library/Frameworks
 export XCODE_TOOLCHAIN=$XCODE/Toolchains/XcodeDefault.xctoolchain
