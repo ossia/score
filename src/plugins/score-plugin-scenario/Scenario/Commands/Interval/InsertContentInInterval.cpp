@@ -12,6 +12,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
@@ -68,6 +69,8 @@ PasteProcessesInInterval::PasteProcessesInInterval(
     , m_origin{p}
 {
   auto& ctx = targetInterval.context();
+  m_oldRack = targetInterval.smallView();
+  m_oldFullRack = targetInterval.fullView();
 
   // Generate new ids for each cloned process.
   auto [processes, processes_ids]
@@ -124,6 +127,10 @@ void PasteProcessesInInterval::undo(const score::DocumentContext& ctx) const
   // Remove the cables
   m_cables.undo(ctx);
 
+  // Replace the slots
+  trg_interval.replaceSmallView(m_oldRack);
+  trg_interval.replaceFullView(m_oldFullRack);
+
   // Remove the processes
   for(const auto& proc_id : m_ids_processes)
   {
@@ -138,7 +145,7 @@ void PasteProcessesInInterval::redo(const score::DocumentContext& ctx) const
 {
   auto& pl = ctx.app.components.interfaces<Process::ProcessFactoryList>();
   auto& trg_interval = m_target.find(ctx);
-  std::vector<Id<Process::ProcessModel>> processesToPutInSlot;
+  std::vector<std::pair<Id<Process::ProcessModel>, double>> processesToPutInSlot;
 
   for(const auto& proc : m_json_processes)
   {
@@ -150,7 +157,8 @@ void PasteProcessesInInterval::redo(const score::DocumentContext& ctx) const
 
       if(!(newproc->flags() & Process::ProcessFlags::TimeIndependent))
       {
-        processesToPutInSlot.push_back(newproc->id());
+        const double h = Scenario::getNewLayerHeight(ctx.app, *newproc);
+        processesToPutInSlot.emplace_back(newproc->id(), h);
       }
 
       // Resize the processes according to the new interval.
@@ -169,9 +177,9 @@ void PasteProcessesInInterval::redo(const score::DocumentContext& ctx) const
       SCORE_TODO;
   }
 
-  for(auto& p : processesToPutInSlot)
+  for(auto& [p, h] : processesToPutInSlot)
   {
-    Slot s{{p}, p, false};
+    Slot s{{p}, p, h};
     trg_interval.addSlot(s);
   }
   if(m_json_processes.size() > 0 && !trg_interval.smallViewVisible())
@@ -184,14 +192,14 @@ void PasteProcessesInInterval::redo(const score::DocumentContext& ctx) const
 void PasteProcessesInInterval::serializeImpl(DataStreamInput& s) const
 {
   s << m_target << (int)m_mode << m_origin << m_ids_processes << m_json_processes
-    << m_cables.cables;
+    << m_oldRack << m_oldFullRack << m_cables.cables;
 }
 
 void PasteProcessesInInterval::deserializeImpl(DataStreamOutput& s)
 {
   int mode{};
-  s >> m_target >> mode >> m_origin >> m_ids_processes >> m_json_processes
-      >> m_cables.cables;
+  s >> m_target >> mode >> m_origin >> m_ids_processes >> m_json_processes >> m_oldRack
+      >> m_oldFullRack >> m_cables.cables;
   m_mode = static_cast<ExpandMode>(mode);
 }
 }

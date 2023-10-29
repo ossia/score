@@ -76,6 +76,39 @@ static bool pasteInScenario(
   return true;
 }
 
+static bool pasteInInterval(
+    Scenario::IntervalModel& itv, QPointF item_pt, const QMimeData& mime,
+    const score::DocumentContext& ctx)
+{
+  auto obj = readJson(mime.data("text/plain"));
+  if(!obj.IsObject())
+    return false;
+
+  auto proc_it = obj.FindMember("Processes");
+  if(proc_it == obj.MemberEnd() || !proc_it->value.IsArray())
+    return false;
+
+  auto cables_it = obj.FindMember("Cables");
+  if(cables_it == obj.MemberEnd() || !cables_it->value.IsArray())
+    return false;
+
+  {
+    auto processes = proc_it->value.GetArray();
+    if(processes.Empty())
+      return true;
+
+    auto cables = cables_it->value.GetArray();
+
+    auto cmd = new Scenario::Command::PasteProcessesInInterval{
+        processes, cables, itv, ExpandMode{}, item_pt};
+    CommandDispatcher<>{ctx.commandStack}.submit(cmd);
+
+    // FIXME paste all cables recursively ! e.g. check copy-pasting a scenario
+    return true;
+  }
+  return false;
+}
+
 static bool pasteInCurrentInterval(
     QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
 {
@@ -83,6 +116,7 @@ static bool pasteInCurrentInterval(
       = score::IDocument::presenterDelegate<ScenarioDocumentPresenter>(ctx.document);
   if(!pres)
     return false;
+  auto& itv = pres->displayedInterval();
 
   // Get the QGraphicsView
   auto view = &pres->view().view();
@@ -132,40 +166,38 @@ static bool pasteInCurrentInterval(
 
   auto item_pt = ossia::visit(NodalPositionVisitor{scene_pt}, pres->display());
 
-  auto& itv = pres->displayedInterval();
-  auto obj = readJson(mime.data("text/plain"));
-  if(!obj.IsObject())
-    return false;
-
-  auto proc_it = obj.FindMember("Processes");
-  if(proc_it == obj.MemberEnd() || !proc_it->value.IsArray())
-    return false;
-
-  auto cables_it = obj.FindMember("Cables");
-  if(cables_it == obj.MemberEnd() || !cables_it->value.IsArray())
-    return false;
-
-  {
-    auto processes = proc_it->value.GetArray();
-    if(processes.Empty())
-      return true;
-
-    auto cables = cables_it->value.GetArray();
-
-    auto cmd = new Scenario::Command::PasteProcessesInInterval{
-        processes, cables, itv, ExpandMode{}, item_pt};
-    CommandDispatcher<>{ctx.commandStack}.submit(cmd);
-
-    // FIXME paste all cables recursively ! e.g. check copy-pasting a scenario
-    return true;
-  }
-  return false;
+  return pasteInInterval(itv, item_pt, mime, ctx);
 }
 
 bool ScenarioEditor::paste(
     QPoint pos, QObject* focusedObject, const QMimeData& mime,
     const score::DocumentContext& ctx)
 {
+  auto pres
+      = score::IDocument::presenterDelegate<ScenarioDocumentPresenter>(ctx.document);
+  if(!pres)
+    return false;
+  auto& itv = pres->displayedInterval();
+
+  // First check if we have explicitly selected a target objcet
+  if(auto sel = ctx.selectionStack.currentSelection(); sel.size() == 1)
+  {
+    if(auto obj = qobject_cast<IntervalModel*>(sel.at(0)))
+    {
+      if(obj == &itv)
+      {
+        return pasteInCurrentInterval(pos, mime, ctx);
+      }
+      else
+      {
+        return pasteInInterval(*obj, QPointF{0., 0.}, mime, ctx);
+      }
+    }
+    else if(auto obj = qobject_cast<StateModel*>(sel.at(0)))
+    {
+    }
+  }
+
   // Check if we are focusing a scenario in which to paste
   if(auto pres = qobject_cast<ScenarioPresenter*>(focusedObject))
   {

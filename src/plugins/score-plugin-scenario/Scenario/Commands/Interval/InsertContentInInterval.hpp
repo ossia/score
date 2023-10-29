@@ -4,6 +4,7 @@
 
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -49,6 +50,9 @@ private:
 
   std::vector<Id<Process::ProcessModel>> m_ids_processes;
   std::vector<QByteArray> m_json_processes;
+
+  Rack m_oldRack;
+  FullRack m_oldFullRack;
 
   CopiedCables m_cables;
 };
