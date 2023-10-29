@@ -96,7 +96,7 @@ public:
   friend class Dataflow::CableItem;
 
   static const QPixmap&
-  portImage(Process::PortType t, bool inlet, bool smol, bool light) noexcept;
+  portImage(Process::PortType t, bool inlet, bool smol, bool light, bool addr) noexcept;
 };
 
 SCORE_LIB_PROCESS_EXPORT
