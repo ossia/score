@@ -1,9 +1,14 @@
 #include <JS/Qml/Utils.hpp>
 
+#include <score/tools/ThreadPool.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QFontMetrics>
+#include <QProcess>
+#include <QTemporaryFile>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::JsUtils)
@@ -16,6 +21,51 @@ QByteArray JsUtils::readFile(QString path)
   if(f.open(QIODevice::ReadOnly))
     return f.readAll();
   return {};
+}
+
+void JsUtils::shell(QString cmd, QJSValue onFinish)
+{
+  const QString sh = "bash";
+
+  QString filename;
+
+  {
+    QTemporaryFile f;
+    f.setAutoRemove(false);
+    if(!f.open())
+      return;
+    filename = f.fileName();
+    f.setPermissions(
+        QFileDevice::WriteOwner | QFileDevice::ReadOwner | QFileDevice::ExeOwner);
+    f.write(cmd.toUtf8());
+    f.close();
+  }
+
+  auto& tp = score::TaskPool::instance();
+  tp.post([onFinish = std::make_shared<QJSValue>(onFinish), filename, sh] {
+    QList<QByteArray> strs;
+    int code{};
+
+    QProcess p;
+    p.setProgram(sh);
+    p.setArguments({"-c", filename});
+    p.start();
+    p.waitForStarted();
+    p.waitForFinished();
+    code = p.exitCode();
+    strs.push_back(p.readAllStandardOutput());
+    strs.push_back(p.readAllStandardError());
+
+    QMetaObject::invokeMethod(qApp, [=] {
+      QFile::remove(filename);
+
+      if(onFinish->isCallable())
+        onFinish->call(
+            QJSValueList() << code << QString::fromUtf8(strs[0])
+                           << QString::fromUtf8(strs[1]));
+    });
+  });
+  //Util.shell("echo toto", (code, stdout, stderr) => { console.log(code, stdout, stderr); })
 }
 
 QString JsUtils::layoutTextLines(QString text, QString font, int pointSize, int maxWidth)

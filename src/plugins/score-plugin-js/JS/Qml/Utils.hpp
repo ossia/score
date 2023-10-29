@@ -1,4 +1,5 @@
 #pragma once
+#include <QJSValue>
 #include <QObject>
 #include <QString>
 
@@ -12,7 +13,12 @@ public:
   QByteArray readFile(QString path);
   W_SLOT(readFile)
 
+  void shell(QString cmd, QJSValue onFinish);
+  W_SLOT(shell)
+
   QString layoutTextLines(QString text, QString font, int pointSize, int maxWidth);
   W_SLOT(layoutTextLines)
 };
 }
+
+W_REGISTER_ARGTYPE(QJSValue)

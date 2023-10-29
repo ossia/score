@@ -183,7 +183,6 @@ public:
   W_SLOT(document)
 
   /// Execution ///
-
   void play(QObject* obj);
   W_SLOT(play)
 
