@@ -43,7 +43,8 @@ sudo create-dmg \
   --hide-extension "ossia score.app" \
   'score.dmg' 'ossia score.app'
 ls
-
+export WHOAMI=$(whoami)
+sudo chown $WHOAMI *.dmg
 echo " === notarize === "
 # Notarize the .dmg
 security unlock-keychain -p travis build.keychain
