@@ -6,7 +6,10 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/RefreshStates.hpp>
 #include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
+#include <Scenario/Commands/Scenario/DuplicateInterval.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
@@ -419,6 +422,25 @@ void StateInspectorWidget::splitFromNode()
       {
         auto cmd = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
         m_commandDispatcher.submit(cmd);
+      }
+      else if(tn.events().size() == 1)
+      {
+        Scenario::Command::Macro m{new Command::SplitStateMacro, m_context};
+        auto create_ev = new Scenario::Command::CreateEvent_State{
+            *scenar, tn.id(), m_model.heightPercentage() + 0.01};
+        m.submit(create_ev);
+        const auto& new_state = create_ev->createdState();
+
+        if(auto& next_itv = m_model.nextInterval())
+        {
+          auto& itv = scenar->intervals.at(*next_itv);
+          auto& s = scenar->states.at(new_state);
+          m.submit(new Command::ChangeStartState{itv, s});
+        }
+
+        m.submit(new Scenario::Command::SplitTimeSync{tn, {create_ev->createdEvent()}});
+
+        m.commit();
       }
     }
   }

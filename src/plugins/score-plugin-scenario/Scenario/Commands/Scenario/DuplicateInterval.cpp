@@ -78,3 +78,55 @@ void DuplicateInterval::deserializeImpl(DataStreamOutput& s)
   m_cmdEnd.deserialize(arr2);
 }
 }
+
+namespace Scenario::Command
+{
+
+ChangeStartState::ChangeStartState(const IntervalModel& cst, const StateModel& newStart)
+    : m_path{cst}
+    , m_old{cst.startState()}
+    , m_new{newStart.id()}
+{
+  SCORE_ASSERT(!newStart.previousInterval());
+}
+
+ChangeStartState::~ChangeStartState() { }
+
+void ChangeStartState::undo(const score::DocumentContext& ctx) const
+{
+  auto& root = m_path.find(ctx);
+  auto scenar = safe_cast<Scenario::ProcessModel*>(root.parent());
+
+  root.setStartState(m_old);
+
+  auto& state = scenar->states.at(m_old);
+  SetNextInterval(state, root);
+  SetNoNextInterval(scenar->states.at(m_new));
+
+  root.requestHeightChange(state.heightPercentage());
+}
+
+void ChangeStartState::redo(const score::DocumentContext& ctx) const
+{
+  auto& root = m_path.find(ctx);
+  auto scenar = safe_cast<Scenario::ProcessModel*>(root.parent());
+
+  root.setStartState(m_new);
+
+  auto& state = scenar->states.at(m_new);
+  SetNextInterval(state, root);
+  SetNoNextInterval(scenar->states.at(m_old));
+
+  root.requestHeightChange(state.heightPercentage());
+}
+
+void ChangeStartState::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_old << m_new;
+}
+
+void ChangeStartState::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_old >> m_new;
+}
+}

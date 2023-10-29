@@ -39,4 +39,23 @@ private:
   Path<IntervalModel> m_path;
   Id<Scenario::IntervalModel> m_createdId{};
 };
+
+class SCORE_PLUGIN_SCENARIO_EXPORT ChangeStartState final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(), ChangeStartState, "Change start of an interval")
+public:
+  ChangeStartState(const IntervalModel& cst, const StateModel& newStart);
+  ~ChangeStartState();
+
+private:
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+  Path<IntervalModel> m_path;
+  Id<StateModel> m_old, m_new;
+};
 }
