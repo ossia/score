@@ -11,8 +11,8 @@ execute_process(
 )
 set_cache(CMAKE_OSX_SYSROOT "${XCODE_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
 
-string(APPEND CMAKE_C_FLAGS_INIT " -march=core2 -mtune=cannonlake -msse4.1 -msse4.2 ")
-string(APPEND CMAKE_CXX_FLAGS_INIT " -march=core2 -mtune=cannonlake -msse4.1 -msse4.2 ")
+string(APPEND CMAKE_C_FLAGS_INIT "  -mtune=cannonlake  ")
+string(APPEND CMAKE_CXX_FLAGS_INIT " -mtune=cannonlake ")
 
 set_cache(KFR_ARCH sse2)
 set_cache(BUILD_SHARED_LIBS OFF)
