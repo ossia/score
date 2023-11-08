@@ -256,6 +256,8 @@ bool ArtnetDevice::reconnect()
             break;
           }
         }
+        if(sock_conf.port.empty())
+          sock_conf.port = set.host.toStdString();
 
         sock_conf.baud_rate = 115200;
 

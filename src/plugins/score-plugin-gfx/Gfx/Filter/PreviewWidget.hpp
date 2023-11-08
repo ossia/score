@@ -6,6 +6,7 @@
 #include <Gfx/Graph/Window.hpp>
 #include <Gfx/ShaderProgram.hpp>
 
+#include <QWidget>
 #include <QHBoxLayout>
 namespace score::gfx
 {
