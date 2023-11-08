@@ -1194,7 +1194,7 @@ public:
 
     auto& mode = m_currentFixture->modes[mode_index];
 
-    f.fixtureName = m_currentFixture->name;
+    f.fixtureName = m_name.text();
     f.modeName = m_mode.currentText();
     f.mode.channelNames = mode.allChannels;
     f.address = m_address.value() - 1;
