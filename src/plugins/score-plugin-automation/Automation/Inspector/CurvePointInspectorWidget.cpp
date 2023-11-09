@@ -73,10 +73,10 @@ PointInspectorWidget::PointInspectorWidget(
   ;
   ((QObject*)m_moveState)->setParent(this);
   m_moveX.setCurveState(m_moveState);
-  connect(
-      m_XBox,
-      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this,
-      &PointInspectorWidget::on_pointXChanged);
+  // connect(
+  //     m_XBox,
+  //     static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this,
+  //     &PointInspectorWidget::on_pointXChanged);
 
   connect(
       m_XBox, &QSpinBox::editingFinished, this, &PointInspectorWidget::on_editXFinished);
@@ -121,8 +121,11 @@ PointInspectorWidget::PointInspectorWidget(
 
 void PointInspectorWidget::on_pointXChanged(double d)
 {
-  // m_dispatcher.submit<Curve::UpdateCurve>(
-  //       *safe_cast<Curve::Model*>(m_model.parent()), m_model.id(), pos);
+  if(!m_model)
+    return;
+  Curve::Point pos{m_XBox->value() / m_xFactor, m_model->pos().y()};
+  m_dispatcher.submit<Curve::MovePoint>(
+      *safe_cast<Curve::Model*>(m_model->parent()), m_model->id(), pos);
 }
 
 void PointInspectorWidget::on_editXFinished()
@@ -136,8 +139,8 @@ void PointInspectorWidget::on_editXFinished()
     return;
 
   auto simpleMove = [this] {
-    on_pointYChanged(m_YBox->value());
-    on_editYFinished();
+    on_pointXChanged(m_XBox->value());
+    on_editXFinished();
   };
 
   // Try to handle all the simple cases:
@@ -180,6 +183,7 @@ void PointInspectorWidget::on_editXFinished()
       return simpleMove();
     }
   }
+  return;
 
   m_model = nullptr;
 
