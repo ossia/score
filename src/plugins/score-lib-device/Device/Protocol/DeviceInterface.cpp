@@ -132,20 +132,24 @@ static Device::AddressSettings ToAddressSettings(const ossia::net::node_base& no
     //addr->request_value();
 
     s.name = QString::fromStdString(node.get_name());
-    s.ioType = ossia::access_mode::BI; // addr->get_access();
-    s.clipMode = addr->get_bounding();
-    s.repetitionFilter = addr->get_repetition_filter();
-    s.unit = addr->get_unit();
-    s.extendedAttributes = node.get_extended_attributes();
-    s.domain = addr->get_domain();
 
-    try
+    if(addr->get_type() == ossia::parameter_type::MESSAGE)
     {
-      s.value = addr->value();
-    }
-    catch(...)
-    {
-      s.value = ossia::init_value(addr->get_value_type());
+      s.ioType = ossia::access_mode::BI; // addr->get_access();
+      s.clipMode = addr->get_bounding();
+      s.repetitionFilter = addr->get_repetition_filter();
+      s.unit = addr->get_unit();
+      s.extendedAttributes = node.get_extended_attributes();
+      s.domain = addr->get_domain();
+
+      try
+      {
+        s.value = addr->value();
+      }
+      catch(...)
+      {
+        s.value = ossia::init_value(addr->get_value_type());
+      }
     }
   }
   else

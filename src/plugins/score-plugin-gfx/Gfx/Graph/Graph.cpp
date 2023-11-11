@@ -219,7 +219,7 @@ void Graph::recreateOutputRenderList(OutputNode& output)
 void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
 {
   output->updateGraphicsAPI(graphicsApi);
-  if(!output->canRender())
+  if(!output->canRender() || !output->renderState())
   {
     auto onReady = [this, output] {
       if(output->canRender())

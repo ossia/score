@@ -47,6 +47,18 @@ if(freenect2_FOUND)
   set(KINECT2_SRCS Gfx/Kinect2Device.hpp Gfx/Kinect2Device.cpp)
 endif()
 
+set(LIBAV_SRCS
+  Gfx/Libav/LibavEncoder.hpp
+  Gfx/Libav/LibavEncoderNode.hpp
+  Gfx/Libav/LibavOutputDevice.hpp
+  Gfx/Libav/LibavOutputSettings.hpp
+  Gfx/Libav/LibavOutputStream.hpp
+
+  Gfx/Libav/LibavOutputDevice.cpp
+  Gfx/Libav/LibavEncoder.cpp
+  Gfx/Libav/LibavEncoderNode.cpp
+)
+
 # Source files
 set(HDRS
     Gfx/CommandFactory.hpp
@@ -136,9 +148,6 @@ set(HDRS
     Gfx/CameraSettings.hpp
     Gfx/CameraDevice.hpp
     Gfx/WindowDevice.hpp
-    Gfx/LibavOutputDevice.hpp
-    Gfx/LibavOutputSettings.hpp
-    Gfx/LibavEncoder.hpp
     # Gfx/graph/hap/source/hap.h
 
     score_plugin_gfx.hpp
@@ -148,6 +157,7 @@ set(SRCS
     ${SPOUT_SRCS}
     ${SYPHON_SRCS}
     ${KINECT2_SRCS}
+    ${LIBAV_SRCS}
 
     Gfx/Filter/Executor.cpp
     Gfx/Filter/Library.cpp
@@ -202,12 +212,10 @@ set(SRCS
     Gfx/WindowDevice.cpp
     Gfx/GfxInputDevice.cpp
 
-    Gfx/LibavOutputDevice.cpp
 
     Gfx/Settings/Model.cpp
     Gfx/Settings/Presenter.cpp
     Gfx/Settings/View.cpp
-    Gfx/LibavEncoder.cpp
 
     score_plugin_gfx.cpp
 

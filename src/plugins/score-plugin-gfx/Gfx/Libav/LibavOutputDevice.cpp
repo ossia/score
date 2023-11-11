@@ -1,12 +1,17 @@
 #include "LibavOutputDevice.hpp"
+
 #if SCORE_HAS_LIBAV
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/LibavEncoder.hpp>
+#include <Gfx/GfxParameter.hpp>
+#include <Gfx/Libav/LibavEncoder.hpp>
+#include <Gfx/Libav/LibavEncoderNode.hpp>
 
 #include <score/serialization/MimeVisitor.hpp>
+
+#include <ossia/network/generic/generic_node.hpp>
 
 #include <ossia-qt/name_utils.hpp>
 
@@ -40,38 +45,39 @@ struct EncoderConfiguration
   int threads{};
 };
 
-class libav_output_protocol : public ossia::net::protocol_base
+class libav_output_protocol : public Gfx::gfx_protocol_base
 {
 public:
+  LibavEncoder encoder;
   explicit libav_output_protocol(GfxExecutionAction& ctx)
-      : protocol_base{flags{}}
-      , context{&ctx}
+      : gfx_protocol_base{ctx}
   {
-    LibavEncoder encoder;
-    encoder.test();
   }
   ~libav_output_protocol() { }
 
-  GfxExecutionAction* context{};
-  bool pull(ossia::net::parameter_base&) override { return false; }
-  bool push(const ossia::net::parameter_base&, const ossia::value& v) override
-  {
-    return false;
-  }
-  bool push_raw(const ossia::net::full_parameter_data&) override { return false; }
-  bool observe(ossia::net::parameter_base&, bool) override { return false; }
-  bool update(ossia::net::node_base& node_base) override { return false; }
-
-  void start_execution() override
-  {
-    // Reset and start streaming
-  }
-  void stop_execution() override
-  {
-    // Stop streaming
-  }
+  void start_execution() override { encoder.start(); }
+  void stop_execution() override { encoder.stop(); }
 };
 
+class libav_output_device : public ossia::net::device_base
+{
+  ossia::net::generic_node root;
+
+public:
+  libav_output_device(
+      const LibavOutputSettings& set, LibavEncoder& enc,
+      std::unique_ptr<gfx_protocol_base> proto, std::string name)
+      : ossia::net::device_base{std::move(proto)}
+      , root{name, *this}
+  {
+    auto& p = *static_cast<gfx_protocol_base*>(m_protocol.get());
+    auto node = new LibavEncoderNode{set, enc, 0};
+    root.add_child(std::make_unique<gfx_node_base>(*this, p, node, name));
+  }
+
+  const ossia::net::generic_node& get_root_node() const override { return root; }
+  ossia::net::generic_node& get_root_node() override { return root; }
+};
 class LibavOutputDevice final : public GfxOutputDevice
 {
   W_OBJECT(LibavOutputDevice)
@@ -83,7 +89,7 @@ private:
   bool reconnect() override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
 
-  mutable std::unique_ptr<Gfx::video_texture_input_device> m_dev;
+  mutable std::unique_ptr<libav_output_device> m_dev;
 };
 
 class LibavOutputSettingsWidget final : public Device::ProtocolSettingsWidget
@@ -112,20 +118,11 @@ bool LibavOutputDevice::reconnect()
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if(plug)
     {
-      auto cam = std::make_shared<::Video::CameraInput>();
-      /*
-      cam->load(
-          set.input.toStdString(), set.device.toStdString(), set.size.width(),
-          set.size.height(), set.fps, set.codec, set.pixelformat);
-*/
       auto m_protocol = new libav_output_protocol{plug->exec};
-      m_dev = std::make_unique<video_texture_input_device>(
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+      m_dev = std::make_unique<libav_output_device>(
+          set, m_protocol->encoder, std::unique_ptr<libav_output_protocol>(m_protocol),
           this->settings().name.toStdString());
     }
-    // TODOengine->reload(&proto);
-
-    // setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch(std::exception& e)
   {
@@ -237,16 +234,7 @@ void LibavOutputSettingsWidget::setSettings(const Device::DeviceSettings& settin
 {
   m_settings = settings;
 
-  // Clean up the name a bit
   auto prettyName = settings.name;
-  if(!prettyName.isEmpty())
-  {
-    prettyName = prettyName.split(':').front();
-    prettyName = prettyName.split('(').front();
-    prettyName.remove("/dev/");
-    prettyName = prettyName.trimmed();
-    ossia::net::sanitize_device_name(prettyName);
-  }
   m_deviceNameEdit->setText(prettyName);
 }
 

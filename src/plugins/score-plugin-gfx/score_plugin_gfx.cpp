@@ -12,7 +12,7 @@
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>
-#include <Gfx/LibavOutputDevice.hpp>
+#include <Gfx/Libav/LibavOutputDevice.hpp>
 #include <Gfx/Settings/Factory.hpp>
 #include <Gfx/SharedInputSettings.hpp>
 #include <Gfx/SharedOutputSettings.hpp>

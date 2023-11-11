@@ -13,26 +13,24 @@ extern "C" {
 namespace Gfx
 {
 
+struct OutputStream;
 struct LibavEncoder
 {
   LibavEncoder();
+  ~LibavEncoder();
   void enumerate();
   void encode(AVCodecContext* enc_ctx, AVFrame* frame, AVPacket* pkt, FILE* outfile);
 
-  AVDictionary* opt = NULL;
+  int start();
+  int add_frame(const unsigned char* data, AVPixelFormat fmt, int width, int height);
+  int stop();
 
-  int test2();
-  void test();
+  bool available() const noexcept { return m_formatContext; }
+
+  AVDictionary* opt = NULL;
   AVFormatContext* m_formatContext{};
 
-#if 0
-  AVFrame* frame;
-  AVPacket* pkt;
-
-  AVStream* m_avstream{};
-  const AVCodec* m_codec{};
-  AVCodecContext* m_codecContext{};
-#endif
+  std::vector<OutputStream> streams;
 };
 
 }

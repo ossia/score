@@ -191,6 +191,7 @@ void GfxContext::recompute_graph()
   }
 
   // This starts the timers which control the actual render rate of various things
+
   for(auto& outputs : m_graph->renderLists())
   {
     if(auto conf = outputs->output.configuration(); conf.manualRenderingRate)

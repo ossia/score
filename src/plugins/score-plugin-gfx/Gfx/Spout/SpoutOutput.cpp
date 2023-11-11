@@ -200,9 +200,9 @@ bool SpoutDevice::reconnect()
       public:
         spout_device(
             const SharedOutputSettings& set,
-            std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
+            std::unique_ptr<gfx_protocol_base> proto, std::string name)
             : ossia::net::device_base{std::move(proto)}
-            , root{*this, new SpoutNode{set}, name}
+            , root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), new SpoutNode{set}, name}
         {
         }
 
@@ -211,7 +211,7 @@ bool SpoutDevice::reconnect()
       };
 
       m_dev = std::make_unique<spout_device>(
-          set, std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+          set, std::unique_ptr<gfx_protocol_base>(m_protocol),
           m_settings.name.toStdString());
     }
     // TODOengine->reload(&proto);

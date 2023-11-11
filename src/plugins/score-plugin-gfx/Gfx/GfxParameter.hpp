@@ -64,11 +64,10 @@ class gfx_node_base : public ossia::net::node_base
 
 public:
   gfx_node_base(
-      ossia::net::device_base& dev, score::gfx::Node* gfxmodel, std::string name)
+      ossia::net::device_base& dev, gfx_protocol_base& proto, score::gfx::Node* gfxmodel,
+      std::string name)
       : m_device{dev}
-      , m_parameter{std::make_unique<gfx_parameter_base>(
-            *this, gfxmodel,
-            dynamic_cast<gfx_protocol_base&>(dev.get_protocol()).context)}
+      , m_parameter{std::make_unique<gfx_parameter_base>(*this, gfxmodel, proto.context)}
   {
     m_name = std::move(name);
   }

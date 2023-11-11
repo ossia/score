@@ -72,10 +72,10 @@ public:
     m_protocol.reset();
   }
 
-  window_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
+  window_device(std::unique_ptr<gfx_protocol_base> proto, std::string name)
       : ossia::net::device_base{std::move(proto)}
       , m_screen{createScreenNode()}
-      , m_root{*this, m_screen, name}
+      , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_screen, name}
   {
     this->m_capabilities.change_tree = true;
 
@@ -388,8 +388,7 @@ bool WindowDevice::reconnect()
     {
       m_protocol = new gfx_protocol_base{plug->exec};
       m_dev = std::make_unique<window_device>(
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
-          m_settings.name.toStdString());
+          std::unique_ptr<gfx_protocol_base>(m_protocol), m_settings.name.toStdString());
 
       enableCallbacks();
     }

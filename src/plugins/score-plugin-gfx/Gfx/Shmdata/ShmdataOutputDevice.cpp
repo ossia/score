@@ -9,6 +9,7 @@
 #include <Gfx/InvertYRenderer.hpp>
 
 #include <score/gfx/OpenGL.hpp>
+#include <score/gfx/QRhiGles2.hpp>
 
 #include <ossia/detail/fmt.hpp>
 #include <ossia/network/base/device.hpp>
@@ -19,7 +20,7 @@
 #include <QLineEdit>
 #include <QOffscreenSurface>
 #include <QSpinBox>
-#include <score/gfx/QRhiGles2.hpp>
+
 #include <shmdata/writer.hpp>
 
 #include <wobjectimpl.h>
@@ -100,10 +101,12 @@ class shmdata_output_device : public ossia::net::device_base
 
 public:
   shmdata_output_device(
-      const SharedOutputSettings& set, std::unique_ptr<ossia::net::protocol_base> proto,
+      const SharedOutputSettings& set, std::unique_ptr<gfx_protocol_base> proto,
       std::string name)
       : ossia::net::device_base{std::move(proto)}
-      , root{*this, new ShmdataOutputNode{set}, name}
+      , root{
+            *this, *static_cast<gfx_protocol_base*>(m_protocol.get()),
+            new ShmdataOutputNode{set}, name}
   {
   }
 
@@ -242,7 +245,7 @@ bool ShmdataOutputDevice::reconnect()
       auto set = m_settings.deviceSpecificSettings.value<SharedOutputSettings>();
       m_protocol = new gfx_protocol_base{plug->exec};
       m_dev = std::make_unique<shmdata_output_device>(
-          set, std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+          set, std::unique_ptr<gfx_protocol_base>(m_protocol),
           m_settings.name.toStdString());
     }
   }

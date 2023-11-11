@@ -232,10 +232,10 @@ bool SyphonDevice::reconnect()
       public:
         syphon_device(
             const SharedOutputSettings& set,
-            std::unique_ptr<ossia::net::protocol_base> proto,
+            std::unique_ptr<gfx_protocol_base> proto,
             std::string name)
             : ossia::net::device_base{std::move(proto)}
-            , root{*this, new SyphonNode{set}, name}
+            , root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), new SyphonNode{set}, name}
         {
         }
 
@@ -245,7 +245,7 @@ bool SyphonDevice::reconnect()
 
       m_dev = std::make_unique<syphon_device>(
           set,
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+          std::unique_ptr<gfx_protocol_base>(m_protocol),
           m_settings.name.toStdString());
     }
     // TODOengine->reload(&proto);
