@@ -53,6 +53,9 @@
 #if defined(OSSIA_PROTOCOL_LIBMAPPER)
 #include <Protocols/Libmapper/LibmapperClientDevice.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_SIMPLEIO)
+#include <Protocols/SimpleIO/SimpleIOProtocolFactory.hpp>
+#endif
 
 #include <Protocols/Mapper/MapperDevice.hpp>
 
@@ -127,6 +130,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_ARTNET)
          ,
          Protocols::ArtnetProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_SIMPLEIO)
+         ,
+         Protocols::SimpleIOProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_LIBMAPPER)
          ,

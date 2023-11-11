@@ -193,6 +193,20 @@ set(ARTNET_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetSpecificSettingsSerialization.cpp"
 )
 
+set(SIMPLEIO_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIODevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOSpecificSettings.hpp"
+)
+
+set(SIMPLEIO_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIODevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOSpecificSettingsSerialization.cpp"
+)
+
 set(MAPPER_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.cpp"
@@ -276,6 +290,13 @@ if(OSSIA_PROTOCOL_ARTNET)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::SerialPort)
     list(APPEND SCORE_FEATURES_LIST protocol_artnet)
   endif()
+endif()
+
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+  target_sources(${PROJECT_NAME} PRIVATE ${SIMPLEIO_HDRS} ${SIMPLEIO_SRCS})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_SIMPLEIO)
+  target_link_libraries(${PROJECT_NAME} PRIVATE simpleio)
+  list(APPEND SCORE_FEATURES_LIST protocol_simpleio)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
