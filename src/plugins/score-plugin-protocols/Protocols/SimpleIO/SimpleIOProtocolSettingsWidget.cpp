@@ -66,7 +66,7 @@ public:
     enumerateADCs(adcs);
     enumerateDACs(dacs);
     enumerateGPIOs(gpios);
-    enumerateHIDs(gpios);
+    enumerateHIDs(hid);
 
     // List ADCs
 
@@ -351,19 +351,16 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   layout->addRow(btns);
 
   connect(m_addPort, &QPushButton::clicked, this, [this] {
-
-#if 0
     auto dial = new AddPortDialog{*this};
     if(dial->exec() == QDialog::Accepted)
     {
       auto port = dial->port();
-      if(!port.name.isEmpty() && !port.controls.empty())
+      if(!port.name.isEmpty() && !port.path.isEmpty())
       {
         m_ports.push_back(port);
         updateTable();
       }
     }
-#endif
   });
   connect(m_rmPort, &QPushButton::clicked, this, [this] {
     ossia::flat_set<int> rows_to_remove;
