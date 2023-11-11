@@ -81,7 +81,7 @@ layout(location = 0) in vec2 position;
 
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
+  vec2 renderSize;
 } renderer;
 
 out gl_PerVertex { vec4 gl_Position; };
@@ -113,7 +113,7 @@ layout(location = 0) out vec2 v_texcoord;
 
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
+  vec2 renderSize;
 } renderer;
 
 out gl_PerVertex { vec4 gl_Position; };

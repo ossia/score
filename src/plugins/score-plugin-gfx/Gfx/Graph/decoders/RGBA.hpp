@@ -9,12 +9,8 @@ namespace score::gfx
 struct PackedDecoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450
-    layout(std140, binding = 0) uniform renderer_t {
-    mat4 clipSpaceCorrMatrix;
-    vec2 texcoordAdjust;
 
-    vec2 renderSize;
-    } renderer;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
     layout(binding=3) uniform sampler2D y_tex;
 
@@ -93,12 +89,8 @@ struct PackedDecoder : GPUVideoDecoder
 struct PlanarDecoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450
-    layout(std140, binding = 0) uniform renderer_t {
-    mat4 clipSpaceCorrMatrix;
-    vec2 texcoordAdjust;
 
-    vec2 renderSize;
-    } renderer;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
     %1
     layout(location = 0) in vec2 v_texcoord;
@@ -196,12 +188,8 @@ struct PlanarDecoder : GPUVideoDecoder
 struct PackedRectDecoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450
-    layout(std140, binding = 0) uniform renderer_t {
-    mat4 clipSpaceCorrMatrix;
-    vec2 texcoordAdjust;
 
-    vec2 renderSize;
-    } renderer;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
     layout(binding=3) uniform sampler2DRect y_tex;
 
@@ -225,17 +213,7 @@ layout(location = 1) in vec2 texcoord;
 
 layout(location = 0) out vec2 v_texcoord;
 
-layout(std140, binding = 0) uniform renderer_t {
-  mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
-
-  vec2 renderSize;
-} renderer;
-
-layout(std140, binding = 2) uniform material_t {
-  vec2 scale;
-  vec2 textureSize;
-} mat;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
 out gl_PerVertex { vec4 gl_Position; };
 

@@ -421,23 +421,6 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
 
     const auto proj = state.rhi->clipSpaceCorrMatrix();
 
-    m_outputUBOData.texcoordAdjust[0] = 1.f;
-    m_outputUBOData.texcoordAdjust[1] = 0.f;
-    /*
-    if (state.rhi->isYUpInFramebuffer())
-    {
-      // Vulkan, D3D, Metal
-      m_outputUBOData.texcoordAdjust[0] = 1.f;
-      m_outputUBOData.texcoordAdjust[1] = 0.f;
-    }
-    else
-    {
-      // GL
-      m_outputUBOData.texcoordAdjust[0] = -1.f;
-      m_outputUBOData.texcoordAdjust[1] = 1.f;
-    }
-    */
-
     memcpy(&m_outputUBOData.clipSpaceCorrMatrix[0], proj.data(), sizeof(float) * 16);
 
     m_outputUBOData.renderSize[0] = this->m_lastSize.width();

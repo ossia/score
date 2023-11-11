@@ -41,12 +41,8 @@ struct HAPDecoder : GPUVideoDecoder
 struct HAPDefaultDecoder : HAPDecoder
 {
   static inline const QString fragment = QStringLiteral(R"_(#version 450
-layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
 
-vec2 renderSize;
-} renderer;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
 layout(binding=3) uniform sampler2D y_tex;
 
@@ -94,12 +90,8 @@ void main ()
 struct HAPMDecoder : HAPDecoder
 {
   static inline const QString fragment = QStringLiteral(R"_(#version 450
-layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
 
-vec2 renderSize;
-} renderer;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
 layout(binding=3) uniform sampler2D y_tex;
 layout(binding=4) uniform sampler2D alpha_tex;

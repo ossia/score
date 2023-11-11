@@ -292,6 +292,8 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
     Material mat;
     mat.scale_w = sz.width();
     mat.scale_h = sz.height();
+    mat.tex_w = this->m_frameFormat.width;
+    mat.tex_h = this->m_frameFormat.height;
 
     res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
     m_recomputeScale = false;

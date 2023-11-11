@@ -616,10 +616,9 @@ QString ProtocolFactory::prettyName() const noexcept
   return QObject::tr("Kinect Input");
 }
 
-Device::DeviceEnumerator*
-ProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerators ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return {};
 }
 
 Device::DeviceInterface* ProtocolFactory::makeDevice(

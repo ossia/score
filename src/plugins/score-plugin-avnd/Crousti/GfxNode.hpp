@@ -22,16 +22,15 @@ layout(location = 0) out vec2 v_texcoord;
 
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
   vec2 renderSize;
-};
+} renderer;
 
 out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
   v_texcoord = texcoord;
-  gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
 }
 )_";
 
@@ -41,17 +40,15 @@ layout(location = 0) out vec4 fragColor;
 
 layout(std140, binding = 0) uniform renderer_t {
 mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
 vec2 renderSize;
-};
+} renderer;
 
 layout(binding=3) uniform sampler2D y_tex;
 
 
 void main ()
 {
-  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-  fragColor = texture(y_tex, texcoord);
+  fragColor = texture(y_tex, v_texcoord);
 }
 )_";
 

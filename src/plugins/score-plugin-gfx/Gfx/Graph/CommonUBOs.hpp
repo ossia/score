@@ -47,7 +47,6 @@ struct ModelCameraUBO
 struct OutputUBO
 {
   float clipSpaceCorrMatrix[16]{};
-  float texcoordAdjust[2]{};
 
   float renderSize[2]{};
 };

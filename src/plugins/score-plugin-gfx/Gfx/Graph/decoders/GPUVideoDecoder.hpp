@@ -8,6 +8,21 @@
 extern "C" {
 #include <libavutil/pixdesc.h>
 }
+
+#define SCORE_GFX_VIDEO_UNIFORMS \
+  R"_(
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  
+  vec2 renderSize;
+} renderer;
+
+layout(std140, binding = 2) uniform material_t {
+  vec2 scale;
+  vec2 textureSize;
+} mat;
+)_"
+
 namespace score::gfx
 {
 // TODO the "model" nodes should have a first update step so that they

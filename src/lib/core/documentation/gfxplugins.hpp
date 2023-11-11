@@ -95,9 +95,8 @@
  * // - adjustment factors which depend on the graphics API used.
  * layout(std140, binding = 0) uniform renderer_t {
  *   mat4 clipSpaceCorrMatrix;
- *   vec2 texcoordAdjust;
  *   vec2 renderSize;
- * };
+ * } renderer;
  *
  * // Always present.
  * // Corresponds to the score process execution information.
@@ -115,12 +114,12 @@
  *   vec4 channelTime;
  *
  *  float sampleRate;
- * };
+ * } process;
  *
  * // This UBO is generated from the input ports of the score::gfx::Node
  * // when using a DefaultShaderMaterial.
  * layout(std140, binding = 2) uniform material_t {
- * }
+ * } material;
  *
  * // Samplers corresponding to input image ports
  * // are automatically added if using a DefaultShaderMaterial, starting from binding = 3
@@ -132,7 +131,7 @@
  * void main()
  * {
  *   v_texcoord = texcoord;
- *   gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+ *   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
  * }
  * ```
  *
@@ -147,6 +146,9 @@
  * // <!> insert here all the UBOs used in the vertex shader <!>
  * // NOTE : some APIs require the *exact* same variable names & definitions to be used in
  * // all the pipeline stages so be careful with it.
+ * // NOTE : it is NECESSARY to give a name to the UBO variables and access them through it.
+ * // Otherwise, spirv-cross may generate different names between vertex & fragment, which crashes
+ * // on Apple's Metal API.
  *
  * layout(location = 0) out vec4 fragColor;
  *

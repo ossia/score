@@ -49,6 +49,7 @@ private:
   struct Material
   {
     float scale_w{}, scale_h{};
+    float tex_w{}, tex_h{};
   };
 
   std::unique_ptr<GPUVideoDecoder> m_gpu;

@@ -40,7 +40,7 @@ public:
 class gfx_protocol_base : public ossia::net::protocol_base
 {
 public:
-  gfx_protocol_base(GfxExecutionAction& ctx)
+  explicit gfx_protocol_base(GfxExecutionAction& ctx)
       : protocol_base{flags{}}
       , context{&ctx}
   {

@@ -15,12 +15,7 @@ struct YUYV422Decoder : GPUVideoDecoder
 {
   static const constexpr auto filter = R"_(#version 450
 
-layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
-
-vec2 renderSize;
-} renderer;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
 layout(binding=3) uniform sampler2D u_tex;
 
@@ -97,12 +92,7 @@ struct UYVY422Decoder : GPUVideoDecoder
 {
   static const constexpr auto filter = R"_(#version 450
 
-layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
-
-vec2 renderSize;
-} renderer;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
 layout(binding=3) uniform sampler2D u_tex;
 

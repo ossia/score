@@ -37,9 +37,8 @@ layout(location = 0) out vec2 v_texcoord;
 
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
   vec2 renderSize;
-};
+} renderer;
 
 layout(std140, binding = 2) uniform material_t {
   int idx;
@@ -52,7 +51,7 @@ out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  float viewportAspect = renderSize.x / renderSize.y;
+  float viewportAspect = renderer.renderSize.x / renderer.renderSize.y;
   float imageAspect = mat._imageSize.x / mat._imageSize.y;
 
   vec2 pos = position;
@@ -69,16 +68,15 @@ void main()
   pos += mat.position;
 
   v_texcoord = texcoord;
-  gl_Position = clipSpaceCorrMatrix * vec4(pos, 0.0, 1.);
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(pos, 0.0, 1.);
 }
 )_";
 
 static const constexpr auto images_single_fragment_shader = R"_(#version 450
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
   vec2 renderSize;
-};
+} renderer;
 
 layout(std140, binding = 2) uniform material_t {
   int idx;
@@ -108,9 +106,8 @@ void main ()
 static const constexpr auto images_tiled_fragment_shader = R"_(#version 450
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
   vec2 renderSize;
-};
+} renderer;
 
 layout(std140, binding = 2) uniform material_t {
   int idx;
@@ -702,25 +699,23 @@ layout(location = 0) out vec2 v_texcoord;
 
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
   vec2 renderSize;
-};
+} renderer;
 
 out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
   v_texcoord = vec2(texcoord.x, 1. - texcoord.y);
-  gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
 }
 )_";
 
 static const constexpr auto fullscreen_images_fragment_shader = R"_(#version 450
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
   vec2 renderSize;
-};
+} renderer;
 
 layout(binding=3) uniform sampler2D y_tex;
 
@@ -729,8 +724,8 @@ layout(location = 0) out vec4 fragColor;
 
 void main ()
 {
-  vec2 factor = textureSize(y_tex, 0) / renderSize;
-  vec2 ifactor = renderSize / textureSize(y_tex, 0);
+  vec2 factor = textureSize(y_tex, 0) / renderer.renderSize;
+  vec2 ifactor = renderer.renderSize / textureSize(y_tex, 0);
   fragColor = texture(y_tex, v_texcoord);
 }
 )_";

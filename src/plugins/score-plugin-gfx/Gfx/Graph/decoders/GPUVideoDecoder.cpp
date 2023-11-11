@@ -9,10 +9,8 @@ GPUVideoDecoder::~GPUVideoDecoder() { }
 
 void GPUVideoDecoder::release(RenderList&)
 {
-
   for(auto [sampler, tex] : samplers)
     tex->deleteLater();
-
 
   for(auto sampler : samplers)
   {
@@ -55,16 +53,7 @@ layout(location = 1) in vec2 texcoord;
 
 layout(location = 0) out vec2 v_texcoord;
 
-layout(std140, binding = 0) uniform renderer_t {
-  mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
-
-  vec2 renderSize;
-} renderer;
-
-layout(std140, binding = 2) uniform material_t {
-  vec2 scale;
-} mat;
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
 out gl_PerVertex { vec4 gl_Position; };
 
