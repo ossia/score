@@ -12,6 +12,7 @@
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>
+#include <Gfx/LibavOutputDevice.hpp>
 #include <Gfx/Settings/Factory.hpp>
 #include <Gfx/SharedInputSettings.hpp>
 #include <Gfx/SharedOutputSettings.hpp>
@@ -63,7 +64,8 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory, Gfx::WindowProtocolFactory, Gfx::CameraProtocolFactory
+      FW<Device::ProtocolFactory, Gfx::WindowProtocolFactory, Gfx::CameraProtocolFactory,
+         Gfx::LibavOutputProtocolFactory
 #if defined(SCORE_HAS_SHMDATA)
          ,
          Gfx::Shmdata::InputFactory, Gfx::ShmdataOutputProtocolFactory

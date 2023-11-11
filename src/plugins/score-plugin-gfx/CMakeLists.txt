@@ -136,7 +136,9 @@ set(HDRS
     Gfx/CameraSettings.hpp
     Gfx/CameraDevice.hpp
     Gfx/WindowDevice.hpp
-
+    Gfx/LibavOutputDevice.hpp
+    Gfx/LibavOutputSettings.hpp
+    Gfx/LibavEncoder.hpp
     # Gfx/graph/hap/source/hap.h
 
     score_plugin_gfx.hpp
@@ -200,9 +202,12 @@ set(SRCS
     Gfx/WindowDevice.cpp
     Gfx/GfxInputDevice.cpp
 
+    Gfx/LibavOutputDevice.cpp
+
     Gfx/Settings/Model.cpp
     Gfx/Settings/Presenter.cpp
     Gfx/Settings/View.cpp
+    Gfx/LibavEncoder.cpp
 
     score_plugin_gfx.cpp
 
