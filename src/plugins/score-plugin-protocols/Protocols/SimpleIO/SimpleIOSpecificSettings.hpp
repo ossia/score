@@ -40,8 +40,16 @@ struct DAC
   int32_t chip{};
   int32_t channel{};
 };
+struct HID
+{
+  int32_t chip{};
+  int32_t channel{};
+};
+struct Custom
+{
+};
 
-using Type = ossia::variant<GPIO, PWM, ADC, DAC>;
+using Type = ossia::variant<GPIO, PWM, ADC, DAC, HID, Custom>;
 
 struct Port
 {

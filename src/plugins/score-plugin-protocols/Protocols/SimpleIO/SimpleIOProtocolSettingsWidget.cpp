@@ -7,12 +7,8 @@
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <Library/LibrarySettings.hpp>
-
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
-#include <score/tools/FindStringInFile.hpp>
-#include <score/tools/ListNetworkAddresses.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
@@ -26,7 +22,10 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>
-#include <QSerialPortInfo>
+#include <QRadioButton>
+#include <QSpinBox>
+#include <QStackedLayout>
+#include <QStackedWidget>
 #include <QTableWidget>
 #include <QTimer>
 #include <QTreeWidget>
@@ -38,35 +37,30 @@ W_OBJECT_IMPL(Protocols::SimpleIOProtocolSettingsWidget)
 
 namespace Protocols
 {
-
-
-struct SimpleIOData
+struct SimpleIOData : SimpleIO::Port
 {
-  QString name;
-  QString path;
-
+  QString tree_name;
+  QString label;
 };
 
 using SimpleIONode = TreeNode<SimpleIOData>;
-
-
 class SimpleIODatabase : public TreeNodeBasedItemModel<SimpleIONode>
 {
 public:
   SimpleIODatabase()
   {
     beginResetModel();
-    auto& pwms = m_root.emplace_back(SimpleIOData{.name = "PWMs"}, &m_root);
-    auto& adcs = m_root.emplace_back(SimpleIOData{.name = "ADCs"}, &m_root);
-    auto& dacs = m_root.emplace_back(SimpleIOData{.name = "DACs"}, &m_root);
-    auto& gpios = m_root.emplace_back(SimpleIOData{.name = "GPIOs"}, &m_root);
-    auto& hid = m_root.emplace_back(SimpleIOData{.name = "HIDs"}, &m_root);
+    auto& pwms = m_root.emplace_back(SimpleIOData{{.name = "PWMs"}}, &m_root);
+    auto& adcs = m_root.emplace_back(SimpleIOData{{.name = "ADCs"}}, &m_root);
+    auto& dacs = m_root.emplace_back(SimpleIOData{{.name = "DACs"}}, &m_root);
+    auto& gpios = m_root.emplace_back(SimpleIOData{{.name = "GPIOs"}}, &m_root);
+    //    auto& hid = m_root.emplace_back(SimpleIOData{.name = "HIDs"}, &m_root);
 
     enumeratePWMs(pwms);
     enumerateADCs(adcs);
     enumerateDACs(dacs);
     enumerateGPIOs(gpios);
-    enumerateHIDs(hid);
+//    enumerateHIDs(hid);
 
     // List ADCs
 
@@ -77,13 +71,23 @@ public:
   }
 
   void enumeratePWMs(SimpleIONode& n) {
-    QDirIterator dir{"/sys/class/pwm",
-                     QDir::Dirs | QDir::NoDotAndDotDot,
-                     QDirIterator::NoIteratorFlags};
+    QDirIterator dir{
+        "/sys/class/pwm", QDir::Dirs | QDir::NoDotAndDotDot,
+        QDirIterator::NoIteratorFlags};
 
+    int i = 0;
     while(dir.hasNext()) {
       auto pwm = dir.nextFileInfo();
-      n.emplace_back(SimpleIOData{.name = pwm.fileName(), .path = pwm.absoluteFilePath()}, &m_root);
+      n.emplace_back(
+          SimpleIOData{
+              {
+                  .control = SimpleIO::PWM{},
+                  .name = QString{"PWM %1"}.arg(i++),
+                  .path = pwm.absoluteFilePath(),
+              },
+              {},
+              pwm.fileName()},
+          &m_root);
     }
   }
 
@@ -97,8 +101,18 @@ public:
 
   void enumerateHIDs(SimpleIONode& n) {
     for(int i = 0; i < 128; i++) {
-      if(auto dev = QString{"/dev/hidraw%1"}.arg(i); QFile::exists(dev)) {
-        n.emplace_back(SimpleIOData{.name = QString{"hidraw%1"}.arg(i), .path = dev}, &m_root);
+      if(const auto dev = QString{"/dev/hidraw%1"}.arg(i); QFile::exists(dev))
+      {
+        n.emplace_back(
+            SimpleIOData{
+                {
+                    .control = SimpleIO::HID{},
+                    .name = QString{"HID Raw %1"}.arg(i),
+                    .path = dev,
+                },
+                {},
+                QString{"hidraw%1"}.arg(i)},
+            &m_root);
       }
       else
       {
@@ -109,22 +123,63 @@ public:
 
   void enumerateGPIOs(SimpleIONode& n) {
     for(int chip = 0; chip < 128; chip++) {
-      char name[256];
-      char label[256];
-      int32_t lines, error;
+      char name[256]{};
+      char label[256]{};
+      int32_t lines{}, error{};
       GPIO_chip_info(chip, name, 255, label, 255, &lines, &error);
 
+      QString s_chip = QString::number(chip);
       if(error != 0)
         break;
-      qDebug() << "GPIO Chip " << chip << " : " << name << label << lines;
-      auto& chip_node = n.emplace_back(SimpleIOData{.name = QString{"GPIO chip %1"}.arg(chip), .path = name}, &n);
+      auto& chip_node = n.emplace_back(
+          SimpleIOData{{.name = QString{"GPIO chip %1"}.arg(chip)}}, &n);
       {
         for(int line = 0; line < lines; line++)
         {
           int32_t flags;
           GPIO_line_info(chip, line, &flags, name, 255, label, 255, &error);
-          qDebug() << " - Line " << line << " : " << name << label << lines;
-          chip_node.emplace_back(SimpleIOData{.name = QString{"%1: %2"}.arg(chip).arg(name), .path = QString{"%1:%2"}.arg(chip).arg(line)}, &chip_node);
+          if(error != 0)
+            break;
+
+          QString s_name = name;
+          QString s_label = label;
+          QString s_line = QString::number(line);
+          QString pretty_name;      // name
+          QString pretty_tree_name; // QString{"%1: %2"}.arg(line).arg(name)
+          QString pretty_label;     // QString{"%1: %2"}.arg(line).arg(name)
+          QString pretty_path;      // QString{"%1:%2"}.arg(chip).arg(line)
+          pretty_path = QString{"%1:%2"}.arg(chip).arg(line);
+          if(s_name.isEmpty() && s_label.isEmpty())
+          {
+            pretty_tree_name = s_line;
+          }
+          else if(s_name.isEmpty() && !s_label.isEmpty())
+          {
+            pretty_name = s_label;
+            pretty_tree_name = QString{"%1: %2"}.arg(line).arg(s_label);
+          }
+          else if(!s_name.isEmpty() && s_label.isEmpty())
+          {
+            pretty_name = s_name;
+            pretty_tree_name = QString{"%1: %2"}.arg(line).arg(s_name);
+          }
+          else
+          {
+            pretty_name = s_name;
+            pretty_label = s_label;
+            pretty_tree_name = QString{"%1: %2 (%3)"}.arg(line).arg(s_name).arg(s_label);
+          }
+
+          chip_node.emplace_back(
+              SimpleIOData{
+                  {.control = SimpleIO::
+                       GPIO{.chip = chip, .line = line, .flags = 0, .events = 0, .direction = false},
+                   .name = pretty_name,
+                   .path = pretty_path},
+                  pretty_tree_name,
+                  pretty_label,
+              },
+              &chip_node);
         }
       }
     }
@@ -144,7 +199,7 @@ public:
       switch(role)
       {
         case Qt::DisplayRole:
-          return node.name;
+          return node.tree_name.isEmpty() ? node.name : node.tree_name;
           //        case Qt::DecorationRole:
           //          return node.icon;
       }
@@ -192,7 +247,7 @@ public:
   {
     setAllColumnsShowFocus(true);
     setSelectionBehavior(QAbstractItemView::SelectRows);
-    setSelectionMode(QAbstractItemView::ExtendedSelection);
+    setSelectionMode(QAbstractItemView::SingleSelection);
     setDragDropMode(QAbstractItemView::NoDragDrop);
     setAlternatingRowColors(true);
     setUniformRowHeights(true);
@@ -213,18 +268,15 @@ public:
   }
 };
 
-
-
 class AddPortDialog : public QDialog
 {
 public:
   AddPortDialog(SimpleIOProtocolSettingsWidget& parent)
       : QDialog{&parent}
       , m_name{this}
-      , m_buttons{
-            QDialogButtonBox::StandardButton::Ok
-                | QDialogButtonBox::StandardButton::Cancel,
-            this}
+      , m_buttons{QDialogButtonBox::StandardButton::Ok | QDialogButtonBox::StandardButton::Cancel, this}
+      , m_gpioIn{"In"}
+      , m_gpioOut{"Out"}
   {
     this->setLayout(&m_layout);
     m_layout.addWidget(&m_availablePorts);
@@ -235,56 +287,75 @@ public:
     m_availablePorts.setModel(&SimpleIODatabase::instance());
     m_availablePorts.header()->resizeSection(0, 180);
     m_availablePorts.onSelectionChanged = [&](const SimpleIONode& newFixt) {
-      // Manufacturer, do nothing
+      m_currentNode = nullptr;
       if(newFixt.childCount() > 0)
         return;
 
       updateParameters(newFixt);
     };
 
-    m_address.setRange(1, 512);
-
     m_setupLayoutContainer.addLayout(&m_setupLayout);
     m_setupLayout.addRow(tr("Name"), &m_name);
-    m_setupLayout.addRow(tr("Address"), &m_address);
-    m_setupLayout.addRow(tr("Mode"), &m_mode);
-    m_setupLayout.addRow(tr("Channels"), &m_content);
+    m_setupLayout.addRow(tr("Info"), &m_info);
+    m_setupLayout.addRow(tr("Conf"), &m_custom);
     m_setupLayoutContainer.addStretch(0);
     m_setupLayoutContainer.addWidget(&m_buttons);
+
+    m_custom.addWidget(&m_defaultWidget);
+    m_custom.addWidget(&m_gpioWidget);
+
+    m_gpioWidget.setLayout(&m_gpioLayout);
+
+    m_gpioInOutLayout.addWidget(&m_gpioIn);
+    m_gpioInOutLayout.addWidget(&m_gpioOut);
+    m_gpioLayout.addRow(&m_gpioInOutLayout);
+
+    m_custom.setCurrentIndex(0);
+
     connect(&m_buttons, &QDialogButtonBox::accepted, this, &AddPortDialog::accept);
     connect(&m_buttons, &QDialogButtonBox::rejected, this, &AddPortDialog::reject);
-
-    connect(
-        &m_mode, qOverload<int>(&QComboBox::currentIndexChanged), this,
-        &AddPortDialog::setMode);
   }
 
   void updateParameters(const SimpleIONode& fixt)
-  {/*
-    m_name.setText(fixt.name);
+  {
+    m_currentNode = &fixt;
 
-    m_mode.clear();
-    for(auto& mode : fixt.modes)
-      m_mode.addItem(mode.name);
-    m_mode.setCurrentIndex(0);
+    if(!fixt.name.isEmpty())
+      m_name.setText(fixt.name);
+    else if(!fixt.label.isEmpty())
+      m_name.setText(fixt.label);
+    else if(!fixt.path.isEmpty())
+      m_name.setText(fixt.path);
 
-    m_currentPort = &fixt;
+    QString label;
+    if(!fixt.label.isEmpty())
+    {
+      label += "<b>Label:</b> ";
+      label += fixt.label;
+    }
 
-    setMode(0);*/
-  }
+    if(!fixt.path.isEmpty())
+    {
+      if(!label.isEmpty())
+        label += "<br/>";
 
-  void setMode(int mode_index)
-  {/*
-    if(!m_currentPort)
-      return;
-    if(!ossia::valid_index(mode_index, m_currentPort->modes))
-      return;
+      label += "<b>Path:</b> ";
+      label += fixt.path;
+    }
 
-    const PortMode& mode = m_currentPort->modes[mode_index];
-    int numChannels = mode.allChannels.size();
-    m_address.setRange(1, 513 - numChannels);
+    m_info.setTextFormat(Qt::RichText);
+    m_info.setText(label);
 
-    m_content.setText(mode.content());*/
+    switch(fixt.control.index())
+    {
+      case 0: // GPIO
+        m_custom.setCurrentIndex(1);
+        m_gpioIn.setChecked(true);
+        break;
+      default:
+        m_custom.setCurrentIndex(0);
+        break;
+    }
   }
 
   QSize sizeHint() const override { return QSize{800, 600}; }
@@ -292,22 +363,31 @@ public:
   SimpleIO::Port port() const noexcept
   {
     SimpleIO::Port f;
-    /*
-    if(!m_currentPort)
+    if(!m_currentNode)
       return f;
+    f = *m_currentNode;
+    f.name = m_name.text();
 
-    int mode_index = m_mode.currentIndex();
-    if(!ossia::valid_index(mode_index, m_currentPort->modes))
-      return f;
+    struct setup
+    {
+      const AddPortDialog& self;
+      void operator()(SimpleIO::GPIO& gpio) const noexcept
+      {
+        if(self.m_gpioIn.isChecked())
+          gpio.direction = 0;
+        else if(self.m_gpioOut.isChecked())
+          gpio.direction = 1;
+      }
 
-    auto& mode = m_currentPort->modes[mode_index];
+      void operator()(SimpleIO::PWM& gpio) const noexcept { }
+      void operator()(SimpleIO::ADC& gpio) const noexcept { }
+      void operator()(SimpleIO::DAC& gpio) const noexcept { }
+      void operator()(SimpleIO::HID& gpio) const noexcept { }
+      void operator()(SimpleIO::Custom& gpio) const noexcept { }
+    };
 
-    f.portName = m_currentPort->name;
-    f.modeName = m_mode.currentText();
-    f.mode.channelNames = mode.allChannels;
-    f.address = m_address.value() - 1;
-    f.controls = mode.channels;
-*/
+    ossia::visit(setup{*this}, f.control);
+
     return f;
   }
 
@@ -318,10 +398,18 @@ private:
   QVBoxLayout m_setupLayoutContainer;
   QFormLayout m_setupLayout;
   State::AddressFragmentLineEdit m_name;
-  QSpinBox m_address;
-  QComboBox m_mode;
-  QLabel m_content;
+  QLabel m_info;
   QDialogButtonBox m_buttons;
+
+  QStackedLayout m_custom;
+
+  QWidget m_defaultWidget;
+  QWidget m_gpioWidget;
+  QFormLayout m_gpioLayout;
+  QHBoxLayout m_gpioInOutLayout;
+  QRadioButton m_gpioIn, m_gpioOut;
+
+  const SimpleIOData* m_currentNode{};
 };
 
 SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
@@ -388,23 +476,21 @@ void SimpleIOProtocolSettingsWidget::updateTable()
   int row = 0;
   for(auto& fixt : m_ports)
   {
-#if 0    
-    auto name_item = new QTableWidgetItem{fixt.portName};
-    auto mode_item = new QTableWidgetItem{fixt.modeName};
-    auto address = new QTableWidgetItem{QString::number(fixt.address + 1)};
-    auto controls = new QTableWidgetItem{QString::number(fixt.controls.size())};
+    auto name_item = new QTableWidgetItem{fixt.name};
+    //auto mode_item = new QTableWidgetItem{fixt.modeName};
+    auto address = new QTableWidgetItem{fixt.path};
+    //auto controls = new QTableWidgetItem{QString::number(fixt.controls.size())};
     name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    // mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     address->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    controls->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    //controls->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     m_portsWidget->insertRow(row);
     m_portsWidget->setItem(row, 0, name_item);
-    m_portsWidget->setItem(row, 1, mode_item);
-    m_portsWidget->setItem(row, 2, address);
-    m_portsWidget->setItem(row, 3, controls);
+    //m_portsWidget->setItem(row, 1, mode_item);
+    m_portsWidget->setItem(row, 1, address);
+    //m_portsWidget->setItem(row, 3, controls);
     row++;
-#endif
   }
 }
 SimpleIOProtocolSettingsWidget::~SimpleIOProtocolSettingsWidget() { }

@@ -10,6 +10,8 @@ JSON_METADATA(Protocols::SimpleIO::GPIO, "GPIO")
 JSON_METADATA(Protocols::SimpleIO::PWM, "PWM")
 JSON_METADATA(Protocols::SimpleIO::ADC, "ADC")
 JSON_METADATA(Protocols::SimpleIO::DAC, "DAC")
+JSON_METADATA(Protocols::SimpleIO::HID, "HID")
+JSON_METADATA(Protocols::SimpleIO::Custom, "Custom")
 
 template <>
 void DataStreamReader::read(const Protocols::SimpleIO::GPIO& n)
@@ -104,6 +106,54 @@ void JSONReader::read(const Protocols::SimpleIO::PWM& n)
 
 template <>
 void JSONWriter::write(Protocols::SimpleIO::PWM& n)
+{
+}
+
+template <>
+void DataStreamReader::read(const Protocols::SimpleIO::HID& n)
+{
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Protocols::SimpleIO::HID& n)
+{
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Protocols::SimpleIO::HID& n)
+{
+  stream.StartObject();
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Protocols::SimpleIO::HID& n)
+{
+}
+
+template <>
+void DataStreamReader::read(const Protocols::SimpleIO::Custom& n)
+{
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Protocols::SimpleIO::Custom& n)
+{
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Protocols::SimpleIO::Custom& n)
+{
+  stream.StartObject();
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Protocols::SimpleIO::Custom& n)
 {
 }
 
