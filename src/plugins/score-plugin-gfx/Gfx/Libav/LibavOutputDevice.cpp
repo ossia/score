@@ -72,7 +72,7 @@ public:
   {
     auto& p = *static_cast<gfx_protocol_base*>(m_protocol.get());
     auto node = new LibavEncoderNode{set, enc, 0};
-    root.add_child(std::make_unique<gfx_node_base>(*this, p, node, name));
+    root.add_child(std::make_unique<gfx_node_base>(*this, p, node, "Video"));
   }
 
   const ossia::net::generic_node& get_root_node() const override { return root; }
