@@ -77,6 +77,8 @@ using XSetErrorHandler_ptr = X11ErrorHandler (*)(X11ErrorHandler);
 
 static struct
 {
+  bool run_under_x11{};
+  bool xwayland{};
   void* gtk2{};
   void* gtk3{};
   void* gtk4{};
@@ -114,25 +116,52 @@ extern "C" void disableAppNap();
 static void setup_x11()
 {
 #if defined(__linux__)
-  helper_dylibs.x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
-  if(helper_dylibs.x11)
-  {
-    helper_dylibs.x11_set_error_handler = reinterpret_cast<XSetErrorHandler_ptr>(
-        dlsym(helper_dylibs.x11, "XSetErrorHandler"));
-    assert(helper_dylibs.x11_set_error_handler);
+  static const bool x11 = !qgetenv("DISPLAY").isEmpty();
+  static const bool wayland = !qgetenv("WAYLAND_DISPLAY").isEmpty();
+  const auto platform = qgetenv("QT_QPA_PLATFORM");
+  const bool has_platform = !platform.isEmpty();
 
-    if(auto sym = reinterpret_cast<int (*)()>(dlsym(helper_dylibs.x11, "XInitThreads")))
+  if(!x11 && !wayland)
+    return;
+  static constexpr auto setup_x11_error_handling = [] {
+    helper_dylibs.x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
+    if(helper_dylibs.x11)
     {
-      if(!sym())
+      helper_dylibs.x11_set_error_handler = reinterpret_cast<XSetErrorHandler_ptr>(
+          dlsym(helper_dylibs.x11, "XSetErrorHandler"));
+      assert(helper_dylibs.x11_set_error_handler);
+
+      if(auto sym
+         = reinterpret_cast<int (*)()>(dlsym(helper_dylibs.x11, "XInitThreads")))
       {
-        qDebug() << "Failed to initialise xlib thread support.";
+        if(!sym())
+        {
+          qDebug() << "Failed to initialise xlib thread support.";
+        }
+
+        helper_dylibs.run_under_x11 = true;
+        helper_dylibs.xwayland = wayland;
       }
     }
-  }
+  };
 
-  // Wayland as of Qt 6.3 does not seem to support QRhi properly especially on nvidia
-  if(!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
+#if QT_VERSION <= QT_VERSION_CHECK(6, 6, 0)
+  // Wayland as of Qt 6 does not seem to support QRhi properly especially on nvidia
+  // so we still force xcb
+  if(!has_platform)
+  {
     qputenv("QT_QPA_PLATFORM", "xcb");
+    setup_x11_error_handling();
+  };
+#else
+  // Only setup X11 stuff if we are going to use XCB for sure
+  // or if we want to force running under xwayland:
+  if(x11)
+  {
+    if(!wayland || platform == "xcb")
+      setup_x11_error_handling();
+  }
+#endif
 #endif
 }
 
@@ -161,6 +190,8 @@ static void setup_gtk()
   if(qEnvironmentVariableIsSet("SCORE_DISABLE_AUDIOPLUGINS"))
     return;
   if(qEnvironmentVariableIsSet("SCORE_DISABLE_LV2"))
+    return;
+  if(!helper_dylibs.run_under_x11)
     return;
 
   helper_dylibs.gtk2 = dlopen("libgtk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL);
@@ -193,6 +224,8 @@ static void setup_gdk()
   if(qEnvironmentVariableIsSet("SCORE_DISABLE_AUDIOPLUGINS"))
     return;
   if(qEnvironmentVariableIsSet("SCORE_DISABLE_LV2"))
+    return;
+  if(!helper_dylibs.run_under_x11)
     return;
 
   static bool gtk3_loaded{};
@@ -561,9 +594,9 @@ int main(int argc, char** argv)
 #endif
 
   setup_limits();
+  setup_x11();
   setup_gtk();
   setup_suil();
-  setup_x11();
   disable_denormals();
   setup_faust_path();
   setup_locale();
