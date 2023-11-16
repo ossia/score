@@ -21,7 +21,14 @@ public:
 
     auto l = new QVBoxLayout{widg};
 
-    status = new QLabel;
+    struct FasterLabel : QLabel
+    {
+      QSize sizeHint() const override { return {180, 100}; }
+      QSize minimumSizeHint() const override { return {180, 100}; }
+      int heightForWidth(int) const override { return 100; }
+    };
+
+    status = new FasterLabel;
     status->setTextFormat(Qt::RichText);
     status->setText("<i>Remember those quiet evenings</i>");
     status->setWordWrap(true);
