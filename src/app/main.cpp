@@ -498,7 +498,7 @@ static void setup_fftw()
   fftwf_make_planner_thread_safe();
   fftwf_plan_with_nthreads(1);
   fftwf_init_threads();
-#elif defined(OSSIA_FFTW_DOUBLE_ONLY)
+#else
   fftw_make_planner_thread_safe();
   fftw_plan_with_nthreads(1);
   fftw_init_threads();
