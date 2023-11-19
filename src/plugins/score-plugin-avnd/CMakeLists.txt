@@ -499,6 +499,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Raw/Interpolator.hpp"
+  TARGET exponential_smoothing
+  MAIN_CLASS ExponentialSmoothing
+  NAMESPACE examples
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Tweener.hpp"
   TARGET tweener
   MAIN_CLASS Tweener

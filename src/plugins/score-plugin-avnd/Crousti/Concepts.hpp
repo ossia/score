@@ -14,6 +14,7 @@
 
 #include <boost/container/vector.hpp>
 
+#include <avnd/binding/ossia/qt.hpp>
 #include <avnd/common/concepts_polyfill.hpp>
 #include <avnd/common/struct_reflection.hpp>
 #include <avnd/concepts/audio_port.hpp>
@@ -155,80 +156,6 @@ struct TSerializer<JSONObject, oscr::CustomFloatControl<Node, FieldIndex>>
 
 namespace oscr
 {
-
-template <typename T, std::size_t N>
-constexpr auto to_const_char_array(const T (&val)[N])
-{
-  //using pair_type = typename std::decay_t<decltype(val)>::value_type;
-  using value_type = std::decay_t<decltype(T::second)>;
-
-  std::array<std::pair<const char*, value_type>, N> choices_cstr;
-  for(int i = 0; i < N; i++)
-  {
-    choices_cstr[i].first = val[i].first.data();
-    choices_cstr[i].second = val[i].second;
-  }
-  return choices_cstr;
-}
-template <std::size_t N, typename T>
-constexpr auto
-to_const_char_array(const std::array<std::pair<std::string_view, T>, N>& val)
-{
-  std::array<const char*, N> choices_cstr;
-  for(int i = 0; i < N; i++)
-    choices_cstr[i] = val[i].data();
-  return choices_cstr;
-}
-template <std::size_t N>
-constexpr auto to_const_char_array(const std::string_view (&val)[N])
-{
-  std::array<const char*, N> choices_cstr;
-  for(int i = 0; i < N; i++)
-    choices_cstr[i] = val[i].data();
-  return choices_cstr;
-}
-template <std::size_t N>
-constexpr auto to_const_char_array(const std::array<std::string_view, N>& val)
-{
-  std::array<const char*, N> choices_cstr;
-  for(int i = 0; i < N; i++)
-    choices_cstr[i] = val[i].data();
-  return choices_cstr;
-}
-
-template <std::size_t N>
-auto to_combobox_range(const std::string_view (&val)[N])
-{
-  std::vector<std::pair<QString, ossia::value>> vec;
-  for(int i = 0; i < N; i++)
-    vec.emplace_back(val[i].data(), i);
-  return vec;
-}
-
-template <std::size_t N>
-auto to_combobox_range(const std::array<std::string_view, N>& val)
-{
-  std::vector<std::pair<QString, ossia::value>> vec;
-  for(int i = 0; i < N; i++)
-    vec.emplace_back(val[i].data(), i);
-  return vec;
-}
-
-std::vector<std::pair<QString, ossia::value>> to_combobox_range(const auto& in)
-{
-  std::vector<std::pair<QString, ossia::value>> vec;
-  for(auto& v : to_const_char_array(in))
-    vec.emplace_back(v.first, v.second);
-  return vec;
-}
-
-std::vector<std::string> to_enum_range(const auto& in)
-{
-  std::vector<std::string> vec;
-  for(auto& v : to_const_char_array(in))
-    vec.emplace_back(v);
-  return vec;
-}
 
 template <typename Node, typename T, std::size_t N>
 auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
@@ -372,7 +299,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   else if constexpr(widg.widget == avnd::widget_type::choices)
   {
     constexpr auto c = avnd::get_range<T>();
-    auto enums = to_enum_range(c.values);
+    auto enums = avnd::to_enum_range(c.values);
     auto init = enums[c.init];
     std::vector<QString> pixmaps;
     if constexpr(requires { c.pixmaps; })
