@@ -63,6 +63,7 @@ bool CameraInput::start() noexcept
   m_formatContext = avformat_alloc_context();
   m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
   m_formatContext->flags |= AVFMT_FLAG_NOBUFFER;
+  m_formatContext->flags |= AVFMT_FLAG_FLUSH_PACKETS;
 
   AVDictionary* options = nullptr;
 
