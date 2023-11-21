@@ -339,7 +339,11 @@ private:
       if constexpr(avnd::has_processor_to_gui_bus<Info>)
       {
         // engine -> ui
-        proc.to_ui = [ptr](QByteArray mess) {
+        proc.to_ui = [ptr = QPointer{ptr}](QByteArray mess) {
+          // FIXME this is not enough as the message may be sent from another thread?
+          if(!ptr)
+            return;
+
           if constexpr(requires { ptr->bus.process_message(); })
           {
             ptr->bus.process_message();
@@ -350,7 +354,7 @@ private:
           }
           else if constexpr(requires { ptr->bus.process_message(ptr->ui, {}); })
           {
-            avnd::second_argument<&Info::ui::bus::process_message> arg;
+            std::decay_t<avnd::second_argument<&Info::ui::bus::process_message>> arg;
             MessageBusReader b{mess};
             b(arg);
             ptr->bus.process_message(ptr->ui, std::move(arg));

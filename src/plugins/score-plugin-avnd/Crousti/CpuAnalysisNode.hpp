@@ -165,9 +165,12 @@ template <typename Node_T>
       && avnd::texture_output_introspection<Node_T>::size == 0)
 struct GfxNode<Node_T> final : CustomGpuOutputNodeBase
 {
+  oscr::ProcessModel<Node_T>& processModel;
   GfxNode(
+      oscr::ProcessModel<Node_T>& element,
       std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id)
       : CustomGpuOutputNodeBase{std::move(q), std::move(ctls)}
+      , processModel{element}
   {
     this->instance = id;
 

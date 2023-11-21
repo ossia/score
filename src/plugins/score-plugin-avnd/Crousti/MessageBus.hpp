@@ -3,6 +3,9 @@
 
 #include <boost/pfr.hpp>
 
+#include <avnd/common/tag.hpp>
+#include <avnd/concepts/message_bus.hpp>
+
 namespace oscr
 {
 
@@ -43,7 +46,30 @@ struct MessageBusSender
   }
 
   template <typename T>
-  requires(!std::is_trivial_v<T>) void operator()(const T& msg)
+    requires(!std::is_trivial_v<T> && avnd::relocatable<T>)
+  void operator()(const T& msg)
+  {
+    QByteArray b(msg.size(), Qt::Uninitialized);
+    auto dst = reinterpret_cast<T*>(b.data());
+    new(dst) T(msg);
+
+    this->bus(std::move(b));
+  }
+
+  template <typename T>
+    requires(!std::is_trivial_v<T> && avnd::relocatable<T>)
+  void operator()(T&& msg)
+  {
+    QByteArray b(sizeof(msg), Qt::Uninitialized);
+    auto dst = reinterpret_cast<T*>(b.data());
+    std::construct_at(dst, std::move(msg));
+
+    this->bus(std::move(b));
+  }
+
+  template <typename T>
+    requires(!std::is_trivial_v<T> && !avnd::relocatable<T>)
+  void operator()(const T& msg)
   {
     // Here we gotta serialize... :D
     QByteArray buf;
@@ -51,7 +77,7 @@ struct MessageBusSender
     DataStreamReader str{&buf};
     Serializer{str}(msg);
 
-    this->bus(buf);
+    this->bus(std::move(buf));
   }
 };
 
@@ -92,7 +118,7 @@ struct Deserializer
 
 struct MessageBusReader
 {
-  const QByteArray& mess;
+  QByteArray& mess;
 
   template <typename T>
   requires std::is_trivial_v<T>
@@ -101,9 +127,18 @@ struct MessageBusReader
     // Here we can just do a memcpy
     memcpy(&msg, mess.data(), mess.size());
   }
+  template <typename T>
+    requires(!std::is_trivial_v<T> && avnd::relocatable<T>)
+  void operator()(T& msg)
+  {
+    auto src = reinterpret_cast<T*>(mess.data());
+    msg = std::move(*src);
+    std::destroy_at(src);
+  }
 
   template <typename T>
-  requires(!std::is_trivial_v<T>) void operator()(T& msg)
+    requires(!std::is_trivial_v<T> && !avnd::relocatable<T>)
+  void operator()(T& msg)
   {
     // Deserialize... :D
 

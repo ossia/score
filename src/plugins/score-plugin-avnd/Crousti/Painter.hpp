@@ -174,6 +174,12 @@ struct QPainterAdapter
     }
     path.addPolygon(poly);
   }
+
+  void draw_bytes(int x, int y, int w, int h, unsigned char* image, int img_w, int img_h)
+  {
+    auto img = QImage(image, img_w, img_h, QImage::Format_RGB32);
+    painter.drawImage(QRect(x, y, w, h), img, QRect(0, 0, img_w, img_h));
+  }
 };
 static_assert(avnd::painter<QPainterAdapter>);
 

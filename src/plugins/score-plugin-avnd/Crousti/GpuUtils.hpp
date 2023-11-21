@@ -3,6 +3,7 @@
 #if SCORE_PLUGIN_GFX
 #include <Process/ExecutionContext.hpp>
 
+#include <Crousti/MessageBus.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -916,17 +917,29 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
 };
 
 template <typename Node_T, typename Node>
-void prepareNewState(Node_T& node, const Node& parent)
+void prepareNewState(Node_T& eff, const Node& parent)
 {
+  if constexpr(avnd::has_processor_to_gui_bus<Node_T>)
+  {
+    auto& process = parent.processModel;
+    eff.send_message = [&process](auto&& b) mutable {
+      // FIXME right now all the rendering is done in the UI thread, which is very MEH
+      //    this->in_edit([&process, bb = std::move(b)]() mutable {
+      MessageBusSender{process.to_ui}(std::move(b));
+      //    });
+    };
+
+    // FIXME GUI -> engine. See executor.hpp
+  }
+
   if constexpr(avnd::can_prepare<Node_T>)
   {
     using prepare_type = avnd::first_argument<&Node_T::prepare>;
     prepare_type t;
     if_possible(t.instance = parent.instance);
-    node.prepare(t);
+    eff.prepare(t);
   }
 }
-
 }
 
 #endif

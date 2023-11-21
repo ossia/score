@@ -11,8 +11,11 @@
 
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
 #include <avnd/common/for_nth.hpp>
+
 namespace oscr
 {
+template <typename Info>
+class ProcessModel;
 static const constexpr auto generic_texgen_vs = R"_(#version 450
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;

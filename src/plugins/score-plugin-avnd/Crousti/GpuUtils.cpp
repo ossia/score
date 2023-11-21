@@ -52,12 +52,16 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
     m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params);
   }
 
-  m_renderState->renderSize = QSize(1000, 1000);
-  m_renderState->outputSize = QSize(1000, 1000);
+  m_renderState->renderSize = QSize(200, 200);
+  m_renderState->outputSize = QSize(200, 200);
   m_renderState->api = score::gfx::GraphicsApi::OpenGL;
   m_renderState->version = caps.qShaderVersion;
 }
-CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase() = default;
+
+CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase()
+{
+  m_renderState->destroy();
+}
 
 void CustomGpuOutputNodeBase::process(score::gfx::Message&& msg)
 {
@@ -66,7 +70,6 @@ void CustomGpuOutputNodeBase::process(score::gfx::Message&& msg)
 
 void CustomGpuOutputNodeBase::setRenderer(std::shared_ptr<score::gfx::RenderList> r)
 {
-
   m_renderer = r;
 }
 
@@ -79,7 +82,6 @@ void CustomGpuOutputNodeBase::startRendering() { }
 
 void CustomGpuOutputNodeBase::render()
 {
-
   if(m_update)
     m_update();
 

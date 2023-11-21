@@ -420,11 +420,7 @@ void ScreenNode::destroyOutput()
 
   if(auto s = m_window->state)
   {
-    delete s->rhi;
-    s->rhi = nullptr;
-
-    delete s->surface;
-    s->surface = nullptr;
+    s->destroy();
   }
 
   if(m_ownsWindow)

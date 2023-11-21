@@ -513,6 +513,14 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/LightnessSampler.hpp"
+  TARGET lightness_sampler
+  MAIN_CLASS LightnessSampler
+  NAMESPACE vo
+)
+
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Gpu/SolidColor.hpp"
   TARGET gpu_solid_color
   MAIN_CLASS GpuSolidColorExample

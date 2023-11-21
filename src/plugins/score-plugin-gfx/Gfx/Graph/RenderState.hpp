@@ -1,4 +1,5 @@
 #pragma once
+#include <QOffscreenSurface>
 #include <QtGui/private/qrhi_p.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
@@ -44,5 +45,14 @@ struct RenderState
   int samples{1};
   GraphicsApi api{};
   QShaderVersion version{};
+
+  void destroy()
+  {
+    delete rhi;
+    rhi = nullptr;
+
+    delete surface;
+    surface = nullptr;
+  }
 };
 }

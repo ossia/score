@@ -615,15 +615,18 @@ public:
       std::unique_ptr<score::gfx::Node> ptr;
       if constexpr(GpuGraphicsNode2<Node>)
       {
-        ptr.reset(new CustomGpuNode<Node>(qex_ptr, node->control_outs, id));
+        auto gpu_node = new CustomGpuNode<Node>(qex_ptr, node->control_outs, id);
+        ptr.reset(gpu_node);
       }
       else if constexpr(GpuComputeNode2<Node>)
       {
-        ptr.reset(new GpuComputeNode<Node>(qex_ptr, node->control_outs, id));
+        auto gpu_node = new GpuComputeNode<Node>(qex_ptr, node->control_outs, id);
+        ptr.reset(gpu_node);
       }
       else if constexpr(GpuNode<Node>)
       {
-        ptr.reset(new GfxNode<Node>(qex_ptr, node->control_outs, id));
+        auto gpu_node = new GfxNode<Node>(element, qex_ptr, node->control_outs, id);
+        ptr.reset(gpu_node);
       }
       node->id = gfx_exec.ui->register_node(std::move(ptr));
       node_id = node->id;
@@ -640,7 +643,9 @@ public:
       ptr.reset(node);
       this->node = ptr;
 
-      connect_message_bus(element, ctx, ptr);
+      if constexpr(requires { ptr->impl.effect; })
+        if constexpr(std::is_same_v<std::decay_t<decltype(ptr->impl.effect)>, Node>)
+          connect_message_bus(element, ctx, ptr->impl.effect);
       connect_worker(element, ctx, ptr);
 
       node->finish_init();
@@ -722,33 +727,31 @@ public:
   }
 
   void connect_message_bus(
-      ProcessModel<Node>& element, const ::Execution::Context& ctx,
-      std::shared_ptr<safe_node<Node>>& ptr)
+      ProcessModel<Node>& element, const ::Execution::Context& ctx, Node& eff)
   {
     // Custom UI messages to engine
-    avnd::effect_container<Node>& eff = ptr->impl;
     if constexpr(avnd::has_gui_to_processor_bus<Node>)
     {
       element.from_ui = [p = QPointer{this}, &eff](QByteArray b) {
         if(!p)
           return;
 
-        p->in_exec([mess = std::move(b), &eff] {
+        p->in_exec([mess = std::move(b), &eff]() mutable {
           using refl = avnd::function_reflection<&Node::process_message>;
           static_assert(refl::count <= 1);
 
           if constexpr(refl::count == 0)
           {
             // no arguments, just call it
-            eff.effect.process_message();
+            eff.process_message();
           }
           else if constexpr(refl::count == 1)
           {
             using arg_type = avnd::first_argument<&Node::process_message>;
             std::decay_t<arg_type> arg;
-            MessageBusReader b{mess};
-            b(arg);
-            eff.effect.process_message(std::move(arg));
+            MessageBusReader reader{mess};
+            reader(arg);
+            eff.process_message(std::move(arg));
           }
         });
       };
@@ -756,7 +759,7 @@ public:
 
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
-      eff.effect.send_message = [this](auto b) mutable {
+      eff.send_message = [this](auto b) mutable {
         this->in_edit([this, bb = std::move(b)]() mutable {
           MessageBusSender{this->process().to_ui}(std::move(bb));
         });

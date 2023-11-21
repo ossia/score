@@ -297,9 +297,12 @@ struct GfxNode<Node_T> final
     : CustomGfxNodeBase
     , GpuControlOuts
 {
+  oscr::ProcessModel<Node_T>& processModel;
   GfxNode(
+      oscr::ProcessModel<Node_T>& element,
       std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id)
       : GpuControlOuts{std::move(q), std::move(ctls)}
+      , processModel{element}
   {
     this->instance = id;
 
@@ -325,6 +328,5 @@ struct GfxNode<Node_T> final
     return new GfxRenderer<Node_T>{*this};
   }
 };
-
 }
 #endif
