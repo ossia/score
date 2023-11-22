@@ -142,7 +142,10 @@ struct Spammer : PatternObject
     if(prev.get_type() != next.get_type()) [[unlikely]]
       prev = next;
     else [[likely]]
-      ossia::apply(do_smooth{alpha}, next, prev);
+    {
+      if(prev.valid() && next.valid())
+        ossia::apply(do_smooth{alpha}, next, prev);
+    }
   }
 
   static_assert(std::atomic<std::chrono::nanoseconds>::is_always_lock_free);
