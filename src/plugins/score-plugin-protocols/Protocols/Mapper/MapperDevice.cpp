@@ -536,8 +536,6 @@ private:
       m_timers.clear();
     }
 
-    // TODO WTF this does nothing because of the change_tree attribute
-    m_device->get_root_node().clear_children();
     std::lock_guard l{m_rootLock};
 
     ossia::net::visit_parameters(
