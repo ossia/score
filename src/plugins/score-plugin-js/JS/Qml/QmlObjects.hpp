@@ -6,6 +6,8 @@
 
 #if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/TexturePort.hpp>
+
+#include <QQuickItem>
 #endif
 
 #include <score/tools/Debug.hpp>
