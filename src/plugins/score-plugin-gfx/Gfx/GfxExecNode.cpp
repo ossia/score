@@ -17,6 +17,7 @@ gfx_exec_node::~gfx_exec_node()
 void gfx_exec_node::run(
     const ossia::token_request& tk, ossia::exec_state_facade) noexcept
 {
+  m_last_flicks = tk.date;
   {
     // Copy all the UI controls
     const int n = std::ssize(controls);

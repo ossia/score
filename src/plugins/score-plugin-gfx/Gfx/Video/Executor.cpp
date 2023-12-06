@@ -38,6 +38,21 @@ public:
       exec_context->ui->unregister_node(id);
   }
 
+  void reload(const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo)
+  {
+    impl = nullptr;
+
+    if(id >= 0)
+      exec_context->ui->unregister_node(id);
+
+    m_decoder = dec;
+    m_decoder->seek(m_last_flicks.impl);
+
+    auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
+    impl = n.get();
+    id = exec_context->ui->register_node(std::move(n));
+  }
+
   std::string label() const noexcept override
   {
     if(this->m_decoder)
@@ -109,37 +124,52 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     Gfx::Video::Model& element, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{element, ctx, "VideoExecutorComponent", parent}
 {
-  if(auto dec = element.makeDecoder())
+  auto dec = element.makeDecoder();
+  if(!dec)
+    dec = std::make_shared<Video::video_decoder>(::Video::DecoderConfiguration{});
+
+  std::optional<double> tempo;
+  if(!element.ignoreTempo())
+    tempo = element.nativeTempo();
+  auto n = ossia::make_node<video_node>(
+      *ctx.execState, std::move(dec), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
+
+  for(auto* outlet : element.outlets())
   {
-    std::optional<double> tempo;
-    if(!element.ignoreTempo())
-      tempo = element.nativeTempo();
-    auto n = ossia::make_node<video_node>(
-        *ctx.execState, dec, tempo, ctx.doc.plugin<DocumentPlugin>().exec);
-
-    for(auto* outlet : element.outlets())
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
     {
-      if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
-      {
-        out->nodeId = n->id;
-      }
+      out->nodeId = n->id;
     }
-
-    n->root_outputs().push_back(new ossia::texture_outlet);
-
-    this->node = n;
-    m_ossia_process = std::make_shared<video_process>(n);
-
-    ::bind(
-        element, Gfx::Video::Model::p_scaleMode{}, this,
-        [this](score::gfx::ScaleMode m) {
-      if(auto vn = static_cast<video_node*>(this->node.get()); vn && vn->impl)
-      {
-        vn->impl->setScaleMode(m);
-      }
-        });
   }
+
+  n->root_outputs().push_back(new ossia::texture_outlet);
+
+  this->node = n;
+  m_ossia_process = std::make_shared<video_process>(n);
+
+  ::bind(
+      element, Gfx::Video::Model::p_scaleMode{}, this, [this](score::gfx::ScaleMode m) {
+        if(auto vn = static_cast<video_node*>(this->node.get()); vn && vn->impl)
+        {
+          vn->impl->setScaleMode(m);
+        }
+      });
+
+  con(element, &Gfx::Video::Model::pathChanged, this, [this](const QString& new_path) {
+    std::optional<double> tempo;
+    if(!this->process().ignoreTempo())
+      tempo = this->process().nativeTempo();
+
+    in_exec([node = std::weak_ptr{node}, dec = this->process().makeDecoder(),
+             tempo]() mutable {
+      if(auto vn = static_cast<video_node*>(node.lock().get()); vn && vn->impl)
+      {
+        vn->reload(std::move(dec), tempo);
+      }
+    });
+  });
 }
+
 void ProcessExecutorComponent::cleanup()
 {
   for(auto* outlet : this->process().outlets())

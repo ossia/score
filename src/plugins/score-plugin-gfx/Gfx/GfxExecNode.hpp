@@ -98,6 +98,7 @@ public:
 
   int32_t id{-1};
   std::atomic_int32_t script_index{0};
+  ossia::time_value m_last_flicks{};
   void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept override;
 };
 
