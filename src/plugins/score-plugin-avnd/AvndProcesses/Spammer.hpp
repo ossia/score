@@ -1,6 +1,6 @@
 #include <ossia/detail/jthread.hpp>
 #include <ossia/detail/triple_buffer.hpp>
-
+#include <halp/mappers.hpp>
 #include <AvndProcesses/AddressTools.hpp>
 
 namespace avnd_tools
