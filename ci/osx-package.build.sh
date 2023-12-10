@@ -7,7 +7,7 @@ export PATH=/usr/local/bin:$PATH
 export XCODE_ROOT=/Applications/Xcode_15.0.app
 sudo xcode-select -s $XCODE_ROOT
 
-xcrun /usr/local/bin/cninja macos-release-$MACOS_ARCH -- \
+xcrun /usr/local/bin/cninja macos-release -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install"
 
