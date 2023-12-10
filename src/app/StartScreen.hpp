@@ -235,11 +235,17 @@ struct StartScreenLink
 StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent)
     : QWidget(parent)
 {
-  QFont f("Ubuntu", 14, QFont::Light);
+// Workaround until https://bugreports.qt.io/browse/QTBUG-103225 is fixed
+#if defined(__APPLE__)
+  static constexpr double font_factor = 96. / 72.;
+#else
+  static constexpr double font_factor = 1.;
+#endif
+  QFont f("Ubuntu", 14  * font_factor, QFont::Light);
   f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   f.setStyleStrategy(QFont::PreferAntialias);
 
-  QFont titleFont("Montserrat", 14, QFont::DemiBold);
+  QFont titleFont("Montserrat", 14  * font_factor, QFont::DemiBold);
   titleFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   titleFont.setStyleStrategy(QFont::PreferAntialias);
 

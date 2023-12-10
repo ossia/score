@@ -58,6 +58,7 @@ W_OBJECT_IMPL(Application)
 #endif
 #if defined(SCORE_STATIC_PLUGINS)
 int qInitResources_score();
+int qInitResources_qtconf();
 #endif
 
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
@@ -76,16 +77,22 @@ class StartScreen : public QWidget
 }
 #endif
 
+static void loadResources()
+{
+// Note: Q_INIT_RESOURCE must be invoked outside of any namespace
+#if defined(SCORE_STATIC_PLUGINS)
+  Q_INIT_RESOURCE(score);
+  Q_INIT_RESOURCE(qtconf);
+#endif
+}
+
 namespace score
 {
 class DocumentModel;
 
 static void setQApplicationSettings(QApplication& m_app)
 {
-#if defined(SCORE_STATIC_PLUGINS)
-  qInitResources_score();
-#endif
-
+  loadResources();
   QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
 
   QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");            // Ubuntu Regular
