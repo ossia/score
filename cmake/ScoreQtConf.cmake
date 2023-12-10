@@ -25,8 +25,7 @@ Prefix = .
   
   file(
     WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-    CONTENT "${SCORE_QTCONF_CONTENT}"
-    NEWLINE_STYLE UNIX
+    "${SCORE_QTCONF_CONTENT}"
   )
   
   configure_file("${SCORE_ROOT_SOURCE_DIR}/cmake/qtconf.used.qrc" "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc")

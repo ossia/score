@@ -1,5 +1,5 @@
 #!/bin/bash -eux
-export OSSIA_SDK=/opt/ossia-sdk-x86_64
+export OSSIA_SDK=/opt/ossia-sdk-$MACOS_ARCH
 
 export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/SDK"
@@ -7,7 +7,7 @@ export PATH=/usr/local/bin:$PATH
 export XCODE_ROOT=/Applications/Xcode_15.0.app
 sudo xcode-select -s $XCODE_ROOT
 
-xcrun /usr/local/bin/cninja macos-release -- \
+xcrun /usr/local/bin/cninja macos-release-$MACOS_ARCH -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install"
 

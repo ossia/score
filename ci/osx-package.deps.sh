@@ -22,15 +22,15 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 brew list
 brew remove -f opusfile sox ffmpeg libsndfile flac opus libbluray libogg libvorbis libshout speex theora qt qt5 qtkeychain
 brew install gnu-tar ninja
-wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.5/cninja-v3.7.5-macOS.tar.gz -O cninja.tgz &
+wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.9/cninja-v3.7.9-macOS.tar.gz -O cninja.tgz &
 
 SDK_ARCHIVE=sdk-macOS.tar.gz
 wget -nv https://github.com/ossia/score-sdk/releases/download/sdk29/$SDK_ARCHIVE -O $SDK_ARCHIVE
-sudo mkdir -p /opt/ossia-sdk-x86_64/
+sudo mkdir -p /opt/ossia-sdk-$MACOS_ARCH/
 sudo chown -R $(whoami) /opt
 sudo chmod -R a+rwx /opt
-gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-x86_64/
-ls /opt/ossia-sdk-x86_64/
+gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-$MACOS_ARCH/
+ls /opt/ossia-sdk-$MACOS_ARCH/
 
 sudo rm -rf /Library/Developer/CommandLineTools
 sudo rm -rf /usr/local/include/c++

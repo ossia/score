@@ -86,20 +86,24 @@ stages:
           - bash: |
               source ci/osx-package.deps.sh
             env:
+              MACOS_ARCH: "x86_64"
               MAC_CODESIGN_PASSWORD: $(codesign)
               MAC_ALTOOL_PASSWORD: $(altool)
           - bash: |
               source ci/osx-package.build.sh
+            env:
+              MACOS_ARCH: "x86_64"
           - bash: |
               source ci/osx-package.deploy.sh
             env:
+              MACOS_ARCH: "x86_64"
               MAC_CODESIGN_PASSWORD: $(codesign)
               MAC_ALTOOL_PASSWORD: $(altool)
 
           - task: PublishPipelineArtifact@1
             inputs:
               targetPath: "$(Build.ArtifactStagingDirectory)"
-              artifactName: macOS
+              artifactName: macOS-x86_64
 
       - job: Tarball
         displayName: Tarball

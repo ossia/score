@@ -7,14 +7,17 @@ execute_process(
   COMMAND xcode-select --print-path
   OUTPUT_VARIABLE XCODE_PATH
   OUTPUT_STRIP_TRAILING_WHITESPACE
-  ECHO_OUTPUT_VARIABLE
 )
 set_cache(CMAKE_OSX_SYSROOT "${XCODE_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
 
-string(APPEND CMAKE_C_FLAGS_INIT "  -mtune=cannonlake  ")
-string(APPEND CMAKE_CXX_FLAGS_INIT " -mtune=cannonlake ")
+if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64")
+  string(APPEND CMAKE_C_FLAGS_INIT "  -mtune=cannonlake  ")
+  string(APPEND CMAKE_CXX_FLAGS_INIT " -mtune=cannonlake ")
+  set_cache(KFR_ARCH sse2)
+elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm*")
+  set_cache(KFR_ARCH neon)
+endif()
 
-set_cache(KFR_ARCH sse2)
 set_cache(BUILD_SHARED_LIBS OFF)
 set_cache(CMAKE_INSTALL_MESSAGE NEVER)
 
