@@ -11,10 +11,6 @@ if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*arm.*")
-  return()
-endif()
-
 # Packages
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
 if(NOT TARGET ${QT_PREFIX}::WebSockets)
