@@ -219,7 +219,7 @@ out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  v_texcoord = texcoord * mat.textureSize;
+  v_texcoord = texcoord * mat.texSz.xy;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.x * mat.scale.x, position.y * mat.scale.y, 0.0, 1.);
 }
 )_";

@@ -6,6 +6,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Syphon/SyphonHelpers.hpp>
 #include <Syphon/SyphonClient.h>
+#include <Syphon/SyphonOpenGLClient.h>
 #include <Syphon/SyphonOpenGLImage.h>
 #include <Syphon/SyphonServerDirectory.h>
 #include <QOpenGLContext>
@@ -56,10 +57,7 @@ private:
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
-  struct Material {
-    float scale_w{1.0f}, scale_h{1.0f};
-    float width{1.f}, height{1.f};
-  } material;
+  score::gfx::VideoMaterialUBO material;
   std::unique_ptr<score::gfx::PackedRectDecoder> m_gpu{};
 
   bool enabled{};
@@ -87,7 +85,6 @@ private:
   {
     enabled = false;
     // Need pool
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     SyphonServerDirectory *ssd = [SyphonServerDirectory sharedDirectory];
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
@@ -95,7 +92,7 @@ private:
     {
       if (NSDictionary *desc = findServer(servers, node.settings.path))
       {
-        m_receiver = [[SYPHON_CLIENT_UNIQUE_CLASS_NAME alloc]
+        m_receiver = [[SyphonOpenGLClient alloc]
             initWithServerDescription:desc
             context: nativeContext(rhi)
             options:NULL
@@ -104,7 +101,6 @@ private:
       }
       enabled = true;
     }
-    [pool drain];
   }
 
   score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return { }; }
@@ -112,7 +108,7 @@ private:
   {
     // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
-    const auto& mesh = renderer.defaultQuad();
+    const auto& mesh = renderer.defaultTriangle();
     if (!m_meshBuffer)
     {
       auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
@@ -125,40 +121,37 @@ private:
     m_processUBO->create();
 
     m_materialUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(score::gfx::VideoMaterialUBO));
     m_materialUBO->create();
 
     // Initialize syphon
     openServer(rhi);
     int w = 16, h = 16;
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     SyphonOpenGLImage* img{};
     if(enabled)
     {
-      if(img = [m_receiver newFrameImage]) {
+      if((img = [m_receiver newFrameImage])) {
         NSSize sz = img.textureSize;
         w = sz.width;
         h = sz.height;
+        currentTex = img.textureName;
       }
     }
 
     metadata.width = std::max((int)1, w);
     metadata.height = std::max((int)1, h);
-    material.width = metadata.width;
-    material.height = metadata.height;
+    material.textureSize[0] = w;
+    material.textureSize[1] = h;
+    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
 
     m_gpu = std::make_unique<score::gfx::PackedRectDecoder>(QRhiTexture::RGBA8, 4, metadata, QString{});
     createPipelines(renderer);
-    m_pixels.resize(w * h * 4);
 
     if(img)
     {
       rebuildTexture(img);
-      [img release];
     }
-
-    [pool drain];
   }
 
   void createPipelines(score::gfx::RenderList& r)
@@ -171,7 +164,7 @@ private:
           m_p,
           this->node.output[0]->edges,
           r,
-          r.defaultQuad(),
+          r.defaultTriangle(),
           shaders.first,
           shaders.second,
           m_processUBO,
@@ -180,7 +173,6 @@ private:
     }
   }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
   void rebuildTexture(SyphonOpenGLImage* img)
   {
     SCORE_ASSERT(!m_gpu->samplers.empty());
@@ -188,11 +180,13 @@ private:
 
     QRhiTexture::NativeTexture tt;
     tt.layout = 0;
-    tt.object = reinterpret_cast<decltype(tt.object)>(&currentTex);
+    tt.object = currentTex;
 
     tex->destroy();
     NSSize sz = img.textureSize;
     tex->setPixelSize(QSize(sz.width, sz.height));
+    tex->setFormat(QRhiTexture::Format::BGRA8);
+    tex->setFlags(tex->flags() | QRhiTexture::TextureRectangleGL);
     tex->createFrom(tt);
 
     // FIXME how to ensure this ?
@@ -208,7 +202,6 @@ private:
     for(auto& pass : m_p)
       pass.second.srb->create();
   }
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
   GLuint currentTex = 0;
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
@@ -229,7 +222,6 @@ private:
     // Check the current status of the Syphon remote
     bool connected{};
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     auto img = [m_receiver newFrameImage];
     if(!img) {
       return;
@@ -240,18 +232,17 @@ private:
     {
       metadata.width = std::max(1., sz.width);
       metadata.height = std::max(1., sz.height);
-      material.width = metadata.width;
-      material.height = metadata.height;
+      material.scale[0] = 1.f;
+      material.scale[1] = 1.f;
+      material.textureSize[0] = metadata.width;
+      material.textureSize[1] = metadata.height;
 
       currentTex = img.textureName;
       rebuildTexture(img);
     }
 
-    [img release];
-    [pool drain];
-
     res.updateDynamicBuffer(m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
-    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &material);
+    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
   }
 
   void runRenderPass(
@@ -260,7 +251,7 @@ private:
       score::gfx::Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    score::gfx::quadRenderPass(renderer, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
+    score::gfx::defaultRenderPass(renderer, mesh, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
   }
 
   void release(score::gfx::RenderList& r) override
@@ -289,7 +280,6 @@ private:
   }
 
   SyphonOpenGLClient* m_receiver{};
-  std::vector<unsigned char> m_pixels;
 };
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 
@@ -381,15 +371,12 @@ public:
   void enumerate(
       std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
     auto ssd = [SyphonServerDirectory sharedDirectory];
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
     for(int i = 0; i < servers.count; i++)
     {
       registerServer(servers[i], f);
     }
-    [pool drain];
   }
 };
 

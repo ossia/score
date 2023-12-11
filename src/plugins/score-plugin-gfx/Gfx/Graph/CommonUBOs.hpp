@@ -51,5 +51,14 @@ struct OutputUBO
   float renderSize[2]{};
 };
 
+/**
+ * @brief UBO shared across all video objects.
+ */
+struct VideoMaterialUBO
+{
+  float scale[2]{1.f, 1.f};
+  float textureSize[2]{1.f, 1.f};
+};
+
 #pragma pack(pop)
 }

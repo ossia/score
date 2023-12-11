@@ -14,7 +14,7 @@ static void iterateCameraFormats(AVCaptureDevice* device, std::function<void(Cam
     CMFormatDescriptionRef formatDescription{};
     CMVideoDimensions dimensions{};
 
-    formatDescription = (CMFormatDescriptionRef) [format performSelector:@selector(formatDescription)];
+    formatDescription = (__bridge CMFormatDescriptionRef) [format performSelector:@selector(formatDescription)];
     dimensions = CMVideoFormatDescriptionGetDimensions(formatDescription);
 
     for (id range in [format valueForKey:@"videoSupportedFrameRateRanges"]) {
@@ -31,8 +31,6 @@ static void iterateCameraFormats(AVCaptureDevice* device, std::function<void(Cam
 
 void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func)
 {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
   {
     NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
     for (AVCaptureDevice *device in devices) {
@@ -46,8 +44,6 @@ void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func)
       iterateCameraFormats(device, func);
     }
   }
-
-  [pool release];
 }
 }
 

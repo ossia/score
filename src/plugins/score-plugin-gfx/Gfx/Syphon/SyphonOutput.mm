@@ -46,7 +46,7 @@ struct SyphonNode final : score::gfx::OutputNode
   void onRendererChange() override { }
   bool canRender() const override
   {
-    return  bool(m_syphon);
+    return bool(m_syphon);
   }
 
 
@@ -54,7 +54,6 @@ struct SyphonNode final : score::gfx::OutputNode
   {
     if(!m_created)
     {
-      NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
       auto serverName = this->m_settings.path.toNSString();
       m_syphon = [[SyphonOpenGLServer alloc]
         initWithName:serverName
@@ -62,8 +61,6 @@ struct SyphonNode final : score::gfx::OutputNode
         options:NULL
       ];
       m_created = true;
-
-      [pool drain];
     }
   }
 
@@ -73,7 +70,7 @@ struct SyphonNode final : score::gfx::OutputNode
       m_update();
 
     auto renderer = m_renderer.lock();
-    if (renderer && m_renderState)
+    if (renderer && renderer->nodes.size() > 1 && m_renderState)
     {
       auto rhi = m_renderState->rhi;
 
@@ -94,7 +91,6 @@ struct SyphonNode final : score::gfx::OutputNode
         if (m_created)
         {
           auto t = static_cast<QGles2Texture*>(m_texture);
-          NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
           [m_syphon
             publishFrameTexture:t->texture
@@ -103,7 +99,6 @@ struct SyphonNode final : score::gfx::OutputNode
             textureDimensions:NSMakeSize(m_settings.width, m_settings.height)
             flipped:false
           ];
-          [pool drain];
         }
       }
     }
@@ -164,14 +159,9 @@ struct SyphonNode final : score::gfx::OutputNode
 
   void destroyOutput() override
   {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
     [m_syphon stop];
-    [m_syphon release];
 
     m_syphon = nullptr;
-
-    [pool drain];
   }
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override

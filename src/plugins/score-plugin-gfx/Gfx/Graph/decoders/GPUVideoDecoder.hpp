@@ -12,13 +12,12 @@ extern "C" {
 #define SCORE_GFX_VIDEO_UNIFORMS \
 "layout(std140, binding = 0) uniform renderer_t {\n" \
 "  mat4 clipSpaceCorrMatrix;\n" \
-"  \n" \
 "  vec2 renderSize;\n" \
 "} renderer;\n" \
 "\n" \
 "layout(std140, binding = 2) uniform material_t {\n" \
 "  vec2 scale;\n" \
-"  vec2 textureSize;\n" \
+"  vec2 texSz;\n" \
 "} mat;\n"
 
 namespace score::gfx

@@ -130,6 +130,8 @@ public:
 
   int samples() const noexcept { return m_samples; }
 
+  bool canRender() const noexcept { return m_ready; }
+
 private:
   OutputUBO m_outputUBOData;
 

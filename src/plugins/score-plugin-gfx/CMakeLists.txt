@@ -279,6 +279,12 @@ if(APPLE)
     find_library(AudioToolbox_FK AudioToolbox)
     find_library(VideoToolbox_FK VideoToolbox)
 
+    target_compile_options(${PROJECT_NAME}
+      PRIVATE
+        $<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc>
+        $<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc-exceptions>
+        $<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-weak>
+    )
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${QuartzCore_FK}
         ${AppKit_FK}
