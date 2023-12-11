@@ -27,7 +27,7 @@ jobs:
 
   brew-m1:
     name: macOS (Release, Brew, AppleSilicon)
-    runs-on: macos-13-xlarge
+    runs-on: macmini-arm64
     
     steps:
       - name: Checkout code
@@ -49,7 +49,7 @@ jobs:
 
   brew-m1-dev:
     name: macOS (Dev, Brew, AppleSilicon)
-    runs-on: macos-13-xlarge
+    runs-on: macmini-arm64
     
     steps:
       - name: Checkout code
