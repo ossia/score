@@ -1,7 +1,7 @@
 #!/bin/bash -eux
 
-if [[ $# -lt 1 ]]; then
-  echo "Pass paths to source and build dir as you would for any CMake script: -S <source dir> -B <build dir>"
+if [[ $# -lt 4 ]]; then
+  echo "Pass paths to source and build dir as you would for any CMake script: -S '<source dir>' -B '<build dir>'"
   exit 1
 fi
 
@@ -31,5 +31,5 @@ ARGS=(
   -DCMAKE_BUILD_TYPE=Debug
 )
 
-cmake "$@" "${ARGS[@]}"
-cmake --build build-developer
+cmake -S "$2" -B "$4" "${ARGS[@]}"
+cmake --build "$4"

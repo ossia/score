@@ -67,4 +67,4 @@ jobs:
 
       - name: Build
         run: |
-          ./ci/developer.build.sh
+          ./ci/developer.build.sh -S "$PWD" -B build-developer
