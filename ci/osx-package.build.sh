@@ -7,7 +7,7 @@ export PATH=/usr/local/bin:$PATH
 export XCODE_ROOT=/Applications/Xcode_15.0.app
 sudo xcode-select -s $XCODE_ROOT
 
-xcrun /usr/local/bin/cninja macos-release -- \
+xcrun /usr/local/bin/cninja -S $PWD -B build macos-release -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install"
 
@@ -16,14 +16,14 @@ find . -type f -name 'ossia score' \
   || exit 1
 
 (
-  cd build-*
+  cd build
   echo "Installing OssiaScore: "
   xcrun cmake --install . --strip --component OssiaScore
 )
 
 
 (
-  cd build-*
+  cd build
   echo "Installing Devel: "
   xcrun cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
 )
