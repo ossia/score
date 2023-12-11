@@ -24,7 +24,7 @@ brew remove -f opusfile sox ffmpeg libsndfile flac opus libbluray libogg libvorb
 brew install gnu-tar ninja
 wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.9/cninja-v3.7.9-macOS.tar.gz -O cninja.tgz &
 
-SDK_ARCHIVE=sdk-macOS.tar.gz
+SDK_ARCHIVE=sdk-macOS-$MACOS_ARCH.tar.gz
 wget -nv https://github.com/ossia/score-sdk/releases/download/sdk30/$SDK_ARCHIVE -O $SDK_ARCHIVE
 sudo mkdir -p /opt/ossia-sdk-$MACOS_ARCH/
 sudo chown -R $(whoami) /opt
