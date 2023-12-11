@@ -78,7 +78,7 @@ JitCompiler::JitCompiler()
   {
     llvm::orc::SymbolMap RuntimeInterposes;
 
-#if LLVM_VERSION_MAJOR < 18
+#if LLVM_VERSION_MAJOR < 17
 #define toAddress pointerToJITTargetAddress
 #else
     static const auto toAddress = [](auto ptr) {
