@@ -2,10 +2,10 @@
 export TAG=$GITTAGNOV
 
 export HOMEBREW_NO_AUTO_UPDATE=1
-export SRC_PATH=$PWD
+export SRC_PATH="$PWD"
 brew install graphicsmagick imagemagick create-dmg
 
-cd $SRC_PATH/install/
+cd "$SRC_PATH/install/"
 
 # Codesign
 sign_app() {
@@ -19,7 +19,9 @@ sign_app() {
 }
 
 echo " === code signing === "
-security unlock-keychain -p travis build.keychain
+if [[ -f build.keychain ]]; then
+  security unlock-keychain -p travis build.keychain
+fi
 
 sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vstpuppet.app"
 sign_app "$SRC_PATH/src/vst3puppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vst3puppet.app"
@@ -27,8 +29,11 @@ sign_app "$SRC_PATH/src/app/entitlements.plist" "ossia score.app"
 
 echo " === create dmg === "
 # Create a .dmg
-cp $SRC_PATH/LICENSE.txt license.txt
-security unlock-keychain -p travis build.keychain
+cp "$SRC_PATH/LICENSE.txt" license.txt
+
+if [[ -f build.keychain ]]; then
+  security unlock-keychain -p travis build.keychain
+fi
 
 echo killing...; sudo pkill -9 XProtect >/dev/null || true;
 echo waiting...; while pgrep XProtect; do sleep 3; done;
@@ -42,12 +47,15 @@ sudo create-dmg \
   --icon "ossia score.app" 200 190 \
   --hide-extension "ossia score.app" \
   'score.dmg' 'ossia score.app'
-ls
-export WHOAMI=$(whoami)
-sudo chown $WHOAMI *.dmg
-echo " === notarize === "
+
+sudo chown "$(whoami)" ./*.dmg
+
 # Notarize the .dmg
-security unlock-keychain -p travis build.keychain
+echo " === notarize === "
+if [[ -f build.keychain ]]; then
+  security unlock-keychain -p travis build.keychain
+fi
+
 xcrun notarytool submit *.dmg \
   --team-id "GRW9MHZ724" \
   --apple-id "jeanmichael.celerier@gmail.com" \
@@ -55,10 +63,15 @@ xcrun notarytool submit *.dmg \
   --progress \
   --wait
 
-xcrun stapler staple *.dmg
-xcrun stapler validate *.dmg
+# Staple
+xcrun stapler staple ./*.dmg
+xcrun stapler validate ./*.dmg
 
 [[ $? == 0 ]] || exit 1
 
-mv *.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
+# Archive
+if [ -z ${BUILD_ARTIFACTSTAGINGDIRECTORY+x} ]; then
+  BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD"
+fi
+mv ./*.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
 mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"

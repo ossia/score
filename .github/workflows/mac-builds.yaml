@@ -60,3 +60,30 @@ jobs:
       - name: Build
         run: |
           ./ci/developer.build.sh -S "$PWD" -B build-developer
+
+  m1-package:
+    name: macOS (AppleSilicon Release)
+    runs-on: macmini-arm64
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - run: |
+          source ci/osx-package.build.sh
+        env:
+          MACOS_ARCH: "aarch64"
+      - run: |
+          source ci/osx-package.deploy.sh
+        env:
+          MACOS_ARCH: "aarch64"
+          MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
+
+      - name: Upload build
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos-aarch64
+          path: |
+            *.dmg

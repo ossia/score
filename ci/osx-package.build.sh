@@ -3,11 +3,15 @@ export OSSIA_SDK=/opt/ossia-sdk-$MACOS_ARCH
 
 export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/SDK"
-export PATH=/usr/local/bin:$PATH
-export XCODE_ROOT=/Applications/Xcode_15.0.app
-sudo xcode-select -s $XCODE_ROOT
+export PATH=/usr/local/bin:/opt/homebrew/bin:$PATH
+if [[ -d /Applications/Xcode_15.0.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_15.0.app
+  sudo xcode-select -s "$XCODE_ROOT"
+else
+  export XCODE_ROOT=/Applications/Xcode.app
+fi
 
-xcrun /usr/local/bin/cninja -S $PWD -B build macos-release -- \
+xcrun /usr/local/bin/cninja -S "$PWD" -B build macos-release -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install"
 
@@ -15,23 +19,12 @@ find . -type f -name 'ossia score' \
   | grep '.' \
   || exit 1
 
-(
-  cd build
-  echo "Installing OssiaScore: "
-  xcrun cmake --install . --strip --component OssiaScore
-)
-
-
-(
-  cd build
-  echo "Installing Devel: "
-  xcrun cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
-)
+xcrun cmake --install build --strip --component OssiaScore
+xcrun cmake --install build --strip --component Devel --prefix "$SDK_DIR/usr"
 
 ls "$SDK_DIR/usr"
 
 (
-  echo "./ci/create-sdk-mac.sh"
   ./ci/create-sdk-mac.sh
 )
 
