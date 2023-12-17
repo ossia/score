@@ -43,7 +43,7 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder()
   SCORE_ASSERT(JTMB);
 
   llvm::orc::LLJITBuilder builder;
-  JTMB->setCodeGenOptLevel(llvm::CodeGenOpt::Aggressive);
+  JTMB->setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
   setTargetOptions(JTMB->getOptions());
 
   builder.setJITTargetMachineBuilder(std::move(*JTMB));
