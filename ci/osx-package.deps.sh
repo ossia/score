@@ -6,14 +6,14 @@
     set +x
     KEY_CHAIN=build.keychain
 
-    security create-keychain -p travis $KEY_CHAIN
-    security default-keychain -s $KEY_CHAIN
-    security unlock-keychain -p travis $KEY_CHAIN
+    security create-keychain -p travis "$KEY_CHAIN"
+    security default-keychain -s "$KEY_CHAIN"
+    security unlock-keychain -p travis "$KEY_CHAIN"
 
-    security import $CODESIGN_SECUREFILEPATH -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign > /dev/null 2>&1
-    security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN > /dev/null 2>&1
+    security import "$CODESIGN_SECUREFILEPATH" -k "$KEY_CHAIN" -P "$MAC_CODESIGN_PASSWORD" -T /usr/bin/codesign > /dev/null 2>&1
+    security set-key-partition-list -S apple-tool:,apple: -s -k travis "$KEY_CHAIN" > /dev/null 2>&1
 
-    rm -rf $CODESIGN_SECUREFILEPATH
+    rm -rf "$CODESIGN_SECUREFILEPATH"
 )
 
 set +e
@@ -25,12 +25,12 @@ brew install gnu-tar ninja
 wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.9/cninja-v3.7.9-macOS.tar.gz -O cninja.tgz &
 
 SDK_ARCHIVE=sdk-macOS-$MACOS_ARCH.tar.gz
-wget -nv https://github.com/ossia/score-sdk/releases/download/sdk30/$SDK_ARCHIVE -O $SDK_ARCHIVE
-sudo mkdir -p /opt/ossia-sdk-$MACOS_ARCH/
+wget -nv https://github.com/ossia/score-sdk/releases/download/sdk30/$SDK_ARCHIVE -O "$SDK_ARCHIVE"
+sudo mkdir -p "/opt/ossia-sdk-$MACOS_ARCH/"
 sudo chown -R $(whoami) /opt
 sudo chmod -R a+rwx /opt
-gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-$MACOS_ARCH/
-ls /opt/ossia-sdk-$MACOS_ARCH/
+gtar xhaf "$SDK_ARCHIVE" --strip-components=2 --directory "/opt/ossia-sdk-$MACOS_ARCH/"
+ls "/opt/ossia-sdk-$MACOS_ARCH/"
 
 sudo rm -rf /Library/Developer/CommandLineTools
 sudo rm -rf /usr/local/include/c++

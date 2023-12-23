@@ -4,11 +4,21 @@ export OSSIA_SDK=/opt/ossia-sdk-$MACOS_ARCH
 export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/SDK"
 export PATH=/usr/local/bin:/opt/homebrew/bin:$PATH
-if [[ -d /Applications/Xcode_15.0.app ]]; then
+
+if [[ -d /Applications/Xcode_15.1.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_15.1.app
+  sudo xcode-select -s "$XCODE_ROOT"
+elif [[ -d /Applications/Xcode_15.0.app ]]; then
   export XCODE_ROOT=/Applications/Xcode_15.0.app
   sudo xcode-select -s "$XCODE_ROOT"
 else
   export XCODE_ROOT=/Applications/Xcode.app
+fi
+
+if [[ "$MACOS_ARCH" = "x86_64" ]]; then
+  export CNINJA_TOOLCHAIN=macos-release-10.15
+else
+  export CNINJA_TOOLCHAIN=macos-release-11.0
 fi
 
 xcrun /usr/local/bin/cninja -S "$PWD" -B build macos-release -- \

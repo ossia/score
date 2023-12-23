@@ -26,6 +26,8 @@ jobs:
           ./ci/osx-brew.build.sh
 
   brew-m1:
+    # Disabled until we manage to set-up proper macOS VMs to not pollute host with homebrew
+    if: false
     name: macOS (Release, Brew, AppleSilicon)
     runs-on: macmini-arm64
     
@@ -44,6 +46,8 @@ jobs:
           ./ci/osx-brew.build.sh
 
   brew-m1-dev:
+    # Disabled until we manage to set-up proper macOS VMs to not pollute host with homebrew
+    if: false
     name: macOS (Dev, Brew, AppleSilicon)
     runs-on: macmini-arm64
     
