@@ -11,6 +11,7 @@ set_cache(CMAKE_OPTIMIZE_DEPENDENCIES 1)
 set_cache(CMAKE_LINK_DEPENDS_NO_SHARED 1)
 set_cache(SCORE_PCH True)
 set_cache(SCORE_DYNAMIC_PLUGINS True)
+set_cache(SCORE_MACOS_ONLY_SYSTEM_LIBARIES ON)
 
 if(UNIX AND NOT APPLE)
   string(APPEND CMAKE_C_FLAGS_INIT " -ggnu-pubnames -fdebug-types-section")

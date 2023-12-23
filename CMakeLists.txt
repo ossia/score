@@ -81,6 +81,15 @@ if(APPLE)
 endif()
 set(QT_VERSION Qt6 6.2)
 
+if(SCORE_MACOS_ONLY_SYSTEM_LIBARIES)
+  if(APPLE)
+    foreach(xpath "/opt/homebrew;/usr/local;/usr/X11R6;/usr/pkg;/opt;/sw;/opt/local")
+      list(REMOVE_ITEM CMAKE_SYSTEM_PREFIX_PATH ${xpath})
+      list(REMOVE_ITEM CMAKE_PREFIX_PATH ${xpath})
+    endforeach()
+  endif()
+endif()
+
 # QT_PREFIX: Qt5 / Qt6
 list(GET QT_VERSION 0 QT_PREFIX)
 
