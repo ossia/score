@@ -21,7 +21,7 @@ else
   export CNINJA_TOOLCHAIN=macos-release-11.0
 fi
 
-xcrun /usr/local/bin/cninja -S "$PWD" -B build macos-release -- \
+xcrun /usr/local/bin/cninja -S "$PWD" -B build "$CNINJA_TOOLCHAIN" -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install"
 
