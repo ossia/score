@@ -76,6 +76,9 @@ jobs:
           submodules: 'recursive'
 
       - run: |
+          source ci/common.deps.sh
+
+      - run: |
           source ci/osx-package.build.sh
         env:
           MACOS_ARCH: "aarch64"
