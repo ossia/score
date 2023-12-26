@@ -20,11 +20,18 @@ sign_app() {
 
 echo " === code signing === "
 if [[ -f build.keychain ]]; then
+  echo "... unlock keychain "
   security unlock-keychain -p travis build.keychain
 fi
 
+
+echo "... vstpuppet "
 sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vstpuppet.app"
+
+echo "... vst3puppet "
 sign_app "$SRC_PATH/src/vst3puppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vst3puppet.app"
+
+echo "... score "
 sign_app "$SRC_PATH/src/app/entitlements.plist" "ossia score.app"
 
 echo " === create dmg === "
