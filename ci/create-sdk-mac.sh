@@ -3,8 +3,9 @@
 : "$SDK_DIR"
 : "$SCORE_DIR"
 : "$XCODE_ROOT"
+: "$MACOS_ARCH"
 
-export OSSIA_SDK="/opt/ossia-sdk-x86_64"
+export OSSIA_SDK="/opt/ossia-sdk-$MACOS_ARCH"
 export DST="$SDK_DIR"
 export INCLUDE="$DST/usr/include"
 export LIB="$DST/usr/lib"
