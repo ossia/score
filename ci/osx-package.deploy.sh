@@ -1,8 +1,8 @@
 #!/bin/bash -eux
 export TAG=$GITTAGNOV
-
 export HOMEBREW_NO_AUTO_UPDATE=1
 export SRC_PATH="$PWD"
+
 brew install graphicsmagick imagemagick create-dmg
 
 cd "$SRC_PATH/install/"
@@ -19,7 +19,7 @@ sign_app() {
 }
 
 echo " === code signing === "
-if [[ -f build.keychain ]]; then
+if [[ -f "$SRC_PATH/build.keychain" ]]; then
   echo "... unlock keychain "
   security unlock-keychain -p travis build.keychain
 fi
