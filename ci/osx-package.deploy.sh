@@ -70,8 +70,5 @@ xcrun stapler validate ./*.dmg
 [[ $? == 0 ]] || exit 1
 
 # Archive
-if [ -z ${BUILD_ARTIFACTSTAGINGDIRECTORY+x} ]; then
-  BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD"
-fi
 mv ./*.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
 mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"

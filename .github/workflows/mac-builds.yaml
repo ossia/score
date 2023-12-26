@@ -83,6 +83,9 @@ jobs:
         env:
           MACOS_ARCH: "aarch64"
       - run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          export BUILD_ARTIFACTSTAGINGDIRECTORY=$PWD/staging
+          mkdir $BUILD_ARTIFACTSTAGINGDIRECTORY
           source ci/osx-package.deploy.sh
         env:
           MACOS_ARCH: "aarch64"
@@ -93,4 +96,4 @@ jobs:
         with:
           name: macos-aarch64
           path: |
-            *.dmg
+            staging/*.*
