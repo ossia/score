@@ -25,6 +25,7 @@ struct LineEdit;
 struct ProgramEdit;
 struct FileChooser;
 struct AudioFileChooser;
+struct VideoFileChooser;
 struct Enum;
 struct Button;
 struct ImpulseButton;
@@ -91,6 +92,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::AudioFileChooser,
     "c347b510-927a-4924-9da1-c76871623567")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::VideoFileChooser,
+    "7d5a68ae-501f-4038-bb24-4a7ffc049923")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ProgramEdit,
     "de15c0da-429b-49d3-bb07-7c41f5f205c8")
@@ -375,6 +379,18 @@ public:
       QString init, QString filters, const QString& name, Id<Process::Port> id,
       QObject* parent);
   ~AudioFileChooser();
+  using Process::FileChooserBase::FileChooserBase;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT VideoFileChooser : public FileChooserBase
+{
+  MODEL_METADATA_IMPL(VideoFileChooser)
+  W_OBJECT(VideoFileChooser)
+public:
+  VideoFileChooser(
+      QString init, QString filters, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~VideoFileChooser();
   using Process::FileChooserBase::FileChooserBase;
 };
 

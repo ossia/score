@@ -14,6 +14,7 @@
 W_OBJECT_IMPL(Process::FileChooserBase)
 W_OBJECT_IMPL(Process::FileChooser)
 W_OBJECT_IMPL(Process::AudioFileChooser)
+W_OBJECT_IMPL(Process::VideoFileChooser)
 W_OBJECT_IMPL(Process::ImpulseButton)
 namespace Process
 {
@@ -496,6 +497,36 @@ AudioFileChooser::AudioFileChooser(
 }
 
 AudioFileChooser::~AudioFileChooser() { }
+
+static QString toFilters(const QSet<QString>& exts)
+{
+  QString res;
+  for(const auto& s : exts)
+  {
+    res += "*.";
+    res += s;
+    res += " ";
+  }
+  if(!res.isEmpty())
+    res.resize(res.size() - 1);
+  return res;
+}
+
+static QString videoFilesTypes()
+{
+  // FIXME refactor supported formats with Video process
+  QSet<QString> files = {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
+                         "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
+  return QString{"Videos (%1)"}.arg(toFilters(files));
+}
+
+VideoFileChooser::VideoFileChooser(
+    QString init, QString filters, const QString& name, Id<Port> id, QObject* parent)
+    : FileChooserBase{init, videoFilesTypes(), name, id, parent}
+{
+}
+
+VideoFileChooser::~VideoFileChooser() { }
 
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
@@ -1080,6 +1111,33 @@ JSONReader::read(const Process::AudioFileChooser& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::AudioFileChooser& p)
+{
+  QString f;
+  f <<= obj["Filters"];
+  p.setFilters(f);
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::VideoFileChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  m_stream << p.filters();
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::VideoFileChooser& p)
+{
+  QString f;
+  m_stream >> f;
+  p.setFilters(f);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::VideoFileChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  obj["Filters"] = p.filters();
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::VideoFileChooser& p)
 {
   QString f;
   f <<= obj["Filters"];

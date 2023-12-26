@@ -65,6 +65,10 @@ std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
          Dataflow::WidgetInletFactory<Process::LineEdit, WidgetFactory::LineEdit>,
          Dataflow::WidgetInletFactory<Process::ProgramEdit, WidgetFactory::ProgramEdit>,
          Dataflow::WidgetInletFactory<Process::FileChooser, WidgetFactory::FileChooser>,
+         Dataflow::WidgetInletFactory<
+             Process::AudioFileChooser, WidgetFactory::FileChooser>,
+         Dataflow::WidgetInletFactory<
+             Process::VideoFileChooser, WidgetFactory::FileChooser>,
          Dataflow::WidgetInletFactory<Process::ComboBox, WidgetFactory::ComboBox>,
          Dataflow::WidgetInletFactory<Process::Enum, WidgetFactory::Enum>,
          Dataflow::WidgetInletFactory<Process::HSVSlider, WidgetFactory::HSVSlider>,
