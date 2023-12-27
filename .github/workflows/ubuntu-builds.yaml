@@ -5,7 +5,7 @@ on: push
 jobs:
   jammy:
     name: Ubuntu 
-    runs-on: linux-selfhosted
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:

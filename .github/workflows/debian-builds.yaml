@@ -5,7 +5,7 @@ on: push
 jobs:
   debian:
     name: Debian
-    runs-on: linux-selfhosted
+    runs-on: ubuntu-latest
     container:
       image: debian:${{ matrix.distro }}
 
