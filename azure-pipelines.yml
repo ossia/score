@@ -99,6 +99,7 @@ stages:
               MACOS_ARCH: "x86_64"
               MAC_CODESIGN_PASSWORD: $(codesign)
               MAC_ALTOOL_PASSWORD: $(altool)
+              CI_IS_AZURE: 1
 
           - task: PublishPipelineArtifact@1
             inputs:

@@ -19,7 +19,7 @@ sign_app() {
 }
 
 echo " === code signing === "
-if [[ -z "${TF_BUILD}" ]]; then
+if [[ "${CI_IS_AZURE}" = "1" ]]; then
   echo "... unlock keychain "
   security unlock-keychain -p travis build.keychain
 fi
@@ -38,7 +38,7 @@ echo " === create dmg === "
 # Create a .dmg
 cp "$SRC_PATH/LICENSE.txt" license.txt
 
-if [[ -f build.keychain ]]; then
+if [[ "${CI_IS_AZURE}" = "1" ]]; then
   security unlock-keychain -p travis build.keychain
 fi
 
@@ -59,7 +59,7 @@ sudo chown "$(whoami)" ./*.dmg
 
 # Notarize the .dmg
 echo " === notarize === "
-if [[ -f build.keychain ]]; then
+if [[ "${CI_IS_AZURE}" = "1" ]]; then
   security unlock-keychain -p travis build.keychain
 fi
 
