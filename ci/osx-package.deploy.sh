@@ -19,7 +19,7 @@ sign_app() {
 }
 
 echo " === code signing === "
-if [[ -f "$SRC_PATH/build.keychain" ]]; then
+if [[ -z "${TF_BUILD}" ]]; then
   echo "... unlock keychain "
   security unlock-keychain -p travis build.keychain
 fi
