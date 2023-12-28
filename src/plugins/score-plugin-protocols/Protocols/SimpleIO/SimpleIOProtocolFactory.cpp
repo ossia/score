@@ -21,12 +21,12 @@ namespace Protocols
 
 QString SimpleIOProtocolFactory::prettyName() const noexcept
 {
-  return QObject::tr("SimpleIO");
+  return QObject::tr("Raw I/O");
 }
 
 QString SimpleIOProtocolFactory::category() const noexcept
 {
-  return StandardCategories::lights;
+  return StandardCategories::hardware;
 }
 
 Device::DeviceInterface* SimpleIOProtocolFactory::makeDevice(
@@ -41,7 +41,7 @@ const Device::DeviceSettings& SimpleIOProtocolFactory::defaultSettings() const n
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
     s.protocol = concreteKey();
-    s.name = "SimpleIO";
+    s.name = "raw";
     SimpleIOSpecificSettings settings;
     s.deviceSpecificSettings = QVariant::fromValue(settings);
     return s;

@@ -54,7 +54,7 @@ public:
     for(auto& gpio : m_gpio_out)
       GPIO_close(gpio.second.fd, &error);
   }
-
+  void set_device(ossia::net::device_base& dev) override { m_device = &dev; }
   void init(const Protocols::SimpleIOSpecificSettings& conf)
   {
     namespace sio = Protocols::SimpleIO;
@@ -173,13 +173,13 @@ public:
       DAC_write(it->second.fd, ossia::convert<int>(v), &error);
       return true;
     }
-    if(auto it = m_pwm.find(&p); it != m_pwm.end())
+    else if(auto it = m_pwm.find(&p); it != m_pwm.end())
     {
       int32_t error;
       PWM_write(it->second.fd, ossia::convert<int>(v), &error);
       return true;
     }
-    if(auto it = m_gpio_out.find(&p); it != m_gpio_out.end())
+    else if(auto it = m_gpio_out.find(&p); it != m_gpio_out.end())
     {
       int32_t error;
       GPIO_line_write(it->second.fd, ossia::convert<bool>(v), &error);

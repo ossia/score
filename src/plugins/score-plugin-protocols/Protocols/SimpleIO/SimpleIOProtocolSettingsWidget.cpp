@@ -57,8 +57,7 @@ public:
     //    auto& hid = m_root.emplace_back(SimpleIOData{.name = "HIDs"}, &m_root);
 
     enumeratePWMs(pwms);
-    enumerateADCs(adcs);
-    enumerateDACs(dacs);
+    enumerateADCs(adcs, dacs);
     enumerateGPIOs(gpios);
 //    enumerateHIDs(hid);
 
@@ -87,16 +86,77 @@ public:
               },
               {},
               pwm.fileName()},
-          &m_root);
+          &n);
     }
   }
 
-  void enumerateADCs(SimpleIONode& n) {
+  void enumerateADCs(SimpleIONode& adc_n, SimpleIONode& dac_n)
+  {
+    QDirIterator dir{
+        "/sys/bus/iio/devices/", QDir::Dirs | QDir::NoDotAndDotDot,
+        QDirIterator::NoIteratorFlags};
 
-  }
+    int adc_i = 0;
+    int dac_i = 0;
+    while(dir.hasNext())
+    {
+      const QFileInfo iio = dir.nextFileInfo();
+      if(QString name = iio.fileName(); name.startsWith("iio:device"))
+      {
+        name.remove("iio:device");
+        bool ok = false;
+        int idx = name.toInt(&ok);
+        if(!ok)
+          continue;
 
-  void enumerateDACs(SimpleIONode& n) {
+        QDirIterator iio_it(iio.dir());
+        while(iio_it.hasNext())
+        {
+          const auto voltage = iio_it.nextFileInfo();
+          auto vname = voltage.fileName();
+          if(vname.startsWith("in_voltage") && vname.endsWith("_raw"))
+          {
+            vname.remove("in_voltage");
+            vname.remove("_raw");
+            ok = false;
+            const int channel = vname.toInt(&ok);
+            if(!ok)
+              continue;
 
+            adc_n.emplace_back(
+                SimpleIOData{
+                    {
+                        .control = SimpleIO::ADC{.chip = idx, .channel = channel},
+                        .name = QString{"ADC %1"}.arg(adc_i++),
+                        .path = voltage.absoluteFilePath(),
+                    },
+                    {},
+                    voltage.fileName()},
+                &adc_n);
+          }
+          else if(vname.startsWith("out_voltage") && vname.endsWith("_raw"))
+          {
+            vname.remove("out_voltage");
+            vname.remove("_raw");
+            ok = false;
+            const int channel = vname.toInt(&ok);
+            if(!ok)
+              continue;
+
+            dac_n.emplace_back(
+                SimpleIOData{
+                    {
+                        .control = SimpleIO::DAC{.chip = idx, .channel = channel},
+                        .name = QString{"DAC %1"}.arg(dac_i++),
+                        .path = voltage.absoluteFilePath(),
+                    },
+                    {},
+                    voltage.fileName()},
+                &dac_n);
+          }
+        }
+      }
+    };
   }
 
   void enumerateHIDs(SimpleIONode& n) {
@@ -112,7 +172,7 @@ public:
                 },
                 {},
                 QString{"hidraw%1"}.arg(i)},
-            &m_root);
+            &n);
       }
       else
       {
@@ -148,7 +208,7 @@ public:
           QString pretty_tree_name; // QString{"%1: %2"}.arg(line).arg(name)
           QString pretty_label;     // QString{"%1: %2"}.arg(line).arg(name)
           QString pretty_path;      // QString{"%1:%2"}.arg(chip).arg(line)
-          pretty_path = QString{"%1:%2"}.arg(chip).arg(line);
+          pretty_path = QString{"%1/%2"}.arg(chip).arg(line);
           if(s_name.isEmpty() && s_label.isEmpty())
           {
             pretty_tree_name = s_line;
@@ -429,7 +489,7 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   m_portsWidget->insertColumn(0);
   m_portsWidget->insertColumn(1);
   m_portsWidget->insertColumn(2);
-  m_portsWidget->setHorizontalHeaderLabels({tr("Name"), tr("Type"), tr("Mode")});
+  m_portsWidget->setHorizontalHeaderLabels({tr("Name"), tr("Address"), tr("Type")});
 
   auto btns = new QHBoxLayout;
   m_addPort = new QPushButton{"Add a port"};
@@ -468,6 +528,37 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 }
 
+static QString typeName(const SimpleIO::Type& t)
+{
+  static constexpr struct
+  {
+    QString operator()(const SimpleIO::GPIO& gpio) const noexcept
+    {
+      return QStringLiteral("GPIO");
+    }
+    QString operator()(const SimpleIO::PWM& gpio) const noexcept
+    {
+      return QStringLiteral("PWM");
+    }
+    QString operator()(const SimpleIO::ADC& gpio) const noexcept
+    {
+      return QStringLiteral("ADC");
+    }
+    QString operator()(const SimpleIO::DAC& gpio) const noexcept
+    {
+      return QStringLiteral("DAC");
+    }
+    QString operator()(const SimpleIO::HID& gpio) const noexcept
+    {
+      return QStringLiteral("HID");
+    }
+    QString operator()(const SimpleIO::Custom& gpio) const noexcept
+    {
+      return QStringLiteral("Custom");
+    }
+  } vis;
+  return ossia::visit(vis, t);
+}
 void SimpleIOProtocolSettingsWidget::updateTable()
 {
   while(m_portsWidget->rowCount() > 0)
@@ -477,8 +568,8 @@ void SimpleIOProtocolSettingsWidget::updateTable()
   for(auto& fixt : m_ports)
   {
     auto name_item = new QTableWidgetItem{fixt.name};
-    //auto mode_item = new QTableWidgetItem{fixt.modeName};
     auto address = new QTableWidgetItem{fixt.path};
+    auto type_item = new QTableWidgetItem{typeName(fixt.control)};
     //auto controls = new QTableWidgetItem{QString::number(fixt.controls.size())};
     name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     // mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -489,7 +580,7 @@ void SimpleIOProtocolSettingsWidget::updateTable()
     m_portsWidget->setItem(row, 0, name_item);
     //m_portsWidget->setItem(row, 1, mode_item);
     m_portsWidget->setItem(row, 1, address);
-    //m_portsWidget->setItem(row, 3, controls);
+    m_portsWidget->setItem(row, 2, type_item);
     row++;
   }
 }
