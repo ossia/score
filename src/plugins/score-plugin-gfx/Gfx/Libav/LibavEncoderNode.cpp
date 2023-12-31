@@ -21,9 +21,6 @@ LibavEncoderNode::LibavEncoderNode(
     , m_settings{set}
 {
   input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
-  m_settings.width = 1280;
-  m_settings.height = 720;
-  m_settings.rate = 60;
 }
 
 LibavEncoderNode::~LibavEncoderNode() { }
@@ -57,7 +54,7 @@ void LibavEncoderNode::render()
     if(bytes > 0 && bytes >= sz)
     {
       encoder.add_frame(
-          (const unsigned char*)m_readback.data.constData(), AV_PIX_FMT_RGB24,
+          (const unsigned char*)m_readback.data.constData(), AV_PIX_FMT_RGBA,
           m_readback.pixelSize.width(), m_readback.pixelSize.height());
     }
   }

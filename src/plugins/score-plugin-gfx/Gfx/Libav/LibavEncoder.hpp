@@ -2,7 +2,7 @@
 
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
-
+#include <Gfx/Libav/LibavOutputSettings.hpp>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavdevice/avdevice.h>
@@ -16,10 +16,9 @@ namespace Gfx
 struct OutputStream;
 struct LibavEncoder
 {
-  LibavEncoder();
+  explicit LibavEncoder(const LibavOutputSettings& set);
   ~LibavEncoder();
   void enumerate();
-  void encode(AVCodecContext* enc_ctx, AVFrame* frame, AVPacket* pkt, FILE* outfile);
 
   int start();
   int add_frame(const unsigned char* data, AVPixelFormat fmt, int width, int height);
@@ -27,6 +26,7 @@ struct LibavEncoder
 
   bool available() const noexcept { return m_formatContext; }
 
+  LibavOutputSettings m_set;
   AVDictionary* opt = NULL;
   AVFormatContext* m_formatContext{};
 

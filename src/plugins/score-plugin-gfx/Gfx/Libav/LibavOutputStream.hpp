@@ -9,9 +9,13 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include <Gfx/Libav/LibavOutputSettings.hpp>
+
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flat_map.hpp>
+
+#include <QApplication>
 
 #include <string>
 namespace Gfx
@@ -42,7 +46,8 @@ struct OutputStream
   struct SwsContext* sws_ctx{};
   struct SwrContext* swr_ctx{};
 
-  OutputStream(AVFormatContext* oc, const StreamOptions& opts)
+  OutputStream(
+      const LibavOutputSettings& set, AVFormatContext* oc, const StreamOptions& opts)
   {
     /* find the encoder */
     codec = avcodec_find_encoder_by_name(opts.codec.c_str());
@@ -67,6 +72,21 @@ struct OutputStream
       exit(1);
     }
     this->st->id = oc->nb_streams - 1;
+
+    // Init hw accel
+    AVBufferRef* hw_ctx{};
+#if 0
+    {
+      // HW Accel
+      AVHWDeviceType device = AV_HWDEVICE_TYPE_QSV;
+      int ret = av_hwdevice_ctx_create(&hw_ctx, device, "auto", nullptr, 0);
+      if(ret != 0)
+      {
+        qDebug() << "Error while opening hardware encoder: " << av_to_string(ret);
+        exit(1);
+      }
+    }
+#endif
     AVCodecContext* c = avcodec_alloc_context3(codec);
     if(!c)
     {
@@ -98,25 +118,34 @@ struct OutputStream
 
       case AVMEDIA_TYPE_VIDEO: {
         c->codec_id = codec->id;
+        // c->bit_rate = 400000;
+        // c->bit_rate_tolerance = 10000;
+        // c->global_quality = 1;
+        // c->compression_level = 1;
+        // c->hw_device_ctx = hw_ctx;
 
-        c->bit_rate = 400000;
+        // c->flags |= AV_CODEC_FLAG_QSCALE;
+        // c->global_quality = FF_QP2LAMBDA * 3.0;
         /* Resolution must be a multiple of two. */
-        c->width = 1280;
-        c->height = 720;
+        c->width = set.width;
+        c->height = set.height;
         /* timebase: This is the fundamental unit of time (in seconds) in terms
          * of which frame timestamps are represented. For fixed-fps content,
          * timebase should be 1/framerate and timestamp increments should be
          * identical to 1. */
-        this->st->time_base = (AVRational){1, 30};
+        this->st->time_base = (AVRational){100000, int(100000 * set.rate)};
         c->time_base = this->st->time_base;
-        c->framerate = AVRational{30, 1};
+        c->framerate = AVRational{this->st->time_base.den, this->st->time_base.num};
 
         //c->gop_size = 12; /* emit one intra frame every twelve frames at most */
 
         // ignored if frame->pict_type is AV_PICTURE_TYPE_I
         c->gop_size = 0;
         c->max_b_frames = 0;
-        c->pix_fmt = AV_PIX_FMT_RGB24;
+
+        // c->pix_fmt = AV_PIX_FMT_RGB24;
+        c->pix_fmt = av_get_pix_fmt(set.video_converted_pixfmt.toStdString().c_str());
+        c->strict_std_compliance = FF_COMPLIANCE_NORMAL;
         if(c->codec_id == AV_CODEC_ID_MPEG2VIDEO)
         {
           /* just for testing, we also add B-frames */
@@ -138,7 +167,10 @@ struct OutputStream
 
     /* Some formats want stream headers to be separate. */
     if(oc->oformat->flags & AVFMT_GLOBALHEADER)
+    {
+      qDebug() << "global header";
       c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    }
   }
 
   void open_audio(AVFormatContext* oc, const AVCodec* codec, AVDictionary* opt_arg)
@@ -229,16 +261,26 @@ struct OutputStream
     return frame;
   }
 
-  void open_video(AVFormatContext* oc, const AVCodec* codec, AVDictionary* opt_arg)
+  void open_video(
+      const LibavOutputSettings& set, AVFormatContext* oc, const AVCodec* codec,
+      AVDictionary* opt_arg)
   {
-    int ret;
     AVCodecContext* c = this->enc;
-    AVDictionary* opt = NULL;
+    AVDictionary* opt = nullptr;
 
     av_dict_copy(&opt, opt_arg, 0);
 
+    /* set some options */
+    int err = av_opt_set_double(this->enc->priv_data, "crf", 0.0, 0);
+    if(err < 0)
+    {
+      qDebug() << "failed to initialize encoder: " << av_err2str(err);
+    }
+
     /* open the codec */
-    ret = avcodec_open2(c, codec, &opt);
+    SCORE_ASSERT(this->enc->flags & AV_CODEC_FLAG_GLOBAL_HEADER);
+    qDebug() << "Flagz: " << (int64_t)this->enc->flags << AV_CODEC_FLAG_GLOBAL_HEADER;
+    int ret = avcodec_open2(this->enc, codec, &opt);
     av_dict_free(&opt);
     if(ret < 0)
     {
@@ -247,27 +289,31 @@ struct OutputStream
     }
 
     /* allocate and init a re-usable frame */
-    this->frame = alloc_frame(c->pix_fmt, c->width, c->height);
+    this->frame = alloc_frame(AV_PIX_FMT_RGBA, c->width, c->height);
     if(!this->frame)
     {
       fprintf(stderr, "Could not allocate video frame\n");
       exit(1);
     }
 
-    /* If the output format is not YUV420P, then a temporary YUV420P
-     * picture is needed too. It is then converted to the required
-     * output format. */
+    this->tmp_frame = nullptr;
     // If conversion is needed :
-    // this->tmp_frame = NULL;
-    // if(c->pix_fmt != AV_PIX_FMT_YUV420P)
-    // {
-    //   this->tmp_frame = alloc_frame(AV_PIX_FMT_YUV420P, c->width, c->height);
-    //   if(!this->tmp_frame)
-    //   {
-    //     fprintf(stderr, "Could not allocate temporary video frame\n");
-    //     exit(1);
-    //   }
-    // }
+    // if(c->pix_fmt != AV_PIX_FMT_YUVJ420P)
+    {
+      auto input_fmt = av_get_pix_fmt(set.video_input_pixfmt.toStdString().c_str());
+      auto conv_fmt = av_get_pix_fmt(set.video_converted_pixfmt.toStdString().c_str());
+      SCORE_ASSERT(input_fmt != -1);
+      SCORE_ASSERT(conv_fmt != -1);
+      sws_ctx = sws_getContext(
+          set.width, set.height, input_fmt, set.width, set.height, conv_fmt, 1, nullptr,
+          nullptr, nullptr);
+      this->tmp_frame = alloc_frame(conv_fmt, c->width, c->height);
+      if(!this->tmp_frame)
+      {
+        fprintf(stderr, "Could not allocate temporary video frame\n");
+        exit(1);
+      }
+    }
 
     /* copy the stream parameters to the muxer */
     ret = avcodec_parameters_from_context(this->st->codecpar, c);
@@ -276,9 +322,14 @@ struct OutputStream
       fprintf(stderr, "Could not copy the stream parameters\n");
       exit(1);
     }
+
+    /* Copy extradata (e.g. H264 NALs) */
+    qDebug() << c->extradata_size << this->st->codecpar->extradata_size;
   }
 
-  void open(AVFormatContext* oc, const AVCodec* codec, AVDictionary* opt_arg)
+  void open(
+      const LibavOutputSettings& set, AVFormatContext* oc, const AVCodec* codec,
+      AVDictionary* opt_arg)
   {
     SCORE_ASSERT(oc);
     SCORE_ASSERT(codec);
@@ -289,7 +340,7 @@ struct OutputStream
     }
     else if(codec->type == AVMEDIA_TYPE_VIDEO)
     {
-      open_video(oc, codec, opt_arg);
+      open_video(set, oc, codec, opt_arg);
     }
   }
 
@@ -315,14 +366,20 @@ struct OutputStream
     return this->frame;
   }
 
-  static int write_frame(
+  int write_frame(
       AVFormatContext* fmt_ctx, AVCodecContext* c, AVStream* st, AVFrame* frame,
       AVPacket* pkt)
   {
     int ret;
+    // scale the frame
+    sws_scale_frame(sws_ctx, tmp_frame, frame);
+
+    tmp_frame->quality = FF_LAMBDA_MAX; //c->global_quality;
+    tmp_frame->pict_type = AV_PICTURE_TYPE_I;
+    tmp_frame->pts++;
 
     // send the frame to the encoder
-    ret = avcodec_send_frame(c, frame);
+    ret = avcodec_send_frame(c, tmp_frame);
     if(ret < 0)
     {
       fprintf(stderr, "Error sending a frame to the encoder: %s\n", av_err2str(ret));
@@ -343,6 +400,7 @@ struct OutputStream
       /* rescale output packet timestamp values from codec to stream timebase */
       av_packet_rescale_ts(pkt, c->time_base, st->time_base);
       pkt->stream_index = st->index;
+      pkt->flags |= AV_PKT_FLAG_KEY;
 
       /* Write the compressed frame to the media file. */
       // log_packet(fmt_ctx, pkt);
