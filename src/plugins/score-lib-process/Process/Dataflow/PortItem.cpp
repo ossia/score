@@ -11,6 +11,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/Bind.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -668,6 +670,16 @@ void PortItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
   {
     if((portDragDirection == DragSourceIsInlet && !this->m_inlet)
        || (portDragDirection == DragSourceIsOutlet && this->m_inlet))
+    {
+      prepareGeometryChange();
+      m_diam = 12.;
+      update();
+    }
+  }
+  else
+  {
+    auto fmt = event->mimeData()->formats();
+    if(fmt.contains(score::mime::messagelist()) || fmt.contains(score::mime::nodelist()))
     {
       prepareGeometryChange();
       m_diam = 12.;
