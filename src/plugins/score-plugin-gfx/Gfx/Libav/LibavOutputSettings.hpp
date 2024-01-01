@@ -1,10 +1,11 @@
 #pragma once
 #include <Gfx/SharedOutputSettings.hpp>
+#include <Media/Libav.hpp>
+
+#include <ossia/detail/hash_map.hpp>
 
 #include <QSize>
 #include <QString>
-
-#include <Media/Libav.hpp>
 extern "C" {
 #include <libavutil/pixfmt.h>
 }
@@ -19,7 +20,7 @@ struct LibavOutputSettings : SharedOutputSettings
   QString video_input_pixfmt;
   QString video_converted_pixfmt;
   QString muxer, muxer_long;
-  std::map<QString, QString> options;
+  ossia::hash_map<QString, QString> options;
   int threads{};
 };
 }

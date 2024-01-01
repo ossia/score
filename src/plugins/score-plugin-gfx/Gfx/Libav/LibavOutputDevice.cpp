@@ -10,6 +10,7 @@
 #include <Gfx/Libav/LibavEncoderNode.hpp>
 #include <Gfx/Libav/LibavIntrospection.hpp>
 
+#include <score/serialization/MapSerialization.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia/network/generic/generic_node.hpp>
@@ -17,6 +18,7 @@
 #include <ossia-qt/name_utils.hpp>
 
 #include <QComboBox>
+#include <QDebug>
 #include <QFormLayout>
 #include <QLabel>
 #include <QMenu>
@@ -154,9 +156,7 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
              .height = 720,
              .rate = 30,
          },
-         .threads = 0,
          .video_encoder_short = "mjpeg",
-         .video_encoder_long = "",
          .video_input_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
          .muxer = "mjpeg",
@@ -165,17 +165,29 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
     {"MKV H.264 recording",
      LibavOutputSettings{
          {
-             .path = "<PROJECT_PATH>/renders/main.mkv",
+             .path = "<PROJECT_PATH>/main.mkv",
              .width = 1280,
              .height = 720,
              .rate = 30,
          },
-         .threads = 0,
          .video_encoder_short = "libx265",
-         .video_encoder_long = "libx265",
          .video_input_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
-         .muxer = "matroska"}}
+         .muxer = "matroska"}},
+
+    {"WAV recording",
+     LibavOutputSettings{
+         {
+             .path = "<PROJECT_PATH>/main.wav",
+             .width = 1280,
+             .height = 720,
+             .rate = 30,
+         },
+         .audio_encoder_short = "pcm_s16le",
+         .audio_encoder_long = "",
+         .muxer = "wav",
+         .threads = 0,
+     }}
 
     // av_dict_set(&opt, "movflags", "frag_keyframe+empty_moov+default_base_moof", 0);
 };
@@ -187,7 +199,6 @@ bool LibavOutputDevice::reconnect()
   try
   {
     auto set = this->settings().deviceSpecificSettings.value<LibavOutputSettings>();
-    // set = libav_preset_list.hevc_udp;
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if(plug)
     {
@@ -447,17 +458,78 @@ void LibavOutputSettingsWidget::on_acodecChange(int codec_index)
       m_smpfmt->addItem(desc);
   }
 }
+
 Device::DeviceSettings LibavOutputSettingsWidget::getSettings() const
 {
-  Device::DeviceSettings s = m_settings;
-  s.name = m_deviceNameEdit->text();
+  Device::DeviceSettings s = SharedOutputSettingsWidget::getSettings();
   s.protocol = LibavOutputProtocolFactory::static_concreteKey();
+  const auto& base_s = s.deviceSpecificSettings.value<SharedOutputSettings>();
+  LibavOutputSettings specif{base_s};
+
+  auto muxer = (AVOutputFormat*)this->m_muxer->currentData().value<void*>();
+  auto vcodec = (AVCodec*)this->m_vencoder->currentData().value<void*>();
+  auto acodec = (AVCodec*)this->m_aencoder->currentData().value<void*>();
+  if(muxer)
+  {
+    specif.muxer = muxer->name;
+    if(muxer->long_name)
+      specif.muxer_long = muxer->long_name;
+    if(acodec)
+    {
+      specif.audio_encoder_short = acodec->name;
+      if(acodec->long_name)
+        specif.audio_encoder_long = acodec->long_name;
+    }
+    if(vcodec)
+    {
+      specif.video_encoder_short = vcodec->name;
+      if(vcodec->long_name)
+        specif.video_encoder_long = vcodec->long_name;
+
+      specif.video_input_pixfmt = av_pix_fmt_desc_get(AV_PIX_FMT_RGBA)->name;
+      specif.video_converted_pixfmt = this->m_pixfmt->currentText();
+    }
+
+    specif.hardwareAcceleration = {};
+    specif.threads = 0;
+
+    {
+      auto split = this->m_options->toPlainText().split('\n', Qt::SkipEmptyParts);
+
+      for(auto line : split)
+      {
+        line = line.trimmed();
+        if(!line.startsWith('-'))
+          continue;
+        line.removeFirst();
+
+        auto first_space = line.indexOf(' ');
+        if(first_space == -1)
+        {
+          specif.options.emplace(line, "");
+        }
+        else
+        {
+          auto key = line.mid(0, first_space).trimmed();
+          auto v = line.mid(first_space).trimmed();
+          specif.options.emplace(key, v);
+        }
+      }
+    }
+  }
+  s.deviceSpecificSettings = QVariant::fromValue(std::move(specif));
   return s;
 }
 
 void LibavOutputSettingsWidget::loadPreset(const LibavOutputSettings& settings)
 {
   const auto& info = LibavIntrospection::instance();
+
+  m_shmPath->setText(settings.path);
+  m_width->setValue(settings.width);
+  m_height->setValue(settings.height);
+  m_rate->setValue(settings.rate);
+
   auto muxer = info.findMuxer(settings.muxer, settings.muxer_long);
   if(!muxer)
     return;
@@ -487,37 +559,94 @@ void LibavOutputSettingsWidget::loadPreset(const LibavOutputSettings& settings)
     if(ac_index != -1)
       m_aencoder->setCurrentIndex(ac_index);
   }
+
+  QString options_text;
+
+  for(auto [k, v] : settings.options)
+  {
+    options_text += '-';
+    options_text += k;
+    options_text += ' ';
+    options_text += v;
+    options_text += '\n';
+  }
+  m_options->setPlainText(options_text);
 }
 
 void LibavOutputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_settings = settings;
+  m_deviceNameEdit->setText(settings.name);
 
-  auto prettyName = settings.name;
-  m_deviceNameEdit->setText(prettyName);
+  const auto& set = settings.deviceSpecificSettings.value<LibavOutputSettings>();
+  loadPreset(set);
 }
 }
 
 template <>
 void DataStreamReader::read(const Gfx::LibavOutputSettings& n)
 {
+  read((const Gfx::SharedOutputSettings&)n);
+
+  m_stream << n.hardwareAcceleration;
+  m_stream << n.audio_encoder_short << n.audio_encoder_long;
+  m_stream << n.video_encoder_short << n.video_encoder_long;
+  m_stream << n.video_input_pixfmt;
+  m_stream << n.video_converted_pixfmt;
+  m_stream << n.muxer << n.muxer_long;
+  m_stream << n.options;
+  m_stream << n.threads;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::LibavOutputSettings& n)
 {
+  write((Gfx::SharedOutputSettings&)n);
+
+  m_stream >> n.hardwareAcceleration;
+  m_stream >> n.audio_encoder_short >> n.audio_encoder_long;
+  m_stream >> n.video_encoder_short >> n.video_encoder_long;
+  m_stream >> n.video_input_pixfmt;
+  m_stream >> n.video_converted_pixfmt;
+  m_stream >> n.muxer >> n.muxer_long;
+  m_stream >> n.options;
+  m_stream >> n.threads;
   checkDelimiter();
 }
 
 template <>
 void JSONReader::read(const Gfx::LibavOutputSettings& n)
 {
+  read((const Gfx::SharedOutputSettings&)n);
+  obj["HWAccel"] = n.hardwareAcceleration;
+  obj["AudioEncoderShort"] = n.audio_encoder_short;
+  obj["AudioEncoderLong"] = n.audio_encoder_long;
+  obj["VideoEncoderShort"] = n.video_encoder_short;
+  obj["VideoEncoderLong"] = n.video_encoder_long;
+  obj["InputPixFmt"] = n.video_input_pixfmt;
+  obj["ConvPixFmt"] = n.video_converted_pixfmt;
+  obj["MuxerShort"] = n.muxer;
+  obj["MuxerLong"] = n.muxer_long;
+  obj["Options"] = n.options;
+  obj["Threads"] = n.threads;
 }
 
 template <>
 void JSONWriter::write(Gfx::LibavOutputSettings& n)
 {
+  write((Gfx::SharedOutputSettings&)n);
+  n.hardwareAcceleration <<= obj["HWAccel"];
+  n.audio_encoder_short <<= obj["AudioEncoderShort"];
+  n.audio_encoder_long <<= obj["AudioEncoderLong"];
+  n.video_encoder_short <<= obj["VideoEncoderShort"];
+  n.video_encoder_long <<= obj["VideoEncoderLong"];
+  n.video_input_pixfmt <<= obj["InputPixFmt"];
+  n.video_converted_pixfmt <<= obj["ConvPixFmt"];
+  n.muxer <<= obj["MuxerShort"];
+  n.muxer_long <<= obj["MuxerLong"];
+  n.options <<= obj["Options"];
+  n.threads <<= obj["Threads"];
 }
 
 W_OBJECT_IMPL(Gfx::LibavOutputDevice)
