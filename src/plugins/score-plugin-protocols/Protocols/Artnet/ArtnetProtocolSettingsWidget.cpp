@@ -1375,6 +1375,7 @@ void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
   const auto& specif = settings.deviceSpecificSettings.value<ArtnetSpecificSettings>();
   m_fixtures = specif.fixtures;
   m_rate->setValue(specif.rate);
+  m_universe->setValue(specif.universe);
   updateTable();
 }
 }
