@@ -62,7 +62,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   qRegisterMetaType<std::vector<VSTInfo>>();
 
 #if QT_CONFIG(process)
-  m_wsServer.listen({}, 37587);
+  m_wsServer.listen(QHostAddress::LocalHost, 37587);
   con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
     QWebSocket* ws = m_wsServer.nextPendingConnection();
     if(!ws)

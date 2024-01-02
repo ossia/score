@@ -96,7 +96,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
   qRegisterMetaType<std::vector<AvailablePlugin>>();
 
 #if QT_CONFIG(process)
-  m_wsServer.listen({}, 37588);
+  m_wsServer.listen(QHostAddress::LocalHost, 37588);
   con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
     QWebSocket* ws = m_wsServer.nextPendingConnection();
     if(!ws)
