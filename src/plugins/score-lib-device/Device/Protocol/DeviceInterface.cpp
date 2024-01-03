@@ -14,11 +14,13 @@
 #include <ossia/network/common/network_logger.hpp>
 #include <ossia/network/context.hpp>
 
+#include <ossia-qt/invoke.hpp>
 #include <ossia-qt/name_utils.hpp>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/post.hpp>
 
+#include <QCoreApplication>
 #include <QMenu>
 
 #include <spdlog/sinks/sink.h>
@@ -969,7 +971,8 @@ void DeviceInterface::addressCreated(const ossia::net::parameter_base& addr)
   State::Address currentAddress = ToAddress(addr.get_node());
   Device::AddressSettings as = ToAddressSettings(addr.get_node());
   pathUpdated(currentAddress, as);
-  setListening(currentAddress, true);
+  ossia::qt::run_async(
+      qApp, [this, addr = currentAddress] { setListening(addr, true); });
 }
 
 void DeviceInterface::addressUpdated(
