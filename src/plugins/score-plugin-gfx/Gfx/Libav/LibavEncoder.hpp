@@ -3,6 +3,10 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 #include <Gfx/Libav/LibavOutputSettings.hpp>
+
+#include <ossia/detail/pod_vector.hpp>
+
+#include <tcb/span.hpp>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavdevice/avdevice.h>
@@ -21,6 +25,7 @@ struct LibavEncoder
   void enumerate();
 
   int start();
+  int add_frame(tcb::span<ossia::float_vector>);
   int add_frame(const unsigned char* data, AVPixelFormat fmt, int width, int height);
   int stop();
 
@@ -31,6 +36,9 @@ struct LibavEncoder
   AVFormatContext* m_formatContext{};
 
   std::vector<OutputStream> streams;
+
+  int audio_stream_index = 0;
+  int video_stream_index = 0;
 };
 
 }

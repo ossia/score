@@ -74,6 +74,44 @@ namespace Gfx
 //   -vf setpts=0
 //   -sync ext -
 
+class record_audio_parameter final : public ossia::audio_parameter
+{
+public:
+  record_audio_parameter(
+      LibavEncoder& encoder, int num_channels, int bs, ossia::net::node_base& n)
+      : audio_parameter{n}
+      , m_encoder{encoder}
+      , m_audio_data(num_channels)
+  {
+    set_buffer_size(bs);
+  }
+
+  virtual ~record_audio_parameter() { }
+
+  void push_value(const ossia::audio_port& mixed) noexcept override
+  {
+    // ossia::virtual_audio_parameter::push_value(mixed);
+
+    m_encoder.add_frame(this->m_audio_data);
+  }
+
+  void set_buffer_size(int bs)
+  {
+    const auto chan = m_audio_data.size();
+    audio.resize(chan);
+    for(std::size_t i = 0; i < chan; i++)
+    {
+      m_audio_data[i].resize(bs);
+      audio[i] = m_audio_data[i];
+      ossia::fill(m_audio_data[i], 0.f);
+    }
+  }
+
+private:
+  LibavEncoder& m_encoder;
+  // todo use a flat vector instead for perf
+  std::vector<ossia::float_vector> m_audio_data;
+};
 class libav_output_protocol : public Gfx::gfx_protocol_base
 {
 public:
@@ -103,11 +141,16 @@ public:
     auto& p = *static_cast<gfx_protocol_base*>(m_protocol.get());
     auto node = new LibavEncoderNode{set, enc, 0};
     root.add_child(std::make_unique<gfx_node_base>(*this, p, node, "Video"));
+    auto audio = root.add_child(
+        std::make_unique<ossia::net::generic_node>("Audio", *this, root));
+    SCORE_ASSERT(audio);
+    audio->set_parameter(std::make_unique<record_audio_parameter>(enc, 2, 512, *audio));
   }
 
   const ossia::net::generic_node& get_root_node() const override { return root; }
   ossia::net::generic_node& get_root_node() override { return root; }
 };
+
 class LibavOutputDevice final : public GfxOutputDevice
 {
   W_OBJECT(LibavOutputDevice)
@@ -125,7 +168,7 @@ private:
 class LibavOutputSettingsWidget final : public Gfx::SharedOutputSettingsWidget
 {
 public:
-  LibavOutputSettingsWidget(QWidget* parent = nullptr);
+  explicit LibavOutputSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
@@ -185,6 +228,8 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
              .height = 720,
              .rate = 30,
          },
+         .video_encoder_short = "foo",
+         .video_encoder_short = "bar",
          .audio_encoder_short = "pcm_s16le",
          .audio_encoder_long = "",
          .muxer = "wav",

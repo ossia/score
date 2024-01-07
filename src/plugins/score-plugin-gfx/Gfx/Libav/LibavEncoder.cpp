@@ -13,7 +13,7 @@ namespace Gfx
 LibavEncoder::LibavEncoder(const LibavOutputSettings& set)
     : m_set{set}
 {
-  for(const auto& [k, v] : set.options)
+  for(const auto& [k, v] : m_set.options)
   {
     av_dict_set(&opt, k.toStdString().c_str(), v.toStdString().c_str(), 0);
   }
@@ -45,24 +45,26 @@ int LibavEncoder::start()
   const AVOutputFormat* fmt = m_formatContext->oformat;
   SCORE_ASSERT(fmt);
 
-  qDebug() << fmt->name << fmt->long_name << fmt->audio_codec
-           << fmt->video_codec; // matroska / Matroska
-  // fmt->audio_codec: default audio codec for mkv
-  // fmt->video_codec: default video codec for mkv
-  auto default_audio_encoder = avcodec_find_encoder(fmt->audio_codec);
-  auto default_video_encoder = avcodec_find_decoder(fmt->video_codec);
-  if(default_audio_encoder)
-    qDebug() << "Default Audio Codec:" << default_audio_encoder->name;
-  if(default_video_encoder)
-    qDebug() << "Default Video Codec:" << default_video_encoder->name;
-
   // For each parameter:
-  // Add a streamr
+  // Add a stream
+  int k = 0;
+  if(!m_set.video_encoder_short.isEmpty())
   {
     StreamOptions opts;
-    opts.codec = m_set.video_encoder_short
-                     .toStdString(); // FIXME need to pass a codec id instead
+    // FIXME need to pass a codec id instead
+    opts.codec = m_set.video_encoder_short.toStdString();
     streams.emplace_back(m_set, m_formatContext, opts);
+    video_stream_index = k;
+    k++;
+  }
+  if(!m_set.audio_encoder_short.isEmpty())
+  {
+    StreamOptions opts;
+    // FIXME need to pass a codec id instead
+    opts.codec = m_set.audio_encoder_short.toStdString();
+    streams.emplace_back(m_set, m_formatContext, opts);
+    audio_stream_index = k;
+    k++;
   }
 
   // For all streams:
@@ -106,10 +108,45 @@ int LibavEncoder::start()
   return 0;
 }
 
+int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
+{
+  auto& stream = streams[audio_stream_index];
+  auto next_frame = stream.get_audio_frame();
+
+  next_frame->format = AV_SAMPLE_FMT_FLT;
+  next_frame->nb_samples = vec[0].size();
+  next_frame->ch_layout.nb_channels = vec.size();
+  next_frame->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
+  // next_frame->data[0] = (unsigned char*)data;
+  {
+    auto& frame = next_frame;
+    int channels = vec.size();
+    if(channels <= AV_NUM_DATA_POINTERS)
+    {
+      for(int i = 0; i < channels; ++i)
+        frame->data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
+    }
+    else
+    {
+      frame->extended_data
+          = static_cast<uint8_t**>(av_malloc(channels * sizeof(*frame->extended_data)));
+      int i = 0;
+      for(; i < AV_NUM_DATA_POINTERS; ++i)
+      {
+        frame->data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
+        frame->extended_data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
+      }
+      for(; i < channels; ++i)
+        frame->extended_data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
+    }
+  }
+  return stream.write_audio_frame(m_formatContext, next_frame);
+}
+
 int LibavEncoder::add_frame(
     const unsigned char* data, AVPixelFormat fmt, int width, int height)
 {
-  auto& stream = streams[0];
+  auto& stream = streams[video_stream_index];
   auto next_frame = stream.get_video_frame();
   next_frame->format = fmt;
   next_frame->width = width;
@@ -130,7 +167,7 @@ int LibavEncoder::add_frame(
     }
   }
 */
-  return streams[0].write_video_frame(m_formatContext, next_frame);
+  return streams[video_stream_index].write_video_frame(m_formatContext, next_frame);
 }
 
 int LibavEncoder::stop()

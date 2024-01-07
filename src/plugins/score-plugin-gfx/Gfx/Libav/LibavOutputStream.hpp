@@ -192,14 +192,14 @@ struct OutputStream
     }
 
     // FIXME
-    // int nb_samples;
-    // if(c->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
-    //   nb_samples = 10000;
-    // else
-    //   nb_samples = c->frame_size;
-    //
-    // ost->frame = alloc_audio_frame(c->sample_fmt, &c->ch_layout, c->sample_rate, nb_samples);
-    // ost->tmp_frame = alloc_audio_frame(        AV_SAMPLE_FMT_S16, &c->ch_layout, c->sample_rate, nb_samples);
+    int nb_samples;
+    if(c->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
+      nb_samples = 10000;
+    else
+      nb_samples = c->frame_size;
+    frame = alloc_audio_frame(c->sample_fmt, &c->ch_layout, c->sample_rate, nb_samples);
+    tmp_frame = alloc_audio_frame(
+        AV_SAMPLE_FMT_S16, &c->ch_layout, c->sample_rate, nb_samples);
 
     /* copy the stream parameters to the muxer */
     ret = avcodec_parameters_from_context(this->st->codecpar, c);
@@ -237,12 +237,37 @@ struct OutputStream
     }
   }
 
+  static AVFrame* alloc_audio_frame(
+      enum AVSampleFormat sample_fmt, const AVChannelLayout* channel_layout,
+      int sample_rate, int nb_samples)
+  {
+    AVFrame* frame = av_frame_alloc();
+    if(!frame)
+    {
+      fprintf(stderr, "Error allocating an audio frame\n");
+      exit(1);
+    }
+
+    frame->format = sample_fmt;
+    av_channel_layout_copy(&frame->ch_layout, channel_layout);
+    frame->sample_rate = sample_rate;
+    frame->nb_samples = nb_samples;
+
+    if(nb_samples)
+    {
+      if(av_frame_get_buffer(frame, 0) < 0)
+      {
+        fprintf(stderr, "Error allocating an audio buffer\n");
+        exit(1);
+      }
+    }
+
+    return frame;
+  }
+
   static AVFrame* alloc_frame(enum AVPixelFormat pix_fmt, int width, int height)
   {
-    AVFrame* frame;
-    int ret;
-
-    frame = av_frame_alloc();
+    auto frame = av_frame_alloc();
     if(!frame)
       return NULL;
 
@@ -251,7 +276,7 @@ struct OutputStream
     frame->height = height;
 
     /* allocate the buffers for the frame data */
-    ret = av_frame_get_buffer(frame, 0);
+    const int ret = av_frame_get_buffer(frame, 0);
     if(ret < 0)
     {
       fprintf(stderr, "Could not allocate frame data.\n");
@@ -366,6 +391,18 @@ struct OutputStream
     return this->frame;
   }
 
+  AVFrame* get_audio_frame()
+  {
+    /* when we pass a frame to the encoder, it may keep a reference to it
+     * internally; make sure we do not overwrite it here */
+    if(av_frame_make_writable(this->frame) < 0)
+      exit(1);
+
+    this->frame->pts = this->next_pts++;
+
+    return this->frame;
+  }
+
   int write_frame(
       AVFormatContext* fmt_ctx, AVCodecContext* c, AVStream* st, AVFrame* frame,
       AVPacket* pkt)
@@ -419,6 +456,11 @@ struct OutputStream
   }
 
   int write_video_frame(AVFormatContext* oc, AVFrame* frame)
+  {
+    return write_frame(oc, enc, st, frame, tmp_pkt);
+  }
+
+  int write_audio_frame(AVFormatContext* oc, AVFrame* frame)
   {
     return write_frame(oc, enc, st, frame, tmp_pkt);
   }
