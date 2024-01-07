@@ -55,7 +55,7 @@ consteval score::uuid_t uuid_from_string()
   if constexpr(requires {
                  {
                    N::uuid()
-                   } -> std::convertible_to<score::uuid_t>;
+                 } -> std::convertible_to<score::uuid_t>;
                })
   {
     return N::uuid();

@@ -641,7 +641,7 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
     Process::Preset p;
     p.key.key = this->static_concreteKey();
     // FIXME p.key.effect = m_uid;
-    Steinberg::Vst::String128 progName;
+    Steinberg::Vst::String128 progName = {};
     this->fx.units->getProgramName(this->fx.programs.id, i, progName);
 
     p.name = fromString(progName);

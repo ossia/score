@@ -90,7 +90,7 @@ void VSTGraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 void VSTGraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  Steinberg::Vst::String128 str;
+  Steinberg::Vst::String128 str = {};
   m_value = fx->getParamNormalized(num);
   fx->getParamStringByValue(num, m_value, str);
 

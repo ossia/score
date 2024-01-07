@@ -1,3 +1,4 @@
+#include <Media/Effect/Settings/Model.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -72,15 +73,15 @@ namespace
 static const QStringList default_paths = {"/Library/Audio/Plug-Ins/VST3"};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
+#elif defined(_WIN32)
+static const QStringList default_paths = {"C:\\Program Files\\Common Files\\VST3"};
+static const constexpr auto default_filter = "*.vst3";
+static const constexpr auto default_format = QDir::Files;
 #elif defined(__linux__)
 static const QStringList default_paths
     = {QStringLiteral("/usr/lib/vst3"), QStringLiteral("/usr/lib64/vst3")};
 static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
-#elif defined(_WIN32)
-static const QStringList default_paths = {"C:\\Program Files\\Common Files\\VST3"};
-static const constexpr auto default_filter = "*.vst3";
-static const constexpr auto default_format = QDir::Files;
 #else
 static const constexpr auto default_paths = {QStringLiteral("/usr/lib/vst3")};
 static const constexpr auto default_filter = "";
@@ -123,12 +124,33 @@ void ApplicationPlugin::initialize()
   vstChanged();
 
   //! TODO
-  // auto& set = context.settings<Media::Settings::Model>();
-  // con(set, &Media::Settings::Model::VstPathsChanged, this, &ApplicationPlugin::rescanVSTs);
-  //
+  auto& set = context.settings<Media::Settings::Model>();
+  con(set, &Media::Settings::Model::VstPathsChanged, this, [this] {
+    vst_infos.clear();
+    rescan();
+  });
 
   if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
-    rescan(default_paths);
+  {
+    rescan();
+  }
+}
+
+void ApplicationPlugin::rescan()
+{
+  auto paths = default_paths;
+
+#if defined(__APPLE__)
+  const QString user = qgetenv("USERNAME");
+  paths.prepend(QString("/Users/%1/Library/Audio/Plug-ins/VST3/").arg(user));
+#elif defined(_WIN32)
+  const QString local_app_data = qgetenv("LOCALAPPDATA");
+  paths.prepend(QString("%1/Programs/Common/VST3/").arg(local_app_data));
+#else
+  const QString home = qgetenv("HOME");
+  paths.prepend(QString("%1/.vst3/").arg(home));
+#endif
+  rescan(paths);
 }
 
 void ApplicationPlugin::rescan(const QStringList& paths)
@@ -149,7 +171,10 @@ void ApplicationPlugin::rescan(const QStringList& paths)
         dir, QStringList{default_filter}, default_format,
         QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext())
-      newPlugins.insert(it.next());
+    {
+      QString plug = it.next();
+      newPlugins.insert(plug);
+    }
   }
 
   // 2. Remove plug-ins not in these paths

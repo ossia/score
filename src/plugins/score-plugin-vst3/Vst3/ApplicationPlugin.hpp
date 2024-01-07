@@ -92,6 +92,7 @@ public:
 
   VST3::Hosting::Module::Ptr getModule(const std::string& path);
 
+  void rescan();
   void rescan(const QStringList& paths);
   void vstChanged() W_SIGNAL(vstChanged)
 

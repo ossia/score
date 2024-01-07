@@ -552,11 +552,11 @@ public:
 
     if constexpr(requires { this->from_ui; })
     {
-      this->from_ui = [](QByteArray arr) {};
+      this->from_ui = [](const QByteArray& arr) {};
     }
     if constexpr(requires { this->to_ui; })
     {
-      this->to_ui = [](QByteArray arr) {};
+      this->to_ui = [](const QByteArray& arr) {};
     }
   }
   ProcessModel(
@@ -572,11 +572,11 @@ public:
 
     if constexpr(requires { this->from_ui; })
     {
-      this->from_ui = [](QByteArray arr) {};
+      this->from_ui = [](const QByteArray& arr) {};
     }
     if constexpr(requires { this->to_ui; })
     {
-      this->to_ui = [](QByteArray arr) {};
+      this->to_ui = [](const QByteArray& arr) {};
     }
 
     if constexpr(avnd::file_input_introspection<Info>::size > 0)
