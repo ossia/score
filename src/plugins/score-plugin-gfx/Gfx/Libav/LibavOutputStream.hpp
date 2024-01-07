@@ -9,6 +9,11 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include <score/tools/Debug.hpp>
+
+#include <ossia/detail/flat_map.hpp>
+
+#include <string>
 namespace Gfx
 {
 

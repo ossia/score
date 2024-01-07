@@ -2,6 +2,7 @@
 
 #include "LibavOutputStream.hpp"
 
+#include <QDebug>
 extern "C" {
 #include <libswresample/swresample.h>
 }
