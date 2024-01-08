@@ -1,5 +1,7 @@
 #include "LibavOutputDevice.hpp"
 
+#include "Gfx/Libav/LibavOutputStream.hpp"
+
 #if SCORE_HAS_LIBAV
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
@@ -90,9 +92,14 @@ public:
 
   void push_value(const ossia::audio_port& mixed) noexcept override
   {
-    // ossia::virtual_audio_parameter::push_value(mixed);
+    m_audio_data.resize(mixed.channels());
+    for(std::size_t i = 0; i < mixed.channels(); i++)
+    {
+      auto& chan = mixed.channel(i);
+      m_audio_data[i].assign(chan.begin(), chan.end());
+    }
 
-    m_encoder.add_frame(this->m_audio_data);
+    m_encoder.add_frame(m_audio_data);
   }
 
   void set_buffer_size(int bs)
@@ -144,7 +151,8 @@ public:
     auto audio = root.add_child(
         std::make_unique<ossia::net::generic_node>("Audio", *this, root));
     SCORE_ASSERT(audio);
-    audio->set_parameter(std::make_unique<record_audio_parameter>(enc, 2, 512, *audio));
+    audio->set_parameter(std::make_unique<record_audio_parameter>(
+        enc, CHANNELS_TEST, BUFFER_SIZE_TEST, *audio));
   }
 
   const ossia::net::generic_node& get_root_node() const override { return root; }
@@ -202,7 +210,7 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
              .rate = 30,
          },
          .video_encoder_short = "mjpeg",
-         .video_input_pixfmt = "rgba",
+         .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
          .muxer = "mjpeg",
          .options = {{"fflags", "+nobuffer+genpts"}, {"flags", "+low_delay"}}}},
@@ -216,7 +224,7 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
              .rate = 30,
          },
          .video_encoder_short = "libx265",
-         .video_input_pixfmt = "rgba",
+         .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
          .muxer = "matroska"}},
 
@@ -228,8 +236,8 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
              .height = 720,
              .rate = 30,
          },
-         .video_encoder_short = "foo",
-         .video_encoder_short = "bar",
+         .video_encoder_short = "",
+         .video_encoder_short = "",
          .audio_encoder_short = "pcm_s16le",
          .audio_encoder_long = "",
          .muxer = "wav",
@@ -521,19 +529,22 @@ Device::DeviceSettings LibavOutputSettingsWidget::getSettings() const
     specif.muxer = muxer->name;
     if(muxer->long_name)
       specif.muxer_long = muxer->long_name;
+
     if(acodec)
     {
       specif.audio_encoder_short = acodec->name;
       if(acodec->long_name)
         specif.audio_encoder_long = acodec->long_name;
+      specif.audio_converted_smpfmt = this->m_smpfmt->currentText();
     }
+
     if(vcodec)
     {
       specif.video_encoder_short = vcodec->name;
       if(vcodec->long_name)
         specif.video_encoder_long = vcodec->long_name;
-
-      specif.video_input_pixfmt = av_pix_fmt_desc_get(AV_PIX_FMT_RGBA)->name;
+      
+      specif.video_render_pixfmt = av_pix_fmt_desc_get(AV_PIX_FMT_RGBA)->name;
       specif.video_converted_pixfmt = this->m_pixfmt->currentText();
     }
 
@@ -636,9 +647,10 @@ void DataStreamReader::read(const Gfx::LibavOutputSettings& n)
   read((const Gfx::SharedOutputSettings&)n);
 
   m_stream << n.hardwareAcceleration;
-  m_stream << n.audio_encoder_short << n.audio_encoder_long;
+  m_stream << n.audio_encoder_short << n.audio_encoder_long << n.audio_converted_smpfmt
+           << n.audio_sample_rate << n.audio_channels;
   m_stream << n.video_encoder_short << n.video_encoder_long;
-  m_stream << n.video_input_pixfmt;
+  m_stream << n.video_render_pixfmt;
   m_stream << n.video_converted_pixfmt;
   m_stream << n.muxer << n.muxer_long;
   m_stream << n.options;
@@ -652,11 +664,16 @@ void DataStreamWriter::write(Gfx::LibavOutputSettings& n)
   write((Gfx::SharedOutputSettings&)n);
 
   m_stream >> n.hardwareAcceleration;
-  m_stream >> n.audio_encoder_short >> n.audio_encoder_long;
+
+  m_stream >> n.audio_encoder_short >> n.audio_encoder_long >> n.audio_converted_smpfmt
+      >> n.audio_sample_rate >> n.audio_channels;
+
   m_stream >> n.video_encoder_short >> n.video_encoder_long;
-  m_stream >> n.video_input_pixfmt;
+  m_stream >> n.video_render_pixfmt;
   m_stream >> n.video_converted_pixfmt;
+
   m_stream >> n.muxer >> n.muxer_long;
+
   m_stream >> n.options;
   m_stream >> n.threads;
   checkDelimiter();
@@ -667,14 +684,21 @@ void JSONReader::read(const Gfx::LibavOutputSettings& n)
 {
   read((const Gfx::SharedOutputSettings&)n);
   obj["HWAccel"] = n.hardwareAcceleration;
+
   obj["AudioEncoderShort"] = n.audio_encoder_short;
   obj["AudioEncoderLong"] = n.audio_encoder_long;
+  obj["AudioConvSmpFmt"] = n.audio_converted_smpfmt;
+  obj["AudioRate"] = n.audio_sample_rate;
+  obj["AudioChannels"] = n.audio_channels;
+
   obj["VideoEncoderShort"] = n.video_encoder_short;
   obj["VideoEncoderLong"] = n.video_encoder_long;
-  obj["InputPixFmt"] = n.video_input_pixfmt;
-  obj["ConvPixFmt"] = n.video_converted_pixfmt;
+  obj["VideoRenderPixFmt"] = n.video_render_pixfmt;
+  obj["VideoConvPixFmt"] = n.video_converted_pixfmt;
+
   obj["MuxerShort"] = n.muxer;
   obj["MuxerLong"] = n.muxer_long;
+
   obj["Options"] = n.options;
   obj["Threads"] = n.threads;
 }
@@ -684,14 +708,21 @@ void JSONWriter::write(Gfx::LibavOutputSettings& n)
 {
   write((Gfx::SharedOutputSettings&)n);
   n.hardwareAcceleration <<= obj["HWAccel"];
+
   n.audio_encoder_short <<= obj["AudioEncoderShort"];
   n.audio_encoder_long <<= obj["AudioEncoderLong"];
+  n.audio_converted_smpfmt <<= obj["AudioConvSmpFmt"];
+  n.audio_sample_rate <<= obj["AudioRate"];
+  n.audio_channels <<= obj["AudioChannels"];
+
   n.video_encoder_short <<= obj["VideoEncoderShort"];
   n.video_encoder_long <<= obj["VideoEncoderLong"];
-  n.video_input_pixfmt <<= obj["InputPixFmt"];
-  n.video_converted_pixfmt <<= obj["ConvPixFmt"];
+  n.video_render_pixfmt <<= obj["VideoRenderPixFmt"];
+  n.video_converted_pixfmt <<= obj["VideoConvPixFmt"];
+
   n.muxer <<= obj["MuxerShort"];
   n.muxer_long <<= obj["MuxerLong"];
+
   n.options <<= obj["Options"];
   n.threads <<= obj["Threads"];
 }

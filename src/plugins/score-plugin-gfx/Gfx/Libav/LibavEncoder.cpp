@@ -110,21 +110,35 @@ int LibavEncoder::start()
 
 int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
 {
+  if(!m_formatContext)
+    return 1;
   auto& stream = streams[audio_stream_index];
-  auto next_frame = stream.get_audio_frame();
+  AVFrame* next_frame = stream.get_audio_frame();
 
-  next_frame->format = AV_SAMPLE_FMT_FLT;
+  next_frame->sample_rate = SAMPLE_RATE_TEST;
+  next_frame->format = SAMPLE_FORMAT_TEST;
   next_frame->nb_samples = vec[0].size();
   next_frame->ch_layout.nb_channels = vec.size();
   next_frame->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
-  // next_frame->data[0] = (unsigned char*)data;
+
+  std::vector<int16_t> data;
+  data.reserve(1024);
+  for(int i = 0; i < BUFFER_SIZE_TEST; i++)
+    for(int c = 0; c < CHANNELS_TEST; c++)
+      data.push_back(vec[c][i] * 32768.f);
+
+  next_frame->data[0] = (uint8_t*)data.data();
+  next_frame->data[1] = nullptr;
+#if 0
   {
     auto& frame = next_frame;
     int channels = vec.size();
     if(channels <= AV_NUM_DATA_POINTERS)
     {
       for(int i = 0; i < channels; ++i)
+      {
         frame->data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
+      }
     }
     else
     {
@@ -140,12 +154,16 @@ int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
         frame->extended_data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
     }
   }
+#endif
   return stream.write_audio_frame(m_formatContext, next_frame);
 }
 
 int LibavEncoder::add_frame(
     const unsigned char* data, AVPixelFormat fmt, int width, int height)
 {
+  if(!m_formatContext)
+    return 1;
+
   auto& stream = streams[video_stream_index];
   auto next_frame = stream.get_video_frame();
   next_frame->format = fmt;

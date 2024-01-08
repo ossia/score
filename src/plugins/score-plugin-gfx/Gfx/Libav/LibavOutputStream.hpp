@@ -18,6 +18,13 @@ extern "C" {
 #include <QApplication>
 
 #include <string>
+
+#include <r8brain-free-src/CDSPResampler.h>
+
+#define SAMPLE_FORMAT_TEST AV_SAMPLE_FMT_S16
+#define SAMPLE_RATE_TEST 44100
+#define BUFFER_SIZE_TEST 512
+#define CHANNELS_TEST 2
 namespace Gfx
 {
 
@@ -38,20 +45,18 @@ struct OutputStream
   int64_t next_pts{};
   int samples_count{};
 
-  AVFrame* frame{};
+  AVFrame* cache_input_frame{};
   AVFrame* tmp_frame{};
 
   AVPacket* tmp_pkt{};
 
   struct SwsContext* sws_ctx{};
-  struct SwrContext* swr_ctx{};
+  std::vector<std::unique_ptr<r8b::CDSPResampler>> resamplers;
 
   OutputStream(
       const LibavOutputSettings& set, AVFormatContext* oc, const StreamOptions& opts)
   {
-    /* find the encoder */
     codec = avcodec_find_encoder_by_name(opts.codec.c_str());
-    // codec = avcodec_find_encoder(opts.codec_id);
     if(!codec)
     {
       fprintf(stderr, "Could not find encoder for '%s'\n", opts.codec.c_str());
@@ -65,7 +70,7 @@ struct OutputStream
       exit(1);
     }
 
-    this->st = avformat_new_stream(oc, NULL);
+    this->st = avformat_new_stream(oc, nullptr);
     if(!this->st)
     {
       fprintf(stderr, "Could not allocate stream\n");
@@ -87,80 +92,21 @@ struct OutputStream
       }
     }
 #endif
-    AVCodecContext* c = avcodec_alloc_context3(codec);
-    if(!c)
+    this->enc = avcodec_alloc_context3(codec);
+    if(!this->enc)
     {
       fprintf(stderr, "Could not alloc an encoding context\n");
       exit(1);
     }
-    this->enc = c;
 
     switch(codec->type)
     {
-      case AVMEDIA_TYPE_AUDIO: {
-        c->sample_fmt = codec->sample_fmts ? codec->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
-        c->bit_rate = 64000;
-        c->sample_rate = 44100;
-        if(codec->supported_samplerates)
-        {
-          c->sample_rate = codec->supported_samplerates[0];
-          for(int i = 0; codec->supported_samplerates[i]; i++)
-          {
-            if(codec->supported_samplerates[i] == 44100)
-              c->sample_rate = 44100;
-          }
-        }
-        constexpr AVChannelLayout layout
-            = {.order = AV_CHANNEL_ORDER_UNSPEC, .nb_channels = 2};
-        av_channel_layout_copy(&c->ch_layout, &layout);
-        this->st->time_base = (AVRational){1, c->sample_rate};
+      case AVMEDIA_TYPE_AUDIO:
+        init_audio(set, this->enc);
         break;
-      }
-
-      case AVMEDIA_TYPE_VIDEO: {
-        c->codec_id = codec->id;
-        // c->bit_rate = 400000;
-        // c->bit_rate_tolerance = 10000;
-        // c->global_quality = 1;
-        // c->compression_level = 1;
-        // c->hw_device_ctx = hw_ctx;
-
-        // c->flags |= AV_CODEC_FLAG_QSCALE;
-        // c->global_quality = FF_QP2LAMBDA * 3.0;
-        /* Resolution must be a multiple of two. */
-        c->width = set.width;
-        c->height = set.height;
-        /* timebase: This is the fundamental unit of time (in seconds) in terms
-         * of which frame timestamps are represented. For fixed-fps content,
-         * timebase should be 1/framerate and timestamp increments should be
-         * identical to 1. */
-        this->st->time_base = (AVRational){100000, int(100000 * set.rate)};
-        c->time_base = this->st->time_base;
-        c->framerate = AVRational{this->st->time_base.den, this->st->time_base.num};
-
-        //c->gop_size = 12; /* emit one intra frame every twelve frames at most */
-
-        // ignored if frame->pict_type is AV_PICTURE_TYPE_I
-        c->gop_size = 0;
-        c->max_b_frames = 0;
-
-        // c->pix_fmt = AV_PIX_FMT_RGB24;
-        c->pix_fmt = av_get_pix_fmt(set.video_converted_pixfmt.toStdString().c_str());
-        c->strict_std_compliance = FF_COMPLIANCE_NORMAL;
-        if(c->codec_id == AV_CODEC_ID_MPEG2VIDEO)
-        {
-          /* just for testing, we also add B-frames */
-          c->max_b_frames = 2;
-        }
-        if(c->codec_id == AV_CODEC_ID_MPEG1VIDEO)
-        {
-          /* Needed to avoid using macroblocks in which some coeffs overflow.
-             * This does not happen with normal video, it just happens here as
-             * the motion of the chroma plane does not match the luma plane. */
-          c->mb_decision = 2;
-        }
+      case AVMEDIA_TYPE_VIDEO:
+        init_video(set, this->enc);
         break;
-      }
 
       default:
         break;
@@ -169,21 +115,88 @@ struct OutputStream
     /* Some formats want stream headers to be separate. */
     if(oc->oformat->flags & AVFMT_GLOBALHEADER)
     {
-      c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+      this->enc->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
   }
 
-  void open_audio(AVFormatContext* oc, const AVCodec* codec, AVDictionary* opt_arg)
+  void init_audio(const LibavOutputSettings& set, AVCodecContext* c)
   {
-    AVCodecContext* c;
-    int ret;
-    AVDictionary* opt = NULL;
+    //c->sample_fmt = codec->sample_fmts ? codec->sample_fmts[0] : SAMPLE_FORMAT_TEST;
+    //c->sample_fmt = AV_SAMPLE_FMT_S16;
+    c->sample_fmt = av_get_sample_fmt(set.audio_converted_smpfmt.toStdString().c_str());
+    // c->bit_rate = 64000;
+    c->sample_rate = set.audio_sample_rate;
+    /*
+    if(codec->supported_samplerates)
+    {
+      c->sample_rate = codec->supported_samplerates[0];
+      for(int i = 0; codec->supported_samplerates[i]; i++)
+      {
+        if(codec->supported_samplerates[i] == SAMPLE_RATE_TEST)
+          c->sample_rate = SAMPLE_RATE_TEST;
+      }
+    }
+    */
+    c->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
+    c->ch_layout.nb_channels = 2;
+    this->st->time_base = AVRational{1, c->sample_rate};
+    c->time_base = AVRational{1, c->sample_rate};
+    c->framerate = AVRational{c->sample_rate, 1};
+  }
 
-    c = this->enc;
+  void init_video(const LibavOutputSettings& set, AVCodecContext* c)
+  {
+    c->codec_id = codec->id;
+    // c->bit_rate = 400000;
+    // c->bit_rate_tolerance = 10000;
+    // c->global_quality = 1;
+    // c->compression_level = 1;
+    // c->hw_device_ctx = hw_ctx;
 
-    /* open it */
+    // c->flags |= AV_CODEC_FLAG_QSCALE;
+    // c->global_quality = FF_QP2LAMBDA * 3.0;
+    /* Resolution must be a multiple of two. */
+    c->width = set.width;
+    c->height = set.height;
+    /* timebase: This is the fundamental unit of time (in seconds) in terms
+         * of which frame timestamps are represented. For fixed-fps content,
+         * timebase should be 1/framerate and timestamp increments should be
+         * identical to 1. */
+    this->st->time_base = AVRational{100000, int(100000 * set.rate)};
+    c->time_base = this->st->time_base;
+    c->framerate = AVRational{this->st->time_base.den, this->st->time_base.num};
+
+    //c->gop_size = 12; /* emit one intra frame every twelve frames at most */
+
+    // ignored if frame->pict_type is AV_PICTURE_TYPE_I
+    c->gop_size = 0;
+    c->max_b_frames = 0;
+
+    // c->pix_fmt = AV_PIX_FMT_RGB24;
+    c->pix_fmt = av_get_pix_fmt(set.video_converted_pixfmt.toStdString().c_str());
+    c->strict_std_compliance = FF_COMPLIANCE_NORMAL;
+    if(c->codec_id == AV_CODEC_ID_MPEG2VIDEO)
+    {
+      /* just for testing, we also add B-frames */
+      c->max_b_frames = 2;
+    }
+    if(c->codec_id == AV_CODEC_ID_MPEG1VIDEO)
+    {
+      /* Needed to avoid using macroblocks in which some coeffs overflow.
+       * This does not happen with normal video, it just happens here as
+       * the motion of the chroma plane does not match the luma plane. */
+      c->mb_decision = 2;
+    }
+  }
+
+  void open_audio(
+      const LibavOutputSettings& set, AVFormatContext* oc, const AVCodec* codec,
+      AVDictionary* opt_arg)
+  {
+    AVDictionary* opt = nullptr;
+
     av_dict_copy(&opt, opt_arg, 0);
-    ret = avcodec_open2(c, codec, &opt);
+    int ret = avcodec_open2(enc, codec, &opt);
     av_dict_free(&opt);
     if(ret < 0)
     {
@@ -191,49 +204,40 @@ struct OutputStream
       exit(1);
     }
 
-    // FIXME
-    int nb_samples;
-    if(c->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
-      nb_samples = 10000;
+    int nb_samples = 0;
+    if(enc->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
+    {
+      nb_samples = BUFFER_SIZE_TEST;
+      enc->frame_size = BUFFER_SIZE_TEST;
+    }
     else
-      nb_samples = c->frame_size;
-    frame = alloc_audio_frame(c->sample_fmt, &c->ch_layout, c->sample_rate, nb_samples);
+    {
+      nb_samples = enc->frame_size;
+    }
+    cache_input_frame = alloc_audio_frame(
+        SAMPLE_FORMAT_TEST, &enc->ch_layout, SAMPLE_RATE_TEST, BUFFER_SIZE_TEST);
     tmp_frame = alloc_audio_frame(
-        AV_SAMPLE_FMT_S16, &c->ch_layout, c->sample_rate, nb_samples);
+        enc->sample_fmt, &enc->ch_layout, enc->sample_rate, nb_samples);
 
     /* copy the stream parameters to the muxer */
-    ret = avcodec_parameters_from_context(this->st->codecpar, c);
+    ret = avcodec_parameters_from_context(this->st->codecpar, enc);
     if(ret < 0)
     {
       fprintf(stderr, "Could not copy the stream parameters\n");
       exit(1);
     }
 
-    /* create resampler context */
     {
-      this->swr_ctx = swr_alloc();
-      if(!this->swr_ctx)
-      {
-        fprintf(stderr, "Could not allocate resampler context\n");
-        exit(1);
-      }
+      auto input_fmt = AV_SAMPLE_FMT_FLTP;
+      auto conv_fmt
+          = av_get_sample_fmt(set.audio_converted_smpfmt.toStdString().c_str());
+      SCORE_ASSERT(input_fmt != -1);
+      SCORE_ASSERT(conv_fmt != -1);
 
-      auto in_chlayout = c->ch_layout;
-      auto out_chlayout = c->ch_layout;
-      auto in_rate = c->sample_rate;
-      auto out_rate = c->sample_rate;
-      auto in_fmt = AV_SAMPLE_FMT_FLTP;
-      auto out_fmt = c->sample_fmt;
-
-      ret = swr_alloc_set_opts2(
-          &this->swr_ctx, &out_chlayout, out_fmt, out_rate, &in_chlayout, in_fmt,
-          in_rate, 0, nullptr);
-
-      if(ret < 0)
-      {
-        fprintf(stderr, "Failed to initialize the resampling context\n");
-        exit(1);
-      }
+      if(enc->sample_rate != SAMPLE_RATE_TEST)
+        this->resamplers.push_back(std::make_unique<r8b::CDSPResampler>(
+            SAMPLE_RATE_TEST, enc->sample_rate, nb_samples, 3.0, 206.91,
+            r8b::fprMinPhase));
     }
   }
 
@@ -249,7 +253,8 @@ struct OutputStream
     }
 
     frame->format = sample_fmt;
-    av_channel_layout_copy(&frame->ch_layout, channel_layout);
+    frame->ch_layout.order = channel_layout->order;
+    frame->ch_layout.nb_channels = channel_layout->nb_channels;
     frame->sample_rate = sample_rate;
     frame->nb_samples = nb_samples;
 
@@ -265,7 +270,7 @@ struct OutputStream
     return frame;
   }
 
-  static AVFrame* alloc_frame(enum AVPixelFormat pix_fmt, int width, int height)
+  static AVFrame* alloc_video_frame(enum AVPixelFormat pix_fmt, int width, int height)
   {
     auto frame = av_frame_alloc();
     if(!frame)
@@ -304,7 +309,6 @@ struct OutputStream
 
     /* open the codec */
     SCORE_ASSERT(this->enc->flags & AV_CODEC_FLAG_GLOBAL_HEADER);
-    qDebug() << "Flagz: " << (int64_t)this->enc->flags << AV_CODEC_FLAG_GLOBAL_HEADER;
     int ret = avcodec_open2(this->enc, codec, &opt);
     av_dict_free(&opt);
     if(ret < 0)
@@ -314,8 +318,8 @@ struct OutputStream
     }
 
     /* allocate and init a re-usable frame */
-    this->frame = alloc_frame(AV_PIX_FMT_RGBA, c->width, c->height);
-    if(!this->frame)
+    this->cache_input_frame = alloc_video_frame(AV_PIX_FMT_RGBA, c->width, c->height);
+    if(!this->cache_input_frame)
     {
       fprintf(stderr, "Could not allocate video frame\n");
       exit(1);
@@ -325,14 +329,15 @@ struct OutputStream
     // If conversion is needed :
     // if(c->pix_fmt != AV_PIX_FMT_YUVJ420P)
     {
-      auto input_fmt = av_get_pix_fmt(set.video_input_pixfmt.toStdString().c_str());
+      auto input_fmt = av_get_pix_fmt(set.video_render_pixfmt.toStdString().c_str());
       auto conv_fmt = av_get_pix_fmt(set.video_converted_pixfmt.toStdString().c_str());
       SCORE_ASSERT(input_fmt != -1);
       SCORE_ASSERT(conv_fmt != -1);
       sws_ctx = sws_getContext(
           set.width, set.height, input_fmt, set.width, set.height, conv_fmt, 1, nullptr,
           nullptr, nullptr);
-      this->tmp_frame = alloc_frame(conv_fmt, c->width, c->height);
+      SCORE_ASSERT(sws_ctx);
+      this->tmp_frame = alloc_video_frame(conv_fmt, c->width, c->height);
       if(!this->tmp_frame)
       {
         fprintf(stderr, "Could not allocate temporary video frame\n");
@@ -347,9 +352,6 @@ struct OutputStream
       fprintf(stderr, "Could not copy the stream parameters\n");
       exit(1);
     }
-
-    /* Copy extradata (e.g. H264 NALs) */
-    qDebug() << c->extradata_size << this->st->codecpar->extradata_size;
   }
 
   void open(
@@ -361,7 +363,7 @@ struct OutputStream
     SCORE_ASSERT(opt_arg);
     if(codec->type == AVMEDIA_TYPE_AUDIO)
     {
-      open_audio(oc, codec, opt_arg);
+      open_audio(set, oc, codec, opt_arg);
     }
     else if(codec->type == AVMEDIA_TYPE_VIDEO)
     {
@@ -372,51 +374,54 @@ struct OutputStream
   void close(AVFormatContext* oc)
   {
     avcodec_free_context(&enc);
-    av_frame_free(&frame);
+    av_frame_free(&cache_input_frame);
     av_frame_free(&tmp_frame);
     av_packet_free(&tmp_pkt);
     sws_freeContext(sws_ctx);
-    swr_free(&swr_ctx);
+    sws_ctx = nullptr;
   }
 
   AVFrame* get_video_frame()
   {
     /* when we pass a frame to the encoder, it may keep a reference to it
      * internally; make sure we do not overwrite it here */
-    if(av_frame_make_writable(this->frame) < 0)
+    if(av_frame_make_writable(this->cache_input_frame) < 0)
       exit(1);
 
-    this->frame->pts = this->next_pts++;
+    this->cache_input_frame->pts = this->next_pts++;
 
-    return this->frame;
+    return this->cache_input_frame;
   }
 
   AVFrame* get_audio_frame()
   {
     /* when we pass a frame to the encoder, it may keep a reference to it
      * internally; make sure we do not overwrite it here */
-    if(av_frame_make_writable(this->frame) < 0)
+    if(av_frame_make_writable(this->cache_input_frame) < 0)
       exit(1);
 
-    this->frame->pts = this->next_pts++;
+    this->cache_input_frame->pts = this->next_pts;
+    this->next_pts += BUFFER_SIZE_TEST;
 
-    return this->frame;
+    return this->cache_input_frame;
   }
 
-  int write_frame(
-      AVFormatContext* fmt_ctx, AVCodecContext* c, AVStream* st, AVFrame* frame,
-      AVPacket* pkt)
+  int write_video_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
   {
-    int ret;
     // scale the frame
-    sws_scale_frame(sws_ctx, tmp_frame, frame);
+    int ret = sws_scale_frame(sws_ctx, tmp_frame, input_frame);
+    if(ret < 0)
+    {
+      fprintf(stderr, "Error during sws_scale_frame: %s\n", av_err2str(ret));
+      exit(1);
+    }
 
     tmp_frame->quality = FF_LAMBDA_MAX; //c->global_quality;
     tmp_frame->pict_type = AV_PICTURE_TYPE_I;
     tmp_frame->pts++;
 
     // send the frame to the encoder
-    ret = avcodec_send_frame(c, tmp_frame);
+    ret = avcodec_send_frame(enc, tmp_frame);
     if(ret < 0)
     {
       fprintf(stderr, "Error sending a frame to the encoder: %s\n", av_err2str(ret));
@@ -425,7 +430,7 @@ struct OutputStream
 
     while(ret >= 0)
     {
-      ret = avcodec_receive_packet(c, pkt);
+      ret = avcodec_receive_packet(enc, tmp_pkt);
       if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
         break;
       else if(ret < 0)
@@ -435,16 +440,11 @@ struct OutputStream
       }
 
       /* rescale output packet timestamp values from codec to stream timebase */
-      av_packet_rescale_ts(pkt, c->time_base, st->time_base);
-      pkt->stream_index = st->index;
-      pkt->flags |= AV_PKT_FLAG_KEY;
+      av_packet_rescale_ts(tmp_pkt, enc->time_base, st->time_base);
+      tmp_pkt->stream_index = st->index;
+      tmp_pkt->flags |= AV_PKT_FLAG_KEY;
 
-      /* Write the compressed frame to the media file. */
-      // log_packet(fmt_ctx, pkt);
-      ret = av_interleaved_write_frame(fmt_ctx, pkt);
-      /* pkt is now blank (av_interleaved_write_frame() takes ownership of
-         * its contents and resets pkt), so that no unreferencing is necessary.
-         * This would be different if one used av_write_frame(). */
+      ret = av_interleaved_write_frame(fmt_ctx, tmp_pkt);
       if(ret < 0)
       {
         fprintf(stderr, "Error while writing output packet: %s\n", av_err2str(ret));
@@ -455,14 +455,78 @@ struct OutputStream
     return ret == AVERROR_EOF ? 1 : 0;
   }
 
-  int write_video_frame(AVFormatContext* oc, AVFrame* frame)
+#define SRC_RATE SAMPLE_RATE_TEST
+#define DST_RATE SAMPLE_RATE_TEST
+  static int64_t conv_audio_pts(SwrContext* ctx, int64_t in, int sample_rate)
   {
-    return write_frame(oc, enc, st, frame, tmp_pkt);
+    //int64_t d = (int64_t) AUDIO_RATE * AUDIO_RATE;
+    int64_t d = (int64_t)sample_rate * sample_rate;
+
+    /* Convert from audio_src_tb to 1/(src_samplerate * dst_samplerate) */
+    in = av_rescale_rnd(in, d, SRC_RATE, AV_ROUND_NEAR_INF);
+
+    /* In units of 1/(src_samplerate * dst_samplerate) */
+    in = swr_next_pts(ctx, in);
+
+    /* Convert from 1/(src_samplerate * dst_samplerate) to audio_dst_tb */
+    return av_rescale_rnd(in, DST_RATE, d, AV_ROUND_NEAR_INF);
   }
 
-  int write_audio_frame(AVFormatContext* oc, AVFrame* frame)
+  int write_audio_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
   {
-    return write_frame(oc, enc, st, frame, tmp_pkt);
+    // scale the frame
+    tmp_frame->format = enc->sample_fmt;
+    tmp_frame->sample_rate = enc->sample_rate;
+    tmp_frame->ch_layout = enc->ch_layout;
+    tmp_frame->nb_samples = enc->frame_size;
+    // tmp_frame->pts = conv_audio_pts(swr_ctx, INT64_MIN, SAMPLE_RATE_TEST);
+    tmp_frame->pts = input_frame->pts;
+    tmp_frame->time_base = AVRational{1, enc->sample_rate};
+
+    {
+      // 1. Resample if necessary
+      if(tmp_frame->sample_rate != input_frame->sample_rate)
+      {
+      }
+
+      // 2. Convert
+    }
+    //qDebug() << tmp_frame->pts << av_rescale_q_rnd();
+    // int ret = swr_convert_frame(swr_ctx, tmp_frame, input_frame);
+    //tmp_frame->nb_samples = BUFFER_SIZE_TEST;
+
+    // send the frame to the encoder
+    int ret = avcodec_send_frame(enc, input_frame);
+    if(ret < 0)
+    {
+      fprintf(stderr, "Error sending a frame to the encoder: %s\n", av_err2str(ret));
+      exit(1);
+    }
+
+    while(ret >= 0)
+    {
+      ret = avcodec_receive_packet(enc, tmp_pkt);
+      if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+        break;
+      else if(ret < 0)
+      {
+        fprintf(stderr, "Error encoding a frame: %s\n", av_err2str(ret));
+        exit(1);
+      }
+
+      /* rescale output packet timestamp values from codec to stream timebase */
+      av_packet_rescale_ts(tmp_pkt, enc->time_base, st->time_base);
+      tmp_pkt->stream_index = st->index;
+
+      ret = av_interleaved_write_frame(fmt_ctx, tmp_pkt);
+      if(ret < 0)
+      {
+        fprintf(stderr, "Error while writing output packet: %s\n", av_err2str(ret));
+        exit(1);
+      }
+    }
+
+    return ret == AVERROR_EOF ? 1 : 0;
   }
 };
 }
