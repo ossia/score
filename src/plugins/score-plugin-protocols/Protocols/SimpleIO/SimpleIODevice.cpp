@@ -10,13 +10,8 @@
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/network/base/protocol.hpp>
-#include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/common/complex_type.hpp>
-#include <ossia/protocols/artnet/artnet_protocol.hpp>
-#include <ossia/protocols/artnet/dmx_parameter.hpp>
-#include <ossia/protocols/artnet/dmxusbpro_protocol.hpp>
-#include <ossia/protocols/artnet/e131_protocol.hpp>
-
+#include <ossia/network/generic/generic_device.hpp>
 
 #include <libsimpleio/libadc.h>
 #include <libsimpleio/libdac.h>
