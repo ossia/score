@@ -56,6 +56,9 @@
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
 #include <Protocols/SimpleIO/SimpleIOProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_GPS)
+#include <Protocols/GPS/GPSProtocolFactory.hpp>
+#endif
 
 #include <Protocols/Mapper/MapperDevice.hpp>
 
@@ -134,6 +137,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
          ,
          Protocols::SimpleIOProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_GPS)
+         ,
+         Protocols::GPSProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_LIBMAPPER)
          ,

@@ -207,6 +207,20 @@ set(SIMPLEIO_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOSpecificSettingsSerialization.cpp"
 )
 
+set(GPS_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSSpecificSettings.hpp"
+)
+
+set(GPS_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSSpecificSettingsSerialization.cpp"
+)
+
 set(MAPPER_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.cpp"
@@ -297,6 +311,14 @@ if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
   target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_SIMPLEIO)
   target_link_libraries(${PROJECT_NAME} PRIVATE simpleio)
   list(APPEND SCORE_FEATURES_LIST protocol_simpleio)
+endif()
+
+find_path(GPS_HEADER gps.h)
+if(GPS_HEADER)
+  target_sources(${PROJECT_NAME} PRIVATE ${GPS_HDRS} ${GPS_SRCS})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_GPS)
+  target_link_libraries(${PROJECT_NAME} PRIVATE gps)
+  list(APPEND SCORE_FEATURES_LIST protocol_gps)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
