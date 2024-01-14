@@ -87,6 +87,7 @@ jobs:
         uses: mariotaku/raspbian-sysroot-action@main
         with:
           # Can be space separated, multiline list or a file
+          release: "bookworm"
           packages:
             gcc
             g++
