@@ -38,4 +38,6 @@ target_include_directories(
   PUBLIC
     "${CMAKE_CURRENT_LIST_DIR}/libsimpleio/"
 )
+set_target_properties(simpleio PROPERTIES UNITY_BUILD 0)
+
 endif()
