@@ -76,3 +76,88 @@ jobs:
           name: raspberry-pi-aarch64
           path: |
             *.tar.gz
+
+  rpi_test:
+    name: Raspberry
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Prepare Sysroot
+        id: pi-sysroot
+        uses: mariotaku/raspbian-sysroot-action@main
+        with:
+          # Can be space separated, multiline list or a file
+          packages:
+            gcc
+            g++
+            clang
+            clang-15
+            cmake
+            libasound-dev
+            ninja-build
+            libfftw3-dev
+            libsuil-dev
+            liblilv-dev
+            lv2-dev
+            libclang-dev
+            llvm-dev
+            libclang-15-dev
+            llvm-15-dev
+            libdrm-dev
+            libgbm-dev
+            qt6-base-dev
+            qt6-base-dev-tools
+            qt6-base-private-dev
+            qt6-declarative-dev
+            qt6-declarative-dev-tools
+            qt6-declarative-private-dev
+            qt6-scxml-dev
+            qt6-5compat-dev
+            libqt6opengl6-dev
+            qt6-websockets-dev
+            qt6-serialport-dev
+            qt6-shadertools-dev
+            libbluetooth-dev
+            libglu1-mesa-dev
+            libglu1-mesa
+            libgles2-mesa-dev
+            libavahi-compat-libdnssd-dev
+            libsamplerate0-dev
+            portaudio19-dev
+            libpipewire-0.3-dev
+            libavcodec-dev
+            libavdevice-dev
+            libavutil-dev
+            libavfilter-dev
+            libavformat-dev
+            libswresample-dev
+
+      - name: Install Build Tools
+        shell: bash
+        run: sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file
+      - name: Build
+        run: |
+          mkdir -p /build || true
+          mkdir -p /install || true
+          cmake -S $PWD -B /build \
+            -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/install \
+            -DCMAKE_UNITY_BUILD=1 \
+            -DSCORE_DEPLOYMENT_BUILD=1 \
+            -DOSSIA_ENABLE_KFR=1 \
+            -DOSSIA_ENABLE_FFTW=0 \
+            -DCMAKE_INSTALL_PREFIX=install \
+            -DSCORE_LINKER_SCRIPT="$PWD/cmake/Deployment/Linux/AppImage/version" \
+            -DCMAKE_TOOLCHAIN_FILE=${{steps.pi-sysroot.outputs.cmake-toolchain}}
+
+          cmake --build /build
+          cmake --build /build --target install
+          file /install/ossia-score
+
+      - name: Upload build
+        uses: actions/upload-artifact@v2
+        with:
+          name: raspberry-pi-bookworm-armhf
+          path: |
+            /install/ossia-score
