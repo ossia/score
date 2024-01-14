@@ -82,6 +82,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
       - name: Prepare Sysroot
         id: pi-sysroot
         uses: mariotaku/raspbian-sysroot-action@main
@@ -136,14 +141,15 @@ jobs:
       - name: Install Build Tools
         shell: bash
         run: sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file
+
       - name: Build
         run: |
-          mkdir -p /build || true
-          mkdir -p /install || true
-          cmake -S $PWD -B /build \
+          mkdir -p build || true
+          mkdir -p install || true
+          cmake -S $PWD -B build \
             -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=/install \
+            -DCMAKE_INSTALL_PREFIX=$PWD/install \
             -DCMAKE_UNITY_BUILD=1 \
             -DSCORE_DEPLOYMENT_BUILD=1 \
             -DOSSIA_ENABLE_KFR=1 \
@@ -152,8 +158,8 @@ jobs:
             -DSCORE_LINKER_SCRIPT="$PWD/cmake/Deployment/Linux/AppImage/version" \
             -DCMAKE_TOOLCHAIN_FILE=${{steps.pi-sysroot.outputs.cmake-toolchain}}
 
-          cmake --build /build
-          cmake --build /build --target install
+          cmake --build build
+          cmake --build build --target install
           file /install/ossia-score
 
       - name: Upload build
@@ -161,4 +167,4 @@ jobs:
         with:
           name: raspberry-pi-bookworm-armhf
           path: |
-            /install/ossia-score
+            install/ossia-score
