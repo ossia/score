@@ -137,11 +137,18 @@ jobs:
             libavfilter-dev
             libavformat-dev
             libswresample-dev
+            libpcre2-16-0
+            libzstd-dev
+            libdouble-conversion-dev
+            libdouble-conversion3
+            zstd
+            libb2-1
+            libb2-dev
 
       - name: Install Build Tools
         shell: bash
         run: |
-          sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross
+          sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross 
           sudo ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /usr/lib/ld-linux-armhf.so.3
         
 
