@@ -76,7 +76,7 @@ public:
 
     int i = 0;
     while(dir.hasNext()) {
-      auto pwm = dir.nextFileInfo();
+      auto pwm = QFileInfo{dir.next()};
       n.emplace_back(
           SimpleIOData{
               {
@@ -100,7 +100,7 @@ public:
     int dac_i = 0;
     while(dir.hasNext())
     {
-      const QFileInfo iio = dir.nextFileInfo();
+      const auto iio = QFileInfo{dir.next()};
       if(QString name = iio.fileName(); name.startsWith("iio:device"))
       {
         name.remove("iio:device");
@@ -112,7 +112,7 @@ public:
         QDirIterator iio_it(iio.dir());
         while(iio_it.hasNext())
         {
-          const auto voltage = iio_it.nextFileInfo();
+          const auto voltage = QFileInfo{dir.next()};
           auto vname = voltage.fileName();
           if(vname.startsWith("in_voltage") && vname.endsWith("_raw"))
           {
