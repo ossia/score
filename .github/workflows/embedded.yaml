@@ -148,7 +148,7 @@ jobs:
       - name: Install Build Tools
         shell: bash
         run: |
-          sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross 
+          sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross  qt6-base-dev
           sudo ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /usr/lib/ld-linux-armhf.so.3
         
 
