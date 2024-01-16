@@ -151,6 +151,13 @@ jobs:
           sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross qt6-base-dev libpcre2-16-0
           sudo ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /usr/lib/ld-linux-armhf.so.3
         
+      - name: Use host Qt tools
+        shell: bash
+        run: |
+          sudo rm -rf ${SYSROOT}/usr/lib/qt5/bin
+          sudo ln -s /usr/lib/qt5/bin ${SYSROOT}/usr/lib/qt5/bin
+        env:
+          SYSROOT: ${{steps.pi-sysroot.outputs.sysroot}}
 
       - name: Build
         run: |
