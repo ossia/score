@@ -112,7 +112,7 @@ public:
         QDirIterator iio_it(iio.dir());
         while(iio_it.hasNext())
         {
-          const auto voltage = QFileInfo{dir.next()};
+          const auto voltage = QFileInfo{iio_it.next()};
           auto vname = voltage.fileName();
           if(vname.startsWith("in_voltage") && vname.endsWith("_raw"))
           {
