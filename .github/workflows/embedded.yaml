@@ -154,10 +154,8 @@ jobs:
       - name: Use host Qt tools
         shell: bash
         run: |
-          sudo rm -rf ${SYSROOT}/usr/lib/qt6/bin
-          sudo rm -rf ${SYSROOT}/usr/lib/qt6/libexec
-          sudo ln -s /usr/lib/qt6/bin ${SYSROOT}/usr/lib/qt6/bin
-          sudo ln -s /usr/lib/qt6/libexec ${SYSROOT}/usr/lib/qt6/libexec
+          sudo cp -rf /usr/lib/qt6/bin/* ${SYSROOT}/usr/lib/qt6/bin/
+          sudo cp -rf /usr/lib/qt6/libexec/* ${SYSROOT}/usr/lib/qt6/libexec/
         env:
           SYSROOT: ${{steps.pi-sysroot.outputs.sysroot}}
 
