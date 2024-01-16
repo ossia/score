@@ -144,6 +144,8 @@ jobs:
             zstd
             libb2-1
             libb2-dev
+            libblas-dev
+            liblapacke-dev
 
       - name: Install Build Tools
         shell: bash
