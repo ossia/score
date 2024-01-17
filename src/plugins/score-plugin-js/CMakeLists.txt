@@ -79,6 +79,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_deviceexplorer score_plugin_protocols
                      score_plugin_media)
 
+if(TARGET score_plugin_media)
+  target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_media)
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC 1)
 
 if(TARGET "${QT_PREFIX}::Quick" AND TARGET score_plugin_gfx AND ${Qt6_VERSION} VERSION_GREATER_EQUAL 6.5.0)
