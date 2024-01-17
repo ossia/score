@@ -4,9 +4,10 @@
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 
 #include <JS/Qml/EditContext.hpp>
+#if SCORE_PLUGIN_MEDIA
 #include <Media/Step/Commands.hpp>
 #include <Media/Step/Model.hpp>
-
+#endif
 namespace JS
 {
 
@@ -69,6 +70,7 @@ void EditJsContext::setCurvePoints(QObject* process, QVector<QVariantList> point
 
 void EditJsContext::setSteps(QObject* process, QVector<double> points)
 {
+#if SCORE_PLUGIN_MEDIA
   if(points.empty())
     return;
 
@@ -84,6 +86,7 @@ void EditJsContext::setSteps(QObject* process, QVector<double> points)
   submit(
       *m,
       new Media::ChangeSteps{*proc, ossia::float_vector{points.begin(), points.end()}});
+#endif
 }
 
 }
