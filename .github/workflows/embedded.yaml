@@ -174,6 +174,7 @@ jobs:
             -DOSSIA_ENABLE_KFR=0 \
             -DOSSIA_ENABLE_FFTW=1 \
             -DCMAKE_INSTALL_PREFIX=install \
+            -DSCORE_DISABLED_PLUGINS="score-plugin-jit;score-plugin-media;score-plugin-gfx;score-plugin-vst3;score-plugin-faust;score-plugin-pd;score-plugin-vst;score-plugin-lv2" \
             -DSCORE_LINKER_SCRIPT="$PWD/cmake/Deployment/Linux/AppImage/version" \
             -DCMAKE_TOOLCHAIN_FILE=${{steps.pi-sysroot.outputs.cmake-toolchain}}
 
