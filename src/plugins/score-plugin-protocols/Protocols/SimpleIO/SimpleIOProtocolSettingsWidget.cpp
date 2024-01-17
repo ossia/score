@@ -15,6 +15,7 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/string_algorithms.hpp>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDirIterator>
@@ -337,6 +338,8 @@ public:
       , m_buttons{QDialogButtonBox::StandardButton::Ok | QDialogButtonBox::StandardButton::Cancel, this}
       , m_gpioIn{"In"}
       , m_gpioOut{"Out"}
+      , m_gpioPullUp{"Pull-up"}
+      , m_gpioPullDown{"Pull-down"}
   {
     this->setLayout(&m_layout);
     m_layout.addWidget(&m_availablePorts);
@@ -369,6 +372,10 @@ public:
     m_gpioInOutLayout.addWidget(&m_gpioIn);
     m_gpioInOutLayout.addWidget(&m_gpioOut);
     m_gpioLayout.addRow(&m_gpioInOutLayout);
+
+    m_gpioPullLayout.addWidget(&m_gpioPullUp);
+    m_gpioPullLayout.addWidget(&m_gpioPullDown);
+    m_gpioLayout.addRow(&m_gpioPullLayout);
 
     m_custom.setCurrentIndex(0);
 
@@ -411,6 +418,7 @@ public:
       case 0: // GPIO
         m_custom.setCurrentIndex(1);
         m_gpioIn.setChecked(true);
+        m_gpioPullUp.setChecked(true);
         break;
       default:
         m_custom.setCurrentIndex(0);
@@ -434,9 +442,24 @@ public:
       void operator()(SimpleIO::GPIO& gpio) const noexcept
       {
         if(self.m_gpioIn.isChecked())
+        {
           gpio.direction = 0;
+          gpio.flags |= GPIOHANDLE_REQUEST_INPUT;
+        }
         else if(self.m_gpioOut.isChecked())
+        {
           gpio.direction = 1;
+          gpio.flags |= GPIOHANDLE_REQUEST_OUTPUT;
+        }
+
+        if(self.m_gpioPullUp.isChecked())
+        {
+          gpio.flags |= GPIOHANDLE_REQUEST_BIAS_PULL_UP;
+        }
+        if(self.m_gpioPullDown.isChecked())
+        {
+          gpio.flags |= GPIOHANDLE_REQUEST_BIAS_PULL_DOWN;
+        }
       }
 
       void operator()(SimpleIO::PWM& gpio) const noexcept { }
@@ -467,7 +490,9 @@ private:
   QWidget m_gpioWidget;
   QFormLayout m_gpioLayout;
   QHBoxLayout m_gpioInOutLayout;
+  QHBoxLayout m_gpioPullLayout;
   QRadioButton m_gpioIn, m_gpioOut;
+  QCheckBox m_gpioPullUp, m_gpioPullDown;
 
   const SimpleIOData* m_currentNode{};
 };

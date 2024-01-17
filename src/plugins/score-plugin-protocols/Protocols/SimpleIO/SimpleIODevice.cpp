@@ -126,8 +126,7 @@ public:
 
       GPIO_impl impl{};
       int32_t error;
-      int32_t flags
-          = ptr->direction ? GPIOHANDLE_REQUEST_OUTPUT : GPIOHANDLE_REQUEST_INPUT;
+      int32_t flags = ptr->flags;
       int32_t events{};
       int32_t state{};
 
