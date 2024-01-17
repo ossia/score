@@ -77,7 +77,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::Qml ${QT_PREFIX}::QmlPrivate
                      score_lib_base score_plugin_engine score_lib_process score_lib_inspector score_lib_device
                      score_plugin_deviceexplorer score_plugin_protocols
-                     score_plugin_media)
+                     )
 
 if(TARGET score_plugin_media)
   target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_media)
