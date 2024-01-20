@@ -2,7 +2,7 @@ include(Sanitize)
 include(UseGold)
 include(LinkerWarnings)
 include(DebugMode)
-include(StaticQt)
+include(ScoreStaticQt)
 include(GenerateStaticExport)
 
 function(score_pch TheTarget)
