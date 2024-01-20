@@ -50,7 +50,10 @@ private:
   dylib_loader library;
 
   libgpsd()
-      : library("libgps.so.30")
+      : library(
+          {"libgps.so.24", "libgps.so.26", "libgps.so.28", "libgps.so.30",
+           "libgps.so.32", "libgps.so.34", "libgps.so.36", "libgps.so.38",
+           "libgps.so.40", "libgps.so.42", "libgps.so.44", "libgps.so.46"})
   {
     open = library.symbol<decltype(&::gps_open)>("gps_open");
     close = library.symbol<decltype(&::gps_close)>("gps_close");
