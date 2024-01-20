@@ -23,4 +23,9 @@ tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-rpi-aarch64
 )
 rm -rf icu
 
+wget https://download-mirror.savannah.gnu.org/releases/gpsd/gpsd-3.25.tar.xz
+tar xaf gpsd-3.25.tar.xz
+cp gpsd-3.25/include/gps.h /opt/ossia-sdk-rpi-aarch64/pi/sysroot/usr/include/
+cp gpsd-3.25/include/gps.h /opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi/sysroot/include/ 
+
 source ci/common.deps.sh
