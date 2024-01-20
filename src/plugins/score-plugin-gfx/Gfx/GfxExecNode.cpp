@@ -55,20 +55,17 @@ void gfx_exec_node::run(
       }
 
       case ossia::texture_port::which: {
-        if(auto in = inlet->address.target<ossia::net::parameter_base*>())
+        if(auto in = inlet->address.target<ossia::net::parameter_base*>();
+           in && (*in)->get_type() == ossia::parameter_type::TEXTURE)
         {
-          // TODO remove this dynamic_cast. maybe target should have
-          // audio_parameter / texture_parameter / midi_parameter ... cases
-          // does not scale though
-          if(auto cam = dynamic_cast<ossia::gfx::texture_input_parameter*>(*in))
-          {
-            cam->pull_texture({this->id, inlet_i});
-          }
+          auto cam = static_cast<ossia::gfx::texture_parameter*>(*in);
+          cam->pull_texture({this->id, inlet_i});
         }
 
         for(ossia::graph_edge* cable : inlet->sources)
         {
-          if(auto src_gfx = dynamic_cast<gfx_exec_node*>(cable->out_node.get()))
+          // Should be impossible to not be connected to a gfx_exec_node
+          if(auto src_gfx = safe_cast<gfx_exec_node*>(cable->out_node.get()))
           {
             if(src_gfx->executed())
             {

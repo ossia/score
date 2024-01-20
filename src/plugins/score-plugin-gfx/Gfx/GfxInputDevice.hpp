@@ -32,7 +32,7 @@ public:
   void stop_execution() override { }
 };
 
-class simple_texture_input_parameter : public ossia::gfx::texture_input_parameter
+class simple_texture_input_parameter : public ossia::gfx::texture_parameter
 {
   GfxExecutionAction* context{};
 
@@ -42,7 +42,7 @@ public:
 
   simple_texture_input_parameter(
       score::gfx::Node* gfx_n, GfxExecutionAction* ctx, ossia::net::node_base& n)
-      : ossia::gfx::texture_input_parameter{n}
+      : ossia::gfx::texture_parameter{n}
       , context{ctx}
       , node{gfx_n}
   {
@@ -141,7 +141,7 @@ public:
 };
 
 class SCORE_PLUGIN_GFX_EXPORT video_texture_input_parameter
-    : public ossia::gfx::texture_input_parameter
+    : public ossia::gfx::texture_parameter
 {
   video_texture_input_protocol& proto;
   GfxExecutionAction* context{};

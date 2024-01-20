@@ -68,7 +68,7 @@ bool video_texture_input_protocol::update(ossia::net::node_base& node_base)
 
 video_texture_input_parameter::video_texture_input_parameter(
     ossia::net::node_base& n, video_texture_input_protocol& proto)
-    : ossia::gfx::texture_input_parameter{n}
+    : ossia::gfx::texture_parameter{n}
     , proto{proto}
     , context{proto.context}
 {
