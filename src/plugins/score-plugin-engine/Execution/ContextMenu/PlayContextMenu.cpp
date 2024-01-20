@@ -18,6 +18,7 @@
 
 #include <score/tools/ObjectMatches.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/editor/state/state_element.hpp>
@@ -31,6 +32,8 @@ PlayContextMenu::PlayContextMenu(
     Engine::ApplicationPlugin& plug, const score::GUIApplicationContext& ctx)
     : m_ctx{ctx}
 {
+  if(!ctx.applicationSettings.gui)
+    return;
   auto& exec_signals
       = m_ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>().execution();
 

@@ -113,43 +113,42 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   if(context.applicationSettings.gui)
   {
     m_objectActions.setupContextMenu(m_layerCtxMenuManager);
-  }
 
-  {
-    // Dataflow
-    m_showCables = new QAction{this};
-    m_showCables->setCheckable(true);
-    m_showCables->setChecked(true);
-    setIcons(
-        m_showCables, QStringLiteral(":/icons/show_cables_on.png"),
-        QStringLiteral(":/icons/show_cables_hover.png"),
-        QStringLiteral(":/icons/show_cables_off.png"),
-        QStringLiteral(":/icons/show_cables_disabled.png"));
-    connect(m_showCables, &QAction::toggled, this, [this](bool c) {
-      auto doc = this->currentDocument();
-      if(doc)
-      {
-        Dataflow::CableItem::g_cables_enabled = c;
-
-        ScenarioDocumentPresenter* plug
-            = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
-        if(plug)
+    {
+      // Dataflow
+      m_showCables = new QAction{this};
+      m_showCables->setCheckable(true);
+      m_showCables->setChecked(true);
+      setIcons(
+          m_showCables, QStringLiteral(":/icons/show_cables_on.png"),
+          QStringLiteral(":/icons/show_cables_hover.png"),
+          QStringLiteral(":/icons/show_cables_off.png"),
+          QStringLiteral(":/icons/show_cables_disabled.png"));
+      connect(m_showCables, &QAction::toggled, this, [this](bool c) {
+        auto doc = this->currentDocument();
+        if(doc)
         {
-          for(const auto& port : plug->context().dataflow.ports())
-          {
-            if(port.second)
-              port.second->resetPortVisible();
-          }
+          Dataflow::CableItem::g_cables_enabled = c;
 
-          for(auto& cable : plug->context().dataflow.cables())
+          ScenarioDocumentPresenter* plug
+              = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+          if(plug)
           {
-            if(cable.second)
-              cable.second->check();
+            for(const auto& port : plug->context().dataflow.ports())
+            {
+              if(port.second)
+                port.second->resetPortVisible();
+            }
+
+            for(auto& cable : plug->context().dataflow.cables())
+            {
+              if(cable.second)
+                cable.second->check();
+            }
           }
         }
-      }
-    });
-  }
+      });
+    }
 
   {
     // Dataflow
@@ -225,6 +224,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
         return;
       pres->goUpALevel();
     });
+  }
   }
 }
 
