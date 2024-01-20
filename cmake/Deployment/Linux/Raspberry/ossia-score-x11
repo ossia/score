@@ -1,5 +1,6 @@
 #!/bin/bash -eux
 
+# Default script to use to launch ossia on a graphical session under a Pi
 DIR=$(realpath "${BASH_SOURCE[0]}")
 DIR=$(dirname "$DIR")
 

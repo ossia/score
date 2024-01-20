@@ -1,0 +1,15 @@
+#!/bin/bash -eux
+
+# This script will expose an internal VNC server on port 5900,
+# allowing remote desktops to connect and edit scores easily through
+# any VNC client, e.g. Remmina on Linux.
+
+DIR=$(realpath "${BASH_SOURCE[0]}")
+DIR=$(dirname "$DIR")
+
+export MESA_GLES_VERSION_OVERRIDE=3.2
+export MESA_GLSL_VERSION_OVERRIDE=320
+export LD_LIBRARY_PATH="$DIR/lib"
+export QT_QPA_PLATFORM="vnc:size=1280x720"
+
+"$DIR/bin/ossia-score" $@

@@ -1,0 +1,14 @@
+#!/bin/bash -eux
+
+# This script will run ossia score as a CLI only version.
+# Most features will not be available but it will be more efficient.
+
+DIR=$(realpath "${BASH_SOURCE[0]}")
+DIR=$(dirname "$DIR")
+
+export MESA_GLES_VERSION_OVERRIDE=3.2
+export MESA_GLSL_VERSION_OVERRIDE=320
+export LD_LIBRARY_PATH="$DIR/lib"
+export QT_QPA_PLATFORM=minimal
+
+"$DIR/bin/ossia-score" --no-gui --no-restore $@
