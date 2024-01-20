@@ -282,21 +282,21 @@ void GPIO_line_open(int32_t chip, int32_t line, int32_t flags, int32_t events,
     return;
   }
 
-  if (flags & 0xFFFFFFE0)
-  {
-    *fd = -1;
-    *error = EINVAL;
-    ERRORMSG("flags argument is invalid", *error, __LINE__ - 4);
-    return;
-  }
+  // if (flags & 0xFFFFFFE0)
+  // {
+  //   *fd = -1;
+  //   *error = EINVAL;
+  //   ERRORMSG("flags argument is invalid", *error, __LINE__ - 4);
+  //   return;
+  // }
 
-  if (!ValidFlags[flags])
-  {
-    *fd = -1;
-    *error = EINVAL;
-    ERRORMSG("flags argument is inconsistent", *error, __LINE__ - 4);
-    return;
-  }
+  // if (!ValidFlags[flags])
+  // {
+  //   *fd = -1;
+  //   *error = EINVAL;
+  //   ERRORMSG("flags argument is inconsistent", *error, __LINE__ - 4);
+  //   return;
+  // }
 
   if (events & 0xFFFFFFFC)
   {
