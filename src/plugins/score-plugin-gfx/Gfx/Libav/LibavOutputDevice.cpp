@@ -10,9 +10,11 @@
 #include <Gfx/Libav/LibavEncoderNode.hpp>
 #include <Gfx/Libav/LibavIntrospection.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
+#include <ossia/audio/audio_parameter.hpp>
 #include <ossia/network/generic/generic_node.hpp>
 
 #include <ossia-qt/name_utils.hpp>
@@ -445,7 +447,7 @@ void LibavOutputSettingsWidget::on_acodecChange(int codec_index)
     return;
 
   auto& mux = info.muxers[muxer_index];
-  if(codec_index < 0 || codec_index >= mux.vcodecs.size())
+  if(codec_index < 0 || codec_index >= mux.acodecs.size())
     return;
 
   auto codec = mux.acodecs[codec_index];

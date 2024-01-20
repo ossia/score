@@ -110,7 +110,8 @@ struct OutputStream
               c->sample_rate = 44100;
           }
         }
-        constexpr AVChannelLayout layout = AV_CHANNEL_LAYOUT_STEREO;
+        constexpr AVChannelLayout layout
+            = {.order = AV_CHANNEL_ORDER_UNSPEC, .nb_channels = 2};
         av_channel_layout_copy(&c->ch_layout, &layout);
         this->st->time_base = (AVRational){1, c->sample_rate};
         break;
@@ -168,7 +169,6 @@ struct OutputStream
     /* Some formats want stream headers to be separate. */
     if(oc->oformat->flags & AVFMT_GLOBALHEADER)
     {
-      qDebug() << "global header";
       c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
   }
