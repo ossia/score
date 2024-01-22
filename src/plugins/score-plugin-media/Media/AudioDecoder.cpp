@@ -5,14 +5,16 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <ossia/dataflow/sample_to_float.hpp>
 #include <ossia/detail/variant.hpp>
 
 #include <QHash>
 
 #include <cmath>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #if SCORE_HAS_LIBAV
 extern "C" {
@@ -33,57 +35,6 @@ using namespace Media;
 static const constexpr std::size_t dynamic_channels
     = std::numeric_limits<std::size_t>::max();
 
-template <typename SampleFormat, int N>
-constexpr audio_sample convert_sample(SampleFormat i);
-
-template <>
-constexpr audio_sample convert_sample<uint8_t, 8>(uint8_t i)
-{
-  // 0 -> 255 to -1 -> 1
-  if constexpr(std::is_same_v<ossia::audio_sample, float>)
-    return i / 127.f - 1.f;
-  else
-    return i / 127. - 1.;
-}
-
-template <>
-constexpr audio_sample convert_sample<int16_t, 16>(int16_t i)
-{
-  if constexpr(std::is_same_v<audio_sample, float>)
-    return (i + .5f) / (0x7FFF + .5f);
-  else
-    return (i + .5) / (0x7FFF + .5);
-}
-
-template <>
-constexpr audio_sample convert_sample<int32_t, 24>(int32_t i)
-{
-  if constexpr(std::is_same_v<audio_sample, float>)
-    return ((int32_t)i >> 8)
-           / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.f);
-  else
-    return ((int32_t)i >> 8)
-           / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.);
-}
-
-template <>
-constexpr audio_sample convert_sample<int32_t, 32>(int32_t i)
-{
-  return i / (audio_sample)(std::numeric_limits<int32_t>::max());
-}
-
-template <>
-constexpr audio_sample convert_sample<float, 32>(float i)
-{
-  return i;
-}
-
-template <>
-constexpr audio_sample convert_sample<double, 64>(double i)
-{
-  return i;
-}
-
 template <
     typename SampleFormat, std::size_t Channels, std::size_t SampleSize, bool Planar>
 struct Decoder;
@@ -96,7 +47,7 @@ struct Decoder<SampleFormat, 1, SampleSize, true>
     auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
     for(std::size_t j = 0; j < n; j++)
     {
-      data[0][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
+      data[0][curpos + j] = ossia::sample_to_float<SampleFormat, SampleSize>(dat[j]);
     }
   }
 };
@@ -114,7 +65,7 @@ struct Decoder<SampleFormat, Channels, SampleSize, false>
       std::size_t cur_j = curpos + i;
       for(std::size_t chan = 0; chan < Channels; chan++)
       {
-        data[chan][cur_j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
+        data[chan][cur_j] = ossia::sample_to_float<SampleFormat, SampleSize>(dat[j]);
         j++;
       }
       i++;
@@ -132,7 +83,8 @@ struct Decoder<SampleFormat, Channels, SampleSize, true>
     {
       for(std::size_t j = 0; j < n; j++)
       {
-        data[chan][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
+        data[chan][curpos + j]
+            = ossia::sample_to_float<SampleFormat, SampleSize>(dat[chan][j]);
       }
     }
   }
@@ -152,7 +104,7 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, false>
       std::size_t cur_j = curpos + i;
       for(std::size_t chan = 0; chan < Channels; chan++)
       {
-        data[chan][cur_j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
+        data[chan][cur_j] = ossia::sample_to_float<SampleFormat, SampleSize>(dat[j]);
         j++;
       }
       i++;
@@ -171,7 +123,8 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
     {
       for(std::size_t j = 0; j < n; j++)
       {
-        data[chan][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
+        data[chan][curpos + j]
+            = ossia::sample_to_float<SampleFormat, SampleSize>(dat[chan][j]);
       }
     }
   }

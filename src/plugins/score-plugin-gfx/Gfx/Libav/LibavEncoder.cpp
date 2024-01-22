@@ -112,49 +112,45 @@ int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
 {
   if(!m_formatContext)
     return 1;
+
+  const int channels = vec.size();
+  if(channels == 0) // Write silence?
+    return 1;
+
   auto& stream = streams[audio_stream_index];
   AVFrame* next_frame = stream.get_audio_frame();
 
   next_frame->sample_rate = SAMPLE_RATE_TEST;
-  next_frame->format = SAMPLE_FORMAT_TEST;
+  next_frame->format = stream.enc->sample_fmt;
   next_frame->nb_samples = vec[0].size();
-  next_frame->ch_layout.nb_channels = vec.size();
+  next_frame->ch_layout.nb_channels = channels;
   next_frame->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
 
-  std::vector<int16_t> data;
-  data.reserve(1024);
-  for(int i = 0; i < BUFFER_SIZE_TEST; i++)
-    for(int c = 0; c < CHANNELS_TEST; c++)
-      data.push_back(vec[c][i] * 32768.f);
-
-  next_frame->data[0] = (uint8_t*)data.data();
-  next_frame->data[1] = nullptr;
-#if 0
+  // Write the data
+  if(stream.resamplers.empty())
   {
-    auto& frame = next_frame;
-    int channels = vec.size();
-    if(channels <= AV_NUM_DATA_POINTERS)
-    {
-      for(int i = 0; i < channels; ++i)
-      {
-        frame->data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
-      }
-    }
-    else
-    {
-      frame->extended_data
-          = static_cast<uint8_t**>(av_malloc(channels * sizeof(*frame->extended_data)));
-      int i = 0;
-      for(; i < AV_NUM_DATA_POINTERS; ++i)
-      {
-        frame->data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
-        frame->extended_data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
-      }
-      for(; i < channels; ++i)
-        frame->extended_data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
-    }
+    // Encode directly
+    stream.encoder->add_frame(*next_frame, vec);
   }
-#endif
+  else
+  {
+    if(vec.size() != stream.resamplers.size())
+    {
+      qDebug() << "Error: invalid channel count for expected resampling.";
+      return 1;
+    }
+
+    std::vector<std::vector<double>> resample_in(channels);
+    std::vector<ossia::float_vector> resample_outf(channels);
+    for(int c = 0; c < channels; c++)
+    {
+      double* ret{};
+      int res = stream.resamplers[c]->process(resample_in[c].data(), vec[c].size(), ret);
+      resample_outf[c].assign(ret, ret + res);
+    }
+
+    stream.encoder->add_frame(*next_frame, resample_outf);
+  }
   return stream.write_audio_frame(m_formatContext, next_frame);
 }
 

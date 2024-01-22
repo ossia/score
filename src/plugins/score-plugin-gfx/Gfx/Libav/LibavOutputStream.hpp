@@ -1,6 +1,7 @@
 #pragma once
 
 extern "C" {
+
 #include <libavcodec/avcodec.h>
 #include <libavdevice/avdevice.h>
 #include <libavformat/avformat.h>
@@ -9,6 +10,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include <Audio/Settings/Model.hpp>
+#include <Gfx/Libav/AudioFrameEncoder.hpp>
 #include <Gfx/Libav/LibavOutputSettings.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -21,10 +24,6 @@ extern "C" {
 
 #include <r8brain-free-src/CDSPResampler.h>
 
-#define SAMPLE_FORMAT_TEST AV_SAMPLE_FMT_S16
-#define SAMPLE_RATE_TEST 44100
-#define BUFFER_SIZE_TEST 512
-#define CHANNELS_TEST 2
 namespace Gfx
 {
 
@@ -52,6 +51,8 @@ struct OutputStream
 
   struct SwsContext* sws_ctx{};
   std::vector<std::unique_ptr<r8b::CDSPResampler>> resamplers;
+
+  std::unique_ptr<AudioFrameEncoder> encoder;
 
   OutputStream(
       const LibavOutputSettings& set, AVFormatContext* oc, const StreamOptions& opts)
@@ -121,27 +122,31 @@ struct OutputStream
 
   void init_audio(const LibavOutputSettings& set, AVCodecContext* c)
   {
-    //c->sample_fmt = codec->sample_fmts ? codec->sample_fmts[0] : SAMPLE_FORMAT_TEST;
-    //c->sample_fmt = AV_SAMPLE_FMT_S16;
     c->sample_fmt = av_get_sample_fmt(set.audio_converted_smpfmt.toStdString().c_str());
-    // c->bit_rate = 64000;
-    c->sample_rate = set.audio_sample_rate;
-    /*
+
     if(codec->supported_samplerates)
     {
       c->sample_rate = codec->supported_samplerates[0];
       for(int i = 0; codec->supported_samplerates[i]; i++)
       {
-        if(codec->supported_samplerates[i] == SAMPLE_RATE_TEST)
-          c->sample_rate = SAMPLE_RATE_TEST;
+        if(codec->supported_samplerates[i] == set.audio_sample_rate)
+          c->sample_rate = set.audio_sample_rate;
       }
     }
-    */
+    else
+    {
+      c->sample_rate = set.audio_sample_rate;
+    }
+
     c->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
-    c->ch_layout.nb_channels = 2;
+    c->ch_layout.nb_channels = set.audio_channels;
+    if(set.audio_encoder_short == "pcm_s24le" || set.audio_encoder_short == "pcm_s24be")
+      c->bits_per_raw_sample = 24;
+
     this->st->time_base = AVRational{1, c->sample_rate};
     c->time_base = AVRational{1, c->sample_rate};
     c->framerate = AVRational{c->sample_rate, 1};
+    qDebug() << "Opening audio encoder with: rate: " << c->sample_rate;
   }
 
   void init_video(const LibavOutputSettings& set, AVCodecContext* c)
@@ -207,16 +212,15 @@ struct OutputStream
     int nb_samples = 0;
     if(enc->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
     {
-      nb_samples = BUFFER_SIZE_TEST;
-      enc->frame_size = BUFFER_SIZE_TEST;
+      auto& audio_stgs = score::AppContext().settings<Audio::Settings::Model>();
+      nb_samples = audio_stgs.getBufferSize();
+      enc->frame_size = audio_stgs.getBufferSize();
     }
     else
     {
       nb_samples = enc->frame_size;
     }
     cache_input_frame = alloc_audio_frame(
-        SAMPLE_FORMAT_TEST, &enc->ch_layout, SAMPLE_RATE_TEST, BUFFER_SIZE_TEST);
-    tmp_frame = alloc_audio_frame(
         enc->sample_fmt, &enc->ch_layout, enc->sample_rate, nb_samples);
 
     /* copy the stream parameters to the muxer */
@@ -234,10 +238,50 @@ struct OutputStream
       SCORE_ASSERT(input_fmt != -1);
       SCORE_ASSERT(conv_fmt != -1);
 
-      if(enc->sample_rate != SAMPLE_RATE_TEST)
-        this->resamplers.push_back(std::make_unique<r8b::CDSPResampler>(
-            SAMPLE_RATE_TEST, enc->sample_rate, nb_samples, 3.0, 206.91,
-            r8b::fprMinPhase));
+      auto& ctx = score::AppContext().settings<Audio::Settings::Model>();
+
+      const int input_sample_rate = ctx.getRate();
+      if(enc->sample_rate != input_sample_rate)
+      {
+        for(int i = 0; i < set.audio_channels; i++)
+          this->resamplers.push_back(std::make_unique<r8b::CDSPResampler>(
+              SAMPLE_RATE_TEST, enc->sample_rate, nb_samples, 3.0, 206.91,
+              r8b::fprMinPhase));
+      }
+
+      switch(conv_fmt)
+      {
+        case AV_SAMPLE_FMT_NONE:
+        case AV_SAMPLE_FMT_U8:
+        case AV_SAMPLE_FMT_S16:
+          encoder = std::make_unique<S16IAudioFrameEncoder>(nb_samples);
+          break;
+        case AV_SAMPLE_FMT_S32:
+          if(enc->bits_per_raw_sample == 24)
+            encoder = std::make_unique<S24IAudioFrameEncoder>(nb_samples);
+          else
+            encoder = std::make_unique<S32IAudioFrameEncoder>(nb_samples);
+          break;
+        case AV_SAMPLE_FMT_FLT:
+          encoder = std::make_unique<FltIAudioFrameEncoder>(nb_samples);
+          break;
+        case AV_SAMPLE_FMT_DBL:
+          encoder = std::make_unique<DblIAudioFrameEncoder>(nb_samples);
+          break;
+
+        case AV_SAMPLE_FMT_U8P:
+        case AV_SAMPLE_FMT_S16P:
+        case AV_SAMPLE_FMT_S32P:
+        case AV_SAMPLE_FMT_FLTP:
+          encoder = std::make_unique<FltPAudioFrameEncoder>(nb_samples);
+          break;
+        case AV_SAMPLE_FMT_DBLP:
+        case AV_SAMPLE_FMT_S64:
+        case AV_SAMPLE_FMT_S64P:
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -474,27 +518,6 @@ struct OutputStream
 
   int write_audio_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
   {
-    // scale the frame
-    tmp_frame->format = enc->sample_fmt;
-    tmp_frame->sample_rate = enc->sample_rate;
-    tmp_frame->ch_layout = enc->ch_layout;
-    tmp_frame->nb_samples = enc->frame_size;
-    // tmp_frame->pts = conv_audio_pts(swr_ctx, INT64_MIN, SAMPLE_RATE_TEST);
-    tmp_frame->pts = input_frame->pts;
-    tmp_frame->time_base = AVRational{1, enc->sample_rate};
-
-    {
-      // 1. Resample if necessary
-      if(tmp_frame->sample_rate != input_frame->sample_rate)
-      {
-      }
-
-      // 2. Convert
-    }
-    //qDebug() << tmp_frame->pts << av_rescale_q_rnd();
-    // int ret = swr_convert_frame(swr_ctx, tmp_frame, input_frame);
-    //tmp_frame->nb_samples = BUFFER_SIZE_TEST;
-
     // send the frame to the encoder
     int ret = avcodec_send_frame(enc, input_frame);
     if(ret < 0)

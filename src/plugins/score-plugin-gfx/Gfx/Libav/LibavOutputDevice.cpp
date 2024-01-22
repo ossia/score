@@ -6,6 +6,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <Audio/Settings/Model.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Libav/LibavEncoder.hpp>
@@ -148,11 +149,12 @@ public:
     auto& p = *static_cast<gfx_protocol_base*>(m_protocol.get());
     auto node = new LibavEncoderNode{set, enc, 0};
     root.add_child(std::make_unique<gfx_node_base>(*this, p, node, "Video"));
+
+    auto& audio_stgs = score::AppContext().settings<Audio::Settings::Model>();
     auto audio = root.add_child(
         std::make_unique<ossia::net::generic_node>("Audio", *this, root));
-    SCORE_ASSERT(audio);
     audio->set_parameter(std::make_unique<record_audio_parameter>(
-        enc, CHANNELS_TEST, BUFFER_SIZE_TEST, *audio));
+        enc, set.audio_channels, audio_stgs.getBufferSize(), *audio));
   }
 
   const ossia::net::generic_node& get_root_node() const override { return root; }
@@ -201,6 +203,8 @@ private:
 LibavOutputDevice::~LibavOutputDevice() { }
 
 static const std::map<QString, LibavOutputSettings> libav_preset_list{
+    // Play with:
+    // ffplay -an -fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 1 -strict experimental -framedrop -vf setpts=0  'udp://127.0.0.1:1234'
     {"UDP MJPEG streaming",
      LibavOutputSettings{
          {
@@ -213,7 +217,10 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
          .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
          .muxer = "mjpeg",
-         .options = {{"fflags", "+nobuffer+genpts"}, {"flags", "+low_delay"}}}},
+         .options
+         = {{"fflags", "+nobuffer+genpts"},
+            {"flags", "+low_delay"},
+            {"flush_packets", "1"}}}},
 
     {"MKV H.264 recording",
      LibavOutputSettings{
@@ -227,6 +234,24 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
          .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
          .muxer = "matroska"}},
+
+    // clang-format off
+    // Read with:
+    // ffplay -an -fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 1 -strict experimental -framedrop -vf setpts=0  'srt://127.0.0.1:40052?mode=caller
+    {"SRT streaming",
+     LibavOutputSettings{
+                         {
+                             .path = "srt://:40052?mode=listener&latency=2000&transtype=live&recv_buffer_size=0",
+                             .width = 1280,
+                             .height = 720,
+                             .rate = 30,
+                         },
+                         .video_encoder_short = "libx264",
+                         .video_render_pixfmt = "rgba",
+                         .video_converted_pixfmt = "yuv420p",
+                         .muxer = "mpegts",
+                         .options = { {"preset", "ultrafast"}, {"tune", "zerolatency"}, {"flush_packets", "1"}}}},
+    // clang-format on
 
     {"WAV recording",
      LibavOutputSettings{
