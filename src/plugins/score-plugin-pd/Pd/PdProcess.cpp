@@ -32,12 +32,12 @@ namespace Pd
 {
 Instance::Instance()
 {
-  instance = pdinstance_new();
+  instance = libpd_new_instance();
 }
 
 Instance::~Instance()
 {
-  pdinstance_free(instance);
+  libpd_free_instance(instance);
 }
 
 static const auto& initTypeMap()
@@ -883,7 +883,7 @@ void ProcessModel::setScript(const QString& script)
     outletsChanged();
   }
   // Create instance
-  pd_setinstance(m_instance->instance);
+  libpd_set_instance(m_instance->instance);
 
   if(m_instance->file_handle)
     libpd_closefile(m_instance->file_handle);

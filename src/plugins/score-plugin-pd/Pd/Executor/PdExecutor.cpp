@@ -245,6 +245,7 @@ PdGraphNode::PdGraphNode(
   // Set-up message callbacks
   libpd_set_printhook([](const char* s) { qDebug() << "[pd: print] " << s; });
 
+  SCORE_ASSERT(pd_this);
   libpd_set_floathook([](const char* recv, float f) {
     if(auto v = m_currentInstance->get_value_port(recv))
     {
