@@ -1,11 +1,11 @@
 #include "LibavEncoder.hpp"
 
 #include "LibavOutputStream.hpp"
-
-#include <QDebug>
 extern "C" {
 #include <libswresample/swresample.h>
 }
+
+#include <QDebug>
 
 #if SCORE_HAS_LIBAV
 namespace Gfx
@@ -120,9 +120,10 @@ int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
   auto& stream = streams[audio_stream_index];
   AVFrame* next_frame = stream.get_audio_frame();
 
-  next_frame->sample_rate = SAMPLE_RATE_TEST;
+  next_frame->sample_rate = stream.enc->sample_rate;
   next_frame->format = stream.enc->sample_fmt;
-  next_frame->nb_samples = vec[0].size();
+  next_frame->nb_samples = stream.enc->frame_size;
+  qDebug() << vec[0].size() << next_frame->nb_samples;
   next_frame->ch_layout.nb_channels = channels;
   next_frame->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
 

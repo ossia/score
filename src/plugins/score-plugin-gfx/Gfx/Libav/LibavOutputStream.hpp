@@ -214,11 +214,13 @@ struct OutputStream
     {
       auto& audio_stgs = score::AppContext().settings<Audio::Settings::Model>();
       nb_samples = audio_stgs.getBufferSize();
-      enc->frame_size = audio_stgs.getBufferSize();
+      enc->frame_size = nb_samples;
+      qDebug() << "Setting frame_size: " << nb_samples;
     }
     else
     {
       nb_samples = enc->frame_size;
+      qDebug() << "Forcing frame_size: " << nb_samples;
     }
     cache_input_frame = alloc_audio_frame(
         enc->sample_fmt, &enc->ch_layout, enc->sample_rate, nb_samples);
@@ -245,7 +247,7 @@ struct OutputStream
       {
         for(int i = 0; i < set.audio_channels; i++)
           this->resamplers.push_back(std::make_unique<r8b::CDSPResampler>(
-              SAMPLE_RATE_TEST, enc->sample_rate, nb_samples, 3.0, 206.91,
+              input_sample_rate, enc->sample_rate, nb_samples * 2, 3.0, 206.91,
               r8b::fprMinPhase));
       }
 
@@ -445,7 +447,7 @@ struct OutputStream
       exit(1);
 
     this->cache_input_frame->pts = this->next_pts;
-    this->next_pts += BUFFER_SIZE_TEST;
+    this->next_pts += this->enc->frame_size;
 
     return this->cache_input_frame;
   }
@@ -499,22 +501,22 @@ struct OutputStream
     return ret == AVERROR_EOF ? 1 : 0;
   }
 
-#define SRC_RATE SAMPLE_RATE_TEST
-#define DST_RATE SAMPLE_RATE_TEST
-  static int64_t conv_audio_pts(SwrContext* ctx, int64_t in, int sample_rate)
-  {
-    //int64_t d = (int64_t) AUDIO_RATE * AUDIO_RATE;
-    int64_t d = (int64_t)sample_rate * sample_rate;
-
-    /* Convert from audio_src_tb to 1/(src_samplerate * dst_samplerate) */
-    in = av_rescale_rnd(in, d, SRC_RATE, AV_ROUND_NEAR_INF);
-
-    /* In units of 1/(src_samplerate * dst_samplerate) */
-    in = swr_next_pts(ctx, in);
-
-    /* Convert from 1/(src_samplerate * dst_samplerate) to audio_dst_tb */
-    return av_rescale_rnd(in, DST_RATE, d, AV_ROUND_NEAR_INF);
-  }
+  // #define SRC_RATE SAMPLE_RATE_TEST
+  // #define DST_RATE SAMPLE_RATE_TEST
+  //   static int64_t conv_audio_pts(SwrContext* ctx, int64_t in, int sample_rate)
+  //   {
+  //     //int64_t d = (int64_t) AUDIO_RATE * AUDIO_RATE;
+  //     int64_t d = (int64_t)sample_rate * sample_rate;
+  //
+  //     /* Convert from audio_src_tb to 1/(src_samplerate * dst_samplerate) */
+  //     in = av_rescale_rnd(in, d, SRC_RATE, AV_ROUND_NEAR_INF);
+  //
+  //     /* In units of 1/(src_samplerate * dst_samplerate) */
+  //     in = swr_next_pts(ctx, in);
+  //
+  //     /* Convert from 1/(src_samplerate * dst_samplerate) to audio_dst_tb */
+  //     return av_rescale_rnd(in, DST_RATE, d, AV_ROUND_NEAR_INF);
+  //   }
 
   int write_audio_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
   {

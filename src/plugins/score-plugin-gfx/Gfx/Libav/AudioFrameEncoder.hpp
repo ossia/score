@@ -5,8 +5,6 @@
 extern "C" {
 #include <libavutil/frame.h>
 }
-#define SAMPLE_RATE_TEST 44100
-#define BUFFER_SIZE_TEST 512
 
 #include <ossia/dataflow/sample_to_float.hpp>
 
@@ -15,7 +13,7 @@ namespace Gfx
 
 struct AudioFrameEncoder
 {
-  AudioFrameEncoder(int target_buffer_size)
+  explicit AudioFrameEncoder(int target_buffer_size)
       : target_buffer_size{target_buffer_size}
   {
   }
