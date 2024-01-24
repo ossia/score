@@ -198,6 +198,7 @@ struct OutputStream
       const LibavOutputSettings& set, AVFormatContext* oc, const AVCodec* codec,
       AVDictionary* opt_arg)
   {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
     AVDictionary* opt = nullptr;
 
     av_dict_copy(&opt, opt_arg, 0);
@@ -222,6 +223,7 @@ struct OutputStream
       nb_samples = enc->frame_size;
       qDebug() << "Forcing frame_size: " << nb_samples;
     }
+
     cache_input_frame = alloc_audio_frame(
         enc->sample_fmt, &enc->ch_layout, enc->sample_rate, nb_samples);
 
@@ -285,8 +287,10 @@ struct OutputStream
           break;
       }
     }
+#endif
   }
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
   static AVFrame* alloc_audio_frame(
       enum AVSampleFormat sample_fmt, const AVChannelLayout* channel_layout,
       int sample_rate, int nb_samples)
@@ -315,6 +319,7 @@ struct OutputStream
 
     return frame;
   }
+#endif
 
   static AVFrame* alloc_video_frame(enum AVPixelFormat pix_fmt, int width, int height)
   {

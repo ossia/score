@@ -13,7 +13,7 @@ extern "C" int av_strerror(int errnum, char* errbuf, size_t errbuf_size);
 
 static inline QString av_to_string(int errnum)
 {
-  thread_local char err[512];
+  char err[512];
   av_strerror(errnum, err, 512);
   return QString::fromUtf8(err);
 }
