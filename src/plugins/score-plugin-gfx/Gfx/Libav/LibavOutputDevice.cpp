@@ -207,12 +207,10 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
     // ffplay -an -fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 1 -strict experimental -framedrop -vf setpts=0  'udp://127.0.0.1:1234'
     {"UDP MJPEG streaming",
      LibavOutputSettings{
-         {
-             .path = "udp://192.168.1.80:8081",
-             .width = 1280,
-             .height = 720,
-             .rate = 30,
-         },
+         .path = "udp://192.168.1.80:8081",
+         .width = 1280,
+         .height = 720,
+         .rate = 30,
          .video_encoder_short = "mjpeg",
          .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
@@ -224,12 +222,10 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
 
     {"MKV H.264 recording",
      LibavOutputSettings{
-         {
-             .path = "<PROJECT_PATH>/main.mkv",
-             .width = 1280,
-             .height = 720,
-             .rate = 30,
-         },
+         .path = "<PROJECT_PATH>/main.mkv",
+         .width = 1280,
+         .height = 720,
+         .rate = 30,
          .video_encoder_short = "libx265",
          .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
@@ -240,12 +236,10 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
     // ffplay -an -fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 1 -strict experimental -framedrop -vf setpts=0  'srt://127.0.0.1:40052?mode=caller
     {"SRT streaming",
      LibavOutputSettings{
-                         {
                              .path = "srt://:40052?mode=listener&latency=2000&transtype=live&recv_buffer_size=0",
                              .width = 1280,
                              .height = 720,
                              .rate = 30,
-                         },
                          .video_encoder_short = "libx264",
                          .video_render_pixfmt = "rgba",
                          .video_converted_pixfmt = "yuv420p",
@@ -255,12 +249,10 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
 
     {"WAV recording",
      LibavOutputSettings{
-         {
-             .path = "<PROJECT_PATH>/main.wav",
-             .width = 1280,
-             .height = 720,
-             .rate = 30,
-         },
+         .path = "<PROJECT_PATH>/main.wav",
+         .width = 1280,
+         .height = 720,
+         .rate = 30,
          .video_encoder_short = "",
          .video_encoder_short = "",
          .audio_encoder_short = "pcm_s16le",
@@ -544,7 +536,11 @@ Device::DeviceSettings LibavOutputSettingsWidget::getSettings() const
   Device::DeviceSettings s = SharedOutputSettingsWidget::getSettings();
   s.protocol = LibavOutputProtocolFactory::static_concreteKey();
   const auto& base_s = s.deviceSpecificSettings.value<SharedOutputSettings>();
-  LibavOutputSettings specif{base_s};
+  LibavOutputSettings specif{
+      .path = base_s.path,
+      .width = base_s.width,
+      .height = base_s.height,
+      .rate = base_s.rate};
 
   auto muxer = (AVOutputFormat*)this->m_muxer->currentData().value<void*>();
   auto vcodec = (AVCodec*)this->m_vencoder->currentData().value<void*>();
@@ -669,7 +665,7 @@ void LibavOutputSettingsWidget::setSettings(const Device::DeviceSettings& settin
 template <>
 void DataStreamReader::read(const Gfx::LibavOutputSettings& n)
 {
-  read((const Gfx::SharedOutputSettings&)n);
+  m_stream << n.path << n.width << n.height << n.rate;
 
   m_stream << n.hardwareAcceleration;
   m_stream << n.audio_encoder_short << n.audio_encoder_long << n.audio_converted_smpfmt
@@ -686,7 +682,7 @@ void DataStreamReader::read(const Gfx::LibavOutputSettings& n)
 template <>
 void DataStreamWriter::write(Gfx::LibavOutputSettings& n)
 {
-  write((Gfx::SharedOutputSettings&)n);
+  m_stream >> n.path >> n.width >> n.height >> n.rate;
 
   m_stream >> n.hardwareAcceleration;
 
@@ -707,7 +703,11 @@ void DataStreamWriter::write(Gfx::LibavOutputSettings& n)
 template <>
 void JSONReader::read(const Gfx::LibavOutputSettings& n)
 {
-  read((const Gfx::SharedOutputSettings&)n);
+  obj["Path"] = n.path;
+  obj["Width"] = n.width;
+  obj["Height"] = n.height;
+  obj["Rate"] = n.rate;
+
   obj["HWAccel"] = n.hardwareAcceleration;
 
   obj["AudioEncoderShort"] = n.audio_encoder_short;
@@ -731,7 +731,11 @@ void JSONReader::read(const Gfx::LibavOutputSettings& n)
 template <>
 void JSONWriter::write(Gfx::LibavOutputSettings& n)
 {
-  write((Gfx::SharedOutputSettings&)n);
+  n.path = obj["Path"].toString();
+  n.width = obj["Width"].toDouble();
+  n.height = obj["Height"].toDouble();
+  n.rate = obj["Rate"].toDouble();
+
   n.hardwareAcceleration <<= obj["HWAccel"];
 
   n.audio_encoder_short <<= obj["AudioEncoderShort"];

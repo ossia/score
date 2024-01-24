@@ -12,8 +12,12 @@ extern "C" {
 
 namespace Gfx
 {
-struct LibavOutputSettings : SharedOutputSettings
+struct LibavOutputSettings
 {
+  QString path;
+  int width{};
+  int height{};
+  double rate{};
   AVPixelFormat hardwareAcceleration{AV_PIX_FMT_NONE};
   QString audio_encoder_short, audio_encoder_long;
   QString audio_converted_smpfmt;
