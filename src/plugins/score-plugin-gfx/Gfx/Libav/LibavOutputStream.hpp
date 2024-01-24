@@ -20,9 +20,9 @@ extern "C" {
 
 #include <QApplication>
 
-#include <string>
+#include <CDSPResampler.h>
 
-#include <r8brain-free-src/CDSPResampler.h>
+#include <string>
 
 namespace Gfx
 {

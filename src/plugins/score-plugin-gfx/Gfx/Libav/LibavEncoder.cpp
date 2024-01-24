@@ -88,7 +88,7 @@ int LibavEncoder::start()
     ret = avio_open(&m_formatContext->pb, filename.c_str(), AVIO_FLAG_WRITE);
     if(ret < 0)
     {
-      qDebug() << "Could not open" << filename.c_str() << ":" << av_to_string(ret));
+      qDebug() << "Could not open" << filename.c_str() << ":" << av_to_string(ret);
       avformat_free_context(m_formatContext);
       m_formatContext = nullptr;
       return 1;
