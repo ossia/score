@@ -6,7 +6,7 @@ extern "C" {
 #include <libavutil/frame.h>
 }
 
-#include <ossia/dataflow/sample_to_float.hpp>
+#include <ossia/dataflow/float_to_sample.hpp>
 
 namespace Gfx
 {
