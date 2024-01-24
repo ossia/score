@@ -584,7 +584,7 @@ Device::DeviceSettings LibavOutputSettingsWidget::getSettings() const
         line = line.trimmed();
         if(!line.startsWith('-'))
           continue;
-        line.removeFirst();
+        line.remove(0, 1);
 
         auto first_space = line.indexOf(' ');
         if(first_space == -1)

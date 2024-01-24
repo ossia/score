@@ -60,21 +60,21 @@ struct OutputStream
     codec = avcodec_find_encoder_by_name(opts.codec.c_str());
     if(!codec)
     {
-      fprintf(stderr, "Could not find encoder for '%s'\n", opts.codec.c_str());
+      qDebug() << "Could not find encoder for " << opts.codec.c_str();
       exit(1);
     }
 
     this->tmp_pkt = av_packet_alloc();
     if(!this->tmp_pkt)
     {
-      fprintf(stderr, "Could not allocate AVPacket\n");
+      qDebug() << "Could not allocate AVPacket";
       exit(1);
     }
 
     this->st = avformat_new_stream(oc, nullptr);
     if(!this->st)
     {
-      fprintf(stderr, "Could not allocate stream\n");
+      qDebug() << "Could not allocate stream";
       exit(1);
     }
     this->st->id = oc->nb_streams - 1;
@@ -96,7 +96,7 @@ struct OutputStream
     this->enc = avcodec_alloc_context3(codec);
     if(!this->enc)
     {
-      fprintf(stderr, "Could not alloc an encoding context\n");
+      qDebug() << "Could not alloc an encoding context";
       exit(1);
     }
 
@@ -205,7 +205,7 @@ struct OutputStream
     av_dict_free(&opt);
     if(ret < 0)
     {
-      fprintf(stderr, "Could not open audio codec: %s\n", av_err2str(ret));
+      qDebug() << "Could not open audio codec: " << av_to_string(ret);
       exit(1);
     }
 
@@ -229,7 +229,7 @@ struct OutputStream
     ret = avcodec_parameters_from_context(this->st->codecpar, enc);
     if(ret < 0)
     {
-      fprintf(stderr, "Could not copy the stream parameters\n");
+      qDebug() << "Could not copy the stream parameters";
       exit(1);
     }
 
@@ -294,7 +294,7 @@ struct OutputStream
     AVFrame* frame = av_frame_alloc();
     if(!frame)
     {
-      fprintf(stderr, "Error allocating an audio frame\n");
+      qDebug() << "Error allocating an audio frame";
       exit(1);
     }
 
@@ -308,7 +308,7 @@ struct OutputStream
     {
       if(av_frame_get_buffer(frame, 0) < 0)
       {
-        fprintf(stderr, "Error allocating an audio buffer\n");
+        qDebug() << "Error allocating an audio buffer";
         exit(1);
       }
     }
@@ -330,7 +330,7 @@ struct OutputStream
     const int ret = av_frame_get_buffer(frame, 0);
     if(ret < 0)
     {
-      fprintf(stderr, "Could not allocate frame data.\n");
+      qDebug() << "Could not allocate frame data.";
       exit(1);
     }
 
@@ -350,7 +350,7 @@ struct OutputStream
     int err = av_opt_set_double(this->enc->priv_data, "crf", 0.0, 0);
     if(err < 0)
     {
-      qDebug() << "failed to initialize encoder: " << av_err2str(err);
+      qDebug() << "failed to initialize encoder: " << av_to_string(err);
     }
 
     /* open the codec */
@@ -359,7 +359,7 @@ struct OutputStream
     av_dict_free(&opt);
     if(ret < 0)
     {
-      fprintf(stderr, "Could not open video codec: %s\n", av_err2str(ret));
+      qDebug() << "Could not open video codec: " << av_to_string(ret);
       exit(1);
     }
 
@@ -367,7 +367,7 @@ struct OutputStream
     this->cache_input_frame = alloc_video_frame(AV_PIX_FMT_RGBA, c->width, c->height);
     if(!this->cache_input_frame)
     {
-      fprintf(stderr, "Could not allocate video frame\n");
+      qDebug() << "Could not allocate video frame";
       exit(1);
     }
 
@@ -386,7 +386,7 @@ struct OutputStream
       this->tmp_frame = alloc_video_frame(conv_fmt, c->width, c->height);
       if(!this->tmp_frame)
       {
-        fprintf(stderr, "Could not allocate temporary video frame\n");
+        qDebug() << "Could not allocate temporary video frame";
         exit(1);
       }
     }
@@ -395,7 +395,7 @@ struct OutputStream
     ret = avcodec_parameters_from_context(this->st->codecpar, c);
     if(ret < 0)
     {
-      fprintf(stderr, "Could not copy the stream parameters\n");
+      qDebug() << "Could not copy the stream parameters";
       exit(1);
     }
   }
@@ -458,7 +458,7 @@ struct OutputStream
     int ret = sws_scale_frame(sws_ctx, tmp_frame, input_frame);
     if(ret < 0)
     {
-      fprintf(stderr, "Error during sws_scale_frame: %s\n", av_err2str(ret));
+      qDebug() << "Error during sws_scale_frame: " << av_to_string(ret);
       exit(1);
     }
 
@@ -470,7 +470,7 @@ struct OutputStream
     ret = avcodec_send_frame(enc, tmp_frame);
     if(ret < 0)
     {
-      fprintf(stderr, "Error sending a frame to the encoder: %s\n", av_err2str(ret));
+      qDebug() << "Error sending a frame to the encoder: " << av_to_string(ret);
       exit(1);
     }
 
@@ -481,7 +481,7 @@ struct OutputStream
         break;
       else if(ret < 0)
       {
-        fprintf(stderr, "Error encoding a frame: %s\n", av_err2str(ret));
+        qDebug() << "Error encoding a frame: " << av_to_string(ret);
         exit(1);
       }
 
@@ -493,7 +493,7 @@ struct OutputStream
       ret = av_interleaved_write_frame(fmt_ctx, tmp_pkt);
       if(ret < 0)
       {
-        fprintf(stderr, "Error while writing output packet: %s\n", av_err2str(ret));
+        qDebug() << "Error while writing output packet: " << av_to_string(ret);
         exit(1);
       }
     }
@@ -524,7 +524,7 @@ struct OutputStream
     int ret = avcodec_send_frame(enc, input_frame);
     if(ret < 0)
     {
-      fprintf(stderr, "Error sending a frame to the encoder: %s\n", av_err2str(ret));
+      qDebug() << "Error sending a frame to the encoder: " << av_to_string(ret);
       exit(1);
     }
 
@@ -535,7 +535,7 @@ struct OutputStream
         break;
       else if(ret < 0)
       {
-        fprintf(stderr, "Error encoding a frame: %s\n", av_err2str(ret));
+        qDebug() << "Error encoding a frame: " << av_to_string(ret);
         exit(1);
       }
 
@@ -546,7 +546,7 @@ struct OutputStream
       ret = av_interleaved_write_frame(fmt_ctx, tmp_pkt);
       if(ret < 0)
       {
-        fprintf(stderr, "Error while writing output packet: %s\n", av_err2str(ret));
+        qDebug() << "Error while writing output packet: " << av_to_string(ret);
         exit(1);
       }
     }

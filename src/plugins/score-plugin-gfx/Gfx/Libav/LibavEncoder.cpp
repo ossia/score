@@ -35,9 +35,8 @@ int LibavEncoder::start()
 
   if(ret < 0 || !m_formatContext)
   {
-    fprintf(
-        stderr, "Could not create format for '%s' - '%s': %s\n", muxer.c_str(),
-        filename.c_str(), av_err2str(ret));
+    qDebug() << "Could not create format for: " << muxer.c_str() << filename.c_str()
+             << av_to_string(ret);
     m_formatContext = nullptr;
     return 1;
   }
@@ -100,7 +99,7 @@ int LibavEncoder::start()
   ret = avformat_write_header(m_formatContext, &opt);
   if(ret < 0)
   {
-    fprintf(stderr, "Error occurred when opening output file: %s\n", av_err2str(ret));
+    qDebug() << "Error occurred when opening output file:" << av_to_string(ret);
     avformat_free_context(m_formatContext);
     m_formatContext = nullptr;
     return 1;
