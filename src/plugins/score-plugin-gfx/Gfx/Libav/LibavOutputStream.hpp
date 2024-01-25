@@ -123,6 +123,7 @@ struct OutputStream
 
   void init_audio(const LibavOutputSettings& set, AVCodecContext* c)
   {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
     c->sample_fmt = av_get_sample_fmt(set.audio_converted_smpfmt.toStdString().c_str());
 
     if(codec->supported_samplerates)
@@ -148,6 +149,7 @@ struct OutputStream
     c->time_base = AVRational{1, c->sample_rate};
     c->framerate = AVRational{c->sample_rate, 1};
     qDebug() << "Opening audio encoder with: rate: " << c->sample_rate;
+#endif
   }
 
   void init_video(const LibavOutputSettings& set, AVCodecContext* c)
@@ -460,6 +462,7 @@ struct OutputStream
 
   int write_video_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
   {
+#if LIBSWSCALE_VERSION_INT >= AV_VERSION_INT(7, 5, 100)
     // scale the frame
     int ret = sws_scale_frame(sws_ctx, tmp_frame, input_frame);
     if(ret < 0)
@@ -505,6 +508,8 @@ struct OutputStream
     }
 
     return ret == AVERROR_EOF ? 1 : 0;
+#endif
+    return 1;
   }
 
   // #define SRC_RATE SAMPLE_RATE_TEST

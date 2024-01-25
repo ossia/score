@@ -109,6 +109,7 @@ int LibavEncoder::start()
 
 int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
 {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
   if(!m_formatContext)
     return 1;
 
@@ -152,6 +153,8 @@ int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
     stream.encoder->add_frame(*next_frame, resample_outf);
   }
   return stream.write_audio_frame(m_formatContext, next_frame);
+#endif
+  return 1;
 }
 
 int LibavEncoder::add_frame(

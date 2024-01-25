@@ -64,8 +64,11 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory, Gfx::WindowProtocolFactory, Gfx::CameraProtocolFactory,
+      FW<Device::ProtocolFactory, Gfx::WindowProtocolFactory, Gfx::CameraProtocolFactory
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
+         ,
          Gfx::LibavOutputProtocolFactory
+#endif
 #if defined(SCORE_HAS_SHMDATA)
          ,
          Gfx::Shmdata::InputFactory, Gfx::ShmdataOutputProtocolFactory
