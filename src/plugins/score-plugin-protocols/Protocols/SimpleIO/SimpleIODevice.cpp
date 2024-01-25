@@ -9,6 +9,7 @@
 
 #include <score/document/DocumentContext.hpp>
 
+#include <ossia/detail/flat_map.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/complex_type.hpp>
 #include <ossia/network/generic/generic_device.hpp>

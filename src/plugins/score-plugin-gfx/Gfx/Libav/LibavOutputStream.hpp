@@ -14,6 +14,7 @@ extern "C" {
 #include <Gfx/Libav/AudioFrameEncoder.hpp>
 #include <Gfx/Libav/LibavOutputSettings.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flat_map.hpp>
