@@ -253,10 +253,10 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
          .width = 1280,
          .height = 720,
          .rate = 30,
-         .video_encoder_short = "",
-         .video_encoder_short = "",
          .audio_encoder_short = "pcm_s16le",
          .audio_encoder_long = "",
+         .video_encoder_short = "",
+         .video_encoder_long = "",
          .muxer = "wav",
          .threads = 0,
      }}
