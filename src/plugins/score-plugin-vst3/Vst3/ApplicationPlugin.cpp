@@ -84,7 +84,8 @@ static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
 #else
 static const QStringList default_paths = {QStringLiteral("/usr/lib/vst3")};
-static const constexpr auto default_filter = "";
+static const constexpr auto default_filter = "*.vst3";
+static const constexpr auto default_format = QDir::Dirs;
 #endif
 }
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
