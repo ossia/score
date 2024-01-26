@@ -55,8 +55,8 @@ layout(std140, binding = 0) uniform renderer_t {
 // This dance is needed because otherwise
 // spirv-cross may generate different struct names in the vertex & fragment, causing crashes..
 // but we have to keep compat with ISF
-#define clipSpaceCorrMatrix isf_renderer_uniforms.clipSpaceCorrMatrix
-#define RENDERSIZE isf_renderer_uniforms.RENDERSIZE
+mat4 clipSpaceCorrMatrix = isf_renderer_uniforms.clipSpaceCorrMatrix;
+vec2 RENDERSIZE = isf_renderer_uniforms.RENDERSIZE;
 
 // Time-dependent uniforms, only relevant during execution
 layout(std140, binding = 1) uniform process_t {
@@ -69,13 +69,13 @@ layout(std140, binding = 1) uniform process_t {
 
   vec4 DATE;
 } isf_process_uniforms;
-
-#define TIME isf_process_uniforms.TIME
-#define TIMEDELTA isf_process_uniforms.TIMEDELTA
-#define PROGRESS isf_process_uniforms.PROGRESS
-#define PASSINDEX isf_process_uniforms.PASSINDEX
-#define FRAMEINDEX isf_process_uniforms.FRAMEINDEX
-#define DATE isf_process_uniforms.DATE
+ 
+float TIME = isf_process_uniforms.TIME;
+float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
+float PROGRESS = isf_process_uniforms.PROGRESS;
+int PASSINDEX = isf_process_uniforms.PASSINDEX;
+int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
+vec4 DATE = isf_process_uniforms.DATE;
 )_";
 
   static constexpr auto defaultFunctions =
@@ -748,8 +748,8 @@ void parser::parse_isf()
             auto imgRect_varname = "_" + val.name + "_imgRect";
             material_ubos += "vec4 " + imgRect_varname + ";\n";
             // See comment above regarding little dance to make spirv-cross happy
-            globalvars += "#define " + imgRect_varname + " isf_material_uniforms."
-                          + imgRect_varname + "\n";
+            globalvars += "vec4 " + imgRect_varname + " = isf_material_uniforms."
+                          + imgRect_varname + ";\n";
 
             binding++;
           }
@@ -761,12 +761,12 @@ void parser::parse_isf()
             material_ubos += ";\n";
 
             // See comment above regarding little dance to make spirv-cross happy
-            globalvars += "#define";
+            globalvars += type;
             globalvars += ' ';
             globalvars += val.name;
-            globalvars += " isf_material_uniforms.";
+            globalvars += " = isf_material_uniforms.";
             globalvars += val.name;
-            globalvars += "\n";
+            globalvars += ";\n";
           }
         }
 
