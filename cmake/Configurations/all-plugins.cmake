@@ -27,7 +27,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
 
   score-plugin-media
 
-  score-plugin-gfx
+#  score-plugin-gfx
   score-plugin-js
   score-plugin-midi
   score-plugin-recording
