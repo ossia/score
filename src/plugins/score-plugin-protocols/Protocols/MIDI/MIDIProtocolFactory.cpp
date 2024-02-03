@@ -95,19 +95,13 @@ class MidiEnumerator : public Device::DeviceEnumerator
 
 public:
   MidiEnumerator()
-      : m_observer{make_callbacks()}
+      : m_observer{make_callbacks(), libremidi::observer_configuration_for(m_api)}
   {
   }
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
     try
     {
-      auto api = score::AppContext()
-                     .settings<Protocols::Settings::Model>()
-                     .getMidiApiAsEnum();
-      if(api == libremidi::API::UNSPECIFIED)
-        api = libremidi::midi1::default_api();
-
       if constexpr(Type == ossia::net::midi::midi_info::Type::Input)
       {
         for(auto& port : m_observer.get_input_ports())

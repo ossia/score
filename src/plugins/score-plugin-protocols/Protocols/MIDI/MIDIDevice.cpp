@@ -19,6 +19,8 @@
 #include <QDebug>
 #include <QMimeData>
 
+#include <libremidi/libremidi.hpp>
+
 #include <memory>
 
 namespace Protocols
@@ -49,8 +51,37 @@ bool MIDIDevice::reconnect()
   m_capas.canSerialize = !set.createWholeTree;
   try
   {
-    auto proto = std::make_unique<ossia::net::midi::midi_protocol>(
-        m_ctx, set.handle.display_name, set.api);
+    std::unique_ptr<ossia::net::midi::midi_protocol> proto;
+
+    if(set.io == MIDISpecificSettings::IO::In)
+    {
+      libremidi::input_configuration conf;
+
+      if(set.api == libremidi::API::JACK_MIDI)
+      {
+        conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+      }
+      // FIXME get the frame time in here in some way.
+      // MIDIDevice needs to go in a plug-in after exec plugin, but is depended-on by dataflow
+      // for access to the midi ports...
+      // Note: which time do we use when no audio engine is running?
+      // else
+      // {
+      //   input_conf.timestamps = libremidi::timestamp_mode::Custom;
+      //   input_conf.get_timestamp = [this](int64_t) { return 0; };
+      // }
+
+      auto api_conf = libremidi::midi_in_configuration_for(set.api);
+      proto = std::make_unique<ossia::net::midi::midi_protocol>(
+          m_ctx, set.handle.display_name, conf, api_conf);
+    }
+    else
+    {
+      libremidi::output_configuration conf;
+      auto api_conf = libremidi::midi_out_configuration_for(set.api);
+      proto = std::make_unique<ossia::net::midi::midi_protocol>(
+          m_ctx, set.handle.display_name, conf, api_conf);
+    }
 
     bool res = proto->set_info(ossia::net::midi::midi_info{
         static_cast<ossia::net::midi::midi_info::Type>(set.io), set.handle,
