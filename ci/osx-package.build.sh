@@ -5,7 +5,13 @@ export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/SDK"
 export PATH=/usr/local/bin:/opt/homebrew/bin:$PATH
 
-if [[ -d /Applications/Xcode_15.1.app ]]; then
+if [[ -d /Applications/Xcode_15.3.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_15.3.app
+  sudo xcode-select -s "$XCODE_ROOT"
+elif [[ -d /Applications/Xcode_15.2.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_15.2.app
+  sudo xcode-select -s "$XCODE_ROOT"
+elif [[ -d /Applications/Xcode_15.1.app ]]; then
   export XCODE_ROOT=/Applications/Xcode_15.1.app
   sudo xcode-select -s "$XCODE_ROOT"
 elif [[ -d /Applications/Xcode_15.0.app ]]; then
@@ -23,7 +29,8 @@ fi
 
 xcrun /usr/local/bin/cninja -S "$PWD" -B build "$CNINJA_TOOLCHAIN" -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
-  -DCMAKE_INSTALL_PREFIX="$PWD/install"
+  -DCMAKE_INSTALL_PREFIX="$PWD/install" \
+  -DCMAKE_UNITY_BUILD=1
 
 find . -type f -name 'ossia score' \
   | grep '.' \
