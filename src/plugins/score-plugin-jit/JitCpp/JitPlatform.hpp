@@ -439,7 +439,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     }
   }
 
-  qDebug() << "SDK located: " << sdk;
+  qDebug() << "SDK located: " << qsdk;
   std::string llvm_lib_version = SCORE_LLVM_VERSION;
 #if defined(__APPLE__) && SCORE_FHS_BUILD
   llvm_lib_version = "13.0.0";
