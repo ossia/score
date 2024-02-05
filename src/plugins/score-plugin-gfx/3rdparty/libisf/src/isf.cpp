@@ -14,8 +14,10 @@ namespace
 {
 static constexpr struct glsl45_t
 {
-  static constexpr auto vertexPrelude = R"_(#version 450
+  static constexpr auto versionPrelude = R"_(#version 450
+)_";
 
+  static constexpr auto vertexPrelude = R"_(
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
 //layout(location = 0) out vec2 isf_TexCoord;
@@ -38,7 +40,7 @@ void main()
 }
 )_";
 
-  static constexpr auto fragmentPrelude = R"_(#version 450
+  static constexpr auto fragmentPrelude = R"_(
 //layout(location = 0) in vec2 isf_TexCoord;
 layout(location = 0) in vec2 isf_FragNormCoord;
 layout(location = 0) out vec4 isf_FragColor;
@@ -705,20 +707,23 @@ void parser::parse_isf()
     case 450: {
       // Setup vertex shader
       {
+        m_vertex = GLSL45.versionPrelude;
+
         if(m_sourceVertex.empty())
         {
-          m_vertex = GLSL45.vertexPrelude;
+          m_vertex += GLSL45.vertexPrelude;
           simpleVS = true;
         }
         else if(m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
         {
-          m_vertex = GLSL45.vertexPrelude;
+          m_vertex += GLSL45.vertexPrelude;
         }
       }
 
       {
         // Setup fragment shader
-        m_fragment = GLSL45.fragmentPrelude;
+        m_fragment = GLSL45.versionPrelude;
+        m_fragment += GLSL45.fragmentPrelude;
       }
 
       // Setup the parameters UBOs

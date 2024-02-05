@@ -122,8 +122,8 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
 {
   ShaderSource program = programFromFragmentShaderPath(path, {});
 
-  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
-  QShaderVersion version = QShaderVersion(100);
+  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::OpenGL;
+  QShaderVersion version = QShaderVersion(330);
   if(const auto& [processed, error]
      = ProgramCache::instance().get(api, version, program);
      bool(processed))

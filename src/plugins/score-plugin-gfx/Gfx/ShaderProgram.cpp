@@ -264,7 +264,7 @@ std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(
 
       // Create QShader objects
       auto [vertexS, vertexError] = score::gfx::ShaderCache::get(
-          score::gfx::GraphicsApi::Vulkan, QShaderVersion(100),
+          score::gfx::GraphicsApi::OpenGL, QShaderVersion(330),
           processed.vertex.toUtf8(), QShader::VertexStage);
       if(!vertexError.isEmpty())
       {
@@ -274,7 +274,7 @@ std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(
       }
 
       auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
-          score::gfx::GraphicsApi::Vulkan, QShaderVersion(100),
+          score::gfx::GraphicsApi::OpenGL, QShaderVersion(330),
           processed.fragment.toUtf8(), QShader::FragmentStage);
       if(!fragmentError.isEmpty())
       {
