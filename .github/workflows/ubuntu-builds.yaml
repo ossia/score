@@ -25,7 +25,7 @@ jobs:
           apt-get install -qq --force-yes git
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -46,7 +46,7 @@ jobs:
           ./ci/${{ matrix.distro }}.deploy.sh
 
       - name: Upload build
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: matrix.deploy 
         with:
           name: ${{ matrix.distro }}-amd64

@@ -17,7 +17,7 @@ jobs:
 #          pacman -S git --noconfirm
 #
 #      - name: Checkout code
-#        uses: actions/checkout@v3
+#        uses: actions/checkout@v4
 #        with:
 #          submodules: 'recursive'
 #
@@ -34,7 +34,7 @@ jobs:
 #          ./ci/raspberrypi.deploy.sh
 #
 #      - name: Upload build
-#        uses: actions/upload-artifact@v2
+#        uses: actions/upload-artifact@v4
 #        with:
 #          name: raspberry-pi-aarch32
 #          path: |
@@ -54,7 +54,7 @@ jobs:
           pacman -S git --noconfirm
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -71,7 +71,7 @@ jobs:
           ./ci/raspberrypi-aarch64.deploy.sh
 
       - name: Upload build
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: raspberry-pi-aarch64
           path: |
@@ -83,7 +83,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -182,7 +182,7 @@ jobs:
           find . -name ossia-score
 
       - name: Upload build
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: raspberry-pi-bookworm-armhf
           path: |

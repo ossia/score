@@ -18,7 +18,7 @@ jobs:
           sudo apt-get install -qq --force-yes git doxygen binutils build-essential cmake
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 

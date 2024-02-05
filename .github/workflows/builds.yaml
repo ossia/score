@@ -15,7 +15,7 @@ jobs:
           dnf -y install git
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -39,7 +39,7 @@ jobs:
           zypper -n install git
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -64,7 +64,7 @@ jobs:
           zypper -n install git
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -90,7 +90,7 @@ jobs:
           pacman -S git --noconfirm
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -117,7 +117,7 @@ jobs:
           pacman -S git --noconfirm
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
