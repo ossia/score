@@ -162,7 +162,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("-fno-use-cxa-atexit");
 
   // -Ofast stuff:
-  args.push_back("-menable-unsafe-fp-math");
+  // args.push_back("-menable-unsafe-fp-math");
   args.push_back("-fno-signed-zeros");
   args.push_back("-mreassociate");
   args.push_back("-freciprocal-math");
@@ -198,8 +198,8 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("2");
   //args.push_back("-pic-is-pie");
 
-  args.push_back("-fvisibility");
-  args.push_back("hidden");
+  // changed from -fvisibility hidden to -fvisibility=hidden in clang 16
+  args.push_back("-fvisibility=hidden");
 
   args.push_back("-fvisibility-inlines-hidden");
 
@@ -427,6 +427,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     if(!dir.cd("include") || !dir.cd("c++"))
     {
       qDebug() << "Unable to locate standard headers, fallback to /usr";
+      qsdk = "/usr";
       sdk = "/usr";
       dir.setPath("/usr");
       if(!dir.cd("include") || !dir.cd("c++"))
@@ -438,7 +439,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     }
   }
 
-  qDebug() << "SDK located: " << qsdk;
+  qDebug() << "SDK located: " << sdk;
   std::string llvm_lib_version = SCORE_LLVM_VERSION;
 #if defined(__APPLE__) && SCORE_FHS_BUILD
   llvm_lib_version = "13.0.0";
