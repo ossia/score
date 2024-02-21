@@ -13,6 +13,7 @@ class QLineEdit;
 class QSpinBox;
 class QTableWidget;
 class QPushButton;
+class QRadioButton;
 
 namespace Protocols
 {
@@ -22,7 +23,7 @@ class ArtnetProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
   W_OBJECT(ArtnetProtocolSettingsWidget)
 
 public:
-  ArtnetProtocolSettingsWidget(QWidget* parent = nullptr);
+  explicit ArtnetProtocolSettingsWidget(QWidget* parent = nullptr);
   virtual ~ArtnetProtocolSettingsWidget();
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
@@ -34,6 +35,8 @@ private:
   QSpinBox* m_rate{};
   QSpinBox* m_universe{};
   QComboBox* m_transport{};
+  QRadioButton* m_source{};
+  QRadioButton* m_sink{};
   QTableWidget* m_fixturesWidget{};
   QPushButton* m_addFixture{};
   QPushButton* m_rmFixture{};

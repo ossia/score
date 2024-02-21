@@ -25,6 +25,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSerialPortInfo>
 #include <QTableWidget>
 #include <QTimer>
@@ -1238,6 +1239,10 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_transport = new QComboBox{this};
   m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO"});
 
+  m_source = new QRadioButton{tr("Send DMX"), this};
+  m_sink = new QRadioButton{tr("Receive DMX"), this};
+  m_source->setChecked(true);
+
   connect(
       m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
       [this](int idx) {
@@ -1262,6 +1267,11 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Universe"), m_universe);
   layout->addRow(tr("Transport"), m_transport);
   layout->addRow(tr("Interface"), m_host);
+
+  auto radiolay = new QHBoxLayout{};
+  radiolay->addWidget(m_source);
+  radiolay->addWidget(m_sink);
+  layout->addRow(tr("Mode"), radiolay);
 
   m_fixturesWidget = new QTableWidget;
   layout->addRow(m_fixturesWidget);
@@ -1337,6 +1347,7 @@ void ArtnetProtocolSettingsWidget::updateTable()
     row++;
   }
 }
+
 ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() { }
 
 Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
@@ -1364,6 +1375,8 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 
   settings.rate = this->m_rate->value();
   settings.universe = this->m_universe->value();
+  settings.mode = this->m_source->isChecked() ? ArtnetSpecificSettings::Source
+                                              : ArtnetSpecificSettings::Sink;
   s.deviceSpecificSettings = QVariant::fromValue(settings);
 
   return s;
@@ -1376,6 +1389,26 @@ void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
   m_fixtures = specif.fixtures;
   m_rate->setValue(specif.rate);
   m_universe->setValue(specif.universe);
+  m_host->setCurrentText(specif.host);
+
+  switch(specif.transport)
+  {
+    case ArtnetSpecificSettings::ArtNet:
+    case ArtnetSpecificSettings::ArtNetV2:
+      m_transport->setCurrentIndex(0);
+      break;
+    case ArtnetSpecificSettings::E131:
+      m_transport->setCurrentIndex(1);
+      break;
+    case ArtnetSpecificSettings::DMXUSBPRO:
+      m_transport->setCurrentIndex(2);
+      break;
+  }
+
+  if(specif.mode == ArtnetSpecificSettings::Source)
+    m_source->setChecked(true);
+  else
+    m_sink->setChecked(true);
   updateTable();
 }
 }

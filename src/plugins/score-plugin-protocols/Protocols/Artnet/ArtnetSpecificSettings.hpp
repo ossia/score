@@ -70,6 +70,11 @@ struct ArtnetSpecificSettings
     DMXUSBPRO,
     ArtNetV2, // Artnet:/{}
   } transport{ArtNetV2};
+  enum
+  {
+    Source, // score sends DMX
+    Sink    // score receives DMX
+  } mode;
 };
 }
 

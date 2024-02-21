@@ -210,6 +210,9 @@ bool ArtnetDevice::reconnect()
     conf.frequency = set.rate;
     conf.universe = set.universe;
     conf.multicast = true;
+    conf.mode = set.mode == ArtnetSpecificSettings::Source
+                    ? ossia::net::dmx_config::source
+                    : ossia::net::dmx_config::sink;
 
     switch(set.transport)
     {
