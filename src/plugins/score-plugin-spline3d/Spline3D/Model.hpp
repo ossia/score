@@ -73,11 +73,6 @@ public:
   void splineChanged() W_SIGNAL(splineChanged);
 
 private:
-  //// ProcessModel ////
-  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
-  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
-  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
-
   TimeVal contentDuration() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;

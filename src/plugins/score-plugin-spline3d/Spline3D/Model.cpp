@@ -60,22 +60,6 @@ QString ProcessModel::prettyName() const noexcept
   return QStringLiteral("Spline 3D");
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
-{
-  // We only need to change the duration.
-  setDuration(newDuration);
-}
-
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
-{
-  setDuration(newDuration);
-}
-
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
-{
-  setDuration(newDuration);
-}
-
 TimeVal ProcessModel::contentDuration() const noexcept
 {
   return duration();

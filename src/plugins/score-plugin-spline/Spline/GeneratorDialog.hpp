@@ -40,8 +40,8 @@ public:
     expr.add_constants();
     expr.register_symbol_table();
 
-    setText(R"_(x := cos(2 * PI * t);
-y := sin(2 * PI * t);
+    setText(R"_(x := cos(2 * pi * t);
+y := sin(2 * pi * t);
 )_");
   }
 
