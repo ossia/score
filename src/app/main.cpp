@@ -145,7 +145,7 @@ static void setup_x11()
     }
   };
 
-#if QT_VERSION <= QT_VERSION_CHECK(6, 6, 0)
+#if QT_VERSION <= QT_VERSION_CHECK(6, 6, 9)
   // Wayland as of Qt 6 does not seem to support QRhi properly especially on nvidia
   // so we still force xcb
   if(!has_platform)
