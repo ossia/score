@@ -1321,7 +1321,7 @@ void ArtnetProtocolSettingsWidget::updateHosts(int idx)
     case 1:
       m_host->addItems(score::list_ipv4());
       m_host->setCurrentIndex(0);
-      m_universe->setRange(0, 65539);
+      m_universe->setRange(1, 65539);
       break;
     case 2: {
       m_universe->setRange(0, 0);

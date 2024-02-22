@@ -194,6 +194,7 @@ bool ArtnetDevice::reconnect()
   {
     const auto& set = m_settings.deviceSpecificSettings.value<ArtnetSpecificSettings>();
 
+    // Convert the settings to the ossia format
     ossia::net::dmx_config conf;
     conf.autocreate = ossia::net::dmx_config::no_auto;
     if(set.fixtures.empty())
@@ -224,7 +225,12 @@ bool ArtnetDevice::reconnect()
         if(host.empty())
           host = "0.0.0.0";
 
-        artnet_proto = std::make_unique<ossia::net::artnet_protocol>(m_ctx, conf, host);
+        if(set.mode == ArtnetSpecificSettings::Source)
+          artnet_proto
+              = std::make_unique<ossia::net::artnet_protocol>(m_ctx, conf, host);
+        else
+          artnet_proto
+              = std::make_unique<ossia::net::artnet_input_protocol>(m_ctx, conf, host);
         break;
       }
       case ArtnetSpecificSettings::E131: {
@@ -260,6 +266,7 @@ bool ArtnetDevice::reconnect()
           sock_conf.port = set.host.toStdString();
 
         sock_conf.baud_rate = 115200;
+        sock_conf.stop_bits = ossia::net::serial_configuration::two;
 
         const int version
             = set.transport == ArtnetSpecificSettings::DMXUSBPRO_Mk2 ? 2 : 1;
@@ -280,6 +287,10 @@ bool ArtnetDevice::reconnect()
       {
         addArtnetFixture(*dev, proto.buffer(), fixt);
       }
+
+      if(set.mode == ArtnetSpecificSettings::Sink)
+        if(auto p = dynamic_cast<ossia::net::dmx_input_protocol_base*>(&proto))
+          p->create_channel_map();
       m_dev = std::move(dev);
     }
     deviceChanged(nullptr, m_dev.get());
