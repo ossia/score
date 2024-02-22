@@ -1227,17 +1227,16 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
   m_host = new QComboBox{this};
   m_host->setEditable(true);
-  m_host->addItems(score::list_ipv4());
 
   m_rate = new QSpinBox{this};
   m_rate->setRange(0, 44);
   m_rate->setValue(20);
 
   m_universe = new QSpinBox{this};
-  m_universe->setRange(1, 65539);
+  m_universe->setRange(0, 65539);
 
   m_transport = new QComboBox{this};
-  m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO"});
+  m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO", "DMX USB PRO Mk2"});
 
   m_source = new QRadioButton{tr("Send DMX"), this};
   m_sink = new QRadioButton{tr("Receive DMX"), this};
@@ -1245,21 +1244,8 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
   connect(
       m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
-      [this](int idx) {
-    m_host->clear();
-    switch(idx)
-    {
-      case 0:
-      case 1:
-        m_host->addItems(score::list_ipv4());
-        break;
-      case 2: {
-        for(auto port : QSerialPortInfo::availablePorts())
-          m_host->addItem(port.portName());
-        break;
-      }
-    }
-      });
+      &ArtnetProtocolSettingsWidget::updateHosts);
+  updateHosts(m_transport->currentIndex());
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
@@ -1322,6 +1308,39 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 }
 
+void ArtnetProtocolSettingsWidget::updateHosts(int idx)
+{
+  m_host->clear();
+  switch(idx)
+  {
+    case 0:
+      m_host->addItems(score::list_ipv4());
+      m_host->setCurrentIndex(0);
+      m_universe->setRange(0, 16);
+      break;
+    case 1:
+      m_host->addItems(score::list_ipv4());
+      m_host->setCurrentIndex(0);
+      m_universe->setRange(0, 65539);
+      break;
+    case 2: {
+      m_universe->setRange(0, 0);
+      for(const auto& port : QSerialPortInfo::availablePorts())
+        m_host->addItem(port.portName());
+      break;
+    }
+    case 3: {
+      m_universe->setRange(0, 1);
+      for(const auto& port : QSerialPortInfo::availablePorts())
+        m_host->addItem(port.portName());
+      break;
+    }
+  }
+
+  if(m_host->currentText().isEmpty())
+    m_host->setCurrentIndex(0);
+}
+
 void ArtnetProtocolSettingsWidget::updateTable()
 {
   while(m_fixturesWidget->rowCount() > 0)
@@ -1371,6 +1390,9 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
     case 2:
       settings.transport = ArtnetSpecificSettings::DMXUSBPRO;
       break;
+    case 3:
+      settings.transport = ArtnetSpecificSettings::DMXUSBPRO_Mk2;
+      break;
   }
 
   settings.rate = this->m_rate->value();
@@ -1387,9 +1409,6 @@ void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
   m_deviceNameEdit->setText(settings.name);
   const auto& specif = settings.deviceSpecificSettings.value<ArtnetSpecificSettings>();
   m_fixtures = specif.fixtures;
-  m_rate->setValue(specif.rate);
-  m_universe->setValue(specif.universe);
-  m_host->setCurrentText(specif.host);
 
   switch(specif.transport)
   {
@@ -1403,7 +1422,16 @@ void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
     case ArtnetSpecificSettings::DMXUSBPRO:
       m_transport->setCurrentIndex(2);
       break;
+    case ArtnetSpecificSettings::DMXUSBPRO_Mk2:
+      m_transport->setCurrentIndex(3);
+      break;
   }
+
+  m_rate->setValue(specif.rate);
+  m_universe->setValue(specif.universe);
+  m_host->setCurrentText(specif.host);
+  if(m_host->currentText().isEmpty())
+    updateHosts(m_transport->currentIndex());
 
   if(specif.mode == ArtnetSpecificSettings::Source)
     m_source->setChecked(true);

@@ -69,6 +69,7 @@ struct ArtnetSpecificSettings
     E131,
     DMXUSBPRO,
     ArtNetV2, // Artnet:/{}
+    DMXUSBPRO_Mk2,
   } transport{ArtNetV2};
   enum
   {

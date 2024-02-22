@@ -29,6 +29,7 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
 private:
+  void updateHosts(int protocolindex);
   void updateTable();
   QLineEdit* m_deviceNameEdit{};
   QComboBox* m_host{};
