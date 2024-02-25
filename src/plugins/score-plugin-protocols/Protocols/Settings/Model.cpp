@@ -14,7 +14,7 @@ MidiAPI::operator QStringList() const
 #elif defined(__linux__)
 MidiAPI::operator QStringList() const
 {
-  return {"ALSA (sequencer)", "ALSA (raw)", "JACK"};
+  return {"ALSA (sequencer)", "ALSA (raw)", "JACK", "PipeWire"};
 }
 #elif defined(__emscripten__)
 MidiAPI::operator QStringList() const
@@ -59,6 +59,8 @@ libremidi::API Model::getMidiApiAsEnum() const noexcept
     api = libremidi::API::ALSA_RAW;
   else if(m_MidiAPI == "JACK")
     api = libremidi::API::JACK_MIDI;
+  else if(m_MidiAPI == "PipeWire")
+    api = libremidi::API::PIPEWIRE;
   else if(m_MidiAPI == "Emscripten")
     api = libremidi::API::WEBMIDI;
   return api;
