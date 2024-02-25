@@ -9,10 +9,16 @@
 
 #include <verdigris>
 
+namespace Process
+{
+class ProcessModel;
+}
 namespace Scenario
 {
 class StateModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final
+    : public QObject
+    , public Nano::Observer
 {
   W_OBJECT(StatePresenter)
 
@@ -33,6 +39,8 @@ public:
   bool isSelected() const;
 
   void handleDrop(const QMimeData& mime);
+  void on_processAdded(const Process::ProcessModel&);
+  void on_processRemoved(const Process::ProcessModel&);
 
 public:
   void pressed(const QPointF& arg_1)

@@ -73,5 +73,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DropProcessInIntervalMacro final
   SCORE_COMMAND_DECL(
       CommandFactoryName(), DropProcessInIntervalMacro, "Drop a process in an interval")
 };
+
+class SCORE_PLUGIN_SCENARIO_EXPORT DropProcessInStateMacro final
+    : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(), DropProcessInStateMacro, "Drop a process in a state")
+};
 }
 }

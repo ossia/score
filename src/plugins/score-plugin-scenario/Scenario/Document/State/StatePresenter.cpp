@@ -75,6 +75,8 @@ StatePresenter::StatePresenter(
   });
   connect(m_view, &StateView::dropReceived, this, &StatePresenter::handleDrop);
 
+  model.stateProcesses.added.connect<&StatePresenter::on_processAdded>(this);
+  model.stateProcesses.removed.connect<&StatePresenter::on_processRemoved>(this);
   updateStateView();
 }
 
@@ -204,6 +206,15 @@ void StatePresenter::handleDrop(const QMimeData& mime)
       DropProcessOnState{}.drop(this->m_model, *scenar, mime, m_ctx);
     }
   }
+}
+
+void StatePresenter::on_processAdded(const Process::ProcessModel&)
+{
+  updateStateView();
+}
+void StatePresenter::on_processRemoved(const Process::ProcessModel&)
+{
+  updateStateView();
 }
 
 void StatePresenter::updateStateView()

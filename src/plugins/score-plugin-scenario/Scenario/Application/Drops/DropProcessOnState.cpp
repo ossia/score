@@ -112,40 +112,65 @@ bool DropProcessOnState::drop(
     const StateModel& st, const ProcessModel& scenar, const QMimeData& mime,
     const score::DocumentContext& ctx)
 {
-
   const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
+  const auto& factories = ctx.app.interfaces<Process::ProcessFactoryList>();
 
   if(auto res = handlers.getDrop(mime, ctx); !res.empty())
   {
-    auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
+    bool in_state = true;
+    if(res.size() != 1)
+      in_state = false;
+    if(!(qApp->keyboardModifiers() & Qt::ShiftModifier))
+      in_state = false;
+    auto proc_factory = factories.get(res[0].creation.key);
+    if(!(proc_factory->flags() & Process::ProcessFlags::SupportsState))
+      in_state = false;
 
-    DropProcessOnStateHelper dropper(st, scenar, ctx, t);
-
-    score::Dispatcher_T disp{dropper.macro()};
-    for(const auto& proc : res)
+    if(in_state)
     {
-      Process::ProcessModel* p = dropper.addProcess(
-          [&](Scenario::Command::Macro& m,
-              const IntervalModel& itv) -> Process::ProcessModel* {
-            return m.createProcessInNewSlot(itv, proc.creation);
-          },
-          proc.duration ? *proc.duration : t);
-      if(p && proc.setup)
+      // Create the process in the state if possible
+      Scenario::Command::Macro m{new Command::DropProcessInStateMacro, ctx};
+      score::Dispatcher_T disp{m};
+      for(const auto& proc : res)
       {
-        proc.setup(*p, disp);
+        auto p = m.createProcess(st, proc.creation.key, proc.creation.customData);
+        if(p && proc.setup)
+          proc.setup(*p, disp);
       }
+      m.commit();
     }
-
-    if(res.size() == 1)
+    else
     {
-      const auto& name = res.front().creation.prettyName;
-      auto& itv = dropper.interval();
-      if(!name.isEmpty())
+      auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
+
+      DropProcessOnStateHelper dropper(st, scenar, ctx, t);
+
+      score::Dispatcher_T disp{dropper.macro()};
+      for(const auto& proc : res)
       {
-        dropper.macro().submit(new Scenario::Command::ChangeElementName{itv, name});
+        Process::ProcessModel* p = dropper.addProcess(
+            [&](Scenario::Command::Macro& m,
+                const IntervalModel& itv) -> Process::ProcessModel* {
+              return m.createProcessInNewSlot(itv, proc.creation);
+            },
+            proc.duration ? *proc.duration : t);
+        if(p && proc.setup)
+        {
+          proc.setup(*p, disp);
+        }
       }
+
+      if(res.size() == 1)
+      {
+        const auto& name = res.front().creation.prettyName;
+        auto& itv = dropper.interval();
+        if(!name.isEmpty())
+        {
+          dropper.macro().submit(new Scenario::Command::ChangeElementName{itv, name});
+        }
+      }
+      dropper.commit();
     }
-    dropper.commit();
     return true;
   }
   return true;

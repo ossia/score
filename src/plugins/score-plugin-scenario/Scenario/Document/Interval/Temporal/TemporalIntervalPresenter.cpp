@@ -1149,7 +1149,7 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
         on_layerModelPutToFront(i, slot.layers.front().model());
       }
         },
-        [this, w, slot_height](const NodalSlotPresenter& slot) {
+        [w, slot_height](const NodalSlotPresenter& slot) {
       slot.view->setRect({0, 0, w, slot_height});
     });
 
