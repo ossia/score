@@ -19,6 +19,8 @@
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/post.hpp>
+#include <boost/asio/strand.hpp>
+#include <boost/asio/use_future.hpp>
 
 #include <QCoreApplication>
 #include <QMenu>
@@ -1017,20 +1019,24 @@ void releaseDevice(
 {
   if(dd)
   {
-    std::atomic_int k{};
-    boost::asio::post(ctx.context, [&dev = dd, ctx = &ctx.context, &k]() mutable {
-      dev->get_protocol().stop();
-      boost::asio::post(*ctx, [&k] { k = 1; });
-    });
+    auto strand = boost::asio::make_strand(ctx.context);
+    boost::asio::post(strand, [&dev = dd] { dev->get_protocol().stop(); });
 
-    int n = 0;
-    while(k != 1 && n < 1000)
+    std::future<void> wait1 = boost::asio::post(strand, boost::asio::use_future);
+    if(auto res = wait1.wait_for(std::chrono::seconds(1));
+       res != std::future_status::ready)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      ++n;
+      qDebug() << "Device deletion: asio thread seems stuck (1)";
     }
 
-    boost::asio::post(ctx.context, [d = std::move(dd)]() mutable { d.reset(); });
+    boost::asio::post(strand, [d = std::move(dd)]() mutable { d.reset(); });
+
+    std::future<void> wait2 = boost::asio::post(strand, boost::asio::use_future);
+    if(auto res = wait2.wait_for(std::chrono::seconds(1));
+       res != std::future_status::ready)
+    {
+      qDebug() << "Device deletion: asio thread seems stuck (2)";
+    }
   }
 }
 

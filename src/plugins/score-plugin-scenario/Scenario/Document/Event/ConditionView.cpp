@@ -19,62 +19,67 @@ W_OBJECT_IMPL(Scenario::ConditionView)
 namespace Scenario
 {
 static constexpr const qreal ConditionCHeight = 27.;
-static const QPainterPath conditionTrianglePath{[] {
-  QPainterPath p;
-  QPainterPathStroker s;
-  s.setCapStyle(Qt::RoundCap);
-  s.setJoinStyle(Qt::RoundJoin);
-  s.setWidth(2);
-
-  p.addPolygon(QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
-  p.closeSubpath();
-
-  return (p + s.createStroke(p)).simplified();
-}()};
-
-ConditionView::ConditionView(const EventModel& model, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-    , m_model{model}
+static const QPainterPath& conditionTrianglePath()
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
-  this->setToolTip(tr("Condition\nSet whether the following intervals will execute."));
-  setFlag(ItemStacksBehindParent, true);
-  setCursor(Qt::CursorShape::CrossCursor);
-  setHeight(0.);
-}
+  static const QPainterPath p{[] {
+    QPainterPath p;
+    QPainterPathStroker s;
+    s.setCapStyle(Qt::RoundCap);
+    s.setJoinStyle(Qt::RoundJoin);
+    s.setWidth(2);
 
-QRectF ConditionView::boundingRect() const
-{
-  constexpr qreal m_width = 40.;
-  constexpr double penWidth = 0.;
-  return QRectF{
-      -penWidth, -penWidth, m_width + penWidth, m_height + ConditionCHeight + penWidth};
-}
+    p.addPolygon(QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
+    p.closeSubpath();
 
-void ConditionView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-  auto& style = Process::Style::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
+    return (p + s.createStroke(p)).simplified();
+  }()};
+  return p;
+  };
 
-  const score::Brush& col
-      = !m_selected
-            ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
-            : style.IntervalSelected();
+  ConditionView::ConditionView(const EventModel& model, QGraphicsItem* parent)
+      : QGraphicsItem{parent}
+      , m_model{model}
+  {
+    this->setCacheMode(QGraphicsItem::NoCache);
+    this->setToolTip(tr("Condition\nSet whether the following intervals will execute."));
+    setFlag(ItemStacksBehindParent, true);
+    setCursor(Qt::CursorShape::CrossCursor);
+    setHeight(0.);
+  }
 
-  painter->setPen(style.ConditionPen(col));
-  painter->setBrush(style.NoBrush());
-  painter->drawPath(m_Cpath);
+  QRectF ConditionView::boundingRect() const
+  {
+    constexpr qreal m_width = 40.;
+    constexpr double penWidth = 0.;
+    return QRectF{
+        -penWidth, -penWidth, m_width + penWidth,
+        m_height + ConditionCHeight + penWidth};
+  }
+
+  void ConditionView::paint(
+      QPainter * painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+  {
+    auto& style = Process::Style::instance();
+    painter->setRenderHint(QPainter::Antialiasing, true);
+
+    const score::Brush& col
+        = !m_selected
+              ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
+              : style.IntervalSelected();
+
+    painter->setPen(style.ConditionPen(col));
+    painter->setBrush(style.NoBrush());
+    painter->drawPath(m_Cpath);
 
 #if !defined(SCORE_IEEE_SKIN)
   painter->setPen(style.ConditionTrianglePen(col));
   painter->setBrush(col);
 
-  painter->fillPath(conditionTrianglePath, col);
+  painter->fillPath(conditionTrianglePath(), col);
 #endif
 
   painter->setRenderHint(QPainter::Antialiasing, false);
-}
+  }
 
 void ConditionView::changeHeight(qreal newH)
 {
@@ -137,7 +142,7 @@ QPainterPath Scenario::ConditionView::shape() const
 bool Scenario::ConditionView::contains(const QPointF& point) const
 {
   return m_Cpath.contains(point) || m_strokedCpath.contains(point)
-         || conditionTrianglePath.contains(point);
+         || conditionTrianglePath().contains(point);
 }
 
 QPainterPath Scenario::ConditionView::opaqueArea() const

@@ -49,6 +49,7 @@ public:
       override;
 
   void setContainMessage(bool);
+  void setContainProcess(bool);
   void setSelected(bool arg);
   void setStatus(ExecutionStatus);
   void disableOverlay();
@@ -81,6 +82,7 @@ private:
 
   bool m_dilated : 1;
   bool m_containMessage : 1;
+  bool m_containProcess : 1;
   bool m_selected : 1;
   bool m_hovered : 1;
   bool m_hasOverlay : 1;

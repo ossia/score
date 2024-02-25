@@ -1,11 +1,11 @@
 #include "DNSSDDeviceEnumerator.hpp"
 
 #if defined(OSSIA_DNSSD)
-
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include <QElapsedTimer>
 #include <QTimer>
 
 namespace Protocols

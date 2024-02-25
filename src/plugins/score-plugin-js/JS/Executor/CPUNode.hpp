@@ -52,6 +52,11 @@ public:
   QJSValueList m_tickCall;
   std::size_t m_gcIndex{};
 
+  bool triggerStart{};
+  bool triggerStop{};
+  bool triggerPause{};
+  bool triggerResume{};
+
   void setControl(std::size_t index, const QVariant& val)
   {
     if(index > m_jsInlets.size())
@@ -74,30 +79,10 @@ struct js_process final : public ossia::node_process
 {
   using node_process::node_process;
   js_node& js() const { return static_cast<js_node&>(*node); }
-  void start() override
-  {
-    if(auto obj = js().m_object)
-      if(obj->start().isCallable())
-        obj->start().call();
-  }
-  void stop() override
-  {
-    if(auto obj = js().m_object)
-      if(obj->stop().isCallable())
-        obj->stop().call();
-  }
-  void pause() override
-  {
-    if(auto obj = js().m_object)
-      if(obj->pause().isCallable())
-        obj->pause().call();
-  }
-  void resume() override
-  {
-    if(auto obj = js().m_object)
-      if(obj->resume().isCallable())
-        obj->resume().call();
-  }
+  void start() override { js().triggerStart = true; }
+  void stop() override { js().triggerStop = true; }
+  void pause() override { js().triggerPause = true; }
+  void resume() override { js().triggerResume = true; }
   void transport_impl(ossia::time_value date) override
   {
     QMetaObject::invokeMethod(

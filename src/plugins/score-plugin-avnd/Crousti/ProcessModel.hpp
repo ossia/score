@@ -18,6 +18,7 @@
 #include <avnd/common/for_nth.hpp>
 #include <avnd/concepts/file_port.hpp>
 #include <avnd/concepts/gfx.hpp>
+#include <avnd/concepts/temporality.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <avnd/introspection/messages.hpp>
 #include <avnd/wrappers/bus_host_process_adapter.hpp>
@@ -165,9 +166,14 @@ struct Metadata<Process::ProcessFlags_k, oscr::ProcessModel<Info>>
     }
     else
     {
-      return Process::ProcessFlags(
+      Process::ProcessFlags flags = Process::ProcessFlags(
           Process::ProcessFlags::SupportsLasting
           | Process::ProcessFlags::ControlSurface);
+
+      if constexpr(avnd::tag_single_exec<Info>)
+        flags |= Process::ProcessFlags::SupportsState;
+
+      return flags;
     }
   }
 };

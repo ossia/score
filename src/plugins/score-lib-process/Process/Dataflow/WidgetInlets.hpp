@@ -400,6 +400,8 @@ struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet
   ProgramEdit(QString init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~ProgramEdit();
 
+  std::string language;
+
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;

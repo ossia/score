@@ -796,29 +796,40 @@ public:
             if(!eff_ptr.lock())
               return;
 
-            auto res = worker_type::work(std::forward<decltype(ff)>(ff)...);
-            if(!res)
-              return;
+            using type_of_result
+                = decltype(worker_type::work(std::forward<decltype(ff)>(ff)...));
+            if constexpr(std::is_void_v<type_of_result>)
+            {
+              worker_type::work(std::forward<decltype(ff)>(ff)...);
+            }
+            else
+            {
+              // If the worker returns a std::function, it
+              // is to be invoked back in the processor DSP thread
+              auto res = worker_type::work(std::forward<decltype(ff)>(ff)...);
+              if(!res)
+                return;
 
-            // Execution queue is currently spsc from main thread to an exec thread,
-            // we cannot just yeet the result back from the thread-pool
-            ossia::qt::run_async(
-                qApp, [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
-                       res = std::move(res)]() mutable {
-                  // Main thread
-                  std::shared_ptr qex = qex_ptr.lock();
-                  if(!qex)
-                    return;
+              // Execution queue is currently spsc from main thread to an exec thread,
+              // we cannot just yeet the result back from the thread-pool
+              ossia::qt::run_async(
+                  qApp, [eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
+                         res = std::move(res)]() mutable {
+                    // Main thread
+                    std::shared_ptr qex = qex_ptr.lock();
+                    if(!qex)
+                      return;
 
-                  qex->enqueue(
-                      [eff_ptr = std::move(eff_ptr), res = std::move(res)]() mutable {
-                // DSP / processor thread
-                // We need res to be mutable so that the worker can use it to e.g. store
-                // old data which will be freed back in the main thread
-                if(auto p = eff_ptr.lock())
-                  res(*p);
+                    qex->enqueue(
+                        [eff_ptr = std::move(eff_ptr), res = std::move(res)]() mutable {
+                  // DSP / processor thread
+                  // We need res to be mutable so that the worker can use it to e.g. store
+                  // old data which will be freed back in the main thread
+                  if(auto p = eff_ptr.lock())
+                    res(*p);
+                    });
                   });
-                });
+            }
           });
         };
       }

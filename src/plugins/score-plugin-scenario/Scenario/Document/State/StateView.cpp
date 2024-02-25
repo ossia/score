@@ -37,6 +37,16 @@ static const QPainterPath fullNonDilated{[] {
   p.addEllipse({0, 0}, StateView::fullRadius, StateView::fullRadius);
   return p;
 }()};
+static const QPainterPath fullProcessNonDilated{[] {
+  QPainterPath p;
+  p.addPolygon({
+      {0, StateView::fullRadius},
+      {StateView::fullRadius, 0},
+      {0, -StateView::fullRadius},
+      {-StateView::fullRadius, 0},
+  });
+  return p;
+}()};
 static const QPainterPath smallDilated{[] {
   QPainterPath p;
   p.addEllipse(
@@ -51,7 +61,17 @@ static const QPainterPath fullDilated{[] {
       StateView::fullRadius * StateView::dilated);
   return p;
 }()};
-bool is_hidpi()
+static const QPainterPath fullProcessDilated{[] {
+  QPainterPath p;
+  p.addPolygon({
+      {0, StateView::fullRadius * StateView::dilated},
+      {StateView::fullRadius * StateView::dilated, 0},
+      {0, -StateView::fullRadius * StateView::dilated},
+      {-StateView::fullRadius * StateView::dilated, 0},
+  });
+  return p;
+}()};
+static bool is_hidpi()
 {
   static const bool res = (qApp->screens().front()->devicePixelRatio() > 1.5);
   return res;
@@ -104,7 +124,6 @@ void StateView::paint(
     else
       painter->drawPath(fullNonDilated);
   }
-
   if(m_execPing.running())
   {
     const auto& nextPen = m_execPing.getNextPen(
@@ -135,11 +154,25 @@ void StateView::paint(
 #endif
 
   painter->setRenderHint(QPainter::Antialiasing, false);
+  if(m_containProcess)
+  {
+    painter->setBrush(skin.StateOutline());
+    if(m_dilated)
+      painter->drawPath(fullProcessDilated);
+    else
+      painter->drawPath(fullProcessNonDilated);
+  }
 }
 
 void StateView::setContainMessage(bool arg)
 {
   m_containMessage = arg;
+  update();
+}
+
+void StateView::setContainProcess(bool arg)
+{
+  m_containProcess = arg;
   update();
 }
 

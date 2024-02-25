@@ -3,6 +3,7 @@
 #include <Process/Dataflow/ControlWidgetDomains.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -991,9 +992,9 @@ struct ProgramEdit
   }
 
   static void
-  createDialog(const Process::ControlInlet& inlet, const score::DocumentContext& ctx)
+  createDialog(const Process::ProgramEdit& inlet, const score::DocumentContext& ctx)
   {
-    auto dial = new ProgramPortScriptDialog{"", inlet, ctx, nullptr};
+    auto dial = new ProgramPortScriptDialog{inlet.language, inlet, ctx, nullptr};
     dial->exec();
   }
 };
@@ -1048,7 +1049,7 @@ struct FileChooser
       QGraphicsItem* parent, QObject* context)
   {
     auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
-    auto on_open = [bt, &inlet, &ctx] {
+    auto on_open = [&inlet, &ctx] {
       auto filename
           = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
       if(filename.isEmpty())
@@ -1057,7 +1058,7 @@ struct FileChooser
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
           inlet, filename.toStdString());
     };
-    auto on_set = [bt, &inlet, &ctx](const QString& filename) {
+    auto on_set = [&inlet, &ctx](const QString& filename) {
       if(filename.isEmpty())
         return;
 

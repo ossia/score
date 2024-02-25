@@ -51,6 +51,7 @@ public:
     static const constexpr auto video = "Video";
     static const constexpr auto web = "Web";
     static const constexpr auto hardware = "Hardware";
+    static const constexpr auto software = "Software";
     static const constexpr auto lights = "Lights";
     static const constexpr auto util = "Utilities";
   };

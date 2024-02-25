@@ -211,5 +211,6 @@ void StatePresenter::updateStateView()
   m_view->setContainMessage(
       m_model.messages().rootNode().hasChildren()
       || !m_model.controlMessages().messages().empty());
+  m_view->setContainProcess(!m_model.stateProcesses.empty());
 }
 }

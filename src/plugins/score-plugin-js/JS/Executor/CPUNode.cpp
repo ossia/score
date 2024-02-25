@@ -153,6 +153,22 @@ void js_node::run(
   //   return;
 
   QEventLoop e;
+  if(std::exchange(triggerStart, false))
+  {
+    if(m_object->start().isCallable())
+      m_object->start().call();
+  }
+  if(std::exchange(triggerPause, false))
+  {
+    if(m_object->pause().isCallable())
+      m_object->pause().call();
+  }
+  if(std::exchange(triggerResume, false))
+  {
+    if(m_object->resume().isCallable())
+      m_object->resume().call();
+  }
+
   // Copy audio
   for(std::size_t inl_i = 0; inl_i < m_audInlets.size(); inl_i++)
   {
@@ -296,6 +312,11 @@ void js_node::run(
     }
   }
 
+  if(std::exchange(triggerStop, false))
+  {
+    if(m_object->stop().isCallable())
+      m_object->stop().call();
+  }
   e.processEvents();
   if(m_gcIndex++ % 64 == 0)
     m_engine->collectGarbage();

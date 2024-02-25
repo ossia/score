@@ -287,7 +287,11 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   {
     constexpr auto c = avnd::get_range<T>();
     if constexpr(avnd::program_parameter<T>)
-      return new Process::ProgramEdit{c.init.data(), qname, id, parent};
+    {
+      auto p = new Process::ProgramEdit{c.init.data(), qname, id, parent};
+      p->language = T::language();
+      return p;
+    }
     else
       return new Process::LineEdit{c.init.data(), qname, id, parent};
   }

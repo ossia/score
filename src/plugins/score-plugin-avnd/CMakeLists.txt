@@ -548,6 +548,12 @@ avnd_make_score(
   NAMESPACE examples
 )
 
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Raw/Shell.hpp"
+  TARGET avnd_shell
+  MAIN_CLASS Shell
+  NAMESPACE examples
+)
 
 # avnd_make_score(
 #   SOURCES
