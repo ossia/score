@@ -2,6 +2,7 @@
 
 source ci/common.deps.sh
 
+printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" > COMMIT
 (
   rm -rf .git
   rm -rf *.tar.xz
