@@ -1224,9 +1224,11 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   m_deviceNameEdit->setText("Artnet");
+  checkForChanges(m_deviceNameEdit);
 
   m_host = new QComboBox{this};
   m_host->setEditable(true);
+  checkForChanges(m_host);
 
   m_rate = new QSpinBox{this};
   m_rate->setRange(0, 44);
@@ -1237,6 +1239,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
   m_transport = new QComboBox{this};
   m_transport->addItems({"ArtNet", "E1.31 (sACN)", "DMX USB PRO", "DMX USB PRO Mk2"});
+  checkForChanges(m_transport);
 
   m_source = new QRadioButton{tr("Send DMX"), this};
   m_sink = new QRadioButton{tr("Receive DMX"), this};
@@ -1310,14 +1313,18 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
 void ArtnetProtocolSettingsWidget::updateHosts(int idx)
 {
+
   m_host->clear();
   switch(idx)
   {
-    case 0:
-      m_host->addItems(score::list_ipv4());
+    case 0: {
+      auto ips = score::list_ipv4();
+      ips.removeAll("0.0.0.0");
+      m_host->addItems(ips);
       m_host->setCurrentIndex(0);
       m_universe->setRange(0, 16);
       break;
+    }
     case 1:
       m_host->addItems(score::list_ipv4());
       m_host->setCurrentIndex(0);
