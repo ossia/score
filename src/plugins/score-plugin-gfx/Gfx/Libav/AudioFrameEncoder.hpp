@@ -18,6 +18,8 @@ struct AudioFrameEncoder
   {
   }
 
+  virtual ~AudioFrameEncoder() = default;
+
   // We assume that vec has correct channel count here
   // Also that vec.size() > 0
   virtual void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) = 0;
