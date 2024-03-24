@@ -26,6 +26,7 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceModelProvider.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/CodeWriter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_device.hpp"
 )
 
@@ -54,6 +55,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/CodeWriter.cpp"
 )
 
 add_library(score_lib_device ${SRCS} ${HEADERS})

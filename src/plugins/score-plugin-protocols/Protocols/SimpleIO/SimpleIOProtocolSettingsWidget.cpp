@@ -1,4 +1,7 @@
 #include "libsimpleio/libgpio.h"
+
+#include <score/tools/File.hpp>
+
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
 #include "SimpleIOProtocolFactory.hpp"
@@ -6,6 +9,9 @@
 #include "SimpleIOSpecificSettings.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <Protocols/OSC/OSCProtocolSettingsWidget.hpp>
+#include <Protocols/SimpleIO/Wokwi/Layout.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
@@ -15,10 +21,12 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/string_algorithms.hpp>
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDirIterator>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -503,48 +511,106 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   m_deviceNameEdit->setText("SimpleIO");
 
+  m_boardLabel = new QLabel{"Local"};
+
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
 
-  m_portsWidget = new QTableWidget;
-  layout->addRow(m_portsWidget);
-
-  m_portsWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-  m_portsWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  m_portsWidget->insertColumn(0);
-  m_portsWidget->insertColumn(1);
-  m_portsWidget->insertColumn(2);
-  m_portsWidget->setHorizontalHeaderLabels({tr("Name"), tr("Address"), tr("Type")});
+  m_localPortsWidget = new QTableWidget;
+  layout->addRow(m_localPortsWidget);
+  
+  m_localPortsWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_localPortsWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  m_localPortsWidget->insertColumn(0);
+  m_localPortsWidget->insertColumn(1);
+  m_localPortsWidget->insertColumn(2);
+  m_localPortsWidget->setHorizontalHeaderLabels({tr("Name"), tr("Address"), tr("Type")});
 
   auto btns = new QHBoxLayout;
-  m_addPort = new QPushButton{"Add a port"};
-  m_rmPort = new QPushButton{"Remove selected port"};
-  btns->addWidget(m_addPort);
-  btns->addWidget(m_rmPort);
+  m_localLoadLayout = new QPushButton{"Load a Wokwi layout"};
+  m_localAddPort = new QPushButton{"Add a port"};
+  m_localRmPort = new QPushButton{"Remove selected port"};
+  btns->addWidget(m_localLoadLayout);
+  btns->addWidget(m_localAddPort);
+  btns->addWidget(m_localRmPort);
   layout->addRow(btns);
 
-  connect(m_addPort, &QPushButton::clicked, this, [this] {
+  {
+    QFrame* line = new QFrame();
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    layout->addRow(line);
+  }
+  layout->addRow(tr("Board"), m_boardLabel);
+
+  m_transport = new QComboBox{this};
+  m_transport->addItems(
+      {"UDP", "TCP", "Serial port", "Unix Datagram", "Unix Stream", "Websocket Client",
+       "Websocket Server"});
+  layout->addRow(tr("OSC protocol"), m_transport);
+  m_osc = new OSCTransportWidget{*this, this};
+  m_osc->setEnabled(false);
+  m_transport->setEnabled(false);
+  m_osc->setConfiguration(ossia::net::osc_protocol_configuration{
+      .transport = ossia::net::udp_configuration{
+          {.local = ossia::net::receive_socket_configuration{"0.0.0.0", 7765},
+           .remote = ossia::net::send_socket_configuration{"192.168.1.77", 5567}}}});
+  layout->addRow(m_osc);
+
+  QObject::connect(
+      m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      [this](int idx) { m_osc->setCurrentProtocol((OscProtocol)idx); });
+
+  connect(m_localLoadLayout, &QPushButton::clicked, this, [this] {
+    {
+      QFileDialog d{qApp->activeWindow(), tr("Load Wokwi diagram.json")};
+      d.setNameFilter("Wokwi diagram (*.json)");
+      d.setFileMode(QFileDialog::ExistingFile);
+      d.setAcceptMode(QFileDialog::AcceptOpen);
+      if(d.exec())
+      {
+        auto files = d.selectedFiles();
+        if(files.empty())
+          return;
+        if(QFile f{files[0]}; f.open(QIODevice::ReadOnly))
+        {
+          auto ba = readJson(score::mapAsByteArray(f));
+          if(!ba.HasParseError())
+          {
+            m_impl = loadWokwi(ba);
+
+            // No good: revert back to default state.
+            if(m_impl.ports.empty())
+              m_impl.board = "Local";
+
+            updateGui();
+          }
+        }
+      }
+    }
+  });
+  connect(m_localAddPort, &QPushButton::clicked, this, [this] {
     auto dial = new AddPortDialog{*this};
     if(dial->exec() == QDialog::Accepted)
     {
       auto port = dial->port();
       if(!port.name.isEmpty() && !port.path.isEmpty())
       {
-        m_ports.push_back(port);
+        m_impl.ports.push_back(port);
         updateTable();
       }
     }
   });
-  connect(m_rmPort, &QPushButton::clicked, this, [this] {
+  connect(m_localRmPort, &QPushButton::clicked, this, [this] {
     ossia::flat_set<int> rows_to_remove;
-    for(auto item : m_portsWidget->selectedItems())
+    for(auto item : m_localPortsWidget->selectedItems())
     {
       rows_to_remove.insert(item->row());
     }
 
     for(auto it = rows_to_remove.rbegin(); it != rows_to_remove.rend(); ++it)
     {
-      m_ports.erase(m_ports.begin() + *it);
+      m_impl.ports.erase(m_impl.ports.begin() + *it);
     }
 
     updateTable();
@@ -584,13 +650,23 @@ static QString typeName(const SimpleIO::Type& t)
   } vis;
   return ossia::visit(vis, t);
 }
+
+void SimpleIOProtocolSettingsWidget::updateGui()
+{
+  m_boardLabel->setText(m_impl.board);
+  m_transport->setEnabled(m_impl.board != "Local");
+  m_osc->setEnabled(m_impl.board != "Local");
+
+  updateTable();
+}
+
 void SimpleIOProtocolSettingsWidget::updateTable()
 {
-  while(m_portsWidget->rowCount() > 0)
-    m_portsWidget->removeRow(int(m_portsWidget->rowCount()) - 1);
+  while(m_localPortsWidget->rowCount() > 0)
+    m_localPortsWidget->removeRow(int(m_localPortsWidget->rowCount()) - 1);
 
   int row = 0;
-  for(auto& fixt : m_ports)
+  for(auto& fixt : m_impl.ports)
   {
     auto name_item = new QTableWidgetItem{fixt.name};
     auto address = new QTableWidgetItem{fixt.path};
@@ -600,12 +676,12 @@ void SimpleIOProtocolSettingsWidget::updateTable()
     // mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     address->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     //controls->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-    m_portsWidget->insertRow(row);
-    m_portsWidget->setItem(row, 0, name_item);
+    
+    m_localPortsWidget->insertRow(row);
+    m_localPortsWidget->setItem(row, 0, name_item);
     //m_portsWidget->setItem(row, 1, mode_item);
-    m_portsWidget->setItem(row, 1, address);
-    m_portsWidget->setItem(row, 2, type_item);
+    m_localPortsWidget->setItem(row, 1, address);
+    m_localPortsWidget->setItem(row, 2, type_item);
     row++;
   }
 }
@@ -617,10 +693,14 @@ Device::DeviceSettings SimpleIOProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
   s.protocol = SimpleIOProtocolFactory::static_concreteKey();
+  auto stgs = m_impl;
+  if(m_osc->isEnabled())
+    stgs.osc_configuration
+        = m_osc->configuration((OscProtocol)m_transport->currentIndex());
+  else
+    stgs.osc_configuration.reset();
 
-  SimpleIOSpecificSettings settings{};
-  settings.ports = this->m_ports;
-  s.deviceSpecificSettings = QVariant::fromValue(settings);
+  s.deviceSpecificSettings = QVariant::fromValue(stgs);
 
   return s;
 }
@@ -628,9 +708,21 @@ Device::DeviceSettings SimpleIOProtocolSettingsWidget::getSettings() const
 void SimpleIOProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  const auto& specif = settings.deviceSpecificSettings.value<SimpleIOSpecificSettings>();
-  m_ports = specif.ports;
-  updateTable();
+  m_impl = settings.deviceSpecificSettings.value<SimpleIOSpecificSettings>();
+  if(m_impl.osc_configuration)
+  {
+    auto proto = m_osc->setConfiguration(*m_impl.osc_configuration);
+    m_transport->setCurrentIndex((int)proto);
+    m_transport->setEnabled(true);
+    m_osc->setEnabled(true);
+  }
+  else
+  {
+    m_transport->setCurrentIndex(0);
+    m_transport->setEnabled(false);
+    m_osc->setEnabled(false);
+  }
+  updateGui();
 }
 }
 #endif
