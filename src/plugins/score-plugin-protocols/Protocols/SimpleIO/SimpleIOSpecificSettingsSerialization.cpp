@@ -239,14 +239,14 @@ void JSONWriter::write(Protocols::SimpleIO::Port& n)
 template <>
 void DataStreamReader::read(const Protocols::SimpleIOSpecificSettings& n)
 {
-  m_stream << n.ports;
+  m_stream << n.ports << n.board << n.osc_configuration;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::SimpleIOSpecificSettings& n)
 {
-  m_stream >> n.ports;
+  m_stream >> n.ports >> n.board >> n.osc_configuration;
   checkDelimiter();
 }
 
@@ -254,11 +254,18 @@ template <>
 void JSONReader::read(const Protocols::SimpleIOSpecificSettings& n)
 {
   obj["Ports"] = n.ports;
+  obj["Board"] = n.board;
+  if(n.osc_configuration)
+    obj["OSC"] = *n.osc_configuration;
 }
 
 template <>
 void JSONWriter::write(Protocols::SimpleIOSpecificSettings& n)
 {
   n.ports <<= obj["Ports"];
+  if(auto board = obj.tryGet("Board"))
+    n.board = board->toString();
+  if(auto conf = obj.tryGet("OSC"))
+    n.osc_configuration = conf.value().to<ossia::net::osc_protocol_configuration>();
 }
 #endif
