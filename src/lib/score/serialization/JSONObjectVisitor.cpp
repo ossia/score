@@ -24,7 +24,7 @@ rapidjson::Document readJson(const QByteArray& arr)
   doc.Parse(arr.data(), arr.size());
   if(doc.HasParseError())
   {
-    qDebug() << "Invalid JSON document ! \n" << arr;
+    qDebug().noquote() << "Invalid JSON document ! \n" << arr;
   }
   return doc;
 }
