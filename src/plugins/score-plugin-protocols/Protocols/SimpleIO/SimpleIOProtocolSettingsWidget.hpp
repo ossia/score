@@ -9,14 +9,16 @@
 
 #include <verdigris>
 
+class QLabel;
 class QLineEdit;
 class QSpinBox;
 class QTableWidget;
+class QTabWidget;
 class QPushButton;
 
 namespace Protocols
 {
-
+class OSCTransportWidget;
 class SimpleIOProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
   W_OBJECT(SimpleIOProtocolSettingsWidget)
@@ -28,12 +30,18 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
 private:
+  void updateGui();
   void updateTable();
+
   QLineEdit* m_deviceNameEdit{};
-  QTableWidget* m_portsWidget{};
-  QPushButton* m_addPort{};
-  QPushButton* m_rmPort{};
-  std::vector<SimpleIO::Port> m_ports;
+  QTableWidget* m_localPortsWidget{};
+  QPushButton* m_localLoadLayout{};
+  QPushButton* m_localAddPort{};
+  QPushButton* m_localRmPort{};
+  QLabel* m_boardLabel{};
+  QComboBox* m_transport{};
+  OSCTransportWidget* m_osc{};
+  SimpleIOSpecificSettings m_impl;
 };
 }
 #endif
