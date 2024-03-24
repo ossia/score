@@ -18,6 +18,8 @@ public:
   bool reconnect() override;
   void disconnect() override;
 
+  void setupContextMenu(QMenu& menu) const override;
+
 private:
   const ossia::net::network_context_ptr& m_ctx;
 };

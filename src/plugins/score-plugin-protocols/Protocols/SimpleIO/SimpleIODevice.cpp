@@ -7,12 +7,17 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Protocols/SimpleIO/CodeWriter/ESP32.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/complex_type.hpp>
 #include <ossia/network/generic/generic_device.hpp>
+
+#include <QFile>
+#include <QMenu>
 
 #include <libsimpleio/libadc.h>
 #include <libsimpleio/libdac.h>
@@ -235,6 +240,37 @@ SimpleIODevice::SimpleIODevice(
 
 SimpleIODevice::~SimpleIODevice() { }
 
+static void init_simpleio_osc_device(
+    const SimpleIOSpecificSettings& set, ossia::net::device_base& dev)
+{
+  namespace sio = Protocols::SimpleIO;
+  auto& root = dev.get_root_node();
+
+  for(auto& port : set.ports)
+  {
+    std::string type;
+
+    if(auto ptr = ossia::get_if<sio::ADC>(&port.control))
+    {
+      type = "float";
+    }
+    else if(auto ptr = ossia::get_if<sio::DAC>(&port.control))
+    {
+      type = "float";
+    }
+    else if(auto ptr = ossia::get_if<sio::PWM>(&port.control))
+    {
+      type = "float";
+    }
+    else if(auto ptr = ossia::get_if<sio::GPIO>(&port.control))
+    {
+      type = "bool";
+    }
+
+    ossia::create_parameter(root, port.path.toStdString(), type);
+  }
+}
+
 bool SimpleIODevice::reconnect()
 {
   disconnect();
@@ -243,11 +279,20 @@ bool SimpleIODevice::reconnect()
   {
     const auto& set
         = m_settings.deviceSpecificSettings.value<SimpleIOSpecificSettings>();
+    const auto& name = settings().name.toStdString();
+    if(set.osc_configuration)
+    {
+      if(auto proto = ossia::net::make_osc_protocol(m_ctx, *set.osc_configuration))
+      {
+        m_dev = std::make_unique<ossia::net::generic_device>(std::move(proto), name);
+        init_simpleio_osc_device(set, *m_dev);
+      }
+    }
+    else
     {
       auto pproto = std::make_unique<ossia::net::simpleio_protocol>(m_ctx);
       auto& proto = *pproto;
-      auto dev = std::make_unique<ossia::net::generic_device>(
-          std::move(pproto), settings().name.toStdString());
+      auto dev = std::make_unique<ossia::net::generic_device>(std::move(pproto), name);
       proto.init(set);
       m_dev = std::move(dev);
     }
@@ -269,5 +314,27 @@ void SimpleIODevice::disconnect()
 {
   OwningDeviceInterface::disconnect();
 }
+void SimpleIODevice::setupContextMenu(QMenu& menu) const
+{
+  auto act = menu.addAction("Generate code...");
+  connect(act, &QAction::triggered, this, [&] {
+    SimpleIOCodeWriter_ESP32 wr{*this};
+    std::string ret;
+    ret += R"_(#pragma once
+#include "ossia_embedded_api.hpp"
+#include "constants.hpp"
+#include "utility.hpp"
+
+#include <soc/adc_channel.h>
+)_";
+    ret += wr.init();
+    ret += wr.readOSC();
+    ret += wr.readPins();
+    ret += wr.writeOSC();
+    ret += wr.writePins();
+    qDebug() << ret.c_str();
+  });
 }
+}
+
 #endif
