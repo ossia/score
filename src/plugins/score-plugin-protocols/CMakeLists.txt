@@ -231,6 +231,9 @@ set(SIMPLEIO_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOSpecificSettings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/CodeWriter/ESP32.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/Wokwi/Layout.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/Wokwi/Library.hpp"
 )
 
 set(SIMPLEIO_SRCS
@@ -238,6 +241,12 @@ set(SIMPLEIO_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolSettingsWidget.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/CodeWriter/ESP32.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/Wokwi/Board.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/Wokwi/Device.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/Wokwi/Layout.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/Wokwi/Library.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/Wokwi/MCU.cpp"
 )
 
 set(GPS_HDRS
