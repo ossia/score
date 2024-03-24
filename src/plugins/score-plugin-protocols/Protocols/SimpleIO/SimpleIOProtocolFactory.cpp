@@ -43,6 +43,7 @@ const Device::DeviceSettings& SimpleIOProtocolFactory::defaultSettings() const n
     s.protocol = concreteKey();
     s.name = "raw";
     SimpleIOSpecificSettings settings;
+    settings.board = "Local";
     s.deviceSpecificSettings = QVariant::fromValue(settings);
     return s;
   }();
