@@ -5,6 +5,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
 
+#include <nano_observer.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>

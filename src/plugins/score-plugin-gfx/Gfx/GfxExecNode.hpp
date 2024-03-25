@@ -102,40 +102,13 @@ public:
   void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept override;
 };
 
-struct control_updater
-{
-  std::shared_ptr<gfx_exec_node::control> ctrl;
-  ossia::value v;
-
-  void operator()() noexcept
-  {
-    ctrl->value = std::move(v);
-    ctrl->changed = true;
-  }
-};
-
-struct con_unvalidated
+struct SCORE_PLUGIN_GFX_EXPORT con_unvalidated
 {
   const Execution::Context& ctx;
   const std::size_t i;
   const int32_t script_index{};
   std::weak_ptr<gfx_exec_node> weak_node;
-  void operator()(const ossia::value& val)
-  {
-    if(auto node = weak_node.lock())
-    {
-      // Check for the case where the node controls have changed
-      // due to the script changing
-      if(script_index != node->script_index)
-        return;
-
-      // This can happen if we sent controls from the UI before the execution engine had the time to add them
-      // Note: ideally something should be fixed to make that fit with the case above
-      if(i >= node->controls.size())
-        return;
-      ctx.executionQueue.enqueue(control_updater{node->controls[i], val});
-    }
-  }
+  void operator()(const ossia::value& val);
 };
 
 }
