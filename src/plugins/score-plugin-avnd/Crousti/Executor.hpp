@@ -646,7 +646,7 @@ public:
       if constexpr(requires { ptr->impl.effect; })
         if constexpr(std::is_same_v<std::decay_t<decltype(ptr->impl.effect)>, Node>)
           connect_message_bus(element, ctx, ptr->impl.effect);
-      connect_worker(element, ctx, ptr);
+      connect_worker(ctx, ptr->impl);
 
       node->finish_init();
 
@@ -767,13 +767,10 @@ public:
     }
   }
 
-  void connect_worker(
-      ProcessModel<Node>& element, const ::Execution::Context& ctx,
-      std::shared_ptr<safe_node<Node>>& ptr)
+  void connect_worker(const ::Execution::Context& ctx, avnd::effect_container<Node>& eff)
   {
     if constexpr(avnd::has_worker<Node>)
     {
-      avnd::effect_container<Node>& eff = ptr->impl;
       // Initialize the thread pool beforehand
       auto& tq = score::TaskPool::instance();
       using worker_type = decltype(eff.effect.worker);

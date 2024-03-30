@@ -819,6 +819,55 @@ struct generate_shaders
 
 namespace oscr
 {
+struct GpuWorker
+{
+  template <typename Node>
+  static void initWorker(Node& state) noexcept
+  {
+    if constexpr(avnd::has_worker<Node>)
+    {
+      using worker_type = decltype(state.worker);
+
+      state.worker.request = [&state]<typename... Args>(Args&&... f) {
+        using type_of_result = decltype(worker_type::work(std::forward<Args>(f)...));
+        if constexpr(std::is_void_v<type_of_result>)
+        {
+          worker_type::work(std::forward<Args>(f)...);
+        }
+        else
+        {
+          // If the worker returns a std::function, it
+          // is to be invoked back in the processor DSP thread
+          auto res = worker_type::work(std::forward<Args>(f)...);
+          if(!res)
+            return;
+          res(state);
+        }
+      };
+    }
+  }
+};
+struct GpuControlIns
+{
+  template <typename Node_T>
+  static void processControlIn(Node_T& state, const score::gfx::Message& mess) noexcept
+  {
+    // Apply the controls
+    avnd::parameter_input_introspection<Node_T>::for_all_n2(
+        avnd::get_inputs<Node_T>(state),
+        [&](avnd::parameter auto& t, auto pred_index, auto field_index) {
+      if(mess.input.size() > field_index)
+      {
+        if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
+        {
+          oscr::from_ossia_value(t, *val, t.value);
+          if_possible(t.update(state));
+        }
+      }
+    });
+  }
+};
+
 struct GpuControlOuts
 {
   std::weak_ptr<Execution::ExecutionCommandQueue> queue;
@@ -866,6 +915,8 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGfxOutputNodeBase : score::gfx::OutputNode
 };
 struct CustomGpuNodeBase
     : score::gfx::Node
+    , GpuWorker
+    , GpuControlIns
     , GpuControlOuts
 {
   CustomGpuNodeBase(
@@ -883,6 +934,8 @@ struct CustomGpuNodeBase
 
 struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
     : score::gfx::OutputNode
+    , GpuWorker
+    , GpuControlIns
     , GpuControlOuts
 {
   CustomGpuOutputNodeBase(
@@ -919,6 +972,10 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
 template <typename Node_T, typename Node>
 void prepareNewState(Node_T& eff, const Node& parent)
 {
+  if constexpr(avnd::has_worker<Node_T>)
+  {
+    parent.initWorker(eff);
+  }
   if constexpr(avnd::has_processor_to_gui_bus<Node_T>)
   {
     auto& process = parent.processModel;

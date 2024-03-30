@@ -135,20 +135,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
           });
     }
 
-    // Apply the controls
-    avnd::parameter_input_introspection<Node_T>::for_all_n2(
-        avnd::get_inputs<Node_T>(state),
-        [&](avnd::parameter auto& t, auto pred_index, auto field_index) {
-      auto& mess = this->parent.last_message;
-
-      if(mess.input.size() > field_index)
-      {
-        if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
-        {
-          oscr::from_ossia_value(t, *val, t.value);
-        }
-      }
-        });
+    parent.processControlIn(state, this->parent.last_message);
 
     // Run the processor
     state();
@@ -157,7 +144,6 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     parent.processControlOut(this->state);
   }
 };
-
 
 template <typename Node_T>
   requires(

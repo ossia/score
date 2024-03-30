@@ -59,6 +59,5 @@ template <typename Node_T>
 struct GfxNode;
 template <typename Node_T>
 struct GfxRenderer;
-
 }
 #endif

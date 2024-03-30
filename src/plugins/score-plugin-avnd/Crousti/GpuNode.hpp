@@ -362,18 +362,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     // Apply the controls
     for(auto& state : states)
     {
-      avnd::parameter_input_introspection<Node_T>::for_all_n2(
-          avnd::get_inputs<Node_T>(state),
-          [&](avnd::parameter auto& t, auto pred_index, auto field_index) {
-        auto& mess = this->parent.last_message;
-        if(mess.input.size() > field_index)
-        {
-          if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
-          {
-            oscr::from_ossia_value(t, *val, t.value);
-          }
-        }
-          });
+      this->parent.processControlIn(state, this->parent.last_message);
     }
   }
 
