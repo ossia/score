@@ -1,12 +1,13 @@
 #import <AVFoundation/AVFoundation.h>
 
 #include "CameraSettings.hpp"
-#include  <QDebug>
 #include <functional>
 #include <libavutil/pixfmt.h>
+
+#include <QDebug>
+
 namespace Gfx
 {
-
 static void iterateCameraFormats(AVCaptureDevice* device, std::function<void(CameraSettings, QString)> func)
 {
   const char *name = [[device localizedName] UTF8String];

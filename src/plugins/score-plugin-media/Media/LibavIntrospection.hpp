@@ -2,7 +2,6 @@
 
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
-#include <Gfx/Libav/LibavOutputSettings.hpp>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -27,6 +26,14 @@ struct VCodecInfo
   }
   const AVCodec* codec{};
 };
+struct DemuxerInfo
+{
+  explicit DemuxerInfo(const AVInputFormat* format) noexcept
+      : format{format}
+  {
+  }
+  const AVInputFormat* format{};
+};
 struct MuxerInfo
 {
   explicit MuxerInfo(const AVOutputFormat* format) noexcept
@@ -44,12 +51,14 @@ struct LibavIntrospection
   std::vector<ACodecInfo> acodecs;
 
   std::vector<MuxerInfo> muxers;
+  std::vector<DemuxerInfo> demuxers;
 
   LibavIntrospection()
   {
     vcodecs.reserve(500);
     acodecs.reserve(350);
     muxers.reserve(200);
+    demuxers.reserve(200);
 
     void* opaque = nullptr;
     while(auto codec = av_codec_iterate(&opaque))
@@ -85,6 +94,12 @@ struct LibavIntrospection
         continue;
       muxers.push_back(std::move(fmt));
     }
+
+    opaque = nullptr;
+    while(auto format = av_demuxer_iterate(&opaque))
+    {
+      demuxers.push_back(DemuxerInfo{format});
+    }
   }
 
   const MuxerInfo*
@@ -99,6 +114,25 @@ struct LibavIntrospection
       }
     }
     for(auto& obj : muxers)
+    {
+      if(obj.format->name == name)
+        return &obj;
+    }
+    return nullptr;
+  }
+
+  const DemuxerInfo*
+  findDemuxer(const QString& name, const QString& long_name) const noexcept
+  {
+    for(auto& obj : demuxers)
+    {
+      if(obj.format->long_name)
+      {
+        if(obj.format->name == name && obj.format->long_name == long_name)
+          return &obj;
+      }
+    }
+    for(auto& obj : demuxers)
     {
       if(obj.format->name == name)
         return &obj;

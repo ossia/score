@@ -36,7 +36,7 @@ void DNSSDEnumerator::start()
 }
 
 void DNSSDEnumerator::enumerate(
-    std::function<void(const Device::DeviceSettings&)> f) const
+    std::function<void(const QString&, const Device::DeviceSettings&)> f) const
 {
 }
 

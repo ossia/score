@@ -80,7 +80,7 @@ private:
                        .arg(ws_port.isEmpty() ? port.c_str() : ws_port);
 
         set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
-        deviceAdded(set);
+        deviceAdded(set.name, set);
         ret->deleteLater();
           });
     }

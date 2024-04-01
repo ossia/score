@@ -41,12 +41,12 @@ void LibraryDeviceEnumerator::next(std::string_view path)
     s.name = QFileInfo{filepath}.baseName();
     s.protocol = m_key;
     s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f));
-    deviceAdded(s);
+    deviceAdded(s.name, s);
   });
 }
 
 void LibraryDeviceEnumerator::enumerate(
-    std::function<void(const Device::DeviceSettings&)> onDevice) const
+    std::function<void(const QString&, const Device::DeviceSettings&)> onDevice) const
 {
 }
 

@@ -191,7 +191,7 @@ private:
     sub.configuration.transport = conf;
 
     set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
-    deviceAdded(set);
+    deviceAdded(set.name, set);
   }
 };
 
@@ -224,7 +224,7 @@ private:
     sub.configuration.transport = udp;
 
     set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
-    deviceAdded(set);
+    deviceAdded(set.name, set);
   }
 };
 #endif

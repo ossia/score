@@ -23,7 +23,8 @@ public:
 
   void start();
 
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override;
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override;
   void timerEvent(QTimerEvent* ev) override;
 
   void instanceAdded(const std::string& instance) override;

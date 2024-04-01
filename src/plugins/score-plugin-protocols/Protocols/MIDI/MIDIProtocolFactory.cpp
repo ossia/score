@@ -79,13 +79,15 @@ class MidiEnumerator : public Device::DeviceEnumerator
     if constexpr(Type == ossia::net::midi::midi_info::Type::Input)
     {
       cb.input_added = [this](const libremidi::input_port& p) {
-        deviceAdded(to_settings(m_api, p));
+        auto s = to_settings(m_api, p);
+        deviceAdded(s.name, s);
       };
     }
     else
     {
       cb.output_added = [this](const libremidi::output_port& p) {
-        deviceAdded(to_settings(m_api, p));
+        auto s = to_settings(m_api, p);
+        deviceAdded(s.name, s);
       };
     }
     return cb;
@@ -98,7 +100,8 @@ public:
       : m_observer{make_callbacks(), libremidi::observer_configuration_for(m_api)}
   {
   }
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
   {
     try
     {
@@ -106,14 +109,16 @@ public:
       {
         for(auto& port : m_observer.get_input_ports())
         {
-          f(to_settings(m_api, port));
+          auto s = to_settings(m_api, port);
+          f(s.name, s);
         }
       }
       else if constexpr(Type == ossia::net::midi::midi_info::Type::Output)
       {
         for(auto& port : m_observer.get_output_ports())
         {
-          f(to_settings(m_api, port));
+          auto s = to_settings(m_api, port);
+          f(s.name, s);
         }
       }
     }

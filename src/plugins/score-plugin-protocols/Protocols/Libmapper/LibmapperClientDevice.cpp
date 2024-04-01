@@ -114,7 +114,7 @@ public:
     if(m_devices.count(name) == 0)
     {
       m_devices.insert(name);
-      deviceAdded(settingsForInstance(name));
+      deviceAdded(name, settingsForInstance(name));
     }
   }
 
@@ -141,7 +141,10 @@ public:
     return set;
   }
 
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override { }
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
+  {
+  }
 
 private:
   ossia::flat_set<std::string> m_devices;

@@ -268,10 +268,11 @@ void DeviceEditDialog::selectedProtocolChanged()
       cat->setFlags(Qt::ItemIsEnabled);
       m_devices->addTopLevelItem(cat);
 
-      auto addItem = [&, cat](const Device::DeviceSettings& settings) {
+      auto addItem
+          = [&, cat](const QString& name, const Device::DeviceSettings& settings) {
         auto item = new QTreeWidgetItem;
         item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-        item->setText(0, settings.name);
+        item->setText(0, name);
         item->setData(0, Qt::UserRole, QVariant::fromValue(settings));
         cat->addChild(item);
         cat->setExpanded(true);

@@ -292,7 +292,8 @@ class SpoutEnumerator : public Device::DeviceEnumerator
 public:
   SpoutEnumerator() { }
 
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
   {
     std::set<std::string> senders;
     if(!m_senders.GetSenderNames(&senders))
@@ -307,7 +308,7 @@ public:
       SharedInputSettings specif;
       specif.path = set.name;
       set.deviceSpecificSettings = QVariant::fromValue(specif);
-      f(set);
+      f(set.name, set);
     }
   }
 };

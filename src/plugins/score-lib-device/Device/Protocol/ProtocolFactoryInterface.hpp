@@ -30,10 +30,12 @@ class SCORE_LIB_DEVICE_EXPORT DeviceEnumerator : public QObject
 public:
   virtual ~DeviceEnumerator();
 
-  virtual void enumerate(std::function<void(const Device::DeviceSettings&)>) const = 0;
+  virtual void
+      enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>) const
+      = 0;
 
-  void deviceAdded(const Device::DeviceSettings& s)
-      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceAdded, s)
+  void deviceAdded(const QString& n, const Device::DeviceSettings& s)
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceAdded, n, s)
   void deviceRemoved(const QString& s)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceRemoved, s)
 };

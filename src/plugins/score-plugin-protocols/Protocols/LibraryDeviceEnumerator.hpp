@@ -23,7 +23,7 @@ public:
 
   void next(std::string_view path);
 
-  void
-  enumerate(std::function<void(const Device::DeviceSettings&)> onDevice) const override;
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>
+                     onDevice) const override;
 };
 }

@@ -1,5 +1,7 @@
 #include "CameraDevice.hpp"
 
+#include <Gfx/CameraDeviceEnumerator.hpp>
+
 #include <ossia/detail/dylib_loader.hpp>
 
 extern "C" {
@@ -151,6 +153,23 @@ private:
   ossia::dylib_loader library;
 };
 
+static QString v4l2_pretty_name(const AVDeviceInfo& dev)
+{
+  QString desc_string = dev.device_description;
+
+  // Some names are ridiculous like "HD Webcam: HD Webcam"
+  if(auto h = desc_string.indexOf(':'); h != -1)
+  {
+    QString a = desc_string.mid(0, h);
+    QString b = desc_string.mid(h + 2);
+    if(a.startsWith(b))
+      desc_string = a;
+  }
+
+  desc_string += QString(" (%1)").arg(dev.device_name);
+  return desc_string;
+}
+
 struct v4l2_format_enumeration
 {
   const libv4l2& v4l2 = libv4l2::instance();
@@ -162,23 +181,12 @@ struct v4l2_format_enumeration
 
   v4l2_format_enumeration(const AVInputFormat& fmt, const AVDeviceInfo& dev)
   {
-    qDebug() << "dev.device_name: " << dev.device_name;
-    qDebug() << "dev.device_desc: " << dev.device_description;
-    qDebug() << "fmt.name: " << fmt.name;
-    qDebug() << "fmt.long_name: " << fmt.long_name;
+    // qDebug() << "dev.device_name: " << dev.device_name;
+    // qDebug() << "dev.device_desc: " << dev.device_description;
+    // qDebug() << "fmt.name: " << fmt.name;
+    // qDebug() << "fmt.long_name: " << fmt.long_name;
 
-    desc_string = dev.device_description;
-
-    // Some names are ridiculous like "HD Webcam: HD Webcam"
-    if(auto h = desc_string.indexOf(':'); h != -1)
-    {
-      QString a = desc_string.mid(0, h);
-      QString b = desc_string.mid(h + 2);
-      if(a == b)
-        desc_string = a;
-    }
-
-    desc_string += QString(" (%1)").arg(dev.device_name);
+    desc_string = v4l2_pretty_name(dev);
 
     current.input = QString(fmt.name).split(",").front();
     current.device = dev.device_name;
@@ -285,21 +293,21 @@ struct v4l2_format_enumeration
     this->current.fps = 1. / rate;
 
     // Finally call our callback when we know everything...
-    QString desc = desc_string;
-    desc += QString(" %1: %2x%3@%4")
-                .arg(fourcc)
-                .arg(res.width())
-                .arg(res.height())
-                .arg(std::round(1. / rate));
+    QString desc = QString("%1: %2x%3@%4")
+                       .arg(fourcc)
+                       .arg(res.width())
+                       .arg(res.height())
+                       .arg(std::round(1. / rate));
     func(this->current, desc);
   }
 };
 }
 
+// weird type needed because things became const in ffmpeg 4.4...
+using av_input_video_type = decltype(av_input_video_device_next(nullptr));
 void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func)
 {
-  // weird type needed because things became const in ffmpeg 4.4...
-  decltype(av_input_video_device_next(nullptr)) fmt = nullptr;
+  av_input_video_type fmt = nullptr;
 
   while((fmt = av_input_video_device_next(fmt)))
   {
@@ -319,4 +327,84 @@ void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func)
   }
 }
 
+struct V4L2CameraEnumerator : public Device::DeviceEnumerator
+{
+  std::shared_ptr<CameraDeviceEnumerator> parent;
+  av_input_video_type fmt{};
+  AVDeviceInfo* dev{};
+  explicit V4L2CameraEnumerator(
+      std::shared_ptr<CameraDeviceEnumerator> parent, av_input_video_type fmt,
+      AVDeviceInfo* dev)
+      : parent{parent}
+      , fmt{fmt}
+      , dev{dev}
+  {
+  }
+
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> func)
+      const override
+  {
+    v4l2_format_enumeration e{*fmt, *dev};
+    auto pretty_name = e.desc_string;
+
+    e.list_all_formats([&](const CameraSettings& set, QString mode) {
+      Device::DeviceSettings s;
+      s.name = pretty_name;
+      s.protocol = CameraProtocolFactory::static_concreteKey();
+      s.deviceSpecificSettings = QVariant::fromValue(set);
+      func(mode, s);
+    });
+  }
+};
+
+struct V4L2CameraDeviceEnumerator : public CameraDeviceEnumerator
+{
+  V4L2CameraDeviceEnumerator()
+  {
+    // weird type needed because things became const in ffmpeg 4.4...
+    decltype(av_input_video_device_next(nullptr)) fmt = nullptr;
+
+    while((fmt = av_input_video_device_next(fmt)))
+    {
+      AVDeviceInfoList* device_list = nullptr;
+      avdevice_list_input_sources(fmt, nullptr, nullptr, &device_list);
+      if(device_list)
+      {
+        infos.push_back({fmt, device_list});
+      }
+    }
+  }
+
+  ~V4L2CameraDeviceEnumerator()
+  {
+    for(auto [fmt, info] : infos)
+    {
+      avdevice_free_list_devices(&info);
+    }
+  }
+
+  void registerAllEnumerators(Device::DeviceEnumerators& enums) override
+  {
+    auto self = shared_from_this();
+    SCORE_ASSERT(self);
+
+    for(auto [fmt, device_list] : infos)
+    {
+      for(int i = 0; i < device_list->nb_devices; i++)
+      {
+        auto device = device_list->devices[i];
+
+        enums.push_back(
+            {v4l2_pretty_name(*device), new V4L2CameraEnumerator{self, fmt, device}});
+      }
+    }
+  }
+
+  std::vector<std::pair<av_input_video_type, AVDeviceInfoList*>> infos;
+};
+
+std::shared_ptr<CameraDeviceEnumerator> make_camera_enumerator()
+{
+  return std::make_shared<V4L2CameraDeviceEnumerator>();
+}
 }

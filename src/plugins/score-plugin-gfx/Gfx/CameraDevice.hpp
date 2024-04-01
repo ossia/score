@@ -69,21 +69,6 @@ private:
   Gfx::video_texture_input_protocol* m_protocol{};
   mutable std::unique_ptr<Gfx::video_texture_input_device> m_dev;
 };
-
-class CameraSettingsWidget final : public Device::ProtocolSettingsWidget
-{
-public:
-  CameraSettingsWidget(QWidget* parent = nullptr);
-
-  Device::DeviceSettings getSettings() const override;
-  void setSettings(const Device::DeviceSettings& settings) override;
-
-private:
-  void setDefaults();
-  QLineEdit* m_deviceNameEdit{};
-  Device::DeviceSettings m_settings;
-};
-
 }
 
 SCORE_SERIALIZE_DATASTREAM_DECLARE(, Gfx::CameraSettings);

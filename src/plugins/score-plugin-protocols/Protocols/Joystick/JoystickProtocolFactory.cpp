@@ -16,7 +16,8 @@ namespace Protocols
 class JoystickEnumerator : public Device::DeviceEnumerator
 {
 public:
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
   {
     const unsigned int joystick_count = ossia::net::joystick_info::get_joystick_count();
 
@@ -33,7 +34,7 @@ public:
         specif.spec = {ossia::net::joystick_info::get_joystick_id(i), i};
 
         set.deviceSpecificSettings = QVariant::fromValue(specif);
-        f(set);
+        f(set.name, set);
       }
     }
   }

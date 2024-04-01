@@ -147,6 +147,7 @@ set(HDRS
 
     Gfx/CameraSettings.hpp
     Gfx/CameraDevice.hpp
+    Gfx/CameraDeviceEnumerator.hpp
     Gfx/WindowDevice.hpp
     # Gfx/graph/hap/source/hap.h
 

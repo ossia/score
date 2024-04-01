@@ -1,6 +1,6 @@
 #include "LibavOutputDevice.hpp"
 
-#include "Gfx/Libav/LibavOutputStream.hpp"
+#include <Gfx/Libav/LibavOutputStream.hpp>
 
 #if SCORE_HAS_LIBAV
 #include <State/MessageListSerialization.hpp>
@@ -11,7 +11,7 @@
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Libav/LibavEncoder.hpp>
 #include <Gfx/Libav/LibavEncoderNode.hpp>
-#include <Gfx/Libav/LibavIntrospection.hpp>
+#include <Media/LibavIntrospection.hpp>
 
 #include <score/model/Skin.hpp>
 #include <score/serialization/MapSerialization.hpp>
