@@ -11,6 +11,7 @@ struct DocumentMetadata;
 
 namespace Library
 {
+class FileSystemModel;
 class FileSystemRecursiveFilterProxy;
 class ProjectLibraryWidget : public QWidget
 {
@@ -22,7 +23,7 @@ public:
   void unsetRoot();
 
 private:
-  QFileSystemModel* m_model{};
+  FileSystemModel* m_model{};
   FileSystemRecursiveFilterProxy* m_proxy{};
   QTreeView m_tv;
   QMetaObject::Connection m_con;

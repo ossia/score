@@ -2,9 +2,13 @@
 #include <QTreeView>
 
 #include <vector>
+class QFileSystemModel;
+
 namespace Library
 {
 class LibraryInterface;
+class FileSystemModel;
+class FileSystemRecursiveFilterProxy;
 inline void setup_treeview(QTreeView& tv)
 {
   tv.setHeaderHidden(true);
@@ -17,4 +21,7 @@ inline void setup_treeview(QTreeView& tv)
 }
 
 std::vector<LibraryInterface*> libraryInterface(const QString& path);
+
+void setupFilesystemContextMenu(
+    QTreeView& m_tv, FileSystemModel& model, FileSystemRecursiveFilterProxy& proxy);
 }

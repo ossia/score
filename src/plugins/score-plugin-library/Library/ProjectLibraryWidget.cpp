@@ -53,6 +53,8 @@ ProjectLibraryWidget::ProjectLibraryWidget(
   });
   m_tv.setAcceptDrops(true);
   m_tv.setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
+  m_tv.setContextMenuPolicy(Qt::CustomContextMenu);
+  setupFilesystemContextMenu(m_tv, *m_model, *m_proxy);
 }
 
 ProjectLibraryWidget::~ProjectLibraryWidget() { }

@@ -13,6 +13,7 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QApplication>
+#include <QClipboard>
 #include <QDesktopServices>
 #include <QMenu>
 #include <QVBoxLayout>
@@ -57,35 +58,7 @@ SystemLibraryWidget::SystemLibraryWidget(
   auto sel = m_tv.selectionModel();
 
   m_tv.setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-  connect(&m_tv, &QTreeView::customContextMenuRequested, this, [&](QPoint pos) {
-    auto idx = m_tv.indexAt(pos);
-    if(!idx.isValid())
-      return;
-    auto source = m_proxy->mapToSource(idx);
-    QFileInfo path{m_model->filePath(source)};
-
-    auto folder_path = path.isDir() ? path.absoluteFilePath() : path.absolutePath();
-
-    auto menu = new QMenu{&m_tv};
-    auto file_expl = menu->addAction(tr("Open in file explorer"));
-    connect(file_expl, &QAction::triggered, this, [=] {
-      QDesktopServices::openUrl(QUrl::fromLocalFile(folder_path));
-    });
-
-    if constexpr(FileSystemModel::supportsDisablingSorting())
-    {
-      auto sorting = new QAction(tr("Sort"));
-      sorting->setCheckable(true);
-      sorting->setChecked(m_model->isSorting());
-      menu->addAction(sorting);
-      connect(sorting, &QAction::triggered, this, [this](bool checked) {
-        m_model->setSorting(checked);
-      });
-    }
-
-    menu->exec(m_tv.mapToGlobal(pos));
-    menu->deleteLater();
-  });
+  setupFilesystemContextMenu(m_tv, *m_model, *m_proxy);
 
   connect(
       sel, &QItemSelectionModel::currentRowChanged, this,

@@ -27,4 +27,7 @@ private:
   QWidget m_preview;
   QWidget* m_previewChild{};
 };
+
+void setupFilesystemContextMenu(
+    QTreeView& m_tv, FileSystemModel& model, FileSystemRecursiveFilterProxy& proxy);
 }
