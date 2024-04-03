@@ -76,6 +76,13 @@ public:
     return c;
   }
 
+  auto add_value_port()
+  {
+    auto port = new ossia::value_inlet;
+    m_inlets.push_back(port);
+    return port;
+  }
+
   void add_texture()
   {
     auto port = new ossia::texture_inlet;

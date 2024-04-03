@@ -478,6 +478,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/DeviceRecorder.hpp"
+  TARGET device_recorder
+  MAIN_CLASS DeviceRecorder
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Sweeper.hpp"
   TARGET pattern_sweeper
   MAIN_CLASS PatternSweeper
