@@ -349,7 +349,7 @@ QDebug operator<<(QDebug s, const score::gfx::gfx_input& v)
     void operator()(ossia::monostate) { s << "monostate"; }
     void operator()(const ossia::value& v)
     {
-      s << "value:" << ossia::value_to_pretty_string(v);
+      s << "value:" << QByteArray::fromStdString(ossia::value_to_pretty_string(v));
     }
     void operator()(const ossia::audio_vector& v)
     {
