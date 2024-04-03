@@ -108,7 +108,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: 6.4.*
+          version: 6.7.*
           modules: qtwebsockets qtserialport qtscxml qtshadertools
 
       - name: Set up Visual Studio shell
