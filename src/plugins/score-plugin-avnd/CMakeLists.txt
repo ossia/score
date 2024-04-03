@@ -117,6 +117,7 @@ add_library(
 
 
   Avnd/Factories.hpp
+  AvndDevices/AvndDevice.hpp
 
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
@@ -319,7 +320,7 @@ set(AVND_ADDITIONAL_CLASSES)
 set(AVND_CUSTOM_FACTORIES)
 function(avnd_make_score)
 
-  cmake_parse_arguments(AVND "" "TARGET;MAIN_CLASS;NAMESPACE" "SOURCES" ${ARGN})
+  cmake_parse_arguments(AVND "DEVICE" "TARGET;MAIN_CLASS;NAMESPACE" "SOURCES" ${ARGN})
 
   if(AVND_NAMESPACE)
     set(AVND_QUALIFIED "${AVND_NAMESPACE}::${AVND_MAIN_CLASS}")
@@ -339,8 +340,13 @@ function(avnd_make_score)
     )
   endif()
 
+  if(AVND_DEVICE)
+    set(source_proto "${CMAKE_CURRENT_SOURCE_DIR}/device-prototype.cpp.in")
+  else()
+    set(source_proto "${CMAKE_CURRENT_SOURCE_DIR}/prototype.cpp.in")
+  endif()
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/prototype.cpp.in"
+    "${source_proto}"
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
     @ONLY
     NEWLINE_STYLE LF

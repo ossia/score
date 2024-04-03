@@ -76,7 +76,7 @@ function(avnd_score_plugin_finalize)
 endfunction()
 
 function(avnd_score_plugin_add)
-  cmake_parse_arguments(AVND "" "TARGET;MAIN_CLASS;NAMESPACE;BASE_TARGET" "SOURCES" ${ARGN})
+  cmake_parse_arguments(AVND "DEVICE" "TARGET;MAIN_CLASS;NAMESPACE;BASE_TARGET" "SOURCES" ${ARGN})
 
   if(AVND_NAMESPACE)
     set(AVND_QUALIFIED "${AVND_NAMESPACE}::${AVND_MAIN_CLASS}")
@@ -96,8 +96,13 @@ function(avnd_score_plugin_add)
 #     )
 #   endif()
 
+  if(AVND_DEVICE)
+    set(source_proto "${SCORE_AVND_SOURCE_DIR}/device-prototype.cpp.in")
+  else()
+    set(source_proto "${SCORE_AVND_SOURCE_DIR}/prototype.cpp.in")
+  endif()
   configure_file(
-    "${SCORE_AVND_SOURCE_DIR}/prototype.cpp.in"
+    "${source_proto}"
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
     @ONLY
     NEWLINE_STYLE LF
