@@ -190,3 +190,6 @@ protected:
   friend class GenericNodeRenderer;
 };
 }
+
+// QDebug operator<<(QDebug, const score::gfx::gfx_input&);
+QDebug operator<<(QDebug, const std::vector<score::gfx::gfx_input>&);

@@ -75,11 +75,11 @@ private:
       const TextureRenderTarget& target);
   void initPasses(
       const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, int& cur_pos,
-      QSize mainTexSize);
+      QSize mainTexSize, QRhiResourceUpdateBatch& res);
 
   PassOutput initPassSampler(
       ISFNode& n, const isf::pass& pass, RenderList& renderer, int& cur_pos,
-      QSize mainTexSize);
+      QSize mainTexSize, QRhiResourceUpdateBatch& res);
 
   struct Passes
   {

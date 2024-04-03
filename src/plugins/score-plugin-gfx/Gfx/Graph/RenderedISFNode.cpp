@@ -26,7 +26,7 @@ static void storeTextureRectUniform(char* buffer, int& cur_pos, QSize texSize)
 RenderedISFNode::~RenderedISFNode() { }
 PassOutput RenderedISFNode::initPassSampler(
     ISFNode& n, const isf::pass& pass, RenderList& renderer, int& cur_pos,
-    QSize mainTexSize)
+    QSize mainTexSize, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
   // In all the other cases we create a custom render target
@@ -41,9 +41,12 @@ PassOutput RenderedISFNode::initPassSampler(
                             ? mainTexSize
                             : n.computeTextureSize(pass, mainTexSize);
 
+  QImage clear_texture(texSize, QImage::Format_ARGB32);
+  clear_texture.fill(0);
   auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
   tex->setName("ISFNode::initPassSamplers::tex");
   SCORE_ASSERT(tex->create());
+  res.uploadTexture(tex, clear_texture);
 
   if(!pass.target.empty())
   {
@@ -59,6 +62,7 @@ PassOutput RenderedISFNode::initPassSampler(
     auto tex2 = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
     tex2->setName("ISFNode::initPassSamplers::tex2");
     SCORE_ASSERT(tex2->create());
+    res.uploadTexture(tex2, clear_texture);
 
     return PersistSampler{sampler, tex, tex2};
   }
@@ -365,7 +369,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
 
 void RenderedISFNode::initPasses(
     const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, int& cur_pos,
-    QSize mainTexSize)
+    QSize mainTexSize, QRhiResourceUpdateBatch& res)
 {
   Passes passes;
 
@@ -384,7 +388,7 @@ void RenderedISFNode::initPasses(
     else
     {
       passes.samplers.push_back(
-          initPassSampler(n, pass, renderer, cur_pos, mainTexSize));
+          initPassSampler(n, pass, renderer, cur_pos, mainTexSize, res));
     }
   }
 
@@ -462,7 +466,7 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
     auto rt = renderer.renderTargetForOutput(*edge);
     if(rt.renderTarget)
     {
-      initPasses(rt, renderer, *edge, cur_pos, renderer.state.renderSize);
+      initPasses(rt, renderer, *edge, cur_pos, renderer.state.renderSize, res);
     }
   }
 }

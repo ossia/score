@@ -339,5 +339,35 @@ void ProcessNode::process(Message&& msg)
     p++;
   }
 }
+}
 
+QDebug operator<<(QDebug s, const score::gfx::gfx_input& v)
+{
+  struct
+  {
+    QDebug& s;
+    void operator()(ossia::monostate) { s << "monostate"; }
+    void operator()(const ossia::value& v)
+    {
+      s << "value:" << ossia::value_to_pretty_string(v);
+    }
+    void operator()(const ossia::audio_vector& v)
+    {
+      s << "audio: " << v.size() << "channels";
+    }
+    void operator()(const ossia::mesh_list_ptr& v) { s << "meshlist"; }
+    void operator()(const ossia::transform3d& v) { s << "transform3d"; }
+  } print{s};
+  ossia::visit(print, std::move(v));
+  return s;
+}
+QDebug operator<<(QDebug s, const std::vector<score::gfx::gfx_input>& v)
+{
+  s << "[";
+  for(const auto& m : v)
+  {
+    s << m << " ; ";
+  }
+  s << "]";
+  return s;
 }
