@@ -217,8 +217,10 @@ CameraSettingsWidget::CameraSettingsWidget(QWidget* parent)
   m_layout->addRow(tr("Device"), m_device);
   m_layout->addRow(tr("Input"), m_input);
 
+#if QT_VERSION > QT_VERSION_CHECK(6, 4, 0)
   m_layout->setRowVisible(1, false);
   m_layout->setRowVisible(2, false);
+#endif
 
   const auto& info = LibavIntrospection::instance();
   for(auto& demux : info.demuxers)
@@ -270,9 +272,11 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   const CameraSettings& set = settings.deviceSpecificSettings.value<CameraSettings>();
   m_device->setText(set.device);
 
+#if QT_VERSION > QT_VERSION_CHECK(6, 4, 0)
   bool showCustom = set.input == "<CUSTOM>";
   m_layout->setRowVisible(1, showCustom);
   m_layout->setRowVisible(2, showCustom);
+#endif
 }
 
 }
