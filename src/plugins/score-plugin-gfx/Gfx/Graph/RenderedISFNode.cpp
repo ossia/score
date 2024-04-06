@@ -41,7 +41,7 @@ PassOutput RenderedISFNode::initPassSampler(
                             ? mainTexSize
                             : n.computeTextureSize(pass, mainTexSize);
 
-  QImage clear_texture(texSize, QImage::Format_ARGB32);
+  QImage clear_texture(texSize, pass.float_storage ? QImage::Format_RGBA32FPx4 : QImage::Format_ARGB32);
   clear_texture.fill(0);
   auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
   tex->setName("ISFNode::initPassSamplers::tex");
