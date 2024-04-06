@@ -335,6 +335,12 @@ if(WIN32)
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 
+  set_source_files_properties(
+    Gfx/CameraDevice.avf.mm
+    PROPERTIES
+      SKIP_UNITY_BUILD_INCLUSION 1
+  )
+
   add_subdirectory("${3RDPARTY_FOLDER}/Syphon-Framework" "${CMAKE_CURRENT_BINARY_DIR}/Syphon")
   target_link_libraries(${PROJECT_NAME} PRIVATE Syphon)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SYPHON)

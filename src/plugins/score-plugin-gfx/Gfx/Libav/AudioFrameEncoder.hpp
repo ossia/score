@@ -25,7 +25,7 @@ struct AudioFrameEncoder
   int target_buffer_size{};
 };
 
-struct S16IAudioFrameEncoder : AudioFrameEncoder
+struct S16IAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
@@ -47,7 +47,7 @@ struct S16IAudioFrameEncoder : AudioFrameEncoder
   }
 };
 
-struct S24IAudioFrameEncoder : AudioFrameEncoder
+struct S24IAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
@@ -68,7 +68,7 @@ struct S24IAudioFrameEncoder : AudioFrameEncoder
   }
 };
 
-struct S32IAudioFrameEncoder : AudioFrameEncoder
+struct S32IAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
@@ -89,7 +89,7 @@ struct S32IAudioFrameEncoder : AudioFrameEncoder
   }
 };
 
-struct FltIAudioFrameEncoder : AudioFrameEncoder
+struct FltIAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
@@ -111,7 +111,7 @@ struct FltIAudioFrameEncoder : AudioFrameEncoder
   }
 };
 
-struct DblIAudioFrameEncoder : AudioFrameEncoder
+struct DblIAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
@@ -133,7 +133,7 @@ struct DblIAudioFrameEncoder : AudioFrameEncoder
   }
 };
 
-struct FltPAudioFrameEncoder : AudioFrameEncoder
+struct FltPAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 

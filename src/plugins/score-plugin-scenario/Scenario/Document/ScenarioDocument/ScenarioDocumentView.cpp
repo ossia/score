@@ -280,7 +280,7 @@ void ProcessGraphicsView::checkAndRemoveCurrentDialog(QPoint pos)
   // Close the small output panels (gain/pan, etc) if we're clicking somewhere else
   if(auto dialog = this->scene()->activePanel())
   {
-    const auto notChildOfDialog = [this, dialog](QGraphicsItem* item) {
+    const auto notChildOfDialog = [dialog](QGraphicsItem* item) {
       if(!item)
         return true;
 
