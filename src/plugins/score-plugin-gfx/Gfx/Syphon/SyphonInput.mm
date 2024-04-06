@@ -345,7 +345,8 @@ public:
   {
   }
 
-  void registerServer(NSDictionary* desc, std::function<void(const Device::DeviceSettings&)> f) const
+  void registerServer(NSDictionary *desc,
+                      std::function<void(const QString &, const Device::DeviceSettings &)> f) const
   {
     Device::DeviceSettings set;
 
@@ -365,11 +366,10 @@ public:
     specif.path = uid;
     set.deviceSpecificSettings = QVariant::fromValue(specif);
 
-    f(set);
+    f(set.name, set);
   }
 
-  void enumerate(
-      std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(std::function<void(const QString &, const Device::DeviceSettings &)> f) const override
   {
     auto ssd = [SyphonServerDirectory sharedDirectory];
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];

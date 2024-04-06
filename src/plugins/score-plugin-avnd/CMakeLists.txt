@@ -568,6 +568,14 @@ avnd_make_score(
   NAMESPACE examples
 )
 
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.hpp"
+    "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.cpp"
+  TARGET geozones
+  MAIN_CLASS GeoZones
+  NAMESPACE co
+)
 # avnd_make_score(
 #   SOURCES
 #     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
