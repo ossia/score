@@ -26,7 +26,6 @@ jobs:
           ./ci/osx-brew.build.sh
 
   brew-m1:
-    # Disabled until we manage to set-up proper macOS VMs to not pollute host with homebrew
     name: macOS (Release, Brew, AppleSilicon)
     runs-on: macos-14
     
@@ -45,7 +44,6 @@ jobs:
           ./ci/osx-brew.build.sh
 
   brew-m1-dev:
-    # Disabled until we manage to set-up proper macOS VMs to not pollute host with homebrew
     name: macOS (Dev, Brew, AppleSilicon)
     runs-on: macos-14
     
@@ -74,7 +72,9 @@ jobs:
           submodules: 'recursive'
 
       - run: |
-          source ci/common.deps.sh
+          source ci/osx-package.deps.sh
+        env:
+          MACOS_ARCH: "aarch64"
 
       - run: |
           source ci/osx-package.build.sh
