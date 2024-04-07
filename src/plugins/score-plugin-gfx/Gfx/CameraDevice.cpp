@@ -1,5 +1,8 @@
 #include "CameraDevice.hpp"
 
+#include <Gfx/Graph/VideoNode.hpp>
+#include <Video/CameraInput.hpp>
+
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
@@ -117,7 +120,7 @@ Device::DeviceEnumerators
 CameraProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
   Device::DeviceEnumerators enums;
-#if !defined(__linux__)
+#if !defined(__linux__) && !defined(__APPLE__)
   enums.push_back({"Cameras", new CameraEnumerator});
 #else
   auto devices = Gfx::make_camera_enumerator();

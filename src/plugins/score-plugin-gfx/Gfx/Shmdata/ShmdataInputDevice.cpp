@@ -1,5 +1,8 @@
 #include "ShmdataInputDevice.hpp"
 
+#include <Gfx/Graph/VideoNode.hpp>
+#include <Video/CameraInput.hpp>
+
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 

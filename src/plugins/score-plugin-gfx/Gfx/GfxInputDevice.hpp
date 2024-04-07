@@ -1,13 +1,16 @@
 #pragma once
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
-#include <Gfx/Graph/VideoNode.hpp>
-#include <Video/CameraInput.hpp>
-
 #include <ossia/gfx/texture_parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
-
+namespace Video
+{
+class ExternalInput;
+}
+namespace score::gfx {
+class CameraNode;
+}
 namespace Gfx
 {
 

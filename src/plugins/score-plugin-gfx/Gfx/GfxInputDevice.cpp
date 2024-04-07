@@ -1,5 +1,8 @@
 #include "GfxInputDevice.hpp"
 
+#include <Gfx/Graph/VideoNode.hpp>
+#include <Video/CameraInput.hpp>
+
 namespace Gfx
 {
 
