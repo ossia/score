@@ -27,9 +27,8 @@ jobs:
 
   brew-m1:
     # Disabled until we manage to set-up proper macOS VMs to not pollute host with homebrew
-    if: false
     name: macOS (Release, Brew, AppleSilicon)
-    runs-on: macmini-arm64
+    runs-on: macos-14
     
     steps:
       - name: Checkout code
@@ -47,9 +46,8 @@ jobs:
 
   brew-m1-dev:
     # Disabled until we manage to set-up proper macOS VMs to not pollute host with homebrew
-    if: false
     name: macOS (Dev, Brew, AppleSilicon)
-    runs-on: macmini-arm64
+    runs-on: macos-14
     
     steps:
       - name: Checkout code
@@ -67,7 +65,7 @@ jobs:
 
   m1-package:
     name: macOS (AppleSilicon Release)
-    runs-on: macmini-arm64
+    runs-on: macos-14
     
     steps:
       - name: Checkout code
