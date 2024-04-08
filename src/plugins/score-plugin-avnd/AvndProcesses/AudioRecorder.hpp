@@ -3,6 +3,8 @@
 #include <ossia/network/value/detail/value_conversion_impl.hpp>
 
 #include <AvndProcesses/AddressTools.hpp>
+#include <halp/callback.hpp>
+
 namespace avnd_tools
 {
 /** Records audio into a WAV file.
