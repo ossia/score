@@ -1,12 +1,11 @@
 #include <Media/MediaFileHandle.hpp>
 #include <Media/RMSData.hpp>
 
-#include <QFileInfo>
-#include <QDebug>
-#include <QStorageInfo>
+#include <ossia/audio/drwav_handle.hpp>
 
-#define DR_WAV_NO_STDIO
-#include <dr_wav.h>
+#include <QDebug>
+#include <QFileInfo>
+#include <QStorageInfo>
 
 namespace Media
 {

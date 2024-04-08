@@ -484,6 +484,14 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/AudioRecorder.hpp"
+  TARGET audio_recorder
+  MAIN_CLASS AudioRecorder
+
+  NAMESPACE avnd_tools
+)
+
+avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/DeviceRecorder.hpp"
   TARGET device_recorder
   MAIN_CLASS DeviceRecorder

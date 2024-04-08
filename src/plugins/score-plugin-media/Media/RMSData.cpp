@@ -1,7 +1,6 @@
 #define DR_WAV_IMPLEMENTATION
 #define DRWAV_DLL
-#define DR_WAV_NO_STDIO
-#include <dr_wav.h>
+#include <ossia/audio/drwav_handle.hpp>
 #undef DR_WAV_IMPLEMENTATION
 #include "RMSData.hpp"
 
