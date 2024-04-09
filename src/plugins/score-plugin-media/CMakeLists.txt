@@ -84,6 +84,8 @@ set(HDRS ${HDRS}
 )
 
 set(SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/DRWav.cpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
 
@@ -136,6 +138,13 @@ set(SRCS
 
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
+)
+
+set_source_files_properties(
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/DRWav.cpp"
+    PROPERTIES
+        SKIP_PRECOMPILE_HEADERS ON
+        SKIP_UNITY_BUILD_INCLUSION ON
 )
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
