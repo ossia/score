@@ -4,6 +4,7 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
 
 #include <score/serialization/MimeVisitor.hpp>
 
