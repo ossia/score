@@ -29,12 +29,27 @@ template <>
 void JSONReader::read(const Protocols::SimpleIO::GPIO& n)
 {
   stream.StartObject();
+  obj["Chip"] = n.chip;
+  obj["Line"] = n.line;
+  obj["Flags"] = n.flags;
+  obj["Events"] = n.events;
+  obj["State"] = n.state;
+  obj["Direction"] = n.direction;
   stream.EndObject();
 }
 
 template <>
 void JSONWriter::write(Protocols::SimpleIO::GPIO& n)
 {
+  if(!obj.tryGet("Chip"))
+    return;
+
+  n.chip = obj["Chip"].toInt();
+  n.line = obj["Line"].toInt();
+  n.flags = obj["Flags"].toInt();
+  n.events = obj["Events"].toInt();
+  n.state = obj["State"].toInt();
+  n.direction = obj["Direction"].toBool();
 }
 
 template <>
