@@ -4,7 +4,7 @@
 # Thanks https://www.update.rocks/blog/osx-signing-with-travis/
 (
     set +x
-    if [[ -v MAC_CERT_B64 ]]; then
+    if [[ -n "${MAC_CERT_B64}" ]]; then
       echo "$MAC_CERT_B64" | base64 --decode > ossia-cert.p12
       export CODESIGN_SECUREFILEPATH=$PWD/ossia-cert.p12
     fi
