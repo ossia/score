@@ -277,7 +277,11 @@ void LibAVDecoder::load_packet_in_frame(const AVPacket& packet, AVFrame& frame)
   frame.linesize[0] = packet.size;
   frame.pts = packet.pts;
   frame.pkt_dts = packet.dts;
+#if(LIBAVUTIL_VERSION_MAJOR < 58)
   frame.pkt_duration = packet.duration;
+#else
+  frame.duration = packet.duration;
+#endif
 }
 
 ReadFrame readVideoFrame(
@@ -667,7 +671,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
     /*
     // Rescale the packet's dts into AV_TIME_BASE
-    auto max_dts = r.frame->pkt_dts + r.frame->pkt_duration;
+    auto max_dts = r.frame->pkt_dts + r.frame->duration;
     auto max_av_dts = to_av_time_base(codec_tb, max_dts);
     //av_rescale_q(max_dts, stream->time_base, tb);
     // we're starting to see correct frames, try to get close to the dts we want.

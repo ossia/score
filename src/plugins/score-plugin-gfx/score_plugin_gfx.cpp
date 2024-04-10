@@ -51,6 +51,9 @@ score_plugin_gfx::score_plugin_gfx()
   qRegisterMetaType<Gfx::SharedInputSettings>();
   qRegisterMetaType<Gfx::SharedOutputSettings>();
   qRegisterMetaType<Gfx::CameraSettings>();
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
+  qRegisterMetaType<Gfx::LibavOutputSettings>();
+#endif
 
 #if defined(HAS_FREENECT2)
   qRegisterMetaType<Gfx::Kinect2::Kinect2Settings>();

@@ -86,7 +86,7 @@ OSCQueryDevice::OSCQueryDevice(
       [this] {
     // TODO how to notify the GUI ?
     m_connected = false;
-      },
+  },
       Qt::QueuedConnection);
 }
 
