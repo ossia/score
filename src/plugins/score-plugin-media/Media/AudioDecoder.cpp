@@ -750,9 +750,20 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
     {
       for(std::size_t i = 0; i < channels; ++i)
       {
+#if FF_API_OLD_CHANNEL_LAYOUT
         SwrContext* swr = swr_alloc_set_opts(
             nullptr, AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, convertedSampleRate,
             AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, fileSampleRate, 0, nullptr);
+#else
+        SwrContext* swr = nullptr;
+        static constexpr AVChannelLayout mono_layout AV_CHANNEL_LAYOUT_MONO;
+        int ret = swr_alloc_set_opts2(
+            &swr, &mono_layout, AV_SAMPLE_FMT_FLT, convertedSampleRate, &mono_layout,
+            AV_SAMPLE_FMT_FLT, fileSampleRate, 0, nullptr);
+
+        if(ret != 0)
+          throw std::runtime_error("Couldn't open resampler");
+#endif
         swr_init(swr);
         resampler.push_back(swr);
       }
