@@ -61,6 +61,11 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
 
 DeviceDocumentPlugin::~DeviceDocumentPlugin()
 {
+  for(auto dev : this->m_list.devices())
+  {
+    dev->disconnect();
+  }
+
   m_processMessages = false;
   m_asioContext->context.stop();
 
@@ -348,7 +353,7 @@ void DeviceDocumentPlugin::setupConnections(
           }
         }
       }
-        }));
+    }));
 
     vec.push_back(con(
         device, &Device::DeviceInterface::pathRemoved, this,

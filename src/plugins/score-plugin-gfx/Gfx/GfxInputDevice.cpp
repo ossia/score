@@ -3,6 +3,8 @@
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Video/CameraInput.hpp>
 
+#include <ossia/network/generic/generic_node.hpp>
+
 namespace Gfx
 {
 
@@ -140,9 +142,9 @@ bool video_texture_input_node::remove_parameter()
 }
 
 std::unique_ptr<ossia::net::node_base>
-video_texture_input_node::make_child(const std::string& name)
+video_texture_input_node::make_child(const std::string& name_base)
 {
-  return {};
+  return std::make_unique<ossia::net::generic_node>(name_base, m_device, *this);
 }
 
 void video_texture_input_node::removing_child(ossia::net::node_base& node_base) { }
