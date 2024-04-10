@@ -64,7 +64,6 @@ jobs:
   m1-package:
     name: macOS (AppleSilicon Release)
     runs-on: macos-14
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
