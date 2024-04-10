@@ -696,6 +696,8 @@
         <file>icons/control_record_on@2x.png</file>
         <file>icons/exit_off.png</file>
         <file>icons/exit_on.png</file>
+        <file>icons/spatial.png</file>
+        <file>icons/spatial@2x.png</file>
         <file>icons/sync_off.png</file>
         <file>icons/sync_off@2x.png</file>
         <file>icons/sync_on.png</file>
