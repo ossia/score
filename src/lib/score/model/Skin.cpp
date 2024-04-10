@@ -20,7 +20,7 @@ W_OBJECT_IMPL(score::Skin)
 
 #define SCORE_INSERT_COLOR(Col) \
   {                             \
-#Col, &Col                  \
+    #Col, &Col                  \
   }
 
 #define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) \

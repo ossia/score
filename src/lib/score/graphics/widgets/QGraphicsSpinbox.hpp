@@ -1,9 +1,11 @@
 #pragma once
 #include <score/graphics/widgets/Constants.hpp>
-#include <score_lib_base_export.h>
 
 #include <QGraphicsItem>
 #include <QObject>
+
+#include <score_lib_base_export.h>
+
 #include <verdigris>
 namespace score
 {
@@ -54,7 +56,6 @@ private:
       override;
 };
 
-
 class SCORE_LIB_BASE_EXPORT QGraphicsIntSpinbox final
     : public QObject
     , public QGraphicsItem
@@ -84,8 +85,14 @@ public:
 
   bool moving = false;
 
-  double unmap(double v) const noexcept { return (double(v) - double(min)) / (double(max) - double(min)); }
-  double map(double v) const noexcept { return (double(v) * (double(max) - double(min))) + double(min); }
+  double unmap(double v) const noexcept
+  {
+    return (double(v) - double(min)) / (double(max) - double(min));
+  }
+  double map(double v) const noexcept
+  {
+    return (double(v) * (double(max) - double(min))) + double(min);
+  }
 
 public:
   void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)

@@ -1,10 +1,10 @@
 #pragma once
 #include <score/selection/Selection.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QObject>
 #include <QStack>
-
-#include <ossia/detail/hash_map.hpp>
 
 #include <verdigris>
 

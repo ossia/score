@@ -155,24 +155,24 @@ struct DefaultGraphicsSliderImpl
         self.m_value = self.unmap(v);
         self.sliderMoved();
         self.update();
-          });
+      });
 
       QObject::connect(
           w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, self_p] {
-            if(self_p->impl->spinbox)
-            {
-              self_p->sliderReleased();
-              QObject::disconnect(con);
-              QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
-                scene->removeItem(obj);
-                delete obj;
-                self_p->impl->spinbox = nullptr;
-                self_p->impl->spinboxProxy = nullptr;
-              });
-              self_p->impl->spinbox = nullptr;
-              self_p->impl->spinboxProxy = nullptr;
-            }
+        if(self_p->impl->spinbox)
+        {
+          self_p->sliderReleased();
+          QObject::disconnect(con);
+          QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
+            scene->removeItem(obj);
+            delete obj;
+            self_p->impl->spinbox = nullptr;
+            self_p->impl->spinboxProxy = nullptr;
           });
+          self_p->impl->spinbox = nullptr;
+          self_p->impl->spinboxProxy = nullptr;
+        }
+      });
     });
   }
 

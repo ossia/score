@@ -82,21 +82,21 @@ void score::UndoApplicationPlugin::on_documentChanged(
   auto stack = &newDoc->commandStack();
   m_connections.push_back(
       QObject::connect(stack, &CommandStack::canUndoChanged, [&](bool b) {
-        m_undoAction->setEnabled(b);
-      }));
+    m_undoAction->setEnabled(b);
+  }));
   m_connections.push_back(
       QObject::connect(stack, &CommandStack::canRedoChanged, [&](bool b) {
-        m_redoAction->setEnabled(b);
-      }));
+    m_redoAction->setEnabled(b);
+  }));
 
   m_connections.push_back(
       QObject::connect(stack, &CommandStack::undoTextChanged, [&](const QString& s) {
-        m_undoAction->setText(QObject::tr("Undo ") + s);
-      }));
+    m_undoAction->setText(QObject::tr("Undo ") + s);
+  }));
   m_connections.push_back(
       QObject::connect(stack, &CommandStack::redoTextChanged, [&](const QString& s) {
-        m_redoAction->setText(QObject::tr("Redo ") + s);
-      }));
+    m_redoAction->setText(QObject::tr("Redo ") + s);
+  }));
 
   // Set the correct values for the current document.
   m_undoAction->setEnabled(stack->canUndo());

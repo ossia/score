@@ -213,22 +213,22 @@ View::View(QObject* parent)
     rs->setSizes(sz);
     connect(
         bottomTabs, &FixedTabWidget::actionTriggered, this, [rs](QAction* act, bool ok) {
-          if(ok)
-          {
-            QList<int> sz = rs->sizes();
-            if(sz[2] <= 1)
-            {
-              sz[2] = 200;
-              rs->setSizes(sz);
-            }
-          }
-          else
-          {
-            QList<int> sz = rs->sizes();
-            sz[2] = 0;
-            rs->setSizes(sz);
-          }
-        });
+      if(ok)
+      {
+        QList<int> sz = rs->sizes();
+        if(sz[2] <= 1)
+        {
+          sz[2] = 200;
+          rs->setSizes(sz);
+        }
+      }
+      else
+      {
+        QList<int> sz = rs->sizes();
+        sz[2] = 0;
+        rs->setSizes(sz);
+      }
+    });
   }
   totalWidg->addWidget(rightSplitter);
 
@@ -253,7 +253,7 @@ View::View(QObject* parent)
     saved_connection = connect(
         &document.commandStack(), &score::CommandStack::saveIndexChanged, this,
         [this, doc = &document](bool state) { setTitle(*this, doc, !state); });
-      },
+  },
       Qt::QueuedConnection);
 
   connect(centralTabs, &QTabWidget::tabCloseRequested, this, [&](int index) {

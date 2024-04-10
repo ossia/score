@@ -1,5 +1,6 @@
-#include <score/tools/ThreadPool.hpp>
 #include <score/application/ApplicationServices.hpp>
+#include <score/tools/ThreadPool.hpp>
+
 #include <thread>
 #if __has_include(<sys/resource.h>)
 #include <sys/resource.h>
@@ -30,9 +31,7 @@ ThreadPool::~ThreadPool()
 ThreadPool& ThreadPool::instance()
 {
   static std::once_flag init{};
-  std::call_once(init, [] {
-    score::AppServices().threadpool.emplace();
-  });
+  std::call_once(init, [] { score::AppServices().threadpool.emplace(); });
   return *score::AppServices().threadpool;
 }
 
@@ -120,9 +119,7 @@ TaskPool::~TaskPool()
 TaskPool& TaskPool::instance()
 {
   static std::once_flag init{};
-  std::call_once(init, [] {
-    score::AppServices().taskpool.emplace();
-  });
+  std::call_once(init, [] { score::AppServices().taskpool.emplace(); });
   return *score::AppServices().taskpool;
 }
 

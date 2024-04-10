@@ -14,13 +14,12 @@ PanelStatus::PanelStatus(
     , priority{prio}
     , prettyName{std::move(name)}
     , icon{[&icon] {
-      QIcon ico;
-      ico.addFile(
-          ":/icons/" + icon + "_on.png", {}, QIcon::Mode::Normal, QIcon::State::On);
-      ico.addFile(
-          ":/icons/" + icon + "_off.png", {}, QIcon::Mode::Normal, QIcon::State::Off);
-      return ico;
-    }()}
+  QIcon ico;
+  ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Normal, QIcon::State::On);
+  ico.addFile(
+      ":/icons/" + icon + "_off.png", {}, QIcon::Mode::Normal, QIcon::State::Off);
+  return ico;
+}()}
     , shortcut(sc)
 {
 }

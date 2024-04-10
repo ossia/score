@@ -54,7 +54,8 @@ void SimpleTextItem::setFont(const QFont& f)
   updateImpl();
 }
 
-const QString& SimpleTextItem::text() const noexcept{
+const QString& SimpleTextItem::text() const noexcept
+{
   return m_string;
 }
 void SimpleTextItem::setText(const QString& s)

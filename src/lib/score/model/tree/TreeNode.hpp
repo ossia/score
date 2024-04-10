@@ -304,10 +304,10 @@ std::vector<Node_T*> filterUniqueParents(std::vector<Node_T*>& nodes) noexcept
   for(auto n : nodes)
   {
     if(ossia::any_of(nodes, [&](Node_T* other) {
-         if(other == n)
-           return false;
-         return isAncestor(*other, n);
-       }))
+      if(other == n)
+        return false;
+      return isAncestor(*other, n);
+    }))
     {
       continue;
     }

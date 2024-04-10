@@ -169,13 +169,11 @@ void deserializeRemainingComponents(score::Components& comps, QObject* obj)
 
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read(const score::SerializableComponent&)
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::SerializableComponent&)
 {
 }
 template <>
-SCORE_LIB_BASE_EXPORT void
-JSONReader::read(const score::SerializableComponent&)
+SCORE_LIB_BASE_EXPORT void JSONReader::read(const score::SerializableComponent&)
 {
 }
 #endif

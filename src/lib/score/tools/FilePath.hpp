@@ -1,5 +1,6 @@
 #pragma once
 #include <score/document/DocumentContext.hpp>
+
 #include <QString>
 
 namespace score

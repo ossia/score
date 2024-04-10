@@ -459,7 +459,10 @@ class EnableWhenDocumentIs;
           ptr, QObject::tr(Text), key(), score::ActionGroupKey{#Group}, Shortcut}; \
     }                                                                              \
                                                                                    \
-    static score::ActionKey key() { return score::ActionKey{#ActionName}; }        \
+    static score::ActionKey key()                                                  \
+    {                                                                              \
+      return score::ActionKey{#ActionName};                                        \
+    }                                                                              \
   };                                                                               \
   }
 
@@ -480,6 +483,9 @@ class EnableWhenDocumentIs;
                            Shortcut1, Shortcut2};                              \
     }                                                                          \
                                                                                \
-    static score::ActionKey key() { return score::ActionKey{#ActionName}; }    \
+    static score::ActionKey key()                                              \
+    {                                                                          \
+      return score::ActionKey{#ActionName};                                    \
+    }                                                                          \
   };                                                                           \
   }

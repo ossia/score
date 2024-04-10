@@ -152,14 +152,14 @@ MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext&
   m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
       m_widget, &QListView::customContextMenuRequested, this, [this](const QPoint& pos) {
-        QMenu m{};
-        auto act = m.addAction(QObject::tr("Clear"));
-        auto res = m.exec(QCursor::pos());
-        if(res == act)
-        {
-          m_itemModel->clear();
-        }
-      });
+    QMenu m{};
+    auto act = m.addAction(QObject::tr("Clear"));
+    auto res = m.exec(QCursor::pos());
+    if(res == act)
+    {
+      m_itemModel->clear();
+    }
+  });
 
   g_messagesPanel = this;
 }

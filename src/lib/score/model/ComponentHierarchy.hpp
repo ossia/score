@@ -81,8 +81,8 @@ public:
     // we can deserialize it.
     auto comp = score::deserialize_component<ChildComponent_T>(
         element.components(), [&](auto&& deserializer) {
-          ParentComponent_T::template load<ChildComponent_T>(deserializer, element);
-        });
+      ParentComponent_T::template load<ChildComponent_T>(deserializer, element);
+    });
 
     // Maybe we could not deserialize it
     if(!comp)
@@ -140,10 +140,7 @@ public:
     m_children.clear();
   }
 
-  ~ComponentHierarchyManager()
-  {
-    clear();
-  }
+  ~ComponentHierarchyManager() { clear(); }
 
 private:
   std::vector<ChildPair> m_children; // todo map ? multi_index with both index
@@ -241,10 +238,7 @@ public:
     m_children.clear();
   }
 
-  ~PolymorphicComponentHierarchyManager()
-  {
-    clear();
-  }
+  ~PolymorphicComponentHierarchyManager() { clear(); }
 
 private:
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
@@ -259,9 +253,9 @@ private:
       // we can deserialize it.
       ChildComponent_T* comp = score::deserialize_component<ChildComponent_T>(
           model.components(), [&](auto&& deserializer) {
-            ParentComponent_T::template load<ChildComponent_T>(
-                deserializer, *factory, model);
-          });
+        ParentComponent_T::template load<ChildComponent_T>(
+            deserializer, *factory, model);
+      });
 
       // Maybe we could not deserialize it
       if(!comp)

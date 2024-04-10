@@ -85,8 +85,9 @@ struct is_template<T<A, B, C>> : std::true_type
 {
 };
 
-
-template <template <class, class, class, class, class, class, bool> class T, class A1, class A2, class A3, class A4, class A5, class A6, bool B>
+template <
+    template <class, class, class, class, class, class, bool> class T, class A1,
+    class A2, class A3, class A4, class A5, class A6, bool B>
 struct is_template<T<A1, A2, A3, A4, A5, A6, B>> : std::true_type
 {
 };

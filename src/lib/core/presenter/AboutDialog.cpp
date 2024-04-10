@@ -262,7 +262,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       [=, m = std::move(map)](const QString& currentText) {
     auto& lic = m.at(currentText);
     license->setPlainText(lic.url + "\n\n" + lic.header + "\n" + lic.license);
-      });
+  });
 #endif
 }
 

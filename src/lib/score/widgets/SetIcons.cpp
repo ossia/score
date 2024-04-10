@@ -38,8 +38,7 @@ struct hash<std::tuple<QString, QString, QString, QString>>
 }
 static auto& iconMap()
 {
-  static ossia::hash_map<std::tuple<QString, QString, QString, QString>, QIcon>
-      icons;
+  static ossia::hash_map<std::tuple<QString, QString, QString, QString>, QIcon> icons;
   return icons;
 }
 

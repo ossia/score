@@ -67,10 +67,7 @@ Presenter::Presenter(
     m_view->setPresenter(this);
 }
 
-Presenter::~Presenter()
-{
-
-}
+Presenter::~Presenter() { }
 
 bool Presenter::exit()
 {

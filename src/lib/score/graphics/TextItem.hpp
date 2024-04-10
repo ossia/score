@@ -29,7 +29,7 @@ class SCORE_LIB_BASE_EXPORT SimpleTextItem
 public:
   SimpleTextItem(const score::BrushSet& col, QGraphicsItem*);
 
-  QRectF boundingRect() const final override; 
+  QRectF boundingRect() const final override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       final override;
 
@@ -54,5 +54,3 @@ private:
   QImage m_line;
 };
 }
-
-

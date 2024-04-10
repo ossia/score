@@ -190,18 +190,18 @@ Document* DocumentBuilder::restoreDocument(
     DataStream::Deserializer writer(restore.commands);
     loadCommandStack(
         ctx.components, writer, doc->commandStack(), [doc](score::Command* cmd) {
-          try
-          {
-            cmd->redo(doc->context());
-            return true;
-          }
-          catch(...)
-          {
-            qDebug() << "Error while replaying: " << cmd->key().toString().c_str()
-                     << cmd->description();
-            return false;
-          }
-        });
+      try
+      {
+        cmd->redo(doc->context());
+        return true;
+      }
+      catch(...)
+      {
+        qDebug() << "Error while replaying: " << cmd->key().toString().c_str()
+                 << cmd->description();
+        return false;
+      }
+    });
 
     return doc;
   }

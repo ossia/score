@@ -82,26 +82,22 @@ struct TSerializer<JSONObject, std::unordered_map<T, U, H, E, A>> : MapSerialize
 };
 
 #if !defined(OSSIA_NO_FAST_CONTAINERS)
-template <class Key,
-          class T,
-          class Hash,
-          class KeyEqual,
-          class AllocatorOrContainer,
-          class Bucket,
-          bool IsSegmented>
-struct TSerializer<DataStream, ankerl::unordered_dense::detail::table<Key, T, Hash, KeyEqual, AllocatorOrContainer, Bucket, IsSegmented>>
+template <
+    class Key, class T, class Hash, class KeyEqual, class AllocatorOrContainer,
+    class Bucket, bool IsSegmented>
+struct TSerializer<
+    DataStream, ankerl::unordered_dense::detail::table<
+                    Key, T, Hash, KeyEqual, AllocatorOrContainer, Bucket, IsSegmented>>
     : MapSerializer
 {
 };
 
-template <class Key,
-          class T,
-          class Hash,
-          class KeyEqual,
-          class AllocatorOrContainer,
-          class Bucket,
-          bool IsSegmented>
-struct TSerializer<JSONObject, ankerl::unordered_dense::detail::table<Key, T, Hash, KeyEqual, AllocatorOrContainer, Bucket, IsSegmented>>
+template <
+    class Key, class T, class Hash, class KeyEqual, class AllocatorOrContainer,
+    class Bucket, bool IsSegmented>
+struct TSerializer<
+    JSONObject, ankerl::unordered_dense::detail::table<
+                    Key, T, Hash, KeyEqual, AllocatorOrContainer, Bucket, IsSegmented>>
     : MapSerializer
 {
 };

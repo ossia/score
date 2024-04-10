@@ -83,12 +83,11 @@ static constexpr bool is_qpointer_v = is_qpointer<T>::value;
  * Generally, it is used with QByteArrays, but it works with any QIODevice.
  */
 template <typename T>
-concept is_QDataStreamSerializable =
-    std::is_arithmetic<T>::value || std::is_same<T, QStringList>::value
-    || std::is_same<T, QVector2D>::value || std::is_same<T, QVector3D>::value
-    || std::is_same<T, QVector4D>::value || std::is_same<T, QPointF>::value
-    || std::is_same<T, QPoint>::value || std::is_same<T, std::string>::value;
-
+concept is_QDataStreamSerializable
+    = std::is_arithmetic<T>::value || std::is_same<T, QStringList>::value
+      || std::is_same<T, QVector2D>::value || std::is_same<T, QVector3D>::value
+      || std::is_same<T, QVector4D>::value || std::is_same<T, QPointF>::value
+      || std::is_same<T, QPoint>::value || std::is_same<T, std::string>::value;
 
 SCORE_LIB_BASE_EXPORT QDataStream&
 operator<<(QDataStream& stream, const std::string& obj);
@@ -146,11 +145,11 @@ inline QDataStream& operator>>(QDataStream& s, std::size_t& val)
 #endif
 
 template <typename T>
-requires (!std::is_enum_v<T>)
+  requires(!std::is_enum_v<T>)
 DataStreamInput& operator<<(DataStreamInput& s, const T& obj);
 
 template <typename T>
-requires (!std::is_enum_v<T>)
+  requires(!std::is_enum_v<T>)
 DataStreamOutput& operator>>(DataStreamOutput& s, T& obj);
 
 #define DATASTREAM_QT_BUILTIN(T)                                \
@@ -220,7 +219,7 @@ template <typename K, typename V>
 DataStreamOutput& operator>>(DataStreamOutput& s, const QHash<K, V>& obj) = delete;
 
 template <typename T>
-  requires (std::is_enum_v<T>)
+  requires(std::is_enum_v<T>)
 OSSIA_INLINE DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
 {
   s.stream << obj;
@@ -228,7 +227,7 @@ OSSIA_INLINE DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
 }
 
 template <typename T>
-  requires (std::is_enum_v<T>)
+  requires(std::is_enum_v<T>)
 OSSIA_INLINE DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
 {
   s.stream >> obj;

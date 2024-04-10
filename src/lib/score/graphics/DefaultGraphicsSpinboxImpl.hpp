@@ -59,9 +59,12 @@ struct DefaultGraphicsSpinboxImpl
   static double mapValue(T& self, QGraphicsSceneMouseEvent* event) noexcept
   {
     InfiniteScroller::move_free(event);
-    const auto speed = std::pow(10., std::log10(1. + std::abs(InfiniteScroller::currentDelta)));
+    const auto speed
+        = std::pow(10., std::log10(1. + std::abs(InfiniteScroller::currentDelta)));
 
-    auto v = InfiniteScroller::origValue - speed * InfiniteScroller::currentDelta / double(InfiniteScroller::currentGeometry.height());
+    auto v = InfiniteScroller::origValue
+             - speed * InfiniteScroller::currentDelta
+                   / double(InfiniteScroller::currentGeometry.height());
     v = (v - self.min) / (self.max - self.min);
     return v;
   }
@@ -106,7 +109,7 @@ struct DefaultGraphicsSpinboxImpl
   }
 
   template <typename T>
-  requires std::is_integral_v<std::decay_t<decltype(std::declval<T>().value())>>
+    requires std::is_integral_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
     QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
@@ -122,29 +125,29 @@ struct DefaultGraphicsSpinboxImpl
 
       auto con = QObject::connect(
           w, SignalUtils::QSpinBox_valueChanged_int(), &self, [&self](double v) {
-            self.m_value = self.unmap(v);
-            self.sliderMoved();
-            self.update();
-          });
+        self.m_value = self.unmap(v);
+        self.sliderMoved();
+        self.update();
+      });
 
       QObject::connect(
           w, &SpinboxWithEnter::editingFinished, &self, [obj, con, self_p]() mutable {
-            if(obj != nullptr)
-            {
-              self_p->sliderReleased();
-              QObject::disconnect(con);
-              QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
-                scene->removeItem(obj);
-                delete obj;
-              });
-            }
-            obj = nullptr;
+        if(obj != nullptr)
+        {
+          self_p->sliderReleased();
+          QObject::disconnect(con);
+          QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
+            scene->removeItem(obj);
+            delete obj;
           });
+        }
+        obj = nullptr;
+      });
     });
   }
 
   template <typename T>
-  requires std::is_floating_point_v<std::decay_t<decltype(std::declval<T>().value())>>
+    requires std::is_floating_point_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
     QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
@@ -165,7 +168,7 @@ struct DefaultGraphicsSpinboxImpl
         self.m_value = self.unmap(v);
         self.sliderMoved();
         self.update();
-          });
+      });
 
       QObject::connect(
           w, &DoubleSpinboxWithEnter::editingFinished, &self,
@@ -180,7 +183,7 @@ struct DefaultGraphicsSpinboxImpl
           });
         }
         obj = nullptr;
-          });
+      });
     });
   }
 

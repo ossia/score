@@ -298,7 +298,7 @@ std::optional<score::Addon> makeAddon(
       default:
         break;
     }
-       }},
+  }},
       {"name", [&](QJsonValue v) { add.name = v.toString(); }},
       {"version", [&](QJsonValue v) { add.version = v.toString(); }},
       {"url", [&](QJsonValue v) { add.latestVersionAddress = v.toString(); }},

@@ -126,7 +126,7 @@ void DocumentManager::init(const score::GUIApplicationContext& ctx)
       auto it = ossia::find_if(
           m_documents, [&](auto other) { return other->model().id() == doc; });
       setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
-        },
+    },
         Qt::QueuedConnection);
 
     connect(m_view, &View::closeRequested, this, [&](const Id<DocumentModel>& doc) {
