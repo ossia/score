@@ -4,8 +4,12 @@
 # Thanks https://www.update.rocks/blog/osx-signing-with-travis/
 (
     set +x
-    KEY_CHAIN=build.keychain
+    if [[ -v MAC_CERT_B64 ]]; then
+      echo "$MAC_CERT_B64" | base64 --decode > ossia-cert.p12
+      export CODESIGN_SECUREFILEPATH=$PWD/ossia-cert.p12
+    fi
 
+    KEY_CHAIN=build.keychain
     security create-keychain -p travis "$KEY_CHAIN"
     security default-keychain -s "$KEY_CHAIN"
     security unlock-keychain -p travis "$KEY_CHAIN"

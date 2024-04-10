@@ -75,11 +75,14 @@ jobs:
           source ci/osx-package.deps.sh
         env:
           MACOS_ARCH: "aarch64"
+          MAC_CERT_B64: ${{ secrets.MAC_CERT_B64 }}
+          MAC_CODESIGN_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
 
       - run: |
           source ci/osx-package.build.sh
         env:
           MACOS_ARCH: "aarch64"
+
       - run: |
           export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
           export BUILD_ARTIFACTSTAGINGDIRECTORY=$PWD/staging
