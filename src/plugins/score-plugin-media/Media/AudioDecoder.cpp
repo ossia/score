@@ -750,7 +750,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
     {
       for(std::size_t i = 0; i < channels; ++i)
       {
-#if FF_API_OLD_CHANNEL_LAYOUT
+#if LIBSWRESAMPLE_VERSION_MAJOR <= 4
         SwrContext* swr = swr_alloc_set_opts(
             nullptr, AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, convertedSampleRate,
             AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, fileSampleRate, 0, nullptr);
