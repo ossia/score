@@ -818,8 +818,10 @@ void VideoDecoder::close_video() noexcept
   {
     avcodec_flush_buffers(m_codecContext);
 #if defined(__APPLE__)
+#if FF_API_VT_HWACCEL_CONTEXT
     if(m_codecContext->hwaccel_context)
       av_videotoolbox_default_free(m_codecContext);
+#endif
 #endif
     avcodec_free_context(&m_codecContext);
 
