@@ -18,6 +18,7 @@ cmake $SCORE_DIR \
  -DOSSIA_ENABLE_KFR=1 \
  -DOSSIA_ENABLE_FFTW=0 \
  -DCMAKE_INSTALL_PREFIX=install \
+ -DLIBREMIDI_NO_PIPEWIRE=1 \
  -DSCORE_LINKER_SCRIPT="$SCORE_DIR/cmake/Deployment/Linux/AppImage/version"
 
 cmake --build .
