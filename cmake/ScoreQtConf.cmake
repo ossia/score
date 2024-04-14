@@ -1,12 +1,19 @@
 if(SCORE_DEPLOYMENT_BUILD)
   if(WIN32)
-    set(SCORE_QTCONF_CONTENT 
-"[Paths]
+      if(SCORE_MSYS2_PACKAGE)
+          set(SCORE_QTCONF_CONTENT
+      "[Platforms]
+WindowsArguments = fontengine=freetype
+      ")
+      else()
+          set(SCORE_QTCONF_CONTENT
+      "[Paths]
 Prefix = .
 
 [Platforms]
 WindowsArguments = fontengine=freetype
-")
+      ")
+      endif()
   elseif(APPLE)
     set(SCORE_QTCONF_CONTENT 
 "[Paths]
