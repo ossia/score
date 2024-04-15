@@ -5,6 +5,8 @@
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include <QTimer>
+
 namespace Protocols
 {
 
