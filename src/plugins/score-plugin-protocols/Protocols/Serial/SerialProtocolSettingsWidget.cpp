@@ -18,6 +18,7 @@
 #include <score/widgets/TextLabel.hpp>
 
 #include <QCodeEditor>
+#include <QFileInfo>
 #include <QLineEdit>
 #include <QVariant>
 namespace Protocols
@@ -27,6 +28,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
 {
   QLabel* deviceNameLabel = new TextLabel(tr("Name"), this);
   m_name = new QLineEdit{this};
+  checkForChanges(m_name);
 
   QLabel* portLabel = new TextLabel(tr("Port"), this);
   m_port = new score::ComboBox{this};
@@ -36,6 +38,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
   m_rate->setEditable(true);
 
   m_codeEdit = Process::createScriptWidget("JS");
+  m_port->setEditable(true);
 
   for(auto port : QSerialPortInfo::availablePorts())
     m_port->addItem(port.portName());
@@ -81,6 +84,17 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   for(auto port : QSerialPortInfo::availablePorts())
     if(port.portName() == m_port->currentText())
       specific.port = port;
+  if(specific.port.isNull())
+  {
+    QFileInfo ff{m_port->currentText()};
+    auto port_fd = ff.canonicalFilePath();
+
+    for(const auto& port : QSerialPortInfo::availablePorts())
+    {
+      if(port.systemLocation() == port_fd)
+        specific.port = port;
+    }
+  }
 
   for(auto rate : QSerialPortInfo::standardBaudRates())
     if(rate == m_rate->currentText().toInt())
