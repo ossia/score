@@ -61,42 +61,6 @@ jobs:
         run: |
           ./ci/developer.build.sh -S "$PWD" -B build-developer
 
-  m1-test:
-    name: macOS (Test CMake)
-    runs-on: macos-14
-    steps:
-      - run: |
-          echo 'int main() { }' > main.cpp
-          printf 'cmake_minimum_required(VERSION 3.25)\nproject(foo)\nmessage("CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")\nmessage("CMAKE_HOST_SYSTEM_PROCESSOR: ${CMAKE_HOST_SYSTEM_PROCESSOR}")\nadd_executable(foo main.cpp)' > CMakeLists.txt
-         
-          echo " ======== 1 ======== "
-          cmake -S . -B build1
-
-          export PATH=/usr/local/bin:/opt/homebrew/bin:$PATH
-
-          if [[ -d /Applications/Xcode_15.4.app ]]; then
-            export XCODE_ROOT=/Applications/Xcode_15.4.app
-            sudo xcode-select -s "$XCODE_ROOT"
-          elif [[ -d /Applications/Xcode_15.3.app ]]; then
-            export XCODE_ROOT=/Applications/Xcode_15.3.app
-            sudo xcode-select -s "$XCODE_ROOT"
-          elif [[ -d /Applications/Xcode_15.2.app ]]; then
-            export XCODE_ROOT=/Applications/Xcode_15.2.app
-            sudo xcode-select -s "$XCODE_ROOT"
-          elif [[ -d /Applications/Xcode_15.1.app ]]; then
-            export XCODE_ROOT=/Applications/Xcode_15.1.app
-            sudo xcode-select -s "$XCODE_ROOT"
-          elif [[ -d /Applications/Xcode_15.0.app ]]; then
-            export XCODE_ROOT=/Applications/Xcode_15.0.app
-            sudo xcode-select -s "$XCODE_ROOT"
-          else
-            export XCODE_ROOT=/Applications/Xcode.app
-          fi
-
-          echo " ======== 2 ======== "
-          cmake -S . -B build2
-
-
   m1-package:
     name: macOS (AppleSilicon Release)
     runs-on: macos-14

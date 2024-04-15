@@ -90,13 +90,14 @@ public:
       const override
   {
     CameraSettings set;
-    set.input = "<CUSTOM>";
+    set.input = "";
     set.device = "";
     set.size = {};
     set.fps = {};
 
     set.codec = 0;
     set.pixelformat = -1;
+    set.custom = true;
 
     Device::DeviceSettings s;
     s.name = "Custom";
@@ -253,6 +254,13 @@ Device::DeviceSettings CameraSettingsWidget::getSettings() const
   Device::DeviceSettings s = m_settings;
   s.name = m_deviceNameEdit->text();
   s.protocol = CameraProtocolFactory::static_concreteKey();
+  CameraSettings specif = s.deviceSpecificSettings.value<CameraSettings>();
+  if(specif.custom)
+  {
+    specif.device = m_device->text();
+    specif.input = m_input->currentText();
+  }
+  s.deviceSpecificSettings = QVariant::fromValue(std::move(specif));
   return s;
 }
 
@@ -276,9 +284,8 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   m_device->setText(set.device);
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 4, 0)
-  bool showCustom = set.input == "<CUSTOM>";
-  m_layout->setRowVisible(1, showCustom);
-  m_layout->setRowVisible(2, showCustom);
+  m_layout->setRowVisible(1, set.custom);
+  m_layout->setRowVisible(2, set.custom);
 #endif
 }
 
@@ -288,7 +295,7 @@ template <>
 void DataStreamReader::read(const Gfx::CameraSettings& n)
 {
   m_stream << n.input << n.device << n.size.width() << n.size.height() << n.fps
-           << n.codec << n.pixelformat;
+           << n.codec << n.pixelformat << n.custom;
   insertDelimiter();
 }
 
@@ -296,7 +303,7 @@ template <>
 void DataStreamWriter::write(Gfx::CameraSettings& n)
 {
   m_stream >> n.input >> n.device >> n.size.rwidth() >> n.size.rheight() >> n.fps
-      >> n.codec >> n.pixelformat;
+      >> n.codec >> n.pixelformat >> n.custom;
   checkDelimiter();
 }
 
@@ -309,6 +316,7 @@ void JSONReader::read(const Gfx::CameraSettings& n)
   obj["FPS"] = n.fps;
   obj["Codec"] = n.codec;
   obj["PixelFormat"] = n.pixelformat;
+  obj["Custom"] = n.custom;
 }
 
 template <>
@@ -322,4 +330,6 @@ void JSONWriter::write(Gfx::CameraSettings& n)
     n.codec = codec->toInt();
   if(auto format = obj.tryGet("PixelFormat"))
     n.pixelformat = format->toInt();
+  if(auto custom = obj.tryGet("Custom"))
+    n.custom = custom->toBool();
 }

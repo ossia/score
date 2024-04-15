@@ -13,5 +13,6 @@ struct CameraSettings
 
   int codec{0};        // an AVCodecID, we just use int to not leak the header...
   int pixelformat{-1}; // an AVPixelFormat ; same
+  bool custom{false};  // custom editor
 };
 }

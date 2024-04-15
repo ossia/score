@@ -38,6 +38,12 @@ bool CameraInput::load(
 {
   close_file();
   m_inputKind = inputKind;
+  if(auto it = m_inputKind.find(','); it != std::string::npos)
+    m_inputKind.erase(it);
+  if(auto it = m_inputKind.find(' '); it != std::string::npos)
+    m_inputKind.erase(it);
+  if(auto it = m_inputKind.find(':'); it != std::string::npos)
+    m_inputKind.erase(it);
   m_inputDevice = inputDevice;
 
   this->width = w;
