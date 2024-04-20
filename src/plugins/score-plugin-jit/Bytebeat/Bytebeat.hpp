@@ -51,7 +51,7 @@ public:
   BytebeatModel(JSONObject::Deserializer&& vis, QObject* parent);
 
   const QString& script() const noexcept { return m_text; }
-  void setScript(const QString& txt);
+  [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);
   void scriptChanged(const QString& txt) W_SIGNAL(scriptChanged, txt);
 
   static constexpr bool hasExternalUI() noexcept { return true; }
@@ -59,7 +59,7 @@ public:
   bool validate(const QString& txt) const noexcept;
 
   QString prettyName() const noexcept override;
-  void changed() W_SIGNAL(changed);
+  void programChanged() W_SIGNAL(programChanged);
 
   BytebeatFactory factory;
 
@@ -71,7 +71,7 @@ private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
   void init();
-  void reload();
+  [[nodiscard]] Process::ScriptChangeResult reload();
   QString m_text;
   std::unique_ptr<BytebeatCompiler> m_compiler;
 };

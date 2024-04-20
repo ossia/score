@@ -79,7 +79,7 @@ FaustEffectModel::FaustEffectModel(
     : Process::ProcessModel{t, id, "Faust", parent}
 {
   init();
-  setText(faustProgram);
+  setScript(faustProgram);
 }
 
 FaustEffectModel::~FaustEffectModel() { }
@@ -90,16 +90,18 @@ bool FaustEffectModel::validate(const QString& txt) const noexcept
   return true;
 }
 
-void FaustEffectModel::setText(const QString& txt)
+Process::ScriptChangeResult FaustEffectModel::setScript(const QString& txt)
 {
-  if(txt != m_text)
+  if(txt != m_script)
   {
-    m_text = txt;
-    if(m_text.isEmpty())
-      m_text = "process = _;";
-    reload();
-    textChanged(m_text);
+    m_script = txt;
+    if(m_script.isEmpty())
+      m_script = "process = _;";
+    auto res = reload();
+    scriptChanged(m_script);
+    return res;
   }
+  return {};
 }
 
 void FaustEffectModel::init() { }
@@ -194,16 +196,17 @@ static bool faustIsMidi(llvm_dsp& dsp)
   return ui.freq && ui.gain && ui.gate;
 }
 
-void FaustEffectModel::reload()
+Process::ScriptChangeResult FaustEffectModel::reload()
 {
+  Process::ScriptChangeResult res;
   auto& ctx = score::IDocument::documentContext(*this);
-  score::delete_later<Process::Inlets> inlets_to_clear;
-  score::delete_later<Process::Outlets> outlets_to_clear;
+  score::delete_later<Process::Inlets>& inlets_to_clear = res.inlets;
+  score::delete_later<Process::Outlets>& outlets_to_clear = res.outlets;
 
-  auto fx_text = m_text.toUtf8();
+  auto fx_text = m_script.toUtf8();
   if(fx_text.isEmpty())
   {
-    return;
+    return res;
   }
 
   if(QFile f{fx_text}; f.open(QIODevice::ReadOnly))
@@ -211,7 +214,7 @@ void FaustEffectModel::reload()
     QFileInfo fi{f};
     m_path = score::relativizeFilePath(fi.absolutePath(), ctx);
     fx_text = f.readAll();
-    m_text = fx_text;
+    m_script = fx_text;
     m_declareName = fi.completeBaseName();
   }
   else
@@ -269,12 +272,14 @@ void FaustEffectModel::reload()
   if(!fac)
   {
     // TODO mark as invalid, like JS
-    return;
+    return res;
   }
 
   auto obj = fac->createDSPInstance();
   if(!obj)
-    return;
+    return res;
+
+  res.valid = true;
 
   if(faustIsMidi(*obj))
   {
@@ -430,24 +435,23 @@ void FaustEffectModel::reload()
 
   metadata().setName(m_declareName);
   metadata().setLabel(m_declareName);
-  inletsChanged();
-  outletsChanged();
-  changed();
+
+  return res;
 }
 
 QString FaustEffectModel::effect() const noexcept
 {
-  return m_text;
+  return m_script;
 }
 
 void FaustEffectModel::loadPreset(const Process::Preset& preset)
 {
-  Process::loadScriptProcessPreset<FaustEffectModel::p_text>(*this, preset);
+  Process::loadScriptProcessPreset<FaustEffectModel::p_script>(*this, preset);
 }
 
 Process::Preset FaustEffectModel::savePreset() const noexcept
 {
-  return Process::saveScriptProcessPreset(*this, this->m_text);
+  return Process::saveScriptProcessPreset(*this, this->m_script);
 }
 
 }
@@ -455,14 +459,14 @@ Process::Preset FaustEffectModel::savePreset() const noexcept
 template <>
 void DataStreamReader::read(const Faust::FaustEffectModel& eff)
 {
-  m_stream << eff.m_text << eff.m_path;
+  m_stream << eff.m_script << eff.m_path;
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
 void DataStreamWriter::write(Faust::FaustEffectModel& eff)
 {
-  m_stream >> eff.m_text >> eff.m_path;
+  m_stream >> eff.m_script >> eff.m_path;
   eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
@@ -472,7 +476,7 @@ void DataStreamWriter::write(Faust::FaustEffectModel& eff)
 template <>
 void JSONReader::read(const Faust::FaustEffectModel& eff)
 {
-  obj["Text"] = eff.text();
+  obj["Text"] = eff.script();
   obj["Path"] = eff.m_path;
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
@@ -480,7 +484,7 @@ void JSONReader::read(const Faust::FaustEffectModel& eff)
 template <>
 void JSONWriter::write(Faust::FaustEffectModel& eff)
 {
-  eff.m_text = obj["Text"].toString();
+  eff.m_script = obj["Text"].toString();
   if(auto path_it = obj.tryGet("Path"))
     eff.m_path = path_it->toString();
   eff.reload();
@@ -497,7 +501,7 @@ FaustEffectComponent::FaustEffectComponent(
     : ProcessComponent_T{proc, ctx, "FaustComponent", parent}
 {
   connect(
-      &proc, &Faust::FaustEffectModel::changed, this,
+      &proc, &Faust::FaustEffectModel::programChanged, this,
       [this, &ctx] {
     for(auto& c : this->m_controlConnections)
       QObject::disconnect(c);
@@ -522,7 +526,7 @@ FaustEffectComponent::FaustEffectComponent(
     }
 
     commands.run_all();
-      },
+  },
       Qt::QueuedConnection);
 
   Execution::Transaction commands{ctx};

@@ -114,6 +114,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   template <typename Item>
   QGraphicsItem* createCustom(Item& item)
   {
+    static_assert(!requires { item.transaction; });
     return new oscr::CustomItem<Item&>{item};
   }
 

@@ -24,16 +24,16 @@ class RenderList;
 struct Graph;
 class GenericNodeRenderer;
 class NodeRenderer;
-
+using FunctionMessage = std::function<void(score::gfx::Node&)>;
 #if BOOST_VERSION < 107900
 // Old boost: small_vector was not nothrow-move-constructible so we remove the check there.
 using gfx_input = ossia::slow_variant<
     ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list_ptr,
-    ossia::transform3d>;
+    ossia::transform3d, FunctionMessage>;
 #else
 using gfx_input = ossia::variant<
     ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list_ptr,
-    ossia::transform3d>;
+    ossia::transform3d, FunctionMessage>;
 #endif
 
 /**
@@ -170,6 +170,7 @@ public:
   void process(int32_t port, const ossia::mesh_list_ptr& v);
   void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
+  void process(int32_t port, const FunctionMessage&);
 };
 
 /**

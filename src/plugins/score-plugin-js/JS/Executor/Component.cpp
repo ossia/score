@@ -37,7 +37,7 @@ Component::Component(
     this->node = node;
     auto proc = std::make_shared<js_process>(node);
     m_ossia_process = proc;
-    on_scriptChange(element.qmlData(), false);
+    on_scriptChange();
   }
   else
   {
@@ -48,7 +48,7 @@ Component::Component(
 
     m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-    on_scriptChange(element.qmlData(), true);
+    on_scriptChange();
 #else
     throw std::runtime_error(
         "GPU Nodes not supported in this build of score, use a distribution with an "
@@ -56,13 +56,13 @@ Component::Component(
 #endif
   }
 
-  con(element, &JS::ProcessModel::qmlDataChanged, this, &Component::on_scriptChange,
+  con(element, &JS::ProcessModel::programChanged, this, &Component::on_scriptChange,
       Qt::DirectConnection);
 }
 
 Component::~Component() { }
 
-void Component::on_scriptChange(const QString& script, bool gpu)
+void Component::on_scriptChange()
 {
   enum Type
   {
@@ -71,7 +71,7 @@ void Component::on_scriptChange(const QString& script, bool gpu)
     Gpu
   };
   Type cur_type{};
-  Type next_type = gpu ? Gpu : Cpu;
+  Type next_type = process().isGpu() ? Gpu : Cpu;
 
   if(!node)
   {
@@ -95,6 +95,7 @@ void Component::on_scriptChange(const QString& script, bool gpu)
   std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
       new_ports;
 
+  const auto& script = process().qmlData();
   // 1. Recreate ports & change the script
   if(cur_type == next_type)
   {

@@ -325,6 +325,13 @@ void ProcessNode::process(int32_t port, const ossia::mesh_list_ptr& v)
 
 void ProcessNode::process(int32_t port, const ossia::transform3d& v) { }
 
+void ProcessNode::process(
+    int32_t port, const std::function<void(score::gfx::Node&)>& func)
+{
+  SCORE_ASSERT(func);
+  func(*this);
+}
+
 void ProcessNode::process(Message&& msg)
 {
   process(msg.token);
@@ -347,6 +354,7 @@ QDebug operator<<(QDebug s, const score::gfx::gfx_input& v)
   {
     QDebug& s;
     void operator()(ossia::monostate) { s << "monostate"; }
+    void operator()(const std::function<void(score::gfx::Node&)>) { s << "function"; }
     void operator()(const ossia::value& v)
     {
       s << "value:" << QByteArray::fromStdString(ossia::value_to_pretty_string(v));

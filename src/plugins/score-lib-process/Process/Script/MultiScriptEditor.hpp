@@ -57,7 +57,8 @@ public:
       addTab(name, prop.*addr, lang);
     }
 
-    con(m_process, Property_T::notify, this, [this](const auto& prop) {
+    con(m_process, Property_T::notify, this, [this]() {
+      const auto& prop = (m_process.*Property_T::get)();
       int i = 0;
       for(auto& [name, addr, lang] : param_type::specification)
       {

@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+#include <Process/Script/ScriptProcess.hpp>
 
 #include <JS/JSProcessMetadata.hpp>
 #include <JS/Qml/QmlObjects.hpp>
@@ -57,7 +58,7 @@ public:
     vis.writeTo(*this);
   }
 
-  void setScript(const QString& script);
+  [[nodiscard]] Process::ScriptChangeResult setScript(const QString& script);
   const QString& script() const noexcept { return m_script; }
 
   const QByteArray& qmlData() const noexcept { return m_qmlData; }
@@ -72,16 +73,14 @@ public:
       W_SIGNAL(errorMessage, arg_1, arg_2);
   void scriptOk() W_SIGNAL(scriptOk);
   void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
-
-  void qmlDataChanged(const QString& arg_1, bool gpu)
-      W_SIGNAL(qmlDataChanged, arg_1, gpu);
+  void programChanged() W_SIGNAL(programChanged);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
-  bool setQmlData(const QByteArray&, bool isFile);
+  Process::ScriptChangeResult setQmlData(const QByteArray&, bool isFile);
 
   QString m_script;
   QByteArray m_qmlData;

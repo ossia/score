@@ -122,14 +122,16 @@ BytebeatModel::BytebeatModel(DataStream::Deserializer&& vis, QObject* parent)
   init();
 }
 
-void BytebeatModel::setScript(const QString& txt)
+Process::ScriptChangeResult BytebeatModel::setScript(const QString& txt)
 {
   if(m_text != txt)
   {
     m_text = txt;
-    reload();
+    auto res = reload();
     scriptChanged(txt);
+    return res;
   }
+  return {};
 }
 
 bool BytebeatModel::validate(const QString& txt) const noexcept
@@ -145,8 +147,9 @@ QString BytebeatModel::prettyName() const noexcept
   return "Bytebeat";
 }
 
-void BytebeatModel::reload()
+Process::ScriptChangeResult BytebeatModel::reload()
 {
+  Process::ScriptChangeResult res;
   // FIXME dispos of them once unused at execution
   static std::list<std::shared_ptr<BytebeatCompiler>> old_compilers;
   if(m_compiler)
@@ -160,7 +163,7 @@ void BytebeatModel::reload()
   auto fx_text = Jit::generateBytebeatFunction(m_text).toLocal8Bit();
   BytebeatFactory jit_factory;
   if(fx_text.isEmpty())
-    return;
+    return res;
 
   try
   {
@@ -168,21 +171,22 @@ void BytebeatModel::reload()
     assert(jit_factory);
 
     if(!jit_factory)
-      return;
+      return res;
   }
   catch(const std::exception& e)
   {
     errorMessage(0, e.what());
-    return;
+    return res;
   }
   catch(...)
   {
     errorMessage(0, "JIT error");
-    return;
+    return res;
   }
 
   factory = std::move(jit_factory);
-  changed();
+  res.valid = true;
+  return res;
 }
 
 QString BytebeatModel::effect() const noexcept
@@ -239,7 +243,7 @@ BytebeatExecutor::BytebeatExecutor(
 
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(proc, &Jit::BytebeatModel::changed, this, [this, &proc, bb] {
+  con(proc, &Jit::BytebeatModel::programChanged, this, [this, &proc, bb] {
     if(auto tgt = proc.factory.target<void (*)(double*, int, int)>())
     {
       in_exec([tgt, bb] { bb->set_function(*tgt); });

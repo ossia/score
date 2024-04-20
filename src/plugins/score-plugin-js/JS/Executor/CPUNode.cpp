@@ -236,7 +236,6 @@ void js_node::run(
     auto& vp = *m_ctrlInlets[i].second->target<ossia::value_port>();
     auto& dat = vp.get_data();
 
-    m_ctrlInlets[i].first->clear();
     if(!dat.empty())
     {
       auto var = dat.back().value.apply(ossia::qt::ossia_to_qvariant{});

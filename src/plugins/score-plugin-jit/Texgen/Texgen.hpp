@@ -6,6 +6,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+#include <Process/Script/ScriptProcess.hpp>
 
 #include <Scenario/Commands/ScriptEditCommand.hpp>
 
@@ -55,13 +56,13 @@ public:
 
   bool validate(const QString& txt) const noexcept;
   const QString& script() const noexcept { return m_text; }
-  void setScript(const QString& txt);
+  [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);
   void scriptChanged(const QString& txt) W_SIGNAL(scriptChanged, txt);
+  void programChanged() W_SIGNAL(programChanged);
 
   static constexpr bool hasExternalUI() noexcept { return true; }
 
   QString prettyName() const noexcept override;
-  void changed() W_SIGNAL(changed);
 
   TexgenFactory factory;
 
@@ -73,7 +74,7 @@ private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
   void init();
-  void reload();
+  [[nodiscard]] Process::ScriptChangeResult reload();
   QString m_text;
   std::unique_ptr<TexgenCompiler> m_compiler;
 };

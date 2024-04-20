@@ -760,8 +760,9 @@ static void add_pd_search_paths(const QString& folder)
     libpd_add_to_search_path(path.toStdString().c_str());
 }
 
-void ProcessModel::setScript(const QString& script)
+Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
 {
+  Process::ScriptChangeResult res;
   m_script = score::locateFilePath(script, score::IDocument::documentContext(*this));
   QFile f(m_script);
   if(f.open(QIODevice::ReadOnly))
@@ -771,8 +772,8 @@ void ProcessModel::setScript(const QString& script)
     setMidiInput(false);
     setMidiOutput(false);
 
-    auto old_inlets = score::clearAndDeleteLater(m_inlets);
-    auto old_outlets = score::clearAndDeleteLater(m_outlets);
+    res.inlets = score::clearAndDeleteLater(m_inlets);
+    res.outlets = score::clearAndDeleteLater(m_outlets);
 
     int i = 0;
     auto get_next_id = [&] {
@@ -879,9 +880,10 @@ void ProcessModel::setScript(const QString& script)
         }
       }
     }
-    inletsChanged();
-    outletsChanged();
+
+    res.valid = true;
   }
+
   // Create instance
   libpd_set_instance(m_instance->instance);
 
@@ -912,6 +914,7 @@ void ProcessModel::setScript(const QString& script)
   libpd_process_raw(temp_buff.data(), temp_buff.data());
 
   scriptChanged(script);
+  return res;
 }
 
 const QString& ProcessModel::script() const

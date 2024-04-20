@@ -162,7 +162,7 @@ struct QPainterAdapter
   }
 
   //          tab, count
-  void draw_polygon(double* tab, int count)
+  void draw_polygon(const double* tab, int count)
   {
     QPolygonF poly;
     double x, y;
@@ -175,7 +175,8 @@ struct QPainterAdapter
     path.addPolygon(poly);
   }
 
-  void draw_bytes(int x, int y, int w, int h, unsigned char* image, int img_w, int img_h)
+  void draw_bytes(
+      int x, int y, int w, int h, const unsigned char* image, int img_w, int img_h)
   {
     auto img = QImage(image, img_w, img_h, QImage::Format_RGB32);
     painter.drawImage(QRect(x, y, w, h), img, QRect(0, 0, img_w, img_h));

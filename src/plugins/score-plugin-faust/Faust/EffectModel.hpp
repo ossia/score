@@ -5,6 +5,7 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+#include <Process/Script/ScriptProcess.hpp>
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
@@ -63,8 +64,8 @@ public:
   QString prettyName() const noexcept override;
 
   bool validate(const QString& txt) const noexcept;
-  const QString& text() const { return m_text; }
-  void setText(const QString& txt);
+  const QString& script() const { return m_script; }
+  [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);
 
   Process::Inlets& inlets() noexcept { return m_inlets; }
   Process::Outlets& outlets() noexcept { return m_outlets; }
@@ -77,21 +78,21 @@ public:
   std::shared_ptr<ossia::nodes::custom_dsp_poly_factory> faust_poly_factory{};
   std::shared_ptr<ossia::nodes::custom_dsp_poly_effect> faust_poly_object{};
 
-  void changed() W_SIGNAL(changed);
-  void textChanged(const QString& str) W_SIGNAL(textChanged, str);
+  void scriptChanged(const QString& str) W_SIGNAL(scriptChanged, str);
+  void programChanged() W_SIGNAL(programChanged);
 
   void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
 
-  PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
+  PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
 
   void init();
-  void reload();
+  [[nodiscard]] Process::ScriptChangeResult reload();
 
-  QString m_text;
+  QString m_script;
   QString m_path;
   QString m_declareName;
 };
@@ -119,7 +120,7 @@ using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     FaustEffectModel, Process::DefaultEffectItem,
     Process::ProcessScriptEditDialog<
-        FaustEffectModel, FaustEffectModel::p_text, LanguageSpec>>;
+        FaustEffectModel, FaustEffectModel::p_script, LanguageSpec>>;
 }
 
 namespace Execution

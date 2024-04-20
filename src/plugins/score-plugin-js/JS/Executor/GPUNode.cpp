@@ -20,9 +20,24 @@
 
 #include <private/qquickrendercontrol_p.h>
 #include <private/qquickwindow_p.h>
-#include <private/qsgdefaultrendercontext_p.h>
+#include <private/qsgcontext_p.h>
+
+#include <compare>
 namespace JS
 {
+struct engine_key
+{
+  std::thread::id id;
+  QRhi* rhi;
+  std::strong_ordering operator<=>(const engine_key& other) const noexcept = default;
+};
+struct engine_key_hash
+{
+  std::size_t operator()(const JS::engine_key& k) const noexcept
+  {
+    return std::hash<std::thread::id>{}(k.id) ^ intptr_t(k.rhi);
+  }
+};
 
 struct GpuNode : score::gfx::NodeModel
 {
@@ -36,6 +51,7 @@ public:
   void process(score::gfx::Message&& msg) override;
 
   QString source;
+  std::atomic_int64_t sourceIndex{};
 
   score::gfx::Message m_lastState;
 
@@ -185,26 +201,25 @@ public:
     }
   };
 
-  std::pair<const std::thread::id, std::shared_ptr<Engine>> acquireEngine()
+  std::pair<const engine_key, std::shared_ptr<Engine>> acquireEngine(QRhi* rhi)
   {
-    const auto tid = std::this_thread::get_id();
+    const auto key = engine_key{std::this_thread::get_id(), rhi};
     // FIXME find if there's a more atomic way to implement this with insert_or_visit,
     // without calling init() inside the map's lock.
     std::shared_ptr<Engine> res;
-    m_engines.visit(tid, [&](const auto& engine) { res = engine.second; });
+    m_engines.visit(key, [&](const auto& engine) { res = engine.second; });
 
     if(!res)
     {
       res = std::make_shared<Engine>();
-      m_engines.insert({tid, res});
+      m_engines.insert({key, res});
     }
-    return {tid, res};
+    return {key, res};
   }
 
-  void releaseEngine() { m_engines.erase(std::this_thread::get_id()); }
+  void releaseEngine(QRhi* rhi) { m_engines.erase({std::this_thread::get_id(), rhi}); }
 
-  boost::concurrent_flat_map<
-      std::thread::id, std::shared_ptr<Engine>, std::hash<std::thread::id>>
+  boost::concurrent_flat_map<engine_key, std::shared_ptr<Engine>, engine_key_hash>
       m_engines;
 };
 
@@ -212,6 +227,7 @@ class GpuRenderer : public score::gfx::GenericNodeRenderer
 {
 public:
   GpuNode& node;
+  std::atomic_int64_t sourceIndex{};
   explicit GpuRenderer(const GpuNode& node) noexcept
       : score::gfx::GenericNodeRenderer{node}
       , node{(GpuNode&)node}
@@ -298,7 +314,7 @@ void main ()
     // Init the QQuick render stuff
     m_renderControl = new QQuickRenderControl{};
     m_window = new QQuickWindow{m_renderControl};
-    m_window->setGraphicsDevice(QQuickGraphicsDevice::fromRhi(renderer.state.rhi));
+    m_window->setGraphicsDevice(QQuickGraphicsDevice::fromRhi(&rhi));
 
     m_window->setWidth(renderer.state.renderSize.width());
     m_window->setHeight(renderer.state.renderSize.height());
@@ -307,35 +323,55 @@ void main ()
     m_renderControl->initialize();
     m_window->setRenderTarget(
         QQuickRenderTarget::fromRhiRenderTarget(m_internalTex.renderTarget));
+  }
 
-    auto [tid, engine] = node.acquireEngine();
-    m_tid = tid;
-    m_engine = engine;
-    if(m_engine)
+  void reloadEngine(QRhi* rhi)
+  {
+    auto oldSourceIndex = this->sourceIndex.exchange(this->node.sourceIndex);
+    //= std::exchange(this->sourceIndex, this->node.sourceIndex.load());
+    // yes technically there is the overflow case but it's 2^64 editions away...
+    if(oldSourceIndex < this->node.sourceIndex)
     {
-      m_engine->init(node, m_window);
+      if(m_engine)
+      {
+        m_engine->releaseItem();
+      }
+
+      node.releaseEngine(rhi);
+      m_engine.reset();
+      auto [key, engine] = node.acquireEngine(rhi);
+      m_tid = key.id;
+      m_engine = engine;
+      if(m_engine)
+      {
+        m_engine->init(node, m_window);
+      }
     }
   }
 
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override {
+    reloadEngine(renderer.state.rhi);
     defaultUBOUpdate(renderer, res);
   }
 
-  QElapsedTimer t;
-  void runInitialPasses(
-      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
-      QRhiResourceUpdateBatch*& res, score::gfx::Edge& e) override
+  void processMessages()
   {
-    t.restart();
-    // Here we run the Qt Qucik render loop which handles its own pass
-
-    // 0. Copy the values in the inputs
     score::gfx::Message msg;
     while(m_messages.try_dequeue(msg))
     {
       if(m_engine)
         m_engine->processMessage(msg);
     }
+  }
+
+  void runInitialPasses(
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
+      QRhiResourceUpdateBatch*& res, score::gfx::Edge& e) override
+  {
+    // Here we run the Qt Qucik render loop which handles its own pass
+
+    // 0. Copy the values in the inputs
+    processMessages();
 
     // 1. Run our object
     if(m_engine)
@@ -344,12 +380,16 @@ void main ()
     }
 
     // 2. Render
+    m_window->beforeRendering();
+
     auto cd = QQuickWindowPrivate::get(m_window);
     auto rc = QQuickRenderControlPrivate::get(m_renderControl);
     rc->cb = &cb;
 
     cd->deliveryAgentPrivate()->flushFrameSynchronousEvents(m_window);
     cd->polishItems();
+
+    m_window->afterRendering();
     m_window->afterAnimating();
 
     // beginFrame:
@@ -377,10 +417,10 @@ void main ()
       m_engine->m_engine->collectGarbage();
     }
 
+    QEvent* updateRequest = new QEvent(QEvent::UpdateRequest);
+    QCoreApplication::postEvent(m_window, updateRequest);
     // cb.endPass(); // < called by renderSceneGraph
     res = renderer.state.rhi->nextResourceUpdateBatch();
-
-    t.restart();
   }
 
   void runRenderPass(
@@ -389,6 +429,7 @@ void main ()
   {
     const auto& mesh = renderer.defaultQuad();
     defaultRenderPass(renderer, mesh, cb, edge);
+    m_window->frameSwapped();
   }
 
   void release(score::gfx::RenderList& r) override
@@ -423,6 +464,7 @@ void main ()
 
 GpuNode::GpuNode(const QString& source)
     : source{source}
+    , sourceIndex{1}
 {
   output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
 }
@@ -438,14 +480,23 @@ GpuNode::createRenderer(score::gfx::RenderList& r) const noexcept
 
 void GpuNode::process(score::gfx::Message&& msg)
 {
-  m_lastState.node_id = msg.node_id;
-  m_lastState.token = msg.token;
-
-  m_lastState.input.resize(msg.input.size());
-  for(int i = 0, N = msg.input.size(); i < N; i++)
+  if(msg.input.size() == 1 && get_if<score::gfx::FunctionMessage>(&msg.input[0]))
   {
-    if(!get_if<ossia::monostate>(&msg.input[i]))
-      m_lastState.input[i] = msg.input[i];
+    // This changes the script
+    auto& fun = *get_if<score::gfx::FunctionMessage>(&msg.input[0]);
+    fun(*this);
+  }
+  else
+  {
+    m_lastState.node_id = msg.node_id;
+    m_lastState.token = msg.token;
+
+    m_lastState.input.resize(msg.input.size());
+    for(int i = 0, N = msg.input.size(); i < N; i++)
+    {
+      if(!get_if<ossia::monostate>(&msg.input[i]))
+        m_lastState.input[i] = msg.input[i];
+    }
   }
 
   for(auto renderer : renderedNodes)
@@ -473,11 +524,25 @@ std::string gpu_exec_node::label() const noexcept
 
 void gpu_exec_node::setScript(const QString& str)
 {
-  exec_context->ui->unregister_node(id);
+  // exec_context->ui->unregister_node(id);
 
-  auto n = std::make_unique<JS::GpuNode>(str);
+  if(id < 0)
+  {
+    auto n = std::make_unique<JS::GpuNode>(str);
 
-  id = exec_context->ui->register_node(std::move(n));
+    id = exec_context->ui->register_node(std::move(n));
+  }
+  else
+  {
+    auto msg = exec_context->allocateMessage(1);
+    msg.node_id = id;
+    msg.input.emplace_back(score::gfx::FunctionMessage{[str](score::gfx::Node& nn) {
+      auto& n = static_cast<GpuNode&>(nn);
+      n.source = str; // FIXME mutex
+      n.sourceIndex++;
+    }});
+    exec_context->ui->send_message(std::move(msg));
+  }
 }
 }
 #endif

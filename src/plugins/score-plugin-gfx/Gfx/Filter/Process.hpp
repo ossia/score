@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+#include <Process/Script/ScriptProcess.hpp>
 
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Metadata.hpp>
@@ -47,8 +48,8 @@ public:
   PROPERTY(QString, fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
 
   const ShaderSource& program() const noexcept { return m_program; }
-  void setProgram(const ShaderSource& f);
-  void programChanged(const ShaderSource& f) W_SIGNAL(programChanged, f);
+  [[nodiscard]] Process::ScriptChangeResult setProgram(const ShaderSource& f);
+  void programChanged() W_SIGNAL(programChanged);
   PROPERTY(
       Gfx::ShaderSource, program READ program WRITE setProgram NOTIFY programChanged)
 

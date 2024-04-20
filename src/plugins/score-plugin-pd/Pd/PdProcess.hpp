@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+#include <Process/Script/ScriptProcess.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
 #include <Process/WidgetLayer/WidgetLayerView.hpp>
@@ -57,7 +58,7 @@ public:
 
   bool hasExternalUI() const noexcept;
 
-  void setScript(const QString& script);
+  [[nodiscard]] Process::ScriptChangeResult setScript(const QString& script);
   const QString& script() const;
 
   ~ProcessModel() override;
@@ -74,6 +75,7 @@ public:
   void setMidiOutput(bool midiOutput);
 
   void scriptChanged(QString v) W_SIGNAL(scriptChanged, v);
+  void programChanged() W_SIGNAL(programChanged);
   void audioInputsChanged(int v) W_SIGNAL(audioInputsChanged, v);
   void audioOutputsChanged(int v) W_SIGNAL(audioOutputsChanged, v);
   void midiInputChanged(bool v) W_SIGNAL(midiInputChanged, v);

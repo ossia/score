@@ -83,14 +83,16 @@ bool Model::validate(const QString& txt) const noexcept
   return true;
 }
 
-void Model::setScript(const QString& txt)
+Process::ScriptChangeResult Model::setScript(const QString& txt)
 {
   if(m_text != txt)
   {
     m_text = txt;
-    reload();
+    auto res = reload();
     scriptChanged(txt);
+    return res;
   }
+  return {};
 }
 
 void Model::init() { }
@@ -338,25 +340,27 @@ extern "C" ossia::graph_node* avnd_factory(int buffersize, double rate) {{
   return it->second;
 }
 
-void Model::reload()
+Process::ScriptChangeResult Model::reload()
 {
+  Process::ScriptChangeResult res;
   auto jit_fac = getJitFactory();
   if(!jit_fac)
-    return;
+    return res;
   auto& jit_factory = *jit_fac;
 
   std::unique_ptr<ossia::graph_node> jit_object{jit_factory(512, 44100)};
   if(!jit_object)
   {
     jit_factory = {};
-    return;
+    return res;
   }
   // creating a new dsp
 
   factory = std::move(jit_fac);
 
-  auto inls = score::clearAndDeleteLater(m_inlets);
-  auto outls = score::clearAndDeleteLater(m_outlets);
+  res.inlets = score::clearAndDeleteLater(m_inlets);
+  res.outlets = score::clearAndDeleteLater(m_outlets);
+  res.valid = true;
 
   for(ossia::inlet* port : jit_object->root_inputs())
   {
@@ -376,9 +380,7 @@ void Model::reload()
   if(!m_outlets.empty() && m_outlets.front()->type() == Process::PortType::Audio)
     safe_cast<Process::AudioOutlet*>(m_outlets.front())->setPropagate(true);
 
-  inletsChanged();
-  outletsChanged();
-  changed();
+  return res;
 }
 
 QString Model::effect() const noexcept
@@ -516,7 +518,7 @@ Executor::Executor(AvndJit::Model& proc, const Execution::Context& ctx, QObject*
     }
   };
   reset();
-  con(proc, &AvndJit::Model::changed, this, reset, Qt::QueuedConnection);
+  con(proc, &AvndJit::Model::programChanged, this, reset, Qt::QueuedConnection);
 }
 
 Executor::~Executor() { }

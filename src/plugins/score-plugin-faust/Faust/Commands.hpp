@@ -11,18 +11,18 @@ inline const CommandGroupKey& CommandFactoryName()
 }
 
 class EditScript
-    : public Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>
+    : public Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_script>
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), EditScript, "Edit a Faust program")
 public:
-  using Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>::EditScript;
+  using Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_script>::EditScript;
 };
 }
 
 namespace score
 {
 template <>
-struct StaticPropertyCommand<Faust::FaustEffectModel::p_text> : Faust::EditScript
+struct StaticPropertyCommand<Faust::FaustEffectModel::p_script> : Faust::EditScript
 {
   using Faust::EditScript::EditScript;
 };

@@ -108,8 +108,9 @@ QString ProcessModel::effect() const noexcept
   return m_qmlData;
 }
 
-void ProcessModel::setScript(const QString& script)
+[[nodiscard]] Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
 {
+  Process::ScriptChangeResult res;
   /*
   m_watch.reset();
 
@@ -149,33 +150,35 @@ void ProcessModel::setScript(const QString& script)
         });
 
     */
-    if(!setQmlData(path.toUtf8(), true))
-      return;
+    if(res = setQmlData(path.toUtf8(), true); !res.valid)
+      return res;
   }
   else
   {
-    if(!setQmlData(data, false))
-      return;
+    if(res = setQmlData(data, false); !res.valid)
+      return res;
   }
 
   m_script = script;
   scriptChanged(script);
+  return res;
 }
 
-bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
+Process::ScriptChangeResult ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 {
+  Process::ScriptChangeResult res;
   if(!isFile && !data.startsWith("import"))
-    return false;
+    return res;
 
   auto script = m_cache.get(*this, data, isFile);
   if(!script)
-    return false;
+    return res;
 
   m_isFile = isFile;
   m_qmlData = data;
 
-  auto old_inlets = score::clearAndDeleteLater(m_inlets);
-  auto old_outlets = score::clearAndDeleteLater(m_outlets);
+  res.inlets = score::clearAndDeleteLater(m_inlets);
+  res.outlets = score::clearAndDeleteLater(m_outlets);
 
   SCORE_ASSERT(m_inlets.size() == 0);
   SCORE_ASSERT(m_outlets.size() == 0);
@@ -220,12 +223,10 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   }
 
   scriptOk();
+  res.valid = true;
 
-  qmlDataChanged(data, isGpu());
-  inletsChanged();
-  outletsChanged();
-
-  return true;
+  // inlets / outletsChanged : in ScriptEditCommand
+  return res;
 }
 
 Script* ProcessModel::currentObject() const noexcept

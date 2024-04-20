@@ -5,20 +5,20 @@
 #include <JS/JSProcessModel.hpp>
 namespace JS
 {
-class EditJSScript
+class EditScript
     : public Scenario::EditScript<JS::ProcessModel, JS::ProcessModel::p_script>
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), EditJSScript, "Edit a script")
+  SCORE_COMMAND_DECL(CommandFactoryName(), EditScript, "Edit a JS script")
 public:
-  using EditScript::EditScript;
+  using Scenario::EditScript<JS::ProcessModel, JS::ProcessModel::p_script>::EditScript;
 };
 }
 
 namespace score
 {
 template <>
-struct StaticPropertyCommand<JS::ProcessModel::p_script> : JS::EditJSScript
+struct StaticPropertyCommand<JS::ProcessModel::p_script> : JS::EditScript
 {
-  using EditJSScript::EditJSScript;
+  using EditScript::EditScript;
 };
 }

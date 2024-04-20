@@ -1,4 +1,5 @@
 #pragma once
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/document/DocumentContext.hpp>

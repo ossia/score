@@ -2,6 +2,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+#include <Process/Script/ScriptProcess.hpp>
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
@@ -46,7 +47,7 @@ private:
     Dataflow::removeCables(m_oldCables, ctx);
 
     // Set the old script
-    (cmt.*Property_T::set)(m_oldScript);
+    Process::ScriptChangeResult res = (cmt.*Property_T::set)(m_oldScript);
 
     // We expect the inputs / outputs to revert back to the
     // exact same state
@@ -67,6 +68,7 @@ private:
     Dataflow::restoreCables(m_oldCables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
+    cmt.programChanged();
   }
 
   static void restoreCables(
@@ -115,7 +117,7 @@ private:
     Dataflow::removeCables(m_oldCables, ctx);
 
     auto& cmt = m_path.find(ctx);
-    (cmt.*Property_T::set)(m_newScript);
+    Process::ScriptChangeResult res = (cmt.*Property_T::set)(m_newScript);
 
     // Try an optimistic matching. Type and name must match.
 
@@ -149,6 +151,7 @@ private:
 
     cmt.inletsChanged();
     cmt.outletsChanged();
+    cmt.programChanged();
   }
 
   void serializeImpl(DataStreamInput& s) const override

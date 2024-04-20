@@ -104,7 +104,7 @@ void Model::setFragment(QString f)
   fragmentChanged(m_program.fragment);
 }
 
-void Model::setProgram(const ShaderSource& f)
+Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
 {
   score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
   QShaderVersion version = QShaderVersion(100);
@@ -118,9 +118,9 @@ void Model::setProgram(const ShaderSource& f)
     m_processedProgram = *processed;
 
     setupIsf(m_processedProgram.descriptor);
-    inletsChanged();
-    programChanged(m_program);
+    return {.valid = true, .inlets = std::move(inls)};
   }
+  return {};
 }
 
 void Model::loadPreset(const Process::Preset& preset)

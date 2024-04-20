@@ -383,7 +383,7 @@ static void setup_opengl(bool& enable_opengl_ui)
       }
       if(!ctx.makeCurrent(&surf))
       {
-        qDebug() << "OpenGL detection skipped, cannot create make an offscreen surface "
+        qDebug() << "OpenGL detection skipped, cannot make an offscreen surface "
                     "current";
         enable_opengl_ui = false;
         return;
@@ -458,6 +458,8 @@ static void setup_locale()
 
 static void setup_app_flags()
 {
+  qputenv("QSG_USE_SIMPLE_ANIMATION_DRIVER", "1");
+  qputenv("QSG_RENDER_LOOP", "basic");
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   // Consistency in looks across macOS, Windows (which prevents the horrible 125% scaling) and Linux
   // FIXME in Qt 6 this is entirely broken... https://bugreports.qt.io/browse/QTBUG-103225

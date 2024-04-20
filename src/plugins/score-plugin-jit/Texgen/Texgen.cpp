@@ -79,14 +79,16 @@ TexgenModel::TexgenModel(DataStream::Deserializer&& vis, QObject* parent)
   init();
 }
 
-void TexgenModel::setScript(const QString& txt)
+Process::ScriptChangeResult TexgenModel::setScript(const QString& txt)
 {
   if(m_text != txt)
   {
     m_text = txt;
-    reload();
+    auto res = reload();
     scriptChanged(txt);
+    return res;
   }
+  return {};
 }
 
 void TexgenModel::init() { }
@@ -102,8 +104,9 @@ bool TexgenModel::validate(const QString& txt) const noexcept
   return true;
 }
 
-void TexgenModel::reload()
+Process::ScriptChangeResult TexgenModel::reload()
 {
+  Process::ScriptChangeResult res;
   // FIXME dispos of them once unused at execution
   static std::list<std::shared_ptr<TexgenCompiler>> old_compilers;
   if(m_compiler)
@@ -117,7 +120,7 @@ void TexgenModel::reload()
   auto fx_text = m_text.toLocal8Bit();
   TexgenFactory jit_factory;
   if(fx_text.isEmpty())
-    return;
+    return res;
 
   try
   {
@@ -125,21 +128,22 @@ void TexgenModel::reload()
     assert(jit_factory);
 
     if(!jit_factory)
-      return;
+      return res;
   }
   catch(const std::exception& e)
   {
     errorMessage(0, e.what());
-    return;
+    return res;
   }
   catch(...)
   {
     errorMessage(0, "JIT error");
-    return;
+    return res;
   }
 
   factory = std::move(jit_factory);
-  changed();
+  res.valid = true;
+  return res;
 }
 
 QString TexgenModel::effect() const noexcept
@@ -196,7 +200,7 @@ TexgenExecutor::TexgenExecutor(
 
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(proc, &Jit::TexgenModel::changed, this, [this, &proc, bb] {
+  con(proc, &Jit::TexgenModel::programChanged, this, [this, &proc, bb] {
     if(auto tgt
        = proc.factory
              .target<void (*)(unsigned char* rgb, int width, int height, int t)>())
