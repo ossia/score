@@ -269,7 +269,8 @@ llvm::Error cc1_main(ArrayRef<const char*> Argv, const char* Argv0, void* MainAd
   llvm::install_fatal_error_handler(
       LLVMErrorHandler, static_cast<void*>(&Clang->getDiagnostics()));
 
-  DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
+  //if(Clang && DiagsBuffer)
+  //  DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
   Clang->getDiagnostics().setSeverity(clang::diag::ext_constexpr_function_never_constant_expr, diag::Severity::Ignored, {});
   if(!Success)
   {

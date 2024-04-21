@@ -1,6 +1,8 @@
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 
+#include <score/tools/Debug.hpp>
+
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>

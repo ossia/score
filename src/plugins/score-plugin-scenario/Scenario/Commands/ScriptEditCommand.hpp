@@ -48,6 +48,7 @@ private:
 
     // Set the old script
     Process::ScriptChangeResult res = (cmt.*Property_T::set)(m_oldScript);
+    cmt.programChanged();
 
     // We expect the inputs / outputs to revert back to the
     // exact same state
@@ -118,9 +119,9 @@ private:
 
     auto& cmt = m_path.find(ctx);
     Process::ScriptChangeResult res = (cmt.*Property_T::set)(m_newScript);
+    cmt.programChanged();
 
     // Try an optimistic matching. Type and name must match.
-
     auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
     std::size_t min_inlets = std::min(m_oldInlets.size(), cmt.inlets().size());
@@ -152,6 +153,10 @@ private:
     cmt.inletsChanged();
     cmt.outletsChanged();
     cmt.programChanged();
+    // FIXME if we have it only here, then changing cables fails for the exec nodes
+    // as in the cable loading, in SetupContext::connectCable(Process::Cable& cable)
+    // auto it = outlets.find(port_src); fails because the new outlet hasn't yet been created by the component
+    // but if we have it only above, the JS GPU node fails
   }
 
   void serializeImpl(DataStreamInput& s) const override

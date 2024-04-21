@@ -2,7 +2,10 @@
 #include <ossia/audio/drwav_write_handle.hpp>
 #include <ossia/network/value/detail/value_conversion_impl.hpp>
 
+#include <QDateTime>
+
 #include <AvndProcesses/AddressTools.hpp>
+#include <halp/audio.hpp>
 #include <halp/callback.hpp>
 
 namespace avnd_tools

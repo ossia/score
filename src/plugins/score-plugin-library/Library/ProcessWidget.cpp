@@ -15,8 +15,11 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <QApplication>
 #include <QLabel>
+#include <QMainWindow>
 #include <QScrollArea>
+#include <QShortcut>
 #include <QVBoxLayout>
 
 namespace Library

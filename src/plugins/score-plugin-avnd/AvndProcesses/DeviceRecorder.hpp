@@ -1,7 +1,11 @@
 #pragma once
 #include <ossia/network/value/detail/value_conversion_impl.hpp>
 
+#include <QDateTime>
+#include <QFile>
+
 #include <AvndProcesses/AddressTools.hpp>
+#include <halp/audio.hpp>
 namespace avnd_tools
 {
 /** Records the input into a CSV.
