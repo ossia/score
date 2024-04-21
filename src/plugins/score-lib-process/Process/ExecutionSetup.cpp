@@ -5,6 +5,7 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/ExecutionTransaction.hpp>
 #include <Process/Process.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>

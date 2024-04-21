@@ -2,6 +2,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/ExecutionTransaction.hpp>
 #include <Process/Process.hpp>
 
 #include <Curve/CurveConversion.hpp>

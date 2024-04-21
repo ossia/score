@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/ExecutionTransaction.hpp>
 #include <Process/PresetHelpers.hpp>
 
 #include <Audio/Settings/Model.hpp>

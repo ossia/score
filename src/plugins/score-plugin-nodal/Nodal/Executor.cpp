@@ -3,6 +3,7 @@
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/ExecutionTransaction.hpp>
 
 #include <Scenario/Document/Interval/IntervalExecutionHelpers.hpp>
 

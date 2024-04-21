@@ -2,6 +2,12 @@
 #include <Process/Process.hpp>
 
 #include <score/tools/DeleteAll.hpp>
+
+#include <verdigris>
+namespace Execution
+{
+struct Transaction;
+}
 namespace Process
 {
 struct ScriptChangeResult

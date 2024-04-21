@@ -2,6 +2,7 @@
 
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/ExecutionTransaction.hpp>
 
 #include <Vst/Control.hpp>
 #include <Vst/Node.hpp>

@@ -1,13 +1,13 @@
 #pragma once
+#include <Process/ExecutionCommand.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <concurrentqueue.h>
 #include <score_lib_process_export.h>
-#include <smallfun.hpp>
 
+#include <atomic>
 #include <functional>
 #include <memory>
 namespace ossia
@@ -64,24 +64,6 @@ class Model;
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
-using ExecutionCommand = smallfun::function<
-    void(),
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    256,
-#else
-    128,
-#endif
-    std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
-    smallfun::Methods::Move>;
-using GCCommand = smallfun::function<
-    void(),
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    2 * (128 + 4 * 8),
-#else
-    128 + 4 * 8,
-#endif
-    std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
-    smallfun::Methods::Move>;
 
 using ExecutionCommandQueue = ossia::spsc_queue<ExecutionCommand, 1024>;
 using EditionCommandQueue = moodycamel::ConcurrentQueue<ExecutionCommand>;

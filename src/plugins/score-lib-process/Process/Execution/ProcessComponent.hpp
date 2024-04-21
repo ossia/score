@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/ExecutionComponent.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionTransaction.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessComponent.hpp>
 
@@ -160,4 +161,3 @@ W_REGISTER_ARGTYPE(ossia::node_ptr)
 Q_DECLARE_METATYPE(std::shared_ptr<Execution::ProcessComponent>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Execution::ProcessComponent>)
 W_REGISTER_ARGTYPE(const std::shared_ptr<Execution::ProcessComponent>&)
-W_REGISTER_ARGTYPE(Execution::Transaction*)
