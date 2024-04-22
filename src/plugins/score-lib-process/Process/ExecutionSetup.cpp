@@ -162,7 +162,7 @@ void SetupContext::register_inlet_impl(
   inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
   std::weak_ptr<ossia::execution_state> ws = context.execState;
-  context.executionQueue.enqueue([ws, ossia_port] {
+  impl([ws, ossia_port] {
     if(auto state = ws.lock())
       state->register_port(*ossia_port);
   });
@@ -405,7 +405,7 @@ void SetupContext::register_outlet_impl(
   // in order to set up data value queues from the network thread
 
   // std::weak_ptr<ossia::execution_state> ws = context.execState;
-  // context.executionQueue.enqueue([ws, ossia_port] {
+  // impl([ws, ossia_port] {
   //   if (auto state = ws.lock())
   //     state->register_outlet(*ossia_port);
   // });
