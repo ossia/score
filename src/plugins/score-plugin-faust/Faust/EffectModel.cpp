@@ -527,7 +527,7 @@ FaustEffectComponent::FaustEffectComponent(
 
     commands.run_all();
   },
-      Qt::QueuedConnection);
+      Qt::DirectConnection);
 
   Execution::Transaction commands{ctx};
   reload(commands);

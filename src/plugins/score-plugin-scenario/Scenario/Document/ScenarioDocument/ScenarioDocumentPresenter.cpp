@@ -1180,6 +1180,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
       }
       else
       {
+        // NOTE: happens when we delete a cable in full nodal view
         qDebug() << "Weird case ?? " << (QObject*)s.begin()->data();
         if(process)
           clearProcessSelection(process);

@@ -363,6 +363,9 @@ void ScenarioApplicationPlugin::on_documentChanged(
   // Load cables
   auto& model
       = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*newdoc);
+
+  // FIXME : this causes problems when we are reloading from a loaded document
+  // as the commands are executed before the cables are reloaded
   model.finishLoading();
   // TODO do this on restore
 

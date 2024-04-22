@@ -69,7 +69,9 @@ private:
     Dataflow::restoreCables(m_oldCables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
-    cmt.programChanged();
+    if constexpr(requires { cmt.isGpu(); })
+      if(cmt.isGpu())
+        cmt.programChanged();
   }
 
   static void restoreCables(
@@ -152,7 +154,9 @@ private:
 
     cmt.inletsChanged();
     cmt.outletsChanged();
-    cmt.programChanged();
+    if constexpr(requires { cmt.isGpu(); })
+      if(cmt.isGpu())
+        cmt.programChanged();
     // FIXME if we have it only here, then changing cables fails for the exec nodes
     // as in the cable loading, in SetupContext::connectCable(Process::Cable& cable)
     // auto it = outlets.find(port_src); fails because the new outlet hasn't yet been created by the component
