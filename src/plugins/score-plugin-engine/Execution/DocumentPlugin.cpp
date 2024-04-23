@@ -50,7 +50,7 @@ DocumentPlugin::ContextData::ContextData(const score::DocumentContext& ctx)
     , context
 {
   {}, ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, setupContext,
-      execGraph, execState, currentTransaction
+      execGraph, execState
 #if(__cplusplus > 201703L) && !defined(_MSC_VER)
       ,
   {
