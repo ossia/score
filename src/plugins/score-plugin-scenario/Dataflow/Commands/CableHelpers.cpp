@@ -118,6 +118,7 @@ SerializedCables serializedCablesFromCableJson(
 
   return cables;
 }
+
 SerializedCables serializedCablesFromCableJson(
     const ObjectPath& old_path, const rapidjson::Document::Array& arr)
 {

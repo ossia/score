@@ -989,6 +989,8 @@ void prepareNewState(Node_T& eff, const Node& parent)
     // FIXME GUI -> engine. See executor.hpp
   }
 
+  avnd::init_controls(eff);
+
   if constexpr(avnd::can_prepare<Node_T>)
   {
     using prepare_type = avnd::first_argument<&Node_T::prepare>;

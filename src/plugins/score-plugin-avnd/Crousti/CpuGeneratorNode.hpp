@@ -118,6 +118,11 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    if constexpr(requires { state.init(); })
+    {
+      state.init();
+    }
+
     const auto& mesh = renderer.defaultTriangle();
     this->defaultMeshInit(renderer, mesh, res);
     this->processUBOInit(renderer);

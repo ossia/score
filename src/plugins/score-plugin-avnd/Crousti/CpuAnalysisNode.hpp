@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GfxNode.hpp>
@@ -50,6 +50,15 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
         = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
   }
 
+  QRhiTexture* texture(int k) const noexcept
+  {
+    auto port = parent.input[k];
+    auto it = m_rts.find(port);
+    SCORE_ASSERT(it != m_rts.end());
+    SCORE_ASSERT(it->second.texture);
+    return it->second.texture;
+  }
+
   void loadInputTexture(avnd::cpu_texture auto& cpu_tex, int k)
   {
     auto& buf = m_readbacks[k].data;
@@ -66,19 +75,67 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    if constexpr(requires { state.init(); })
+    {
+      parent.processControlIn(state, this->parent.last_message);
+      state.init();
+    }
+
     // Init input render targets
     int k = 0;
     avnd::cpu_texture_input_introspection<Node_T>::for_all(
         avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
-          auto sz = renderer.state.renderSize;
-          createInput(renderer, k, t.texture, sz);
-          t.texture.width = sz.width();
-          t.texture.height = sz.height();
-          k++;
-        });
+      QSize sz = renderer.state.renderSize;
+      if constexpr(requires {
+                     t.request_width;
+                     t.request_height;
+                   })
+      {
+        sz.rwidth() = t.request_width;
+        sz.rheight() = t.request_height;
+      }
+      createInput(renderer, k, t.texture, sz);
+      t.texture.width = sz.width();
+      t.texture.height = sz.height();
+      k++;
+    });
   }
 
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override {
+    bool updated = false;
+    /*
+    int k = 0;
+    avnd::cpu_texture_input_introspection<Node_T>::for_all(
+        avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
+      if constexpr(requires {
+                     t.request_width;
+                     t.request_height;
+                   })
+      {
+        const auto tex = this->texture(k)->pixelSize();
+        if(tex.width() != t.request_width || tex.height() != t.request_height)
+        {
+          QSize sz{t.request_width, t.request_height};
+
+          // Release
+          auto port = parent.input[k];
+
+          m_rts[port].release();
+          createInput(renderer, k, t.texture, sz);
+
+          t.texture.width = sz.width();
+          t.texture.height = sz.height();
+
+          updated = true;
+        }
+      }
+      k++;
+    });
+*/
+    if(updated)
+    {
+      // We must notify the graph that the previous nodes have to be recomputed
+    }
   }
 
   void release(score::gfx::RenderList& r) override

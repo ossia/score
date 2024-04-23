@@ -634,9 +634,10 @@ XYZSpinboxes::XYZSpinboxes(
 }
 
 XYSpinboxes::XYSpinboxes(
-    ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, const QString& name,
-    Id<Port> id, QObject* parent)
+    ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, bool integral,
+    const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
+    , integral{integral}
 {
   hidden = true;
   setValue(init);

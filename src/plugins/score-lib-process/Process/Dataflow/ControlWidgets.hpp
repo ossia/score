@@ -1439,34 +1439,66 @@ struct XYSpinboxes
     return nullptr; // TODO
   }
 
-  template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QGraphicsItem* parent, QObject* context)
+      const Process::XYSpinboxes& slider, Process::XYSpinboxes& inlet,
+      const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new score::QGraphicsXYSpinboxChooser{false, nullptr};
-    bindVec2Domain(slider, inlet, *sl);
-    sl->setValue(
-        LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(inlet.value())));
+    using Control_T = Process::XYSpinboxes;
+    if(slider.integral)
+    {
+      auto sl = new score::QGraphicsIntXYSpinboxChooser{false, nullptr};
+      bindVec2Domain(slider, inlet, *sl);
+      sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
-    QObject::connect(
-        sl, &score::QGraphicsXYSpinboxChooser::sliderMoved, context, [=, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, LinearNormalizer::from01(*sl, sl->value()));
-        });
-    QObject::connect(
-        sl, &score::QGraphicsXYSpinboxChooser::sliderReleased, context, [&ctx, sl]() {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+      QObject::connect(
+          sl, &score::QGraphicsIntXYSpinboxChooser::sliderMoved, context,
+          [=, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+      });
+      QObject::connect(
+          sl, &score::QGraphicsIntXYSpinboxChooser::sliderReleased, context,
+          [&ctx, sl]() {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
 
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
-      if(!sl->moving)
-        sl->setValue(LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(val)));
-    });
+      QObject::connect(
+          &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+        if(!sl->moving)
+          sl->setValue(ossia::convert<ossia::vec2f>(val));
+      });
 
-    return sl;
+      return sl;
+    }
+    else
+    {
+      auto sl = new score::QGraphicsXYSpinboxChooser{false, nullptr};
+      bindVec2Domain(slider, inlet, *sl);
+      sl->setValue(
+          LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(inlet.value())));
+
+      QObject::connect(
+          sl, &score::QGraphicsXYSpinboxChooser::sliderMoved, context,
+          [=, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(
+            inlet, LinearNormalizer::from01(*sl, sl->value()));
+      });
+      QObject::connect(
+          sl, &score::QGraphicsXYSpinboxChooser::sliderReleased, context, [&ctx, sl]() {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
+
+      QObject::connect(
+          &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+        if(!sl->moving)
+          sl->setValue(LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(val)));
+      });
+
+      return sl;
+    }
   }
 };
 

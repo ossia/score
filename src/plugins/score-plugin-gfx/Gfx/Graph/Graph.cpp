@@ -352,6 +352,12 @@ void Graph::setVSyncCallback(std::function<void()> cb)
   m_vsync_callback = cb;
 }
 
+bool Graph::canDoVSync() const noexcept
+{
+  return m_outputs.size() == 1
+         && !m_outputs[0]->configuration().manualRenderingRate.has_value();
+}
+
 static bool createNodeRenderer(score::gfx::Node& node, RenderList& r)
 {
   // Register the node with the renderer

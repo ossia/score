@@ -554,6 +554,12 @@ avnd_make_score(
   NAMESPACE vo
 )
 
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/LightnessComputer.hpp"
+  TARGET lightness_computer
+  MAIN_CLASS LightnessComputer
+  NAMESPACE vo
+)
 
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Gpu/SolidColor.hpp"

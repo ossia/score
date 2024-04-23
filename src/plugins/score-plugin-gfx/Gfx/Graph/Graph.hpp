@@ -87,7 +87,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   /**
    * @brief True if the graph supports being driven by the screen vertical synchronization.
    */
-  bool canDoVSync() const noexcept { return m_outputs.size() == 1; }
+  bool canDoVSync() const noexcept;
 
   const std::vector<std::shared_ptr<RenderList>>& renderLists() const noexcept
   {

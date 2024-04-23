@@ -232,6 +232,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    if constexpr(requires { state.init(); })
+    {
+      state.init();
+    }
+
     // Create the global shared inputs
     avnd::input_introspection<Node_T>::for_all(
         [this, &renderer](auto f) { init_input(renderer, f); });

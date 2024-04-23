@@ -528,8 +528,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYSpinboxes : public Process::ControlInlet
   XYSpinboxes(
       ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
   XYSpinboxes(
-      ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, const QString& name,
-      Id<Process::Port> id, QObject* parent);
+      ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, bool integral,
+      const QString& name, Id<Process::Port> id, QObject* parent);
   ~XYSpinboxes();
 
   auto getMin() const noexcept { return domain().get().convert_min<ossia::vec2f>(); }
@@ -537,6 +537,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYSpinboxes : public Process::ControlInlet
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
+
+  const bool integral{};
 };
 
 struct SCORE_LIB_PROCESS_EXPORT XYZSpinboxes : public Process::ControlInlet

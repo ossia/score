@@ -189,6 +189,12 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    if constexpr(requires { states[0].init(); })
+    {
+      for(auto& state : states)
+        state.init();
+    }
+
     if(!m_meshBuffer)
     {
       auto& mesh = renderer.defaultTriangle();
