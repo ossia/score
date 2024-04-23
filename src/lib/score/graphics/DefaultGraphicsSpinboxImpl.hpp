@@ -66,7 +66,7 @@ struct DefaultGraphicsSpinboxImpl
              - speed * InfiniteScroller::currentDelta
                    / double(InfiniteScroller::currentGeometry.height());
     v = (v - self.min) / (self.max - self.min);
-    return v;
+    return std::clamp(v, 0., 1.);
   }
 
   template <typename T>
