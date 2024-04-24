@@ -576,6 +576,14 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Raw/ProcessLauncher.hpp"
+  TARGET avnd_process
+  MAIN_CLASS ProcessLauncher
+  NAMESPACE examples
+)
+
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Raw/Shell.hpp"
   TARGET avnd_shell
   MAIN_CLASS Shell

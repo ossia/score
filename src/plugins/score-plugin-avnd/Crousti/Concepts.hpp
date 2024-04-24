@@ -285,15 +285,29 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::lineedit)
   {
-    constexpr auto c = avnd::get_range<T>();
-    if constexpr(avnd::program_parameter<T>)
+    if constexpr(avnd::has_range<T>)
     {
-      auto p = new Process::ProgramEdit{c.init.data(), qname, id, parent};
-      p->language = T::language();
-      return p;
+      constexpr auto c = avnd::get_range<T>();
+      if constexpr(avnd::program_parameter<T>)
+      {
+        auto p = new Process::ProgramEdit{c.init.data(), qname, id, parent};
+        p->language = T::language();
+        return p;
+      }
+      else
+        return new Process::LineEdit{c.init.data(), qname, id, parent};
     }
     else
-      return new Process::LineEdit{c.init.data(), qname, id, parent};
+    {
+      if constexpr(avnd::program_parameter<T>)
+      {
+        auto p = new Process::ProgramEdit{"", qname, id, parent};
+        p->language = T::language();
+        return p;
+      }
+      else
+        return new Process::LineEdit{"", qname, id, parent};
+    }
   }
   else if constexpr(widg.widget == avnd::widget_type::combobox)
   {

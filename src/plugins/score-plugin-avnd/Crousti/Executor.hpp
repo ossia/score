@@ -40,6 +40,7 @@
 #include <avnd/binding/ossia/node.hpp>
 #include <avnd/binding/ossia/ossia_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
+#include <avnd/concepts/temporality.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <avnd/concepts/worker.hpp>
 #include <libremidi/reader.hpp>
@@ -524,6 +525,24 @@ struct type_if<T, true>
 };
 
 template <typename Node>
+class CustomNodeProcess : public ossia::node_process
+{
+  using node_process::node_process;
+  void start() override
+  {
+    node_process::start();
+    auto& n = static_cast<safe_node<Node>&>(*node);
+    n.impl.effect.start();
+  }
+  void stop() override
+  {
+    auto& n = static_cast<safe_node<Node>&>(*node);
+    n.impl.effect.stop();
+    node_process::stop();
+  }
+};
+
+template <typename Node>
 class Executor final
     : public Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>
 {
@@ -657,7 +676,14 @@ public:
       node->audio_configuration_changed();
     }
 
-    this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
+    if constexpr(avnd::tag_process_exec<Node>)
+    {
+      this->m_ossia_process = std::make_shared<CustomNodeProcess<Node>>(this->node);
+    }
+    else
+    {
+      this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
+    }
   }
 
   void connect_controls(
