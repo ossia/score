@@ -385,6 +385,7 @@ void Model::readPlugin()
   {
     for(int port_id : data.control_in_ports)
     {
+      SCORE_ASSERT(port_id >= 0);
       Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
       Lilv::Node n = p.get_name();
 
@@ -394,7 +395,7 @@ void Model::readPlugin()
           fParamInit[port_id],        QString::fromUtf8(n.as_string()),
           Id<Process::Port>{in_id++}, this};
 
-      control_map.insert({port_id, {port, false}});
+      control_map.insert({(uint32_t)port_id, {port, false}});
       connect(
           port, &Process::ControlInlet::valueChanged, this,
           [this, port_id](const ossia::value& v) {
