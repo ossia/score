@@ -14,7 +14,7 @@ dnf -y --allowerasing install \
      alsa-lib-devel \
      portaudio-devel \
      jack-audio-connection-kit-devel \
-     lilv-devel suil-devel \
+     lilv-devel suil-devel libquadmath-devel \
      fftw-devel \
      avahi-devel \
      libxkbcommon-x11-devel libxkbcommon-devel \
