@@ -591,6 +591,20 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Helpers/ValueDelay.hpp"
+  TARGET avnd_value_delay
+  MAIN_CLASS ValueDelay
+  NAMESPACE examples::helpers
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Helpers/Poles.hpp"
+  TARGET avnd_poles
+  MAIN_CLASS Poles
+  NAMESPACE examples::helpers
+)
+
+avnd_make_score(
   SOURCES
     "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.hpp"
     "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.cpp"
