@@ -522,16 +522,25 @@ template <typename Info>
 struct MessageBusWrapperFromUi
 {
 };
+
+namespace
+{
+struct dummy_ui_callback
+{
+  void operator()(const QByteArray& arr) noexcept { }
+};
+}
+
 template <avnd::has_processor_to_gui_bus Info>
 struct MessageBusWrapperToUi<Info>
 {
-  std::function<void(QByteArray)> to_ui;
+  std::function<void(QByteArray)> to_ui = dummy_ui_callback{};
 };
 
 template <avnd::has_gui_to_processor_bus Info>
 struct MessageBusWrapperFromUi<Info>
 {
-  std::function<void(QByteArray)> from_ui;
+  std::function<void(QByteArray)> from_ui = dummy_ui_callback{};
 };
 
 template <typename Info>
@@ -555,15 +564,6 @@ public:
 
     avnd::port_visit_dispatcher<Info>(
         InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
-
-    if constexpr(requires { this->from_ui; })
-    {
-      this->from_ui = [](const QByteArray& arr) {};
-    }
-    if constexpr(requires { this->to_ui; })
-    {
-      this->to_ui = [](const QByteArray& arr) {};
-    }
   }
   ProcessModel(
       const TimeVal& duration, const QString& custom,
@@ -575,15 +575,6 @@ public:
 
     avnd::port_visit_dispatcher<Info>(
         InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
-
-    if constexpr(requires { this->from_ui; })
-    {
-      this->from_ui = [](const QByteArray& arr) {};
-    }
-    if constexpr(requires { this->to_ui; })
-    {
-      this->to_ui = [](const QByteArray& arr) {};
-    }
 
     if constexpr(avnd::file_input_introspection<Info>::size > 0)
     {
