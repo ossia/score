@@ -190,7 +190,7 @@ find_package(${QT_VERSION} REQUIRED
                StateMachine
                OpenGLWidgets
                Qml
-               ShaderTools
+               ShaderTools Quick QmlModels
 )
 
 if(EMSCRIPTEN)
