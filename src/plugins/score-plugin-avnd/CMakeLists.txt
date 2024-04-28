@@ -272,6 +272,7 @@ if(TARGET kfr_dft)
   target_link_libraries(score_plugin_avnd PRIVATE
     "$<BUILD_INTERFACE:kfr>"
     "$<BUILD_INTERFACE:kfr_dft>"
+    "$<BUILD_INTERFACE:kfr_dsp>"
   )
 endif()
 if(TARGET score_plugin_gfx)

@@ -55,7 +55,9 @@ struct Pitch
       }
     }
 
-    std::vector<kfr::biquad_filter<kfr::fbase, 32>> hipass;
+    using hipass_t = decltype(kfr::to_sos(
+        kfr::iir_highpass(kfr::zpk<kfr::fbase>{}, kfr::identity<kfr::fbase>{})));
+    std::vector<kfr::iir_filter<kfr::fbase>> hipass;
   };
 #else
   using State = GistState;
