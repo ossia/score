@@ -341,7 +341,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
     {
       int idx = 0;
       auto process_if_control
-          = [this, idx, &node, &controlSetups](ossia::value_port& vp) {
+          = [this, &node, &controlSetups](ossia::value_port& vp, int idx) {
         if(auto ctrl = qobject_cast<Process::ControlInlet*>(process().inlets()[idx]))
         {
           vp.type = ctrl->value().get_type();
@@ -380,7 +380,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
           auto& vp = *inls.back()->target<ossia::value_port>();
           vp.is_event = false;
 
-          process_if_control(vp);
+          process_if_control(vp, idx);
 
           ++idx;
         }
@@ -390,7 +390,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
           auto& vp = *inls.back()->target<ossia::value_port>();
           vp.is_event = !val_in->isEvent();
 
-          process_if_control(vp);
+          process_if_control(vp, idx);
 
           ++idx;
         }
