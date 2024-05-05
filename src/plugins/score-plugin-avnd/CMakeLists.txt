@@ -271,8 +271,8 @@ target_link_libraries(score_plugin_avnd
 if(TARGET kfr_dft)
   target_link_libraries(score_plugin_avnd PRIVATE
     "$<BUILD_INTERFACE:kfr>"
-    "$<BUILD_INTERFACE:kfr_dft>"
-    "$<BUILD_INTERFACE:kfr_dsp>"
+    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dft>>"
+    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dsp>>"
   )
 endif()
 if(TARGET score_plugin_gfx)
@@ -582,7 +582,6 @@ avnd_make_score(
   MAIN_CLASS ProcessLauncher
   NAMESPACE examples
 )
-
 
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Raw/Shell.hpp"

@@ -49,8 +49,8 @@ target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine)
 if(TARGET kfr)
   target_link_libraries(score_plugin_analysis
       PUBLIC
-        "$<BUILD_INTERFACE:kfr>"
-        "$<BUILD_INTERFACE:kfr_dsp>"
+        "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr>>"
+        "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dsp>>"
     )
   list(APPEND SCORE_FEATURES_LIST analysis_kfr)
 endif()
