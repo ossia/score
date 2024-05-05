@@ -49,8 +49,7 @@ namespace oscr
 {
 namespace
 {
-
-static QString
+[[nodiscard]] static QString
 filenameFromPort(const ossia::value& value, const score::DocumentContext& ctx)
 {
   if(auto str = value.target<std::string>())
@@ -59,11 +58,11 @@ filenameFromPort(const ossia::value& value, const score::DocumentContext& ctx)
 }
 
 // TODO refactor this into a generic explicit soundfile loaded mechanism
-static auto loadSoundfile(
-    Process::ControlInlet* inlet, const score::DocumentContext& ctx, double rate)
+[[nodiscard]] static auto
+loadSoundfile(const ossia::value& value, const score::DocumentContext& ctx, double rate)
 {
   // Initialize the control with the current soundfile
-  if(auto str = filenameFromPort(inlet->value(), ctx); !str.isEmpty())
+  if(auto str = filenameFromPort(value, ctx); !str.isEmpty())
   {
     auto dec = Media::AudioDecoder::decode_synchronous(str, rate);
 
@@ -80,11 +79,11 @@ static auto loadSoundfile(
 }
 
 using midifile_handle = std::shared_ptr<oscr::midifile_data>;
-inline midifile_handle
-loadMidifile(Process::ControlInlet* inlet, const score::DocumentContext& ctx)
+[[nodiscard]] inline midifile_handle
+loadMidifile(const ossia::value& value, const score::DocumentContext& ctx)
 {
   // Initialize the control with the current soundfile
-  if(auto str = filenameFromPort(inlet->value(), ctx); !str.isEmpty())
+  if(auto str = filenameFromPort(value, ctx); !str.isEmpty())
   {
     QFile f(str);
     if(!f.open(QIODevice::ReadOnly))
@@ -103,12 +102,11 @@ loadMidifile(Process::ControlInlet* inlet, const score::DocumentContext& ctx)
 }
 
 using raw_file_handle = std::shared_ptr<raw_file_data>;
-inline raw_file_handle loadRawfile(
-    Process::ControlInlet* inlet, const score::DocumentContext& ctx, bool text,
-    bool mmap)
+[[nodiscard]] inline raw_file_handle loadRawfile(
+    const ossia::value& value, const score::DocumentContext& ctx, bool text, bool mmap)
 {
   // Initialize the control with the current soundfile
-  if(auto filename = filenameFromPort(inlet->value(), ctx); !filename.isEmpty())
+  if(auto filename = filenameFromPort(value, ctx); !filename.isEmpty())
   {
     if(!QFile::exists(filename))
       return {};
@@ -135,13 +133,12 @@ inline raw_file_handle loadRawfile(
   }
   return {};
 }
-
-inline auto loadSoundfile(
-    Process::ControlInlet* inlet, const score::DocumentContext& ctx,
+[[nodiscard]] inline auto loadSoundfile(
+    const ossia::value& value, const score::DocumentContext& ctx,
     const std::shared_ptr<ossia::execution_state>& st)
 {
   const double rate = ossia::exec_state_facade{st.get()}.sampleRate();
-  return loadSoundfile(inlet, ctx, rate);
+  return loadSoundfile(value, ctx, rate);
 }
 }
 
@@ -230,7 +227,7 @@ struct setup_Impl0
         = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadSoundfile(inlet, ctx.doc, ctx.execState))
+    if(auto hdl = loadSoundfile(inlet->value(), ctx.doc, ctx.execState))
       node_ptr->soundfile_loaded(
           hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
 
@@ -239,11 +236,11 @@ struct setup_Impl0
     std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
     QObject::connect(
         inlet, &Process::ControlInlet::valueChanged, parent,
-        [inlet, &ctx = this->ctx, weak_node = std::move(weak_node),
-         weak_st = std::move(weak_st)] {
+        [&ctx = this->ctx, weak_node = std::move(weak_node),
+         weak_st = std::move(weak_st)](const ossia::value& v) {
       if(auto n = weak_node.lock())
         if(auto st = weak_st.lock())
-          if(auto file = loadSoundfile(inlet, ctx.doc, st))
+          if(auto file = loadSoundfile(v, ctx.doc, st))
           {
             ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
               auto n = weak_node.lock();
@@ -256,7 +253,7 @@ struct setup_Impl0
                   f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
             });
           }
-        });
+    });
   }
 
   template <avnd::midifile_port Field, std::size_t N, std::size_t NField>
@@ -266,7 +263,7 @@ struct setup_Impl0
         = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadMidifile(inlet, ctx.doc))
+    if(auto hdl = loadMidifile(inlet->value(), ctx.doc))
       node_ptr->midifile_loaded(
           hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
 
@@ -275,9 +272,10 @@ struct setup_Impl0
     std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
     QObject::connect(
         inlet, &Process::ControlInlet::valueChanged, parent,
-        [inlet, &ctx = this->ctx, weak_node = std::move(weak_node)] {
+        [inlet, &ctx = this->ctx,
+         weak_node = std::move(weak_node)](const ossia::value& v) {
       if(auto n = weak_node.lock())
-        if(auto file = loadMidifile(inlet, ctx.doc))
+        if(auto file = loadMidifile(v, ctx.doc))
         {
           ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
             auto n = weak_node.lock();
@@ -290,7 +288,7 @@ struct setup_Impl0
                 f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
           });
         }
-        });
+    });
   }
 
   template <typename Field>
@@ -314,7 +312,7 @@ struct setup_Impl0
     constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
 
     // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadRawfile(inlet, ctx.doc, has_text, has_mmap))
+    if(auto hdl = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
     {
       if constexpr(avnd::port_can_process<Field>)
       {
@@ -340,7 +338,7 @@ struct setup_Impl0
         inlet, &Process::ControlInlet::valueChanged, parent,
         [inlet, &ctx = this->ctx, weak_node = std::move(weak_node)] {
       if(auto n = weak_node.lock())
-        if(auto file = loadRawfile(inlet, ctx.doc, has_text, has_mmap))
+        if(auto file = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
         {
           if constexpr(avnd::port_can_process<Field>)
           {
@@ -698,7 +696,8 @@ public:
     using control_outputs_type = avnd::control_output_introspection<Node>;
 
     // UI controls to engine
-    avnd::effect_container<Node>& eff = ptr->impl;
+    safe_node<Node>& node = *ptr;
+    avnd::effect_container<Node>& eff = node.impl;
 
     if constexpr(control_inputs_type::size > 0)
     {
@@ -726,6 +725,34 @@ public:
     {
       soundfile_inputs_type::for_all_n2(
           avnd::get_inputs<Node>(eff), setup_Impl0<Node>{element, ctx, ptr, this});
+
+      auto& tq = score::TaskPool::instance();
+      node.soundfiles.load_request
+          = [&tq, p = std::weak_ptr{ptr}, &ctx](std::string& str, int idx) {
+        auto eff_ptr = p.lock();
+        if(!eff_ptr)
+          return;
+        tq.post([eff_ptr = std::move(eff_ptr), filename = str, &ctx, idx]() mutable {
+          if(auto file = loadSoundfile(filename, ctx.doc, ctx.execState))
+          {
+            ctx.executionQueue.enqueue(
+                [sf = std::move(file), p = std::weak_ptr{eff_ptr}, idx]() mutable {
+              auto eff_ptr = p.lock();
+              if(!eff_ptr)
+                return;
+
+              avnd::effect_container<Node>& eff = eff_ptr->impl;
+              soundfile_inputs_type::for_nth_mapped_n2(
+                  avnd::get_inputs<Node>(eff), idx,
+                  [&]<std::size_t NField, std::size_t N>(
+                      auto& field, avnd::predicate_index<N> p,
+                      avnd::field_index<NField> f) {
+                eff_ptr->soundfile_loaded(sf, p, f);
+              });
+            });
+          }
+        });
+      };
     }
     if constexpr(midifile_inputs_type::size > 0)
     {
@@ -787,7 +814,8 @@ public:
     {
       eff.send_message = [this](auto b) mutable {
         this->in_edit([this, bb = std::move(b)]() mutable {
-          MessageBusSender{this->process().to_ui}(std::move(bb));
+          if(this->process().to_ui)
+            MessageBusSender{this->process().to_ui}(std::move(bb));
         });
       };
     }

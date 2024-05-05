@@ -160,7 +160,7 @@ constexpr auto FreqKnob()
 }
 constexpr auto LFOFreqKnob()
 {
-  return Control::LogFloatKnob("Frequency", 0.01f, 100.f, 1.f);
+  return Control::LogFloatKnob("Frequency", 0.0001f, 100.f, 1.f);
 }
 constexpr auto TempoChooser()
 {

@@ -53,7 +53,7 @@ private:
       std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
       smallfun::Methods::Move>;
   moodycamel::BlockingConcurrentQueue<task> m_queue;
-  std::array<std::thread, 2> m_threads;
+  std::array<std::thread, 1> m_threads;
   std::atomic_bool m_running{};
 };
 }

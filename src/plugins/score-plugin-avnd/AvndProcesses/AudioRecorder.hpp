@@ -143,7 +143,15 @@ struct AudioRecorder
 
     struct : halp::toggle<"Record">
     {
-      void update(AudioRecorder& self) { self.update(); }
+      void update(AudioRecorder& self)
+      {
+        if(prev != value)
+        {
+          prev = value;
+          self.update();
+        }
+      }
+      bool prev{false};
     } record;
   } inputs;
 

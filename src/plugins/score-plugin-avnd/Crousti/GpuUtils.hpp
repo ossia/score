@@ -982,7 +982,9 @@ void prepareNewState(Node_T& eff, const Node& parent)
     eff.send_message = [&process](auto&& b) mutable {
       // FIXME right now all the rendering is done in the UI thread, which is very MEH
       //    this->in_edit([&process, bb = std::move(b)]() mutable {
-      MessageBusSender{process.to_ui}(std::move(b));
+
+      if(process.to_ui)
+        MessageBusSender{process.to_ui}(std::move(b));
       //    });
     };
 
