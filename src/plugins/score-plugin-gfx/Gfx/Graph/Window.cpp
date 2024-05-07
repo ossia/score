@@ -70,6 +70,10 @@ void Window::resizeSwapChain()
     if(onResize)
       onResize();
   }
+  else
+  {
+    m_hasSwapChain = false;
+  }
 }
 
 void Window::releaseSwapChain()
@@ -173,6 +177,12 @@ void Window::exposeEvent(QExposeEvent* ev)
     m_running = true;
     init();
     resizeSwapChain();
+  }
+
+  if(m_hasSwapChain && !m_swapChain)
+  {
+    qDebug("exposeEvent: m_hasSwapChain && !m_swapChain");
+    m_hasSwapChain = false;
   }
 
   const QSize surfaceSize = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();

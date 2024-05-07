@@ -223,7 +223,8 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
     // Instantiate a real device.
     auto& fact = m_context.app.interfaces<Device::ProtocolFactoryList>();
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
-    SCORE_ASSERT(proto);
+    if(!proto)
+      throw std::runtime_error("Null protocol");
     Device::DeviceInterface* newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 
