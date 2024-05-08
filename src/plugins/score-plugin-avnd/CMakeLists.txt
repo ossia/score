@@ -606,6 +606,14 @@ avnd_make_score(
 
 avnd_make_score(
   SOURCES
+    "${AVND_FOLDER}/examples/Advanced/AudioParticles/AudioParticles.hpp"
+    "${AVND_FOLDER}/examples/Advanced/AudioParticles/AudioParticles.cpp"
+  TARGET avnd_audio_particles
+  MAIN_CLASS AudioParticles
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES
     "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.hpp"
     "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.cpp"
   TARGET geozones

@@ -46,4 +46,7 @@ private:
   std::string m_root;
   ossia::string_map<std::vector<Callbacks>> m_watched;
 };
+
+SCORE_LIB_BASE_EXPORT
+void for_all_files(std::string_view root, std::function<void(std::string_view)> f);
 }

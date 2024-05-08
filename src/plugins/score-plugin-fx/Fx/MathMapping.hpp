@@ -6,7 +6,7 @@ namespace Nodes
 template <typename State>
 struct GenericMathMapping
 {
-  static void store_output(State& self, const ossia::value& v)
+  static void store_output(auto& self, const ossia::value& v)
   {
     switch(v.get_type())
     {
@@ -16,27 +16,39 @@ struct GenericMathMapping
         self.po = *v.target<float>();
         break;
       case ossia::val_type::VEC2F: {
-        auto& vec = *v.target<ossia::vec2f>();
-        self.pov.assign(vec.begin(), vec.end());
+        if constexpr(requires { self.pov; })
+        {
+          auto& vec = *v.target<ossia::vec2f>();
+          self.pov.assign(vec.begin(), vec.end());
+        }
         break;
       }
       case ossia::val_type::VEC3F: {
-        auto& vec = *v.target<ossia::vec3f>();
-        self.pov.assign(vec.begin(), vec.end());
+        if constexpr(requires { self.pov; })
+        {
+          auto& vec = *v.target<ossia::vec3f>();
+          self.pov.assign(vec.begin(), vec.end());
+        }
         break;
       }
       case ossia::val_type::VEC4F: {
-        auto& vec = *v.target<ossia::vec4f>();
-        self.pov.assign(vec.begin(), vec.end());
+        if constexpr(requires { self.pov; })
+        {
+          auto& vec = *v.target<ossia::vec4f>();
+          self.pov.assign(vec.begin(), vec.end());
+        }
         break;
       }
       case ossia::val_type::LIST: {
-        auto& arr = *v.target<std::vector<ossia::value>>();
-        if(!arr.empty())
+        if constexpr(requires { self.pov; })
         {
-          self.pov.clear();
-          for(auto& v : arr)
-            self.pov.push_back(ossia::convert<float>(v));
+          auto& arr = *v.target<std::vector<ossia::value>>();
+          if(!arr.empty())
+          {
+            self.pov.clear();
+            for(auto& v : arr)
+              self.pov.push_back(ossia::convert<float>(v));
+          }
         }
         break;
       }
@@ -54,6 +66,17 @@ struct GenericMathMapping
     store_output(self, res);
 
     output.write_value(res, timestamp);
+  }
+
+  static void exec_polyphonic(int64_t timestamp, State& self, ossia::value_port& output)
+  {
+    for(auto& e : self.expressions)
+    {
+      auto res = e.expr.result();
+
+      e.px = e.x;
+      store_output(e, res);
+    }
   }
 
   static void exec_array(
@@ -138,6 +161,105 @@ struct GenericMathMapping
       }
 
       GenericMathMapping::exec_scalar(v.timestamp, self, output);
+    }
+  }
+  static void run_polyphonic(
+      const ossia::value_port& input, ossia::value_port& output, const std::string& expr,
+      const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
+  {
+    if(input.get_data().empty())
+      return;
+
+    auto ratio = st.modelToSamples();
+    auto parent_dur = tk.parent_duration.impl * ratio;
+    for(const ossia::timed_value& v : input.get_data())
+    {
+      auto val = v.value.target<std::vector<ossia::value>>();
+      if(!val)
+        return;
+
+      auto resize = [&expr, &self](int sz) {
+        self.expressions.resize(sz);
+        for(auto& e : self.expressions)
+        {
+          e.init(self.cur_time, self.cur_deltatime, self.cur_pos);
+          if(!e.expr.set_expression(expr))
+            return false;
+        }
+        return true;
+      };
+
+      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
+      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
+      self.last_value_time = new_time;
+
+      switch(v.value.get_type())
+      {
+        case ossia::val_type::NONE:
+          break;
+        case ossia::val_type::IMPULSE:
+          break;
+        case ossia::val_type::INT:
+          if(!resize(1))
+            return;
+          self.expressions[0].x = *v.value.target<int>();
+          break;
+        case ossia::val_type::FLOAT:
+          if(!resize(1))
+            return;
+          self.expressions[0].x = *v.value.target<float>();
+          break;
+        case ossia::val_type::BOOL:
+          if(!resize(1))
+            return;
+          self.expressions[0].x = *v.value.target<bool>() ? 1.f : 0.f;
+          break;
+        case ossia::val_type::STRING:
+          if(!resize(1))
+            return;
+          self.expressions[0].x = ossia::convert<float>(v.value);
+          break;
+        case ossia::val_type::VEC2F:
+          if(!resize(2))
+            return;
+          self.expressions[0].x = (*v.value.target<ossia::vec2f>())[0];
+          self.expressions[1].x = (*v.value.target<ossia::vec2f>())[1];
+          break;
+        case ossia::val_type::VEC3F:
+          if(!resize(3))
+            return;
+          self.expressions[0].x = (*v.value.target<ossia::vec3f>())[0];
+          self.expressions[1].x = (*v.value.target<ossia::vec3f>())[1];
+          self.expressions[2].x = (*v.value.target<ossia::vec3f>())[2];
+          break;
+        case ossia::val_type::VEC4F:
+          if(!resize(4))
+            return;
+          self.expressions[0].x = (*v.value.target<ossia::vec4f>())[0];
+          self.expressions[1].x = (*v.value.target<ossia::vec4f>())[1];
+          self.expressions[2].x = (*v.value.target<ossia::vec4f>())[2];
+          self.expressions[3].x = (*v.value.target<ossia::vec4f>())[3];
+          break;
+        case ossia::val_type::LIST: {
+          auto& arr = *v.value.target<std::vector<ossia::value>>();
+
+          if(!resize(arr.size()))
+            return;
+          for(int i = 0; i < arr.size(); i++)
+            self.expressions[i].x = ossia::convert<float>(arr[i]);
+          break;
+        }
+      }
+
+      GenericMathMapping::exec_polyphonic(v.timestamp, self, output);
+
+      std::vector<ossia::value> res;
+      res.resize(self.expressions.size());
+      for(int i = 0; i < self.expressions.size(); i++)
+        res[i] = (float)self.expressions[i].po;
+
+      // Combine
+      output.write_value(res, v.timestamp);
     }
   }
 
@@ -603,6 +725,80 @@ struct Node
   }
 };
 }
+
+namespace ArrayMapping
+{
+struct Node
+{
+  struct Metadata : Control::Meta_base
+  {
+    static const constexpr auto prettyName = "Arraymap";
+    static const constexpr auto objectKey = "ArrayMapping";
+    static const constexpr auto category = "Control/Mappings";
+    static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
+    static const constexpr auto kind = Process::ProcessCategory::Mapping;
+    static const constexpr auto description
+        = "Applies a math expression to each member of an input.";
+    static const constexpr auto tags = std::array<const char*, 0>{};
+    static const uuid_constexpr auto uuid
+        = make_uuid("1fe9c806-b601-4ee0-9fbb-0ab817c4dd87");
+
+    static const constexpr value_in value_ins[]{value_in{"in", false}};
+    static const constexpr value_out value_outs[]{"out"};
+
+    static const constexpr auto controls
+        = tuplet::make_tuple(Control::LineEdit("Expression", "x"));
+  };
+  struct State
+  {
+    struct Expr
+    {
+      void init(double& cur_time, double& cur_deltatime, double& cur_pos)
+      {
+        expr.add_variable("x", x);
+        expr.add_variable("px", px);
+        expr.add_variable("po", po);
+
+        expr.add_variable("t", cur_time);
+        expr.add_variable("dt", cur_deltatime);
+        expr.add_variable("pos", cur_pos);
+        expr.add_constants();
+
+        expr.register_symbol_table();
+      }
+      double x;
+      double px;
+      double po;
+
+      ossia::math_expression expr;
+    };
+
+    boost::container::static_vector<Expr, 1024> expressions;
+    double cur_time{};
+    double cur_deltatime{};
+    double cur_pos{};
+
+    int64_t last_value_time{};
+
+    //bool ok = false;
+  };
+
+  using control_policy = ossia::safe_nodes::last_tick;
+
+  static void
+  run(const ossia::value_port& input, const std::string& expr, ossia::value_port& output,
+      const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
+  {
+    GenericMathMapping<State>::run_polyphonic(input, output, expr, tk, st, self);
+  }
+
+  template <typename... Args>
+  static void item(Args&&... args)
+  {
+    Nodes::miniMathItem(Metadata::controls, std::forward<Args>(args)...);
+  }
+};
+}
 }
 
 namespace Control
@@ -621,6 +817,10 @@ struct HasCustomUI<Nodes::MathMapping::Node> : std::true_type
 };
 template <>
 struct HasCustomUI<Nodes::MicroMapping::Node> : std::true_type
+{
+};
+template <>
+struct HasCustomUI<Nodes::ArrayMapping::Node> : std::true_type
 {
 };
 template <>

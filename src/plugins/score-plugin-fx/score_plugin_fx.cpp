@@ -60,7 +60,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
       Nodes::Gain::Node, Nodes::Metro::Node, Nodes::Envelope::Node,
       Nodes::Quantifier::Node, Nodes::MathGenerator::Node,
       Nodes::MathAudioGenerator::Node, Nodes::MathMapping::Node,
-      Nodes::MicroMapping::Node, Nodes::MathAudioFilter::Node,
+      Nodes::MicroMapping::Node, Nodes::ArrayMapping::Node, Nodes::MathAudioFilter::Node,
       Nodes::EmptyValueMapping::Node, Nodes::EmptyMidiMapping::Node,
       Nodes::EmptyAudioMapping::Node, Nodes::FactorOracle::Node,
       Nodes::FactorOracle2::Node, Nodes::FactorOracle2MIDI::Node,
