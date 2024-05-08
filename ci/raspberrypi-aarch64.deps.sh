@@ -28,8 +28,8 @@ tar xaf gpsd-3.25.tar.xz
 cp gpsd-3.25/include/gps.h /opt/ossia-sdk-rpi-aarch64/pi/sysroot/usr/include/
 cp gpsd-3.25/include/gps.h /opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi/sysroot/include/ 
 
-wget http://ftp.debian.org/debian/pool/main/p/pipewire/libspa-0.2-dev_1.0.3-1~bpo12+1_arm64.deb -O spa.deb
-wget http://ftp.debian.org/debian/pool/main/p/pipewire/libpipewire-0.3-dev_1.0.3-1~bpo12+1_arm64.deb -O pipewire.deb
+wget http://ftp.debian.org/debian/pool/main/p/pipewire/libspa-0.2-dev_1.0.5-1~bpo12+1_arm64.deb -O spa.deb
+wget http://ftp.debian.org/debian/pool/main/p/pipewire/libpipewire-0.3-dev_1.0.5-1~bpo12+1_arm64.deb -O pipewire.deb
 ar xv spa.deb
 tar xaf data.tar.xz --strip-components=1 --directory "$PWD"
 ar xv pipewire.deb
