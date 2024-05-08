@@ -331,6 +331,11 @@ void VideoNodeRenderer::release(RenderList& r)
   m_p.clear();
 
   m_meshBuffer = nullptr;
-}
 
+  if(m_currentFrame)
+  {
+    m_currentFrame->use_count--;
+    m_currentFrame.reset();
+  }
+}
 }
