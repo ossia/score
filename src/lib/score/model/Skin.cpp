@@ -33,7 +33,7 @@ namespace score
 {
 struct Skin::color_map
 {
-  color_map(std::initializer_list<std::pair<QString, Brush*>> list)
+  explicit color_map(std::initializer_list<std::pair<QString, Brush*>> list)
       : left(list.begin(), list.end())
   {
     for(auto& pair : list)
@@ -59,28 +59,7 @@ Skin::Skin() noexcept
     , NoPen{Qt::NoPen}
     , NoBrush{Qt::NoBrush}
     , TextBrush{QColor("#1f2a30")}
-    , m_colorMap(new color_map{
-          SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),
-          SCORE_INSERT_COLOR(DarkGray),       SCORE_INSERT_COLOR(Gray),
-          SCORE_INSERT_COLOR(LightGray),      SCORE_INSERT_COLOR(HalfLight),
-          SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
-          SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
-          SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
-          SCORE_INSERT_COLOR(Base1),          SCORE_INSERT_COLOR(Base2),
-          SCORE_INSERT_COLOR(Base3),          SCORE_INSERT_COLOR(Base4),
-          SCORE_INSERT_COLOR(Base5),          SCORE_INSERT_COLOR(Warn1),
-          SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
-          SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
-          SCORE_INSERT_COLOR(Transparent1),   SCORE_INSERT_COLOR(Transparent2),
-          SCORE_INSERT_COLOR(Transparent3),   SCORE_INSERT_COLOR(Smooth1),
-          SCORE_INSERT_COLOR(Smooth2),        SCORE_INSERT_COLOR(Smooth3),
-          SCORE_INSERT_COLOR(Tender1),        SCORE_INSERT_COLOR(Tender2),
-          SCORE_INSERT_COLOR(Tender3),        SCORE_INSERT_COLOR(Cable1),
-          SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
-          SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
-          SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
-          SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
-          SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)})
+    , m_colorMap{initColorMap()}
     , m_defaultPalette{
           SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
           SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
@@ -221,8 +200,34 @@ Skin::Skin() noexcept
 }
 
 Skin::Skin(Skin::NoGUI)
-    : m_colorMap{new color_map{}}
+    : m_colorMap{initColorMap()}
 {
+}
+
+Skin::color_map* Skin::initColorMap() noexcept
+{
+  return new Skin::color_map{
+      SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),
+      SCORE_INSERT_COLOR(DarkGray),       SCORE_INSERT_COLOR(Gray),
+      SCORE_INSERT_COLOR(LightGray),      SCORE_INSERT_COLOR(HalfLight),
+      SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
+      SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
+      SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
+      SCORE_INSERT_COLOR(Base1),          SCORE_INSERT_COLOR(Base2),
+      SCORE_INSERT_COLOR(Base3),          SCORE_INSERT_COLOR(Base4),
+      SCORE_INSERT_COLOR(Base5),          SCORE_INSERT_COLOR(Warn1),
+      SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
+      SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
+      SCORE_INSERT_COLOR(Transparent1),   SCORE_INSERT_COLOR(Transparent2),
+      SCORE_INSERT_COLOR(Transparent3),   SCORE_INSERT_COLOR(Smooth1),
+      SCORE_INSERT_COLOR(Smooth2),        SCORE_INSERT_COLOR(Smooth3),
+      SCORE_INSERT_COLOR(Tender1),        SCORE_INSERT_COLOR(Tender2),
+      SCORE_INSERT_COLOR(Tender3),        SCORE_INSERT_COLOR(Cable1),
+      SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
+      SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
+      SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
+      SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
+      SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)};
 }
 
 Skin& score::Skin::instance() noexcept

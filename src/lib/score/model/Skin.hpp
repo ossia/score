@@ -220,6 +220,7 @@ private:
   explicit Skin(NoGUI);
 
   struct color_map;
+  color_map* initColorMap() noexcept;
   color_map* m_colorMap{};
   std::vector<Brush::Pair> m_defaultPalette;
 
