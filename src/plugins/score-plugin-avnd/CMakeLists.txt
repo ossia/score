@@ -450,6 +450,12 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Midi/MidiGlide.hpp"
+  TARGET midi_glide
+  MAIN_CLASS MidiGlide
+  NAMESPACE mo
+)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Ports/Essentia/stats/Entropy.hpp"
   TARGET essentia_entropy
   MAIN_CLASS Entropy
