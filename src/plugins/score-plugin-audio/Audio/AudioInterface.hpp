@@ -5,7 +5,7 @@
 #include <score_plugin_audio_export.h>
 
 #include <verdigris>
-
+class QComboBox;
 namespace ossia
 {
 class audio_engine;
@@ -43,9 +43,9 @@ public:
       score::SettingsCommandDispatcher&, QWidget* parent)
       = 0;
 
-  static void addBufferSizeWidget(
+  static QComboBox* addBufferSizeWidget(
       QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
-  static void addSampleRateWidget(
+  static QComboBox* addSampleRateWidget(
       QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
 };
 

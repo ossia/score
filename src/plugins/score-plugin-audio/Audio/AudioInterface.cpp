@@ -12,8 +12,8 @@ namespace Audio
 
 AudioFactory::~AudioFactory() { }
 
-void AudioFactory::addBufferSizeWidget(
-    QWidget& widg, Settings::Model& m, Settings::View& v)
+QComboBox*
+AudioFactory::addBufferSizeWidget(QWidget& widg, Settings::Model& m, Settings::View& v)
 {
   auto cb = new QComboBox{&widg};
   cb->setObjectName("BufferSize");
@@ -26,10 +26,11 @@ void AudioFactory::addBufferSizeWidget(
   QObject::connect(
       cb, SignalUtils::QComboBox_currentIndexChanged_int(), &widg,
       [cb, &v](int i) { v.BufferSizeChanged(cb->itemText(i).toInt()); });
+  return cb;
 }
 
-void AudioFactory::addSampleRateWidget(
-    QWidget& widg, Settings::Model& m, Settings::View& v)
+QComboBox*
+AudioFactory::addSampleRateWidget(QWidget& widg, Settings::Model& m, Settings::View& v)
 {
   auto cb = new QComboBox{&widg};
   cb->setObjectName("Rate");
@@ -42,5 +43,6 @@ void AudioFactory::addSampleRateWidget(
   QObject::connect(
       cb, SignalUtils::QComboBox_currentIndexChanged_int(), &widg,
       [cb, &v](int i) { v.RateChanged(cb->itemText(i).toInt()); });
+  return cb;
 }
 }

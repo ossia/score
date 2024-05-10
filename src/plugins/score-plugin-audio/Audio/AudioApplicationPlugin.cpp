@@ -225,9 +225,17 @@ void ApplicationPlugin::start_engine()
 
         m_updating_audio = true;
         auto bs = audio->effective_buffer_size;
+        if(bs <= 0)
+          bs = set.getBufferSize();
+        if(bs <= 0)
+          bs = 512;
         auto rate = audio->effective_sample_rate;
-        set.setBufferSize(bs <= 0 ? 512 : bs);
-        set.setRate(rate <= 0 ? 44100 : rate);
+        if(rate <= 0)
+          rate = set.getRate();
+        if(rate <= 0)
+          rate = 44100;
+        set.setBufferSize(bs);
+        set.setRate(rate);
         m_updating_audio = false;
       }
       catch(...)
