@@ -555,6 +555,20 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/AudioSum.hpp"
+  TARGET audio_sum
+  MAIN_CLASS AudioSum
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Silence.hpp"
+  TARGET silence
+  MAIN_CLASS Silence
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/LightnessSampler.hpp"
   TARGET lightness_sampler
   MAIN_CLASS LightnessSampler
