@@ -683,7 +683,7 @@ void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
     setupExecutionControlOutlets(node, 1);
   };
 
-  if(proc.faust_object->getNumInputs() == 1 && proc.faust_object->getNumOutputs() == 1)
+  if(proc.faust_object->getNumInputs() <= 1 && proc.faust_object->getNumOutputs() == 1)
   {
     using faust_type = ossia::nodes::faust_mono_fx;
     auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_object);
