@@ -165,19 +165,6 @@ set(WIIMOTE_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteSpecificSettingsSerialization.cpp"
 )
 
-set(LEAPMOTION_HDRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionDevice.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolSettingsWidget.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionSpecificSettings.hpp"
-)
-
-set(LEAPMOTION_SRCS
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionDevice.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolFactory.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolSettingsWidget.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionSpecificSettingsSerialization.cpp"
-)
 
 set(ARTNET_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetDevice.hpp"
