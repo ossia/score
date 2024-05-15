@@ -128,7 +128,7 @@ struct PatternCombiner : PatternObject
       float res{};
       for(const auto& val : self.current_values)
       {
-        res = func.map(res, float(*val.target<int>()));
+        res = func.map(res, float(*val.template target<int>()));
       }
       res = func.reduce(res);
       self.outputs.output.value = res;
@@ -138,7 +138,7 @@ struct PatternCombiner : PatternObject
       float res{};
       for(const auto& val : self.current_values)
       {
-        res = func.map(res, *val.target<float>());
+        res = func.map(res, *val.template target<float>());
       }
       res = func.reduce(res);
       self.outputs.output.value = res;
@@ -148,7 +148,7 @@ struct PatternCombiner : PatternObject
       float res{};
       for(const auto& val : self.current_values)
       {
-        res = func.map(res, (*val.target<bool>() ? 1.f : 0.f));
+        res = func.map(res, (*val.template target<bool>() ? 1.f : 0.f));
       }
       res = func.reduce(res);
       self.outputs.output.value = res;
@@ -159,7 +159,7 @@ struct PatternCombiner : PatternObject
       ossia::vec2f res{};
       for(const auto& val : self.current_values)
       {
-        const auto& in = *val.target<ossia::vec2f>();
+        const auto& in = *val.template target<ossia::vec2f>();
         res[0] = func.map(res[0], in[0]);
         res[1] = func.map(res[1], in[1]);
       }
@@ -172,7 +172,7 @@ struct PatternCombiner : PatternObject
       ossia::vec3f res{};
       for(const auto& val : self.current_values)
       {
-        const auto& in = *val.target<ossia::vec3f>();
+        const auto& in = *val.template target<ossia::vec3f>();
         res[0] = func.map(res[0], in[0]);
         res[1] = func.map(res[1], in[1]);
         res[2] = func.map(res[2], in[2]);
@@ -187,7 +187,7 @@ struct PatternCombiner : PatternObject
       ossia::vec4f res{};
       for(const auto& val : self.current_values)
       {
-        const auto& in = *val.target<ossia::vec4f>();
+        const auto& in = *val.template target<ossia::vec4f>();
         res[0] = func.map(res[0], in[0]);
         res[1] = func.map(res[1], in[1]);
         res[2] = func.map(res[2], in[2]);
@@ -206,7 +206,7 @@ struct PatternCombiner : PatternObject
       res.resize(N);
       for(const auto& val : self.current_values)
       {
-        const auto& in = *val.target<std::vector<ossia::value>>();
+        const auto& in = *val.template target<std::vector<ossia::value>>();
         for(int i = 0; i < N; i++)
         {
           res[i] = func.map(res[i], ossia::convert<float>(in[i]));
