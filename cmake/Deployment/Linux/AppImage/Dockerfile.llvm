@@ -18,16 +18,16 @@ RUN yum -y install gcc-toolset-12  \
 
 
 RUN ls \
-    && wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.7.6/cninja-v3.7.6-Linux.tar.gz \
+    && wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.7.9/cninja-v3.7.9-Linux.tar.gz \
     && tar xaf cninja-*.tar.gz \
     && rm -rf cninja-*.tar.gz \
     && mv cninja /usr/bin/
 
 
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.27.5/cmake-3.27.5-linux-x86_64.tar.gz \
-    && tar xaf cmake-3.27.5-linux-x86_64.tar.gz \
-    && rm cmake-3.27.5-linux-x86_64.tar.gz \
-    && mv cmake-3.27.5-linux-x86_64 /cmake 
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.29.1/cmake-3.29.1-linux-x86_64.tar.gz \
+    && tar xaf cmake-3.29.1-linux-x86_64.tar.gz \
+    && rm cmake-3.29.1-linux-x86_64.tar.gz \
+    && mv cmake-3.29.1-linux-x86_64 /cmake 
 
 ENV PATH="/cmake/bin:${PATH}"
 
