@@ -22,7 +22,9 @@
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include <QCoreApplication>
 #include <QDebug>
+#include <QMetaMethod>
 
 #include <wobjectimpl.h>
 
@@ -153,16 +155,19 @@ bool OSCQueryDevice::reconnect()
   disconnect();
 
   // TODO put this in the io_context thread instead
-  std::thread resolver([this, host = stgs.host.toStdString()] {
+  std::thread resolver([self = QPointer{this}, host = stgs.host.toStdString()] {
     bool ok = resolve_ip(host);
-    if(ok)
-    {
-      sig_createDevice();
-    }
-
-    // FIXME the device could be deleted there !
-    m_connected = false;
-    connectionChanged(m_connected);
+    QMetaObject::invokeMethod(qApp, [self, ok] {
+      if(self)
+      {
+        if(ok)
+        {
+          self->sig_createDevice();
+        }
+        self->m_connected = false;
+        self->connectionChanged(self->m_connected);
+      }
+    });
   });
 
   resolver.detach();
