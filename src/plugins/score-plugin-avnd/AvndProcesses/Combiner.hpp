@@ -226,9 +226,10 @@ struct PatternCombiner : PatternObject
     void operator()() const noexcept { }
   };
 
-  void process_fixed(auto func)
+  template <typename T>
+  void process_fixed(T func)
   {
-    this->current_values[0].apply(do_process_fixed{func, *this});
+    this->current_values[0].apply(do_process_fixed<T>{func, *this});
   }
 
   void operator()()
