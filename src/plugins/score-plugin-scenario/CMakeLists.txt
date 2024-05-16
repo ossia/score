@@ -2,14 +2,6 @@ project(score_plugin_scenario LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-# TODO make a check to see what libs aren't necessary
-find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets OpenGL)
-
-find_package(${QT_VERSION} QUIET OPTIONAL_COMPONENTS Svg)
-if(SCORE_WEBSOCKETS)
-  find_package(${QT_VERSION} REQUIRED COMPONENTS WebSockets)
-endif()
-
 find_package(Threads)
 
 ### Scenario plugin ###

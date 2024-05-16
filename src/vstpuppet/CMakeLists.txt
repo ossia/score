@@ -1,6 +1,4 @@
 project(vstpuppet CXX)
-find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
-
 if(NOT TARGET ${QT_PREFIX}::WebSockets)
   message("VST loading requires QtWebSockets.")
   return()

@@ -188,9 +188,11 @@ find_package(${QT_VERSION} REQUIRED
                Network
                Xml
                StateMachine
+               OpenGL
                OpenGLWidgets
                Qml
                ShaderTools Quick QmlModels
+             OPTIONAL_COMPONENTS WebSockets Svg
 )
 
 if(EMSCRIPTEN)

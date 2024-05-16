@@ -1,6 +1,4 @@
 project(vst3puppet CXX)
-find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
-
 set(VST3_SDK_ROOT "${3RDPARTY_FOLDER}/vst3")
 if(NOT TARGET ${QT_PREFIX}::WebSockets)
   message("VST loading requires QtWebSockets.")

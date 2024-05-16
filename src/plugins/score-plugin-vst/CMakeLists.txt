@@ -11,7 +11,6 @@ if(SCORE_FAST_DEV_BUILD)
 endif()
 
 # Packages
-find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
 if(NOT TARGET ${QT_PREFIX}::WebSockets)
   # VST support requires websockets
   return()
