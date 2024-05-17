@@ -179,10 +179,15 @@ struct GenericMathMapping
         return;
 
       auto resize = [&expr, &self](int sz) {
+        if(std::ssize(self.expressions) == sz)
+          return true;
+
         self.expressions.resize(sz);
+        int i = 0;
         for(auto& e : self.expressions)
         {
           e.init(self.cur_time, self.cur_deltatime, self.cur_pos);
+          e.instance = i++;
           if(!e.expr.set_expression(expr))
             return false;
         }
@@ -242,11 +247,21 @@ struct GenericMathMapping
           break;
         case ossia::val_type::LIST: {
           auto& arr = *v.value.target<std::vector<ossia::value>>();
-
-          if(!resize(arr.size()))
+          const auto N = std::ssize(arr);
+          if(!resize(N))
             return;
-          for(int i = 0; i < arr.size(); i++)
+          for(int i = 0; i < N; i++)
             self.expressions[i].x = ossia::convert<float>(arr[i]);
+          break;
+        }
+        case ossia::val_type::MAP: {
+          auto& arr = *v.value.target<ossia::value_map_type>();
+          const auto N = std::ssize(arr);
+          if(!resize(N))
+            return;
+          int i = 0;
+          for(auto& [k, v] : arr)
+            self.expressions[i++].x = ossia::convert<float>(v);
           break;
         }
       }
@@ -755,6 +770,8 @@ struct Node
     {
       void init(double& cur_time, double& cur_deltatime, double& cur_pos)
       {
+        expr.add_variable("i", instance);
+
         expr.add_variable("x", x);
         expr.add_variable("px", px);
         expr.add_variable("po", po);
@@ -766,6 +783,8 @@ struct Node
 
         expr.register_symbol_table();
       }
+      double instance;
+
       double x;
       double px;
       double po;
