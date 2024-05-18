@@ -22,6 +22,9 @@
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
 #include <Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_MQTT5)
+#include <Protocols/MQTT/MQTTProtocolFactory.hpp>
+#endif
 
 #if defined(OSSIA_PROTOCOL_MIDI)
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>
@@ -90,6 +93,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_MINUIT)
          ,
          Protocols::MinuitProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_MQTT5)
+         ,
+         Protocols::MQTTProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
          ,

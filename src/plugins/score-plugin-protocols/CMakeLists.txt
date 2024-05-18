@@ -46,6 +46,19 @@ set(OSC_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.cpp"
 )
 
+set(MQTT_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTSpecificSettings.hpp"
+)
+set(MQTT_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTProtocolFactory.cpp"
+)
+
 set(MINUIT_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
@@ -283,6 +296,10 @@ if(OSSIA_PROTOCOL_WIIMOTE)
     list(APPEND SCORE_FEATURES_LIST protocol_wiimote)
 endif()
 
+if(OSSIA_PROTOCOL_MQTT5)
+    target_sources(${PROJECT_NAME} PRIVATE ${MQTT_HDRS} ${MQTT_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_mqtt)
+endif()
 if(OSSIA_PROTOCOL_ARTNET)
   # Needed for listing serial ports for DMX USB
   find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)
