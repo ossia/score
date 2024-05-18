@@ -29,7 +29,7 @@ public:
   virtual void setSettings(const Device::DeviceSettings& settings) = 0;
 
   void changed() E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, changed)
-protected:
+
   void checkForChanges(QLineEdit*);
   void checkForChanges(QComboBox*);
   void checkForChanges(QSpinBox*);
