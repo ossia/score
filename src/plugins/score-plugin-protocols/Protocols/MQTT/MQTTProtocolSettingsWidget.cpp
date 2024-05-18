@@ -38,7 +38,7 @@ MQTTTransportWidget::MQTTTransportWidget(
 
 void MQTTTransportWidget::setCurrentProtocol(MqttProtocol index)
 {
-  m_transportLayout->setCurrentIndex(index);
+  m_transportLayout->setCurrentIndex((int)index);
 }
 
 MQTTProtocolSettingsWidget::MQTTProtocolSettingsWidget(QWidget* parent)
@@ -73,10 +73,10 @@ MQTTTransportWidget::configuration(MqttProtocol index) const noexcept
   ossia::net::mqtt5_configuration conf;
   switch(index)
   {
-    case TCP:
+    case MqttProtocol::TCP:
       conf.transport = m_tcp->settings();
       break;
-    case WSClient:
+    case MqttProtocol::WSClient:
       conf.transport = m_ws_client->settings();
       break;
   }
@@ -94,12 +94,12 @@ MQTTTransportWidget::setConfiguration(const ossia::net::mqtt5_configuration& osc
     void operator()(const ossia::net::tcp_configuration& conf)
     {
       self.m_tcp->setSettings(conf);
-      proto = TCP;
+      proto = MqttProtocol::TCP;
     }
     void operator()(const ossia::net::ws_client_configuration& conf)
     {
       self.m_ws_client->setSettings(conf);
-      proto = WSClient;
+      proto = MqttProtocol::WSClient;
     }
   } vis{*this, osc_conf};
 
@@ -131,7 +131,7 @@ void MQTTProtocolSettingsWidget::setSettings(const Device::DeviceSettings& setti
     m_settings = settings.deviceSpecificSettings.value<MQTTSpecificSettings>();
     m_rate->setRate(m_settings.rate);
     auto proto = m_transportWidget->setConfiguration(m_settings.configuration);
-    m_transport->setCurrentIndex(proto);
+    m_transport->setCurrentIndex((int)proto);
   }
 }
 }

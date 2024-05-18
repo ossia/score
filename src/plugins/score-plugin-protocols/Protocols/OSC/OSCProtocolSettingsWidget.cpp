@@ -61,7 +61,7 @@ OSCTransportWidget::OSCTransportWidget(
 
 void OSCTransportWidget::setCurrentProtocol(OscProtocol index)
 {
-  m_transportLayout->setCurrentIndex(index);
+  m_transportLayout->setCurrentIndex((int)index);
 }
 
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
@@ -107,34 +107,34 @@ OSCTransportWidget::configuration(OscProtocol index) const noexcept
   ossia::net::osc_protocol_configuration conf;
   switch(index)
   {
-    case UDP:
+    case OscProtocol::UDP:
       conf.transport = m_udp->settings();
       conf.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
-    case TCP:
+    case OscProtocol::TCP:
       conf.transport = m_tcp->settings();
       conf.framing = m_tcp->framing();
       conf.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
-    case Serial:
+    case OscProtocol::Serial:
       conf.transport = m_serial->settings();
       conf.framing = m_serial->framing();
       conf.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
-    case UnixDatagram:
+    case OscProtocol::UnixDatagram:
       conf.transport = m_unix_dgram->settings();
       conf.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
-    case UnixStream:
+    case OscProtocol::UnixStream:
       conf.transport = m_unix_stream->settings();
       conf.framing = m_unix_stream->framing();
       conf.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
-    case WSClient:
+    case OscProtocol::WSClient:
       conf.transport = m_ws_client->settings();
       conf.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
-    case WSServer:
+    case OscProtocol::WSServer:
       conf.transport = m_ws_server->settings();
       conf.mode = ossia::net::osc_protocol_configuration::HOST;
       break;
@@ -153,37 +153,37 @@ OscProtocol OSCTransportWidget::setConfiguration(
     void operator()(const ossia::net::udp_configuration& conf)
     {
       self.m_udp->setSettings(conf);
-      proto = UDP;
+      proto = OscProtocol::UDP;
     }
     void operator()(const ossia::net::tcp_configuration& conf)
     {
       self.m_tcp->setSettings(osc_conf, conf);
-      proto = TCP;
+      proto = OscProtocol::TCP;
     }
     void operator()(const ossia::net::unix_dgram_configuration& conf)
     {
       self.m_unix_dgram->setSettings(conf);
-      proto = UnixDatagram;
+      proto = OscProtocol::UnixDatagram;
     }
     void operator()(const ossia::net::unix_stream_configuration& conf)
     {
       self.m_unix_stream->setSettings(osc_conf, conf);
-      proto = UnixStream;
+      proto = OscProtocol::UnixStream;
     }
     void operator()(const ossia::net::serial_configuration& conf)
     {
       self.m_serial->setSettings(osc_conf, conf);
-      proto = Serial;
+      proto = OscProtocol::Serial;
     }
     void operator()(const ossia::net::ws_client_configuration& conf)
     {
       self.m_ws_client->setSettings(conf);
-      proto = WSClient;
+      proto = OscProtocol::WSClient;
     }
     void operator()(const ossia::net::ws_server_configuration& conf)
     {
       self.m_ws_server->setSettings(conf);
-      proto = WSServer;
+      proto = OscProtocol::WSServer;
     }
   } vis{*this, osc_conf};
 
@@ -245,7 +245,7 @@ void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
     m_rate->setRate(m_settings.rate);
     m_bonjour->setChecked(m_settings.bonjour);
     auto proto = m_transportWidget->setConfiguration(m_settings.configuration);
-    m_transport->setCurrentIndex(proto);
+    m_transport->setCurrentIndex((int)proto);
   }
 }
 }

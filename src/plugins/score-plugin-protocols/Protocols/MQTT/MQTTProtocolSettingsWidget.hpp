@@ -18,7 +18,7 @@ class BasicTCPWidget;
 class WebsocketClientWidget;
 class RateWidget;
 
-enum MqttProtocol
+enum class MqttProtocol
 {
   TCP = 0,
   WSClient = 1,

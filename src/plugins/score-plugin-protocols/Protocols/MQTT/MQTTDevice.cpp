@@ -63,11 +63,6 @@ bool MQTTDevice::reconnect()
         m_dev = std::make_unique<ossia::net::generic_device>(std::move(proto), name);
       }
 
-      ossia::create_parameter(m_dev->get_root_node(), "/foo", "string")
-          ->set_access(ossia::access_mode::GET)
-          .add_callback([](const ossia::value& val) {
-        qDebug() << "Received: " << ossia::value_to_pretty_string(val) << "\n";
-      });
       deviceChanged(nullptr, m_dev.get());
       setLogging_impl(Device::get_cur_logging(isLogging()));
     }

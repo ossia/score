@@ -25,7 +25,7 @@ class WebsocketServerWidget;
 
 class RateWidget;
 
-enum OscProtocol
+enum class OscProtocol
 {
   UDP = 0,
   TCP = 1,
