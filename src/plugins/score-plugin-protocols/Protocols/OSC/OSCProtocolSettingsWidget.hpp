@@ -39,7 +39,8 @@ enum OscProtocol
 class OSCTransportWidget : public QWidget
 {
 public:
-  OSCTransportWidget(Device::ProtocolSettingsWidget& proto, QWidget* parent = nullptr);
+  explicit OSCTransportWidget(
+      Device::ProtocolSettingsWidget& proto, QWidget* parent = nullptr);
 
   void setCurrentProtocol(OscProtocol index);
   ossia::net::osc_protocol_configuration configuration(OscProtocol index) const noexcept;
@@ -60,7 +61,7 @@ private:
 class OSCProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
 public:
-  OSCProtocolSettingsWidget(QWidget* parent = nullptr);
+  explicit OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
   Device::Node getDevice() const override;

@@ -2,17 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "OSCSpecificSettings.hpp"
 
+#include <Protocols/NetworkWidgets/Serialization.hpp>
+
 #include <score/serialization/BoostVariant2Serialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-
-JSON_METADATA(ossia::net::udp_configuration, "UDP")
-JSON_METADATA(ossia::net::tcp_configuration, "TCP")
-JSON_METADATA(ossia::net::unix_dgram_configuration, "UnixDatagram")
-JSON_METADATA(ossia::net::unix_stream_configuration, "UnixStream")
-JSON_METADATA(ossia::net::serial_configuration, "Serial")
-JSON_METADATA(ossia::net::ws_client_configuration, "WSClient")
-JSON_METADATA(ossia::net::ws_server_configuration, "WSServer")
 
 template <>
 void DataStreamReader::read(const ossia::net::socket_configuration& n)
