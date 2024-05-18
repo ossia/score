@@ -28,7 +28,6 @@ OSCDevice::OSCDevice(
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
-  using namespace ossia;
   m_capas.canLearn = true;
   m_capas.hasCallbacks = false;
 }

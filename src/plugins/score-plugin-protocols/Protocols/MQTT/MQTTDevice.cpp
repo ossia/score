@@ -27,17 +27,8 @@ MQTTDevice::MQTTDevice(
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
-  using namespace ossia;
-
-  m_capas.canRefreshTree = true;
-  m_capas.canAddNode = false;
-  m_capas.canRemoveNode = false;
-  m_capas.canRenameNode = false;
-  m_capas.canSetProperties = false;
-  m_capas.canSerialize = false;
-
   m_capas.canLearn = true;
-  // m_capas.hasCallbacks = false;
+  m_capas.hasCallbacks = false;
 }
 
 bool MQTTDevice::reconnect()
