@@ -5,6 +5,7 @@ source ci/common.setup.sh
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
+     ${CC:=} \
      build-essential binutils clang cmake \
      libasound2-dev \
      ninja-build \
