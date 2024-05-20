@@ -140,7 +140,7 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
     }
     else if(forced_backend == "alsa")
     {
-#if __has_include(<alsa/asoundlib.h>)
+#if OSSIA_AUDIO_ALSA
       add_factories<FW<Audio::AudioFactory, Audio::ALSAFactory>>(vec, ctx, key);
       return vec;
 #endif
@@ -162,7 +162,7 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
 //          ,
 //          Audio::PulseAudioFactory
 // #endif
-#if __has_include(<alsa/asoundlib.h>)
+#if OSSIA_AUDIO_ALSA
          ,
          Audio::ALSAFactory
 #endif
