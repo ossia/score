@@ -166,17 +166,16 @@ jobs:
         run: |
           mkdir -p build || true
           mkdir -p install || true
-          export CC=gcc-12
-          export CXX=g++-12
+          export CC=clang-15
+          export CXX=clang++-15
           cmake -S $PWD -B build \
             -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=$PWD/install \
             -DCMAKE_UNITY_BUILD=1 \
             -DSCORE_DEPLOYMENT_BUILD=1 \
-            -DOSSIA_ENABLE_KFR=0 \
-            -DOSSIA_ENABLE_FFTW=1 \
-            -DSCORE_DISABLED_PLUGINS="score-plugin-jit;score-plugin-media;score-plugin-gfx;score-plugin-vst3;score-plugin-faust;score-plugin-pd;score-plugin-vst;score-plugin-lv2" \
+            -DOSSIA_ENABLE_KFR=1 \
+            -DSCORE_DISABLED_PLUGINS="score-plugin-jit" \
             -DSCORE_LINKER_SCRIPT="$PWD/cmake/Deployment/Linux/AppImage/version" \
             -DCMAKE_C_FLAGS="-Ofast -march=armv8-a -mfpu=neon-fp-armv8 -mcpu=cortex-a53" \
             -DCMAKE_CXX_FLAGS="-Ofast -march=armv8-a -mfpu=neon-fp-armv8 -mcpu=cortex-a53" \

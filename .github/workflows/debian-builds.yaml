@@ -31,6 +31,9 @@ jobs:
           submodules: 'recursive'
 
       - name: Dependencies
+        env:
+          CC: ${{ matrix.CC }}
+          CXX: ${{ matrix.CXX }}
         run: |
           ./ci/${{ matrix.distro }}.deps.sh
 
