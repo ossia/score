@@ -6,6 +6,8 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <ossia/audio/libasound.hpp>
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QLabel>
@@ -24,6 +26,7 @@ class ALSAWidget : public QWidget
 
   score::SettingsCommandDispatcher& m_disp;
   QComboBox *card_list{}, *buffer_size{}, *rate{};
+  QSpinBox* in_count{};
   QSpinBox* out_count{};
   QLabel* informations{};
 
@@ -31,6 +34,9 @@ class ALSAWidget : public QWidget
   {
     QString txt;
     txt += "Device: " + dev.pretty_name + "\n";
+    txt += QString("Inputs: [%1 -> %2]\n")
+               .arg(dev.inputRange.min)
+               .arg(dev.inputRange.max);
     txt += QString("Outputs: [%1 -> %2]\n")
                .arg(dev.outputRange.min)
                .arg(dev.outputRange.max);
@@ -46,7 +52,7 @@ class ALSAWidget : public QWidget
       using namespace Audio::Settings;
       m_disp.submitDeferredCommand<SetModelCardIn>(m, dev.raw_name);
       m_disp.submitDeferredCommand<SetModelCardOut>(m, dev.raw_name);
-      m_disp.submitDeferredCommand<SetModelDefaultIn>(m, 0);
+      m_disp.submitDeferredCommand<SetModelDefaultIn>(m, this->in_count->value());
       m_disp.submitDeferredCommand<SetModelDefaultOut>(m, this->out_count->value());
       m_disp.submitDeferredCommand<SetModelRate>(m, this->rate->currentText().toInt());
       m_disp.submitDeferredCommand<SetModelBufferSize>(
@@ -115,7 +121,18 @@ public:
 
     card_list = new QComboBox{this};
     informations = new QLabel{this};
+    in_count = new QSpinBox{this};
     out_count = new QSpinBox{this};
+    {
+      lay->addRow(QObject::tr("Input channels"), in_count);
+      in_count->setRange(0, 1024);
+      QObject::connect(
+          in_count, SignalUtils::QSpinBox_valueChanged_int(), this, [this, &m](int i) {
+        m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, i);
+      });
+
+      in_count->setValue(m.getDefaultIn());
+    }
     {
       lay->addRow(QObject::tr("Output channels"), out_count);
       out_count->setRange(0, 1024);
@@ -202,6 +219,12 @@ public:
       this->m_view.RateChanged(rate->currentText().toInt());
     }
 
+    {
+      int prev_in_count = in_count->value();
+      in_count->setRange(card.inputRange.min, card.inputRange.max);
+      in_count->setValue(
+          ossia::clamp(prev_in_count, card.inputRange.min, card.inputRange.max));
+    }
     {
       int prev_out_count = out_count->value();
       out_count->setRange(card.outputRange.min, card.outputRange.max);
@@ -355,7 +378,25 @@ void ALSAFactory::rescan()
         }
 
         snd.pcm_close(pcm);
-        devices.push_back(card);
+
+        if(int err = snd.pcm_open(&pcm, name, SND_PCM_STREAM_CAPTURE, 0); err >= 0)
+        {
+          snd_pcm_hw_params_t* hw_params{};
+          snd_alloca(&hw_params, snd, pcm_hw_params);
+          snd.pcm_hw_params_any(pcm, hw_params);
+
+          {
+            unsigned int min{}, max{};
+            snd.pcm_hw_params_get_channels_min(hw_params, &min);
+            snd.pcm_hw_params_get_channels_max(hw_params, &max);
+            card.inputRange.min = min;
+            card.inputRange.max = max;
+          }
+          snd.pcm_close(pcm);
+        }
+
+        if(card.outputRange.max > 0 && !card.buffer_sizes.empty() && !card.rates.empty())
+          devices.push_back(card);
       }
     }
     free(name);

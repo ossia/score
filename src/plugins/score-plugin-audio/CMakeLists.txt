@@ -63,6 +63,12 @@ target_link_libraries(${PROJECT_NAME}
           ossia
 )
 
+if(UNIX AND NOT APPLE)
+  include(deps/zita-alsa-pcmi)
+  target_link_libraries(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:zita-alsa-pcmi>" "$<BUILD_INTERFACE:kfr>")
+  list(APPEND SCORE_FEATURES_LIST alsa_pcm)
+endif()
+
 if(OSSIA_ENABLE_PORTAUDIO)
   target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:PortAudio::PortAudio>)
   list(APPEND SCORE_FEATURES_LIST portaudio)
