@@ -4,7 +4,7 @@ on: push
 
 jobs:
   fedora:
-    name: Fedora 38
+    name: Fedora (latest)
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
