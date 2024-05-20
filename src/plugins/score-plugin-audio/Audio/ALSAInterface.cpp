@@ -426,5 +426,5 @@ QWidget* ALSAFactory::make_settings(
   return new ALSAWidget{*this, m, v, m_disp, parent};
 }
 
-#endif
 }
+#endif
