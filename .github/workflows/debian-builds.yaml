@@ -17,6 +17,8 @@ jobs:
           - { distro: bookworm, CC: gcc,       CXX: g++ }
           - { distro: trixie, CC: gcc,       CXX: g++ }
           - { distro: trixie, CC: clang,     CXX: clang++ }
+          - { distro: trixie, CC: gcc-14,     CXX: g++-14 }
+          - { distro: trixie, CC: clang-17,     CXX: clang++-17 }
     steps:
       - name: Install git
         run: |
