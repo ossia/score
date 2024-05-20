@@ -1,4 +1,5 @@
 #include <Audio/ALSAInterface.hpp>
+#if defined(OSSIA_AUDIO_ALSA)
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
 
@@ -16,7 +17,6 @@
 
 namespace Audio
 {
-#if defined(OSSIA_AUDIO_ALSA)
 
 class ALSAWidget : public QWidget
 {
@@ -427,5 +427,4 @@ QWidget* ALSAFactory::make_settings(
 }
 
 #endif
-
 }
