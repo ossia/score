@@ -1,3 +1,6 @@
+.cache
+.clangd
+./*.cache
 *.zip
 build-*
 AppRun*
