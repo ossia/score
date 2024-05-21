@@ -2,10 +2,16 @@
 
 source ci/common.setup.sh
 
+# See debian-builds.yml for packages
+# (those are the specific compiler versions)
+# Mainly this variable is neede because one needs to do
+# apt install gcc-N g++-N to get g++-N,
+# but only clang-M as clang++-M is not a package
+
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
-     ${CC:=} ${CXX:=} \
+     ${PACKAGES:=} \
      build-essential binutils clang cmake \
      libasound2-dev \
      ninja-build \

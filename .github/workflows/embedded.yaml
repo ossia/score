@@ -170,6 +170,8 @@ jobs:
           export CXX=clang++-15
           cmake -S $PWD -B build \
             -GNinja \
+            -DCMAKE_C_COMPILER=clang-15 \
+            -DCMAKE_CXX_COMPILER=clang++-15 \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=$PWD/install \
             -DCMAKE_UNITY_BUILD=1 \

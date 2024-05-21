@@ -12,13 +12,13 @@ jobs:
     strategy:
       matrix:
         include:
-          - { distro: bookworm, CC: clang,     CXX: clang++ }
-          - { distro: bookworm, CC: clang-15,  CXX: clang++-15 }
-          - { distro: bookworm, CC: gcc,       CXX: g++ }
-          - { distro: trixie, CC: gcc,       CXX: g++ }
-          - { distro: trixie, CC: clang,     CXX: clang++ }
-          - { distro: trixie, CC: gcc-14,     CXX: g++-14 }
-          - { distro: trixie, CC: clang-17,     CXX: clang++-17 }
+          - { distro: bookworm, CC: clang,     CXX: clang++,    PACKAGES: "clang" }
+          - { distro: bookworm, CC: clang-15,  CXX: clang++-15, PACKAGES: "clang-15" }
+          - { distro: bookworm, CC: gcc,       CXX: g++,        PACKAGES: "build-essential" }
+          - { distro: trixie, CC: gcc,         CXX: g++,        PACKAGES: "build-essential" }
+          - { distro: trixie, CC: clang,       CXX: clang++,    PACKAGES: "clang" }
+          - { distro: trixie, CC: gcc-14,      CXX: g++-14,     PACKAGES: "gcc-14 g++-14" }
+          - { distro: trixie, CC: clang-17,    CXX: clang++-17, PACKAGES: "clang-17" }
     steps:
       - name: Install git
         run: |
@@ -34,6 +34,7 @@ jobs:
         env:
           CC: ${{ matrix.CC }}
           CXX: ${{ matrix.CXX }}
+          PACKAGES: ${{ matrix.packages }}
         run: |
           ./ci/${{ matrix.distro }}.deps.sh
 
