@@ -6,6 +6,8 @@
 
 #include <AvndProcesses/AddressTools.hpp>
 #include <halp/audio.hpp>
+
+#include <charconv>
 /**
  csv2: https://github.com/p-ranav/csv2/
  MIT License
