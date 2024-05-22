@@ -8,6 +8,7 @@
 
 #include <score_lib_state_export.h>
 
+#include <string_view>
 class QDebug;
 
 namespace State
@@ -21,7 +22,7 @@ using list_t = std::vector<ossia::value>;
 
 using Value = ossia::value;
 
-SCORE_LIB_STATE_EXPORT std::optional<ossia::value> parseValue(const std::string& str);
+SCORE_LIB_STATE_EXPORT std::optional<ossia::value> parseValue(std::string_view str);
 SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
 }
 SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::impulse);

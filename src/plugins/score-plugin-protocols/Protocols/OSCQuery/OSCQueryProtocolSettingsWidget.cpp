@@ -50,6 +50,13 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Local port"), m_localPort);
   layout->addRow(tr("Rate"), m_rate);
 
+  layout->addRow(
+      "",
+      new QLabel(
+          "Host examples:\n   ws://127.0.0.1:5678\n   http://my.oscquery.host\n\nLeave "
+          "Local Port at 0 unless you need to\naccomodate non-OSCQuery-compliant "
+          "software."));
+
   setLayout(layout);
 
   setDefaults();

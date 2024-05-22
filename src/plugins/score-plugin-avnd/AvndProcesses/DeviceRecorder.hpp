@@ -628,15 +628,31 @@ struct DeviceRecorder : PatternObject
 
             for(++it; it != row.end(); ++it)
             {
-              const auto& cell = *it;
-              v.clear();
-              cell.read_value(v);
-              auto res = State::parseValue(v);
-              if(res)
+              if(auto param = m_map[i])
               {
-                vec[i] = std::move(*res);
+                const auto& cell = *it;
+                v.clear();
+                cell.read_value(v);
+
+                if(!v.empty())
+                {
+                  std::optional<ossia::value> res;
+                  if(v.starts_with('"') && v.ends_with('"'))
+                    res = State::parseValue(std::string_view(v).substr(1, v.size() - 2));
+                  else
+                    res = State::parseValue(v);
+
+                  if(res)
+                  {
+                    vec[i] = std::move(*res);
+                    if(vec[i].get_type() != param->get_value_type())
+                    {
+                      ossia::convert(vec[i], param->get_value_type());
+                    }
+                  }
+                }
+                v.clear();
               }
-              v.clear();
               i++;
             }
           }
