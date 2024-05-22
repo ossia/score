@@ -1,4 +1,6 @@
 #pragma once
+#include <State/Value.hpp>
+
 #include <ossia/network/value/detail/value_conversion_impl.hpp>
 
 #include <QDateTime>
