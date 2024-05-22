@@ -17,6 +17,7 @@
 #include <QFormLayout>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
 #include <QLineEdit>
 #include <QNetworkReply>
 #include <QPushButton>
