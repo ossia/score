@@ -15,6 +15,7 @@
 #include <QPixmap>
 #include <QPointer>
 #include <QSettings>
+#include <QTextLayout>
 
 #include <score_git_info.hpp>
 
@@ -22,6 +23,8 @@
 #include <verdigris>
 
 namespace score
+{
+namespace
 {
 template <typename OnSuccess, typename OnError>
 class HTTPGet final : public QNetworkAccessManager
@@ -64,6 +67,7 @@ private:
   OnError m_error;
 };
 
+}
 class InteractiveLabel : public QWidget
 {
   W_OBJECT(InteractiveLabel)
@@ -78,6 +82,7 @@ public:
   void disableInteractivity();
   void setActiveColor(const QColor& c);
   void setInactiveColor(const QColor& c);
+  void setTextOption(QTextOption opt) { m_textOption = opt; }
 
   void labelPressed(const QString& file) W_SIGNAL(labelPressed, file)
 
@@ -92,17 +97,19 @@ private:
   QString m_title;
 
   QString m_url;
-  bool m_openExternalLink;
+  bool m_openExternalLink{};
 
-  bool m_drawPixmap;
+  bool m_drawPixmap{};
   QPixmap m_currentPixmap;
   QPixmap m_pixmap;
   QPixmap m_pixmapOn;
 
-  bool m_interactive;
+  bool m_interactive{};
   QColor m_currentColor;
   QColor m_activeColor;
   QColor m_inactiveColor;
+
+  QTextOption m_textOption;
 };
 
 InteractiveLabel::InteractiveLabel(
@@ -161,12 +168,26 @@ void InteractiveLabel::paintEvent(QPaintEvent* event)
   if(m_drawPixmap)
   {
     int size = m_currentPixmap.width() / qApp->devicePixelRatio();
-    painter.drawPixmap(0, (textRect.height() - size - 10) / 2, m_currentPixmap);
+    int pixmapX = 0;
+
+    if(m_textOption.alignment() == Qt::AlignRight)
+    {
+      QTextLayout lay;
+      lay.setText(m_title);
+      lay.setFont(m_font);
+      lay.setTextOption(QTextOption());
+      lay.beginLayout();
+      lay.createLine();
+      lay.endLayout();
+      pixmapX = lay.boundingRect().width();
+    }
+    painter.drawPixmap(
+        width() - pixmapX - m_currentPixmap.width() - 6,
+        (textRect.height() - size - 10) / 2, m_currentPixmap);
     textRect.setX(textRect.x() + size + 6);
   }
   painter.setFont(m_font);
-  //painter.rotate(20);
-  painter.drawText(textRect, m_title);
+  painter.drawText(textRect, m_title, m_textOption);
   painter.restore();
 }
 
@@ -205,7 +226,6 @@ void InteractiveLabel::mousePressEvent(QMouseEvent* event)
     labelPressed(m_url);
   }
 }
-
 class StartScreen : public QWidget
 {
   W_OBJECT(StartScreen)
@@ -308,12 +328,12 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
         [] {}};
   }
 
-  float label_x = 160;
+  float label_x = 300;
   float label_y = 215;
 
   { // recent files
-    InteractiveLabel* label
-        = new InteractiveLabel{titleFont, qApp->tr("Recent files"), "", this};
+    auto label = new InteractiveLabel{titleFont, qApp->tr("Recent files"), "", this};
+    label->setTextOption(QTextOption(Qt::AlignRight));
     label->setPixmaps(
         score::get_pixmap(":/icons/recent_files.png"),
         score::get_pixmap(":/icons/recent_files.png"));
@@ -325,11 +345,12 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   }
   f.setPointSize(12);
 
-  label_x += 40;
+  // label_x += 40;
   for(const auto& action : recentFiles->actions())
   {
-    InteractiveLabel* fileLabel
+    auto fileLabel
         = new InteractiveLabel{f, action->text(), action->data().toString(), this};
+    fileLabel->setTextOption(QTextOption(Qt::AlignRight));
     connect(
         fileLabel, &score::InteractiveLabel::labelPressed, this,
         &score::StartScreen::openFile);
@@ -338,16 +359,17 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
 
     label_y += 25;
   }
-  label_x = 160;
+  // label_x = 160;
   label_y += 10;
 
   m_crashLabel
       = new InteractiveLabel{titleFont, qApp->tr("Restore last session"), "", this};
+  m_crashLabel->setTextOption(QTextOption(Qt::AlignRight));
   m_crashLabel->setPixmaps(
       score::get_pixmap(":/icons/reload_crash_off.png"),
       score::get_pixmap(":/icons/reload_crash_on.png"));
-  m_crashLabel->move(label_x, label_y);
-  m_crashLabel->setFixedWidth(600);
+  m_crashLabel->move(label_x - 100, label_y);
+  m_crashLabel->setFixedWidth(300);
   m_crashLabel->setInactiveColor(QColor{"#f0f0f0"});
   m_crashLabel->setActiveColor(QColor{"#f6a019"});
   m_crashLabel->setDisabled(true);
@@ -356,7 +378,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
       m_crashLabel, &score::InteractiveLabel::labelPressed, this,
       &score::StartScreen::loadCrashedSession);
 
-  label_x = 590;
+  label_x = 510;
   label_y = 215;
   { // Create new
     InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("New"), "", this};
@@ -413,10 +435,10 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     menu_url->setOpenExternalLink(true);
     menu_url->setPixmaps(score::get_pixmap(m.pixmap), score::get_pixmap(m.pixmapOn));
     menu_url->move(label_x, label_y);
-    label_y += 40;
+    label_y += 35;
   }
 
-  label_y += 8;
+  label_y += 10;
 
   { // Exit App
     InteractiveLabel* label
