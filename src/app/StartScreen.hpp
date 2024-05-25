@@ -86,6 +86,8 @@ public:
 
   void labelPressed(const QString& file) W_SIGNAL(labelPressed, file)
 
+  QRectF textBoundingBox(double width) const noexcept;
+
 protected:
   void paintEvent(QPaintEvent* event) override;
   void enterEvent(QEnterEvent* event) override;
@@ -155,6 +157,30 @@ void InteractiveLabel::setInactiveColor(const QColor& c)
   m_currentColor = m_inactiveColor;
 }
 
+QRectF InteractiveLabel::textBoundingBox(double width) const noexcept
+{
+  int leading = QFontMetrics{m_font}.leading();
+  QTextLayout lay;
+  lay.setText(m_title);
+  lay.setFont(m_font);
+  lay.setTextOption(m_textOption);
+  lay.beginLayout();
+  double height{};
+  while(true)
+  {
+    QTextLine line = lay.createLine();
+    if(!line.isValid())
+      break;
+
+    line.setLineWidth(width);
+    height += leading;
+    line.setPosition(QPointF(0, height));
+    height += line.height();
+  }
+  lay.endLayout();
+  return lay.boundingRect();
+}
+
 void InteractiveLabel::paintEvent(QPaintEvent* event)
 {
   QPainter painter(this);
@@ -175,7 +201,7 @@ void InteractiveLabel::paintEvent(QPaintEvent* event)
       QTextLayout lay;
       lay.setText(m_title);
       lay.setFont(m_font);
-      lay.setTextOption(QTextOption());
+      lay.setTextOption(m_textOption);
       lay.beginLayout();
       lay.createLine();
       lay.endLayout();
@@ -355,9 +381,10 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
         fileLabel, &score::InteractiveLabel::labelPressed, this,
         &score::StartScreen::openFile);
 
+    auto textHeight = std::max(25, (int)fileLabel->textBoundingBox(200).height() + 7);
+    fileLabel->setFixedSize(200, textHeight);
     fileLabel->move(label_x, label_y);
-
-    label_y += 25;
+    label_y += textHeight + 1;
   }
   // label_x = 160;
   label_y += 10;
