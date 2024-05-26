@@ -8,7 +8,6 @@ cd /build
 
 cmake $SCORE_DIR \
  -GNinja \
- -DQT_VERSION=Qt6 \
  -DCMAKE_UNITY_BUILD=1 \
  -DCMAKE_BUILD_TYPE=Release \
  -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi-aarch64/toolchain.aarch64.llvm-host.cmake \
@@ -19,6 +18,7 @@ cmake $SCORE_DIR \
  -DOSSIA_ENABLE_FFTW=0 \
  -DCMAKE_INSTALL_PREFIX=install \
  -DLIBREMIDI_NO_PIPEWIRE=1 \
+ -DSCORE_DISABLED_PLUGINS=score-plugin-jit \
  -DSCORE_LINKER_SCRIPT="$SCORE_DIR/cmake/Deployment/Linux/AppImage/version"
 
 cmake --build .

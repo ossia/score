@@ -5,6 +5,7 @@ source ci/common.setup.sh
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
 $SUDO zypper -n install \
+   git \
    ninja gcc12 gcc12-c++ \
    llvm-devel \
    libjack-devel alsa-devel \

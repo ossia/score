@@ -9,6 +9,7 @@ source ci/common.deps.sh
 
 $SUDO zypper -n remove busybox-which
 $SUDO zypper -n install \
+   git \
    cmake ninja gcc gcc-c++ \
    llvm-devel \
    libjack-devel alsa-devel \
