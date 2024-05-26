@@ -59,6 +59,19 @@ set(MQTT_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MQTT/MQTTProtocolFactory.cpp"
 )
 
+set(COAP_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPSpecificSettings.hpp"
+)
+set(COAP_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/CoAP/CoAPProtocolFactory.cpp"
+)
+
 set(MINUIT_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
@@ -300,6 +313,13 @@ if(OSSIA_PROTOCOL_MQTT5)
     target_sources(${PROJECT_NAME} PRIVATE ${MQTT_HDRS} ${MQTT_SRCS})
     list(APPEND SCORE_FEATURES_LIST protocol_mqtt)
 endif()
+
+if(OSSIA_PROTOCOL_COAP)
+    target_sources(${PROJECT_NAME} PRIVATE ${COAP_HDRS} ${COAP_SRCS})
+    list(APPEND SCORE_FEATURES_LIST protocol_coap)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_COAP)
+endif()
+
 if(OSSIA_PROTOCOL_ARTNET)
   # Needed for listing serial ports for DMX USB
   find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)

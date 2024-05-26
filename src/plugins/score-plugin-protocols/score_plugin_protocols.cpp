@@ -25,6 +25,9 @@
 #if defined(OSSIA_PROTOCOL_MQTT5)
 #include <Protocols/MQTT/MQTTProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_COAP)
+#include <Protocols/CoAP/CoAPProtocolFactory.hpp>
+#endif
 
 #if defined(OSSIA_PROTOCOL_MIDI)
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>
@@ -97,6 +100,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_MQTT5)
          ,
          Protocols::MQTTProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_COAP)
+         ,
+         Protocols::CoAPProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
          ,

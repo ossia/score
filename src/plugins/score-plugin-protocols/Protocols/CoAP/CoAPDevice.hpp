@@ -5,10 +5,10 @@
 
 namespace Protocols
 {
-class MQTTDevice final : public Device::OwningDeviceInterface
+class CoAPDevice final : public Device::OwningDeviceInterface
 {
 public:
-  MQTTDevice(
+  CoAPDevice(
       const Device::DeviceSettings& stngs, const ossia::net::network_context_ptr& ctx);
 
   bool reconnect() override;
