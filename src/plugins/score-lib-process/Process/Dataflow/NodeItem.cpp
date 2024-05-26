@@ -91,7 +91,7 @@ void NodeItem::createWithDecorations()
   auto& process = m_model;
   auto& ctx = m_context;
 
-  const bool startFolded = (process.inlets().size() > 12);
+  const bool startFolded = (process.inlets().size() > 32);
 
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
