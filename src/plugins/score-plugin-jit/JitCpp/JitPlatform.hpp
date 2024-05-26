@@ -370,6 +370,7 @@ static inline auto getPotentialTriples()
   triples.push_back("aarch64-pc-linux-gnueabi");
   triples.push_back("aarch64-none-linux-gnu");
   triples.push_back("aarch64-pc-linux-gnu");
+  triples.push_back("aarch64-redhat-linux");
 #endif
 
   return triples;
