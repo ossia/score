@@ -182,8 +182,25 @@ score_plugin_js::score_plugin_js()
 #endif
   qmlRegisterType<JS::MidiInlet>("Score", 1, 0, "MidiInlet");
   qmlRegisterType<JS::MidiOutlet>("Score", 1, 0, "MidiOutlet");
-  qmlRegisterType<JS::FloatSlider>("Score", 1, 0, "FloatSlider");
-  qmlRegisterType<JS::IntSlider>("Score", 1, 0, "IntSlider");
+  qmlRegisterType<JS::FloatSlider<Process::FloatSlider>>("Score", 1, 0, "FloatSlider");
+  qmlRegisterType<JS::FloatSlider<Process::FloatKnob>>("Score", 1, 0, "FloatKnob");
+  qmlRegisterType<JS::FloatSlider<Process::FloatSpinBox>>("Score", 1, 0, "FloatSpinBox");
+  qmlRegisterType<JS::IntSlider<Process::IntSlider>>("Score", 1, 0, "IntSlider");
+  qmlRegisterType<JS::IntSlider<Process::IntSpinBox>>("Score", 1, 0, "IntSpinBox");
+
+  qmlRegisterType<JS::FloatRangeSpinBox>("Score", 1, 0, "FloatRangeSpinBox");
+  qmlRegisterType<JS::IntRangeSlider>("Score", 1, 0, "IntRangeSlider");
+  qmlRegisterType<JS::IntRangeSpinBox>("Score", 1, 0, "IntRangeSpinBox");
+  qmlRegisterType<JS::HSVSlider>("Score", 1, 0, "HSVSlider");
+  qmlRegisterType<JS::XYSlider>("Score", 1, 0, "XYSlider");
+  qmlRegisterType<JS::XYZSlider>("Score", 1, 0, "XYZSlider");
+  qmlRegisterType<JS::XYSpinboxes>("Score", 1, 0, "XYSpinBoxes");
+  qmlRegisterType<JS::XYZSpinboxes>("Score", 1, 0, "XYZSpinBoxes");
+  qmlRegisterType<JS::MultiSlider>("Score", 1, 0, "MultiSlider");
+  qmlRegisterType<JS::FileChooser>("Score", 1, 0, "FileChooser");
+  qmlRegisterType<JS::AudioFileChooser>("Score", 1, 0, "AudioFileChooser");
+  qmlRegisterType<JS::VideoFileChooser>("Score", 1, 0, "VideoFileChooser");
+
   qmlRegisterType<JS::Enum>("Score", 1, 0, "Enum");
   qmlRegisterType<JS::Toggle>("Score", 1, 0, "Toggle");
   qmlRegisterType<JS::Impulse>("Score", 1, 0, "Impulse");

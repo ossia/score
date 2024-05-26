@@ -4,6 +4,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <JS/Qml/QtMetatypes.hpp>
+
 #if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/TexturePort.hpp>
 
@@ -23,6 +25,8 @@
 #include <QVector>
 
 #include <libremidi/message.hpp>
+
+#include <wobjectimpl.h>
 
 #include <verdigris>
 
@@ -127,50 +131,158 @@ public:
   }
 
   void clear() { m_value = QVariant{}; }
-  void setValue(QVariant value);
+  virtual void setValue(QVariant value);
   void valueChanged(QVariant value) W_SIGNAL(valueChanged, value);
 
-  W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
+  // W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
 };
 
+template <typename Impl, typename ValueType>
+class GenericControlInlet : public ControlInlet
+{
+  W_OBJECT(GenericControlInlet)
+
+public:
+  using ControlInlet::ControlInlet;
+  virtual ~GenericControlInlet() override = default;
+  bool isEvent() const override { return true; }
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    return new Impl(id, parent);
+  }
+
+  void clear() { m_value = {}; }
+  ValueType value() const noexcept { return m_value; }
+  void setValue(QVariant value) override
+  {
+    auto conv = value.value<ValueType>();
+    if(m_value == conv)
+      return;
+
+    m_value = std::move(conv);
+    valueChanged(m_value);
+  }
+  void setValue(ValueType value)
+  {
+    if(m_value == value)
+      return;
+
+    m_value = value;
+    valueChanged(m_value);
+  }
+  void valueChanged(ValueType value) W_SIGNAL(valueChanged, value);
+
+  W_PROPERTY(ValueType, value READ value NOTIFY valueChanged)
+  // W_INLINE_PROPERTY_VALUE(QVariant, init, {0.5}, init, setInit, initChanged)
+  // W_INLINE_PROPERTY_VALUE(QVariant, min, {0.}, getMin, setMin, minChanged)
+  // W_INLINE_PROPERTY_VALUE(QVariant, max, {1.}, getMax, setMax, maxChanged)
+
+private:
+  ValueType m_value{};
+};
+W_OBJECT_IMPL((GenericControlInlet<A, B>), template <typename A, typename B>)
+struct FloatRangeSpinBox : JS::GenericControlInlet<Process::FloatRangeSpinBox, QVector2D>
+{
+  W_OBJECT(FloatRangeSpinBox);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct IntRangeSlider : JS::GenericControlInlet<Process::IntRangeSlider, QVector2D>
+{
+  W_OBJECT(IntRangeSlider);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct IntRangeSpinBox : JS::GenericControlInlet<Process::IntRangeSpinBox, QVector2D>
+{
+  W_OBJECT(IntRangeSpinBox);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct HSVSlider : JS::GenericControlInlet<Process::HSVSlider, QVector4D>
+{
+  W_OBJECT(HSVSlider);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct XYSlider : JS::GenericControlInlet<Process::XYSlider, QVector2D>
+{
+  W_OBJECT(XYSlider);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct XYZSlider : JS::GenericControlInlet<Process::XYZSlider, QVector3D>
+{
+  W_OBJECT(XYZSlider);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct XYSpinboxes : JS::GenericControlInlet<Process::XYSpinboxes, QVector2D>
+{
+  W_OBJECT(XYSpinboxes);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct XYZSpinboxes : JS::GenericControlInlet<Process::XYZSpinboxes, QVector3D>
+{
+  W_OBJECT(XYZSpinboxes);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct MultiSlider : JS::GenericControlInlet<Process::MultiSlider, QVector<qreal>>
+{
+  W_OBJECT(MultiSlider);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct FileChooser : JS::GenericControlInlet<Process::FileChooser, QString>
+{
+  W_OBJECT(FileChooser);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct AudioFileChooser : JS::GenericControlInlet<Process::AudioFileChooser, QString>
+{
+  W_OBJECT(AudioFileChooser);
+  using GenericControlInlet::GenericControlInlet;
+};
+struct VideoFileChooser : JS::GenericControlInlet<Process::VideoFileChooser, QString>
+{
+  W_OBJECT(VideoFileChooser);
+  using GenericControlInlet::GenericControlInlet;
+};
+
+template <typename Impl = Process::FloatSlider>
 class FloatSlider : public ControlInlet
 {
   W_OBJECT(FloatSlider)
 
 public:
   using ControlInlet::ControlInlet;
-  virtual ~FloatSlider() override;
+  virtual ~FloatSlider() override = default;
   bool isEvent() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::FloatSlider{(float)m_min, (float)m_max, (float)m_init,
-                                    objectName(), id,           parent};
+    return new Impl{(float)m_min, (float)m_max, (float)m_init, objectName(), id, parent};
   }
 
   W_INLINE_PROPERTY_VALUE(qreal, init, {0.5}, init, setInit, initChanged)
   W_INLINE_PROPERTY_VALUE(qreal, min, {0.}, getMin, setMin, minChanged)
   W_INLINE_PROPERTY_VALUE(qreal, max, {1.}, getMax, setMax, maxChanged)
 };
+W_OBJECT_IMPL(JS::FloatSlider<Impl>, template <typename Impl>)
 
+template <typename Impl = Process::IntSlider>
 class IntSlider : public ControlInlet
 {
   W_OBJECT(IntSlider)
 
 public:
   using ControlInlet::ControlInlet;
-  virtual ~IntSlider() override;
+  virtual ~IntSlider() override = default;
   bool isEvent() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::IntSlider{m_min, m_max, m_init, objectName(), id, parent};
+    return new Impl{m_min, m_max, m_init, objectName(), id, parent};
   }
 
   W_INLINE_PROPERTY_VALUE(int, init, {0}, init, setInit, initChanged)
   W_INLINE_PROPERTY_VALUE(int, min, {0}, getMin, setMin, minChanged)
   W_INLINE_PROPERTY_VALUE(int, max, {127}, getMax, setMax, maxChanged)
 };
+W_OBJECT_IMPL(JS::IntSlider<Impl>, template <typename Impl>)
 
 class Enum : public ControlInlet
 {
