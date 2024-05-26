@@ -2,6 +2,8 @@
 
 #include <JS/Qml/Metatypes.hpp>
 
+#include <ossia/math/safe_math.hpp>
+
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
@@ -248,11 +250,21 @@ void AudioOutlet::setChannel(int i, const QJSValue& v)
 
   int n = v.property("length").toNumber();
   auto& arr = m_audio[i];
+  arr.clear();
   arr.resize(n);
   double* data = arr.data();
   for(int s = 0; s < n; s++)
   {
-    data[s] = v.property(s).toNumber();
+    if(const auto& prop = v.property(s); prop.isNumber())
+    {
+      data[s] = prop.toNumber();
+      if(ossia::safe_isinf(data[s]) || ossia::safe_isnan(data[s]))
+        data[s] = 0.;
+    }
+    else
+    {
+      data[s] = 0.;
+    }
   }
 }
 
