@@ -27,7 +27,7 @@ QString MinuitProtocolFactory::category() const noexcept
 
 int MinuitProtocolFactory::visualPriority() const noexcept
 {
-  return 1;
+  return -1;
 }
 
 Device::DeviceInterface* MinuitProtocolFactory::makeDevice(

@@ -48,7 +48,7 @@ public:
   virtual ~ProtocolFactory();
   struct StandardCategories
   {
-    static const constexpr auto osc = "OSC";
+    static const constexpr auto osc = "Network";
     static const constexpr auto audio = "Audio";
     static const constexpr auto video = "Video";
     static const constexpr auto web = "Web";

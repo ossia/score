@@ -159,7 +159,9 @@ void DeviceEditDialog::initAvailableProtocols()
   }
 
   ossia::sort(sorted, [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
-    return lhs->visualPriority() > rhs->visualPriority();
+    return lhs->visualPriority() > rhs->visualPriority()
+           || (lhs->visualPriority() == rhs->visualPriority()
+               && lhs->prettyName() < rhs->prettyName());
   });
   for(const auto& prot_pair : sorted)
   {
