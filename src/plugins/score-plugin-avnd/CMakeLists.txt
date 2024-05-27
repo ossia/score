@@ -640,6 +640,15 @@ avnd_make_score(
   MAIN_CLASS GeoZones
   NAMESPACE co
 )
+
+avnd_make_score(
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Teleplot.hpp"
+  TARGET teleplot
+  MAIN_CLASS Teleplot
+  NAMESPACE avnd_tools
+)
+
+
 # avnd_make_score(
 #   SOURCES
 #     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"

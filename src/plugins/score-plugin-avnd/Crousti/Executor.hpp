@@ -19,6 +19,7 @@
 
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/node_process.hpp>
+#include <ossia/network/context.hpp>
 
 #include <ossia-qt/invoke.hpp>
 
@@ -656,7 +657,10 @@ public:
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate(), id};
       node->prepare(*ctx.execState.get()); // Preparation of the ossia side
 
+      auto& net_ctx
+          = *ctx.doc.findPlugin<Explorer::DeviceDocumentPlugin>()->networkContext();
       if_possible(node->impl.effect.ossia_state = st);
+      if_possible(node->impl.effect.io_context = &net_ctx.context);
       ptr.reset(node);
       this->node = ptr;
 
