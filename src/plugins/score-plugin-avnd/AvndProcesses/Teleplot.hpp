@@ -103,8 +103,6 @@ struct Teleplot : PatternObject
     }
   }
 
-  using tick = halp::tick_musical;
-
   // NOTE: this function can be called from any thread
   static void push(
       ossia::net::udp_send_socket& socket, const ossia::net::parameter_base& param,
@@ -191,7 +189,7 @@ struct Teleplot : PatternObject
     socket.write(buf.begin(), buf.size());
   }
 
-  void operator()(const halp::tick_musical& tk)
+  void operator()()
   {
     if(!socket)
     {
