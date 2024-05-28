@@ -40,6 +40,10 @@ ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent co
 
 In order to build score, follow the [documentation](https://ossia.io/score-docs/development/build-from-source.html).
 
+## Packaging status
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/ossia-score.svg?columns=3&header=ossia-score)](https://repology.org/project/ossia-score/versions)
+
 ## Contributing
 
 When updating the score repository through the command line, don't forget to update the submodules, they change often.
