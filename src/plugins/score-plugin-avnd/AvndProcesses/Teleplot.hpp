@@ -36,6 +36,8 @@ struct Teleplot : PatternObject
   {
   } outputs;
 
+  ~Teleplot() { clear(); }
+
   std::pair<std::string, uint16_t> resolve_ip(const std::string& host)
   {
     try
@@ -69,14 +71,19 @@ struct Teleplot : PatternObject
     return {};
   }
 
-  void update()
+  void clear()
   {
-    // 1. Remove existing callbacks
     for(auto& [param, cb] : params)
     {
       param->remove_callback(cb);
     }
     params.clear();
+  }
+
+  void update()
+  {
+    // 1. Remove existing callbacks
+    clear();
 
     // 2. recreate socket
     {
