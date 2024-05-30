@@ -4,6 +4,12 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
   return()
 endif()
 
+if(NOT APPLE)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES aarch64)
+    return()
+  endif()
+endif()
+
 if(SCORE_FAST_DEV_BUILD)
   return()
 endif()

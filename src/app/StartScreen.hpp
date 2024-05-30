@@ -332,7 +332,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     // new version
     auto m_getLastVersion = new HTTPGet{
         QUrl("https://ossia.io/score-last-version.txt"),
-        [=](const QByteArray& data) {
+        [this, titleFont](const QByteArray& data) {
       auto version = QString::fromUtf8(data.simplified());
       if(SCORE_TAG_NO_V < version)
       {
@@ -350,8 +350,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
         label->move(280, 170);
         label->show();
       }
-    },
-        [] {}};
+    }, [] {}};
   }
 
   float label_x = 300;
