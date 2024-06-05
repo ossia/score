@@ -19,7 +19,11 @@ if(NOT TARGET avformat AND NOT EMSCRIPTEN)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
 endif()
 
-if(WIN32)
+if(WIN32 AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+  set(SCORE_HAS_SPOUT 1)
+endif()
+
+if(SCORE_HAS_SPOUT)
 set(SPOUT_SRCS
     Gfx/Spout/SpoutInput.hpp
     Gfx/Spout/SpoutInput.cpp
@@ -325,15 +329,15 @@ if(APPLE)
     endif()
 endif()
 
+if(SCORE_HAS_SPOUT)
+  add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
+  target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
+  list(APPEND SCORE_FEATURES_LIST spout)
+endif()
+
 if(WIN32)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.win32.cpp)
-
-  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
-    target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
-    list(APPEND SCORE_FEATURES_LIST spout)
-  endif()
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 
