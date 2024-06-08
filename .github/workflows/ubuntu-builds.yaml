@@ -3,7 +3,7 @@ name: Ubuntu build
 on: push
 
 jobs:
-  jammy:
+  ubuntu:
     name: Ubuntu 
     runs-on: ubuntu-latest
 
