@@ -1,0 +1,19 @@
+name: Nix build
+
+on: push
+jobs:
+  nix:
+    name: Nix
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Install nix
+      uses: cachix/install-nix-action@v24
+
+    - name: Build
+      run: nix-build -E 'with import <nixpkgs> {}; qt6.callPackage ./ci/nix.build.nix {}'
