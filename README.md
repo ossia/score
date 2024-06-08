@@ -30,9 +30,10 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 | ArchLinux, SUSE, Fedora           | [![Linux distros](https://github.com/ossia/score/actions/workflows/builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/builds.yaml)                         |
 | macOS (Homebrew)                  | [![macOS](https://github.com/ossia/score/actions/workflows/mac-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/mac-builds.yaml)                         |
 | Windows (MSYS2, MSVC 2022)        | [![Windows](https://github.com/ossia/score/actions/workflows/win-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/win-builds.yaml)                       |
-| Debian (Bullseye, Bookworm)       | [![Debian](https://github.com/ossia/score/actions/workflows/debian-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/debian-builds.yaml)                  |
-| Ubuntu (Jammy 22.04, Lunar 23.04) | [![Ubuntu](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml)                  |
+| Debian (Bookworm, Trixie)         | [![Debian](https://github.com/ossia/score/actions/workflows/debian-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/debian-builds.yaml)                  |
+| Ubuntu (22.04, 23.04, 24.04)      | [![Ubuntu](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml)                  |
 | Raspberry Pi (Bullseye AArch64)   | [![RPi](https://github.com/ossia/score/actions/workflows/embedded.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/embedded.yaml)                               |
+| Nix                               | [![Nix](https://github.com/ossia/score/actions/workflows/nix.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/nix.yaml)                                         |
 | WebAssembly                       | [![WASM](https://github.com/ossia/score/actions/workflows/wasm.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/wasm.yaml)                                      |
 | Plug-in templates                 | [![Template check](https://github.com/ossia/score/actions/workflows/templates.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/templates.yaml)                  |
  
