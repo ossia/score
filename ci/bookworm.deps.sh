@@ -12,6 +12,7 @@ $SUDO apt-get install -qq --force-yes \
      libsuil-dev liblilv-dev lv2-dev \
      libclang-dev llvm-dev \
      libclang-15-dev llvm-15-dev \
+     libdbus-1-dev \
      libdrm-dev libgbm-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
      qt6-declarative-dev qt6-declarative-dev-tools qt6-declarative-private-dev \

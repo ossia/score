@@ -15,6 +15,7 @@ $SUDO apt-get install -y \
      libasound-dev \
      ninja-build cmake \
      libfftw3-dev \
+     libdbus-1-dev \
      libsuil-dev liblilv-dev lv2-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
      qt6-declarative-dev qt6-declarative-dev-tools qt6-declarative-private-dev \

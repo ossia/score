@@ -18,6 +18,7 @@ $SUDO zypper -n install \
    libavahi-devel \
    fftw3-devel fftw3-threads-devel \
    bluez-devel \
+   dbus-devel \
    qt6-base-devel qt6-base-private-devel  \
    qt6-declarative-devel qt6-declarative-private-devel \
    qt6-tools \

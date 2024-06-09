@@ -17,6 +17,7 @@ dnf -y --allowerasing install \
      lilv-devel suil-devel libquadmath-devel \
      fftw-devel \
      avahi-devel \
+     dbus-devel \
      libxkbcommon-x11-devel libxkbcommon-devel \
      bluez-libs-devel \
      qt6-qtbase-devel \

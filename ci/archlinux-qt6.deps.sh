@@ -22,7 +22,7 @@ $SUDO pacman -S --noconfirm --needed \
    cmake ninja gcc llvm clang boost \
    icu \
    ffmpeg portaudio lv2 suil lilv sdl2 alsa-lib \
-   avahi fftw bluez-libs \
+   avahi fftw bluez-libs dbus \
    tar xz wget \
    brotli double-conversion zstd glib2 libb2 pcre2 \
    libxkbcommon libxkbcommon-x11 \
