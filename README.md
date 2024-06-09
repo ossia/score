@@ -33,7 +33,7 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 | Debian (Bookworm, Trixie)         | [![Debian](https://github.com/ossia/score/actions/workflows/debian-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/debian-builds.yaml)                  |
 | Ubuntu (22.04, 23.04, 24.04)      | [![Ubuntu](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml)                  |
 | Raspberry Pi (Bullseye AArch64)   | [![RPi](https://github.com/ossia/score/actions/workflows/embedded.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/embedded.yaml)                               |
-| Nix                               | [![Nix](https://github.com/ossia/score/actions/workflows/nix.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/nix.yaml)                                         |
+| Nix                               | [![Nix](https://github.com/ossia/score/actions/workflows/nix-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/nix-builds.yaml)                                         |
 | WebAssembly                       | [![WASM](https://github.com/ossia/score/actions/workflows/wasm.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/wasm.yaml)                                      |
 | Plug-in templates                 | [![Template check](https://github.com/ossia/score/actions/workflows/templates.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/templates.yaml)                  |
  

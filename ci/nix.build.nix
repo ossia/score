@@ -4,11 +4,12 @@
 , cmake
 , ninja
 , pkg-config
-, qttools
-, wrapQtAppsHook
 , alsa-lib
+, avahi
+, bluez
 , boost185
 # , faust
+, fmt
 , git
 , ffmpeg
 , fftw
@@ -27,17 +28,13 @@
 , portaudio
 , portmidi
 , libsamplerate
-, qtbase
-, qtdeclarative
-, qtscxml
-, qtserialport
-, qtshadertools
-, qtsvg
-, qtwayland
-, qtwebsockets
+, qt6
 , rapidfuzz-cpp
 , re2
+, sdl2
+, spdlog
 , suil
+, udev
 }:
 
 # TODO: figure out LLVM jit
@@ -47,17 +44,18 @@ stdenv.mkDerivation (finalAttrs: {
   pname = "ossia-score";
   version = "devel";
   src = ../.;
-  nativeBuildInputs = [ cmake ninja pkg-config qttools wrapQtAppsHook ];
+  nativeBuildInputs = [ cmake ninja pkg-config qt6.qttools qt6.wrapQtAppsHook ];
 
-  # TODO: figure out if we want avahi / bluez / speex / SDL2 (needed for joystick support) by default
-  # what about leapmotion?
   buildInputs = [
     alsa-lib
     boost185
     # faust
+    avahi
+    bluez
     ffmpeg
     fftw
     flac
+    fmt
     git
     gnutls
     lame
@@ -73,17 +71,20 @@ stdenv.mkDerivation (finalAttrs: {
     pipewire
     portaudio
     portmidi
-    qtbase
-    qtdeclarative
-    qtserialport
-    qtscxml
-    qtshadertools
-    qtsvg
-    qtwayland
-    qtwebsockets
+    qt6.qtbase
+    qt6.qtdeclarative
+    qt6.qtserialport
+    qt6.qtscxml
+    qt6.qtshadertools
+    qt6.qtsvg
+    qt6.qtwayland
+    qt6.qtwebsockets
     rapidfuzz-cpp
     re2
+    sdl2
+    spdlog
     suil
+    udev
   ];
 
   cmakeFlags = [
@@ -95,9 +96,6 @@ stdenv.mkDerivation (finalAttrs: {
     "-DCMAKE_UNITY_BUILD=1"
     "-DCMAKE_SKIP_RPATH=ON"
     "-DOSSIA_USE_SYSTEM_LIBRARIES=1"
-
-    "-DCMAKE_CXX_FLAGS=-O0"
-    "-DCMAKE_EXE_LINKER_FLAGS=-O0"
 
     "-DLilv_INCLUDE_DIR=${lilv.dev}/include/lilv-0"
     "-DLilv_LIBRARY=${lilv}/lib/liblilv-0.so"
