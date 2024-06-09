@@ -31,7 +31,7 @@
 , qt6
 , rapidfuzz-cpp
 , re2
-, sdl2
+, SDL2
 , spdlog
 , suil
 , udev
@@ -81,7 +81,7 @@ stdenv.mkDerivation (finalAttrs: {
     qt6.qtwebsockets
     rapidfuzz-cpp
     re2
-    sdl2
+    SDL2
     spdlog
     suil
     udev
