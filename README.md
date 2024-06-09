@@ -4,23 +4,23 @@
 
 [**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows.
 
-Sequence **OSC, MIDI, DMX, sound, video** and more, between multiple software and hardware, create ***interactive*** and ***intermedia*** scores and ***script*** with JavaScript, PureData or C++ to customize your score.
+Sequence **OSC, MIDI, DMX, sound, video** and more, between multiple software and hardware. Create ***interactive*** and ***intermedia*** scores, ***script*** and ***live-code*** with JavaScript, [ISF Shaders](https://isf.video), [Faust](https://faust.grame.fr), PureData or C++. Leverage IoT protocols such as CoAP or MQTT, interact with joysticks, WiiMotes, Web APIs and BLE sensors and integrate programs from a wealth of creative programming languages such as [Structure Synth](https://structuresynth.sourceforge.net/), [Context-Free Art](https://www.contextfreeart.org/) and [Bytebeat](https://dollchan.net/bytebeat/).
 
-Free, open source and runs on desktop, mobile, web and embedded.
+Free, open source and runs on desktop, mobile, web and embedded, down to Raspberry Pi Zero 2.
 
 Read more on [https://ossia.io](https://ossia.io), come ask questions on the [forum](https://forum.ossia.io/c/score) or hang out in our [Discord](https://discord.gg/8Hzm4UduaS) or [Matrix room #ossia_score:gitter.im](https://gitter.im/ossia/score), we will be happy to help you !
 
-### Quick download links: [latest official release](https://github.com/ossia/score/releases/) / [bleeding edge](https://github.com/ossia/score/releases/tag/continuous)
+### Quick download links: [latest official release](https://github.com/ossia/score/releases) / [bleeding edge](https://github.com/ossia/score/releases/tag/continuous)
 
 ![ossia score screenshot](/docs/score.png?raw=true)
 
-## Running score
+## Running ossia score
 
-Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://github.com/ossia/score/releases/latest).
+Releases are available for [Windows, Linux (via AppImage) and macOS](https://github.com/ossia/score/releases/latest).
 
 * Windows: install and run.
 * macOS: open the `.dmg` and drop `ossia score.app` in Applications.
-* Linux: make executable (right click -> permissions or `chmod +x`) and run the AppImage. 
+* Linux: make executable (right click -> permissions or `chmod +x`) and run the AppImage.
 
 ## Build status
 
