@@ -71,7 +71,7 @@ jobs:
           pacboy: >-
             cmake:p
             ninja:p
-            git:p
+            git:x
             toolchain:p
             qt6-base:p
             qt6-declarative:p
