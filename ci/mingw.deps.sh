@@ -12,4 +12,4 @@
 # jack2:p   not available on clang?
 # lv2 suil lilv
 
-# source ci/common.deps.sh
+source ci/common.deps.sh
