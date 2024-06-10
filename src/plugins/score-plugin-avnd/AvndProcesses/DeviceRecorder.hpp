@@ -774,7 +774,7 @@ struct DeviceRecorder : PatternObject
     void operator()()
     {
       recorder->setActive(mode == mode_type::Record);
-      player->setActive(mode == mode_type::Playback || mode == mode_type::Loop);
+      player->setActive(mode == mode_type::Playback || mode == mode_type::Loop);
       player->setLoops(mode == mode_type::Loop);
     }
   };
