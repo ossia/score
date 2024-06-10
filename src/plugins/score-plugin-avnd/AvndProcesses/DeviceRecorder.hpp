@@ -535,6 +535,7 @@ struct DeviceRecorder : PatternObject
     boost::container::flat_map<int, ossia::net::parameter_base*> m_map;
     boost::container::flat_map<int64_t, std::vector<ossia::value>> m_vec;
     bool active{};
+    bool loops{};
     int num_params{};
 
     void setActive(bool b)
@@ -546,6 +547,7 @@ struct DeviceRecorder : PatternObject
         reopen();
     }
 
+    void setLoops(bool b) { loops = b; }
     void reopen()
     {
       f.close();
@@ -664,11 +666,16 @@ struct DeviceRecorder : PatternObject
 
     void read()
     {
+      if(m_vec.empty())
+        return;
+
       using namespace std::chrono;
-      const auto ts
-          = duration_cast<milliseconds>(steady_clock::now() - first_ts).count();
+      auto ts = duration_cast<milliseconds>(steady_clock::now() - first_ts).count();
+      if(loops)
+        ts %= m_vec.rbegin()->first + 1;
       read(ts);
     }
+
     void read(int64_t timestamp)
     {
       auto it = m_vec.lower_bound(timestamp);
@@ -703,7 +710,7 @@ struct DeviceRecorder : PatternObject
     } filename;
     struct
     {
-      halp__enum("Mode", None, None, Record, Playback)
+      halp__enum("Mode", None, None, Record, Playback, Loop)
       void update(DeviceRecorder& self) { self.setMode(); }
     } mode;
   } inputs;
@@ -767,7 +774,8 @@ struct DeviceRecorder : PatternObject
     void operator()()
     {
       recorder->setActive(mode == mode_type::Record);
-      player->setActive(mode == mode_type::Playback);
+      player->setActive(mode == mode_type::Playback || mode == mode_type::Loop);
+      player->setLoops(mode == mode_type::Loop);
     }
   };
 
@@ -825,6 +833,7 @@ struct DeviceRecorder : PatternObject
         worker.request(process_message{record_impl});
         break;
       case decltype(inputs.mode)::Playback:
+      case decltype(inputs.mode)::Loop:
         worker.request(playback_message{play_impl});
         break;
     }
