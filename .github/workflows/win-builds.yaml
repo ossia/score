@@ -64,7 +64,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Dependencies
-        shell: msys2 {0}
+        shell: bash
         run: |
           ./ci/mingw.deps.sh
 
