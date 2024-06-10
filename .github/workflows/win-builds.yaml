@@ -63,6 +63,11 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Dependencies
+        shell: msys2 {0}
+        run: |
+          ./ci/mingw.deps.sh
+
       - name: Setup msys2 and mingw-w64
         uses: msys2/setup-msys2@v2
         with:
@@ -71,7 +76,6 @@ jobs:
           pacboy: >-
             cmake:p
             ninja:p
-            git:x
             toolchain:p
             qt6-base:p
             qt6-declarative:p
@@ -86,11 +90,6 @@ jobs:
             fftw:p
             ffmpeg:p
             SDL2:p
-
-      - name: Dependencies
-        shell: msys2 {0}
-        run: |
-          ./ci/mingw.deps.sh
 
       - name: Build
         shell: msys2 {0}
