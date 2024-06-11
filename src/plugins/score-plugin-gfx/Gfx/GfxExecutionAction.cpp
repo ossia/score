@@ -1,7 +1,7 @@
 #include <Gfx/GfxExecContext.hpp>
 
+#include <ossia/dataflow/audio_port.hpp>
 #include <ossia/detail/algorithms.hpp>
-
 namespace Gfx
 {
 
@@ -20,6 +20,18 @@ GfxExecutionAction::GfxExecutionAction(GfxContext& w)
   }
 }
 
+struct clear_msg_visitor
+{
+  void operator()(const auto& whatever) { }
+  void operator()(ossia::audio_vector& vec)
+  {
+    while(!vec.empty())
+    {
+      ossia::audio_buffer_pool::instance().release(std::move(vec.back()));
+      vec.pop_back();
+    }
+  }
+};
 score::gfx::Message GfxExecutionAction::allocateMessage(int inputs)
 {
   score::gfx::Message m{
@@ -27,6 +39,11 @@ score::gfx::Message GfxExecutionAction::allocateMessage(int inputs)
       .token = {},
       .input = ui->m_buffers.acquire(),
   };
+
+  for(auto& in : m.input)
+  {
+    visit(clear_msg_visitor{}, in);
+  }
 
   m.input.clear();
   m.input.reserve(8);

@@ -958,8 +958,10 @@ void SimpleRenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch
   n.standardUBO.passIndex = 0;
 
   // Update audio textures
-  if(!n.m_audio_textures.empty())
+  if(!n.m_audio_textures.empty() && !m_audioTex)
+  {
     m_audioTex.emplace();
+  }
 
   for(auto& audio : n.m_audio_textures)
   {
