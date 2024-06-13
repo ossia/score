@@ -1019,21 +1019,22 @@ void releaseDevice(
 {
   if(dd)
   {
+    auto shared_dd = std::shared_ptr(std::move(dd));
     auto strand = boost::asio::make_strand(ctx.context);
-    boost::asio::dispatch(ctx.context, [&dev = dd] { dev->get_protocol().stop(); });
+    boost::asio::dispatch(strand, [dev = shared_dd] { dev->get_protocol().stop(); });
 
     std::future<void> wait1
-        = boost::asio::dispatch(ctx.context, boost::asio::use_future);
+        = boost::asio::dispatch(strand, boost::asio::use_future);
     if(auto res = wait1.wait_for(std::chrono::seconds(1));
        res != std::future_status::ready)
     {
       qDebug() << "Device deletion: asio thread seems stuck (1)";
     }
 
-    boost::asio::dispatch(ctx.context, [d = std::move(dd)]() mutable { d.reset(); });
+    boost::asio::dispatch(strand, [d = std::move(shared_dd)]() mutable { d.reset(); });
 
     std::future<void> wait2
-        = boost::asio::dispatch(ctx.context, boost::asio::use_future);
+        = boost::asio::dispatch(strand, boost::asio::use_future);
     if(auto res = wait2.wait_for(std::chrono::seconds(1));
        res != std::future_status::ready)
     {
