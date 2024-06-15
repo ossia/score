@@ -527,6 +527,12 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Raw/Trigger.hpp"
+  TARGET trigger
+  MAIN_CLASS Trigger
+  NAMESPACE examples
+)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Raw/Interpolator.hpp"
   TARGET exponential_smoothing
   MAIN_CLASS ExponentialSmoothing
