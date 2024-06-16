@@ -25,7 +25,13 @@ class Model;
 inline QString fromString(const Steinberg::Vst::String128& str)
 {
 #if defined(_WIN32)
-  return QString::fromWCharArray(str);
+  return [] <typename T>(const T& str) {
+    using char_type = std::decay_t<decltype(str[0])>;
+    if constexpr(std::is_same_v<char_type, char16_t>)
+      return QString::fromUtf16(str);
+    else
+      return QString::fromWCharArray(str);
+  }(str);
 #else
   return QString::fromUtf16(str);
 #endif

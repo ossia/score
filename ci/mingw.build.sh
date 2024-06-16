@@ -12,7 +12,7 @@ cmake -S "$SCORE_DIR" -B build \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
-  -DSCORE_DISABLED_PLUGINS="score-plugin-vst3;score-plugin-jit;score-plugin-faust" \
+  -DSCORE_DISABLED_PLUGINS="score-plugin-jit;score-plugin-faust" \
   -DCMAKE_CXX_FLAGS="-Wa,-mbig-obj $CXX_ADDITIONAL_FLAGS" \
   -DCMAKE_C_USE_RESPONSE_FILE_FOR_OBJECTS=1 \
   -DCMAKE_CXX_USE_RESPONSE_FILE_FOR_OBJECTS=1 \
