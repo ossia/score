@@ -568,6 +568,20 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/MonoMix.hpp"
+  TARGET mono_mix_8
+  MAIN_CLASS MonoMix
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/QuadPan.hpp"
+  TARGET quad_pan
+  MAIN_CLASS QuadPan
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Silence.hpp"
   TARGET silence
   MAIN_CLASS Silence
