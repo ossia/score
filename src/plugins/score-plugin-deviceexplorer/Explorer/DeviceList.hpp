@@ -38,7 +38,7 @@ public:
   void setLogging(bool);
 
   void setLocalDevice(DeviceInterface*);
-  void setAudioDevice(DeviceInterface* dev) { m_audioDevice = dev; }
+  void setAudioDevice(DeviceInterface* dev);
   DeviceInterface* localDevice() const { return m_localDevice; }
   DeviceInterface* audioDevice() const { return m_audioDevice; }
   const std::vector<DeviceInterface*>& devices() const;

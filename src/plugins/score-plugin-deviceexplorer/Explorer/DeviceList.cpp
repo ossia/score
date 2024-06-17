@@ -130,7 +130,16 @@ void DeviceList::setLogging(bool b)
 
 void DeviceList::setLocalDevice(DeviceInterface* dev)
 {
+  if(m_localDevice)
+    ossia::remove_erase(m_devices, m_localDevice);
   m_localDevice = dev;
+}
+
+void DeviceList::setAudioDevice(DeviceInterface* dev)
+{
+  if(m_audioDevice)
+    ossia::remove_erase(m_devices, m_audioDevice);
+  m_audioDevice = dev;
 }
 
 void DeviceList::apply(std::function<void(Device::DeviceInterface&)> fun)
