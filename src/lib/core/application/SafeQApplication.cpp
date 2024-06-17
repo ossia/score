@@ -64,24 +64,30 @@ bool SafeQApplication::notify(QObject* receiver, QEvent* event)
   }
   catch(std::exception& e)
   {
-    if(this->thread() != QThread::currentThread())
+    thread_local bool reentr = false;
+    if(this->thread() != QThread::currentThread() || reentr)
     {
       qDebug() << "Internal error: " << e.what();
     }
     else
     {
+      reentr = true;
       inform(QObject::tr("Internal error: ") + e.what());
+      reentr = false;
     }
   }
   catch(...)
   {
-    if(this->thread() != QThread::currentThread())
+    thread_local bool reentr = false;
+    if(this->thread() != QThread::currentThread() || reentr)
     {
       qDebug() << "Internal error: ";
     }
     else
     {
+      reentr = true;
       inform(QObject::tr("Internal error: "));
+      reentr = false;
     }
   }
 
