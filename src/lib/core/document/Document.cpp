@@ -80,18 +80,21 @@ Document::Document(
 
 void Document::init()
 {
-  con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
-      [&](const Selection& old, const Selection& s) {
-    Selection oldfiltered = old;
-    oldfiltered.removeAll(nullptr);
-    Selection filtered = s;
-    filtered.removeAll(nullptr);
-    for(auto& panel : m_context.app.panels())
-    {
-      panel.setNewSelection(filtered);
-    }
-    m_presenter->setNewSelection(oldfiltered, filtered);
-  });
+  if(this->m_context.app.applicationSettings.gui)
+  {
+    con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
+        [&](const Selection& old, const Selection& s) {
+      Selection oldfiltered = old;
+      oldfiltered.removeAll(nullptr);
+      Selection filtered = s;
+      filtered.removeAll(nullptr);
+      for(auto& panel : m_context.app.panels())
+      {
+        panel.setNewSelection(filtered);
+      }
+      m_presenter->setNewSelection(oldfiltered, filtered);
+    });
+  }
 
   updateTimers();
 

@@ -813,6 +813,8 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     if(audio.channels > 0)
     {
       int samples = audio.data.size() / audio.channels;
+      if(samples % 2 != 0)
+        samples++;
       int pixelWidth = samples / (audio.fft ? 2 : 1);
 
       float* rectUniform

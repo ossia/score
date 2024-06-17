@@ -16,7 +16,6 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
-#include <ossia/protocols/mqtt/mqtt_protocol.hpp>
 
 #include <memory>
 namespace Protocols
@@ -86,40 +85,8 @@ void CoAPDevice::recreate(const Device::Node& n)
 
 bool CoAPDevice::isLearning() const
 {
-  auto& proto = static_cast<ossia::net::mqtt5_protocol&>(m_dev->get_protocol());
-  return proto.learning();
+  return false;
 }
 
-void CoAPDevice::setLearning(bool b)
-{
-  if(!m_dev)
-    return;
-  auto& proto = static_cast<ossia::net::mqtt5_protocol&>(m_dev->get_protocol());
-  auto& dev = *m_dev;
-  if(b)
-  {
-    dev.on_node_created.connect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
-    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
-    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
-        (DeviceInterface*)this);
-    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(
-        (DeviceInterface*)this);
-  }
-  else
-  {
-    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>(
-        (DeviceInterface*)this);
-    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>(
-        (DeviceInterface*)this);
-    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
-    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>(
-        (DeviceInterface*)this);
-    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>(
-        (DeviceInterface*)this);
-  }
-
-  proto.set_learning(b);
-}
+void CoAPDevice::setLearning(bool b) { }
 }

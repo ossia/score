@@ -103,8 +103,8 @@ void DeviceList::removeDevice(const QString& name)
     SCORE_ASSERT(it != m_devices.end());
 
     deviceRemoved(*it);
-    delete *it;
     m_devices.erase(it);
+    delete *it;
   }
 }
 

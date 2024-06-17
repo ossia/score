@@ -216,6 +216,7 @@ void OSCQueryDevice::slot_createDevice()
     // run the commands in the Qt event loop
     // FIXME they should be disabled upon manual disconnection
 
+    Device::releaseDevice(*m_ctx, std::move(m_dev));
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
 

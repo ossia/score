@@ -428,15 +428,6 @@ void Application::initDocuments()
       m_presenter->documentManager().loadFile(ctx, doc);
   }
 
-  // The plug-ins have the ability to override the boot process.
-  for(auto plug : ctx.guiApplicationPlugins())
-  {
-    if(plug->handleStartup())
-    {
-      return;
-    }
-  }
-
   if(appSettings.gui)
   {
     auto sqa = safe_cast<SafeQApplication*>(m_app);
@@ -482,6 +473,15 @@ void Application::initDocuments()
   QThreadPool::globalInstance()->setMaxThreadCount(2);
 #endif
 #endif
+
+  // The plug-ins have the ability to override the boot process.
+  for(auto plug : ctx.guiApplicationPlugins())
+  {
+    if(plug->handleStartup())
+    {
+      return;
+    }
+  }
 }
 
 void Application::openNewDocument()

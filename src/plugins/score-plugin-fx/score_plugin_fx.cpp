@@ -57,16 +57,15 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
       Nodes::Arpeggiator::Node, Nodes::PulseToNote::Node, Nodes::ClassicalBeat::Node,
       Nodes::LFO::v1::Node, Nodes::LFO::v2::Node, Nodes::Chord::Node,
       Nodes::MidiHiRes::Input, Nodes::MidiHiRes::Output, Nodes::MidiUtil::Node,
-      Nodes::Gain::Node, Nodes::Metro::Node, Nodes::Envelope::Node,
-      Nodes::Quantifier::Node, Nodes::MathGenerator::Node,
-      Nodes::MathAudioGenerator::Node, Nodes::MathMapping::Node,
-      Nodes::MicroMapping::Node, Nodes::ArrayMapping::Node, Nodes::MathAudioFilter::Node,
-      Nodes::EmptyValueMapping::Node, Nodes::EmptyMidiMapping::Node,
-      Nodes::EmptyAudioMapping::Node, Nodes::FactorOracle::Node,
-      Nodes::FactorOracle2::Node, Nodes::FactorOracle2MIDI::Node,
-      Nodes::PitchToValue::Node, Nodes::ValueFilter::v1::Node,
-      Nodes::ValueFilter::v2::Node, Nodes::RateLimiter::Node, Nodes::AudioLooper::Node>(
-      ctx, key);
+      Nodes::Metro::Node, Nodes::Envelope::Node, Nodes::Quantifier::Node,
+      Nodes::MathGenerator::Node, Nodes::MathAudioGenerator::Node,
+      Nodes::MathMapping::Node, Nodes::MicroMapping::Node, Nodes::ArrayMapping::Node,
+      Nodes::MathAudioFilter::Node, Nodes::EmptyValueMapping::Node,
+      Nodes::EmptyMidiMapping::Node, Nodes::EmptyAudioMapping::Node,
+      Nodes::FactorOracle::Node, Nodes::FactorOracle2::Node,
+      Nodes::FactorOracle2MIDI::Node, Nodes::PitchToValue::Node,
+      Nodes::ValueFilter::v1::Node, Nodes::ValueFilter::v2::Node,
+      Nodes::RateLimiter::Node, Nodes::AudioLooper::Node>(ctx, key);
 }
 
 auto score_plugin_fx::required() const -> std::vector<score::PluginKey>

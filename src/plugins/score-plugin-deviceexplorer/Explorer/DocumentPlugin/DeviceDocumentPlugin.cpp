@@ -330,7 +330,9 @@ void DeviceDocumentPlugin::setupConnections(
   {
     vec.push_back(
         con(device, &Device::DeviceInterface::pathAdded, this,
-            [&](const State::Address& addr) {
+            [&, ptr = QPointer{&device}](const State::Address& addr) {
+      if(!ptr)
+        return;
       // FIXME A subtle bug is introduced if we want to add the root
       // node...
       if(addr.path.size() > 0)
@@ -354,7 +356,7 @@ void DeviceDocumentPlugin::setupConnections(
           }
         }
       }
-    }));
+    }, Qt::QueuedConnection));
 
     vec.push_back(con(
         device, &Device::DeviceInterface::pathRemoved, this,

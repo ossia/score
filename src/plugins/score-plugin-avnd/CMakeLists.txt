@@ -414,6 +414,12 @@ avnd_make_score(
   NAMESPACE ao
 )
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Gain.hpp"
+  TARGET gain
+  MAIN_CLASS Gain
+  NAMESPACE ao
+)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/StereoMixer.hpp"
   TARGET stereo_mixer
   MAIN_CLASS StereoMixer
@@ -527,7 +533,7 @@ avnd_make_score(
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Raw/Trigger.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Trigger.hpp"
   TARGET trigger
   MAIN_CLASS Trigger
   NAMESPACE examples

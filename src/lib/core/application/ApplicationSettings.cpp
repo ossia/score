@@ -113,7 +113,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
   if(!gui)
     tryToRestore = false;
-  autoplay = parser.isSet(autoplayOpt) && args.size() == 1;
+  autoplay = parser.isSet(autoplayOpt);
 
   if(parser.isSet(waitLoadOpt))
     waitAfterLoad = parser.value(waitLoadOpt).toInt();
