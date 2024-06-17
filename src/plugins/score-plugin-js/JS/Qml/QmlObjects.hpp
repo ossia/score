@@ -123,7 +123,7 @@ class ControlInlet : public Inlet
 public:
   explicit ControlInlet(QObject* parent = nullptr);
   virtual ~ControlInlet() override;
-  QVariant value() const;
+  QVariant value() const noexcept;
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -134,7 +134,7 @@ public:
   virtual void setValue(QVariant value);
   void valueChanged(QVariant value) W_SIGNAL(valueChanged, value);
 
-  // W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
+  W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
 };
 
 template <typename Impl, typename ValueType>
@@ -173,9 +173,6 @@ public:
   void valueChanged(ValueType value) W_SIGNAL(valueChanged, value);
 
   W_PROPERTY(ValueType, value READ value NOTIFY valueChanged)
-  // W_INLINE_PROPERTY_VALUE(QVariant, init, {0.5}, init, setInit, initChanged)
-  // W_INLINE_PROPERTY_VALUE(QVariant, min, {0.}, getMin, setMin, minChanged)
-  // W_INLINE_PROPERTY_VALUE(QVariant, max, {1.}, getMax, setMax, maxChanged)
 
 private:
   ValueType m_value{};
@@ -243,18 +240,19 @@ struct VideoFileChooser : JS::GenericControlInlet<Process::VideoFileChooser, QSt
 };
 
 template <typename Impl = Process::FloatSlider>
-class FloatSlider : public ControlInlet
+class FloatSlider : public GenericControlInlet<Impl, float>
 {
   W_OBJECT(FloatSlider)
 
 public:
-  using ControlInlet::ControlInlet;
+  using GenericControlInlet<Impl, float>::GenericControlInlet;
   virtual ~FloatSlider() override = default;
   bool isEvent() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Impl{(float)m_min, (float)m_max, (float)m_init, objectName(), id, parent};
+    return new Impl{(float)m_min,       (float)m_max, (float)m_init,
+                    this->objectName(), id,           parent};
   }
 
   W_INLINE_PROPERTY_VALUE(qreal, init, {0.5}, init, setInit, initChanged)
@@ -264,18 +262,18 @@ public:
 W_OBJECT_IMPL(JS::FloatSlider<Impl>, template <typename Impl>)
 
 template <typename Impl = Process::IntSlider>
-class IntSlider : public ControlInlet
+class IntSlider : public GenericControlInlet<Impl, int>
 {
   W_OBJECT(IntSlider)
 
 public:
-  using ControlInlet::ControlInlet;
+  using GenericControlInlet<Impl, int>::GenericControlInlet;
   virtual ~IntSlider() override = default;
   bool isEvent() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Impl{m_min, m_max, m_init, objectName(), id, parent};
+    return new Impl{m_min, m_max, m_init, this->objectName(), id, parent};
   }
 
   W_INLINE_PROPERTY_VALUE(int, init, {0}, init, setInit, initChanged)

@@ -153,7 +153,7 @@ ControlInlet::ControlInlet(QObject* parent)
 
 ControlInlet::~ControlInlet() { }
 
-QVariant ControlInlet::value() const
+QVariant ControlInlet::value() const noexcept
 {
   return m_value;
 }
