@@ -47,6 +47,9 @@
     <key>NSCameraUsageDescription</key>
     <string>ossia score needs camera permission for video input.</string>
 
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>ossia score needs bluetooth permission for the BLE device.</string>
+    
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
