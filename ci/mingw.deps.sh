@@ -12,4 +12,7 @@
 # jack2:p   not available on clang?
 # lv2 suil lilv
 
-source ci/common.deps.sh
+
+if c++ --version | grep clang; then 
+  source ci/common.deps.sh
+fi
