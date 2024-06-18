@@ -9,6 +9,7 @@
 #include <Crousti/Attributes.hpp>
 #include <Crousti/Concepts.hpp>
 #include <Crousti/Metadatas.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 
 #include <ossia/detail/typelist.hpp>
@@ -562,19 +563,18 @@ public:
   {
     metadata().setInstanceName(*this);
 
-    avnd::port_visit_dispatcher<Info>(
-        InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
+    init_all_ports();
   }
+
   ProcessModel(
       const TimeVal& duration, const QString& custom,
       const Id<Process::ProcessModel>& id, QObject* parent)
       : Process::ProcessModel{
-          duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+            duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
   {
     metadata().setInstanceName(*this);
 
-    avnd::port_visit_dispatcher<Info>(
-        InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
+    init_all_ports();
 
     if constexpr(avnd::file_input_introspection<Info>::size > 0)
     {
@@ -608,9 +608,43 @@ public:
       : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
+    check_all_ports();
   }
 
   ~ProcessModel() override { }
+
+private:
+  void check_all_ports()
+  {
+    if(m_inlets.size() != avnd::total_input_count<Info>()
+       || m_outlets.size() != avnd::total_output_count<Info>())
+    {
+      qDebug() << "Warning : process does not match spec.";
+
+      std::vector<Dataflow::SavedPort> m_oldInlets, m_oldOutlets;
+      for(auto& port : m_inlets)
+        m_oldInlets.emplace_back(
+            Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
+      for(auto& port : m_outlets)
+        m_oldOutlets.emplace_back(
+            Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
+
+      qDeleteAll(m_inlets);
+      m_inlets.clear();
+      qDeleteAll(m_outlets);
+      m_outlets.clear();
+
+      init_all_ports();
+
+      Dataflow::reloadPortsInNewProcess(m_oldInlets, m_oldOutlets, *this);
+    }
+  }
+
+  void init_all_ports()
+  {
+    avnd::port_visit_dispatcher<Info>(
+        InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
+  }
 };
 }
 

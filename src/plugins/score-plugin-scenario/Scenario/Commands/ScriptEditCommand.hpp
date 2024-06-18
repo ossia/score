@@ -11,12 +11,7 @@
 #include <ossia/detail/algorithms.hpp>
 namespace Scenario
 {
-struct SavedPort
-{
-  QString name;
-  Process::PortType type;
-  QByteArray data;
-};
+using SavedPort = Dataflow::SavedPort;
 
 template <typename Process_T, typename Property_T>
 class EditScript : public score::Command
@@ -74,47 +69,6 @@ private:
         cmt.programChanged();
   }
 
-  static void restoreCables(
-      Process::Inlet& new_p, Scenario::ScenarioDocumentModel& doc,
-      const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
-  {
-    for(auto& cable : new_p.cables())
-    {
-      SCORE_ASSERT(!cable.unsafePath().vec().empty());
-      auto cable_id = cable.unsafePath().vec().back().id();
-      auto it = ossia::find_if(
-          cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
-
-      SCORE_ASSERT(it != cables.end());
-      SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
-      {
-        auto c = new Process::Cable{it->first, it->second, &doc};
-        doc.cables.add(c);
-        c->source().find(ctx).addCable(*c);
-      }
-    }
-  }
-  static void restoreCables(
-      Process::Outlet& new_p, Scenario::ScenarioDocumentModel& doc,
-      const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
-  {
-    for(auto& cable : new_p.cables())
-    {
-      SCORE_ASSERT(!cable.unsafePath().vec().empty());
-      auto cable_id = cable.unsafePath().vec().back().id();
-      auto it = ossia::find_if(
-          cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
-
-      SCORE_ASSERT(it != cables.end());
-      SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
-      {
-        auto c = new Process::Cable{it->first, it->second, &doc};
-        doc.cables.add(c);
-        c->sink().find(ctx).addCable(*c);
-      }
-    }
-  }
-
   void redo(const score::DocumentContext& ctx) const override
   {
     Dataflow::removeCables(m_oldCables, ctx);
@@ -123,34 +77,7 @@ private:
     Process::ScriptChangeResult res = (cmt.*Property_T::set)(m_newScript);
     cmt.programChanged();
 
-    // Try an optimistic matching. Type and name must match.
-    auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
-
-    std::size_t min_inlets = std::min(m_oldInlets.size(), cmt.inlets().size());
-    std::size_t min_outlets = std::min(m_oldOutlets.size(), cmt.outlets().size());
-    for(std::size_t i = 0; i < min_inlets; i++)
-    {
-      auto new_p = cmt.inlets()[i];
-      auto& old_p = m_oldInlets[i];
-
-      if(new_p->type() == old_p.type && new_p->name() == old_p.name)
-      {
-        new_p->loadData(old_p.data);
-        restoreCables(*new_p, doc, ctx, m_oldCables);
-      }
-    }
-
-    for(std::size_t i = 0; i < min_outlets; i++)
-    {
-      auto new_p = cmt.outlets()[i];
-      auto& old_p = m_oldOutlets[i];
-
-      if(new_p->type() == old_p.type && new_p->name() == old_p.name)
-      {
-        new_p->loadData(old_p.data);
-        restoreCables(*new_p, doc, ctx, m_oldCables);
-      }
-    }
+    Dataflow::reloadPortsInNewProcess(m_oldInlets, m_oldOutlets, m_oldCables, cmt, ctx);
 
     cmt.inletsChanged();
     cmt.outletsChanged();

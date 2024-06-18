@@ -196,4 +196,109 @@ void unstripCables(const ObjectPath& p, SerializedCables& cables)
   }
 }
 
+static void restoreCables(
+    Process::Inlet& new_p, Scenario::ScenarioDocumentModel& doc,
+    const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
+{
+  for(auto& cable : new_p.cables())
+  {
+    SCORE_ASSERT(!cable.unsafePath().vec().empty());
+    auto cable_id = cable.unsafePath().vec().back().id();
+    auto it = ossia::find_if(
+        cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
+
+    SCORE_ASSERT(it != cables.end());
+    SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
+    {
+      auto c = new Process::Cable{it->first, it->second, &doc};
+      doc.cables.add(c);
+      c->source().find(ctx).addCable(*c);
+    }
+  }
+}
+static void restoreCables(
+    Process::Outlet& new_p, Scenario::ScenarioDocumentModel& doc,
+    const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
+{
+  for(auto& cable : new_p.cables())
+  {
+    SCORE_ASSERT(!cable.unsafePath().vec().empty());
+    auto cable_id = cable.unsafePath().vec().back().id();
+    auto it = ossia::find_if(
+        cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
+
+    SCORE_ASSERT(it != cables.end());
+    SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
+    {
+      auto c = new Process::Cable{it->first, it->second, &doc};
+      doc.cables.add(c);
+      c->sink().find(ctx).addCable(*c);
+    }
+  }
+}
+
+void reloadPortsInNewProcess(
+    const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
+    const SerializedCables& oldCables, Process::ProcessModel& process,
+    const score::DocumentContext& ctx)
+{
+  // Try an optimistic matching. Type and name must match.
+  auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+
+  const std::size_t min_inlets = std::min(oldInlets.size(), process.inlets().size());
+  const std::size_t min_outlets = std::min(oldOutlets.size(), process.outlets().size());
+  for(std::size_t i = 0; i < min_inlets; i++)
+  {
+    auto new_p = process.inlets()[i];
+    auto& old_p = oldInlets[i];
+
+    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
+    {
+      new_p->loadData(old_p.data);
+      restoreCables(*new_p, doc, ctx, oldCables);
+    }
+  }
+
+  for(std::size_t i = 0; i < min_outlets; i++)
+  {
+    auto new_p = process.outlets()[i];
+    auto& old_p = oldOutlets[i];
+
+    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
+    {
+      new_p->loadData(old_p.data);
+      restoreCables(*new_p, doc, ctx, oldCables);
+    }
+  }
+}
+
+void reloadPortsInNewProcess(
+    const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
+    Process::ProcessModel& process)
+{
+  // Try an optimistic matching. Type and name must match.
+  const std::size_t min_inlets = std::min(oldInlets.size(), process.inlets().size());
+  const std::size_t min_outlets = std::min(oldOutlets.size(), process.outlets().size());
+  for(std::size_t i = 0; i < min_inlets; i++)
+  {
+    auto new_p = process.inlets()[i];
+    auto& old_p = oldInlets[i];
+
+    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
+    {
+      new_p->loadData(old_p.data);
+    }
+  }
+
+  for(std::size_t i = 0; i < min_outlets; i++)
+  {
+    auto new_p = process.outlets()[i];
+    auto& old_p = oldOutlets[i];
+
+    if(new_p->type() == old_p.type && new_p->name() == old_p.name)
+    {
+      new_p->loadData(old_p.data);
+    }
+  }
+}
 }

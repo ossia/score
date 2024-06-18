@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/PortType.hpp>
 
 #include <ossia/detail/json.hpp>
 
@@ -55,4 +56,27 @@ void loadCables(
 //! presets...
 SCORE_PLUGIN_SCENARIO_EXPORT
 void unstripCables(const ObjectPath& new_path, Dataflow::SerializedCables& cables);
+
+struct SavedPort
+{
+  QString name;
+  Process::PortType type;
+  QByteArray data;
+};
+
+//! Tries to optimistically match the cables & addresses of an old
+//! set of port into a new set of port. Used when e.g. live coding
+//! and changing ports of a process
+SCORE_PLUGIN_SCENARIO_EXPORT
+void reloadPortsInNewProcess(
+    const std::vector<SavedPort>& m_oldInlets,
+    const std::vector<SavedPort>& m_oldOutlets,
+    const Dataflow::SerializedCables& m_oldCables, Process::ProcessModel& cmt,
+    const score::DocumentContext& ctx);
+
+//! Same but without the cables
+SCORE_PLUGIN_SCENARIO_EXPORT
+void reloadPortsInNewProcess(
+    const std::vector<SavedPort>& m_oldInlets,
+    const std::vector<SavedPort>& m_oldOutlets, Process::ProcessModel& cmt);
 }
