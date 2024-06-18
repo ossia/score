@@ -196,7 +196,7 @@ struct setup_Impl0
   operator()(Field& param, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
   {
     if(auto inlet
-       = dynamic_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField)))
+       = qobject_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField)))
     {
       // Initialize the control with the current value of the inlet if it is not an optional
       if constexpr(!requires { param.value.reset(); })
