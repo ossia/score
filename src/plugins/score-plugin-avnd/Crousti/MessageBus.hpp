@@ -79,6 +79,19 @@ struct MessageBusSender
 
     this->bus(std::move(buf));
   }
+
+  template <typename T>
+  void operator()(const std::shared_ptr<T>& msg)
+  {
+    SCORE_ASSERT(msg);
+    return (*this)(std::move(*msg));
+  }
+  template <typename T>
+  void operator()(std::unique_ptr<T> msg)
+  {
+    SCORE_ASSERT(msg);
+    return (*this)(std::move(*msg));
+  }
 };
 
 struct Deserializer

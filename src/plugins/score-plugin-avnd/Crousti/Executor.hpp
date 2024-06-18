@@ -816,11 +816,22 @@ public:
 
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
-      eff.send_message = [this](auto b) mutable {
-        this->in_edit([this, bb = std::move(b)]() mutable {
-          if(this->process().to_ui)
-            MessageBusSender{this->process().to_ui}(std::move(bb));
-        });
+      eff.send_message = [this]<typename T>(T&& b) mutable {
+        if constexpr(sizeof(this) + sizeof(b) < Execution::ExecutionCommand::max_storage)
+        {
+          this->in_edit([this, bb = std::move(b)]() mutable {
+            if(this->process().to_ui)
+              MessageBusSender{this->process().to_ui}(std::move(bb));
+          });
+        }
+        else
+        {
+          this->in_edit(
+              [this, bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
+            if(this->process().to_ui)
+              MessageBusSender{this->process().to_ui}(*std::move(bb));
+          });
+        }
       };
     }
   }
