@@ -102,9 +102,10 @@ void DeviceList::removeDevice(const QString& name)
     auto it = get_device_iterator_by_name(name, m_devices);
     SCORE_ASSERT(it != m_devices.end());
 
+    auto ptr = *it;
     deviceRemoved(*it);
     m_devices.erase(it);
-    delete *it;
+    delete ptr;
   }
 }
 
