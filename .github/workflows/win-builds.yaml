@@ -2,53 +2,6 @@ name: Windows build
 on: push
 
 jobs:
-  winstore:
-    name: Windows (store)
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        shell: bash
-        run: |
-          ./ci/win32.deps.sh
-
-      - name: Build
-        shell: cmd
-        run: |
-          call "%cd%\ci\win32store.build.cmd"
-
-      - name: Create certificate
-        shell: pwsh
-        env:
-          OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
-          OSSIA_WIN32_CERT_PASSWORD: ${{ secrets.OSSIA_WIN32_CERT_PASSWORD }}
-        run: |
-          .\ci\win32store.cert.ps1
-
-      - name: Set up Visual Studio shell
-        uses: egor-tensin/vs-shell@v2
-        with:
-          arch: x64
-
-      - name: Deploy
-        shell: cmd
-        env:
-          OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
-          OSSIA_WIN32_CERT_PASSWORD: ${{ secrets.OSSIA_WIN32_CERT_PASSWORD }}
-        run: |
-          call "%cd%\ci\win32store.deploy.cmd"
-
-      - name: Upload build
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-store
-          path: |
-            output/*.appxbundle
-
   mingw:
     runs-on: windows-latest
     strategy:
@@ -56,7 +9,6 @@ jobs:
         include:
           - { sys: mingw64, env: x86_64 }
           - { sys: ucrt64,  env: ucrt-x86_64 }
-          - { sys: clang64, env: clang-x86_64 }
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -96,34 +48,3 @@ jobs:
         shell: msys2 {0}
         run: |
           ./ci/mingw.build.sh
-
-  winmvsc:
-    name: MSVC
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v3
-        with:
-          version: 6.7.*
-          modules: qtwebsockets qtserialport qtscxml qtshadertools
-
-      - name: Set up Visual Studio shell
-        uses: egor-tensin/vs-shell@v2
-        with:
-          arch: x64
-
-      - name: Dependencies
-        shell: bash
-        run: |
-          ./ci/win32msvc.deps.sh
-
-      - name: Build
-        shell: cmd
-        run: |
-          call "%cd%\ci\win32msvc.build.cmd"
-
