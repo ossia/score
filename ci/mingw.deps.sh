@@ -13,6 +13,4 @@
 # lv2 suil lilv
 
 
-if c++ --version | grep clang; then 
   source ci/common.deps.sh
-fi
