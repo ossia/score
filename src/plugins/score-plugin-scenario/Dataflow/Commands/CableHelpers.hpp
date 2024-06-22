@@ -1,5 +1,6 @@
 #pragma once
-#include <Process/Dataflow/Cable.hpp>
+
+#include <Process/Dataflow/CableData.hpp>
 #include <Process/Dataflow/PortType.hpp>
 
 #include <ossia/detail/json.hpp>
@@ -9,6 +10,8 @@
 //! MOVEME process
 namespace Process
 {
+class Cable;
+class CableData;
 class ProcessModel;
 }
 namespace Dataflow

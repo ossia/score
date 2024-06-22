@@ -1,11 +1,11 @@
 #pragma once
 #include <State/Address.hpp>
 
+#include <Process/Dataflow/CableData.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selectable.hpp>
-
-#include <QUuid>
 
 #include <score_lib_process_export.h>
 
@@ -33,22 +33,6 @@ class Port;
 class Outlet;
 class Inlet;
 class Cable;
-enum class CableType
-{
-  ImmediateGlutton,
-  ImmediateStrict,
-  DelayedGlutton,
-  DelayedStrict
-};
-
-struct SCORE_LIB_PROCESS_EXPORT CableData
-{
-  CableType type{};
-  Path<Process::Port> source, sink;
-
-  SCORE_LIB_PROCESS_EXPORT
-  friend bool operator==(const CableData& lhs, const CableData& rhs);
-};
 
 class SCORE_LIB_PROCESS_EXPORT Cable final : public IdentifiedObject<Cable>
 {
