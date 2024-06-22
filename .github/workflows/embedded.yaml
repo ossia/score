@@ -89,7 +89,7 @@ jobs:
 
       - name: Prepare Sysroot
         id: pi-sysroot
-        uses: mariotaku/raspbian-sysroot-action@main
+        uses: jcelerier/raspbian-sysroot-action@main
         with:
           # Can be space separated, multiline list or a file
           release: "bookworm"
@@ -166,12 +166,8 @@ jobs:
         run: |
           mkdir -p build || true
           mkdir -p install || true
-          export CC=clang-15
-          export CXX=clang++-15
           cmake -S $PWD -B build \
             -GNinja \
-            -DCMAKE_C_COMPILER=clang-15 \
-            -DCMAKE_CXX_COMPILER=clang++-15 \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=$PWD/install \
             -DCMAKE_UNITY_BUILD=1 \
@@ -179,8 +175,6 @@ jobs:
             -DOSSIA_ENABLE_KFR=1 \
             -DSCORE_DISABLED_PLUGINS="score-plugin-jit" \
             -DSCORE_LINKER_SCRIPT="$PWD/cmake/Deployment/Linux/AppImage/version" \
-            -DCMAKE_C_FLAGS="-Ofast -march=armv8-a -mfpu=neon-fp-armv8 -mcpu=cortex-a53" \
-            -DCMAKE_CXX_FLAGS="-Ofast -march=armv8-a -mfpu=neon-fp-armv8 -mcpu=cortex-a53" \
             -DCMAKE_TOOLCHAIN_FILE=${{steps.pi-sysroot.outputs.cmake-toolchain}}
 
           cmake --build build
