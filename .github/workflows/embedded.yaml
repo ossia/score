@@ -153,6 +153,14 @@ jobs:
         run: |
           sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross qt6-base-dev  libqt6serialport6-dev libqt6websockets6-dev libqt6shadertools6-dev qt6-scxml-dev libpcre2-16-0 qt6-declarative-dev
           sudo ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /usr/lib/ld-linux-armhf.so.3
+          echo
+          echo "==============="
+          echo
+          find / -name libblas.so.3
+          find / -name liblapack.so.3
+          echo
+          echo "==============="
+          echo
         
       - name: Use host Qt tools
         shell: bash
