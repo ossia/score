@@ -36,24 +36,23 @@ public:
   {
     start();
   }
+  ~OSCQueryEnumerator() { stop(); }
 
 private:
   void addNewDevice(
-      const std::string& instance, const std::string& ip,
-      const std::string& port) noexcept override
+      const QString& instance, const QString& ip, const QString& port,
+      const QMap<QString, QString>& keys) noexcept override
   {
     using namespace std::literals;
 
     Device::DeviceSettings set;
-    set.name = QString::fromStdString(instance);
+    set.name = instance;
     set.protocol = OSCQueryProtocolFactory::static_concreteKey();
 
-    bool websockets = m_serv.get(instance, "WebSockets") == "true"sv;
+    bool websockets = keys.value("WebSockets", "false").toLower() == "true";
 
     {
-      QString req = QString("http://%1:%2/?HOST_INFO")
-                        .arg(QString::fromStdString(ip))
-                        .arg(QString::fromStdString(port));
+      QString req = QString("http://%1:%2/?HOST_INFO").arg(ip).arg(port);
 
       QNetworkRequest qreq{QUrl(req)};
       qreq.setTransferTimeout(1000);
@@ -76,8 +75,8 @@ private:
         OSCQuerySpecificSettings sub;
         sub.host = QString("%1://%2:%3")
                        .arg(websockets ? "ws" : "http")
-                       .arg(ws_ip.isEmpty() ? ip.c_str() : ws_ip)
-                       .arg(ws_port.isEmpty() ? port.c_str() : ws_port);
+                       .arg(ws_ip.isEmpty() ? ip : ws_ip)
+                       .arg(ws_port.isEmpty() ? port : ws_port);
 
         set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
         deviceAdded(set.name, set);

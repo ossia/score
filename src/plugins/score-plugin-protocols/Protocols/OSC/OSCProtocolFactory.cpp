@@ -171,23 +171,23 @@ public:
   {
     start();
   }
+  ~OSCTCPEnumerator() { stop(); }
 
 private:
   void addNewDevice(
-      const std::string& instance, const std::string& ip,
-      const std::string& port) noexcept override
+      const QString& instance, const QString& ip, const QString& port,
+      const QMap<QString, QString>& keys) noexcept override
   {
-    qDebug() << instance.c_str() << ip.c_str() << ":" << port.c_str();
     using namespace std::literals;
 
     Device::DeviceSettings set;
-    set.name = QString::fromStdString(instance);
+    set.name = instance;
     set.protocol = OSCProtocolFactory::static_concreteKey();
 
     OSCSpecificSettings sub;
     ossia::net::tcp_configuration conf;
-    conf.host = ip;
-    conf.port = std::stoi(port);
+    conf.host = ip.toStdString();
+    conf.port = port.toInt();
     sub.configuration.transport = conf;
 
     set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
@@ -203,24 +203,25 @@ public:
   {
     start();
   }
+  ~OSCUDPEnumerator() { stop(); }
 
 private:
   void addNewDevice(
-      const std::string& instance, const std::string& ip,
-      const std::string& port) noexcept override
+      const QString& instance, const QString& ip, const QString& port,
+      const QMap<QString, QString>& keys) noexcept override
   {
-    qDebug() << instance.c_str() << ip.c_str() << ":" << port.c_str();
     using namespace std::literals;
 
     Device::DeviceSettings set;
-    set.name = QString::fromStdString(instance);
+    set.name = instance;
     set.protocol = OSCProtocolFactory::static_concreteKey();
 
     OSCSpecificSettings sub;
     ossia::net::udp_configuration udp;
 
     udp.local = ossia::net::receive_socket_configuration{"0.0.0.0", 9996};
-    udp.remote = ossia::net::send_socket_configuration{ip, uint16_t(std::stoi(port))};
+    udp.remote = ossia::net::send_socket_configuration{
+        ip.toStdString(), uint16_t(port.toInt())};
     sub.configuration.transport = udp;
 
     set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));

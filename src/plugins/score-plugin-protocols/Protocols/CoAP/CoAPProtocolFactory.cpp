@@ -77,22 +77,23 @@ public:
   {
     start();
   }
+  ~CoAPTCPEnumerator() { stop(); }
 
 private:
   void addNewDevice(
-      const std::string& instance, const std::string& ip,
-      const std::string& port) noexcept override
+      const QString& instance, const QString& ip, const QString& port,
+      const QMap<QString, QString>& keys) noexcept override
   {
     using namespace std::literals;
 
     Device::DeviceSettings set;
-    set.name = QString::fromStdString(instance);
+    set.name = instance;
     set.protocol = CoAPProtocolFactory::static_concreteKey();
 
     CoAPSpecificSettings sub;
     ossia::net::tcp_configuration conf;
-    conf.host = ip;
-    conf.port = std::stoi(port);
+    conf.host = ip.toStdString();
+    conf.port = port.toInt();
     sub.configuration.transport = conf;
 
     set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
