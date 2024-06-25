@@ -36,7 +36,7 @@ struct Pitch
   {
     State()
         : hipass{kfr::to_sos(
-            kfr::iir_highpass(kfr::butterworth<kfr::fbase>(12), 200, this->rate))}
+              kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate))}
     {
     }
 
@@ -45,7 +45,7 @@ struct Pitch
       while(hipass.size() < in.channels())
       {
         hipass.emplace_back(kfr::to_sos(
-            kfr::iir_highpass(kfr::butterworth<kfr::fbase>(12), 200, this->rate)));
+            kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate)));
       }
 
       int c = 0;
@@ -56,8 +56,8 @@ struct Pitch
     }
 
     using hipass_t = decltype(kfr::to_sos(
-        kfr::iir_highpass(kfr::zpk<kfr::fbase>{}, kfr::identity<kfr::fbase>{})));
-    std::vector<kfr::iir_filter<kfr::fbase>> hipass;
+        kfr::iir_highpass(kfr::zpk<double>{}, kfr::identity<double>{})));
+    std::vector<kfr::iir_filter<double>> hipass;
   };
 #else
   using State = GistState;
