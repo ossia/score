@@ -19,7 +19,7 @@ source /opt/ossia-sdk-wasm/emsdk/emsdk_env.sh
    -DSCORE_PCH=0 \
    -DOSSIA_SDK=/opt/ossia-sdk-wasm/ \
    -DCMAKE_C_FLAGS='-pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 ' \
-   -DCMAKE_CXX_FLAGS='-pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 '  \
+   -DCMAKE_CXX_FLAGS='-DBOOST_ASIO_DISABLE_EPOLL=1 -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 '  \
    -DCMAKE_EXE_LINKER_FLAGS='-sASYNCIFY -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 ' \
    -DCMAKE_SHARED_LINKER_FLAGS='-sASYNCIFY -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 '
 
