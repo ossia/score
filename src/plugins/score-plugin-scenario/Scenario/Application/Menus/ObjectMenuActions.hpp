@@ -18,7 +18,7 @@ class ScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions final : public QObject
 {
 public:
-  ObjectMenuActions(ScenarioApplicationPlugin* parent);
+  explicit ObjectMenuActions(ScenarioApplicationPlugin* parent);
 
   void makeGUIElements(score::GUIElements& ref);
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
@@ -38,6 +38,8 @@ private:
   void pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
   void pasteElementsAfter(const rapidjson::Value& obj);
   void writeJsonToSelectedElements(const rapidjson::Value& obj);
+
+  bool isFocusingScenario() const noexcept;
 
   ScenarioDocumentModel* getScenarioDocModel() const;
   ScenarioDocumentPresenter* getScenarioDocPresenter() const;

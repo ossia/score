@@ -57,6 +57,7 @@
 
 #include <QAbstractProxyModel>
 #include <QAction>
+#include <QClipboard>
 #include <QComboBox>
 #include <QContextMenuEvent>
 #include <QDialog>
@@ -73,6 +74,7 @@
 #include <QMenu>
 #include <QPair>
 #include <QRegularExpression>
+#include <QShortcut>
 #include <QSize>
 #include <QStackedLayout>
 #include <QString>
@@ -241,6 +243,14 @@ void DeviceExplorerWidget::buildGUI()
 
   m_addressModel = new AddressItemModel{this};
   m_addressView = new QTableView{this};
+  {
+    auto qs = new QShortcut(QKeySequence::Copy, m_addressView, m_addressView, [this]() {
+      auto idx = m_addressView->currentIndex();
+      auto data = m_addressView->model()->data(idx);
+      qApp->clipboard()->setText(data.toString());
+    }, [] {});
+    qs->setContext(Qt::WidgetShortcut);
+  }
   auto delegate = new AddressItemDelegate{m_addressView};
   m_addressView->setItemDelegate(delegate);
   m_addressView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);

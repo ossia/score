@@ -561,9 +561,9 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
 
   Qt::ItemFlags f = QAbstractItemModel::flags(index);
   static const constexpr std::array<Qt::ItemFlags, Rows::Count> flags{{
-      {} // name
+      {Qt::ItemIsEnabled | Qt::ItemIsSelectable} // name
       ,
-      {} // address
+      {Qt::ItemIsEnabled | Qt::ItemIsSelectable} // address
       ,
       {Qt::ItemIsEditable} // value
       ,

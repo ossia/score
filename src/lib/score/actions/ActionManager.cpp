@@ -2,9 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ActionManager.hpp"
 
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
+#include <core/document/DocumentView.hpp>
 
 namespace score
 {
@@ -62,6 +64,23 @@ void ActionManager::reset(score::Document* doc)
   }
 
   // Reset all the actions
+
+  if(doc && doc->view())
+  {
+    if(auto widg = doc->view()->viewDelegate().getWidget())
+
+      for(auto& cond : m_container)
+      {
+        QAction* act = cond.second.action();
+        if(act->objectName().isEmpty())
+          act->setObjectName(act->text());
+        if(act->shortcutContext() == Qt::WidgetWithChildrenShortcut
+           || act->shortcutContext() == Qt::WidgetShortcut)
+        {
+          widg->addAction(cond.second.action());
+        }
+      }
+  }
   documentChanged(mdoc);
   focusChanged(mdoc);
   selectionChanged(mdoc);

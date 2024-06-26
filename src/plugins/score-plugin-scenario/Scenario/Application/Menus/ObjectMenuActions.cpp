@@ -21,6 +21,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/ScenarioEditor.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
@@ -46,6 +47,8 @@
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentView.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <QAction>
 #include <QClipboard>
@@ -78,8 +81,11 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   // COPY/CUT
   m_copyContent = new QAction{tr("Copy"), this};
   m_copyContent->setShortcut(QKeySequence::Copy);
-  m_copyContent->setShortcutContext(Qt::ApplicationShortcut);
+  m_copyContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   connect(m_copyContent, &QAction::triggered, this, [this]() {
+    if(!isFocusingScenario())
+      return;
+
     JSONReader r;
     copySelectedElementsToJson(r);
     if(r.empty())
@@ -91,8 +97,11 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   m_cutContent = new QAction{tr("Cut"), this};
   m_cutContent->setShortcut(QKeySequence::Cut);
-  m_cutContent->setShortcutContext(Qt::ApplicationShortcut);
+  m_cutContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   connect(m_cutContent, &QAction::triggered, this, [this] {
+    if(!isFocusingScenario())
+      return;
+
     JSONReader r;
     cutSelectedElementsToJson(r);
     if(r.empty())
@@ -111,6 +120,9 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   m_pasteElementsAfter = new QAction{tr("Paste (after)"), this};
   connect(m_pasteElementsAfter, &QAction::triggered, [this] {
+    if(!isFocusingScenario())
+      return;
+
     auto pres = m_parent->focusedPresenter();
     if(!pres)
       return;
@@ -192,28 +204,33 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   // Selection actions
   m_selectAll = new QAction{tr("Select all"), this};
-  m_selectAll->setToolTip("Ctrl+A");
   connect(m_selectAll, &QAction::triggered, [this]() {
+    if(!isFocusingScenario())
+      return;
     if(auto pres = getScenarioDocPresenter())
       pres->selectAll();
   });
 
   m_deselectAll = new QAction{tr("Deselect all"), this};
-  m_deselectAll->setToolTip("Ctrl+Shift+A");
   connect(m_deselectAll, &QAction::triggered, [this]() {
+    if(!isFocusingScenario())
+      return;
     if(auto pres = getScenarioDocPresenter())
       pres->deselectAll();
   });
 
   m_selectTop = new QAction{this};
   connect(m_selectTop, &QAction::triggered, [this] {
+    if(!isFocusingScenario())
+      return;
     if(auto pres = getScenarioDocPresenter())
       pres->selectTop();
   });
 
   m_goToParent = new QAction{this};
-  m_goToParent->setToolTip("Ctrl+Shift+Up");
   connect(m_goToParent, &QAction::triggered, [this]() {
+    if(!isFocusingScenario())
+      return;
     if(auto pres = getScenarioDocPresenter())
     {
       auto* cur = (QObject*)&pres->displayedInterval();
@@ -227,16 +244,6 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
       }
     }
   });
-
-  if(parent->context.mainWindow)
-  {
-    auto doc
-        = parent->context.mainWindow->centralWidget()->findChild<QWidget*>("Documents");
-    SCORE_ASSERT(doc);
-    doc->addAction(m_removeElements);
-    doc->addAction(m_pasteElements);
-    doc->addAction(m_goToParent);
-  }
 }
 
 void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
@@ -458,6 +465,8 @@ void ObjectMenuActions::pasteElements(QPoint pos)
 
 void ObjectMenuActions::pasteElements()
 {
+  if(!isFocusingScenario())
+    return;
   pasteElements(QCursor::pos());
 }
 
@@ -485,6 +494,26 @@ void ObjectMenuActions::pasteElementsAfter(const rapidjson::Value& obj)
     auto cmd = new Command::ScenarioPasteElementsAfter{sp->model(), *ts, obj, 1.0};
     dispatcher().submit(cmd);
   }
+}
+
+bool ObjectMenuActions::isFocusingScenario() const noexcept
+{
+  auto doc = m_parent->context.documents.currentDocument();
+  if(!doc)
+    return false;
+
+  auto widg = qApp->focusWidget();
+  if(!widg)
+    return false;
+
+  auto delegate = qobject_cast<ScenarioDocumentView*>(&doc->view()->viewDelegate());
+  if(!delegate)
+    return false;
+
+  if(widg != &delegate->view())
+    return false;
+
+  return true;
 }
 
 ScenarioDocumentModel* ObjectMenuActions::getScenarioDocModel() const
