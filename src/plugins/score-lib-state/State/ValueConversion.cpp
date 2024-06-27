@@ -8,6 +8,7 @@
 #include <score/serialization/MapSerialization.hpp>
 #include <score/serialization/StringConstants.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
 
@@ -29,6 +30,11 @@ namespace State
 {
 namespace convert
 {
+static constexpr bool not_display_character(char c) noexcept
+{
+  return c < ' ' || c > '~';
+}
+
 const std::array<const QString, 11> ValuePrettyTypes{
     {QObject::tr("Float"), QObject::tr("Int"), QObject::tr("Vec2f"),
      QObject::tr("Vec3f"), QObject::tr("Vec4f"), QObject::tr("Impulse"),
@@ -54,24 +60,38 @@ QVariant value(const ossia::value& val)
   {
   public:
     using return_type = QVariant;
-    return_type operator()() const { return QVariant{}; }
-    return_type operator()(const impulse&) const
+    return_type operator()() const noexcept { return QVariant{}; }
+    return_type operator()(const impulse&) const noexcept
     {
       return QVariant::fromValue(State::impulse{});
     }
-    return_type operator()(int i) const { return QVariant::fromValue(i); }
-    return_type operator()(float f) const { return QVariant::fromValue(f); }
-    return_type operator()(bool b) const { return QVariant::fromValue(b); }
-    return_type operator()(const QString& s) const { return QVariant::fromValue(s); }
-    return_type operator()(const std::string& s) const
+    return_type operator()(int i) const noexcept { return QVariant::fromValue(i); }
+    return_type operator()(float f) const noexcept { return QVariant::fromValue(f); }
+    return_type operator()(bool b) const noexcept { return QVariant::fromValue(b); }
+    return_type operator()(const QString& s) const noexcept
     {
+      return QVariant::fromValue(s);
+    }
+    return_type operator()(const std::string& s) const noexcept
+    {
+      if(Q_UNLIKELY(ossia::any_of(s, not_display_character)))
+        return QVariant::fromValue(QStringLiteral("<binary>"));
       return operator()(QString::fromStdString(s));
     }
-    return_type operator()(char c) const { return QVariant::fromValue(QChar(c)); }
-    return_type operator()(vec2f t) const { return QVector2D{t[0], t[1]}; }
-    return_type operator()(vec3f t) const { return QVector3D{t[0], t[1], t[2]}; }
-    return_type operator()(vec4f t) const { return QVector4D{t[0], t[1], t[2], t[3]}; }
-    return_type operator()(const list_t& t) const
+    return_type operator()(char c) const noexcept
+    {
+      return QVariant::fromValue(QChar(c));
+    }
+    return_type operator()(vec2f t) const noexcept { return QVector2D{t[0], t[1]}; }
+    return_type operator()(vec3f t) const noexcept
+    {
+      return QVector3D{t[0], t[1], t[2]};
+    }
+    return_type operator()(vec4f t) const noexcept
+    {
+      return QVector4D{t[0], t[1], t[2], t[3]};
+    }
+    return_type operator()(const list_t& t) const noexcept
     {
       QVariantList arr;
       arr.reserve(t.size());
@@ -83,7 +103,7 @@ QVariant value(const ossia::value& val)
 
       return arr;
     }
-    return_type operator()(const ossia::value_map_type& t) const
+    return_type operator()(const ossia::value_map_type& t) const noexcept
     {
       QVariantMap arr;
 
