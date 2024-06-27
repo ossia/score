@@ -7,6 +7,7 @@
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
+#include <QWidget>
 
 namespace score
 {
