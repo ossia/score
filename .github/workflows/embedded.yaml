@@ -77,126 +77,127 @@ jobs:
           path: |
             *.tar.gz
 
-  rpi_test:
-    name: Raspberry
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Prepare Sysroot
-        id: pi-sysroot
-        uses: jcelerier/raspbian-sysroot-action@main
-        with:
-          # Can be space separated, multiline list or a file
-          release: "bookworm"
-          packages:
-            build-essential
-            gcc-12
-            g++-12
-            clang
-            clang-15
-            cmake
-            libasound-dev
-            ninja-build
-            libfftw3-dev
-            libsuil-dev
-            liblilv-dev
-            lv2-dev
-            libclang-dev
-            llvm-dev
-            libclang-15-dev
-            llvm-15-dev
-            libdrm-dev
-            libgbm-dev
-            qt6-base-dev
-            qt6-base-dev-tools
-            qt6-base-private-dev
-            qt6-declarative-dev
-            qt6-declarative-dev-tools
-            qt6-declarative-private-dev
-            qt6-scxml-dev
-            qt6-5compat-dev
-            libqt6opengl6-dev
-            qt6-websockets-dev
-            qt6-serialport-dev
-            qt6-shadertools-dev
-            libbluetooth-dev
-            libglu1-mesa-dev
-            libglu1-mesa
-            libgles2-mesa-dev
-            libavahi-compat-libdnssd-dev
-            libsamplerate0-dev
-            portaudio19-dev
-            libpipewire-0.3-dev
-            libavcodec-dev
-            libavdevice-dev
-            libavutil-dev
-            libavfilter-dev
-            libavformat-dev
-            libswresample-dev
-            libpcre2-16-0
-            libzstd-dev
-            libdouble-conversion-dev
-            libdouble-conversion3
-            zstd
-            libb2-1
-            libb2-dev
-            libblas-dev
-            liblapacke-dev
-
-      - name: Install Build Tools
-        shell: bash
-        run: |
-          sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross qt6-base-dev  libqt6serialport6-dev libqt6websockets6-dev libqt6shadertools6-dev qt6-scxml-dev libpcre2-16-0 qt6-declarative-dev
-          sudo ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /usr/lib/ld-linux-armhf.so.3
-        
-      - name: Use host Qt tools
-        shell: bash
-        run: |
-          sudo cp -rf /usr/lib/qt6/bin/* ${SYSROOT}/usr/lib/qt6/bin/
-          sudo cp -rf /usr/lib/qt6/libexec/* ${SYSROOT}/usr/lib/qt6/libexec/
-        env:
-          SYSROOT: ${{steps.pi-sysroot.outputs.sysroot}}
-
-      - name: Build
-        run: |
-          mkdir -p build || true
-          mkdir -p install || true
-
-          echo
-          echo "==============="
-          echo
-          sudo find / -name libblas.so.3 || true
-          echo
-          echo "==============="
-          echo
-          sudo find / -name liblapacke.so.3 || true
-          echo
-          echo "==============="
-          echo
-
-          cmake -S $PWD -B build \
-            -GNinja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$PWD/install \
-            -DCMAKE_UNITY_BUILD=1 \
-            -DSCORE_DEPLOYMENT_BUILD=1 \
-            -DOSSIA_ENABLE_KFR=1 \
-            -DSCORE_DISABLED_PLUGINS="score-plugin-jit" \
-            -DSCORE_LINKER_SCRIPT="$PWD/cmake/Deployment/Linux/AppImage/version" \
-            -DCMAKE_TOOLCHAIN_FILE=${{steps.pi-sysroot.outputs.cmake-toolchain}}
-
-          cmake --build build
-          cmake --build build --target install
-          find . -name ossia-score
-
-      - name: Upload build
-        uses: actions/upload-artifact@v4
-        with:
-          name: raspberry-pi-bookworm-armhf
-          path: |
-            install/bin/ossia-score
+#  rpi_test:
+#    name: Raspberry
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#        with:
+#          submodules: 'recursive'
+#
+#      - name: Prepare Sysroot
+#        id: pi-sysroot
+#        uses: jcelerier/raspbian-sysroot-action@main
+#        with:
+#          # Can be space separated, multiline list or a file
+#          release: "bookworm"
+#          packages:
+#            build-essential
+#            gcc-12
+#            g++-12
+#            clang
+#            clang-15
+#            cmake
+#            libasound-dev
+#            ninja-build
+#            libfftw3-dev
+#            libsuil-dev
+#            liblilv-dev
+#            lv2-dev
+#            libclang-dev
+#            llvm-dev
+#            libclang-15-dev
+#            llvm-15-dev
+#            libdrm-dev
+#            libgbm-dev
+#            qt6-base-dev
+#            qt6-base-dev-tools
+#            qt6-base-private-dev
+#            qt6-declarative-dev
+#            qt6-declarative-dev-tools
+#            qt6-declarative-private-dev
+#            qt6-scxml-dev
+#            qt6-5compat-dev
+#            libqt6opengl6-dev
+#            qt6-websockets-dev
+#            qt6-serialport-dev
+#            qt6-shadertools-dev
+#            libbluetooth-dev
+#            libglu1-mesa-dev
+#            libglu1-mesa
+#            libgles2-mesa-dev
+#            libavahi-compat-libdnssd-dev
+#            libsamplerate0-dev
+#            portaudio19-dev
+#            libpipewire-0.3-dev
+#            libavcodec-dev
+#            libavdevice-dev
+#            libavutil-dev
+#            libavfilter-dev
+#            libavformat-dev
+#            libswresample-dev
+#            libpcre2-16-0
+#            libzstd-dev
+#            libdouble-conversion-dev
+#            libdouble-conversion3
+#            zstd
+#            libb2-1
+#            libb2-dev
+#            libblas-dev
+#            liblapacke-dev
+#
+#      - name: Install Build Tools
+#        shell: bash
+#        run: |
+#          sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross qt6-base-dev  libqt6serialport6-dev libqt6websockets6-dev libqt6shadertools6-dev qt6-scxml-dev libpcre2-16-0 qt6-declarative-dev
+#          sudo ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /usr/lib/ld-linux-armhf.so.3
+#        
+#      - name: Use host Qt tools
+#        shell: bash
+#        run: |
+#          sudo cp -rf /usr/lib/qt6/bin/* ${SYSROOT}/usr/lib/qt6/bin/
+#          sudo cp -rf /usr/lib/qt6/libexec/* ${SYSROOT}/usr/lib/qt6/libexec/
+#        env:
+#          SYSROOT: ${{steps.pi-sysroot.outputs.sysroot}}
+#
+#      - name: Build
+#        run: |
+#          mkdir -p build || true
+#          mkdir -p install || true
+#
+#          echo
+#          echo "==============="
+#          echo
+#          sudo find / -name libblas.so.3 || true
+#          echo
+#          echo "==============="
+#          echo
+#          sudo find / -name liblapacke.so.3 || true
+#          echo
+#          echo "==============="
+#          echo
+#
+#          cmake -S $PWD -B build \
+#            -GNinja \
+#            -DCMAKE_BUILD_TYPE=Release \
+#            -DCMAKE_INSTALL_PREFIX=$PWD/install \
+#            -DCMAKE_UNITY_BUILD=1 \
+#            -DSCORE_DEPLOYMENT_BUILD=1 \
+#            -DOSSIA_ENABLE_KFR=1 \
+#            -DSCORE_DISABLED_PLUGINS="score-plugin-jit" \
+#            -DSCORE_LINKER_SCRIPT="$PWD/cmake/Deployment/Linux/AppImage/version" \
+#            -DCMAKE_TOOLCHAIN_FILE=${{steps.pi-sysroot.outputs.cmake-toolchain}}
+#
+#          cmake --build build
+#          cmake --build build --target install
+#          find . -name ossia-score
+#
+#      - name: Upload build
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: raspberry-pi-bookworm-armhf
+#          path: |
+#            install/bin/ossia-score
+#
