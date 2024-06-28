@@ -7,11 +7,13 @@
 
 #include <score_plugin_scenario_export.h>
 
+#include <vector>
+
 //! MOVEME process
 namespace Process
 {
 class Cable;
-class CableData;
+struct CableData;
 class ProcessModel;
 }
 namespace Dataflow

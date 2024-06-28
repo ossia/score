@@ -559,8 +559,25 @@ const QString& locatePdBinary() noexcept
   static const QString pdbinary = []() -> QString {
 #if __APPLE__
     {
-      const auto& applist = QDir{"/Applications"}.entryList();
+      QStringList applist = QDir{"/Applications"}.entryList();
+      applist.sort();
 
+      // First try to look for the exact Pd version used to build score
+      auto this_pd_folder = QString("Pd-%1.%2-%3")
+                                .arg(PD_MAJOR_VERSION)
+                                .arg(PD_MINOR_VERSION)
+                                .arg(PD_BUGFIX_VERSION);
+      for(const auto& app : applist)
+      {
+        if(app == this_pd_folder)
+        {
+          QString pd_path = "/Applications/" + app + "/Contents/MacOS/Pd";
+          if(QFile::exists(pd_path))
+            return pd_path;
+        }
+      }
+
+      // Then try other versions
       for(const auto& app : applist)
       {
         if(app.startsWith("Pd-"))
@@ -725,6 +742,10 @@ static void add_pd_search_paths(const QString& folder)
 
   // Note: we use QString to make sure things do not disappear with AppImage's /usr clearing
   QSet<QString> paths;
+  if(QDir f(QStringLiteral("/usr/lib64/puredata/extra")); f.exists())
+    paths.insert(f.canonicalPath());
+  if(QDir f(QStringLiteral("/usr/lib/puredata/extra")); f.exists())
+    paths.insert(f.canonicalPath());
   if(QDir f(QStringLiteral("/usr/lib64/pd/extra")); f.exists())
     paths.insert(f.canonicalPath());
   if(QDir f(QStringLiteral("/usr/lib/pd/extra")); f.exists())
@@ -732,6 +753,8 @@ static void add_pd_search_paths(const QString& folder)
 
   // home
   auto home = qgetenv("HOME");
+  if(QDir f(home + QStringLiteral("/.local/lib/puredata/extra")); f.exists())
+    paths.insert(f.canonicalPath());
   if(QDir f(home + QStringLiteral("/.local/lib/pd/extra")); f.exists())
     paths.insert(f.canonicalPath());
 
