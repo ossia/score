@@ -6,6 +6,7 @@
 , pkg-config
 , alsa-lib
 , avahi
+, avahi-compat
 , bluez
 , boost185
 # , faust
@@ -31,6 +32,8 @@
 , qt6
 , rapidfuzz-cpp
 , re2
+, rubberband
+, snappy
 , SDL2
 , spdlog
 , suil
@@ -51,6 +54,7 @@ stdenv.mkDerivation (finalAttrs: {
     boost185
     # faust
     avahi
+    avahi-compat
     bluez
     ffmpeg
     fftw
@@ -81,6 +85,8 @@ stdenv.mkDerivation (finalAttrs: {
     qt6.qtwebsockets
     rapidfuzz-cpp
     re2
+    rubberband
+    snappy
     SDL2
     spdlog
     suil
@@ -96,6 +102,7 @@ stdenv.mkDerivation (finalAttrs: {
     "-DCMAKE_UNITY_BUILD=1"
     "-DCMAKE_SKIP_RPATH=ON"
     "-DOSSIA_USE_SYSTEM_LIBRARIES=1"
+    "-DSCORE_USE_SYSTEM_LIBRARIES=1"
 
     "-DLilv_INCLUDE_DIR=${lilv.dev}/include/lilv-0"
     "-DLilv_LIBRARY=${lilv}/lib/liblilv-0.so"
@@ -117,6 +124,18 @@ stdenv.mkDerivation (finalAttrs: {
 
     runHook postInstall
   '';
+
+  runtimeDependencies = [
+    alsa-lib
+    avahi
+    avahi-compat
+    bluez
+    fftw
+    libjack2
+    lilv
+    pipewire
+    udev
+  ];
 
   meta = with lib; {
     homepage = "https://ossia.io/score/about.html";
