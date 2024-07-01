@@ -15,6 +15,6 @@ jobs:
         submodules: 'recursive'
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: ossia-score.flatpak
+        bundle: io.ossia.score.flatpak
         manifest-path: ./cmake/Deployment/Linux/Flatpak/io.ossia.score.yml
         cache-key: flatpak-builder-${{ github.sha }}
