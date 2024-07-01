@@ -1,3 +1,4 @@
+.flatpak-builder
 .cache
 .clangd
 ./*.cache

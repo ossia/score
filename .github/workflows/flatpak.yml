@@ -1,0 +1,17 @@
+name: Flatpak
+on:
+  push:
+jobs:
+  flatpak:
+    name: "Flatpak"
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:kde-6.7
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: ossia-score.flatpak
+        manifest-path: ./cmake/Deployment/Linux/Flatpak/io.ossia.score.yml
+        cache-key: flatpak-builder-${{ github.sha }}

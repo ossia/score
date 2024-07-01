@@ -79,3 +79,6 @@
 [submodule "3rdparty/mimalloc"]
 	path = 3rdparty/mimalloc
 	url = https://github.com/microsoft/mimalloc
+[submodule "cmake/Deployment/Linux/Flatpak/shared-modules"]
+	path = cmake/Deployment/Linux/Flatpak/shared-modules
+	url = https://github.com/flathub/shared-modules
