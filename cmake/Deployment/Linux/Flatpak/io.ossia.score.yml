@@ -7,13 +7,13 @@ finish-args:
   # BLE support
   - --allow=bluetooth
 
-  # Access user's data and media libraries, plug-ins etc
+  # Access user's data and media libraries, plug-ins etc
   - --filesystem=host
 
-  # GPU rendering support
+  # GPU rendering support
   - --device=dri
 
-  # Raw input support 
+  # Raw input support
   - --device=input
 
   # Required for USB & MIDI devices support as well as JACK (/dev/shm) and raw GPIO I/O
@@ -27,13 +27,13 @@ finish-args:
   # X11 is used by default
   - --socket=x11
 
-  # Wayland still has rendering regressions compared to X11 as of Qt 6.7
-  # - --socket=wayland
+  # Wayland still has rendering regressions compared to X11 as of Qt 6.7
+  - --socket=wayland
 
   # Used by X11
   - --share=ipc
 
-  # Network access
+  # Network access
   - --share=network
 
   # Permit PipeWire and user music directory access
@@ -58,8 +58,11 @@ finish-args:
   # For correct cursor scaling under Wayland
   - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
 
-  - --persist=ossia
+  # Plugins
+  - --env=LV2_PATH=$HOME/.lv2:/app/extensions/Plugins/lv2:/app/lib/lv2
 
+  # Config persistence
+  - --persist=ossia
 
 add-extensions:
   # Linux audio plugins base extension
@@ -71,13 +74,13 @@ add-extensions:
      subdirectories: true
      no-autodownload: true
 
-  # Full codec support for FFMPEG
+  # Full codec support for FFMPEG
   org.freedesktop.Platform.openh264:
     directory: lib/openh264,
     add-ld-path: .,
     version: "2.4.1"
-    
-  org.freedesktop.Platform.ffmpeg-full: 
+
+  org.freedesktop.Platform.ffmpeg-full:
     directory: lib/ffmpeg,
     add-ld-path: .
     version: "23.08"
@@ -205,7 +208,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF    
+      - -DBUILD_SHARED_LIBS=OFF
     sources:
       - type: archive
         url: https://github.com/abseil/abseil-cpp/releases/download/20240116.2/abseil-cpp-20240116.2.tar.gz
@@ -247,10 +250,8 @@ modules:
   # ossia uses boost
   - name: boost
     buildsystem: simple
-    build-commands: 
+    build-commands:
       - mkdir -p "${FLATPAK_DEST}/include/"
-      - ls
-      - pwd
       - cp -rf boost "${FLATPAK_DEST}/include/"
     sources:
       - type: archive
@@ -275,7 +276,7 @@ modules:
   # ossia uses mDNS for multiple protocol discovery mechanisms
   - name: avahi
     builddir: true
-    config-opts: 
+    config-opts:
       - --with-distro=none
       - --disable-qt3
       - --disable-qt4
@@ -292,16 +293,16 @@ modules:
       - --disable-dbm
       - --disable-gdbm
       - --disable-manpage
-      
-    post-install: 
+
+    post-install:
       - make -C avahi-common install
       - make -C avahi-client install
-      
-    sources: 
+
+    sources:
       - type: archive
         url: https://github.com/avahi/avahi/releases/download/v0.8/avahi-0.8.tar.gz
         sha256: 060309d7a333d38d951bc27598c677af1796934dbd98e1024e7ad8de798fedda
-        
+
   - name: ossia-score
     buildsystem: cmake-ninja
     builddir: true
@@ -309,7 +310,7 @@ modules:
     sources:
       - type: dir
         path: ../../../../
-    config-opts: 
+    config-opts:
       # Note: don't use RelWithDebInfo as ossia release builds explicitly expect Release build type.
       - -DCMAKE_BUILD_TYPE=Release
       - -Wno-dev
@@ -321,7 +322,7 @@ modules:
       - -DOSSIA_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_NO_QTCONF=1
-    
+
     post-install:
      - cmake -DCMAKE_INSTALL_DO_STRIP=1 -DCOMPONENT=OssiaScore -P cmake_install.cmake
      - install -Dm644 /run/build/ossia-score/cmake/Deployment/Linux/Flatpak/io.ossia.score.metainfo.xml /app/share/metainfo/io.ossia.score.metainfo.xml
