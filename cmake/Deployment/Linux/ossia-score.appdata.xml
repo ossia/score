@@ -1,21 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-	<id>ossia-score</id>
-	<metadata_license>CC0-1.0</metadata_license>
-	<project_license>GPL-3.0</project_license>
-	<name>ossia score</name>
-	<summary>Interactive intermedia sequencer</summary>
-	<description>
-		<p>With ossia score you can sequence OSC, MIDI, etc. parameters between multiple software and hardware, to create interactive and intermedia scores.</p>
-	</description>
-	<launchable type="desktop-id">ossia-score.desktop</launchable>
-	<url type="homepage">http://ossia.io/</url>
-	<screenshots>
-		<screenshot type="default">
-			<image>https://raw.githubusercontent.com/ossia/score/master/Documentation/score.png</image>
-		</screenshot>
-	</screenshots>
-	<provides>
-		<id>ossia-score.desktop</id>
-	</provides>
+  <id>io.ossia.score</id>
+  <metadata_license>CC-BY-SA-4.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <name>ossia score</name>
+  <summary>Sequencer for media artists</summary>
+  <developer id="io.github.ossia">
+    <name>ossia.io</name>
+  </developer>
+  <description>
+    <p>ossia score is a sequencer for audio-visual artists, designed to enable the creation of interactive shows, museum installations, intermedia digital artworks, interactive music and more in an intuitive user interface.</p>
+    
+    <ul>
+      <li>Sequence OSC, MIDI, DMX, sound, video and more, between multiple software and hardware. </li>
+      <li>Script and live-code with JavaScript, ISF Shaders, Faust, PureData or C++.</li>
+      <li>Leverage IoT protocols such as CoAP or MQTT for industrial-grade automation.</li>
+      <li>Interact with joysticks, Wiimotes, Leapmotions, Web APIs and BLE sensors.</li>
+      <li>Integrate programs from a wealth of creative programming languages such as Structure Synth, Context-Free Art and Bytebeat.</li>
+      <li>Load any kind of audio or video format and process visuals through Spout, Syphon, NDI or Shmdata.</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.ossia.score.desktop</launchable>
+  <content_rating type="oars-1.1" />
+  <url type="bugtracker">https://github.com/ossia/score/issues</url>
+  <url type="contact">https://discord.gg/8Hzm4UduaS</url>
+  <url type="contribute">https://ossia.io/project.html</url>
+  <url type="donation">https://opencollective.com/ossia</url>
+  <url type="help">https://ossia.io/docs.html</url>
+  <url type="homepage">https://ossia.io</url>
+  <url type="vcs-browser">https://github.com/ossia/score</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/ossia/score/raw/master/docs/score.png?raw=true</image>
+      <caption>Sequence all kinds of media in ossia score</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="3.2.3" date="2024-07-02">
+    <url type="details">https://github.com/ossia/score/releases/tag/v3.2.3</url>
+      <description>
+        <p>ossia score 3.2.3 is a bugfix release which enables Flatpak support.</p>
+        <ul>
+          <li>Update dependencies to be flatpak-compatible</li>
+          <li>A bugfix to Nix support</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
 </component>
