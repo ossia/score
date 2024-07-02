@@ -1,7 +1,7 @@
 /* Linux syscall wrappers.  These are primarily for the benefit of other */
 /* programming languages, such as Ada, C#, Free Pascal, Go, etc.         */
 
-// Copyright (C)2016-2023, Philip Munts dba Munts Technologies.
+// Copyright (C)2016-2024, Philip Munts dba Munts Technologies.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -126,6 +126,10 @@ extern void LINUX_pclose(void *stream, int32_t *error);
 // It is hard to index a C pointer to pointer(s) in Ada
 
 extern void *LINUX_indexpp(void **p, int32_t i);
+
+// Return the device tree model name from /proc/device-tree/model
+
+extern const char * const LINUX_model_name(void);
 
 _END_STD_C
 

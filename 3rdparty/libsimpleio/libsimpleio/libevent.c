@@ -26,7 +26,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "libevent.h"
 
 void EVENT_open(int32_t *epfd, int32_t *error)

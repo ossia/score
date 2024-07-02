@@ -32,7 +32,7 @@
 #include <sys/ioctl.h>
 #include <sys/param.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "libhidraw.h"
 
 // Compatibility shims

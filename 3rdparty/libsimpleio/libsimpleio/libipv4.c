@@ -31,7 +31,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "libipv4.h"
 
 // Resolve host name to IPV4 address

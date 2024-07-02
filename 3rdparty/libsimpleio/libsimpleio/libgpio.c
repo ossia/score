@@ -1,6 +1,6 @@
 /* GPIO services for Linux */
 
-// Copyright (C)2016-2023, Philip Munts dba Munts Technologies.
+// Copyright (C)2016-2024, Philip Munts dba Munts Technologies.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -32,8 +32,11 @@
 #include <sys/ioctl.h>
 #include <sys/param.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "libgpio.h"
+#include "liblinux.h"
+
+#define RASPBERRYPI_GPIOCHIP "/dev/gpiochip-rpi"
 
 void GPIO_chip_info(int32_t chip, char *name, int32_t namesize,
   char *label, int32_t labelsize, int32_t *lines, int32_t *error)
@@ -86,10 +89,17 @@ void GPIO_chip_info(int32_t chip, char *name, int32_t namesize,
 
   // Open the GPIO controller device
 
-  char nodename[32];
-  snprintf(nodename, sizeof(nodename), "/dev/gpiochip%d", chip);
+  int chipfd;
 
-  int chipfd = open(nodename, O_RDWR);
+  if (!access(RASPBERRYPI_GPIOCHIP, F_OK) && (chip == 0) &&
+    (strstr(LINUX_model_name(), "Raspberry Pi") != NULL))
+    chipfd = open(RASPBERRYPI_GPIOCHIP, O_RDWR);
+  else
+  {
+    char nodename[32];
+    snprintf(nodename, sizeof(nodename), "/dev/gpiochip%d", chip);
+    chipfd = open(nodename, O_RDWR);
+  }
 
   if (chipfd < 0)
   {
@@ -180,10 +190,17 @@ void GPIO_line_info(int32_t chip, int32_t line, int32_t *flags, char *name,
 
   // Open the GPIO controller device
 
-  char nodename[32];
-  snprintf(nodename, sizeof(nodename), "/dev/gpiochip%d", chip);
+  int chipfd;
 
-  int chipfd = open(nodename, O_RDWR);
+  if (!access(RASPBERRYPI_GPIOCHIP, F_OK) && (chip == 0) &&
+    (strstr(LINUX_model_name(), "Raspberry Pi") != NULL))
+    chipfd = open(RASPBERRYPI_GPIOCHIP, O_RDWR);
+  else
+  {
+    char nodename[32];
+    snprintf(nodename, sizeof(nodename), "/dev/gpiochip%d", chip);
+    chipfd = open(nodename, O_RDWR);
+  }
 
   if (chipfd < 0)
   {
@@ -322,12 +339,19 @@ void GPIO_line_open(int32_t chip, int32_t line, int32_t flags, int32_t events,
     return;
   }
 
-  // Open GPIO controller device
+  // Open the GPIO controller device
 
-  char nodename[32];
-  snprintf(nodename, sizeof(nodename), "/dev/gpiochip%d", chip);
+  int chipfd;
 
-  int chipfd = open(nodename, O_RDWR);
+  if (!access(RASPBERRYPI_GPIOCHIP, F_OK) && (chip == 0) &&
+    (strstr(LINUX_model_name(), "Raspberry Pi") != NULL))
+    chipfd = open(RASPBERRYPI_GPIOCHIP, O_RDWR);
+  else
+  {
+    char nodename[32];
+    snprintf(nodename, sizeof(nodename), "/dev/gpiochip%d", chip);
+    chipfd = open(nodename, O_RDWR);
+  }
 
   if (chipfd < 0)
   {

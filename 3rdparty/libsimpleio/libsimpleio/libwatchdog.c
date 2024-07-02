@@ -22,10 +22,11 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <stddef.h>
 #include <linux/watchdog.h>
 #include <sys/ioctl.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "libwatchdog.h"
 
 void WATCHDOG_get_timeout(int32_t fd, int32_t *timeout, int32_t *error)

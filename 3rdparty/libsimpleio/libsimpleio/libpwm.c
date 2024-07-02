@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <sys/param.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "libpwm.h"
 
 // Device nodes

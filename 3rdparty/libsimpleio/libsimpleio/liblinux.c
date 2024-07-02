@@ -1,7 +1,7 @@
 /* Linux syscall wrappers.  These are primarily for the benefit of other */
 /* programming languages, such as Ada, C#, Free Pascal, Go, etc.         */
 
-// Copyright (C)2016-2023, Philip Munts dba Munts Technologies.
+// Copyright (C)2016-2024, Philip Munts dba Munts Technologies.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "liblinux.h"
 
 // Detach process from the controlling terminal and run it in the background
@@ -749,9 +749,46 @@ void *LINUX_indexpp(void **p, int32_t i)
   return p[i];
 }
 
-// Function aliases
+// Return the device tree model name from /proc/device-tree/model
 
-#define ALIAS(orig) __attribute__((weak, alias(orig)))
+#define MODELPATH "/proc/device-tree/model"
+
+const char * const LINUX_model_name(void)
+{
+  int fd;
+  ssize_t len;
+  static char failure[4096];
+  static char success[4096];
+
+  memset(failure, 0, sizeof(failure));
+  memset(success, 0, sizeof(success));
+
+  if (access(MODELPATH, R_OK))
+    return failure;
+
+  fd = open(MODELPATH, O_RDONLY);
+
+  if (fd < 0)
+  {
+    ERRORMSG("open() failed", errno, __LINE__ - 4);
+    return failure;
+  }
+
+  len = read(fd, success, sizeof(success) - 1);
+
+  if (len < 0)
+  {
+    ERRORMSG("read() failed", errno, __LINE__ - 4);
+    close(fd);
+    return failure;
+  }
+
+  close(fd);
+
+  return success;
+}
+
+// Function aliases
 
 void ADC_close(int32_t fd, int32_t *error) ALIAS("LINUX_close");
 void DAC_close(int32_t fd, int32_t *error) ALIAS("LINUX_close");

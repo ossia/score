@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <sys/param.h>
 
-#include "errmsg.inc"
+#include "macros.inc"
 #include "libadc.h"
 
 #define NAME_FILE	"/sys/bus/iio/devices/iio:device%d/name"
