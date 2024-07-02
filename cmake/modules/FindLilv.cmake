@@ -6,9 +6,9 @@ endif()
 find_path(
     Lilv_INCLUDE_DIR lilv/lilv.h
     HINTS
-        "${OSSIA_SDK}/lv2/include/lilv-0"
-        /usr/include/lilv-0
-        /usr/local/include/lilv-0
+        "${OSSIA_SDK}/lv2/include"
+    PATH_SUFFIXES
+        lilv-0
     )
 
 find_library(Lilv_LIBRARY

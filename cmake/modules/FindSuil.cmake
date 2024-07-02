@@ -6,9 +6,9 @@ endif()
 find_path(
     Suil_INCLUDE_DIR suil/suil.h
     HINTS
-        "${OSSIA_SDK}/lv2/include/suil-0"
-        /usr/include/suil-0
-        /usr/local/include/suil-0
+        "${OSSIA_SDK}/lv2/include/"
+    PATH_SUFFIXES
+        suil-0
     )
 
 set(Suil_NAMES suil suil-0)
