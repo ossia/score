@@ -93,7 +93,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/src/lib/resources/ossia-score.png"
         DESTINATION share/pixmaps
         COMPONENT OssiaScore)
 install(FILES "${CMAKE_SOURCE_DIR}/src/lib/resources/ossia-score.png"
-        DESTINATION icons/hicolor/512x512/apps
+        DESTINATION share/icons/hicolor/512x512/apps
         COMPONENT OssiaScore)
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/Deployment/Linux/ossia-score.appdata.xml"
         DESTINATION share/metainfo

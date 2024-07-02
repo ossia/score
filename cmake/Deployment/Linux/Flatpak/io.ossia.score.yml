@@ -3,6 +3,8 @@ runtime: org.kde.Platform
 runtime-version: '6.7'
 sdk: org.kde.Sdk
 command: ossia-score
+rename-desktop-file: ossia-score.desktop
+rename-icon: ossia-score
 finish-args:
   # BLE support
   - --allow=bluetooth
@@ -10,25 +12,11 @@ finish-args:
   # Access user's data and media libraries, plug-ins etc
   - --filesystem=host
 
-  # GPU rendering support
-  - --device=dri
-
-  # Raw input support
-  - --device=input
-
-  # Required for USB & MIDI devices support as well as JACK (/dev/shm) and raw GPIO I/O
+  # Required for USB, Webcam devices support as well as raw GPIO I/O & GPU rendering
   - --device=all
-
-  # Removable drives support
-  # https://github.com/flatpak/flatpak/issues/2713#issuecomment-1958510347
-  - --filesystem=/media
-  - --filesystem=/run/media
 
   # X11 is used by default
   - --socket=x11
-
-  # Wayland still has rendering regressions compared to X11 as of Qt 6.7
-  - --socket=wayland
 
   # Used by X11
   - --share=ipc
@@ -36,33 +24,18 @@ finish-args:
   # Network access
   - --share=network
 
-  # Permit PipeWire and user music directory access
-  - --filesystem=xdg-run/pipewire-0
-  - --filesystem=xdg-music
-
   # PulseAudio is needed for ALSA device access
   - --socket=pulseaudio
 
-  # Talk to UPower and RTKit services on the session bus
-  - --system-talk-name=org.freedesktop.UPower
-  - --system-talk-name=org.freedesktop.RealtimeKit1
+  # Audio support through pipewire
+  - --filesystem=xdg-run/pipewire-0
 
-  # Ignore ALSA configuration
-  - --env=ALSA_CONFIG_PATH=
+  # Plugins
   - --env=VST_PATH=/app/extensions/Plugins/vst
   - --env=VST3_PATH=/app/extensions/Plugins/vst3
 
   # Required to allow screensaver/idle inhibition
   - --talk-name=org.freedesktop.ScreenSaver
-
-  # For correct cursor scaling under Wayland
-  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
-
-  # Plugins
-  - --env=LV2_PATH=$HOME/.lv2:/app/extensions/Plugins/lv2:/app/lib/lv2
-
-  # Config persistence
-  - --persist=ossia
 
 add-extensions:
   # Linux audio plugins base extension
@@ -75,34 +48,31 @@ add-extensions:
      no-autodownload: true
 
   # Full codec support for FFMPEG
-  org.freedesktop.Platform.openh264:
-    directory: lib/openh264,
-    add-ld-path: .,
-    version: "2.4.1"
-
   org.freedesktop.Platform.ffmpeg-full:
-    directory: lib/ffmpeg,
+    directory: lib/ffmpeg
     add-ld-path: .
     version: "23.08"
 
 cleanup:
+  - /bin/avahi*
   - /include
-  - /share/gir-1.0
-  - /share/man
   - '*.a'
   - '*.la'
   - /lib/cmake
   - /lib/girepository-1.0
   - /lib/pkgconfig
-  - /lib/*.la
-  - /lib/*.a
+  - /lib/avahi
+  - /lib/python*
+  - /share/gir-1.0
+  - /share/man
   - /share/pkgconfig
   - /share/aclocal
   - /share/gtk-doc
   - /share/doc
   - /share/info
-  - /share/man
+  - /share/async-mqtt5
   - /man
+
 modules:
   # LV2 audio plugin support
   - shared-modules/linux-audio/lv2.json
@@ -114,7 +84,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
       - -DPA_ALSA_DYNAMIC=ON
       - -DPA_USE_JACK=OFF
     sources:
@@ -128,54 +98,18 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
       - -DBUILD_TESTING=0
     sources:
       - type: archive
         url: https://github.com/libsndfile/libsamplerate/archive/4858fb016550d677de2356486bcceda5aed85a72.zip
         sha256: 11af7a8243dfb81e211ed140139d3439b39ffc7527b92d5c5c4a5e7338f595ee
 
-  # Used for some audio file formats not supported by FFMPEG, reading ACID tags, etc.
-  - name: libsndfile
-    buildsystem: cmake-ninja
-    config-opts:
-      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
-      - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
-      - -DBUILD_PROGRAMS=0
-      - -DBUILD_EXAMPLES=0
-      - -DENABLE_CPACK=0
-      - -DENABLE_PACKAGE_CONFIG=0
-      - -DINSTALL_PKGCONFIG_MODULE=0
-      - -DINSTALL_MANPAGES=0
-      - -DENABLE_BOW_DOCS=0
-      - -DENABLE_EXPERIMENTAL=0
-      - -DENABLE_EXTERNAL_LIBS=0
-      - -DENABLE_MPEG=0
-      - -DBUILD_REGTEST=0
-      - -DBUILD_TESTING=0
-    sources:
-      - type: archive
-        url: https://github.com/libsndfile/libsndfile/archive/58c05b87162264200b1aa7790be260fd74c9deee.zip
-        sha256: 3337d28c24f2aaa74b619c9c335db79fd4891d9dda5fa29e70b1c771c46ee342
-
-  # More efficient timestretch with rubberband
-  - name: fftw
-    buildsystem: cmake-ninja
-    config-opts:
-      - -DCMAKE_BUILD_TYPE=Release
-      - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
-    sources:
-      - type: archive
-        url: http://fftw.org/fftw-3.3.10.tar.gz
-        sha256: 56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467
-
   # Time-stretch support
   - name: rubberband
     buildsystem: meson
     config-opts:
-      - -Ddefault_library=static
+      - -Ddefault_library=shared
       - -Dbuildtype=release
       - -Dtests=disabled
       - -Dcmdline=disabled
@@ -195,7 +129,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
     sources:
       - type: archive
         url: https://github.com/rapidfuzz/rapidfuzz-cpp/archive/refs/tags/v3.0.4.tar.gz
@@ -208,7 +142,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
     sources:
       - type: archive
         url: https://github.com/abseil/abseil-cpp/releases/download/20240116.2/abseil-cpp-20240116.2.tar.gz
@@ -221,7 +155,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
     sources:
       - type: archive
         url: https://github.com/google/re2/archive/refs/tags/2023-06-01.tar.gz
@@ -234,7 +168,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
       - -DENABLE_WS=1
       - -DENABLE_DTLS=0
       - -DENABLE_EXAMPLES=0
@@ -265,7 +199,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DBUILD_SHARED_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
       - -DSNAPPY_BUILD_TESTS=0
       - -DSNAPPY_BUILD_BENCHMARKS=0
     sources:
@@ -306,10 +240,16 @@ modules:
   - name: ossia-score
     buildsystem: cmake-ninja
     builddir: true
-    no-make-install: true
     sources:
-      - type: dir
-        path: ../../../../
+        - type: dir
+          path: ../../../../
+          
+        - type: script
+          dest-filename: run
+          commands:
+            - export LV2_PATH=$HOME/.lv2:/app/extensions/Plugins/lv2:/app/lib/lv2
+            - exec ossia-score.bin "$@"
+
     config-opts:
       # Note: don't use RelWithDebInfo as ossia release builds explicitly expect Release build type.
       - -DCMAKE_BUILD_TYPE=Release
@@ -323,10 +263,8 @@ modules:
       - -DSCORE_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_NO_QTCONF=1
 
-    post-install:
-     - cmake -DCMAKE_INSTALL_DO_STRIP=1 -DCOMPONENT=OssiaScore -P cmake_install.cmake
-     - install -Dm644 /run/build/ossia-score/cmake/Deployment/Linux/Flatpak/io.ossia.score.metainfo.xml /app/share/metainfo/io.ossia.score.metainfo.xml
-     - mv /app/share/applications/ossia-score.desktop /app/share/applications/io.ossia.score.desktop
-     - sed -i 's/Icon=ossia-score/Icon=io.ossia.score/' /app/share/applications/io.ossia.score.desktop
-     - mkdir -p /app/share/icons/hicolor/512x512/apps
-     - mv /app/share/pixmaps/ossia-score.png /app/share/icons/hicolor/512x512/apps/io.ossia.score.png
+    post-install:      
+     - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
+     - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
+     - install -Dm644 ../cmake/Deployment/Linux/ossia-score.appdata.xml /app/share/metainfo/io.ossia.score.metainfo.xml
+
