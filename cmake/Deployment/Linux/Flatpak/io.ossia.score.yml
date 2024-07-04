@@ -2,9 +2,15 @@ id: io.ossia.score
 runtime: org.kde.Platform
 runtime-version: '6.7'
 sdk: org.kde.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.llvm18
+build-options:
+  env:
+    CXX: /usr/lib/sdk/llvm18/bin/clang++
 command: ossia-score
 rename-desktop-file: ossia-score.desktop
 rename-icon: ossia-score
+rename-appdata-file: ossia-score
 finish-args:
   # BLE support
   - --allow=bluetooth
@@ -70,6 +76,7 @@ cleanup:
   - /share/gtk-doc
   - /share/doc
   - /share/info
+  - /share/pixmaps
   - /share/async-mqtt5
   - /man
 
@@ -266,5 +273,4 @@ modules:
     post-install:      
      - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
      - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
-     - install -Dm644 ../cmake/Deployment/Linux/ossia-score.appdata.xml /app/share/metainfo/io.ossia.score.metainfo.xml
 
