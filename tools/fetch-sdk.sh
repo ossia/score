@@ -11,21 +11,30 @@ echo "Using SDK: $SDK_VERSION"
 export LATEST_TAG=$(git describe --tags --abbrev=0)
 export LATEST_TAG_NOV=$(echo "$LATEST_TAG" | sed "s/v//")
 export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSION
-export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk28
-export BOOST_VER=boost_1_83_0
+export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk30
+export BOOST_VER=boost_1_85_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
-export CMAKE_VERSION=3.27.5
+export CMAKE_VERSION=3.30.0
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
+  SDK_VERSION=sdk30
+  export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSION
+
   # First download the compiler and base libraries
-  SDK_DIR=/opt/ossia-sdk-x86_64
+  if [[ "$(uame -m)" == "arm64" ]]; then
+    SDK_ARCH=aarch64
+  else
+    SDK_ARCH=x86_64
+  fi
+
+  SDK_DIR=/opt/ossia-sdk-$SDK_ARCH
   sudo mkdir -p "$SDK_DIR"
   sudo chown -R $(whoami) /opt
   sudo chmod -R a+rwx /opt
 
   (
-    SDK_ARCHIVE=sdk-macOS.tar.gz
+    SDK_ARCHIVE=sdk-macOS-$SDK_ARCH.tar.gz
     wget -nv "$BASE_SDK/$SDK_ARCHIVE" -O "$SDK_ARCHIVE"
     tar -xzf "$SDK_ARCHIVE" --strip-components=2 --directory "$SDK_DIR"
     rm -rf "$SDK_ARCHIVE"
@@ -126,7 +135,7 @@ else
   if [[ ! -f "$SDK_DIR/llvm/bin/ninja.exe" ]] ; then
     if ! command -v ninja >/dev/null 2>&1 ; then
     (
-      curl -L -0 https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip --output ninja-win.zip
+      curl -L -0 https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip --output ninja-win.zip
       tar xaf ninja-win.zip
       mv ninja.exe "$SDK_DIR/llvm/bin/"
       rm ninja-win.zip
