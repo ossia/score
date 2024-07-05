@@ -23,29 +23,17 @@ fi
 
 detect_deps_script() {
     case "$CODENAME" in
-      bionic)
-        DEPS=bionic
-        QT=5
-        return 0;;
-      buster)
-        DEPS=buster
-        QT=5
-        return 0;;
-      bullseye)
-        DEPS=bullseye
-        QT=5
-        return 0;;
       bookworm)
         DEPS=bookworm
         QT=6
         return 0;;
-      focal)
-        DEPS=focal
-        QT=5
-        return 0;;
       jammy)
         DEPS=jammy
-        QT=5
+        QT=6
+        return 0;;
+      noble)
+        DEPS=noble
+        QT=6
         return 0;;
       leap)
         DEPS=suse-leap
@@ -63,20 +51,20 @@ detect_deps_script() {
         QT=6
         return 0;;
       debian)
-        DEPS=jammy
-        QT=5
+        DEPS=bookworm
+        QT=6
         return 0;;
       ubuntu)
         DEPS=jammy
-        QT=5
+        QT=6
         return 0;;
       fedora)
         DEPS=fedora-qt6
         QT=6
         return 0;;
       centos)
-        DEPS=fedora
-        QT=5
+        DEPS=fedora-qt6
+        QT=6
         return 0;;
       suse)
         DEPS=suse-leap
@@ -96,19 +84,19 @@ detect_linux_qt_version() {
         return 0;;
       debian)
         $SUDO apt update
-        (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || QT=5
+        (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || exit 1
         return 0;;
       ubuntu)
         $SUDO apt update
-        (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || QT=5
+        (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || exit 1
         return 0;;
       fedora)
         $SUDO dnf update
-        (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || QT=5
+        (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || exit 1
         return 0;;
       centos)
         $SUDO dnf update
-        (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || QT=5
+        (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || exit 1
         return 0;;
       suse)
         $SUDO zypper update
@@ -205,12 +193,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   if [[ ! -f ./score ]]; then
     cmake -Wno-dev \
         $SCORE_PATH \
-        -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt \
+        -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt;/opt/homebrew/Cellar/qt" \
         -GNinja \
         -DCMAKE_BUILD_TYPE=Debug \
         -DSCORE_PCH=1 \
         -DSCORE_DYNAMIC_PLUGINS=1 \
-        -DQT_VERSION="Qt6;6.2"
+        -DCMAKE_COLOR_DIAGNOSTICS=1
   fi
   
   echo "[developer.sh] Building in $PWD/build-developer"
@@ -228,12 +216,6 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   detect_linux_qt_version
   detect_deps_script
   $SUDO "ci/$DEPS.deps.sh"
-  
-  if [[ "$QT" == 5 ]]; then
-    QT_CMAKE_FLAG=''
-  else
-    QT_CMAKE_FLAG='-DQT_VERSION=Qt6;6.2'
-  fi
 
   if command -v clang++-19 ; then
     CC=clang-19
@@ -285,10 +267,10 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         -DCMAKE_EXE_LINKER_FLAGS="$LFLAG" \
         -DCMAKE_SHARED_LINKER_FLAGS="$LFLAG" \
         -DCMAKE_MODULE_LINKER_FLAGS="$LFLAG" \
-        $QT_CMAKE_FLAG \
         -DCMAKE_BUILD_TYPE=Debug \
         -DSCORE_PCH=1 \
-        -DSCORE_DYNAMIC_PLUGINS=1
+        -DSCORE_DYNAMIC_PLUGINS=1 \
+        -DCMAKE_COLOR_DIAGNOSTICS=1
   fi
   
   echo "[developer.sh] Building in $PWD"
@@ -324,7 +306,8 @@ else
         -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
         -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
         -DCMAKE_BUILD_TYPE=Debug \
-        -DSCORE_PCH=1
+        -DSCORE_PCH=1 \
+        -DCMAKE_COLOR_DIAGNOSTICS=1
   fi
   
   echo "[developer.sh] Building in $PWD"
