@@ -14,6 +14,12 @@ jobs:
       with:
         usesh: true
         prepare: |
+          pwd
+          ls -lah
+          whoami
+          env
+          freebsd-version
+
           ./ci/freebsd.deps.sh
 
         run: |
