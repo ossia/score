@@ -35,6 +35,7 @@ Releases are available for [Windows, Linux (via AppImage) and macOS](https://git
 | Raspberry Pi (Bookworm AArch64)   | [![RPi](https://github.com/ossia/score/actions/workflows/embedded.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/embedded.yaml)                               |
 | Flatpak                           | [![Flatpak](https://github.com/ossia/score/actions/workflows/flatpak.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/flatpak.yml)                           |
 | Nix                               | [![Nix](https://github.com/ossia/score/actions/workflows/nix-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/nix-builds.yaml)                           |
+| FreeBSD                           | [![BSD](https://github.com/ossia/score/actions/workflows/bsd.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/bsd.yml)                           |
 | WebAssembly                       | [![WASM](https://github.com/ossia/score/actions/workflows/wasm.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/wasm.yaml)                                      |
 | Plug-in templates                 | [![Template check](https://github.com/ossia/score/actions/workflows/templates.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/templates.yaml)                  |
  

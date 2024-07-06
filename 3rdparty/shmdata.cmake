@@ -2,7 +2,7 @@ if(NOT UNIX)
   return()
 endif()
 
-if(EMSCRIPTEN)
+if(EMSCRIPTEN OR BSD)
   return()
 endif()
 

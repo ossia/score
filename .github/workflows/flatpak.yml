@@ -1,6 +1,6 @@
 name: Flatpak
-on:
-  push:
+on: push
+
 jobs:
   flatpak:
     name: "Flatpak"
