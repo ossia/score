@@ -1,4 +1,5 @@
-if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+find_path(LINUX_HEADERS_INCLUDE_DIR linux/types.h)
+if(LINUX_HEADERS_INCLUDE_DIR AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
 add_library(simpleio STATIC
   "${CMAKE_CURRENT_LIST_DIR}/libsimpleio/libsimpleio/cplusplus.h"
   "${CMAKE_CURRENT_LIST_DIR}/libsimpleio/libsimpleio/errmsg.c"
