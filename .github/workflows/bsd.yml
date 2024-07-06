@@ -14,14 +14,22 @@ jobs:
       with:
         usesh: true
         prepare: |
-          echo "==== 1 ===="
-          cd work
-          find . -name freebsd.deps.sh
-
-          echo "==== 2 ====: $GITHUB_WORKSPACE"
-          cd $GITHUB_WORKSPACE
-          find . -name freebsd.deps.sh
-          ./ci/freebsd.deps.sh
+          pkg install -y \
+            boost-libs \
+            cmake git \
+            clang \
+            qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml \
+            ffmpeg \
+            lilv suil lv2 \
+            libcoap \
+            portaudio \
+            pd \
+            libfmt spdlog \
+            rubberband libsamplerate libsndfile \
+            libcoap \
+            jack \
+            freetype2 harfbuzz fontconfig
 
         run: |
+          ./ci/common.deps.sh
           ./ci/freebsd.build.sh
