@@ -15,6 +15,7 @@ jobs:
         usesh: true
         prepare: |
           pkg install -y \
+            bash \
             boost-libs \
             cmake git \
             llvm18 \

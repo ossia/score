@@ -1,11 +1,12 @@
-#!/bin/bash -eux
+#!/usr/bin/env bash
 
 source ci/common.setup.sh
 
-pkg install -y
+pkg install -y \
+  bash \
   boost-libs \
   cmake git \
-  clang \
+  llvm18 \
   qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml \
   ffmpeg \
   lilv suil lv2 \
@@ -15,7 +16,7 @@ pkg install -y
   libfmt spdlog \
   rubberband libsamplerate libsndfile \
   libcoap \
-  jack \
-  freetype2 harfbuzz fontconfig
+  freetype2 harfbuzz fontconfig \
+  jackit
 
 source ci/common.deps.sh
