@@ -19,6 +19,7 @@ jobs:
             boost-libs \
             cmake git \
             llvm18 \
+            ninja \
             qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml \
             ffmpeg \
             lilv suil lv2 \
