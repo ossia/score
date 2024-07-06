@@ -14,12 +14,13 @@ jobs:
       with:
         usesh: true
         prepare: |
-          pwd
-          ls -lah
-          whoami
-          env
-          freebsd-version
+          echo "==== 1 ===="
+          cd work
+          find . -name freebsd.deps.sh
 
+          echo "==== 2 ====: $GITHUB_WORKSPACE"
+          cd $GITHUB_WORKSPACE
+          find . -name freebsd.deps.sh
           ./ci/freebsd.deps.sh
 
         run: |
