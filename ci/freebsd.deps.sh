@@ -17,6 +17,7 @@ pkg install -y \
   rubberband libsamplerate libsndfile \
   libcoap \
   freetype2 harfbuzz fontconfig \
+  alsa-lib \
   jackit
 
 source ci/common.deps.sh

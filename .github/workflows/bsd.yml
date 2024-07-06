@@ -30,7 +30,7 @@ jobs:
             rubberband libsamplerate libsndfile \
             libcoap \
             freetype2 harfbuzz fontconfig \
-            jackit
+            alsa-lib jackit
 
         run: |
           ./ci/common.deps.sh
