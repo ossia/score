@@ -4,8 +4,10 @@
 
 #if defined(_WIN32)
 #include <malloc.h>
-#else
+#elif __has_include(<alloca.h>)
 #include <alloca.h>
+#else
+#include <cstdlib>
 #endif
 
 namespace score
