@@ -10,6 +10,7 @@ cmake $SCORE_DIR \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DYNAMIC_PLUGINS=1 \
+  -DSCORE_DISABLED_PLUGINS=score-plugin-vst3 \
   -DSCORE_PCH=1
 
 cmake --build .
