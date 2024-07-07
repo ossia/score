@@ -10,6 +10,7 @@
 #if __has_include(<llfio.hpp>) \
   && (__cpp_lib_concepts >= 202002L) \
   && (__cpp_lib_span >= 202002L) && __has_include(<span>) \
+  && defined(__linux__) \
   && !defined(_WIN32) \
   && !defined(__EMSCRIPTEN__) \
   && !defined(__APPLE__) \
