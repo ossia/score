@@ -1,4 +1,4 @@
-{ stdenv
+{ clangStdenv
 , lib
 , fetchFromGitHub
 , cmake
@@ -43,7 +43,7 @@
 # TODO: figure out LLVM jit
 # assert lib.versionAtLeast llvm.version "15";
 
-stdenv.mkDerivation (finalAttrs: {
+clangStdenv.mkDerivation (finalAttrs: {
   pname = "ossia-score";
   version = "devel";
   src = ../.;
@@ -103,12 +103,11 @@ stdenv.mkDerivation (finalAttrs: {
     "-DCMAKE_SKIP_RPATH=ON"
     "-DOSSIA_USE_SYSTEM_LIBRARIES=1"
     "-DSCORE_USE_SYSTEM_LIBRARIES=1"
+"-DCMAKE_C_FLAGS=-w"
+"-DCMAKE_CXX_FLAGS=-w"
 
     "-DLilv_INCLUDE_DIR=${lilv.dev}/include/lilv-0"
-    "-DLilv_LIBRARY=${lilv}/lib/liblilv-0.so"
-
     "-DSuil_INCLUDE_DIR=${suil}/include/suil-0"
-    "-DSuil_LIBRARY=${suil}/lib/libsuil-0.so"
   ];
 
   # Ossia dlopen's these at runtime, refuses to start without them
