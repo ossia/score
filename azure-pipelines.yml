@@ -153,6 +153,12 @@ stages:
               cd "$(System.DefaultWorkingDirectory)"
               find . -type f -exec mv {} . \;
               ls
+              gh release delete-asset -y continuous ossia.score-master-macOS-Intel.dmg || true
+              gh release delete-asset -y continuous mac-sdk || true
+              gh release delete-asset -y continuous ossia.score-master-win64.exe || true
+              gh release delete-asset -y continuous windows-sdk.zip || true
+              gh release delete-asset -y continuous ossia.score-master-linux-amd64.AppImage || true
+              gh release delete-asset -y continuous linux-sdk.zip || true
 
           - task: GitHubRelease@1
             condition: and(succeeded(), eq(variables.isMaster, true))
