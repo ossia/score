@@ -38,7 +38,7 @@ public:
   void initialize() override;
   ~ApplicationPlugin() override;
 
-  void rescanVSTs(const QStringList&);
+  void rescanVSTs(QStringList);
   void processIncomingMessage(const QString& txt);
   void addInvalidVST(const QString& path);
   void addVST(const QString& path, const QJsonObject& json);

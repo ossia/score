@@ -160,9 +160,15 @@ void ApplicationPlugin::unregisterRunningVST(Model* m)
   }
 }
 
-void ApplicationPlugin::rescanVSTs(const QStringList& paths)
+void ApplicationPlugin::rescanVSTs(QStringList paths)
 {
 #if QT_CONFIG(process)
+  // 0. Handle VST_PATH
+  if(QFileInfo vst_env_path{QString(qgetenv("VST_PATH"))}; vst_env_path.isDir())
+  {
+    paths += vst_env_path.canonicalPath();
+  }
+
   // 1. List all plug-ins in new paths
   QStringList exploredPaths;
   QSet<QString> newPlugins;

@@ -141,6 +141,7 @@ void ApplicationPlugin::rescan()
 {
   auto paths = default_paths;
 
+  // User folders
 #if defined(__APPLE__)
   const QString user = qgetenv("USERNAME");
   paths.prepend(QString("/Users/%1/Library/Audio/Plug-ins/VST3/").arg(user));
@@ -151,6 +152,12 @@ void ApplicationPlugin::rescan()
   const QString home = qgetenv("HOME");
   paths.prepend(QString("%1/.vst3/").arg(home));
 #endif
+
+  // VST3_PATH
+  if(QFileInfo vst_env_path{QString(qgetenv("VST3_PATH"))}; vst_env_path.isDir())
+  {
+    paths += vst_env_path.canonicalPath();
+  }
   rescan(paths);
 }
 
