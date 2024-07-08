@@ -263,6 +263,8 @@ void LV2::GlobalContext::loadPlugins()
         if(parts.size() == 2)
         {
           QFileInfo libc{parts[1].trimmed()};
+          if(!libc.isDir())
+            libc = QFileInfo{libc.absoluteFilePath()};
           if(QFileInfo lv2_folder{libc.path() + "/lv2"};
              lv2_folder.exists() && lv2_folder.isDir())
           {
@@ -270,6 +272,10 @@ void LV2::GlobalContext::loadPlugins()
             qDebug() << "Setting lv2 path to : " << lv2_path.c_str();
             qputenv("LV2_PATH", lv2_path.c_str());
             break;
+          }
+          else
+          {
+            qDebug() << lv2_folder << " : no lv2 folder found?";
           }
         }
       }

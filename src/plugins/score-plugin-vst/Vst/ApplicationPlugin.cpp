@@ -166,7 +166,7 @@ void ApplicationPlugin::rescanVSTs(QStringList paths)
   // 0. Handle VST_PATH
   if(QFileInfo vst_env_path{QString(qgetenv("VST_PATH"))}; vst_env_path.isDir())
   {
-    paths += vst_env_path.canonicalPath();
+    paths += vst_env_path.absoluteFilePath();
   }
 
   // 1. List all plug-ins in new paths

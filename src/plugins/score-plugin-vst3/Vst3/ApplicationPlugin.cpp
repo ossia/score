@@ -156,7 +156,7 @@ void ApplicationPlugin::rescan()
   // VST3_PATH
   if(QFileInfo vst_env_path{QString(qgetenv("VST3_PATH"))}; vst_env_path.isDir())
   {
-    paths += vst_env_path.canonicalPath();
+    paths += vst_env_path.absoluteFilePath();
   }
   rescan(paths);
 }
