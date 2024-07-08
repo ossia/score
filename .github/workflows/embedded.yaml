@@ -77,6 +77,16 @@ jobs:
           path: |
             *.tar.gz
 
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            *.tar.gz
 #  rpi_test:
 #    name: Raspberry
 #    runs-on: ubuntu-latest

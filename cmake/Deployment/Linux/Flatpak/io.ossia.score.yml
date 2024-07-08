@@ -10,7 +10,7 @@ build-options:
 command: ossia-score
 rename-desktop-file: ossia-score.desktop
 rename-icon: ossia-score
-rename-appdata-file: ossia-score
+rename-appdata-file: ossia-score.appdata.xml
 finish-args:
   # BLE support
   - --allow=bluetooth
@@ -244,6 +244,15 @@ modules:
         url: https://github.com/avahi/avahi/releases/download/v0.8/avahi-0.8.tar.gz
         sha256: 060309d7a333d38d951bc27598c677af1796934dbd98e1024e7ad8de798fedda
 
+  # suil, necessary for LV2 availability
+  - name: suil
+    buildsystem: meson
+
+    sources:
+      - type: archive
+        url: http://download.drobilla.net/suil-0.10.20.tar.xz
+        sha256: 334a3ed3e73d5e17ff400b3db9801f63809155b0faa8b1b9046f9dd3ffef934e
+
   - name: ossia-score
     buildsystem: cmake-ninja
     builddir: true
@@ -273,4 +282,6 @@ modules:
     post-install:      
      - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
      - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
+     - install -d /app/extensions/Plugins
+     - install -d /app/lib/ffmpeg
 
