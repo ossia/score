@@ -165,7 +165,7 @@ stages:
               assets: "$(System.DefaultWorkingDirectory)/*"
               tagSource: userSpecifiedTag
               title: "Continuous build"
-              assetUploadMode: "delete"
+              assetUploadMode: "replace"
               isPreRelease: true
 
           - task: GitHubRelease@1

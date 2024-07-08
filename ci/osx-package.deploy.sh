@@ -22,6 +22,9 @@ echo " === code signing === "
 if [[ "${CI_IS_AZURE}" = "1" ]]; then
   echo "... unlock keychain "
   security unlock-keychain -p travis build.keychain
+  export PACKAGE_ARCH=Intel
+else
+  export PACKAGE_ARCH=AppleSilicon
 fi
 
 
@@ -77,5 +80,5 @@ xcrun stapler validate ./*.dmg
 [[ $? == 0 ]] || exit 1
 
 # Archive
-mv ./*.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
+mv ./*.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS-$PACKAGE_ARCH.dmg"
 mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"

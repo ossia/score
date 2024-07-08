@@ -113,3 +113,13 @@ jobs:
           generate_release_notes: false
           files: |
             staging/*.*
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
