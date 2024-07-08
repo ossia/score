@@ -10,12 +10,15 @@
 namespace Scenario
 {
 
-using TimeSignatureMapVector
+using TimeSignatureMapDtlVector
     = std::vector<boost::container::dtl::pair<TimeVal, ossia::time_signature>>;
 using TimeSignatureMapStdVector = std::vector<std::pair<TimeVal, ossia::time_signature>>;
-struct TimeSignatureMap::impl
-    : boost::container::flat_map<
-          TimeVal, ossia::time_signature, std::less<TimeVal>, TimeSignatureMapStdVector>
+using TimeSignatureFlatMap = boost::container::flat_map<
+    TimeVal, ossia::time_signature, std::less<TimeVal>, TimeSignatureMapStdVector>;
+using TimeSignatureFlatMapImpl
+    = std::remove_cvref_t<decltype(TimeSignatureFlatMap{}.tree().get_sequence_cref())>;
+
+struct TimeSignatureMap::impl : TimeSignatureFlatMap
 {
   using flat_map::flat_map;
 };
@@ -146,7 +149,8 @@ void TSerializer<DataStream, Scenario::TimeSignatureMap>::readFrom(
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<DataStream, Scenario::TimeSignatureMapVector>::readFrom(
+
+  TSerializer<DataStream, Scenario::TimeSignatureFlatMapImpl>::readFrom(
       s, path.map->tree().get_sequence_cref());
 }
 
@@ -155,7 +159,7 @@ void TSerializer<DataStream, Scenario::TimeSignatureMap>::writeTo(
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<DataStream, Scenario::TimeSignatureMapVector>::writeTo(
+  TSerializer<DataStream, Scenario::TimeSignatureFlatMapImpl>::writeTo(
       s, path.map->tree().get_sequence_ref());
 }
 
@@ -164,7 +168,7 @@ void TSerializer<JSONObject, Scenario::TimeSignatureMap>::readFrom(
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<JSONObject, Scenario::TimeSignatureMapVector>::readFrom(
+  TSerializer<JSONObject, Scenario::TimeSignatureFlatMapImpl>::readFrom(
       s, path.map->tree().get_sequence_cref());
 }
 
@@ -173,6 +177,6 @@ void TSerializer<JSONObject, Scenario::TimeSignatureMap>::writeTo(
 {
   if(!path.map)
     path.map = new Scenario::TimeSignatureMap::impl;
-  TSerializer<JSONObject, Scenario::TimeSignatureMapVector>::writeTo(
+  TSerializer<JSONObject, Scenario::TimeSignatureFlatMapImpl>::writeTo(
       s, path.map->tree().get_sequence_ref());
 }

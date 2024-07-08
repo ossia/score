@@ -11,6 +11,7 @@ cmake $SCORE_DIR \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DYNAMIC_PLUGINS=1 \
   -DSCORE_DISABLED_PLUGINS=score-plugin-vst3 \
+  -DCMAKE_CXX_FLAGS="-fexperimental-library" \
   -DSCORE_PCH=1
 
 cmake --build .
