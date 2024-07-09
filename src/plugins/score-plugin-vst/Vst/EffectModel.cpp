@@ -175,6 +175,13 @@ bool Model::hasExternalUI() const noexcept
 {
   if(!fx)
     return false;
+
+#if defined(__linux__)
+  static const thread_local bool is_wayland = qApp->platformName() == "wayland";
+  if(is_wayland)
+    return false;
+#endif
+
   return bool(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor);
 }
 
