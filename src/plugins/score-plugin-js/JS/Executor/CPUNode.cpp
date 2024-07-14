@@ -18,6 +18,7 @@ namespace JS
 js_node::js_node(ossia::execution_state& st)
     : m_st{st}
 {
+  m_not_threadable = true;
 }
 
 js_node::~js_node()

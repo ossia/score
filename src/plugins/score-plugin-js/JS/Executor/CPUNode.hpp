@@ -28,7 +28,7 @@ namespace JS
 class js_node final : public ossia::graph_node
 {
 public:
-  js_node(ossia::execution_state& st);
+  explicit js_node(ossia::execution_state& st);
   ~js_node();
 
   void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
