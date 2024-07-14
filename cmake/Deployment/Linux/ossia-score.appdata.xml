@@ -8,6 +8,10 @@
   <developer id="io.github.ossia">
     <name>ossia.io</name>
   </developer>
+  <branding>
+    <color type="primary" scheme_preference="light">#e9f0f1</color>
+    <color type="primary" scheme_preference="dark">#1f1f20</color>
+  </branding>
   <description>
     <p>ossia score is a sequencer for audio-visual artists, designed to enable the creation of interactive shows, museum installations, intermedia digital artworks, interactive music and more in an intuitive user interface.</p>
     
@@ -30,7 +34,7 @@
   <url type="homepage">https://ossia.io</url>
   <url type="vcs-browser">https://github.com/ossia/score</url>
   <screenshots>
-    <screenshot type="default">
+    <screenshot type="default" xml:lang="en">
       <image>https://github.com/ossia/score/raw/master/docs/score.png?raw=true</image>
       <caption>Sequence all kinds of media in ossia score</caption>
     </screenshot>
