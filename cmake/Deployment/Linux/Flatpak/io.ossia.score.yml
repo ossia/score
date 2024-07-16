@@ -14,6 +14,7 @@ rename-appdata-file: ossia-score.appdata.xml
 finish-args:
   # BLE support
   - --allow=bluetooth
+  - --system-talk-name=org.bluez
 
   # Access user's data and media libraries, plug-ins etc
   - --filesystem=host
