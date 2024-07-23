@@ -90,7 +90,7 @@ void ScenarioDocumentModel::finishLoading()
   // Should be called only once after load and restore instead
 
   // Load cables
-  for(const auto& bytearray : qAsConst(m_savedCables))
+  for(const auto& bytearray : std::as_const(m_savedCables))
   {
     auto cbl = new Process::Cable{DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
