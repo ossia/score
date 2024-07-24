@@ -1,4 +1,5 @@
 include(CheckCXXCompilerFlag)
+include(CheckCXXSymbolExists)
 
 # Options
 
@@ -76,6 +77,9 @@ endif()
 include(ProcessorCount)
 include(GenerateStaticExport)
 
+check_cxx_symbol_exists(_LIBCPP_VERSION version LLVM_LIBCXX)
+check_cxx_symbol_exists(__GLIBCXX__ version GNU_LIBSTDCXX)
+
 if(UNIX AND NOT APPLE AND NOT SCORE_STATIC_PLUGINS AND SCORE_DEPLOYMENT_BUILD)
   set(CMAKE_INSTALL_RPATH "plugins")
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -97,6 +101,10 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
 set(CMAKE_ANDROID_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Android")
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CXX_IS_CLANG True)
+
+    if(("${CMAKE_CXX_COMPILER_VERSION}" MATCHES "^18.*") AND LLVM_LIBCXX)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
+    endif()
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
