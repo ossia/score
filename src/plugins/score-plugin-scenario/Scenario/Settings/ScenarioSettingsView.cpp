@@ -104,7 +104,7 @@ public:
       auto item = list.currentItem();
       if(!item)
         return;
-#if QT_VERSION >= QT_VERSION_CHECK(6,6,0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
       if(!QColor::isValidColorName(txt))
         return;
 #else
