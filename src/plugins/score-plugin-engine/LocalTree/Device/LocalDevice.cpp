@@ -84,7 +84,9 @@ exposeZeroconf(std::string name, LocalSpecificSettings set, QPointer<LocalDevice
   if(!self)
     return;
 
-  ossia::qt::run_async(qApp, [self, ws = std::move(ws), osc = std::move(osc)]() mutable {
+  ossia::qt::run_async(
+      QCoreApplication::instance(),
+      [self, ws = std::move(ws), osc = std::move(osc)]() mutable {
     if(!self)
       return;
     if(auto proto = self->oscqProto())
