@@ -125,17 +125,21 @@ add_library(
   Crousti/CpuFilterNode.hpp
   Crousti/CpuGeneratorNode.hpp
   Crousti/Executor.hpp
+  Crousti/Geometry.hpp
   Crousti/GfxNode.hpp
-  Crousti/GpuNode.hpp
   Crousti/GpuComputeNode.hpp
+  Crousti/GpuNode.hpp
   Crousti/GpuUtils.hpp
   Crousti/GpuUtils.cpp
   Crousti/Layer.hpp
   Crousti/Layer.cpp
   Crousti/Layout.hpp
+  Crousti/MessageBus.hpp
+  Crousti/Metadata.hpp
   Crousti/Metadatas.hpp
   Crousti/Painter.hpp
   Crousti/ProcessModel.hpp
+  Crousti/ProcessModelPortInit.hpp
   Crousti/Widgets.hpp
 
 # score_plugin_avnd.graph.cpp
@@ -308,6 +312,7 @@ target_precompile_headers(score_plugin_avnd PRIVATE
   Crousti/Layer.hpp
   Crousti/Layout.hpp
   Crousti/Metadatas.hpp
+  Crousti/Metadata.hpp
   Crousti/Painter.hpp
   Crousti/ProcessModel.hpp
   Crousti/Widgets.hpp

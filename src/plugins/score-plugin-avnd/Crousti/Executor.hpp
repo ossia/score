@@ -236,7 +236,6 @@ struct setup_Impl0
   constexpr void
   operator()(Field& param, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
   {
-    int k = 0;
     const auto ports = element.avnd_input_idx_to_model_ports(NField);
 
     if constexpr(avnd::dynamic_ports_port<Field>)
@@ -244,18 +243,22 @@ struct setup_Impl0
       param.ports.resize(ports.size());
     }
 
+    int k = 0;
     for(auto p : ports)
     {
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
       {
         // Initialize the control with the current value of the inlet if it is not an optional
-        if constexpr(!requires { param.value.reset(); })
+        if constexpr(avnd::dynamic_ports_port<Field>)
         {
-          if constexpr(avnd::dynamic_ports_port<Field>)
+          if constexpr(!requires { param.ports[0].value.reset(); })
           {
-            node_ptr->from_ossia_value(param, inlet->value(), param.ports[k], nf);
+            node_ptr->from_ossia_value(param, inlet->value(), param.ports[k].value, nf);
           }
-          else
+        }
+        else
+        {
+          if constexpr(!requires { param.value.reset(); })
           {
             node_ptr->from_ossia_value(param, inlet->value(), param.value, nf);
           }
@@ -266,6 +269,7 @@ struct setup_Impl0
           {
             for(auto& state : eff.full_state())
             {
+              // FIXME dynamic_ports
               if_possible(param.update(state.effect));
             }
           }
@@ -275,10 +279,11 @@ struct setup_Impl0
         std::weak_ptr<ExecNode> weak_node = node_ptr;
         if constexpr(avnd::dynamic_ports_port<Field>)
         {
+          using port_type = avnd::dynamic_port_type<Field>;
           QObject::connect(
               inlet, &Process::ControlInlet::valueChanged, parent,
-              con_unvalidated_dynamic_port<Node, Field, N, NField>{
-                  ctx, weak_node, param, k});
+              con_unvalidated_dynamic_port<Node, port_type, N, NField>{
+                  ctx, weak_node, param.ports[k], k});
         }
         else
         {
@@ -843,6 +848,7 @@ public:
       ProcessModel<Node>& element, const ::Execution::Context& ctx,
       std::shared_ptr<safe_node<Node>>& ptr)
   {
+    using dynamic_ports_port_type = avnd::dynamic_ports_input_introspection<Node>;
     using control_inputs_type = avnd::control_input_introspection<Node>;
     using curve_inputs_type = avnd::curve_input_introspection<Node>;
     using soundfile_inputs_type = avnd::soundfile_input_introspection<Node>;
@@ -854,6 +860,17 @@ public:
     safe_node<Node>& node = *ptr;
     avnd::effect_container<Node>& eff = node.impl;
 
+    if constexpr(dynamic_ports_port_type::size > 0)
+    {
+      // Initialize all the controls in the node with the current value.
+      // And update the node when the UI changes
+
+      for(auto& state : eff.full_state())
+      {
+        dynamic_ports_port_type::for_all_n2(
+            state.inputs, setup_Impl0<Node>{element, ctx, ptr, this});
+      }
+    }
     if constexpr(control_inputs_type::size > 0)
     {
       // Initialize all the controls in the node with the current value.
