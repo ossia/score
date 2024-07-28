@@ -170,13 +170,25 @@ namespace
 {
 bool runningUnderAnUISession() noexcept
 {
-#if __linux__
-  return !qgetenv("DISPLAY").isEmpty() || !qgetenv("WAYLAND_DISPLAY").isEmpty()
-         || (qgetenv("XDG_SESSION_TYPE") != "tty")
-         || (qgetenv("QT_QPA_PLATFORM").contains("gl"));
-#else
+  const auto platform = qgetenv("QT_QPA_PLATFORM");
+  if(platform == "minimal")
+  {
+    return false;
+  }
+
   // Win32 and macOS always have a graphical session
+#if defined(WIN32) || defined(__APPLE__)
   return true;
+#else
+  if(!qEnvironmentVariableIsEmpty("DISPLAY"))
+    return true;
+  if(!qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY"))
+    return true;
+  if(qgetenv("XDG_SESSION_TYPE") != "tty")
+    return true;
+  if(platform.contains("gl"))
+    return true;
+  return false;
 #endif
 }
 
