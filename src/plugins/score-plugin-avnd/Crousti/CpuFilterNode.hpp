@@ -171,6 +171,14 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
           avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
             auto sz = renderer.state.renderSize;
+            if constexpr(requires {
+                           t.request_width;
+                           t.request_height;
+                         })
+            {
+              sz.rwidth() = t.request_width;
+              sz.rheight() = t.request_height;
+            }
             createInput(renderer, k, t.texture, sz);
             t.texture.width = sz.width();
             t.texture.height = sz.height();
