@@ -83,9 +83,9 @@ void DefaultEffectItem::recreate()
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
   m_layout = new score::GraphicsDefaultLayout{this};
-  LayoutBuilderBase b{
-      *this,    m_ctx,     portFactory, m_effect.inlets(), m_effect.outlets(),
-      m_layout, {m_layout}};
+  LayoutBuilderBase b{*this,       m_effect,          m_ctx,
+                      portFactory, m_effect.inlets(), m_effect.outlets(),
+                      m_layout,    {m_layout}};
 
   for(auto& e : m_effect.inlets())
   {

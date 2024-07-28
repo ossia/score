@@ -105,6 +105,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
 public:
   Selectable selection{this};
   bool hidden{};
+  bool noValueChangeOnMove{};
 
   void addCable(const Process::Cable& c);
   void removeCable(const Path<Process::Cable>& c);

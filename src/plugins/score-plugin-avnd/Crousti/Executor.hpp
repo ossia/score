@@ -157,6 +157,70 @@ struct control_updater
   }
 };
 
+template <typename ExecNode_T, typename T, std::size_t ControlN>
+struct control_updater_dynamic_port
+{
+  std::weak_ptr<ExecNode_T> weak_node;
+  int port_index;
+  T v;
+  void operator()()
+  {
+    if(auto n = weak_node.lock())
+    {
+      n->template control_updated_from_ui<T, ControlN>(std::move(v), port_index);
+    }
+  }
+};
+
+template <typename Node, typename Field, std::size_t NPred, std::size_t NField>
+struct con_unvalidated
+{
+  using ExecNode = safe_node<Node>;
+  const Execution::Context& ctx;
+  std::weak_ptr<ExecNode> weak_node;
+  Field& field;
+  void operator()(const ossia::value& val)
+  {
+    constexpr auto control_index = NPred;
+
+    using control_value_type = std::decay_t<decltype(Field::value)>;
+
+    if(auto node = weak_node.lock())
+    {
+      control_value_type v;
+      node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
+      ctx.executionQueue.enqueue(
+          control_updater<ExecNode, control_value_type, control_index>{
+              weak_node, std::move(v)});
+    }
+  }
+};
+
+template <typename Node, typename Field, std::size_t NPred, std::size_t NField>
+struct con_unvalidated_dynamic_port
+{
+  using ExecNode = safe_node<Node>;
+  const Execution::Context& ctx;
+  std::weak_ptr<ExecNode> weak_node;
+  Field& field;
+  int port_index;
+  void operator()(const ossia::value& val)
+  {
+    constexpr auto control_index = NPred;
+
+    using control_value_type = std::decay_t<decltype(Field::value)>;
+
+    if(auto node = weak_node.lock())
+    {
+      control_value_type v;
+      node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
+      ctx.executionQueue.enqueue(
+          control_updater_dynamic_port<ExecNode, control_value_type, control_index>{
+              weak_node, port_index, std::move(v)});
+    }
+  }
+};
+
 template <typename Node>
 struct setup_Impl0
 {
@@ -168,55 +232,62 @@ struct setup_Impl0
   const std::shared_ptr<ExecNode>& node_ptr;
   QObject* parent;
 
-  template <typename Field, std::size_t NPred, std::size_t NField>
-  struct con_unvalidated
-  {
-    const Execution::Context& ctx;
-    std::weak_ptr<ExecNode> weak_node;
-    Field& field;
-    void operator()(const ossia::value& val)
-    {
-      constexpr auto control_index = NPred;
-
-      using control_value_type = std::decay_t<decltype(Field::value)>;
-
-      if(auto node = weak_node.lock())
-      {
-        control_value_type v;
-        node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
-        ctx.executionQueue.enqueue(
-            control_updater<ExecNode, control_value_type, control_index>{
-                weak_node, std::move(v)});
-      }
-    }
-  };
-
   template <typename Field, std::size_t N, std::size_t NField>
   constexpr void
   operator()(Field& param, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
   {
-    if(auto inlet
-       = qobject_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField)))
-    {
-      // Initialize the control with the current value of the inlet if it is not an optional
-      if constexpr(!requires { param.value.reset(); })
-        node_ptr->from_ossia_value(param, inlet->value(), param.value, nf);
+    int k = 0;
+    const auto ports = element.avnd_input_idx_to_model_ports(NField);
 
+    if constexpr(avnd::dynamic_ports_port<Field>)
+    {
+      param.ports.resize(ports.size());
+    }
+
+    for(auto p : ports)
+    {
+      if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
       {
-        avnd::effect_container<Node>& eff = node_ptr->impl;
+        // Initialize the control with the current value of the inlet if it is not an optional
+        if constexpr(!requires { param.value.reset(); })
         {
-          for(auto& state : eff.full_state())
+          if constexpr(avnd::dynamic_ports_port<Field>)
           {
-            if_possible(param.update(state.effect));
+            node_ptr->from_ossia_value(param, inlet->value(), param.ports[k], nf);
+          }
+          else
+          {
+            node_ptr->from_ossia_value(param, inlet->value(), param.value, nf);
           }
         }
-      }
 
-      // Connect to changes
-      std::weak_ptr<ExecNode> weak_node = node_ptr;
-      QObject::connect(
-          inlet, &Process::ControlInlet::valueChanged, parent,
-          con_unvalidated<Field, N, NField>{ctx, weak_node, param});
+        {
+          avnd::effect_container<Node>& eff = node_ptr->impl;
+          {
+            for(auto& state : eff.full_state())
+            {
+              if_possible(param.update(state.effect));
+            }
+          }
+        }
+
+        // Connect to changes
+        std::weak_ptr<ExecNode> weak_node = node_ptr;
+        if constexpr(avnd::dynamic_ports_port<Field>)
+        {
+          QObject::connect(
+              inlet, &Process::ControlInlet::valueChanged, parent,
+              con_unvalidated_dynamic_port<Node, Field, N, NField>{
+                  ctx, weak_node, param, k});
+        }
+        else
+        {
+          QObject::connect(
+              inlet, &Process::ControlInlet::valueChanged, parent,
+              con_unvalidated<Node, Field, N, NField>{ctx, weak_node, param});
+        }
+      }
+      k++;
     }
     // Else it's an unhandled value inlet
   }
@@ -224,72 +295,85 @@ struct setup_Impl0
   template <avnd::soundfile_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet
-        = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
+    int k = 0;
+    for(auto p : element.avnd_input_idx_to_model_ports(NField))
+    {
+      if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+      {
+        // FIXME handle dynamic ports correctly
+        // First we can load it directly since execution hasn't started yet
+        if(auto hdl = loadSoundfile(inlet->value(), ctx.doc, ctx.execState))
+          node_ptr->soundfile_loaded(
+              hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
 
-    // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadSoundfile(inlet->value(), ctx.doc, ctx.execState))
-      node_ptr->soundfile_loaded(
-          hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        // Connect to changes
+        std::weak_ptr<ExecNode> weak_node = node_ptr;
+        std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
+        QObject::connect(
+            inlet, &Process::ControlInlet::valueChanged, parent,
+            [&ctx = this->ctx, weak_node = std::move(weak_node),
+             weak_st = std::move(weak_st)](const ossia::value& v) {
+          if(auto n = weak_node.lock())
+            if(auto st = weak_st.lock())
+              if(auto file = loadSoundfile(v, ctx.doc, st))
+              {
+                ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
+                  auto n = weak_node.lock();
+                  if(!n)
+                    return;
 
-    // Connect to changes
-    std::weak_ptr<ExecNode> weak_node = node_ptr;
-    std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
-    QObject::connect(
-        inlet, &Process::ControlInlet::valueChanged, parent,
-        [&ctx = this->ctx, weak_node = std::move(weak_node),
-         weak_st = std::move(weak_st)](const ossia::value& v) {
-      if(auto n = weak_node.lock())
-        if(auto st = weak_st.lock())
-          if(auto file = loadSoundfile(v, ctx.doc, st))
-          {
-            ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
-              auto n = weak_node.lock();
-              if(!n)
-                return;
-
-              // We store the sound file handle returned in this lambda so that it gets
-              // GC'd in the main thread
-              n->soundfile_loaded(
-                  f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-            });
-          }
-    });
+                  // We store the sound file handle returned in this lambda so that it gets
+                  // GC'd in the main thread
+                  n->soundfile_loaded(
+                      f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+                });
+              }
+        });
+      }
+      k++;
+    }
   }
 
   template <avnd::midifile_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet
-        = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
+    int k = 0;
+    for(auto p : element.avnd_input_idx_to_model_ports(NField))
+    {
+      if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+      {
+        // FIXME handle dynamic ports correctly
 
-    // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadMidifile(inlet->value(), ctx.doc))
-      node_ptr->midifile_loaded(
-          hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        // First we can load it directly since execution hasn't started yet
+        if(auto hdl = loadMidifile(inlet->value(), ctx.doc))
+          node_ptr->midifile_loaded(
+              hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
 
-    // Connect to changes
-    std::weak_ptr<ExecNode> weak_node = node_ptr;
-    std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
-    QObject::connect(
-        inlet, &Process::ControlInlet::valueChanged, parent,
-        [inlet, &ctx = this->ctx,
-         weak_node = std::move(weak_node)](const ossia::value& v) {
-      if(auto n = weak_node.lock())
-        if(auto file = loadMidifile(v, ctx.doc))
-        {
-          ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
-            auto n = weak_node.lock();
-            if(!n)
-              return;
+        // Connect to changes
+        std::weak_ptr<ExecNode> weak_node = node_ptr;
+        std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
+        QObject::connect(
+            inlet, &Process::ControlInlet::valueChanged, parent,
+            [inlet, &ctx = this->ctx,
+             weak_node = std::move(weak_node)](const ossia::value& v) {
+          if(auto n = weak_node.lock())
+            if(auto file = loadMidifile(v, ctx.doc))
+            {
+              ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
+                auto n = weak_node.lock();
+                if(!n)
+                  return;
 
-            // We store the sound file handle returned in this lambda so that it gets
-            // GC'd in the main thread
-            n->midifile_loaded(
-                f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-          });
-        }
-    });
+                // We store the sound file handle returned in this lambda so that it gets
+                // GC'd in the main thread
+                n->midifile_loaded(
+                    f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+              });
+            }
+        });
+      }
+      k++;
+    }
   }
 
   template <typename Field>
@@ -301,76 +385,86 @@ struct setup_Impl0
     ffile.filename = file.filename;
     return Field::process(ffile);
   }
+
   template <avnd::raw_file_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto inlet
-        = safe_cast<Process::ControlInlet*>(modelPort<Node>(element.inlets(), NField));
-
-    using file_ports = avnd::raw_file_input_introspection<Node>;
-    using elt = typename file_ports::template nth_element<N>;
-    constexpr bool has_text = requires { decltype(elt::file)::text; };
-    constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
-
-    // First we can load it directly since execution hasn't started yet
-    if(auto hdl = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
+    int k = 0;
+    for(auto p : element.avnd_input_idx_to_model_ports(NField))
     {
-      if constexpr(avnd::port_can_process<Field>)
+      if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
       {
-        // FIXME also do it when we get a run-time message from the exec engine,
-        // OSC, etc
-        auto func = executePortPreprocess<Field>(*hdl);
-        node_ptr->file_loaded(
-            hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-        if(func)
-          func(node_ptr->impl.effect);
-      }
-      else
-      {
-        node_ptr->file_loaded(
-            hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-      }
-    }
+        // FIXME handle dynamic ports correctly
 
-    // Connect to changes
-    std::weak_ptr<ExecNode> weak_node = node_ptr;
-    std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
-    QObject::connect(
-        inlet, &Process::ControlInlet::valueChanged, parent,
-        [inlet, &ctx = this->ctx, weak_node = std::move(weak_node)] {
-      if(auto n = weak_node.lock())
-        if(auto file = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
+        using file_ports = avnd::raw_file_input_introspection<Node>;
+        using elt = typename file_ports::template nth_element<N>;
+        constexpr bool has_text = requires { decltype(elt::file)::text; };
+        constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
+
+        // First we can load it directly since execution hasn't started yet
+        if(auto hdl = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
         {
           if constexpr(avnd::port_can_process<Field>)
           {
-            auto func = executePortPreprocess<Field>(*file);
-            ctx.executionQueue.enqueue(
-                [f = std::move(file), weak_node, ff = std::move(func)]() mutable {
-              auto n = weak_node.lock();
-              if(!n)
-                return;
-
-              // We store the sound file handle returned in this lambda so that it gets
-              // GC'd in the main thread
-              n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-              if(ff)
-                ff(n->impl.effect);
-            });
+            // FIXME also do it when we get a run-time message from the exec engine,
+            // OSC, etc
+            auto func = executePortPreprocess<Field>(*hdl);
+            node_ptr->file_loaded(
+                hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+            if(func)
+              func(node_ptr->impl.effect);
           }
           else
           {
-            ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
-              auto n = weak_node.lock();
-              if(!n)
-                return;
-
-              // We store the sound file handle returned in this lambda so that it gets
-              // GC'd in the main thread
-              n->file_loaded(f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-            });
+            node_ptr->file_loaded(
+                hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
           }
         }
+
+        // Connect to changes
+        std::weak_ptr<ExecNode> weak_node = node_ptr;
+        std::weak_ptr<ossia::execution_state> weak_st = ctx.execState;
+        QObject::connect(
+            inlet, &Process::ControlInlet::valueChanged, parent,
+            [inlet, &ctx = this->ctx, weak_node = std::move(weak_node)] {
+          if(auto n = weak_node.lock())
+            if(auto file = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
+            {
+              if constexpr(avnd::port_can_process<Field>)
+              {
+                auto func = executePortPreprocess<Field>(*file);
+                ctx.executionQueue.enqueue(
+                    [f = std::move(file), weak_node, ff = std::move(func)]() mutable {
+                  auto n = weak_node.lock();
+                  if(!n)
+                    return;
+
+                  // We store the sound file handle returned in this lambda so that it gets
+                  // GC'd in the main thread
+                  n->file_loaded(
+                      f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+                  if(ff)
+                    ff(n->impl.effect);
+                });
+              }
+              else
+              {
+                ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
+                  auto n = weak_node.lock();
+                  if(!n)
+                    return;
+
+                  // We store the sound file handle returned in this lambda so that it gets
+                  // GC'd in the main thread
+                  n->file_loaded(
+                      f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+                });
+              }
+            }
         });
+      }
+      k++;
+    }
   }
 };
 
@@ -383,12 +477,29 @@ struct ApplyEngineControlChangeToUI
   typename ExecNode::control_input_values_type& arr;
   Model& element;
 
-  template <std::size_t N, std::size_t NField>
-  void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
+  template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
+  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    if(auto p = modelPort<Node>(element.inlets(), NField))
-      if(auto inlet = dynamic_cast<Process::ControlInlet*>(p))
-        inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
+    int k = 0;
+    for(auto p : element.avnd_input_idx_to_model_ports(NField))
+    {
+      if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+      {
+        // FIXME handle dynamic ports correctly
+        // inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
+      }
+      k++;
+    }
+  }
+
+  template <typename Field, std::size_t N, std::size_t NField>
+  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
+  {
+    auto p = element.avnd_input_idx_to_model_ports(NField)[0];
+    if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+    {
+      inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
+    }
   }
 };
 
@@ -400,12 +511,21 @@ struct setup_Impl1_Out
   typename ExecNode::control_output_values_type& arr;
   Model& element;
 
-  template <std::size_t N, std::size_t NField>
-  void operator()(auto& field, avnd::predicate_index<N>, avnd::field_index<NField>)
+  template <typename Field, std::size_t N, std::size_t NField>
+  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto outlet
-        = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element.outlets(), NField));
+    auto ports = element.avnd_output_idx_to_model_ports(NField);
+    auto outlet = safe_cast<Process::ControlOutlet*>(ports[0]);
     outlet->setValue(oscr::to_ossia_value(field, field.value));
+  }
+
+  template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
+  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
+  {
+    // FIXME handle dynamic ports correctly
+    // auto outlet
+    //     = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element.outlets(), NField));
+    // outlet->setValue(oscr::to_ossia_value(field, field.value));
   }
 };
 
@@ -655,6 +775,9 @@ public:
       auto st = ossia::exec_state_facade{ctx.execState.get()};
       std::shared_ptr<safe_node<Node>> ptr;
       auto node = new safe_node<Node>{st.bufferSize(), (double)st.sampleRate(), id};
+      node->root_inputs().reserve(element.inlets().size());
+      node->root_outputs().reserve(element.outlets().size());
+
       node->prepare(*ctx.execState.get()); // Preparation of the ossia side
 
       auto& net_ctx
@@ -669,13 +792,23 @@ public:
           connect_message_bus(element, ctx, ptr->impl.effect);
       connect_worker(ctx, ptr->impl);
 
+      node->dynamic_ports = element.dynamic_ports;
       node->finish_init();
 
       connect_controls(element, ctx, ptr);
       update_controls(ptr);
+      QObject::connect(
+          &element, &Process::ProcessModel::inletsChanged, this,
+          &Executor::recompute_ports);
+      QObject::connect(
+          &element, &Process::ProcessModel::outletsChanged, this,
+          &Executor::recompute_ports);
 
       // To call prepare() after evertyhing is ready
       node->audio_configuration_changed();
+
+      m_oldInlets = element.inlets();
+      m_oldOutlets = element.outlets();
     }
 
     if constexpr(avnd::tag_process_exec<Node>)
@@ -686,6 +819,24 @@ public:
     {
       this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
     }
+  }
+
+  Process::Inlets m_oldInlets;
+  Process::Outlets m_oldOutlets;
+  void recompute_ports()
+  {
+    Execution::Transaction commands{this->system()};
+    auto n = std::dynamic_pointer_cast<safe_node<Node>>(this->node);
+    if(!n)
+      return;
+
+    // Re-run setup_inlets ?
+    this->in_exec([dp = this->process().dynamic_ports, node = n] {
+      node->dynamic_ports = dp;
+      node->root_inputs().clear();
+      node->root_outputs().clear();
+      node->initialize_all_ports();
+    });
   }
 
   void connect_controls(

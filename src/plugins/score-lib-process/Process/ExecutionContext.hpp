@@ -53,6 +53,7 @@ class ProcessModel;
 }
 namespace Execution
 {
+struct Transaction;
 class ProcessComponent;
 class ProcessComponentFactory;
 class ProcessComponentFactoryList;

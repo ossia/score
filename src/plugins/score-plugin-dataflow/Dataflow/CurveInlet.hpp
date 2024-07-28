@@ -32,8 +32,8 @@ struct CurveInletItems
     return {};
   }
   static QWidget* make_widget(
-      const Dataflow::CurveInlet& slider, const Dataflow::CurveInlet& inlet,
-      const score::DocumentContext& ctx, QWidget* parent, QObject* context);
+      const Dataflow::CurveInlet& inlet, const score::DocumentContext& ctx,
+      QWidget* parent, QObject* context);
 
   static QGraphicsItem* make_item(
       const Dataflow::CurveInlet& slider, const Dataflow::CurveInlet& inlet,

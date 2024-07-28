@@ -116,17 +116,16 @@ struct FloatControl
     }
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    ConcreteNormalizer<Normalizer, T> norm{slider};
+    ConcreteNormalizer<Normalizer, T> norm{inlet};
 
     auto sl = new score::ValueDoubleSlider{parent};
     sl->setOrientation(Qt::Horizontal);
     sl->setContentsMargins(0, 0, 0, 0);
-    bindFloatDomain(slider, inlet, *sl);
+    bindFloatDomain(inlet, inlet, *sl);
     sl->setValue(norm.to01(ossia::convert<double>(inlet.value())));
 
     if constexpr(Control)
@@ -135,30 +134,27 @@ struct FloatControl
           sl, &score::DoubleSlider::sliderMoved, context,
           [sl, norm, &inlet, &ctx](double v) {
         sl->moving = true;
-        ctx.dispatcher.submit<SetControlValue<Control_T>>(
-            inlet, norm.from01(sl->value()));
+        ctx.dispatcher.submit<SetControlValue<T>>(inlet, norm.from01(sl->value()));
           });
       QObject::connect(
           sl, &score::DoubleSlider::sliderReleased, context, [sl, norm, &inlet, &ctx]() {
-            ctx.dispatcher.submit<SetControlValue<Control_T>>(
-                inlet, norm.from01(sl->value()));
-            ctx.dispatcher.commit();
-            sl->moving = false;
-          });
+        ctx.dispatcher.submit<SetControlValue<T>>(inlet, norm.from01(sl->value()));
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
     }
 
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl, norm](const ossia::value& val) {
-          if constexpr(Control)
-          {
-            if(!sl->moving)
-              sl->setValue(norm.to01(ossia::convert<double>(val)));
-          }
-          else
-          {
-            sl->setValue(norm.to01(ossia::convert<double>(val)));
-          }
-        });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl, norm](const ossia::value& val) {
+      if constexpr(Control)
+      {
+        if(!sl->moving)
+          sl->setValue(norm.to01(ossia::convert<double>(val)));
+      }
+      else
+      {
+        sl->setValue(norm.to01(ossia::convert<double>(val)));
+      }
+    });
 
     return sl;
   }
@@ -171,6 +167,7 @@ struct FloatControl
     ConcreteNormalizer<Normalizer, T> norm{slider};
 
     auto sl = new ControlUI{nullptr};
+    initWidgetProperties(inlet, *sl);
     bindFloatDomain(slider, inlet, *sl);
     sl->setValue(norm.to01(ossia::convert<double>(inlet.value())));
 
@@ -227,33 +224,31 @@ struct IntSlider
     return Process::DefaultControlLayouts::slider();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new score::ValueSlider{parent};
     sl->setOrientation(Qt::Horizontal);
-    bindIntDomain(slider, inlet, *sl);
+    bindIntDomain(inlet, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
     QObject::connect(
         sl, &score::IntSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
           sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, p);
+          ctx.dispatcher.submit<SetControlValue<T>>(inlet, p);
         });
     QObject::connect(sl, &score::IntSlider::sliderReleased, context, [sl, &inlet, &ctx] {
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+      ctx.dispatcher.submit<SetControlValue<T>>(inlet, sl->value());
       ctx.dispatcher.commit();
       sl->moving = false;
     });
 
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
-          if(!sl->moving)
-            sl->setValue(ossia::convert<int>(val));
-        });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(ossia::convert<int>(val));
+    });
 
     return sl;
   }
@@ -264,6 +259,7 @@ struct IntSlider
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsIntSlider{nullptr};
+    initWidgetProperties(inlet, *sl);
     bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
 
@@ -301,10 +297,9 @@ struct IntRangeSlider
     return Process::DefaultControlLayouts::slider();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     // TODO
     return nullptr;
@@ -316,6 +311,7 @@ struct IntRangeSlider
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsRangeSlider{parent};
+    initWidgetProperties(inlet, *sl);
     bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
@@ -353,10 +349,9 @@ struct FloatRangeSlider
     return Process::DefaultControlLayouts::slider();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     // TODO
     return nullptr;
@@ -368,6 +363,7 @@ struct FloatRangeSlider
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsRangeSlider{parent};
+    initWidgetProperties(inlet, *sl);
     bindFloatDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
@@ -405,10 +401,9 @@ struct FloatRangeSpinBox
     return Process::DefaultControlLayouts::pad();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     SCORE_TODO;
     return nullptr; // TODO
@@ -420,6 +415,7 @@ struct FloatRangeSpinBox
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsXYSpinboxChooser{true, nullptr};
+    initWidgetProperties(inlet, *sl);
     bindVec2Domain(slider, inlet, *sl);
     sl->setValue(
         LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(inlet.value())));
@@ -452,25 +448,23 @@ struct IntSpinBox
     return Process::DefaultControlLayouts::spinbox();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new QSpinBox{parent};
-    bindIntDomain(slider, inlet, *sl);
+    bindIntDomain(inlet, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
     QObject::connect(
         sl, SignalUtils::QSpinBox_valueChanged_int(), context, [&inlet, &ctx](int val) {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-              inlet, val);
-        });
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
+    });
 
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl,
-        [sl](const ossia::value& val) { sl->setValue(ossia::convert<int>(val)); });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      sl->setValue(ossia::convert<int>(val));
+    });
 
     return sl;
   }
@@ -481,6 +475,7 @@ struct IntSpinBox
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsIntSpinbox{nullptr};
+    initWidgetProperties(inlet, *sl);
     bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
 
@@ -520,26 +515,24 @@ struct FloatSpinBox
     return Process::DefaultControlLayouts::spinbox();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new QDoubleSpinBox{parent};
-    bindFloatDomain(slider, inlet, *sl);
+    bindFloatDomain(inlet, inlet, *sl);
     sl->setValue(ossia::convert<float>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
     QObject::connect(
         sl, SignalUtils::QDoubleSpinBox_valueChanged_double(), context,
         [&inlet, &ctx](double val) {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, val);
-        });
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
+    });
 
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl,
-        [sl](const ossia::value& val) { sl->setValue(ossia::convert<float>(val)); });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      sl->setValue(ossia::convert<float>(val));
+    });
 
     return sl;
   }
@@ -552,6 +545,7 @@ struct FloatSpinBox
     ConcreteNormalizer<LinearNormalizer, T> norm{slider};
 
     auto sl = new score::QGraphicsSpinbox{nullptr};
+    initWidgetProperties(inlet, *sl);
     bindFloatDomain(slider, inlet, *sl);
     sl->setValue(norm.to01(ossia::convert<float>(inlet.value())));
 
@@ -593,10 +587,9 @@ struct TimeChooser
     return DefaultControlLayouts::knob();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     // FIXME
     return nullptr;
@@ -608,6 +601,7 @@ struct TimeChooser
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsTimeChooser{nullptr};
+    initWidgetProperties(inlet, *sl);
     // bindFloatDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
@@ -651,21 +645,19 @@ struct Toggle
     return Process::DefaultControlLayouts::toggle();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& toggle, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new QCheckBox{parent};
     sl->setChecked(ossia::convert<bool>(inlet.value()));
     QObject::connect(sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, val);
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
     });
 
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl,
-        [sl](const ossia::value& val) { sl->setChecked(ossia::convert<bool>(val)); });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      sl->setChecked(ossia::convert<bool>(val));
+    });
 
     return sl;
   }
@@ -676,6 +668,7 @@ struct Toggle
       QGraphicsItem* parent, QObject* context)
   {
     auto cb = new score::QGraphicsCheckBox{nullptr};
+    initWidgetProperties(inlet, *cb);
     cb->setState(ossia::convert<bool>(inlet.value()));
 
     QObject::connect(
@@ -700,17 +693,16 @@ struct ImpulseButton
     return Process::DefaultControlLayouts::bang();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, const Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new QPushButton{parent};
     const auto& name = inlet.visualName();
     sl->setText(name.isEmpty() ? QObject::tr("Bang") : name);
     sl->setContentsMargins(0, 0, 0, 0);
 
-    auto& cinlet = const_cast<Control_T&>(inlet);
+    auto& cinlet = const_cast<T&>(inlet);
     QObject::connect(sl, &QPushButton::pressed, context, [&cinlet] {
       cinlet.valueChanged(ossia::impulse{});
     });
@@ -724,6 +716,7 @@ struct ImpulseButton
       QGraphicsItem* parent, QObject* context)
   {
     auto toggle = new score::QGraphicsButton{nullptr};
+    initWidgetProperties(inlet, *toggle);
 
     QObject::connect(
         toggle, &score::QGraphicsButton::pressed, context, [=, &inlet](bool pressed) {
@@ -744,10 +737,9 @@ struct Button
     return Process::DefaultControlLayouts::bang();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, const Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new QPushButton{parent};
     const auto& name = inlet.visualName();
@@ -755,7 +747,7 @@ struct Button
     sl->setContentsMargins(0, 0, 0, 0);
 
     // TODO should we not make a command here
-    auto& cinlet = const_cast<Control_T&>(inlet);
+    auto& cinlet = const_cast<T&>(inlet);
     QObject::connect(
         sl, &QPushButton::pressed, context, [&cinlet] { cinlet.setValue(true); });
     QObject::connect(
@@ -770,6 +762,7 @@ struct Button
       QGraphicsItem* parent, QObject* context)
   {
     auto toggle = new score::QGraphicsButton{nullptr};
+    initWidgetProperties(inlet, *toggle);
 
     QObject::connect(
         toggle, &score::QGraphicsButton::pressed, context,
@@ -801,13 +794,13 @@ struct ChooserToggle
       return t.alternatives;
     }
   }
-  template <typename T, typename Control_T>
+
+  template <typename T>
   static auto make_widget(
-      const T& control, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
 
-    const auto& alts = getAlternatives(control);
+    const auto& alts = getAlternatives(inlet);
     SCORE_ASSERT(alts.size() == 2);
     auto toggleBtn = new score::ToggleButton{alts, parent};
     toggleBtn->setCheckable(true);
@@ -819,19 +812,17 @@ struct ChooserToggle
 
     QObject::connect(
         toggleBtn, &score::ToggleButton::toggled, context, [&inlet, &ctx](bool val) {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-              inlet, val);
-        });
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
+    });
 
     QObject::connect(
-        &inlet, &Control_T::valueChanged, toggleBtn,
-        [toggleBtn](const ossia::value& val) {
+        &inlet, &T::valueChanged, toggleBtn, [toggleBtn](const ossia::value& val) {
       bool b = ossia::convert<bool>(val);
       if(b && !toggleBtn->isChecked())
         toggleBtn->toggle();
       else if(!b && toggleBtn->isChecked())
         toggleBtn->toggle();
-        });
+    });
 
     return toggleBtn;
   }
@@ -844,6 +835,7 @@ struct ChooserToggle
     const auto& alts = getAlternatives(control);
     SCORE_ASSERT(alts.size() == 2);
     auto toggle = new score::QGraphicsToggle{alts[0], alts[1], nullptr};
+    initWidgetProperties(inlet, *toggle);
     toggle->setState(ossia::convert<bool>(inlet.value()));
 
     QObject::connect(
@@ -869,24 +861,22 @@ struct LineEdit
     return Process::DefaultControlLayouts::lineedit();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new QLineEdit{parent};
     sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
     sl->setContentsMargins(0, 0, 0, 0);
     sl->setMaximumWidth(70);
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
           inlet, sl->text().toStdString());
     });
 
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
-          sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
-        });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
+    });
 
     return sl;
   }
@@ -897,6 +887,7 @@ struct LineEdit
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new Process::LineEditItem{parent};
+    initWidgetProperties(inlet, *sl);
     sl->setTextWidth(180.);
     sl->setDefaultTextColor(QColor{"#E0B01E"});
     sl->setCursor(Qt::IBeamCursor);
@@ -965,10 +956,9 @@ struct ProgramEdit
     return Process::DefaultControlLayouts::lineedit();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto toggle = new QPushButton{QObject::tr("Edit..."), parent};
     QObject::connect(toggle, &QPushButton::clicked, context, [=, &inlet, &ctx] {
@@ -983,6 +973,7 @@ struct ProgramEdit
       QGraphicsItem* parent, QObject* context)
   {
     auto toggle = new score::QGraphicsTextButton{QObject::tr("Edit..."), nullptr};
+    initWidgetProperties(inlet, *toggle);
 
     QObject::connect(
         toggle, &score::QGraphicsTextButton::pressed, context,
@@ -1005,10 +996,9 @@ struct FileChooser
   {
     return Process::DefaultControlLayouts::lineedit();
   }
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     auto sl = new QLineEdit{parent};
     auto act = new QAction{sl};
@@ -1033,13 +1023,12 @@ struct FileChooser
     //sl->setMaximumWidth(70);
 
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
           inlet, sl->text().toStdString());
     });
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
-          sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
-        });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
+    });
     return sl;
   }
 
@@ -1049,6 +1038,7 @@ struct FileChooser
       QGraphicsItem* parent, QObject* context)
   {
     auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
+    initWidgetProperties(inlet, *bt);
     auto on_open = [&inlet, &ctx] {
       auto filename
           = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
@@ -1101,13 +1091,11 @@ struct Enum
   {
     return QString::fromStdString(str);
   }
-
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    const auto& values = slider.getValues();
+    const auto& values = inlet.getValues();
     using val_t = std::remove_reference_t<decltype(values[0])>;
     auto sl = new QComboBox{parent};
     for(const auto& e : values)
@@ -1128,13 +1116,12 @@ struct Enum
     QObject::connect(
         sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
         [values, &inlet, &ctx](int idx) {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
           inlet, toStd(values[idx]));
-        });
-
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
-      set_index(val);
     });
+
+    QObject::connect(
+        &inlet, &T::valueChanged, sl, [=](const ossia::value& val) { set_index(val); });
 
     return sl;
   }
@@ -1151,6 +1138,8 @@ struct Enum
                   ? new score::QGraphicsEnum{values, nullptr}
                   : (score::QGraphicsEnum*)new score::QGraphicsPixmapEnum{
                       values, slider.pixmaps, nullptr};
+
+    initWidgetProperties(inlet, *sl);
 
     auto set_index = [values, sl](const ossia::value& val) {
       auto v = ossia::convert<std::string>(val);
@@ -1185,12 +1174,11 @@ struct ComboBox
     return Process::DefaultControlLayouts::combo();
   }
 
-  template <typename U, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const U& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    const auto& values = slider.getValues();
+    const auto& values = inlet.getValues();
     auto sl = new score::ComboBox{parent};
     for(auto& e : values)
     {
@@ -1211,13 +1199,12 @@ struct ComboBox
     QObject::connect(
         sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
         [values, &inlet, &ctx](int idx) {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
           inlet, values[idx].second);
-        });
-
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
-      set_index(val);
     });
+
+    QObject::connect(
+        &inlet, &T::valueChanged, sl, [=](const ossia::value& val) { set_index(val); });
 
     return sl;
   }
@@ -1236,6 +1223,7 @@ struct ComboBox
       arr.push_back(values[i].first);
 
     auto sl = new score::QGraphicsCombo{arr, nullptr};
+    initWidgetProperties(inlet, *sl);
 
     auto set_index = [values, sl](const ossia::value& val) {
       auto it
@@ -1295,10 +1283,9 @@ struct HSVSlider
     return Process::DefaultControlLayouts::pad();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     SCORE_TODO;
     return nullptr; // TODO
@@ -1310,6 +1297,7 @@ struct HSVSlider
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsHSVChooser{nullptr};
+    initWidgetProperties(inlet, *sl);
     sl->setRgbaValue(ossia::convert<ossia::vec4f>(inlet.value()));
 
     QObject::connect(
@@ -1340,10 +1328,9 @@ struct XYSlider
     return PortItemLayout{};
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     SCORE_TODO;
     return nullptr; // TODO
@@ -1355,6 +1342,7 @@ struct XYSlider
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsXYChooser{nullptr};
+    initWidgetProperties(inlet, *sl);
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
     bindVec2Domain(slider, inlet, *sl);
 
@@ -1385,10 +1373,9 @@ struct XYZSlider
     return Process::DefaultControlLayouts::pad();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     SCORE_TODO;
     return nullptr; // TODO
@@ -1400,6 +1387,7 @@ struct XYZSlider
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsXYZChooser{nullptr};
+    initWidgetProperties(inlet, *sl);
     sl->setValue(ossia::convert<ossia::vec3f>(inlet.value()));
     bindVec3Domain(slider, inlet, *sl);
 
@@ -1430,10 +1418,9 @@ struct XYSpinboxes
     return Process::DefaultControlLayouts::pad();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     SCORE_TODO;
     return nullptr; // TODO
@@ -1447,6 +1434,7 @@ struct XYSpinboxes
     if(slider.integral)
     {
       auto sl = new score::QGraphicsIntXYSpinboxChooser{false, nullptr};
+      initWidgetProperties(inlet, *sl);
       bindVec2Domain(slider, inlet, *sl);
       sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
@@ -1474,6 +1462,7 @@ struct XYSpinboxes
     else
     {
       auto sl = new score::QGraphicsXYSpinboxChooser{false, nullptr};
+      initWidgetProperties(inlet, *sl);
       bindVec2Domain(slider, inlet, *sl);
       sl->setValue(
           LinearNormalizer::to01(*sl, ossia::convert<ossia::vec2f>(inlet.value())));
@@ -1509,10 +1498,9 @@ struct XYZSpinboxes
     return Process::DefaultControlLayouts::pad();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     SCORE_TODO;
     return nullptr; // TODO
@@ -1524,6 +1512,7 @@ struct XYZSpinboxes
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsXYZSpinboxChooser{nullptr};
+    initWidgetProperties(inlet, *sl);
     bindVec3Domain(slider, inlet, *sl);
     sl->setValue(
         LinearNormalizer::to01(*sl, ossia::convert<ossia::vec3f>(inlet.value())));
@@ -1556,10 +1545,9 @@ struct MultiSlider
     return Process::DefaultControlLayouts::slider();
   }
 
-  template <typename T, typename Control_T>
+  template <typename T>
   static auto make_widget(
-      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
-      QWidget* parent, QObject* context)
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
     SCORE_TODO;
     return nullptr; // TODO
@@ -1571,6 +1559,7 @@ struct MultiSlider
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new score::QGraphicsMultiSlider{nullptr};
+    initWidgetProperties(inlet, *sl);
     sl->setValue(inlet.value());
     sl->setRange(inlet.domain());
 

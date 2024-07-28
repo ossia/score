@@ -10,6 +10,7 @@ namespace Process
 struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
 {
   QObject& context;
+  const Process::ProcessModel& proc;
   const Process::Context& doc;
   const Process::PortFactoryList& portFactory;
 
@@ -22,8 +23,12 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
   QGraphicsItem* makePort(Process::ControlInlet& portModel);
   QGraphicsItem* makePort(Process::ControlOutlet& portModel);
 
-  std::pair<Process::ControlInlet*, QGraphicsItem*> makeInlet(int index);
-  std::pair<Process::ControlOutlet*, QGraphicsItem*> makeOutlet(int index);
+  std::pair<Process::ControlInlet*, QGraphicsItem*> makeInlet(Process::Inlet*);
+  std::pair<Process::ControlOutlet*, QGraphicsItem*> makeOutlet(Process::Outlet*);
+  std::vector<std::pair<Process::ControlInlet*, QGraphicsItem*>>
+      makeInlets(std::span<Process::Inlet*>);
+  std::vector<std::pair<Process::ControlOutlet*, QGraphicsItem*>>
+      makeOutlets(std::span<Process::Outlet*>);
   QGraphicsItem* makeLabel(std::string_view item);
 
   void finalizeLayout(QGraphicsItem* rootItem);

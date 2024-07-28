@@ -11,6 +11,24 @@
 namespace WidgetFactory
 {
 
+template <typename T>
+static constexpr auto getMin(auto& slider) noexcept
+{
+  if constexpr(requires { slider.getMin(); })
+    return slider.getMin();
+  else
+    return slider.domain().get().template convert_min<T>();
+}
+
+template <typename T>
+static constexpr auto getMax(auto& slider) noexcept
+{
+  if constexpr(requires { slider.getMax(); })
+    return slider.getMax();
+  else
+    return slider.domain().get().template convert_max<T>();
+}
+
 struct LinearNormalizer
 {
   static constexpr double to01(double min, double range, double val) noexcept
@@ -26,8 +44,8 @@ struct LinearNormalizer
   template <typename T>
   static double to01(const T& slider, double val) noexcept
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
+    auto min = getMin<double>(slider);
+    auto max = getMax<double>(slider);
     if(max - min == 0)
       max = min + 1;
     return to01(min, max - min, val);
@@ -36,8 +54,8 @@ struct LinearNormalizer
   template <typename T>
   static double from01(const T& slider, double val) noexcept
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
+    auto min = getMin<double>(slider);
+    auto max = getMax<double>(slider);
     if(max - min == 0)
       max = min + 1;
     return from01(min, max - min, val);
@@ -47,8 +65,8 @@ struct LinearNormalizer
   static ossia::vec2f to01(const T& slider, ossia::vec2f val) noexcept
   {
     ossia::vec2f res;
-    const auto min = slider.getMin();
-    const auto max = slider.getMax();
+    const auto min = getMin<ossia::vec2f>(slider);
+    const auto max = getMax<ossia::vec2f>(slider);
     res[0] = to01(min[0], max[0] - min[0], val[0]);
     res[1] = to01(min[1], max[1] - min[1], val[1]);
     return res;
@@ -58,8 +76,8 @@ struct LinearNormalizer
   static ossia::vec2f from01(const T& slider, ossia::vec2f val) noexcept
   {
     ossia::vec2f res;
-    const auto min = slider.getMin();
-    const auto max = slider.getMax();
+    const auto min = getMin<ossia::vec2f>(slider);
+    const auto max = getMax<ossia::vec2f>(slider);
     res[0] = from01(min[0], max[0] - min[0], val[0]);
     res[1] = from01(min[1], max[1] - min[1], val[1]);
     return res;
@@ -69,8 +87,8 @@ struct LinearNormalizer
   static ossia::vec3f to01(const T& slider, ossia::vec3f val) noexcept
   {
     ossia::vec3f res;
-    const auto min = slider.getMin();
-    const auto max = slider.getMax();
+    const auto min = getMin<ossia::vec3f>(slider);
+    const auto max = getMax<ossia::vec3f>(slider);
     res[0] = to01(min[0], max[0] - min[0], val[0]);
     res[1] = to01(min[1], max[1] - min[1], val[1]);
     res[2] = to01(min[2], max[2] - min[2], val[2]);
@@ -81,8 +99,8 @@ struct LinearNormalizer
   static ossia::vec3f from01(const T& slider, ossia::vec3f val) noexcept
   {
     ossia::vec3f res;
-    const auto min = slider.getMin();
-    const auto max = slider.getMax();
+    const auto min = getMin<ossia::vec3f>(slider);
+    const auto max = getMax<ossia::vec3f>(slider);
     res[0] = from01(min[0], max[0] - min[0], val[0]);
     res[1] = from01(min[1], max[1] - min[1], val[1]);
     res[2] = from01(min[2], max[2] - min[2], val[2]);
@@ -93,8 +111,8 @@ struct LinearNormalizer
   static ossia::vec4f to01(const T& slider, ossia::vec4f val) noexcept
   {
     ossia::vec4f res;
-    const auto min = slider.getMin();
-    const auto max = slider.getMax();
+    const auto min = getMin<ossia::vec4f>(slider);
+    const auto max = getMax<ossia::vec4f>(slider);
     res[0] = to01(min[0], max[0] - min[0], val[0]);
     res[1] = to01(min[1], max[1] - min[1], val[1]);
     res[2] = to01(min[2], max[2] - min[2], val[2]);
@@ -106,8 +124,8 @@ struct LinearNormalizer
   static ossia::vec4f from01(const T& slider, ossia::vec4f val) noexcept
   {
     ossia::vec4f res;
-    const auto min = slider.getMin();
-    const auto max = slider.getMax();
+    const auto min = getMin<ossia::vec4f>(slider);
+    const auto max = getMax<ossia::vec4f>(slider);
     res[0] = from01(min[0], max[0] - min[0], val[0]);
     res[1] = from01(min[1], max[1] - min[1], val[1]);
     res[2] = from01(min[2], max[2] - min[2], val[2]);
@@ -131,8 +149,8 @@ struct LogNormalizer
   template <typename T>
   static double to01(const T& slider, double val) noexcept
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
+    auto min = getMin<double>(slider);
+    auto max = getMax<double>(slider);
     if(max - min == 0)
       max = min + 1;
     return to01(min, max - min, val);
@@ -141,8 +159,8 @@ struct LogNormalizer
   template <typename T>
   static double from01(const T& slider, double val) noexcept
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
+    auto min = getMin<double>(slider);
+    auto max = getMax<double>(slider);
     if(max - min == 0)
       max = min + 1;
     return from01(min, max - min, val);
@@ -157,8 +175,8 @@ struct FixedNormalizer
   template <typename T>
   FixedNormalizer(const T& slider)
   {
-    min = slider.getMin();
-    max = slider.getMax();
+    min = getMin<double>(slider);
+    max = getMax<double>(slider);
     if(max - min == 0)
       max = min + 1;
   }
@@ -192,11 +210,18 @@ struct UpdatingNormalizer
   }
 };
 
+template <typename Control_T, typename Widget_T>
+static void initWidgetProperties(Control_T& inlet, Widget_T& widget)
+{
+  if constexpr(requires { widget.setNoValueChangeOnMove(true); })
+    widget.setNoValueChangeOnMove(inlet.noValueChangeOnMove);
+}
+
 template <typename T, typename Control_T, typename Widget_T>
 static void bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
-  auto min = slider.getMin();
-  auto max = slider.getMax();
+  auto min = getMin<float>(slider);
+  auto max = getMax<float>(slider);
   if(max - min == 0)
     max = min + 1;
 
@@ -206,8 +231,8 @@ static void bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
   {
     SCORE_ASSERT(&slider == &inlet);
     QObject::connect(&inlet, &Control_T::domainChanged, &widget, [&slider, &widget] {
-      auto min = slider.getMin();
-      auto max = slider.getMax();
+      auto min = getMin<float>(slider);
+      auto max = getMax<float>(slider);
       if(max - min == 0)
         max = min + 1;
 
@@ -219,8 +244,8 @@ static void bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
 template <typename T, typename Control_T, typename Widget_T>
 static void bindIntDomain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
-  auto min = slider.getMin();
-  auto max = slider.getMax();
+  auto min = getMin<int>(slider);
+  auto max = getMax<int>(slider);
   if(max - min == 0)
     max = min + 1;
 
@@ -230,8 +255,8 @@ static void bindIntDomain(const T& slider, Control_T& inlet, Widget_T& widget)
   {
     SCORE_ASSERT(&slider == &inlet);
     QObject::connect(&inlet, &Control_T::domainChanged, &widget, [&slider, &widget] {
-      auto min = slider.getMin();
-      auto max = slider.getMax();
+      auto min = getMin<int>(slider);
+      auto max = getMax<int>(slider);
       if(max - min == 0)
         max = min + 1;
 

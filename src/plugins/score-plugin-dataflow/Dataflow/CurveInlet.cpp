@@ -265,8 +265,8 @@ void CurveInlet::on_curveChange()
 }
 
 QWidget* WidgetFactory::CurveInletItems::make_widget(
-    const Dataflow::CurveInlet& slider, const Dataflow::CurveInlet& inlet,
-    const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+    const Dataflow::CurveInlet& inlet, const score::DocumentContext& ctx,
+    QWidget* parent, QObject* context)
 {
   return new QLabel{"Unimplemented"};
 }

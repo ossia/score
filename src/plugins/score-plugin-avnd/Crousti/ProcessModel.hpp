@@ -16,6 +16,10 @@
 
 #include <boost/pfr.hpp>
 
+#include <QTimer>
+
+#include <avnd/binding/ossia/data_node.hpp>
+#include <avnd/binding/ossia/dynamic_ports.hpp>
 #include <avnd/common/for_nth.hpp>
 #include <avnd/concepts/file_port.hpp>
 #include <avnd/concepts/gfx.hpp>
@@ -194,20 +198,6 @@ struct Metadata<ConcreteKey_k, oscr::ProcessModel<Info>>
 
 namespace oscr
 {
-
-template <typename T>
-auto& modelPort(auto& ports, int index)
-{
-  // We have to adjust before accessing a port as there is the first "fake"
-  // port if the processor takes audio by argument
-  if constexpr(avnd::audio_argument_processor<T>)
-    index += 1;
-
-  // The "messages" ports also go before
-  index += avnd::messages_introspection<T>::size;
-
-  return ports[index];
-}
 
 template <typename T>
 inline void setupNewPort(Process::Port* obj)
@@ -407,7 +397,7 @@ struct InletInitFunc
 #endif
 
   template <std::size_t Idx, avnd::message T>
-  void operator()(const avnd::field_reflection<Idx, T>& in)
+  void operator()(const avnd::field_reflection<Idx, T>& in, auto dummy)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
@@ -415,7 +405,7 @@ struct InletInitFunc
   }
 
   template <std::size_t Idx, avnd::unreflectable_message<Node> T>
-  void operator()(const avnd::field_reflection<Idx, T>& in)
+  void operator()(const avnd::field_reflection<Idx, T>& in, auto dummy)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
@@ -556,6 +546,12 @@ class ProcessModel final
   friend struct TSerializer<JSONObject, oscr::ProcessModel<Info>>;
 
 public:
+  [[no_unique_address]]
+  oscr::dynamic_ports_storage<Info> dynamic_ports;
+
+  std::conditional_t<oscr::has_dynamic_ports<Info>, Info, char>
+      object_storage_for_ports_callbacks;
+
   ProcessModel(
       const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
       : Process::ProcessModel{
@@ -563,7 +559,9 @@ public:
   {
     metadata().setInstanceName(*this);
 
+    init_before_port_creation();
     init_all_ports();
+    init_after_port_creation();
   }
 
   ProcessModel(
@@ -574,6 +572,7 @@ public:
   {
     metadata().setInstanceName(*this);
 
+    init_before_port_creation();
     init_all_ports();
 
     if constexpr(avnd::file_input_introspection<Info>::size > 0)
@@ -590,11 +589,12 @@ public:
       if constexpr(avnd::string_ish<decltype(type::value)>)
         setupInitialStringPort(idx, custom);
     }
+    init_after_port_creation();
   }
 
   void setupInitialStringPort(int idx, const QString& custom) noexcept
   {
-    Process::Inlet* port = modelPort<Info>(this->inlets(), idx);
+    Process::Inlet* port = avnd_input_idx_to_model_ports(idx)[0];
     auto pp = safe_cast<Process::ControlInlet*>(port);
 
     if(pp->value().target<std::string>())
@@ -607,17 +607,21 @@ public:
   explicit ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
   {
+    init_before_port_creation();
     vis.writeTo(*this);
     check_all_ports();
+    init_after_port_creation();
   }
 
   ~ProcessModel() override { }
 
 private:
+  void init_before_port_creation() { init_dynamic_ports(); }
+  void init_after_port_creation() { init_controller_ports(); }
   void check_all_ports()
   {
-    if(m_inlets.size() != avnd::total_input_count<Info>()
-       || m_outlets.size() != avnd::total_output_count<Info>())
+    if(m_inlets.size() != expected_input_ports()
+       || m_outlets.size() != expected_output_ports())
     {
       qDebug() << "Warning : process does not match spec.";
 
@@ -640,10 +644,485 @@ private:
     }
   }
 
+  void init_controller_ports()
+  {
+    if constexpr(
+        avnd::dynamic_ports_input_introspection<Info>::size > 0
+        || avnd::dynamic_ports_input_introspection<Info>::size > 0)
+    {
+      avnd::input_introspection<Info>::for_all(
+          [this]<std::size_t Idx, typename F>(avnd::field_reflection<Idx, F>) {
+        if constexpr(requires { F::on_controller_setup(); })
+        {
+          auto controller_inlets = avnd_input_idx_to_model_ports(Idx);
+          SCORE_ASSERT(controller_inlets.size() == 1);
+          auto inlet = qobject_cast<Process::ControlInlet*>(controller_inlets[0]);
+          decltype(F::value) current_value;
+          oscr::from_ossia_value(inlet->value(), current_value);
+          F::on_controller_setup()(
+              this->object_storage_for_ports_callbacks, current_value);
+        }
+        if constexpr(requires { F::on_controller_interaction(); })
+        {
+          auto controller_inlets = avnd_input_idx_to_model_ports(Idx);
+          SCORE_ASSERT(controller_inlets.size() == 1);
+          auto inlet = qobject_cast<Process::ControlInlet*>(controller_inlets[0]);
+          inlet->noValueChangeOnMove = true;
+          connect(
+              inlet, &Process::ControlInlet::valueChanged,
+              [this](const ossia::value& val) {
+            decltype(F::value) current_value;
+            oscr::from_ossia_value(val, current_value);
+            F::on_controller_interaction()(
+                this->object_storage_for_ports_callbacks, current_value);
+          });
+        }
+      });
+    }
+  }
+
+  void init_dynamic_ports()
+  {
+    // To check:
+
+    // - serialization
+    // - OK: uses of total_input_count / total_output_count
+
+    // - OK: uses of oscr::modelPort (btw this does not seem to match total_input_count)
+
+    // - execution, resize the avnd object with the number of ports
+    //  -> connect controls so that they change in the ui
+
+    // - OK: Layer::createControl: uses index_in_struct and assumes it's a ProcessModel::inlet index
+
+    // How are things going to happen UI-wise: all controls created one after each other ?
+    // what if we want to create separate tabs with e.g.
+    // control A 1, control B 1
+    // control A 2, control B 2
+    // we need to know the current state of dynamic ports
+
+    // UI: recreating UI causes crash when editing e.g. context menu of spinbox
+    // UI: recreating UI causes bug when editing e.g. spinbox
+
+    // -> we have to find a way to detect that the currently edited object is being deleted
+
+    // other option: mark widget as "unsafe", do not have it send value changes until mouse is released
+
+    // REloading on crash: does crash, because the control change does not have
+    // the time to be applied. In DocumentBuilder::loadCommandStack we have
+    // to process the event loop in-between events.
+    // FIxed if we put zero but then changing the widget with the mouses crashes because of the comment
+    // below...
+    // ->
+    //   terminate called after throwing an instance of 'std::runtime_error'
+    //   what():  Ongoing command mismatch: current command SetControlValue does not match new command MoveNodes
+
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
+    {
+      auto& obj = object_storage_for_ports_callbacks;
+      avnd::dynamic_ports_input_introspection<Info>::for_all_n2(
+          avnd::get_inputs(obj),
+          [&]<std::size_t N>(auto& port, auto pred_idx, avnd::field_index<N> field_idx) {
+        port.request_port_resize = [this, &port](int new_count) {
+          // We're in the ui thread, we can just push the request directly.
+          // With some delay as otherwise we may be deleting the widget we
+          // are clicking on before mouse release and Qt really doesn't like that
+          QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
+            if(self)
+              self->request_new_dynamic_input_count(
+                  port, avnd::field_index<N>{}, new_count);
+          });
+        };
+      });
+    }
+
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+    {
+      auto& obj = object_storage_for_ports_callbacks;
+      avnd::dynamic_ports_output_introspection<Info>::for_all_n2(
+          avnd::get_outputs(obj),
+          [&]<std::size_t N>(auto& port, auto pred_idx, avnd::field_index<N> field_idx) {
+        port.request_port_resize = [this, &port](int new_count) {
+          // We're in the ui thread, we can just push the request directly.
+          // With some delay as otherwise we may be deleting the widget we
+          // are clicking on before mouse release and Qt really doesn't like that
+          QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
+            if(self)
+              self->request_new_dynamic_output_count(
+                  port, avnd::field_index<N>{}, new_count);
+          });
+        };
+      });
+    }
+  }
+
+  template <typename P, std::size_t N>
+  void request_new_dynamic_input_count(P& port, avnd::field_index<N> idx, int count)
+  {
+    const int current_model_ports = dynamic_ports.num_in_ports(idx);
+    if(current_model_ports == count || count < 0 || count > 512)
+      return;
+
+    ossia::small_pod_vector<Process::Inlet*, 4> to_delete;
+    auto current_inlets = m_inlets;
+    if(current_model_ports < count)
+    {
+      // Add new ports
+      // 1. Find the location where to add them
+      auto res = avnd_input_idx_to_iterator(idx);
+      res += current_model_ports;
+      Process::Inlets inlets_to_add;
+      InletInitFunc<Info> inlets{*this, inlets_to_add};
+      inlets.inlet = 10000 + N * 1000 + current_model_ports;
+      int current_inlets = m_inlets.size();
+      int sz = 0;
+      for(int i = current_model_ports; i < count; i++)
+      {
+        inlets(port, idx);
+        if(inlets_to_add.size() > sz)
+        {
+          sz = inlets_to_add.size();
+          auto new_inlet = inlets_to_add.back();
+          if(auto nm = new_inlet->name(); nm.contains("{}"))
+          {
+            nm.replace("{}", QString::number(i));
+            new_inlet->setName(nm);
+          }
+        }
+      }
+      m_inlets.insert(res, inlets_to_add.begin(), inlets_to_add.end());
+    }
+    else if(current_model_ports > count)
+    {
+      // Delete the ports
+      auto res = avnd_input_idx_to_iterator(idx);
+      res += count;
+      auto begin_deleted = res;
+      for(int i = 0; i < (current_model_ports - count); i++)
+      {
+        to_delete.push_back(*res);
+        ++res;
+      }
+      m_inlets.erase(begin_deleted, res);
+    }
+
+    dynamic_ports.num_in_ports(idx) = count;
+
+    inletsChanged();
+    for(auto port : to_delete)
+      delete port;
+  }
+
+  template <typename P, std::size_t N>
+  void request_new_dynamic_output_count(P& port, avnd::field_index<N> idx, int count)
+  {
+    const int current_model_ports = dynamic_ports.num_in_ports(idx);
+    if(current_model_ports == count || count < 0 || count > 512)
+      return;
+
+    ossia::small_pod_vector<Process::Outlet*, 4> to_delete;
+    auto current_outlets = m_outlets;
+    if(current_model_ports < count)
+    {
+      // Add new ports
+      // 1. Find the location where to add them
+      auto res = avnd_output_idx_to_iterator(idx);
+      res += current_model_ports;
+      Process::Outlets outlets_to_add;
+      OutletInitFunc<Info> outlets{*this, outlets_to_add};
+      outlets.outlet = 10000 + N * 1000 + current_model_ports;
+      int current_outlets = m_outlets.size();
+      int sz = 0;
+      for(int i = current_model_ports; i < count; i++)
+      {
+        outlets(port, idx);
+        if(outlets_to_add.size() > sz)
+        {
+          sz = outlets_to_add.size();
+          auto new_outlet = outlets_to_add.back();
+          if(auto nm = new_outlet->name(); nm.contains("{}"))
+          {
+            nm.replace("{}", QString::number(i));
+            new_outlet->setName(nm);
+          }
+        }
+      }
+      m_outlets.insert(res, outlets_to_add.begin(), outlets_to_add.end());
+    }
+    else if(current_model_ports > count)
+    {
+      // Delete the ports
+      auto res = avnd_output_idx_to_iterator(idx);
+      res += count;
+      auto begin_deleted = res;
+      for(int i = 0; i < (current_model_ports - count); i++)
+      {
+        to_delete.push_back(*res);
+        ++res;
+      }
+      m_outlets.erase(begin_deleted, res);
+    }
+
+    dynamic_ports.num_in_ports(idx) = count;
+
+    outletsChanged();
+    for(auto port : to_delete)
+      delete port;
+  }
+
   void init_all_ports()
   {
-    avnd::port_visit_dispatcher<Info>(
-        InletInitFunc<Info>{*this, m_inlets}, OutletInitFunc<Info>{*this, m_outlets});
+    InletInitFunc<Info> inlets{*this, m_inlets};
+    OutletInitFunc<Info> outlets{*this, m_outlets};
+    avnd::port_visit_dispatcher<Info>([&inlets]<typename P>(P&& port, auto idx) {
+      if constexpr(!avnd::dynamic_ports_port<P>)
+        inlets(port, idx);
+    }, [&outlets]<typename P>(P&& port, auto idx) {
+      if constexpr(!avnd::dynamic_ports_port<P>)
+        outlets(port, idx);
+    });
+  }
+
+public:
+  int expected_input_ports() const noexcept
+  {
+    int count = 0;
+
+    // We have to adjust before accessing a port as there is the first "fake"
+    // port if the processor takes audio by argument
+    if constexpr(avnd::audio_argument_processor<Info>)
+      count += 1;
+
+    // The "messages" ports also go before
+    count += avnd::messages_introspection<Info>::size;
+
+    avnd::input_introspection<Info>::for_all([this, &count]<std::size_t Idx, typename P>(
+                                                 avnd::field_reflection<Idx, P> field) {
+      int num_ports = 1;
+      if constexpr(avnd::dynamic_ports_port<P>)
+        num_ports = dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+      count += num_ports;
+    });
+
+    return count;
+  }
+
+  int expected_output_ports() const noexcept
+  {
+    int count = 0;
+
+    // We have to adjust before accessing a port as there is the first "fake"
+    // port if the processor takes audio by argument
+    if constexpr(avnd::audio_argument_processor<Info>)
+      count += 1;
+
+    avnd::output_introspection<Info>::for_all(
+        [this,
+         &count]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+      int num_ports = 1;
+      if constexpr(avnd::dynamic_ports_port<P>)
+        num_ports = dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+      count += num_ports;
+    });
+
+    return count;
+  }
+
+  std::span<Process::Inlet*> avnd_input_idx_to_model_ports(int index) const noexcept
+  {
+    int model_index = 0;
+
+    // We have to adjust before accessing a port as there is the first "fake"
+    // port if the processor takes audio by argument
+    if constexpr(avnd::audio_argument_processor<Info>)
+      model_index += 1;
+
+    // The "messages" ports also go before
+    model_index += avnd::messages_introspection<Info>::size;
+
+    std::span<Process::Inlet*> ret;
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size == 0)
+    {
+      ret = std::span<Process::Inlet*>(
+          const_cast<Process::Inlet**>(this->m_inlets.data()) + model_index + index, 1);
+    }
+    else
+    {
+      avnd::input_introspection<Info>::for_all(
+          [this, index, &model_index,
+           &ret]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if(Idx == index)
+        {
+          int num_ports = 1;
+          if constexpr(avnd::dynamic_ports_port<P>)
+          {
+            num_ports = dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+            if(num_ports == 0)
+            {
+              ret = {};
+              return;
+            }
+          }
+          ret = std::span<Process::Inlet*>(
+              const_cast<Process::Inlet**>(this->m_inlets.data()) + model_index,
+              num_ports);
+        }
+        else
+        {
+          if constexpr(avnd::dynamic_ports_port<P>)
+          {
+            model_index += dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+          }
+          else
+          {
+            model_index += 1;
+          }
+        }
+      });
+    }
+
+    return ret;
+  }
+
+  std::span<Process::Outlet*> avnd_output_idx_to_model_ports(int index) const noexcept
+  {
+    int model_index = 0;
+
+    // We have to adjust before accessing a port as there is the first "fake"
+    // port if the processor takes audio by argument
+    if constexpr(avnd::audio_argument_processor<Info>)
+      model_index += 1;
+
+    // The "messages" ports also go before
+    model_index += avnd::messages_introspection<Info>::size;
+
+    std::span<Process::Outlet*> ret;
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size == 0)
+    {
+      ret = std::span<Process::Outlet*>(
+          const_cast<Process::Outlet**>(this->m_outlets.data()) + model_index + index,
+          1);
+    }
+    else
+    {
+      avnd::output_introspection<Info>::for_all(
+          [this, index, &model_index,
+           &ret]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if(Idx == index)
+        {
+          int num_ports = 1;
+          if constexpr(avnd::dynamic_ports_port<P>)
+          {
+            num_ports = dynamic_ports.num_out_ports(avnd::field_index<Idx>{});
+            if(num_ports == 0)
+            {
+              ret = {};
+              return;
+            }
+          }
+          ret = std::span<Process::Outlet*>(
+              const_cast<Process::Outlet**>(this->m_outlets.data()) + model_index,
+              num_ports);
+        }
+        else
+        {
+          if constexpr(avnd::dynamic_ports_port<P>)
+          {
+            model_index += dynamic_ports.num_out_ports(avnd::field_index<Idx>{});
+          }
+          else
+          {
+            model_index += 1;
+          }
+        }
+      });
+    }
+
+    return ret;
+  }
+
+  Process::Inlets::iterator avnd_input_idx_to_iterator(int index) const noexcept
+  {
+    int model_index = 0;
+
+    // We have to adjust before accessing a port as there is the first "fake"
+    // port if the processor takes audio by argument
+    if constexpr(avnd::audio_argument_processor<Info>)
+      model_index += 1;
+
+    // The "messages" ports also go before
+    model_index += avnd::messages_introspection<Info>::size;
+
+    Process::Inlets::iterator ret;
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size == 0)
+    {
+      ret = const_cast<ProcessModel*>(this)->m_inlets.begin() + model_index;
+    }
+    else
+    {
+      avnd::input_introspection<Info>::for_all(
+          [this, index, &model_index,
+           &ret]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if(Idx == index)
+        {
+          ret = const_cast<ProcessModel*>(this)->m_inlets.begin() + model_index;
+        }
+        else
+        {
+          if constexpr(avnd::dynamic_ports_port<P>)
+          {
+            model_index += dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+          }
+          else
+          {
+            model_index += 1;
+          }
+        }
+      });
+    }
+    return ret;
+  }
+
+  Process::Outlets::iterator avnd_output_idx_to_iterator(int index) const noexcept
+  {
+    int model_index = 0;
+
+    // We have to adjust before accessing a port as there is the first "fake"
+    // port if the processor takes audio by argument
+    if constexpr(avnd::audio_argument_processor<Info>)
+      model_index += 1;
+
+    // The "messages" ports also go before
+    model_index += avnd::messages_introspection<Info>::size;
+
+    Process::Outlets::iterator ret;
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size == 0)
+    {
+      ret = const_cast<ProcessModel*>(this)->m_outlets.begin() + model_index;
+    }
+    else
+    {
+      avnd::output_introspection<Info>::for_all(
+          [this, index, &model_index,
+           &ret]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if(Idx == index)
+        {
+          ret = const_cast<ProcessModel*>(this)->m_outlets.begin() + model_index;
+        }
+        else
+        {
+          if constexpr(avnd::dynamic_ports_port<P>)
+          {
+            model_index += dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+          }
+          else
+          {
+            model_index += 1;
+          }
+        }
+      });
+    }
+    return ret;
   }
 };
 }

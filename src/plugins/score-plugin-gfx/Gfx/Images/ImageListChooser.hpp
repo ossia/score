@@ -29,7 +29,6 @@ struct ImageListChooserItems
   }
 
   static QWidget* make_widget(
-      const Gfx::Images::ImageListChooser& slider,
       const Gfx::Images::ImageListChooser& inlet, const score::DocumentContext& ctx,
       QWidget* parent, QObject* context);
 

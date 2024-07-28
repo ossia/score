@@ -45,7 +45,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
     , public score::GUIApplicationPlugin
 {
 public:
-  ApplicationPlugin(const score::GUIApplicationContext& app);
+  explicit ApplicationPlugin(const score::GUIApplicationContext& app);
   ~ApplicationPlugin() override;
 
   void initialize() override;

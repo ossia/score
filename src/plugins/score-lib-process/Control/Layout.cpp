@@ -26,9 +26,10 @@ QGraphicsItem* LayoutBuilderBase::makePort(Process::ControlOutlet& port)
   return nullptr;
 }
 
-std::pair<Process::ControlInlet*, QGraphicsItem*> LayoutBuilderBase::makeInlet(int index)
+std::pair<Process::ControlInlet*, QGraphicsItem*>
+LayoutBuilderBase::makeInlet(Process::Inlet* p)
 {
-  if(auto* port = qobject_cast<Process::ControlInlet*>(inlets[index]))
+  if(auto* port = qobject_cast<Process::ControlInlet*>(p))
   {
     return {port, makePort(*port)};
   }
@@ -36,13 +37,41 @@ std::pair<Process::ControlInlet*, QGraphicsItem*> LayoutBuilderBase::makeInlet(i
 }
 
 std::pair<Process::ControlOutlet*, QGraphicsItem*>
-LayoutBuilderBase::makeOutlet(int index)
+LayoutBuilderBase::makeOutlet(Process::Outlet* p)
 {
-  if(auto* port = qobject_cast<Process::ControlOutlet*>(outlets[index]))
+  if(auto* port = qobject_cast<Process::ControlOutlet*>(p))
   {
     return {port, makePort(*port)};
   }
   return {};
+}
+
+std::vector<std::pair<Process::ControlInlet*, QGraphicsItem*>>
+LayoutBuilderBase::makeInlets(std::span<Process::Inlet*> index)
+{
+  std::vector<std::pair<Process::ControlInlet*, QGraphicsItem*>> ret;
+  for(auto p : index)
+  {
+    if(auto* port = qobject_cast<Process::ControlInlet*>(p))
+    {
+      ret.push_back({port, makePort(*port)});
+    }
+  }
+  return ret;
+}
+
+std::vector<std::pair<Process::ControlOutlet*, QGraphicsItem*>>
+LayoutBuilderBase::makeOutlets(std::span<Process::Outlet*> index)
+{
+  std::vector<std::pair<Process::ControlOutlet*, QGraphicsItem*>> ret;
+  for(auto p : index)
+  {
+    if(auto* port = qobject_cast<Process::ControlOutlet*>(p))
+    {
+      ret.push_back({port, makePort(*port)});
+    }
+  }
+  return ret;
 }
 
 QGraphicsItem* LayoutBuilderBase::makeLabel(std::string_view item)

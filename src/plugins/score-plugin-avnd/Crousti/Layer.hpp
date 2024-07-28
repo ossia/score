@@ -28,6 +28,12 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   typename Info::ui* rootUi{};
 
   template <typename Item>
+  void setupControl(Process::ControlOutlet* inl, Item& item)
+  {
+    // TODO
+  }
+
+  template <typename Item>
   void setupControl(Process::ControlInlet* inl, Item& item)
   {
     if constexpr(requires { sizeof(Item::value); })
@@ -55,32 +61,50 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       }
     }
   }
+
   template <typename Item>
-  QGraphicsItem* createControl(Item& item, auto... member)
+  void createControl(Item& item, auto... member)
   {
     if constexpr(requires { ((inputs_type{}).*....*member); })
     {
       int index = avnd::index_in_struct(temp_inputs, member...);
-      auto [port, qitem] = makeInlet(index);
-      setupControl(port, item);
-      return qitem;
+      auto& proc = static_cast<const ProcessModel<Info>&>(this->proc);
+      auto ports = proc.avnd_input_idx_to_model_ports(index);
+      for(auto p : ports)
+      {
+        auto [port, qitem] = makeInlet(p);
+        {
+          SCORE_ASSERT(port);
+          SCORE_ASSERT(qitem);
+          setupControl(port, item);
+          setupItem(item, *qitem);
+        }
+      }
     }
     else if constexpr(requires { ((outputs_type{}).*....*member); })
     {
       int index = avnd::index_in_struct(temp_outputs, member...);
-      auto [port, qitem] = makeOutlet(index);
-      return qitem;
+      auto& proc = static_cast<const ProcessModel<Info>&>(this->proc);
+      auto ports = proc.avnd_output_idx_to_model_ports(index);
+      for(auto p : ports)
+      {
+        auto [port, qitem] = makeOutlet(p);
+        {
+          SCORE_ASSERT(port);
+          SCORE_ASSERT(qitem);
+          setupControl(port, item);
+          setupItem(item, *qitem);
+        }
+      }
     }
     else
     {
       static_assert(sizeof...(member) < 0, "not_a_member_of_inputs_or_outputs");
     }
-
-    return nullptr;
   }
 
   template <typename Item, typename T>
-  QGraphicsItem* createWidget(Item& it, const T& member)
+  void createWidget(Item& it, const T& member)
   {
     if constexpr(requires {
                    {
@@ -88,7 +112,8 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
                      } -> std::convertible_to<std::string_view>;
                  })
     {
-      return makeLabel(member);
+      auto res = makeLabel(member);
+      setupItem(it, *res);
     }
     else if constexpr(requires {
                         {
@@ -96,61 +121,69 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
                           } -> std::convertible_to<std::string_view>;
                       })
     {
-      return makeLabel(member.text);
+      auto res = makeLabel(member.text);
+      setupItem(it, *res);
     }
     else
     {
-      return createControl(it, member);
+      createControl(it, member);
     }
   }
 
   template <typename Item, typename... T>
     requires(sizeof...(T) > 1)
-  QGraphicsItem* createWidget(Item& item, T... recursive_members)
+  void createWidget(Item& item, T... recursive_members)
   {
-    return createControl(item, recursive_members...);
+    createControl(item, recursive_members...);
   }
 
   template <typename Item>
-  QGraphicsItem* createCustom(Item& item)
+  void createCustom(Item& item)
   {
     static_assert(!requires { item.transaction; });
-    return new oscr::CustomItem<Item&>{item};
+    auto res = new oscr::CustomItem<Item&>{item};
+    setupItem(item, *res);
   }
 
   template <typename Item>
-  QGraphicsItem* createCustomControl(Item& item, auto... member)
+  void createCustomControl(Item& item, auto... member)
   {
     if constexpr(requires { ((inputs_type{}).*....*member); })
     {
       int index = avnd::index_in_struct(temp_inputs, member...);
 
-      if(auto* port = qobject_cast<Process::ControlInlet*>(inlets[index]))
+      auto& proc = static_cast<const ProcessModel<Info>&>(this->proc);
+      auto ports = proc.avnd_input_idx_to_model_ports(index);
+      for(auto p : ports)
       {
-        auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
-        setupControl(port, item);
-        return qitem;
+        if(auto* port = qobject_cast<Process::ControlInlet*>(p))
+        {
+          auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
+          setupControl(port, item);
+          setupItem(item, *qitem);
+        }
       }
-      return nullptr;
     }
     else if constexpr(requires { ((outputs_type{}).*....*member); })
     {
       int index = avnd::index_in_struct(temp_outputs, member...);
 
-      if(auto* port = qobject_cast<Process::ControlOutlet*>(outlets[index]))
+      auto& proc = static_cast<const ProcessModel<Info>&>(this->proc);
+      auto ports = proc.avnd_output_idx_to_model_ports(index);
+      for(auto p : ports)
       {
-        auto qitem = new oscr::CustomControl<Item&>{item};
-        setupControl(port, item);
-        return qitem;
+        if(auto* port = qobject_cast<Process::ControlOutlet*>(p))
+        {
+          auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
+          setupControl(port, item);
+          setupItem(item, *qitem);
+        }
       }
-      return nullptr;
     }
     else
     {
       static_assert(sizeof...(member) < 0, "not_a_member_of_inputs_or_outputs");
     }
-
-    return nullptr;
   }
 
   /*
@@ -245,22 +278,26 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     else if constexpr(avnd::control_layout<Item>)
     {
       // Widget with some metadata.. FIXME
-      if(auto widg = createWidget(item, recursive_members..., item.model))
-        setupItem(item, *widg);
+      // Auto-generated item for a control
+      createWidget(item, recursive_members..., item.model);
     }
     else if constexpr(avnd::custom_control_layout<Item>)
     {
       // Widget with some metadata.. FIXME
-      if(auto widg = createCustomControl(item, recursive_members..., item.model))
-        setupItem(item, *widg);
+      // Custom-drawn item for a control
+      createCustomControl(item, recursive_members..., item.model);
     }
     else if constexpr(avnd::custom_layout<Item>)
     {
       // Widget with some metadata.. FIXME
-      if(auto widg = createCustom(item))
-        setupItem(item, *widg);
+      // This is just a cosmetic item without behaviour or control attached
+      createCustom(item);
     }
     else if constexpr(avnd::recursive_group_layout<Item>)
+    {
+      walkLayout(item.ui, recursive_members..., item.group);
+    }
+    else if constexpr(avnd::dynamic_controls<Item>)
     {
       walkLayout(item.ui, recursive_members..., item.group);
     }
@@ -272,8 +309,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     else
     {
       // Normal widget, e.g. just a const char*
-      if(auto widg = createWidget(item, item))
-        setupItem(item, *widg);
+      createWidget(item, item);
     }
   }
 };
@@ -386,24 +422,44 @@ private:
       QGraphicsItem* parent) const final override
   {
     using namespace score;
+    auto& process = static_cast<const ProcessModel<Info>&>(proc);
 
-    auto rootItem = makeItemImpl(
-        const_cast<ProcessModel<Info>&>(static_cast<const ProcessModel<Info>&>(proc)),
-        parent);
+    auto rootItem = makeItemImpl(const_cast<ProcessModel<Info>&>(process), parent);
 
-    LayoutBuilder<Info> b{
-        *rootItem, ctx, ctx.app.interfaces<Process::PortFactoryList>(), proc.inlets(),
-        proc.outlets()};
-    b.rootUi = &rootItem->ui;
+    auto recreate = [&proc, &ctx, rootItem] {
+      LayoutBuilder<Info> b{
+          *rootItem,     proc,
+          ctx,           ctx.app.interfaces<Process::PortFactoryList>(),
+          proc.inlets(), proc.outlets()};
+      b.rootUi = &rootItem->ui;
 
-    b.walkLayout(rootItem->ui);
+      b.walkLayout(rootItem->ui);
 
-    b.finalizeLayout(rootItem);
+      b.finalizeLayout(rootItem);
 
-    rootItem->fitChildrenRect();
+      rootItem->fitChildrenRect();
 
-    if_possible(b.rootUi->on_control_update());
+      if_possible(b.rootUi->on_control_update());
+    };
 
+    QObject::connect(&proc, &Process::ProcessModel::inletsChanged, rootItem, [=]() {
+      auto cld = rootItem->childItems();
+      for(auto item : cld)
+      {
+        delete item;
+      }
+      recreate();
+    });
+    QObject::connect(&proc, &Process::ProcessModel::outletsChanged, rootItem, [=]() {
+      auto cld = rootItem->childItems();
+      for(auto item : cld)
+      {
+        delete item;
+      }
+      recreate();
+    });
+
+    recreate();
     return rootItem;
   }
 };

@@ -47,6 +47,7 @@ private:
 public:
   static const constexpr double min = 0.;
   static const constexpr double max = 1.;
+  friend struct score::DefaultControlImpl;
   friend struct score::DefaultGraphicsSliderImpl;
   VSTGraphicsSlider(
       Steinberg::Vst::IEditController* fx, Steinberg::Vst::ParamID num,

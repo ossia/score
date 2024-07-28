@@ -31,7 +31,7 @@ struct WidgetInletFactory : public Dataflow::ControlInletFactory
       Inspector::Layout& lay, QObject* context) override
   {
     auto& ctrl = const_cast<Model_T&>(static_cast<const Model_T&>(port));
-    auto widg = Widget::make_widget(ctrl, ctrl, ctx, parent, parent);
+    auto widg = Widget::make_widget(ctrl, ctx, parent, parent);
     if(widg)
     {
       Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
@@ -79,7 +79,7 @@ struct WidgetOutletFactory : public Dataflow::ControlOutletFactory
       Inspector::Layout& lay, QObject* context) override
   {
     auto& ctrl = static_cast<const Model_T&>(port);
-    auto widg = Widget::make_widget(ctrl, ctrl, ctx, parent, parent);
+    auto widg = Widget::make_widget(ctrl, ctx, parent, parent);
     Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
   }
 
