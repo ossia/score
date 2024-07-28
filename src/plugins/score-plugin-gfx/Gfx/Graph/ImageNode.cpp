@@ -130,7 +130,7 @@ vec2 norm_texcoord(vec2 tc)
 
 void main ()
 {
-  float viewportAspect = renderSize.x / renderSize.y;
+  float viewportAspect = renderer.renderSize.x / renderer.renderSize.y;
   float imageAspect = mat._imageSize.x / mat._imageSize.y;
 
   vec2 pos = v_texcoord;
