@@ -11,5 +11,8 @@ static const constexpr QRectF defaultToggleSize{0., 0., 60., 20.};
 static const constexpr QRectF defaultRangeSliderSize{0., 0., 60., 23.};
 
 struct DoubleSpinboxWithEnter;
+struct DefaultControlImpl;
 struct DefaultGraphicsSliderImpl;
+struct DefaultGraphicsSpinboxImpl;
+struct DefaultGraphicsKnobImpl;
 }

@@ -16,6 +16,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider
     , public QGraphicsSliderBase<QGraphicsSlider>
 {
   W_OBJECT(QGraphicsSlider)
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsSliderImpl;
   friend struct QGraphicsSliderBase<QGraphicsSlider>;
 
@@ -32,6 +33,7 @@ private:
 
 public:
   explicit QGraphicsSlider(QGraphicsItem* parent);
+  ~QGraphicsSlider();
 
   double from01(double v) const noexcept { return v; }
   double unmap(double v) const noexcept { return (v - min) / (max - min); }

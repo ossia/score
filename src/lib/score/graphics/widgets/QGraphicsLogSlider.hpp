@@ -17,6 +17,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
 {
   W_OBJECT(QGraphicsLogSlider)
   Q_INTERFACES(QGraphicsItem)
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsSliderImpl;
   friend struct QGraphicsSliderBase<QGraphicsLogSlider>;
 
@@ -31,7 +32,8 @@ private:
   bool m_hasExec{};
 
 public:
-  QGraphicsLogSlider(QGraphicsItem* parent);
+  explicit QGraphicsLogSlider(QGraphicsItem* parent);
+  ~QGraphicsLogSlider();
 
   void setRange(double min, double max);
   void setValue(double v);

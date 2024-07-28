@@ -1,4 +1,5 @@
 #pragma once
+#include <score/graphics/DefaultControlImpl.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
@@ -13,6 +14,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QPainter>
+#include <QPointer>
 #include <QScreen>
 #include <QTimer>
 
@@ -77,7 +79,8 @@ struct DefaultGraphicsSpinboxImpl
       if(const auto v = mapValue(self, event); v != self.m_value)
       {
         self.m_value = v;
-        self.sliderMoved();
+        if(!self.m_noValueChangeOnMove)
+          self.sliderMoved();
         self.update();
       }
     }
@@ -97,6 +100,8 @@ struct DefaultGraphicsSpinboxImpl
       }
     }
 
+    if(self.m_noValueChangeOnMove)
+      self.sliderMoved();
     self.m_grab = false;
     self.sliderReleased();
 
@@ -124,16 +129,17 @@ struct DefaultGraphicsSpinboxImpl
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
       auto con = QObject::connect(
-          w, SignalUtils::QSpinBox_valueChanged_int(), &self, [&self](double v) {
-        self.m_value = self.unmap(v);
-        self.sliderMoved();
-        self.update();
+          w, SignalUtils::QSpinBox_valueChanged_int(), &self,
+          [&self, obj, scene = self.scene()](double v) {
+        DefaultControlImpl::editWidgetInContextMenu(self, scene, obj, v);
       });
 
       QObject::connect(
           w, &SpinboxWithEnter::editingFinished, &self, [obj, con, self_p]() mutable {
         if(obj != nullptr)
         {
+          if(self_p->m_noValueChangeOnMove)
+            self_p->sliderMoved();
           self_p->sliderReleased();
           QObject::disconnect(con);
           QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
@@ -150,6 +156,8 @@ struct DefaultGraphicsSpinboxImpl
     requires std::is_floating_point_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
+    // FIXME to be safe we have to locate the object by path on every click as
+    // some control changes may cause entire GUI rebuilds
     QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
       w->setRange(self.min, self.max);
@@ -164,10 +172,8 @@ struct DefaultGraphicsSpinboxImpl
 
       auto con = QObject::connect(
           w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
-          [&self](double v) {
-        self.m_value = self.unmap(v);
-        self.sliderMoved();
-        self.update();
+          [&self, obj, scene = self.scene()](double v) {
+        DefaultControlImpl::editWidgetInContextMenu(self, scene, obj, v);
       });
 
       QObject::connect(
@@ -175,6 +181,8 @@ struct DefaultGraphicsSpinboxImpl
           [obj, con, self_p]() mutable {
         if(obj != nullptr)
         {
+          if(self_p->m_noValueChangeOnMove)
+            self_p->sliderMoved();
           self_p->sliderReleased();
           QObject::disconnect(con);
           QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {

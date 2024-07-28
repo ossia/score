@@ -21,6 +21,12 @@ QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
+QGraphicsKnob::~QGraphicsKnob()
+{
+  if(m_grab)
+    sliderReleased();
+}
+
 void QGraphicsKnob::setRect(const QRectF& r)
 {
   prepareGeometryChange();

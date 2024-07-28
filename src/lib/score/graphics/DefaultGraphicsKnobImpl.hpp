@@ -1,4 +1,5 @@
 #pragma once
+#include <score/graphics/DefaultControlImpl.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
@@ -13,6 +14,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QPainter>
+#include <QPointer>
 #include <QScreen>
 #include <QTimer>
 
@@ -161,10 +163,9 @@ struct DefaultGraphicsKnobImpl
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
       auto con = QObject::connect(
-          w, SignalUtils::QSpinBox_valueChanged_int(), &self, [&self](double v) {
-        self.m_value = self.unmap(v);
-        self.sliderMoved();
-        self.update();
+          w, SignalUtils::QSpinBox_valueChanged_int(), &self,
+          [&self, obj, scene = self.scene()](double v) {
+        DefaultControlImpl::editWidgetInContextMenu(self, scene, obj, v);
       });
 
       QObject::connect(
@@ -201,10 +202,8 @@ struct DefaultGraphicsKnobImpl
 
       auto con = QObject::connect(
           w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
-          [&self](double v) {
-        self.m_value = self.unmap(v);
-        self.sliderMoved();
-        self.update();
+          [&self, obj, scene = self.scene()](double v) {
+        DefaultControlImpl::editWidgetInContextMenu(self, scene, obj, v);
       });
 
       QObject::connect(

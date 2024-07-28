@@ -30,6 +30,7 @@ public:
   bool moving = false;
 
   explicit QGraphicsRangeSlider(QGraphicsItem* parent);
+  ~QGraphicsRangeSlider();
 
   void setStart(double start);
   void setEnd(double end);

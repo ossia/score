@@ -22,6 +22,12 @@ QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
   setCursor(skin.CursorPointingHand);
 }
 
+QGraphicsIntSlider::~QGraphicsIntSlider()
+{
+  if(m_grab)
+    sliderReleased();
+}
+
 double QGraphicsIntSlider::from01(double v) const noexcept
 {
   return v * (max - min) + min;

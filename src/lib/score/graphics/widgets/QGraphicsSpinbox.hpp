@@ -9,7 +9,6 @@
 #include <verdigris>
 namespace score
 {
-struct DefaultGraphicsSpinboxImpl;
 class SCORE_LIB_BASE_EXPORT QGraphicsSpinbox final
     : public QObject
     , public QGraphicsItem
@@ -18,6 +17,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSpinbox final
   Q_INTERFACES(QGraphicsItem)
   Q_DISABLE_COPY(QGraphicsSpinbox)
 
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsSpinboxImpl;
   QRectF m_rect{0., 0., 40., 20.};
 
@@ -25,6 +25,7 @@ private:
   float m_value{}, m_execValue{};
   bool m_grab{};
   bool m_hasExec{};
+  bool m_noValueChangeOnMove{};
 
 public:
   float min{}, max{};
@@ -35,6 +36,7 @@ public:
   void setExecutionValue(float r);
   void resetExecution();
   void setRange(float min, float max);
+  void setNoValueChangeOnMove(bool);
   float value() const;
 
   bool moving = false;
@@ -64,6 +66,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSpinbox final
   Q_INTERFACES(QGraphicsItem)
   Q_DISABLE_COPY(QGraphicsIntSpinbox)
 
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsSpinboxImpl;
   QRectF m_rect{0., 0., 40., 20.};
 
@@ -71,6 +74,7 @@ private:
   double m_value{}, m_execValue{};
   bool m_grab{};
   bool m_hasExec{};
+  bool m_noValueChangeOnMove{};
 
 public:
   double min{}, max{};
@@ -81,6 +85,7 @@ public:
   void setExecutionValue(double r);
   void resetExecution();
   void setRange(double min, double max);
+  void setNoValueChangeOnMove(bool);
   int value() const;
 
   bool moving = false;

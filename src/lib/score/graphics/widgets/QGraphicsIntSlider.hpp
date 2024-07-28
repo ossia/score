@@ -17,6 +17,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
 {
   W_OBJECT(QGraphicsIntSlider)
   Q_INTERFACES(QGraphicsItem)
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsSliderImpl;
   friend struct QGraphicsSliderBase<QGraphicsIntSlider>;
   int m_value{}, m_execValue{};
@@ -27,6 +28,7 @@ public:
   int min{}, max{};
 
   explicit QGraphicsIntSlider(QGraphicsItem* parent);
+  ~QGraphicsIntSlider();
 
   double from01(double v) const noexcept;
   double unmap(double v) const noexcept;

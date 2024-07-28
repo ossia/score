@@ -20,6 +20,12 @@ QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent)
   setCursor(skin.CursorPointingHand);
 }
 
+QGraphicsSlider::~QGraphicsSlider()
+{
+  if(m_grab)
+    sliderReleased();
+}
+
 void QGraphicsSlider::setRange(double min, double max)
 {
   this->min = min;

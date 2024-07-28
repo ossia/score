@@ -23,7 +23,7 @@ void SelectionDispatcher::select(const Selection& s)
 void SelectionDispatcher::select(const IdentifiedObjectAbstract& s)
 {
   auto ptr = const_cast<IdentifiedObjectAbstract*>(&s);
-  if(qApp->keyboardModifiers() & Qt::CTRL)
+  if(qGuiApp->keyboardModifiers() & Qt::CTRL)
   {
     auto sel = m_stack.currentSelection();
     if(!sel.contains(ptr))

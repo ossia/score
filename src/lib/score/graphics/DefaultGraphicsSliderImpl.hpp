@@ -1,4 +1,5 @@
 #pragma once
+#include <score/graphics/DefaultControlImpl.hpp>
 #include <score/model/Skin.hpp>
 #include <score/widgets/DoubleSpinBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -151,10 +152,8 @@ struct DefaultGraphicsSliderImpl
 
       auto con = QObject::connect(
           w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
-          [&self](double v) {
-        self.m_value = self.unmap(v);
-        self.sliderMoved();
-        self.update();
+          [&self, obj, scene = self.scene()](double v) {
+        DefaultControlImpl::editWidgetInContextMenu(self, scene, obj, v);
       });
 
       QObject::connect(

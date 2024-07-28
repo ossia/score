@@ -22,6 +22,12 @@ QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
   setCursor(skin.CursorPointingHand);
 }
 
+QGraphicsLogSlider::~QGraphicsLogSlider()
+{
+  if(m_grab)
+    sliderReleased();
+}
+
 void QGraphicsLogSlider::setRange(double min, double max)
 {
   this->min = min;

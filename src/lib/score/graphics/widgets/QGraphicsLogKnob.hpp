@@ -16,6 +16,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogKnob final
 {
   W_OBJECT(QGraphicsLogKnob)
   Q_INTERFACES(QGraphicsItem)
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsKnobImpl;
 
   double m_value{};
@@ -30,7 +31,8 @@ private:
   bool m_hasExec{};
 
 public:
-  QGraphicsLogKnob(QGraphicsItem* parent);
+  explicit QGraphicsLogKnob(QGraphicsItem* parent);
+  ~QGraphicsLogKnob();
 
   double map(double v) const noexcept;
   double unmap(double v) const noexcept;

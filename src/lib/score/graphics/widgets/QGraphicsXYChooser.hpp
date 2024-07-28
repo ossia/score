@@ -25,7 +25,8 @@ private:
   bool m_grab{};
 
 public:
-  QGraphicsXYChooser(QGraphicsItem* parent);
+  explicit QGraphicsXYChooser(QGraphicsItem* parent);
+  ~QGraphicsXYChooser();
 
   void setPoint(const QPointF& r);
   void setValue(ossia::vec2f v);

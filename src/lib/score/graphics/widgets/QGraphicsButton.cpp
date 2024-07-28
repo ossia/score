@@ -18,6 +18,15 @@ QGraphicsButton::QGraphicsButton(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
+QGraphicsButton::~QGraphicsButton()
+{
+  if(m_pressed)
+  {
+    m_pressed = false;
+    pressed(false);
+  }
+}
+
 void QGraphicsButton::bang()
 {
   m_pressed = true;

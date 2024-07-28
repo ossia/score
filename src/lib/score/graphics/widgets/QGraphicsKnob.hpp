@@ -16,6 +16,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsKnob
 {
   W_OBJECT(QGraphicsKnob)
   Q_INTERFACES(QGraphicsItem)
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsKnobImpl;
 
 protected:
@@ -31,7 +32,8 @@ private:
   bool m_hasExec{};
 
 public:
-  QGraphicsKnob(QGraphicsItem* parent);
+  explicit QGraphicsKnob(QGraphicsItem* parent);
+  ~QGraphicsKnob();
 
   double unmap(double v) const noexcept { return (v - min) / (max - min); }
   double map(double v) const noexcept { return (v * (max - min)) + min; }

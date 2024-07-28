@@ -22,9 +22,6 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYZSpinboxChooser final
   QRectF m_rect{0., 0., 150., 24.};
   QGraphicsSpinbox m_x, m_y, m_z;
 
-private:
-  bool m_grab{};
-
 public:
   explicit QGraphicsXYZSpinboxChooser(QGraphicsItem* parent);
   ~QGraphicsXYZSpinboxChooser();

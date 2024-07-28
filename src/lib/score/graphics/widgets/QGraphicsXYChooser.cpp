@@ -22,6 +22,12 @@ QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
+QGraphicsXYChooser::~QGraphicsXYChooser()
+{
+  if(m_grab)
+    sliderReleased();
+}
+
 void QGraphicsXYChooser::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {

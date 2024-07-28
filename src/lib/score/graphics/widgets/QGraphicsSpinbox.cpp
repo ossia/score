@@ -23,7 +23,11 @@ QGraphicsSpinbox::QGraphicsSpinbox(QGraphicsItem* parent)
   max = 100;
 }
 
-QGraphicsSpinbox::~QGraphicsSpinbox() = default;
+QGraphicsSpinbox::~QGraphicsSpinbox()
+{
+  if(m_grab)
+    sliderReleased();
+}
 
 void QGraphicsSpinbox::setValue(float v)
 {
@@ -49,6 +53,11 @@ void QGraphicsSpinbox::setRange(float min, float max)
   this->min = min;
   this->max = max;
   update();
+}
+
+void QGraphicsSpinbox::setNoValueChangeOnMove(bool b)
+{
+  m_noValueChangeOnMove = b;
 }
 
 float QGraphicsSpinbox::value() const
@@ -128,6 +137,11 @@ void QGraphicsIntSpinbox::setRange(double min, double max)
   this->min = min;
   this->max = max;
   update();
+}
+
+void QGraphicsIntSpinbox::setNoValueChangeOnMove(bool b)
+{
+  m_noValueChangeOnMove = b;
 }
 
 int QGraphicsIntSpinbox::value() const

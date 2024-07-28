@@ -22,6 +22,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsButton final
 
 public:
   QGraphicsButton(QGraphicsItem* parent);
+  ~QGraphicsButton();
 
   void bang();
 

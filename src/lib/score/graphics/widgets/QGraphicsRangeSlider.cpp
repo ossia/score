@@ -21,6 +21,12 @@ QGraphicsRangeSlider::QGraphicsRangeSlider(QGraphicsItem* parent)
   setCursor(skin.CursorPointingHand);
 }
 
+QGraphicsRangeSlider::~QGraphicsRangeSlider()
+{
+  if(moving)
+    sliderReleased();
+}
+
 void QGraphicsRangeSlider::setStart(double start)
 {
   start = std::clamp(start, 0., 1.);

@@ -24,7 +24,6 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYSpinboxChooser final
   QRectF m_rect{0., 0., 150., 24.};
   QGraphicsSpinbox m_x, m_y;
 
-  bool m_grab{};
   bool m_isRange{};
 
 public:
