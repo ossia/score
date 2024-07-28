@@ -32,6 +32,7 @@ set(SRCS
     Dataflow/AudioOutletItem.cpp
     Dataflow/CableInspector.cpp
     Dataflow/DropPortInScenario.cpp
+    Dataflow/WidgetInletFactory.cpp
     score_plugin_dataflow.cpp
 )
 

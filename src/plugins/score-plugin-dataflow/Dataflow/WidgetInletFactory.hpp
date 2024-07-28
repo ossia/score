@@ -7,6 +7,9 @@
 
 namespace Dataflow
 {
+SCORE_PLUGIN_DATAFLOW_EXPORT
+QWidget* makeGraphicsViewForInspectorItem(QGraphicsItem* item, QWidget* parent);
+
 template <typename T, typename Widget>
 struct WidgetInletFactory : public Dataflow::ControlInletFactory
 {
@@ -27,9 +30,18 @@ struct WidgetInletFactory : public Dataflow::ControlInletFactory
       const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
       Inspector::Layout& lay, QObject* context) override
   {
-    auto& ctrl = static_cast<const Model_T&>(port);
+    auto& ctrl = const_cast<Model_T&>(static_cast<const Model_T&>(port));
     auto widg = Widget::make_widget(ctrl, ctrl, ctx, parent, parent);
-    Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
+    if(widg)
+    {
+      Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
+    }
+    else
+    {
+      auto item = makeControlItem(ctrl, ctx, nullptr, context);
+      auto widg = makeGraphicsViewForInspectorItem(item, parent);
+      Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
+    }
   }
 
   QGraphicsItem* makeControlItem(
