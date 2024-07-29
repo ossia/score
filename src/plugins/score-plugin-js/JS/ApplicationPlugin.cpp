@@ -4,6 +4,11 @@
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
 
+#if __has_include(<QQuickWindow>)
+#include <QQuickItem>
+#include <QQuickWindow>
+#endif
+
 namespace JS
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -18,6 +23,7 @@ ApplicationPlugin::~ApplicationPlugin() { }
 
 bool ApplicationPlugin::handleStartup()
 {
+#if __has_include(<QQuickWindow>)
   if(QFileInfo f{context.applicationSettings.ui}; f.isFile())
   {
     m_comp = new QQmlComponent{&m_engine, f.absoluteFilePath(), this};
@@ -41,6 +47,7 @@ bool ApplicationPlugin::handleStartup()
     }
     delete m_comp;
   }
+#endif
   return false;
 }
 }

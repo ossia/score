@@ -9,50 +9,16 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/js_utilities.hpp>
 
+#include <QCoreApplication>
 #include <QQmlContext>
 #include <QQmlEngine>
 
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(JS::AddressItem)
 W_OBJECT_IMPL(JS::AddressSource)
 
 namespace JS
 {
-
-AddressItem::AddressItem(QQuickItem* parent)
-    : QQuickItem{parent}
-{
-  connect(this, &QQuickItem::parentChanged, this, [this](QQuickItem* parent) {
-    if(!parent)
-      return;
-    auto ctx = qmlContext(parent);
-    m_devices = qobject_cast<JS::DeviceContext*>(
-        ctx->engine()->globalObject().property("Device").toQObject());
-    on_addressChanged(m_address);
-  });
-
-  connect(this, &AddressItem::addressChanged, this, &AddressItem::on_addressChanged);
-}
-
-void AddressItem::on_addressChanged(const QString& addr)
-{
-  if(!m_devices)
-    return;
-  auto node = m_devices->find(addr);
-  if(!node)
-    return;
-  auto param = node->get_parameter();
-  if(!param)
-    return;
-  switch(param->get_value_type())
-  {
-    case ossia::val_type::FLOAT:
-      break;
-  }
-}
-
-AddressItem::~AddressItem() { }
 
 AddressSource::AddressSource(QObject* parent)
     : QObject{parent}

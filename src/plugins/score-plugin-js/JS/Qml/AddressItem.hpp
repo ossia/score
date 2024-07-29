@@ -4,7 +4,6 @@
 
 #include <QQmlProperty>
 #include <QQmlPropertyValueSource>
-#include <QQuickItem>
 
 #include <nano_observer.hpp>
 
@@ -17,20 +16,6 @@ class parameter_base;
 namespace JS
 {
 class DeviceContext;
-struct AddressItem : public QQuickItem
-{
-  W_OBJECT(AddressItem)
-public:
-  explicit AddressItem(QQuickItem* parent = nullptr);
-  ~AddressItem();
-
-  void on_addressChanged(const QString& addr);
-
-  INLINE_PROPERTY_CREF(QString, address, = "", address, setAddress, addressChanged)
-
-private:
-  JS::DeviceContext* m_devices{};
-};
 
 struct AddressSource
     : public QObject

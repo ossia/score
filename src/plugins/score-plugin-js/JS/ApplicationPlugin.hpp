@@ -7,8 +7,8 @@
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
-#include <QQuickView>
 
+class QQuickWindow;
 namespace JS
 {
 class ApplicationPlugin final

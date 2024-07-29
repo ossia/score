@@ -74,7 +74,6 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
   qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
 
-  qmlRegisterType<JS::AddressItem>("Score", 1, 0, "AddressItem");
   qmlRegisterType<JS::AddressSource>("Score", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score", 1, 0, "PortSource");
 
