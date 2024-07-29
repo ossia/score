@@ -978,7 +978,10 @@ void DeviceInterface::addressCreated(const ossia::net::parameter_base& addr)
   Device::AddressSettings as = ToAddressSettings(addr.get_node());
   pathUpdated(currentAddress, as);
   ossia::qt::run_async(
-      qApp, [this, addr = currentAddress] { setListening(addr, true); });
+      QCoreApplication::instance(), [self = QPointer{this}, addr = currentAddress] {
+    if(self)
+      self->setListening(addr, true);
+  });
 }
 
 void DeviceInterface::addressUpdated(
