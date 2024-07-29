@@ -5,6 +5,9 @@
 
 #include <score/graphics/GraphicsLayout.hpp>
 #include <score/model/Skin.hpp>
+
+#include <span>
+
 namespace Process
 {
 struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase

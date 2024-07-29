@@ -177,7 +177,7 @@ struct InletInitFunc
   template <avnd::dynamic_ports_port T, std::size_t N>
   void operator()(const T& in, avnd::field_index<N> i)
   {
-    using port_type = decltype(in.ports)::value_type;
+    using port_type = typename decltype(in.ports)::value_type;
     port_type p;
     (*this)(p, i);
   }
@@ -258,7 +258,7 @@ struct OutletInitFunc
   template <avnd::dynamic_ports_port T, std::size_t N>
   void operator()(const T& in, avnd::field_index<N> i)
   {
-    using port_type = decltype(in.ports)::value_type;
+    using port_type = typename decltype(in.ports)::value_type;
     port_type p;
     (*this)(p, i);
   }
