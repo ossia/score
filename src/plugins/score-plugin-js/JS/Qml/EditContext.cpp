@@ -55,6 +55,20 @@ QObject* EditJsContext::find(QString p)
   return nullptr;
 }
 
+QObject* EditJsContext::findByLabel(QString p)
+{
+  auto doc = document();
+  const auto meta = doc->findChildren<score::ModelMetadata*>();
+  for(auto m : meta)
+  {
+    if(m->getLabel() == p)
+    {
+      return m->parent();
+    }
+  }
+  return nullptr;
+}
+
 QObject* EditJsContext::document()
 {
   return score::GUIAppContext().documents.currentDocument();

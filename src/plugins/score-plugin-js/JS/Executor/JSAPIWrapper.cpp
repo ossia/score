@@ -43,7 +43,7 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
   {
     // Address looks like '/foo/bar'
     // Try to find automatically in all devices
-    auto node = devices.find_node(str.toStdString());
+    auto node = find_node(devices, str.toStdString());
     if(node)
     {
       if(auto addr = node->get_parameter())
@@ -56,11 +56,11 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 
   // Split in devices
   auto dev = ossia::find_if(
-      devices.exec_devices(), [devname = str.mid(0, d).toStdString()](const auto& dev) {
-        return dev->get_name() == devname;
-      });
+      devices, [devname = str.mid(0, d).toStdString()](const auto& dev) {
+    return dev->get_name() == devname;
+  });
 
-  if(dev != devices.exec_devices().end())
+  if(dev != devices.end())
   {
     if(d == str.size() - 1)
     {
@@ -89,7 +89,7 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
     return it->second;
   }
 
-  static ossia::destination_t bad_dest;
+  static const ossia::destination_t bad_dest;
   return bad_dest;
 }
 
@@ -101,8 +101,7 @@ QVariant ExecStateWrapper::read(const QString& address)
     QVariantMap mv;
 
     bool unique = ossia::apply_to_destination(
-        addr, devices.exec_devices(),
-        [&](ossia::net::parameter_base* addr, bool unique) {
+        addr, devices, [&](ossia::net::parameter_base* addr, bool unique) {
       if(unique)
       {
         var = addr->value().apply(ossia::qt::ossia_to_qvariant{});
@@ -112,8 +111,7 @@ QVariant ExecStateWrapper::read(const QString& address)
         mv[QString::fromStdString(addr->get_node().osc_address())]
             = addr->value().apply(ossia::qt::ossia_to_qvariant{});
       }
-        },
-        ossia::do_nothing_for_nodes{});
+    }, ossia::do_nothing_for_nodes{});
     if(unique)
       return var;
     else
@@ -130,12 +128,20 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
     m_port_cache.get_data().emplace_back(ossia::qt::qt_to_ossia{}(value));
 
     ossia::apply_to_destination(
-        addr, devices.exec_devices(),
-        [&](ossia::net::parameter_base* addr, bool unique) {
-      devices.insert(*addr, m_port_cache);
-        },
-        ossia::do_nothing_for_nodes{});
+        addr, devices, [&](ossia::net::parameter_base* addr, bool unique) {
+      on_push(*addr, m_port_cache);
+    }, ossia::do_nothing_for_nodes{});
   }
 }
 
+ossia::net::node_base*
+ExecStateWrapper::find_node(DeviceCache& devices, std::string_view name)
+{
+  for(auto dev : devices)
+  {
+    if(auto res = ossia::net::find_node(dev->get_root_node(), name))
+      return res;
+  }
+  return nullptr;
+}
 }

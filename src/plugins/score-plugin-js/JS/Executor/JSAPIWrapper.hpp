@@ -9,19 +9,32 @@
 #include <QObject>
 
 #include <verdigris>
+namespace Device
+{
+class DeviceList;
+}
 namespace ossia
 {
 struct execution_state;
+namespace net
+{
+class device_base;
+}
 }
 namespace JS
 {
+using DeviceCache = ossia::small_vector<ossia::net::device_base*, 4>;
+using DevicePushFunction
+    = smallfun::function<void(ossia::net::parameter_base&, const ossia::value_port&)>;
+
 class ExecStateWrapper : public QObject
 {
   W_OBJECT(ExecStateWrapper)
 public:
-  ExecStateWrapper(ossia::execution_state& state, QObject* parent)
+  ExecStateWrapper(const DeviceCache& state, DevicePushFunction push, QObject* parent)
       : QObject{parent}
       , devices{state}
+      , on_push{std::move(push)}
   {
   }
   ~ExecStateWrapper() override;
@@ -35,12 +48,43 @@ public:
 
   void system(const QString& code) W_SIGNAL(system, code);
 
+  static ossia::net::node_base* find_node(DeviceCache& devices, std::string_view name);
+  const ossia::destination_t& find_address(const QString&);
+
+  DeviceCache devices;
+
 private:
-  ossia::execution_state& devices;
+  DevicePushFunction on_push;
+
+  ossia::hash_map<QString, ossia::destination_t> m_address_cache;
+  ossia::value_port m_port_cache;
+  // TODO share cache
+};
+
+/*
+class EditStateWrapper : public QObject
+{
+  W_OBJECT(EditStateWrapper)
+public:
+  EditStateWrapper(Device::DeviceList& state, QObject* parent)
+      : QObject{parent}
+      , devices{state}
+  {
+  }
+  ~EditStateWrapper() override;
+
+  QVariant read(const QString& address);
+  W_SLOT(read);
+  void write(const QString& address, const QVariant& value);
+  W_SLOT(write);
+
+private:
+  Device::DeviceList& devices;
 
   const ossia::destination_t& find_address(const QString&);
   ossia::hash_map<QString, ossia::destination_t> m_address_cache;
   ossia::value_port m_port_cache;
-  // TODO share cash across
+  // TODO share cache
 };
+*/
 }

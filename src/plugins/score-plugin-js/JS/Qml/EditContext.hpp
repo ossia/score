@@ -179,12 +179,18 @@ public:
   QObject* find(QString p);
   W_SLOT(find)
 
+  QObject* findByLabel(QString p);
+  W_SLOT(findByLabel)
+
   QObject* document();
   W_SLOT(document)
 
   /// Execution ///
+  void play();
+  W_SLOT(play, ())
+
   void play(QObject* obj);
-  W_SLOT(play)
+  W_SLOT(play, (QObject*))
 
   void stop();
   W_SLOT(stop)

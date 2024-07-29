@@ -29,17 +29,24 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/GPUNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/AddressItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceContext.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Metatypes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/DropHandler.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/LibraryHandler.hpp"
 )
+
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"
@@ -51,6 +58,8 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/AddressItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.curve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.device.cpp"
@@ -59,10 +68,12 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.port.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.scenario.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.ui.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSource.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_js.cpp"
 )

@@ -14,6 +14,7 @@
 
 class score_plugin_js final
     : public score::Plugin_QtInterface
+    , public score::ApplicationPlugin_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::CommandFactory_QtInterface
 {
@@ -23,6 +24,9 @@ public:
   virtual ~score_plugin_js();
 
 private:
+  score::GUIApplicationPlugin*
+  make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
+
   // Process & inspector
   std::vector<score::InterfaceBase*> factories(
       const score::ApplicationContext& ctx,

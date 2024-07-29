@@ -36,6 +36,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! List of scenarios that should be loaded
   QStringList loadList;
 
+  //! UI file to be loaded
+  QString ui;
+
   //! Seconds to wait before playing
   int waitAfterLoad = 0;
 

@@ -2,17 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_js.hpp"
 
-#include "JS/Commands/JSCommandFactory.hpp"
-
 #include <Process/ProcessFactory.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
+#include <JS/ApplicationPlugin.hpp>
+#include <JS/Commands/JSCommandFactory.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/DropHandler.hpp>
 #include <JS/Executor/Component.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/LibraryHandler.hpp>
+#include <JS/Qml/AddressItem.hpp>
+#include <JS/Qml/PortSource.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -20,9 +23,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <QFileInfo>
-#include <QQmlListProperty>
-#include <QTimer>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <score_plugin_js_commands_files.hpp>
 #include <wobjectimpl.h>
@@ -73,6 +74,10 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
   qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
 
+  qmlRegisterType<JS::AddressItem>("Score", 1, 0, "AddressItem");
+  qmlRegisterType<JS::AddressSource>("Score", 1, 0, "AddressSource");
+  qmlRegisterType<JS::PortSource>("Score", 1, 0, "PortSource");
+
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 
   qRegisterMetaType<JS::SampleTimings>();
@@ -93,6 +98,12 @@ std::vector<score::InterfaceBase*> score_plugin_js::factories(
          JS::ModuleLibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
       FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(ctx, key);
+}
+
+score::GUIApplicationPlugin*
+score_plugin_js::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+{
+  return new JS::ApplicationPlugin{app};
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_js::make_commands()

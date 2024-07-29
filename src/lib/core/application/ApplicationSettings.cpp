@@ -57,6 +57,11 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
       "N", "0");
   parser.addOption(waitLoadOpt);
 
+  QCommandLineOption uiOpt(
+      "ui", QCoreApplication::translate("main", "Specify an UI file to load."), "file",
+      "");
+  parser.addOption(uiOpt);
+
 #if defined(__APPLE__)
   // Bogus macOS gatekeeper BS:
   // https://stackoverflow.com/questions/55562155/qt-application-for-mac-not-being-launched
@@ -106,6 +111,12 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   tryToRestore = !parser.isSet(noRestore);
   this->forceRestore = parser.isSet(forceRestore);
   gui = !parser.isSet(noGUI);
+
+  if(parser.isSet(uiOpt))
+  {
+    gui = false;
+    ui = parser.value(uiOpt);
+  }
   if(parser.isSet(GL))
     opengl = true;
   if(parser.isSet(noGL))

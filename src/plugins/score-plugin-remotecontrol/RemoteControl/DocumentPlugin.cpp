@@ -19,6 +19,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <QBuffer>
+#include <QJSEngine>
 
 #include <RemoteControl/DocumentPlugin.hpp>
 #include <RemoteControl/Scenario/Scenario.hpp>

@@ -9,8 +9,6 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
-#include <QJSEngine>
-#include <QJSValueIterator>
 #include <QLineEdit>
 #include <QMenu>
 #include <QPlainTextEdit>
@@ -20,6 +18,8 @@
 
 #include <score_plugin_js_export.h>
 #include <wobjectimpl.h>
+class QQmlEngine;
+class QJSEngine;
 namespace JS
 {
 
@@ -50,10 +50,10 @@ private:
 
   const score::PanelStatus& defaultPanelStatus() const override;
 
+  QQmlEngine& m_engine;
   QWidget* m_widget{};
   QPlainTextEdit* m_edit{};
   QLineEdit* m_lineEdit{};
-  QJSEngine m_engine;
 };
 
 class PanelDelegateFactory final : public score::PanelDelegateFactory

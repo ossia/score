@@ -32,6 +32,14 @@ QString EditJsContext::valueType(QObject* obj)
   return ret;
 }
 
+void EditJsContext::play()
+{
+  auto plug
+      = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  if(plug)
+    plug->execution().request_play_global(true);
+}
+
 void EditJsContext::play(QObject* obj)
 {
   auto plug = score::GUIAppContext()

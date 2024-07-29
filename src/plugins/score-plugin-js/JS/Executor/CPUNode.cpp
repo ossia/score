@@ -6,6 +6,8 @@
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
 
+#include <ossia/dataflow/execution_state.hpp>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
@@ -80,7 +82,10 @@ void js_node::setScript(const QString& val)
   if(!m_engine)
   {
     m_engine = new QQmlEngine;
-    m_execFuncs = new ExecStateWrapper{m_st, m_engine};
+    m_execFuncs = new ExecStateWrapper{
+        m_st.exec_devices(), [&]<typename... Args>(Args&&... args) {
+      m_st.insert(std::forward<Args>(args)...);
+    }, m_engine};
     m_engine->rootContext()->setContextProperty("Device", m_execFuncs);
 
     QObject::connect(

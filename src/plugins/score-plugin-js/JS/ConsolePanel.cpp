@@ -1,23 +1,24 @@
 #include "ConsolePanel.hpp"
 
-#include <JS/Qml/EditContext.hpp>
-#include <JS/Qml/Utils.hpp>
+#include <JS/ApplicationPlugin.hpp>
 
 #include <QDebug>
 #include <QFileInfo>
+#include <QJSValueIterator>
+#include <QQmlEngine>
 
 namespace JS
 {
 
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
+    , m_engine{ctx.guiApplicationPlugin<JS::ApplicationPlugin>().m_engine}
     , m_widget{new QWidget}
 {
   m_engine.installExtensions(QJSEngine::ConsoleExtension);
-  m_engine.globalObject().setProperty("Score", m_engine.newQObject(new EditJsContext));
-  m_engine.globalObject().setProperty("Util", m_engine.newQObject(new JsUtils));
   m_engine.globalObject().setProperty(
       "ActionContext", m_engine.newQObject(new ActionContext));
+
   auto lay = new QVBoxLayout;
   m_widget->setLayout(lay);
   m_widget->setStatusTip(
