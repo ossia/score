@@ -5,6 +5,7 @@
 #include <JS/Qml/Utils.hpp>
 
 #if __has_include(<QQuickWindow>)
+#include <QGuiApplication>
 #include <QQuickItem>
 #include <QQuickWindow>
 #endif

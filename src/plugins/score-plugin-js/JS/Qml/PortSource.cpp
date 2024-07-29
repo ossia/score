@@ -70,8 +70,8 @@ void PortSource::rebuild()
     return;
 
   auto& model = doc->model().modelDelegate();
-  auto processes
-      = model.findChildren<Process::ProcessModel*>(Qt::FindChildrenRecursively);
+  auto processes = model.findChildren<Process::ProcessModel*>(
+      QString{}, Qt::FindChildrenRecursively);
 
   Process::ProcessModel* process = nullptr;
   for(auto proc : processes)
