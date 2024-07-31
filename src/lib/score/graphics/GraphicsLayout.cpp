@@ -41,6 +41,17 @@ void GraphicsLayout::setPadding(qreal p)
   m_padding = p;
 }
 
+void GraphicsLayout::updateChildrenRects(const QList<QGraphicsItem*>& items)
+{
+  for(int i = 0; i < items.size(); i++)
+  {
+    if(auto rect = dynamic_cast<score::EmptyRectItem*>(items[i]))
+    {
+      rect->fitChildrenRect();
+    }
+  }
+}
+
 void GraphicsLayout::setMargin(qreal p)
 {
   m_margin = p;

@@ -15,6 +15,7 @@ void GraphicsTabLayout::addTab(QString tab)
 void GraphicsTabLayout::layout()
 {
   const auto& items = this->childItems();
+  updateChildrenRects(items);
   m_pages.assign(items.begin(), items.end());
 
   SCORE_ASSERT(items.size() == m_tabs.size());

@@ -282,6 +282,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsHSVChooser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsIntSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsKnob.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsLineEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsLogKnob.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsLogSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsMultiSlider.hpp"
@@ -467,6 +468,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsHSVChooser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsIntSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsKnob.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsLineEdit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsLogKnob.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsLogSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/widgets/QGraphicsMultiSlider.cpp"
@@ -591,8 +593,15 @@ target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/outcome/in
 target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/llfio/include")
 
 target_link_libraries(score_lib_base
-    PUBLIC ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::GuiPrivate ${QT_PREFIX}::Widgets ${QT_PREFIX}::Network ossia QCodeEditor
-    )
+  PUBLIC
+    ${QT_PREFIX}::Core
+    ${QT_PREFIX}::Gui ${QT_PREFIX}::GuiPrivate
+    ${QT_PREFIX}::Widgets ${QT_PREFIX}::WidgetsPrivate
+    ${QT_PREFIX}::Network
+    ossia
+    QCodeEditor
+)
+
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(score_lib_base
     PRIVATE ${QT_PREFIX}::Svg

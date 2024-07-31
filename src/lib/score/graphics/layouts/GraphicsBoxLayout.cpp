@@ -9,8 +9,12 @@ void GraphicsHBoxLayout::layout()
 {
   double x = 0;
   const double y = 0 + m_padding;
+
+  auto items = this->childItems();
+  updateChildrenRects(items);
+
   double max_h = 0.;
-  for(auto item : this->childItems())
+  for(auto item : items)
   {
     const auto r = item->boundingRect();
     max_h = std::max(max_h, r.height());
@@ -20,7 +24,7 @@ void GraphicsHBoxLayout::layout()
   }
 
   // Make them fit the height
-  for(auto item : this->childItems())
+  for(auto item : items)
   {
     if(auto it = qgraphicsitem_cast<score::GraphicsLayout*>(item))
     {
@@ -50,8 +54,11 @@ void GraphicsVBoxLayout::layout()
   const double x = 0 + m_padding;
   double y = 0;
 
+  auto items = this->childItems();
+  updateChildrenRects(items);
+
   double max_w = 0.;
-  for(auto item : this->childItems())
+  for(auto item : items)
   {
     const auto r = item->boundingRect();
     max_w = std::max(max_w, r.width());
@@ -62,7 +69,7 @@ void GraphicsVBoxLayout::layout()
   }
 
   // Make them fit the width
-  for(auto item : this->childItems())
+  for(auto item : items)
   {
     if(auto it = qgraphicsitem_cast<score::GraphicsLayout*>(item))
     {

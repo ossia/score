@@ -10,11 +10,8 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
-#include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
-#include <score/graphics/widgets/QGraphicsTextButton.hpp>
-#include <score/graphics/widgets/QGraphicsXYSpinbox.hpp>
-#include <score/graphics/widgets/QGraphicsXYZSpinbox.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -24,15 +21,14 @@
 #include <ossia/network/domain/domain_functions.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
+#include <ossia-qt/invoke.hpp>
+
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QGraphicsItem>
 #include <QGraphicsSceneDragDropEvent>
 #include <QLineEdit>
 #include <QPalette>
-#include <QTextDocument>
-
-#include <private/qwidgettextcontrol_p.h>
 
 #include <score_lib_process_export.h>
 
@@ -53,35 +49,6 @@ struct SCORE_LIB_PROCESS_EXPORT DefaultControlLayouts
   static Process::PortItemLayout bang() noexcept;
   static Process::PortItemLayout button() noexcept;
   static Process::PortItemLayout chooser_toggle() noexcept;
-};
-
-struct SCORE_LIB_PROCESS_EXPORT LineEditItem : public QGraphicsTextItem
-{
-  W_OBJECT(LineEditItem)
-public:
-  explicit LineEditItem(QGraphicsItem* parent)
-      : QGraphicsTextItem{parent}
-  {
-    setTextInteractionFlags(Qt::TextEditorInteraction);
-    auto ctl = this->findChild<QWidgetTextControl*>();
-    if(ctl)
-    {
-      ctl->setAcceptRichText(false);
-    }
-  }
-
-  void dropEvent(QGraphicsSceneDragDropEvent* drop) override
-  {
-    QGraphicsItem::dropEvent(drop);
-    const auto& urlList = drop->mimeData()->urls();
-
-    if(!urlList.isEmpty())
-    {
-      this->setPlainText(urlList[0].toLocalFile());
-    }
-  }
-
-  void sizeChanged(QSizeF sz) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, sz)
 };
 }
 
@@ -882,11 +849,11 @@ struct LineEdit
   }
 
   template <typename T, typename Control_T>
-  static Process::LineEditItem* make_item(
+  static score::QGraphicsLineEdit* make_item(
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context)
   {
-    auto sl = new Process::LineEditItem{parent};
+    auto sl = new score::QGraphicsLineEdit{parent};
     initWidgetProperties(inlet, *sl);
     sl->setTextWidth(180.);
     sl->setDefaultTextColor(QColor{"#E0B01E"});
@@ -895,22 +862,31 @@ struct LineEdit
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
     auto doc = sl->document();
-    QObject::connect(
-        doc, &QTextDocument::contentsChanged, context,
-        [=, &inlet, &ctx, r = sl->boundingRect()]() mutable {
+    auto on_edit = [=, &inlet, &ctx] {
       auto cur_str = ossia::convert<std::string>(inlet.value());
       if(cur_str != doc->toPlainText().toStdString())
       {
         CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
             inlet, doc->toPlainText().toStdString());
       }
+    };
 
-      if(r != sl->boundingRect())
-      {
-        r = sl->boundingRect();
-        sl->sizeChanged(r.size());
-      }
-        });
+    if(!inlet.noValueChangeOnMove)
+    {
+      QObject::connect(doc, &QTextDocument::contentsChanged, context, on_edit);
+    }
+    else
+    {
+      QObject::connect(sl, &score::QGraphicsLineEdit::editingFinished, context, on_edit);
+    }
+
+    if(auto obj = dynamic_cast<score::ResizeableItem*>(context))
+    {
+      QObject::connect(
+          sl, &score::QGraphicsLineEdit::sizeChanged, obj,
+          &score::ResizeableItem::childrenSizeChanged);
+    }
+
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
       auto str = QString::fromStdString(ossia::convert<std::string>(val));
       if(str != doc->toPlainText())
@@ -941,8 +917,13 @@ struct ProgramPortScriptDialog : Process::ScriptDialog
     auto next = this->text().toStdString();
     if(next != cur)
     {
-      CommandDispatcher<>{m_context.commandStack}.submit(
-          new Process::SetControlValue{m_port, next});
+      ossia::qt::run_async(
+          qApp, [&ctx = m_context.commandStack, port = QPointer{&m_port}, next] {
+        if(port)
+        {
+          CommandDispatcher<>{ctx}.submit(new Process::SetControlValue{*port, next});
+        }
+      });
     }
   }
 
@@ -977,7 +958,7 @@ struct ProgramEdit
 
     QObject::connect(
         toggle, &score::QGraphicsTextButton::pressed, context,
-        [=, &inlet, &ctx] { createDialog(inlet, ctx); });
+        [=, &inlet, &ctx] { createDialog(inlet, ctx); }, Qt::QueuedConnection);
 
     return toggle;
   }
@@ -1055,8 +1036,10 @@ struct FileChooser
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
           inlet, filename.toStdString());
     };
-    QObject::connect(bt, &score::QGraphicsTextButton::pressed, &inlet, on_open);
-    QObject::connect(bt, &score::QGraphicsTextButton::dropped, &inlet, on_set);
+    QObject::connect(
+        bt, &score::QGraphicsTextButton::pressed, &inlet, on_open, Qt::QueuedConnection);
+    QObject::connect(
+        bt, &score::QGraphicsTextButton::dropped, &inlet, on_set, Qt::QueuedConnection);
     auto set = [=](const ossia::value& val) {
       auto str = QString::fromStdString(ossia::convert<std::string>(val));
       if(str != bt->text())

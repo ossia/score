@@ -20,6 +20,8 @@ public:
   void setMargin(qreal m);
   void setPadding(qreal p);
 
+  void updateChildrenRects(const QList<QGraphicsItem*>&);
+
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
 

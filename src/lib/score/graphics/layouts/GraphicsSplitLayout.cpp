@@ -38,6 +38,7 @@ void GraphicsSplitLayout::layout()
   double max_h = 0.;
 
   const auto items = this->childItems();
+  updateChildrenRects(items);
   for(int i = 0, N = items.size(); i < N; i++)
   {
     auto item = items[i];

@@ -1,7 +1,5 @@
 #include <Process/Dataflow/ControlWidgets.hpp>
-#include <wobjectimpl.h>
 
-W_OBJECT_IMPL(Process::LineEditItem)
 namespace Process
 {
 PortItemLayout DefaultControlLayouts::knob() noexcept

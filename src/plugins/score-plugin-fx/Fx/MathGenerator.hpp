@@ -53,7 +53,7 @@ static void miniMathItem(
   if(auto obj = dynamic_cast<score::ResizeableItem*>(&parent))
   {
     QObject::connect(
-        &edit_item.control, &Process::LineEditItem::sizeChanged, obj,
+        &edit_item.control, &score::QGraphicsLineEdit::sizeChanged, obj,
         &score::ResizeableItem::childrenSizeChanged);
   }
 }

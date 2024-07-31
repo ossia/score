@@ -166,9 +166,12 @@ static QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
 
   return {x + default_padding, y + default_padding};
 }
+
 void GraphicsDefaultLayout::layout()
 {
   const auto items = this->childItems();
+  updateChildrenRects(items);
+
   for(int i = 0; i < items.size(); i++)
   {
     auto it = items[i];
