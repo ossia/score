@@ -177,19 +177,24 @@ private:
   {
     if constexpr(
         avnd::dynamic_ports_input_introspection<Info>::size > 0
-        || avnd::dynamic_ports_input_introspection<Info>::size > 0)
+        || avnd::dynamic_ports_output_introspection<Info>::size > 0)
     {
-      avnd::input_introspection<Info>::for_all(
-          [this]<std::size_t Idx, typename F>(avnd::field_reflection<Idx, F>) {
+      avnd::control_input_introspection<Info>::for_all_n2(
+          avnd::get_inputs<Info>(this->object_storage_for_ports_callbacks),
+          [this]<std::size_t Idx, typename F>(
+              F& field, auto pred_index, avnd::field_index<Idx>) {
+        auto& obj = this->object_storage_for_ports_callbacks;
         if constexpr(requires { F::on_controller_setup(); })
         {
           auto controller_inlets = avnd_input_idx_to_model_ports(Idx);
           SCORE_ASSERT(controller_inlets.size() == 1);
           auto inlet = qobject_cast<Process::ControlInlet*>(controller_inlets[0]);
-          decltype(F::value) current_value;
-          oscr::from_ossia_value(inlet->value(), current_value);
-          F::on_controller_setup()(
-              this->object_storage_for_ports_callbacks, current_value);
+
+          oscr::from_ossia_value(inlet->value(), field.value);
+
+          if_possible(field.update(obj));
+
+          F::on_controller_setup()(obj, field.value);
         }
         if constexpr(requires { F::on_controller_interaction(); })
         {
@@ -199,11 +204,13 @@ private:
           inlet->noValueChangeOnMove = true;
           connect(
               inlet, &Process::ControlInlet::valueChanged,
-              [this](const ossia::value& val) {
-            decltype(F::value) current_value;
-            oscr::from_ossia_value(val, current_value);
-            F::on_controller_interaction()(
-                this->object_storage_for_ports_callbacks, current_value);
+              [this, &field](const ossia::value& val) {
+            auto& obj = this->object_storage_for_ports_callbacks;
+            oscr::from_ossia_value(val, field.value);
+
+            if_possible(field.update(obj));
+
+            F::on_controller_interaction()(obj, field.value);
           });
         }
       });
