@@ -29,6 +29,7 @@
 #include <QGraphicsSceneDragDropEvent>
 #include <QLineEdit>
 #include <QPalette>
+#include <QApplication>
 
 #include <score_lib_process_export.h>
 
