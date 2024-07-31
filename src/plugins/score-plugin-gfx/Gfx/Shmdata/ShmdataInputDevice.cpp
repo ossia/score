@@ -1,14 +1,12 @@
 #include "ShmdataInputDevice.hpp"
 
-#include <Gfx/Graph/VideoNode.hpp>
-#include <Video/CameraInput.hpp>
-
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Video/CameraInput.hpp>
 #include <Video/FrameQueue.hpp>
 #include <Video/GStreamerCompatibility.hpp>
 #include <Video/GpuFormats.hpp>
@@ -30,7 +28,7 @@
 #include <QMenu>
 #include <QMimeData>
 
-#include <shmdata/reader.hpp>
+#include <shmdata/follower.hpp>
 
 #include <wobjectimpl.h>
 
@@ -257,7 +255,7 @@ private:
 
   std::string m_path;
   shmdata::ConsoleLogger m_logger;
-  std::optional<shmdata::Reader> m_receiver;
+  std::optional<shmdata::Follower> m_receiver;
 };
 
 InputDevice::~InputDevice() { }
