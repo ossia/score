@@ -82,3 +82,6 @@
 [submodule "cmake/Deployment/Linux/Flatpak/shared-modules"]
 	path = cmake/Deployment/Linux/Flatpak/shared-modules
 	url = https://github.com/flathub/shared-modules
+[submodule "3rdparty/sh4lt"]
+	path = 3rdparty/sh4lt
+	url = https://gitlab.com/sh4lt/sh4lt

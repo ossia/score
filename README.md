@@ -4,7 +4,7 @@
 
 [**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows.
 
-Sequence **OSC, MIDI, DMX, sound, video** and more, between multiple software and hardware. Create ***interactive*** and ***intermedia*** scores, ***script*** and ***live-code*** with JavaScript, [ISF Shaders](https://isf.video), [Faust](https://faust.grame.fr), PureData or C++. Leverage IoT protocols such as CoAP or MQTT, interact with joysticks, Wiimotes, Leapmotions, Web APIs and BLE sensors and integrate programs from a wealth of creative programming languages such as [Structure Synth](https://structuresynth.sourceforge.net/), [Context-Free Art](https://www.contextfreeart.org/) and [Bytebeat](https://dollchan.net/bytebeat/). Load any kind of audio or video format and process visuals through Spout, Syphon, NDI or Shmdata.
+Sequence **OSC, MIDI, DMX, sound, video** and more, between multiple software and hardware. Create ***interactive*** and ***intermedia*** scores, ***script*** and ***live-code*** with JavaScript, [ISF Shaders](https://isf.video), [Faust](https://faust.grame.fr), PureData or C++. Leverage IoT protocols such as CoAP or MQTT, interact with joysticks, Wiimotes, Leapmotions, Web APIs and BLE sensors and integrate programs from a wealth of creative programming languages such as [Structure Synth](https://structuresynth.sourceforge.net/), [Context-Free Art](https://www.contextfreeart.org/) and [Bytebeat](https://dollchan.net/bytebeat/). Load any kind of audio or video format and process visuals through Spout, Syphon, NDI, Shmdata or Sh4lt.
 
 Free, open source and runs on desktop, mobile, web and embedded, down to Raspberry Pi Zero 2.
 
