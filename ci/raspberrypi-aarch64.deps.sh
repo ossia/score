@@ -28,13 +28,9 @@ tar xaf gpsd-3.25.tar.xz
 cp gpsd-3.25/include/gps.h /opt/ossia-sdk-rpi-aarch64/pi/sysroot/usr/include/
 cp gpsd-3.25/include/gps.h /opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi/sysroot/include/
 
-wget http://ftp.debian.org/debian/pool/main/p/pipewire/libspa-0.2-dev_1.0.7-1~bpo12+1_arm64.deb -O spa.deb
-wget http://ftp.debian.org/debian/pool/main/p/pipewire/libpipewire-0.3-dev_1.0.7-1~bpo12+1_arm64.deb -O pipewire.deb
-ar xv spa.deb
-tar xaf data.tar.xz --strip-components=1 --directory "$PWD"
-ar xv pipewire.deb
-tar xaf data.tar.xz --strip-components=1 --directory "$PWD"
-cp -rf ./usr/include/*  /opt/ossia-sdk-rpi-aarch64/pi/sysroot/usr/include/
-cp -rf ./usr/include/*  /opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi/sysroot/include/
+wget https://github.com/ossia/sdk/releases/download/sdk31/pipewire-headers-1.2.2.tar.gz -O pipewire.tar.gz
+tar xaf pipewire.tar.gz --directory "$PWD"
+cp -rf pipewire-0.3 spa-0.2 /opt/ossia-sdk-rpi-aarch64/pi/sysroot/usr/include/
+cp -rf pipewire-0.3 spa-0.2 /opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi/sysroot/include/
 
 source ci/common.deps.sh
