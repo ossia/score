@@ -161,6 +161,7 @@ AboutDialog::AboutDialog(QWidget* parent)
       "Based on https://github.com/HBPVIS/Servus\n", servus_LICENSE};
 
   map["shmdata"] = License{"https://gitlab.com/sat-metalab/shmdata", shmdata_LICENSE};
+  map["sh4lt"] = License{"https://gitlab.com/sh4lt/sh4lt", sh4lt_LICENSE};
 #if defined(_WIN32)
   map["Spout"] = License{"https://spout.zeal.co/", spout_LICENSE};
 #endif
@@ -262,7 +263,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       [=, m = std::move(map)](const QString& currentText) {
     auto& lic = m.at(currentText);
     license->setPlainText(lic.url + "\n\n" + lic.header + "\n" + lic.license);
-  });
+      });
 #endif
 }
 

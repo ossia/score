@@ -27,6 +27,10 @@
 
 #include <score/plugins/FactorySetup.hpp>
 
+#if defined(SCORE_HAS_SH4LT)
+#include <Gfx/Sh4lt/Sh4ltInputDevice.hpp>
+#include <Gfx/Sh4lt/Sh4ltOutputDevice.hpp>
+#endif
 #if defined(SCORE_HAS_SHMDATA)
 #include <Gfx/Shmdata/ShmdataInputDevice.hpp>
 #include <Gfx/Shmdata/ShmdataOutputDevice.hpp>
@@ -71,6 +75,10 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
          ,
          Gfx::LibavOutputProtocolFactory
+#endif
+#if defined(SCORE_HAS_SH4LT)
+         ,
+         Gfx::Sh4lt::InputFactory, Gfx::Sh4ltOutputProtocolFactory
 #endif
 #if defined(SCORE_HAS_SHMDATA)
          ,

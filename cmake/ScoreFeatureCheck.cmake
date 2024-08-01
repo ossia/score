@@ -77,6 +77,7 @@ if(UNIX AND NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN)
     score_assert_plugin(score-plugin-lv2)
     score_assert_feature(pipewire)
     score_assert_feature(shmdata)
+    score_assert_feature(sh4lt)
     score_assert_feature(v4l2)
 endif()
 

@@ -61,6 +61,7 @@ printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" >
   rm -rf 3rdparty/quickcpplib/doc
   rm -rf 3rdparty/quickcpplib/pcpp
   rm -rf 3rdparty/shmdata/doc
+  rm -rf 3rdparty/sh4lt/doc
   rm -rf 3rdparty/snappy/third_party
   rm -rf 3rdparty/snappy/testdata
   rm -rf 3rdparty/DSPFilters/DSPFiltersDemo
