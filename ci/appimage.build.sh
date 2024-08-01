@@ -23,8 +23,8 @@ sudo chown -R $(whoami) $BUILD_FOLDER
 wget -nv "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
 chmod a+x appimagetool-x86_64.AppImage
 
-wget -nv "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64"
-chmod a+x runtime-x86_64
+wget -nv "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-fuse3-x86_64"
+chmod a+x runtime-fuse3-x86_64
 
 wget -nv "https://github.com/probonopd/AppImageKit/releases/download/continuous/AppRun-x86_64"
 chmod a+x AppRun-x86_64
@@ -38,7 +38,7 @@ if [[ ! -f "build/score.AppDir/usr/bin/ossia-score" ]]; then
   exit 1
 fi
 
-./appimagetool-x86_64.AppImage -n "build/score.AppDir" "Score.AppImage" --runtime-file runtime-x86_64
+./appimagetool-x86_64.AppImage -n "build/score.AppDir" "Score.AppImage" --runtime-file runtime-fuse3-x86_64
 
 if [[ ! -f "Score.AppImage" ]]; then
   echo "Build failure, Score.AppImage could not be created"
