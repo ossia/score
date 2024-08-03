@@ -285,6 +285,25 @@ if(TARGET shmdata)
   list(APPEND SCORE_FEATURES_LIST shmdata)
 endif()
 
+if(TARGET sh4lt)
+  target_sources(${PROJECT_NAME}
+    PRIVATE
+      Gfx/Sh4lt/Sh4ltInputDevice.hpp
+      Gfx/Sh4lt/Sh4ltInputDevice.cpp
+      Gfx/Sh4lt/Sh4ltOutputDevice.hpp
+      Gfx/Sh4lt/Sh4ltOutputDevice.cpp
+  )
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      sh4lt
+  )
+  target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+      SCORE_HAS_SH4LT
+  )
+  list(APPEND SCORE_FEATURES_LIST sh4lt)
+endif()
+
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)
     find_library(AppKit_FK AppKit)

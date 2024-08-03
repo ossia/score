@@ -21,7 +21,7 @@
       <li>Leverage IoT protocols such as CoAP or MQTT for industrial-grade automation.</li>
       <li>Interact with joysticks, Wiimotes, Leapmotions, Web APIs and BLE sensors.</li>
       <li>Integrate programs from a wealth of creative programming languages such as Structure Synth, Context-Free Art and Bytebeat.</li>
-      <li>Load any kind of audio or video format and process visuals through Spout, Syphon, NDI or Shmdata.</li>
+      <li>Load any kind of audio or video format and process visuals through Spout, Syphon, NDI, Shmdata or Sh4lt.</li>
     </ul>
   </description>
   <launchable type="desktop-id">io.ossia.score.desktop</launchable>
