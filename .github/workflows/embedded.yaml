@@ -78,6 +78,7 @@ jobs:
 
       - name: Continuous
         uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
         with:
           name: "Continuous"
           tag_name: "continuous"
@@ -89,7 +90,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
         with:
           body: ""
           append_body: true

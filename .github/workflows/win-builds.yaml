@@ -22,6 +22,7 @@ jobs:
           call "%cd%\ci\win32store.build.cmd"
 
       - name: Create certificate
+        if: github.event_name != 'pull_request'
         shell: pwsh
         env:
           OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
@@ -35,6 +36,7 @@ jobs:
           arch: x64
 
       - name: Deploy
+        if: github.event_name != 'pull_request'
         shell: cmd
         env:
           OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
@@ -44,6 +46,7 @@ jobs:
 
       - name: Upload build
         uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
         with:
           name: windows-store
           path: |
@@ -51,6 +54,7 @@ jobs:
 
       - name: Continuous
         uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
         with:
           name: "Continuous"
           tag_name: "continuous"
@@ -62,7 +66,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
         with:
           body: ""
           append_body: true

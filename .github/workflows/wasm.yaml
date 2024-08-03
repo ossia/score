@@ -36,6 +36,7 @@ jobs:
 
       - name: Push changes
         uses: ad-m/github-push-action@master
+        if: github.event_name != 'pull_request'
         with:
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: 'main'
