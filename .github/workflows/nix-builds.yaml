@@ -1,6 +1,6 @@
 name: Nix build
+on: [push,pull_request]
 
-on: push
 jobs:
   nix:
     name: Nix
