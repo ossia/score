@@ -1,6 +1,5 @@
 name: Template check
-
-on: push
+on: [push,pull_request]
 
 jobs:
   init_template:
