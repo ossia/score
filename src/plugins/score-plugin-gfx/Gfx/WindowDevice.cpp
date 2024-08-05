@@ -469,7 +469,7 @@ void WindowProtocolFactory::serializeProtocolSpecificSettings(
 bool WindowProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return a.name != b.name;
+  return true;
 }
 
 WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)

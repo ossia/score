@@ -297,6 +297,8 @@ void OSCProtocolFactory::serializeProtocolSpecificSettings(
 bool OSCProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
+  if(a.protocol != b.protocol)
+    return true;
   auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
   auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();
   return a.name != b.name

@@ -61,7 +61,7 @@ void PhidgetProtocolFactory::serializeProtocolSpecificSettings(
 bool PhidgetProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
-  return a.name != b.name;
+  return true;
 }
 
 Device::AddressDialog* PhidgetProtocolFactory::makeEditAddressDialog(

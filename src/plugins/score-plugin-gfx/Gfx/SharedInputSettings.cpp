@@ -45,7 +45,7 @@ void SharedInputProtocolFactory::serializeProtocolSpecificSettings(
 bool SharedInputProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return a.name != b.name;
+  return true;
 }
 
 SharedInputSettingsWidget::SharedInputSettingsWidget(QWidget* parent)

@@ -70,7 +70,7 @@ void SimpleIOProtocolFactory::serializeProtocolSpecificSettings(
 bool SimpleIOProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return false; //  TODO
+  return true;
 }
 }
 #endif

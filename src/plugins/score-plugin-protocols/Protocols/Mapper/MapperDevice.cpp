@@ -793,7 +793,7 @@ void MapperProtocolFactory::serializeProtocolSpecificSettings(
 bool MapperProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return a.name != b.name;
+  return true;
 }
 
 MapperProtocolSettingsWidget::MapperProtocolSettingsWidget(QWidget* parent)

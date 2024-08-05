@@ -70,10 +70,6 @@ void ArtnetProtocolFactory::serializeProtocolSpecificSettings(
 bool ArtnetProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  if(a.name == b.name)
-    return false;
-  if(a.protocol != b.protocol)
-    return true;
   auto lhs = a.deviceSpecificSettings.value<ArtnetSpecificSettings>();
   auto rhs = b.deviceSpecificSettings.value<ArtnetSpecificSettings>();
   if(lhs.transport != rhs.transport)

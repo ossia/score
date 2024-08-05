@@ -72,7 +72,7 @@ void GPSProtocolFactory::serializeProtocolSpecificSettings(
 bool GPSProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return false; //  TODO
+  return true; //  TODO
 }
 }
 #endif

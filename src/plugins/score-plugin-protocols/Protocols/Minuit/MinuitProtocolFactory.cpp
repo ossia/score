@@ -70,6 +70,8 @@ void MinuitProtocolFactory::serializeProtocolSpecificSettings(
 bool MinuitProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
+  if(a.protocol != b.protocol)
+    return true;
   // TODO we should check also for other devices.  Devices should have a "open
   // ports" method that
   // returns the ports they use.

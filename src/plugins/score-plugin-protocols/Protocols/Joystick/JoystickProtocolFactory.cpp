@@ -19,19 +19,21 @@ public:
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
       const override
   {
-    const unsigned int joystick_count = ossia::net::joystick_info::get_joystick_count();
+    using info = ossia::net::joystick_info;
+    const unsigned int joystick_count = info::get_joystick_count();
 
     for(unsigned int i = 0; i < joystick_count; ++i)
     {
-      const char* s = ossia::net::joystick_info::get_joystick_name(i);
+      const char* s = info::get_joystick_name(i);
       if(s)
       {
         Device::DeviceSettings set;
         set.name = s;
         set.protocol = JoystickProtocolFactory::static_concreteKey();
         JoystickSpecificSettings specif;
-        ossia::net::joystick_info::write_joystick_uuid(i, specif.id.data);
-        specif.spec = {ossia::net::joystick_info::get_joystick_id(i), i};
+        info::write_joystick_uuid(i, specif.id.data);
+        specif.spec = {info::get_joystick_id(i), i};
+        specif.gamepad = info::get_joystick_is_gamepad(i);
 
         set.deviceSpecificSettings = QVariant::fromValue(specif);
         f(set.name, set);
@@ -69,7 +71,10 @@ const Device::DeviceSettings& JoystickProtocolFactory::defaultSettings() const n
     Device::DeviceSettings s;
     s.protocol = concreteKey();
     s.name = "Joystick";
+
     JoystickSpecificSettings settings;
+    settings.id = {};
+    settings.spec = {-1, -1};
     s.deviceSpecificSettings = QVariant::fromValue(settings);
     return s;
   }();
@@ -98,6 +103,16 @@ bool JoystickProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   auto a_ = a.deviceSpecificSettings.value<JoystickSpecificSettings>();
+  if(a.protocol != b.protocol)
+  {
+    // Prevent instantiating a dummy joystick device
+    if(a_.id == score::uuid_t{} && a_.spec == std::pair<int32_t, int32_t>{-1, -1})
+    {
+      return false;
+    }
+    return true;
+  }
+
   auto b_ = b.deviceSpecificSettings.value<JoystickSpecificSettings>();
   return a_.id != b_.id || a_.spec != b_.spec;
 }

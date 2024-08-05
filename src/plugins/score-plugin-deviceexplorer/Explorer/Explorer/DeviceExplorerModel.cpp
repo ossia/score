@@ -242,14 +242,20 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
     return false;
 
   // Look for other childs in the same protocol.
-  return std::none_of(
+  bool none_incompatible = std::none_of(
       rootNode().begin(), rootNode().end(), [&](const Device::Node& child) {
-        SCORE_ASSERT(child.is<Device::DeviceSettings>());
-        const auto& set = child.get<Device::DeviceSettings>();
-        return (set.name == n.name)
-               || (set.protocol == n.protocol
-                   && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
-      });
+    SCORE_ASSERT(child.is<Device::DeviceSettings>());
+    const auto& set = child.get<Device::DeviceSettings>();
+    return (set.name == n.name)
+           || (set.protocol
+                   == n.protocol // FIXME distinct protocols could use the same port...
+               && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
+  });
+  if(!none_incompatible)
+    return false;
+
+  // Check compatibility with an empty device
+  return prot->checkCompatibility(n, Device::DeviceSettings{});
 }
 
 bool DeviceExplorerModel::checkDeviceEditable(
@@ -267,18 +273,23 @@ bool DeviceExplorerModel::checkDeviceEditable(
     return false;
 
   // Look for other childs in the same protocol.
-  return std::none_of(
+  bool none_incompatible = std::none_of(
       rootNode().begin(), rootNode().end(), [&](const Device::Node& child) {
-        SCORE_ASSERT(child.is<Device::DeviceSettings>());
-        const auto& set = child.get<Device::DeviceSettings>();
-        // Ignore the device that is being edited
-        if(set.name == originalName)
-          return false;
+    SCORE_ASSERT(child.is<Device::DeviceSettings>());
+    const auto& set = child.get<Device::DeviceSettings>();
+    // Ignore the device that is being edited
+    if(set.name == originalName)
+      return false;
 
-        return (set.name == n.name)
-               || (set.protocol == n.protocol
-                   && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
-      });
+    return (set.name == n.name)
+           || (set.protocol == n.protocol
+               && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
+  });
+  if(!none_incompatible)
+    return false;
+
+  // Check compatibility with an empty device
+  return prot->checkCompatibility(n, Device::DeviceSettings{});
 }
 
 bool DeviceExplorerModel::checkAddressInstantiatable(

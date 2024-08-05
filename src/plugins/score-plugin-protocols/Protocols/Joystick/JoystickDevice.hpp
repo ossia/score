@@ -3,7 +3,7 @@
 
 namespace Protocols
 {
-
+struct JoystickSpecificSettings;
 class JoystickDevice final : public Device::OwningDeviceInterface
 {
   W_OBJECT(JoystickDevice)
@@ -17,6 +17,8 @@ public:
   void disconnect() override;
 
 private:
+  template <typename T>
+  void do_reconnect(JoystickSpecificSettings& stgs);
   const ossia::net::network_context_ptr& m_ctx;
 };
 }

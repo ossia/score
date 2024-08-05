@@ -206,7 +206,9 @@ void MIDIInputProtocolFactory::serializeProtocolSpecificSettings(
 bool MIDIInputProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return a.name != b.name;
+  // FIXME check if we can open the same device multiple times ?
+  auto specif = a.deviceSpecificSettings.value<MIDISpecificSettings>();
+  return specif.handle != libremidi::port_information{} || specif.virtualPort;
 }
 
 QString MIDIOutputProtocolFactory::prettyName() const noexcept
@@ -281,6 +283,8 @@ void MIDIOutputProtocolFactory::serializeProtocolSpecificSettings(
 bool MIDIOutputProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return a.name != b.name;
+  // FIXME check if we can open the same device multiple times ?
+  auto specif = a.deviceSpecificSettings.value<MIDISpecificSettings>();
+  return specif.handle != libremidi::port_information{} || specif.virtualPort;
 }
 }

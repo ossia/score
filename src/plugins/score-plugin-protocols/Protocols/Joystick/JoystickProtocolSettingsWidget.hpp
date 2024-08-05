@@ -5,14 +5,10 @@
 #include <verdigris>
 
 class QLineEdit;
-namespace score
-{
-class ComboBox;
-}
+class QCheckBox;
 
 namespace Protocols
 {
-
 class JoystickProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
   W_OBJECT(JoystickProtocolSettingsWidget)
@@ -26,6 +22,7 @@ public:
 
 protected:
   QLineEdit* m_deviceNameEdit{};
+  QCheckBox* m_gamepad{};
   Device::DeviceSettings m_settings;
 };
 }

@@ -180,7 +180,7 @@ void CameraProtocolFactory::serializeProtocolSpecificSettings(
 bool CameraProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return a.name != b.name;
+  return true;
 }
 
 class CameraSettingsWidget final : public Device::ProtocolSettingsWidget

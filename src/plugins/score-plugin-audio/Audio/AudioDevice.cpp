@@ -518,7 +518,7 @@ void AudioProtocolFactory::serializeProtocolSpecificSettings(
 bool AudioProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
-  return a.name != b.name;
+  return true;
 }
 
 AudioSettingsWidget::AudioSettingsWidget(QWidget* parent)
