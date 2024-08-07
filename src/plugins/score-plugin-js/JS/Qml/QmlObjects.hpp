@@ -26,6 +26,7 @@
 
 #include <libremidi/message.hpp>
 
+#include <score_plugin_js_export.h>
 #include <wobjectimpl.h>
 
 #include <verdigris>
@@ -34,7 +35,7 @@ class QQuickItem;
 W_REGISTER_ARGTYPE(QJSValue)
 namespace JS
 {
-class Inlet : public QObject
+class SCORE_PLUGIN_JS_EXPORT Inlet : public QObject
 {
   W_OBJECT(Inlet)
 
@@ -47,7 +48,7 @@ public:
   W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
 
-class Outlet : public QObject
+class SCORE_PLUGIN_JS_EXPORT Outlet : public QObject
 {
   W_OBJECT(Outlet)
 
@@ -59,7 +60,7 @@ public:
   W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
 
-struct InValueMessage
+struct SCORE_PLUGIN_JS_EXPORT InValueMessage
 {
   W_GADGET(InValueMessage)
 
@@ -70,7 +71,7 @@ public:
   W_PROPERTY(QVariant, value MEMBER value)
 };
 
-struct OutValueMessage
+struct SCORE_PLUGIN_JS_EXPORT OutValueMessage
 {
   W_GADGET(OutValueMessage)
 
@@ -81,7 +82,7 @@ public:
   W_PROPERTY(QJSValue, value MEMBER value)
 };
 
-class ValueInlet : public Inlet
+class SCORE_PLUGIN_JS_EXPORT ValueInlet : public Inlet
 {
   W_OBJECT(ValueInlet)
 
@@ -114,7 +115,7 @@ public:
   W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
 };
 
-class ControlInlet : public Inlet
+class SCORE_PLUGIN_JS_EXPORT ControlInlet : public Inlet
 {
   W_OBJECT(ControlInlet)
 
@@ -138,7 +139,7 @@ public:
 };
 
 template <typename Impl, typename ValueType>
-class GenericControlInlet : public ControlInlet
+class SCORE_PLUGIN_JS_EXPORT GenericControlInlet : public ControlInlet
 {
   W_OBJECT(GenericControlInlet)
 
@@ -178,69 +179,81 @@ private:
   ValueType m_value{};
 };
 W_OBJECT_IMPL((GenericControlInlet<A, B>), template <typename A, typename B>)
-struct FloatRangeSpinBox : JS::GenericControlInlet<Process::FloatRangeSpinBox, QVector2D>
+struct SCORE_PLUGIN_JS_EXPORT FloatRangeSpinBox
+    : JS::GenericControlInlet<Process::FloatRangeSpinBox, QVector2D>
 {
   W_OBJECT(FloatRangeSpinBox);
   using GenericControlInlet::GenericControlInlet;
 };
-struct IntRangeSlider : JS::GenericControlInlet<Process::IntRangeSlider, QVector2D>
+struct SCORE_PLUGIN_JS_EXPORT IntRangeSlider
+    : JS::GenericControlInlet<Process::IntRangeSlider, QVector2D>
 {
   W_OBJECT(IntRangeSlider);
   using GenericControlInlet::GenericControlInlet;
 };
-struct IntRangeSpinBox : JS::GenericControlInlet<Process::IntRangeSpinBox, QVector2D>
+struct SCORE_PLUGIN_JS_EXPORT IntRangeSpinBox
+    : JS::GenericControlInlet<Process::IntRangeSpinBox, QVector2D>
 {
   W_OBJECT(IntRangeSpinBox);
   using GenericControlInlet::GenericControlInlet;
 };
-struct HSVSlider : JS::GenericControlInlet<Process::HSVSlider, QVector4D>
+struct SCORE_PLUGIN_JS_EXPORT HSVSlider
+    : JS::GenericControlInlet<Process::HSVSlider, QVector4D>
 {
   W_OBJECT(HSVSlider);
   using GenericControlInlet::GenericControlInlet;
 };
-struct XYSlider : JS::GenericControlInlet<Process::XYSlider, QVector2D>
+struct SCORE_PLUGIN_JS_EXPORT XYSlider
+    : JS::GenericControlInlet<Process::XYSlider, QVector2D>
 {
   W_OBJECT(XYSlider);
   using GenericControlInlet::GenericControlInlet;
 };
-struct XYZSlider : JS::GenericControlInlet<Process::XYZSlider, QVector3D>
+struct SCORE_PLUGIN_JS_EXPORT XYZSlider
+    : JS::GenericControlInlet<Process::XYZSlider, QVector3D>
 {
   W_OBJECT(XYZSlider);
   using GenericControlInlet::GenericControlInlet;
 };
-struct XYSpinboxes : JS::GenericControlInlet<Process::XYSpinboxes, QVector2D>
+struct SCORE_PLUGIN_JS_EXPORT XYSpinboxes
+    : JS::GenericControlInlet<Process::XYSpinboxes, QVector2D>
 {
   W_OBJECT(XYSpinboxes);
   using GenericControlInlet::GenericControlInlet;
 };
-struct XYZSpinboxes : JS::GenericControlInlet<Process::XYZSpinboxes, QVector3D>
+struct SCORE_PLUGIN_JS_EXPORT XYZSpinboxes
+    : JS::GenericControlInlet<Process::XYZSpinboxes, QVector3D>
 {
   W_OBJECT(XYZSpinboxes);
   using GenericControlInlet::GenericControlInlet;
 };
-struct MultiSlider : JS::GenericControlInlet<Process::MultiSlider, QVector<qreal>>
+struct SCORE_PLUGIN_JS_EXPORT MultiSlider
+    : JS::GenericControlInlet<Process::MultiSlider, QVector<qreal>>
 {
   W_OBJECT(MultiSlider);
   using GenericControlInlet::GenericControlInlet;
 };
-struct FileChooser : JS::GenericControlInlet<Process::FileChooser, QString>
+struct SCORE_PLUGIN_JS_EXPORT FileChooser
+    : JS::GenericControlInlet<Process::FileChooser, QString>
 {
   W_OBJECT(FileChooser);
   using GenericControlInlet::GenericControlInlet;
 };
-struct AudioFileChooser : JS::GenericControlInlet<Process::AudioFileChooser, QString>
+struct SCORE_PLUGIN_JS_EXPORT AudioFileChooser
+    : JS::GenericControlInlet<Process::AudioFileChooser, QString>
 {
   W_OBJECT(AudioFileChooser);
   using GenericControlInlet::GenericControlInlet;
 };
-struct VideoFileChooser : JS::GenericControlInlet<Process::VideoFileChooser, QString>
+struct SCORE_PLUGIN_JS_EXPORT VideoFileChooser
+    : JS::GenericControlInlet<Process::VideoFileChooser, QString>
 {
   W_OBJECT(VideoFileChooser);
   using GenericControlInlet::GenericControlInlet;
 };
 
 template <typename Impl = Process::FloatSlider>
-class FloatSlider : public GenericControlInlet<Impl, float>
+class SCORE_PLUGIN_JS_EXPORT FloatSlider : public GenericControlInlet<Impl, float>
 {
   W_OBJECT(FloatSlider)
 
@@ -262,7 +275,7 @@ public:
 W_OBJECT_IMPL(JS::FloatSlider<Impl>, template <typename Impl>)
 
 template <typename Impl = Process::IntSlider>
-class IntSlider : public GenericControlInlet<Impl, int>
+class SCORE_PLUGIN_JS_EXPORT IntSlider : public GenericControlInlet<Impl, int>
 {
   W_OBJECT(IntSlider)
 
@@ -282,7 +295,7 @@ public:
 };
 W_OBJECT_IMPL(JS::IntSlider<Impl>, template <typename Impl>)
 
-class Enum : public ControlInlet
+class SCORE_PLUGIN_JS_EXPORT Enum : public ControlInlet
 {
   W_OBJECT(Enum)
 
@@ -311,7 +324,7 @@ public:
   W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices, choicesChanged)
 };
 
-class Toggle : public ControlInlet
+class SCORE_PLUGIN_JS_EXPORT Toggle : public ControlInlet
 {
   W_OBJECT(Toggle)
 
@@ -327,7 +340,7 @@ public:
   W_INLINE_PROPERTY_VALUE(bool, checked, {}, checked, setChecked, checkedChanged)
 };
 
-class Button : public ControlInlet
+class SCORE_PLUGIN_JS_EXPORT Button : public ControlInlet
 {
   W_OBJECT(Button)
 
@@ -343,7 +356,7 @@ public:
   W_INLINE_PROPERTY_VALUE(bool, checked, {}, checked, setChecked, checkedChanged)
 };
 
-class Impulse : public ControlInlet
+class SCORE_PLUGIN_JS_EXPORT Impulse : public ControlInlet
 {
   W_OBJECT(Impulse)
 
@@ -359,7 +372,7 @@ public:
   void impulse() W_SIGNAL(impulse);
 };
 
-class LineEdit : public ControlInlet
+class SCORE_PLUGIN_JS_EXPORT LineEdit : public ControlInlet
 {
   W_OBJECT(LineEdit)
 
@@ -375,7 +388,7 @@ public:
   W_INLINE_PROPERTY_CREF(QString, text, {}, text, setText, textChanged)
 };
 
-class ValueOutlet : public Outlet
+class SCORE_PLUGIN_JS_EXPORT ValueOutlet : public Outlet
 {
   W_OBJECT(ValueOutlet)
 
@@ -406,7 +419,7 @@ public:
   W_PROPERTY(QJSValue, value READ value WRITE setValue)
 };
 
-class AudioInlet : public Inlet
+class SCORE_PLUGIN_JS_EXPORT AudioInlet : public Inlet
 {
   W_OBJECT(AudioInlet)
 
@@ -433,7 +446,7 @@ private:
   QVector<QVector<double>> m_audio;
 };
 
-class AudioOutlet : public Outlet
+class SCORE_PLUGIN_JS_EXPORT AudioOutlet : public Outlet
 {
   W_OBJECT(AudioOutlet)
 
@@ -456,7 +469,7 @@ private:
   QVector<QVector<double>> m_audio;
 };
 
-class MidiMessage
+class SCORE_PLUGIN_JS_EXPORT MidiMessage
 {
   W_GADGET(MidiMessage)
 
@@ -466,7 +479,7 @@ public:
   W_PROPERTY(QByteArray, bytes MEMBER bytes)
 };
 
-class MidiInlet : public Inlet
+class SCORE_PLUGIN_JS_EXPORT MidiInlet : public Inlet
 {
   W_OBJECT(MidiInlet)
 
@@ -502,7 +515,7 @@ private:
   QVariantList m_midi;
 };
 
-class MidiOutlet : public Outlet
+class SCORE_PLUGIN_JS_EXPORT MidiOutlet : public Outlet
 {
   W_OBJECT(MidiOutlet)
 
