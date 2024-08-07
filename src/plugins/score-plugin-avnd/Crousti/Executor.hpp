@@ -34,6 +34,8 @@
 
 #include <score/tools/ThreadPool.hpp>
 
+#include <ossia/detail/type_if.hpp>
+
 #include <QTimer>
 
 #include <avnd/binding/ossia/data_node.hpp>
@@ -598,56 +600,6 @@ struct ExecutorGuiUpdate
   }
 };
 
-template <typename T, bool Predicate>
-struct type_if;
-template <typename T>
-struct type_if<T, false>
-{
-  type_if() = default;
-  type_if(const type_if&) = default;
-  type_if(type_if&&) = default;
-  type_if& operator=(const type_if&) = default;
-  type_if& operator=(type_if&&) = default;
-
-  template <typename U>
-  type_if(U&&)
-  {
-  }
-  template <typename U>
-  T& operator=(U&& u) noexcept
-  {
-    return *this;
-  }
-};
-
-template <typename T>
-struct type_if<T, true>
-{
-  [[no_unique_address]] T value;
-
-  type_if() = default;
-  type_if(const type_if&) = default;
-  type_if(type_if&&) = default;
-  type_if& operator=(const type_if&) = default;
-  type_if& operator=(type_if&&) = default;
-
-  template <typename U>
-  type_if(U&& other)
-      : value{std::forward<U>(other)}
-  {
-  }
-
-  operator const T&() const noexcept { return value; }
-  operator T&() noexcept { return value; }
-  operator T&&() && noexcept { return std::move(value); }
-
-  template <typename U>
-  T& operator=(U&& u) noexcept
-  {
-    return value = std::forward<U>(u);
-  }
-};
-
 template <typename Node>
 class CustomNodeProcess : public ossia::node_process
 {
@@ -683,7 +635,7 @@ public:
     return static_key() == other || Execution::ProcessComponent::base_key_match(other);
   }
 
-  [[no_unique_address]] type_if<int, is_gpu<Node>> node_id = -1;
+  [[no_unique_address]] ossia::type_if<int, is_gpu<Node>> node_id = -1;
 
   Executor(ProcessModel<Node>& element, const ::Execution::Context& ctx, QObject* p)
       : Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>{

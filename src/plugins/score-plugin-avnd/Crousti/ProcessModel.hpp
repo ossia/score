@@ -5,11 +5,13 @@
 
 #include <Crousti/Attributes.hpp>
 #include <Crousti/Concepts.hpp>
+#include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadata.hpp>
 #include <Crousti/Metadatas.hpp>
 #include <Crousti/ProcessModelPortInit.hpp>
 #include <Dataflow/Commands/CableHelpers.hpp>
 
+#include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
 
 #include <boost/pfr.hpp>
@@ -78,8 +80,8 @@ public:
   [[no_unique_address]]
   oscr::dynamic_ports_storage<Info> dynamic_ports;
 
-  std::conditional_t<oscr::has_dynamic_ports<Info>, Info, char>
-      object_storage_for_ports_callbacks;
+  [[no_unique_address]]
+  ossia::type_if<Info, oscr::has_dynamic_ports<Info>> object_storage_for_ports_callbacks;
 
   ProcessModel(
       const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
@@ -180,10 +182,10 @@ private:
         || avnd::dynamic_ports_output_introspection<Info>::size > 0)
     {
       avnd::control_input_introspection<Info>::for_all_n2(
-          avnd::get_inputs<Info>(this->object_storage_for_ports_callbacks),
+          avnd::get_inputs<Info>((Info&)this->object_storage_for_ports_callbacks),
           [this]<std::size_t Idx, typename F>(
               F& field, auto pred_index, avnd::field_index<Idx>) {
-        auto& obj = this->object_storage_for_ports_callbacks;
+        Info& obj = this->object_storage_for_ports_callbacks;
         if constexpr(requires { F::on_controller_setup(); })
         {
           auto controller_inlets = avnd_input_idx_to_model_ports(Idx);
@@ -205,7 +207,7 @@ private:
           connect(
               inlet, &Process::ControlInlet::valueChanged,
               [this, &field](const ossia::value& val) {
-            auto& obj = this->object_storage_for_ports_callbacks;
+            Info& obj = this->object_storage_for_ports_callbacks;
             oscr::from_ossia_value(val, field.value);
 
             if_possible(field.update(obj));
@@ -214,6 +216,21 @@ private:
           });
         }
       });
+
+      if constexpr(avnd::has_gui_to_processor_bus<Info>)
+      {
+        // FIXME needs to be a list of callbacks?
+      }
+
+      if constexpr(avnd::has_processor_to_gui_bus<Info>)
+      {
+        Info& obj = this->object_storage_for_ports_callbacks;
+
+        obj.send_message = [this]<typename T>(T&& b) mutable {
+          if(this->to_ui)
+            MessageBusSender{this->to_ui}(std::move(b));
+        };
+      }
     }
   }
 
@@ -255,7 +272,7 @@ private:
 
     if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
     {
-      auto& obj = object_storage_for_ports_callbacks;
+      Info& obj = object_storage_for_ports_callbacks;
       avnd::dynamic_ports_input_introspection<Info>::for_all_n2(
           avnd::get_inputs(obj),
           [&]<std::size_t N>(auto& port, auto pred_idx, avnd::field_index<N> field_idx) {
@@ -274,7 +291,7 @@ private:
 
     if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
     {
-      auto& obj = object_storage_for_ports_callbacks;
+      Info& obj = object_storage_for_ports_callbacks;
       avnd::dynamic_ports_output_introspection<Info>::for_all_n2(
           avnd::get_outputs(obj),
           [&]<std::size_t N>(auto& port, auto pred_idx, avnd::field_index<N> field_idx) {
