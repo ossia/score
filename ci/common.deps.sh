@@ -39,6 +39,10 @@ if [[ ! -d score-addon-ble ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-ble
 fi
 
+if [[ ! -d score-addon-led ]]; then
+  git clone --recursive -j16 https://github.com/ossia/score-addon-led
+fi
+
 
 )
 
