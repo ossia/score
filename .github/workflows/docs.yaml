@@ -1,5 +1,4 @@
 name: Documentation build
-on: [push,pull_request]
 
 on:
   push:
