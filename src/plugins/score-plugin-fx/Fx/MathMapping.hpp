@@ -74,7 +74,9 @@ struct GenericMathMapping
     {
       auto res = e.expr.result();
 
-      e.px = e.x;
+      if constexpr(requires { e.x; })
+        e.px = e.x;
+
       store_output(e, res);
     }
   }
@@ -163,6 +165,49 @@ struct GenericMathMapping
       GenericMathMapping::exec_scalar(v.timestamp, self, output);
     }
   }
+  static bool resize(const std::string& expr, State& self, int sz)
+  {
+    if(std::ssize(self.expressions) == sz)
+      return true;
+
+    self.expressions.resize(sz);
+    int i = 0;
+    for(auto& e : self.expressions)
+    {
+      e.init(self.cur_time, self.cur_deltatime, self.cur_pos);
+      e.instance = i++;
+      if(!e.expr.set_expression(expr))
+        return false;
+      e.expr.seed_random(
+          UINT64_C(0xda3e39cb94b95bdb), UINT64_C(0x853c49e6748fea9b) * (1 + i));
+    }
+    return true;
+  }
+
+  static void run_polyphonic(
+      int size, ossia::value_port& output, const std::string& expr,
+      const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
+  {
+    resize(expr, self, size);
+
+    auto ratio = st.modelToSamples();
+    auto parent_dur = tk.parent_duration.impl * ratio;
+
+    int64_t new_time = tk.prev_date.impl * ratio;
+    setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
+    self.last_value_time = new_time;
+
+    GenericMathMapping::exec_polyphonic(0, self, output);
+
+    std::vector<ossia::value> res;
+    res.resize(self.expressions.size());
+    for(int i = 0; i < self.expressions.size(); i++)
+      res[i] = (float)self.expressions[i].po;
+
+    // Combine
+    output.write_value(res, 0);
+  }
+
   static void run_polyphonic(
       const ossia::value_port& input, ossia::value_port& output, const std::string& expr,
       const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
@@ -178,22 +223,6 @@ struct GenericMathMapping
       if(!val)
         return;
 
-      auto resize = [&expr, &self](int sz) {
-        if(std::ssize(self.expressions) == sz)
-          return true;
-
-        self.expressions.resize(sz);
-        int i = 0;
-        for(auto& e : self.expressions)
-        {
-          e.init(self.cur_time, self.cur_deltatime, self.cur_pos);
-          e.instance = i++;
-          if(!e.expr.set_expression(expr))
-            return false;
-        }
-        return true;
-      };
-
       int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
       setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
       self.last_value_time = new_time;
@@ -205,40 +234,40 @@ struct GenericMathMapping
         case ossia::val_type::IMPULSE:
           break;
         case ossia::val_type::INT:
-          if(!resize(1))
+          if(!resize(expr, self, 1))
             return;
           self.expressions[0].x = *v.value.target<int>();
           break;
         case ossia::val_type::FLOAT:
-          if(!resize(1))
+          if(!resize(expr, self, 1))
             return;
           self.expressions[0].x = *v.value.target<float>();
           break;
         case ossia::val_type::BOOL:
-          if(!resize(1))
+          if(!resize(expr, self, 1))
             return;
           self.expressions[0].x = *v.value.target<bool>() ? 1.f : 0.f;
           break;
         case ossia::val_type::STRING:
-          if(!resize(1))
+          if(!resize(expr, self, 1))
             return;
           self.expressions[0].x = ossia::convert<float>(v.value);
           break;
         case ossia::val_type::VEC2F:
-          if(!resize(2))
+          if(!resize(expr, self, 2))
             return;
           self.expressions[0].x = (*v.value.target<ossia::vec2f>())[0];
           self.expressions[1].x = (*v.value.target<ossia::vec2f>())[1];
           break;
         case ossia::val_type::VEC3F:
-          if(!resize(3))
+          if(!resize(expr, self, 3))
             return;
           self.expressions[0].x = (*v.value.target<ossia::vec3f>())[0];
           self.expressions[1].x = (*v.value.target<ossia::vec3f>())[1];
           self.expressions[2].x = (*v.value.target<ossia::vec3f>())[2];
           break;
         case ossia::val_type::VEC4F:
-          if(!resize(4))
+          if(!resize(expr, self, 4))
             return;
           self.expressions[0].x = (*v.value.target<ossia::vec4f>())[0];
           self.expressions[1].x = (*v.value.target<ossia::vec4f>())[1];
@@ -248,7 +277,7 @@ struct GenericMathMapping
         case ossia::val_type::LIST: {
           auto& arr = *v.value.target<std::vector<ossia::value>>();
           const auto N = std::ssize(arr);
-          if(!resize(N))
+          if(!resize(expr, self, N))
             return;
           for(int i = 0; i < N; i++)
             self.expressions[i].x = ossia::convert<float>(arr[i]);
@@ -257,7 +286,7 @@ struct GenericMathMapping
         case ossia::val_type::MAP: {
           auto& arr = *v.value.target<ossia::value_map_type>();
           const auto N = std::ssize(arr);
-          if(!resize(N))
+          if(!resize(expr, self, N))
             return;
           int i = 0;
           for(auto& [k, v] : arr)
@@ -741,6 +770,78 @@ struct Node
 };
 }
 
+namespace ArrayGenerator
+{
+struct Node
+{
+  struct Metadata : Control::Meta_base
+  {
+    static const constexpr auto prettyName = "Arraygen";
+    static const constexpr auto objectKey = "ArrayGenerator";
+    static const constexpr auto category = "Control/Generators";
+    static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
+    static const constexpr auto kind = Process::ProcessCategory::Mapping;
+    static const constexpr auto description
+        = "Applies a math expression to each member of an input.";
+    static const constexpr auto tags = std::array<const char*, 0>{};
+    static const uuid_constexpr auto uuid
+        = make_uuid("cf3df02f-a563-4e92-a739-b321d3a84252");
+
+    static const constexpr value_out value_outs[]{"out"};
+
+    static const constexpr auto controls = tuplet::make_tuple(
+        Control::LineEdit("Expression", "x"), Control::IntSpinBox("Size", 0, 1024, 12));
+  };
+  struct State
+  {
+    struct Expr
+    {
+      void init(double& cur_time, double& cur_deltatime, double& cur_pos)
+      {
+        expr.add_variable("i", instance);
+
+        expr.add_variable("po", po);
+
+        expr.add_variable("t", cur_time);
+        expr.add_variable("dt", cur_deltatime);
+        expr.add_variable("pos", cur_pos);
+        expr.add_constants();
+
+        expr.register_symbol_table();
+      }
+      double instance;
+
+      double po;
+
+      ossia::math_expression expr;
+    };
+
+    boost::container::static_vector<Expr, 1024> expressions;
+    double cur_time{};
+    double cur_deltatime{};
+    double cur_pos{};
+
+    int64_t last_value_time{};
+
+    //bool ok = false;
+  };
+
+  using control_policy = ossia::safe_nodes::last_tick;
+
+  static void
+  run(const std::string& expr, int size, ossia::value_port& output,
+      const ossia::token_request& tk, ossia::exec_state_facade st, State& self)
+  {
+    GenericMathMapping<State>::run_polyphonic(size, output, expr, tk, st, self);
+  }
+
+  template <typename... Args>
+  static void item(Args&&... args)
+  {
+    Nodes::miniMathItem(Metadata::controls, std::forward<Args>(args)...);
+  }
+};
+}
 namespace ArrayMapping
 {
 struct Node
@@ -836,6 +937,10 @@ struct HasCustomUI<Nodes::MathMapping::Node> : std::true_type
 };
 template <>
 struct HasCustomUI<Nodes::MicroMapping::Node> : std::true_type
+{
+};
+template <>
+struct HasCustomUI<Nodes::ArrayGenerator::Node> : std::true_type
 {
 };
 template <>

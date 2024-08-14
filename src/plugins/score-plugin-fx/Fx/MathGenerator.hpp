@@ -58,6 +58,33 @@ static void miniMathItem(
   }
 }
 
+static void miniMathItem(
+    const tuplet::tuple<Control::LineEdit, Control::IntSpinBox>& controls,
+    Process::LineEdit& edit, Process::IntSpinBox& count,
+    const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
+    const Process::Context& doc)
+{
+  using namespace Process;
+  using namespace std;
+  using namespace tuplet;
+  const Process::PortFactoryList& portFactory
+      = doc.app.interfaces<Process::PortFactoryList>();
+
+  auto count_item
+      = makeControlNoText(get<1>(controls), count, parent, context, doc, portFactory);
+  count_item.control.setPos(15, 0);
+  auto edit_item
+      = makeControlNoText(get<0>(controls), edit, parent, context, doc, portFactory);
+  edit_item.control.setTextWidth(100);
+  edit_item.control.setPos(15, 25);
+
+  if(auto obj = dynamic_cast<score::ResizeableItem*>(&parent))
+  {
+    QObject::connect(
+        &edit_item.control, &score::QGraphicsLineEdit::sizeChanged, obj,
+        &score::ResizeableItem::childrenSizeChanged);
+  }
+}
 static void mathItem(
     const tuplet::tuple<
         Control::LineEdit, Control::FloatSlider, Control::FloatSlider,
