@@ -178,8 +178,13 @@ struct QPainterAdapter
   void draw_bytes(
       int x, int y, int w, int h, const unsigned char* image, int img_w, int img_h)
   {
-    auto img = QImage(image, img_w, img_h, QImage::Format_RGB32);
-    painter.drawImage(QRect(x, y, w, h), img, QRect(0, 0, img_w, img_h));
+    auto img = QImage(image, img_w, img_h, QImage::Format_RGBA8888);
+    auto prev = painter.renderHints() & QPainter::SmoothPixmapTransform;
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
+    painter.drawImage(
+        QRect(x, y, w, h), img, QRect(0, 0, img_w, img_h), Qt::ImageConversionFlags{});
+
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, prev);
   }
 };
 static_assert(avnd::painter<QPainterAdapter>);

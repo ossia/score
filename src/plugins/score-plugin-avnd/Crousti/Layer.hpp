@@ -17,6 +17,17 @@
 namespace oscr
 {
 
+template <typename T>
+struct pmf_member_type;
+template <typename T, typename V>
+struct pmf_member_type<V T::*>
+{
+  using type = V;
+};
+
+template <typename T>
+using pmf_member_type_t = typename pmf_member_type<T>::type;
+
 template <typename Info>
 struct LayoutBuilder final : Process::LayoutBuilderBase
 {
@@ -38,26 +49,30 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   {
     if constexpr(requires { sizeof(Item::value); })
     {
-      oscr::from_ossia_value(inl->value(), item.value);
+      using avnd_port_type = pmf_member_type_t<decltype(item.model)>;
+      avnd_port_type p;
+      oscr::from_ossia_value(p, inl->value(), item.value);
       if constexpr(requires { rootUi->on_control_update(); })
       {
         QObject::connect(
             inl, &Process::ControlInlet::valueChanged, &context,
             [rui = rootUi, layout = this->layout, &item](const ossia::value& v) {
-          oscr::from_ossia_value(v, item.value);
+          avnd_port_type p;
+          oscr::from_ossia_value(p, v, item.value);
 
           rui->on_control_update();
           layout->update();
-            });
+        });
       }
       else
       {
         QObject::connect(
             inl, &Process::ControlInlet::valueChanged, &context,
             [layout = this->layout, &item](const ossia::value& v) {
-          oscr::from_ossia_value(v, item.value);
+          avnd_port_type p;
+          oscr::from_ossia_value(p, v, item.value);
           layout->update();
-            });
+        });
       }
     }
   }
