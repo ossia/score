@@ -16,12 +16,14 @@ JSON_METADATA(Protocols::SimpleIO::Custom, "Custom")
 template <>
 void DataStreamReader::read(const Protocols::SimpleIO::GPIO& n)
 {
+  m_stream << n.chip << n.direction << n.events << n.flags << n.line << n.state;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::SimpleIO::GPIO& n)
 {
+  m_stream >> n.chip >> n.direction >> n.events >> n.flags >> n.line >> n.state;
   checkDelimiter();
 }
 
@@ -103,12 +105,14 @@ void JSONWriter::write(Protocols::SimpleIO::DAC& n)
 template <>
 void DataStreamReader::read(const Protocols::SimpleIO::PWM& n)
 {
+  m_stream << n.chip << n.channel << n.polarity;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::SimpleIO::PWM& n)
 {
+  m_stream >> n.chip >> n.channel >> n.polarity;
   checkDelimiter();
 }
 
@@ -116,12 +120,20 @@ template <>
 void JSONReader::read(const Protocols::SimpleIO::PWM& n)
 {
   stream.StartObject();
+  obj["Chip"] = n.chip;
+  obj["Channel"] = n.channel;
+  obj["Polarity"] = n.polarity;
   stream.EndObject();
 }
 
 template <>
 void JSONWriter::write(Protocols::SimpleIO::PWM& n)
 {
+  if(!obj.tryGet("Chip"))
+    return;
+  n.chip = obj["Chip"].toInt();
+  n.channel = obj["Channel"].toInt();
+  n.polarity = obj["Polarity"].toInt();
 }
 
 template <>

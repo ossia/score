@@ -29,6 +29,7 @@ struct PWM
 {
   int32_t chip{};
   int32_t channel{};
+  int32_t polarity{};
 };
 struct ADC
 {

@@ -340,6 +340,8 @@ public:
       , m_gpioOut{"Out"}
       , m_gpioPullUp{"Pull-up"}
       , m_gpioPullDown{"Pull-down"}
+      , m_pwmChannel{}
+      , m_pwmPolarity{}
   {
     this->setLayout(&m_layout);
     m_layout.addWidget(&m_availablePorts);
@@ -356,6 +358,7 @@ public:
 
       updateParameters(newFixt);
     };
+    m_pwmChannel.setRange(0, 32);
 
     m_setupLayoutContainer.addLayout(&m_setupLayout);
     m_setupLayout.addRow(tr("Name"), &m_name);
@@ -366,8 +369,10 @@ public:
 
     m_custom.addWidget(&m_defaultWidget);
     m_custom.addWidget(&m_gpioWidget);
+    m_custom.addWidget(&m_pwmWidget);
 
     m_gpioWidget.setLayout(&m_gpioLayout);
+    m_pwmWidget.setLayout(&m_pwmLayout);
 
     m_gpioInOutLayout.addWidget(&m_gpioIn);
     m_gpioInOutLayout.addWidget(&m_gpioOut);
@@ -376,6 +381,9 @@ public:
     m_gpioPullLayout.addWidget(&m_gpioPullUp);
     m_gpioPullLayout.addWidget(&m_gpioPullDown);
     m_gpioLayout.addRow(&m_gpioPullLayout);
+
+    m_pwmLayout.addRow("Channel", &m_pwmChannel);
+    m_pwmLayout.addRow("Polarity", &m_pwmPolarity);
 
     m_custom.setCurrentIndex(0);
 
@@ -420,6 +428,10 @@ public:
         m_gpioIn.setChecked(true);
         m_gpioPullUp.setChecked(true);
         break;
+      case 1: // PWM
+        m_custom.setCurrentIndex(2);
+        m_pwmChannel.setValue(0);
+        break;
       default:
         m_custom.setCurrentIndex(0);
         break;
@@ -462,7 +474,12 @@ public:
         }
       }
 
-      void operator()(SimpleIO::PWM& gpio) const noexcept { }
+      void operator()(SimpleIO::PWM& pwm) const noexcept
+      {
+        pwm.channel = self.m_pwmChannel.value();
+        pwm.polarity = self.m_pwmPolarity.isChecked();
+      }
+
       void operator()(SimpleIO::ADC& gpio) const noexcept { }
       void operator()(SimpleIO::DAC& gpio) const noexcept { }
       void operator()(SimpleIO::HID& gpio) const noexcept { }
@@ -488,11 +505,16 @@ private:
 
   QWidget m_defaultWidget;
   QWidget m_gpioWidget;
+  QWidget m_pwmWidget;
   QFormLayout m_gpioLayout;
   QHBoxLayout m_gpioInOutLayout;
   QHBoxLayout m_gpioPullLayout;
   QRadioButton m_gpioIn, m_gpioOut;
   QCheckBox m_gpioPullUp, m_gpioPullDown;
+
+  QFormLayout m_pwmLayout;
+  QSpinBox m_pwmChannel;
+  QCheckBox m_pwmPolarity;
 
   const SimpleIOData* m_currentNode{};
 };

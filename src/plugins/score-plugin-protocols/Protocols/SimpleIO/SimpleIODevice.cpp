@@ -21,7 +21,6 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::SimpleIODevice)
-
 namespace ossia::net
 {
 
@@ -112,9 +111,12 @@ public:
       auto& port = *reinterpret_cast<const sio::Port*>(ptr);
       auto param
           = ossia::create_parameter(root, "/pwm/" + port.name.toStdString(), "float");
-
+      param->push_value(0.5f);
+      // FIXME add a child parameter to set the period.
       PWM_impl impl{};
       int32_t error;
+
+      PWM_configure(ptr->chip, ptr->channel, 1'000'000, 500'000, ptr->polarity, &error);
       PWM_open(ptr->chip, ptr->channel, &impl.fd, &error);
       m_pwm.emplace(param, impl);
     }
@@ -171,7 +173,9 @@ public:
     else if(auto it = m_pwm.find(&p); it != m_pwm.end())
     {
       int32_t error;
-      PWM_write(it->second.fd, ossia::convert<int>(v), &error);
+      // Input is between [0; 1], we map that to the duty cycle range [0, period]
+      int val = ossia::convert<float>(v) * 1'000'000;
+      PWM_write(it->second.fd, val, &error);
       return true;
     }
     else if(auto it = m_gpio_out.find(&p); it != m_gpio_out.end())
