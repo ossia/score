@@ -112,6 +112,7 @@ public:
       auto param
           = ossia::create_parameter(root, "/pwm/" + port.name.toStdString(), "float");
       param->push_value(0.5f);
+
       // FIXME add a child parameter to set the period.
       PWM_impl impl{};
       int32_t error;
@@ -174,7 +175,7 @@ public:
     {
       int32_t error;
       // Input is between [0; 1], we map that to the duty cycle range [0, period]
-      int val = ossia::convert<float>(v) * 1'000'000;
+      int val = std::clamp(ossia::convert<float>(v), 0.f, 1.f) * 1'000'000;
       PWM_write(it->second.fd, val, &error);
       return true;
     }
