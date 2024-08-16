@@ -1,11 +1,11 @@
-FROM rockylinux:8
+FROM almalinux:9
 
 RUN yum -y update
 RUN yum -y install epel-release dnf-plugins-core
-RUN dnf config-manager --set-enabled powertools
+RUN dnf config-manager --set-enabled crb
 RUN yum -y update
 
-RUN yum -y install gcc-toolset-12  \
+RUN yum -y install llvm-toolset  \
            glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel zlib-devel ncurses-devel \
            wget xz git cmake xcb-util xcb-util-devel libX11-devel libXrender-devel libXi-devel dbus-devel glib2-devel mesa-libGL-devel  \
     nasm libxkbcommon-x11-devel alsa-lib-devel glib2-devel libxcb-devel xcb-util xcb-util-image xcb-util-keysyms xcb-util-image-devel xcb-util-renderutil-devel \
@@ -14,7 +14,8 @@ RUN yum -y install gcc-toolset-12  \
     xcb-util-cursor-devel \
     libxcb-devel pulseaudio-libs-devel \
     rsync \
-    bluez-libs-devel avahi-devel  wayland-devel  wayland-protocols-devel libwayland-egl libwayland-cursor libwayland-client ninja-build 
+    bluez-libs-devel avahi-devel  wayland-devel  wayland-protocols-devel libwayland-egl libwayland-cursor libwayland-client ninja-build \
+    libxkbfile-devel xcb-util xorg-x11-proto-devel bzip2
 
 
 RUN ls \
@@ -24,10 +25,10 @@ RUN ls \
     && mv cninja /usr/bin/
 
 
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.29.1/cmake-3.29.1-linux-x86_64.tar.gz \
-    && tar xaf cmake-3.29.1-linux-x86_64.tar.gz \
-    && rm cmake-3.29.1-linux-x86_64.tar.gz \
-    && mv cmake-3.29.1-linux-x86_64 /cmake 
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-x86_64.tar.gz \
+    && tar xaf cmake-3.30.2-linux-x86_64.tar.gz \
+    && rm cmake-3.30.2-linux-x86_64.tar.gz \
+    && mv cmake-3.30.2-linux-x86_64 /cmake 
 
 ENV PATH="/cmake/bin:${PATH}"
 
