@@ -14,6 +14,11 @@ jobs:
       with:
         usesh: true
         prepare: |
+          # https://github.com/vmactions/freebsd-vm/issues/71
+          mkdir -p /usr/local/etc/pkg/repos
+          echo "FreeBSD: { url: "pkg+http://pkg.freebsd.org/\${ABI}/latest" }" > /usr/local/etc/pkg/repos/FreeBSD.conf
+          pkg update -f
+
           pkg install -y \
             bash \
             boost-libs \
