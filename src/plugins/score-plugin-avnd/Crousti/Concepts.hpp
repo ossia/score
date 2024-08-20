@@ -5,8 +5,6 @@
 
 #include <Dataflow/CurveInlet.hpp>
 
-#include <score/plugins/UuidKey.hpp>
-
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/tick_policies.hpp>
@@ -15,6 +13,7 @@
 #include <boost/container/vector.hpp>
 
 #include <avnd/binding/ossia/qt.hpp>
+#include <avnd/binding/ossia/uuid.hpp>
 #include <avnd/common/concepts_polyfill.hpp>
 #include <avnd/common/struct_reflection.hpp>
 #include <avnd/concepts/audio_port.hpp>
@@ -30,13 +29,6 @@
 
 #include <type_traits>
 
-#define make_uuid(text) score::uuids::string_generator::compute((text))
-#if defined(_MSC_VER)
-#define uuid_constexpr inline
-#else
-#define uuid_constexpr constexpr
-#endif
-
 namespace oscr
 {
 template <typename Node, typename FieldIndex>
@@ -50,39 +42,6 @@ struct is_custom_serialized<oscr::CustomFloatControl<Node, FieldIndex>> : std::t
 
 namespace oscr
 {
-template <typename N>
-consteval score::uuid_t uuid_from_string()
-{
-  if constexpr(requires {
-                 {
-                   N::uuid()
-                 } -> std::convertible_to<score::uuid_t>;
-               })
-  {
-    return N::uuid();
-  }
-  else
-  {
-    constexpr const char* str = N::uuid();
-    return score::uuids::string_generator::compute(str, str + 37);
-  }
-}
-
-template <typename Node>
-score::uuids::uuid make_field_uuid(uint64_t is_input, uint64_t index)
-{
-  score::uuid_t node_uuid = uuid_from_string<Node>();
-  uint64_t dat[2];
-
-  memcpy(dat, node_uuid.data, 16);
-
-  dat[0] ^= is_input;
-  dat[1] ^= index;
-
-  memcpy(node_uuid.data, dat, 16);
-
-  return node_uuid;
-}
 
 struct CustomFloatControlBase : public Process::ControlInlet
 {
@@ -119,6 +78,7 @@ struct CustomFloatControl : public CustomFloatControlBase
   {
     return make_field_uuid<Node>(true, FieldIndex{});
   }
+
   key_type concreteKey() const noexcept override { return static_concreteKey(); }
 
   void serialize_impl(const VisitorVariant& vis) const noexcept override

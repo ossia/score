@@ -9,6 +9,7 @@
 
 class score_plugin_protocols final
     : public score::FactoryInterface_QtInterface
+    , public score::FactoryList_QtInterface
     , public score::Plugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "4fec0133-c8c4-4e5a-b211-3d007d98464b")
@@ -17,6 +18,8 @@ public:
   virtual ~score_plugin_protocols();
 
 private:
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
+
   // Contains the OSC, MIDI, Minuit factories
   std::vector<score::InterfaceBase*> factories(
       const score::ApplicationContext&,

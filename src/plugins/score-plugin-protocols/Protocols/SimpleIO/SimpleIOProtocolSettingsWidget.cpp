@@ -55,12 +55,14 @@ public:
     auto& adcs = m_root.emplace_back(SimpleIOData{{.name = "ADCs"}}, &m_root);
     auto& dacs = m_root.emplace_back(SimpleIOData{{.name = "DACs"}}, &m_root);
     auto& gpios = m_root.emplace_back(SimpleIOData{{.name = "GPIOs"}}, &m_root);
+    auto& customs = m_root.emplace_back(SimpleIOData{{.name = "Custom"}}, &m_root);
     //    auto& hid = m_root.emplace_back(SimpleIOData{.name = "HIDs"}, &m_root);
 
     enumeratePWMs(pwms);
     enumerateADCs(adcs, dacs);
     enumerateGPIOs(gpios);
-//    enumerateHIDs(hid);
+    enumerateCustom(customs);
+    //    enumerateHIDs(hid);
 
     // List ADCs
 
@@ -68,6 +70,23 @@ public:
 
     endResetModel();
 
+  }
+
+  void enumerateCustom(SimpleIONode& n)
+  {
+    auto& list = score::AppContext()
+                     .interfaces<Protocols::SimpleIO::HardwareDeviceFactoryList>();
+    for(auto& factory : list)
+    {
+      n.emplace_back(
+          SimpleIOData{
+              {.control = SimpleIO::Custom{factory.make()},
+               .name = factory.prettyName(),
+               .path = "/foo"},
+              factory.prettyName(),
+              ""},
+          &n);
+    }
   }
 
   void enumeratePWMs(SimpleIONode& n) {
@@ -161,6 +180,7 @@ public:
   }
 
   void enumerateHIDs(SimpleIONode& n) {
+    /*
     for(int i = 0; i < 128; i++) {
       if(const auto dev = QString{"/dev/hidraw%1"}.arg(i); QFile::exists(dev))
       {
@@ -180,6 +200,7 @@ public:
         break;
       }
     }
+    */
   }
 
   void enumerateGPIOs(SimpleIONode& n) {
@@ -363,16 +384,18 @@ public:
     m_setupLayoutContainer.addLayout(&m_setupLayout);
     m_setupLayout.addRow(tr("Name"), &m_name);
     m_setupLayout.addRow(tr("Info"), &m_info);
-    m_setupLayout.addRow(tr("Conf"), &m_custom);
+    m_setupLayout.addRow(tr("Conf"), &m_portProperties);
     m_setupLayoutContainer.addStretch(0);
     m_setupLayoutContainer.addWidget(&m_buttons);
 
-    m_custom.addWidget(&m_defaultWidget);
-    m_custom.addWidget(&m_gpioWidget);
-    m_custom.addWidget(&m_pwmWidget);
+    m_portProperties.addWidget(&m_defaultWidget);
+    m_portProperties.addWidget(&m_gpioWidget);
+    m_portProperties.addWidget(&m_pwmWidget);
+    m_portProperties.addWidget(&m_customWidget);
 
     m_gpioWidget.setLayout(&m_gpioLayout);
     m_pwmWidget.setLayout(&m_pwmLayout);
+    m_customWidget.setLayout(new QHBoxLayout);
 
     m_gpioInOutLayout.addWidget(&m_gpioIn);
     m_gpioInOutLayout.addWidget(&m_gpioOut);
@@ -385,7 +408,7 @@ public:
     m_pwmLayout.addRow("Channel", &m_pwmChannel);
     m_pwmLayout.addRow("Polarity", &m_pwmPolarity);
 
-    m_custom.setCurrentIndex(0);
+    m_portProperties.setCurrentIndex(0);
 
     connect(&m_buttons, &QDialogButtonBox::accepted, this, &AddPortDialog::accept);
     connect(&m_buttons, &QDialogButtonBox::rejected, this, &AddPortDialog::reject);
@@ -424,16 +447,16 @@ public:
     switch(fixt.control.index())
     {
       case 0: // GPIO
-        m_custom.setCurrentIndex(1);
+        m_portProperties.setCurrentIndex(1);
         m_gpioIn.setChecked(true);
         m_gpioPullUp.setChecked(true);
         break;
       case 1: // PWM
-        m_custom.setCurrentIndex(2);
+        m_portProperties.setCurrentIndex(2);
         m_pwmChannel.setValue(0);
         break;
       default:
-        m_custom.setCurrentIndex(0);
+        m_portProperties.setCurrentIndex(0);
         break;
     }
   }
@@ -501,11 +524,13 @@ private:
   QLabel m_info;
   QDialogButtonBox m_buttons;
 
-  QStackedLayout m_custom;
+  QStackedLayout m_portProperties;
 
   QWidget m_defaultWidget;
   QWidget m_gpioWidget;
   QWidget m_pwmWidget;
+  QWidget m_customWidget;
+
   QFormLayout m_gpioLayout;
   QHBoxLayout m_gpioInOutLayout;
   QHBoxLayout m_gpioPullLayout;
@@ -515,6 +540,8 @@ private:
   QFormLayout m_pwmLayout;
   QSpinBox m_pwmChannel;
   QCheckBox m_pwmPolarity;
+
+  QWidget* m_customWidgetImpl{};
 
   const SimpleIOData* m_currentNode{};
 };
@@ -550,7 +577,8 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
     if(dial->exec() == QDialog::Accepted)
     {
       auto port = dial->port();
-      if(!port.name.isEmpty() && !port.path.isEmpty())
+      if(!port.name.isEmpty()
+         && (!port.path.isEmpty() || port.control.index() == 4)) // Custom
       {
         m_ports.push_back(port);
         updateTable();
@@ -606,6 +634,7 @@ static QString typeName(const SimpleIO::Type& t)
   } vis;
   return ossia::visit(vis, t);
 }
+
 void SimpleIOProtocolSettingsWidget::updateTable()
 {
   while(m_portsWidget->rowCount() > 0)

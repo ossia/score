@@ -5,11 +5,16 @@
 
 #include <Crousti/Concepts.hpp>
 
+#include <ossia/detail/fmt.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <QFormLayout>
 
+#include <avnd/binding/ossia/from_value.hpp>
+#include <avnd/binding/ossia/to_value.hpp>
+#include <avnd/introspection/input.hpp>
+#include <avnd/introspection/output.hpp>
 namespace oscr
 {
 template <typename Node>

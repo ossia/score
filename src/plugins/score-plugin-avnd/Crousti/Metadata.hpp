@@ -16,11 +16,6 @@ template <typename Info>
 class ProcessModel;
 }
 
-inline QString fromStringView(std::string_view v)
-{
-  return QString::fromUtf8(v.data(), v.size());
-}
-
 ////////// METADATA ////////////
 namespace oscr
 {
@@ -126,12 +121,12 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
     Else;                            \
   }()
 
-#define if_attribute(Attr)                             \
-  []() noexcept -> QString {                           \
-    if constexpr(avnd::has_##Attr<Info>)               \
-      return fromStringView(avnd::get_##Attr<Info>()); \
-    else                                               \
-      return QString{};                                \
+#define if_attribute(Attr)                                   \
+  []() noexcept -> QString {                                 \
+    if constexpr(avnd::has_##Attr<Info>)                     \
+      return oscr::fromStringView(avnd::get_##Attr<Info>()); \
+    else                                                     \
+      return QString{};                                      \
   }()
 #endif
     static Process::Descriptor desc

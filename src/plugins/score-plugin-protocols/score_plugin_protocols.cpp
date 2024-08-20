@@ -57,6 +57,8 @@
 #include <Protocols/Libmapper/LibmapperClientDevice.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
+#include <Protocols/SimpleIO/GenericHardwareDevice.hpp>
+#include <Protocols/SimpleIO/HardwareDevice.hpp>
 #include <Protocols/SimpleIO/SimpleIOProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_GPS)
@@ -78,6 +80,16 @@ score_plugin_protocols::score_plugin_protocols()
 
 score_plugin_protocols::~score_plugin_protocols() { }
 
+std::vector<std::unique_ptr<score::InterfaceListBase>>
+score_plugin_protocols::factoryFamilies()
+{
+#if defined(OSSIA_PROTOCOL_SIMPLEIO)
+  return make_ptr_vector<
+      score::InterfaceListBase, Protocols::SimpleIO::HardwareDeviceFactoryList>();
+#else
+  return {};
+#endif
+}
 std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
@@ -154,6 +166,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
          Protocols::LibmapperClientProtocolFactory
 #endif
          >,
+#if defined(OSSIA_PROTOCOL_SIMPLEIO)
+      FW<Protocols::SimpleIO::HardwareDeviceFactory,
+         Protocols::SimpleIO::GenericHardwareDeviceFactory<Motor2PWM>>,
+#endif
       FW<score::SettingsDelegateFactory, Protocols::Settings::Factory>,
       FW<Library::LibraryInterface, Protocols::OSCLibraryHandler
 #if __has_include(<QQmlEngine>)

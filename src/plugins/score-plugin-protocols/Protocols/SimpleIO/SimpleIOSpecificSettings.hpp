@@ -1,13 +1,14 @@
 #pragma once
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
+#include <Protocols/SimpleIO/HardwareDevice.hpp>
+
 #include <score/tools/std/StringHash.hpp>
 
 #include <ossia/detail/variant.hpp>
 
 #include <QString>
 
-#include <utility>
 #include <vector>
 #include <verdigris>
 
@@ -48,9 +49,30 @@ struct HID
 };
 struct Custom
 {
+  Custom() = default;
+  Custom(const Custom& other)
+  {
+    if(other.device)
+      device = other.device->clone();
+  }
+  Custom(Custom&& other) noexcept = default;
+  Custom& operator=(const Custom& other) noexcept
+  {
+    if(other.device)
+      device = other.device->clone();
+    return *this;
+  }
+  Custom& operator=(Custom&& other) noexcept = default;
+
+  explicit Custom(std::unique_ptr<HardwareDevice> other)
+      : device{std::move(other)}
+  {
+  }
+
+  std::unique_ptr<HardwareDevice> device;
 };
 
-using Type = ossia::variant<GPIO, PWM, ADC, DAC, HID, Custom>;
+using Type = ossia::variant<GPIO, PWM, ADC, DAC, Custom>;
 
 struct Port
 {
@@ -58,7 +80,6 @@ struct Port
   QString name;
   QString path;
 };
-
 }
 
 struct SimpleIOSpecificSettings

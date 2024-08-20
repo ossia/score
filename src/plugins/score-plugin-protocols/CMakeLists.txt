@@ -207,6 +207,7 @@ set(ARTNET_SRCS
 )
 
 set(SIMPLEIO_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/HardwareDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIODevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolSettingsWidget.hpp"
@@ -214,6 +215,7 @@ set(SIMPLEIO_HDRS
 )
 
 set(SIMPLEIO_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/HardwareDevice.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIODevice.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SimpleIO/SimpleIOProtocolSettingsWidget.cpp"
