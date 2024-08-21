@@ -56,6 +56,7 @@ sudo create-dmg \
   --app-drop-link 600 185 \
   --icon "ossia score.app" 200 190 \
   --hide-extension "ossia score.app" \
+  --filesystem APFS \
   'score.dmg' 'ossia score.app'
 
 sudo chown "$(whoami)" ./*.dmg
