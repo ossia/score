@@ -64,6 +64,10 @@ struct Custom
   }
   Custom& operator=(Custom&& other) noexcept = default;
 
+  explicit Custom(HardwareDevice* other)
+      : device{other}
+  {
+  }
   explicit Custom(std::unique_ptr<HardwareDevice> other)
       : device{std::move(other)}
   {

@@ -12,6 +12,8 @@
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
+#include <QDebug>
+
 #include <avnd/binding/ossia/from_value.hpp>
 #include <avnd/binding/ossia/to_value.hpp>
 #include <avnd/binding/ossia/uuid.hpp>
@@ -23,7 +25,6 @@
 #include <libsimpleio/libdac.h>
 #include <libsimpleio/libgpio.h>
 #include <libsimpleio/libpwm.h>
-
 namespace Protocols::SimpleIO
 {
 template <typename T>
@@ -119,10 +120,11 @@ public:
   }
 
   HardwareDevice::used_parameters setupDevice(
-      ossia::net::simpleio_protocol& proto, ossia::net::node_base& root,
+      ossia::net::simpleio_protocol& proto, ossia::net::node_base& rroot,
       const QString& name, const QString& path) override
   {
     used_parameters p;
+    auto& root = ossia::net::create_node(rroot, path.toStdString());
 
     // Create ossia parameters for all the inputs
     // Create SIO devices for all the outputs
@@ -288,9 +290,15 @@ public:
   {
     return oscr::fromStringView(avnd::get_name<T>());
   }
-  std::unique_ptr<HardwareDevice> make() override
+  HardwareDevice* make(QObject* parent) override
   {
-    return std::make_unique<GenericHardwareDevice<T>>(nullptr);
+    return new GenericHardwareDevice<T>(parent);
+  }
+  HardwareDevice* load(const VisitorVariant& vis, QObject* parent) override
+  {
+    return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+      return new GenericHardwareDevice<T>{deserializer, parent};
+    });
   }
 };
 }
@@ -324,22 +332,15 @@ struct TSerializer<JSONObject, Protocols::SimpleIO::GenericHardwareDevice<T>>
   static void writeTo(JSONObject::Deserializer& s, model_type& obj) { }
 };
 
+#include <halp/controls.hpp>
 struct Motor2PWM
 {
   static constexpr auto name() { return "Motor (2 PWM)"; }
   static constexpr auto uuid() { return "1b5a3764-5e22-11ef-b97c-5ce91ee31bcd"; }
   struct
   {
-    struct
-    {
-      static constexpr auto name() { return "Speed"; }
-      struct range
-      {
-        float min = -1.f, max = 1.f, init = 0.f;
-      };
-
-      float value;
-    } control;
+    halp::hslider_f32<"speed"> speed;
+    halp::toggle<"direction"> direction;
   } inputs;
 
   struct
@@ -373,23 +374,20 @@ struct Motor2PWM
   // Hardware : put in separate bank ? As it can be used for I & O. e.g. Serial UART, etc.
   void operator()()
   {
-    if(!inputs.control.value)
-    {
-      return;
-    }
-
     auto& p1 = hardware.pwm1.duty_cycle;
     auto& p2 = hardware.pwm2.duty_cycle;
-    float v = inputs.control.value;
-    if(v > 0.)
+    float v = 1. - inputs.speed;
+    if(inputs.direction)
     {
-      p1 = 1. - v;
-      p2 = 0.;
+      p1 = 1;
+      p2 = v;
     }
     else
     {
-      p1 = 0.;
-      p2 = 1. - v;
+      p1 = 1;
+      p2 = v;
     }
+
+    qDebug() << *p1 << *p2;
   }
 };

@@ -80,7 +80,7 @@ public:
     {
       n.emplace_back(
           SimpleIOData{
-              {.control = SimpleIO::Custom{factory.make()},
+              {.control = SimpleIO::Custom{factory.make(nullptr)},
                .name = factory.prettyName(),
                .path = "/foo"},
               factory.prettyName(),

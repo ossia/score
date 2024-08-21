@@ -87,7 +87,8 @@ public:
   virtual ~HardwareDeviceFactory();
 
   virtual QString prettyName() const noexcept = 0;
-  virtual std::unique_ptr<HardwareDevice> make() = 0;
+  virtual HardwareDevice* make(QObject* parent) = 0;
+  virtual HardwareDevice* load(const VisitorVariant& data, QObject* parent) = 0;
 };
 
 class HardwareDeviceFactoryList final
@@ -95,6 +96,11 @@ class HardwareDeviceFactoryList final
 {
 public:
   using object_type = HardwareDevice;
+  object_type* loadMissing(const VisitorVariant& vis, QObject* parent) const
+  {
+    SCORE_TODO;
+    return nullptr;
+  }
 };
 }
 

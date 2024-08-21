@@ -2,6 +2,7 @@
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
 #include "SimpleIOSpecificSettings.hpp"
 
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/StdVariantSerialization.hpp>
@@ -181,12 +182,20 @@ void JSONWriter::write(Protocols::SimpleIO::HID& n)
 template <>
 void DataStreamReader::read(const Protocols::SimpleIO::Custom& n)
 {
+  SCORE_ASSERT(n.device);
+  readFrom(*n.device);
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::SimpleIO::Custom& n)
 {
+  auto& csl = components.interfaces<Protocols::SimpleIO::HardwareDeviceFactoryList>();
+  auto hw = deserialize_interface(csl, *this, nullptr);
+  if(hw)
+    n.device.reset(hw);
+  else
+    SCORE_ABORT;
   checkDelimiter();
 }
 
@@ -194,12 +203,22 @@ template <>
 void JSONReader::read(const Protocols::SimpleIO::Custom& n)
 {
   stream.StartObject();
+  SCORE_ASSERT(n.device);
+  obj["Custom"] = *n.device.get();
   stream.EndObject();
 }
 
 template <>
 void JSONWriter::write(Protocols::SimpleIO::Custom& n)
 {
+  auto& csl = components.interfaces<Protocols::SimpleIO::HardwareDeviceFactoryList>();
+
+  JSONObject::Deserializer hw_deser{obj["Custom"].toObject()};
+  auto hw = deserialize_interface(csl, hw_deser, nullptr);
+  if(hw)
+    n.device.reset(hw);
+  else
+    SCORE_ABORT;
 }
 
 template <>
