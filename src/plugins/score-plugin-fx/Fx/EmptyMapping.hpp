@@ -12,6 +12,7 @@ struct Node
     static const constexpr auto objectKey = "EmptyValueMapper";
     static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Copies its inputs to its outputs";
@@ -42,6 +43,7 @@ struct Node
     static const constexpr auto objectKey = "EmptyMidiMapper";
     static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Copies its inputs to its outputs";
     static const constexpr auto tags = std::array<const char*, 0>{};
@@ -72,6 +74,7 @@ struct Node
     static const constexpr auto objectKey = "EmptyAudioMapper";
     static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Copies its inputs to its outputs";
     static const constexpr auto tags = std::array<const char*, 0>{};

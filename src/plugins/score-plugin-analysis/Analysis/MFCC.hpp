@@ -13,6 +13,7 @@ struct Spectrum
     static const constexpr auto prettyName = "Spectrum";
     static const constexpr auto objectKey = "Mel";
     static const constexpr auto category = "Analysis/Spectrum";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction";
     static const constexpr auto author = "ossia score, Gist library";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Get the magnitude spectrum of a signal";
@@ -45,6 +46,7 @@ struct MelSpectrum
     static const constexpr auto prettyName = "Mel spectrum";
     static const constexpr auto objectKey = "Mel";
     static const constexpr auto category = "Analysis/Spectrum";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction";
     static const constexpr auto author = "ossia score, Gist library";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description
@@ -79,6 +81,7 @@ struct MFCC
     static const constexpr auto objectKey = "MFCC";
     static const constexpr auto category = "Analysis/Spectrum";
     static const constexpr auto author = "ossia score, Gist library";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description
         = "Get the mel-frequency cepstral coefficients of a signal";

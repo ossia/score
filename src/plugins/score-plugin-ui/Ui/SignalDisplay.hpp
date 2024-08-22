@@ -26,6 +26,7 @@ struct Node
     static const constexpr auto objectKey = "SignalDisplay";
     static const constexpr auto category = "Monitoring";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/common-practices/4-audio.html#analysing-an-audio-signal";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Visualize an input signal";
@@ -165,6 +166,7 @@ struct Node
     static const constexpr auto prettyName = "Value display";
     static const constexpr auto objectKey = "Display";
     static const constexpr auto category = "Monitoring";
+    static const constexpr auto manual_url = "";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;

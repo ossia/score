@@ -23,6 +23,7 @@ struct Node
     static const constexpr auto objectKey = "Arpeggiator";
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#arpeggiator";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Arpeggiator";

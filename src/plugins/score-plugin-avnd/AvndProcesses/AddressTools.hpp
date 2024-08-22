@@ -103,6 +103,7 @@ struct PatternUnfolder : PatternObject
   halp_meta(description, "Send a message to all nodes matching a pattern")
   halp_meta(c_name, "avnd_pattern_apply")
   halp_meta(uuid, "44a55ee1-c2c9-43d5-a655-8eaedaff394c")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/pattern-applier.html#pattern-applier")
 
   struct
   {

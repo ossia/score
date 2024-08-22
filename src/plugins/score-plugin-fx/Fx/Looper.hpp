@@ -11,6 +11,7 @@ struct Node
     static const constexpr auto objectKey = "Looper (audio)";
     static const constexpr auto category = "Audio/Utilities";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/audio-looper.html#audio-looper";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
     static const constexpr auto description = "Loop audio";

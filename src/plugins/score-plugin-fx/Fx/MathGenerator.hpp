@@ -105,6 +105,7 @@ struct Node
     static const constexpr auto prettyName = "Expression Value Generator";
     static const constexpr auto objectKey = "MathGenerator";
     static const constexpr auto category = "Control/Generators";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/exprtk.html#exprtk-support";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Generator;
@@ -184,6 +185,7 @@ struct Node
     static const constexpr auto prettyName = "Expression Audio Generator";
     static const constexpr auto objectKey = "MathAudioGenerator";
     static const constexpr auto category = "Audio/Utilities";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/exprtk.html#exprtk-support";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Generator;

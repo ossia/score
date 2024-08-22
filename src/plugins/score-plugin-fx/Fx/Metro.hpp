@@ -14,6 +14,7 @@ struct Node
     static const constexpr auto objectKey = "Metro";
     static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/control-utilities.html#free-metronome";
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description
         = "Metronome which is not synced to the parent quantization settings";

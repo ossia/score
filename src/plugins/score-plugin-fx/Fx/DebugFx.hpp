@@ -10,6 +10,7 @@ struct Node
     static const constexpr auto objectKey = "TestFX";
     static const constexpr auto category = "Debug";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Other;
     static const constexpr auto description = "Shows all the available widgets";

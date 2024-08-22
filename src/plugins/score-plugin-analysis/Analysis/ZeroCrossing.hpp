@@ -13,6 +13,7 @@ struct ZeroCrossing
     static const constexpr auto prettyName = "Zero-crossings";
     static const constexpr auto objectKey = "Zerocross";
     static const constexpr auto category = "Analysis/Pitch";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#pitch-detection";
     static const constexpr auto author = "ossia score, Gist library";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Get the zero-crossing rate of a signal";

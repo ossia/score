@@ -12,6 +12,7 @@ struct PatternCombiner : PatternObject
   halp_meta(description, "Apply an operation to all inputs matching a pattern")
   halp_meta(c_name, "avnd_pattern_combine")
   halp_meta(uuid, "18efe965-9acc-4703-9af3-3cef658b301a")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/pattern-combiner.html#pattern-combiner")
 
   struct
   {

@@ -21,6 +21,7 @@ struct Pitch
     static const constexpr auto objectKey = "Pitch";
     static const constexpr auto category = "Analysis/Pitch";
     static const constexpr auto author = "ossia score, Gist library";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#pitch-detection";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Get the pitch of a signal";
     static const constexpr auto tags = std::array<const char*, 0>{};

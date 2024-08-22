@@ -426,6 +426,7 @@ struct DeviceRecorder : PatternObject
   halp_meta(description, "Record the messages of a device at regular interval")
   halp_meta(c_name, "avnd_device_recorder")
   halp_meta(uuid, "7161ca22-5684-48f2-bde7-88933500a7fb")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/csv-recorder.html#csv-recorder")
 
   // Threaded worker
   struct recorder_thread

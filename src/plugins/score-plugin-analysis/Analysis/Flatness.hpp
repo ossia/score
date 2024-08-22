@@ -13,6 +13,7 @@ struct Flatness
     static const constexpr auto prettyName = "Spectral flatness";
     static const constexpr auto objectKey = "Flatness";
     static const constexpr auto category = "Analysis/Spectrum";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#spectral-parameters";
     static const constexpr auto author = "ossia score, Gist library";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Get the spectral flatness of a signal";

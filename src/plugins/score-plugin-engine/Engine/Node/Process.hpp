@@ -100,7 +100,8 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
         Info::Metadata::author,
         Metadata<Tags_k, Control::ControlProcess<Info>>::get(),
         inletDescription(),
-        outletDescription()};
+        outletDescription(),
+        QUrl(Info::Metadata::manual_url)};
     return desc;
   }
 };

@@ -140,7 +140,7 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
           if_exists(Info::kind(), else return Process::ProcessCategory::Other;),
           if_attribute(category), if_attribute(description), if_attribute(author),
           Metadata<Tags_k, oscr::ProcessModel<Info>>::get(), inletDescription(),
-          outletDescription()
+          outletDescription(), if_attribute(manual_url)
     };
     return desc;
   }
