@@ -426,26 +426,48 @@ void Application::init()
   {
     m_view->sizeChanged(m_view->size());
     m_view->ready();
+
+    auto sqa = safe_cast<SafeQApplication*>(m_app);
+    connect(sqa, &SafeQApplication::fileOpened, this, [&](const QString& file) {
+      auto& ctx = m_presenter->applicationContext();
+      m_presenter->documentManager().loadFile(ctx, file);
+    });
   }
 
-  QTimer::singleShot(10, [&] { initDocuments(); });
+  QTimer::singleShot(10, [&] {
+    initDocuments();
+
+#if defined(QT_FEATURE_thread)
+#if QT_FEATURE_thread == 1
+    QThreadPool::globalInstance()->setMaxThreadCount(2);
+#endif
+#endif
+
+    auto& ctx = m_presenter->applicationContext();
+    // The plug-ins have the ability to override the boot process.
+    for(auto plug : ctx.guiApplicationPlugins())
+    {
+      plug->afterStartup();
+    }
+  });
 }
 
 void Application::initDocuments()
 {
   auto& ctx = m_presenter->applicationContext();
+  // The plug-ins have the ability to override the boot process.
+  for(auto plug : ctx.guiApplicationPlugins())
+  {
+    if(plug->handleLoading())
+    {
+      return;
+    }
+  }
+
   if(!appSettings.loadList.empty())
   {
     for(const auto& doc : appSettings.loadList)
       m_presenter->documentManager().loadFile(ctx, doc);
-  }
-
-  if(appSettings.gui)
-  {
-    auto sqa = safe_cast<SafeQApplication*>(m_app);
-    connect(sqa, &SafeQApplication::fileOpened, this, [&](const QString& file) {
-      m_presenter->documentManager().loadFile(ctx, file);
-    });
   }
 
   // Try to reload if there was a crash
@@ -479,21 +501,6 @@ void Application::initDocuments()
 #if !defined(SCORE_SPLASH_SCREEN)
   openNewDocument();
 #endif
-
-#if defined(QT_FEATURE_thread)
-#if QT_FEATURE_thread == 1
-  QThreadPool::globalInstance()->setMaxThreadCount(2);
-#endif
-#endif
-
-  // The plug-ins have the ability to override the boot process.
-  for(auto plug : ctx.guiApplicationPlugins())
-  {
-    if(plug->handleStartup())
-    {
-      return;
-    }
-  }
 }
 
 void Application::openNewDocument()

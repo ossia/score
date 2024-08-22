@@ -46,10 +46,12 @@ Document* GUIApplicationPlugin::currentDocument() const
   return context.documents.currentDocument();
 }
 
-bool GUIApplicationPlugin::handleStartup()
+bool GUIApplicationPlugin::handleLoading()
 {
   return false;
 }
+
+void GUIApplicationPlugin::afterStartup() { }
 
 void GUIApplicationPlugin::prepareNewDocument() { }
 

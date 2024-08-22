@@ -55,7 +55,7 @@ ApplicationPlugin::~ApplicationPlugin()
   // aboutToClose.
 }
 
-bool ApplicationPlugin::handleStartup()
+void ApplicationPlugin::afterStartup()
 {
   if(!context.documents.documents().empty())
   {
@@ -65,11 +65,8 @@ bool ApplicationPlugin::handleStartup()
       QTimer::singleShot(
           (1 + context.applicationSettings.waitAfterLoad) * 1000, &m_execution,
           [this] { m_execution.request_play_local(true); });
-      return true;
     }
   }
-
-  return false;
 }
 
 void ApplicationPlugin::initialize()

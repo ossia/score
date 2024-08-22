@@ -19,7 +19,7 @@ public:
   explicit ApplicationPlugin(const score::GUIApplicationContext& ctx);
 
   ~ApplicationPlugin() override;
-  bool handleStartup() override;
+  void afterStartup() override;
 
   QQmlEngine m_engine;
   QQmlComponent* m_comp{};

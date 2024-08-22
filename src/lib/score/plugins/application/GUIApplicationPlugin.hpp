@@ -123,10 +123,16 @@ public:
   Document* currentDocument() const;
 
   /**
-   * @brief handleStartup
+   * @brief afterStartup
    * Returns true if the start-up was handled by this plug-in.
    */
-  virtual bool handleStartup();
+  virtual bool handleLoading();
+
+  /**
+   * @brief afterStartup
+   * Called after all the documents have been created / loaded
+   */
+  virtual void afterStartup();
 
   /**
    * @brief on_initDocument

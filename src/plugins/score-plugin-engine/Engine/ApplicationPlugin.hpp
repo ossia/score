@@ -50,7 +50,7 @@ public:
 
   void initialize() override;
 
-  bool handleStartup() override;
+  void afterStartup() override;
   score::GUIElements makeGUIElements() override;
 
   void prepareNewDocument() override;

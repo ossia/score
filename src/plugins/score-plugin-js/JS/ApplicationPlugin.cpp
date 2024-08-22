@@ -22,7 +22,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
 ApplicationPlugin::~ApplicationPlugin() { }
 
-bool ApplicationPlugin::handleStartup()
+void ApplicationPlugin::afterStartup()
 {
 #if __has_include(<QQuickWindow>)
   if(QFileInfo f{context.applicationSettings.ui}; f.isFile())
@@ -38,7 +38,7 @@ bool ApplicationPlugin::handleStartup()
         m_window->setHeight(480);
         item->setParentItem(m_window->contentItem());
         m_window->show();
-        return true;
+        return;
       }
     }
     else
@@ -49,6 +49,5 @@ bool ApplicationPlugin::handleStartup()
     delete m_comp;
   }
 #endif
-  return false;
 }
 }
