@@ -74,6 +74,8 @@ class MidiEnumerator : public Device::DeviceEnumerator
   libremidi::observer_configuration make_callbacks()
   {
     libremidi::observer_configuration cb;
+    cb.track_hardware = true;
+    cb.track_virtual = true;
     cb.notify_in_constructor = false;
 
     if constexpr(Type == ossia::net::midi::midi_info::Type::Input)
