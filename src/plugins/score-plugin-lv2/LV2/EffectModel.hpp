@@ -20,6 +20,7 @@ class Model;
 PROCESS_METADATA(
     , LV2::Model, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2",
     Process::ProcessCategory::Other, "Plugins", "LV2 plug-in", "ossia score", {}, {}, {},
+    QUrl("https://ossia.io/score-docs/processes/audio-plugins.html#common-formats-vst-vst3-lv2-jsfx"),
     Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, LV2::Model, "LV2")
 namespace LV2

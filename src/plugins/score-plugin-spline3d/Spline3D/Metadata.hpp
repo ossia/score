@@ -16,4 +16,5 @@ PROCESS_METADATA(
     "Automation following a 3D curve", "ossia score",
     (QStringList{"Curve", "Automation", "3D"}), {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
+    QUrl(""),
     Process::ProcessFlags::SupportsLasting)

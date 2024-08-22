@@ -8,6 +8,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QStringList>
+#include <QUrl>
 
 #include <cinttypes>
 
@@ -42,6 +43,7 @@ struct Descriptor
   QStringList tags;
   std::optional<std::vector<Process::PortType>> inlets;
   std::optional<std::vector<Process::PortType>> outlets;
+  QUrl documentationLink;
 };
 class Descriptor_k;
 }
@@ -50,7 +52,7 @@ class Descriptor_k;
 
 #define PROCESS_METADATA(                                                             \
     Export, Model, Uuid, ObjectKey, PrettyName, CategoryEnum, Category, Desc, Author, \
-    Tags, InputSpec, OutputSpec, Flags)                                               \
+    Tags, InputSpec, OutputSpec, DocumentationLink, Flags)                            \
   MODEL_METADATA(Export, Process::ProcessModel, Model, Uuid, ObjectKey, PrettyName)   \
   CATEGORY_METADATA(Export, Model, Category)                                          \
   TAGS_METADATA(Export, Model, Tags)                                                  \
@@ -62,7 +64,7 @@ class Descriptor_k;
     {                                                                                 \
       static const ::Process::Descriptor k{PrettyName, CategoryEnum, Category,        \
                                            Desc,       Author,       Tags,            \
-                                           InputSpec,  OutputSpec};                   \
+                                           InputSpec,  OutputSpec, DocumentationLink};\
       return k;                                                                       \
     }                                                                                 \
   };

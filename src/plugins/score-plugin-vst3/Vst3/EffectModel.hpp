@@ -25,6 +25,7 @@ PROCESS_METADATA(
     , vst3::Model, "4cc30435-3237-4e94-a79e-1c2bd6b724a1", "VST 3", "VST 3",
     Process::ProcessCategory::Other, "Plugins", "VST 3 plug-in",
     "VST is a trademark of Steinberg Media Technologies GmbH", {}, {}, {},
+    QUrl("https://ossia.io/score-docs/processes/audio-plugins.html#common-formats-vst-vst3-lv2-jsfx"),
     Process::ProcessFlags::ExternalEffect)
 UUID_METADATA(
     , Process::Port, vst3::ControlInlet, "82b24dd8-fbc0-43a6-adfa-7bb29ca48660")

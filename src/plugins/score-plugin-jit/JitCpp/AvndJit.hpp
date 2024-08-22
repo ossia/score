@@ -28,7 +28,9 @@ struct Driver;
 PROCESS_METADATA(
     , AvndJit::Model, "193686f2-1f3b-45ce-9251-2e79ca06933b", "Jit", "Avendish",
     Process::ProcessCategory::Script, "Script", "Avendish compilation process",
-    "ossia score", QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
+    "ossia score", QStringList{}, {}, {},
+    QUrl("https://ossia.io/score-docs/development/plugins/plugins-with-avendish.html#avendish-documentation"),
+    Process::ProcessFlags::SupportsAll)
 namespace AvndJit
 {
 using NodeCompiler = Jit::Driver;

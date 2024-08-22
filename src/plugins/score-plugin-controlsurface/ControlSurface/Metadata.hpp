@@ -18,4 +18,5 @@ PROCESS_METADATA(
     (QStringList{}), // Tags
     {},              // Inputs
     {},              // Outputs
+    QUrl("https://ossia.io/score-docs/processes/controlsurface.html#control-surface-process"), // DocumentationLink
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface)

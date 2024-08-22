@@ -17,5 +17,6 @@ PROCESS_METADATA(
     (QStringList{"shader", "gfx"}),                            // Tags
     {},                                                        // Inputs
     {},                                                        // Outputs
+    QUrl("https://isf.video"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
 )

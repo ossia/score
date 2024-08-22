@@ -18,4 +18,5 @@ PROCESS_METADATA(
     Process::ProcessCategory::Automation, "Automations", "Automation on a single value",
     "ossia score", (QStringList{"Curve", "Automation"}), {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
+    QUrl("https://ossia.io/score-docs/in-depth/automations.html"),
     Process::ProcessFlags::SupportsTemporal)

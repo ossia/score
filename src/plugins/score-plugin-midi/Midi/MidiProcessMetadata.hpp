@@ -13,4 +13,5 @@ PROCESS_METADATA(
     "Midi", "Piano roll", Process::ProcessCategory::MediaSource, "Midi",
     "MIDI note playback", "ossia score", {}, {},
     {std::vector<Process::PortType>{Process::PortType::Midi}},
+    QUrl("https://ossia.io/score-docs/processes/piano-roll.html#piano-roll"),
     Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)

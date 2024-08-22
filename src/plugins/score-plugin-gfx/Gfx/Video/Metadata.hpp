@@ -17,6 +17,7 @@ PROCESS_METADATA(
     (QStringList{"gfx", "video"}),    // Tags
     {},                               // Inputs
     {},                               // Outputs
+    QUrl("https://ossia.io/score-docs/processes/video.html#video"),
     Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::HandlesLooping // Flags
 )

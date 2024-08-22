@@ -17,5 +17,6 @@ PROCESS_METADATA(
     (QStringList{"gfx", "text"}),     // Tags
     {},                               // Inputs
     {},                               // Outputs
+    QUrl(""),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
 )

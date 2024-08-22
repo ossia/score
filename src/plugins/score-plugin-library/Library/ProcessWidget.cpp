@@ -42,6 +42,7 @@ public:
     m_description.setWordWrap(true);
     lay->addWidget(&m_tags);
     m_tags.setWordWrap(true);
+    lay->addWidget(&m_documentationLink);
     setVisible(false);
   }
 
@@ -51,6 +52,7 @@ public:
     m_description.setText(QString{});
     m_io.setText(QString{});
     m_tags.setText(QString{});
+    m_documentationLink.clear();
 
     if(d)
     {
@@ -95,6 +97,18 @@ public:
         {
           m_tags.setText(tr("Tags: ") + desc.tags.join(", "));
         }
+
+        if(!desc.documentationLink.isEmpty())
+        {
+          QString linkText = "Explore the documentation";
+          QString iconPath = ":/icons/undock_on.png";
+          QString iconHtml = "<img src=\"" + iconPath + "\" width=\"16\" height=\"16\" style=\"vertical-align:middle;\" />";
+          QString fullLink = "<a href=\"" + desc.documentationLink.toString() + "\">" + linkText + " " + iconHtml + "</a>";
+          m_documentationLink.setTextFormat(Qt::RichText);
+          m_documentationLink.setText(fullLink);
+          m_documentationLink.setOpenExternalLinks(true);
+        }
+
         return;
       }
     }
@@ -107,6 +121,7 @@ public:
   QLabel m_description;
   QLabel m_author;
   QLabel m_tags;
+  QLabel m_documentationLink;
 };
 
 ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent)

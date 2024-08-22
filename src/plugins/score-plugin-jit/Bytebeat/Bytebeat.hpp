@@ -24,7 +24,7 @@ class BytebeatModel;
 PROCESS_METADATA(
     , Jit::BytebeatModel, "608beeb7-e5c2-40a5-bd1a-aa7aec80f864", "Jit", "Bytebeat",
     Process::ProcessCategory::Script, "Audio/Generators", "Run bytebeat code",
-    "ossia score", QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
+    "ossia score", QStringList{}, {}, {}, QUrl("https://ossia.io/score-docs/processes/bytebeat.html#what-is-bytebeat"), Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
 struct Driver;

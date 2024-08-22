@@ -13,4 +13,5 @@ PROCESS_METADATA(
     "49047204-5c1e-4b54-9f43-2b583f664b2e", "Pattern", "Pattern sequencer",
     Process::ProcessCategory::MediaSource, "Midi", "", "ossia score", {}, {},
     {std::vector<Process::PortType>{Process::PortType::Midi}},
+    QUrl("https://ossia.io/score-docs/processes/patternist.html#midi-pattern-sequencer"),
     Process::ProcessFlags::SupportsLasting | Process::ProcessFlags::PutInNewSlot)

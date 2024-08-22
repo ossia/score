@@ -22,7 +22,9 @@ class JitEffectModel;
 PROCESS_METADATA(
     , Jit::JitEffectModel, "0a3b49d6-4ce7-4668-aec3-9505b6ee1a60", "Jit", "JIT",
     Process::ProcessCategory::Script, "Script", "JIT compilation process", "ossia score",
-    QStringList{}, {}, {}, Process::ProcessFlags::SupportsAll)
+    QStringList{}, {}, {},
+    QUrl("https://ossia.io/score-docs/processes/cpp_jit.html#c-jit"),
+    Process::ProcessFlags::SupportsAll)
 namespace Jit
 {
 struct Driver;

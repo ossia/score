@@ -19,4 +19,5 @@ PROCESS_METADATA(
     "Color gradient. Operates in Lab color space.", "ossia score",
     (QStringList{"Curve", "Automation", "Color"}), {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
+    QUrl("https://ossia.io/score-docs/processes/gradient.html#color-automation"),
     Process::ProcessFlags::SupportsTemporal)
