@@ -13,6 +13,7 @@ PROCESS_METADATA(
     Process::ProcessCategory::Automation, "Automations",
     "Tempo curve - only one per interval", "ossia score",
     (QStringList{"Curve", "Automation"}), {}, {},
+    QUrl("https://ossia.io/score-docs/processes/tempo.html#tempo"),
     Process::ProcessFlags::SupportsTemporal)
 
 namespace Scenario

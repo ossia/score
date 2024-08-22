@@ -17,4 +17,5 @@ PROCESS_METADATA(
     (QStringList{}),                             // Tags
     {},                                          // Inputs
     {},                                          // Outputs
+    QUrl(""),                                    // Documentation link (if existing)
     Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)

@@ -13,5 +13,6 @@ PROCESS_METADATA(
     "Javascript", Process::ProcessCategory::Script, "Script",
     "Javascript code. See the documentation at https://ossia.io.", "ossia score",
     (QStringList{"Script", "JS"}), {}, {},
+    QUrl("https://ossia.io/score-docs/processes/javascript.html#javascript-support"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::ControlSurface)

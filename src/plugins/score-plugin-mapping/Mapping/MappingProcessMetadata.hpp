@@ -17,4 +17,5 @@ PROCESS_METADATA(
     "ossia score", (QStringList{"Curve", "Mapping"}),
     {std::vector<Process::PortType>{Process::PortType::Message}},
     {std::vector<Process::PortType>{Process::PortType::Message}},
+    QUrl("https://ossia.io/score-docs/processes/2Dspline.html#generating-a-curve"),
     Process::ProcessFlags::SupportsLasting)

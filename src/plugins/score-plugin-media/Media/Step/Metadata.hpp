@@ -14,6 +14,7 @@ PROCESS_METADATA(
     "Step sequencer", Process::ProcessCategory::Generator, "Control/Generators",
     "Generates messages rhytmically on a given scale", "ossia score", {}, {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
+    QUrl("https://ossia.io/score-docs/processes/step.html#step-sequencer"),
     Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::ControlSurface)
 
