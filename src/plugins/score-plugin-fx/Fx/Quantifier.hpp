@@ -15,6 +15,7 @@ struct Node
     static const constexpr auto prettyName = "Midi quantify";
     static const constexpr auto objectKey = "Quantifier";
     static const constexpr auto category = "Midi";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#quantifier";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Quantifies a MIDI input";

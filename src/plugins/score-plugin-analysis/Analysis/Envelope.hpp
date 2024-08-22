@@ -13,6 +13,7 @@ struct RMS
     static const constexpr auto prettyName = "RMS";
     static const constexpr auto objectKey = "RMS";
     static const constexpr auto category = "Analysis/Envelope";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#envelope";
     static const constexpr auto author = "ossia score, Gist library";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Get the RMS of a signal";
@@ -45,6 +46,7 @@ struct Peak
     static const constexpr auto prettyName = "Peak";
     static const constexpr auto objectKey = "Peak";
     static const constexpr auto category = "Analysis/Envelope";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#envelope";
     static const constexpr auto author = "ossia score, Gist library";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Get the peak energy of a signal";

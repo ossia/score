@@ -18,6 +18,7 @@ struct Node
     static const constexpr auto objectKey = "VelToNote";
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#pulse-to-note";
     static const constexpr auto kind = Process::ProcessCategory::Other;
     static const constexpr auto description
         = "Converts a message into MIDI.\n"

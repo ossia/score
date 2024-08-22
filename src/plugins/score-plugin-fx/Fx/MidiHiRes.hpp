@@ -15,6 +15,7 @@ struct Input
     static const constexpr auto objectKey = "MidiHiResIn";
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/javascript.html#midi";
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Creates a float from MSB/LSB CCs";
     static const constexpr auto tags = std::array<const char*, 0>{};
@@ -53,6 +54,7 @@ struct Output
     static const constexpr auto prettyName = "Midi hi-res output";
     static const constexpr auto objectKey = "MidiHiResOut";
     static const constexpr auto category = "Midi";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/javascript.html#midi";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description

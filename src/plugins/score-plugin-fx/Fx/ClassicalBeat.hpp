@@ -12,6 +12,7 @@ struct Node
     static const constexpr auto objectKey = "ImpulseMetronome";
     static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/control-utilities.html#impulse-metronome";
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description
         = "A simple metronome - outputs a bang on the current tick";

@@ -335,6 +335,7 @@ struct Node
     static const constexpr auto prettyName = "New Factor Oracle MIDI";
     static const constexpr auto objectKey = "New Factor Oracle MIDI";
     static const constexpr auto category = "Control/Impro";
+    static const constexpr auto manual_url = "";
     static const constexpr auto author = "Maria Paula Carrero Rivas";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite

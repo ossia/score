@@ -18,6 +18,7 @@ struct Node
     static const constexpr auto prettyName = "Rate Limiter";
     static const constexpr auto objectKey = "RateLimiter";
     static const constexpr auto category = "Control/Mappings";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/rate-limiter.html#rate-limiter";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Mapping;

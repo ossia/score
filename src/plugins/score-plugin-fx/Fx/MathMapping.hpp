@@ -399,6 +399,7 @@ struct Node
     static const constexpr auto prettyName = "Expression Value Filter";
     static const constexpr auto objectKey = "MathMapping";
     static const constexpr auto category = "Control/Mappings";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/exprtk.html#exprtk-support";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
@@ -518,6 +519,7 @@ struct Node
     static const constexpr auto prettyName = "Expression Audio Filter";
     static const constexpr auto objectKey = "MathAudioFilter";
     static const constexpr auto category = "Audio/Utilities";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/exprtk.html#exprtk-support";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
@@ -693,6 +695,7 @@ struct Node
     static const constexpr auto prettyName = "Micromap";
     static const constexpr auto objectKey = "MicroMapping";
     static const constexpr auto category = "Control/Mappings";
+    static const constexpr auto manual_url = "https://github.com/ossia/score-user-library/tree/master/Presets/Micromap";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Applies a math expression to an input.";
@@ -851,6 +854,7 @@ struct Node
     static const constexpr auto prettyName = "Arraymap";
     static const constexpr auto objectKey = "ArrayMapping";
     static const constexpr auto category = "Control/Mappings";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/exprtk.html#array-handling";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description

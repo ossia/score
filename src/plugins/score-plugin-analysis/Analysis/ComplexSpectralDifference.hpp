@@ -13,6 +13,7 @@ struct CSD
     static const constexpr auto prettyName = "Complex Spectral Difference";
     static const constexpr auto objectKey = "CSD";
     static const constexpr auto category = "Analysis/Onsets";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#onset-detection";
     static const constexpr auto author = "ossia score, Gist library";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description

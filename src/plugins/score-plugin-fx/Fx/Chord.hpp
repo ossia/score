@@ -15,6 +15,7 @@ struct Node
     static const constexpr auto objectKey = "Chord";
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#chord";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Generate a chord from a single note";
