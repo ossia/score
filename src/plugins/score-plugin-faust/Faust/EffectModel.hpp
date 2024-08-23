@@ -33,7 +33,7 @@ PROCESS_METADATA(
     , Faust::FaustEffectModel, "5354c61a-1649-4f59-b952-5c2f1b79c1bd", "Faust", "Faust",
     Process::ProcessCategory::Script, "Plugins",
     "Faust process. Refer to https://faust.grame.fr", "GRAME and the Faust team",
-    {"Script"}, {}, {}, Process::ProcessFlags::ExternalEffect)
+    {"Script"}, {}, {}, QUrl("https://ossia.io/score-docs/processes/faust.html"), Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, Faust::FaustEffectModel, "Faust")
 namespace Faust
 {
