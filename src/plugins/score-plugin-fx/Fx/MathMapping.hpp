@@ -782,6 +782,7 @@ struct Node
     static const constexpr auto prettyName = "Arraygen";
     static const constexpr auto objectKey = "ArrayGenerator";
     static const constexpr auto category = "Control/Generators";
+    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/exprtk.html#array-handling";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
