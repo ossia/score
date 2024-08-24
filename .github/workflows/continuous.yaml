@@ -1,0 +1,193 @@
+name: Continuous build
+on: [push,pull_request]
+
+jobs:
+  tarball:
+    name: Tarball 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      # FIXME GPG key
+      - name: Build
+        run: ./ci/tarball.build.sh
+
+      - name: Deploy
+        run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          export BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD/staging"
+          mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
+          ./ci/tarball.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: tarball
+          path: |
+            staging/*.*
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
+
+  appimage:
+    name: AppImage 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: ./ci/appimage.deps.sh
+
+      - name: Build
+        run: ./ci/appimage.build.sh
+
+      - name: Deploy
+        run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          export BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD/staging"
+          mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
+          ./ci/appimage.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: tarball
+          path: |
+            staging/*.*
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
+
+  macintel:
+    name: macOS (Intel) 
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: ./ci/osx-package.deps.sh
+        env:
+          MACOS_ARCH: "x86_64"
+          MAC_CERT_B64: ${{ secrets.MAC_CERT_B64 }}
+          MAC_CODESIGN_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+
+      - uses: jcelerier/import-codesign-certs@master
+        with:
+          p12-file-base64: ${{ secrets.MAC_CERT_B64 }}
+          p12-password: ${{ secrets.MAC_CERT_PASSWORD }}
+
+      - name: Build
+        run: ./ci/osx-package.build.sh
+        env:
+          MACOS_ARCH: "x86_64"
+
+      - run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          export BUILD_ARTIFACTSTAGINGDIRECTORY=$PWD/staging
+          mkdir -p $BUILD_ARTIFACTSTAGINGDIRECTORY
+          source ci/osx-package.deploy.sh
+        env:
+          MACOS_ARCH: "x86_64"
+          MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-intel
+          path: |
+            $PWD/staging/*.*
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
+            staging/*.*
+
+#      - name: Release
+#        uses: softprops/action-gh-release@v2
+#        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
+#        with:
+#          body: ""
+#          append_body: true
+#          generate_release_notes: false
+#          files: |
+#            staging/*.*
+
+
+  win32:
+    name: Windows 
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        shell: bash
+        run: ./ci/win32.deps.sh
+
+      - name: Build
+        shell: bash
+        run: ./ci/win32.build.sh
+
+      - name: Deploy
+        shell: bash
+        run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          export BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD/staging"
+          mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
+          ./ci/win32.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: tarball
+          path: |
+            staging/*.*
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
