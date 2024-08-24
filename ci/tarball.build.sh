@@ -80,10 +80,14 @@ printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" >
   find . -name '*.user.*' -exec rm {} \;
 )
 
-tar caf ossia-score.tar.xz --transform "s,^\.\/,ossia-score-$GITTAGNOV/," ./*
-gpg --import $PUBKEY_SECUREFILEPATH
-gpg --allow-secret-key-import --import $PRIVKEY_SECUREFILEPATH
-gpg -ab ossia-score.tar.xz
+if [[ -v GPG_SIGN_PUBKEY ]]; then
+  export PUBKEY_SECUREFILEPATH=gpg.pub.asc
+  export PRIVKEY_SECUREFILEPATH=gpg.priv.asc
+  echo "$GPG_SIGN_PUBKEY" > "$PUBKEY_SECUREFILEPATH"
+  echo "$GPG_SIGN_PRIVKEY" > "$PRIVKEY_SECUREFILEPATH"
+fi
 
-pwd
-ls
+tar caf ossia-score.tar.xz --transform "s,^\.\/,ossia-score-$GITTAGNOV/," ./*
+gpg --import "$PUBKEY_SECUREFILEPATH"
+gpg --allow-secret-key-import --import "$PRIVKEY_SECUREFILEPATH"
+gpg -ab ossia-score.tar.xz

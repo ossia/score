@@ -83,8 +83,8 @@ jobs:
             staging/*.*
 
   macintel:
-    name: macOS (Intel) 
-    runs-on: macos-14
+    name: macOS (Intel)
+    runs-on: macos-13
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -176,7 +176,7 @@ jobs:
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
-          name: tarball
+          name: windows
           path: |
             staging/*.*
 
