@@ -165,20 +165,6 @@ stages:
               gh release delete-asset -y continuous "ossia score-master-linux-amd64.AppImage" || true
 
           - task: GitHubRelease@1
-            condition: and(succeeded(), eq(variables.isMaster, true))
-            inputs:
-              gitHubConnection: github.com_jcelerier
-              repositoryName: ossia/score
-              action: "edit"
-              target: "$(Build.SourceVersion)"
-              tag: "continuous"
-              assets: "$(System.DefaultWorkingDirectory)/*"
-              tagSource: userSpecifiedTag
-              title: "Continuous build"
-              assetUploadMode: "replace"
-              isPreRelease: true
-
-          - task: GitHubRelease@1
             condition: and(succeeded(), eq(variables.isGitTag, true))
             inputs:
               gitHubConnection: github.com_jcelerier

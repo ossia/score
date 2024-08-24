@@ -1,10 +1,7 @@
 #!/bin/bash -eux
 
-mkdir build
-cd build
-
-export PATH=$PATH:/c/ossia-sdk/cmake/bin:/c/ossia-sdk/llvm/bin
-cmake -GNinja $BUILD_SOURCESDIRECTORY \
+export PATH="$PATH:/c/ossia-sdk/cmake/bin:/c/ossia-sdk/llvm/bin"
+cmake -GNinja -S "$PWD" -B build \
   -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
   -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
   -DOSSIA_SDK=c:/ossia-sdk \
@@ -16,5 +13,5 @@ cmake -GNinja $BUILD_SOURCESDIRECTORY \
   -DKFR_ARCH=sse2 \
   -DSCORE_DEPLOYMENT_BUILD=1
 
-cmake --build .
-cmake --build . --target package
+cmake --build build
+cmake --build build --target package
