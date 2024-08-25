@@ -33,4 +33,7 @@ tar xaf pipewire.tar.gz --directory "$PWD"
 cp -rf pipewire-0.3 spa-0.2 /opt/ossia-sdk-rpi-aarch64/pi/sysroot/usr/include/
 cp -rf pipewire-0.3 spa-0.2 /opt/ossia-sdk-rpi-aarch64/pi/sysroot/opt/ossia-sdk-rpi/sysroot/include/
 
+rm *.gz
+rm *.xz
+
 source ci/common.deps.sh
