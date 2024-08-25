@@ -119,13 +119,6 @@ jobs:
           export BUILD_ARTIFACTSTAGINGDIRECTORY=$PWD/staging
           mkdir -p $BUILD_ARTIFACTSTAGINGDIRECTORY
           source ci/osx-package.deploy.sh
-          
-          echo "==="
-          pwd
-          echo "==="
-          ls
-          echo "==="
-          ls $BUILD_ARTIFACTSTAGINGDIRECTORY
         env:
           MACOS_ARCH: "x86_64"
           MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
