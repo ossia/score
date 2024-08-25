@@ -82,4 +82,4 @@ xcrun stapler validate ./*.dmg
 
 # Archive
 mv ./*.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS-$PACKAGE_ARCH.dmg"
-mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"
+mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/mac-sdk-$PACKAGE_ARCH.zip"

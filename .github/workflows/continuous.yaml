@@ -11,9 +11,11 @@ jobs:
         with:
           submodules: 'recursive'
 
-      # FIXME GPG key
       - name: Build
         run: ./ci/tarball.build.sh
+        env:
+          GPG_SIGN_PUBKEY: ${{ secrets.GPG_SIGN_PUBKEY }}
+          GPG_SIGN_PRIVKEY: ${{ secrets.GPG_SIGN_PRIVKEY }}
 
       - name: Deploy
         run: |
