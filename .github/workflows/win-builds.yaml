@@ -108,7 +108,6 @@ jobs:
             qt6-websockets:p
             qt6-serialport:p
             qt6-shadertools:p
-            qt6-5compat:p
             qt6-scxml:p
             qt6-tools:p
             boost:p

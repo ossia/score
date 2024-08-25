@@ -17,7 +17,6 @@ $SUDO apt-get install -qq --force-yes \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
      qt6-declarative-dev qt6-declarative-dev-tools qt6-declarative-private-dev \
      qt6-scxml-dev \
-     qt6-5compat-dev \
      libqt6opengl6-dev \
      qt6-websockets-dev \
      qt6-serialport-dev \

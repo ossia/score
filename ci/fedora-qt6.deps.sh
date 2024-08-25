@@ -22,7 +22,6 @@ dnf -y --allowerasing install \
      bluez-libs-devel \
      qt6-qtbase-devel \
      qt6-qtbase-private-devel \
-     qt6-qt5compat-devel \
      qt6-qtscxml-devel \
      qt6-qtshadertools-devel \
      qt6-qtserialport-devel \
