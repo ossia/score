@@ -165,9 +165,10 @@ struct GenericMathMapping
       GenericMathMapping::exec_scalar(v.timestamp, self, output);
     }
   }
+
   static bool resize(const std::string& expr, State& self, int sz)
   {
-    if(std::ssize(self.expressions) == sz)
+    if(std::ssize(self.expressions) == sz && expr == self.last_expression)
       return true;
 
     self.expressions.resize(sz);
@@ -181,6 +182,7 @@ struct GenericMathMapping
       e.expr.seed_random(
           UINT64_C(0xda3e39cb94b95bdb), UINT64_C(0x853c49e6748fea9b) * (1 + i));
     }
+    self.last_expression = expr;
     return true;
   }
 
@@ -826,8 +828,7 @@ struct Node
     double cur_pos{};
 
     int64_t last_value_time{};
-
-    //bool ok = false;
+    std::string last_expression;
   };
 
   using control_policy = ossia::safe_nodes::last_tick;
@@ -904,8 +905,7 @@ struct Node
     double cur_pos{};
 
     int64_t last_value_time{};
-
-    //bool ok = false;
+    std::string last_expression;
   };
 
   using control_policy = ossia::safe_nodes::last_tick;
