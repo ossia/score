@@ -2,6 +2,8 @@
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
 #include "SimpleIOSpecificSettings.hpp"
 
+#include <score/application/ApplicationComponents.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/StdVariantSerialization.hpp>
