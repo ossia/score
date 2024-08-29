@@ -28,6 +28,7 @@ option(SCORE_USE_SYSTEM_LIBRARIES "Try to use system libraries as far as possibl
 option(DEFINE_SCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
 
 option(SCORE_COVERAGE "Enable coverage" OFF)
+option(SCORE_ENABLE_CXX23 "Enable c++23" OFF)
 
 option(SCORE_INSTALL_HEADERS "Install headers" OFF)
 
@@ -139,11 +140,13 @@ if(has_w_dtor_name_flag)
   add_compile_options(-Wno-dtor-name)
 endif()
 
-check_cxx_compiler_flag(-std=c++2b has_std_2b_flag)
+check_cxx_compiler_flag(-std=c++23 has_std_23_flag)
 check_cxx_compiler_flag(-std=c++20 has_std_20_flag)
 check_cxx_compiler_flag(-std=c++2a has_std_2a_flag)
 
-if (has_std_20_flag)
+if (has_std_23_flag AND SCORE_ENABLE_CXX23)
+  set(CXX_VERSION_FLAG cxx_std_23)
+elseif (has_std_20_flag)
   set(CXX_VERSION_FLAG cxx_std_20)
 elseif (has_std_2a_flag)
   set(CXX_VERSION_FLAG cxx_std_20)
