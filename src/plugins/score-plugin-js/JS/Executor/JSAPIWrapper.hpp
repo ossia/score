@@ -45,8 +45,19 @@ public:
   W_SLOT(write);
   void exec(const QString& code) W_SIGNAL(exec, code);
   void compute(const QString& code, const QString& cb) W_SIGNAL(compute, code, cb);
-
   void system(const QString& code) W_SIGNAL(system, code);
+
+  /// Conversions ///
+  QVariant asArray(QVariant) const noexcept;
+  W_SLOT(asArray)
+  QVariant asColor(QVariant) const noexcept;
+  W_SLOT(asColor)
+  QVariant asVec2(QVariant) const noexcept;
+  W_SLOT(asVec2)
+  QVariant asVec3(QVariant) const noexcept;
+  W_SLOT(asVec3)
+  QVariant asVec4(QVariant) const noexcept;
+  W_SLOT(asVec4)
 
   static ossia::net::node_base* find_node(DeviceCache& devices, std::string_view name);
   const ossia::destination_t& find_address(const QString&);

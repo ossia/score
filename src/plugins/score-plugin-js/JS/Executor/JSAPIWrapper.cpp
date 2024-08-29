@@ -144,4 +144,128 @@ ExecStateWrapper::find_node(DeviceCache& devices, std::string_view name)
   }
   return nullptr;
 }
+
+QVariant ExecStateWrapper::asColor(QVariant v) const noexcept
+{
+  switch(v.userType())
+  {
+    case QMetaType::QVector3D: {
+      auto val = v.value<QVector3D>();
+      return QVariant::fromValue(QColor::fromRgbF(val.x(), val.y(), val.z()));
+    }
+    case QMetaType::QVector4D: {
+      auto val = v.value<QVector4D>();
+      return QVariant::fromValue(QColor::fromRgbF(val.x(), val.y(), val.z(), val.w()));
+    }
+    default:
+      return v;
+  }
+}
+
+QVariant ExecStateWrapper::asVec2(QVariant v) const noexcept
+{
+  switch(v.userType())
+  {
+    default:
+      return v;
+  }
+}
+
+QVariant ExecStateWrapper::asVec3(QVariant v) const noexcept
+{
+  switch(v.userType())
+  {
+    default:
+      return v;
+  }
+}
+
+QVariant ExecStateWrapper::asVec4(QVariant v) const noexcept
+{
+  switch(v.userType())
+  {
+    default:
+      return v;
+  }
+}
+
+QVariant ExecStateWrapper::asArray(QVariant v) const noexcept
+{
+  switch(v.userType())
+  {
+    case QMetaType::Bool:
+    case QMetaType::QTime:
+    case QMetaType::Int:
+    case QMetaType::UInt:
+    case QMetaType::ULongLong:
+    case QMetaType::Char:
+    case QMetaType::QString:
+    case QMetaType::QByteArray:
+    case QMetaType::Double:
+    case QMetaType::QColor: {
+      auto val = v.value<QColor>();
+      return QVariant::fromValue(
+          QList<double>{val.redF(), val.greenF(), val.blueF(), val.alphaF()});
+    }
+    case QMetaType::QPoint: {
+      auto val = v.value<QPoint>();
+      return QVariant::fromValue(QList<int>{val.x(), val.y()});
+    }
+    case QMetaType::QPointF: {
+      auto val = v.value<QPointF>();
+      return QVariant::fromValue(QList<double>{val.x(), val.y()});
+    }
+    case QMetaType::QVector2D: {
+      auto val = v.value<QVector2D>();
+      return QVariant::fromValue(QList<double>{val.x(), val.y()});
+    }
+    case QMetaType::QSize: {
+      auto val = v.value<QSize>();
+      return QVariant::fromValue(QList<int>{val.width(), val.height()});
+    }
+    case QMetaType::QSizeF: {
+      auto val = v.value<QSizeF>();
+      return QVariant::fromValue(QList<double>{val.width(), val.height()});
+    }
+    case QMetaType::QVector3D: {
+      auto val = v.value<QVector3D>();
+      return QVariant::fromValue(QList<double>{val.x(), val.y(), val.z()});
+    }
+    case QMetaType::QVector4D: {
+      auto val = v.value<QVector4D>();
+      return QVariant::fromValue(QList<double>{val.x(), val.y(), val.z(), val.w()});
+    }
+    case QMetaType::QQuaternion: {
+      auto val = v.value<QQuaternion>();
+      return QVariant::fromValue(QList<double>{val.x(), val.y(), val.z(), val.scalar()});
+    }
+    case QMetaType::QLine: {
+      auto val = v.value<QLine>();
+      return QVariant::fromValue(
+          QList<int>{val.p1().x(), val.p1().y(), val.p2().x(), val.p2().y()});
+    }
+    case QMetaType::QLineF: {
+      auto val = v.value<QLineF>();
+      return QVariant::fromValue(
+          QList<double>{val.p1().x(), val.p1().y(), val.p2().x(), val.p2().y()});
+    }
+    case QMetaType::QRect: {
+      auto val = v.value<QRect>();
+      return QVariant::fromValue(
+          QList<int>{val.x(), val.y(), val.width(), val.height()});
+    }
+    case QMetaType::QRectF: {
+      auto val = v.value<QRectF>();
+      return QVariant::fromValue(
+          QList<double>{val.x(), val.y(), val.width(), val.height()});
+    }
+    case QMetaType::QVariantList:
+    case QMetaType::QStringList:
+    case QMetaType::QDate:
+    default:
+      break;
+  }
+
+  return v;
+}
 }
