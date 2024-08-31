@@ -18,6 +18,7 @@
 
 #include <QObject>
 
+#include <libremidi/backends.hpp>
 #include <libremidi/libremidi.hpp>
 namespace Device
 {
@@ -63,15 +64,28 @@ to_settings(libremidi::API api, const libremidi::output_port& p)
   return set;
 }
 
+static auto getCurrentAPI()
+{
+  auto api
+      = score::AppContext().settings<Protocols::Settings::Model>().getMidiApiAsEnum();
+  if(api == libremidi::API::UNSPECIFIED)
+    api = libremidi::midi1::default_api();
+  return api;
+}
+
 template <ossia::net::midi::midi_info::Type Type>
 class MidiEnumerator : public Device::DeviceEnumerator
 {
-  libremidi::API m_api = [] {
-    auto api
-        = score::AppContext().settings<Protocols::Settings::Model>().getMidiApiAsEnum();
-    if(api == libremidi::API::UNSPECIFIED)
-      api = libremidi::midi1::default_api();
-    return api;
+  libremidi::API m_api = getCurrentAPI();
+  std::any m_observer_conf = [this] {
+    auto api_conf = libremidi::observer_configuration_for(m_api);
+
+    libremidi::midi_any::for_observer_configuration([&](auto& conf) {
+      if constexpr(requires { conf.client_name; })
+        conf.client_name = "ossia score";
+    }, api_conf);
+
+    return api_conf;
   }();
 
   libremidi::observer_configuration make_callbacks(libremidi::observer_configuration& cb)
@@ -178,6 +192,7 @@ const Device::DeviceSettings& MIDIInputProtocolFactory::defaultSettings() const 
     MIDISpecificSettings specif;
     specif.io = MIDISpecificSettings::IO::In;
     specif.virtualPort = false;
+    specif.api = getCurrentAPI();
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
@@ -265,6 +280,7 @@ const Device::DeviceSettings& MIDIOutputProtocolFactory::defaultSettings() const
     MIDISpecificSettings specif;
     specif.io = MIDISpecificSettings::IO::Out;
     specif.virtualPort = false;
+    specif.api = getCurrentAPI();
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
@@ -307,6 +323,6 @@ bool MIDIOutputProtocolFactory::checkCompatibility(
 {
   // FIXME check if we can open the same device multiple times ?
   auto specif = a.deviceSpecificSettings.value<MIDISpecificSettings>();
-  return specif.handle != libremidi::port_information{} || specif.virtualPort;
+  return (specif.handle != libremidi::port_information{}) || specif.virtualPort;
 }
 }

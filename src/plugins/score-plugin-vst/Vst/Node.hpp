@@ -298,9 +298,6 @@ public:
 
       std::memcpy(
           e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
-      // for (std::size_t k = 0, N = std::min(mess.bytes.size(),
-      // (std::size_t)4); k < N; k++)
-      //   e.midiData[k] = mess.bytes[k];
 
       events->events[i] = reinterpret_cast<VstEvent*>(&e);
       i++;

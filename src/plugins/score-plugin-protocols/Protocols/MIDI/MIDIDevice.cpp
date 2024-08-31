@@ -17,14 +17,16 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/protocols/midi/midi.hpp>
 
-#include <QApplication>
 #include <QDebug>
+#include <QGuiApplication>
 #include <QKeyEvent>
 #include <QMainWindow>
 #include <QMimeData>
 
-#include <libremidi/backends/keyboard/config.hpp>
+// clang-format off
 #include <libremidi/libremidi.hpp>
+#include <libremidi/backends.hpp>
+// clang-format on
 
 #include <memory>
 
@@ -100,12 +102,29 @@ bool MIDIDevice::reconnect()
     {
       libremidi::input_configuration conf;
       auto api_conf = libremidi::midi_in_configuration_for(set.api);
+      libremidi::midi_any::for_input_configuration([&](auto& conf) {
+        if constexpr(requires { conf.client_name; })
+          conf.client_name = "ossia score";
+      }, api_conf);
 
       switch(set.api)
       {
-        case libremidi::API::JACK_MIDI:
+        case libremidi::API::ALSA_SEQ: {
+          conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+
+          auto ptr = std::any_cast<libremidi::alsa_seq::input_configuration>(&api_conf);
+          SCORE_ASSERT(ptr);
+          ptr->client_name = "ossia score";
+          break;
+        }
+        case libremidi::API::JACK_MIDI: {
           conf.timestamps = libremidi::timestamp_mode::AudioFrame;
           break;
+        }
+        case libremidi::API::PIPEWIRE: {
+          conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+          break;
+        }
         case libremidi::API::KEYBOARD: {
           auto ptr = std::any_cast<libremidi::kbd_input_configuration>(&api_conf);
           SCORE_ASSERT(ptr);
@@ -115,6 +134,8 @@ bool MIDIDevice::reconnect()
           };
           break;
         }
+        default:
+          break;
       }
       // FIXME get the frame time in here in some way.
       // MIDIDevice needs to go in a plug-in after exec plugin, but is depended-on by dataflow
@@ -133,18 +154,23 @@ bool MIDIDevice::reconnect()
     {
       libremidi::output_configuration conf;
       auto api_conf = libremidi::midi_out_configuration_for(set.api);
+      libremidi::midi_any::for_output_configuration([&](auto& conf) {
+        if constexpr(requires { conf.client_name; })
+          conf.client_name = "ossia score";
+      }, api_conf);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
           m_ctx, set.handle.display_name, conf, api_conf);
     }
 
-    bool res = proto->set_info(ossia::net::midi::midi_info{
+    auto& p = *proto;
+
+    auto dev = std::make_unique<ossia::net::midi::midi_device>(
+        settings().name.toStdString(), std::move(proto));
+    bool res = p.set_info(ossia::net::midi::midi_info{
         static_cast<ossia::net::midi::midi_info::Type>(set.io), set.handle,
         set.virtualPort});
     if(!res)
       return false;
-
-    auto dev = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
-    dev->set_name(settings().name.toStdString());
     if(set.createWholeTree)
       dev->create_full_tree();
     m_dev = std::move(dev);

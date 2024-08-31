@@ -33,6 +33,7 @@ MIDIInputSettingsWidget::MIDIInputSettingsWidget(QWidget* parent)
   checkForChanges(m_name);
   m_createWhole = new QCheckBox{tr("Create whole tree"), this};
   m_virtualPort = new QCheckBox{tr("Virtual Port"), this};
+  checkForChanges(m_virtualPort);
 
   auto lay = new QFormLayout;
   lay->addRow(tr("Name"), m_name);
@@ -92,6 +93,7 @@ MIDIOutputSettingsWidget::MIDIOutputSettingsWidget(QWidget* parent)
   checkForChanges(m_name);
   m_createWhole = new QCheckBox{tr("Create whole tree"), this};
   m_virtualPort = new QCheckBox{tr("Virtual Port"), this};
+  checkForChanges(m_virtualPort);
 
   auto lay = new QFormLayout;
   lay->addRow(tr("Name"), m_name);

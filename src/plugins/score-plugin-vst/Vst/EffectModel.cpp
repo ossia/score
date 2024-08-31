@@ -33,7 +33,6 @@
 #include <wobjectimpl.h>
 
 #include <memory>
-#include <set>
 W_OBJECT_IMPL(vst::Model)
 
 // If a VST has less than this many parameters they will be shown by default.
