@@ -3,12 +3,14 @@
 
 namespace Protocols
 {
+class MidiKeyboardEventFilter;
 class MIDIDevice final : public Device::OwningDeviceInterface
 {
 public:
   MIDIDevice(
       const Device::DeviceSettings& settings,
       const ossia::net::network_context_ptr& ctx);
+  ~MIDIDevice();
 
   bool reconnect() override;
 
@@ -24,5 +26,6 @@ public:
 
 private:
   const ossia::net::network_context_ptr& m_ctx;
+  MidiKeyboardEventFilter* m_kbdfilter{};
 };
 }

@@ -14,9 +14,11 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
-#include <QObject>
-#include <libremidi/libremidi.hpp>
+#include <ossia-qt/invoke.hpp>
 
+#include <QObject>
+
+#include <libremidi/libremidi.hpp>
 namespace Device
 {
 class DeviceInterface;
@@ -60,6 +62,7 @@ to_settings(libremidi::API api, const libremidi::output_port& p)
 
   return set;
 }
+
 template <ossia::net::midi::midi_info::Type Type>
 class MidiEnumerator : public Device::DeviceEnumerator
 {
@@ -71,25 +74,22 @@ class MidiEnumerator : public Device::DeviceEnumerator
     return api;
   }();
 
-  libremidi::observer_configuration make_callbacks()
+  libremidi::observer_configuration make_callbacks(libremidi::observer_configuration& cb)
   {
-    libremidi::observer_configuration cb;
-    cb.track_hardware = true;
-    cb.track_virtual = true;
-    cb.notify_in_constructor = false;
+    cb.notify_in_constructor = true;
 
     if constexpr(Type == ossia::net::midi::midi_info::Type::Input)
     {
       cb.input_added = [this](const libremidi::input_port& p) {
-        auto s = to_settings(m_api, p);
-        deviceAdded(s.name, s);
+        ossia::qt::run_async(
+            this, [this, s = to_settings(m_api, p)] { deviceAdded(s.name, s); });
       };
     }
     else
     {
       cb.output_added = [this](const libremidi::output_port& p) {
-        auto s = to_settings(m_api, p);
-        deviceAdded(s.name, s);
+        ossia::qt::run_async(
+            this, [this, s = to_settings(m_api, p)] { deviceAdded(s.name, s); });
       };
     }
     return cb;
@@ -98,36 +98,35 @@ class MidiEnumerator : public Device::DeviceEnumerator
   libremidi::observer m_observer;
 
 public:
-  MidiEnumerator()
-      : m_observer{make_callbacks(), libremidi::observer_configuration_for(m_api)}
+  explicit MidiEnumerator(libremidi::observer_configuration& cb)
+      : m_observer{make_callbacks(cb), libremidi::observer_configuration_for(m_api)}
   {
   }
+
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
       const override
   {
-    try
-    {
-      if constexpr(Type == ossia::net::midi::midi_info::Type::Input)
-      {
-        for(auto& port : m_observer.get_input_ports())
-        {
-          auto s = to_settings(m_api, port);
-          f(s.name, s);
-        }
-      }
-      else if constexpr(Type == ossia::net::midi::midi_info::Type::Output)
-      {
-        for(auto& port : m_observer.get_output_ports())
-        {
-          auto s = to_settings(m_api, port);
-          f(s.name, s);
-        }
-      }
-    }
-    catch(std::exception& e)
-    {
-      qDebug() << e.what();
-    }
+  }
+};
+
+class MidiKeyboardEnumerator : public Device::DeviceEnumerator
+{
+public:
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
+  {
+    Device::DeviceSettings set;
+    MIDISpecificSettings specif;
+    set.name = QString::fromStdString("Computer keyboard");
+    set.protocol = MIDIInputProtocolFactory::static_concreteKey();
+    specif.handle = libremidi::port_information{.display_name = "Computer keyboard"};
+
+    specif.io = MIDISpecificSettings::IO::In;
+    specif.api = libremidi::API::KEYBOARD;
+
+    set.deviceSpecificSettings = QVariant::fromValue(specif);
+
+    f("Computer keyboard", set);
   }
 };
 
@@ -149,7 +148,18 @@ QString MIDIInputProtocolFactory::category() const noexcept
 Device::DeviceEnumerators
 MIDIInputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return {{"Inputs", new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>}};
+  libremidi::observer_configuration obs_hw, obs_sw;
+  obs_hw.track_hardware = true;
+  obs_hw.track_virtual = false;
+  obs_sw.track_hardware = false;
+  obs_sw.track_virtual = true;
+  return {
+      {"Hardware inputs",
+       new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>(obs_hw)},
+      {"Software inputs",
+       new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>(obs_sw)},
+      {"Other", new MidiKeyboardEnumerator},
+  };
 }
 
 Device::DeviceInterface* MIDIInputProtocolFactory::makeDevice(
@@ -226,7 +236,17 @@ QString MIDIOutputProtocolFactory::category() const noexcept
 Device::DeviceEnumerators
 MIDIOutputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return {{"Outputs", new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>}};
+  libremidi::observer_configuration obs_hw, obs_sw;
+  obs_hw.track_hardware = true;
+  obs_hw.track_virtual = false;
+  obs_sw.track_hardware = false;
+  obs_sw.track_virtual = true;
+  return {
+      {"Hardware outputs",
+       new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>(obs_hw)},
+      {"Software outputs",
+       new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>(obs_sw)},
+  };
 }
 
 Device::DeviceInterface* MIDIOutputProtocolFactory::makeDevice(

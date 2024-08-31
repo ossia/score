@@ -10,21 +10,59 @@
 
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/protocols/midi/midi.hpp>
 
+#include <QApplication>
 #include <QDebug>
+#include <QKeyEvent>
+#include <QMainWindow>
 #include <QMimeData>
 
+#include <libremidi/backends/keyboard/config.hpp>
 #include <libremidi/libremidi.hpp>
 
 #include <memory>
 
 namespace Protocols
 {
+class MidiKeyboardEventFilter : public QObject
+{
+public:
+  libremidi::kbd_input_configuration::scancode_callback press, release;
+  MidiKeyboardEventFilter(
+      libremidi::kbd_input_configuration::scancode_callback press,
+      libremidi::kbd_input_configuration::scancode_callback release)
+      : press{std::move(press)}
+      , release{std::move(release)}
+      , target{score::GUIAppContext().mainWindow}
+  {
+  }
+
+  bool eventFilter(QObject* object, QEvent* event)
+  {
+    if(object == target)
+    {
+      if(event->type() == QEvent::KeyPress)
+      {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        press(keyEvent->nativeScanCode() - 8);
+      }
+      else if(event->type() == QEvent::KeyRelease)
+      {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        release(keyEvent->nativeScanCode() - 8);
+      }
+    }
+    return false;
+  }
+  QObject* target{};
+};
+
 MIDIDevice::MIDIDevice(
     const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
@@ -39,6 +77,11 @@ MIDIDevice::MIDIDevice(
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   m_capas.canLearn = true;
+}
+
+MIDIDevice::~MIDIDevice()
+{
+  delete m_kbdfilter;
 }
 
 bool MIDIDevice::reconnect()
@@ -56,10 +99,22 @@ bool MIDIDevice::reconnect()
     if(set.io == MIDISpecificSettings::IO::In)
     {
       libremidi::input_configuration conf;
+      auto api_conf = libremidi::midi_in_configuration_for(set.api);
 
-      if(set.api == libremidi::API::JACK_MIDI)
+      switch(set.api)
       {
-        conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+        case libremidi::API::JACK_MIDI:
+          conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+          break;
+        case libremidi::API::KEYBOARD: {
+          auto ptr = std::any_cast<libremidi::kbd_input_configuration>(&api_conf);
+          SCORE_ASSERT(ptr);
+          ptr->set_input_scancode_callbacks = [this](auto keypress, auto keyrelease) {
+            m_kbdfilter = new MidiKeyboardEventFilter{keypress, keyrelease};
+            qApp->installEventFilter(m_kbdfilter);
+          };
+          break;
+        }
       }
       // FIXME get the frame time in here in some way.
       // MIDIDevice needs to go in a plug-in after exec plugin, but is depended-on by dataflow
@@ -71,7 +126,6 @@ bool MIDIDevice::reconnect()
       //   input_conf.get_timestamp = [this](int64_t) { return 0; };
       // }
 
-      auto api_conf = libremidi::midi_in_configuration_for(set.api);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
           m_ctx, set.handle.display_name, conf, api_conf);
     }
@@ -106,6 +160,12 @@ bool MIDIDevice::reconnect()
 
 void MIDIDevice::disconnect()
 {
+  if(m_kbdfilter)
+  {
+    delete m_kbdfilter;
+    m_kbdfilter = nullptr;
+  }
+
   if(connected())
   {
     removeListening_impl(m_dev->get_root_node(), State::Address{m_settings.name, {}});
