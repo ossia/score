@@ -2,6 +2,7 @@
 
 #include <JS/ConsolePanel.hpp>
 #include <JS/Executor/ExecutionHelpers.hpp>
+#include <JS/Qml/Utils.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
@@ -86,6 +87,8 @@ void js_node::setScript(const QString& val)
         m_st.exec_devices(), [&]<typename... Args>(Args&&... args) {
       m_st.insert(std::forward<Args>(args)...);
     }, m_engine};
+
+    m_engine->rootContext()->setContextProperty("Util", new JsUtils);
     m_engine->rootContext()->setContextProperty("Device", m_execFuncs);
 
     QObject::connect(

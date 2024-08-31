@@ -65,7 +65,7 @@ private:
   const Device::ProtocolFactoryList& m_protocolList;
   Mode m_mode{};
   std::vector<std::pair<QString, std::unique_ptr<Device::DeviceEnumerator>>>
-      m_enumerators{};
+      m_enumerators;
 
   QDialogButtonBox* m_buttonBox{};
   QPushButton* m_okButton{};
