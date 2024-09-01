@@ -26,6 +26,7 @@
 // clang-format off
 #include <libremidi/libremidi.hpp>
 #include <libremidi/backends.hpp>
+#include <libremidi/configurations.hpp>
 // clang-format on
 
 #include <memory>
