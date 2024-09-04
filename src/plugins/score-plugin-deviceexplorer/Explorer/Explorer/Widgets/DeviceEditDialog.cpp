@@ -96,7 +96,6 @@ DeviceEditDialog::DeviceEditDialog(
   m_devices = new QTreeWidget{this};
   m_devices->header()->hide();
   m_devices->setSelectionMode(QAbstractItemView::SingleSelection);
-  qDebug() << "m_devices initialized : " << m_devices;
   column2_layout->addWidget(m_devices);
   column2->setLayout(column2_layout);
   splitter->addWidget(column2);
@@ -314,7 +313,6 @@ void DeviceEditDialog::selectedProtocolChanged()
   }
   else
   {
-    qDebug() << "m_devices is not initialized!";
     m_devices->setVisible(false);
     m_devicesLabel->setVisible(false);
   }
