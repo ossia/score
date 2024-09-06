@@ -280,4 +280,88 @@ void main()
     res.uploadTexture(y_tex, desc);
   }
 };
+
+struct RGB24Decoder : GPUVideoDecoder
+{
+  static const constexpr auto rgb_filter = R"_(#version 450
+
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
+
+    layout(binding=3) uniform sampler2D y_tex;
+
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+
+    vec4 processTexture(vec4 tex) {
+      vec4 processed = tex;
+      { %1 }
+      return processed;
+    }
+
+    void main ()
+    {
+      float w = mat.texSz.x;
+      float h = mat.texSz.y;
+      int x = int(floor(v_texcoord.x * w) * 3.);
+      int y = int(v_texcoord.y * h);
+      float r = texelFetch(y_tex, ivec2(x + 0, y), 0).r;
+      float g = texelFetch(y_tex, ivec2(x + 1, y), 0).r;
+      float b = texelFetch(y_tex, ivec2(x + 2, y), 0).r;
+      fragColor = processTexture(vec4(r, g, b, 1.));
+    })_";
+
+  RGB24Decoder(Video::ImageFormat& d, QString f = "")
+      : bytes_per_pixel{3}
+      , decoder{d}
+      , filter{std::move(f)}
+  {
+  }
+  QRhiTexture::Format format;
+  int bytes_per_pixel{}; // bpp/8 !
+  Video::ImageFormat& decoder;
+  QString filter;
+
+  std::pair<QShader, QShader> init(RenderList& r) override
+  {
+    auto& rhi = *r.state.rhi;
+    const auto w = decoder.width, h = decoder.height;
+
+    {
+      // Create a texture
+      auto tex = rhi.newTexture(QRhiTexture::R8, QSize{w * 3, h}, 1, QRhiTexture::sRGB);
+      tex->create();
+
+      // Create a sampler
+      auto sampler = rhi.newSampler(
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      sampler->create();
+
+      // Store both
+      samplers.push_back({sampler, tex});
+    }
+
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(rgb_filter).arg(filter));
+  }
+
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  {
+    // Nothing particular, we just upload the whole buffer
+    setPixels(res, frame.data[0], frame.linesize[0]);
+  }
+
+  void
+  setPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
+  {
+    const auto w = decoder.width, h = decoder.height;
+    auto y_tex = samplers[0].texture;
+
+    QRhiTextureUploadEntry entry{
+        0, 0, createTextureUpload(pixels, w, h, bytes_per_pixel, stride)};
+
+    QRhiTextureUploadDescription desc{entry};
+    res.uploadTexture(y_tex, desc);
+  }
+};
 }

@@ -86,6 +86,16 @@ void VideoNodeRenderer::createGpuDecoder()
       m_gpu = std::make_unique<YUYV422Decoder>(m_frameFormat);
       break;
 
+    // RGB24
+    case AV_PIX_FMT_RGB24:
+      m_gpu = std::make_unique<RGB24Decoder>(
+          m_frameFormat, "processed.a = 1.0; " + filter);
+      break;
+    case AV_PIX_FMT_BGR24:
+      m_gpu = std::make_unique<RGB24Decoder>(
+          m_frameFormat, "processed.rgb = tex.bgr; processed.a = 1.0; " + filter);
+      break;
+
     // RGBA
     case AV_PIX_FMT_RGB0:
       m_gpu = std::make_unique<PackedDecoder>(

@@ -90,6 +90,8 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
   switch(fmt)
   {
     case AV_PIX_FMT_YUV420P:
+    case AV_PIX_FMT_RGB24:
+    case AV_PIX_FMT_BGR24:
     case AV_PIX_FMT_NV12:
     case AV_PIX_FMT_NV21:
     case AV_PIX_FMT_YUVJ420P:
