@@ -450,12 +450,23 @@ void AudioOutlet::mapExecution(
 
 QByteArray AudioOutlet::saveData() const noexcept
 {
-  return Port::saveData();
+  QByteArray arr;
+  {
+    QDataStream p{&arr, QIODevice::WriteOnly};
+    DataStreamInput ip{p};
+    ip << Port::saveData() << m_gain << m_pan << m_propagate;
+  }
+  return arr;
 }
 
 void AudioOutlet::loadData(const QByteArray& arr) noexcept
 {
-  Port::loadData(arr);
+  QByteArray pdata;
+  QDataStream p{arr};
+  DataStreamOutput op{p};
+  op >> pdata >> m_gain >> m_pan >> m_propagate;
+  Port::loadData(pdata);
+  propagateChanged(m_propagate);
 }
 
 bool AudioOutlet::propagate() const
