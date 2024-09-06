@@ -11,6 +11,7 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
 
@@ -32,21 +33,36 @@ public:
 
     auto lay = new QFormLayout{this};
 
-    con(process(), &Model::inCountChanged, this,
-        [&] { m_count.setValue(obj.inCount()); });
+    con(process(), &Model::inCountChanged, this, [&] {
+      if(m_count.value() != obj.inCount())
+        m_count.setValue(obj.inCount());
+    });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
       m_dispatcher.submit<SetMergeInCount>(obj, m_count.value());
       m_dispatcher.commit();
     });
 
+    lay->addRow(tr("Count"), &m_mode);
+    con(process(), &Model::modeChanged, this, [&] {
+      if(m_mode.currentIndex() != (int)obj.mode())
+        m_mode.setCurrentIndex((int)obj.mode());
+    });
+
+    con(m_mode, &QComboBox::currentIndexChanged, this, [&]() {
+      m_dispatcher.submit<SetMergeMode>(obj, (Merger::Model::Mode)m_mode.currentIndex());
+      m_dispatcher.commit();
+    });
+
     lay->addRow(tr("Count"), &m_count);
+    lay->addRow(tr("Mode"), &m_mode);
   }
 
 private:
   OngoingCommandDispatcher& m_dispatcher;
 
   QSpinBox m_count;
+  QComboBox m_mode;
 };
 class InspectorFactory final
     : public Process::InspectorWidgetDelegateFactory_T<Model, InspectorWidget>

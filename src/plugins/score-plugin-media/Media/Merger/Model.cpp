@@ -28,7 +28,20 @@ Model::Model(
 
 Model::~Model() { }
 
-int Model::inCount() const
+auto Model::mode() const noexcept -> Mode
+{
+  return m_mode;
+}
+
+void Model::setMode(Mode m)
+{
+  if(m_mode == m)
+    return;
+  m_mode = m;
+  modeChanged(m);
+}
+
+int Model::inCount() const noexcept
 {
   return m_inCount;
 }
@@ -75,7 +88,7 @@ template <>
 void DataStreamReader::read(const Media::Merger::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
-  m_stream << proc.m_inCount;
+  m_stream << proc.m_inCount << proc.m_mode;
   insertDelimiter();
 }
 
@@ -86,7 +99,7 @@ void DataStreamWriter::write(Media::Merger::Model& proc)
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
 
-  m_stream >> proc.m_inCount;
+  m_stream >> proc.m_inCount >> proc.m_mode;
   checkDelimiter();
 }
 
@@ -95,6 +108,7 @@ void JSONReader::read(const Media::Merger::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["InCount"] = proc.m_inCount;
+  obj["Mode"] = proc.m_mode;
 }
 
 template <>
@@ -104,4 +118,12 @@ void JSONWriter::write(Media::Merger::Model& proc)
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
   proc.m_inCount = obj["InCount"].toInt();
+  if(auto mode = obj.tryGet("Mode"))
+  {
+    proc.m_mode = (Media::Merger::Model::Mode)mode->toInt();
+  }
+  else
+  {
+    proc.m_mode = {};
+  }
 }

@@ -18,4 +18,13 @@ public:
   {
   }
 };
+class SetMergeMode final : public score::PropertyCommand
+{
+  SCORE_COMMAND_DECL(Media::CommandFactoryName(), SetMergeMode, "Set mode")
+public:
+  SetMergeMode(const Merger::Model& path, Merger::Model::Mode newval)
+      : score::PropertyCommand{std::move(path), "mode", QVariant::fromValue(newval)}
+  {
+  }
+};
 }
