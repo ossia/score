@@ -26,7 +26,7 @@ PROCESS_METADATA(
     "Interpolation", "Interpolation", Process::ProcessCategory::Automation,
     "Automations", "Interpolate between two states", "ossia score",
     (QStringList{"Curve", "Automation"}), {},
-    {std::vector<Process::PortType>{Process::PortType::Message}},
+    {std::vector<Process::PortType>{Process::PortType::Message}}, QUrl(""),
     Process::ProcessFlags::SupportsTemporal)
 namespace Interpolation
 {

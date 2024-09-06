@@ -12,7 +12,7 @@ function(disable_qt_plugins theTarget)
   set_target_properties(${theTarget}
     PROPERTIES
       QT_NO_PLUGINS
-     "${Qt5Core_PLUGINS};${Qt5Gui_PLUGINS};${Qt5Widgets_PLUGINS};${Qt5Network_PLUGINS};${Qt5Qml_PLUGINS}"
+     "${Qt6Core_PLUGINS};${Qt6Gui_PLUGINS};${Qt6Widgets_PLUGINS};${Qt6Network_PLUGINS};${Qt6Qml_PLUGINS}"
   )
 endfunction()
 
