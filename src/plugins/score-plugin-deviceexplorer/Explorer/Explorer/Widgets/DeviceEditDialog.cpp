@@ -68,11 +68,11 @@ DeviceEditDialog::DeviceEditDialog(
 
   auto column1 = new QWidget;
   auto column1_layout = new QVBoxLayout{column1};
-  auto protocolsLabel = new QLabel{tr("Protocols"), this};
-  setHeaderTextFormat(protocolsLabel);
-  column1_layout->addWidget(protocolsLabel);
-  protocolsLabel->setAlignment(Qt::AlignTop);
-  protocolsLabel->setAlignment(Qt::AlignHCenter);
+  m_protocolsLabel = new QLabel{tr("Protocols"), this};
+  setHeaderTextFormat(m_protocolsLabel);
+  column1_layout->addWidget(m_protocolsLabel);
+  m_protocolsLabel->setAlignment(Qt::AlignTop);
+  m_protocolsLabel->setAlignment(Qt::AlignHCenter);
   m_protocols = new QTreeWidget{this};
   m_protocols->header()->hide();
   m_protocols->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -88,11 +88,11 @@ DeviceEditDialog::DeviceEditDialog(
   // Column 2: Devices
   auto column2 = new QWidget;
   auto column2_layout = new QVBoxLayout{column2};
-  auto devicesLabel = new QLabel{tr("Devices"), this};
-  setHeaderTextFormat(devicesLabel);
-  column2_layout->addWidget(devicesLabel);
-  devicesLabel->setAlignment(Qt::AlignTop);
-  devicesLabel->setAlignment(Qt::AlignHCenter);
+  m_devicesLabel = new QLabel{tr("Devices"), this};
+  setHeaderTextFormat(m_devicesLabel);
+  column2_layout->addWidget(m_devicesLabel);
+  m_devicesLabel->setAlignment(Qt::AlignTop);
+  m_devicesLabel->setAlignment(Qt::AlignHCenter);
   m_devices = new QTreeWidget{this};
   m_devices->header()->hide();
   m_devices->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -103,11 +103,11 @@ DeviceEditDialog::DeviceEditDialog(
   // Column 3: Settings
   auto column3 = new QWidget;
   auto column3_layout = new QVBoxLayout{column3};
-  auto settingsLabel = new QLabel{tr("Settings"), this};
-  setHeaderTextFormat(settingsLabel);
-  column3_layout->addWidget(settingsLabel);
-  settingsLabel->setAlignment(Qt::AlignTop);
-  settingsLabel->setAlignment(Qt::AlignHCenter);
+  m_protocolNameLabel = new QLabel{tr("Settings"), this};
+  setHeaderTextFormat(m_protocolNameLabel);
+  column3_layout->addWidget(m_protocolNameLabel);
+  m_protocolNameLabel->setAlignment(Qt::AlignTop);
+  m_protocolNameLabel->setAlignment(Qt::AlignHCenter);
   m_main = new QWidget{this};
   m_layout = new QFormLayout;
   m_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
