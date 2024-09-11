@@ -5,6 +5,7 @@
 
 #include <QDialog>
 #include <QList>
+#include <QSplitter>
 
 #include <score_plugin_deviceexplorer_export.h>
 
@@ -82,5 +83,6 @@ private:
 
   QString m_originalName{};
   int m_index{};
+  QSplitter* splitter;
 };
 }

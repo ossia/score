@@ -59,11 +59,11 @@ DeviceEditDialog::DeviceEditDialog(
   };
 
   setWindowTitle(tr("Add device"));
-  auto base_layout = new QVBoxLayout{this};
+  auto base_layout = new QHBoxLayout{this};
   setLayout(base_layout);
   setModal(true);
 
-  auto splitter = new QSplitter{this};
+  splitter = new QSplitter{this};
   base_layout->addWidget(splitter);
 
   auto column1 = new QWidget;
@@ -78,12 +78,15 @@ DeviceEditDialog::DeviceEditDialog(
   m_protocols->setSelectionMode(QAbstractItemView::SingleSelection);
   column1_layout->addWidget(m_protocols);
   column1->setLayout(column1_layout);
-  splitter->addWidget(column1);
+  column1->setFixedWidth(200);
+  base_layout->addWidget(column1);
 
   if(m_mode == Mode::Editing)
   {
     column1->setVisible(false);
   }
+
+  base_layout->addWidget(splitter);
 
   // Column 2: Devices
   auto column2 = new QWidget;
@@ -126,6 +129,16 @@ DeviceEditDialog::DeviceEditDialog(
   column3->setLayout(column3_layout);
   splitter->addWidget(column3);
 
+  m_devices->setMinimumWidth(40);
+  m_main->setMinimumWidth(100);
+
+  splitter->setCollapsible(0, false);
+  splitter->setCollapsible(1, false);
+
+  splitter->setStretchFactor(0, 1);
+  splitter->setStretchFactor(1, 2);
+
+
   connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
@@ -137,13 +150,11 @@ DeviceEditDialog::DeviceEditDialog(
 
   if(m_protocols->topLevelItemCount() > 0)
   {
-    //  m_protocols->setCurrentItem();
-    //  m_index = m_protocols->currentRow();
     selectedProtocolChanged();
   }
 
-  setMinimumWidth(700);
-  setMinimumHeight(400);
+  setMinimumWidth(850);
+  setMinimumHeight(550);
 
   setAcceptEnabled(false);
 }
@@ -237,8 +248,6 @@ void DeviceEditDialog::selectedProtocolChanged()
   // Recreate
   if(m_protocols->selectedItems().isEmpty())
   {
-    //m_devices->setVisible(false);
-    //m_devicesLabel->setVisible(false);
     return;
   }
   auto selected_item = m_protocols->selectedItems().first();
@@ -257,7 +266,6 @@ void DeviceEditDialog::selectedProtocolChanged()
   if(m_protocolWidget)
   {
     SCORE_ASSERT(m_index < m_previousSettings.count());
-
     m_previousSettings[m_index] = m_protocolWidget->getSettings();
     delete m_protocolWidget;
     m_protocolWidget = nullptr;
@@ -272,6 +280,8 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_devicesLabel->setVisible(true);
     m_devices->setRootIsDecorated(false);
     m_devices->setExpandsOnDoubleClick(false);
+    splitter->widget(0)->show();
+    splitter->widget(0)->setMinimumWidth(200);
 
     for(auto& [name, e] : m_enumerators)
     {
@@ -315,6 +325,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   {
     m_devices->setVisible(false);
     m_devicesLabel->setVisible(false);
+    splitter->widget(0)->hide();
   }
   m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
   m_protocolWidget = protocol->makeSettingsWidget();
