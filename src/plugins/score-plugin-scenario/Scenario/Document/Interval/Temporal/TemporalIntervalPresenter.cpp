@@ -566,7 +566,9 @@ void TemporalIntervalPresenter::createLayer(
       if(!m_model.smallViewVisible())
         return;
 
-      SCORE_ASSERT(slot_i < std::ssize(m_slots));
+      if(slot_i >= std::ssize(m_slots))
+        return;
+
       auto lay_slt = this->m_slots[slot_i].getLayerSlot();
 
       if(!lay_slt)
@@ -596,7 +598,8 @@ void TemporalIntervalPresenter::createLayer(
       if(!m_model.smallViewVisible())
         return;
 
-      SCORE_ASSERT(slot_i < std::ssize(m_slots));
+      if(slot_i >= std::ssize(m_slots))
+        return;
       auto slot = this->m_slots[slot_i].getLayerSlot();
 
       if(slot && !slot->layers.empty())
@@ -617,7 +620,8 @@ void TemporalIntervalPresenter::createLayer(
       if(!m_model.smallViewVisible())
         return;
 
-      SCORE_ASSERT(slot_i < std::ssize(m_slots));
+      if(slot_i >= std::ssize(m_slots))
+        return;
       auto slot = this->m_slots[slot_i].getLayerSlot();
 
       if(slot && !slot->layers.empty())
