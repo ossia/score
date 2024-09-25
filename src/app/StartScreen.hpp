@@ -6,6 +6,7 @@
 
 #include <QApplication>
 #include <QDesktopServices>
+#include <QIcon>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QNetworkAccessManager>
@@ -15,7 +16,10 @@
 #include <QPixmap>
 #include <QPointer>
 #include <QSettings>
+#include <QSplitter>
+#include <QTabWidget>
 #include <QTextLayout>
+#include <QVBoxLayout>
 
 #include <score_git_info.hpp>
 
@@ -266,6 +270,7 @@ public:
   void exitApp() W_SIGNAL(exitApp)
 
   void addLoadCrashedSession();
+  void setupTabs();
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -274,6 +279,7 @@ protected:
 private:
   QPixmap m_background;
   InteractiveLabel* m_crashLabel{};
+  QTabWidget* tabWidget;
 };
 struct StartScreenLink
 {
@@ -294,25 +300,45 @@ struct StartScreenLink
 StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent)
     : QWidget(parent)
 {
+  QWidget* headerWidget = new QWidget(this);
+  QHBoxLayout* headerLayout = new QHBoxLayout(headerWidget);
+  headerLayout->setContentsMargins(10, 10, 10, 0);
+
+  QLabel* logoLabel = new QLabel(headerWidget);
+
+  QPixmap placeholderPixmap(300, 100); //TODO: replace placeholder with logo
+  placeholderPixmap.fill(Qt::gray);
+  logoLabel->setPixmap(placeholderPixmap);
+  logoLabel->setFixedSize(placeholderPixmap.size());
+
+  headerLayout->addWidget(logoLabel, 0, Qt::AlignLeft);
+
+  tabWidget = new QTabWidget(this);
+
+  setupTabs();
+
+  QVBoxLayout* mainLayout = new QVBoxLayout(this);
+  mainLayout->addWidget(headerWidget);
+  mainLayout->addWidget(tabWidget);
+  setLayout(mainLayout);
+
 // Workaround until https://bugreports.qt.io/browse/QTBUG-103225 is fixed
 #if defined(__APPLE__)
   static constexpr double font_factor = 96. / 72.;
 #else
   static constexpr double font_factor = 1.;
 #endif
-  QFont f("Ubuntu", 14  * font_factor, QFont::Light);
+  QFont f("Ubuntu", 14 * font_factor, QFont::Light);
   f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   f.setStyleStrategy(QFont::PreferAntialias);
 
-  QFont titleFont("Montserrat", 14  * font_factor, QFont::DemiBold);
+  QFont titleFont("Montserrat", 14 * font_factor, QFont::DemiBold);
   titleFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   titleFont.setStyleStrategy(QFont::PreferAntialias);
 
   this->setEnabled(true);
   setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint); //| Qt::WindowStaysOnTopHint);
   setWindowModality(Qt::ApplicationModal);
-
-  m_background = score::get_pixmap(":/startscreen/startscreensplash.png");
 
   if(QPainter painter; painter.begin(&m_background))
   {
@@ -327,7 +353,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   }
 
   // Weird code here is because the window size seems to scale only to integer ratios.
-  setFixedSize(m_background.size() / m_background.devicePixelRatioF());
+  setFixedSize(QSize(600, 500) / m_background.devicePixelRatioF());
 
   {
     // new version
@@ -351,10 +377,11 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
         label->move(280, 170);
         label->show();
       }
-    }, [] {}};
+    },
+        [] {}};
   }
 
-  float label_x = 300;
+  float label_x = 50;
   float label_y = 215;
 
   { // recent files
@@ -405,7 +432,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
       m_crashLabel, &score::InteractiveLabel::labelPressed, this,
       &score::StartScreen::loadCrashedSession);
 
-  label_x = 510;
+  label_x = 310;
   label_y = 215;
   { // Create new
     InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("New"), "", this};
@@ -434,7 +461,8 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     QSettings settings;
     auto library_path = settings.value("Library/RootPath").toString();
     InteractiveLabel* label = new InteractiveLabel{
-        titleFont, qApp->tr("Examples"), "https://github.com/ossia/score-examples", this};
+        titleFont, qApp->tr("Examples"), "https://github.com/ossia/score-examples",
+        this};
     label->setPixmaps(
         score::get_pixmap(":/icons/load_examples_off.png"),
         score::get_pixmap(":/icons/load_examples_on.png"));
@@ -480,6 +508,35 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   }
 }
 
+void StartScreen::setupTabs()
+{
+
+  QWidget* homeTab = new QWidget;
+  QVBoxLayout* homeLayout = new QVBoxLayout;
+  QLabel* homeLabel = new QLabel("Create new score");
+  homeLayout->addWidget(homeLabel);
+  homeTab->setLayout(homeLayout);
+
+  QWidget* learnTab = new QWidget;
+  QVBoxLayout* learnLayout = new QVBoxLayout;
+  QLabel* learnLabel = new QLabel("Browse examples");
+  learnLayout->addWidget(learnLabel);
+  learnTab->setLayout(learnLayout);
+
+  QWidget* communityTab = new QWidget;
+  QVBoxLayout* communityLayout = new QVBoxLayout;
+  QLabel* communityLabel = new QLabel("Get Involved");
+  communityLayout->addWidget(communityLabel);
+  communityTab->setLayout(communityLayout);
+
+  // Add tabs to the QTabWidget
+  tabWidget->addTab(homeTab, QIcon(":/icons/home_icon.png"), "Home");
+  tabWidget->addTab(learnTab, QIcon(":/icons/learn_icon.png"), "Learn");
+  tabWidget->addTab(communityTab, QIcon(":/icons/community_icon.png"), "Community");
+
+  tabWidget->setTabPosition(QTabWidget::West); // Tabs clickable from the left
+}
+
 void StartScreen::addLoadCrashedSession()
 {
   m_crashLabel->show();
@@ -490,8 +547,12 @@ void StartScreen::addLoadCrashedSession()
 void StartScreen::paintEvent(QPaintEvent* event)
 {
   QPainter painter(this);
+<<<<<<< HEAD
   painter.setRenderHint(QPainter::RenderHint::SmoothPixmapTransform);
   painter.drawPixmap(0, 0, m_background);
+=======
+  painter.fillRect(rect(), Qt::black);
+>>>>>>> deed24c70 (set up tabs)
 }
 
 void StartScreen::keyPressEvent(QKeyEvent* event)
