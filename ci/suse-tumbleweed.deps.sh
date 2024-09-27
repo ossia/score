@@ -7,7 +7,7 @@ source ci/common.setup.sh
 # removing busybox-which removes git
 source ci/common.deps.sh
 
-$SUDO zypper -n remove busybox-which
+# $SUDO zypper -n remove busybox-which
 $SUDO zypper -n install \
    git \
    cmake ninja gcc gcc-c++ \
