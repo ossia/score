@@ -1,44 +1,39 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-
 #include <Analysis/GistState.hpp>
+#include <Analysis/Helpers.hpp>
+#include <halp/audio.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
 
-#include <numeric>
-namespace Analysis
+namespace A2
 {
-struct CSD
+struct CSD : A2::GistState
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Complex Spectral Difference")
+  halp_meta(c_name, "CSD")
+  halp_meta(category, "Analysis/Onsets")
+  halp_meta(author, "ossia score, Gist library")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#onset-detection")
+  halp_meta(description, "Get the complex spectral difference of a signal")
+  halp_meta(uuid, "a542f819-e062-4f52-8c54-7e49a9bad5b8");
+  
+
+  struct
   {
-    static const constexpr auto prettyName = "Complex Spectral Difference";
-    static const constexpr auto objectKey = "CSD";
-    static const constexpr auto category = "Analysis/Onsets";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#onset-detection";
-    static const constexpr auto author = "ossia score, Gist library";
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description
-        = "Get the complex spectral difference of a signal";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("a542f819-e062-4f52-8c54-7e49a9bad5b8");
-
-    static const constexpr audio_in audio_ins[]{"in"};
-    static const constexpr value_out value_outs[]{"out", "pulse"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::LogFloatSlider{"Gain", 0., 100., 1.},
-        Control::FloatSlider{"Gate", 0., 1., 0.});
-  };
-
-  using State = GistState;
-  using control_policy = ossia::safe_nodes::last_tick;
-
-  static void
-  run(const ossia::audio_port& in, float gain, float gate, ossia::value_port& out,
-      ossia::value_port& pulse, ossia::token_request tk, ossia::exec_state_facade e,
-      State& st)
+    audio_in audio;
+    gain_slider gain;
+    gate_slider gate;
+  } inputs;
+  struct
   {
-    st.process<&Gist<double>::complexSpectralDifference>(
-        in, gain, gate, out, pulse, tk, e);
+    value_out result;
+    pulse_out pulse;
+  } outputs;
+
+  void operator()(int frames)
+  {
+    process<&Gist<double>::complexSpectralDifference>(
+        inputs.audio, inputs.gain, inputs.gate, outputs.result, outputs.pulse, frames);
   }
 };
 }

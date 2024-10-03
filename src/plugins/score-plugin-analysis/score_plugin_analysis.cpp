@@ -3,8 +3,6 @@
 
 #include "score_plugin_analysis.hpp"
 
-#include <Engine/Node/SimpleApi.hpp>
-
 #include <score/plugins/FactorySetup.hpp>
 
 #include <Analysis/Centroid.hpp>
@@ -21,8 +19,7 @@
 #include <Analysis/SpectralDifference.hpp>
 #include <Analysis/SpectralDifference_HWR.hpp>
 #include <Analysis/ZeroCrossing.hpp>
-
-#include <score_plugin_engine.hpp>
+#include <Avnd/Factories.hpp>
 
 score_plugin_analysis::score_plugin_analysis() = default;
 score_plugin_analysis::~score_plugin_analysis() = default;
@@ -30,17 +27,25 @@ score_plugin_analysis::~score_plugin_analysis() = default;
 std::vector<score::InterfaceBase*> score_plugin_analysis::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
-  return Control::instantiate_fx<
-      Analysis::Centroid, Analysis::CSD, Analysis::Crest, Analysis::EnergyDifference,
-      Analysis::Flatness, Analysis::Hfq, Analysis::Kurtosis, Analysis::MelSpectrum,
-      Analysis::MFCC, Analysis::Peak, Analysis::Pitch, Analysis::RMS, Analysis::Rolloff,
-      Analysis::SpectralDiff, Analysis::SpectralDiffHWR, Analysis::Spectrum,
-      Analysis::ZeroCrossing>(ctx, key);
-}
-
-auto score_plugin_analysis::required() const -> std::vector<score::PluginKey>
-{
-  return {score_plugin_engine::static_key()};
+  std::vector<score::InterfaceBase*> fx;
+  oscr::instantiate_fx<A2::Centroid>(fx, ctx, key);
+  oscr::instantiate_fx<A2::CSD>(fx, ctx, key);
+  oscr::instantiate_fx<A2::Crest>(fx, ctx, key);
+  oscr::instantiate_fx<A2::EnergyDifference>(fx, ctx, key);
+  oscr::instantiate_fx<A2::Flatness>(fx, ctx, key);
+  oscr::instantiate_fx<A2::HFQ>(fx, ctx, key);
+  oscr::instantiate_fx<A2::Kurtosis>(fx, ctx, key);
+  oscr::instantiate_fx<A2::MelSpectrum>(fx, ctx, key);
+  oscr::instantiate_fx<A2::MFCC>(fx, ctx, key);
+  oscr::instantiate_fx<A2::Peak>(fx, ctx, key);
+  oscr::instantiate_fx<A2::Pitch>(fx, ctx, key);
+  oscr::instantiate_fx<A2::RMS>(fx, ctx, key);
+  oscr::instantiate_fx<A2::Rolloff>(fx, ctx, key);
+  oscr::instantiate_fx<A2::SpectralDiff>(fx, ctx, key);
+  oscr::instantiate_fx<A2::SpectralDiffHWR>(fx, ctx, key);
+  oscr::instantiate_fx<A2::Spectrum>(fx, ctx, key);
+  oscr::instantiate_fx<A2::ZeroCrossing>(fx, ctx, key);
+  return fx;
 }
 
 #include <score/plugins/PluginInstances.hpp>

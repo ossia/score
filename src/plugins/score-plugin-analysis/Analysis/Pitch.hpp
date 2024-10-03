@@ -1,81 +1,78 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-
-#include <ossia/detail/config.hpp>
-
 #include <Analysis/GistState.hpp>
+#include <Analysis/Helpers.hpp>
+#include <halp/audio.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
 
 #if defined(OSSIA_ENABLE_KFR)
 #include <kfr/base.hpp>
 #include <kfr/dsp.hpp>
 #endif
 
-#include <numeric>
-namespace Analysis
+namespace A2
 {
-struct Pitch
-{
-  struct Metadata : Control::Meta_base
-  {
-    static const constexpr auto prettyName = "Pitch detector";
-    static const constexpr auto objectKey = "Pitch";
-    static const constexpr auto category = "Analysis/Pitch";
-    static const constexpr auto author = "ossia score, Gist library";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#pitch-detection";
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description = "Get the pitch of a signal";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("ed511605-8265-4b2c-8c4b-d3b189539b3b");
-
-    static const constexpr audio_in audio_ins[]{"in"};
-    static const constexpr value_out value_outs[]{"out"};
-  };
-
 #if defined(OSSIA_ENABLE_KFR)
-  struct State : GistState
+struct PitchState : A2::GistState
+{
+  PitchState()
+      : hipass{kfr::to_sos(
+            kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate))}
   {
-    State()
-        : hipass{kfr::to_sos(
-              kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate))}
+  }
+
+  void filter(halp::dynamic_audio_bus_base<double>& in, int d)
+  {
+    while(hipass.size() < in.channels)
     {
+      hipass.emplace_back(
+          kfr::to_sos(kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate)));
     }
 
-    void filter(ossia::audio_port& in)
+    int c = 0;
+    for(double* chan : in)
     {
-      while(hipass.size() < in.channels())
-      {
-        hipass.emplace_back(kfr::to_sos(
-            kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate)));
-      }
-
-      int c = 0;
-      for(ossia::audio_channel& chan : in)
-      {
-        hipass[c++].apply(chan.data(), chan.size());
-      }
+      hipass[c++].apply(chan, d);
     }
+  }
 
-    using hipass_t = decltype(kfr::to_sos(
-        kfr::iir_highpass(kfr::zpk<double>{}, kfr::identity<double>{})));
-    std::vector<kfr::iir_filter<double>> hipass;
-  };
+  using hipass_t = decltype(kfr::to_sos(
+      kfr::iir_highpass(kfr::zpk<double>{}, kfr::identity<double>{})));
+  std::vector<kfr::iir_filter<double>> hipass;
+};
 #else
-  using State = GistState;
+using PitchState = GistState;
 #endif
-  using control_policy = ossia::safe_nodes::last_tick;
 
-  static void
-  run(const ossia::audio_port& in, ossia::value_port& out, ossia::token_request tk,
-      ossia::exec_state_facade e, State& st)
+struct Pitch : PitchState
+{
+  halp_meta(name, "Pitch detector")
+  halp_meta(c_name, "Pitch")
+  halp_meta(category, "Analysis/Pitch")
+  halp_meta(author, "ossia score, Gist library")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#pitch-detection")
+  halp_meta(description, "Get the pitch of a signal")
+  halp_meta(uuid, "ed511605-8265-4b2c-8c4b-d3b189539b3b");
+  
+  struct
   {
-    if(in.channels() == 0)
+    audio_in audio;
+  } inputs;
+  struct
+  {
+    value_out result;
+  } outputs;
+
+  void operator()(int frames)
+  {
+    if(inputs.audio.channels == 0)
       return;
 
 #if defined(OSSIA_ENABLE_KFR)
-    st.filter(const_cast<ossia::audio_port&>(in));
+    filter(inputs.audio, frames);
 #endif
-    st.process<&Gist<double>::pitch>(in, out, tk, e);
+    process<&Gist<double>::pitch>(inputs.audio, outputs.result, frames);
   }
 };
 }

@@ -1,110 +1,99 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-
 #include <Analysis/GistState.hpp>
+#include <Analysis/Helpers.hpp>
+#include <halp/audio.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
 
-#include <numeric>
-namespace Analysis
+namespace A2
 {
-struct Spectrum
+struct Spectrum : A2::GistState
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Spectrum")
+  halp_meta(c_name, "Spectrum")
+  halp_meta(category, "Analysis/Spectrum")
+  halp_meta(author, "ossia score, Gist library")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction")
+  halp_meta(description, "Get the magnitude spectrum of a signal")
+  halp_meta(uuid, "422a1f92-821c-4073-ae50-e7c21487e27d");
+
+  struct
   {
-    static const constexpr auto prettyName = "Spectrum";
-    static const constexpr auto objectKey = "Mel";
-    static const constexpr auto category = "Analysis/Spectrum";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction";
-    static const constexpr auto author = "ossia score, Gist library";
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description = "Get the magnitude spectrum of a signal";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("422a1f92-821c-4073-ae50-e7c21487e27d");
+    audio_in audio;
+    gain_slider gain;
+    gate_slider gate;
+  } inputs;
 
-    static const constexpr audio_in audio_ins[]{"in"};
-    static const constexpr audio_out audio_outs[]{"out"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::LogFloatSlider{"Gain", 0., 100., 1.},
-        Control::FloatSlider{"Gate", 0., 1., 0.});
-  };
-
-  using State = GistState;
-  using control_policy = ossia::safe_nodes::last_tick;
-
-  static void
-  run(const ossia::audio_port& in, float gain, float gate, ossia::audio_port& out,
-      ossia::token_request tk, ossia::exec_state_facade e, State& st)
+  struct
   {
-    st.processVector<&Gist<double>::getMagnitudeSpectrum>(in, gain, gate, out, tk, e);
+    halp::dynamic_audio_bus<"spectrum", double> result;
+  } outputs;
+
+  void operator()(int frames)
+  {
+    processVector<&Gist<double>::getMagnitudeSpectrum>(
+        inputs.audio, inputs.gain, inputs.gate, outputs.result, frames);
   }
 };
 
-struct MelSpectrum
+struct MelSpectrum : A2::GistState
 {
-  struct Metadata : Control::Meta_base
+
+  halp_meta(name, "Complex Spectral Difference")
+  halp_meta(c_name, "CSD")
+  halp_meta(category, "Analysis/Spectrum")
+  halp_meta(author, "ossia score, Gist library")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction")
+  halp_meta(description, "Get the Mel frequency spectrum of a signal")
+  halp_meta(uuid, "f2b62e47-0e67-476f-b757-ef6a48610a78");
+
+  struct
   {
-    static const constexpr auto prettyName = "Mel spectrum";
-    static const constexpr auto objectKey = "Mel";
-    static const constexpr auto category = "Analysis/Spectrum";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction";
-    static const constexpr auto author = "ossia score, Gist library";
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description
-        = "Get the Mel frequency spectrum of a signal";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("f2b62e47-0e67-476f-b757-ef6a48610a78");
+    audio_in audio;
+    gain_slider gain;
+    gate_slider gate;
+  } inputs;
 
-    static const constexpr audio_in audio_ins[]{"in"};
-    static const constexpr audio_out audio_outs[]{"out"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::LogFloatSlider{"Gain", 0., 100., 1.},
-        Control::FloatSlider{"Gate", 0., 1., 0.});
-  };
-
-  using State = GistState;
-  using control_policy = ossia::safe_nodes::last_tick;
-
-  static void
-  run(const ossia::audio_port& in, float gain, float gate, ossia::audio_port& out,
-      ossia::token_request tk, ossia::exec_state_facade e, State& st)
+  struct
   {
-    st.processVector<&Gist<double>::getMelFrequencySpectrum>(in, gain, gate, out, tk, e);
+    audio_out result;
+  } outputs;
+
+  void operator()(int frames)
+  {
+    processVector<&Gist<double>::getMelFrequencySpectrum>(
+        inputs.audio, inputs.gain, inputs.gate, outputs.result, frames);
   }
 };
 
-struct MFCC
+struct MFCC : A2::GistState
 {
-  struct Metadata : Control::Meta_base
+
+  halp_meta(name, "MFCC")
+  halp_meta(c_name, "MFCC")
+  halp_meta(category, "Analysis/Spectrum")
+  halp_meta(author, "ossia score, Gist library")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction")
+  halp_meta(description, "Get the mel-frequency cepstral coefficients of a signal")
+  halp_meta(uuid,"26684acb-36f5-4a8b-8ed3-f32f9ffb436b");
+
+  struct
   {
-    static const constexpr auto prettyName = "MFCC";
-    static const constexpr auto objectKey = "MFCC";
-    static const constexpr auto category = "Analysis/Spectrum";
-    static const constexpr auto author = "ossia score, Gist library";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction";
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description
-        = "Get the mel-frequency cepstral coefficients of a signal";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("26684acb-36f5-4a8b-8ed3-f32f9ffb436b");
+    audio_in audio;
+    gain_slider gain;
+    gate_slider gate;
+  } inputs;
 
-    static const constexpr audio_in audio_ins[]{"in"};
-    static const constexpr audio_out audio_outs[]{"out"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::LogFloatSlider{"Gain", 0., 100., 1.},
-        Control::FloatSlider{"Gate", 0., 1., 0.});
-  };
-
-  using State = GistState;
-  using control_policy = ossia::safe_nodes::last_tick;
-
-  static void
-  run(const ossia::audio_port& in, float gain, float gate, ossia::audio_port& out,
-      ossia::token_request tk, ossia::exec_state_facade e, State& st)
+  struct
   {
-    st.processVector<&Gist<double>::getMelFrequencyCepstralCoefficients>(
-        in, gain, gate, out, tk, e);
+    audio_out result;
+  } outputs;
+
+  void operator()(int frames)
+  {
+    processVector<&Gist<double>::getMelFrequencyCepstralCoefficients>(
+        inputs.audio, inputs.gain, inputs.gate, outputs.result, frames);
   }
 };
 }

@@ -1,43 +1,40 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-
 #include <Analysis/GistState.hpp>
+#include <Analysis/Helpers.hpp>
+#include <halp/audio.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
 
-#include <numeric>
-namespace Analysis
+namespace A2
 {
-struct Hfq
+struct HFQ : A2::GistState
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "High-Frequency Content")
+  halp_meta(c_name, "Hfq")
+  halp_meta(category, "Analysis/Onsets")
+  halp_meta(author, "ossia score, Gist library")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#onset-detection")
+  halp_meta(description, "Get the high-frequency content of a signal")
+  halp_meta(uuid, "75f12985-63b6-4dc1-946f-a65a3dc54eed");
+  
+  struct
   {
-    static const constexpr auto prettyName = "High-Frequency Content";
-    static const constexpr auto objectKey = "Hfq";
-    static const constexpr auto category = "Analysis/Onsets";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#onset-detection";
-    static const constexpr auto author = "ossia score, Gist library";
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description
-        = "Get the high-frequency content of a signal";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("75f12985-63b6-4dc1-946f-a65a3dc54eed");
+    audio_in audio;
+    gain_slider gain;
+    gate_slider gate;
+  } inputs;
 
-    static const constexpr audio_in audio_ins[]{"in"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::LogFloatSlider{"Gain", 0., 100., 1.},
-        Control::FloatSlider{"Gate", 0., 1., 0.});
-    static const constexpr value_out value_outs[]{"out", "pulse"};
-  };
-
-  using State = GistState;
-  using control_policy = ossia::safe_nodes::last_tick;
-
-  static void
-  run(const ossia::audio_port& in, float gain, float gate, ossia::value_port& out,
-      ossia::value_port& pulse, ossia::token_request tk, ossia::exec_state_facade e,
-      State& st)
+  struct
   {
-    st.process<&Gist<double>::highFrequencyContent>(in, gain, gate, out, pulse, tk, e);
+    value_out result;
+    pulse_out pulse;
+  } outputs;
+
+  void operator()(int frames)
+  {
+    process<&Gist<double>::highFrequencyContent>(
+        inputs.audio, inputs.gain, inputs.gate, outputs.result, outputs.pulse, frames);
   }
 };
 }

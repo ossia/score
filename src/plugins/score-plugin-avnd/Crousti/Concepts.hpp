@@ -23,6 +23,7 @@
 #include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/midi_port.hpp>
 #include <avnd/concepts/parameter.hpp>
+#include <avnd/introspection/input.hpp>
 #include <avnd/wrappers/metadatas.hpp>
 #include <avnd/wrappers/widgets.hpp>
 

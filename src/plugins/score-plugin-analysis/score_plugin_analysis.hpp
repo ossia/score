@@ -19,6 +19,4 @@ private:
   std::vector<score::InterfaceBase*> factories(
       const score::ApplicationContext&,
       const score::InterfaceKey& factoryName) const override;
-
-  std::vector<score::PluginKey> required() const override;
 };

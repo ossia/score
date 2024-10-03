@@ -269,7 +269,7 @@ struct setup_Impl0
         {
           avnd::effect_container<Node>& eff = node_ptr->impl;
           {
-            for(auto& state : eff.full_state())
+            for(auto state : eff.full_state())
             {
               // FIXME dynamic_ports
               if_possible(param.update(state.effect));
@@ -558,7 +558,7 @@ struct ExecutorGuiUpdate
     }
     if(ok)
     {
-      for(auto& state : node.impl.full_state())
+      for(auto state : node.impl.full_state())
       {
         avnd::control_input_introspection<Node>::for_all_n2(
             state.inputs, ApplyEngineControlChangeToUI<Node>{arr, element});
@@ -817,7 +817,7 @@ public:
       // Initialize all the controls in the node with the current value.
       // And update the node when the UI changes
 
-      for(auto& state : eff.full_state())
+      for(auto state : eff.full_state())
       {
         dynamic_ports_port_type::for_all_n2(
             state.inputs, setup_Impl0<Node>{element, ctx, ptr, this});
@@ -828,7 +828,7 @@ public:
       // Initialize all the controls in the node with the current value.
       // And update the node when the UI changes
 
-      for(auto& state : eff.full_state())
+      for(auto state : eff.full_state())
       {
         control_inputs_type::for_all_n2(
             state.inputs, setup_Impl0<Node>{element, ctx, ptr, this});
@@ -839,7 +839,7 @@ public:
       // Initialize all the controls in the node with the current value.
       // And update the node when the UI changes
 
-      for(auto& state : eff.full_state())
+      for(auto state : eff.full_state())
       {
         curve_inputs_type::for_all_n2(
             state.inputs, setup_Impl0<Node>{element, ctx, ptr, this});
@@ -936,20 +936,26 @@ public:
 
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
-      eff.send_message = [this]<typename T>(T&& b) mutable {
-        if constexpr(sizeof(this) + sizeof(b) < Execution::ExecutionCommand::max_storage)
+      eff.send_message = [self = QPointer{this}]<typename T>(T&& b) mutable {
+        if(!self)
+          return;
+        if constexpr(
+            sizeof(QPointer<QObject>) + sizeof(b)
+            < Execution::ExecutionCommand::max_storage)
         {
-          this->in_edit([this, bb = std::move(b)]() mutable {
-            if(this->process().to_ui)
-              MessageBusSender{this->process().to_ui}(std::move(bb));
+          self->in_edit(
+              [proc = QPointer{&self->process()}, bb = std::move(b)]() mutable {
+            if(proc->to_ui)
+              MessageBusSender{proc->to_ui}(std::move(bb));
           });
         }
         else
         {
-          this->in_edit(
-              [this, bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
-            if(this->process().to_ui)
-              MessageBusSender{this->process().to_ui}(*std::move(bb));
+          self->in_edit(
+              [proc = QPointer{&self->process()},
+               bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
+            if(proc->to_ui)
+              MessageBusSender{proc->to_ui}(*std::move(bb));
           });
         }
       };
@@ -971,7 +977,7 @@ public:
 
         eff.worker.request
             = [&tq, qex_ptr = std::move(qex_ptr),
-               eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) {
+               eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) mutable {
           // request() is invoked in the DSP / processor thread
           // and just posts the task to the thread pool
           tq.post([eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
@@ -1027,7 +1033,7 @@ public:
   {
     avnd::effect_container<Node>& eff = ptr->impl;
     {
-      for(auto& state : eff.full_state())
+      for(auto state : eff.full_state())
       {
         avnd::input_introspection<Node>::for_all(
             state.inputs, [&](auto& field) { if_possible(field.update(state.effect)); });
