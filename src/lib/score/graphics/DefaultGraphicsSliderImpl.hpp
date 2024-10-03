@@ -100,7 +100,10 @@ struct DefaultGraphicsSliderImpl
       double curPos = self.from01(ossia::clamp(posX, 0., srect.width()) / srect.width());
       if(curPos != self.m_value)
       {
-        self.m_value = curPos;
+        double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.1 : 1.;
+        self.m_value = std::clamp(
+            double(self.m_value + ((curPos - self.m_value) * ratio)), 0., 1.);
+
         self.sliderMoved();
         self.update();
       }
@@ -118,7 +121,10 @@ struct DefaultGraphicsSliderImpl
       double curPos = self.from01(ossia::clamp(posX, 0., srect.width()) / srect.width());
       if(curPos != self.m_value)
       {
-        self.m_value = curPos;
+        double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.1 : 1.;
+        self.m_value = std::clamp(
+            double(self.m_value + ((curPos - self.m_value) * ratio)), 0., 1.);
+
         self.update();
       }
     }
