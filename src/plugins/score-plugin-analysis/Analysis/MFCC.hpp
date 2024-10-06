@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct Spectrum : A2::GistState
+struct Spectrum : Analysis::GistState
 {
   halp_meta(name, "Spectrum")
   halp_meta(c_name, "Spectrum")
@@ -37,7 +37,7 @@ struct Spectrum : A2::GistState
   }
 };
 
-struct MelSpectrum : A2::GistState
+struct MelSpectrum : Analysis::GistState
 {
 
   halp_meta(name, "Complex Spectral Difference")
@@ -67,7 +67,7 @@ struct MelSpectrum : A2::GistState
   }
 };
 
-struct MFCC : A2::GistState
+struct MFCC : Analysis::GistState
 {
 
   halp_meta(name, "MFCC")

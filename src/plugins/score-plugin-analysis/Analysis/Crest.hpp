@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct Crest : A2::GistState
+struct Crest : Analysis::GistState
 {
   halp_meta(name, "Spectral Crest")
   halp_meta(c_name, "Crest")

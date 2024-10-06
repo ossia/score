@@ -9,7 +9,7 @@
 #include <halp/mappers.hpp>
 
 #include <array>
-namespace A2
+namespace Analysis
 {
 static constexpr auto multichannel_max_count = 8;
 using analysis_vector = ossia::small_pod_vector<float, multichannel_max_count>;
@@ -32,7 +32,11 @@ struct audio_out : halp::dynamic_audio_bus<"out", double>
 
 struct gain_slider : halp::hslider_f32<"Gain", halp::range{0., 100., 1.}>
 {
-  using mapper = halp::log_mapper<std::ratio<95, 100>>;
+  enum widget
+  {
+    log_slider
+  };
+  // using mapper = halp::log_mapper<std::ratio<95, 100>>;
 };
 
 struct gate_slider : halp::hslider_f32<"Gate", halp::range{0., 1., 0.}>

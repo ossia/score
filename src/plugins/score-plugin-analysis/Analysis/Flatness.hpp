@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct Flatness : A2::GistState
+struct Flatness : Analysis::GistState
 {
   halp_meta(name, "Spectral flatness")
   halp_meta(c_name, "Flatness")

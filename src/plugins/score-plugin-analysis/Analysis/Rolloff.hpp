@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct Rolloff : A2::GistState
+struct Rolloff : Analysis::GistState
 {
   halp_meta(name, "Rolloff")
   halp_meta(c_name, "Rolloff")

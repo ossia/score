@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct SpectralDiffHWR : A2::GistState
+struct SpectralDiffHWR : Analysis::GistState
 {
   halp_meta(name, "Spectral Difference (HWR)")
   halp_meta(c_name, "SpectralDiffHWR")

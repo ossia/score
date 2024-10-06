@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct RMS : A2::GistState
+struct RMS : Analysis::GistState
 {
   halp_meta(name, "RMS")
   halp_meta(c_name, "RMS")
@@ -36,7 +36,7 @@ struct RMS : A2::GistState
   }
 };
 
-struct Peak : A2::GistState
+struct Peak : Analysis::GistState
 {
   halp_meta(name, "Peak")
   halp_meta(c_name, "Peak")

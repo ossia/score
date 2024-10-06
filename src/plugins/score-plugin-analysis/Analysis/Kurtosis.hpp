@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct Kurtosis : A2::GistState
+struct Kurtosis : Analysis::GistState
 {
   
   halp_meta(name, "Complex Spectral Difference")

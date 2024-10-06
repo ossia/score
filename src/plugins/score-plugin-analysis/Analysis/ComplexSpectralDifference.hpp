@@ -5,9 +5,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct CSD : A2::GistState
+struct CSD : Analysis::GistState
 {
   halp_meta(name, "Complex Spectral Difference")
   halp_meta(c_name, "CSD")

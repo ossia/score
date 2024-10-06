@@ -20,7 +20,7 @@ template <typename T>
 using timed_vec = ossia::flat_map<int64_t, T>;
 }
 
-namespace A2
+namespace Analysis
 {
 struct GistState
 {
@@ -427,7 +427,7 @@ struct GistState
   }
 
   ossia::small_vector<Gist<double>, 2> gist;
-  A2::analysis_vector output;
+  Analysis::analysis_vector output;
   int bufferSize{};
   int rate{};
 };

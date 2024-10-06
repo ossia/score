@@ -28,23 +28,23 @@ std::vector<score::InterfaceBase*> score_plugin_analysis::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   std::vector<score::InterfaceBase*> fx;
-  oscr::instantiate_fx<A2::Centroid>(fx, ctx, key);
-  oscr::instantiate_fx<A2::CSD>(fx, ctx, key);
-  oscr::instantiate_fx<A2::Crest>(fx, ctx, key);
-  oscr::instantiate_fx<A2::EnergyDifference>(fx, ctx, key);
-  oscr::instantiate_fx<A2::Flatness>(fx, ctx, key);
-  oscr::instantiate_fx<A2::HFQ>(fx, ctx, key);
-  oscr::instantiate_fx<A2::Kurtosis>(fx, ctx, key);
-  oscr::instantiate_fx<A2::MelSpectrum>(fx, ctx, key);
-  oscr::instantiate_fx<A2::MFCC>(fx, ctx, key);
-  oscr::instantiate_fx<A2::Peak>(fx, ctx, key);
-  oscr::instantiate_fx<A2::Pitch>(fx, ctx, key);
-  oscr::instantiate_fx<A2::RMS>(fx, ctx, key);
-  oscr::instantiate_fx<A2::Rolloff>(fx, ctx, key);
-  oscr::instantiate_fx<A2::SpectralDiff>(fx, ctx, key);
-  oscr::instantiate_fx<A2::SpectralDiffHWR>(fx, ctx, key);
-  oscr::instantiate_fx<A2::Spectrum>(fx, ctx, key);
-  oscr::instantiate_fx<A2::ZeroCrossing>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Centroid>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::CSD>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Crest>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::EnergyDifference>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Flatness>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::HFQ>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Kurtosis>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::MelSpectrum>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::MFCC>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Peak>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Pitch>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::RMS>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Rolloff>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::SpectralDiff>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::SpectralDiffHWR>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::Spectrum>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::ZeroCrossing>(fx, ctx, key);
   return fx;
 }
 

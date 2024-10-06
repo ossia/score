@@ -11,10 +11,10 @@
 #include <kfr/dsp.hpp>
 #endif
 
-namespace A2
+namespace Analysis
 {
 #if defined(OSSIA_ENABLE_KFR)
-struct PitchState : A2::GistState
+struct PitchState : Analysis::GistState
 {
   PitchState()
       : hipass{kfr::to_sos(

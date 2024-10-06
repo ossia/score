@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct EnergyDifference : A2::GistState
+struct EnergyDifference : Analysis::GistState
 {
   halp_meta(name, "Energy Difference")
   halp_meta(c_name, "EnergyDifference")

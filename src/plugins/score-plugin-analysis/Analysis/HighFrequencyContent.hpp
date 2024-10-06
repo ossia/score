@@ -6,9 +6,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct HFQ : A2::GistState
+struct HFQ : Analysis::GistState
 {
   halp_meta(name, "High-Frequency Content")
   halp_meta(c_name, "Hfq")

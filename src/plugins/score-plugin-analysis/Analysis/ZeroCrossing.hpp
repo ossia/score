@@ -5,9 +5,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct ZeroCrossing : A2::GistState
+struct ZeroCrossing : Analysis::GistState
 {
   halp_meta(name, "Zero-crossings")
   halp_meta(c_name, "Zerocross")

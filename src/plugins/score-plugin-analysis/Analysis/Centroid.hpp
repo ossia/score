@@ -5,9 +5,9 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
-namespace A2
+namespace Analysis
 {
-struct Centroid : A2::GistState
+struct Centroid : Analysis::GistState
 {
   halp_meta(name, "Centroid")
   halp_meta(c_name, "Centroid")
