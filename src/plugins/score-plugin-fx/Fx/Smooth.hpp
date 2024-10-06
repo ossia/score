@@ -204,8 +204,7 @@ struct Node
     static const constexpr auto kind
         = Process::ProcessCategory::Mapping | Process::ProcessCategory::Deprecated;
     static const constexpr auto description = "Filter noisy value stream";
-    static const uuid_constexpr auto uuid
-        = make_uuid("809c014d-7d02-45dc-8849-de7a7db5fe67");
+    static const constexpr auto uuid = make_uuid("809c014d-7d02-45dc-8849-de7a7db5fe67");
 
     static const constexpr auto controls = tuplet::make_tuple(
         Control::make_enum(
@@ -300,8 +299,7 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Filter noisy value stream";
-    static const uuid_constexpr auto uuid
-        = make_uuid("bf603921-5a48-4aa5-9bc1-48a762be6467");
+    static const constexpr auto uuid = make_uuid("bf603921-5a48-4aa5-9bc1-48a762be6467");
 
     static const constexpr auto controls = tuplet::make_tuple(
         Control::make_enum(

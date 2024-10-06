@@ -24,7 +24,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
         = "Limit and quantize the rate of a value stream";
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("76cfd504-7c10-4bdb-a1b4-fbe449cc06f0");
 
     static const constexpr auto controls = tuplet::make_tuple(

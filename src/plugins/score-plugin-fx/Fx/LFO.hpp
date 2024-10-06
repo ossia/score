@@ -40,7 +40,7 @@ struct Node
         = Process::ProcessCategory::Generator | Process::ProcessCategory::Deprecated;
     static const constexpr auto description = "Low-frequency oscillator";
     static const constexpr double recommended_height = 130.;
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
 
     static const constexpr value_out value_outs[]{"out"};
@@ -242,7 +242,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description = "Low-frequency oscillator";
     static const constexpr double recommended_height = 130.;
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("1e17e479-3513-44c8-a8a7-017be9f6ac8a");
 
     static const constexpr value_out value_outs[]{"out"};

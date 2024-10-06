@@ -19,7 +19,7 @@ struct Input
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Creates a float from MSB/LSB CCs";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("28ca746e-c304-4ba6-bd5b-78934a1dec55");
 
     static const constexpr value_in value_ins[]{{"msb", false}, {"lsb", false}};
@@ -60,7 +60,7 @@ struct Output
     static const constexpr auto description
         = "Creates MIDI LSB/MSB from a 0-16384 or 0-1 value";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("d6f5173b-b823-4571-b31f-660832b6132b");
 
     static const constexpr value_in value_ins[]{"int", "float"};

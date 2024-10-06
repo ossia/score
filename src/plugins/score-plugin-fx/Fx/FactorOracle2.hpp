@@ -333,7 +333,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("66F1C352-C48F-40A2-9283-35C2CB376258");
 
     static const constexpr auto controls

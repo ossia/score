@@ -410,7 +410,7 @@ struct Node
           "in parent), x (value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
 
     static const constexpr value_in value_ins[]{value_in{"in", false}};
@@ -531,7 +531,7 @@ struct Node
           "\n"
           "x (value), px (previous value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
 
     static const constexpr audio_in audio_ins[]{"in"};
@@ -702,7 +702,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Applies a math expression to an input.";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("25c64b87-a44a-4fed-9f60-0a48906fd3ec");
 
     static const constexpr value_in value_ins[]{value_in{"in", false}};
@@ -790,7 +790,7 @@ struct Node
     static const constexpr auto description
         = "Applies a math expression to each member of an input.";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("cf3df02f-a563-4e92-a739-b321d3a84252");
 
     static const constexpr value_out value_outs[]{"out"};
@@ -862,7 +862,7 @@ struct Node
     static const constexpr auto description
         = "Applies a math expression to each member of an input.";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("1fe9c806-b601-4ee0-9fbb-0ab817c4dd87");
 
     static const constexpr value_in value_ins[]{value_in{"in", false}};

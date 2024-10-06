@@ -17,7 +17,7 @@ struct Node
     static const constexpr auto description
         = "A simple metronome - outputs a bang on the current tick";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
+    static const constexpr auto uuid
         = make_uuid("1c185139-04f9-492f-8b4a-000dd4428990");
 
     static const constexpr value_out value_outs[]{"out"};
