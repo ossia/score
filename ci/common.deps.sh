@@ -43,7 +43,9 @@ if [[ ! -d score-addon-led ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-led
 fi
 
-
+if [[ ! -d score-addon-spatgris ]]; then
+  git clone --recursive -j16 https://github.com/ossia/score-addon-spatgris
+fi
 )
 
 
