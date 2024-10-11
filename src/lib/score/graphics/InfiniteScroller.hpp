@@ -1,8 +1,8 @@
 #pragma once
 #include <score/tools/Cursor.hpp>
 
-#include <QApplication>
 #include <QGraphicsItem>
+#include <QGuiApplication>
 #include <QScreen>
 
 namespace score
@@ -23,13 +23,13 @@ struct InfiniteScroller
 #if !defined(__EMSCRIPTEN__)
     self.setCursor(QCursor(Qt::BlankCursor));
 #endif
-    currentGeometry = qApp->primaryScreen()->availableGeometry();
+    currentGeometry = qGuiApp->primaryScreen()->availableGeometry();
   }
 
   static void move_free(QGraphicsSceneMouseEvent* event)
   {
     auto delta = (event->screenPos().y() - event->lastScreenPos().y());
-    double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.2 : 1.;
+    double ratio = qGuiApp->keyboardModifiers() & Qt::CTRL ? 0.2 : 1.;
     if(std::abs(delta) < 500)
     {
       currentSpeed = ratio * delta;

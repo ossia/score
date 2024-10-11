@@ -667,7 +667,7 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
   if(ev->button() == Qt::LeftButton)
     return DoubleSlider::mousePressEvent(ev);
 
-  if(qApp->keyboardModifiers() & Qt::CTRL)
+  if(qGuiApp->keyboardModifiers() & Qt::CTRL)
   {
     setValue(valueFromSpeed(1.));
   }
