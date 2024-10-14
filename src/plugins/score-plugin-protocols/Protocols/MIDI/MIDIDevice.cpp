@@ -53,12 +53,14 @@ public:
       if(event->type() == QEvent::KeyPress)
       {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        press(keyEvent->nativeScanCode() - 8);
+        if(!keyEvent->isAutoRepeat())
+          press(keyEvent->nativeScanCode() - 8);
       }
       else if(event->type() == QEvent::KeyRelease)
       {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        release(keyEvent->nativeScanCode() - 8);
+        if(!keyEvent->isAutoRepeat())
+          release(keyEvent->nativeScanCode() - 8);
       }
     }
     return false;
