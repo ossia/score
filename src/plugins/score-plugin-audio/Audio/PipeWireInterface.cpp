@@ -146,6 +146,24 @@ void PipeWireAudioFactory::setupSettingsWidget(
     return;
   }
 
+  if(auto str = qgetenv("PIPEWIRE_LATENCY"); !str.isEmpty())
+  {
+    if(auto ss = str.split('/'); ss.size() == 2)
+    {
+      bool ok{};
+      int buffer_size = ss[0].toInt(&ok);
+      if(ok)
+      {
+        int rate = ss[1].toInt(&ok);
+        if(ok)
+        {
+          m.setBufferSize(buffer_size);
+          m.setRate(rate);
+        }
+      }
+    }
+  }
+
   /*
   {
     auto rate = jack_get_sample_rate(clt);
