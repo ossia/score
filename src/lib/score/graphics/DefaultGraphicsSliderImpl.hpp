@@ -101,9 +101,16 @@ struct DefaultGraphicsSliderImpl
       double curPos = self.from01(ossia::clamp(posX, 0., srect.width()) / srect.width());
       if(curPos != self.m_value)
       {
-        double ratio = qGuiApp->keyboardModifiers() & Qt::CTRL ? 0.1 : 1.;
-        self.m_value = std::clamp(
-            double(self.m_value + ((curPos - self.m_value) * ratio)), 0., 1.);
+        if constexpr(std::is_same_v<decltype(self.m_value), int>)
+        {
+          self.m_value = curPos;
+        }
+        else
+        {
+          double ratio = qGuiApp->keyboardModifiers() & Qt::CTRL ? 0.1 : 1.;
+          self.m_value = std::clamp(
+              double(self.m_value + ((curPos - self.m_value) * ratio)), 0., 1.);
+        }
 
         self.sliderMoved();
         self.update();
@@ -122,10 +129,16 @@ struct DefaultGraphicsSliderImpl
       double curPos = self.from01(ossia::clamp(posX, 0., srect.width()) / srect.width());
       if(curPos != self.m_value)
       {
-        double ratio = qGuiApp->keyboardModifiers() & Qt::CTRL ? 0.1 : 1.;
-        self.m_value = std::clamp(
-            double(self.m_value + ((curPos - self.m_value) * ratio)), 0., 1.);
-
+        if constexpr(std::is_same_v<decltype(self.m_value), int>)
+        {
+          self.m_value = curPos;
+        }
+        else
+        {
+          double ratio = qGuiApp->keyboardModifiers() & Qt::CTRL ? 0.1 : 1.;
+          self.m_value = std::clamp(
+              double(self.m_value + ((curPos - self.m_value) * ratio)), 0., 1.);
+        }
         self.update();
       }
     }
