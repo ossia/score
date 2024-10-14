@@ -600,6 +600,7 @@ target_link_libraries(score_lib_base
     ${QT_PREFIX}::Network
     ossia
     QCodeEditor
+    magic_enum::magic_enum
 )
 
 if(TARGET ${QT_PREFIX}::Svg)
