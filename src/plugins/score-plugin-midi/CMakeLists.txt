@@ -61,7 +61,6 @@ set(SOURCE_FILES
   Patternist/PatternModel.cpp
   Patternist/PatternView.cpp
   Patternist/PatternPresenter.cpp
-  Patternist/PatternLibrary.cpp
   Patternist/PatternExecutor.cpp
   Patternist/PatternParsing.cpp
 

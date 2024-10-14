@@ -4,7 +4,9 @@
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
+#include <ossia/network/common/path.hpp>
 namespace ossia
 {
 template <typename T>

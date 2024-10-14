@@ -30,6 +30,8 @@ public:
     m_outlets.push_back(&out);
   }
 
+  std::string label() const noexcept override { return "pattern_node"; }
+
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     using namespace ossia;

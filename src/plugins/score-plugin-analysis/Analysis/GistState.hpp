@@ -418,7 +418,7 @@ struct GistState
         git->processAudioFrame(data(channel), samples, gain, gate);
 
         decltype(auto) res = ((*git).*Func)();
-        SCORE_ASSERT(res.size() <= d);
+        SCORE_ASSERT(std::ssize(res) <= d);
         std::copy_n(res.begin(), res.size(), *it);
       }
       ++it;

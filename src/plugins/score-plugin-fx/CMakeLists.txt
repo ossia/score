@@ -4,26 +4,36 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/AngleNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Arpeggiator.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Arraygen.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Arraymap.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Chord.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/ClassicalBeat.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/TestNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/DebugFx.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Envelope.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathAudioFilter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathAudioGenerator.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathGenerator.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathHelpers.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathMapping.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathMapping_generic.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathValueFilter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MicroMapping.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MidiUtil.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MidiHiRes.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/AngleNode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/NoiseFilter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/FactorOracle.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Chord.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Gain.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO_v2.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Metro.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Envelope.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/EmptyMapping.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathGenerator.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathMapping.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/DebugFx.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Smooth.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Smooth_v2.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/TestNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Types.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.hpp"
  )
@@ -33,7 +43,7 @@ add_library(
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.cpp"
 )
 
-target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine)
+target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine score_plugin_avnd)
 
 setup_score_plugin(score_plugin_fx)
 

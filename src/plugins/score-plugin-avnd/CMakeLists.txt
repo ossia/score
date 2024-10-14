@@ -117,8 +117,8 @@ add_library(
 
 
   Avnd/Factories.hpp
-  AvndDevices/AvndDevice.hpp
 
+  AvndDevices/AvndDevice.hpp
   Crousti/Attributes.hpp
   Crousti/Concepts.hpp
   Crousti/CpuAnalysisNode.hpp
@@ -129,18 +129,16 @@ add_library(
   Crousti/GfxNode.hpp
   Crousti/GpuComputeNode.hpp
   Crousti/GpuNode.hpp
-  Crousti/GpuUtils.hpp
   Crousti/GpuUtils.cpp
+  Crousti/GpuUtils.hpp
   Crousti/Layer.hpp
-  Crousti/Layer.cpp
-  Crousti/Layout.hpp
   Crousti/MessageBus.hpp
   Crousti/Metadata.hpp
   Crousti/Metadatas.hpp
   Crousti/Painter.hpp
   Crousti/ProcessModel.hpp
   Crousti/ProcessModelPortInit.hpp
-  Crousti/Widgets.hpp
+  Crousti/ScoreLayer.hpp
 
 # score_plugin_avnd.graph.cpp
   score_plugin_avnd.aether.cpp
@@ -153,24 +151,31 @@ add_library(
   score_plugin_avnd.cpp
 
 
-  "${AVND_FOLDER}/include/avnd/binding/ossia/node.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/to_value.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/all.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/builtin_ports.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/callbacks.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/configure.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/data_node.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/dynamic_ports.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/ffts.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/from_value.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/geometry.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/message_process.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/mono_audio_node.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/poly_audio_node.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/value.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/node.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/ossia_audio_node.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/ossia_to_curve.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/port_run_preprocess.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/time_controls.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/configure.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/ffts.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/poly_audio_node.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/port_base.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/port_run_postprocess.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/from_value.hpp"
-  "${AVND_FOLDER}/include/avnd/binding/ossia/data_node.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/port_run_preprocess.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/port_setup.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/qt.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/soundfiles.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/time_controls.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/to_value.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/uuid.hpp"
+  "${AVND_FOLDER}/include/avnd/binding/ossia/value.hpp"
   "${AVND_FOLDER}/include/avnd/binding/ossia/window_functions.hpp"
   "${AVND_FOLDER}/include/avnd/common/export.hpp"
   "${AVND_FOLDER}/include/avnd/common/span_polyfill.hpp"
@@ -310,12 +315,10 @@ target_precompile_headers(score_plugin_avnd PRIVATE
   Crousti/GpuComputeNode.hpp
   Crousti/GpuUtils.hpp
   Crousti/Layer.hpp
-  Crousti/Layout.hpp
   Crousti/Metadatas.hpp
   Crousti/Metadata.hpp
   Crousti/Painter.hpp
   Crousti/ProcessModel.hpp
-  Crousti/Widgets.hpp
   "${AVND_FOLDER}/include/avnd/prefix.hpp"
   ${HALP_HEADERS}
 )

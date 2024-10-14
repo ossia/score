@@ -1,51 +1,65 @@
 #pragma once
-#include <Fx/MathHelpers.hpp>
 #include <Fx/MathMapping_generic.hpp>
 #include <Fx/Types.hpp>
 
 #include <ossia/dataflow/value_port.hpp>
 
-namespace Nodes
-{
-namespace MathGenerator
+namespace Nodes::MathMapping
 {
 struct Node
 {
-  halp_meta(name, "Expression Value Generator")
-  halp_meta(c_name, "MathGenerator")
-  halp_meta(category, "Control/Generators")
+  halp_meta(name, "Expression Value Filter")
+  halp_meta(c_name, "MathMapping")
+  halp_meta(category, "Control/Mappings")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/exprtk.html#exprtk-support")
   halp_meta(author, "ossia score, ExprTK (Arash Partow)")
   static const constexpr auto description
-      = "Generate a signal from a math expression.\n"
+      = "Applies a math expression to an input.\n"
         "Available variables: a,b,c, t (samples), dt (delta), pos (position "
-        "in parent)\n"
+        "in parent), x (value)\n"
         "See the documentation at http://www.partow.net/programming/exprtk";
-  halp_meta(uuid, "d757bd0d-c0a1-4aec-bf72-945b722ab85b")
+  halp_meta(uuid, "ae84e8b6-74ff-4259-aeeb-305d95cdfcab")
 
+  // FIXME only correct way is to tick the entire graph more granularly
+  // in the meantime, make it so that event port gets triggered for every value
   struct
   {
+    struct : halp::val_port<"in", ossia::value>
+    {
+      // Messages to this port trigger a new computation cycle with updated timestamps
+      halp_flag(active_port);
+    } port;
     halp::lineedit<"Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"> expr;
     halp::hslider_f32<"Param (a)", halp::range{0., 1., 0.5}> a;
     halp::hslider_f32<"Param (b)", halp::range{0., 1., 0.5}> b;
     halp::hslider_f32<"Param (c)", halp::range{0., 1., 0.5}> c;
   } inputs;
+
   struct
   {
     value_out port{};
   } outputs;
 
+  using tick = halp::tick_flicks;
   struct State
   {
     State()
     {
+      xv.resize(1024);
+      pxv.resize(1024);
       pov.resize(1024);
+      expr.add_vector("xv", xv);
+      expr.add_vector("pxv", pxv);
       expr.add_vector("pov", pov);
+
+      expr.add_variable("x", x);
+      expr.add_variable("px", px);
       expr.add_variable("po", po);
 
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
       expr.add_variable("pos", cur_pos);
+      expr.add_variable("fs", fs);
 
       expr.add_variable("a", a);
       expr.add_variable("b", b);
@@ -58,24 +72,35 @@ struct Node
       expr.add_variable("m2", m2);
       expr.add_variable("m3", m3);
       expr.add_constants();
+
       expr.register_symbol_table();
     }
+    std::vector<double> xv;
+    std::vector<double> pxv;
     std::vector<double> pov;
+
+    double x{};
+    double px{};
     double po{};
 
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
+    double fs{44100};
 
     double a{}, b{}, c{};
     double pa{}, pb{}, pc{};
 
     double m1{}, m2{}, m3{};
+
     ossia::math_expression expr;
+    int64_t last_value_time{};
+
     bool ok = false;
   } state;
 
-  using tick = halp::tick_flicks;
+  halp::setup setup;
+  void prepare(halp::setup s) { setup = s; }
 
   void operator()(const tick& tk)
   {
@@ -83,15 +108,17 @@ struct Node
     if(!self.expr.set_expression(this->inputs.expr))
       return;
 
-    setMathExpressionTiming(self, tk);
     self.a = this->inputs.a;
     self.b = this->inputs.b;
     self.c = this->inputs.c;
+    self.fs = setup.rate;
 
-    auto res = self.expr.result();
-    outputs.port(res);
-
-    GenericMathMapping<State>::store_output(self, res);
+    if(self.expr.has_variable("xv"))
+      GenericMathMapping<State>::run_array(
+          inputs.port.value, outputs.port.call, tk, state);
+    else
+      GenericMathMapping<State>::run_scalar(
+          inputs.port.value, outputs.port.call, tk, state);
 
     self.pa = self.a;
     self.pb = self.b;
@@ -106,5 +133,4 @@ struct Node
   }
 #endif
 };
-}
 }

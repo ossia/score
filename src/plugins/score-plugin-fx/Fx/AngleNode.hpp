@@ -1,70 +1,61 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
 namespace Nodes
 {
-namespace Direction
+struct Direction
 {
-struct Node
-{
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Angle mapper")
+  halp_meta(c_name, "AngleMapper")
+  halp_meta(category, "Control/Mappings")
+  halp_meta(author, "ossia score")
+  halp_meta(manual_url, "")
+  halp_meta(description, "Map the variation of an angle")
+  halp_meta(uuid, "9b0e21ba-965a-4aa4-beeb-60cc5128c418")
+  halp_flag(time_independent);
+
+  struct
   {
-    static const constexpr auto prettyName = "Angle mapper";
-    static const constexpr auto objectKey = "AngleMapper";
-    static const constexpr auto category = "Control/Mappings";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "";
-    static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description = "Map the variation of an angle";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid = make_uuid("9b0e21ba-965a-4aa4-beeb-60cc5128c418");
-
-    static const constexpr value_in value_ins[]{value_in{"in", false}};
-    static const constexpr value_out value_outs[]{"out"};
-  };
-
-  struct State
+    halp::val_port<"in", float> in;
+  } inputs;
+  struct
   {
-    ossia::value prev_value{};
-  };
+    halp::callback<"out", float> out;
+  } outputs;
 
-  using control_policy = ossia::safe_nodes::default_tick;
-  static void
-  run(const ossia::value_port& p1, ossia::value_port& p2, ossia::token_request,
-      ossia::exec_state_facade, State& self)
+  std::optional<float> prev_value;
+  void operator()()
   {
     // returns -1, 0, 1 to say if we're going backwards, staying equal, or
     // going forward.
-
-    for(const auto& val : p1.get_data())
+    float val = inputs.in.value;
+    if(!prev_value)
     {
-      if(!self.prev_value.valid())
+      prev_value = val;
+      return;
+    }
+    else
+    {
+      float output;
+
+      if(prev_value < val)
       {
-        self.prev_value = val.value;
-        continue;
+        output = 1.f;
+        prev_value = val;
+      }
+      else if(prev_value > val)
+      {
+        output = -1.f;
+        prev_value = val;
       }
       else
       {
-        ossia::value output;
-
-        if(self.prev_value < val.value)
-        {
-          output = 1;
-          self.prev_value = val.value;
-        }
-        else if(self.prev_value > val.value)
-        {
-          output = -1;
-          self.prev_value = val.value;
-        }
-        else
-        {
-          output = 0;
-        }
-
-        p2.write_value(std::move(output), val.timestamp);
+        output = 0.f;
       }
+
+      outputs.out(output);
     }
   }
 };
-}
 }

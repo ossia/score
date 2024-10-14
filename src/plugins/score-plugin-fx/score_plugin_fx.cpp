@@ -15,58 +15,91 @@
 
 #include <Fx/AngleNode.hpp>
 #include <Fx/Arpeggiator.hpp>
+#include <Fx/Arraygen.hpp>
+#include <Fx/Arraymap.hpp>
 #include <Fx/Chord.hpp>
 #include <Fx/ClassicalBeat.hpp>
 #include <Fx/EmptyMapping.hpp>
 #include <Fx/Envelope.hpp>
-#include <Fx/FactorOracle.hpp>
-#include <Fx/FactorOracle2.hpp>
-#include <Fx/FactorOracle2MIDI.hpp>
-#include <Fx/Gain.hpp>
 #include <Fx/LFO.hpp>
+#include <Fx/LFO_v2.hpp>
 #include <Fx/Looper.hpp>
+#include <Fx/MathAudioFilter.hpp>
+#include <Fx/MathAudioGenerator.hpp>
 #include <Fx/MathGenerator.hpp>
-#include <Fx/MathMapping.hpp>
+#include <Fx/MathValueFilter.hpp>
 #include <Fx/Metro.hpp>
+#include <Fx/MicroMapping.hpp>
 #include <Fx/MidiHiRes.hpp>
 #include <Fx/MidiUtil.hpp>
+#include <Fx/PitchToValue.hpp>
 #include <Fx/Quantifier.hpp>
 #include <Fx/RateLimiter.hpp>
 #include <Fx/Smooth.hpp>
-#include <Fx/TestNode.hpp>
+#include <Fx/Smooth_v2.hpp>
 #include <Fx/VelToNote.hpp>
-
-#include <score/plugins/FactorySetup.hpp>
-
-#include <score_plugin_engine.hpp>
-
+/*
+#include <Fx/FactorOracle.hpp>
+#include <Fx/FactorOracle2.hpp>
+#include <Fx/FactorOracle2MIDI.hpp>
+#include <Fx/MathMapping.hpp>
+#include <Fx/TestNode.hpp>
 #if defined(SCORE_DEBUG)
 #include <Fx/DebugFx.hpp>
 #endif
 
+*/
+
+#include <score/plugins/FactorySetup.hpp>
+
+#include <Avnd/Factories.hpp>
+
+#include <score_plugin_engine.hpp>
 score_plugin_fx::score_plugin_fx() = default;
 score_plugin_fx::~score_plugin_fx() = default;
 
 std::vector<score::InterfaceBase*> score_plugin_fx::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
-  return Control::instantiate_fx<
+  std::vector<score::InterfaceBase*> fx;
+  oscr::instantiate_fx<Nodes::Direction>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Arpeggiator::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Chord::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::ClassicalBeat::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::EmptyValueMapping::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::EmptyMidiMapping::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::EmptyAudioMapping::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Envelope::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::PulseToNote::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::LFO::v1::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::LFO::v2::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MidiHiRes::Input>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MidiHiRes::Output>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MidiUtil::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Metro::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Quantifier::Node>(fx, ctx, key);
+
+  oscr::instantiate_fx<Nodes::MathGenerator::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MathAudioGenerator::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MathMapping::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MicroMapping::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::ArrayGenerator::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::ArrayMapping::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MathAudioFilter::Node>(fx, ctx, key);
+
+  //oscr::instantiate_fx<Nodes::FactorOracle::Node>(fx, ctx, key);
+  //oscr::instantiate_fx<Nodes::FactorOracle2::Node>(fx, ctx, key);
+  //oscr::instantiate_fx<Nodes::FactorOracle2MIDI::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::PitchToValue::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Smooth::v1::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Smooth::v2::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::RateLimiter::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::AudioLooper::Node>(fx, ctx, key);
+
 #if defined(SCORE_DEBUG)
-      Nodes::Debug::Node,
+  //oscr::instantiate_fx<Nodes::Debug::Node>(fx, ctx, key);
 #endif
-      Nodes::Arpeggiator::Node, Nodes::PulseToNote::Node, Nodes::ClassicalBeat::Node,
-      Nodes::LFO::v1::Node, Nodes::LFO::v2::Node, Nodes::Chord::Node,
-      Nodes::MidiHiRes::Input, Nodes::MidiHiRes::Output, Nodes::MidiUtil::Node,
-      Nodes::Metro::Node, Nodes::Envelope::Node, Nodes::Quantifier::Node,
-      Nodes::MathGenerator::Node, Nodes::MathAudioGenerator::Node,
-      Nodes::MathMapping::Node, Nodes::MicroMapping::Node, Nodes::ArrayGenerator::Node,
-      Nodes::ArrayMapping::Node, Nodes::MathAudioFilter::Node,
-      Nodes::EmptyValueMapping::Node, Nodes::EmptyMidiMapping::Node,
-      Nodes::EmptyAudioMapping::Node, Nodes::FactorOracle::Node,
-      Nodes::FactorOracle2::Node, Nodes::FactorOracle2MIDI::Node,
-      Nodes::PitchToValue::Node, Nodes::ValueFilter::v1::Node,
-      Nodes::ValueFilter::v2::Node, Nodes::RateLimiter::Node, Nodes::AudioLooper::Node>(
-      ctx, key);
+  return fx;
 }
 
 auto score_plugin_fx::required() const -> std::vector<score::PluginKey>

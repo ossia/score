@@ -6,7 +6,9 @@
 
 #include <score/plugins/FactorySetup.hpp>
 
+#include <Avnd/Factories.hpp>
 #include <Ui/SignalDisplay.hpp>
+#include <Ui/ValueDisplay.hpp>
 
 #include <score_plugin_engine.hpp>
 
@@ -16,7 +18,10 @@ score_plugin_ui::~score_plugin_ui() = default;
 std::vector<score::InterfaceBase*> score_plugin_ui::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
-  return Control::instantiate_fx<Ui::SignalDisplay::Node, Ui::Display::Node>(ctx, key);
+  std::vector<score::InterfaceBase*> fx;
+  oscr::instantiate_fx<Ui::SignalDisplay::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Ui::ValueDisplay::Node>(fx, ctx, key);
+  return fx;
 }
 
 auto score_plugin_ui::required() const -> std::vector<score::PluginKey>

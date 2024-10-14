@@ -20,9 +20,11 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
+#include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <ossia/detail/ssize.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <QGraphicsScene>
 
@@ -107,7 +109,6 @@ VSTEffectItem::VSTEffectItem(
   if(!effect.fx)
     return;
 
-  using namespace Control::Widgets;
   QObject::connect(
       &effect, &Process::ProcessModel::controlAdded, this,
       [&](const Id<Process::Port>& id) {

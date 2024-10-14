@@ -1,9 +1,11 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/ssize.hpp>
+
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+#include <halp/midi.hpp>
 
 #include <random>
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
@@ -94,9 +96,8 @@ class FactorOracle2MIDI
 public:
   int phi, k, fo_iter, current_state = 1;
   std::vector<T> input_values;
-  std::vector<State<T>> states_; /**< std::vector of all the states */
-  std::vector<std::vector<int>>
-      RevSuffix; /**< std::vector where each position has all the suffix transitions directed to each state */
+  std::vector<State<T>> states_;           /**< std::vector of all the states */
+  std::vector<std::vector<int>> RevSuffix; /**< std::vector where each position has all the suffix transitions directed to each state */
   FactorOracle2MIDI()
   {
     this->states_.resize(2);
@@ -158,24 +159,16 @@ public:
         if(this->states_[k].transition_[iter].symbol_ == alpha)
         {
           flag = 1;
-          this->states_[state_m_plus_one].suffix_transition_
-              = this->states_[k].transition_[iter].last_state_;
-          this->states_[state_m_plus_one].lrs_
-              = this->LengthCommonSuffix(
-                    phi, this->states_[state_m_plus_one].suffix_transition_ - 1)
-                + 1;
+          this->states_[state_m_plus_one].suffix_transition_ = this->states_[k].transition_[iter].last_state_;
+          this->states_[state_m_plus_one].lrs_ = this->LengthCommonSuffix(phi, this->states_[state_m_plus_one].suffix_transition_ - 1) + 1;
         }
         while(iter < this->states_[k].transition_.size() && flag == 0)
         {
           if(this->states_[k].transition_[iter].symbol_ == alpha)
           {
 
-            this->states_[state_m_plus_one].suffix_transition_
-                = this->states_[k].transition_[iter].last_state_;
-            this->states_[state_m_plus_one].lrs_
-                = this->LengthCommonSuffix(
-                      phi, this->states_[state_m_plus_one].suffix_transition_ - 1)
-                  + 1;
+            this->states_[state_m_plus_one].suffix_transition_ = this->states_[k].transition_[iter].last_state_;
+            this->states_[state_m_plus_one].lrs_ = this->LengthCommonSuffix(phi, this->states_[state_m_plus_one].suffix_transition_ - 1) + 1;
             flag = 1;
           }
 
@@ -189,8 +182,7 @@ public:
         this->states_[state_m_plus_one].lrs_ = this->states_[state_m_plus_one].lrs_ + 1;
         this->states_[state_m_plus_one].suffix_transition_ = k;
       }
-      RevSuffix[this->states_[state_m_plus_one].suffix_transition_].push_back(
-          state_m_plus_one);
+      RevSuffix[this->states_[state_m_plus_one].suffix_transition_].push_back(state_m_plus_one);
     }
   };
   int LengthCommonSuffix(int phi_one, int phi_two)
@@ -199,8 +191,7 @@ public:
       return this->states_[phi_one].lrs_;
     else
     {
-      while(this->states_[phi_one].suffix_transition_
-            != this->states_[phi_two].suffix_transition_)
+      while(this->states_[phi_one].suffix_transition_ != this->states_[phi_two].suffix_transition_)
         phi_two = this->states_[phi_two].suffix_transition_;
     }
     if(this->states_[phi_one].lrs_ <= this->states_[phi_two].lrs_)
@@ -225,12 +216,7 @@ public:
     sort(this->RevSuffix[statei].begin(), this->RevSuffix[statei].end());
     for(int j = 0; j < len_t; j++)
     {
-      if(this->states_[this->RevSuffix[this->states_[i].suffix_transition_][j]].lrs_
-             == this->states_[i].lrs_
-         && word
-                    [this->RevSuffix[this->states_[i].suffix_transition_][j]
-                     - this->states_[i].lrs_ - 1]
-                == alpha)
+      if(this->states_[this->RevSuffix[this->states_[i].suffix_transition_][j]].lrs_ == this->states_[i].lrs_ && word[this->RevSuffix[this->states_[i].suffix_transition_][j] - this->states_[i].lrs_ - 1] == alpha)
       {
         int output_midi = RevSuffix[this->states_[i].suffix_transition_][j];
         return output_midi;
@@ -268,18 +254,13 @@ public:
       }
       else
       {
-        int lenSuffix
-            = this->states_[this->states_[i].suffix_transition_].transition_.size() - 1;
+        int lenSuffix = this->states_[this->states_[i].suffix_transition_].transition_.size() - 1;
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis_int(0, lenSuffix);
         int rand_alpha = dis_int(gen);
-        T alpha = this->states_[this->states_[i].suffix_transition_]
-                      .transition_[rand_alpha]
-                      .symbol_;
-        i = this->states_[this->states_[i].suffix_transition_]
-                .transition_[rand_alpha]
-                .last_state_;
+        T alpha = this->states_[this->states_[i].suffix_transition_].transition_[rand_alpha].symbol_;
+        i = this->states_[this->states_[i].suffix_transition_].transition_[rand_alpha].last_state_;
         if(i == -1)
         {
           i = 0;
@@ -330,26 +311,27 @@ namespace Nodes::FactorOracle2MIDI
 {
 struct Node
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "New Factor Oracle MIDI")
+  halp_meta(c_name, "New Factor Oracle MIDI")
+  halp_meta(category, "Control/Impro")
+  halp_meta(manual_url, "")
+  halp_meta(author, "Maria Paula Carrero Rivas")
+  halp_meta(description, "Factor Oracle algorithm .") // TODO cite
+  halp_meta(uuid, "C87B5326-56C2-4489-8E08-AA9E1EF27359");
+
+  static const constexpr auto controls = tuplet::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
+  static const constexpr midi_in midi_ins[]{"input_midi"};
+  static const constexpr midi_out midi_outs[]{"output_midi"};
+  static const constexpr value_in value_ins[]{"regen", "bang"};
+
+  struct
   {
-    static const constexpr auto prettyName = "New Factor Oracle MIDI";
-    static const constexpr auto objectKey = "New Factor Oracle MIDI";
-    static const constexpr auto category = "Control/Impro";
-    static const constexpr auto manual_url = "";
-    static const constexpr auto author = "Maria Paula Carrero Rivas";
-    static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
-        = make_uuid("C87B5326-56C2-4489-8E08-AA9E1EF27359");
 
-    static const constexpr auto controls
-        = tuplet::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
-    static const constexpr midi_in midi_ins[]{"input_midi"};
-    static const constexpr midi_out midi_outs[]{"output_midi"};
-    static const constexpr value_in value_ins[]{"regen", "bang"};
-  };
+  } inputs;
+  struct
+  {
 
+  } outputs;
   struct State
   {
     ::FactorOracle2MIDI::FactorOracle2MIDI<int> oracle;
@@ -360,10 +342,7 @@ struct Node
   };
 
   using control_policy = ossia::safe_nodes::last_tick;
-  static void
-  run(const ossia::midi_port& input_midi, const ossia::value_port& regen,
-      const ossia::value_port& bangs, int seq_len, ossia::midi_port& output_midi,
-      ossia::token_request, ossia::exec_state_facade, State& self)
+  static void run(const ossia::midi_port& input_midi, const ossia::value_port& regen, const ossia::value_port& bangs, int seq_len, ossia::midi_port& output_midi, ossia::token_request, ossia::exec_state_facade, State& self)
   {
 
     // Entrées sont dans p1
@@ -392,8 +371,7 @@ struct Node
     {
       for(auto& bang : bangs.get_data())
       {
-        self.sequence_idx = ossia::clamp<int64_t>(
-            (int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);
+        self.sequence_idx = ossia::clamp<int64_t>((int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);
         libremidi::message tmp;
         tmp.bytes = self.sequence[self.sequence_idx];
         tmp.timestamp = bang.timestamp;

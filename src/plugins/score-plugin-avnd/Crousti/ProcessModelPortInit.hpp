@@ -58,6 +58,25 @@ struct InletInitFunc
   Process::Inlets& ins;
   int inlet = 0;
 
+  void operator()(const oscr::ossia_value_port auto& in, auto idx)
+  {
+    auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+  }
+  void operator()(const oscr::ossia_audio_port auto& in, auto idx)
+  {
+    auto p = new Process::AudioInlet(Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+  }
+  void operator()(const oscr::ossia_midi_port auto& in, auto idx)
+  {
+    auto p = new Process::MidiInlet(Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+  }
+
   void operator()(const avnd::audio_port auto& in, auto idx)
   {
     auto p = new Process::AudioInlet(Id<Process::Port>(inlet++), &self);
@@ -183,6 +202,7 @@ struct InletInitFunc
   }
 
   template <avnd::parameter T, std::size_t N>
+    requires(!oscr::ossia_port<T>)
   void operator()(const T& in, avnd::field_index<N>)
   {
     if constexpr(avnd::control<T> || avnd::curve_port<T>)
@@ -255,6 +275,25 @@ struct OutletInitFunc
   Process::Outlets& outs;
   int outlet = 0;
 
+  void operator()(const oscr::ossia_value_port auto& out, auto idx)
+  {
+    auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+  }
+  void operator()(const oscr::ossia_audio_port auto& out, auto idx)
+  {
+    auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+  }
+  void operator()(const oscr::ossia_midi_port auto& out, auto idx)
+  {
+    auto p = new Process::MidiOutlet(Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+  }
+
   template <avnd::dynamic_ports_port T, std::size_t N>
   void operator()(const T& in, avnd::field_index<N> i)
   {
@@ -280,6 +319,7 @@ struct OutletInitFunc
   }
 
   template <avnd::parameter T, std::size_t N>
+    requires(!oscr::ossia_port<T>)
   void operator()(const T& out, avnd::field_index<N>)
   {
     if constexpr(avnd::control<T>)

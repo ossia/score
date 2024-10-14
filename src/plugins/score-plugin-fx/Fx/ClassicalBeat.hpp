@@ -1,41 +1,36 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
+#include <halp/audio.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+
 namespace Nodes
 {
 namespace ClassicalBeat
 {
 struct Node
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Beat Metronome")
+  halp_meta(c_name, "ImpulseMetronome")
+  halp_meta(category, "Control/Generators")
+  halp_meta(author, "ossia score")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/control-utilities.html#impulse-metronome")
+  halp_meta(description, "A simple metronome - outputs a bang on the current tick")
+  halp_meta(uuid, "1c185139-04f9-492f-8b4a-000dd4428990")
+
+  struct
   {
-    static const constexpr auto prettyName = "Beat Metronome";
-    static const constexpr auto objectKey = "ImpulseMetronome";
-    static const constexpr auto category = "Control/Generators";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/control-utilities.html#impulse-metronome";
-    static const constexpr auto kind = Process::ProcessCategory::Generator;
-    static const constexpr auto description
-        = "A simple metronome - outputs a bang on the current tick";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
-        = make_uuid("1c185139-04f9-492f-8b4a-000dd4428990");
+    halp::timed_callback<"out"> out;
+  } outputs;
 
-    static const constexpr value_out value_outs[]{"out"};
-  };
-
-  using control_policy = ossia::safe_nodes::last_tick;
-  static void
-  run(ossia::value_port& res, ossia::token_request tk, ossia::exec_state_facade st)
+  using tick = halp::tick_musical;
+  void operator()(const halp::tick_musical& tk)
   {
     using namespace ossia;
-    if(tk.forward())
+    if(tk.start_position_in_quarters < tk.end_position_in_quarters)
     {
-      tk.metronome(
-          st.modelToSamples(),
-          [&](int64_t start_sample) { res.write_value(ossia::impulse{}, start_sample); },
-          [&](int64_t start_sample) {
-        res.write_value(ossia::impulse{}, start_sample);
-          });
+      const auto f = [&](int64_t start_sample) { outputs.out(start_sample); };
+      tk.metronome(f, f);
     }
   }
 };

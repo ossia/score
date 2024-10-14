@@ -1,11 +1,12 @@
 #pragma once
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <Control/Widgets.hpp>
 #include <Vst3/EffectModel.hpp>
 
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/TextItem.hpp>
+
+#include <ossia/dataflow/safe_nodes/port.hpp>
 
 #include <QDialog>
 

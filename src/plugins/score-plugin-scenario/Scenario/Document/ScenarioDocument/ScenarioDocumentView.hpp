@@ -1,7 +1,6 @@
 #pragma once
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
-#include <Scenario/Document/ScenarioDocument/TimeBar.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 

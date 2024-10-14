@@ -4,6 +4,7 @@
 #include <Crousti/Executor.hpp>
 #include <Crousti/Layer.hpp>
 #include <Crousti/ProcessModel.hpp>
+#include <Crousti/ScoreLayer.hpp>
 #include <Dataflow/WidgetInletFactory.hpp>
 
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
@@ -216,6 +217,11 @@ static void instantiate_fx(
       {
         v.emplace_back(
             static_cast<Process::LayerFactory*>(new oscr::LayerFactory<type>()));
+      }
+      else if constexpr(oscr::has_ossia_layer<type>)
+      {
+        v.emplace_back(
+            static_cast<Process::LayerFactory*>(new oscr::ScoreLayerFactory<type>()));
       }
     };
     (fun.template operator()<Nodes>(), ...);

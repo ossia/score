@@ -1,10 +1,12 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-#undef slots
-#include <ossia/detail/ssize.hpp>
+#include <Fx/Types.hpp>
+
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+#include <halp/midi.hpp>
+
 namespace Nodes::MidiUtil
 {
-using Note = Control::Note;
 enum scale : int8_t
 {
   all,
@@ -27,6 +29,17 @@ enum scale : int8_t
 
   SCALES_MAX // always at end, used for counting
 };
+}
+
+template <>
+struct magic_enum::customize::enum_range<Nodes::MidiUtil::scale>
+{
+  static constexpr int min = 0;
+  static constexpr int max = Nodes::MidiUtil::custom;
+};
+
+namespace Nodes::MidiUtil
+{
 
 template <typename T>
 constexpr void constexpr_swap(T& a, T& b)
@@ -127,32 +140,27 @@ constexpr int get_scale(std::string_view s)
   else
     return scale::custom;
 }
-#if defined(_MSC_VER)
-#define MSVC_CONSTEXPR const
-#else
-#define MSVC_CONSTEXPR constexpr
-#endif
-static MSVC_CONSTEXPR std::array<scales_array, scale::SCALES_MAX - 1> scales{
-    //                                C   D   E F   G   A   B
-    /* { scale::all,         */ make_scale({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) /* } */,
-    /* { scale::ionian,      */ make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1}) /* } */,
-    /* { scale::dorian,      */ make_scale({1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0}) /* } */,
-    /* { scale::phyrgian,    */ make_scale({1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0}) /* } */,
-    /* { scale::lydian,      */ make_scale({1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1}) /* } */,
-    /* { scale::mixolydian,  */ make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0}) /* } */,
-    /* { scale::aeolian,     */ make_scale({1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0}) /* } */,
-    /* { scale::locrian,     */ make_scale({1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0}) /* } */,
-    /* { scale::I,           */ make_scale({1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}) /* } */,
-    /* { scale::II,          */ make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0}) /* } */,
-    /* { scale::III,         */ make_scale({0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1}) /* } */,
-    /* { scale::IV,          */ make_scale({1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0}) /* } */,
-    /* { scale::V,           */ make_scale({0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1}) /* } */,
-    /* { scale::VI,          */ make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0}) /* } */,
-    /* { scale::VII,         */
-    make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1}) /* } */};
 
-static std::optional<std::size_t>
-find_closest_index(const scale_array& arr, std::size_t i)
+// clang-format off
+static constexpr std::array<scales_array, scale::SCALES_MAX - 1> scales{
+//                                      C     D     E  F     G     A     B
+/* { scale::all,         */ make_scale({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) /* } */,
+/* { scale::ionian,      */ make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1}) /* } */,
+/* { scale::dorian,      */ make_scale({1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0}) /* } */,
+/* { scale::phyrgian,    */ make_scale({1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0}) /* } */,
+/* { scale::lydian,      */ make_scale({1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1}) /* } */,
+/* { scale::mixolydian,  */ make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0}) /* } */,
+/* { scale::aeolian,     */ make_scale({1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0}) /* } */,
+/* { scale::locrian,     */ make_scale({1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0}) /* } */,
+/* { scale::I,           */ make_scale({1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}) /* } */,
+/* { scale::II,          */ make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0}) /* } */,
+/* { scale::III,         */ make_scale({0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1}) /* } */,
+/* { scale::IV,          */ make_scale({1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0}) /* } */,
+/* { scale::V,           */ make_scale({0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1}) /* } */,
+/* { scale::VI,          */ make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0}) /* } */,
+/* { scale::VII,         */ make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1}) /* } */};
+// clang-format on
+static std::optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
   if(arr[i] == 1)
     return i;
@@ -197,44 +205,42 @@ find_closest_index(const scale_array& arr, std::size_t i)
 
 struct Node
 {
-  struct Metadata : Control::Meta_base
-  {
-    static const constexpr auto prettyName = "Midi scale";
-    static const constexpr auto objectKey = "MidiScale";
-    static const constexpr auto category = "Midi";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#midi-scale";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
-    static const constexpr auto description = "Maps a midi input to a given scale";
-    static const constexpr auto uuid
-        = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
+  halp_meta(name, "Midi scale")
+  halp_meta(c_name, "MidiScale")
+  halp_meta(category, "Midi")
+  halp_meta(author, "ossia score")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#midi-scale")
+  halp_meta(description, "Maps a midi input to a given scale")
+  halp_meta(uuid, "06b33b83-bb67-4f7a-9980-f5d66e4266c5")
 
-    static const constexpr midi_in midi_ins[]{"in"};
-    static const constexpr midi_out midi_outs[]{"out"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::make_unvalidated_enum(
-            "Scale", 0U,
-            ossia::make_array(
-                "all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian",
-                "locrian", "I", "II", "III", "IV", "V", "VI", "VII")),
-        Control::Widgets::OctaveSlider("Base", 0, 1),
-        Control::Widgets::OctaveSlider("Transpose", -4, 4));
+  struct
+  {
+    halp::midi_bus<"in", libremidi::message> midi;
+    halp::string_enum_t<scale, "Scale"> sc; // FIXME check that this works
+    octave_slider<"Base", 0, 1> base;
+    octave_slider<"Transpose", -4, 4> transp;
+  } inputs;
+  struct
+  {
+    midi_out midi;
+  } outputs;
+
+  struct Note
+  {
+    uint8_t pitch{};
+    uint8_t vel{};
+    uint8_t chan{};
   };
+  ossia::flat_map<uint8_t, Note> map;
+  std::string scale{};
+  int base{};
+  int transpose{};
 
-  struct State
+  void exec(const scale_array& scale, int transp)
   {
-    ossia::flat_map<uint8_t, Note> map;
-    std::string scale{};
-    int base{};
-    int transpose{};
-  };
-
-  static void exec(
-      const ossia::midi_port& midi_in, const scale_array& scale, int transp,
-      ossia::midi_port& midi_out, const int64_t offset, State& self)
-  {
-    for(const auto& msg : midi_in.messages)
+    auto& midi_in = inputs.midi;
+    auto& midi_out = outputs.midi;
+    for(const auto& msg : midi_in)
     {
       switch(msg.get_message_type())
       {
@@ -251,21 +257,21 @@ struct Node
             Note note{
                 (uint8_t)res.bytes[1], (uint8_t)res.bytes[2],
                 (uint8_t)res.get_channel()};
-            auto it = self.map.find(msg.bytes[1]);
-            if(it != self.map.end())
+            auto it = this->map.find(msg.bytes[1]);
+            if(it != this->map.end())
             {
-              midi_out.messages.push_back(libremidi::channel_events::note_off(
-                  res.get_channel(), it->second.pitch, res.bytes[2]));
-              midi_out.messages.back().timestamp = offset;
-              midi_out.messages.push_back(res);
-              midi_out.messages.back().timestamp = offset + 1;
+              midi_out.note_off(res.get_channel(), it->second.pitch, res.bytes[2])
+                  .timestamp
+                  = 0;
+              midi_out.push_back(res);
+              midi_out.back().timestamp = 1; // FIXME does not work if last sample
               const_cast<Note&>(it->second) = note;
             }
             else
             {
-              midi_out.messages.push_back(res);
-              midi_out.messages.back().timestamp = offset;
-              self.map.insert(std::make_pair((uint8_t)msg.bytes[1], note));
+              midi_out.push_back(res);
+              midi_out.back().timestamp = 0;
+              this->map.insert(std::make_pair((uint8_t)msg.bytes[1], note));
             }
           }
           break;
@@ -274,66 +280,56 @@ struct Node
           if(msg.bytes[1] >= 128)
             continue;
 
-          auto it = self.map.find(msg.bytes[1]);
-          if(it != self.map.end())
+          auto it = this->map.find(msg.bytes[1]);
+          if(it != this->map.end())
           {
-            midi_out.messages.push_back(libremidi::channel_events::note_off(
-                msg.get_channel(), it->second.pitch, msg.bytes[2]));
-            midi_out.messages.back().timestamp = offset;
-            self.map.erase(it);
+            midi_out.note_off(msg.get_channel(), it->second.pitch, msg.bytes[2])
+                .timestamp
+                = 0;
+            this->map.erase(it);
           }
           break;
         }
         default:
-          midi_out.messages.push_back(msg);
+          midi_out.push_back(msg);
           break;
       }
     }
   }
 
-  static void update(
-      const ossia::midi_port& midi_in, const scale_array& scale, int transp,
-      ossia::midi_port& midi_out, const int64_t offset, State& self)
+  void update(const scale_array& scale, int transp)
   {
-    for(auto& notes : self.map)
+    auto& midi_out = outputs.midi;
+    for(auto& notes : this->map)
     {
       Note& note = const_cast<Note&>(notes.second);
       if(auto index = find_closest_index(scale, notes.first))
       {
         if((*index + transp) != note.pitch)
         {
-          midi_out.messages.push_back(
-              libremidi::channel_events::note_off(note.chan, note.pitch, note.vel));
+          midi_out.note_off(note.chan, note.pitch, note.vel).timestamp = 0;
           note.pitch = *index + transp;
-          midi_out.messages.back().timestamp = offset;
-          midi_out.messages.push_back(
-              libremidi::channel_events::note_on(note.chan, note.pitch, note.vel));
-          midi_out.messages.back().timestamp = offset + 1;
+          midi_out.note_on(note.chan, note.pitch, note.vel);
+          midi_out.back().timestamp = 1; // FIXME does not work if last sample
         }
       }
     }
   }
 
-  using control_policy = ossia::safe_nodes::default_tick_controls;
-  static void
-  run(const ossia::midi_port& midi_in, const ossia::timed_vec<std::string>& sc,
-      const ossia::timed_vec<int>& base, const ossia::timed_vec<int>& transp,
-      ossia::midi_port& midi_out, ossia::token_request tk, ossia::exec_state_facade st,
-      State& self)
+  using tick = halp::tick_flicks;
+  void operator()(const tick& tk)
   {
-    const auto& new_scale = sc.rbegin()->second;
-    const int new_base = base.rbegin()->second;
-    const int new_transpose = transp.rbegin()->second;
+    const auto& new_scale = inputs.sc.value;
+    const int new_base = inputs.base.value;
+    const int new_transpose = inputs.transp.value;
     std::string_view scale{new_scale.data(), new_scale.size()};
 
     const auto new_scale_idx = get_scale(scale);
 
     auto apply = [&](auto f) {
-      const auto [tick_start, d] = st.timings(tk);
       if(new_scale_idx >= 0 && new_scale_idx < scale::custom)
       {
-        f(midi_in, scales[new_scale_idx][new_base], new_transpose, midi_out, tick_start,
-          self);
+        f(scales[new_scale_idx][new_base], new_transpose);
       }
       else
       {
@@ -345,58 +341,28 @@ struct Node
             arr[oct * 12 + i] = (scale[i] == '1');
           }
         }
-        f(midi_in, arr, new_transpose, midi_out, tick_start, self);
+        f(arr, new_transpose);
       }
     };
 
-    if(!self.map.empty()
-       && (new_scale != self.scale || new_base != self.base
-           || new_transpose != self.transpose))
-    {
-      apply(update);
-    }
-
-    apply(exec);
-
-    self.scale = new_scale;
-    self.base = new_base;
-    self.transpose = new_transpose;
+#define forward_to_method(method_name)              \
+  [&]<typename... Args>(Args&&... args) {           \
+    this->method_name(std::forward<Args>(args)...); \
   }
-};
 
-}
-
-namespace Nodes::PitchToValue
-{
-struct Node
-{
-  struct Metadata : Control::Meta_base
-  {
-    static const constexpr auto prettyName = "Midi Pitch";
-    static const constexpr auto objectKey = "PitchToValue";
-    static const constexpr auto category = "Midi";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#midi-pitch";
-    static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
-    static const constexpr auto description = "Extract a MIDI pitch";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
-        = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
-
-    static const constexpr midi_in midi_ins[]{"in"};
-    static const constexpr value_out value_outs[]{{"out", "midipitch"}};
-  };
-
-  using control_policy = ossia::safe_nodes::default_tick;
-  static void
-  run(const ossia::midi_port& in, ossia::value_port& res, ossia::token_request tk,
-      ossia::exec_state_facade st)
-  {
-    for(const auto& note : in.messages)
+    if(!this->map.empty()
+       && (new_scale != this->scale || new_base != this->base
+           || new_transpose != this->transpose))
     {
-      if(note.get_message_type() == libremidi::message_type::NOTE_ON)
-        res.write_value(ossia::value{(int)note.bytes[1]}, note.timestamp);
+      apply(forward_to_method(update));
     }
+
+    apply(forward_to_method(exec));
+#undef forward_to_method
+
+    this->scale = new_scale;
+    this->base = new_base;
+    this->transpose = new_transpose;
   }
 };
 }

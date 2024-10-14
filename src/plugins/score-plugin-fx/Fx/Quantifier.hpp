@@ -1,69 +1,85 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
+#include <Fx/Types.hpp>
 
-#include <random>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+#include <halp/midi.hpp>
 
 namespace Nodes
 {
 namespace Quantifier
 {
-using Note = Control::Note;
 struct Node
 {
-  struct Metadata : Control::Meta_base
-  {
-    static const constexpr auto prettyName = "Midi quantify";
-    static const constexpr auto objectKey = "Quantifier";
-    static const constexpr auto category = "Midi";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#quantifier";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
-    static const constexpr auto description = "Quantifies a MIDI input";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
-        = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
+  halp_meta(name, "Midi quantify")
+  halp_meta(c_name, "Quantifier")
+  halp_meta(category, "Midi")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#quantifier")
+  halp_meta(author, "ossia score")
+  halp_meta(description, "Quantifies a MIDI input")
+  halp_meta(uuid, "b8e2e5ad-17e4-43de-8d79-660a29d5c4f4")
 
-    static const constexpr midi_in midi_ins[]{"in"};
-    static const constexpr midi_out midi_outs[]{"out"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::Widgets::QuantificationChooser(),
-        Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-        Control::Widgets::DurationChooser(), Control::Widgets::TempoChooser());
+  struct
+  {
+    halp::midi_bus<"in", libremidi::message> midi;
+    quant_selector<"Quantization"> start_quant;
+    halp::hslider_f32<"Tightness", halp::range{0.f, 1.f, 0.8f}> tightness;
+    duration_selector<"Duration"> duration;
+    halp::hslider_f32<"Tempo", halp::range{20., 300., 120.}> tempo;
+
+  } inputs;
+  struct
+  {
+    midi_out midi;
+  } outputs;
+
+  struct Note
+  {
+    uint8_t pitch{};
+    uint8_t vel{};
+    uint8_t chan{};
   };
 
   struct NoteIn
   {
     Note note{};
-    ossia::time_value date{};
+    int64_t date{};
   };
-  struct State
-  {
-    std::vector<NoteIn> to_start;
-    std::vector<NoteIn> running_notes;
-  };
+  std::vector<NoteIn> to_start;
+  std::vector<NoteIn> running_notes;
 
-  using control_policy = ossia::safe_nodes::default_tick_controls;
+  // using control_policy = ossia::safe_nodes::default_tick_controls;
+  halp::setup setup;
+  void prepare(halp::setup s) { setup = s; }
 
-  static void
-  run(const ossia::midi_port& p1, const ossia::timed_vec<float>& startq,
-      const ossia::timed_vec<float>& tightness, const ossia::timed_vec<float>& dur,
-      const ossia::timed_vec<float>& tempo_vec, ossia::midi_port& p2,
-      ossia::token_request tk, ossia::exec_state_facade st, State& self)
+  using tick = halp::tick_flicks;
+  void sequence(Note new_note, int64_t date)
   {
-    auto start = startq.rbegin()->second;
-    double precision = tightness.rbegin()->second;
-    auto duration = dur.rbegin()->second;
-    auto tempo = tempo_vec.rbegin()->second;
+    for(auto note : to_start)
+      if(note.note.pitch == new_note.pitch)
+        return;
+    for(auto note : running_notes)
+      if(note.note.pitch == new_note.pitch)
+        return;
+    to_start.emplace_back(new_note, date);
+  }
+  void operator()(const tick& tk)
+  {
+    double start_q_ratio = inputs.start_quant.value;
+    double precision = inputs.tightness.value;
+    double duration = inputs.duration.value;
+    double tempo = inputs.tempo.value;
 
     // how much time does a whole note last at this tempo given the current sr
     const auto whole_dur = 240.f / tempo; // in seconds
-    const auto whole_samples = whole_dur * st.sampleRate();
+    const auto whole_samples = whole_dur * setup.rate;
 
-    for(const libremidi::message& in : p1.messages)
+    for(const libremidi::message& in : inputs.midi)
     {
+      // FIXME note processor
       if(!in.is_note_on_or_off())
       {
-        p2.messages.push_back(in);
+        outputs.midi.push_back(in);
         continue;
       }
 
@@ -71,38 +87,38 @@ struct Node
 
       if(in.get_message_type() == libremidi::message_type::NOTE_ON && note.vel != 0)
       {
-        if(start == 0.f) // No quantification, start directly
+        if(start_q_ratio == 0.f) // No quantification, start directly
         {
           auto no = libremidi::channel_events::note_on(note.chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
 
-          p2.messages.push_back(no);
+          outputs.midi.push_back(no);
           if(duration > 0.f)
           {
-            auto end
-                = tk.date + (int64_t)no.timestamp + (int64_t)(whole_samples * duration);
-            self.running_notes.push_back({note, end});
+            auto end = tk.position_in_frames + (int64_t)no.timestamp
+                       + (int64_t)(whole_samples * duration);
+            this->running_notes.push_back({note, end});
           }
           else if(duration == 0.f)
           {
             // Stop at the next sample
-            auto noff
-                = libremidi::channel_events::note_off(note.chan, note.pitch, note.vel);
+            auto noff = libremidi::channel_events::note_off(note.chan, note.pitch, note.vel);
             noff.timestamp = no.timestamp;
-            p2.messages.push_back(noff);
+            outputs.midi.push_back(noff);
           }
           // else do nothing and just wait for a note off
         }
         else
         {
           // Find next time that matches the requested quantification
-          const auto start_q = whole_samples * start;
+          const auto start_q = whole_samples * start_q_ratio;
           auto perf_date = int64_t(
-              start_q * int64_t(1 + tk.date.impl * st.modelToSamples() / start_q));
-          int64_t actual_date = (1. - precision) * tk.date.impl * st.modelToSamples()
-                                + precision * perf_date;
-          ossia::time_value next_date{actual_date};
-          self.to_start.push_back({note, next_date});
+              start_q * int64_t(1 + (tk.position_in_frames + in.timestamp) / start_q));
+
+          //FIXME (1. - precision) * tk.date.impl * st.modelToSamples() + precision * perf_date;
+          int64_t actual_date = perf_date;
+
+          sequence(note, actual_date);
         }
       }
       else
@@ -110,37 +126,44 @@ struct Node
         // Just stop
         auto noff = libremidi::channel_events::note_off(note.chan, note.pitch, note.vel);
         noff.timestamp = in.timestamp;
-        p2.messages.push_back(noff);
+        outputs.midi.push_back(noff);
+
+        for(auto it = running_notes.begin(); it != running_notes.end();)
+          if(it->note.pitch == note.pitch)
+            it = running_notes.erase(it);
+          else
+            ++it;
       }
     }
 
     // TODO : also handle the case where we're quite close from the *previous*
     // accessible value, eg we played a bit late
-    for(auto it = self.to_start.begin(); it != self.to_start.end();)
+    for(auto it = this->to_start.begin(); it != this->to_start.end();)
     {
       auto& note = *it;
-      if(note.date > tk.prev_date && note.date.impl < tk.date.impl)
+      // FIXME how does this follow live tempo changes ?
+      if(note.date >= tk.position_in_frames
+         && note.date < (tk.position_in_frames + tk.frames))
       {
         auto no = libremidi::channel_events::note_on(
             note.note.chan, note.note.pitch, note.note.vel);
-        no.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
-        p2.messages.push_back(no);
+        no.timestamp = note.date - tk.position_in_frames;
+        outputs.midi.push_back(no);
 
         if(duration > 0.f)
         {
           auto end = note.date + (int64_t)(whole_samples * duration);
-          self.running_notes.push_back({note.note, end});
+          this->running_notes.push_back({note.note, end});
         }
         else if(duration == 0.f)
         {
           // Stop at the next sample
-          auto noff = libremidi::channel_events::note_off(
-              note.note.chan, note.note.pitch, note.note.vel);
+          auto noff = libremidi::channel_events::note_off(note.note.chan, note.note.pitch, note.note.vel);
           noff.timestamp = no.timestamp;
-          p2.messages.push_back(noff);
+          outputs.midi.push_back(noff);
         }
 
-        it = self.to_start.erase(it);
+        it = this->to_start.erase(it);
       }
       else
       {
@@ -148,16 +171,16 @@ struct Node
       }
     }
 
-    for(auto it = self.running_notes.begin(); it != self.running_notes.end();)
+    for(auto it = this->running_notes.begin(); it != this->running_notes.end();)
     {
       auto& note = *it;
-      if(note.date > tk.prev_date && note.date.impl < tk.date.impl)
+      if(note.date >= tk.position_in_frames
+         && note.date < (tk.position_in_frames + tk.frames))
       {
-        auto noff = libremidi::channel_events::note_off(
-            note.note.chan, note.note.pitch, note.note.vel);
-        noff.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
-        p2.messages.push_back(noff);
-        it = self.running_notes.erase(it);
+        auto noff = libremidi::channel_events::note_off(note.note.chan, note.note.pitch, note.note.vel);
+        noff.timestamp = note.date - tk.position_in_frames;
+        outputs.midi.push_back(noff);
+        it = this->running_notes.erase(it);
       }
       else
       {

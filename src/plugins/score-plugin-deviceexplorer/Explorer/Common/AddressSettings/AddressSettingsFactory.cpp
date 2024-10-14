@@ -3,7 +3,6 @@
 #include "AddressSettingsFactory.hpp"
 
 #include <Explorer/Common/AddressSettings/Widgets/AddressBoolSettingsWidget.hpp>
-#include <Explorer/Common/AddressSettings/Widgets/AddressCharSettingsWidget.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressImpulseSettingsWidget.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressListSettingsWidget.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressNoneSettingsWidget.hpp>

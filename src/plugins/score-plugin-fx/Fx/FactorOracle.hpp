@@ -1,12 +1,13 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <QDebug>
 
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+#include <halp/midi.hpp>
 #include <rnd/random.hpp>
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
 #include <debug/vector>
@@ -98,8 +99,7 @@ public:
     if(n < std::ssize(m_forwardLink) - 1)
     {
       m_sequence.push_back(std::move(c));
-      auto it = ossia::find_if(
-          value_map, [&](const auto& pair) { return pair.second == c; });
+      auto it = ossia::find_if(value_map, [&](const auto& pair) { return pair.second == c; });
       if(it != value_map.end())
       {
         add_state(it->first);
@@ -141,13 +141,11 @@ public:
 
   debug_vector_t<ossia::value> make_rand_sequence(float continuity, int seqSize) const
   {
-    auto start = std::uniform_int_distribution<std::size_t>{0, m_sequence.size()}(
-        m_rand_engine);
+    auto start = std::uniform_int_distribution<std::size_t>{0, m_sequence.size()}(m_rand_engine);
     return make_sequence(continuity, start, seqSize);
   }
 
-  debug_vector_t<ossia::value>
-  make_sequence(float continuity, std::size_t curState, std::size_t seqSize) const
+  debug_vector_t<ossia::value> make_sequence(float continuity, std::size_t curState, std::size_t seqSize) const
   {
     if(curState > m_sequence.size())
     {
@@ -176,8 +174,7 @@ public:
             links += m_forwardLink[curState].size();
           }
 
-          auto linkToFollow
-              = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
+          auto linkToFollow = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
           if(linkToFollow == links - 1)
           {
             if(curState != 0)
@@ -210,26 +207,26 @@ private:
 
 struct Node
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Factor Oracle")
+  halp_meta(c_name, "Factor Oracle")
+  halp_meta(category, "Control/Impro")
+  halp_meta(manual_url, "")
+  halp_meta(author, "Shlomo Dubnov, Ge Wang, Éric Meaux, Jean-Michaël Celerier")
+  halp_meta(description, "Factor Oracle algorithm .") // TODO cite
+  halp_meta(uuid, "d90284c0-4196-47e0-802d-7e07342029ec")
+
+  struct
   {
-    static const constexpr auto prettyName = "Factor Oracle";
-    static const constexpr auto objectKey = "Factor Oracle";
-    static const constexpr auto category = "Control/Impro";
-    static const constexpr auto manual_url = "";
-    static const constexpr auto author
-        = "Shlomo Dubnov, Ge Wang, Éric Meaux, Jean-Michaël Celerier";
-    static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
-        = make_uuid("d90284c0-4196-47e0-802d-7e07342029ec");
 
-    static const constexpr auto controls
-        = tuplet::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
+  } inputs;
+  struct
+  {
 
-    static const constexpr value_in value_ins[]{"in", "regen", "bang"};
-    static const constexpr value_out value_outs[]{"out"};
-  };
+  } outputs;
+  static const constexpr auto controls = tuplet::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
+
+  static const constexpr value_in value_ins[]{"in", "regen", "bang"};
+  static const constexpr value_out value_outs[]{"out"};
 
   struct State
   {
@@ -239,10 +236,7 @@ struct Node
   };
 
   using control_policy = ossia::safe_nodes::last_tick;
-  static void
-  run(const ossia::value_port& in, const ossia::value_port& regen,
-      const ossia::value_port& bangs, int seq_len, ossia::value_port& out,
-      ossia::token_request, ossia::exec_state_facade, State& self)
+  static void run(const ossia::value_port& in, const ossia::value_port& regen, const ossia::value_port& bangs, int seq_len, ossia::value_port& out, ossia::token_request, ossia::exec_state_facade, State& self)
   {
     // Entrées sont dans p1
     for(auto val : in.get_data())
@@ -259,8 +253,7 @@ struct Node
     {
       for(auto& bang : bangs.get_data())
       {
-        self.sequence_idx = ossia::clamp<int64_t>(
-            (int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);
+        self.sequence_idx = ossia::clamp<int64_t>((int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);
         out.write_value(self.sequence[self.sequence_idx], bang.timestamp);
         self.sequence_idx = (self.sequence_idx + 1) % self.sequence.size();
       }

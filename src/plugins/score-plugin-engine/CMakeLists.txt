@@ -33,14 +33,7 @@ set(HDRS
   Engine/Listening/PlayListeningHandler.hpp
   Engine/Listening/PlayListeningHandlerFactory.hpp
 
-  Engine/Node/SimpleApi.hpp
-  Engine/Node/Process.hpp
-  Engine/Node/Inspector.hpp
-  Engine/Node/Layer.hpp
-  Engine/Node/Executor.hpp
   Engine/Node/CommonWidgets.hpp
-  Engine/Node/Port.hpp
-  Engine/Node/TickPolicy.hpp
 
   LocalTree/Device/LocalDevice.hpp
   LocalTree/Device/LocalProtocolSettingsWidget.hpp

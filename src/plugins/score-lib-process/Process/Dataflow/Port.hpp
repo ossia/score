@@ -209,6 +209,7 @@ public:
   ControlInlet() = delete;
   ~ControlInlet() override;
   ControlInlet(const ControlInlet&) = delete;
+  ControlInlet(const QString& name, Id<Process::Port> c, QObject* parent);
   ControlInlet(Id<Process::Port> c, QObject* parent);
 
   ControlInlet(DataStream::Deserializer& vis, QObject* parent);
@@ -421,6 +422,7 @@ public:
   MODEL_METADATA_IMPL_HPP(ControlOutlet)
   ControlOutlet() = delete;
   ControlOutlet(const Outlet&) = delete;
+  ControlOutlet(const QString& name, Id<Process::Port> c, QObject* parent);
   ControlOutlet(Id<Process::Port> c, QObject* parent);
   ~ControlOutlet() override;
 

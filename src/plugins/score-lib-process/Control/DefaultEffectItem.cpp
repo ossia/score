@@ -7,7 +7,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <Control/Layout.hpp>
-#include <Control/Widgets.hpp>
 #include <Effect/EffectLayout.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>

@@ -90,6 +90,7 @@ public:
   {
     metadata().setInstanceName(*this);
 
+    init_common();
     init_before_port_creation();
     init_all_ports();
     init_after_port_creation();
@@ -103,6 +104,7 @@ public:
   {
     metadata().setInstanceName(*this);
 
+    init_common();
     init_before_port_creation();
     init_all_ports();
 
@@ -138,6 +140,7 @@ public:
   explicit ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
   {
+    init_common();
     init_before_port_creation();
     vis.writeTo(*this);
     check_all_ports();
@@ -147,12 +150,18 @@ public:
   ~ProcessModel() override { }
 
 private:
+  void init_common()
+  {
+    if constexpr(avnd::tag_loops_by_default<Info>)
+      setLoops(true);
+  }
+
   void init_before_port_creation() { init_dynamic_ports(); }
   void init_after_port_creation() { init_controller_ports(); }
   void check_all_ports()
   {
-    if(m_inlets.size() != expected_input_ports()
-       || m_outlets.size() != expected_output_ports())
+    if(std::ssize(m_inlets) != expected_input_ports()
+       || std::ssize(m_outlets) != expected_output_ports())
     {
       qDebug() << "Warning : process does not match spec.";
 
@@ -317,7 +326,6 @@ private:
       return;
 
     ossia::small_pod_vector<Process::Inlet*, 4> to_delete;
-    auto current_inlets = m_inlets;
     if(current_model_ports < count)
     {
       // Add new ports
@@ -327,14 +335,13 @@ private:
       Process::Inlets inlets_to_add;
       InletInitFunc<Info> inlets{*this, inlets_to_add};
       inlets.inlet = 10000 + N * 1000 + current_model_ports;
-      int current_inlets = m_inlets.size();
       int sz = 0;
       for(int i = current_model_ports; i < count; i++)
       {
         inlets(port, idx);
-        if(inlets_to_add.size() > sz)
+        if(std::ssize(inlets_to_add) > sz)
         {
-          sz = inlets_to_add.size();
+          sz = std::ssize(inlets_to_add);
           auto new_inlet = inlets_to_add.back();
           if(auto nm = new_inlet->name(); nm.contains("{}"))
           {
@@ -374,7 +381,6 @@ private:
       return;
 
     ossia::small_pod_vector<Process::Outlet*, 4> to_delete;
-    auto current_outlets = m_outlets;
     if(current_model_ports < count)
     {
       // Add new ports
@@ -384,14 +390,13 @@ private:
       Process::Outlets outlets_to_add;
       OutletInitFunc<Info> outlets{*this, outlets_to_add};
       outlets.outlet = 1000000 + N * 1000 + current_model_ports;
-      int current_outlets = m_outlets.size();
       int sz = 0;
       for(int i = current_model_ports; i < count; i++)
       {
         outlets(port, idx);
-        if(outlets_to_add.size() > sz)
+        if(std::ssize(outlets_to_add) > sz)
         {
-          sz = outlets_to_add.size();
+          sz = std::ssize(outlets_to_add);
           auto new_outlet = outlets_to_add.back();
           if(auto nm = new_outlet->name(); nm.contains("{}"))
           {

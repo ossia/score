@@ -36,6 +36,10 @@ public:
       const Pd::PatchSpec& spec, bool midi_in = true, bool midi_out = true);
 
   ~PdGraphNode();
+  [[nodiscard]] std::string label() const noexcept override
+  {
+    return "puredata (" + m_file + ")";
+  }
 
   ossia::outlet* get_outlet(const char* str) const;
 

@@ -1,8 +1,12 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
-
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/small_vector.hpp>
 
+#include <halp/audio.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+#include <halp/midi.hpp>
+#include <libremidi/message.hpp>
 namespace Nodes
 {
 template <typename T>
@@ -15,129 +19,146 @@ static void duplicate_vector(T& vec)
 }
 namespace Arpeggiator
 {
+struct Arpeggios
+{
+  halp_meta(name, "Arpeggios");
+  enum widget
+  {
+    combobox
+  };
+
+  struct range
+  {
+    halp::combo_pair<int> values[5]{{"Forward", 0}, {"Backward", 1}, {"F->B", 2}, {"B->F", 3}, {"Chord", 4}};
+    int init{0};
+  };
+
+  int value{};
+};
+
 struct Node
 {
-  struct Metadata : Control::Meta_base
-  {
-    static const constexpr auto prettyName = "Arpeggiator";
-    static const constexpr auto objectKey = "Arpeggiator";
-    static const constexpr auto category = "Midi";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/midi-utilities.html#arpeggiator";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
-    static const constexpr auto description = "Arpeggiator";
-    static const constexpr auto uuid
-        = make_uuid("0b98c7cd-f831-468f-81e3-706d6a97d705");
+  halp_meta(name, "Arpeggiator")
+  halp_meta(c_name, "Arpeggiator")
+  halp_meta(category, "Midi")
+  halp_meta(author, "ossia score")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#arpeggiator")
+  halp_meta(description, "Arpeggiator")
+  halp_meta(uuid, "0b98c7cd-f831-468f-81e3-706d6a97d705")
 
-    static const constexpr midi_in midi_ins[]{"in"};
-    static const constexpr midi_out midi_outs[]{"out"};
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::Widgets::ArpeggioChooser(), Control::IntSlider("Octave", 1, 7, 1),
-        Control::IntSlider("Quantification", 1, 32, 8));
-  };
+  // FIXME "note" bus instead of midi bus ; the host handles passing all the non note messages
+  struct
+  {
+    halp::midi_bus<"in", libremidi::message> midi;
+    Arpeggios arpeggios;
+    halp::hslider_i32<"Octave", halp::irange{1, 7, 1}> octave;
+    halp::hslider_i32<"Quantification", halp::irange{1, 32, 8}> quantification;
+  } inputs;
+  struct
+  {
+    halp::midi_out_bus<"out", libremidi::message> midi;
+  } outputs;
 
   using byte = unsigned char;
   using chord = ossia::small_vector<std::pair<byte, byte>, 5>;
 
-  struct State
+  ossia::flat_map<byte, byte> notes;
+  ossia::small_vector<chord, 10> arpeggio;
+  std::array<int8_t, 128> in_flight{};
+
+  float previous_octave{};
+  int previous_arpeggio{};
+  std::size_t index{};
+
+  void update()
   {
-    ossia::flat_map<byte, byte> notes;
-    ossia::small_vector<chord, 10> arpeggio;
-    std::array<int8_t, 128> in_flight{};
-
-    float previous_octave{};
-    int previous_arpeggio{};
-    std::size_t index{};
-
-    void update()
+    // Create the content of the arpeggio
+    switch(previous_arpeggio)
     {
-      // Create the content of the arpeggio
-      switch(previous_arpeggio)
-      {
-        case 0:
-          arpeggiate(1);
-          break;
-        case 1:
-          arpeggiate(1);
-          std::reverse(arpeggio.begin(), arpeggio.end());
-          break;
-        case 2:
-          arpeggiate(2);
-          duplicate_vector(arpeggio);
-          std::reverse(arpeggio.begin() + notes.size(), arpeggio.end());
-          break;
-        case 3:
-          arpeggiate(2);
-          duplicate_vector(arpeggio);
-          std::reverse(arpeggio.begin(), arpeggio.begin() + notes.size());
-          break;
-        case 4:
-          arpeggio.clear();
-          arpeggio.resize(1);
-          for(std::pair note : notes)
-          {
-            arpeggio[0].push_back(note);
-          }
-          break;
-      }
-
-      const std::size_t orig_size = arpeggio.size();
-
-      // Create the octave duplicates
-      for(int i = 1; i < previous_octave; i++)
-      {
-        octavize(orig_size, i);
-      }
-      for(int i = 1; i < previous_octave; i++)
-      {
-        octavize(orig_size, -i);
-      }
-    }
-
-    void arpeggiate(int size_mult)
-    {
-      arpeggio.clear();
-      arpeggio.reserve(notes.size() * size_mult);
-      for(std::pair note : notes)
-      {
-        arpeggio.push_back(chord{note});
-      }
-    }
-
-    void octavize(std::size_t orig_size, int i)
-    {
-      for(std::size_t j = 0; j < orig_size; j++)
-      {
-        auto copy = arpeggio[j];
-        for(auto it = copy.begin(); it != copy.end();)
+      case 0:
+        arpeggiate(1);
+        break;
+      case 1:
+        arpeggiate(1);
+        std::reverse(arpeggio.begin(), arpeggio.end());
+        break;
+      case 2:
+        arpeggiate(2);
+        duplicate_vector(arpeggio);
+        std::reverse(arpeggio.begin() + notes.size(), arpeggio.end());
+        break;
+      case 3:
+        arpeggiate(2);
+        duplicate_vector(arpeggio);
+        std::reverse(arpeggio.begin(), arpeggio.begin() + notes.size());
+        break;
+      case 4:
+        arpeggio.clear();
+        arpeggio.resize(1);
+        for(std::pair note : notes)
         {
-          auto& note = *it;
-          int res = note.first + 12 * i;
-          if(res >= 0.f && res <= 127.f)
-          {
-            note.first = res;
-            ++it;
-          }
-          else
-          {
-            it = copy.erase(it);
-          }
+          arpeggio[0].push_back(note);
         }
-
-        arpeggio.push_back(std::move(copy));
-      }
+        break;
     }
-  };
 
-  using control_policy = ossia::safe_nodes::precise_tick;
-  static void
-  run(const ossia::midi_port& midi, int arpeggio, float octave, int quantif,
-      ossia::midi_port& out, ossia::token_request tk, ossia::exec_state_facade st,
-      State& self)
+    const std::size_t orig_size = arpeggio.size();
+
+    // Create the octave duplicates
+    for(int i = 1; i < previous_octave; i++)
+    {
+      octavize(orig_size, i);
+    }
+    for(int i = 1; i < previous_octave; i++)
+    {
+      octavize(orig_size, -i);
+    }
+  }
+
+  void arpeggiate(int size_mult)
+  {
+    arpeggio.clear();
+    arpeggio.reserve(notes.size() * size_mult);
+    for(std::pair note : notes)
+    {
+      arpeggio.push_back(chord{note});
+    }
+  }
+
+  void octavize(std::size_t orig_size, int i)
+  {
+    for(std::size_t j = 0; j < orig_size; j++)
+    {
+      auto copy = arpeggio[j];
+      for(auto it = copy.begin(); it != copy.end();)
+      {
+        auto& note = *it;
+        int res = note.first + 12 * i;
+        if(res >= 0.f && res <= 127.f)
+        {
+          note.first = res;
+          ++it;
+        }
+        else
+        {
+          it = copy.erase(it);
+        }
+      }
+
+      arpeggio.push_back(std::move(copy));
+    }
+  }
+
+  using tick = halp::tick_musical;
+  void operator()(const halp::tick_musical& tk)
   {
     // Store the current chord in a buffer
-    auto msgs = midi.messages;
+    auto& self = *this;
+    auto& midi = this->inputs.midi;
+    auto& out = this->outputs.midi;
+    const auto& msgs = midi;
+    const int octave = inputs.octave;
+    const int arpeggio = inputs.arpeggios.value;
     self.previous_octave = octave;
     self.previous_arpeggio = arpeggio;
 
@@ -158,8 +179,7 @@ struct Node
     }
 
     // Update the arpeggio itself
-    const bool mustUpdateArpeggio = msgs.size() > 0 || octave != self.previous_octave
-                                    || arpeggio != self.previous_arpeggio;
+    const bool mustUpdateArpeggio = msgs.size() > 0 || octave != self.previous_octave || arpeggio != self.previous_arpeggio;
     if(mustUpdateArpeggio)
     {
       self.update();
@@ -167,12 +187,11 @@ struct Node
 
     if(self.arpeggio.empty())
     {
-      const auto [tick_start, d] = st.timings(tk);
       for(int k = 0; k < 128; k++)
       {
         while(self.in_flight[k] > 0)
         {
-          out.note_off(1, k, 0).timestamp = tick_start;
+          out.note_off(1, k, 0).timestamp = 0;
           self.in_flight[k]--;
         }
       }
@@ -183,15 +202,21 @@ struct Node
       self.index = 0;
 
     // Play the next note / chord if we're on a quantification marker
-    if(auto date = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
+    // FIXME use the one
+    for(auto [date, q] : tk.get_quantification_date_with_bars(inputs.quantification.value))
     {
-      // Finish previous notes
+      // SCORE_SOFT_ASSERT(date >= 0);
+      // SCORE_SOFT_ASSERT(date < tk.frames);
 
+      if(date >= tk.frames)
+        return;
+
+      // Finish previous notes
       for(int k = 0; k < 128; k++)
       {
         while(self.in_flight[k] > 0)
         {
-          out.note_off(1, k, 0).timestamp = *date;
+          out.note_off(1, k, 0).timestamp = date;
           self.in_flight[k]--;
         }
       }
@@ -202,7 +227,7 @@ struct Node
       for(auto& note : chord)
       {
         self.in_flight[note.first]++;
-        out.note_on(1, note.first, note.second).timestamp = *date;
+        out.note_on(1, note.first, note.second).timestamp = date;
       }
 
       // New chord to stop

@@ -94,7 +94,6 @@ set(PROCESS_HDRS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.hpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Control/Widgets.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/Layout.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.hpp"
 

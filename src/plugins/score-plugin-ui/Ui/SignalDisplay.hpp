@@ -1,54 +1,53 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
+#include <Effect/EffectLayer.hpp>
 #include <Effect/EffectLayout.hpp>
-#include <Engine/Node/SimpleApi.hpp>
+// #include <Engine/Node/SimpleApi.hpp>
 
 #include <ossia/detail/math.hpp>
 #include <ossia/math/safe_math.hpp>
 #include <ossia/network/value/format_value.hpp>
 
 #include <QPainter>
-namespace ossia
-{
 
-}
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
 namespace Ui
 {
-
-namespace SignalDisplay
+using value_out = halp::callback<"out", ossia::value>;
+};
+namespace Ui::SignalDisplay
 {
 struct Node
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Signal display")
+  halp_meta(c_name, "SignalDisplay")
+  halp_meta(category, "Monitoring")
+  halp_meta(author, "ossia score")
+  halp_meta(
+      manual_url,
+      "https://ossia.io/score-docs/common-practices/"
+      "4-audio.html#analysing-an-audio-signal")
+  halp_meta(description, "Visualize an input signal")
+  halp_meta(uuid, "9906e563-ddeb-4ecd-908c-952baee2a0a5")
+
+  halp_flag(temporal);
+  halp_flag(loops_by_default);
+
+  struct
   {
-    static const constexpr auto prettyName = "Signal display";
-    static const constexpr auto objectKey = "SignalDisplay";
-    static const constexpr auto category = "Monitoring";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/common-practices/4-audio.html#analysing-an-audio-signal";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description = "Visualize an input signal";
-    static const constexpr auto flags = Process::ProcessFlags::SupportsTemporal;
-    static const uuid_constexpr auto uuid
-        = make_uuid("9906e563-ddeb-4ecd-908c-952baee2a0a5");
+    halp::val_port<"in", ossia::value> port;
+  } inputs;
 
-    static const constexpr value_in value_ins[]{"in"};
-    static const constexpr auto control_outs
-        = tuplet::make_tuple(Control::OutControl{"value"});
+  struct
+  {
+    value_out port{};
+  } outputs;
 
-    enum
-    {
-      loops_by_default
-    };
-  };
-
-  using control_policy = ossia::safe_nodes::default_tick_controls;
-
-  static void
-  run(const ossia::value_port& in, ossia::timed_vec<ossia::value>& out_value,
-      ossia::token_request tk, ossia::exec_state_facade st)
+  /*
+  void operator()()
   {
     if(!in.get_data().empty())
     {
@@ -61,7 +60,7 @@ struct Node
           ossia::convert<float>(v.value)};
     }
   }
-
+*/
   struct Layer : public Process::EffectLayerView
   {
   public:
@@ -155,86 +154,4 @@ struct Node
     }
   };
 };
-}
-
-namespace Display
-{
-struct Node
-{
-  struct Metadata : Control::Meta_base
-  {
-    static const constexpr auto prettyName = "Value display";
-    static const constexpr auto objectKey = "Display";
-    static const constexpr auto category = "Monitoring";
-    static const constexpr auto manual_url = "";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description = "Visualize an input value";
-    static const constexpr auto flags = Process::ProcessFlags::TimeIndependent
-                                        | Process::ProcessFlags::FullyCustomItem;
-    static const uuid_constexpr auto uuid
-        = make_uuid("3f4a41f2-fa39-420f-ab0f-0af6b8409edb");
-
-    static const constexpr auto controls
-        = tuplet::make_tuple(Control::InControl{"value"});
-  };
-
-  using control_policy = ossia::safe_nodes::last_tick;
-
-  static void
-  run(const ossia::value& in, ossia::token_request tk, ossia::exec_state_facade st)
-  {
-  }
-
-  struct Layer : public Process::EffectLayerView
-  {
-  public:
-    ossia::value m_value;
-
-    Layer(
-        const Process::ProcessModel& process, const Process::Context& doc,
-        QGraphicsItem* parent)
-        : Process::EffectLayerView{parent}
-    {
-      setAcceptedMouseButtons({});
-
-      const Process::PortFactoryList& portFactory
-          = doc.app.interfaces<Process::PortFactoryList>();
-
-      auto inl = static_cast<Process::ControlInlet*>(process.inlets().front());
-
-      auto fact = portFactory.get(inl->concreteKey());
-      auto port = fact->makePortItem(*inl, doc, this, this);
-      port->setPos(0, 5);
-
-      connect(
-          inl, &Process::ControlInlet::executionValueChanged, this,
-          [this](const ossia::value& v) {
-        m_value = v;
-        update();
-          });
-    }
-
-    void reset()
-    {
-      m_value = ossia::value{};
-      update();
-    }
-
-    void paint_impl(QPainter* p) const override
-    {
-      if(!m_value.valid())
-        return;
-
-      p->setRenderHint(QPainter::Antialiasing, true);
-      p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
-
-      p->drawText(boundingRect(), QString::fromStdString(fmt::format("{}", m_value)));
-
-      p->setRenderHint(QPainter::Antialiasing, false);
-    }
-  };
-};
-}
 }

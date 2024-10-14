@@ -4,6 +4,7 @@
 
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/fmt.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
 namespace LV2
@@ -223,6 +224,10 @@ struct lv2_node final : public ossia::graph_node
     // TODO
   }
 
+  [[nodiscard]] std::string label() const noexcept override
+  {
+    return fmt::format("lv2 ({})", data.effect.plugin.get_name().as_string());
+  }
   void preProcess()
   {
     const std::size_t audio_in_size = data.audio_in_ports.size();

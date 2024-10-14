@@ -13,7 +13,6 @@
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadatas.hpp>
 #include <Crousti/ProcessModel.hpp>
-#include <Engine/Node/TickPolicy.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -302,7 +301,6 @@ struct setup_Impl0
   template <avnd::soundfile_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    int k = 0;
     for(auto p : element.avnd_input_idx_to_model_ports(NField))
     {
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
@@ -337,14 +335,12 @@ struct setup_Impl0
               }
         });
       }
-      k++;
     }
   }
 
   template <avnd::midifile_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    int k = 0;
     for(auto p : element.avnd_input_idx_to_model_ports(NField))
     {
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
@@ -379,7 +375,6 @@ struct setup_Impl0
             }
         });
       }
-      k++;
     }
   }
 
@@ -396,7 +391,6 @@ struct setup_Impl0
   template <avnd::raw_file_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    int k = 0;
     for(auto p : element.avnd_input_idx_to_model_ports(NField))
     {
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
@@ -470,7 +464,6 @@ struct setup_Impl0
             }
         });
       }
-      k++;
     }
   }
 };
@@ -487,15 +480,14 @@ struct ApplyEngineControlChangeToUI
   template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    int k = 0;
     for(auto p : element.avnd_input_idx_to_model_ports(NField))
     {
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
       {
+        using namespace std;
         // FIXME handle dynamic ports correctly
-        // inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
+        // inlet->setExecutionValue(oscr::to_ossia_value(field, get<N>(arr)));
       }
-      k++;
     }
   }
 
@@ -505,7 +497,8 @@ struct ApplyEngineControlChangeToUI
     auto p = element.avnd_input_idx_to_model_ports(NField)[0];
     if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
     {
-      inlet->setExecutionValue(oscr::to_ossia_value(field, field.value));
+      using namespace std;
+      inlet->setExecutionValue(oscr::to_ossia_value(field, get<N>(arr)));
     }
   }
 };
@@ -521,18 +514,20 @@ struct setup_Impl1_Out
   template <typename Field, std::size_t N, std::size_t NField>
   void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
+    using namespace std;
     auto ports = element.avnd_output_idx_to_model_ports(NField);
     auto outlet = safe_cast<Process::ControlOutlet*>(ports[0]);
-    outlet->setValue(oscr::to_ossia_value(field, field.value));
+    outlet->setValue(oscr::to_ossia_value(field, get<N>(arr)));
   }
 
   template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
+    using namespace std;
     // FIXME handle dynamic ports correctly
     // auto outlet
     //     = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element.outlets(), NField));
-    // outlet->setValue(oscr::to_ossia_value(field, field.value));
+    // outlet->setValue(oscr::to_ossia_value(field, get<N>(arr)));
   }
 };
 
@@ -649,7 +644,16 @@ public:
       auto& gfx_exec = ctx.doc.plugin<Gfx::DocumentPlugin>().exec;
 
       // Create the executor in the audio thread
-      auto node = std::make_shared<Gfx::gfx_exec_node>(gfx_exec);
+      struct named_exec_node final : Gfx::gfx_exec_node
+      {
+        using Gfx::gfx_exec_node::gfx_exec_node;
+        std::string label() const noexcept override
+        {
+          return std::string(avnd::get_name<Node>());
+        }
+      };
+
+      auto node = std::make_shared<named_exec_node>(gfx_exec);
       node->prepare(*ctx.execState);
 
       this->node = node;
@@ -762,7 +766,7 @@ public:
           &Executor::recompute_ports);
 
       // To call prepare() after evertyhing is ready
-      node->audio_configuration_changed();
+      node->audio_configuration_changed(st);
 
       m_oldInlets = element.inlets();
       m_oldOutlets = element.outlets();

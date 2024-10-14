@@ -1,14 +1,13 @@
 #include "Port.hpp"
 
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Dataflow/PrettyPortName.hpp>
 #include <Process/ProcessContext.hpp>
-
-#include <Control/Widgets.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/GraphicsLayout.hpp>
@@ -24,6 +23,7 @@
 #include <ossia-qt/value_metatypes.hpp>
 
 #include <QDebug>
+#include <QIODevice>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::Port)
@@ -268,6 +268,12 @@ void Inlet::mapExecution(
     ossia::inlet& exec,
     const smallfun::function<void(Inlet&, ossia::inlet&)>& f) const noexcept
 {
+}
+
+ControlInlet::ControlInlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Inlet{std::move(c), parent}
+{
+  setName(name);
 }
 
 ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent)
@@ -567,6 +573,12 @@ MidiOutlet::MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Outlet{vis, parent}
 {
   vis.writeTo(*this);
+}
+
+ControlOutlet::ControlOutlet(const QString& qname, Id<Process::Port> c, QObject* parent)
+    : Outlet{std::move(c), parent}
+{
+  setName(qname);
 }
 
 ControlOutlet::ControlOutlet(Id<Process::Port> c, QObject* parent)

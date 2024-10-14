@@ -3,62 +3,63 @@
 #include <Fx/Types.hpp>
 
 #include <ossia/dataflow/value_port.hpp>
-#include <ossia/detail/logger.hpp>
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
-
-namespace Nodes::Smooth
-{
-using namespace dno;
-
-namespace v1
+namespace Nodes::Smooth::v2
 {
 struct Node : NoiseState
 {
-  halp_meta(name, "Smooth (old)")
+  halp_meta(name, "Smooth")
   halp_meta(c_name, "ValueFilter")
   halp_meta(category, "Control/Mappings")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/smooth.html#smooth")
   halp_meta(description, "Filter noisy value stream")
-  halp_meta(uuid, "809c014d-7d02-45dc-8849-de7a7db5fe67")
-  halp_flag(deprecated);
+  halp_meta(uuid, "bf603921-5a48-4aa5-9bc1-48a762be6467")
 
   struct
   {
     // FIXME all incorrect when token_request smaller than tick
-    struct : halp::val_port<"in", ossia::value>
-    {
-      // Messages to this port trigger a new computation cycle with updated timestamps
-      halp_flag(active_port);
-    } port;
+    halp::val_port<"in", std::optional<ossia::value>> port{};
     halp::enum_t<dno::type, "Type"> type;
     halp::knob_f32<"Amount", halp::range{0., 1., 0.1}> amount;
     halp::log_hslider_f32<"Freq (1e/LP)", halp::range{0.001, 300., 120.}> freq;
     halp::log_hslider_f32<"Cutoff (1e/LP)", halp::range{0.001, 10., 1.}> cutoff;
     halp::hslider_f32<"Beta (1e only)", halp::range{0.001, 10., 1.}> beta;
+    halp::toggle<"Continuous", halp::toggle_setup{}> continuous;
   } inputs;
   struct
   {
     value_out port{};
   } outputs;
-
   void operator()()
   {
-    auto& v = this->inputs.port.value;
-
-    auto filtered = this->filter(
-        v, inputs.type, inputs.amount, inputs.freq, inputs.cutoff, inputs.beta);
-    outputs.port(std::move(filtered)); // TODO fix accuracy of timestamp
-
-    this->last = v;
+    if(auto& v = this->inputs.port.value)
+    {
+      auto filtered = this->filter(
+          *v, inputs.type, inputs.amount, inputs.freq, inputs.cutoff, inputs.beta);
+      outputs.port(std::move(filtered)); // TODO fix accuracy of timestamp
+      this->last = *v;
+    }
+    else
+    {
+      // FIXME this is slightly imprecise as the filters expect regular input
+      // and if we have split ticks that's not what happens
+      if(inputs.continuous && this->last.valid())
+      {
+        auto filtered = this->filter(
+            this->last, inputs.type, inputs.amount, inputs.freq, inputs.cutoff,
+            inputs.beta);
+        outputs.port(std::move(filtered));
+      }
+    }
   }
 
 #if FX_UI
   static void item(
       Process::Enum& type, Process::FloatKnob& amount, Process::LogFloatSlider& freq,
-      Process::LogFloatSlider& cutoff, Process::FloatSlider& beta,
+      Process::LogFloatSlider& cutoff, Process::FloatSlider& beta, Process::Toggle& cont,
       const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
       const Process::Context& doc)
   {
@@ -99,8 +100,12 @@ struct Node : NoiseState
         tuplet::get<4>(Metadata::controls), beta, parent, context, doc, portFactory);
     beta_item.root.setPos(140, 80);
     beta_item.control.setPos(0, cMarg);
+
+    auto cont_item = makeControl(
+        tuplet::get<5>(Metadata::controls), cont, parent, context, doc, portFactory);
+    cont_item.root.setPos(tMarg, 0);
+    //cont_item.control.setPos(10, cMarg);
   }
 #endif
 };
-}
 }

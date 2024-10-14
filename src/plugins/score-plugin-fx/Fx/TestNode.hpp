@@ -1,5 +1,7 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+#include <halp/midi.hpp>
 
 /*
 namespace Control
@@ -45,21 +47,18 @@ namespace Nodes
 
 struct SomeInfo
 {
-  struct Metadata
-  {
-    static const constexpr auto prettyName = "My Funny Process";
-    static const constexpr auto objectKey = "FunnyProcess";
-    static const constexpr auto category = "Test";
-    static const constexpr auto tags = std::array<const char*, 0>{};
+    halp_meta(name, "My Funny Process")
+    halp_meta(c_name, "FunnyProcess")
+    halp_meta(category, "Test")
     static const constexpr auto uuid =
 make_uuid("f6b88ec9-cd56-43e8-a568-33208d5a8fb7");
-  };
-
-  struct State
-  {
-
-  };
-
+  
+  struct {
+    
+  } inputs;
+  struct {
+    
+  } outputs;
   static const constexpr auto info =
       Control::create_node()
       .audio_ins({{"audio1"}, {"audio2"}})

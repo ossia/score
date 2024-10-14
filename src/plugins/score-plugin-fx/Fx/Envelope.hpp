@@ -1,34 +1,39 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
+#include <Fx/Types.hpp>
 
-#include <numeric>
+#include <halp/audio.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+
 namespace Nodes
 {
 namespace Envelope
 {
 struct Node
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Envelope")
+  halp_meta(c_name, "Envelope")
+  halp_meta(category, "Audio")
+  halp_meta(author, "ossia score")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#envelope")
+  halp_meta(description, "Converts an audio signal into RMS and peak values")
+  halp_meta(uuid, "95F44151-13EF-4537-8189-0CC243341269");
+
+  using FP = double;
+  struct
   {
-    static const constexpr auto prettyName = "Envelope";
-    static const constexpr auto objectKey = "Envelope";
-    static const constexpr auto category = "Audio";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/analysis.html#envelope";
-    static const constexpr auto kind
-        = Process::ProcessCategory::Analyzer | Process::ProcessCategory::Deprecated;
-    static const constexpr auto description
-        = "Converts an audio signal into RMS and peak values";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
-        = make_uuid("95F44151-13EF-4537-8189-0CC243341269");
+    halp::dynamic_audio_bus<"in", FP> audio;
+  } inputs;
+  struct
+  {
+    halp::callback<"rms", multichannel_output_type> rms;
+    halp::callback<"peak", multichannel_output_type> peak;
+  } outputs;
 
-    static const constexpr audio_in audio_ins[]{"in"};
-    static const constexpr value_out value_outs[]{"rms", "peak"};
-  };
+  halp_flag(deprecated);
 
-  using control_policy = ossia::safe_nodes::default_tick;
-  static auto get(const ossia::audio_channel& chan)
+  static auto get(const avnd::span<FP>& chan)
   {
     if(chan.size() > 0)
     {
@@ -46,40 +51,36 @@ struct Node
     }
     else
     {
-      using val_t = ossia::audio_channel::value_type;
-      return std::make_pair(val_t{}, val_t{});
+      return std::make_pair(FP{}, FP{});
     }
   }
 
-  static void
-  run(const ossia::audio_port& audio, ossia::value_port& rms_port,
-      ossia::value_port& peak_port, ossia::token_request tk, ossia::exec_state_facade e)
+  void operator()(int d)
   {
-    const auto [tick_start, d] = e.timings(tk);
-    switch(audio.channels())
+    auto& audio = inputs.audio;
+    switch(audio.channels)
     {
       case 0:
         return;
       case 1: {
-        auto [rms, peak] = get(audio.channel(0));
-
-        rms_port.write_value(rms, tick_start);
-        peak_port.write_value(peak, tick_start);
+        auto [rms, peak] = get(audio.channel(0, d));
+        outputs.rms(rms);
+        outputs.peak(peak); // FIXME timestamp
         break;
       }
       default: {
-        std::vector<ossia::value> peak_vec;
-        peak_vec.reserve(audio.channels());
-        std::vector<ossia::value> rms_vec;
-        rms_vec.reserve(audio.channels());
-        for(auto& c : audio)
+        multichannel_output_vector peak_vec;
+        peak_vec.reserve(audio.channels);
+        multichannel_output_vector rms_vec;
+        rms_vec.reserve(audio.channels);
+        for(int i = 0; i < audio.channels; i++)
         {
-          auto [rms, peak] = get(c);
+          auto [rms, peak] = get(audio.channel(i, d));
           rms_vec.push_back(rms);
           peak_vec.push_back(peak);
         }
-        rms_port.write_value(rms_vec, tick_start);
-        peak_port.write_value(peak_vec, tick_start);
+        outputs.rms(rms_vec);
+        outputs.peak(peak_vec); // FIXME timestamp
       }
       break;
     }

@@ -15,6 +15,7 @@
 #include <boost/container/vector.hpp>
 
 #include <avnd/binding/ossia/qt.hpp>
+#include <avnd/binding/ossia/uuid.hpp>
 #include <avnd/common/concepts_polyfill.hpp>
 #include <avnd/common/struct_reflection.hpp>
 #include <avnd/concepts/audio_port.hpp>
@@ -32,11 +33,6 @@
 #include <type_traits>
 
 #define make_uuid(text) score::uuids::string_generator::compute((text))
-#if defined(_MSC_VER)
-#define uuid_constexpr inline
-#else
-#define uuid_constexpr constexpr
-#endif
 
 namespace oscr
 {
@@ -51,39 +47,6 @@ struct is_custom_serialized<oscr::CustomFloatControl<Node, FieldIndex>> : std::t
 
 namespace oscr
 {
-template <typename N>
-consteval score::uuid_t uuid_from_string()
-{
-  if constexpr(requires {
-                 {
-                   N::uuid()
-                 } -> std::convertible_to<score::uuid_t>;
-               })
-  {
-    return N::uuid();
-  }
-  else
-  {
-    constexpr const char* str = N::uuid();
-    return score::uuids::string_generator::compute(str, str + 37);
-  }
-}
-
-template <typename Node>
-score::uuids::uuid make_field_uuid(uint64_t is_input, uint64_t index)
-{
-  score::uuid_t node_uuid = uuid_from_string<Node>();
-  uint64_t dat[2];
-
-  memcpy(dat, node_uuid.data, 16);
-
-  dat[0] ^= is_input;
-  dat[1] ^= index;
-
-  memcpy(node_uuid.data, dat, 16);
-
-  return node_uuid;
-}
 
 struct CustomFloatControlBase : public Process::ControlInlet
 {
@@ -214,6 +177,17 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
       }
     }
   }
+  else if constexpr(widg.widget == avnd::widget_type::log_slider)
+  {
+    constexpr auto c = avnd::get_range<T>();
+    return new Process::LogFloatSlider{c.min, c.max, c.init, qname, id, parent};
+  }
+  else if constexpr(widg.widget == avnd::widget_type::log_knob)
+  {
+    // FIXME
+    constexpr auto c = avnd::get_range<T>();
+    return new Process::LogFloatSlider{c.min, c.max, c.init, qname, id, parent};
+  }
   else if constexpr(widg.widget == avnd::widget_type::time_chooser)
   {
     constexpr auto c = avnd::get_range<T>();
@@ -319,7 +293,9 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   {
     constexpr auto c = avnd::get_range<T>();
     auto enums = avnd::to_enum_range(c.values);
-    auto init = enums[c.init];
+    static_assert(
+        std::is_integral_v<decltype(c.init)> || std::is_enum_v<decltype(c.init)>);
+    auto init = enums[static_cast<int>(c.init)];
     std::vector<QString> pixmaps;
     if constexpr(requires { c.pixmaps; })
     {
@@ -438,6 +414,16 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
     constexpr auto i = c.init;
     return new Process::HSVSlider{{i.r, i.g, i.b, i.a}, qname, id, parent};
   }
+  else if constexpr(widg.widget == avnd::widget_type::control)
+  {
+    return new Process::ControlInlet{qname, id, parent};
+  }
+  else if constexpr(widg.widget == avnd::widget_type::no_control)
+  {
+    auto pv = new Process::ValueInlet{id, parent};
+    pv->setName(qname);
+    return pv;
+  }
   else
   {
     static_assert(T::is_not_a_valid_control);
@@ -458,6 +444,16 @@ auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* par
     constexpr auto c = avnd::get_range<T>();
     return new Process::Bargraph{c.min, c.max, c.init, qname, id, parent};
   }
+  else if constexpr(widg.widget == avnd::widget_type::control)
+  {
+    return new Process::ControlOutlet{qname, id, parent};
+  }
+  else if constexpr(widg.widget == avnd::widget_type::no_control)
+  {
+    auto pv = new Process::ValueOutlet{id, parent};
+    pv->setName(qname);
+    return pv;
+  }
   else if constexpr(avnd::fp_ish<decltype(T::value)>)
   {
     constexpr auto c = avnd::get_range<T>();
@@ -465,7 +461,7 @@ auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* par
   }
   else
   {
-    static_assert(T::is_not_a_valid_control);
+    return new Process::ControlOutlet{qname, id, parent};
   }
 }
 

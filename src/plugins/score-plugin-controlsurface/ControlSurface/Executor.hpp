@@ -6,7 +6,6 @@
 #include <ControlSurface/Process.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
-#include <ossia/dataflow/safe_nodes/executor.hpp>
 #include <ossia/detail/ssize.hpp>
 
 namespace ossia

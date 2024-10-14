@@ -1,37 +1,46 @@
 #pragma once
-#include <Engine/Node/SimpleApi.hpp>
+#include <Fx/Types.hpp>
 
-#include <numeric>
+#include <halp/audio.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+
 namespace Nodes
 {
 namespace Metro
 {
 struct Node
 {
-  struct Metadata : Control::Meta_base
+  halp_meta(name, "Free metronome")
+  halp_meta(c_name, "Metro")
+  halp_meta(category, "Control/Generators")
+  halp_meta(author, "ossia score")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/control-utilities.html#free-metronome")
+  halp_meta(description, "Metronome which is not synced to the parent quantization settings")
+
+  halp_meta(uuid, "50439197-521E-4ED0-A3B7-EDD8DEAEAC93")
+
+  struct
   {
-    static const constexpr auto prettyName = "Free metronome";
-    static const constexpr auto objectKey = "Metro";
-    static const constexpr auto category = "Control/Generators";
-    static const constexpr auto author = "ossia score";
-    static const constexpr auto manual_url = "https://ossia.io/score-docs/processes/control-utilities.html#free-metronome";
-    static const constexpr auto kind = Process::ProcessCategory::Generator;
-    static const constexpr auto description
-        = "Metronome which is not synced to the parent quantization settings";
+    musical_duration_selector<"Duration"> dur;
+    halp::log_hslider_f32<"Frequency", halp::range{0.01f, 100.f, 1.f}> frequency;
+    struct : halp::toggle<"Quantify">
+    {
+      struct range
+      {
+        std::array<std::string_view, 2> values{"Free", "Sync"};
+        int init = 0;
+      };
+    } quantify;
+  } inputs;
+  struct
+  {
+    halp::timed_callback<"out"> out;
 
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
-        = make_uuid("50439197-521E-4ED0-A3B7-EDD8DEAEAC93");
+  } outputs;
 
-    static const constexpr value_out value_outs[]{"out"};
-
-    static const constexpr auto controls = tuplet::make_tuple(
-        Control::Widgets::MusicalDurationChooser(), Control::Widgets::LFOFreqSlider(),
-        Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false});
-  };
-
-  static constexpr int64_t
-  get_period(bool use_tempo, double quantif, double freq, double tempo, int sr)
+  static constexpr int64_t get_period(bool use_tempo, double quantif, double freq, double tempo, int sr)
   {
     if(use_tempo)
     {
@@ -45,25 +54,28 @@ struct Node
     }
   }
 
-  static constexpr ossia::time_value
-  next_date(ossia::time_value cur_date, int64_t period)
+  static constexpr int64_t next_date(int64_t cur_date, int64_t period)
   {
-    return ossia::time_value{(int64_t)(period * (1 + cur_date.impl / period))};
+    return (int64_t)(period * (cur_date / period));
   }
 
-  using control_policy = ossia::safe_nodes::last_tick;
-  static void
-  run(float quantif, float freq, bool val, ossia::value_port& res,
-      ossia::token_request tk, ossia::exec_state_facade st)
+  halp::setup setup;
+  void prepare(halp::setup s) { setup = s; }
+
+  //using control_policy = ossia::safe_nodes::last_tick;
+  using tick = halp::tick_musical;
+  void operator()(const halp::tick_musical& tk)
   {
-    if(tk.date > tk.prev_date)
+    if(tk.start_position_in_quarters < tk.end_position_in_quarters)
     {
-      const auto period = get_period(val, quantif, freq, tk.tempo, st.sampleRate());
-      const auto next = next_date(tk.prev_date, period * st.samplesToModel());
+      // in samples:
+      const auto period = get_period(
+          inputs.quantify, inputs.dur.value, inputs.frequency, tk.tempo, setup.rate);
+
+      const auto next = next_date(tk.position_in_frames, period);
       if(tk.in_range(next))
       {
-        res.write_value(
-            ossia::impulse{}, tk.to_physical_time_in_tick(next, st.modelToSamples()));
+        outputs.out(next - tk.position_in_frames);
       }
     }
   }

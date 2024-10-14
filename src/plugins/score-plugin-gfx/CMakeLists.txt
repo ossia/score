@@ -85,7 +85,6 @@ set(HDRS
     Gfx/Images/Executor.hpp
     Gfx/Images/Metadata.hpp
     Gfx/Images/Process.hpp
-    Gfx/Images/Layer.hpp
     Gfx/Images/ImageListChooser.hpp
 
     Gfx/Text/Executor.hpp

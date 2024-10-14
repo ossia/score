@@ -156,12 +156,19 @@ struct Metadata<Process::ProcessFlags_k, oscr::ProcessModel<Info>>
     }
     else
     {
-      Process::ProcessFlags flags = Process::ProcessFlags(
-          Process::ProcessFlags::SupportsLasting
-          | Process::ProcessFlags::ControlSurface);
+      Process::ProcessFlags flags{};
+      flags |= Process::ProcessFlags::ControlSurface;
+
+      if constexpr(avnd::tag_temporal<Info>)
+        flags |= Process::ProcessFlags::SupportsTemporal;
+      else
+        flags |= Process::ProcessFlags::SupportsLasting;
 
       if constexpr(avnd::tag_single_exec<Info>)
         flags |= Process::ProcessFlags::SupportsState;
+
+      if constexpr(avnd::tag_fully_custom_item<Info>)
+        flags |= Process::ProcessFlags::FullyCustomItem;
 
       return flags;
     }

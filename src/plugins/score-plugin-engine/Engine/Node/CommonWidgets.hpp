@@ -1,14 +1,9 @@
 #pragma once
-#include <Control/Widgets.hpp>
-
 #include <ossia/detail/enum_map.hpp>
 
 #include <array>
-namespace Control
+namespace Control::Widgets
 {
-namespace Widgets
-{
-
 static const constexpr std::array<std::pair<const char*, float>, 14> durations{
     {{"Inf", -1.},
      {"Whole", 1.},
@@ -68,19 +63,7 @@ enum Waveform
   Noise3
 };
 
-inline auto& waveformMap()
-{
-  static const ossia::enum_map<Waveform, std::string_view, 8> waveform_map{
-      {Sin, "Sin"},
-      {Triangle, "Triangle"},
-      {Saw, "Saw"},
-      {Square, "Square"},
-      {SampleAndHold, "Sample & Hold"},
-      {Noise1, "Noise 1"},
-      {Noise2, "Noise 2"},
-      {Noise3, "Noise 3"}};
-  return waveform_map;
-}
+#if 0
 static constexpr auto WaveformChooser()
 {
   return Control::make_enum(
@@ -99,99 +82,5 @@ static constexpr auto WaveformChooser()
           ":/icons/wave_noise3_off.png", ":/icons/wave_noise3_on.png"});
 }
 
-enum LoopMode
-{
-  Play,
-  Record,
-  Overdub,
-  Stop
-};
-constexpr auto LoopChooser()
-{
-  return Control::make_enum(
-      "Loop", 0U, ossia::make_array("Play", "Record", "Overdub", "Stop"));
-}
-constexpr auto LoopPostActionChooser()
-{
-  return Control::make_enum("Loop", 0U, ossia::make_array("Play", "Overdub"));
-}
-constexpr LoopMode GetLoopMode(std::string_view str) noexcept
-{
-  if(str == "Play")
-    return LoopMode::Play;
-  else if(str == "Record")
-    return LoopMode::Record;
-  else if(str == "Overdub")
-    return LoopMode::Overdub;
-  else if(str == "Stop")
-    return LoopMode::Stop;
-  return LoopMode::Stop;
-}
-
-constexpr auto QuantificationChooser()
-{
-  return Control::ComboBox<float, std::size(notes)>("Quantification", 2, notes);
-}
-constexpr auto ArpeggioChooser()
-{
-  return Control::ComboBox<int, std::size(arpeggios)>("Arpeggios", 0, arpeggios);
-}
-
-constexpr auto MusicalDurationChooser()
-{
-  return Control::ComboBox<float, std::size(nonnull_notes)>(
-      "Duration", 2, nonnull_notes);
-}
-constexpr auto DurationChooser()
-{
-  return Control::ComboBox<float, std::size(durations)>("Duration", 2, durations);
-}
-constexpr auto FreqSlider()
-{
-  return Control::LogFloatSlider("Frequency", 1.f, 20000.f, 200.f);
-}
-constexpr auto LFOFreqSlider()
-{
-  return Control::LogFloatSlider("Frequency", 0.01f, 100.f, 1.f);
-}
-constexpr auto FreqKnob()
-{
-  return Control::LogFloatKnob("Frequency", 1.f, 20000.f, 200.f);
-}
-constexpr auto LFOFreqKnob()
-{
-  return Control::LogFloatKnob("Frequency", 0.0001f, 100.f, 1.f);
-}
-constexpr auto TempoChooser()
-{
-  return Control::FloatSlider("Tempo", 20, 300, 120);
-}
-
-template <typename T>
-constexpr auto MidiSpinbox(const T& name)
-{
-  return Control::IntSpinBox{name, 0, 127, 64};
-}
-template <typename T>
-constexpr auto MidiChannel(const T& name)
-{
-  return Control::IntSpinBox{name, 1, 16, 1};
-}
-template <typename T>
-constexpr auto MidiSlider(const T& name)
-{
-  return Control::IntSlider{name, 0, 127, 64};
-}
-template <typename T>
-constexpr auto DefaultSlider(const T& name)
-{
-  return Control::FloatSlider{name, 0., 1., 0.5};
-}
-
-template <typename T>
-constexpr auto OctaveSlider(const T& name, int neg_octaves, int octaves)
-{
-  return Control::IntSlider{name, 12 * neg_octaves, 12 * octaves, 0};
-}
-}
+#endif
 }

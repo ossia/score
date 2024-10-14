@@ -39,10 +39,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   typename Info::ui* rootUi{};
 
   template <typename Item>
-  void setupControl(Process::ControlOutlet* inl, Item& item)
-  {
-    // TODO
-  }
+  void setupControl(Process::ControlOutlet* inl, Item& item) = delete; // TODO
 
   template <typename Item>
   void setupControl(Process::ControlInlet* inl, Item& item)
@@ -442,10 +439,13 @@ private:
     auto rootItem = makeItemImpl(const_cast<ProcessModel<Info>&>(process), parent);
 
     auto recreate = [&proc, &ctx, rootItem] {
-      LayoutBuilder<Info> b{
-          *rootItem,     proc,
-          ctx,           ctx.app.interfaces<Process::PortFactoryList>(),
-          proc.inlets(), proc.outlets()};
+      LayoutBuilder<Info> b{*rootItem,
+                            proc,
+                            ctx,
+                            ctx.app.interfaces<Process::PortFactoryList>(),
+                            proc.inlets(),
+                            proc.outlets(),
+                            {}};
       b.rootUi = &rootItem->ui;
 
       b.walkLayout(rootItem->ui);

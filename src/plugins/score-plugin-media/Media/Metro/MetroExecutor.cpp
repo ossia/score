@@ -54,6 +54,7 @@ public:
     m_outlets.push_back(&audio_out);
     m_outlets.push_back(&bang_out);
   }
+  std::string label() const noexcept override { return "audio_metronome"; }
 
   void run(const token_request& tk, exec_state_facade st) noexcept override
   {

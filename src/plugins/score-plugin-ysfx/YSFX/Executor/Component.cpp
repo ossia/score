@@ -41,6 +41,10 @@ public:
   ysfx_node(std::shared_ptr<ysfx_t>, ossia::execution_state& st);
 
   void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
+  [[nodiscard]] std::string label() const noexcept override
+  {
+    return fmt::format("ysfx ({})", ysfx_get_name(fx.get()));
+  }
 
   std::shared_ptr<ysfx_t> fx;
   ossia::execution_state& m_st;
