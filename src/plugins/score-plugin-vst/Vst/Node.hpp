@@ -99,9 +99,7 @@ public:
     static const constexpr double ppq_reference = 960.;
 
     auto& time_info = fx->info;
-    // TODO this isn't accurate when tempo becomes slower !
-    // We need to track the actual number of audio buffers played through an interval
-    time_info.samplePos = tk.start_date_to_physical(st.modelToSamples());
+    time_info.samplePos = this->m_processed_frames;
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();
     time_info.ppqPos = tk.musical_start_position; // * ppq_reference;

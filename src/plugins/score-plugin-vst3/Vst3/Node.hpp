@@ -437,11 +437,10 @@ public:
     Steinberg::Vst::ProcessContext& time_info = this->m_context;
     time_info.sampleRate = st.sampleRate();
 
-    // FIXME see note in vst_node_base::setupTimeInfo
-    time_info.projectTimeSamples = tk.start_date_to_physical(st.modelToSamples());
+    time_info.projectTimeSamples = this->m_processed_frames;
 
     time_info.systemTime = st.currentDate() - st.startDate();
-    time_info.continousTimeSamples = time_info.projectTimeSamples; // TODO
+    time_info.continousTimeSamples = this->m_processed_frames; // TODO
 
     time_info.projectTimeMusic = tk.musical_start_position;
     time_info.barPositionMusic = tk.musical_start_last_bar;
