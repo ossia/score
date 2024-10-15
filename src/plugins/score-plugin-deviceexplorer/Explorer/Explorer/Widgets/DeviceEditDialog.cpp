@@ -261,6 +261,8 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_devicesLabel->setVisible(true);
     m_devices->setRootIsDecorated(false);
     m_devices->setExpandsOnDoubleClick(false);
+    m_devices->setSizeAdjustPolicy(QListWidget::AdjustToContents);
+    m_devices->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
 
     for(auto& [name, e] : m_enumerators)
     {
