@@ -199,8 +199,6 @@ if(EMSCRIPTEN)
   find_package(${QT_VERSION} REQUIRED COMPONENTS QmlIntegration)
 endif()
 
-find_package(magic_enum REQUIRED)
-
 enable_testing()
 include(ScoreFunctions)
 include(ScoreAvndHelper)
