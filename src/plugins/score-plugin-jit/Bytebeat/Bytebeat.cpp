@@ -209,6 +209,7 @@ class bytebeat_node : public ossia::nonowning_graph_node
 public:
   bytebeat_node() { m_outlets.push_back(&audio_out); }
 
+  [[nodiscard]] std::string label() const noexcept override { return "bytebeat"; }
   void set_function(BytebeatFunction* func) { this->func = func; }
   void run(const ossia::token_request& t, ossia::exec_state_facade f) noexcept override
   {

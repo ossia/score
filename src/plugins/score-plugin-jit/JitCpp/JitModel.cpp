@@ -444,6 +444,7 @@ struct example : ossia::nonowning_graph_node {
     m_outlets.push_back(&out);
   }
 
+  std::string label() const noexcept override { return "example"; }
   void run(
       const ossia::token_request& t,
       ossia::exec_state_facade st) noexcept override
