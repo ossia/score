@@ -7,7 +7,7 @@
 
 namespace Nodes::MidiUtil
 {
-enum scale : int8_t
+enum scale_type : int8_t
 {
   all,
   ionian,
@@ -32,7 +32,7 @@ enum scale : int8_t
 }
 
 template <>
-struct magic_enum::customize::enum_range<Nodes::MidiUtil::scale>
+struct magic_enum::customize::enum_range<Nodes::MidiUtil::scale_type>
 {
   static constexpr int min = 0;
   static constexpr int max = Nodes::MidiUtil::custom;
@@ -108,41 +108,41 @@ constexpr int get_scale(std::string_view s)
 {
   using namespace std::literals;
   if(is_same(s, std::string_view("all")))
-    return scale::all;
+    return scale_type::all;
   else if(is_same(s, std::string_view("ionian")))
-    return scale::ionian;
+    return scale_type::ionian;
   else if(is_same(s, std::string_view("dorian")))
-    return scale::dorian;
+    return scale_type::dorian;
   else if(is_same(s, std::string_view("phyrgian")))
-    return scale::phyrgian;
+    return scale_type::phyrgian;
   else if(is_same(s, std::string_view("lydian")))
-    return scale::lydian;
+    return scale_type::lydian;
   else if(is_same(s, std::string_view("mixolydian")))
-    return scale::mixolydian;
+    return scale_type::mixolydian;
   else if(is_same(s, std::string_view("aeolian")))
-    return scale::aeolian;
+    return scale_type::aeolian;
   else if(is_same(s, std::string_view("locrian")))
-    return scale::locrian;
+    return scale_type::locrian;
   else if(is_same(s, std::string_view("I")))
-    return scale::I;
+    return scale_type::I;
   else if(is_same(s, std::string_view("II")))
-    return scale::II;
+    return scale_type::II;
   else if(is_same(s, std::string_view("III")))
-    return scale::III;
+    return scale_type::III;
   else if(is_same(s, std::string_view("IV")))
-    return scale::IV;
+    return scale_type::IV;
   else if(is_same(s, std::string_view("V")))
-    return scale::V;
+    return scale_type::V;
   else if(is_same(s, std::string_view("VI")))
-    return scale::VI;
+    return scale_type::VI;
   else if(is_same(s, std::string_view("VII")))
-    return scale::VII;
+    return scale_type::VII;
   else
-    return scale::custom;
+    return scale_type::custom;
 }
 
 // clang-format off
-static constexpr std::array<scales_array, scale::SCALES_MAX - 1> scales{
+static constexpr std::array<scales_array, scale_type::SCALES_MAX - 1> scales{
 //                                      C     D     E  F     G     A     B
 /* { scale::all,         */ make_scale({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) /* } */,
 /* { scale::ionian,      */ make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1}) /* } */,
@@ -216,7 +216,7 @@ struct Node
   struct
   {
     halp::midi_bus<"in", libremidi::message> midi;
-    halp::string_enum_t<scale, "Scale"> sc; // FIXME check that this works
+    halp::string_enum_t<scale_type, "Scale"> sc; // FIXME check that this works
     octave_slider<"Base", 0, 1> base;
     octave_slider<"Transpose", -4, 4> transp;
   } inputs;
@@ -327,7 +327,7 @@ struct Node
     const auto new_scale_idx = get_scale(scale);
 
     auto apply = [&](auto f) {
-      if(new_scale_idx >= 0 && new_scale_idx < scale::custom)
+      if(new_scale_idx >= 0 && new_scale_idx < scale_type::custom)
       {
         f(scales[new_scale_idx][new_base], new_transpose);
       }

@@ -1,6 +1,7 @@
 #pragma once
 #include <State/Value.hpp>
 
+#include <ossia/detail/parse_strict.hpp>
 #include <ossia/network/value/detail/value_conversion_impl.hpp>
 
 #include <QDateTime>
@@ -8,8 +9,6 @@
 
 #include <AvndProcesses/AddressTools.hpp>
 #include <halp/audio.hpp>
-
-#include <charconv>
 /**
  csv2: https://github.com/p-ranav/csv2/
  MIT License
@@ -620,12 +619,9 @@ struct DeviceRecorder : PatternObject
           const auto& ts = *it;
 
           ts.read_value(v);
-          int64_t tstamp;
-          const auto [ptr, ec] = std::from_chars(v.data(), v.data() + v.size(), tstamp);
-
-          if(ec == std::errc{} && ptr == v.data() + v.size())
+          if(auto tstamp = ossia::parse_strict<int64_t>(v))
           {
-            auto& vec = this->m_vec[tstamp];
+            auto& vec = this->m_vec[*tstamp];
             vec.resize(columns - 1);
             int i = 0;
 

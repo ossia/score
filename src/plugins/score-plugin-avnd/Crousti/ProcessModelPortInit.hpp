@@ -6,8 +6,8 @@
 #include <Crousti/Concepts.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 
+#include <avnd/binding/ossia/port_base.hpp>
 #include <avnd/concepts/all.hpp>
-
 #if SCORE_PLUGIN_GFX
 #include <Gfx/TexturePort.hpp>
 #endif

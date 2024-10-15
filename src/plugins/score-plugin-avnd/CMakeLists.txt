@@ -189,6 +189,7 @@ add_library(
   "${AVND_FOLDER}/include/avnd/common/member_reflection.hpp"
   "${AVND_FOLDER}/include/avnd/common/widechar.hpp"
   "${AVND_FOLDER}/include/avnd/common/enums.hpp"
+  "${AVND_FOLDER}/include/avnd/common/enum_reflection.hpp"
   "${AVND_FOLDER}/include/avnd/common/struct_reflection.hpp"
   "${AVND_FOLDER}/include/avnd/common/aggregates.hpp"
   "${AVND_FOLDER}/include/avnd/common/array.hpp"
