@@ -42,7 +42,7 @@ struct Node
     halp::dynamic_audio_bus<"in", double> audio;
     halp::enum_t<LoopMode, "Loop"> mode;
     halp::hslider_f32<"Quantif"> quantif;
-    halp::toggle<"Passthrough", {true}> passthrough;
+    halp::toggle<"Passthrough", halp::toggle_setup{.init = true}> passthrough;
     halp::enum_t<Postaction, "Postaction"> postaction;
     halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}> postaction_bars;
   } inputs;
