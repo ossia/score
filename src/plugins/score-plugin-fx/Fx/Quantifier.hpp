@@ -61,7 +61,7 @@ struct Node
     for(auto note : running_notes)
       if(note.note.pitch == new_note.pitch)
         return;
-    to_start.emplace_back(new_note, date);
+    to_start.push_back(NoteIn{new_note, date});
   }
   void operator()(const tick& tk)
   {
