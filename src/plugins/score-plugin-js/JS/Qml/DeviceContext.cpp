@@ -8,6 +8,8 @@
 
 #include <ossia/network/base/parameter.hpp>
 
+#include <ossia-qt/qml_engine_functions.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(JS::DeviceContext)
@@ -36,13 +38,13 @@ bool DeviceContext::init()
     if(!m_devices)
       return false;
 
-    DeviceCache cache;
+    ossia::qt::qml_device_cache cache;
     m_devices->list().apply([&cache](Device::DeviceInterface& iface) {
       if(auto ossia = iface.getDevice())
         cache.push_back(ossia);
     });
 
-    m_impl = new ExecStateWrapper{
+    m_impl = new ossia::qt::qml_engine_functions{
         cache, [](ossia::net::parameter_base& param, const ossia::value_port& v) {
       if(v.get_data().empty())
         return;

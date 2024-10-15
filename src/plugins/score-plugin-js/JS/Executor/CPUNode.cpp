@@ -9,6 +9,8 @@
 
 #include <ossia/dataflow/execution_state.hpp>
 
+#include <ossia-qt/qml_engine_functions.hpp>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
@@ -83,7 +85,7 @@ void js_node::setScript(const QString& val)
   if(!m_engine)
   {
     m_engine = new QQmlEngine;
-    m_execFuncs = new ExecStateWrapper{
+    m_execFuncs = new ossia::qt::qml_engine_functions{
         m_st.exec_devices(), [&]<typename... Args>(Args&&... args) {
       m_st.insert(std::forward<Args>(args)...);
     }, m_engine};
@@ -92,19 +94,18 @@ void js_node::setScript(const QString& val)
     m_engine->rootContext()->setContextProperty("Device", m_execFuncs);
 
     QObject::connect(
-        m_execFuncs, &ExecStateWrapper::system, qApp,
+        m_execFuncs, &ossia::qt::qml_engine_functions::system, qApp,
         [](const QString& code) {
       std::thread{[code] { ::system(code.toStdString().c_str()); }}.detach();
-        },
-        Qt::QueuedConnection);
+    }, Qt::QueuedConnection);
 
     if(auto* js_panel = score::GUIAppContext().findPanel<JS::PanelDelegate>())
     {
       QObject::connect(
-          m_execFuncs, &ExecStateWrapper::exec, js_panel, &JS::PanelDelegate::evaluate,
-          Qt::QueuedConnection);
+          m_execFuncs, &ossia::qt::qml_engine_functions::exec, js_panel,
+          &JS::PanelDelegate::evaluate, Qt::QueuedConnection);
       QObject::connect(
-          m_execFuncs, &ExecStateWrapper::compute, m_execFuncs,
+          m_execFuncs, &ossia::qt::qml_engine_functions::compute, m_execFuncs,
           [this, js_panel](const QString& code, const QString& cbname) {
         // Exec thread
 
@@ -129,8 +130,7 @@ void js_node::setScript(const QString& val)
         ossia::qt::run_async(js_panel, [js_panel, code, cb]() {
           js_panel->compute(code, cb); // This invokes cb
         });
-          },
-          Qt::DirectConnection);
+      }, Qt::DirectConnection);
     }
   }
 

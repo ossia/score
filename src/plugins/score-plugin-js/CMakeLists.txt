@@ -27,7 +27,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/ExecutionHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/CPUNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/GPUNode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/AddressItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceContext.hpp"
@@ -54,7 +53,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/CPUNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/GPUNode.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
 

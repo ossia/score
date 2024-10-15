@@ -7,10 +7,14 @@ namespace ossia::net
 {
 class node_base;
 }
+namespace ossia::qt
+{
+class qml_engine_functions;
+}
 
 namespace JS
 {
-class ExecStateWrapper;
+class qml_engine_functions;
 class DeviceContext : public QObject
 {
   W_OBJECT(DeviceContext)
@@ -28,6 +32,6 @@ public:
   void write(const QString& address, const QVariant& value);
   W_SLOT(write);
 
-  ExecStateWrapper* m_impl{};
+  ossia::qt::qml_engine_functions* m_impl{};
 };
 }

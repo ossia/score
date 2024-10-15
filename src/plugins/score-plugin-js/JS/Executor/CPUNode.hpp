@@ -21,10 +21,13 @@
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia-qt/time.hpp>
 #include <ossia-qt/token_request.hpp>
+namespace ossia::qt
+{
+class qml_engine_functions;
+}
 
 namespace JS
 {
-
 class js_node final : public ossia::graph_node
 {
 public:
@@ -50,7 +53,7 @@ public:
   std::vector<std::pair<MidiInlet*, ossia::inlet_ptr>> m_midInlets;
   std::vector<std::pair<MidiOutlet*, ossia::outlet_ptr>> m_midOutlets;
   JS::Script* m_object{};
-  ExecStateWrapper* m_execFuncs{};
+  ossia::qt::qml_engine_functions* m_execFuncs{};
   QJSValueList m_tickCall;
   std::size_t m_gcIndex{};
 
