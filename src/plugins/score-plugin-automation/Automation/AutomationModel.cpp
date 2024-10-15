@@ -105,10 +105,20 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 
 QString ProcessModel::prettyName() const noexcept
 {
+  QString pretty_name;
+  if(const auto& n = this->metadata().getLabel(); !n.isEmpty())
+    pretty_name += n;
+  else if(const auto& n = this->metadata().getName(); !n.isEmpty())
+    pretty_name += n;
+
   auto& doc = score::IDocument::documentContext(*this);
-  if(auto name = Process::displayNameForPort(*outlet, doc); !name.isEmpty())
+  if(auto port_name = Process::displayNameForPort(*outlet, doc);
+     !port_name.isEmpty() && port_name != QStringLiteral(":/"))
   {
-    return name;
+    if(pretty_name.isEmpty())
+      return port_name;
+    else
+      return pretty_name + " -> " + port_name;
   }
 
   return QStringLiteral("Automation");
