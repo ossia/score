@@ -79,7 +79,7 @@ jobs:
           - score-vfx-template
           - score-process-template
           - score-device-template
-          - score-audio-addon-template
+          - score-avnd-simple-template
           - score-offline-process-template
 
     steps:
