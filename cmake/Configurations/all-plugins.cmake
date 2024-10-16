@@ -77,7 +77,6 @@ else()
 
   score-plugin-js
 
-  score-plugin-fx
 
   score-plugin-midi
   score-plugin-recording
@@ -87,7 +86,6 @@ else()
   score-plugin-remotecontrol
   score-plugin-spline
 
-  score-plugin-ui
 
   score-plugin-packagemanager
 
@@ -100,6 +98,8 @@ else()
   score-plugin-faust
   score-plugin-pd
   score-plugin-ysfx
+  score-plugin-fx
+  score-plugin-ui
   score-plugin-analysis
   )
 endif()
