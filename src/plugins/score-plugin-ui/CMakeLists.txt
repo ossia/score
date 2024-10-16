@@ -1,5 +1,10 @@
 project(score_plugin_ui LANGUAGES CXX)
 
+if(NOT TARGET score_plugin_avnd)
+  message("WARNING: score_plugin_avnd not found, skipping ${PROJECT_NAME}")
+  return()
+endif()
+
 add_library(
   score_plugin_ui
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/SignalDisplay.hpp"

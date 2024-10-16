@@ -6,6 +6,11 @@ if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
 
+if(NOT TARGET score_plugin_avnd)
+  message("WARNING: score_plugin_avnd not found, skipping ${PROJECT_NAME}")
+  return()
+endif()
+
 add_library(
   score_plugin_analysis
   Analysis/Centroid.hpp
