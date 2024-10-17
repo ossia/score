@@ -17,6 +17,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
@@ -26,6 +27,7 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QCursor>
+#include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -416,8 +418,11 @@ double NodeItem::minimalContentHeight() const noexcept
 void NodeItem::updateSize()
 {
   if(!m_label)
+  {
+    if(auto sc = this->scene())
+      sc->update();
     return;
-
+  }
   auto sz = m_fx ? m_fx->boundingRect().size()
                  : QSizeF{minimalContentWidth(), minimalContentHeight()};
 
@@ -447,6 +452,8 @@ void NodeItem::updateSize()
     }
     updateTitlePos();
     update();
+    if(auto sc = this->scene())
+      sc->update();
   }
 }
 
@@ -477,6 +484,8 @@ void NodeItem::setSize(QSizeF sz)
       m_uiButton->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
     }
   }
+  if(auto sc = this->scene())
+    sc->update();
 }
 
 const Id<Process::ProcessModel>& NodeItem::id() const noexcept
