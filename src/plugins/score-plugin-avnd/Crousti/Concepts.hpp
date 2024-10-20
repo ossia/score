@@ -160,7 +160,7 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   }
   else if constexpr(widg.widget == avnd::widget_type::slider)
   {
-    static constexpr auto c = avnd::get_visual_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
       return new Process::IntSlider{c.min, c.max, c.init, qname, id, parent};
