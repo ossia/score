@@ -7,6 +7,7 @@
 
 #include <halp/callback.hpp>
 #include <halp/controls.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
 
@@ -23,11 +24,11 @@ struct Node
   halp_meta(description, "Limit and quantize the rate of a value stream")
   halp_meta(uuid, "76cfd504-7c10-4bdb-a1b4-fbe449cc06f0")
 
-  struct
+  struct ins
   {
     // FIXME all incorrect when token_request smaller than tick
     ossia_port<"in", ossia::value_port> port{};
-    halp::val_port<"Quantification", int> quantification;
+    quant_selector<"Quantization"> quantification; // FIXME use proper time widget
     halp::hslider_i32<"ms.", halp::irange{0, 1000, 10}> ms;
   } inputs;
   struct
@@ -74,31 +75,12 @@ struct Node
     }
   }
 
-#if FX_UI
-  static void item(
-      Process::ComboBox& quantif, Process::IntSlider& ms,
-      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
-      const Process::Context& doc)
+  struct ui
   {
-    using namespace Process;
-    const Process::PortFactoryList& portFactory
-        = doc.app.interfaces<Process::PortFactoryList>();
-    const auto cMarg = 15;
-    const auto w = 165;
-
-    auto c1_bg = new score::BackgroundItem{&parent};
-    c1_bg->setRect({0., 0, w, 45.});
-
-    auto quant_item = makeControl(
-        tuplet::get<0>(Metadata::controls), quantif, parent, context, doc, portFactory);
-    quant_item.root.setPos(5, 0);
-    quant_item.control.setPos(cMarg, cMarg);
-
-    auto ms_item = makeControl(
-        tuplet::get<1>(Metadata::controls), ms, parent, context, doc, portFactory);
-    ms_item.root.setPos(100, 0);
-    ms_item.control.setPos(0, cMarg);
-  }
-#endif
+    halp_meta(layout, halp::layouts::hbox)
+    halp_meta(background, halp::colors::mid)
+    halp::control<&ins::quantification> q;
+    halp::control<&ins::ms> t;
+  };
 };
 }

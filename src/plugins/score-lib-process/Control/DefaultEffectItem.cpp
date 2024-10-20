@@ -92,7 +92,7 @@ void DefaultEffectItem::recreate()
     if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
     {
       auto item = b.makePort(*inlet);
-      item->setParentItem(m_layout);
+      item.container->setParentItem(m_layout);
 
       con(*inlet, &Process::ControlInlet::domainChanged, this, &DefaultEffectItem::reset,
           Qt::UniqueConnection);
@@ -105,7 +105,7 @@ void DefaultEffectItem::recreate()
     if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
     {
       auto item = b.makePort(*outlet);
-      item->setParentItem(m_layout);
+      item.container->setParentItem(m_layout);
 
       con(*outlet, &Process::ControlOutlet::domainChanged, this,
           &DefaultEffectItem::reset, Qt::UniqueConnection);

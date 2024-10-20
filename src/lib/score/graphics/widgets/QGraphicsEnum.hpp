@@ -16,13 +16,15 @@ class SCORE_LIB_BASE_EXPORT QGraphicsEnum
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsEnum)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(40)
 
 protected:
   int m_value{};
   int m_clicking{-1};
   QRectF m_rect;
   QRectF m_smallRect;
+  int m_actualRows{1};
+  int m_actualColumns{1};
 
 public:
   std::vector<QString> array;

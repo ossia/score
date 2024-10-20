@@ -16,7 +16,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
     , public QGraphicsSliderBase<QGraphicsIntSlider>
 {
   W_OBJECT(QGraphicsIntSlider)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(60)
   friend struct DefaultControlImpl;
   friend struct DefaultGraphicsSliderImpl;
   friend struct QGraphicsSliderBase<QGraphicsIntSlider>;

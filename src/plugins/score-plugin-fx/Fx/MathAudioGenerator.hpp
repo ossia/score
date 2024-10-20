@@ -6,6 +6,8 @@
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/value_port.hpp>
 
+#include <halp/layout.hpp>
+
 namespace Nodes
 {
 namespace MathAudioGenerator
@@ -24,7 +26,7 @@ struct Node
       "See the documentation at http://www.partow.net/programming/exprtk")
   halp_meta(uuid, "eae294b3-afeb-4fba-bbe4-337998d3748a")
 
-  struct
+  struct ins
   {
     halp::lineedit<
         "Expression",
@@ -152,13 +154,22 @@ struct Node
     }
   }
 
-#if FX_UI
-  template <typename... Args>
-  static void item(Args&&... args)
+  struct ui
   {
-    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
-  }
-#endif
+    halp_meta(layout, halp::layouts::vbox)
+    struct
+    {
+      halp_meta(layout, halp::layouts::hbox)
+      halp::control<&ins::a> a;
+      halp::control<&ins::b> b;
+      halp::control<&ins::c> c;
+    } controls;
+
+    struct : halp::control<&ins::expr>
+    {
+      halp_flag(dynamic_size);
+    } expr;
+  };
 };
 }
 }

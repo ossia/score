@@ -17,7 +17,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsCombo final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsCombo)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(30)
   friend struct DefaultComboImpl;
   QRectF m_rect{defaultSliderSize};
 

@@ -4,6 +4,8 @@
 
 #include <boost/container/static_vector.hpp>
 
+#include <halp/layout.hpp>
+
 namespace Nodes::ArrayGenerator
 {
 struct Node
@@ -17,7 +19,7 @@ struct Node
   halp_meta(description, "Applies a math expression to each member of an input.");
   halp_meta(uuid, "cf3df02f-a563-4e92-a739-b321d3a84252");
 
-  struct
+  struct ins
   {
     halp::lineedit<"Expression", "i"> expr;
     halp::spinbox_i32<"Size", halp::irange{0, 1024, 12}> sz;
@@ -70,12 +72,15 @@ struct Node
         inputs.sz.value, outputs.port.call, inputs.expr.value, tk, state);
   }
 
-#if FX_UI
-  template <typename... Args>
-  static void item(Args&&... args)
+  struct ui
   {
-    Nodes::miniMathItem(Metadata::controls, std::forward<Args>(args)...);
-  }
-#endif
+    halp_meta(layout, halp::layouts::vbox)
+
+    struct : halp::control<&ins::expr>
+    {
+      halp_flag(dynamic_size);
+    } expr;
+    halp::control<&ins::sz> sz;
+  };
 };
 }

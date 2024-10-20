@@ -182,7 +182,7 @@ struct con_unvalidated
   Field& field;
   void operator()(const ossia::value& val)
   {
-    constexpr auto control_index = NPred;
+    static constexpr auto control_index = NPred;
 
     using control_value_type = std::decay_t<decltype(Field::value)>;
 
@@ -207,7 +207,7 @@ struct con_unvalidated_dynamic_port
   int port_index;
   void operator()(const ossia::value& val)
   {
-    constexpr auto control_index = NPred;
+    static constexpr auto control_index = NPred;
 
     using control_value_type = std::decay_t<decltype(Field::value)>;
 
@@ -399,8 +399,8 @@ struct setup_Impl0
 
         using file_ports = avnd::raw_file_input_introspection<Node>;
         using elt = typename file_ports::template nth_element<N>;
-        constexpr bool has_text = requires { decltype(elt::file)::text; };
-        constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
+        static constexpr bool has_text = requires { decltype(elt::file)::text; };
+        static constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
 
         // First we can load it directly since execution hasn't started yet
         if(auto hdl = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
@@ -583,8 +583,9 @@ struct ExecutorGuiUpdate
   {
     if(auto node = weak_node.lock())
     {
-      constexpr const auto control_count = avnd::control_input_introspection<Node>::size;
-      constexpr const auto control_out_count
+      static constexpr const auto control_count
+          = avnd::control_input_introspection<Node>::size;
+      static constexpr const auto control_out_count
           = avnd::control_output_introspection<Node>::size;
       if constexpr(control_count > 0)
         handle_controls(*node);

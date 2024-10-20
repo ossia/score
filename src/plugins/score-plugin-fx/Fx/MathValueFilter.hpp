@@ -4,6 +4,8 @@
 
 #include <ossia/dataflow/value_port.hpp>
 
+#include <halp/layout.hpp>
+
 namespace Nodes::MathMapping
 {
 struct Node
@@ -22,7 +24,7 @@ struct Node
 
   // FIXME only correct way is to tick the entire graph more granularly
   // in the meantime, make it so that event port gets triggered for every value
-  struct
+  struct ins
   {
     struct : halp::val_port<"in", ossia::value>
     {
@@ -125,12 +127,21 @@ struct Node
     self.pc = self.c;
   }
 
-#if FX_UI
-  template <typename... Args>
-  static void item(Args&&... args)
+  struct ui
   {
-    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
-  }
-#endif
+    halp_meta(layout, halp::layouts::vbox)
+    struct
+    {
+      halp_meta(layout, halp::layouts::hbox)
+      halp::control<&ins::a> a;
+      halp::control<&ins::b> b;
+      halp::control<&ins::c> c;
+    } controls;
+
+    struct : halp::control<&ins::expr>
+    {
+      halp_flag(dynamic_size);
+    } expr;
+  };
 };
 }

@@ -18,22 +18,24 @@ QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
-  setRect({0, 0, 104, 44});
+  setRect({0, 0, 144, 44});
 }
 
 void QGraphicsEnum::updateRect()
 {
+  const int N = std::ssize(this->array);
   // Find the widest text
-  if(columns == 0 || this->array.size() == 0)
+  if(columns == 0 || N == 0)
     return;
 
+  m_actualColumns = std::min(N, columns);
   auto& style = score::Skin::instance();
 
   const QFont& textFont = style.MonoFontSmall;
 
   QFontMetricsF metrics{textFont};
   double maxW = 10.;
-  double maxH = this->array.size() > std::size_t(columns) ? 44. : 30;
+  double maxH = N > columns ? 44. : 30;
 
   for(auto& value : this->array)
   {
@@ -44,8 +46,8 @@ void QGraphicsEnum::updateRect()
   maxW += 4.;
   maxH += 4.;
 
-  const int computedRows = std::max(1.0, std::floor(this->array.size() / columns));
-  setRect({0, 0, maxW * columns, maxH * computedRows});
+  m_actualRows = N < columns ? 1 : std::max(1.0, std::floor(N / columns));
+  setRect({0, 0, maxW * m_actualColumns, maxH * m_actualRows});
 }
 
 void QGraphicsEnum::setRect(const QRectF& r)
@@ -75,9 +77,8 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
   int row = 0;
   int col = 0;
-  int actual_rows = std::ceil(double(array.size()) / columns);
-  const double w = m_smallRect.width() / columns;
-  const double h = m_smallRect.height() / actual_rows;
+  const double w = m_smallRect.width() / m_actualColumns;
+  const double h = m_smallRect.height() / m_actualRows;
 
   for(std::size_t i = 0; i < array.size(); i++)
   {
@@ -134,11 +135,10 @@ void QGraphicsEnum::paint(
   const QBrush& bg = style.TransparentBrush;
   const QPen& noPen = style.NoPen;
 
-  int actual_rows = std::ceil(double(array.size()) / columns);
   int row = 0;
   int col = 0;
-  const double w = m_smallRect.width() / columns;
-  const double h = m_smallRect.height() / actual_rows;
+  const double w = m_smallRect.width() / m_actualColumns;
+  const double h = m_smallRect.height() / m_actualRows;
   painter->setBrush(bg);
   int i = 0;
   QRectF clickRect{};

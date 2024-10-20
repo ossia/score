@@ -4,6 +4,8 @@
 
 #include <ossia/dataflow/value_port.hpp>
 
+#include <halp/layout.hpp>
+
 namespace Nodes::MicroMapping
 {
 struct Node
@@ -16,7 +18,7 @@ struct Node
   halp_meta(description, "Applies a math expression to an input.")
   halp_meta(uuid, "25c64b87-a44a-4fed-9f60-0a48906fd3ec")
 
-  struct
+  struct ins
   {
     struct : halp::val_port<"in", ossia::value>
     {
@@ -91,12 +93,14 @@ struct Node
           inputs.port.value, outputs.port.call, tk, state);
   }
 
-#if FX_UI
-  template <typename... Args>
-  static void item(Args&&... args)
+  struct ui
   {
-    Nodes::miniMathItem(Metadata::controls, std::forward<Args>(args)...);
-  }
-#endif
+    halp_meta(layout, halp::layouts::vbox)
+
+    struct : halp::control<&ins::expr>
+    {
+      halp_flag(dynamic_size);
+    } expr;
+  };
 };
 }

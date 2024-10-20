@@ -19,7 +19,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSelectablePixmapToggle final
     , public QGraphicsPixmapItem
 {
   W_OBJECT(QGraphicsSelectablePixmapToggle)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(170)
 
   const QPixmap m_pressed, m_pressed_selected, m_released, m_released_selected;
   bool m_toggled{};
@@ -50,7 +50,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsDraggablePixmap final
     , public QGraphicsPixmapItem
 {
   W_OBJECT(QGraphicsDraggablePixmap)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(180)
 
   const QPixmap m_pressed, m_pressed_selected, m_released, m_released_selected;
 

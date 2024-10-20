@@ -15,7 +15,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsCheckBox final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsCheckBox)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(20)
   QRectF m_rect{defaultCheckBoxSize};
 
   bool m_toggled{};

@@ -6,6 +6,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <halp/controls.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
 #include <rnd/random.hpp>
@@ -25,14 +26,36 @@ struct Node
   halp_meta(recommended_height, 130.)
   halp_meta(uuid, "1e17e479-3513-44c8-a8a7-017be9f6ac8a");
 
-  struct
+  struct ins
   {
     halp::log_hslider_f32<"Freq.", halp::range{0.01f, 100.f, 1.f}> freq;
     halp::knob_f32<"Ampl.", halp::range{0., 2., 0.5}> ampl;
     halp::knob_f32<"Offset", halp::range{-1., 1., 0.5}> offset;
     halp::knob_f32<"Jitter", halp::range{0., 1., 0}> jitter;
     halp::knob_f32<"Phase", halp::range{-1., 1., 0.}> phase;
-    halp::enum_t<Control::Widgets::Waveform, "Waveform"> waveform;
+    struct : halp::enum_t<Control::Widgets::Waveform, "Waveform">
+    {
+      static constexpr auto pixmaps()
+      {
+        return std::array<const char*, 16>{
+            ":/icons/wave_sin_off.png",
+            ":/icons/wave_sin_on.png",
+            ":/icons/wave_triangle_off.png",
+            ":/icons/wave_triangle_on.png",
+            ":/icons/wave_saw_off.png",
+            ":/icons/wave_saw_on.png",
+            ":/icons/wave_square_off.png",
+            ":/icons/wave_square_on.png",
+            ":/icons/wave_sample_and_hold_off.png",
+            ":/icons/wave_sample_and_hold_on.png",
+            ":/icons/wave_noise1_off.png",
+            ":/icons/wave_noise1_on.png",
+            ":/icons/wave_noise2_off.png",
+            ":/icons/wave_noise2_on.png",
+            ":/icons/wave_noise3_off.png",
+            ":/icons/wave_noise3_on.png"};
+      }
+    } waveform;
     quant_selector<"Quantification"> quant;
 
   } inputs;
@@ -127,70 +150,37 @@ struct Node
     this->phase += ph_delta;
   }
 
-#if FX_UI
-  static void item(
-      Process::LogFloatSlider& freq, Process::FloatKnob& ampl,
-      Process::FloatKnob& offset, Process::FloatKnob& jitter, Process::FloatKnob& phase,
-      Process::Enum& type, Process::ComboBox& quantif,
-      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
-      const Process::Context& doc)
+  struct ui
   {
-    using namespace Process;
-    using namespace std;
-    using namespace tuplet;
-    const Process::PortFactoryList& portFactory
-        = doc.app.interfaces<Process::PortFactoryList>();
-    const auto h = 60;
-    const auto w = 50;
+    halp_meta(layout, halp::layouts::hbox)
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      halp_meta(background, halp::colors::mid)
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
 
-    const auto c0 = 10;
-    const auto c1 = 180;
-    const auto c2 = 230;
+        halp::control<&ins::freq> f;
+        halp::control<&ins::quant> q;
+      } timing;
+      halp::control<&ins::waveform> w;
+    } gen;
 
-    auto c0_bg = new score::BackgroundItem{&parent};
-    c0_bg->setRect({0., 0., 170., 130.});
-    auto c1_bg = new score::BackgroundItem{&parent};
-    c1_bg->setRect({170., 0., 100., 130.});
-    auto c2_bg = new score::BackgroundItem{&parent};
-    c2_bg->setRect({270., 0., 60., 130.});
-
-    auto freq_item = makeControl(
-        get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
-    freq_item.root.setPos(c0, 0);
-
-    auto ampl_item = makeControl(
-        get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
-    ampl_item.root.setPos(c1, 0);
-
-    auto offset_item = makeControl(
-        get<2>(Metadata::controls), offset, parent, context, doc, portFactory);
-    offset_item.root.setPos(c1, h);
-
-    auto jitter_item = makeControl(
-        get<3>(Metadata::controls), jitter, parent, context, doc, portFactory);
-    jitter_item.root.setPos(c2 + w, 0);
-
-    auto phase_item = makeControl(
-        get<4>(Metadata::controls), phase, parent, context, doc, portFactory);
-    phase_item.root.setPos(c2 + w, h);
-
-    auto type_item = makeControlNoText(
-        get<5>(Metadata::controls), type, parent, context, doc, portFactory);
-    type_item.root.setPos(c0, h);
-    type_item.control.rows = 2;
-    type_item.control.columns = 4;
-    type_item.control.setRect(QRectF{0, 0, 104, 44});
-    type_item.control.setPos(10, 0);
-    type_item.port.setPos(0, 17);
-
-    auto quant_item = makeControlNoText(
-        get<6>(Metadata::controls), quantif, parent, context, doc, portFactory);
-    quant_item.root.setPos(90, 25);
-    quant_item.port.setPos(-10, 2);
-  }
-#endif
-
-  // With metaclasses, we should instead create structs with named members but
-  // where types are either controls, ports, items, inlets...
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      halp_meta(background, halp::colors::mid)
+      halp::control<&ins::ampl> a;
+      halp::control<&ins::offset> o;
+    } ampl;
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      halp_meta(background, halp::colors::mid)
+      halp::control<&ins::jitter> j;
+      halp::control<&ins::phase> p;
+    } modulation;
+  };
 };
 }

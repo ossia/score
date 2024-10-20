@@ -54,7 +54,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   QRhiTexture* createInput(score::gfx::RenderList& renderer, int k, QSize size)
   {
     auto port = parent.input[k];
-    constexpr auto flags = QRhiTexture::RenderTarget;
+    static constexpr auto flags = QRhiTexture::RenderTarget;
     auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port]
@@ -65,8 +65,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   template <typename F>
   QRhiShaderResourceBinding initBinding(score::gfx::RenderList& renderer, F field)
   {
-    constexpr auto bindingStages = QRhiShaderResourceBinding::VertexStage
-                                   | QRhiShaderResourceBinding::FragmentStage;
+    static constexpr auto bindingStages = QRhiShaderResourceBinding::VertexStage
+                                          | QRhiShaderResourceBinding::FragmentStage;
     if constexpr(requires { F::ubo; })
     {
       auto it = createdUbos.find(F::binding());
@@ -254,8 +254,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
             auto ubo = this->createdUbos.at(ubo_type::binding());
 
-            constexpr int offset = gpp::std140_offset<F::uniform()>();
-            constexpr int size = sizeof(uniform_type::value);
+            static constexpr int offset = gpp::std140_offset<F::uniform()>();
+            static constexpr int size = sizeof(uniform_type::value);
             res.updateDynamicBuffer(ubo, offset, size, &t.value);
           });
     }

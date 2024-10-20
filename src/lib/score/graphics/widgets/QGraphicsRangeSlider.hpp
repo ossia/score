@@ -20,7 +20,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsRangeSlider final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsRangeSlider)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(160)
   QRectF m_rect{defaultRangeSliderSize};
 
   double m_start{0.}, m_end{1.};

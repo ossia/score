@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/graphics/TextItem.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -16,6 +17,14 @@ class PortItem;
 namespace Process
 {
 struct Context;
+struct ControlLayout
+{
+  QGraphicsItem* container{};
+  Dataflow::PortItem* port_item{};
+  QGraphicsItem* control{};
+  score::SimpleTextItem* label{};
+  //   QRectF itemRect;
+};
 
 class SCORE_LIB_PROCESS_EXPORT PortFactory : public score::InterfaceBase
 {
@@ -42,10 +51,10 @@ public:
       QGraphicsItem* parent, QObject* context);
 
   // Port + control + text
-  QGraphicsItem* makeFullItem(
+  ControlLayout makeFullItem(
       Process::ControlInlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context);
-  QGraphicsItem* makeFullItem(
+  ControlLayout makeFullItem(
       Process::ControlOutlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context);
 

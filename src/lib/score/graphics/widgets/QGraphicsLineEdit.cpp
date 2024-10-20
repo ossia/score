@@ -1,5 +1,9 @@
 #include "QGraphicsLineEdit.hpp"
 
+#include <QTextDocument>
+
+#include <private/qwidgettextcontrol_p.h>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(score::QGraphicsLineEdit)
@@ -40,10 +44,6 @@ void QGraphicsLineEdit::focusOutEvent(QFocusEvent* e)
 
 QVariant QGraphicsLineEdit::itemChange(GraphicsItemChange change, const QVariant& value)
 {
-  if(change == QGraphicsItem::ItemParentHasChanged)
-  {
-    qDebug() << "New parent" << value << this->parentItem();
-  }
   return QGraphicsTextItem::itemChange(change, value);
 }
 

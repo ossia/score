@@ -6,6 +6,8 @@
 
 #include <boost/container/static_vector.hpp>
 
+#include <halp/layout.hpp>
+
 namespace Nodes::ArrayMapping
 {
 struct Node
@@ -19,7 +21,7 @@ struct Node
   halp_meta(description, "Applies a math expression to each member of an input.");
   halp_meta(uuid, "1fe9c806-b601-4ee0-9fbb-0ab817c4dd87");
 
-  struct
+  struct ins
   {
     struct : halp::val_port<"in", ossia::value>
     {
@@ -79,12 +81,14 @@ struct Node
         inputs.port.value, outputs.port.call, inputs.expr.value, tk, state);
   }
 
-#if FX_UI
-  template <typename... Args>
-  static void item(Args&&... args)
+  struct ui
   {
-    Nodes::miniMathItem(Metadata::controls, std::forward<Args>(args)...);
-  }
-#endif
+    halp_meta(layout, halp::layouts::vbox)
+
+    struct : halp::control<&ins::expr>
+    {
+      halp_flag(dynamic_size);
+    } expr;
+  };
 };
 }

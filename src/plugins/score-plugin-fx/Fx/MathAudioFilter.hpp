@@ -5,6 +5,8 @@
 
 #include <ossia/dataflow/value_port.hpp>
 
+#include <halp/layout.hpp>
+
 namespace Nodes::MathAudioFilter
 {
 struct Node
@@ -22,7 +24,7 @@ struct Node
         "See the documentation at http://www.partow.net/programming/exprtk";
   halp_meta(uuid, "13e1f4b0-1c2c-40e6-93ad-dfc91aac5335")
 
-  struct
+  struct ins
   {
     halp::dynamic_audio_bus<"in", double> audio;
     halp::lineedit<
@@ -169,12 +171,21 @@ struct Node
     }
   }
 
-#if FX_UI
-  template <typename... Args>
-  static void item(Args&&... args)
+  struct ui
   {
-    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
-  }
-#endif
+    halp_meta(layout, halp::layouts::vbox)
+    struct
+    {
+      halp_meta(layout, halp::layouts::hbox)
+      halp::control<&ins::a> a;
+      halp::control<&ins::b> b;
+      halp::control<&ins::c> c;
+    } controls;
+
+    struct : halp::control<&ins::expr>
+    {
+      halp_flag(dynamic_size);
+    } expr;
+  };
 };
 }

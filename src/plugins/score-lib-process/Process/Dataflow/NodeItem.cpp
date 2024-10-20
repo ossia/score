@@ -386,6 +386,16 @@ void NodeItem::createContentItem()
 
   if(resizeable)
   {
+    if(auto lay = dynamic_cast<score::GraphicsLayout*>(resizeable))
+      connect(lay, &score::ResizeableItem::childrenSizeChanged, this, [this, lay] {
+        lay->layout();
+        lay->fitChildrenRect();
+        m_contentSize = lay->rect().size();
+
+        updateSize();
+        updateZoomRatio();
+        updateTitlePos();
+      });
     connect(resizeable, &score::ResizeableItem::sizeChanged, this, [this](QSizeF sz) {
       double w = std::max(minimalContentWidth(), sz.width());
       double h = std::max(minimalContentHeight(), sz.height());

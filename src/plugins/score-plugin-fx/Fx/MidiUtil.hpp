@@ -42,7 +42,7 @@ namespace Nodes::MidiUtil
 {
 
 template <typename T>
-constexpr void constexpr_swap(T& a, T& b)
+static constexpr void constexpr_swap(T& a, T& b)
 {
   T tmp = a;
   a = b;
@@ -50,7 +50,7 @@ constexpr void constexpr_swap(T& a, T& b)
 }
 
 template <typename Iterator>
-constexpr void constexpr_rotate(Iterator first, Iterator middle, Iterator last)
+static constexpr void constexpr_rotate(Iterator first, Iterator middle, Iterator last)
 {
   using namespace std;
   Iterator next = middle;
@@ -66,7 +66,7 @@ constexpr void constexpr_rotate(Iterator first, Iterator middle, Iterator last)
 
 using scale_array = std::array<bool, 128>;
 using scales_array = std::array<scale_array, 12>;
-constexpr scales_array make_scale(std::initializer_list<bool> notes)
+static constexpr scales_array make_scale(std::initializer_list<bool> notes)
 {
   std::array<scale_array, 12> r{};
   for(std::size_t octave = 0; octave < 11; octave++)
@@ -90,7 +90,7 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
   return r;
 }
 
-constexpr bool is_same(std::string_view lhs, std::string_view rhs)
+static constexpr bool is_same(std::string_view lhs, std::string_view rhs)
 {
   if(lhs.size() == rhs.size())
   {
@@ -104,7 +104,7 @@ constexpr bool is_same(std::string_view lhs, std::string_view rhs)
   return false;
 }
 
-constexpr int get_scale(std::string_view s)
+static constexpr int get_scale(std::string_view s)
 {
   using namespace std::literals;
   if(is_same(s, std::string_view("all")))

@@ -84,9 +84,10 @@ public:
   ossia::type_if<Info, oscr::has_dynamic_ports<Info>> object_storage_for_ports_callbacks;
 
   ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx, QObject* parent)
       : Process::ProcessModel{
-          duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+            duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
   {
     metadata().setInstanceName(*this);
 
@@ -110,12 +111,13 @@ public:
 
     if constexpr(avnd::file_input_introspection<Info>::size > 0)
     {
-      constexpr auto idx = avnd::file_input_introspection<Info>::index_to_field_index(0);
+      static constexpr auto idx
+          = avnd::file_input_introspection<Info>::index_to_field_index(0);
       setupInitialStringPort(idx, custom);
     }
     else if constexpr(avnd::control_input_introspection<Info>::size > 0)
     {
-      constexpr auto idx
+      static constexpr auto idx
           = avnd::control_input_introspection<Info>::index_to_field_index(0);
       using type =
           typename avnd::control_input_introspection<Info>::template nth_element<0>;

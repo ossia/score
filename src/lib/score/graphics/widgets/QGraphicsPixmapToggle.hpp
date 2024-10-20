@@ -17,7 +17,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
     , public QGraphicsPixmapItem
 {
   W_OBJECT(QGraphicsPixmapToggle)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(150)
 
   const QPixmap m_pressed, m_released;
   bool m_toggled{};

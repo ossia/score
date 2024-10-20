@@ -16,6 +16,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
     , public QGraphicsPixmapItem
 {
   W_OBJECT(QGraphicsPixmapButton)
+  SCORE_GRAPHICS_ITEM_TYPE(130)
   const QPixmap m_pressed, m_released;
 
 public:

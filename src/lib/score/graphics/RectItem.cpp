@@ -156,7 +156,7 @@ int EmptyRectItem::type() const
 }
 
 BackgroundItem::BackgroundItem(QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+    : ResizeableItem{parent}
 {
   setAcceptedMouseButtons({});
 }

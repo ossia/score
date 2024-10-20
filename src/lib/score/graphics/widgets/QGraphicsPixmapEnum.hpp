@@ -15,6 +15,7 @@ namespace score
 {
 class SCORE_LIB_BASE_EXPORT QGraphicsPixmapEnum final : public QGraphicsEnum
 {
+  SCORE_GRAPHICS_ITEM_TYPE(140)
 public:
   std::vector<QPixmap> on_images;
   std::vector<QPixmap> off_images;

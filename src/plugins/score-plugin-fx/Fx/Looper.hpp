@@ -7,6 +7,7 @@
 
 #include <halp/audio.hpp>
 #include <halp/controls.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 
 namespace Nodes::AudioLooper
@@ -37,18 +38,18 @@ struct Node
     Overdub
   };
 
-  struct Inputs
+  struct ins
   {
     halp::dynamic_audio_bus<"in", double> audio;
     halp::enum_t<LoopMode, "Loop"> mode;
-    halp::hslider_f32<"Quantif"> quantif;
+    quant_selector<"Quantif"> quantif;
     halp::toggle<"Passthrough", halp::toggle_setup{.init = true}> passthrough;
-    halp::enum_t<Postaction, "Postaction"> postaction;
+    halp::enum_t<Postaction, "Post-action"> postaction;
     halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}> postaction_bars;
   } inputs;
   struct
   {
-    halp::mimic_audio_bus<"out", &Inputs::audio> audio;
+    halp::mimic_audio_bus<"out", &ins::audio> audio;
   } outputs;
 
   struct State
@@ -196,7 +197,7 @@ struct Node
     const LoopMode m = this->inputs.mode;
     const int postaction_bars = this->inputs.postaction_bars;
     const Postaction postaction = this->inputs.postaction;
-    const float quantif = this->inputs.quantif;
+    const float quantif = this->inputs.quantif.value;
     const bool passthrough = this->inputs.passthrough;
 
     state.this_buffer_quantif_time = std::nullopt;
@@ -630,43 +631,24 @@ struct Node
     state.playbackPos += samples;
   }
 
-#if FX_UI
-  static void item(
-      Process::Enum& mode, Process::ComboBox& quantif, Process::Toggle& echo,
-      Process::Enum& playmode, Process::IntSpinBox& playmode_bars,
-      const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context,
-      const Process::Context& doc)
+  struct ui
   {
-    using namespace Process;
-    using namespace std;
-    using namespace tuplet;
-    const Process::PortFactoryList& portFactory
-        = doc.app.interfaces<Process::PortFactoryList>();
-    const auto c0 = 10;
-    const auto c1 = 220;
-
-    auto c0_bg = new score::BackgroundItem{&parent};
-    c0_bg->setRect({0., 0., 340., 60});
-    auto mode_item = makeControlNoText(
-        get<0>(Metadata::controls), mode, parent, context, doc, portFactory);
-    mode_item.root.setPos(c0, 10);
-    mode_item.control.setPos({4, 0});
-    mode_item.control.setRect({0, 0, 200, 30});
-    mode_item.port.setPos({-8, 10});
-
-    auto quant_item = makeControlNoText(
-        get<1>(Metadata::controls), quantif, parent, context, doc, portFactory);
-    quant_item.root.setPos(c1, 10);
-    quant_item.control.setPos({10, 0});
-    quant_item.port.setPos({-3, 4});
-
-    auto echo_item = makeControl(
-        get<2>(Metadata::controls), echo, parent, context, doc, portFactory);
-    echo_item.root.setPos(c1, 35);
-    echo_item.control.setPos({10, 0});
-    echo_item.port.setPos({-3, 4});
-    echo_item.text.setPos({30, 3});
-  }
-#endif
+    halp_meta(layout, halp::layouts::hbox)
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      halp_meta(background, halp::colors::mid)
+      halp::control<&ins::mode> f;
+      halp::control<&ins::quantif> q;
+      halp::control<&ins::passthrough> p;
+    } left;
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      halp_meta(background, halp::colors::mid)
+      halp::control<&ins::postaction> p;
+      halp::control<&ins::postaction_bars> b;
+    } right;
+  };
 };
 }

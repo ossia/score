@@ -68,7 +68,7 @@ public:
 
   void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept override
   {
-    constexpr auto sz = avnd::pfr::tuple_size<decltype(T{}.vertex_input)>{};
+    static constexpr auto sz = avnd::pfr::tuple_size<decltype(T{}.vertex_input)>{};
 
     QRhiCommandBuffer::VertexInput bindings[sz];
 

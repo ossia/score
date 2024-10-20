@@ -23,7 +23,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsMultiSlider final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsMultiSlider)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(110)
 public:
   template <typename T>
   friend struct SliderWrapper;

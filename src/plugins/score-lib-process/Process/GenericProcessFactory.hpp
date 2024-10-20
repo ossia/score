@@ -53,7 +53,31 @@ Model_T* ProcessFactory_T<Model_T>::make(
 {
   if constexpr(std::is_constructible_v<
                    Model_T, TimeVal, QString, Id<Process::ProcessModel>, QObject*>)
-    return new Model_T{duration, data, id, parent};
+  {
+    if(!data.isEmpty())
+    {
+      return new Model_T{duration, data, id, parent};
+    }
+    else
+    {
+      if constexpr(std::is_constructible_v<
+                       Model_T, TimeVal, Id<Process::ProcessModel>,
+                       const score::DocumentContext&, QObject*>)
+      {
+        return new Model_T{duration, id, ctx, parent};
+      }
+      else if constexpr(std::is_constructible_v<
+                            Model_T, Id<Process::ProcessModel>,
+                            const score::DocumentContext&, QObject*>)
+      {
+        return new Model_T{duration, id, parent};
+      }
+      else
+      {
+        return new Model_T{duration, data, id, parent};
+      }
+    }
+  }
   else if constexpr(std::is_constructible_v<
                         Model_T, TimeVal, Id<Process::ProcessModel>,
                         const score::DocumentContext&, QObject*>)

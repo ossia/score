@@ -4,12 +4,14 @@
 #include <Process/LayerView.hpp>
 
 #include <score/graphics/GraphicsLayout.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
 
 #include <span>
 
 namespace Process
 {
+
 struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
 {
   QObject& context;
@@ -20,17 +22,18 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
   const Process::Inlets& inlets;
   const Process::Outlets& outlets;
 
-  score::GraphicsLayout* layout{}; // The current container
+  QGraphicsItem* layout{}; // The current container
   std::vector<score::GraphicsLayout*> createdLayouts{};
 
-  QGraphicsItem* makePort(Process::ControlInlet& portModel);
-  QGraphicsItem* makePort(Process::ControlOutlet& portModel);
+  Process::ControlLayout makePort(Process::ControlInlet& portModel);
+  Process::ControlLayout makePort(Process::ControlOutlet& portModel);
 
-  std::pair<Process::ControlInlet*, QGraphicsItem*> makeInlet(Process::Inlet*);
-  std::pair<Process::ControlOutlet*, QGraphicsItem*> makeOutlet(Process::Outlet*);
-  std::vector<std::pair<Process::ControlInlet*, QGraphicsItem*>>
+  std::pair<Process::ControlInlet*, Process::ControlLayout> makeInlet(Process::Inlet*);
+  std::pair<Process::ControlOutlet*, Process::ControlLayout>
+  makeOutlet(Process::Outlet*);
+  std::vector<std::pair<Process::ControlInlet*, Process::ControlLayout>>
       makeInlets(std::span<Process::Inlet*>);
-  std::vector<std::pair<Process::ControlOutlet*, QGraphicsItem*>>
+  std::vector<std::pair<Process::ControlOutlet*, Process::ControlLayout>>
       makeOutlets(std::span<Process::Outlet*>);
   QGraphicsItem* makeLabel(std::string_view item);
 

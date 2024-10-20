@@ -1,4 +1,6 @@
 #pragma once
+#include <score/graphics/widgets/Constants.hpp>
+
 #include <QGraphicsItem>
 #include <QObject>
 
@@ -14,7 +16,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsNoteChooser final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsNoteChooser)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(120)
 
   static constexpr int m_min = 0;
   static constexpr int m_max = 127;

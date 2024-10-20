@@ -42,7 +42,8 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
       score::gfx::RenderList& renderer, int k, const Tex& texture_spec, QSize size)
   {
     auto port = parent.input[k];
-    constexpr auto flags = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
+    static constexpr auto flags
+        = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
     auto texture = renderer.state.rhi->newTexture(
         gpp::qrhi::textureFormat<Tex>(), size, 1, flags);
     SCORE_ASSERT(texture->create());

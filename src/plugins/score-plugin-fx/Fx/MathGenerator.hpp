@@ -5,6 +5,8 @@
 
 #include <ossia/dataflow/value_port.hpp>
 
+#include <halp/layout.hpp>
+
 namespace Nodes
 {
 namespace MathGenerator
@@ -23,7 +25,7 @@ struct Node
         "See the documentation at http://www.partow.net/programming/exprtk";
   halp_meta(uuid, "d757bd0d-c0a1-4aec-bf72-945b722ab85b")
 
-  struct
+  struct ins
   {
     halp::lineedit<"Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"> expr;
     halp::hslider_f32<"Param (a)", halp::range{0., 1., 0.5}> a;
@@ -98,13 +100,22 @@ struct Node
     self.pc = self.c;
   }
 
-#if FX_UI
-  template <typename... Args>
-  static void item(Args&&... args)
+  struct ui
   {
-    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
-  }
-#endif
+    halp_meta(layout, halp::layouts::vbox)
+    struct
+    {
+      halp_meta(layout, halp::layouts::hbox)
+      halp::control<&ins::a> a;
+      halp::control<&ins::b> b;
+      halp::control<&ins::c> c;
+    } controls;
+
+    struct : halp::control<&ins::expr>
+    {
+      halp_flag(dynamic_size);
+    } expr;
+  };
 };
 }
 }

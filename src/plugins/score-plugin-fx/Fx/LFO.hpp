@@ -147,65 +147,6 @@ struct Node
 
     this->phase += ph_delta;
   }
-
-#if FX_UI
-  static void item(Process::LogFloatSlider& freq, Process::FloatKnob& ampl, Process::FloatKnob& ampl_fine, Process::FloatKnob& offset, Process::FloatKnob& offset_fine, Process::FloatKnob& jitter, Process::FloatKnob& phase, Process::Enum& type, Process::ComboBox& quantif, const Process::ProcessModel& process, QGraphicsItem& parent, QObject& context, const Process::Context& doc)
-  {
-    using namespace Process;
-    using namespace std;
-    using namespace tuplet;
-    const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
-    const auto h = 60;
-    const auto w = 50;
-
-    const auto c0 = 10;
-    const auto c1 = 180;
-    const auto c2 = 230;
-
-    auto c0_bg = new score::BackgroundItem{&parent};
-    c0_bg->setRect({0., 0., 170., 130.});
-    auto c1_bg = new score::BackgroundItem{&parent};
-    c1_bg->setRect({170., 0., 100., 130.});
-    auto c2_bg = new score::BackgroundItem{&parent};
-    c2_bg->setRect({270., 0., 60., 130.});
-
-    auto freq_item = makeControl(get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
-    freq_item.root.setPos(c0, 0);
-
-    auto quant_item = makeControlNoText(get<8>(Metadata::controls), quantif, parent, context, doc, portFactory);
-    quant_item.root.setPos(90, 25);
-    quant_item.port.setPos(-10, 2);
-
-    auto type_item = makeControlNoText(get<7>(Metadata::controls), type, parent, context, doc, portFactory);
-    type_item.root.setPos(c0, h);
-    type_item.control.rows = 2;
-    type_item.control.columns = 4;
-    type_item.control.setRect(QRectF{0, 0, 104, 44});
-    type_item.control.setPos(10, 0);
-    type_item.port.setPos(0, 17);
-
-    auto ampl_item = makeControl(get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
-    ampl_item.root.setPos(c1, 0);
-
-    auto ampl_fine_item = makeControl(get<2>(Metadata::controls), ampl_fine, parent, context, doc, portFactory);
-    ampl_fine_item.root.setPos(c1 + w, 0);
-
-    auto offset_item = makeControl(get<3>(Metadata::controls), offset, parent, context, doc, portFactory);
-    offset_item.root.setPos(c1, h);
-
-    auto offset_fine_item = makeControl(get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
-    offset_fine_item.root.setPos(c1 + w, h);
-
-    auto jitter_item = makeControl(get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
-    jitter_item.root.setPos(c2 + w, 0);
-
-    auto phase_item = makeControl(get<6>(Metadata::controls), phase, parent, context, doc, portFactory);
-    phase_item.root.setPos(c2 + w, h);
-  }
-#endif
-
-  // With metaclasses, we should instead create structs with named members but
-  // where types are either controls, ports, items, inlets...
 };
 }
 }

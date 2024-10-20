@@ -59,7 +59,7 @@ void GraphicsGridColumnsLayout::layout()
   // Make them fit
   for(auto item : items)
   {
-    if(auto it = qgraphicsitem_cast<score::GraphicsLayout*>(item))
+    if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
     {
       QRectF cur = it->rect();
       cur.setHeight(cell_h);
@@ -123,7 +123,7 @@ void GraphicsGridRowsLayout::layout()
   // Make them fit
   for(auto item : items)
   {
-    if(auto it = qgraphicsitem_cast<score::GraphicsLayout*>(item))
+    if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
     {
       QRectF cur = it->rect();
       cur.setHeight(cell_h);

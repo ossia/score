@@ -770,10 +770,11 @@ QGraphicsItem* PortFactory::makeControlItem(
   }
 }
 
-auto makeFullItemImpl(
+static auto makeFullItemImpl(
     const Process::Port& portModel, const Process::PortItemLayout& layout,
     QGraphicsItem& port, QGraphicsItem& control, score::EmptyRectItem& item)
 {
+  score::SimpleTextItem* lab{};
   using namespace score;
 
   // Port
@@ -789,7 +790,7 @@ auto makeFullItemImpl(
   // Text
   if(layout.labelVisible)
   {
-    auto lab = Dataflow::makePortLabel(portModel, &item);
+    lab = Dataflow::makePortLabel(portModel, &item);
     lab->setPos(layout.label);
     if(layout.labelAlignment == Qt::AlignCenter)
     {
@@ -806,11 +807,14 @@ auto makeFullItemImpl(
     }
   }
   item.fitChildrenRect();
+  return lab;
 }
-QGraphicsItem* PortFactory::makeFullItem(
+
+Process::ControlLayout PortFactory::makeFullItem(
     ControlInlet& portModel, const Process::Context& ctx, QGraphicsItem* parent,
     QObject* context)
 {
+  Process::ControlLayout ret;
   using namespace score;
 #if defined(SCORE_DEBUG_CONTROL_RECTS)
   auto item = new score::GraphicsLayout{parent};
@@ -818,29 +822,32 @@ QGraphicsItem* PortFactory::makeFullItem(
 #else
   auto item = new score::EmptyRectItem{parent};
 #endif
+  ret.container = item;
 
   const auto& layout = defaultLayout();
-  auto port = makePortItem(portModel, ctx, item, context);
-  SCORE_SOFT_ASSERT(port);
+  ret.port_item = makePortItem(portModel, ctx, ret.container, context);
+  SCORE_SOFT_ASSERT(ret.port_item);
 
-  if(port)
+  if(ret.port_item)
   {
-    auto widg = makeControlItem(portModel, ctx, item, context);
-    SCORE_SOFT_ASSERT(widg);
+    ret.control = makeControlItem(portModel, ctx, ret.container, context);
+    SCORE_SOFT_ASSERT(ret.control);
 
-    if(widg)
+    if(ret.control)
     {
-      makeFullItemImpl(portModel, layout, *port, *widg, *item);
+      ret.label
+          = makeFullItemImpl(portModel, layout, *ret.port_item, *ret.control, *item);
     }
   }
 
-  return item;
+  return ret;
 }
 
-QGraphicsItem* PortFactory::makeFullItem(
+Process::ControlLayout PortFactory::makeFullItem(
     ControlOutlet& portModel, const Process::Context& ctx, QGraphicsItem* parent,
     QObject* context)
 {
+  Process::ControlLayout ret;
   using namespace score;
 #if defined(SCORE_DEBUG_CONTROL_RECTS)
   auto item = new score::GraphicsLayout{parent};
@@ -848,14 +855,14 @@ QGraphicsItem* PortFactory::makeFullItem(
 #else
   auto item = new score::EmptyRectItem{parent};
 #endif
+  ret.container = item;
 
   const auto& layout = defaultLayout();
-  auto port = makePortItem(portModel, ctx, item, context);
-  auto widg = makeControlItem(portModel, ctx, item, context);
+  ret.port_item = makePortItem(portModel, ctx, item, context);
+  ret.control = makeControlItem(portModel, ctx, item, context);
+  ret.label = makeFullItemImpl(portModel, layout, *ret.port_item, *ret.control, *item);
 
-  makeFullItemImpl(portModel, layout, *port, *widg, *item);
-
-  return item;
+  return ret;
 }
 
 Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const

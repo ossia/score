@@ -5,9 +5,7 @@
 namespace score
 {
 
-class SCORE_LIB_BASE_EXPORT GraphicsTabLayout
-    : public QObject
-    , public GraphicsLayout
+class SCORE_LIB_BASE_EXPORT GraphicsTabLayout : public GraphicsLayout
 {
 public:
   using GraphicsLayout::GraphicsLayout;

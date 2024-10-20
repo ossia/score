@@ -92,7 +92,7 @@ protected:
   QRectF m_rect{};
 };
 
-class SCORE_LIB_BASE_EXPORT BackgroundItem : public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT BackgroundItem : public ResizeableItem
 {
 public:
   explicit BackgroundItem(QGraphicsItem* parent);

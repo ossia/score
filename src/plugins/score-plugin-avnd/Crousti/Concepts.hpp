@@ -122,7 +122,8 @@ namespace oscr
 {
 
 template <typename Node, typename T, std::size_t N>
-auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
+static inline auto
+make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
 {
   using value_type = as_type(T::value);
   constexpr auto name = avnd::get_name<T>();
@@ -146,7 +147,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::toggle)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(requires { c.values(); })
     {
       return new Process::ChooserToggle{
@@ -159,7 +160,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::slider)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_visual_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
       return new Process::IntSlider{c.min, c.max, c.init, qname, id, parent};
@@ -179,23 +180,23 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::log_slider)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     return new Process::LogFloatSlider{c.min, c.max, c.init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::log_knob)
   {
     // FIXME
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     return new Process::LogFloatSlider{c.min, c.max, c.init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::time_chooser)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     return new Process::TimeChooser{c.min, c.max, c.init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::range_slider)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
       auto [start, end] = c.init;
@@ -211,7 +212,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::range_spinbox)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
       auto [start, end] = c.init;
@@ -227,7 +228,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
       return new Process::IntSpinBox{c.min, c.max, c.init, qname, id, parent};
@@ -239,7 +240,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::knob)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
       // FIXME do a IntKnob
@@ -262,7 +263,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   {
     if constexpr(avnd::has_range<T>)
     {
-      constexpr auto c = avnd::get_range<T>();
+      static constexpr auto c = avnd::get_range<T>();
       if constexpr(avnd::program_parameter<T>)
       {
         auto p = new Process::ProgramEdit{c.init.data(), qname, id, parent};
@@ -286,20 +287,20 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::combobox)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     return new Process::ComboBox{to_combobox_range(c.values), c.init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::choices)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     auto enums = avnd::to_enum_range(c.values);
     static_assert(
         std::is_integral_v<decltype(c.init)> || std::is_enum_v<decltype(c.init)>);
     auto init = enums[static_cast<int>(c.init)];
     std::vector<QString> pixmaps;
-    if constexpr(requires { c.pixmaps; })
+    if constexpr(avnd::has_pixmaps<T>)
     {
-      for(auto& pix : c.pixmaps)
+      for(std::string_view pix : avnd::get_pixmaps<T>())
       {
         pixmaps.push_back(QString::fromLatin1(pix.data(), pix.size()));
       }
@@ -309,7 +310,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::xy)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(requires {
                    c.min == 0.f;
                    c.max == 0.f;
@@ -329,7 +330,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::xyz)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(requires {
                    c.min == 0.f;
                    c.max == 0.f;
@@ -356,7 +357,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   else if constexpr(widg.widget == avnd::widget_type::xy_spinbox)
   {
     using data_type = std::decay_t<decltype(value_type{}.x)>;
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(requires {
                    c.min == 0.f;
                    c.max == 0.f;
@@ -384,7 +385,7 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::xyz_spinbox)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     if constexpr(requires {
                    c.min == 0.f;
                    c.max == 0.f;
@@ -410,8 +411,8 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
   }
   else if constexpr(widg.widget == avnd::widget_type::color)
   {
-    constexpr auto c = avnd::get_range<T>();
-    constexpr auto i = c.init;
+    static constexpr auto c = avnd::get_range<T>();
+    static constexpr auto i = c.init;
     return new Process::HSVSlider{{i.r, i.g, i.b, i.a}, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::control)
@@ -431,7 +432,8 @@ auto make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* pare
 }
 
 template <typename T, std::size_t N>
-auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
+static inline auto
+make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
 {
   constexpr auto name = avnd::get_name<T>();
   constexpr auto widg = avnd::get_widget<T>();
@@ -441,7 +443,7 @@ auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* par
 
   if constexpr(widg.widget == avnd::widget_type::bargraph)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     return new Process::Bargraph{c.min, c.max, c.init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::control)
@@ -456,7 +458,7 @@ auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* par
   }
   else if constexpr(avnd::fp_ish<decltype(T::value)>)
   {
-    constexpr auto c = avnd::get_range<T>();
+    static constexpr auto c = avnd::get_range<T>();
     return new Process::Bargraph{c.min, c.max, c.init, qname, id, parent};
   }
   else
@@ -466,7 +468,7 @@ auto make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* par
 }
 
 template <typename T>
-constexpr auto make_control_out(const T& t)
+static inline constexpr auto make_control_out(const T& t)
 {
   return make_control_out<T>();
 }

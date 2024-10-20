@@ -335,7 +335,7 @@ QGraphicsItem* makeidget(const F& field, QGraphicsItem* parent)
 {
   if constexpr(avnd::control<F>)
   {
-    constexpr auto widg = avnd::get_widget<F>();
+    static constexpr auto widg = avnd::get_widget<F>();
     if constexpr(widg.widget == avnd::widget_type::slider)
     {
      auto c = new score::QGraphicsSlider{parent};

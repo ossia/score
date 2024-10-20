@@ -23,7 +23,7 @@ struct Node
   halp_meta(manual_url, "")
   halp_meta(description, "Visualize an input value")
   halp_meta(uuid, "3f4a41f2-fa39-420f-ab0f-0af6b8409edb")
-  halp_flag(fully_custom_item); // FIXME
+  halp_flag(fully_custom_item);
   struct
   {
     struct : halp::val_port<"in", ossia::value>

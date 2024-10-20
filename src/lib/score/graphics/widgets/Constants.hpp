@@ -1,4 +1,5 @@
 #pragma once
+#include <QGraphicsItem>
 #include <QRectF>
 
 #include <score_lib_base_export.h>
@@ -15,4 +16,20 @@ struct DefaultControlImpl;
 struct DefaultGraphicsSliderImpl;
 struct DefaultGraphicsSpinboxImpl;
 struct DefaultGraphicsKnobImpl;
+
+static constexpr auto GraphicsItemType = QGraphicsItem::UserType + 90000;
+#define SCORE_GRAPHICS_ITEM_TYPE(value) \
+private:                                \
+  Q_INTERFACES(QGraphicsItem)           \
+public:                                 \
+  enum                                  \
+  {                                     \
+    Type = GraphicsItemType + value     \
+  };                                    \
+  int type() const override             \
+  {                                     \
+    return Type;                        \
+  }                                     \
+                                        \
+private:
 }

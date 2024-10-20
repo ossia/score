@@ -15,7 +15,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsKnob
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsKnob)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(70)
   friend struct DefaultControlImpl;
   friend struct DefaultGraphicsKnobImpl;
 

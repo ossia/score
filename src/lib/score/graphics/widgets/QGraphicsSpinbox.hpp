@@ -14,7 +14,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSpinbox final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsSpinbox)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(200)
   Q_DISABLE_COPY(QGraphicsSpinbox)
 
   friend struct DefaultControlImpl;
@@ -63,7 +63,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSpinbox final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsIntSpinbox)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(210)
   Q_DISABLE_COPY(QGraphicsIntSpinbox)
 
   friend struct DefaultControlImpl;

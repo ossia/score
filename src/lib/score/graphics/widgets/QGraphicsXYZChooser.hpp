@@ -18,7 +18,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYZChooser final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsXYZChooser)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(280)
   QRectF m_rect{0., 0., 140., 100.};
 
 private:

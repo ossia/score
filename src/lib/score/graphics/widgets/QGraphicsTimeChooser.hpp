@@ -20,7 +20,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsTimeChooser final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsTimeChooser)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(230)
 
 public:
   QGraphicsKnob knob;

@@ -1,12 +1,10 @@
 #pragma once
+#include <score/graphics/widgets/Constants.hpp>
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneEvent>
 #include <QRectF>
 #include <QSizeF>
-#include <QTextDocument>
-
-#include <private/qwidgettextcontrol_p.h>
 
 #include <score_lib_base_export.h>
 
@@ -18,6 +16,7 @@ namespace score
 struct SCORE_LIB_BASE_EXPORT QGraphicsLineEdit : public QGraphicsTextItem
 {
   W_OBJECT(QGraphicsLineEdit)
+  SCORE_GRAPHICS_ITEM_TYPE(80)
 public:
   explicit QGraphicsLineEdit(QGraphicsItem* parent);
 

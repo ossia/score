@@ -5,6 +5,7 @@
 #include <Media/Sound/WaveformComputer.hpp>
 
 #include <QGraphicsView>
+#include <QMimeData>
 #include <QPainter>
 #include <QTimer>
 

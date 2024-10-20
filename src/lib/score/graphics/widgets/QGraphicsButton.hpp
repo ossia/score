@@ -15,13 +15,13 @@ class SCORE_LIB_BASE_EXPORT QGraphicsButton final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsButton)
-  Q_INTERFACES(QGraphicsItem)
+  SCORE_GRAPHICS_ITEM_TYPE(10)
   QRectF m_rect{defaultToggleSize};
 
   bool m_pressed{};
 
 public:
-  QGraphicsButton(QGraphicsItem* parent);
+  explicit QGraphicsButton(QGraphicsItem* parent);
   ~QGraphicsButton();
 
   void bang();

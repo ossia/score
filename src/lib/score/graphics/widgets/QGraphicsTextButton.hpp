@@ -15,6 +15,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsTextButton final
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsTextButton)
+  SCORE_GRAPHICS_ITEM_TYPE(220)
 
   bool m_pressed{};
 

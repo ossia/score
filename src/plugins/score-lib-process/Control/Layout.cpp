@@ -8,25 +8,25 @@
 
 namespace Process
 {
-QGraphicsItem* LayoutBuilderBase::makePort(Process::ControlInlet& port)
+Process::ControlLayout LayoutBuilderBase::makePort(Process::ControlInlet& port)
 {
   if(auto* f = portFactory.get(port.concreteKey()))
   {
     return f->makeFullItem(port, this->doc, this->layout, &this->context);
   }
-  return nullptr;
+  return {};
 }
 
-QGraphicsItem* LayoutBuilderBase::makePort(Process::ControlOutlet& port)
+Process::ControlLayout LayoutBuilderBase::makePort(Process::ControlOutlet& port)
 {
   if(auto* f = portFactory.get(port.concreteKey()))
   {
     return f->makeFullItem(port, this->doc, this->layout, &this->context);
   }
-  return nullptr;
+  return {};
 }
 
-std::pair<Process::ControlInlet*, QGraphicsItem*>
+std::pair<Process::ControlInlet*, Process::ControlLayout>
 LayoutBuilderBase::makeInlet(Process::Inlet* p)
 {
   if(auto* port = qobject_cast<Process::ControlInlet*>(p))
@@ -36,7 +36,7 @@ LayoutBuilderBase::makeInlet(Process::Inlet* p)
   return {};
 }
 
-std::pair<Process::ControlOutlet*, QGraphicsItem*>
+std::pair<Process::ControlOutlet*, Process::ControlLayout>
 LayoutBuilderBase::makeOutlet(Process::Outlet* p)
 {
   if(auto* port = qobject_cast<Process::ControlOutlet*>(p))
@@ -46,10 +46,10 @@ LayoutBuilderBase::makeOutlet(Process::Outlet* p)
   return {};
 }
 
-std::vector<std::pair<Process::ControlInlet*, QGraphicsItem*>>
+std::vector<std::pair<Process::ControlInlet*, Process::ControlLayout>>
 LayoutBuilderBase::makeInlets(std::span<Process::Inlet*> index)
 {
-  std::vector<std::pair<Process::ControlInlet*, QGraphicsItem*>> ret;
+  std::vector<std::pair<Process::ControlInlet*, Process::ControlLayout>> ret;
   for(auto p : index)
   {
     if(auto* port = qobject_cast<Process::ControlInlet*>(p))
@@ -60,10 +60,10 @@ LayoutBuilderBase::makeInlets(std::span<Process::Inlet*> index)
   return ret;
 }
 
-std::vector<std::pair<Process::ControlOutlet*, QGraphicsItem*>>
+std::vector<std::pair<Process::ControlOutlet*, Process::ControlLayout>>
 LayoutBuilderBase::makeOutlets(std::span<Process::Outlet*> index)
 {
-  std::vector<std::pair<Process::ControlOutlet*, QGraphicsItem*>> ret;
+  std::vector<std::pair<Process::ControlOutlet*, Process::ControlLayout>> ret;
   for(auto p : index)
   {
     if(auto* port = qobject_cast<Process::ControlOutlet*>(p))

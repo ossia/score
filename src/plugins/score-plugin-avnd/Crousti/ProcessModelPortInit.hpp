@@ -133,7 +133,7 @@ struct InletInitFunc
       }
       else if constexpr(avnd::string_ish<filter>)
       {
-        constexpr auto text_filters = P::filters();
+        static constexpr auto text_filters = P::filters();
         return fromStringView(P::filters());
       }
       else
@@ -151,7 +151,7 @@ struct InletInitFunc
     requires avnd::soundfile_port<T>
   void operator()(const T& in, auto idx)
   {
-    constexpr auto name = avnd::get_name<T>();
+    static constexpr auto name = avnd::get_name<T>();
     Process::FileChooserBase* p{};
     if constexpr(requires { T::waveform; })
     {
@@ -179,7 +179,7 @@ struct InletInitFunc
     requires avnd::midifile_port<T> || avnd::raw_file_port<T>
   void operator()(const T& in, auto idx)
   {
-    constexpr auto name = avnd::get_name<T>();
+    static constexpr auto name = avnd::get_name<T>();
 
     auto p = new Process::FileChooser{
         "", getFilters(in), QString::fromUtf8(name.data(), name.size()),
@@ -332,6 +332,7 @@ struct OutletInitFunc
       }
       else
       {
+        // FIXME ControlOutlet?
         auto vp = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
         setupNewPort(out, vp);
         outs.push_back(vp);
@@ -368,11 +369,39 @@ struct OutletInitFunc
     outs.push_back(p);
   }
 
-  void operator()(const avnd::callback auto& out, auto idx)
+  template <avnd::callback T, std::size_t N>
+  void operator()(const T& out, avnd::field_index<N>)
   {
-    auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
-    outs.push_back(p);
+    if constexpr(avnd::control<T>)
+    {
+      if(auto p = oscr::make_control_out<T>(
+             avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
+      {
+        p->hidden = true;
+        outs.push_back(p);
+      }
+      else
+      {
+        // FIXME ControlOutlet?
+        auto vp = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
+        setupNewPort(out, vp);
+        outs.push_back(vp);
+      }
+    }
+    else if constexpr(requires { T::control; })
+    {
+      // FIXME remove this duplication
+      auto p = new Process::ControlOutlet(Id<Process::Port>(outlet), &self);
+      setupNewPort(out, p);
+      outs.push_back(p);
+    }
+    else
+    {
+      auto p = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
+      setupNewPort(out, p);
+      outs.push_back(p);
+    }
+    outlet++;
   }
 
   void operator()(const auto& ctrl, auto idx)

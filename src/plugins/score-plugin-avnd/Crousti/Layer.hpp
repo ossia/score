@@ -11,11 +11,104 @@
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
 #include <score/graphics/layouts/GraphicsSplitLayout.hpp>
 #include <score/graphics/layouts/GraphicsTabLayout.hpp>
+#include <score/graphics/widgets/QGraphicsLineEdit.hpp>
 
 #include <avnd/concepts/layout.hpp>
 
 namespace oscr
 {
+template <typename Item>
+concept recursive_container_layout
+    = avnd::container_layout<Item> || avnd::hbox_layout<Item> || avnd::group_layout<Item>
+      || avnd::vbox_layout<Item> || avnd::split_layout<Item> || avnd::grid_layout<Item>
+      || avnd::tab_layout<Item>;
+
+template <typename Info>
+struct MessageBusUi
+{
+};
+template <typename Info>
+  requires requires { sizeof(typename Info::ui::bus); }
+struct MessageBusUi<Info>
+{
+  typename Info::ui::bus bus;
+};
+
+template <typename Info, typename RootLayout>
+struct RootItem
+    : RootLayout
+    , MessageBusUi<Info>
+{
+  using RootLayout::RootLayout;
+  typename Info::ui ui;
+};
+
+template <typename Item>
+static auto createRecursiveLayout(QGraphicsItem* parent)
+{
+  if constexpr(avnd::container_layout<Item>)
+  {
+    return new score::GraphicsLayout{parent};
+  }
+  else if constexpr(avnd::hbox_layout<Item> || avnd::group_layout<Item>)
+  {
+    return new score::GraphicsHBoxLayout{parent};
+  }
+  else if constexpr(avnd::vbox_layout<Item>)
+  {
+    return new score::GraphicsVBoxLayout{parent};
+  }
+  else if constexpr(avnd::split_layout<Item>)
+  {
+    return new score::GraphicsSplitLayout{parent};
+  }
+  else if constexpr(avnd::grid_layout<Item>)
+  {
+    if constexpr(requires { Item::columns(); })
+    {
+      return new score::GraphicsGridColumnsLayout{parent};
+    }
+    else if constexpr(requires { Item::rows(); })
+    {
+      return new score::GraphicsGridRowsLayout{parent};
+    }
+  }
+  else if constexpr(avnd::tab_layout<Item>)
+  {
+    return new score::GraphicsTabLayout{parent};
+  }
+  else if constexpr(avnd::has_layout<Item>)
+  {
+    return new score::GraphicsLayout{parent};
+  }
+  else
+  {
+    // static_assert(Item::no_layout_provided);
+    return new score::GraphicsVBoxLayout{parent};
+  }
+}
+
+template <typename Item>
+static void setupRecursiveLayout(auto* new_l)
+{
+  if constexpr(avnd::grid_layout<Item>)
+  {
+    if constexpr(requires { Item::columns(); })
+    {
+      new_l->setColumns(Item::columns());
+    }
+    else if constexpr(requires { Item::rows(); })
+    {
+      new_l->setRows(Item::rows());
+    }
+  }
+  else if constexpr(avnd::tab_layout<Item>)
+  {
+    [=]<typename... Ts>(avnd::typelist<Ts...> args) {
+      (new_l->addTab(Ts::name()), ...);
+    }(avnd::as_typelist<Item>{});
+  }
+}
 
 template <typename T>
 struct pmf_member_type;
@@ -39,10 +132,15 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   typename Info::ui* rootUi{};
 
   template <typename Item>
-  void setupControl(Process::ControlOutlet* inl, Item& item) = delete; // TODO
+  void setupControl(
+      QGraphicsItem* parent, Process::ControlOutlet* inl,
+      const Process::ControlLayout& lay, Item& item)
+      = delete; // TODO
 
   template <typename Item>
-  void setupControl(Process::ControlInlet* inl, Item& item)
+  void setupControl(
+      QGraphicsItem* parent, Process::ControlInlet* inl,
+      const Process::ControlLayout& lay, Item& item)
   {
     if constexpr(requires { sizeof(Item::value); })
     {
@@ -72,6 +170,17 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         });
       }
     }
+
+    if constexpr(requires { Item::dynamic_size; })
+    {
+      if(auto obj = dynamic_cast<score::ResizeableItem*>(parent))
+      {
+        if(auto edit = qgraphicsitem_cast<score::QGraphicsLineEdit*>(lay.control))
+          QObject::connect(
+              edit, &score::QGraphicsLineEdit::sizeChanged, obj,
+              &score::ResizeableItem::childrenSizeChanged);
+      }
+    }
   }
 
   template <typename Item>
@@ -87,9 +196,9 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         auto [port, qitem] = makeInlet(p);
         {
           SCORE_ASSERT(port);
-          SCORE_ASSERT(qitem);
-          setupControl(port, item);
-          setupItem(item, *qitem);
+          SCORE_ASSERT(qitem.container);
+          setupControl(this->layout, port, qitem, item);
+          setupItem(item, *qitem.container);
         }
       }
     }
@@ -103,9 +212,9 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         auto [port, qitem] = makeOutlet(p);
         {
           SCORE_ASSERT(port);
-          SCORE_ASSERT(qitem);
-          setupControl(port, item);
-          setupItem(item, *qitem);
+          SCORE_ASSERT(qitem.container);
+          setupControl(this->layout, port, qitem, item);
+          setupItem(item, *qitem.container);
         }
       }
     }
@@ -119,18 +228,14 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   void createWidget(Item& it, const T& member)
   {
     if constexpr(requires {
-                   {
-                     member
-                     } -> std::convertible_to<std::string_view>;
+                   { member } -> std::convertible_to<std::string_view>;
                  })
     {
       auto res = makeLabel(member);
       setupItem(it, *res);
     }
     else if constexpr(requires {
-                        {
-                          member.text
-                          } -> std::convertible_to<std::string_view>;
+                        { member.text } -> std::convertible_to<std::string_view>;
                       })
     {
       auto res = makeLabel(member.text);
@@ -171,7 +276,8 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         if(auto* port = qobject_cast<Process::ControlInlet*>(p))
         {
           auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
-          setupControl(port, item);
+          Process::ControlLayout lay{.container = qitem};
+          setupControl(this->layout, port, lay, item);
           setupItem(item, *qitem);
         }
       }
@@ -187,7 +293,8 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         if(auto* port = qobject_cast<Process::ControlOutlet*>(p))
         {
           auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
-          setupControl(port, item);
+          Process::ControlLayout lay{.container = qitem};
+          setupControl(this->layout, port, lay, item);
           setupItem(item, *qitem);
         }
       }
@@ -197,19 +304,6 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       static_assert(sizeof...(member) < 0, "not_a_member_of_inputs_or_outputs");
     }
   }
-
-  /*
-    template<int N>
-    constexpr void recurse(auto item)
-    {
-      using namespace boost::pfr;
-      using namespace boost::pfr::detail;
-      auto t = boost::pfr::detail::tie_as_tuple(item, size_t_<N>{});
-      [&]<std::size_t... I>(std::index_sequence<I...>)
-      { (this->walkLayout(sequence_tuple::get<I>(t)), ...); }
-      (make_index_sequence<N>{});
-    }
-    */
 
   template <typename Item>
   void subLayout(Item& item, score::GraphicsLayout* new_l, auto... recursive_members)
@@ -223,16 +317,22 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       using namespace boost::pfr;
       using namespace boost::pfr::detail;
-      constexpr int N = boost::pfr::tuple_size_v<Item>;
+      static constexpr int N = boost::pfr::tuple_size_v<Item>;
       auto t = boost::pfr::detail::tie_as_tuple(item, size_t_<N>{});
-      [&]<std::size_t... I>(std::index_sequence<I...>)
-      {
+      [&]<std::size_t... I>(std::index_sequence<I...>) {
         (this->walkLayout(sequence_tuple::get<I>(t), recursive_members...), ...);
-      }
-      (make_index_sequence<N>{});
+      }(make_index_sequence<N>{});
     }
 
     layout = old_l;
+  }
+
+  template <typename Item>
+  auto initRecursiveLayout()
+  {
+    auto new_l = createRecursiveLayout<Item>(this->layout);
+    setupRecursiveLayout<Item>(new_l);
+    return new_l;
   }
 
   template <typename Item>
@@ -248,44 +348,9 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         h = Item::height();
       widg->setRect({0, 0, w, h});
     }
-    else if constexpr(avnd::container_layout<Item>)
+    else if constexpr(recursive_container_layout<Item>)
     {
-      subLayout(item, new score::GraphicsLayout{layout}, recursive_members...);
-    }
-    else if constexpr(avnd::hbox_layout<Item> || avnd::group_layout<Item>)
-    {
-      subLayout(item, new score::GraphicsHBoxLayout{layout}, recursive_members...);
-    }
-    else if constexpr(avnd::vbox_layout<Item>)
-    {
-      subLayout(item, new score::GraphicsVBoxLayout{layout}, recursive_members...);
-    }
-    else if constexpr(avnd::split_layout<Item>)
-    {
-      subLayout(item, new score::GraphicsSplitLayout{layout}, recursive_members...);
-    }
-    else if constexpr(avnd::grid_layout<Item>)
-    {
-      if constexpr(requires { Item::columns(); })
-      {
-        auto new_l = new score::GraphicsGridColumnsLayout{layout};
-        new_l->setColumns(Item::columns());
-        subLayout(item, new_l, recursive_members...);
-      }
-      else if constexpr(requires { Item::rows(); })
-      {
-        auto new_l = new score::GraphicsGridRowsLayout{layout};
-        new_l->setRows(Item::rows());
-        subLayout(item, new_l, recursive_members...);
-      }
-    }
-    else if constexpr(avnd::tab_layout<Item>)
-    {
-      auto new_l = new score::GraphicsTabLayout{layout};
-      avnd::for_each_field_ref(
-          item, [&]<typename F>(F field) { new_l->addTab(F::name()); });
-
-      subLayout(item, new_l, recursive_members...);
+      subLayout(item, initRecursiveLayout<Item>(), recursive_members...);
     }
     else if constexpr(avnd::control_layout<Item>)
     {
@@ -316,7 +381,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     else if constexpr(avnd::has_layout<Item>)
     {
       // Treat it like group
-      subLayout(item, new score::GraphicsLayout{layout}, recursive_members...);
+      subLayout(item, initRecursiveLayout<Item>(), recursive_members...);
     }
     else
     {
@@ -366,67 +431,60 @@ private:
     return nullptr;
   }
 
+  template <typename Item>
+  static void init_bus(ProcessModel<Info>& proc, Item& item)
+  {
+    auto ptr = &item;
+    if constexpr(avnd::has_gui_to_processor_bus<Info>)
+    {
+      // ui -> engine
+      ptr->bus.send_message = MessageBusSender{proc.from_ui};
+    }
+
+    if constexpr(avnd::has_processor_to_gui_bus<Info>)
+    {
+      // engine -> ui
+      proc.to_ui = [ptr = QPointer{ptr}](QByteArray mess) {
+        // FIXME this is not enough as the message may be sent from another thread?
+        if(!ptr)
+          return;
+
+        if constexpr(requires { ptr->bus.process_message(); })
+        {
+          ptr->bus.process_message();
+        }
+        else if constexpr(requires { ptr->bus.process_message(ptr->ui); })
+        {
+          ptr->bus.process_message(ptr->ui);
+        }
+        else if constexpr(requires { ptr->bus.process_message(ptr->ui, {}); })
+        {
+          std::decay_t<avnd::second_argument<&Info::ui::bus::process_message>> arg;
+          MessageBusReader b{mess};
+          b(arg);
+          ptr->bus.process_message(ptr->ui, std::move(arg));
+        }
+        else
+        {
+          ptr->bus.process_message(ptr->ui, {});
+        }
+      };
+    }
+
+    if_possible(ptr->bus.init(ptr->ui));
+  }
+
   auto makeItemImpl(ProcessModel<Info>& proc, QGraphicsItem* parent) const noexcept
   {
-    // Initialize if needed
+    using ui_type = typename Info::ui;
+    using root_layout_type
+        = std::remove_cvref_t<decltype(*createRecursiveLayout<ui_type>(nullptr))>;
+
+    auto new_l = new RootItem<Info, root_layout_type>{parent};
+    setupRecursiveLayout<ui_type>(new_l);
     if constexpr(requires { sizeof(typename Info::ui::bus); })
-    {
-      struct Item : score::EmptyRectItem
-      {
-        using score::EmptyRectItem::EmptyRectItem;
-        typename Info::ui ui;
-        typename Info::ui::bus bus;
-      };
-      auto ptr = new Item{parent};
-
-      if constexpr(avnd::has_gui_to_processor_bus<Info>)
-      {
-        // ui -> engine
-        ptr->bus.send_message = MessageBusSender{proc.from_ui};
-      }
-
-      if constexpr(avnd::has_processor_to_gui_bus<Info>)
-      {
-        // engine -> ui
-        proc.to_ui = [ptr = QPointer{ptr}](QByteArray mess) {
-          // FIXME this is not enough as the message may be sent from another thread?
-          if(!ptr)
-            return;
-
-          if constexpr(requires { ptr->bus.process_message(); })
-          {
-            ptr->bus.process_message();
-          }
-          else if constexpr(requires { ptr->bus.process_message(ptr->ui); })
-          {
-            ptr->bus.process_message(ptr->ui);
-          }
-          else if constexpr(requires { ptr->bus.process_message(ptr->ui, {}); })
-          {
-            std::decay_t<avnd::second_argument<&Info::ui::bus::process_message>> arg;
-            MessageBusReader b{mess};
-            b(arg);
-            ptr->bus.process_message(ptr->ui, std::move(arg));
-          }
-          else
-          {
-            ptr->bus.process_message(ptr->ui, {});
-          }
-        };
-      }
-
-      if_possible(ptr->bus.init(ptr->ui));
-      return ptr;
-    }
-    else
-    {
-      struct Item : score::EmptyRectItem
-      {
-        using score::EmptyRectItem::EmptyRectItem;
-        typename Info::ui ui;
-      };
-      return new Item{parent};
-    }
+      init_bus(proc, *new_l);
+    return new_l;
   }
 
   score::ResizeableItem* makeItem(
@@ -438,7 +496,7 @@ private:
 
     auto rootItem = makeItemImpl(const_cast<ProcessModel<Info>&>(process), parent);
 
-    auto recreate = [&proc, &ctx, rootItem] {
+    auto recreate = [parent, &proc, &ctx, rootItem] {
       LayoutBuilder<Info> b{*rootItem,
                             proc,
                             ctx,
@@ -447,8 +505,9 @@ private:
                             proc.outlets(),
                             {}};
       b.rootUi = &rootItem->ui;
+      b.layout = parent;
 
-      b.walkLayout(rootItem->ui);
+      b.subLayout(rootItem->ui, rootItem);
 
       b.finalizeLayout(rootItem);
 
