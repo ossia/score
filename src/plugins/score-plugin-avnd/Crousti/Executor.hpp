@@ -8,6 +8,7 @@
 #include <Crousti/CpuAnalysisNode.hpp>
 #include <Crousti/CpuFilterNode.hpp>
 #include <Crousti/CpuGeneratorNode.hpp>
+#include <Crousti/File.hpp>
 #include <Crousti/GpuComputeNode.hpp>
 #include <Crousti/GpuNode.hpp>
 #include <Crousti/MessageBus.hpp>
@@ -29,8 +30,6 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #endif
 
-#include <Media/AudioDecoder.hpp>
-
 #include <score/tools/ThreadPool.hpp>
 
 #include <ossia/detail/type_if.hpp>
@@ -45,104 +44,9 @@
 #include <avnd/concepts/temporality.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <avnd/concepts/worker.hpp>
-#include <libremidi/reader.hpp>
 
 namespace oscr
 {
-namespace
-{
-[[nodiscard]] static QString
-filenameFromPort(const ossia::value& value, const score::DocumentContext& ctx)
-{
-  if(auto str = value.target<std::string>())
-    return score::locateFilePath(QString::fromStdString(*str).trimmed(), ctx);
-  return {};
-}
-
-// TODO refactor this into a generic explicit soundfile loaded mechanism
-[[nodiscard]] static auto
-loadSoundfile(const ossia::value& value, const score::DocumentContext& ctx, double rate)
-{
-  // Initialize the control with the current soundfile
-  if(auto str = filenameFromPort(value, ctx); !str.isEmpty())
-  {
-    auto dec = Media::AudioDecoder::decode_synchronous(str, rate);
-
-    if(dec.has_value())
-    {
-      auto hdl = std::make_shared<ossia::audio_data>();
-      hdl->data = std::move(dec->second);
-      hdl->path = str.toStdString();
-      hdl->rate = rate;
-      return hdl;
-    }
-  }
-  return ossia::audio_handle{};
-}
-
-using midifile_handle = std::shared_ptr<oscr::midifile_data>;
-[[nodiscard]] inline midifile_handle
-loadMidifile(const ossia::value& value, const score::DocumentContext& ctx)
-{
-  // Initialize the control with the current soundfile
-  if(auto str = filenameFromPort(value, ctx); !str.isEmpty())
-  {
-    QFile f(str);
-    if(!f.open(QIODevice::ReadOnly))
-      return {};
-    auto ptr = f.map(0, f.size());
-
-    auto hdl = std::make_shared<oscr::midifile_data>();
-    if(auto ret = hdl->reader.parse((uint8_t*)ptr, f.size());
-       ret == libremidi::reader::invalid)
-      return {};
-
-    hdl->filename = str.toStdString();
-    return hdl;
-  }
-  return {};
-}
-
-using raw_file_handle = std::shared_ptr<raw_file_data>;
-[[nodiscard]] inline raw_file_handle loadRawfile(
-    const ossia::value& value, const score::DocumentContext& ctx, bool text, bool mmap)
-{
-  // Initialize the control with the current soundfile
-  if(auto filename = filenameFromPort(value, ctx); !filename.isEmpty())
-  {
-    if(!QFile::exists(filename))
-      return {};
-
-    auto hdl = std::make_shared<oscr::raw_file_data>();
-    hdl->file.setFileName(filename);
-    if(!hdl->file.open(QIODevice::ReadOnly))
-      return {};
-
-    if(mmap)
-    {
-      auto map = (char*)hdl->file.map(0, hdl->file.size());
-      hdl->data = QByteArray::fromRawData(map, hdl->file.size());
-    }
-    else
-    {
-      if(text)
-        hdl->file.setTextModeEnabled(true);
-
-      hdl->data = hdl->file.readAll();
-    }
-    hdl->filename = filename.toStdString();
-    return hdl;
-  }
-  return {};
-}
-[[nodiscard]] inline auto loadSoundfile(
-    const ossia::value& value, const score::DocumentContext& ctx,
-    const std::shared_ptr<ossia::execution_state>& st)
-{
-  const double rate = ossia::exec_state_facade{st.get()}.sampleRate();
-  return loadSoundfile(value, ctx, rate);
-}
-}
 
 template <typename ExecNode_T, typename T, std::size_t ControlN>
 struct control_updater
@@ -378,16 +282,6 @@ struct setup_Impl0
     }
   }
 
-  template <typename Field>
-  static auto executePortPreprocess(auto& file)
-  {
-    using field_file_type = decltype(Field::file);
-    field_file_type ffile;
-    ffile.bytes = decltype(ffile.bytes)(file.data.constData(), file.file.size());
-    ffile.filename = file.filename;
-    return Field::process(ffile);
-  }
-
   template <avnd::raw_file_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& param, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
@@ -396,11 +290,8 @@ struct setup_Impl0
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
       {
         // FIXME handle dynamic ports correctly
-
-        using file_ports = avnd::raw_file_input_introspection<Node>;
-        using elt = typename file_ports::template nth_element<N>;
-        static constexpr bool has_text = requires { decltype(elt::file)::text; };
-        static constexpr bool has_mmap = requires { decltype(elt::file)::mmap; };
+        static constexpr bool has_text = requires { decltype(Field::file)::text; };
+        static constexpr bool has_mmap = requires { decltype(Field::file)::mmap; };
 
         // First we can load it directly since execution hasn't started yet
         if(auto hdl = loadRawfile(inlet->value(), ctx.doc, has_text, has_mmap))
@@ -715,17 +606,20 @@ public:
       std::unique_ptr<score::gfx::Node> ptr;
       if constexpr(GpuGraphicsNode2<Node>)
       {
-        auto gpu_node = new CustomGpuNode<Node>(qex_ptr, node->control_outs, id);
+        auto gpu_node
+            = new CustomGpuNode<Node>(qex_ptr, node->control_outs, id, ctx.doc);
         ptr.reset(gpu_node);
       }
       else if constexpr(GpuComputeNode2<Node>)
       {
-        auto gpu_node = new GpuComputeNode<Node>(qex_ptr, node->control_outs, id);
+        auto gpu_node
+            = new GpuComputeNode<Node>(qex_ptr, node->control_outs, id, ctx.doc);
         ptr.reset(gpu_node);
       }
       else if constexpr(GpuNode<Node>)
       {
-        auto gpu_node = new GfxNode<Node>(element, qex_ptr, node->control_outs, id);
+        auto gpu_node
+            = new GfxNode<Node>(element, qex_ptr, node->control_outs, id, ctx.doc);
         ptr.reset(gpu_node);
       }
       node->id = gfx_exec.ui->register_node(std::move(ptr));

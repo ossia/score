@@ -28,8 +28,9 @@ template <typename Node_T>
 struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
 {
   GpuComputeNode(
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id)
-      : ComputeNodeBaseType<Node_T>{std::move(q), std::move(ctls)}
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id,
+      const score::DocumentContext& ctx)
+      : ComputeNodeBaseType<Node_T>{std::move(q), std::move(ctls), ctx}
   {
     this->instance = id;
 
@@ -66,6 +67,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
   const GpuComputeNode<Node_T>& parent;
   Node_T state;
+  score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
 
@@ -233,9 +235,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    if constexpr(requires { state.init(); })
+    if constexpr(requires { state.prepare(); })
     {
-      state.init();
+      parent.processControlIn(
+          *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+      state.prepare();
     }
 
     // Create the global shared inputs
@@ -385,7 +389,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     // m_last_time = parent.last_message.token.date;
 
     // Apply the controls
-    parent.processControlIn(this->state, this->parent.last_message);
+    parent.processControlIn(
+        *this, this->state, m_last_message, this->parent.last_message,
+        this->parent.m_ctx);
 
     // Run the compute shader
     {

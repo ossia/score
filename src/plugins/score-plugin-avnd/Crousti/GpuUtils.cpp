@@ -37,8 +37,10 @@ CustomGfxNodeBase::~CustomGfxNodeBase() = default;
 CustomGfxOutputNodeBase::~CustomGfxOutputNodeBase() = default;
 
 CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
-    std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls)
+    std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls,
+    const score::DocumentContext& ctx)
     : GpuControlOuts{std::move(q), std::move(ctls)}
+    , m_ctx{ctx}
 {
   m_renderState = std::make_shared<score::gfx::RenderState>();
 

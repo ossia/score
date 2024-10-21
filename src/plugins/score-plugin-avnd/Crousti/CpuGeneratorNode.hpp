@@ -15,6 +15,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
   const GfxNode<Node_T>& parent;
   Node_T state;
+  score::gfx::Message m_last_message{};
   ossia::time_value m_last_time{-1};
 
   GfxRenderer(const GfxNode<Node_T>& p)
@@ -118,9 +119,11 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    if constexpr(requires { state.init(); })
+    if constexpr(requires { state.prepare(); })
     {
-      state.init();
+      parent.processControlIn(
+          *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+      state.prepare();
     }
 
     const auto& mesh = renderer.defaultTriangle();
@@ -168,7 +171,8 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     }
     m_last_time = parent.last_message.token.date;
 
-    parent.processControlIn(state, this->parent.last_message);
+    parent.processControlIn(
+        *this, state, m_last_message, this->parent.last_message, parent.m_ctx);
 
     // Run the processor
     state();
@@ -197,12 +201,15 @@ struct GfxNode<Node_T> final
     , GpuWorker
     , GpuControlIns
     , GpuControlOuts
+    , GpuNodeElements<Node_T>
 {
   oscr::ProcessModel<Node_T>& processModel;
   GfxNode(
       oscr::ProcessModel<Node_T>& element,
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id)
-      : GpuControlOuts{std::move(q), std::move(ctls)}
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id,
+      const score::DocumentContext& ctx)
+      : CustomGfxNodeBase{ctx}
+      , GpuControlOuts{std::move(q), std::move(ctls)}
       , processModel{element}
   {
     this->instance = id;

@@ -20,6 +20,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
   const CustomGpuNodeBase& parent;
   std::vector<Node_T> states;
+  score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
 
@@ -189,10 +190,14 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    if constexpr(requires { states[0].init(); })
+    if constexpr(requires { states[0].prepare(); })
     {
       for(auto& state : states)
-        state.init();
+      {
+        parent.processControlIn(
+            *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+        state.prepare();
+      }
     }
 
     if(!m_meshBuffer)
@@ -368,7 +373,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     // Apply the controls
     for(auto& state : states)
     {
-      this->parent.processControlIn(state, this->parent.last_message);
+      this->parent.processControlIn(
+          *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
     }
   }
 
@@ -386,13 +392,15 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   }
 };
 
-
 template <typename Node_T>
-struct CustomGpuNode final : CustomGpuNodeBase
+struct CustomGpuNode final
+    : CustomGpuNodeBase
+    , GpuNodeElements<Node_T>
 {
   CustomGpuNode(
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id)
-      : CustomGpuNodeBase{std::move(q), std::move(ctls)}
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id,
+      const score::DocumentContext& ctx)
+      : CustomGpuNodeBase{std::move(q), std::move(ctls), ctx}
   {
     this->instance = id;
 

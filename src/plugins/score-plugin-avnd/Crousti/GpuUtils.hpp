@@ -3,6 +3,7 @@
 #if SCORE_PLUGIN_GFX
 #include <Process/ExecutionContext.hpp>
 
+#include <Crousti/File.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/Node.hpp>
@@ -10,10 +11,14 @@
 #include <Gfx/Graph/RenderState.hpp>
 
 #include <QTimer>
+#include <QtGui/private/qrhi_p.h>
 
 #include <avnd/binding/ossia/port_run_postprocess.hpp>
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
+#include <avnd/binding/ossia/soundfiles.hpp>
 #include <avnd/concepts/parameter.hpp>
+#include <avnd/introspection/input.hpp>
+#include <avnd/introspection/output.hpp>
 #include <fmt/format.h>
 #include <gpp/layout.hpp>
 
@@ -847,24 +852,106 @@ struct GpuWorker
     }
   }
 };
-struct GpuControlIns
+
+template <typename GpuNodeRenderer, typename Node>
+struct GpuProcessIns
 {
-  template <typename Node_T>
-  static void processControlIn(Node_T& state, const score::gfx::Message& mess) noexcept
+  GpuNodeRenderer& gpu;
+  Node& state;
+  const score::gfx::Message& prev_mess;
+  const score::gfx::Message& mess;
+  const score::DocumentContext& ctx;
+
+  bool can_process_message(std::size_t N)
   {
-    // Apply the controls
-    avnd::parameter_input_introspection<Node_T>::for_all_n2(
-        avnd::get_inputs<Node_T>(state),
-        [&](avnd::parameter auto& t, auto pred_index, auto field_index) {
-      if(mess.input.size() > field_index)
+    if(mess.input.size() <= N)
+      return false;
+
+    if(prev_mess.input.size() == mess.input.size())
+    {
+      auto& prev = prev_mess.input[N];
+      auto& next = mess.input[N];
+      if(prev.index() == 1 && next.index() == 1)
       {
-        if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
+        if(ossia::get<ossia::value>(prev) == ossia::get<ossia::value>(next))
         {
-          oscr::from_ossia_value(t, *val, t.value);
-          if_possible(t.update(state));
+          return false;
         }
       }
-    });
+    }
+    return true;
+  }
+
+  void operator()(avnd::parameter auto& t, auto field_index)
+  {
+    if(!can_process_message(field_index))
+      return;
+
+    if(auto val = ossia::get_if<ossia::value>(&mess.input[field_index]))
+    {
+      oscr::from_ossia_value(t, *val, t.value);
+      if_possible(t.update(state));
+    }
+  }
+
+#if OSCR_HAS_MMAP_FILE_STORAGE
+  template <avnd::raw_file_port Field, std::size_t NField>
+  void operator()(Field& t, avnd::field_index<NField> field_index)
+  {
+    // FIXME we should be loading a file there
+    using node_type = std::remove_cvref_t<decltype(gpu.parent)>;
+    using file_ports = avnd::raw_file_input_introspection<Node>;
+
+    if(!can_process_message(field_index))
+      return;
+
+    auto val = ossia::get_if<ossia::value>(&mess.input[field_index]);
+    if(!val)
+      return;
+
+    static constexpr bool has_text = requires { decltype(Field::file)::text; };
+    static constexpr bool has_mmap = requires { decltype(Field::file)::mmap; };
+
+    // First we can load it directly since execution hasn't started yet
+    if(auto hdl = loadRawfile(*val, ctx, has_text, has_mmap))
+    {
+      static constexpr auto N = file_ports::field_index_to_index(NField);
+      if constexpr(avnd::port_can_process<Field>)
+      {
+        // FIXME also do it when we get a run-time message from the exec engine,
+        // OSC, etc
+        auto func = executePortPreprocess<Field>(*hdl);
+        const_cast<node_type&>(gpu.parent)
+            .file_loaded(
+                state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+        if(func)
+          func(state);
+      }
+      else
+      {
+        const_cast<node_type&>(gpu.parent)
+            .file_loaded(
+                state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+      }
+    }
+  }
+#endif
+
+  void operator()(auto& t, auto field_index) { }
+};
+
+struct GpuControlIns
+{
+  template <typename Self, typename Node_T>
+  static void processControlIn(
+      Self& self, Node_T& state, score::gfx::Message& renderer_mess,
+      const score::gfx::Message& mess, const score::DocumentContext& ctx) noexcept
+  {
+    // Apply the controls
+    avnd::input_introspection<Node_T>::for_all_n(
+        avnd::get_inputs<Node_T>(state),
+        GpuProcessIns<Self, Node_T>{self, state, renderer_mess, mess, ctx});
+    renderer_mess = mess;
   }
 };
 
@@ -899,10 +986,36 @@ struct GpuControlOuts
   }
 };
 
+template <typename T>
+struct SCORE_PLUGIN_AVND_EXPORT GpuNodeElements
+{
+  [[no_unique_address]] oscr::soundfile_storage<T> soundfiles;
+
+  [[no_unique_address]] oscr::midifile_storage<T> midifiles;
+
+#if defined(OSCR_HAS_MMAP_FILE_STORAGE)
+  [[no_unique_address]] oscr::raw_file_storage<T> rawfiles;
+#endif
+
+  template <std::size_t N, std::size_t NField>
+  void file_loaded(
+      auto& state, const std::shared_ptr<oscr::raw_file_data>& hdl,
+      avnd::predicate_index<N>, avnd::field_index<NField>)
+  {
+    this->rawfiles.load(
+        state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+  }
+};
+
 struct SCORE_PLUGIN_AVND_EXPORT CustomGfxNodeBase : score::gfx::NodeModel
 {
+  explicit CustomGfxNodeBase(const score::DocumentContext& ctx)
+      : score::gfx::NodeModel{}
+      , m_ctx{ctx}
+  {
+  }
   virtual ~CustomGfxNodeBase();
-
+  const score::DocumentContext& m_ctx;
   score::gfx::Message last_message;
   void process(score::gfx::Message&& msg) override;
 };
@@ -920,13 +1033,16 @@ struct CustomGpuNodeBase
     , GpuControlOuts
 {
   CustomGpuNodeBase(
-      std::weak_ptr<Execution::ExecutionCommandQueue>&& q, Gfx::exec_controls&& ctls)
+      std::weak_ptr<Execution::ExecutionCommandQueue>&& q, Gfx::exec_controls&& ctls,
+      const score::DocumentContext& ctx)
       : GpuControlOuts{std::move(q), std::move(ctls)}
+      , m_ctx{ctx}
   {
   }
 
   virtual ~CustomGpuNodeBase() = default;
 
+  const score::DocumentContext& m_ctx;
   QString vertex, fragment, compute;
   score::gfx::Message last_message;
   void process(score::gfx::Message&& msg) override;
@@ -939,9 +1055,11 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
     , GpuControlOuts
 {
   CustomGpuOutputNodeBase(
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls);
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls&& ctls,
+      const score::DocumentContext& ctx);
   virtual ~CustomGpuOutputNodeBase();
 
+  const score::DocumentContext& m_ctx;
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
   std::function<void()> m_update;
