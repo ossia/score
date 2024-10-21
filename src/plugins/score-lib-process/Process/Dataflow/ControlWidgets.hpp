@@ -23,13 +23,14 @@
 
 #include <ossia-qt/invoke.hpp>
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QGraphicsItem>
 #include <QGraphicsSceneDragDropEvent>
 #include <QLineEdit>
 #include <QPalette>
-#include <QApplication>
+#include <QTextDocument>
 
 #include <score_lib_process_export.h>
 
