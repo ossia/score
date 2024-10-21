@@ -6,6 +6,7 @@
 
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/nodes/media.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <QByteArray>
 #include <QFile>
