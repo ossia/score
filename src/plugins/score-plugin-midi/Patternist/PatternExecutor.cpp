@@ -39,15 +39,17 @@ public:
       return;
 
     // TODO on bar change, reset to start of pattern?
-    if(auto date
-       = tk.get_physical_quantification_date(pattern.division, st.modelToSamples()))
+    if(auto d = tk.get_quantification_date(pattern.division))
     {
+      auto date = std::floor(
+          (*d - tk.prev_date + tk.offset).impl * st.modelToSamples() / tk.speed);
+
       last = current;
       auto& mess = out.target<ossia::midi_port>()->messages;
       for(uint8_t note : in_flight)
       {
         mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
-        mess.back().timestamp = *date;
+        mess.back().timestamp = date;
       }
       in_flight.clear();
 
@@ -56,7 +58,7 @@ public:
         if(lane.pattern[current])
         {
           mess.push_back(libremidi::channel_events::note_on(channel, lane.note, 64));
-          mess.back().timestamp = *date;
+          mess.back().timestamp = date;
           in_flight.insert(lane.note);
         }
       }
