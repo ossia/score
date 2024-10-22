@@ -5,7 +5,7 @@ if(SCORE_FAST_DEV_BUILD)
 endif()
 
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS ShaderTools)
-if(NOT TARGET ${QT_PREFIX}::ShaderTools)
+if(NOT TARGET "${QT_PREFIX}::ShaderTools")
   message("Video plug-in requires Qt Shader Tools (5.14+)")
   return()
 endif()

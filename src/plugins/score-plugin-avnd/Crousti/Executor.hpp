@@ -407,6 +407,7 @@ struct setup_Impl1_Out
   {
     using namespace std;
     auto ports = element.avnd_output_idx_to_model_ports(NField);
+    SCORE_ASSERT(!ports.empty());
     auto outlet = safe_cast<Process::ControlOutlet*>(ports[0]);
     outlet->setValue(oscr::to_ossia_value(field, get<N>(arr)));
   }
@@ -465,6 +466,7 @@ struct ExecutorGuiUpdate
     }
     if(ok)
     {
+      // FIXME not thread safe?
       avnd::control_output_introspection<Node>::for_all_n2(
           avnd::get_outputs<Node>(node.impl), setup_Impl1_Out<Node>{arr, element});
     }
@@ -796,8 +798,8 @@ public:
       ExecutorGuiUpdate<Node> timer_action{weak_node, element};
       timer_action();
 
-      con(
-          ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [=] { timer_action(); },
+      con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
+          [timer_action = std::move(timer_action)] { timer_action(); },
           Qt::QueuedConnection);
     }
   }

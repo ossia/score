@@ -62,7 +62,14 @@ struct Node
   struct
   {
     // FIXME output range ???
-    halp::val_port<"Out", std::optional<float>> out;
+    struct : halp::val_port<"Out", std::optional<float>>
+    {
+      struct range
+      {
+        float min = 0.;
+        float max = 1.;
+      };
+    } out;
   } outputs;
 
   double phase{};

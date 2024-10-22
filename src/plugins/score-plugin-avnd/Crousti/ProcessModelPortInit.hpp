@@ -205,7 +205,7 @@ struct InletInitFunc
     requires(!oscr::ossia_port<T>)
   void operator()(const T& in, avnd::field_index<N>)
   {
-    if constexpr(avnd::control<T> || avnd::curve_port<T>)
+    if constexpr(avnd::has_widget<T> || avnd::curve_port<T>)
     {
       auto p = oscr::make_control_in<Node, T>(
           avnd::field_index<N>{}, Id<Process::Port>(inlet), &self);
@@ -322,7 +322,7 @@ struct OutletInitFunc
     requires(!oscr::ossia_port<T>)
   void operator()(const T& out, avnd::field_index<N>)
   {
-    if constexpr(avnd::control<T>)
+    if constexpr(avnd::has_widget<T>)
     {
       if(auto p = oscr::make_control_out<T>(
              avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))

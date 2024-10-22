@@ -126,8 +126,8 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
 {
   using inputs_type = typename avnd::input_introspection<Info>::type;
   using outputs_type = typename avnd::output_introspection<Info>::type;
-  inputs_type temp_inputs;
-  outputs_type temp_outputs;
+  inputs_type temp_inputs{};
+  outputs_type temp_outputs{};
 
   typename Info::ui* rootUi{};
 
@@ -497,13 +497,11 @@ private:
     auto rootItem = makeItemImpl(const_cast<ProcessModel<Info>&>(process), parent);
 
     auto recreate = [parent, &proc, &ctx, rootItem] {
-      LayoutBuilder<Info> b{*rootItem,
-                            proc,
-                            ctx,
-                            ctx.app.interfaces<Process::PortFactoryList>(),
-                            proc.inlets(),
-                            proc.outlets(),
-                            {}};
+      LayoutBuilder<Info> b{
+          *rootItem,     proc,
+          ctx,           ctx.app.interfaces<Process::PortFactoryList>(),
+          proc.inlets(), proc.outlets(),
+      };
       b.rootUi = &rootItem->ui;
       b.layout = parent;
 

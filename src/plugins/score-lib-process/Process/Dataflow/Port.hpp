@@ -272,6 +272,7 @@ public:
   MODEL_METADATA_IMPL_HPP(Outlet)
 
   ~Outlet() override;
+  virtual void setupExecution(ossia::outlet&) const noexcept;
   virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
   virtual void mapExecution(
       ossia::outlet&,

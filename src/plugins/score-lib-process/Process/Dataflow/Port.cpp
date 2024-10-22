@@ -337,6 +337,8 @@ void ControlInlet::setValue(const ossia::value& value)
 
 Outlet::~Outlet() { }
 
+void Outlet::setupExecution(ossia::outlet&) const noexcept { }
+
 Outlet::Outlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Outlet"), parent}
 {
