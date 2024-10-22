@@ -86,35 +86,35 @@ struct Ellipses
     Image = QPixmap::fromImage(temp);                         \
   } while(0)
 
-#define DRAW_ELLIPSE_ADDR_IN(Image, Pen, Brush, Ellipse)      \
-  do                                                          \
-  {                                                           \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
-    temp.fill(Qt::transparent);                               \
-    temp.setDevicePixelRatio(dpi);                            \
-    QPainter p(&temp);                                        \
-    p.setRenderHint(QPainter::Antialiasing, true);            \
-    p.setPen(Pen);                                            \
-    p.setBrush(Brush);                                        \
-    p.drawEllipse(Ellipse);                                   \
-    p.setCompositionMode(QPainter::CompositionMode_Overlay);  \
-    p.drawLine(QPointF{3., 3.}, QPointF{sz - 4., sz - 4.});   \
-    Image = QPixmap::fromImage(temp);                         \
+#define DRAW_ELLIPSE_ADDR_IN(Image, Pen, Brush, Ellipse)                                \
+  do                                                                                    \
+  {                                                                                     \
+    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied);                           \
+    temp.fill(Qt::transparent);                                                         \
+    temp.setDevicePixelRatio(dpi);                                                      \
+    QPainter p(&temp);                                                                  \
+    p.setRenderHint(QPainter::Antialiasing, true);                                      \
+    p.setPen(Pen);                                                                      \
+    p.setBrush(Brush);                                                                  \
+    p.drawEllipse(Ellipse);                                                             \
+    p.setCompositionMode(QPainter::CompositionMode_Overlay);                            \
+    p.drawLine(QPointF{3. / dpi, 3. / dpi}, QPointF{(sz - 4.) / dpi, (sz - 4.) / dpi}); \
+    Image = QPixmap::fromImage(temp);                                                   \
   } while(0)
-#define DRAW_ELLIPSE_ADDR_OUT(Image, Pen, Brush, Ellipse)       \
-  do                                                            \
-  {                                                             \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied);   \
-    temp.fill(Qt::transparent);                                 \
-    temp.setDevicePixelRatio(dpi);                              \
-    QPainter p(&temp);                                          \
-    p.setRenderHint(QPainter::Antialiasing, true);              \
-    p.setPen(Pen);                                              \
-    p.setBrush(Brush);                                          \
-    p.drawEllipse(Ellipse);                                     \
-    p.setCompositionMode(QPainter::CompositionMode_ColorDodge); \
-    p.drawLine(QPointF{3., sz - 4.}, QPointF{sz - 4., 3.});     \
-    Image = QPixmap::fromImage(temp);                           \
+#define DRAW_ELLIPSE_ADDR_OUT(Image, Pen, Brush, Ellipse)                               \
+  do                                                                                    \
+  {                                                                                     \
+    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied);                           \
+    temp.fill(Qt::transparent);                                                         \
+    temp.setDevicePixelRatio(dpi);                                                      \
+    QPainter p(&temp);                                                                  \
+    p.setRenderHint(QPainter::Antialiasing, true);                                      \
+    p.setPen(Pen);                                                                      \
+    p.setBrush(Brush);                                                                  \
+    p.drawEllipse(Ellipse);                                                             \
+    p.setCompositionMode(QPainter::CompositionMode_ColorDodge);                         \
+    p.drawLine(QPointF{3. / dpi, (sz - 4.) / dpi}, QPointF{(sz - 4.) / dpi, 3. / dpi}); \
+    Image = QPixmap::fromImage(temp);                                                   \
   } while(0)
 
     const auto& audiopen = skin.AudioPortPen();
