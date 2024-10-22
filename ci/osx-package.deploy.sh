@@ -24,7 +24,11 @@ if [[ "${CI_IS_AZURE}" = "1" ]]; then
   security unlock-keychain -p travis build.keychain
   export PACKAGE_ARCH=Intel
 else
-  export PACKAGE_ARCH=AppleSilicon
+  if [[ "$MACOS_ARCH" = "x86_64" ]]; then
+    export PACKAGE_ARCH=Intel
+  else
+    export PACKAGE_ARCH=AppleSilicon
+  fi
 fi
 
 
