@@ -23,6 +23,7 @@
 
 #include <ossia-qt/invoke.hpp>
 
+#include <QAction>
 #include <QApplication>
 #include <QCheckBox>
 #include <QFileDialog>
