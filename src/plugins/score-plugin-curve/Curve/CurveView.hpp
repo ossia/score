@@ -17,6 +17,8 @@ class QWidget;
 
 namespace Curve
 {
+class Presenter;
+class Model;
 class SCORE_PLUGIN_CURVE_EXPORT View final
     : public QObject
     , public QGraphicsItem
@@ -27,6 +29,8 @@ public:
   explicit View(QGraphicsItem* parent) noexcept;
   ~View() override;
 
+  void setModel(const Curve::Presenter* p, const Curve::Model* m) noexcept;
+  void setDirectDraw(bool) noexcept;
   void setDefaultWidth(double w) noexcept;
   void setRect(const QRectF& theRect) noexcept;
   QRectF boundingRect() const override;
@@ -64,10 +68,13 @@ private:
 
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
+  const Curve::Presenter* m_presenter{};
+  const Curve::Model* m_model{};
   QRectF m_rect; // The rect in which the whole curve must fit.
   QRectF m_selectArea;
   QPointF m_tooltipPos;
   QString m_tooltip;
   double m_defaultW{};
+  bool m_directDraw{false};
 };
 }

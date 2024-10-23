@@ -109,13 +109,24 @@ void Presenter::setPos(SegmentView& segment)
   segment.setRect({0., 0., endx - startx, m_localRect.height()});
 }
 
+static constexpr int direct_draw_cutoff = 3000;
 void Presenter::setupSignals()
 {
   con(m_model, &Model::segmentAdded, this, [&](const SegmentModel* segment) {
+    if(m_model.points().size() > direct_draw_cutoff)
+    {
+      m_view->setDirectDraw(true);
+      return;
+    }
     addSegment(new SegmentView{segment, m_style, m_view});
   });
 
   con(m_model, &Model::pointAdded, this, [&](const PointModel* point) {
+    if(m_model.points().size() > direct_draw_cutoff)
+    {
+      m_view->setDirectDraw(true);
+      return;
+    }
     addPoint(new PointView{point, m_style, m_view});
   });
 
@@ -126,6 +137,7 @@ void Presenter::setupSignals()
       [&](const Id<SegmentModel>& m) { m_segments.erase(m); });
 
   con(m_model, &Model::cleared, this, [&]() {
+    m_view->setDirectDraw(false);
     m_points.remove_all();
     m_segments.remove_all();
   });
@@ -136,14 +148,23 @@ void Presenter::setupSignals()
 void Presenter::setupView()
 {
   // Initialize the elements
-  for(const auto& segment : m_model.segments())
+  m_view->setModel(this, &m_model);
+  if(m_model.points().size() < 3000)
   {
-    addSegment(new SegmentView{&segment, m_style, m_view});
-  }
+    for(const auto& segment : m_model.segments())
+    {
+      addSegment(new SegmentView{&segment, m_style, m_view});
+    }
 
-  for(PointModel* pt : m_model.points())
+    for(PointModel* pt : m_model.points())
+    {
+      addPoint(new PointView{pt, m_style, m_view});
+    }
+    m_view->setDirectDraw(false);
+  }
+  else
   {
-    addPoint(new PointView{pt, m_style, m_view});
+    m_view->setDirectDraw(true);
   }
 }
 
@@ -258,6 +279,19 @@ void Presenter::setupSegmentConnections(SegmentView* seg_view)
 
 void Presenter::modelReset()
 {
+  const int64_t model_points_n = m_model.points().size();
+  if(model_points_n > direct_draw_cutoff)
+  {
+    m_points.remove_all();
+    m_segments.remove_all();
+    m_view->setDirectDraw(true);
+    return;
+  }
+  else
+  {
+    m_view->setDirectDraw(false);
+  }
+
   // 1. We put our current elements in our pool.
   std::vector<PointView*> points = m_points.as_vec();
   std::vector<SegmentView*> segments = m_segments.as_vec();

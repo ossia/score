@@ -29,6 +29,9 @@ struct SCORE_PLUGIN_CURVE_EXPORT Style
   QBrush BrushPoint{};
   QBrush BrushPointSelected{};
 
+  QPen PenDataset{};
+  QPen PenDatasetDisabled{};
+
   void init(const score::Skin& s);
   void update();
 };

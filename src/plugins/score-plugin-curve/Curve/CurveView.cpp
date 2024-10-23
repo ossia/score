@@ -4,6 +4,11 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/CurveStyle.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -33,6 +38,17 @@ View::View(QGraphicsItem* parent) noexcept
 
 View::~View() { }
 
+void View::setModel(const Presenter* p, const Model* m) noexcept
+{
+  m_presenter = p;
+  m_model = m;
+}
+
+void View::setDirectDraw(bool d) noexcept
+{
+  m_directDraw = d;
+}
+
 void View::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
@@ -40,6 +56,29 @@ void View::paint(
   {
     painter->setPen(Qt::white);
     painter->drawRect(m_selectArea);
+  }
+
+  if(m_directDraw)
+  {
+    auto& pts = m_model->points();
+    if(pts.size() < 2)
+      return;
+
+    auto& style = m_presenter->m_style;
+    painter->setPen(
+        m_presenter->m_enabled ? style.PenDataset : style.PenDatasetDisabled);
+    static constexpr auto scale = [](QPointF first, QSizeF second) {
+      return QPointF{first.x() * second.width(), (1. - first.y()) * second.height()};
+    };
+
+    auto sz = m_presenter->m_localRect.size();
+    for(auto orig = pts.begin(), next = ++pts.begin(); next != pts.end(); ++orig, ++next)
+    {
+      auto p1 = scale((*orig)->pos(), sz);
+      auto p2 = scale((*next)->pos(), sz);
+
+      painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
+    }
   }
 }
 

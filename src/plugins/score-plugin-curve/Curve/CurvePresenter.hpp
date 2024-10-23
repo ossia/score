@@ -30,6 +30,7 @@ class Model;
 
 class SCORE_PLUGIN_CURVE_EXPORT Presenter final : public QObject
 {
+  friend class View;
   W_OBJECT(Presenter)
 public:
   Presenter(

@@ -27,5 +27,8 @@ void Style::update()
   PenPointSelected = PointSelected.color();
   BrushPoint = Point;
   BrushPointSelected = PointSelected;
+
+  PenDataset = QPen{Segment, 1, Qt::PenStyle::SolidLine};
+  PenDatasetDisabled = QPen{SegmentDisabled, 1, Qt::PenStyle::SolidLine};
 }
 }
