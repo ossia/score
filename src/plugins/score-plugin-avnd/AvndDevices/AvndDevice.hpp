@@ -10,6 +10,8 @@
 
 #include <QFormLayout>
 
+#include <avnd/concepts/generic.hpp>
+
 namespace oscr
 {
 template <typename Node>
@@ -19,6 +21,8 @@ public:
   explicit Protocol(const ossia::net::network_context_ptr& ctx)
       : ossia::net::protocol_base{flags{}}
   {
+    if_possible(this->impl.io_context = &ctx->context);
+    if_possible(this->impl.init());
   }
 
   template <bool Input, typename Field>
