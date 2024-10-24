@@ -95,7 +95,7 @@ void ScenarioDocumentModel::finishLoading()
     auto cbl = new Process::Cable{DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
     auto snk = cbl->sink().try_find(m_context);
-    if(src && snk)
+    if(src && snk && (cables.find(cbl->id()) == cables.end()))
     {
       src->addCable(*cbl);
       snk->addCable(*cbl);
@@ -118,7 +118,7 @@ void ScenarioDocumentModel::finishLoading()
       auto cbl = new Process::Cable{JSONObject::Deserializer{json}, this};
       auto src = cbl->source().try_find(m_context);
       auto snk = cbl->sink().try_find(m_context);
-      if(src && snk)
+      if(src && snk && (cables.find(cbl->id()) == cables.end()))
       {
         src->addCable(*cbl);
         snk->addCable(*cbl);
