@@ -5,7 +5,19 @@ export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/SDK"
 export PATH=/usr/local/bin:/opt/homebrew/bin:$PATH
 
-if [[ -d /Applications/Xcode_15.4.app ]]; then
+if [[ -d /Applications/Xcode_16.2.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_16.2.app
+  sudo xcode-select -s "$XCODE_ROOT"
+elif [[ -d /Applications/Xcode_16.1.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_16.1.app
+  sudo xcode-select -s "$XCODE_ROOT"
+elif [[ -d /Applications/Xcode_16.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_16.app
+  sudo xcode-select -s "$XCODE_ROOT"
+elif [[ -d /Applications/Xcode_16.0.app ]]; then
+  export XCODE_ROOT=/Applications/Xcode_16.0.app
+  sudo xcode-select -s "$XCODE_ROOT"
+elif [[ -d /Applications/Xcode_15.4.app ]]; then
   export XCODE_ROOT=/Applications/Xcode_15.4.app
   sudo xcode-select -s "$XCODE_ROOT"
 elif [[ -d /Applications/Xcode_15.3.app ]]; then
