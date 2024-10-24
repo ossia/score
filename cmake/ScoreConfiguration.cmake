@@ -105,6 +105,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 
     if(("${CMAKE_CXX_COMPILER_VERSION}" MATCHES "^18.*") AND LLVM_LIBCXX)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
+    elseif(APPLE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
     endif()
 endif()
 
@@ -141,6 +143,7 @@ if(has_w_dtor_name_flag)
 endif()
 
 check_cxx_compiler_flag(-std=c++23 has_std_23_flag)
+check_cxx_compiler_flag(-std=c++2b has_std_2b_flag)
 check_cxx_compiler_flag(-std=c++20 has_std_20_flag)
 check_cxx_compiler_flag(-std=c++2a has_std_2a_flag)
 
