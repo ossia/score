@@ -106,7 +106,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     if(("${CMAKE_CXX_COMPILER_VERSION}" MATCHES "^18.*") AND LLVM_LIBCXX)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
     elseif(APPLE)
+      if(NOT x86_64 IN_LIST CMAKE_OSX_ARCHITECTURES)
+        # In XCode 15.2 / macos-13 it causes an error in <chrono> due to
+        # including <to_chars> only available from macos 13.3
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
+      endif()
     endif()
 endif()
 
