@@ -182,7 +182,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
           QStringLiteral(":/icons/nodal_on.png"),
           QStringLiteral(":/icons/nodal_disabled.png"));
 
-      connect(timeline_act, &QAction::toggled, this, [this, timeline_act](bool checked) {
+      connect(timeline_act, &QAction::toggled, this, [timeline_act](bool checked) {
         if(!checked)
         {
           setIcons(
@@ -468,6 +468,48 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       });
     });
   }
-}
+// FIXME
+#if 0
+  {
+    auto settings = root.create_child("settings");
+    auto audio = settings->create_child("audio");
+    {
+      {
+        auto node = audio->create_child("backend");
+        auto address = node->create_parameter(ossia::val_type::STRING);
+        address->add_callback([&](const ossia::value& v) {
+          QString val = QString::fromStdString(v.get<std::string>());
+          ossia::qt::run_async(this, [this, val] {
+            auto& set = score::AppContext().settings<Audio::Settings::Model>();
+          });
+        });
+      }
 
+      {
+        auto node = audio->create_child("buffer_size");
+        auto address = node->create_parameter(ossia::val_type::INT);
+        address->add_callback([&](const ossia::value& v) {
+          int val = v.get<int>();
+          ossia::qt::run_async(this, [this, val] {
+            auto& set = score::AppContext().settings<Audio::Settings::Model>();
+            set.setBufferSize(val);
+          });
+        });
+      }
+
+      {
+        auto node = audio->create_child("rate");
+        auto address = node->create_parameter(ossia::val_type::INT);
+        address->add_callback([&](const ossia::value& v) {
+          int val = v.get<int>();
+          ossia::qt::run_async(this, [this, val] {
+            auto& set = score::AppContext().settings<Audio::Settings::Model>();
+            set.setRate(val);
+          });
+        });
+      }
+    }
+  }
+#endif
+}
 }

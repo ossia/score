@@ -64,7 +64,7 @@ ProcessModel::ProcessModel(
     , m_loops{false}
 {
   con(metadata(), &score::ModelMetadata::NameChanged, this,
-      [=] { prettyNameChanged(); });
+      [this] { prettyNameChanged(); });
   connect(this, &Process::ProcessModel::resetExecution, this, [this] {
     for(auto& p : this->m_inlets)
       p->executionReset();
@@ -104,7 +104,7 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 {
   vis.writeTo(*this);
   con(metadata(), &score::ModelMetadata::NameChanged, this,
-      [=] { prettyNameChanged(); });
+      [this] { prettyNameChanged(); });
 }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
@@ -112,7 +112,7 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
 {
   vis.writeTo(*this);
   con(metadata(), &score::ModelMetadata::NameChanged, this,
-      [=] { prettyNameChanged(); });
+      [this] { prettyNameChanged(); });
 }
 
 QString ProcessModel::prettyName() const noexcept

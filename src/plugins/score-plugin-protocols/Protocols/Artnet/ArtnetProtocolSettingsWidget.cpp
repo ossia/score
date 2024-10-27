@@ -344,7 +344,7 @@ public:
           {
             // All the pixels are in the group
             gp.pixels.reserve(matrix.pixels.size());
-            for(int i = 0; i < matrix.pixels.size(); i++)
+            for(std::size_t i = 0; i < matrix.pixels.size(); i++)
               gp.pixels.push_back(i);
           }
         }

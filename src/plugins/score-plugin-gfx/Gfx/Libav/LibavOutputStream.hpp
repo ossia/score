@@ -81,8 +81,9 @@ struct OutputStream
     this->st->id = oc->nb_streams - 1;
 
     // Init hw accel
-    AVBufferRef* hw_ctx{};
+    // FIXME IMPLEMENT
 #if 0
+    AVBufferRef* hw_ctx{};
     {
       // HW Accel
       AVHWDeviceType device = AV_HWDEVICE_TYPE_QSV;

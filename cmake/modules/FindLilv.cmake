@@ -50,9 +50,9 @@ if(Lilv_FOUND)
       )
     endif()
 
+    target_include_directories(Lilv SYSTEM INTERFACE ${Lilv_INCLUDE_DIR})
     set_target_properties(Lilv PROPERTIES
-        IMPORTED_LOCATION ${Lilv_LIBRARY}
-        INTERFACE_INCLUDE_DIRECTORIES ${Lilv_INCLUDE_DIR})
+        IMPORTED_LOCATION ${Lilv_LIBRARY})
 else()
     set(Lilv_LIBRARIES)
     set(Lilv_INCLUDE_DIRS)

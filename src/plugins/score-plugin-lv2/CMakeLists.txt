@@ -54,11 +54,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_media
 )
 
-# Lilv is used in API header, it must stay public
-target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
+target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
 target_include_directories(${PROJECT_NAME} 
   PRIVATE 
     3rdparty/readerwriterqueue
+)
+
+target_include_directories(${PROJECT_NAME}
+  SYSTEM PRIVATE
     ${LV2_PATH}
 )
 

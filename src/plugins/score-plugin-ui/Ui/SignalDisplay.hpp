@@ -165,7 +165,7 @@ struct Node
           auto& val = *v.target<std::vector<ossia::value>>();
           if(val.size() < 2)
             return;
-          int num_values = val.size() - 1;
+          // FIXME int num_values = val.size() - 1;
 
           vec_type vv;
 

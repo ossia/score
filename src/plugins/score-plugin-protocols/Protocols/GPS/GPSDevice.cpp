@@ -240,7 +240,6 @@ bool GPSDevice::reconnect()
     const auto& gps = ossia::net::libgpsd::instance();
     {
       auto pproto = std::make_unique<ossia::net::gps_protocol>(gps, set, m_ctx);
-      auto& proto = *pproto;
       auto dev = std::make_unique<ossia::net::generic_device>(
           std::move(pproto), settings().name.toStdString());
       m_dev = std::move(dev);

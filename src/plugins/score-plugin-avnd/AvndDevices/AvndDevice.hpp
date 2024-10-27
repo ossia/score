@@ -80,7 +80,7 @@ public:
   bool push(const ossia::net::parameter_base& param, const ossia::value& v) override
   {
     // Push on input : process
-    for(int i = 0; i < inputs.size(); i++)
+    for(int i = 0; i < std::ssize(inputs); i++)
     {
       auto* p = inputs[i];
       if(p == &param)

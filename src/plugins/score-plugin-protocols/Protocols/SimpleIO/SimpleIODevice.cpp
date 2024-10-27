@@ -1,6 +1,6 @@
+
 #include <ossia/detail/config.hpp>
 
-#include <QDebug>
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
 #include "SimpleIODevice.hpp"
 #include "SimpleIOSpecificSettings.hpp"

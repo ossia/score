@@ -10,6 +10,7 @@ add_library(gamma STATIC
 
 target_include_directories(
   gamma
+  SYSTEM
   PUBLIC
     "${CMAKE_CURRENT_LIST_DIR}/Gamma"
 )

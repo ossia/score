@@ -54,9 +54,9 @@ using Type = ossia::variant<GPIO, PWM, ADC, DAC, HID, Custom>;
 
 struct Port
 {
-  Type control;
-  QString name;
-  QString path;
+  Type control{};
+  QString name{};
+  QString path{};
 };
 
 }

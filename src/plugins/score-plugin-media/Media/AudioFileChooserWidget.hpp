@@ -64,7 +64,7 @@ struct AudioFileChooser : WidgetFactory::FileChooser
       QGraphicsItem* parent, QObject* context)
   {
     auto bt = new score::QGraphicsWaveformButton{parent};
-    auto on_open = [bt, &inlet, &ctx] {
+    auto on_open = [&inlet, &ctx] {
       auto filename
           = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
       if(filename.isEmpty())
@@ -74,7 +74,7 @@ struct AudioFileChooser : WidgetFactory::FileChooser
           .submit<WidgetFactory::SetControlValue<Control_T>>(
               inlet, filename.toStdString());
     };
-    auto on_set = [bt, &inlet, &ctx](const QString& filename) {
+    auto on_set = [&inlet, &ctx](const QString& filename) {
       if(filename.isEmpty())
         return;
 

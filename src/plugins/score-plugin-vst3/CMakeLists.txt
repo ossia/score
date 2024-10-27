@@ -12,7 +12,7 @@ if(SCORE_FAST_DEV_BUILD)
 endif()
 
 # Packages
-if(NOT TARGET ${QT_PREFIX}::WebSockets)
+if(NOT TARGET "${QT_PREFIX}::WebSockets")
   # VST3 support requires websockets
   return()
 endif()
@@ -31,7 +31,7 @@ set(SMTG_ADD_VST3_HOSTING_SAMPLES 0 CACHE INTERNAL "")
 if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-non-virtual-dtor")
 endif()
-add_subdirectory("${VST3_SDK_ROOT}" "${CMAKE_BINARY_DIR}/vst3")
+add_subdirectory("${VST3_SDK_ROOT}" "${CMAKE_BINARY_DIR}/vst3" SYSTEM)
 target_compile_options(sdk_common PRIVATE "${OSSIA_DISABLE_WARNINGS_FLAGS}")
 target_compile_options(sdk_hosting PRIVATE "${OSSIA_DISABLE_WARNINGS_FLAGS}")
 

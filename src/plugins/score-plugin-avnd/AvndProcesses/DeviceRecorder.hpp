@@ -400,13 +400,7 @@ public:
     return result;
   }
 
-  size_t cols() const
-  {
-    size_t result{0};
-    for(const auto cell : header())
-      result += 1;
-    return result;
-  }
+  size_t cols() const { return header().length(); }
 };
 }
 

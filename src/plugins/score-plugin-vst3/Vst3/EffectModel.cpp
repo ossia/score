@@ -600,8 +600,9 @@ void Model::loadPreset(const Process::Preset& preset)
 
   if(auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd())
   {
-    auto idx = JsonValue{it->value}.toInt();
+    // FIXME
     return;
+    // auto idx = JsonValue{it->value}.toInt();
     //    this->fx.units->getProgramInfo();
   }
   else

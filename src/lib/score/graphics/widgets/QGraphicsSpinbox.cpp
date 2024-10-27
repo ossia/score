@@ -180,11 +180,9 @@ QRectF QGraphicsIntSpinbox::boundingRect() const
 void QGraphicsIntSpinbox::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = score::Skin::instance();
   const int val = map(m_value);
 
   DefaultGraphicsSpinboxImpl::paint(
       *this, score::Skin::instance(), score::toNumber(val), painter, widget);
 }
-
 }

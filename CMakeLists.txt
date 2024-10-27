@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
   # BOOST_ROOT handling on RPi
   cmake_policy(VERSION 3.27)

@@ -37,5 +37,9 @@ else()
   )
 
   # target_compile_options(sh4lt PUBLIC -DSH4LT_VERSION_STRING="1.3.60" )
-  target_include_directories(sh4lt PUBLIC "${CMAKE_CURRENT_LIST_DIR}/sh4lt")
+  target_include_directories(sh4lt SYSTEM PUBLIC "${CMAKE_CURRENT_LIST_DIR}/sh4lt")
+
+  if(has_w_unneeded_internal_declaration_flag)
+    target_compile_options(sh4lt PRIVATE -Wno-unneeded-internal-declaration)
+  endif()
 endif()

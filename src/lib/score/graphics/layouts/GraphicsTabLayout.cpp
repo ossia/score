@@ -18,7 +18,7 @@ void GraphicsTabLayout::layout()
   updateChildrenRects(items);
   m_pages.assign(items.begin(), items.end());
 
-  SCORE_ASSERT(items.size() == m_tabs.size());
+  SCORE_ASSERT(items.size() == std::ssize(m_tabs));
   const int N = items.size();
 
   // Create a button for each item

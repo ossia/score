@@ -23,5 +23,7 @@ SelectionButton::SelectionButton(
   setIcon(icon);
   setAutoRaise(true);
 
-  connect(this, &QToolButton::clicked, this, [=]() { m_dispatcher.select(target); });
+  connect(this, &QToolButton::clicked, this, [this, target] {
+    m_dispatcher.select(target);
+  });
 }

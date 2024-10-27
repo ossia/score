@@ -585,12 +585,12 @@ if(APPLE)
     )
 endif()
 
-target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}")
-target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownloader/src")
-target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
-target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/quickcpplib/include")
-target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/outcome/include")
-target_include_directories(score_lib_base PRIVATE "${3RDPARTY_FOLDER}/llfio/include")
+target_include_directories(score_lib_base SYSTEM PUBLIC "${3RDPARTY_FOLDER}")
+target_include_directories(score_lib_base SYSTEM PUBLIC "${3RDPARTY_FOLDER}/zipdownloader/src")
+target_include_directories(score_lib_base SYSTEM PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
+target_include_directories(score_lib_base SYSTEM PRIVATE "${3RDPARTY_FOLDER}/quickcpplib/include")
+target_include_directories(score_lib_base SYSTEM PRIVATE "${3RDPARTY_FOLDER}/outcome/include")
+target_include_directories(score_lib_base SYSTEM PRIVATE "${3RDPARTY_FOLDER}/llfio/include")
 
 target_link_libraries(score_lib_base
   PUBLIC

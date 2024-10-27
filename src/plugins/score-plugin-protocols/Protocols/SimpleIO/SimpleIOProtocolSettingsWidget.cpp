@@ -40,8 +40,8 @@ namespace Protocols
 {
 struct SimpleIOData : SimpleIO::Port
 {
-  QString tree_name;
-  QString label;
+  QString tree_name{};
+  QString label{};
 };
 
 using SimpleIONode = TreeNode<SimpleIOData>;

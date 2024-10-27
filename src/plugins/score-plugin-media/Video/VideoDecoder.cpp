@@ -243,6 +243,7 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
   return read;
 }
 
+#if 0
 static void listHardwareDecodeTextureFormats(AVFrame* frame)
 {
 #if LIBAVUTIL_VERSION_MAJOR >= 57
@@ -259,6 +260,7 @@ static void listHardwareDecodeTextureFormats(AVFrame* frame)
   av_free(arr);
 #endif
 }
+#endif
 
 // Mainly used for HAP which we do not want to decode through ffmpeg
 void LibAVDecoder::load_packet_in_frame(const AVPacket& packet, AVFrame& frame)
@@ -634,11 +636,11 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   // TODO - maybe we should also store the "last dequeued dts" from the
   // decoder side - this way no need to seek if we are in the interval
   // const bool seek_forward = dts >= this->m_last_dequeued_dts;
-#if LIBAVFORMAT_VERSION_MAJOR >= 59
-  const int64_t start = 0;
-#else
-  const int64_t start = m_avstream->first_dts;
-#endif
+  // #if LIBAVFORMAT_VERSION_MAJOR >= 59
+  //   const int64_t start = 0;
+  // #else
+  //   const int64_t start = m_avstream->first_dts;
+  // #endif
 
   if(!ossia::seek_to_flick(m_formatContext, m_codecContext, m_avstream, flicks))
   {

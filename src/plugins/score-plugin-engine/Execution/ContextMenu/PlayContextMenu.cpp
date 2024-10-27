@@ -76,8 +76,10 @@ PlayContextMenu::PlayContextMenu(
     }
   });
   m_playEvents = new QAction{tr("Play (Events)"), this};
+
+  // FIXME
+  /*
   connect(m_playEvents, &QAction::triggered, [this] {
-    /*
     if (auto sm = parent->focusedScenarioModel())
     {
         auto s_plugin = sm->findChild<OSSIAScenarioElement*>(QString(),
@@ -88,8 +90,8 @@ PlayContextMenu::PlayContextMenu(
             s_plugin->events().at(ev->id())->OSSIAEvent()->happen();
         }
     }
-    */
   });
+    */
 
   /// Play tool ///
   con(exec_signals, &Scenario::ScenarioExecution::playState, this,

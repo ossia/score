@@ -133,6 +133,8 @@ endif()
 check_cxx_compiler_flag(-Wno-gnu-anonymous-struct has_w_gnu_anonymous_struct_flag)
 check_cxx_compiler_flag(-Wno-nested-anon-types has_w_nested_anon_types_flag)
 check_cxx_compiler_flag(-Wno-dtor-name has_w_dtor_name_flag)
+check_cxx_compiler_flag(-Wno-null-conversion has_w_null_conversion_flag)
+check_cxx_compiler_flag(-Wno-unneeded-internal-declaration has_w_unneeded_internal_declaration_flag)
 
 if(has_w_gnu_anonymous_struct_flag)
   add_compile_options(-Wno-gnu-anonymous-struct)
@@ -144,6 +146,10 @@ endif()
 
 if(has_w_dtor_name_flag)
   add_compile_options(-Wno-dtor-name)
+endif()
+
+if(has_w_null_conversion_flag)
+  add_compile_options(-Wno-null-conversion)
 endif()
 
 check_cxx_compiler_flag(-std=c++23 has_std_23_flag)

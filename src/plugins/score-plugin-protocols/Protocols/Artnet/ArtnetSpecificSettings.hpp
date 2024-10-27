@@ -75,7 +75,7 @@ struct ArtnetSpecificSettings
   {
     Source, // score sends DMX
     Sink    // score receives DMX
-  } mode;
+  } mode{Source};
 };
 }
 
