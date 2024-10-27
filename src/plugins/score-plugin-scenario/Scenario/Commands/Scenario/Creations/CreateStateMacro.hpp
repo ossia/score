@@ -19,5 +19,17 @@ class CreateStateMacro final : public score::AggregateCommand
   SCORE_COMMAND_DECL(CommandFactoryName(), CreateStateMacro, "Drop a state")
 public:
 };
+
+/**
+ * @brief The CreateDot class
+ *
+ * Used to create a dot by double clicking
+ *
+ */
+class CreateDot final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateDot, "Create a dot")
+public:
+};
 }
 }

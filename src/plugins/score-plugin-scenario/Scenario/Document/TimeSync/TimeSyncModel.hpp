@@ -20,7 +20,6 @@
 
 #include <score_plugin_scenario_export.h>
 
-#include <chrono>
 #include <verdigris>
 class DataStream;
 class JSONObject;
@@ -110,8 +109,14 @@ public:
   PROPERTY(
       ossia::musical_sync,
       musicalSync READ musicalSync WRITE setMusicalSync NOTIFY musicalSyncChanged)
+  PROPERTY(bool, active READ active WRITE setActive NOTIFY activeChanged)
+  PROPERTY(
+      bool, autotrigger READ autotrigger WRITE setAutotrigger NOTIFY autotriggerChanged)
   PROPERTY(
       bool, startPoint READ isStartPoint WRITE setStartPoint NOTIFY startPointChanged)
+  PROPERTY(
+      State::Expression,
+      expression READ expression WRITE setExpression NOTIFY triggerChanged)
 
 private:
   TimeVal m_date{};

@@ -9,11 +9,14 @@
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Comment/SetCommentText.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
+#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
 #include <Scenario/Document/Interval/Graph/GraphIntervalPresenter.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
@@ -757,9 +760,13 @@ void ScenarioPresenter::doubleClick(QPointF pt)
 
   auto sp = toScenarioPoint(pt);
 
-  // Just create a dot
-  auto cmd = new Command::CreateTimeSync_Event_State{model(), sp.date, sp.y};
-  CommandDispatcher<>{m_context.context.commandStack}.submit(cmd);
+  Scenario::Command::Macro m{new Scenario::Command::CreateDot, m_context.context};
+  auto [ts, ev, s] = m.createDot(model(), sp);
+
+  m.setProperty<TimeSyncModel::p_startPoint>(ts, true);
+  m.setProperty<TimeSyncModel::p_active>(ts, true);
+
+  m.commit();
 }
 
 void ScenarioPresenter::on_focusChanged()

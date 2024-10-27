@@ -70,8 +70,8 @@ to the root of a score.)_"));
     m_btnLayout.addWidget(m_autotrigger);
     connect(m_autotrigger, &QAbstractButton::toggled, this, [&](bool t) {
       if(t != object.autotrigger())
-        CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetAutoTrigger>(
-            object, t);
+        CommandDispatcher<>{ctx.commandStack}
+            .submit<Scenario::Command::SetTimeSyncIsAutoTrigger>(object, t);
     });
     connect(&object, &TimeSyncModel::autotriggerChanged, this, [&](bool t) {
       if(t != m_autotrigger->isDown())

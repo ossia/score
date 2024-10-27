@@ -8,31 +8,10 @@
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
 
-namespace Scenario
+namespace Scenario::Command
 {
-class TimeSyncModel;
-namespace Command
-{
-using TimeSyncModel = ::Scenario::TimeSyncModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT SetAutoTrigger final : public score::Command
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetAutoTrigger, "Change a trigger")
-public:
-  SetAutoTrigger(const TimeSyncModel& tn, bool t);
+using TimeSyncModel = Scenario::TimeSyncModel;
 
-  void undo(const score::DocumentContext& ctx) const override;
-  void redo(const score::DocumentContext& ctx) const override;
-
-protected:
-  void serializeImpl(DataStreamInput&) const override;
-  void deserializeImpl(DataStreamOutput&) override;
-
-private:
-  Path<TimeSyncModel> m_path;
-  bool m_old{}, m_new{};
-};
-
-}
 }
 
 PROPERTY_COMMAND_T(
@@ -40,6 +19,15 @@ PROPERTY_COMMAND_T(
 SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncMusicalSync)
 
 PROPERTY_COMMAND_T(
+    Scenario::Command, SetTimeSyncIsActive, TimeSyncModel::p_active, "Set active")
+SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncIsActive)
+
+PROPERTY_COMMAND_T(
     Scenario::Command, SetTimeSyncIsStartPoint, TimeSyncModel::p_startPoint,
     "Set start point")
 SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncIsStartPoint)
+
+PROPERTY_COMMAND_T(
+    Scenario::Command, SetTimeSyncIsAutoTrigger, TimeSyncModel::p_autotrigger,
+    "Set auto-trigger")
+SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncIsAutoTrigger)
