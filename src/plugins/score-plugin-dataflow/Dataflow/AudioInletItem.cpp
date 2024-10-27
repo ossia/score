@@ -20,6 +20,6 @@ void AudioInletFactory::setupInletInspector(
   const auto& node = d->getNode(root);
 
   auto edit = Process::makeAddressCombo(root, node, port, ctx, parent);
-  lay.addRow(edit);
+  lay.addRow(port.name(), edit);
 }
 }

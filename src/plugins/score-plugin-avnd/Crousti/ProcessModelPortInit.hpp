@@ -28,14 +28,13 @@ inline void setupNewPort(Process::Port* obj)
 #if !defined(__APPLE__)
   constexpr auto name = avnd::get_name<T>();
   obj->setName(fromStringView(name));
-
-  if constexpr(constexpr auto desc = avnd::get_description<T>(); !desc.empty())
-    obj->setDescription(fromStringView(desc));
+  if constexpr(avnd::has_description<T>)
+    obj->setDescription(fromStringView(avnd::get_description<T>()));
 #else
   auto name = avnd::get_name<T>();
   obj->setName(fromStringView(name));
-  if(auto desc = avnd::get_description<T>(); !desc.empty())
-    obj->setDescription(fromStringView(desc));
+  if constexpr(avnd::has_description<T>)
+    obj->setDescription(fromStringView(avnd::get_description<T>()));
 #endif
 }
 

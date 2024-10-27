@@ -38,7 +38,7 @@ void MidiInletFactory::setupInletInspector(
     }
   });
 
-  lay.addRow(Process::makeDeviceCombo(midiDevices, port, ctx, parent));
+  lay.addRow(port.name(), Process::makeDeviceCombo(midiDevices, port, ctx, parent));
 #endif
 }
 

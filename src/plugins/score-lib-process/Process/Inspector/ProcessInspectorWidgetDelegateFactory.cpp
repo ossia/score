@@ -81,6 +81,7 @@ public:
       : QWidget{parent}
       , m_proc{&const_cast<Process::ProcessModel&>(process)}
   {
+    setObjectName("Process::InspectorWidget");
     auto lay = new Inspector::VBoxLayout{this};
 
     auto label = new TextLabel{
@@ -228,22 +229,25 @@ public:
       m_buttons->addWidget(controlsToggle);
     }
 
+    // Custom widget
+    // FIXME to be removed, eventually
     if(w)
-    {
       lay->addWidget(w);
-      lay->addStretch(100);
-    }
-    else
-    {
-      auto scroll = new QScrollArea{};
-      scroll->setFrameShape(QFrame::NoFrame);
-      scroll->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
-      scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-      scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-      scroll->setWidgetResizable(true);
-      scroll->setWidget(new PortListWidget{process, doc, this});
-      lay->addWidget(scroll);
-    }
+
+    // List of ports
+    auto scroll = new QScrollArea{};
+    scroll->setObjectName("PortListWidgetScrollArea");
+    scroll->setFrameShape(QFrame::NoFrame);
+    QSizePolicy sz;
+    sz.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
+    sz.setVerticalPolicy(QSizePolicy::MinimumExpanding);
+    sz.setVerticalStretch(255);
+    scroll->setSizePolicy(sz);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scroll->setWidgetResizable(true);
+    scroll->setWidget(new PortListWidget{process, doc, this});
+    lay->addWidget(scroll);
   }
 
   ~InspectorWidget()
