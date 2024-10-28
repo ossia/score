@@ -210,8 +210,9 @@ if(CMAKE_UNITY_BUILD)
   set(SCORE_PCH 0)
 endif()
 
-if(CMAKE_VERSION VERSION_LESS 3.17)
-  set(SCORE_PCH 0)
+check_cxx_compiler_flag("-Werror -Wextra -Wall -mcx16" has_mcx16_flag)
+if(has_mcx16_flag)
+  add_compile_options(-mcx16)
 endif()
 
 # Commit and version information

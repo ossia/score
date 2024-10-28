@@ -80,18 +80,10 @@ target_link_libraries(${APPNAME}
 
 if(SCORE_STATIC_PLUGINS)
   target_link_libraries(${APPNAME} PUBLIC ${SCORE_PLUGINS_LIST})
-  set(SCORE_MIMALLOC_TARGET mimalloc-static)
-else()
-  set(SCORE_MIMALLOC_TARGET mimalloc)
 endif()
 
-if(NOT asan IN_LIST CNINJA_FEATURES)
-#  disable mimalloc until we find out why it causes jack to be stuck..;
-#  if(NOT CMAKE_SYSTEM_NAME MATCHES Emscripten)
-#    target_link_libraries(${APPNAME} PUBLIC
-#      $<LINK_ONLY:${SCORE_MIMALLOC_TARGET}>
-#    )
-#  endif()
+if(TARGET snmalloc)
+  target_link_libraries(${APPNAME} PUBLIC snmalloc)
 endif()
 
 target_compile_definitions(${APPNAME} PUBLIC

@@ -1,15 +1,8 @@
 if(SCORE_USE_SYSTEM_LIBRARIES)
   find_package(snmalloc GLOBAL CONFIG)
 else()
-
   block()
     set(SNMALLOC_BUILD_TESTING OFF CACHE INTERNAL "" FORCE)
     add_subdirectory(3rdparty/snmalloc SYSTEM)
   endblock()
-#
-#  if(TARGET mimalloc)
-#    set_target_properties(mimalloc PROPERTIES UNITY_BUILD 0)
-#  elseif(TARGET mimalloc-static)
-#    set_target_properties(mimalloc-static PROPERTIES UNITY_BUILD 0)
-#  endif()
 endif()

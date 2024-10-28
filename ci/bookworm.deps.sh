@@ -2,16 +2,18 @@
 
 source ci/common.setup.sh
 
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 19
+
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
-     binutils gcc g++ clang clang-15 cmake \
+     binutils gcc g++ cmake \
      libasound-dev \
      ninja-build \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \
-     libclang-dev llvm-dev \
-     libclang-15-dev llvm-15-dev \
      libdbus-1-dev \
      libdrm-dev libgbm-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
