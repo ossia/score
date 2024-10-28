@@ -154,7 +154,7 @@ if(has_w_null_conversion_flag)
 endif()
 
 if(has_w_missing_exception_spec)
-  add_compile_options(-Wno-error=missing-exception-spec)
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-error=missing-exception-spec>)
 endif()
 
 check_cxx_compiler_flag(-std=c++23 has_std_23_flag)
