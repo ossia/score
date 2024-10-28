@@ -3,7 +3,7 @@
 source ci/common.setup.sh
 
 $SUDO apt-get update -qq
-$SUDO apt-get install -qq --force-yes wget
+$SUDO apt-get install -qq --force-yes wget lsb-release software-properties-common gnupg
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 $SUDO ./llvm.sh 19
