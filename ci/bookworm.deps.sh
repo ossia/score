@@ -2,9 +2,11 @@
 
 source ci/common.setup.sh
 
+$SUDO apt-get update -qq
+$SUDO apt-get install -qq --force-yes wget
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-sudo ./llvm.sh 19
+$SUDO ./llvm.sh 19
 
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
