@@ -27,5 +27,6 @@ $SUDO zypper -n install \
    qt6-shadertools-devel qt6-shadertools-private-devel \
    qt6-websockets-devel qt6-serialport-devel  \
    qt6-qml-devel qt6-qml-private-devel \
-   ffmpeg-5-libavcodec-devel ffmpeg-5-libavdevice-devel ffmpeg-5-libavfilter-devel ffmpeg-5-libavformat-devel ffmpeg-5-libswresample-devel
+   ffmpeg-5-libavcodec-devel ffmpeg-5-libavdevice-devel ffmpeg-5-libavfilter-devel ffmpeg-5-libavformat-devel ffmpeg-5-libswresample-devel \
+   zlib-ng-compat
 
