@@ -9,6 +9,7 @@ jobs:
       image: debian:${{ matrix.distro }}
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - { distro: bookworm, CC: clang-19,  CXX: clang++-19, PACKAGES: "clang-19" }
