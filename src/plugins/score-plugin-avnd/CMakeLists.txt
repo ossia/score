@@ -555,6 +555,14 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/MapTool.hpp"
+  TARGET map_tool
+  MAIN_CLASS MapTool
+  NAMESPACE ao
+)
+
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Tweener.hpp"
   TARGET tweener
   MAIN_CLASS Tweener
