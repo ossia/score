@@ -313,12 +313,12 @@ DeviceInterface::DeviceInterface(Device::DeviceSettings s)
 
 DeviceInterface::~DeviceInterface() { }
 
-const Device::DeviceSettings& DeviceInterface::settings() const
+const Device::DeviceSettings& DeviceInterface::settings() const noexcept
 {
   return m_settings;
 }
 
-const QString& DeviceInterface::name() const
+const QString& DeviceInterface::name() const noexcept
 {
   return settings().name;
 }
@@ -337,9 +337,14 @@ void DeviceInterface::addNode(const Device::Node& n)
   }
 }
 
-DeviceCapas DeviceInterface::capabilities() const
+DeviceCapas DeviceInterface::capabilities() const noexcept
 {
   return m_capas;
+}
+
+DeviceResources DeviceInterface::usedResources() const noexcept
+{
+  return {};
 }
 
 void DeviceInterface::disconnect()
@@ -836,6 +841,7 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
                   [this, addr](const ossia::value& val) { valueUpdated(addr, val); })}});
       }
 
+      // FIXME crash here when refresh audio device
       valueUpdated(addr, ossia_addr->value());
     }
     else

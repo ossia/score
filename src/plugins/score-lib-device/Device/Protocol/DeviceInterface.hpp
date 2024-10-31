@@ -70,12 +70,13 @@ public:
   explicit DeviceInterface(Device::DeviceSettings s);
   virtual ~DeviceInterface();
 
-  const Device::DeviceSettings& settings() const;
-  const QString& name() const;
+  const Device::DeviceSettings& settings() const noexcept;
+  const QString& name() const noexcept;
 
   virtual void addNode(const Device::Node& n);
 
-  DeviceCapas capabilities() const;
+  DeviceCapas capabilities() const noexcept;
+  virtual DeviceResources usedResources() const noexcept;
 
   virtual void disconnect();
   virtual bool reconnect() = 0;

@@ -112,6 +112,12 @@ public:
     return QVariant::fromValue(score::deserialize_dyn<T>(vis));
   }
 
+  //! Returns true if the device can be instantiated.
+  //! e.g. are the necessary ports available at the system level.
+  //! Second argument is a map of all the used resources by other devices in the score.
+  virtual bool checkResourcesAvailable(
+      const Device::DeviceSettings& a, const DeviceResourceMap&) const noexcept;
+
   // Returns true if the two devicesettings can coexist at the same time.
   virtual bool checkCompatibility(
       const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept

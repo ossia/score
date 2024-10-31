@@ -3,6 +3,9 @@
 #include <score/serialization/DataStreamFwd.hpp>
 #include <score/tools/Metadata.hpp>
 
+#include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/variant.hpp>
+
 #include <QString>
 #include <QVariant>
 
@@ -19,11 +22,29 @@ struct DeviceSettings
   QVariant deviceSpecificSettings;
 };
 
-inline bool operator==(const DeviceSettings& lhs, const DeviceSettings& rhs)
+inline bool operator==(const DeviceSettings& lhs, const DeviceSettings& rhs) noexcept
 {
   return lhs.protocol == rhs.protocol && lhs.name == rhs.name
          && lhs.deviceSpecificSettings == rhs.deviceSpecificSettings;
 }
+
+struct UDPPortDeviceResource
+{
+  int port{};
+};
+struct TCPPortDeviceResource
+{
+  int port{};
+};
+struct HardwarePortDeviceResource
+{
+  QString hardware;
+};
+
+using DeviceResource = ossia::variant<
+    UDPPortDeviceResource, TCPPortDeviceResource, HardwarePortDeviceResource>;
+using DeviceResources = ossia::small_vector<DeviceResource, 2>;
+using DeviceResourceMap = ossia::flat_map<QString, DeviceResources>;
 }
 
 // See note in AddressSettings.hpp for Address / Device

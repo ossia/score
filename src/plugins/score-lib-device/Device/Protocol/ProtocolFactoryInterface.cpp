@@ -24,6 +24,12 @@ ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
   return {};
 }
 
+bool ProtocolFactory::checkResourcesAvailable(
+    const Device::DeviceSettings& a, const DeviceResourceMap&) const noexcept
+{
+  return true;
+}
+
 DeviceEnumerator::~DeviceEnumerator() { }
 
 }
