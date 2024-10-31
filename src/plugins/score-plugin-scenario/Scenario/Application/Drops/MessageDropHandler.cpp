@@ -71,10 +71,10 @@ bool MessageDropHandler::drop(
   Id<StateModel> createdState;
 
   Scenario::Point pt = pres.toScenarioPoint(pos);
-
+  const auto magnetism = !bool(qApp->keyboardModifiers() & Qt::AltModifier);
   m_magnetic = magneticStates(m_magnetic, pt, pres);
   auto [x_state, y_state, magnetic] = m_magnetic;
-  if(y_state)
+  if(magnetism && y_state)
   {
     if(magnetic)
     {
@@ -87,7 +87,7 @@ bool MessageDropHandler::drop(
       createdState = i.endState();
     }
   }
-  else if(x_state)
+  else if(magnetism && x_state)
   {
     if(x_state->nextInterval())
     {

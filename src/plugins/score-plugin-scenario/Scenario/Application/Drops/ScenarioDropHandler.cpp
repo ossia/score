@@ -151,11 +151,12 @@ bool GhostIntervalDropHandler::dragMove(
       return false;
   }
 
+  const auto magnetism = !bool(qApp->keyboardModifiers() & Qt::AltModifier);
   auto pt = pres.toScenarioPoint(pos);
   m_magnetic = magneticStates(m_magnetic, pt, pres);
   auto [x_state, y_state, magnetic] = m_magnetic;
 
-  if(y_state)
+  if(magnetism && y_state)
   {
     if(magnetic)
     {
@@ -169,7 +170,7 @@ bool GhostIntervalDropHandler::dragMove(
       pres.drawDragLine(*y_state, pt);
     }
   }
-  else if(x_state)
+  else if(magnetism && x_state)
   {
     if(x_state->nextInterval() || x_state->eventId() == pres.model().startEvent().id())
     {
@@ -186,6 +187,11 @@ bool GhostIntervalDropHandler::dragMove(
         pres.drawDragLine(*x_state, pt);
       }
     }
+  }
+  else
+  {
+    m_magnetic = {};
+    pres.stopDrawDragLine();
   }
   return true;
 }
