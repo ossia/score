@@ -697,6 +697,13 @@ avnd_make_score(
   NAMESPACE avnd_tools
 )
 
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Helpers/SpriteReader.hpp"
+  TARGET sprite_reader
+  MAIN_CLASS SpriteReader
+  NAMESPACE examples::helpers
+)
+
 
 # avnd_make_score(
 #   SOURCES
