@@ -41,6 +41,7 @@ public:
 
   // Won't create points, plain insertion.
   void insertSegment(SegmentModel*);
+  void loadSegments(const std::vector<SegmentModel*>& models);
 
   // Here we don't pass an id because it's more efficient
   void removeSegment(SegmentModel* m);
@@ -88,6 +89,9 @@ public:
 private:
   void addPoint(PointModel* pt);
   void removePoint(PointModel* pt);
+
+  PointModel* createStartPoint(SegmentModel* m);
+  PointModel* createEndPoint(SegmentModel* m);
 
   IdContainer<SegmentModel> m_segments;
   std::vector<PointModel*> m_points; // Each between 0, 1

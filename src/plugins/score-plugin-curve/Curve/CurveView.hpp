@@ -68,6 +68,9 @@ private:
 
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
+  void drawAllPoints(QPainter* painter);
+  void drawOptimized(QPainter* painter);
+
   const Curve::Presenter* m_presenter{};
   const Curve::Model* m_model{};
   QRectF m_rect; // The rect in which the whole curve must fit.

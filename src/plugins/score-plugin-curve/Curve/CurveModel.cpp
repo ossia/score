@@ -38,30 +38,33 @@ Model::Model(const Id<Model>& id, QObject* parent)
 {
 }
 
+PointModel* Model::createStartPoint(SegmentModel* m)
+{
+  auto pt = new PointModel{getStrongId(m_points), this};
+  pt->setFollowing(m->id());
+  pt->setPos(m->start());
+  addPoint(pt);
+  return pt;
+}
+
+PointModel* Model::createEndPoint(SegmentModel* m)
+{
+  auto pt = new PointModel{getStrongId(m_points), this};
+  pt->setPrevious(m->id());
+  pt->setPos(m->end());
+  addPoint(pt);
+  return pt;
+}
+
 void Model::addSortedSegment(SegmentModel* m)
 {
   insertSegment(m);
 
   // Add points if necessary
   // If there is an existing previous segment, its end point also exists
-  auto createStartPoint = [&]() {
-    auto pt = new PointModel{getStrongId(m_points), this};
-    pt->setFollowing(m->id());
-    pt->setPos(m->start());
-    addPoint(pt);
-    return pt;
-  };
-  auto createEndPoint = [&]() {
-    auto pt = new PointModel{getStrongId(m_points), this};
-    pt->setPrevious(m->id());
-    pt->setPos(m->end());
-    addPoint(pt);
-    return pt;
-  };
-
   if(!m->previous())
   {
-    createStartPoint();
+    createStartPoint(m);
   }
   else
   {
@@ -71,7 +74,7 @@ void Model::addSortedSegment(SegmentModel* m)
     m_points.back()->setFollowing(m->id());
   }
 
-  createEndPoint();
+  createEndPoint(m);
 }
 
 void Model::addSegment(SegmentModel* m)
@@ -80,20 +83,6 @@ void Model::addSegment(SegmentModel* m)
 
   // Add points if necessary
   // If there is an existing previous segment, its end point also exists
-  auto createStartPoint = [&]() {
-    auto pt = new PointModel{getStrongId(m_points), this};
-    pt->setFollowing(m->id());
-    pt->setPos(m->start());
-    addPoint(pt);
-    return pt;
-  };
-  auto createEndPoint = [&]() {
-    auto pt = new PointModel{getStrongId(m_points), this};
-    pt->setPrevious(m->id());
-    pt->setPos(m->end());
-    addPoint(pt);
-    return pt;
-  };
 
   if(m->previous())
   {
@@ -115,20 +104,20 @@ void Model::addSegment(SegmentModel* m)
       else
       {
         // The previous segment exists but not the end point.
-        auto pt = createStartPoint();
+        auto pt = createStartPoint(m);
         pt->setPrevious((*previousSegment).id());
       }
     }
     else // The previous segment has not yet been added.
     {
-      createStartPoint();
+      createStartPoint(m);
     }
   }
   else if(std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
             return pt->following() == m->id();
           }))
   {
-    createStartPoint();
+    createStartPoint(m);
   }
 
   if(m->following())
@@ -149,13 +138,13 @@ void Model::addSegment(SegmentModel* m)
       }
       else
       {
-        auto pt = createEndPoint();
+        auto pt = createEndPoint(m);
         pt->setFollowing((*followingSegment).id());
       }
     }
     else
     {
-      createEndPoint();
+      createEndPoint(m);
     }
   }
   else if(std::none_of(m_points.begin(), m_points.end(), [&](PointModel* pt) {
@@ -165,7 +154,7 @@ void Model::addSegment(SegmentModel* m)
     // Note : if one day a buggy case happens here, check that set
     // following/previous
     // are correctly set after cloning the segment.
-    createEndPoint();
+    createEndPoint(m);
   }
 }
 
@@ -198,6 +187,27 @@ void Model::insertSegment(SegmentModel* m)
   });
 
   segmentAdded(m);
+}
+
+void Model::loadSegments(const std::vector<SegmentModel*>& map)
+{
+  SCORE_ASSERT(m_segments.empty());
+  SCORE_ASSERT(m_points.empty());
+
+  {
+    QSignalBlocker _{this};
+    clear();
+
+    SCORE_ASSERT(map.empty() || (!map.front()->previous() && !map.back()->following()));
+
+    for(auto* elt : map)
+    {
+      addSortedSegment(elt);
+    }
+  }
+
+  curveReset();
+  changed();
 }
 
 void Model::removeSegment(SegmentModel* m)

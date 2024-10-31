@@ -48,16 +48,29 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::Model& curve)
   int32_t size;
   m_stream >> size;
 
+  curve.segments().m_map.reserve(size);
+  curve.points().reserve(size + 2);
+
+  static std::vector<Curve::SegmentModel*> segts;
+  segts.clear();
+  segts.reserve(size);
+
   auto& csl = components.interfaces<Curve::SegmentList>();
   for(; size-- > 0;)
   {
     auto seg = deserialize_interface(csl, *this, &curve);
     if(seg)
-      curve.addSegment(seg);
+      segts.push_back(seg);
     else
       SCORE_TODO;
   }
+  std::sort(
+      segts.begin(), segts.end(), [](Curve::SegmentModel* a, Curve::SegmentModel* b) {
+    return a->m_start.x() < b->m_start.x();
+  });
 
+  curve.loadSegments(segts);
+  segts.clear();
   curve.changed();
   checkDelimiter();
 }
@@ -73,15 +86,29 @@ SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::Model& curve)
 {
   auto& csl = components.interfaces<Curve::SegmentList>();
   const auto& segments = obj[strings.Segments].toArray();
+  curve.segments().m_map.reserve(segments.Size());
+  curve.points().reserve(segments.Size() + 2);
+
+  static std::vector<Curve::SegmentModel*> segts;
+  segts.clear();
+  segts.reserve(segments.Size());
+
   for(const auto& segment : segments)
   {
     JSONObject::Deserializer segment_deser{segment};
     auto seg = deserialize_interface(csl, segment_deser, &curve);
     if(seg)
-      curve.addSegment(seg);
+      segts.push_back(seg);
     else
       SCORE_TODO;
   }
+
+  std::sort(
+      segts.begin(), segts.end(), [](Curve::SegmentModel* a, Curve::SegmentModel* b) {
+    return a->m_start.x() < b->m_start.x();
+  });
+  curve.loadSegments(segts);
+  segts.clear();
 
   curve.changed();
 }

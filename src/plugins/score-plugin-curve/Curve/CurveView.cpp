@@ -9,7 +9,10 @@
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 
+#include <score/graphics/GraphicsItem.hpp>
+
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
 #include <qnamespace.h>
@@ -60,25 +63,18 @@ void View::paint(
 
   if(m_directDraw)
   {
+    auto& style = m_presenter->m_style;
+    painter->setPen(
+        m_presenter->m_enabled ? style.PenDataset : style.PenDatasetDisabled);
+
     auto& pts = m_model->points();
     if(pts.size() < 2)
       return;
 
-    auto& style = m_presenter->m_style;
-    painter->setPen(
-        m_presenter->m_enabled ? style.PenDataset : style.PenDatasetDisabled);
-    static constexpr auto scale = [](QPointF first, QSizeF second) {
-      return QPointF{first.x() * second.width(), (1. - first.y()) * second.height()};
-    };
-
-    auto sz = m_presenter->m_localRect.size();
-    for(auto orig = pts.begin(), next = ++pts.begin(); next != pts.end(); ++orig, ++next)
-    {
-      auto p1 = scale((*orig)->pos(), sz);
-      auto p2 = scale((*next)->pos(), sz);
-
-      painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
-    }
+    if(pts.size() < 1000)
+      drawAllPoints(painter);
+    else
+      drawOptimized(painter);
   }
 }
 
@@ -129,6 +125,78 @@ void View::keyReleaseEvent(QKeyEvent* ev)
 void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
   contextMenuRequested(ev->screenPos(), ev->scenePos());
+}
+
+static constexpr auto curve_view_scale(QPointF first, QSizeF second)
+{
+  return QPointF{first.x() * second.width(), (1. - first.y()) * second.height()};
+}
+
+void View::drawAllPoints(QPainter* painter)
+{
+  auto& pts = m_model->points();
+
+  auto sz = m_presenter->m_localRect.size();
+  auto orig = pts.begin();
+  auto next = std::next(orig);
+  auto p1 = curve_view_scale((*orig)->pos(), sz);
+  auto p2 = curve_view_scale((*next)->pos(), sz);
+
+  painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
+
+  p1 = p2;
+  for(; next != pts.end(); ++next)
+  {
+    p2 = curve_view_scale((*next)->pos(), sz);
+    painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
+    p1 = p2;
+  }
+}
+
+void View::drawOptimized(QPainter* painter)
+{
+  auto view = getView(*painter);
+  if(!view)
+    return;
+
+  double x0 = mapFromScene(view->mapToScene(0, 0)).x();
+  double xf = mapFromScene(view->mapToScene(view->width(), 0)).x();
+  auto& pts = m_model->points();
+  auto& style = m_presenter->m_style;
+
+  auto sz = m_presenter->m_localRect.size();
+  int prev_x = INT_MIN;
+  auto start_it = std::lower_bound(
+      pts.begin(), pts.end(), x0 / sz.width(),
+      [](Curve::PointModel* x, double y) { return (*x).pos().x() < y; });
+
+  auto orig = start_it != pts.end() ? start_it : pts.begin();
+  auto next = std::next(orig);
+  auto p1 = curve_view_scale((*orig)->pos(), sz);
+  auto p2 = curve_view_scale((*next)->pos(), sz);
+
+  painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
+
+  p1 = p2;
+  for(; next != pts.end(); ++next)
+  {
+    p2 = curve_view_scale((*next)->pos(), sz);
+    if(p2.x() < x0)
+    {
+      p1 = p2;
+      continue;
+    }
+    if(xf < p1.x())
+      break;
+
+    int new_x = view->mapFromScene(mapToScene(p1)).x();
+    if(new_x == prev_x)
+      continue;
+    prev_x = new_x;
+
+    painter->drawPoint(p1.x(), p1.y());
+    p1 = p2;
+  }
 }
 
 void View::setDefaultWidth(double w) noexcept
