@@ -676,6 +676,12 @@ avnd_make_score(
   NAMESPACE ao
 )
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Helpers/AudioChannelSelector.hpp"
+  TARGET avnd_channel_selector
+  MAIN_CLASS AudioChannelSelector
+  NAMESPACE examples::helpers
+)
+avnd_make_score(
   SOURCES
     "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.hpp"
     "${AVND_FOLDER}/examples/Advanced/GeoZones/GeoZones.cpp"
