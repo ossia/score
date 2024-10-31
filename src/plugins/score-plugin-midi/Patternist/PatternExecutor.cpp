@@ -37,6 +37,16 @@ public:
     using namespace ossia;
     if(tk.model_read_duration() == 0_tv)
       return;
+    if(tk.end_discontinuous)
+    {
+      auto& mess = out.target<ossia::midi_port>()->messages;
+      for(uint8_t note : in_flight)
+      {
+        mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
+        mess.back().timestamp = 0;
+      }
+      return;
+    }
 
     // TODO on bar change, reset to start of pattern?
     if(auto d = tk.get_quantification_date(pattern.division))
@@ -63,6 +73,16 @@ public:
         }
       }
       current = (current + 1) % pattern.length;
+    }
+  }
+
+  void all_notes_off() noexcept override
+  {
+    auto& mess = out.target<ossia::midi_port>()->messages;
+    for(uint8_t note : in_flight)
+    {
+      mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
+      mess.back().timestamp = 0;
     }
   }
 };
