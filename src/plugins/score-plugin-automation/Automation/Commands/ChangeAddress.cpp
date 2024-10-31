@@ -36,8 +36,11 @@ ChangeAddress::ChangeAddress(
     , m_new(Explorer::makeFullAddressAccessorSettings(
           newval, score::IDocument::documentContext(autom), 0., 1., 0.5))
 {
-  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
-  m_new.domain.get() = ossia::make_domain(c.min, c.max);
+  if(m_new.domain.get())
+  {
+    Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+    m_new.domain.get() = ossia::make_domain(c.min, c.max);
+  }
 }
 
 ChangeAddress::ChangeAddress(
@@ -46,8 +49,11 @@ ChangeAddress::ChangeAddress(
     , m_old{autom.address(), autom.min(), autom.max()}
     , m_new{std::move(newval)}
 {
-  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
-  m_new.domain.get() = ossia::make_domain(c.min, c.max);
+  if(m_new.domain.get())
+  {
+    Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+    m_new.domain.get() = ossia::make_domain(c.min, c.max);
+  }
 }
 
 ChangeAddress::ChangeAddress(
@@ -56,8 +62,11 @@ ChangeAddress::ChangeAddress(
 {
   m_new.address = newval.address;
   m_new.domain = newval.domain;
-  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
-  m_new.domain.get() = ossia::make_domain(c.min, c.max);
+  if(m_new.domain.get())
+  {
+    Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+    m_new.domain.get() = ossia::make_domain(c.min, c.max);
+  }
   m_new.address.qualifiers.get().unit = newval.unit;
 
   m_old.address = autom.address();
@@ -86,8 +95,11 @@ void ChangeAddress::redo(const score::DocumentContext& ctx) const
   {
     // QSignalBlocker blck{autom.curve()};
     auto& dom = m_new.domain.get();
-    autom.setMin(dom.convert_min<double>());
-    autom.setMax(dom.convert_max<double>());
+    if(dom)
+    {
+      autom.setMin(dom.convert_min<double>());
+      autom.setMax(dom.convert_max<double>());
+    }
     autom.setAddress(m_new.address);
   }
   // autom.curve().changed();
