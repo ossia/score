@@ -698,14 +698,14 @@ void PortFactory::setupInletInspector(
     const Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
+  PortWidgetSetup::setupAlone(port, ctx, lay, parent);
 }
 
 void PortFactory::setupOutletInspector(
     const Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
+  PortWidgetSetup::setupAlone(port, ctx, lay, parent);
 }
 
 PortItemLayout PortFactory::defaultLayout() const noexcept
