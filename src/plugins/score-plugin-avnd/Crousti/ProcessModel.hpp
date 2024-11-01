@@ -452,6 +452,8 @@ public:
     // port if the processor takes audio by argument
     if constexpr(avnd::audio_argument_processor<Info>)
       count += 1;
+    else if constexpr(avnd::tag_cv<Info>)
+      count += 1;
 
     // The "messages" ports also go before
     count += avnd::messages_introspection<Info>::size;
@@ -475,6 +477,8 @@ public:
     // port if the processor takes audio by argument
     if constexpr(avnd::audio_argument_processor<Info>)
       count += 1;
+    else if constexpr(avnd::tag_cv<Info>)
+      count += 1;
 
     avnd::output_introspection<Info>::for_all(
         [this,
@@ -495,6 +499,8 @@ public:
     // We have to adjust before accessing a port as there is the first "fake"
     // port if the processor takes audio by argument
     if constexpr(avnd::audio_argument_processor<Info>)
+      model_index += 1;
+    else if constexpr(avnd::tag_cv<Info>)
       model_index += 1;
 
     // The "messages" ports also go before
@@ -551,6 +557,8 @@ public:
     // We have to adjust before accessing a port as there is the first "fake"
     // port if the processor takes audio by argument
     if constexpr(avnd::audio_argument_processor<Info>)
+      model_index += 1;
+    else if constexpr(avnd::tag_cv<Info>)
       model_index += 1;
 
     // The "messages" ports also go before
