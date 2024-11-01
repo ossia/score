@@ -35,7 +35,7 @@ void QGraphicsEnum::updateRect()
 
   QFontMetricsF metrics{textFont};
   double maxW = 10.;
-  double maxH = N > columns ? 44. : 30;
+  double maxH = N > columns ? 20. : 15;
 
   for(auto& value : this->array)
   {
@@ -46,7 +46,7 @@ void QGraphicsEnum::updateRect()
   maxW += 4.;
   maxH += 4.;
 
-  m_actualRows = N < columns ? 1 : std::max(1.0, std::floor(N / columns));
+  m_actualRows = N < columns ? 1 : std::max(1.0, std::ceil(double(N) / columns));
   setRect({0, 0, maxW * m_actualColumns, maxH * m_actualRows});
 }
 
@@ -132,7 +132,7 @@ void QGraphicsEnum::paint(
   const QPen& text = style.Gray.main.pen1;
   const QFont& textFont = style.MonoFontSmall;
   const QPen& currentText = style.Base4.main.pen1;
-  const QBrush& bg = style.TransparentBrush;
+  const QBrush& bg = style.NoBrush;
   const QPen& noPen = style.NoPen;
 
   int row = 0;

@@ -66,6 +66,35 @@ void QGraphicsPixmapEnum::setupDefaultColumns(int N)
 
   updateRect();
 }
+
+void QGraphicsPixmapEnum::updateRect()
+{
+  const int N = std::ssize(this->on_images);
+  // Find the widest text
+  if(columns == 0 || N == 0)
+    return;
+
+  m_actualColumns = std::min(N, columns);
+  auto& style = score::Skin::instance();
+
+  const QFont& textFont = style.MonoFontSmall;
+
+  QFontMetricsF metrics{textFont};
+  double maxW = 10.;
+  double maxH = N > columns ? 20. : 15;
+
+  for(auto& value : this->on_images)
+  {
+    maxW = std::max((double)value.width(), maxW);
+    maxH = std::max((double)value.height(), maxH);
+  }
+  maxW += 4.;
+  maxH += 4.;
+
+  m_actualRows = N < columns ? 1 : std::max(1.0, std::ceil(double(N) / columns));
+  setRect({0, 0, maxW * m_actualColumns, maxH * m_actualRows});
+}
+
 void QGraphicsPixmapEnum::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
@@ -74,11 +103,10 @@ void QGraphicsPixmapEnum::paint(
   const QBrush& bg = style.NoBrush;
   const QPen& noPen = style.NoPen;
 
-  int actual_rows = std::ceil(double(array.size()) / columns);
   int row = 0;
   int col = 0;
-  const double w = m_smallRect.width() / columns;
-  const double h = m_smallRect.height() / actual_rows;
+  const double w = m_smallRect.width() / m_actualColumns;
+  const double h = m_smallRect.height() / m_actualRows;
 
   painter->setBrush(bg);
   int i = 0;

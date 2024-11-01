@@ -20,6 +20,8 @@ public:
   std::vector<QPixmap> on_images;
   std::vector<QPixmap> off_images;
 
+  explicit QGraphicsPixmapEnum(QGraphicsItem* parent);
+
   template <std::size_t N>
   QGraphicsPixmapEnum(
       const std::array<const char*, N>& arr,
@@ -58,9 +60,8 @@ public:
     setupDefaultColumns(array.size());
   }
 
+  void updateRect();
   void setupDefaultColumns(int N);
-
-  QGraphicsPixmapEnum(QGraphicsItem* parent);
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;

@@ -46,7 +46,7 @@ public:
     array = std::move(arr);
     updateRect();
   }
-  QGraphicsEnum(QGraphicsItem* parent);
+  explicit QGraphicsEnum(QGraphicsItem* parent);
 
   void updateRect();
   void setRect(const QRectF& r);
