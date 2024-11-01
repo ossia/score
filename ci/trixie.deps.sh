@@ -8,16 +8,23 @@ source ci/common.setup.sh
 # apt install gcc-N g++-N to get g++-N,
 # but only clang-M as clang++-M is not a package
 
+export CLANG_VERSION=19
+$SUDO apt-get update -qq
+$SUDO apt-get install -qq --force-yes wget lsb-release software-properties-common gnupg
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+$SUDO ./llvm.sh $CLANG_VERSION
+
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
      ${PACKAGES:=} \
-     build-essential binutils clang cmake \
+     build-essential binutils cmake \
      libasound2-dev \
      ninja-build \
+     libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \
-     libclang-dev llvm-dev \
      libdrm-dev libgbm-dev \
      libdbus-1-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
