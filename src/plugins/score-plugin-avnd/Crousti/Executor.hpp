@@ -189,12 +189,36 @@ struct setup_Impl0
               inlet, &Process::ControlInlet::valueChanged, parent,
               con_unvalidated_dynamic_port<Node, port_type, N, NField>{
                   ctx, weak_node, param.ports[k], k});
+
+          // FIXME update_controller semantics here?
         }
         else
         {
           QObject::connect(
               inlet, &Process::ControlInlet::valueChanged, parent,
               con_unvalidated<Node, Field, N, NField>{ctx, weak_node, param});
+
+          // FIXME proper tag
+          if constexpr(requires { param.update_controller; })
+          {
+            param.update_controller = [weak_node, inlet = QPointer{inlet},
+                                       self = QPointer{&element}](auto&& value) {
+              if(!self || !inlet)
+                return;
+
+              // Notify the UI if the object has the power
+              // to actually change the value of the control
+              // FIXME better to use in_edit queue ?
+              // FIXME not too efficient but which choice do we have ?
+              static thread_local const Field field;
+              ossia::qt::run_async(
+                  qApp, [self, inlet, val = oscr::to_ossia_value(field, value)] {
+                if(!self || !inlet)
+                  return;
+                inlet->setValue(val);
+              });
+            };
+          }
         }
       }
       k++;
