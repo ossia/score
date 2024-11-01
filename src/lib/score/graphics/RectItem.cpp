@@ -1,5 +1,6 @@
 #include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <score/graphics/layouts/Constants.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>

@@ -1,5 +1,7 @@
 #include "GraphicsGridLayout.hpp"
 
+#include <score/graphics/layouts/Constants.hpp>
+
 #include <QPainter>
 #include <QPen>
 

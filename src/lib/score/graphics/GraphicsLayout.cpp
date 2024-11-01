@@ -1,16 +1,18 @@
 #include "GraphicsLayout.hpp"
 
+#include <score/graphics/layouts/Constants.hpp>
 #include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <QPainter>
-
 namespace score
 {
 
 GraphicsLayout::GraphicsLayout(QGraphicsItem* parent)
     : score::BackgroundItem{parent}
     , m_bg{nullptr}
+    , m_margin{default_margin}
+    , m_padding{default_padding}
 {
 }
 

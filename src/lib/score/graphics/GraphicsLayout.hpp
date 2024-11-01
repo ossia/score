@@ -4,8 +4,6 @@
 namespace score
 {
 struct BrushSet;
-static constexpr const qreal default_margin = 5.;
-static constexpr const qreal default_padding = 5.;
 class SCORE_LIB_BASE_EXPORT GraphicsLayout : public score::BackgroundItem
 {
 public:
@@ -29,8 +27,8 @@ protected:
   score::BrushSet* m_bg{};
   QPixmap* m_pix{};
 
-  qreal m_margin{default_margin};
-  qreal m_padding{default_padding};
+  qreal m_margin{};
+  qreal m_padding{};
 };
 
 }
