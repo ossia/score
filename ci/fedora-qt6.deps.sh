@@ -7,7 +7,7 @@ dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-
 # TODO fix SDL2-devel SDL2-static -fPIC issue
 dnf -y update # Needed for dnf-5 does not know allowerasing error
 dnf -y install dnf5-plugins
-dnf -y --allowerasing install \
+dnf -y install --allowerasing \
      clang \
      cmake ninja-build \
      ffmpeg-devel \
