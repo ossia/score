@@ -29,13 +29,13 @@ QGraphicsSpinbox::~QGraphicsSpinbox()
     sliderReleased();
 }
 
-void QGraphicsSpinbox::setValue(float v)
+void QGraphicsSpinbox::setValue(double v)
 {
   m_value = ossia::clamp(v, 0., 1.);
   update();
 }
 
-void QGraphicsSpinbox::setExecutionValue(float v)
+void QGraphicsSpinbox::setExecutionValue(double v)
 {
   m_execValue = ossia::clamp(v, 0., 1.);
   m_hasExec = true;
@@ -48,7 +48,7 @@ void QGraphicsSpinbox::resetExecution()
   update();
 }
 
-void QGraphicsSpinbox::setRange(float min, float max)
+void QGraphicsSpinbox::setRange(double min, double max)
 {
   this->min = min;
   this->max = max;
@@ -60,7 +60,7 @@ void QGraphicsSpinbox::setNoValueChangeOnMove(bool b)
   m_noValueChangeOnMove = b;
 }
 
-float QGraphicsSpinbox::value() const
+double QGraphicsSpinbox::value() const
 {
   return m_value;
 }

@@ -59,24 +59,25 @@ void QGraphicsXYZSpinboxChooser::paint(
 
 std::array<float, 3> QGraphicsXYZSpinboxChooser::value() const noexcept
 {
-  return {m_x.value(), m_y.value(), m_z.value()};
+  return {(float)m_x.value(), (float)m_y.value(), (float)m_z.value()};
 }
 
 std::array<float, 3> QGraphicsXYZSpinboxChooser::getMin() const noexcept
 {
-  return {m_x.min, m_y.min, m_z.min};
+  return {(float)m_x.min, (float)m_y.min, (float)m_z.min};
 }
 std::array<float, 3> QGraphicsXYZSpinboxChooser::getMax() const noexcept
 {
-  return {m_x.max, m_y.max, m_z.max};
+  return {(float)m_x.max, (float)m_y.max, (float)m_z.max};
 }
 
 ossia::vec3f
 QGraphicsXYZSpinboxChooser::scaledValue(float x, float y, float z) const noexcept
 {
   return {
-      m_x.min + x * (m_x.max - m_x.min), m_y.min + y * (m_y.max - m_y.min),
-      m_z.min + z * (m_z.max - m_z.min)};
+      (float)(m_x.min + x * (m_x.max - m_x.min)),
+      (float)(m_y.min + y * (m_y.max - m_y.min)),
+      (float)(m_z.min + z * (m_z.max - m_z.min))};
 }
 
 void QGraphicsXYZSpinboxChooser::setValue(ossia::vec3f v)

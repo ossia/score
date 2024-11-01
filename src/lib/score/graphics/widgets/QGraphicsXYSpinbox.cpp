@@ -69,21 +69,23 @@ void QGraphicsXYSpinboxChooser::paint(
 
 std::array<float, 2> QGraphicsXYSpinboxChooser::value() const noexcept
 {
-  return {m_x.value(), m_y.value()};
+  return {(float)m_x.value(), (float)m_y.value()};
 }
 
 std::array<float, 2> QGraphicsXYSpinboxChooser::getMin() const noexcept
 {
-  return {m_x.min, m_y.min};
+  return {(float)m_x.min, (float)m_y.min};
 }
 std::array<float, 2> QGraphicsXYSpinboxChooser::getMax() const noexcept
 {
-  return {m_x.max, m_y.max};
+  return {(float)m_x.max, (float)m_y.max};
 }
 
 ossia::vec2f QGraphicsXYSpinboxChooser::scaledValue(float x, float y) const noexcept
 {
-  return {m_x.min + x * (m_x.max - m_x.min), m_y.min + y * (m_y.max - m_y.min)};
+  return {
+      (float)(m_x.min + x * (m_x.max - m_x.min)),
+      (float)(m_y.min + y * (m_y.max - m_y.min))};
 }
 
 void QGraphicsXYSpinboxChooser::setValue(ossia::vec2f v)

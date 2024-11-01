@@ -22,7 +22,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSpinbox final
   QRectF m_rect{0., 0., 40., 20.};
 
 private:
-  float m_value{}, m_execValue{};
+  double m_value{}, m_execValue{};
   bool m_grab{};
   bool m_hasExec{};
   bool m_noValueChangeOnMove{};
@@ -32,12 +32,12 @@ public:
   explicit QGraphicsSpinbox(QGraphicsItem* parent);
   ~QGraphicsSpinbox();
 
-  void setValue(float r);
-  void setExecutionValue(float r);
+  void setValue(double r);
+  void setExecutionValue(double r);
   void resetExecution();
-  void setRange(float min, float max);
+  void setRange(double min, double max);
   void setNoValueChangeOnMove(bool);
-  float value() const;
+  double value() const;
 
   bool moving = false;
 
