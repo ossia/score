@@ -133,7 +133,13 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
   {
     llvm::StringMap<bool> HostFeatures;
-    if(llvm::sys::getHostCPUFeatures(HostFeatures))
+#if LLVM_VERSION_MAJOR < 19
+    bool ok = llvm::sys::getHostCPUFeatures(HostFeatures);
+#else
+    constexpr bool ok = true;
+    HostFeatures = llvm::sys::getHostCPUFeatures();
+#endif
+    if(ok)
     {
       for(const llvm::StringMapEntry<bool>& F : HostFeatures)
       {
