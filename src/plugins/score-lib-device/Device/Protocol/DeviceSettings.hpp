@@ -3,6 +3,7 @@
 #include <score/serialization/DataStreamFwd.hpp>
 #include <score/tools/Metadata.hpp>
 
+#include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/variant.hpp>
 
