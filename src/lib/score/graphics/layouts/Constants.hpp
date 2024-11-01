@@ -1,5 +1,5 @@
 #pragma once
-#include <QtTypes>
+#include <QtGlobal>
 
 namespace score
 {
