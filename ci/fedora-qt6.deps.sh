@@ -5,7 +5,8 @@ dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-releas
 dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
 # TODO fix SDL2-devel SDL2-static -fPIC issue
-
+dnf -y update # Needed for dnf-5 does not know allowerasing error
+dnf -y install dnf5-plugins
 dnf -y --allowerasing install \
      clang \
      cmake ninja-build \
