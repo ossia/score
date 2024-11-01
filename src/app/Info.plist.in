@@ -38,6 +38,8 @@
     <true/>
     <key>NSAppSleepDisabled</key>
     <true/>
+    <key>LSRequiresNativeExecution</key>
+    <true/>
     <key>NSHumanReadableCopyright</key>
     <string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 
