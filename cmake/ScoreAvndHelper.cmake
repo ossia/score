@@ -13,7 +13,7 @@ function(avnd_score_plugin_init)
 endfunction()
 
 function(avnd_score_plugin_finalize)
-  cmake_parse_arguments(AVND "CUSTOM_PLUGIN" "BASE_TARGET;PLUGIN_VERSION;PLUGIN_UUID" "" ${ARGN})
+  cmake_parse_arguments(AVND "CUSTOM_PLUGIN;MODULE" "BASE_TARGET;PLUGIN_VERSION;PLUGIN_UUID" "" ${ARGN})
 
   if(NOT AVND_CUSTOM_PLUGIN)
     # Generate the score_plugin_foo.{h,c}pp
@@ -23,15 +23,27 @@ function(avnd_score_plugin_finalize)
       @ONLY
       NEWLINE_STYLE LF
     )
-    configure_file(
-      "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.cpp.in"
-      "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
-      @ONLY
-      NEWLINE_STYLE LF
-    )
-    target_sources(${AVND_BASE_TARGET} PRIVATE
-      "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
-    )
+    if(AVND_MODULE)
+      configure_file(
+        "${SCORE_AVND_SOURCE_DIR}/module_plugin_prototype.cpp.in"
+        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+        @ONLY
+        NEWLINE_STYLE LF
+      )
+      target_sources(${AVND_BASE_TARGET} PRIVATE FILE_SET CXX_MODULES FILES
+        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+      )
+    else()
+      configure_file(
+        "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.cpp.in"
+        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+        @ONLY
+        NEWLINE_STYLE LF
+      )
+      target_sources(${AVND_BASE_TARGET} PRIVATE
+        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+      )
+    endif()
   else()
     file(CONFIGURE OUTPUT
          "${CMAKE_BINARY_DIR}/include.${AVND_BASE_TARGET}.cpp"
@@ -76,7 +88,7 @@ function(avnd_score_plugin_finalize)
 endfunction()
 
 function(avnd_score_plugin_add)
-  cmake_parse_arguments(AVND "DEVICE" "TARGET;MAIN_CLASS;NAMESPACE;BASE_TARGET" "SOURCES" ${ARGN})
+  cmake_parse_arguments(AVND "DEVICE;MODULE" "TARGET;MAIN_CLASS;NAMESPACE;BASE_TARGET" "SOURCES" ${ARGN})
 
   if(AVND_NAMESPACE)
     set(AVND_QUALIFIED "${AVND_NAMESPACE}::${AVND_MAIN_CLASS}")
@@ -98,20 +110,39 @@ function(avnd_score_plugin_add)
 
   if(AVND_DEVICE)
     set(source_proto "${SCORE_AVND_SOURCE_DIR}/device-prototype.cpp.in")
+    set(_gen_suffix "cpp")
+  elseif(AVND_MODULE)
+    set(source_proto "${SCORE_AVND_SOURCE_DIR}/module_prototype.cppm.in")
+    set(_gen_suffix "cppm")
   else()
     set(source_proto "${SCORE_AVND_SOURCE_DIR}/prototype.cpp.in")
+    set(_gen_suffix "cpp")
   endif()
   configure_file(
     "${source_proto}"
-    "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
+    "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.${_gen_suffix}"
     @ONLY
     NEWLINE_STYLE LF
   )
 
-  target_sources(${AVND_BASE_TARGET} PRIVATE
-    ${AVND_SOURCES}
-    "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
-  )
+  if(AVND_MODULE)
+    set_target_properties(${AVND_BASE_TARGET} PROPERTIES SCORE_CUSTOM_PCH 1)
+    target_sources(${AVND_BASE_TARGET}
+      PRIVATE FILE_SET CXX_MODULES
+      BASE_DIRS
+        "${CMAKE_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+      FILES
+          ${AVND_SOURCES}
+          "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cppm"
+    )
+  else()
+    target_sources(${AVND_BASE_TARGET}
+      PRIVATE
+        ${AVND_SOURCES}
+        "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
+    )
+  endif()
 
   if(TARGET avnd_source_parser)
     target_sources(${AVND_BASE_TARGET} PRIVATE
@@ -120,12 +151,17 @@ function(avnd_score_plugin_add)
     target_compile_definitions(${AVND_BASE_TARGET} PRIVATE AVND_USE_TUPLET_TUPLE=1)
   endif()
 
-  if(AVND_NAMESPACE)
-    set(txt "namespace ${AVND_NAMESPACE} { struct ${AVND_MAIN_CLASS}; } \n")
-    set(txtf "::oscr::custom_factories<${AVND_NAMESPACE}::${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
+  if(AVND_MODULE)
+    set(txt "import ${AVND_TARGET}_factories;\n")
+    set(txtf "::oscr::custom_factories_${AVND_TARGET}(fx, ctx, key); \n")
   else()
-    set(txt "struct ${AVND_MAIN_CLASS}; \n")
-    set(txtf "::oscr::custom_factories<${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
+    if(AVND_NAMESPACE)
+      set(txt "namespace ${AVND_NAMESPACE} { struct ${AVND_MAIN_CLASS}; } \n")
+      set(txtf "::oscr::custom_factories<${AVND_NAMESPACE}::${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
+    else()
+      set(txt "struct ${AVND_MAIN_CLASS}; \n")
+      set(txtf "::oscr::custom_factories<${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
+    endif()
   endif()
 
   set(AVND_ADDITIONAL_CLASSES "${AVND_ADDITIONAL_CLASSES}\n${txt}\n" PARENT_SCOPE)

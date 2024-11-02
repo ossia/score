@@ -9,12 +9,15 @@
 #include <QPolygon>
 
 #include <avnd/concepts/painter.hpp>
-#include <halp/texture.hpp>
 
 #include <cmath>
 
 namespace oscr
 {
+struct rgba_color
+{
+  uint8_t r, g, b, a;
+};
 struct QPainterAdapter
 {
   QPainter& painter;
@@ -50,7 +53,7 @@ struct QPainterAdapter
   void reset_transform() { painter.resetTransform(); }
 
   // Colors:
-  void set_stroke_color(halp::rgba_color c)
+  void set_stroke_color(rgba_color c)
   {
     QPen p = painter.pen();
     p.setColor(qRgba(c.r, c.g, c.b, c.a));
@@ -64,14 +67,13 @@ struct QPainterAdapter
     painter.setPen(p);
   }
 
-  void set_fill_color(halp::rgba_color c)
+  void set_fill_color(rgba_color c)
   {
     painter.setBrush(QColor(qRgba(c.r, c.g, c.b, c.a)));
   }
 
   void set_linear_gradient(
-      double x1, double y1, double x2, double y2, halp::rgba_color c1,
-      halp::rgba_color c2)
+      double x1, double y1, double x2, double y2, rgba_color c1, rgba_color c2)
   {
     QLinearGradient gradient(QPointF(x1, y1), QPointF(x2, y2));
     gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
@@ -79,8 +81,7 @@ struct QPainterAdapter
     painter.setBrush(gradient);
   }
 
-  void set_radial_gradient(
-      double cx, double cy, double cr, halp::rgba_color c1, halp::rgba_color c2)
+  void set_radial_gradient(double cx, double cy, double cr, rgba_color c1, rgba_color c2)
   {
     QRadialGradient gradient(cx, cy, cr);
     gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
@@ -88,8 +89,7 @@ struct QPainterAdapter
     painter.setBrush(gradient);
   }
 
-  void set_conical_gradient(
-      double x, double y, double a, halp::rgba_color c1, halp::rgba_color c2)
+  void set_conical_gradient(double x, double y, double a, rgba_color c1, rgba_color c2)
   {
     QConicalGradient gradient(x, y, a);
     gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));

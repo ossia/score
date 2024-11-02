@@ -73,36 +73,82 @@ endif()
 set(AVND_FOLDER "${3RDPARTY_FOLDER}/avendish")
 unset(CMAKE_REQUIRED_FLAGS)
 include_directories("${AVND_FOLDER}/include")
+
+if(CMAKE_CXX_SCAN_FOR_MODULES)
+add_library(avnd_halp_module STATIC)
+target_sources(avnd_halp_module
+  PUBLIC
+    FILE_SET CXX_MODULES
+    FILES
+      "halp.cppm"
+)
+target_link_libraries(avnd_halp_module PRIVATE
+    score_plugin_engine
+    score_plugin_media
+    libremidi
+    $<BUILD_INTERFACE:dspfilters>
+    $<BUILD_INTERFACE:gamma>
+)
+if(TARGET kfr_dft)
+  target_link_libraries(avnd_halp_module PRIVATE
+    "$<BUILD_INTERFACE:kfr>"
+    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dft>>"
+    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dsp>>"
+  )
+endif()
+if(TARGET score_plugin_gfx)
+  target_link_libraries(avnd_halp_module PUBLIC score_plugin_gfx)
+endif()
+target_compile_features(avnd_halp_module PRIVATE cxx_std_20 INTERFACE cxx_std_20)
+endif()
+
 set(HALP_HEADERS
   "${AVND_FOLDER}/include/gpp/meta.hpp"
   "${AVND_FOLDER}/include/gpp/commands.hpp"
   "${AVND_FOLDER}/include/gpp/generators.hpp"
   "${AVND_FOLDER}/include/gpp/ports.hpp"
   "${AVND_FOLDER}/include/gpp/layout.hpp"
-  "${AVND_FOLDER}/include/halp/midifile_port.hpp"
-  "${AVND_FOLDER}/include/halp/midi.hpp"
-  "${AVND_FOLDER}/include/halp/callback.hpp"
+
   "${AVND_FOLDER}/include/halp/compat/gamma.hpp"
+
+  "${AVND_FOLDER}/include/halp/attributes.hpp"
+  "${AVND_FOLDER}/include/halp/audio.hpp"
+  "${AVND_FOLDER}/include/halp/callback.hpp"
+  "${AVND_FOLDER}/include/halp/controls.hpp"
+  "${AVND_FOLDER}/include/halp/controls.basic.hpp"
+  "${AVND_FOLDER}/include/halp/controls.sliders.gcc10.hpp"
+  "${AVND_FOLDER}/include/halp/controls.sliders.hpp"
+  "${AVND_FOLDER}/include/halp/controls.typedefs.hpp"
   "${AVND_FOLDER}/include/halp/controls_fmt.hpp"
-  "${AVND_FOLDER}/include/halp/custom_widgets.hpp"
   "${AVND_FOLDER}/include/halp/curve.hpp"
+  "${AVND_FOLDER}/include/halp/custom_widgets.hpp"
+  "${AVND_FOLDER}/include/halp/device.hpp"
+  "${AVND_FOLDER}/include/halp/dynamic_port.hpp"
   "${AVND_FOLDER}/include/halp/fft.hpp"
   "${AVND_FOLDER}/include/halp/file_port.hpp"
   "${AVND_FOLDER}/include/halp/geometry.hpp"
+  "${AVND_FOLDER}/include/halp/gradient_port.hpp"
   "${AVND_FOLDER}/include/halp/inline.hpp"
   "${AVND_FOLDER}/include/halp/layout.hpp"
   "${AVND_FOLDER}/include/halp/log.hpp"
   "${AVND_FOLDER}/include/halp/mappers.hpp"
   "${AVND_FOLDER}/include/halp/messages.hpp"
   "${AVND_FOLDER}/include/halp/meta.hpp"
+  "${AVND_FOLDER}/include/halp/midi.hpp"
+  "${AVND_FOLDER}/include/halp/midifile_port.hpp"
+  "${AVND_FOLDER}/include/halp/modules.hpp"
+  "${AVND_FOLDER}/include/halp/polyfill.hpp"
   "${AVND_FOLDER}/include/halp/reactive_value.hpp"
   "${AVND_FOLDER}/include/halp/sample_accurate_controls.hpp"
+  "${AVND_FOLDER}/include/halp/schedule.hpp"
+  "${AVND_FOLDER}/include/halp/shared_instance.hpp"
+  "${AVND_FOLDER}/include/halp/smooth_controls.hpp"
+  "${AVND_FOLDER}/include/halp/smoothers.hpp"
+  "${AVND_FOLDER}/include/halp/soundfile_port.hpp"
   "${AVND_FOLDER}/include/halp/static_string.hpp"
   "${AVND_FOLDER}/include/halp/texture.hpp"
   "${AVND_FOLDER}/include/halp/texture_formats.hpp"
-  "${AVND_FOLDER}/include/halp/polyfill.hpp"
-  "${AVND_FOLDER}/include/halp/audio.hpp"
-  "${AVND_FOLDER}/include/halp/controls.hpp"
+  "${AVND_FOLDER}/include/halp/value_types.hpp"
 )
 add_library(
   score_plugin_avnd
@@ -276,6 +322,7 @@ target_link_libraries(score_plugin_avnd
     libremidi
     $<BUILD_INTERFACE:dspfilters>
     $<BUILD_INTERFACE:gamma>
+    $<$<BOOL:${CMAKE_CXX_SCAN_FOR_MODULES}>:$<BUILD_INTERFACE:avnd_halp_module>>
 
   PRIVATE
     $<BUILD_INTERFACE:rubberband>

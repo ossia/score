@@ -1,0 +1,24 @@
+module;
+// clang-format off
+
+#include <ossia/detail/config.hpp>
+
+#include <vector>
+#include <score/plugins/Interface.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <Avnd/Factories.hpp>
+
+export module @AVND_TARGET@_factories;
+import @AVND_TARGET@;
+namespace oscr
+{
+export
+void custom_factories_@AVND_TARGET@(
+    std::vector<score::InterfaceBase*>& fx,
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key)
+{
+  using namespace oscr;
+//  oscr::instantiate_fx<@AVND_QUALIFIED@>(fx, ctx, key);
+}
+}
+// clang-format on
