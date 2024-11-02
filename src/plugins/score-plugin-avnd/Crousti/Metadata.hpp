@@ -106,6 +106,18 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
     */
     return port;
   }
+  static Process::ProcessCategory kind() noexcept
+  {
+    Process::ProcessCategory cat;
+    if constexpr(has_kind<Info>)
+      cat = Info::kind();
+    else
+      cat = Process::ProcessCategory::Other;
+
+    if constexpr(avnd::tag_deprecated<Info>)
+      cat = Process::ProcessCategory(cat | Process::ProcessCategory::Deprecated);
+    return cat;
+  }
   static Process::Descriptor get()
   {
 // literate programming goes brr
@@ -134,14 +146,16 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
       return QString{};                                \
   }()
 #endif
-    static Process::Descriptor desc
-    {
-      Metadata<PrettyName_k, oscr::ProcessModel<Info>>::get(),
-          if_exists(Info::kind(), else return Process::ProcessCategory::Other;),
-          if_attribute(category), if_attribute(description), if_attribute(author),
-          Metadata<Tags_k, oscr::ProcessModel<Info>>::get(), inletDescription(),
-          outletDescription(), if_attribute(manual_url)
-    };
+    static Process::Descriptor desc{
+        Metadata<PrettyName_k, oscr::ProcessModel<Info>>::get(),
+        kind(),
+        if_attribute(category),
+        if_attribute(description),
+        if_attribute(author),
+        Metadata<Tags_k, oscr::ProcessModel<Info>>::get(),
+        inletDescription(),
+        outletDescription(),
+        if_attribute(manual_url)};
     return desc;
   }
 };
