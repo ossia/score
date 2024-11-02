@@ -50,7 +50,7 @@ class LibraryHandler final
 
     auto& plug = ctx.applicationPlugin<vst3::ApplicationPlugin>();
 
-    auto reset_plugs = [=, &plug, &parent] {
+    auto reset_plugs = [this, &plug, &parent] {
       for(const auto& vst : plug.vst_infos)
       {
         if(vst.isValid)

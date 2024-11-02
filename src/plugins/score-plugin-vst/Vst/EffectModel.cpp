@@ -74,9 +74,8 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept
   Process::Descriptor desc;
   auto& app = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
-  auto it = ossia::find_if(app.vst_infos, [this, d](const vst::VSTInfo& vst) {
-    return vst.uniqueID == d.toInt();
-  });
+  auto it = ossia::find_if(
+      app.vst_infos, [d](const vst::VSTInfo& vst) { return vst.uniqueID == d.toInt(); });
   if(it != app.vst_infos.end())
   {
     desc.prettyName = it->displayName;
