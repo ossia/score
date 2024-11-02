@@ -54,13 +54,7 @@ ossia::vec2f QGraphicsXYChooser::scaledValue(float x, float y) const noexcept
 
 void QGraphicsXYChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_value = ossia::vec2f{0., 0.};
-  m_grab = true;
-  sliderMoved();
-  sliderReleased();
-  m_grab = false;
-  update();
-  event->accept();
+  // FIXME
 }
 
 void QGraphicsXYChooser::setValue(ossia::vec2f v)

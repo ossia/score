@@ -32,7 +32,9 @@ public:
 
   void setPoint(const QPointF& r);
   void setValue(ossia::vec2f v);
-  void setRange(ossia::vec2f min = {0.f, 0.f}, ossia::vec2f max = {1.f, 1.f});
+  void setRange(
+      ossia::vec2f min = {0.f, 0.f}, ossia::vec2f max = {1.f, 1.f},
+      ossia::vec2f init = {0.f, 0.f});
 
   ossia::vec2f value() const noexcept;
   ossia::vec2f getMin() const noexcept;
@@ -70,7 +72,9 @@ public:
 
   void setPoint(const QPointF& r);
   void setValue(ossia::vec2f v);
-  void setRange(ossia::vec2f min = {0.f, 0.f}, ossia::vec2f max = {1.f, 1.f});
+  void setRange(
+      ossia::vec2f min = {0.f, 0.f}, ossia::vec2f max = {1.f, 1.f},
+      ossia::vec2f init = {0.f, 0.f});
 
   ossia::vec2f value() const noexcept;
   ossia::vec2f getMin() const noexcept;

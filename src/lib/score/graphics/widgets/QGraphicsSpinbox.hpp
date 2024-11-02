@@ -28,14 +28,14 @@ private:
   bool m_noValueChangeOnMove{};
 
 public:
-  float min{}, max{};
+  float min{}, max{}, init{};
   explicit QGraphicsSpinbox(QGraphicsItem* parent);
   ~QGraphicsSpinbox();
 
   void setValue(double r);
   void setExecutionValue(double r);
   void resetExecution();
-  void setRange(double min, double max);
+  void setRange(double min, double max, double init);
   void setNoValueChangeOnMove(bool);
   double value() const;
 
@@ -77,14 +77,14 @@ private:
   bool m_noValueChangeOnMove{};
 
 public:
-  double min{}, max{};
+  double min{}, max{}, init{};
   explicit QGraphicsIntSpinbox(QGraphicsItem* parent);
   ~QGraphicsIntSpinbox();
 
   void setValue(double r);
   void setExecutionValue(double r);
   void resetExecution();
-  void setRange(double min, double max);
+  void setRange(double min, double max, double init);
   void setNoValueChangeOnMove(bool);
   int value() const;
 

@@ -26,7 +26,7 @@ protected:
   double m_execValue{};
 
 public:
-  double min{}, max{};
+  double min{}, max{}, init{};
 
 private:
   bool m_grab{};
@@ -40,7 +40,7 @@ public:
   double unmap(double v) const noexcept { return (v - min) / (max - min); }
   double map(double v) const noexcept { return (v * (max - min)) + min; }
 
-  void setRange(double min, double max);
+  void setRange(double min, double max, double init);
   void setValue(double v);
   double value() const;
   void setExecutionValue(double v);

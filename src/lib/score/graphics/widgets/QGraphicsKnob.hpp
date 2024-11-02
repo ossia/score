@@ -25,7 +25,7 @@ protected:
   QRectF m_rect{defaultKnobSize};
 
 public:
-  double min{}, max{};
+  double min{}, max{}, init{};
 
 private:
   bool m_grab{};
@@ -39,7 +39,7 @@ public:
   double map(double v) const noexcept { return (v * (max - min)) + min; }
 
   void setRect(const QRectF& r);
-  void setRange(double min, double max);
+  void setRange(double min, double max, double init);
   void setValue(double v);
   double value() const;
   void setExecutionValue(double v);

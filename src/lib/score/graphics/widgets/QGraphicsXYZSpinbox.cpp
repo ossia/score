@@ -88,11 +88,12 @@ void QGraphicsXYZSpinboxChooser::setValue(ossia::vec3f v)
   update();
 }
 
-void QGraphicsXYZSpinboxChooser::setRange(ossia::vec3f min, ossia::vec3f max)
+void QGraphicsXYZSpinboxChooser::setRange(
+    ossia::vec3f min, ossia::vec3f max, ossia::vec3f init)
 {
-  m_x.setRange(min[0], max[0]);
-  m_y.setRange(min[1], max[1]);
-  m_z.setRange(min[2], max[2]);
+  m_x.setRange(min[0], max[0], init[0]);
+  m_y.setRange(min[1], max[1], init[1]);
+  m_z.setRange(min[2], max[2], init[2]);
 }
 
 QRectF QGraphicsXYZSpinboxChooser::boundingRect() const

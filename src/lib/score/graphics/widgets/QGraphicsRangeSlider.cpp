@@ -74,10 +74,12 @@ ossia::vec2f QGraphicsRangeSlider::value() const noexcept
   return {float(m_start), float(m_end)};
 }
 
-void QGraphicsRangeSlider::setRange(double min, double max)
+void QGraphicsRangeSlider::setRange(double min, double max, ossia::vec2f init)
 {
   m_min = min;
   m_max = max;
+  m_init_start = init[0];
+  m_init_end = init[1];
   update();
 }
 

@@ -223,6 +223,7 @@ public:
   }
 
   const ossia::value& value() const noexcept { return m_value; }
+  const ossia::value& init() const noexcept { return m_init; }
   const State::Domain& domain() const noexcept { return m_domain; }
 
   QByteArray saveData() const noexcept override;
@@ -231,6 +232,8 @@ public:
 public:
   void valueChanged(const ossia::value& v)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v)
+  void initChanged(const ossia::value& v)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, initChanged, v)
   void executionValueChanged(const ossia::value& v)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, executionValueChanged, v)
   void domainChanged(const State::Domain& d)
@@ -239,6 +242,8 @@ public:
 public:
   void setValue(const ossia::value& value);
   W_SLOT(setValue)
+  void setInit(const ossia::value& value);
+  W_SLOT(setInit)
 
   inline void setExecutionValue(const ossia::value& value)
   {
@@ -257,8 +262,10 @@ public:
 
   PROPERTY(State::Domain, domain W_READ domain W_WRITE setDomain W_NOTIFY domainChanged)
   PROPERTY(ossia::value, value W_READ value W_WRITE setValue W_NOTIFY valueChanged)
+  PROPERTY(ossia::value, init W_READ init W_WRITE setInit W_NOTIFY initChanged)
 private:
   ossia::value m_value;
+  ossia::value m_init;
   State::Domain m_domain;
 };
 

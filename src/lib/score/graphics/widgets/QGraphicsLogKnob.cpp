@@ -31,10 +31,11 @@ void QGraphicsLogKnob::setRect(const QRectF& r)
   m_rect = r;
 }
 
-void QGraphicsLogKnob::setRange(double min, double max)
+void QGraphicsLogKnob::setRange(double min, double max, double init)
 {
   this->min = min;
   this->max = max;
+  this->init = init;
   update();
 }
 

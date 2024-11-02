@@ -33,10 +33,11 @@ void QGraphicsKnob::setRect(const QRectF& r)
   m_rect = r;
 }
 
-void QGraphicsKnob::setRange(double min, double max)
+void QGraphicsKnob::setRange(double min, double max, double init)
 {
   this->min = min;
   this->max = max;
+  this->init = init;
   update();
 }
 

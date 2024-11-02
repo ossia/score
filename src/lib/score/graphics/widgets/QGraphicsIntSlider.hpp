@@ -25,7 +25,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
   bool m_hasExec{};
 
 public:
-  int min{}, max{};
+  int min{}, max{}, init{};
 
   explicit QGraphicsIntSlider(QGraphicsItem* parent);
   ~QGraphicsIntSlider();
@@ -37,7 +37,7 @@ public:
   void setValue(int v);
   void setExecutionValue(int v);
   void resetExecution();
-  void setRange(int min, int max);
+  void setRange(int min, int max, int init);
   int value() const;
 
   bool moving = false;

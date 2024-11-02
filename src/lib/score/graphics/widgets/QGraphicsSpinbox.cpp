@@ -48,10 +48,11 @@ void QGraphicsSpinbox::resetExecution()
   update();
 }
 
-void QGraphicsSpinbox::setRange(double min, double max)
+void QGraphicsSpinbox::setRange(double min, double max, double init)
 {
   this->min = min;
   this->max = max;
+  this->init = init;
   update();
 }
 
@@ -67,10 +68,7 @@ double QGraphicsSpinbox::value() const
 
 void QGraphicsSpinbox::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_value = 0.5;
-  sliderMoved();
-  sliderReleased();
-  update();
+  DefaultGraphicsSpinboxImpl::mouseDoubleClickEvent(*this, event);
 }
 
 void QGraphicsSpinbox::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -132,10 +130,11 @@ void QGraphicsIntSpinbox::resetExecution()
   update();
 }
 
-void QGraphicsIntSpinbox::setRange(double min, double max)
+void QGraphicsIntSpinbox::setRange(double min, double max, double init)
 {
   this->min = min;
   this->max = max;
+  this->init = init;
   update();
 }
 
@@ -151,10 +150,7 @@ int QGraphicsIntSpinbox::value() const
 
 void QGraphicsIntSpinbox::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_value = 0.5;
-  sliderMoved();
-  sliderReleased();
-  update();
+  DefaultGraphicsSpinboxImpl::mouseDoubleClickEvent(*this, event);
 }
 
 void QGraphicsIntSpinbox::mousePressEvent(QGraphicsSceneMouseEvent* event)

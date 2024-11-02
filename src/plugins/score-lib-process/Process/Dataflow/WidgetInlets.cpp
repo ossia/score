@@ -28,6 +28,7 @@ Enum::Enum(
     values.push_back(QString::fromStdString(val));
 
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(State::Domain{ossia::domain_base<std::string>{dom}});
   setName(name);
@@ -41,6 +42,7 @@ Enum::Enum(
     , pixmaps{std::move(pixmaps)}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   ossia::domain_base<std::string> dom;
   for(auto& val : values)
@@ -91,6 +93,7 @@ ComboBox::ComboBox(
     , alternatives{std::move(values)}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   std::vector<ossia::value> vals;
   for(auto& v : alternatives)
@@ -128,6 +131,7 @@ HSVSlider::HSVSlider(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setName(name);
 }
@@ -144,6 +148,7 @@ FloatSlider::FloatSlider(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -163,6 +168,7 @@ FloatKnob::FloatKnob(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -182,6 +188,7 @@ LogFloatSlider::LogFloatSlider(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -201,6 +208,7 @@ IntSlider::IntSlider(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -221,6 +229,7 @@ IntRangeSlider::IntRangeSlider(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -241,6 +250,7 @@ FloatRangeSlider::FloatRangeSlider(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -270,6 +280,7 @@ FloatRangeSpinBox::FloatRangeSpinBox(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -289,6 +300,7 @@ IntSpinBox::IntSpinBox(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -308,6 +320,7 @@ FloatSpinBox::FloatSpinBox(
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
   setName(name);
@@ -328,6 +341,7 @@ TimeChooser::TimeChooser(
 {
   hidden = true;
   setValue(ossia::vec2f{init, 1.f});
+  setInit(value());
   setDomain(ossia::make_domain(ossia::vec2f{min, 0.f}, ossia::vec2f{max, 1.f}));
   setName(name);
 }
@@ -346,6 +360,7 @@ Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
 {
   hidden = true;
+  setInit(init);
   setValue(init);
   setDomain(State::Domain{ossia::domain_base<bool>{}});
   setName(name);
@@ -367,6 +382,7 @@ ChooserToggle::ChooserToggle(
 {
   hidden = true;
   setValue(init ? alternatives[1].toStdString() : alternatives[0].toStdString());
+  setInit(value());
   setDomain(State::Domain{ossia::domain_base<std::string>{
       {alternatives[0].toStdString(), alternatives[1].toStdString()}}});
   setName(name);
@@ -395,6 +411,7 @@ LineEdit::LineEdit(QString init, const QString& name, Id<Port> id, QObject* pare
 {
   hidden = true;
   setValue(init.toStdString());
+  setInit(value());
   setName(name);
 }
 
@@ -412,6 +429,7 @@ ProgramEdit::ProgramEdit(QString init, const QString& name, Id<Port> id, QObject
 {
   hidden = true;
   setValue(init.toStdString());
+  setInit(value());
   setName(name);
 }
 
@@ -430,6 +448,7 @@ FileChooserBase::FileChooserBase(
 {
   hidden = true;
   setValue(init.toStdString());
+  setInit(value());
   setName(name);
   m_filters = filters;
 }
@@ -533,6 +552,7 @@ Button::Button(const QString& name, Id<Port> id, QObject* parent)
 {
   hidden = true;
   setValue(false);
+  setInit(false);
   setDomain(State::Domain{ossia::domain_base<bool>{}});
   setName(name);
 }
@@ -551,6 +571,7 @@ ImpulseButton::ImpulseButton(const QString& name, Id<Port> id, QObject* parent)
 {
   hidden = true;
   setValue(ossia::impulse{});
+  setInit(ossia::impulse{});
   setDomain(State::Domain{ossia::domain_base<ossia::impulse>{}});
   setName(name);
 }
@@ -569,6 +590,7 @@ XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject*
 {
   hidden = true;
   setValue(init);
+  setInit(init);
   setName(name);
   setDomain(ossia::make_domain(ossia::vec2f{0., 0.}, ossia::vec2f{1., 1.}));
 }
@@ -580,6 +602,7 @@ XYSlider::XYSlider(
 {
   hidden = true;
   setValue(init);
+  setInit(init);
   setName(name);
   setDomain(ossia::make_domain(min, max));
 }
@@ -599,6 +622,7 @@ XYZSlider::XYZSlider(
 {
   hidden = true;
   setValue(init);
+  setInit(init);
   setName(name);
   setDomain(ossia::make_domain(ossia::vec3f{0., 0., 0.}, ossia::vec3f{1., 1., 1.}));
 }
@@ -610,6 +634,7 @@ XYZSlider::XYZSlider(
 {
   hidden = true;
   setValue(init);
+  setInit(init);
   setName(name);
   setDomain(ossia::make_domain(min, max));
 }
@@ -629,6 +654,7 @@ XYZSpinboxes::XYZSpinboxes(
 {
   hidden = true;
   setValue(init);
+  setInit(init);
   setName(name);
   setDomain(ossia::make_domain(ossia::vec3f{0., 0., 0.}, ossia::vec3f{1., 1., 1.}));
 }
@@ -641,6 +667,7 @@ XYSpinboxes::XYSpinboxes(
 {
   hidden = true;
   setValue(init);
+  setInit(init);
   setName(name);
   setDomain(ossia::make_domain(min, max));
 }
@@ -661,6 +688,7 @@ XYZSpinboxes::XYZSpinboxes(
 {
   hidden = true;
   setValue(init);
+  setInit(init);
   setName(name);
   setDomain(ossia::make_domain(min, max));
 }
@@ -680,6 +708,7 @@ MultiSlider::MultiSlider(
 {
   hidden = true;
   setValue(std::move(init));
+  setInit(value());
   setName(name);
   setDomain(ossia::make_domain(0., 1.));
 }

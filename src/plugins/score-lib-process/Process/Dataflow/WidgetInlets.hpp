@@ -209,6 +209,7 @@ struct SCORE_LIB_PROCESS_EXPORT IntRangeSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<int>(); }
   auto getMax() const noexcept { return domain().get().convert_max<int>(); }
+  auto getInit() const noexcept { return ossia::convert<ossia::vec2f>(this->init()); }
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
@@ -224,6 +225,7 @@ struct SCORE_LIB_PROCESS_EXPORT FloatRangeSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  auto getInit() const noexcept { return ossia::convert<ossia::vec2f>(this->init()); }
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
@@ -239,6 +241,7 @@ struct SCORE_LIB_PROCESS_EXPORT IntRangeSpinBox : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<int>(); }
   auto getMax() const noexcept { return domain().get().convert_max<int>(); }
+  auto getInit() const noexcept { return ossia::convert<ossia::vec2f>(this->init()); }
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
@@ -254,6 +257,7 @@ struct SCORE_LIB_PROCESS_EXPORT FloatRangeSpinBox : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  auto getInit() const noexcept { return ossia::convert<ossia::vec2f>(this->init()); }
   void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;

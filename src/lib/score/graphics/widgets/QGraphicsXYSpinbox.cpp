@@ -95,10 +95,11 @@ void QGraphicsXYSpinboxChooser::setValue(ossia::vec2f v)
   update();
 }
 
-void QGraphicsXYSpinboxChooser::setRange(ossia::vec2f min, ossia::vec2f max)
+void QGraphicsXYSpinboxChooser::setRange(
+    ossia::vec2f min, ossia::vec2f max, ossia::vec2f init)
 {
-  m_x.setRange(min[0], max[0]);
-  m_y.setRange(min[1], max[1]);
+  m_x.setRange(min[0], max[0], init[0]);
+  m_y.setRange(min[1], max[1], init[1]);
 }
 
 QRectF QGraphicsXYSpinboxChooser::boundingRect() const
@@ -187,10 +188,11 @@ void QGraphicsIntXYSpinboxChooser::setValue(ossia::vec2f v)
   update();
 }
 
-void QGraphicsIntXYSpinboxChooser::setRange(ossia::vec2f min, ossia::vec2f max)
+void QGraphicsIntXYSpinboxChooser::setRange(
+    ossia::vec2f min, ossia::vec2f max, ossia::vec2f init)
 {
-  m_x.setRange(min[0], max[0]);
-  m_y.setRange(min[1], max[1]);
+  m_x.setRange(min[0], max[0], init[0]);
+  m_y.setRange(min[1], max[1], init[1]);
 }
 
 QRectF QGraphicsIntXYSpinboxChooser::boundingRect() const

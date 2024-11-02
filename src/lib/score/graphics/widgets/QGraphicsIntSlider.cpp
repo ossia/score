@@ -62,10 +62,11 @@ void QGraphicsIntSlider::resetExecution()
   update();
 }
 
-void QGraphicsIntSlider::setRange(int min, int max)
+void QGraphicsIntSlider::setRange(int min, int max, int init)
 {
   this->min = min;
   this->max = max;
+  this->init = init;
   update();
 }
 

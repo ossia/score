@@ -198,6 +198,16 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mouseDoubleClickEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
+    self.m_value = self.unmap(self.init);
+
+    self.m_grab = true;
+    self.sliderMoved();
+    self.sliderReleased();
+    self.m_grab = false;
+
+    self.update();
+
+    event->accept();
   }
 };
 

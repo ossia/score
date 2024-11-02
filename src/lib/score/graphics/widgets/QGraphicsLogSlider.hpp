@@ -25,7 +25,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
   double m_execValue{};
 
 public:
-  double min{}, max{};
+  double min{}, max{}, init{};
 
 private:
   bool m_grab{};
@@ -35,7 +35,7 @@ public:
   explicit QGraphicsLogSlider(QGraphicsItem* parent);
   ~QGraphicsLogSlider();
 
-  void setRange(double min, double max);
+  void setRange(double min, double max, double init);
   void setValue(double v);
   double value() const;
   void setExecutionValue(double v);

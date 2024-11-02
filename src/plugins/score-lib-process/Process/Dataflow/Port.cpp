@@ -335,6 +335,15 @@ void ControlInlet::setValue(const ossia::value& value)
   }
 }
 
+void ControlInlet::setInit(const ossia::value& value)
+{
+  if(value != m_init)
+  {
+    m_init = value;
+    initChanged(value);
+  }
+}
+
 Outlet::~Outlet() { }
 
 void Outlet::setupExecution(ossia::outlet&) const noexcept { }
@@ -725,10 +734,11 @@ QGraphicsItem* PortFactory::makeControlItem(
     auto max = dom.convert_max<float>();
     struct
     {
-      float min, max;
+      float min, max, init;
       float getMin() const { return min; }
       float getMax() const { return max; }
-    } info{min, max};
+      float getInit() const { return init; }
+    } info{min, max, ossia::convert<float>(port.init())};
     return WidgetFactory::FloatSlider::make_item(info, port, ctx, nullptr, context);
   }
   else
@@ -737,6 +747,7 @@ QGraphicsItem* PortFactory::makeControlItem(
     {
       static float getMin() { return 0.; }
       static float getMax() { return 1.; }
+      static float getInit() { return 0.; }
     };
     return WidgetFactory::FloatSlider::make_item(
         SliderInfo{}, port, ctx, nullptr, context);
@@ -757,6 +768,7 @@ QGraphicsItem* PortFactory::makeControlItem(
       float min, max;
       float getMin() const { return min; }
       float getMax() const { return max; }
+      float getInit() const { return min; }
     } info{min, max};
     return WidgetFactory::FloatSlider::make_item(info, port, ctx, parent, context);
   }
@@ -766,6 +778,7 @@ QGraphicsItem* PortFactory::makeControlItem(
     {
       static float getMin() { return 0.; }
       static float getMax() { return 1.; }
+      static float getInit() { return 0.; }
     };
     return WidgetFactory::FloatSlider::make_item(
         SliderInfo{}, port, ctx, parent, context);
@@ -1195,12 +1208,14 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlInlet
 {
   // read((Process::Inlet&)p);
   readFrom(p.m_value);
+  readFrom(p.m_init);
   readFrom(p.m_domain);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ControlInlet& p)
 {
   writeTo(p.m_value);
+  writeTo(p.m_init);
   writeTo(p.m_domain);
 }
 
@@ -1209,12 +1224,16 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ControlInlet& p)
 {
   // read((Process::Inlet&)p);
   obj[strings.Value] = p.m_value;
+  obj[strings.Init] = p.m_init;
   obj[strings.Domain] = p.m_domain;
 }
+
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ControlInlet& p)
 {
   p.m_value <<= obj[strings.Value];
+  if(auto v = obj.tryGet(strings.Init))
+    p.m_value <<= *v;
   p.m_domain <<= obj[strings.Domain];
 }
 

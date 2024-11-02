@@ -25,6 +25,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsRangeSlider final
 
   double m_start{0.}, m_end{1.};
   double m_min{0}, m_max{1};
+  double m_init_start{0.}, m_init_end{1.};
 
 public:
   bool moving = false;
@@ -34,7 +35,7 @@ public:
 
   void setStart(double start);
   void setEnd(double end);
-  void setRange(double min, double max);
+  void setRange(double min, double max, ossia::vec2f init);
 
   void setValue(ossia::vec2f value);
   ossia::vec2f value() const noexcept;

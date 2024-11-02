@@ -29,7 +29,7 @@ QGraphicsTimeChooser::QGraphicsTimeChooser(QGraphicsItem* parent)
       &combo, &QGraphicsCombo::sliderReleased, this,
       &QGraphicsTimeChooser::sliderReleased);
 
-  knob.setRange(0., 1.);
+  knob.setRange(0., 1., 0.);
   combo.array = QStringList{
       "Whole", "Half",        "4th",        "8th",        "16th",        "32th",
       "64th",  "Dotted half", "Dotted 4th", "Dotted 8th", "Dotted 16th", "Dotted 32th",

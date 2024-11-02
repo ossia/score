@@ -6,6 +6,9 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QDoubleSpinBox>
+#include <QSpinBox>
+
 #include <type_traits>
 
 namespace WidgetFactory
@@ -27,6 +30,17 @@ static constexpr auto getMax(auto& slider) noexcept
     return slider.getMax();
   else
     return slider.domain().get().template convert_max<T>();
+}
+
+template <typename T>
+static constexpr auto getInit(auto& slider) noexcept
+{
+  if constexpr(requires { slider.getInit(); })
+    return slider.getInit();
+  else if constexpr(requires { slider.init(); })
+    return ossia::convert<T>(slider.init());
+  else
+    return getMin<T>(slider);
 }
 
 struct LinearNormalizer
@@ -217,6 +231,22 @@ static void initWidgetProperties(Control_T& inlet, Widget_T& widget)
     widget.setNoValueChangeOnMove(inlet.noValueChangeOnMove);
 }
 
+template <typename Widget_T>
+static void setRange(Widget_T& widget, auto&& min, auto&& max, auto&& init)
+{
+  widget.setRange(min, max, init);
+}
+
+static inline void setRange(QSpinBox& widget, auto&& min, auto&& max, auto&& init)
+{
+  widget.setRange(min, max);
+}
+
+static inline void setRange(QDoubleSpinBox& widget, auto&& min, auto&& max, auto&& init)
+{
+  widget.setRange(min, max);
+}
+
 template <typename T, typename Control_T, typename Widget_T>
 static void bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
@@ -225,7 +255,7 @@ static void bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
   if(max - min == 0)
     max = min + 1;
 
-  widget.setRange(min, max);
+  setRange(widget, min, max, getInit<float>(slider));
 
   if constexpr(std::is_base_of_v<Process::ControlInlet, T>)
   {
@@ -236,7 +266,7 @@ static void bindFloatDomain(const T& slider, Control_T& inlet, Widget_T& widget)
       if(max - min == 0)
         max = min + 1;
 
-      widget.setRange(min, max);
+      setRange(widget, min, max, getInit<float>(slider));
     });
   }
 }
@@ -249,7 +279,7 @@ static void bindIntDomain(const T& slider, Control_T& inlet, Widget_T& widget)
   if(max - min == 0)
     max = min + 1;
 
-  widget.setRange(min, max);
+  setRange(widget, min, max, getInit<int>(slider));
 
   if constexpr(std::is_base_of_v<Process::ControlInlet, T>)
   {
@@ -260,7 +290,7 @@ static void bindIntDomain(const T& slider, Control_T& inlet, Widget_T& widget)
       if(max - min == 0)
         max = min + 1;
 
-      widget.setRange(min, max);
+      setRange(widget, min, max, getInit<int>(slider));
     });
   }
 }

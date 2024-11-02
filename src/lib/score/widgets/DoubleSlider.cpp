@@ -124,10 +124,11 @@ void DoubleSlider::createPopup(QPoint pos)
   QObject::connect(
       w, &DoubleSpinboxWithEnter::editingFinished, w, &QObject::deleteLater);
 }
-void DoubleSlider::setRange(double min, double max) noexcept
+void DoubleSlider::setRange(double min, double max, double init) noexcept
 {
   this->min = min;
   this->max = max;
+  this->init = init;
   update();
 }
 void DoubleSlider::paintEvent(QPaintEvent* e)

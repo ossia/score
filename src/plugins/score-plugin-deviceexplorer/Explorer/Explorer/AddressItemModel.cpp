@@ -623,7 +623,7 @@ public:
       , m_slider{this}
   {
     m_slider.setOrientation(Qt::Horizontal);
-    m_slider.setRange(min, max);
+    m_slider.setRange(min, max, min); // FIXME
     m_edit.setRange(min, max);
 
     m_slider.setContentsMargins(0, 0, 0, 0);

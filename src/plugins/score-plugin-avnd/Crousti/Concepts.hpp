@@ -59,6 +59,7 @@ struct CustomFloatControlBase : public Process::ControlInlet
   {
     hidden = true;
     setValue(init);
+    setInit(init);
     setDomain(ossia::make_domain(min, max));
     setName(name);
   }

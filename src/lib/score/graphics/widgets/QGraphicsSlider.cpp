@@ -26,10 +26,11 @@ QGraphicsSlider::~QGraphicsSlider()
     sliderReleased();
 }
 
-void QGraphicsSlider::setRange(double min, double max)
+void QGraphicsSlider::setRange(double min, double max, double init)
 {
   this->min = min;
   this->max = max;
+  this->init = init;
   update();
 }
 

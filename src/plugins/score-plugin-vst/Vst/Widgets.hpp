@@ -51,6 +51,7 @@ private:
 public:
   static const constexpr double min = 0.;
   static const constexpr double max = 1.;
+  static const constexpr double init = 0.5;
   friend struct score::DefaultControlImpl;
   friend struct score::DefaultGraphicsSliderImpl;
   GraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent);

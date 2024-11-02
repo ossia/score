@@ -19,10 +19,11 @@ public:
   void setValue(int val);
   void setMinimum(int min) { m_min = min; }
   void setMaximum(int max) { m_max = max; }
-  void setRange(int min, double max)
+  void setRange(int min, int max, int init)
   {
     m_min = min;
     m_max = max;
+    m_init = init;
     update();
   }
   void setOrientation(Qt::Orientation ort) { m_orientation = ort; }
@@ -51,6 +52,7 @@ private:
   int m_value{};
   int m_min{};
   int m_max{};
+  int m_init{};
 
   Qt::Orientation m_orientation{};
   double m_borderWidth{};

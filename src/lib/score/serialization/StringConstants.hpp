@@ -126,6 +126,7 @@ struct StringConstants
   const std::string Pitch;
   const std::string Velocity;
   const std::string Channel;
+  const std::string Init;
 };
 
 SCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();

@@ -54,6 +54,7 @@ ImageListChooser::ImageListChooser(
   for(auto& v : init)
     init_v.push_back(v.toStdString());
   setValue(std::move(init_v));
+  setInit(value());
   setName(name);
 }
 

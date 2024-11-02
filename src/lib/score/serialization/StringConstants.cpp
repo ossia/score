@@ -126,7 +126,8 @@ SCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
       "Rate",
       "Pitch",
       "Velocity",
-      "Channel"
+      "Channel",
+      "Init"
 
   };
   return strings;
