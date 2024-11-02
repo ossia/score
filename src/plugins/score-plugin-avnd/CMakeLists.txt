@@ -125,6 +125,8 @@ add_library(
   Crousti/CpuFilterNode.hpp
   Crousti/CpuGeneratorNode.hpp
   Crousti/Executor.hpp
+  Crousti/ExecutorPortSetup.hpp
+  Crousti/ExecutorUpdateControlValueInUi.hpp
   Crousti/Geometry.hpp
   Crousti/GfxNode.hpp
   Crousti/GpuComputeNode.hpp
