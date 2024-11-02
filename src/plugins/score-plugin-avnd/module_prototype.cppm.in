@@ -7,6 +7,7 @@ module;
 #include <score/plugins/Interface.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <Avnd/Factories.hpp>
+#include <concurrentqueue.h>
 
 export module @AVND_TARGET@_factories;
 import @AVND_TARGET@;
@@ -18,7 +19,7 @@ void custom_factories_@AVND_TARGET@(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
   using namespace oscr;
-//  oscr::instantiate_fx<@AVND_QUALIFIED@>(fx, ctx, key);
+  oscr::instantiate_fx<@AVND_QUALIFIED@>(fx, ctx, key);
 }
 }
 // clang-format on

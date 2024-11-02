@@ -67,6 +67,7 @@ module;
 #include <score/tools/ThreadPool.hpp>
 
 #include <ossia/detail/for_each.hpp>
+#include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
 
@@ -134,7 +135,6 @@ module;
 #include <utility>
 #include <variant>
 #include <version>
-
 export module halp;
 
 #define HALP_MODULE_BUILD 1

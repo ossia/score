@@ -11,6 +11,7 @@ module;
 
 #include <score_plugin_engine.hpp>
 #include <score/plugins/FactorySetup.hpp>
+#include <concurrentqueue.h>
 
 #include <Avnd/Factories.hpp>
 export module @AVND_BASE_TARGET@;
