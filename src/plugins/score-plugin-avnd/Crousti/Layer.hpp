@@ -321,7 +321,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       auto t = boost::pfr::detail::tie_as_tuple(item, size_t_<N>{});
       [&]<std::size_t... I>(std::index_sequence<I...>) {
         (this->walkLayout(sequence_tuple::get<I>(t), recursive_members...), ...);
-      }(make_index_sequence<N>{});
+      }(std::make_index_sequence<N>{});
     }
 
     layout = old_l;
