@@ -10,10 +10,13 @@ source ci/common.setup.sh
 
 export CLANG_VERSION=19
 $SUDO apt-get update -qq
-$SUDO apt-get install -qq --force-yes wget lsb-release software-properties-common gnupg
-wget https://apt.llvm.org/llvm.sh
-chmod +x llvm.sh
-$SUDO ./llvm.sh $CLANG_VERSION
+$SUDO apt-get install -qq --force-yes wget lsb-release gnupg
+wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | $SUDO tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+mkdir -p /etc/apt/sources.list.d
+echo "
+deb http://apt.llvm.org/unstable/ llvm-toolchain-19 main
+deb-src http://apt.llvm.org/unstable/ llvm-toolchain-19 main
+" >> /etc/apt/sources.list
 
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
@@ -22,7 +25,7 @@ $SUDO apt-get install -qq --force-yes \
      build-essential binutils cmake \
      libasound2-dev \
      ninja-build \
-     libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \
+     clang-$CLANG_VERSION lld-$CLANG_VERSION libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \
      libdrm-dev libgbm-dev \
