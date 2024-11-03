@@ -28,5 +28,5 @@ $SUDO zypper -n install \
    qt6-websockets-devel qt6-serialport-devel  \
    qt6-qml-devel qt6-qml-private-devel \
    ffmpeg-7-libavcodec-devel ffmpeg-7-libavdevice-devel ffmpeg-7-libavfilter-devel ffmpeg-7-libavformat-devel ffmpeg-7-libswresample-devel \
-   zlib-ng-compat-devel
+   zlib-devel zlib-devel-static
 
