@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Process.hpp>
 
+#include <Crousti/File.hpp>
 #include <Crousti/ProcessModel.hpp>
 
 #include <avnd/binding/ossia/node.hpp>

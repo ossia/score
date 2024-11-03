@@ -30,6 +30,7 @@ dnf -y install --allowerasing \
      qt6-qtwebsockets-devel \
      qt6-qtdeclarative-devel \
      qt6-qtdeclarative-private-devel \
-     pipewire-devel
+     pipewire-devel \
+     zlib-ng-compat-static zlib-ng-compat-devel
 
 source ci/common.deps.sh

@@ -9,14 +9,6 @@ source ci/common.setup.sh
 # but only clang-M as clang++-M is not a package
 
 export CLANG_VERSION=19
-$SUDO apt-get update -qq
-$SUDO apt-get install -qq --force-yes wget lsb-release gnupg
-wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | $SUDO tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-mkdir -p /etc/apt/sources.list.d
-echo "
-deb http://apt.llvm.org/unstable/ llvm-toolchain-19 main
-deb-src http://apt.llvm.org/unstable/ llvm-toolchain-19 main
-" >> /etc/apt/sources.list
 
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
