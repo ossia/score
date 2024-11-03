@@ -163,6 +163,7 @@ public:
   void
   setup_gpu(ProcessModel<Node>& element, const ::Execution::Context& ctx, QObject* p)
   {
+#if SCORE_PLUGIN_GFX
     // FIXME net context for gpu node ?
     const auto id
         = std::hash<ObjectPath>{}(Path<Process::ProcessModel>{element}.unsafePath());
@@ -255,6 +256,7 @@ public:
     }
     node->id = gfx_exec.ui->register_node(std::move(ptr));
     node_id = node->id;
+#endif
   }
 
   void recompute_ports()
