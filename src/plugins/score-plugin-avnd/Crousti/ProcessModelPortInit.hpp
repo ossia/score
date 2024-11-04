@@ -140,6 +140,11 @@ struct InletInitFunc
         return "";
       }
     }
+    else if constexpr(requires { P::extensions(); })
+    {
+      static constexpr auto text_filters = P::extensions();
+      return fromStringView(P::extensions());
+    }
     else
     {
       return "";
