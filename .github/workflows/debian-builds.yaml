@@ -15,6 +15,7 @@ jobs:
           - { distro: bookworm, CC: clang-19,  CXX: clang++-19, PACKAGES: "clang-19" }
           - { distro: bookworm, CC: gcc,       CXX: g++,        PACKAGES: "build-essential" }
           - { distro: trixie, CC: gcc,      CXX: g++,     PACKAGES: "build-essential gcc-14 g++-14 llvm-17-dev libclang-17-dev " }
+          - { distro: trixie-system, CC: gcc,      CXX: g++,     PACKAGES: "build-essential gcc-14 g++-14 llvm-17-dev libclang-17-dev " }
           - { distro: trixie, CC: clang-19,    CXX: clang++-19, PACKAGES: "build-essential clang-19 llvm-19-dev libclang-19-dev lld-19 " }
     steps:
       - name: Install git
