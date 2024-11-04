@@ -34,6 +34,15 @@ $SUDO apt-get install -qq --force-yes \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libpipewire-0.3-dev \
-     libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev
+     libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
+     libfmt-dev \
+     libspdlog-dev \
+     librubberband-dev \
+     libsamplerate-dev \
+     libsndfile-dev \
+     libwiiuse-dev \
+     libre2-dev \
+     libsnappy-dev
+
 
 source ci/common.deps.sh
