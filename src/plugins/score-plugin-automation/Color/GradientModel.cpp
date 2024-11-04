@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/CodeWriter.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Dataflow/PrettyPortName.hpp>
@@ -15,6 +16,7 @@
 
 #include <Color/GradientModel.hpp>
 #include <Color/GradientPresenter.hpp>
+#include <fmt/format.h>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gradient::ProcessModel)
@@ -96,6 +98,69 @@ void ProcessModel::setGradient(const ProcessModel::gradient_colors& c)
     m_colors = c;
     gradientChanged();
   }
+}
+
+std::unique_ptr<Process::CodeWriter>
+ProcessModel::codeWriter(Process::CodeFormat) const noexcept
+{
+  struct CodeWriter : Process::CodeWriter
+  {
+    using Process::CodeWriter::CodeWriter;
+
+    static ossia::hunter_lab to_ossia_color(QColor c)
+    {
+      switch(c.spec())
+      {
+        case QColor::Rgb: {
+          ossia::rgb r{(float)c.redF(), (float)c.greenF(), (float)c.blueF()};
+          return ossia::hunter_lab{r};
+        }
+        case QColor::Hsv:
+        case QColor::Cmyk:
+        case QColor::Hsl:
+          return to_ossia_color(c.toRgb());
+        case QColor::Invalid:
+        default:
+          return ossia::hunter_lab{};
+      }
+    }
+    std::string typeName() const noexcept override { return "ao::ColorAutomation"; }
+    std::string initializer() const noexcept override
+    {
+      std::string init_list;
+      auto& self = static_cast<const ProcessModel&>(this->self);
+      auto& g = self.gradient();
+      for(auto [pos, col] : g)
+      {
+        auto lab = to_ossia_color(col);
+        init_list += fmt::format(
+            "{{ {}, {{ {}, {}, {} }} }}, ", pos, lab.dataspace_value[0],
+            lab.dataspace_value[1], lab.dataspace_value[2]);
+      }
+      return fmt::format(
+          ".inputs = {{ .curve = {{ .value = {{ {{ {} }} }} }} }}", init_list);
+    }
+
+    std::string accessInlet(const Id<Process::Port>& id) const noexcept override
+    {
+      return "<! INVALID !>";
+    }
+
+    std::string accessOutlet(const Id<Process::Port>& id) const noexcept override
+    {
+      return fmt::format("{}.outputs.value.value", variable);
+    }
+
+    std::string execute() const noexcept override
+    {
+      return fmt::format(
+          "{}( {{ .frames = g_tick.frames, .relative_position = "
+          "g_tick.relative_position }} "
+          ");",
+          variable);
+    }
+  };
+  return std::make_unique<CodeWriter>(*this);
 }
 
 const ::State::AddressAccessor& ProcessModel::address() const
