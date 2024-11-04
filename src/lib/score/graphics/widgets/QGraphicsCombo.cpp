@@ -108,10 +108,10 @@ struct DefaultComboImpl
     if((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       double v = InfiniteScroller::move(event);
-      int curPos = v * (self.array.size() - 1);
+      int curPos = std::round(v * (self.array.size() - 1));
       if(curPos != self.m_value)
       {
-        self.m_value = curPos;
+        self.m_value = std::clamp(curPos, 0, int(self.array.size() - 1));
         self.sliderMoved();
         self.update();
       }
@@ -128,10 +128,10 @@ struct DefaultComboImpl
       if(self.m_grab)
       {
         double v = InfiniteScroller::move(event);
-        int curPos = v * (self.array.size() - 1);
+        int curPos = std::round(v * (self.array.size() - 1));
         if(curPos != self.m_value)
         {
-          self.m_value = curPos;
+          self.m_value = std::clamp(curPos, 0, int(self.array.size() - 1));
           self.update();
         }
         self.m_grab = false;
