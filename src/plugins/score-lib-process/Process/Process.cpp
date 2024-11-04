@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Process.hpp"
 
+#include <Process/CodeWriter.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/PresetHelpers.hpp>
@@ -134,6 +135,11 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
 QString ProcessModel::prettyName() const noexcept
 {
   return metadata().getName();
+}
+
+std::unique_ptr<CodeWriter> ProcessModel::codeWriter(CodeFormat) const noexcept
+{
+  return std::make_unique<DummyCodeWriter>(*this);
 }
 
 void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t) noexcept

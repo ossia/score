@@ -41,6 +41,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Exprtk.cpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.hpp"
  )
 add_library(
