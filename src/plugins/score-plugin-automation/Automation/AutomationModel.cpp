@@ -4,6 +4,7 @@
 
 #include <State/Address.hpp>
 
+#include <Process/CodeWriter.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/MinMaxFloatPort.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -31,6 +32,8 @@
 
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
+
+#include <fmt/format.h>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::ProcessModel)
@@ -346,4 +349,56 @@ ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 
   return Process::MagneticInfo{TimeVal(closest * duration().impl), true};
 }
+
+std::unique_ptr<Process::CodeWriter>
+ProcessModel::codeWriter(Process::CodeFormat) const noexcept
+{
+  struct CodeWriter : Process::CodeWriter
+  {
+    using Process::CodeWriter::CodeWriter;
+    std::string typeName() const noexcept override
+    {
+      return "ao::AutomationBase<halp::power_curve>";
+    }
+    std::string initializer() const noexcept override
+    {
+      std::string init_list;
+      auto& self = static_cast<const ProcessModel&>(this->self);
+      auto g = self.curve().sortedSegments();
+      for(Curve::SegmentModel* segment : g)
+      {
+        auto d = segment->toSegmentData();
+        auto sx = d.start.x();
+        auto sy = d.start.y();
+        auto ex = d.end.x();
+        auto ey = d.end.y();
+        init_list
+            += fmt::format("{{ {{ {},  {} }} , {{ {}, {} }} , 1.0 }}, ", sx, sy, ex, ey);
+      }
+      return fmt::format(
+          ".inputs = {{ .curve = {{ .value = {{ {{ {} }} }} }} }}", init_list);
+    }
+
+    std::string accessInlet(const Id<Process::Port>& id) const noexcept override
+    {
+      return "<! INVALID !>";
+    }
+
+    std::string accessOutlet(const Id<Process::Port>& id) const noexcept override
+    {
+      return fmt::format("{}.outputs.value.value", variable);
+    }
+
+    std::string execute() const noexcept override
+    {
+      return fmt::format(
+          "{}( {{ .frames = get_frames(g_tick), .relative_position = "
+          "get_relative_position(g_tick) }} "
+          ");",
+          variable);
+    }
+  };
+  return std::make_unique<CodeWriter>(*this);
+}
+
 }
