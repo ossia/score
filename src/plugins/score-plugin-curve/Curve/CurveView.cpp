@@ -178,6 +178,8 @@ void View::drawOptimized(QPainter* painter)
   painter->drawLine(p1.x(), p1.y(), p2.x(), p2.y());
 
   p1 = p2;
+  double accum = 0.;
+  int accum_n = 0;
   for(; next != pts.end(); ++next)
   {
     p2 = curve_view_scale((*next)->pos(), sz);
@@ -190,11 +192,17 @@ void View::drawOptimized(QPainter* painter)
       break;
 
     int new_x = view->mapFromScene(mapToScene(p1)).x();
-    if(new_x == prev_x)
-      continue;
-    prev_x = new_x;
 
-    painter->drawPoint(p1.x(), p1.y());
+    accum += p2.y();
+    accum_n++;
+
+    if(new_x != prev_x)
+    {
+      painter->drawLine(p1.x(), p1.y(), p2.x(), accum / accum_n);
+      accum = 0.;
+      accum_n = 0;
+    }
+    prev_x = new_x;
     p1 = p2;
   }
 }
