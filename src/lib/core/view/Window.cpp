@@ -158,7 +158,7 @@ View::View(QObject* parent)
   leftTabs = new FixedTabWidget;
 
   connect(leftTabs, &FixedTabWidget::actionTriggered, this, [=](QAction* act, bool b) {
-    leftLabel->setText(act->text());
+    leftLabel->setText(act->iconText());
   });
   ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, topleftToolbar);
   ((QVBoxLayout*)leftTabs->layout())->insertWidget(1, leftLabel);

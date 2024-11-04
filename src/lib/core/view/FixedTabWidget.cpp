@@ -108,6 +108,7 @@ std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus
   bbtn->setDefaultAction(btn);
   btn->setIcon(v.icon);
   btn->setText(v.prettyName);
+  btn->setIconText(v.prettyName);
 
   m_actGrp->addAction(btn);
   btn->setCheckable(true);
