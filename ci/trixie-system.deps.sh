@@ -40,9 +40,22 @@ $SUDO apt-get install -qq --force-yes \
      librubberband-dev \
      libsamplerate-dev \
      libsndfile-dev \
-     libwiiuse-dev \
      libre2-dev \
-     libsnappy-dev
+     librapidfuzz-cpp-dev \
+     libsnappy-dev \
+     libboost-dev \
+     libmagicenum-dev \
+     libcoap3-dev \
+     libhdf5-dev \
+     libonnxruntime-dev \
+     faust \
+     libgps-dev \
+     libsdl2-dev \
+     glslang-dev glslang-tools \
+     libzita-alsa-pcmi-dev \
+     libvst3sdk-dev \
+     puredata-dev \
+     libpd-dev
 
 
 source ci/common.deps.sh

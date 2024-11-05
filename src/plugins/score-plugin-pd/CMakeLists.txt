@@ -17,12 +17,14 @@ if(WIN32)
     set(PD_DEFINE_EXTERN extern CACHE INTERNAL "")
 endif()
 set(CMAKE_C_VISIBILITY_PRESET "hidden")
-add_subdirectory("${3RDPARTY_FOLDER}/libpd" "${CMAKE_BINARY_DIR}/libpd")
 
-if(NOT TARGET libpd_static)
+include("${3RDPARTY_FOLDER}/libpd.cmake")
+
+if(NOT ((TARGET libpd_static) OR (TARGET libpd)))
   message("Problem occurring when building libpd")
   return()
 endif()
+
 score_common_setup()
 
 # Packages
@@ -61,9 +63,13 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     score_plugin_engine
-    score_plugin_scenario
-    libpd_static)
+    score_plugin_scenario)
 
+if(TARGET libpd_static)
+  target_link_libraries(${PROJECT_NAME} PUBLIC libpd_static)
+else()
+  target_link_libraries(${PROJECT_NAME} PUBLIC libpd)
+endif()
 setup_score_plugin(${PROJECT_NAME})
 
 

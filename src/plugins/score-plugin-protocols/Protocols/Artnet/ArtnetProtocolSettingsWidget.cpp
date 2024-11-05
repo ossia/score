@@ -216,9 +216,8 @@ public:
     if(cst.empty())
       return [](const QString& p) { return true; };
 
-    return [rexp = std::make_shared<RE2>(cst)](const QString& p) {
-      return RE2::FullMatch(p.toStdString(), *rexp);
-    };
+    return [rexp = std::make_shared<RE2>(re2::StringPiece(cst.data(), cst.size()))](
+               const QString& p) { return RE2::FullMatch(p.toStdString(), *rexp); };
   }
 
   static std::vector<int> filter_constraints(
