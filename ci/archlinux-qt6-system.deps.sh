@@ -32,7 +32,20 @@ $SUDO pacman -S --noconfirm --needed \
    xcb-proto xcb-util xcb-util-cursor xcb-util-image \
    xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
    qt6-base qt6-shadertools qt6-tools qt6-declarative qt6-scxml qt6-websockets qt6-serialport \
-   fmt spdlog rapidjson rubberband libsamplerate libsndfile \
-   wiiuse re2 catch2 snappy mimalloc rapidfuzz-cpp pd vst3sdk
+   fmt spdlog rapidjson \
+   rubberband \
+   libsamplerate \
+   libsndfile \
+   wiiuse \
+   re2 \
+   catch2 \
+   snappy \
+   rapidfuzz-cpp \
+   pd \
+   vst3sdk \
+   hdf5 \
+   faust \
+   gpsd \
+   zita-alsa-pcmi
 
 source ci/common.deps.sh

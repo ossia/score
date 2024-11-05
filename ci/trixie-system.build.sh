@@ -20,4 +20,4 @@ cmake --build .
 cmake --build . --target install
 # cmake --build . --target package
 
-mv *.deb ..
+# mv *.deb ..
