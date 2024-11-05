@@ -478,7 +478,11 @@ public:
     if constexpr(avnd::audio_argument_processor<Info>)
       count += 1;
     else if constexpr(avnd::tag_cv<Info>)
-      count += 1;
+    {
+      using operator_ret = typename avnd::function_reflection_o<Info>::return_type;
+      if constexpr(!std::is_void_v<operator_ret>)
+        count += 1;
+    }
 
     avnd::output_introspection<Info>::for_all(
         [this,
@@ -559,7 +563,11 @@ public:
     if constexpr(avnd::audio_argument_processor<Info>)
       model_index += 1;
     else if constexpr(avnd::tag_cv<Info>)
-      model_index += 1;
+    {
+      using operator_ret = typename avnd::function_reflection_o<Info>::return_type;
+      if constexpr(!std::is_void_v<operator_ret>)
+        model_index += 1;
+    }
 
     // The "messages" ports also go before
     model_index += avnd::messages_introspection<Info>::size;
