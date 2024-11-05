@@ -18,6 +18,6 @@ cmake $SCORE_DIR \
 
 cmake --build .
 cmake --build . --target install
-cmake --build . --target package
+# cmake --build . --target package
 
 mv *.deb ..
