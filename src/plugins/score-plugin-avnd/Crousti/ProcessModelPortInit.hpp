@@ -143,7 +143,7 @@ struct InletInitFunc
     else if constexpr(requires { P::extensions(); })
     {
       static constexpr auto text_filters = P::extensions();
-      return fromStringView(P::extensions());
+      return fromStringView(text_filters);
     }
     else
     {

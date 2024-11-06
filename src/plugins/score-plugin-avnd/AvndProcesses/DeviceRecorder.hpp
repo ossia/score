@@ -546,7 +546,7 @@ struct DeviceRecorder : PatternObject
     {
       f.close();
 
-      auto filename = QByteArray::fromStdString(this->filename);
+      auto filename = QByteArray::fromStdString(this->filename).trimmed();
       filename.replace("%t", QDateTime::currentDateTimeUtc().toString().toUtf8());
       f.setFileName(filename);
       if(filename.isEmpty())

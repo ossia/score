@@ -468,8 +468,7 @@ public:
                eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) mutable {
           // request() is invoked in the DSP / processor thread
           // and just posts the task to the thread pool
-          tq.post([eff_ptr = std::move(eff_ptr), qex_ptr = std::move(qex_ptr),
-                   ... ff = std::forward<Args>(f)]() mutable {
+          tq.post([eff_ptr, qex_ptr, ... ff = std::forward<Args>(f)]() mutable {
             // This happens in the worker thread
             // If for some reason the object has already been removed, not much
             // reason to perform the work
