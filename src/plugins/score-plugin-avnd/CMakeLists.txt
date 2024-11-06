@@ -597,6 +597,18 @@ avnd_make_score(
   NAMESPACE examples
 )
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Combine.hpp"
+  TARGET combine
+  MAIN_CLASS Combine
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Spread.hpp"
+  TARGET spread
+  MAIN_CLASS Spread
+  NAMESPACE ao
+)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Raw/Interpolator.hpp"
   TARGET exponential_smoothing
   MAIN_CLASS ExponentialSmoothing
