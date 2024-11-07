@@ -4,6 +4,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/network/common/path.hpp>
 
+#include <AvndProcesses/Alphanum.hpp>
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
@@ -74,6 +75,11 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
     }
 
     ossia::traversal::apply(*p.m_path, p.roots);
+    std::sort(
+        p.roots.begin(), p.roots.end(),
+        [](ossia::net::node_base* lhs, ossia::net::node_base* rhs) {
+      return doj::alphanum_compare{}(lhs->osc_address(), rhs->osc_address());
+    });
     devices_dirty = false;
   }
 

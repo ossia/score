@@ -406,6 +406,7 @@ public:
 
 namespace avnd_tools
 {
+
 /** Records the input into a CSV.
  *  To record an entire device: can be a pattern expression such as foo://
  *  
@@ -430,6 +431,7 @@ struct DeviceRecorder : PatternObject
     std::chrono::steady_clock::time_point first_ts;
     fmt::memory_buffer buf;
     bool active{};
+    bool first_is_timestamp = false;
     int num_params = 0;
 
     void setActive(bool b)
@@ -526,10 +528,14 @@ struct DeviceRecorder : PatternObject
     std::string filename;
     std::vector<ossia::net::node_base*> roots;
     std::chrono::steady_clock::time_point first_ts;
+
+    // FIXME boost::multi_array
     boost::container::flat_map<int, ossia::net::parameter_base*> m_map;
-    boost::container::flat_map<int64_t, std::vector<ossia::value>> m_vec;
+    boost::container::flat_map<int64_t, std::vector<ossia::value>> m_vec_ts;
+    std::vector<std::vector<ossia::value>> m_vec_no_ts;
     bool active{};
     bool loops{};
+    bool first_is_timestamp = false;
     int num_params{};
 
     void setActive(bool b)
@@ -573,12 +579,10 @@ struct DeviceRecorder : PatternObject
       }
 
       auto data = (const char*)f.map(0, f.size());
-      m_vec.clear();
       m_map.clear();
 
       csv2::Reader<> r;
       r.parse_view({data, data + f.size()});
-      m_vec.reserve(r.rows());
       int columns = r.cols();
 
       auto header = r.header();
@@ -589,88 +593,169 @@ struct DeviceRecorder : PatternObject
         if(auto p = node->get_parameter())
           params[node->osc_address()] = p;
 
+      std::string v;
+      v.reserve(128);
       int i = 0;
-      for(csv2::Reader<>::Row::CellIterator header_it = ++header.begin();
-          header_it != header.end(); ++header_it)
+      auto header_it = header.begin();
+      if(first_is_timestamp)
+        ++header_it;
+      for(; header_it != header.end(); ++header_it)
       {
         auto addr = *header_it;
-        std::string a;
-        addr.read_raw_value(a);
-        if(auto it = params.find(a); it != params.end())
+        v.clear();
+        addr.read_raw_value(v);
+        if(auto it = params.find(v); it != params.end())
         {
-          m_map[i - 1] = it->second;
+          m_map[i] = it->second;
         }
         i++;
       }
 
-      std::string v;
-      v.reserve(128);
-      for(const auto& row : r)
+      m_vec_ts.clear();
+      m_vec_no_ts.clear();
+      if(first_is_timestamp)
       {
-        if(row.length() > 1)
+        m_vec_ts.reserve(r.rows());
+        for(const auto& row : r)
         {
-          auto it = row.begin();
-          const auto& ts = *it;
-
-          ts.read_value(v);
-          if(auto tstamp = ossia::parse_strict<int64_t>(v))
-          {
-            auto& vec = this->m_vec[*tstamp];
-            vec.resize(columns - 1);
-            int i = 0;
-
-            for(++it; it != row.end(); ++it)
-            {
-              if(auto param = m_map[i])
-              {
-                const auto& cell = *it;
-                v.clear();
-                cell.read_value(v);
-
-                if(!v.empty())
-                {
-                  std::optional<ossia::value> res;
-                  if(v.starts_with('"') && v.ends_with('"'))
-                    res = State::parseValue(std::string_view(v).substr(1, v.size() - 2));
-                  else
-                    res = State::parseValue(v);
-
-                  if(res)
-                  {
-                    vec[i] = std::move(*res);
-                    if(vec[i].get_type() != param->get_value_type())
-                    {
-                      ossia::convert(vec[i], param->get_value_type());
-                    }
-                  }
-                }
-                v.clear();
-              }
-              i++;
-            }
-          }
+          parse_row_with_timestamps(columns, row, v);
+          v.clear();
         }
-        v.clear();
+      }
+      else
+      {
+        m_vec_no_ts.reserve(r.rows());
+        for(const auto& row : r)
+        {
+          parse_row_no_timestamps(columns, row, v);
+          v.clear();
+        }
       }
       first_ts = std::chrono::steady_clock::now();
     }
 
-    void read()
+    void parse_cell_impl(
+        const std::string& v, ossia::net::parameter_base& param, ossia::value& out)
     {
-      if(m_vec.empty())
-        return;
+      if(!v.empty())
+      {
+        std::optional<ossia::value> res;
+        if(v.starts_with('"') && v.ends_with('"'))
+          res = State::parseValue(std::string_view(v).substr(1, v.size() - 2));
+        else
+          res = State::parseValue(v);
 
-      using namespace std::chrono;
-      auto ts = duration_cast<milliseconds>(steady_clock::now() - first_ts).count();
-      if(loops)
-        ts %= m_vec.rbegin()->first + 1;
-      read(ts);
+        if(res)
+        {
+          out = std::move(*res);
+          if(auto t = param.get_value_type(); out.get_type() != t)
+          {
+            ossia::convert(out, t);
+          }
+        }
+      }
     }
 
-    void read(int64_t timestamp)
+    void
+    parse_cell(const auto& cell, std::string& v, std::vector<ossia::value>& vec, int i)
     {
-      auto it = m_vec.lower_bound(timestamp);
-      if(it != m_vec.end())
+      if(auto param = m_map[i])
+      {
+        v.clear();
+        cell.read_value(v);
+        parse_cell_impl(v, *param, vec[i]);
+        v.clear();
+      }
+    }
+
+    void parse_row_no_timestamps(int columns, auto& row, std::string& v)
+    {
+      auto& vec = this->m_vec_no_ts.emplace_back(columns);
+      int i = 0;
+
+      for(auto it = row.begin(); it != row.end(); ++it)
+      {
+        parse_cell(*it, v, vec, i);
+        i++;
+      }
+    }
+
+    void parse_row_with_timestamps(int columns, auto& row, std::string& v)
+    {
+      if(row.length() <= 1)
+        return;
+
+      auto it = row.begin();
+      const auto& ts = *it;
+
+      ts.read_value(v);
+      auto tstamp = ossia::parse_strict<int64_t>(v);
+      if(!tstamp)
+        return;
+      auto& vec = this->m_vec_ts[*tstamp];
+      vec.resize(columns - 1);
+      int i = 0;
+
+      for(++it; it != row.end(); ++it)
+      {
+        parse_cell(*it, v, vec, i);
+        i++;
+      }
+    }
+
+    void read()
+    {
+      if(first_is_timestamp)
+      {
+        if(m_vec_ts.empty())
+          return;
+
+        using namespace std::chrono;
+        auto ts = duration_cast<milliseconds>(steady_clock::now() - first_ts).count();
+        if(loops)
+          ts %= m_vec_ts.rbegin()->first + 1;
+        read_ts(ts);
+      }
+      else
+      {
+        if(m_vec_no_ts.empty())
+          return;
+
+        using namespace std::chrono;
+        auto ts = duration_cast<milliseconds>(steady_clock::now() - first_ts).count();
+        if(loops && ts >= std::ssize(m_vec_no_ts))
+          ts = 0;
+        read_no_ts(ts);
+      }
+    }
+
+    void read_no_ts(int64_t timestamp)
+    {
+      if(timestamp < 0)
+        return;
+      if(timestamp >= std::ssize(m_vec_no_ts))
+        return;
+      auto it = m_vec_no_ts.begin() + timestamp;
+      if(it != m_vec_no_ts.end())
+      {
+        int i = 0;
+        for(auto& v : *it)
+        {
+          if(v.valid())
+          {
+            if(auto p = m_map.find(i); p != m_map.end())
+            {
+              p->second->push_value(v);
+            }
+          }
+          i++;
+        }
+      }
+    }
+    void read_ts(int64_t timestamp)
+    {
+      auto it = m_vec_ts.lower_bound(timestamp);
+      if(it != m_vec_ts.end())
       {
         int i = 0;
         for(auto& v : it->second)
@@ -694,7 +779,8 @@ struct DeviceRecorder : PatternObject
   struct inputs_t
   {
     PatternSelector pattern;
-    halp::time_chooser<"Interval"> time;
+    halp::time_chooser<"Interval", halp::range{.min = 0.00001, .max = 5., .init = 0.25}>
+        time;
     struct : halp::lineedit<"File pattern", "">
     {
       void update(DeviceRecorder& self) { self.update(); }
@@ -704,6 +790,10 @@ struct DeviceRecorder : PatternObject
       halp__enum("Mode", None, None, Record, Playback, Loop)
       void update(DeviceRecorder& self) { self.setMode(); }
     } mode;
+    struct ts : halp::toggle<"Timestamped", halp::default_on_toggle>
+    {
+      halp_meta(description, "Set to true to use the first column as timestamp")
+    } timestamped;
   } inputs;
 
   struct
@@ -716,6 +806,7 @@ struct DeviceRecorder : PatternObject
     std::shared_ptr<player_thread> player;
     std::string path;
     std::vector<ossia::net::node_base*> roots;
+    bool first_is_timestamp{};
 
     void operator()()
     {
@@ -724,6 +815,8 @@ struct DeviceRecorder : PatternObject
       swap(recorder->roots, roots);
       player->filename = recorder->filename;
       player->roots = recorder->roots;
+      player->first_is_timestamp = first_is_timestamp;
+      recorder->first_is_timestamp = first_is_timestamp;
       recorder->reopen();
       player->reopen();
     }
@@ -734,11 +827,14 @@ struct DeviceRecorder : PatternObject
     std::shared_ptr<recorder_thread> recorder;
     std::shared_ptr<player_thread> player;
     std::string path;
+    bool first_is_timestamp{};
     void operator()()
     {
       using namespace std;
       swap(recorder->filename, path);
       player->filename = recorder->filename;
+      player->first_is_timestamp = first_is_timestamp;
+      recorder->first_is_timestamp = first_is_timestamp;
       recorder->reopen();
       player->reopen();
     }
@@ -771,16 +867,20 @@ struct DeviceRecorder : PatternObject
   };
 
   using worker_message = ossia::variant<
-      reset_message, reset_path_message, process_message, playback_message,
-      activate_message>;
+      std::unique_ptr<reset_message>, reset_path_message, process_message,
+      playback_message, activate_message>;
 
   struct
   {
     std::function<void(worker_message)> request;
     static void work(worker_message&& mess)
     {
-      ossia::visit(
-          [&]<typename M>(M&& msg) { std::forward<M>(msg)(); }, std::move(mess));
+      ossia::visit([&]<typename M>(M&& msg) {
+        if constexpr(requires { *msg; })
+          (*std::forward<M>(msg))();
+        else
+          std::forward<M>(msg)();
+      }, std::move(mess));
     }
   } worker;
 
@@ -792,7 +892,8 @@ struct DeviceRecorder : PatternObject
   }
   void update()
   {
-    worker.request(reset_path_message{record_impl, play_impl, inputs.filename});
+    worker.request(
+        reset_path_message{record_impl, play_impl, inputs.filename, inputs.timestamped});
   }
 
   void operator()(const halp::tick_musical& tk)
@@ -813,7 +914,8 @@ struct DeviceRecorder : PatternObject
     if(!std::exchange(started, true))
     {
       inputs.pattern.reprocess();
-      worker.request(reset_message{record_impl, play_impl, inputs.filename, roots});
+      worker.request(std::make_unique<reset_message>(
+          record_impl, play_impl, inputs.filename, roots, inputs.timestamped));
     }
 
     switch(inputs.mode)
