@@ -1,9 +1,13 @@
 name: Ubuntu build
 on: [push,pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ubuntu:
-    name: Ubuntu 
+    name: Ubuntu
     runs-on: ubuntu-latest
 
     strategy:
@@ -19,7 +23,7 @@ jobs:
 
     container:
       image: ubuntu:${{ matrix.distro }}
-      
+
     steps:
       - name: Install git
         run: |
@@ -49,7 +53,7 @@ jobs:
 
       - name: Upload build
         uses: actions/upload-artifact@v4
-        if: matrix.deploy 
+        if: matrix.deploy
         with:
           name: ${{ matrix.distro }}-amd64
           path: |

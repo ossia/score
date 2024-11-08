@@ -1,12 +1,16 @@
 name: macOS build
 on: [push,pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   brew:
     # Last X86 macos version supported by GH Actions
     name: macOS (Release, Brew, Intel)
     runs-on: macos-13
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +32,7 @@ jobs:
   brew-m1:
     name: macOS (Release, Brew, AppleSilicon)
     runs-on: macos-15
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,7 +54,7 @@ jobs:
   brew-m1-dev:
     name: macOS (Dev, Brew, AppleSilicon)
     runs-on: macos-15
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -93,7 +97,7 @@ jobs:
         with:
           p12-file-base64: ${{ secrets.MAC_CERT_B64 }}
           p12-password: ${{ secrets.MAC_CERT_PASSWORD }}
- 
+
       - run: |
           source ci/osx-package.build.sh
         env:

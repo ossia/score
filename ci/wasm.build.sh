@@ -17,6 +17,7 @@ source /opt/ossia-sdk-wasm/emsdk/emsdk_env.sh
    -DKFR_ARCH=sse41 \
    -DOSSIA_PCH=0 \
    -DSCORE_PCH=0 \
+   -DCMAKE_CXX_SCAN_FOR_MODULES=0 \
    -DOSSIA_SDK=/opt/ossia-sdk-wasm/ \
    -DCMAKE_C_FLAGS='-pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 ' \
    -DCMAKE_CXX_FLAGS='-DBOOST_ASIO_DISABLE_EPOLL=1 -pthread -O3 -ffast-math -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 '  \
