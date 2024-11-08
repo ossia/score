@@ -1,9 +1,13 @@
 name: Continuous build
 on: [push,pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tarball:
-    name: Tarball 
+    name: Tarball
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -44,7 +48,7 @@ jobs:
             staging/*.*
 
   appimage:
-    name: AppImage 
+    name: AppImage
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -154,7 +158,7 @@ jobs:
 
 
   win32:
-    name: Windows 
+    name: Windows
     runs-on: windows-latest
     steps:
       - name: Checkout code

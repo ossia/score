@@ -1,6 +1,10 @@
 name: Embedded build
 on: [push,pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
 #  rpi:
 #    name: RaspberryPi
@@ -172,7 +176,7 @@ jobs:
 #        run: |
 #          sudo apt-get -y -qq install crossbuild-essential-armhf cmake gettext file ninja-build libc6-armhf-cross qt6-base-dev  libqt6serialport6-dev libqt6websockets6-dev libqt6shadertools6-dev qt6-scxml-dev libpcre2-16-0 qt6-declarative-dev
 #          sudo ln -s /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 /usr/lib/ld-linux-armhf.so.3
-#        
+#
 #      - name: Use host Qt tools
 #        shell: bash
 #        run: |
