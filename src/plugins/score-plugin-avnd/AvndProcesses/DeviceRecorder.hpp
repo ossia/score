@@ -914,8 +914,8 @@ struct DeviceRecorder : PatternObject
     if(!std::exchange(started, true))
     {
       inputs.pattern.reprocess();
-      worker.request(std::make_unique<reset_message>(
-          record_impl, play_impl, inputs.filename, roots, inputs.timestamped));
+      worker.request(std::unique_ptr<reset_message>(new reset_message{
+          record_impl, play_impl, inputs.filename, roots, inputs.timestamped}));
     }
 
     switch(inputs.mode)
