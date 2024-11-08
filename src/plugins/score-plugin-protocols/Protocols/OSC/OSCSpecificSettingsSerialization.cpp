@@ -9,21 +9,21 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 template <>
-void DataStreamReader::read(const ossia::net::socket_configuration& n)
+void DataStreamReader::read(const ossia::net::outbound_socket_configuration& n)
 {
   m_stream << n.host << n.port << n.broadcast;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(ossia::net::socket_configuration& n)
+void DataStreamWriter::write(ossia::net::outbound_socket_configuration& n)
 {
   m_stream >> n.host >> n.port >> n.broadcast;
   checkDelimiter();
 }
 
 template <>
-void JSONReader::read(const ossia::net::socket_configuration& n)
+void JSONReader::read(const ossia::net::outbound_socket_configuration& n)
 {
   stream.StartObject();
   obj["Host"] = n.host;
@@ -33,12 +33,45 @@ void JSONReader::read(const ossia::net::socket_configuration& n)
 }
 
 template <>
-void JSONWriter::write(ossia::net::socket_configuration& n)
+void JSONWriter::write(ossia::net::outbound_socket_configuration& n)
 {
   n.host = obj["Host"].toStdString();
   n.port = obj["Port"].toInt();
   if(auto bc = obj.tryGet("Broadcast"))
     n.broadcast = bc->toBool();
+}
+
+template <>
+void DataStreamReader::read(const ossia::net::inbound_socket_configuration& n)
+{
+  m_stream << n.bind << n.port;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(ossia::net::inbound_socket_configuration& n)
+{
+  m_stream >> n.bind >> n.port;
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const ossia::net::inbound_socket_configuration& n)
+{
+  stream.StartObject();
+  obj["Bind"] = n.bind;
+  obj["Port"] = (int)n.port;
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(ossia::net::inbound_socket_configuration& n)
+{
+  if(auto b = obj.tryGet("Bind"))
+    n.bind = b->toStdString();
+  else if(auto h = obj.tryGet("Host"))
+    n.bind = h->toStdString();
+  n.port = obj["Port"].toInt();
 }
 
 template <>
@@ -166,54 +199,6 @@ void JSONWriter::write(ossia::net::serial_configuration& n)
 }
 
 template <>
-void DataStreamReader::read(const ossia::net::receive_socket_configuration& n)
-{
-  read((ossia::net::socket_configuration&)n);
-}
-
-template <>
-void DataStreamWriter::write(ossia::net::receive_socket_configuration& n)
-{
-  write((ossia::net::socket_configuration&)n);
-}
-
-template <>
-void JSONReader::read(const ossia::net::receive_socket_configuration& n)
-{
-  read((ossia::net::socket_configuration&)n);
-}
-
-template <>
-void JSONWriter::write(ossia::net::receive_socket_configuration& n)
-{
-  write((ossia::net::socket_configuration&)n);
-}
-
-template <>
-void DataStreamReader::read(const ossia::net::send_socket_configuration& n)
-{
-  read((ossia::net::socket_configuration&)n);
-}
-
-template <>
-void DataStreamWriter::write(ossia::net::send_socket_configuration& n)
-{
-  write((ossia::net::socket_configuration&)n);
-}
-
-template <>
-void JSONReader::read(const ossia::net::send_socket_configuration& n)
-{
-  read((ossia::net::socket_configuration&)n);
-}
-
-template <>
-void JSONWriter::write(ossia::net::send_socket_configuration& n)
-{
-  write((ossia::net::socket_configuration&)n);
-}
-
-template <>
 void DataStreamReader::read(const ossia::net::receive_fd_configuration& n)
 {
   read((ossia::net::fd_configuration&)n);
@@ -286,27 +271,51 @@ void JSONWriter::write(ossia::net::unix_stream_configuration& n)
 }
 
 template <>
-void DataStreamReader::read(const ossia::net::tcp_configuration& n)
+void DataStreamReader::read(const ossia::net::tcp_client_configuration& n)
 {
-  read((ossia::net::socket_configuration&)n);
+  read((ossia::net::outbound_socket_configuration&)n);
 }
 
 template <>
-void DataStreamWriter::write(ossia::net::tcp_configuration& n)
+void DataStreamWriter::write(ossia::net::tcp_client_configuration& n)
 {
-  write((ossia::net::socket_configuration&)n);
+  write((ossia::net::outbound_socket_configuration&)n);
 }
 
 template <>
-void JSONReader::read(const ossia::net::tcp_configuration& n)
+void JSONReader::read(const ossia::net::tcp_client_configuration& n)
 {
-  read((ossia::net::socket_configuration&)n);
+  read((ossia::net::outbound_socket_configuration&)n);
 }
 
 template <>
-void JSONWriter::write(ossia::net::tcp_configuration& n)
+void JSONWriter::write(ossia::net::tcp_client_configuration& n)
 {
-  write((ossia::net::socket_configuration&)n);
+  write((ossia::net::outbound_socket_configuration&)n);
+}
+
+template <>
+void DataStreamReader::read(const ossia::net::tcp_server_configuration& n)
+{
+  read((ossia::net::inbound_socket_configuration&)n);
+}
+
+template <>
+void DataStreamWriter::write(ossia::net::tcp_server_configuration& n)
+{
+  write((ossia::net::inbound_socket_configuration&)n);
+}
+
+template <>
+void JSONReader::read(const ossia::net::tcp_server_configuration& n)
+{
+  read((ossia::net::inbound_socket_configuration&)n);
+}
+
+template <>
+void JSONWriter::write(ossia::net::tcp_server_configuration& n)
+{
+  write((ossia::net::inbound_socket_configuration&)n);
 }
 
 template <>
@@ -408,14 +417,14 @@ void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
 {
   // TODO put it in the right order before 1.0 final.
   // TODO same for minuit, etc..
-  m_stream << n.configuration << n.rate << n.bonjour << n.jsonToLoad;
+  m_stream << n.configuration << n.rate << n.bonjour << n.jsonToLoad << n.oscquery;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::OSCSpecificSettings& n)
 {
-  m_stream >> n.configuration >> n.rate >> n.bonjour >> n.jsonToLoad;
+  m_stream >> n.configuration >> n.rate >> n.bonjour >> n.jsonToLoad >> n.oscquery;
   checkDelimiter();
 }
 
@@ -427,6 +436,8 @@ void JSONReader::read(const Protocols::OSCSpecificSettings& n)
     obj["Rate"] = *n.rate;
   if(n.bonjour)
     obj["Bonjour"] = true;
+  if(n.oscquery)
+    obj["OSCQuery"] = *n.oscquery;
 }
 
 template <>
@@ -436,9 +447,9 @@ void JSONWriter::write(Protocols::OSCSpecificSettings& n)
   if(auto outputPort = obj.tryGet("OutputPort"))
   {
     ossia::net::udp_configuration conf;
-    conf.local = ossia::net::receive_socket_configuration{
+    conf.local = ossia::net::inbound_socket_configuration{
         "0.0.0.0", (uint16_t)obj["OutputPort"].toInt()};
-    conf.remote = ossia::net::send_socket_configuration{
+    conf.remote = ossia::net::outbound_socket_configuration{
         obj["Host"].toStdString(), (uint16_t)obj["InputPort"].toInt()};
     n.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
     n.configuration.version = ossia::net::osc_protocol_configuration::OSC1_0;
@@ -453,4 +464,7 @@ void JSONWriter::write(Protocols::OSCSpecificSettings& n)
     n.rate = it->toInt();
 
   assign_with_default(n.bonjour, obj.tryGet("Bonjour"), false);
+
+  if(auto it = obj.tryGet("OSCQuery"))
+    n.oscquery = it->toInt();
 }

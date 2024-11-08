@@ -238,16 +238,25 @@ bool ArtnetDevice::reconnect()
         if(host.empty())
           host = "0.0.0.0";
 
-        ossia::net::socket_configuration sock_conf;
-        sock_conf.host = host;
-        sock_conf.port = ossia::net::e131_protocol::default_port;
-
         if(set.mode == ArtnetSpecificSettings::Source)
+        {
+          ossia::net::outbound_socket_configuration sock_conf;
+          sock_conf.host = host;
+          sock_conf.port = ossia::net::e131_protocol::default_port;
+
           artnet_proto
               = std::make_unique<ossia::net::e131_protocol>(m_ctx, conf, sock_conf);
+        }
         else
+        {
+          ossia::net::inbound_socket_configuration sock_conf;
+          sock_conf.bind = host;
+          sock_conf.port = ossia::net::e131_protocol::default_port;
+
           artnet_proto = std::make_unique<ossia::net::e131_input_protocol>(
               m_ctx, conf, sock_conf);
+        }
+
         break;
       }
       case ArtnetSpecificSettings::DMXUSBPRO:

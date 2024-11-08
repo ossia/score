@@ -45,8 +45,8 @@ static ossia::net::osc_protocol_configuration defaultOSCConfig() noexcept
   config.mode = ossia::net::osc_protocol_configuration::MIRROR;
   config.version = ossia::net::osc_protocol_configuration::OSC1_0;
   ossia::net::udp_configuration udp;
-  udp.local = ossia::net::receive_socket_configuration{"0.0.0.0", 9996};
-  udp.remote = ossia::net::send_socket_configuration{"127.0.0.1", 9997};
+  udp.local = ossia::net::inbound_socket_configuration{"0.0.0.0", 9996};
+  udp.remote = ossia::net::outbound_socket_configuration{"127.0.0.1", 9997};
   config.transport = udp;
   return config;
 }
@@ -106,8 +106,8 @@ struct OSCCompatibleCheck
     return true;
   }
   bool operator()(
-      const ossia::net::tcp_configuration& lhs,
-      const ossia::net::tcp_configuration& rhs) const noexcept
+      const ossia::net::tcp_client_configuration& lhs,
+      const ossia::net::tcp_client_configuration& rhs) const noexcept
   {
     if(config1.mode == ossia::net::osc_protocol_configuration::HOST
        && config2.mode == ossia::net::osc_protocol_configuration::HOST
@@ -126,7 +126,7 @@ struct OSCCompatibleCheck
     return true;
   }
   bool operator()(
-      const ossia::net::tcp_configuration& lhs,
+      const ossia::net::tcp_client_configuration& lhs,
       const ossia::net::ws_server_configuration& rhs) const noexcept
   {
     if(config1.mode == ossia::net::osc_protocol_configuration::HOST
@@ -137,7 +137,7 @@ struct OSCCompatibleCheck
   }
   bool operator()(
       const ossia::net::ws_server_configuration& lhs,
-      const ossia::net::tcp_configuration& rhs) const noexcept
+      const ossia::net::tcp_client_configuration& rhs) const noexcept
   {
     if(config1.mode == ossia::net::osc_protocol_configuration::HOST
        && config2.mode == ossia::net::osc_protocol_configuration::HOST
@@ -185,7 +185,7 @@ private:
     set.protocol = OSCProtocolFactory::static_concreteKey();
 
     OSCSpecificSettings sub;
-    ossia::net::tcp_configuration conf;
+    ossia::net::tcp_client_configuration conf;
     conf.host = ip.toStdString();
     conf.port = port.toInt();
     sub.configuration.transport = conf;
@@ -219,8 +219,8 @@ private:
     OSCSpecificSettings sub;
     ossia::net::udp_configuration udp;
 
-    udp.local = ossia::net::receive_socket_configuration{"0.0.0.0", 9996};
-    udp.remote = ossia::net::send_socket_configuration{
+    udp.local = ossia::net::inbound_socket_configuration{"0.0.0.0", 9996};
+    udp.remote = ossia::net::outbound_socket_configuration{
         ip.toStdString(), uint16_t(port.toInt())};
     sub.configuration.transport = udp;
 
@@ -241,8 +241,8 @@ OSCProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
     auto copy = arr;
     copy.detach();
 
-    return QVariant::fromValue(
-        OSCSpecificSettings{readOSCConfig(copy), std::nullopt, false, std::move(copy)});
+    return QVariant::fromValue(OSCSpecificSettings{
+        readOSCConfig(copy), std::nullopt, false, {}, std::move(copy)});
       },
       ctx};
 
