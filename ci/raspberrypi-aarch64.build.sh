@@ -19,7 +19,8 @@ cmake $SCORE_DIR \
  -DCMAKE_INSTALL_PREFIX=install \
  -DLIBREMIDI_NO_PIPEWIRE=1 \
  -DSCORE_DISABLED_PLUGINS=score-plugin-jit \
- -DSCORE_LINKER_SCRIPT="$SCORE_DIR/cmake/Deployment/Linux/AppImage/version"
+ -DSCORE_LINKER_SCRIPT="$SCORE_DIR/cmake/Deployment/Linux/AppImage/version" \
+ -DCMAKE_CXX_SCAN_FOR_MODULES=0
 
 cmake --build .
 cmake --build . --target install/strip
