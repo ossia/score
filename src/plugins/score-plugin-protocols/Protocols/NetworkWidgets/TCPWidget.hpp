@@ -26,6 +26,7 @@ public:
     m_remotePort->setValue(9996);
     m_remotePort->setWhatsThis(
         tr("This is the communication port used for the TCP connection."));
+    proto.checkForChanges(m_remotePort);
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
@@ -38,15 +39,15 @@ public:
     layout->addRow(tr("Host"), m_host);
   }
 
-  ossia::net::tcp_configuration settings() const noexcept
+  ossia::net::tcp_client_configuration settings() const noexcept
   {
-    ossia::net::tcp_configuration conf;
+    ossia::net::tcp_client_configuration conf;
     conf.port = m_remotePort->value();
     conf.host = m_host->text().toStdString();
     return conf;
   }
 
-  void setSettings(const ossia::net::tcp_configuration& conf)
+  void setSettings(const ossia::net::tcp_client_configuration& conf)
   {
     m_remotePort->setValue(conf.port);
     m_host->setText(QString::fromStdString(conf.host));
@@ -71,6 +72,7 @@ public:
     m_remotePort->setValue(9996);
     m_remotePort->setWhatsThis(
         tr("This is the communication port used for the TCP connection."));
+    proto.checkForChanges(m_remotePort);
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
@@ -93,9 +95,9 @@ public:
     return (framing_type)m_framing->currentIndex();
   }
 
-  ossia::net::tcp_configuration settings() const noexcept
+  ossia::net::tcp_client_configuration settings() const noexcept
   {
-    ossia::net::tcp_configuration conf;
+    ossia::net::tcp_client_configuration conf;
     conf.port = m_remotePort->value();
     conf.host = m_host->text().toStdString();
     return conf;
@@ -103,7 +105,7 @@ public:
 
   void setSettings(
       const ossia::net::osc_protocol_configuration& c,
-      const ossia::net::tcp_configuration& conf)
+      const ossia::net::tcp_client_configuration& conf)
   {
     m_remotePort->setValue(conf.port);
     m_framing->setCurrentIndex(c.framing);

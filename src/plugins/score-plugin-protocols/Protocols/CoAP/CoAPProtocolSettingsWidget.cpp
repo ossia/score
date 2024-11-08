@@ -104,7 +104,7 @@ CoAPTransportWidget::setConfiguration(const ossia::net::coap_client_configuratio
       self.m_udp->setSettings(conf);
       proto = CoapProtocol::UDP;
     }
-    void operator()(const ossia::net::tcp_configuration& conf)
+    void operator()(const ossia::net::tcp_client_configuration& conf)
     {
       self.m_tcp->setSettings(conf);
       proto = CoapProtocol::TCP;

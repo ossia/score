@@ -58,9 +58,9 @@ public:
   ossia::net::udp_configuration settings() const noexcept
   {
     ossia::net::udp_configuration conf;
-    conf.local = ossia::net::receive_socket_configuration{
+    conf.local = ossia::net::inbound_socket_configuration{
         "0.0.0.0", (uint16_t)m_localPort->value()};
-    conf.remote = ossia::net::send_socket_configuration{
+    conf.remote = ossia::net::outbound_socket_configuration{
         m_host->text().toStdString(), (uint16_t)m_remotePort->value(),
         m_broadcast->isChecked()};
     return conf;

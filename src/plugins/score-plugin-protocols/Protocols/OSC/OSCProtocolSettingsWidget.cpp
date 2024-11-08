@@ -12,6 +12,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 #include <Protocols/NetworkWidgets/SerialWidget.hpp>
+#include <Protocols/NetworkWidgets/TCPServerWidget.hpp>
 #include <Protocols/NetworkWidgets/TCPWidget.hpp>
 #include <Protocols/NetworkWidgets/UDPWidget.hpp>
 #include <Protocols/NetworkWidgets/UnixDatagramWidget.hpp>
@@ -42,6 +43,9 @@ OSCTransportWidget::OSCTransportWidget(
 
   m_tcp = new TCPWidget{proto, this};
   m_transportLayout->addWidget(m_tcp);
+
+  m_tcp_server = new TCPServerWidget{proto, this};
+  m_transportLayout->addWidget(m_tcp_server);
 
   m_serial = new SerialWidget{proto, this};
   m_transportLayout->addWidget(m_serial);
@@ -81,11 +85,17 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   m_transport = new QComboBox{this};
   m_transport->addItems(
       {"UDP", "TCP", "Serial port", "Unix Datagram", "Unix Stream", "Websocket Client",
-       "Websocket Server"});
+       "Websocket Server", "TCP Server"});
   checkForChanges(m_transport);
 
   m_oscVersion = new QComboBox{this};
   m_oscVersion->addItems({"1.0", "1.1", "Extended"});
+
+  m_oscquery = new QSpinBox{this};
+  m_oscquery->setWhatsThis(tr("Expose OSC device over OSCQuery if port is not 0"));
+  m_oscquery->setRange(0, 65535);
+  m_oscquery->setValue(0);
+  checkForChanges(m_oscquery);
 
   m_transportWidget = new OSCTransportWidget{*this, this};
   QObject::connect(
@@ -96,6 +106,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Rate limit"), m_rate);
   layout->addRow(tr("Bonjour"), m_bonjour);
+  layout->addRow(tr("OSCQuery"), m_oscquery);
   layout->addRow(tr("OSC Version"), m_oscVersion);
   layout->addRow(tr("Protocol"), m_transport);
   layout->addRow(m_transportWidget);
@@ -115,6 +126,11 @@ OSCTransportWidget::configuration(OscProtocol index) const noexcept
       conf.transport = m_tcp->settings();
       conf.framing = m_tcp->framing();
       conf.mode = ossia::net::osc_protocol_configuration::MIRROR;
+      break;
+    case OscProtocol::TCPServer:
+      conf.transport = m_tcp_server->settings();
+      conf.framing = m_tcp_server->framing();
+      conf.mode = ossia::net::osc_protocol_configuration::HOST;
       break;
     case OscProtocol::Serial:
       conf.transport = m_serial->settings();
@@ -155,10 +171,15 @@ OscProtocol OSCTransportWidget::setConfiguration(
       self.m_udp->setSettings(conf);
       proto = OscProtocol::UDP;
     }
-    void operator()(const ossia::net::tcp_configuration& conf)
+    void operator()(const ossia::net::tcp_client_configuration& conf)
     {
       self.m_tcp->setSettings(osc_conf, conf);
       proto = OscProtocol::TCP;
+    }
+    void operator()(const ossia::net::tcp_server_configuration& conf)
+    {
+      self.m_tcp_server->setSettings(osc_conf, conf);
+      proto = OscProtocol::TCPServer;
     }
     void operator()(const ossia::net::unix_dgram_configuration& conf)
     {
@@ -205,6 +226,9 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   osc.configuration.version = static_cast<osc_version_t>(m_oscVersion->currentIndex());
   osc.rate = m_rate->rate();
   osc.bonjour = m_bonjour->isChecked();
+  osc.oscquery = m_oscquery->value();
+  if(osc.oscquery.value() <= 0)
+    osc.oscquery.reset();
   osc.jsonToLoad.clear();
 
   // TODO list.append(m_namespaceFilePathEdit->text());
@@ -244,6 +268,8 @@ void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
     m_oscVersion->setCurrentIndex(m_settings.configuration.version);
     m_rate->setRate(m_settings.rate);
     m_bonjour->setChecked(m_settings.bonjour);
+    if(*m_settings.oscquery)
+      m_oscquery->setValue(*m_settings.oscquery);
     auto proto = m_transportWidget->setConfiguration(m_settings.configuration);
     m_transport->setCurrentIndex((int)proto);
   }

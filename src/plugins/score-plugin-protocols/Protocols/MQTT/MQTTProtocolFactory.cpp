@@ -44,7 +44,7 @@ QString MQTTProtocolFactory::category() const noexcept
 static ossia::net::mqtt5_configuration defaultMQTTConfig() noexcept
 {
   ossia::net::mqtt5_configuration config;
-  config.transport = ossia::net::tcp_configuration{{.host = "127.0.0.1", .port = 1883}};
+  config.transport = ossia::net::tcp_client_configuration{{.host = "127.0.0.1", .port = 1883}};
   return config;
 }
 
@@ -90,7 +90,7 @@ private:
     set.protocol = MQTTProtocolFactory::static_concreteKey();
 
     MQTTSpecificSettings sub;
-    ossia::net::tcp_configuration conf;
+    ossia::net::tcp_client_configuration conf;
     conf.host = ip.toStdString();
     conf.port = port.toInt();
     sub.configuration.transport = conf;
@@ -127,7 +127,7 @@ const Device::DeviceSettings& MQTTProtocolFactory::defaultSettings() const noexc
     s.protocol = concreteKey();
     s.name = "MQTT";
     MQTTSpecificSettings specif;
-    specif.configuration.transport = ossia::net::tcp_configuration{"127.0.0.1", 1883};
+    specif.configuration.transport = ossia::net::tcp_client_configuration{"127.0.0.1", 1883};
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();

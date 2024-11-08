@@ -17,6 +17,7 @@ namespace Protocols
 
 class UDPWidget;
 class TCPWidget;
+class TCPServerWidget;
 class UnixDatagramWidget;
 class UnixStreamWidget;
 class SerialWidget;
@@ -33,7 +34,8 @@ enum class OscProtocol
   UnixDatagram = 3,
   UnixStream = 4,
   WSClient = 5,
-  WSServer = 6
+  WSServer = 6,
+  TCPServer = 7
 };
 
 class OSCTransportWidget : public QWidget
@@ -51,6 +53,7 @@ private:
 
   UDPWidget* m_udp{};
   TCPWidget* m_tcp{};
+  TCPServerWidget* m_tcp_server{};
   SerialWidget* m_serial{};
   UnixDatagramWidget* m_unix_dgram{};
   UnixStreamWidget* m_unix_stream{};
@@ -76,6 +79,7 @@ private:
   QCheckBox* m_bonjour{};
   QComboBox* m_transport{};
   QComboBox* m_oscVersion{};
+  QSpinBox* m_oscquery{};
   OSCTransportWidget* m_transportWidget{};
   OSCSpecificSettings m_settings;
 };

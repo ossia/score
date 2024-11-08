@@ -91,7 +91,7 @@ MQTTTransportWidget::setConfiguration(const ossia::net::mqtt5_configuration& osc
     MQTTTransportWidget& self;
     const ossia::net::mqtt5_configuration& osc_conf;
     MqttProtocol proto{};
-    void operator()(const ossia::net::tcp_configuration& conf)
+    void operator()(const ossia::net::tcp_client_configuration& conf)
     {
       self.m_tcp->setSettings(conf);
       proto = MqttProtocol::TCP;

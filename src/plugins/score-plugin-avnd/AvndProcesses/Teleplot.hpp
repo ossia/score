@@ -92,7 +92,7 @@ struct Teleplot : PatternObject
       if(!ip.empty() && port > 1)
       {
         socket = std::make_shared<ossia::net::udp_send_socket>(
-            ossia::net::send_socket_configuration{{.host = ip, .port = port}},
+            ossia::net::outbound_socket_configuration{.host = ip, .port = port},
             *io_context);
         socket->connect();
       }
@@ -201,7 +201,7 @@ struct Teleplot : PatternObject
     if(!socket)
     {
       socket = std::make_shared<ossia::net::udp_send_socket>(
-          ossia::net::send_socket_configuration{{.host = "127.0.0.1", .port = 47269}},
+          ossia::net::outbound_socket_configuration{.host = "127.0.0.1", .port = 47269},
           *io_context);
       socket->connect();
     }
