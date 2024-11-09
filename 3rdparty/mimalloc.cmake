@@ -1,6 +1,11 @@
 if(EMSCRIPTEN)
   return()
 endif()
+
+if(SCORE_HAS_SANITIZERS)
+  return()
+endif()
+
 if(SCORE_USE_SYSTEM_LIBRARIES)
   find_package(snmalloc GLOBAL CONFIG)
 else()

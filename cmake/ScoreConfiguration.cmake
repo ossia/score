@@ -220,6 +220,11 @@ if(has_mcx16_flag)
   add_compile_options(-mcx16)
 endif()
 
+# Detect usage of asan / ubsan
+if("${CMAKE_CXX_FLAGS}" MATCHES ".*sanitize.*")
+  set(SCORE_HAS_SANITIZERS 1)
+endif()
+
 # Commit and version information
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
   include(GetGitRevisionDescription)
