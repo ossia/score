@@ -59,7 +59,7 @@ if(TARGET Freetype::Freetype)
   )
 endif()
 
-if(SCORE_FHS_BUILD)
+if(SCORE_FHS_BUILD OR SCORE_YSFX_WITH_FONTCONFIG)
   target_link_libraries(${PROJECT_NAME} PUBLIC -lfontconfig)
 endif()
 
