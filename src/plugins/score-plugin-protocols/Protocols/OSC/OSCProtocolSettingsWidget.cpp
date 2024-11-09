@@ -268,7 +268,7 @@ void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
     m_oscVersion->setCurrentIndex(m_settings.configuration.version);
     m_rate->setRate(m_settings.rate);
     m_bonjour->setChecked(m_settings.bonjour);
-    if(*m_settings.oscquery)
+    if(m_settings.oscquery)
       m_oscquery->setValue(*m_settings.oscquery);
     auto proto = m_transportWidget->setConfiguration(m_settings.configuration);
     m_transport->setCurrentIndex((int)proto);
