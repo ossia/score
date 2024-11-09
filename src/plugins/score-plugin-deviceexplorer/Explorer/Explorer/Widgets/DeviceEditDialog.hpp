@@ -5,6 +5,7 @@
 
 #include <QDialog>
 #include <QList>
+#include <QSplitter>
 
 #include <score_plugin_deviceexplorer_export.h>
 
@@ -67,6 +68,7 @@ private:
   std::vector<std::pair<QString, std::unique_ptr<Device::DeviceEnumerator>>>
       m_enumerators;
 
+  QSplitter* m_splitter{};
   QDialogButtonBox* m_buttonBox{};
   QPushButton* m_okButton{};
   QTreeWidget* m_protocols{};
@@ -75,7 +77,7 @@ private:
   QLabel* m_protocolsLabel{};
   QLabel* m_devicesLabel{};
   Device::ProtocolSettingsWidget* m_protocolWidget{};
-  QFormLayout* m_layout{};
+  QFormLayout* m_settingsFormLayout{};
   QList<Device::DeviceSettings> m_previousSettings;
   QLabel* m_invalidLabel{};
   QLabel* m_protocolNameLabel{};
