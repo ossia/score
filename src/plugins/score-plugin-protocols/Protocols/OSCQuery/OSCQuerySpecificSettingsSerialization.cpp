@@ -8,14 +8,14 @@
 template <>
 void DataStreamReader::read(const Protocols::OSCQuerySpecificSettings& n)
 {
-  m_stream << n.host << n.rate << n.localPort;
+  m_stream << n.host << n.rate << n.localPort << n.dense;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::OSCQuerySpecificSettings& n)
 {
-  m_stream >> n.host >> n.rate >> n.localPort;
+  m_stream >> n.host >> n.rate >> n.localPort >> n.dense;
   checkDelimiter();
 }
 
@@ -27,6 +27,8 @@ void JSONReader::read(const Protocols::OSCQuerySpecificSettings& n)
     obj["Rate"] = *n.rate;
 
   obj["LocalPort"] = n.localPort;
+  if(n.dense)
+    obj["Dense"] = true;
 }
 
 template <>
@@ -37,4 +39,6 @@ void JSONWriter::write(Protocols::OSCQuerySpecificSettings& n)
     n.rate = it->toInt();
   if(auto it = obj.tryGet("LocalPort"))
     n.localPort = it->toInt();
+  if(auto it = obj.tryGet("Dense"))
+    n.localPort = it->toBool();
 }

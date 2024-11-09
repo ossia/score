@@ -21,12 +21,10 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
 protected:
-  void setDefaults();
-
-protected:
   QLineEdit* m_deviceNameEdit{};
   QLineEdit* m_localHostEdit{};
   QSpinBox* m_localPort{};
+  QCheckBox* m_dense{};
 
   RateWidget* m_rate{};
 };

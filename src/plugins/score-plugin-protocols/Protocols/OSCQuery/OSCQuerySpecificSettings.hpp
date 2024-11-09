@@ -12,6 +12,7 @@ struct OSCQuerySpecificSettings
   QString host;
   std::optional<int> rate{};
   int localPort{};
+  bool dense{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::OSCQuerySpecificSettings)

@@ -16,6 +16,7 @@
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 #include <ossia/protocols/oscquery/oscquery_mirror_asio.hpp>
+#include <ossia/protocols/oscquery/oscquery_mirror_asio_dense.hpp>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/io_service.hpp>
@@ -31,29 +32,29 @@
 #include <memory>
 W_OBJECT_IMPL(Protocols::OSCQueryDevice)
 
-bool resolve_ip(std::string host)
+static bool resolve_ip(const std::string& host)
 {
   try
   {
-    std::string m_queryPort;
-    auto m_queryHost = host;
-    auto port_idx = m_queryHost.find_last_of(':');
+    std::string queryPort;
+    auto queryHost = host;
+    auto port_idx = queryHost.find_last_of(':');
     if(port_idx != std::string::npos)
     {
-      m_queryPort = m_queryHost.substr(port_idx + 1);
-      m_queryHost = m_queryHost.substr(0, port_idx);
+      queryPort = queryHost.substr(port_idx + 1);
+      queryHost = queryHost.substr(0, port_idx);
     }
     else
-      m_queryPort = "80";
+      queryPort = "80";
 
-    if(boost::starts_with(m_queryHost, "http://"))
-      m_queryHost.erase(m_queryHost.begin(), m_queryHost.begin() + 7);
-    else if(boost::starts_with(m_queryHost, "ws://"))
-      m_queryHost.erase(m_queryHost.begin(), m_queryHost.begin() + 5);
+    if(boost::starts_with(queryHost, "http://"))
+      queryHost.erase(queryHost.begin(), queryHost.begin() + 7);
+    else if(boost::starts_with(queryHost, "ws://"))
+      queryHost.erase(queryHost.begin(), queryHost.begin() + 5);
 
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::ip::tcp::resolver::query query(m_queryHost, m_queryPort);
+    boost::asio::ip::tcp::resolver::query query(queryHost, queryPort);
     boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
     return true;
   }
@@ -65,6 +66,7 @@ bool resolve_ip(std::string host)
   }
   return false;
 }
+
 namespace Protocols
 {
 OSCQueryDevice::OSCQueryDevice(
@@ -201,11 +203,21 @@ void OSCQueryDevice::slot_createDevice()
 
   try
   {
-    std::unique_ptr<ossia::net::protocol_base> ossia_settings
-        = std::make_unique<mirror_proto>(m_ctx, stgs.host.toStdString(), stgs.localPort);
+    std::unique_ptr<ossia::net::protocol_base> ossia_settings;
+    if(stgs.dense)
+    {
+      ossia_settings
+          = std::make_unique<ossia::oscquery_asio::oscquery_mirror_asio_protocol_dense>(
+              m_ctx, stgs.host.toStdString(), stgs.localPort);
+    }
+    else
+    {
+      ossia_settings
+          = std::make_unique<ossia::oscquery_asio::oscquery_mirror_asio_protocol>(
+              m_ctx, stgs.host.toStdString(), stgs.localPort);
+    }
 
-    auto& p = static_cast<mirror_proto&>(*ossia_settings);
-    m_mirror = &p;
+    m_mirror = ossia_settings.get();
 
     if(stgs.rate)
     {
@@ -222,9 +234,9 @@ void OSCQueryDevice::slot_createDevice()
 
     deviceChanged(nullptr, m_dev.get());
 
-    //p.set_command_callback([this] { sig_command(); });
-    p.on_connection_closed.connect<&OSCQueryDevice::sig_disconnect>(*this);
-    p.on_connection_failure.connect<&OSCQueryDevice::sig_disconnect>(*this);
+    //m_mirror->set_command_callback([this] { sig_command(); });
+    m_mirror->on_connection_closed.connect<&OSCQueryDevice::sig_disconnect>(*this);
+    m_mirror->on_connection_failure.connect<&OSCQueryDevice::sig_disconnect>(*this);
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
 

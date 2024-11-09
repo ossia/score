@@ -77,7 +77,7 @@ private:
                        .arg(websockets ? "ws" : "http")
                        .arg(ws_ip.isEmpty() ? ip : ws_ip)
                        .arg(ws_port.isEmpty() ? port : ws_port);
-
+        sub.dense = doc.object()["EXTENSIONS"].toObject()["DENSE"].toBool();
         set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
         deviceAdded(set.name, set);
         ret->deleteLater();
