@@ -15,7 +15,7 @@
   && !defined(_WIN32) \
   && !defined(__EMSCRIPTEN__) \
   && !defined(__APPLE__) \
-  && (!defined(__clang_major__) || (__clang_major__ >= 14 && __clang_major__ < 19))
+&& (!defined(__clang_major__) || __clang_major__ >= 14)
 #define SCORE_HAS_LLFIO 1
 #elif defined(__APPLE__)
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_15
