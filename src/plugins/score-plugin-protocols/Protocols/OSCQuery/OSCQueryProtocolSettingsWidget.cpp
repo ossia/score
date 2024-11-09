@@ -44,12 +44,21 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
          "feedback from an external software. If 0, a random port will be chosen."));
   checkForChanges(m_localPort);
 
+  m_dense = new QCheckBox("Dense message packing", this);
+  m_dense->setChecked(false);
+  m_dense->setEnabled(false);
+  m_localPort->setWhatsThis(
+      tr("Indicated whether the remote API supports dense packing of values ; useful "
+         "mainly for low-power embedded devices."));
+
   QFormLayout* layout = new QFormLayout;
 
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Host"), m_localHostEdit);
   layout->addRow(tr("Local port"), m_localPort);
   layout->addRow(tr("Rate"), m_rate);
+  layout->addRow(new QLabel("Supported extensions: "));
+  layout->addRow(m_dense);
 
   layout->addRow(
       "",
@@ -60,15 +69,11 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
 
   setLayout(layout);
 
-  setDefaults();
-}
-
-void OSCQueryProtocolSettingsWidget::setDefaults()
-{
   m_deviceNameEdit->setText("newDevice");
   m_localHostEdit->setText("ws://127.0.0.1:5678");
   m_rate->setRate({});
   m_localPort->setValue(0);
+  m_dense->setChecked(false);
 }
 
 Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
@@ -81,6 +86,7 @@ Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
   OSCQuery.host = m_localHostEdit->text();
   OSCQuery.rate = m_rate->rate();
   OSCQuery.localPort = m_localPort->value();
+  OSCQuery.dense = m_dense->isChecked();
 
   s.deviceSpecificSettings = QVariant::fromValue(OSCQuery);
   return s;
@@ -96,6 +102,7 @@ void OSCQueryProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
     m_localHostEdit->setText(OSCQuery.host);
     m_localPort->setValue(OSCQuery.localPort);
     m_rate->setRate(OSCQuery.rate);
+    m_dense->setChecked(OSCQuery.dense);
   }
 }
 }

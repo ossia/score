@@ -128,6 +128,7 @@ namespace Protocols
 QThread DNSSDEnumerator::g_dnssd_worker_thread;
 DNSSDEnumerator::DNSSDEnumerator(const std::string& service)
 {
+  g_dnssd_worker_thread.setObjectName("Foo");
   g_dnssd_worker_thread.start();
   m_worker = new DNSSDWorker{service};
 }

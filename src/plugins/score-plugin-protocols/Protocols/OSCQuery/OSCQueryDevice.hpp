@@ -37,8 +37,7 @@ private:
   void slot_createDevice();
   W_SLOT(slot_createDevice);
 
-  using mirror_proto = ossia::oscquery_asio::oscquery_mirror_asio_protocol;
-  mirror_proto* m_mirror{};
+  ossia::net::protocol_base* m_mirror{};
   bool m_connected{};
   Device::DeviceSettings m_oldSettings;
   const ossia::net::network_context_ptr& m_ctx;

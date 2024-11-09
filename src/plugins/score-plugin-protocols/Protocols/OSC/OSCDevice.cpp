@@ -50,6 +50,39 @@ struct osc_protocols
   ossia::net::rate_limiting_protocol* ratelimit{};
 };
 
+struct convert_osc_transport_to_server
+{
+  using ret = std::optional<ossia::net::osc_server_configuration>;
+  ret operator()(const ossia::net::udp_configuration& conf)
+  {
+    if(conf.local)
+      return ossia::net::udp_server_configuration{*conf.local};
+    return std::nullopt;
+  }
+  ret operator()(const ossia::net::unix_dgram_configuration& conf)
+  {
+    if(conf.local)
+      return ossia::net::unix_dgram_server_configuration{*conf.local};
+    return std::nullopt;
+  }
+  ret operator()(const ossia::net::unix_stream_configuration& conf)
+  {
+    return std::nullopt;
+  }
+  ret operator()(const ossia::net::serial_configuration& conf) { return conf; }
+  ret operator()(const ossia::net::tcp_server_configuration& conf) { return conf; }
+  ret operator()(const ossia::net::ws_server_configuration& conf) { return conf; }
+  ret operator()(const ossia::net::tcp_client_configuration& conf)
+  {
+    return std::nullopt;
+  }
+  ret operator()(const ossia::net::ws_client_configuration& conf)
+  {
+    return std::nullopt;
+  }
+
+  ret operator()(const auto& conf) { return conf; }
+};
 osc_protocols make_osc_protocol(
     const ossia::net::network_context_ptr& m_ctx, const OSCSpecificSettings& stgs)
 {
@@ -68,9 +101,10 @@ osc_protocols make_osc_protocol(
       return {};
 
     std::vector<ossia::net::osc_server_configuration> conf;
+
     ossia::visit([&](const auto& elt) {
-      if constexpr(requires { conf.push_back(elt); })
-        conf.push_back(elt);
+      if(auto t = convert_osc_transport_to_server{}(elt))
+        conf.push_back(std::move(*t));
     }, stgs.configuration.transport);
 
     if(auto proto
