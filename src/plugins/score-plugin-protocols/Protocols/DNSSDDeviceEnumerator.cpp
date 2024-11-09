@@ -104,6 +104,7 @@ public:
     killTimer(m_timer);
     m_serv.removeListener(this);
     m_serv.endBrowsing();
+    this->deleteLater();
   }
 
   void timerEvent(QTimerEvent* ev) override { m_serv.browse(10); }
@@ -124,8 +125,10 @@ W_OBJECT_IMPL(Protocols::DNSSDWorker)
 
 namespace Protocols
 {
+QThread DNSSDEnumerator::g_dnssd_worker_thread;
 DNSSDEnumerator::DNSSDEnumerator(const std::string& service)
 {
+  g_dnssd_worker_thread.start();
   m_worker = new DNSSDWorker{service};
 }
 
@@ -133,11 +136,9 @@ DNSSDEnumerator::~DNSSDEnumerator() { }
 
 void DNSSDEnumerator::start()
 {
-  m_worker->moveToThread(&m_workerThread);
-  connect(&m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
+  m_worker->moveToThread(&g_dnssd_worker_thread);
   connect(m_worker, &DNSSDWorker::on_newHost, this, &DNSSDEnumerator::addNewDevice);
   connect(m_worker, &DNSSDWorker::on_removedHost, this, &DNSSDEnumerator::deviceRemoved);
-  m_workerThread.start();
 
   QMetaObject::invokeMethod(m_worker, &DNSSDWorker::start, Qt::QueuedConnection);
 }
@@ -145,8 +146,6 @@ void DNSSDEnumerator::start()
 void DNSSDEnumerator::stop()
 {
   QMetaObject::invokeMethod(m_worker, &DNSSDWorker::stop, Qt::QueuedConnection);
-  m_workerThread.quit();
-  m_workerThread.wait();
 }
 
 void DNSSDEnumerator::enumerate(
