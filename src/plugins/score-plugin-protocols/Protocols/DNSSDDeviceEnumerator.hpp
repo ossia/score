@@ -36,7 +36,8 @@ public:
 protected:
 private:
   DNSSDWorker* m_worker{};
-  QThread m_workerThread;
+  // Avahi only supports being called from *one* thread across an entire execution.
+  static QThread g_dnssd_worker_thread;
 };
 #endif
 }
