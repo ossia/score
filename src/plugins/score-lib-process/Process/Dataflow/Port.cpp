@@ -1233,7 +1233,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ControlInlet& p)
 {
   p.m_value <<= obj[strings.Value];
   if(auto v = obj.tryGet(strings.Init))
-    p.m_value <<= *v;
+    p.m_init <<= *v;
   p.m_domain <<= obj[strings.Domain];
 }
 
