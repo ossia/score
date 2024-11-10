@@ -809,10 +809,6 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
     Process::writePorts(
         s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets,
         obj.m_outlets, &obj);
-    qDebug() << "After deserialization" << obj.inlets().size();
-    qDebug() << "After deserialization 0: "
-             << ossia::value_to_pretty_string(
-                    ((Process::ControlInlet*)obj.inlets()[0])->value());
     if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
     {
       if(auto val = s.obj.tryGet("DynamicInlets"))
