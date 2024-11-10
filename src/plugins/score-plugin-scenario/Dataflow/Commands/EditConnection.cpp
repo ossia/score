@@ -54,13 +54,21 @@ void CreateCable::redo(const score::DocumentContext& ctx) const
 
   model.cables.add(c);
   auto ext = m_model.extend(m_cable);
-  auto& source = m_dat.source.find(ctx);
-  source.addCable(*c);
-  m_dat.sink.find(ctx).addCable(*c);
+  auto source = m_dat.source.try_find(ctx);
+  if(source)
+    source->addCable(*c);
+  else
+    return;
+
+  auto sink = m_dat.sink.try_find(ctx);
+  if(sink)
+    sink->addCable(*c);
+  else
+    return;
 
   if(m_previousPropagate)
   {
-    static_cast<Process::AudioOutlet&>(source).setPropagate(false);
+    static_cast<Process::AudioOutlet&>(*source).setPropagate(false);
   }
 }
 

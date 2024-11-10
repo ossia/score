@@ -136,8 +136,11 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
     if(cable_it != doc.cables.end())
     {
       auto& cable = *cable_it;
-      cable.source().find(ctx).removeCable(cable);
-      cable.sink().find(ctx).removeCable(cable);
+      if(auto c = cable.source().try_find(ctx))
+        c->removeCable(cable);
+
+      if(auto c = cable.sink().try_find(ctx))
+        c->removeCable(cable);
       doc.cables.remove(cid.first);
     }
     else
