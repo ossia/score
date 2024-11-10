@@ -63,10 +63,11 @@ void QGraphicsXYChooser::setValue(ossia::vec2f v)
   update();
 }
 
-void QGraphicsXYChooser::setRange(ossia::vec2f min, ossia::vec2f max)
+void QGraphicsXYChooser::setRange(ossia::vec2f min, ossia::vec2f max, ossia::vec2f init)
 {
   m_min = min;
   m_max = max;
+  m_init = init;
 }
 
 void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)

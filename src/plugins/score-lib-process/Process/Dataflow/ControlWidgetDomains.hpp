@@ -298,7 +298,7 @@ static void bindIntDomain(const T& slider, Control_T& inlet, Widget_T& widget)
 template <typename T, typename Control_T, typename Widget_T>
 static void bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
-  auto update_range = [&widget, &inlet] {
+  auto update_range = [&widget, &inlet, &slider] {
     auto min = ossia::get_min(inlet.domain());
     auto max = ossia::get_max(inlet.domain());
     auto min_float = min.template target<float>();
@@ -307,7 +307,8 @@ static void bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
     {
       if(*max_float - *min_float == 0)
         *max_float = *min_float + 1;
-      widget.setRange({*min_float, *min_float}, {*max_float, *max_float});
+      widget.setRange(
+          {*min_float, *min_float}, {*max_float, *max_float}, {*min_float, *min_float});
     }
     else
     {
@@ -323,7 +324,8 @@ static void bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
             max[i] = min[i] + 1;
         }
 
-        widget.setRange(min, max);
+        auto init_vec2 = getInit<ossia::vec2f>(slider);
+        widget.setRange(min, max, init_vec2);
       }
     }
   };
@@ -340,7 +342,7 @@ static void bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
 template <typename T, typename Control_T, typename Widget_T>
 static void bindVec3Domain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
-  auto update_range = [&widget, &inlet] {
+  auto update_range = [&widget, &inlet, &slider] {
     auto min = ossia::get_min(inlet.domain());
     auto max = ossia::get_max(inlet.domain());
     auto min_float = min.template target<float>();
@@ -366,7 +368,8 @@ static void bindVec3Domain(const T& slider, Control_T& inlet, Widget_T& widget)
             max[i] = min[i] + 1;
         }
 
-        widget.setRange(min, max);
+        auto init_vec3 = getInit<ossia::vec3f>(slider);
+        widget.setRange(min, max, init_vec3);
       }
     }
   };

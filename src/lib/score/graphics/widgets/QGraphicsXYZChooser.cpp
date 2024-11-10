@@ -62,10 +62,11 @@ void QGraphicsXYZChooser::setValue(ossia::vec3f v)
   update();
 }
 
-void QGraphicsXYZChooser::setRange(ossia::vec3f min, ossia::vec3f max)
+void QGraphicsXYZChooser::setRange(ossia::vec3f min, ossia::vec3f max, ossia::vec3f init)
 {
   m_min = min;
   m_max = max;
+  m_init = init;
   prev_v[0] = (m_value[0] - m_min[0]) / (m_max[0] - m_min[0]);
   prev_v[1] = (m_value[1] - m_min[2]) / (m_max[1] - m_min[1]);
   prev_v[2] = (m_value[2] - m_min[2]) / (m_max[2] - m_min[2]);

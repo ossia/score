@@ -22,7 +22,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYZChooser final
   QRectF m_rect{0., 0., 140., 100.};
 
 private:
-  ossia::vec3f m_value{}, m_min{}, m_max{};
+  ossia::vec3f m_value{}, m_min{}, m_max{}, m_init{};
   float prev_v[3]{};
   bool m_grab{};
 
@@ -32,7 +32,9 @@ public:
 
   void setPoint(const QPointF& r);
   void setValue(ossia::vec3f v);
-  void setRange(ossia::vec3f min = {0.f, 0.f, 0.f}, ossia::vec3f max = {1.f, 1.f, 1.f});
+  void setRange(
+      ossia::vec3f min = {0.f, 0.f, 0.f}, ossia::vec3f max = {1.f, 1.f, 1.f},
+      ossia::vec3f init = {});
   ossia::vec3f value() const;
 
   bool moving = false;
