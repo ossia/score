@@ -86,6 +86,14 @@ NodeItem::NodeItem(
     if(p != pos())
       setPos(p);
   });
+
+  auto on_sizeChanged = [this] {
+    updateSize();
+    updateZoomRatio();
+    updateTitlePos();
+  };
+  connect(&process, &Process::ProcessModel::inletsChanged, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::outletsChanged, this, on_sizeChanged);
 }
 
 void NodeItem::createWithDecorations()
