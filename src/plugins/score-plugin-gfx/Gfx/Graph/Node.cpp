@@ -321,8 +321,11 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
 
 void ProcessNode::process(int32_t port, const ossia::mesh_list_ptr& v)
 {
-  this->geometry = v;
-  ++this->geometryChanged;
+  if(this->geometry != v || this->geometryChanged == 0)
+  {
+    this->geometry = v;
+    ++this->geometryChanged;
+  }
 }
 
 void ProcessNode::process(int32_t port, const ossia::transform3d& v) { }
