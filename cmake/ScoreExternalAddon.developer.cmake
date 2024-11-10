@@ -238,6 +238,7 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/span/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/tuplet/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/unordered_dense/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/verdigris/src")
+include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/magic_enum/include")
 
 include_directories(SYSTEM "${OSSIA_SDK}/boost/include")
 
