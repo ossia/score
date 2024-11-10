@@ -282,6 +282,11 @@ QString Sh4ltOutputProtocolFactory::prettyName() const noexcept
   return QObject::tr("Sh4lt Output");
 }
 
+QUrl Sh4ltOutputProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/sh4lt-device.html");
+}
+
 Device::DeviceInterface* Sh4ltOutputProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& doc,
     const score::DocumentContext& ctx)

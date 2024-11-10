@@ -13,6 +13,7 @@
 #include <ossia/network/base/device.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 namespace Device
 {
@@ -32,6 +33,12 @@ QString WSProtocolFactory::category() const noexcept
 {
   return StandardCategories::web;
 }
+
+QUrl WSProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/ws-device.html");
+}
+
 Device::DeviceEnumerators
 WSProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {

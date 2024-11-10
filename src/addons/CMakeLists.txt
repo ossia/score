@@ -15,7 +15,6 @@ macro(SUBDIRLIST result curdir)
   set(${result} ${dirlist})
 endmacro()
 
-
 subdirlist(SUBDIRS "${CMAKE_CURRENT_SOURCE_DIR}")
 set(SCORE_ADDON True)
 foreach(subdir ${SUBDIRS})

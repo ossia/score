@@ -24,6 +24,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QObject>
+#include <QUrl>
 
 namespace Protocols
 {
@@ -98,6 +99,11 @@ QString OSCQueryProtocolFactory::prettyName() const noexcept
 QString OSCQueryProtocolFactory::category() const noexcept
 {
   return StandardCategories::osc;
+}
+
+QUrl OSCQueryProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/oscquery-device.html");
 }
 
 int OSCQueryProtocolFactory::visualPriority() const noexcept

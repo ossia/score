@@ -11,6 +11,7 @@
 
 #include <score_lib_device_export.h>
 
+class QUrl;
 struct VisitorVariant;
 
 namespace Explorer
@@ -39,7 +40,9 @@ public:
   void deviceRemoved(const QString& s)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceRemoved, s)
 };
+
 using DeviceEnumerators = std::vector<std::pair<QString, Device::DeviceEnumerator*>>;
+
 class SCORE_LIB_DEVICE_EXPORT ProtocolFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(ProtocolFactory, "3f69d72e-318d-42dc-b48c-a806036592f1")
@@ -67,6 +70,7 @@ public:
 
   virtual QString prettyName() const noexcept = 0;
   virtual QString category() const noexcept = 0;
+  virtual QUrl manual() const noexcept;
 
   /** The one with the highest priority
    * will show up first in the protocol list */

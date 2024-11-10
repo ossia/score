@@ -18,6 +18,7 @@ class ShmdataOutputProtocolFactory final : public Gfx::SharedOutputProtocolFacto
   SCORE_CONCRETE("69bb8215-dae2-4ec9-b60c-79f4f4fc2390")
 public:
   QString prettyName() const noexcept override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& doc,

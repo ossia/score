@@ -618,6 +618,11 @@ QString ProtocolFactory::prettyName() const noexcept
   return QObject::tr("Kinect Input");
 }
 
+QUrl ProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/kinect-device.html");
+}
+
 Device::DeviceEnumerators ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
   return {};

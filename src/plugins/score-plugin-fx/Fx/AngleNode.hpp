@@ -10,7 +10,9 @@ struct Direction
   halp_meta(c_name, "AngleMapper")
   halp_meta(category, "Control/Mappings")
   halp_meta(author, "ossia score")
-  halp_meta(manual_url, "")
+  halp_meta(
+      manual_url,
+      "https://ossia.io/score-docs/processes/mapping-utilities.html#angle-mapper")
   halp_meta(description, "Map the variation of an angle")
   halp_meta(uuid, "9b0e21ba-965a-4aa4-beeb-60cc5128c418")
   halp_flag(time_independent);

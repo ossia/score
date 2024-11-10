@@ -20,6 +20,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QScreen>
+#include <QUrl>
 
 #include <wobjectimpl.h>
 
@@ -416,6 +417,11 @@ QString WindowProtocolFactory::prettyName() const noexcept
 QString WindowProtocolFactory::category() const noexcept
 {
   return StandardCategories::video;
+}
+
+QUrl WindowProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/window-device.html");
 }
 
 Device::DeviceInterface* WindowProtocolFactory::makeDevice(

@@ -8,6 +8,7 @@ class CoAPProtocolFactory final : public DefaultProtocolFactory
   SCORE_CONCRETE("21a1ad07-9234-4982-a428-8656e2b8a3b1")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
   Device::DeviceEnumerators
   getEnumerators(const score::DocumentContext& ctx) const override;
 

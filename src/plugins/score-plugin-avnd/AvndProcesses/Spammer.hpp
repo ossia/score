@@ -13,6 +13,7 @@ struct Spammer : PatternObject
   halp_meta(category, "Control/Data processing")
   halp_meta(description, "Send a message at a given frequency")
   halp_meta(c_name, "avnd_pattern_spam")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/spammer.html")
   halp_meta(uuid, "0fa9415b-dcda-4ab8-b3f5-353c5d35fc8a")
 
   struct

@@ -21,6 +21,9 @@ struct AudioRecorder
   halp_meta(category, "Audio/Recording")
   halp_meta(description, "Records audio to a file")
   halp_meta(c_name, "avnd_audio_recorder")
+  halp_meta(
+      manual_url,
+      "https://ossia.io/score-docs/processes/audio-utilities.html#audio-recorder")
   halp_meta(uuid, "4463dddc-6acf-4106-a680-fed67d8030da")
 
   using audio_buffer = boost::container::vector<double>;

@@ -71,6 +71,7 @@ private:
   QSplitter* m_splitter{};
   QDialogButtonBox* m_buttonBox{};
   QPushButton* m_okButton{};
+  QPushButton* m_helpButton{};
   QTreeWidget* m_protocols{};
   QTreeWidget* m_devices{};
   QWidget* m_main{};

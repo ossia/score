@@ -36,6 +36,7 @@
 #include <QQmlEngine>
 #include <QThread>
 #include <QTimerEvent>
+#include <QUrl>
 
 #include <wobjectimpl.h>
 
@@ -140,7 +141,7 @@ ossia::net::parameter_base* find_parameter(
   return nullptr;
 }
 
-ossia::small_vector<ossia::net::parameter_base*, 4> setup_sources(
+static ossia::small_vector<ossia::net::parameter_base*, 4> setup_sources(
     const QJSValue& jsval, ossia::net::node_base& self,
     const std::vector<ossia::net::node_base*>& roots)
 {
@@ -168,9 +169,9 @@ ossia::small_vector<ossia::net::parameter_base*, 4> setup_sources(
   return res;
 }
 
-void setup_timer() { }
+static void setup_timer() { }
 
-void apply_reply(
+static void apply_reply(
     ossia::net::node_base& self, const std::vector<ossia::net::node_base*>& roots,
     const QJSValue& arr)
 {
@@ -191,7 +192,7 @@ void apply_reply(
   }
 }
 
-ossia::small_vector<ossia::value, 4> apply_reply(const QJSValue& arr)
+static ossia::small_vector<ossia::value, 4> apply_reply(const QJSValue& arr)
 {
   ossia::small_vector<ossia::value, 4> res;
   if(arr.isArray())
@@ -738,6 +739,10 @@ QString MapperProtocolFactory::category() const noexcept
   return StandardCategories::util;
 }
 
+QUrl MapperProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/mapper-device.html");
+}
 Device::DeviceEnumerators
 MapperProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {

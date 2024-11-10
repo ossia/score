@@ -17,6 +17,7 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 #include <libremidi/backends.hpp>
 #include <libremidi/libremidi.hpp>
@@ -159,6 +160,11 @@ QString MIDIInputProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
+QUrl MIDIInputProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/midi-device.html");
+}
+
 Device::DeviceEnumerators
 MIDIInputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
@@ -246,6 +252,11 @@ QString MIDIOutputProtocolFactory::prettyName() const noexcept
 QString MIDIOutputProtocolFactory::category() const noexcept
 {
   return StandardCategories::hardware;
+}
+
+QUrl MIDIOutputProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/midi-device.html");
 }
 
 Device::DeviceEnumerators

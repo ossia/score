@@ -12,6 +12,7 @@
 #include <ossia/network/base/device.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 namespace Protocols
 {
@@ -25,6 +26,10 @@ QString MinuitProtocolFactory::category() const noexcept
   return StandardCategories::osc;
 }
 
+QUrl MinuitProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/minuit-device.html");
+}
 int MinuitProtocolFactory::visualPriority() const noexcept
 {
   return -1;

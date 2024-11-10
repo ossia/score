@@ -20,6 +20,7 @@ class InputFactory final : public SharedInputProtocolFactory
   SCORE_CONCRETE("7b3a7adb-af9e-4dd5-9bd7-641f4d33fa2d")
 public:
   QString prettyName() const noexcept override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,

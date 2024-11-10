@@ -302,6 +302,11 @@ QString LibavOutputProtocolFactory::category() const noexcept
   return StandardCategories::util;
 }
 
+QUrl LibavOutputProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/libav-device.html");
+}
+
 Device::DeviceInterface* LibavOutputProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)

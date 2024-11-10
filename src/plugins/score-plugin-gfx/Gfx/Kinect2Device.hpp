@@ -44,6 +44,7 @@ class ProtocolFactory final : public SharedInputProtocolFactory
   SCORE_CONCRETE("1056df8a-f20c-40e4-995e-f18ffda3a16a")
 public:
   QString prettyName() const noexcept override;
+  QUrl manual() const noexcept override;
   Device::DeviceEnumerators getEnumerators(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface* makeDevice(

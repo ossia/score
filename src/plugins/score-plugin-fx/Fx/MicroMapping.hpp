@@ -13,7 +13,8 @@ struct Node
   halp_meta(name, "Micromap")
   halp_meta(c_name, "MicroMapping")
   halp_meta(category, "Control/Mappings")
-  halp_meta(manual_url, "https://github.com/ossia/score-user-library/tree/master/Presets/Micromap")
+  halp_meta(
+      manual_url, "https://ossia.io/score-docs/processes/exprtk.html#exprtk-support")
   halp_meta(author, "ossia score, ExprTK (Arash Partow)")
   halp_meta(description, "Applies a math expression to an input.")
   halp_meta(uuid, "25c64b87-a44a-4fed-9f60-0a48906fd3ec")

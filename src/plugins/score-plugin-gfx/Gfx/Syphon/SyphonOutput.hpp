@@ -18,6 +18,7 @@ class SyphonProtocolFactory final : public SharedOutputProtocolFactory
 
 public:
   QString prettyName() const noexcept override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& doc,

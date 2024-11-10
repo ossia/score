@@ -12,6 +12,8 @@
 
 #include <QDebug>
 #include <QObject>
+#include <QUrl>
+
 namespace Device
 {
 class DeviceInterface;
@@ -29,6 +31,11 @@ QString LocalProtocolFactory::prettyName() const noexcept
 QString LocalProtocolFactory::category() const noexcept
 {
   return StandardCategories::util;
+}
+
+QUrl LocalProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/local-device.html");
 }
 
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(

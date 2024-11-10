@@ -296,6 +296,11 @@ QString InputFactory::prettyName() const noexcept
   return QObject::tr("Shmdata Input");
 }
 
+QUrl InputFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/shmdata-device.html");
+}
+
 Device::DeviceInterface* InputFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)

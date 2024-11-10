@@ -8,6 +8,8 @@ class MQTTProtocolFactory final : public DefaultProtocolFactory
   SCORE_CONCRETE("b960ea7e-b4bc-4207-af52-4bf806279b6a")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
+
   Device::DeviceEnumerators
   getEnumerators(const score::DocumentContext& ctx) const override;
 

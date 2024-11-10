@@ -15,6 +15,7 @@
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QObject>
+#include <QUrl>
 
 namespace Protocols
 {
@@ -27,6 +28,11 @@ QString GPSProtocolFactory::prettyName() const noexcept
 QString GPSProtocolFactory::category() const noexcept
 {
   return StandardCategories::hardware;
+}
+
+QUrl GPSProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/gps-device.html");
 }
 
 Device::DeviceInterface* GPSProtocolFactory::makeDevice(

@@ -7,12 +7,14 @@
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <score/gfx/OpenGL.hpp>
+#include <score/gfx/QRhiGles2.hpp>
 
 #include <QFormLayout>
 #include <QLabel>
 #include <QOffscreenSurface>
+#include <QUrl>
+
 #include <Spout/SpoutSender.h>
-#include <score/gfx/QRhiGles2.hpp>
 
 #include <wobjectimpl.h>
 
@@ -233,6 +235,11 @@ bool SpoutDevice::reconnect()
 QString SpoutProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Spout Output");
+}
+
+QUrl SpoutProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/spout-device.html");
 }
 
 Device::DeviceInterface* SpoutProtocolFactory::makeDevice(

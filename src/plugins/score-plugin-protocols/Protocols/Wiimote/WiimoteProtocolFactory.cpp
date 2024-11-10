@@ -8,6 +8,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 namespace Protocols
 {
@@ -20,6 +21,11 @@ QString WiimoteProtocolFactory::prettyName() const noexcept
 QString WiimoteProtocolFactory::category() const noexcept
 {
   return StandardCategories::hardware;
+}
+
+QUrl WiimoteProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/wiimote-device.html");
 }
 
 Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(

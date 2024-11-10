@@ -12,6 +12,7 @@ class SimpleIOProtocolFactory final : public DefaultProtocolFactory
 
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plug,

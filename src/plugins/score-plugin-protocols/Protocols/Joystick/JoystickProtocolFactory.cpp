@@ -10,6 +10,7 @@
 #include <ossia/protocols/joystick/joystick_protocol.hpp>
 
 #include <QObject>
+#include <QUrl>
 namespace Protocols
 {
 
@@ -50,6 +51,11 @@ QString JoystickProtocolFactory::prettyName() const noexcept
 QString JoystickProtocolFactory::category() const noexcept
 {
   return StandardCategories::hardware;
+}
+
+QUrl JoystickProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/joystick-device.html");
 }
 
 Device::DeviceEnumerators

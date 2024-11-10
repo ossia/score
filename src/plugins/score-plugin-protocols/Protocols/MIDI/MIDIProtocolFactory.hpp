@@ -25,6 +25,8 @@ public:
   Device::ProtocolFactory::Flags flags() const noexcept override;
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
+
   Device::DeviceEnumerators
   getEnumerators(const score::DocumentContext& ctx) const override;
 
@@ -60,6 +62,8 @@ public:
   // Implement with OSSIA::Device
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
+
   Device::DeviceEnumerators
   getEnumerators(const score::DocumentContext& ctx) const override;
 

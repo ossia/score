@@ -202,6 +202,11 @@ QString AudioProtocolFactory::category() const noexcept
   return StandardCategories::audio;
 }
 
+QUrl AudioProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/audio-device.html");
+}
+
 Device::DeviceEnumerators
 AudioProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {

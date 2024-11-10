@@ -18,6 +18,7 @@ class WindowProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("5a181207-7d40-4ad8-814e-879fcdf8cc31")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,

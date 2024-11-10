@@ -29,6 +29,7 @@ class LibavOutputProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("16b53d87-19dc-48d4-b3ab-7174408c7ce7")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
       const Explorer::DeviceDocumentPlugin& plugin,

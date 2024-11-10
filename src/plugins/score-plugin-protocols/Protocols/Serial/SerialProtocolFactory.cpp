@@ -17,6 +17,7 @@
 #include <ossia/network/base/device.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 namespace Protocols
 {
@@ -30,6 +31,10 @@ QString SerialProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
+QUrl SerialProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/serial-device.html");
+}
 Device::DeviceEnumerators
 SerialProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {

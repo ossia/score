@@ -6,12 +6,13 @@
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 
-#include <Gfx/Syphon/SyphonHelpers.hpp>
-#include <score/gfx/QRhiGles2.hpp>
-#include <QOpenGLContext>
-#include <QOffscreenSurface>
 #include <QFormLayout>
 #include <QLabel>
+#include <QOffscreenSurface>
+#include <QOpenGLContext>
+#include <QUrl>
+#include <Gfx/Syphon/SyphonHelpers.hpp>
+#include <score/gfx/QRhiGles2.hpp>
 
 #include <Syphon/SyphonOpenGLServer.h>
 #include <score/gfx/OpenGL.hpp>
@@ -267,6 +268,11 @@ bool SyphonDevice::reconnect()
 QString SyphonProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Syphon Output");
+}
+
+QUrl SyphonProtocolFactory::manual() const noexcept
+{
+    return QUrl("https://ossia.io/score-docs/devices/syphon-device.html");
 }
 
 Device::DeviceInterface* SyphonProtocolFactory::makeDevice(

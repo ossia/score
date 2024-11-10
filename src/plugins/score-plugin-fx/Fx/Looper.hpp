@@ -18,8 +18,7 @@ struct Node
   halp_meta(c_name, "Looper (audio)")
   halp_meta(category, "Audio/Utilities")
   halp_meta(author, "ossia score")
-  halp_meta(
-      manual_url, "https://ossia.io/score-docs/processes/audio-looper.html#audio-looper")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/audio-looper.html")
   halp_meta(description, "Loop audio")
   halp_meta(uuid, "a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
   halp_meta(recommended_height, 65);

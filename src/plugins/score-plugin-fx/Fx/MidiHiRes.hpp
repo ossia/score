@@ -16,7 +16,8 @@ struct Input
   halp_meta(c_name, "MidiHiResIn")
   halp_meta(category, "Midi")
   halp_meta(author, "ossia score")
-  halp_meta(manual_url, "https://ossia.io/score-docs/processes/javascript.html#midi")
+  halp_meta(
+      manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#midi-hires")
   halp_meta(description, "Creates a float from MSB/LSB CCs")
   halp_meta(uuid, "28ca746e-c304-4ba6-bd5b-78934a1dec55")
 

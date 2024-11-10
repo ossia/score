@@ -29,6 +29,11 @@ QString SimpleIOProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
+QUrl SimpleIOProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/rawio-device.html");
+}
+
 Device::DeviceInterface* SimpleIOProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)

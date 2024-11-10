@@ -15,6 +15,7 @@
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QObject>
+#include <QUrl>
 
 namespace Protocols
 {
@@ -22,6 +23,11 @@ namespace Protocols
 QString ArtnetProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Artnet");
+}
+
+QUrl ArtnetProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/artnet-device.html");
 }
 
 QString ArtnetProtocolFactory::category() const noexcept

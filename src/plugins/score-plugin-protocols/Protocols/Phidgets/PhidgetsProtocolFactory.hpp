@@ -8,6 +8,7 @@ class PhidgetProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("46c28ec5-3d7a-42cd-a730-0ac97d01eea7")
   // Implement with OSSIA::Device
   QString prettyName() const override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,

@@ -18,6 +18,7 @@ class Sh4ltOutputProtocolFactory final : public Gfx::SharedOutputProtocolFactory
   SCORE_CONCRETE("41e367e1-fc36-40b2-b8c4-8aecd5dfd4fc")
 public:
   QString prettyName() const noexcept override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& doc,

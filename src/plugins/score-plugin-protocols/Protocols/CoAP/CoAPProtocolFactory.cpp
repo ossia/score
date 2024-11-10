@@ -21,6 +21,7 @@
 #include <ossia/network/base/device.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 namespace Device
 {
@@ -34,6 +35,11 @@ namespace Protocols
 QString CoAPProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("CoAP");
+}
+
+QUrl CoAPProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/coap-device.html");
 }
 
 QString CoAPProtocolFactory::category() const noexcept

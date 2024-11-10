@@ -12,6 +12,7 @@
 
 #include <ossia/network/base/device.hpp>
 
+#include <QUrl>
 namespace Protocols
 {
 QString HTTPProtocolFactory::prettyName() const noexcept
@@ -22,6 +23,11 @@ QString HTTPProtocolFactory::prettyName() const noexcept
 QString HTTPProtocolFactory::category() const noexcept
 {
   return StandardCategories::web;
+}
+
+QUrl HTTPProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/http-device.html");
 }
 
 Device::DeviceEnumerators

@@ -21,6 +21,7 @@
 #include <ossia/detail/algorithms.hpp>
 
 #include <QComboBox>
+#include <QDesktopServices>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QHeaderView>
@@ -117,12 +118,15 @@ DeviceEditDialog::DeviceEditDialog(
   m_settingsFormLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
   m_main->setLayout(m_settingsFormLayout);
   column3_layout->addWidget(m_main);
+
   m_invalidLabel = new QLabel{
       tr("Cannot add device.\n Try changing the name to make it unique, \nor "
          "check that the ports aren't already used")};
   m_invalidLabel->setAlignment(Qt::AlignRight);
   m_invalidLabel->setTextFormat(Qt::PlainText);
+
   m_buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
+  m_helpButton = m_buttonBox->addButton(tr("Help"), QDialogButtonBox::HelpRole);
   m_okButton = m_buttonBox->addButton(tr("Add"), QDialogButtonBox::AcceptRole);
   m_buttonBox->addButton(QDialogButtonBox::Cancel);
   column3_layout->addStretch(1);
@@ -142,6 +146,19 @@ DeviceEditDialog::DeviceEditDialog(
 
   connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(m_buttonBox, &QDialogButtonBox::helpRequested, [this] {
+    if(!this->m_protocols)
+      return;
+    auto selected_item = m_protocols->selectedItems().first();
+    auto key
+        = selected_item->data(0, Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
+    if(key == UuidKey<Device::ProtocolFactory>{})
+      return;
+
+    if(auto* proto = m_protocolList.get(key))
+      if(auto manual = proto->manual(); !manual.isEmpty())
+        QDesktopServices::openUrl(manual);
+  });
 
   initAvailableProtocols();
 

@@ -2,8 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProtocolFactoryInterface.hpp"
 
+#include <QUrl>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::DeviceEnumerator)
+
 namespace Device
 {
 ProtocolFactory::~ProtocolFactory() = default;
@@ -16,6 +19,11 @@ ProtocolFactory::Flags ProtocolFactory::flags() const noexcept
 int ProtocolFactory::visualPriority() const noexcept
 {
   return 0;
+}
+
+QUrl ProtocolFactory::manual() const noexcept
+{
+  return {};
 }
 
 DeviceEnumerators

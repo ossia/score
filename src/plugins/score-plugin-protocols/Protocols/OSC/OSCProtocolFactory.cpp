@@ -19,6 +19,7 @@
 #include <ossia/network/base/device.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 namespace Device
 {
@@ -37,6 +38,10 @@ QString OSCProtocolFactory::prettyName() const noexcept
 QString OSCProtocolFactory::category() const noexcept
 {
   return StandardCategories::osc;
+}
+QUrl OSCProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/osc-device.html");
 }
 
 static ossia::net::osc_protocol_configuration defaultOSCConfig() noexcept

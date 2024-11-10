@@ -112,6 +112,11 @@ QString CameraProtocolFactory::prettyName() const noexcept
   return QObject::tr("Camera input");
 }
 
+QUrl CameraProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/camera-device.html");
+}
+
 QString CameraProtocolFactory::category() const noexcept
 {
   return StandardCategories::video;

@@ -8,12 +8,13 @@
 
 #include <QFormLayout>
 #include <QLabel>
+#include <QUrl>
 
 #include <Spout/SpoutReceiver.h>
 
-#include <set>
-
 #include <wobjectimpl.h>
+
+#include <set>
 
 namespace Gfx::Spout
 {
@@ -283,6 +284,11 @@ private:
 QString InputFactory::prettyName() const noexcept
 {
   return QObject::tr("Spout Input");
+}
+
+QUrl InputFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/spout-device.html");
 }
 
 class SpoutEnumerator : public Device::DeviceEnumerator

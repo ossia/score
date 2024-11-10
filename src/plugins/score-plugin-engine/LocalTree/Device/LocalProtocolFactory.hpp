@@ -28,6 +28,7 @@ private:
   // Implement with OSSIA::Device
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,

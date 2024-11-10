@@ -21,6 +21,7 @@
 #include <ossia/network/base/device.hpp>
 
 #include <QObject>
+#include <QUrl>
 
 namespace Device
 {
@@ -41,6 +42,10 @@ QString MQTTProtocolFactory::category() const noexcept
   return StandardCategories::osc;
 }
 
+QUrl MQTTProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/mqtt-device.html");
+}
 static ossia::net::mqtt5_configuration defaultMQTTConfig() noexcept
 {
   ossia::net::mqtt5_configuration config;

@@ -273,6 +273,11 @@ QString ShmdataOutputProtocolFactory::prettyName() const noexcept
   return QObject::tr("Shmdata Output");
 }
 
+QUrl ShmdataOutputProtocolFactory::manual() const noexcept
+{
+  return QUrl("https://ossia.io/score-docs/devices/shmdata-device.html");
+}
+
 Device::DeviceInterface* ShmdataOutputProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& doc,
     const score::DocumentContext& ctx)

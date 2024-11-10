@@ -9,6 +9,8 @@ class WSProtocolFactory final : public DefaultProtocolFactory
   // Implement with OSSIA::Device
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
+  QUrl manual() const noexcept override;
+
   Device::DeviceEnumerators
   getEnumerators(const score::DocumentContext& ctx) const override;
 

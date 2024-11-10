@@ -1,18 +1,19 @@
 #include "SyphonInput.hpp"
+#include <QApplication>
+#include <QFormLayout>
+#include <QLabel>
+#include <QOpenGLContext>
+#include <QUrl>
+#include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
-#include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Syphon/SyphonHelpers.hpp>
 #include <Syphon/SyphonClient.h>
 #include <Syphon/SyphonOpenGLClient.h>
 #include <Syphon/SyphonOpenGLImage.h>
 #include <Syphon/SyphonServerDirectory.h>
-#include <QOpenGLContext>
-#include <QFormLayout>
-#include <QApplication>
-#include <QLabel>
 
 #include <wobjectimpl.h>
 #include <score/gfx/QRhiGles2.hpp>
@@ -336,6 +337,11 @@ private:
 QString InputFactory::prettyName() const noexcept
 {
   return QObject::tr("Syphon Input");
+}
+
+QUrl InputFactory::manual() const noexcept
+{
+    return QUrl("https://ossia.io/score-docs/devices/syphon-device.html");
 }
 
 class SyphonEnumerator : public Device::DeviceEnumerator
