@@ -11,6 +11,10 @@
 #include <Crousti/ProcessModelPortInit.hpp>
 #include <Dataflow/Commands/CableHelpers.hpp>
 
+#include <score/serialization/MapSerialization.hpp>
+#include <score/tools/std/HashMap.hpp>
+
+#include <ossia/detail/string_map.hpp>
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
 
@@ -165,7 +169,9 @@ private:
     if(std::ssize(m_inlets) != expected_input_ports()
        || std::ssize(m_outlets) != expected_output_ports())
     {
-      qDebug() << "Warning : process does not match spec.";
+      qDebug() << "Warning : process does not match spec: I " << m_inlets.size()
+               << "but expected: " << expected_input_ports() << " ; O "
+               << m_outlets.size() << "but expected: " << expected_output_ports();
 
       std::vector<Dataflow::SavedPort> m_oldInlets, m_oldOutlets;
       for(auto& port : m_inlets)
@@ -715,6 +721,25 @@ struct TSerializer<DataStream, oscr::ProcessModel<Info>>
   static void readFrom(DataStream::Serializer& s, const model_type& obj)
   {
     Process::readPorts(s, obj.m_inlets, obj.m_outlets);
+
+    // Save the recorded amount of dynamic ports for each port
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
+    {
+      avnd::dynamic_ports_input_introspection<Info>::for_all(
+          [&obj, &s]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if constexpr(avnd::dynamic_ports_port<P>)
+          s.stream() << obj.dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+      });
+    }
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+    {
+      avnd::dynamic_ports_output_introspection<Info>::for_all(
+          [&obj, &s]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if constexpr(avnd::dynamic_ports_port<P>)
+          s.stream() << obj.dynamic_ports.num_out_ports(avnd::field_index<Idx>{});
+      });
+    }
+
     s.insertDelimiter();
   }
 
@@ -723,6 +748,24 @@ struct TSerializer<DataStream, oscr::ProcessModel<Info>>
     Process::writePorts(
         s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets,
         obj.m_outlets, &obj);
+
+    // Read the recorded amount of dynamic ports for each port
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
+    {
+      avnd::dynamic_ports_input_introspection<Info>::for_all(
+          [&obj, &s]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if constexpr(avnd::dynamic_ports_port<P>)
+          s.stream() >> obj.dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+      });
+    }
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+    {
+      avnd::dynamic_ports_output_introspection<Info>::for_all(
+          [&obj, &s]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if constexpr(avnd::dynamic_ports_port<P>)
+          s.stream() >> obj.dynamic_ports.num_out_ports(avnd::field_index<Idx>{});
+      });
+    }
     s.checkDelimiter();
   }
 };
@@ -734,6 +777,31 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
   static void readFrom(JSONObject::Serializer& s, const model_type& obj)
   {
     Process::readPorts(s, obj.m_inlets, obj.m_outlets);
+    // Save the recorded amount of dynamic ports for each port
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
+    {
+      ossia::string_map<int> indices;
+      avnd::dynamic_ports_input_introspection<Info>::for_all(
+          [&obj,
+           &indices]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if constexpr(avnd::dynamic_ports_port<P>)
+          indices[avnd::get_c_identifier<P>()]
+              = obj.dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+      });
+      s.obj["DynamicInlets"] = indices;
+    }
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+    {
+      ossia::string_map<int> indices;
+      avnd::dynamic_ports_output_introspection<Info>::for_all(
+          [&obj,
+           &indices]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
+        if constexpr(avnd::dynamic_ports_port<P>)
+          indices[avnd::get_c_identifier<P>()]
+              = obj.dynamic_ports.num_out_ports(avnd::field_index<Idx>{});
+      });
+      s.obj["DynamicOutlets"] = indices;
+    }
   }
 
   static void writeTo(JSONObject::Deserializer& s, model_type& obj)
@@ -741,5 +809,39 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
     Process::writePorts(
         s, s.components.interfaces<Process::PortFactoryList>(), obj.m_inlets,
         obj.m_outlets, &obj);
+    qDebug() << "After deserialization" << obj.inlets().size();
+    qDebug() << "After deserialization 0: "
+             << ossia::value_to_pretty_string(
+                    ((Process::ControlInlet*)obj.inlets()[0])->value());
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
+    {
+      if(auto val = s.obj.tryGet("DynamicInlets"))
+      {
+        ossia::string_map<int> indices;
+        indices <<= *val;
+        avnd::dynamic_ports_input_introspection<Info>::for_all(
+            [&obj, &indices]<std::size_t Idx, typename P>(
+                avnd::field_reflection<Idx, P> field) {
+          if constexpr(avnd::dynamic_ports_port<P>)
+            obj.dynamic_ports.num_in_ports(avnd::field_index<Idx>{})
+                = indices[avnd::get_c_identifier<P>()];
+        });
+      }
+    }
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+    {
+      if(auto val = s.obj.tryGet("DynamicOutlets"))
+      {
+        ossia::string_map<int> indices;
+        indices <<= *val;
+        avnd::dynamic_ports_output_introspection<Info>::for_all(
+            [&obj, &indices]<std::size_t Idx, typename P>(
+                avnd::field_reflection<Idx, P> field) {
+          if constexpr(avnd::dynamic_ports_port<P>)
+            obj.dynamic_ports.num_out_ports(avnd::field_index<Idx>{})
+                = indices[avnd::get_c_identifier<P>()];
+        });
+      }
+    }
   }
 };
