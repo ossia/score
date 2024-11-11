@@ -1,11 +1,7 @@
 function(avnd_score_plugin_init)
   cmake_parse_arguments(AVND "" "BASE_TARGET" "" ${ARGN})
   if(NOT TARGET ${AVND_BASE_TARGET})
-    if(SCORE_STATIC_PLUGINS)
-      add_library(${AVND_BASE_TARGET} STATIC)
-    else()
-      add_library(${AVND_BASE_TARGET} MODULE)
-    endif()
+    add_library(${AVND_BASE_TARGET})
   endif()
 
   set(AVND_ADDITIONAL_CLASSES "" PARENT_SCOPE)
