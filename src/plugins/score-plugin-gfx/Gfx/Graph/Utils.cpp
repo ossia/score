@@ -264,7 +264,8 @@ Pipeline buildPipeline(
 
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers)
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers,
+    std::span<QRhiShaderResourceBinding> additionalBindings)
 {
   auto& rhi = *renderer.state.rhi;
   // Shader resource bindings
@@ -317,6 +318,11 @@ QRhiShaderResourceBindings* createDefaultBindings(
     binding++;
   }
 
+  for(auto& other : additionalBindings)
+  {
+    bindings.push_back(other);
+  }
+
   srb->setBindings(bindings.begin(), bindings.end());
   SCORE_ASSERT(srb->create());
   return srb;
@@ -325,9 +331,11 @@ QRhiShaderResourceBindings* createDefaultBindings(
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers)
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers,
+    std::span<QRhiShaderResourceBinding> additionalBindings)
 {
-  auto bindings = createDefaultBindings(renderer, rt, processUBO, materialUBO, samplers);
+  auto bindings = createDefaultBindings(
+      renderer, rt, processUBO, materialUBO, samplers, additionalBindings);
   return buildPipeline(renderer, mesh, vertexS, fragmentS, rt, bindings);
 }
 
@@ -335,7 +343,10 @@ std::pair<QShader, QShader> makeShaders(const RenderState& v, QString vert, QStr
 {
   auto [vertexS, vertexError] = ShaderCache::get(v, vert.toUtf8(), QShader::VertexStage);
   if(!vertexError.isEmpty())
+  {
     qDebug() << vertexError;
+    qDebug() << vert.toStdString().data();
+  }
 
   auto [fragmentS, fragmentError]
       = ShaderCache::get(v, frag.toUtf8(), QShader::FragmentStage);

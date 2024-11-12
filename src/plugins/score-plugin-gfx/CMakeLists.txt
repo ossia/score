@@ -74,6 +74,11 @@ set(HDRS
     Gfx/Filter/Library.hpp
     Gfx/Filter/PreviewWidget.hpp
 
+    Gfx/GeometryFilter/Executor.hpp
+    Gfx/GeometryFilter/Metadata.hpp
+    Gfx/GeometryFilter/Process.hpp
+    Gfx/GeometryFilter/Layer.hpp
+
     Gfx/Video/Executor.hpp
     Gfx/Video/Inspector.hpp
     Gfx/Video/Metadata.hpp
@@ -95,6 +100,8 @@ set(HDRS
     Gfx/Graph/CommonUBOs.hpp
     Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/DepthNode.hpp
+    Gfx/Graph/GeometryFilterNode.hpp
+    Gfx/Graph/GeometryFilterNodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
     Gfx/Graph/Scale.hpp
     Gfx/Graph/Window.hpp
@@ -168,6 +175,9 @@ set(SRCS
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
 
+    Gfx/GeometryFilter/Executor.cpp
+    Gfx/GeometryFilter/Process.cpp
+
     Gfx/Video/Executor.cpp
     Gfx/Video/Inspector.cpp
     Gfx/Video/Presenter.cpp
@@ -183,6 +193,8 @@ set(SRCS
 
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
     Gfx/Graph/decoders/HAP.cpp
+    Gfx/Graph/GeometryFilterNode.cpp
+    Gfx/Graph/GeometryFilterNodeRenderer.cpp
     Gfx/Graph/Node.cpp
     Gfx/Graph/Graph.cpp
     Gfx/Graph/RenderList.cpp

@@ -14,6 +14,26 @@ gfx_exec_node::~gfx_exec_node()
   controls.clear();
 }
 
+void gfx_exec_node::link_cable_to_inlet(ossia::inlet* inlet, int inlet_i)
+{
+  for(ossia::graph_edge* cable : inlet->sources)
+  {
+    // Should be impossible to not be connected to a gfx_exec_node
+    if(auto src_gfx = dynamic_cast<gfx_exec_node*>(cable->out_node.get()))
+    {
+      if(src_gfx->executed())
+      {
+        int32_t port_idx = index_of(src_gfx->m_outlets, cable->out);
+        assert(port_idx != -1);
+        {
+          exec_context->setEdge(
+              port_index{src_gfx->id, port_idx}, port_index{this->id, inlet_i});
+        }
+      }
+    }
+  }
+}
+
 void gfx_exec_node::run(
     const ossia::token_request& tk, ossia::exec_state_facade) noexcept
 {
@@ -62,22 +82,7 @@ void gfx_exec_node::run(
           cam->pull_texture({this->id, inlet_i});
         }
 
-        for(ossia::graph_edge* cable : inlet->sources)
-        {
-          // Should be impossible to not be connected to a gfx_exec_node
-          if(auto src_gfx = safe_cast<gfx_exec_node*>(cable->out_node.get()))
-          {
-            if(src_gfx->executed())
-            {
-              int32_t port_idx = index_of(src_gfx->m_outlets, cable->out);
-              assert(port_idx != -1);
-              {
-                exec_context->setEdge(
-                    port_index{src_gfx->id, port_idx}, port_index{this->id, inlet_i});
-              }
-            }
-          }
-        }
+        link_cable_to_inlet(inlet, inlet_i);
         break;
       }
 
@@ -91,7 +96,7 @@ void gfx_exec_node::run(
             // FIXME If the cables, or address have changed
             // We likely want to reload the geometry in any case
             // .. or do we?
-            msg.input[inlet_i] = p.meshes;
+            msg.input[inlet_i] = p.geometry;
           }
           //if(p.flags & ossia::geometry_port::dirty_transform)
           {
@@ -100,6 +105,8 @@ void gfx_exec_node::run(
           }
           p.flags = {};
         }
+
+        link_cable_to_inlet(inlet, inlet_i);
         break;
       }
 

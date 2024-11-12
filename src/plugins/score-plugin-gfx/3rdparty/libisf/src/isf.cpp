@@ -2,6 +2,8 @@
 
 #include "sajson.h"
 
+#include <boost/algorithm/string.hpp>
+
 #include <array>
 #include <iostream>
 #include <regex>
@@ -60,6 +62,27 @@ layout(std140, binding = 0) uniform renderer_t {
 mat4 clipSpaceCorrMatrix = isf_renderer_uniforms.clipSpaceCorrMatrix;
 vec2 RENDERSIZE = isf_renderer_uniforms.RENDERSIZE;
 
+// Time-dependent uniforms, only relevant during execution
+layout(std140, binding = 1) uniform process_t {
+  float TIME;
+  float TIMEDELTA;
+  float PROGRESS;
+
+  int PASSINDEX;
+  int FRAMEINDEX;
+
+  vec4 DATE;
+} isf_process_uniforms;
+ 
+float TIME = isf_process_uniforms.TIME;
+float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
+float PROGRESS = isf_process_uniforms.PROGRESS;
+int PASSINDEX = isf_process_uniforms.PASSINDEX;
+int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
+vec4 DATE = isf_process_uniforms.DATE;
+)_";
+
+  static constexpr auto defaultGeometryUniforms = R"_(
 // Time-dependent uniforms, only relevant during execution
 layout(std140, binding = 1) uniform process_t {
   float TIME;
@@ -147,6 +170,12 @@ uniform int PASSINDEX;
 } GLSL3;
 }
 
+parser::parser(std::string geom)
+    : m_source_geometry_filter{std::move(geom)}
+{
+  parse_geometry_filter();
+}
+
 parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t)
     : m_sourceVertex{std::move(vert)}
     , m_sourceFragment{std::move(frag)}
@@ -198,6 +227,8 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
       parse_glsl_sandbox();
       break;
     }
+    default:
+      break;
   }
 }
 
@@ -214,6 +245,11 @@ std::string parser::vertex() const
 std::string parser::fragment() const
 {
   return m_fragment;
+}
+
+std::string parser::geometry_filter() const
+{
+  return m_geometry_filter;
 }
 
 static bool is_number(sajson::value& v)
@@ -612,24 +648,24 @@ struct create_val_visitor_450
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
 };
 
-void parser::parse_isf()
+std::string parser::parse_isf_header(std::string_view source)
 {
   using namespace std::literals;
 
-  auto start = m_sourceFragment.find("/*");
+  auto start = source.find("/*");
   if(start == std::string::npos)
     throw invalid_file{"Missing start comment"};
-  auto end = m_sourceFragment.find("*/", start);
+  auto end = source.find("*/", start);
   if(end == std::string::npos)
     throw invalid_file{"Unfinished comment"};
-  auto fragWithoutISF = m_sourceFragment;
+  std::string fragWithoutISF = std::string(source);
   fragWithoutISF.erase(0, end + 2);
 
   // First comes the json part
   auto doc = sajson::parse(
       sajson::dynamic_allocation(),
       sajson::mutable_string_view(
-          (end - start - 2), const_cast<char*>(m_sourceFragment.data()) + start + 2));
+          (end - start - 2), const_cast<char*>(source.data()) + start + 2));
   if(!doc.is_valid())
   {
     std::stringstream err;
@@ -658,11 +694,72 @@ void parser::parse_isf()
   }
   m_desc = d;
 
+  return fragWithoutISF;
+}
+
+void parser::parse_geometry_filter()
+{
+  using namespace std::literals;
+
+  auto geomWithoutISF = parse_isf_header(m_source_geometry_filter);
+
   // There is always one pass at least
   if(m_desc.passes.empty())
   {
     m_desc.passes.push_back(isf::pass{});
   }
+
+  boost::algorithm::trim(geomWithoutISF);
+  boost::algorithm::replace_all(geomWithoutISF, "this_filter", "filter_%node%");
+
+  std::string filter_ubo;
+  if(!m_desc.inputs.empty())
+  {
+    std::string globalvars;
+    filter_ubo += "layout(std140, binding = %next%) uniform filter_%node%_t {\n";
+    for(const isf::input& val : m_desc.inputs)
+    {
+      auto [type, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
+
+      {
+        filter_ubo += "  ";
+        filter_ubo += type;
+        filter_ubo += ' ';
+        filter_ubo += val.name;
+        filter_ubo += ";\n";
+
+        // // See comment above regarding little dance to make spirv-cross happy
+        // globalvars += type;
+        // globalvars += ' ';
+        // globalvars += val.name;
+        // globalvars += " = filter_%node%.";
+        // globalvars += val.name;
+        // globalvars += ";\n";
+      }
+    }
+
+    filter_ubo += "} filter_%node%;\n";
+    filter_ubo += "\n";
+    // filter_ubo += globalvars;
+    // filter_ubo += "\n";
+  }
+  m_geometry_filter
+      = glsl45_t::defaultGeometryUniforms + filter_ubo + geomWithoutISF + "\n";
+}
+
+void parser::parse_isf()
+{
+  using namespace std::literals;
+
+  auto fragWithoutISF = parse_isf_header(m_sourceFragment);
+
+  // There is always one pass at least
+  if(m_desc.passes.empty())
+  {
+    m_desc.passes.push_back(isf::pass{});
+  }
+
+  auto& d = m_desc;
 
   // We start from empty strings.
 

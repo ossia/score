@@ -7,6 +7,9 @@
 #include <Gfx/Filter/Layer.hpp>
 #include <Gfx/Filter/Library.hpp>
 #include <Gfx/Filter/Process.hpp>
+#include <Gfx/GeometryFilter/Executor.hpp>
+#include <Gfx/GeometryFilter/Layer.hpp>
+#include <Gfx/GeometryFilter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/Images/Executor.hpp>
@@ -98,11 +101,13 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
 #endif
          >,
       FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
-         Gfx::Video::ProcessFactory, Gfx::Text::ProcessFactory,
-         Gfx::Images::ProcessFactory>,
-      FW<Process::LayerFactory, Gfx::Filter::LayerFactory, Gfx::Video::LayerFactory>,
+         Gfx::GeometryFilter::ProcessFactory, Gfx::Video::ProcessFactory,
+         Gfx::Text::ProcessFactory, Gfx::Images::ProcessFactory>,
+      FW<Process::LayerFactory, Gfx::Filter::LayerFactory,
+         Gfx::GeometryFilter::LayerFactory, Gfx::Video::LayerFactory>,
       FW<Execution::ProcessComponentFactory,
          Gfx::Filter::ProcessExecutorComponentFactory,
+         Gfx::GeometryFilter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
          Gfx::Text::ProcessExecutorComponentFactory,
          Gfx::Images::ProcessExecutorComponentFactory>,

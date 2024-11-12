@@ -55,6 +55,7 @@ int32_t GfxContext::register_node(std::unique_ptr<score::gfx::Node> node)
 {
   auto next = index++;
 
+  node->id = next;
   tick_commands.enqueue(NodeCommand{NodeCommand::ADD_NODE, next, std::move(node)});
 
   return next;
@@ -64,6 +65,7 @@ int32_t GfxContext::register_preview_node(std::unique_ptr<score::gfx::Node> node
 {
   auto next = index++;
 
+  node->id = next;
   tick_commands.enqueue(
       NodeCommand{NodeCommand::ADD_PREVIEW_NODE, next, std::move(node)});
 

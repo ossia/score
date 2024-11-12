@@ -186,9 +186,10 @@ QImage RenderList::adaptImage(const QImage& frame)
 }
 
 RenderList::Buffers RenderList::acquireMesh(
-    const ossia::mesh_list_ptr& p, QRhiResourceUpdateBatch& res) noexcept
+    const ossia::geometry_spec& spec, QRhiResourceUpdateBatch& res) noexcept
 {
-  if(auto it = m_customMeshCache.find(p); it != m_customMeshCache.end())
+  const auto& [p, f] = spec;
+  if(auto it = m_customMeshCache.find(spec); it != m_customMeshCache.end())
   {
     auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(it->second));
 
@@ -202,19 +203,21 @@ RenderList::Buffers RenderList::acquireMesh(
       // have some level of double- or triple-buffering
       if(auto cur_idx = p->dirty_index; m->dirtyGeometryIndex != cur_idx)
       {
-        m->reload(*p);
+        m->reload(*p, f);
         m->update(mb, res);
-        m->dirtyGeometryIndex = cur_idx;
+        // FIXME atomic !!
+        if(cur_idx > m->dirtyGeometryIndex)
+          m->dirtyGeometryIndex = cur_idx;
       }
 
       return {m, mb};
     }
   }
 
-  auto m = new CustomMesh{*p};
+  auto m = new CustomMesh{*p, f};
   auto meshbufs = initMeshBuffer(*m, res);
 
-  this->m_customMeshCache[p] = m;
+  this->m_customMeshCache[{p, f}] = m;
   return {m, meshbufs};
 }
 
@@ -309,6 +312,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   ossia::small_pod_vector<EdgePair, 4> prevRenderers;
   for(auto it = this->nodes.rbegin(); it != this->nodes.rend(); ++it)
   {
+    bool node_was_rendered = false;
     auto node = *it;
     for(auto input : node->input)
     {
@@ -376,7 +380,16 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           SCORE_ASSERT(!updateBatch);
           updateBatch = state.rhi->nextResourceUpdateBatch();
         }
+        node_was_rendered = true;
       }
+    }
+
+    if(!node_was_rendered)
+    {
+      // Pure computation node - we only run update
+      NodeRenderer* renderer = node->renderedNodes.find(this)->second;
+
+      renderer->update(*this, *updateBatch);
     }
   }
 

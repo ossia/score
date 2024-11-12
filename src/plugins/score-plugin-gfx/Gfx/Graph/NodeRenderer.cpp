@@ -9,11 +9,11 @@
 namespace score::gfx
 {
 
-
 void defaultPassesInit(
     PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
     const Mesh& mesh, const QShader& v, const QShader& f, QRhiBuffer* processUBO,
-    QRhiBuffer* matUBO, const std::vector<Sampler>& samplers)
+    QRhiBuffer* matUBO, const std::vector<Sampler>& samplers,
+    std::span<QRhiShaderResourceBinding> additionalBindings)
 {
   SCORE_ASSERT(passes.empty());
   for(Edge* edge : edges)
@@ -22,7 +22,7 @@ void defaultPassesInit(
     if(rt.renderTarget)
     {
       auto pip = score::gfx::buildPipeline(
-          renderer, mesh, v, f, rt, processUBO, matUBO, samplers);
+          renderer, mesh, v, f, rt, processUBO, matUBO, samplers, additionalBindings);
       if(pip.pipeline)
         passes.emplace_back(edge, pip);
     }
@@ -102,11 +102,12 @@ void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& me
 }
 
 void GenericNodeRenderer::defaultPassesInit(
-    RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f)
+    RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f,
+    std::span<QRhiShaderResourceBinding> additionalBindings)
 {
   score::gfx::defaultPassesInit(
       m_p, this->node.output[0]->edges, renderer, mesh, v, f, m_processUBO,
-      m_material.buffer, m_samplers);
+      m_material.buffer, m_samplers, additionalBindings);
 }
 
 void GenericNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -153,7 +154,7 @@ void GenericNodeRenderer::defaultMeshUpdate(
   // the last fully written frame so that wwith peek() we can check that we are going to get only
   // the messages relevant for a frame.
   // Or... just put all of one frame's message in one vector and push that one at the end of the audio frame.
-  if(node.hasGeometryChanged(geometryChangedIndex) && node.geometry)
+  if(node.hasGeometryChanged(geometryChangedIndex) && node.geometry.meshes)
   {
     std::tie(m_mesh, m_meshbufs) = renderer.acquireMesh(node.geometry, res);
   }

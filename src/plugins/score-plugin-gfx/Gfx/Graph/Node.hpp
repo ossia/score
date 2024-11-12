@@ -28,11 +28,11 @@ using FunctionMessage = std::function<void(score::gfx::Node&)>;
 #if BOOST_VERSION < 107900
 // Old boost: small_vector was not nothrow-move-constructible so we remove the check there.
 using gfx_input = ossia::slow_variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list_ptr,
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::geometry_spec,
     ossia::transform3d, FunctionMessage>;
 #else
 using gfx_input = ossia::variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::mesh_list_ptr,
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::geometry_spec,
     ossia::transform3d, FunctionMessage>;
 #endif
 
@@ -99,6 +99,7 @@ public:
    */
   ossia::flat_map<RenderList*, score::gfx::NodeRenderer*> renderedNodes;
 
+  int32_t id = -1;
   bool addedToGraph{};
 };
 
@@ -161,13 +162,13 @@ public:
    * If not set, then a relevant default geometry for the node
    * will be used, e.g. a full-screen quad or triangle
    */
-  std::shared_ptr<ossia::mesh_list> geometry;
+  ossia::geometry_spec geometry;
 
   void process(Message&& msg) override;
   void process(Timings tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
-  void process(int32_t port, const ossia::mesh_list_ptr& v);
+  void process(int32_t port, const ossia::geometry_spec& v);
   void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
   void process(int32_t port, const FunctionMessage&);

@@ -107,6 +107,10 @@ public:
   std::atomic_int32_t script_index{0};
   ossia::time_value m_last_flicks{};
   void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept override;
+
+  void link_cable_to_inlet(ossia::inlet* inlet, int inlet_i);
+  using ossia::graph_node::m_inlets;
+  using ossia::graph_node::m_outlets;
 };
 
 struct SCORE_PLUGIN_GFX_EXPORT con_unvalidated

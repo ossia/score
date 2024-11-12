@@ -319,7 +319,7 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
   }
 }
 
-void ProcessNode::process(int32_t port, const ossia::mesh_list_ptr& v)
+void ProcessNode::process(int32_t port, const ossia::geometry_spec& v)
 {
   if(this->geometry != v || this->geometryChanged == 0)
   {
@@ -368,7 +368,7 @@ QDebug operator<<(QDebug s, const score::gfx::gfx_input& v)
     {
       s << "audio: " << v.size() << "channels";
     }
-    void operator()(const ossia::mesh_list_ptr& v) { s << "meshlist"; }
+    void operator()(const ossia::geometry_spec& v) { s << "meshlist"; }
     void operator()(const ossia::transform3d& v) { s << "transform3d"; }
   } print{s};
   ossia::visit(print, std::move(v));

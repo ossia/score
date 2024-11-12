@@ -282,7 +282,9 @@ void Graph::relinkGraph()
           {
             if((rn = node->createRenderer(r)))
             {
+              rn->id = node->id;
               node->renderedNodes.emplace(&r, rn);
+
               node->renderedNodesChanged();
               //rn->init(r);
             }
@@ -363,6 +365,7 @@ static bool createNodeRenderer(score::gfx::Node& node, RenderList& r)
   // Register the node with the renderer
   if(auto rn = node.createRenderer(r))
   {
+    rn->id = node.id;
     r.renderers.push_back(rn);
 
     // Register the rendered nodes with their parents

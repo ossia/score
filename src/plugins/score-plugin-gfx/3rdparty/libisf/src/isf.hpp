@@ -120,10 +120,12 @@ class parser
 {
   std::string m_sourceVertex;
   std::string m_sourceFragment;
+  std::string m_source_geometry_filter;
   int m_version{450};
 
   std::string m_vertex;
   std::string m_fragment;
+  std::string m_geometry_filter;
 
   descriptor m_desc;
 
@@ -133,19 +135,25 @@ public:
     Autodetect,
     ISF,
     ShaderToy,
-    GLSLSandBox
+    GLSLSandBox,
+    GeometryFilter
   };
   parser(
       std::string vert, std::string frag, int glslVersion = 450,
       ShaderType = ShaderType::Autodetect);
+  explicit parser(std::string isf_geom_filter);
 
   descriptor data() const;
   std::string vertex() const;
   std::string fragment() const;
+  std::string geometry_filter() const;
 
 private:
   void parse_isf();
   void parse_shadertoy();
   void parse_glsl_sandbox();
+  void parse_geometry_filter();
+
+  std::string parse_isf_header(std::string_view source);
 };
 }

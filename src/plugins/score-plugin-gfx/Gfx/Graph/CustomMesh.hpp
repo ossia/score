@@ -21,8 +21,11 @@ class CustomMesh : public score::gfx::Mesh
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
 
 public:
-  int64_t dirtyGeometryIndex{-1};
-  explicit CustomMesh(const ossia::mesh_list& g) { reload(g); }
+  explicit CustomMesh(
+      const ossia::mesh_list& g, const ossia::geometry_filter_list_ptr& f)
+  {
+    reload(g, f);
+  }
 
   [[nodiscard]] MeshBuffers init(QRhi& rhi) const noexcept override
   {
@@ -159,9 +162,11 @@ public:
     pip.setVertexInputLayout(inputLayout);
   }
 
-  void reload(const ossia::mesh_list& ml)
+  void reload(const ossia::mesh_list& ml, const ossia::geometry_filter_list_ptr& f)
   {
+    dirtyGeometryIndex++;
     this->geom = ml;
+    this->filters = f;
 
     if(this->geom.meshes.size() == 0)
     {

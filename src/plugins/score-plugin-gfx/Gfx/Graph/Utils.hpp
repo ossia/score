@@ -206,7 +206,8 @@ void replaceTexture(
 SCORE_PLUGIN_GFX_EXPORT
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers);
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers,
+    std::span<QRhiShaderResourceBinding> additionalBindings = {});
 
 /**
  * @brief Create a render pipeline following the score conventions for shaders and materials.
@@ -215,7 +216,8 @@ SCORE_PLUGIN_GFX_EXPORT
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers);
+    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers,
+    std::span<QRhiShaderResourceBinding> additionalBindings = {});
 
 /**
  * @brief Get a pair of compiled vertex / fragment shaders from GLSL 4.5 sources.

@@ -785,8 +785,10 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
           [&obj,
            &indices]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
         if constexpr(avnd::dynamic_ports_port<P>)
-          indices[avnd::get_c_identifier<P>()]
+        {
+          indices[std::string(avnd::get_c_identifier<P>())]
               = obj.dynamic_ports.num_in_ports(avnd::field_index<Idx>{});
+        }
       });
       s.obj["DynamicInlets"] = indices;
     }
@@ -797,7 +799,7 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
           [&obj,
            &indices]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
         if constexpr(avnd::dynamic_ports_port<P>)
-          indices[avnd::get_c_identifier<P>()]
+          indices[std::string(avnd::get_c_identifier<P>())]
               = obj.dynamic_ports.num_out_ports(avnd::field_index<Idx>{});
       });
       s.obj["DynamicOutlets"] = indices;
@@ -820,7 +822,7 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
                 avnd::field_reflection<Idx, P> field) {
           if constexpr(avnd::dynamic_ports_port<P>)
             obj.dynamic_ports.num_in_ports(avnd::field_index<Idx>{})
-                = indices[avnd::get_c_identifier<P>()];
+                = indices[std::string(avnd::get_c_identifier<P>())];
         });
       }
     }
@@ -835,7 +837,7 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
                 avnd::field_reflection<Idx, P> field) {
           if constexpr(avnd::dynamic_ports_port<P>)
             obj.dynamic_ports.num_out_ports(avnd::field_index<Idx>{})
-                = indices[avnd::get_c_identifier<P>()];
+                = indices[std::string(avnd::get_c_identifier<P>())];
         });
       }
     }

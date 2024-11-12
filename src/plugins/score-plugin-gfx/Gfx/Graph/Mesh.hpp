@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/ProcessFlags.hpp>
 
+#include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/span.hpp>
 
@@ -44,6 +45,21 @@ public:
 
   /** @brief A basic vertex shader that is going to work with this mesh. */
   virtual const char* defaultVertexShader() const noexcept = 0;
+
+  ossia::geometry_filter_list_ptr filters;
+
+  std::atomic_int64_t dirtyGeometryIndex{-1};
+
+  bool hasGeometryChanged(int64_t& renderer) const noexcept
+  {
+    int64_t res = dirtyGeometryIndex.load(std::memory_order_acquire);
+    if(renderer != res)
+    {
+      renderer = res;
+      return true;
+    }
+    return false;
+  }
 
 protected:
   /*

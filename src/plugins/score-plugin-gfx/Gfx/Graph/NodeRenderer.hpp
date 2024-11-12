@@ -10,6 +10,7 @@ namespace score::gfx
 class SCORE_PLUGIN_GFX_EXPORT NodeRenderer
 {
 public:
+  int32_t id{-1};
   explicit NodeRenderer() noexcept;
   virtual ~NodeRenderer();
 
@@ -37,7 +38,8 @@ SCORE_PLUGIN_GFX_EXPORT
 void defaultPassesInit(
     PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
     const Mesh& mesh, const QShader& v, const QShader& f, QRhiBuffer* processUBO,
-    QRhiBuffer* matUBO, const std::vector<Sampler>& samplers);
+    QRhiBuffer* matUBO, const std::vector<Sampler>& samplers,
+    std::span<QRhiShaderResourceBinding> additionalBindings = {});
 
 SCORE_PLUGIN_GFX_EXPORT
 void defaultRenderPass(
@@ -92,7 +94,8 @@ public:
   void processUBOInit(RenderList& renderer);
   void defaultPassesInit(RenderList& renderer, const Mesh& mesh);
   void defaultPassesInit(
-      RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f);
+      RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f,
+      std::span<QRhiShaderResourceBinding> additionalBindings = {});
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
 

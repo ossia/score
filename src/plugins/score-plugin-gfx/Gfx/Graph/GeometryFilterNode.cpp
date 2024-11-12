@@ -1,6 +1,7 @@
-#include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/GeometryFilterNode.hpp>
+#include <Gfx/Graph/GeometryFilterNodeRenderer.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
-#include <Gfx/Graph/RenderedISFNode.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -8,9 +9,9 @@
 
 namespace score::gfx
 {
-struct isf_input_port_vis
+struct geometry_input_port_vis
 {
-  ISFNode& self;
+  GeometryFilterNode& self;
   char* data{};
   int sz{};
 
@@ -98,56 +99,39 @@ struct isf_input_port_vis
     sz += 4 * 4;
   }
 
-  void add_texture_imgrect()
-  {
-    // Also add the vec4 imgRect uniform:
-    while(sz % 16 != 0)
-    {
-      sz += 4;
-      data += 4;
-    }
-
-    *reinterpret_cast<float*>(data + 0) = 0.f;
-    *reinterpret_cast<float*>(data + 4) = 0.f;
-    *reinterpret_cast<float*>(data + 8) = 640.f;
-    *reinterpret_cast<float*>(data + 12) = 480.f;
-    data += 4 * 4;
-    sz += 4 * 4;
-  }
-
   void operator()(const isf::image_input& in) noexcept
   {
-    self.input.push_back(new Port{&self, {}, Types::Image, {}});
-    add_texture_imgrect();
+    // self.input.push_back(new Port{&self, {}, Types::Image, {}});
+    // add_texture_imgrect();
   }
 
   void operator()(const isf::audio_input& audio) noexcept
   {
-    self.m_audio_textures.push_back({});
-    auto& data = self.m_audio_textures.back();
-    data.fixedSize = audio.max;
-    self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    add_texture_imgrect();
-    data.rectUniformOffset = this->sz - 4 * 4;
+    // self.m_audio_textures.push_back({});
+    // auto& data = self.m_audio_textures.back();
+    // data.fixedSize = audio.max;
+    // self.input.push_back(new Port{&self, &data, Types::Audio, {}});
+    // add_texture_imgrect();
+    // data.rectUniformOffset = this->sz - 4 * 4;
   }
 
   void operator()(const isf::audioFFT_input& audio) noexcept
   {
-    self.m_audio_textures.push_back({});
-    auto& data = self.m_audio_textures.back();
-    data.fixedSize = audio.max;
-    data.fft = true;
-    self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    add_texture_imgrect();
-    data.rectUniformOffset = this->sz - 4 * 4;
+    // self.m_audio_textures.push_back({});
+    // auto& data = self.m_audio_textures.back();
+    // data.fixedSize = audio.max;
+    // data.fft = true;
+    // self.input.push_back(new Port{&self, &data, Types::Audio, {}});
+    // add_texture_imgrect();
+    // data.rectUniformOffset = this->sz - 4 * 4;
   }
 };
-ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag)
+
+GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QString& vert)
     : m_descriptor{desc}
 {
-  m_vertexS = vert;
-  m_fragmentS = frag;
-
+  input.push_back(new Port{this, {}, Types::Geometry, {}});
+  output.push_back(new Port{this, {}, Types::Geometry, {}});
   // Compoute the size required for the materials
   isf_input_size_vis sz_vis{};
 
@@ -170,7 +154,7 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
   char* cur = m_material_data.get();
 
   // Create ports pointing to the data used for the UBO
-  isf_input_port_vis visitor{*this, cur};
+  geometry_input_port_vis visitor{*this, cur};
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
 
@@ -189,92 +173,19 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
 
       *reinterpret_cast<float*>(data + 0) = 0.f;
       *reinterpret_cast<float*>(data + 4) = 0.f;
-      *reinterpret_cast<float*>(data + 8) = 640.f;
+      *reinterpret_cast<float*>(data + 8) = 640.f; // FIXME
       *reinterpret_cast<float*>(data + 12) = 480.f;
       data += 4 * 4;
       sz += 4 * 4;
     }
   }
-
-  output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
-ISFNode::~ISFNode() { }
+GeometryFilterNode::~GeometryFilterNode() { }
 
-QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
+score::gfx::NodeRenderer*
+GeometryFilterNode::createRenderer(RenderList& r) const noexcept
 {
-  QSize res = origSize;
-
-  ossia::math_expression e;
-  ossia::small_pod_vector<double, 16> data;
-
-  // Note : reserve is super important here,
-  // as the expression parser takes *references* to the
-  // variables.
-  data.reserve(2 + m_descriptor.inputs.size());
-
-  e.add_constant("var_WIDTH", data.emplace_back(res.width()));
-  e.add_constant("var_HEIGHT", data.emplace_back(res.height()));
-  int port_k = 0;
-  for(const isf::input& input : m_descriptor.inputs)
-  {
-    auto port = this->input[port_k];
-    if(ossia::get_if<isf::float_input>(&input.data))
-    {
-      e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
-    }
-    else if(ossia::get_if<isf::long_input>(&input.data))
-    {
-      e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
-    }
-
-    port_k++;
-  }
-
-  if(auto expr = pass.width_expression; !expr.empty())
-  {
-    boost::algorithm::replace_all(expr, "$", "var_");
-    e.register_symbol_table();
-    bool ok = e.set_expression(expr);
-    if(ok)
-      res.setWidth(e.value());
-    else
-      qDebug() << e.error().c_str() << expr.c_str();
-  }
-  if(auto expr = pass.height_expression; !expr.empty())
-  {
-    boost::algorithm::replace_all(expr, "$", "var_");
-    e.register_symbol_table();
-    bool ok = e.set_expression(expr);
-    if(ok)
-      res.setHeight(e.value());
-    else
-      qDebug() << e.error().c_str() << expr.c_str();
-  }
-
-  return res;
-}
-
-score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
-{
-  switch(this->m_descriptor.passes.size())
-  {
-    case 0:
-      return nullptr;
-    case 1:
-      if(!this->m_descriptor.passes[0].persistent)
-      {
-        return new SimpleRenderedISFNode{*this};
-      }
-      else
-      {
-        return new RenderedISFNode{*this};
-      }
-      break;
-    default: {
-      return new RenderedISFNode{*this};
-      break;
-    }
-  }
+  return new GeometryFilterNodeRenderer{*this};
 }
 }
