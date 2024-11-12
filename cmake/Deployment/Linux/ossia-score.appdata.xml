@@ -40,8 +40,143 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.3.0" date="2024-11-12">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.3.0</url>
+      <description>
+        <p>ossia score 3.3.0 is a major release featuring a host of new capabilities.</p>
+        <p>New features</p>
+        <ul>
+          <li>Graphics: Efficient geometry filtering pipeline. Introduction of a Geometry Filter object which is able to inject transformations in the vertex shader stage and support for geometry processing relationships in the graphics thread.</li>
+          <li>Graphics: Support for loading point clouds</li>
+          <li>Graphics: Add support for GPU decoding of RGB24 and BGR24 textures, useful for Qt Animation qtrle files</li>
+          <li>Core: Use snmalloc as default allocator</li>
+          <li>Mappings: add initial gesture detection support through the Puara Gestures library</li>
+          <li>Mappings: add Combine and Spread objects to enable simpler processing and recombination of values into arrays</li>
+          <li>Mappings: Mapping Tool object with a lot of feature for mapping data such as deadzone detection, re-scaling, etc.</li>
+          <li>Mappings: Add a ArrayGen object to generate arrays easily</li>
+          <li>Avnd: support making objects with dynamic port counts more easily</li>
+          <li>Avnd: initial support for objects defined as C++20 modules</li>
+          <li>Avnd: support for CV-like data processing object with a very simple API</li>
+          <li>Avnd: support for loading data files in GPU nodes</li>
+          <li>Avnd: support for automatic reflection of enumeration names through magic_enum, removing the need for some macros</li>
+          <li>Platforms: support for macOS 15 and Xcode 16, clang-19, Fedora 41</li>
+          <li>Platforms: support for building in C++23 mode</li>
+          <li>Platforms: add CI script based on native packages for Debian Trixie</li>
+          <li>Platforms: prevent the Intel version to run on AppleSilicon Macs as it is thoroughly incompatible</li>
+          <li>Devices: support for direct NeoPixel LED control over SPI.</li>
+          <li>Devices: support for the Sh4lt protocol which supersedes Shmdata. Thanks @nbouillot!</li>
+          <li>UI: make the middle column resizeable in the Device dialog. Thanks @samamou!</li>
+          <li>UI: implement reset-to-default-value-on-double-click on most central view UI controls</li>
+          <li>UI: tighter UI style</li>
+          <li>OSCQuery: implement dense mode which packs values according to an OSCQuery spec, especially useful for resource-constrained devices</li>
+          <li>OSCQuery: handle buggy HTTP implementations that do not properly close connection</li>
+          <li>OSC: allow to expose a local OSC device over an OSCQuery port</li>
+          <li>OSC: allow to expose a local OSC device as a TCP server</li>
+          <li>OSC: add support for 
+          <li>MIDI: initial support for computer keyboard input</li>
+          <li>Data processing: initial work towards importing of CSV and HDF5 files as curves by drag-and-drop.</li>
+          <li>Data processing: HDF5 explorer processses, which allow to expose HDF5 data as either a 1D dimension or a texture.</li>
+          <li>Graphics: Sprite Reader object for all your retro-gaming needs</li>
+          <li>Audio: Add an audio channel selector object</li>
+          <li>Devices: initial work in allowing devices to specify the resources they are using such as ports, etc. in a more structured way.</li>
+          <li>Devices: Move the Device QML object implementation from score to libossia ; add Device.read/write to HTTP device</li>
+          <li>PureData / libpd: revert to a version with working audio</li>
+          <li>Automation: Make prettyName more descriptive</li>
+          <li>Pipewire Respect PIPEWIRE_LATENCY environment variable</li>
+          <li>UI: Add support for slowing down slider changes with CTRL / Command</li>
+          <li>Audio: mono merging mode in Merger object</li>
+          <li>JS: Add utility functions to convert between types</li>
+          <li>Math: Fix live editing of expression in arraygen / arraymap</li>
+          <li>VST3: Support for VST3 on AArch64 platforms</li>
+          <li>CI: Migrated continuous builds to GH actions</li>
+          <li>UI: Add icon for upcoming AI-based processes. Thanks @aklevy!</li>
+          <li>MIDI: Virtual ports will now be scanned</li>
+        </ul>
+        <p>Improvements and bug fixes</p>
+        <ul>
+          <li>Core: finish porting all the plug-ins written in the previous "Fx" API to Avendish which is now the one and only officially supported API for making ossia add-ons.</li>
+          <li>Add documentation links to most processes and devices. The process inspector and device dialog now have direct links to the relevant help pages.</li>
+          <li>Various fixes for VST and LV2</li>
+          <li>Fix missing Spout I/O on Windows</li>
+          <li>Fix UI not resizing when a port is added to a node</li>
+          <li>Be more lenient when reloading if a cable isn't present in a save file due to dynamic operations</li>
+          <li>Graphics: improve the amount of recomputations needed for geometry updates</li>
+          <li>Ysfx: cmake improvements</li>
+          <li>DNSSD: force every execution to execute over the same thread as Avahi is not thread-safe nor reentrant</li>
+          <li>Curve rendering: optimizations when we have more than a thousand points.</li>
+          <li>UI: fix the ugly ampersand that appeared some Qt versions ago.</li>
+          <li>UI: use double-precision for storing slider data as it caused visible precision issues with large ranges</li>
+          <li>Audio: many fixes to quantification.</li>
+          <li>MIDI: fix some note-off cases that were not handled.</li>
+          <li>Magnetism: respect Alt-key behaviour when dropping a state.</li>
+          <li>Scenario: creating a state by double-click will now automatically make it auto-started</li>
+          <li>Device: Do not try to infer the min / max if things are patterns</li>
+          <li>Automation: Fix that changing the address would reset the scale if it was a pattern</li>
+          <li>UI: port UI improvements in inspector ; show more port names and always show port list.</li>
+          <li>UI: fix connected port look in hi-dpi mode</li>
+          <li>Ranges: domain and range improvements, allow value ports with ranges, fix lfo output range</li>
+          <li>UI: Update scene when node size changes to prevent background artefacts</li>
+          <li>UI: Be more permissive with looping slot issues</li>
+          <li>VST and friends:  Use the actual processed samples as timing information instead of a computation depending on speed</li>
+          <li>Fix saving / loading of propagate attribute</li>
+          <li>Use the proper app name in MIDI APIs</li>
+          <li>Raw I/O: improve PWM support</li>
+          <li>Many, many bugfixes and code improvements...</li>
+
+<!--
+          [device recorder] WIP on allowing to leverage timestamp or not
+          [avnd] Also try to match file extensions declared with extensions()
+          [avnd] Support for multi-slider
+          [loading] Refactor a little bit the loading code to split different use cases
+          
+          [net] Add a more optimized device_parameter implementation when we know the type beforehand
+          [ci] More workflow improvements to allow them to run in PRs
+          [ci] Enable workflow runs on PRs
+          [libossia] Update and fix small bugs in tinyspline & libremidi
+          fix shmdata input do not reconnect when writer quits
+          [appimage] Type2 runtime url changed
+          [ci] Pipewire : use a copy of the headers to not depend on Debian package updates
+          [ci] Fix missing include
+          [avnd] Dynamic ports: call update() if necessary
+          [lineedit] Make it resize automatically and relayout the item properly
+          [ci] More JS-related fixes
+          [js] Refactor build to work without Qt Quick available
+          [ci] build fixes
+          [devices] Minor safety fix
+          [js] Implement ability to create custom QML UIs that can control the score
+          [dynamic] More dynamic ports work
+          [localtree] Fix pointer passed to run_async in case we do not have a QGuiApplication
+          [images] Fix render shader
+          [avnd] Initial implementation of dynamic ports
+          [ui] Hack to at least have some controls show up in the inspector panel
+          [core] Add missing file
+          [gfx] Implement fixed input texture size for CPUFilterNode
+          [items] Send signals to release mouse if a graphics item is deleted while being grabbed
+          [platform] Improve support of QT_QPA_PLATFORM=minimal
+          [ci] Minor fix due to Qt 6.8 deprecation changes
+          [js] Refactor classes in their own file
+          [cmake] Forcibly enable -fexperimental-library for clang 18
+          [win32] Use SDK 31 for BLE support
+          [core] Updates for Qt 6.8
+          [flatpak] Support ble
+          [js] Mark exec node as non-threading-compatible
+          [flatpak] Minor appdata.xml improvements
+          [vst/vst3] Disable GUI when running under wayland as plug-ins will crash
+-->
+        </ul>
+      </description>
+    </release>
+    <release version="3.2.4" date="2024-07-08">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.2.4</url>
+      <description>
+        <p>ossia score 3.2.4 is a bugfix release which enables FreeBSD support.</p>
+        <ul>
+          <li>Various fixes for VST and LV2</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.2.3" date="2024-07-02">
-    <url type="details">https://github.com/ossia/score/releases/tag/v3.2.3</url>
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.2.3</url>
       <description>
         <p>ossia score 3.2.3 is a bugfix release which enables Flatpak support.</p>
         <ul>
