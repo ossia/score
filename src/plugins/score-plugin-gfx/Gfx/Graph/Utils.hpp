@@ -9,6 +9,8 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <span>
+
 namespace score::gfx
 {
 class Node;
