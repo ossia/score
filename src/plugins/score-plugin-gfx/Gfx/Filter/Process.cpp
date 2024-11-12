@@ -254,9 +254,13 @@ void Model::setupIsf(const isf::descriptor& desc)
         std::copy_n(v.min->begin(), 2, min.begin());
       if(v.max)
         std::copy_n(v.max->begin(), 2, max.begin());
-      auto port = new Process::XYSlider{
-          min,  max, init, QString::fromStdString(input.name), Id<Process::Port>(i),
-          &self};
+      auto port = new Process::XYSpinboxes{min,
+                                           max,
+                                           init,
+                                           false,
+                                           QString::fromStdString(input.name),
+                                           Id<Process::Port>(i),
+                                           &self};
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
