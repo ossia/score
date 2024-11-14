@@ -31,14 +31,15 @@ public:
   ~QGraphicsXYSpinboxChooser();
 
   void setPoint(const QPointF& r);
-  void setValue(ossia::vec2f v);
+  void setValue(std::array<float, 2> v);
+  void setValue(std::array<double, 2> v);
   void setRange(
       ossia::vec2f min = {0.f, 0.f}, ossia::vec2f max = {1.f, 1.f},
       ossia::vec2f init = {0.f, 0.f});
 
-  ossia::vec2f value() const noexcept;
-  ossia::vec2f getMin() const noexcept;
-  ossia::vec2f getMax() const noexcept;
+  std::array<double, 2> value() const noexcept;
+  std::array<double, 2> getMin() const noexcept;
+  std::array<double, 2> getMax() const noexcept;
 
   bool moving = false;
 
@@ -47,7 +48,7 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
-  ossia::vec2f scaledValue(float x, float y) const noexcept;
+  std::array<double, 2> scaledValue(double x, double y) const noexcept;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
@@ -71,14 +72,15 @@ public:
   ~QGraphicsIntXYSpinboxChooser();
 
   void setPoint(const QPointF& r);
-  void setValue(ossia::vec2f v);
+  void setValue(std::array<float, 2> v);
+  void setValue(std::array<double, 2> v);
   void setRange(
       ossia::vec2f min = {0.f, 0.f}, ossia::vec2f max = {1.f, 1.f},
       ossia::vec2f init = {0.f, 0.f});
 
-  ossia::vec2f value() const noexcept;
-  ossia::vec2f getMin() const noexcept;
-  ossia::vec2f getMax() const noexcept;
+  std::array<double, 2> value() const noexcept;
+  std::array<double, 2> getMin() const noexcept;
+  std::array<double, 2> getMax() const noexcept;
 
   bool moving = false;
 
@@ -87,7 +89,7 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
-  ossia::vec2f scaledValue(float x, float y) const noexcept;
+  std::array<double, 2> scaledValue(double x, double y) const noexcept;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;

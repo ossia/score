@@ -146,6 +146,16 @@ struct LinearNormalizer
     res[3] = from01(min[3], max[3] - min[3], val[3]);
     return res;
   }
+  template <typename T, std::size_t N>
+  static std::array<float, N> from01(const T& slider, std::array<double, N> val) noexcept
+  {
+    std::array<float, N> res;
+    const auto min = getMin<std::array<double, N>>(slider);
+    const auto max = getMax<std::array<double, N>>(slider);
+    for(int i = 0; i < N; i++)
+      res[i] = from01(min[i], max[i] - min[i], val[i]);
+    return res;
+  }
 };
 
 struct LogNormalizer

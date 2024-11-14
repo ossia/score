@@ -1428,7 +1428,8 @@ struct XYSpinboxes
           sl, &score::QGraphicsIntXYSpinboxChooser::sliderMoved, context,
           [=, &inlet, &ctx] {
         sl->moving = true;
-        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+        auto [x, y] = sl->value();
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, ossia::make_vec(x, y));
       });
       QObject::connect(
           sl, &score::QGraphicsIntXYSpinboxChooser::sliderReleased, context,

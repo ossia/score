@@ -67,25 +67,23 @@ void QGraphicsXYSpinboxChooser::paint(
 {
 }
 
-std::array<float, 2> QGraphicsXYSpinboxChooser::value() const noexcept
+std::array<double, 2> QGraphicsXYSpinboxChooser::value() const noexcept
 {
-  return {(float)m_x.value(), (float)m_y.value()};
+  return {m_x.value(), m_y.value()};
 }
 
-std::array<float, 2> QGraphicsXYSpinboxChooser::getMin() const noexcept
+std::array<double, 2> QGraphicsXYSpinboxChooser::getMin() const noexcept
 {
-  return {(float)m_x.min, (float)m_y.min};
+  return {m_x.min, m_y.min};
 }
-std::array<float, 2> QGraphicsXYSpinboxChooser::getMax() const noexcept
+std::array<double, 2> QGraphicsXYSpinboxChooser::getMax() const noexcept
 {
-  return {(float)m_x.max, (float)m_y.max};
+  return {m_x.max, m_y.max};
 }
-
-ossia::vec2f QGraphicsXYSpinboxChooser::scaledValue(float x, float y) const noexcept
+std::array<double, 2>
+QGraphicsXYSpinboxChooser::scaledValue(double x, double y) const noexcept
 {
-  return {
-      (float)(m_x.min + x * (m_x.max - m_x.min)),
-      (float)(m_y.min + y * (m_y.max - m_y.min))};
+  return {(m_x.min + x * (m_x.max - m_x.min)), (m_y.min + y * (m_y.max - m_y.min))};
 }
 
 void QGraphicsXYSpinboxChooser::setValue(ossia::vec2f v)
@@ -160,28 +158,34 @@ void QGraphicsIntXYSpinboxChooser::paint(
 {
 }
 
-std::array<float, 2> QGraphicsIntXYSpinboxChooser::value() const noexcept
+std::array<double, 2> QGraphicsIntXYSpinboxChooser::value() const noexcept
 {
-  return {float(m_x.value()), float(m_y.value())};
+  return {(double)m_x.value(), (double)m_y.value()};
 }
 
-std::array<float, 2> QGraphicsIntXYSpinboxChooser::getMin() const noexcept
+std::array<double, 2> QGraphicsIntXYSpinboxChooser::getMin() const noexcept
 {
-  return {(float)m_x.min, (float)m_y.min};
-}
-std::array<float, 2> QGraphicsIntXYSpinboxChooser::getMax() const noexcept
-{
-  return {(float)m_x.max, (float)m_y.max};
+  return {(double)m_x.min, (double)m_y.min};
 }
 
-ossia::vec2f QGraphicsIntXYSpinboxChooser::scaledValue(float x, float y) const noexcept
+std::array<double, 2> QGraphicsIntXYSpinboxChooser::getMax() const noexcept
 {
-  return {
-      (float)(m_x.min + x * (m_x.max - m_x.min)),
-      (float)(m_y.min + y * (m_y.max - m_y.min))};
+  return {(double)m_x.max, (double)m_y.max};
+}
+
+std::array<double, 2>
+QGraphicsIntXYSpinboxChooser::scaledValue(double x, double y) const noexcept
+{
+  return {(m_x.min + x * (m_x.max - m_x.min)), (m_y.min + y * (m_y.max - m_y.min))};
 }
 
 void QGraphicsIntXYSpinboxChooser::setValue(ossia::vec2f v)
+{
+  m_x.setValue(v[0]);
+  m_y.setValue(v[1]);
+  update();
+}
+void QGraphicsIntXYSpinboxChooser::setValue(std::array<double, 2> v)
 {
   m_x.setValue(v[0]);
   m_y.setValue(v[1]);

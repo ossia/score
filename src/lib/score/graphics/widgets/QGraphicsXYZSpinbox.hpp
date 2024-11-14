@@ -27,13 +27,14 @@ public:
   ~QGraphicsXYZSpinboxChooser();
 
   void setPoint(const QPointF& r);
-  void setValue(ossia::vec3f v);
+  void setValue(std::array<float, 3> v);
+  void setValue(std::array<double, 3> v);
   void setRange(
       ossia::vec3f min = {0.f, 0.f, 0.f}, ossia::vec3f max = {1.f, 1.f, 1.f},
       ossia::vec3f init = {0.f, 0.f, 0.f});
-  ossia::vec3f value() const noexcept;
-  ossia::vec3f getMin() const noexcept;
-  ossia::vec3f getMax() const noexcept;
+  std::array<double, 3> value() const noexcept;
+  std::array<double, 3> getMin() const noexcept;
+  std::array<double, 3> getMax() const noexcept;
 
   bool moving = false;
 
@@ -42,7 +43,7 @@ public:
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
-  ossia::vec3f scaledValue(float x, float y, float z) const noexcept;
+  std::array<double, 3> scaledValue(double x, double y, double z) const noexcept;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
