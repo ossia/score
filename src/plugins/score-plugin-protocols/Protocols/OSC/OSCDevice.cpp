@@ -36,6 +36,7 @@ OSCDevice::OSCDevice(
 
 void OSCDevice::disconnect()
 {
+  Device::releaseDevice(*m_ctx, std::move(m_dev));
   m_oscproto = nullptr;
   m_zeroconf = {};
   Device::OwningDeviceInterface::disconnect();
