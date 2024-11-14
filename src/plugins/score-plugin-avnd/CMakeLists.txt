@@ -92,9 +92,9 @@ target_link_libraries(avnd_halp_module PRIVATE
 if(TARGET kfr_dft)
   target_link_libraries(avnd_halp_module PRIVATE
     "$<BUILD_INTERFACE:kfr>"
-    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dft>>"
-    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dsp>>"
   )
+  link_whole_archive(avnd_halp_module PRIVATE kfr_dft)
+  link_whole_archive(avnd_halp_module PRIVATE kfr_dsp)
 endif()
 if(TARGET score_plugin_gfx)
   target_link_libraries(avnd_halp_module PUBLIC score_plugin_gfx)
@@ -330,9 +330,9 @@ target_link_libraries(score_plugin_avnd
 if(TARGET kfr_dft)
   target_link_libraries(score_plugin_avnd PRIVATE
     "$<BUILD_INTERFACE:kfr>"
-    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dft>>"
-    "$<BUILD_INTERFACE:$<LINK_LIBRARY:WHOLE_ARCHIVE,kfr_dsp>>"
   )
+  link_whole_archive(score_plugin_avnd PRIVATE kfr_dft)
+  link_whole_archive(score_plugin_avnd PRIVATE kfr_dsp)
 endif()
 if(TARGET score_plugin_gfx)
   target_link_libraries(score_plugin_avnd PUBLIC score_plugin_gfx)
