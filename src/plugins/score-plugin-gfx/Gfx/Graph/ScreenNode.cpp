@@ -8,7 +8,6 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/OpenGL.hpp>
-#include <score/gfx/Vulkan.hpp>
 
 #include <QtGui/private/qrhinull_p.h>
 
@@ -19,8 +18,13 @@
 #include <QtGui/private/qrhigles2_p.h>
 #endif
 
+#include <score/gfx/Vulkan.hpp>
 #if QT_HAS_VULKAN
+#if __has_include(<QtGui/private/qrhivulkan_p.h>)
 #include <QtGui/private/qrhivulkan_p.h>
+#else
+#undef QT_HAS_VULKAN
+#endif
 #endif
 
 #ifdef Q_OS_WIN
