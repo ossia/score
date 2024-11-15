@@ -88,7 +88,8 @@ std::string exprtk_to_cpp(std::string exprtk) noexcept
     }
     else if(s.endsWith("\n"))
     {
-      s.removeLast();
+      if(!s.isEmpty())
+        s.remove(s.size() - 1, 1);
       s += ";\n";
     }
     else
