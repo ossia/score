@@ -751,7 +751,10 @@ public:
   std::unique_ptr<Process::CodeWriter>
   codeWriter(Process::CodeFormat) const noexcept override
   {
-    return std::make_unique<Crousti::CodeWriter<Info>>(*this);
+    if constexpr(requires { new Info::code_writer{*this}; })
+      return std::make_unique<typename Info::code_writer>(*this);
+    else
+      return std::make_unique<Crousti::CodeWriter<Info>>(*this);
   };
 };
 }
