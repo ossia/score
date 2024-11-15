@@ -765,6 +765,13 @@ avnd_make_score(
   NAMESPACE examples::helpers
 )
 
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/UI/LEDView.hpp"
+  TARGET led_view
+  MAIN_CLASS LEDView
+  NAMESPACE ao
+)
+
 
 # avnd_make_score(
 #   SOURCES
