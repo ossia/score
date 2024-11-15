@@ -133,6 +133,7 @@ struct Node
         : Process::EffectLayerView{parent}
         , m_interval{Scenario::closestParentInterval(process.parent())}
     {
+      setAcceptedMouseButtons({});
       if(m_interval)
       {
         const Process::PortFactoryList& portFactory
