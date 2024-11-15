@@ -5,9 +5,12 @@
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include <QCoreApplication>
 #include <QTimer>
 
 #include <wobjectimpl.h>
+
+#include <thread>
 
 namespace Protocols
 {
@@ -125,11 +128,20 @@ W_OBJECT_IMPL(Protocols::DNSSDWorker)
 
 namespace Protocols
 {
-QThread DNSSDEnumerator::g_dnssd_worker_thread;
+static std::once_flag g_dnssd_worker_thread_init = {};
+QThread* DNSSDEnumerator::g_dnssd_worker_thread = nullptr;
 DNSSDEnumerator::DNSSDEnumerator(const std::string& service)
 {
-  g_dnssd_worker_thread.setObjectName("Foo");
-  g_dnssd_worker_thread.start();
+  std::call_once(g_dnssd_worker_thread_init, [] {
+    g_dnssd_worker_thread = new QThread;
+    g_dnssd_worker_thread->setObjectName("ossia dnssd");
+    g_dnssd_worker_thread->start();
+    qAddPostRoutine([] {
+      g_dnssd_worker_thread->quit();
+      g_dnssd_worker_thread->wait();
+      delete g_dnssd_worker_thread;
+    });
+  });
   m_worker = new DNSSDWorker{service};
 }
 
@@ -137,7 +149,7 @@ DNSSDEnumerator::~DNSSDEnumerator() { }
 
 void DNSSDEnumerator::start()
 {
-  m_worker->moveToThread(&g_dnssd_worker_thread);
+  m_worker->moveToThread(g_dnssd_worker_thread);
   connect(m_worker, &DNSSDWorker::on_newHost, this, &DNSSDEnumerator::addNewDevice);
   connect(m_worker, &DNSSDWorker::on_removedHost, this, &DNSSDEnumerator::deviceRemoved);
 
