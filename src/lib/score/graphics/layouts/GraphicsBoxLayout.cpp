@@ -82,6 +82,7 @@ void GraphicsVBoxLayout::layout()
 
 void GraphicsVBoxLayout::centerContent()
 {
+  return;
   // Center things horizontally
   double total_w = boundingRect().width();
   for(auto item : this->childItems())
