@@ -38,6 +38,7 @@
 #include <QTableWidget>
 #include <QTimer>
 #include <QTreeWidget>
+#include <QUrl>
 #include <QVariant>
 
 #include <wobjectimpl.h>
