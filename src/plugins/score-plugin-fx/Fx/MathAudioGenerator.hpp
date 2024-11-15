@@ -26,6 +26,8 @@ struct Node
       "See the documentation at http://www.partow.net/programming/exprtk")
   halp_meta(uuid, "eae294b3-afeb-4fba-bbe4-337998d3748a")
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   struct ins
   {
     halp::lineedit<
