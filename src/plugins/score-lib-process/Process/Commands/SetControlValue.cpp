@@ -19,7 +19,14 @@ void SetControlValue::undo(const score::DocumentContext& ctx) const
 
 void SetControlValue::redo(const score::DocumentContext& ctx) const
 {
-  m_path.find(ctx).setValue(m_new);
+  if(auto obj = m_path.try_find(ctx))
+  {
+    obj->setValue(m_new);
+  }
+  else
+  {
+    qDebug() << "Could not find: " << m_path.unsafePath().toString();
+  }
 }
 
 void SetControlValue::update(const ControlInlet& obj, ossia::value newval)
