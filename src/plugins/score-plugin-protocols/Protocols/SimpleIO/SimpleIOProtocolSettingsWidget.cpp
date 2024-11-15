@@ -575,8 +575,8 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   m_transport->setEnabled(false);
   m_osc->setConfiguration(ossia::net::osc_protocol_configuration{
       .transport = ossia::net::udp_configuration{
-          {.local = ossia::net::receive_socket_configuration{"0.0.0.0", 7765},
-           .remote = ossia::net::send_socket_configuration{"192.168.1.77", 5567}}}});
+          {.local = ossia::net::inbound_socket_configuration{"0.0.0.0", 7765},
+           .remote = ossia::net::outbound_socket_configuration{"192.168.1.77", 5567}}}});
   layout->addRow(m_osc);
 
   QObject::connect(
