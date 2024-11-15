@@ -22,6 +22,8 @@ struct Node
         "See the documentation at http://www.partow.net/programming/exprtk";
   halp_meta(uuid, "ae84e8b6-74ff-4259-aeeb-305d95cdfcab")
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   // FIXME only correct way is to tick the entire graph more granularly
   // in the meantime, make it so that event port gets triggered for every value
   struct ins

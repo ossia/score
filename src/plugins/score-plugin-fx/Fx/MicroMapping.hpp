@@ -19,6 +19,8 @@ struct Node
   halp_meta(description, "Applies a math expression to an input.")
   halp_meta(uuid, "25c64b87-a44a-4fed-9f60-0a48906fd3ec")
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   struct ins
   {
     struct : halp::val_port<"in", ossia::value>

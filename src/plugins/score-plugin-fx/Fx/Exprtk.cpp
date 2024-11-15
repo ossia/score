@@ -1,6 +1,9 @@
 #include "ExprtkToCpp.cpp"
 #include "ExprtkToCpp.hpp"
 
+#include <Process/Dataflow/ControlWidgets.hpp>
+#include <Process/Process.hpp>
+
 #include <Fx/MathGenerator.hpp>
 
 #include <boost/algorithm/string/replace.hpp>
