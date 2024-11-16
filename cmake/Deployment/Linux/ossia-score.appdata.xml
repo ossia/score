@@ -47,7 +47,7 @@
     <release version="3.3.1" date="2024-11-15">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.3.1</url>
       <description>
-        <p>ossia score 3.3.0 is a minor hotfix release.</p>
+        <p>ossia score 3.3.1 is a minor hotfix release.</p>
         <p>New features</p>
         <ul>
           <li>LED View process to display [r,g,b,r,g,b,...] triplets</li>
