@@ -31,6 +31,9 @@ public:
     m_count.setRange(1, 24);
     m_count.setValue(obj.inCount());
 
+    m_mode.addItem("Stereo");
+    m_mode.addItem("Mono");
+
     auto lay = new QFormLayout{this};
 
     con(process(), &Model::inCountChanged, this, [&] {

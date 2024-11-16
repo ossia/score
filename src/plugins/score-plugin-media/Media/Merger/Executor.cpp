@@ -12,11 +12,23 @@ namespace Execution
 MergerComponent::MergerComponent(
     Media::Merger::Model& element, const Execution::Context& ctx, QObject* parent)
     : Execution::ProcessComponent_T<Media::Merger::Model, ossia::node_process>{
-        element, ctx, "Executor::MergerComponent", parent}
+          element, ctx, "Executor::MergerComponent", parent}
 {
-  auto node
-      = ossia::make_node<ossia::nodes::merger>(*ctx.execState.get(), element.inCount());
-  this->node = node;
+  switch(element.mode())
+  {
+    case Media::Merger::Model::Mono: {
+      this->node = ossia::make_node<ossia::nodes::mono_merger>(
+          *ctx.execState.get(), element.inCount());
+      break;
+    }
+    case Media::Merger::Model::Stereo: {
+      this->node = ossia::make_node<ossia::nodes::merger>(
+          *ctx.execState.get(), element.inCount());
+      break;
+    }
+    default:
+      break;
+  }
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   // TODO change num of ins dynamically
