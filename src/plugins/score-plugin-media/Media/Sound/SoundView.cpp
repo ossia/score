@@ -11,6 +11,7 @@
 
 #include <QGraphicsView>
 #include <QScrollBar>
+#include <QTimer>
 
 namespace Media::Sound
 {
