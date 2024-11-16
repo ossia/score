@@ -126,6 +126,7 @@ struct Node
     std::vector<vec_type> m_values;
     vec_type min = {0.};
     vec_type max = {1.};
+    int num_rows = 0;
 
     Layer(
         const Process::ProcessModel& process, const Process::Context& doc,
@@ -164,15 +165,30 @@ struct Node
             outl, &Process::ControlOutlet::valueChanged, this,
             [this](const ossia::value& v) {
           auto& val = *v.target<std::vector<ossia::value>>();
-          if(val.size() < 2)
+          const int N = std::ssize(val);
+          if(N < 2)
             return;
-          // FIXME int num_values = val.size() - 1;
+          this->num_rows = std::max(this->num_rows, N - 1);
+          // [0] isn't useful as it is the timestamp row but better for code consistency - less branches.
+          if(min.size() < N)
+            min.resize(N, std::numeric_limits<float>::max());
+          if(max.size() < N)
+            max.resize(N, std::numeric_limits<float>::lowest());
 
           vec_type vv;
+          vv.resize(N, boost::container::default_init);
 
+          int i = 0;
           for(auto it = val.begin(); it != val.end(); ++it)
           {
-            vv.push_back(*it->target<float>());
+            const float r = *it->target<float>();
+            vv[i] = r;
+            if(r < min[i])
+              min[i] = r;
+            if(r > max[i])
+              max[i] = r;
+
+            ++i;
           }
 
           // Handle looping: clear when we jump back in time
@@ -180,15 +196,10 @@ struct Node
             if(vv[timestamp_index] < m_values.back()[timestamp_index])
             {
               m_values.clear();
+              this->num_rows = 0;
             }
 
           m_values.push_back(std::move(vv));
-
-          // FIXMe
-          // if(float_val < min)
-          //   min = float_val;
-          // else if(float_val > max)
-          //   max = float_val;
 
           update();
         });
@@ -197,40 +208,52 @@ struct Node
 
     void reset()
     {
-      min = {0.};
-      max = {1.};
+      min = {};
+      max = {};
+      this->num_rows = 0;
       m_values.clear();
       update();
     }
 
     void paint_impl(QPainter* p) const override
     {
-      if(m_values.size() < 2)
+      if(m_values.size() < 2 || this->num_rows == 0)
         return;
 
+      p->save();
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
 
       const auto w = width();
-      const auto h = height();
-      double min = 0, max = 1;
+      const auto h = height() / num_rows;
 
-      const auto to_01 = [&](float v) { return 1. - (v - min) / (max - min); };
-      QPointF p0 = {
-          m_values[0][timestamp_index] * w, to_01(m_values[0][first_value_index]) * h};
-      for(std::size_t i = 1; i < m_values.size(); i++)
+      for(int row = 0; row < num_rows; ++row)
       {
-        const auto& value = m_values[i];
-        QPointF p1 = {value[timestamp_index] * w, to_01(value[first_value_index]) * h};
+        const int row_index = row + 1;
 
-        if(QLineF l{p0, p1}; l.length() > 2)
+        const auto to_01 = [min = this->min[row_index], max = this->max[row_index]](
+                               float v) { return 1.f - (v - min) / (max - min); };
+
+        for(std::size_t i = 0; i < m_values.size() - 1; i++)
         {
-          p->drawLine(l);
-          p0 = p1;
+          const auto& v0 = m_values[i];
+          const auto& v1 = m_values[i + 1];
+          if(v0.size() > row_index && v1.size() > row_index)
+          {
+            QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
+            QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
+
+            if(QLineF l{p0, p1}; l.length() > 2)
+            {
+              p->drawLine(l);
+            }
+          }
         }
+        p->translate(QPointF{0, h});
       }
 
       p->setRenderHint(QPainter::Antialiasing, false);
+      p->restore();
     }
   };
 };
