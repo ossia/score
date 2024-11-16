@@ -49,6 +49,7 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
 
     update();
       });
+  QTimer::singleShot(10, this, [this] { recompute(); });
 }
 
 LayerView::~LayerView()
