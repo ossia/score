@@ -82,26 +82,6 @@ int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
 vec4 DATE = isf_process_uniforms.DATE;
 )_";
 
-  static constexpr auto defaultGeometryUniforms = R"_(
-// Time-dependent uniforms, only relevant during execution
-layout(std140, binding = 1) uniform process_t {
-  float TIME;
-  float TIMEDELTA;
-  float PROGRESS;
-
-  int PASSINDEX;
-  int FRAMEINDEX;
-
-  vec4 DATE;
-} isf_process_uniforms;
- 
-float TIME = isf_process_uniforms.TIME;
-float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
-float PROGRESS = isf_process_uniforms.PROGRESS;
-int PASSINDEX = isf_process_uniforms.PASSINDEX;
-int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
-vec4 DATE = isf_process_uniforms.DATE;
-)_";
 
   static constexpr auto defaultFunctions =
       R"_(
@@ -743,8 +723,7 @@ void parser::parse_geometry_filter()
     // filter_ubo += globalvars;
     // filter_ubo += "\n";
   }
-  m_geometry_filter
-      = glsl45_t::defaultGeometryUniforms + filter_ubo + geomWithoutISF + "\n";
+  m_geometry_filter = filter_ubo + geomWithoutISF + "\n";
 }
 
 void parser::parse_isf()

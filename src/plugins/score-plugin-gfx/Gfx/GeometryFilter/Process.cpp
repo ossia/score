@@ -46,17 +46,98 @@ Model::~Model() { }
 
 bool Model::validate(const QString& txt) const noexcept
 {
-  /*
-  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
-  QShaderVersion version = QShaderVersion(100);
-  const auto& [_, error] = ProgramCache::instance().get(api, version, txt);
-  if(!error.isEmpty())
+  static constexpr auto default_vtx = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+// Time-dependent uniforms, only relevant during execution
+layout(std140, binding = 1) uniform process_t {
+  float TIME;
+  float TIMEDELTA;
+  float PROGRESS;
+
+  int PASSINDEX;
+  int FRAMEINDEX;
+
+  vec4 DATE;
+  vec4 MOUSE;
+  vec4 CHANNELTIME;
+
+  float SAMPLERATE;
+} isf_process_uniforms;
+
+layout(std140, binding = 2) uniform material_t {
+  mat4 matrixModelViewProjection;
+  mat4 matrixModelView;
+  mat4 matrixModel;
+  mat4 matrixView;
+  mat4 matrixProjection;
+  mat3 matrixNormal;
+} mat;
+
+float TIME = isf_process_uniforms.TIME;
+float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
+float PROGRESS = isf_process_uniforms.PROGRESS;
+int PASSINDEX = isf_process_uniforms.PASSINDEX;
+int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
+vec4 DATE = isf_process_uniforms.DATE;
+
+%vtx_define_filters%
+
+out gl_PerVertex {
+vec4 gl_Position;
+};
+
+void main()
+{
+  vec3 in_position = vec3(0);
+  vec3 in_normal = vec3(0);
+  vec2 in_uv = vec2(0);
+  vec3 in_tangent = vec3(0);
+  vec4 in_color = vec4(1);
+
+  process_vertex(in_position, in_normal, in_uv, in_tangent, in_color);
+
+  gl_Position.xyz = in_position;
+}
+)_";
+
+  try
   {
-    this->errorMessage(error);
+    QString processed = m_script;
+    isf::parser p{processed.toStdString()};
+    auto res = p.geometry_filter();
+    auto r= QString::fromStdString(res);
+    r.replace("%next%", "4");
+    r.replace("%node%", "0");
+
+    QString vtx = default_vtx;
+    vtx.replace("%vtx_define_filters%", r);
+
+
+    auto [vertexS, vertexError] = score::gfx::ShaderCache::get(
+        score::gfx::GraphicsApi::OpenGL, QShaderVersion(330),
+        vtx.toUtf8(), QShader::VertexStage);
+    if(!vertexError.isEmpty())
+    {
+      this->errorMessage(0, vertexError);
+      return false;
+    }
+    return true;
+  }
+  catch(const std::exception& e)
+  {
+    this->errorMessage(0, e.what());
     return false;
   }
-*/
-  return true;
+  catch(...)
+  {
+    this->errorMessage(0, "Unknown error");
+    return false;
+  }
+  return false;
 }
 
 static const auto defaultGeometryFilter = QStringLiteral(R"_(/*{
