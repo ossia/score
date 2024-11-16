@@ -215,6 +215,66 @@ struct Node
       update();
     }
 
+    void draw_row(QPainter* p, qreal w, qreal h, int row_index, auto to_01) const
+    {
+      std::optional<int> last_idx;
+      for(int i = 0; i < std::ssize(m_values) - 1; i++)
+      {
+        const auto& v0 = m_values[i];
+        const auto& v1 = m_values[i + 1];
+        if(std::ssize(v0) > row_index)
+        {
+          if(last_idx && *last_idx < i)
+          {
+            const auto& v0 = m_values[*last_idx];
+            const auto& v1 = v0;
+            QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
+            QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
+
+            if(QLineF l{p0, p1}; l.length() > 2.)
+            {
+              p->drawLine(l);
+              last_idx = i;
+            }
+          }
+
+          if(std::ssize(v1) > row_index)
+          {
+            QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
+            QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
+
+            if(QLineF l{p0, p1}; l.length() > 2.)
+            {
+              p->drawLine(l);
+              last_idx = i + 1;
+            }
+            else if(last_idx)
+            {
+              const auto& v0 = m_values[*last_idx];
+              QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
+              if(QLineF l{p0, p1}; l.length() > 2.)
+              {
+                p->drawLine(l);
+                last_idx = i + 1;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    void draw_row_constant(QPainter* p, qreal w, qreal h, int row_index) const
+    {
+      for(auto& val : m_values)
+      {
+        if(std::ssize(val) > row_index)
+        {
+          QPointF p0 = {val[timestamp_index] * w, 0.5 * h};
+
+          p->drawPoint(p0);
+        }
+      }
+    }
     void paint_impl(QPainter* p) const override
     {
       if(m_values.size() < 2 || this->num_rows == 0)
@@ -231,24 +291,19 @@ struct Node
       {
         const int row_index = row + 1;
 
-        const auto to_01 = [min = this->min[row_index], max = this->max[row_index]](
-                               float v) { return 1.f - (v - min) / (max - min); };
-
-        for(std::size_t i = 0; i < m_values.size() - 1; i++)
+        const auto min = this->min[row_index];
+        const auto max = this->max[row_index];
+        if(min != max)
         {
-          const auto& v0 = m_values[i];
-          const auto& v1 = m_values[i + 1];
-          if(v0.size() > row_index && v1.size() > row_index)
-          {
-            QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
-            QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
-
-            if(QLineF l{p0, p1}; l.length() > 2)
-            {
-              p->drawLine(l);
-            }
-          }
+          draw_row(p, w, h, row_index, [min, max](float v) {
+            return 1.f - (v - min) / (max - min);
+          });
         }
+        else
+        {
+          draw_row_constant(p, w, h, row_index);
+        }
+
         p->translate(QPointF{0, h});
       }
 
