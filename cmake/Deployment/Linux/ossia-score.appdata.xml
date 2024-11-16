@@ -44,6 +44,27 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.3.1" date="2024-11-15">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.3.1</url>
+      <description>
+        <p>ossia score 3.3.0 is a minor hotfix release.</p>
+        <p>New features</p>
+        <ul>
+          <li>LED View process to display [r,g,b,r,g,b,...] triplets</li>
+          <li>Signal Display will now display multi-dimensional arrays in addition of single values</li>
+        </ul>
+        <p>Bugfixes</p>
+        <ul>
+          <li>Build: fix warnings coming from 3rdparty libraries</li>
+          <li>CI: multiple fixes</li>
+          <li>UI: do not center widgets in vertical layouts</li>
+          <li>UI: fix precision issue with xy / xyz spinboxes and large ranges</li>
+          <li>Signal Display: fix that it was stuck</li>
+          <li>Core: be more lenient with processes that have dynamic ports</li>
+          <li>Core: fix that a QThread was deleted after QCoreApplication leading to a macOS crash</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.3.0" date="2024-11-12">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.3.0</url>
       <description>

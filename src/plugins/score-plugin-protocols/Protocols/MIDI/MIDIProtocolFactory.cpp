@@ -162,7 +162,7 @@ QString MIDIInputProtocolFactory::category() const noexcept
 
 QUrl MIDIInputProtocolFactory::manual() const noexcept
 {
-  return QUrl("https://ossia.io/score-docs/devices/midi-device.html");
+  return QUrl("https://ossia.io/score-docs/devices/midiin-device.html");
 }
 
 Device::DeviceEnumerators
@@ -256,7 +256,7 @@ QString MIDIOutputProtocolFactory::category() const noexcept
 
 QUrl MIDIOutputProtocolFactory::manual() const noexcept
 {
-  return QUrl("https://ossia.io/score-docs/devices/midi-device.html");
+  return QUrl("https://ossia.io/score-docs/devices/midiout-device.html");
 }
 
 Device::DeviceEnumerators
