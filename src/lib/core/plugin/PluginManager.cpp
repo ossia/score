@@ -41,7 +41,7 @@ public:
 
   DLL(const DLL&) noexcept = delete;
   DLL& operator=(const DLL&) noexcept = delete;
-  DLL(DLL&& other)
+  DLL(DLL&& other) noexcept
   {
     impl = other.impl;
     other.impl = nullptr;
