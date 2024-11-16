@@ -71,7 +71,7 @@ static const auto defaultGeometryFilter = QStringLiteral(R"_(/*{
     "TYPE": "float",
     "DEFAULT": 1.,
     "MIN": 0.,
-    "MAX": 1.,
+    "MAX": 1.
   }
 ]
 }*/
