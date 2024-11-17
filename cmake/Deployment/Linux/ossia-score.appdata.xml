@@ -44,6 +44,27 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.3.2" date="2024-11-17">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.3.2</url>
+      <description>
+        <p>ossia score 3.3.2 is a minor hotfix release.</p>
+        <p>New features</p>
+        <ul>
+          <li>Support for automatic detection of BT.601, BT.709 and Rec2020 colorspaces in videos. Rec2020 is currently downscaled to SDR until we support a proper HDR video pipeline.</li>
+          <li>Signal Display will now display constant values as middle-centered dots</li>
+          <li>Devices: raw evdev input access on Linux to enable reading any kind of global keyboard / tablet / mouse / ACPI event</li>
+        </ul>
+        <p>Bugfixes</p>
+        <ul>
+          <li>Audio: fix that audio analysis nodes would crash if using a non-power-of-two sample rate.</li>
+          <li>Audio: improve nomenclature for audio channel extractor.</li>
+          <li>Merger: fix missing combobox items.</li>
+          <li>Geometry filter: fix default filter which wasn't valid json</li>
+          <li>Geometry filter: add a validation step</li>
+          <li>Shmdata / Sh4lt: fix support of YUY2 video</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.3.1" date="2024-11-15">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.3.1</url>
       <description>
