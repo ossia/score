@@ -411,6 +411,7 @@ struct lv2_node final : public ossia::graph_node
 
     const std::size_t audio_out_size = data.audio_out_ports.size();
     const std::size_t midi_out_size = data.midi_out_ports.size();
+    const std::size_t atom_out_size = data.atom_out_ports.size();
     const std::size_t control_out_size = data.control_out_ports.size();
 
     // Copy midi
