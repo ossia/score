@@ -1,8 +1,6 @@
 #pragma once
 #include <Video/VideoInterface.hpp>
 
-#include <magic_enum.hpp>
-
 // See softpixel.com/~cwright/programming/colorspace/yuv
 //
 // https://github.com/vlc-qt/vlc-qt/blob/master/src/qml/painter/GlPainter.cpp#L48
