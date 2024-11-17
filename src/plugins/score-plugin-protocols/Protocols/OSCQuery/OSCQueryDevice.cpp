@@ -54,7 +54,8 @@ static bool resolve_ip(const std::string& host)
 
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::ip::tcp::resolver::query query(queryHost, queryPort);
+    boost::asio::ip::tcp::resolver::query query(
+        queryHost, queryPort, boost::asio::ip::resolver_base::numeric_service);
     boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
     return true;
   }

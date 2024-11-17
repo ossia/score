@@ -160,7 +160,7 @@
           <li>VST / VST3: Disable GUI when running under wayland as plug-ins will crash</li>
           <li>VST and friends:  Use the actual processed samples as timing information instead of a computation depending on speed</li>
           <li>YSFX: cmake improvements</li>
-          <li>Many, many otherbugfixes and code improvements...</li>
+          <li>Many, many other bugfixes and code improvements...</li>
         </ul>
       </description>
     </release>
