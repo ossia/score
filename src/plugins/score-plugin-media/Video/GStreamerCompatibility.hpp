@@ -231,7 +231,7 @@ inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
     format_map["Y444_16BE"] = AV_PIX_FMT_YUV444P16BE;
     format_map["Y444_16LE"] = AV_PIX_FMT_YUV444P16LE;
     // format_map["YUV9"] = AV_PIX_FMT_YUV9;
-    // format_map["YUY2"] = AV_PIX_FMT_YUY2;
+    format_map["YUY2"] = AV_PIX_FMT_YUYV422;
     // format_map["YV12"] = AV_PIX_FMT_YV12;
     // format_map["YVU9"] = AV_PIX_FMT_YVU9;
     format_map["YVYU"] = AV_PIX_FMT_YVYU422;
