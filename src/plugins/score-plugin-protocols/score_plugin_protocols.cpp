@@ -62,6 +62,10 @@
 #if defined(OSSIA_PROTOCOL_GPS)
 #include <Protocols/GPS/GPSProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_EVDEV)
+#include <Protocols/Evdev/EvdevProtocolFactory.hpp>
+#include <Protocols/Evdev/EvdevSpecificSettings.hpp>
+#endif
 
 #include <Protocols/Mapper/MapperDevice.hpp>
 
@@ -74,6 +78,9 @@ score_plugin_protocols::score_plugin_protocols()
 #endif
   qRegisterMetaType<std::vector<ossia::net::node_base*>>(
       "std::vector<ossia::net::node_base*>");
+#if defined(OSSIA_PROTOCOL_EVDEV)
+  qRegisterMetaType<Protocols::EvdevSpecificSettings>();
+#endif
 }
 
 score_plugin_protocols::~score_plugin_protocols() { }
@@ -148,6 +155,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_GPS)
          ,
          Protocols::GPSProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_EVDEV)
+         ,
+         Protocols::EvdevProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_LIBMAPPER)
          ,

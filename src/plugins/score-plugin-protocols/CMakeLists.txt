@@ -234,6 +234,21 @@ set(GPS_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/GPS/GPSSpecificSettingsSerialization.cpp"
 )
 
+set(EVDEV_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevSpecificSettings.hpp"
+)
+
+set(EVDEV_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevSpecificSettingsSerialization.cpp"
+)
+
+
 set(MAPPER_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.cpp"
@@ -344,6 +359,13 @@ if(GPS_HEADER)
   target_include_directories(${PROJECT_NAME} PRIVATE ${GPS_HEADER})
   target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_GPS)
   list(APPEND SCORE_FEATURES_LIST protocol_gps)
+endif()
+
+if(LINUX)
+  target_sources(${PROJECT_NAME} PRIVATE ${EVDEV_HDRS} ${EVDEV_SRCS})
+  target_include_directories(${PROJECT_NAME} PRIVATE ${EVDEV_HEADER})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_EVDEV)
+  list(APPEND SCORE_FEATURES_LIST protocol_evdev)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
