@@ -44,6 +44,9 @@ public:
       , release{std::move(release)}
       , target{score::GUIAppContext().mainWindow}
   {
+    // X11 quirk
+    if(qApp->platformName() == "xcb")
+      scanCodeOffset = -8;
   }
 
   bool eventFilter(QObject* object, QEvent* event)
@@ -54,18 +57,19 @@ public:
       {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
         if(!keyEvent->isAutoRepeat())
-          press(keyEvent->nativeScanCode() - 8);
+          press(keyEvent->nativeScanCode() + scanCodeOffset);
       }
       else if(event->type() == QEvent::KeyRelease)
       {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
         if(!keyEvent->isAutoRepeat())
-          release(keyEvent->nativeScanCode() - 8);
+          release(keyEvent->nativeScanCode() + scanCodeOffset);
       }
     }
     return false;
   }
   QObject* target{};
+  int scanCodeOffset{0};
 };
 
 MIDIDevice::MIDIDevice(
