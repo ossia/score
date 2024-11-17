@@ -62,6 +62,8 @@
           <li>Geometry filter: fix default filter which wasn't valid json</li>
           <li>Geometry filter: add a validation step</li>
           <li>Shmdata / Sh4lt: fix support of YUY2 video</li>
+          <li>LV2: prevent plug-ins with atom ports to crash.</li>
+          <li>MIDI: fix support for computer keyboard on non-X11 platforms.</li>
         </ul>
       </description>
     </release>
