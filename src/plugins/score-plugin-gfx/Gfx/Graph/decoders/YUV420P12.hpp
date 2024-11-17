@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 extern "C" {
 #include <libavformat/avformat.h>
@@ -15,34 +16,33 @@ namespace score::gfx
  */
 struct YUV420P12Decoder : GPUVideoDecoder
 {
-  static const constexpr auto yuv420_filter = R"_(#version 450
+  static const constexpr auto frag = R"_(#version 450
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
-  layout(binding=3) uniform sampler2D y_tex;
-  layout(binding=4) uniform sampler2D u_tex;
-  layout(binding=5) uniform sampler2D v_tex;
+layout(binding=3) uniform sampler2D y_tex;
+layout(binding=4) uniform sampler2D u_tex;
+layout(binding=5) uniform sampler2D v_tex;
 
-  layout(location = 0) in vec2 v_texcoord;
-  layout(location = 0) out vec4 fragColor;
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
 
-  const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);
-  const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);
-  const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
-  const vec3 offset = vec3(-0.0625, -0.5, -0.5);
+%2
 
-  void main ()
-  {
-    float y = 16. * texture(y_tex, v_texcoord).r;
-    float u = 16. * texture(u_tex, v_texcoord).r;
-    float v = 16. * texture(v_tex, v_texcoord).r;
-    vec3 yuv = vec3(y,u,v);
-    yuv += offset;
-    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    fragColor.r = dot(yuv, R_cf);
-    fragColor.g = dot(yuv, G_cf);
-    fragColor.b = dot(yuv, B_cf);
-  })_";
+vec4 processTexture(vec4 tex) {
+  vec4 processed = convert_to_rgb(tex);
+  { %1 }
+  return processed;
+}
+
+void main ()
+{
+  float y = 16. * texture(y_tex, v_texcoord).r;
+  float u = 16. * texture(u_tex, v_texcoord).r;
+  float v = 16. * texture(v_tex, v_texcoord).r;
+  vec3 yuv = vec3(y,u,v);
+  fragColor = processTexture(vec4(y,u,v, 1.));
+})_";
 
   explicit YUV420P12Decoder(Video::ImageFormat& d)
       : decoder{d}
@@ -93,7 +93,8 @@ struct YUV420P12Decoder : GPUVideoDecoder
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(r.state, vertexShader(), yuv420_filter);
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override

@@ -17,6 +17,12 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
   int width{};
   int height{};
   AVPixelFormat pixel_format = AVPixelFormat(-1);
+
+  AVColorRange color_range = AVColorRange(-1);
+  AVColorPrimaries color_primaries = AVColorPrimaries(-1);
+  AVColorTransferCharacteristic color_trc = AVColorTransferCharacteristic(-1);
+  AVColorSpace color_space = AVColorSpace(-1);
+  AVChromaLocation chroma_location = AVChromaLocation(-1);
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat

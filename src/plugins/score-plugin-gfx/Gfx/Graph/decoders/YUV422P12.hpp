@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 extern "C" {
 #include <libavformat/avformat.h>
@@ -16,7 +17,7 @@ namespace score::gfx
 
 struct YUV422P12Decoder : GPUVideoDecoder
 {
-  static const constexpr auto yuv422_filter = R"_(#version 450
+  static const constexpr auto frag = R"_(#version 450
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
@@ -27,18 +28,21 @@ layout(binding=5) uniform sampler2D v_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-// See softpixel.com/~cwright/programming/colorspace/yuv
-const vec3 offset = vec3(0., -0.5, -0.5);
-const mat3 coeff = mat3(1.0   ,  1.0   , 1.0,
-                        0.0   , -0.3455, 1.7790,
-                        1.4075, -0.7169, 0.);
+%2
+
+vec4 processTexture(vec4 tex) {
+  vec4 processed = convert_to_rgb(tex);
+  { %1 }
+  return processed;
+}
+
 void main()
 {
-    float y = 16. * texture(y_tex, v_texcoord).r;
-    float u = 16. * texture(u_tex, v_texcoord).r;
-    float v = 16. * texture(v_tex, v_texcoord).r;
+  float y = 16. * texture(y_tex, v_texcoord).r;
+  float u = 16. * texture(u_tex, v_texcoord).r;
+  float v = 16. * texture(v_tex, v_texcoord).r;
 
-    fragColor = vec4(coeff * (vec3(y,u,v) + offset), 1);
+  fragColor = processTexture(vec4(y,u,v, 1.));
 }
 )_";
 
@@ -89,7 +93,8 @@ void main()
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(r.state, vertexShader(), yuv422_filter);
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override

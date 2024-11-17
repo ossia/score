@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 extern "C" {
 #include <libavformat/avformat.h>
@@ -13,7 +14,7 @@ namespace score::gfx
  */
 struct YUYV422Decoder : GPUVideoDecoder
 {
-  static const constexpr auto filter = R"_(#version 450
+  static const constexpr auto frag = R"_(#version 450
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
@@ -22,20 +23,21 @@ layout(binding=3) uniform sampler2D u_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);
-const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);
-const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
-const vec3 offset = vec3(-0.0625, -0.5, -0.5);
+%2
+
+vec4 processTexture(vec4 tex) {
+  vec4 processed = convert_to_rgb(tex);
+  { %1 }
+  return processed;
+}
 
 void main() {
   vec4 tex = texture(u_tex, v_texcoord);
   float y = tex.r;
-  float u = tex.g - 0.5;
-  float v = tex.a - 0.5;
-  fragColor.r = y + 1.13983 * v;
-  fragColor.g = y - 0.39465 * u - 0.58060 * v;
-  fragColor.b = y + 2.03211 * u;
-  fragColor.a = 1.0;
+  float u = tex.g;
+  float v = tex.a;
+
+  fragColor = processTexture(vec4(y,u,v, 1.));
 }
 )_";
 
@@ -62,7 +64,8 @@ void main() {
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(r.state, vertexShader(), filter);
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
@@ -90,7 +93,7 @@ void main() {
  */
 struct UYVY422Decoder : GPUVideoDecoder
 {
-  static const constexpr auto filter = R"_(#version 450
+  static const constexpr auto frag = R"_(#version 450
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
@@ -99,31 +102,27 @@ layout(binding=3) uniform sampler2D u_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-const mat4 bt601 = mat4(
-                    1.164f,  1.164f,  1.164f,   0.0f,
-                    0.000f, -0.392f,  2.017f,   0.0f,
-                    1.596f, -0.813f,  0.000f,   0.0f,
-                    -0.8708f, 0.5296f, -1.081f, 1.0f);
-const mat4 bt709 = mat4(
-                    1.164f,  1.164f,  1.164f,   0.0f,
-                    0.000f, -0.534f,  2.115,    0.0f,
-                    1.793f, -0.213f,  0.000f,   0.0f,
-                    -0.5727f, 0.3007f, -1.1302, 1.0f);
+%2
+
+vec4 processTexture(vec4 tex) {
+  vec4 processed = convert_to_rgb(tex);
+  { %1 }
+  return processed;
+}
 
 void main() {
    // For U0 Y0 V0 Y1 macropixel, lookup Y0 or Y1 based on whether
    // the original texture x coord is even or odd.
    vec4 uyvy = texture(u_tex, v_texcoord);
-   float Y;
+   float y;
    if (fract(floor(v_texcoord.x * renderer.renderSize.x + 0.5) / 2.0) > 0.0)
-       Y = uyvy.a;       // odd so choose Y1
+       y = uyvy.a;       // odd so choose Y1
    else
-       Y = uyvy.g;       // even so choose Y0
-   float Cb = uyvy.r;
-   float Cr = uyvy.b;
+       y = uyvy.g;       // even so choose Y0
+   float u = uyvy.r;
+   float v = uyvy.b;
 
-   vec4 color = vec4(Y, Cb, Cr, 1.0);
-   fragColor = bt601 * color;
+  fragColor = processTexture(vec4(y,u,v, 1.));
 }
 )_";
 
@@ -131,6 +130,7 @@ void main() {
       : decoder{d}
   {
   }
+
   Video::ImageFormat& decoder;
   std::pair<QShader, QShader> init(RenderList& r) override
   {
@@ -149,7 +149,8 @@ void main() {
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(r.state, vertexShader(), filter);
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override

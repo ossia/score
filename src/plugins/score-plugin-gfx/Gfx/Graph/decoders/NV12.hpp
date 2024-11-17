@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 extern "C" {
 #include <libavformat/avformat.h>
@@ -18,33 +19,30 @@ struct NV12Decoder : GPUVideoDecoder
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
-  layout(binding=3) uniform sampler2D y_tex;
-  layout(binding=4) uniform sampler2D uv_tex;
+layout(binding=3) uniform sampler2D y_tex;
+layout(binding=4) uniform sampler2D uv_tex;
 
-  layout(location = 0) in vec2 v_texcoord;
-  layout(location = 0) out vec4 fragColor;
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
 
-  const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);
-  const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);
-  const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
-  const vec3 offset = vec3(-0.0625, -0.5, -0.5);
+%2
 
-  void main ()
-  {
-    float y = texture(y_tex, v_texcoord).r;
-    float u = texture(uv_tex, v_texcoord).r;
-    float v = texture(uv_tex, v_texcoord).a;
+vec4 processTexture(vec4 tex) {
+  vec4 processed = convert_to_rgb(tex);
+  { %1 }
+  return processed;
+}
 
+void main()
+{
+  float y = texture(y_tex, v_texcoord).r;
+  float u = texture(uv_tex, v_texcoord).r;
+  float v = texture(uv_tex, v_texcoord).a;
 )_";
 
   static const constexpr auto nv12_filter_epilogue = R"_(
-
-    yuv += offset;
-    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    fragColor.r = dot(yuv, R_cf);
-    fragColor.g = dot(yuv, G_cf);
-    fragColor.b = dot(yuv, B_cf);
-  })_";
+  fragColor = processTexture(vec3(yuv, 1.));
+})_";
 
   Video::ImageFormat& decoder;
   bool nv21{};
@@ -92,7 +90,8 @@ struct NV12Decoder : GPUVideoDecoder
       frag += "    vec3 yuv = vec3(y, u, v);\n";
     frag += nv12_filter_epilogue;
 
-    return score::gfx::makeShaders(r.state, vertexShader(), frag);
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override

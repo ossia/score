@@ -16,11 +16,9 @@ void VideoNodeBase::setScaleMode(ScaleMode s)
 }
 
 VideoNode::VideoNode(
-    std::shared_ptr<Video::VideoInterface> dec, std::optional<double> nativeTempo,
-    QString f)
+    std::shared_ptr<Video::VideoInterface> dec, std::optional<double> nativeTempo)
     : m_nativeTempo{nativeTempo}
 {
-  this->m_filter = std::move(f);
   this->reader.m_decoder = std::move(dec);
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
@@ -65,10 +63,9 @@ void VideoNode::pause(bool b)
   m_pause = b;
 }
 
-CameraNode::CameraNode(std::shared_ptr<Video::ExternalInput> dec, QString f)
+CameraNode::CameraNode(std::shared_ptr<Video::ExternalInput> dec)
 {
   this->m_scaleMode = ScaleMode::Stretch;
-  this->m_filter = std::move(f);
   this->reader.m_decoder = std::move(dec);
   output.push_back(new Port{this, {}, Types::Image, {}});
 }

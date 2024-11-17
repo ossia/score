@@ -79,7 +79,7 @@ video_texture_input_parameter::video_texture_input_parameter(
 {
   camera = proto.camera;
 
-  node = new score::gfx::CameraNode(proto.camera, {});
+  node = new score::gfx::CameraNode(proto.camera);
   node_id = context->ui->register_node(std::unique_ptr<score::gfx::CameraNode>{node});
 
   proto.camera_node = node;

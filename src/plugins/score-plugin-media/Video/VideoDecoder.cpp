@@ -68,6 +68,7 @@ void LibAVDecoder::init_scaler(VideoInterface& self) noexcept
 
   m_rescale.open(self);
   self.pixel_format = AV_PIX_FMT_RGBA;
+  self.color_space = AVCOL_SPC_RGB;
 }
 
 int LibAVDecoder::init_codec_context(
@@ -769,6 +770,26 @@ bool VideoDecoder::open_stream() noexcept
       }
       else
       {
+        color_range = m_avstream->codecpar->color_range;
+        color_primaries = m_avstream->codecpar->color_primaries;
+        color_trc = m_avstream->codecpar->color_trc;
+        color_space = m_avstream->codecpar->color_space;
+        chroma_location = m_avstream->codecpar->chroma_location;
+
+        // FIXME the user should be able to choose as it could be possible to have small videos
+        // without color space, e.g. screen recordings
+        if(color_space == AVCOL_SPC_UNSPECIFIED)
+        {
+          if(codecPar->height < 625)
+            color_space = AVCOL_SPC_SMPTE170M;
+          else if(codecPar->height < 720)
+            color_space = AVCOL_SPC_BT470BG;
+          else if(codecPar->height < 2160)
+            color_space = AVCOL_SPC_BT709;
+          else
+            color_space = AVCOL_SPC_BT2020_CL;
+        }
+
         if(m_avstream->codecpar->codec_id == AV_CODEC_ID_HAP)
         {
           // TODO this is a hack, we store the FOURCC in the format...

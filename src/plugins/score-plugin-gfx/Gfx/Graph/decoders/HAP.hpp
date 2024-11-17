@@ -99,6 +99,7 @@ layout(binding=4) uniform sampler2D alpha_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
+// FIXME what's that???
 vec4 processYCoCg(vec4 CoCgSY, vec4 alpha) {
   const vec4 offsets = vec4(-0.50196078431373, -0.50196078431373, 0.0, 0.0);
   CoCgSY += offsets;

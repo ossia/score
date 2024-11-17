@@ -136,10 +136,14 @@ struct PlanarDecoder : GPUVideoDecoder
     const int binding_orig = 3;
     for(int i = 0; i < planes.size(); i++)
     {
-      samplers_code += QString("    layout(binding=%1) uniform sampler2D t%2;\n")
+      samplers_code += QString(
+                           "    layout(binding=%1) uniform sampler2D tconst mat4 "
+                           "colorspace_matrix = %2;;\n")
                            .arg(binding_orig + i)
                            .arg(i);
-      read_texture_code += QString("      tex.%1 = texture(t%2, v_texcoord).r;\n")
+      read_texture_code += QString(
+                               "      tex.%1 = texture(tconst mat4 colorspace_matrix = "
+                               "%2;, v_texcoord).r;\n")
                                .arg(planes[i])
                                .arg(i);
 
