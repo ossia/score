@@ -214,6 +214,7 @@ struct LV2Data
   ossia::small_vector<int, 4> audio_in_ports, audio_out_ports;
   ossia::small_vector<int, 8> control_in_ports, control_out_ports, control_other_ports;
   ossia::small_vector<int, 2> midi_in_ports, midi_out_ports, midi_other_ports, cv_ports;
+  ossia::small_vector<int, 2> atom_in_ports, atom_out_ports;
 
   ossia::small_vector<int, 2> time_Position_ports{};
 

@@ -379,6 +379,28 @@ void Model::readPlugin()
     m_outlets.push_back(port);
   }
 
+  for(int port_id : data.atom_in_ports)
+  {
+    auto port = new Process::ValueInlet{Id<Process::Port>{in_id++}, this};
+
+    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
+    Lilv::Node n = p.get_name();
+    port->setName(QString::fromUtf8(n.as_string()));
+
+    m_inlets.push_back(port);
+  }
+
+  for(int port_id : data.atom_out_ports)
+  {
+    auto port = new Process::ValueOutlet{Id<Process::Port>{out_id++}, this};
+
+    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
+    Lilv::Node n = p.get_name();
+    port->setName(QString::fromUtf8(n.as_string()));
+
+    m_outlets.push_back(port);
+  }
+
   m_controlInStart = in_id;
   // CONTROL
   // FIXME if(data.control_in_ports.size() < 10)
@@ -680,11 +702,11 @@ void on_start::operator()()
   LV2::Message msg;
   while(proc.try_dequeue(msg))
   {
-    for(std::size_t k = 0; k < node.m_atom_ins.size(); ++k)
+    for(std::size_t k = 0; k < node.m_midi_atom_ins.size(); ++k)
     {
       if(node.data.midi_in_ports[k] == int32_t(msg.index))
       {
-        node.m_message_for_atom_ins[k].push_back(std::move(msg));
+        node.m_message_for_midi_atom_ins[k].push_back(std::move(msg));
         break;
       }
     }
@@ -725,7 +747,7 @@ void on_finish::operator()()
   for(std::size_t k = 0; k < node.data.midi_out_ports.size(); ++k)
   {
     int port_index = node.data.midi_out_ports[k];
-    AtomBuffer& buf = node.m_atom_outs[k];
+    AtomBuffer& buf = node.m_midi_atom_outs[k];
 
     LV2_ATOM_SEQUENCE_FOREACH(&buf.buf->atoms, ev)
     {
