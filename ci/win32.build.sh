@@ -1,7 +1,7 @@
 #!/bin/bash -eux
 
 export PATH="$PATH:/c/ossia-sdk/cmake/bin:/c/ossia-sdk/llvm/bin"
-date /t
+date
 cmake -GNinja -S "$PWD" -B build \
   -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
   -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
@@ -15,9 +15,9 @@ cmake -GNinja -S "$PWD" -B build \
   -DSCORE_DEPLOYMENT_BUILD=1 \
   -DCMAKE_C_FLAGS="-g0" \
   -DCMAKE_CXX_FLAGS="-g0"
-date /t
+date
 cmake --build build
-date /t
+date
 
 cmake --build build --target package
-date /t
+date
