@@ -1,7 +1,6 @@
 #if defined(OSSIA_PROTOCOL_EVDEV)
 #include "EvdevDevice.hpp"
 
-#include "EvdevEvents.cpp"
 #include "EvdevSpecificSettings.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -17,22 +16,20 @@
 #include <ossia/network/context.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
-#include <boost/asio/placeholders.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
-#include <boost/bind.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/range/adaptor/sliced.hpp>
 
 #include <QDebug>
 
 #include <linux/input.h>
-#include <sys/poll.h>
 
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::EvdevDevice)
+
+// clang-format off
+#include "EvdevEvents.cpp"
+// clang-format on
+
 namespace ossia::net
 {
 
@@ -53,13 +50,38 @@ public:
 
   ~evdev_protocol() { m_stream.close(); }
 
-  static inline const char* codename(unsigned int type, unsigned int code)
+  static inline std::string_view pretty_name(unsigned int type, unsigned int code)
   {
     using namespace evdev_input_names;
-    return (type <= EV_MAX && code <= unsigned(maxval[type]) && names[type]
-            && names[type][code])
-               ? names[type][code]
-               : "?";
+    switch(type)
+    {
+      case EV_KEY:
+        if(auto it = evdev_input_names::keys.find(code);
+           it != evdev_input_names::keys.end())
+          return it->second.data();
+        break;
+      case EV_REL:
+        if(auto it = evdev_input_names::relatives.find(code);
+           it != evdev_input_names::relatives.end())
+          return it->second.data();
+        break;
+      case EV_ABS:
+        if(auto it = evdev_input_names::absolutes.find(code);
+           it != evdev_input_names::absolutes.end())
+          return it->second.data();
+        break;
+      case EV_MSC:
+        if(auto it = evdev_input_names::misc.find(code);
+           it != evdev_input_names::misc.end())
+          return it->second.data();
+        break;
+      case EV_SW:
+        if(auto it = evdev_input_names::switches.find(code);
+           it != evdev_input_names::switches.end())
+          return it->second.data();
+        break;
+    }
+    return "unknown";
   }
 
   void set_device(ossia::net::device_base& dev) override
@@ -78,28 +100,40 @@ public:
       {
         case EV_KEY: {
           node = &ossia::net::create_node(root, "/event/key");
-          params.key = node->create_parameter(ossia::val_type::INT);
+          params.keypress = ossia::create_parameter(root, "/key/press", "int");
+          params.keyrelease = ossia::create_parameter(root, "/key/release", "int");
+          params.keyrepeat = ossia::create_parameter(root, "/key/repeat", "int");
           auto& k = params.categorized[EV_KEY];
           for(int code : type.event_codes)
             k.emplace(
-                code, ossia::create_parameter(*node, codename(EV_KEY, code), "int"));
+                code, ossia::create_parameter(*node, pretty_name(EV_KEY, code), "int"));
           break;
         }
         case EV_REL: {
           node = &ossia::net::create_node(root, "/event/relative");
           auto& k = params.categorized[EV_REL];
+          if(ossia::contains(type.event_codes, REL_X)
+             && ossia::contains(type.event_codes, REL_Y))
+          {
+            params.mouse_xy = ossia::create_parameter(root, "/relative/xy", "vec2f");
+          }
 
           for(int code : type.event_codes)
             k.emplace(
-                code, ossia::create_parameter(*node, codename(EV_REL, code), "int"));
+                code, ossia::create_parameter(*node, pretty_name(EV_REL, code), "int"));
           break;
         }
         case EV_ABS: {
           node = &ossia::net::create_node(root, "/event/absolute");
           auto& k = params.categorized[EV_ABS];
+          if(ossia::contains(type.event_codes, ABS_X)
+             && ossia::contains(type.event_codes, ABS_Y))
+          {
+            params.tablet_xy = ossia::create_parameter(root, "/absolute/xy", "vec2f");
+          }
           for(int code : type.event_codes)
             k.emplace(
-                code, ossia::create_parameter(*node, codename(EV_ABS, code), "int"));
+                code, ossia::create_parameter(*node, pretty_name(EV_ABS, code), "int"));
           break;
         }
         case EV_MSC: {
@@ -107,7 +141,7 @@ public:
           auto& k = params.categorized[EV_MSC];
           for(int code : type.event_codes)
             k.emplace(
-                code, ossia::create_parameter(*node, codename(EV_MSC, code), "int"));
+                code, ossia::create_parameter(*node, pretty_name(EV_MSC, code), "int"));
           break;
         }
         case EV_SW: {
@@ -115,7 +149,7 @@ public:
           auto& k = params.categorized[EV_SW];
           for(int code : type.event_codes)
             k.emplace(
-                code, ossia::create_parameter(*node, codename(EV_SW, code), "int"));
+                code, ossia::create_parameter(*node, pretty_name(EV_SW, code), "int"));
           break;
         }
       }
@@ -224,20 +258,55 @@ public:
           case EV_KEY: // raw keyboard input
             this->params.event->push_value(
                 std::vector<ossia::value>{ev.type, ev.code, ev.value});
-            if(this->params.key)
-              this->params.key->push_value(ev.code);
+            switch(ev.value)
+            {
+              case 0:
+                if(this->params.keyrelease)
+                  this->params.keyrelease->push_value(ev.code);
+                break;
+              case 1:
+                if(this->params.keypress)
+                  this->params.keypress->push_value(ev.code);
+                break;
+              case 2:
+                if(this->params.keyrepeat)
+                  this->params.keyrepeat->push_value(ev.code);
+                break;
+            }
             push_to_param(ev.type, ev.code, ev.value);
             break;
 
           case EV_REL: // relative, mouse-like
             this->params.event->push_value(
                 std::vector<ossia::value>{ev.type, ev.code, ev.value});
+            if(this->params.mouse_xy)
+            {
+              if(auto cur = this->params.mouse_xy->value().target<ossia::vec2f>())
+              {
+                if(ev.code == REL_X)
+                  (*cur)[0] = ev.value;
+                else if(ev.code == REL_Y)
+                  (*cur)[1] = ev.value;
+                this->params.mouse_xy->push_value(*cur);
+              }
+            }
             push_to_param(ev.type, ev.code, ev.value);
             break;
 
           case EV_ABS: // absolute, tablet-like
             this->params.event->push_value(
                 std::vector<ossia::value>{ev.type, ev.code, ev.value});
+            if(this->params.tablet_xy)
+            {
+              if(auto cur = this->params.tablet_xy->value().target<ossia::vec2f>())
+              {
+                if(ev.code == ABS_X)
+                  (*cur)[0] = ev.value;
+                else if(ev.code == ABS_Y)
+                  (*cur)[1] = ev.value;
+                this->params.tablet_xy->push_value(*cur);
+              }
+            }
             push_to_param(ev.type, ev.code, ev.value);
             break;
           case EV_MSC: // misc
@@ -263,8 +332,6 @@ public:
         }
       }
 
-      std::cout << "\n";
-
       post_read();
     });
   }
@@ -281,8 +348,11 @@ public:
   struct
   {
     ossia::net::parameter_base* event{};
-    ossia::net::parameter_base* key{};
+    ossia::net::parameter_base* keypress{};
+    ossia::net::parameter_base* keyrelease{};
+    ossia::net::parameter_base* keyrepeat{};
     ossia::net::parameter_base* mouse_xy{};
+    ossia::net::parameter_base* tablet_xy{};
     ossia::flat_map<int, ossia::flat_map<int, ossia::net::parameter_base*>> categorized;
   } params;
 

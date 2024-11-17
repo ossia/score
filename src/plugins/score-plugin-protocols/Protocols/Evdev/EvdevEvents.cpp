@@ -1,51 +1,13 @@
 // As provided by evtest.c
 
+#include <ossia/detail/small_flat_map.hpp>
+
 #include <linux/input.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Winitializer-overrides"
-#pragma GCC diagnostic ignored "-Wgnu-designator"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winitializer-overrides"
-#pragma clang diagnostic ignored "-Wgnu-designator"
-#define NAME_ELEMENT(element) [element] = #element
-
 namespace evdev_input_names
 {
-static const char* const events[EV_MAX + 1] = {
-    [0 ... EV_MAX] = NULL, NAME_ELEMENT(EV_SYN), NAME_ELEMENT(EV_KEY),
-    NAME_ELEMENT(EV_REL),  NAME_ELEMENT(EV_ABS), NAME_ELEMENT(EV_MSC),
-    NAME_ELEMENT(EV_LED),  NAME_ELEMENT(EV_SND), NAME_ELEMENT(EV_REP),
-    NAME_ELEMENT(EV_FF),   NAME_ELEMENT(EV_PWR), NAME_ELEMENT(EV_FF_STATUS),
-    NAME_ELEMENT(EV_SW),
-};
+#define NAME_ELEMENT(element) {element, #element}
+static const ossia::static_flat_map<unsigned, std::string_view, KEY_CNT> keys = {
 
-static const int maxval[EV_MAX + 1] = {
-    [0 ... EV_MAX] = -1, [EV_SYN] = SYN_MAX, [EV_KEY] = KEY_MAX,
-    [EV_REL] = REL_MAX,  [EV_ABS] = ABS_MAX, [EV_MSC] = MSC_MAX,
-    [EV_SW] = SW_MAX,    [EV_LED] = LED_MAX, [EV_SND] = SND_MAX,
-    [EV_REP] = REP_MAX,  [EV_FF] = FF_MAX,   [EV_FF_STATUS] = FF_STATUS_MAX,
-};
-
-#ifdef INPUT_PROP_SEMI_MT
-static const char* const props[INPUT_PROP_MAX + 1] = {
-    [0 ... INPUT_PROP_MAX] = NULL,           NAME_ELEMENT(INPUT_PROP_POINTER),
-    NAME_ELEMENT(INPUT_PROP_DIRECT),         NAME_ELEMENT(INPUT_PROP_BUTTONPAD),
-    NAME_ELEMENT(INPUT_PROP_SEMI_MT),
-#ifdef INPUT_PROP_TOPBUTTONPAD
-    NAME_ELEMENT(INPUT_PROP_TOPBUTTONPAD),
-#endif
-#ifdef INPUT_PROP_POINTING_STICK
-    NAME_ELEMENT(INPUT_PROP_POINTING_STICK),
-#endif
-#ifdef INPUT_PROP_ACCELEROMETER
-    NAME_ELEMENT(INPUT_PROP_ACCELEROMETER),
-#endif
-};
-#endif
-
-static const char* const keys[KEY_MAX + 1] = {
-    [0 ... KEY_MAX] = NULL,
     NAME_ELEMENT(KEY_RESERVED),
     NAME_ELEMENT(KEY_ESC),
     NAME_ELEMENT(KEY_1),
@@ -825,11 +787,7 @@ static const char* const keys[KEY_MAX + 1] = {
 #endif
 };
 
-static const char* const absval[6]
-    = {"Value", "Min  ", "Max  ", "Fuzz ", "Flat ", "Resolution "};
-
-static const char* const relatives[REL_MAX + 1] = {
-    [0 ... REL_MAX] = NULL,
+static const ossia::static_flat_map<unsigned, std::string_view, REL_CNT> relatives = {
     NAME_ELEMENT(REL_X),
     NAME_ELEMENT(REL_Y),
     NAME_ELEMENT(REL_Z),
@@ -846,8 +804,8 @@ static const char* const relatives[REL_MAX + 1] = {
 #endif
 };
 
-static const char* const absolutes[ABS_MAX + 1] = {
-    [0 ... ABS_MAX] = NULL,
+static const ossia::static_flat_map<unsigned, std::string_view, ABS_CNT> absolutes = {
+
     NAME_ELEMENT(ABS_X),
     NAME_ELEMENT(ABS_Y),
     NAME_ELEMENT(ABS_Z),
@@ -902,19 +860,18 @@ static const char* const absolutes[ABS_MAX + 1] = {
 
 };
 
-static const char* const misc[MSC_MAX + 1] = {
-    [0 ... MSC_MAX] = NULL,      NAME_ELEMENT(MSC_SERIAL), NAME_ELEMENT(MSC_PULSELED),
-    NAME_ELEMENT(MSC_GESTURE),   NAME_ELEMENT(MSC_RAW),    NAME_ELEMENT(MSC_SCAN),
+static const ossia::static_flat_map<unsigned, std::string_view, MSC_CNT> misc = {
+    NAME_ELEMENT(MSC_SERIAL),    NAME_ELEMENT(MSC_PULSELED), NAME_ELEMENT(MSC_GESTURE),
+    NAME_ELEMENT(MSC_RAW),       NAME_ELEMENT(MSC_SCAN),
 #ifdef MSC_TIMESTAMP
     NAME_ELEMENT(MSC_TIMESTAMP),
 #endif
 };
 
-static const char* const leds[LED_MAX + 1] = {
-    [0 ... LED_MAX] = NULL,     NAME_ELEMENT(LED_NUML),    NAME_ELEMENT(LED_CAPSL),
-    NAME_ELEMENT(LED_SCROLLL),  NAME_ELEMENT(LED_COMPOSE), NAME_ELEMENT(LED_KANA),
-    NAME_ELEMENT(LED_SLEEP),    NAME_ELEMENT(LED_SUSPEND), NAME_ELEMENT(LED_MUTE),
-    NAME_ELEMENT(LED_MISC),
+static const ossia::static_flat_map<unsigned, std::string_view, LED_CNT> leds = {
+    NAME_ELEMENT(LED_NUML),     NAME_ELEMENT(LED_CAPSL), NAME_ELEMENT(LED_SCROLLL),
+    NAME_ELEMENT(LED_COMPOSE),  NAME_ELEMENT(LED_KANA),  NAME_ELEMENT(LED_SLEEP),
+    NAME_ELEMENT(LED_SUSPEND),  NAME_ELEMENT(LED_MUTE),  NAME_ELEMENT(LED_MISC),
 #ifdef LED_MAIL
     NAME_ELEMENT(LED_MAIL),
 #endif
@@ -923,24 +880,17 @@ static const char* const leds[LED_MAX + 1] = {
 #endif
 };
 
-static const char* const repeats[REP_MAX + 1]
-    = {[0 ... REP_MAX] = NULL, NAME_ELEMENT(REP_DELAY), NAME_ELEMENT(REP_PERIOD)};
+static const ossia::static_flat_map<unsigned, std::string_view, REP_CNT> repeats
+    = {NAME_ELEMENT(REP_DELAY), NAME_ELEMENT(REP_PERIOD)};
 
-static const char* const sounds[SND_MAX + 1]
-    = {[0 ... SND_MAX] = NULL,
-       NAME_ELEMENT(SND_CLICK),
-       NAME_ELEMENT(SND_BELL),
-       NAME_ELEMENT(SND_TONE)};
+static const ossia::static_flat_map<unsigned, std::string_view, SND_CNT> sounds
+    = {NAME_ELEMENT(SND_CLICK), NAME_ELEMENT(SND_BELL), NAME_ELEMENT(SND_TONE)};
 
-static const char* const syns[SYN_MAX + 1]
-    = {[0 ... SYN_MAX] = NULL,
-       NAME_ELEMENT(SYN_REPORT),
-       NAME_ELEMENT(SYN_CONFIG),
-       NAME_ELEMENT(SYN_MT_REPORT),
+static const ossia::static_flat_map<unsigned, std::string_view, SYN_CNT> syns
+    = {NAME_ELEMENT(SYN_REPORT), NAME_ELEMENT(SYN_CONFIG), NAME_ELEMENT(SYN_MT_REPORT),
        NAME_ELEMENT(SYN_DROPPED)};
 
-static const char* const switches[SW_MAX + 1] = {
-    [0 ... SW_MAX] = NULL,
+static const ossia::static_flat_map<unsigned, std::string_view, SW_CNT> switches = {
     NAME_ELEMENT(SW_LID),
     NAME_ELEMENT(SW_TABLET_MODE),
     NAME_ELEMENT(SW_HEADPHONE_INSERT),
@@ -984,27 +934,13 @@ static const char* const switches[SW_MAX + 1] = {
 #endif
 };
 
-static const char* const force[FF_MAX + 1] = {
-    [0 ... FF_MAX] = NULL,     NAME_ELEMENT(FF_RUMBLE),     NAME_ELEMENT(FF_PERIODIC),
-    NAME_ELEMENT(FF_CONSTANT), NAME_ELEMENT(FF_SPRING),     NAME_ELEMENT(FF_FRICTION),
-    NAME_ELEMENT(FF_DAMPER),   NAME_ELEMENT(FF_INERTIA),    NAME_ELEMENT(FF_RAMP),
-    NAME_ELEMENT(FF_SQUARE),   NAME_ELEMENT(FF_TRIANGLE),   NAME_ELEMENT(FF_SINE),
-    NAME_ELEMENT(FF_SAW_UP),   NAME_ELEMENT(FF_SAW_DOWN),   NAME_ELEMENT(FF_CUSTOM),
-    NAME_ELEMENT(FF_GAIN),     NAME_ELEMENT(FF_AUTOCENTER),
+static const ossia::static_flat_map<unsigned, std::string_view, FF_CNT> force = {
+    NAME_ELEMENT(FF_RUMBLE),     NAME_ELEMENT(FF_PERIODIC), NAME_ELEMENT(FF_CONSTANT),
+    NAME_ELEMENT(FF_SPRING),     NAME_ELEMENT(FF_FRICTION), NAME_ELEMENT(FF_DAMPER),
+    NAME_ELEMENT(FF_INERTIA),    NAME_ELEMENT(FF_RAMP),     NAME_ELEMENT(FF_SQUARE),
+    NAME_ELEMENT(FF_TRIANGLE),   NAME_ELEMENT(FF_SINE),     NAME_ELEMENT(FF_SAW_UP),
+    NAME_ELEMENT(FF_SAW_DOWN),   NAME_ELEMENT(FF_CUSTOM),   NAME_ELEMENT(FF_GAIN),
+    NAME_ELEMENT(FF_AUTOCENTER),
 };
-
-static const char* const forcestatus[FF_STATUS_MAX + 1] = {
-    [0 ... FF_STATUS_MAX] = NULL,
-    NAME_ELEMENT(FF_STATUS_STOPPED),
-    NAME_ELEMENT(FF_STATUS_PLAYING),
-};
-
-static const char* const* const names[EV_MAX + 1] = {
-    [0 ... EV_MAX] = NULL, [EV_SYN] = syns,      [EV_KEY] = keys,
-    [EV_REL] = relatives,  [EV_ABS] = absolutes, [EV_MSC] = misc,
-    [EV_LED] = leds,       [EV_SND] = sounds,    [EV_REP] = repeats,
-    [EV_SW] = switches,    [EV_FF] = force,      [EV_FF_STATUS] = forcestatus,
-};
+#undef NAME_ELEMENT
 }
-#pragma GCC diagnostic pop
-#pragma clang diagnostic pop
