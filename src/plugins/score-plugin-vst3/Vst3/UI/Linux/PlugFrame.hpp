@@ -1,7 +1,7 @@
 #pragma once
 #include <cstddef>
 
-#if defined(__linux__)
+#if (!(defined(__APPLE__) || defined(_WIN32))) && __has_include(<xcb/xcb.h>)
 #include <Vst3/UI/WindowContainer.hpp>
 
 #include <ossia/detail/algorithms.hpp>

@@ -14,10 +14,10 @@ inline const char* currentPlatform()
 {
 #if defined(__APPLE__)
   return Steinberg::kPlatformTypeNSView;
-#elif defined(__linux__)
-  return Steinberg::kPlatformTypeX11EmbedWindowID;
 #elif defined(_WIN32)
   return Steinberg::kPlatformTypeHWND;
+#elif (!(defined(__APPLE__) || defined(_WIN32))) && __has_include(<xcb/xcb.h>)
+  return Steinberg::kPlatformTypeX11EmbedWindowID;
 #endif
   return "";
 }
