@@ -90,6 +90,7 @@ modules:
   - name: portaudio
     buildsystem: cmake-ninja
     config-opts:
+      - -Wno-dev
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - -DBUILD_SHARED_LIBS=ON
@@ -104,6 +105,7 @@ modules:
   - name: libsamplerate
     buildsystem: cmake-ninja
     config-opts:
+      - -Wno-dev
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - -DBUILD_SHARED_LIBS=ON
@@ -135,6 +137,7 @@ modules:
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
+      - -Wno-dev
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - -DBUILD_SHARED_LIBS=ON
@@ -148,6 +151,7 @@ modules:
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
+      - -Wno-dev
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - -DBUILD_SHARED_LIBS=ON
@@ -161,6 +165,7 @@ modules:
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
+      - -Wno-dev
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - -DBUILD_SHARED_LIBS=ON
@@ -174,6 +179,7 @@ modules:
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
+      - -Wno-dev
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - -DBUILD_SHARED_LIBS=ON
@@ -205,6 +211,7 @@ modules:
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
+      - -Wno-dev
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
       - -DBUILD_SHARED_LIBS=ON
@@ -253,6 +260,24 @@ modules:
       - type: archive
         url: http://download.drobilla.net/suil-0.10.20.tar.xz
         sha256: 334a3ed3e73d5e17ff400b3db9801f63809155b0faa8b1b9046f9dd3ffef934e
+
+  # fmt
+  - name: fmtlib
+    buildsystem: cmake-ninja
+
+    sources:
+      - type: archive
+        url: https://github.com/fmtlib/fmt/releases/download/11.0.2/fmt-11.0.2.zip
+        sha256: 40fc58bebcf38c759e11a7bd8fdc163507d2423ef5058bba7f26280c5b9c5465
+
+  # spdlog
+  - name: spdlog
+    buildsystem: cmake-ninja
+
+    sources:
+      - type: archive
+        url: https://github.com/gabime/spdlog/archive/refs/tags/v1.15.0.tar.gz
+        sha256: 9962648c9b4f1a7bbc76fd8d9172555bad1871fdb14ff4f842ef87949682caa5
 
   # hdf5
   - name: hdf5
