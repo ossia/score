@@ -1,12 +1,12 @@
 id: io.ossia.score
 runtime: org.kde.Platform
-runtime-version: '6.7'
+runtime-version: "6.8"
 sdk: org.kde.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm18
+  - org.freedesktop.Sdk.Extension.llvm19
 build-options:
   env:
-    CXX: /usr/lib/sdk/llvm18/bin/clang++
+    CXX: /usr/lib/sdk/llvm19/bin/clang++
 command: ossia-score
 rename-desktop-file: ossia-score.desktop
 rename-icon: ossia-score
@@ -47,24 +47,24 @@ finish-args:
 add-extensions:
   # Linux audio plugins base extension
   org.freedesktop.LinuxAudio.Plugins:
-     directory: extensions/Plugins
-     version: '23.08'
-     add-ld-path: lib
-     merge-dirs: vst;vst3;lv2
-     subdirectories: true
-     no-autodownload: true
+    directory: extensions/Plugins
+    version: "24.08"
+    add-ld-path: lib
+    merge-dirs: vst;vst3;lv2
+    subdirectories: true
+    no-autodownload: true
 
   # Full codec support for FFMPEG
   org.freedesktop.Platform.ffmpeg-full:
     directory: lib/ffmpeg
     add-ld-path: .
-    version: "23.08"
+    version: "24.08"
 
 cleanup:
   - /bin/avahi*
   - /include
-  - '*.a'
-  - '*.la'
+  - "*.a"
+  - "*.la"
   - /lib/cmake
   - /lib/girepository-1.0
   - /lib/pkgconfig
@@ -197,8 +197,8 @@ modules:
       - cp -rf boost "${FLATPAK_DEST}/include/"
     sources:
       - type: archive
-        url: https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.bz2
-        sha256: 7009fe1faa1697476bdc7027703a2badb84e849b7b0baad5086b087b971f8617
+        url: https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.bz2
+        sha256: 1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b
 
   # HAP video decoding
   - name: snappy
@@ -254,18 +254,67 @@ modules:
         url: http://download.drobilla.net/suil-0.10.20.tar.xz
         sha256: 334a3ed3e73d5e17ff400b3db9801f63809155b0faa8b1b9046f9dd3ffef934e
 
+  # hdf5
+  - name: hdf5
+    buildsystem: cmake-ninja
+    subdir: hdf5-1.14.5
+    builddir: true
+    config-opts:
+      - -Wno-dev
+      - -DHDF5_IS_PARALLEL=0
+      - -DHDF5_ENABLE_NONSTANDARD_FEATURES=0
+      - -DHDF5_EXTERNALLY_CONFIGURED=1
+      - -DHDF5_INSTALL_NO_DEVELOPMENT=0
+      - -DHDF5_ENABLE_EMBEDDED_LIBINFO=0
+      - -DHDF5_NO_PACKAGES=1
+      - -DHDF5_BUILD_TOOLS=0
+      - -DHDF5_BUILD_TESTS=0
+      - -DHDF5_BUILD_UTILS=0
+      - -DHDF5_BUILD_EXAMPLES=0
+      - -DHDF5_BUILD_STATIC_TOOLS=0
+      - -DHDF5_USE_ZLIB_STATIC=0
+      - -DHDF5_BUILD_PARALLEL_TOOLS=0
+      - -DHDF5_ENABLE_PARALLEL=0
+      - -DHDF5_ENABLE_THREADSAFE=1
+      - -DZLIB_USE_LOCALCONTENT=1
+      - -DHDF5_ALLOW_EXTERNAL_SUPPORT=NO
+      - -DHDF5_BUILD_HL_LIB=NO
+      - -DBUILD_SHARED_LIBS=0
+      - -DBUILD_STATIC_LIBS=1
+    sources:
+      - type: archive
+        url: https://github.com/HDFGroup/hdf5/releases/download/hdf5_1.14.5/hdf5-1.14.5.tar.gz
+        sha256: ec2e13c52e60f9a01491bb3158cb3778c985697131fc6a342262d32a26e58e44
+
+  # highfive
+  - name: highfive
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -Wno-dev
+      - -DHIGHFIVE_EXAMPLES=0
+      - -DHIGHFIVE_UNIT_TESTS=0
+      - -DHIGHFIVE_BUILD_DOCS=0
+      - -DHIGHFIVE_FIND_HDF5=1
+      - -DHIGHFIVE_USE_BOOST=0
+
+    sources:
+      - type: archive
+        url: https://github.com/BlueBrain/HighFive/archive/refs/tags/v2.10.0.tar.gz
+        sha256: c29e8e1520e7298fabb26545f804e35bb3af257005c1c2df62e39986458d7c38
+
   - name: ossia-score
     buildsystem: cmake-ninja
     builddir: true
     sources:
-        - type: dir
-          path: ../../../../
-          
-        - type: script
-          dest-filename: run
-          commands:
-            - export LV2_PATH=$HOME/.lv2:/app/extensions/Plugins/lv2:/app/lib/lv2
-            - exec ossia-score.bin "$@"
+      - type: dir
+        path: ../../../../
+
+      - type: script
+        dest-filename: run
+        commands:
+          - export LV2_PATH=$HOME/.lv2:/app/extensions/Plugins/lv2:/app/lib/lv2
+          - exec ossia-score.bin "$@"
 
     config-opts:
       # Note: don't use RelWithDebInfo as ossia release builds explicitly expect Release build type.
@@ -280,9 +329,8 @@ modules:
       - -DSCORE_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_NO_QTCONF=1
 
-    post-install:      
-     - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
-     - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
-     - install -d /app/extensions/Plugins
-     - install -d /app/lib/ffmpeg
-
+    post-install:
+      - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
+      - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
+      - install -d /app/extensions/Plugins
+      - install -d /app/lib/ffmpeg
