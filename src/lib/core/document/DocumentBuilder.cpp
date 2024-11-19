@@ -193,7 +193,10 @@ Document* DocumentBuilder::restoreDocument(
           [doc](score::Command* cmd) {
         try
         {
+          qDebug() << ".. replaying: " << cmd->key().toString().c_str()
+                   << cmd->description();
           cmd->redo(doc->context());
+          qApp->processEvents();
           return true;
         }
         catch(...)
