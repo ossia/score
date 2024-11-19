@@ -95,12 +95,27 @@ void ScenarioDocumentModel::finishLoading()
     auto cbl = new Process::Cable{DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
     auto snk = cbl->sink().try_find(m_context);
-    if(src && snk && (cables.find(cbl->id()) == cables.end()))
+    if(src && snk )
     {
-      src->addCable(*cbl);
-      snk->addCable(*cbl);
+      if(auto it = cables.find(cbl->id()); it != cables.end())
+      {
+        Process::Cable& ccbl = *it;
+        // qDebug() << "warning : cable already exists";
+        // qDebug() << "Existing: " << ccbl.source().unsafePath().toString()
+        //          << ccbl.sink().unsafePath().toString();
+        // qDebug() << "New: " << cbl->source().unsafePath().toString()
+        //          << cbl->sink().unsafePath().toString();
+        // qDebug() << "?? " << ossia::contains(src->cables(), make_path(ccbl))
+        //          << ossia::contains(snk->cables(), make_path(ccbl));
+        delete cbl;
+      }
+      else
+      {
+        src->addCable(*cbl);
+        snk->addCable(*cbl);
 
-      cables.add(cbl);
+        cables.add(cbl);
+      }
     }
     else
     {
