@@ -200,21 +200,43 @@ struct GenericMathMapping
       int size, value_output_callback& output, const std::string& expr,
       const halp::tick_flicks& tk, State& self)
   {
-    resize(expr, self, size);
+    if(size <= 1
+       || (expr.find(":=") != std::string::npos && expr.find("po") != std::string::npos))
+    {
+      resize(expr, self, size);
 
-    setMathExpressionTiming(
-        self, tk.start_in_flicks, self.last_value_time, tk.relative_position);
-    self.last_value_time = tk.start_in_flicks;
+      setMathExpressionTiming(
+          self, tk.start_in_flicks, self.last_value_time, tk.relative_position);
+      self.last_value_time = tk.start_in_flicks;
 
-    GenericMathMapping::exec_polyphonic(self, output);
+      GenericMathMapping::exec_polyphonic(self, output);
 
-    std::vector<ossia::value> res;
-    res.resize(self.expressions.size());
-    for(int i = 0; i < self.expressions.size(); i++)
-      res[i] = (float)self.expressions[i].po;
+      std::vector<ossia::value> res;
+      res.resize(self.expressions.size());
+      for(int i = 0; i < self.expressions.size(); i++)
+        res[i] = (float)self.expressions[i].po;
+      // Combine
+      output(std::move(res));
+    }
+    else
+    {
+      resize(expr, self, 1);
+      setMathExpressionTiming(
+          self, tk.start_in_flicks, self.last_value_time, tk.relative_position);
+      self.last_value_time = tk.start_in_flicks;
 
-    // Combine
-    output(std::move(res));
+      std::vector<ossia::value> res;
+      res.resize(size);
+      for(int i = 0; i < size; i++)
+      {
+        auto& e = self.expressions[0];
+        e.instance = i;
+        res[i] = e.expr.result();
+
+        // po isn't used either store_output(e, res);
+      }
+      output(std::move(res));
+    }
   }
 
   static void run_polyphonic(
