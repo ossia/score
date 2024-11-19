@@ -383,6 +383,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/command/CommandGeneratorMap.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/command/PropertyCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Validity/ValidityChecker.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/SendStrategy.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorInterpolator.cpp"

@@ -192,7 +192,10 @@ Document* DocumentBuilder::restoreDocument(
         ctx.components, writer, doc->commandStack(), [doc](score::Command* cmd) {
       try
       {
+        qDebug() << ".. replaying: " << cmd->key().toString().c_str()
+                 << cmd->description();
         cmd->redo(doc->context());
+        qApp->processEvents();
         return true;
       }
       catch(...)

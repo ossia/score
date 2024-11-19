@@ -3,6 +3,7 @@
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 
 #include <Audio/AudioTick.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
@@ -16,7 +17,6 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 
 #include <Transport/TransportInterface.hpp>
-
 namespace Execution
 {
 
