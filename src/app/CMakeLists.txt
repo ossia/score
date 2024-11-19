@@ -83,7 +83,7 @@ if(SCORE_STATIC_PLUGINS)
 endif()
 
 if(TARGET snmalloc)
-  target_link_libraries(${APPNAME} PUBLIC snmalloc)
+  target_link_libraries(${APPNAME} PUBLIC snmalloc snmallocshim-static)
 endif()
 
 target_compile_definitions(${APPNAME} PUBLIC
