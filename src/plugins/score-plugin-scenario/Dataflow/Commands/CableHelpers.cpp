@@ -51,7 +51,9 @@ getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
   {
     for(auto& cbl : p->cables())
     {
-      cables.push_back(&cbl.find(ctx));
+      auto* c = &cbl.find(ctx);
+      if(!ossia::contains(cables, c))
+        cables.push_back(c);
     }
   }
 
@@ -83,7 +85,12 @@ SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
     for(auto& cbl : p->cables())
     {
       Process::Cable& c = cbl.find(ctx);
-      cables.push_back({c.id(), c.toCableData()});
+      auto it
+          = ossia::find_if(cables, [&c](auto& pair) { return pair.first == c.id(); });
+      if(it == cables.end())
+      {
+        cables.push_back({c.id(), c.toCableData()});
+      }
     }
   }
 
