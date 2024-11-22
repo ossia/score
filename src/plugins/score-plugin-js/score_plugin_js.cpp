@@ -13,6 +13,7 @@
 #include <JS/JSProcessFactory.hpp>
 #include <JS/LibraryHandler.hpp>
 #include <JS/Qml/AddressItem.hpp>
+#include <JS/Qml/DeviceEnumerator.hpp>
 #include <JS/Qml/PortSource.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/Utils.hpp>
@@ -76,12 +77,14 @@ score_plugin_js::score_plugin_js()
 
   qmlRegisterType<JS::AddressSource>("Score", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score", 1, 0, "PortSource");
+  qmlRegisterType<JS::GlobalDeviceEnumerator>("Score", 1, 0, "DeviceEnumerator");
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 
   qRegisterMetaType<JS::SampleTimings>();
   qRegisterMetaType<JS::TokenRequestValueType>();
   qRegisterMetaType<JS::ExecutionStateValueType>();
+  //qRegisterMetaType<JS::GlobalDeviceEnumerator>();
 }
 
 score_plugin_js::~score_plugin_js() = default;

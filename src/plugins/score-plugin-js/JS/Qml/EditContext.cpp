@@ -119,5 +119,4 @@ QVariantList EditJsContext::selectedObjects()
     list.push_back(QVariant::fromValue(c.data()));
   return list;
 }
-
 }

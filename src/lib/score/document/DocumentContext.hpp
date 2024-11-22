@@ -72,3 +72,6 @@ protected:
 
 using MaybeDocument = const score::DocumentContext*;
 }
+
+W_REGISTER_ARGTYPE(score::DocumentContext*)
+W_REGISTER_ARGTYPE(const score::DocumentContext*)

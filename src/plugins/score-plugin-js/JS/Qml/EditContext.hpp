@@ -15,9 +15,9 @@ namespace Scenario::Command
 {
 class Macro;
 }
-
 namespace JS
 {
+class GlobalDeviceEnumerator;
 class EditJsContext : public QObject
 {
   W_OBJECT(EditJsContext)
@@ -39,6 +39,7 @@ public:
   ~EditJsContext();
 
   const score::DocumentContext* ctx();
+  W_INVOKABLE(ctx);
 
   QString deviceToJson(QString addr);
   W_SLOT(deviceToJson)
@@ -51,6 +52,9 @@ public:
 
   void createQMLSerialDevice(QString name, QString port, QString text);
   W_SLOT(createQMLSerialDevice)
+
+  GlobalDeviceEnumerator* enumerateDevices();
+  W_SLOT(enumerateDevices)
 
   void createAddress(QString addr, QString type);
   W_SLOT(createAddress)
@@ -216,3 +220,4 @@ private:
 
 W_REGISTER_ARGTYPE(QVector<QVariantList>)
 W_REGISTER_ARGTYPE(QList<QObject*>)
+W_REGISTER_ARGTYPE(JS::GlobalDeviceEnumerator*)

@@ -1,5 +1,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <JS/Qml/DeviceEnumerator.hpp>
 #include <JS/Qml/EditContext.hpp>
 
 #include <ossia-config.hpp>
@@ -25,6 +26,17 @@
 #include <ossia/preset/preset.hpp>
 namespace JS
 {
+GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+
+  auto e = new GlobalDeviceEnumerator{};
+  e->setContext(doc);
+  // e->setEnumerate(true);
+  return e;
+}
 
 void EditJsContext::createOSCDevice(QString name, QString host, int in, int out)
 { /*
