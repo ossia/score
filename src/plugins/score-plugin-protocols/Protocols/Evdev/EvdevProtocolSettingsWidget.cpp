@@ -15,6 +15,8 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/string_algorithms.hpp>
 
+#include <ossia-qt/name_utils.hpp>
+
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDirIterator>

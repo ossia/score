@@ -1,4 +1,6 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
+
 #include <QList>
 #include <QObject>
 #include <QVariant>

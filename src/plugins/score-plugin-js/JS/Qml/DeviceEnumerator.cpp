@@ -5,6 +5,8 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::GlobalDeviceEnumerator)
 namespace JS
