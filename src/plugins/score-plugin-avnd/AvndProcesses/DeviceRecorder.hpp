@@ -400,7 +400,16 @@ public:
     return result;
   }
 
-  size_t cols() const { return header().length(); }
+  size_t cols() const
+  {
+    const auto& h = header();
+    int n = 0;
+    for(const auto& e : h)
+    {
+      n++;
+    }
+    return n;
+  }
 };
 }
 
