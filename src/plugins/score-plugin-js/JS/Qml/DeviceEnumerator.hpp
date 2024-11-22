@@ -26,9 +26,12 @@ struct DeviceIdentifier
 {
   W_GADGET(DeviceIdentifier)
 public:
-  QString name;
-  Device::DeviceSettings settings;
+  QString name{};
+  Device::DeviceSettings settings{};
   Device::ProtocolFactory* protocol{};
+
+  W_PROPERTY(QString, MEMBER name)
+  W_PROPERTY(Device::DeviceSettings, MEMBER settings)
 };
 
 class GlobalDeviceEnumerator : public QObject
