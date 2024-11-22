@@ -121,6 +121,8 @@ QString ProcessModel::prettyName() const noexcept
       return pretty_name + " -> " + port_name;
   }
 
+  if(!pretty_name.isEmpty())
+    return pretty_name;
   return QStringLiteral("Automation");
 }
 
