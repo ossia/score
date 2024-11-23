@@ -158,7 +158,6 @@ static const ossia::static_flat_map<unsigned, std::string_view, KEY_CNT> keys = 
     NAME_ELEMENT(KEY_PROG2),
     NAME_ELEMENT(KEY_WWW),
     NAME_ELEMENT(KEY_MSDOS),
-    NAME_ELEMENT(KEY_COFFEE),
     NAME_ELEMENT(KEY_DIRECTION),
     NAME_ELEMENT(KEY_CYCLEWINDOWS),
     NAME_ELEMENT(KEY_MAIL),
@@ -348,10 +347,6 @@ static const ossia::static_flat_map<unsigned, std::string_view, KEY_CNT> keys = 
     NAME_ELEMENT(KEY_PICKUP_PHONE),
     NAME_ELEMENT(KEY_HANGUP_PHONE),
 #endif
-    NAME_ELEMENT(KEY_DEL_EOL),
-    NAME_ELEMENT(KEY_DEL_EOS),
-    NAME_ELEMENT(KEY_INS_LINE),
-    NAME_ELEMENT(KEY_DEL_LINE),
     NAME_ELEMENT(KEY_FN),
     NAME_ELEMENT(KEY_FN_ESC),
     NAME_ELEMENT(KEY_FN_F1),
@@ -732,7 +727,6 @@ static const ossia::static_flat_map<unsigned, std::string_view, KEY_CNT> keys = 
 
 #ifdef KEY_KBD_LCD_MENU1
     NAME_ELEMENT(KEY_KBD_LCD_MENU1),
-    NAME_ELEMENT(KEY_KBD_LCD_MENU2),
     NAME_ELEMENT(KEY_KBD_LCD_MENU2),
     NAME_ELEMENT(KEY_KBD_LCD_MENU3),
     NAME_ELEMENT(KEY_KBD_LCD_MENU4),
