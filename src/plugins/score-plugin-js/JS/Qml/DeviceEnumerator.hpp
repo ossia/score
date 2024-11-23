@@ -22,16 +22,24 @@ class DeviceEnumerator;
 
 namespace JS
 {
-struct DeviceIdentifier
+struct DeviceIdentifier : public QObject
 {
-  W_GADGET(DeviceIdentifier)
+  W_OBJECT(DeviceIdentifier)
 public:
-  QString name{};
-  Device::DeviceSettings settings{};
+  explicit DeviceIdentifier(
+      QString a, Device::DeviceSettings b, Device::ProtocolFactory* c)
+      : name{std::move(a)}
+      , settings{std::move(b)}
+      , protocol{c}
+  {
+  }
+  QString name;
+  Device::DeviceSettings settings;
   Device::ProtocolFactory* protocol{};
 
-  W_PROPERTY(QString, MEMBER name)
-  W_PROPERTY(Device::DeviceSettings, MEMBER settings)
+  W_PROPERTY(QString, name MEMBER name)
+  W_PROPERTY(Device::DeviceSettings, settings MEMBER settings)
+  W_PROPERTY(Device::ProtocolFactory*, protocol MEMBER protocol)
 };
 
 class GlobalDeviceEnumerator : public QObject

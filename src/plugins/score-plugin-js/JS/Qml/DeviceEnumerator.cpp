@@ -9,6 +9,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::GlobalDeviceEnumerator)
+W_OBJECT_IMPL(JS::DeviceIdentifier)
 namespace JS
 {
 /**
@@ -33,20 +34,24 @@ void GlobalDeviceEnumerator::setContext(const score::DocumentContext* doc)
 
 QQmlListProperty<DeviceIdentifier> GlobalDeviceEnumerator::devices()
 {
+  using CountFunction = QQmlListProperty<DeviceIdentifier>::CountFunction;
+  using AtFunction = QQmlListProperty<DeviceIdentifier>::AtFunction;
 
-  return QQmlListProperty<DeviceIdentifier>(
-      this, nullptr, [](QQmlListProperty<DeviceIdentifier>* d) -> long long {
-    qDebug() << "sz: " << ((GlobalDeviceEnumerator*)d->object)->m_raw_list.size();
+  CountFunction count = +[](QQmlListProperty<DeviceIdentifier>* d) -> qsizetype {
     return ((GlobalDeviceEnumerator*)d->object)->m_raw_list.size();
-  }, [](QQmlListProperty<DeviceIdentifier>* d, qsizetype index) -> DeviceIdentifier* {
+  };
+  AtFunction at = +[](QQmlListProperty<DeviceIdentifier>* d,
+                      qsizetype index) -> DeviceIdentifier* {
     auto self = (GlobalDeviceEnumerator*)d->object;
-    qDebug() << "sz: " << self->m_raw_list.size() << " => " << index;
-    if(index >= 0 && index < self->m_raw_list.size())
+    if(index >= 0 && index < std::ssize(self->m_raw_list))
       return self->m_raw_list[index];
     else
       return nullptr;
-  });
+  };
+
+  return QQmlListProperty<DeviceIdentifier>(this, nullptr, count, at);
 }
+
 void GlobalDeviceEnumerator::setEnumerate(bool b)
 {
   if(m_enumerate == b)
@@ -67,6 +72,9 @@ void GlobalDeviceEnumerator::reprocess()
   }
   this->m_current_enums.clear();
   this->m_known_devices.clear();
+  for(auto d : m_raw_list)
+    delete d;
+  m_raw_list.clear();
 
   if(!this->doc)
     return;
@@ -85,8 +93,7 @@ void GlobalDeviceEnumerator::reprocess()
            proto = &protocol](const QString& name, const Device::DeviceSettings& devs) {
         this->deviceAdded(proto, name, devs);
         this->m_known_devices[proto].emplace_back(name, devs);
-        m_raw_list.push_back(
-            new DeviceIdentifier{.name = name, .settings = devs, .protocol = proto});
+        m_raw_list.push_back(new DeviceIdentifier{name, devs, proto});
       },
           Qt::QueuedConnection);
       connect(
