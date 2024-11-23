@@ -1,3 +1,7 @@
+if(SCORE_DISABLE_SNMALLOC)
+  return()
+endif()
+
 if(EMSCRIPTEN)
   return()
 endif()
