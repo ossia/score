@@ -537,6 +537,7 @@ struct DeviceRecorder : PatternObject
     std::string filename;
     std::vector<ossia::net::node_base*> roots;
     std::chrono::steady_clock::time_point first_ts;
+    int64_t nots_index{};
 
     // FIXME boost::multi_array
     boost::container::flat_map<int, ossia::net::parameter_base*> m_map;
@@ -731,10 +732,9 @@ struct DeviceRecorder : PatternObject
           return;
 
         using namespace std::chrono;
-        auto ts = duration_cast<milliseconds>(steady_clock::now() - first_ts).count();
-        if(loops && ts >= std::ssize(m_vec_no_ts))
-          ts = 0;
-        read_no_ts(ts);
+        if(loops && nots_index >= std::ssize(m_vec_no_ts))
+          nots_index = 0;
+        read_no_ts(nots_index++);
       }
     }
 
