@@ -1409,7 +1409,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::Bargraph& p)
 {
-  read((const Process::ControlInlet&)p);
+  read((const Process::ControlOutlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -1420,7 +1420,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONReader::read(const Process::Bargraph& p)
 {
-  read((const Process::ControlInlet&)p);
+  read((const Process::ControlOutlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Bargraph& p)
