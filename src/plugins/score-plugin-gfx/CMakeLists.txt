@@ -243,7 +243,13 @@ set(SRCS
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.parser.c"
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.lexer.c"
 )
-
+set_source_files_properties(
+    "${3RDPARTY_FOLDER}/glsl-parser/glsl_ast.c"
+    "${3RDPARTY_FOLDER}/glsl-parser/glsl.parser.c"
+    "${3RDPARTY_FOLDER}/glsl-parser/glsl.lexer.c"
+    PROPERTIES
+      SKIP_PRECOMPILE_HEADERS ON
+)
 
 # Creation of the library
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
