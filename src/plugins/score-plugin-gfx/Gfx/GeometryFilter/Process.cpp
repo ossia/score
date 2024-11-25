@@ -14,7 +14,6 @@
 #include <QFileInfo>
 
 #include <wobjectimpl.h>
-
 W_OBJECT_IMPL(Gfx::GeometryFilter::Model)
 
 namespace Gfx::GeometryFilter
@@ -98,7 +97,7 @@ void main()
   vec3 in_tangent = vec3(0);
   vec4 in_color = vec4(1);
 
-  process_vertex(in_position, in_normal, in_uv, in_tangent, in_color);
+  process_vertex_0(in_position, in_normal, in_uv, in_tangent, in_color);
 
   gl_Position.xyz = in_position;
 }
@@ -107,9 +106,13 @@ void main()
   try
   {
     QString processed = txt;
-    isf::parser p{processed.toStdString()};
+
+    // 1. Process the glsl and prefix all the functions
+    std::string str = processed.toStdString();
+
+    isf::parser p{str};
     auto res = p.geometry_filter();
-    auto r= QString::fromStdString(res);
+    auto r = QString::fromStdString(res);
     r.replace("%next%", "4");
     r.replace("%node%", "0");
 
@@ -177,6 +180,7 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
     try
     {
       m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
+
       isf::parser p{processed.toStdString()};
       m_processedProgram.descriptor = p.data();
       m_processedProgram.shader = QString::fromStdString(p.geometry_filter());
@@ -194,34 +198,29 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
 
 void Model::loadPreset(const Process::Preset& preset)
 {
-  /*
   const rapidjson::Document doc = readJson(preset.data);
   if(!doc.IsObject())
     return;
   auto obj = doc.GetObject();
-  if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
+  if(!obj.HasMember("Shader"))
     return;
-  auto frag = obj["Fragment"].GetString();
-  auto vert = obj["Vertex"].GetString();
-  this->setProgram(ShaderSource{vert, frag});
+
+  this->setScript(obj["Shader"].GetString());
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
-*/
 }
 
 Process::Preset Model::savePreset() const noexcept
 {
   Process::Preset p;
-  /*
   p.name = this->metadata().getName();
   p.key.key = this->concreteKey();
 
   JSONReader r;
   {
     r.stream.StartObject();
-    r.obj["Fragment"] = this->m_program.fragment;
-    r.obj["Vertex"] = this->m_program.vertex;
+    r.obj["Shader"] = this->m_script;
 
     r.stream.Key("Controls");
     Process::saveFixedControls(r, *this);
@@ -229,7 +228,6 @@ Process::Preset Model::savePreset() const noexcept
   }
 
   p.data = r.toByteArray();
-*/
   return p;
 }
 QString Model::prettyName() const noexcept

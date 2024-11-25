@@ -101,7 +101,6 @@ public:
   QString update_shader(QString cur)
   {
     cur.replace("%node%", QString::number(index));
-    cur.replace("process_vertex", "process_vertex_" + QString::number(index));
     m_shader = cur.toStdString();
     return cur;
   }

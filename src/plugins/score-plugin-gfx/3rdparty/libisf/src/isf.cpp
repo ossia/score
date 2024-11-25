@@ -2,6 +2,8 @@
 
 #include "sajson.h"
 
+#include <ossia/detail/flat_set.hpp>
+
 #include <boost/algorithm/string.hpp>
 
 #include <array>
@@ -10,6 +12,12 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
+
+extern "C" {
+#include <glsl-parser/glsl_ast.h>
+#include <glsl-parser/glsl_parser.h>
+}
+
 namespace isf
 {
 namespace
@@ -677,6 +685,56 @@ std::string parser::parse_isf_header(std::string_view source)
   return fragWithoutISF;
 }
 
+static ossia::flat_set<std::string>
+extract_glsl_function_definitions(std::string_view str)
+{
+  struct glsl_parse_context context;
+
+  glsl_parse_context_init(&context);
+
+  // :upside-down-face:
+  ossia::flat_set<std::string> defs;
+  bool error = glsl_parse_string(&context, str.data());
+  if(!error && context.root && context.root->code == TRANSLATION_UNIT)
+  {
+    for(int trans_i = 0; trans_i < context.root->child_count; trans_i++)
+    {
+      if(context.root->children[trans_i]->code == FUNCTION_DEFINITION)
+      {
+        auto fdef = context.root->children[trans_i];
+        for(int fdef_i = 0; fdef_i < fdef->child_count; fdef_i++)
+        {
+          if(fdef->children[fdef_i]->code == FUNCTION_DECLARATION)
+          {
+            auto fdecl = fdef->children[fdef_i];
+            for(int fdecl_i = 0; fdecl_i < fdecl->child_count; fdecl_i++)
+            {
+              if(fdecl->children[fdecl_i]->code == FUNCTION_HEADER)
+              {
+                auto fhead = fdecl->children[fdecl_i];
+                for(int fhead_i = 0; fhead_i < fhead->child_count; fhead_i++)
+                {
+                  if(fhead->children[fhead_i]->code == IDENTIFIER)
+                  {
+                    auto identifier = fhead->children[fhead_i];
+                    defs.insert(identifier->data.str);
+                    break;
+                  }
+                }
+                break;
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+  glsl_parse_context_destroy(&context);
+
+  return defs;
+}
+
 void parser::parse_geometry_filter()
 {
   using namespace std::literals;
@@ -690,7 +748,11 @@ void parser::parse_geometry_filter()
   }
 
   boost::algorithm::trim(geomWithoutISF);
+  auto funcs = extract_glsl_function_definitions(geomWithoutISF);
   boost::algorithm::replace_all(geomWithoutISF, "this_filter", "filter_%node%");
+
+  for(auto& func : funcs)
+    boost::algorithm::replace_all(geomWithoutISF, func, func + "_%node%");
 
   std::string filter_ubo;
   if(!m_desc.inputs.empty())
