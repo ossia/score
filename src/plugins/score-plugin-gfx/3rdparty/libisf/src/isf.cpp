@@ -17,6 +17,7 @@ extern "C" {
 #include <glsl-parser/glsl_ast.h>
 #include <glsl-parser/glsl_parser.h>
 }
+#include <glsl-parser/glsl_tokens.hpp>
 
 namespace isf
 {
@@ -695,26 +696,28 @@ extract_glsl_function_definitions(std::string_view str)
   // :upside-down-face:
   ossia::flat_set<std::string> defs;
   bool error = glsl_parse_string(&context, str.data());
-  if(!error && context.root && context.root->code == TRANSLATION_UNIT)
+  if(!error && context.root
+     && context.root->code == (int)glsl_tokentype::TRANSLATION_UNIT)
   {
     for(int trans_i = 0; trans_i < context.root->child_count; trans_i++)
     {
-      if(context.root->children[trans_i]->code == FUNCTION_DEFINITION)
+      if(context.root->children[trans_i]->code
+         == (int)glsl_tokentype::FUNCTION_DEFINITION)
       {
         auto fdef = context.root->children[trans_i];
         for(int fdef_i = 0; fdef_i < fdef->child_count; fdef_i++)
         {
-          if(fdef->children[fdef_i]->code == FUNCTION_DECLARATION)
+          if(fdef->children[fdef_i]->code == (int)glsl_tokentype::FUNCTION_DECLARATION)
           {
             auto fdecl = fdef->children[fdef_i];
             for(int fdecl_i = 0; fdecl_i < fdecl->child_count; fdecl_i++)
             {
-              if(fdecl->children[fdecl_i]->code == FUNCTION_HEADER)
+              if(fdecl->children[fdecl_i]->code == (int)glsl_tokentype::FUNCTION_HEADER)
               {
                 auto fhead = fdecl->children[fdecl_i];
                 for(int fhead_i = 0; fhead_i < fhead->child_count; fhead_i++)
                 {
-                  if(fhead->children[fhead_i]->code == IDENTIFIER)
+                  if(fhead->children[fhead_i]->code == (int)glsl_tokentype::IDENTIFIER)
                   {
                     auto identifier = fhead->children[fhead_i];
                     defs.insert(identifier->data.str);
