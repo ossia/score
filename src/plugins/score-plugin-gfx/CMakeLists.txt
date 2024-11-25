@@ -249,6 +249,7 @@ set_source_files_properties(
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.lexer.c"
     PROPERTIES
       SKIP_PRECOMPILE_HEADERS ON
+      SKIP_UNITY_BUILD_INCLUSION ON
 )
 
 # Creation of the library
