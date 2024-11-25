@@ -21,7 +21,7 @@ class DropPresetInInterval final : public IntervalDropHandler
 public:
   static void perform(
       const IntervalModel& interval, const score::DocumentContext& doc,
-      Scenario::Command::Macro& m, const QByteArray& presetData);
+      Scenario::Command::Macro& m, const QByteArray& presetData, QPointF pos);
 };
 
 }

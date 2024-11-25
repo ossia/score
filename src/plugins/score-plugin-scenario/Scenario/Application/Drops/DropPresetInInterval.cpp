@@ -24,19 +24,19 @@ namespace Scenario
 
 void DropPresetInInterval::perform(
     const IntervalModel& interval, const score::DocumentContext& ctx,
-    Scenario::Command::Macro& m, const QByteArray& presetData)
+    Scenario::Command::Macro& m, const QByteArray& presetData, QPointF pos)
 {
   auto& procs = ctx.app.interfaces<Process::ProcessFactoryList>();
   if(auto preset = Process::Preset::fromJson(procs, presetData))
   {
     // Finally we show the newly created rack
-    m.loadProcessFromPreset(interval, *preset);
+    m.loadProcessFromPreset(interval, *preset, pos);
     m.showRack(interval);
   }
 }
 
 bool DropPresetInInterval::drop(
-    const score::DocumentContext& ctx, const IntervalModel& interval, QPointF p,
+    const score::DocumentContext& ctx, const IntervalModel& interval, QPointF pos,
     const QMimeData& mime)
 {
   if(mime.formats().contains(score::mime::processpreset()))
@@ -44,7 +44,7 @@ bool DropPresetInInterval::drop(
     Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
 
     const auto json = mime.data(score::mime::processpreset());
-    perform(interval, ctx, m, json);
+    perform(interval, ctx, m, json, pos);
     m.commit();
     return true;
   }
@@ -58,7 +58,7 @@ bool DropPresetInInterval::drop(
       if(QFile f{path}; QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
       {
         ok = true;
-        perform(interval, ctx, m, score::mapAsByteArray(f));
+        perform(interval, ctx, m, score::mapAsByteArray(f), pos);
       }
     }
 
