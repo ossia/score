@@ -114,10 +114,15 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
   if(const auto& [processed, error] = ProgramCache::instance().get(api, version, f);
      bool(processed))
   {
+    ossia::flat_map<QString, ossia::value> previous_values;
+    for(auto inl : m_inlets)
+      if(auto control = qobject_cast<Process::ControlInlet*>(inl))
+        previous_values.emplace(control->name(), control->value());
+
     auto inls = score::clearAndDeleteLater(m_inlets);
     m_processedProgram = *processed;
 
-    setupIsf(m_processedProgram.descriptor);
+    setupIsf(m_processedProgram.descriptor, previous_values);
     return {.valid = true, .inlets = std::move(inls)};
   }
   return {};
@@ -165,7 +170,9 @@ QString Model::prettyName() const noexcept
   return tr("GFX Filter");
 }
 
-void Model::setupIsf(const isf::descriptor& desc)
+void Model::setupIsf(
+    const isf::descriptor& desc,
+    const ossia::flat_map<QString, ossia::value>& previous_values)
 {
   /*
   {
@@ -184,23 +191,30 @@ void Model::setupIsf(const isf::descriptor& desc)
   using namespace isf;
   struct input_vis
   {
+    const ossia::flat_map<QString, ossia::value>& previous_values;
     const isf::input& input;
     const int i;
     Model& self;
 
     Process::Inlet* operator()(const float_input& v)
     {
+      auto nm = QString::fromStdString(input.name);
       auto port = new Process::FloatSlider(
           v.min, v.max, v.def, QString::fromStdString(input.name), Id<Process::Port>(i),
           &self);
 
       self.m_inlets.push_back(port);
+      if(auto it = previous_values.find(nm);
+         it != previous_values.end() && it->second.get_type() == ossia::val_type::FLOAT)
+        port->setValue(it->second);
+
       self.controlAdded(port->id());
       return port;
     }
 
     Process::Inlet* operator()(const long_input& v)
     {
+      auto nm = QString::fromStdString(input.name);
       std::vector<std::pair<QString, ossia::value>> alternatives;
       std::size_t value_idx = 0;
       for(; value_idx < v.values.size() && value_idx < v.labels.size(); value_idx++)
@@ -217,8 +231,12 @@ void Model::setupIsf(const isf::descriptor& desc)
       }
 
       auto port = new Process::ComboBox(
-          std::move(alternatives), (int)v.def, QString::fromStdString(input.name),
-          Id<Process::Port>(i), &self);
+          std::move(alternatives), (int)v.def, nm, Id<Process::Port>(i), &self);
+
+      if(auto it = previous_values.find(nm);
+         it != previous_values.end()
+         && it->second.get_type() == port->value().get_type())
+        port->setValue(it->second);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -227,8 +245,8 @@ void Model::setupIsf(const isf::descriptor& desc)
 
     Process::Inlet* operator()(const event_input& v)
     {
-      auto port = new Process::Button(
-          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+      auto nm = QString::fromStdString(input.name);
+      auto port = new Process::Button(nm, Id<Process::Port>(i), &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -236,8 +254,13 @@ void Model::setupIsf(const isf::descriptor& desc)
     }
     Process::Inlet* operator()(const bool_input& v)
     {
-      auto port = new Process::Toggle(
-          v.def, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+      auto nm = QString::fromStdString(input.name);
+      auto port = new Process::Toggle(v.def, nm, Id<Process::Port>(i), &self);
+
+      if(auto it = previous_values.find(nm);
+         it != previous_values.end()
+         && it->second.get_type() == port->value().get_type())
+        port->setValue(it->second);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -245,6 +268,7 @@ void Model::setupIsf(const isf::descriptor& desc)
     }
     Process::Inlet* operator()(const point2d_input& v)
     {
+      auto nm = QString::fromStdString(input.name);
       ossia::vec2f min{0., 0.};
       ossia::vec2f max{1., 1.};
       ossia::vec2f init{0.5, 0.5};
@@ -254,13 +278,13 @@ void Model::setupIsf(const isf::descriptor& desc)
         std::copy_n(v.min->begin(), 2, min.begin());
       if(v.max)
         std::copy_n(v.max->begin(), 2, max.begin());
-      auto port = new Process::XYSpinboxes{min,
-                                           max,
-                                           init,
-                                           false,
-                                           QString::fromStdString(input.name),
-                                           Id<Process::Port>(i),
-                                           &self};
+      auto port = new Process::XYSpinboxes{
+          min, max, init, false, nm, Id<Process::Port>(i), &self};
+
+      if(auto it = previous_values.find(nm);
+         it != previous_values.end()
+         && it->second.get_type() == port->value().get_type())
+        port->setValue(it->second);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -269,7 +293,23 @@ void Model::setupIsf(const isf::descriptor& desc)
 
     Process::Inlet* operator()(const point3d_input& v)
     {
-      auto port = new Process::ControlInlet{Id<Process::Port>(i), &self};
+      auto nm = QString::fromStdString(input.name);
+      ossia::vec3f min{0., 0., 0.};
+      ossia::vec3f max{1., 1., 1.};
+      ossia::vec3f init{0.5, 0.5, 0.5};
+      if(v.def)
+        std::copy_n(v.def->begin(), 3, init.begin());
+      if(v.min)
+        std::copy_n(v.min->begin(), 3, min.begin());
+      if(v.max)
+        std::copy_n(v.max->begin(), 3, max.begin());
+      auto port
+          = new Process::XYZSpinboxes{min, max, init, nm, Id<Process::Port>(i), &self};
+
+      if(auto it = previous_values.find(nm);
+         it != previous_values.end()
+         && it->second.get_type() == port->value().get_type())
+        port->setValue(it->second);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -278,6 +318,7 @@ void Model::setupIsf(const isf::descriptor& desc)
 
     Process::Inlet* operator()(const color_input& v)
     {
+      auto nm = QString::fromStdString(input.name);
       ossia::vec4f init{0.5, 0.5, 0.5, 1.};
       if(v.def)
       {
@@ -285,6 +326,11 @@ void Model::setupIsf(const isf::descriptor& desc)
       }
       auto port = new Process::HSVSlider(
           init, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+
+      if(auto it = previous_values.find(nm);
+         it != previous_values.end()
+         && it->second.get_type() == port->value().get_type())
+        port->setValue(it->second);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -312,7 +358,7 @@ void Model::setupIsf(const isf::descriptor& desc)
 
   for(const isf::input& input : desc.inputs)
   {
-    ossia::visit(input_vis{input, i, *this}, input.data);
+    ossia::visit(input_vis{previous_values, input, i, *this}, input.data);
     i++;
   }
 

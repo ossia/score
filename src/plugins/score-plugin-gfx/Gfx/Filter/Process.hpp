@@ -63,7 +63,9 @@ public:
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
-  void setupIsf(const isf::descriptor& d);
+  void setupIsf(
+      const isf::descriptor& d,
+      const ossia::flat_map<QString, ossia::value>& previous_values);
   //void setupNormalShader();
   QString prettyName() const noexcept override;
 

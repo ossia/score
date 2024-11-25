@@ -106,7 +106,7 @@ void main()
 
   try
   {
-    QString processed = m_script;
+    QString processed = txt;
     isf::parser p{processed.toStdString()};
     auto res = p.geometry_filter();
     auto r= QString::fromStdString(res);

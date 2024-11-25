@@ -40,7 +40,16 @@ public:
 
     index = ++filter_index;
     this->m_last_input_filters = {};
+
+    for(int i = 0, n = std::ssize(controls); i < n; i++)
+    {
+      auto& ctl = controls[i];
+      ctl->port->write_value(ctl->value, 0);
+    }
+
     auto n = std::make_unique<score::gfx::GeometryFilterNode>(isf, update_shader(vert));
+    auto msg = create_message();
+    n->process(std::move(msg)); // note: node_id is incorrect at that point, it's ok
 
     id = exec_context->ui->register_node(std::move(n));
   }
@@ -49,34 +58,12 @@ public:
 
   std::string label() const noexcept override { return "Gfx::GeometryFilter_node"; }
 
-  QString update_shader(QString cur)
+  score::gfx::Message create_message()
   {
-    cur.replace("%node%", QString::number(index));
-    cur.replace("process_vertex", "process_vertex_" + QString::number(index));
-    m_shader = cur.toStdString();
-    return cur;
-  }
-  void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept override
-  {
-    m_last_flicks = tk.date;
-    {
-      // Copy all the UI controls
-      const int n = std::ssize(controls);
-      for(int i = 0; i < n; i++)
-      {
-        auto& ctl = controls[i];
-        if(ctl->changed)
-        {
-          ctl->port->write_value(ctl->value, 0);
-          ctl->changed = false;
-        }
-      }
-    }
-
     score::gfx::Message msg = exec_context->allocateMessage(this->m_inlets.size() + 1);
     msg.node_id = id;
-    msg.token.date = tk.date;
-    msg.token.parent_duration = tk.parent_duration;
+    msg.token.date = m_last_req.date;
+    msg.token.parent_duration = m_last_req.parent_duration;
     msg.input.resize(this->m_inlets.size());
     int inlet_i = 0;
     for(ossia::inlet* inlet : this->m_inlets)
@@ -108,8 +95,35 @@ public:
 
       inlet_i++;
     }
+    return msg;
+  }
 
-    exec_context->ui->send_message(std::move(msg));
+  QString update_shader(QString cur)
+  {
+    cur.replace("%node%", QString::number(index));
+    cur.replace("process_vertex", "process_vertex_" + QString::number(index));
+    m_shader = cur.toStdString();
+    return cur;
+  }
+  void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept override
+  {
+    m_last_req = tk;
+    m_last_flicks = tk.date;
+    {
+      // Copy all the UI controls
+      const int n = std::ssize(controls);
+      for(int i = 0; i < n; i++)
+      {
+        auto& ctl = controls[i];
+        if(ctl->changed)
+        {
+          ctl->port->write_value(ctl->value, 0);
+          ctl->changed = false;
+        }
+      }
+    }
+
+    exec_context->ui->send_message(create_message());
 
     SCORE_ASSERT(this->m_inlets.size() > 0);
     SCORE_ASSERT(this->m_inlets[0]->target<ossia::geometry_port>());
@@ -156,6 +170,7 @@ public:
   ossia::geometry_filter_list_ptr m_last_input_filters;
   int64_t m_dirty{-1};
   int64_t m_last_index{-1};
+  ossia::token_request m_last_req{};
 };
 
 ProcessExecutorComponent::ProcessExecutorComponent(
