@@ -314,6 +314,8 @@ add_library(
 target_include_directories(score_plugin_avnd
   PUBLIC
     "${AVND_FOLDER}/include"
+  PRIVATE
+    "$<BUILD_INTERFACE:${3RDPARTY_FOLDER}/csv2/include>"
 )
 target_link_libraries(score_plugin_avnd
   PUBLIC
