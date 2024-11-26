@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdio.h>
-
+#define YY_NO_UNISTD_H 1
 struct glsl_node {
 	//Type of this node. These values are all members of the enum
 	int code:16;

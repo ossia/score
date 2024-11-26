@@ -729,7 +729,7 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 270 "glsl.lex"
+#line 273 "glsl.lex"
 
 
 #line 735 "glsl.lexer.h"

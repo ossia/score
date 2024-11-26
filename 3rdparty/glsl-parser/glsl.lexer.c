@@ -1104,6 +1104,8 @@ static const flex_int32_t yy_rule_can_match_eol[216] =
 #include <stdbool.h>
 #include <string.h>
 
+#define YY_NO_UNISTD_H
+
 #define YYSTYPE GLSL_STYPE
 #define YYLTYPE GLSL_LTYPE
 
@@ -1123,9 +1125,10 @@ static const flex_int32_t yy_rule_can_match_eol[216] =
 #include "glsl_parser.h"
 #include "glsl.parser.h"
 
-#line 1126 "glsl.lexer.c"
-
 #line 1128 "glsl.lexer.c"
+#define YY_NO_UNISTD_H 1
+
+#line 1131 "glsl.lexer.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -1410,10 +1413,10 @@ YY_DECL
 		}
 
 	{
-#line 45 "glsl.lex"
+#line 48 "glsl.lex"
 
 
-#line 1416 "glsl.lexer.c"
+#line 1419 "glsl.lexer.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1446,16 +1449,12 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 744 );
+		while ( yy_current_state != 697 );
+		yy_cp = yyg->yy_last_accepting_cpos;
+		yy_current_state = yyg->yy_last_accepting_state;
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
-		if ( yy_act == 0 )
-			{ /* have to back up */
-			yy_cp = yyg->yy_last_accepting_cpos;
-			yy_current_state = yyg->yy_last_accepting_state;
-			yy_act = yy_accept[yy_current_state];
-			}
 
 		YY_DO_BEFORE_ACTION;
 
@@ -1485,1082 +1484,1082 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 47 "glsl.lex"
+#line 50 "glsl.lex"
 
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 49 "glsl.lex"
+#line 52 "glsl.lex"
 
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 51 "glsl.lex"
+#line 54 "glsl.lex"
 
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 53 "glsl.lex"
+#line 56 "glsl.lex"
 BEGIN(COMMENT);
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 54 "glsl.lex"
+#line 57 "glsl.lex"
 BEGIN(INITIAL);
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 55 "glsl.lex"
+#line 58 "glsl.lex"
 { }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 57 "glsl.lex"
+#line 60 "glsl.lex"
 return CONST;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 58 "glsl.lex"
+#line 61 "glsl.lex"
 return UNIFORM;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 59 "glsl.lex"
+#line 62 "glsl.lex"
 return BUFFER;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 60 "glsl.lex"
+#line 63 "glsl.lex"
 return SHARED;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 61 "glsl.lex"
+#line 64 "glsl.lex"
 return COHERENT;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 62 "glsl.lex"
+#line 65 "glsl.lex"
 return VOLATILE;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 63 "glsl.lex"
+#line 66 "glsl.lex"
 return RESTRICT;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 64 "glsl.lex"
+#line 67 "glsl.lex"
 return READONLY;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 65 "glsl.lex"
+#line 68 "glsl.lex"
 return WRITEONLY;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 66 "glsl.lex"
+#line 69 "glsl.lex"
 return ATOMIC_UINT;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 67 "glsl.lex"
+#line 70 "glsl.lex"
 return LAYOUT;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 68 "glsl.lex"
+#line 71 "glsl.lex"
 return CENTROID;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 69 "glsl.lex"
+#line 72 "glsl.lex"
 return FLAT;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 70 "glsl.lex"
+#line 73 "glsl.lex"
 return SMOOTH;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 71 "glsl.lex"
+#line 74 "glsl.lex"
 return NOPERSPECTIVE;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 72 "glsl.lex"
+#line 75 "glsl.lex"
 return PATCH;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 73 "glsl.lex"
+#line 76 "glsl.lex"
 return SAMPLE;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 74 "glsl.lex"
+#line 77 "glsl.lex"
 return BREAK;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 75 "glsl.lex"
+#line 78 "glsl.lex"
 return CONTINUE;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 76 "glsl.lex"
+#line 79 "glsl.lex"
 return DO;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 77 "glsl.lex"
+#line 80 "glsl.lex"
 return FOR;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 78 "glsl.lex"
+#line 81 "glsl.lex"
 return WHILE;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 79 "glsl.lex"
+#line 82 "glsl.lex"
 return SWITCH;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 80 "glsl.lex"
+#line 83 "glsl.lex"
 return CASE;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 81 "glsl.lex"
+#line 84 "glsl.lex"
 return DEFAULT;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 82 "glsl.lex"
+#line 85 "glsl.lex"
 return IF;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 83 "glsl.lex"
+#line 86 "glsl.lex"
 return ELSE;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 84 "glsl.lex"
+#line 87 "glsl.lex"
 return SUBROUTINE;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 85 "glsl.lex"
+#line 88 "glsl.lex"
 return IN;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 86 "glsl.lex"
+#line 89 "glsl.lex"
 return OUT;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 87 "glsl.lex"
+#line 90 "glsl.lex"
 return INOUT;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 88 "glsl.lex"
+#line 91 "glsl.lex"
 return FLOAT;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 89 "glsl.lex"
+#line 92 "glsl.lex"
 return DOUBLE;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 90 "glsl.lex"
+#line 93 "glsl.lex"
 return INT;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 91 "glsl.lex"
+#line 94 "glsl.lex"
 return VOID;
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 92 "glsl.lex"
+#line 95 "glsl.lex"
 return BOOL;
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 93 "glsl.lex"
+#line 96 "glsl.lex"
 return INVARIANT;
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 94 "glsl.lex"
+#line 97 "glsl.lex"
 return PRECISE;
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 95 "glsl.lex"
+#line 98 "glsl.lex"
 return DISCARD;
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 96 "glsl.lex"
+#line 99 "glsl.lex"
 return RETURN;
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 97 "glsl.lex"
+#line 100 "glsl.lex"
 return MAT2;
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 98 "glsl.lex"
+#line 101 "glsl.lex"
 return MAT3;
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 99 "glsl.lex"
+#line 102 "glsl.lex"
 return MAT4;
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 100 "glsl.lex"
+#line 103 "glsl.lex"
 return DMAT2;
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 101 "glsl.lex"
+#line 104 "glsl.lex"
 return DMAT3;
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 102 "glsl.lex"
+#line 105 "glsl.lex"
 return DMAT4;
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 103 "glsl.lex"
+#line 106 "glsl.lex"
 return MAT2X2;
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 104 "glsl.lex"
+#line 107 "glsl.lex"
 return MAT2X3;
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 105 "glsl.lex"
+#line 108 "glsl.lex"
 return MAT2X4;
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 106 "glsl.lex"
+#line 109 "glsl.lex"
 return DMAT2X2;
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 107 "glsl.lex"
+#line 110 "glsl.lex"
 return DMAT2X3;
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 108 "glsl.lex"
+#line 111 "glsl.lex"
 return DMAT2X4;
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 109 "glsl.lex"
+#line 112 "glsl.lex"
 return MAT3X2;
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 110 "glsl.lex"
+#line 113 "glsl.lex"
 return MAT3X3;
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 111 "glsl.lex"
+#line 114 "glsl.lex"
 return MAT3X4;
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 112 "glsl.lex"
+#line 115 "glsl.lex"
 return DMAT3X2;
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 113 "glsl.lex"
+#line 116 "glsl.lex"
 return DMAT3X3;
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 114 "glsl.lex"
+#line 117 "glsl.lex"
 return DMAT3X4;
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 115 "glsl.lex"
+#line 118 "glsl.lex"
 return MAT4X2;
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 116 "glsl.lex"
+#line 119 "glsl.lex"
 return MAT4X3;
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 117 "glsl.lex"
+#line 120 "glsl.lex"
 return MAT4X4;
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 118 "glsl.lex"
+#line 121 "glsl.lex"
 return DMAT4X2;
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 119 "glsl.lex"
+#line 122 "glsl.lex"
 return DMAT4X3;
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 120 "glsl.lex"
+#line 123 "glsl.lex"
 return DMAT4X4;
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 121 "glsl.lex"
+#line 124 "glsl.lex"
 return VEC2;
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 122 "glsl.lex"
+#line 125 "glsl.lex"
 return VEC3;
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 123 "glsl.lex"
+#line 126 "glsl.lex"
 return VEC4;
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 124 "glsl.lex"
+#line 127 "glsl.lex"
 return IVEC2;
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 125 "glsl.lex"
+#line 128 "glsl.lex"
 return IVEC3;
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 126 "glsl.lex"
+#line 129 "glsl.lex"
 return IVEC4;
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 127 "glsl.lex"
+#line 130 "glsl.lex"
 return BVEC2;
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 128 "glsl.lex"
+#line 131 "glsl.lex"
 return BVEC3;
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 129 "glsl.lex"
+#line 132 "glsl.lex"
 return BVEC4;
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 130 "glsl.lex"
+#line 133 "glsl.lex"
 return DVEC2;
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 131 "glsl.lex"
+#line 134 "glsl.lex"
 return DVEC3;
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 132 "glsl.lex"
+#line 135 "glsl.lex"
 return DVEC4;
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 133 "glsl.lex"
+#line 136 "glsl.lex"
 return UINT;
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 134 "glsl.lex"
+#line 137 "glsl.lex"
 return UVEC2;
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 135 "glsl.lex"
+#line 138 "glsl.lex"
 return UVEC3;
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 136 "glsl.lex"
+#line 139 "glsl.lex"
 return UVEC4;
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 137 "glsl.lex"
+#line 140 "glsl.lex"
 return LOWP;
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 138 "glsl.lex"
+#line 141 "glsl.lex"
 return MEDIUMP;
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 139 "glsl.lex"
+#line 142 "glsl.lex"
 return HIGHP;
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 140 "glsl.lex"
+#line 143 "glsl.lex"
 return PRECISION;
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 141 "glsl.lex"
+#line 144 "glsl.lex"
 return SAMPLER1D;
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 142 "glsl.lex"
+#line 145 "glsl.lex"
 return SAMPLER2D;
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 143 "glsl.lex"
+#line 146 "glsl.lex"
 return SAMPLER3D;
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 144 "glsl.lex"
+#line 147 "glsl.lex"
 return SAMPLERCUBE;
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 145 "glsl.lex"
+#line 148 "glsl.lex"
 return SAMPLER1DSHADOW;
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 146 "glsl.lex"
+#line 149 "glsl.lex"
 return SAMPLER2DSHADOW;
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 147 "glsl.lex"
+#line 150 "glsl.lex"
 return SAMPLERCUBESHADOW;
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 148 "glsl.lex"
+#line 151 "glsl.lex"
 return SAMPLER1DARRAY;
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 149 "glsl.lex"
+#line 152 "glsl.lex"
 return SAMPLER2DARRAY;
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 150 "glsl.lex"
+#line 153 "glsl.lex"
 return SAMPLER1DARRAYSHADOW;
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 151 "glsl.lex"
+#line 154 "glsl.lex"
 return SAMPLER2DARRAYSHADOW;
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 152 "glsl.lex"
+#line 155 "glsl.lex"
 return ISAMPLER1D;
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 153 "glsl.lex"
+#line 156 "glsl.lex"
 return ISAMPLER2D;
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 154 "glsl.lex"
+#line 157 "glsl.lex"
 return ISAMPLER3D;
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 155 "glsl.lex"
+#line 158 "glsl.lex"
 return ISAMPLERCUBE;
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 156 "glsl.lex"
+#line 159 "glsl.lex"
 return ISAMPLER1DARRAY;
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 157 "glsl.lex"
+#line 160 "glsl.lex"
 return ISAMPLER2DARRAY;
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 158 "glsl.lex"
+#line 161 "glsl.lex"
 return USAMPLER1D;
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 159 "glsl.lex"
+#line 162 "glsl.lex"
 return USAMPLER2D;
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 160 "glsl.lex"
+#line 163 "glsl.lex"
 return USAMPLER3D;
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 161 "glsl.lex"
+#line 164 "glsl.lex"
 return USAMPLERCUBE;
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 162 "glsl.lex"
+#line 165 "glsl.lex"
 return USAMPLER1DARRAY;
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 163 "glsl.lex"
+#line 166 "glsl.lex"
 return USAMPLER2DARRAY;
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 164 "glsl.lex"
+#line 167 "glsl.lex"
 return SAMPLER2DRECT;
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 165 "glsl.lex"
+#line 168 "glsl.lex"
 return SAMPLER2DRECTSHADOW;
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 166 "glsl.lex"
+#line 169 "glsl.lex"
 return ISAMPLER2DRECT;
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 167 "glsl.lex"
+#line 170 "glsl.lex"
 return USAMPLER2DRECT;
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 168 "glsl.lex"
+#line 171 "glsl.lex"
 return SAMPLERBUFFER;
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 169 "glsl.lex"
+#line 172 "glsl.lex"
 return ISAMPLERBUFFER;
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 170 "glsl.lex"
+#line 173 "glsl.lex"
 return USAMPLERBUFFER;
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 171 "glsl.lex"
+#line 174 "glsl.lex"
 return SAMPLER2DMS;
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 172 "glsl.lex"
+#line 175 "glsl.lex"
 return ISAMPLER2DMS;
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 173 "glsl.lex"
+#line 176 "glsl.lex"
 return USAMPLER2DMS;
 	YY_BREAK
 case 124:
 YY_RULE_SETUP
-#line 174 "glsl.lex"
+#line 177 "glsl.lex"
 return SAMPLER2DMSARRAY;
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 175 "glsl.lex"
+#line 178 "glsl.lex"
 return ISAMPLER2DMSARRAY;
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 176 "glsl.lex"
+#line 179 "glsl.lex"
 return USAMPLER2DMSARRAY;
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
-#line 177 "glsl.lex"
+#line 180 "glsl.lex"
 return SAMPLERCUBEARRAY;
 	YY_BREAK
 case 128:
 YY_RULE_SETUP
-#line 178 "glsl.lex"
+#line 181 "glsl.lex"
 return SAMPLERCUBEARRAYSHADOW;
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
-#line 179 "glsl.lex"
+#line 182 "glsl.lex"
 return ISAMPLERCUBEARRAY;
 	YY_BREAK
 case 130:
 YY_RULE_SETUP
-#line 180 "glsl.lex"
+#line 183 "glsl.lex"
 return USAMPLERCUBEARRAY;
 	YY_BREAK
 case 131:
 YY_RULE_SETUP
-#line 181 "glsl.lex"
+#line 184 "glsl.lex"
 return IMAGE1D;
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
-#line 182 "glsl.lex"
+#line 185 "glsl.lex"
 return IIMAGE1D;
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 183 "glsl.lex"
+#line 186 "glsl.lex"
 return UIMAGE1D;
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 184 "glsl.lex"
+#line 187 "glsl.lex"
 return IMAGE2D;
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 185 "glsl.lex"
+#line 188 "glsl.lex"
 return IIMAGE2D;
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 186 "glsl.lex"
+#line 189 "glsl.lex"
 return UIMAGE2D;
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-#line 187 "glsl.lex"
+#line 190 "glsl.lex"
 return IMAGE3D;
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 188 "glsl.lex"
+#line 191 "glsl.lex"
 return IIMAGE3D;
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 189 "glsl.lex"
+#line 192 "glsl.lex"
 return UIMAGE3D;
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 190 "glsl.lex"
+#line 193 "glsl.lex"
 return IMAGE2DRECT;
 	YY_BREAK
 case 141:
 YY_RULE_SETUP
-#line 191 "glsl.lex"
+#line 194 "glsl.lex"
 return IIMAGE2DRECT;
 	YY_BREAK
 case 142:
 YY_RULE_SETUP
-#line 192 "glsl.lex"
+#line 195 "glsl.lex"
 return UIMAGE2DRECT;
 	YY_BREAK
 case 143:
 YY_RULE_SETUP
-#line 193 "glsl.lex"
+#line 196 "glsl.lex"
 return IMAGECUBE;
 	YY_BREAK
 case 144:
 YY_RULE_SETUP
-#line 194 "glsl.lex"
+#line 197 "glsl.lex"
 return IIMAGECUBE;
 	YY_BREAK
 case 145:
 YY_RULE_SETUP
-#line 195 "glsl.lex"
+#line 198 "glsl.lex"
 return UIMAGECUBE;
 	YY_BREAK
 case 146:
 YY_RULE_SETUP
-#line 196 "glsl.lex"
+#line 199 "glsl.lex"
 return IMAGEBUFFER;
 	YY_BREAK
 case 147:
 YY_RULE_SETUP
-#line 197 "glsl.lex"
+#line 200 "glsl.lex"
 return IIMAGEBUFFER;
 	YY_BREAK
 case 148:
 YY_RULE_SETUP
-#line 198 "glsl.lex"
+#line 201 "glsl.lex"
 return UIMAGEBUFFER;
 	YY_BREAK
 case 149:
 YY_RULE_SETUP
-#line 199 "glsl.lex"
+#line 202 "glsl.lex"
 return IMAGE1DARRAY;
 	YY_BREAK
 case 150:
 YY_RULE_SETUP
-#line 200 "glsl.lex"
+#line 203 "glsl.lex"
 return IIMAGE1DARRAY;
 	YY_BREAK
 case 151:
 YY_RULE_SETUP
-#line 201 "glsl.lex"
+#line 204 "glsl.lex"
 return UIMAGE1DARRAY;
 	YY_BREAK
 case 152:
 YY_RULE_SETUP
-#line 202 "glsl.lex"
+#line 205 "glsl.lex"
 return IMAGE2DARRAY;
 	YY_BREAK
 case 153:
 YY_RULE_SETUP
-#line 203 "glsl.lex"
+#line 206 "glsl.lex"
 return IIMAGE2DARRAY;
 	YY_BREAK
 case 154:
 YY_RULE_SETUP
-#line 204 "glsl.lex"
+#line 207 "glsl.lex"
 return UIMAGE2DARRAY;
 	YY_BREAK
 case 155:
 YY_RULE_SETUP
-#line 205 "glsl.lex"
+#line 208 "glsl.lex"
 return IMAGECUBEARRAY;
 	YY_BREAK
 case 156:
 YY_RULE_SETUP
-#line 206 "glsl.lex"
+#line 209 "glsl.lex"
 return IIMAGECUBEARRAY;
 	YY_BREAK
 case 157:
 YY_RULE_SETUP
-#line 207 "glsl.lex"
+#line 210 "glsl.lex"
 return UIMAGECUBEARRAY;
 	YY_BREAK
 case 158:
 YY_RULE_SETUP
-#line 208 "glsl.lex"
+#line 211 "glsl.lex"
 return IMAGE2DMS;
 	YY_BREAK
 case 159:
 YY_RULE_SETUP
-#line 209 "glsl.lex"
+#line 212 "glsl.lex"
 return IIMAGE2DMS;
 	YY_BREAK
 case 160:
 YY_RULE_SETUP
-#line 210 "glsl.lex"
+#line 213 "glsl.lex"
 return UIMAGE2DMS;
 	YY_BREAK
 case 161:
 YY_RULE_SETUP
-#line 211 "glsl.lex"
+#line 214 "glsl.lex"
 return IMAGE2DMSARRAY;
 	YY_BREAK
 case 162:
 YY_RULE_SETUP
-#line 212 "glsl.lex"
+#line 215 "glsl.lex"
 return IIMAGE2DMSARRAY;
 	YY_BREAK
 case 163:
 YY_RULE_SETUP
-#line 213 "glsl.lex"
+#line 216 "glsl.lex"
 return UIMAGE2DMSARRAY;
 	YY_BREAK
 case 164:
 YY_RULE_SETUP
-#line 214 "glsl.lex"
+#line 217 "glsl.lex"
 return STRUCT;
 	YY_BREAK
 case 165:
 YY_RULE_SETUP
-#line 216 "glsl.lex"
+#line 219 "glsl.lex"
 return LEFT_OP;
 	YY_BREAK
 case 166:
 YY_RULE_SETUP
-#line 217 "glsl.lex"
+#line 220 "glsl.lex"
 return RIGHT_OP;
 	YY_BREAK
 case 167:
 YY_RULE_SETUP
-#line 218 "glsl.lex"
+#line 221 "glsl.lex"
 return INC_OP;
 	YY_BREAK
 case 168:
 YY_RULE_SETUP
-#line 219 "glsl.lex"
+#line 222 "glsl.lex"
 return DEC_OP;
 	YY_BREAK
 case 169:
 YY_RULE_SETUP
-#line 220 "glsl.lex"
+#line 223 "glsl.lex"
 return LE_OP;
 	YY_BREAK
 case 170:
 YY_RULE_SETUP
-#line 221 "glsl.lex"
+#line 224 "glsl.lex"
 return GE_OP;
 	YY_BREAK
 case 171:
 YY_RULE_SETUP
-#line 222 "glsl.lex"
+#line 225 "glsl.lex"
 return EQ_OP;
 	YY_BREAK
 case 172:
 YY_RULE_SETUP
-#line 223 "glsl.lex"
+#line 226 "glsl.lex"
 return NE_OP;
 	YY_BREAK
 case 173:
 YY_RULE_SETUP
-#line 224 "glsl.lex"
+#line 227 "glsl.lex"
 return AND_OP;
 	YY_BREAK
 case 174:
 YY_RULE_SETUP
-#line 225 "glsl.lex"
+#line 228 "glsl.lex"
 return OR_OP;
 	YY_BREAK
 case 175:
 YY_RULE_SETUP
-#line 226 "glsl.lex"
+#line 229 "glsl.lex"
 return XOR_OP;
 	YY_BREAK
 case 176:
 YY_RULE_SETUP
-#line 227 "glsl.lex"
+#line 230 "glsl.lex"
 return MUL_ASSIGN;
 	YY_BREAK
 case 177:
 YY_RULE_SETUP
-#line 228 "glsl.lex"
+#line 231 "glsl.lex"
 return DIV_ASSIGN;
 	YY_BREAK
 case 178:
 YY_RULE_SETUP
-#line 229 "glsl.lex"
+#line 232 "glsl.lex"
 return ADD_ASSIGN;
 	YY_BREAK
 case 179:
 YY_RULE_SETUP
-#line 230 "glsl.lex"
+#line 233 "glsl.lex"
 return MOD_ASSIGN;
 	YY_BREAK
 case 180:
 YY_RULE_SETUP
-#line 231 "glsl.lex"
+#line 234 "glsl.lex"
 return LEFT_ASSIGN;
 	YY_BREAK
 case 181:
 YY_RULE_SETUP
-#line 232 "glsl.lex"
+#line 235 "glsl.lex"
 return RIGHT_ASSIGN;
 	YY_BREAK
 case 182:
 YY_RULE_SETUP
-#line 233 "glsl.lex"
+#line 236 "glsl.lex"
 return AND_ASSIGN;
 	YY_BREAK
 case 183:
 YY_RULE_SETUP
-#line 234 "glsl.lex"
+#line 237 "glsl.lex"
 return XOR_ASSIGN;
 	YY_BREAK
 case 184:
 YY_RULE_SETUP
-#line 235 "glsl.lex"
+#line 238 "glsl.lex"
 return OR_ASSIGN;
 	YY_BREAK
 case 185:
 YY_RULE_SETUP
-#line 236 "glsl.lex"
+#line 239 "glsl.lex"
 return SUB_ASSIGN;
 	YY_BREAK
 case 186:
 YY_RULE_SETUP
-#line 238 "glsl.lex"
+#line 241 "glsl.lex"
 return PLUS;
 	YY_BREAK
 case 187:
 YY_RULE_SETUP
-#line 239 "glsl.lex"
+#line 242 "glsl.lex"
 return DASH;
 	YY_BREAK
 case 188:
 YY_RULE_SETUP
-#line 240 "glsl.lex"
+#line 243 "glsl.lex"
 return PERCENT;
 	YY_BREAK
 case 189:
 YY_RULE_SETUP
-#line 241 "glsl.lex"
+#line 244 "glsl.lex"
 return STAR;
 	YY_BREAK
 case 190:
 YY_RULE_SETUP
-#line 242 "glsl.lex"
+#line 245 "glsl.lex"
 return SLASH;
 	YY_BREAK
 case 191:
 YY_RULE_SETUP
-#line 243 "glsl.lex"
+#line 246 "glsl.lex"
 return TILDE;
 	YY_BREAK
 case 192:
 YY_RULE_SETUP
-#line 244 "glsl.lex"
+#line 247 "glsl.lex"
 return BANG;
 	YY_BREAK
 case 193:
 YY_RULE_SETUP
-#line 245 "glsl.lex"
+#line 248 "glsl.lex"
 return CARET;
 	YY_BREAK
 case 194:
 YY_RULE_SETUP
-#line 246 "glsl.lex"
+#line 249 "glsl.lex"
 return LEFT_PAREN;
 	YY_BREAK
 case 195:
 YY_RULE_SETUP
-#line 247 "glsl.lex"
+#line 250 "glsl.lex"
 return RIGHT_PAREN;
 	YY_BREAK
 case 196:
 YY_RULE_SETUP
-#line 248 "glsl.lex"
+#line 251 "glsl.lex"
 return LEFT_BRACE;
 	YY_BREAK
 case 197:
 YY_RULE_SETUP
-#line 249 "glsl.lex"
+#line 252 "glsl.lex"
 return RIGHT_BRACE;
 	YY_BREAK
 case 198:
 YY_RULE_SETUP
-#line 250 "glsl.lex"
+#line 253 "glsl.lex"
 return SEMICOLON;
 	YY_BREAK
 case 199:
 YY_RULE_SETUP
-#line 251 "glsl.lex"
+#line 254 "glsl.lex"
 return LEFT_ANGLE;
 	YY_BREAK
 case 200:
 YY_RULE_SETUP
-#line 252 "glsl.lex"
+#line 255 "glsl.lex"
 return RIGHT_ANGLE;
 	YY_BREAK
 case 201:
 YY_RULE_SETUP
-#line 253 "glsl.lex"
+#line 256 "glsl.lex"
 return DOT;
 	YY_BREAK
 case 202:
 YY_RULE_SETUP
-#line 254 "glsl.lex"
+#line 257 "glsl.lex"
 return COMMA;
 	YY_BREAK
 case 203:
 YY_RULE_SETUP
-#line 255 "glsl.lex"
+#line 258 "glsl.lex"
 return LEFT_BRACKET;
 	YY_BREAK
 case 204:
 YY_RULE_SETUP
-#line 256 "glsl.lex"
+#line 259 "glsl.lex"
 return RIGHT_BRACKET;
 	YY_BREAK
 case 205:
 YY_RULE_SETUP
-#line 257 "glsl.lex"
+#line 260 "glsl.lex"
 return VERTICAL_BAR;
 	YY_BREAK
 case 206:
 YY_RULE_SETUP
-#line 258 "glsl.lex"
+#line 261 "glsl.lex"
 return COLON;
 	YY_BREAK
 case 207:
 YY_RULE_SETUP
-#line 259 "glsl.lex"
+#line 262 "glsl.lex"
 return EQUAL;
 	YY_BREAK
 case 208:
 YY_RULE_SETUP
-#line 260 "glsl.lex"
+#line 263 "glsl.lex"
 return AMPERSAND;
 	YY_BREAK
 case 209:
 YY_RULE_SETUP
-#line 261 "glsl.lex"
+#line 264 "glsl.lex"
 return QUESTION;
 	YY_BREAK
 case 210:
 YY_RULE_SETUP
-#line 263 "glsl.lex"
+#line 266 "glsl.lex"
 { return TRUE_VALUE; }
 	YY_BREAK
 case 211:
 YY_RULE_SETUP
-#line 264 "glsl.lex"
+#line 267 "glsl.lex"
 { return FALSE_VALUE; }
 	YY_BREAK
 case 212:
 YY_RULE_SETUP
-#line 266 "glsl.lex"
+#line 269 "glsl.lex"
 { (*yylval).IDENTIFIER = strdup(yytext); return IDENTIFIER; }
 	YY_BREAK
 case 213:
 YY_RULE_SETUP
-#line 267 "glsl.lex"
+#line 270 "glsl.lex"
 { (*yylval).INTCONSTANT = atoi(yytext); return INTCONSTANT; }
 	YY_BREAK
 case 214:
 YY_RULE_SETUP
-#line 268 "glsl.lex"
+#line 271 "glsl.lex"
 { (*yylval).FLOATCONSTANT = atof(yytext); return FLOATCONSTANT; }
 	YY_BREAK
 case 215:
 YY_RULE_SETUP
-#line 270 "glsl.lex"
+#line 273 "glsl.lex"
 ECHO;
 	YY_BREAK
-#line 2563 "glsl.lexer.c"
+#line 2562 "glsl.lexer.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -2628,7 +2627,8 @@ case YY_STATE_EOF(COMMENT):
 
 			else
 				{
-				yy_cp = yyg->yy_c_buf_p;
+				yy_cp = yyg->yy_last_accepting_cpos;
+				yy_current_state = yyg->yy_last_accepting_state;
 				goto yy_find_action;
 				}
 			}
@@ -3165,7 +3165,7 @@ static void yy_load_buffer_state  (yyscan_t yyscanner)
         b->yy_bs_column = 0;
     }
 
-        b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
+        b->yy_is_interactive = 0;
     
 	errno = oerrno;
 }
@@ -3765,6 +3765,6 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 270 "glsl.lex"
+#line 273 "glsl.lex"
 
 

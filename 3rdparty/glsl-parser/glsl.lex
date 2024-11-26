@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define YY_NO_UNISTD_H 1
+
 #define YYSTYPE GLSL_STYPE
 #define YYLTYPE GLSL_LTYPE
 
@@ -25,7 +27,8 @@
 
 %}
 
-
+%option nounistd
+%option never-interactive
 %option reentrant
 %option bison-bridge
 %option bison-locations
