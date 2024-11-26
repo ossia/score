@@ -52,7 +52,14 @@ struct glsl_parse_context {
 // Create a new node for the AST. All values following 'code' will be
 // placed in the node's child array.
 //
-struct glsl_node *new_glsl_node(struct glsl_parse_context *context, int code, ...) __attribute__ ((sentinel));
+
+#if defined(__GNUC__)
+#define ATTR_SENTINEL __attribute__((sentinel))
+#else
+#define ATTR_SENTINEL
+#endif
+struct glsl_node*
+new_glsl_node(struct glsl_parse_context* context, int code, ...) ATTR_SENTINEL;
 
 //
 // Allocate memory in the parser's stack allocator
