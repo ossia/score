@@ -179,7 +179,10 @@ elseif(APPLE AND SCORE_PCH)
 endif()
 
 if(SCORE_PCH)
-  if(NOT MSVC)
+  if(EMSCRIPTEN)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -mno-sse3 ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -mno-sse3 ")
+  elseif(NOT MSVC)
     # Needed due to kfrlib injecting these flags:
     # error: current translation unit is compiled with the target feature '+sse2' but the AST file was not
     # error: current translation unit is compiled with the target feature '-sse3' but the AST file was not
