@@ -639,6 +639,21 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ArrayFlattener.hpp"
+  TARGET array_flattener
+  MAIN_CLASS ArrayFlattener
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ArrayRecombiner.hpp"
+  TARGET array_recombiner
+  MAIN_CLASS ArrayRecombiner
+  NAMESPACE ao
+)
+
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Tweener.hpp"
   TARGET tweener
   MAIN_CLASS Tweener
