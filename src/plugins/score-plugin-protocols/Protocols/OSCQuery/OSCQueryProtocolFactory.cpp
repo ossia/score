@@ -53,7 +53,7 @@ private:
     bool websockets = keys.value("WebSockets", "false").toLower() == "true";
 
     {
-      QString req = QString("http://%1:%2/?HOST_INFO").arg(ip).arg(port);
+      QString req = QString("http://%1:%2/?HOST_INFO=1").arg(ip).arg(port);
 
       QNetworkRequest qreq{QUrl(req)};
       qreq.setTransferTimeout(1000);
