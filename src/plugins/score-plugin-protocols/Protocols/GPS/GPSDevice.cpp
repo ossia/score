@@ -86,6 +86,8 @@ private:
 struct gps_protocol : public ossia::net::protocol_base
 {
 public:
+  std::string m_gps_host;
+  std::string m_gps_port;
   gps_protocol(
       const libgpsd& instance, const Protocols::GPSSpecificSettings& set,
       ossia::net::network_context_ptr ctx)
@@ -93,10 +95,14 @@ public:
       , gps{instance}
       , m_context{std::move(ctx)}
       , m_timer{m_context->context}
+      // Necessary as gps_open does not make a copy of the string but just blindly assigns the pointer.
+      , m_gps_host{set.host.toStdString()}
+      , m_gps_port{std::to_string(set.port)}
   {
     using namespace std::literals;
-    const int ret = gps.open(
-        set.host.toStdString().c_str(), std::to_string(set.port).c_str(), &data);
+    memset(&data, 0, sizeof(data));
+
+    const int ret = gps.open(m_gps_host.c_str(), m_gps_port.c_str(), &data);
     if(ret != 0)
       throw std::runtime_error("Could not open gpsd client: "s + gps.errstr(ret));
 
