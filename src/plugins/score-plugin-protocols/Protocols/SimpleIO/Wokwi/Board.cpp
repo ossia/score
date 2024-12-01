@@ -2,7 +2,11 @@
 
 #include <Library/LibrarySettings.hpp>
 
+#include <score/application/ApplicationContext.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
+
+#include <ossia/detail/json.hpp>
 
 #include <QDir>
 #include <QDirIterator>
