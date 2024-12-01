@@ -3,7 +3,7 @@ project(score_addons LANGUAGES CXX)
 if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
-
+return()
 macro(SUBDIRLIST result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")
