@@ -24,6 +24,8 @@ public:
 
 protected:
   QString m_textPattern;
+
+  int columnCount(const QModelIndex& parent = QModelIndex()) const override { return 1; }
   bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
     if(filterAcceptsRowItself(srcRow, srcParent))
