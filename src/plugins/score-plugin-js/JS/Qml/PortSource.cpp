@@ -48,7 +48,6 @@ void PortSource::on_newUIValue()
   //   return;
   if(m_inlet)
   {
-    qDebug() << m_inlet->name() << m_targetProperty.read();
     m_inlet->setValue(ossia::qt::qt_to_ossia{}(m_targetProperty.read()));
   }
 }

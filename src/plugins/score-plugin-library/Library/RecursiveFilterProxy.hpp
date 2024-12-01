@@ -15,7 +15,7 @@ public:
   void setPattern(const QString& p)
   {
     beginResetModel();
-    auto old = m_textPattern;
+    // auto old = m_textPattern;
     m_textPattern = p;
     endResetModel();
     // if(!p.contains(old))
