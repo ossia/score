@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flat_map.hpp>
 
 #include <QString>
