@@ -1,6 +1,7 @@
 #pragma once
 #include <score_lib_device_export.h>
 
+#include <string>
 namespace Device
 {
 class DeviceInterface;

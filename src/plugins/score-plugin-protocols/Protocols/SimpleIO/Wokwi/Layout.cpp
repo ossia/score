@@ -2,6 +2,10 @@
 
 #include <Protocols/SimpleIO/Wokwi/Library.hpp>
 
+#include <ossia/detail/json.hpp>
+
+#include <QDebug>
+#include <QStringList>
 #define SCORE_FLAG(i) (1 << i)
 namespace Protocols
 {
