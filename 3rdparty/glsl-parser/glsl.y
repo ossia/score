@@ -1458,7 +1458,7 @@ bool glsl_parse_string(struct glsl_parse_context *context, const char *str)
 	glsl_lex_init(&(context->scanner));
 
 	sz = strlen(str);
-	text = malloc(sz + 2);
+	text = (char*)malloc(sz + 2);
 	strcpy(text, str);
 	text[sz + 1] = 0;
 	glsl__scan_buffer(text, sz + 2, context->scanner);

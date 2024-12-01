@@ -591,7 +591,7 @@ static void string_cat(struct string *str, const char *format, ...)
 			break;
 		} else {
 			str->capacity *= 2;
-			str->s = realloc(str->s, str->capacity);
+			str->s = (char*)realloc(str->s, str->capacity);
 		}
 	} while (1);
 	str->len += n;
@@ -894,7 +894,7 @@ static void _glsl_ast_gen_glsl(struct glsl_node *n, struct string *out, int dept
 char *glsl_ast_generate_glsl(struct glsl_node *n)
 {
 	struct string s;
-	s.s = malloc(1024);
+	s.s = (char*)malloc(1024);
 	s.len = 0;
 	s.capacity = 1024;
 	_glsl_ast_gen_glsl(n, &s, 0);

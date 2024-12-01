@@ -96,93 +96,93 @@ static void glsl_error(GLSL_LTYPE *loc, struct glsl_parse_context *c, const char
 
 uint8_t *glsl_parse_alloc(struct glsl_parse_context *context, size_t size, int align)
 {
-	uint8_t *ret;
+    uint8_t *ret;
 
-	if (size + align > (context->cur_buffer_end - context->cur_buffer)) {
-		uint8_t *next_buffer = (uint8_t *)malloc(GLSL_STACK_BUFFER_SIZE);
-		if (context->cur_buffer) {
-			uint8_t **pnext = (uint8_t **)context->cur_buffer_end;
-			*pnext = next_buffer;
-		}
-		context->cur_buffer_start = next_buffer;
-		context->cur_buffer = next_buffer;
-		context->cur_buffer_end = next_buffer + GLSL_STACK_BUFFER_PAYLOAD_SIZE;
-		if (!context->first_buffer) {
-			context->first_buffer = context->cur_buffer;
-		}
-		*((uint8_t **)context->cur_buffer_end) = NULL;
-	}
+    if (size + align > (context->cur_buffer_end - context->cur_buffer)) {
+        uint8_t *next_buffer = (uint8_t *)malloc(GLSL_STACK_BUFFER_SIZE);
+        if (context->cur_buffer) {
+            uint8_t **pnext = (uint8_t **)context->cur_buffer_end;
+            *pnext = next_buffer;
+        }
+        context->cur_buffer_start = next_buffer;
+        context->cur_buffer = next_buffer;
+        context->cur_buffer_end = next_buffer + GLSL_STACK_BUFFER_PAYLOAD_SIZE;
+        if (!context->first_buffer) {
+            context->first_buffer = context->cur_buffer;
+        }
+        *((uint8_t **)context->cur_buffer_end) = NULL;
+    }
 
-	ret = context->cur_buffer;
+    ret = context->cur_buffer;
 
-	uint8_t *trunc = (uint8_t *)((~((intptr_t)align - 1)) & ((intptr_t)ret));
-	if (trunc != ret) {
-		ret = trunc + align;
-	}
-	context->cur_buffer = ret + size;
-	return ret;
+    uint8_t *trunc = (uint8_t *)((~((intptr_t)align - 1)) & ((intptr_t)ret));
+    if (trunc != ret) {
+        ret = trunc + align;
+    }
+    context->cur_buffer = ret + size;
+    return ret;
 }
 
 void glsl_parse_dealloc(struct glsl_parse_context *context)
 {
-	uint8_t *buffer = context->first_buffer;
-	while (buffer) {
-		uint8_t *next = *((uint8_t **)(buffer + GLSL_STACK_BUFFER_PAYLOAD_SIZE));
-		free(buffer);
-		buffer = next;
-	}
+    uint8_t *buffer = context->first_buffer;
+    while (buffer) {
+        uint8_t *next = *((uint8_t **)(buffer + GLSL_STACK_BUFFER_PAYLOAD_SIZE));
+        free(buffer);
+        buffer = next;
+    }
 }
 
 static char *glsl_parse_strdup(struct glsl_parse_context *context, const char *c)
 {
-	int len = strlen(c);
-	char *ret = (char *)glsl_parse_alloc(context, len + 1, 1);
-	strcpy(ret, c);
-	return ret;
+    int len = strlen(c);
+    char *ret = (char *)glsl_parse_alloc(context, len + 1, 1);
+    strcpy(ret, c);
+    return ret;
 }
 
 struct glsl_node *new_glsl_node(struct glsl_parse_context *context, int code, ...)
 {
-	struct glsl_node *temp;
-	int i;
-	int n = 0;
-	va_list vl;
-	va_start(vl, code);
-	while (1) {
-		temp = va_arg(vl, struct glsl_node *);
-		if (temp)
-			n++;
-		else
-			break;
-	}
-	va_end(vl);
-	struct glsl_node *g = (struct glsl_node *)glsl_parse_alloc(context, offsetof(struct glsl_node, children[n]), 8);
-	g->code = code;
-	g->child_count = n;
-	va_start(vl, code);
-	for (i = 0; i < n; i++) {
-		temp = va_arg(vl, struct glsl_node *);
-		g->children[i] = temp;
-	}
-	va_end(vl);
-	return g;
+    struct glsl_node *temp;
+    int i;
+    int n = 0;
+    va_list vl;
+    va_start(vl, code);
+    while (1) {
+        temp = va_arg(vl, struct glsl_node *);
+        if (temp)
+            n++;
+        else
+            break;
+    }
+    va_end(vl);
+    struct glsl_node *g = (struct glsl_node *)glsl_parse_alloc(context, offsetof(struct glsl_node, children[n]), 8);
+    g->code = code;
+    g->child_count = n;
+    va_start(vl, code);
+    for (i = 0; i < n; i++) {
+        temp = va_arg(vl, struct glsl_node *);
+        g->children[i] = temp;
+    }
+    va_end(vl);
+    return g;
 }
 
 static struct glsl_node *new_glsl_identifier(struct glsl_parse_context *context, const char *str)
 {
-	struct glsl_node *n = new_glsl_node(context, IDENTIFIER, NULL);
-	if (!str)
-		n->data.str = NULL;
-	else
-		n->data.str = glsl_parse_strdup(context, str);
-	return n;
+    struct glsl_node *n = new_glsl_node(context, IDENTIFIER, NULL);
+    if (!str)
+        n->data.str = NULL;
+    else
+        n->data.str = glsl_parse_strdup(context, str);
+    return n;
 }
 
 static struct glsl_node *new_glsl_string(struct glsl_parse_context *context, int code, const char *str)
 {
-	struct glsl_node *n = new_glsl_node(context, code, NULL);
-	n->data.str = glsl_parse_strdup(context, str);
-	return n;
+    struct glsl_node *n = new_glsl_node(context, code, NULL);
+    n->data.str = glsl_parse_strdup(context, str);
+    return n;
 }
 
 #define scanner context->scanner //To allow the scanner to find it's context
@@ -3040,18 +3040,18 @@ yyreduce:
   case 18: /* function_definition: function_prototype compound_statement_no_new_scope  */
 #line 550 "glsl.y"
                                 { (yyval.function_definition) = new_glsl_node(context, FUNCTION_DEFINITION,
-					(yyvsp[-1].function_prototype),
-					(yyvsp[0].compound_statement_no_new_scope),
-					NULL); }
+                    (yyvsp[-1].function_prototype),
+                    (yyvsp[0].compound_statement_no_new_scope),
+                    NULL); }
 #line 3047 "glsl.parser.c"
     break;
 
   case 19: /* function_definition: function_prototype  */
 #line 555 "glsl.y"
                                 { (yyval.function_definition) = new_glsl_node(context, FUNCTION_DEFINITION,
-					(yyvsp[0].function_prototype),
-					new_glsl_node(context, STATEMENT_LIST, NULL),
-					NULL); }
+                    (yyvsp[0].function_prototype),
+                    new_glsl_node(context, STATEMENT_LIST, NULL),
+                    NULL); }
 #line 3056 "glsl.parser.c"
     break;
 
@@ -3160,88 +3160,88 @@ yyreduce:
   case 37: /* declaration: PRECISION precision_qualifier type_specifier SEMICOLON  */
 #line 589 "glsl.y"
                                 { (yyval.declaration) = new_glsl_node(context, DECLARATION,
-						new_glsl_node(context, PRECISION_DECLARATION,
-							(yyvsp[-2].precision_qualifier),
-							(yyvsp[-1].type_specifier),
-							NULL),
-						NULL); }
+                        new_glsl_node(context, PRECISION_DECLARATION,
+                            (yyvsp[-2].precision_qualifier),
+                            (yyvsp[-1].type_specifier),
+                            NULL),
+                        NULL); }
 #line 3169 "glsl.parser.c"
     break;
 
   case 38: /* declaration: type_qualifier block_identifier LEFT_BRACE struct_declaration_list RIGHT_BRACE SEMICOLON  */
 #line 596 "glsl.y"
                                 { (yyval.declaration) = new_glsl_node(context, DECLARATION,
-						new_glsl_node(context, BLOCK_DECLARATION,
-							(yyvsp[-5].type_qualifier),
-							(yyvsp[-4].block_identifier),
-							(yyvsp[-2].struct_declaration_list),
-							new_glsl_identifier(context, NULL),
-							new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-							NULL),
-						NULL); }
+                        new_glsl_node(context, BLOCK_DECLARATION,
+                            (yyvsp[-5].type_qualifier),
+                            (yyvsp[-4].block_identifier),
+                            (yyvsp[-2].struct_declaration_list),
+                            new_glsl_identifier(context, NULL),
+                            new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                            NULL),
+                        NULL); }
 #line 3183 "glsl.parser.c"
     break;
 
   case 39: /* declaration: type_qualifier block_identifier LEFT_BRACE struct_declaration_list RIGHT_BRACE decl_identifier SEMICOLON  */
 #line 606 "glsl.y"
                                 { (yyval.declaration) = new_glsl_node(context, DECLARATION,
-						new_glsl_node(context, BLOCK_DECLARATION,
-							(yyvsp[-6].type_qualifier),
-							(yyvsp[-5].block_identifier),
-							(yyvsp[-3].struct_declaration_list),
-							(yyvsp[-1].decl_identifier),
-							new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-							NULL),
-						NULL); }
+                        new_glsl_node(context, BLOCK_DECLARATION,
+                            (yyvsp[-6].type_qualifier),
+                            (yyvsp[-5].block_identifier),
+                            (yyvsp[-3].struct_declaration_list),
+                            (yyvsp[-1].decl_identifier),
+                            new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                            NULL),
+                        NULL); }
 #line 3197 "glsl.parser.c"
     break;
 
   case 40: /* declaration: type_qualifier block_identifier LEFT_BRACE struct_declaration_list RIGHT_BRACE decl_identifier array_specifier_list SEMICOLON  */
 #line 616 "glsl.y"
                                 { (yyval.declaration) = new_glsl_node(context, DECLARATION,
-						new_glsl_node(context, BLOCK_DECLARATION,
-							(yyvsp[-7].type_qualifier),
-							(yyvsp[-6].block_identifier),
-							(yyvsp[-4].struct_declaration_list),
-							(yyvsp[-2].decl_identifier),
-							(yyvsp[-1].array_specifier_list),
-							NULL),
-						NULL); }
+                        new_glsl_node(context, BLOCK_DECLARATION,
+                            (yyvsp[-7].type_qualifier),
+                            (yyvsp[-6].block_identifier),
+                            (yyvsp[-4].struct_declaration_list),
+                            (yyvsp[-2].decl_identifier),
+                            (yyvsp[-1].array_specifier_list),
+                            NULL),
+                        NULL); }
 #line 3211 "glsl.parser.c"
     break;
 
   case 41: /* declaration: type_qualifier SEMICOLON  */
 #line 626 "glsl.y"
                                 { (yyval.declaration) = new_glsl_node(context, DECLARATION,
-						new_glsl_node(context, UNINITIALIZED_DECLARATION,
-							(yyvsp[-1].type_qualifier),
-							new_glsl_identifier(context, NULL),
-							NULL),
-						NULL); }
+                        new_glsl_node(context, UNINITIALIZED_DECLARATION,
+                            (yyvsp[-1].type_qualifier),
+                            new_glsl_identifier(context, NULL),
+                            NULL),
+                        NULL); }
 #line 3222 "glsl.parser.c"
     break;
 
   case 42: /* declaration: type_qualifier type_name SEMICOLON  */
 #line 633 "glsl.y"
                                 { (yyval.declaration) = new_glsl_node(context, DECLARATION,
-						new_glsl_node(context, UNINITIALIZED_DECLARATION,
-							(yyvsp[-2].type_qualifier),
-							(yyvsp[-1].type_name),
-							new_glsl_node(context, IDENTIFIER_LIST, NULL),
-							NULL),
-						NULL); }
+                        new_glsl_node(context, UNINITIALIZED_DECLARATION,
+                            (yyvsp[-2].type_qualifier),
+                            (yyvsp[-1].type_name),
+                            new_glsl_node(context, IDENTIFIER_LIST, NULL),
+                            NULL),
+                        NULL); }
 #line 3234 "glsl.parser.c"
     break;
 
   case 43: /* declaration: type_qualifier type_name identifier_list SEMICOLON  */
 #line 641 "glsl.y"
                                 { (yyval.declaration) = new_glsl_node(context, DECLARATION,
-						new_glsl_node(context, UNINITIALIZED_DECLARATION,
-							(yyvsp[-3].type_qualifier),
-							(yyvsp[-2].type_name),
-							(yyvsp[-1].identifier_list),
-							NULL),
-						NULL); }
+                        new_glsl_node(context, UNINITIALIZED_DECLARATION,
+                            (yyvsp[-3].type_qualifier),
+                            (yyvsp[-2].type_name),
+                            (yyvsp[-1].identifier_list),
+                            NULL),
+                        NULL); }
 #line 3246 "glsl.parser.c"
     break;
 
@@ -3266,70 +3266,70 @@ yyreduce:
   case 47: /* init_declarator_list: init_declarator_list COMMA decl_identifier  */
 #line 657 "glsl.y"
                                 { (yyval.init_declarator_list) = new_glsl_node(context, INIT_DECLARATOR_LIST,
-						(yyvsp[-2].init_declarator_list),
-						new_glsl_node(context, INIT_DECLARATOR,
-							(yyvsp[0].decl_identifier),
-							new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-							NULL),
-						NULL); }
+                        (yyvsp[-2].init_declarator_list),
+                        new_glsl_node(context, INIT_DECLARATOR,
+                            (yyvsp[0].decl_identifier),
+                            new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                            NULL),
+                        NULL); }
 #line 3276 "glsl.parser.c"
     break;
 
   case 48: /* init_declarator_list: init_declarator_list COMMA decl_identifier array_specifier_list  */
 #line 665 "glsl.y"
                                 { (yyval.init_declarator_list) = new_glsl_node(context, INIT_DECLARATOR_LIST,
-						(yyvsp[-3].init_declarator_list),
-						new_glsl_node(context, INIT_DECLARATOR,
-							(yyvsp[-1].decl_identifier),
-							(yyvsp[0].array_specifier_list),
-							NULL),
-						NULL); }
+                        (yyvsp[-3].init_declarator_list),
+                        new_glsl_node(context, INIT_DECLARATOR,
+                            (yyvsp[-1].decl_identifier),
+                            (yyvsp[0].array_specifier_list),
+                            NULL),
+                        NULL); }
 #line 3288 "glsl.parser.c"
     break;
 
   case 49: /* init_declarator_list: init_declarator_list COMMA decl_identifier array_specifier_list EQUAL initializer  */
 #line 673 "glsl.y"
                                 { (yyval.init_declarator_list) = new_glsl_node(context, INIT_DECLARATOR_LIST,
-						(yyvsp[-5].init_declarator_list),
-						new_glsl_node(context, INIT_DECLARATOR,
-							(yyvsp[-3].decl_identifier),
-							(yyvsp[-2].array_specifier_list),
-							(yyvsp[0].initializer),
-							NULL),
-						NULL); }
+                        (yyvsp[-5].init_declarator_list),
+                        new_glsl_node(context, INIT_DECLARATOR,
+                            (yyvsp[-3].decl_identifier),
+                            (yyvsp[-2].array_specifier_list),
+                            (yyvsp[0].initializer),
+                            NULL),
+                        NULL); }
 #line 3301 "glsl.parser.c"
     break;
 
   case 50: /* init_declarator_list: init_declarator_list COMMA decl_identifier EQUAL initializer  */
 #line 682 "glsl.y"
                                 { (yyval.init_declarator_list) = new_glsl_node(context, INIT_DECLARATOR_LIST,
-						(yyvsp[-4].init_declarator_list),
-						new_glsl_node(context, INIT_DECLARATOR,
-							(yyvsp[-2].decl_identifier),
-							new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-							(yyvsp[0].initializer),
-							NULL),
-						NULL); }
+                        (yyvsp[-4].init_declarator_list),
+                        new_glsl_node(context, INIT_DECLARATOR,
+                            (yyvsp[-2].decl_identifier),
+                            new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                            (yyvsp[0].initializer),
+                            NULL),
+                        NULL); }
 #line 3314 "glsl.parser.c"
     break;
 
   case 51: /* single_declaration: fully_specified_type  */
 #line 693 "glsl.y"
                                 { (yyval.single_declaration) = new_glsl_node(context, SINGLE_DECLARATION,
-					(yyvsp[0].fully_specified_type),
-					new_glsl_identifier(context, NULL),
-					new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-					NULL); }
+                    (yyvsp[0].fully_specified_type),
+                    new_glsl_identifier(context, NULL),
+                    new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                    NULL); }
 #line 3324 "glsl.parser.c"
     break;
 
   case 52: /* single_declaration: fully_specified_type decl_identifier  */
 #line 700 "glsl.y"
                                 { (yyval.single_declaration) = new_glsl_node(context, SINGLE_DECLARATION,
-					(yyvsp[-1].fully_specified_type),
-					(yyvsp[0].decl_identifier),
-					new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-					NULL); }
+                    (yyvsp[-1].fully_specified_type),
+                    (yyvsp[0].decl_identifier),
+                    new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                    NULL); }
 #line 3334 "glsl.parser.c"
     break;
 
@@ -3348,11 +3348,11 @@ yyreduce:
   case 55: /* single_declaration: fully_specified_type decl_identifier EQUAL initializer  */
 #line 713 "glsl.y"
                                 { (yyval.single_declaration) = new_glsl_node(context, SINGLE_INIT_DECLARATION,
-					(yyvsp[-3].fully_specified_type),
-					(yyvsp[-2].decl_identifier),
-					new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-					(yyvsp[0].initializer),
-					NULL); }
+                    (yyvsp[-3].fully_specified_type),
+                    (yyvsp[-2].decl_identifier),
+                    new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                    (yyvsp[0].initializer),
+                    NULL); }
 #line 3357 "glsl.parser.c"
     break;
 
@@ -3557,18 +3557,18 @@ yyreduce:
   case 89: /* function_declarator: function_header  */
 #line 811 "glsl.y"
                                 { (yyval.function_declarator) = new_glsl_node(context, FUNCTION_DECLARATION,
-					(yyvsp[0].function_header),
-					new_glsl_node(context, FUNCTION_PARAMETER_LIST, NULL),
-					NULL); }
+                    (yyvsp[0].function_header),
+                    new_glsl_node(context, FUNCTION_PARAMETER_LIST, NULL),
+                    NULL); }
 #line 3564 "glsl.parser.c"
     break;
 
   case 90: /* function_declarator: function_header function_parameter_list  */
 #line 817 "glsl.y"
                                 { (yyval.function_declarator) = new_glsl_node(context, FUNCTION_DECLARATION,
-					(yyvsp[-1].function_header),
-					(yyvsp[0].function_parameter_list),
-					NULL); }
+                    (yyvsp[-1].function_header),
+                    (yyvsp[0].function_parameter_list),
+                    NULL); }
 #line 3573 "glsl.parser.c"
     break;
 
@@ -3593,9 +3593,9 @@ yyreduce:
   case 94: /* parameter_declaration: parameter_declarator  */
 #line 834 "glsl.y"
                                 { (yyval.parameter_declaration) = new_glsl_node(context, PARAMETER_DECLARATION,
-					new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
-					(yyvsp[0].parameter_declarator),
-					NULL); }
+                    new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
+                    (yyvsp[0].parameter_declarator),
+                    NULL); }
 #line 3600 "glsl.parser.c"
     break;
 
@@ -3608,9 +3608,9 @@ yyreduce:
   case 96: /* parameter_declaration: parameter_type_specifier  */
 #line 843 "glsl.y"
                                 { (yyval.parameter_declaration) = new_glsl_node(context, PARAMETER_DECLARATION,
-					new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
-					(yyvsp[0].parameter_type_specifier),
-					NULL); }
+                    new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
+                    (yyvsp[0].parameter_type_specifier),
+                    NULL); }
 #line 3615 "glsl.parser.c"
     break;
 
@@ -3635,9 +3635,9 @@ yyreduce:
   case 100: /* fully_specified_type: type_specifier  */
 #line 861 "glsl.y"
                                 { (yyval.fully_specified_type) = new_glsl_node(context, FULLY_SPECIFIED_TYPE,
-					new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
-					(yyvsp[0].type_specifier),
-					NULL); }
+                    new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
+                    (yyvsp[0].type_specifier),
+                    NULL); }
 #line 3642 "glsl.parser.c"
     break;
 
@@ -3656,9 +3656,9 @@ yyreduce:
   case 103: /* type_specifier: type_specifier_nonarray  */
 #line 875 "glsl.y"
                                 { (yyval.type_specifier) = new_glsl_node(context, TYPE_SPECIFIER,
-					(yyvsp[0].type_specifier_nonarray),
-					new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
-					NULL); }
+                    (yyvsp[0].type_specifier_nonarray),
+                    new_glsl_node(context, ARRAY_SPECIFIER_LIST, NULL),
+                    NULL); }
 #line 3663 "glsl.parser.c"
     break;
 
@@ -4427,9 +4427,9 @@ yyreduce:
   case 231: /* struct_specifier: STRUCT LEFT_BRACE struct_declaration_list RIGHT_BRACE  */
 #line 1025 "glsl.y"
                                 { (yyval.struct_specifier) = new_glsl_node(context, STRUCT_SPECIFIER,
-						new_glsl_identifier(context, NULL),
-						(yyvsp[-1].struct_declaration_list),
-						NULL); }
+                        new_glsl_identifier(context, NULL),
+                        (yyvsp[-1].struct_declaration_list),
+                        NULL); }
 #line 4434 "glsl.parser.c"
     break;
 
@@ -4448,10 +4448,10 @@ yyreduce:
   case 234: /* struct_declaration: type_specifier struct_declarator_list SEMICOLON  */
 #line 1038 "glsl.y"
                                 { (yyval.struct_declaration) = new_glsl_node(context, STRUCT_DECLARATION,
-					new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
-					(yyvsp[-2].type_specifier),
-					(yyvsp[-1].struct_declarator_list),
-					NULL); }
+                    new_glsl_node(context, TYPE_QUALIFIER_LIST, NULL),
+                    (yyvsp[-2].type_specifier),
+                    (yyvsp[-1].struct_declarator_list),
+                    NULL); }
 #line 4456 "glsl.parser.c"
     break;
 
@@ -4716,8 +4716,8 @@ yyreduce:
   case 278: /* storage_qualifier: SUBROUTINE LEFT_PAREN type_name_list RIGHT_PAREN  */
 #line 1128 "glsl.y"
                                 { (yyval.storage_qualifier) = new_glsl_node(context, SUBROUTINE_TYPE,
-					new_glsl_node(context, TYPE_NAME_LIST, (yyvsp[-1].type_name_list), NULL),
-					NULL); }
+                    new_glsl_node(context, TYPE_NAME_LIST, (yyvsp[-1].type_name_list), NULL),
+                    NULL); }
 #line 4722 "glsl.parser.c"
     break;
 
@@ -5132,18 +5132,18 @@ yyreduce:
   case 347: /* function_call_generic: function_identifier LEFT_PAREN LEFT_PAREN  */
 #line 1301 "glsl.y"
                                 { (yyval.function_call_generic) = new_glsl_node(context, FUNCTION_CALL,
-					(yyvsp[-2].function_identifier),
-					new_glsl_node(context, FUNCTION_CALL_PARAMETER_LIST, NULL),
-					NULL); }
+                    (yyvsp[-2].function_identifier),
+                    new_glsl_node(context, FUNCTION_CALL_PARAMETER_LIST, NULL),
+                    NULL); }
 #line 5139 "glsl.parser.c"
     break;
 
   case 348: /* function_call_generic: function_identifier LEFT_PAREN VOID RIGHT_PAREN  */
 #line 1307 "glsl.y"
                                 { (yyval.function_call_generic) = new_glsl_node(context, FUNCTION_CALL,
-					(yyvsp[-3].function_identifier),
-					new_glsl_node(context, FUNCTION_CALL_PARAMETER_LIST, NULL),
-					NULL); }
+                    (yyvsp[-3].function_identifier),
+                    new_glsl_node(context, FUNCTION_CALL_PARAMETER_LIST, NULL),
+                    NULL); }
 #line 5148 "glsl.parser.c"
     break;
 
@@ -5428,140 +5428,140 @@ yyreturnlab:
 
 static void glsl_error(GLSL_LTYPE *loc, struct glsl_parse_context *c, const char *s)
 {
-	c->error = true;
-	if (c->error_cb)
-		c->error_cb(s, loc->first_line, loc->first_column, loc->last_column);
+    c->error = true;
+    if (c->error_cb)
+        c->error_cb(s, loc->first_line, loc->first_column, loc->last_column);
 }
 
 int list_length(struct glsl_node *n, int list_token)
 {
-	if (n->code != list_token) {
-		return 1;
-	} else {
-		int i;
-		int count = 0;
-		for (i = 0; i < n->child_count; i++) {
-			count += list_length(n->children[i], list_token);
-		}
-		return count;
-	}
+    if (n->code != list_token) {
+        return 1;
+    } else {
+        int i;
+        int count = 0;
+        for (i = 0; i < n->child_count; i++) {
+            count += list_length(n->children[i], list_token);
+        }
+        return count;
+    }
 }
 
 static void list_gather(struct glsl_node *n, struct glsl_node *new_list, int list_token)
 {
-	int i;
-	for (i = 0; i < n->child_count; i++) {
-		struct glsl_node *child = n->children[i];
-		if (child->code != list_token)
-			new_list->children[new_list->child_count++] = child;
-		else
-			list_gather(child, new_list, list_token);
-	}
+    int i;
+    for (i = 0; i < n->child_count; i++) {
+        struct glsl_node *child = n->children[i];
+        if (child->code != list_token)
+            new_list->children[new_list->child_count++] = child;
+        else
+            list_gather(child, new_list, list_token);
+    }
 }
 
 static void list_collapse(struct glsl_parse_context *context, struct glsl_node *n)
 {
-	int i;
-	for (i = 0; i < n->child_count; i++) {
-		struct glsl_node *child = n->children[i];
-		if (glsl_ast_is_list_node(child)) {
-			int list_token = child->code;
-			int length = list_length(child, list_token);
-			struct glsl_node *g = (struct glsl_node *)glsl_parse_alloc(context, offsetof(struct glsl_node, children[length]), 8);
-			g->code = list_token;
-			g->child_count = 0;
-			list_gather(child, g, list_token);
-			n->children[i] = g;
-			child = g;
-		}
-		list_collapse(context, child);
-	}
+    int i;
+    for (i = 0; i < n->child_count; i++) {
+        struct glsl_node *child = n->children[i];
+        if (glsl_ast_is_list_node(child)) {
+            int list_token = child->code;
+            int length = list_length(child, list_token);
+            struct glsl_node *g = (struct glsl_node *)glsl_parse_alloc(context, offsetof(struct glsl_node, children[length]), 8);
+            g->code = list_token;
+            g->child_count = 0;
+            list_gather(child, g, list_token);
+            n->children[i] = g;
+            child = g;
+        }
+        list_collapse(context, child);
+    }
 }
 
 static bool parse_internal(struct glsl_parse_context *context)
 {
-	context->error = false;
-	glsl_parse(context);
-	if (context->root) {
-		if (glsl_ast_is_list_node(context->root)) {
-			//
-			// list_collapse() can't combine all the TRANSLATION_UNIT nodes
-			// since it would need to replace g_glsl_node_root so we combine
-			// the TRANSLATION_UNIT nodes here.
-			//
-			int list_code = context->root->code;
-			int length = list_length(context->root, list_code);
-			struct glsl_node *new_root = (struct glsl_node *)glsl_parse_alloc(context, offsetof(struct glsl_node, children[length]), 8);
-			new_root->code = TRANSLATION_UNIT;
-			new_root->child_count = 0;
-			list_gather(context->root, new_root, list_code);
-			assert(new_root->child_count == length);
-			context->root = new_root;
-		}
-		//
-		// Collapse other list nodes
-		//
-		list_collapse(context, context->root);
-	}
-	return context->error;
+    context->error = false;
+    glsl_parse(context);
+    if (context->root) {
+        if (glsl_ast_is_list_node(context->root)) {
+            //
+            // list_collapse() can't combine all the TRANSLATION_UNIT nodes
+            // since it would need to replace g_glsl_node_root so we combine
+            // the TRANSLATION_UNIT nodes here.
+            //
+            int list_code = context->root->code;
+            int length = list_length(context->root, list_code);
+            struct glsl_node *new_root = (struct glsl_node *)glsl_parse_alloc(context, offsetof(struct glsl_node, children[length]), 8);
+            new_root->code = TRANSLATION_UNIT;
+            new_root->child_count = 0;
+            list_gather(context->root, new_root, list_code);
+            assert(new_root->child_count == length);
+            context->root = new_root;
+        }
+        //
+        // Collapse other list nodes
+        //
+        list_collapse(context, context->root);
+    }
+    return context->error;
 }
 
 bool glsl_parse_file(struct glsl_parse_context *context, FILE *file)
 {
-	glsl_lex_init(&(context->scanner));
+    glsl_lex_init(&(context->scanner));
 
-	glsl_set_in(file, context->scanner);
+    glsl_set_in(file, context->scanner);
 
-	bool error;
+    bool error;
 
-	error = parse_internal(context);
+    error = parse_internal(context);
 
-	glsl_lex_destroy(context->scanner);
-	context->scanner = NULL;
-	return error;
+    glsl_lex_destroy(context->scanner);
+    context->scanner = NULL;
+    return error;
 }
 
 bool glsl_parse_string(struct glsl_parse_context *context, const char *str)
 {
-	char *text;
-	size_t sz;
-	bool error;
+    char *text;
+    size_t sz;
+    bool error;
 
-	glsl_lex_init(&(context->scanner));
+    glsl_lex_init(&(context->scanner));
 
-	sz = strlen(str);
-	text = malloc(sz + 2);
-	strcpy(text, str);
-	text[sz + 1] = 0;
-	glsl__scan_buffer(text, sz + 2, context->scanner);
+    sz = strlen(str);
+    text = (char*)malloc(sz + 2);
+    strcpy(text, str);
+    text[sz + 1] = 0;
+    glsl__scan_buffer(text, sz + 2, context->scanner);
 
-	error = parse_internal(context);
+    error = parse_internal(context);
 
-	free(text);
-	glsl_lex_destroy(context->scanner);
-	context->scanner = NULL;
-	return error;
+    free(text);
+    glsl_lex_destroy(context->scanner);
+    context->scanner = NULL;
+    return error;
 }
 
 void glsl_parse_context_init(struct glsl_parse_context *context)
 {
-	context->root = NULL;
-	context->scanner = NULL;
-	context->first_buffer = NULL;
-	context->cur_buffer_start = NULL;
-	context->cur_buffer = NULL;
-	context->cur_buffer_end = NULL;
-	context->error_cb = NULL;
-	context->error = false;
+    context->root = NULL;
+    context->scanner = NULL;
+    context->first_buffer = NULL;
+    context->cur_buffer_start = NULL;
+    context->cur_buffer = NULL;
+    context->cur_buffer_end = NULL;
+    context->error_cb = NULL;
+    context->error = false;
 }
 
 void glsl_parse_set_error_cb(struct glsl_parse_context *context, glsl_parse_error_cb_t error_cb)
 {
-	context->error_cb = error_cb;
+    context->error_cb = error_cb;
 }
 
 
 void glsl_parse_context_destroy(struct glsl_parse_context *context)
 {
-	glsl_parse_dealloc(context);
+    glsl_parse_dealloc(context);
 }

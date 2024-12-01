@@ -37,11 +37,11 @@
 %option prefix="glsl_"
 
 ws			[ \t]+
-digit			[0-9]
+digit			[0-9a-fA-F]
 nondigit		[_a-zA-Z]
 identifier		{nondigit}({nondigit}|{digit})*
-integer_constant	{digit}+
-floating_constant	{digit}+\.{digit}+
+integer_constant	(0x)?{digit}+[uU]?
+floating_constant	{digit}+\.{digit}*[lL]?[fF]?
 
 %x COMMENT
 
