@@ -802,6 +802,27 @@ avnd_make_score(
   NAMESPACE ao
 )
 
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/UI/2DView.hpp"
+  TARGET point2d_view
+  MAIN_CLASS Point2DView
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Spatialization/DBAP.hpp"
+  TARGET avnd_dbap_2d
+  MAIN_CLASS DBAP_2d
+  NAMESPACE ao
+)
+avnd_make_score(
+    SOURCES "${AVND_FOLDER}/examples/Advanced/Spatialization/DBAP.hpp"
+    TARGET avnd_dbap_3d
+    MAIN_CLASS DBAP_3d
+    NAMESPACE ao
+)
+
+endif()
 
 # avnd_make_score(
 #   SOURCES
