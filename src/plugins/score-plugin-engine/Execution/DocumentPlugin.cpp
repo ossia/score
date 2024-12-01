@@ -318,6 +318,20 @@ void DocumentPlugin::reload(bool forcePlay, Scenario::IntervalModel& cst)
   }
 
   m_tid = startTimer(32);
+
+  auto& audio_buffers = ossia::audio_buffer_pool::instance();
+  std::vector<ossia::audio_channel> temp_vectors;
+  temp_vectors.resize(audio_buffers.buffers.size_approx());
+  audio_buffers.buffers.try_dequeue_bulk(
+      temp_vectors.begin(), audio_buffers.buffers.size_approx());
+  const auto bs = m_context.app.settings<Audio::Settings::Model>().getBufferSize();
+  if(temp_vectors.size() < 100)
+    temp_vectors.resize(100);
+  for(auto& vec : temp_vectors)
+    vec.reserve(bs + 16);
+  audio_buffers.buffers.enqueue_bulk(
+      std::make_move_iterator(temp_vectors.begin()), temp_vectors.size());
+
   // runAllCommands();
 }
 
