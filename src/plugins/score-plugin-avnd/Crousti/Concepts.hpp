@@ -66,13 +66,6 @@ struct CustomFloatControlBase : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().template convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().template convert_max<float>(); }
-
-  void setupExecution(ossia::inlet& inl) const noexcept override
-  {
-    auto& port = **safe_cast<ossia::value_inlet*>(&inl);
-    port.type = ossia::val_type::FLOAT;
-    port.domain = domain().get();
-  }
 };
 
 template <typename Node, typename FieldIndex>
@@ -92,6 +85,22 @@ struct CustomFloatControl : public CustomFloatControlBase
   }
 
   ~CustomFloatControl() = default;
+
+  void setupExecution(ossia::inlet& inl) const noexcept override
+  {
+    auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+    port.type = ossia::val_type::FLOAT;
+    using inlet_type = avnd::input_introspection<Node>;
+    using port_type = inlet_type::template field_type<FieldIndex{}>;
+    if constexpr(avnd::has_range<port_type>)
+    {
+      static constexpr auto range = avnd::get_range<port_type>();
+      ossia::domain_base<float> dom;
+      dom.min = range.min;
+      dom.max = range.max;
+      port.domain = dom;
+    }
+  }
 };
 
 }
