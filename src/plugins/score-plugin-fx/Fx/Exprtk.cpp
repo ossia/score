@@ -6,6 +6,8 @@
 
 #include <Fx/MathGenerator.hpp>
 
+#include <ossia/detail/fmt.hpp>
+
 #include <boost/algorithm/string/replace.hpp>
 
 #include <QList>
