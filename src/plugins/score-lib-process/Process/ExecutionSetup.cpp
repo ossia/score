@@ -19,12 +19,19 @@
 
 namespace Execution
 {
+void Context::execCommand(ExecutionCommand&& cmd)
+{
+  if(transaction)
+    transaction->push_back(std::move(cmd));
+  else
+    executionQueue.enqueue(std::move(cmd));
+}
 
 static auto enqueue_in_context(SetupContext& self) noexcept
 {
   return [&self]<typename F>(F&& f) {
     static_assert(std::is_nothrow_move_constructible_v<F>);
-    self.context.executionQueue.enqueue(std::move(f));
+    self.context.execCommand(std::move(f));
   };
 }
 
@@ -72,7 +79,7 @@ void SetupContext::on_cableRemoved(const Process::Cable& c)
   auto it = m_cables.find(c.id());
   if(it != m_cables.end())
   {
-    context.executionQueue.enqueue(
+    context.execCommand(
         [cable = it->second, graph = context.execGraph] { graph->disconnect(cable); });
   }
 }
@@ -135,7 +142,7 @@ void SetupContext::connectCable(Process::Cable& cable)
     }
 
     m_cables[cable.id()] = edge;
-    context.executionQueue.enqueue([edge, graph = context.execGraph]() mutable {
+    context.execCommand([edge, graph = context.execGraph]() mutable {
       graph->connect(std::move(edge));
     });
   }
@@ -428,7 +435,7 @@ void SetupContext::unregister_inlet(
     if(ossia_port_it != inlets.end())
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
-      context.executionQueue.enqueue([ws, ossia_port = ossia_port_it->second.second] {
+      context.execCommand([ws, ossia_port = ossia_port_it->second.second] {
         if(auto state = ws.lock())
           state->unregister_port(*ossia_port);
       });
@@ -533,7 +540,7 @@ void SetupContext::unregister_node(
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
     std::weak_ptr<ossia::execution_state> ws = context.execState;
-    context.executionQueue.enqueue([wg, ws, node] {
+    context.execCommand([wg, ws, node] {
       if(auto s = ws.lock())
       {
         ossia::for_each_inlet(*node, [&](auto& p) { s->unregister_port(p); });

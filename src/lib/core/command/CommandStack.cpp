@@ -119,6 +119,7 @@ void CommandStack::setIndex(int index)
 
 void CommandStack::undoQuiet()
 {
+  CommandTransaction t{*this};
   updateStack([&]() {
     auto cmd = m_undoable.pop();
     cmd->undo(m_ctx);
@@ -131,6 +132,7 @@ void CommandStack::undoQuiet()
 
 void CommandStack::redoQuiet()
 {
+  CommandTransaction t{*this};
   updateStack([&]() {
     auto cmd = m_redoable.pop();
     cmd->redo(m_ctx);
@@ -212,12 +214,17 @@ void CommandStack::validateDocument() const
   m_checker();
 }
 
-CommandStackFacade::CommandStackFacade(CommandStack& stack)
+CommandTransaction CommandStack::transaction()
+{
+  return CommandTransaction{*this};
+}
+
+CommandStackFacade::CommandStackFacade(CommandStack& stack) noexcept
     : m_stack{stack}
 {
 }
 
-const DocumentContext& CommandStackFacade::context() const
+const DocumentContext& CommandStackFacade::context() const noexcept
 {
   return m_stack.context();
 }
@@ -242,4 +249,8 @@ void CommandStackFacade::enableActions() const
   m_stack.enableActions();
 }
 
+CommandTransaction CommandStackFacade::transaction() const
+{
+  return m_stack.transaction();
+}
 }
