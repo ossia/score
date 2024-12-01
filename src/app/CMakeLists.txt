@@ -51,7 +51,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   # set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
 
-set(SRCS 
+set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
@@ -83,7 +83,10 @@ if(SCORE_STATIC_PLUGINS)
 endif()
 
 if(TARGET snmalloc)
-  target_link_libraries(${APPNAME} PUBLIC snmalloc snmallocshim-static)
+  target_link_libraries(${APPNAME} PUBLIC snmalloc)
+  if(NOT WIN32)
+    target_link_libraries(${APPNAME} PUBLIC snmallocshim-static)
+  endif()
 endif()
 
 target_compile_definitions(${APPNAME} PUBLIC
