@@ -751,7 +751,12 @@ void parser::parse_geometry_filter()
   }
 
   boost::algorithm::trim(geomWithoutISF);
-  auto funcs = extract_glsl_function_definitions(geomWithoutISF);
+  auto funcs = extract_glsl_function_definitions("\n" + geomWithoutISF + "\n");
+  // Technically not necessary but will save us in case there's
+  // a parser bug in glsl_parser.c (of which there are many) and we just
+  // want to have *one* geometry filter
+  funcs.insert("process_vertex");
+
   boost::algorithm::replace_all(geomWithoutISF, "this_filter", "filter_%node%");
 
   for(auto& func : funcs)
