@@ -4,6 +4,7 @@
 
 #include <Protocols/SimpleIO/SimpleIOSpecificSettings.hpp>
 
+#include <ossia/detail/fmt.hpp>
 namespace Protocols
 {
 class SimpleIOCodeWriter_ESP32 : public Device::CodeWriter
