@@ -822,8 +822,6 @@ avnd_make_score(
     NAMESPACE ao
 )
 
-endif()
-
 # avnd_make_score(
 #   SOURCES
 #     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
