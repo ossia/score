@@ -132,5 +132,6 @@ void DeviceLibrary::initMCUs()
               {"GPIO38", {gpio(38), pwm()}},
               {"GPIO39", {gpio(39), adc(1, 3)}}, // No PWM
           }});
+  // FIXME ESP32-S3, etc.
 }
 }
