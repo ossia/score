@@ -10,6 +10,7 @@
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <Library/LibrarySettings.hpp>
 #include <Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include <Protocols/SimpleIO/Wokwi/Layout.hpp>
 
@@ -65,6 +66,27 @@ public:
     auto& dacs = m_root.emplace_back(SimpleIOData{{.name = "DACs"}}, &m_root);
     auto& gpios = m_root.emplace_back(SimpleIOData{{.name = "GPIOs"}}, &m_root);
     //    auto& hid = m_root.emplace_back(SimpleIOData{.name = "HIDs"}, &m_root);
+
+    pwms.emplace_back(
+        SimpleIOData{
+            {.control = SimpleIO::PWM{}, .name = "external", .path = ""},
+            .tree_name = "External PWM"},
+        &pwms);
+    adcs.emplace_back(
+        SimpleIOData{
+            {.control = SimpleIO::ADC{}, .name = "external", .path = ""},
+            .tree_name = "External ADC"},
+        &adcs);
+    dacs.emplace_back(
+        SimpleIOData{
+            {.control = SimpleIO::DAC{}, .name = "external", .path = ""},
+            .tree_name = "External DAC"},
+        &dacs);
+    gpios.emplace_back(
+        SimpleIOData{
+            {.control = SimpleIO::GPIO{}, .name = "external", .path = ""},
+            .tree_name = "External GPIO"},
+        &gpios);
 
     enumeratePWMs(pwms);
     enumerateADCs(adcs, dacs);
@@ -383,6 +405,8 @@ public:
     m_gpioWidget.setLayout(&m_gpioLayout);
     m_pwmWidget.setLayout(&m_pwmLayout);
 
+    m_gpioLayout.addRow(tr("Chip"), &m_gpioChip);
+    m_gpioLayout.addRow(tr("Line"), &m_gpioLine);
     m_gpioInOutLayout.addWidget(&m_gpioIn);
     m_gpioInOutLayout.addWidget(&m_gpioOut);
     m_gpioLayout.addRow(&m_gpioInOutLayout);
@@ -391,8 +415,9 @@ public:
     m_gpioPullLayout.addWidget(&m_gpioPullDown);
     m_gpioLayout.addRow(&m_gpioPullLayout);
 
-    m_pwmLayout.addRow("Channel", &m_pwmChannel);
-    m_pwmLayout.addRow("Polarity", &m_pwmPolarity);
+    m_pwmLayout.addRow(tr("Chip"), &m_pwmChip);
+    m_pwmLayout.addRow(tr("Channel"), &m_pwmChannel);
+    m_pwmLayout.addRow(tr("Polarity"), &m_pwmPolarity);
 
     m_custom.setCurrentIndex(0);
 
@@ -436,10 +461,13 @@ public:
         m_custom.setCurrentIndex(1);
         m_gpioIn.setChecked(true);
         m_gpioPullUp.setChecked(true);
+        m_gpioChip.setValue(ossia::get<0>(fixt.control).chip);
+        m_gpioLine.setValue(ossia::get<0>(fixt.control).line);
         break;
       case 1: // PWM
         m_custom.setCurrentIndex(2);
         m_pwmChannel.setValue(0);
+        m_pwmChip.setValue(ossia::get<1>(fixt.control).chip);
         break;
       default:
         m_custom.setCurrentIndex(0);
@@ -462,6 +490,8 @@ public:
       const AddPortDialog& self;
       void operator()(SimpleIO::GPIO& gpio) const noexcept
       {
+        gpio.chip = self.m_gpioChip.value();
+        gpio.line = self.m_gpioLine.value();
         if(self.m_gpioIn.isChecked())
         {
           gpio.direction = 0;
@@ -485,6 +515,7 @@ public:
 
       void operator()(SimpleIO::PWM& pwm) const noexcept
       {
+        pwm.chip = self.m_pwmChip.value();
         pwm.channel = self.m_pwmChannel.value();
         pwm.polarity = self.m_pwmPolarity.isChecked();
       }
@@ -515,15 +546,27 @@ private:
   QWidget m_defaultWidget;
   QWidget m_gpioWidget;
   QWidget m_pwmWidget;
+
+  // GPIO
   QFormLayout m_gpioLayout;
   QHBoxLayout m_gpioInOutLayout;
   QHBoxLayout m_gpioPullLayout;
   QRadioButton m_gpioIn, m_gpioOut;
   QCheckBox m_gpioPullUp, m_gpioPullDown;
+  QSpinBox m_gpioChip;
+  QSpinBox m_gpioLine;
 
+  // PWM
   QFormLayout m_pwmLayout;
   QSpinBox m_pwmChannel;
   QCheckBox m_pwmPolarity;
+  QSpinBox m_pwmChip;
+
+  // ADC
+  QSpinBox m_adcExternalPort;
+
+  // DAC
+  QSpinBox m_dacExternalPort;
 
   const SimpleIOData* m_currentNode{};
 };
@@ -556,6 +599,17 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   btns->addWidget(m_localLoadLayout);
   btns->addWidget(m_localAddPort);
   btns->addWidget(m_localRmPort);
+  {
+    //
+
+    auto& set = score::AppContext().settings<Library::Settings::Model>();
+    QString pkg = set.getPackagesPath() + "/wokwi/wokwi-boards/boards";
+    if(!QDir{pkg}.exists())
+      layout->addRow(new QLabel{tr("Warning! Boards definitions not found.\nClone "
+                                   "https://github.com/wokwi/wokwi-boards "
+                                   "in\n%1/wokwi/")
+                                    .arg(set.getPackagesPath())});
+  }
   layout->addRow(btns);
 
   {

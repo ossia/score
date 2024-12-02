@@ -1,4 +1,3 @@
-
 #include <ossia/detail/config.hpp>
 
 #include <ossia/detail/timer.hpp>
@@ -8,8 +7,6 @@
 #include "SimpleIOSpecificSettings.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <Protocols/SimpleIO/CodeWriter/ESP32.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
@@ -353,27 +350,6 @@ bool SimpleIODevice::reconnect()
 void SimpleIODevice::disconnect()
 {
   OwningDeviceInterface::disconnect();
-}
-void SimpleIODevice::setupContextMenu(QMenu& menu) const
-{
-  auto act = menu.addAction("Generate code...");
-  connect(act, &QAction::triggered, this, [&] {
-    SimpleIOCodeWriter_ESP32 wr{*this};
-    std::string ret;
-    ret += R"_(#pragma once
-#include "ossia_embedded_api.hpp"
-#include "constants.hpp"
-#include "utility.hpp"
-
-#include <soc/adc_channel.h>
-)_";
-    ret += wr.init();
-    ret += wr.readOSC();
-    ret += wr.readPins();
-    ret += wr.writeOSC();
-    ret += wr.writePins();
-    qDebug() << ret.c_str();
-  });
 }
 }
 
