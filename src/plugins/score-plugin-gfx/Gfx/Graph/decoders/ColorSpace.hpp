@@ -410,6 +410,6 @@ static inline QString colorMatrix(const Video::ImageFormat& d)
     case AVCOL_SPC_RESERVED: ///< reserved for future use by ITU-T and ISO/IEC just like 15-255 are
       break;
   }
-  return SCORE_GFX_BT709_MATRIX; // FIXME
+  return SCORE_GFX_CONVERT_BT709_TO_RGB; // FIXME
 }
 }
