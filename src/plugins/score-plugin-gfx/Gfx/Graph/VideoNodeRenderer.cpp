@@ -45,7 +45,7 @@ TextureRenderTarget VideoNodeRenderer::renderTargetForInput(const Port& input)
 void VideoNodeRenderer::createGpuDecoder()
 {
   auto& model = const_cast<VideoNodeBase&>(node);
-  QString filter;
+  auto& filter = model.m_filter;
   switch(m_frameFormat.pixel_format)
   {
     // 420P

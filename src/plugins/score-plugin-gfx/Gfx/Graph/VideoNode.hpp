@@ -75,6 +75,7 @@ public:
   friend VideoNodeRenderer;
 
 protected:
+  QString m_filter;
   score::gfx::ScaleMode m_scaleMode{};
 };
 
@@ -119,7 +120,7 @@ namespace score::gfx
 class SCORE_PLUGIN_GFX_EXPORT CameraNode : public VideoNodeBase
 {
 public:
-  explicit CameraNode(std::shared_ptr<Video::ExternalInput> dec);
+  explicit CameraNode(std::shared_ptr<Video::ExternalInput> dec, QString filter = {});
 
   virtual ~CameraNode();
 

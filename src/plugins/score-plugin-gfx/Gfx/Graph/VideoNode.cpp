@@ -63,8 +63,9 @@ void VideoNode::pause(bool b)
   m_pause = b;
 }
 
-CameraNode::CameraNode(std::shared_ptr<Video::ExternalInput> dec)
+CameraNode::CameraNode(std::shared_ptr<Video::ExternalInput> dec, QString f)
 {
+  this->m_filter = std::move(f);
   this->m_scaleMode = ScaleMode::Stretch;
   this->reader.m_decoder = std::move(dec);
   output.push_back(new Port{this, {}, Types::Image, {}});

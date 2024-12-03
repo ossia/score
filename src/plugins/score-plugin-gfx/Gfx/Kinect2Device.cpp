@@ -527,7 +527,7 @@ public:
 class Kinect2SettingsWidget final : public SharedInputSettingsWidget
 {
 public:
-  Kinect2SettingsWidget(QWidget* parent = nullptr);
+  explicit Kinect2SettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
@@ -536,13 +536,9 @@ public:
 Kinect2SettingsWidget::Kinect2SettingsWidget(QWidget* parent)
     : SharedInputSettingsWidget(parent)
 {
-  m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
-
-  auto layout = new QFormLayout;
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
-  setLayout(layout);
-
   m_deviceNameEdit->setText("Kinect2");
+  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Identifier");
+  setSettings(ProtocolFactory{}.defaultSettings());
 }
 
 Device::DeviceSettings Kinect2SettingsWidget::getSettings() const
@@ -625,7 +621,7 @@ QUrl ProtocolFactory::manual() const noexcept
 
 Device::DeviceEnumerators ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return {};
+  return {{"Kinect 2", new Kinect2Enumerator}};
 }
 
 Device::DeviceInterface* ProtocolFactory::makeDevice(

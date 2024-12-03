@@ -407,6 +407,7 @@ endif()
 
 if(freenect2_FOUND)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FREENECT2)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${freenect2_INCLUDE_DIR})
   target_link_libraries(${PROJECT_NAME} PRIVATE ${freenect2_LIBRARIES})
 endif()
 
