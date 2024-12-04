@@ -15,8 +15,13 @@ namespace Process
 class SCORE_LIB_PROCESS_EXPORT EffectLayerView : public Process::LayerView
 {
 public:
-  EffectLayerView(QGraphicsItem* parent);
+  explicit EffectLayerView(QGraphicsItem* parent);
   ~EffectLayerView() override;
+
+  void setWidth(qreal width, qreal defaultWidth);
+
+protected:
+  qreal m_defaultWidth{};
 
 private:
   void paint_impl(QPainter*) const override;
@@ -28,7 +33,7 @@ class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
   W_OBJECT(EffectLayerPresenter)
 public:
   EffectLayerPresenter(
-      const Process::ProcessModel& model, Process::LayerView* view,
+      const Process::ProcessModel& model, Process::EffectLayerView* view,
       const Process::Context& ctx, QObject* parent);
   ~EffectLayerPresenter() override;
 
@@ -43,7 +48,7 @@ public:
       const Process::LayerContextMenuManager&) final override;
 
 private:
-  Process::LayerView* m_view{};
+  Process::EffectLayerView* m_view{};
 };
 
 SCORE_LIB_PROCESS_EXPORT

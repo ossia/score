@@ -158,7 +158,7 @@ struct Node
             default:
               break;
           }
-            });
+        });
 
         auto outl = safe_cast<Process::ControlOutlet*>(process.outlets().front());
         connect(
@@ -217,47 +217,70 @@ struct Node
 
     void draw_row(QPainter* p, qreal w, qreal h, int row_index, auto to_01) const
     {
+      double quality = std::clamp(std::ceil(std::sqrt(0.1 + num_rows)), 1., 5.);
       std::optional<int> last_idx;
-      for(int i = 0; i < std::ssize(m_values) - 1; i++)
+      for(int start_idx = 0; start_idx < std::ssize(m_values) - 1; start_idx++)
       {
-        const auto& v0 = m_values[i];
-        const auto& v1 = m_values[i + 1];
-        if(std::ssize(v0) > row_index)
+        const auto* p0 = &m_values[start_idx];
+        const auto& v0 = *p0;
+        const auto N0 = std::ssize(*p0);
+        if(N0 <= row_index)
+          continue;
+
+        // To handle long jumps in values
+        if(last_idx && *last_idx < start_idx)
         {
-          if(last_idx && *last_idx < i)
-          {
-            const auto& v0 = m_values[*last_idx];
-            const auto& v1 = v0;
-            QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
-            QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
+          const auto& v0 = m_values[*last_idx];
+          const auto& v1 = v0;
+          QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
+          QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
 
-            if(QLineF l{p0, p1}; l.length() > 2.)
-            {
-              p->drawLine(l);
-              last_idx = i;
-            }
+          if(QLineF l{p0, p1}; l.length() > quality)
+          {
+            p->drawLine(l);
+            last_idx = start_idx;
           }
+        }
 
-          if(std::ssize(v1) > row_index)
+        // Find the next point at least "quality" px away
+        auto x0 = v0[timestamp_index] * w;
+        decltype(p0) p1 = nullptr;
+        std::optional<int> last_viable_end;
+        double x1 = x0;
+        for(int end_idx = start_idx + 1; end_idx < std::ssize(m_values); end_idx++)
+        {
+          auto pp1 = &m_values[end_idx];
+          const auto N1 = std::ssize(*pp1);
+          if(N1 <= row_index)
+            continue;
+
+          last_viable_end = end_idx;
+
+          const auto& v1 = *pp1;
+          x1 = v1[timestamp_index] * w;
+          if((x1 - x0) < quality)
           {
-            QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
-            QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
+            continue;
+          }
+          else if(x1 - x0 > 10.)
+          {
+            break;
+          }
+          else
+          {
+            p1 = pp1;
+            break;
+          }
+        }
 
-            if(QLineF l{p0, p1}; l.length() > 2.)
-            {
-              p->drawLine(l);
-              last_idx = i + 1;
-            }
-            else if(last_idx)
-            {
-              const auto& v0 = m_values[*last_idx];
-              QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
-              if(QLineF l{p0, p1}; l.length() > 2.)
-              {
-                p->drawLine(l);
-                last_idx = i + 1;
-              }
-            }
+        if(p1)
+        {
+          const auto& v1 = *p1;
+          {
+            QPointF p0 = {x0, to_01(v0[row_index]) * h};
+            QPointF p1 = {x1, to_01(v1[row_index]) * h};
+            p->drawLine(p0, p1);
+            last_idx = last_viable_end;
           }
         }
       }
@@ -284,7 +307,7 @@ struct Node
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
 
-      const auto w = width();
+      const auto w = m_defaultWidth;
       const auto h = height() / num_rows;
 
       for(int row = 0; row < num_rows; ++row)

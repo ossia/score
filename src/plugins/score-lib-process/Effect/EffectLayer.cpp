@@ -32,10 +32,16 @@ EffectLayerView::EffectLayerView(QGraphicsItem* parent)
 
 EffectLayerView::~EffectLayerView() { }
 
+void EffectLayerView::setWidth(qreal val, qreal defaultWidth)
+{
+  m_defaultWidth = defaultWidth;
+  LayerView::setWidth(val);
+}
+
 void EffectLayerView::paint_impl(QPainter*) const { }
 
 EffectLayerPresenter::EffectLayerPresenter(
-    const ProcessModel& model, Process::LayerView* view, const Context& ctx,
+    const ProcessModel& model, Process::EffectLayerView* view, const Context& ctx,
     QObject* parent)
     : LayerPresenter{model, view, ctx, parent}
     , m_view{view}
@@ -47,7 +53,7 @@ EffectLayerPresenter::~EffectLayerPresenter() { }
 
 void EffectLayerPresenter::setWidth(qreal val, qreal defaultWidth)
 {
-  m_view->setWidth(val);
+  m_view->setWidth(val, defaultWidth);
 }
 
 void EffectLayerPresenter::setHeight(qreal val)
