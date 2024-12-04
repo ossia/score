@@ -182,10 +182,11 @@ struct GenericMathMapping
       return true;
 
     self.expressions.resize(sz);
+    self.count = sz;
     int i = 0;
     for(auto& e : self.expressions)
     {
-      e.init(self.cur_time, self.cur_deltatime, self.cur_pos);
+      e.init(self.cur_time, self.cur_deltatime, self.cur_pos, self.count);
       e.instance = i++;
       if(!e.expr.set_expression(expr))
         return false;
@@ -203,6 +204,7 @@ struct GenericMathMapping
     if(size <= 1
        || (expr.find(":=") != std::string::npos && expr.find("po") != std::string::npos))
     {
+      size = std::clamp(size, 0, 1024);
       resize(expr, self, size);
 
       setMathExpressionTiming(
@@ -213,6 +215,7 @@ struct GenericMathMapping
 
       std::vector<ossia::value> res;
       res.resize(self.expressions.size());
+      self.count = size;
       for(int i = 0; i < self.expressions.size(); i++)
         res[i] = (float)self.expressions[i].po;
       // Combine
@@ -227,6 +230,7 @@ struct GenericMathMapping
 
       std::vector<ossia::value> res;
       res.resize(size);
+      self.count = size;
       for(int i = 0; i < size; i++)
       {
         auto& e = self.expressions[0];
@@ -307,7 +311,7 @@ struct GenericMathMapping
         break;
       case ossia::val_type::LIST: {
         auto& arr = *value.target<std::vector<ossia::value>>();
-        const auto N = std::ssize(arr);
+        const auto N = std::clamp((int)std::ssize(arr), 0, 1024);
         if(!resize(expr, self, N))
           return;
         for(int i = 0; i < N; i++)
@@ -316,7 +320,7 @@ struct GenericMathMapping
       }
       case ossia::val_type::MAP: {
         auto& arr = *value.target<ossia::value_map_type>();
-        const auto N = std::ssize(arr);
+        const auto N = std::clamp((int)std::ssize(arr), 0, 1024);
         if(!resize(expr, self, N))
           return;
         int i = 0;

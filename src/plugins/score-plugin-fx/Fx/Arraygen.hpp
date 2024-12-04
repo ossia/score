@@ -34,9 +34,10 @@ struct Node
   {
     struct Expr
     {
-      void init(double& cur_time, double& cur_deltatime, double& cur_pos)
+      void init(double& cur_time, double& cur_deltatime, double& cur_pos, double& count)
       {
         expr.add_variable("i", instance);
+        expr.add_variable("n", count);
 
         expr.add_variable("po", po);
 
@@ -55,6 +56,7 @@ struct Node
     };
 
     boost::container::static_vector<Expr, 1024> expressions;
+    double count{};
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
