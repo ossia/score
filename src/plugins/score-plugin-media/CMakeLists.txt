@@ -170,7 +170,7 @@ if(EMSCRIPTEN)
   )
 elseif(FFmpeg_FOUND)
   target_link_libraries(${PROJECT_NAME}
-    PRIVATE
+    PUBLIC
       avcodec avformat avdevice swresample swscale postproc avutil
   )
 

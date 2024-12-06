@@ -243,7 +243,8 @@ inline const ossia::hash_map<std::string, AVPixelFormat>& gstreamerToLibav()
 }
 
 // This is used when we do not have stride info, we make a best guess...
-inline void initFrameFromRawData(AVFrame* frame, uint8_t* p, std::size_t sz)
+[[nodiscard]]
+inline bool initFrameFromRawData(AVFrame* frame, uint8_t* p, std::size_t sz)
 {
   switch(frame->format)
   {
@@ -540,8 +541,7 @@ inline void initFrameFromRawData(AVFrame* frame, uint8_t* p, std::size_t sz)
     case AV_PIX_FMT_YUVA444P12LE: ///< planar YUV 4:4:4:36bpp: (1 Cr & Cb sample per 1x1 Y samples): 12b alpha: little-endian
     {
       qDebug() << "TODO unhandled video format";
-      free(p);
-      break;
+      return false;
     }
 
     case AV_PIX_FMT_MONOWHITE: ///<        Y        :  1bpp: 0 is white: 1 is black: in each byte pixels are ordered from the msb to the lsb
@@ -695,10 +695,10 @@ inline void initFrameFromRawData(AVFrame* frame, uint8_t* p, std::size_t sz)
     case AV_PIX_FMT_PAL8: ///< 8 bits with case AV_PIX_FMT_RGB32 palette
     default: {
       qDebug() << "TODO unhandled video format";
-      free(p);
-      break;
+      return false;
     }
   }
+  return true;
 }
 
 }
