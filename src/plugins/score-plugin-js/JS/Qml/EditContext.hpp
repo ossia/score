@@ -46,6 +46,9 @@ public:
   QString deviceToJson(QString addr);
   W_SLOT(deviceToJson)
 
+  QString deviceToOSCQuery(QString addr);
+  W_SLOT(deviceToOSCQuery)
+
   void createOSCDevice(QString name, QString host, int in, int out);
   W_SLOT(createOSCDevice)
 

@@ -22,6 +22,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter_data.hpp>
 #include <ossia/network/common/complex_type.hpp>
+#include <ossia/network/oscquery/detail/json_writer.hpp>
 #include <ossia/network/value/format_value.hpp>
 #include <ossia/preset/preset.hpp>
 namespace JS
@@ -122,6 +123,24 @@ QString EditJsContext::deviceToJson(QString name)
       auto p = ossia::presets::make_json_preset(
           d->get_root_node(), ossia::presets::preset_save_options{true, true, true});
       return QString::fromStdString(p);
+    }
+  }
+  return {};
+}
+
+QString EditJsContext::deviceToOSCQuery(QString name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return {};
+
+  Explorer::DeviceDocumentPlugin& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  if(auto dev = plug.list().findDevice(name))
+  {
+    if(auto d = dev->getDevice())
+    {
+      auto p = ossia::oscquery::json_writer::query_namespace(d->get_root_node());
+      return QString::fromUtf8(p.GetString(), p.GetLength());
     }
   }
   return {};
