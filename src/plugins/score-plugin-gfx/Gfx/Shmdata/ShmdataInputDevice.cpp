@@ -215,19 +215,24 @@ private:
 
       // We are going to create a new frame in m_rescale
       // so we directly init with p.
-      ::Video::initFrameFromRawData(frame, (uint8_t*)p, sz);
+      if(::Video::initFrameFromRawData(frame, (uint8_t*)p, sz))
+      {
+        ::Video::ReadFrame read{frame, 0};
 
-      ::Video::ReadFrame read{frame, 0};
+        ::Video::AVFramePointer dummy;
+        m_rescale.rescale(m_frames, dummy, read);
 
-      ::Video::AVFramePointer dummy;
-      m_rescale.rescale(m_frames, dummy, read);
+        for(int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
+          frame->data[i] = nullptr;
 
-      for(int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
-        frame->data[i] = nullptr;
+        av_frame_free(&frame);
 
-      av_frame_free(&frame);
-
-      m_frames.enqueue(read.frame);
+        m_frames.enqueue(read.frame);
+      }
+      else
+      {
+        av_frame_free(&frame);
+      }
     }
     else
     {
@@ -239,12 +244,13 @@ private:
 
       // Here we need to copy the buffer.
       const auto storage = ::Video::initFrameBuffer(*frame, sz);
-      ::Video::initFrameFromRawData(frame.get(), storage, sz);
+      if(::Video::initFrameFromRawData(frame.get(), storage, sz))
+      {
+        // Copy the content as we're going on *adventures*
+        memcpy(storage, p, sz);
 
-      // Copy the content as we're going on *adventures*
-      memcpy(storage, p, sz);
-
-      m_frames.enqueue(frame.release());
+        m_frames.enqueue(frame.release());
+      }
     }
   }
 
