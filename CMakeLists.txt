@@ -69,7 +69,7 @@ if(OSSIA_SDK)
   else()
     set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
   endif()
-  
+
   include_directories("${OSSIA_SDK}/pipewire/include/pipewire-0.3")
   include_directories("${OSSIA_SDK}/pipewire/include/spa-0.2")
 endif()

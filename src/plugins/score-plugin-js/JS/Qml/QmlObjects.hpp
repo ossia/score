@@ -17,6 +17,7 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/ssize.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia-qt/js_utilities.hpp>
 
 #include <QJSValue>
 #include <QObject>
@@ -32,7 +33,6 @@
 #include <verdigris>
 
 class QQuickItem;
-W_REGISTER_ARGTYPE(QJSValue)
 namespace JS
 {
 class SCORE_PLUGIN_JS_EXPORT Inlet : public QObject
