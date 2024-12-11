@@ -387,8 +387,6 @@ void DeviceInterface::updateSettings(const Device::DeviceSettings& newsettings)
 
     m_settings = newsettings;
 
-    reconnect();
-
     auto con_handle = std::make_shared<QMetaObject::Connection>();
     *con_handle = connect(
         this, &Device::DeviceInterface::deviceChanged, this,
@@ -399,6 +397,8 @@ void DeviceInterface::updateSettings(const Device::DeviceSettings& newsettings)
         QObject::disconnect(*con_handle);
       }
         });
+
+    reconnect();
   }
   else
   {
