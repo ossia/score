@@ -19,6 +19,7 @@ if [[ ! -d score-addon-jk ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-jk
 fi
 
+exit 0
 if [[ ! -d score-addon-ndi ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-ndi
 fi
