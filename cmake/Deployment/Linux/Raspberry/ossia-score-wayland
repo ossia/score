@@ -9,6 +9,6 @@ source "$DIR/bin/setup-dependencies.sh"
 export MESA_GLES_VERSION_OVERRIDE=3.2
 export MESA_GLSL_VERSION_OVERRIDE=320
 export LD_LIBRARY_PATH="$DIR/lib"
-export QT_QPA_PLATFORM=xcb
+export QT_QPA_PLATFORM=wayland
 
 "$DIR/bin/ossia-score" $@

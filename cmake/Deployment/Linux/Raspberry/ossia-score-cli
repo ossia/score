@@ -1,10 +1,12 @@
 #!/bin/bash -eux
 
 # This script will run ossia score as a CLI only version.
-# Most features will not be available but it will be more efficient.
+# Most features will not be available but it will be more efficient and it will use very little RAM.
 
 DIR=$(realpath "${BASH_SOURCE[0]}")
 DIR=$(dirname "$DIR")
+
+source "$DIR/bin/setup-dependencies.sh"
 
 export MESA_GLES_VERSION_OVERRIDE=3.2
 export MESA_GLSL_VERSION_OVERRIDE=320
