@@ -96,14 +96,14 @@ class MidiEnumerator : public Device::DeviceEnumerator
     if constexpr(Type == ossia::net::midi::midi_info::Type::Input)
     {
       cb.input_added = [this](const libremidi::input_port& p) {
-        ossia::qt::run_async(
+        QTimer::singleShot(1,
             this, [this, s = to_settings(m_api, p)] { deviceAdded(s.name, s); });
       };
     }
     else
     {
       cb.output_added = [this](const libremidi::output_port& p) {
-        ossia::qt::run_async(
+        QTimer::singleShot(1,
             this, [this, s = to_settings(m_api, p)] { deviceAdded(s.name, s); });
       };
     }
