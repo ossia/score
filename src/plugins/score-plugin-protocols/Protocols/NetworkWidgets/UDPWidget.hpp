@@ -38,9 +38,6 @@ public:
     m_broadcast = new QCheckBox{this};
     m_broadcast->setCheckState(Qt::Unchecked);
     m_broadcast->setWhatsThis(tr("Broadcast to every device in the IP broadcast range"));
-    connect(m_broadcast, &QCheckBox::stateChanged, this, [this](int checked) {
-      m_host->setEnabled(!checked);
-    });
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
