@@ -31,6 +31,7 @@ if [[ ! -d score-addon-ultraleap ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-ultraleap
 fi
 
+exit 0
 if [[ ! -d score-addon-contextfree ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-contextfree
 fi
