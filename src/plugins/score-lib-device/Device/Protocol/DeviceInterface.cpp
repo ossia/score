@@ -5,7 +5,10 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/tools/std/String.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
 
 #include <ossia/detail/logger.hpp>
 #include <ossia/network/base/device.hpp>
@@ -797,6 +800,9 @@ Device::Node DeviceInterface::getNodeWithoutChildren(const State::Address& addre
 
 void DeviceInterface::setListening(const State::Address& addr, bool b)
 {
+  static const bool gui = score::AppContext().applicationSettings.gui;
+  if(!gui)
+    return;
   if(auto dev = getDevice())
   {
     // First check if the address is already listening
@@ -861,6 +867,10 @@ std::vector<State::Address> DeviceInterface::listening() const
   if(!connected())
     return {};
 
+  static const bool gui = score::AppContext().applicationSettings.gui;
+  if(!gui)
+    return {};
+
   std::vector<State::Address> addrs;
   addrs.reserve(m_callbacks.size());
 
@@ -875,6 +885,10 @@ std::vector<State::Address> DeviceInterface::listening() const
 void DeviceInterface::addToListening(const std::vector<State::Address>& addresses)
 {
   if(!connected())
+    return;
+
+  static const bool gui = score::AppContext().applicationSettings.gui;
+  if(!gui)
     return;
 
   for(const auto& addr : addresses)
