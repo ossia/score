@@ -11,6 +11,7 @@ if [[ ! -d score-addon-synthimi ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-synthimi
 fi
 
+exit 0
 if [[ ! -d score-addon-threedim ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-threedim
 fi
