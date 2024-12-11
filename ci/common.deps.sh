@@ -47,9 +47,9 @@ if [[ ! -d score-addon-spatgris ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-spatgris
 fi
 
-if [[ ! -d score-addon-hdf5 ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-hdf5
-fi
+#if [[ ! -d score-addon-hdf5 ]]; then
+#  git clone --recursive -j16 https://github.com/ossia/score-addon-hdf5
+#fi
 
 if [[ ! -d score-addon-puara ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-puara
