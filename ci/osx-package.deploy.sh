@@ -72,6 +72,10 @@ do
   ((i++))
 done
 
+ls
+
+find . -name '*.dmg'
+
 sudo chown "$(whoami)" ./*.dmg
 
 # Notarize the .dmg
@@ -80,12 +84,13 @@ if [[ "${CI_IS_AZURE}" = "1" ]]; then
   security unlock-keychain -p travis build.keychain
 fi
 
-xcrun notarytool submit *.dmg \
+xcrun notarytool \
   --team-id "GRW9MHZ724" \
   --apple-id "jeanmichael.celerier@gmail.com" \
   --password "$MAC_ALTOOL_PASSWORD" \
   --progress \
-  --wait
+  --wait \
+  submit *.dmg
 
 # Staple
 xcrun stapler staple ./*.dmg
