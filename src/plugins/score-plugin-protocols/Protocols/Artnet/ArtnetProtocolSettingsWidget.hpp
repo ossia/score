@@ -40,6 +40,7 @@ private:
   QRadioButton* m_sink{};
   QTableWidget* m_fixturesWidget{};
   QPushButton* m_addFixture{};
+  QPushButton* m_addLEDStrip{};
   QPushButton* m_rmFixture{};
   std::vector<Artnet::Fixture> m_fixtures;
 };
