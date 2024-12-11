@@ -113,13 +113,16 @@ void disableAppRestore()
 extern "C" void disableAppNap();
 #endif
 
-static void setup_x11()
+static void setup_x11(int argc, char** argv)
 {
 #if defined(__linux__)
   static const bool x11 = !qgetenv("DISPLAY").isEmpty();
   static const bool wayland = !qgetenv("WAYLAND_DISPLAY").isEmpty();
   const auto platform = qgetenv("QT_QPA_PLATFORM");
-  const bool has_platform = !platform.isEmpty();
+  const auto platform_in_args = std::any_of(argv, argv + argc, [](std::string_view str) {
+    return str == "-platform" || str == "--platform";
+  });
+  const bool has_platform = !platform.isEmpty() || platform_in_args;
 
   if(!x11 && !wayland)
     return;
@@ -596,7 +599,7 @@ int main(int argc, char** argv)
 #endif
 
   setup_limits();
-  setup_x11();
+  setup_x11(argc, argv);
   setup_gtk();
   setup_suil();
   disable_denormals();

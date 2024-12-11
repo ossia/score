@@ -377,12 +377,21 @@ void Application::init()
   // View
   if(appSettings.gui)
   {
-#if !defined(__EMSCRIPTEN__)
-    m_view->show();
+    bool show_fullscreen = false;
+#if defined(__EMSCRIPTEN__)
+    show_fullscreen = true;
 #else
-    m_view->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    m_view->showFullScreen();
+    show_fullscreen = (qApp->platformName() == "vnc");
 #endif
+    if(show_fullscreen)
+    {
+      m_view->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+      m_view->showFullScreen();
+    }
+    else
+    {
+      m_view->show();
+    }
   }
 
 #if defined(__APPLE__)
