@@ -19,5 +19,6 @@ enum class Types
   Audio,
   Camera,
   Geometry,
+  Buffer,
 };
 }

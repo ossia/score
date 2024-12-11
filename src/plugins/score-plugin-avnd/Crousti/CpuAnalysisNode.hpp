@@ -98,8 +98,11 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
         sz.rheight() = t.request_height;
       }
       createInput(renderer, k, t.texture, sz);
-      t.texture.width = sz.width();
-      t.texture.height = sz.height();
+      if constexpr(avnd::cpu_fixed_format_texture<decltype(t.texture)>)
+      {
+        t.texture.width = sz.width();
+        t.texture.height = sz.height();
+      }
       k++;
     });
   }
