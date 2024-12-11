@@ -24,7 +24,7 @@ struct RefcountedFrame
   std::atomic_int use_count{};
 };
 
-struct VideoFrameShare
+struct SCORE_PLUGIN_GFX_EXPORT VideoFrameShare
 {
   VideoFrameShare();
   ~VideoFrameShare();
@@ -45,7 +45,7 @@ struct VideoFrameShare
   std::vector<std::shared_ptr<RefcountedFrame>> m_framesInFlight;
 };
 
-struct VideoFrameReader : VideoFrameShare
+struct SCORE_PLUGIN_GFX_EXPORT VideoFrameReader : VideoFrameShare
 {
   VideoFrameReader();
   ~VideoFrameReader();
@@ -137,4 +137,21 @@ private:
   friend VideoNodeRenderer;
 };
 
+/**
+ * @brief Model for getting more general streams of data e.g. point clouds
+ */
+class SCORE_PLUGIN_GFX_EXPORT BufferNode : public Node
+{
+public:
+  explicit BufferNode(std::shared_ptr<Video::ExternalInput> dec);
+  ~BufferNode() { }
+
+  NodeRenderer* createRenderer(RenderList& r) const noexcept override;
+
+  void process(Message&& msg) override;
+  void renderedNodesChanged() override;
+
+  VideoFrameShare reader;
+  std::atomic_bool must_stop{};
+};
 }

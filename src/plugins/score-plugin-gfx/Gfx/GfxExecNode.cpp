@@ -1,4 +1,3 @@
-#include <Gfx/CameraDevice.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/GfxParameter.hpp>
 
@@ -89,6 +88,12 @@ void gfx_exec_node::run(
       }
 
       case ossia::geometry_port::which: {
+        // if(auto in = inlet->address.target<ossia::net::parameter_base*>();
+        //    in && (*in)->get_type() == ossia::parameter_type::GEOMETRY)
+        // {
+        //   auto cam = static_cast<ossia::gfx::geometry_parameter*>(*in);
+        //   cam->pull_geometry({this->id, inlet_i});
+        // }
         // TODO try to handle the case where it's generated on another GPU node
         // to prevent going through the CPU there
         auto& p = inlet->cast<ossia::geometry_port>();
