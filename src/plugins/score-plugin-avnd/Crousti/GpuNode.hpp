@@ -404,17 +404,7 @@ struct CustomGpuNode final
   {
     this->instance = id;
 
-    using texture_inputs = avnd::gpu_sampler_introspection<Node_T>;
-    using texture_outputs = avnd::gpu_attachment_introspection<Node_T>;
-
-    for(std::size_t i = 0; i < texture_inputs::size; i++)
-    {
-      input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
-    }
-    for(std::size_t i = 0; i < texture_outputs::size; i++)
-    {
-      output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
-    }
+    initGfxPorts<Node_T>(this, this->input, this->output);
 
     using layout = typename Node_T::layout;
     static constexpr auto lay = layout{};

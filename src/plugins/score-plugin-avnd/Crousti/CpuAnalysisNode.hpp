@@ -223,14 +223,7 @@ struct GfxNode<Node_T> final
   {
     this->instance = id;
 
-    using texture_inputs = avnd::texture_input_introspection<Node_T>;
-
-    // FIXME incorrect if we have other ports before, e.g. a float part followed by an image port
-    for(std::size_t i = 0; i < texture_inputs::size; i++)
-    {
-      this->input.push_back(
-          new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
-    }
+    initGfxPorts<Node_T>(this, this->input, this->output);
   }
 
   score::gfx::OutputNodeRenderer*
@@ -239,6 +232,5 @@ struct GfxNode<Node_T> final
     return new GfxRenderer<Node_T>{*this};
   }
 };
-
 }
 #endif

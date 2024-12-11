@@ -34,20 +34,7 @@ struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
   {
     this->instance = id;
 
-    using texture_inputs = avnd::gpu_image_input_introspection<Node_T>;
-    using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
-
-    for(std::size_t i = 0; i < texture_inputs::size; i++)
-    {
-      this->input.push_back(
-          new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
-    }
-    for(std::size_t i = 0; i < texture_outputs::size; i++)
-    {
-      this->output.push_back(
-          new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
-    }
-
+    initGfxPorts<Node_T>(this, this->input, this->output);
     using layout = typename Node_T::layout;
     static constexpr auto lay = layout{};
 

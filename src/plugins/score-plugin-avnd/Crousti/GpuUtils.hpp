@@ -1119,6 +1119,107 @@ void prepareNewState(Node_T& eff, const Node& parent)
     eff.prepare(t);
   }
 }
+
+struct port_to_type_enum
+{
+  template <std::size_t I, avnd::cpu_texture_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    using texture_type = std::remove_cvref_t<decltype(F::texture)>;
+    return avnd::cpu_fixed_format_texture<texture_type> ? score::gfx::Types::Image
+                                                        : score::gfx::Types::Buffer;
+  }
+  template <std::size_t I, avnd::sampler_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Image;
+  }
+  template <std::size_t I, avnd::image_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Image;
+  }
+  template <std::size_t I, avnd::attachment_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Image;
+  }
+
+  template <std::size_t I, avnd::geometry_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Geometry;
+  }
+  template <std::size_t I, avnd::mono_audio_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Audio;
+  }
+  template <std::size_t I, avnd::poly_audio_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Audio;
+  }
+  template <std::size_t I, avnd::int_parameter F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Int;
+  }
+  template <std::size_t I, avnd::enum_parameter F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Int;
+  }
+  template <std::size_t I, avnd::float_parameter F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Float;
+  }
+  template <std::size_t I, avnd::parameter F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    using value_type = std::remove_cvref_t<decltype(F::value)>;
+
+    if constexpr(std::is_aggregate_v<value_type>)
+    {
+      constexpr int sz = boost::pfr::tuple_size_v<value_type>;
+      if constexpr(sz == 2)
+      {
+        return score::gfx::Types::Vec2;
+      }
+      else if constexpr(sz == 3)
+      {
+        return score::gfx::Types::Vec3;
+      }
+      else if constexpr(sz == 4)
+      {
+        return score::gfx::Types::Vec4;
+      }
+    }
+    return score::gfx::Types::Empty;
+  }
+  template <std::size_t I, typename F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Empty;
+  }
+};
+
+template <typename Node_T>
+inline void initGfxPorts(auto* self, auto& input, auto& output)
+{
+  avnd::input_introspection<Node_T>::for_all(
+      [self, &input]<typename Field, std::size_t I>(avnd::field_reflection<I, Field> f) {
+    static constexpr auto type = port_to_type_enum{}(f);
+    input.push_back(new score::gfx::Port{self, {}, type, {}});
+  });
+  avnd::output_introspection<Node_T>::for_all(
+      [self,
+       &output]<typename Field, std::size_t I>(avnd::field_reflection<I, Field> f) {
+    static constexpr auto type = port_to_type_enum{}(f);
+    output.push_back(new score::gfx::Port{self, {}, type, {}});
+  });
+}
 }
 
 #endif
