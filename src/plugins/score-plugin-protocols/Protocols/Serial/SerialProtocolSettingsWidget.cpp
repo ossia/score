@@ -96,13 +96,11 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
     }
   }
 
-  for(auto rate : QSerialPortInfo::standardBaudRates())
-    if(rate == m_rate->currentText().toInt())
-    {
-      specific.rate = rate;
-      break;
-    }
-
+  specific.rate = m_rate->currentText().toInt();
+  if(specific.rate <= 0)
+  {
+    specific.rate = 9600;
+  }
   specific.text = m_codeEdit->toPlainText();
 
   s.deviceSpecificSettings = QVariant::fromValue(specific);
@@ -118,7 +116,7 @@ void SerialProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
     specific = settings.deviceSpecificSettings.value<SerialSpecificSettings>();
 
     int32_t rate{specific.rate};
-    if(rate == 0)
+    if(rate <= 0)
       rate = 9600;
 
     m_port->setCurrentText(specific.port.portName());
