@@ -16,7 +16,7 @@ SimpleIOSpecificSettings loadWokwi(const rapidjson::Document& doc)
   SimpleIOSpecificSettings vec;
   using namespace Wokwi;
   // 1. Load all the parts from the JSON
-  Device d;
+  Wokwi::Device d;
   if(!doc.IsObject())
     return vec;
 
