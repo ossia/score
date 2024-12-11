@@ -17,6 +17,7 @@
 #include <QFormLayout>
 #include <QObject>
 #include <QRegularExpression>
+#include <QUrl>
 
 namespace Protocols
 {
