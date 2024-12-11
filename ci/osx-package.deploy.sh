@@ -52,7 +52,9 @@ fi
 echo killing...; sudo pkill -9 XProtect >/dev/null || true;
 echo waiting...; while pgrep XProtect; do sleep 3; done;
 
-sudo create-dmg \
+max_tries=10
+i=0
+until sudo create-dmg \
   --volname "ossia score $TAG" \
   --window-pos 200 120 \
   --window-size 800 400 \
@@ -62,6 +64,13 @@ sudo create-dmg \
   --hide-extension "ossia score.app" \
   --filesystem APFS \
   'score.dmg' 'ossia score.app'
+do
+  if [[ $i -eq $max_tries ]]; then
+    echo 'Error: create-dmg did not succeed even after 10 tries.'
+    exit 1
+  fi
+  ((i++))
+done
 
 sudo chown "$(whoami)" ./*.dmg
 
