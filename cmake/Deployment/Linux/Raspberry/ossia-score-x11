@@ -4,7 +4,7 @@
 DIR=$(realpath "${BASH_SOURCE[0]}")
 DIR=$(dirname "$DIR")
 
-source "$DIR/bin/setup-dependencies.sh"
+source "$DIR/setup-dependencies.sh"
 
 export MESA_GLES_VERSION_OVERRIDE=3.2
 export MESA_GLSL_VERSION_OVERRIDE=320
