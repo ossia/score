@@ -3,6 +3,7 @@
 (
 cd src/addons
 
+exit 0
 #if [[ ! -d iscore-addon-network ]]; then
 #  git clone --recursive -j16 https://github.com/ossia/iscore-addon-network
 #fi
