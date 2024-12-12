@@ -3,16 +3,15 @@
 (
 cd src/addons
 
-if [[ ! -d iscore-addon-network ]]; then
-  git clone --recursive -j16 https://github.com/ossia/iscore-addon-network
-fi
+#if [[ ! -d iscore-addon-network ]]; then
+#  git clone --recursive -j16 https://github.com/ossia/iscore-addon-network
+#fi
 
-exit 0
 if [[ ! -d score-addon-synthimi ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-synthimi
 fi
 
-exit 0
+#exit 0
 if [[ ! -d score-addon-threedim ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-threedim
 fi
@@ -21,7 +20,7 @@ if [[ ! -d score-addon-jk ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-jk
 fi
 
-exit 0
+#exit 0
 if [[ ! -d score-addon-ndi ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-ndi
 fi
