@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 (
-cd src/addons
+cd src/plugins
 
 # exit 0
 #if [[ ! -d iscore-addon-network ]]; then
