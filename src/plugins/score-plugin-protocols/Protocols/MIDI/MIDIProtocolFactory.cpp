@@ -17,6 +17,7 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QObject>
+#include <QTimer>
 #include <QUrl>
 
 #include <libremidi/backends.hpp>
