@@ -13,9 +13,7 @@ cd src/plugins
 # fi
 
 #exit 0
-if [[ ! -d score-addon-threedim ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-threedim
-fi
+git clone --recursive -j16 https://github.com/ossia-templates/score-offline-process-template
 
 exit 0
 if [[ ! -d score-addon-jk ]]; then
