@@ -93,8 +93,7 @@ struct GenericMathMapping
 
     if(vector_size_did_change)
     {
-      self.expr.remove_vector("xv");
-      self.expr.add_vector("xv", self.xv);
+      self.expr.rebase_vector("xv", self.xv);
       self.expr.recompile();
     }
 
@@ -109,8 +108,7 @@ struct GenericMathMapping
 
       if(old_prev != new_prev)
       {
-        self.expr.remove_vector("pxv");
-        self.expr.add_vector("pxv", self.pxv);
+        self.expr.rebase_vector("pxv", self.pxv);
         self.expr.recompile();
       }
     }
