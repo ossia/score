@@ -41,6 +41,7 @@ public:
   virtual QString category() const noexcept = 0;
   virtual ProcessFlags flags() const noexcept = 0;
   virtual Descriptor descriptor(QString) const noexcept = 0;
+  virtual Descriptor descriptor(const Process::ProcessModel&) const noexcept;
 
   virtual QString customConstructionData() const noexcept;
 

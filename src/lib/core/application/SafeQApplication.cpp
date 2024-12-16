@@ -2,12 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SafeQApplication.hpp"
 
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Debug.hpp>
 #include <score/tools/std/Invoke.hpp>
 
 #include <QDebug>
+#include <QDesktopServices>
 #include <QFileInfo>
 #include <QFileOpenEvent>
+#include <QGraphicsView>
 #include <QThread>
 
 #include <wobjectimpl.h>
@@ -55,12 +58,87 @@ void SafeQApplication::DebugOutput(
   fflush(out_file);
 }
 
-#if !defined(SCORE_DEBUG)
+Q_GLOBAL_STATIC(QUrl, g_next_help_url_to_open);
+Q_GLOBAL_STATIC(QTimer, g_next_help_url_to_open_timer);
+static void open_help_url(const QUrl& u)
+{
+  if(g_next_help_url_to_open.isDestroyed())
+    return;
+
+  *g_next_help_url_to_open = u;
+  g_next_help_url_to_open_timer->stop();
+  g_next_help_url_to_open_timer->setSingleShot(true);
+  QObject::disconnect(&*g_next_help_url_to_open_timer, &QTimer::timeout, qApp, nullptr);
+  QObject::connect(&*g_next_help_url_to_open_timer, &QTimer::timeout, qApp, [] {
+    QDesktopServices::openUrl(*g_next_help_url_to_open);
+  });
+
+  g_next_help_url_to_open_timer->start(15);
+}
+
+static void open_help_url(QGraphicsItem* item)
+{
+  if(!item)
+    return;
+
+  if(auto url = getItemHelpUrl(item->type()); !url.isEmpty())
+  {
+    open_help_url(url);
+  }
+  else if(auto data = item->data(0xF1); data.isValid())
+  {
+    open_help_url(data.toUrl());
+  }
+  else
+  {
+    open_help_url(item->parentItem());
+  }
+}
+
+static void process_help_event(QObject* receiver, QEvent* event)
+{
+  if(auto res = receiver->property("help_url"); res.isValid())
+  {
+    auto url = res.value<QUrl>();
+    open_help_url(url);
+  }
+  else if(auto gv = qobject_cast<QGraphicsView*>(receiver))
+  {
+    auto pos = QCursor::pos();
+    auto pt = gv->viewport()->mapFromGlobal(pos);
+    open_help_url(gv->itemAt(pt));
+  }
+  else if(auto gs = qobject_cast<QGraphicsScene*>(receiver))
+  {
+    auto pos = QCursor::pos();
+    auto gvs = gs->views();
+    if(!gvs.empty())
+    {
+      auto gv = gvs[0];
+      auto pt = gv->mapFromGlobal(pos);
+      open_help_url(gv->itemAt(pt));
+    }
+  }
+  else
+  {
+    open_help_url(QUrl("https://ossia.io/score-docs"));
+  }
+}
+
 bool SafeQApplication::notify(QObject* receiver, QEvent* event)
 {
+#if !defined(SCORE_DEBUG)
   try
   {
+#endif
+    if(event->type() == QEvent::KeyPress)
+    {
+      auto ev = (QKeyEvent*)(event);
+      if(ev->key() == Qt::Key_F1)
+        process_help_event(receiver, event);
+    }
     return QApplication::notify(receiver, event);
+#if !defined(SCORE_DEBUG)
   }
   catch(std::exception& e)
   {
@@ -92,8 +170,8 @@ bool SafeQApplication::notify(QObject* receiver, QEvent* event)
   }
 
   return false;
-}
 #endif
+}
 
 bool SafeQApplication::event(QEvent* ev)
 {
@@ -110,6 +188,8 @@ bool SafeQApplication::event(QEvent* ev)
       fileOpened(loadString);
       return true;
     }
+    case QEvent::HelpRequest:
+      return QApplication::event(ev);
     default:
       return QApplication::event(ev);
   }

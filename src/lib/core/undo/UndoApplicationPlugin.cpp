@@ -6,6 +6,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/ForEach.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -26,7 +27,7 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   m_undoAction->setShortcut(QKeySequence::Undo);
   m_undoAction->setEnabled(false);
   m_undoAction->setText(QObject::tr("Nothing to undo"));
-  m_undoAction->setToolTip(QObject::tr("Undo (Ctrl+Z)"));
+  score::setHelp(m_undoAction, QObject::tr("Undo (Ctrl+Z)"));
 
   setIcons(
       m_undoAction, QStringLiteral(":/icons/prev_on.png"),
@@ -41,7 +42,7 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   m_redoAction->setShortcut(QKeySequence::Redo);
   m_redoAction->setEnabled(false);
   m_redoAction->setText(QObject::tr("Nothing to redo"));
-  m_redoAction->setToolTip(QObject::tr("Redo (Ctrl+Shift+Z)"));
+  score::setHelp(m_redoAction, QObject::tr("Redo (Ctrl+Shift+Z)"));
 
   setIcons(
       m_redoAction, QStringLiteral(":/icons/next_on.png"),

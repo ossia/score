@@ -18,6 +18,11 @@ namespace Process
 {
 ProcessModelFactory::~ProcessModelFactory() { }
 
+Descriptor ProcessModelFactory::descriptor(const ProcessModel& m) const noexcept
+{
+  return descriptor(m.effect());
+}
+
 LayerFactory::~LayerFactory() { }
 
 std::optional<double> LayerFactory::recommendedHeight() const noexcept

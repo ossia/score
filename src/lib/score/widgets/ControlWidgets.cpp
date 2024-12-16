@@ -1,5 +1,6 @@
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
 
 #include <ossia/detail/flicks.hpp>
@@ -25,7 +26,7 @@ SearchLineEdit::SearchLineEdit(QWidget* parent)
   setPlaceholderText("Search");
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/search.png"));
-  act->setStatusTip(tr("Filter with the given text"));
+  score::setHelp(act, tr("Filter with the given text"));
   addAction(act, QLineEdit::TrailingPosition);
 
   connect(this, &QLineEdit::returnPressed, this, [&]() { search(); });

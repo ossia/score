@@ -3,6 +3,7 @@
 #include "CurveSettingsView.hpp"
 
 #include <score/widgets/FormWidget.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
@@ -22,7 +23,8 @@ View::View()
     m_sb = new QDoubleSpinBox;
 
     m_sb->setMinimum(1);
-    m_sb->setMaximum(100);
+    m_sb->setMaximum(10000);
+    score::setHelp(m_sb, tr("Higher value is closer to the original data."));
     connect(
         m_sb, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
         &View::simplificationRatioChanged);
@@ -32,6 +34,7 @@ View::View()
 
   {
     m_simpl = new QCheckBox{tr("Simplify")};
+    score::setHelp(m_simpl, tr("Enable simplification of recorded data."));
 
     connect(m_simpl, &QCheckBox::stateChanged, this, [&](int t) {
       switch(t)
@@ -52,6 +55,9 @@ View::View()
 
   {
     m_mode = new QCheckBox{tr("Ramp to new value")};
+    score::setHelp(
+        m_simpl, tr("When simplifying, interpolate between recorded events instead of "
+                    "maintaining the last received value until a change occurs."));
 
     connect(m_mode, &QCheckBox::stateChanged, this, [&](int t) {
       switch(t)
@@ -72,6 +78,8 @@ View::View()
 
   {
     m_playWhileRecording = new QCheckBox{tr("Play while recording")};
+    score::setHelp(
+        m_simpl, tr("Enable playback of the rest of the score while recording."));
 
     connect(m_playWhileRecording, &QCheckBox::stateChanged, this, [&](int t) {
       switch(t)

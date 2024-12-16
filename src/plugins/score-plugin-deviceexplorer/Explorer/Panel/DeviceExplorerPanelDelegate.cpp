@@ -8,6 +8,7 @@
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 namespace Explorer
 {
@@ -17,9 +18,9 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
           ctx.interfaces<Device::ProtocolFactoryList>(), nullptr}}
 
 {
-  m_widget->setStatusTip(
-      QObject::tr("The device explorer displays and controls network devices "
-                  "and hardware peripherals."));
+  score::setHelp(
+      m_widget, QObject::tr("The device explorer displays and controls network devices "
+                            "and hardware peripherals."));
 }
 
 QWidget* PanelDelegate::widget()

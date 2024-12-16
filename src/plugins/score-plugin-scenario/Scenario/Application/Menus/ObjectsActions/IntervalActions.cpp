@@ -24,6 +24,7 @@
 #include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -65,6 +66,7 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
   const auto& appContext = parent->context;
 
   m_addProcess = new QAction{tr("Add Process in interval"), this};
+  score::setHelp(m_addProcess, tr("Add a process"));
   connect(m_addProcess, &QAction::triggered, [&]() {
     if(selectedIntervalsInCurrentDocument(appContext).isEmpty())
       return;
@@ -81,12 +83,12 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
 
   m_showRacks = new QAction{tr("Show Racks"), this};
   m_showRacks->setShortcutContext(Qt::ApplicationShortcut);
-  m_showRacks->setToolTip(tr("Show racks"));
+  score::setHelp(m_showRacks, tr("Show racks"));
   connect(m_showRacks, &QAction::triggered, this, &IntervalActions::on_showRacks);
 
   m_hideRacks = new QAction{tr("Hide Racks"), this};
   m_hideRacks->setShortcutContext(Qt::ApplicationShortcut);
-  m_hideRacks->setToolTip(tr("Hide racks"));
+  score::setHelp(m_hideRacks, tr("Hide racks"));
   connect(m_hideRacks, &QAction::triggered, this, &IntervalActions::on_hideRacks);
 }
 

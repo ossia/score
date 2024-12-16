@@ -11,6 +11,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/File.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -30,18 +31,25 @@ public:
   InfoWidget(QWidget* parent)
   {
     auto lay = new score::MarginLess<QVBoxLayout>{this};
+    lay->setAlignment(Qt::AlignTop);
     lay->setContentsMargins(6, 6, 6, 6);
     QFont f;
     f.setBold(true);
     m_name.setFont(f);
+    m_name.setAlignment(Qt::AlignTop);
     lay->addWidget(&m_name);
     lay->addWidget(&m_author);
     m_author.setWordWrap(true);
+    m_author.setAlignment(Qt::AlignTop);
     lay->addWidget(&m_io);
     lay->addWidget(&m_description);
     m_description.setWordWrap(true);
+    m_description.setAlignment(Qt::AlignTop);
     lay->addWidget(&m_tags);
     m_tags.setWordWrap(true);
+    m_tags.setAlignment(Qt::AlignTop);
+    m_documentationLink.setAlignment(Qt::AlignBottom);
+    lay->addStretch(2);
     lay->addWidget(&m_documentationLink);
     setVisible(false);
   }
@@ -60,7 +68,7 @@ public:
          = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d->key))
       {
         setVisible(true);
-        auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
+        auto desc = f->descriptor(d->customData);
 
         if(!d->prettyName.isEmpty())
           m_name.setText(d->prettyName);
@@ -167,7 +175,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
   }
 
   auto infoWidg = new InfoWidget{this};
-  infoWidg->setStatusTip(statusTip());
+  score::setHelp(infoWidg, statusTip());
   slay->addWidget(infoWidg, 1);
 
   connect(

@@ -14,6 +14,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/QuantificationWidget.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SpinBoxes.hpp>
@@ -52,15 +53,14 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
         QStringLiteral(":/icons/auto_trigger_hover.png"),
         QStringLiteral(":/icons/auto_trigger_off.png"),
         QStringLiteral(":/icons/auto_trigger_off.png")));
-    m_autotrigger->setToolTip(tr("Auto-trigger"));
-    m_autotrigger->setStatusTip(
+    score::setHelp(
+        m_autotrigger, tr("Auto-trigger"),
         tr(R"_(Auto-trigger timesyncs are timesyncs which will directly restart
 their following floating scenario upon triggering.
 Else, triggering the timesync will stop the following subgraph and
 it will be necessary to trigger it again to restart it.
 This is only relevant for subgraphs not connected
 to the root of a score.)_"));
-    m_autotrigger->setWhatsThis(m_autotrigger->statusTip());
 
     m_autotrigger->setAutoRaise(true);
     m_autotrigger->setIconSize(QSize{28, 28});
@@ -87,11 +87,10 @@ to the root of a score.)_"));
         QStringLiteral(":/icons/start_on_play_off.png"),
         QStringLiteral(":/icons/start_on_play_off.png")));
     m_isStart->setChecked(object.isStartPoint());
-    m_isStart->setToolTip(tr("Start on play"));
-    m_isStart->setStatusTip(
+    score::setHelp(
+        m_isStart, tr("Start on play"),
         tr(R"_(If this is checked, this time sync will start automatically when
                                    entering this scenario.)_"));
-    m_isStart->setWhatsThis(m_isStart->statusTip());
 
     m_isStart->setAutoRaise(true);
     m_isStart->setIconSize(QSize{28, 28});

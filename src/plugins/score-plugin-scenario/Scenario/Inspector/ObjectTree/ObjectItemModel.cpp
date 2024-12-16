@@ -34,6 +34,7 @@
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ArrowButton.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QAction>
@@ -916,30 +917,30 @@ SelectionStackWidget::SelectionStackWidget(
 {
   m_prev = new score::ArrowButton{Qt::LeftArrow, this};
   m_prev->setEnabled(m_stack.canUnselect());
-  m_prev->setStatusTip(tr("Previous selection."));
+  score::setHelp(m_prev, tr("Previous selection."));
 
   m_label = new TextLabel{"History", this};
-  m_label->setStatusTip(tr("Go back and forth in the selected items."));
+  score::setHelp(m_label, tr("Go back and forth in the selected items."));
 
   m_next = new score::ArrowButton{Qt::RightArrow, this};
   m_next->setEnabled(m_stack.canReselect());
-  m_next->setStatusTip(tr("Next selection."));
+  score::setHelp(m_next, tr("Next selection."));
 
   m_left = new score::ArrowButton{Qt::LeftArrow, this};
   m_left->setEnabled(m_selector.hasLeft());
-  m_left->setStatusTip(tr("Select the item to the left."));
+  score::setHelp(m_left, tr("Select the item to the left."));
 
   m_right = new score::ArrowButton{Qt::RightArrow, this};
   m_right->setEnabled(m_selector.hasRight());
-  m_right->setStatusTip(tr("Select the item to the right."));
+  score::setHelp(m_right, tr("Select the item to the right."));
 
   m_up = new score::ArrowButton{Qt::UpArrow, this};
   m_up->setEnabled(m_selector.hasUp());
-  m_up->setStatusTip(tr("Select the item above."));
+  score::setHelp(m_up, tr("Select the item above."));
 
   m_down = new score::ArrowButton{Qt::DownArrow, this};
   m_down->setEnabled(m_selector.hasDown());
-  m_down->setStatusTip(tr("Select the item below."));
+  score::setHelp(m_down, tr("Select the item below."));
 
   auto lay = new score::MarginLess<QHBoxLayout>{this};
   lay->setSizeConstraint(QLayout::SetMinimumSize);
@@ -981,7 +982,7 @@ ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext& ctx
   m_widget->setMinimumHeight(160);
   m_widget->setSizeHint({250, 100});
   m_widget->setMinimumWidth(250);
-  m_widget->setStatusTip(
+  score::setHelp(m_widget, 
       QObject::tr("Shows the currently selected items.\n"
                   "They can be renamed by double-clicking.\n"
                   "More options are available on the right-click menu."));

@@ -12,6 +12,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 
@@ -57,7 +58,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
       });
 
   auto act = new QAction{tr("Show Unit selector"), this};
-  act->setStatusTip(tr("Show the unit selector"));
+  score::setHelp(act, tr("Show the unit selector"));
   setIcons(
       act, QStringLiteral(":/icons/port_address_unit_on.png"),
       QStringLiteral(":/icons/port_address_unit.png"),
