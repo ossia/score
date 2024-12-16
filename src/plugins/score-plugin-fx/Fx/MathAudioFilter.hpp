@@ -32,7 +32,7 @@ struct Node
         "var n := x[];\n"
         "\n"
         "for (var i := 0; i < n; i += 1) {\n"
-        "  var dist := tan(x[i]*log(1 + 200 * a));\n"
+        "  var dist := tanh(x[i]*log(1 + 200 * max(a,0)));\n"
         "  out[i] := clamp(-1, dist, 1);\n"
         "}\n">
         expr;
@@ -87,13 +87,6 @@ struct Node
       if(N == cur_in.size())
         return;
 
-      expr.remove_vector("x");
-      expr.remove_vector("out");
-      expr.remove_vector("px");
-      expr.remove_vector("m1");
-      expr.remove_vector("m2");
-      expr.remove_vector("m3");
-
       cur_in.resize(N);
       cur_out.resize(N);
       prev_in.resize(N);
@@ -101,14 +94,12 @@ struct Node
       m2.resize(N);
       m3.resize(N);
 
-      expr.add_vector("x", cur_in);
-      expr.add_vector("out", cur_out);
-      expr.add_vector("px", prev_in);
-      expr.add_vector("m1", m1);
-      expr.add_vector("m2", m2);
-      expr.add_vector("m3", m3);
-
-      expr.update_symbol_table();
+      expr.rebase_vector("x", cur_in);
+      expr.rebase_vector("out", cur_out);
+      expr.rebase_vector("px", prev_in);
+      expr.rebase_vector("m1", m1);
+      expr.rebase_vector("m2", m2);
+      expr.rebase_vector("m3", m3);
     }
 
     std::vector<double> cur_in{};
@@ -129,7 +120,6 @@ struct Node
   using tick = halp::tick_flicks;
   void operator()(const tick& tk)
   {
-    SCORE_ASSERT(outputs.audio.channels == 2);
     auto& self = state;
     //if(tk.date > tk.prev_date)
     {
@@ -140,6 +130,7 @@ struct Node
       if(inputs.audio.channels == 0)
         return;
 
+      // FIXME allow input channels != output channels ?
       const int chans = inputs.audio.channels;
       self.reset_symbols(chans);
 
@@ -159,7 +150,7 @@ struct Node
 
         // Apply the output
         auto& channels = this->outputs.audio.samples;
-        for(int j = 0; j < chans; j++)
+        for(int j = 0; j < std::min(chans, outputs.audio.channels); j++)
         {
           channels[j][i] = self.cur_out[j];
         }

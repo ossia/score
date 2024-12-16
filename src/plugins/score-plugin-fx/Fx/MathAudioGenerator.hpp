@@ -83,22 +83,15 @@ struct Node
       if(N == cur_out.size())
         return;
 
-      expr.remove_vector("out");
-      expr.remove_vector("m1");
-      expr.remove_vector("m2");
-      expr.remove_vector("m3");
-
       cur_out.resize(N);
       m1.resize(N);
       m2.resize(N);
       m3.resize(N);
 
-      expr.add_vector("out", cur_out);
-      expr.add_vector("m1", m1);
-      expr.add_vector("m2", m2);
-      expr.add_vector("m3", m3);
-
-      expr.update_symbol_table();
+      expr.rebase_vector("out", cur_out);
+      expr.rebase_vector("m1", m1);
+      expr.rebase_vector("m2", m2);
+      expr.rebase_vector("m3", m3);
     }
     std::vector<double> cur_out{};
     double cur_time{};
@@ -122,7 +115,6 @@ struct Node
   using tick = halp::tick_flicks;
   void operator()(const tick& tk)
   {
-    SCORE_ASSERT(outputs.audio.channels == 2);
     auto& self = state;
     // if(tk.forward())
     {
@@ -143,7 +135,7 @@ struct Node
 
         // Apply the output
         auto& channels = this->outputs.audio.samples;
-        for(int j = 0; j < chans; j++)
+        for(int j = 0; j < std::min(chans, outputs.audio.channels); j++)
         {
           channels[j][i] = self.cur_out[j];
         }
