@@ -18,7 +18,14 @@ WindowContainer createVstWindowContainer(
   wc.qwindow = parentWindow.windowHandle();
   wc.container = nullptr;
 
-  wc.frame = new PlugFrame{parentWindow, wc};
+  if(!e.fx.plugFrame)
+    const_cast<Model&>(e).fx.plugFrame = new PlugFrame{parentWindow, wc};
+  else
+  {
+    e.fx.plugFrame->w = &parentWindow;
+    e.fx.plugFrame->wc = wc;
+  }
+  wc.frame = e.fx.plugFrame;
   view.setFrame(wc.frame);
   view.attached((void*)wc.qwindow->winId(), currentPlatform());
 

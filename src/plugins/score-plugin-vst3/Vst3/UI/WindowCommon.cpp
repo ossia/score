@@ -22,9 +22,14 @@ Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* paren
 
 Window::~Window()
 {
+  if(m_model.fx.view)
+  {
+    m_model.fx.view->setFrame(nullptr);
+    m_model.fx.view->removed();
+  }
+
   if(container.frame)
   {
-    delete container.frame;
     container.frame = nullptr;
   }
 }
@@ -39,9 +44,9 @@ void Window::resizeEvent(QResizeEvent* event)
 void Window::closeEvent(QCloseEvent* event)
 {
   QPointer<Window> p(this);
+  m_model.fx.view->setFrame(nullptr);
   if(auto view = m_model.fx.view)
     view->removed();
-  delete container.frame;
   container.frame = nullptr;
 
   const_cast<QWidget*&>(m_model.externalUI) = nullptr;

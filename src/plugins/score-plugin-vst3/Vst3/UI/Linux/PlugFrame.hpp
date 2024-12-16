@@ -201,17 +201,20 @@ public:
 
     auto readnotifier = new QSocketNotifier{fd, QSocketNotifier::Read};
     readnotifier->setEnabled(true);
+    readnotifier->setParent(&internalContextObject);
     auto on_fd = [=] { handler->onFDIsSet(fd); };
     QObject::connect(
         readnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
     auto writenotifier = new QSocketNotifier{fd, QSocketNotifier::Write};
     writenotifier->setEnabled(true);
+    writenotifier->setParent(&internalContextObject);
     QObject::connect(
         writenotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
     auto errnotifier = new QSocketNotifier{fd, QSocketNotifier::Exception};
     errnotifier->setEnabled(true);
+    errnotifier->setParent(&internalContextObject);
     QObject::connect(
         errnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
@@ -255,6 +258,7 @@ public:
       Linux::ITimerHandler* handler, Linux::TimerInterval milliseconds) override
   {
     auto t = new QTimer;
+    t->setParent(&internalContextObject);
     QObject::connect(t, &QTimer::timeout, [=] { handler->onTimer(); });
     t->start(milliseconds);
     timers.push_back({handler, t});
@@ -272,18 +276,19 @@ public:
     return Steinberg::kResultOk;
   }
 
-  QDialog& w;
+  QDialog* w;
   WindowContainer wc;
   explicit PlugFrame(QDialog& w, WindowContainer wc)
-      : w{w}
+      : w{&w}
       , wc{wc}
   {
   }
 
-  ~PlugFrame()
+  void cleanup()
   {
     for(auto timer : timers)
       delete timer.second;
+    timers.clear();
     for(auto handler : handlers)
     {
       GlobalSocketHandlers::instance().unregisterHandler(handler.handler, handler.fd);
@@ -291,11 +296,14 @@ public:
       delete handler.w_notifier;
       delete handler.e_notifier;
     }
+    handlers.clear();
   }
+
+  ~PlugFrame() { cleanup(); }
 
   tresult resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
-    wc.setSizeFromVst(*view, *newSize, w);
+    wc.setSizeFromVst(*view, *newSize, *w);
     return Steinberg::kResultOk;
   }
 };

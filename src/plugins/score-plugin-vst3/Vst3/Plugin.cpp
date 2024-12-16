@@ -2,6 +2,8 @@
 #include <Vst3/DataStream.hpp>
 #include <Vst3/EditHandler.hpp>
 #include <Vst3/Plugin.hpp>
+#include <Vst3/UI/Linux/PlugFrame.hpp>
+#include <Vst3/UI/PlugFrame.hpp>
 #include <Vst3/UI/Window.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -240,6 +242,12 @@ void Plugin::start(double_t sample_rate, int max_bs)
 
 void Plugin::stop()
 {
+#if (!(defined(__APPLE__) || defined(_WIN32))) && __has_include(<xcb/xcb.h>)
+  if(plugFrame)
+  {
+    plugFrame->cleanup();
+  }
+#endif
   if(!component)
     return;
 
@@ -263,6 +271,11 @@ void Plugin::stop()
 
   component->terminate();
   component = nullptr;
+
+  if(plugFrame)
+  {
+    QTimer::singleShot(100, [=] { delete plugFrame; });
+  }
 }
 
 Plugin::~Plugin() { }

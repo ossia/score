@@ -22,7 +22,7 @@ public:
   Steinberg::uint32 addRef() override { return 1; }
   Steinberg::uint32 release() override { return 1; }
 
-  QDialog& w;
+  QDialog* w;
   WindowContainer wc;
   PlugFrame(QDialog& w, WindowContainer& wc)
       : w{w}
@@ -33,7 +33,7 @@ public:
   Steinberg::tresult
   resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
-    wc.setSizeFromVst(*view, *newSize, w);
+    wc.setSizeFromVst(*view, *newSize, *w);
     return Steinberg::kResultOk;
   }
 };
@@ -52,7 +52,7 @@ public:
   Steinberg::uint32 addRef() override { return 1; }
   Steinberg::uint32 release() override { return 1; }
 
-  QDialog& w;
+  QDialog* w;
   WindowContainer wc;
   PlugFrame(QDialog& w, WindowContainer& wc)
       : w{w}
@@ -63,7 +63,7 @@ public:
   Steinberg::tresult
   resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
-    wc.setSizeFromVst(*view, *newSize, w);
+    wc.setSizeFromVst(*view, *newSize, *w);
     return Steinberg::kResultOk;
   }
 };

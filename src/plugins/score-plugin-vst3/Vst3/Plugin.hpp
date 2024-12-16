@@ -38,7 +38,7 @@ inline QString fromString(const Steinberg::Vst::String128& str)
 }
 
 using MIDIControls = ossia::flat_map<std::pair<int, int>, Steinberg::Vst::ParamID>;
-
+class PlugFrame;
 struct Plugin
 {
   Plugin() = default;
@@ -61,6 +61,7 @@ struct Plugin
   Steinberg::Vst::IEditController* controller{};
   Steinberg::Vst::IUnitInfo* units{};
   Steinberg::IPlugView* view{};
+  PlugFrame* plugFrame{};
 
   void loadAudioProcessor(ApplicationPlugin& ctx);
   void loadEditController(Model& model, ApplicationPlugin& ctx);
