@@ -7,6 +7,8 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QByteArray>
 #include <QPoint>
 #include <QVector>
@@ -44,6 +46,10 @@ class Model;
 class Presenter;
 class StateBase;
 class SegmentModel;
+
+using SegmentMapImpl = ossia::hash_map<Id<SegmentModel>, SegmentData, CurveDataHash>;
+void checkValidity(std::span<SegmentData> segts);
+void checkValidity(SegmentMapImpl& segts);
 
 class SCORE_PLUGIN_CURVE_EXPORT CommandObjectBase
 {

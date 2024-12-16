@@ -12,7 +12,7 @@ namespace Settings
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(SimplificationRatio){
-    QStringLiteral("score_plugin_curve/SimplificationRatio"), 10};
+    QStringLiteral("score_plugin_curve/SimplificationRatio"), 100};
 SETTINGS_PARAMETER_IMPL(Simplify){QStringLiteral("score_plugin_curve/Simplify"), true};
 SETTINGS_PARAMETER_IMPL(CurveMode){
     QStringLiteral("score_plugin_curve/Mode"), Mode::Parameter};

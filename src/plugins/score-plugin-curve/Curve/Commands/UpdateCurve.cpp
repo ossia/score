@@ -3,11 +3,13 @@
 #include "UpdateCurve.hpp"
 
 #include <Curve/CurveModel.hpp>
+#include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <cmath>
 namespace Curve
@@ -17,43 +19,65 @@ UpdateCurve::UpdateCurve(const Model& model, std::vector<SegmentData>&& segments
     , m_oldCurveData{model.toCurveData()}
     , m_newCurveData{std::move(segments)}
 {
+  checkValidity(m_oldCurveData);
+  checkValidity(m_newCurveData);
+
+  auto on_invalid_curve = [&]() {
+    qDebug() << "Curve error !";
+    for(auto elt : m_newCurveData)
+    {
+      QString log = QStringLiteral("id: %1 [%2; %3] prev: %4 following: %5")
+                        .arg(elt.id.val())
+                        .arg(elt.start.x())
+                        .arg(elt.end.x())
+                        .arg(elt.previous.value_or(Id<Curve::SegmentModel>{-1}).val())
+                        .arg(elt.following.value_or(Id<Curve::SegmentModel>{-1}).val());
+      qDebug() << log;
+    }
+    m_newCurveData = m_oldCurveData;
+  };
   for(auto it = m_newCurveData.begin(); it != m_newCurveData.end(); ++it)
   {
     auto& sgt = *it;
     {
       if(std::isnan(sgt.start.x()))
-        sgt.start.setX(0.);
+      {
+        on_invalid_curve();
+        return;
+      }
       if(std::isnan(sgt.start.y()))
-        sgt.start.setY(0.);
+      {
+        on_invalid_curve();
+        return;
+      }
       if(std::isnan(sgt.end.x()))
-        sgt.end.setX(1.);
+      {
+        on_invalid_curve();
+        return;
+      }
       if(std::isnan(sgt.end.y()))
-        sgt.end.setY(0.);
+      {
+        on_invalid_curve();
+        return;
+      }
     }
   }
 
   {
-
     std::sort(m_newCurveData.begin(), m_newCurveData.end());
-    /*
-    qDebug() << "Printing map: ";
-    for(auto elt : m_newCurveData)
+    if(!m_newCurveData.empty())
     {
-      QString log = QStringLiteral("id: %1 [%2; %3] prev: %4 following: %5")
-                  .arg(elt.id.val())
-                  .arg(elt.start.x())
-                  .arg(elt.end.x())
-                  .arg(elt.previous.value_or(Id<Curve::SegmentModel>{-1}).val())
-                  .arg(elt.following.value_or(Id<Curve::SegmentModel>{-1}).val());
-      qDebug() << log;
+      if(m_newCurveData.front().previous)
+      {
+        on_invalid_curve();
+        return;
+      }
+      if(m_newCurveData.back().following)
+      {
+        on_invalid_curve();
+        return;
+      }
     }
-    fflush(stdout);
-    fflush(stderr);
-*/
-
-    SCORE_ASSERT(
-        m_newCurveData.empty()
-        || (!m_newCurveData.front().previous && !m_newCurveData.back().following));
   }
 }
 

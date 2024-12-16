@@ -29,10 +29,17 @@ public:
   void cancel();
 
 private:
-  using seg_tuple = std::tuple<
-      std::optional<SegmentData>, std::optional<SegmentData>, std::vector<SegmentData>>;
-  void release_n(seg_tuple&&);
-  seg_tuple filterSegments();
+  struct FilteredSegments
+  {
+    std::optional<Id<Curve::SegmentModel>> id_before_middleBegin;
+    std::optional<Id<Curve::SegmentModel>> id_after_middleEnd;
+    std::optional<SegmentData> middleBegin;
+    std::optional<SegmentData> middleEnd;
+    std::vector<SegmentData> segments;
+  };
+
+  void release_n(FilteredSegments&&);
+  FilteredSegments filterSegments();
   PointArraySegment m_segment;
 
   Curve::StateBase* m_state{};
