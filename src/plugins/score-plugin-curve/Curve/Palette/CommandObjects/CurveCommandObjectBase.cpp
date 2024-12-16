@@ -32,6 +32,7 @@ void CommandObjectBase::press()
 {
   // Serialize the current state of the curve
   m_startSegments = m_model.toCurveData();
+  checkValidity(m_startSegments);
 
   // To prevent behind locked at 0.000001 or 0.9999
   m_xmin = std::numeric_limits<decltype(m_xmax)>::lowest();
@@ -77,5 +78,104 @@ void CommandObjectBase::handleLocking()
 void CommandObjectBase::submit(std::vector<SegmentData>&& segments)
 {
   m_dispatcher.submit(m_model, std::move(segments));
+}
+
+void checkValidity(SegmentMapImpl& segts)
+{
+#if defined(SCORE_DEBUG)
+  for(auto& [id, s] : segts)
+  {
+    SCORE_ASSERT(std::isfinite(s.start.x()));
+    SCORE_ASSERT(std::isfinite(s.start.y()));
+    SCORE_ASSERT(std::isfinite(s.end.x()));
+    SCORE_ASSERT(std::isfinite(s.end.y()));
+    SCORE_ASSERT(id == s.id);
+    if(s.previous)
+    {
+      SCORE_ASSERT(s.previous != s.id);
+      bool ok = ossia::any_of(
+          segts, [&s](auto& rhs) { return *s.previous == rhs.second.id; });
+      SCORE_ASSERT(ok);
+    }
+    if(s.following)
+    {
+      SCORE_ASSERT(s.following != s.id);
+      bool ok = ossia::any_of(
+          segts, [&s](auto& rhs) { return *s.following == rhs.second.id; });
+      SCORE_ASSERT(ok);
+    }
+
+    auto num_prev = std::count_if(segts.begin(), segts.end(), [&](auto& rhs) {
+      return s.id == rhs.second.following;
+    });
+    SCORE_ASSERT(num_prev == 0 || num_prev == 1);
+    auto num_foll = std::count_if(segts.begin(), segts.end(), [&](auto& rhs) {
+      return s.id == rhs.second.previous;
+    });
+    SCORE_ASSERT(num_foll == 0 || num_foll == 1);
+  }
+
+  for(auto& [i1, s1] : segts)
+  {
+    for(auto& [i2, s2] : segts)
+    {
+      if(s1.id != s2.id)
+      {
+        SCORE_ASSERT(!(s1.start.x() >= s2.start.x() && s1.start.x() < s2.end.x()));
+      }
+    }
+  }
+#endif
+}
+
+void checkValidity(std::span<SegmentData> segts)
+{
+#if defined(SCORE_DEBUG)
+  for(auto& s : segts)
+  {
+    SCORE_ASSERT(std::isfinite(s.start.x()));
+    SCORE_ASSERT(std::isfinite(s.start.y()));
+    SCORE_ASSERT(std::isfinite(s.end.x()));
+    SCORE_ASSERT(std::isfinite(s.end.y()));
+    if(s.previous)
+    {
+      SCORE_ASSERT(s.previous != s.id);
+      bool ok = ossia::any_of(
+          segts, [&s](SegmentData& rhs) { return *s.previous == rhs.id; });
+      SCORE_ASSERT(ok);
+    }
+    if(s.following)
+    {
+      SCORE_ASSERT(s.following != s.id);
+      bool ok = ossia::any_of(
+          segts, [&s](SegmentData& rhs) { return *s.following == rhs.id; });
+      SCORE_ASSERT(ok);
+    }
+
+    auto num_prev = std::count_if(segts.begin(), segts.end(), [&](SegmentData& rhs) {
+      return s.id == rhs.following;
+    });
+    SCORE_ASSERT(num_prev == 0 || num_prev == 1);
+    auto num_foll = std::count_if(segts.begin(), segts.end(), [&](SegmentData& rhs) {
+      return s.id == rhs.previous;
+    });
+    SCORE_ASSERT(num_foll == 0 || num_foll == 1);
+  }
+
+  for(auto& s1 : segts)
+  {
+    for(auto& s2 : segts)
+    {
+      if(s1.following == s2.id)
+        SCORE_ASSERT(s2.previous == s1.id);
+      if(s1.id == s2.previous)
+        SCORE_ASSERT(s2.id == s1.following);
+      if(s1.id != s2.id)
+      {
+        SCORE_ASSERT(!(s1.start.x() >= s2.start.x() && s1.start.x() < s2.end.x()));
+      }
+    }
+  }
+#endif
 }
 }

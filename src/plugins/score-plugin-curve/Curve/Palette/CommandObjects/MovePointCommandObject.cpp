@@ -17,8 +17,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <ossia/detail/hash_map.hpp>
-
 #include <boost/operators.hpp>
 
 #include <QPoint>
@@ -32,7 +30,6 @@ class CommandStackFacade;
 
 namespace Curve
 {
-using SegmentMapImpl = ossia::hash_map<Id<SegmentModel>, SegmentData, CurveDataHash>;
 
 struct CurveSegmentMap : SegmentMapImpl
 {
@@ -100,6 +97,7 @@ void MovePointCommandObject::move()
   CurveSegmentMap segments;
   for(auto& seg : m_startSegments)
     segments.emplace(seg.id, seg);
+  checkValidity(segments);
 
   try
   {
@@ -124,11 +122,13 @@ void MovePointCommandObject::move()
     return;
   }
 
+  checkValidity(segments);
   // Rewrite and make a command
   std::vector<SegmentData> ret;
   ret.reserve(segments.size());
   for(auto& [id, seg] : segments)
     ret.emplace_back(std::move(seg));
+  checkValidity(ret);
   submit(std::move(ret));
   setTooltip(m_state->currentPoint);
 }
@@ -147,6 +147,7 @@ void MovePointCommandObject::cancel()
 
 void MovePointCommandObject::handlePointOverlap(CurveSegmentMap& segments)
 {
+  checkValidity(segments);
   double current_x = m_state->currentPoint.x();
   // In all cases, if we're going on the same position that any other point,
   // this other point is removed and we replace it.
@@ -164,10 +165,12 @@ void MovePointCommandObject::handlePointOverlap(CurveSegmentMap& segments)
       segment.end = m_state->currentPoint;
     }
   }
+  checkValidity(segments);
 }
 
 void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
 {
+  checkValidity(segments);
   double current_x = m_state->currentPoint.x();
 
   // All segments contained between the starting position and current position
@@ -255,18 +258,52 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
           auto seg_prev_it = segments.find(*segment.previous);
           auto seg_foll_it = segments.find(*segment.following);
 
-          seg_prev_it->second.following = seg_foll_it->second.id;
-          seg_foll_it->second.previous = seg_prev_it->second.id;
+          if(seg_prev_it != segments.end() && seg_foll_it != segments.end())
+          {
+            seg_prev_it->second.following = seg_foll_it->second.id;
+            seg_foll_it->second.previous = seg_prev_it->second.id;
+          }
+          else if(seg_prev_it != segments.end() && seg_foll_it == segments.end())
+          {
+            qWarning() << "Segment" << segment.following->val() << "not found";
+            seg_prev_it->second.following = OptionalId<SegmentModel>{};
+          }
+          else if(seg_prev_it == segments.end() && seg_foll_it != segments.end())
+          {
+            qWarning() << "Segment" << segment.previous->val() << "not found";
+            seg_foll_it->second.previous = OptionalId<SegmentModel>{};
+          }
+          else
+          {
+            qWarning() << "Segments" << segment.following->val() << " and "
+                       << segment.previous->val() << "not found";
+          }
         }
         else if(segment.following)
         {
           auto seg_foll_it = segments.find(*segment.following);
-          seg_foll_it->second.previous = OptionalId<SegmentModel>{};
+          if(seg_foll_it != segments.end())
+          {
+            seg_foll_it->second.previous = OptionalId<SegmentModel>{};
+          }
+          else
+          {
+            // FIXME Very weird case, we should never end up here (but sometimes do)
+            qWarning() << "Segment" << segment.following->val() << "not found";
+          }
         }
         else if(segment.previous)
         {
           auto seg_prev_it = segments.find(*segment.previous);
-          seg_prev_it->second.following = OptionalId<SegmentModel>{};
+          if(seg_prev_it != segments.end())
+          {
+            seg_prev_it->second.following = OptionalId<SegmentModel>{};
+          }
+          else
+          {
+            // FIXME Very weird case, we should never end up here (but sometimes do)
+            qWarning() << "Segment" << segment.previous->val() << "not found";
+          }
         }
 
         // The segment is in front of us, we delete it
@@ -298,6 +335,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
     segments.erase(elt);
   }
 
+  checkValidity(segments);
   if(removed_first)
   {
     auto seg_it = segments.find(*m_state->clickedPointId.following);
@@ -311,6 +349,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
     seg_it->second.following = {};
   }
 
+  checkValidity(segments);
   // Then we change the start/end of the correct segments
   if(must_set_at_end)
     setCurrentPoint(segments);
@@ -318,6 +357,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
 
 void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
 {
+  checkValidity(segments);
   double current_x = m_state->currentPoint.x();
   // In this case we merge at the origins of the point and we create if it is
   // in a new place.
@@ -611,10 +651,12 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
       // TODO (see the commented block on the symmetric part)
     }
   }
+  checkValidity(segments);
 }
 
 void MovePointCommandObject::setCurrentPoint(CurveSegmentMap& segments)
 {
+  checkValidity(segments);
   if(m_state->clickedPointId.previous)
   {
     auto seg_prev_it = segments.find(*m_state->clickedPointId.previous);
@@ -624,6 +666,7 @@ void MovePointCommandObject::setCurrentPoint(CurveSegmentMap& segments)
     }
   }
 
+  checkValidity(segments);
   if(m_state->clickedPointId.following)
   {
     auto seg_foll_it = segments.find(*m_state->clickedPointId.following);
@@ -632,6 +675,7 @@ void MovePointCommandObject::setCurrentPoint(CurveSegmentMap& segments)
       seg_foll_it->second.start = m_state->currentPoint;
     }
   }
+  checkValidity(segments);
 }
 
 void MovePointCommandObject::setTooltip(const Point& p)
