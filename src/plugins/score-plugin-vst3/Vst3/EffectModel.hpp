@@ -6,6 +6,7 @@
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <Vst3/Plugin.hpp>
+#include <Vst3/UI/WindowContainer.hpp>
 
 #include <score/tools/std/Invoke.hpp>
 
@@ -36,7 +37,8 @@ namespace vst3
 class CreateVSTControl;
 class ControlInlet;
 struct PortCreationVisitor;
-
+class PlugFrame;
+class Window;
 class Model final : public Process::ProcessModel
 {
   W_OBJECT(Model)
