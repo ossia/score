@@ -31,6 +31,7 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/Separator.hpp>
@@ -160,13 +161,13 @@ EventInspectorWidget::EventInspectorWidget(
       }
         });
 
-    m_offsetBehavior->setWhatsThis(
+    score::setHelp(
+        m_offsetBehavior,
         tr("The offset behaviour is used when playing a score from "
            "the middle. \nThis allows to choose the value that the event will "
            "take, \nsince one may want to try multiple branches of conditions "
            "easily.\n"
            "Choosing 'Expression' will instead evaluate the expression."));
-    m_offsetBehavior->setToolTip(m_offsetBehavior->whatsThis());
     l->addRow(tr("Offset behaviour"), m_offsetBehavior);
 
     m_properties.push_back(w);

@@ -3,6 +3,7 @@
 #include "MessagesPanel.hpp"
 
 #include <score/tools/Bind.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <core/application/SafeQApplication.hpp>
 
@@ -145,10 +146,10 @@ MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext&
 {
   qInstallMessageHandler(LogToMessagePanel);
   m_widget->setModel(m_itemModel);
-  m_widget->setStatusTip(
-      QObject::tr("This panel displays all warnings, errors and logs. \n"
-                  "It is generally a good place to look first if something \n"
-                  "is not behaving as it should"));
+  score::setHelp(
+      m_widget, QObject::tr("This panel displays all warnings, errors and logs. \n"
+                            "It is generally a good place to look first if something \n"
+                            "is not behaving as it should"));
   m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
       m_widget, &QListView::customContextMenuRequested, this, [this](const QPoint& pos) {

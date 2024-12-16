@@ -93,6 +93,12 @@ EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const noexcept
 
   desc.prettyName = QString::fromStdString(cls->name());
   desc.author = QString::fromStdString(cls->vendor());
+  if(!plug->url.isEmpty())
+    desc.documentationLink = plug->url;
+  else
+    desc.documentationLink = QUrl(
+        "https://ossia.io/score-docs/processes/"
+        "audio-plugins.html#common-formats-vst-vst3-lv2-jsfx");
 
   if(ossia::contains(cls->subCategories(), Steinberg::Vst::PlugType::kInstrument))
   {
@@ -103,6 +109,13 @@ EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const noexcept
     desc.category = Process::ProcessCategory::AudioEffect;
   }
   return desc;
+}
+
+template <>
+Process::Descriptor EffectProcessFactory_T<vst3::Model>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  return descriptor(d.effect());
 }
 }
 

@@ -16,6 +16,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
@@ -193,21 +194,16 @@ public:
     m_title.setFlat(true);
 
     m_title.setText(m_model->metadata().getName());
-    m_gainSlider.setWhatsThis("Gain control");
-    m_gainSlider.setToolTip(m_gainSlider.whatsThis());
+    score::setHelp(&m_gainSlider, "Gain control");
     m_gainSlider.setAttribute(Qt::WA_WState_OwnSizePolicy, true);
 
-    m_mute.setWhatsThis("Mute");
-    m_mute.setToolTip(m_mute.whatsThis());
+    score::setHelp(&m_mute, "Mute");
     m_mute.setCheckable(true);
-    m_upmix.setWhatsThis("Upmix mono -> stereo");
-    m_upmix.setToolTip(m_upmix.whatsThis());
+    score::setHelp(&m_upmix, "Upmix mono -> stereo");
     m_upmix.setCheckable(true);
-    m_propagate.setWhatsThis("Propagate automatically sound to parent");
-    m_propagate.setToolTip(m_propagate.whatsThis());
+    score::setHelp(&m_propagate, "Propagate automatically sound to parent");
     m_propagate.setCheckable(true);
-    m_panSlider.setToolTip("Pan control");
-    m_panSlider.setWhatsThis(m_panSlider.whatsThis());
+    score::setHelp(&m_panSlider, "Pan control");
 
     if(dev)
     {
@@ -514,7 +510,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     , m_widget{new QWidget}
 {
   m_widget->setLayout(new score::MarginLess<QHBoxLayout>);
-  m_widget->setStatusTip(
+  score::setHelp(m_widget, 
       QObject::tr("This panel shows the audio mixer\n"
                   "Parameters of audio busses and of the audio device \n "
                   "can be accessed here \n"));

@@ -13,6 +13,7 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <core/document/Document.hpp>
 

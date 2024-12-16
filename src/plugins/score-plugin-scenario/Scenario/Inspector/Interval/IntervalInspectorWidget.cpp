@@ -19,6 +19,7 @@
 #include <Inspector/InspectorLayout.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/QuantificationWidget.hpp>
 #include <score/widgets/SelectionButton.hpp>
@@ -74,8 +75,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/fullview_hover.png"),
         QStringLiteral(":/icons/fullview_off.png"),
         QStringLiteral(":/icons/fullview_off.png")));
-    fullview->setToolTip(tr("FullView"));
-    fullview->setStatusTip(
+    score::setHelp(
+        fullview, tr("Full view"),
         tr("Display the content of the selected interval in full view\n"
            "Same effect as double clicking on its name"));
     fullview->setAutoRaise(true);
@@ -100,9 +101,10 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/audio_bus_hover.png"),
         QStringLiteral(":/icons/audio_bus_off.png"),
         QStringLiteral(":/icons/audio_bus_off.png")));
-    busWidg->setToolTip(tr("Audio bus"));
-    busWidg->setStatusTip(
+    score::setHelp(
+        busWidg, tr("Audio bus"),
         tr("Add audio output controls to the bus section of the audio mixer"));
+
     busWidg->setCheckable(true);
     busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
     busWidg->setAutoRaise(true);
@@ -129,9 +131,10 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/time_signature_hover.png"),
         QStringLiteral(":/icons/time_signature_off.png"),
         QStringLiteral(":/icons/time_signature_off.png")));
-    sigWidg->setToolTip(tr("Time signature"));
-    sigWidg->setStatusTip(
+    score::setHelp(
+        sigWidg, tr("Time signature"),
         tr("Specify a different time signature from the parent interval"));
+
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(this->m_model.hasTimeSignature());
@@ -147,10 +150,11 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   }
   {
     auto interp = new QToolButton{this};
-    interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
-    interp->setStatusTip(
+    score::setHelp(
+        interp, tr("Interpolate states (Ctrl+K)"),
         tr("Interpolate states (Ctrl+K)\n"
            "Create automations between values contained in the start and end states"));
+
     interp->setShortcut(QKeySequence(tr("Ctrl+K")));
     interp->setIcon(makeIcons(
         QStringLiteral(":/icons/interpolate_on.png"),
@@ -183,7 +187,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   {
     auto quantiz = new score::QuantificationWidget{this};
     quantiz->setQuantification(m_model.quantizationRate());
-    quantiz->setStatusTip(tr("Set quantification to synchronize the interval start"));
+    score::setHelp(quantiz, tr("Set quantification to synchronize the interval start"));
 
     QObject::connect(
         quantiz, &score::QuantificationWidget::quantificationChanged, this,
@@ -201,7 +205,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   // Durations
   auto& ctrl = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();
   auto dur = new DurationWidget{ctrl.editionSettings(), *lay, this};
-  dur->setStatusTip(
+  score::setHelp(dur, 
       tr("Set the duration of the interval\n"
          "Min: Define the minimal duration before evaluating the trigger\n"
          "Max: Define the duration before triggering automatically\n"));

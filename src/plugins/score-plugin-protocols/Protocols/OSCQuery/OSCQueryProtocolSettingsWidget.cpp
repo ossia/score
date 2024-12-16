@@ -11,6 +11,7 @@
 
 #include <Protocols/RateWidget.hpp>
 
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <QAction>
@@ -32,14 +33,16 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   checkForChanges(m_deviceNameEdit);
 
   m_localHostEdit = new QLineEdit(this);
-  m_localHostEdit->setWhatsThis(tr(
-      "The OSCQuery host. Example: ws://127.0.0.1:5678, http://my.oscquery.host, ..."));
+  score::setHelp(
+      m_localHostEdit, tr("The OSCQuery host. Example: ws://127.0.0.1:5678, "
+                          "http://my.oscquery.host, ..."));
   m_rate = new RateWidget{this};
-  m_rate->setWhatsThis(tr("Rate limiting for outgoing messages"));
+  score::setHelp(m_rate, tr("Rate limiting for outgoing messages"));
   m_localPort = new QSpinBox(this);
   m_localPort->setRange(0, 65535);
   m_localPort->setValue(0);
-  m_localPort->setWhatsThis(
+  score::setHelp(
+      m_localPort,
       tr("Choose an explicit port for OSC listening, useful for getting automatic "
          "feedback from an external software. If 0, a random port will be chosen."));
   checkForChanges(m_localPort);
@@ -47,7 +50,8 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   m_dense = new QCheckBox("Dense message packing", this);
   m_dense->setChecked(false);
   m_dense->setEnabled(false);
-  m_localPort->setWhatsThis(
+  score::setHelp(
+      m_localPort,
       tr("Indicated whether the remote API supports dense packing of values ; useful "
          "mainly for low-power embedded devices."));
 

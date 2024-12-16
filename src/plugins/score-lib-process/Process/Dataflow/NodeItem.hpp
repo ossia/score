@@ -51,9 +51,9 @@ public:
 private:
   void createWithDecorations();
   void createContentItem();
+  void updateTooltip();
 
   void createWithoutDecorations();
-  void createCustomContentItem();
 
   void updateZoomRatio() const noexcept;
   void updateSize();

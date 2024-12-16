@@ -7,6 +7,7 @@
 #include <Library/RecursiveFilterProxy.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>

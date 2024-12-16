@@ -1,6 +1,7 @@
 #pragma once
 #include <QList>
 #include <QPainterPath>
+#include <QUrl>
 
 #include <score_lib_base_export.h>
 
@@ -35,6 +36,11 @@ QImage newImage(double logical_w, double logical_h);
 
 SCORE_LIB_BASE_EXPORT
 std::optional<QPointF> mapPointToItem(QPoint global, QGraphicsItem& item);
+
+SCORE_LIB_BASE_EXPORT
+void registerItemHelp(int itemType, QString tooltip, QUrl url) noexcept;
+SCORE_LIB_BASE_EXPORT
+QUrl getItemHelpUrl(int itemType) noexcept;
 
 template <typename T>
 struct graphics_item_ptr

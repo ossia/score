@@ -18,6 +18,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -416,12 +417,15 @@ bool ProcessGraphicsView::event(QEvent* event)
   {
     case QEvent::HoverEnter:
       hoverEnterEvent(static_cast<QHoverEvent*>(event));
+      return QGraphicsView::event(event);
       return true;
     case QEvent::HoverLeave:
       hoverLeaveEvent(static_cast<QHoverEvent*>(event));
+      return QGraphicsView::event(event);
       return true;
     case QEvent::HoverMove:
       hoverMoveEvent(static_cast<QHoverEvent*>(event));
+      return QGraphicsView::event(event);
       return true;
 
 #if !defined(QT_NO_GESTURES)
@@ -498,10 +502,11 @@ ScenarioDocumentView::ScenarioDocumentView(
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
 
-  m_view.setStatusTip("Main score view. Drop things in here.");
-  m_timeRulerView.setStatusTip(
-      "The time ruler keeps track of time. Scroll by dragging it.");
-  m_minimapView.setStatusTip("A minimap which shows an overview of the topmost score");
+  score::setHelp(&m_view, "Main score view. Drop things in here.");
+  score::setHelp(
+      &m_timeRulerView, "The time ruler keeps track of time. Scroll by dragging it.");
+  score::setHelp(
+      &m_minimapView, "A minimap which shows an overview of the topmost score");
   m_view.setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Expanding});
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});

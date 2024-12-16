@@ -12,6 +12,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -23,7 +24,7 @@ UserPanel::UserPanel(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new SystemLibraryWidget{ctx, nullptr}}
 {
-  m_widget->setStatusTip(
+  score::setHelp(m_widget, 
       QObject::tr("This panel allows to browse medias and presets in the documents. \n"
                   "Check for library updates on \n"
                   "github.com/ossia/score-user-library"));
@@ -52,7 +53,7 @@ ProjectPanel::ProjectPanel(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new ProjectLibraryWidget{ctx, nullptr}}
 {
-  m_widget->setStatusTip(
+  score::setHelp(m_widget, 
       QObject::tr("This panel allows to browse the content of the folder of "
                   "the current project."));
 }
@@ -92,7 +93,7 @@ ProcessPanel::ProcessPanel(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new ProcessWidget{ctx, nullptr}}
 {
-  m_widget->setStatusTip(QObject::tr(
+  score::setHelp(m_widget, QObject::tr(
       "This panel allows to list available processes, effects and plug-ins."));
 }
 

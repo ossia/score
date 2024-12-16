@@ -72,6 +72,9 @@ NodeItem::NodeItem(
   setAcceptHoverEvents(true);
   setFlag(ItemIsFocusable, true);
   setFlag(ItemClipsChildrenToShape, true);
+  const auto& pf
+      = ctx.app.interfaces<Process::ProcessFactoryList>().get(process.concreteKey());
+  setData(0xF1, pf->descriptor(process).documentationLink);
 
   if(process.flags() & Process::ProcessFlags::FullyCustomItem)
   {
@@ -193,6 +196,7 @@ void NodeItem::createWithDecorations()
   });
 
   updateSize();
+  updateTooltip();
 }
 
 void NodeItem::createWithoutDecorations()
@@ -203,6 +207,28 @@ void NodeItem::createWithoutDecorations()
   m_selected = process.selection.get();
 
   createContentItem();
+
+  updateTooltip();
+}
+
+void NodeItem::updateTooltip()
+{
+  if(!m_fx || m_fx->toolTip().isEmpty())
+  {
+    auto& p = this->m_context.app.interfaces<Process::ProcessFactoryList>();
+    const auto& desc = p.get(m_model.concreteKey())->descriptor(m_model);
+    this->setToolTip(QString("%1\n\n%2\n\n\n%3")
+                         .arg(
+                             desc.prettyName, desc.description,
+                             (desc.documentationLink.isEmpty()
+                                  ? QString("Press F1 to open the docs!")
+                                  : QString("Press F1 to open the docs:\n%1")
+                                        .arg(desc.documentationLink.toString()))));
+  }
+  else if(m_fx)
+  {
+    this->setToolTip(m_fx->toolTip());
+  }
 }
 
 void NodeItem::resetInlets()
@@ -365,17 +391,6 @@ void NodeItem::createContentItem()
     m_fx = fx;
     m_contentSize = m_fx->boundingRect().size();
     resizeable = fx;
-  }
-
-  if(m_fx->toolTip().isEmpty())
-  {
-    auto& p = this->m_context.app.interfaces<Process::ProcessFactoryList>();
-    const auto& desc = p.get(m_model.concreteKey())->descriptor({});
-    this->setToolTip(QString("%1\n%2").arg(desc.prettyName, desc.description));
-  }
-  else
-  {
-    this->setToolTip(m_fx->toolTip());
   }
 
   // Positions / size

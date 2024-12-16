@@ -34,6 +34,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/Separator.hpp>
@@ -183,8 +184,7 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/split_condition_hover.png"),
         QStringLiteral(":/icons/split_condition_off.png"),
         QStringLiteral(":/icons/split_condition_off.png")));
-    splitEvent->setToolTip(tr("Split condition"));
-    splitEvent->setStatusTip(tr("Split condition"));
+    score::setHelp(splitEvent, tr("Split condition"));
 
     splitEvent->setAutoRaise(true);
     splitEvent->setIconSize(QSize{28, 28});
@@ -200,8 +200,7 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/desynchronize_hover.png"),
         QStringLiteral(":/icons/desynchronize_off.png"),
         QStringLiteral(":/icons/desynchronize_off.png")));
-    desynchronize->setToolTip(tr("Desynchronize"));
-    desynchronize->setStatusTip(tr("Desynchronize"));
+    score::setHelp(desynchronize, tr("Desynchronize"));
 
     desynchronize->setAutoRaise(true);
     desynchronize->setIconSize(QSize{28, 28});
@@ -215,8 +214,7 @@ StateInspectorWidget::StateInspectorWidget(
   {
     auto snapshot = new QToolButton;
     snapshot->setShortcut(tr("Ctrl+L"));
-    snapshot->setToolTip(tr("Snapshot (Ctrl+L)"));
-    snapshot->setStatusTip(tr("Snapshot (Ctrl+L)"));
+    score::setHelp(snapshot, tr("Snapshot (Ctrl+L)"));
     snapshot->setIcon(makeIcons(
         QStringLiteral(":/icons/snapshot_on.png"),
         QStringLiteral(":/icons/snapshot_hover.png"),
@@ -233,8 +231,7 @@ StateInspectorWidget::StateInspectorWidget(
   {
     auto refresh = new QToolButton;
     refresh->setShortcut(tr("Ctrl+U"));
-    refresh->setToolTip(tr("Refresh (Ctrl+U)"));
-    refresh->setStatusTip(tr("Refresh (Ctrl+U)"));
+    score::setHelp(refresh, tr("Refresh (Ctrl+U)"));
     refresh->setIcon(makeIcons(
         QStringLiteral(":/icons/refresh_on.png"),
         QStringLiteral(":/icons/refresh_hover.png"),
@@ -252,8 +249,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto trigger = new QToolButton;
     trigger->setCheckable(true);
     trigger->setChecked(Scenario::parentTimeSync(m_model, *scenar).active());
-    trigger->setToolTip(tr("Trigger (T)"));
-    trigger->setStatusTip(tr("Trigger (T)"));
+    score::setHelp(trigger, tr("Trigger (T)"));
     trigger->setIcon(makeIcons(
         QStringLiteral(":/icons/trigger_on.png"),
         QStringLiteral(":/icons/trigger_hover.png"),
@@ -280,8 +276,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto condition = new QToolButton;
     condition->setCheckable(true);
     condition->setChecked(Scenario::parentEvent(m_model, *scenar).active());
-    condition->setToolTip(tr("Condition (C)"));
-    condition->setStatusTip(tr("Condition (C)"));
+    score::setHelp(condition, tr("Condition (C)"));
     condition->setIcon(makeIcons(
         QStringLiteral(":/icons/condition_on.png"),
         QStringLiteral(":/icons/condition_hover.png"),

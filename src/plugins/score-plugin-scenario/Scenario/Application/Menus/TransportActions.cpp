@@ -10,6 +10,7 @@
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -39,7 +40,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_play->setObjectName("Play");
   m_play->setShortcut(Qt::Key_Space);
   m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_play->setStatusTip("Play the currently displayed interval");
+  score::setHelp(m_play, "Play the currently displayed interval");
   m_play->setData(false);
   setIcons(
       m_play, QStringLiteral(":/icons/play_on.png"),
@@ -51,7 +52,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_playGlobal->setObjectName("Play Root");
   m_playGlobal->setShortcut(QKeySequence("Shift+Space"));
   m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_playGlobal->setStatusTip("Play the top-level score from the beginning");
+  score::setHelp(m_playGlobal, "Play the top-level score from the beginning");
   m_playGlobal->setData(false);
   setIcons(
       m_playGlobal, QStringLiteral(":/icons/play_glob_on.png"),
@@ -63,7 +64,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_stop->setObjectName("Stop");
   m_stop->setShortcut(Qt::Key_Return);
   m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_stop->setStatusTip("Stop execution of the score");
+  score::setHelp(m_stop, "Stop execution of the score");
   setIcons(
       m_stop, QStringLiteral(":/icons/stop_on.png"),
       QStringLiteral(":/icons/stop_hover.png"), QStringLiteral(":/icons/stop_off.png"),
@@ -83,7 +84,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_stopAndInit->setObjectName("StopAndInit");
   m_stopAndInit->setShortcut(QKeySequence(QObject::tr("Ctrl+Return")));
   m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_stopAndInit->setStatusTip("Stop execution of the score and send the initial state");
+  score::setHelp(m_stopAndInit, "Stop execution of the score and send the initial state");
 
   setIcons(
       m_stopAndInit, QStringLiteral(":/icons/reinitialize_on.png"),
@@ -234,7 +235,7 @@ void TransportActions::onPlay(bool b)
   m_play->setText(b ? tr("Pause") : tr("Play"));
   m_play->setData(b); // True for "pause" state (i.e. currently playing),
   // false for "play" state (i.e. currently paused)
-  m_play->setStatusTip(b ? "Play the currently displayed interval" : "Pause execution");
+  score::setHelp(m_play, b ? "Play the currently displayed interval" : "Pause execution");
 
   setIcons(
       m_play,

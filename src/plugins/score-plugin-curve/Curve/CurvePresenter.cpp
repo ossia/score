@@ -30,6 +30,7 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <QAction>
 #include <QMenu>
@@ -173,7 +174,7 @@ void Presenter::fillContextMenu(QMenu& menu, const QPoint& pos, const QPointF& s
   menu.addSeparator();
 
   auto removeAct = new QAction{tr("Remove"), this};
-  removeAct->setStatusTip(tr("Remove the selection"));
+  score::setHelp(removeAct, tr("Remove the selection"));
   connect(removeAct, &QAction::triggered, [&]() { removeSelection(); });
 
   auto typeMenu = menu.addMenu(tr("Type"));
@@ -211,7 +212,7 @@ void Presenter::fillContextMenu(QMenu& menu, const QPoint& pos, const QPointF& s
   }
 
   auto lockAction = new QAction{tr("Lock between points"), this};
-  lockAction->setStatusTip(
+  score::setHelp(lockAction, 
       tr("Prevent the moved point from moving before its previous point or "
          "after its following point."));
   connect(lockAction, &QAction::toggled, this, [&](bool b) {
@@ -221,7 +222,7 @@ void Presenter::fillContextMenu(QMenu& menu, const QPoint& pos, const QPointF& s
   lockAction->setChecked(m_editionSettings.lockBetweenPoints());
 
   auto suppressAction = new QAction{tr("Suppress on overlap"), this};
-  suppressAction->setStatusTip(
+  score::setHelp(suppressAction, 
       tr("When moving past another point, remove the other point."));
   connect(suppressAction, &QAction::toggled, this, [&](bool b) {
     m_editionSettings.setSuppressOnOverlap(b);

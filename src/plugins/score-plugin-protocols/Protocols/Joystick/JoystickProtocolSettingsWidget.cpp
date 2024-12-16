@@ -7,6 +7,7 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/widgets/ComboBox.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <ossia/protocols/joystick/joystick_protocol.hpp>
 
@@ -31,10 +32,9 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
 
   m_gamepad = new QCheckBox{this};
   m_gamepad->setChecked(false);
-  m_gamepad->setWhatsThis(
-      tr("Try to leverage the SDL Gamepad API. This gives access to rumble, "
-         "accelerometers, etc."));
-  m_gamepad->setToolTip(m_gamepad->whatsThis());
+  score::setHelp(
+      m_gamepad, tr("Try to leverage the SDL Gamepad API. This gives access to rumble, "
+                    "accelerometers, etc."));
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);

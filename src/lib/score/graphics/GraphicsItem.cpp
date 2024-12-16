@@ -10,6 +10,26 @@
 #include <QGraphicsView>
 #include <QGuiApplication>
 
+using item_help = ossia::hash_map<int, std::pair<QString, QUrl>>;
+#if QT_VERSION > QT_VERSION_CHECK(6, 3, 0)
+#include <QApplicationStatic>
+Q_APPLICATION_STATIC(item_help, g_itemHelpRegistry);
+#else
+Q_GLOBAL_STATIC(item_help, g_itemHelpRegistry);
+#endif
+
+void registerItemHelp(int itemType, QString tooltip, QUrl url) noexcept
+{
+  auto& val = *g_itemHelpRegistry;
+  val[itemType] = std::pair<QString, QUrl>{tooltip, url};
+}
+
+QUrl getItemHelpUrl(int itemType) noexcept
+{
+  auto& val = *g_itemHelpRegistry;
+  return val[itemType].second;
+}
+
 void deleteGraphicsObject(QGraphicsObject* item)
 {
   if(item)

@@ -10,31 +10,26 @@ namespace score
 class HelperPanelDelegate : public PanelDelegate
 {
 public:
+  struct FasterLabel : QLabel
+  {
+    QSize sizeHint() const override { return {180, 200}; }
+    QSize minimumSizeHint() const override { return {180, 100}; }
+    int heightForWidth(int) const override { return 200; }
+  };
+
   HelperPanelDelegate(const score::GUIApplicationContext& ctx)
       : PanelDelegate{ctx}
   {
-    widg = new QWidget;
-    widg->setContentsMargins(3, 2, 3, 2);
+    widg = status = new FasterLabel;
+    widg->setContentsMargins(3, 5, 3, 2);
     widg->setMinimumHeight(100);
-    widg->setMaximumHeight(100);
+    widg->setMaximumHeight(200);
     widg->setMinimumWidth(180);
 
-    auto l = new QVBoxLayout{widg};
-
-    struct FasterLabel : QLabel
-    {
-      QSize sizeHint() const override { return {180, 100}; }
-      QSize minimumSizeHint() const override { return {180, 100}; }
-      int heightForWidth(int) const override { return 100; }
-    };
-
-    status = new FasterLabel;
+    status->setAlignment(Qt::AlignTop);
     status->setTextFormat(Qt::RichText);
-    status->setText("<i>Remember those quiet evenings</i>");
+    status->setText("<i>Do the words need changing?</i>");
     status->setWordWrap(true);
-
-    l->addWidget(status);
-    l->addStretch(12);
   }
 
   QWidget* widget() override { return widg; }

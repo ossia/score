@@ -10,6 +10,7 @@
 #include <score/model/Skin.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/widgets/FormWidget.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TimeSpinBox.hpp>
@@ -278,11 +279,13 @@ View::View()
   lay->addRow(m_sequence);
 
   SETTINGS_UI_SPINBOX_SETUP("Update Rate", UpdateRate);
-  this->m_UpdateRate->setToolTip(
+  score::setHelp(
+      this->m_UpdateRate,
       tr("Rate at which various events are processed in the software: "
          "UI updates from the execution engine, audio plug-in UIs..."));
   SETTINGS_UI_SPINBOX_SETUP("Execution Refresh Rate", ExecutionRefreshRate);
-  this->m_ExecutionRefreshRate->setToolTip(
+  score::setHelp(
+      this->m_ExecutionRefreshRate,
       tr("Refresh rate of the main view when the score executes, in hertz. "
          "Set a lower value to leave more CPU for the actual processing."));
   m_ExecutionRefreshRate->setRange(20, 500);

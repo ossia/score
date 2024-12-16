@@ -46,6 +46,7 @@
 #include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -285,7 +286,7 @@ void DeviceExplorerWidget::buildGUI()
       Qt::QueuedConnection);
 
   m_editAction = new QAction(tr("Edit"), this);
-  m_editAction->setStatusTip(tr("Edit the device."));
+  score::setHelp(m_editAction, tr("Edit the device."));
 
   m_refreshAction = new QAction(tr("Refresh namespace"), this);
   m_refreshAction->setShortcut(QKeySequence::Refresh);

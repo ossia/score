@@ -12,6 +12,7 @@
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
 
@@ -88,7 +89,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   m_audioEngineAct = new QAction{tr("Restart Audio"), this};
   m_audioEngineAct->setCheckable(true);
   m_audioEngineAct->setChecked(bool(audio));
-  m_audioEngineAct->setStatusTip("Restart the audio engine");
+  score::setHelp(m_audioEngineAct, "Restart the audio engine");
 
   setIcons(
       m_audioEngineAct, QStringLiteral(":/icons/engine_on.png"),
@@ -99,7 +100,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     auto sl = new score::VolumeSlider{bar};
     sl->setFixedSize(100, 20);
     sl->setValue(0.5);
-    sl->setStatusTip("Change the master volume");
+    score::setHelp(sl, "Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
     connect(sl, &score::VolumeSlider::valueChanged, this, [this](double v) {

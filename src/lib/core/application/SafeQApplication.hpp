@@ -62,9 +62,9 @@ public:
     score::information(QApplication::activeWindow(), "", str);
   }
 
-  bool notify(QObject* receiver, QEvent* event) override;
 #endif
 
+  bool notify(QObject* receiver, QEvent* event) override;
   bool event(QEvent* ev) override;
 
   void fileOpened(const QString& opened)
