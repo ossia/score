@@ -11,7 +11,7 @@
 #include <QGuiApplication>
 
 using item_help = ossia::hash_map<int, std::pair<QString, QUrl>>;
-#if QT_VERSION > QT_VERSION_CHECK(6, 3, 0)
+#if __has_include(<QApplicationStatic>)
 #include <QApplicationStatic>
 Q_APPLICATION_STATIC(item_help, g_itemHelpRegistry);
 #else
