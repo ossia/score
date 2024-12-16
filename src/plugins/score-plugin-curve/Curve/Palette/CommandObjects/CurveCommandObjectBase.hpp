@@ -15,6 +15,7 @@
 
 #include <score_plugin_curve_export.h>
 
+#include <span>
 #include <vector>
 
 namespace score
