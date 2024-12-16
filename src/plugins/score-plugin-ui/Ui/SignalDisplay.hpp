@@ -4,10 +4,13 @@
 #include <Effect/EffectLayer.hpp>
 #include <Effect/EffectLayout.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
+
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/parse_strict.hpp>
 #include <ossia/math/safe_math.hpp>
 #include <ossia/network/value/format_value.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <QPainter>
 
@@ -215,6 +218,28 @@ struct Node
       update();
     }
 
+    void draw_row_simple(QPainter* p, qreal w, qreal h, int row_index, auto to_01) const
+    {
+      for(int start_idx = 0; start_idx < std::ssize(m_values) - 1; start_idx++)
+      {
+        int end_idx = start_idx + 1;
+
+        const auto* p0 = &m_values[start_idx];
+        const auto& v0 = *p0;
+        const auto N0 = std::ssize(*p0);
+        if(N0 <= row_index)
+          continue;
+        const auto* p1 = &m_values[end_idx];
+        const auto& v1 = *p1;
+        const auto N1 = std::ssize(*p1);
+        if(N1 <= row_index)
+          continue;
+        QPointF start = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
+        QPointF end = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
+        p->drawLine(start, end);
+      }
+    }
+
     void draw_row(QPainter* p, qreal w, qreal h, int row_index, auto to_01) const
     {
       double quality = std::clamp(std::ceil(std::sqrt(0.1 + num_rows)), 1., 5.);
@@ -235,7 +260,7 @@ struct Node
           QPointF p0 = {v0[timestamp_index] * w, to_01(v0[row_index]) * h};
           QPointF p1 = {v1[timestamp_index] * w, to_01(v1[row_index]) * h};
 
-          if(QLineF l{p0, p1}; l.length() > quality)
+          if(QLineF l{p0, p1}; l.length() > quality && p0.x() < p1.x())
           {
             p->drawLine(l);
             last_idx = start_idx;
@@ -276,12 +301,10 @@ struct Node
         if(p1)
         {
           const auto& v1 = *p1;
-          {
-            QPointF p0 = {x0, to_01(v0[row_index]) * h};
-            QPointF p1 = {x1, to_01(v1[row_index]) * h};
-            p->drawLine(p0, p1);
-            last_idx = last_viable_end;
-          }
+          QPointF p0 = {x0, to_01(v0[row_index]) * h};
+          QPointF p1 = {x1, to_01(v1[row_index]) * h};
+          p->drawLine(p0, p1);
+          last_idx = last_viable_end;
         }
       }
     }
@@ -318,7 +341,7 @@ struct Node
         const auto max = this->max[row_index];
         if(min != max)
         {
-          draw_row(p, w, h, row_index, [min, max](float v) {
+          draw_row_simple(p, w, h, row_index, [min, max](float v) {
             return 1.f - (v - min) / (max - min);
           });
         }
