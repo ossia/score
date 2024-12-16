@@ -4,6 +4,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <QBoxLayout>
@@ -38,13 +39,16 @@ void InspectorWidgetDelegateFactory::addButtons(
         QStringLiteral(":/icons/exclusive_hover.png"),
         QStringLiteral(":/icons/exclusive_off.png"),
         QStringLiteral(":/icons/exclusive_off.png")));
-    sigWidg->setToolTip(QObject::tr("Exclusive"));
-    sigWidg->setStatusTip(QObject::tr(
-        "Make the scenario operate in exclusive mode: in this mode, if an interval is "
-        "started in a component, all the other components will be disabled. It is "
-        "mainly useful when one wants a sub-scenario where starting a sound or a video "
-        "should stop "
-        "all the others."));
+    score::setHelp(
+        sigWidg, QObject::tr("Exclusive"),
+        QObject::tr(
+            "Make the scenario operate in exclusive mode: in this mode, if an interval "
+            "is "
+            "started in a component, all the other components will be disabled. It is "
+            "mainly useful when one wants a sub-scenario where starting a sound or a "
+            "video "
+            "should stop "
+            "all the others."));
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(model.exclusive());

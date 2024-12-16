@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/LayerView.hpp>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MimeData.hpp>
 
@@ -10,14 +12,6 @@
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
-class QGraphicsItem;
-class QGraphicsSceneContextMenuEvent;
-class QGraphicsSceneDragDropEvent;
-class QGraphicsSceneMouseEvent;
-class QKeyEvent;
-class QMimeData;
-class QPainter;
-
 namespace Scenario
 {
 class ProcessModel;
@@ -28,6 +22,9 @@ class ScenarioView final : public Process::LayerView
 public:
   ScenarioView(QGraphicsItem* parent);
   ~ScenarioView();
+  static const constexpr int Type = ItemType::ScenarioProcess;
+  int type() const final override { return Type; }
+
   void init(ScenarioPresenter* p) { m_scenario = p; }
 
   void paint_impl(QPainter* painter) const override;

@@ -169,88 +169,116 @@ QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const noexc
   dial.exec();
   return dial.m_accepted;
 }
-
-template <>
-Process::Descriptor
-EffectProcessFactory_T<LV2::Model>::descriptor(QString d) const noexcept
+static Process::Descriptor make_descriptor(Lilv::Plugin plug)
 {
   Process::Descriptor desc;
   auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& host = app_plug.lv2_host_context;
-  if(auto plug = LV2::find_lv2_plugin(app_plug.lilv, d))
+  desc.prettyName = plug.get_name().as_string();
+  desc.categoryText = plug.get_class().get_label().as_string();
+  desc.description = plug.get_author_homepage().as_string();
+  desc.author = plug.get_author_name().as_string();
+
+  const auto numports = plug.get_num_ports();
+  std::vector<Process::PortType> ins;
+  std::vector<Process::PortType> outs;
+
+  for(std::size_t i = 0; i < numports; i++)
   {
-    desc.prettyName = plug->get_name().as_string();
-    desc.categoryText = plug->get_class().get_label().as_string();
-    desc.description = plug->get_author_homepage().as_string();
-    desc.author = plug->get_author_name().as_string();
+    Lilv::Port port = plug.get_port_by_index(i);
 
-    const auto numports = plug->get_num_ports();
-    std::vector<Process::PortType> ins;
-    std::vector<Process::PortType> outs;
-
-    for(std::size_t i = 0; i < numports; i++)
+    if(port.is_a(host.audio_class))
     {
-      Lilv::Port port = plug->get_port_by_index(i);
-
-      if(port.is_a(host.audio_class))
+      if(port.is_a(host.input_class))
       {
-        if(port.is_a(host.input_class))
-        {
-          ins.push_back(Process::PortType::Audio);
-        }
-        else if(port.is_a(host.output_class))
-        {
-          outs.push_back(Process::PortType::Audio);
-        }
-        else
-        {
-          // cv_ports.push_back(i);
-        }
+        ins.push_back(Process::PortType::Audio);
       }
-      else if(port.is_a(host.atom_class))
+      else if(port.is_a(host.output_class))
       {
-        // TODO use  atom:supports midi:MidiEvent
-        if(port.is_a(host.input_class))
-        {
-          ins.push_back(Process::PortType::Midi);
-        }
-        else if(port.is_a(host.output_class))
-        {
-          outs.push_back(Process::PortType::Midi);
-        }
-        else
-        {
-          // midi_other_ports.push_back(i);
-        }
+        outs.push_back(Process::PortType::Audio);
       }
-      else if(port.is_a(host.cv_class))
+      else
       {
         // cv_ports.push_back(i);
       }
-      else if(port.is_a(host.control_class))
+    }
+    else if(port.is_a(host.atom_class))
+    {
+      // TODO use  atom:supports midi:MidiEvent
+      if(port.is_a(host.input_class))
       {
-        if(port.is_a(host.input_class))
-        {
-          ins.push_back(Process::PortType::Message);
-        }
-        else if(port.is_a(host.output_class))
-        {
-          outs.push_back(Process::PortType::Message);
-        }
-        else
-        {
-          // control_other_ports.push_back(i);
-        }
+        ins.push_back(Process::PortType::Midi);
+      }
+      else if(port.is_a(host.output_class))
+      {
+        outs.push_back(Process::PortType::Midi);
+      }
+      else
+      {
+        // midi_other_ports.push_back(i);
+      }
+    }
+    else if(port.is_a(host.cv_class))
+    {
+      // cv_ports.push_back(i);
+    }
+    else if(port.is_a(host.control_class))
+    {
+      if(port.is_a(host.input_class))
+      {
+        ins.push_back(Process::PortType::Message);
+      }
+      else if(port.is_a(host.output_class))
+      {
+        outs.push_back(Process::PortType::Message);
       }
       else
       {
         // control_other_ports.push_back(i);
       }
     }
-
-    desc.inlets = ins;
-    desc.outlets = outs;
+    else
+    {
+      // control_other_ports.push_back(i);
+    }
   }
+
+  desc.inlets = ins;
+  desc.outlets = outs;
+  desc.documentationLink = plug.get_author_homepage().as_string();
+  if(desc.documentationLink.isEmpty())
+    desc.documentationLink = QUrl(
+        "https://ossia.io/score-docs/processes/"
+        "audio-plugins.html#common-formats-vst-vst3-lv2-jsfx");
+  return desc;
+}
+
+template <>
+Process::Descriptor EffectProcessFactory_T<LV2::Model>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  auto& p = safe_cast<const LV2::Model&>(d);
+  Process::Descriptor desc;
+  if(auto plug = p.plugin)
+    desc = make_descriptor(Lilv::Plugin{plug});
+  else
+  {
+    auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+    if(auto plug = LV2::find_lv2_plugin(app_plug.lilv, d.effect()))
+      desc = make_descriptor(*plug);
+  }
+
+  return desc;
+}
+template <>
+Process::Descriptor
+EffectProcessFactory_T<LV2::Model>::descriptor(QString d) const noexcept
+{
+  Process::Descriptor desc;
+  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  if(auto plug = LV2::find_lv2_plugin(app_plug.lilv, d))
+    desc = make_descriptor(*plug);
+
   return desc;
 }
 }

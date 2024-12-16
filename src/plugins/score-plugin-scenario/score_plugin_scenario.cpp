@@ -25,15 +25,29 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPaletteFactory.hpp>
 #include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
+#include <Scenario/Document/Event/ConditionView.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalHeader.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalHeader.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/ScenarioEditor.hpp>
+#include <Scenario/Document/State/StateView.hpp>
 #include <Scenario/Document/Tempo/TempoFactory.hpp>
 #include <Scenario/Document/Tempo/TempoInspector.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+
+#include <score/graphics/GraphicsItem.hpp>
 // #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
@@ -153,6 +167,28 @@ score_plugin_scenario::score_plugin_scenario()
   qRegisterMetaType<std::shared_ptr<Execution::EventComponent>>();
   qRegisterMetaType<ossia::time_event::status>();
   qRegisterMetaType<ossia::time_value>();
+
+  ::registerItemHelp(
+      Scenario::TimeSyncView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#triggers"));
+  ::registerItemHelp(
+      Scenario::TriggerView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#triggers"));
+  ::registerItemHelp(
+      Scenario::ConditionView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#conditions"));
+  ::registerItemHelp(
+      Scenario::EventView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#conditions"));
+  ::registerItemHelp(
+      Scenario::StateView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#states"));
+  ::registerItemHelp(
+      Scenario::IntervalView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#intervals"));
+  ::registerItemHelp(
+      Scenario::ScenarioView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html"));
 }
 
 score_plugin_scenario::~score_plugin_scenario() = default;

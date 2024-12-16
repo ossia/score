@@ -13,6 +13,7 @@
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -66,7 +67,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_selecttool = makeToolbarAction(
       tr("Select and Move"), m_scenarioToolActionGroup, Scenario::Tool::Select, tr("S"));
   m_selecttool->setShortcuts({Qt::Key_S, Qt::Key_M});
-  m_selecttool->setToolTip({"Select and Move (S, M)"});
+  score::setHelp(m_selecttool, {"Select and Move (S, M)"});
   m_selecttool->setObjectName("Select");
   m_selecttool->setChecked(true);
 
@@ -111,7 +112,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   });
 
   m_lockAction = makeToolbarAction(tr("Lock"), this, ExpandMode::CannotExpand, {});
-  m_lockAction->setToolTip(tr("Lock (Shift)"));
+  score::setHelp(m_lockAction, tr("Lock (Shift)"));
   setIcons(
       m_lockAction, QStringLiteral(":/icons/clip_duration_on.png"),
       QStringLiteral(":/icons/clip_duration_hover.png"),
@@ -129,7 +130,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_scaleAction = makeToolbarAction(tr("Scale"), this, ExpandMode::Scale, {});
   m_scaleAction->setCheckable(true);
   m_scaleAction->setChecked(false);
-  m_scaleAction->setToolTip(tr("Scale mode (Alt)"));
+  score::setHelp(m_scaleAction, tr("Scale mode (Alt)"));
 
   connect(m_scaleAction, &QAction::toggled, this, [this](bool b) {
     if(b)

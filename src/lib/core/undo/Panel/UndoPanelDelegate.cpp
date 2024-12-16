@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UndoPanelDelegate.hpp"
 
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>
@@ -17,10 +18,10 @@ UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
 {
   m_widget->setLayout(new score::MarginLess<QVBoxLayout>);
   m_widget->setObjectName("HistoryExplorer");
-  m_widget->setStatusTip(
-      QObject::tr("This panel shows the history of edits to your scenario. \n"
-                  "This list of possible \"Undo\" and \"Redo\" \n"
-                  "allows you to navigate through your past actions"));
+  score::setHelp(
+      m_widget, QObject::tr("This panel shows the history of edits to your scenario. \n"
+                            "This list of possible \"Undo\" and \"Redo\" \n"
+                            "allows you to navigate through your past actions"));
 }
 
 UndoPanelDelegate::~UndoPanelDelegate() { }

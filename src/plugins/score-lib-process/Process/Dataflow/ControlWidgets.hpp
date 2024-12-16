@@ -15,6 +15,7 @@
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -987,7 +988,7 @@ struct FileChooser
     auto sl = new QLineEdit{parent};
     auto act = new QAction{sl};
 
-    act->setStatusTip(QObject::tr("Opening a File"));
+    score::setHelp(act, QObject::tr("Opening a File"));
     act->setIcon(QIcon(":/icons/search.png"));
     sl->setPlaceholderText(QObject::tr("Open File"));
     auto on_open = [=, &inlet] {

@@ -27,6 +27,7 @@ public:
     Condition,
     StateOverlay,
     GraphInterval,
+    ScenarioProcess,
 
     SlotFooterDelegate = UserType + 10000
   };

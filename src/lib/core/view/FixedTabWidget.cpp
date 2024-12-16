@@ -1,5 +1,7 @@
 #include "FixedTabWidget.hpp"
 
+#include <score/widgets/HelpInteraction.hpp>
+
 #include <QActionGroup>
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
@@ -135,7 +137,7 @@ QAction* FixedTabWidget::addAction(QWidget* widg, const PanelStatus& v)
   btn->setShortcut(v.shortcut);
   btn->setIcon(v.icon);
 
-  btn->setToolTip(v.prettyName);
+  score::setHelp(btn, v.prettyName);
   btn->setWhatsThis(widg->whatsThis());
   btn->setStatusTip(widg->statusTip());
 

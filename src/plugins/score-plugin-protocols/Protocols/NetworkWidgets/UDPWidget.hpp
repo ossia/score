@@ -1,6 +1,8 @@
 #pragma once
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
+#include <score/widgets/HelpInteraction.hpp>
+
 #include <ossia/network/sockets/configuration.hpp>
 
 #include <QCheckBox>
@@ -22,7 +24,7 @@ public:
     m_remotePort = new QSpinBox(this);
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
-    m_remotePort->setWhatsThis(
+    score::setHelp(m_remotePort, 
         tr("This is where the other software listens from incoming messages. Score will "
            "send packets to this port."));
     proto.checkForChanges(m_remotePort);
@@ -30,18 +32,18 @@ public:
     m_localPort = new QSpinBox(this);
     m_localPort->setRange(0, 65535);
     m_localPort->setValue(9997);
-    m_localPort->setWhatsThis(
+    score::setHelp(m_localPort, 
         tr("This is where the other software sends feedback messages to. Score will "
            "listen for incoming OSC messages on this port."));
     proto.checkForChanges(m_localPort);
 
     m_broadcast = new QCheckBox{this};
     m_broadcast->setCheckState(Qt::Unchecked);
-    m_broadcast->setWhatsThis(tr("Broadcast to every device in the IP broadcast range"));
+    score::setHelp(m_broadcast, tr("Broadcast to every device in the IP broadcast range"));
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
-    m_host->setWhatsThis(
+    score::setHelp(m_host, 
         tr("This is the IP address of the computer the OSC-compatible software is "
            "located on. You can use 127.0.0.1 if the software runs on the same machine "
            "than score."));

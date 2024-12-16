@@ -4,6 +4,7 @@
 
 #include <score/actions/ActionManager.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 

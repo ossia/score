@@ -6,6 +6,7 @@
 
 #include <score/actions/Menu.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <core/presenter/CoreActions.hpp>
 #include <core/settings/Settings.hpp>
@@ -280,7 +281,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     ////// About /////
     {
       auto about_act = new QAction(m_presenter.view());
-      about_act->setStatusTip(tr("About ossia score"));
+      score::setHelp(about_act, tr("About ossia score"));
       connect(about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
       e.actions.add<Actions::About>(about_act);
       about->addAction(about_act);
@@ -288,7 +289,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto website_act = new QAction(m_presenter.view());
-      website_act->setStatusTip(tr("Open link to ossia website https://ossia.io/"));
+      score::setHelp(website_act, tr("Open link to ossia website https://ossia.io/"));
       connect(website_act, &QAction::triggered, this, [] {
         QDesktopServices::openUrl(QUrl("https://ossia.io/"));
       });
@@ -298,8 +299,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto doc_act = new QAction(m_presenter.view());
-      doc_act->setStatusTip(
-          tr("Open link to documentation https://ossia.io/score-docs"));
+      score::setHelp(
+          doc_act, tr("Open link to documentation https://ossia.io/score-docs"));
       connect(doc_act, &QAction::triggered, this, &CoreApplicationPlugin::help);
       e.actions.add<Actions::Documentation>(doc_act);
       about->addAction(doc_act);
@@ -307,7 +308,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto issues_act = new QAction(m_presenter.view());
-      issues_act->setStatusTip(tr("Report issues on the Github ossia score repository"));
+      score::setHelp(
+          issues_act, tr("Report issues on the Github ossia score repository"));
       connect(issues_act, &QAction::triggered, this, [] {
         QDesktopServices::openUrl(QUrl("https://github.com/ossia/score/issues"));
       });
@@ -317,7 +319,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto forum_act = new QAction(m_presenter.view());
-      forum_act->setStatusTip(tr("Open link to ossia forum https://forum.ossia.io"));
+      score::setHelp(forum_act, tr("Open link to ossia forum https://forum.ossia.io"));
       connect(forum_act, &QAction::triggered, this, [] {
         QDesktopServices::openUrl(QUrl("https://forum.ossia.io"));
       });

@@ -66,7 +66,8 @@ struct Metadata<Process::Descriptor_k, FaustDSP::Fx<DSP>>
         "Faust",
         Metadata<Tags_k, FaustDSP::Fx<DSP>>::get(),
         inletDescription(),
-        outletDescription()};
+        outletDescription(),
+        QUrl("https://ossia.io/score-docs/processes/faust.html")};
     return desc;
   }
 };

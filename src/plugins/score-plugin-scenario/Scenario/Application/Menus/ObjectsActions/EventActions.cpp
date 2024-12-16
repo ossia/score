@@ -23,6 +23,7 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/ObjectMatches.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -49,7 +50,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   connect(m_addTrigger, &QAction::triggered, this, &EventActions::addTriggerToTimeSync);
   m_addTrigger->setEnabled(false);
 
-  m_addTrigger->setToolTip(tr("Enable trigger"));
+  score::setHelp(m_addTrigger, tr("Enable trigger"));
   setIcons(
       m_addTrigger, QStringLiteral(":/icons/trigger_on.png"),
       QStringLiteral(":/icons/trigger_hover.png"),
@@ -58,6 +59,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Remove Trigger ///
   m_removeTrigger = new QAction{tr("Disable trigger"), this};
+  score::setHelp(m_removeTrigger, tr("Remove trigger"));
   connect(
       m_removeTrigger, &QAction::triggered, this,
       &EventActions::removeTriggerFromTimeSync);
@@ -68,7 +70,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   connect(m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
   m_addCondition->setEnabled(false);
 
-  m_addCondition->setToolTip(tr("Add Condition"));
+  score::setHelp(m_addCondition, tr("Add Condition"));
   setIcons(
       m_addCondition, QStringLiteral(":/icons/condition_on.png"),
       QStringLiteral(":/icons/condition_hover.png"),
@@ -77,6 +79,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
+  score::setHelp(m_removeCondition, tr("Remove Condition"));
   connect(m_removeCondition, &QAction::triggered, this, &EventActions::removeCondition);
   m_removeCondition->setEnabled(false);
 }

@@ -76,6 +76,9 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept
 
   auto it = ossia::find_if(
       app.vst_infos, [d](const vst::VSTInfo& vst) { return vst.uniqueID == d.toInt(); });
+  desc.documentationLink = QUrl(
+      "https://ossia.io/score-docs/processes/"
+      "audio-plugins.html#common-formats-vst-vst3-lv2-jsfx");
   if(it != app.vst_infos.end())
   {
     desc.prettyName = it->displayName;
@@ -105,6 +108,13 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept
     }
   }
   return desc;
+}
+
+template <>
+Process::Descriptor EffectProcessFactory_T<vst::Model>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  return descriptor(d.effect());
 }
 }
 

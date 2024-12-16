@@ -27,6 +27,7 @@
 #include <QVBoxLayout>
 
 #include <Faust/Commands.hpp>
+#include <Faust/Descriptor.hpp>
 #include <Faust/Utils.hpp>
 
 #include <wobjectimpl.h>
@@ -51,12 +52,52 @@ EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const 
   return "process = _;";
 }
 
+// FIXME
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const noexcept
+EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString txt) const noexcept
+{
+  Process::Descriptor d;
+  d.category = Process::ProcessCategory::AudioEffect;
+
+  const auto desc = Faust::initDescriptor(txt);
+  if(!desc.prettyName.isEmpty())
+    d.prettyName = desc.prettyName;
+  else
+    d.prettyName = "Faust effect";
+
+  if(!desc.author.isEmpty())
+    d.author = desc.author;
+  else if(!desc.copyright.isEmpty())
+    d.author = desc.copyright;
+
+  if(!desc.description.isEmpty())
+    d.description = desc.description;
+  if(!desc.version.isEmpty())
+  {
+    d.description += "\n";
+    d.description += desc.version;
+  }
+  if(!desc.license.isEmpty())
+  {
+    d.description += "\n";
+    d.description += desc.license;
+  }
+  if(!desc.reference.isEmpty())
+    d.documentationLink = desc.reference;
+  else
+    d.documentationLink
+        = QUrl(QStringLiteral("https://ossia.io/score-docs/processes/faust.html"));
+
+  return d;
+}
+
+template <>
+Process::Descriptor EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(
+    const Process::ProcessModel& d) const noexcept
 {
   Process::Descriptor desc;
-  return desc;
+  return descriptor(d.effect());
 }
 }
 namespace Faust
