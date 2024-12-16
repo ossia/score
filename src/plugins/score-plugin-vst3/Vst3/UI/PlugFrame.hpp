@@ -25,7 +25,7 @@ public:
   QDialog* w;
   WindowContainer wc;
   PlugFrame(QDialog& w, WindowContainer& wc)
-      : w{w}
+      : w{&w}
       , wc{wc}
   {
   }
@@ -55,7 +55,7 @@ public:
   QDialog* w;
   WindowContainer wc;
   PlugFrame(QDialog& w, WindowContainer& wc)
-      : w{w}
+      : w{&w}
       , wc{wc}
   {
   }
