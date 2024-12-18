@@ -381,14 +381,14 @@ void JSONWriter::write(ossia::net::unix_dgram_configuration& n)
 template <>
 void DataStreamReader::read(const ossia::net::osc_protocol_configuration& n)
 {
-  m_stream << n.mode << n.version << n.framing << n.transport;
+  m_stream << n.mode << n.version << n.framing << n.bundle_strategy << n.transport;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(ossia::net::osc_protocol_configuration& n)
 {
-  m_stream >> n.mode >> n.version >> n.framing >> n.transport;
+  m_stream >> n.mode >> n.version >> n.framing >> n.bundle_strategy >> n.transport;
   checkDelimiter();
 }
 
@@ -399,6 +399,7 @@ void JSONReader::read(const ossia::net::osc_protocol_configuration& n)
   obj["Mode"] = n.mode;
   obj["Version"] = n.version;
   obj["Framing"] = n.framing;
+  obj["Bundle"] = n.bundle_strategy;
   obj["Transport"] = n.transport;
   stream.EndObject();
 }
@@ -409,6 +410,8 @@ void JSONWriter::write(ossia::net::osc_protocol_configuration& n)
   n.mode <<= obj["Mode"];
   n.version <<= obj["Version"];
   n.framing <<= obj["Framing"];
+  if(auto bundle = obj.tryGet("Bundle"))
+    n.bundle_strategy <<= *bundle;
   n.transport <<= obj["Transport"];
 }
 

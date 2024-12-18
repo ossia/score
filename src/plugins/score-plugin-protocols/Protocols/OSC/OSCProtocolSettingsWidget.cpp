@@ -78,6 +78,8 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   m_rate = new RateWidget{this};
   m_rate->setRate({});
 
+  m_bundle = new QCheckBox{this};
+
   m_bonjour = new QCheckBox{this};
   m_bonjour->setWhatsThis(
       tr("If checked, the OSC device will expose itself over Bonjour with _osc._udp"));
@@ -106,6 +108,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Rate limit"), m_rate);
   layout->addRow(tr("Bonjour"), m_bonjour);
+  layout->addRow(tr("Bundle"), m_bundle);
   layout->addRow(tr("OSCQuery"), m_oscquery);
   layout->addRow(tr("OSC Version"), m_oscVersion);
   layout->addRow(tr("Protocol"), m_transport);
@@ -221,9 +224,13 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   OSCSpecificSettings osc = m_settings;
 
   using osc_version_t = decltype(ossia::net::osc_protocol_configuration::version);
+  using osc_bundle_t = decltype(ossia::net::osc_protocol_configuration::bundle_strategy);
   osc.configuration
       = m_transportWidget->configuration((OscProtocol)m_transport->currentIndex());
   osc.configuration.version = static_cast<osc_version_t>(m_oscVersion->currentIndex());
+  osc.configuration.bundle_strategy = this->m_bundle->isChecked()
+                                          ? osc_bundle_t::ALWAYS_BUNDLE
+                                          : osc_bundle_t::NEVER_BUNDLE;
   osc.rate = m_rate->rate();
   osc.bonjour = m_bonjour->isChecked();
   osc.oscquery = m_oscquery->value();
@@ -264,10 +271,14 @@ void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
 
   if(settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
   {
+    using osc_bundle_t
+        = decltype(ossia::net::osc_protocol_configuration::bundle_strategy);
     m_settings = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
     m_oscVersion->setCurrentIndex(m_settings.configuration.version);
     m_rate->setRate(m_settings.rate);
     m_bonjour->setChecked(m_settings.bonjour);
+    m_bundle->setChecked(
+        m_settings.configuration.bundle_strategy == osc_bundle_t::ALWAYS_BUNDLE);
     if(m_settings.oscquery)
       m_oscquery->setValue(*m_settings.oscquery);
     auto proto = m_transportWidget->setConfiguration(m_settings.configuration);

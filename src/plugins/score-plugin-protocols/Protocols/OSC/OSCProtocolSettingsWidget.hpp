@@ -77,6 +77,7 @@ private:
   QLineEdit* m_deviceNameEdit{};
   RateWidget* m_rate{};
   QCheckBox* m_bonjour{};
+  QCheckBox* m_bundle{};
   QComboBox* m_transport{};
   QComboBox* m_oscVersion{};
   QSpinBox* m_oscquery{};
