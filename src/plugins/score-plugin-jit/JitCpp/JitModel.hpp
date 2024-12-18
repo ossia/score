@@ -100,6 +100,10 @@ EffectProcessFactory_T<Jit::JitEffectModel>::customConstructionData() const noex
 template <>
 Process::Descriptor
 EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(QString d) const noexcept;
+
+template <>
+Process::Descriptor EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(
+    const Process::ProcessModel& d) const noexcept;
 }
 
 namespace Execution

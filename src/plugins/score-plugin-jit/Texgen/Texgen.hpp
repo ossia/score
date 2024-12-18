@@ -90,6 +90,9 @@ EffectProcessFactory_T<Jit::TexgenModel>::customConstructionData() const noexcep
 template <>
 Process::Descriptor
 EffectProcessFactory_T<Jit::TexgenModel>::descriptor(QString d) const noexcept;
+template <>
+Process::Descriptor EffectProcessFactory_T<Jit::TexgenModel>::descriptor(
+    const Process::ProcessModel& d) const noexcept;
 }
 class QPlainTextEdit;
 namespace Jit

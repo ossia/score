@@ -471,7 +471,14 @@ EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(QString d) const noexcep
   return Metadata<Descriptor_k, Jit::JitEffectModel>::get();
 }
 
+template <>
+Process::Descriptor EffectProcessFactory_T<Jit::JitEffectModel>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  return descriptor(d.effect());
 }
+}
+
 namespace Execution
 {
 
