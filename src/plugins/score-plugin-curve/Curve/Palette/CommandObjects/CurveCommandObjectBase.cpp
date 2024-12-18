@@ -83,8 +83,10 @@ void CommandObjectBase::submit(std::vector<SegmentData>&& segments)
 void checkValidity(SegmentMapImpl& segts)
 {
 #if defined(SCORE_DEBUG)
-  for(auto& [id, s] : segts)
+  for(auto& seg : segts)
   {
+    auto& id = seg.first;
+    auto& s = seg.second;
     SCORE_ASSERT(std::isfinite(s.start.x()));
     SCORE_ASSERT(std::isfinite(s.start.y()));
     SCORE_ASSERT(std::isfinite(s.end.x()));
