@@ -3,6 +3,7 @@
 
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -60,7 +61,7 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
   // Slider
   m_slider = new score::SpeedSlider{this};
   m_slider->showText = showText;
-  m_slider->setStatusTip(
+  score::setHelp(m_slider, 
       QObject::tr("Change the execution speed \n"
                   "Tempo"));
 

@@ -17,6 +17,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/widgets/ArrowButton.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/document/Document.hpp>
@@ -52,7 +53,7 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
 
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/search.png"));
-  act->setStatusTip(tr("Find And Replace"));
+  score::setHelp(act, tr("Find And Replace"));
   addAction(act, QLineEdit::TrailingPosition);
   connect(act, &QAction::triggered, this, [this] {
     auto sr = new SearchReplaceWidget(m_ctx);

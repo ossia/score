@@ -18,6 +18,7 @@
 #include <score/actions/ToolbarManager.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/TimeSpinBox.hpp>
 
@@ -125,7 +126,7 @@ void ApplicationPlugin::initialize()
 QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
 {
   auto timer = new QTimer{time_label};
-  time_label->setStatusTip(tr("Elapsed time since the beginning of playback"));
+  score::setHelp(time_label, tr("Elapsed time since the beginning of playback"));
   connect(timer, &QTimer::timeout, this, [this, time_label] {
     auto t = m_execution.execution_time();
     if(t == TimeVal::zero())
@@ -175,7 +176,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       timeline_act->setCheckable(true);
       timeline_act->setChecked(false);
       timeline_act->setShortcut(QKeySequence("Ctrl+Alt+N"));
-      timeline_act->setStatusTip(tr("Change between nodal and timeline mode"));
+      score::setHelp(timeline_act, tr("Change between nodal and timeline mode"));
       setIcons(
           timeline_act, QStringLiteral(":/icons/nodal_on.png"),
           QStringLiteral(":/icons/nodal_hover.png"),
@@ -206,7 +207,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     {
       m_musicalAct = new QAction{tr("Enable musical mode"), this};
       m_musicalAct->setCheckable(true);
-      m_musicalAct->setStatusTip(tr("Enable musical mode"));
+      score::setHelp(m_musicalAct, tr("Enable musical mode"));
       setIcons(
           m_musicalAct, QStringLiteral(":/icons/music_on.png"),
           QStringLiteral(":/icons/music_hover.png"),

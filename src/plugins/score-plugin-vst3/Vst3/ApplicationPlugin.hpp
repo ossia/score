@@ -22,6 +22,7 @@ struct AvailablePlugin
 {
   QString path;
   QString name;
+  QString url;
   std::vector<VST3::Hosting::ClassInfo> classInfo;
 
   bool isValid{};

@@ -448,9 +448,7 @@ void View::resizeEvent(QResizeEvent* e)
 
 bool score::View::event(QEvent* event)
 {
-  if(event->type() == QEvent::StatusTip)
-  {
-    auto tip = ((QStatusTipEvent*)event)->tip();
+  auto display = [this](QString tip) {
     auto idx = tip.indexOf(QChar('\n'));
     if(idx != -1)
     {
@@ -464,6 +462,11 @@ bool score::View::event(QEvent* event)
     }
     tip.replace(QChar('\n'), "<br/>");
     m_status->setText(tip);
+  };
+
+  if(event->type() == QEvent::StatusTip)
+  {
+    display(((QStatusTipEvent*)event)->tip());
   }
 
   return QMainWindow::event(event);

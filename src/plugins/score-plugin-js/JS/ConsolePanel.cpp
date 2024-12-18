@@ -2,6 +2,8 @@
 
 #include <JS/ApplicationPlugin.hpp>
 
+#include <score/widgets/HelpInteraction.hpp>
+
 #include <QDebug>
 #include <QFileInfo>
 #include <QJSValueIterator>
@@ -21,7 +23,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
 
   auto lay = new QVBoxLayout;
   m_widget->setLayout(lay);
-  m_widget->setStatusTip(
+  score::setHelp(m_widget, 
       QObject::tr("This panel prompts the scripting console \n"
                   "still in early development"));
 

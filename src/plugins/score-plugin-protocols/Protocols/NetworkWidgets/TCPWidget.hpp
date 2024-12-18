@@ -1,6 +1,8 @@
 #pragma once
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
+#include <score/widgets/HelpInteraction.hpp>
+
 #include <ossia/network/sockets/configuration.hpp>
 #include <ossia/protocols/osc/osc_factory.hpp>
 
@@ -24,13 +26,13 @@ public:
     m_remotePort = new QSpinBox(this);
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
-    m_remotePort->setWhatsThis(
+    score::setHelp(m_remotePort, 
         tr("This is the communication port used for the TCP connection."));
     proto.checkForChanges(m_remotePort);
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
-    m_host->setWhatsThis(
+    score::setHelp(m_host, 
         tr("This is the IP address of the computer the OSC-compatible software is "
            "located on. You can use 127.0.0.1 if the software runs on the same machine "
            "than score."));
@@ -70,13 +72,13 @@ public:
     m_remotePort = new QSpinBox(this);
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
-    m_remotePort->setWhatsThis(
+    score::setHelp(m_remotePort, 
         tr("This is the communication port used for the TCP connection."));
     proto.checkForChanges(m_remotePort);
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
-    m_host->setWhatsThis(
+    score::setHelp(m_host, 
         tr("This is the IP address of the computer the OSC-compatible software is "
            "located on. You can use 127.0.0.1 if the software runs on the same machine "
            "than score."));

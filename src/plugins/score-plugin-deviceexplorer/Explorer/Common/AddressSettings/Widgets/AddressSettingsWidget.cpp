@@ -11,6 +11,7 @@
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Debug.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
@@ -41,11 +42,12 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   m_ioTypeCBox = new AccessModeComboBox{this};
   m_clipModeCBox = new BoundingModeComboBox{this};
   m_repetition = new QCheckBox{tr("Repetition filter"), this};
-  m_repetition->setToolTip(
+  score::setHelp(
+      m_repetition,
       tr("When repetitions are filtered, if two identical values are sent one "
          "after the other, the second is ignored."));
   m_tagsEdit = new QComboBox{this};
-  m_tagsEdit->setToolTip(tr("Tags for this parameter"));
+  score::setHelp(m_tagsEdit, tr("Tags for this parameter"));
   m_tagsEdit->setEditable(true);
   m_tagsEdit->setInsertPolicy(QComboBox::InsertAtCurrent);
   m_addTagButton = new QPushButton;
@@ -65,7 +67,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   tagLayout->addWidget(m_addTagButton);
 
   m_unit = new State::UnitWidget({}, Qt::Vertical, this);
-  m_unit->setToolTip("Set the dataspace and unit of the parameter.");
+  score::setHelp(m_unit, "Set the dataspace and unit of the parameter.");
 
   m_description = new QLineEdit{this};
 

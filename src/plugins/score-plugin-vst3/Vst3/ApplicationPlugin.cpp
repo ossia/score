@@ -327,6 +327,7 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   AvailablePlugin i;
   i.path = path;
   i.name = obj["Name"].toString();
+  i.url = obj["Url"].toString();
   i.isValid = true;
 
   const auto& classes = obj["Classes"].toArray();

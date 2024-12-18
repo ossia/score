@@ -9,6 +9,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/widgets/ClearLayout.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <QVBoxLayout>
@@ -31,7 +32,8 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   m_widget->setMinimumHeight(400);
   m_widget->setMinimumWidth(200);
 
-  m_widget->setStatusTip(
+  score::setHelp(
+      m_widget,
       QObject::tr("The inspector show information on the currently selected items."));
 }
 

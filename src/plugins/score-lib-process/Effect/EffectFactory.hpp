@@ -29,6 +29,7 @@ public:
   }
 
   Descriptor descriptor(QString) const noexcept override;
+  Descriptor descriptor(const Process::ProcessModel&) const noexcept override;
 
   ProcessFlags flags() const noexcept override
   {

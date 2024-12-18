@@ -41,7 +41,9 @@ QString load_vst(const QString& path, int id)
     QJsonObject root;
 
     QJsonArray arr;
-    for(const auto& cls : module->getFactory().classInfos())
+    const auto& fac = module->getFactory();
+    const auto& fi = fac.info();
+    for(const auto& cls : fac.classInfos())
     {
       if(cls.category() == kVstAudioEffectClass)
       {
@@ -61,6 +63,8 @@ QString load_vst(const QString& path, int id)
       }
     }
     root["Name"] = QString::fromStdString(module->getName());
+    root["Url"] = QString::fromStdString(fi.url());
+    root["Email"] = QString::fromStdString(fi.email());
     root["Path"] = path;
     root["Request"] = id;
     root["Classes"] = arr;

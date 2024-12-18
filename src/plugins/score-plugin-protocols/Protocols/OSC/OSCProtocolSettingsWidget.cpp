@@ -21,6 +21,7 @@
 #include <Protocols/NetworkWidgets/WebsocketServerWidget.hpp>
 #include <Protocols/RateWidget.hpp>
 
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <QStackedLayout>
@@ -81,7 +82,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   m_bundle = new QCheckBox{this};
 
   m_bonjour = new QCheckBox{this};
-  m_bonjour->setWhatsThis(
+  score::setHelp(m_bonjour, 
       tr("If checked, the OSC device will expose itself over Bonjour with _osc._udp"));
 
   m_transport = new QComboBox{this};
@@ -94,7 +95,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   m_oscVersion->addItems({"1.0", "1.1", "Extended"});
 
   m_oscquery = new QSpinBox{this};
-  m_oscquery->setWhatsThis(tr("Expose OSC device over OSCQuery if port is not 0"));
+  score::setHelp(m_oscquery, tr("Expose OSC device over OSCQuery if port is not 0"));
   m_oscquery->setRange(0, 65535);
   m_oscquery->setValue(0);
   checkForChanges(m_oscquery);

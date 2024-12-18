@@ -5,11 +5,14 @@
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
-#include <QFileInfo>
+#include <score/application/ApplicationServices.hpp>
+
+#include <QFile>
+#include <QGuiApplication>
 #include <QTimer>
 
+#include <Faust/Descriptor.hpp>
 #include <Faust/EffectModel.hpp>
-
 namespace Faust
 {
 class LibraryHandler final
@@ -18,14 +21,9 @@ class LibraryHandler final
 {
   SCORE_CONCRETE("e274ee7b-9142-43a0-9d77-9286a63af4d9")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"dsp"}; }
+  score::TaskPool& pool = score::TaskPool::instance();
 
-  static inline const QRegularExpression nameExpr{
-      R"_(declare name "([a-zA-Z0-9_\-]+)";)_"};
-  static inline const QRegularExpression authorExpr{
-      R"_(declare author "([a-zA-Z0-9_\-]+)";)_"};
-  static inline const QRegularExpression descExpr{
-      R"_(declare description "([a-zA-Z0-9.<>\(\):/~, _\-]+)";)_"};
+  QSet<QString> acceptedFiles() const noexcept override { return {"dsp"}; }
 
   Library::Subcategories categories;
 
@@ -45,42 +43,49 @@ class LibraryHandler final
   {
     score::PathInfo file{path};
     if(file.fileName != "layout.dsp")
-      registerDSP(file);
+      registerDSP(std::string(path));
   }
 
-  void registerDSP(const score::PathInfo& file)
+  void registerDSP(std::string path)
   {
-    Library::ProcessData pdata;
-    pdata.prettyName
-        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
-    pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
-    pdata.customData
-        = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
-    pdata.author = "Faust standard library";
+    pool.post([this, path = std::move(path)] {
+      Library::ProcessData pdata;
+      score::PathInfo file{path};
+      pdata.prettyName = QString::fromUtf8(
+          file.completeBaseName.data(), file.completeBaseName.size());
+      pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
+      pdata.customData = QString::fromUtf8(
+          file.absoluteFilePath.data(), file.absoluteFilePath.size());
+      pdata.author = "Faust standard library";
 
-    {
-      auto matches = nameExpr.match(pdata.customData);
-      if(matches.hasMatch())
-      {
-        pdata.prettyName = matches.captured(1);
-      }
-    }
-    {
-      auto matches = authorExpr.match(pdata.customData);
-      if(matches.hasMatch())
-      {
-        pdata.author = matches.captured(1);
-      }
-    }
-    {
-      auto matches = descExpr.match(pdata.customData);
-      if(matches.hasMatch())
-      {
-        pdata.description = matches.captured(1);
-      }
-    }
+      auto desc = initDescriptor(pdata.customData);
+      if(!desc.prettyName.isEmpty())
+        pdata.prettyName = desc.prettyName;
 
-    categories.add(file, std::move(pdata));
+      if(!desc.author.isEmpty())
+        pdata.author = desc.author;
+      else if(!desc.copyright.isEmpty())
+        pdata.author = desc.copyright;
+
+      if(!desc.description.isEmpty())
+        pdata.description = desc.description;
+      if(!desc.version.isEmpty())
+      {
+        pdata.description += "\n";
+        pdata.description += desc.version;
+      }
+      if(!desc.license.isEmpty())
+      {
+        pdata.description += "\n";
+        pdata.description += desc.license;
+      }
+
+      QMetaObject::invokeMethod(
+          qApp, [this, path = std::move(path), pdata = std::move(pdata)]() mutable {
+        score::PathInfo file{path};
+        categories.add(file, std::move(pdata));
+      }, Qt::QueuedConnection);
+    });
   }
 };
 

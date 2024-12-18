@@ -14,6 +14,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -119,8 +120,8 @@ public:
             QStringLiteral(":/icons/loop_hover.png"),
             QStringLiteral(":/icons/loop_off.png"),
             QStringLiteral(":/icons/loop_off.png")));
+        score::setHelp(loop_btn, tr("Enable looping for this process"));
         loop_btn->setToolTip(tr("Loop"));
-        loop_btn->setStatusTip(tr("Enable looping for this process"));
 
         loop_btn->setAutoRaise(true);
         loop_btn->setIconSize(QSize{28, 28});
@@ -187,8 +188,8 @@ public:
           QStringLiteral(":/icons/new_window_hover.png"),
           QStringLiteral(":/icons/new_window_off.png"),
           QStringLiteral(":/icons/new_window_off.png")));
-      uiToggle->setToolTip(tr("Edit process"));
-      uiToggle->setStatusTip(tr("Show the custom user interface of this plug-in"));
+      score::setHelp(uiToggle, tr("Show the custom user interface of this plug-in"));
+      uiToggle->setToolTip(tr("Open plug-in"));
       uiToggle->setAutoRaise(true);
       uiToggle->setIconSize(QSize{28, 28});
       uiToggle->setCheckable(true);
@@ -215,9 +216,10 @@ public:
           QStringLiteral(":/icons/control_record_hover.png"),
           QStringLiteral(":/icons/control_record_off.png"),
           QStringLiteral(":/icons/control_record_off.png")));
+      score::setHelp(
+          controlsToggle, tr("Enable the controls changed in the plug-in ui to appear "
+                             "in the main window"));
       controlsToggle->setToolTip(tr("Edit controls"));
-      controlsToggle->setStatusTip(tr(
-          "Enable the controls changed in the plug-in ui to appear in the main window"));
       controlsToggle->setAutoRaise(true);
       controlsToggle->setIconSize(QSize{28, 28});
       controlsToggle->setCheckable(true);
