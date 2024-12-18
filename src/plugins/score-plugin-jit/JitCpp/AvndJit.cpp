@@ -482,6 +482,12 @@ EffectProcessFactory_T<AvndJit::Model>::descriptor(QString d) const noexcept
   return Metadata<Descriptor_k, AvndJit::Model>::get();
 }
 
+template <>
+Process::Descriptor EffectProcessFactory_T<AvndJit::Model>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  return descriptor(d.effect());
+}
 }
 namespace AvndJit
 {

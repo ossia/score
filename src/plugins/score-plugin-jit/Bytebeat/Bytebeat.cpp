@@ -310,4 +310,11 @@ EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(QString d) const noexcept
 {
   return Metadata<Descriptor_k, Jit::BytebeatModel>::get();
 }
+
+template <>
+Process::Descriptor EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  return descriptor(d.effect());
+}
 }

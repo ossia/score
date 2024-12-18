@@ -86,6 +86,10 @@ EffectProcessFactory_T<Jit::BytebeatModel>::customConstructionData() const noexc
 template <>
 Process::Descriptor
 EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(QString d) const noexcept;
+
+template <>
+Process::Descriptor EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(
+    const Process::ProcessModel& d) const noexcept;
 }
 class QPlainTextEdit;
 namespace Jit

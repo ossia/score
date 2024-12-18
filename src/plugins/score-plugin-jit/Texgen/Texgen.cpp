@@ -280,4 +280,10 @@ EffectProcessFactory_T<Jit::TexgenModel>::descriptor(QString d) const noexcept
   return Metadata<Descriptor_k, Jit::TexgenModel>::get();
 }
 
+template <>
+Process::Descriptor EffectProcessFactory_T<Jit::TexgenModel>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  return descriptor(d.effect());
+}
 }
