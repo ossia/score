@@ -85,12 +85,12 @@ if [[ "${CI_IS_AZURE}" = "1" ]]; then
 fi
 
 xcrun notarytool \
+  submit *.dmg \
   --team-id "GRW9MHZ724" \
   --apple-id "jeanmichael.celerier@gmail.com" \
   --password "$MAC_ALTOOL_PASSWORD" \
   --progress \
-  --wait \
-  submit *.dmg
+  --wait
 
 # Staple
 xcrun stapler staple ./*.dmg
