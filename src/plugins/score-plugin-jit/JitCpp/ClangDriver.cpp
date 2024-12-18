@@ -124,7 +124,14 @@ llvm::Expected<std::unique_ptr<llvm::Module>> ClangCC1Driver::compileTranslation
   {
     ossia::logger().info("JIT cache miss");
     bitcodeFile = replaceExtension(cpp, "bc");
+
+    // Remove -E -P -o foo.preproc.hpp foo.cpp
     flags_vec.resize(flags_vec.size() - 5);
+
+    // flags_vec.push_back("-emit-llvm");
+    flags_vec.push_back("-emit-llvm-bc");
+    flags_vec.push_back("-emit-llvm-uselists");
+
     flags_vec.push_back("-o");
     flags_vec.push_back(bitcodeFile);
     flags_vec.push_back(cpp);
@@ -184,10 +191,6 @@ std::vector<std::string> ClangCC1Driver::getClangCC1Args(CompilerOptions opts)
 {
   std::vector<std::string> args;
   args.reserve(200);
-
-  args.push_back("-emit-llvm");
-  args.push_back("-emit-llvm-bc");
-  args.push_back("-emit-llvm-uselists");
 
   populateCompileOptions(args, opts);
   populateDefinitions(args);
