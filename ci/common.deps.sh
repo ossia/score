@@ -38,6 +38,10 @@ clone_addon https://github.com/ossia/score-addon-hdf5
 clone_addon https://github.com/ossia/score-addon-puara
 clone_addon https://github.com/ossia/score-addon-ltc
 
+if [[ ! -d score-addon-onnx ]]; then
+  git clone --recursive -j16 https://github.com/ossia/score-addon-onnx
+fi
+
 )
 
 
