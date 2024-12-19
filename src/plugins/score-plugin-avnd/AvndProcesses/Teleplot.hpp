@@ -56,12 +56,21 @@ struct Teleplot : PatternObject
 
       boost::asio::io_context io_service;
       boost::asio::ip::udp::resolver resolver(io_service);
-      boost::asio::ip::udp::resolver::query query(m_queryHost, m_queryPort);
-      boost::asio::ip::udp::resolver::iterator iter = resolver.resolve(query);
 
-      auto addr = iter->endpoint().address().to_string();
+      auto results = resolver.resolve(
+          boost::asio::ip::udp::v4(), m_queryHost, m_queryPort,
+          boost::asio::ip::resolver_base::numeric_service);
 
-      return {addr, std::stoi(m_queryPort)};
+      if(!results.empty())
+      {
+        auto addr = results.begin()->endpoint().address().to_string();
+
+        return {addr, std::stoi(m_queryPort)};
+      }
+      else
+      {
+        return {};
+      }
     }
     catch(const std::exception& e)
     {

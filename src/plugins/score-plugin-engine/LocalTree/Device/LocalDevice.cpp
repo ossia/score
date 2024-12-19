@@ -122,7 +122,7 @@ void LocalDevice::init()
     if(auto plug = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
     {
       QPointer<LocalDevice> self = this;
-      plug->networkContext()->context.post(
+      boost::asio::post(plug->networkContext()->context,
           [=, name = m_dev.get_name()] { exposeZeroconf(name, set, self); });
     }
     else

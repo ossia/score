@@ -159,13 +159,18 @@ void ZeroconfBrowser::accept()
 
   try
   {
-    boost::asio::io_service io_service;
+    boost::asio::io_context io_service;
     boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::ip::tcp::resolver::query query(ip.toStdString(), std::to_string(port));
-    boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-    if(iter->endpoint().address().is_loopback())
+    auto results = resolver.resolve(
+        boost::asio::ip::tcp::v4(), ip.toStdString(), std::to_string(port),
+                                    boost::asio::ip::resolver_base::numeric_service);
+    for(auto& result : results)
     {
-      ip = "localhost";
+      if(result.endpoint().address().is_loopback())
+      {
+        ip = "localhost";
+        break;
+      }
     }
   }
   catch(...)

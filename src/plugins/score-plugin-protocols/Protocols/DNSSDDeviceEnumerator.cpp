@@ -49,25 +49,23 @@ public:
 
     try
     {
-      boost::asio::io_service io_service;
+      boost::asio::io_context io_service;
 
       boost::asio::ip::tcp::resolver resolver(io_service);
-      boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(
+      auto results = resolver.resolve(
           boost::asio::ip::tcp::v4(), ip, port,
           boost::asio::ip::resolver_base::numeric_service);
 
-      boost::asio::ip::tcp::resolver::iterator end;
-      while(iter != end)
+      for(auto& result :results)
       {
-        if(iter->endpoint().address().is_loopback())
+        if(result.endpoint().address().is_loopback())
         {
           ip = "localhost";
           break;
         }
-        else
+        else if(result.endpoint().address().is_v4())
         {
-          ip = iter->endpoint().address().to_string();
-          ++iter;
+          ip = result.endpoint().address().to_string();
         }
       }
     }

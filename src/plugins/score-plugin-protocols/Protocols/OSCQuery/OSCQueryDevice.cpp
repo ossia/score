@@ -52,12 +52,11 @@ static bool resolve_ip(const std::string& host)
     else if(boost::starts_with(queryHost, "ws://"))
       queryHost.erase(queryHost.begin(), queryHost.begin() + 5);
 
-    boost::asio::io_service io_service;
+    boost::asio::io_context io_service;
     boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::ip::tcp::resolver::query query(
-        queryHost, queryPort, boost::asio::ip::resolver_base::numeric_service);
-    boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-    return true;
+    auto res = resolver.resolve(
+        boost::asio::ip::tcp::v4(), queryHost, queryPort, boost::asio::ip::resolver_base::numeric_service);
+    return !res.empty();
   }
   catch(const std::exception& e)
   {
