@@ -20,7 +20,7 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/name_utils.hpp>
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/use_future.hpp>

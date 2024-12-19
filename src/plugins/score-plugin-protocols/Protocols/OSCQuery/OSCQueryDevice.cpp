@@ -19,7 +19,7 @@
 #include <ossia/protocols/oscquery/oscquery_mirror_asio_dense.hpp>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
