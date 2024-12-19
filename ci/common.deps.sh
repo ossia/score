@@ -55,6 +55,10 @@ if [[ ! -d score-addon-puara ]]; then
   git clone --recursive -j16 https://github.com/ossia/score-addon-puara
 fi
 
+if [[ ! -d score-addon-onnx ]]; then
+  git clone --recursive -j16 https://github.com/ossia/score-addon-onnx
+fi
+
 )
 
 
