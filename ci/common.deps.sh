@@ -43,6 +43,10 @@ then
   clone_addon https://github.com/ossia/score-addon-hdf5
 fi
 
+if [[ ! -d score-addon-onnx ]]; then
+  git clone --recursive -j16 https://github.com/ossia/score-addon-onnx
+fi
+
 )
 
 
