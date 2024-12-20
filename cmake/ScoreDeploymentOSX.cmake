@@ -103,7 +103,7 @@ if(QT_STATIC)
         fixup_bundle(
           \"\${SCORE_ABSOLUTE_PATH}\"
           \"\"
-          \"\")
+          \"\${SCORE_ABSOLUTE_PATH}/Frameworks\")
 
         " COMPONENT OssiaScore)
 
