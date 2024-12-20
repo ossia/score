@@ -27,8 +27,8 @@ cmake --build . --target install/strip
 
 (
   cd install
-  rm -rf include lib share/doc
-  mkdir lib
+  rm -rf include lib/*.a lib/*.settings lib/cmake lib/pkgconfig share/doc
+  mkdir -p lib
   cp /opt/ossia-sdk-rpi-aarch64/aarch64-rpi3-linux-gnu/aarch64-rpi3-linux-gnu/lib64/libstdc++.so.6 lib/
   cp /opt/ossia-sdk-rpi-aarch64/pi/sysroot/usr/lib/aarch64-linux-gnu/libicu*.so.67 lib/
   cp $SCORE_DIR/cmake/Deployment/Linux/Raspberry/* .
