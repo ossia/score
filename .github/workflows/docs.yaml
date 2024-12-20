@@ -1,10 +1,4 @@
 name: Documentation build
-on:
-  pull_request:
-  push:
-    branches:
-      - master
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
