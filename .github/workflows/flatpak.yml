@@ -14,7 +14,7 @@ jobs:
         arch: [x86_64, aarch64]
       fail-fast: false
     container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-6.8
+      image: bilelmoussaoui/flatpak-github-actions:kde-6.7
       options: --privileged
 
     steps:
