@@ -9,19 +9,38 @@ jobs:
   flatpak:
     name: "Flatpak"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+      fail-fast: false
     container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-6.7
+      image: bilelmoussaoui/flatpak-github-actions:kde-6.8
       options: --privileged
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: 'recursive'
+
+    - name: Install deps
+      if: ${{ matrix.arch != 'x86_64' }}
+      run: |
+        dnf -y install docker
+
+    - name: Set up QEMU
+      if: ${{ matrix.arch != 'x86_64' }}
+      id: qemu
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm64
+
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: io.ossia.score.flatpak
+        bundle: io.ossia.score.${{ matrix.arch }}.flatpak
         manifest-path: ./cmake/Deployment/Linux/Flatpak/io.ossia.score.yml
         cache-key: flatpak-builder-${{ github.sha }}
+        arch: ${{ matrix.arch }}
 
     - name: Continuous
       uses: softprops/action-gh-release@v2
