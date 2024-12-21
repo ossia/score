@@ -4,6 +4,7 @@
 #include <Process/ProcessFactory.hpp>
 
 #include <Crousti/Attributes.hpp>
+#include <Crousti/CodeWriter.hpp>
 #include <Crousti/Concepts.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadata.hpp>
@@ -17,6 +18,7 @@
 #include <ossia/detail/string_map.hpp>
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
+#include <ossia/network/value/format_value.hpp>
 
 #include <boost/pfr.hpp>
 
@@ -706,6 +708,15 @@ public:
     }
     return ret;
   }
+
+  std::unique_ptr<Process::CodeWriter>
+  codeWriter(Process::CodeFormat) const noexcept override
+  {
+    if constexpr(requires { new Info::code_writer{*this}; })
+      return std::make_unique<typename Info::code_writer>(*this);
+    else
+      return std::make_unique<Crousti::CodeWriter<Info>>(*this);
+  };
 };
 }
 

@@ -50,6 +50,9 @@ public:
   const gradient_colors& gradient() const;
   void setGradient(const gradient_colors& c);
 
+  std::unique_ptr<Process::CodeWriter>
+      codeWriter(Process::CodeFormat) const noexcept override;
+
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
