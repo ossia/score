@@ -14,6 +14,7 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/Clamp.hpp>
+#include <score/application/ApplicationContext.hpp>
 
 namespace Curve
 {
