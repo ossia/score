@@ -72,11 +72,11 @@ do
   ((i++))
 done
 
+echo
 ls
+echo " === set ownership === "
 
-find . -name '*.dmg'
-
-sudo chown "$(whoami)" ./*.dmg
+sudo chown "$(whoami)" ./score.dmg
 
 # Notarize the .dmg
 echo " === notarize === "
@@ -85,7 +85,7 @@ if [[ "${CI_IS_AZURE}" = "1" ]]; then
 fi
 
 xcrun notarytool \
-  submit *.dmg \
+  submit score.dmg \
   --team-id "GRW9MHZ724" \
   --apple-id "jeanmichael.celerier@gmail.com" \
   --password "$MAC_ALTOOL_PASSWORD" \
@@ -93,11 +93,11 @@ xcrun notarytool \
   --wait
 
 # Staple
-xcrun stapler staple ./*.dmg
-xcrun stapler validate ./*.dmg
+xcrun stapler staple ./score.dmg
+xcrun stapler validate ./score.dmg
 
 [[ $? == 0 ]] || exit 1
 
 # Archive
-mv ./*.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS-$PACKAGE_ARCH.dmg"
+mv ./score.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS-$PACKAGE_ARCH.dmg"
 mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/mac-sdk-$PACKAGE_ARCH.zip"
