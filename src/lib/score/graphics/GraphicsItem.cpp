@@ -5,7 +5,9 @@
 #include <score/graphics/ItemBounder.hpp>
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Debug.hpp>
+#include <ossia/detail/hash_map.hpp>
 
+#include <QUrl>
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QGuiApplication>

@@ -11,6 +11,8 @@
 #include <QFileInfo>
 #include <QFileOpenEvent>
 #include <QGraphicsView>
+#include <QGraphicsItem>
+#include <QTimer>
 #include <QThread>
 
 #include <wobjectimpl.h>
