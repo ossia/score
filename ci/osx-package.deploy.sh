@@ -9,13 +9,21 @@ cd "$SRC_PATH/install/"
 
 # Codesign
 sign_app() {
+ local entitlements=${1}
+ local folder=${2}
+
+ find "$folder" -name '*.dylib' \
+   -exec \
+     codesign --force --timestamp --sign "ossia.io" {} \
+   \;
+
   codesign \
-      --entitlements "$1" \
+      --entitlements "$entitlements" \
       --force \
       --timestamp \
       --options=runtime \
       --sign "ossia.io" \
-      "$2"
+      "$folder"
 }
 
 echo " === code signing === "
@@ -30,7 +38,6 @@ else
     export PACKAGE_ARCH=AppleSilicon
   fi
 fi
-
 
 echo "... vstpuppet "
 sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vstpuppet.app"
