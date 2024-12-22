@@ -4,7 +4,7 @@ if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
 
-if(NOT TARGET ${QT_PREFIX}::WebSockets)
+if(NOT TARGET "${QT_PREFIX}::WebSockets")
   message("Remote control plug-in requires QtWebSockets.")
   return()
 endif()

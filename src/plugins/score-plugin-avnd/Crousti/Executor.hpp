@@ -27,6 +27,8 @@
 
 #include <QGuiApplication>
 
+#include <Flicks/flicks.h>
+
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GpuNode.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
@@ -58,13 +60,44 @@ class CustomNodeProcess : public ossia::node_process
   {
     node_process::start();
     auto& n = static_cast<safe_node<Node>&>(*node);
-    n.impl.effect.start();
+    if_possible(n.impl.effect.start());
   }
+  void pause() override
+  {
+    auto& n = static_cast<safe_node<Node>&>(*node);
+    if_possible(n.impl.effect.pause());
+    node_process::pause();
+  }
+
+  void resume() override
+  {
+    node_process::resume();
+    auto& n = static_cast<safe_node<Node>&>(*node);
+    if_possible(n.impl.effect.resume());
+  }
+
   void stop() override
   {
     auto& n = static_cast<safe_node<Node>&>(*node);
-    n.impl.effect.stop();
+    if_possible(n.impl.effect.stop());
     node_process::stop();
+  }
+
+  void offset_impl(ossia::time_value date) override
+  {
+    node_process::offset_impl(date);
+    auto& n = static_cast<safe_node<Node>&>(*node);
+    util::flicks f{date.impl};
+    if_possible(n.impl.effect.transport(f));
+  }
+
+  void transport_impl(ossia::time_value date) override
+  {
+    node_process::transport_impl(date);
+    auto& n = static_cast<safe_node<Node>&>(*node);
+
+    util::flicks f{date.impl};
+    if_possible(n.impl.effect.transport(f));
   }
 };
 

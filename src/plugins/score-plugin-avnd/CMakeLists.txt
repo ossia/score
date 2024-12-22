@@ -586,6 +586,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/MIDISync.hpp"
+    TARGET avnd_midi_sync
+    MAIN_CLASS MidiSync
+    NAMESPACE mtk
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Helpers/GradientScrubber.hpp"
   TARGET gradient_scrub
   MAIN_CLASS GradientScrub
