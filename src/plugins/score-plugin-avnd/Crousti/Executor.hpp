@@ -27,7 +27,7 @@
 
 #include <QGuiApplication>
 
-#include <Flicks/flicks.h>
+#include <flicks.h>
 
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GpuNode.hpp>
