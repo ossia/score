@@ -6,16 +6,21 @@
 
 #include <QApplication>
 #include <QDesktopServices>
+#include <QIcon>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QListWidget>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QPainter>
 #include <QPixmap>
 #include <QPointer>
+#include <QPushButton>
 #include <QSettings>
+#include <QStackedWidget>
 #include <QTextLayout>
+#include <QVBoxLayout>
 
 #include <score_git_info.hpp>
 
@@ -223,7 +228,6 @@ void InteractiveLabel::enterEvent(QEnterEvent* event)
     return;
 
   m_currentColor = m_activeColor;
-  m_font.setUnderline(true);
   m_currentPixmap = m_pixmapOn;
 
   repaint();
@@ -235,7 +239,6 @@ void InteractiveLabel::leaveEvent(QEvent* event)
     return;
 
   m_currentColor = m_inactiveColor;
-  m_font.setUnderline(false);
   m_currentPixmap = m_pixmap;
 
   repaint();
@@ -265,6 +268,7 @@ public:
   void exitApp() W_SIGNAL(exitApp)
 
   void addLoadCrashedSession();
+  void setupTabs();
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -293,53 +297,261 @@ struct StartScreenLink
 StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent)
     : QWidget(parent)
 {
-// Workaround until https://bugreports.qt.io/browse/QTBUG-103225 is fixed
 #if defined(__APPLE__)
   static constexpr double font_factor = 96. / 72.;
 #else
   static constexpr double font_factor = 1.;
 #endif
-  QFont f("Ubuntu", 14  * font_factor, QFont::Light);
-  f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-  f.setStyleStrategy(QFont::PreferAntialias);
 
-  QFont titleFont("Montserrat", 14  * font_factor, QFont::DemiBold);
-  titleFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-  titleFont.setStyleStrategy(QFont::PreferAntialias);
+  QFont navFont("Montserrat", 12 * font_factor, QFont::DemiBold);
+  QFont headerFont("Montserrat", 12 * font_factor);
+  QFont labelFont("Montserrat", 11 * font_factor, QFont::Normal);
+  labelFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+  labelFont.setStyleStrategy(QFont::PreferAntialias);
 
-  this->setEnabled(true);
-  setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint); //| Qt::WindowStaysOnTopHint);
-  setWindowModality(Qt::ApplicationModal);
+  // Header Widget
+  QWidget* headerWidget = new QWidget(this);
+  QHBoxLayout* headerLayout = new QHBoxLayout(headerWidget);
 
-  m_background = score::get_pixmap(":/startscreen/startscreensplash.png");
+  QLabel* logoLabel = new QLabel(headerWidget);
 
-  if(QPainter painter; painter.begin(&m_background))
+  QPixmap placeholderPixmap(300, 100); // TODO: Replace with actual logo when available
+  placeholderPixmap.fill(Qt::gray);
+  logoLabel->setPixmap(placeholderPixmap);
+  logoLabel->setFixedSize(placeholderPixmap.size());
+  headerLayout->addWidget(logoLabel, 0, Qt::AlignLeft);
+
+  //Donate label
+  InteractiveLabel* donateLabel = new InteractiveLabel(
+      navFont, tr("Donate"), "https://opencollective.com/ossia", this);
+  donateLabel->setOpenExternalLink(true);
+  donateLabel->setPixmaps(
+      score::get_pixmap(":/icons/new_file_off.png"),
+      score::get_pixmap(":/icons/new_file_on.png")); // TODO: Replace with  heart icon
+  headerLayout->addWidget(donateLabel);
+
+  // side nav list and stacked widget
+  QListWidget* navigationList = new QListWidget(this);
+  QStackedWidget* stackedWidget = new QStackedWidget(this);
+
+  navigationList->setFixedWidth(155);
+  navigationList->setSpacing(8);
+  navigationList->setFont(navFont);
+
+  navigationList->addItem(new QListWidgetItem(
+      QIcon(score::get_pixmap(":/icons/new_file_off.png")), tr("Home")));
+  navigationList->addItem(new QListWidgetItem(
+      QIcon(score::get_pixmap(":/icons/load_examples_off.png")), tr("Learn")));
+  navigationList->addItem(new QListWidgetItem(
+      QIcon(score::get_pixmap(":/icons/forum_off.png")), tr("Community")));
+
+  navigationList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  navigationList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+  navigationList->setStyleSheet(
+      "QListWidget { background-color: black;color: white; border: none;}"
+      "QListWidget::item { padding: 10px 10; margin: 8px 0; color: white;}"
+      "QListWidget::item:selected { background-color: #211f1f; color: white;"
+      "padding:00px; margin: 00px 0; }");
+
+  // Home View
+  QWidget* homeView = new QWidget;
+  QVBoxLayout* homeLayout = new QVBoxLayout(homeView);
+  homeView->setStyleSheet("background-color: #211f1f;");
+
+  // Left Col
+  QLabel* createNewLabel = new QLabel(tr("Create score"));
+  createNewLabel->setFont(headerFont);
+
+  QVBoxLayout* leftColumnLayout = new QVBoxLayout;
+  leftColumnLayout->addWidget(createNewLabel);
+
+  leftColumnLayout->addSpacing(10);
+
+  InteractiveLabel* newLabel
+      = new InteractiveLabel{labelFont, qApp->tr("Empty score"), "", this};
+  newLabel->setPixmaps(
+      score::get_pixmap(":/icons/new_file_off.png"),
+      score::get_pixmap(":/icons/new_file_on.png"));
+  newLabel->setTextOption(QTextOption(Qt::AlignLeft));
+  connect(
+      newLabel, &score::InteractiveLabel::labelPressed, this,
+      &StartScreen::openNewDocument);
+  leftColumnLayout->addWidget(newLabel);
+
+  for(const auto& action : recentFiles->actions())
   {
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setRenderHint(QPainter::TextAntialiasing, true);
-    painter.setPen(QPen(QColor("#0092CF")));
+    auto* fileLabel = new InteractiveLabel{
+        labelFont, action->text(), action->data().toString(), this};
+    fileLabel->setTextOption(QTextOption(Qt::AlignLeft));
+    fileLabel->setPixmaps(
+        score::get_pixmap(":/icons/new_file_off.png"),
+        score::get_pixmap(":/icons/new_file_off.png"));
+    fileLabel->setInactiveColor(QColor{"#f0f0f0"});
+    fileLabel->setActiveColor(QColor{"#03C3DD"});
+    connect(
+        fileLabel, &score::InteractiveLabel::labelPressed, this, &StartScreen::openFile);
+    leftColumnLayout->addWidget(fileLabel);
+  }
+  leftColumnLayout->addStretch();
 
-    painter.setFont(f);
-    //painter.drawText(QPointF(250, 170), QCoreApplication::applicationVersion());
-    painter.drawText(QPointF(217, 188), QCoreApplication::applicationVersion());
-    painter.end();
+  // Right Column - Load Score
+  QLabel* loadScoreLabel = new QLabel(tr("Load a score"));
+  loadScoreLabel->setFont(headerFont);
+
+  QVBoxLayout* rightColumnLayout = new QVBoxLayout;
+  rightColumnLayout->addWidget(loadScoreLabel);
+  rightColumnLayout->addSpacing(10);
+
+  for(const auto& action : recentFiles->actions())
+  {
+    auto* fileLabel = new InteractiveLabel{
+        labelFont, action->text(), action->data().toString(), this};
+    fileLabel->setTextOption(QTextOption(Qt::AlignLeft));
+    fileLabel->setInactiveColor(QColor{"#f0f0f0"});
+    fileLabel->setActiveColor(QColor{"#03C3DD"});
+    connect(
+        fileLabel, &score::InteractiveLabel::labelPressed, this, &StartScreen::openFile);
+
+    rightColumnLayout->addWidget(fileLabel);
+  }
+  rightColumnLayout->addStretch();
+
+  InteractiveLabel* openScoreLabel
+      = new InteractiveLabel(labelFont, tr("Open.."), "", this);
+  openScoreLabel->setPixmaps(
+      score::get_pixmap(":/icons/load_off.png"),
+      score::get_pixmap(":/icons/load_on.png"));
+  openScoreLabel->setTextOption(QTextOption(Qt::AlignLeft));
+  connect(
+      openScoreLabel, &score::InteractiveLabel::labelPressed, this,
+      &StartScreen::openFileDialog);
+
+  rightColumnLayout->addWidget(openScoreLabel);
+
+  m_crashLabel
+      = new InteractiveLabel{labelFont, qApp->tr("Restore last session"), "", this};
+  m_crashLabel->setTextOption(QTextOption(Qt::AlignLeft));
+  m_crashLabel->setPixmaps(
+      score::get_pixmap(":/icons/reload_crash_off.png"),
+      score::get_pixmap(":/icons/reload_crash_on.png"));
+  m_crashLabel->setFixedWidth(250);
+  m_crashLabel->setInactiveColor(QColor{"#f0f0f0"});
+  m_crashLabel->setActiveColor(QColor{"#f6a019"});
+  m_crashLabel->setDisabled(true);
+  m_crashLabel->hide();
+  connect(
+      m_crashLabel, &score::InteractiveLabel::labelPressed, this,
+      &score::StartScreen::loadCrashedSession);
+
+  rightColumnLayout->addWidget(m_crashLabel);
+
+  QHBoxLayout* mainRowLayout = new QHBoxLayout;
+  mainRowLayout->addLayout(leftColumnLayout);
+  mainRowLayout->addLayout(rightColumnLayout);
+
+  homeLayout->addLayout(mainRowLayout);
+  homeView->setLayout(homeLayout);
+  stackedWidget->addWidget(homeView);
+
+  // Learn View
+  QWidget* learnView = new QWidget;
+  QVBoxLayout* learnLayout = new QVBoxLayout(learnView);
+  learnView->setStyleSheet("background-color: #211f1f;");
+
+  QLabel* learnLabel = new QLabel(tr("Browse examples"));
+  learnLabel->setFont(headerFont);
+  learnLayout->addWidget(learnLabel);
+  learnLayout->addSpacing(10);
+
+  // Add "Tutorials" link to the Learn section
+  InteractiveLabel* tutorialsLabel = new InteractiveLabel(
+      navFont, tr("Tutorials"), "https://www.youtube.com/...", learnView);
+  tutorialsLabel->setOpenExternalLink(true);
+  tutorialsLabel->setPixmaps(
+      score::get_pixmap(":/icons/tutorials_off.png"),
+      score::get_pixmap(":/icons/tutorials_on.png"));
+  tutorialsLabel->setStyleSheet(
+      "QLabel { padding: 8px; background-color: #161514; color: white; }"
+      "QLabel:hover { color: #f6a019; }");
+  learnLayout->addWidget(tutorialsLabel);
+
+  learnLayout->addStretch();
+  learnView->setLayout(learnLayout);
+  stackedWidget->addWidget(learnView);
+
+  // Community View
+  QWidget* communityView = new QWidget;
+  QVBoxLayout* communityLayout = new QVBoxLayout(communityView);
+  communityView->setStyleSheet("background-color: #211f1f;");
+
+  QLabel* communityLabel = new QLabel(tr("Get involved"));
+  communityLabel->setFont(headerFont);
+
+  communityLayout->addWidget(communityLabel);
+  communityLayout->addSpacing(10);
+
+  std::array<score::StartScreenLink, 3> communityMenus
+      = {{{tr("ossia Forum"), "http://forum.ossia.io/", ":/icons/forum_off.png",
+           ":/icons/forum_on.png"},
+          {tr("Contribute"), "https://opencollective.com/ossia/contribute",
+           ":/icons/contribute_off.png", ":/icons/contribute_on.png"},
+          {tr("Discord chat"), "https://discord.gg/ossia",
+           ":/icons/chat_off.png", // TODO : replace by Discord icon
+           ":/icons/chat_on.png"}}};
+
+  for(const auto& m : communityMenus)
+  {
+    InteractiveLabel* menuLabel
+        = new InteractiveLabel(navFont, m.name, m.url, communityView);
+    menuLabel->setOpenExternalLink(true);
+    menuLabel->setPixmaps(score::get_pixmap(m.pixmap), score::get_pixmap(m.pixmapOn));
+
+    menuLabel->setStyleSheet(
+        "QLabel {padding: 8px; background-color: #161514; color: white;}"
+        "QLabel:hover {color: #f6a019;}");
+
+    communityLayout->addWidget(menuLabel);
   }
 
-  // Weird code here is because the window size seems to scale only to integer ratios.
-  setFixedSize(m_background.size() / std::floor(qApp->devicePixelRatio()));
+  communityLayout->addStretch();
+  communityView->setLayout(communityLayout);
+  stackedWidget->addWidget(communityView);
 
+  // Connect navigation list to stacked widget
+  connect(
+      navigationList, &QListWidget::currentRowChanged, stackedWidget,
+      &QStackedWidget::setCurrentIndex);
+  navigationList->setCurrentRow(0);
+
+  QHBoxLayout* contentLayout = new QHBoxLayout;
+  contentLayout->addWidget(navigationList);
+  contentLayout->addWidget(stackedWidget);
+
+  QVBoxLayout* mainLayout = new QVBoxLayout(this);
+  mainLayout->addWidget(headerWidget);
+  mainLayout->addLayout(contentLayout);
+  setLayout(mainLayout);
+
+  mainLayout->addStretch();
+
+  this->setEnabled(true);
+  setWindowModality(Qt::ApplicationModal);
+
+  setFixedSize(600, 400);
   {
+    // TODO : make this work
     // new version
     auto m_getLastVersion = new HTTPGet{
         QUrl("https://ossia.io/score-last-version.txt"),
-        [this, titleFont](const QByteArray& data) {
+        [this, navFont](const QByteArray& data) {
       auto version = QString::fromUtf8(data.simplified());
       if(SCORE_TAG_NO_V < version)
       {
         QString text
             = qApp->tr("New version %1 is available, click to update !").arg(version);
         QString url = "https://github.com/ossia/score/releases/latest/";
-        InteractiveLabel* label = new InteractiveLabel{titleFont, text, url, this};
+        InteractiveLabel* label = new InteractiveLabel{navFont, text, url, this};
         label->setPixmaps(
             score::get_pixmap(":/icons/version_on.png"),
             score::get_pixmap(":/icons/version_off.png"));
@@ -350,132 +562,8 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
         label->move(280, 170);
         label->show();
       }
-    }, [] {}};
-  }
-
-  float label_x = 300;
-  float label_y = 215;
-
-  { // recent files
-    auto label = new InteractiveLabel{titleFont, qApp->tr("Recent files"), "", this};
-    label->setTextOption(QTextOption(Qt::AlignRight));
-    label->setPixmaps(
-        score::get_pixmap(":/icons/recent_files.png"),
-        score::get_pixmap(":/icons/recent_files.png"));
-    label->setInactiveColor(QColor{"#f0f0f0"});
-    label->setActiveColor(QColor{"#03C3DD"});
-    label->disableInteractivity();
-    label->move(label_x, label_y);
-    label_y += 35;
-  }
-  f.setPointSize(12);
-
-  // label_x += 40;
-  for(const auto& action : recentFiles->actions())
-  {
-    auto fileLabel
-        = new InteractiveLabel{f, action->text(), action->data().toString(), this};
-    fileLabel->setTextOption(QTextOption(Qt::AlignRight));
-    connect(
-        fileLabel, &score::InteractiveLabel::labelPressed, this,
-        &score::StartScreen::openFile);
-
-    auto textHeight = std::max(25, (int)fileLabel->textBoundingBox(200).height() + 7);
-    fileLabel->setFixedSize(200, textHeight);
-    fileLabel->move(label_x, label_y);
-    label_y += textHeight + 1;
-  }
-  // label_x = 160;
-  label_y += 10;
-
-  m_crashLabel
-      = new InteractiveLabel{titleFont, qApp->tr("Restore last session"), "", this};
-  m_crashLabel->setTextOption(QTextOption(Qt::AlignRight));
-  m_crashLabel->setPixmaps(
-      score::get_pixmap(":/icons/reload_crash_off.png"),
-      score::get_pixmap(":/icons/reload_crash_on.png"));
-  m_crashLabel->move(label_x - 100, label_y);
-  m_crashLabel->setFixedWidth(300);
-  m_crashLabel->setInactiveColor(QColor{"#f0f0f0"});
-  m_crashLabel->setActiveColor(QColor{"#f6a019"});
-  m_crashLabel->setDisabled(true);
-  m_crashLabel->hide();
-  connect(
-      m_crashLabel, &score::InteractiveLabel::labelPressed, this,
-      &score::StartScreen::loadCrashedSession);
-
-  label_x = 510;
-  label_y = 215;
-  { // Create new
-    InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("New"), "", this};
-    label->setPixmaps(
-        score::get_pixmap(":/icons/new_file_off.png"),
-        score::get_pixmap(":/icons/new_file_on.png"));
-    connect(
-        label, &score::InteractiveLabel::labelPressed, this,
-        &score::StartScreen::openNewDocument);
-    label->move(label_x, label_y);
-    label_y += 35;
-  }
-  { // Load file
-    InteractiveLabel* label
-        = new InteractiveLabel{titleFont, qApp->tr("Load"), "", this};
-    label->setPixmaps(
-        score::get_pixmap(":/icons/load_off.png"),
-        score::get_pixmap(":/icons/load_on.png"));
-    connect(
-        label, &score::InteractiveLabel::labelPressed, this,
-        &score::StartScreen::openFileDialog);
-    label->move(label_x, label_y);
-    label_y += 35;
-  }
-  { // Load Examples
-    QSettings settings;
-    auto library_path = settings.value("Library/RootPath").toString();
-    InteractiveLabel* label = new InteractiveLabel{
-        titleFont, qApp->tr("Examples"), "https://github.com/ossia/score-examples", this};
-    label->setPixmaps(
-        score::get_pixmap(":/icons/load_examples_off.png"),
-        score::get_pixmap(":/icons/load_examples_on.png"));
-    label->setOpenExternalLink(true);
-    label->move(label_x, label_y);
-    label_y += 35;
-  }
-
-  label_y += 20;
-
-  std::array<score::StartScreenLink, 4> menus
-      = {{{qApp->tr("Tutorials"),
-           "https://www.youtube.com/"
-           "watch?v=R-3d8K6gQkw&list=PLIHLSiZpIa6YoY1_aW1yetDgZ7tZcxfEC&index=1",
-           ":/icons/tutorials_off.png", ":/icons/tutorials_on.png"},
-          {qApp->tr("Contribute"), "https://opencollective.com/ossia/contribute",
-           ":/icons/contribute_off.png", ":/icons/contribute_on.png"},
-          {qApp->tr("Forum"), "http://forum.ossia.io/", ":/icons/forum_off.png",
-           ":/icons/forum_on.png"},
-          {qApp->tr("Chat"), "https://gitter.im/ossia/score", ":/icons/chat_off.png",
-           ":/icons/chat_on.png"}}};
-  for(const auto& m : menus)
-  {
-    InteractiveLabel* menu_url = new InteractiveLabel{titleFont, m.name, m.url, this};
-    menu_url->setOpenExternalLink(true);
-    menu_url->setPixmaps(score::get_pixmap(m.pixmap), score::get_pixmap(m.pixmapOn));
-    menu_url->move(label_x, label_y);
-    label_y += 35;
-  }
-
-  label_y += 10;
-
-  { // Exit App
-    InteractiveLabel* label
-        = new InteractiveLabel{titleFont, qApp->tr("Exit"), "", this};
-    label->setPixmaps(
-        score::get_pixmap(":/icons/exit_off.png"),
-        score::get_pixmap(":/icons/exit_on.png"));
-    connect(
-        label, &score::InteractiveLabel::labelPressed, this,
-        &score::StartScreen::exitApp);
-    label->move(label_x, label_y);
+    },
+        [] {}};
   }
 }
 
@@ -489,7 +577,7 @@ void StartScreen::addLoadCrashedSession()
 void StartScreen::paintEvent(QPaintEvent* event)
 {
   QPainter painter(this);
-  painter.drawPixmap(0, 0, m_background);
+  painter.fillRect(rect(), Qt::black);
 }
 
 void StartScreen::keyPressEvent(QKeyEvent* event)
