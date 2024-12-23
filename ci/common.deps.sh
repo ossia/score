@@ -3,57 +3,40 @@
 (
 cd src/addons
 
-if [[ ! -d iscore-addon-network ]]; then
-  git clone --recursive -j16 https://github.com/ossia/iscore-addon-network
-fi
+clone_addon() {
+  local url=${1}
+  local folder=$(echo "${url}" | awk -F'/' '{print $NF}')
 
-if [[ ! -d score-addon-synthimi ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-synthimi
-fi
+  (
+  if [[ ! -d "$folder" ]]; then
+    git clone --recursive -j16 "$url"
+  else
+    # Try to update the submodule if it's really super clean
+    cd "$folder"
+    git update-index --really-refresh
+    if output=$(git status --porcelain  --untracked-files=no) && [ -z "$output" ]; then
+      if output=$(git diff-index --quiet HEAD) && [ -z "$output" ]; then
+        git pull || true
+      fi
+    fi
+  fi
+  )
+}
 
-if [[ ! -d score-addon-threedim ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-threedim
-fi
-
-if [[ ! -d score-addon-jk ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-jk
-fi
-
-if [[ ! -d score-addon-ndi ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-ndi
-fi
-
-if [[ ! -d score-avnd-granola ]]; then
-  git clone --recursive -j16 https://github.com/bltzr/score-avnd-granola
-fi
-
-if [[ ! -d score-addon-ultraleap ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-ultraleap
-fi
-
-if [[ ! -d score-addon-contextfree ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-contextfree
-fi
-
-if [[ ! -d score-addon-ble ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-ble
-fi
-
-if [[ ! -d score-addon-led ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-led
-fi
-
-if [[ ! -d score-addon-spatgris ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-spatgris
-fi
-
-if [[ ! -d score-addon-hdf5 ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-hdf5
-fi
-
-if [[ ! -d score-addon-puara ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-puara
-fi
+clone_addon https://github.com/ossia/iscore-addon-network
+clone_addon https://github.com/ossia/score-addon-synthimi
+clone_addon https://github.com/ossia/score-addon-threedim
+clone_addon https://github.com/ossia/score-addon-jk
+clone_addon https://github.com/ossia/score-addon-ndi
+clone_addon https://github.com/bltzr/score-avnd-granola
+clone_addon https://github.com/ossia/score-addon-ultraleap
+clone_addon https://github.com/ossia/score-addon-contextfree
+clone_addon https://github.com/ossia/score-addon-ble
+clone_addon https://github.com/ossia/score-addon-led
+clone_addon https://github.com/ossia/score-addon-spatgris
+clone_addon https://github.com/ossia/score-addon-hdf5
+clone_addon https://github.com/ossia/score-addon-puara
+clone_addon https://github.com/ossia/score-addon-ltc
 
 )
 
