@@ -165,7 +165,9 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     const auto& mesh = renderer.defaultTriangle();
     this->defaultMeshInit(renderer, mesh, res);
     this->processUBOInit(renderer);
-    this->m_material.init(renderer, this->node.input, this->m_samplers);
+    // Not needed here as we do not have a GPU pass:
+    // this->m_material.init(renderer, this->node.input, this->m_samplers);
+
     std::tie(this->m_vertexS, this->m_fragmentS)
         = score::gfx::makeShaders(renderer.state, generic_texgen_vs, generic_texgen_fs);
 
