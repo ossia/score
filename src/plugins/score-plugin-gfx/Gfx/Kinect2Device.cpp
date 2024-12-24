@@ -48,21 +48,24 @@ struct kinect2_camera
   ::Video::FrameQueue rgbFrames;
   ::Video::FrameQueue irFrames;
   ::Video::FrameQueue depthFrames;
+  ossia::net::parameter_base* pcl{};
 
   void processColor(libfreenect2::Frame* frame);
   void processDepth(libfreenect2::Frame* frame);
   void processIR(libfreenect2::Frame* frame);
+  bool process(libfreenect2::Frame::Type, libfreenect2::Frame*);
+  void processRegistration();
 
 private:
   void loop();
-  void process(
-      libfreenect2::Frame* colorFrame, libfreenect2::Frame* irFrame,
-      libfreenect2::Frame* depthFrame);
 
   libfreenect2::Freenect2Device* m_dev{};
   libfreenect2::PacketPipeline* m_pipeline{};
   libfreenect2::FrameListener* m_listener{};
   libfreenect2::FrameMap m_frames;
+  libfreenect2::Registration* m_reg{};
+  libfreenect2::Frame* m_lastRGB{};
+  libfreenect2::Frame* m_lastD{};
   //std::thread m_thread;
   std::atomic_bool m_running{};
   int types{};
@@ -152,22 +155,10 @@ public:
       : self{self}
   {
   }
+
   bool onNewFrame(libfreenect2::Frame::Type type, libfreenect2::Frame* frame) override
   {
-    switch(type)
-    {
-      case libfreenect2::Frame::Type::Color:
-        self.processColor(frame);
-        break;
-      case libfreenect2::Frame::Type::Depth:
-        self.processDepth(frame);
-        break;
-      case libfreenect2::Frame::Type::Ir:
-        self.processIR(frame);
-        break;
-    }
-
-    return false;
+    return self.process(type, frame);
   }
 };
 
@@ -210,6 +201,52 @@ void kinect2_camera::load(kinect2_settings set)
     qDebug("Could not create Kinect device");
     return;
   }
+
+
+  // https://github.com/hanseuljun/kinect-to-hololens/blob/b1f012b07519c842f9ad2e97cb7b9583c9b0ff3e/cpp/examples/kinect_sender_demo.cpp
+  // Necessary for registration to work - factory params mentioned in freenect2 docs are nowhere to be found
+  libfreenect2::Freenect2Device::ColorCameraParams color_params;
+  color_params.fx = 1081.37f;
+  color_params.fy = 1081.37f;
+  color_params.cx = 959.5f;
+  color_params.cy = 539.5f;
+  color_params.shift_d = 863.0f;
+  color_params.shift_m = 52.0f;
+  color_params.mx_x3y0 = 0.000433573f;
+  color_params.mx_x0y3 = 3.11985e-06f;
+  color_params.mx_x2y1 = 4.89289e-05f;
+  color_params.mx_x1y2 = 0.000329721f;
+  color_params.mx_x2y0 = 0.000753273f;
+  color_params.mx_x0y2 = 3.57279e-05f;
+  color_params.mx_x1y1 = -0.000761282f;
+  color_params.mx_x1y0 = 0.633183f;
+  color_params.mx_x0y1 = 0.00562461f;
+  color_params.mx_x0y0 = 0.17028f;
+  color_params.my_x3y0 = 3.31803e-06f;
+  color_params.my_x0y3 = 0.000587018f;
+  color_params.my_x2y1 = 0.000425902f;
+  color_params.my_x1y2 = 1.76095e-05f;
+  color_params.my_x2y0 = -0.0002469f;
+  color_params.my_x0y2 = -0.000945311f;
+  color_params.my_x1y1 = 0.000648708f;
+  color_params.my_x1y0 = -0.00578545f;
+  color_params.my_x0y1 = 0.632964f;
+  color_params.my_x0y0 = -0.000370404f;
+
+  libfreenect2::Freenect2Device::IrCameraParams ir_params;
+  ir_params.fx = 368.147f;
+  ir_params.fy = 368.147f;
+  ir_params.cx = 264.317f;
+  ir_params.cy = 208.964f;
+  ir_params.k1 = 0.0807732f;
+  ir_params.k2 = -0.27181f;
+  ir_params.k3 = 0.103199f;
+  ir_params.p1 = 0.0f;
+  ir_params.p2 = 0.0f;
+
+  m_dev->setIrCameraParams(ir_params);
+  m_dev->setColorCameraParams(color_params);
+
   types = 0;
   if(set.rgb)
     types |= libfreenect2::Frame::Color;
@@ -218,25 +255,30 @@ void kinect2_camera::load(kinect2_settings set)
   if(set.depth)
     types |= libfreenect2::Frame::Depth;
 
+  if(set.rgb && set.depth)
+  {
+    m_reg = new libfreenect2::Registration{m_dev->getIrCameraParams(), m_dev->getColorCameraParams()};
+  }
+
   m_listener = new Listener(*this, types);
 
   m_dev->setColorFrameListener(m_listener);
   m_dev->setIrAndDepthFrameListener(m_listener);
+
 }
 
 kinect2_camera::~kinect2_camera()
 {
   if(m_dev)
   {
-    qDebug() << "Close:";
     m_dev->close();
   }
 
-  qDebug() << "A:";
+  delete m_lastD;
+  delete m_lastRGB;
   delete m_listener;
-  qDebug() << "B:";
   delete m_dev;
-  qDebug() << "D:";
+  delete m_reg;
   //delete registration;
 }
 
@@ -272,6 +314,77 @@ void kinect2_camera::stop()
   }
 }
 
+bool kinect2_camera::process(libfreenect2::Frame::Type type, libfreenect2::Frame* frame)
+{
+  switch(type)
+  {
+    case libfreenect2::Frame::Type::Color:
+      processColor(frame);
+
+      if(m_lastRGB)
+        delete m_lastRGB;
+      m_lastRGB = frame;
+
+      processRegistration();
+      return true;
+
+    case libfreenect2::Frame::Type::Depth:
+      processDepth(frame);
+
+      if(m_lastD)
+        delete m_lastD;
+      m_lastD = frame;
+
+      processRegistration();
+      return true;
+
+    case libfreenect2::Frame::Type::Ir:
+      processIR(frame);
+      return false;
+  }
+  return false;
+}
+
+void kinect2_camera::processRegistration()
+{
+  if(m_lastD && m_lastRGB)
+  {
+    static auto ud_buffer = new (std::align_val_t(32)) unsigned char[512*424*4];
+    static auto reg_buffer = new (std::align_val_t(32)) unsigned char[512*424*4];
+    libfreenect2::Frame ud(512, 424, 4, ud_buffer);
+    libfreenect2::Frame reg(512, 424, 4, reg_buffer);
+    m_reg->apply(m_lastRGB, m_lastD, &ud, &reg, true);
+
+    // FIXME instead of this, use a proper geometry port
+
+    std::vector<ossia::value> points;
+    points.reserve(424 * 512 * 6);
+    for(int r = 0; r < 424; ++r)
+    {
+      for(int c = 0; c < 512; ++c)
+      {
+        float rx, ry, rz, rgb;
+        m_reg->getPointXYZRGB(&ud,  &reg, r, c, rx, ry, rz, rgb);
+
+        if(!ossia::safe_isnan(rx)) {
+          points.push_back(rx);
+          points.push_back(ry);
+          points.push_back(rz);
+
+          const uint8_t *p = reinterpret_cast<uint8_t*>(&rgb);
+          uint8_t b = p[0];
+          uint8_t g = p[1];
+          uint8_t r = p[2];
+          points.push_back(r / 255.f);
+          points.push_back(g / 255.f);
+          points.push_back(b / 255.f);
+        }
+      }
+    }
+
+    pcl->push_value(std::move(points));
+  }
+}
 void kinect2_camera::processColor(libfreenect2::Frame* colorFrame)
 {
   if(rgbFrames.size() < 16)
@@ -429,7 +542,7 @@ kinect2_device::kinect2_device(
   {
     auto decoder = std::shared_ptr<kinect2_decoder>(new kinect2_decoder{
         k.irFrames, 512, 424, AV_PIX_FMT_GRAYF32LE,
-        "processed.rgb = tex.rrr / 4000; processed.a = 1;"});
+        "float v = sqrt(tex.r / 4500.); processed.rgb = vec3(v,v,v); processed.a = 1;"});
     this->add_child(
         std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "ir"));
   }
@@ -437,9 +550,16 @@ kinect2_device::kinect2_device(
   {
     auto decoder = std::shared_ptr<kinect2_decoder>(new kinect2_decoder{
         k.depthFrames, 512, 424, AV_PIX_FMT_GRAYF32LE,
-        "processed.rgb = tex.rrr / 4000; processed.a = 1;"});
+        "float v = (tex.r / 4500.); processed.rgb = vec3(v,v,v); processed.a = 1;"});
     this->add_child(
         std::make_unique<kinect2_node>(std::move(decoder), ctx, *this, "depth"));
+  }
+  if(settings.rgb  && settings.depth)
+  {
+    // FIXME pcl
+    auto points = std::make_unique<ossia::net::generic_node>("points", *this, this->get_root_node());
+    k.pcl = points->create_parameter(ossia::val_type::LIST);
+    this->add_child(std::move(points));
   }
 }
 
