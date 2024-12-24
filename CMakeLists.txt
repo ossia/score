@@ -221,6 +221,18 @@ if(EMSCRIPTEN)
 endif()
 
 enable_testing()
+
+set(SCORE_LIBRARIES_LIST CACHE INTERNAL "List of libraries")
+set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
+set(SCORE_FEATURES_LIST CACHE INTERNAL "List of features")
+
+unset(SCORE_BUNDLEUTILITIES_DIRS_LIST CACHE)
+unset(SCORE_BUNDLEUTILITIES_LIB_LIST CACHE)
+unset(SCORE_BUNDLEUTILITIES_PLUGIN_LIST CACHE)
+set(SCORE_BUNDLEUTILITIES_DIRS_LIST CACHE INTERNAL "List of .dylibs paths to add to macOS bundle")
+set(SCORE_BUNDLEUTILITIES_LIB_LIST CACHE INTERNAL "List of .dylibs to add to macOS bundle")
+set(SCORE_BUNDLEUTILITIES_PLUGIN_LIST CACHE INTERNAL "List of plugins to add to macOS bundle")
+
 include(ScoreFunctions)
 include(ScoreAvndHelper)
 include(ScoreConfiguration)
@@ -240,9 +252,6 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/avendish/include/")
 
-set(SCORE_LIBRARIES_LIST CACHE INTERNAL "List of libraries")
-set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
-set(SCORE_FEATURES_LIST CACHE INTERNAL "List of features")
 
 add_subdirectory(src)
 
