@@ -13,6 +13,8 @@
 namespace Gfx::Video
 {
 using video_decoder = ::Video::VideoDecoder;
+std::shared_ptr<video_decoder> makeDecoder(const std::string&) noexcept;
+
 class Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
@@ -32,8 +34,6 @@ public:
   }
 
   ~Model() override;
-
-  std::shared_ptr<video_decoder> makeDecoder() const noexcept;
 
   QString absolutePath() const noexcept;
   QString path() const noexcept { return m_path; }
