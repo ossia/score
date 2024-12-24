@@ -38,8 +38,32 @@ public:
       exec_context->ui->unregister_node(id);
   }
 
+  void run(const ossia::token_request& tk, ossia::exec_state_facade e) noexcept override
+  {
+    // Consume the new value for the path input port if any
+    auto& vp = this->m_inlets[0]->target<ossia::value_port>()->get_data();
+    if(!vp.empty())
+    {
+      auto& last = *vp.back().value.target<std::string>();
+      if(last != m_currentPath)
+      {
+        m_currentPath = last;
+
+        auto dec = Gfx::Video::makeDecoder(last);
+        if(dec)
+        {
+          reload(dec, m_currentTempo);
+        }
+        vp.clear();
+      }
+    }
+
+    gfx_exec_node::run(tk, e);
+  }
+
   void reload(const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo)
   {
+    m_currentTempo = tempo;
     impl = nullptr;
 
     if(id >= 0)
@@ -70,8 +94,9 @@ public:
 
   score::gfx::VideoNode* impl{};
 
-private:
+  std::string m_currentPath;
   std::shared_ptr<video_decoder> m_decoder;
+  std::optional<double> m_currentTempo;
 };
 
 class video_process final : public ossia::node_process
@@ -124,7 +149,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     Gfx::Video::Model& element, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{element, ctx, "VideoExecutorComponent", parent}
 {
-  auto dec = element.makeDecoder();
+  auto dec = makeDecoder(element.absolutePath().toStdString());
   if(!dec)
     dec = std::make_shared<Video::video_decoder>(::Video::DecoderConfiguration{});
 
@@ -133,6 +158,20 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     tempo = element.nativeTempo();
   auto n = ossia::make_node<video_node>(
       *ctx.execState, std::move(dec), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
+
+  auto port = n->add_value_port();
+  /*
+  for(std::size_t i = 0; i < 1; i++)
+  {
+    auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
+    SCORE_ASSERT(ctrl);
+    auto& p = n->add_control();
+    p->value = ctrl->value();
+
+    QObject::connect(
+        ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, 0, n});
+  }
+*/
 
   for(auto* outlet : element.outlets())
   {
@@ -154,13 +193,14 @@ ProcessExecutorComponent::ProcessExecutorComponent(
           vn->impl->setScaleMode(m);
         }
       });
-
+  /*
   con(element, &Gfx::Video::Model::pathChanged, this, [this](const QString& new_path) {
     std::optional<double> tempo;
     if(!this->process().ignoreTempo())
       tempo = this->process().nativeTempo();
 
-    in_exec([node = std::weak_ptr{node}, dec = this->process().makeDecoder(),
+    in_exec([node = std::weak_ptr{node},
+             dec = Gfx::Video::makeDecoder(this->process().absolutePath().toStdString()),
              tempo]() mutable {
       if(auto vn = static_cast<video_node*>(node.lock().get()); vn && vn->impl)
       {
@@ -168,6 +208,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
       }
     });
   });
+*/
 }
 
 void ProcessExecutorComponent::cleanup()
