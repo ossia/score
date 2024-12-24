@@ -352,6 +352,8 @@ static void setup_opengl(bool& enable_opengl_ui)
   {
     return;
   }
+  if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
+    return;
 
 #ifndef QT_NO_OPENGL
 #if defined(__arm__)
