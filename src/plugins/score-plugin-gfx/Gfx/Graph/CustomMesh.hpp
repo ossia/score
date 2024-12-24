@@ -24,6 +24,7 @@ public:
   explicit CustomMesh(
       const ossia::mesh_list& g, const ossia::geometry_filter_list_ptr& f)
   {
+    qDebug(Q_FUNC_INFO);
     reload(g, f);
   }
 
@@ -34,6 +35,7 @@ public:
     if(geom.meshes[0].buffers.empty())
       return {};
 
+    qDebug(Q_FUNC_INFO);
     const auto vtx_buf_size = geom.meshes[0].buffers[0].size;
     auto mesh_buf
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer, vtx_buf_size);
@@ -63,6 +65,7 @@ public:
     if(geom.meshes[0].buffers.empty())
       return;
 
+    qDebug(Q_FUNC_INFO);
     void* idx_buf_data = nullptr;
     const auto vtx_buf = geom.meshes[0].buffers[0];
     if(auto sz = vtx_buf.size; sz != meshbuf.mesh->size())
