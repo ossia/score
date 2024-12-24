@@ -103,7 +103,7 @@ if(QT_STATIC)
         fixup_bundle(
           \"\${SCORE_ABSOLUTE_PATH}\"
           \"\"
-          \"\${SCORE_ABSOLUTE_PATH}/Frameworks\")
+          \"\${SCORE_ABSOLUTE_PATH}/Frameworks;${SCORE_BUNDLEUTILITIES_DIRS_LIST}\")
 
         " COMPONENT OssiaScore)
 
@@ -117,7 +117,7 @@ elseif(SCORE_STATIC_PLUGINS)
         fixup_bundle(
           \"\${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}\"
           \"\${QTPLUGINS};\${QMLPLUGINS}\"
-          \"${QT_LIBRARY_DIR}\")
+          \"${QT_LIBRARY_DIR};${SCORE_BUNDLEUTILITIES_DIRS_LIST}\")
 
       execute_process(COMMAND
                 \"${SCORE_ROOT_SOURCE_DIR}/cmake/Deployment/OSX/set_rpath_static.sh\"
@@ -140,7 +140,7 @@ else()
         fixup_bundle(
            \"${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}\"
            \"\${QTPLUGINS};\${QMLPLUGINS};${SCORE_BUNDLE_INSTALLED_PLUGINS}\"
-       \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/3rdparty/libossia/src;${CMAKE_BINARY_DIR}/src/lib;${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins/\"
+       \"${QT_LIBRARY_DIR};${SCORE_BUNDLEUTILITIES_DIRS_LIST};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/3rdparty/libossia/src;${CMAKE_BINARY_DIR}/src/lib;${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents/MacOS/plugins/\"
         )
 message(\"${SCORE_ROOT_SOURCE_DIR}/cmake/Deployment/OSX/set_rpath.sh\"
           \"${CMAKE_INSTALL_PREFIX}/${BUNDLENAME}/Contents\")
