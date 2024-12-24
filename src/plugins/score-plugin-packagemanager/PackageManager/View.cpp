@@ -219,6 +219,8 @@ void PluginSettingsView::firstTimeLibraryDownload()
 
 void PluginSettingsView::refresh()
 {
+  if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
+    return;
   QNetworkRequest rqst{
       QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/addons.json")};
   mgr.get(rqst);
