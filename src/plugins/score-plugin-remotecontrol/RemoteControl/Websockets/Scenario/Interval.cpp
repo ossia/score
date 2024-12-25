@@ -12,7 +12,7 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <RemoteControl/Scenario/Process.hpp>
+#include <RemoteControl/Websockets/Scenario/Process.hpp>
 
 namespace RemoteControl
 {

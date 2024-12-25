@@ -3,10 +3,10 @@
 
 #include <QMetaObject>
 
-#include <RemoteControl/Scenario/Event.hpp>
-#include <RemoteControl/Scenario/Interval.hpp>
-#include <RemoteControl/Scenario/State.hpp>
-#include <RemoteControl/Scenario/Sync.hpp>
+#include <RemoteControl/Websockets/Scenario/Event.hpp>
+#include <RemoteControl/Websockets/Scenario/Interval.hpp>
+#include <RemoteControl/Websockets/Scenario/State.hpp>
+#include <RemoteControl/Websockets/Scenario/Sync.hpp>
 
 namespace RemoteControl
 {

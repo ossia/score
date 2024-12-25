@@ -3,8 +3,8 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <RemoteControl/ApplicationPlugin.hpp>
-#include <RemoteControl/Scenario/Scenario.hpp>
 #include <RemoteControl/Settings/Factory.hpp>
+#include <RemoteControl/Websockets/Scenario/Scenario.hpp>
 
 #include <score_plugin_deviceexplorer.hpp>
 #include <score_plugin_scenario.hpp>

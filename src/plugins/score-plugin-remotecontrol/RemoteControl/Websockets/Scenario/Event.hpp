@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/Event/EventModel.hpp>
 
-#include <RemoteControl/DocumentPlugin.hpp>
+#include <RemoteControl/Websockets/DocumentPlugin.hpp>
 
 namespace RemoteControl
 {

@@ -3,8 +3,8 @@
 
 #include <score/model/ComponentHierarchy.hpp>
 
-#include <RemoteControl/DocumentPlugin.hpp>
-#include <RemoteControl/Scenario/Process.hpp>
+#include <RemoteControl/Websockets/DocumentPlugin.hpp>
+#include <RemoteControl/Websockets/Scenario/Process.hpp>
 
 namespace RemoteControl
 {

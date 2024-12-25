@@ -18,18 +18,20 @@ score_common_setup()
 
 # Source files
 set(HDRS
-  "RemoteControl/Scenario/Event.hpp"
-  "RemoteControl/Scenario/State.hpp"
-  "RemoteControl/Scenario/Sync.hpp"
-  "RemoteControl/Scenario/Process.hpp"
-  "RemoteControl/Scenario/Scenario.hpp"
-  "RemoteControl/Scenario/Interval.hpp"
+  "RemoteControl/Websockets/Scenario/Event.hpp"
+  "RemoteControl/Websockets/Scenario/State.hpp"
+  "RemoteControl/Websockets/Scenario/Sync.hpp"
+  "RemoteControl/Websockets/Scenario/Process.hpp"
+  "RemoteControl/Websockets/Scenario/Scenario.hpp"
+  "RemoteControl/Websockets/Scenario/Interval.hpp"
+  "RemoteControl/Websockets/DocumentPlugin.hpp"
+
   "RemoteControl/Settings/Model.hpp"
   "RemoteControl/Settings/View.hpp"
   "RemoteControl/Settings/Presenter.hpp"
   "RemoteControl/Settings/Factory.hpp"
   "RemoteControl/ApplicationPlugin.hpp"
-  "RemoteControl/DocumentPlugin.hpp"
+
   "i-score-remote/RemoteApplication.hpp"
   "score_plugin_remotecontrol.hpp"
   )
@@ -38,15 +40,15 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/View.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Process.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Scenario.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Interval.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Event.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Sync.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/State.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Process.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Scenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Interval.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Event.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Sync.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/State.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/DocumentPlugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/ApplicationPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/DocumentPlugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.cpp"
 )

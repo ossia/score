@@ -6,7 +6,7 @@
 #include <score/model/ComponentFactory.hpp>
 #include <score/plugins/ModelFactory.hpp>
 
-#include <RemoteControl/DocumentPlugin.hpp>
+#include <RemoteControl/Websockets/DocumentPlugin.hpp>
 
 #include <score_plugin_remotecontrol_export.h>
 
