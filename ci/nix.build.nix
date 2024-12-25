@@ -8,7 +8,7 @@
 , avahi
 , avahi-compat
 , bluez
-, boost185
+, boost
 # , faust
 , fmt
 , git
