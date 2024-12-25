@@ -21,9 +21,9 @@
 #include <QBuffer>
 #include <QJSEngine>
 
-#include <RemoteControl/DocumentPlugin.hpp>
-#include <RemoteControl/Scenario/Scenario.hpp>
 #include <RemoteControl/Settings/Model.hpp>
+#include <RemoteControl/Websockets/DocumentPlugin.hpp>
+#include <RemoteControl/Websockets/Scenario/Scenario.hpp>
 
 namespace RemoteControl
 {

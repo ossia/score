@@ -4,7 +4,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <RemoteControl/ApplicationPlugin.hpp>
-#include <RemoteControl/DocumentPlugin.hpp>
+#include <RemoteControl/Websockets/DocumentPlugin.hpp>
 namespace RemoteControl
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
