@@ -1,6 +1,6 @@
 #include "State.hpp"
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 
 State::State(

@@ -1,5 +1,5 @@
 #include "Scenario.hpp"
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 
 ScenarioBase::ScenarioBase(

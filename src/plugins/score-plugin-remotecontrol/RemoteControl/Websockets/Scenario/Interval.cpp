@@ -14,7 +14,7 @@
 
 #include <RemoteControl/Websockets/Scenario/Process.hpp>
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 
 class DefaultProcessComponent final : public ProcessComponent
@@ -112,17 +112,17 @@ struct RemoteMessages
 };
 
 DefaultProcessComponent::DefaultProcessComponent(
-    Process::ProcessModel& proc, RemoteControl::DocumentPlugin& doc, QObject* parent_obj)
+    Process::ProcessModel& proc, RemoteControl::WS::DocumentPlugin& doc, QObject* parent_obj)
     : ProcessComponent{proc, doc, "Process", parent_obj}
 {
   con(proc, &Process::ProcessModel::startExecution, this, [this] {
-    RemoteControl::Handler h;
+    RemoteControl::WS::Handler h;
     RemoteMessages msgs{process()};
 
     h.setupDefaultHandler(msgs);
 
     h.answers["ControlSurface"]
-        = [this, msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
+        = [this, msgs](const rapidjson::Value& v, const RemoteControl::WS::WSClient&) {
       msgs.controlSurface(v, this->system().context());
     };
 
@@ -248,17 +248,17 @@ IntervalBase::IntervalBase(
         // In case we do transport, executionStarted is called again without stopped
         recv.removeHandler(this);
 
-        RemoteControl::Handler h;
+        RemoteControl::WS::Handler h;
         IntervalMessages msgs{this->interval()};
 
         h.setupDefaultHandler(msgs);
 
-        h.answers["IntervalSpeed"]
-            = [this, msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
+        h.answers["IntervalSpeed"] =
+            [this, msgs](const rapidjson::Value& v, const RemoteControl::WS::WSClient&) {
           msgs.speed(v, this->system().context());
         };
-        h.answers["IntervalGain"]
-            = [this, msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
+        h.answers["IntervalGain"] =
+            [this, msgs](const rapidjson::Value& v, const RemoteControl::WS::WSClient&) {
           msgs.gain(v, this->system().context());
         };
 

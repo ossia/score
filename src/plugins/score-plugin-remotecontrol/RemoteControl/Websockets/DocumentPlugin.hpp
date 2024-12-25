@@ -28,7 +28,7 @@ namespace Scenario
 class IntervalModel;
 class TimeSyncModel;
 }
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 class Interval;
 
@@ -57,22 +57,22 @@ struct Handler
   template <typename T>
   void setupDefaultHandler(T msgs)
   {
-    onAdded = [msgs](const std::vector<RemoteControl::WSClient>& clts) {
+    onAdded = [msgs](const std::vector<RemoteControl::WS::WSClient>& clts) {
       auto msg = msgs.initMessage();
       for(auto& clt : clts)
         clt.socket->sendTextMessage(msg);
     };
-    onRemoved = [msgs](const std::vector<RemoteControl::WSClient>& clts) {
+    onRemoved = [msgs](const std::vector<RemoteControl::WS::WSClient>& clts) {
       auto msg = msgs.deinitMessage();
       for(auto& clt : clts)
         clt.socket->sendTextMessage(msg);
     };
 
-    onClientConnection = [msgs](const RemoteControl::WSClient& clt) {
+    onClientConnection = [msgs](const RemoteControl::WS::WSClient& clt) {
       auto msg = msgs.initMessage();
       clt.socket->sendTextMessage(msg);
     };
-    onClientDisconnection = [msgs](const RemoteControl::WSClient& clt) {
+    onClientDisconnection = [msgs](const RemoteControl::WS::WSClient& clt) {
       auto msg = msgs.deinitMessage();
       clt.socket->sendTextMessage(msg);
     };

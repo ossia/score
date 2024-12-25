@@ -25,11 +25,11 @@
 #include <RemoteControl/Websockets/DocumentPlugin.hpp>
 #include <RemoteControl/Websockets/Scenario/Scenario.hpp>
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 using namespace std::literals;
 DocumentPlugin::DocumentPlugin(const score::DocumentContext& doc, QObject* parent)
-    : score::DocumentPlugin{doc, "RemoteControl::DocumentPlugin", parent}
+    : score::DocumentPlugin{doc, "RemoteControl::WS::DocumentPlugin", parent}
     , receiver{doc, 10212}
 {
   auto& set = m_context.app.settings<Settings::Model>();

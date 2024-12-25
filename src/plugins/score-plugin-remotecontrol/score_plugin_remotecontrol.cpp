@@ -23,7 +23,7 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_remotecontrol::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase, RemoteControl::ProcessComponentFactoryList>();
+      score::InterfaceListBase, RemoteControl::WS::ProcessComponentFactoryList>();
 }
 
 std::vector<score::InterfaceBase*> score_plugin_remotecontrol::factories(
@@ -32,8 +32,8 @@ std::vector<score::InterfaceBase*> score_plugin_remotecontrol::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<score::SettingsDelegateFactory, RemoteControl::Settings::Factory>,
-      FW<RemoteControl::ProcessComponentFactory,
-         RemoteControl::ScenarioComponentFactory>>(ctx, key);
+      FW<RemoteControl::WS::ProcessComponentFactory,
+         RemoteControl::WS::ScenarioComponentFactory>>(ctx, key);
 }
 
 auto score_plugin_remotecontrol::required() const -> std::vector<score::PluginKey>

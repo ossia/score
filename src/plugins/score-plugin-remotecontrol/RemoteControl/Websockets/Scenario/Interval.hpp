@@ -6,18 +6,18 @@
 #include <RemoteControl/Websockets/DocumentPlugin.hpp>
 #include <RemoteControl/Websockets/Scenario/Process.hpp>
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 class IntervalBase
-    : public Scenario::GenericIntervalComponent<RemoteControl::DocumentPlugin>
+    : public Scenario::GenericIntervalComponent<RemoteControl::WS::DocumentPlugin>
 {
   COMMON_COMPONENT_METADATA("b079041c-f11f-49b1-a88f-b2bc070affb1")
 public:
-  using parent_t = Scenario::GenericIntervalComponent<RemoteControl::DocumentPlugin>;
-  using DocumentPlugin = RemoteControl::DocumentPlugin;
+  using parent_t = Scenario::GenericIntervalComponent<RemoteControl::WS::DocumentPlugin>;
+  using DocumentPlugin = RemoteControl::WS::DocumentPlugin;
   using model_t = Process::ProcessModel;
-  using component_t = RemoteControl::ProcessComponent;
-  using component_factory_list_t = RemoteControl::ProcessComponentFactoryList;
+  using component_t = RemoteControl::WS::ProcessComponent;
+  using component_factory_list_t = RemoteControl::WS::ProcessComponentFactoryList;
 
   IntervalBase(
       Scenario::IntervalModel& Interval, DocumentPlugin& doc, QObject* parent_comp);
