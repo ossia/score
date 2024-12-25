@@ -3,7 +3,7 @@
 
 #include <RemoteControl/Websockets/DocumentPlugin.hpp>
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 class Sync final : public score::Component
 {

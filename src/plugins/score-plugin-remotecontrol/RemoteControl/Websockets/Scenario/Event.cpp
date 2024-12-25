@@ -2,7 +2,7 @@
 
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 Event::Event(Scenario::EventModel& event, DocumentPlugin& doc, QObject* parent_comp)
     : Component{"EventComponent", parent_comp}

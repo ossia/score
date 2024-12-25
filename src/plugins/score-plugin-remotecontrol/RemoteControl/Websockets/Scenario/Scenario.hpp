@@ -8,7 +8,7 @@
 #include <RemoteControl/Websockets/Scenario/State.hpp>
 #include <RemoteControl/Websockets/Scenario/Sync.hpp>
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 class ScenarioBase : public ProcessComponent_T<Scenario::ProcessModel>
 {

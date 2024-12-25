@@ -2,13 +2,17 @@
 
 #include <Process/Process.hpp>
 
-RemoteControl::ProcessComponent::ProcessComponent(
+namespace RemoteControl::WS
+{
+
+ProcessComponent::ProcessComponent(
     Process::ProcessModel& process, DocumentPlugin& doc, const QString& name,
     QObject* parent)
     : Process::GenericProcessComponent<DocumentPlugin>{process, doc, name, parent}
 {
 }
 
-RemoteControl::ProcessComponent::~ProcessComponent() { }
+ProcessComponent::~ProcessComponent() { }
 
-RemoteControl::ProcessComponentFactory::~ProcessComponentFactory() { }
+ProcessComponentFactory::~ProcessComponentFactory() { }
+}

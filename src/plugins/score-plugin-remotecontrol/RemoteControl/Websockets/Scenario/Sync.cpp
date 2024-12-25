@@ -1,6 +1,6 @@
 #include "Sync.hpp"
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 
 Sync::Sync(

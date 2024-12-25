@@ -10,13 +10,13 @@
 
 #include <score_plugin_remotecontrol_export.h>
 
-namespace RemoteControl
+namespace RemoteControl::WS
 {
 class SCORE_PLUGIN_REMOTECONTROL_EXPORT ProcessComponent
     : public Process::GenericProcessComponent<DocumentPlugin>
 {
   ABSTRACT_COMPONENT_METADATA(
-      RemoteControl::ProcessComponent, "b8a691ea-5352-468d-b78c-04e420c252d1")
+      RemoteControl::WS::ProcessComponent, "b8a691ea-5352-468d-b78c-04e420c252d1")
 public:
   ProcessComponent(
       Process::ProcessModel& proc, DocumentPlugin& doc, const QString& name,
@@ -33,7 +33,7 @@ class SCORE_PLUGIN_REMOTECONTROL_EXPORT ProcessComponentFactory
     : public score::GenericComponentFactory<
           Process::ProcessModel, DocumentPlugin, ProcessComponentFactory>
 {
-  SCORE_ABSTRACT_COMPONENT_FACTORY(RemoteControl::ProcessComponent)
+  SCORE_ABSTRACT_COMPONENT_FACTORY(RemoteControl::WS::ProcessComponent)
 public:
   virtual ~ProcessComponentFactory();
   virtual ProcessComponent*
