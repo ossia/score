@@ -78,11 +78,11 @@ Device::DeviceSettings MCUSettingsWidget::getSettings() const
 
   const int in_idx = m_midiin->currentIndex();
   if(in_idx >= 0 && in_idx < std::ssize(m_ins))
-    midi.input_handle = m_ins[in_idx];
+    midi.input_handle = {m_ins[in_idx]};
 
   const int out_idx = m_midiout->currentIndex();
   if(out_idx >= 0 && out_idx < std::ssize(m_outs))
-    midi.output_handle = m_outs[out_idx];
+    midi.output_handle = {m_outs[out_idx]};
 
   s.protocol = MCUProtocolFactory::static_concreteKey();
   s.deviceSpecificSettings = QVariant::fromValue(midi);

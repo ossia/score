@@ -10,8 +10,8 @@ namespace Protocols
 {
 struct MCUSpecificSettings
 {
-  libremidi::input_port input_handle;
-  libremidi::output_port output_handle;
+  std::vector<libremidi::input_port> input_handle;
+  std::vector<libremidi::output_port> output_handle;
   libremidi::API api{};
 
   enum

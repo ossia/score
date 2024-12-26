@@ -2,6 +2,10 @@
 #include <Dataflow/PortItem.hpp>
 #include <Vst/EffectModel.hpp>
 
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/domain/domain_functions.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
 #include <verdigris>
 
 namespace Process

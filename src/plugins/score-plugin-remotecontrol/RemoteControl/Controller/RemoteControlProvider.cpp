@@ -1,5 +1,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
+
 #include <core/document/DocumentView.hpp>
 
 #include <QMainWindow>

@@ -104,7 +104,12 @@ bool MCUProtocolFactory::checkCompatibility(
 {
   // FIXME check if we can open the same device multiple times ?
   auto specif = a.deviceSpecificSettings.value<MCUSpecificSettings>();
-  return specif.input_handle != libremidi::port_information{}
-         && specif.output_handle != libremidi::port_information{};
+  if(specif.input_handle.empty())
+    return false;
+  if(specif.output_handle.empty())
+    return false;
+  // FIXME improve when we have multiple devices in one control surface
+  return specif.input_handle[0] != libremidi::port_information{}
+         && specif.output_handle[0] != libremidi::port_information{};
 }
 }
