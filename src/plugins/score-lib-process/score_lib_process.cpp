@@ -16,6 +16,8 @@
 
 #include <QGraphicsScene>
 
+#include <RemoteControl/RemoteControlProvider.hpp>
+
 #include <score_lib_process.hpp>
 #include <score_lib_process_commands_files.hpp>
 namespace Process
@@ -71,7 +73,7 @@ score_lib_process::factoryFamilies()
       Process::LayerFactoryList, Process::ProcessFactoryList,
       Process::ProcessDropHandlerList, Process::MagnetismAdjuster,
       Process::OfflineActionList, Execution::ExecutionActionList,
-      LocalTree::ProcessComponentFactoryList>();
+      LocalTree::ProcessComponentFactoryList, Process::RemoteControlProviderList>();
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_lib_process::make_commands()

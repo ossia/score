@@ -18,24 +18,31 @@ score_common_setup()
 
 # Source files
 set(HDRS
-  "RemoteControl/Websockets/Scenario/Event.hpp"
-  "RemoteControl/Websockets/Scenario/State.hpp"
-  "RemoteControl/Websockets/Scenario/Sync.hpp"
-  "RemoteControl/Websockets/Scenario/Process.hpp"
-  "RemoteControl/Websockets/Scenario/Scenario.hpp"
-  "RemoteControl/Websockets/Scenario/Interval.hpp"
-  "RemoteControl/Websockets/DocumentPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Event.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/State.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Sync.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Process.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Scenario.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/Scenario/Interval.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Websockets/DocumentPlugin.hpp"
 
-  "RemoteControl/Settings/Model.hpp"
-  "RemoteControl/Settings/View.hpp"
-  "RemoteControl/Settings/Presenter.hpp"
-  "RemoteControl/Settings/Factory.hpp"
-  "RemoteControl/ApplicationPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Controller/RemoteControlProvider.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Controller/DocumentPlugin.hpp"
 
-  "i-score-remote/RemoteApplication.hpp"
-  "score_plugin_remotecontrol.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Model.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/View.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Presenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Factory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/ApplicationPlugin.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/i-score-remote/RemoteApplication.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.hpp"
   )
 set(SRCS
+
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Controller/RemoteControlProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Controller/DocumentPlugin.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Model.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/View.cpp"

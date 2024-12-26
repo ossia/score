@@ -98,6 +98,9 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ProcessComponent.hpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/RemoteControlProvider.hpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.hpp"
 )
 set(PROCESS_SRCS
@@ -164,6 +167,7 @@ set(PROCESS_SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTProcessComponent.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/RemoteControlProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.cpp"
 )
 
