@@ -15,15 +15,12 @@ public:
 
   std::vector<Process::RemoteControl::ControllerHandle>
   registerControllerGroup(ControllerHint hint, int count) override;
+
+  void sendKey(ControllerAction act, Qt::Key k, Qt::KeyboardModifiers mods = {});
   void left(ControllerAction) override;
   void right(ControllerAction) override;
   void up(ControllerAction) override;
   void down(ControllerAction) override;
-
-  void shift(ControllerAction) override;
-  void alt(ControllerAction) override;
-  void option(ControllerAction) override;
-  void control(ControllerAction) override;
 
   void save(ControllerAction) override;
   void ok(ControllerAction) override;
@@ -42,6 +39,14 @@ public:
   void solo(ControllerAction) override;
   void mute(ControllerAction) override;
   void select(ControllerAction) override;
+  void zoom(double zoom_x, double zoom_y) override;
+  void scroll(double scroll_x, double scroll_y) override;
+  void scrub(double z) override;
+
+  void prevBank(ControllerAction) override;
+  void nextBank(ControllerAction) override;
+  void prevChannel(ControllerAction) override;
+  void nextChannel(ControllerAction) override;
 
   void setControl(ControllerHandle index, const ossia::value& val) override;
   void offsetControl(ControllerHandle index, double val) override;

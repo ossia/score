@@ -19,6 +19,8 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/protocols/midi/midi.hpp>
 
+#include <boost/algorithm/string/trim.hpp>
+
 #include <QDebug>
 #include <QGuiApplication>
 #include <QKeyEvent>
@@ -169,6 +171,8 @@ public:
 
   void centerText(std::string& txt)
   {
+    static const thread_local auto loc = std::locale("C");
+    boost::algorithm::trim(txt);
     switch(txt.size())
     {
       case 0:
@@ -189,7 +193,7 @@ public:
         txt = std::format(" {} ", txt);
         break;
       case 6:
-        txt = std::format(" {}", txt);
+        txt = std::format("{}", txt);
       case 7:
         txt = std::format("{}", txt);
         break;
@@ -382,6 +386,7 @@ public:
         break;
 
       // TODO metering
+
       case rcp::assign_track:
         break;
       case rcp::assign_send:
@@ -396,12 +401,16 @@ public:
         break;
 
       case rcp::bank_left:
+        m_rc->prevBank(act);
         break;
       case rcp::bank_right:
+        m_rc->nextBank(act);
         break;
       case rcp::channel_left:
+        m_rc->prevChannel(act);
         break;
       case rcp::channel_right:
+        m_rc->nextChannel(act);
         break;
       case rcp::flip:
         break;
@@ -456,16 +465,16 @@ public:
         break;
 
       case rcp::shift:
-        m_rc->shift(act);
+        m_shift = pressed;
         break;
       case rcp::option:
-        m_rc->option(act);
+        m_option = pressed;
         break;
       case rcp::control:
-        m_rc->control(act);
+        m_control = pressed;
         break;
       case rcp::alt:
-        m_rc->alt(act);
+        m_alt = pressed;
         break;
 
       case rcp::save:
@@ -523,9 +532,15 @@ public:
       case rcp::right:
         m_rc->right(act);
         break;
-      case rcp::zoom:
+      case rcp::zoom: {
+        double zoom_amount = m_shift ? -0.5 : 0.5;
+        if(m_control)
+          zoom_amount /= 10.;
+        m_rc->zoom(zoom_amount, 0.);
         break;
+      }
       case rcp::scrub:
+        m_scrub = pressed;
         break;
 
       case rcp::user_switch_1:
@@ -611,6 +626,24 @@ public:
       case rcp::external_control:
         // FIXME ??
         break;
+      case rcp::jog_wheel: {
+        float speed = knob_to_speed(v);
+        if(m_control)
+          speed /= 10.;
+
+        if(m_scrub)
+        {
+          m_rc->scrub(speed);
+        }
+        else
+        {
+          if(m_shift)
+            m_rc->scroll(0., speed);
+          else
+            m_rc->scroll(speed, 0.);
+        }
+      }
+        break;
     }
   }
 
@@ -654,6 +687,11 @@ public:
   std::shared_ptr<libremidi::remote_control_processor> m_rcp;
   std::shared_ptr<libremidi::midi_in> m_input;
 
+  bool m_shift{};
+  bool m_alt{};
+  bool m_option{};
+  bool m_control{};
+  bool m_scrub{};
   std::bitset<9> m_fader_grab{};
 
   std::vector<Process::RemoteControl::ControllerHandle> m_knob_handles;

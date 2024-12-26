@@ -58,11 +58,6 @@ public:
   virtual void up(ControllerAction);
   virtual void down(ControllerAction);
 
-  virtual void shift(ControllerAction);
-  virtual void alt(ControllerAction);
-  virtual void option(ControllerAction);
-  virtual void control(ControllerAction);
-
   virtual void save(ControllerAction);
   virtual void ok(ControllerAction);
   virtual void cancel(ControllerAction);
@@ -80,6 +75,15 @@ public:
   virtual void solo(ControllerAction);
   virtual void mute(ControllerAction);
   virtual void select(ControllerAction);
+
+  virtual void zoom(double zoom_x, double zoom_y);
+  virtual void scroll(double scroll_x, double scroll_y);
+  virtual void scrub(double z);
+
+  virtual void prevBank(ControllerAction);
+  virtual void nextBank(ControllerAction);
+  virtual void prevChannel(ControllerAction);
+  virtual void nextChannel(ControllerAction);
 
   // Set the value
   virtual void setControl(ControllerHandle index, const ossia::value& val);

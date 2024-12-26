@@ -1,7 +1,11 @@
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+
 #include <JS/Qml/EditContext.hpp>
 
 #include <score/tools/std/StringHash.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+
+#include <core/document/DocumentView.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
@@ -12,6 +16,33 @@
 
 namespace JS
 {
+
+void EditJsContext::zoom(double zx, double zy)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto main_view = qobject_cast<Scenario::ScenarioDocumentView*>(
+      &doc->document.view()->viewDelegate());
+  if(!main_view)
+    return;
+
+  main_view->zoom(zx, zy);
+}
+
+void EditJsContext::scroll(double dx, double dy)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto main_view = qobject_cast<Scenario::ScenarioDocumentView*>(
+      &doc->document.view()->viewDelegate());
+  if(!main_view)
+    return;
+
+  main_view->scroll(dx, dy);
+}
+
 QVariant EditJsContext::prompt(QVariant v)
 {
   qDebug() << v;

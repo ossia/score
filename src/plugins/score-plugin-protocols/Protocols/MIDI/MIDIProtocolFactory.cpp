@@ -10,6 +10,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
+#include <Protocols/MIDIUtils.hpp>
 #include <Protocols/Settings/Model.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -64,15 +65,6 @@ to_settings(libremidi::API api, const libremidi::output_port& p)
   set.deviceSpecificSettings = QVariant::fromValue(specif);
 
   return set;
-}
-
-static auto getCurrentAPI()
-{
-  auto api
-      = score::AppContext().settings<Protocols::Settings::Model>().getMidiApiAsEnum();
-  if(api == libremidi::API::UNSPECIFIED)
-    api = libremidi::midi1::default_api();
-  return api;
 }
 
 template <ossia::net::midi::midi_info::Type Type>
