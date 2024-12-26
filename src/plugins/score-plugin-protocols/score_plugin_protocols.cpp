@@ -30,6 +30,7 @@
 #endif
 
 #if defined(OSSIA_PROTOCOL_MIDI)
+#include <Protocols/MCU/MCUProtocolFactory.hpp>
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
@@ -118,7 +119,8 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #endif
 #if defined(OSSIA_PROTOCOL_MIDI)
          ,
-         Protocols::MIDIInputProtocolFactory, Protocols::MIDIOutputProtocolFactory
+         Protocols::MIDIInputProtocolFactory, Protocols::MIDIOutputProtocolFactory,
+         Protocols::MCUProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
          ,

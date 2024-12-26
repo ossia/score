@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QVariant>
 
+#include <score_plugin_js_export.h>
+
 #include <memory>
 #include <optional>
 #include <verdigris>
@@ -20,7 +22,7 @@ class Macro;
 namespace JS
 {
 class GlobalDeviceEnumerator;
-class EditJsContext : public QObject
+class SCORE_PLUGIN_JS_EXPORT EditJsContext : public QObject
 {
   W_OBJECT(EditJsContext)
   using Macro = Scenario::Command::Macro;

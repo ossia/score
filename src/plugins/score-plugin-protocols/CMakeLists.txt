@@ -103,12 +103,22 @@ set(MIDI_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettings.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUSpecificSettings.hpp"
 )
 set(MIDI_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MCU/MCUSpecificSettingsSerialization.cpp"
 )
 
 set(HTTP_HDRS

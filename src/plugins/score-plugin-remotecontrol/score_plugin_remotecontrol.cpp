@@ -3,6 +3,7 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <RemoteControl/ApplicationPlugin.hpp>
+#include <RemoteControl/Controller/RemoteControlProvider.hpp>
 #include <RemoteControl/Settings/Factory.hpp>
 #include <RemoteControl/Websockets/Scenario/Scenario.hpp>
 
@@ -33,7 +34,9 @@ std::vector<score::InterfaceBase*> score_plugin_remotecontrol::factories(
       score::ApplicationContext,
       FW<score::SettingsDelegateFactory, RemoteControl::Settings::Factory>,
       FW<RemoteControl::WS::ProcessComponentFactory,
-         RemoteControl::WS::ScenarioComponentFactory>>(ctx, key);
+         RemoteControl::WS::ScenarioComponentFactory>,
+      FW<Process::RemoteControlProvider,
+         RemoteControl::Controller::RemoteControlProvider>>(ctx, key);
 }
 
 auto score_plugin_remotecontrol::required() const -> std::vector<score::PluginKey>
