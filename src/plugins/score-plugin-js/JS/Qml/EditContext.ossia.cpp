@@ -40,6 +40,19 @@ void EditJsContext::play()
     plug->execution().request_play_global(true);
 }
 
+void EditJsContext::pause()
+{
+  auto plug
+      = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  if(plug)
+    plug->execution().request_play_global(false);
+}
+
+void EditJsContext::resume()
+{
+  play();
+}
+
 void EditJsContext::play(QObject* obj)
 {
   auto plug = score::GUIAppContext()
@@ -65,4 +78,8 @@ void EditJsContext::stop()
     plug->execution().request_stop();
 }
 
+void EditJsContext::scrub(double dx)
+{
+  // TODO
+}
 }

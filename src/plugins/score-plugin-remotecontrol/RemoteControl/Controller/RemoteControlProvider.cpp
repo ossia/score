@@ -1,6 +1,12 @@
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+
+#include <core/document/DocumentView.hpp>
+
+#include <QMainWindow>
+#include <QWheelEvent>
+
 #include <RemoteControl/Controller/DocumentPlugin.hpp>
 #include <RemoteControl/Controller/RemoteControlProvider.hpp>
-
 namespace RemoteControl::Controller
 {
 
@@ -14,41 +20,79 @@ RemoteControlImpl::registerControllerGroup(ControllerHint hint, int count)
 {
   return doc.registerControllerGroup(*this, hint, count);
 }
-void RemoteControlImpl::left(ControllerAction act) { }
 
-void RemoteControlImpl::right(ControllerAction act) { }
+void RemoteControlImpl::sendKey(
+    ControllerAction act, Qt::Key k, Qt::KeyboardModifiers mods)
+{
+  auto t = act == ControllerAction::Press ? QKeyEvent::Type::KeyPress
+                                          : QKeyEvent::Type::KeyRelease;
+  QKeyEvent e{t, k, {}};
+  QCoreApplication::sendEvent(doc.context().app.mainWindow, &e);
+}
 
-void RemoteControlImpl::up(ControllerAction act) { }
+void RemoteControlImpl::left(ControllerAction act)
+{
+  sendKey(act, Qt::Key_Left);
+}
 
-void RemoteControlImpl::down(ControllerAction act) { }
+void RemoteControlImpl::right(ControllerAction act)
+{
+  sendKey(act, Qt::Key_Right);
+}
 
-void RemoteControlImpl::shift(ControllerAction act) { }
+void RemoteControlImpl::up(ControllerAction act)
+{
+  sendKey(act, Qt::Key_Up);
+}
 
-void RemoteControlImpl::alt(ControllerAction act) { }
+void RemoteControlImpl::down(ControllerAction act)
+{
+  sendKey(act, Qt::Key_Down);
+}
 
-void RemoteControlImpl::option(ControllerAction act) { }
-
-void RemoteControlImpl::control(ControllerAction act) { }
-
-void RemoteControlImpl::save(ControllerAction act) { }
+void RemoteControlImpl::save(ControllerAction act)
+{
+  sendKey(act, Qt::Key_S, Qt::ControlModifier);
+}
 
 void RemoteControlImpl::ok(ControllerAction act) { }
 
 void RemoteControlImpl::cancel(ControllerAction act) { }
 
-void RemoteControlImpl::enter(ControllerAction act) { }
+void RemoteControlImpl::enter(ControllerAction act)
+{
+  sendKey(act, Qt::Key_Enter);
+}
 
-void RemoteControlImpl::undo(ControllerAction act) { }
+void RemoteControlImpl::undo(ControllerAction act)
+{
+  this->doc.editContext.undo();
+}
 
-void RemoteControlImpl::redo(ControllerAction act) { }
+void RemoteControlImpl::redo(ControllerAction act)
+{
+  this->doc.editContext.redo();
+}
 
-void RemoteControlImpl::play(ControllerAction act) { }
+void RemoteControlImpl::play(ControllerAction act)
+{
+  this->doc.editContext.play();
+}
 
-void RemoteControlImpl::pause(ControllerAction act) { }
+void RemoteControlImpl::pause(ControllerAction act)
+{
+  this->doc.editContext.pause();
+}
 
-void RemoteControlImpl::resume(ControllerAction act) { }
+void RemoteControlImpl::resume(ControllerAction act)
+{
+  this->doc.editContext.resume();
+}
 
-void RemoteControlImpl::stop(ControllerAction act) { }
+void RemoteControlImpl::stop(ControllerAction act)
+{
+  this->doc.editContext.stop();
+}
 
 void RemoteControlImpl::record(ControllerAction act) { }
 
@@ -57,6 +101,55 @@ void RemoteControlImpl::solo(ControllerAction act) { }
 void RemoteControlImpl::mute(ControllerAction act) { }
 
 void RemoteControlImpl::select(ControllerAction act) { }
+
+void RemoteControlImpl::zoom(double zx, double zy)
+{
+  auto main_view = qobject_cast<Scenario::ScenarioDocumentView*>(
+      &this->doc.context().document.view()->viewDelegate());
+  if(!main_view)
+    return;
+
+  main_view->zoom(zx, zy);
+}
+
+void RemoteControlImpl::scroll(double sx, double sy)
+{
+  auto main_view = qobject_cast<Scenario::ScenarioDocumentView*>(
+      &this->doc.context().document.view()->viewDelegate());
+  if(!main_view)
+    return;
+
+  main_view->scroll(sx, sy);
+}
+
+void RemoteControlImpl::scrub(double z)
+{
+  this->doc.editContext.scrub(z);
+}
+
+void RemoteControlImpl::prevBank(ControllerAction act)
+{
+  if(act == ControllerAction::Press)
+    doc.prevBank(*this);
+}
+
+void RemoteControlImpl::nextBank(ControllerAction act)
+{
+  if(act == ControllerAction::Press)
+    doc.nextBank(*this);
+}
+
+void RemoteControlImpl::prevChannel(ControllerAction act)
+{
+  if(act == ControllerAction::Press)
+    doc.prevChannel(*this);
+}
+
+void RemoteControlImpl::nextChannel(ControllerAction act)
+{
+  if(act == ControllerAction::Press)
+    doc.nextChannel(*this);
+}
 
 void RemoteControlImpl::setControl(ControllerHandle index, const ossia::value& val)
 {

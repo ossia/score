@@ -8,7 +8,7 @@
 #include <libremidi/libremidi.hpp>
 namespace Protocols
 {
-auto getCurrentAPI()
+inline libremidi::API getCurrentAPI()
 {
   auto api
       = score::AppContext().settings<Protocols::Settings::Model>().getMidiApiAsEnum();

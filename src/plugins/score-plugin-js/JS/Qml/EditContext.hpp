@@ -203,20 +203,36 @@ public:
   void play(QObject* obj);
   W_SLOT(play, (QObject*))
 
+  void pause();
+  W_SLOT(pause, ())
+
+  void resume();
+  W_SLOT(resume, ())
+
   void stop();
   W_SLOT(stop)
 
-  // File API
+  void scrub(double z);
+  W_SLOT(scrub)
+
+  /// File API ///
   QString readFile(QString path);
   W_SLOT(readFile)
 
+  /// Score UI ///
   QObject* selectedObject();
   W_SLOT(selectedObject)
 
   QVariantList selectedObjects();
   W_SLOT(selectedObjects)
 
-  /// UI ///
+  void zoom(double zx, double zy);
+  W_SLOT(zoom, (double, double));
+
+  void scroll(double zx, double zy);
+  W_SLOT(scroll, (double, double));
+
+  /// Custom UI ///
   QVariant prompt(QVariant v);
   W_SLOT(prompt)
 

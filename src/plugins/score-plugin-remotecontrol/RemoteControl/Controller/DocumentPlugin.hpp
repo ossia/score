@@ -36,11 +36,18 @@ public:
   std::vector<ControllerHandle> registerControllerGroup(
       RemoteControlImpl&, Process::RemoteControl::ControllerHint hint, int count);
 
+  void prevBank(RemoteControlImpl&);
+  void nextBank(RemoteControlImpl&);
+  void prevChannel(RemoteControlImpl&);
+  void nextChannel(RemoteControlImpl&);
   void setControl(RemoteControlImpl&, ControllerHandle index, const ossia::value& val);
   void offsetControl(RemoteControlImpl&, ControllerHandle index, double val);
 
+  JS::EditJsContext editContext;
+
 private:
   void on_selectionChanged(const Selection& old, const Selection& current);
+
   void deselectProcess();
   void selectProcess(Process::ProcessModel& cur);
 
@@ -48,6 +55,16 @@ private:
       Process::ProcessModel& p, Process::ControlInlet& inl, int idx,
       const ossia::value& v);
 
+  void clearDisplay();
+  void updateDisplayedControls();
+  void updateDisplay();
+
+  Process::ProcessModel* m_currentProcess{};
+  std::vector<Process::ControlInlet*> m_currentControls{};
+  std::span<Process::ControlInlet*> m_displayedControls{};
+
+  int m_current_bank_offset{};
+  int m_current_channel_offset{};
   struct Controller
   {
     std::shared_ptr<Process::RemoteControl> controller;
@@ -62,7 +79,6 @@ private:
   };
 
   std::vector<Controller> m_controllers;
-  JS::EditJsContext m_edit;
 
   ossia::flat_map<Process::ProcessModel*, std::vector<QMetaObject::Connection>>
       m_currentConnections;

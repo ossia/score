@@ -18,14 +18,6 @@ void RemoteControl::up(ControllerAction) { }
 
 void RemoteControl::down(ControllerAction) { }
 
-void RemoteControl::shift(ControllerAction) { }
-
-void RemoteControl::alt(ControllerAction) { }
-
-void RemoteControl::option(ControllerAction) { }
-
-void RemoteControl::control(ControllerAction) { }
-
 void RemoteControl::save(ControllerAction) { }
 
 void RemoteControl::ok(ControllerAction) { }
@@ -53,6 +45,15 @@ void RemoteControl::solo(ControllerAction) { }
 void RemoteControl::mute(ControllerAction) { }
 
 void RemoteControl::select(ControllerAction) { }
+
+void RemoteControl::zoom(double, double) { }
+void RemoteControl::scroll(double, double) { }
+void RemoteControl::scrub(double) { }
+
+void RemoteControl::prevBank(ControllerAction) { }
+void RemoteControl::nextBank(ControllerAction) { }
+void RemoteControl::prevChannel(ControllerAction) { }
+void RemoteControl::nextChannel(ControllerAction) { }
 
 void RemoteControl::setControl(ControllerHandle index, const ossia::value& val) { }
 void RemoteControl::offsetControl(ControllerHandle index, double val) { }

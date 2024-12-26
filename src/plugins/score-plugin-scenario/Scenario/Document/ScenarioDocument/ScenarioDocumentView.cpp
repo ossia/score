@@ -619,6 +619,30 @@ ScenarioDocumentView::ScenarioDocumentView(
 
 ScenarioDocumentView::~ScenarioDocumentView() { }
 
+void ScenarioDocumentView::zoom(double zx, double zy)
+{
+  if(zx > 0)
+    m_minimap.zoomIn();
+  else
+    m_minimap.zoomOut();
+}
+
+void ScenarioDocumentView::scroll(double dx, double dy)
+{
+  auto& gv = this->m_view;
+  if(dx != 0)
+  {
+    const auto hsb = gv.horizontalScrollBar();
+    hsb->setValue(hsb->value() - dx);
+  }
+  if(dy != 0)
+  {
+    const auto vsb = gv.verticalScrollBar();
+
+    vsb->setValue(vsb->value() - dy);
+  }
+}
+
 QWidget* ScenarioDocumentView::getWidget()
 {
   return m_widget;

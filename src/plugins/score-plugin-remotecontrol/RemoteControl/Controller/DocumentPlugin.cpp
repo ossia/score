@@ -38,6 +38,11 @@ void DocumentPlugin::on_selectionChanged(const Selection& old, const Selection& 
 
 void DocumentPlugin::deselectProcess()
 {
+  m_currentProcess = nullptr;
+  m_currentControls.clear();
+  m_displayedControls = {};
+  m_current_bank_offset = 0;
+  m_current_channel_offset = 0;
   // Disconnect connections
   for(auto& [p, v] : m_currentConnections)
   {
@@ -48,6 +53,11 @@ void DocumentPlugin::deselectProcess()
   }
   m_currentConnections.clear();
 
+  clearDisplay();
+}
+
+void DocumentPlugin::clearDisplay()
+{
   // Clear the remote controls watching it
   for(auto& rc : this->m_controllers)
   {
@@ -63,6 +73,7 @@ void DocumentPlugin::deselectProcess()
 void DocumentPlugin::on_controlChanged(
     Process::ProcessModel& p, Process::ControlInlet& inl, int idx, const ossia::value& v)
 {
+  idx -= (8 * m_current_bank_offset + m_current_channel_offset);
   for(auto& ctl : this->m_controllers)
   {
     int n = ctl.maps.size();
@@ -75,13 +86,17 @@ void DocumentPlugin::on_controlChanged(
     ctl.controller->controlValueChanged(handle, v);
   }
 }
+
 void DocumentPlugin::selectProcess(Process::ProcessModel& p)
 {
+  m_currentControls.clear();
+  m_displayedControls = {};
+  m_currentProcess = &p;
+  m_current_bank_offset = 0;
+  m_current_channel_offset = 0;
   auto& vec = m_currentConnections[&p];
 
-  int idx = 0;
-  int controller_idx = 0;
-  int controller_control_idx = 0;
+  // 1. Connect the controls of the process
   for(auto& inl : p.inlets())
   {
     if(auto ctl = qobject_cast<Process::ControlInlet*>(inl))
@@ -90,6 +105,8 @@ void DocumentPlugin::selectProcess(Process::ProcessModel& p)
       if(t != ossia::val_type::BOOL && t != ossia::val_type::INT
          && t != ossia::val_type::FLOAT)
         continue;
+      int idx = m_currentControls.size();
+      m_currentControls.push_back(ctl);
       // Setup the link
       auto con = connect(
           ctl, &Process::ControlInlet::valueChanged, this,
@@ -97,45 +114,163 @@ void DocumentPlugin::selectProcess(Process::ProcessModel& p)
         on_controlChanged(p, *ctl, idx, v);
       }, Qt::QueuedConnection);
       vec.push_back(con);
-
-      // Set the current name & value
-      if(controller_idx < m_controllers.size())
-      {
-        auto& rc = m_controllers[controller_idx];
-        if(controller_control_idx < rc.maps.size())
-        {
-          auto& maps = rc.maps[controller_control_idx];
-          auto handle = maps.handle;
-          maps.inlet = ctl;
-          rc.controller->controlNameChanged(handle, ctl->name());
-          rc.controller->controlValueChanged(handle, ctl->value());
-          controller_control_idx++;
-        }
-        else
-        {
-          do
-          {
-            controller_idx++;
-            controller_control_idx = 0;
-          } while(controller_idx < m_controllers.size()
-                  && m_controllers[controller_idx].maps.empty());
-        }
-      }
-
-      idx++;
     }
   }
 
-  vec.push_back(
-      connect(&p, &Process::ProcessModel::inletsChanged, this, [this, proc = &p] {
-    this->deselectProcess();
-    this->selectProcess(*proc);
-  }, Qt::QueuedConnection));
+  m_displayedControls = m_currentControls;
 
-  vec.push_back(
-      connect(&p, &Process::ProcessModel::identified_object_destroying, this, [this] {
-    this->deselectProcess();
-  }));
+  // 2. Update whenever the process changes
+  {
+    vec.push_back(
+        connect(&p, &Process::ProcessModel::inletsChanged, this, [this, proc = &p] {
+      this->deselectProcess();
+      this->selectProcess(*proc);
+    }, Qt::QueuedConnection));
+
+    vec.push_back(
+        connect(&p, &Process::ProcessModel::identified_object_destroying, this, [this] {
+      this->deselectProcess();
+    }));
+  }
+
+  // 3. Update the display
+  updateDisplay();
+}
+
+void DocumentPlugin::updateDisplayedControls()
+{
+  m_displayedControls = m_currentControls;
+  const int N = std::ssize(m_displayedControls);
+  const int offset = 8 * m_current_bank_offset + m_current_channel_offset;
+
+  qDebug() << N << m_current_bank_offset << m_current_channel_offset << " => " << offset;
+  if(offset >= 0 && N < offset)
+    return;
+  m_displayedControls = m_displayedControls.subspan(offset);
+}
+
+void DocumentPlugin::updateDisplay()
+{
+  clearDisplay();
+  updateDisplayedControls();
+  int controller_idx = 0;
+  int controller_control_idx = 0;
+  for(auto ctl : m_displayedControls)
+  {
+    if(controller_idx < m_controllers.size())
+    {
+      auto& rc = m_controllers[controller_idx];
+      if(controller_control_idx < rc.maps.size())
+      {
+        auto& maps = rc.maps[controller_control_idx];
+        auto handle = maps.handle;
+        maps.inlet = ctl;
+        rc.controller->controlNameChanged(handle, ctl->name());
+        rc.controller->controlValueChanged(handle, ctl->value());
+        controller_control_idx++;
+      }
+      else
+      {
+        do
+        {
+          controller_idx++;
+          controller_control_idx = 0;
+        } while(controller_idx < m_controllers.size()
+                && m_controllers[controller_idx].maps.empty());
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
+}
+
+void DocumentPlugin::prevBank(RemoteControlImpl& b)
+{
+  if(m_currentProcess)
+  {
+    if(m_current_bank_offset == 0)
+      return;
+
+    if(m_current_channel_offset > 0)
+      m_current_channel_offset = 0;
+    else
+      m_current_bank_offset--;
+  }
+  else
+  {
+    m_current_bank_offset = 0;
+    m_current_channel_offset = 0;
+  }
+  updateDisplay();
+}
+
+void DocumentPlugin::nextBank(RemoteControlImpl& b)
+{
+  if(m_currentProcess)
+  {
+    // if we don't have at least one thing to show, do nothing
+    if((m_current_bank_offset + 1) * 8 >= std::ssize(m_currentControls))
+      return;
+
+    m_current_bank_offset++;
+  }
+  else
+  {
+    m_current_bank_offset = 0;
+  }
+  m_current_channel_offset = 0;
+  updateDisplay();
+}
+
+void DocumentPlugin::prevChannel(RemoteControlImpl& b)
+{
+  if(m_currentProcess)
+  {
+    if(m_current_channel_offset == 0)
+    {
+      if(m_current_bank_offset > 0)
+      {
+        m_current_bank_offset--;
+        m_current_channel_offset = 7;
+      }
+    }
+    else
+    {
+      m_current_channel_offset--;
+    }
+  }
+  else
+  {
+    m_current_bank_offset = 0;
+    m_current_channel_offset = 0;
+  }
+  updateDisplay();
+}
+
+void DocumentPlugin::nextChannel(RemoteControlImpl& b)
+{
+  if(m_currentProcess)
+  {
+    // if we don't have at least one thing to show, do nothing
+    if(m_current_bank_offset * 8 + m_current_channel_offset + 1
+       >= std::ssize(m_currentControls))
+      return;
+
+    m_current_channel_offset++;
+    if(m_current_channel_offset == 8)
+    {
+      m_current_bank_offset++;
+      m_current_channel_offset = 0;
+    }
+  }
+  else
+  {
+    m_current_bank_offset = 0;
+    m_current_channel_offset = 0;
+  }
+  updateDisplay();
 }
 
 std::shared_ptr<Process::RemoteControl> DocumentPlugin::acquireRemoteControlInterface()
