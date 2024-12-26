@@ -1,6 +1,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 
+#include <Engine/ApplicationPlugin.hpp>
+
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <RemoteControl/Controller/DocumentPlugin.hpp>
@@ -43,6 +45,7 @@ void DocumentPlugin::deselectProcess()
   m_displayedControls = {};
   m_current_bank_offset = 0;
   m_current_channel_offset = 0;
+
   // Disconnect connections
   for(auto& [p, v] : m_currentConnections)
   {
@@ -143,10 +146,37 @@ void DocumentPlugin::updateDisplayedControls()
   const int N = std::ssize(m_displayedControls);
   const int offset = 8 * m_current_bank_offset + m_current_channel_offset;
 
-  qDebug() << N << m_current_bank_offset << m_current_channel_offset << " => " << offset;
   if(offset >= 0 && N < offset)
     return;
   m_displayedControls = m_displayedControls.subspan(offset);
+}
+
+void DocumentPlugin::connectToEngine()
+{
+  if(m_controllers.empty())
+    return;
+
+  if(!m_engine)
+  {
+    m_engine = m_context.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  }
+
+  if(m_engine)
+  {
+    connect(
+        &m_engine->execution_ui_clock_timer, &QTimer::timeout, this,
+        &DocumentPlugin::on_execTime, Qt::UniqueConnection);
+  }
+}
+
+void DocumentPlugin::disconnectFromEngine()
+{
+  if(m_engine)
+  {
+    disconnect(
+        &m_engine->execution_ui_clock_timer, &QTimer::timeout, this,
+        &DocumentPlugin::on_execTime);
+  }
 }
 
 void DocumentPlugin::updateDisplay()
@@ -277,6 +307,8 @@ std::shared_ptr<Process::RemoteControl> DocumentPlugin::acquireRemoteControlInte
 {
   auto impl = std::make_shared<RemoteControlImpl>(*this);
   m_controllers.push_back({impl});
+  connectToEngine();
+
   return impl;
 }
 
@@ -285,6 +317,11 @@ void DocumentPlugin::releaseRemoteControlInterface(
 {
   ossia::remove_erase_if(
       m_controllers, [&impl](const Controller& e) { return e.controller == impl; });
+
+  if(m_controllers.empty())
+  {
+    disconnectFromEngine();
+  }
 }
 
 template <typename Vector>
@@ -371,6 +408,19 @@ void DocumentPlugin::offsetControl(
       }
       break;
     }
+  }
+}
+
+void DocumentPlugin::on_execTime()
+{
+  if(m_controllers.empty())
+    return;
+
+  auto t = m_engine->execution().execution_time();
+
+  for(auto& ctl : this->m_controllers)
+  {
+    ctl.controller->transportChanged(t, 1., 1., 1., 1.);
   }
 }
 std::vector<Process::RemoteControl::ControllerHandle>

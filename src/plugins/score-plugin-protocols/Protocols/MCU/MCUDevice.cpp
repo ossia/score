@@ -119,6 +119,9 @@ public:
     QObject::connect(
         m_rc.get(), &Process::RemoteControl::controlValueChanged, this,
         &mcu_protocol::on_control_value_changed);
+    QObject::connect(
+        m_rc.get(), &Process::RemoteControl::transportChanged, this,
+        &mcu_protocol::on_transport_changed);
 
     blank();
   }
@@ -251,6 +254,22 @@ public:
         }
       }
     }
+  }
+
+  void on_transport_changed(ossia::time_value t, double b, double q, double s, double ss)
+  {
+    const double one_hour_in_ms = 3600 * 1000;
+    const double one_minute_in_ms = 60000;
+    const double one_second_in_ms = 1000;
+    int64_t ms = t.impl / ossia::flicks_per_millisecond<double>;
+    int64_t hours = ms / one_hour_in_ms;
+    ms -= hours * one_hour_in_ms;
+    int64_t minutes = ms / one_minute_in_ms;
+    ms -= minutes * one_minute_in_ms;
+    int64_t seconds = ms / one_second_in_ms;
+    ms -= seconds * one_second_in_ms;
+
+    this->m_rcp->update_timecode(hours, minutes, seconds, ms);
   }
 
   void on_command(libremidi::remote_control_protocol::mixer_command cmd, bool pressed)

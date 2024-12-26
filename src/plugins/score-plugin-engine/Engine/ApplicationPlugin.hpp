@@ -58,10 +58,12 @@ public:
   void on_createdDocument(score::Document& doc) override;
   void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
-  QWidget* setupTimingWidget(QLabel*) const;
+  QWidget* setupTimingWidget(QLabel*);
   void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
   Execution::ExecutionController& execution() { return m_execution; }
+
+  QTimer execution_ui_clock_timer{};
 
 private:
   Execution::PlayContextMenu m_playActions;

@@ -123,11 +123,12 @@ void ApplicationPlugin::initialize()
   m_execution.init_transport();
 }
 
-QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
+QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label)
 {
-  auto timer = new QTimer{time_label};
   score::setHelp(time_label, tr("Elapsed time since the beginning of playback"));
-  connect(timer, &QTimer::timeout, this, [this, time_label] {
+
+  auto c = connect(
+      &execution_ui_clock_timer, &QTimer::timeout, time_label, [this, time_label] {
     auto t = m_execution.execution_time();
     if(t == TimeVal::zero())
     {
@@ -153,7 +154,7 @@ QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
                               .arg(ms, 3, 10, QLatin1Char('0')));
     }
   });
-  timer->start(1000 / 20);
+  execution_ui_clock_timer.start(1000 / 20);
   return time_label;
 }
 
