@@ -14,9 +14,10 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 
+#include <QTimer>
+
 #include <memory>
 #include <verdigris>
-
 inline QDataStream& operator<<(QDataStream& i, const ossia::bench_map& sel)
 {
   SCORE_ABORT;

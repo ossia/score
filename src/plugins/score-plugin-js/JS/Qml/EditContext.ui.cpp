@@ -5,6 +5,7 @@
 #include <score/tools/std/StringHash.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 
+#include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 
 #include <ossia/detail/hash_map.hpp>

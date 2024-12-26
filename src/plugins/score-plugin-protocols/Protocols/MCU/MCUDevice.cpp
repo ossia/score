@@ -26,6 +26,7 @@
 #include <QKeyEvent>
 #include <QMainWindow>
 #include <QMimeData>
+#include <QTimer>
 
 #include <RemoteControl/RemoteControlProvider.hpp>
 // clang-format off
@@ -764,13 +765,15 @@ bool MCUDevice::reconnect()
     auto& remote_controls
         = this->m_doc.app.interfaces<Process::RemoteControlProviderList>();
 
-    if(!remote_controls.empty())
+    if(!remote_controls.empty() && !set.input_handle.empty()
+       && !set.output_handle.empty())
     {
       auto rc = remote_controls[0].make(this->m_doc);
       if(rc)
       {
         auto proto = std::make_unique<mcu_protocol>(
-            this->m_doc, rc, this->m_ctx, set.api, set.input_handle, set.output_handle);
+            this->m_doc, rc, this->m_ctx, set.api, set.input_handle[0],
+            set.output_handle[0]);
 
         auto dev = std::make_unique<ossia::net::generic_device>(
             std::move(proto), settings().name.toStdString());

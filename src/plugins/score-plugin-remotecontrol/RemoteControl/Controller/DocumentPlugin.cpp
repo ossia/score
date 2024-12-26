@@ -5,6 +5,9 @@
 
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/network/domain/domain_functions.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
 #include <RemoteControl/Controller/DocumentPlugin.hpp>
 #include <RemoteControl/Controller/RemoteControlProvider.hpp>
 

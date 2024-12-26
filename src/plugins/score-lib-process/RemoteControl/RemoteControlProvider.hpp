@@ -1,12 +1,19 @@
 #pragma once
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #include <ossia-qt/time_value.hpp>
 #include <ossia-qt/value_metatypes.hpp>
 
+#include <QObject>
+
 #include <score_lib_process_export.h>
 
 #include <verdigris>
+namespace score
+{
+struct DocumentContext;
+}
 
 namespace Process
 {

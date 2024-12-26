@@ -2,7 +2,12 @@
 
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include <cmath>
+#include <ossia/dataflow/exec_state_facade.hpp>
+#include <ossia/detail/thread.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/protocol.hpp>
+#include <ossia/protocols/midi/midi_protocol.hpp>
+
 #include <halp/audio.hpp>
 #include <halp/controls.hpp>
 #include <halp/file_port.hpp>
@@ -10,10 +15,8 @@
 #include <halp/midi.hpp>
 #include <halp/midifile_port.hpp>
 #include <libremidi/message.hpp>
-#include <ossia/detail/thread.hpp>
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/base/protocol.hpp>
-#include <ossia/protocols/midi/midi_protocol.hpp>
+
+#include <cmath>
 
 #include <thread>
 

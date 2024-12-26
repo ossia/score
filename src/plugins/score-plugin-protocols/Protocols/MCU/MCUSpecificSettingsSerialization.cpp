@@ -23,11 +23,13 @@ void DataStreamWriter::write(libremidi::port_information& n)
 template <>
 void JSONReader::read(const libremidi::port_information& n)
 {
+  stream.StartObject();
   obj["Port"] = n.port;
   obj["Manufacturer"] = n.manufacturer;
   obj["DeviceName"] = n.device_name;
   obj["PortName"] = n.port_name;
   obj["DisplayName"] = n.display_name;
+  stream.EndObject();
 }
 
 template <>
@@ -41,19 +43,64 @@ void JSONWriter::write(libremidi::port_information& n)
 }
 
 template <>
+void DataStreamReader::read(const libremidi::input_port& n)
+{
+  read(static_cast<const libremidi::port_information&>(n));
+}
+
+template <>
+void DataStreamWriter::write(libremidi::input_port& n)
+{
+  write(static_cast<libremidi::port_information&>(n));
+}
+
+template <>
+void JSONReader::read(const libremidi::input_port& n)
+{
+  read(static_cast<const libremidi::port_information&>(n));
+}
+
+template <>
+void JSONWriter::write(libremidi::input_port& n)
+{
+  write(static_cast<libremidi::port_information&>(n));
+}
+
+template <>
+void DataStreamReader::read(const libremidi::output_port& n)
+{
+  read(static_cast<const libremidi::port_information&>(n));
+}
+
+template <>
+void DataStreamWriter::write(libremidi::output_port& n)
+{
+  write(static_cast<libremidi::port_information&>(n));
+}
+
+template <>
+void JSONReader::read(const libremidi::output_port& n)
+{
+  read(static_cast<const libremidi::port_information&>(n));
+}
+
+template <>
+void JSONWriter::write(libremidi::output_port& n)
+{
+  write(static_cast<libremidi::port_information&>(n));
+}
+
+template <>
 void DataStreamReader::read(const Protocols::MCUSpecificSettings& n)
 {
-  m_stream << static_cast<const libremidi::port_information&>(n.input_handle)
-           << static_cast<const libremidi::port_information&>(n.output_handle) << n.api
-           << n.mode;
+  m_stream << n.input_handle << n.output_handle << n.api << n.mode;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::MCUSpecificSettings& n)
 {
-  m_stream >> static_cast<libremidi::port_information&>(n.input_handle)
-      >> static_cast<libremidi::port_information&>(n.output_handle) >> n.api >> n.mode;
+  m_stream >> n.input_handle >> n.output_handle >> n.api >> n.mode;
   checkDelimiter();
 }
 
@@ -61,8 +108,8 @@ template <>
 void JSONReader::read(const Protocols::MCUSpecificSettings& n)
 {
   obj["API"] = n.api;
-  obj["Input"] = static_cast<const libremidi::port_information&>(n.input_handle);
-  obj["Output"] = static_cast<const libremidi::port_information&>(n.output_handle);
+  obj["Input"] = n.input_handle;
+  obj["Output"] = n.output_handle;
   // FIXME mode
 }
 
@@ -70,7 +117,7 @@ template <>
 void JSONWriter::write(Protocols::MCUSpecificSettings& n)
 {
   n.api <<= obj["API"];
-  static_cast<libremidi::port_information&>(n.input_handle) <<= obj["Input"];
-  static_cast<libremidi::port_information&>(n.output_handle) <<= obj["Output"];
+  n.input_handle <<= obj["Input"];
+  n.output_handle <<= obj["Output"];
   // FIXME mode
 }

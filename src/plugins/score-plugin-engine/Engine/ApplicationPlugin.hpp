@@ -8,6 +8,8 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
+#include <QTimer>
+
 #include <score_plugin_engine_export.h>
 
 #include <memory>
