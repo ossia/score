@@ -8,6 +8,7 @@
 #include <RemoteControl/Websockets/Scenario/Scenario.hpp>
 
 #include <score_plugin_deviceexplorer.hpp>
+#include <score_plugin_engine.hpp>
 #include <score_plugin_scenario.hpp>
 
 score_plugin_remotecontrol::score_plugin_remotecontrol() { }
@@ -42,7 +43,8 @@ std::vector<score::InterfaceBase*> score_plugin_remotecontrol::factories(
 auto score_plugin_remotecontrol::required() const -> std::vector<score::PluginKey>
 {
   return {
-      score_plugin_scenario::static_key(), score_plugin_deviceexplorer::static_key()};
+      score_plugin_scenario::static_key(), score_plugin_deviceexplorer::static_key(),
+      score_plugin_engine::static_key()};
 }
 
 #include <score/plugins/PluginInstances.hpp>

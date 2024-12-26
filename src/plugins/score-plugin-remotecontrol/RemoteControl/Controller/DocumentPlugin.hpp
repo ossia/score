@@ -12,6 +12,10 @@
 #include <ossia/detail/flat_map.hpp>
 
 #include <RemoteControl/RemoteControlProvider.hpp>
+namespace Engine
+{
+class ApplicationPlugin;
+}
 namespace RemoteControl::Controller
 {
 // In JS:
@@ -46,6 +50,10 @@ public:
   JS::EditJsContext editContext;
 
 private:
+  void connectToEngine();
+  void disconnectFromEngine();
+
+  void on_execTime();
   void on_selectionChanged(const Selection& old, const Selection& current);
 
   void deselectProcess();
@@ -59,6 +67,7 @@ private:
   void updateDisplayedControls();
   void updateDisplay();
 
+  Engine::ApplicationPlugin* m_engine{};
   Process::ProcessModel* m_currentProcess{};
   std::vector<Process::ControlInlet*> m_currentControls{};
   std::span<Process::ControlInlet*> m_displayedControls{};

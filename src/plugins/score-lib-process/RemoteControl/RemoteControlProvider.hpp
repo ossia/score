@@ -1,6 +1,7 @@
 #pragma once
 #include <score/plugins/Interface.hpp>
 
+#include <ossia-qt/time_value.hpp>
 #include <ossia-qt/value_metatypes.hpp>
 
 #include <score_lib_process_export.h>
@@ -97,9 +98,9 @@ public:
   void controlValueChanged(ControllerHandle index, ossia::value value)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlValueChanged, index, value);
 
-  void transportChanged(double seconds, double bar, double beat, double sub, double tick)
-      E_SIGNAL(
-          SCORE_LIB_PROCESS_EXPORT, transportChanged, seconds, bar, beat, sub, tick);
+  void transportChanged(
+      ossia::time_value flicks, double bar, double beat, double sub, double tick)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, transportChanged, flicks, bar, beat, sub, tick);
 };
 
 class SCORE_LIB_PROCESS_EXPORT RemoteControlProvider : public score::InterfaceBase
