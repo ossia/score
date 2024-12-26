@@ -23,13 +23,22 @@ find_library(Suil_LIBRARY
 if(Suil_INCLUDE_DIR AND Suil_LIBRARY)
   set(Suil_FOUND TRUE)
 endif()
+if(UNIX AND NOT APPLE)
+  get_filename_component(Suil_FOLDER "${Suil_LIBRARY}" DIRECTORY)
+  if(NOT ((EXISTS "${Suil_FOLDER}/libsuil_x11_in_qt6.so") OR (EXISTS "${Suil_FOLDER}/suil-0/libsuil_x11_in_qt6.so")))
+    unset(Suil_INCLUDE_DIR)
+    unset(Suil_LIBRARY)
+    unset(Suil_FOUND)
+    include("${3RDPARTY_FOLDER}/suil.cmake")
+  endif()
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
     Suil DEFAULT_MSG
     Suil_LIBRARY Suil_INCLUDE_DIR)
 
-if(Suil_FOUND)
+if(Suil_FOUND AND NOT TARGET Suil::Suil)
     set(Suil_LIBRARIES ${Suil_LIBRARY})
     set(Suil_INCLUDE_DIRS ${Suil_INCLUDE_DIR})
 

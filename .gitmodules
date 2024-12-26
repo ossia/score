@@ -97,3 +97,6 @@
 [submodule "3rdparty/miniply"]
 	path = 3rdparty/miniply
 	url = https://github.com/vilya/miniply
+[submodule "3rdparty/suil"]
+	path = 3rdparty/suil
+	url = https://github.com/lv2/suil
