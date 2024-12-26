@@ -8,7 +8,7 @@
 , avahi
 , avahi-compat
 , bluez
-, boost185
+, boost
 # , faust
 , fmt
 , git
@@ -51,7 +51,7 @@ clangStdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     alsa-lib
-    boost185
+    boost
     # faust
     avahi
     avahi-compat

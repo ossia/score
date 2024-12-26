@@ -44,6 +44,7 @@ public:
     m_lanes.setValue(pat.lanes.size());
     m_duration.setValue(pat.length);
     m_rate.setValue(pat.division);
+    m_currentPattern.setValue(obj.currentPattern());
 
     auto lay = new QFormLayout{this};
 

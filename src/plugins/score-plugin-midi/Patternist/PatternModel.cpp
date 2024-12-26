@@ -75,7 +75,7 @@ void ProcessModel::setCurrentPattern(int n)
     for(auto& lane : pattern.lanes)
       std::fill(lane.pattern.begin(), lane.pattern.end(), false);
 
-    while(n >= patterns)
+    while(n >= std::ssize(m_patterns))
       m_patterns.push_back(pattern);
   }
 
