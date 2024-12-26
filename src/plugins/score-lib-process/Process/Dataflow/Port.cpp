@@ -283,25 +283,33 @@ ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent)
 }
 ControlInlet::~ControlInlet() { }
 
-ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent)
+ControlInlet::ControlInlet(
+    DataStream::Deserializer& vis, QObject* parent, bool skip_this)
     : Inlet{vis, parent}
 {
-  vis.writeTo(*this);
+  if(!skip_this)
+    vis.writeTo(*this);
 }
-ControlInlet::ControlInlet(JSONObject::Deserializer& vis, QObject* parent)
+ControlInlet::ControlInlet(
+    JSONObject::Deserializer& vis, QObject* parent, bool skip_this)
     : Inlet{vis, parent}
 {
-  vis.writeTo(*this);
+  if(!skip_this)
+    vis.writeTo(*this);
 }
-ControlInlet::ControlInlet(DataStream::Deserializer&& vis, QObject* parent)
+ControlInlet::ControlInlet(
+    DataStream::Deserializer&& vis, QObject* parent, bool skip_this)
     : Inlet{vis, parent}
 {
-  vis.writeTo(*this);
+  if(!skip_this)
+    vis.writeTo(*this);
 }
-ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
+ControlInlet::ControlInlet(
+    JSONObject::Deserializer&& vis, QObject* parent, bool skip_this)
     : Inlet{vis, parent}
 {
-  vis.writeTo(*this);
+  if(!skip_this)
+    vis.writeTo(*this);
 }
 
 QByteArray ControlInlet::saveData() const noexcept

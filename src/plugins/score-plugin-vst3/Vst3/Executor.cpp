@@ -34,9 +34,9 @@ struct ConnectValueChanged
   {
     QObject::connect(
         ctrl, &vst3::ControlInlet::valueChanged, self,
-        [queue_idx = this->queue_idx, n = this->n](float v) {
-      n->set_control(queue_idx, v);
-        });
+        [queue_idx = this->queue_idx, n = this->n](const ossia::value& v) {
+      n->set_control(queue_idx, ossia::convert<float>(v));
+    });
   }
 };
 }
@@ -53,8 +53,10 @@ void Executor::setupNode(Node_T& node)
     {
       auto queue_idx
           = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
-      connect(ctrl, &vst3::ControlInlet::valueChanged, this, [queue_idx, node](float v) {
-        node->set_control(queue_idx, v);
+      connect(
+          ctrl, &vst3::ControlInlet::valueChanged, this,
+          [queue_idx, node](const ossia::value& v) {
+        node->set_control(queue_idx, ossia::convert<float>(v));
       });
     }
   }

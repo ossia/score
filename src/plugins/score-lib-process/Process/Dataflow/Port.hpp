@@ -212,10 +212,10 @@ public:
   ControlInlet(const QString& name, Id<Process::Port> c, QObject* parent);
   ControlInlet(Id<Process::Port> c, QObject* parent);
 
-  ControlInlet(DataStream::Deserializer& vis, QObject* parent);
-  ControlInlet(JSONObject::Deserializer& vis, QObject* parent);
-  ControlInlet(DataStream::Deserializer&& vis, QObject* parent);
-  ControlInlet(JSONObject::Deserializer&& vis, QObject* parent);
+  ControlInlet(DataStream::Deserializer& vis, QObject* parent, bool skip_this = false);
+  ControlInlet(JSONObject::Deserializer& vis, QObject* parent, bool skip_this = false);
+  ControlInlet(DataStream::Deserializer&& vis, QObject* parent, bool skip_this = false);
+  ControlInlet(JSONObject::Deserializer&& vis, QObject* parent, bool skip_this = false);
 
   VIRTUAL_CONSTEXPR PortType type() const noexcept override
   {

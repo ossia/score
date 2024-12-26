@@ -48,9 +48,9 @@ void GraphicsSlider::setValue(double v)
   update();
 }
 
-void GraphicsSlider::setExecutionValue(double v)
+void GraphicsSlider::setExecutionValue(const ossia::value& v)
 {
-  m_execValue = ossia::clamp(v, 0., 1.);
+  m_execValue = ossia::clamp(ossia::convert<float>(v), 0.f, 1.f);
   m_hasExec = true;
   update();
 }
@@ -96,7 +96,6 @@ void GraphicsSlider::paint(
   fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
 
   m_execValue = fx->getParameter(fx, num);
-  m_hasExec = std::abs(m_execValue - m_value) > 0.0001;
   score::DefaultGraphicsSliderImpl::paint(
       *this, score::Skin::instance(), QString::fromUtf8(str), painter, widget);
 }
@@ -225,9 +224,10 @@ QWidget* VSTFloatSlider::make_widget(
     sl->moving = false;
   });
 
-  QObject::connect(&inlet, &ControlInlet::valueChanged, sl, [=](float val) {
+  QObject::connect(
+      &inlet, &ControlInlet::valueChanged, sl, [=](const ossia::value& val) {
     if(!sl->moving)
-      sl->setValue(val);
+      sl->setValue(ossia::convert<float>(val));
   });
 
   return sl;
@@ -248,9 +248,10 @@ QGraphicsItem* VSTFloatSlider::make_item(
     sl->moving = false;
   });
 
-  QObject::connect(&inlet, &ControlInlet::valueChanged, sl, [=](float val) {
+  QObject::connect(
+      &inlet, &ControlInlet::valueChanged, sl, [=](const ossia::value& val) {
     if(!sl->moving)
-      sl->setValue(val);
+      sl->setValue(ossia::convert<float>(val));
   });
 
   QObject::connect(

@@ -51,9 +51,9 @@ void VSTGraphicsSlider::setValue(double v)
   update();
 }
 
-void VSTGraphicsSlider::setExecutionValue(double v)
+void VSTGraphicsSlider::setExecutionValue(const ossia::value& v)
 {
-  m_execValue = ossia::clamp(v, 0., 1.);
+  m_execValue = ossia::clamp(ossia::convert<double>(v), 0., 1.);
   m_hasExec = true;
   update();
 }
@@ -221,9 +221,10 @@ QWidget* VSTFloatSlider::make_widget(
     sl->moving = false;
   });
 
-  QObject::connect(&inlet, &vst3::ControlInlet::valueChanged, sl, [=](float val) {
+  QObject::connect(
+      &inlet, &vst3::ControlInlet::valueChanged, sl, [=](const ossia::value& val) {
     if(!sl->moving)
-      sl->setValue(val);
+      sl->setValue(ossia::convert<float>(val));
   });
 
   return sl;
@@ -233,6 +234,7 @@ QGraphicsItem* VSTFloatSlider::make_item(
     const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
 {
   auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, parent};
+  sl->init = ossia::convert<double>(inlet.init());
   sl->setValue(ossia::convert<double>(inlet.value()));
 
   QObject::connect(sl, &VSTGraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
@@ -244,9 +246,10 @@ QGraphicsItem* VSTFloatSlider::make_item(
     sl->moving = false;
   });
 
-  QObject::connect(&inlet, &vst3::ControlInlet::valueChanged, sl, [=](float val) {
+  QObject::connect(
+      &inlet, &vst3::ControlInlet::valueChanged, sl, [=](const ossia::value& val) {
     if(!sl->moving)
-      sl->setValue(val);
+      sl->setValue(ossia::convert<float>(val));
   });
 
   QObject::connect(

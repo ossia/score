@@ -124,11 +124,15 @@ void DocumentPlugin::selectProcess(Process::ProcessModel& p)
 
   // 2. Update whenever the process changes
   {
-    vec.push_back(
-        connect(&p, &Process::ProcessModel::inletsChanged, this, [this, proc = &p] {
-      this->deselectProcess();
-      this->selectProcess(*proc);
-    }, Qt::QueuedConnection));
+    vec.push_back(connect(
+        &p, &Process::ProcessModel::inletsChanged, this, &DocumentPlugin::reloadProcess,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection)));
+    vec.push_back(connect(
+        &p, &Process::ProcessModel::controlAdded, this, &DocumentPlugin::reloadProcess,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection)));
+    vec.push_back(connect(
+        &p, &Process::ProcessModel::controlRemoved, this, &DocumentPlugin::reloadProcess,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection)));
 
     vec.push_back(
         connect(&p, &Process::ProcessModel::identified_object_destroying, this, [this] {
@@ -138,6 +142,14 @@ void DocumentPlugin::selectProcess(Process::ProcessModel& p)
 
   // 3. Update the display
   updateDisplay();
+}
+
+void DocumentPlugin::reloadProcess()
+{
+  auto proc = m_currentProcess;
+  this->deselectProcess();
+  if(proc)
+    this->selectProcess(*proc);
 }
 
 void DocumentPlugin::updateDisplayedControls()
