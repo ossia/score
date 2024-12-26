@@ -99,7 +99,7 @@ void RemoveControl::undo(const score::DocumentContext& ctx) const
 
   auto vst_inlet = qobject_cast<ControlInlet*>(inlet);
   SCORE_ASSERT(vst_inlet);
-  vst.on_addControl_impl(vst_inlet);
+  vst.on_addControl_impl(vst_inlet, nullptr);
 
   Dataflow::restoreCables(m_cables, ctx);
 }

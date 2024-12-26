@@ -202,7 +202,7 @@ void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
   ctrl->setValue(v.defaultNormalizedValue);
   ctrl->setName(fromString(v.title));
 
-  on_addControl_impl(ctrl);
+  on_addControl_impl(ctrl, &v);
 }
 
 void Model::removeControl(const Id<Process::Port>& id)
@@ -234,25 +234,41 @@ QString Model::effect() const noexcept
 
 void Model::init() { }
 
-void Model::on_addControl_impl(ControlInlet* ctrl)
+void Model::on_addControl_impl(
+    ControlInlet* ctrl, const Steinberg::Vst::ParameterInfo* info)
 {
   m_inlets.push_back(ctrl);
-  initControl(ctrl);
+  initControl(ctrl, info);
   controlAdded(ctrl->id());
 }
 
-void Model::initControl(ControlInlet* ctrl)
+void Model::initControl(ControlInlet* ctrl, const Steinberg::Vst::ParameterInfo* info)
 {
+  if(!info)
+  {
+    static thread_local Steinberg::Vst::ParameterInfo p;
+    auto it = m_paramToIndex.find(ctrl->fxNum);
+    if(it != m_paramToIndex.end())
+    {
+      if(fx.controller->getParameterInfo(ctrl->fxNum, p) == Steinberg::kResultOk)
+        info = &p;
+    }
+  }
+
   ctrl->setValue(fx.controller->getParamNormalized(ctrl->fxNum));
+  if(info)
+    ctrl->setInit(info->defaultNormalizedValue);
+
   connect(
       ctrl, &vst3::ControlInlet::valueChanged, this,
-      [this, i = ctrl->fxNum](float newval) {
+      [this, i = ctrl->fxNum](const ossia::value& vv) {
+    auto newval = ossia::convert<float>(vv);
     auto& c = *fx.controller;
     if(std::abs(newval - c.getParamNormalized(i)) > 0.0001)
     {
       c.setParamNormalized(i, newval);
     }
-      });
+  });
 
   SCORE_ASSERT(controls.find(ctrl->fxNum) == controls.end());
   controls.insert({ctrl->fxNum, ctrl});
@@ -529,7 +545,7 @@ void Model::load()
   {
     if(auto ctl = qobject_cast<ControlInlet*>(inlet))
     {
-      initControl(ctl);
+      initControl(ctl, nullptr);
     }
   }
 }

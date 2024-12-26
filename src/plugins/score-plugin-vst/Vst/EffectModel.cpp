@@ -287,7 +287,9 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
 {
   connect(
       ctrl, &ControlInlet::valueChanged, this,
-      [this, i = ctrl->fxNum](float newval) { on_controlChangedFromScore(i, newval); });
+      [this, i = ctrl->fxNum](const ossia::value& newval) {
+    on_controlChangedFromScore(i, ossia::convert<float>(newval));
+  });
 
   {
     /*
@@ -735,8 +737,10 @@ void Model::load()
     auto inlet = safe_cast<ControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
 
-    connect(inlet, &ControlInlet::valueChanged, this, [this, ctrl](float newval) {
-      on_controlChangedFromScore(ctrl, newval);
+    connect(
+        inlet, &ControlInlet::valueChanged, this,
+        [this, ctrl](const ossia::value& newval) {
+      on_controlChangedFromScore(ctrl, ossia::convert<float>(newval));
     });
     controls.insert({ctrl, inlet});
   }

@@ -62,7 +62,7 @@ public:
 
   void setValue(double v);
   double value() const;
-  void setExecutionValue(double v);
+  void setExecutionValue(const ossia::value& v);
   void resetExecution();
 
   bool moving = false;

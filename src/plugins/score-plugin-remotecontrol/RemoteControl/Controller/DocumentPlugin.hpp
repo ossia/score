@@ -52,6 +52,7 @@ public:
 private:
   void connectToEngine();
   void disconnectFromEngine();
+  void reloadProcess();
 
   void on_execTime();
   void on_selectionChanged(const Selection& old, const Selection& current);

@@ -11,36 +11,46 @@ struct Context;
 namespace vst3
 {
 
-class ControlInlet final : public Process::Inlet
+class ControlInlet final : public Process::ControlInlet
 {
   W_OBJECT(ControlInlet)
   SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL(ControlInlet)
   ControlInlet(Id<Process::Port> c, QObject* parent)
-      : Inlet{std::move(c), parent}
+      : Process::ControlInlet{std::move(c), parent}
   {
+    setDomain(ossia::make_domain(0.f, 1.f));
+    setInit(0.5);
   }
 
   ControlInlet(DataStream::Deserializer& vis, QObject* parent)
-      : Inlet{vis, parent}
+      : Process::ControlInlet{vis, parent, true}
   {
     vis.writeTo(*this);
+    setDomain(ossia::make_domain(0.f, 1.f));
+    setInit(0.5);
   }
   ControlInlet(JSONObject::Deserializer& vis, QObject* parent)
-      : Inlet{vis, parent}
+      : Process::ControlInlet{vis, parent, true}
   {
     vis.writeTo(*this);
+    setDomain(ossia::make_domain(0.f, 1.f));
+    setInit(0.5);
   }
   ControlInlet(DataStream::Deserializer&& vis, QObject* parent)
-      : Inlet{vis, parent}
+      : Process::ControlInlet{vis, parent, true}
   {
     vis.writeTo(*this);
+    setDomain(ossia::make_domain(0.f, 1.f));
+    setInit(0.5);
   }
   ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
-      : Inlet{vis, parent}
+      : Process::ControlInlet{vis, parent, true}
   {
     vis.writeTo(*this);
+    setDomain(ossia::make_domain(0.f, 1.f));
+    setInit(0.5);
   }
 
   VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override
@@ -49,25 +59,8 @@ public:
   }
 
   Steinberg::Vst::ParamID fxNum{};
-
-  float value() const { return m_value; }
-  void setValue(float v)
-  {
-    if(v != m_value)
-    {
-      m_value = v;
-      valueChanged(v);
-    }
-  }
-
-  inline void setExecutionValue(float value) { executionValueChanged(value); }
-
-public:
-  void valueChanged(float arg_1) W_SIGNAL(valueChanged, arg_1);
-  void executionValueChanged(float arg_1) W_SIGNAL(executionValueChanged, arg_1);
-
-private:
-  float m_value{};
+  float value() const { return ossia::convert<float>(Process::ControlInlet::value()); }
+  void setValue(float v) { Process::ControlInlet::setValue(v); }
 };
 
 struct VSTControlPortItem final : public Dataflow::AutomatablePortItem

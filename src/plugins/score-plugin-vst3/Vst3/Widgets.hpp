@@ -48,7 +48,7 @@ private:
 public:
   static const constexpr double min = 0.;
   static const constexpr double max = 1.;
-  static const constexpr double init = 0.5;
+  double init = 0.5;
   friend struct score::DefaultControlImpl;
   friend struct score::DefaultGraphicsSliderImpl;
   VSTGraphicsSlider(
@@ -61,7 +61,7 @@ public:
 
   void setValue(double v);
   double value() const;
-  void setExecutionValue(double v);
+  void setExecutionValue(const ossia::value& v);
   void resetExecution();
 
   bool moving = false;

@@ -73,8 +73,8 @@ public:
 
   void addControlFromEditor(Steinberg::Vst::ParamID id);
   void on_addControl(const Steinberg::Vst::ParameterInfo& v);
-  void on_addControl_impl(ControlInlet* inl);
-  void initControl(ControlInlet* inl);
+  void on_addControl_impl(ControlInlet* inl, const Steinberg::Vst::ParameterInfo*);
+  void initControl(ControlInlet* inl, const Steinberg::Vst::ParameterInfo*);
 
   void reloadControls();
   Steinberg::tresult restartComponent(int32_t flags);
