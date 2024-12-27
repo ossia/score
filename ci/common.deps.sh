@@ -28,7 +28,9 @@ clone_addon https://github.com/ossia/score-addon-synthimi
 clone_addon https://github.com/ossia/score-addon-jk
 clone_addon https://github.com/ossia/score-addon-puara
 
-if [[ "$1" != "WASM" ]];
+CI_PLATFORM="${1:-DEFAULT}"
+
+if [[ "$CI_PLATFORM" != "WASM" ]];
 then
   clone_addon https://github.com/ossia/score-addon-ltc
   clone_addon https://github.com/ossia/score-addon-threedim
