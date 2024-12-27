@@ -726,5 +726,7 @@
         <file>icons/exclusive_on@2x.png</file>
         <file>icons/exclusive_hover.png</file>
         <file>icons/exclusive_hover@2x.png</file>
+        <file>icons/ai.png</file>
+        <file>icons/ai@2x.png</file>
     </qresource>
 </RCC>
