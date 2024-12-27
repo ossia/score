@@ -10,6 +10,7 @@
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QPushButton>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -160,8 +161,7 @@ void MultiScriptDialog::clearError()
 
 void ScriptDialog::openInExternalEditor()
 {
-  QString editorPath
-      = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code";
+  QString editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
 
   if(editorPath.isEmpty())
   {
