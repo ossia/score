@@ -101,5 +101,6 @@ else()
   score-plugin-fx
   score-plugin-ui
   score-plugin-analysis
+  score-plugin-threedim
   )
 endif()
