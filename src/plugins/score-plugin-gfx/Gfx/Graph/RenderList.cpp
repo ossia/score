@@ -186,8 +186,10 @@ QImage RenderList::adaptImage(const QImage& frame)
 }
 
 RenderList::Buffers RenderList::acquireMesh(
-    const ossia::geometry_spec& spec, QRhiResourceUpdateBatch& res) noexcept
+    const ossia::geometry_spec& spec, QRhiResourceUpdateBatch& res, const Mesh* current,
+    MeshBuffers currentbufs) noexcept
 {
+  // 1. Try to find mesh from the exact same geometry
   const auto& [p, f] = spec;
   if(auto it = m_customMeshCache.find(spec); it != m_customMeshCache.end())
   {
@@ -214,6 +216,35 @@ RenderList::Buffers RenderList::acquireMesh(
     }
   }
 
+  // 2. If not found try to see if the mesh is already used
+  for(const auto& [k, v] : m_customMeshCache)
+  {
+    if(v == current)
+    {
+      auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(current));
+
+      if(m)
+      {
+        auto meshbufs_it = this->m_vertexBuffers.find(m);
+        SCORE_ASSERT(meshbufs_it != this->m_vertexBuffers.end());
+        SCORE_ASSERT(meshbufs_it->second.index == currentbufs.index);
+        SCORE_ASSERT(meshbufs_it->second.mesh == currentbufs.mesh);
+        auto mb = currentbufs;
+        auto cur_idx = p->dirty_index;
+
+        {
+          m->reload(*p, f);
+          m->update(mb, res);
+          // FIXME atomic !!
+          if(cur_idx > m->dirtyGeometryIndex)
+            m->dirtyGeometryIndex = cur_idx;
+        }
+        return {m, mb};
+      }
+    }
+  }
+
+  // 3. Really not found, we allocate a new mesh for good
   auto m = new CustomMesh{*p, f};
   auto meshbufs = initMeshBuffer(*m, res);
 

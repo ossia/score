@@ -89,8 +89,9 @@ public:
   RenderState& state;
 
   using Buffers = std::pair<const Mesh* const, MeshBuffers>;
-  Buffers
-  acquireMesh(const ossia::geometry_spec&, QRhiResourceUpdateBatch& res) noexcept;
+  Buffers acquireMesh(
+      const ossia::geometry_spec&, QRhiResourceUpdateBatch& res, const Mesh* current,
+      MeshBuffers currentbufs) noexcept;
 
   /**
    * @brief Nodes present in this RenderList, in order
