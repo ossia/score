@@ -5,6 +5,7 @@
 
 #include <core/document/DocumentView.hpp>
 
+#include <QCoreApplication>
 #include <QMainWindow>
 #include <QWheelEvent>
 
