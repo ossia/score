@@ -1,0 +1,64 @@
+name: AppImage
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  appimage:
+    name: AppImage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: ./ci/appimage.deps.sh
+
+      - name: Build
+        run: ./ci/appimage.build.sh
+
+      - name: Deploy
+        run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          export BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD/staging"
+          mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
+          ./ci/appimage.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: appimage
+          path: |
+            staging/*.*
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
+        with:
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*

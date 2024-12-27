@@ -12,6 +12,60 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  win32:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        shell: bash
+        run: ./ci/win32.deps.sh
+
+      - name: Build
+        shell: bash
+        run: ./ci/win32.build.sh
+
+      - name: Deploy
+        shell: bash
+        run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          export BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD/staging"
+          mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
+          ./ci/win32.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            staging/*.*
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
+        with:
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.*
+
   winstore:
     name: Windows (store)
     runs-on: windows-latest
