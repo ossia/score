@@ -6,6 +6,11 @@ if(NOT LV2_PATH)
   return()
 endif()
 
+find_package(X11)
+if(NOT X11_FOUND)
+  return()
+endif()
+
 set(Suil_INCLUDE_DIR "${3RDPARTY_FOLDER}/suil/include")
 
 add_library(Suil SHARED
@@ -42,7 +47,7 @@ target_include_directories(suil_x11_in_qt6
 )
 
 target_link_libraries(suil_x11_in_qt6
-    PRIVATE Suil Qt6::Core Qt6::Gui Qt6::Widgets X11
+    PRIVATE Suil Qt6::Core Qt6::Gui Qt6::Widgets X11::X11
 )
 
 set(Suil_LIBRARY Suil)
