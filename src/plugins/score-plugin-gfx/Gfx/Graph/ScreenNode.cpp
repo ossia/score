@@ -301,7 +301,11 @@ void ScreenNode::createOutput(
     std::function<void()> onUpdate, std::function<void()> onResize)
 {
   if(m_ownsWindow)
+  {
     m_window = std::make_shared<Window>(graphicsApi);
+    if(m_embedded)
+      m_window->unsetCursor();
+  }
 
 #if QT_HAS_VULKAN
   if(graphicsApi == Vulkan)
