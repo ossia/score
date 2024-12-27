@@ -7,7 +7,9 @@
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QPlainTextEdit>
+#include <QProcess>
 #include <QPushButton>
+#include <QStandardPaths>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -50,6 +52,10 @@ ScriptDialog::ScriptDialog(
   connect(
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
+
+  auto openExternalBtn = new QPushButton{tr("Open in external editor.."), this};
+  connect(openExternalBtn, &QPushButton::clicked, this, [this] {});
+  lay->addWidget(openExternalBtn);
 }
 
 QString ScriptDialog::text() const noexcept
@@ -150,4 +156,4 @@ void MultiScriptDialog::clearError()
   m_error->clear();
 }
 
-}
+void ScriptDialog::openInExternalEditor() { }
