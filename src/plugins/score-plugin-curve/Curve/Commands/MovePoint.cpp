@@ -32,7 +32,6 @@ MovePoint::MovePoint(
       // another
       if(std::abs(m_oldPoint.x() - m_newPoint.x()) < 0.0001)
       {
-        qDebug() << m_oldPoint.x() - m_newPoint.x();
         m_newPoint.rx() = m_oldPoint.x();
       }
 

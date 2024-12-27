@@ -20,8 +20,10 @@ namespace Patternist
 ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
-        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+          ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
+    , accent{Process::make_value_outlet(Id<Process::Port>(1), this)}
+    , slide{Process::make_value_outlet(Id<Process::Port>(2), this)}
 {
   Pattern pattern;
   pattern.length = 4;
@@ -37,7 +39,6 @@ ProcessModel::ProcessModel(
     const Id<Process::ProcessModel>& id, QObject* parent)
     : Patternist::ProcessModel{duration, id, parent}
 {
-
   if(QFile f{customData}; f.open(QIODevice::ReadOnly))
     if(auto data = score::mapAsByteArray(f); !data.isEmpty())
       if(auto pat = parsePattern(data); pat.lanes.size() > 0)
@@ -47,6 +48,8 @@ ProcessModel::ProcessModel(
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
+  m_outlets.push_back(accent.get());
+  m_outlets.push_back(slide.get());
 }
 
 ProcessModel::~ProcessModel() { }
@@ -196,7 +199,8 @@ void JSONWriter::write(Patternist::Pattern& proc)
 template <>
 void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
-  m_stream << *proc.outlet << proc.m_channel << proc.m_currentPattern << proc.m_patterns;
+  m_stream << *proc.outlet << *proc.accent << *proc.slide << proc.m_channel
+           << proc.m_currentPattern << proc.m_patterns;
 
   insertDelimiter();
 }
@@ -205,7 +209,8 @@ template <>
 void DataStreamWriter::write(Patternist::ProcessModel& proc)
 {
   proc.outlet = Process::load_midi_outlet(*this, &proc);
-  m_stream >> proc.m_channel >> proc.m_currentPattern >> proc.m_patterns;
+  m_stream >> proc.m_channel >> *proc.accent >> *proc.slide >> proc.m_currentPattern
+      >> proc.m_patterns;
 
   checkDelimiter();
 }
@@ -214,6 +219,8 @@ template <>
 void JSONReader::read(const Patternist::ProcessModel& proc)
 {
   obj["Outlet"] = *proc.outlet;
+  obj["Accent"] = *proc.accent;
+  obj["Slide"] = *proc.slide;
   obj["Channel"] = proc.m_channel;
   obj["Pattern"] = proc.m_currentPattern;
   obj["Patterns"] = proc.m_patterns;
@@ -225,6 +232,26 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
   {
     JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_midi_outlet(writer, &proc);
+  }
+
+  if(auto port = obj.tryGet("Accent"))
+  {
+    JSONWriter writer{*port};
+    proc.accent = Process::load_value_outlet(writer, &proc);
+  }
+  else
+  {
+    proc.accent = Process::make_value_outlet(Id<Process::Port>(1), &proc);
+  }
+
+  if(auto port = obj.tryGet("Slide"))
+  {
+    JSONWriter writer{*port};
+    proc.slide = Process::load_value_outlet(writer, &proc);
+  }
+  else
+  {
+    proc.slide = Process::make_value_outlet(Id<Process::Port>(2), &proc);
   }
   proc.m_channel = obj["Channel"].toInt();
   proc.m_currentPattern = obj["Pattern"].toInt();

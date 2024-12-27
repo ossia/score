@@ -7,6 +7,10 @@
 
 #include <verdigris>
 
+namespace Process
+{
+class ValueOutlet;
+}
 namespace Patternist
 {
 struct Lane
@@ -68,6 +72,8 @@ public:
   const std::vector<Pattern>& patterns() const noexcept;
 
   std::unique_ptr<Process::MidiOutlet> outlet;
+  std::unique_ptr<Process::Outlet> accent;
+  std::unique_ptr<Process::Outlet> slide;
 
 public:
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);

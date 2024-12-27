@@ -18,7 +18,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsNoteChooser final
   W_OBJECT(QGraphicsNoteChooser)
   SCORE_GRAPHICS_ITEM_TYPE(120)
 
-  static constexpr int m_min = 0;
+  static constexpr int m_min = -2;
   static constexpr int m_max = 127;
   static constexpr double m_width = 30;
   static constexpr double m_height = 28;
@@ -28,7 +28,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsNoteChooser final
   bool m_grab{};
 
 public:
-  QGraphicsNoteChooser(QGraphicsItem* parent);
+  explicit QGraphicsNoteChooser(QGraphicsItem* parent);
 
   void setValue(int v);
   int value() const;

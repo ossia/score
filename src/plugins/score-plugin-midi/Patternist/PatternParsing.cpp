@@ -31,6 +31,17 @@ Pattern parsePattern(const QByteArray& data) noexcept
       Lane lane;
       bool ok = false;
       lane.note = split[0].toInt(&ok);
+      if(!ok && split[0] == "AC")
+      {
+        lane.note = 255;
+        ok = true;
+      }
+      if(!ok && split[0] == "SL")
+      {
+        lane.note = 254;
+        ok = true;
+      }
+
       if(ok)
       {
         p.length = split[1].size();

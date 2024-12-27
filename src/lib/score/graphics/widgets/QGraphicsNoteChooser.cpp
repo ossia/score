@@ -26,7 +26,19 @@ QGraphicsNoteChooser::QGraphicsNoteChooser(QGraphicsItem* parent)
 
 void QGraphicsNoteChooser::setValue(int v)
 {
-  m_value = ossia::clamp(v, m_min, m_max);
+  switch(v)
+  {
+    case 255:
+      m_value = -1;
+      break;
+    case 254:
+      m_value = -2;
+      break;
+    default:
+      m_value = ossia::clamp(v, m_min, m_max);
+      break;
+  }
+
   update();
 }
 
@@ -91,7 +103,15 @@ static QString noteText(int n)
 {
   static constexpr QStringView lit[12]{u"C",  u"C#", u"D",  u"D#", u"E",  u"F",
                                        u"F#", u"G",  u"G#", u"A",  u"A#", u"B"};
-  return QString{"%1%2"}.arg(lit[n % 12]).arg(n / 12 - 1);
+  switch(n)
+  {
+    case -1:
+      return "AC";
+    case -2:
+      return "SL";
+    default:
+      return QString{"%1%2"}.arg(lit[n % 12]).arg(n / 12 - 1);
+  }
 }
 
 void QGraphicsNoteChooser::paint(
