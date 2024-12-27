@@ -33,7 +33,6 @@ CI_PLATFORM="${1:-DEFAULT}"
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
   clone_addon https://github.com/ossia/score-addon-ltc
-  clone_addon https://github.com/ossia/score-addon-threedim
   clone_addon https://github.com/ossia/score-addon-ndi
   clone_addon https://github.com/bltzr/score-avnd-granola
   clone_addon https://github.com/ossia/score-addon-ultraleap
