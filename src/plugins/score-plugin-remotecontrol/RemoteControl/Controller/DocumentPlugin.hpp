@@ -12,6 +12,9 @@
 #include <ossia/detail/flat_map.hpp>
 
 #include <RemoteControl/RemoteControlProvider.hpp>
+
+#include <span>
+
 namespace Engine
 {
 class ApplicationPlugin;
@@ -30,15 +33,16 @@ class RemoteControlProvider;
 class DocumentPlugin : public score::DocumentPlugin
 {
 public:
-  using ControllerHandle = Process::RemoteControl::ControllerHandle;
+  using ControllerHandle = Process::RemoteControlInterface::ControllerHandle;
   DocumentPlugin(const score::DocumentContext& doc, QObject* parent);
   ~DocumentPlugin();
 
-  std::shared_ptr<Process::RemoteControl> acquireRemoteControlInterface();
-  void releaseRemoteControlInterface(std::shared_ptr<Process::RemoteControl>);
+  std::shared_ptr<Process::RemoteControlInterface> acquireRemoteControlInterface();
+  void releaseRemoteControlInterface(std::shared_ptr<Process::RemoteControlInterface>);
 
   std::vector<ControllerHandle> registerControllerGroup(
-      RemoteControlImpl&, Process::RemoteControl::ControllerHint hint, int count);
+      RemoteControlImpl&, Process::RemoteControlInterface::ControllerHint hint,
+      int count);
 
   void prevBank(RemoteControlImpl&);
   void nextBank(RemoteControlImpl&);
@@ -77,7 +81,7 @@ private:
   int m_current_channel_offset{};
   struct Controller
   {
-    std::shared_ptr<Process::RemoteControl> controller;
+    std::shared_ptr<Process::RemoteControlInterface> controller;
     std::vector<ControllerHandle> handles;
     struct ControlMap
     {

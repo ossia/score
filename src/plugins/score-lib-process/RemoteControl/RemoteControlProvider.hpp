@@ -18,12 +18,12 @@ struct DocumentContext;
 namespace Process
 {
 
-class SCORE_LIB_PROCESS_EXPORT RemoteControl : public QObject
+class SCORE_LIB_PROCESS_EXPORT RemoteControlInterface : public QObject
 {
-  W_OBJECT(RemoteControl)
+  W_OBJECT(RemoteControlInterface)
 public:
-  RemoteControl();
-  ~RemoteControl();
+  RemoteControlInterface();
+  ~RemoteControlInterface();
 
   // Device setup
   enum ControllerHint
@@ -115,8 +115,10 @@ class SCORE_LIB_PROCESS_EXPORT RemoteControlProvider : public score::InterfaceBa
   SCORE_INTERFACE(RemoteControlProvider, "50c57dfc-c31a-11ef-9af3-5ce91ee31bcd")
 public:
   ~RemoteControlProvider();
-  virtual std::shared_ptr<RemoteControl> make(const score::DocumentContext& ctx) = 0;
-  virtual void release(const score::DocumentContext& ctx, std::shared_ptr<RemoteControl>)
+  virtual std::shared_ptr<RemoteControlInterface> make(const score::DocumentContext& ctx)
+      = 0;
+  virtual void
+  release(const score::DocumentContext& ctx, std::shared_ptr<RemoteControlInterface>)
       = 0;
 };
 
