@@ -92,6 +92,8 @@ bool CameraInput::start() noexcept
         0);
   }
 
+  // FIXME color_range 0,1,2
+
   int ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, &options);
   av_dict_free(&options);
 

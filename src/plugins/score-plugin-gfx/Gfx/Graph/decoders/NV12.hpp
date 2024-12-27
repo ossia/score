@@ -41,7 +41,7 @@ void main()
 )_";
 
   static const constexpr auto nv12_filter_epilogue = R"_(
-  fragColor = processTexture(vec3(yuv, 1.));
+  fragColor = processTexture(vec4(yuv, 1.));
 })_";
 
   Video::ImageFormat& decoder;

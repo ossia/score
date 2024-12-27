@@ -97,6 +97,7 @@ public:
 
     set.codec = 0;
     set.pixelformat = -1;
+    set.colorRange = 0;
     set.custom = true;
 
     Device::DeviceSettings s;
@@ -300,7 +301,7 @@ template <>
 void DataStreamReader::read(const Gfx::CameraSettings& n)
 {
   m_stream << n.input << n.device << n.size.width() << n.size.height() << n.fps
-           << n.codec << n.pixelformat << n.custom;
+           << n.codec << n.pixelformat << n.colorRange << n.custom;
   insertDelimiter();
 }
 
@@ -308,7 +309,7 @@ template <>
 void DataStreamWriter::write(Gfx::CameraSettings& n)
 {
   m_stream >> n.input >> n.device >> n.size.rwidth() >> n.size.rheight() >> n.fps
-      >> n.codec >> n.pixelformat >> n.custom;
+      >> n.codec >> n.pixelformat >> n.colorRange >> n.custom;
   checkDelimiter();
 }
 
@@ -321,6 +322,7 @@ void JSONReader::read(const Gfx::CameraSettings& n)
   obj["FPS"] = n.fps;
   obj["Codec"] = n.codec;
   obj["PixelFormat"] = n.pixelformat;
+  obj["ColorRange"] = n.colorRange;
   obj["Custom"] = n.custom;
 }
 
@@ -335,6 +337,8 @@ void JSONWriter::write(Gfx::CameraSettings& n)
     n.codec = codec->toInt();
   if(auto format = obj.tryGet("PixelFormat"))
     n.pixelformat = format->toInt();
+  if(auto range = obj.tryGet("ColorRange"))
+    n.colorRange = range->toInt();
   if(auto custom = obj.tryGet("Custom"))
     n.custom = custom->toBool();
 }
