@@ -21,6 +21,7 @@
 #include <QDir>
 #include <QObject>
 #include <QString>
+#include <QCoreApplication>
 
 #include <stdexcept>
 
@@ -195,7 +196,7 @@ Document* DocumentBuilder::restoreDocument(
         qDebug() << ".. replaying: " << cmd->key().toString().c_str()
                  << cmd->description();
         cmd->redo(doc->context());
-        qApp->processEvents();
+        QCoreApplication::instance().processEvents();
         return true;
       }
       catch(...)
