@@ -30,7 +30,7 @@ class QGraphicsView;
 namespace Scenario
 {
 class MusicalGrid;
-class TimeRulerBase
+class SCORE_PLUGIN_SCENARIO_EXPORT TimeRulerBase
     : public QObject
     , public QGraphicsItem
 {
