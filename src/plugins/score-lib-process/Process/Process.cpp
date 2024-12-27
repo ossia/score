@@ -33,6 +33,7 @@ namespace Process
 const QIcon& getCategoryIcon(const QString& category) noexcept
 {
   static const ossia::flat_map<QString, QIcon> categoryIcon{
+      {"AI", makeIcon(QStringLiteral(":/icons/ai.png"))},
       {"Analysis", makeIcon(QStringLiteral(":/icons/analysis.png"))},
       {"Audio", makeIcon(QStringLiteral(":/icons/audio.png"))},
       {"Plugins", makeIcon(QStringLiteral(":/icons/filter.png"))},
