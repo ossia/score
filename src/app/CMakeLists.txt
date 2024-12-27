@@ -85,7 +85,7 @@ endif()
 if(TARGET snmalloc)
   target_link_libraries(${APPNAME} PUBLIC snmalloc)
   if(NOT WIN32)
-    target_link_libraries(${APPNAME} PUBLIC snmallocshim-static)
+  #  target_link_libraries(${APPNAME} PUBLIC snmallocshim-static)
   endif()
 endif()
 
