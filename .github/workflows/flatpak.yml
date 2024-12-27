@@ -15,8 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [x86_64, aarch64]
+        arch:
+          - x86_64
+          - aarch64
+        exclude:
+          - arch: ${{ github.event_name == 'pull_request' && 'aarch64' }}
       fail-fast: false
+
     container:
       image: bilelmoussaoui/flatpak-github-actions:kde-6.7
       options: --privileged
