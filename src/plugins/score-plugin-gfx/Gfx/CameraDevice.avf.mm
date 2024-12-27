@@ -100,8 +100,10 @@ static constexpr avf_to_ffmpeg avf_pixelformat_to_ffmpeg(uint32_t fourcc)
         return {AV_PIX_FMT_GRAY16BE, AVCOL_RANGE_JPEG};
     case kCVPixelFormatType_30RGB: /* 30 bit RGB, 10-bit big-endian samples, 2 unused padding bits (at least significant end). */
         return {};
+#if 0
     case kCVPixelFormatType_30RGB_r210: /* 30 bit RGB, 10-bit big-endian samples, 2 unused padding bits (at most significant end), video-range (64-940). */
         return {};
+#endif
     // case kCVPixelFormatType_422YpCbCr8: /* Component Y'CbCr 8-bit 4:2:2, ordered Cb Y'0 Cr Y'1 */
     // case kCVPixelFormatType_4444YpCbCrA8:  /* Component Y'CbCrA 8-bit 4:4:4:4, ordered Cb Y' Cr A */
     case kCVPixelFormatType_4444YpCbCrA8R: /* Component Y'CbCrA 8-bit 4:4:4:4, rendering format. full range alpha, zero biased YUV, ordered A Y' Cb Cr */
