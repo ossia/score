@@ -18,4 +18,4 @@ tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-wasm/
 
 rm *.tar.*
 
-source ci/common.deps.sh
+source ci/common.deps.sh WASM
