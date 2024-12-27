@@ -140,7 +140,7 @@ void PointInspectorWidget::on_editXFinished()
 
   auto simpleMove = [this] {
     on_pointXChanged(m_XBox->value());
-    on_editXFinished();
+    m_dispatcher.commit();
   };
 
   // Try to handle all the simple cases:
