@@ -2,6 +2,10 @@ if(OSSIA_USE_SYSTEM_LIBRARIES)
     return()
 endif()
 
+if(NOT LV2_PATH)
+  return()
+endif()
+
 set(Suil_INCLUDE_DIR "${3RDPARTY_FOLDER}/suil/include")
 
 add_library(Suil SHARED
@@ -18,8 +22,11 @@ set_target_properties(Suil PROPERTIES
 target_compile_definitions(Suil PRIVATE "SUIL_MODULE_DIR=\"${CMAKE_BINARY_DIR}/lib/suil-0\"")
 
 target_include_directories(Suil
-    PUBLIC "${Suil_INCLUDE_DIR}"
-    PRIVATE "${3RDPARTY_FOLDER}/suil/src"
+    PUBLIC
+      "${Suil_INCLUDE_DIR}"
+    PRIVATE
+      "${3RDPARTY_FOLDER}/suil/src"
+      "${LV2_PATH}"
 )
 
 add_library(suil_x11_in_qt6 MODULE

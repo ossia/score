@@ -11,12 +11,17 @@ if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
 
-find_package(Lilv)
-find_package(Suil)
 find_path(LV2_PATH lv2/lv2plug.in/ns/ext/atom/atom.h
   HINTS
     "${OSSIA_SDK}/lv2/include"
 )
+
+find_package(Lilv)
+if(NOT TARGET Lilv)
+  return()
+endif()
+
+find_package(Suil)
 
 if(NOT TARGET Lilv OR NOT TARGET Suil OR NOT LV2_PATH)
   return()
