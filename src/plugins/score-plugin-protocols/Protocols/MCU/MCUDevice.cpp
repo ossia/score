@@ -31,6 +31,7 @@
 
 #include <RemoteControl/RemoteControlProvider.hpp>
 
+#include <bitset>
 #include <memory>
 // clang-format off
 #include <libremidi/libremidi.hpp>
