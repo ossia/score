@@ -196,7 +196,7 @@ Document* DocumentBuilder::restoreDocument(
         qDebug() << ".. replaying: " << cmd->key().toString().c_str()
                  << cmd->description();
         cmd->redo(doc->context());
-        QCoreApplication::instance().processEvents();
+        QCoreApplication::instance()->processEvents();
         return true;
       }
       catch(...)
