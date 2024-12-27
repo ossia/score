@@ -25,18 +25,22 @@ clone_addon() {
 
 clone_addon https://github.com/ossia/iscore-addon-network
 clone_addon https://github.com/ossia/score-addon-synthimi
-clone_addon https://github.com/ossia/score-addon-threedim
 clone_addon https://github.com/ossia/score-addon-jk
-clone_addon https://github.com/ossia/score-addon-ndi
-clone_addon https://github.com/bltzr/score-avnd-granola
-clone_addon https://github.com/ossia/score-addon-ultraleap
-clone_addon https://github.com/ossia/score-addon-contextfree
-clone_addon https://github.com/ossia/score-addon-ble
-clone_addon https://github.com/ossia/score-addon-led
-clone_addon https://github.com/ossia/score-addon-spatgris
-clone_addon https://github.com/ossia/score-addon-hdf5
 clone_addon https://github.com/ossia/score-addon-puara
-clone_addon https://github.com/ossia/score-addon-ltc
+
+if [[ "$1" != "WASM" ]];
+then
+  clone_addon https://github.com/ossia/score-addon-ltc
+  clone_addon https://github.com/ossia/score-addon-threedim
+  clone_addon https://github.com/ossia/score-addon-ndi
+  clone_addon https://github.com/bltzr/score-avnd-granola
+  clone_addon https://github.com/ossia/score-addon-ultraleap
+  clone_addon https://github.com/ossia/score-addon-contextfree
+  clone_addon https://github.com/ossia/score-addon-ble
+  clone_addon https://github.com/ossia/score-addon-led
+  clone_addon https://github.com/ossia/score-addon-spatgris
+  clone_addon https://github.com/ossia/score-addon-hdf5
+fi
 
 )
 
