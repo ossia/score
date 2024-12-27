@@ -17,6 +17,8 @@ class pattern_node : public ossia::nonowning_graph_node
 {
 public:
   ossia::midi_outlet out;
+  ossia::value_outlet accent_out;
+  ossia::value_outlet slide_out;
   Pattern pattern;
   ossia::flat_set<uint8_t> in_flight;
 
@@ -28,6 +30,8 @@ public:
   {
     in_flight.reserve(32);
     m_outlets.push_back(&out);
+    m_outlets.push_back(&accent_out);
+    m_outlets.push_back(&slide_out);
   }
 
   std::string label() const noexcept override { return "pattern_node"; }
@@ -65,13 +69,32 @@ public:
 
       for(Lane& lane : pattern.lanes)
       {
-        if(lane.pattern[current])
+        if(lane.note <= 127 && lane.pattern[current])
         {
           mess.push_back(libremidi::channel_events::note_on(channel, lane.note, 64));
           mess.back().timestamp = date;
           in_flight.insert(lane.note);
         }
       }
+
+      for(Lane& lane : pattern.lanes)
+      {
+        if(lane.note == 255)
+        {
+          if(lane.pattern[current])
+            accent_out->write_value(1., date);
+          else
+            accent_out->write_value(0., date);
+        }
+        else if(lane.note == 254)
+        {
+          if(lane.pattern[current])
+            slide_out->write_value(1., date);
+          else
+            slide_out->write_value(0., date);
+        }
+      }
+
       current = (current + 1) % pattern.length;
     }
   }
