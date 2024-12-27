@@ -156,7 +156,8 @@ void GenericNodeRenderer::defaultMeshUpdate(
   // Or... just put all of one frame's message in one vector and push that one at the end of the audio frame.
   if(node.hasGeometryChanged(geometryChangedIndex) && node.geometry.meshes)
   {
-    std::tie(m_mesh, m_meshbufs) = renderer.acquireMesh(node.geometry, res);
+    std::tie(m_mesh, m_meshbufs)
+        = renderer.acquireMesh(node.geometry, res, m_mesh, m_meshbufs);
   }
 }
 
