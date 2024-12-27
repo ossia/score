@@ -10,7 +10,6 @@
 #include <Audio/AudioDevice.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
 #include <Audio/CoreAudioInterface.hpp>
-#include <Audio/CoreAudioPortAudioInterface.hpp>
 #include <Audio/DummyInterface.hpp>
 #include <Audio/GenericPortAudioInterface.hpp>
 #include <Audio/JackInterface.hpp>
@@ -188,10 +187,6 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
          ,
          Audio::ALSAPortAudioFactory
 #endif
-#if __has_include(<pa_mac_core.h>)
-         ,
-         Audio::CoreAudioPortAudioFactory
-#endif
 #if !__has_include(<pa_asio.h>) && \
     !__has_include(<pa_win_wdmks.h>) && \
     !__has_include(<pa_win_wasapi.h>) && \
@@ -210,7 +205,7 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
          ,
          Audio::PipeWireAudioFactory
 #endif
-#if defined(OSSIA_AUDIO_MINIAUDIO)
+#if defined(__APPLE__) && defined(OSSIA_AUDIO_MINIAUDIO)
          ,
          Audio::CoreAudioFactory
 #endif

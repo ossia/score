@@ -1,4 +1,9 @@
 #pragma once
+#include <ossia/detail/config.hpp>
+
+#include <version>
+
+#if defined(__APPLE__)
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
@@ -179,7 +184,7 @@ public:
     }
   }
 
-  QString prettyName() const override { return QObject::tr("CoreAudio but good"); }
+  QString prettyName() const override { return QObject::tr("CoreAudio"); }
   std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
@@ -347,4 +352,5 @@ public:
 
 }
 
+#endif
 #endif
