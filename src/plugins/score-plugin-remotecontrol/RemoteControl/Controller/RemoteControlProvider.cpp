@@ -1,6 +1,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 
 #include <core/document/DocumentView.hpp>
 
@@ -17,7 +18,7 @@ RemoteControlImpl::RemoteControlImpl(DocumentPlugin& self)
 {
 }
 
-std::vector<Process::RemoteControl::ControllerHandle>
+std::vector<Process::RemoteControlInterface::ControllerHandle>
 RemoteControlImpl::registerControllerGroup(ControllerHint hint, int count)
 {
   return doc.registerControllerGroup(*this, hint, count);
@@ -163,7 +164,7 @@ void RemoteControlImpl::offsetControl(ControllerHandle index, double val)
   doc.offsetControl(*this, index, val);
 }
 
-std::shared_ptr<Process::RemoteControl>
+std::shared_ptr<Process::RemoteControlInterface>
 RemoteControlProvider::make(const score::DocumentContext& ctx)
 {
   auto* doc = ctx.findPlugin<DocumentPlugin>();
@@ -173,7 +174,8 @@ RemoteControlProvider::make(const score::DocumentContext& ctx)
 }
 
 void RemoteControlProvider::release(
-    const score::DocumentContext& ctx, std::shared_ptr<Process::RemoteControl> impl)
+    const score::DocumentContext& ctx,
+    std::shared_ptr<Process::RemoteControlInterface> impl)
 {
   auto* doc = ctx.findPlugin<DocumentPlugin>();
   if(!doc)

@@ -4,16 +4,16 @@
 namespace RemoteControl::Controller
 {
 class DocumentPlugin;
-class RemoteControlImpl : public Process::RemoteControl
+class RemoteControlImpl : public Process::RemoteControlInterface
 {
 public:
-  using ControllerHandle = Process::RemoteControl::ControllerHandle;
-  using ControllerAction = Process::RemoteControl::ControllerAction;
+  using ControllerHandle = Process::RemoteControlInterface::ControllerHandle;
+  using ControllerAction = Process::RemoteControlInterface::ControllerAction;
 
-  DocumentPlugin& doc;
+  ::RemoteControl::Controller::DocumentPlugin& doc;
   explicit RemoteControlImpl(Controller::DocumentPlugin& self);
 
-  std::vector<Process::RemoteControl::ControllerHandle>
+  std::vector<Process::RemoteControlInterface::ControllerHandle>
   registerControllerGroup(ControllerHint hint, int count) override;
 
   void sendKey(ControllerAction act, Qt::Key k, Qt::KeyboardModifiers mods = {});
@@ -55,10 +55,10 @@ public:
 class RemoteControlProvider final : public Process::RemoteControlProvider
 {
   SCORE_CONCRETE("ac63880f-ce30-489d-a93a-869578ade25a")
-  std::shared_ptr<Process::RemoteControl>
+  std::shared_ptr<Process::RemoteControlInterface>
   make(const score::DocumentContext& ctx) override;
   void release(
       const score::DocumentContext& ctx,
-      std::shared_ptr<Process::RemoteControl>) override;
+      std::shared_ptr<Process::RemoteControlInterface>) override;
 };
 }

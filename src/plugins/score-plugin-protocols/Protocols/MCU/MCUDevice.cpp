@@ -14,6 +14,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
+#include <ossia/detail/fmt.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/context.hpp>
 #include <ossia/network/generic/generic_device.hpp>
@@ -29,6 +30,8 @@
 #include <QTimer>
 
 #include <RemoteControl/RemoteControlProvider.hpp>
+
+#include <memory>
 // clang-format off
 #include <libremidi/libremidi.hpp>
 #include <libremidi/backends.hpp>
@@ -36,8 +39,6 @@
 #include <libremidi/protocols/remote_control.hpp>
 
 // clang-format on
-
-#include <memory>
 
 namespace Protocols
 {
@@ -48,14 +49,15 @@ class mcu_protocol
 public:
   const score::DocumentContext& doc;
   mcu_protocol(
-      const score::DocumentContext& doc, std::shared_ptr<Process::RemoteControl> rc,
+      const score::DocumentContext& doc,
+      std::shared_ptr<Process::RemoteControlInterface> rc,
       ossia::net::network_context_ptr ctx, libremidi::API api,
       const libremidi::input_port& ip, const libremidi::output_port& op)
       : doc{doc}
       , m_rc{rc}
       , m_context{ctx}
   {
-    using hint = Process::RemoteControl::ControllerHint;
+    using hint = Process::RemoteControlInterface::ControllerHint;
     // Init the handles
     m_knob_handles
         = m_rc->registerControllerGroup((hint)(hint::Knob | hint::MapControls), 8);
@@ -115,13 +117,13 @@ public:
     m_input->open_port(ip);
 
     QObject::connect(
-        m_rc.get(), &Process::RemoteControl::controlNameChanged, this,
+        m_rc.get(), &Process::RemoteControlInterface::controlNameChanged, this,
         &mcu_protocol::on_control_name_changed);
     QObject::connect(
-        m_rc.get(), &Process::RemoteControl::controlValueChanged, this,
+        m_rc.get(), &Process::RemoteControlInterface::controlValueChanged, this,
         &mcu_protocol::on_control_value_changed);
     QObject::connect(
-        m_rc.get(), &Process::RemoteControl::transportChanged, this,
+        m_rc.get(), &Process::RemoteControlInterface::transportChanged, this,
         &mcu_protocol::on_transport_changed);
 
     blank();
@@ -182,30 +184,30 @@ public:
       case 0:
         break;
       case 1:
-        txt = std::format("   {}   ", txt);
+        txt = fmt::format("   {}   ", txt);
         break;
       case 2:
-        txt = std::format("   {}  ", txt);
+        txt = fmt::format("   {}  ", txt);
         break;
       case 3:
-        txt = std::format("  {}  ", txt);
+        txt = fmt::format("  {}  ", txt);
         break;
       case 4:
-        txt = std::format("  {} ", txt);
+        txt = fmt::format("  {} ", txt);
         break;
       case 5:
-        txt = std::format(" {} ", txt);
+        txt = fmt::format(" {} ", txt);
         break;
       case 6:
-        txt = std::format("{}", txt);
+        txt = fmt::format("{}", txt);
       case 7:
-        txt = std::format("{}", txt);
+        txt = fmt::format("{}", txt);
         break;
     }
   }
 
-  void
-  on_control_name_changed(Process::RemoteControl::ControllerHandle index, QString name)
+  void on_control_name_changed(
+      Process::RemoteControlInterface::ControllerHandle index, QString name)
   {
     if(int idx = ossia::index_in_container(this->m_knob_handles, index); idx != -1)
     {
@@ -226,7 +228,7 @@ public:
   }
 
   void on_control_value_changed(
-      Process::RemoteControl::ControllerHandle index, const ossia::value& v)
+      Process::RemoteControlInterface::ControllerHandle index, const ossia::value& v)
   {
     if(int idx = ossia::index_in_container(this->m_knob_handles, index); idx != -1)
     {
@@ -275,8 +277,8 @@ public:
 
   void on_command(libremidi::remote_control_protocol::mixer_command cmd, bool pressed)
   {
-    auto act = pressed ? Process::RemoteControl::ControllerAction::Press
-                       : Process::RemoteControl::ControllerAction::Release;
+    auto act = pressed ? Process::RemoteControlInterface::ControllerAction::Press
+                       : Process::RemoteControlInterface::ControllerAction::Release;
     using rcp = libremidi::remote_control_protocol::mixer_command;
     switch(cmd)
     {
@@ -701,7 +703,7 @@ public:
         break;
     }
   }
-  std::shared_ptr<Process::RemoteControl> m_rc;
+  std::shared_ptr<Process::RemoteControlInterface> m_rc;
   ossia::net::network_context_ptr m_context;
   std::shared_ptr<libremidi::midi_out> m_output;
   std::shared_ptr<libremidi::remote_control_processor> m_rcp;
@@ -714,14 +716,14 @@ public:
   bool m_scrub{};
   std::bitset<9> m_fader_grab{};
 
-  std::vector<Process::RemoteControl::ControllerHandle> m_knob_handles;
-  std::vector<Process::RemoteControl::ControllerHandle> m_knob_button_handles;
-  std::vector<Process::RemoteControl::ControllerHandle> m_fader_handles;
-  std::vector<Process::RemoteControl::ControllerHandle> m_f_handles;
-  std::vector<Process::RemoteControl::ControllerHandle> m_rec_handles;
-  std::vector<Process::RemoteControl::ControllerHandle> m_mute_handles;
-  std::vector<Process::RemoteControl::ControllerHandle> m_solo_handles;
-  std::vector<Process::RemoteControl::ControllerHandle> m_select_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_knob_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_knob_button_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_fader_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_f_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_rec_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_mute_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_solo_handles;
+  std::vector<Process::RemoteControlInterface::ControllerHandle> m_select_handles;
 
   bool pull(ossia::net::parameter_base&) override { return true; }
   bool push(const ossia::net::parameter_base&, const ossia::value& v) override

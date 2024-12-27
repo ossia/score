@@ -318,7 +318,7 @@ void DocumentPlugin::nextChannel(RemoteControlImpl& b)
   updateDisplay();
 }
 
-std::shared_ptr<Process::RemoteControl> DocumentPlugin::acquireRemoteControlInterface()
+std::shared_ptr<Process::RemoteControlInterface> DocumentPlugin::acquireRemoteControlInterface()
 {
   auto impl = std::make_shared<RemoteControlImpl>(*this);
   m_controllers.push_back({impl});
@@ -328,7 +328,7 @@ std::shared_ptr<Process::RemoteControl> DocumentPlugin::acquireRemoteControlInte
 }
 
 void DocumentPlugin::releaseRemoteControlInterface(
-    std::shared_ptr<Process::RemoteControl> impl)
+    std::shared_ptr<Process::RemoteControlInterface> impl)
 {
   ossia::remove_erase_if(
       m_controllers, [&impl](const Controller& e) { return e.controller == impl; });
@@ -438,9 +438,9 @@ void DocumentPlugin::on_execTime()
     ctl.controller->transportChanged(t, 1., 1., 1., 1.);
   }
 }
-std::vector<Process::RemoteControl::ControllerHandle>
+std::vector<Process::RemoteControlInterface::ControllerHandle>
 DocumentPlugin::registerControllerGroup(
-    RemoteControlImpl& c, Process::RemoteControl::ControllerHint hint, int count)
+    RemoteControlImpl& c, Process::RemoteControlInterface::ControllerHint hint, int count)
 {
   for(auto& ctls : m_controllers)
   {
@@ -448,7 +448,7 @@ DocumentPlugin::registerControllerGroup(
     {
       auto range = getIdRange(count, ctls.handles);
       ctls.handles.insert(ctls.handles.end(), range.begin(), range.end());
-      if(hint & Process::RemoteControl::ControllerHint::MapControls)
+      if(hint & Process::RemoteControlInterface::ControllerHint::MapControls)
       {
         for(auto e : range)
         {
