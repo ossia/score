@@ -6,6 +6,7 @@
 #include <QCodeEditor>
 #include <QDialogButtonBox>
 #include <QFile>
+#include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QPushButton>
@@ -54,7 +55,8 @@ ScriptDialog::ScriptDialog(
       &QDialog::close);
 
   auto openExternalBtn = new QPushButton{tr("Open in external editor.."), this};
-  connect(openExternalBtn, &QPushButton::clicked, this, [this] {});
+  connect(
+      openExternalBtn, &QPushButton::clicked, this, [this] { openInExternalEditor(); });
   lay->addWidget(openExternalBtn);
 }
 
@@ -156,4 +158,30 @@ void MultiScriptDialog::clearError()
   m_error->clear();
 }
 
-void ScriptDialog::openInExternalEditor() { }
+void ScriptDialog::openInExternalEditor()
+{
+  QString editorPath
+      = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code";
+
+  if(editorPath.isEmpty())
+  {
+    QMessageBox::warning(
+        this, tr("Error"), tr("no 'Default editor' configured in score settings"));
+    return;
+  }
+
+  QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+  QString tempFile = tempDir + "/ossia_script_temp.js";
+
+  QFile file(tempFile);
+
+  QTextStream stream(&file);
+  stream << "Temporary file content for testing.";
+  file.close();
+
+  if(!QProcess::startDetached(editorPath, QStringList() << tempFile))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("Failed to launch external editor"));
+  }
+}
+}
