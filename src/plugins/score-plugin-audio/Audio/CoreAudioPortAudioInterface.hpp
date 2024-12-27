@@ -17,7 +17,7 @@
 namespace Audio
 {
 #if __has_include(<pa_mac_core.h>)
-class CoreAudioFactory final
+class CoreAudioPortAudioFactory final
     : public QObject
     , public AudioFactory
 {
@@ -25,9 +25,9 @@ class CoreAudioFactory final
 public:
   std::vector<PortAudioCard> devices;
 
-  CoreAudioFactory() { rescan(); }
+  CoreAudioPortAudioFactory() { rescan(); }
 
-  ~CoreAudioFactory() override { }
+  ~CoreAudioPortAudioFactory() override { }
   bool available() const noexcept override { return true; }
   void
   initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
