@@ -97,6 +97,7 @@ struct sleep_accurate
 struct MidiSync
 {
   halp_meta(name, "Midi sync")
+  halp_meta(author, "ossia team")
   halp_meta(c_name, "avnd_helpers_midisync")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-sync.html")
   halp_meta(uuid, "aa7c1ae5-495e-436e-a079-e3f1a19861bb")
