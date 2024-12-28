@@ -58,6 +58,8 @@ endif()
 # threedim addon
 add_library(
   score_plugin_threedim
+  Threedim/ModelDisplay/ModelDisplayNode.hpp
+  Threedim/ModelDisplay/ModelDisplayNode.cpp
 
   Threedim/TinyObj.hpp
   Threedim/TinyObj.cpp
@@ -79,8 +81,6 @@ add_library(
   Threedim/Noise.hpp
   Threedim/Noise.cpp
 
-  Threedim/ModelDisplay/ModelDisplayNode.hpp
-  Threedim/ModelDisplay/ModelDisplayNode.cpp
   Threedim/ModelDisplay/Executor.hpp
   Threedim/ModelDisplay/Executor.cpp
   Threedim/ModelDisplay/Metadata.hpp

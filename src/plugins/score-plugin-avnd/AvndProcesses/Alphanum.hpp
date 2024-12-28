@@ -45,7 +45,7 @@ struct alphanum_compare
        @param r NULL-terminated C-style string
        @return negative if l<r, 0 if l equals r, positive if l>r
      */
-  static constexpr int impl(std::string_view ll, std::string_view rr) noexcept
+  static constexpr int impl(const std::string_view ll, const std::string_view rr) noexcept
   {
     enum mode_t
     {
@@ -55,13 +55,15 @@ struct alphanum_compare
         = STRING;
 
     const char* l = ll.data();
+    const char* ll_end = ll.data() + ll.size();
     const char* r = rr.data();
-    while(l != ll.end() && r != rr.end() && *l && *r)
+    const char* rr_end = rr.data() + rr.size();
+    while(l != ll_end && r != rr_end && *l && *r)
     {
       if(mode == STRING)
       {
         char l_char{}, r_char{};
-        while((l != ll.end() && r != rr.end()) && (l_char = *l) && (r_char = *r))
+        while((l != ll_end && r != rr_end) && (l_char = *l) && (r_char = *r))
         {
           // check if this are digit characters
           const bool l_digit = alphanum_isdigit(l_char),
@@ -92,7 +94,7 @@ struct alphanum_compare
       {
         // get the left number
         unsigned long l_int = 0;
-        while(l != ll.end() && *l && alphanum_isdigit(*l))
+        while(l != ll_end && *l && alphanum_isdigit(*l))
         {
           // TODO: this can overflow
           l_int = l_int * 10 + *l - '0';
@@ -101,7 +103,7 @@ struct alphanum_compare
 
         // get the right number
         unsigned long r_int = 0;
-        while(r != rr.end() && *r && alphanum_isdigit(*r))
+        while(r != rr_end && *r && alphanum_isdigit(*r))
         {
           // TODO: this can overflow
           r_int = r_int * 10 + *r - '0';
