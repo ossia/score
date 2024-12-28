@@ -17,7 +17,7 @@
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QFormLayout>
-#if __has_include(<miniaudio/miniaudio.h>)
+#if OSSIA_ENABLE_MINIAUDIO
 #include <ossia/audio/miniaudio_protocol.hpp>
 
 #include <magic_enum/magic_enum.hpp>
