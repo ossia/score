@@ -5,10 +5,33 @@
 #include <QFont>
 #include <QPen>
 
+// clang-format off
+#if defined(_MSC_VER)
+#if !defined(WIN32_LEAN_AND_MEAN)
+#define WIN32_LEAN_AND_MEAN
+#endif
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+#if !defined(UNICODE)
+#define UNICODE 1
+#endif
+#if !defined(_UNICODE)
+#define _UNICODE 1
+#endif
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <inaddr.h>
+#include <in6addr.h>
+#include <mswsock.h>
+#endif
+
 #if defined(near)
 #undef near
 #undef far
 #endif
+// clang-format on
 
 namespace score::gfx
 {
