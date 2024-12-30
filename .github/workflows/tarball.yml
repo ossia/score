@@ -21,6 +21,15 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Continuous tag
+        uses: rickstaa/action-create-tag@v1
+        if: github.event_name != 'pull_request'
+        with:
+          tag: "continuous"
+          tag_exists_error: false
+          message: "Continuous build"
+          force_push_tag: true
+
       - name: Build
         run: ./ci/tarball.build.sh
         env:
@@ -40,15 +49,6 @@ jobs:
           name: tarball
           path: |
             staging/*.*
-
-      - name: Continuous tag
-        uses: rickstaa/action-create-tag@v1
-        if: github.event_name != 'pull_request'
-        with:
-          tag: "continuous"
-          tag_exists_error: false
-          message: "Continuous build"
-          force_push_tag: true
 
       - name: Continuous
         uses: softprops/action-gh-release@v2
