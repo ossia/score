@@ -258,6 +258,25 @@ set(EVDEV_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Evdev/EvdevSpecificSettingsSerialization.cpp"
 )
 
+set(BITFOCUS_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusEnumerator.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusSpecificSettings.hpp"
+)
+
+set(BITFOCUS_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusEnumerator.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusSpecificSettingsSerialization.cpp"
+)
+
+
 
 set(MAPPER_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.hpp"
@@ -377,6 +396,11 @@ if(LINUX)
   target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_EVDEV)
   list(APPEND SCORE_FEATURES_LIST protocol_evdev)
 endif()
+
+target_sources(${PROJECT_NAME} PRIVATE ${BITFOCUS_HDRS} ${BITFOCUS_SRCS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${BITFOCUS_HEADER})
+target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_BITFOCUS)
+list(APPEND SCORE_FEATURES_LIST protocol_bitfocus)
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
