@@ -6,6 +6,7 @@
 #include <score/tools/File.hpp>
 #include <score/tools/FindStringInFile.hpp>
 
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QTimer>
@@ -46,6 +47,37 @@ void LibraryDeviceEnumerator::next(std::string_view path)
 }
 
 void LibraryDeviceEnumerator::enumerate(
+    std::function<void(const QString&, const Device::DeviceSettings&)> onDevice) const
+{
+}
+
+SubfolderDeviceEnumerator::SubfolderDeviceEnumerator(
+    QString root, Device::ProtocolFactory::ConcreteKey k, func_type createDev,
+    const score::DocumentContext& ctx)
+    : m_key{k}
+    , m_createDeviceSettings{createDev}
+{
+  QTimer::singleShot(100, this, [this, root] {
+    QDirIterator it{
+        root, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags};
+    while(it.hasNext())
+    {
+      auto filepath = it.next();
+      if(auto spec = m_createDeviceSettings(filepath); spec.second != QVariant{})
+      {
+        Device::DeviceSettings s;
+        s.name = spec.first;
+        s.protocol = m_key;
+        s.deviceSpecificSettings = spec.second;
+        deviceAdded(s.name, s);
+      }
+    }
+  });
+}
+
+void SubfolderDeviceEnumerator::next(std::string_view path) { }
+
+void SubfolderDeviceEnumerator::enumerate(
     std::function<void(const QString&, const Device::DeviceSettings&)> onDevice) const
 {
 }

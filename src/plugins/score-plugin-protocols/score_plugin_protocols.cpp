@@ -5,6 +5,7 @@
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
+#include <Protocols/Bitfocus/BitfocusProtocolFactory.hpp>
 #include <Protocols/ProtocolLibrary.hpp>
 #include <Protocols/Settings/Factory.hpp>
 
@@ -91,7 +92,7 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory
+      FW<Device::ProtocolFactory, Protocols::BitfocusProtocolFactory
 #if __has_include(<QQmlEngine>)
          ,
          Protocols::MapperProtocolFactory

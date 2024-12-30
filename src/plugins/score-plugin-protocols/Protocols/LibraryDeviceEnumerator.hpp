@@ -26,4 +26,22 @@ public:
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>
                      onDevice) const override;
 };
+
+class SCORE_PLUGIN_PROTOCOLS_EXPORT SubfolderDeviceEnumerator
+    : public Device::DeviceEnumerator
+{
+public:
+  using func_type = std::function<std::pair<QString, QVariant>(QString)>;
+  Device::ProtocolFactory::ConcreteKey m_key;
+  func_type m_createDeviceSettings;
+
+  SubfolderDeviceEnumerator(
+      QString rootFolder, Device::ProtocolFactory::ConcreteKey k, func_type createDev,
+      const score::DocumentContext& ctx);
+
+  void next(std::string_view path);
+
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>
+                     onDevice) const override;
+};
 }
