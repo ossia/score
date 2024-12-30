@@ -95,6 +95,7 @@ struct module_handler_base : public QObject
     // FIXME
   }
 
+  virtual ~module_handler_base();
   void do_write(std::string_view res)
   {
     // FIXME
@@ -103,6 +104,7 @@ struct module_handler_base : public QObject
   {
     // FIXME
   }
+  virtual void processMessage(std::string_view) = 0;
 };
 #else
 struct module_handler_base : public QObject
@@ -403,7 +405,7 @@ public:
     std::string_view res
         = R"_({"direction":"response","callbackId":1,"success":true,"payload":"{}"})_"
           "\n";
-    qDebug().noquote().nospace() << "sending: " << res;
+    qDebug().noquote().nospace() << "sending: " << res.data();
     do_write(res);
     cbid = 1;
   }
