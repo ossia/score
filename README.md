@@ -26,16 +26,16 @@ Releases are available for [Windows, Linux (via AppImage) and macOS](https://git
 
 | Platform                          | Status                                                                                                                                                                           |
 |-----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Official releases                 | [ ![ Azure Pipelines ]( https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2 ) ]( https://dev.azure.com/ossia/libossia/_build?definitionId=2 ) |
-| ArchLinux, SUSE, Fedora           | [![Linux distros](https://github.com/ossia/score/actions/workflows/builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/builds.yaml)                         |
-| macOS (Homebrew (M1 & Intel))     | [![macOS](https://github.com/ossia/score/actions/workflows/mac-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/mac-builds.yaml)                         |
-| Windows (MSYS2, MSVC 2022)        | [![Windows](https://github.com/ossia/score/actions/workflows/win-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/win-builds.yaml)                       |
-| Debian (Bookworm, Trixie)         | [![Debian](https://github.com/ossia/score/actions/workflows/debian-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/debian-builds.yaml)                  |
-| Ubuntu (22.04, 23.04, 24.04)      | [![Ubuntu](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml)                  |
-| Raspberry Pi (Bookworm AArch64)   | [![RPi](https://github.com/ossia/score/actions/workflows/embedded.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/embedded.yaml)                               |
-| Flatpak                           | [![Flatpak](https://github.com/ossia/score/actions/workflows/flatpak.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/flatpak.yml)                           |
+| AppImage                          | [![AppImage](https://github.com/ossia/score/actions/workflows/appimage.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/appimage.yml)                            |
+| Flatpak                           | [![Flatpak](https://github.com/ossia/score/actions/workflows/flatpak.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/flatpak.yml)                               |
 | Nix                               | [![Nix](https://github.com/ossia/score/actions/workflows/nix-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/nix-builds.yaml)                           |
-| FreeBSD                           | [![BSD](https://github.com/ossia/score/actions/workflows/bsd.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/bsd.yml)                           |
+| ArchLinux, SUSE, Fedora           | [![Linux distros](https://github.com/ossia/score/actions/workflows/builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/builds.yaml)                         |
+| Debian (Bookworm, Trixie)         | [![Debian](https://github.com/ossia/score/actions/workflows/debian-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/debian-builds.yaml)                  |
+| Ubuntu (22.04, 24.04, 24.10)      | [![Ubuntu](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/ubuntu-builds.yaml)                  |
+| Raspberry Pi (Bookworm AArch64)   | [![RPi](https://github.com/ossia/score/actions/workflows/embedded.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/embedded.yaml)                               |
+| macOS (M1 & Intel)                | [![macOS](https://github.com/ossia/score/actions/workflows/mac-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/mac-builds.yaml)                         |
+| Windows (MSYS2, MSVC 2022)        | [![Windows](https://github.com/ossia/score/actions/workflows/win-builds.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/win-builds.yaml)                       |
+| FreeBSD                           | [![BSD](https://github.com/ossia/score/actions/workflows/bsd.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/bsd.yml)                                           |
 | WebAssembly                       | [![WASM](https://github.com/ossia/score/actions/workflows/wasm.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/wasm.yaml)                                      |
 | Plug-in templates                 | [![Template check](https://github.com/ossia/score/actions/workflows/templates.yaml/badge.svg)](https://github.com/ossia/score/actions/workflows/templates.yaml)                  |
  
