@@ -12,7 +12,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/json.hpp>
-
+#include <ossia/detail/fmt.hpp>
 #include <charconv>
 #include <cstdlib>
 #include <functional>
@@ -522,7 +522,7 @@ public:
 
     co_await this->m_write_channel.async_send(
         {},
-        std::format("42{}{}", cur, boost::json::serialize(boost::json::array{args...})));
+        fmt::format("42{}{}", cur, boost::json::serialize(boost::json::array{args...})));
 
     co_return co_await std::move(q);
   }
