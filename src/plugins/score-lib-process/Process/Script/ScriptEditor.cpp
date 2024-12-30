@@ -170,13 +170,26 @@ void ScriptDialog::openInExternalEditor()
     return;
   }
 
+  if(!QFile::exists(editorPath))
+  {
+    QMessageBox::warning(
+        this, tr("Error"), tr("the configured external editor does not exist."));
+    return;
+  }
+
   QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
   QString tempFile = tempDir + "/ossia_script_temp.js";
 
   QFile file(tempFile);
+  if(!file.open(QIODevice::WriteOnly))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("failed to create temporary file."));
+    return;
+  }
 
   QTextStream stream(&file);
-  stream << "Temporary file content for testing.";
+  QString scriptContent = this->text();
+  stream << scriptContent;
   file.close();
 
   if(!QProcess::startDetached(editorPath, QStringList() << tempFile))
