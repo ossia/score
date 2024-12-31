@@ -398,7 +398,11 @@ if(LINUX)
 endif()
 
 target_sources(${PROJECT_NAME} PRIVATE ${BITFOCUS_HDRS} ${BITFOCUS_SRCS})
-target_include_directories(${PROJECT_NAME} PRIVATE ${BITFOCUS_HEADER})
+if(WIN32)
+    target_sources(${PROJECT_NAME} PRIVATE  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.win32.cpp")
+else()
+    target_sources(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.unix.cpp")
+endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_BITFOCUS)
 list(APPEND SCORE_FEATURES_LIST protocol_bitfocus)
 

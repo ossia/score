@@ -4,12 +4,17 @@
 
 #include <Protocols/Bitfocus/BitfocusSpecificSettings.hpp>
 
+#include <QJSEngine>
+
 #include <verdigris>
 
 class QStackedLayout;
 class QLineEdit;
+class QVBoxLayout;
+class QFormLayout;
 class QSpinBox;
 class QWidget;
+class QLabel;
 
 namespace Protocols
 {
@@ -29,8 +34,22 @@ public:
   using Device::ProtocolSettingsWidget::checkForChanges;
 
 private:
-  void setDefaults();
+  void updateFields();
+  QFormLayout* m_rootLayout{};
   QLineEdit* m_deviceNameEdit{};
   BitfocusSpecificSettings m_settings;
+  QWidget* m_subWidget{};
+  QVBoxLayout* m_subForm{};
+
+  // Get the configuration for each widget
+  struct widget
+  {
+    QLabel* label{};
+    QWidget* widget{};
+    std::function<QVariant()> getValue;
+  };
+
+  std::map<QString, widget> m_widgets;
+  QJSEngine m_uiEngine;
 };
 }
