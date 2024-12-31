@@ -18,6 +18,8 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QResizeEvent>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QVariant>
 
@@ -33,8 +35,20 @@ BitfocusProtocolSettingsWidget::BitfocusProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit->setText("OSCdevice");
   checkForChanges(m_deviceNameEdit);
 
-  m_rootLayout = new QFormLayout{this};
+  m_rootLayout = new score::MarginLess<QFormLayout>{this};
   m_rootLayout->addRow(tr("Name"), m_deviceNameEdit);
+  m_rootLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+  m_scroll = new QScrollArea{this};
+  m_scroll->setFrameShape(QFrame::NoFrame);
+  QSizePolicy sz;
+  sz.setHorizontalPolicy(QSizePolicy::Ignored);
+  sz.setVerticalPolicy(QSizePolicy::MinimumExpanding);
+  m_scroll->setSizePolicy(sz);
+  m_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  m_scroll->setWidgetResizable(true);
+  m_rootLayout->addRow(m_scroll);
 }
 
 Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
@@ -44,6 +58,11 @@ Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
   s.protocol = BitfocusProtocolFactory::static_concreteKey();
 
   BitfocusSpecificSettings osc = m_settings;
+  for(auto& widg : m_widgets)
+  {
+    if(widg.second.getValue)
+      osc.configuration.emplace_back(widg.first, widg.second.getValue());
+  }
   s.deviceSpecificSettings = QVariant::fromValue(osc);
 
   return s;
@@ -144,14 +163,22 @@ void BitfocusProtocolSettingsWidget::updateFields()
       }};
     }
   }
+  m_subForm->addStretch(1);
+}
+
+void BitfocusProtocolSettingsWidget::resizeEvent(QResizeEvent* res)
+{
+  m_scroll->setMinimumWidth(0.8 * res->size().width());
+  m_scroll->setMinimumHeight(0.8 * res->size().height());
 }
 
 void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
+  m_widgets.clear();
   delete m_subWidget;
   m_subWidget = new QWidget{this};
-  m_subForm = new QVBoxLayout{m_subWidget};
-  m_rootLayout->addRow(m_subWidget);
+  m_subForm = new score::MarginLess<QVBoxLayout>{m_subWidget};
+  m_scroll->setWidget(m_subWidget);
 
   m_deviceNameEdit->setText(settings.name);
 
@@ -160,7 +187,16 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
     auto set = settings.deviceSpecificSettings.value<BitfocusSpecificSettings>();
     if(!set.path.isEmpty() && QDir{set.path}.exists())
     {
-      set.handler = std::make_shared<bitfocus::module_handler>(set.path);
+      m_deviceNameEdit->setText(set.name);
+      auto conf = bitfocus::module_configuration{};
+      {
+        if(!set.product.isEmpty())
+        {
+          conf["product"] = set.product;
+        }
+      }
+      set.handler = std::make_shared<bitfocus::module_handler>(
+          set.path, set.apiVersion, std::move(conf));
       connect(
           set.handler.get(), &bitfocus::module_handler::configurationParsed, this,
           [this] { updateFields(); });

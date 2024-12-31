@@ -17,6 +17,7 @@ class QFormLayout;
 class QSpinBox;
 class QWidget;
 class QLabel;
+class QScrollArea;
 
 namespace Protocols
 {
@@ -32,10 +33,12 @@ public:
 
 private:
   void updateFields();
+  void resizeEvent(QResizeEvent*) override;
   BitfocusSpecificSettings m_settings;
 
   QFormLayout* m_rootLayout{};
   QLineEdit* m_deviceNameEdit{};
+  QScrollArea* m_scroll{};
   QWidget* m_subWidget{};
   QVBoxLayout* m_subForm{};
 

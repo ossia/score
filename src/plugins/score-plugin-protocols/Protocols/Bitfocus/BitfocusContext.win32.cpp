@@ -11,12 +11,12 @@ module_handler_base::module_handler_base(QString module_path)
 
   // FIXME
 }
-void module_handler_base::do_write(std::string_view res)
+module_handler_base::~module_handler_base()
 {
-  // FIXME
+  process.kill();
 }
 
-void module_handler_base::do_write(const QByteArray& res)
+void module_handler_base::do_write(std::string_view res)
 {
   // FIXME
 }

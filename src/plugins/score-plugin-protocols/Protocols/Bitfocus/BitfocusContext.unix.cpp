@@ -29,18 +29,11 @@ module_handler_base::module_handler_base(QString module_path)
   process.start();
 
   // See https://forum.qt.io/topic/33964/solved-child-qprocess-that-dies-with-parent/10
+}
 
-  /// Connection flow:
-  // Create process
-  // <- register call
-  // -> register response
-
-  // -> init call
-  //   <- upgradedItems
-  //   <- setActionDefinitions
-  //   <- setVariableDefinitions
-  //   <- etc.
-  // <- init response
+module_handler_base::~module_handler_base()
+{
+  process.terminate();
 }
 
 void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
@@ -58,6 +51,7 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
     {
       std::ptrdiff_t diff = idx - pos;
       std::string_view message(pos, diff);
+      fprintf(stderr, "\n=========================\n <-- \n%s\n", message.data());
       this->processMessage(message);
       pos = idx + 1;
       continue;
@@ -67,12 +61,7 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
 
 void module_handler_base::do_write(std::string_view res)
 {
+  fprintf(stderr, "\n=========================\n --> \n%s\n", res.data());
   ::write(pfd[0], res.data(), res.size());
 }
-
-void module_handler_base::do_write(const QByteArray& res)
-{
-  ::write(pfd[0], res.data(), res.size());
-}
-
 }

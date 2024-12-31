@@ -2,19 +2,30 @@
 
 #include <boost/asio/ip/udp.hpp>
 
+#include <QVersionNumber>
+
 #include <oscpack/osc/OscOutboundPacketStream.h>
 
-#include <wobjectdefs.h>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(bitfocus::module_handler)
 namespace bitfocus
 {
-module_handler_base::~module_handler_base() = default;
-module_handler::~module_handler() = default;
 
-module_handler::module_handler(QString path)
+module_handler::~module_handler() { }
+
+module_handler::module_handler(
+    QString path, QString apiversion, module_configuration conf)
     : module_handler_base{path}
 {
+  for(QChar& c : apiversion)
+    if(!c.isDigit() && c != '.')
+      c = '0';
+
+  m_expects_label_updates
+      = QVersionNumber::fromString(apiversion) >= QVersionNumber(1, 2);
+
+  this->m_model.config = std::move(conf);
   // Init an udp socket for sending osc
   boost::system::error_code ec;
   m_socket.open(boost::asio::ip::udp::v4(), ec);
@@ -26,9 +37,27 @@ module_handler::module_handler(QString path)
   m_socket.set_option(boost::asio::socket_base::broadcast(true), ec);
   if(ec != boost::system::error_code{})
     return;
+
+  /// Connection flow:
+  // Create process
+  // <- register call
+  // -> register response
+
+  // -> init call
+  //   <- upgradedItems
+  //   <- setActionDefinitions
+  //   <- setVariableDefinitions
+  //   <- etc.
+  // <- init response
 }
 
-QString module_handler::toPayload(QJsonObject obj)
+void module_handler::do_write(QString str)
+{
+  auto res = str.toUtf8().append('\n');
+  module_handler_base::do_write(std::string_view(res.data(), res.size()));
+}
+
+QString module_handler::jsonToString(QJsonObject obj)
 {
   return QJsonDocument{obj}.toJson(QJsonDocument::Compact);
 }
@@ -36,28 +65,33 @@ QString module_handler::toPayload(QJsonObject obj)
 void module_handler::processMessage(std::string_view v)
 {
   auto doc = QJsonDocument::fromJson(QByteArray::fromRawData(v.data(), v.size()));
-  auto id = doc.object()["callbackId"];
-  auto direction = doc.object()["direction"];
-  auto pay = doc.object()["payload"];
-  auto name = doc.object()["name"];
-  auto success = doc.object()["success"];
+
+  auto dobj = doc.object();
+  QJsonValue id = dobj["callbackId"];
+  QJsonValue direction = dobj["direction"];
+  QJsonValue pay = dobj["payload"];
+  QJsonValue name = dobj["name"];
+  QJsonValue success = dobj["success"];
 
   auto payload_json = QJsonDocument::fromJson(pay.toString().toUtf8());
-  auto pretty = [&] { qDebug() << payload_json.toJson().toStdString().data(); };
 
-  qDebug() << id.toString() << name.toString() << direction.toString();
-  qDebug() << payload_json.toJson().toStdString().data();
+  auto pretty = [&] {
+    //  qDebug() << payload_json.toJson().toStdString().data();
+  };
+
+  // qDebug() << id.toString() << name.toString() << direction.toString();
+  //qDebug() << payload_json.toJson().toStdString().data();
   if(direction == "call")
   {
     if(name == "register")
     {
       // First message
-      on_register();
+      on_register(id);
 
       QMetaObject::invokeMethod(this, [this] { init_msg_id = init(); });
     }
     else if(name == "upgradedItems")
-      QMetaObject::invokeMethod(this, [this, n = id.toInt()] { send_success(n); });
+      QMetaObject::invokeMethod(this, [this, id] { send_success(id); });
     else if(name == "setActionDefinitions")
       on_setActionDefinitions(payload_json["actions"].toArray());
     else if(name == "setFeedbackDefinitions")
@@ -85,7 +119,7 @@ void module_handler::processMessage(std::string_view v)
       on_send_osc(payload_json.object());
     else if(name == "parseVariablesInString")
     {
-      on_parseVariablesInString(id.toInt(), payload_json.object());
+      on_parseVariablesInString(id, payload_json.object());
     }
     else if(name == "recordAction")
       on_recordAction(payload_json.object());
@@ -104,6 +138,8 @@ void module_handler::processMessage(std::string_view v)
   {
     if(id == init_msg_id)
     {
+      // Query config field
+      req_cfg_id = this->requestConfigFields();
       // Update:
       //{
       //    "hasHttpHandler": false,
@@ -115,9 +151,6 @@ void module_handler::processMessage(std::string_view v)
       //        "remoteport": 35551
       //    }
       //}
-
-      // Query config field
-      req_cfg_id = this->requestConfigFields();
     }
     else if(id == req_cfg_id)
     {
@@ -135,37 +168,33 @@ int module_handler::writeRequest(QString name, QString p)
   obj["payload"] = p;
   obj["callbackId"] = id;
 
-  auto res = toPayload(obj).toUtf8().append('\n');
-  qDebug().noquote().nospace() << "sending: " << res.size();
-  do_write(res);
+  do_write(jsonToString(obj));
   return id;
 }
 
-void module_handler::writeReply(int id, QString p)
+void module_handler::writeReply(QJsonValue id, QString p)
 {
   QJsonObject obj;
   obj["direction"] = "response";
   obj["payload"] = p;
   obj["callbackId"] = id;
-  auto res = toPayload(obj).toUtf8().append('\n');
-  qDebug() << "sending: " << res;
-  do_write(res);
+
+  do_write(jsonToString(obj));
 }
 
-void module_handler::writeReply(int id, QJsonObject p)
+void module_handler::writeReply(QJsonValue id, QJsonObject p)
 {
   return writeReply(id, QJsonDocument(p).toJson(QJsonDocument::Compact));
 }
 
-void module_handler::on_register()
+void module_handler::on_register(QJsonValue id)
 {
-  // Payload in ejson format.
-  std::string_view res
-      = R"_({"direction":"response","callbackId":1,"success":true,"payload":"{}"})_"
-        "\n";
-  qDebug().noquote().nospace() << "sending: " << res.data();
-  do_write(res);
-  cbid = 1;
+  QJsonObject obj;
+  obj["direction"] = "response";
+  obj["callbackId"] = id;
+  obj["success"] = true;
+  obj["payload"] = "{}";
+  do_write(jsonToString(obj));
 }
 
 void module_handler::on_setActionDefinitions(QJsonArray actions)
@@ -173,7 +202,7 @@ void module_handler::on_setActionDefinitions(QJsonArray actions)
   for(auto act : actions)
   {
     auto obj = act.toObject();
-    bitfocus::connection::action_definition def;
+    bitfocus::module_data::action_definition def;
     def.hasLearn = obj["hasLearn"].toBool();
     def.name = obj["name"].toString();
     for(auto opt : obj["options"].toArray())
@@ -188,17 +217,18 @@ void module_handler::on_setVariableDefinitions(QJsonArray vars)
   for(auto var : vars)
   {
     auto obj = var.toObject();
-    bitfocus::connection::variable_definition def;
+    bitfocus::module_data::variable_definition def;
     def.name = obj["name"].toString();
     m_model.variables[obj["id"].toString()] = std::move(def);
   }
 }
+
 void module_handler::on_setFeedbackDefinitions(QJsonArray fbs)
 {
   for(auto fb : fbs)
   {
     auto obj = fb.toObject();
-    bitfocus::connection::feedback_definition def;
+    bitfocus::module_data::feedback_definition def;
     def.hasLearn = obj["hasLearn"].toBool();
     def.name = obj["name"].toString();
     def.type = obj["type"].toString();
@@ -208,12 +238,13 @@ void module_handler::on_setFeedbackDefinitions(QJsonArray fbs)
     m_model.feedbacks.emplace(obj["id"].toString(), std::move(def));
   }
 }
+
 void module_handler::on_setPresetDefinitions(QJsonArray presets)
 {
   for(auto preset : presets)
   {
     auto obj = preset.toObject();
-    bitfocus::connection::preset_definition def;
+    bitfocus::module_data::preset_definition def;
     def.name = obj["name"].toString();
     def.text = obj["text"].toString();
     def.category = obj["category"].toString();
@@ -226,21 +257,28 @@ void module_handler::on_setPresetDefinitions(QJsonArray presets)
     m_model.presets.emplace(obj["id"].toString(), std::move(def));
   }
 }
+
 void module_handler::on_setVariableValues(QJsonArray vars)
 {
-  for(auto var : vars)
+  for(const auto& var : vars)
   {
     auto obj = var.toObject();
-    m_model.variables[obj["id"].toString()].value = obj["value"].toVariant();
+    const auto& id = obj["id"].toString();
+    auto& vv = m_model.variables[id];
+    vv.value = obj["value"].toVariant();
+    variableChanged(id, vv.value);
   }
 }
+
 void module_handler::on_response_configFields(QJsonArray fields)
 {
+  qDebug() << Q_FUNC_INFO << fields.size();
+
   m_model.config_fields.clear();
   for(auto obj : fields)
   {
     auto f = obj.toObject();
-    connection::config_field res;
+    module_data::config_field res;
     res.id = f["id"].toString();
     res.label = f["label"].toString();
     res.type = f["type"].toString();
@@ -251,7 +289,7 @@ void module_handler::on_response_configFields(QJsonArray fields)
     {
       for(auto choice_obj : f["choices"].toArray())
       {
-        connection::config_field::choice c;
+        module_data::config_field::choice c;
         auto choice = choice_obj.toObject();
         c.id = choice["id"].toString();
         c.label = choice["label"].toString();
@@ -340,29 +378,32 @@ int module_handler::init()
 {
   QJsonObject obj;
   obj["label"] = "OSCPoint";
-  obj["isFirstInit"] = false;
-  obj["config"] = QJsonObject{
-      {"remotehost", "127.0.0.1"}, {"remoteport", 35551}, {"localport", 35550}};
+  obj["isFirstInit"] = true;
+  QJsonObject config;
+  for(auto& [k, v] : this->m_model.config)
+  {
+    config[k] = QJsonValue::fromVariant(v);
+  }
+  obj["config"] = std::move(config);
   obj["lastUpgradeIndex"] = -1;
   obj["actions"] = QJsonObject{};
   obj["feedbacks"] = QJsonObject{};
 
-  return writeRequest("init", toPayload(obj));
+  return writeRequest("init", jsonToString(obj));
 }
 
-void module_handler::send_success(int id)
+void module_handler::send_success(QJsonValue id)
 {
   QJsonObject obj;
   obj["direction"] = "response";
   obj["callbackId"] = id;
   obj["success"] = true;
-  auto res = toPayload(obj).toUtf8().append('\n');
-  do_write(res);
+  do_write(jsonToString(obj));
 }
 
 void module_handler::on_set_status(QJsonObject obj) { }
 void module_handler::on_saveConfig(QJsonObject obj) { }
-void module_handler::on_parseVariablesInString(int id, QJsonObject obj)
+void module_handler::on_parseVariablesInString(QJsonValue id, QJsonObject obj)
 {
   QJsonObject p;
   p["text"] = ""; // FIXME
@@ -375,14 +416,33 @@ void module_handler::on_setCustomVariable(QJsonObject obj) { }
 void module_handler::on_sharedUdpSocketJoin(QJsonObject obj) { }
 void module_handler::on_sharedUdpSocketLeave(QJsonObject obj) { }
 void module_handler::on_sharedUdpSocketSend(QJsonObject obj) { }
-void module_handler::updateConfigAndLabel()
+void module_handler::updateConfigAndLabel(QString label, module_configuration conf)
 {
-  qDebug() << "TODO" << Q_FUNC_INFO;
+  this->m_model.config = std::move(conf);
+
+  QJsonObject config;
+  for(auto& [k, v] : this->m_model.config)
+  {
+    config[k] = QJsonValue::fromVariant(v);
+  }
+
+  if(m_expects_label_updates)
+  {
+    QJsonObject obj;
+    obj["config"] = std::move(config);
+    obj["label"] = label;
+    writeRequest("updateConfigAndLabel", jsonToString(obj));
+  }
+  else
+  {
+    writeRequest("updateConfig", jsonToString(config));
+  }
 }
 
 int module_handler::requestConfigFields()
 {
-  return writeRequest("getConfigFields", toPayload(QJsonObject{}));
+  qDebug() << Q_FUNC_INFO;
+  return writeRequest("getConfigFields", jsonToString(QJsonObject{}));
 }
 
 void module_handler::updateFeedbacks()
@@ -434,7 +494,7 @@ void module_handler::actionRun(std::string_view act)
   root["action"] = act_object;
   root["surfaceId"] = QString("hot:tablet"); // could be undefined
 
-  writeRequest("executeAction", toPayload(root));
+  writeRequest("executeAction", jsonToString(root));
 }
 
 void module_handler::destroy()
@@ -462,7 +522,7 @@ void module_handler::sharedUdpSocketError()
   qDebug() << "TODO" << Q_FUNC_INFO;
 }
 
-const connection& module_handler::model()
+const module_data& module_handler::model()
 {
   return m_model;
 }
