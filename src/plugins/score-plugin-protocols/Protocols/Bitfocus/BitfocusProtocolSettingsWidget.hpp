@@ -5,7 +5,9 @@
 #include <Protocols/Bitfocus/BitfocusSpecificSettings.hpp>
 
 #include <QJSEngine>
+#include <QVariant>
 
+#include <functional>
 #include <verdigris>
 
 class QStackedLayout;
@@ -18,11 +20,6 @@ class QLabel;
 
 namespace Protocols
 {
-
-class BasicTCPWidget;
-class WebsocketClientWidget;
-class RateWidget;
-
 class BitfocusProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
 public:
@@ -35,9 +32,10 @@ public:
 
 private:
   void updateFields();
+  BitfocusSpecificSettings m_settings;
+
   QFormLayout* m_rootLayout{};
   QLineEdit* m_deviceNameEdit{};
-  BitfocusSpecificSettings m_settings;
   QWidget* m_subWidget{};
   QVBoxLayout* m_subForm{};
 

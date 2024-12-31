@@ -15,6 +15,17 @@ module_handler::~module_handler() = default;
 module_handler::module_handler(QString path)
     : module_handler_base{path}
 {
+  // Init an udp socket for sending osc
+  boost::system::error_code ec;
+  m_socket.open(boost::asio::ip::udp::v4(), ec);
+  if(ec != boost::system::error_code{})
+    return;
+  m_socket.set_option(boost::asio::ip::udp::socket::reuse_address(true), ec);
+  if(ec != boost::system::error_code{})
+    return;
+  m_socket.set_option(boost::asio::socket_base::broadcast(true), ec);
+  if(ec != boost::system::error_code{})
+    return;
 }
 
 QString module_handler::toPayload(QJsonObject obj)
@@ -256,7 +267,6 @@ void module_handler::on_response_configFields(QJsonArray fields)
 
 void module_handler::on_send_osc(QJsonObject obj)
 {
-  qDebug() << "TODO send osc" << obj;
   const std::string host = obj["host"].toString().toStdString();
   const int port = obj["port"].toInt();
   const std::string path = obj["path"].toString().toStdString();
@@ -315,21 +325,11 @@ void module_handler::on_send_osc(QJsonObject obj)
   try
   {
     boost::system::error_code ec;
-    boost::asio::ip::udp::socket socket{m_send_service};
-    socket.open(boost::asio::ip::udp::v4(), ec);
-    if(ec != boost::system::error_code{})
-      return;
-    socket.set_option(boost::asio::ip::udp::socket::reuse_address(true), ec);
-    if(ec != boost::system::error_code{})
-      return;
-    socket.set_option(boost::asio::socket_base::broadcast(true), ec);
-    if(ec != boost::system::error_code{})
-      return;
     boost::asio::ip::udp::endpoint endpoint{
         boost::asio::ip::make_address(host, ec), (uint16_t)port};
     if(ec != boost::system::error_code{})
       return;
-    socket.send_to(boost::asio::const_buffer(p.Data(), p.Size()), endpoint, 0, ec);
+    m_socket.send_to(boost::asio::const_buffer(p.Data(), p.Size()), endpoint, 0, ec);
   }
   catch(...)
   {

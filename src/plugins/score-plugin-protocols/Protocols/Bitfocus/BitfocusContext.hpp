@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/ip/udp.hpp>
 
 #include <QCoreApplication>
 #include <QJsonArray>
@@ -183,6 +184,7 @@ private:
   bitfocus::connection m_model;
 
   boost::asio::io_context m_send_service;
+  boost::asio::ip::udp::socket m_socket{m_send_service};
   int cbid{};
 
   int init_msg_id{-1};
