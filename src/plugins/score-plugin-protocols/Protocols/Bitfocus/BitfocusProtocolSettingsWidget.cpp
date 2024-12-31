@@ -98,8 +98,7 @@ void BitfocusProtocolSettingsWidget::updateFields()
         static_text->setText(str);
 
         m_subForm->addWidget(static_text);
-        m_widgets[field.id]
-            = widget{.label = lab, .widget = static_text, .getValue = {}};
+        m_widgets[field.id] = widget{.label = lab, .widg = static_text, .getValue = {}};
       }
     }
     else if(field.type == "textinput" || field.type == "bonjourdevice")
@@ -115,7 +114,7 @@ void BitfocusProtocolSettingsWidget::updateFields()
       widg->setText(field.default_value.toString());
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widget = widg, .getValue = [widg]() -> QVariant {
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
         return widg->text();
       }};
     }
@@ -126,7 +125,7 @@ void BitfocusProtocolSettingsWidget::updateFields()
       widg->setValue(field.default_value.toDouble());
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widget = widg, .getValue = [widg]() -> QVariant {
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
         return widg->value();
       }};
     }
@@ -136,7 +135,7 @@ void BitfocusProtocolSettingsWidget::updateFields()
       widg->setChecked(field.default_value.toBool() == true);
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widget = widg, .getValue = [widg]() -> QVariant {
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
         return widg->isChecked();
       }};
     }
@@ -158,7 +157,7 @@ void BitfocusProtocolSettingsWidget::updateFields()
 
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widget = widg, .getValue = [widg]() -> QVariant {
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
         return widg->currentData();
       }};
     }
