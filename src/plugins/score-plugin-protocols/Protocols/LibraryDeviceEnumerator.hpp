@@ -31,7 +31,8 @@ class SCORE_PLUGIN_PROTOCOLS_EXPORT SubfolderDeviceEnumerator
     : public Device::DeviceEnumerator
 {
 public:
-  using func_type = std::function<std::pair<QString, QVariant>(QString)>;
+  using ret_type = std::vector<std::pair<QString, QVariant>>;
+  using func_type = std::function<ret_type(QString)>;
   Device::ProtocolFactory::ConcreteKey m_key;
   func_type m_createDeviceSettings;
 

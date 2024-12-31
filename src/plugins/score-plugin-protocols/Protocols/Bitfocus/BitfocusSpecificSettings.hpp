@@ -18,6 +18,9 @@ struct BitfocusSpecificSettings
   QString path;
   QString id;
   QString name;
+  QString brand;
+  QString product;
+  QString apiVersion;
 
   std::vector<std::pair<QString, QVariant>> configuration;
 

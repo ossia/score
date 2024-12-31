@@ -63,7 +63,7 @@ SubfolderDeviceEnumerator::SubfolderDeviceEnumerator(
     while(it.hasNext())
     {
       auto filepath = it.next();
-      if(auto spec = m_createDeviceSettings(filepath); spec.second != QVariant{})
+      for(auto spec : m_createDeviceSettings(filepath))
       {
         Device::DeviceSettings s;
         s.name = spec.first;

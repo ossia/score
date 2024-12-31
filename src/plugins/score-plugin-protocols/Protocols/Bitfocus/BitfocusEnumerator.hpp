@@ -11,7 +11,7 @@ class BitfocusEnumerator final : public SubfolderDeviceEnumerator
 public:
   explicit BitfocusEnumerator(const score::DocumentContext& ctx);
 
-  std::pair<QString, QVariant> loadSettings(const QString& path);
+  ret_type loadSettings(const QString& path);
   ~BitfocusEnumerator();
 };
 }

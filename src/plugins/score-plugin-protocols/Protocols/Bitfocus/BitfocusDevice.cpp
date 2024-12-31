@@ -14,6 +14,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 
+#include <ossia/network/context.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
@@ -23,7 +24,9 @@
 #include <memory>
 namespace ossia::net
 {
-class bitfocus_protocol : public ossia::net::protocol_base
+class bitfocus_protocol
+    : public QObject
+    , public ossia::net::protocol_base
 {
 public:
   bitfocus_protocol(
@@ -31,6 +34,22 @@ public:
       : m_rc{rc}
       , m_context{ctx}
   {
+    QObject::connect(
+        m_rc.get(), &bitfocus::module_handler::variableChanged, this,
+        [self = QPointer{this},
+         ctx = m_context](const QString& name, const QVariant& v) {
+      boost::asio::post(ctx->context, [self, name, val = ossia::qt::qt_to_ossia{}(v)] {
+        if(self)
+        {
+          auto it = self->m_variables_recv.find(name);
+          if(it != self->m_variables_recv.end())
+          {
+            it->second->set_value(std::move(val));
+          }
+        }
+      });
+    },
+        Qt::DirectConnection);
   }
 
   bool pull(ossia::net::parameter_base&) override { return true; }
@@ -58,33 +77,38 @@ public:
   void set_device(ossia::net::device_base& dev) override
   {
     // Start creating the tree
-    nodes.actions = dev.get_root_node().create_child("action");
-    nodes.presets = dev.get_root_node().create_child("presets");
-    nodes.feedbacks = dev.get_root_node().create_child("feedback");
-    nodes.variables = dev.get_root_node().create_child("variable");
+    auto& m = m_rc->model();
+    nodes.actions
+        = m.actions.empty() ? nullptr : dev.get_root_node().create_child("action");
+    nodes.presets
+        = m.presets.empty() ? nullptr : dev.get_root_node().create_child("presets");
+    nodes.feedbacks
+        = m.feedbacks.empty() ? nullptr : dev.get_root_node().create_child("feedback");
+    nodes.variables
+        = m.variables.empty() ? nullptr : dev.get_root_node().create_child("variable");
 
-    for(auto& v : m_rc->model().actions)
+    for(auto& v : m.actions)
     {
       auto node = nodes.actions->create_child(v.first.toStdString());
       ossia::net::set_description(*node, v.second.name.toStdString());
       auto param = node->create_parameter(ossia::val_type::IMPULSE);
     }
 
-    for(auto& v : m_rc->model().presets)
+    for(auto& v : m.presets)
     {
       auto node = nodes.presets->create_child(v.first.toStdString());
       ossia::net::set_description(*node, v.second.name.toStdString());
       auto param = node->create_parameter(ossia::val_type::IMPULSE);
     }
 
-    for(auto& v : m_rc->model().feedbacks)
+    for(auto& v : m.feedbacks)
     {
       auto node = nodes.feedbacks->create_child(v.first.toStdString());
       ossia::net::set_description(*node, v.second.name.toStdString());
       auto param = node->create_parameter(ossia::val_type::IMPULSE);
     }
 
-    for(auto& v : m_rc->model().variables)
+    for(auto& v : m.variables)
     {
       auto node = nodes.variables->create_child(v.first.toStdString());
       ossia::net::set_description(*node, v.second.name.toStdString());
@@ -94,6 +118,8 @@ public:
       {
         auto param = node->create_parameter(val.get_type());
         param->set_value(val);
+        m_variables_send[param] = v.first;
+        m_variables_recv[v.first] = param;
       }
     }
   }
@@ -110,7 +136,8 @@ public:
 
   ossia::flat_map<ossia::net::parameter_base*, QString> m_actions;
   ossia::flat_map<ossia::net::parameter_base*, QString> m_presets;
-  ossia::flat_map<ossia::net::parameter_base*, QString> m_variables;
+  ossia::flat_map<QString, ossia::net::parameter_base*> m_variables_recv;
+  ossia::flat_map<ossia::net::parameter_base*, QString> m_variables_send;
 };
 }
 namespace Protocols
@@ -139,12 +166,13 @@ bool BitfocusDevice::reconnect()
   {
     const BitfocusSpecificSettings& stgs
         = settings().deviceSpecificSettings.value<BitfocusSpecificSettings>();
+
+    // FIXME recreate it
     if(!stgs.handler)
-    {
-      qDebug("oh noes");
       return false;
-      ;
-    }
+
+    stgs.handler->updateFeedbacks();
+
     const auto& name = settings().name.toStdString();
     if(auto proto = std::make_unique<ossia::net::bitfocus_protocol>(stgs.handler, m_ctx))
     {

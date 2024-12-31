@@ -2,6 +2,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/udp.hpp>
 
+#include <QColor>
 #include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -21,7 +22,8 @@
 namespace bitfocus
 {
 
-struct connection
+using module_configuration = std::map<QString, QVariant>;
+struct module_data
 {
   struct action_definition
   {
@@ -85,21 +87,17 @@ struct connection
   std::map<QString, feedback_definition> feedbacks;
   std::map<QString, preset_definition> presets;
   std::vector<config_field> config_fields;
-
-  struct config_ui
-  {
-    std::map<std::string, std::string> config;
-  };
+  module_configuration config;
 };
 
 // note: callback id shared between both ends so every message has to be processed in order
 #if defined(_WIN32)
 struct module_handler_base : public QObject
 {
+  QProcess process{};
   explicit module_handler_base(QString module_path);
   virtual ~module_handler_base();
   void do_write(std::string_view res);
-  void do_write(const QByteArray& res);
   virtual void processMessage(std::string_view) = 0;
 };
 #else
@@ -115,7 +113,6 @@ struct module_handler_base : public QObject
 
   void on_read(QSocketDescriptor, QSocketNotifier::Type);
   void do_write(std::string_view res);
-  void do_write(const QByteArray& res);
 
   virtual void processMessage(std::string_view) = 0;
 };
@@ -125,19 +122,21 @@ struct module_handler final : public module_handler_base
 {
   W_OBJECT(module_handler)
 public:
-  explicit module_handler(QString path);
+  explicit module_handler(QString path, QString apiversion, module_configuration config);
   virtual ~module_handler();
 
-  QString toPayload(QJsonObject obj);
+  using module_handler_base::do_write;
+  void do_write(QString res);
+  QString jsonToString(QJsonObject obj);
 
   void processMessage(std::string_view v) override;
 
   int writeRequest(QString name, QString p);
-  void writeReply(int id, QString p);
-  void writeReply(int id, QJsonObject p);
+  void writeReply(QJsonValue id, QString p);
+  void writeReply(QJsonValue id, QJsonObject p);
 
   // Module -> app (requests handling)
-  void on_register();
+  void on_register(QJsonValue id);
   void on_setActionDefinitions(QJsonArray obj);
   void on_setVariableDefinitions(QJsonArray obj);
   void on_setFeedbackDefinitions(QJsonArray obj);
@@ -145,7 +144,7 @@ public:
   void on_setVariableValues(QJsonArray obj);
   void on_set_status(QJsonObject obj);
   void on_saveConfig(QJsonObject obj);
-  void on_parseVariablesInString(int id, QJsonObject obj);
+  void on_parseVariablesInString(QJsonValue id, QJsonObject obj);
   void on_updateFeedbackValues(QJsonObject obj);
   void on_recordAction(QJsonObject obj);
   void on_setCustomVariable(QJsonObject obj);
@@ -160,8 +159,8 @@ public:
   // App -> module
 
   int init();
-  void send_success(int id);
-  void updateConfigAndLabel();
+  void send_success(QJsonValue id);
+  void updateConfigAndLabel(QString label, module_configuration conf);
   int requestConfigFields();
   void updateFeedbacks();
   void feedbackLearnValues();
@@ -176,19 +175,22 @@ public:
   void startStopRecordingActions();
   void sharedUdpSocketMessage();
   void sharedUdpSocketError();
-  const bitfocus::connection& model();
+  const bitfocus::module_data& model();
 
   void configurationParsed() W_SIGNAL(configurationParsed);
+  void variableChanged(QString var, QVariant val) W_SIGNAL(variableChanged, var, val);
 
 private:
-  bitfocus::connection m_model;
+  bitfocus::module_data m_model;
 
   boost::asio::io_context m_send_service;
   boost::asio::ip::udp::socket m_socket{m_send_service};
-  int cbid{};
+  int cbid{1};
 
   int init_msg_id{-1};
   int req_cfg_id{-1};
+
+  bool m_expects_label_updates{true};
 };
 
 } // namespace bitfocus
