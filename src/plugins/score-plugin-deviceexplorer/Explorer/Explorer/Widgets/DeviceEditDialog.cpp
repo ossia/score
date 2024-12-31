@@ -50,6 +50,7 @@ DeviceEditDialog::DeviceEditDialog(
     , m_protocolWidget{nullptr}
     , m_index{-1}
 {
+  setObjectName("DeviceEditDialog");
 
   const auto& skin = score::Skin::instance();
   const QColor textHeaderColor = QColor("#D5D5D5");
@@ -107,36 +108,36 @@ DeviceEditDialog::DeviceEditDialog(
 
   // Column 3: Settings
   auto column3 = new QWidget;
-  auto column3_layout = new score::MarginLess<QVBoxLayout>{column3};
+  auto column3_layout = m_column3Layout = new score::MarginLess<QVBoxLayout>{column3};
   m_protocolNameLabel = new QLabel{tr("Settings"), this};
   setHeaderTextFormat(m_protocolNameLabel);
   column3_layout->addWidget(m_protocolNameLabel);
   m_protocolNameLabel->setAlignment(Qt::AlignTop);
   m_protocolNameLabel->setAlignment(Qt::AlignHCenter);
-  m_main = new QWidget{this};
-  m_settingsFormLayout = new QFormLayout;
-  m_settingsFormLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
-  m_main->setLayout(m_settingsFormLayout);
-  column3_layout->addWidget(m_main);
+  // m_main = new QWidget{this};
+  // m_settingsFormLayout = new QFormLayout;
+  // m_settingsFormLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+  // m_main->setLayout(m_settingsFormLayout);
+  // column3_layout->addWidget(m_main, 255, Qt::AlignTop);
 
   m_invalidLabel = new QLabel{
       tr("Cannot add device.\n Try changing the name to make it unique, \nor "
          "check that the ports aren't already used")};
-  m_invalidLabel->setAlignment(Qt::AlignRight);
+  m_invalidLabel->setAlignment(Qt::AlignRight | Qt::AlignBottom);
   m_invalidLabel->setTextFormat(Qt::PlainText);
 
   m_buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
   m_helpButton = m_buttonBox->addButton(tr("Help"), QDialogButtonBox::HelpRole);
   m_okButton = m_buttonBox->addButton(tr("Add"), QDialogButtonBox::AcceptRole);
   m_buttonBox->addButton(QDialogButtonBox::Cancel);
-  column3_layout->addStretch(1);
-  column3_layout->addWidget(m_invalidLabel);
-  column3_layout->addWidget(m_buttonBox);
+  //column3_layout->addStretch(1);
+  column3_layout->addWidget(m_invalidLabel, 1, Qt::AlignBottom);
+  column3_layout->addWidget(m_buttonBox, 1, Qt::AlignBottom);
   column3->setLayout(column3_layout);
   m_splitter->addWidget(column3);
 
   m_devices->setMinimumWidth(40);
-  m_main->setMinimumWidth(100);
+  // m_main->setMinimumWidth(100);
 
   m_splitter->setCollapsible(0, false);
   m_splitter->setCollapsible(1, false);
@@ -285,6 +286,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   {
     SCORE_ASSERT(m_index < m_previousSettings.count());
     m_previousSettings[m_index] = m_protocolWidget->getSettings();
+    m_column3Layout->removeWidget(m_protocolWidget);
     delete m_protocolWidget;
     m_protocolWidget = nullptr;
   }
@@ -358,10 +360,10 @@ void DeviceEditDialog::selectedProtocolChanged()
         m_protocolWidget, &Device::ProtocolSettingsWidget::changed, this,
         &DeviceEditDialog::updateValidity);
 
-    m_settingsFormLayout->insertRow(0, m_protocolWidget);
+    m_column3Layout->insertWidget(1, m_protocolWidget);
 
     QSizePolicy pol{QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding};
-    pol.setVerticalStretch(1);
+    pol.setVerticalStretch(255);
     m_protocolWidget->setSizePolicy(pol);
     m_protocolWidget->setMinimumHeight(200);
     this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -415,7 +417,7 @@ void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
 void DeviceEditDialog::setAcceptEnabled(bool st)
 {
   m_okButton->setEnabled(st);
-  m_invalidLabel->setVisible(!st);
+  m_invalidLabel->setVisible(!st && this->m_protocolWidget);
 }
 
 void DeviceEditDialog::setBrowserEnabled(bool st)
@@ -432,12 +434,6 @@ void DeviceEditDialog::setBrowserEnabled(bool st)
     m_devices = nullptr;
     delete m_devicesLabel;
     m_devicesLabel = nullptr;
-
-    auto this_lay = this->layout();
-    this_lay->removeWidget(m_main);
-    delete this_lay;
-    auto lay = m_main->layout();
-    this->setLayout(lay);
   }
 }
 
