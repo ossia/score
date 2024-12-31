@@ -16,6 +16,7 @@ class QFormLayout;
 class QWidget;
 class QListWidget;
 class QTreeWidget;
+class QVBoxLayout;
 class QLabel;
 class QDialogButtonBox;
 
@@ -74,11 +75,12 @@ private:
   QPushButton* m_helpButton{};
   QTreeWidget* m_protocols{};
   QTreeWidget* m_devices{};
-  QWidget* m_main{};
+  // QWidget* m_main{};
   QLabel* m_protocolsLabel{};
   QLabel* m_devicesLabel{};
   Device::ProtocolSettingsWidget* m_protocolWidget{};
-  QFormLayout* m_settingsFormLayout{};
+  // QFormLayout* m_settingsFormLayout{};
+  QVBoxLayout* m_column3Layout{};
   QList<Device::DeviceSettings> m_previousSettings;
   QLabel* m_invalidLabel{};
   QLabel* m_protocolNameLabel{};
