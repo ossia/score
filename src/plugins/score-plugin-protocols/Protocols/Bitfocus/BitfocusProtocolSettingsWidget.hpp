@@ -46,7 +46,7 @@ private:
   struct widget
   {
     QLabel* label{};
-    QWidget* widget{};
+    QWidget* widg{};
     std::function<QVariant()> getValue;
   };
 
