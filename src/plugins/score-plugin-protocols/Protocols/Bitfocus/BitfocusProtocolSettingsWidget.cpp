@@ -79,7 +79,8 @@ void BitfocusProtocolSettingsWidget::updateFields()
         static_text->setText(str);
 
         m_subForm->addWidget(static_text);
-        m_widgets[field.id] = {.label = lab, .widget = static_text, .getValue = {}};
+        m_widgets[field.id]
+            = widget{.label = lab, .widget = static_text, .getValue = {}};
       }
     }
     else if(field.type == "textinput" || field.type == "bonjourdevice")
