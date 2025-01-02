@@ -253,6 +253,17 @@ public:
       child.visit(f);
     }
   }
+
+  template <typename Fun>
+  void visit_post(Fun f) const noexcept(noexcept(f(std::declval<TreeNode>())))
+  {
+    for(const auto& child : m_children)
+    {
+      child.visit_post(f);
+    }
+
+    f(*this);
+  }
 };
 
 // True if gramps is a parent, grand-parent, etc. of node.

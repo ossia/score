@@ -70,24 +70,13 @@ void state(
   // For all elements where IOType != Invalid,
   // we add the elements to the state.
 
-  score_state.messages().rootNode().visit([&elts, &dl](const auto& n) {
+  score_state.messages().rootNode().visit_post([&elts, &dl](const auto& n) {
     const auto& val = n.value();
     if(val)
     {
       elts.add(message(State::Message{Process::address(n), *val}, dl));
     }
   });
-
-  /* TODO
-  for (auto& proc : score_state.stateProcesses)
-  {
-    auto fac = ctx.stateProcesses.factory(proc);
-    if (fac)
-    {
-      elts.add(fac->make(proc, ctx));
-    }
-  }
-  */
 }
 
 ossia::state

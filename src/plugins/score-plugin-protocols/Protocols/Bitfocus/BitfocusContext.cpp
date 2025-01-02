@@ -206,7 +206,9 @@ void module_handler::on_setActionDefinitions(QJsonArray actions)
     def.hasLearn = obj["hasLearn"].toBool();
     def.name = obj["name"].toString();
     for(auto opt : obj["options"].toArray())
-      def.options.push_back(opt.toObject().toVariantMap());
+    {
+      def.options.push_back(parseConfigField(opt.toObject()));
+    }
 
     m_model.actions.emplace(obj["id"].toString(), std::move(def));
   }
@@ -270,6 +272,30 @@ void module_handler::on_setVariableValues(QJsonArray vars)
   }
 }
 
+module_data::config_field module_handler::parseConfigField(QJsonObject f)
+{
+  module_data::config_field res;
+  res.id = f["id"].toString();
+  res.label = f["label"].toString();
+  res.type = f["type"].toString();
+  res.regex = f["regex"].toString();
+  res.value = f["value"].toVariant();
+  res.default_value = f["default"].toVariant();
+  res.width = f["width"].toDouble();
+  {
+    for(auto choice_obj : f["choices"].toArray())
+    {
+      module_data::config_field::choice c;
+      auto choice = choice_obj.toObject();
+      c.id = choice["id"].toString();
+      c.label = choice["label"].toString();
+      if(!c.id.isEmpty())
+        res.choices.push_back(std::move(c));
+    }
+  }
+  return res;
+}
+
 void module_handler::on_response_configFields(QJsonArray fields)
 {
   qDebug() << Q_FUNC_INFO << fields.size();
@@ -277,27 +303,7 @@ void module_handler::on_response_configFields(QJsonArray fields)
   m_model.config_fields.clear();
   for(auto obj : fields)
   {
-    auto f = obj.toObject();
-    module_data::config_field res;
-    res.id = f["id"].toString();
-    res.label = f["label"].toString();
-    res.type = f["type"].toString();
-    res.regex = f["regex"].toString();
-    res.value = f["value"].toVariant();
-    res.default_value = f["default"].toVariant();
-    res.width = f["width"].toDouble();
-    {
-      for(auto choice_obj : f["choices"].toArray())
-      {
-        module_data::config_field::choice c;
-        auto choice = choice_obj.toObject();
-        c.id = choice["id"].toString();
-        c.label = choice["label"].toString();
-        if(!c.id.isEmpty())
-          res.choices.push_back(std::move(c));
-      }
-    }
-    m_model.config_fields.push_back(std::move(res));
+    m_model.config_fields.push_back(parseConfigField(obj.toObject()));
   }
 
   configurationParsed();
@@ -481,13 +487,13 @@ void module_handler::actionLearnValues()
   qDebug() << "TODO" << Q_FUNC_INFO;
 }
 
-void module_handler::actionRun(std::string_view act)
+void module_handler::actionRun(std::string_view act, QVariantMap options)
 {
   QJsonObject act_object;
   act_object["id"] = QString("foo");
   act_object["controlId"] = QString("bank:0");
   act_object["actionId"] = QString::fromUtf8(act.data(), act.size());
-  act_object["options"] = QJsonObject{}; // TODO
+  act_object["options"] = QJsonObject::fromVariantMap(options);
   act_object["upgradeIndex"] = QJsonValue{QJsonValue::Type::Null};
   act_object["disabled"] = false;
   QJsonObject root;

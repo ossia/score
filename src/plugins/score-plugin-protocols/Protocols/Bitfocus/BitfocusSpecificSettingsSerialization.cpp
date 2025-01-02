@@ -11,12 +11,16 @@
 template <>
 void DataStreamReader::read(const Protocols::BitfocusSpecificSettings& n)
 {
+  this->m_stream << n.path << n.id << n.name << n.brand << n.product << n.apiVersion
+                 << n.configuration << n.description;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::BitfocusSpecificSettings& n)
 {
+  this->m_stream >> n.path >> n.id >> n.name >> n.brand >> n.product >> n.apiVersion
+      >> n.configuration >> n.description;
   checkDelimiter();
 }
 
