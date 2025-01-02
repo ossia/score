@@ -33,6 +33,7 @@ public:
 
     m_mode.addItem("Stereo");
     m_mode.addItem("Mono");
+    m_mode.setCurrentIndex(obj.mode() == Merger::Model::Mono ? 1 : 0);
 
     auto lay = new QFormLayout{this};
 
