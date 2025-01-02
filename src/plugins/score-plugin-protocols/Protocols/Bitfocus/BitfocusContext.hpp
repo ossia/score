@@ -25,11 +25,35 @@ namespace bitfocus
 using module_configuration = std::map<QString, QVariant>;
 struct module_data
 {
+  struct config_field
+  {
+    struct choice
+    {
+      QString id;
+      QString label;
+    };
+
+    QString id;
+    QString label;
+    // "static-text", "textinput", "number", "checkbox", "choices", "bonjour-device", "dropdown"
+    QString type;
+    QVariant value;
+    QString tooltip;
+    QString regex;
+    // ex. :  "e=>!![\"TF\",\"DM3\",\"DM7\"].includes(e.model)&&(e.kaInterval=e.kaIntervalH,!0)",
+    QString isVisibleFn;
+    double min = 0;
+    double max = 1;
+    std::vector<choice> choices;
+    QVariant default_value; // true, a number, a string etc
+    double width;
+  };
+
   struct action_definition
   {
     bool hasLearn;
     QString name;
-    std::vector<QVariantMap> options;
+    std::vector<config_field> options;
   };
   struct variable_definition
   {
@@ -56,30 +80,6 @@ struct module_data
     QString type;
     std::vector<QVariantMap> feedbacks;
     std::vector<QVariantMap> steps;
-  };
-
-  struct config_field
-  {
-    struct choice
-    {
-      QString id;
-      QString label;
-    };
-
-    QString id;
-    QString label;
-    // "static-text", "textinput", "number", "checkbox", "choices", "bonjour-device", "dropdown"
-    QString type;
-    QVariant value;
-    QString tooltip;
-    QString regex;
-    // ex. :  "e=>!![\"TF\",\"DM3\",\"DM7\"].includes(e.model)&&(e.kaInterval=e.kaIntervalH,!0)",
-    QString isVisibleFn;
-    double min = 0;
-    double max = 1;
-    std::vector<choice> choices;
-    QVariant default_value; // true, a number, a string etc
-    double width;
   };
 
   std::map<QString, action_definition> actions;
@@ -153,6 +153,8 @@ public:
   void on_sharedUdpSocketSend(QJsonObject obj);
   void on_send_osc(QJsonObject obj);
 
+  module_data::config_field parseConfigField(QJsonObject f);
+
   // Module -> app (replies handling)
   void on_response_configFields(QJsonArray fields);
 
@@ -169,7 +171,7 @@ public:
   void actionUpdate();
   void actionDelete();
   void actionLearnValues();
-  void actionRun(std::string_view act);
+  void actionRun(std::string_view act, QVariantMap options);
   void destroy();
   void executeHttpRequest();
   void startStopRecordingActions();

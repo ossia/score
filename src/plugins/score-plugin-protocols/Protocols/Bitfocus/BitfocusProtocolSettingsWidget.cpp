@@ -183,25 +183,25 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
 
   if(settings.deviceSpecificSettings.canConvert<BitfocusSpecificSettings>())
   {
-    auto set = settings.deviceSpecificSettings.value<BitfocusSpecificSettings>();
-    if(!set.path.isEmpty() && QDir{set.path}.exists())
+    auto stgs = settings.deviceSpecificSettings.value<BitfocusSpecificSettings>();
+    if(!stgs.path.isEmpty() && QDir{stgs.path}.exists())
     {
-      m_deviceNameEdit->setText(set.name);
+      m_deviceNameEdit->setText(stgs.name);
       auto conf = bitfocus::module_configuration{};
       {
-        if(!set.product.isEmpty())
+        if(!stgs.product.isEmpty())
         {
-          conf["product"] = set.product;
+          conf["product"] = stgs.product;
         }
       }
-      set.handler = std::make_shared<bitfocus::module_handler>(
-          set.path, set.apiVersion, std::move(conf));
+      stgs.handler = std::make_shared<bitfocus::module_handler>(
+          stgs.path, stgs.apiVersion, std::move(conf));
       connect(
-          set.handler.get(), &bitfocus::module_handler::configurationParsed, this,
+          stgs.handler.get(), &bitfocus::module_handler::configurationParsed, this,
           [this] { updateFields(); });
     }
 
-    m_settings = set;
+    m_settings = stgs;
   }
 }
 }

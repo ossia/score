@@ -58,8 +58,23 @@ public:
     auto parent = p.get_node().get_parent();
     if(parent == nodes.actions)
     {
-      QMetaObject::invokeMethod(m_rc.get(), [m = m_rc, name = p.get_node().get_name()] {
-        m->actionRun(name);
+      ossia::value_map_type options;
+      {
+        const auto& cld = p.get_node().children();
+        options.reserve(cld.size());
+        for(auto& cld : cld)
+          if(auto option_p = cld->get_parameter())
+            options.emplace_back(cld->get_name(), option_p->value());
+      }
+      QMetaObject::invokeMethod(
+          m_rc.get(),
+          [m = m_rc, name = p.get_node().get_name(), options = std::move(options)] {
+        QVariantMap options_map;
+        for(auto& [k, v] : options)
+          options_map[QString::fromStdString(k)]
+              = v.apply(ossia::qt::ossia_to_qvariant{});
+
+        m->actionRun(name, options_map);
       });
     }
     else if(parent == nodes.presets)
@@ -92,6 +107,37 @@ public:
       auto node = nodes.actions->create_child(v.first.toStdString());
       ossia::net::set_description(*node, v.second.name.toStdString());
       auto param = node->create_parameter(ossia::val_type::IMPULSE);
+      for(auto& opt : v.second.options)
+      {
+        if(opt.type == "static-text")
+          continue;
+
+        auto cld = node->create_child(opt.id.toStdString());
+        ossia::net::set_description(*node, opt.label.toStdString());
+        if(opt.type == "textinput" || opt.type == "bonjourdevice")
+        {
+          auto p = cld->create_parameter(ossia::val_type::STRING);
+          p->set_value(opt.default_value.toString().toStdString());
+        }
+        else if(opt.type == "number")
+        {
+          auto p = cld->create_parameter(ossia::val_type::FLOAT);
+          p->set_value(opt.default_value.toDouble());
+        }
+        else if(opt.type == "checkbox")
+        {
+          auto p = cld->create_parameter(ossia::val_type::BOOL);
+          p->set_value(opt.default_value.toBool());
+        }
+        else if(opt.type == "choices" || opt.type == "dropdown")
+        {
+          auto p = cld->create_parameter(ossia::val_type::STRING);
+          auto dom = ossia::domain_base<std::string>{};
+          for(const auto& choice : opt.choices)
+            dom.values.push_back(choice.id.toStdString());
+          p->set_value(opt.default_value.toString().toStdString());
+        }
+      }
     }
 
     for(auto& v : m.presets)
@@ -164,14 +210,31 @@ bool BitfocusDevice::reconnect()
 
   try
   {
-    const BitfocusSpecificSettings& stgs
+    BitfocusSpecificSettings stgs
         = settings().deviceSpecificSettings.value<BitfocusSpecificSettings>();
 
-    // FIXME recreate it
-    if(!stgs.handler)
-      return false;
+    auto conf = bitfocus::module_configuration{};
+    {
+      if(!stgs.product.isEmpty())
+      {
+        conf["product"] = stgs.product;
+      }
+      for(auto& [k, v] : stgs.configuration)
+      {
+        conf[k] = v;
+      }
+    }
 
-    stgs.handler->updateFeedbacks();
+    if(!stgs.handler)
+    {
+      stgs.handler = std::make_shared<bitfocus::module_handler>(
+          stgs.path, stgs.apiVersion, std::move(conf));
+      m_settings.deviceSpecificSettings = QVariant::fromValue(stgs);
+    }
+    else
+    {
+      stgs.handler->updateConfigAndLabel(stgs.name, conf);
+    }
 
     const auto& name = settings().name.toStdString();
     if(auto proto = std::make_unique<ossia::net::bitfocus_protocol>(stgs.handler, m_ctx))
