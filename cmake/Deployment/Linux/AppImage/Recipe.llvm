@@ -30,39 +30,42 @@ mkdir -p "$SDK_DIR"
 export SOURCE_DIR=/score
 export SCORE_DIR=/score
 
-    export INSTALL_ROOT=$(cd $APP_DIR/usr; pwd)
+export INSTALL_ROOT=$(cd "$APP_DIR/usr"; pwd)
 
-    cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" $TOOLCHAIN -- \
-      -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-      -DOSSIA_SDK=$OSSIA_SDK \
-      -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX"
+cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" -- \
+  -DCMAKE_INSTALL_PREFIX="$INSTALL_ROOT" \
+  -DOSSIA_SDK="$OSSIA_SDK" \
+  -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
+  -DCMAKE_C_COMPILER="$CC" \
+  -DCMAKE_CXX_COMPILER="$CXX"
 
-    (
-      cd "$BUILD_DIR"
+(
+  cd "$BUILD_DIR"
 
-      if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
-        cmake --install . --component OssiaScore
-      else
-        cmake --install . --strip --component OssiaScore
-      fi
+  if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
+    cmake --install . --component OssiaScore
+  else
+    cmake --install . --strip --component OssiaScore
+  fi
 
-      cmake --install . --component Devel --prefix "$SDK_DIR/usr"
-      (
-        cd "$SDK_DIR/usr/lib"
-        echo "== content of $SDK_DIR/usr/lib"
-        find .
-        find . -name '*.a' -exec rm -rf {} \;
-      )
-    )
+  cmake --install . --component Devel --prefix "$SDK_DIR/usr"
+  (
+    cd "$SDK_DIR/usr/lib"
+    echo "== content of $SDK_DIR/usr/lib"
+    find .
+    find . -name '*.a' -exec rm -rf {} \;
+  )
+)
 
 
 # Copy pixmaps
-cp $APP_DIR/usr/share/applications/ossia-score.desktop $APP_DIR/
-cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
+cp "$APP_DIR/usr/share/applications/ossia-score.desktop" "$APP_DIR/"
+sed -i "s/3.0.0/$TAG/" "$APP_DIR/ossia-score.desktop"
+cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
 
 # Copy needed libraries and remove system ones
 (
-    cd $APP_DIR
+    cd "$APP_DIR"
     mkdir -p ./usr/lib/qt6/qml
 
     # Fonts

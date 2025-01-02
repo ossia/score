@@ -11,6 +11,7 @@ docker pull ossia/score-package-linux
 docker run \
            -v "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/Recipe.llvm:/Recipe" \
            -e TOOLCHAIN=appimage \
+           -e TAG="$GITTAGNOV" \
            --mount type=bind,source="$PWD/opt/ossia-sdk",target=/opt/ossia-sdk \
            --mount type=bind,source="$SOURCE_FOLDER",target=/score \
            --mount type=bind,source="$BUILD_FOLDER",target=/build \
