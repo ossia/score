@@ -166,6 +166,7 @@ public:
 
     if_possible(node->impl.effect.ossia_state = st);
     if_possible(node->impl.effect.io_context = &net_ctx.context);
+    if_possible(node->impl.effect.ossia_document_context = &ctx.doc);
     ptr.reset(node);
     this->node = ptr;
 

@@ -31,6 +31,11 @@ struct AudioRecorder
   // Threaded worker
   struct recorder_thread
   {
+    explicit recorder_thread(const score::DocumentContext& context)
+        : context{context}
+    {
+    }
+    const score::DocumentContext& context;
     ossia::drwav_write_handle f;
     std::string filename;
     std::string actual_filename;
@@ -43,8 +48,10 @@ struct AudioRecorder
       if(must_record)
       {
         // Open the file with the correct substitutions
-        auto fname = QByteArray::fromStdString(this->filename);
-        fname.replace("%t", QDateTime::currentDateTimeUtc().toString().toUtf8());
+        auto fname = QString::fromStdString(this->filename);
+
+        fname.replace("%t", QDateTime::currentDateTimeUtc().toString());
+        fname = score::locateFilePath(fname, context);
         actual_filename = fname.toStdString();
         f.open(actual_filename, channels, rate, 16);
         return false;
@@ -83,7 +90,7 @@ struct AudioRecorder
       f.write_pcm_frames(frames, arr);
     }
   };
-  std::shared_ptr<recorder_thread> impl = std::make_shared<recorder_thread>();
+  std::shared_ptr<recorder_thread> impl;
 
   struct reset_message
   {
@@ -163,12 +170,20 @@ struct AudioRecorder
     halp::callback<"Filename", std::string> finished;
   } outputs;
 
+  const score::DocumentContext* ossia_document_context{};
   int current_rate = 0;
-  void prepare(halp::setup s) { current_rate = s.rate; }
+  void prepare(halp::setup s)
+  {
+    current_rate = s.rate;
+    SCORE_ASSERT(ossia_document_context);
+    impl = std::make_shared<recorder_thread>(*ossia_document_context);
+    update();
+  }
 
   void update()
   {
-    worker.request(impl, reset_message{inputs.filename, current_rate, inputs.record});
+    if(impl)
+      worker.request(impl, reset_message{inputs.filename, current_rate, inputs.record});
   }
 
   void operator()(int frames)
