@@ -32,6 +32,7 @@ std::vector<score::InterfaceBase*> score_plugin_analysis::factories(
   oscr::instantiate_fx<Analysis::CSD>(fx, ctx, key);
   oscr::instantiate_fx<Analysis::Crest>(fx, ctx, key);
   oscr::instantiate_fx<Analysis::EnergyDifference>(fx, ctx, key);
+  oscr::instantiate_fx<Analysis::EnvelopeFollower>(fx, ctx, key);
   oscr::instantiate_fx<Analysis::Flatness>(fx, ctx, key);
   oscr::instantiate_fx<Analysis::HFQ>(fx, ctx, key);
   oscr::instantiate_fx<Analysis::Kurtosis>(fx, ctx, key);
