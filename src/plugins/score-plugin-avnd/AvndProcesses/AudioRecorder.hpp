@@ -1,4 +1,7 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
+#include <score/tools/File.hpp>
+
 #include <ossia/audio/drwav_write_handle.hpp>
 #include <ossia/network/value/detail/value_conversion_impl.hpp>
 
