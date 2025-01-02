@@ -63,4 +63,49 @@ struct Peak : Analysis::GistState
         inputs.audio, inputs.gain, inputs.gate, outputs.result, frames);
   }
 };
+
+struct EnvelopeFollower
+{
+  halp_meta(name, "Envelope Follower (audio)")
+  halp_meta(c_name, "EnvelopeFollowerAudio")
+  halp_meta(category, "Analysis/Envelope")
+  halp_meta(author, "Kevin Ferguson")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#envelope")
+  halp_meta(
+      description,
+      "Sample-level envelope Follower\n"
+      "(https://kferg.dev/posts/2020/audio-reactive-programming-envelope-followers/)")
+  halp_meta(uuid, "0a262706-1216-44f4-85ca-52f1f25785bc")
+
+  struct inputs
+  {
+    halp::knob_f32<"Millis (up)", halp::range{0., 1000., 50.}> a;
+    halp::knob_f32<"Millis (down)", halp::range{0., 1000., 15.}> b;
+  };
+  struct outputs
+  {
+  };
+  void prepare(halp::setup s) { rate = s.rate; }
+  double rate{48000.};
+  double y{};
+
+  double operator()(double x, struct inputs inputs, outputs) noexcept
+  {
+    using namespace std;
+    const auto abs_x = abs(x);
+    if(rate > 0)
+    {
+      const auto a = exp(log(0.5) / (rate * (inputs.a.value / 1000.0)));
+      const auto b = exp(log(0.5) / (rate * (inputs.b.value / 1000.0)));
+
+      const auto coeff = (abs_x > y) ? a : b;
+      y = coeff * y + (1. - coeff) * abs_x;
+    }
+    else
+    {
+      y = 0.;
+    }
+    return y;
+  }
+};
 }
