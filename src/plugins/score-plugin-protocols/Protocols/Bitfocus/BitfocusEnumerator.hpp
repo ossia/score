@@ -9,7 +9,7 @@ namespace Protocols
 class BitfocusEnumerator final : public SubfolderDeviceEnumerator
 {
 public:
-  explicit BitfocusEnumerator(const score::DocumentContext& ctx);
+  explicit BitfocusEnumerator(QString path, const score::DocumentContext& ctx);
 
   ret_type loadSettings(const QString& path);
   ~BitfocusEnumerator();

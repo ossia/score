@@ -52,27 +52,33 @@ void LibraryDeviceEnumerator::enumerate(
 }
 
 SubfolderDeviceEnumerator::SubfolderDeviceEnumerator(
-    QString root, Device::ProtocolFactory::ConcreteKey k, func_type createDev,
+    QStringList roots, Device::ProtocolFactory::ConcreteKey k, func_type createDev,
     const score::DocumentContext& ctx)
     : m_key{k}
     , m_createDeviceSettings{createDev}
 {
-  QTimer::singleShot(100, this, [this, root] {
-    QDirIterator it{
-        root, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags};
-    while(it.hasNext())
-    {
-      auto filepath = it.next();
-      for(auto spec : m_createDeviceSettings(filepath))
+  for(const auto& root : roots)
+  {
+    QTimer::singleShot(10, this, [this, root, n = roots.size()] {
+      QDirIterator it{
+          root, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags};
+      while(it.hasNext())
       {
-        Device::DeviceSettings s;
-        s.name = spec.first;
-        s.protocol = m_key;
-        s.deviceSpecificSettings = spec.second;
-        deviceAdded(s.name, s);
+        for(auto spec : m_createDeviceSettings(it.next()))
+        {
+          Device::DeviceSettings s;
+          s.name = spec.first;
+          s.protocol = m_key;
+          s.deviceSpecificSettings = std::move(spec.second);
+          deviceAdded(s.name, s);
+        }
       }
-    }
-  });
+
+      m_finished++;
+      if(m_finished == n)
+        this->sort();
+    });
+  }
 }
 
 void SubfolderDeviceEnumerator::next(std::string_view path) { }

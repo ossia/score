@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <QString>
 
@@ -16,13 +17,14 @@ namespace Protocols
 struct BitfocusSpecificSettings
 {
   QString path;
+  QString entrypoint;
   QString id;
   QString name;
   QString brand;
   QString product;
   QString apiVersion;
 
-  std::vector<std::pair<QString, QVariant>> configuration;
+  std::vector<std::pair<QString, ossia::value>> configuration;
 
   QString description;
   std::shared_ptr<bitfocus::module_handler> handler;

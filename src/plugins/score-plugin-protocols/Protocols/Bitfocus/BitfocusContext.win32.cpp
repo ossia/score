@@ -1,7 +1,6 @@
 #include "BitfocusContext.hpp"
 
 #include <QDebug>
-#include <QLocalServer>
 #include <QLocalSocket>
 
 #include <stdio.h>
@@ -254,7 +253,7 @@ struct win32_handles
 
   QByteArray readbuf;
 };
-module_handler_base::module_handler_base(QString module_path)
+module_handler_base::module_handler_base(QString module_path, QString entrypoint)
 {
   handles = std::make_unique<win32_handles>();
   if(!handles->ready)
@@ -289,7 +288,10 @@ module_handler_base::module_handler_base(QString module_path)
   genv.insert("NODE_CHANNEL_SERIALIZATION_MODE", "json");
   genv.insert("NODE_CHANNEL_FD", "3");
 
-  handles->startProcess("node.exe main.js", module_path.toStdString(), genv);
+  std::string cmdline;
+  cmdline = "node.exe ";
+  cmdline += entrypoint.toStdString();
+  handles->startProcess(cmdline, module_path.toStdString(), genv);
 }
 
 module_handler_base::~module_handler_base() { }

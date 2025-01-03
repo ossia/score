@@ -15,8 +15,8 @@ namespace bitfocus
 module_handler::~module_handler() { }
 
 module_handler::module_handler(
-    QString path, QString apiversion, module_configuration conf)
-    : module_handler_base{path}
+    QString path, QString entrypoint, QString apiversion, module_configuration conf)
+    : module_handler_base{path, entrypoint}
 {
   for(QChar& c : apiversion)
     if(!c.isDigit() && c != '.')
@@ -26,6 +26,7 @@ module_handler::module_handler(
       = QVersionNumber::fromString(apiversion) >= QVersionNumber(1, 2);
 
   this->m_model.config = std::move(conf);
+
   // Init an udp socket for sending osc
   boost::system::error_code ec;
   m_socket.open(boost::asio::ip::udp::v4(), ec);
@@ -49,6 +50,12 @@ module_handler::module_handler(
   //   <- setVariableDefinitions
   //   <- etc.
   // <- init response
+
+  // -> updateFeedback
+  // <- response
+
+  // -> requestConfigFields
+  // <- response
 }
 
 void module_handler::do_write(QString str)
@@ -60,6 +67,14 @@ void module_handler::do_write(QString str)
 QString module_handler::jsonToString(QJsonObject obj)
 {
   return QJsonDocument{obj}.toJson(QJsonDocument::Compact);
+}
+
+void module_handler::afterRegistration(std::function<void()> f)
+{
+  if(m_registered)
+    f();
+  else
+    m_afterRegistrationQueue.push_back(std::move(f));
 }
 
 void module_handler::processMessage(std::string_view v)
@@ -75,12 +90,9 @@ void module_handler::processMessage(std::string_view v)
 
   auto payload_json = QJsonDocument::fromJson(pay.toString().toUtf8());
 
-  auto pretty = [&] {
-    //  qDebug() << payload_json.toJson().toStdString().data();
-  };
+  // auto pretty
+  //     = [&] { qDebug() << " <- " << payload_json.toJson().toStdString().data(); };
 
-  // qDebug() << id.toString() << name.toString() << direction.toString();
-  //qDebug() << payload_json.toJson().toStdString().data();
   if(direction == "call")
   {
     if(name == "register")
@@ -88,7 +100,9 @@ void module_handler::processMessage(std::string_view v)
       // First message
       on_register(id);
 
-      QMetaObject::invokeMethod(this, [this] { init_msg_id = init(); });
+      QMetaObject::invokeMethod(this, [this] {
+        m_init_msg_id = init("label_" + QString::number(std::abs(rand() % 100)));
+      });
     }
     else if(name == "upgradedItems")
       QMetaObject::invokeMethod(this, [this, id] { send_success(id); });
@@ -136,10 +150,10 @@ void module_handler::processMessage(std::string_view v)
   }
   else if(direction == "response")
   {
-    if(id == init_msg_id)
+    if(id == m_init_msg_id)
     {
       // Query config field
-      req_cfg_id = this->requestConfigFields();
+      m_req_cfg_id = this->requestConfigFields();
       // Update:
       //{
       //    "hasHttpHandler": false,
@@ -152,16 +166,20 @@ void module_handler::processMessage(std::string_view v)
       //    }
       //}
     }
-    else if(id == req_cfg_id)
+    else if(id == m_req_cfg_id)
     {
       on_response_configFields(payload_json["fields"].toArray());
+      for(auto fun : m_afterRegistrationQueue)
+        fun();
+      m_afterRegistrationQueue.clear();
+      m_registered = true;
     }
   }
 }
 
 int module_handler::writeRequest(QString name, QString p)
 {
-  int id = cbid++;
+  int id = m_cbid++;
   QJsonObject obj;
   obj["direction"] = "call";
   obj["name"] = name;
@@ -186,6 +204,21 @@ void module_handler::writeReply(QJsonValue id, QJsonObject p)
 {
   return writeReply(id, QJsonDocument(p).toJson(QJsonDocument::Compact));
 }
+void module_handler::writeReply(QJsonValue id, QString p, bool success)
+{
+  QJsonObject obj;
+  obj["direction"] = "response";
+  obj["payload"] = p;
+  obj["success"] = success;
+  obj["callbackId"] = id;
+
+  do_write(jsonToString(obj));
+}
+
+void module_handler::writeReply(QJsonValue id, QJsonObject p, bool success)
+{
+  return writeReply(id, QJsonDocument(p).toJson(QJsonDocument::Compact), success);
+}
 
 void module_handler::on_register(QJsonValue id)
 {
@@ -206,9 +239,7 @@ void module_handler::on_setActionDefinitions(QJsonArray actions)
     def.hasLearn = obj["hasLearn"].toBool();
     def.name = obj["name"].toString();
     for(auto opt : obj["options"].toArray())
-    {
       def.options.push_back(parseConfigField(opt.toObject()));
-    }
 
     m_model.actions.emplace(obj["id"].toString(), std::move(def));
   }
@@ -235,7 +266,7 @@ void module_handler::on_setFeedbackDefinitions(QJsonArray fbs)
     def.name = obj["name"].toString();
     def.type = obj["type"].toString();
     for(auto opt : obj["options"].toArray())
-      def.options.push_back(opt.toObject().toVariantMap());
+      def.options.push_back(parseConfigField(opt.toObject()));
 
     m_model.feedbacks.emplace(obj["id"].toString(), std::move(def));
   }
@@ -298,8 +329,6 @@ module_data::config_field module_handler::parseConfigField(QJsonObject f)
 
 void module_handler::on_response_configFields(QJsonArray fields)
 {
-  qDebug() << Q_FUNC_INFO << fields.size();
-
   m_model.config_fields.clear();
   for(auto obj : fields)
   {
@@ -312,7 +341,8 @@ void module_handler::on_response_configFields(QJsonArray fields)
 void module_handler::on_send_osc(QJsonObject obj)
 {
   const std::string host = obj["host"].toString().toStdString();
-  const int port = obj["port"].toInt();
+  const auto pp = obj["port"];
+  const int port = pp.isDouble() ? pp.toInt() : pp.toString().toInt();
   const std::string path = obj["path"].toString().toStdString();
   const auto args = obj["args"].toArray();
 
@@ -380,10 +410,10 @@ void module_handler::on_send_osc(QJsonObject obj)
   }
 }
 
-int module_handler::init()
+int module_handler::init(QString label)
 {
   QJsonObject obj;
-  obj["label"] = "OSCPoint";
+  obj["label"] = label;
   obj["isFirstInit"] = true;
   QJsonObject config;
   for(auto& [k, v] : this->m_model.config)
@@ -412,9 +442,9 @@ void module_handler::on_saveConfig(QJsonObject obj) { }
 void module_handler::on_parseVariablesInString(QJsonValue id, QJsonObject obj)
 {
   QJsonObject p;
-  p["text"] = ""; // FIXME
+  p["text"] = obj["text"].toString(); // FIXME
   p["variableIds"] = QJsonArray{};
-  writeReply(id, p);
+  writeReply(id, p, true);
 }
 void module_handler::on_updateFeedbackValues(QJsonObject obj) { }
 void module_handler::on_recordAction(QJsonObject obj) { }
@@ -447,13 +477,31 @@ void module_handler::updateConfigAndLabel(QString label, module_configuration co
 
 int module_handler::requestConfigFields()
 {
-  qDebug() << Q_FUNC_INFO;
   return writeRequest("getConfigFields", jsonToString(QJsonObject{}));
 }
 
 void module_handler::updateFeedbacks()
 {
-  qDebug() << "TODO" << Q_FUNC_INFO;
+  QJsonObject feedbacks;
+  for(const auto& [k, v] : this->m_model.feedbacks)
+  {
+    const module_data::feedback_definition& fb = v;
+    QJsonObject fb_options;
+    // QJsonObject::fromVariantMap(fb.second.options);
+
+    feedbacks[k] = QJsonObject{
+        {"id", k},
+        {"controlId", 0},
+        {"feedbackId", fb.type},
+        {"options", fb_options},
+        {"isInverted", fb.isInverted},
+        {"upgradeIndex", QJsonValue(QJsonValue::Null)},
+        {"disabled", fb.disabled},
+        {"image", QJsonArray{1, 1}},
+    };
+  }
+
+  writeRequest("updateFeedbacks", jsonToString(QJsonObject{{"feedbacks", feedbacks}}));
 }
 
 void module_handler::feedbackLearnValues()

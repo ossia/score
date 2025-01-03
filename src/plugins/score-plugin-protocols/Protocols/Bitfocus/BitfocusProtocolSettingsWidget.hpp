@@ -47,7 +47,8 @@ private:
   {
     QLabel* label{};
     QWidget* widg{};
-    std::function<QVariant()> getValue;
+    std::function<ossia::value()> getValue;
+    std::function<void(ossia::value)> setValue;
   };
 
   std::map<QString, widget> m_widgets;

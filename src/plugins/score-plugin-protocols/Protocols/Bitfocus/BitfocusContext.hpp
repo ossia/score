@@ -45,13 +45,13 @@ struct module_data
     double min = 0;
     double max = 1;
     std::vector<choice> choices;
-    QVariant default_value; // true, a number, a string etc
-    double width;
+    QVariant default_value{}; // true, a number, a string etc
+    double width{};
   };
 
   struct action_definition
   {
-    bool hasLearn;
+    bool hasLearn{};
     QString name;
     std::vector<config_field> options;
   };
@@ -62,9 +62,12 @@ struct module_data
   };
   struct feedback_definition
   {
-    bool hasLearn;
+    bool hasLearn{};
+    bool isInverted{false};
+    bool disabled{false};
+    int upgradeIndex{0};
     QString name;
-    std::vector<QVariantMap> options;
+    std::vector<config_field> options;
     QString type;
     struct
     {
@@ -96,7 +99,7 @@ struct win32_handles;
 struct module_handler_base : public QObject
 {
   std::unique_ptr<win32_handles> handles{};
-  explicit module_handler_base(QString module_path);
+  explicit module_handler_base(QString module_path, QString entrypoint);
   virtual ~module_handler_base();
   void do_write(std::string_view res);
   virtual void processMessage(std::string_view) = 0;
@@ -109,7 +112,7 @@ struct module_handler_base : public QObject
   QSocketNotifier* socket{};
   int pfd[2]{};
 
-  explicit module_handler_base(QString module_path);
+  explicit module_handler_base(QString module_path, QString entrypoint);
   virtual ~module_handler_base();
 
   void on_read(QSocketDescriptor, QSocketNotifier::Type);
@@ -123,18 +126,23 @@ struct module_handler final : public module_handler_base
 {
   W_OBJECT(module_handler)
 public:
-  explicit module_handler(QString path, QString apiversion, module_configuration config);
+  explicit module_handler(
+      QString path, QString entrypoint, QString apiversion, module_configuration config);
   virtual ~module_handler();
 
   using module_handler_base::do_write;
   void do_write(QString res);
   QString jsonToString(QJsonObject obj);
 
+  void afterRegistration(std::function<void()>);
+
   void processMessage(std::string_view v) override;
 
   int writeRequest(QString name, QString p);
   void writeReply(QJsonValue id, QString p);
   void writeReply(QJsonValue id, QJsonObject p);
+  void writeReply(QJsonValue id, QString p, bool success);
+  void writeReply(QJsonValue id, QJsonObject p, bool success);
 
   // Module -> app (requests handling)
   void on_register(QJsonValue id);
@@ -161,7 +169,7 @@ public:
 
   // App -> module
 
-  int init();
+  int init(QString label);
   void send_success(QJsonValue id);
   void updateConfigAndLabel(QString label, module_configuration conf);
   int requestConfigFields();
@@ -188,12 +196,15 @@ private:
 
   boost::asio::io_context m_send_service;
   boost::asio::ip::udp::socket m_socket{m_send_service};
-  int cbid{1};
 
-  int init_msg_id{-1};
-  int req_cfg_id{-1};
+  std::vector<std::function<void()>> m_afterRegistrationQueue;
+  int m_cbid{1};
+
+  int m_init_msg_id{-1};
+  int m_req_cfg_id{-1};
 
   bool m_expects_label_updates{true};
+  bool m_registered{false};
 };
 
 } // namespace bitfocus

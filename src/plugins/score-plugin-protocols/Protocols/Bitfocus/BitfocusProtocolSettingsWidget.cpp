@@ -12,6 +12,8 @@
 
 #include <score/widgets/MarginLess.hpp>
 
+#include <ossia/network/value/value_conversion.hpp>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
@@ -61,7 +63,9 @@ Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
   for(auto& widg : m_widgets)
   {
     if(widg.second.getValue)
+    {
       osc.configuration.emplace_back(widg.first, widg.second.getValue());
+    }
   }
   s.deviceSpecificSettings = QVariant::fromValue(osc);
 
@@ -98,7 +102,8 @@ void BitfocusProtocolSettingsWidget::updateFields()
         static_text->setText(str);
 
         m_subForm->addWidget(static_text);
-        m_widgets[field.id] = widget{.label = lab, .widg = static_text, .getValue = {}};
+        m_widgets[field.id]
+            = widget{.label = lab, .widg = static_text, .getValue = {}, .setValue = {}};
       }
     }
     else if(field.type == "textinput" || field.type == "bonjourdevice")
@@ -114,8 +119,10 @@ void BitfocusProtocolSettingsWidget::updateFields()
       widg->setText(field.default_value.toString());
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
-        return widg->text();
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
+        return widg->text().toStdString();
+      }, .setValue = [widg](ossia::value v) {
+        widg->setText(QString::fromStdString(ossia::convert<std::string>(v)));
       }};
     }
     else if(field.type == "number")
@@ -125,8 +132,10 @@ void BitfocusProtocolSettingsWidget::updateFields()
       widg->setValue(field.default_value.toDouble());
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
         return widg->value();
+      }, .setValue = [widg](ossia::value v) {
+        widg->setValue(ossia::convert<float>(v));
       }};
     }
     else if(field.type == "checkbox")
@@ -135,8 +144,10 @@ void BitfocusProtocolSettingsWidget::updateFields()
       widg->setChecked(field.default_value.toBool() == true);
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
         return widg->isChecked();
+      }, .setValue = [widg](ossia::value v) {
+        widg->setChecked(ossia::convert<bool>(v));
       }};
     }
     else if(field.type == "choices" || field.type == "dropdown")
@@ -157,8 +168,21 @@ void BitfocusProtocolSettingsWidget::updateFields()
 
       m_subForm->addWidget(widg);
       m_widgets[field.id]
-          = {.label = lab, .widg = widg, .getValue = [widg]() -> QVariant {
-        return widg->currentData();
+          = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
+        return widg->currentData().toString().toStdString();
+      }, .setValue = [widg](ossia::value v) {
+        auto id = QString::fromStdString(ossia::convert<std::string>(v));
+        int idx = -1;
+        for(int i = 0; i < widg->count(); i++)
+        {
+          if(widg->itemData(i) == id)
+          {
+            idx = i;
+            break;
+          }
+        }
+        if(idx != -1)
+          widg->setCurrentIndex(idx);
       }};
     }
   }
@@ -181,27 +205,53 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
 
   m_deviceNameEdit->setText(settings.name);
 
+  bool mustLoad = false;
   if(settings.deviceSpecificSettings.canConvert<BitfocusSpecificSettings>())
   {
     auto stgs = settings.deviceSpecificSettings.value<BitfocusSpecificSettings>();
     if(!stgs.path.isEmpty() && QDir{stgs.path}.exists())
     {
       m_deviceNameEdit->setText(stgs.name);
-      auto conf = bitfocus::module_configuration{};
+      if(!stgs.handler)
       {
-        if(!stgs.product.isEmpty())
+        // First load
+        auto conf = bitfocus::module_configuration{};
         {
-          conf["product"] = stgs.product;
+          if(!stgs.product.isEmpty())
+          {
+            conf["product"] = stgs.product;
+          }
         }
+        stgs.handler = std::make_shared<bitfocus::module_handler>(
+            stgs.path, stgs.entrypoint, stgs.apiVersion, std::move(conf));
+        connect(
+            stgs.handler.get(), &bitfocus::module_handler::configurationParsed, this,
+            [this] { updateFields(); });
       }
-      stgs.handler = std::make_shared<bitfocus::module_handler>(
-          stgs.path, stgs.apiVersion, std::move(conf));
-      connect(
-          stgs.handler.get(), &bitfocus::module_handler::configurationParsed, this,
-          [this] { updateFields(); });
+      else
+      {
+        // Device already loaded, we're editing
+        mustLoad = true;
+      }
     }
 
     m_settings = stgs;
+
+    if(mustLoad)
+    {
+      // 1. Load the fields
+      updateFields();
+
+      // 2. Load our saved values
+      for(auto& [k, v] : stgs.configuration)
+      {
+        if(auto member = this->m_widgets.find(k); member != m_widgets.end())
+        {
+          if(member->second.setValue)
+            member->second.setValue(v);
+        }
+      }
+    }
   }
 }
 }

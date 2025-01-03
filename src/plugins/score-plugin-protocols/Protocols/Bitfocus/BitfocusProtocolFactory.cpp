@@ -8,10 +8,13 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Library/LibrarySettings.hpp>
 #include <Protocols/Bitfocus/BitfocusEnumerator.hpp>
 #include <Protocols/Bitfocus/BitfocusProtocolSettingsWidget.hpp>
 #include <Protocols/Bitfocus/BitfocusSpecificSettings.hpp>
 #include <Protocols/LibraryDeviceEnumerator.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <ossia/network/sockets/configuration.hpp>
 
@@ -45,7 +48,9 @@ QUrl BitfocusProtocolFactory::manual() const noexcept
 Device::DeviceEnumerators
 BitfocusProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return {{"Devices", new BitfocusEnumerator{ctx}}};
+  auto path = ctx.app.settings<Library::Settings::Model>().getPackagesPath()
+              + "/default/Devices/Bitfocus";
+  return {{"Devices", new BitfocusEnumerator{path, ctx}}};
 }
 
 Device::DeviceInterface* BitfocusProtocolFactory::makeDevice(

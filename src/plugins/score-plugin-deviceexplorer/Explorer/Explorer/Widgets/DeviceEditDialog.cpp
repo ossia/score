@@ -341,6 +341,9 @@ void DeviceEditDialog::selectedProtocolChanged()
 
       connect(e.get(), &Device::DeviceEnumerator::deviceAdded, this, addItem);
       connect(e.get(), &Device::DeviceEnumerator::deviceRemoved, this, rmItem);
+      connect(e.get(), &Device::DeviceEnumerator::sort, this, [cat] {
+        cat->sortChildren(0, Qt::SortOrder::AscendingOrder);
+      });
       e->enumerate(addItem);
     }
   }

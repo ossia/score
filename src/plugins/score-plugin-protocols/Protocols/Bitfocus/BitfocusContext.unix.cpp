@@ -1,9 +1,10 @@
 #include "BitfocusContext.hpp"
 
+// #include <iostream>
 namespace bitfocus
 {
 
-module_handler_base::module_handler_base(QString module_path)
+module_handler_base::module_handler_base(QString module_path, QString entrypoint)
 {
   // Create socketpair
   socketpair(PF_LOCAL, SOCK_STREAM, 0, pfd);
@@ -22,7 +23,7 @@ module_handler_base::module_handler_base(QString module_path)
 
   process.setProcessChannelMode(QProcess::ForwardedChannels);
   process.setProgram("node");
-  process.setArguments({"main.js"}); // FIXME entrypoint from spec
+  process.setArguments({entrypoint});
   process.setWorkingDirectory(module_path);
   process.setProcessEnvironment(genv);
 
@@ -51,7 +52,7 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
     {
       std::ptrdiff_t diff = idx - pos;
       std::string_view message(pos, diff);
-      fprintf(stderr, "\n=========================\n <-- \n%s\n", message.data());
+      // std::cerr << "\n=========================\n <-- " << message << "\n";
       this->processMessage(message);
       pos = idx + 1;
       continue;
@@ -61,7 +62,7 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
 
 void module_handler_base::do_write(std::string_view res)
 {
-  fprintf(stderr, "\n=========================\n --> \n%s\n", res.data());
+  // std::cerr << "\n=========================\n --> " << res << "\n";
   ::write(pfd[0], res.data(), res.size());
 }
 }

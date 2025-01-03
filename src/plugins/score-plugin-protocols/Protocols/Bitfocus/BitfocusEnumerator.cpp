@@ -1,18 +1,16 @@
 #include "BitfocusEnumerator.hpp"
 
-#include <Library/LibrarySettings.hpp>
-
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <ossia/detail/json.hpp>
 namespace Protocols
 {
-BitfocusEnumerator::BitfocusEnumerator(const score::DocumentContext& ctx)
+BitfocusEnumerator::BitfocusEnumerator(QString path, const score::DocumentContext& ctx)
     : SubfolderDeviceEnumerator{
-          ctx.app.settings<Library::Settings::Model>().getPackagesPath()
-              + "/default/Devices/Bitfocus",
+          {path, path + "/_legacy"},
           BitfocusProtocolFactory::static_concreteKey(),
-          [this](const QString& path) { return loadSettings(path); }, ctx}
+          [this](const QString& path) { return loadSettings(path); },
+          ctx}
 {
 }
 
@@ -25,6 +23,7 @@ static inline QString json_to_qstr(const rapidjson::Value& other)
 
 auto BitfocusEnumerator::loadSettings(const QString& path) -> ret_type
 {
+  using namespace std::string_view_literals;
   ret_type devices;
   QFile f{path + "/companion/manifest.json"};
   if(f.open(QIODevice::ReadOnly))
@@ -50,15 +49,31 @@ auto BitfocusEnumerator::loadSettings(const QString& path) -> ret_type
         return {};
       }
 
-      if(auto m_runtime = doc.FindMember("id");
+      if(auto m_runtime = doc.FindMember("runtime");
          m_runtime != doc.MemberEnd() && m_runtime->value.IsObject())
       {
         auto runtime = m_runtime->value.GetObject();
+        if(auto ipc = runtime.FindMember("api");
+           ipc != runtime.MemberEnd() && ipc->value.IsString())
+        {
+          if(ipc->value.GetString() != "nodejs-ipc"sv)
+            return {};
+        }
         if(auto ver = runtime.FindMember("apiVersion");
            ver != runtime.MemberEnd() && ver->value.IsString())
         {
           set.apiVersion = json_to_qstr(ver->value);
         }
+        if(auto ep = runtime.FindMember("entrypoint");
+           ep != runtime.MemberEnd() && ep->value.IsString())
+        {
+          set.entrypoint = json_to_qstr(ep->value);
+          set.entrypoint.remove("../");
+        }
+      }
+      else
+      {
+        return {};
       }
       if(auto m_name = doc.FindMember("shortname");
          m_name != doc.MemberEnd() && m_name->value.IsString())
