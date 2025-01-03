@@ -92,9 +92,10 @@ struct module_data
 
 // note: callback id shared between both ends so every message has to be processed in order
 #if defined(_WIN32)
+struct win32_handles;
 struct module_handler_base : public QObject
 {
-  QProcess process{};
+  std::unique_ptr<win32_handles> handles{};
   explicit module_handler_base(QString module_path);
   virtual ~module_handler_base();
   void do_write(std::string_view res);
