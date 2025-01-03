@@ -289,8 +289,7 @@ module_handler_base::module_handler_base(QString module_path)
   genv.insert("NODE_CHANNEL_SERIALIZATION_MODE", "json");
   genv.insert("NODE_CHANNEL_FD", "3");
 
-  handles->startProcess(
-      "d:\\msys64\\clang64\\bin\\node.exe main.js", module_path.toStdString(), genv);
+  handles->startProcess("node.exe main.js", module_path.toStdString(), genv);
 }
 
 module_handler_base::~module_handler_base() { }
