@@ -951,7 +951,7 @@ void OwningDeviceInterface::releaseDevice()
 {
   DeviceInterface::disconnect();
   deviceChanged(m_dev.get(), nullptr);
-  m_dev.release();
+  // FIXME instead it should just be shared_ptrs in player m_dev.release();
 }
 
 void OwningDeviceInterface::disconnect()
@@ -1040,14 +1040,18 @@ void DeviceInterface::addressRemoved(const ossia::net::parameter_base& addr)
 void releaseDevice(
     ossia::net::network_context& ctx, std::unique_ptr<ossia::net::device_base> dd)
 {
-  if(dd)
+  releaseDevice(ctx, std::shared_ptr(std::move(dd)));
+}
+
+void releaseDevice(
+    ossia::net::network_context& ctx, std::shared_ptr<ossia::net::device_base> shared_dd)
+{
+  if(shared_dd)
   {
-    auto shared_dd = std::shared_ptr(std::move(dd));
     auto strand = boost::asio::make_strand(ctx.context);
     boost::asio::dispatch(strand, [dev = shared_dd] { dev->get_protocol().stop(); });
 
-    std::future<void> wait1
-        = boost::asio::dispatch(strand, boost::asio::use_future);
+    std::future<void> wait1 = boost::asio::dispatch(strand, boost::asio::use_future);
     if(auto res = wait1.wait_for(std::chrono::seconds(1));
        res != std::future_status::ready)
     {
@@ -1056,8 +1060,7 @@ void releaseDevice(
 
     boost::asio::dispatch(strand, [d = std::move(shared_dd)]() mutable { d.reset(); });
 
-    std::future<void> wait2
-        = boost::asio::dispatch(strand, boost::asio::use_future);
+    std::future<void> wait2 = boost::asio::dispatch(strand, boost::asio::use_future);
     if(auto res = wait2.wait_for(std::chrono::seconds(1));
        res != std::future_status::ready)
     {

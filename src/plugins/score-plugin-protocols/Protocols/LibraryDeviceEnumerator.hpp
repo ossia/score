@@ -37,12 +37,14 @@ public:
   func_type m_createDeviceSettings;
 
   SubfolderDeviceEnumerator(
-      QString rootFolder, Device::ProtocolFactory::ConcreteKey k, func_type createDev,
-      const score::DocumentContext& ctx);
+      QStringList rootFolder, Device::ProtocolFactory::ConcreteKey k,
+      func_type createDev, const score::DocumentContext& ctx);
 
   void next(std::string_view path);
 
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>
                      onDevice) const override;
+
+  int m_finished = 0;
 };
 }

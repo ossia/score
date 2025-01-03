@@ -39,6 +39,8 @@ public:
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceAdded, n, s)
   void deviceRemoved(const QString& s)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceRemoved, s)
+
+  void sort() E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, sort)
 };
 
 using DeviceEnumerators = std::vector<std::pair<QString, Device::DeviceEnumerator*>>;

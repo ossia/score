@@ -77,9 +77,9 @@ public:
         m->actionRun(name, options_map);
       });
     }
-    else if(parent == nodes.presets)
-    {
-    }
+    // else if(parent == nodes.presets)
+    // {
+    // }
     else if(parent == nodes.feedbacks)
     {
     }
@@ -89,14 +89,82 @@ public:
   bool observe(ossia::net::parameter_base&, bool) override { return true; }
   bool update(ossia::net::node_base& node_base) override { return true; }
 
-  void set_device(ossia::net::device_base& dev) override
+  void setup_node(auto& config, ossia::net::node_base* node)
   {
+    ossia::net::set_description(*node, config.name.toStdString());
+    switch(config.options.size())
+    {
+      case 0: {
+        node->create_parameter(ossia::val_type::IMPULSE);
+        break;
+      }
+      // FIXME when we have only one parameter, simplify things?
+      // We need to store the option name somewhere though
+      // case 1: {
+      //   auto& opt = config.options[0];
+      //   if(opt.type == "static-text")
+      //     node->create_parameter(ossia::val_type::IMPULSE);
+      //   else
+      //     setup_option_parameter(opt, node);
+      //   break;
+      // }
+      default: {
+        node->create_parameter(ossia::val_type::IMPULSE);
+        for(auto& opt : config.options)
+        {
+          if(opt.type == "static-text")
+            continue;
+
+          auto cld = node->create_child(opt.id.toStdString());
+          setup_option_parameter(opt, cld);
+        }
+      }
+    }
+  }
+
+  void setup_option_parameter(
+      const bitfocus::module_data::config_field& opt, ossia::net::node_base* cld)
+  {
+    ossia::net::set_description(*cld, opt.label.toStdString());
+    if(opt.type == "textinput" || opt.type == "bonjourdevice")
+    {
+      auto p = cld->create_parameter(ossia::val_type::STRING);
+      p->set_value(opt.default_value.toString().toStdString());
+    }
+    else if(opt.type == "number")
+    {
+      auto p = cld->create_parameter(ossia::val_type::FLOAT);
+      p->set_value(opt.default_value.toDouble());
+    }
+    else if(opt.type == "checkbox" || opt.type == "boolean")
+    {
+      auto p = cld->create_parameter(ossia::val_type::BOOL);
+      p->set_value(opt.default_value.toBool());
+    }
+    else if(opt.type == "choices" || opt.type == "dropdown")
+    {
+      auto p = cld->create_parameter(ossia::val_type::STRING);
+      auto dom = ossia::domain_base<std::string>{};
+      for(const auto& choice : opt.choices)
+        dom.values.push_back(choice.id.toStdString());
+      p->set_value(opt.default_value.toString().toStdString());
+    }
+  }
+
+  void init_device()
+  {
+    if(!m_dev)
+      return;
+    if(nodes.actions || nodes.feedbacks || nodes.variables)
+      return;
+
+    auto& dev = *m_dev;
     // Start creating the tree
     auto& m = m_rc->model();
     nodes.actions
         = m.actions.empty() ? nullptr : dev.get_root_node().create_child("action");
-    nodes.presets
-        = m.presets.empty() ? nullptr : dev.get_root_node().create_child("presets");
+    // nodes.presets
+    //     = m.presets.empty() ? nullptr : dev.get_root_node().create_child("presets");
     nodes.feedbacks
         = m.feedbacks.empty() ? nullptr : dev.get_root_node().create_child("feedback");
     nodes.variables
@@ -105,53 +173,20 @@ public:
     for(auto& v : m.actions)
     {
       auto node = nodes.actions->create_child(v.first.toStdString());
-      ossia::net::set_description(*node, v.second.name.toStdString());
-      auto param = node->create_parameter(ossia::val_type::IMPULSE);
-      for(auto& opt : v.second.options)
-      {
-        if(opt.type == "static-text")
-          continue;
-
-        auto cld = node->create_child(opt.id.toStdString());
-        ossia::net::set_description(*node, opt.label.toStdString());
-        if(opt.type == "textinput" || opt.type == "bonjourdevice")
-        {
-          auto p = cld->create_parameter(ossia::val_type::STRING);
-          p->set_value(opt.default_value.toString().toStdString());
-        }
-        else if(opt.type == "number")
-        {
-          auto p = cld->create_parameter(ossia::val_type::FLOAT);
-          p->set_value(opt.default_value.toDouble());
-        }
-        else if(opt.type == "checkbox")
-        {
-          auto p = cld->create_parameter(ossia::val_type::BOOL);
-          p->set_value(opt.default_value.toBool());
-        }
-        else if(opt.type == "choices" || opt.type == "dropdown")
-        {
-          auto p = cld->create_parameter(ossia::val_type::STRING);
-          auto dom = ossia::domain_base<std::string>{};
-          for(const auto& choice : opt.choices)
-            dom.values.push_back(choice.id.toStdString());
-          p->set_value(opt.default_value.toString().toStdString());
-        }
-      }
+      setup_node(v.second, node);
     }
 
-    for(auto& v : m.presets)
-    {
-      auto node = nodes.presets->create_child(v.first.toStdString());
-      ossia::net::set_description(*node, v.second.name.toStdString());
-      auto param = node->create_parameter(ossia::val_type::IMPULSE);
-    }
+    // for(auto& v : m.presets)
+    // {
+    //   auto node = nodes.presets->create_child(v.first.toStdString());
+    //   ossia::net::set_description(*node, v.second.name.toStdString());
+    //   auto param = node->create_parameter(ossia::val_type::IMPULSE);
+    // }
 
     for(auto& v : m.feedbacks)
     {
       auto node = nodes.feedbacks->create_child(v.first.toStdString());
-      ossia::net::set_description(*node, v.second.name.toStdString());
-      auto param = node->create_parameter(ossia::val_type::IMPULSE);
+      setup_node(v.second, node);
     }
 
     for(auto& v : m.variables)
@@ -170,18 +205,25 @@ public:
     }
   }
 
+  void set_device(ossia::net::device_base& dev) override
+  {
+    m_dev = &dev;
+    init_device();
+  }
+
   std::shared_ptr<bitfocus::module_handler> m_rc;
   ossia::net::network_context_ptr m_context;
+  ossia::net::device_base* m_dev{};
   struct
   {
     ossia::net::node_base* actions{};
-    ossia::net::node_base* presets{};
+    // ossia::net::node_base* presets{};
     ossia::net::node_base* feedbacks{};
     ossia::net::node_base* variables{};
   } nodes;
 
   ossia::flat_map<ossia::net::parameter_base*, QString> m_actions;
-  ossia::flat_map<ossia::net::parameter_base*, QString> m_presets;
+  // ossia::flat_map<ossia::net::parameter_base*, QString> m_presets;
   ossia::flat_map<QString, ossia::net::parameter_base*> m_variables_recv;
   ossia::flat_map<ossia::net::parameter_base*, QString> m_variables_send;
 };
@@ -199,7 +241,7 @@ BitfocusDevice::BitfocusDevice(
   m_capas.canRemoveNode = false;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
-  m_capas.canSerialize = false;
+  m_capas.canSerialize = true;
   m_capas.canLearn = false;
   m_capas.hasCallbacks = false;
 }
@@ -221,26 +263,36 @@ bool BitfocusDevice::reconnect()
       }
       for(auto& [k, v] : stgs.configuration)
       {
-        conf[k] = v;
+        conf[k] = v.apply(ossia::qt::ossia_to_qvariant{});
       }
     }
 
     if(!stgs.handler)
     {
       stgs.handler = std::make_shared<bitfocus::module_handler>(
-          stgs.path, stgs.apiVersion, std::move(conf));
+          stgs.path, stgs.entrypoint, stgs.apiVersion, std::move(conf));
       m_settings.deviceSpecificSettings = QVariant::fromValue(stgs);
     }
-    else
-    {
-      stgs.handler->updateConfigAndLabel(stgs.name, conf);
-    }
+
+    stgs.handler->afterRegistration(
+        [name = stgs.name, conf, h = std::weak_ptr{stgs.handler}] {
+      if(auto handler = h.lock())
+      {
+        handler->updateConfigAndLabel(name, conf);
+        handler->updateFeedbacks();
+      }
+    });
 
     const auto& name = settings().name.toStdString();
     if(auto proto = std::make_unique<ossia::net::bitfocus_protocol>(stgs.handler, m_ctx))
     {
-      m_dev = std::make_unique<ossia::net::generic_device>(std::move(proto), name);
+      auto pproto = proto.get();
+      m_dev = std::make_shared<ossia::net::generic_device>(std::move(proto), name);
 
+      stgs.handler->afterRegistration([dev = std::weak_ptr{m_dev}, pproto] {
+        if(auto d = dev.lock())
+          pproto->init_device();
+      });
       deviceChanged(nullptr, m_dev.get());
       setLogging_impl(Device::get_cur_logging(isLogging()));
     }

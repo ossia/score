@@ -195,7 +195,7 @@ protected:
 
   ossia::net::device_base* getDevice() const final override { return m_dev.get(); }
 
-  std::unique_ptr<ossia::net::device_base> m_dev;
+  std::shared_ptr<ossia::net::device_base> m_dev;
   bool m_owned{true};
 };
 
@@ -216,4 +216,7 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 SCORE_LIB_DEVICE_EXPORT
 void releaseDevice(
     ossia::net::network_context& ctx, std::unique_ptr<ossia::net::device_base> dev);
+SCORE_LIB_DEVICE_EXPORT
+void releaseDevice(
+    ossia::net::network_context& ctx, std::shared_ptr<ossia::net::device_base> dev);
 }
