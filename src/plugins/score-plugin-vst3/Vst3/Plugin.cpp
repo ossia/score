@@ -274,7 +274,7 @@ void Plugin::stop()
 
   if(plugFrame)
   {
-    QTimer::singleShot(100, [=] { delete plugFrame; });
+    QTimer::singleShot(100, [ptr = plugFrame] { delete ptr; });
   }
 }
 
