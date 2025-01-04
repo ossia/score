@@ -9,6 +9,10 @@
 
 #include <QRegularExpression>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#include <QLatin1StringMatcher>
+#endif
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
@@ -84,7 +88,27 @@ void ProcessModel::setFile(const QString& file)
     if(auto tempo = m_file->knownTempo())
     {
       setNativeTempo(*tempo);
-      setStretchMode(ossia::audio_stretch_mode::RubberBandPercussive);
+
+      auto mode = ossia::audio_stretch_mode::RubberBandPercussive;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+      {
+        using namespace Qt::StringLiterals;
+        static constexpr QLatin1String melodic[] = {
+            "pad"_L1,      "key"_L1,      "piano"_L1,    "lead"_L1,        "flute"_L1,
+            "guitar"_L1,   "violin"_L1,   "viola"_L1,    "cello"_L1,       "banjo"_L1,
+            "sax"_L1,      "clarinet"_L1, "oboe"_L1,     "harpischord"_L1, "clavinet"_L1,
+            "string"_L1,   "choir"_L1,    "ensemble"_L1, "vocal"_L1,       "voice"_L1,
+            "vox"_L1,      "brass"_L1,    "marimba"_L1,  "bell"_L1,        "bell"_L1,
+            "bassline"_L1, "ambiance"_L1, "ambient"_L1};
+        QLatin1StringMatcher matcher;
+        for(auto& m : melodic)
+        {
+          if(file.contains(m, Qt::CaseInsensitive))
+            mode = ossia::audio_stretch_mode::RubberBandStandard;
+        }
+      }
+#endif
+      setStretchMode(mode);
       setLoops(true);
     }
     else
