@@ -22,6 +22,8 @@
 
 #include <core/document/Document.hpp>
 
+#include <ossia/detail/disable_fpe.hpp>
+
 #include <QApplication>
 #include <QDebug>
 #include <QFileInfo>
@@ -67,6 +69,7 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::setScript(const QString& script)
 {
+  ossia::disable_fpe();
   auto arr = script.toStdString();
   auto& config
       = score::GUIAppContext().applicationPlugin<YSFX::ApplicationPlugin>().config;
