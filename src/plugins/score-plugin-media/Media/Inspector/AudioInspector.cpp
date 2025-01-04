@@ -25,7 +25,9 @@ InspectorWidget::InspectorWidget(
   m_tempo.setRange(1., 600.);
   m_mode.addItems(
       {tr("Raw"), tr("Timestretch"), tr("Timestretch (percussive)"),
-       tr("HQ Timestretch"), tr("HQ Timestretch (percussive)"), tr("Repitch")});
+       tr("HQ Timestretch"), tr("HQ Timestretch (percussive)"),
+       tr("Repitch (high quality)"), tr("Repitch (medium quality)"),
+       tr("Repitch (fastest)")});
 
   setObjectName("SoundInspectorWidget");
 
@@ -62,6 +64,12 @@ InspectorWidget::InspectorWidget(
         break;
       case ossia::audio_stretch_mode::Repitch:
         idx = 5;
+        break;
+      case ossia::audio_stretch_mode::RepitchMediumQ:
+        idx = 6;
+        break;
+      case ossia::audio_stretch_mode::RepitchFastestQ:
+        idx = 7;
         break;
     }
 
@@ -110,6 +118,12 @@ InspectorWidget::InspectorWidget(
         break;
       case 5:
         m = ossia::audio_stretch_mode::Repitch;
+        break;
+      case 6:
+        m = ossia::audio_stretch_mode::RepitchMediumQ;
+        break;
+      case 7:
+        m = ossia::audio_stretch_mode::RepitchFastestQ;
         break;
     }
 
