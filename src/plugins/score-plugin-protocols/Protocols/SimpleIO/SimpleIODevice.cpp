@@ -119,12 +119,17 @@ public:
           = ossia::create_parameter(root, "/pwm/" + port.name.toStdString(), "float");
       param->push_value(0.5f);
 
-      // FIXME add a child parameter to set the period.
+      auto freq = ossia::create_parameter(param->get_node(), "frequency", "frequency");
+      freq->push_value(1e3f); // 1khZ
+
       PWM_impl impl{};
+
       int32_t error;
 
       PWM_configure(ptr->chip, ptr->channel, 1'000'000, 500'000, ptr->polarity, &error);
       PWM_open(ptr->chip, ptr->channel, &impl.fd, &error);
+      impl.freq = 1e3;
+      impl.value = 0.5;
       m_pwm.emplace(param, impl);
     }
 
@@ -191,6 +196,20 @@ public:
       GPIO_line_write(it->second.fd, ossia::convert<bool>(v), &error);
       return true;
     }
+    else if(auto parent = p.get_node().get_parent()->get_parameter())
+    {
+      // Could be the PWM frequency node
+      if(auto it = m_pwm.find(&p); it != m_pwm.end())
+      {
+        int32_t error;
+        auto freq = std::clamp(ossia::convert<float>(v), 1.f, 1e9f);
+
+        // Input is between [0; 1], we map that to the duty cycle range [0, period]
+        int val = std::clamp(ossia::convert<float>(v), 0.f, 1.f) * 1'000'000;
+        PWM_write(it->second.fd, val, &error);
+        return true;
+      }
+    }
     return false;
   }
   bool push_raw(const full_parameter_data&) override { return false; }
@@ -213,6 +232,8 @@ public:
   struct PWM_impl
   {
     int fd{};
+    int freq_fd{};
+    double freq{1e3};
     float value{};
   };
   struct GPIO_impl
