@@ -119,12 +119,16 @@ public:
       card_in = default_in;
     if(!card_in)
       card_in = first_viable_in;
+    if(set.getCardIn() == "No device")
+      card_in = nullptr;
 
     const MiniAudioCard* card_out = user_out;
     if(!card_out)
       card_out = default_out;
     if(!card_out)
       card_out = first_viable_out;
+    if(set.getCardOut() == "No device")
+      card_out = nullptr;
 
     if(card_in)
     {
@@ -214,9 +218,18 @@ public:
     });
     if(dev_it != devices.end())
     {
-      int i = std::distance(devices.begin(), dev_it);
-      combo->setCurrentIndex(i);
+      int device_index = std::distance(devices.begin(), dev_it);
+      for(int i = 0; i < combo->count(); i++)
+      {
+        if(combo->itemData(i).toInt() == device_index)
+        {
+          combo->setCurrentIndex(i);
+          return;
+        }
+      }
     }
+
+    combo->setCurrentIndex(0);
   }
 
   QWidget* make_settings(
@@ -290,7 +303,7 @@ public:
         update_dev_in(device);
       });
 
-      if(m.getCardOut().isEmpty())
+      if(m.getCardIn().isEmpty())
       {
         if(!devices.empty())
         {
@@ -299,7 +312,7 @@ public:
       }
       else
       {
-        setCard(card_list_in, m.getCardOut());
+        setCard(card_list_in, m.getCardIn());
       }
     }
 

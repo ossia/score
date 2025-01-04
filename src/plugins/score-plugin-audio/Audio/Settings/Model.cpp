@@ -45,8 +45,8 @@ SETTINGS_PARAMETER_IMPL(JackTransport){
 static auto list()
 {
   return std::tie(
-      Driver, Rate, InputNames, OutputNames, CardIn, CardOut, BufferSize, DefaultIn,
-      DefaultOut, AutoStereo, AutoConnect, JackTransport);
+      Rate, InputNames, OutputNames, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut,
+      AutoStereo, AutoConnect, JackTransport, Driver);
 }
 }
 

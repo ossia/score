@@ -34,7 +34,7 @@ AudioFactory::addSampleRateWidget(QWidget& widg, Settings::Model& m, Settings::V
 {
   auto cb = new QComboBox{&widg};
   cb->setObjectName("Rate");
-  for(auto val : {44100, 48000, 88200, 96000, 192000})
+  for(auto val : {22050, 32000, 44100, 48000, 88200, 96000, 192000})
   {
     cb->addItem(QString::number(val));
   }
