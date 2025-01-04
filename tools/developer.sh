@@ -181,19 +181,28 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   (brew list | grep qt@5 >/dev/null) && { echo >&2 "Please remove qt@5 as it is incompatible with the required Homebrew Qt 6 package"; exit 1; }
   
   echo "[developer.sh] Installing dependencies"
+  BREW_PACKAGES=(cmake qt boost ffmpeg fftw portaudio sdl lv2 lilv freetype)
   brew update
   brew upgrade
-  brew install ninja qt boost cmake ffmpeg fftw portaudio sdl lv2 lilv freetype
+  brew install ninja ${BREW_PACKAGES[@]}
   brew cleanup
   
   echo "[developer.sh] Configuring"
   mkdir -p $BUILD_DIR
   cd $BUILD_DIR
   
+  # Generate CMAKE_PREFIX_PATH="$(brew --prefix qt@6);$(brew --prefix ffmpeg);..."
+  CMAKE_PREFIX_PATH=
+  for pkg in "${BREW_PACKAGES[@]}"; do
+   CMAKE_PREFIX_PATH+="$(brew --prefix ${pkg} -q);"
+  done
+  CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH::${#CMAKE_PREFIX_PATH}-1}
+  echo "$CMAKE_PREFIX_PATH"
+
   if [[ ! -f ./score ]]; then
     cmake -Wno-dev \
         $SCORE_PATH \
-        -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt;/opt/homebrew/Cellar/qt" \
+        -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
         -GNinja \
         -DCMAKE_BUILD_TYPE=Debug \
         -DSCORE_PCH=1 \
