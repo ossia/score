@@ -15,6 +15,7 @@
 #include <score/widgets/SetIcons.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/disable_fpe.hpp>
 
 #include <QObject>
 
@@ -64,6 +65,7 @@ ProcessModel::ProcessModel(
     , m_size{200, 100}
     , m_loops{false}
 {
+  ossia::disable_fpe();
   con(metadata(), &score::ModelMetadata::NameChanged, this,
       [this] { prettyNameChanged(); });
   connect(this, &Process::ProcessModel::resetExecution, this, [this] {
@@ -103,6 +105,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
+  ossia::disable_fpe();
   vis.writeTo(*this);
   con(metadata(), &score::ModelMetadata::NameChanged, this,
       [this] { prettyNameChanged(); });
@@ -111,6 +114,7 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
+  ossia::disable_fpe();
   vis.writeTo(*this);
   con(metadata(), &score::ModelMetadata::NameChanged, this,
       [this] { prettyNameChanged(); });
