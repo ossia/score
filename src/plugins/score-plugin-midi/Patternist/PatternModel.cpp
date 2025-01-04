@@ -17,6 +17,24 @@ W_OBJECT_IMPL(Patternist::ProcessModel)
 
 namespace Patternist
 {
+static std::vector<Patternist::Note> fromInts(std::initializer_list<int> e)
+{
+  std::vector<Patternist::Note> l;
+  for(int v : e)
+    switch(v)
+    {
+      case 0:
+        l.push_back(Note::Rest);
+        break;
+      case 1:
+        l.push_back(Note::Note);
+        break;
+      case 2:
+        l.push_back(Note::Legato);
+        break;
+    }
+  return l;
+}
 ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
@@ -27,8 +45,10 @@ ProcessModel::ProcessModel(
 {
   Pattern pattern;
   pattern.length = 4;
-  pattern.lanes.push_back(Lane{{1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0}, 64});
-  pattern.lanes.push_back(Lane{{0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}, 32});
+  pattern.lanes.push_back(
+      Lane{fromInts({0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}), 38});
+  pattern.lanes.push_back(
+      Lane{fromInts({1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0}), 36});
   m_patterns.push_back(pattern);
   metadata().setInstanceName(*this);
   init();
@@ -76,7 +96,7 @@ void ProcessModel::setCurrentPattern(int n)
   {
     auto pattern = m_patterns[m_currentPattern];
     for(auto& lane : pattern.lanes)
-      std::fill(lane.pattern.begin(), lane.pattern.end(), false);
+      std::fill(lane.pattern.begin(), lane.pattern.end(), Note::Rest);
 
     while(n >= std::ssize(m_patterns))
       m_patterns.push_back(pattern);
@@ -151,8 +171,21 @@ void JSONReader::read(const Patternist::Lane& proc)
 
   std::string str;
   str.reserve(proc.pattern.size());
-  for(bool b : proc.pattern)
-    str.push_back(b ? 'X' : '.');
+  for(enum Patternist::Note n : proc.pattern)
+  {
+    switch(n)
+    {
+      case Patternist::Note::Rest:
+        str.push_back('-');
+        break;
+      case Patternist::Note::Note:
+        str.push_back('1');
+        break;
+      case Patternist::Note::Legato:
+        str.push_back('2');
+        break;
+    }
+  }
 
   obj["Pattern"] = str;
   stream.EndObject();
@@ -163,7 +196,27 @@ void JSONWriter::write(Patternist::Lane& proc)
 {
   proc.note = obj["Note"].toInt();
   for(char c : obj["Pattern"].toStdString())
-    proc.pattern.push_back(c == 'X');
+  {
+    switch(c)
+    {
+      default:
+      case '0':
+      case '-':
+      case '.':
+        proc.pattern.push_back(Patternist::Note::Rest);
+        break;
+      case '1':
+      case 'x':
+      case 'X':
+      case 'f':
+      case 'F':
+        proc.pattern.push_back(Patternist::Note::Note);
+        break;
+      case '2':
+        proc.pattern.push_back(Patternist::Note::Legato);
+        break;
+    }
+  }
 }
 
 template <>

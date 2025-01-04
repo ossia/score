@@ -23,9 +23,21 @@ Presenter::Presenter(
 
   connect(m_view, &View::toggled, this, [&](int lane, int index) {
     auto cur = layer.patterns()[layer.currentPattern()];
-    bool b = cur.lanes[lane].pattern[index];
+    const auto& l = cur.lanes[lane];
+    auto b = l.pattern[index];
 
-    cur.lanes[lane].pattern[index] = !b;
+    switch(b)
+    {
+      case Note::Rest:
+        cur.lanes[lane].pattern[index] = Note::Note;
+        break;
+      case Note::Note:
+        cur.lanes[lane].pattern[index] = l.note < 128 ? Note::Legato : Note::Rest;
+        break;
+      case Note::Legato:
+        cur.lanes[lane].pattern[index] = Note::Rest;
+        break;
+    }
 
     CommandDispatcher<> disp{m_context.context.commandStack};
     disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
