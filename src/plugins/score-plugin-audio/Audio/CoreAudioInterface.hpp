@@ -74,9 +74,6 @@ public:
   initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
     acquireContext();
-    set.setCardIn(
-        "AppleUSBAudioEngine:Blue Microphones:Yeti X:2029SG00BCY8_888-000316110306:2");
-    set.setCardOut("BuiltInSpeakerDevice");
     // set.setDefaultIn(2);
     // set.setDefaultOut(2);
     // set.setRate(48000);
