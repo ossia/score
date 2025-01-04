@@ -28,6 +28,7 @@ public:
 
   void setText(const QString& str);
   void setError(int line, const QString& str);
+  void openInExternalEditor();
 
 protected:
   virtual void on_accepted() = 0;
