@@ -139,13 +139,20 @@ set(WS_HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/WS/WSDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/WS/WSProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/WS/WSSpecificSettings.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SocketIO/SocketIOClient.hpp"
 )
 set(WS_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/WS/WSProtocolSettingsWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/WS/WSDevice.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/WS/WSProtocolFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/WS/WSSpecificSettingsSerialization.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SocketIO/SocketIOClient.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SocketIO/BoostJsonImpl.cpp"
 )
+
+set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/Protocols/SocketIO/BoostJsonImpl.cpp" PROPERTIES EXCLUDE_FROM_UNITY_BUILD 1)
 
 set(SERIAL_HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialProtocolFactory.hpp"
