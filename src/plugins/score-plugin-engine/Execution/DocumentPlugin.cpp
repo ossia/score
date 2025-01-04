@@ -50,7 +50,7 @@ DocumentPlugin::ContextData::ContextData(const score::DocumentContext& ctx)
     , context
 {
   {}, ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, setupContext,
-      execGraph, execState
+      execGraph, execState, currentTransaction
 #if(__cplusplus > 201703L) && !defined(_MSC_VER)
       ,
   {
@@ -90,6 +90,34 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
 
   connect(
       this, &DocumentPlugin::finished, this, &DocumentPlugin::on_finished,
+      Qt::DirectConnection);
+
+  auto& cstack = ctx.document.commandStack();
+
+  connect(
+      &cstack, &score::CommandStack::beginTransaction, this,
+      [this] {
+    qDebug("Begin transaction");
+
+    if(m_ctxData)
+    {
+      SCORE_ASSERT(!m_ctxData->currentTransaction);
+      m_ctxData->currentTransaction
+          = std::make_shared<Execution::Transaction>(m_ctxData->context);
+    }
+  },
+      Qt::DirectConnection);
+
+  connect(
+      &cstack, &score::CommandStack::endTransaction, this,
+      [this] {
+    qDebug("Submit transaction");
+    if(m_ctxData)
+    {
+      m_ctxData->currentTransaction->run_all();
+      m_ctxData->currentTransaction.reset();
+    }
+  },
       Qt::DirectConnection);
 }
 
