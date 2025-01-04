@@ -13,9 +13,17 @@ class ValueOutlet;
 }
 namespace Patternist
 {
+
+enum class Note : uint8_t
+{
+  Rest,
+  Note,
+  Legato
+};
+
 struct Lane
 {
-  std::vector<bool> pattern;
+  std::vector<Patternist::Note> pattern;
   uint8_t note{};
 
   bool operator==(const Lane& other) const noexcept

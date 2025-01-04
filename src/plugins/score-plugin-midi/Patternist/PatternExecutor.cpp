@@ -36,6 +36,14 @@ public:
 
   std::string label() const noexcept override { return "pattern_node"; }
 
+  bool legato(int note) const noexcept
+  {
+    for(const Lane& lane : pattern.lanes)
+      if(lane.note == note)
+        return lane.pattern[current] == Note::Legato;
+    return false;
+  }
+
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     using namespace ossia;
@@ -49,6 +57,7 @@ public:
         mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
         mess.back().timestamp = 0;
       }
+      in_flight.clear();
       return;
     }
 
@@ -60,20 +69,53 @@ public:
 
       last = current;
       auto& mess = out.target<ossia::midi_port>()->messages;
-      for(uint8_t note : in_flight)
+
+      for(auto it = in_flight.begin(); it != in_flight.end();)
       {
-        mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
-        mess.back().timestamp = date;
+        uint8_t note = *it;
+        if(!legato(note))
+        {
+          mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
+          mess.back().timestamp = date;
+          it = in_flight.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
       }
-      in_flight.clear();
 
       for(Lane& lane : pattern.lanes)
       {
-        if(lane.note <= 127 && lane.pattern[current])
+        if(lane.note <= 127)
         {
-          mess.push_back(libremidi::channel_events::note_on(channel, lane.note, 64));
-          mess.back().timestamp = date;
-          in_flight.insert(lane.note);
+          switch(lane.pattern[current])
+          {
+            case Note::Note:
+              mess.push_back(
+                  libremidi::channel_events::note_on(channel, lane.note, 100));
+              mess.back().timestamp = date;
+              in_flight.insert(lane.note);
+              break;
+            case Note::Legato:
+              if(!in_flight.contains(lane.note))
+              {
+                mess.push_back(
+                    libremidi::channel_events::note_on(channel, lane.note, 100));
+                mess.back().timestamp = date;
+                in_flight.insert(lane.note);
+              }
+              break;
+            case Note::Rest:
+              if(in_flight.contains(lane.note))
+              {
+                mess.push_back(
+                    libremidi::channel_events::note_off(channel, lane.note, 0));
+                mess.back().timestamp = date;
+                in_flight.erase(lane.note);
+              }
+              break;
+          }
         }
       }
 
@@ -81,14 +123,14 @@ public:
       {
         if(lane.note == 255)
         {
-          if(lane.pattern[current])
+          if(lane.pattern[current] != Note::Rest)
             accent_out->write_value(1., date);
           else
             accent_out->write_value(0., date);
         }
         else if(lane.note == 254)
         {
-          if(lane.pattern[current])
+          if(lane.pattern[current] != Note::Rest)
             slide_out->write_value(1., date);
           else
             slide_out->write_value(0., date);

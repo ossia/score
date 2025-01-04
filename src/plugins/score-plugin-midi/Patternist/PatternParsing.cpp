@@ -16,7 +16,7 @@ namespace Patternist
 {
 Pattern parsePattern(const QByteArray& data) noexcept
 {
-  static const QRegularExpression exp{QStringLiteral("[0-9][0-9] [-xX]+")};
+  static const QRegularExpression exp{QStringLiteral("[0-9][0-9] [-xXfF012]+")};
   Pattern p;
 
   for(QString lane : data.split('\n'))
@@ -47,7 +47,25 @@ Pattern parsePattern(const QByteArray& data) noexcept
         p.length = split[1].size();
         for(int i = 0; i < p.length; i++)
         {
-          lane.pattern.push_back(split[1][i] == '-' ? false : true);
+          char c = split[1][i].toLatin1();
+          switch(c)
+          {
+            default:
+            case '-':
+            case '0':
+              lane.pattern.push_back(Note::Rest);
+              break;
+            case '1':
+            case 'x':
+            case 'X':
+            case 'f':
+            case 'F':
+              lane.pattern.push_back(Note::Note);
+              break;
+            case '2':
+              lane.pattern.push_back(Note::Legato);
+              break;
+          }
         }
 
         if(!lane.pattern.empty())

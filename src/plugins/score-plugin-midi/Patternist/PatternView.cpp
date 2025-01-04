@@ -99,34 +99,34 @@ void View::paint_impl(QPainter* painter) const
   {
     auto& l = cur_p.lanes[lane];
 
-    // Draw the filled patterns
     for(int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
           x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side,
           box_side};
+      const QRectF legatoRect{
+          x0 + i * (box_side + box_spacing) - box_spacing, y0 + lane_height * lane + 2,
+          box_spacing, box_side - 4};
 
-      if(l.pattern[i])
+      switch(l.pattern[i])
       {
-        painter->setBrush(
-            (i != m_execPosition) ? style.Base4 : style.Base4.lighter.brush);
-        painter->drawRect(rect);
-      }
-    }
-
-    // Draw the empty patterns
-    for(int i = 0; i < cur_p.length; i++)
-    {
-      const QRectF rect{
-          x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side,
-          box_side};
-
-      if(!l.pattern[i])
-      {
-        painter->setBrush(
-            (i != m_execPosition) ? style.Emphasis2.main.brush
-                                  : style.Emphasis2.lighter.brush);
-        painter->drawRect(rect);
+        case Note::Rest:
+          painter->setBrush(
+              (i != m_execPosition) ? style.Emphasis2.main.brush
+                                    : style.Emphasis2.lighter.brush);
+          painter->drawRect(rect);
+          break;
+        case Note::Legato:
+          painter->setBrush(
+              (i != m_execPosition) ? style.Base4 : style.Base4.lighter.brush);
+          painter->drawRect(legatoRect);
+          painter->drawRect(rect);
+          break;
+        case Note::Note:
+          painter->setBrush(
+              (i != m_execPosition) ? style.Base4 : style.Base4.lighter.brush);
+          painter->drawRect(rect);
+          break;
       }
     }
   }
