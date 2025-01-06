@@ -2,8 +2,10 @@
 
 #include "MultiScriptEditor.hpp"
 #include "ScriptWidget.hpp"
+#include "score/tools/FileWatch.hpp"
 
 #include <QCodeEditor>
+#include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
@@ -176,16 +178,8 @@ void ScriptDialog::openInExternalEditor()
     return;
   }
 
-  if(!QFile::exists(editorPath))
-  {
-    QMessageBox::warning(
-        this, tr("Error"), tr("the configured external editor does not exist."));
-    return;
-  }
-
-  QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-  QString tempFile = tempDir + "/ossia_script_temp.js";
-
+  QString tempFile = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+                     + "/ossia_script_temp.js";
   QFile file(tempFile);
   if(!file.open(QIODevice::WriteOnly))
   {
@@ -196,12 +190,40 @@ void ScriptDialog::openInExternalEditor()
   file.write(this->text().toUtf8());
   file.close();
 
+  auto& w = score::FileWatch::instance();
+  m_fileHandle = std::make_shared<std::function<void()>>([this, tempFile]() {
+    QFile file(tempFile);
+    if(file.open(QIODevice::ReadOnly))
+    {
+      QString updatedContent = QString::fromUtf8(file.readAll());
+      file.close();
+
+      QMetaObject::invokeMethod(m_textedit, [this, updatedContent]() {
+        if(m_textedit)
+        {
+          m_textedit->setPlainText(updatedContent);
+        }
+      });
+    }
+  });
+  w.add(tempFile, m_fileHandle);
+
   if(!QProcess::startDetached(editorPath, QStringList() << tempFile))
   {
-    QMessageBox::warning(this, tr("Error"), tr("Failed to launch external editor"));
+    QMessageBox::warning(this, tr("Error"), tr("failed to launch external editor"));
   }
 }
 
+void ScriptDialog::stopWatchingFile(const QString& tempFile)
+{
+  if(tempFile.isEmpty())
+  {
+    return;
+  }
+
+  auto& w = score::FileWatch::instance();
+  w.remove(tempFile, m_fileHandle);
+}
 void MultiScriptDialog::openInExternalEditor()
 {
   QString editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
