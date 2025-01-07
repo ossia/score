@@ -56,7 +56,7 @@ PluginSettingsPresenter::PluginSettingsPresenter(
       [&](const QModelIndex& current, const QModelIndex& previous) {
     Package& addon = ps_model.remotePlugins.addons().at(current.row());
 
-    ps_view.installButton().setEnabled(addon.file != QUrl{} || addon.kind == "sdk");
+    ps_view.installButton().setEnabled(!addon.files.empty() || addon.kind == "sdk");
       });
 
   ps_view.installButton().setEnabled(false);

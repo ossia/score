@@ -363,6 +363,8 @@ void PluginSettingsView::install_package(const Package& addon)
     installSDK();
   else if(addon.kind == "media")
     installLibrary(addon);
+  else if(addon.kind == "presets")
+    installLibrary(addon);
 }
 
 void PluginSettingsView::install()
@@ -485,7 +487,7 @@ void PluginSettingsView::updateAll()
 
 void PluginSettingsView::installAddon(const Package& addon)
 {
-  if(addon.file == QUrl{})
+  if(addon.files.empty())
   {
     reset_progress();
     return;
@@ -493,45 +495,45 @@ void PluginSettingsView::installAddon(const Package& addon)
 
   const QString& installPath
       = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
-  zdl::download_and_extract(
-      addon.file, QDir{installPath}.absolutePath(),
-      [this, installPath, addon](const std::vector<QString>& res) {
-    reset_progress();
-    if(res.empty())
-      return;
-    // We want the extracted folder to have the name of the addon
-    {
-      QDir addons_dir{installPath};
-      QFileInfo a_file(res[0]);
-      auto d = a_file.dir();
-      auto old_d = d;
-      while(d.cdUp() && !d.isRoot())
+  for(auto f : addon.files)
+    zdl::download_and_extract(
+        f, QDir{installPath}.absolutePath(),
+        [this, installPath, addon](const std::vector<QString>& res) {
+      reset_progress();
+      if(res.empty())
+        return;
+      // We want the extracted folder to have the name of the addon
       {
-        if(d == addons_dir)
+        QDir addons_dir{installPath};
+        QFileInfo a_file(res[0]);
+        auto d = a_file.dir();
+        auto old_d = d;
+        while(d.cdUp() && !d.isRoot())
         {
-          addons_dir.rename(old_d.dirName(), addon.raw_name);
-          break;
+          if(d == addons_dir)
+          {
+            addons_dir.rename(old_d.dirName(), addon.raw_name);
+            break;
+          }
+          old_d = d;
         }
-        old_d = d;
       }
-    }
 
-    QMessageBox::information(
-        m_widget, tr("Addon downloaded"),
-        tr("The addon %1 has been successfully installed in :\n"
-           "%2\n\n"
-           "It will be built and enabled shortly.\nCheck the message "
-           "console for errors if nothing happens.")
-            .arg(addon.name)
-            .arg(QFileInfo(installPath).absoluteFilePath()));
-      },
-      [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-      [this, addon] {
-    reset_progress();
-    QMessageBox::warning(
-        m_widget, tr("Download failed"),
-        tr("The package %1 could not be downloaded.").arg(addon.name));
-  });
+      QMessageBox::information(
+          m_widget, tr("Addon downloaded"),
+          tr("The addon %1 has been successfully installed in :\n"
+             "%2\n\n"
+             "It will be built and enabled shortly.\nCheck the message "
+             "console for errors if nothing happens.")
+              .arg(addon.name)
+              .arg(QFileInfo(installPath).absoluteFilePath()));
+    }, [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+        [this, addon] {
+      reset_progress();
+      QMessageBox::warning(
+          m_widget, tr("Download failed"),
+          tr("The package %1 could not be downloaded.").arg(addon.name));
+    });
 }
 
 void PluginSettingsView::installSDK()
@@ -588,13 +590,13 @@ void PluginSettingsView::installLibrary(const Package& addon)
 
   QDir{}.mkpath(destination);
 
-  zdl::download_and_extract(
-      addon.file, QFileInfo{destination}.absoluteFilePath(),
-      [this, addon, destination](const std::vector<QString>& res) {
-    on_packageInstallSuccess(addon, destination, res);
-      },
-      [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-      [this, addon] { on_packageInstallFailure(addon); });
+  for(auto f : addon.files)
+    zdl::download_and_extract(
+        f, QFileInfo{destination}.absoluteFilePath(),
+        [this, addon, destination](const std::vector<QString>& res) {
+      on_packageInstallSuccess(addon, destination, res);
+    }, [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+        [this, addon] { on_packageInstallFailure(addon); });
 }
 
 void PluginSettingsView::on_packageInstallSuccess(
