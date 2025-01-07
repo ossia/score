@@ -34,7 +34,8 @@ public:
 
   void addPath(std::string_view path) override
   {
-    add(QString::fromUtf8(path.data(), path.length()));
+    if(path.find("companion-bundled-modules") == std::string_view::npos)
+      add(QString::fromUtf8(path.data(), path.length()));
   }
 
   bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
