@@ -77,6 +77,24 @@ public:
         m->actionRun(name, options_map);
       });
     }
+    else if(
+        parent && parent->get_parent() == nodes.actions && parent->children_count() == 1)
+    {
+      ossia::value_map_type options;
+      options.reserve(1);
+      options.emplace_back(p.get_node().get_name(), v);
+
+      QMetaObject::invokeMethod(
+          m_rc.get(),
+          [m = m_rc, name = parent->get_name(), options = std::move(options)] {
+        QVariantMap options_map;
+        for(auto& [k, v] : options)
+          options_map[QString::fromStdString(k)]
+              = v.apply(ossia::qt::ossia_to_qvariant{});
+
+        m->actionRun(name, options_map);
+      });
+    }
     // else if(parent == nodes.presets)
     // {
     // }
@@ -135,6 +153,10 @@ public:
     {
       auto p = cld->create_parameter(ossia::val_type::FLOAT);
       p->set_value(opt.default_value.toDouble());
+      auto dom = ossia::domain_base<float>{};
+      dom.min = opt.min;
+      dom.max = opt.max;
+      p->set_domain(std::move(dom));
     }
     else if(opt.type == "checkbox" || opt.type == "boolean")
     {
@@ -148,6 +170,7 @@ public:
       for(const auto& choice : opt.choices)
         dom.values.push_back(choice.id.toStdString());
       p->set_value(opt.default_value.toString().toStdString());
+      p->set_domain(std::move(dom));
     }
   }
 
@@ -270,7 +293,8 @@ bool BitfocusDevice::reconnect()
     if(!stgs.handler)
     {
       stgs.handler = std::make_shared<bitfocus::module_handler>(
-          stgs.path, stgs.entrypoint, stgs.apiVersion, std::move(conf));
+          stgs.path, stgs.entrypoint, stgs.nodeVersion, stgs.apiVersion,
+          std::move(conf));
       m_settings.deviceSpecificSettings = QVariant::fromValue(stgs);
     }
 

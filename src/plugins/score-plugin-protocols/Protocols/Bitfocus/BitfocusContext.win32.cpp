@@ -1,5 +1,7 @@
 #include "BitfocusContext.hpp"
 
+#include <ossia/detail/fmt.hpp>
+
 #include <QDebug>
 #include <QLocalSocket>
 
@@ -253,7 +255,8 @@ struct win32_handles
 
   QByteArray readbuf;
 };
-module_handler_base::module_handler_base(QString module_path, QString entrypoint)
+module_handler_base::module_handler_base(
+    QString node_path, QString module_path, QString entrypoint)
 {
   handles = std::make_unique<win32_handles>();
   if(!handles->ready)
@@ -288,9 +291,8 @@ module_handler_base::module_handler_base(QString module_path, QString entrypoint
   genv.insert("NODE_CHANNEL_SERIALIZATION_MODE", "json");
   genv.insert("NODE_CHANNEL_FD", "3");
 
-  std::string cmdline;
-  cmdline = "node.exe ";
-  cmdline += entrypoint.toStdString();
+  std::string cmdline
+      = fmt::format("\"{}\" {}", node_path.toStdString(), entrypoint.toStdString());
   handles->startProcess(cmdline, module_path.toStdString(), genv);
 }
 

@@ -48,8 +48,8 @@ QUrl BitfocusProtocolFactory::manual() const noexcept
 Device::DeviceEnumerators
 BitfocusProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  auto path = ctx.app.settings<Library::Settings::Model>().getPackagesPath()
-              + "/default/Devices/Bitfocus";
+  QString path = ctx.app.settings<Library::Settings::Model>().getPackagesPath()
+                 + "/companion-modules/companion-bundled-modules";
   return {{"Devices", new BitfocusEnumerator{path, ctx}}};
 }
 

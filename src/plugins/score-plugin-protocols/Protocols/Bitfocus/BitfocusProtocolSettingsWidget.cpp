@@ -39,6 +39,10 @@ BitfocusProtocolSettingsWidget::BitfocusProtocolSettingsWidget(QWidget* parent)
 
   m_rootLayout = new score::MarginLess<QFormLayout>{this};
   m_rootLayout->addRow(tr("Name"), m_deviceNameEdit);
+  m_rootLayout->addRow(new QLabel{
+      tr("To add support for Bitfocus Companion modules:\n - Go to Settings > "
+         "Package Manager\n - Install the \"Bitfocus Companion Modules\" package.")});
+  m_hasInitLabel = true;
   m_rootLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
   m_scroll = new QScrollArea{this};
@@ -197,6 +201,12 @@ void BitfocusProtocolSettingsWidget::resizeEvent(QResizeEvent* res)
 
 void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
+  if(m_hasInitLabel)
+  {
+    m_rootLayout->removeRow(1);
+    m_hasInitLabel = false;
+  }
+
   m_widgets.clear();
   delete m_subWidget;
   m_subWidget = new QWidget{this};
@@ -223,7 +233,8 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
           }
         }
         stgs.handler = std::make_shared<bitfocus::module_handler>(
-            stgs.path, stgs.entrypoint, stgs.apiVersion, std::move(conf));
+            stgs.path, stgs.entrypoint, stgs.nodeVersion, stgs.apiVersion,
+            std::move(conf));
         connect(
             stgs.handler.get(), &bitfocus::module_handler::configurationParsed, this,
             [this] { updateFields(); });

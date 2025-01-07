@@ -99,7 +99,8 @@ struct win32_handles;
 struct module_handler_base : public QObject
 {
   std::unique_ptr<win32_handles> handles{};
-  explicit module_handler_base(QString module_path, QString entrypoint);
+  explicit module_handler_base(
+      QString node_path, QString module_path, QString entrypoint);
   virtual ~module_handler_base();
   void do_write(std::string_view res);
   virtual void processMessage(std::string_view) = 0;
@@ -112,7 +113,8 @@ struct module_handler_base : public QObject
   QSocketNotifier* socket{};
   int pfd[2]{};
 
-  explicit module_handler_base(QString module_path, QString entrypoint);
+  explicit module_handler_base(
+      QString node_path, QString module_path, QString entrypoint);
   virtual ~module_handler_base();
 
   void on_read(QSocketDescriptor, QSocketNotifier::Type);
@@ -127,7 +129,8 @@ struct module_handler final : public module_handler_base
   W_OBJECT(module_handler)
 public:
   explicit module_handler(
-      QString path, QString entrypoint, QString apiversion, module_configuration config);
+      QString path, QString entrypoint, QString nodeVersion, QString apiversion,
+      module_configuration config);
   virtual ~module_handler();
 
   using module_handler_base::do_write;
