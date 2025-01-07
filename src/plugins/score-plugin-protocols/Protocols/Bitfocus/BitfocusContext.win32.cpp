@@ -3,6 +3,7 @@
 #include <ossia/detail/fmt.hpp>
 
 #include <QDebug>
+#include <QFile>
 #include <QLocalSocket>
 
 #include <stdio.h>
@@ -291,8 +292,8 @@ module_handler_base::module_handler_base(
   genv.insert("NODE_CHANNEL_SERIALIZATION_MODE", "json");
   genv.insert("NODE_CHANNEL_FD", "3");
 
-  std::string cmdline
-      = fmt::format("\"{}\" {}", node_path.toStdString(), entrypoint.toStdString());
+  std::string cmdline = fmt::format(
+      "\"{}\" {}", node_path.replace("/", "\\").toStdString(), entrypoint.toStdString());
   handles->startProcess(cmdline, module_path.toStdString(), genv);
 }
 

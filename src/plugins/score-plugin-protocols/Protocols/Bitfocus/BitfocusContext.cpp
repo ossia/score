@@ -35,11 +35,11 @@ static QString toNodePath(QString nodeVersion)
         auto version = QDir{name}.dirName().split('.');
         if(!version.isEmpty())
         {
-          QString path = name + "/bin";
+          QString path = name;
 #if defined(_WIN32)
           path += "/node.exe";
 #else
-          path += "/node";
+          path += "/bin/node";
 #endif
           node_path_cache["node" + version.front()] = path;
 
