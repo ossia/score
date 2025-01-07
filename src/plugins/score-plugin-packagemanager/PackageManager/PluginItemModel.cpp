@@ -232,8 +232,11 @@ std::optional<Package> Package::fromJson(const QJsonObject& obj) noexcept
 
   using Funmap = ossia::flat_map<QString, std::function<void(QJsonValue)>>;
   const Funmap funmap{
-      {"file", [&](QJsonValue v) { add.file = v.toString(); }},
-      {"src", [&](QJsonValue v) { add.file = v.toString(); }},
+      {score::addonArchitecture(),
+       [&](QJsonValue v) { add.files.push_back(v.toString()); }},
+      {"file", [&](QJsonValue v) { add.files.push_back(v.toString()); }},
+      {"src", [&](QJsonValue v) { add.files.push_back(v.toString()); }},
+      {"files", [&](QJsonValue v) { add.files.push_back(v.toString()); }},
       {"name", [&](QJsonValue v) { add.name = v.toString(); }},
       {"raw_name", [&](QJsonValue v) { add.raw_name = v.toString(); }},
       {"version", [&](QJsonValue v) { add.version = v.toInt(); }},
@@ -245,8 +248,8 @@ std::optional<Package> Package::fromJson(const QJsonObject& obj) noexcept
       {"large", [&](QJsonValue v) { add.largeImagePath = v.toString(); }},
       {"size", [&](QJsonValue v) { add.size = v.toString(); }},
       {"key", [&](QJsonValue v) {
-         add.key = UuidKey<score::Addon>::fromString(v.toString());
-       }}};
+    add.key = UuidKey<score::Addon>::fromString(v.toString());
+  }}};
 
   // Add metadata keys
   for(const auto& k : obj.keys())

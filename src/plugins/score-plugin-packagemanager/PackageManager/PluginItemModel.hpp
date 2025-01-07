@@ -30,8 +30,10 @@ struct Package
   QString name;
   int version{};  // version of the add-on
   QString target; // version of score targeted by this version of the add-on
-  QString kind;   // what kind of package it is (for now: "addon", "sdk", "library")
-  QUrl file;      // URL to a file containing the current version.
+  QString
+      kind; // what kind of package it is (for now: "addon", "sdk", "library", "media", "presets")
+  std::vector<QUrl> files; // URL to a file containing the current version.
+  QMap<QString, std::vector<QUrl>> arch_files; // if there are per-architecture files
   QString url;    // Link to the homepage of the package if any
 
   QString shortDescription;
