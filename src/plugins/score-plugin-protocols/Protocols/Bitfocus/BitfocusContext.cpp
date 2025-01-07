@@ -1,7 +1,14 @@
 #include "BitfocusContext.hpp"
 
+#include <Library/LibrarySettings.hpp>
+
+#include <score/application/ApplicationContext.hpp>
+
+#include <ossia/detail/flat_map.hpp>
+
 #include <boost/asio/ip/udp.hpp>
 
+#include <QDirIterator>
 #include <QVersionNumber>
 
 #include <oscpack/osc/OscOutboundPacketStream.h>
@@ -11,12 +18,54 @@
 W_OBJECT_IMPL(bitfocus::module_handler)
 namespace bitfocus
 {
+static QString toNodePath(QString nodeVersion)
+{
+  static ossia::flat_map<QString, QString> node_path_cache;
+  if(node_path_cache.empty())
+  {
+    const auto& set = score::AppContext().settings<Library::Settings::Model>();
+    QString path = set.getPackagesPath() + "/companion-modules/node-runtime";
+    if(QDir{path}.exists())
+    {
+      QDirIterator d{
+          path, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags};
+      while(d.hasNext())
+      {
+        QString name = d.next();
+        auto version = QDir{name}.dirName().split('.');
+        if(!version.isEmpty())
+        {
+          QString path = name + "/bin";
+#if defined(_WIN32)
+          path += "/node.exe";
+#else
+          path += "/node";
+#endif
+          node_path_cache["node" + version.front()] = path;
 
+          QFile p{path};
+          p.setPermissions(p.permissions() | QFile::Permission::ExeUser);
+        }
+      }
+    }
+  }
+
+  if(auto it = node_path_cache.find(nodeVersion); it != node_path_cache.end())
+    return it->second;
+
+  // Hope it's in the PATH
+#if defined(_WIN32)
+  return "node.exe";
+#else
+  return "node";
+#endif
+}
 module_handler::~module_handler() { }
 
 module_handler::module_handler(
-    QString path, QString entrypoint, QString apiversion, module_configuration conf)
-    : module_handler_base{path, entrypoint}
+    QString path, QString entrypoint, QString nodeVersion, QString apiversion,
+    module_configuration conf)
+    : module_handler_base{toNodePath(nodeVersion), path, entrypoint}
 {
   for(QChar& c : apiversion)
     if(!c.isDigit() && c != '.')

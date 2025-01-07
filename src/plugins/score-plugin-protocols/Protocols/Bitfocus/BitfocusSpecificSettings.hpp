@@ -22,6 +22,7 @@ struct BitfocusSpecificSettings
   QString name;
   QString brand;
   QString product;
+  QString nodeVersion;
   QString apiVersion;
 
   std::vector<std::pair<QString, ossia::value>> configuration;

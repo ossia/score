@@ -4,7 +4,8 @@
 namespace bitfocus
 {
 
-module_handler_base::module_handler_base(QString module_path, QString entrypoint)
+module_handler_base::module_handler_base(
+    QString node_path, QString module_path, QString entrypoint)
 {
   // Create socketpair
   socketpair(PF_LOCAL, SOCK_STREAM, 0, pfd);
@@ -22,7 +23,7 @@ module_handler_base::module_handler_base(QString module_path, QString entrypoint
       socket, &QSocketNotifier::activated, this, &module_handler_base::on_read);
 
   process.setProcessChannelMode(QProcess::ForwardedChannels);
-  process.setProgram("node");
+  process.setProgram(node_path);
   process.setArguments({entrypoint});
   process.setWorkingDirectory(module_path);
   process.setProcessEnvironment(genv);

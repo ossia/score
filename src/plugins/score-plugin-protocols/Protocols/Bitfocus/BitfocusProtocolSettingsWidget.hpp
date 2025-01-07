@@ -53,5 +53,6 @@ private:
 
   std::map<QString, widget> m_widgets;
   QJSEngine m_uiEngine;
+  bool m_hasInitLabel{};
 };
 }

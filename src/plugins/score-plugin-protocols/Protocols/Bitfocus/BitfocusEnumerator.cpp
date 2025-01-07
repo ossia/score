@@ -59,6 +59,16 @@ auto BitfocusEnumerator::loadSettings(const QString& path) -> ret_type
           if(ipc->value.GetString() != "nodejs-ipc"sv)
             return {};
         }
+        if(auto t = runtime.FindMember("type");
+           t != runtime.MemberEnd() && t->value.IsString())
+        {
+          if(t->value.GetString() == "node18"sv)
+            set.nodeVersion = "node18";
+          else if(t->value.GetString() == "node22"sv)
+            set.nodeVersion = "node22";
+          else
+            set.nodeVersion = "node22";
+        }
         if(auto ver = runtime.FindMember("apiVersion");
            ver != runtime.MemberEnd() && ver->value.IsString())
         {

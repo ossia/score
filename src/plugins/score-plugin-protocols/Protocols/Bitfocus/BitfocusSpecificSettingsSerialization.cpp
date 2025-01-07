@@ -15,7 +15,7 @@ template <>
 void DataStreamReader::read(const Protocols::BitfocusSpecificSettings& n)
 {
   m_stream << n.path << n.entrypoint << n.id << n.name << n.brand << n.product
-           << n.apiVersion << n.configuration << n.description;
+           << n.nodeVersion << n.apiVersion << n.configuration << n.description;
   insertDelimiter();
 }
 
@@ -23,7 +23,7 @@ template <>
 void DataStreamWriter::write(Protocols::BitfocusSpecificSettings& n)
 {
   m_stream >> n.path >> n.entrypoint >> n.id >> n.name >> n.brand >> n.product
-      >> n.apiVersion >> n.configuration >> n.description;
+      >> n.nodeVersion >> n.apiVersion >> n.configuration >> n.description;
   checkDelimiter();
 }
 
@@ -36,6 +36,7 @@ void JSONReader::read(const Protocols::BitfocusSpecificSettings& n)
   obj["Name"] = n.name;
   obj["Brand"] = n.brand;
   obj["Product"] = n.product;
+  obj["NodeVersion"] = n.nodeVersion;
   obj["APIVersion"] = n.apiVersion;
   obj["Configuration"] = n.configuration;
   obj["Description"] = n.description;
@@ -50,6 +51,7 @@ void JSONWriter::write(Protocols::BitfocusSpecificSettings& n)
   n.name <<= obj["Name"];
   n.brand <<= obj["Brand"];
   n.product <<= obj["Product"];
+  n.nodeVersion <<= obj["NodeVersion"];
   n.apiVersion <<= obj["APIVersion"];
   n.configuration <<= obj["Configuration"];
   n.description <<= obj["Description"];
