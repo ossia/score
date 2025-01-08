@@ -203,8 +203,15 @@ void BitfocusProtocolSettingsWidget::setSettings(const Device::DeviceSettings& s
 {
   if(m_hasInitLabel)
   {
-    m_rootLayout->removeRow(1);
-    m_hasInitLabel = false;
+    if(settings.deviceSpecificSettings.canConvert<BitfocusSpecificSettings>())
+    {
+      auto stgs = settings.deviceSpecificSettings.value<BitfocusSpecificSettings>();
+      if(!stgs.path.isEmpty())
+      {
+        m_rootLayout->removeRow(1);
+        m_hasInitLabel = false;
+      }
+    }
   }
 
   m_widgets.clear();
