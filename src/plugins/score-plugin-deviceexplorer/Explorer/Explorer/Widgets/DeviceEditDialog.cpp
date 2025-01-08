@@ -150,7 +150,13 @@ DeviceEditDialog::DeviceEditDialog(
   connect(m_buttonBox, &QDialogButtonBox::helpRequested, [this] {
     if(!this->m_protocols)
       return;
-    auto selected_item = m_protocols->selectedItems().first();
+    auto items = m_protocols->selectedItems();
+    if(items.empty())
+    {
+      QDesktopServices::openUrl(QUrl("https://ossia.io/score-docs/devices.html"));
+      return;
+    }
+    auto selected_item = items.first();
     auto key
         = selected_item->data(0, Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
     if(key == UuidKey<Device::ProtocolFactory>{})
