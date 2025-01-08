@@ -28,7 +28,7 @@ public:
 
   void setText(const QString& str);
   void setError(int line, const QString& str);
-  void openInExternalEditor();
+  void openInExternalEditor(const QString& editorPath);
   void stopWatchingFile(const QString& tempFile);
 
 protected:
