@@ -43,6 +43,9 @@
     <key>NSHumanReadableCopyright</key>
     <string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 
+    <key>NSAppleEventsUsageDescription</key>
+    <string>ossia score needs assistive access for MIDI keyboard input and minimap movement</string>
+
     <key>NSMicrophoneUsageDescription</key>
     <string>ossia score needs microphone permission for audio input.</string>
     
