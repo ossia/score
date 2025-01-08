@@ -21,8 +21,10 @@
 #include <QTimer>
 #include <QUrl>
 
-#include <libremidi/backends.hpp>
+// clang-format off
 #include <libremidi/libremidi.hpp>
+#include <libremidi/backends.hpp>
+// clang-format on
 namespace Device
 {
 class DeviceInterface;
@@ -71,7 +73,7 @@ template <ossia::net::midi::midi_info::Type Type>
 class MidiEnumerator : public Device::DeviceEnumerator
 {
   libremidi::API m_api = getCurrentAPI();
-  std::any m_observer_conf = [this] {
+  libremidi::observer_api_configuration m_observer_conf = [this] {
     auto api_conf = libremidi::observer_configuration_for(m_api);
 
     libremidi::midi_any::for_observer_configuration([&](auto& conf) {

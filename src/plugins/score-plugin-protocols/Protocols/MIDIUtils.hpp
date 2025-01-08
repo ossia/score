@@ -4,8 +4,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
-#include <libremidi/backends.hpp>
-#include <libremidi/libremidi.hpp>
+#include <libremidi/api.hpp>
 namespace Protocols
 {
 inline libremidi::API getCurrentAPI()

@@ -8,6 +8,8 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Protocols/MIDI/MIDIKeyboardEventFilter.linux.hpp>
+#include <Protocols/MIDI/MIDIKeyboardEventFilter.macos.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -29,48 +31,11 @@
 #include <libremidi/configurations.hpp>
 // clang-format on
 
-#include <memory>
+#include <score_plugin_protocols_export.h>
 
+#include <memory>
 namespace Protocols
 {
-class MidiKeyboardEventFilter : public QObject
-{
-public:
-  libremidi::kbd_input_configuration::scancode_callback press, release;
-  MidiKeyboardEventFilter(
-      libremidi::kbd_input_configuration::scancode_callback press,
-      libremidi::kbd_input_configuration::scancode_callback release)
-      : press{std::move(press)}
-      , release{std::move(release)}
-      , target{score::GUIAppContext().mainWindow}
-  {
-    // X11 quirk
-    if(qApp->platformName() == "xcb")
-      scanCodeOffset = -8;
-  }
-
-  bool eventFilter(QObject* object, QEvent* event)
-  {
-    if(object == target)
-    {
-      if(event->type() == QEvent::KeyPress)
-      {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if(!keyEvent->isAutoRepeat())
-          press(keyEvent->nativeScanCode() + scanCodeOffset);
-      }
-      else if(event->type() == QEvent::KeyRelease)
-      {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if(!keyEvent->isAutoRepeat())
-          release(keyEvent->nativeScanCode() + scanCodeOffset);
-      }
-    }
-    return false;
-  }
-  QObject* target{};
-  int scanCodeOffset{0};
-};
 
 MIDIDevice::MIDIDevice(
     const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
@@ -119,7 +84,7 @@ bool MIDIDevice::reconnect()
         case libremidi::API::ALSA_SEQ: {
           conf.timestamps = libremidi::timestamp_mode::AudioFrame;
 
-          auto ptr = std::any_cast<libremidi::alsa_seq::input_configuration>(&api_conf);
+          auto ptr = std::get_if<libremidi::alsa_seq::input_configuration>(&api_conf);
           SCORE_ASSERT(ptr);
           ptr->client_name = "ossia score";
           break;
@@ -133,11 +98,13 @@ bool MIDIDevice::reconnect()
           break;
         }
         case libremidi::API::KEYBOARD: {
-          auto ptr = std::any_cast<libremidi::kbd_input_configuration>(&api_conf);
+          auto ptr = std::get_if<libremidi::kbd_input_configuration>(&api_conf);
           SCORE_ASSERT(ptr);
           ptr->set_input_scancode_callbacks = [this](auto keypress, auto keyrelease) {
             m_kbdfilter = new MidiKeyboardEventFilter{keypress, keyrelease};
+#if !defined(__APPLE__)
             qApp->installEventFilter(m_kbdfilter);
+#endif
           };
           break;
         }
