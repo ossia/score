@@ -231,10 +231,14 @@ void PluginSettingsView::handleAddonList(const QJsonObject& obj)
   m_progress->setVisible(true);
   auto arr = obj["addons"].toArray();
   m_addonsToRetrieve = arr.size();
+  int delay = 0;
   for(QJsonValue elt : arr)
   {
-    QNetworkRequest rqst{QUrl(elt.toString())};
-    mgr.get(rqst);
+    QTimer::singleShot(delay, this, [this, url = QUrl(elt.toString())] {
+      QNetworkRequest rqst{url};
+      mgr.get(rqst);
+    });
+    delay += 16;
   }
 }
 
