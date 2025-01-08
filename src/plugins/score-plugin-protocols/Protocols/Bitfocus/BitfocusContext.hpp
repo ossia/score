@@ -109,6 +109,7 @@ struct module_handler_base : public QObject
 struct module_handler_base : public QObject
 {
   char buf[16 * 4096]{};
+  std::vector<char> queue;
   QProcess process{};
   QSocketNotifier* socket{};
   int pfd[2]{};

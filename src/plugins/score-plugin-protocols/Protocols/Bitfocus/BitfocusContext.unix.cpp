@@ -43,14 +43,19 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
   ssize_t rl = ::read(pfd[0], buf, sizeof(buf));
   if(rl <= 0)
     return;
-  char* pos = buf;
-  char* idx = buf;
-  char* const end = pos + rl;
+  queue.insert(queue.end(), buf, buf + rl);
+
+  char* pos = queue.data();
+  char* idx = queue.data();
+  char* last_message_start = queue.data();
+  char* const end = queue.data() + queue.size();
+
   do
   {
     idx = std::find(pos, end, '\n');
     if(idx < end)
     {
+      last_message_start = idx;
       std::ptrdiff_t diff = idx - pos;
       std::string_view message(pos, diff);
       // std::cerr << "\n=========================\n <-- " << message << "\n";
@@ -59,6 +64,8 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
       continue;
     }
   } while(idx < end);
+  intptr_t processed_count = last_message_start - queue.data();
+  queue.erase(queue.begin(), queue.begin() + processed_count);
 }
 
 void module_handler_base::do_write(std::string_view res)
