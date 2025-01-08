@@ -58,10 +58,15 @@ ScriptDialog::ScriptDialog(
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
 
-  auto openExternalBtn = new QPushButton{tr("Open in external editor.."), this};
-  connect(
-      openExternalBtn, &QPushButton::clicked, this, [this] { openInExternalEditor(); });
-  lay->addWidget(openExternalBtn);
+  if(auto editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
+     !editorPath.isEmpty())
+  {
+    auto openExternalBtn = new QPushButton{tr("Edit in default editor"), this};
+    connect(openExternalBtn, &QPushButton::clicked, this, [this, editorPath] {
+      openInExternalEditor(editorPath);
+    });
+    lay->addWidget(openExternalBtn);
+  }
 }
 
 QString ScriptDialog::text() const noexcept
@@ -118,10 +123,15 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
 
-  auto openExternalBtn = new QPushButton{tr("Open in external editor.."), this};
-  connect(
-      openExternalBtn, &QPushButton::clicked, this, [this] { openInExternalEditor(); });
-  lay->addWidget(openExternalBtn);
+  if(auto editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
+     !editorPath.isEmpty())
+  {
+    auto openExternalBtn = new QPushButton{tr("Edit in default editor"), this};
+    connect(openExternalBtn, &QPushButton::clicked, this, [this, editorPath] {
+      openInExternalEditor(editorPath);
+    });
+    lay->addWidget(openExternalBtn);
+  }
 }
 
 void MultiScriptDialog::addTab(
@@ -167,9 +177,8 @@ void MultiScriptDialog::clearError()
   m_error->clear();
 }
 
-void ScriptDialog::openInExternalEditor()
+void ScriptDialog::openInExternalEditor(const QString& editorPath)
 {
-  QString editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
 
   if(editorPath.isEmpty())
   {
@@ -178,8 +187,8 @@ void ScriptDialog::openInExternalEditor()
     return;
   }
 
-  QString tempFile = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
-                     + "/ossia_script_temp.js";
+  const QString tempFile = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+                           + "/ossia_script_temp.js";
   QFile file(tempFile);
   if(!file.open(QIODevice::WriteOnly))
   {
@@ -188,7 +197,6 @@ void ScriptDialog::openInExternalEditor()
   }
 
   file.write(this->text().toUtf8());
-  file.close();
 
   auto& w = score::FileWatch::instance();
   m_fileHandle = std::make_shared<std::function<void()>>([this, tempFile]() {
@@ -196,7 +204,6 @@ void ScriptDialog::openInExternalEditor()
     if(file.open(QIODevice::ReadOnly))
     {
       QString updatedContent = QString::fromUtf8(file.readAll());
-      file.close();
 
       QMetaObject::invokeMethod(m_textedit, [this, updatedContent]() {
         if(m_textedit)
@@ -208,7 +215,7 @@ void ScriptDialog::openInExternalEditor()
   });
   w.add(tempFile, m_fileHandle);
 
-  if(!QProcess::startDetached(editorPath, QStringList() << tempFile))
+  if(!QProcess::startDetached(editorPath, QStringList{tempFile}))
   {
     QMessageBox::warning(this, tr("Error"), tr("failed to launch external editor"));
   }
@@ -224,10 +231,8 @@ void ScriptDialog::stopWatchingFile(const QString& tempFile)
   auto& w = score::FileWatch::instance();
   w.remove(tempFile, m_fileHandle);
 }
-void MultiScriptDialog::openInExternalEditor()
+void MultiScriptDialog::openInExternalEditor(const QString& editorPath)
 {
-  QString editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
-
   if(editorPath.isEmpty())
   {
     QMessageBox::warning(
@@ -266,7 +271,6 @@ void MultiScriptDialog::openInExternalEditor()
       QString content = textedit->document()->toPlainText();
       file.write(content.toUtf8());
     }
-    file.close();
 
     openedFiles.append(tempFile);
   }

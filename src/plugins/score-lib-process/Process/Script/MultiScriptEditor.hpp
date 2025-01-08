@@ -27,7 +27,7 @@ public:
   void setText(int idx, const QString& str);
   void setError(const QString& str);
   void clearError();
-  void openInExternalEditor();
+  void openInExternalEditor(const QString& editorPath);
 
 protected:
   virtual void on_accepted() = 0;
