@@ -2,7 +2,8 @@
 
 #include "MultiScriptEditor.hpp"
 #include "ScriptWidget.hpp"
-#include "score/tools/FileWatch.hpp"
+
+#include <score/tools/FileWatch.hpp>
 
 #include <QCodeEditor>
 #include <QCoreApplication>
@@ -230,6 +231,7 @@ void ScriptDialog::stopWatchingFile(const QString& tempFile)
 
   auto& w = score::FileWatch::instance();
   w.remove(tempFile, m_fileHandle);
+  m_fileHandle.reset();
 }
 void MultiScriptDialog::openInExternalEditor(const QString& editorPath)
 {
