@@ -85,17 +85,17 @@ public:
       QObject* parent);
 
   const score::DocumentContext& context() const noexcept { return m_context; }
-  const Id<StateModel>& startState() const;
+  const Id<StateModel>& startState() const noexcept;
   void setStartState(const Id<StateModel>& eventId);
 
-  const Id<StateModel>& endState() const;
+  const Id<StateModel>& endState() const noexcept;
   void setEndState(const Id<StateModel>& endState);
 
-  const TimeVal& date() const;
+  const TimeVal& date() const noexcept;
   void setStartDate(const TimeVal& start);
   void translate(const TimeVal& deltaTime);
 
-  double heightPercentage() const;
+  double heightPercentage() const noexcept;
 
   void startExecution();
   void stopExecution();
@@ -118,15 +118,21 @@ public:
   void viewModeChanged(ViewMode v)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewModeChanged, v)
 
-  // Full view properties:
-  ZoomRatio zoom() const;
-  void setZoom(const ZoomRatio& zoom);
+  // Node view properties (both small and full view)
+  QPointF nodalOffset() const noexcept;
+  void setNodalOffset(QPointF offs);
+  double nodalScale() const noexcept;
+  void setNodalScale(double z);
 
-  TimeVal midTime() const;
+  // Full view properties:
+  ZoomRatio zoom() const noexcept;
+  void setZoom(const ::ZoomRatio& zoom);
+
+  TimeVal midTime() const noexcept;
   void setMidTime(const TimeVal& value);
 
   void setSmallViewVisible(bool);
-  bool smallViewVisible() const;
+  bool smallViewVisible() const noexcept;
 
   const Rack& smallView() const noexcept { return m_smallView; }
   const FullRack& fullView() const noexcept { return m_fullView; }
@@ -253,6 +259,11 @@ public:
   void graphalChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
 
+  void nodalOffsetChanged(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, nodalOffsetChanged, arg_1)
+  void nodalScaleChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, nodalScaleChanged, arg_1)
+
   PROPERTY(bool, muted READ muted WRITE setMuted NOTIFY mutedChanged)
   PROPERTY(bool, graphal READ graphal WRITE setGraphal NOTIFY graphalChanged)
   PROPERTY(
@@ -291,8 +302,10 @@ private:
   double m_nodalFullViewSlotHeight{100};
   double m_quantRate{-1.0};
 
-  ZoomRatio m_zoom{-1};
+  ::ZoomRatio m_zoom{-1};
   TimeVal m_center{};
+  QPointF m_nodalOffset{};
+  double m_nodalScale{1.0};
   IntervalExecutionState m_executionState : 2;
   ViewMode m_viewMode : 1;
   bool m_smallViewShown : 1;

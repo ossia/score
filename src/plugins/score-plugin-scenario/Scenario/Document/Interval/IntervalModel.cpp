@@ -247,7 +247,7 @@ void IntervalModel::setQuantizationRate(ossia::musical_sync b)
   }
 }
 
-const Id<StateModel>& IntervalModel::startState() const
+const Id<StateModel>& IntervalModel::startState() const noexcept
 {
   return m_startState;
 }
@@ -257,7 +257,7 @@ void IntervalModel::setStartState(const Id<StateModel>& e)
   m_startState = e;
 }
 
-const Id<StateModel>& IntervalModel::endState() const
+const Id<StateModel>& IntervalModel::endState() const noexcept
 {
   return m_endState;
 }
@@ -267,7 +267,7 @@ void IntervalModel::setEndState(const Id<StateModel>& endState)
   m_endState = endState;
 }
 
-const TimeVal& IntervalModel::date() const
+const TimeVal& IntervalModel::date() const noexcept
 {
   return m_date;
 }
@@ -289,7 +289,7 @@ void IntervalModel::translate(const TimeVal& deltaTime)
 
 // Simple getters and setters
 
-double IntervalModel::heightPercentage() const
+double IntervalModel::heightPercentage() const noexcept
 {
   return m_heightPercentage;
 }
@@ -375,7 +375,35 @@ void IntervalModel::setViewMode(IntervalModel::ViewMode v)
   }
 }
 
-ZoomRatio IntervalModel::zoom() const
+QPointF IntervalModel::nodalOffset() const noexcept
+{
+  return m_nodalOffset;
+}
+
+void IntervalModel::setNodalOffset(QPointF offs)
+{
+  if(m_nodalOffset != offs)
+  {
+    m_nodalOffset = offs;
+    nodalOffsetChanged(m_nodalOffset);
+  }
+}
+
+double IntervalModel::nodalScale() const noexcept
+{
+  return m_nodalScale;
+}
+
+void IntervalModel::setNodalScale(double zoom)
+{
+  if(m_nodalScale != zoom)
+  {
+    m_nodalScale = zoom;
+    nodalScaleChanged(m_nodalScale);
+  }
+}
+
+ZoomRatio IntervalModel::zoom() const noexcept
 {
   return m_zoom;
 }
@@ -385,7 +413,7 @@ void IntervalModel::setZoom(const ZoomRatio& zoom)
   m_zoom = zoom;
 }
 
-TimeVal IntervalModel::midTime() const
+TimeVal IntervalModel::midTime() const noexcept
 {
   return m_center;
 }
@@ -404,7 +432,7 @@ void IntervalModel::setSmallViewVisible(bool v)
   }
 }
 
-bool IntervalModel::smallViewVisible() const
+bool IntervalModel::smallViewVisible() const noexcept
 {
   return m_smallViewShown;
 }

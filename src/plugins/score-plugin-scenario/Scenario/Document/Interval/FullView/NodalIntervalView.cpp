@@ -3,10 +3,12 @@
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/ZoomItem.hpp>
 #include <score/selection/SelectionStack.hpp>
 
 #include <QGraphicsSceneDragDropEvent>
+#include <QGraphicsView>
 
 namespace Scenario
 {
@@ -70,8 +72,44 @@ NodalIntervalView::NodalIntervalView(
     connect(item, &score::ZoomItem::recenter, this, &NodalIntervalView::recenter);
     connect(item, &score::ZoomItem::rescale, this, &NodalIntervalView::rescale);
     connect(
-        this, &score::EmptyRectItem::sizeChanged, this, &NodalIntervalView::recenter);
+        this, &score::EmptyRectItem::sizeChanged, this,
+        &NodalIntervalView::recenterRelativeToView);
+
+    if(parent)
+    {
+      if(auto v = getView(*parent))
+      {
+        auto gv = static_cast<Scenario::ProcessGraphicsView*>(v);
+        connect(gv, &ProcessGraphicsView::visibleRectChanged, this, [this] {
+          recenterRelativeToView();
+        }, Qt::DirectConnection);
+      }
+    }
   }
+}
+
+void NodalIntervalView::recenterRelativeToView()
+{
+  auto v = getView(*this);
+  if(!v)
+    return;
+  auto parentRect = boundingRect();
+  auto childRect = enclosingRect();
+
+  auto viewTopLeft = mapFromScene(v->mapToScene(0, 0));
+  auto viewBottomRight = mapFromScene(v->mapToScene(v->width(), v->height()));
+  auto viewRect = QRectF{viewTopLeft, viewBottomRight};
+  auto visibleRect = viewRect.intersected(parentRect);
+
+  // qDebug() << "\n- parent:" << parentRect << "\n- child:" << childRect
+  //          << "\n- view:" << viewRect << "\n- visible:" << visibleRect;
+
+  auto childCenter
+      = m_container->mapRectToParent(childRect).center() - m_container->pos();
+  auto ourCenter = visibleRect.center();
+  auto delta = ourCenter - childCenter;
+
+  m_container->setPos(delta + m_model.nodalOffset());
 }
 
 void NodalIntervalView::recenter()
@@ -90,6 +128,7 @@ void NodalIntervalView::recenter()
   auto delta = ourCenter - childCenter;
 
   m_container->setPos(delta);
+  const_cast<IntervalModel&>(m_model).setNodalOffset(QPointF{});
 }
 
 void NodalIntervalView::rescale()
@@ -240,11 +279,18 @@ void NodalIntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
   m_container->setPos(m_container->pos() + delta);
   m_pressedPos = e->scenePos();
   e->accept();
+  const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
 }
 
 void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 {
-  mouseMoveEvent(e);
+  const auto delta = e->scenePos() - m_pressedPos;
+
+  m_container->setPos(m_container->pos() + delta);
+  m_pressedPos = e->scenePos();
+  e->accept();
+
+  const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
 }
 
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
