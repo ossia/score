@@ -17,7 +17,7 @@ $SUDO apt-get install -qq --force-yes \
      build-essential binutils cmake \
      libasound2-dev \
      ninja-build \
-     clang-$CLANG_VERSION lld-$CLANG_VERSION libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \
+     clang-$CLANG_VERSION lld-$CLANG_VERSION libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev clang-tools-$CLANG_VERSION \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \
      libdrm-dev libgbm-dev \
