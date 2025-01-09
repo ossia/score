@@ -1,6 +1,7 @@
 #include "NodalIntervalView.hpp"
 
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
@@ -86,6 +87,7 @@ NodalIntervalView::NodalIntervalView(
       }
     }
   }
+  QTimer::singleShot(1, this, &NodalIntervalView::recenterRelativeToView);
 }
 
 void NodalIntervalView::recenterRelativeToView()
@@ -143,7 +145,7 @@ void NodalIntervalView::rescale()
   auto ourCenter = parentRect.center();
   auto delta = ourCenter - childCenter;
 
-  m_container->setPos(delta);
+  m_container->setPos(delta + m_model.nodalOffset());
 }
 
 NodalIntervalView::~NodalIntervalView()
