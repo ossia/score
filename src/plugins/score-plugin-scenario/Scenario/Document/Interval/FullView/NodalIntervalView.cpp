@@ -6,6 +6,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/ZoomItem.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 
 #include <QGraphicsSceneDragDropEvent>
