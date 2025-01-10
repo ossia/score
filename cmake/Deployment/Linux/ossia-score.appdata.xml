@@ -48,9 +48,11 @@
         <p>New features</p>
         <ul>
           <li>Introduce initial alpha support for loading AI models through onnxruntime. Right now supported models are BlazePose, YOLOv7 (blob detection), YOLOv8 (pose), ResNet. More to come, please mention any model you'd be interested in on our Discord! Feat. a cute new icon by @aklevy!</li>
+          <li>Introduce initial support for using Bitfocus Companion integrations and modules directly from ossia score. This requires installing an additional package from the package manager.</li>
           <li>Introduce initial support for MIDI control surfaces using the MCU protocol. Selecting a process will now make its parameters available over the control surface UI.</li>
           <li>Introduce Array Combiner, Array Tool, Array Flattener, and Array Recombiner processes to efficiently process arrays in various ways.</li>
           <li>Add a new 2D Point View visualizer to visualize arrays of 2D positions.</li>
+          <li>Add a new Envelope Follower based on kferg.dev algorithm.</li>
           <li>Add an initial implementation for 2D and 3D DBAP spatialization algorithm. Note that the implementation just generates the coefficients, and thus can be applied to any kind of spatial content, not just audio data.</li>
           <li>Arraygen / Arraymap now provide an `n` variable to get access to the current number of elements.</li>
           <li>Improve on-line help integration. Hitting F1 on any process will now open a browser with the help page of said object.</li>
@@ -61,8 +63,10 @@
           <li>macOS: more video format support.</li>
           <li>macOS: port away from PortAudio to MiniAudio for audio backend. This finally allows to select a different input and output device and overall looks much more stable all while being much easier to integrate.</li>
           <li>Patternist: add support for Accent and Slide features to enable sick acid bassline patterns.</li>
+          <li>Patternist: add support for legato notes.</li>
           <li>Patternist: add TB-3 (303-like) patterns to the pattern library (jcelerier/drum-patterns on GitHub).</li>
           <li>Patternist: add patterns from "260 Drum Machine Patterns" (René-Pierre Bardet) to the pattern library (thanks @danielmroczek.</li>
+          <li>Soundfile: allow to choose three quality levels for the resampling mode (e.g. pitch shift instead of time stretch). Previous and default mode is the HQ one, based on high-quality sinc interpolation from libsamplerate.</li>
           <li>Threedim addon moved into official score repo to track changes more easily.</li>
         </ul>
         <p>Platform and CI changes</p>
@@ -80,6 +84,7 @@
         </ul>
         <p>Bugfixes and improvements</p>
         <ul>
+          <li>Audio Recorder: support relative paths like elsewhere.</li>
           <li>Automation: big rework of the pen tool to make sure we never end up in invalid states.</li>
           <li>Automation: fix a rare crash when editing a curve point's X position.</li>
           <li>BSD: implement VST3 support.</li>
@@ -97,17 +102,21 @@
           <li>JS: implement an enumerateDevices API to track added and removed devices like in the Device dialog.</li>
           <li>Kinect: fix build, initial try for a registered point-cloud output.</li>
           <li>MIDI: fix that devices would sometimes enumerate too early on macOS leading to them not being visible in the UI.</li>
+          <li>MIDI: fix Computer Keyboard support on macOS. Note that this requires Accessibility permissions.</li>
           <li>MinGW: reenable addons on CI.</li>
           <li>MSVC: reenable addons on CI.</li>
           <li>OSC: add support for always sending bundles for devices that only understand bundles.</li>
           <li>OSC: disable broadcast being locked to 255.255.255.255.</li>
           <li>OSC: fix that OSC devices were not recreated leading to OSC not working after editing the device.</li>
           <li>OSCQuery: improve compatibility with weird embedded webservers.</li>
+          <li>Package manager: support packages with multiple files to download.</li>
           <li>Patternist: fix crash when changing current pattern.</li>
           <li>Serial: work on allowing non-standard baud rates, if the system supports that.</li>
           <li>Signal display: fix scaling issues.</li>
           <li>UI: make a preset appear under the mouse when dropped.</li>
           <li>UI: performance optimizations for process and filesystem views.</li>
+          <li>UI: improve behaviour of nodal view especially when rescaling and resizing things.</li>
+          <li>UI: improve behaviour of copy-paste in nodal view.</li>
           <li>Video: do not hide cursor on embedded video windows.</li>
           <li>Video: multiple fixes to color space shaders introduced in 3.3.2.</li>
           <li>VNC: fill the requested screen resolution instead of a 1024x768 default square.</li>
