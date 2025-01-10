@@ -48,7 +48,7 @@ void CentralNodalDisplay::init()
       this->recenter();
   });
 
-  QTimer::singleShot(0, presenter, &NodalIntervalView::recenter);
+  QTimer::singleShot(0, presenter, &NodalIntervalView::recenterRelativeToView);
 }
 
 void CentralNodalDisplay::recenter()

@@ -103,9 +103,6 @@ void NodalIntervalView::recenterRelativeToView()
   auto viewRect = QRectF{viewTopLeft, viewBottomRight};
   auto visibleRect = viewRect.intersected(parentRect);
 
-  // qDebug() << "\n- parent:" << parentRect << "\n- child:" << childRect
-  //          << "\n- view:" << viewRect << "\n- visible:" << visibleRect;
-
   auto childCenter
       = m_container->mapRectToParent(childRect).center() - m_container->pos();
   auto ourCenter = visibleRect.center();
@@ -135,6 +132,7 @@ void NodalIntervalView::recenter()
 
 void NodalIntervalView::rescale()
 {
+  recenterRelativeToView();
   auto parentRect = boundingRect();
   auto childRect = enclosingRect();
 
@@ -273,6 +271,9 @@ void NodalIntervalView::mousePressEvent(QGraphicsSceneMouseEvent* e)
 
   m_pressedPos = e->scenePos();
   e->accept();
+
+  score::SelectionDispatcher disp{m_context.selectionStack};
+  disp.select(m_model);
 }
 
 void NodalIntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)

@@ -272,8 +272,7 @@ bool ScenarioEditor::paste(
       }
       else
       {
-        // FIXME proper nodal position
-        return pasteInInterval(*obj, QPointF{0., 0.}, mime, ctx);
+        return pasteInInterval(*obj, newProcessPosition(*obj), mime, ctx);
       }
     }
     else if(auto obj = qobject_cast<StateModel*>(sel.at(0)))
@@ -283,13 +282,15 @@ bool ScenarioEditor::paste(
     else if(auto obj = qobject_cast<Scenario::ProcessModel*>(sel.at(0)))
     {
       // Do nothing, handled below as we really need the position in the view
+      // FIXME if we're in nodal view and pasting just a process and
+      // not clicking in the scenario then it would be better to paste
+      // next to the scenario
     }
     else if(auto obj = qobject_cast<Process::ProcessModel*>(sel.at(0)))
     {
       if(auto itv = Scenario::closestParentInterval(obj))
       {
-        // FIXME proper nodal position
-        return pasteInInterval(*itv, QPointF{0., 0.}, mime, ctx);
+        return pasteInInterval(*itv, newProcessPosition(*itv), mime, ctx);
       }
     }
   }
