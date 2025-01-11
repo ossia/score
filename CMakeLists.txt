@@ -18,7 +18,7 @@ if(OSSIA_SDK)
   if(UNIX AND NOT APPLE)
     set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
   endif()
-
+ 
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}"
       "${OSSIA_SDK}/SDL2"
