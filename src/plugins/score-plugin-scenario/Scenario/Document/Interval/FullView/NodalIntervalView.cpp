@@ -11,6 +11,7 @@
 
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
+#include <QTimer>
 
 namespace Scenario
 {
