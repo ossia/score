@@ -76,6 +76,45 @@ Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
   return s;
 }
 
+static void makeValidator(QLineEdit* widg, QString rx)
+{
+  auto val = new QRegularExpressionValidator;
+  if(rx.startsWith("/^"))
+  {
+    rx.removeAt(0);
+    rx.removeAt(0);
+  }
+  if(rx.endsWith("$/"))
+  {
+    rx.resize(rx.size() - 2);
+  }
+  val->setRegularExpression(QRegularExpression(rx));
+  val->setParent(widg);
+  widg->setValidator(val);
+
+  QObject::connect(widg, &QLineEdit::textChanged, [widg](const QString& str) {
+    if(!widg->validator())
+      return;
+
+    QString s = str;
+    int i = 0;
+    QPalette palette{widg->palette()};
+    if(widg->validator()->validate(s, i) == QValidator::State::Acceptable)
+    {
+      palette.setColor(QPalette::Base, QColor{"#161514"});
+      palette.setColor(QPalette::Light, QColor{"#c58014"});
+      palette.setColor(QPalette::Midlight, QColor{"#161514"});
+    }
+    else
+    {
+      palette.setColor(QPalette::Base, QColor{"#300000"});
+      palette.setColor(QPalette::Light, QColor{"#660000"});
+      palette.setColor(QPalette::Midlight, QColor{"#500000"});
+    }
+    widg->setPalette(palette);
+  });
+}
+
 void BitfocusProtocolSettingsWidget::updateFields()
 {
   if(!m_settings.handler)
@@ -114,12 +153,7 @@ void BitfocusProtocolSettingsWidget::updateFields()
     {
       auto widg = new QLineEdit;
       if(!field.regex.isEmpty())
-      {
-        auto val = new QRegularExpressionValidator;
-        val->setRegularExpression(QRegularExpression(field.regex));
-        val->setParent(widg);
-        widg->setValidator(val);
-      }
+        makeValidator(widg, field.regex);
       widg->setText(field.default_value.toString());
       m_subForm->addWidget(widg);
       m_widgets[field.id]
@@ -131,16 +165,53 @@ void BitfocusProtocolSettingsWidget::updateFields()
     }
     else if(field.type == "number")
     {
-      auto widg = new QDoubleSpinBox;
-      widg->setRange(field.min, field.max);
-      widg->setValue(field.default_value.toDouble());
-      m_subForm->addWidget(widg);
-      m_widgets[field.id]
-          = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
-        return widg->value();
-      }, .setValue = [widg](ossia::value v) {
-        widg->setValue(ossia::convert<float>(v));
-      }};
+      bool ok = false;
+      auto tmin = field.min.typeId();
+      auto tmax = field.max.typeId();
+      if((tmin == QMetaType::LongLong && tmax == QMetaType::LongLong))
+      {
+        auto widg = new QSpinBox;
+        if(tmin == QMetaType::LongLong && tmax == QMetaType::LongLong)
+          widg->setRange(field.min.toInt(), field.max.toInt());
+        else
+          widg->setRange(0, 100000);
+        widg->setValue(field.default_value.toInt());
+        m_subForm->addWidget(widg);
+        m_widgets[field.id]
+            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
+          return widg->value();
+        }, .setValue = [widg](ossia::value v) {
+          widg->setValue(ossia::convert<float>(v));
+        }};
+        ok = true;
+      }
+      else if(tmin == QMetaType::Double && tmax == QMetaType::Double)
+      {
+        auto widg = new QDoubleSpinBox;
+        widg->setRange(field.min.toDouble(), field.max.toDouble());
+        widg->setValue(field.default_value.toDouble());
+        m_subForm->addWidget(widg);
+        m_widgets[field.id]
+            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
+          return widg->value();
+        }, .setValue = [widg](ossia::value v) {
+          widg->setValue(ossia::convert<float>(v));
+        }};
+        ok = true;
+      }
+      else if(!field.regex.isEmpty())
+      {
+        auto widg = new QLineEdit;
+        makeValidator(widg, field.regex);
+        widg->setText(field.default_value.toString());
+        m_subForm->addWidget(widg);
+        m_widgets[field.id]
+            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
+          return widg->text().toInt();
+        }, .setValue = [widg](ossia::value v) {
+          widg->setText(QString::number(ossia::convert<int>(v)));
+        }};
+      }
     }
     else if(field.type == "checkbox")
     {

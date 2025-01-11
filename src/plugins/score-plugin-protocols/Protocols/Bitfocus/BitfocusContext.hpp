@@ -42,8 +42,8 @@ struct module_data
     QString regex;
     // ex. :  "e=>!![\"TF\",\"DM3\",\"DM7\"].includes(e.model)&&(e.kaInterval=e.kaIntervalH,!0)",
     QString isVisibleFn;
-    double min = 0;
-    double max = 1;
+    QVariant min;
+    QVariant max;
     std::vector<choice> choices;
     QVariant default_value{}; // true, a number, a string etc
     double width{};

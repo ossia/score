@@ -361,6 +361,8 @@ module_data::config_field module_handler::parseConfigField(QJsonObject f)
   res.regex = f["regex"].toString();
   res.value = f["value"].toVariant();
   res.default_value = f["default"].toVariant();
+  res.min = f["min"].toVariant();
+  res.max = f["max"].toVariant();
   res.width = f["width"].toDouble();
   {
     for(auto choice_obj : f["choices"].toArray())

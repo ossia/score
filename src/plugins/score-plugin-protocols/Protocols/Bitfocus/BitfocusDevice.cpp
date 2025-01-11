@@ -151,11 +151,12 @@ public:
     }
     else if(opt.type == "number")
     {
+      // FIXME int
       auto p = cld->create_parameter(ossia::val_type::FLOAT);
       p->set_value(opt.default_value.toDouble());
       auto dom = ossia::domain_base<float>{};
-      dom.min = opt.min;
-      dom.max = opt.max;
+      dom.min = opt.min.toDouble();
+      dom.max = opt.max.toDouble();
       p->set_domain(std::move(dom));
     }
     else if(opt.type == "checkbox" || opt.type == "boolean")
