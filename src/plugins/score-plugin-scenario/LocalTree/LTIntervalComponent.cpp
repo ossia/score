@@ -92,30 +92,36 @@ public:
     {
       for(Process::Inlet* inlet : proc.inlets())
       {
-        if(auto control = dynamic_cast<Process::ControlInlet*>(inlet))
+        if(auto control = qobject_cast<Process::ControlInlet*>(inlet))
         {
           if(!inlet->exposed().isEmpty())
           {
             m_properties.push_back(add_property<Process::Inlet::p_address>(
                 this->node(), *inlet, inlet->exposed().toStdString(), this));
             auto& port_node = m_properties.back()->addr.get_node();
-            m_properties.push_back(add_value_property<Process::ControlInlet::p_value>(
-                port_node, *control, "value", this));
+            auto prop = add_value_property<Process::ControlInlet::p_value>(
+                port_node, *control, "value", this);
+            auto& p = prop->addr;
+            p.set_domain(control->domain());
+            m_properties.push_back(std::move(prop));
           }
         }
       }
 
       for(auto& outlet : proc.outlets())
       {
-        if(auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
+        if(auto control = qobject_cast<Process::ControlOutlet*>(outlet))
         {
           if(!outlet->exposed().isEmpty())
           {
             m_properties.push_back(add_property<Process::Outlet::p_address>(
                 this->node(), *outlet, outlet->exposed().toStdString(), this));
             auto& port_node = m_properties.back()->addr.get_node();
-            m_properties.push_back(add_value_property<Process::ControlOutlet::p_value>(
-                port_node, *control, "value", this));
+            auto prop = add_value_property<Process::ControlOutlet::p_value>(
+                port_node, *control, "value", this);
+            auto& p = prop->addr;
+            p.set_domain(control->domain());
+            m_properties.push_back(std::move(prop));
           }
         }
       }
