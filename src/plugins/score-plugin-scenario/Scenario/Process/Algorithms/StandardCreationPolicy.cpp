@@ -153,6 +153,8 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
     const auto& dur = interval->duration.defaultDuration();
     interval->duration.setMinDuration(TimeVal::fromMsecs(0.8 * dur.msec()));
     interval->duration.setMaxDuration(TimeVal::fromMsecs(1.2 * dur.msec()));
+    interval->duration.setMinNull(true);
+    interval->duration.setMaxInfinite(true);
   }
 
   return *interval;
