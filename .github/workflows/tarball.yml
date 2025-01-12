@@ -31,7 +31,7 @@ jobs:
           force_push_tag: true
 
       - name: Build
-        run:
+        run: |
           export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
           ./ci/tarball.build.sh
         env:

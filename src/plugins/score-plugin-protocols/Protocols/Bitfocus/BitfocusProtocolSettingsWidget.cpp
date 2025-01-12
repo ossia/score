@@ -81,8 +81,7 @@ static void makeValidator(QLineEdit* widg, QString rx)
   auto val = new QRegularExpressionValidator;
   if(rx.startsWith("/^"))
   {
-    rx.removeAt(0);
-    rx.removeAt(0);
+    rx.remove(0, 2);
   }
   if(rx.endsWith("$/"))
   {
