@@ -1108,6 +1108,53 @@ public:
   }
 };
 
+enum class LEDMode
+{
+  RGB,
+  RGBW,
+  BGR,
+  BGRW,
+  Lightness
+};
+
+class AddLEDStripDialog : public QDialog
+{
+public:
+  AddLEDStripDialog(ArtnetProtocolSettingsWidget& parent)
+      : QDialog{&parent}
+      , m_name{this}
+      , m_buttons{
+            QDialogButtonBox::StandardButton::Ok
+                | QDialogButtonBox::StandardButton::Cancel,
+            this}
+  {
+    this->setLayout(&m_layout);
+    m_layout.addLayout(&m_buttonsLayout);
+
+    m_buttonsLayout.addRow(tr("Name"), &m_name);
+    m_buttonsLayout.addRow(tr("Count"), &m_ledCount);
+    m_buttonsLayout.addRow(tr("Mode"), &m_ledMode);
+
+    m_layout.addStretch(2);
+    m_layout.addWidget(&m_buttons);
+
+    m_ledCount.setRange(1, 65535);
+    m_ledMode.addItems({"RGB", "RGBW", "BGR", "BGRW", "Lightness"});
+  }
+
+  int leds() const noexcept { return m_ledCount.value(); }
+  LEDMode mode() const noexcept
+  {
+    return static_cast<LEDMode>(m_ledMode.currentIndex());
+  }
+
+  QVBoxLayout m_layout;
+  QFormLayout m_buttonsLayout;
+  State::AddressFragmentLineEdit m_name;
+  QSpinBox m_ledCount;
+  QComboBox m_ledMode;
+  QDialogButtonBox m_buttons;
+};
 class AddFixtureDialog : public QDialog
 {
 public:
@@ -1275,6 +1322,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
   auto btns = new QHBoxLayout;
   m_addFixture = new QPushButton{"Add a fixture"};
+  m_addLEDStrip = new QPushButton{"Add a LED strip"};
   m_rmFixture = new QPushButton{"Remove selected fixture"};
   btns->addWidget(m_addFixture);
   btns->addWidget(m_rmFixture);
@@ -1290,6 +1338,18 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
         m_fixtures.push_back(fixt);
         updateTable();
       }
+    }
+  });
+  connect(m_addLEDStrip, &QPushButton::clicked, this, [this] {
+    auto dial = new AddLEDStripDialog{*this};
+    if(dial->exec() == QDialog::Accepted)
+    {
+      // auto fixt = dial->fixture();
+      // if(!fixt.fixtureName.isEmpty() && !fixt.controls.empty())
+      // {
+      //   m_fixtures.push_back(fixt);
+      //   updateTable();
+      // }
     }
   });
   connect(m_rmFixture, &QPushButton::clicked, this, [this] {
