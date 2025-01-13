@@ -81,20 +81,20 @@ auto add_value_property(
 }
 class DefaultProcessComponent final : public ProcessComponent
 {
-  COMMON_COMPONENT_METADATA("0b801b8f-41db-49ca-a396-c26aadf3f1b5")
+  COMPONENT_METADATA("0b801b8f-41db-49ca-a396-c26aadf3f1b5")
 public:
   DefaultProcessComponent(
       ossia::net::node_base& node, Process::ProcessModel& proc,
       const score::DocumentContext& doc, QObject* parent)
       : ProcessComponent{node, proc, doc, "ProcessComponent", parent}
   {
-    try
+    for(Process::Inlet* inlet : proc.inlets())
     {
-      for(Process::Inlet* inlet : proc.inlets())
+      if(auto control = qobject_cast<Process::ControlInlet*>(inlet))
       {
-        if(auto control = qobject_cast<Process::ControlInlet*>(inlet))
+        if(!inlet->exposed().isEmpty())
         {
-          if(!inlet->exposed().isEmpty())
+          try
           {
             m_properties.push_back(add_property<Process::Inlet::p_address>(
                 this->node(), *inlet, inlet->exposed().toStdString(), this));
@@ -105,14 +105,20 @@ public:
             p.set_domain(control->domain());
             m_properties.push_back(std::move(prop));
           }
+          catch(...)
+          {
+          }
         }
       }
+    }
 
-      for(auto& outlet : proc.outlets())
+    for(auto& outlet : proc.outlets())
+    {
+      if(auto control = qobject_cast<Process::ControlOutlet*>(outlet))
       {
-        if(auto control = qobject_cast<Process::ControlOutlet*>(outlet))
+        if(!outlet->exposed().isEmpty())
         {
-          if(!outlet->exposed().isEmpty())
+          try
           {
             m_properties.push_back(add_property<Process::Outlet::p_address>(
                 this->node(), *outlet, outlet->exposed().toStdString(), this));
@@ -123,11 +129,11 @@ public:
             p.set_domain(control->domain());
             m_properties.push_back(std::move(prop));
           }
+          catch(...)
+          {
+          }
         }
       }
-    }
-    catch(...)
-    {
     }
   }
 };

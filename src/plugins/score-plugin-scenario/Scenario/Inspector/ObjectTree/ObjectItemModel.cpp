@@ -27,15 +27,24 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <Effect/EffectFactory.hpp>
+#include <LocalTree/EventComponent.hpp>
+#include <LocalTree/IntervalComponent.hpp>
+#include <LocalTree/ProcessComponent.hpp>
+#include <LocalTree/StateComponent.hpp>
+#include <LocalTree/TimeSyncComponent.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/model/ComponentUtils.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ArrowButton.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/TextLabel.hpp>
+
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node.hpp>
 
 #include <QAction>
 #include <QApplication>
@@ -1141,10 +1150,37 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 
     QMenu* m = new QMenu{this};
     m->addAction(tr("Copy remote control path"), [ptr] {
-      auto path = score::IDocument::unsafe_path(*ptr);
-
-      auto& cb = *qApp->clipboard();
-      cb.setText(path.toString());
+      std::string path;
+      if(auto cst = qobject_cast<Scenario::IntervalModel*>(ptr))
+      {
+        if(auto lt = findComponent<LocalTree::Interval>(cst->components()))
+          path = lt->node().get_device().get_name() + ":" + lt->node().osc_address();
+      }
+      else if(auto ev = qobject_cast<Scenario::EventModel*>(ptr))
+      {
+        if(auto lt = findComponent<LocalTree::Event>(ev->components()))
+          path = lt->node().get_device().get_name() + ":" + lt->node().osc_address();
+      }
+      else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(ptr))
+      {
+        if(auto lt = findComponent<LocalTree::TimeSync>(tn->components()))
+          path = lt->node().get_device().get_name() + ":" + lt->node().osc_address();
+      }
+      else if(auto st = qobject_cast<Scenario::StateModel*>(ptr))
+      {
+        if(auto lt = findComponent<LocalTree::State>(st->components()))
+          path = lt->node().get_device().get_name() + ":" + lt->node().osc_address();
+      }
+      else if(auto p = qobject_cast<Process::ProcessModel*>(ptr))
+      {
+        if(auto lt = findComponent<LocalTree::ProcessComponent>(p->components()))
+          path = lt->node().get_device().get_name() + ":" + lt->node().osc_address();
+      }
+      if(!path.empty())
+      {
+        auto& cb = *qApp->clipboard();
+        cb.setText(QString::fromStdString(path));
+      }
     });
 
     if(auto cst = qobject_cast<Scenario::IntervalModel*>(ptr))

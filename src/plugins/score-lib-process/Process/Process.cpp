@@ -7,6 +7,9 @@
 #include <Process/PresetHelpers.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <LocalTree/ProcessComponent.hpp>
+
+#include <score/model/ComponentUtils.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
@@ -16,12 +19,13 @@
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/disable_fpe.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node.hpp>
 
 #include <QObject>
 
 #include <wobjectimpl.h>
 
-#include <stdexcept>
 W_OBJECT_IMPL(Process::ProcessModel)
 
 #if !defined(SCORE_ALL_UNITY)
@@ -361,5 +365,15 @@ const ProcessModel* parentProcess(const QObject* obj) noexcept
   if(obj)
     return static_cast<const ProcessModel*>(obj);
   return nullptr;
+}
+
+QString processLocalTreeAddress(const ProcessModel& proc)
+{
+  if(auto lt = findComponent<LocalTree::ProcessComponent>(proc.components()))
+  {
+    return QString::fromStdString(
+        lt->node().get_device().get_name() + ":" + lt->node().osc_address());
+  }
+  return {};
 }
 }

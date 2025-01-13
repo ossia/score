@@ -13,6 +13,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalBase
 {
   COMMON_COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
 public:
+  static constexpr bool is_unique = true;
   using parent_t
       = Component<Scenario::GenericIntervalComponent<const score::DocumentContext>>;
   using model_t = Process::ProcessModel;

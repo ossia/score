@@ -24,6 +24,7 @@
 #include <ossia/network/domain/domain.hpp>
 
 #include <QApplication>
+#include <QClipboard>
 #include <QGraphicsSceneDragDropEvent>
 #include <QMenu>
 #include <QMimeData>
@@ -31,7 +32,7 @@
 namespace Dataflow
 {
 template <typename Vec>
-bool intersection_empty(const Vec& v1, const Vec& v2)
+static bool intersection_empty(const Vec& v1, const Vec& v2)
 {
   for(const auto& e1 : v1)
   {
@@ -105,10 +106,27 @@ void AutomatablePortItem::setupMenu(QMenu& menu, const score::DocumentContext& c
     return;
   if(this->port().type() != Process::PortType::Message)
     return;
-  auto act = menu.addAction(QObject::tr("Create automation"));
-  QObject::connect(
-      act, &QAction::triggered, this, [this, &ctx] { on_createAutomation(ctx); },
-      Qt::QueuedConnection);
+  {
+    auto act = menu.addAction(QObject::tr("Create automation"));
+    QObject::connect(act, &QAction::triggered, this, [this, &ctx] {
+      on_createAutomation(ctx);
+    }, Qt::QueuedConnection);
+  }
+
+  if(auto proc = qobject_cast<Process::ProcessModel*>(this->port().parent()))
+  {
+    if(auto addr = Process::processLocalTreeAddress(*proc); !addr.isEmpty())
+    {
+      addr += "/";
+      addr += this->port().exposed();
+      addr += "/value";
+      auto act = menu.addAction(QObject::tr("Copy address"));
+      QObject::connect(act, &QAction::triggered, &port(), [addr] {
+        auto& cb = *qApp->clipboard();
+        cb.setText(addr);
+      }, Qt::QueuedConnection);
+    }
+  }
 }
 
 void AutomatablePortItem::on_createAutomation(const score::DocumentContext& ctx)

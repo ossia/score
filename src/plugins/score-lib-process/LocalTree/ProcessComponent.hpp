@@ -16,6 +16,7 @@ class SCORE_LIB_PROCESS_EXPORT ProcessComponent
   ABSTRACT_COMPONENT_METADATA(
       LocalTree::ProcessComponent, "0732ab51-a052-4e2e-a1f7-9bf2926c199c")
 public:
+  static constexpr bool is_unique = true;
   ProcessComponent(
       ossia::net::node_base& node, Process::ProcessModel& proc,
       const score::DocumentContext& doc, const QString& name, QObject* parent);

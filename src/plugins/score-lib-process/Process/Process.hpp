@@ -234,6 +234,9 @@ SCORE_LIB_PROCESS_EXPORT
 ProcessModel* parentProcess(QObject* obj) noexcept;
 SCORE_LIB_PROCESS_EXPORT
 const ProcessModel* parentProcess(const QObject* obj) noexcept;
+
+SCORE_LIB_PROCESS_EXPORT
+QString processLocalTreeAddress(const Process::ProcessModel& proc);
 }
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
 
