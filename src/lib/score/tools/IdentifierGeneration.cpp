@@ -31,15 +31,15 @@ struct IdGen
   {
   }
 
-  auto make() noexcept { return dist(gen); }
+  int32_t make() noexcept { return dist(gen); }
 };
 
+static IdGen g_idgen;
 int32_t random_id_generator::getRandomId()
 {
   using namespace std;
-  static IdGen idgen;
 
-  return idgen.make();
+  return g_idgen.make();
 }
 
 #endif

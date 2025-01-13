@@ -27,6 +27,7 @@
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/js_utilities.hpp>
+#include <ossia-qt/qml_engine_functions.hpp>
 
 #include <QCodeEditor>
 #include <QLineEdit>
@@ -98,6 +99,7 @@ public:
       r.push_back(&d->get_root_node());
     return r;
   }
+  const auto& devices() const noexcept { return m_devices; }
 
 private:
   std::vector<ossia::net::device_base*> m_devices;
@@ -335,15 +337,64 @@ public:
       , m_devices{roots}
       , m_roots{m_devices.roots()}
   {
+    this->moveToThread(&m_thread);
+    m_thread.start();
+    QMetaObject::invokeMethod(this, &mapper_protocol::init_engine, Qt::QueuedConnection);
+  }
+
+  ~mapper_protocol() override
+  {
+    if(m_engine)
+    {
+      stop();
+    }
+  }
+
+  void stop() override
+  {
+    QMetaObject::invokeMethod(
+        this, &mapper_protocol::teardown_engine, Qt::QueuedConnection);
+    m_thread.wait();
+  }
+
+  void teardown_engine()
+  {
+    delete m_component;
+    delete m_engine;
+    m_thread.exit();
+    m_component = nullptr;
+    m_engine = nullptr;
+  }
+
+  void init_engine()
+  {
     m_engine = new QQmlEngine{this};
     m_component = new QQmlComponent{m_engine};
+
+    auto obj = new ossia::qt::qml_device_engine_functions{
+        {}, [](ossia::net::parameter_base& param, const ossia::value_port& v) {
+      if(v.get_data().empty())
+        return;
+      auto& last = v.get_data().back().value;
+      param.push_value(last);
+    }, m_engine};
+    obj->setDevice(m_device);
+    for(auto dev : m_devices.devices())
+      obj->devices.push_back(dev);
+
+    m_engine->rootContext()->setContextProperty("Device", obj);
 
     QObject::connect(
         this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
     QObject::connect(
         this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
     con(m_devices, &observable_device_roots::rootsChanged, this,
-        [this](std::vector<ossia::net::node_base*> r) {
+        [this, obj](std::vector<ossia::net::node_base*> r) {
+      ossia::qt::qml_device_cache cache;
+      for(auto node : r)
+        cache.push_back(&node->get_device());
+      ossia::remove_duplicates(cache);
+      obj->devices = cache;
       m_roots = std::move(r);
       reset_tree();
     });
@@ -351,22 +402,27 @@ public:
     QObject::connect(
         m_component, &QQmlComponent::statusChanged, this,
         [this](QQmlComponent::Status status) {
-      qDebug() << status;
-      qDebug() << m_component->errorString();
       if(!m_device)
         return;
 
       switch(status)
       {
         case QQmlComponent::Status::Ready: {
-          m_object = m_component->create();
-          m_object->setParent(m_engine->rootContext());
+          if((m_object = m_component->create()))
+          {
+            m_object->setParent(m_engine->rootContext());
 
-          QVariant ret;
-          QMetaObject::invokeMethod(m_object, "createTree", Q_RETURN_ARG(QVariant, ret));
-          qt::create_device<ossia::net::device_base, mapper_node, mapper_protocol>(
-              *m_device, ret.value<QJSValue>());
-          reset_tree();
+            QVariant ret;
+            QMetaObject::invokeMethod(
+                m_object, "createTree", Q_RETURN_ARG(QVariant, ret));
+            qt::create_device<ossia::net::device_base, mapper_node, mapper_protocol>(
+                *m_device, ret.value<QJSValue>());
+            reset_tree();
+          }
+          else
+          {
+            qDebug() << "Mapper: could not create object";
+          }
           return;
         }
         case QQmlComponent::Status::Loading:
@@ -376,19 +432,7 @@ public:
           qDebug() << m_component->errorString();
           return;
       }
-        });
-
-    this->moveToThread(&m_thread);
-    m_thread.start();
-  }
-
-  ~mapper_protocol() override
-  {
-    m_thread.exit();
-    m_thread.wait();
-
-    delete m_component;
-    delete m_engine;
+    });
   }
 
   void sig_push(mapper_parameter* p, const ossia::value& v) W_SIGNAL(sig_push, p, v);
@@ -688,9 +732,11 @@ public:
       const auto& stgs
           = settings().deviceSpecificSettings.value<MapperSpecificSettings>();
 
+      auto proto
+          = std::make_unique<ossia::net::mapper_protocol>(stgs.text.toUtf8(), *devlist);
+      auto nm = settings().name.toStdString();
       m_dev = std::make_unique<ossia::net::mapper_device>(
-          std::make_unique<ossia::net::mapper_protocol>(stgs.text.toUtf8(), *devlist),
-          settings().name.toStdString());
+          static_cast<std::unique_ptr<ossia::net::mapper_protocol>&&>(proto), nm);
 
       deviceChanged(nullptr, m_dev.get());
 
