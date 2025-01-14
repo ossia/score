@@ -234,7 +234,6 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     res = renderer.state.rhi->nextResourceUpdateBatch();
     const auto& inputs = this->node.input;
     auto index_of_port = ossia::find(inputs, &p) - inputs.begin();
-    SCORE_ASSERT(index_of_port == 0);
     {
       auto tex = m_rts[&p].texture;
       auto& readback = m_readbacks[index_of_port];
