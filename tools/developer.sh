@@ -2,7 +2,7 @@
 echo "Running on OSTYPE: '$OSTYPE'"
 DISTRO=""
 CODENAME=""
-SUDO=$(command -v sudo 2>/dev/null)
+export SUDO=$(command -v sudo 2>/dev/null)
 command -v git >/dev/null 2>&1 || { echo >&2 "Please install git."; exit 1; }
 
 if [[ -d ../.git ]]; then
@@ -224,7 +224,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   detect_linux_distro
   detect_linux_qt_version
   detect_deps_script
-  $SUDO "ci/$DEPS.deps.sh"
+  "ci/$DEPS.deps.sh"
 
   if command -v clang++-19 ; then
     CC=clang-19
