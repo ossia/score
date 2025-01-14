@@ -3,11 +3,19 @@
 #include "MultiScriptEditor.hpp"
 #include "ScriptWidget.hpp"
 
+#include <score/tools/FileWatch.hpp>
+
 #include <QCodeEditor>
+#include <QCoreApplication>
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QFile>
+#include <QMessageBox>
 #include <QPlainTextEdit>
+#include <QProcess>
 #include <QPushButton>
+#include <QSettings>
+#include <QStandardPaths>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -50,6 +58,16 @@ ScriptDialog::ScriptDialog(
   connect(
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
+
+  if(auto editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
+     !editorPath.isEmpty())
+  {
+    auto openExternalBtn = new QPushButton{tr("Edit in default editor"), this};
+    connect(openExternalBtn, &QPushButton::clicked, this, [this, editorPath] {
+      openInExternalEditor(editorPath);
+    });
+    lay->addWidget(openExternalBtn);
+  }
 }
 
 QString ScriptDialog::text() const noexcept
@@ -105,6 +123,16 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
   connect(
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
+
+  if(auto editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
+     !editorPath.isEmpty())
+  {
+    auto openExternalBtn = new QPushButton{tr("Edit in default editor"), this};
+    connect(openExternalBtn, &QPushButton::clicked, this, [this, editorPath] {
+      openInExternalEditor(editorPath);
+    });
+    lay->addWidget(openExternalBtn);
+  }
 }
 
 void MultiScriptDialog::addTab(
@@ -148,6 +176,111 @@ void MultiScriptDialog::setError(const QString& str)
 void MultiScriptDialog::clearError()
 {
   m_error->clear();
+}
+
+void ScriptDialog::openInExternalEditor(const QString& editorPath)
+{
+
+  if(editorPath.isEmpty())
+  {
+    QMessageBox::warning(
+        this, tr("Error"), tr("no 'Default editor' configured in score settings"));
+    return;
+  }
+
+  const QString tempFile = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+                           + "/ossia_script_temp.js";
+  QFile file(tempFile);
+  if(!file.open(QIODevice::WriteOnly))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("failed to create temporary file."));
+    return;
+  }
+
+  file.write(this->text().toUtf8());
+
+  auto& w = score::FileWatch::instance();
+  m_fileHandle = std::make_shared<std::function<void()>>([this, tempFile]() {
+    QFile file(tempFile);
+    if(file.open(QIODevice::ReadOnly))
+    {
+      QString updatedContent = QString::fromUtf8(file.readAll());
+
+      QMetaObject::invokeMethod(m_textedit, [this, updatedContent]() {
+        if(m_textedit)
+        {
+          m_textedit->setPlainText(updatedContent);
+        }
+      });
+    }
+  });
+  w.add(tempFile, m_fileHandle);
+
+  if(!QProcess::startDetached(editorPath, QStringList{tempFile}))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("failed to launch external editor"));
+  }
+}
+
+void ScriptDialog::stopWatchingFile(const QString& tempFile)
+{
+  if(tempFile.isEmpty())
+  {
+    return;
+  }
+
+  auto& w = score::FileWatch::instance();
+  w.remove(tempFile, m_fileHandle);
+  m_fileHandle.reset();
+}
+void MultiScriptDialog::openInExternalEditor(const QString& editorPath)
+{
+  if(editorPath.isEmpty())
+  {
+    QMessageBox::warning(
+        this, tr("Error"), tr("no 'Default editor' configured in score settings"));
+    return;
+  }
+
+  if(!QFile::exists(editorPath))
+  {
+    QMessageBox::warning(
+        this, tr("Error"), tr("the configured external editor does not exist."));
+    return;
+  }
+
+  QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+  QDir dir(tempDir);
+  QStringList openedFiles;
+
+  for(int i = 0; i < m_tabs->count(); ++i)
+  {
+    QString tabName = m_tabs->tabText(i);
+    QString tempFile = tempDir + "/" + tabName + ".js";
+
+    QFile file(tempFile);
+    if(!file.open(QIODevice::WriteOnly))
+    {
+      QMessageBox::warning(this, tr("Error"), tr("failed to create temporary files."));
+      return;
+    }
+
+    QWidget* widget = m_tabs->widget(i);
+    QTextEdit* textedit = qobject_cast<QTextEdit*>(widget);
+
+    if(textedit)
+    {
+      QString content = textedit->document()->toPlainText();
+      file.write(content.toUtf8());
+    }
+
+    openedFiles.append(tempFile);
+  }
+
+  if(!openedFiles.isEmpty() && !QProcess::startDetached(editorPath, openedFiles))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("Failed to launch external editor"));
+  }
 }
 
 }

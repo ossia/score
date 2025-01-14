@@ -28,6 +28,8 @@ public:
 
   void setText(const QString& str);
   void setError(int line, const QString& str);
+  void openInExternalEditor(const QString& editorPath);
+  void stopWatchingFile(const QString& tempFile);
 
 protected:
   virtual void on_accepted() = 0;
@@ -35,6 +37,9 @@ protected:
   const score::DocumentContext& m_context;
   QTextEdit* m_textedit{};
   QPlainTextEdit* m_error{};
+
+private:
+  std::shared_ptr<std::function<void()>> m_fileHandle;
 };
 
 template <typename Process_T, typename Property_T, typename Spec_T>
