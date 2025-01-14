@@ -1,4 +1,4 @@
-find_path(LINUX_HEADERS_INCLUDE_DIR linux/types.h)
+find_path(LINUX_HEADERS_INCLUDE_DIR linux/gpio.h)
 if(LINUX_HEADERS_INCLUDE_DIR AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
 add_library(simpleio STATIC
   "${CMAKE_CURRENT_LIST_DIR}/libsimpleio/libsimpleio/cplusplus.h"
