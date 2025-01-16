@@ -415,6 +415,45 @@ void JSONWriter::write(ossia::net::osc_protocol_configuration& n)
   n.transport <<= obj["Transport"];
 }
 
+// Note: bundle is already in osc_protocol_configuration
+template <>
+void DataStreamReader::read(const ossia::net::rate_limiter_configuration& n)
+{
+  m_stream << std::chrono::duration_cast<std::chrono::milliseconds>(n.duration).count()
+           << n.send_all << n.repeat;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(ossia::net::rate_limiter_configuration& n)
+{
+  int dur{};
+  m_stream >> dur >> n.send_all >> n.repeat;
+  n.duration = std::chrono::milliseconds{dur};
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const ossia::net::rate_limiter_configuration& n)
+{
+  stream.StartObject();
+  obj["Duration"]
+      = std::chrono::duration_cast<std::chrono::milliseconds>(n.duration).count();
+  obj["SendAll"] = n.send_all;
+  obj["Repeat"] = n.repeat;
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(ossia::net::rate_limiter_configuration& n)
+{
+  int dur{};
+  dur <<= obj["Duration"];
+  n.duration = std::chrono::milliseconds{dur};
+  n.send_all <<= obj["SendAll"];
+  n.repeat <<= obj["Repeat"];
+}
+
 template <>
 void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
 {
@@ -464,7 +503,22 @@ void JSONWriter::write(Protocols::OSCSpecificSettings& n)
   }
 
   if(auto it = obj.tryGet("Rate"))
-    n.rate = it->toInt();
+  {
+
+    if(it->obj.IsInt())
+    {
+      // pre v3.4.1
+      n.rate = ossia::net::rate_limiter_configuration{
+          .duration = std::chrono::milliseconds{it->toInt()}};
+    }
+    else
+    {
+      // post v3.4.1
+      ossia::net::rate_limiter_configuration conf;
+      conf <<= *it;
+      n.rate = conf;
+    }
+  }
 
   assign_with_default(n.bonjour, obj.tryGet("Bonjour"), false);
 
