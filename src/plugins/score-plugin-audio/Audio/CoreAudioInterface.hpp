@@ -89,24 +89,39 @@ public:
     const MiniAudioCard* first_viable_in{};
     const MiniAudioCard* first_viable_out{};
 
+    // qDebug(Q_FUNC_INFO);
+    // qDebug() << "looking for in:" << set.getCardIn();
+    // qDebug() << "looking for out:" << set.getCardOut();
     for(auto& d : devices)
     {
+      // qDebug() << "has device : " << d.info.name << d.info.nativeDataFormatCount;
+      {
+        for(int i = 0; i < d.info.nativeDataFormatCount; i++)
+        {
+          auto fmt = d.info.nativeDataFormats[i];
+          // qDebug() << "Format: " << magic_enum::enum_name(fmt.format) << fmt.channels
+          //          << fmt.flags << fmt.sampleRate;
+        }
+      }
       if(d.info.nativeDataFormatCount > 0 && d.info.nativeDataFormats[0].channels > 0)
       {
-        if(d.id.coreaudio == set.getCardIn())
-          user_in = &d;
-
-        if(d.id.coreaudio == set.getCardOut())
-          user_out = &d;
+        // qDebug() << "device id:" << d.id.coreaudio
+        //          << d.info.nativeDataFormats[0].channels;
 
         if(d.type & ma_device_type::ma_device_type_capture)
         {
+          if(d.id.coreaudio == set.getCardIn())
+            user_in = &d;
+         //  qDebug() << "capture" << d.info.isDefault;
           first_viable_in = &d;
           if(d.info.isDefault)
             default_in = &d;
         }
         if(d.type & ma_device_type::ma_device_type_playback)
         {
+          if(d.id.coreaudio == set.getCardOut())
+            user_out = &d;
+          // qDebug() << "playback" << d.info.isDefault;
           first_viable_out = &d;
           if(d.info.isDefault)
             default_out = &d;
@@ -132,23 +147,38 @@ public:
 
     if(card_in)
     {
+      // qDebug() << Q_FUNC_INFO << card_in->id.coreaudio;
       set.setCardIn(card_in->id.coreaudio);
       set.setDefaultIn(card_in->info.nativeDataFormats[0].channels);
     }
     else
     {
+      // qDebug() << Q_FUNC_INFO << "no input";
       set.setCardIn(devices.front().name);
       set.setDefaultIn(0);
     }
 
     if(card_out)
     {
+      // qDebug() << Q_FUNC_INFO << card_out->id.coreaudio;
       set.setCardOut(card_out->id.coreaudio);
       set.setDefaultOut(card_out->info.nativeDataFormats[0].channels);
-      set.setRate(card_out->info.nativeDataFormats[0].sampleRate);
+
+      int current_rate = set.getRate();
+      if(int fmt_count = card_out->info.nativeDataFormatCount; fmt_count > 0)
+      {
+        auto* fmts = card_out->info.nativeDataFormats;
+        if(std::none_of(fmts, fmts + fmt_count, [current_rate](auto fmt) {
+          return fmt.sampleRate == current_rate;
+        }))
+        {
+          set.setRate(card_out->info.nativeDataFormats[0].sampleRate);
+        }
+      }
     }
     else
     {
+      // qDebug() << Q_FUNC_INFO << "no output";
       set.setCardOut(devices.front().name);
       set.setDefaultOut(0);
     }
@@ -210,17 +240,20 @@ public:
         set.getDefaultOut(), set.getRate(), set.getBufferSize());
   }
 
-  void setCard(QComboBox* combo, QString val)
+  void setCard(QComboBox* combo, ma_device_type tp, QString val)
   {
+    //qDebug() << Q_FUNC_INFO << "looking for: " << val << "in " << combo->count();
     auto dev_it
         = ossia::find_if(devices, [&, id = val.toStdString()](const MiniAudioCard& d) {
-      return d.id.coreaudio == id;
+      // qDebug() << d.id.coreaudio << " == " << id << bool(d.id.coreaudio == id) << " ???";
+      return d.id.coreaudio == id && d.type == tp;
     });
     if(dev_it != devices.end())
     {
       int device_index = std::distance(devices.begin(), dev_it);
       for(int i = 0; i < combo->count(); i++)
       {
+        // qDebug() << device_index << i << combo->itemText(i) << combo->itemData(i);
         if(combo->itemData(i).toInt() == device_index)
         {
           combo->setCurrentIndex(i);
@@ -264,23 +297,38 @@ public:
     auto card_list_out = new QComboBox{w};
 
     // Disabled case
-    card_list_in->addItem(devices.front().name, 0);
-    card_list_out->addItem(devices.front().name, 0);
+    card_list_in->addItem(devices.front().name + "capture", 0);
+    card_list_out->addItem(devices.front().name + "playback", 0);
 
+    // qDebug() << Q_FUNC_INFO << "Devices: ";
     for(std::size_t i = 1; i < devices.size(); i++)
     {
+
       auto& dev = devices[i];
+      // qDebug() << i << dev.info.name << dev.id.coreaudio << dev.type;
       if(dev.info.nativeDataFormatCount > 0)
       {
         if(dev.info.nativeDataFormats[0].channels > 0)
         {
           if(dev.type == ma_device_type_capture)
+          {
             card_list_in->addItem(dev.name, (int)i);
-          else if(dev.type == ma_device_type_playback)
+            // qDebug() << "adding to card list in" << i << dev.name;
+          }
+          if(dev.type == ma_device_type_playback)
             card_list_out->addItem(dev.name, (int)i);
         }
       }
     }
+
+/*
+    for(int i = 0; i < card_list_in->count(); i++)
+      qDebug() << Q_FUNC_INFO << "card in " << i << card_list_in->itemText(i)
+               << card_list_in->itemData(i);
+    for(int i = 0; i < card_list_out->count(); i++)
+      qDebug() << Q_FUNC_INFO << "card out " << i << card_list_out->itemText(i)
+               << card_list_out->itemData(i);
+               */
     using Model = Audio::Settings::Model;
 
     {
@@ -312,7 +360,7 @@ public:
       }
       else
       {
-        setCard(card_list_in, m.getCardIn());
+        setCard(card_list_in, ma_device_type_capture, m.getCardIn());
       }
     }
 
@@ -345,7 +393,7 @@ public:
       }
       else
       {
-        setCard(card_list_out, m.getCardOut());
+        setCard(card_list_out, ma_device_type_playback, m.getCardOut());
       }
     }
 
@@ -353,8 +401,8 @@ public:
     addSampleRateWidget(*w, m, v);
 
     con(m, &Model::changed, w, [=, &m] {
-      setCard(card_list_in, m.getCardIn());
-      setCard(card_list_out, m.getCardOut());
+      setCard(card_list_in, ma_device_type_capture, m.getCardIn());
+      setCard(card_list_out, ma_device_type_playback, m.getCardOut());
     });
     return w;
   }
