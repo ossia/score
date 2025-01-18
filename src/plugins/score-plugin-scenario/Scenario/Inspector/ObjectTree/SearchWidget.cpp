@@ -11,8 +11,11 @@
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Inspector/ObjectTree/SearchReplaceWidget.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
@@ -25,8 +28,6 @@
 
 #include <ossia-qt/invoke.hpp>
 
-//TODO remove test
-#include "SearchReplaceWidget.hpp"
 namespace Scenario
 {
 
@@ -128,30 +129,37 @@ void SearchWidget::dropEvent(QDropEvent* ev)
 }
 
 template <typename T>
-void add_if_contains(const T& o, const QString& str, Selection& sel)
+[[nodiscard]]
+bool add_if_contains(const T& o, const QString& str, Selection& sel)
 {
   const auto& obj = o.metadata();
   if(obj.getName().contains(str) || obj.getComment().contains(str)
      || obj.getLabel().contains(str))
   {
     sel.append(o);
+    return true;
   }
+  return false;
 }
-void add_if_contains(
+[[nodiscard]]
+bool add_if_contains(
     const Scenario::CommentBlockModel& o, const QString& str, Selection& sel)
 {
   if(o.content().contains(str))
   {
     sel.append(o);
+    return true;
   }
+  return false;
 }
 
 static void selectProcessPortsWithAddress(
-    const std::vector<State::AddressAccessor>& addresses, Process::ProcessModel& proc,
-    Selection& sel)
+    const std::vector<State::AddressAccessor>& addresses,
+    const Process::ProcessModel& proc, Selection& sel)
 {
   auto search = [&sel, &addresses](auto& port) {
     auto& port_addr = port.address();
+
     for(auto& search_addr : addresses)
     {
       if(port_addr.address == search_addr.address)
@@ -184,9 +192,121 @@ static void selectProcessPortsWithAddress(
   }
 }
 
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Scenario::ProcessModel& proc, Selection& sel);
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Process::ProcessModel& proc, Selection& sel);
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Scenario::IntervalModel& interval, Selection& sel);
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Scenario::IntervalModel& interval, Selection& sel)
+{
+  for(auto& proc : interval.processes)
+  {
+    search_rec(stxt, addresses, proc, sel);
+  }
+
+  (void)add_if_contains(interval, stxt, sel);
+}
+
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Scenario::EventModel& obj, Selection& sel)
+{
+  if(add_if_contains(obj, stxt, sel))
+    return;
+  for(auto& addr : addresses)
+  {
+    if(State::findAddressInExpression(obj.condition(), addr.address))
+    {
+      sel.append(obj);
+      return;
+    }
+  }
+}
+
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Scenario::StateModel& obj, Selection& sel)
+{
+  static thread_local State::MessageList listCache;
+  static thread_local std::vector<QString> messagesCache;
+  listCache.clear();
+  messagesCache.clear();
+
+  auto& root = obj.messages().rootNode();
+
+  // First look for addresses containing the looked-up address
+  bool must_add = Process::hasMatchingAddress(root, addresses, listCache, messagesCache);
+
+  // If not found, then look for addresses containing the raw string
+  if(!must_add)
+    must_add = Process::hasMatchingText(root, stxt, listCache, messagesCache);
+  // FIXME look into state processes?
+
+  // Try to add if the searched text is in the name of the state
+  if(must_add)
+    sel.append(&obj);
+  else
+    (void)add_if_contains(obj, stxt, sel);
+}
+
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Scenario::TimeSyncModel& obj, Selection& sel)
+{
+  if(add_if_contains(obj, stxt, sel))
+    return;
+  for(auto& addr : addresses)
+  {
+    if(State::findAddressInExpression(obj.expression(), addr.address))
+    {
+      sel.append(obj);
+      return;
+    }
+  }
+}
+
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Scenario::ProcessModel& proc, Selection& sel)
+{
+  for(auto& obj : proc.states)
+    search_rec(stxt, addresses, obj, sel);
+
+  for(auto& obj : proc.events)
+    search_rec(stxt, addresses, obj, sel);
+
+  for(auto& obj : proc.timeSyncs)
+    search_rec(stxt, addresses, obj, sel);
+
+  for(auto& obj : proc.comments)
+    (void)add_if_contains(obj, stxt, sel);
+
+  for(auto& obj : proc.intervals)
+    search_rec(stxt, addresses, obj, sel);
+}
+
+static void search_rec(
+    const QString& stxt, const std::vector<State::AddressAccessor>& addresses,
+    const Process::ProcessModel& proc, Selection& sel)
+{
+  if(auto scenario = qobject_cast<const Scenario::ProcessModel*>(&proc))
+  {
+    return search_rec(stxt, addresses, *scenario, sel);
+  }
+  selectProcessPortsWithAddress(addresses, proc, sel);
+
+  (void)add_if_contains(proc, stxt, sel);
+}
+
 void SearchWidget::search()
 {
-  const QString& stxt = text();
+  QString stxt = text();
   std::vector<State::AddressAccessor> addresses;
 
   int idx = stxt.indexOf("=");
@@ -219,72 +339,31 @@ void SearchWidget::search()
 
   if(addresses.empty())
   {
-    auto opt = State::parseAddressAccessor(stxt);
-    if(opt)
+    if(stxt.startsWith("address="))
     {
-      addresses.push_back(*opt);
+      if(auto opt = State::parseAddressAccessor(stxt.remove("address=")))
+        addresses.push_back(*opt);
+    }
+    else
+    {
+      if(auto opt = State::parseAddressAccessor(stxt))
+        addresses.push_back(*opt);
     }
   }
 
   auto* doc = m_ctx.documents.currentDocument();
+  auto& model = score::IDocument::modelDelegate<ScenarioDocumentModel>(*doc);
+  auto& bs = model.baseScenario();
 
-  auto scenarioModel = doc->focusManager().get();
   Selection sel{};
-
-  if(scenarioModel)
-  {
-    State::MessageList listCache;
-    std::vector<QString> messagesCache;
-    // Serialize ALL the things
-    for(const auto& obj : scenarioModel->children())
-    {
-      if(auto state = qobject_cast<const StateModel*>(obj))
-      {
-        listCache.clear();
-        messagesCache.clear();
-
-        auto& root = state->messages().rootNode();
-
-        // First look for addresses containing the looked-up address
-        bool must_add
-            = Process::hasMatchingAddress(root, addresses, listCache, messagesCache);
-
-        // If not found, then look for addresses containing the raw string
-        if(!must_add)
-          must_add = Process::hasMatchingText(root, stxt, listCache, messagesCache);
-        // FIXME look into state processes?
-
-        // Try to add if the searched text is in the name of the state
-        if(must_add)
-          sel.append(state);
-        else
-          add_if_contains(*state, stxt, sel);
-      }
-      else if(auto event = qobject_cast<const EventModel*>(obj))
-      {
-        add_if_contains(*event, stxt, sel);
-      }
-      else if(auto ts = qobject_cast<const TimeSyncModel*>(obj))
-      {
-        add_if_contains(*ts, stxt, sel);
-      }
-      else if(auto cmt = qobject_cast<const CommentBlockModel*>(obj))
-      {
-        add_if_contains(*cmt, stxt, sel);
-      }
-      else if(auto interval = qobject_cast<const IntervalModel*>(obj))
-      {
-        for(auto& proc : interval->processes)
-        {
-          selectProcessPortsWithAddress(addresses, proc, sel);
-
-          add_if_contains(proc, stxt, sel);
-        }
-
-        add_if_contains(*interval, stxt, sel);
-      }
-    }
-  }
+  search_rec(stxt, addresses, bs.startState(), sel);
+  search_rec(stxt, addresses, bs.startEvent(), sel);
+  search_rec(stxt, addresses, bs.startTimeSync(), sel);
+  search_rec(stxt, addresses, bs.endState(), sel);
+  search_rec(stxt, addresses, bs.endEvent(), sel);
+  search_rec(stxt, addresses, bs.endTimeSync(), sel);
+  search_rec(stxt, addresses, bs.interval(), sel);
+  sel.removeDuplicates();
 
   score::SelectionDispatcher d{doc->context().selectionStack};
   d.select(sel);
