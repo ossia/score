@@ -45,9 +45,6 @@ OSCTransportWidget::OSCTransportWidget(
   m_tcp = new TCPWidget{proto, this};
   m_transportLayout->addWidget(m_tcp);
 
-  m_tcp_server = new TCPServerWidget{proto, this};
-  m_transportLayout->addWidget(m_tcp_server);
-
   m_serial = new SerialWidget{proto, this};
   m_transportLayout->addWidget(m_serial);
 
@@ -62,6 +59,9 @@ OSCTransportWidget::OSCTransportWidget(
 
   m_ws_server = new WebsocketServerWidget{proto, this};
   m_transportLayout->addWidget(m_ws_server);
+
+  m_tcp_server = new TCPServerWidget{proto, this};
+  m_transportLayout->addWidget(m_tcp_server);
 }
 
 void OSCTransportWidget::setCurrentProtocol(OscProtocol index)
