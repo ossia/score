@@ -17,6 +17,9 @@ struct AddressAccessor;
 namespace Device
 {
 struct FullAddressAccessorSettings;
+}
+namespace Process
+{
 class AddressAccessorEditWidget;
 }
 namespace Explorer
@@ -44,10 +47,10 @@ private:
   void on_targetMinValueChanged();
   void on_targetMaxValueChanged();
 
-  Device::AddressAccessorEditWidget* m_sourceLineEdit{};
+  Process::AddressAccessorEditWidget* m_sourceLineEdit{};
   QDoubleSpinBox *m_sourceMin{}, *m_sourceMax{};
 
-  Device::AddressAccessorEditWidget* m_targetLineEdit{};
+  Process::AddressAccessorEditWidget* m_targetLineEdit{};
   QDoubleSpinBox *m_targetMin{}, *m_targetMax{};
 
   CommandDispatcher<> m_dispatcher;

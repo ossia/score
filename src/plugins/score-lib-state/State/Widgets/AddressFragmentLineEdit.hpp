@@ -11,5 +11,4 @@ public:
   explicit AddressFragmentLineEdit(QWidget* parent);
   virtual ~AddressFragmentLineEdit();
 };
-
 }

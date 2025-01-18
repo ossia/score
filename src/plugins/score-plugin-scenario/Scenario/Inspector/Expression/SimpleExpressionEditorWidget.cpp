@@ -5,7 +5,7 @@
 #include <State/Expression.hpp>
 #include <State/Relation.hpp>
 
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
+#include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 
@@ -84,7 +84,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   m_binOperator = new SimpleComboBox{this};
 
-  m_address = new Device::AddressAccessorEditWidget{doc, this};
+  m_address = new Process::AddressAccessorEditWidget{doc, this};
   m_ok = new TextLabel{QStringLiteral("/!\\ "), this};
 
   m_comparator = new SimpleComboBox{this};
@@ -146,7 +146,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   connect(m_addBtn, &QToolButton::clicked, this, [this]() { addTerm(); });
 
   /// EDIT FINISHED
-  connect(m_address, &Device::AddressAccessorEditWidget::addressChanged, this, [&]() {
+  connect(m_address, &Process::AddressAccessorEditWidget::addressChanged, this, [&]() {
     on_editFinished();
   });
   connect(

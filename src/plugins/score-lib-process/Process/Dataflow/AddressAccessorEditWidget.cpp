@@ -2,13 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressAccessorEditWidget.hpp"
 
-#include <State/Widgets/AddressLineEdit.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Device/Widgets/DeviceCompleter.hpp>
 #include <Device/Widgets/DeviceModelProvider.hpp>
+
+#include <Process/Dataflow/AddressLineEdit.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -27,16 +28,25 @@
 #include <QVBoxLayout>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Device::AddressAccessorEditWidget)
-namespace Device
+W_OBJECT_IMPL(Process::AddressAccessorEditWidget)
+namespace Process
 {
 AddressAccessorEditWidget::AddressAccessorEditWidget(
     const score::DocumentContext& ctx, QWidget* parent)
     : QWidget{parent}
 {
+  {
+    auto& plist = ctx.app.interfaces<Device::DeviceModelProviderList>();
+    if(auto provider = plist.getBestProvider(ctx))
+    {
+      m_model = provider->getNodeModel(ctx);
+    }
+  }
+
+  using line_edit_t = Process::AddressAccessorLineEdit<AddressAccessorEditWidget>;
   setAcceptDrops(true);
   auto lay = new score::MarginLess<QVBoxLayout>{this};
-  m_lineEdit = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
+  m_lineEdit = new line_edit_t{m_model, this};
 
   m_qualifiers = new State::DestinationQualifierWidget{this};
   connect(
@@ -46,6 +56,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     {
       m_address.address.qualifiers = qual;
       m_lineEdit->setText(m_address.address.toString_unsafe());
+      m_lineEdit->updatePalette(m_lineEdit->text());
       addressChanged(m_address);
     }
     const auto ad = m_address.address.toString_unsafe();
@@ -53,6 +64,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     {
       m_lineEdit->blockSignals(true);
       m_lineEdit->setText(ad);
+      m_lineEdit->updatePalette(m_lineEdit->text());
       m_lineEdit->blockSignals(false);
     }
       });
@@ -67,14 +79,6 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
   connect(act, &QAction::triggered, [this]() { m_qualifiers->chooseQualifier(); });
-
-  {
-    auto& plist = ctx.app.interfaces<DeviceModelProviderList>();
-    if(auto provider = plist.getBestProvider(ctx))
-    {
-      m_model = provider->getNodeModel(ctx);
-    }
-  }
 
   // find the model
   connect(m_lineEdit, &QLineEdit::editingFinished, [&]() {
@@ -109,7 +113,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
       &AddressAccessorEditWidget::customContextMenuEvent);
 
   if(m_model)
-    m_lineEdit->setCompleter(new DeviceCompleter{*m_model, this});
+    m_lineEdit->setCompleter(new Device::DeviceCompleter{*m_model, this});
 
   lay->addWidget(m_lineEdit);
   lay->addWidget(m_qualifiers);

@@ -25,7 +25,6 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolSettingsWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceModelProvider.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_device.hpp"
 )
@@ -54,7 +53,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/TouchOSCDeviceLoader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.cpp"
 
 )
 

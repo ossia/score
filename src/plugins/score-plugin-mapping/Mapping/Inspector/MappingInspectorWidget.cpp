@@ -5,7 +5,7 @@
 
 #include <State/Address.hpp>
 
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
+#include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
@@ -35,6 +35,7 @@ InspectorWidget::InspectorWidget(
     , m_dispatcher{doc.commandStack}
 {
   using namespace Device;
+  using namespace Process;
   setObjectName("MappingInspectorWidget");
   setParent(parent);
 
@@ -46,7 +47,7 @@ InspectorWidget::InspectorWidget(
     // Source
     lay->addWidget(new TextLabel{tr("Source")});
 
-    m_sourceLineEdit = new AddressAccessorEditWidget{doc, this};
+    m_sourceLineEdit = new Process::AddressAccessorEditWidget{doc, this};
 
     m_sourceLineEdit->setAddress(process().sourceAddress());
     con(process(), &ProcessModel::sourceAddressChanged, m_sourceLineEdit,

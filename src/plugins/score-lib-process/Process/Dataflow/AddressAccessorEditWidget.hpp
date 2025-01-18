@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-#include <score_lib_device_export.h>
+#include <score_lib_process_export.h>
 
 #include <verdigris>
 
@@ -20,9 +20,11 @@ namespace Device
 {
 class NodeBasedItemModel;
 }
-namespace Device
+namespace Process
 {
-class SCORE_LIB_DEVICE_EXPORT AddressAccessorEditWidget final : public QWidget
+template <typename Parent_T>
+class AddressAccessorLineEdit;
+class SCORE_LIB_PROCESS_EXPORT AddressAccessorEditWidget final : public QWidget
 {
   W_OBJECT(AddressAccessorEditWidget)
 public:
@@ -40,13 +42,13 @@ public:
 
 public:
   void addressChanged(const Device::FullAddressAccessorSettings& arg_1)
-      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, addressChanged, arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, arg_1)
 
 private:
   void customContextMenuEvent(const QPoint& p);
   void startLearn();
 
-  QLineEdit* m_lineEdit{};
+  AddressAccessorLineEdit<AddressAccessorEditWidget>* m_lineEdit{};
   Device::FullAddressAccessorSettings m_address;
   Device::NodeBasedItemModel* m_model{};
   State::DestinationQualifierWidget* m_qualifiers{};

@@ -23,6 +23,9 @@ class UnitWidget;
 namespace Device
 {
 struct FullAddressAccessorSettings;
+}
+namespace Process
+{
 class AddressAccessorEditWidget;
 }
 namespace Explorer
@@ -48,7 +51,7 @@ private:
   void on_maxValueChanged();
   void on_tweenChanged();
 
-  Device::AddressAccessorEditWidget* m_lineEdit{};
+  Process::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
   QDoubleSpinBox *m_minsb{}, *m_maxsb{};
 

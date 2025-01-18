@@ -5,7 +5,7 @@
 
 #include <State/Address.hpp>
 
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
+#include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
@@ -37,8 +37,8 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
 {
-
   using namespace Device;
+  using namespace Process;
   setObjectName("AutomationInspectorWidget");
   setParent(parent);
 
@@ -47,7 +47,7 @@ InspectorWidget::InspectorWidget(
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address
-  m_lineEdit = new AddressAccessorEditWidget{doc, this};
+  m_lineEdit = new Process::AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(process().address());
   con(process(), &ProcessModel::addressChanged, m_lineEdit,
