@@ -3,6 +3,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <score_lib_device_export.h>
+
 class QModelIndex;
 class QObject;
 namespace Device
@@ -19,7 +21,7 @@ namespace Device
  * It is used to input addresses for instance, and will complete with
  * existing ones.
  */
-class DeviceCompleter final : public QCompleter
+class SCORE_LIB_DEVICE_EXPORT DeviceCompleter final : public QCompleter
 {
 public:
   DeviceCompleter(Device::NodeBasedItemModel& model, QObject* parent);

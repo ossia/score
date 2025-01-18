@@ -1,8 +1,8 @@
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Device/Widgets/DeviceModelProvider.hpp>
 
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>

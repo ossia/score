@@ -1,5 +1,5 @@
 #pragma once
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
+#include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
@@ -25,7 +25,7 @@ public:
 
 private:
   void on_addressChange(const ::State::AddressAccessor& newText);
-  Device::AddressAccessorEditWidget* m_lineEdit{};
+  Process::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
   QLabel* m_label;
 

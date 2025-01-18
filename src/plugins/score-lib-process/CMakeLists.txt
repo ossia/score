@@ -28,6 +28,8 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessComponent.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/AddressAccessorEditWidget.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/AddressLineEdit.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/AudioPortComboBox.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableData.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.hpp"
@@ -123,6 +125,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValue.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/Pixmaps.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/AddressAccessorEditWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/AudioPortComboBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.cpp"
@@ -179,7 +182,7 @@ target_include_directories(score_lib_process PUBLIC ${${QT_PREFIX}Widgets_PRIVAT
 
 target_link_libraries(score_lib_process  PUBLIC
     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::WidgetsPrivate score_lib_base score_lib_state
-    score_lib_inspector score_lib_device score_lib_localtree)
+    score_lib_inspector score_lib_device score_lib_localtree score_plugin_deviceexplorer)
 
 score_generate_command_list_file(${PROJECT_NAME} "${PROCESS_HDRS}")
 setup_score_plugin(score_lib_process)

@@ -4,6 +4,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-lib-inspector
   score-lib-state
   score-lib-device
+  score-plugin-deviceexplorer
   score-lib-localtree
   score-lib-process
 
@@ -11,8 +12,6 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-transport
 
   score-plugin-inspector
-
-  score-plugin-deviceexplorer
 
   score-plugin-curve
   score-plugin-automation
@@ -50,6 +49,7 @@ else()
   score-lib-inspector
   score-lib-state
   score-lib-device
+  score-plugin-deviceexplorer
   score-lib-localtree
   score-lib-process
 
@@ -58,7 +58,6 @@ else()
 
   score-plugin-inspector
 
-  score-plugin-deviceexplorer
 
   score-plugin-curve
   score-plugin-mapping

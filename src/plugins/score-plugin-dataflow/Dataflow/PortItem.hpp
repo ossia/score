@@ -1,6 +1,5 @@
 #pragma once
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
-
+#include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 

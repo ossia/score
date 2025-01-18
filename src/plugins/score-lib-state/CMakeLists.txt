@@ -25,7 +25,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/TypeComboBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/StringValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/BoolValueWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressFragmentLineEdit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressValidator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/UnitWidget.cpp"
 )
@@ -48,7 +48,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerialization.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerializationImpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressFragmentLineEdit.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressValidator.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/UnitWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/BoolValueWidget.hpp"
