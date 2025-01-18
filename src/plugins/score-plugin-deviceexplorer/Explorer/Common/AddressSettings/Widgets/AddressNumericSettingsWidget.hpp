@@ -10,6 +10,8 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
+#include <QFormLayout>
+
 namespace Explorer
 {
 template <typename T>

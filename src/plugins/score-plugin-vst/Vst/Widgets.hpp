@@ -81,8 +81,15 @@ private:
       override;
 };
 
-struct VSTFloatSlider : ossia::safe_nodes::control_in
+struct VSTFloatSlider
 {
+  const std::string_view name;
+
+  explicit constexpr VSTFloatSlider(const char* name)
+      : name{name}
+  {
+  }
+
   static QWidget* make_widget(
       AEffect* fx, const ControlInlet& inlet, const score::DocumentContext& ctx,
       QWidget* parent, QObject* context);
