@@ -536,7 +536,6 @@ ModelDisplayNode::~ModelDisplayNode()
   m_materialData.release();
 }
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 class ModelDisplayNode::Renderer : public GenericNodeRenderer
 {
 public:
@@ -1117,7 +1116,6 @@ private:
     defaultRelease(r);
   }
 };
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 NodeRenderer* ModelDisplayNode::createRenderer(RenderList& r) const noexcept
 {
