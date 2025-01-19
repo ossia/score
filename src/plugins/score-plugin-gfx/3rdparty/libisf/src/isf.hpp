@@ -38,9 +38,9 @@ struct float_input
 {
   using value_type = double;
   using has_minmax = std::true_type;
-  double min{};
-  double max{};
-  double def{};
+  double min{0.};
+  double max{1.};
+  double def{0.5};
 };
 
 struct point2d_input
