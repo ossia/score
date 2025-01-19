@@ -503,10 +503,19 @@ void LibavOutputSettingsWidget::on_vcodecChange(int codec_index)
     return;
 
   auto codec = mux.vcodecs[codec_index];
-  if(codec->codec->pix_fmts == nullptr)
+
+  const AVPixelFormat* supported_pixfmts{};
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 19, 100)
+  avcodec_get_supported_config(
+      nullptr, codec->codec, AV_CODEC_CONFIG_PIX_FORMAT, 0,
+      (const void**)&supported_pixfmts, nullptr);
+#else
+  supported_pixfmts = codec->codec->pix_fmts;
+#endif
+  if(!supported_pixfmts)
     return;
 
-  for(auto fmt = codec->codec->pix_fmts; *fmt != AVPixelFormat(-1); ++fmt)
+  for(auto fmt = supported_pixfmts; *fmt != AV_PIX_FMT_NONE; ++fmt)
   {
     if(auto desc = av_pix_fmt_desc_get(*fmt))
       m_pixfmt->addItem(desc->name);
@@ -526,10 +535,18 @@ void LibavOutputSettingsWidget::on_acodecChange(int codec_index)
     return;
 
   auto codec = mux.acodecs[codec_index];
-  if(codec->codec->sample_fmts == nullptr)
-    return;
+  const AVSampleFormat* supported_sample_fmts{};
 
-  for(auto fmt = codec->codec->sample_fmts; *fmt != AVSampleFormat(-1); ++fmt)
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 19, 100)
+  avcodec_get_supported_config(
+      nullptr, codec->codec, AV_CODEC_CONFIG_SAMPLE_FORMAT, 0,
+      (const void**)&supported_sample_fmts, nullptr);
+#else
+  supported_sample_fmts = codec->codec->sample_fmts;
+#endif
+  if(!supported_sample_fmts)
+    return;
+  for(auto fmt = supported_sample_fmts; *fmt != AV_SAMPLE_FMT_NONE; ++fmt)
   {
     if(auto desc = av_get_sample_fmt_name(*fmt))
       m_smpfmt->addItem(desc);

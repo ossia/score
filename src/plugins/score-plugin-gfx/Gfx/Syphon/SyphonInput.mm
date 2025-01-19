@@ -41,7 +41,6 @@ public:
   class Renderer;
 };
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 class SyphonInputNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
@@ -282,7 +281,6 @@ private:
 
   SyphonOpenGLClient* m_receiver{};
 };
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 score::gfx::NodeRenderer* SyphonInputNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {

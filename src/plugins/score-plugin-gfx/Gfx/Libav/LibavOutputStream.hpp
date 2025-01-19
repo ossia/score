@@ -127,18 +127,31 @@ struct OutputStream
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
     c->sample_fmt = av_get_sample_fmt(set.audio_converted_smpfmt.toStdString().c_str());
 
-    if(codec->supported_samplerates)
     {
-      c->sample_rate = codec->supported_samplerates[0];
-      for(int i = 0; codec->supported_samplerates[i]; i++)
+      const int* supported_samplerates{};
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 19, 100)
+      avcodec_get_supported_config(
+          c, codec, AV_CODEC_CONFIG_SAMPLE_RATE, 0, (const void**)&supported_samplerates,
+          nullptr);
+#else
+      supported_samplerates = codec->supported_samplerates;
+#endif
+      if(supported_samplerates)
       {
-        if(codec->supported_samplerates[i] == set.audio_sample_rate)
-          c->sample_rate = set.audio_sample_rate;
+        c->sample_rate = supported_samplerates[0];
+        for(int i = 0; supported_samplerates[i]; i++)
+        {
+          if(supported_samplerates[i] == set.audio_sample_rate)
+          {
+            c->sample_rate = set.audio_sample_rate;
+            break;
+          }
+        }
       }
-    }
-    else
-    {
-      c->sample_rate = set.audio_sample_rate;
+      else
+      {
+        c->sample_rate = set.audio_sample_rate;
+      }
     }
 
     c->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
