@@ -125,7 +125,6 @@ struct SyphonNode final : score::gfx::OutputNode
         std::function<void()> onUpdate,
         std::function<void()> onResize) override
   {
-#include <Gfx/Qt5CompatPush> // clang-format: keep
     m_renderState = std::make_shared<score::gfx::RenderState>();
     m_update = onUpdate;
 
@@ -135,9 +134,7 @@ struct SyphonNode final : score::gfx::OutputNode
     params.format.setMinorVersion(2);
     params.format.setProfile(QSurfaceFormat::CompatibilityProfile);
     params.fallbackSurface = m_renderState->surface;
-#include <Gfx/Qt5CompatPop> // clang-format: keep
     m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-#include <Gfx/Qt5CompatPush> // clang-format: keep
     m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
     m_renderState->api = score::gfx::GraphicsApi::OpenGL;
     m_renderState->version = QShaderVersion(120);
@@ -209,8 +206,6 @@ private:
   SyphonOpenGLServer* m_syphon{};
   bool m_created{};
 };
-
-#include <Gfx/Qt5CompatPop> // clang-format: keep
 
 SyphonDevice::~SyphonDevice() { }
 
