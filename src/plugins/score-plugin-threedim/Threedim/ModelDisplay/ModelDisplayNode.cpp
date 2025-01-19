@@ -53,6 +53,7 @@ layout(std140, binding = 2) uniform material_t { \n\
   mat4 matrixView; \n\
   mat4 matrixProjection; \n\
   mat3 matrixNormal; \n\
+  float fov; \n\
 } mat; \n\
  \n\
 float TIME = isf_process_uniforms.TIME; \n\
@@ -73,6 +74,35 @@ out gl_PerVertex {
 vec4 gl_Position;
 float gl_PointSize;
 };
+)_";
+
+const constexpr auto vtx_projection_perspective = R"_(
+vec4 v_projected = mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+)_";
+const constexpr auto vtx_projection_fulldome = R"_(
+vec4 v_projected = vec4(1.0);
+{
+  vec4 viewspace = mat.matrixModelView * vec4(in_position.xzy, 1.0);
+  // Code from Emmanuel Durand:
+  // https://emmanueldurand.net/spherical_projection/
+  // - inlined as another function injected could be called toSphere or do #define pi. yay GLSL...
+  float r = length(viewspace.xyz);
+  float val = clamp(viewspace.z / r, -1.0, 1.0);
+  float theta = atan(length(viewspace.xy), viewspace.z);
+
+  val = viewspace.x / (r * sin(theta));
+  float first = acos(clamp(val, -1.0, 1.0));
+  val = viewspace.y / (r * sin(theta));
+  float second = asin(clamp(val, -1.0, 1.0));
+
+  float phi = mix(2.0 * 3.14159265358979323846264338327 - first, first, second >= 0.0);
+  const float proj_ratio = 3.14159265358979323846264338327 / (360.0 / mat.fov);
+  v_projected.x = theta * cos(phi);
+  v_projected.y = theta * sin(phi);
+  v_projected.y /= proj_ratio;
+  v_projected.x /= proj_ratio;
+  v_projected.z = r / 1000.;
+}
 )_";
 const constexpr auto vtx_output_process_triangle = R"_()_";
 const constexpr auto vtx_output_process_point = R"_(
@@ -109,7 +139,10 @@ void main()
   esVertex = in_position;
   esNormal = in_normal;
   v_texcoord = in_uv;
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
 
   %vtx_output_process%
 }
@@ -190,7 +223,11 @@ void main()
   %vtx_do_filters%
 
   v_texcoord = in_uv;
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+
   %vtx_output_process%
 }
 )_";
@@ -241,7 +278,11 @@ void main()
 
   v_normal = in_normal;
   v_coords = (mat.matrixModel * vec4(in_position.xyz, 1.0)).xyz;
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+
   %vtx_output_process%
 }
 )_";
@@ -303,7 +344,11 @@ void main()
   vec4 p = vec4( in_position, 1. );
   v_e = normalize( vec3( mat.matrixModelView * p ) );
   v_n = normal; //normalize( mat.matrixNormal * in_normal );
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+
   %vtx_output_process%
 }
 )_";
@@ -317,17 +362,10 @@ layout(location = 0) in vec3 v_e;
 layout(location = 1) in vec3 v_n;
 layout(location = 0) out vec4 fragColor;
 
-const float pi = 3.14159265359;
-
-float atan2(in float y, in float x)
-{
-    bool s = (abs(x) > abs(y));
-    return mix(3.141596/2.0 - atan(x,y), atan(y,x), s);
-}
 void main ()
 {
-  vec2 uv = vec2(atan2(v_n.z, v_n.x), asin(v_n.y));
-  uv = uv * vec2(1. / 2. * pi, 1. / pi) + 0.5;
+  vec2 uv = vec2(atan(v_n.z, v_n.x), asin(v_n.y));
+  uv = uv * vec2(1. / 2. * 3.14159265358979323846264338327, 1. / 3.14159265358979323846264338327) + 0.5;
   fragColor = texture(y_tex, uv);
 }
 )_";
@@ -347,12 +385,6 @@ layout(binding = 3) uniform sampler2D y_tex;
 
 %vtx_output%
 
-float atan2(in float y, in float x)
-{
-    bool s = (abs(x) > abs(y));
-    return mix(3.141596/2.0 - atan(x,y), atan(y,x), s);
-}
-
 void main()
 {
   vec3 in_position = position;
@@ -367,7 +399,11 @@ void main()
   vec4 p = vec4( in_position, 1. );
   v_e = normalize( vec3( mat.matrixModelView * p ) );
   v_n = normalize( mat.matrixNormal * in_normal );
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+
   %vtx_output_process%
 }
 )_";
@@ -412,7 +448,10 @@ void main()
 
   %vtx_do_filters%
 
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+
   %vtx_output_process%
 }
 )_";
@@ -458,7 +497,10 @@ void main()
   else if(gl_VertexIndex % 3 == 1) v_bary = vec2(0, 1);
   else if(gl_VertexIndex % 3 == 2) v_bary = vec2(1, 0);
 
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+
   %vtx_output_process%
 }
 )_";
@@ -501,7 +543,10 @@ void main()
   %vtx_do_filters%
 
   v_color = in_color.rgb;
-  gl_Position = renderer.clipSpaceCorrMatrix * mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
 
   %vtx_output_process%
 }
@@ -551,10 +596,11 @@ public:
     QShader viewspaceVS, viewspaceFS;
     QShader barycentricVS, barycentricFS;
     QShader colorVS, colorFS;
-  } triangle, point;
+  } triangle_perspective, point_perspective, triangle_fulldome, point_fulldome;
 
   int m_curShader{0};
   int m_draw_mode{0};
+  int m_camera_mode{0};
   int64_t materialChangedIndex{-1};
   int64_t geometryChangedIndex{-1};
   int64_t meshChangedIndex{-1};
@@ -603,7 +649,7 @@ private:
       }
     }
 
-    if (has_colors && n.wantedProjection == 7)
+    if(has_colors && n.texture_projection == 7)
     {
       defaultPassesInit(
           renderer, mesh, shaders.colorVS, shaders.colorFS, additional_bindings);
@@ -612,7 +658,7 @@ private:
 
     if (has_texcoord && has_normals)
     {
-      switch (n.wantedProjection)
+      switch(n.texture_projection)
       {
         default:
         case 0: // Needs TCoord
@@ -671,7 +717,7 @@ private:
     }
     else if (has_texcoord && !has_normals)
     {
-      switch (n.wantedProjection)
+      switch(n.texture_projection)
       {
         default:
         case 0:
@@ -706,7 +752,7 @@ private:
     }
     else if (has_normals && !has_texcoord)
     {
-      switch (n.wantedProjection)
+      switch(n.texture_projection)
       {
         default:
         case 0:
@@ -755,7 +801,7 @@ private:
     }
     else if (!has_texcoord && !has_normals)
     {
-      switch (n.wantedProjection)
+      switch(n.texture_projection)
       {
         default:
         case 0:
@@ -788,12 +834,40 @@ private:
     auto& n = (ModelDisplayNode&)node;
 
     createShaders(renderer, mesh);
-    m_curShader = n.wantedProjection;
+    m_curShader = n.texture_projection;
     m_draw_mode = n.draw_mode;
+    m_camera_mode = n.camera_mode;
+
+    switch(m_draw_mode)
+    {
+      case 0:
+      case 2:
+        switch(m_camera_mode)
+        {
+          case 0:
+            initPasses_impl(renderer, mesh, triangle_perspective);
+            break;
+          case 1:
+            initPasses_impl(renderer, mesh, triangle_fulldome);
+            break;
+        }
+        break;
+      case 1:
+        switch(m_camera_mode)
+        {
+          case 0:
+            initPasses_impl(renderer, mesh, point_perspective);
+            break;
+          case 1:
+            initPasses_impl(renderer, mesh, point_fulldome);
+            break;
+        }
+        break;
+    }
+
     switch (m_draw_mode)
     {
       case 0:
-        initPasses_impl(renderer, mesh, triangle);
         for (auto& [e, pass] : this->m_p)
         {
           pass.pipeline->destroy();
@@ -802,7 +876,6 @@ private:
         }
         break;
       case 1:
-        initPasses_impl(renderer, mesh, point);
         for (auto& [e, pass] : this->m_p)
         {
           pass.pipeline->destroy();
@@ -811,7 +884,6 @@ private:
         }
         break;
       case 2:
-        initPasses_impl(renderer, mesh, triangle);
         for (auto& [e, pass] : this->m_p)
         {
           pass.pipeline->destroy();
@@ -823,9 +895,7 @@ private:
   }
 
   QString processVertexShader(
-      QString init,
-      std::string_view out,
-      std::string_view proc,
+      QString init, std::string_view out, std::string_view proc, std::string_view camera,
       const score::gfx::Mesh& mesh)
   {
 
@@ -859,131 +929,76 @@ private:
 
     init.replace("%vtx_define_filters%", vtx_define_filters.data());
     init.replace("%vtx_do_filters%", vtx_do_filters.data());
+    init.replace("%vtx_do_projection%", camera.data());
     init.replace("%vtx_output%", out.data());
     init.replace("%vtx_output_process%", proc.data());
     return init;
   }
 
-  void createShaders(RenderList& renderer, const score::gfx::Mesh& mesh)
+  void createShaders(
+      RenderShaders& target, RenderList& renderer, std::string_view vtx_output,
+      std::string_view vtx_output_process, std::string_view camera,
+      const score::gfx::Mesh& mesh)
   {
     const QString triangle_phongVS = processVertexShader(
-        model_display_vertex_shader_phong,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
-        mesh);
+        model_display_vertex_shader_phong, vtx_output, vtx_output_process, camera, mesh);
     const QString triangle_texcoordVS = processVertexShader(
-        model_display_vertex_shader_texcoord,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
+        model_display_vertex_shader_texcoord, vtx_output, vtx_output_process, camera,
         mesh);
     const QString triangle_triplanarVS = processVertexShader(
-        model_display_vertex_shader_triplanar,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
+        model_display_vertex_shader_triplanar, vtx_output, vtx_output_process, camera,
         mesh);
     const QString triangle_sphericalVS = processVertexShader(
-        model_display_vertex_shader_spherical,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
+        model_display_vertex_shader_spherical, vtx_output, vtx_output_process, camera,
         mesh);
     const QString triangle_spherical2VS = processVertexShader(
-        model_display_vertex_shader_spherical2,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
+        model_display_vertex_shader_spherical2, vtx_output, vtx_output_process, camera,
         mesh);
     const QString triangle_viewspaceVS = processVertexShader(
-        model_display_vertex_shader_viewspace,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
+        model_display_vertex_shader_viewspace, vtx_output, vtx_output_process, camera,
         mesh);
     const QString triangle_barycentricVS = processVertexShader(
-        model_display_vertex_shader_barycentric,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
+        model_display_vertex_shader_barycentric, vtx_output, vtx_output_process, camera,
         mesh);
     const QString triangle_colorVS = processVertexShader(
-        model_display_vertex_shader_color,
-        vtx_output_triangle,
-        vtx_output_process_triangle,
-        mesh);
+        model_display_vertex_shader_color, vtx_output, vtx_output_process, camera, mesh);
 
-    std::tie(triangle.phongVS, triangle.phongFS) = score::gfx::makeShaders(
+    std::tie(target.phongVS, target.phongFS) = score::gfx::makeShaders(
         renderer.state, triangle_phongVS, model_display_fragment_shader_phong);
-    std::tie(triangle.texCoordVS, triangle.texCoordFS) = score::gfx::makeShaders(
+    std::tie(target.texCoordVS, target.texCoordFS) = score::gfx::makeShaders(
         renderer.state, triangle_texcoordVS, model_display_fragment_shader_texcoord);
-    std::tie(triangle.triplanarVS, triangle.triplanarFS) = score::gfx::makeShaders(
+    std::tie(target.triplanarVS, target.triplanarFS) = score::gfx::makeShaders(
         renderer.state, triangle_triplanarVS, model_display_fragment_shader_triplanar);
-    std::tie(triangle.sphericalVS, triangle.sphericalFS) = score::gfx::makeShaders(
+    std::tie(target.sphericalVS, target.sphericalFS) = score::gfx::makeShaders(
         renderer.state, triangle_sphericalVS, model_display_fragment_shader_spherical);
-    std::tie(triangle.spherical2VS, triangle.spherical2FS) = score::gfx::makeShaders(
+    std::tie(target.spherical2VS, target.spherical2FS) = score::gfx::makeShaders(
         renderer.state, triangle_spherical2VS, model_display_fragment_shader_spherical2);
-    std::tie(triangle.viewspaceVS, triangle.viewspaceFS) = score::gfx::makeShaders(
+    std::tie(target.viewspaceVS, target.viewspaceFS) = score::gfx::makeShaders(
         renderer.state, triangle_viewspaceVS, model_display_fragment_shader_viewspace);
-    std::tie(triangle.barycentricVS, triangle.barycentricFS) = score::gfx::makeShaders(
-        renderer.state,
-        triangle_barycentricVS,
+    std::tie(target.barycentricVS, target.barycentricFS) = score::gfx::makeShaders(
+        renderer.state, triangle_barycentricVS,
         model_display_fragment_shader_barycentric);
-    std::tie(triangle.colorVS, triangle.colorFS) = score::gfx::makeShaders(
+    std::tie(target.colorVS, target.colorFS) = score::gfx::makeShaders(
         renderer.state, triangle_colorVS, model_display_fragment_shader_color);
-
-    const QString point_phongVS = processVertexShader(
-        model_display_vertex_shader_phong,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-    const QString point_texcoordVS = processVertexShader(
-        model_display_vertex_shader_texcoord,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-    const QString point_triplanarVS = processVertexShader(
-        model_display_vertex_shader_triplanar,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-    const QString point_sphericalVS = processVertexShader(
-        model_display_vertex_shader_spherical,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-    const QString point_spherical2VS = processVertexShader(
-        model_display_vertex_shader_spherical2,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-    const QString point_viewspaceVS = processVertexShader(
-        model_display_vertex_shader_viewspace,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-    const QString point_barycentricVS = processVertexShader(
-        model_display_vertex_shader_barycentric,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-    const QString point_colorVS = processVertexShader(
-        model_display_vertex_shader_color,
-        vtx_output_point,
-        vtx_output_process_point,
-        mesh);
-
-    std::tie(point.phongVS, point.phongFS) = score::gfx::makeShaders(
-        renderer.state, point_phongVS, model_display_fragment_shader_phong);
-    std::tie(point.texCoordVS, point.texCoordFS) = score::gfx::makeShaders(
-        renderer.state, point_texcoordVS, model_display_fragment_shader_texcoord);
-    std::tie(point.triplanarVS, point.triplanarFS) = score::gfx::makeShaders(
-        renderer.state, point_triplanarVS, model_display_fragment_shader_triplanar);
-    std::tie(point.sphericalVS, point.sphericalFS) = score::gfx::makeShaders(
-        renderer.state, point_sphericalVS, model_display_fragment_shader_spherical);
-    std::tie(point.spherical2VS, point.spherical2FS) = score::gfx::makeShaders(
-        renderer.state, point_spherical2VS, model_display_fragment_shader_spherical2);
-    std::tie(point.viewspaceVS, point.viewspaceFS) = score::gfx::makeShaders(
-        renderer.state, point_viewspaceVS, model_display_fragment_shader_viewspace);
-    std::tie(point.barycentricVS, point.barycentricFS) = score::gfx::makeShaders(
-        renderer.state, point_barycentricVS, model_display_fragment_shader_barycentric);
-    std::tie(point.colorVS, point.colorFS) = score::gfx::makeShaders(
-        renderer.state, point_colorVS, model_display_fragment_shader_color);
   }
+
+  void createShaders(RenderList& renderer, const score::gfx::Mesh& mesh)
+  {
+    createShaders(
+        this->triangle_perspective, renderer, vtx_output_triangle,
+        vtx_output_process_triangle, vtx_projection_perspective, mesh);
+    createShaders(
+        this->point_perspective, renderer, vtx_output_point, vtx_output_process_point,
+        vtx_projection_perspective, mesh);
+
+    createShaders(
+        this->triangle_fulldome, renderer, vtx_output_triangle,
+        vtx_output_process_triangle, vtx_projection_fulldome, mesh);
+    createShaders(
+        this->point_fulldome, renderer, vtx_output_point, vtx_output_process_point,
+        vtx_projection_fulldome, mesh);
+  }
+
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& rhi = *renderer.state.rhi;
@@ -1063,12 +1078,15 @@ private:
       toGL(mv, mc->mv);
       toGL(mvp, mc->mvp);
       toGL(norm, mc->modelNormal);
+      mc->fov = n.fov;
 
       res.updateDynamicBuffer(m_material.buffer, 0, sizeof(ModelCameraUBO), mc);
 
-      if (m_curShader != n.wantedProjection)
+      if(m_curShader != n.texture_projection)
         mustRecreatePasses = true;
       if (m_draw_mode != n.draw_mode)
+        mustRecreatePasses = true;
+      if(m_camera_mode != n.camera_mode)
         mustRecreatePasses = true;
     }
 
@@ -1165,13 +1183,18 @@ void ModelDisplayNode::process(Message&& msg)
         }
         case 7:
         {
-          this->wantedProjection = ossia::convert<int>(*val);
+          this->texture_projection = ossia::convert<int>(*val);
           this->materialChange();
           break;
         }
         case 8:
         {
           this->draw_mode = ossia::convert<int>(*val);
+          this->materialChange();
+          break;
+        }
+        case 9: {
+          this->camera_mode = ossia::convert<int>(*val);
           this->materialChange();
           break;
         }

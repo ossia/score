@@ -28,11 +28,13 @@ public:
       : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
+    init();
   }
 
   ~Model() override;
 
 private:
+  void init();
   QString prettyName() const noexcept override;
 };
 
