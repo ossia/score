@@ -27,6 +27,7 @@ struct Node
     {
       // Messages to this port trigger a new computation cycle with updated timestamps
       halp_flag(active_port);
+      void update(Node& self) { self.trigger = true; }
     } port;
     halp::lineedit<"Expression", "x"> expr;
   } inputs;
@@ -74,11 +75,14 @@ struct Node
     int64_t last_value_time{};
     std::string last_expression;
   } state;
+  bool trigger{false};
 
   using tick = halp::tick_flicks;
 
   void operator()(const tick& tk)
   {
+    if(!std::exchange(trigger, false))
+      return;
     GenericMathMapping<State>::run_polyphonic(
         inputs.port.value, outputs.port.call, inputs.expr.value, tk, state);
   }

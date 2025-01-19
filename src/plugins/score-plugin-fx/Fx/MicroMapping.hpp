@@ -24,7 +24,9 @@ struct Node
     struct : halp::val_port<"in", ossia::value>
     {
       // Messages to this port trigger a new computation cycle with updated timestamps
+      // FIXME not implemented yet
       halp_flag(active_port);
+      void update(Node& self) { self.trigger = true; }
     } port;
     halp::lineedit<"Expression", "x / 127"> expr;
   } inputs;
@@ -76,12 +78,15 @@ struct Node
   } state;
 
   halp::setup setup;
+  bool trigger{false};
   void prepare(halp::setup s) { setup = s; }
 
   using tick = halp::tick_flicks;
 
   void operator()(const tick& tk)
   {
+    if(!std::exchange(trigger, false))
+      return;
     auto& self = this->state;
     if(!self.expr.set_expression(this->inputs.expr))
       return;
