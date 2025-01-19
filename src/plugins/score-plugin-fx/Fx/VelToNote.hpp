@@ -74,6 +74,7 @@ struct Node
   {
     Note note{};
     int64_t date{};
+    bool fresh{};
   };
   std::vector<NoteIn> to_start;
   std::vector<NoteIn> running_notes;
@@ -166,21 +167,25 @@ struct Node
       auto note = in.value.apply(val_visitor{*this, base_note, base_vel});
 
       if(rand_note != 0)
-        note.pitch += rnd::rand(-rand_note, rand_note);
+        note.pitch = std::clamp(
+            (int)note.pitch + (int)rnd::rand(-rand_note, rand_note), 0, 127);
+
       if(rand_vel != 0)
-        note.vel += rnd::rand(-rand_vel, rand_vel);
+        note.vel
+            = std::clamp((int)note.vel + (int)rnd::rand(-rand_vel, rand_vel), 0, 127);
 
       note.pitch = ossia::clamp((int)note.pitch + shiftnote, 0, 127);
       note.vel = ossia::clamp((int)note.vel, 0, 127);
 
-      if(note.vel != 0)
+      if(note.vel != 0.)
       {
         if(start == 0.f) // No quantification, start directly
         {
           outputs.midi.note_on(chan, note.pitch, note.vel).timestamp = in.timestamp;
           if(end > 0.f)
           {
-            this->running_notes.push_back({note, tk.position_in_frames + in.timestamp});
+            this->running_notes.push_back(
+                {note, tk.position_in_frames + in.timestamp, true});
           }
           else if(end == 0.f)
           {
@@ -189,7 +194,10 @@ struct Node
             outputs.midi.note_off(chan, note.pitch, note.vel).timestamp = in.timestamp;
 #endif
           }
-          // else do nothing and just wait for a note off
+          else
+          {
+            // else do nothing and just wait for a note off
+          }
         }
         else
         {
@@ -270,11 +278,21 @@ struct Node
 
   void stop_notes(ossia::physical_time date_phys, int chan)
   {
-    for(auto& note : this->running_notes)
+    for(auto it = this->running_notes.begin(); it != this->running_notes.end();)
     {
-      outputs.midi.note_off(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
+      auto& note = *it;
+      if(!note.fresh)
+      {
+        it = this->running_notes.erase(it);
+        outputs.midi.note_off(chan, note.note.pitch, note.note.vel).timestamp
+            = date_phys;
+      }
+      else
+      {
+        note.fresh = false;
+        ++it;
+      }
     }
-    this->running_notes.clear();
     /*
     for(auto it = this->running_notes.begin(); it != this->running_notes.end();)
     {

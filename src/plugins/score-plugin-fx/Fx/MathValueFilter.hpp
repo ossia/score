@@ -30,6 +30,7 @@ struct Node
     {
       // Messages to this port trigger a new computation cycle with updated timestamps
       halp_flag(active_port);
+      void update(Node& self) { self.trigger = true; }
     } port;
     halp::lineedit<"Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"> expr;
     halp::hslider_f32<"Param (a)", halp::range{0., 1., 0.5}> a;
@@ -102,10 +103,13 @@ struct Node
   } state;
 
   halp::setup setup;
+  bool trigger{false};
   void prepare(halp::setup s) { setup = s; }
 
   void operator()(const tick& tk)
   {
+    if(!std::exchange(trigger, false))
+      return;
     auto& self = this->state;
     if(!self.expr.set_expression(this->inputs.expr))
       return;

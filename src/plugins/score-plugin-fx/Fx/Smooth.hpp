@@ -32,6 +32,7 @@ struct Node : NoiseState
     {
       // Messages to this port trigger a new computation cycle with updated timestamps
       halp_flag(active_port);
+      void update(Node& self) { self.trigger = true; }
     } port;
     halp::enum_t<dno::type, "Type"> type;
     halp::knob_f32<"Amount", halp::range{0., 1., 0.1}> amount;
@@ -43,9 +44,12 @@ struct Node : NoiseState
   {
     value_out port{};
   } outputs;
+  bool trigger{false};
 
   void operator()()
   {
+    if(!std::exchange(trigger, false))
+      return;
     auto& v = this->inputs.port.value;
 
     auto filtered = this->filter(
