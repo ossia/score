@@ -36,10 +36,11 @@ struct ModelCameraUBO
   float projection[16]{};
   float modelNormal[9]{};
   float padding[3]; // Needed as a mat3 needs a bit more space...
+  float fov = 90.;
 };
 
-    static_assert(
-        sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3));
+static_assert(
+    sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3 + 1));
 
 /**
  * @brief UBO shared across all entities shown on the same output.

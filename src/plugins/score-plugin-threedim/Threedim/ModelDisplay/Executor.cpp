@@ -52,7 +52,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   n->root_inputs().push_back(new ossia::texture_inlet);
   n->root_inputs().push_back(new ossia::geometry_inlet);
 
-  for (std::size_t i = 2; i <= 8; i++)
+  for(std::size_t i = 2; i <= 9; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();

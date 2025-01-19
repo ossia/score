@@ -152,8 +152,6 @@ set(HDRS
     Gfx/ShaderProgram.hpp
     Gfx/SharedInputSettings.hpp
     Gfx/SharedOutputSettings.hpp
-    Gfx/Qt5CompatPush
-    Gfx/Qt5CompatPop
 
     Gfx/CameraSettings.hpp
     Gfx/CameraDevice.hpp
