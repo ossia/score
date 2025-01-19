@@ -196,6 +196,11 @@ void Window::exposeEvent(QExposeEvent* ev)
     m_newlyExposed = true;
   }
 
+  if(isExposed())
+  {
+    m_closed = false;
+  }
+
   if(isExposed() && !surfaceSize.isEmpty())
     render();
 }
