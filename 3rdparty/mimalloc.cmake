@@ -10,9 +10,6 @@ if(SCORE_HAS_SANITIZERS)
   return()
 endif()
 
-if("${CMAKE_CXX_FLAGS}" MATCHES ".*_FORTIFY_SOURCE.*")
-  return()
-endif()
 if("${CMAKE_CXX_FLAGS}" MATCHES ".*_GLIBCXX_ASSERTIONS.*")
   return()
 endif()
@@ -24,6 +21,6 @@ else()
   set(SNMALLOC_BUILD_TESTING
       OFF
       CACHE INTERNAL "" FORCE)
-  add_subdirectory(3rdparty/snmalloc SYSTEM)
+  add_subdirectory(3rdparty/snmalloc EXCLUDE_FROM_ALL SYSTEM)
   endblock()
 endif()
