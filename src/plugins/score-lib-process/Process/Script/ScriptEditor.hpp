@@ -76,9 +76,7 @@ public:
 
 protected:
   const Process_T& m_process;
-  void closeEvent(QCloseEvent* event) override { reject(); }
-
-  void reject() override
+  void closeEvent(QCloseEvent* event) override
   {
     const_cast<QWidget*&>(m_process.externalUI) = nullptr;
     m_process.externalUIVisible(false);
