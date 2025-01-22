@@ -187,6 +187,7 @@ void InteractiveLabel::paintEvent(QPaintEvent* event)
 
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setRenderHint(QPainter::TextAntialiasing, true);
+  painter.setRenderHint(QPainter::RenderHint::SmoothPixmapTransform);
   painter.setPen(QPen{m_currentColor});
 
   painter.save();
@@ -326,7 +327,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   }
 
   // Weird code here is because the window size seems to scale only to integer ratios.
-  setFixedSize(m_background.size() / std::floor(qApp->devicePixelRatio()));
+  setFixedSize(m_background.size() / m_background.devicePixelRatioF());
 
   {
     // new version
@@ -489,6 +490,7 @@ void StartScreen::addLoadCrashedSession()
 void StartScreen::paintEvent(QPaintEvent* event)
 {
   QPainter painter(this);
+  painter.setRenderHint(QPainter::RenderHint::SmoothPixmapTransform);
   painter.drawPixmap(0, 0, m_background);
 }
 
