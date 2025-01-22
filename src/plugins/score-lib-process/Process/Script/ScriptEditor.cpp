@@ -138,7 +138,14 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
     connect(openExternalBtn, &QPushButton::clicked, this, [this, editorPath] {
       openInExternalEditor(editorPath);
     });
-    lay->addWidget(openExternalBtn);
+    bbox->addButton(openExternalBtn, QDialogButtonBox::HelpRole);
+    openExternalBtn->setToolTip(
+        tr("Edit in the default editor set in Score Settings > User Interface"));
+    auto icon = makeIcons(
+        QStringLiteral(":/icons/undock_on.png"),
+        QStringLiteral(":/icons/undock_off.png"),
+        QStringLiteral(":/icons/undock_off.png"));
+    openExternalBtn->setIcon(icon);
   }
 }
 
