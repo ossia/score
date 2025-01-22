@@ -4,6 +4,7 @@
 #include "ScriptWidget.hpp"
 
 #include <score/tools/FileWatch.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QCodeEditor>
 #include <QCoreApplication>
@@ -44,6 +45,22 @@ ScriptDialog::ScriptDialog(
   lay->setStretch(1, 1);
   auto bbox = new QDialogButtonBox{
       QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
+  if(auto editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
+     !editorPath.isEmpty())
+  {
+    auto openExternalBtn = new QPushButton{tr("Edit in default editor"), this};
+    connect(openExternalBtn, &QPushButton::clicked, this, [this, editorPath] {
+      openInExternalEditor(editorPath);
+    });
+    bbox->addButton(openExternalBtn, QDialogButtonBox::HelpRole);
+    openExternalBtn->setToolTip(
+        tr("Edit in the default editor set in Score Settings > User Interface"));
+    auto icon = makeIcons(
+        QStringLiteral(":/icons/undock_on.png"),
+        QStringLiteral(":/icons/undock_off.png"),
+        QStringLiteral(":/icons/undock_off.png"));
+    openExternalBtn->setIcon(icon);
+  }
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
   connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [this] {
@@ -58,16 +75,6 @@ ScriptDialog::ScriptDialog(
   connect(
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
-
-  if(auto editorPath = QSettings{}.value("Skin/DefaultEditor").toString();
-     !editorPath.isEmpty())
-  {
-    auto openExternalBtn = new QPushButton{tr("Edit in default editor"), this};
-    connect(openExternalBtn, &QPushButton::clicked, this, [this, editorPath] {
-      openInExternalEditor(editorPath);
-    });
-    lay->addWidget(openExternalBtn);
-  }
 }
 
 QString ScriptDialog::text() const noexcept
