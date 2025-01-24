@@ -458,14 +458,35 @@ private:
 
   void init_all_ports()
   {
-    InletInitFunc<Info> inlets{*this, m_inlets};
-    OutletInitFunc<Info> outlets{*this, m_outlets};
-    avnd::port_visit_dispatcher<Info>([&inlets]<typename P>(P&& port, auto idx) {
-      if constexpr(!avnd::dynamic_ports_port<P>)
-        inlets(port, idx);
-    }, [&outlets]<typename P>(P&& port, auto idx) {
-      if constexpr(!avnd::dynamic_ports_port<P>)
-        outlets(port, idx);
+    InletInitFunc<Info> inlets{*this, m_inlets, {}, {}};
+    OutletInitFunc<Info> outlets{*this, m_outlets, {}, {}};
+    avnd::port_visit_dispatcher<Info>(
+        [&inlets]<typename P, std::size_t N>(P&& port, avnd::field_index<N> idx) {
+      if constexpr(avnd::has_inputs<Info>)
+        if constexpr(!avnd::dynamic_ports_port<P>)
+        {
+          using inlets_type = typename avnd::inputs_type<Info>::type;
+          if constexpr(avnd::inputs_type<Info>::size > 0)
+          {
+            static constexpr std::string_view name
+                = boost::pfr::get_name<N, inlets_type>();
+            inlets.name = name;
+          }
+          inlets(port, idx);
+        }
+    }, [&outlets]<typename P, std::size_t N>(P&& port, avnd::field_index<N> idx) {
+      if constexpr(avnd::has_outputs<Info>)
+        if constexpr(!avnd::dynamic_ports_port<P>)
+        {
+          using outlets_type = typename avnd::outputs_type<Info>::type;
+          if constexpr(avnd::outputs_type<Info>::size > 0)
+          {
+            static constexpr std::string_view name
+                = boost::pfr::get_name<N, outlets_type>();
+            outlets.name = name;
+          }
+          outlets(port, idx);
+        }
     });
   }
 
