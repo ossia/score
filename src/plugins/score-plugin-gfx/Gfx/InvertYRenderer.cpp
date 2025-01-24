@@ -9,7 +9,7 @@ InvertYRenderer::InvertYRenderer(
     score::gfx::TextureRenderTarget rt, QRhiReadbackResult& readback)
     : score::gfx::OutputNodeRenderer{}
     , m_inputTarget{std::move(rt)}
-    , m_readback{readback}
+    , m_readback{&readback}
 {
 }
 
@@ -92,7 +92,7 @@ void InvertYRenderer::finishFrame(
   auto next = renderer.state.rhi->nextResourceUpdateBatch();
 
   QRhiReadbackDescription rb(m_renderTarget.texture);
-  next->readBackTexture(rb, &m_readback);
+  next->readBackTexture(rb, m_readback);
   cb.endPass(next);
 
   next = nullptr;

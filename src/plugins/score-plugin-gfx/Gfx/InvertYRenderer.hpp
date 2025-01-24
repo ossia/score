@@ -37,8 +37,10 @@ public:
   void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void release(score::gfx::RenderList&) override;
 
+  void updateReadback(QRhiReadbackResult& rb) { m_readback = &rb; }
+
 private:
-  QRhiReadbackResult& m_readback;
+  QRhiReadbackResult* m_readback{};
 };
 
 }
