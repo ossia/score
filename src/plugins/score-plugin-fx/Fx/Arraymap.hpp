@@ -30,7 +30,7 @@ struct Node
       // Messages to this port trigger a new computation cycle with updated timestamps
       halp_flag(active_port);
       void update(Node& self) { self.trigger = true; }
-    } port;
+    } in;
     halp::lineedit<"Expression", "x"> expr;
   } inputs;
 
@@ -86,7 +86,7 @@ struct Node
     if(!std::exchange(trigger, false))
       return;
     GenericMathMapping<State>::run_polyphonic(
-        inputs.port.value, outputs.port.call, inputs.expr.value, tk, state);
+        inputs.in.value, outputs.port.call, inputs.expr.value, tk, state);
   }
 
   struct ui
