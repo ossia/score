@@ -29,7 +29,7 @@ struct Node
       // FIXME not implemented yet
       halp_flag(active_port);
       void update(Node& self) { self.trigger = true; }
-    } port;
+    } in;
     halp::lineedit<"Expression", "x / 127"> expr;
   } inputs;
 
@@ -95,10 +95,10 @@ struct Node
 
     if(self.expr.has_variable("xv"))
       GenericMathMapping<State>::run_array(
-          inputs.port.value, outputs.port.call, tk, state);
+          inputs.in.value, outputs.port.call, tk, state);
     else
       GenericMathMapping<State>::run_scalar(
-          inputs.port.value, outputs.port.call, tk, state);
+          inputs.in.value, outputs.port.call, tk, state);
   }
 
   struct ui
