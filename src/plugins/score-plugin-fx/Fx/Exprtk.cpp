@@ -80,17 +80,17 @@ MathMappingCodeWriter::accessInlet(const Id<Process::Port>& id) const noexcept
   // FIXME we should not have the LineEdit input
   const Process::Inlet& inl = *this->self.inlet(id);
   std::string var;
-  if(inl.name() == "in")
+  if(inl.exposed() == "in")
     var = "in";
-  else if(inl.name() == "Param (a)")
+  else if(inl.exposed() == "a")
     var = "a";
-  else if(inl.name() == "Param (b)")
+  else if(inl.exposed() == "b")
     var = "b";
-  else if(inl.name() == "Param (c)")
+  else if(inl.exposed() == "c)")
     var = "c";
   else
   {
-    return "ERROR: " + inl.name().toStdString();
+    return "<< ERROR: Inlet not found: '" + inl.exposed().toStdString() + "' >>";
   }
 
   return fmt::format("({}.inputs.{}.value)", variable, var);
