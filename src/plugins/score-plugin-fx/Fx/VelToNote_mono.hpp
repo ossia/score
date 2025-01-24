@@ -49,8 +49,7 @@ struct Node
     return (uint8_t)ossia::clamp(num, 0, 127);
   }
 
-  using tick = halp::tick;
-  void operator()(const tick& tk)
+  void operator()(int frames)
   {
     if(inputs.port.value)
     {
@@ -69,7 +68,7 @@ struct Node
       cur_note = -1;
     }
 
-    cur_frames += tk.frames;
+    cur_frames += frames;
   }
 };
 }
