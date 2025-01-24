@@ -11,7 +11,6 @@
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Effect/EffectLayout.hpp>
-#include <Engine/Node/CommonWidgets.hpp>
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
 
