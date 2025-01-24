@@ -51,7 +51,7 @@ std::string AvndCodeWriter::initializer() const noexcept
     if(auto c = qobject_cast<const Process::ControlInlet*>(in))
     {
       float val = ossia::convert<float>(c->value());
-      auto name = c->name();
+      auto name = c->exposed();
 
       if(auto it = name.indexOf('('); it != -1)
         name = name.mid(0, it);
@@ -67,18 +67,16 @@ std::string AvndCodeWriter::accessInlet(const Id<Port>& id) const noexcept
 {
   int index = ossia::index_in_container(this->self.inlets(), id);
   return fmt::format(
-      "(avnd::input_introspection<{}>::field<{}>({}.inputs)."
-      "value)",
-      typeName(), index, variable);
+      "(avnd::input_introspection<{}>::field<{}>({}.inputs))", typeName(), index,
+      variable);
 }
 
 std::string AvndCodeWriter::accessOutlet(const Id<Port>& id) const noexcept
 {
   int index = ossia::index_in_container(this->self.outlets(), id);
   return fmt::format(
-      "(avnd::output_introspection<{}>::field<{}>({}.outputs)."
-      "value)",
-      typeName(), index, variable);
+      "(avnd::output_introspection<{}>::field<{}>({}.outputs))", typeName(), index,
+      variable);
 }
 
 std::string AvndCodeWriter::execute() const noexcept

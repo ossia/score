@@ -11,7 +11,6 @@
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Effect/EffectLayout.hpp>
-#include <Engine/Node/CommonWidgets.hpp>
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
 
@@ -111,7 +110,6 @@ EffectItem::EffectItem(
   if(!effect.fx->fx)
     return;
 
-  using namespace Control::Widgets;
   QObject::connect(
       &effect, &Process::ProcessModel::controlAdded, this,
       [&](const Id<Process::Port>& id) {
