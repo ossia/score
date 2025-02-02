@@ -7,6 +7,7 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/dataflow/nodes/media.hpp>
+#include <ossia/dataflow/texture_port.hpp>
 #include <ossia/dataflow/token_request.hpp>
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/variant.hpp>
@@ -14,8 +15,6 @@
 
 #include <score_plugin_gfx_export.h>
 
-#include <algorithm>
-#include <optional>
 #include <vector>
 
 namespace score::gfx
@@ -28,12 +27,12 @@ using FunctionMessage = std::function<void(score::gfx::Node&)>;
 #if BOOST_VERSION < 107900
 // Old boost: small_vector was not nothrow-move-constructible so we remove the check there.
 using gfx_input = ossia::slow_variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::geometry_spec,
-    ossia::transform3d, FunctionMessage>;
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::render_target_spec,
+    ossia::geometry_spec, ossia::transform3d, FunctionMessage>;
 #else
 using gfx_input = ossia::variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::geometry_spec,
-    ossia::transform3d, FunctionMessage>;
+    ossia::monostate, ossia::value, ossia::audio_vector, ossia::render_target_spec,
+    ossia::geometry_spec, ossia::transform3d, FunctionMessage>;
 #endif
 
 /**
@@ -53,6 +52,22 @@ struct Message
   Timings token{};
   std::vector<gfx_input> input;
 };
+
+struct RenderTargetSpecs
+{
+  QSize size;
+
+  QRhiTexture::Format format = QRhiTexture::Format ::RGBA8;
+
+  QRhiSampler::Filter mag_filter = QRhiSampler::Linear;
+  QRhiSampler::Filter min_filter = QRhiSampler::Linear;
+  QRhiSampler::Filter mipmap_mode = QRhiSampler::None;
+
+  QRhiSampler::AddressMode address_u = QRhiSampler::Repeat;
+  QRhiSampler::AddressMode address_v = QRhiSampler::Repeat;
+  QRhiSampler::AddressMode address_w = QRhiSampler::Repeat;
+};
+
 /**
  * @brief Root data model for visual nodes.
  */
@@ -99,18 +114,6 @@ public:
    */
   ossia::flat_map<RenderList*, score::gfx::NodeRenderer*> renderedNodes;
 
-  int32_t id = -1;
-  bool addedToGraph{};
-};
-
-/**
- * @brief Common base class for nodes that map to score processes.
- */
-class SCORE_PLUGIN_GFX_EXPORT ProcessNode : public Node
-{
-public:
-  using Node::Node;
-
   /**
    * @brief Used to notify a material change from the model to the renderers.
    */
@@ -150,6 +153,37 @@ public:
   std::atomic_int64_t geometryChanged{-1};
 
   /**
+   * @brief Used to notify a render target (texture inlet) change from the model to the renderers.
+   */
+  void renderTargetChange() noexcept
+  {
+    renderTargetSpecChanged.fetch_add(1, std::memory_order_release);
+  }
+  bool hasRenderTargetChanged(int64_t& renderer) const noexcept
+  {
+    int64_t res = renderTargetSpecChanged.load(std::memory_order_acquire);
+    if(renderer != res)
+    {
+      renderer = res;
+      return true;
+    }
+    return false;
+  }
+  std::atomic_int64_t renderTargetSpecChanged{-1};
+
+  int32_t id = -1;
+  bool addedToGraph{};
+};
+
+/**
+ * @brief Common base class for nodes that map to score processes.
+ */
+class SCORE_PLUGIN_GFX_EXPORT ProcessNode : public Node
+{
+public:
+  using Node::Node;
+
+  /**
    * @brief Every node matching with a score process will have such an UBO.
    *
    * It has useful information, such as timing, sample rate, mouse position etc.
@@ -164,14 +198,26 @@ public:
    */
   ossia::geometry_spec geometry;
 
+  /**
+   * @brief Render target info
+   * 
+   * Each texture inlet will have a matching spec
+   */
+  ossia::flat_map<int32_t, ossia::render_target_spec> renderTargetSpecs;
+
   void process(Message&& msg) override;
   void process(Timings tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
   void process(int32_t port, const ossia::geometry_spec& v);
+  void process(int32_t port, const ossia::render_target_spec& v);
   void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
   void process(int32_t port, const FunctionMessage&);
+
+  QSize resolveRenderTargetSize(int32_t port, RenderList& renderer) const noexcept;
+  RenderTargetSpecs
+  resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept;
 };
 
 /**

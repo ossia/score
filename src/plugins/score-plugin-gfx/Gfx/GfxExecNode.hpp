@@ -83,22 +83,25 @@ public:
     return port;
   }
 
-  void add_texture()
+  auto add_texture()
   {
     auto port = new ossia::texture_inlet;
     m_inlets.push_back(port);
+    return port;
   }
 
-  void add_texture_out()
+  auto add_texture_out()
   {
     auto port = new ossia::texture_outlet;
     m_outlets.push_back(port);
+    return port;
   }
 
-  void add_audio()
+  auto add_audio()
   {
-    auto inletport = new ossia::audio_inlet;
-    m_inlets.push_back(inletport);
+    auto port = new ossia::audio_inlet;
+    m_inlets.push_back(port);
+    return port;
   }
 
   ~gfx_exec_node();

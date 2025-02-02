@@ -10,6 +10,7 @@ namespace score::gfx
 class SCORE_PLUGIN_GFX_EXPORT OutputNodeRenderer : public score::gfx::NodeRenderer
 {
 public:
+  using score::gfx::NodeRenderer::NodeRenderer;
   virtual ~OutputNodeRenderer();
   virtual void
   finishFrame(RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res);

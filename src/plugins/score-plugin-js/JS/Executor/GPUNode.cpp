@@ -349,7 +349,10 @@ void main ()
     }
   }
 
-  void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override {
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge* edge) override
+  {
     reloadEngine(renderer.state.rhi);
     defaultUBOUpdate(renderer, res);
   }

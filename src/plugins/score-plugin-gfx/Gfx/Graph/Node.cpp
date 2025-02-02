@@ -1,5 +1,6 @@
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -319,6 +320,24 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
   }
 }
 
+void ProcessNode::process(int32_t port, const ossia::render_target_spec& v)
+{
+  auto it = this->renderTargetSpecs.find(port);
+  if(it != this->renderTargetSpecs.end())
+  {
+    if(it->second != v)
+    {
+      it->second = v;
+      renderTargetChange();
+    }
+  }
+  else
+  {
+    renderTargetSpecs.emplace(port, v);
+    renderTargetChange();
+  }
+}
+
 void ProcessNode::process(int32_t port, const ossia::geometry_spec& v)
 {
   if(this->geometry != v || this->geometryChanged == 0)
@@ -329,6 +348,87 @@ void ProcessNode::process(int32_t port, const ossia::geometry_spec& v)
 }
 
 void ProcessNode::process(int32_t port, const ossia::transform3d& v) { }
+
+QSize ProcessNode::resolveRenderTargetSize(
+    int32_t port, RenderList& renderer) const noexcept
+{
+  auto it = this->renderTargetSpecs.find(port);
+  if(it != this->renderTargetSpecs.end())
+  {
+    if(auto& sz = it->second.size)
+    {
+      return QSize{sz->width, sz->height};
+    }
+  }
+  return renderer.state.renderSize;
+}
+
+static constexpr QRhiTexture::Format ossia_format_to_rhi(ossia::texture_format fmt)
+{
+  switch(fmt)
+  {
+    default:
+    case ossia::texture_format::RGBA8:
+      return QRhiTexture::Format::RGBA8;
+    case ossia::texture_format::BGRA8:
+      return QRhiTexture::Format::BGRA8;
+    case ossia::texture_format::R8:
+      return QRhiTexture::Format::R8;
+    case ossia::texture_format::RG8:
+      return QRhiTexture::Format::RG8;
+    case ossia::texture_format::R16:
+      return QRhiTexture::Format::R16;
+    case ossia::texture_format::RG16:
+      return QRhiTexture::Format::RG16;
+    case ossia::texture_format::RED_OR_ALPHA8:
+      return QRhiTexture::Format::RED_OR_ALPHA8;
+
+    case ossia::texture_format::RGBA16F:
+      return QRhiTexture::Format::RGBA16F;
+    case ossia::texture_format::RGBA32F:
+      return QRhiTexture::Format::RGBA32F;
+    case ossia::texture_format::R16F:
+      return QRhiTexture::Format::R16F;
+    case ossia::texture_format::R32F:
+      return QRhiTexture::Format::R32F;
+
+    case ossia::texture_format::RGB10A2:
+      return QRhiTexture::Format::RGB10A2;
+
+    case ossia::texture_format::D16:
+      return QRhiTexture::Format::D16;
+    case ossia::texture_format::D24:
+      return QRhiTexture::Format::D24;
+    case ossia::texture_format::D24S8:
+      return QRhiTexture::Format::D24S8;
+    case ossia::texture_format::D32F:
+      return QRhiTexture::Format::D32F;
+  }
+}
+
+RenderTargetSpecs
+ProcessNode::resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept
+{
+  RenderTargetSpecs spec;
+  auto it = this->renderTargetSpecs.find(port);
+  if(it != this->renderTargetSpecs.end())
+  {
+    if(it->second.size)
+      spec.size = QSize{it->second.size->width, it->second.size->height};
+    spec.format = ossia_format_to_rhi(it->second.format);
+    spec.address_u = static_cast<decltype(spec.address_u)>(it->second.address_u);
+    spec.address_v = static_cast<decltype(spec.address_v)>(it->second.address_v);
+    spec.address_w = static_cast<decltype(spec.address_w)>(it->second.address_w);
+    spec.mag_filter = static_cast<decltype(spec.mag_filter)>(it->second.mag_filter);
+    spec.min_filter = static_cast<decltype(spec.min_filter)>(it->second.min_filter);
+    spec.mipmap_mode = static_cast<decltype(spec.mag_filter)>(it->second.mipmap_mode);
+  }
+
+  if(spec.size == QSize{})
+    spec.size = {renderer.state.renderSize.width(), renderer.state.renderSize.height()};
+
+  return spec;
+}
 
 void ProcessNode::process(
     int32_t port, const std::function<void(score::gfx::Node&)>& func)
@@ -368,6 +468,7 @@ QDebug operator<<(QDebug s, const score::gfx::gfx_input& v)
     {
       s << "audio: " << v.size() << "channels";
     }
+    void operator()(const ossia::render_target_spec& v) { s << "texture"; }
     void operator()(const ossia::geometry_spec& v) { s << "meshlist"; }
     void operator()(const ossia::transform3d& v) { s << "transform3d"; }
   } print{s};

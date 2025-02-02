@@ -13,16 +13,19 @@ template <typename Node_T>
 struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
-  const GfxNode<Node_T>& parent;
   Node_T state;
   score::gfx::Message m_last_message{};
   ossia::time_value m_last_time{-1};
 
+  const GfxNode<Node_T>& node() const noexcept
+  {
+    return static_cast<const GfxNode<Node_T>&>(score::gfx::NodeRenderer::node);
+  }
+
   GfxRenderer(const GfxNode<Node_T>& p)
       : score::gfx::GenericNodeRenderer{p}
-      , parent{p}
   {
-    prepareNewState(state, parent);
+    prepareNewState(state, p);
   }
 
   score::gfx::TextureRenderTarget
@@ -119,10 +122,11 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    auto& parent = node();
     if constexpr(requires { state.prepare(); })
     {
       parent.processControlIn(
-          *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+          *this, state, m_last_message, parent.last_message, parent.m_ctx);
       state.prepare();
     }
 
@@ -143,7 +147,9 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     this->defaultPassesInit(renderer, mesh);
   }
 
-  void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge* edge) override
   {
     this->defaultUBOUpdate(renderer, res);
   }
@@ -165,6 +171,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge) override
   {
+    auto& parent = node();
     // If we are paused, we don't run the processor implementation.
     if(parent.last_message.token.date == m_last_time)
     {
@@ -173,7 +180,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     m_last_time = parent.last_message.token.date;
 
     parent.processControlIn(
-        *this, state, m_last_message, this->parent.last_message, parent.m_ctx);
+        *this, state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the processor
     state();

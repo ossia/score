@@ -54,7 +54,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
   TextureRenderTarget renderTargetForInput(const Port& p) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* e) override;
   void release(RenderList& r) override;
 
   void runInitialPasses(
@@ -106,7 +106,6 @@ private:
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
-  int64_t materialChangedIndex{-1};
 
   AudioTextureUpload m_audioTex;
 };
@@ -122,7 +121,7 @@ struct SimpleRenderedISFNode : score::gfx::NodeRenderer
   TextureRenderTarget renderTargetForInput(const Port& p) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
   void release(RenderList& r) override;
 
   void runInitialPasses(
@@ -151,7 +150,6 @@ private:
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
-  int64_t materialChangedIndex{-1};
 
   std::optional<AudioTextureUpload> m_audioTex;
 };

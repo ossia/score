@@ -230,7 +230,8 @@ ShmdataOutputNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
   score::gfx::TextureRenderTarget rt{
       m_texture, nullptr, nullptr, m_renderState->renderPassDescriptor, m_renderTarget};
-  return new Gfx::InvertYRenderer{rt, const_cast<QRhiReadbackResult&>(m_readback)};
+  return new Gfx::InvertYRenderer{
+      *this, rt, const_cast<QRhiReadbackResult&>(m_readback)};
 }
 
 ShmdataOutputDevice::~ShmdataOutputDevice() { }

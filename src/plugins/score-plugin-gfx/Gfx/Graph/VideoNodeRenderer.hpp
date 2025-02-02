@@ -29,7 +29,7 @@ public:
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
   void release(RenderList& r) override;
 
 private:
@@ -37,7 +37,10 @@ private:
   void displayFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res);
   Video::VideoMetadata& decoder() const noexcept;
 
-  const VideoNodeBase& node;
+  const VideoNodeBase& node() const noexcept
+  {
+    return static_cast<const VideoNodeBase&>(NodeRenderer::node);
+  }
   VideoFrameShare& reader;
 
   PassMap m_p;

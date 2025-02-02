@@ -6,8 +6,9 @@ namespace Gfx
 {
 
 InvertYRenderer::InvertYRenderer(
-    score::gfx::TextureRenderTarget rt, QRhiReadbackResult& readback)
-    : score::gfx::OutputNodeRenderer{}
+    const score::gfx::Node& n, score::gfx::TextureRenderTarget rt,
+    QRhiReadbackResult& readback)
+    : score::gfx::OutputNodeRenderer{n}
     , m_inputTarget{std::move(rt)}
     , m_readback{&readback}
 {
@@ -58,7 +59,7 @@ void InvertYRenderer::init(
 }
 
 void InvertYRenderer::update(
-    score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
+    score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res, score::gfx::Edge* e)
 {
 }
 

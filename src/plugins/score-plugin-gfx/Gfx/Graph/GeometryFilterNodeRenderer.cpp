@@ -8,8 +8,7 @@ namespace score::gfx
 
 GeometryFilterNodeRenderer::GeometryFilterNodeRenderer(
     const GeometryFilterNode& node) noexcept
-    : score::gfx::NodeRenderer{}
-    , n{const_cast<GeometryFilterNode&>(node)}
+    : score::gfx::NodeRenderer{node}
 {
 }
 
@@ -24,7 +23,7 @@ void GeometryFilterNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBa
 {
   QRhi& rhi = *renderer.state.rhi;
 
-  m_materialSize = n.m_materialSize;
+  m_materialSize = node().m_materialSize;
   if(m_materialSize > 0)
   {
     m_materialUBO
@@ -34,13 +33,13 @@ void GeometryFilterNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBa
 }
 
 void GeometryFilterNodeRenderer::update(
-    RenderList& renderer, QRhiResourceUpdateBatch& res)
+    RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
   // Update material
   if(m_materialUBO
      && m_materialSize > 0) // && n.hasMaterialChanged(materialChangedIndex))
   {
-    char* data = n.m_material_data.get();
+    char* data = node().m_material_data.get();
     res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
   }
 }
@@ -61,5 +60,11 @@ void GeometryFilterNodeRenderer::runRenderPass(
     RenderList&, QRhiCommandBuffer& commands, Edge& edge)
 {
   // nothing
+}
+
+GeometryFilterNode& GeometryFilterNodeRenderer::node() const noexcept
+{
+  auto& nc = const_cast<score::gfx::Node&>(score::gfx::NodeRenderer::node);
+  return static_cast<GeometryFilterNode&>(nc);
 }
 }

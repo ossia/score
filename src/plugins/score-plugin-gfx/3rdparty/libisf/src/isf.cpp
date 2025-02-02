@@ -69,7 +69,6 @@ layout(std140, binding = 0) uniform renderer_t {
 // spirv-cross may generate different struct names in the vertex & fragment, causing crashes..
 // but we have to keep compat with ISF
 mat4 clipSpaceCorrMatrix = isf_renderer_uniforms.clipSpaceCorrMatrix;
-vec2 RENDERSIZE = isf_renderer_uniforms.RENDERSIZE;
 
 // Time-dependent uniforms, only relevant during execution
 layout(std140, binding = 1) uniform process_t {
@@ -80,7 +79,11 @@ layout(std140, binding = 1) uniform process_t {
   int PASSINDEX;
   int FRAMEINDEX;
 
+  vec2 RENDERSIZE;
   vec4 DATE;
+  vec4 MOUSE;
+  vec4 CHANNEL_TIME;
+  float SAMPLERATE;
 } isf_process_uniforms;
  
 float TIME = isf_process_uniforms.TIME;
@@ -88,9 +91,9 @@ float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
 float PROGRESS = isf_process_uniforms.PROGRESS;
 int PASSINDEX = isf_process_uniforms.PASSINDEX;
 int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
+vec2 RENDERSIZE = isf_process_uniforms.RENDERSIZE;
 vec4 DATE = isf_process_uniforms.DATE;
 )_";
-
 
   static constexpr auto defaultFunctions =
       R"_(
@@ -553,6 +556,14 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
           {
             p.float_storage
                 = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
+          }
+
+          if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FILTER"));
+             float_k != obj.get_length())
+          {
+            const auto& val = obj.get_object_value(float_k);
+            p.nearest_filter = val.get_type() == sajson::TYPE_STRING
+                               && val.as_string() == std::string_view("NEAREST");
           }
 
           if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));

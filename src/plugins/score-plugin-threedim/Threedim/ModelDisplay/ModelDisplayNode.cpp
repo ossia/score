@@ -598,12 +598,10 @@ public:
     QShader colorVS, colorFS;
   } triangle_perspective, point_perspective, triangle_fulldome, point_fulldome;
 
+  int64_t meshChangedIndex{-1};
   int m_curShader{0};
   int m_draw_mode{0};
   int m_camera_mode{0};
-  int64_t materialChangedIndex{-1};
-  int64_t geometryChangedIndex{-1};
-  int64_t meshChangedIndex{-1};
 
 private:
   ~Renderer() = default;
@@ -999,30 +997,34 @@ private:
         vtx_projection_fulldome, mesh);
   }
 
-  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void recreateRenderTarget(RenderList& renderer)
   {
+    auto& node = static_cast<const ModelDisplayNode&>(this->node);
     auto& rhi = *renderer.state.rhi;
+
+    SCORE_ASSERT(m_samplers.empty());
+    SCORE_ASSERT(!m_inputTarget);
+
     // Sampler for input texture
+    auto rt_spec = node.resolveRenderTargetSpecs(0, renderer);
 
     auto sampler = rhi.newSampler(
-        QRhiSampler::Linear,
-        QRhiSampler::Linear,
-        QRhiSampler::Linear,
-        QRhiSampler::Mirror,
-        QRhiSampler::Mirror);
+        rt_spec.min_filter, rt_spec.mag_filter, QRhiSampler::Linear, rt_spec.address_u,
+        rt_spec.address_v, rt_spec.address_w);
     sampler->setName("ModelDisplayNode::init::sampler");
     SCORE_ASSERT(sampler->create());
 
     m_inputTarget = score::gfx::createRenderTarget(
-        renderer.state,
-        QRhiTexture::RGBA8,
-        renderer.state.renderSize,
-        renderer.samples(),
+        renderer.state, rt_spec.format, rt_spec.size, renderer.samples(),
         QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
 
     auto texture = m_inputTarget.texture;
     m_samplers.push_back({sampler, texture});
+  }
 
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    recreateRenderTarget(renderer);
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
     defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
@@ -1031,6 +1033,11 @@ private:
     initPasses(renderer, mesh);
   }
 
+  template <std::size_t N>
+  static void fromGL(const float (&from)[N], auto& to)
+  {
+    memcpy(to.data(), from, sizeof(float[N]));
+  }
   template <std::size_t N>
   static void fromGL(float (&from)[N], auto& to)
   {
@@ -1042,12 +1049,12 @@ private:
     memcpy(to, from.data(), sizeof(float[N]));
   }
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
-    auto& n = (ModelDisplayNode&)node;
+    auto& n = static_cast<const ModelDisplayNode&>(this->node);
 
     bool mustRecreatePasses = false;
-    if (n.hasMaterialChanged(materialChangedIndex))
+    if(this->materialChanged)
     {
       QMatrix4x4 model{};
       fromGL(n.ubo.model, model);
@@ -1070,17 +1077,17 @@ private:
       QMatrix4x4 mvp = projection * view * model;
       QMatrix3x3 norm = model.normalMatrix();
 
-      ModelCameraUBO* mc = &n.ubo;
-      std::fill_n((char*)mc, sizeof(ModelCameraUBO), 0);
-      toGL(model, mc->model);
-      toGL(projection, mc->projection);
-      toGL(view, mc->view);
-      toGL(mv, mc->mv);
-      toGL(mvp, mc->mvp);
-      toGL(norm, mc->modelNormal);
-      mc->fov = n.fov;
+      ModelCameraUBO mc;
+      std::fill_n((char*)&mc, sizeof(ModelCameraUBO), 0);
+      toGL(model, mc.model);
+      toGL(projection, mc.projection);
+      toGL(view, mc.view);
+      toGL(mv, mc.mv);
+      toGL(mvp, mc.mvp);
+      toGL(norm, mc.modelNormal);
+      mc.fov = n.fov;
 
-      res.updateDynamicBuffer(m_material.buffer, 0, sizeof(ModelCameraUBO), mc);
+      res.updateDynamicBuffer(m_material.buffer, 0, sizeof(ModelCameraUBO), &mc);
 
       if(m_curShader != n.texture_projection)
         mustRecreatePasses = true;
@@ -1090,23 +1097,25 @@ private:
         mustRecreatePasses = true;
     }
 
-    res.updateDynamicBuffer(
-        m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
+    res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
 
-    if (node.hasGeometryChanged(geometryChangedIndex))
+    if(this->geometryChanged)
     {
-      if (node.geometry.meshes)
+      if(n.geometry.meshes)
       {
         std::tie(m_mesh, m_meshbufs)
-            = renderer.acquireMesh(node.geometry, res, m_mesh, m_meshbufs);
+            = renderer.acquireMesh(n.geometry, res, m_mesh, m_meshbufs);
         SCORE_ASSERT(m_mesh);
+
         this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
       }
       mustRecreatePasses = true;
     }
 
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
-    if (mesh.hasGeometryChanged(meshChangedIndex))
+    // FIXME is that neeeded?
+    // FIXME also not handling geometry_filter dirty geom so far
+    if(mesh.hasGeometryChanged(meshChangedIndex))
       mustRecreatePasses = true;
 
     if (mustRecreatePasses)
@@ -1115,7 +1124,6 @@ private:
         pass.second.release();
       m_p.clear();
 
-      const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
       initPasses(renderer, mesh);
     }
 
@@ -1199,6 +1207,12 @@ void ModelDisplayNode::process(Message&& msg)
           break;
         }
       }
+
+      p++;
+    }
+    else if(auto val = ossia::get_if<ossia::render_target_spec>(&m))
+    {
+      ProcessNode::process(p, *val);
 
       p++;
     }

@@ -14,11 +14,13 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples)
 
   ret.colorRenderBuffer = state.rhi->newRenderBuffer(
       QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
-  ret.colorRenderBuffer->create();
+  ret.colorRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
+  SCORE_ASSERT(ret.colorRenderBuffer->create());
 
   ret.depthRenderBuffer = state.rhi->newRenderBuffer(
       QRhiRenderBuffer::DepthStencil, tex->pixelSize(), samples);
-  ret.depthRenderBuffer->create();
+  ret.depthRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
+  SCORE_ASSERT(ret.depthRenderBuffer->create());
 
   QRhiTextureRenderTargetDescription desc;
   QRhiColorAttachment color0(ret.colorRenderBuffer);
@@ -27,9 +29,11 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples)
   desc.setColorAttachments({color0});
 
   auto renderTarget = state.rhi->newTextureRenderTarget(desc);
+  renderTarget->setName("createRenderTarget::renderTarget");
   SCORE_ASSERT(renderTarget);
 
   auto renderPass = renderTarget->newCompatibleRenderPassDescriptor();
+  renderPass->setName("createRenderTarget::renderPass");
   SCORE_ASSERT(renderPass);
 
   renderTarget->setRenderPassDescriptor(renderPass);
@@ -45,6 +49,7 @@ TextureRenderTarget createRenderTarget(
     QRhiTexture::Flags flags)
 {
   auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget | flags);
+  texture->setName("createRenderTarget::texture");
   SCORE_ASSERT(texture->create());
   return createRenderTarget(state, texture, samples);
 }
@@ -168,6 +173,31 @@ void replaceSampler(
       if(d->u.stex.texSamplers[0].sampler == oldSampler)
       {
         d->u.stex.texSamplers[0].sampler = newSampler;
+      }
+    }
+  }
+
+  srb.destroy();
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.create();
+}
+
+void replaceSamplerAndTexture(
+    QRhiShaderResourceBindings& srb, QRhiSampler* oldSampler, QRhiSampler* newSampler,
+    QRhiTexture* newTexture)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+  for(QRhiShaderResourceBinding& b : tmp)
+  {
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->type == QRhiShaderResourceBinding::Type::SampledTexture)
+    {
+      SCORE_ASSERT(d->u.stex.count >= 1);
+      if(d->u.stex.texSamplers[0].sampler == oldSampler)
+      {
+        d->u.stex.texSamplers[0].sampler = newSampler;
+        d->u.stex.texSamplers[0].tex = newTexture;
       }
     }
   }

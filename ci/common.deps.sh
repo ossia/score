@@ -41,10 +41,9 @@ then
   clone_addon https://github.com/ossia/score-addon-led
   clone_addon https://github.com/ossia/score-addon-spatgris
   clone_addon https://github.com/ossia/score-addon-hdf5
-fi
+  clone_addon https://github.com/ossia/score-addon-onnx
 
-if [[ ! -d score-addon-onnx ]]; then
-  git clone --recursive -j16 https://github.com/ossia/score-addon-onnx
+  (cd score-addon-ndi; git checkout feature/texture_inlet_properties)
 fi
 
 )

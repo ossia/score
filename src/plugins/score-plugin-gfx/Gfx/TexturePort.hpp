@@ -2,6 +2,11 @@
 #include <Process/Dataflow/Port.hpp>
 
 #include <Dataflow/PortItem.hpp>
+#include <Gfx/CommandFactory.hpp>
+
+#include <score/command/PropertyCommand.hpp>
+
+#include <ossia/dataflow/texture_port.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -37,6 +42,31 @@ public:
   {
     return Process::PortType::Texture;
   }
+
+  std::optional<QSize> renderSize() const noexcept;
+  void renderSizeChanged(std::optional<QSize> sz) W_SIGNAL(renderSizeChanged, sz);
+  void setRenderSize(std::optional<QSize> sz);
+  void unsetRenderSize();
+
+  PROPERTY(
+      std::optional<QSize>,
+      renderSize W_READ renderSize W_WRITE setRenderSize W_NOTIFY renderSizeChanged)
+
+  INLINE_PROPERTY_VALUE(
+      ossia::texture_format, textureFormat, = ossia::texture_format::RGBA8,
+      textureFormat, setTextureFormat, textureFormatChanged)
+  INLINE_PROPERTY_VALUE(
+      ossia::texture_filter, textureFilter, = ossia::texture_filter::LINEAR,
+      textureFilter, setTextureFilter, textureFilterChanged)
+  INLINE_PROPERTY_VALUE(
+      ossia::texture_address_mode, textureAddressMode,
+      = ossia::texture_address_mode::CLAMP_TO_EDGE, textureAddressMode,
+      setTextureAddressMode, textureAddressModeChanged)
+
+  void setupExecution(ossia::inlet&, QObject* exec_context) const noexcept override;
+
+private:
+  std::optional<QSize> m_renderSize;
 };
 
 class SCORE_PLUGIN_GFX_EXPORT TextureOutlet : public Process::Outlet
@@ -195,3 +225,28 @@ struct GeometryOutletFactory final : public Dataflow::AutomatablePortFactory
   }
 };
 }
+
+W_REGISTER_ARGTYPE(std::optional<QSize>);
+W_REGISTER_ARGTYPE(ossia::texture_format);
+W_REGISTER_ARGTYPE(ossia::texture_filter);
+W_REGISTER_ARGTYPE(ossia::texture_address_mode);
+
+PROPERTY_COMMAND_T(
+    Gfx, ChangeTextureInletRenderSize, TextureInlet::p_renderSize,
+    "Change render target size")
+SCORE_COMMAND_DECL_T(Gfx::ChangeTextureInletRenderSize)
+
+PROPERTY_COMMAND_T(
+    Gfx, ChangeTextureInletFormat, TextureInlet::p_textureFormat,
+    "Change render target format")
+SCORE_COMMAND_DECL_T(Gfx::ChangeTextureInletFormat)
+
+PROPERTY_COMMAND_T(
+    Gfx, ChangeTextureInletFilter, TextureInlet::p_textureFilter,
+    "Change render target filter")
+SCORE_COMMAND_DECL_T(Gfx::ChangeTextureInletFilter)
+
+PROPERTY_COMMAND_T(
+    Gfx, ChangeTextureInletAddressMode, TextureInlet::p_textureAddressMode,
+    "Change render target address mode")
+SCORE_COMMAND_DECL_T(Gfx::ChangeTextureInletAddressMode)

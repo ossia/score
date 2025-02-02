@@ -145,7 +145,7 @@ private:
     defaultPassesInit(renderer, mesh);
   }
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
     defaultUBOUpdate(renderer, res);
 

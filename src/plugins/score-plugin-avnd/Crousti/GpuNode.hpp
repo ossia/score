@@ -18,7 +18,6 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
-  const CustomGpuNodeBase& parent;
   std::vector<Node_T> states;
   score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
@@ -38,9 +37,13 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   ossia::flat_map<int, QRhiSampler*> createdSamplers;
   ossia::flat_map<int, QRhiTexture*> createdTexs;
 
+  const CustomGpuNodeBase& node() const noexcept
+  {
+    return static_cast<const CustomGpuNodeBase&>(score::gfx::NodeRenderer::node);
+  }
+
   CustomGpuRenderer(const CustomGpuNodeBase& p)
-      : NodeRenderer{}
-      , parent{p}
+      : NodeRenderer{p}
   {
   }
 
@@ -54,6 +57,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
   QRhiTexture* createInput(score::gfx::RenderList& renderer, int k, QSize size)
   {
+    auto& parent = node();
     auto port = parent.input[k];
     static constexpr auto flags = QRhiTexture::RenderTarget;
     auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
@@ -129,6 +133,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   QRhiGraphicsPipeline* createRenderPipeline(
       score::gfx::RenderList& renderer, score::gfx::TextureRenderTarget& rt)
   {
+    auto& parent = node();
     auto& rhi = *renderer.state.rhi;
     auto& mesh = renderer.defaultTriangle();
     auto ps = rhi.newGraphicsPipeline();
@@ -190,12 +195,13 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    auto& parent = node();
     if constexpr(requires { states[0].prepare(); })
     {
       for(auto& state : states)
       {
         parent.processControlIn(
-            *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+            *this, state, m_last_message, parent.last_message, parent.m_ctx);
         state.prepare();
       }
     }
@@ -218,7 +224,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     auto srb = initBindings(renderer);
 
     // Create the states and pipelines
-    for(score::gfx::Edge* edge : this->parent.output[0]->edges)
+    for(score::gfx::Edge* edge : parent.output[0]->edges)
     {
       auto rt = renderer.renderTargetForOutput(*edge);
       if(rt.renderTarget)
@@ -243,7 +249,9 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   }
 
   std::vector<QRhiShaderResourceBinding> tmp;
-  void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge* edge) override
   {
     // First copy all the "public" uniforms to their space in memory
     if(states.size() > 0)
@@ -363,6 +371,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge) override
   {
+    auto& parent = node();
     // If we are paused, we don't run the processor implementation.
     if(parent.last_message.token.date == m_last_time)
     {
@@ -373,8 +382,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     // Apply the controls
     for(auto& state : states)
     {
-      this->parent.processControlIn(
-          *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+      parent.processControlIn(
+          *this, state, m_last_message, parent.last_message, parent.m_ctx);
     }
   }
 
@@ -382,6 +391,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       score::gfx::Edge& edge) override
   {
+    auto& parent = node();
     auto& mesh = renderer.defaultTriangle();
     score::gfx::defaultRenderPass(
         renderer, mesh, {m_meshBuffer, m_idxBuffer}, commands, edge, m_p);

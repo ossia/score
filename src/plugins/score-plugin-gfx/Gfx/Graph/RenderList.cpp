@@ -136,10 +136,11 @@ void RenderList::release()
   m_built = false;
 }
 
-void RenderList::maybeRebuild()
+bool RenderList::maybeRebuild(bool force)
 {
+  bool rebuilt = false;
   const QSize outputSize = state.renderSize;
-  if(outputSize != m_lastSize || !m_built)
+  if(outputSize != m_lastSize || !m_built || force)
   {
     m_built = false;
     release();
@@ -153,15 +154,20 @@ void RenderList::maybeRebuild()
     // the render targets of subsequent nodes must be initialized
     for(auto node : renderers)
     {
-      node->init(*this, *this->m_initialBatch);
+      node->init(*this, *m_initialBatch);
+      node->materialChanged = true;
+      node->geometryChanged = true;
+      node->renderTargetSpecsChanged = true;
     }
 
     m_lastSize = outputSize;
     m_built = true;
+    rebuilt = true;
   }
+  return rebuilt;
 }
 
-TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) noexcept
+TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const noexcept
 {
   if(auto sink_node = edge.sink->node)
     if(auto it = sink_node->renderedNodes.find(this);
@@ -232,13 +238,11 @@ RenderList::Buffers RenderList::acquireMesh(
         auto mb = currentbufs;
         auto cur_idx = p->dirty_index;
 
-        {
-          m->reload(*p, f);
-          m->update(mb, res);
-          // FIXME atomic !!
-          if(cur_idx > m->dirtyGeometryIndex)
-            m->dirtyGeometryIndex = cur_idx;
-        }
+        m->reload(*p, f);
+        m->update(mb, res);
+        // FIXME atomic !!
+        if(cur_idx > m->dirtyGeometryIndex)
+          m->dirtyGeometryIndex = cur_idx;
         return {m, mb};
       }
     }
@@ -258,6 +262,18 @@ void RenderList::clearRenderers()
 
   // Necessary so that we re-go through init() on the next frame
   m_built = false;
+}
+
+QSize RenderList::renderSize(const Edge* e) const noexcept
+{
+  if(!e)
+    return this->m_state->renderSize;
+
+  auto rt = this->renderTargetForOutput(*e);
+  if(!rt.texture)
+    return this->m_state->renderSize;
+
+  return rt.texture->pixelSize();
 }
 
 const Mesh& RenderList::defaultQuad() const noexcept
@@ -299,16 +315,23 @@ const Mesh& RenderList::defaultTriangle() const noexcept
 void RenderList::render(QRhiCommandBuffer& commands, bool force)
 {
   if(renderers.size() <= 1 && !force)
-  {
     return;
-  }
 
-  // Check if the viewport has changed
-  maybeRebuild();
+  bool rt_changed = false;
+  for(auto* renderer : renderers)
+  {
+    renderer->checkForChanges();
+
+    // If a render target changes most likely we have
+    // to rebuild render passes as there's no way to simply
+    // update a render target from e.g. a texture format to another
+    rt_changed |= renderer->renderTargetSpecsChanged;
+  }
 
   SCORE_ASSERT(m_outputUBO);
   SCORE_ASSERT(m_emptyTexture);
 
+  bool rebuilt = maybeRebuild(false);
   QRhiResourceUpdateBatch* updateBatch{};
   if(m_initialBatch)
   {
@@ -319,6 +342,23 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   {
     updateBatch = state.rhi->nextResourceUpdateBatch();
   }
+
+  if(rt_changed && !rebuilt)
+  {
+    for(auto node : renderers)
+    {
+      node->release(*this);
+    }
+    for(auto node : renderers)
+    {
+      node->init(*this, *updateBatch);
+      node->materialChanged = true;
+      node->geometryChanged = true;
+      node->renderTargetSpecsChanged = true;
+    }
+  }
+  // Check if the viewport has changed
+
   update(*updateBatch);
 
   // For each texture input port
@@ -365,14 +405,20 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           NodeRenderer* renderer = src->node->renderedNodes.find(this)->second;
           prevRenderers.push_back({edge, renderer});
 
-          renderer->update(*this, *updateBatch);
+          renderer->update(*this, *updateBatch, edge);
         }
+
+        commands.resourceUpdate(updateBatch);
+        updateBatch = state.rhi->nextResourceUpdateBatch();
 
         // For nodes that perform multiple rendering passes,
         // pre-computations in compute shaders, etc... run them now.
         // Most nodes don't do anything there.
         for(auto [edge, renderer] : prevRenderers)
         {
+          commands.resourceUpdate(updateBatch);
+          updateBatch = state.rhi->nextResourceUpdateBatch();
+
           renderer->runInitialPasses(*this, commands, updateBatch, *edge);
         }
 
@@ -420,7 +466,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       // Pure computation node - we only run update
       NodeRenderer* renderer = node->renderedNodes.find(this)->second;
 
-      renderer->update(*this, *updateBatch);
+      renderer->update(*this, *updateBatch, nullptr);
     }
   }
 
@@ -440,7 +486,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       // FIXME remove this hack
       score::gfx::Port p;
       score::gfx::Edge dummy{&p, &p};
-      output_renderer->update(*this, *updateBatch);
+      output_renderer->update(*this, *updateBatch, nullptr);
       output_renderer->runInitialPasses(*this, commands, updateBatch, dummy);
       output_renderer->runRenderPass(*this, commands, dummy);
     }

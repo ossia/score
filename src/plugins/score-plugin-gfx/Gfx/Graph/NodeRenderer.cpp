@@ -37,8 +37,7 @@ void defaultRenderPass(
       = ossia::find_if(passes, [ptr = &edge](const auto& p) { return p.first == ptr; });
   if(it != passes.end())
   {
-    const auto sz = renderer.state.renderSize;
-
+    const auto sz = renderer.renderSize(&edge);
     cb.setGraphicsPipeline(it->second.pipeline);
     cb.setShaderResources(it->second.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
@@ -59,7 +58,7 @@ void quadRenderPass(
       = ossia::find_if(passes, [ptr = &edge](const auto& p) { return p.first == ptr; });
   SCORE_ASSERT(it != passes.end());
   {
-    const auto sz = renderer.state.renderSize;
+    const auto sz = renderer.renderSize(&edge);
     cb.setGraphicsPipeline(it->second.pipeline);
     cb.setShaderResources(it->second.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
@@ -125,13 +124,14 @@ void GenericNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& re
 void GenericNodeRenderer::defaultUBOUpdate(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
+  auto& n = static_cast<const score::gfx::NodeModel&>(this->node);
+  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
 
   if(m_material.buffer && m_material.size > 0)
   {
-    if(node.hasMaterialChanged(materialChangedIndex))
+    if(materialChanged)
     {
-      char* data = node.m_materialData.get();
+      char* data = n.m_materialData.get();
       res.updateDynamicBuffer(m_material.buffer, 0, m_material.size, data);
     }
   }
@@ -154,14 +154,16 @@ void GenericNodeRenderer::defaultMeshUpdate(
   // the last fully written frame so that wwith peek() we can check that we are going to get only
   // the messages relevant for a frame.
   // Or... just put all of one frame's message in one vector and push that one at the end of the audio frame.
-  if(node.hasGeometryChanged(geometryChangedIndex) && node.geometry.meshes)
+  auto& n = static_cast<const score::gfx::NodeModel&>(node);
+  if(geometryChanged && n.geometry.meshes)
   {
     std::tie(m_mesh, m_meshbufs)
-        = renderer.acquireMesh(node.geometry, res, m_mesh, m_meshbufs);
+        = renderer.acquireMesh(n.geometry, res, m_mesh, m_meshbufs);
   }
 }
 
-void GenericNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
+void GenericNodeRenderer::update(
+    RenderList& renderer, QRhiResourceUpdateBatch& res, score::gfx::Edge* e)
 {
   defaultMeshUpdate(renderer, res);
   defaultUBOUpdate(renderer, res);
@@ -223,8 +225,6 @@ void GenericNodeRenderer::release(RenderList& r)
 {
   defaultRelease(r);
 }
-
-score::gfx::NodeRenderer::NodeRenderer() noexcept { }
 
 score::gfx::NodeRenderer::~NodeRenderer() { }
 

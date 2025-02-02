@@ -895,7 +895,7 @@ struct GpuProcessIns
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
     // FIXME we should be loading a file there
-    using node_type = std::remove_cvref_t<decltype(gpu.parent)>;
+    using node_type = std::remove_cvref_t<decltype(gpu.node())>;
     using file_ports = avnd::raw_file_input_introspection<Node>;
 
     if(!can_process_message(field_index))
@@ -917,7 +917,7 @@ struct GpuProcessIns
         // FIXME also do it when we get a run-time message from the exec engine,
         // OSC, etc
         auto func = executePortPreprocess<Field>(*hdl);
-        const_cast<node_type&>(gpu.parent)
+        const_cast<node_type&>(gpu.node())
             .file_loaded(
                 state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
         if(func)
@@ -925,7 +925,7 @@ struct GpuProcessIns
       }
       else
       {
-        const_cast<node_type&>(gpu.parent)
+        const_cast<node_type&>(gpu.node())
             .file_loaded(
                 state, hdl, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
       }

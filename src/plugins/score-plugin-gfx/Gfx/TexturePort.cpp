@@ -157,6 +157,71 @@ TextureInlet::TextureInlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+std::optional<QSize> TextureInlet::renderSize() const noexcept
+{
+  return m_renderSize;
+}
+
+void TextureInlet::setRenderSize(std::optional<QSize> sz)
+{
+  if(m_renderSize != sz)
+  {
+    m_renderSize = sz;
+    renderSizeChanged(m_renderSize);
+  }
+}
+
+void TextureInlet::unsetRenderSize()
+{
+  if(m_renderSize)
+  {
+    m_renderSize = std::nullopt;
+    renderSizeChanged(m_renderSize);
+  }
+}
+
+void TextureInlet::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
+{
+  ossia::texture_inlet& exec = *safe_cast<ossia::texture_inlet*>(&inl);
+  if(auto sz = m_renderSize)
+    exec.data.size = {(int32_t)sz->width(), (int32_t)sz->height()};
+  exec.data.address_u = m_textureAddressMode;
+  exec.data.address_v = m_textureAddressMode;
+  exec.data.address_w = m_textureAddressMode;
+  exec.data.min_filter = m_textureFilter;
+  exec.data.mag_filter = m_textureFilter;
+  exec.data.format = m_textureFormat;
+
+  connect(
+      this, &TextureInlet::renderSizeChanged, exec_context,
+      [&exec](std::optional<QSize> v) {
+    if(v)
+      exec.data.size = {v->width(), v->height()};
+    else
+      exec.data.size.reset();
+  });
+
+  connect(
+      this, &TextureInlet::textureFormatChanged, exec_context,
+      [&exec](ossia::texture_format v) { exec.data.format = v; });
+
+  connect(
+      this, &TextureInlet::textureFilterChanged, exec_context,
+      [&exec](ossia::texture_filter v) {
+    exec.data.min_filter = v;
+    exec.data.mag_filter = v;
+  });
+
+  connect(
+      this, &TextureInlet::textureAddressModeChanged, exec_context,
+      [&exec](ossia::texture_address_mode v) {
+    exec.data.address_u = v;
+    exec.data.address_v = v;
+    exec.data.address_w = v;
+  });
+}
+
 TextureOutlet::~TextureOutlet() { }
 
 TextureOutlet::TextureOutlet(Id<Process::Port> c, QObject* parent)
@@ -185,6 +250,111 @@ TextureOutlet::TextureOutlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+struct TextureSizeWidget : public QWidget
+{
+  explicit TextureSizeWidget(
+      const TextureInlet& port, const score::DocumentContext& ctx, QWidget* parent)
+      : QWidget{parent}
+      , m_model{port}
+      , m_ongoingDispatcher{ctx.commandStack}
+  {
+    auto sz_lay = new score::MarginLess<QHBoxLayout>{};
+    setLayout(sz_lay);
+    m_enabled = new QCheckBox{};
+    score::setHelp(
+        m_enabled,
+        QObject::tr(
+            "When enabled, the render target will use the given size: every input "
+            "process will render to a texture of said size upon execution. "
+            "Otherwise, it will "
+            "use the default render size, usually the window viewport size."));
+    auto rs = port.renderSize();
+    m_enabled->setChecked(bool(rs));
+
+    m_sz_w = new QSpinBox{};
+    m_sz_w->setRange(0, 65535);
+    m_sz_w->setEnabled(m_enabled->isChecked());
+    if(rs)
+      m_sz_w->setValue(rs->width());
+    else
+      m_sz_w->setValue(defaultSize().width());
+    m_sz_h = new QSpinBox{};
+    m_sz_h->setRange(0, 65535);
+    m_sz_h->setEnabled(m_enabled->isChecked());
+    if(rs)
+      m_sz_h->setValue(rs->height());
+    else
+      m_sz_h->setValue(defaultSize().height());
+
+    sz_lay->addWidget(m_enabled);
+    sz_lay->addWidget(m_sz_w);
+    sz_lay->addWidget(m_sz_h);
+    sz_lay->setAlignment(m_enabled, Qt::AlignRight);
+    QObject::connect(m_enabled, &QCheckBox::checkStateChanged, this, [this](int state) {
+      m_sz_w->setEnabled(state);
+      m_sz_h->setEnabled(state);
+      if(state)
+      {
+        update_size();
+      }
+      else
+      {
+        m_ongoingDispatcher.submit(m_model, std::nullopt);
+      }
+      m_ongoingDispatcher.commit();
+    });
+
+    QObject::connect(
+        m_sz_w, &QSpinBox::valueChanged, this, &TextureSizeWidget::update_size);
+    QObject::connect(
+        m_sz_h, &QSpinBox::valueChanged, this, &TextureSizeWidget::update_size);
+    QObject::connect(
+        m_sz_w, &QSpinBox::editingFinished, this, &TextureSizeWidget::commit);
+    QObject::connect(
+        m_sz_h, &QSpinBox::editingFinished, this, &TextureSizeWidget::commit);
+
+    connect(
+        &m_model, &TextureInlet::renderSizeChanged, this,
+        &TextureSizeWidget::on_renderSizeChanged);
+  }
+
+  void on_renderSizeChanged(std::optional<QSize> sz)
+  {
+    const QSignalBlocker blck_w{m_sz_w};
+    const QSignalBlocker blck_h{m_sz_h};
+    const QSignalBlocker blck_cb{m_enabled};
+    const bool enabled = bool(sz);
+    m_enabled->setChecked(enabled);
+    m_sz_w->setEnabled(enabled);
+    m_sz_h->setEnabled(enabled);
+    if(enabled)
+    {
+      m_sz_w->setValue(sz->width());
+      m_sz_h->setValue(sz->height());
+    }
+  }
+
+  void update_size()
+  {
+    m_ongoingDispatcher.submit(m_model, QSize{m_sz_w->value(), m_sz_h->value()});
+  }
+
+  void commit() { m_ongoingDispatcher.commit(); }
+
+  QSize defaultSize() const noexcept
+  {
+    return QSize{
+        1280, 720}; // FIXME use the actual one from the device viewport if any instead.
+  }
+
+  const TextureInlet& m_model;
+  SingleOngoingCommandDispatcher<ChangeTextureInletRenderSize> m_ongoingDispatcher;
+
+  QCheckBox* m_enabled{};
+  QSpinBox* m_sz_w{};
+  QSpinBox* m_sz_h{};
+};
+
 void TextureInletFactory::setupInletInspector(
     const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
@@ -195,8 +365,98 @@ void TextureInletFactory::setupInletInspector(
       = [](Device::DeviceInterface& dev) { return qobject_cast<GfxInputDevice*>(&dev); };
 
   lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
-}
 
+  auto& inlet = safe_cast<const TextureInlet&>(port);
+  // Size
+  lay.addRow("Size", new TextureSizeWidget{inlet, ctx, parent});
+
+  // Format
+  {
+    using enum ossia::texture_format;
+    auto combo = new QComboBox{parent};
+    combo->addItem("RGBA8", (int)RGBA8);
+    combo->addItem("RGBA16F", (int)RGBA16F);
+    combo->addItem("RGBA32F", (int)RGBA32F);
+    combo->addItem("R8", (int)R8);
+    combo->addItem("R16", (int)R16);
+    combo->addItem("R16F", (int)R16F);
+    combo->addItem("R32F", (int)R32F);
+    static const auto map = ossia::flat_map<ossia::texture_format, int>{
+        {RGBA8, 0}, {RGBA16F, 1}, {RGBA32F, 2}, {R8, 3}, {R16, 4}, {R16F, 5}, {R32F, 6}};
+    if(auto it = map.find(inlet.textureFormat()); it != map.end())
+      combo->setCurrentIndex(it->second);
+    QObject::connect(
+        &inlet, &TextureInlet::textureFormatChanged, combo,
+        [combo](ossia::texture_format fmt) {
+      if((int)fmt != combo->currentData())
+      {
+        if(auto it = map.find(fmt); it != map.end())
+          combo->setCurrentIndex(it->second);
+      }
+    });
+    QObject::connect(
+        combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet, combo](int idx) {
+      auto fmt = (ossia::texture_format)combo->itemData(idx).toInt();
+      if(fmt != inlet.textureFormat())
+        CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletFormat>(
+            inlet, fmt);
+    });
+
+    lay.addRow("Format", combo);
+  }
+
+  // Filter
+  {
+    using enum ossia::texture_filter;
+    auto combo = new QComboBox{parent};
+    combo->addItem("None", ossia::texture_filter::NONE);
+    combo->addItem("Nearest", ossia::texture_filter::NEAREST);
+    combo->addItem("Linear", ossia::texture_filter::LINEAR);
+    combo->setCurrentIndex((int)inlet.textureFilter());
+
+    QObject::connect(
+        &inlet, &TextureInlet::textureFilterChanged, combo,
+        [combo](ossia::texture_filter fmt) {
+      if((int)fmt != combo->currentData())
+        combo->setCurrentIndex((int)fmt);
+    });
+    QObject::connect(
+        combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet](int idx) {
+      auto mode = (ossia::texture_filter)idx;
+      if(mode != inlet.textureFilter())
+        CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletFilter>(
+            inlet, (ossia::texture_filter)idx);
+    });
+
+    lay.addRow("Filter", combo);
+  }
+
+  // Address mode
+  {
+    using enum ossia::texture_address_mode;
+    auto combo = new QComboBox{parent};
+    combo->addItem("Repeat", ossia::texture_address_mode::REPEAT);
+    combo->addItem("Clamp to edge", ossia::texture_address_mode::CLAMP_TO_EDGE);
+    combo->addItem("Mirror", ossia::texture_address_mode::MIRROR);
+    combo->setCurrentIndex((int)inlet.textureAddressMode());
+
+    QObject::connect(
+        &inlet, &TextureInlet::textureAddressModeChanged, combo,
+        [combo](ossia::texture_address_mode fmt) {
+      if((int)fmt != combo->currentData())
+        combo->setCurrentIndex((int)fmt);
+    });
+    QObject::connect(
+        combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet](int idx) {
+      auto mode = (ossia::texture_address_mode)idx;
+      if(mode != inlet.textureAddressMode())
+        CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletAddressMode>(
+            inlet, (ossia::texture_address_mode)idx);
+    });
+
+    lay.addRow("Address mode", combo);
+  }
+}
 void TextureOutletFactory::setupOutletInspector(
     const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
@@ -216,20 +476,47 @@ template <>
 void DataStreamReader::read(const Gfx::TextureInlet& p)
 {
   // read((Process::Outlet&)p);
+  m_stream << p.m_renderSize << p.m_textureFormat << p.m_textureAddressMode
+           << p.m_textureFilter;
 }
 template <>
 void DataStreamWriter::write(Gfx::TextureInlet& p)
 {
+  m_stream >> p.m_renderSize >> p.m_textureFormat >> p.m_textureAddressMode
+      >> p.m_textureFilter;
 }
 
 template <>
 void JSONReader::read(const Gfx::TextureInlet& p)
 {
   // read((Process::Outlet&)p);
+  if(p.m_renderSize)
+  {
+    obj["RenderSize"] = *p.m_renderSize;
+  }
+  obj["Format"] = p.m_textureFormat;
+  obj["Filter"] = p.m_textureFilter;
+  obj["AddressMode"] = p.m_textureAddressMode;
 }
 template <>
 void JSONWriter::write(Gfx::TextureInlet& p)
 {
+  if(auto sz = obj.tryGet("RenderSize"))
+  {
+    QSize s;
+    s <<= *sz;
+    p.m_renderSize = s;
+  }
+  else
+  {
+    p.m_renderSize = std::nullopt;
+  }
+  if(auto fmt = obj.tryGet("Format"))
+  {
+    p.m_textureFormat <<= *fmt;
+    p.m_textureFilter <<= obj["Filter"];
+    p.m_textureAddressMode <<= obj["AddressMode"];
+  }
 }
 
 template <>

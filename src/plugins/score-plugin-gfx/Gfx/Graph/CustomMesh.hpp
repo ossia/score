@@ -164,7 +164,6 @@ public:
 
   void reload(const ossia::mesh_list& ml, const ossia::geometry_filter_list_ptr& f)
   {
-    dirtyGeometryIndex++;
     this->geom = ml;
     this->filters = f;
 

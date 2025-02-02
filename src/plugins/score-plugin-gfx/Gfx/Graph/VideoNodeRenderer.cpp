@@ -23,8 +23,7 @@ namespace score::gfx
 
 VideoNodeRenderer::VideoNodeRenderer(
     const VideoNodeBase& node, VideoFrameShare& frames) noexcept
-    : NodeRenderer{}
-    , node{node}
+    : NodeRenderer{node}
     , reader{frames}
     , m_frameFormat{decoder()}
 {
@@ -44,7 +43,7 @@ TextureRenderTarget VideoNodeRenderer::renderTargetForInput(const Port& input)
 
 void VideoNodeRenderer::createGpuDecoder()
 {
-  auto& model = const_cast<VideoNodeBase&>(node);
+  auto& model = const_cast<VideoNodeBase&>(node());
   auto& filter = model.m_filter;
   switch(m_frameFormat.pixel_format)
   {
@@ -214,7 +213,7 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
     auto shaders = m_gpu->init(r);
     SCORE_ASSERT(m_p.empty());
     score::gfx::defaultPassesInit(
-        m_p, this->node.output[0]->edges, r, r.defaultTriangle(), shaders.first,
+        m_p, this->node().output[0]->edges, r, r.defaultTriangle(), shaders.first,
         shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
   }
 }
@@ -271,9 +270,11 @@ void VideoNodeRenderer::runRenderPass(
 // a frame because rendered may have different rates, so we cannot know "when"
 // all renderers have rendered, thue the pattern in the following function
 // is not enough
-void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
+void VideoNodeRenderer::update(
+    RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
-  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
+  res.updateDynamicBuffer(
+      m_processUBO, 0, sizeof(ProcessUBO), &this->node().standardUBO);
 
   auto reader_frame = reader.m_currentFrameIdx;
   if(reader_frame > this->m_currentFrameIdx)
@@ -293,11 +294,11 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
     this->m_currentFrameIdx = reader_frame;
   }
 
-  if(m_recomputeScale || m_currentScaleMode != this->node.m_scaleMode)
+  if(m_recomputeScale || m_currentScaleMode != this->node().m_scaleMode)
   {
-    m_currentScaleMode = this->node.m_scaleMode;
+    m_currentScaleMode = this->node().m_scaleMode;
     auto sz = computeScale(
-        m_currentScaleMode, renderer.state.renderSize,
+        m_currentScaleMode, renderer.renderSize(edge),
         QSizeF(m_frameFormat.width, m_frameFormat.height));
     Material mat;
     mat.scale_w = sz.width();

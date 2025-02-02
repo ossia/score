@@ -3,7 +3,6 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
-#include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -49,6 +48,11 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   state.api = graphicsApi;
   state.samples = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
 
+  QRhi::Flags flags{};
+#ifndef NDEBUG
+  flags |= QRhi::EnableDebugMarkers;
+#endif
+
 #ifndef QT_NO_OPENGL
   if(graphicsApi == OpenGL)
   {
@@ -61,7 +65,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     caps.setupFormat(params.format);
     params.format.setSamples(state.samples);
     state.version = caps.qShaderVersion;
-    state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
+    state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
     state.renderSize = window.size();
     return st;
   }
@@ -73,8 +77,9 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiVulkanInitParams params;
     params.inst = window.vulkanInstance();
     params.window = &window;
+    // Note: QShaderVersion still hardcoded to 100 in qrhvulkan.cpp as of qt 6.9
     state.version = QShaderVersion(100);
-    state.rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers);
+    state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
     state.renderSize = window.size();
     return st;
   }
@@ -93,7 +98,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     //   params.repeatDeviceKill = true;
     // }
     state.version = QShaderVersion(50);
-    state.rhi = QRhi::create(QRhi::D3D11, &params, {});
+    state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
     state.renderSize = window.size();
     return st;
   }
@@ -104,7 +109,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   {
     QRhiMetalInitParams params;
     state.version = QShaderVersion(12);
-    state.rhi = QRhi::create(QRhi::Metal, &params, {});
+    state.rhi = QRhi::create(QRhi::Metal, &params, flags);
     state.renderSize = window.size();
     return st;
   }
@@ -116,7 +121,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
 
     QRhiNullInitParams params;
     state.version = QShaderVersion(120);
-    state.rhi = QRhi::create(QRhi::Null, &params, {});
+    state.rhi = QRhi::create(QRhi::Null, &params, flags);
     state.renderSize = window.size();
     state.api = GraphicsApi::Null;
     return st;
@@ -331,15 +336,19 @@ void ScreenNode::createOutput(
     {
       // TODO depth stencil, render buffer, etc ?
       m_swapChain = m_window->state->rhi->newSwapChain();
+      m_swapChain->setName("ScreenNode::m_swapChain");
       m_window->m_swapChain = m_swapChain;
       m_depthStencil = m_window->state->rhi->newRenderBuffer(
           QRhiRenderBuffer::DepthStencil,
           QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
           m_window->state->samples, QRhiRenderBuffer::UsedWithSwapChainOnly);
+      m_depthStencil->setName("ScreenNode::m_depthStencil");
       m_swapChain->setWindow(m_window.get());
       m_swapChain->setDepthStencil(m_depthStencil);
       m_swapChain->setSampleCount(m_window->state->samples);
-      m_swapChain->setFlags({});
+      m_swapChain->setFlags(QRhiSwapChain::MinimalBufferCount);
+      // FIXME QRhiSwapChain::NoVSync
+
       m_window->state->renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();
       m_swapChain->setRenderPassDescriptor(m_window->state->renderPassDescriptor);
@@ -475,7 +484,7 @@ public:
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return m_rt; }
   BasicRenderer(const RenderState& state, const ScreenNode& parent)
-      : score::gfx::OutputNodeRenderer{}
+      : score::gfx::OutputNodeRenderer{parent}
   {
     if(parent.m_swapChain)
     {
@@ -492,7 +501,8 @@ public:
 
   ~BasicRenderer() { }
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override {
+  }
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override { }
   void release(RenderList&) override { }
 };
@@ -500,7 +510,6 @@ public:
 class ScreenNode::ScaledRenderer : public score::gfx::OutputNodeRenderer
 {
 public:
-  const ScreenNode& parent;
   score::gfx::TextureRenderTarget m_inputTarget;
   score::gfx::TextureRenderTarget m_renderTarget;
 
@@ -512,13 +521,16 @@ public:
 
   score::gfx::MeshBuffers m_mesh{};
 
+  const ScreenNode& node() const noexcept
+  {
+    return static_cast<const ScreenNode&>(NodeRenderer::node);
+  }
   TextureRenderTarget renderTargetForInput(const Port& p) override
   {
     return m_inputTarget;
   }
   ScaledRenderer(const RenderState& state, const ScreenNode& parent)
-      : score::gfx::OutputNodeRenderer{}
-      , parent{parent}
+      : score::gfx::OutputNodeRenderer{parent}
   {
   }
 
@@ -526,6 +538,7 @@ public:
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    // FIXME RGBA32F for hdr ?
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize,
         renderer.samples());
@@ -540,7 +553,11 @@ public:
 
       void main()
       {
+#if defined(QSHADER_SPIRV)
+        fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+#else
         fragColor = texture(tex, vec2(v_texcoord.x, v_texcoord.y));
+#endif
       }
       )_";
 
@@ -559,7 +576,7 @@ public:
       m_samplers.push_back({sampler, this->m_inputTarget.texture});
     }
 
-    m_renderTarget.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
+    m_renderTarget.renderTarget = node().m_swapChain->currentFrameRenderTarget();
     m_renderTarget.renderPass = renderer.state.renderPassDescriptor;
 
     m_p = score::gfx::buildPipeline(
@@ -567,7 +584,8 @@ public:
         m_samplers);
   }
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override {
+  }
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
   {

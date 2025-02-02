@@ -82,6 +82,8 @@ void gfx_exec_node::run(
           cam->pull_texture({this->id, inlet_i});
         }
 
+        auto& p = inlet->cast<ossia::texture_inlet>();
+        msg.input[inlet_i] = p.data;
         link_cable_to_inlet(inlet, inlet_i);
         break;
       }

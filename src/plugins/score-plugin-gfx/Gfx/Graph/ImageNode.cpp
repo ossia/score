@@ -379,7 +379,7 @@ private:
     }
   }
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
 
@@ -461,7 +461,7 @@ private:
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
     }
 
-    GenericNodeRenderer::update(renderer, res);
+    GenericNodeRenderer::update(renderer, res, edge);
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
@@ -584,7 +584,7 @@ private:
     }
   }
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
 
@@ -648,7 +648,7 @@ private:
       }
     }
 
-    GenericNodeRenderer::update(renderer, res);
+    GenericNodeRenderer::update(renderer, res, edge);
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
@@ -782,9 +782,10 @@ private:
     defaultPassesInit(renderer, mesh);
   }
 
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, score::gfx::Edge* edge)
+      override
   {
-    GenericNodeRenderer::update(renderer, res);
+    GenericNodeRenderer::update(renderer, res, edge);
 
     auto& n = static_cast<const FullScreenImageNode&>(this->node);
     // If images haven't been uploaded yet, upload them.

@@ -14,7 +14,6 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
-  const GfxNode<Node_T>& parent;
   Node_T state;
   score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
@@ -23,12 +22,16 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   std::vector<QRhiReadbackResult> m_readbacks;
   ossia::time_value m_last_time{-1};
 
+  const GfxNode<Node_T>& node() const noexcept
+  {
+    return static_cast<const GfxNode<Node_T>&>(score::gfx::NodeRenderer::node);
+  }
+
   GfxRenderer(const GfxNode<Node_T>& p)
       : score::gfx::GenericNodeRenderer{p}
-      , parent{p}
       , m_readbacks(texture_inputs::size)
   {
-    prepareNewState(state, parent);
+    prepareNewState(state, p);
   }
 
   score::gfx::TextureRenderTarget
@@ -43,6 +46,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   void createInput(
       score::gfx::RenderList& renderer, int k, const Tex& texture_spec, QSize size)
   {
+    auto& parent = node();
     auto port = parent.input[k];
     static constexpr auto flags
         = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
@@ -155,10 +159,11 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    auto& parent = node();
     if constexpr(requires { state.prepare(); })
     {
       parent.processControlIn(
-          *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+          *this, state, m_last_message, parent.last_message, parent.m_ctx);
       state.prepare();
     }
 
@@ -203,7 +208,9 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     this->defaultPassesInit(renderer, mesh);
   }
 
-  void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge* e) override
   {
     this->defaultUBOUpdate(renderer, res);
   }
@@ -231,8 +238,9 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       score::gfx::RenderList& renderer, const score::gfx::Port& p,
       QRhiResourceUpdateBatch*& res) override
   {
+    auto& parent = node();
     res = renderer.state.rhi->nextResourceUpdateBatch();
-    const auto& inputs = this->node.input;
+    const auto& inputs = parent.input;
     auto index_of_port = ossia::find(inputs, &p) - inputs.begin();
     {
       auto tex = m_rts[&p].texture;
@@ -246,6 +254,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge) override
   {
+    auto& parent = node();
     auto& rhi = *renderer.state.rhi;
 
     // If we are paused, we don't run the processor implementation.
@@ -272,7 +281,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     }
 
     parent.processControlIn(
-        *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+        *this, state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the processor
     state();

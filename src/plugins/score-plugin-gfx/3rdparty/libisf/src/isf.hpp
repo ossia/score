@@ -101,6 +101,7 @@ struct pass
   std::string target;
   bool persistent{};
   bool float_storage{};
+  bool nearest_filter{};
   std::string width_expression{};
   std::string height_expression{};
 };

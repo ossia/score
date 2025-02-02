@@ -62,14 +62,14 @@ public:
   /**
    * @brief Check if the render size has changed in order to rebuild the pipelines.
    */
-  void maybeRebuild();
+  bool maybeRebuild(bool force = false);
 
   /**
    * @brief Obtain the texture corresponding to an output port.
    *
    * This is done by looking for the render target which corresponds to a given port.
    */
-  TextureRenderTarget renderTargetForOutput(const Edge& edge) noexcept;
+  TextureRenderTarget renderTargetForOutput(const Edge& edge) const noexcept;
 
   /**
    * @brief Adapts an image to the GPU limits / format
@@ -132,6 +132,8 @@ public:
   int samples() const noexcept { return m_samples; }
 
   bool canRender() const noexcept { return m_ready; }
+
+  QSize renderSize(const Edge* e) const noexcept;
 
 private:
   OutputUBO m_outputUBOData;

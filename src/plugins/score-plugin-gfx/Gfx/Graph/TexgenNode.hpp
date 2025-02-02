@@ -93,7 +93,9 @@ struct TexgenNode : NodeModel
       defaultPassesInit(renderer, mesh);
     }
 
-    void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+    void update(
+        RenderList& renderer, QRhiResourceUpdateBatch& res,
+        score::gfx::Edge* edge) override
     {
       defaultUBOUpdate(renderer, res);
       auto& n = static_cast<const TexgenNode&>(this->node);

@@ -52,7 +52,6 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 {
   using texture_inputs = avnd::gpu_image_input_introspection<Node_T>;
   using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
-  const GpuComputeNode<Node_T>& parent;
   Node_T state;
   score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
@@ -77,11 +76,16 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
   std::vector<QRhiReadbackResult*> texReadbacks;
   void addReadback(QRhiReadbackResult* r) { texReadbacks.push_back(r); }
-  GpuComputeRenderer(const GpuComputeNode<Node_T>& p)
-      : ComputeRendererBaseType<Node_T>{}
-      , parent{p}
+
+  const GpuComputeNode<Node_T>& node() const noexcept
   {
-    prepareNewState(state, parent);
+    return static_cast<const GpuComputeNode<Node_T>&>(score::gfx::NodeRenderer::node);
+  }
+
+  GpuComputeRenderer(const GpuComputeNode<Node_T>& p)
+      : ComputeRendererBaseType<Node_T>{p}
+  {
+    prepareNewState(state, p);
   }
 
   score::gfx::TextureRenderTarget
@@ -95,6 +99,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   QRhiTexture* createInput(
       score::gfx::RenderList& renderer, int k, QRhiTexture::Format fmt, QSize size)
   {
+    auto& parent = node();
     auto port = parent.input[k];
     static constexpr auto flags
         = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore;
@@ -176,6 +181,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
   QRhiComputePipeline* createComputePipeline(score::gfx::RenderList& renderer)
   {
+    auto& parent = node();
     auto& rhi = *renderer.state.rhi;
     auto compute = rhi.newComputePipeline();
     auto cs = score::gfx::makeCompute(renderer.state, parent.compute);
@@ -222,10 +228,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    auto& parent = node();
     if constexpr(requires { state.prepare(); })
     {
       parent.processControlIn(
-          *this, state, m_last_message, this->parent.last_message, this->parent.m_ctx);
+          *this, state, m_last_message, parent.last_message, parent.m_ctx);
       state.prepare();
     }
 
@@ -247,7 +254,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   }
 
   std::vector<QRhiShaderResourceBinding> tmp;
-  void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge* edge) override
   {
     // First copy all the "public" uniforms to their space in memory
     avnd::gpu_uniform_introspection<Node_T>::for_all(
@@ -369,6 +378,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
       score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res)
   {
+    auto& parent = node();
     // If we are paused, we don't run the processor implementation.
     // if(parent.last_message.token.date == m_last_time) {
     //   return;
@@ -377,8 +387,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     // Apply the controls
     parent.processControlIn(
-        *this, this->state, m_last_message, this->parent.last_message,
-        this->parent.m_ctx);
+        *this, this->state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the compute shader
     {

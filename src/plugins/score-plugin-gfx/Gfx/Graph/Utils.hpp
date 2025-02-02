@@ -197,6 +197,14 @@ void replaceTexture(
     QRhiShaderResourceBindings&, QRhiSampler* sampler, QRhiTexture* newTexture);
 
 /**
+ * @brief Replace both sampler and texture in a SRC
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void replaceSamplerAndTexture(
+    QRhiShaderResourceBindings&, QRhiSampler* oldSampler, QRhiSampler* newSampler,
+    QRhiTexture* newTexture);
+
+/**
  * @brief Replace a texture by another in a set of bindings.
  */
 SCORE_PLUGIN_GFX_EXPORT
