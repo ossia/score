@@ -75,22 +75,12 @@ struct Node
   double phase{};
   rnd::pcg rd{random_source()};
 
-#ifndef TEENSY_31
   using tick = halp::tick_flicks;
   void operator()(const halp::tick_flicks& tk)
-#else
-  void operator()(int elapsed)
-#endif
   {
-#ifndef TEENSY_31
     constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
 
     const auto elapsed = tk.model_read_duration();
-#else
-    constexpr const double sine_ratio = ossia::two_pi / 44100.;
-
-    // const auto elapsed = 100.;
-#endif
 
     const auto quantif = inputs.quant.value;
     auto freq = inputs.freq.value;
