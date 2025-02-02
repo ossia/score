@@ -4,9 +4,14 @@
 #include <boost/algorithm/string/replace.hpp>
 namespace Nodes
 {
-static struct
+struct exprtk_strings
 {
-  const std::string pre = R"_(
+  std::string pre;
+  std::string post;
+};
+
+static exprtk_strings exprtk_to_cpp_impl{
+    .pre = R"_(
   [](auto& object) {
     using namespace std;
     static %IVECT% px%IVECF% = {};
@@ -26,21 +31,53 @@ static struct
     float dt = 0;
     float pos = 0;
     float fs = 44100;
-)_";
-
-  const std::string post = R"_(
+)_",
+    .post = R"_(
     value_adapt(px%IVECF%, x%IVECF% %IVECA%);
     value_adapt(po%OVECF%, o%OVECF% %OVECA%);
 
     pa = a;
     pb = b;
     pc = c;
-)_";
+)_"};
 
-} exprtk_to_cpp_impl;
+static exprtk_strings exprtk_to_cpp_impl_opt{
+    .pre = R"_(
+  [](auto& object) {
+    using namespace std;
 
+    object.outputs.out.value = std::nullopt;
+    if(object.inputs.in.value) {
+      static %IVECT% px%IVECF% = {};
+      static %OVECT% po%OVECF% = {};
+      static float pa = 0;
+      static float pb = 0;
+      static float pc = 0;
+      auto& x%IVECF% = *object.inputs.in.value;
+      auto& o%OVECF% = object.outputs.out.value;
+      auto& a = object.inputs.a.value;
+      auto& b = object.inputs.b.value;
+      auto& c = object.inputs.c.value;
+      auto& m1 = object.inputs.m1.value;
+      auto& m2 = object.inputs.m2.value;
+      auto& m3 = object.inputs.m3.value;
+      float t = 0;
+      float dt = 0;
+      float pos = 0;
+      float fs = 44100;
+)_",
+    .post = R"_(
+      value_adapt(px%IVECF%, x%IVECF% %IVECA%);
+      value_adapt(po%OVECF%, o%OVECF% %OVECA%);
 
-std::string exprtk_to_cpp(std::string exprtk) noexcept
+      pa = a;
+      pb = b;
+      pc = c;
+    }
+    object.inputs.in.value = std::nullopt;
+)_"};
+
+std::string exprtk_to_cpp(std::string exprtk, bool optional) noexcept
 {
   const bool in_vector = exprtk.find("xv[") != std::string::npos;
   const bool ret_vector = exprtk.find("return") != std::string::npos;
@@ -120,8 +157,9 @@ std::string exprtk_to_cpp(std::string exprtk) noexcept
 
 
   // Process the last line which may look like "x + 1"
-  auto pre = exprtk_to_cpp_impl.pre;
-  auto post = exprtk_to_cpp_impl.post;
+  const auto& strs = optional ? exprtk_to_cpp_impl_opt : exprtk_to_cpp_impl;
+  auto pre = strs.pre;
+  auto post = strs.post;
   if(in_vector)
   {
     boost::replace_all(pre, "%IVECT%", "std::vector<float>");
@@ -135,10 +173,10 @@ std::string exprtk_to_cpp(std::string exprtk) noexcept
   {
     boost::replace_all(pre, "%IVECT%", "float");
     boost::replace_all(pre, "%IVECF%", "");
-    boost::replace_all(pre, "%IVECA%", ".v");
+    boost::replace_all(pre, "%IVECA%", "");
     boost::replace_all(post, "%IVECT%", "float");
     boost::replace_all(post, "%IVECF%", "");
-    boost::replace_all(post, "%IVECA%", ".v");
+    boost::replace_all(post, "%IVECA%", "");
   }
 
   if(ret_vector)
@@ -154,10 +192,10 @@ std::string exprtk_to_cpp(std::string exprtk) noexcept
   {
     boost::replace_all(pre, "%OVECT%", "float");
     boost::replace_all(pre, "%OVECF%", "");
-    boost::replace_all(pre, "%OVECA%", ".v");
+    boost::replace_all(pre, "%OVECA%", "");
     boost::replace_all(post, "%OVECT%", "float");
     boost::replace_all(post, "%OVECF%", "");
-    boost::replace_all(post, "%OVECA%", ".v");
+    boost::replace_all(post, "%OVECA%", "");
   }
 
   if(!ret_vector)
