@@ -19,7 +19,17 @@ QVulkanInstance* staticVulkanInstance()
 #if !defined(NDEBUG)
   instance.setLayers({"VK_LAYER_KHRONOS_validation"});
 #endif
-  instance.setExtensions(QByteArrayList() << "VK_KHR_get_physical_device_properties2");
+
+  QByteArrayList exts;
+  exts << "VK_KHR_get_physical_device_properties2";
+
+  if(auto v = instance.supportedApiVersion(); v >= QVersionNumber(1, 1, 0))
+    instance.setApiVersion(v);
+  else
+    exts << "VK_KHR_maintenance1";
+
+  instance.setExtensions(exts);
+  instance.setFlags(QVulkanInstance::Flag::NoDebugOutputRedirect);
 
   if(!instance.create())
   {
