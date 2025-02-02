@@ -246,7 +246,7 @@ public:
       }
       else if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
       {
-        node->add_texture();
+        ctrl->setupExecution(*node->add_texture(), this);
       }
     }
 

@@ -74,7 +74,7 @@ Enum::Enum(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-void Enum::setupExecution(ossia::inlet& inl) const noexcept
+void Enum::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::STRING;
@@ -102,7 +102,7 @@ ComboBox::ComboBox(
   setName(name);
 }
 
-void ComboBox::setupExecution(ossia::inlet& inl) const noexcept
+void ComboBox::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.domain = domain().get();
@@ -138,7 +138,7 @@ HSVSlider::HSVSlider(
 
 HSVSlider::~HSVSlider() { }
 
-void HSVSlider::setupExecution(ossia::inlet& i) const noexcept
+void HSVSlider::setupExecution(ossia::inlet& i, QObject* exec_context) const noexcept
 {
   safe_cast<ossia::value_inlet*>(&i)->data.type = ossia::rgba_u{};
 }
@@ -156,7 +156,7 @@ FloatSlider::FloatSlider(
 
 FloatSlider::~FloatSlider() { }
 
-void FloatSlider::setupExecution(ossia::inlet& inl) const noexcept
+void FloatSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::FLOAT;
@@ -176,7 +176,7 @@ FloatKnob::FloatKnob(
 
 FloatKnob::~FloatKnob() { }
 
-void FloatKnob::setupExecution(ossia::inlet& inl) const noexcept
+void FloatKnob::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::FLOAT;
@@ -196,7 +196,8 @@ LogFloatSlider::LogFloatSlider(
 
 LogFloatSlider::~LogFloatSlider() { }
 
-void LogFloatSlider::setupExecution(ossia::inlet& inl) const noexcept
+void LogFloatSlider::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::FLOAT;
@@ -216,7 +217,7 @@ IntSlider::IntSlider(
 
 IntSlider::~IntSlider() { }
 
-void IntSlider::setupExecution(ossia::inlet& inl) const noexcept
+void IntSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::INT;
@@ -237,7 +238,8 @@ IntRangeSlider::IntRangeSlider(
 
 IntRangeSlider::~IntRangeSlider() { }
 
-void IntRangeSlider::setupExecution(ossia::inlet& inl) const noexcept
+void IntRangeSlider::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC2F;
@@ -258,7 +260,8 @@ FloatRangeSlider::FloatRangeSlider(
 
 FloatRangeSlider::~FloatRangeSlider() { }
 
-void FloatRangeSlider::setupExecution(ossia::inlet& inl) const noexcept
+void FloatRangeSlider::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC2F;
@@ -267,7 +270,8 @@ void FloatRangeSlider::setupExecution(ossia::inlet& inl) const noexcept
 
 IntRangeSpinBox::~IntRangeSpinBox() { }
 
-void IntRangeSpinBox::setupExecution(ossia::inlet& inl) const noexcept
+void IntRangeSpinBox::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC2F;
@@ -288,7 +292,8 @@ FloatRangeSpinBox::FloatRangeSpinBox(
 
 FloatRangeSpinBox::~FloatRangeSpinBox() { }
 
-void FloatRangeSpinBox::setupExecution(ossia::inlet& inl) const noexcept
+void FloatRangeSpinBox::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC2F;
@@ -306,7 +311,7 @@ IntSpinBox::IntSpinBox(
   setName(name);
 }
 
-void IntSpinBox::setupExecution(ossia::inlet& inl) const noexcept
+void IntSpinBox::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::INT;
@@ -326,7 +331,8 @@ FloatSpinBox::FloatSpinBox(
   setName(name);
 }
 
-void FloatSpinBox::setupExecution(ossia::inlet& inl) const noexcept
+void FloatSpinBox::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::FLOAT;
@@ -348,7 +354,7 @@ TimeChooser::TimeChooser(
 
 TimeChooser::~TimeChooser() { }
 
-void TimeChooser::setupExecution(ossia::inlet& inl) const noexcept
+void TimeChooser::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC2F;
@@ -366,7 +372,7 @@ Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
   setName(name);
 }
 
-void Toggle::setupExecution(ossia::inlet& inl) const noexcept
+void Toggle::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::BOOL;
@@ -388,7 +394,8 @@ ChooserToggle::ChooserToggle(
   setName(name);
 }
 
-void ChooserToggle::setupExecution(ossia::inlet& inl) const noexcept
+void ChooserToggle::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::STRING;
@@ -415,7 +422,7 @@ LineEdit::LineEdit(QString init, const QString& name, Id<Port> id, QObject* pare
   setName(name);
 }
 
-void LineEdit::setupExecution(ossia::inlet& inl) const noexcept
+void LineEdit::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::STRING;
@@ -433,7 +440,7 @@ ProgramEdit::ProgramEdit(QString init, const QString& name, Id<Port> id, QObject
   setName(name);
 }
 
-void ProgramEdit::setupExecution(ossia::inlet& inl) const noexcept
+void ProgramEdit::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::STRING;
@@ -453,7 +460,8 @@ FileChooserBase::FileChooserBase(
   m_filters = filters;
 }
 
-void FileChooserBase::setupExecution(ossia::inlet& inl) const noexcept
+void FileChooserBase::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::STRING;
@@ -557,7 +565,7 @@ Button::Button(const QString& name, Id<Port> id, QObject* parent)
   setName(name);
 }
 
-void Button::setupExecution(ossia::inlet& inl) const noexcept
+void Button::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::BOOL;
@@ -576,7 +584,8 @@ ImpulseButton::ImpulseButton(const QString& name, Id<Port> id, QObject* parent)
   setName(name);
 }
 
-void ImpulseButton::setupExecution(ossia::inlet& inl) const noexcept
+void ImpulseButton::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::IMPULSE;
@@ -607,7 +616,7 @@ XYSlider::XYSlider(
   setDomain(ossia::make_domain(min, max));
 }
 
-void XYSlider::setupExecution(ossia::inlet& inl) const noexcept
+void XYSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC2F;
@@ -641,7 +650,7 @@ XYZSlider::XYZSlider(
 
 XYZSlider::~XYZSlider() { }
 
-void XYZSlider::setupExecution(ossia::inlet& inl) const noexcept
+void XYZSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC3F;
@@ -674,7 +683,7 @@ XYSpinboxes::XYSpinboxes(
 
 XYSpinboxes::~XYSpinboxes() { }
 
-void XYSpinboxes::setupExecution(ossia::inlet& inl) const noexcept
+void XYSpinboxes::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC2F;
@@ -695,7 +704,8 @@ XYZSpinboxes::XYZSpinboxes(
 
 XYZSpinboxes::~XYZSpinboxes() { }
 
-void XYZSpinboxes::setupExecution(ossia::inlet& inl) const noexcept
+void XYZSpinboxes::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::VEC3F;
@@ -725,7 +735,7 @@ ossia::value MultiSlider::getMax() const noexcept
   return domain().get().get_max();
 }
 
-void MultiSlider::setupExecution(ossia::inlet& inl) const noexcept
+void MultiSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::LIST;

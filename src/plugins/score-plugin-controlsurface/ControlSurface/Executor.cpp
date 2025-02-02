@@ -189,7 +189,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 
     const State::AddressAccessor& addr = map.at(ctl->id().val());
     system().setup.set_destination(addr, &outlet);
-    ctrl->setupExecution(inlet);
+    ctrl->setupExecution(inlet, this);
 
     // set_destination sets the domain / type in the exec thread, so since
     // we override it we have to schedul the change after to make sure it does
@@ -220,7 +220,7 @@ void ProcessExecutorComponent::inletAdded(Process::ControlInlet& inl)
   auto v = inl.value(); // TODO does this make sense ?
 
   std::shared_ptr<ossia::value_inlet> fake = std::make_shared<ossia::value_inlet>();
-  inl.setupExecution(*fake);
+  inl.setupExecution(*fake, this);
 
   const State::AddressAccessor& addr = map.at(inl.id().val());
   auto set_addr

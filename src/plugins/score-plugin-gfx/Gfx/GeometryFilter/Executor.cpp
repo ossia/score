@@ -292,7 +292,7 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
       controls.push_back(control);
 
       inls.push_back(inletport);
-      ctl->setupExecution(*inletport);
+      ctl->setupExecution(*inletport, this);
 
       // TODO assert that we aren't going to connect twice
       QObject::disconnect(ctrl, nullptr, this, nullptr);
@@ -308,7 +308,9 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
     }
     else if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
     {
-      inls.push_back(new ossia::texture_inlet);
+      auto tex = new ossia::texture_inlet;
+      inls.push_back(tex);
+      ctrl->setupExecution(*tex, this);
     }
     else if(auto ctrl = qobject_cast<Gfx::GeometryInlet*>(ctl))
     {

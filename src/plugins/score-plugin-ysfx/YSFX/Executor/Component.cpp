@@ -74,7 +74,7 @@ Component::Component(
     //     = ossia::convert<float>(inlet->value());
 
     auto inl = node->sliders[i - firstControlIndex];
-    inlet->setupExecution(*node->root_inputs()[i]);
+    inlet->setupExecution(*node->root_inputs()[i], this);
     connect(
         inlet, &Process::ControlInlet::valueChanged, this,
         [this, inl](const ossia::value& v) {

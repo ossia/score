@@ -182,7 +182,7 @@ public:
 
   ~Inlet() override;
 
-  virtual void setupExecution(ossia::inlet&) const noexcept;
+  virtual void setupExecution(ossia::inlet&, QObject* exec_context) const noexcept;
   virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
   virtual void mapExecution(
       ossia::inlet&,
@@ -279,7 +279,7 @@ public:
   MODEL_METADATA_IMPL_HPP(Outlet)
 
   ~Outlet() override;
-  virtual void setupExecution(ossia::outlet&) const noexcept;
+  virtual void setupExecution(ossia::outlet&, QObject* exec_context) const noexcept;
   virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
   virtual void mapExecution(
       ossia::outlet&,

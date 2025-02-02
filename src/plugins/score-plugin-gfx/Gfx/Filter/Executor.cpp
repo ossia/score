@@ -183,6 +183,7 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
   std::weak_ptr<gfx_exec_node> weak_node = n;
   for(auto& ctl : element.inlets())
   {
+    QObject::disconnect(ctl, nullptr, this, nullptr);
     if(auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
     {
       // NOTE! we do not use add_control() here as it changes the internal arrays,
@@ -196,10 +197,9 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
       controls.push_back(control);
 
       inls.push_back(inletport);
-      ctl->setupExecution(*inletport);
+      ctl->setupExecution(*inletport, this);
 
       // TODO assert that we aren't going to connect twice
-      QObject::disconnect(ctrl, nullptr, this, nullptr);
       QObject::connect(
           ctrl, &Process::ControlInlet::valueChanged, this,
           con_unvalidated{ctx, control_index, script_index, weak_node});
@@ -213,6 +213,7 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
     else if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
     {
       inls.push_back(new ossia::texture_inlet);
+      ctrl->setupExecution(*inls.back(), this);
     }
     // else if (auto ctrl = qobject_cast<Gfx::GeometryInlet*>(ctl))
     // {

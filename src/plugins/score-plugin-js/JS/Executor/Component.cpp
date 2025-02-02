@@ -194,7 +194,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
             auto model_port = process().inlets()[inlet_idx];
             auto model_ctrl = safe_cast<Process::ControlInlet*>(model_port);
 
-            model_ctrl->setupExecution(*inletport);
+            model_ctrl->setupExecution(*inletport, this);
             control->value = model_ctrl->value();
             control->changed = true;
 

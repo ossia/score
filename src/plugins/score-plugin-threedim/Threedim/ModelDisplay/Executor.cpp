@@ -19,8 +19,12 @@ public:
   model_display_node(GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
-    id = exec_context->ui->register_node(
-        std::make_unique<score::gfx::ModelDisplayNode>());
+  }
+
+  void init()
+  {
+    auto node = std::make_unique<score::gfx::ModelDisplayNode>();
+    id = exec_context->ui->register_node(std::move(node));
   }
 
   ~model_display_node()
@@ -49,13 +53,14 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     }
   }
 
-  n->root_inputs().push_back(new ossia::texture_inlet);
+  element.inlets()[0]->setupExecution(*n->add_texture(), this);
   n->root_inputs().push_back(new ossia::geometry_inlet);
 
   for(std::size_t i = 2; i <= 9; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
+    ctrl->setupExecution(*n->root_inputs().back(), this);
     p->value = ctrl->value();
 
     QObject::connect(
@@ -65,8 +70,9 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         con_unvalidated{ctx, i - 2, 0, n});
   }
 
-  n->root_outputs().push_back(new ossia::texture_outlet);
+  n->add_texture_out();
 
+  n->init();
   this->node = n;
   m_ossia_process = std::make_shared<ossia::node_process>(n);
 }

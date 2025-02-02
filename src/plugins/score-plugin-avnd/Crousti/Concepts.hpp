@@ -67,7 +67,7 @@ struct CustomFloatControlBase : public Process::ControlInlet
   auto getMin() const noexcept { return domain().get().template convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().template convert_max<float>(); }
 
-  void setupExecution(ossia::inlet& inl) const noexcept override
+  void setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept override
   {
     auto& port = **safe_cast<ossia::value_inlet*>(&inl);
     port.type = ossia::val_type::FLOAT;

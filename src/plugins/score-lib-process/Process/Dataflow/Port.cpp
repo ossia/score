@@ -234,7 +234,7 @@ void Port::loadData(const QByteArray& arr) noexcept
 
 Inlet::~Inlet() { }
 
-void Inlet::setupExecution(ossia::inlet&) const noexcept { }
+void Inlet::setupExecution(ossia::inlet&, QObject* exec_context) const noexcept { }
 
 Inlet::Inlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Inlet"), parent}
@@ -354,7 +354,7 @@ void ControlInlet::setInit(const ossia::value& value)
 
 Outlet::~Outlet() { }
 
-void Outlet::setupExecution(ossia::outlet&) const noexcept { }
+void Outlet::setupExecution(ossia::outlet&, QObject* exec_context) const noexcept { }
 
 Outlet::Outlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Outlet"), parent}
