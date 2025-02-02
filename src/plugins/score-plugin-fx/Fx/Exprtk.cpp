@@ -113,7 +113,7 @@ std::string MathMappingCodeWriter::execute() const noexcept
       R"_({{
     {}({});
 }})_",
-      exprtk_to_cpp(inl.value().get<std::string>()), variable);
+      exprtk_to_cpp(inl.value().get<std::string>(), true), variable);
 }
 
 }
