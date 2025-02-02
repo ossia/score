@@ -40,9 +40,12 @@ extern "C" void sincos(double x, double* sin, double* cos)
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
+#include <QDir>
 #include <QItemSelection>
 #include <QPixmapCache>
+#include <QStandardPaths>
 #include <QSurfaceFormat>
+#include <QTimer>
 #include <qnamespace.h>
 
 #include <clocale>
@@ -112,6 +115,27 @@ void disableAppRestore()
 // Defined in mac_main.m
 extern "C" void disableAppNap();
 #endif
+
+extern "C" {
+Q_DECL_EXPORT short NvOptimusEnablement = 1;
+Q_DECL_EXPORT int AmdPowerXpressRequestHighPerformance = 1;
+}
+
+static void setup_gpu()
+{
+#if defined(__linux__)
+  if(QDir{"/proc/driver/nvidia/gpus"}
+         .entryList(QDir::Dirs | QDir::NoDotAndDotDot)
+         .count()
+     > 0)
+  {
+    if(!qEnvironmentVariableIsSet("__GLX_VENDOR_LIBRARY_NAME"))
+      qputenv("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
+    if(!qEnvironmentVariableIsSet("__NV_PRIME_RENDER_OFFLOAD"))
+      qputenv("__NV_PRIME_RENDER_OFFLOAD", "1");
+  }
+#endif
+}
 
 static void setup_x11(int argc, char** argv)
 {
@@ -536,9 +560,6 @@ static void setup_limits()
   }
 #endif
 }
-#include <QDir>
-#include <QStandardPaths>
-#include <QTimer>
 namespace
 {
 struct failsafe
@@ -601,6 +622,7 @@ int main(int argc, char** argv)
 #endif
 
   setup_limits();
+  setup_gpu();
   setup_x11(argc, argv);
   setup_gtk();
   setup_suil();
