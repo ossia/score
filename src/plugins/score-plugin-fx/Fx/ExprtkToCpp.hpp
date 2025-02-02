@@ -4,7 +4,7 @@
 
 namespace Nodes
 {
-std::string exprtk_to_cpp(std::string exprtk) noexcept;
+std::string exprtk_to_cpp(std::string exprtk, bool optional) noexcept;
 
 struct MathMappingCodeWriter : public Process::CodeWriter
 {
