@@ -11,6 +11,11 @@
 #include <score_lib_process_export.h>
 
 #include <verdigris>
+namespace Device
+{
+class DeviceInterface;
+class DeviceList;
+}
 namespace Process
 {
 class Port;
@@ -35,14 +40,14 @@ private:
 };
 
 SCORE_LIB_PROCESS_EXPORT
-QWidget* makeAddressCombo(
+QComboBox* makeAddressCombo(
     State::Address root, const Device::Node& out_node, const Process::Port& port,
     const score::DocumentContext& ctx, QWidget* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-QWidget* makeDeviceCombo(
-    QStringList devices, const Process::Port& port, const score::DocumentContext& ctx,
-    QWidget* parent);
+QComboBox* makeDeviceCombo(
+    std::function<bool(Device::DeviceInterface&)> condition, Device::DeviceList& devices,
+    const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
 /*
 class SCORE_LIB_PROCESS_EXPORT MidiPortComboBox final : public QComboBox
 {

@@ -3,6 +3,8 @@
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 
+#include <Explorer/DeviceList.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 
@@ -81,7 +83,7 @@ const Device::FullAddressSettings& AudioPortComboBox::address() const
   return m_address;
 }
 
-QWidget* makeAddressCombo(
+QComboBox* makeAddressCombo(
     State::Address root, const Device::Node& out_node, const Process::Port& port,
     const score::DocumentContext& ctx, QWidget* parent)
 {
@@ -111,13 +113,30 @@ QWidget* makeAddressCombo(
   return edit;
 }
 
-QWidget* makeDeviceCombo(
-    QStringList devices, const Process::Port& port, const score::DocumentContext& ctx,
-    QWidget* parent)
+QComboBox* makeDeviceCombo(
+    std::function<bool(Device::DeviceInterface&)> condition, Device::DeviceList& list,
+    const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent)
 {
   using namespace Device;
   auto edit = new QComboBox{parent};
-  edit->addItems(devices);
+  edit->addItem("");
+
+  auto on_add = [condition, edit](Device::DeviceInterface* dev) {
+    if(condition(*dev))
+    {
+      auto& set = dev->settings();
+      edit->addItem(set.name);
+    }
+  };
+  list.apply([on_add](Device::DeviceInterface& dev) { on_add(&dev); });
+  QObject::connect(&list, &Device::DeviceList::deviceAdded, edit, on_add);
+  QObject::connect(
+      &list, &Device::DeviceList::deviceRemoved, edit,
+      [edit](Device::DeviceInterface* dev) {
+    int idx = edit->findText(dev->settings().name);
+    if(idx >= 0)
+      edit->removeItem(idx);
+  });
 
   edit->setCurrentText(port.address().address.device);
 

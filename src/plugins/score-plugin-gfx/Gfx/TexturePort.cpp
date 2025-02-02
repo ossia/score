@@ -13,10 +13,16 @@
 #include <Gfx/Graph/Window.hpp>
 #include <Inspector/InspectorLayout.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
+#include <score/widgets/HelpInteraction.hpp>
+#include <score/widgets/MarginLess.hpp>
 
+#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QPainter>
+#include <QSpinBox>
 #include <QTimer>
 
 #include <wobjectimpl.h>
@@ -102,7 +108,7 @@ public:
     }
 
     // We "garbage collect" the window
-    QTimer::singleShot(1, [w = this->window] {});
+    QTimer::singleShot(1, [w = this->window] { });
     if(plug)
       plug->context.unregister_preview_node(screenId);
   }
@@ -184,18 +190,11 @@ void TextureInletFactory::setupInletInspector(
     Inspector::Layout& lay, QObject* context)
 {
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  QStringList devices;
-  devices.push_back("");
 
-  device.list().apply([&](Device::DeviceInterface& dev) {
-    if(dynamic_cast<GfxInputDevice*>(&dev))
-    {
-      auto& set = dev.settings();
-      devices.push_back(set.name);
-    }
-  });
+  auto cond
+      = [](Device::DeviceInterface& dev) { return qobject_cast<GfxInputDevice*>(&dev); };
 
-  lay.addRow(Process::makeDeviceCombo(devices, port, ctx, parent));
+  lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
 }
 
 void TextureOutletFactory::setupOutletInspector(
@@ -203,18 +202,10 @@ void TextureOutletFactory::setupOutletInspector(
     Inspector::Layout& lay, QObject* context)
 {
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  QStringList devices;
-  devices.push_back("");
-
-  device.list().apply([&](Device::DeviceInterface& dev) {
-    if(dynamic_cast<GfxOutputDevice*>(&dev))
-    {
-      auto& set = dev.settings();
-      devices.push_back(set.name);
-    }
-  });
-
-  lay.addRow(Process::makeDeviceCombo(devices, port, ctx, parent));
+  auto cond = [](Device::DeviceInterface& dev) {
+    return qobject_cast<GfxOutputDevice*>(&dev);
+  };
+  lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
   lay.addRow(new GraphPreviewWidget{outlet, ctx.plugin<Gfx::DocumentPlugin>()});

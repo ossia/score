@@ -24,21 +24,20 @@ void MidiOutletFactory::setupOutletInspector(
       = Protocols::MIDIOutputProtocolFactory::static_concreteKey();
 
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  QStringList midiDevices;
-  midiDevices.push_back("");
-
-  device.list().apply([&](Device::DeviceInterface& dev) {
+  auto cond = [](Device::DeviceInterface& dev) {
     auto& set = dev.settings();
     if(set.protocol == midi_uuid)
     {
       const auto& midi_set
           = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
       if(midi_set.io == Protocols::MIDISpecificSettings::IO::Out)
-        midiDevices.push_back(set.name);
+        return true;
     }
-  });
+    return false;
+  };
 
-  lay.addRow(port.name(), Process::makeDeviceCombo(midiDevices, port, ctx, parent));
+  lay.addRow(
+      port.name(), Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
 #endif
 }
 }
