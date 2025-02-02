@@ -392,8 +392,10 @@ static constexpr QRhiTexture::Format ossia_format_to_rhi(ossia::texture_format f
     case ossia::texture_format::R32F:
       return QRhiTexture::Format::R32F;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case ossia::texture_format::RGB10A2:
       return QRhiTexture::Format::RGB10A2;
+#endif
 
     case ossia::texture_format::D16:
       return QRhiTexture::Format::D16;

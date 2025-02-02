@@ -290,7 +290,7 @@ struct TextureSizeWidget : public QWidget
     sz_lay->addWidget(m_sz_w);
     sz_lay->addWidget(m_sz_h);
     sz_lay->setAlignment(m_enabled, Qt::AlignRight);
-    QObject::connect(m_enabled, &QCheckBox::checkStateChanged, this, [this](int state) {
+    QObject::connect(m_enabled, &QCheckBox::stateChanged, this, [this](int state) {
       m_sz_w->setEnabled(state);
       m_sz_h->setEnabled(state);
       if(state)

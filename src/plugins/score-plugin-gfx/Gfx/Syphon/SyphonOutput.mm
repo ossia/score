@@ -183,7 +183,10 @@ struct SyphonNode final : score::gfx::OutputNode
       void finishFrame(score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
                        QRhiResourceUpdateBatch*& res) override { }
       void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
-      void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
+      void update(score::gfx::RenderList &renderer,
+                  QRhiResourceUpdateBatch &res,
+                  score::gfx::Edge *edge) override
+      {}
       void release(score::gfx::RenderList&) override { }
     private:
       score::gfx::TextureRenderTarget m_rt;
