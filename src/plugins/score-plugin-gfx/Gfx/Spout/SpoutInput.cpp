@@ -41,7 +41,8 @@ class SpoutInputNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
   explicit Renderer(const SpoutInputNode& n)
-      : node{n}
+      : score::gfx::NodeRenderer{n}
+      , node{n}
   {
   }
 

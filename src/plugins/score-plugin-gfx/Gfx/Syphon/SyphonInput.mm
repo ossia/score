@@ -44,7 +44,10 @@ public:
 class SyphonInputNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
-  explicit Renderer(const SyphonInputNode& n): node{n} { }
+    explicit Renderer(const SyphonInputNode &n)
+        : score::gfx::NodeRenderer{n}
+        , node{n}
+    {}
 
 private:
   const SyphonInputNode& node;
