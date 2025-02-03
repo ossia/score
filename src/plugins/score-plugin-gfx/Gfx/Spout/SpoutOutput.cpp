@@ -135,7 +135,7 @@ struct SpoutNode final : score::gfx::OutputNode
     {
     public:
       SpoutRenderer(const score::gfx::RenderState& state, const SpoutNode& parent)
-          : score::gfx::OutputNodeRenderer{}
+          : score::gfx::OutputNodeRenderer{parent}
       {
         m_rt.renderTarget = parent.m_renderTarget;
         m_rt.renderPass = state.renderPassDescriptor;

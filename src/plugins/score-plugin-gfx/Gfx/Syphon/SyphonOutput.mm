@@ -173,7 +173,7 @@ struct SyphonNode final : score::gfx::OutputNode
     {
     public:
       SyphonRenderer(const score::gfx::RenderState& state, const SyphonNode& parent)
-        : score::gfx::OutputNodeRenderer{}
+        : score::gfx::OutputNodeRenderer{parent}
       {
         m_rt.renderTarget = parent.m_renderTarget;
         m_rt.renderPass = state.renderPassDescriptor;
