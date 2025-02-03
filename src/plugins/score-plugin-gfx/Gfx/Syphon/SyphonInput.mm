@@ -204,7 +204,9 @@ private:
   }
 
   GLuint currentTex = 0;
-  void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(score::gfx::RenderList &renderer,
+              QRhiResourceUpdateBatch &res,
+              score::gfx::Edge *e) override
   {
     if(!enabled)
     {

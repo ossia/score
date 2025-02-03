@@ -119,7 +119,9 @@ private:
     }
   }
 
-  void update(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge* e) override
   {
     res.updateDynamicBuffer(
         m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
