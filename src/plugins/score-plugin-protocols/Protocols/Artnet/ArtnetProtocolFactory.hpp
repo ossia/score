@@ -5,7 +5,6 @@
 
 namespace Protocols
 {
-
 class ArtnetProtocolFactory final : public DefaultProtocolFactory
 {
   SCORE_CONCRETE("1c199b75-8052-4d5b-9f85-1b2b0d7e26a9")

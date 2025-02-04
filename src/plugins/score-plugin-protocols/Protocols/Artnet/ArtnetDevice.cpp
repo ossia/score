@@ -40,6 +40,131 @@ ArtnetDevice::~ArtnetDevice() { }
 
 namespace
 {
+struct fixture_setup_visitor
+{
+  const Artnet::Fixture& fix;
+  const Artnet::Channel& chan;
+  ossia::net::node_base& fixt_node;
+  ossia::net::dmx_buffer& buffer;
+  int dmx_channel;
+  void operator()(const Artnet::SingleCapability& v) const noexcept
+  {
+    auto chan_node = fixt_node.create_child(chan.name.toStdString());
+    auto chan_param
+        = std::make_unique<ossia::net::dmx_parameter>(*chan_node, buffer, dmx_channel);
+
+    auto& node = *chan_node;
+    auto& p = *chan_param;
+
+    // FIXME this only works if the channels are joined for now
+    int bytes = 1;
+
+    for(auto& name : chan.fineChannels)
+    {
+      if(ossia::contains(fix.mode.channelNames, name))
+      {
+        bytes++;
+      }
+    }
+    p.m_bytes = bytes;
+
+    chan_node->set_parameter(std::move(chan_param));
+    p.set_default_value(chan.defaultValue);
+    p.set_value(chan.defaultValue);
+
+    if(!v.comment.isEmpty())
+      ossia::net::set_description(node, v.comment.toStdString());
+  }
+
+  void operator()(const std::vector<Artnet::RangeCapability>& v) const noexcept
+  {
+    std::vector<std::pair<std::string, uint8_t>> values;
+    std::string comment;
+    std::string default_preset;
+
+    // Parse all capabilities
+    for(auto& capa : v)
+    {
+      std::string name;
+      if(!capa.effectName.isEmpty())
+        name = capa.effectName.toStdString();
+      else
+        name = capa.type.toStdString();
+
+      if(chan.defaultValue >= capa.range.first && chan.defaultValue < capa.range.second)
+        default_preset = name;
+      values.push_back({name, capa.range.first});
+    }
+
+    // Make sure that all values have an unique name
+    {
+      std::vector<int> counts;
+      for(int i = 0; i < std::ssize(values); i++)
+      {
+        int n = 1;
+        for(int j = 0; j < i; j++)
+        {
+          if(values[j].first == values[i].first)
+            n++;
+        }
+        counts.push_back(n);
+      }
+      for(int i = 0; i < std::ssize(values); i++)
+      {
+        if(counts[i] > 1)
+          values[i].first += fmt::format(" {}", counts[i]);
+      }
+    }
+
+    // Write the comment
+    for(int i = 0; i < std::ssize(values); i++)
+    {
+      if(!v[i].comment.isEmpty())
+      {
+        comment += values[i].first + ": " + v[i].comment.toStdString() + "\n";
+      }
+    }
+
+    if(values.empty())
+      return;
+
+    auto chan_node = fixt_node.create_child(chan.name.toStdString());
+    auto chan_param
+        = std::make_unique<ossia::net::dmx_parameter>(*chan_node, buffer, dmx_channel);
+
+    chan_param->set_default_value(chan.defaultValue);
+    chan_param->set_value(chan.defaultValue);
+    auto& chan_param_ref = *chan_param;
+
+    if(!comment.empty())
+      ossia::net::set_description(*chan_node, comment);
+
+    chan_node->set_parameter(std::move(chan_param));
+    {
+      auto chan_enumnode = chan_node->create_child("preset");
+      auto chan_enumparam = std::make_unique<ossia::net::dmx_enum_parameter>(
+          *chan_enumnode, chan_param_ref, values);
+
+      auto& node = *chan_enumnode;
+      auto& p = *chan_enumparam;
+
+      if(default_preset.empty())
+        default_preset = values.front().first;
+      p.set_default_value(default_preset);
+      p.set_value(default_preset);
+
+      if(!comment.empty())
+        ossia::net::set_description(node, std::move(comment));
+
+      chan_enumnode->set_parameter(std::move(chan_enumparam));
+    }
+  }
+
+  void operator()(const Artnet::LEDStripLayout& v) const noexcept { SCORE_ABORT; }
+  void operator()(const Artnet::LEDPaneLayout& v) const noexcept { SCORE_ABORT; }
+  void operator()(const Artnet::LEDVolumeLayout& v) const noexcept { SCORE_ABORT; }
+};
+
 static void addArtnetFixture(
     ossia::net::generic_device& dev, ossia::net::dmx_buffer& buffer,
     const Artnet::Fixture& fix)
@@ -60,127 +185,7 @@ static void addArtnetFixture(
     const int dmx_channel = fix.address + channel_offset;
 
     // Then for each range-based subchannels, sub-nodes with the relevant domains.
-    struct chan_visitor
-    {
-      const Artnet::Fixture& fix;
-      const Artnet::Channel& chan;
-      ossia::net::node_base& fixt_node;
-      ossia::net::dmx_buffer& buffer;
-      int dmx_channel;
-      void operator()(const Artnet::SingleCapability& v) const noexcept
-      {
-        auto chan_node = fixt_node.create_child(chan.name.toStdString());
-        auto chan_param = std::make_unique<ossia::net::dmx_parameter>(
-            *chan_node, buffer, dmx_channel);
-
-        auto& node = *chan_node;
-        auto& p = *chan_param;
-
-        // FIXME this only works if the channels are joined for now
-        int bytes = 1;
-
-        for(auto& name : chan.fineChannels)
-        {
-          if(ossia::contains(fix.mode.channelNames, name))
-          {
-            bytes++;
-          }
-        }
-        p.m_bytes = bytes;
-
-        chan_node->set_parameter(std::move(chan_param));
-        p.set_default_value(chan.defaultValue);
-        p.set_value(chan.defaultValue);
-
-        if(!v.comment.isEmpty())
-          ossia::net::set_description(node, v.comment.toStdString());
-      }
-
-      void operator()(const std::vector<Artnet::RangeCapability>& v) const noexcept
-      {
-        std::vector<std::pair<std::string, uint8_t>> values;
-        std::string comment;
-        std::string default_preset;
-
-        // Parse all capabilities
-        for(auto& capa : v)
-        {
-          std::string name;
-          if(!capa.effectName.isEmpty())
-            name = capa.effectName.toStdString();
-          else
-            name = capa.type.toStdString();
-
-          if(chan.defaultValue >= capa.range.first
-             && chan.defaultValue < capa.range.second)
-            default_preset = name;
-          values.push_back({name, capa.range.first});
-        }
-
-        // Make sure that all values have an unique name
-        {
-          std::vector<int> counts;
-          for(int i = 0; i < std::ssize(values); i++)
-          {
-            int n = 1;
-            for(int j = 0; j < i; j++)
-            {
-              if(values[j].first == values[i].first)
-                n++;
-            }
-            counts.push_back(n);
-          }
-          for(int i = 0; i < std::ssize(values); i++)
-          {
-            if(counts[i] > 1)
-              values[i].first += fmt::format(" {}", counts[i]);
-          }
-        }
-
-        // Write the comment
-        for(int i = 0; i < std::ssize(values); i++)
-        {
-          if(!v[i].comment.isEmpty())
-          {
-            comment += values[i].first + ": " + v[i].comment.toStdString() + "\n";
-          }
-        }
-
-        if(values.empty())
-          return;
-
-        auto chan_node = fixt_node.create_child(chan.name.toStdString());
-        auto chan_param = std::make_unique<ossia::net::dmx_parameter>(
-            *chan_node, buffer, dmx_channel);
-
-        chan_param->set_default_value(chan.defaultValue);
-        chan_param->set_value(chan.defaultValue);
-        auto& chan_param_ref = *chan_param;
-
-        if(!comment.empty())
-          ossia::net::set_description(*chan_node, comment);
-
-        chan_node->set_parameter(std::move(chan_param));
-        {
-          auto chan_enumnode = chan_node->create_child("preset");
-          auto chan_enumparam = std::make_unique<ossia::net::dmx_enum_parameter>(
-              *chan_enumnode, chan_param_ref, values);
-
-          auto& node = *chan_enumnode;
-          auto& p = *chan_enumparam;
-
-          if(default_preset.empty())
-            default_preset = values.front().first;
-          p.set_default_value(default_preset);
-          p.set_value(default_preset);
-
-          if(!comment.empty())
-            ossia::net::set_description(node, std::move(comment));
-
-          chan_enumnode->set_parameter(std::move(chan_enumparam));
-        }
-      }
-    } vis{fix, chan, *fixt_node, buffer, dmx_channel};
+    fixture_setup_visitor vis{fix, chan, *fixt_node, buffer, dmx_channel};
 
     ossia::visit(vis, chan.capabilities);
   }
