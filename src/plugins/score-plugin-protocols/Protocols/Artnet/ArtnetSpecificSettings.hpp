@@ -55,6 +55,22 @@ struct Fixture
   int address{};
 };
 
+struct LEDFixture
+{
+  enum LEDMode
+  {
+    RGB,
+    GRB,
+    BRG,
+    RBG,
+    BGR,
+    GBR,
+    Light
+  };
+  int address{};
+  int count{};
+  bool reverse{};
+};
 }
 
 struct ArtnetSpecificSettings
@@ -63,6 +79,7 @@ struct ArtnetSpecificSettings
   QString host;
   int rate{20};
   int universe{1};
+
   enum
   {
     ArtNet, // Artnet:/Channel-{}
@@ -70,6 +87,9 @@ struct ArtnetSpecificSettings
     DMXUSBPRO,
     ArtNetV2, // Artnet:/{}
     DMXUSBPRO_Mk2,
+    OpenDMX_USB,
+    ArtNet_MultiUniverse,
+    E131_MultiUniverse
   } transport{ArtNetV2};
   enum
   {
