@@ -6,6 +6,7 @@
 #include <Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp>
 #include <Protocols/Artnet/ArtnetSpecificSettings.hpp>
 #include <Protocols/Artnet/FixtureDialog.hpp>
+#include <Protocols/Artnet/LEDDialog.hpp>
 
 #include <score/tools/ListNetworkAddresses.hpp>
 
@@ -36,7 +37,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   checkForChanges(m_host);
 
   m_rate = new QSpinBox{this};
-  m_rate->setRange(0, 250);
+  m_rate->setRange(0, 240);
   m_rate->setValue(44);
 
   m_universe = new QSpinBox{this};
@@ -94,7 +95,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   btns->addStretch(2);
   fixtures_layout->addLayout(btns);
   layout->addRow(fixtures_layout);
-  /*
+
   connect(m_addLEDStrip, &QPushButton::clicked, this, [this] {
     auto dial = new AddLEDStripDialog{*this};
     if(dial->exec() == QDialog::Accepted)
@@ -107,7 +108,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
       }
     }
   });
-*/
+
   connect(m_addFixture, &QPushButton::clicked, this, [this] {
     auto dial = new AddFixtureDialog{*this};
     if(dial->exec() == QDialog::Accepted)
@@ -184,10 +185,25 @@ void ArtnetProtocolSettingsWidget::updateTable()
   int row = 0;
   for(auto& fixt : m_fixtures)
   {
+    int num_controls = 0;
+    if(!fixt.controls.empty())
+    {
+      num_controls
+          = fixt.controls.size(); // FIXME does not handle high precision channels?
+    }
+    else if(fixt.led)
+    {
+      num_controls = ossia::apply_nonnull([](const auto& led) {
+        if constexpr(requires { led.channels(); })
+          return led.channels();
+        else
+          return 0;
+      }, fixt.led);
+    }
     auto name_item = new QTableWidgetItem{fixt.fixtureName};
     auto mode_item = new QTableWidgetItem{fixt.modeName};
     auto address = new QTableWidgetItem{QString::number(fixt.address + 1)};
-    auto controls = new QTableWidgetItem{QString::number(fixt.controls.size())};
+    auto controls = new QTableWidgetItem{QString::number(num_controls)};
     name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     address->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);

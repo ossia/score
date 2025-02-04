@@ -31,8 +31,57 @@ struct RangeCapability : BaseCapability
   std::pair<int, int> range;
 };
 
+enum class Diode : int8_t
+{
+  R,
+  G,
+  B,
+  White,
+  WarmWhite,
+  ColdWhite,
+  Amber,
+  UV,
+  CCT,
+  Empty
+};
+
+struct LEDStripLayout
+{
+  std::vector<Diode> diodes;
+
+  int length{}; // in pixels
+  bool reverse{};
+
+  int channels() const noexcept { return diodes.size() * length; }
+};
+
+struct LEDPaneLayout
+{
+  std::vector<Diode> diodes;
+
+  int width{};
+  int height{};
+
+  int channels() const noexcept { return diodes.size() * width * height; }
+};
+
+struct LEDVolumeLayout
+{
+  std::vector<Diode> diodes;
+
+  int width{};
+  int height{};
+  int depth{};
+
+  int channels() const noexcept { return diodes.size() * width * height * depth; }
+};
+
 using FixtureCapabilities
     = ossia::variant<SingleCapability, std::vector<RangeCapability>>;
+
+using LEDLayout
+    = ossia::nullable_variant<LEDStripLayout, LEDPaneLayout, LEDVolumeLayout>;
+
 struct Channel
 {
   QString name;
@@ -52,30 +101,15 @@ struct Fixture
   QString modeName;
   ModeInfo mode;
   std::vector<Channel> controls;
+  LEDLayout led;
   int address{};
-};
-
-struct LEDFixture
-{
-  enum LEDMode
-  {
-    RGB,
-    GRB,
-    BRG,
-    RBG,
-    BGR,
-    GBR,
-    Light
-  };
-  int address{};
-  int count{};
-  bool reverse{};
 };
 }
 
 struct ArtnetSpecificSettings
 {
   std::vector<Artnet::Fixture> fixtures;
+
   QString host;
   int rate{20};
   int universe{1};

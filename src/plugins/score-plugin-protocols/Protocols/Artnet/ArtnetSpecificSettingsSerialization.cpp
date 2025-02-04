@@ -5,9 +5,13 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/StdVariantSerialization.hpp>
+#include <score/serialization/VariantSerialization.hpp>
 
 JSON_METADATA(Protocols::Artnet::SingleCapability, "SingleCapability")
 JSON_METADATA(std::vector<Protocols::Artnet::RangeCapability>, "RangeCapabilities")
+JSON_METADATA(Protocols::Artnet::LEDStripLayout, "LEDStripLayout")
+JSON_METADATA(Protocols::Artnet::LEDPaneLayout, "LEDPaneLayout")
+JSON_METADATA(Protocols::Artnet::LEDVolumeLayout, "LEDVolumeLayout")
 
 template <>
 void DataStreamReader::read(const Protocols::Artnet::SingleCapability& n)
@@ -88,6 +92,104 @@ void JSONWriter::write(Protocols::Artnet::RangeCapability& n)
 }
 
 template <>
+void DataStreamReader::read(const Protocols::Artnet::LEDStripLayout& n)
+{
+  m_stream << n.diodes << n.length << n.reverse;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Protocols::Artnet::LEDStripLayout& n)
+{
+  m_stream >> n.diodes >> n.length >> n.reverse;
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Protocols::Artnet::LEDStripLayout& n)
+{
+  stream.StartObject();
+  obj["Diodes"] = n.diodes;
+  obj["Length"] = n.length;
+  obj["Reverse"] = n.reverse;
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Protocols::Artnet::LEDStripLayout& n)
+{
+  n.diodes <<= obj["Diodes"];
+  n.length <<= obj["Length"];
+  n.reverse <<= obj["Reverse"];
+}
+
+template <>
+void DataStreamReader::read(const Protocols::Artnet::LEDPaneLayout& n)
+{
+  m_stream << n.diodes << n.width << n.height;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Protocols::Artnet::LEDPaneLayout& n)
+{
+  m_stream >> n.diodes >> n.width >> n.height;
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Protocols::Artnet::LEDPaneLayout& n)
+{
+  stream.StartObject();
+  obj["Diodes"] = n.diodes;
+  obj["Width"] = n.width;
+  obj["Height"] = n.height;
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Protocols::Artnet::LEDPaneLayout& n)
+{
+  n.diodes <<= obj["Diodes"];
+  n.width <<= obj["Width"];
+  n.height <<= obj["Height"];
+}
+
+template <>
+void DataStreamReader::read(const Protocols::Artnet::LEDVolumeLayout& n)
+{
+  m_stream << n.diodes << n.width << n.height << n.depth;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Protocols::Artnet::LEDVolumeLayout& n)
+{
+  m_stream >> n.diodes >> n.width >> n.height >> n.depth;
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Protocols::Artnet::LEDVolumeLayout& n)
+{
+  stream.StartObject();
+  obj["Diodes"] = n.diodes;
+  obj["Width"] = n.width;
+  obj["Height"] = n.height;
+  obj["Depth"] = n.depth;
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Protocols::Artnet::LEDVolumeLayout& n)
+{
+  n.diodes <<= obj["Diodes"];
+  n.width <<= obj["Width"];
+  n.height <<= obj["Height"];
+  n.depth <<= obj["Depth"];
+}
+
+template <>
 void DataStreamReader::read(const Protocols::Artnet::Channel& n)
 {
   m_stream << n.name << n.defaultValue << n.capabilities << n.fineChannels;
@@ -153,14 +255,14 @@ void JSONWriter::write(Protocols::Artnet::ModeInfo& n)
 template <>
 void DataStreamReader::read(const Protocols::Artnet::Fixture& n)
 {
-  m_stream << n.fixtureName << n.modeName << n.mode << n.controls << n.address;
+  m_stream << n.fixtureName << n.modeName << n.mode << n.controls << n.led << n.address;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::Artnet::Fixture& n)
 {
-  m_stream >> n.fixtureName >> n.modeName >> n.mode >> n.controls >> n.address;
+  m_stream >> n.fixtureName >> n.modeName >> n.mode >> n.controls >> n.led >> n.address;
   checkDelimiter();
 }
 
@@ -172,7 +274,10 @@ void JSONReader::read(const Protocols::Artnet::Fixture& n)
   obj["Mode"] = n.modeName;
   obj["ModeInfo"] = n.mode;
   obj["Address"] = n.address;
-  obj["Channels"] = n.controls;
+  if(!n.controls.empty())
+    obj["Channels"] = n.controls;
+  else if(n.led)
+    obj["LED"] = n.led;
   stream.EndObject();
 }
 
@@ -184,7 +289,10 @@ void JSONWriter::write(Protocols::Artnet::Fixture& n)
   if(auto mi = obj.tryGet("ModeInfo"))
     n.mode <<= *mi;
   n.address <<= obj["Address"];
-  n.controls <<= obj["Channels"];
+  if(auto ctls = obj.tryGet("Channels"))
+    n.controls <<= *ctls;
+  else if(auto led = obj.tryGet("LED"))
+    n.led <<= *led;
 }
 
 template <>
