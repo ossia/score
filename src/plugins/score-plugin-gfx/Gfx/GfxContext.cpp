@@ -82,17 +82,17 @@ void GfxContext::unregister_preview_node(int32_t idx)
   tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_PREVIEW_NODE, idx, {}});
 }
 
-void GfxContext::connect_preview_node(Edge e)
+void GfxContext::connect_preview_node(EdgeSpec e)
 {
   tick_commands.enqueue(EdgeCommand{EdgeCommand::CONNECT_PREVIEW_NODE, e});
 }
 
-void GfxContext::disconnect_preview_node(Edge e)
+void GfxContext::disconnect_preview_node(EdgeSpec e)
 {
   tick_commands.enqueue(EdgeCommand{EdgeCommand::DISCONNECT_PREVIEW_NODE, e});
 }
 
-void GfxContext::add_edge(Edge edge)
+void GfxContext::add_edge(EdgeSpec edge)
 {
   auto source_node_it = this->nodes.find(edge.first.node);
   if(source_node_it != this->nodes.end())
@@ -118,7 +118,7 @@ void GfxContext::add_edge(Edge edge)
   }
 }
 
-void GfxContext::remove_edge(Edge edge)
+void GfxContext::remove_edge(EdgeSpec edge)
 {
   auto source_node_it = this->nodes.find(edge.first.node);
   if(source_node_it != this->nodes.end())
@@ -318,7 +318,7 @@ void GfxContext::run_commands()
           auto n = dynamic_cast<score::gfx::OutputNode*>(node.get());
           SCORE_ASSERT(n);
           {
-            auto it = ossia::find_if(this->preview_edges, [idx = cmd.index](Edge e) {
+            auto it = ossia::find_if(this->preview_edges, [idx = cmd.index](EdgeSpec e) {
               return e.second.node == idx;
             });
             if(it != this->preview_edges.end())

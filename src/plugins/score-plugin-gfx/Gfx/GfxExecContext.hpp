@@ -26,9 +26,9 @@ public:
   void endTick(const ossia::audio_tick_state& st) override;
 
   GfxContext* ui{};
-  std::vector<Edge> prev_edges;
-  std::vector<Edge> edges_cache;
-  using edge_queue = moodycamel::ConcurrentQueue<Edge>;
+  std::vector<EdgeSpec> prev_edges;
+  std::vector<EdgeSpec> edges_cache;
+  using edge_queue = moodycamel::ConcurrentQueue<EdgeSpec>;
   edge_queue incoming_edges;
 };
 

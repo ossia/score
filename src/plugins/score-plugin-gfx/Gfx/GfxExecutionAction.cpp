@@ -72,7 +72,7 @@ void GfxExecutionAction::endTick(const ossia::audio_tick_state& st)
   edges_cache.clear();
   edges_cache.reserve(std::max(prev_edges.size(), incoming_edges.size_approx()));
 
-  Edge e;
+  EdgeSpec e;
   while(incoming_edges.try_dequeue(e))
   {
     edges_cache.push_back(e);

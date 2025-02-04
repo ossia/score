@@ -117,7 +117,7 @@ private:
   QPointer<const TextureOutlet> outlet_p;
   QPointer<Gfx::DocumentPlugin> plug;
   score::gfx::ScreenNode* node{};
-  std::optional<Gfx::Edge> e;
+  std::optional<Gfx::EdgeSpec> e;
 
   std::shared_ptr<score::gfx::Window> window;
 

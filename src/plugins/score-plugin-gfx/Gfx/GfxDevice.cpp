@@ -8,6 +8,7 @@
 
 #include <QMimeData>
 
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::GfxInputDevice)
 W_OBJECT_IMPL(Gfx::GfxOutputDevice)
 namespace Gfx

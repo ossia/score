@@ -107,7 +107,9 @@ private:
   }
 
   score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return { }; }
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void init(score::gfx::RenderList &renderer,
+            QRhiResourceUpdateBatch &res,
+            score::gfx::Edge *edge) override
   {
     // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
