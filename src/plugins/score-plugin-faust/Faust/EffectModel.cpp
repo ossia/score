@@ -17,6 +17,9 @@
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/faust/faust_node.hpp>
+#include <ossia/detail/disable_fpe.hpp>
+
+#include <boost/predef.h>
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -29,7 +32,9 @@
 #include <Faust/Commands.hpp>
 #include <Faust/Descriptor.hpp>
 #include <Faust/Utils.hpp>
-
+#if BOOST_ARCH_X86
+#include <xmmintrin.h>
+#endif
 #include <wobjectimpl.h>
 
 #if __has_include(<sndfile.h>)
@@ -301,8 +306,15 @@ Process::ScriptChangeResult FaustEffectModel::reload()
   err.resize(4097);
   llvm_dsp_factory* fac{};
 
+#if BOOST_ARCH_X86
+  // https://github.com/grame-cncm/faust/issues/1117
+  _mm_setcsr(_MM_MASK_MASK | _MM_FLUSH_ZERO_OFF);
+#endif
+
   fac = createDSPFactoryFromString(
       "score", str, argv.size(), argv.data(), triple, err, -1);
+
+  ossia::disable_fpe();
 
   if(err[0] != 0)
   {
