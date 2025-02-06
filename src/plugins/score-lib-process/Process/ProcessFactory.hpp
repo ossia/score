@@ -79,6 +79,13 @@ public:
       const Process::ProcessModel&, const Process::Context& ctx,
       QGraphicsItem* parent) const;
 
+  virtual bool hasCodeEditor(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx) const noexcept;
+  virtual QWidget* makeCodeEditor(
+      const Process::ProcessModel&, const score::DocumentContext& ctx,
+      QWidget* parent) const;
+
   virtual bool hasExternalUI(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx) const noexcept;
