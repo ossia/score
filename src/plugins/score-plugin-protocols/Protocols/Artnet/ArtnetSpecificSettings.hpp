@@ -113,6 +113,7 @@ struct ArtnetSpecificSettings
   QString host;
   int rate{20};
   int universe{1};
+  bool multicast{};
 
   enum
   {

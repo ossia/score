@@ -86,14 +86,14 @@ Artnet::Fixture AddLEDStripDialog::fixture() const noexcept
   Artnet::Fixture f;
   f.fixtureName = this->m_name.text();
   f.modeName = "LED Strip";
-  f.address = m_address.value();
-  f.controls.resize(1);
+  f.address = m_address.value() - 1;
 
   auto capa = Artnet::LEDStripLayout{};
   for(auto& cur : m_channelCombos)
     capa.diodes.push_back((Artnet::Diode)cur->currentData().toInt());
   capa.length = m_pixels.value();
   capa.reverse = m_reverse.isChecked();
+
   f.led = std::move(capa);
   return f;
 }

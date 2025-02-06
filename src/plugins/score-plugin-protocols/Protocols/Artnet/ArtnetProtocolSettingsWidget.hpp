@@ -31,11 +31,14 @@ public:
 private:
   void updateHosts(int protocolindex);
   void updateTable();
+
+  QString newFixtureName(QString name);
   QLineEdit* m_deviceNameEdit{};
   QComboBox* m_host{};
   QSpinBox* m_rate{};
   QSpinBox* m_universe{};
   QComboBox* m_transport{};
+  QCheckBox* m_multicast{};
   QRadioButton* m_source{};
   QRadioButton* m_sink{};
   QTableWidget* m_fixturesWidget{};

@@ -10,6 +10,8 @@
 
 #include <score/tools/ListNetworkAddresses.hpp>
 
+#include <ossia-qt/name_utils.hpp>
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QPushButton>
@@ -49,6 +51,9 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
        "DMX USB PRO", "DMX USB PRO Mk2", "OpenDMX USB"});
   checkForChanges(m_transport);
 
+  m_multicast = new QCheckBox{this};
+  m_multicast->setChecked(false);
+
   m_source = new QRadioButton{tr("Send DMX"), this};
   m_sink = new QRadioButton{tr("Receive DMX"), this};
   m_source->setChecked(true);
@@ -64,6 +69,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Universe"), m_universe);
   layout->addRow(tr("Transport"), m_transport);
   layout->addRow(tr("Interface"), m_host);
+  layout->addRow(tr("Multicast (E1.31)"), m_multicast);
 
   auto radiolay = new QHBoxLayout{};
   radiolay->addWidget(m_source);
@@ -86,11 +92,11 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   auto btns = new QVBoxLayout;
   m_addFixture = new QPushButton{"Add fixture"};
   m_addLEDStrip = new QPushButton{"Add LED strip"};
-  m_addLEDPane = new QPushButton{"Add LED pane"};
+  //m_addLEDPane = new QPushButton{"Add LED pane"};
   m_rmFixture = new QPushButton{"Remove"};
   btns->addWidget(m_addFixture);
   btns->addWidget(m_addLEDStrip);
-  btns->addWidget(m_addLEDPane);
+  //btns->addWidget(m_addLEDPane);
   btns->addWidget(m_rmFixture);
   btns->addStretch(2);
   fixtures_layout->addLayout(btns);
@@ -98,10 +104,11 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
   connect(m_addLEDStrip, &QPushButton::clicked, this, [this] {
     auto dial = new AddLEDStripDialog{*this};
+    dial->setName(newFixtureName(dial->name()));
     if(dial->exec() == QDialog::Accepted)
     {
       auto fixt = dial->fixture();
-      if(!fixt.fixtureName.isEmpty() && !fixt.controls.empty())
+      if(!fixt.fixtureName.isEmpty() && fixt.led)
       {
         m_fixtures.push_back(fixt);
         updateTable();
@@ -111,6 +118,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
   connect(m_addFixture, &QPushButton::clicked, this, [this] {
     auto dial = new AddFixtureDialog{*this};
+    dial->setName(newFixtureName(dial->name()));
     if(dial->exec() == QDialog::Accepted)
     {
       auto fixt = dial->fixture();
@@ -121,6 +129,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
       }
     }
   });
+
   connect(m_rmFixture, &QPushButton::clicked, this, [this] {
     ossia::flat_set<int> rows_to_remove;
     for(auto item : m_fixturesWidget->selectedItems())
@@ -139,6 +148,14 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 }
 
+QString ArtnetProtocolSettingsWidget::newFixtureName(QString name)
+{
+  std::vector<QString> brethren;
+  for(auto& strip : this->m_fixtures)
+    brethren.push_back(strip.fixtureName);
+  return ossia::net::sanitize_name(name, brethren);
+}
+
 void ArtnetProtocolSettingsWidget::updateHosts(int idx)
 {
   m_host->clear();
@@ -151,6 +168,7 @@ void ArtnetProtocolSettingsWidget::updateHosts(int idx)
       m_host->addItems(ips);
       m_host->setCurrentIndex(0);
       m_universe->setRange(0, 16);
+      m_multicast->setDisabled(true);
       break;
     }
     case 2:
@@ -158,14 +176,17 @@ void ArtnetProtocolSettingsWidget::updateHosts(int idx)
       m_host->addItems(score::list_ipv4());
       m_host->setCurrentIndex(0);
       m_universe->setRange(1, 65539);
+      m_multicast->setEnabled(true);
       break;
     case 4: {
+      m_multicast->setDisabled(true);
       m_universe->setRange(0, 0);
       for(const auto& port : QSerialPortInfo::availablePorts())
         m_host->addItem(port.portName());
       break;
     }
     case 5: {
+      m_multicast->setDisabled(true);
       m_universe->setRange(0, 1);
       for(const auto& port : QSerialPortInfo::availablePorts())
         m_host->addItem(port.portName());
@@ -195,11 +216,14 @@ void ArtnetProtocolSettingsWidget::updateTable()
     {
       num_controls = ossia::apply_nonnull([](const auto& led) {
         if constexpr(requires { led.channels(); })
+        {
           return led.channels();
+        }
         else
           return 0;
       }, fixt.led);
     }
+
     auto name_item = new QTableWidgetItem{fixt.fixtureName};
     auto mode_item = new QTableWidgetItem{fixt.modeName};
     auto address = new QTableWidgetItem{QString::number(fixt.address + 1)};
@@ -257,6 +281,7 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 
   settings.rate = this->m_rate->value();
   settings.universe = this->m_universe->value();
+  settings.multicast = this->m_multicast->isChecked();
   settings.mode = this->m_source->isChecked() ? ArtnetSpecificSettings::Source
                                               : ArtnetSpecificSettings::Sink;
   s.deviceSpecificSettings = QVariant::fromValue(settings);
@@ -299,6 +324,7 @@ void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
   m_rate->setValue(specif.rate);
   m_universe->setValue(specif.universe);
   m_host->setCurrentText(specif.host);
+  m_multicast->setChecked(specif.multicast);
   if(m_host->currentText().isEmpty())
     updateHosts(m_transport->currentIndex());
 

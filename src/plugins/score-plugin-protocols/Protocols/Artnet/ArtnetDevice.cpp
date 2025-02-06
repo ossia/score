@@ -11,6 +11,7 @@
 
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/protocols/artnet/artnet_protocol.hpp>
+#include <ossia/protocols/artnet/dmx_led_parameter.hpp>
 #include <ossia/protocols/artnet/dmx_parameter.hpp>
 #include <ossia/protocols/artnet/dmxusbpro_protocol.hpp>
 #include <ossia/protocols/artnet/e131_protocol.hpp>
@@ -159,21 +160,22 @@ struct fixture_setup_visitor
       chan_enumnode->set_parameter(std::move(chan_enumparam));
     }
   }
-
+};
+struct led_visitor
+{
+  ossia::net::node_base& fixt_node;
+  ossia::net::dmx_buffer& buffer;
+  int dmx_channel;
   void operator()(const Artnet::LEDStripLayout& v) const noexcept
   {
-    auto chan_node = fixt_node.create_child(chan.name.toStdString());
-    auto chan_param
-        = std::make_unique<ossia::net::dmx_parameter>(*chan_node, buffer, dmx_channel);
+    auto chan_param = std::make_unique<ossia::net::dmx_led_parameter>(
+        fixt_node, buffer, dmx_channel, v.diodes.size(), v.length);
 
-    auto& node = *chan_node;
-    auto& p = *chan_param;
-
-    chan_node->set_parameter(std::move(chan_param));
-    p.set_value(std::vector<ossia::value>{});
+    fixt_node.set_parameter(std::move(chan_param));
   }
   void operator()(const Artnet::LEDPaneLayout& v) const noexcept { SCORE_ABORT; }
   void operator()(const Artnet::LEDVolumeLayout& v) const noexcept { SCORE_ABORT; }
+  void operator()(ossia::monostate) { }
 };
 
 static void addArtnetFixture(
@@ -199,6 +201,14 @@ static void addArtnetFixture(
     fixture_setup_visitor vis{fix, chan, *fixt_node, buffer, dmx_channel};
 
     ossia::visit(vis, chan.capabilities);
+  }
+
+  if(fix.led)
+  {
+    const int dmx_channel = fix.address;
+    led_visitor vis{*fixt_node, buffer, dmx_channel};
+
+    ossia::visit(vis, fix.led);
   }
 }
 }
@@ -231,7 +241,7 @@ bool ArtnetDevice::reconnect()
     }
     conf.frequency = set.rate;
     conf.universe = set.universe;
-    conf.multicast = true;
+    conf.multicast = set.multicast;
     conf.mode = set.mode == ArtnetSpecificSettings::Source
                     ? ossia::net::dmx_config::source
                     : ossia::net::dmx_config::sink;
