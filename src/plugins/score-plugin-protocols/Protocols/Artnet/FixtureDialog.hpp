@@ -29,6 +29,8 @@ public:
 
   void updateParameters(const FixtureNode& fixt);
   void setMode(int mode_index);
+  QString name() const noexcept { return m_name.text(); }
+  void setName(QString t) { m_name.setText(t); }
 
   QSize sizeHint() const override;
   Artnet::Fixture fixture() const noexcept;

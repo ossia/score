@@ -21,6 +21,8 @@ class AddLEDStripDialog : public QDialog
 public:
   explicit AddLEDStripDialog(ArtnetProtocolSettingsWidget& parent);
   Artnet::Fixture fixture() const noexcept;
+  QString name() const noexcept { return m_name.text(); }
+  void setName(QString t) { m_name.setText(t); }
 
 private:
   void on_channelsChanged(int count);
