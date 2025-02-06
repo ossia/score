@@ -18,7 +18,6 @@ namespace JS
 class Script;
 class ProcessModel;
 
-void setupEngineImportPaths(QQmlEngine& engine) noexcept;
 
 struct ComponentCache
 {
@@ -85,7 +84,6 @@ private:
   QString m_script;
   QByteArray m_qmlData;
   mutable ComponentCache m_cache;
-  //std::unique_ptr<QFileSystemWatcher> m_watch;
   bool m_isFile{};
 };
 }
