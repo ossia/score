@@ -35,7 +35,7 @@ struct Package
   std::vector<QUrl> files; // URL to a file containing the current version.
   QMap<QString, std::vector<QUrl>> arch_files; // if there are per-architecture files
   QString url;    // Link to the homepage of the package if any
-
+  QString category;
   QString shortDescription;
   QString longDescription;
   QString smallImagePath;

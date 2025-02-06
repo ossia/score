@@ -255,6 +255,7 @@ std::optional<Package> Package::fromJson(const QJsonObject& obj) noexcept
       {"long", [&](QJsonValue v) { add.longDescription = v.toString(); }},
       {"small", [&](QJsonValue v) { add.smallImagePath = v.toString(); }},
       {"large", [&](QJsonValue v) { add.largeImagePath = v.toString(); }},
+      {"category", [&](QJsonValue v) { add.category = v.toString(); }},
       {"size", [&](QJsonValue v) { add.size = v.toString(); }},
       {"key", [&](QJsonValue v) {
     auto str = v.toString();
