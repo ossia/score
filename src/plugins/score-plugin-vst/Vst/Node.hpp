@@ -20,6 +20,7 @@ protected:
   explicit vst_node_base(std::shared_ptr<AEffectWrapper>&& ptr)
       : fx{std::move(ptr)}
   {
+    this->set_not_fp_safe();
     m_inlets.reserve(10);
     controls.reserve(10);
   }

@@ -313,6 +313,7 @@ __attribute__ ((visibility("default")))
 extern "C" ossia::graph_node* avnd_factory(int buffersize, double rate) {{
   using type = decltype(avnd::configure<oscr::config, Node>())::type;
   auto n = new oscr::safe_node<type>(buffersize, rate, 0);
+  n->set_not_fp_safe();
   n->finish_init();
   n->audio_configuration_changed();
   return n;
