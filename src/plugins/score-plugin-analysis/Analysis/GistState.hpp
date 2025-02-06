@@ -211,7 +211,7 @@ struct GistState
         if(g1.getAudioFrameSize() != samples)
           g1.setAudioFrameSize(samples);
 
-        g1.processAudioFrame(data(c0), samples, gain, gate);
+        g1.processAudioFrame(data(c1), samples, gain, gate);
         ret[1] = (g1.*Func)();
       }
     }
