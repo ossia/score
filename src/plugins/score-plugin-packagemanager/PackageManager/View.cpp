@@ -9,6 +9,7 @@
 
 #include <QApplication>
 #include <QBuffer>
+#include <QComboBox>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
@@ -17,6 +18,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -109,10 +111,22 @@ PluginSettingsView::PluginSettingsView()
   auto vlay = new QVBoxLayout{side_widget};
   grid->addWidget(side_widget, 0, 1, 2, 1);
 
+  auto categoryLabel = new QLabel("Select Category:");
+  vlay->addWidget(categoryLabel);
+
+  auto categoryComboBox = new QComboBox;
+  categoryComboBox->addItem("All");
+  categoryComboBox->addItem("Media");
+  categoryComboBox->addItem("AI Models");
+  vlay->addWidget(categoryComboBox);
+  vlay->addSpacing(20);
+
   vlay->addWidget(m_link);
   vlay->addWidget(m_uninstall);
   m_install->setVisible(false);
   vlay->addWidget(m_install);
+  vlay->addSpacing(20);
+
   vlay->addWidget(m_update);
   vlay->addWidget(m_updateAll);
   vlay->addStretch();
