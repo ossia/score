@@ -38,9 +38,6 @@ namespace JS
 
 void setupEngineImportPaths(QQmlEngine& eng) noexcept
 {
-  // eng.importModule(
-  //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
-  //     "tonal.mjs");
   for(auto& p :
       score::AppContext().settings<Library::Settings::Model>().getIncludePaths())
   {
@@ -69,10 +66,10 @@ Script {
       out1.value = in1.value + sl.value * Math.random();
     }
   }
-  start: function() { console.log("I am called on start"); }
-  stop: function() { console.log("I am called on stop"); }
-  pause: function() { console.log("I am called on pause"); }
-  resume: function() { console.log("I am called on resume"); }
+  start: function() { }
+  stop: function() { }
+  pause: function() { }
+  resume: function() { }
 })_");
   }
   else
@@ -111,15 +108,6 @@ QString ProcessModel::effect() const noexcept
 [[nodiscard]] Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
 {
   Process::ScriptChangeResult res;
-  /*
-  m_watch.reset();
-
-  if (m_dummyObject)
-    m_dummyObject->deleteLater();
-  m_dummyObject = nullptr;
-  m_dummyComponent.reset();
-  m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
-  */
   const auto trimmed = script.trimmed();
   const QByteArray data = trimmed.toUtf8();
 
@@ -127,29 +115,6 @@ QString ProcessModel::effect() const noexcept
 
   if(QFileInfo{path}.exists())
   {
-    /* Disabling the watch feature for now :
-     * it does not fix the cables, etc.
-    m_watch = std::make_unique<QFileSystemWatcher>(QStringList{trimmed});
-    connect(
-        m_watch.get(),
-        &QFileSystemWatcher::fileChanged,
-        this,
-        [=](const QString& path) {
-          // Note:
-          //
-    https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
-          QTimer::singleShot(20, this, [this, path] {
-            m_watch->addPath(path);
-            QFile f(path);
-            if (f.open(QIODevice::ReadOnly))
-            {
-              setQmlData(path.toUtf8(), true);
-              m_watch->addPath(path);
-            }
-          });
-        });
-
-    */
     if(res = setQmlData(path.toUtf8(), true); !res.valid)
       return res;
   }
