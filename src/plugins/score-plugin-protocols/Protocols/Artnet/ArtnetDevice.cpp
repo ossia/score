@@ -160,7 +160,18 @@ struct fixture_setup_visitor
     }
   }
 
-  void operator()(const Artnet::LEDStripLayout& v) const noexcept { SCORE_ABORT; }
+  void operator()(const Artnet::LEDStripLayout& v) const noexcept
+  {
+    auto chan_node = fixt_node.create_child(chan.name.toStdString());
+    auto chan_param
+        = std::make_unique<ossia::net::dmx_parameter>(*chan_node, buffer, dmx_channel);
+
+    auto& node = *chan_node;
+    auto& p = *chan_param;
+
+    chan_node->set_parameter(std::move(chan_param));
+    p.set_value(std::vector<ossia::value>{});
+  }
   void operator()(const Artnet::LEDPaneLayout& v) const noexcept { SCORE_ABORT; }
   void operator()(const Artnet::LEDVolumeLayout& v) const noexcept { SCORE_ABORT; }
 };
@@ -326,10 +337,10 @@ bool ArtnetDevice::reconnect()
           std::move(artnet_proto), settings().name.toStdString());
 
       if(!set.fixtures.empty())
-        SCORE_ASSERT(proto.buffer().size() == 1);
+        SCORE_ASSERT(proto.buffer().universes() == 1);
       for(auto& fixt : set.fixtures)
       {
-        addArtnetFixture(*dev, proto.buffer()[0], fixt);
+        addArtnetFixture(*dev, proto.buffer(), fixt);
       }
 
       if(set.mode == ArtnetSpecificSettings::Sink)
