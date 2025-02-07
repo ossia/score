@@ -45,6 +45,10 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_universe = new QSpinBox{this};
   m_universe->setRange(0, 65539);
 
+  m_channels_per_universe = new QSpinBox{this};
+  m_channels_per_universe->setRange(1, 512);
+  m_channels_per_universe->setValue(512);
+
   m_transport = new QComboBox{this};
   m_transport->addItems(
       {"ArtNet", "ArtNet (16 universes)", "E1.31 / sACN", "E1.31 / sACN (16 universes)",
@@ -67,6 +71,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Rate (Hz)"), m_rate);
   layout->addRow(tr("Universe"), m_universe);
+  layout->addRow(tr("Channels in universe"), m_channels_per_universe);
   layout->addRow(tr("Transport"), m_transport);
   layout->addRow(tr("Interface"), m_host);
   layout->addRow(tr("Multicast (E1.31)"), m_multicast);
@@ -281,6 +286,7 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 
   settings.rate = this->m_rate->value();
   settings.universe = this->m_universe->value();
+  settings.channels_per_universe = this->m_channels_per_universe->value();
   settings.multicast = this->m_multicast->isChecked();
   settings.mode = this->m_source->isChecked() ? ArtnetSpecificSettings::Source
                                               : ArtnetSpecificSettings::Sink;
@@ -323,6 +329,7 @@ void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
 
   m_rate->setValue(specif.rate);
   m_universe->setValue(specif.universe);
+  m_channels_per_universe->setValue(specif.channels_per_universe);
   m_host->setCurrentText(specif.host);
   m_multicast->setChecked(specif.multicast);
   if(m_host->currentText().isEmpty())

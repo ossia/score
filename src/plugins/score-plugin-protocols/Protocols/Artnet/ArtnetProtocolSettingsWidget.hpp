@@ -37,6 +37,7 @@ private:
   QComboBox* m_host{};
   QSpinBox* m_rate{};
   QSpinBox* m_universe{};
+  QSpinBox* m_channels_per_universe{};
   QComboBox* m_transport{};
   QCheckBox* m_multicast{};
   QRadioButton* m_source{};

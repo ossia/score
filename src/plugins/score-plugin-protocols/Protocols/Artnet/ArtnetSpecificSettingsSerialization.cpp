@@ -298,16 +298,16 @@ void JSONWriter::write(Protocols::Artnet::Fixture& n)
 template <>
 void DataStreamReader::read(const Protocols::ArtnetSpecificSettings& n)
 {
-  m_stream << n.fixtures << n.host << n.rate << n.universe << n.multicast << n.transport
-           << n.mode;
+  m_stream << n.fixtures << n.host << n.rate << n.universe << n.channels_per_universe
+           << n.multicast << n.transport << n.mode;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::ArtnetSpecificSettings& n)
 {
-  m_stream >> n.fixtures >> n.host >> n.rate >> n.universe >> n.multicast >> n.transport
-      >> n.mode;
+  m_stream >> n.fixtures >> n.host >> n.rate >> n.universe >> n.channels_per_universe
+      >> n.multicast >> n.transport >> n.mode;
   checkDelimiter();
 }
 
@@ -318,6 +318,7 @@ void JSONReader::read(const Protocols::ArtnetSpecificSettings& n)
   obj["Host"] = n.host;
   obj["Rate"] = n.rate;
   obj["Universe"] = n.universe;
+  obj["ChannelsPerUniverse"] = n.channels_per_universe;
   if(n.multicast)
     obj["Multicast"] = n.multicast;
   obj["Transport"] = n.transport;
@@ -334,6 +335,8 @@ void JSONWriter::write(Protocols::ArtnetSpecificSettings& n)
   n.rate <<= obj["Rate"];
   if(auto u = obj.tryGet("Universe"))
     n.universe = u->toInt();
+  if(auto u = obj.tryGet("ChannelsPerUniverse"))
+    n.channels_per_universe = u->toInt();
   if(auto u = obj.tryGet("Multicast"))
     n.multicast = u->toBool();
   if(auto u = obj.tryGet("Transport"))
