@@ -4,6 +4,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
+#include <QComboBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QNetworkAccessManager>
@@ -62,6 +63,7 @@ private:
   void checkAll();
   void update();
   void updateAll();
+  void updateCategoryComboBox(int tabIndex);
 
   QWidget* m_widget{new QWidget};
 
@@ -78,6 +80,7 @@ private:
 
   QStorageInfo storage;
   QLabel* m_storage{new QLabel};
+  QComboBox* categoryComboBox = nullptr;
 };
 
 }
