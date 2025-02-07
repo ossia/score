@@ -4,6 +4,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MessageBox.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
 
@@ -95,7 +96,7 @@ PluginSettingsView::PluginSettingsView()
     local_widget->setLayout(local_layout);
     local_layout->addWidget(m_addonsOnSystem);
 
-    tab_widget->addTab(local_widget, tr("Local"));
+    tab_widget->addTab(local_widget, tr("Local packages"));
   }
 
   {
@@ -104,7 +105,7 @@ PluginSettingsView::PluginSettingsView()
     remote_widget->setLayout(remote_layout);
     remote_layout->addWidget(m_remoteAddons);
 
-    tab_widget->addTab(remote_widget, tr("Browse"));
+    tab_widget->addTab(remote_widget, tr("Available packages"));
   }
 
   auto side_widget = new QWidget;
@@ -121,7 +122,16 @@ PluginSettingsView::PluginSettingsView()
   vlay->addWidget(categoryComboBox);
   vlay->addSpacing(20);
 
+  m_link->setToolTip(tr("Open external package link in default browser."));
+  auto icon = makeIcons(
+      QStringLiteral(":/icons/undock_on.png"), QStringLiteral(":/icons/undock_off.png"),
+      QStringLiteral(":/icons/undock_off.png"));
+  m_link->setIcon(icon);
+
   vlay->addWidget(m_link);
+
+  vlay->addSpacing(20);
+
   vlay->addWidget(m_uninstall);
   m_install->setVisible(false);
   vlay->addWidget(m_install);
@@ -236,7 +246,8 @@ void PluginSettingsView::refresh()
   if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
     return;
   QNetworkRequest rqst{
-      QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/addons.json")};
+      QUrl("https://raw.githubusercontent.com/ossia/score-addons/refs/heads/"
+           "add-ai-models/addons.json")};
   mgr.get(rqst);
 }
 
