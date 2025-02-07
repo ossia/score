@@ -112,13 +112,10 @@ PluginSettingsView::PluginSettingsView()
   auto vlay = new QVBoxLayout{side_widget};
   grid->addWidget(side_widget, 0, 1, 2, 1);
 
-  auto categoryLabel = new QLabel("Select Category:");
+  auto categoryLabel = new QLabel("Select Kind:");
   vlay->addWidget(categoryLabel);
 
-  auto categoryComboBox = new QComboBox;
-  categoryComboBox->addItem("All");
-  categoryComboBox->addItem("Media");
-  categoryComboBox->addItem("AI Models");
+  categoryComboBox = new QComboBox(m_widget);
   vlay->addWidget(categoryComboBox);
   vlay->addSpacing(20);
 
@@ -172,6 +169,7 @@ PluginSettingsView::PluginSettingsView()
       m_progress->setValue(0);
 
       refresh();
+      updateCategoryComboBox(1);
     }
     else // Local
     {
@@ -179,6 +177,7 @@ PluginSettingsView::PluginSettingsView()
       m_install->setVisible(false);
       m_update->setVisible(true);
       m_updateAll->setVisible(true);
+      updateCategoryComboBox(0);
     }
   });
 
@@ -330,6 +329,11 @@ void PluginSettingsView::on_message(QNetworkReply* rep)
     reset_progress();
   }
   rep->deleteLater();
+
+  if(m_install->isVisible())
+    updateCategoryComboBox(1);
+  else
+    updateCategoryComboBox(0);
 
   if(!m_firstTimeCheck)
   {
@@ -716,4 +720,38 @@ void PluginSettingsView::progress_from_bytes(qint64 bytesReceived, qint64 bytesT
   m_progress->setValue(((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100);
 }
 
+void PluginSettingsView::updateCategoryComboBox(int tabIndex)
+{
+  categoryComboBox->clear();
+  categoryComboBox->addItem("All");
+
+  PackagesModel* model = nullptr;
+  if(tabIndex == 0) // Local packages tab
+  {
+    model = static_cast<PackagesModel*>(m_addonsOnSystem->model());
+  }
+  else if(tabIndex == 1) // Remote packages tab
+  {
+    model = static_cast<PackagesModel*>(m_remoteAddons->model());
+  }
+
+  // If the model exists, add uniqueKind
+  if(model)
+  {
+    QList<QString> uniqueKinds;
+
+    for(const auto& addon : model->addons())
+    {
+      if(!uniqueKinds.contains(addon.kind))
+      {
+        uniqueKinds.append(addon.kind);
+      }
+    }
+
+    for(const QString& kind : uniqueKinds)
+    {
+      categoryComboBox->addItem(kind);
+    }
+  }
+}
 }
