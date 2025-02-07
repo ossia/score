@@ -48,7 +48,7 @@ struct fixture_setup_visitor
   ossia::net::node_base& fixt_node;
   ossia::net::dmx_buffer& buffer;
   int dmx_channel;
-  void operator()(const Artnet::SingleCapability& v) const noexcept
+  int operator()(const Artnet::SingleCapability& v) const noexcept
   {
     auto chan_node = fixt_node.create_child(chan.name.toStdString());
     auto chan_param
@@ -75,9 +75,11 @@ struct fixture_setup_visitor
 
     if(!v.comment.isEmpty())
       ossia::net::set_description(node, v.comment.toStdString());
+
+    return bytes;
   }
 
-  void operator()(const std::vector<Artnet::RangeCapability>& v) const noexcept
+  int operator()(const std::vector<Artnet::RangeCapability>& v) const noexcept
   {
     std::vector<std::pair<std::string, uint8_t>> values;
     std::string comment;
@@ -127,7 +129,7 @@ struct fixture_setup_visitor
     }
 
     if(values.empty())
-      return;
+      return 0;
 
     auto chan_node = fixt_node.create_child(chan.name.toStdString());
     auto chan_param
@@ -159,6 +161,7 @@ struct fixture_setup_visitor
 
       chan_enumnode->set_parameter(std::move(chan_enumparam));
     }
+    return 1;
   }
 };
 struct led_visitor
@@ -166,22 +169,25 @@ struct led_visitor
   ossia::net::node_base& fixt_node;
   ossia::net::dmx_buffer& buffer;
   int dmx_channel;
-  void operator()(const Artnet::LEDStripLayout& v) const noexcept
+  int operator()(const Artnet::LEDStripLayout& v) const noexcept
   {
     auto chan_param = std::make_unique<ossia::net::dmx_led_parameter>(
         fixt_node, buffer, dmx_channel, v.diodes.size(), v.length);
 
     fixt_node.set_parameter(std::move(chan_param));
+    return v.channels();
   }
-  void operator()(const Artnet::LEDPaneLayout& v) const noexcept { SCORE_ABORT; }
-  void operator()(const Artnet::LEDVolumeLayout& v) const noexcept { SCORE_ABORT; }
-  void operator()(ossia::monostate) { }
+  int operator()(const Artnet::LEDPaneLayout& v) const noexcept { SCORE_ABORT; }
+  int operator()(const Artnet::LEDVolumeLayout& v) const noexcept { SCORE_ABORT; }
+  int operator()(ossia::monostate) { SCORE_ABORT; }
 };
 
 static void addArtnetFixture(
     ossia::net::generic_device& dev, ossia::net::dmx_buffer& buffer,
-    const Artnet::Fixture& fix)
+    const Artnet::Fixture& fix, int channels_per_universe)
 {
+  int dmx_channel = 0;
+  int size = 0;
   // For each fixture, we'll create a node.
   auto fixt_node = dev.create_child(fix.fixtureName.toStdString());
   if(!fixt_node)
@@ -195,21 +201,26 @@ static void addArtnetFixture(
         = ossia::index_in_container(fix.mode.channelNames, chan.name);
     if(channel_offset == -1)
       continue;
-    const int dmx_channel = fix.address + channel_offset;
+    dmx_channel = fix.address + channel_offset;
 
     // Then for each range-based subchannels, sub-nodes with the relevant domains.
     fixture_setup_visitor vis{fix, chan, *fixt_node, buffer, dmx_channel};
 
-    ossia::visit(vis, chan.capabilities);
+    size = ossia::visit(vis, chan.capabilities);
   }
 
   if(fix.led)
   {
-    const int dmx_channel = fix.address;
+    dmx_channel = fix.address;
     led_visitor vis{*fixt_node, buffer, dmx_channel};
 
-    ossia::visit(vis, fix.led);
+    size = ossia::visit(vis, fix.led);
   }
+
+  int max = dmx_channel + size;
+  int max_universe_count = 1 + max / channels_per_universe;
+  if(buffer.universes() < max_universe_count)
+    buffer.set_universe_count(max_universe_count);
 }
 }
 bool ArtnetDevice::reconnect()
@@ -242,6 +253,7 @@ bool ArtnetDevice::reconnect()
     conf.frequency = set.rate;
     conf.universe = set.universe;
     conf.multicast = set.multicast;
+    conf.channels_per_universe = set.channels_per_universe;
     conf.mode = set.mode == ArtnetSpecificSettings::Source
                     ? ossia::net::dmx_config::source
                     : ossia::net::dmx_config::sink;
@@ -350,7 +362,7 @@ bool ArtnetDevice::reconnect()
         SCORE_ASSERT(proto.buffer().universes() == 1);
       for(auto& fixt : set.fixtures)
       {
-        addArtnetFixture(*dev, proto.buffer(), fixt);
+        addArtnetFixture(*dev, proto.buffer(), fixt, conf.channels_per_universe);
       }
 
       if(set.mode == ArtnetSpecificSettings::Sink)
