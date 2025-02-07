@@ -73,7 +73,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Universe"), m_universe);
   layout->addRow(tr("Channels in universe"), m_channels_per_universe);
   layout->addRow(tr("Transport"), m_transport);
-  layout->addRow(tr("Interface"), m_host);
+  layout->addRow(tr("Interface / Host"), m_host);
   layout->addRow(tr("Multicast (E1.31)"), m_multicast);
 
   auto radiolay = new QHBoxLayout{};
