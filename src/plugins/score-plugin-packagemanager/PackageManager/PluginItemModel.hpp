@@ -34,8 +34,7 @@ struct Package
       kind; // what kind of package it is (for now: "addon", "sdk", "library", "media", "presets")
   std::vector<QUrl> files; // URL to a file containing the current version.
   QMap<QString, std::vector<QUrl>> arch_files; // if there are per-architecture files
-  QString url;    // Link to the homepage of the package if any
-  QString category;
+  QString url; // Link to the homepage of the package if any
   QString shortDescription;
   QString longDescription;
   QString smallImagePath;
@@ -66,9 +65,10 @@ private:
     Name,
     Version,
     Size,
-    ShortDesc
+    ShortDesc,
+    Kind
   };
-  static constexpr const int ColumnCount = 4;
+  static constexpr const int ColumnCount = 5;
 
   QModelIndex index(int row, int column, const QModelIndex& parent) const override;
   QModelIndex parent(const QModelIndex& child) const override;
