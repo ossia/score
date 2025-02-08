@@ -888,7 +888,7 @@ void parser::parse_isf()
 
       int binding = 3;
 
-      if(!d.inputs.empty() || !d.passes.empty())
+      if(!d.inputs.empty() || !d.pass_targets.empty())
       {
         std::string samplers;
         std::string globalvars;
