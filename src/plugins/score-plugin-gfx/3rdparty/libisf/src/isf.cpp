@@ -886,7 +886,7 @@ void parser::parse_isf()
       // Setup the parameters UBOs
       std::string material_ubos = GLSL45.defaultUniforms;
 
-      int binding = 3;
+      int sampler_binding = 3;
 
       if(!d.inputs.empty() || !d.pass_targets.empty())
       {
@@ -900,7 +900,7 @@ void parser::parse_isf()
           if(isSampler)
           {
             samplers += "layout(binding = ";
-            samplers += std::to_string(binding);
+            samplers += std::to_string(sampler_binding);
             samplers += ") ";
             samplers += type;
             samplers += ' ';
@@ -910,10 +910,13 @@ void parser::parse_isf()
             auto imgRect_varname = "_" + val.name + "_imgRect";
             material_ubos += "vec4 " + imgRect_varname + ";\n";
             // See comment above regarding little dance to make spirv-cross happy
-            globalvars += "vec4 " + imgRect_varname + " = isf_material_uniforms."
-                          + imgRect_varname + ";\n";
+            globalvars += "vec4 ";
+            globalvars += imgRect_varname;
+            globalvars += " = isf_material_uniforms.";
+            globalvars += imgRect_varname;
+            globalvars += ";\n";
 
-            binding++;
+            sampler_binding++;
           }
           else
           {
@@ -935,14 +938,14 @@ void parser::parse_isf()
         for(const std::string& target : d.pass_targets)
         {
           samplers += "layout(binding = ";
-          samplers += std::to_string(binding);
+          samplers += std::to_string(sampler_binding);
           samplers += ") uniform sampler2D ";
           samplers += target;
           samplers += ";\n";
 
           material_ubos += "vec4 _" + target + "_imgRect;\n";
 
-          binding++;
+          sampler_binding++;
         }
 
         material_ubos += "} isf_material_uniforms;\n";

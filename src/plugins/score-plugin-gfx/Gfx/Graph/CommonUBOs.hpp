@@ -18,7 +18,7 @@ struct ProcessUBO
   int32_t frameIndex{};
 
   float padding0[1];
-  float renderSize[2]{};
+  float renderSize[2]{2048, 2048};
   float date[4]{0.f, 0.f, 0.f, 0.f};
   float mouse[4]{0.5f, 0.5f, 0.5f, 0.5f};
   float channelTime[4]{0.5f, 0.5f, 0.5f, 0.5f};

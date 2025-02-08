@@ -60,9 +60,10 @@ layout(std140, binding = 1) uniform process_t {
   int PASSINDEX;
   int FRAMEINDEX;
 
+  vec2 RENDERSIZE;
   vec4 DATE;
   vec4 MOUSE;
-  vec4 CHANNELTIME;
+  vec4 CHANNEL_TIME;
 
   float SAMPLERATE;
 } isf_process_uniforms;
