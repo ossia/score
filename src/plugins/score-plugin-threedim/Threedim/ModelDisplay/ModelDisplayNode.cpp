@@ -1,17 +1,22 @@
 #include "ModelDisplayNode.hpp"
 
 #include <Gfx/Graph/GeometryFilterNodeRenderer.hpp>
+#include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
-#include <boost/algorithm/string.hpp>
+#include <Gfx/Graph/RenderedISFNode.hpp>
+
+#include <score/tools/Debug.hpp>
+#include <score/tools/SafeCast.hpp>
+
 #include <ossia/detail/fmt.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
-#include <score/tools/Debug.hpp>
-#include <score/tools/SafeCast.hpp>
+
+#include <boost/algorithm/string.hpp>
 
 #include <QPainter>
 
@@ -111,6 +116,76 @@ vec4 v_projected = vec4(1.0);
 const constexpr auto vtx_output_process_triangle = R"_()_";
 const constexpr auto vtx_output_process_point = R"_(
   gl_PointSize = 1.0f;
+)_";
+
+const constexpr auto model_display_vertex_shader_isf = R"_(#version 450
+layout(location = 0) in vec3 position;
+// layout(location = 1) in vec2 texcoord;
+
+layout(location = 0) out vec2 isf_FragNormCoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+mat4 clipSpaceCorrMatrix = renderer.clipSpaceCorrMatrix;
+// Time-dependent uniforms, only relevant during execution
+layout(std140, binding = 1) uniform process_t {
+  float TIME;
+  float TIMEDELTA;
+  float PROGRESS;
+
+  int PASSINDEX;
+  int FRAMEINDEX;
+
+  vec2 RENDERSIZE;
+  vec4 DATE;
+  vec4 MOUSE;
+  vec4 CHANNEL_TIME;
+  float SAMPLERATE;
+} isf_process_uniforms;
+
+float TIME = isf_process_uniforms.TIME;
+float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
+float PROGRESS = isf_process_uniforms.PROGRESS;
+int PASSINDEX = isf_process_uniforms.PASSINDEX;
+int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
+vec2 RENDERSIZE = isf_process_uniforms.RENDERSIZE;
+vec4 DATE = isf_process_uniforms.DATE;
+
+layout(std140, binding = 2) uniform camera_t {
+      mat4 matrixModelViewProjection;
+      mat4 matrixModelView;
+      mat4 matrixModel;
+      mat4 matrixView;
+      mat4 matrixProjection;
+      mat3 matrixNormal;
+      float fov;
+} camera;
+
+%vtx_define_filters%
+
+%vtx_output%
+
+void main()
+{
+  vec3 in_position = position;
+  vec3 in_normal = vec3(0);
+  vec2 in_uv = vec2(0);
+  vec3 in_tangent = vec3(0);
+  vec4 in_color = vec4(1);
+
+  %vtx_do_filters%
+
+  isf_FragNormCoord = in_uv;
+
+  %vtx_do_projection%
+
+  gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+
+  %vtx_output_process%
+}
 )_";
 
 const constexpr auto model_display_vertex_shader_phong = R"_(#version 450
@@ -631,7 +706,7 @@ private:
     {
       if (!mesh.filters->filters.empty())
       {
-        for (auto& f : mesh.filters->filters)
+        for(auto& f : mesh.filters->filters)
         {
           for (auto n : renderer.renderers)
           {
@@ -647,6 +722,46 @@ private:
                 cur_binding++;
                 break;
               }
+            }
+          }
+        }
+      }
+    }
+
+    if(1)
+    {
+      // texture port
+      if(!this->node.input[0]->edges.empty())
+      {
+        auto e = this->node.input[0]->edges.front();
+        auto src_tex_node = e->source->node;
+        if(auto isf = dynamic_cast<ISFNode*>(src_tex_node))
+        {
+          auto vs = processVertexShader(
+              model_display_vertex_shader_isf, vtx_output_point,
+              vtx_output_process_point, vtx_projection_perspective, mesh);
+
+          auto fs = isf->m_fragmentS;
+          fs.replace("std140, binding = 2", "std140, binding = 4");
+
+          qDebug() << vs.toUtf8().toStdString().c_str();
+          qDebug() << fs.toUtf8().toStdString().c_str();
+          auto [vtx, frag] = score::gfx::makeShaders(renderer.state, vs, fs);
+
+          if(auto r = isf->renderedNodes.find(&renderer); r != isf->renderedNodes.end())
+          {
+            if(auto simple = dynamic_cast<SimpleRenderedISFNode*>(r->second))
+            {
+              if(simple->m_materialUBO)
+                additional_bindings.insert(
+                    additional_bindings.begin(),
+                    QRhiShaderResourceBinding::uniformBuffer(
+                        4, QRhiShaderResourceBinding::VertexStage,
+                        simple->m_materialUBO));
+
+              defaultPassesInit(renderer, mesh, vtx, frag, additional_bindings);
+
+              return;
             }
           }
         }

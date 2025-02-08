@@ -257,7 +257,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_include_directories(${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
     3rdparty/libisf/src
 )
 
