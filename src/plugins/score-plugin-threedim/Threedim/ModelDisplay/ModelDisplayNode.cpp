@@ -30,6 +30,7 @@ layout(std140, binding = 0) uniform renderer_t { \n\
   vec2 renderSize; \n\
 } renderer; \n\
  \n\
+mat4 clipSpaceCorrMatrix = renderer.clipSpaceCorrMatrix; \n\
 // Time-dependent uniforms, only relevant during execution \n\
 layout(std140, binding = 1) uniform process_t { \n\
   float TIME; \n\
@@ -39,29 +40,32 @@ layout(std140, binding = 1) uniform process_t { \n\
   int PASSINDEX; \n\
   int FRAMEINDEX; \n\
  \n\
+  vec2 RENDERSIZE; \n\
   vec4 DATE; \n\
   vec4 MOUSE; \n\
-  vec4 CHANNELTIME; \n\
+  vec4 CHANNEL_TIME; \n\
  \n\
   float SAMPLERATE; \n\
 } isf_process_uniforms; \n\
- \n\
-layout(std140, binding = 2) uniform material_t { \n\
-  mat4 matrixModelViewProjection; \n\
-  mat4 matrixModelView; \n\
-  mat4 matrixModel; \n\
-  mat4 matrixView; \n\
-  mat4 matrixProjection; \n\
-  mat3 matrixNormal; \n\
-  float fov; \n\
-} mat; \n\
  \n\
 float TIME = isf_process_uniforms.TIME; \n\
 float TIMEDELTA = isf_process_uniforms.TIMEDELTA; \n\
 float PROGRESS = isf_process_uniforms.PROGRESS; \n\
 int PASSINDEX = isf_process_uniforms.PASSINDEX; \n\
 int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX; \n\
+vec2 RENDERSIZE = isf_process_uniforms.RENDERSIZE; \n\
 vec4 DATE = isf_process_uniforms.DATE; \n\
+\n\
+layout(std140, binding = 2) uniform camera_t { \n\
+      mat4 matrixModelViewProjection; \n\
+      mat4 matrixModelView; \n\
+      mat4 matrixModel; \n\
+      mat4 matrixView; \n\
+      mat4 matrixProjection; \n\
+      mat3 matrixNormal; \n\
+      float fov; \n\
+} camera; \n\
+ \n\
 "
 
 const constexpr auto vtx_output_triangle = R"_(
@@ -77,12 +81,12 @@ float gl_PointSize;
 )_";
 
 const constexpr auto vtx_projection_perspective = R"_(
-vec4 v_projected = mat.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
+vec4 v_projected = camera.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
 )_";
 const constexpr auto vtx_projection_fulldome = R"_(
 vec4 v_projected = vec4(1.0);
 {
-  vec4 viewspace = mat.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
   // Code from Emmanuel Durand:
   // https://emmanueldurand.net/spherical_projection/
   // - inlined as another function injected could be called toSphere or do #define pi. yay GLSL...
@@ -96,7 +100,7 @@ vec4 v_projected = vec4(1.0);
   float second = asin(clamp(val, -1.0, 1.0));
 
   float phi = mix(2.0 * 3.14159265358979323846264338327 - first, first, second >= 0.0);
-  const float proj_ratio = 3.14159265358979323846264338327 / (360.0 / mat.fov);
+  const float proj_ratio = 3.14159265358979323846264338327 / (360.0 / camera.fov);
   v_projected.x = theta * cos(phi);
   v_projected.y = theta * sin(phi);
   v_projected.y /= proj_ratio;
@@ -277,7 +281,7 @@ void main()
   %vtx_do_filters%
 
   v_normal = in_normal;
-  v_coords = (mat.matrixModel * vec4(in_position.xyz, 1.0)).xyz;
+  v_coords = (camera.matrixModel * vec4(in_position.xyz, 1.0)).xyz;
 
   %vtx_do_projection%
 
@@ -342,8 +346,8 @@ void main()
 
   // https://www.clicktorelease.com/blog/creating-spherical-environment-mapping-shader.html
   vec4 p = vec4( in_position, 1. );
-  v_e = normalize( vec3( mat.matrixModelView * p ) );
-  v_n = normal; //normalize( mat.matrixNormal * in_normal );
+  v_e = normalize( vec3( camera.matrixModelView * p ) );
+  v_n = normal; //normalize( camera.matrixNormal * in_normal );
 
   %vtx_do_projection%
 
@@ -397,8 +401,8 @@ void main()
 
   // https://www.clicktorelease.com/blog/creating-spherical-environment-mapping-shader.html
   vec4 p = vec4( in_position, 1. );
-  v_e = normalize( vec3( mat.matrixModelView * p ) );
-  v_n = normalize( mat.matrixNormal * in_normal );
+  v_e = normalize( vec3( camera.matrixModelView * p ) );
+  v_n = normalize( camera.matrixNormal * in_normal );
 
   %vtx_do_projection%
 
@@ -635,9 +639,11 @@ private:
             {
               if (auto c = safe_cast<score::gfx::GeometryFilterNodeRenderer*>(n))
               {
-                additional_bindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
-                    cur_binding, QRhiShaderResourceBinding::VertexStage, c->material()));
-
+                if(auto mat = c->material())
+                {
+                  additional_bindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
+                      cur_binding, QRhiShaderResourceBinding::VertexStage, mat));
+                }
                 cur_binding++;
                 break;
               }
