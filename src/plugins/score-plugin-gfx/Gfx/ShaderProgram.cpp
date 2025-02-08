@@ -155,13 +155,99 @@ static std::optional<QByteArray> resolveFile_brackets(
   return std::nullopt;
 }
 
+static void removeIncludesInComments(QByteArray& data)
+{
+  static constexpr uint8_t MARKER = 1;
+  // very basic implementation as there does not seem to be any easily integratable one
+  if(data.size() < 2)
+    return;
+  bool in_long_comment = false;
+  bool in_line_comment = false;
+  bool in_string = false;
+  auto pos = data.begin();
+  while(pos < data.end() - 2)
+  {
+    if(in_long_comment)
+    {
+      if(*pos == '#')
+        *pos = ' ';
+
+      if(*pos == '*' && *(pos + 1) == '/')
+      {
+        // *pos = MARKER;
+        pos++;
+        // *pos = MARKER;
+        in_long_comment = false;
+      }
+      else
+      {
+        // *pos = MARKER;
+      }
+    }
+    else if(in_line_comment)
+    {
+      if(*pos == '#')
+        *pos = ' ';
+
+      if(*pos == '\n')
+      {
+        in_line_comment = false;
+      }
+      else
+      {
+        // *pos = MARKER;
+      }
+    }
+    else if(in_string)
+    {
+      // could happen in string though but well
+      if(*pos == '"')
+      {
+        int num_backslashes_before = 0;
+        auto p = pos - 1;
+        while(p >= data.begin() && *p == '\\')
+          num_backslashes_before++;
+
+        if(num_backslashes_before % 2 == 0)
+          in_string = false;
+      }
+    }
+    else
+    {
+      if(*pos == '/')
+      {
+        if(*(pos + 1) == '*')
+        {
+          in_long_comment = true;
+          // *pos = MARKER;
+          pos++;
+          // *pos = MARKER;
+        }
+        else if(*(pos + 1) == '/')
+        {
+          in_line_comment = true;
+          // *pos = MARKER;
+          pos++;
+          // *pos = MARKER;
+        }
+      }
+      else if(*pos == '"')
+        in_string = true;
+    }
+
+    pos++;
+  }
+}
+
 static bool resolveGLSLIncludes(
     QByteArray& data, const QStringList& includes, QString rootPath, int iterations)
 {
+  removeIncludesInComments(data);
+
   iterations++;
-  if(iterations > 30)
+  if(iterations > 1000)
   {
-    qDebug() << "More than 30 iterations, shader include loop likely. Stopping.";
+    qDebug() << "More than 1000 iterations, shader include loop likely. Stopping.";
     return false;
   }
   int idx = data.indexOf("#include");
@@ -206,7 +292,6 @@ static bool resolveGLSLIncludes(
 
   return resolveGLSLIncludes(data, includes, rootPath, iterations);
 }
-
 }
 
 ProgramCache& ProgramCache::instance() noexcept

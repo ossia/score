@@ -92,6 +92,7 @@ float PROGRESS = isf_process_uniforms.PROGRESS;
 int PASSINDEX = isf_process_uniforms.PASSINDEX;
 int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
 vec2 RENDERSIZE = isf_process_uniforms.RENDERSIZE;
+vec4 MOUSE = isf_process_uniforms.MOUSE;
 vec4 DATE = isf_process_uniforms.DATE;
 )_";
 
