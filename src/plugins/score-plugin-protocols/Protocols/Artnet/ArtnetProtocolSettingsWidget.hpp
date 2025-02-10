@@ -28,6 +28,8 @@ public:
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
 
+  std::pair<int, int> universeRange() const noexcept;
+
 private:
   void updateHosts(int protocolindex);
   void updateTable();
@@ -37,6 +39,7 @@ private:
   QComboBox* m_host{};
   QSpinBox* m_rate{};
   QSpinBox* m_universe{};
+  QSpinBox* m_universe_count{};
   QSpinBox* m_channels_per_universe{};
   QComboBox* m_transport{};
   QCheckBox* m_multicast{};

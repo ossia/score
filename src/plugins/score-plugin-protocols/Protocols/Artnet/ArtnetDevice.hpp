@@ -7,7 +7,6 @@ namespace Protocols
 {
 class ArtnetDevice final : public Device::OwningDeviceInterface
 {
-
   W_OBJECT(ArtnetDevice)
 public:
   ArtnetDevice(

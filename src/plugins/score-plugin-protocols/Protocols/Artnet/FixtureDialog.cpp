@@ -1124,11 +1124,18 @@ AddFixtureDialog::AddFixtureDialog(ArtnetProtocolSettingsWidget& parent)
     updateParameters(newFixt);
   };
 
+  m_count.setRange(1, 512);
+  m_spacing.setRange(0, 512);
   m_address.setRange(1, 512);
+  auto [umin, umax] = parent.universeRange();
+  m_universe.setRange(umin, umax);
 
   m_setupLayoutContainer.addLayout(&m_setupLayout);
   m_setupLayout.addRow(tr("Name"), &m_name);
+  m_setupLayout.addRow(tr("Count"), &m_count);
   m_setupLayout.addRow(tr("Address"), &m_address);
+  m_setupLayout.addRow(tr("Spacing"), &m_spacing);
+  m_setupLayout.addRow(tr("Universe"), &m_universe);
   m_setupLayout.addRow(tr("Mode"), &m_mode);
   m_setupLayout.addRow(tr("Channels"), &m_content);
   m_setupLayoutContainer.addStretch(0);
@@ -1174,25 +1181,36 @@ QSize AddFixtureDialog::sizeHint() const
   return QSize{800, 600};
 }
 
-Artnet::Fixture AddFixtureDialog::fixture() const noexcept
+std::vector<Artnet::Fixture> AddFixtureDialog::fixtures() const noexcept
 {
-  Artnet::Fixture f;
+  std::vector<Artnet::Fixture> res;
+
   if(!m_currentFixture)
-    return f;
+    return res;
 
   int mode_index = m_mode.currentIndex();
   if(!ossia::valid_index(mode_index, m_currentFixture->modes))
-    return f;
+    return res;
 
   auto& mode = m_currentFixture->modes[mode_index];
 
+  Artnet::Fixture f;
   f.fixtureName = m_name.text();
+  f.controls = mode.channels;
+  if(f.fixtureName.isEmpty() || f.controls.empty())
+    return res;
+
   f.modeName = m_mode.currentText();
   f.mode.channelNames = mode.allChannels;
-  f.address = m_address.value() - 1;
-  f.controls = mode.channels;
 
-  return f;
+  for(int i = 0; i < m_count.value(); i++)
+  {
+    f.address
+        = m_address.value() - 1 + i * (f.mode.channelNames.size() + m_spacing.value());
+    res.push_back(f);
+  }
+
+  return res;
 }
 }
 #endif
