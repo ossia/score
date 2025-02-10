@@ -33,7 +33,7 @@ public:
   void setName(QString t) { m_name.setText(t); }
 
   QSize sizeHint() const override;
-  Artnet::Fixture fixture() const noexcept;
+  std::vector<Artnet::Fixture> fixtures() const noexcept;
 
 private:
   QHBoxLayout m_layout;
@@ -42,7 +42,10 @@ private:
   QVBoxLayout m_setupLayoutContainer;
   QFormLayout m_setupLayout;
   State::AddressFragmentLineEdit m_name;
+  QSpinBox m_count;
+  QSpinBox m_spacing;
   QSpinBox m_address;
+  QSpinBox m_universe;
   QComboBox m_mode;
   QLabel m_content;
   QDialogButtonBox m_buttons;

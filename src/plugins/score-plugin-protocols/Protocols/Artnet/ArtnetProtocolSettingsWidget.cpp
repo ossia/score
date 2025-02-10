@@ -45,14 +45,16 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_universe = new QSpinBox{this};
   m_universe->setRange(0, 65539);
 
+  m_universe_count = new QSpinBox{this};
+  m_universe_count->setRange(0, 1024);
+
   m_channels_per_universe = new QSpinBox{this};
   m_channels_per_universe->setRange(1, 512);
   m_channels_per_universe->setValue(512);
 
   m_transport = new QComboBox{this};
   m_transport->addItems(
-      {"ArtNet", "ArtNet (16 universes)", "E1.31 / sACN", "E1.31 / sACN (16 universes)",
-       "DMX USB PRO", "DMX USB PRO Mk2", "OpenDMX USB"});
+      {"ArtNet", "E1.31 / sACN", "DMX USB PRO", "DMX USB PRO Mk2", "OpenDMX USB"});
   checkForChanges(m_transport);
 
   m_multicast = new QCheckBox{this};
@@ -71,6 +73,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Rate (Hz)"), m_rate);
   layout->addRow(tr("Universe"), m_universe);
+  layout->addRow(tr("Universe count"), m_universe_count);
   layout->addRow(tr("Channels in universe"), m_channels_per_universe);
   layout->addRow(tr("Transport"), m_transport);
   layout->addRow(tr("Interface / Host"), m_host);
@@ -126,12 +129,15 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     dial->setName(newFixtureName(dial->name()));
     if(dial->exec() == QDialog::Accepted)
     {
-      auto fixt = dial->fixture();
-      if(!fixt.fixtureName.isEmpty() && !fixt.controls.empty())
+      for(auto fixt : dial->fixtures())
       {
-        m_fixtures.push_back(fixt);
-        updateTable();
+        m_fixtures.push_back(std::move(fixt));
+        while(m_fixtures.back().address > this->m_channels_per_universe->value())
+        {
+          // FIXME UPDATE UNIVERSES MODULO
+        }
       }
+      updateTable();
     }
   });
 
@@ -155,10 +161,35 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
 QString ArtnetProtocolSettingsWidget::newFixtureName(QString name)
 {
-  std::vector<QString> brethren;
+  static std::vector<QString> brethren;
+  brethren.clear();
+  brethren.reserve(m_fixtures.size());
+
   for(auto& strip : this->m_fixtures)
     brethren.push_back(strip.fixtureName);
-  return ossia::net::sanitize_name(name, brethren);
+  return ossia::net::sanitize_name(std::move(name), brethren);
+}
+
+static QList<QSerialPortInfo> serialPorts()
+{
+#if defined(__APPLE__) || defined(_WIN32)
+  return QSerialPortInfo::availablePorts();
+#else
+  auto ports = QSerialPortInfo::availablePorts();
+  std::sort(
+      ports.begin(), ports.end(),
+      [](const QSerialPortInfo& a, const QSerialPortInfo& b) {
+    const auto& lhs = a.portName();
+    const auto& rhs = b.portName();
+    bool lhs_usb = lhs.contains("USB") || lhs.contains("ACM");
+    bool rhs_usb = rhs.contains("USB") || rhs.contains("ACM");
+    if(lhs_usb == rhs_usb)
+      return lhs < rhs;
+    else
+      return (lhs_usb && !rhs_usb);
+  });
+  return ports;
+#endif
 }
 
 void ArtnetProtocolSettingsWidget::updateHosts(int idx)
@@ -166,35 +197,54 @@ void ArtnetProtocolSettingsWidget::updateHosts(int idx)
   m_host->clear();
   switch(idx)
   {
-    case 0:
-    case 1: {
+    case 0: {
       auto ips = score::list_ipv4();
       ips.removeAll("0.0.0.0");
-      m_host->addItems(ips);
+      m_host->addItems(ips);      
       m_host->setCurrentIndex(0);
-      m_universe->setRange(0, 16);
-      m_multicast->setDisabled(true);
+
+      m_universe->setRange(0, 256);
+      m_universe->setValue(0);
+      m_universe->setEnabled(true);
+      m_universe_count->setValue(std::clamp(m_universe_count->value(), 0, 256));
+      m_universe_count->setEnabled(true);
+      m_multicast->setEnabled(false);
       break;
     }
-    case 2:
-    case 3:
+    case 1:
       m_host->addItems(score::list_ipv4());
       m_host->setCurrentIndex(0);
+
       m_universe->setRange(1, 65539);
+      m_universe->setValue(1);
+      m_universe->setEnabled(true);
+      m_universe_count->setValue(1);
+      m_universe_count->setEnabled(true);
       m_multicast->setEnabled(true);
       break;
+    case 2:
     case 4: {
-      m_multicast->setDisabled(true);
-      m_universe->setRange(0, 0);
-      for(const auto& port : QSerialPortInfo::availablePorts())
+      for(const auto& port : serialPorts())
         m_host->addItem(port.portName());
+
+      m_universe->setRange(0, 0);
+      m_universe->setValue(0);
+      m_universe->setEnabled(false);
+      m_universe_count->setValue(1);
+      m_universe_count->setEnabled(false);
+      m_multicast->setEnabled(false);
       break;
     }
-    case 5: {
-      m_multicast->setDisabled(true);
-      m_universe->setRange(0, 1);
-      for(const auto& port : QSerialPortInfo::availablePorts())
+    case 3: {
+      for(const auto& port : serialPorts())
         m_host->addItem(port.portName());
+
+      m_universe->setRange(0, 1);
+      m_universe->setValue(0);
+      m_universe->setEnabled(true);
+      m_universe_count->setValue(std::clamp(m_universe_count->value(), 0, 2));
+      m_universe_count->setEnabled(true);
+      m_multicast->setEnabled(false);
       break;
     }
   }
@@ -249,6 +299,11 @@ void ArtnetProtocolSettingsWidget::updateTable()
 
 ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() { }
 
+std::pair<int, int> ArtnetProtocolSettingsWidget::universeRange() const noexcept
+{
+  return {m_universe->value(), m_universe->value() + m_universe_count->value() - 1};
+}
+
 Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 {
   // TODO should be = m_settings to follow the other patterns.
@@ -265,27 +320,22 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
       settings.transport = ArtnetSpecificSettings::ArtNetV2;
       break;
     case 1:
-      settings.transport = ArtnetSpecificSettings::ArtNet_MultiUniverse;
-      break;
-    case 2:
       settings.transport = ArtnetSpecificSettings::E131;
       break;
-    case 3:
-      settings.transport = ArtnetSpecificSettings::E131_MultiUniverse;
-      break;
-    case 4:
+    case 2:
       settings.transport = ArtnetSpecificSettings::DMXUSBPRO;
       break;
-    case 5:
+    case 3:
       settings.transport = ArtnetSpecificSettings::DMXUSBPRO_Mk2;
       break;
-    case 6:
+    case 4:
       settings.transport = ArtnetSpecificSettings::OpenDMX_USB;
       break;
   }
 
   settings.rate = this->m_rate->value();
-  settings.universe = this->m_universe->value();
+  settings.start_universe = this->m_universe->value();
+  settings.universe_count = this->m_universe_count->value();
   settings.channels_per_universe = this->m_channels_per_universe->value();
   settings.multicast = this->m_multicast->isChecked();
   settings.mode = this->m_source->isChecked() ? ArtnetSpecificSettings::Source
@@ -307,33 +357,31 @@ void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
     case ArtnetSpecificSettings::ArtNetV2:
       m_transport->setCurrentIndex(0);
       break;
-    case ArtnetSpecificSettings::ArtNet_MultiUniverse:
+    case ArtnetSpecificSettings::E131:
       m_transport->setCurrentIndex(1);
       break;
-    case ArtnetSpecificSettings::E131:
+    case ArtnetSpecificSettings::DMXUSBPRO:
       m_transport->setCurrentIndex(2);
       break;
-    case ArtnetSpecificSettings::E131_MultiUniverse:
+    case ArtnetSpecificSettings::DMXUSBPRO_Mk2:
       m_transport->setCurrentIndex(3);
       break;
-    case ArtnetSpecificSettings::DMXUSBPRO:
-      m_transport->setCurrentIndex(4);
-      break;
-    case ArtnetSpecificSettings::DMXUSBPRO_Mk2:
-      m_transport->setCurrentIndex(5);
-      break;
     case ArtnetSpecificSettings::OpenDMX_USB:
-      m_transport->setCurrentIndex(6);
+      m_transport->setCurrentIndex(4);
       break;
   }
 
+  updateHosts(m_transport->currentIndex());
+
   m_rate->setValue(specif.rate);
-  m_universe->setValue(specif.universe);
+  m_universe->setValue(specif.start_universe);
+  m_universe_count->setValue(specif.universe_count);
   m_channels_per_universe->setValue(specif.channels_per_universe);
-  m_host->setCurrentText(specif.host);
+  if(!specif.host.isEmpty())
+    m_host->setCurrentText(specif.host);
+  else
+    m_host->setCurrentIndex(0);
   m_multicast->setChecked(specif.multicast);
-  if(m_host->currentText().isEmpty())
-    updateHosts(m_transport->currentIndex());
 
   if(specif.mode == ArtnetSpecificSettings::Source)
     m_source->setChecked(true);

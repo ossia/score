@@ -207,6 +207,8 @@ set(ARTNET_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetSpecificSettings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/DMXFixtureInstantiation.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/DMXProtocolCreation.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/FixtureDialog.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/LEDDialog.hpp"
 )
@@ -216,6 +218,8 @@ set(ARTNET_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolSettingsWidget.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/DMXFixtureInstantiation.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/DMXProtocolCreation.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/FixtureDialog.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/LEDDialog.cpp"
 )

@@ -103,6 +103,7 @@ struct Fixture
   std::vector<Channel> controls;
   LEDLayout led;
   int address{};
+  int universe{};
 };
 }
 
@@ -111,8 +112,9 @@ struct ArtnetSpecificSettings
   std::vector<Artnet::Fixture> fixtures;
 
   QString host;
-  int rate{20};
-  int universe{1};
+  int rate{44};
+  int start_universe{1};
+  int universe_count{1};
   int channels_per_universe{512};
   bool multicast{};
 
@@ -123,9 +125,7 @@ struct ArtnetSpecificSettings
     DMXUSBPRO,
     ArtNetV2, // Artnet:/{}
     DMXUSBPRO_Mk2,
-    OpenDMX_USB,
-    ArtNet_MultiUniverse,
-    E131_MultiUniverse
+    OpenDMX_USB
   } transport{ArtNetV2};
   enum
   {
