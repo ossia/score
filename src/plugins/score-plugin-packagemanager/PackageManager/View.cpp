@@ -333,32 +333,36 @@ namespace PM
   }
 
   // the install button set to visible means we are browsing
-  PackagesModel* PluginSettingsView::getCurrentModel()
+  std::pair<PackagesModel*, QTableView*>
+  PluginSettingsView::getCurrentModelAndTable() const noexcept
   {
     if(m_install->isVisible())
-      return m_remoteModel;
+      return {m_remoteModel, m_remoteAddons};
     else
-      return m_localModel;
+      return {m_localModel, m_addonsOnSystem};
   }
 
-  int PluginSettingsView::getCurrentRow(const QTableView* t = nullptr)
+  int PluginSettingsView::getCurrentRow(
+      QAbstractItemModel* sourceModel, const QTableView* t)
   {
     QModelIndexList rows{};
+    SCORE_ASSERT(sourceModel);
+    SCORE_ASSERT(t);
 
-    if(t)
-      rows = t->selectionModel()->selectedRows(0);
-    else
-    {
-      if(m_install->isVisible())
-        rows = m_remoteAddons->selectionModel()->selectedRows(0);
-      else
-        rows = m_addonsOnSystem->selectionModel()->selectedRows(0);
-    }
+    // What did we select on the table
+    rows = t->selectionModel()->selectedRows(0);
 
     if(rows.isEmpty())
       return -1;
 
-    return rows.first().row();
+    auto row = rows.first();
+    // Map from the view's model (QSortFilter...) to the actual data model (Remote or LocalModel)
+    auto sfpm = static_cast<QSortFilterProxyModel*>(t->model());
+    auto index_in_filter = sfpm->mapToSource(row);
+    if(!index_in_filter.isValid())
+      return -1;
+
+    return index_in_filter.row();
   }
 
   Package PluginSettingsView::selectedPackage(const PackagesModel* model, int row)
@@ -373,7 +377,8 @@ namespace PM
 
   void PluginSettingsView::openLink()
   {
-    const auto& addon = selectedPackage(getCurrentModel(), getCurrentRow());
+    auto [model, table] = getCurrentModelAndTable();
+    const auto& addon = selectedPackage(model, getCurrentRow(model, table));
 
     QDesktopServices::openUrl(addon.url);
   }
@@ -392,7 +397,8 @@ namespace PM
 
   void PluginSettingsView::install()
   {
-    const auto& addon = selectedPackage(m_remoteModel, getCurrentRow(m_remoteAddons));
+    const auto& addon
+        = selectedPackage(m_remoteModel, getCurrentRow(m_remoteModel, m_remoteAddons));
 
     m_progress->setVisible(true);
 
@@ -401,7 +407,8 @@ namespace PM
 
   void PluginSettingsView::uninstall()
   {
-    const auto& addon = selectedPackage(m_localModel, getCurrentRow(m_addonsOnSystem));
+    const auto& addon
+        = selectedPackage(m_localModel, getCurrentRow(m_localModel, m_addonsOnSystem));
 
     bool success{false};
 
@@ -426,7 +433,8 @@ namespace PM
 
   void PluginSettingsView::update()
   {
-    const auto& addon = selectedPackage(m_localModel, getCurrentRow(m_addonsOnSystem));
+    const auto& addon
+        = selectedPackage(m_localModel, getCurrentRow(m_localModel, m_addonsOnSystem));
 
     auto key = addon.key;
     auto it = ossia::find_if(

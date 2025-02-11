@@ -46,8 +46,8 @@ private:
   void handleAddonList(const QJsonObject&);
   void handleAddon(const QJsonObject&);
 
-  PackagesModel* getCurrentModel();
-  int getCurrentRow(const QTableView* t);
+  std::pair<PackagesModel*, QTableView*> getCurrentModelAndTable() const noexcept;
+  int getCurrentRow(QAbstractItemModel* sourceModel, const QTableView* t);
   Package selectedPackage(const PackagesModel* model, int row);
 
   void installAddon(const Package& addon);
