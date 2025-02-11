@@ -55,25 +55,24 @@ std::unique_ptr<ossia::net::dmx_protocol_base> instantiateDMXProtocol(
       if(host.empty())
         host = "0.0.0.0";
 
-      bool good = false;
-      for(auto iface : QNetworkInterface::allInterfaces())
-      {
-        for(const auto& entry : iface.addressEntries())
-        {
-          if(entry.ip().protocol() == QHostAddress::IPv4Protocol)
-            if(host == entry.ip().toString())
-            {
-              host = entry.broadcast().toString().toStdString();
-              good = true;
-              break;
-            }
-        }
-        if(good)
-          break;
-      }
-
       if(set.mode == ArtnetSpecificSettings::Source)
       {
+        bool good = false;
+        for(auto iface : QNetworkInterface::allInterfaces())
+        {
+          for(const auto& entry : iface.addressEntries())
+          {
+            if(entry.ip().protocol() == QHostAddress::IPv4Protocol)
+              if(host == entry.ip().toString())
+              {
+                host = entry.broadcast().toString().toStdString();
+                good = true;
+                break;
+              }
+          }
+          if(good)
+            break;
+        }
 
         ossia::net::outbound_socket_configuration sock_conf;
         sock_conf.host = host;
