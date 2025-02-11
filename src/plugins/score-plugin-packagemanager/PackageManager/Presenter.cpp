@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QHeaderView>
 #include <QListView>
+#include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QStyle>
 
@@ -37,20 +38,34 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   auto& ps_model = static_cast<PluginSettingsModel&>(model);
   auto& ps_view = static_cast<PluginSettingsView&>(view);
 
-  ps_view.localView()->setModel(&ps_model.localPlugins);
+  ps_view.m_remoteModel = &ps_model.remotePlugins;
+  ps_view.m_localModel = &ps_model.localPlugins;
+
+  QSortFilterProxyModel* localProxyModel = new QSortFilterProxyModel(this);
+  localProxyModel->setSourceModel(&ps_model.localPlugins);
+  localProxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
+
+  QSortFilterProxyModel* remoteProxyModel = new QSortFilterProxyModel(this);
+  remoteProxyModel->setSourceModel(&ps_model.remotePlugins);
+  remoteProxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
+
+  ps_view.localView()->setModel(localProxyModel);
   ps_view.localView()->setColumnWidth(0, 200);
   ps_view.localView()->setColumnWidth(1, 40);
   ps_view.localView()->setColumnWidth(2, 40);
+  ps_view.localView()->setColumnWidth(3, 300);
+  ps_view.localView()->setColumnWidth(4, 30);
   ps_view.localView()->horizontalHeader()->setStretchLastSection(true);
 
-  ps_view.remoteView()->setModel(&ps_model.remotePlugins);
+  ps_view.remoteView()->setModel(remoteProxyModel);
   ps_view.remoteView()->setColumnWidth(0, 200);
-  ps_view.remoteView()->setColumnWidth(1, 40);
-  ps_view.remoteView()->setColumnWidth(2, 40);
+  ps_view.remoteView()->setColumnWidth(1, 50);
+  ps_view.remoteView()->setColumnWidth(2, 50);
+  ps_view.remoteView()->setColumnWidth(3, 300);
+  ps_view.remoteView()->setColumnWidth(4, 30);
   ps_view.remoteView()->horizontalHeader()->setStretchLastSection(true);
 
-  ps_view.remoteView()->setSelectionModel(&ps_model.remoteSelection);
-
+  // ps_view.remoteView()->setSelectionModel(&ps_model.remoteSelection);
   connect(
       &ps_model.remoteSelection, &QItemSelectionModel::currentRowChanged, this,
       [&](const QModelIndex& current, const QModelIndex& previous) {

@@ -22,6 +22,8 @@ class QObject;
 namespace PM
 {
 class PluginSettingsPresenter;
+class LocalPackagesModel;
+class RemotePackagesModel;
 class PluginSettingsView : public score::GlobalSettingsView
 {
   W_OBJECT(PluginSettingsView)
@@ -34,6 +36,9 @@ public:
   QPushButton& installButton() const { return *m_install; }
 
   QWidget* getWidget() override;
+
+  RemotePackagesModel* m_remoteModel{};
+  LocalPackagesModel* m_localModel{};
 
 private:
   void firstTimeLibraryDownload();
