@@ -443,7 +443,6 @@ namespace PM
 
   void PluginSettingsView::checkAll()
   {
-
     std::vector<Package*> to_update;
     for(auto& addon : m_localModel->addons())
     {

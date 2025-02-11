@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QHeaderView>
+#include <QItemSelectionModel>
 #include <QListView>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
@@ -65,14 +66,17 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   ps_view.remoteView()->setColumnWidth(4, 30);
   ps_view.remoteView()->horizontalHeader()->setStretchLastSection(true);
 
-  // ps_view.remoteView()->setSelectionModel(&ps_model.remoteSelection);
+  auto selection = new QItemSelectionModel{remoteProxyModel, this};
+  ps_view.remoteView()->setSelectionModel(selection);
   connect(
-      &ps_model.remoteSelection, &QItemSelectionModel::currentRowChanged, this,
-      [&](const QModelIndex& current, const QModelIndex& previous) {
-    Package& addon = ps_model.remotePlugins.addons().at(current.row());
+      selection, &QItemSelectionModel::currentRowChanged, this,
+      [remoteProxyModel, &ps_model,
+       &ps_view](const QModelIndex& current, const QModelIndex& previous) {
+    auto selected = remoteProxyModel->mapToSource(current);
+    Package& addon = ps_model.remotePlugins.addons().at(selected.row());
 
     ps_view.installButton().setEnabled(!addon.files.empty() || addon.kind == "sdk");
-      });
+  });
 
   ps_view.installButton().setEnabled(false);
 
