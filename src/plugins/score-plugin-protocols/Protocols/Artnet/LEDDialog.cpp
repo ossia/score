@@ -6,7 +6,8 @@
 namespace Protocols
 {
 
-AddLEDStripDialog::AddLEDStripDialog(ArtnetProtocolSettingsWidget& parent)
+AddLEDStripDialog::AddLEDStripDialog(
+    int startUniverse, int startAddress, ArtnetProtocolSettingsWidget& parent)
     : QDialog{&parent}
     , m_name{this}
     , m_buttons{

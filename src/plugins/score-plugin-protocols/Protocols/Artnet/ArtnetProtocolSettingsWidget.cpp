@@ -34,6 +34,18 @@ static void updateFixtureAddress(Artnet::Fixture& fixture, int channels_per_univ
     fixture.address -= channels_per_universe;
   }
 }
+
+static std::pair<int, int> nextAvailableFixtureAddress(
+    std::span<const Artnet::Fixture> fixtures, int channels_per_universe)
+{
+  int max_universe{};
+  int max_address{};
+  for(const auto& fix : fixtures)
+  {
+  }
+  return {max_universe, max_address};
+}
+
 ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
@@ -119,7 +131,9 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(fixtures_layout);
 
   connect(m_addLEDStrip, &QPushButton::clicked, this, [this] {
-    auto dial = new AddLEDStripDialog{*this};
+    auto [max_universe, max_address]
+        = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
+    auto dial = new AddLEDStripDialog{max_universe, max_address, *this};
     dial->setName(newFixtureName(dial->name()));
     if(dial->exec() == QDialog::Accepted)
     {
@@ -138,7 +152,9 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   });
 
   connect(m_addFixture, &QPushButton::clicked, this, [this] {
-    auto dial = new AddFixtureDialog{*this};
+    auto [max_universe, max_address]
+        = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
+    auto dial = new AddFixtureDialog{max_universe, max_address, *this};
     dial->setName(newFixtureName(dial->name()));
     if(dial->exec() == QDialog::Accepted)
     {
