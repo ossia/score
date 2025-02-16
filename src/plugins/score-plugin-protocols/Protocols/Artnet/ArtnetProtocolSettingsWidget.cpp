@@ -1,4 +1,5 @@
 #include <ossia/detail/config.hpp>
+
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
@@ -18,6 +19,7 @@
 #include <QRadioButton>
 #include <QSerialPortInfo>
 #include <QSpinBox>
+#include <QStyledItemDelegate>
 #include <QTableWidget>
 
 #include <wobjectimpl.h>
@@ -82,7 +84,6 @@ static std::pair<int, int> nextAvailableFixtureAddress(
   {
     max_address += usedChannels(*pfix);
   }
-  max_address++;
 
   while(max_address > channels_per_universe)
   {
@@ -164,60 +165,95 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
       {tr("Name"), tr("Mode"), tr("Address"), tr("Universe"), tr("Channels used")});
   fixtures_layout->addWidget(m_fixturesWidget);
 
+  struct AddressEditDelegate : public QStyledItemDelegate
+  {
+    ArtnetProtocolSettingsWidget& m_self;
+    explicit AddressEditDelegate(ArtnetProtocolSettingsWidget& self)
+        : QStyledItemDelegate{&self}
+        , m_self{self}
+    {
+    }
+    QWidget* createEditor(
+        QWidget* parent, const QStyleOptionViewItem& option,
+        const QModelIndex& index) const override
+    {
+      auto edit = static_cast<QSpinBox*>(
+          QStyledItemDelegate::createEditor(parent, option, index));
+      // FIXME technically should be minus the current fixture dmx address
+
+      edit->setRange(1, m_self.m_channels_per_universe->value());
+      return edit;
+    }
+    void setModelData(
+        QWidget* editor, QAbstractItemModel* model,
+        const QModelIndex& index) const override
+    {
+      QStyledItemDelegate::setModelData(editor, model, index);
+      m_self.addressChanged(index.row());
+    }
+  };
+  struct UniverseEditDelegate : public QStyledItemDelegate
+  {
+    ArtnetProtocolSettingsWidget& m_self;
+    explicit UniverseEditDelegate(ArtnetProtocolSettingsWidget& self)
+        : QStyledItemDelegate{&self}
+        , m_self{self}
+    {
+    }
+    QWidget* createEditor(
+        QWidget* parent, const QStyleOptionViewItem& option,
+        const QModelIndex& index) const override
+    {
+      auto edit = static_cast<QSpinBox*>(
+          QStyledItemDelegate::createEditor(parent, option, index));
+
+      auto [min, max] = m_self.universeRange();
+      edit->setRange(min, max);
+      return edit;
+    }
+    void setModelData(
+        QWidget* editor, QAbstractItemModel* model,
+        const QModelIndex& index) const override
+    {
+      QStyledItemDelegate::setModelData(editor, model, index);
+      m_self.universeChanged(index.row());
+    }
+  };
+  m_fixturesWidget->setItemDelegateForColumn(2, new AddressEditDelegate{*this});
+  m_fixturesWidget->setItemDelegateForColumn(3, new UniverseEditDelegate{*this});
+
   auto btns = new QVBoxLayout;
   m_addFixture = new QPushButton{"Add fixture"};
   m_addLEDStrip = new QPushButton{"Add LED strip"};
-  //m_addLEDPane = new QPushButton{"Add LED pane"};
+  m_addLEDPane = new QPushButton{"Add LED pane"};
+  m_addLEDBox = new QPushButton{"Add LED box"};
   m_rmFixture = new QPushButton{"Remove"};
   btns->addWidget(m_addFixture);
   btns->addWidget(m_addLEDStrip);
-  //btns->addWidget(m_addLEDPane);
+  btns->addWidget(m_addLEDPane);
+  btns->addWidget(m_addLEDBox);
   btns->addWidget(m_rmFixture);
   btns->addStretch(2);
   fixtures_layout->addLayout(btns);
   layout->addRow(fixtures_layout);
 
+  // FIXME a cute widget for displaying used addresses in each universe
+
   connect(m_addLEDStrip, &QPushButton::clicked, this, [this] {
-    auto [max_universe, max_address]
-        = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
-    auto dial = new AddLEDStripDialog{max_universe, max_address, *this};
-    dial->setName(newFixtureName(dial->name()));
-    if(dial->exec() == QDialog::Accepted)
-    {
-      const int channels_per_universe = this->m_channels_per_universe->value();
-      for(auto fixt : dial->fixtures())
-      {
-        if(!fixt.fixtureName.isEmpty() && fixt.led)
-        {
-          fixt.fixtureName = newFixtureName(fixt.fixtureName);
-          m_fixtures.push_back(std::move(fixt));
-          updateFixtureAddress(m_fixtures.back(), channels_per_universe);
-        }
-      }
-      updateTable();
-    }
+    addLEDs(AddLEDStripDialog::Strip);
   });
 
-  connect(m_addFixture, &QPushButton::clicked, this, [this] {
-    auto [max_universe, max_address]
-        = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
-    auto dial = new AddFixtureDialog{max_universe, max_address, *this};
-    dial->setName(newFixtureName(dial->name()));
-    if(dial->exec() == QDialog::Accepted)
-    {
-      const int channels_per_universe = this->m_channels_per_universe->value();
-      for(auto fixt : dial->fixtures())
-      {
-        if(!fixt.fixtureName.isEmpty())
-        {
-          fixt.fixtureName = newFixtureName(fixt.fixtureName);
-          m_fixtures.push_back(std::move(fixt));
-          updateFixtureAddress(m_fixtures.back(), channels_per_universe);
-        }
-      }
-      updateTable();
-    }
+  connect(m_addLEDPane, &QPushButton::clicked, this, [this] {
+    addLEDs(AddLEDStripDialog::Pane);
   });
+
+  connect(m_addLEDBox, &QPushButton::clicked, this, [this] {
+    addLEDs(AddLEDStripDialog::Volume);
+  });
+
+  connect(
+      m_addFixture, &QPushButton::clicked, this,
+      &ArtnetProtocolSettingsWidget::addFixture);
 
   connect(m_rmFixture, &QPushButton::clicked, this, [this] {
     ossia::flat_set<int> rows_to_remove;
@@ -235,6 +271,51 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   });
 
   setLayout(layout);
+}
+
+void ArtnetProtocolSettingsWidget::addFixture()
+{
+  auto [max_universe, max_address]
+      = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
+  auto dial = new AddFixtureDialog{max_universe, max_address, *this};
+  dial->setName(newFixtureName(dial->name()));
+  if(dial->exec() == QDialog::Accepted)
+  {
+    const int channels_per_universe = this->m_channels_per_universe->value();
+    for(auto fixt : dial->fixtures())
+    {
+      if(!fixt.fixtureName.isEmpty())
+      {
+        fixt.fixtureName = newFixtureName(fixt.fixtureName);
+        m_fixtures.push_back(std::move(fixt));
+        updateFixtureAddress(m_fixtures.back(), channels_per_universe);
+      }
+    }
+    updateTable();
+  }
+}
+
+void ArtnetProtocolSettingsWidget::addLEDs(int mode)
+{
+  auto [max_universe, max_address]
+      = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
+  auto dial = new AddLEDStripDialog{
+      max_universe, max_address, (AddLEDStripDialog::Mode)mode, *this};
+  dial->setName(newFixtureName(dial->name()));
+  if(dial->exec() == QDialog::Accepted)
+  {
+    const int channels_per_universe = this->m_channels_per_universe->value();
+    for(auto fixt : dial->fixtures())
+    {
+      if(!fixt.fixtureName.isEmpty() && fixt.led)
+      {
+        fixt.fixtureName = newFixtureName(fixt.fixtureName);
+        m_fixtures.push_back(std::move(fixt));
+        updateFixtureAddress(m_fixtures.back(), channels_per_universe);
+      }
+    }
+    updateTable();
+  }
 }
 
 QString ArtnetProtocolSettingsWidget::newFixtureName(QString name)
@@ -343,13 +424,17 @@ void ArtnetProtocolSettingsWidget::updateTable()
 
     auto name_item = new QTableWidgetItem{fixt.fixtureName};
     auto mode_item = new QTableWidgetItem{fixt.modeName};
-    auto address = new QTableWidgetItem{QString::number(fixt.address + 1)};
-    auto universe = new QTableWidgetItem{QString::number(fixt.universe)};
+    auto address = new QTableWidgetItem{};
+    address->setData(Qt::DisplayRole, QVariant::fromValue(fixt.address + 1));
+    address->setData(Qt::EditRole, QVariant::fromValue(fixt.address + 1));
+    auto universe = new QTableWidgetItem{};
+    universe->setData(Qt::DisplayRole, QVariant::fromValue(fixt.universe));
+    universe->setData(Qt::EditRole, QVariant::fromValue(fixt.universe));
     auto controls = new QTableWidgetItem{QString::number(num_controls)};
     name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    address->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    universe->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    address->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+    universe->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
     controls->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     m_fixturesWidget->insertRow(row);
@@ -360,6 +445,17 @@ void ArtnetProtocolSettingsWidget::updateTable()
     m_fixturesWidget->setItem(row, 4, controls);
     row++;
   }
+}
+
+void ArtnetProtocolSettingsWidget::addressChanged(int row)
+{
+  auto new_value = m_fixturesWidget->item(row, 2)->data(Qt::DisplayRole).toInt();
+  m_fixtures[row].address = new_value - 1;
+}
+void ArtnetProtocolSettingsWidget::universeChanged(int row)
+{
+  auto new_value = m_fixturesWidget->item(row, 3)->data(Qt::DisplayRole).toInt();
+  m_fixtures[row].universe = new_value;
 }
 
 ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() { }
