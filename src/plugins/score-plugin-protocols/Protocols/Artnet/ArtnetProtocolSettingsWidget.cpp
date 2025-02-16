@@ -26,6 +26,28 @@ W_OBJECT_IMPL(Protocols::ArtnetProtocolSettingsWidget)
 
 namespace Protocols
 {
+static int usedChannels(const Artnet::Fixture& fixture)
+{
+  if(!fixture.controls.empty())
+  {
+    return fixture.controls.size(); // FIXME does not handle high precision channels?
+  }
+  else if(fixture.led)
+  {
+    return ossia::apply_nonnull([](const auto& led) {
+      if constexpr(requires { led.channels(); })
+      {
+        return led.channels();
+      }
+      else
+        return 0;
+    }, fixture.led);
+  }
+  else
+  {
+    return 0;
+  }
+}
 static void updateFixtureAddress(Artnet::Fixture& fixture, int channels_per_universe)
 {
   while(fixture.address > channels_per_universe)
@@ -40,9 +62,34 @@ static std::pair<int, int> nextAvailableFixtureAddress(
 {
   int max_universe{};
   int max_address{};
+  const Artnet::Fixture* pfix{};
   for(const auto& fix : fixtures)
   {
+    if(fix.universe > max_universe)
+    {
+      max_universe = fix.universe;
+      max_address = fix.address;
+      pfix = &fix;
+    }
+    else if(fix.universe == max_universe && fix.address > max_address)
+    {
+      max_address = fix.address;
+      pfix = &fix;
+    }
   }
+
+  if(pfix)
+  {
+    max_address += usedChannels(*pfix);
+  }
+  max_address++;
+
+  while(max_address > channels_per_universe)
+  {
+    max_universe++;
+    max_address -= channels_per_universe;
+  }
+
   return {max_universe, max_address};
 }
 
@@ -292,23 +339,7 @@ void ArtnetProtocolSettingsWidget::updateTable()
   int row = 0;
   for(auto& fixt : m_fixtures)
   {
-    int num_controls = 0;
-    if(!fixt.controls.empty())
-    {
-      num_controls
-          = fixt.controls.size(); // FIXME does not handle high precision channels?
-    }
-    else if(fixt.led)
-    {
-      num_controls = ossia::apply_nonnull([](const auto& led) {
-        if constexpr(requires { led.channels(); })
-        {
-          return led.channels();
-        }
-        else
-          return 0;
-      }, fixt.led);
-    }
+    int num_controls = usedChannels(fixt);
 
     auto name_item = new QTableWidgetItem{fixt.fixtureName};
     auto mode_item = new QTableWidgetItem{fixt.modeName};

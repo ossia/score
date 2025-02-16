@@ -29,7 +29,7 @@ public:
   {
     setAllColumnsShowFocus(true);
     setSelectionBehavior(QAbstractItemView::SelectRows);
-    setSelectionMode(QAbstractItemView::ExtendedSelection);
+    setSelectionMode(QAbstractItemView::SingleSelection);
     setDragDropMode(QAbstractItemView::NoDragDrop);
     setAlternatingRowColors(true);
     setUniformRowHeights(true);
@@ -66,7 +66,8 @@ AddFixtureDialog::AddFixtureDialog(
   m_layout.setStretch(0, 3);
   m_layout.setStretch(1, 5);
 
-  m_availableFixtures->setModel(&FixtureDatabase::instance());
+  auto* db = &FixtureDatabase::instance();
+  m_availableFixtures->setModel(db);
   m_availableFixtures->header()->resizeSection(0, 180);
   m_availableFixtures->onSelectionChanged = [&](const FixtureNode& newFixt) {
     // Manufacturer, do nothing
@@ -79,19 +80,22 @@ AddFixtureDialog::AddFixtureDialog(
   m_count.setRange(1, 512);
   m_spacing.setRange(0, 512);
   m_address.setRange(1, 512);
+  m_address.setValue(startAddress);
   auto [umin, umax] = parent.universeRange();
   m_universe.setRange(umin, umax);
+  m_universe.setValue(startUniverse);
 
   m_setupLayoutContainer.addLayout(&m_setupLayout);
   m_setupLayout.addRow(tr("Name"), &m_name);
-  m_setupLayout.addRow(tr("Count"), &m_count);
   m_setupLayout.addRow(tr("Address"), &m_address);
+  m_setupLayout.addRow(tr("Count"), &m_count);
   m_setupLayout.addRow(tr("Spacing"), &m_spacing);
   m_setupLayout.addRow(tr("Universe"), &m_universe);
   m_setupLayout.addRow(tr("Mode"), &m_mode);
   m_setupLayout.addRow(tr("Channels"), &m_content);
   m_setupLayoutContainer.addStretch(0);
   m_setupLayoutContainer.addWidget(&m_buttons);
+
   connect(&m_buttons, &QDialogButtonBox::accepted, this, &AddFixtureDialog::accept);
   connect(&m_buttons, &QDialogButtonBox::rejected, this, &AddFixtureDialog::reject);
 
@@ -154,6 +158,7 @@ std::vector<Artnet::Fixture> AddFixtureDialog::fixtures() const noexcept
 
   f.modeName = m_mode.currentText();
   f.mode.channelNames = mode.allChannels;
+  f.universe = m_universe.value();
 
   for(int i = 0; i < m_count.value(); i++)
   {

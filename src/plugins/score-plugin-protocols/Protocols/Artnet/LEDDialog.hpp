@@ -32,6 +32,7 @@ private:
   QSpinBox m_count;
   QSpinBox m_spacing;
   QSpinBox m_address;
+  QSpinBox m_universe;
   QSpinBox m_channels;
   QHBoxLayout m_channelComboLayout;
   std::vector<QComboBox*> m_channelCombos;
