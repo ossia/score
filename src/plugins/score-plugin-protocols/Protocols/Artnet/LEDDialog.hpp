@@ -19,7 +19,8 @@ class ArtnetProtocolSettingsWidget;
 class AddLEDStripDialog : public QDialog
 {
 public:
-  explicit AddLEDStripDialog(ArtnetProtocolSettingsWidget& parent);
+  explicit AddLEDStripDialog(
+      int startUniverse, int startAddress, ArtnetProtocolSettingsWidget& parent);
   std::vector<Artnet::Fixture> fixtures() const noexcept;
   QString name() const noexcept { return m_name.text(); }
   void setName(QString t) { m_name.setText(t); }

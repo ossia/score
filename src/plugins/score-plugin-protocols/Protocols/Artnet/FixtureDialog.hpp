@@ -25,7 +25,8 @@ class ArtnetProtocolSettingsWidget;
 class AddFixtureDialog : public QDialog
 {
 public:
-  explicit AddFixtureDialog(ArtnetProtocolSettingsWidget& parent);
+  explicit AddFixtureDialog(
+      int startUniverse, int startAddress, ArtnetProtocolSettingsWidget& parent);
 
   void updateParameters(const FixtureNode& fixt);
   void setMode(int mode_index);
