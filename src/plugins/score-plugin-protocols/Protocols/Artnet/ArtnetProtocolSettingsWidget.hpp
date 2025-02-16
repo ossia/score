@@ -31,8 +31,13 @@ public:
   std::pair<int, int> universeRange() const noexcept;
 
 private:
+  void addLEDs(int mode);
+  void addFixture();
   void updateHosts(int protocolindex);
   void updateTable();
+
+  void addressChanged(int row);
+  void universeChanged(int row);
 
   QString newFixtureName(QString name);
   QLineEdit* m_deviceNameEdit{};
@@ -49,6 +54,7 @@ private:
   QPushButton* m_addFixture{};
   QPushButton* m_addLEDStrip{};
   QPushButton* m_addLEDPane{};
+  QPushButton* m_addLEDBox{};
   QPushButton* m_rmFixture{};
   std::vector<Artnet::Fixture> m_fixtures;
 };

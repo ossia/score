@@ -80,7 +80,7 @@ AddFixtureDialog::AddFixtureDialog(
   m_count.setRange(1, 512);
   m_spacing.setRange(0, 512);
   m_address.setRange(1, 512);
-  m_address.setValue(startAddress);
+  m_address.setValue(startAddress + 1);
   auto [umin, umax] = parent.universeRange();
   m_universe.setRange(umin, umax);
   m_universe.setValue(startUniverse);

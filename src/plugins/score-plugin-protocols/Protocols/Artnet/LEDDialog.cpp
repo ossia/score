@@ -7,13 +7,15 @@ namespace Protocols
 {
 
 AddLEDStripDialog::AddLEDStripDialog(
-    int startUniverse, int startAddress, ArtnetProtocolSettingsWidget& parent)
+    int startUniverse, int startAddress, Mode mode, ArtnetProtocolSettingsWidget& parent)
     : QDialog{&parent}
+    , m_mode{mode}
     , m_name{this}
     , m_buttons{
           QDialogButtonBox::StandardButton::Ok
               | QDialogButtonBox::StandardButton::Cancel,
           this}
+
 {
   this->setLayout(&m_layout);
   m_layout.addRow(tr("Name"), &m_name);
@@ -23,7 +25,38 @@ AddLEDStripDialog::AddLEDStripDialog(
   m_layout.addRow(tr("Universe"), &m_universe);
   m_layout.addRow(tr("Channels per pixel"), &m_channels);
   m_layout.addRow(tr("Channels"), &m_channelComboLayout);
-  m_layout.addRow(tr("Pixel count"), &m_pixels);
+
+  switch(mode)
+  {
+    case Mode::Strip: {
+      m_layout.addRow(tr("Pixel count"), &m_pixels);
+      m_pixels.setVisible(true);
+      m_width.setVisible(false);
+      m_height.setVisible(false);
+      m_depth.setVisible(false);
+      break;
+    }
+    case Mode::Pane: {
+      m_layout.addRow(tr("Width"), &m_width);
+      m_layout.addRow(tr("Height"), &m_height);
+      m_pixels.setVisible(false);
+      m_width.setVisible(true);
+      m_height.setVisible(true);
+      m_depth.setVisible(false);
+      break;
+    }
+    case Mode::Volume: {
+      m_layout.addRow(tr("Width"), &m_width);
+      m_layout.addRow(tr("Height"), &m_height);
+      m_layout.addRow(tr("Depth"), &m_depth);
+      m_pixels.setVisible(false);
+      m_width.setVisible(true);
+      m_height.setVisible(true);
+      m_depth.setVisible(true);
+      break;
+    }
+  }
+
   m_layout.addRow(tr("Reverse"), &m_reverse);
 
   m_layout.addItem(
@@ -42,7 +75,7 @@ AddLEDStripDialog::AddLEDStripDialog(
   m_count.setRange(1, 512);
   m_spacing.setRange(0, 512);
   m_address.setRange(1, 65539 * 512);
-  m_address.setValue(startAddress);
+  m_address.setValue(startAddress + 1);
   auto [umin, umax] = parent.universeRange();
   m_universe.setRange(umin, umax);
   m_universe.setValue(startUniverse);
@@ -54,6 +87,12 @@ AddLEDStripDialog::AddLEDStripDialog(
   m_channelCombos[2]->setCurrentIndex(2);
   m_pixels.setRange(1, 65539 * 512 / 3);
   m_pixels.setValue(16);
+  m_width.setRange(1, 1024);
+  m_width.setValue(8);
+  m_height.setRange(1, 1024);
+  m_height.setValue(8);
+  m_depth.setRange(1, 1024);
+  m_depth.setValue(8);
   m_reverse.setChecked(false);
 }
 
@@ -98,17 +137,54 @@ std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
   f.modeName = "LED Strip";
   f.universe = m_universe.value();
 
-  auto capa = Artnet::LEDStripLayout{};
-  for(auto& cur : m_channelCombos)
-    capa.diodes.push_back((Artnet::Diode)cur->currentData().toInt());
-  capa.length = m_pixels.value();
-  capa.reverse = m_reverse.isChecked();
+  int channels_used = 0;
+  switch(m_mode)
+  {
+    case Mode::Strip: {
+      auto capa = Artnet::LEDStripLayout{};
+      for(auto& cur : m_channelCombos)
+        capa.diodes.push_back((Artnet::Diode)cur->currentData().toInt());
 
-  f.led = std::move(capa);
+      capa.length = m_pixels.value();
+      capa.reverse = m_reverse.isChecked();
+
+      channels_used = capa.channels();
+
+      f.led = std::move(capa);
+      break;
+    }
+    case Mode::Pane: {
+      auto capa = Artnet::LEDPaneLayout{};
+      for(auto& cur : m_channelCombos)
+        capa.diodes.push_back((Artnet::Diode)cur->currentData().toInt());
+
+      capa.width = m_width.value();
+      capa.height = m_height.value();
+
+      channels_used = capa.channels();
+
+      f.led = std::move(capa);
+      break;
+    }
+    case Mode::Volume: {
+      auto capa = Artnet::LEDVolumeLayout{};
+      for(auto& cur : m_channelCombos)
+        capa.diodes.push_back((Artnet::Diode)cur->currentData().toInt());
+
+      capa.width = m_width.value();
+      capa.height = m_height.value();
+      capa.depth = m_depth.value();
+
+      channels_used = capa.channels();
+
+      f.led = std::move(capa);
+      break;
+    }
+  }
 
   for(int i = 0; i < m_count.value(); i++)
   {
-    f.address = m_address.value() - 1 + i * (capa.length + m_spacing.value());
+    f.address = m_address.value() - 1 + i * channels_used;
     res.push_back(f);
   }
   return res;
