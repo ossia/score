@@ -26,7 +26,14 @@ W_OBJECT_IMPL(Protocols::ArtnetProtocolSettingsWidget)
 
 namespace Protocols
 {
-
+static void updateFixtureAddress(Artnet::Fixture& fixture, int channels_per_universe)
+{
+  while(fixture.address > channels_per_universe)
+  {
+    fixture.universe++;
+    fixture.address -= channels_per_universe;
+  }
+}
 ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
@@ -93,8 +100,9 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_fixturesWidget->insertColumn(1);
   m_fixturesWidget->insertColumn(2);
   m_fixturesWidget->insertColumn(3);
+  m_fixturesWidget->insertColumn(4);
   m_fixturesWidget->setHorizontalHeaderLabels(
-      {tr("Name"), tr("Mode"), tr("Address"), tr("Channels used")});
+      {tr("Name"), tr("Mode"), tr("Address"), tr("Universe"), tr("Channels used")});
   fixtures_layout->addWidget(m_fixturesWidget);
 
   auto btns = new QVBoxLayout;
@@ -115,12 +123,17 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     dial->setName(newFixtureName(dial->name()));
     if(dial->exec() == QDialog::Accepted)
     {
-      auto fixt = dial->fixture();
-      if(!fixt.fixtureName.isEmpty() && fixt.led)
+      const int channels_per_universe = this->m_channels_per_universe->value();
+      for(auto fixt : dial->fixtures())
       {
-        m_fixtures.push_back(fixt);
-        updateTable();
+        if(!fixt.fixtureName.isEmpty() && fixt.led)
+        {
+          fixt.fixtureName = newFixtureName(fixt.fixtureName);
+          m_fixtures.push_back(std::move(fixt));
+          updateFixtureAddress(m_fixtures.back(), channels_per_universe);
+        }
       }
+      updateTable();
     }
   });
 
@@ -129,12 +142,14 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     dial->setName(newFixtureName(dial->name()));
     if(dial->exec() == QDialog::Accepted)
     {
+      const int channels_per_universe = this->m_channels_per_universe->value();
       for(auto fixt : dial->fixtures())
       {
-        m_fixtures.push_back(std::move(fixt));
-        while(m_fixtures.back().address > this->m_channels_per_universe->value())
+        if(!fixt.fixtureName.isEmpty())
         {
-          // FIXME UPDATE UNIVERSES MODULO
+          fixt.fixtureName = newFixtureName(fixt.fixtureName);
+          m_fixtures.push_back(std::move(fixt));
+          updateFixtureAddress(m_fixtures.back(), channels_per_universe);
         }
       }
       updateTable();
@@ -282,17 +297,20 @@ void ArtnetProtocolSettingsWidget::updateTable()
     auto name_item = new QTableWidgetItem{fixt.fixtureName};
     auto mode_item = new QTableWidgetItem{fixt.modeName};
     auto address = new QTableWidgetItem{QString::number(fixt.address + 1)};
+    auto universe = new QTableWidgetItem{QString::number(fixt.universe)};
     auto controls = new QTableWidgetItem{QString::number(num_controls)};
     name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     address->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    universe->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     controls->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     m_fixturesWidget->insertRow(row);
     m_fixturesWidget->setItem(row, 0, name_item);
     m_fixturesWidget->setItem(row, 1, mode_item);
     m_fixturesWidget->setItem(row, 2, address);
-    m_fixturesWidget->setItem(row, 3, controls);
+    m_fixturesWidget->setItem(row, 3, universe);
+    m_fixturesWidget->setItem(row, 4, controls);
     row++;
   }
 }

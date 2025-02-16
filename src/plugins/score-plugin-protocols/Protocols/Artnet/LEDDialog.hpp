@@ -20,7 +20,7 @@ class AddLEDStripDialog : public QDialog
 {
 public:
   explicit AddLEDStripDialog(ArtnetProtocolSettingsWidget& parent);
-  Artnet::Fixture fixture() const noexcept;
+  std::vector<Artnet::Fixture> fixtures() const noexcept;
   QString name() const noexcept { return m_name.text(); }
   void setName(QString t) { m_name.setText(t); }
 
@@ -28,6 +28,8 @@ private:
   void on_channelsChanged(int count);
   QFormLayout m_layout;
   State::AddressFragmentLineEdit m_name;
+  QSpinBox m_count;
+  QSpinBox m_spacing;
   QSpinBox m_address;
   QSpinBox m_channels;
   QHBoxLayout m_channelComboLayout;

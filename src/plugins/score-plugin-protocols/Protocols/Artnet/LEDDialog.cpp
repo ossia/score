@@ -16,7 +16,9 @@ AddLEDStripDialog::AddLEDStripDialog(ArtnetProtocolSettingsWidget& parent)
 {
   this->setLayout(&m_layout);
   m_layout.addRow(tr("Name"), &m_name);
+  m_layout.addRow(tr("Count"), &m_count);
   m_layout.addRow(tr("Address"), &m_address);
+  m_layout.addRow(tr("Spacing"), &m_spacing);
   m_layout.addRow(tr("Channels per pixel"), &m_channels);
   m_layout.addRow(tr("Channels"), &m_channelComboLayout);
   m_layout.addRow(tr("Pixel count"), &m_pixels);
@@ -34,7 +36,9 @@ AddLEDStripDialog::AddLEDStripDialog(ArtnetProtocolSettingsWidget& parent)
       &m_channels, &QSpinBox::valueChanged, this,
       &AddLEDStripDialog::on_channelsChanged);
 
-  m_name.setText("strip");
+  m_name.setText("strip.1");
+  m_count.setRange(1, 512);
+  m_spacing.setRange(0, 512);
   m_address.setRange(1, 65539 * 512);
   m_address.setValue(1);
 
@@ -81,8 +85,9 @@ void AddLEDStripDialog::on_channelsChanged(int count)
   }
 }
 
-Artnet::Fixture AddLEDStripDialog::fixture() const noexcept
+std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
 {
+  std::vector<Artnet::Fixture> res;
   Artnet::Fixture f;
   f.fixtureName = this->m_name.text();
   f.modeName = "LED Strip";
@@ -95,7 +100,13 @@ Artnet::Fixture AddLEDStripDialog::fixture() const noexcept
   capa.reverse = m_reverse.isChecked();
 
   f.led = std::move(capa);
-  return f;
+
+  for(int i = 0; i < m_count.value(); i++)
+  {
+    f.address = m_address.value() - 1 + i * (capa.length + m_spacing.value());
+    res.push_back(f);
+  }
+  return res;
 }
 }
 #endif
