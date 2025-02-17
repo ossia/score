@@ -24,6 +24,8 @@
 
 #include <wobjectimpl.h>
 
+#include <span>
+
 W_OBJECT_IMPL(Protocols::ArtnetProtocolSettingsWidget)
 
 namespace Protocols
