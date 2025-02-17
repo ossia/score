@@ -142,9 +142,25 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
   m_renderers.clear();
   m_outputs.clear();
 
+  ossia::flat_set<OutputNode*> parent_nodes;
   for(auto node : m_nodes)
+  {
     if(auto out = dynamic_cast<OutputNode*>(node))
+    {
       m_outputs.push_back(out);
+      if(auto ptr = out->configuration().parent)
+        parent_nodes.insert(ptr);
+    }
+  }
+
+  // For multi-viewport renders
+  for(auto node : parent_nodes)
+  {
+    if(!ossia::contains(m_outputs, node))
+    {
+      m_outputs.push_back(node);
+    }
+  }
 
   m_renderers.reserve(ossia::max(16, std::ssize(m_outputs)));
 

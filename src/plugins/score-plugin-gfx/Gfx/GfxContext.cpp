@@ -196,7 +196,8 @@ void GfxContext::recompute_graph()
 
   for(auto& outputs : m_graph->renderLists())
   {
-    if(auto conf = outputs->output.configuration(); conf.manualRenderingRate)
+    auto conf = outputs->output.configuration();
+    if(conf.manualRenderingRate)
     {
       int id = startTimer(*conf.manualRenderingRate, Qt::PreciseTimer);
       m_manualTimers[id] = &outputs->output;
