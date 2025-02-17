@@ -838,86 +838,85 @@ public:
     {
       for(auto& fixtures_dir : m_paths)
       {
-        // First read the manufacturers
+        QFile f{fixtures_dir + "/manufacturers.json"};
+        if(!f.open(QIODevice::ReadOnly))
+          continue;
+        auto data = f.map(0, f.size());
+
+        rapidjson::Document doc;
+        doc.Parse(reinterpret_cast<const char*>(data), f.size());
+        if(doc.HasParseError())
         {
-          QFile f{fixtures_dir + "/manufacturers.json"};
-          if(!f.open(QIODevice::ReadOnly))
-            continue;
+          qDebug() << "Invalid manufacturers.json !";
+          continue;
+        }
+
+        loadManufacturer(doc, fixtures_dir);
+
+        f.unmap(data);
+      }
+    }
+  }
+
+  void loadManufacturer(rapidjson::Document& doc, const QString& fixtures_dir)
+  {
+    QModelIndex rootIndex;
+    auto manufacturers = readManufacturers(doc);
+    if(m_root.childCount() == 0)
+    {
+      // Fast-path since we know that everything is already sorted
+      int k = 0;
+      for(auto it = manufacturers.begin(); it != manufacturers.end(); ++it, ++k)
+      {
+        beginInsertRows(rootIndex, k, k);
+        auto& child = m_root.emplace_back(FixtureData{it->second}, &m_root);
+        endInsertRows();
+
+        QModelIndex manufacturerIndex = createIndex(k, 0, &child);
+        nextFixture(
+            std::make_shared<Scan>(fixtures_dir + "/" + it->first, child),
+            manufacturerIndex);
+      }
+    }
+    else
+    {
+      for(auto it = manufacturers.begin(); it != manufacturers.end(); ++it)
+      {
+        auto manufacturer_node_it = ossia::find_if(
+            m_root, [&](const FixtureNode& n) { return n.name == it->second; });
+        if(manufacturer_node_it == m_root.end())
+        {
+          // We add it sorted to the model
+          int newRowPosition = 0;
+          auto other_manufacturer_it = m_root.begin();
+          while(other_manufacturer_it != m_root.end()
+                && QString::compare(
+                       it->second, other_manufacturer_it->name, Qt::CaseInsensitive)
+                       >= 0)
           {
-            auto data = f.map(0, f.size());
-            rapidjson::Document doc;
-            doc.Parse(reinterpret_cast<const char*>(data), f.size());
-            if(doc.HasParseError())
-            {
-              qDebug() << "Invalid manufacturers.json !";
-              continue;
-            }
-
-            QModelIndex rootIndex;
-            auto manufacturers = readManufacturers(doc);
-            if(m_root.childCount() == 0)
-            {
-              // Fast-path since we know that everything is already sorted
-              int k = 0;
-              for(auto it = manufacturers.begin(); it != manufacturers.end(); ++it, ++k)
-              {
-                beginInsertRows(rootIndex, k, k);
-                auto& child = m_root.emplace_back(FixtureData{it->second}, &m_root);
-                endInsertRows();
-
-                QModelIndex manufacturerIndex = createIndex(k, 0, &child);
-                next(
-                    std::make_shared<Scan>(fixtures_dir + "/" + it->first, child),
-                    manufacturerIndex);
-              }
-            }
-            else
-            {
-              for(auto it = manufacturers.begin(); it != manufacturers.end(); ++it)
-              {
-                auto manufacturer_node_it = ossia::find_if(
-                    m_root, [&](const FixtureNode& n) { return n.name == it->second; });
-                if(manufacturer_node_it == m_root.end())
-                {
-                  // We add it sorted to the model
-                  int newRowPosition = 0;
-                  auto other_manufacturer_it = m_root.begin();
-                  while(other_manufacturer_it != m_root.end()
-                        && QString::compare(
-                               it->second, other_manufacturer_it->name,
-                               Qt::CaseInsensitive)
-                               >= 0)
-                  {
-                    other_manufacturer_it++;
-                    newRowPosition++;
-                  }
-
-                  beginInsertRows(rootIndex, newRowPosition, newRowPosition);
-                  auto& child = m_root.emplace(
-                      other_manufacturer_it, FixtureData{it->second}, &m_root);
-                  endInsertRows();
-
-                  QModelIndex manufacturerIndex = createIndex(newRowPosition, 0, &child);
-                  next(
-                      std::make_shared<Scan>(fixtures_dir + "/" + it->first, child),
-                      manufacturerIndex);
-                }
-                else
-                {
-                  int distance
-                      = std::abs(std::distance(manufacturer_node_it, m_root.begin()));
-                  QModelIndex manufacturerIndex
-                      = createIndex(distance, 0, &*manufacturer_node_it);
-                  next(
-                      std::make_shared<Scan>(
-                          fixtures_dir + "/" + it->first, *manufacturer_node_it),
-                      manufacturerIndex);
-                }
-              }
-            }
-
-            f.unmap(data);
+            other_manufacturer_it++;
+            newRowPosition++;
           }
+
+          beginInsertRows(rootIndex, newRowPosition, newRowPosition);
+          auto& child
+              = m_root.emplace(other_manufacturer_it, FixtureData{it->second}, &m_root);
+          endInsertRows();
+
+          QModelIndex manufacturerIndex = createIndex(newRowPosition, 0, &child);
+          nextFixture(
+              std::make_shared<Scan>(fixtures_dir + "/" + it->first, child),
+              manufacturerIndex);
+        }
+        else
+        {
+          int distance = std::abs(std::distance(manufacturer_node_it, m_root.begin()));
+          QModelIndex manufacturerIndex
+              = createIndex(distance, 0, &*manufacturer_node_it);
+          nextFixture(
+              std::make_shared<Scan>(
+                  fixtures_dir + "/" + it->first, *manufacturer_node_it),
+              manufacturerIndex);
         }
       }
     }
@@ -966,7 +965,7 @@ public:
 
   // Note: we could use make_unique here but on old Ubuntus stdlibc++-7 does not seem to support it (or Qt 5.9)
   // -> QTimer::singleShot calls copy ctor
-  void next(std::shared_ptr<Scan> scan, QModelIndex manufacturerIndex)
+  void nextFixture(std::shared_ptr<Scan> scan, QModelIndex manufacturerIndex)
   {
     auto& iterator = scan->iterator;
     if(iterator.hasNext())
@@ -985,10 +984,11 @@ public:
         });
       }
 
+      m_inFlight++;
       QTimer::singleShot(
-          1, this,
-          [this, scan = std::move(scan), idx = std::move(manufacturerIndex)]() mutable {
-        next(std::move(scan), std::move(idx));
+          1, this, [this, scan = std::move(scan), idx = manufacturerIndex]() mutable {
+        nextFixture(std::move(scan), idx);
+        m_inFlight--;
       });
     }
   }
@@ -1046,13 +1046,38 @@ public:
     return f;
   }
 
+  QModelIndex modelIndexFromNode(const FixtureNode& n) const
+  {
+    node_type* parent = n.parent();
+    SCORE_ASSERT(parent);
+    SCORE_ASSERT(parent != &rootNode());
+
+    return createIndex(parent->indexOfChild(&n), 0, &n);
+  }
+
   static FixtureDatabase& instance()
   {
     static FixtureDatabase db;
     return db;
   }
 
+  void onPopulated(auto func)
+  {
+    if(m_inFlight == 0)
+    {
+      func();
+    }
+    else
+    {
+      QTimer::singleShot(8, this, [this, func = std::move(func)]() mutable {
+        onPopulated(std::move(func));
+      });
+    }
+  }
+
   FixtureNode m_root;
+
+  int m_inFlight{};
 };
 
 }

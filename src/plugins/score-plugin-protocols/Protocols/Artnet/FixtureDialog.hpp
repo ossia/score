@@ -28,6 +28,8 @@ public:
   explicit AddFixtureDialog(
       int startUniverse, int startAddress, ArtnetProtocolSettingsWidget& parent);
 
+  void setCurrentFixture(QString manufacture, QString fixtureName);
+
   void updateParameters(const FixtureNode& fixt);
   void setMode(int mode_index);
   QString name() const noexcept { return m_name.text(); }
