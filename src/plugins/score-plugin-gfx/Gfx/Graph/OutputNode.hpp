@@ -51,6 +51,7 @@ public:
     // rate (given in milliseconds)
     std::optional<double> manualRenderingRate;
     bool outputNeedsRenderPass{};
+    OutputNode* parent{};
   };
 
   virtual Configuration configuration() const noexcept = 0;
