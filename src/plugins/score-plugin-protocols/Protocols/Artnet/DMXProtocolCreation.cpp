@@ -51,8 +51,8 @@ std::unique_ptr<ossia::net::dmx_protocol_base> instantiateDMXProtocol(
   {
     case ArtnetSpecificSettings::ArtNet:
     case ArtnetSpecificSettings::ArtNetV2: {
-      auto host = set.host.toStdString();
-      if(host.empty())
+      auto host = set.host;
+      if(host.isEmpty())
         host = "0.0.0.0";
 
       if(set.mode == ArtnetSpecificSettings::Source)
@@ -62,10 +62,10 @@ std::unique_ptr<ossia::net::dmx_protocol_base> instantiateDMXProtocol(
         {
           for(const auto& entry : iface.addressEntries())
           {
-            if(entry.ip().protocol() == QHostAddress::IPv4Protocol)
-              if(host == entry.ip().toString())
+            if(auto ip = entry.ip(); ip.protocol() == QHostAddress::IPv4Protocol)
+              if(host == ip.toString())
               {
-                host = entry.broadcast().toString().toStdString();
+                host = entry.broadcast().toString();
                 good = true;
                 break;
               }
@@ -75,16 +75,15 @@ std::unique_ptr<ossia::net::dmx_protocol_base> instantiateDMXProtocol(
         }
 
         ossia::net::outbound_socket_configuration sock_conf;
-        sock_conf.host = host;
+        sock_conf.host = host.toStdString();
         sock_conf.port = 6454;
         artnet_proto
             = std::make_unique<ossia::net::artnet_protocol>(ctx, conf, sock_conf);
       }
       else
       {
-
         ossia::net::inbound_socket_configuration sock_conf;
-        sock_conf.bind = host;
+        sock_conf.bind = host.toStdString();
         sock_conf.port = 6454;
         artnet_proto
             = std::make_unique<ossia::net::artnet_input_protocol>(ctx, conf, sock_conf);

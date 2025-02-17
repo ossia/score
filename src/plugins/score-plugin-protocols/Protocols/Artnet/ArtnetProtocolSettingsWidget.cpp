@@ -225,10 +225,14 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   auto btns = new QVBoxLayout;
   m_addFixture = new QPushButton{"Add fixture"};
   m_addLEDStrip = new QPushButton{"Add LED strip"};
+  m_addGenericDimmer = new QPushButton{"Add Dimmer"};
+  m_addGenericRGB = new QPushButton{"Add RGB par"};
   m_addLEDPane = new QPushButton{"Add LED pane"};
   m_addLEDBox = new QPushButton{"Add LED box"};
   m_rmFixture = new QPushButton{"Remove"};
   btns->addWidget(m_addFixture);
+  btns->addWidget(m_addGenericDimmer);
+  btns->addWidget(m_addGenericRGB);
   btns->addWidget(m_addLEDStrip);
   btns->addWidget(m_addLEDPane);
   btns->addWidget(m_addLEDBox);
@@ -238,6 +242,12 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(fixtures_layout);
 
   // FIXME a cute widget for displaying used addresses in each universe
+  connect(m_addGenericDimmer, &QPushButton::clicked, this, [this] {
+    addFixture("Generic", "4-Channel Dimmer Pack");
+  });
+  connect(m_addGenericRGB, &QPushButton::clicked, this, [this] {
+    addFixture("Generic", "RGB Fader");
+  });
 
   connect(m_addLEDStrip, &QPushButton::clicked, this, [this] {
     addLEDs(AddLEDStripDialog::Strip);
@@ -251,9 +261,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     addLEDs(AddLEDStripDialog::Volume);
   });
 
-  connect(
-      m_addFixture, &QPushButton::clicked, this,
-      &ArtnetProtocolSettingsWidget::addFixture);
+  connect(m_addFixture, &QPushButton::clicked, this, [this] { addFixture({}, {}); });
 
   connect(m_rmFixture, &QPushButton::clicked, this, [this] {
     ossia::flat_set<int> rows_to_remove;
@@ -273,11 +281,13 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 }
 
-void ArtnetProtocolSettingsWidget::addFixture()
+void ArtnetProtocolSettingsWidget::addFixture(QString manufacturer, QString name)
 {
   auto [max_universe, max_address]
       = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
   auto dial = new AddFixtureDialog{max_universe, max_address, *this};
+  if(!manufacturer.isEmpty())
+    dial->setCurrentFixture(manufacturer, name);
   dial->setName(newFixtureName(dial->name()));
   if(dial->exec() == QDialog::Accepted)
   {

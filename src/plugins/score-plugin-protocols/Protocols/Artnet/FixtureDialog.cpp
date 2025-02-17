@@ -68,6 +68,7 @@ AddFixtureDialog::AddFixtureDialog(
 
   auto* db = &FixtureDatabase::instance();
   m_availableFixtures->setModel(db);
+
   m_availableFixtures->header()->resizeSection(0, 180);
   m_availableFixtures->onSelectionChanged = [&](const FixtureNode& newFixt) {
     // Manufacturer, do nothing
@@ -102,6 +103,39 @@ AddFixtureDialog::AddFixtureDialog(
   connect(
       &m_mode, qOverload<int>(&QComboBox::currentIndexChanged), this,
       &AddFixtureDialog::setMode);
+}
+
+void AddFixtureDialog::setCurrentFixture(QString manufacture, QString fixtureName)
+{
+  auto& db = FixtureDatabase::instance();
+  db.onPopulated([this, manufacture, fixtureName] {
+    auto fixtureNode = [&]() -> const FixtureNode* {
+      auto& db = FixtureDatabase::instance();
+
+      for(auto& mf : db.m_root.children())
+      {
+        if(mf.name == manufacture)
+        {
+          for(auto& fix : mf.children())
+          {
+            if(fix.name == fixtureName)
+            {
+              return &fix;
+            }
+          }
+          return nullptr;
+        }
+      }
+      return nullptr;
+    }();
+
+    if(fixtureNode)
+    {
+      auto& db = FixtureDatabase::instance();
+      auto idx = db.modelIndexFromNode(*fixtureNode);
+      this->m_availableFixtures->setCurrentIndex(idx);
+    }
+  });
 }
 
 void AddFixtureDialog::updateParameters(const FixtureNode& fixt)

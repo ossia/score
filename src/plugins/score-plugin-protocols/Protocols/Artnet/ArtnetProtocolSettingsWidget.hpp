@@ -32,7 +32,8 @@ public:
 
 private:
   void addLEDs(int mode);
-  void addFixture();
+  void addFixture(QString manufacturer, QString name);
+  void addDimmer();
   void updateHosts(int protocolindex);
   void updateTable();
 
@@ -52,6 +53,8 @@ private:
   QRadioButton* m_sink{};
   QTableWidget* m_fixturesWidget{};
   QPushButton* m_addFixture{};
+  QPushButton* m_addGenericDimmer{};
+  QPushButton* m_addGenericRGB{};
   QPushButton* m_addLEDStrip{};
   QPushButton* m_addLEDPane{};
   QPushButton* m_addLEDBox{};
