@@ -120,16 +120,10 @@ struct GenericMathMapping
       const ossia::value& v, value_output_callback& output, const halp::tick_flicks& tk,
       State& self)
   {
-    //auto ratio = st.modelToSamples();
-    //auto parent_dur = tk.parent_duration * ratio;
-    //for(const ossia::timed_value& v : input.get_data())
-    //{
-    //  int64_t new_time = tk.prev_date.impl * ratio + timestamp;
-    //  setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
-    //  self.last_value_time = new_time;
+    setMathExpressionTiming(
+        self, tk.start_in_flicks, self.last_value_time, tk.relative_position);
+    self.last_value_time = tk.start_in_flicks;
 
-    // FIXME
-    //  setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
     switch(v.get_type())
     {
       case ossia::val_type::NONE:

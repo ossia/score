@@ -29,22 +29,6 @@ static void setMathExpressionTiming(
 }
 
 template <typename State>
-static void setMathExpressionTiming(
-    State& self, ossia::time_value input_time, ossia::time_value prev_time,
-    ossia::time_value parent_dur, double modelToSamples)
-{
-  setMathExpressionTiming(
-      self, input_time.impl * modelToSamples, prev_time.impl * modelToSamples,
-      parent_dur.impl * modelToSamples);
-}
-
-// template <typename State>
-// static void setMathExpressionTiming(State& self, const ossia::token_request& tk, ossia::exec_state_facade st)
-// {
-//   setMathExpressionTiming(self, tk.date, tk.prev_date, tk.parent_duration, st.modelToSamples());
-// }
-
-template <typename State>
 static void setMathExpressionTiming(State& self, const halp::tick_flicks& tk)
 {
   self.cur_time = tk.end_in_flicks;
