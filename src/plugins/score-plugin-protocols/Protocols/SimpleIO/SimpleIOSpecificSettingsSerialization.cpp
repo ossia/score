@@ -59,12 +59,14 @@ void JSONWriter::write(Protocols::SimpleIO::GPIO& n)
 template <>
 void DataStreamReader::read(const Protocols::SimpleIO::ADC& n)
 {
+  m_stream << n.chip << n.channel;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::SimpleIO::ADC& n)
 {
+  m_stream >> n.chip >> n.channel;
   checkDelimiter();
 }
 
@@ -72,23 +74,32 @@ template <>
 void JSONReader::read(const Protocols::SimpleIO::ADC& n)
 {
   stream.StartObject();
+  obj["Chip"] = n.chip;
+  obj["Channel"] = n.channel;
   stream.EndObject();
 }
 
 template <>
 void JSONWriter::write(Protocols::SimpleIO::ADC& n)
 {
+  if(!obj.tryGet("Chip"))
+    return;
+
+  n.chip = obj["Chip"].toInt();
+  n.channel = obj["Channel"].toInt();
 }
 
 template <>
 void DataStreamReader::read(const Protocols::SimpleIO::DAC& n)
 {
+  m_stream << n.chip << n.channel;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::SimpleIO::DAC& n)
 {
+  m_stream >> n.chip >> n.channel;
   checkDelimiter();
 }
 
@@ -96,12 +107,19 @@ template <>
 void JSONReader::read(const Protocols::SimpleIO::DAC& n)
 {
   stream.StartObject();
+  obj["Chip"] = n.chip;
+  obj["Channel"] = n.channel;
   stream.EndObject();
 }
 
 template <>
 void JSONWriter::write(Protocols::SimpleIO::DAC& n)
 {
+  if(!obj.tryGet("Chip"))
+    return;
+
+  n.chip = obj["Chip"].toInt();
+  n.channel = obj["Channel"].toInt();
 }
 
 template <>
@@ -189,12 +207,14 @@ void JSONWriter::write(Protocols::SimpleIO::Custom& n)
 template <>
 void DataStreamReader::read(const Protocols::SimpleIO::Port& n)
 {
+  m_stream << n.name << n.path << n.control;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::SimpleIO::Port& n)
 {
+  m_stream >> n.name >> n.path >> n.control;
   checkDelimiter();
 }
 

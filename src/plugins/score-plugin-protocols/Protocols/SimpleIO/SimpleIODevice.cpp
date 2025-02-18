@@ -1,6 +1,8 @@
 
 #include <ossia/detail/config.hpp>
 
+#include <ossia/detail/timer.hpp>
+
 #if defined(OSSIA_PROTOCOL_SIMPLEIO)
 #include "SimpleIODevice.hpp"
 #include "SimpleIOSpecificSettings.hpp"
@@ -14,6 +16,7 @@
 #include <ossia/detail/variant.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/complex_type.hpp>
+#include <ossia/network/context.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <QDebug>
@@ -32,17 +35,19 @@ namespace ossia::net
 
 struct simpleio_protocol : public ossia::net::protocol_base
 {
-
-  // protocol_base interface
 public:
   simpleio_protocol(ossia::net::network_context_ptr ctx)
       : protocol_base{flags{}}
       , m_context{ctx}
+      , m_timer{ctx->context}
   {
+    m_timer.set_delay(std::chrono::milliseconds{4});
   }
 
   ~simpleio_protocol()
   {
+    stop_processing();
+
     int error;
     for(auto& adc : m_adc)
       ADC_close(adc.second.fd, &error);
@@ -55,6 +60,9 @@ public:
     for(auto& gpio : m_gpio_out)
       GPIO_close(gpio.second.fd, &error);
   }
+
+  void stop_processing() { m_timer.stop(); }
+
   void set_device(ossia::net::device_base& dev) override { m_device = &dev; }
   void init(const Protocols::SimpleIOSpecificSettings& conf)
   {
@@ -147,6 +155,27 @@ public:
       else
         m_gpio_in.emplace(param, impl);
     }
+
+    if(!m_gpio_in.empty() || !m_adc.empty())
+    {
+      m_timer.start([this] { this->update_function(); });
+    }
+  }
+
+  void update_function()
+  {
+    for(auto& [param, obj] : m_adc)
+    {
+      int32_t sample, error;
+      ADC_read(obj.fd, &sample, &error);
+      param->set_value(sample);
+    }
+    for(auto& [param, obj] : m_gpio_in)
+    {
+      int32_t sample, error;
+      GPIO_line_read(obj.fd, &sample, &error);
+      param->set_value(bool(sample));
+    }
   }
 
   bool pull(parameter_base& v) override
@@ -163,7 +192,7 @@ public:
     {
       int32_t sample, error;
       GPIO_line_read(it->second.fd, &sample, &error);
-      v.set_value(sample);
+      v.set_value(bool(sample));
       return true;
     }
     return false;
@@ -198,6 +227,7 @@ public:
   bool update(node_base& node_base) override { return false; }
 
   ossia::net::network_context_ptr m_context;
+  ossia::timer m_timer;
   ossia::net::device_base* m_device{};
 
   struct ADC_impl
