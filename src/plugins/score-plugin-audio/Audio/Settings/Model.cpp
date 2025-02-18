@@ -128,14 +128,14 @@ void Model::initDriver(Audio::AudioFactory::ConcreteKey val)
      == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
          "13dabcc3-9cda-422f-a8c7-5fef5c220677")})
   {
-    if(m_Rate != 44100)
+    if(m_Rate < 1 || m_Rate > 48 * 384000)
     {
       m_Rate = 44100;
       RateChanged(m_Rate);
     }
-    if(m_BufferSize != 1024)
+    if(m_BufferSize < 1 || m_BufferSize > 32768 * 8)
     {
-      m_BufferSize = 1024;
+      m_BufferSize = 128;
       BufferSizeChanged(m_BufferSize);
     }
   }
