@@ -46,6 +46,8 @@ then
   clone_addon https://github.com/ossia/score-addon-deuterium
 fi
 
+cd score-addon-led
+git checkout feature/gfx_led
 )
 
 
