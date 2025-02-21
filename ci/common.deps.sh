@@ -49,6 +49,8 @@ then
   clone_addon https://github.com/jcelerier/bendage
 fi
 
+cd score-addon-led
+git checkout feature/gfx_led
 )
 
 
