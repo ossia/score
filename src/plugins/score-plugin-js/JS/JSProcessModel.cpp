@@ -27,6 +27,7 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
+#include <QQuickWindow>
 
 #include <wobjectimpl.h>
 
@@ -38,9 +39,6 @@ namespace JS
 
 void setupEngineImportPaths(QQmlEngine& eng) noexcept
 {
-  // eng.importModule(
-  //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
-  //     "tonal.mjs");
   for(auto& p :
       score::AppContext().settings<Library::Settings::Model>().getIncludePaths())
   {
@@ -69,16 +67,86 @@ Script {
       out1.value = in1.value + sl.value * Math.random();
     }
   }
-  start: function() { console.log("I am called on start"); }
-  stop: function() { console.log("I am called on stop"); }
-  pause: function() { console.log("I am called on pause"); }
-  resume: function() { console.log("I am called on resume"); }
+  start: function() { }
+  stop: function() { }
+  pause: function() { }
+  resume: function() { }
 })_");
   }
   else
   {
     setScript(data);
   }
+
+  setUiScript(R"_(import QtQuick
+import QtQuick3D
+
+    View3D {
+        id: view
+        anchors.fill: parent
+
+        //! [environment]
+        environment: SceneEnvironment {
+            clearColor: "skyblue"
+            backgroundMode: SceneEnvironment.Color
+        }
+        //! [environment]
+
+        //! [camera]
+        PerspectiveCamera {
+            position: Qt.vector3d(0, 200, 300)
+            eulerRotation.x: -30
+        }
+        //! [camera]
+
+        //! [light]
+        DirectionalLight {
+            eulerRotation.x: -30
+            eulerRotation.y: -70
+        }
+        //! [light]
+
+        //! [objects]
+        Model {
+            position: Qt.vector3d(0, -200, 0)
+            source: "#Cylinder"
+            scale: Qt.vector3d(2, 0.2, 1)
+            materials: [ DefaultMaterial {
+                    diffuseColor: "red"
+                }
+            ]
+        }
+
+        Model {
+            position: Qt.vector3d(0, 150, 0)
+            source: "#Sphere"
+
+            materials: [ DefaultMaterial {
+                    diffuseColor: "blue"
+                }
+            ]
+
+            //! [animation]
+            SequentialAnimation on y {
+                loops: Animation.Infinite
+                NumberAnimation {
+                    duration: 3000
+                    to: -150
+                    from: 150
+                    easing.type:Easing.InQuad
+                }
+                NumberAnimation {
+                    duration: 3000
+                    to: 150
+                    from: -150
+                    easing.type:Easing.OutQuad
+                }
+            }
+            //! [animation]
+        }
+        //! [objects]
+    }
+)_");
   metadata().setInstanceName(*this);
 }
 
@@ -103,23 +171,52 @@ bool ProcessModel::validate(const QString& script) const noexcept
   }
 }
 
+[[nodiscard]] Process::ScriptChangeResult
+ProcessModel::setUiScript(const QString& script)
+{
+  Process::ScriptChangeResult res;
+  const auto trimmed = script.trimmed();
+  const QByteArray data = trimmed.toUtf8();
+
+  if(res = setUiQmlData(data); !res.valid)
+    return res;
+
+  m_ui_script = script;
+  uiScriptChanged(script);
+  res.valid = true;
+  return res;
+}
+
 QString ProcessModel::effect() const noexcept
 {
   return m_qmlData;
 }
 
+Process::ScriptChangeResult ProcessModel::setUiQmlData(const QByteArray& data)
+{
+  Process::ScriptChangeResult res;
+  if(!data.contains("import QtQuick"))
+    return res;
+
+  auto script = m_cache.getUi(*this, data);
+  if(!script)
+    return res;
+
+  m_ui_qmlData = data;
+  res.valid = true;
+  // FIXME signal?
+
+  auto win = new QQuickWindow;
+  win->setWidth(640);
+  win->setHeight(640);
+  script->setParentItem(win->contentItem());
+  win->show();
+  return res;
+}
+
 [[nodiscard]] Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
 {
   Process::ScriptChangeResult res;
-  /*
-  m_watch.reset();
-
-  if (m_dummyObject)
-    m_dummyObject->deleteLater();
-  m_dummyObject = nullptr;
-  m_dummyComponent.reset();
-  m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
-  */
   const auto trimmed = script.trimmed();
   const QByteArray data = trimmed.toUtf8();
 
@@ -127,29 +224,6 @@ QString ProcessModel::effect() const noexcept
 
   if(QFileInfo{path}.exists())
   {
-    /* Disabling the watch feature for now :
-     * it does not fix the cables, etc.
-    m_watch = std::make_unique<QFileSystemWatcher>(QStringList{trimmed});
-    connect(
-        m_watch.get(),
-        &QFileSystemWatcher::fileChanged,
-        this,
-        [=](const QString& path) {
-          // Note:
-          //
-    https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
-          QTimer::singleShot(20, this, [this, path] {
-            m_watch->addPath(path);
-            QFile f(path);
-            if (f.open(QIODevice::ReadOnly))
-            {
-              setQmlData(path.toUtf8(), true);
-              m_watch->addPath(path);
-            }
-          });
-        });
-
-    */
     if(res = setQmlData(path.toUtf8(), true); !res.valid)
       return res;
   }
@@ -167,7 +241,7 @@ QString ProcessModel::effect() const noexcept
 Process::ScriptChangeResult ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 {
   Process::ScriptChangeResult res;
-  if(!isFile && !data.startsWith("import"))
+  if(!isFile && !data.contains("import "))
     return res;
 
   auto script = m_cache.get(*this, data, isFile);
@@ -234,6 +308,11 @@ Script* ProcessModel::currentObject() const noexcept
   return m_cache.tryGet(m_qmlData, m_isFile);
 }
 
+QQuickItem* ProcessModel::currentUI() const noexcept
+{
+  return m_cache.tryGet(m_ui_qmlData);
+}
+
 bool ProcessModel::isGpu() const noexcept
 {
 #if defined(SCORE_HAS_GPU_JS)
@@ -266,6 +345,19 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
   if(it != m_map.end())
   {
     return it->object.get();
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
+QQuickItem* ComponentCache::tryGet(const QByteArray& str) const noexcept
+{
+  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == str; });
+  if(it != m_map.end())
+  {
+    return it->item.get();
   }
   else
   {
@@ -343,6 +435,58 @@ Script* ComponentCache::get(
       {
         delete obj;
       }
+      return nullptr;
+    }
+  }
+}
+QQuickItem*
+ComponentCache::getUi(const ProcessModel& process, const QByteArray& str) noexcept
+{
+  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == str; });
+  if(it != m_map.end())
+  {
+    return it->item.get();
+  }
+  else
+  {
+    static QQmlEngine dummyEngine;
+    std::call_once(qml_dummy_engine_setup, [] { setupEngineImportPaths(dummyEngine); });
+
+    auto comp = std::make_unique<QQmlComponent>(&dummyEngine);
+    {
+      auto& lib = score::AppContext().settings<Library::Settings::Model>();
+      // FIXME QTBUG-107204
+      QString path = lib.getDefaultLibraryPath() + QDir::separator() + "Scripts"
+                     + QDir::separator() + "include" + QDir::separator() + "Script.qml";
+      comp->setData(str, QUrl::fromLocalFile(path));
+    }
+    const auto& errs = comp->errors();
+    if(!errs.empty())
+    {
+      const auto& err = errs.first();
+      qDebug() << err.line() << err.toString();
+      auto str = err.toString();
+      str.remove("<Unknown File>:");
+      process.errorMessage(err.line(), str);
+      return nullptr;
+    }
+
+    auto obj = comp->create();
+    auto script = qobject_cast<QQuickItem*>(obj);
+    if(script)
+    {
+      if(m_map.size() > 5)
+        m_map.erase(m_map.begin());
+
+      m_map.emplace_back(
+          Cache{str, std::move(comp), {}, std::unique_ptr<QQuickItem>(script)});
+      return script;
+    }
+    else
+    {
+      process.errorMessage(0, "The component must be of type Script");
+      if(obj)
+        delete obj;
       return nullptr;
     }
   }

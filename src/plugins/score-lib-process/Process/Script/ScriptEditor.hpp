@@ -22,6 +22,7 @@ class SCORE_LIB_PROCESS_EXPORT ScriptDialog : public QDialog
 public:
   ScriptDialog(
       const std::string_view lang, const score::DocumentContext& ctx, QWidget* parent);
+  ~ScriptDialog();
 
   QSize sizeHint() const override { return {800, 300}; }
   QString text() const noexcept;
@@ -29,7 +30,7 @@ public:
   void setText(const QString& str);
   void setError(int line, const QString& str);
   void openInExternalEditor(const QString& editorPath);
-  void stopWatchingFile(const QString& tempFile);
+  void stopWatchingFile();
 
 protected:
   virtual void on_accepted() = 0;
@@ -39,6 +40,7 @@ protected:
   QPlainTextEdit* m_error{};
 
 private:
+  QString m_watchedFile;
   std::shared_ptr<std::function<void()>> m_fileHandle;
 };
 

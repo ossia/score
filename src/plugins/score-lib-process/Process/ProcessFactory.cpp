@@ -106,10 +106,26 @@ score::ResizeableItem* LayerFactory::makeItem(
   return nullptr;
 }
 
+bool LayerFactory::hasCodeEditor(
+    const ProcessModel&, const score::DocumentContext& ctx) const noexcept
+{
+  return false;
+}
+QWidget* LayerFactory::makeCodeEditor(
+    const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
+{
+  return nullptr;
+}
+
 bool LayerFactory::hasExternalUI(
     const ProcessModel&, const score::DocumentContext& ctx) const noexcept
 {
   return false;
+}
+QWidget* LayerFactory::makeExternalUI(
+    const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
+{
+  return nullptr;
 }
 
 HeaderDelegate* LayerFactory::makeHeaderDelegate(
@@ -121,12 +137,6 @@ FooterDelegate* LayerFactory::makeFooterDelegate(
     const ProcessModel& model, const Process::Context& ctx) const
 {
   return new DefaultFooterDelegate{model, ctx};
-}
-
-QWidget* LayerFactory::makeExternalUI(
-    const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
-{
-  return nullptr;
 }
 
 bool LayerFactory::matches(const ProcessModel& p) const

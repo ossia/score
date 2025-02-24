@@ -77,6 +77,11 @@ ScriptDialog::ScriptDialog(
       &QDialog::close);
 }
 
+ScriptDialog::~ScriptDialog()
+{
+  stopWatchingFile();
+}
+
 QString ScriptDialog::text() const noexcept
 {
   return m_textedit->document()->toPlainText();
@@ -93,6 +98,74 @@ void ScriptDialog::setText(const QString& str)
 void ScriptDialog::setError(int line, const QString& str)
 {
   m_error->setPlainText(str);
+}
+
+void ScriptDialog::openInExternalEditor(const QString& editorPath)
+{
+  if(editorPath.isEmpty())
+  {
+    QMessageBox::warning(
+        this, tr("Error"), tr("no 'Default editor' configured in score settings"));
+    return;
+  }
+
+  auto& w = score::FileWatch::instance();
+
+  m_watchedFile = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+                  + "/ossia_script_temp.js";
+  if(m_fileHandle)
+  {
+    // we have to unwatch the previous file first
+    w.remove(m_watchedFile, m_fileHandle);
+    m_fileHandle.reset();
+  }
+
+  QFile file(m_watchedFile);
+  if(!file.open(QIODevice::WriteOnly))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("failed to create temporary file."));
+    m_watchedFile.clear();
+    return;
+  }
+
+  file.write(this->text().toUtf8());
+
+  m_fileHandle = std::make_shared<std::function<void()>>([this]() {
+    QFile file(m_watchedFile);
+    if(file.open(QIODevice::ReadOnly))
+    {
+      QMetaObject::invokeMethod(
+          m_textedit, [this, str = QString::fromUtf8(file.readAll())] {
+        if(m_textedit)
+        {
+          m_textedit->setPlainText(str);
+          on_accepted();
+        }
+      });
+    }
+  });
+
+  if(!QProcess::startDetached(editorPath, QStringList{m_watchedFile}))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("failed to launch external editor"));
+    m_watchedFile.clear();
+    m_fileHandle.reset();
+  }
+  else
+  {
+    w.add(m_watchedFile, m_fileHandle);
+  }
+}
+
+void ScriptDialog::stopWatchingFile()
+{
+  if(m_watchedFile.isEmpty())
+    return;
+
+  auto& w = score::FileWatch::instance();
+  w.remove(m_watchedFile, m_fileHandle);
+  m_watchedFile.clear();
+  m_fileHandle.reset();
 }
 
 MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
@@ -192,61 +265,6 @@ void MultiScriptDialog::clearError()
   m_error->clear();
 }
 
-void ScriptDialog::openInExternalEditor(const QString& editorPath)
-{
-
-  if(editorPath.isEmpty())
-  {
-    QMessageBox::warning(
-        this, tr("Error"), tr("no 'Default editor' configured in score settings"));
-    return;
-  }
-
-  const QString tempFile = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
-                           + "/ossia_script_temp.js";
-  QFile file(tempFile);
-  if(!file.open(QIODevice::WriteOnly))
-  {
-    QMessageBox::warning(this, tr("Error"), tr("failed to create temporary file."));
-    return;
-  }
-
-  file.write(this->text().toUtf8());
-
-  auto& w = score::FileWatch::instance();
-  m_fileHandle = std::make_shared<std::function<void()>>([this, tempFile]() {
-    QFile file(tempFile);
-    if(file.open(QIODevice::ReadOnly))
-    {
-      QString updatedContent = QString::fromUtf8(file.readAll());
-
-      QMetaObject::invokeMethod(m_textedit, [this, updatedContent]() {
-        if(m_textedit)
-        {
-          m_textedit->setPlainText(updatedContent);
-        }
-      });
-    }
-  });
-  w.add(tempFile, m_fileHandle);
-
-  if(!QProcess::startDetached(editorPath, QStringList{tempFile}))
-  {
-    QMessageBox::warning(this, tr("Error"), tr("failed to launch external editor"));
-  }
-}
-
-void ScriptDialog::stopWatchingFile(const QString& tempFile)
-{
-  if(tempFile.isEmpty())
-  {
-    return;
-  }
-
-  auto& w = score::FileWatch::instance();
-  w.remove(tempFile, m_fileHandle);
-  m_fileHandle.reset();
-}
 void MultiScriptDialog::openInExternalEditor(const QString& editorPath)
 {
   if(editorPath.isEmpty())
