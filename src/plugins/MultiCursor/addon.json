@@ -1,0 +1,11 @@
+{
+  "src": "<url to the .zip file created by the release script>",
+  "name": "MultiCursorManager",
+  "raw_name": "score-addon-my-avnd-effect",
+  "version": "1.0",
+  "kind": "addon",
+  "short": "Multi Cursor Manager effect add-on",
+  "long": "This addon provides an example audio effect",
+  "small": "https://raw.githubusercontent.com/OSSIA/score-addon-tutorial/master/Deployment/icon.png",
+  "key": ""
+}
