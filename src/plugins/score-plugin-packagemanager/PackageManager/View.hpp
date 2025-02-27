@@ -22,6 +22,8 @@ class QObject;
 namespace PM
 {
 class PluginSettingsPresenter;
+class LocalPackagesModel;
+class RemotePackagesModel;
 class PluginSettingsView : public score::GlobalSettingsView
 {
   W_OBJECT(PluginSettingsView)
@@ -35,14 +37,17 @@ public:
 
   QWidget* getWidget() override;
 
+  RemotePackagesModel* m_remoteModel{};
+  LocalPackagesModel* m_localModel{};
+
 private:
   void firstTimeLibraryDownload();
 
   void handleAddonList(const QJsonObject&);
   void handleAddon(const QJsonObject&);
 
-  PackagesModel* getCurrentModel();
-  int getCurrentRow(const QTableView* t);
+  std::pair<PackagesModel*, QTableView*> getCurrentModelAndTable() const noexcept;
+  int getCurrentRow(QAbstractItemModel* sourceModel, const QTableView* t);
   Package selectedPackage(const PackagesModel* model, int row);
 
   void installAddon(const Package& addon);
@@ -66,6 +71,7 @@ private:
   void set_info();
   void reset_progress();
   void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
+  void updateCategoryComboBox(int tabIndex);
 
   QWidget* m_widget{new QWidget};
 
@@ -84,6 +90,7 @@ private:
 
   QStorageInfo storage;
   QLabel* m_storage{new QLabel};
+  QComboBox* categoryComboBox = nullptr;
 
   bool m_firstTimeCheck{false};
 };
