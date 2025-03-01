@@ -63,12 +63,14 @@ public:
     m_knob_handles
         = m_rc->registerControllerGroup((hint)(hint::Knob | hint::MapControls), 8);
     m_knob_button_handles = m_rc->registerControllerGroup(hint::Button_Knob, 8);
-    m_fader_handles = m_rc->registerControllerGroup(hint::Fader, 8);
+    m_fader_handles = m_rc->registerControllerGroup((hint)(hint::Fader), 8);
     m_f_handles = m_rc->registerControllerGroup(hint::Button_Function, 8);
     m_rec_handles = m_rc->registerControllerGroup(hint::Button_Rec, 8);
     m_mute_handles = m_rc->registerControllerGroup(hint::Button_Mute, 8);
     m_solo_handles = m_rc->registerControllerGroup(hint::Button_Solo, 8);
     m_select_handles = m_rc->registerControllerGroup(hint::Button_Select, 8);
+    const bool is_behringer
+        = ip.device_name.find("BCF2000") || ip.device_name.find("BCR2000");
 
     libremidi::output_configuration out_conf{};
 
@@ -78,10 +80,23 @@ public:
         .midi_out =
             [this, ctx = m_context](libremidi::message&& msg) {
       boost::asio::post(
-          ctx->context, [msg = std::move(msg), o = std::weak_ptr{m_output}] {
+          ctx->context, [msg = std::move(msg), o = std::weak_ptr{m_output}]() mutable {
         if(auto out = o.lock())
+        {
           out->send_message(std::move(msg));
+        }
       });
+    },
+        .on_connected =
+            [this, is_behringer](libremidi::remote_control_protocol::device_type type) {
+      if(!is_behringer)
+      {
+        blank();
+
+        QObject::connect(
+            m_rc.get(), &Process::RemoteControlInterface::transportChanged, this,
+            &mcu_protocol::on_transport_changed);
+      }
     },
         .on_command =
             [self = QPointer{this}](
@@ -109,12 +124,12 @@ public:
     m_rcp = std::make_shared<libremidi::remote_control_processor>(conf);
 
     libremidi::input_configuration in_conf{};
+    in_conf.ignore_sysex = false;
     in_conf.on_message
         = [this](const libremidi::message& message) { m_rcp->on_midi(message); };
     m_input = std::make_shared<libremidi::midi_in>(in_conf, api);
 
     m_output->open_port(op);
-    m_rcp->start();
     m_input->open_port(ip);
 
     QObject::connect(
@@ -123,11 +138,40 @@ public:
     QObject::connect(
         m_rc.get(), &Process::RemoteControlInterface::controlValueChanged, this,
         &mcu_protocol::on_control_value_changed);
-    QObject::connect(
-        m_rc.get(), &Process::RemoteControlInterface::transportChanged, this,
-        &mcu_protocol::on_transport_changed);
 
-    blank();
+    start();
+  }
+
+  void start()
+  {
+    // Try more recent to more ancient protocol
+    m_rcp->impl.type = libremidi::remote_control_protocol::device_type::mackie_control;
+    m_rcp->start();
+    QTimer::singleShot(300, this, [this] {
+      if(m_rcp->current_state != m_rcp->connected)
+      {
+        m_rcp->impl.type
+            = libremidi::remote_control_protocol::device_type::logic_control_xt;
+        m_rcp->start();
+
+        QTimer::singleShot(300, this, [this] {
+          if(m_rcp->current_state != m_rcp->connected)
+          {
+            m_rcp->impl.type
+                = libremidi::remote_control_protocol::device_type::logic_control;
+            m_rcp->start();
+
+            // Start again as long as we aren't connected
+            QTimer::singleShot(300, this, [this] {
+              if(m_rcp->current_state != m_rcp->connected)
+              {
+                start();
+              }
+            });
+          }
+        });
+      }
+    });
   }
 
   ~mcu_protocol()
