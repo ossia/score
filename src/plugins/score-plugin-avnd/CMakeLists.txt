@@ -438,6 +438,13 @@ function(avnd_make_score)
 endfunction()
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/AI/PromptComposer.hpp"
+  TARGET prompt_composer
+  MAIN_CLASS PromptComposer
+  NAMESPACE ai
+)
+if(1)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
   TARGET adsr
   MAIN_CLASS ADSR
