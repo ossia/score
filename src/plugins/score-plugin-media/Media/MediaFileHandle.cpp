@@ -20,7 +20,9 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QtEnvironmentVariables>
 
+#include <optional>
 namespace Media
 {
 
@@ -56,6 +58,23 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   }
 }
 
+static std::optional<DecodingMethod> forcedDecodingMethod()
+{
+  std::optional<DecodingMethod> res;
+  const auto e = qEnvironmentVariable("SCORE_AUDIO_DECODING_METHOD").toLower();
+  if(e.isEmpty())
+    return res;
+  if(e == "libav_ram")
+    return DecodingMethod::Libav;
+  if(e == "libav_stream")
+    return DecodingMethod::LibavStream;
+  if(e == "mmap")
+    return DecodingMethod::Mmap;
+  if(e == "sndfile")
+    return DecodingMethod::Sndfile;
+  return res;
+}
+
 AudioFile::AudioFile()
 {
   m_impl = Handle{};
@@ -76,7 +95,10 @@ void AudioFile::load(DecodingSetup opt)
   const auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
   const auto rate = audioSettings.getRate();
 
-  if(m_track != -1)
+  static const auto forced_method = forcedDecodingMethod();
+  if(forced_method)
+    opt.method = *forced_method;
+  else if(m_track != -1)
     opt.method = DecodingMethod::LibavStream;
   else if(opt.method == DecodingMethod::Invalid)
     opt.method = needsDecoding(m_file, rate);
