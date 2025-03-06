@@ -111,8 +111,6 @@ void LocalDevice::init()
     m_proto->clear();
 
     auto set = m_settings.deviceSpecificSettings.value<LocalSpecificSettings>();
-    set.wsPort = 9999;
-    set.oscPort = 6666;
 
     m_oscqProto = new ossia::oscquery::oscquery_server_protocol(set.oscPort, set.wsPort);
     m_oscqProto->disable_zeroconf();
