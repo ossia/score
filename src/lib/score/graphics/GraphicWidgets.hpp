@@ -11,6 +11,7 @@
 #include <score/graphics/widgets/QGraphicsLogKnob.hpp>
 #include <score/graphics/widgets/QGraphicsLogSlider.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
+#include <score/graphics/widgets/QGraphicsMultiSliderXY.hpp>
 #include <score/graphics/widgets/QGraphicsNoteChooser.hpp>
 #include <score/graphics/widgets/QGraphicsPixmapButton.hpp>
 #include <score/graphics/widgets/QGraphicsPixmapEnum.hpp>

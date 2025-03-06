@@ -15,6 +15,7 @@
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QObject>
+#include <QUrl>
 
 namespace Protocols
 {
