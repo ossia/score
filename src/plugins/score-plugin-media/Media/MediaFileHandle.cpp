@@ -20,7 +20,7 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QRegularExpression>
-#include <QtEnvironmentVariables>
+#include <QtGlobal>
 
 #include <optional>
 namespace Media
