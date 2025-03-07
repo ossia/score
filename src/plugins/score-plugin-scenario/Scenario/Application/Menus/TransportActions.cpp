@@ -215,7 +215,8 @@ void TransportActions::onPlayLocal()
     return;
 
   onPlay(true);
-  m_playGlobal->setEnabled(false);
+  if(m_playGlobal)
+    m_playGlobal->setEnabled(false);
 }
 
 void TransportActions::onPlayGlobal()
@@ -224,7 +225,8 @@ void TransportActions::onPlayGlobal()
     return;
 
   onPlay(true);
-  m_play->setEnabled(false);
+  if(m_play)
+    m_play->setEnabled(false);
 }
 
 void TransportActions::onPause()
@@ -234,6 +236,8 @@ void TransportActions::onPause()
 
 void TransportActions::onPlay(bool b)
 {
+  if(!m_play || !m_playGlobal)
+    return;
   m_play->setText(b ? tr("Pause") : tr("Play"));
   m_play->setData(b); // True for "pause" state (i.e. currently playing),
   // false for "play" state (i.e. currently paused)
@@ -266,7 +270,7 @@ void TransportActions::onPlay(bool b)
 
 void TransportActions::onStop()
 {
-  if(!m_play)
+  if(!m_play || !m_playGlobal)
     return;
 
   m_play->blockSignals(true);
