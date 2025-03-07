@@ -188,7 +188,7 @@ static void generateExportFile(
     const QString& addon_files_path, const QString& addon_name,
     const QByteArray& addon_export)
 {
-  QFile export_file = QString{addon_files_path + "/" + addon_name + "_export.h"};
+  QFile export_file = QFile{addon_files_path + "/" + addon_name + "_export.h"};
   export_file.open(QIODevice::WriteOnly);
   QByteArray export_data{
     "#ifndef " + addon_export + "_EXPORT_H\n"
