@@ -134,7 +134,7 @@ public:
       card_in = default_in;
     if(!card_in)
       card_in = first_viable_in;
-    if(set.getCardIn() == "No device")
+    if(set.getCardIn().startsWith("No device"))
       card_in = nullptr;
 
     const MiniAudioCard* card_out = user_out;
@@ -142,7 +142,7 @@ public:
       card_out = default_out;
     if(!card_out)
       card_out = first_viable_out;
-    if(set.getCardOut() == "No device")
+    if(set.getCardOut().startsWith("No device"))
       card_out = nullptr;
 
     if(card_in)
@@ -197,6 +197,8 @@ public:
     devices[0].name = "No device";
     memset(&devices[0].id, 0, sizeof(devices[0].id));
     memset(&devices[0].info, 0, sizeof(devices[0].info));
+
+    memcpy(&devices[0].id.coreaudio, "No device", strlen("No device"));
 
     ma_context_enumerate_devices(
         &m_context->context,
@@ -297,8 +299,8 @@ public:
     auto card_list_out = new QComboBox{w};
 
     // Disabled case
-    card_list_in->addItem(devices.front().name + "capture", 0);
-    card_list_out->addItem(devices.front().name + "playback", 0);
+    card_list_in->addItem(devices.front().name + " (capture)", 0);
+    card_list_out->addItem(devices.front().name + " (playback)", 0);
 
     // qDebug() << Q_FUNC_INFO << "Devices: ";
     for(std::size_t i = 1; i < devices.size(); i++)
