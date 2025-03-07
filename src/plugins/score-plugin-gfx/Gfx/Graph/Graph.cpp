@@ -10,6 +10,7 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
