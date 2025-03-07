@@ -1,7 +1,9 @@
 project(score_plugin_jit LANGUAGES CXX)
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
-  return()
+if(NOT APPLE)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
+    return()
+  endif()
 endif()
 
 if(SCORE_FAST_DEV_BUILD)
