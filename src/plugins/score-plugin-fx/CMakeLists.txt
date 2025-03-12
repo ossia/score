@@ -58,7 +58,10 @@ if(MSVC)
     #       C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.41.34120\include\xutility(1817,9):
     #       failure was caused by evaluation exceeding step limit of 1048576 (/constexpr:steps<NUMBER>)
     target_compile_options(score_plugin_fx PRIVATE /constexpr:steps16000000)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(score_plugin_fx PRIVATE -fconstexpr-steps=11271242)
 endif()
+
 if(WIN32 AND NOT MSVC AND NOT SCORE_PCH)
   target_compile_options(score_plugin_fx PRIVATE -Ofast -fno-finite-math-only -Wa,-mbig-obj)
 endif()
