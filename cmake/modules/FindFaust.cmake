@@ -50,13 +50,18 @@ if(FAUST_FOUND)
         return()
       endif()
 
-      exec_program(${LLVM_CONFIG} ARGS "--includedir" OUTPUT_VARIABLE LLVM_DIR RETURN_VALUE LLVM_ERROR)
+      execute_process(COMMAND ${LLVM_CONFIG} "--includedir" OUTPUT_VARIABLE LLVM_DIR RESULT_VARIABLE LLVM_ERROR)
       if(NOT "${LLVM_ERROR}" EQUAL 0)
         message(FATAL_ERROR "Could not run llvm-config: ${LLVM_DIR}")
       endif()
-      exec_program(${LLVM_CONFIG} ARGS "--libs" OUTPUT_VARIABLE LLVM_LIBS)
-      exec_program(${LLVM_CONFIG} ARGS "--version" OUTPUT_VARIABLE LLVM_VERSION)
-      exec_program(${LLVM_CONFIG} ARGS "--ldflags" OUTPUT_VARIABLE LLVM_LDFLAGS)
+      execute_process(COMMAND ${LLVM_CONFIG} "--libs" OUTPUT_VARIABLE LLVM_LIBS)
+      string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
+
+      execute_process(COMMAND ${LLVM_CONFIG} "--version" OUTPUT_VARIABLE LLVM_VERSION)
+      string(STRIP "${LLVM_VERSION}" LLVM_VERSION)
+
+      execute_process(COMMAND ${LLVM_CONFIG} "--ldflags" OUTPUT_VARIABLE LLVM_LDFLAGS)
+      string(STRIP "${LLVM_LDFLAGS}" LLVM_LDFLAGS)
 
       file(TO_CMAKE_PATH "${LLVM_LDFLAGS}" LLVM_LDFLAGS)
       file(TO_CMAKE_PATH "${LLVM_DIR}" LLVM_DIR)
