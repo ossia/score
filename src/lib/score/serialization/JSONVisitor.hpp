@@ -617,49 +617,133 @@ struct ArraySerializer
     }
   }
 
-  template <typename Arg, std::size_t N>
-  static void readFrom(JSONObject::Serializer& s, const std::array<Arg, N>& vec)
+  template <template <typename, typename...> typename T, typename Arg, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<Arg, Args...>& vec)
   {
+    using arg_type = std::remove_cvref_t<Arg>;
     s.stream.StartArray();
     for(const auto& elt : vec)
-      s.readFrom(elt);
+    {
+      if constexpr(std::is_floating_point_v<arg_type>)
+        s.stream.Double(elt);
+      else if constexpr(std::is_same_v<arg_type, char>)
+        s.stream.String(&elt, 1);
+      else if constexpr(std::is_integral_v<arg_type>)
+      {
+        if constexpr(sizeof(arg_type) > 4)
+          s.stream.Int64(elt);
+        else
+          s.stream.Int(elt);
+      }
+      else if constexpr(std::is_same_v<arg_type, std::string>)
+        s.stream.String(elt.data(), elt.size());
+      else if constexpr(std::is_same_v<arg_type, QString>)
+      {
+        const QByteArray& b = elt.toUtf8();
+        s.stream.String(b.data(), b.size());
+      }
+      else
+        s.readFrom(elt);
+    }
     s.stream.EndArray();
   }
 
-  template <typename Arg, std::size_t N>
-  static void writeTo(JSONObject::Deserializer& s, std::array<Arg, N>& vec)
+  template <
+      template <typename, std::size_t, typename...> typename T, typename Arg,
+      std::size_t N, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<Arg, N, Args...>& vec)
   {
+    using type = T<Arg, N, Args...>;
+    using arg_type = std::remove_cvref_t<Arg>;
     const auto& array = s.base.GetArray();
-    SCORE_ASSERT(N >= array.Size());
+    if constexpr(std::is_aggregate_v<type>)
+    {
+      SCORE_ASSERT(N >= array.Size());
+    }
+    else
+    {
+      vec.clear();
+      vec.resize(array.Size());
+    }
 
     auto it = vec.begin();
     for(const auto& elt : array)
     {
-      JSONObject::Deserializer des{elt};
-      des.writeTo(*it);
+      if constexpr(std::is_floating_point_v<arg_type>)
+        *it = elt.GetDouble();
+      else if constexpr(std::is_same_v<arg_type, char>)
+      {
+        SCORE_ASSERT(elt.IsString());
+        if(elt.GetStringLength() == 1)
+          *it = elt.GetString()[0];
+        else
+          *it = 0;
+      }
+      else if constexpr(std::is_integral_v<arg_type>)
+      {
+        if constexpr(sizeof(arg_type) > 4)
+          *it = elt.GetInt64();
+        else
+          *it = elt.GetInt();
+      }
+      else if constexpr(std::is_same_v<arg_type, std::string>)
+        *it = std::string{elt.GetString(), elt.GetStringLength()};
+      else if constexpr(std::is_same_v<arg_type, QString>)
+      {
+        *it = QString::fromUtf8(elt.GetString(), elt.GetStringLength());
+      }
+      else
+      {
+        JSONObject::Deserializer des{elt};
+        des.writeTo(*it);
+      }
       ++it;
     }
   }
 
-  template <std::size_t N>
-  static void readFrom(JSONObject::Serializer& s, const std::array<float, N>& vec)
+  template <
+      template <typename, typename, typename...> typename T, typename Arg, typename Arg2,
+      typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<Arg, Arg2, Args...>& vec)
   {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Double(elt);
-    s.stream.EndArray();
-  }
-
-  template <std::size_t N>
-  static void writeTo(JSONObject::Deserializer& s, std::array<float, N>& vec)
-  {
+    using type = T<Arg, Arg2, Args...>;
+    using arg_type = std::remove_cvref_t<Arg>;
     const auto& array = s.base.GetArray();
-    SCORE_ASSERT(N >= array.Size());
+
+    vec.clear();
+    vec.resize(array.Size());
 
     auto it = vec.begin();
     for(const auto& elt : array)
     {
-      *it = elt.GetFloat();
+      if constexpr(std::is_floating_point_v<arg_type>)
+        *it = elt.GetDouble();
+      else if constexpr(std::is_same_v<arg_type, char>)
+      {
+        SCORE_ASSERT(elt.IsString());
+        if(elt.GetStringLength() == 1)
+          *it = elt.GetString()[0];
+        else
+          *it = 0;
+      }
+      else if constexpr(std::is_integral_v<arg_type>)
+      {
+        if constexpr(sizeof(arg_type) > 4)
+          *it = elt.GetInt64();
+        else
+          *it = elt.GetInt();
+      }
+      else if constexpr(std::is_same_v<arg_type, std::string>)
+        *it = std::string{elt.GetString(), elt.GetStringLength()};
+      else if constexpr(std::is_same_v<arg_type, QString>)
+      {
+        *it = QString::fromUtf8(elt.GetString(), elt.GetStringLength());
+      }
+      else
+      {
+        JSONObject::Deserializer des{elt};
+        des.writeTo(*it);
+      }
       ++it;
     }
   }
@@ -711,303 +795,6 @@ struct ArraySerializer
       JSONObject::Deserializer des{elt};
       des.writeTo(v);
       vec.push_back(std::move(v));
-    }
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<std::string, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(const auto& elt : vec)
-      s.stream.String(elt.data(), elt.size());
-    s.stream.EndArray();
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<std::string, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.reserve(array.Size());
-    for(const auto& elt : array)
-    {
-      vec.push_back(std::string{elt.GetString(), elt.GetStringLength()});
-    }
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<QString, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(const auto& elt : vec)
-    {
-      const QByteArray& b = elt.toUtf8();
-      s.stream.String(b.data(), b.size());
-    }
-    s.stream.EndArray();
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<QString, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.reserve(array.Size());
-    for(const auto& elt : array)
-    {
-      vec.push_back(QString::fromUtf8(elt.GetString(), elt.GetStringLength()));
-    }
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<int, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Int(elt);
-    s.stream.EndArray();
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<int, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetInt();
-      ++it;
-    }
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<char, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(char elt : vec)
-      s.stream.String(&elt, 1);
-    s.stream.EndArray();
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<char, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetString()[0];
-      ++it;
-    }
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<int64_t, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Int64(elt);
-    s.stream.EndArray();
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<int64_t, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetInt64();
-      ++it;
-    }
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<float, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Double(elt);
-    s.stream.EndArray();
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<float, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetFloat();
-      ++it;
-    }
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<double, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Double(elt);
-    s.stream.EndArray();
-  }
-
-  template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<double, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetDouble();
-      ++it;
-    }
-  }
-
-  // Overloads for supporting static/small vectors... remove when we have
-  // concepts
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<int, N, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Int(elt);
-    s.stream.EndArray();
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<int, N, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetInt();
-      ++it;
-    }
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<char, N, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(char elt : vec)
-      s.stream.String(&elt, 1);
-    s.stream.EndArray();
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<char, N, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetString()[0];
-      ++it;
-    }
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<int64_t, N, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Int64(elt);
-    s.stream.EndArray();
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<int64_t, N, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetInt64();
-      ++it;
-    }
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<float, N, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Double(elt);
-    s.stream.EndArray();
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<float, N, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetFloat();
-      ++it;
-    }
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<double, N, Args...>& vec)
-  {
-    s.stream.StartArray();
-    for(auto elt : vec)
-      s.stream.Double(elt);
-    s.stream.EndArray();
-  }
-
-  template <
-      template <typename, std::size_t, typename...> typename T, std::size_t N,
-      typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<double, N, Args...>& vec)
-  {
-    const auto& array = s.base.GetArray();
-    vec.clear();
-    vec.resize(array.Size());
-    auto it = vec.begin();
-    for(const auto& elt : array)
-    {
-      *it = elt.GetDouble();
-      ++it;
     }
   }
 };
