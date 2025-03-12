@@ -192,6 +192,12 @@ if(NOT DEFINED _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED)
   endif()
   unset(__linker_help)
 endif()
+
+# https://github.com/llvm/llvm-project/issues/131007
+if(WIN32 AND ("${CMAKE_CXX_COMPILER_ID}" MATCHES Clang) AND ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "20"))
+  set(_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED FALSE)
+endif()
+
 ## WHOLE_ARCHIVE: Force loading all members of an archive
 if(_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED)
   set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE "LINKER:--push-state,--whole-archive"

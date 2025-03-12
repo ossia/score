@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <cstring>
 
-constexpr int32_t operator"" _4c(const char* txt, std::size_t N)
+constexpr int32_t operator""_4c(const char* txt, std::size_t N)
 {
   return (txt[0] << 24) | (txt[1] << 16) | (txt[2] << 8) | (txt[3] << 0);
 }

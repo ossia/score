@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
-  # BOOST_ROOT handling on RPi
-  cmake_policy(VERSION 3.27)
-elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 3.26)
-  cmake_policy(VERSION 3.26)
+cmake_minimum_required(VERSION 3.25...3.31 FATAL_ERROR)
+if(POLICY CMP0177)
+  cmake_policy(SET CMP0177 NEW)
+endif()
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
 endif()
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
@@ -70,8 +70,10 @@ if(OSSIA_SDK)
     set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
   endif()
 
-  include_directories("${OSSIA_SDK}/pipewire/include/pipewire-0.3")
-  include_directories("${OSSIA_SDK}/pipewire/include/spa-0.2")
+  if(EXISTS "${OSSIA_SDK}/pipewire/include/pipewire-0.3")
+    include_directories("${OSSIA_SDK}/pipewire/include/pipewire-0.3")
+    include_directories("${OSSIA_SDK}/pipewire/include/spa-0.2")
+  endif()
 endif()
 
 project(score LANGUAGES C CXX)
@@ -98,9 +100,6 @@ if(SCORE_MACOS_ONLY_SYSTEM_LIBARIES)
   endforeach()
 endif()
 
-# set(CMAKE_SYSTEM_PREFIX_PATH "${CMAKE_SYSTEM_PREFIX_PATH}" CACHE INTERNAL "" FORCE)
-# set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" CACHE INTERNAL "" FORCE)
-
 # QT_PREFIX: Qt5 / Qt6
 list(GET QT_VERSION 0 QT_PREFIX)
 
@@ -116,8 +115,11 @@ if(NOT SCORE_DYNAMIC_PLUGINS)
   set(SCORE_STATIC_PLUGINS ON)
 endif()
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "")
-  message("No build type defined. Please set CMAKE_BUILD_TYPE to Debug, Release, RelWithDebInfo...")
+get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT "${is_multi_config}")
+  if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+    message("No build type defined. Please set CMAKE_BUILD_TYPE to Debug, Release, RelWithDebInfo...")
+  endif()
 endif()
 
 include(all-plugins)
@@ -145,7 +147,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.31)
   if(NOT CMAKE_CXX_COMPILER_VERSION)
     set(CMAKE_CXX_SCAN_FOR_MODULES 0)
   endif()
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 20.0)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 21.0)
     set(CMAKE_CXX_SCAN_FOR_MODULES 0)
   endif()
 else()

@@ -17,7 +17,9 @@
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/Stack.h"
 #include "clang/Basic/TargetOptions.h"
+#if __has_include("clang/CodeGen/ObjectFilePCHContainerOperations.h")
 #include "clang/CodeGen/ObjectFilePCHContainerOperations.h"
+#endif
 #include "clang/Config/config.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/CompilerInvocation.h"
@@ -234,10 +236,12 @@ llvm::Error cc1_main(ArrayRef<const char*> Argv, const char* Argv0, void* MainAd
   // Create a Clang instance
   std::unique_ptr<CompilerInstance> Clang(new CompilerInstance());
 
+#if __has_include("clang/CodeGen/ObjectFilePCHContainerOperations.h")
   // Register the support for object-file-wrapped Clang modules.
   auto PCHOps = Clang->getPCHContainerOperations();
   PCHOps->registerWriter(std::make_unique<ObjectFilePCHContainerWriter>());
   PCHOps->registerReader(std::make_unique<ObjectFilePCHContainerReader>());
+#endif
 
   bool Success
       = CompilerInvocation::CreateFromArgs(Clang->getInvocation(), Argv, *Diags);
