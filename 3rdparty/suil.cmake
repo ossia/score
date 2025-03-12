@@ -42,7 +42,7 @@ file(
   INPUT "${3RDPARTY_FOLDER}/suil/include/suil/suil.h")
 
 target_include_directories(suil_x11_in_qt6
-                           PRIVATE "${3RDPARTY_FOLDER}/suil/src")
+                           PRIVATE "${3RDPARTY_FOLDER}/suil/src" "${LV2_PATH}")
 
 target_link_libraries(suil_x11_in_qt6 PRIVATE Suil Qt6::Core Qt6::Gui
                                               Qt6::Widgets X11::X11)

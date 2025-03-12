@@ -39,23 +39,25 @@ cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" -- \
   -DCMAKE_C_COMPILER="$CC" \
   -DCMAKE_CXX_COMPILER="$CXX"
 
+
+if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
+  cmake --install . --component OssiaScore
+else
+  cmake --install . --strip --component OssiaScore
+fi
+
+if [[ ! -f /build/score.AppDir/usr/bin/ossia-score ]]; then
+  exit 1
+fi
+
+cmake --install . --component Devel --prefix "$SDK_DIR/usr"
 (
-  cd "$BUILD_DIR"
-
-  if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
-    cmake --install . --component OssiaScore
-  else
-    cmake --install . --strip --component OssiaScore
-  fi
-
-  cmake --install . --component Devel --prefix "$SDK_DIR/usr"
-  (
-    cd "$SDK_DIR/usr/lib"
-    echo "== content of $SDK_DIR/usr/lib"
-    find .
-    find . -name '*.a' -exec rm -rf {} \;
-  )
+  cd "$SDK_DIR/usr/lib"
+  echo "== content of $SDK_DIR/usr/lib"
+  find .
+  find . -name '*.a' -exec rm -rf {} \;
 )
+
 
 
 # Copy pixmaps

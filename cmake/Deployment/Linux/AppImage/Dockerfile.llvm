@@ -25,10 +25,10 @@ RUN ls \
     && mv cninja /usr/bin/
 
 
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-x86_64.tar.gz \
-    && tar xaf cmake-3.30.2-linux-x86_64.tar.gz \
-    && rm cmake-3.30.2-linux-x86_64.tar.gz \
-    && mv cmake-3.30.2-linux-x86_64 /cmake 
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz \
+    && tar xaf cmake-3.31.6-linux-x86_64.tar.gz \
+    && rm cmake-3.31.6-linux-x86_64.tar.gz \
+    && mv cmake-3.31.6-linux-x86_64 /cmake 
 
 ENV PATH="/cmake/bin:${PATH}"
 

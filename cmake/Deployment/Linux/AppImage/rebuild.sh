@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -eux
 
 export SOURCE=$(git rev-parse --show-toplevel)
 
