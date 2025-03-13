@@ -5,7 +5,6 @@
 #include <QDir>
 #include <QSettings>
 
-#include <iostream>
 namespace score
 {
 // Taken from https://stackoverflow.com/a/18073392/1495627
