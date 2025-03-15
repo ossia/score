@@ -32,7 +32,6 @@ target_link_libraries(
   ossia-score-vst3puppet
   PRIVATE
     ${QT_PREFIX}::Core
-    ${QT_PREFIX}::Gui
     ${QT_PREFIX}::WebSockets
     ${CMAKE_DL_LIBS}
     sdk_common sdk_hosting
@@ -40,14 +39,19 @@ target_link_libraries(
 
 if(APPLE)
     find_library(Foundation_FK Foundation)
+    find_library(Cocoa_FK Cocoa)
     target_link_libraries(ossia-score-vst3puppet PRIVATE
         ${Foundation_FK}
+        ${Cocoa_FK}
         )
+elseif(WIN32)
+  target_link_libraries(ossia-score-vstpuppet PRIVATE user32 gdi32)
 endif()
 
 target_include_directories(
   ossia-score-vst3puppet
   PRIVATE
+    "${SCORE_SRC}/lib"
     "${SCORE_SRC}/plugins/score-plugin-media"
 )
 
