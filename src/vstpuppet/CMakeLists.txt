@@ -4,25 +4,29 @@ if(NOT TARGET ${QT_PREFIX}::WebSockets)
   return()
 endif()
 add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_SRC}/plugins/score-plugin-vst/Vst/Loader.cpp")
-target_compile_definitions(ossia-score-vstpuppet PUBLIC HAS_VST2)
+target_compile_definitions(ossia-score-vstpuppet PRIVATE HAS_VST2)
 target_link_libraries(
   ossia-score-vstpuppet
   PRIVATE
     ${QT_PREFIX}::Core
-    ${QT_PREFIX}::Gui
     ${QT_PREFIX}::WebSockets
     ${CMAKE_DL_LIBS})
 
 if(APPLE)
     find_library(Foundation_FK Foundation)
+    find_library(Cocoa_FK Cocoa)
     target_link_libraries(ossia-score-vstpuppet PRIVATE
         ${Foundation_FK}
+        ${Cocoa_FK}
         )
+elseif(WIN32)
+  target_link_libraries(ossia-score-vstpuppet PRIVATE user32 gdi32)
 endif()
 
 target_include_directories(
   ossia-score-vstpuppet
   PRIVATE
+    "${SCORE_SRC}/lib"
     "${SCORE_SRC}/plugins/score-plugin-vst"
 )
 

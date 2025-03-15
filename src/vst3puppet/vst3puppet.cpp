@@ -1,23 +1,27 @@
+#include <QCoreApplication>
 #include <QFile>
-#include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTimer>
 #include <QUrl>
 #include <QWebSocket>
-#include <QWindow>
 
 #include <pluginterfaces/base/funknown.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
 #include <pluginterfaces/vst/ivstcomponent.h>
 
 #include <iostream>
-#include <set>
 
 #include <public.sdk/source/vst/hosting/hostclasses.h>
 #include <public.sdk/source/vst/hosting/module.h>
 #include <public.sdk/source/vst/hosting/plugprovider.h>
+
+// clang-format off
+#include <score/tools/InvisibleWindow.hpp>
+#undef OK
+#undef NO
+#undef Status
 using namespace Steinberg;
 QString load_vst(const QString& path, int id)
 {
@@ -87,13 +91,8 @@ int main(int argc, char** argv)
     {
       id = QString(argv[2]).toInt();
     }
-    QGuiApplication app(argc, argv);
-    QWindow w;
-    w.setWidth(1);
-    w.setHeight(1);
-    w.setFlag(Qt::FramelessWindowHint);
-    w.setFlag(Qt::X11BypassWindowManagerHint);
-    w.show();
+    QCoreApplication app(argc, argv);
+    invisible_window w;
 
     QWebSocket socket;
 

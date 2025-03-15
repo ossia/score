@@ -1,17 +1,22 @@
 #include <Vst/Loader.hpp>
 
+#include <QCoreApplication>
 #include <QFile>
-#include <QGuiApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTimer>
 #include <QUrl>
 #include <QWebSocket>
-#include <QWindow>
 
 #include <iostream>
 #include <set>
 
+// clang-format off
+#include <score/tools/InvisibleWindow.hpp>
+#undef OK
+#undef NO
+#undef Status
+// clang-format on
 intptr_t vst_host_callback(
     AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt)
 {
@@ -169,14 +174,8 @@ int main(int argc, char** argv)
     {
       id = QString(argv[2]).toInt();
     }
-    QGuiApplication app(argc, argv);
-    QWindow w;
-    w.setWidth(1);
-    w.setHeight(1);
-    w.setFlag(Qt::FramelessWindowHint);
-    w.setFlag(Qt::X11BypassWindowManagerHint);
-    w.show();
-
+    QCoreApplication app(argc, argv);
+    invisible_window w;
     QWebSocket socket;
 
     bool socket_ready{}, vst_ready{};
