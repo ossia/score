@@ -10,9 +10,9 @@ else
   cp -rf "$OSSIA_SDK/llvm/include/." "$INCLUDE/"
 fi
 
-cp -rf "$OSSIA_SDK/ffmpeg/include/." "$INCLUDE/"
-cp -rf "$OSSIA_SDK/fftw/include/." "$INCLUDE/"
-cp -rf "$OSSIA_SDK/portaudio/include/." "$INCLUDE/"
+cp -rf "$OSSIA_SDK/ffmpeg/include/." "$INCLUDE/" || true
+cp -rf "$OSSIA_SDK/fftw/include/." "$INCLUDE/" || true
+cp -rf "$OSSIA_SDK/portaudio/include/." "$INCLUDE/" || true
 
 if [[ -d "$OSSIA_SDK/openssl/include" ]]; then
   cp -rf "$OSSIA_SDK/openssl/include/." "$INCLUDE/"
