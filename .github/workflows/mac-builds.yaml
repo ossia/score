@@ -14,7 +14,7 @@ concurrency:
 jobs:
   macintel:
     name: macOS (Intel)
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,7 +83,7 @@ jobs:
   brew:
     # Last X86 macos version supported by GH Actions
     name: macOS (Release, Brew, Intel)
-    runs-on: macos-13
+    runs-on: macos-15
 
     steps:
       - name: Checkout code
@@ -105,7 +105,7 @@ jobs:
 
   brew-m1:
     name: macOS (Release, Brew, AppleSilicon)
-    runs-on: macos-15
+    runs-on: macos-15-arm64
 
     steps:
       - name: Checkout code
@@ -127,7 +127,7 @@ jobs:
 
   brew-m1-dev:
     name: macOS (Dev, Brew, AppleSilicon)
-    runs-on: macos-15
+    runs-on: macos-15-arm64
 
     steps:
       - name: Checkout code
@@ -149,7 +149,7 @@ jobs:
 
   m1-package:
     name: macOS (AppleSilicon Release)
-    runs-on: macos-15
+    runs-on: macos-15-arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
