@@ -682,7 +682,12 @@ struct ArraySerializer
       else if constexpr(std::is_integral_v<arg_type>)
       {
         if constexpr(sizeof(arg_type) > 4)
-          *it = elt.GetInt64();
+        {
+          if(elt.IsInt64())
+            *it = elt.GetInt64();
+          else
+            *it = elt.GetInt();
+        }
         else
           *it = elt.GetInt();
       }
