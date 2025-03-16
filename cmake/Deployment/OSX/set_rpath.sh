@@ -16,10 +16,12 @@ do
         install_name_tool -change "$LIB" "$FIXED_LIB" "$PLUGIN"
   done
 done
-install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/score"
-install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/score"
+install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/ossia score"
+install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia score"
 install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/ossia-score-vstpuppet"
 install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia-score-vstpuppet"
+install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/ossia-score-vst3puppet"
+install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia-score-vst3puppet"
 
 find "$1/Resources/qml" -name '*.dylib' -exec rm {} \;
 find "$1" -name '*dSYM' -exec rm {} \;

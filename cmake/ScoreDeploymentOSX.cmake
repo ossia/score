@@ -59,6 +59,7 @@ endif()
 
 get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_FILE} PATH)
 get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
+message("${QT_PREFIX}::Core LOCATION: '${QT_LIBRARY_FILE}' : '${QT_STATIC}' ; '${QT_LIBRARY_DIR}'")
 set(QT_PLUGINS_DIR "${Qt6Widgets_DIR}/../../../plugins")
 set(QT_QML_PLUGINS_DIR "${Qt6Widgets_DIR}/../../../qml")
 
