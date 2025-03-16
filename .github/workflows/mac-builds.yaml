@@ -14,7 +14,7 @@ concurrency:
 jobs:
   macintel:
     name: macOS (Intel)
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
