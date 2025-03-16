@@ -84,7 +84,7 @@ struct invisible_window
   id wnd{};
 #elif defined(_WIN32)
   HWND hwnd{};
-#else
+#elif __has_include(<X11/Xlib.h>)
   void* x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
   Display* dpy{};
   Window w{};
