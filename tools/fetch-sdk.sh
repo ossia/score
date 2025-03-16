@@ -3,7 +3,7 @@
 if [[ $# > 0 ]]; then
   export SDK_VERSION=$1
 else
-  export SDK_VERSION=sdk29
+  export SDK_VERSION=sdk32
 fi
 
 echo "Running on OSTYPE: '$OSTYPE'"
@@ -11,10 +11,10 @@ echo "Using SDK: $SDK_VERSION"
 export LATEST_TAG=$(git describe --tags --abbrev=0)
 export LATEST_TAG_NOV=$(echo "$LATEST_TAG" | sed "s/v//")
 export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSION
-export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk30
-export BOOST_VER=boost_1_85_0
+export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk31
+export BOOST_VER=boost_1_87_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
-export CMAKE_VERSION=3.30.0
+export CMAKE_VERSION=3.31.6
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
