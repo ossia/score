@@ -471,11 +471,14 @@ void IntervalComponentBase::executionStarted()
 
 void IntervalComponentBase::executionStopped()
 {
-  interval().executionEvent(Scenario::IntervalExecutionEvent::Stopped);
-  for(Process::ProcessModel& proc : interval().processes)
+  if(m_interval)
   {
-    proc.stopExecution();
-    proc.benchmark(-1.);
+    interval().executionEvent(Scenario::IntervalExecutionEvent::Stopped);
+    for(Process::ProcessModel& proc : interval().processes)
+    {
+      proc.stopExecution();
+      proc.benchmark(-1.);
+    }
   }
 }
 
