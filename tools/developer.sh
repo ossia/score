@@ -293,38 +293,90 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 else
 (
   echo "[developer.sh] Installing dependencies"
-  source tools/fetch-sdk.sh
+  if command -v pacman; then
+    pacman -Syyu
+    if ! command -v pacboy; then
+      pacman -S pactoys --noconfirm
+    fi
+    pacboy -S --needed \
+      cmake:p \
+      ninja:p \
+      toolchain:p \
+      cppwinrt:p \
+      qt6-base:p \
+      qt6-declarative:p \
+      qt6-websockets:p \
+      qt6-serialport:p \
+      qt6-shadertools:p \
+      qt6-scxml:p \
+      qt6-tools:p \
+      boost:p \
+      portaudio:p \
+      fftw:p \
+      ffmpeg:p \
+      SDL2:p
+      
+    echo "[developer.sh] Configuring ($MINGW_PREFIX)"
+    mkdir -p $BUILD_DIR
+    cd $BUILD_DIR
+    if [[ ! -f ./ossia-score ]]; then
+      cmake -Wno-dev \
+          $SCORE_PATH \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DSCORE_PCH=1 \
+          -DCMAKE_COLOR_DIAGNOSTICS=1 \
+          -DCMAKE_OPTIMIZE_DEPENDENCIES=1 \
+          -DCMAKE_LINK_DEPENDS_NO_SHARED=1 \
+          -DSCORE_DYNAMIC_PLUGINS=0
+    fi
 
-  PATH="$PATH:/c/ossia-sdk/llvm/bin"
-  if [[ -d /c/ossia-sdk/cmake/bin ]]; then
-    PATH="$PATH:/c/ossia-sdk/cmake/bin"
-  fi 
-  
-  echo "[developer.sh] Configuring"
-  mkdir -p $BUILD_DIR
-  cd $BUILD_DIR
-
-  cp -f /c/ossia-sdk/llvm/bin/libunwind.dll .
-  cp -f /c/ossia-sdk/llvm/bin/libc++.dll .
-  cp -f /c/ossia-sdk/llvm/x86_64-w64-mingw32/bin/libwinpthread-1.dll .
-  if [[ ! -f ./ossia-score ]]; then
-    cmake -Wno-dev \
-        $SCORE_PATH \
-        -GNinja \
-        -DOSSIA_SDK=c:/ossia-sdk \
-        -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
-        -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
-        -DCMAKE_BUILD_TYPE=Debug \
-        -DSCORE_PCH=1 \
-        -DCMAKE_COLOR_DIAGNOSTICS=1
-  fi
-  
-  echo "[developer.sh] Building in $PWD"
-  cmake --build .
-
-  if [[ -f ossia-score ]]; then
-    echo "[developer.sh] Build successful, you can run $PWD/ossia-score"
-    echo "[developer.sh] To rebuild, run: 'cd $PWD; cmake --build .'"
+    echo "[developer.sh] Building in $PWD"
+    cmake --build .
+    
+    if [[ -f ossia-score ]]; then
+      echo "[developer.sh] Build successful, you can run $PWD/ossia-score"
+      echo "[developer.sh] To rebuild, run: 'cd $PWD; cmake --build .'"
+    fi    
+  else
+    source tools/fetch-sdk.sh
+    
+    PATH="$PATH:/c/ossia-sdk/llvm/bin"
+    if [[ -d /c/ossia-sdk/cmake/bin ]]; then
+      PATH="$PATH:/c/ossia-sdk/cmake/bin"
+    fi 
+    
+    echo "[developer.sh] Configuring (SDK)"
+    mkdir -p $BUILD_DIR
+    cd $BUILD_DIR
+    
+    cp -f /c/ossia-sdk/llvm/bin/libunwind.dll .
+    cp -f /c/ossia-sdk/llvm/bin/libc++.dll .
+    cp -f /c/ossia-sdk/llvm/x86_64-w64-mingw32/bin/libwinpthread-1.dll .
+    if [[ ! -f ./ossia-score ]]; then
+      echo "[developer.sh] Configuring in $PWD"
+      cmake -Wno-dev \
+          $SCORE_PATH \
+          -GNinja \
+          -DOSSIA_SDK=c:/ossia-sdk \
+          -DCMAKE_CXX_FLAGS="-fexperimental-library" \
+          -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
+          -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DSCORE_PCH=1 \
+          -DCMAKE_COLOR_DIAGNOSTICS=1 \
+          -DCMAKE_OPTIMIZE_DEPENDENCIES=1 \
+          -DCMAKE_LINK_DEPENDS_NO_SHARED=1 \
+          -DSCORE_DYNAMIC_PLUGINS=0
+    fi
+    
+    echo "[developer.sh] Building in $PWD"
+    cmake --build .
+    
+    if [[ -f ossia-score ]]; then
+      echo "[developer.sh] Build successful, you can run $PWD/ossia-score"
+      echo "[developer.sh] To rebuild, run: 'cd $PWD; cmake --build .'"
+    fi
   fi
 )
 fi
