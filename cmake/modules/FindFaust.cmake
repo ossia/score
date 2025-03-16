@@ -50,9 +50,13 @@ if(FAUST_FOUND)
         return()
       endif()
 
-      execute_process(COMMAND ${LLVM_CONFIG} "--includedir" OUTPUT_VARIABLE LLVM_DIR RESULT_VARIABLE LLVM_ERROR)
+      execute_process(COMMAND ${LLVM_CONFIG} "--includedir"
+          OUTPUT_VARIABLE LLVM_DIR
+          ERROR_VARIABLE LLVM_CONFIG_STDERR
+          RESULT_VARIABLE LLVM_ERROR
+      )
       if(NOT "${LLVM_ERROR}" EQUAL 0)
-        message(FATAL_ERROR "Could not run llvm-config: ${LLVM_DIR}")
+        message(FATAL_ERROR "Could not run llvm-config: \n '${LLVM_DIR}'\n => '${LLVM_CONFIG_STDERR}'\n => ${LLVM_ERROR}")
       endif()
       execute_process(COMMAND ${LLVM_CONFIG} "--libs" OUTPUT_VARIABLE LLVM_LIBS)
       string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
