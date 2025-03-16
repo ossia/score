@@ -51,7 +51,10 @@ endif()
 # set-up Qt stuff.
 # Remember to set CMAKE_INSTALL_PREFIX on the CMake command line.
 get_target_property(QT_LIBRARY_FILE ${QT_PREFIX}::Core LOCATION)
-if("${QT_LIBRARY_FILE}" MATCHES "\.a$")
+get_target_property(QT_LIBRARY_TYPE ${QT_PREFIX}::Core TYPE)
+
+
+if(("${QT_LIBRARY_FILE}" MATCHES "\.a$") OR ("${QT_LIBRARY_TYPE}" MATCHES "STATIC"))
     set(QT_STATIC 1)
 else()
     set(QT_STATIC 0)
