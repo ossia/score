@@ -195,7 +195,8 @@ endif()
 
 # https://github.com/llvm/llvm-project/issues/131007
 if(WIN32 AND ("${CMAKE_CXX_COMPILER_ID}" MATCHES Clang) AND ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "20"))
-  set(_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED FALSE)
+  set(_CMAKE_CXX_LINKER_PUSHPOP_STATE_SUPPORTED FALSE CACHE INTERNAL "linker supports push/pop state")
+  set(_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED FALSE CACHE INTERNAL "linker supports push/pop state")
 endif()
 
 ## WHOLE_ARCHIVE: Force loading all members of an archive
@@ -208,6 +209,7 @@ else()
                                              "<LINK_ITEM>"
                                              "LINKER:--no-whole-archive")
 endif()
+set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE "${CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE}" CACHE INTERNAL "")
 set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE_SUPPORTED TRUE)
 
 # Features for LINK_GROUP generator expression
