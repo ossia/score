@@ -84,7 +84,7 @@ struct invisible_window
   id wnd{};
 #elif defined(_WIN32)
   HWND hwnd{};
-#else
+#elif __has_include(<X11/Xlib.h>)
   void* x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
   Display* dpy{};
   Window w{};
@@ -148,7 +148,7 @@ struct invisible_window
 
 #elif __has_include(<X11/Xlib.h>)
     if(!x11)
-      throw;
+      return;
 
     if(auto sym = reinterpret_cast<int (*)()>(dlsym(x11, "XInitThreads")))
       sym();
@@ -225,8 +225,11 @@ struct invisible_window
     InvalidateRect(hwnd, NULL, TRUE);
 
 #elif __has_include(<X11/Xlib.h>)
-    decltype(XFlush)* d_XFlush = (decltype(XFlush)*)dlsym(x11, "XFlush");
-    d_XFlush(dpy);
+    if(x11)
+    {
+      if(decltype(XFlush)* d_XFlush = (decltype(XFlush)*)dlsym(x11, "XFlush"))
+        d_XFlush(dpy);
+    }
 #endif
     return 0;
   }
@@ -236,10 +239,17 @@ struct invisible_window
 #if defined(__APPLE__)
     msg(void, wnd, "close");
     msg1(void, NSApp, "terminate:", id, NSApp);
+
+#elif defined(_WIN32)
+    // nothing to do
+
 #elif __has_include(<X11/Xlib.h>)
-    decltype(XCloseDisplay)* d_XCloseDisplay
-        = (decltype(XCloseDisplay)*)dlsym(x11, "XCloseDisplay");
-    d_XCloseDisplay(dpy);
+    if(x11)
+    {
+      if(decltype(XCloseDisplay)* d_XCloseDisplay
+         = (decltype(XCloseDisplay)*)dlsym(x11, "XCloseDisplay"))
+        d_XCloseDisplay(dpy);
+    }
 #endif
   }
 };
