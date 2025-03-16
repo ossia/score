@@ -114,7 +114,7 @@ struct invisible_window
 
 #elif defined(_WIN32)
     HINSTANCE hInstance = GetModuleHandle(NULL);
-    WNDCLASSEX wc = {0};
+    WNDCLASSEXA wc = {0};
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_VREDRAW | CS_HREDRAW;
     wc.lpfnWndProc = [](HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) -> LRESULT {
@@ -134,10 +134,10 @@ struct invisible_window
     };
     wc.hInstance = hInstance;
     wc.lpszClassName = "window";
-    RegisterClassEx(&wc);
+    RegisterClassExA(&wc);
 
     // Create the window
-    hwnd = CreateWindowEx(
+    hwnd = CreateWindowExA(
         WS_EX_TRANSPARENT, "window", "window", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr,
         hInstance, nullptr);
 
