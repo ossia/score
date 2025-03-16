@@ -1,7 +1,8 @@
 #!/bin/bash
 
-install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/score"
+install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia score"
 install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia-score-vstpuppet"
+install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia-score-vst3puppet"
 
 # Also fixup for the QtQuick dylibs
 find "$1/Resources/qml" -name '*.dylib' -exec rm {} \;
