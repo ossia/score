@@ -53,11 +53,10 @@ target_link_libraries(
                          ${CMAKE_DL_LIBS} score_plugin_media)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
-if(TARGET Suil)
-  target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
-endif()
-target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
-
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${LV2_PATH})
+target_include_directories(${PROJECT_NAME} PRIVATE
+    $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>
+    "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue"
+    "${LV2_PATH}"
+)
 
 setup_score_plugin(${PROJECT_NAME})
