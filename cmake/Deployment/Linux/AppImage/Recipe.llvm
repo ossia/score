@@ -1,7 +1,9 @@
 #!/bin/bash -eux
 set -o pipefail
 
-export OSSIA_SDK=/opt/ossia-sdk
+: "$OSSIA_SDK"
+export OSSIA_SDK="$OSSIA_SDK"
+
 export QT_DIR=$OSSIA_SDK/qt6-static
 export QTDIR=$OSSIA_SDK/qt6-static
 export NPROC=$(nproc)
@@ -33,11 +35,11 @@ export SCORE_DIR=/score
 export INSTALL_ROOT=$(cd "$APP_DIR/usr"; pwd)
 
 cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" -- \
-  -DCMAKE_INSTALL_PREFIX="$INSTALL_ROOT" \
-  -DOSSIA_SDK="$OSSIA_SDK" \
-  -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
-  -DCMAKE_C_COMPILER="$CC" \
-  -DCMAKE_CXX_COMPILER="$CXX"
+-DCMAKE_INSTALL_PREFIX="$INSTALL_ROOT" \
+-DOSSIA_SDK="$OSSIA_SDK" \
+-DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
+-DCMAKE_C_COMPILER="$CC" \
+-DCMAKE_CXX_COMPILER="$CXX"
 
 
 if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
@@ -53,8 +55,8 @@ fi
 cmake --install . --component Devel --prefix "$SDK_DIR/usr"
 (
   cd "$SDK_DIR/usr/lib"
-  echo "== content of $SDK_DIR/usr/lib"
-  find .
+  # echo "== content of $SDK_DIR/usr/lib"
+  # find .
   find . -name '*.a' -exec rm -rf {} \;
 )
 
@@ -67,110 +69,114 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
 
 # Copy needed libraries and remove system ones
 (
-    cd "$APP_DIR"
-    mkdir -p ./usr/lib/qt6/qml
-
-    # Fonts
-    mkdir -p ./usr/bin/lib/fonts
-    cp -rf $SOURCE_DIR/src/lib/resources/*.otf ./usr/bin/lib/fonts/
-    cp -rf $SOURCE_DIR/src/lib/resources/*.ttf ./usr/bin/lib/fonts/
-
-    ldd usr/bin/ossia-score | grep "=>" | awk '{print $3}' | grep so |  xargs -I '{}' cp -v '{}' ./usr/lib || true
-
-
-    # Taken from Subsurface appimage
-    # The following are assumed to be part of the base system
-    rm -f usr/lib/libcom_err.so.2 || true
-    rm -f usr/lib/libcrypt.so.1 || true
-    rm -f usr/lib/libdl.so.2 || true
-    rm -f usr/lib/libexpat.so.1 || true
-    rm -f usr/lib/libfontconfig.so.1 || true
-    rm -f usr/lib/libgcc_s.so.1 || true
-    rm -f usr/lib/libglib-2.0.so.0 || true
-    rm -f usr/lib/libgpg-error.so.0 || true
-    rm -f usr/lib/libjack* || true
-    rm -f usr/lib/libasound* || true
-#    rm -f usr/lib/libxcb* || true
-    rm -f usr/lib/libgssapi_krb5.so.2 || true
-    rm -f usr/lib/libgssapi.so.3 || true
-    rm -f usr/lib/libhcrypto.so.4 || true
-    rm -f usr/lib/libheimbase.so.1 || true
-    rm -f usr/lib/libheimntlm.so.0 || true
-    rm -f usr/lib/libhx509.so.5 || true
-    rm -f usr/lib/libICE.so.6 || true
-    rm -f usr/lib/libidn.so.11 || true
-    rm -f usr/lib/libk5crypto.so.3 || true
-    rm -f usr/lib/libkeyutils.so.1 || true
-    rm -f usr/lib/libkrb5.so.26 || true
-    rm -f usr/lib/libkrb5.so.3 || true
-    rm -f usr/lib/libkrb5support.so.0 || true
-    rm -f usr/lib/libm.so.6 || true
-    rm -f usr/lib/libp11-kit.so.0 || true
-    rm -f usr/lib/libpcre.so.3 || true
-    rm -f usr/lib/libpthread.so.0 || true
-    rm -f usr/lib/libresolv.so.2 || true
-    rm -f usr/lib/libroken.so.18 || true
-    rm -f usr/lib/librt.so.1 || true
-    rm -f usr/lib/libsasl2.so.2 || true
-    rm -f usr/lib/libSM.so.6 || true
-    rm -f usr/lib/libusb-1.0.so.0 || true
-    rm -f usr/lib/libuuid.so.1 || true
-    rm -f usr/lib/libwind.so.0 || true
-    rm -f usr/lib/libz.so.1 || true
-    rm -f usr/lib/libGL.so.1 || true
-    rm -f usr/lib/libEGL.so.1 || true
-    rm -f usr/lib/libGLX.so.0 || true
-    rm -f usr/lib/libX11.so.6 || true
-    rm -f usr/lib/libX11-xcb.so.1 || true
-    rm -f usr/lib/libxcb.so.1 || true
-    rm -f usr/lib/libxcb-glx.so.0 || true
-    rm -f usr/lib/libxcb-xkb.so.1 || true
-    rm -f usr/lib/libxkbcommon-x11.so.0 || true
-    rm -f usr/lib/libxkbcommon.so.0 || true
-    rm -f usr/lib/libXau.so.6 || true
-    rm -f usr/lib/libXext.so.6 || true
-    rm -f usr/lib/libGLdispatch.so.0 || true
-    rm -f usr/lib/libattr.so.1 || true
-    rm -f usr/lib/libbz2.so.1 || true
-    rm -f usr/lib/libcap.so.2 || true
-    rm -f usr/lib/libdbus-1.so.3 || true
-    rm -f usr/lib/libdw.so.1 || true
-    rm -f usr/lib/libelf.so.1 || true
-    rm -f usr/lib/libgcrypt.so.11 || true
-    rm -f usr/lib/libartnet.a || true
-    rm -f usr/lib/libattr.so.1 || true
-    rm -f usr/lib/libbz2.so.1 || true
-    rm -f usr/lib/libcap.so.2 || true
-    rm -f usr/lib/libdbus-1.so.3 || true
-    rm -f usr/lib/libdw.so.1 || true
-    rm -f usr/lib/libelf.so.1 || true
-    rm -f usr/lib/libmount.so.1 || true
-    rm -f usr/lib/libgcrypt.so.* || true
-    rm -f usr/lib/libblkid.so.* || true
-    rm -f usr/lib/libdrm.so.* || true
-    rm -f usr/lib/liblz4.so.1 || true
-    rm -f usr/lib/liblzma.so.5 || true
-    rm -f usr/lib/libpcre.so.1 || true
-    rm -f usr/lib/libpcre2-8.so.0 || true
-    rm -f usr/lib/libselinux.so.1 || true
-    rm -f usr/lib/libsystemd.so.0 || true
-    rm -f usr/lib/libOpenGL.so.0 || true
-    # rm -f usr/lib/libtinfo.so.5 || true
-
-    rm -rf usr/lib/cmake || true
-    rm -rf usr/lib/qt6 || true
-
-
-    # Delete potentially dangerous libraries
-    rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
-
-    find . -name '*.a' -exec rm -rf {} \;
-    find . -name '*.cmake' -exec rm -rf {} \;
-    find . -name 'build' -exec rm -rf {} \;
-    rm -rf usr/Ossia
-
-    cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
-    cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
+  cd "$APP_DIR"
+  mkdir -p ./usr/lib/qt6/qml
+  
+  # Fonts
+  mkdir -p ./usr/bin/lib/fonts
+  cp -rf $SOURCE_DIR/src/lib/resources/*.otf ./usr/bin/lib/fonts/
+  cp -rf $SOURCE_DIR/src/lib/resources/*.ttf ./usr/bin/lib/fonts/
+  
+  ldd usr/bin/ossia-score | grep "=>" | awk '{print $3}' | grep so |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+  
+  find "$BUILD_DIR" -name 'libsuil-0.so.0' -exec cp -rf '{}' ./usr/lib/ \;
+  mkdir -p ./usr/lib/suil-0
+  find "$BUILD_DIR" -name 'libsuil_x11_in_qt6.so' -exec cp -rf '{}' ./usr/lib/suil-0/ \;
+  
+  # Taken from Subsurface appimage
+  # The following are assumed to be part of the base system
+  rm -f usr/lib/libcom_err.so.2 || true
+  rm -f usr/lib/libcrypt.so.1 || true
+  rm -f usr/lib/libdl.so.2 || true
+  rm -f usr/lib/libexpat.so.1 || true
+  rm -f usr/lib/libfontconfig.so.1 || true
+  rm -f usr/lib/libgcc_s.so.1 || true
+  rm -f usr/lib/libglib-2.0.so.0 || true
+  rm -f usr/lib/libgpg-error.so.0 || true
+  rm -f usr/lib/libjack* || true
+  rm -f usr/lib/libasound* || true
+  #    rm -f usr/lib/libxcb* || true
+  rm -f usr/lib/libgssapi_krb5.so.2 || true
+  rm -f usr/lib/libgssapi.so.3 || true
+  rm -f usr/lib/libhcrypto.so.4 || true
+  rm -f usr/lib/libheimbase.so.1 || true
+  rm -f usr/lib/libheimntlm.so.0 || true
+  rm -f usr/lib/libhx509.so.5 || true
+  rm -f usr/lib/libICE.so.6 || true
+  rm -f usr/lib/libidn.so.11 || true
+  rm -f usr/lib/libk5crypto.so.3 || true
+  rm -f usr/lib/libkeyutils.so.1 || true
+  rm -f usr/lib/libkrb5.so.26 || true
+  rm -f usr/lib/libkrb5.so.3 || true
+  rm -f usr/lib/libkrb5support.so.0 || true
+  rm -f usr/lib/libm.so.6 || true
+  rm -f usr/lib/libp11-kit.so.0 || true
+  rm -f usr/lib/libpcre.so.3 || true
+  rm -f usr/lib/libpthread.so.0 || true
+  rm -f usr/lib/libresolv.so.2 || true
+  rm -f usr/lib/libroken.so.18 || true
+  rm -f usr/lib/librt.so.1 || true
+  rm -f usr/lib/libsasl2.so.2 || true
+  rm -f usr/lib/libSM.so.6 || true
+  rm -f usr/lib/libusb-1.0.so.0 || true
+  rm -f usr/lib/libuuid.so.1 || true
+  rm -f usr/lib/libwind.so.0 || true
+  rm -f usr/lib/libz.so.1 || true
+  rm -f usr/lib/libGL.so.1 || true
+  rm -f usr/lib/libEGL.so.1 || true
+  rm -f usr/lib/libGLX.so.0 || true
+  rm -f usr/lib/libX11.so.6 || true
+  rm -f usr/lib/libX11-xcb.so.1 || true
+  rm -f usr/lib/libxcb.so.1 || true
+  rm -f usr/lib/libxcb-glx.so.0 || true
+  rm -f usr/lib/libxcb-xkb.so.1 || true
+  rm -f usr/lib/libxkbcommon-x11.so.0 || true
+  rm -f usr/lib/libxkbcommon.so.0 || true
+  rm -f usr/lib/libXau.so.6 || true
+  rm -f usr/lib/libXext.so.6 || true
+  rm -f usr/lib/libGLdispatch.so.0 || true
+  rm -f usr/lib/libattr.so.1 || true
+  rm -f usr/lib/libbz2.so.1 || true
+  rm -f usr/lib/libcap.so.2 || true
+  rm -f usr/lib/libdbus-1.so.3 || true
+  rm -f usr/lib/libdw.so.1 || true
+  rm -f usr/lib/libelf.so.1 || true
+  rm -f usr/lib/libgcrypt.so.11 || true
+  rm -f usr/lib/libartnet.a || true
+  rm -f usr/lib/libattr.so.1 || true
+  rm -f usr/lib/libbz2.so.1 || true
+  rm -f usr/lib/libcap.so.2 || true
+  rm -f usr/lib/libdbus-1.so.3 || true
+  rm -f usr/lib/libdw.so.1 || true
+  rm -f usr/lib/libelf.so.1 || true
+  rm -f usr/lib/libmount.so.1 || true
+  rm -f usr/lib/libgcrypt.so.* || true
+  rm -f usr/lib/libblkid.so.* || true
+  rm -f usr/lib/libdrm.so.* || true
+  rm -f usr/lib/liblz4.so.1 || true
+  rm -f usr/lib/liblzma.so.5 || true
+  rm -f usr/lib/libpcre.so.1 || true
+  rm -f usr/lib/libpcre2-8.so.0 || true
+  rm -f usr/lib/libselinux.so.1 || true
+  rm -f usr/lib/libsystemd.so.0 || true
+  rm -f usr/lib/libOpenGL.so.0 || true
+  # rm -f usr/lib/libtinfo.so.5 || true
+  
+  rm -rf usr/lib/cmake || true
+  rm -rf usr/lib/qt6 || true
+  
+  ls ./usr/lib/
+  
+  # Delete potentially dangerous libraries
+  rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
+  
+  find . -name '*.a' -exec rm -rf {} \;
+  find . -name '*.cmake' -exec rm -rf {} \;
+  find . -name 'build' -exec rm -rf {} \;
+  rm -rf usr/Ossia
+  
+  cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
+  cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
 )
 
 $SOURCE_DIR/ci/create-sdk-linux.sh
