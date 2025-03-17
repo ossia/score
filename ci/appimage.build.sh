@@ -48,12 +48,7 @@ chmod a+x appimagetool-${CPU_ARCH}.AppImage
 wget -nv "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-${CPU_ARCH}"
 chmod a+x runtime-${CPU_ARCH}
 
-(
-  cd "$BUILD_FOLDER/score.AppDir"
-  rm -rf AppRun
-  ln -s usr/bin/ossia-score AppRun
-)
-
+cp "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/AppRun" build/score.AppDir/
 cp "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/ossia-score.desktop" build/score.AppDir/
 sed -i "s/x86_64/$CPU_ARCH/" build/score.AppDir/ossia-score.Desktop
 sed -i "s/3.0.0/$GITTAGNOV/" build/score.AppDir/ossia-score.Desktop
