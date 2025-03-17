@@ -14,7 +14,13 @@ concurrency:
 jobs:
   appimage:
     name: AppImage
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { image: ubuntu-24.04, cpu_arch: x86_64 }
+          - { image: ubuntu-24.04-arm64, cpu_arch: aarch64 }
+
+    runs-on: ${{ matrix.image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,15 +28,20 @@ jobs:
           submodules: 'recursive'
 
       - name: Dependencies
-        run: ./ci/appimage.deps.sh
+        run: |
+          export CPU_ARCH=${{ matrix.cpu_arch }}
+          ./ci/appimage.deps.sh
 
       - name: Build
-        run: ./ci/appimage.build.sh
+        run: |
+          export CPU_ARCH=${{ matrix.cpu_arch }}
+          ./ci/appimage.build.sh
 
       - name: Deploy
         run: |
           export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
           export BUILD_ARTIFACTSTAGINGDIRECTORY="$PWD/staging"
+          export CPU_ARCH=${{ matrix.cpu_arch }}
           mkdir -p "$BUILD_ARTIFACTSTAGINGDIRECTORY"
           ./ci/appimage.deploy.sh
 

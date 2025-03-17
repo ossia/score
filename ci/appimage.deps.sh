@@ -10,7 +10,7 @@ else
 fi
 
 wget -nv "https://github.com/ossia/sdk/releases/download/sdk32/sdk-linux${CPU_ARCH_SUFFIX}.tar.xz"
-tar xaf *.tar.xz
-rm -rf  *.tar.xz
+tar xaf sdk-linux${CPU_ARCH_SUFFIX}.tar.xz
+rm -rf  sdk-linux${CPU_ARCH_SUFFIX}.tar.xz
 
 source ci/common.deps.sh
