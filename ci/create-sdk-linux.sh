@@ -2,8 +2,8 @@
 
 : "$SDK_DIR"
 : "$SCORE_DIR"
+: "$OSSIA_SDK"
 
-export OSSIA_SDK="/opt/ossia-sdk"
 export DST="$SDK_DIR"
 export INCLUDE="$DST/usr/include"
 export LIB="$DST/usr/lib"
