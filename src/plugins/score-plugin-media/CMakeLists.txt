@@ -232,6 +232,15 @@ elseif(FFmpeg_FOUND)
         LibLZMA::LibLZMA
       )
     endif()
+
+    if(UNIX AND NOT APPLE AND NOT WIN32)
+      find_library(UDEV_LIBRARY udev REQUIRED)
+      if(UDEV_LIBRARY)
+          target_link_libraries(${PROJECT_NAME} PRIVATE
+            ${UDEV_LIBRARY}
+          )
+      endif()
+    endif()
   endif()
   target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 endif()
