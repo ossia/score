@@ -4,8 +4,10 @@ export SOURCE_FOLDER="$PWD"
 
 if [[ "${CPU_ARCH}" == "aarch64" ]]; then
   export CPU_ARCH_SUFFIX="-aarch64"
+  export OSSIA_SDK=/opt/ossia-sdk-aarch64
 else
   export CPU_ARCH_SUFFIX=""
+  export OSSIA_SDK=/opt/ossia-sdk
 fi
 
 
@@ -68,5 +70,5 @@ fi
 chmod a+rwx Score.AppImage
 (
   cd $BUILD_FOLDER/SDK
-  zip -r -q -9 $SOURCE_FOLDER/linux-sdk$CPU_ARCH_SUFFIX.zip usr
+  zip -r -q -9 $SOURCE_FOLDER/linux-sdk.zip usr
 )

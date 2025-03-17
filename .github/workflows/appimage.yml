@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - { image: ubuntu-24.04, cpu_arch: x86_64 }
-          - { image: ubuntu-24.04-arm64, cpu_arch: aarch64 }
+          - { image: ubuntu-24.04-arm, cpu_arch: aarch64 }
 
     runs-on: ${{ matrix.image }}
     steps:
@@ -48,7 +48,7 @@ jobs:
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
-          name: appimage
+          name: appimage-${{ matrix.cpu_arch }}
           path: |
             staging/*.*
 
