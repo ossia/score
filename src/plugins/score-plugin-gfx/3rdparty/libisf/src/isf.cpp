@@ -481,6 +481,13 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                 }
               }
             }});
+  p.insert({"MODE", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_STRING)
+    {
+      if(v.as_string() == "COMPUTE")
+        d.compute = true;
+    }
+  }});
 
   static const std::unordered_map<std::string, input_fun>& input_parse{[] {
     static std::unordered_map<std::string, input_fun> i;
