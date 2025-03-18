@@ -32,7 +32,7 @@ class LibraryHandler final : public Library::LibraryInterface
     {
       auto plug = plugs.get(it);
       const auto class_name = plug.get_class().get_label().as_string();
-      const auto plug_name = plug.get_name().as_string();
+      const auto plug_name = get_lv2_plugin_name(plug);
       categories[class_name].push_back(plug_name);
       it = plugs.next(it);
     }

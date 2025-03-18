@@ -192,15 +192,18 @@ static void setup_x11(int argc, char** argv)
 #endif
 }
 
+#if defined(__linux__)
+extern "C" {
+enum SuilArg
+{
+  SUIL_ARG_NONE
+};
+using suil_init_t = void (*)(int* argc, char*** argv, SuilArg key, ...);
+}
+#endif
 static void setup_suil()
 {
 #if defined(__linux__)
-  enum SuilArg
-  {
-    SUIL_ARG_NONE
-  };
-  using suil_init_t = void (*)(int* argc, char*** argv, SuilArg key, ...);
-
   if(auto lib = dlopen("libsuil-0.so.0", RTLD_LAZY | RTLD_LOCAL))
   {
     // 1. Init suil
@@ -547,7 +550,7 @@ static void setup_app_flags()
 #endif
 }
 
-#if FFTW3_HAS_THREADS
+#if FFTW_HAS_THREADS
 #include <fftw3.h>
 static void setup_fftw()
 {

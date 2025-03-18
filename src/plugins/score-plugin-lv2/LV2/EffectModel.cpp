@@ -36,6 +36,17 @@
 W_OBJECT_IMPL(LV2::Model)
 namespace LV2
 {
+QString get_lv2_plugin_name(const Lilv::Plugin& node)
+{
+  QString ret;
+  if(auto pname = lilv_plugin_get_name(node.me))
+  {
+    if(auto str = lilv_node_as_string(pname))
+      ret = QString::fromUtf8(str);
+    lilv_node_free(pname);
+  }
+  return ret;
+};
 std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
 {
   static ossia::hash_map<QString, const LilvPlugin*> plug_map;
@@ -60,13 +71,14 @@ std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
   while(!plugs.is_end(it))
   {
     auto plug = plugs.get(it);
+    const auto plugin_name = get_lv2_plugin_name(plug);
     if((isFile && QString(plug.get_bundle_uri().as_string()) == path)
-       || (!isFile && QString(plug.get_name().as_string()) == path))
+       || (!isFile && plugin_name == path))
     {
       plug_map[old_str] = plug;
       return plug;
     }
-    else if(!isFile && QString(plug.get_name().as_string()) == path)
+    else if(!isFile && plugin_name == path)
     {
       plug_map[old_str] = plug;
       return plug;
@@ -105,7 +117,7 @@ struct LV2PluginChooserDialog : public QDialog
     {
       auto plug = plugs.get(it);
       const auto class_name = plug.get_class().get_label().as_string();
-      const auto plug_name = plug.get_name().as_string();
+      const auto plug_name = get_lv2_plugin_name(plug);
       auto sub_it = m_categories_map.find(class_name);
       if(sub_it == m_categories_map.end())
       {
@@ -174,7 +186,7 @@ static Process::Descriptor make_descriptor(Lilv::Plugin plug)
   Process::Descriptor desc;
   auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& host = app_plug.lv2_host_context;
-  desc.prettyName = plug.get_name().as_string();
+  desc.prettyName = LV2::get_lv2_plugin_name(plug);
   desc.categoryText = plug.get_class().get_label().as_string();
   desc.description = plug.get_author_homepage().as_string();
   desc.author = plug.get_author_name().as_string();

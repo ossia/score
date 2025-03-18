@@ -316,7 +316,8 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
   for(auto res :
       {effect.plugin.get_required_features(), effect.plugin.get_optional_features()})
   {
-    std::cerr << effect.plugin.get_name().as_string() << " requires " << std::endl;
+    std::cerr << get_lv2_plugin_name(effect.plugin).toStdString() << " requires "
+              << std::endl;
     auto it = res.begin();
     while(it)
     {

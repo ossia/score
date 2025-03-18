@@ -47,6 +47,7 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/sysroot/lib/cmake/zstd"
 
       "${OSSIA_SDK}/SDL2/lib64"
+      "${OSSIA_SDK}/SDL2/lib64/cmake/SDL2"
       "${OSSIA_SDK}/qt6-static-debug/lib64"
       "${OSSIA_SDK}/qt6-static/lib64"
       "${OSSIA_SDK}/llvm-libs/lib64"

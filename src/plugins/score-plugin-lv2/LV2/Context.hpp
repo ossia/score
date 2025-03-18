@@ -29,6 +29,8 @@
 
 #include <boost/bimap.hpp>
 
+#include <QString>
+
 #include <lilv/lilvmm.hpp>
 
 #include <readerwriterqueue.h>
@@ -227,4 +229,6 @@ struct Message
   uint32_t protocol;
   ossia::small_vector<uint8_t, 32> body;
 };
+
+QString get_lv2_plugin_name(const Lilv::Plugin& node);
 }
