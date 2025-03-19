@@ -35,8 +35,12 @@ struct XYZSlider;
 struct XYSpinboxes;
 struct XYZSpinboxes;
 struct MultiSlider;
+struct MultiSliderXY;
 struct Bargraph;
 } // namespace Process
+
+
+
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FloatSlider,
     "af2b4fc3-aecb-4c15-a5aa-1c573a239925")
@@ -133,6 +137,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::MultiSlider,
     "25de6d71-1554-4fe1-bf3f-9cbf12bdadeb")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::MultiSliderXY,
+    "b60d0059-733b-4b57-a1c1-65fa140d3b8a")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Bargraph,
@@ -575,6 +582,22 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 
   using Process::ControlInlet::ControlInlet;
 };
+
+
+struct SCORE_LIB_PROCESS_EXPORT MultiSliderXY : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(MultiSliderXY)
+  MultiSliderXY(
+      ossia::value init, const QString& name, Id<Process::Port> id, QObject* parent);
+  ~MultiSliderXY();
+
+  ossia::value getMin() const noexcept;
+  ossia::value getMax() const noexcept;
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+};
+
 
 // Outlets
 

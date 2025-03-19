@@ -229,10 +229,13 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   }
   else if constexpr(widg.widget == avnd::widget_type::multi_slider)
   {
-    constexpr auto c = avnd::get_range<T>();
-    auto [start, end] = c.init;
     std::vector<ossia::value> init;
     return new Process::MultiSlider{init, qname, id, parent};
+  }
+  else if constexpr(widg.widget == avnd::widget_type::multi_slider_xy)
+  {
+    std::vector<ossia::value> init;
+    return new Process::MultiSliderXY{init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)
   {
