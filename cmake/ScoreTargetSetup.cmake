@@ -22,12 +22,12 @@ function(score_pch TheTarget)
   endif()
   if(APPLE)
     # error: Objective-C automated reference counting was disabled in PCH file but is currently enabled
-    if("${TheTarget}" STREQUAL "score_plugin_vst3") 
+    if("${TheTarget}" STREQUAL "score_plugin_vst3")
       return()
-    endif()    
+    endif()
 
     # error: cannot find interface declaration for 'SYPHON_UNIQUE_CLASS_NAME'
-    if("${TheTarget}" STREQUAL "score_plugin_gfx") 
+    if("${TheTarget}" STREQUAL "score_plugin_gfx")
       return()
     endif()
   endif()
@@ -57,11 +57,7 @@ endmacro()
 ### Initialization of most common stuff ###
 function(score_set_compile_options theTarget)
   # CXX_VERSION_FLAG: see ScoreConfiguration.cmake
-  if(CMAKE_VERSION VERSION_GREATER 3.16)
-    target_compile_features(${theTarget} PRIVATE ${CXX_VERSION_FLAG})
-  else()
-    target_compile_features(${theTarget} PRIVATE cxx_std_17)
-  endif()
+  target_compile_features(${theTarget} PRIVATE ${CXX_VERSION_FLAG})
 
   target_compile_definitions(${theTarget} PUBLIC
       $<$<CONFIG:Debug>:SCORE_DEBUG>
