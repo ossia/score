@@ -2,6 +2,7 @@
 #include <Library/LibrarySettings.hpp>
 #include <Protocols/Artnet/ArtnetSpecificSettings.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/FindStringInFile.hpp>
 
@@ -11,6 +12,7 @@
 #include <ossia/detail/string_algorithms.hpp>
 
 #include <QDirIterator>
+#include <QTimer>
 
 #include <re2/re2.h>
 

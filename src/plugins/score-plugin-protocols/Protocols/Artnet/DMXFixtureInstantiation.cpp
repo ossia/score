@@ -5,10 +5,10 @@
 
 #include <Protocols/Artnet/ArtnetSpecificSettings.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/protocols/artnet/dmx_led_parameter.hpp>
 #include <ossia/protocols/artnet/dmx_parameter.hpp>
-
 namespace Protocols
 {
 
