@@ -1,4 +1,6 @@
 #pragma once
+#include <score/config.hpp>
+
 #include <cinttypes>
 #include <type_traits>
 

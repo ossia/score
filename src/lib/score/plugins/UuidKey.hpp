@@ -199,6 +199,7 @@ constexpr_algorithm inline bool operator>=(uuid const& lhs, uuid const& rhs) noe
 }
 
 // This is equivalent to boost::hash_range(u.begin(), u.end());
+SCORE_CLANG_NO_SANITIZE_INTEGER
 constexpr inline std::size_t hash_value(uuid const& u) noexcept
 {
   std::size_t seed = 0;
