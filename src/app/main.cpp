@@ -204,40 +204,48 @@ using suil_init_t = void (*)(int* argc, char*** argv, SuilArg key, ...);
 static void setup_suil()
 {
 #if defined(__linux__)
+  // 1. In the appimage case we have to tell suil that libsuil_x11_in_qt6.so is
+  // nrelative to the executable
+  if(qEnvironmentVariableIsEmpty("SUIL_MODULE_DIR"))
+  {
+    auto path = ossia::get_exe_path();
+    auto last_slash =
+#if defined(_WIN32)
+        path.find_last_of('\\');
+#else
+        path.find_last_of('/');
+#endif
+    if(last_slash == std::string::npos)
+      return;
+
+    path = path.substr(0, last_slash);
+
+    path += "/lib/suil-0";
+    if(QDir{}.exists(QString::fromStdString(path)))
+    {
+      qputenv("SUIL_MODULE_DIR", path.c_str());
+    }
+  }
+
+  // 2. Init suil if necessary
   if(auto lib = dlopen("libsuil-0.so.0", RTLD_LAZY | RTLD_LOCAL))
   {
-    // 1. Init suil
     if(auto sym = reinterpret_cast<suil_init_t>(dlsym(lib, "suil_init")))
     {
       static int argc{0};
       static char** argv{nullptr};
       sym(&argc, &argv, SUIL_ARG_NONE);
     }
-
-    // 2. In the appimage case we have to tell suil that libsuil_x11_in_qt6.so is
-    // nrelative to the executable
-    if(qEnvironmentVariableIsEmpty("SUIL_MODULE_DIR"))
+  }
+  else if(auto self = dlopen(nullptr, RTLD_LAZY | RTLD_LOCAL))
+  {
+    if(auto sym = reinterpret_cast<suil_init_t>(dlsym(self, "suil_init")))
     {
-      auto path = ossia::get_exe_path();
-      auto last_slash =
-#if defined(_WIN32)
-          path.find_last_of('\\');
-#else
-          path.find_last_of('/');
-#endif
-      if(last_slash == std::string::npos)
-        return;
-
-      path = path.substr(0, last_slash);
-
-      path += "/lib/suil-0";
-      if(QDir{}.exists(QString::fromStdString(path)))
-      {
-        qputenv("SUIL_MODULE_DIR", path.c_str());
-      }
+      static int argc{0};
+      static char** argv{nullptr};
+      sym(&argc, &argv, SUIL_ARG_NONE);
     }
   }
-
 #endif
 }
 
