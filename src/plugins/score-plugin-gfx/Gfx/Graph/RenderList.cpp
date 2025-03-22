@@ -431,7 +431,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
           SCORE_ASSERT(rt.renderTarget);
 
-          commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
+          commands.beginPass(rt.renderTarget, Qt::transparent, {1.0f, 0}, updateBatch);
           updateBatch = nullptr;
 
           QRhiResourceUpdateBatch* res{};
