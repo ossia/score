@@ -50,8 +50,9 @@ static ossia::net::osc_protocol_configuration defaultOSCConfig() noexcept
   config.mode = ossia::net::osc_protocol_configuration::MIRROR;
   config.version = ossia::net::osc_protocol_configuration::OSC1_0;
   ossia::net::udp_configuration udp;
-  udp.local = ossia::net::inbound_socket_configuration{"0.0.0.0", 9996};
-  udp.remote = ossia::net::outbound_socket_configuration{"127.0.0.1", 9997};
+  udp.local = ossia::net::inbound_socket_configuration{.bind = "0.0.0.0", .port = 9996};
+  udp.remote
+      = ossia::net::outbound_socket_configuration{.host = "127.0.0.1", .port = 9997};
   config.transport = udp;
   return config;
 }
@@ -224,7 +225,8 @@ private:
     OSCSpecificSettings sub;
     ossia::net::udp_configuration udp;
 
-    udp.local = ossia::net::inbound_socket_configuration{"0.0.0.0", 9996};
+    udp.local
+        = ossia::net::inbound_socket_configuration{.bind = "0.0.0.0", .port = 9996};
     udp.remote = ossia::net::outbound_socket_configuration{
         ip.toStdString(), uint16_t(port.toInt())};
     sub.configuration.transport = udp;
