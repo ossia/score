@@ -8,6 +8,8 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_signature.hpp>
+
+#include <libremidi/detail/conversion.hpp>
 namespace vst
 {
 
@@ -285,21 +287,30 @@ public:
     ossia::small_vector<VstMidiEvent, 16> vec;
     vec.resize(n_mess);
     std::size_t i = 0;
-    for(libremidi::message& mess : ip)
+    for(libremidi::ump& mess : ip)
     {
+      if(auto type = mess.get_type();
+         (type == libremidi::midi2::message_type::SYSEX7)
+         || (type == libremidi::midi2::message_type::SYSEX8_MDS))
+        continue;
+
       VstMidiEvent& e = vec[i];
       std::memset(&e, 0, sizeof(VstMidiEvent));
-
       e.type = kVstMidiType;
       e.byteSize = sizeof(VstMidiEvent);
       e.deltaFrames = mess.timestamp - offset;
       e.flags = kVstMidiEventIsRealtime;
 
-      std::memcpy(
-          e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
-
-      events->events[i] = reinterpret_cast<VstEvent*>(&e);
-      i++;
+      if(auto n = cmidi2_convert_single_ump_to_midi1((uint8_t*)e.midiData, 4, mess.data);
+         n > 0)
+      {
+        events->events[i] = reinterpret_cast<VstEvent*>(&e);
+        i++;
+      }
+      else
+      {
+        events->numEvents--;
+      }
     }
     dispatch(effProcessEvents, 0, 0, events, 0.f);
     f();

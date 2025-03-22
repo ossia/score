@@ -12,6 +12,7 @@
 #include <ossia/detail/ssize.hpp>
 #include <ossia/editor/scenario/time_signature.hpp>
 
+#include <libremidi/ump_events.hpp>
 #include <pluginterfaces/vst/ivstmidicontrollers.h>
 
 #include <public.sdk/source/vst/hosting/eventlist.h>
@@ -288,18 +289,22 @@ public:
     e.busIndex = index;
     e.sampleOffset = 0;
     e.ppqPosition = 0; // FIXME
-    for(const libremidi::message& mess : ip)
+    for(const libremidi::ump& mess : ip)
     {
+      if(mess.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
+        continue;
       e.sampleOffset = mess.timestamp;
-      switch(mess.get_message_type())
+      switch(libremidi::message_type(mess.get_status_code()))
       {
         case libremidi::message_type::NOTE_ON: {
-          if(mess.bytes[2] > 0)
+          auto [channel, note, value] = libremidi::as_01::note_off(mess);
+
+          if(value > 0)
           {
             e.type = VstEvent::kNoteOnEvent;
-            e.noteOn.channel = mess.get_channel();
-            e.noteOn.pitch = mess.bytes[1];
-            e.noteOn.velocity = mess.bytes[2] / 127.f;
+            e.noteOn.channel = channel; // FIXME 0 or 1-based?
+            e.noteOn.pitch = note;
+            e.noteOn.velocity = value;
             e.noteOn.noteId = -1;
             e.noteOn.tuning = 0.f;
             m_inputEvents.addEvent(e);
@@ -308,7 +313,7 @@ public:
           {
             e.type = VstEvent::kNoteOffEvent;
             e.noteOff.channel = mess.get_channel();
-            e.noteOff.pitch = mess.bytes[1];
+            e.noteOff.pitch = note;
             e.noteOff.velocity = 0;
             e.noteOff.noteId = -1;
             e.noteOff.tuning = 0.f;
@@ -317,20 +322,22 @@ public:
           break;
         }
         case libremidi::message_type::NOTE_OFF: {
+          auto [channel, note, value] = libremidi::as_01::note_off(mess);
           e.type = VstEvent::kNoteOffEvent;
-          e.noteOff.channel = mess.get_channel();
-          e.noteOff.pitch = mess.bytes[1];
-          e.noteOff.velocity = mess.bytes[2] / 127.f;
+          e.noteOff.channel = channel;
+          e.noteOff.pitch = note;
+          e.noteOff.velocity = value;
           e.noteOff.noteId = -1;
           e.noteOff.tuning = 0.f;
           m_inputEvents.addEvent(e);
           break;
         }
         case libremidi::message_type::POLY_PRESSURE: {
+          auto [channel, note, value] = libremidi::as_01::poly_pressure(mess);
           e.type = VstEvent::kPolyPressureEvent;
-          e.polyPressure.channel = mess.get_channel();
-          e.polyPressure.pitch = mess.bytes[1];
-          e.polyPressure.pressure = mess.bytes[2] / 127.f;
+          e.polyPressure.channel = channel;
+          e.polyPressure.pitch = note;
+          e.polyPressure.pressure = value;
           e.polyPressure.noteId = -1;
           m_inputEvents.addEvent(e);
           break;
@@ -340,14 +347,14 @@ public:
           if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kPitchBend});
              it != this->fx.midi_controls.end())
           {
-            double pitch = (mess.bytes[2] * 128 + mess.bytes[1]) / (128. * 128.);
+            auto [channel, value] = libremidi::as_01::pitch_bend(mess);
             Steinberg::Vst::ParamID pid = it->second;
             if(auto queue_it = this->queue_map.find(pid);
                queue_it != this->queue_map.end())
             {
               auto& queue = this->m_inputChanges.queues[queue_it->second];
-              queue.data.push_back({e.sampleOffset, pitch});
-              queue.lastValue = pitch;
+              queue.data.push_back({e.sampleOffset, value});
+              queue.lastValue = value;
             }
           }
         }
@@ -356,7 +363,7 @@ public:
           if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kAfterTouch});
              it != this->fx.midi_controls.end())
           {
-            double value = mess.bytes[1] / 128.;
+            auto [channel, value] = libremidi::as_01::aftertouch(mess);
             Steinberg::Vst::ParamID pid = it->second;
             if(auto queue_it = this->queue_map.find(pid);
                queue_it != this->queue_map.end())
@@ -390,27 +397,26 @@ public:
       int bus = e.busIndex;
       auto& port = *m_outlets[bus + audioBusCount]->template target<ossia::midi_port>();
 
-      libremidi::message mess;
+      libremidi::ump mess;
 
       switch(e.type)
       {
         case VstEvent::kNoteOnEvent: {
           if(e.noteOn.velocity > 0.f)
-            mess = libremidi::channel_events::note_on(
-                e.noteOn.channel, e.noteOn.pitch, e.noteOn.velocity * 127.f);
+            mess = libremidi::from_01::note_on(
+                e.noteOn.channel, e.noteOn.pitch, e.noteOn.velocity);
           else
-            mess = libremidi::channel_events::note_off(
-                e.noteOn.channel, e.noteOn.pitch, 0.);
+            mess = libremidi::from_01::note_off(e.noteOn.channel, e.noteOn.pitch, 0.);
           break;
         }
         case VstEvent::kNoteOffEvent: {
-          mess = libremidi::channel_events::note_off(
-              e.noteOff.channel, e.noteOff.pitch, 0.);
+          mess = libremidi::from_01::note_off(
+              e.noteOff.channel, e.noteOff.pitch, e.noteOff.velocity);
           break;
         }
         case VstEvent::kPolyPressureEvent: {
-          mess = libremidi::channel_events::poly_pressure(
-              e.noteOff.channel, e.polyPressure.pitch, e.polyPressure.pressure * 127.f);
+          mess = libremidi::from_01::poly_pressure(
+              e.noteOff.channel, e.polyPressure.pitch, e.polyPressure.pressure);
           break;
         }
         default:
