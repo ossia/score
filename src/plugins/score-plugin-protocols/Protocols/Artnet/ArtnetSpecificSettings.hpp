@@ -3,6 +3,7 @@
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <score/tools/std/StringHash.hpp>
 
+#include <ossia/detail/nullable_variant.hpp>
 #include <ossia/detail/variant.hpp>
 
 #include <QString>
