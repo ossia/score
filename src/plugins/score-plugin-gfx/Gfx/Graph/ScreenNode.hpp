@@ -10,7 +10,7 @@ namespace score::gfx
  */
 struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 {
-  ScreenNode(bool embedded = false, bool startFullScreen = false);
+  explicit ScreenNode(bool embedded = false, bool startFullScreen = false);
   virtual ~ScreenNode();
 
   void startRendering() override;
@@ -28,6 +28,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void setRenderSize(QSize sz);
   void setFullScreen(bool);
   void setCursor(bool);
+  void setTitle(QString);
 
   void createOutput(
       GraphicsApi graphicsApi, std::function<void()> onReady,
@@ -41,6 +42,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
 
+  std::function<void(QPointF)> onWindowMove;
   std::function<void(QPointF, QPointF)> onMouseMove;
   std::function<void(QTabletEvent*)> onTabletMove;
   std::function<void(int, const QString&)> onKey;
@@ -52,6 +54,7 @@ private:
   QRhiSwapChain* m_swapChain{};
   QRhiRenderBuffer* m_depthStencil{};
   QScreen* m_screen{};
+  QString m_title;
   std::optional<QPoint> m_pos{};
   std::optional<QSize> m_sz{};
   std::optional<QSize> m_renderSz{};

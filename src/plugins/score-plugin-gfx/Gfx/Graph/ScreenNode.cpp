@@ -273,6 +273,15 @@ void ScreenNode::setPosition(QPoint pos)
   }
 }
 
+void ScreenNode::setTitle(QString title)
+{
+  m_title = title;
+  if(m_window)
+  {
+    m_window->setTitle(title);
+  }
+}
+
 void ScreenNode::setSize(QSize sz)
 {
   m_sz = sz;
@@ -337,6 +346,14 @@ void ScreenNode::createOutput(
       m_window->unsetCursor();
   }
 
+  QObject::connect(m_window.get(), &Window::xChanged, [this](int x) {
+    if(onWindowMove)
+      onWindowMove(QPointF(x, m_window->y()));
+  });
+  QObject::connect(m_window.get(), &Window::yChanged, [this](int y) {
+    if(onWindowMove)
+      onWindowMove(QPointF(m_window->x(), y));
+  });
   QObject::connect(m_window.get(), &Window::mouseMove, [this](QPointF s, QPointF w) {
     if(onMouseMove)
       onMouseMove(s, w);
@@ -409,6 +426,9 @@ void ScreenNode::createOutput(
       window->exposeEvent(nullptr);
     }
     */
+
+    if(!m_title.isEmpty())
+      m_window->setTitle(m_title);
 
     if(m_screen)
     {
