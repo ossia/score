@@ -46,6 +46,7 @@ public:
     if(auto w = m_screen->window())
       w->close();
 
+    m_screen->onWindowMove = [](QPointF) {};
     m_screen->onMouseMove = [](QPointF, QPointF) {};
     m_screen->onTabletMove = [](QTabletEvent*) {};
     m_screen->onKey = [](int, const QString&) {};
@@ -62,11 +63,12 @@ public:
       , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_screen, name}
   {
     this->m_capabilities.change_tree = true;
+    m_screen->setTitle(QString::fromStdString(name));
 
     {
       auto screen_node
           = std::make_unique<ossia::net::generic_node>("screen", *this, m_root);
-      auto screen_param = screen_node->create_parameter(ossia::val_type::INT);
+      auto screen_param = screen_node->create_parameter(ossia::val_type::STRING);
       screen_param->set_domain(ossia::make_domain(int(0), int(100)));
       screen_param->add_callback([this](const ossia::value& v) {
         if(auto val = v.target<int>())
@@ -76,6 +78,20 @@ public:
             if(ossia::valid_index(scr, cur_screens))
             {
               screen->setScreen(cur_screens[scr]);
+            }
+          });
+        }
+        else if(auto val = v.target<std::string>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, scr = *val] {
+            const auto& cur_screens = qApp->screens();
+            for(auto s : cur_screens)
+            {
+              if(s->name() == scr.c_str())
+              {
+                screen->setScreen(s);
+                break;
+              }
             }
           });
         }
@@ -95,6 +111,15 @@ public:
           });
         }
       });
+
+      m_screen->onWindowMove = [this, pos_param](QPointF pos) {
+        if(const auto& w = m_screen->window())
+        {
+          auto geom = w->geometry();
+          pos_param->set_value(
+              ossia::vec2f{float(pos.x()), float(pos.y())});
+        }
+      };
       m_root.add_child(std::move(pos_node));
     }
 
