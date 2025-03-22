@@ -79,8 +79,8 @@ int LibAVDecoder::init_codec_context(
 
   avcodec_parameters_to_context(m_codecContext, stream->codecpar);
 
-  // m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
-  // m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
+  m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
+  m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
 #if LIBAVUTIL_VERSION_MAJOR >= 57
   if(hw_dev_ctx)
   {
@@ -95,7 +95,7 @@ int LibAVDecoder::init_codec_context(
   {
     m_codecContext->thread_count = m_conf.threads;
     if(m_conf.threads > 0)
-      m_codecContext->thread_type = FF_THREAD_SLICE;
+      m_codecContext->thread_type = FF_THREAD_FRAME;
   }
 
   SCORE_ASSERT(setup);
