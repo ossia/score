@@ -34,6 +34,7 @@ wget "https://github.com/AppImage/type2-runtime/releases/download/continuous/run
 chmod a+x runtime-${CPU_ARCH}
 sudo chown -R "$(whoami)" /tmp/build
 cp runtime-${CPU_ARCH} /tmp/build/score.AppDir/runtime-${CPU_ARCH}
+cp AppRun /tmp/build/score.AppDir/
 cp ossia-score.desktop /tmp/build/score.AppDir/
 cp "$SOURCE/src/lib/resources/ossia-score.png" /tmp/build/score.AppDir/
 cp "$SOURCE/src/lib/resources/ossia-score.png" /tmp/build/score.AppDir/.DirIcon
