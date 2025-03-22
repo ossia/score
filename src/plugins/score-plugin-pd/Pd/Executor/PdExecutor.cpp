@@ -21,6 +21,8 @@
 
 #include <QFileInfo>
 
+#include <libremidi/ump_events.hpp>
+
 #include <vector>
 namespace Pd
 {
@@ -284,42 +286,40 @@ PdGraphNode::PdGraphNode(
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(
-          (velocity > 0)
-              ? libremidi::channel_events::note_on(channel, pitch, velocity)
-              : libremidi::channel_events::note_off(channel, pitch, velocity));
+          (velocity > 0) ? libremidi::from_midi1::note_on(channel, pitch, velocity)
+                         : libremidi::from_midi1::note_off(channel, pitch, velocity));
     }
   });
   libpd_set_controlchangehook([](int channel, int controller, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(
-          libremidi::channel_events::control_change(channel, controller, value + 8192));
+          libremidi::from_midi1::control_change(channel, controller, value + 8192));
     }
   });
 
   libpd_set_programchangehook([](int channel, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::channel_events::program_change(channel, value));
+      v->messages.push_back(libremidi::from_midi1::program_change(channel, value));
     }
   });
   libpd_set_pitchbendhook([](int channel, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::channel_events::pitch_bend(channel, value));
+      v->messages.push_back(libremidi::from_midi1::pitch_bend(channel, value));
     }
   });
   libpd_set_aftertouchhook([](int channel, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::channel_events::aftertouch(channel, value));
+      v->messages.push_back(libremidi::from_midi1::aftertouch(channel, value));
     }
   });
   libpd_set_polyaftertouchhook([](int channel, int pitch, int value) {
     if(auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(
-          libremidi::channel_events::poly_pressure(channel, pitch, value));
+      v->messages.push_back(libremidi::from_midi1::poly_pressure(channel, pitch, value));
     }
   });
   libpd_set_midibytehook([](int port, int byte) {
@@ -371,30 +371,45 @@ void PdGraphNode::run(const ossia::token_request& t, ossia::exec_state_facade e)
     auto& dat = m_midi_inlet->messages;
     for(const auto& mess : dat)
     {
-      switch(mess.get_message_type())
+      if(mess.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
+        continue;
+      switch(libremidi::message_type(mess.get_status_code()))
       {
-        case libremidi::message_type::NOTE_OFF:
-          libpd_noteon(mess.get_channel() - 1, mess.bytes[1], 0);
+        case libremidi::message_type::NOTE_OFF: {
+          auto [channel, note, value] = libremidi::as_midi1::note_off(mess);
+          libpd_noteon(channel, note, 0);
           break;
-        case libremidi::message_type::NOTE_ON:
-          libpd_noteon(mess.get_channel() - 1, mess.bytes[1], mess.bytes[2]);
+        }
+        case libremidi::message_type::NOTE_ON: {
+          auto [channel, note, value] = libremidi::as_midi1::note_on(mess);
+          libpd_noteon(channel, note, value);
           break;
-        case libremidi::message_type::POLY_PRESSURE:
-          libpd_polyaftertouch(mess.get_channel() - 1, mess.bytes[1], mess.bytes[2]);
+        }
+        case libremidi::message_type::POLY_PRESSURE: {
+          auto [channel, note, value] = libremidi::as_midi1::poly_pressure(mess);
+          libpd_polyaftertouch(channel, note, value);
           break;
-        case libremidi::message_type::CONTROL_CHANGE:
-          libpd_controlchange(mess.get_channel() - 1, mess.bytes[1], mess.bytes[2]);
+        }
+        case libremidi::message_type::CONTROL_CHANGE: {
+          auto [channel, note, value] = libremidi::as_midi1::control_change(mess);
+          libpd_controlchange(channel, note, value);
           break;
-        case libremidi::message_type::PROGRAM_CHANGE:
-          libpd_programchange(mess.get_channel() - 1, mess.bytes[1]);
+        }
+        case libremidi::message_type::PROGRAM_CHANGE: {
+          auto [channel, program] = libremidi::as_midi1::program_change(mess);
+          libpd_programchange(channel, program);
           break;
-        case libremidi::message_type::AFTERTOUCH:
-          libpd_aftertouch(mess.get_channel() - 1, mess.bytes[1]);
+        }
+        case libremidi::message_type::AFTERTOUCH: {
+          auto [channel, value] = libremidi::as_midi1::aftertouch(mess);
+          libpd_aftertouch(channel, value);
           break;
-        case libremidi::message_type::PITCH_BEND:
-          libpd_pitchbend(
-              mess.get_channel() - 1, mess.bytes[2] * 128 + mess.bytes[1] - 8192);
+        }
+        case libremidi::message_type::PITCH_BEND: {
+          auto [channel, value] = libremidi::as_midi1::pitch_bend(mess);
+          libpd_pitchbend(channel, int32_t(value) - 8192);
           break;
+        }
         case libremidi::message_type::INVALID:
         default:
           break;

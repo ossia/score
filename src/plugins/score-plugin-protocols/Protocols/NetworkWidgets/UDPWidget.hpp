@@ -58,10 +58,11 @@ public:
   {
     ossia::net::udp_configuration conf;
     conf.local = ossia::net::inbound_socket_configuration{
-        "0.0.0.0", (uint16_t)m_localPort->value()};
+        .bind = "0.0.0.0", .port = (uint16_t)m_localPort->value()};
     conf.remote = ossia::net::outbound_socket_configuration{
-        m_host->text().toStdString(), (uint16_t)m_remotePort->value(),
-        m_broadcast->isChecked()};
+        .host = m_host->text().toStdString(),
+        .port = (uint16_t)m_remotePort->value(),
+        .broadcast = m_broadcast->isChecked()};
     return conf;
   }
 

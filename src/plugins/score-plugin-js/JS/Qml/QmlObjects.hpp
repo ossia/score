@@ -6,6 +6,8 @@
 
 #include <JS/Qml/QtMetatypes.hpp>
 
+#include <libremidi/detail/conversion.hpp>
+
 #if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/TexturePort.hpp>
 
@@ -17,6 +19,7 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/ssize.hpp>
 #include <ossia/network/domain/domain.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 
 #include <QJSValue>
@@ -26,6 +29,7 @@
 #include <QVector>
 
 #include <libremidi/message.hpp>
+#include <libremidi/ump.hpp>
 
 #include <score_plugin_js_export.h>
 #include <wobjectimpl.h>
@@ -490,14 +494,15 @@ public:
   void setMidi(const T& arr)
   {
     m_midi.clear();
-    for(const libremidi::message& mess : arr)
+    for(const libremidi::ump& mess : arr)
     {
+      auto m1 = libremidi::midi1_from_ump(mess);
       const auto N = mess.size();
       QVector<int> m;
       m.resize(N);
 
       for(std::size_t i = 0; i < N; i++)
-        m[i] = mess.bytes[i];
+        m[i] = m1.bytes[i];
 
       m_midi.push_back(QVariant::fromValue(m));
     }

@@ -10,6 +10,7 @@
 #include <QTimer>
 
 #include <Patternist/PatternModel.hpp>
+#include <libremidi/ump_events.hpp>
 
 namespace Patternist
 {
@@ -54,7 +55,7 @@ public:
       auto& mess = out.target<ossia::midi_port>()->messages;
       for(uint8_t note : in_flight)
       {
-        mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
+        mess.push_back(libremidi::from_midi1::note_off(channel, note, 0));
         mess.back().timestamp = 0;
       }
       in_flight.clear();
@@ -75,7 +76,7 @@ public:
         uint8_t note = *it;
         if(!legato(note))
         {
-          mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
+          mess.push_back(libremidi::from_midi1::note_off(channel, note, 0));
           mess.back().timestamp = date;
           it = in_flight.erase(it);
         }
@@ -92,16 +93,14 @@ public:
           switch(lane.pattern[current])
           {
             case Note::Note:
-              mess.push_back(
-                  libremidi::channel_events::note_on(channel, lane.note, 100));
+              mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
               mess.back().timestamp = date;
               in_flight.insert(lane.note);
               break;
             case Note::Legato:
               if(!in_flight.contains(lane.note))
               {
-                mess.push_back(
-                    libremidi::channel_events::note_on(channel, lane.note, 100));
+                mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
                 mess.back().timestamp = date;
                 in_flight.insert(lane.note);
               }
@@ -109,8 +108,7 @@ public:
             case Note::Rest:
               if(in_flight.contains(lane.note))
               {
-                mess.push_back(
-                    libremidi::channel_events::note_off(channel, lane.note, 0));
+                mess.push_back(libremidi::from_midi1::note_off(channel, lane.note, 0));
                 mess.back().timestamp = date;
                 in_flight.erase(lane.note);
               }
@@ -146,7 +144,7 @@ public:
     auto& mess = out.target<ossia::midi_port>()->messages;
     for(uint8_t note : in_flight)
     {
-      mess.push_back(libremidi::channel_events::note_off(channel, note, 0));
+      mess.push_back(libremidi::from_midi1::note_off(channel, note, 0));
       mess.back().timestamp = 0;
     }
   }
@@ -158,7 +156,7 @@ Executor::Executor(
         element, ctx, "PatternComponent", parent}
 {
   auto node = ossia::make_node<pattern_node>(*ctx.execState);
-  node->channel = element.channel();
+  node->channel = element.channel() - 1;
   node->pattern = element.patterns()[element.currentPattern()];
   node->current = 0;
 

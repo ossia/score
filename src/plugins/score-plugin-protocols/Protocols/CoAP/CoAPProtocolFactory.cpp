@@ -135,7 +135,8 @@ const Device::DeviceSettings& CoAPProtocolFactory::defaultSettings() const noexc
     CoAPSpecificSettings specif;
     specif.configuration.transport = ossia::net::udp_configuration{
         {.local = {},
-         .remote = ossia::net::outbound_socket_configuration{"127.0.0.1", 5683}}};
+         .remote = ossia::net::outbound_socket_configuration{
+             .host = "127.0.0.1", .port = 5683}}};
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
