@@ -244,6 +244,14 @@ void LV2::GlobalContext::loadPlugins()
 #if defined(__linux__)
   if(!qEnvironmentVariableIsSet("LV2_PATH"))
   {
+    QStringList lv2_paths;
+
+    if(auto home = QString::fromUtf8(qgetenv("HOME")); QFile::exists(home + ".lv2"))
+      lv2_paths.push_back(home + ".lv2");
+
+    if(QFile::exists("/usr/lib/lv2"))
+      lv2_paths.push_back("/usr/lib/lv2");
+
     QProcess proc;
     proc.setProgram("ldconfig");
     proc.setArguments({"-p"});
@@ -268,18 +276,17 @@ void LV2::GlobalContext::loadPlugins()
           if(QFileInfo lv2_folder{libc.path() + "/lv2"};
              lv2_folder.exists() && lv2_folder.isDir())
           {
-            const std::string lv2_path = lv2_folder.absoluteFilePath().toStdString();
-            qDebug() << "Setting lv2 path to : " << lv2_path.c_str();
-            qputenv("LV2_PATH", lv2_path.c_str());
-            break;
-          }
-          else
-          {
-            qDebug() << lv2_folder << " : no lv2 folder found?";
+            lv2_paths.push_back(lv2_folder.absoluteFilePath());
           }
         }
       }
     }
+
+    lv2_paths.removeDuplicates();
+    auto paths = lv2_paths.join(":");
+    qDebug() << "LV2 paths: " << paths;
+
+    qputenv("LV2_PATH", paths.toUtf8());
   }
 #endif
   host.world.load_all();
