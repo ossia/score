@@ -96,6 +96,10 @@ struct SCORE_LIB_PROCESS_EXPORT Context
   const std::shared_ptr<ossia::graph_interface>& execGraph;
   const std::shared_ptr<ossia::execution_state>& execState;
 
+  std::shared_ptr<Execution::Transaction>& transaction;
+
+  void execCommand(ExecutionCommand&& cmd);
+
   auto& context() const { return *this; }
 
 #if !defined(_MSC_VER)
