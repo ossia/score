@@ -25,13 +25,10 @@ struct Module
 };
 
 #if defined(__APPLE__)
-static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST";
 static const constexpr auto default_filter = "*.vst *.dylib *.component";
 #elif defined(__linux__)
-static const auto default_path = QStringLiteral("/usr/lib/vst");
 static const constexpr auto default_filter = "*.so";
 #elif defined(_WIN32)
-static const constexpr auto default_path = "c:\\vst";
 static const constexpr auto default_filter = "*.dll";
 #else
 static const constexpr auto default_path = "";
