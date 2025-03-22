@@ -7,6 +7,8 @@
 #include <ossia/detail/fmt.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
+#include <libremidi/detail/conversion.hpp>
+
 namespace LV2
 {
 template <typename OnExecStart, typename OnExecFinished>
@@ -304,11 +306,15 @@ struct lv2_node final : public ossia::graph_node
       }
 
       // MIDI input
-      for(const libremidi::message& msg : ossia_port.messages)
+      for(const libremidi::ump& msg : ossia_port.messages)
       {
-        it.write(
-            msg.timestamp, 0, data.host.midi_event_id, msg.bytes.size(),
-            msg.bytes.data());
+        unsigned char bytes[4];
+
+        int n = cmidi2_convert_single_ump_to_midi1(
+            (uint8_t*)bytes, sizeof(bytes), const_cast<uint32_t*>(msg.data));
+
+        if(n > 0)
+          it.write(msg.timestamp, 0, data.host.midi_event_id, n, bytes);
       }
 
       // Copy timing for MIDI ports
@@ -430,19 +436,19 @@ struct lv2_node final : public ossia::graph_node
       {
         if(ev->body.type == host.midi_event_id)
         {
-          libremidi::message msg;
+          libremidi::ump msg;
           msg.timestamp = ev->time.frames;
-          msg.bytes.resize(ev->body.size);
 
           auto bytes = (uint8_t*)LV2_ATOM_BODY(&ev->body);
-          for(std::size_t i = 0; i < ev->body.size; i++)
+          if(cmidi2_midi1_channel_voice_to_midi2(bytes, ev->body.size, msg.data))
           {
-            msg.bytes[i] = bytes[i];
+            ossia_port.messages.push_back(std::move(msg));
           }
-          ossia_port.messages.push_back(std::move(msg));
         }
         else
         {
+          // FIXME
+          qDebug() << "Unhandled LV2 event type: " << ev->body.type;
         }
       }
     }

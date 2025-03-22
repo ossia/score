@@ -29,6 +29,8 @@
 #include <QQmlContext>
 #include <QTimer>
 
+#include <libremidi/detail/conversion.hpp>
+
 #include <vector>
 
 namespace YSFX
@@ -45,6 +47,8 @@ public:
   {
     return fmt::format("ysfx ({})", ysfx_get_name(fx.get()));
   }
+
+  void all_notes_off() noexcept override;
 
   std::shared_ptr<ysfx_t> fx;
   ossia::execution_state& m_st;
@@ -115,6 +119,7 @@ ysfx_node::ysfx_node(std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
 
   ysfx_set_block_size(y, st.bufferSize);
   ysfx_set_sample_rate(y, st.sampleRate);
+  ysfx_set_midi_capacity(y, 512, true);
   ysfx_init(y);
 
   if(ysfx_get_num_inputs(y) > 0)
@@ -151,6 +156,11 @@ ysfx_node::ysfx_node(std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
     }
   }
 }
+
+struct ysfx_midi_event_impl : ysfx_midi_event_t
+{
+  unsigned char bytes[4];
+};
 
 void ysfx_node::run(
     const ossia::token_request& tk, ossia::exec_state_facade estate) noexcept
@@ -191,7 +201,6 @@ void ysfx_node::run(
     outs = (double**)alloca(sizeof(double*) * out_count);
     for(int i = 0; i < out_count; i++)
     {
-
       this->audio_out->data.get()[i].resize(
           estate.bufferSize(), boost::container::default_init);
       outs[i] = this->audio_out->data.channel(i).data();
@@ -219,14 +228,30 @@ void ysfx_node::run(
   }
 
   // Setup midi
-  for(auto& msg : this->midi_in->data.messages)
+  if(midi_in)
   {
-    ysfx_midi_event_t ev;
-    ev.bus = 0;
-    ev.data = msg.bytes.data();
-    ev.offset = msg.timestamp;
-    ev.size = msg.bytes.size();
-    ysfx_send_midi(y, &ev);
+    if(!this->midi_in->data.messages.empty())
+    {
+      // alloca is function-scoped
+      auto msg_space = (ysfx_midi_event_impl*)alloca(
+          sizeof(ysfx_midi_event_impl) * (1 + this->midi_in->data.messages.size()));
+      int i = 0;
+      for(auto& mess : this->midi_in->data.messages)
+      {
+        ysfx_midi_event_impl& ev = msg_space[i];
+
+        ev.bus = 0; // FIXME
+        ev.offset = mess.timestamp;
+        ev.data = ev.bytes;
+        ev.size = cmidi2_convert_single_ump_to_midi1(
+            (uint8_t*)ev.data, sizeof(ysfx_midi_event_impl::bytes), mess.data);
+        if(ev.size > 0)
+        {
+          ysfx_send_midi(y, &ev);
+          i++;
+        }
+      }
+    }
   }
 
   ysfx_time_info_t info;
@@ -243,11 +268,77 @@ void ysfx_node::run(
   ysfx_midi_event_t ev;
   while(ysfx_receive_midi(y, &ev))
   {
-    libremidi::message msg;
-    msg.bytes.assign(ev.data, ev.data + ev.size);
+    libremidi::ump msg;
     msg.timestamp = ev.offset;
-    this->midi_out->data.messages.push_back(msg);
+
+    if(cmidi2_midi1_channel_voice_to_midi2(ev.data, ev.size, msg.data))
+    {
+      this->midi_out->data.messages.push_back(msg);
+    }
   }
+}
+
+void ysfx_node::all_notes_off() noexcept
+{
+  auto y = this->fx.get();
+  for(int channel = 0; channel < 16; channel++)
+  {
+    ysfx_midi_event_impl all_notes_off;
+
+    all_notes_off.bus = 0;
+    all_notes_off.offset = 0;
+    all_notes_off.size = 3;
+    all_notes_off.data = all_notes_off.bytes;
+
+    all_notes_off.bytes[0] = (char)(uint8_t)176 + channel;
+    all_notes_off.bytes[1] = (char)(uint8_t)123;
+    all_notes_off.bytes[2] = 0;
+    ysfx_send_midi(y, &all_notes_off);
+
+    ysfx_midi_event_impl all_sounds_off;
+    all_sounds_off.bus = 0;
+    all_sounds_off.offset = 0;
+    all_sounds_off.size = 3;
+    all_sounds_off.data = all_sounds_off.bytes;
+
+    all_sounds_off.bytes[0] = (char)(uint8_t)176 + channel;
+    all_sounds_off.bytes[1] = (char)(uint8_t)121;
+    all_sounds_off.bytes[2] = 0;
+    ysfx_send_midi(y, &all_sounds_off);
+  }
+
+  for(int note = 0; note < 127; note++)
+  {
+    ysfx_midi_event_impl note_off;
+
+    note_off.bus = 0;
+    note_off.offset = 0;
+    note_off.size = 3;
+    note_off.data = note_off.bytes;
+
+    note_off.bytes[0] = (char)(uint8_t)128;
+    note_off.bytes[1] = (char)(uint8_t)note;
+    note_off.bytes[2] = 0;
+    ysfx_send_midi(y, &note_off);
+  }
+
+  int ins = ysfx_get_num_inputs(y);
+  auto ins_p = (double**)alloca(sizeof(double*) * (ins + 1));
+  for(int i = 0; i < ins + 1; i++)
+  {
+    ins_p[i] = (double*)alloca(sizeof(double) * 4096);
+    std::fill_n(ins_p[i], 8, 0.);
+  }
+  int outs = ysfx_get_num_outputs(y);
+  auto outs_p = (double**)alloca(sizeof(double*) * (outs + 1));
+  for(int i = 0; i < outs + 1; i++)
+  {
+    outs_p[i] = (double*)alloca(sizeof(double) * 4096);
+    std::fill_n(outs_p[i], 8, 0.);
+  }
+
+  for(int i = 0; i < 16; i++)
+    ysfx_process_double(y, ins_p, outs_p, ins, outs, 4096);
 }
 }
 }

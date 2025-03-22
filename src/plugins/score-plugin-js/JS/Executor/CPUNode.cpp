@@ -17,6 +17,8 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 
+#include <libremidi/detail/conversion.hpp>
+
 namespace JS
 {
 
@@ -301,7 +303,7 @@ void js_node::run(
       {
         m.bytes[j] = mess[j];
       }
-      dat.messages.push_back(std::move(m));
+      dat.messages.push_back(libremidi::ump_from_midi1(std::move(m)));
     }
     m_midOutlets[i].first->clear();
   }
