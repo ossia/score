@@ -21,7 +21,6 @@ PluginSettingsModel::PluginSettingsModel(
     QSettings& set, const score::ApplicationContext& ctx)
     : score::SettingsDelegateModel{}
     , localPlugins{ctx}
-    , remoteSelection{&remotePlugins}
 {
 }
 
