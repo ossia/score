@@ -31,6 +31,7 @@
 #include <Fx/Metro.hpp>
 #include <Fx/MicroMapping.hpp>
 #include <Fx/MidiHiRes.hpp>
+#include <Fx/MidiToArray.hpp>
 #include <Fx/MidiUtil.hpp>
 #include <Fx/PitchToValue.hpp>
 #include <Fx/Quantifier.hpp>
@@ -76,6 +77,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   oscr::instantiate_fx<Nodes::MidiHiRes::Input>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MidiHiRes::Output>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MidiUtil::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MidiToArray::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Metro::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Quantifier::Node>(fx, ctx, key);
 
