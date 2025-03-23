@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
+#include <QQuickItem>
 #include <QQuickWindow>
 
 #include <wobjectimpl.h>
@@ -321,6 +322,19 @@ bool ProcessModel::isGpu() const noexcept
 ComponentCache::ComponentCache() { }
 ComponentCache::~ComponentCache() { }
 
+QQuickItem* ComponentCache::tryGet(const QByteArray& str) const noexcept
+{
+  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == str; });
+  if(it != m_map.end())
+  {
+    return it->item.get();
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
 Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
 {
   QByteArray content;
@@ -429,6 +443,8 @@ ComponentCache::getUi(const ProcessModel& process, const QByteArray& str) noexce
   }
   else
   {
+    // FIXME put in applicationplugin instead, can't be global
+    static std::once_flag qml_dummy_engine_setup;
     static QQmlEngine dummyEngine;
     std::call_once(qml_dummy_engine_setup, [] { setupEngineImportPaths(dummyEngine); });
 
