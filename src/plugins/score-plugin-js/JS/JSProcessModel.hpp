@@ -13,6 +13,8 @@
 
 #include <memory>
 #include <verdigris>
+class QQuickItem;
+
 namespace JS
 {
 class Script;
