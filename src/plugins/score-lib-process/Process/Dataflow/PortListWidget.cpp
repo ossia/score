@@ -122,7 +122,7 @@ void PortWidgetSetup::setupControl(
     advBtn->setArrowType(
         advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
   });
-  sw->setVisible(false);
+  sw->setVisible(inlet.address().isSet());
 
   vlay.addRow(widg, inlet_widget);
   vlay.addRow(sw);
@@ -153,7 +153,7 @@ void PortWidgetSetup::setupControl(
     advBtn->setArrowType(
         advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
   });
-  sw->setVisible(false);
+  sw->setVisible(inlet.address().isSet());
 
   vlay.addRow(widg, inlet_widget);
   vlay.addRow(sw);
