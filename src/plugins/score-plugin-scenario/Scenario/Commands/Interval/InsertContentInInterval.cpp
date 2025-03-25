@@ -83,7 +83,8 @@ PasteProcessesInInterval::PasteProcessesInInterval(
 
   // Compute the rect of the objects
   QRectF copyRect = copiedProcessesRect(sourceProcesses);
-  QPointF center = copyRect.center();
+  QPointF copyRect_topleft = copyRect.topLeft();
+  QPointF center_relative = copyRect.center() - copyRect.topLeft();
 
   // Adjust the deserialized processes
   int i = 0;
@@ -99,8 +100,8 @@ PasteProcessesInInterval::PasteProcessesInInterval(
     double h = obj->size().height();
     QRectF itemRect{x, y, w, h};
 
-    double nx = p.x() + center.x() - x - itemRect.width();
-    double ny = p.y() + center.y() - y - itemRect.height();
+    double nx = p.x() + x - copyRect_topleft.x() - center_relative.x();
+    double ny = p.y() + y - copyRect_topleft.y() - center_relative.y();
 
     obj->setPosition(QPointF{nx, ny});
 

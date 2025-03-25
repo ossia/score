@@ -288,9 +288,13 @@ bool ScenarioEditor::paste(
     }
     else if(auto obj = qobject_cast<Process::ProcessModel*>(sel.at(0)))
     {
-      if(auto itv = Scenario::closestParentInterval(obj))
+      if(auto closest_itv = Scenario::closestParentInterval(obj))
       {
-        return pasteInInterval(*itv, newProcessPosition(*itv), mime, ctx);
+        if(closest_itv == &itv)
+          return pasteInCurrentInterval(pos, mime, ctx);
+        else
+          return pasteInInterval(
+              *closest_itv, newProcessPosition(*closest_itv), mime, ctx);
       }
     }
   }
