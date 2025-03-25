@@ -74,11 +74,16 @@ public:
 
   void read(const QString&) const noexcept = delete;
   void read(const float&) const noexcept = delete;
+  void read(const double&) const noexcept = delete;
   void read(const char&) const noexcept = delete;
-  void read(const int&) const noexcept = delete;
+  void read(const int16_t&) const noexcept = delete;
+  void read(const int32_t&) const noexcept = delete;
+  void read(const int64_t&) const noexcept = delete;
+  void read(const uint16_t&) const noexcept = delete;
+  void read(const uint32_t&) const noexcept = delete;
+  void read(const uint64_t&) const noexcept = delete;
   void read(const bool&) const noexcept = delete;
   void read(const std::string&) const noexcept = delete;
-  void read(const unsigned int&) const noexcept = delete;
   void read(const unsigned char&) const noexcept = delete;
 
   //! Called by code that wants to serialize.
