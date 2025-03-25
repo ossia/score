@@ -79,6 +79,7 @@ public:
   void read(const int16_t&) const noexcept = delete;
   void read(const int32_t&) const noexcept = delete;
   void read(const int64_t&) const noexcept = delete;
+  void read(const long long&) const noexcept = delete;
   void read(const uint16_t&) const noexcept = delete;
   void read(const uint32_t&) const noexcept = delete;
   void read(const uint64_t&) const noexcept = delete;
