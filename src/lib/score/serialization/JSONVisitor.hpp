@@ -74,11 +74,16 @@ public:
 
   void read(const QString&) const noexcept = delete;
   void read(const float&) const noexcept = delete;
+  void read(const double&) const noexcept = delete;
   void read(const char&) const noexcept = delete;
-  void read(const int&) const noexcept = delete;
+  void read(const int16_t&) const noexcept = delete;
+  void read(const int32_t&) const noexcept = delete;
+  void read(const int64_t&) const noexcept = delete;
+  void read(const uint16_t&) const noexcept = delete;
+  void read(const uint32_t&) const noexcept = delete;
+  void read(const uint64_t&) const noexcept = delete;
   void read(const bool&) const noexcept = delete;
   void read(const std::string&) const noexcept = delete;
-  void read(const unsigned int&) const noexcept = delete;
   void read(const unsigned char&) const noexcept = delete;
 
   //! Called by code that wants to serialize.
@@ -240,6 +245,8 @@ private:
   void readFromAbstract(const T& in, Fun f);
 };
 
+using long_long
+    = std::conditional_t<std::is_same_v<int64_t, long long>, void******, long long>;
 struct JSONReader::assigner
 {
   JSONReader& self;
@@ -332,6 +339,10 @@ struct JSONReader::assigner
       check_enum_size<T> _;
       Q_UNUSED(_);
       self.stream.Int(static_cast<int32_t>(t));
+    }
+    else if constexpr(std::is_same_v<long long, T>)
+    {
+      self.stream.Int64(t);
     }
     else
     {
