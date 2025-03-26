@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Node/CommonWidgets.hpp"
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ProcessFlags.hpp>
 #include <Process/ProcessMetadata.hpp>
@@ -236,6 +237,11 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   {
     std::vector<ossia::value> init;
     return new Process::MultiSliderXY{init, qname, id, parent};
+  }
+  else if constexpr(widg.widget == avnd::widget_type::path_generator_xy)
+  {
+    std::vector<ossia::value> init;
+    return new Process::PathGeneratorXY{init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::spinbox)
   {

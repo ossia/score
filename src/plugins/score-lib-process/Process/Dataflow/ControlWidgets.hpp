@@ -1616,6 +1616,52 @@ struct MultiSliderXY
   }
 };
 
+struct PathGeneratorXY
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::slider();
+  }
+
+  template <typename T>
+  static auto make_widget(
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+  {
+    SCORE_TODO;
+    return nullptr; // TODO
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsPathGeneratorXY{nullptr};
+    initWidgetProperties(inlet, *sl);
+    sl->setValue(inlet.value());
+    sl->setRange(inlet.domain());
+
+    QObject::connect(
+        sl, &score::QGraphicsPathGeneratorXY::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(
+        sl, &score::QGraphicsPathGeneratorXY::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(std::move(val));
+    });
+
+    return sl;
+  }
+};
+
+
 /// Outlets
 using Bargraph = FloatDisplay;
 }
