@@ -77,6 +77,7 @@ std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
              Process::XYZSpinboxes, WidgetFactory::XYZSpinboxes>,
          Dataflow::WidgetInletFactory<Process::MultiSlider, WidgetFactory::MultiSlider>,
          Dataflow::WidgetInletFactory<Process::MultiSliderXY, WidgetFactory::MultiSliderXY>,
+         Dataflow::WidgetInletFactory<Process::PathGeneratorXY, WidgetFactory::PathGeneratorXY>,
          Dataflow::WidgetInletFactory<
              Dataflow::CurveInlet, WidgetFactory::CurveInletItems>,
          Dataflow::WidgetOutletFactory<Process::Bargraph, WidgetFactory::Bargraph>>>(
