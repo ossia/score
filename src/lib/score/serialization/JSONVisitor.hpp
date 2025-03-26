@@ -252,11 +252,6 @@ struct JSONReader::assigner
   JSONReader& self;
 
   void operator=(int64_t t) const noexcept { self.stream.Int64(t); }
-  void operator=(long_long t) const noexcept
-  {
-    if constexpr(std::is_arithmetic_v<long_long>)
-      self.stream.Int64(t);
-  }
   void operator=(int32_t t) const noexcept { self.stream.Int(t); }
   void operator=(uint64_t t) const noexcept { self.stream.Uint64(t); }
   void operator=(uint32_t t) const noexcept { self.stream.Uint(t); }
@@ -344,6 +339,10 @@ struct JSONReader::assigner
       check_enum_size<T> _;
       Q_UNUSED(_);
       self.stream.Int(static_cast<int32_t>(t));
+    }
+    else if constexpr(std::is_same_v<long long, T>)
+    {
+      self.stream.Int64(t);
     }
     else
     {
