@@ -239,19 +239,24 @@ public:
   //! It is not to be called by user code.
   template <typename T>
   void read(const T&);
-  template <>
-  void read<long long>(const long long&) = delete;
 
 private:
   template <typename T, typename Fun>
   void readFromAbstract(const T& in, Fun f);
 };
 
+using long_long
+    = std::conditional_t<std::is_same_v<int64_t, long long>, void******, long long>;
 struct JSONReader::assigner
 {
   JSONReader& self;
 
   void operator=(int64_t t) const noexcept { self.stream.Int64(t); }
+  void operator=(long_long t) const noexcept
+  {
+    if constexpr(std::is_arithmetic_v<long_long>)
+      self.stream.Int64(t);
+  }
   void operator=(int32_t t) const noexcept { self.stream.Int(t); }
   void operator=(uint64_t t) const noexcept { self.stream.Uint64(t); }
   void operator=(uint32_t t) const noexcept { self.stream.Uint(t); }
