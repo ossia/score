@@ -23,11 +23,11 @@ namespace score
 template <typename T>
 struct GridWidget;
 struct RightClickImpl;
-class SCORE_LIB_BASE_EXPORT QGraphicsMultiSliderXY final
+class SCORE_LIB_BASE_EXPORT QGraphicsPathGeneratorXY final
     : public QObject
     , public QGraphicsItem
 {
-  W_OBJECT(QGraphicsMultiSliderXY)
+  W_OBJECT(QGraphicsPathGeneratorXY)
   SCORE_GRAPHICS_ITEM_TYPE(110)
 public:
   template <typename T>
@@ -41,6 +41,7 @@ public:
   halp::xy_type<float> cursorSize{0.04, 0.04};
 
   int selectedCursor;
+  int selectedSource;
   bool isSelected;
 
   double min{0.}, max{1.};
@@ -52,7 +53,7 @@ public:
   bool moving = false;
   RightClickImpl* impl{};
 
-  QGraphicsMultiSliderXY(QGraphicsItem* parent);
+  QGraphicsPathGeneratorXY(QGraphicsItem* parent);
 
   void setPoint(const QPointF& r);
   void setValue(ossia::value v);

@@ -743,7 +743,6 @@ void MultiSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const
 }
 
 
-
 MultiSliderXY::MultiSliderXY(
     ossia::value init, const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
@@ -768,6 +767,38 @@ ossia::value MultiSliderXY::getMax() const noexcept
 }
 
 void MultiSliderXY::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::LIST;
+  port.domain = domain().get();
+}
+
+
+
+PathGeneratorXY::PathGeneratorXY(
+    ossia::value init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(std::move(init));
+  setInit(value());
+  setName(name);
+  setDomain(ossia::make_domain(0., 1.));
+}
+
+PathGeneratorXY::~PathGeneratorXY() { }
+
+ossia::value PathGeneratorXY::getMin() const noexcept
+{
+  return domain().get().get_min();
+}
+
+ossia::value PathGeneratorXY::getMax() const noexcept
+{
+  return domain().get().get_max();
+}
+
+void PathGeneratorXY::setupExecution(ossia::inlet& inl) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::LIST;
@@ -1468,6 +1499,30 @@ JSONReader::read(const Process::MultiSliderXY& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::MultiSliderXY& p)
+{
+}
+
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::PathGeneratorXY& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::PathGeneratorXY& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::PathGeneratorXY& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::PathGeneratorXY& p)
 {
 }
 
