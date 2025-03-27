@@ -1,8 +1,6 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
-#include <QItemSelectionModel>
-
 #include <PackageManager/PluginItemModel.hpp>
 
 class QAbstractItemModel;
@@ -19,6 +17,5 @@ public:
 
   LocalPackagesModel localPlugins;
   RemotePackagesModel remotePlugins;
-  QItemSelectionModel remoteSelection;
 };
 }
