@@ -125,9 +125,7 @@ static void setQApplicationSettings(QApplication& m_app)
   // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).
   // For older Qts we won't be debugging anyways and will be linking against distro Qt versions so we just set the style
   // manually
-#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0) || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   m_app.setStyle(new PhantomStyle);
-#endif
 
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Window, QColor("#222222"));        //#1A2024"));
@@ -151,7 +149,7 @@ static void setQApplicationSettings(QApplication& m_app)
   //  pal.setBrush(QPalette::Dark, QColor("#808080"));
   // pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
-#if defined(__APPLE__) && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if defined(__APPLE__)
   constexpr const double defaultFontSize = 10. * 96. / 72.;
 #else
   constexpr const double defaultFontSize = 10.;

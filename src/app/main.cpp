@@ -527,11 +527,9 @@ static void setup_app_flags()
 {
   qputenv("QSG_USE_SIMPLE_ANIMATION_DRIVER", "1");
   qputenv("QSG_RENDER_LOOP", "basic");
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   // Consistency in looks across macOS, Windows (which prevents the horrible 125% scaling) and Linux
   // FIXME in Qt 6 this is entirely broken... https://bugreports.qt.io/browse/QTBUG-103225
-  qputenv("QT_FONT_DPI", "96");
-#endif
+  // qputenv("QT_FONT_DPI", "96");
 
   if(!qEnvironmentVariableIsSet("QT_SUBPIXEL_AA_TYPE"))
     qputenv("QT_SUBPIXEL_AA_TYPE", "RGB");
@@ -654,9 +652,7 @@ int main(int argc, char** argv)
 #if defined(__APPLE__)
   disableAppRestore();
   disableAppNap();
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qputenv("QT_MAC_WANTS_LAYER", "1");
-#endif
+  // FIXME broken in qt6 qputenv("QT_MAC_WANTS_LAYER", "1");
 #endif
 
   setup_limits();
