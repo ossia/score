@@ -2,6 +2,8 @@
 
 #include <score/gfx/Vulkan.hpp>
 
+#include <QGuiApplication>
+
 #include <wobjectimpl.h>
 
 extern "C" {
@@ -114,6 +116,12 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
 {
   const auto apis = GraphicsApis{};
+  const auto platform = QGuiApplication::platformName();
+  if(platform == "eglfs")
+    return score::gfx::OpenGL;
+  else if(platform == "vkkhrdisplay")
+    return score::gfx::Vulkan;
+
   if(m_GraphicsApi == apis.Vulkan)
   {
     return score::gfx::Vulkan;
