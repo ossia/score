@@ -104,6 +104,8 @@ struct pass
   bool nearest_filter{};
   std::string width_expression{};
   std::string height_expression{};
+
+  std::vector<std::string> workgroup;
 };
 
 struct descriptor
@@ -115,6 +117,7 @@ struct descriptor
   std::vector<pass> passes;
   std::vector<std::string> pass_targets;
   bool default_vertex_shader{};
+  bool compute{};
 };
 
 class parser
