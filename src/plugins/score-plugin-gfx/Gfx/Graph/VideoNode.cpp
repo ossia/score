@@ -4,6 +4,7 @@
 #include <Video/FrameQueue.hpp>
 
 #include <score/tools/Debug.hpp>
+#include <score/tools/SafeCast.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 
@@ -375,6 +376,97 @@ AVFrame* VideoFrameReader::nextFrame(
   return nullptr;
 }
 
+class BufferNodeRenderer : public NodeRenderer
+{
+public:
+  const BufferNode& node;
+  VideoFrameShare& reader;
+  std::shared_ptr<RefcountedFrame> m_currentFrame{};
+  int64_t m_currentFrameIdx{-1};
+  explicit BufferNodeRenderer(
+      const BufferNode& node, RenderList& r, VideoFrameShare& frames) noexcept;
+  TextureRenderTarget renderTargetForInput(const Port& input) override { return {}; }
+
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
+  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override { }
+
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    auto reader_frame = reader.m_currentFrameIdx;
+    if(reader_frame > this->m_currentFrameIdx)
+    {
+      auto old_frame = m_currentFrame;
+
+      m_currentFrame = reader.currentFrame();
+      // if(m_currentFrame && m_currentFrame->frame)
+      // {
+      //   auto f = m_currentFrame->frame;
+      //   qDebug() << " => " << f->data[0] << f->linesize[0] << f->format;
+      // }
+
+      if(old_frame)
+        old_frame->use_count--;
+      // TODO else ? fill with zeroes ?... does not that give green with YUV?
+
+      this->m_currentFrameIdx = reader_frame;
+    }
+  }
+  void release(RenderList& r) override
+  {
+    if(m_currentFrame)
+    {
+      m_currentFrame->use_count--;
+      m_currentFrame.reset();
+    }
+  }
+};
+
+void BufferNode::renderedNodesChanged()
+{
+  if(this->renderedNodes.size() == 0)
+  {
+    reader.releaseAllFrames();
+    if(must_stop.exchange(false))
+    {
+      safe_cast<::Video::ExternalInput*>(reader.m_decoder.get())->stop();
+    }
+  }
+}
+
+void BufferNode::process(Message&& msg)
+{
+  if(this->renderedNodes.size() > 0)
+  {
+    if(auto frame = reader.m_decoder->dequeue_frame())
+    {
+      reader.updateCurrentFrame(frame);
+    }
+  }
+
+  reader.releaseFramesToFree();
+}
+
+BufferNode::BufferNode(std::shared_ptr<Video::ExternalInput> dec)
+    : Node{}
+{
+  this->reader.m_decoder = std::move(dec);
+  output.push_back(new Port{this, {}, Types::Buffer, {}});
+}
+
+NodeRenderer* BufferNode::createRenderer(RenderList& r) const noexcept
+{
+  auto& reader
+      = const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(this->reader));
+  return new BufferNodeRenderer{*this, r, reader};
+};
+
+BufferNodeRenderer::BufferNodeRenderer(
+    const BufferNode& node, RenderList& r, VideoFrameShare& frames) noexcept
+    : NodeRenderer{}
+    , node{node}
+    , reader{frames}
+{
+}
 }
 
 #include <hap/source/hap.c>
