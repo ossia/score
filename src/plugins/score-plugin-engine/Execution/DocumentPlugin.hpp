@@ -5,6 +5,7 @@
 #include <Process/ExecutionAction.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/ExecutionTransaction.hpp>
 
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
@@ -68,6 +69,7 @@ public:
     ExecutionCommandQueue m_execQueue{1024};
     EditionCommandQueue m_editionQueue{1024};
     GCCommandQueue m_gcQueue{1024};
+    std::shared_ptr<Execution::Transaction> currentTransaction;
     std::atomic_bool m_created{};
 
     std::shared_ptr<ossia::graph_interface> execGraph;
