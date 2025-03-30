@@ -16,7 +16,7 @@ struct isf_input_port_vis;
  *
  * See https://isf.video
  */
-class ISFNode : public score::gfx::ProcessNode
+class SCORE_PLUGIN_GFX_EXPORT ISFNode : public score::gfx::ProcessNode
 {
 public:
   ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag);
