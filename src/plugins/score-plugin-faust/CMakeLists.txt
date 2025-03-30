@@ -48,10 +48,13 @@ add_library(${PROJECT_NAME}
 )
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-target_compile_definitions(${PROJECT_NAME}
-  PUBLIC
-    FAUSTFLOAT=double
-)
+
+if(NOT "${FAUST_LIBRARIES}" MATCHES "/usr/l.*")
+  target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+      FAUSTFLOAT=double
+  )
+endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_media
@@ -68,7 +71,7 @@ ExternalProject_Add(
     faustlibs
     PREFIX ""
     GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
-    GIT_TAG 730eff6dc336973553829235e0b31b24c47a2f69
+    GIT_TAG 5ee53574d0b910695b9ff3c534b9aa60f7a26d3d
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
