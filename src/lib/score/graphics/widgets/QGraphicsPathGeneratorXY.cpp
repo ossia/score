@@ -34,30 +34,44 @@ void score::QGraphicsPathGeneratorXY::paint(
   painter->fillRect(QRectF(0, 0, width(), height()), QColor(skin.Dark.color()));
 
   // Draw cursors
-    for (size_t s = 0; s < std::ssize(tab); s++){
-      for (size_t c = 0; c < std::ssize(tab[s].get<std::vector<ossia::value>>()); c++)
-      {
+  for (size_t s = 0; s < std::ssize(tab); s++) {
+    auto& source = tab[s].get<std::vector<ossia::value>>();
+    bool isSelectedSource = (s == selectedSource);
 
-    ossia::vec2f& cursorXY = tab[s].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>();
+    for (const auto& sub_element : tab[s].get<std::vector<ossia::value>>()) {
+      const ossia::vec2f cursorXY = sub_element.get<ossia::vec2f>();
+      bool isStartPoint = (sub_element == source[0]);
 
-    painter->fillRect(
-        QRectF((cursorXY[0] - cursorSize.x / 2) * width(),
-               (1-cursorXY[1] - cursorSize.y / 2) * height(),
-               cursorSize.x * width(),
-               cursorSize.y * height()),
-        s == selectedSource ? QColor(c == 0 ? skin.Base3.color(): skin.Warn3.color()):QColor(skin.DarkGray.color()));
+      QRectF cursorRect(
+          (cursorXY[0] - cursorSize.x / 2) * width(),
+          (1 - cursorXY[1] - cursorSize.y / 2) * height(),
+          cursorSize.x * width(),
+          cursorSize.y * height()
+          );
 
+      QColor cursorColor = isSelectedSource
+                               ? (isStartPoint ? skin.Base3.color() : skin.Warn3.color())
+                               : (isStartPoint ? skin.Base3.color().darker(300) : skin.Warn3.color().darker(250));
+
+      painter->fillRect(cursorRect, cursorColor);
     }
-      if(s==selectedSource){
-        auto& point = tab[s].get<std::vector<ossia::value>>();
-        painter->drawLine(
-            QPointF((point[0].get<ossia::vec2f>()[0]*width()),
-                    (1-point[0].get<ossia::vec2f>()[1])*height()),
-            QPointF((point[1].get<ossia::vec2f>()[0]*width()),
-                    (1-point[1].get<ossia::vec2f>()[1])*height()));
 
-      }
-}
+   // Draw path if selected
+    if (isSelectedSource) {
+      const auto& startCursor = source[0].get<ossia::vec2f>();
+      const auto& endCursor = source[1].get<ossia::vec2f>();
+      QPointF startPoint(
+          startCursor[0] * width(),
+          (1 - startCursor[1]) * height()
+          );
+      QPointF endPoint(
+          endCursor[0] * width(),
+          (1 - endCursor[1]) * height()
+          );
+
+      painter->drawLine(startPoint, endPoint);
+    }
+  }
 }
 
 ossia::value score::QGraphicsPathGeneratorXY::value() const
@@ -111,17 +125,18 @@ void score::QGraphicsPathGeneratorXY::mousePressEvent(QGraphicsSceneMouseEvent* 
   // If the left mouse button is pressed on an existing cursor, that cursor can be moved.
   if (event->button() & Qt::LeftButton)
   {
-    for (int v = 0; v < std::ssize(tab); v++){
-      for (int c = 0; c < std::ssize(tab[v].get<std::vector<ossia::value>>()); c++)
+    for (int sourceIndex = 0; sourceIndex < std::ssize(tab); sourceIndex++){
+      for (int cursorIndex = 0; cursorIndex < std::ssize(tab[sourceIndex].get<std::vector<ossia::value>>()); cursorIndex++)
     {
-      if ((tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[0] - 0.02f) * width() <= (float)x &&
-         (float)x <= (tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[0] + 0.02f) * width() &&
-         (1-tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[1] - 0.02f) * height() <= (float)y &&
-         (float)y <= (1-tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[1] + 0.02f) * height())
+      const auto& CursorXY = tab[sourceIndex].get<std::vector<ossia::value>>()[cursorIndex].get<ossia::vec2f>();
+      if ((CursorXY[0] - 0.02f) * width() <= (float)x &&
+         (float)x <= (CursorXY[0] + 0.02f) * width() &&
+         (1-CursorXY[1] - 0.02f) * height() <= (float)y &&
+         (float)y <= (1-CursorXY[1] + 0.02f) * height())
       {
         m_grab = true;
-        selectedSource = v;
-        selectedCursor = c;
+        selectedSource = sourceIndex;
+        selectedCursor = cursorIndex;
         mouseMoveEvent(event);
         return;
       }
@@ -143,10 +158,11 @@ void score::QGraphicsPathGeneratorXY::mousePressEvent(QGraphicsSceneMouseEvent* 
     for (int v = 0; v < std::ssize(tab); v++){
       for (int c = 0; c < std::ssize(tab[v].get<std::vector<ossia::value>>()); c++)
     {
-      if ((tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[0] - 0.02f) * width() <= (float)x &&
-         (float)x <= (tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[0] + 0.02f) * width() &&
-         (1-tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[1] - 0.02f) * height() <= (float)y &&
-         (float)y <= (1-tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>()[1] + 0.02f) * height())
+      const auto& CursorXY = tab[v].get<std::vector<ossia::value>>()[c].get<ossia::vec2f>();
+      if ((CursorXY[0] - 0.02f) * width() <= (float)x &&
+         (float)x <= (CursorXY[0] + 0.02f) * width() &&
+         (1-CursorXY[1] - 0.02f) * height() <= (float)y &&
+         (float)y <= (1-CursorXY[1] + 0.02f) * height())
       {
         tab.erase(tab.begin() + v);
         selectedSource--;

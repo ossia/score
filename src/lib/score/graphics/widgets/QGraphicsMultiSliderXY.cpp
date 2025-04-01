@@ -37,18 +37,18 @@ void score::QGraphicsMultiSliderXY::paint(
   auto& skin = score::Skin::instance();
 
   // Draw the background
-  painter->fillRect(QRectF(0, 0, width(), height()), QColor(skin.Dark.color()));
+  painter->fillRect(boundingRect(), skin.Dark);
 
   // Draw cursors
   for (const ossia::value& v : tab)
   {
-    auto& Cursor = v.get<ossia::vec2f>();
+    auto& cursor = v.get<ossia::vec2f>();
     painter->fillRect(
-        QRectF((Cursor[0] - cursorSize.x / 2) * width(),
-               (1-Cursor[1] - cursorSize.y / 2) * height(),
+        QRectF((cursor[0] - cursorSize.x / 2) * width(),
+               (1-cursor[1] - cursorSize.y / 2) * height(),
                cursorSize.x * width(),
                cursorSize.y * height()),
-        QColor(skin.Base2.color()));
+        skin.Base2);
   }
 }
 
@@ -149,10 +149,9 @@ void score::QGraphicsMultiSliderXY::mouseReleaseEvent(QGraphicsSceneMouseEvent* 
 {
   if ((event->button() & Qt::LeftButton) && m_grab)
   {
+    mouseMoveEvent(event);
     m_grab = false;
     selectedCursor=-1;
-    //mouseMoveEvent(event);
-
   }
 
   update();
