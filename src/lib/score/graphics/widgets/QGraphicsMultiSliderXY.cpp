@@ -34,21 +34,21 @@ void score::QGraphicsMultiSliderXY::paint(
 
   tab = m_value.get<std::vector<ossia::value>>();
 
+  auto& skin = score::Skin::instance();
 
   // Draw the background
-  painter->setBrush(QColor(qRgba(10, 10, 10, 255)));
-  painter->fillRect(QRectF(0, 0, width(), height()), QColor(qRgba(10, 10, 10, 255)));
+  painter->fillRect(QRectF(0, 0, width(), height()), QColor(skin.Dark.color()));
 
   // Draw cursors
-  for (ossia::value& v : tab)
+  for (const ossia::value& v : tab)
   {
-
+    auto& Cursor = v.get<ossia::vec2f>();
     painter->fillRect(
-        QRectF((v.get<ossia::vec2f>()[0] - cursorSize.x / 2) * width(),
-               (v.get<ossia::vec2f>()[1] - cursorSize.y / 2) * height(),
+        QRectF((Cursor[0] - cursorSize.x / 2) * width(),
+               (1-Cursor[1] - cursorSize.y / 2) * height(),
                cursorSize.x * width(),
                cursorSize.y * height()),
-        QColor(qRgba(0, 0, 255, 255)));
+        QColor(skin.Base2.color()));
   }
 }
 
@@ -76,16 +76,16 @@ void score::QGraphicsMultiSliderXY::setRange(const ossia::domain& dom)
 void score::QGraphicsMultiSliderXY::setValue(ossia::value v)
 {
   prepareGeometryChange();
-  m_value = v;
+  m_value = std::move(v);
   update();
 }
 
 void score::QGraphicsMultiSliderXY::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab) // The cursor’s position is updated as the mouse moves, constrained within the widget’s bounds.
+  if(m_grab && ossia::valid_index(selectedCursor, tab))  // The cursor’s position is updated as the mouse moves, constrained within the widget’s bounds.
   {
     tab[selectedCursor] = ossia::vec2f{(float)std::clamp((event->pos().x() / width()), 0., 1.),
-                                       (float)std::clamp((event->pos().y() / height()), 0., 1.)};
+                                       (float)std::clamp(1-(event->pos().y() / height()), 0., 1.)};
     m_value = std::vector<ossia::value>(tab.begin(), tab.end());
     sliderMoved();
     update();
@@ -100,12 +100,13 @@ void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* ev
   // If the left mouse button is pressed on an existing cursor, that cursor can be moved.
   if (event->button() & Qt::LeftButton)
   {
-    for (int v = 0; v < tab.size(); v++)
+    for (int v = 0; v < std::ssize(tab) ; v++)
     {
-      if ((tab[v].get<ossia::vec2f>()[0] - 0.02f) * width() <= (float)x &&
-         (float)x <= (tab[v].get<ossia::vec2f>()[0] + 0.02f) * width() &&
-         (tab[v].get<ossia::vec2f>()[1] - 0.02f) * height() <= (float)y &&
-         (float)y <= (tab[v].get<ossia::vec2f>()[1] + 0.02f) * height())
+      auto& point = tab[v].get<ossia::vec2f>();
+      if ((point[0] - 0.02f) * width() <= (float)x &&
+         (float)x <= (point[0] + 0.02f) * width() &&
+         (1-point[1] - 0.02f) * height() <= (float)y &&
+         (float)y <= (1-point[1] + 0.02f) * height())
       {
         m_grab = true;
         selectedCursor = v;
@@ -114,24 +115,26 @@ void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* ev
       }
     }
     // Else if the press occurs at an empty area, a new cursor will be created at that position.
-    tab.push_back(ossia::vec2f{(float)(x / width()), (float)(y / width())});
+    tab.push_back(ossia::vec2f{(float)(x / width()), 1-(float)(y / width())});
     m_value = std::vector<ossia::value>(tab.begin(), tab.end());
     m_grab = true;
-    selectedCursor = tab.size() - 1;
+    selectedCursor = std::ssize(tab) - 1;
     mouseMoveEvent(event);
     return;
   }
   else if (event->button() & Qt::RightButton) //If the right mouse button is pressed over a cursor, the cursor is deleted.
   {
     m_grab = false;
-    for (int v = 0; v < tab.size(); v++)
+    for (int v = 0; v < std::ssize(tab); v++)
     {
-      if ((tab[v].get<ossia::vec2f>()[0] - 0.02f) * width() <= (float)x &&
-         (float)x <= (tab[v].get<ossia::vec2f>()[0] + 0.02f) * width() &&
-         (tab[v].get<ossia::vec2f>()[1] - 0.02f) * height() <= (float)y &&
-         (float)y <= (tab[v].get<ossia::vec2f>()[1] + 0.02f) * height())
+      auto& point = tab[v].get<ossia::vec2f>();
+      if ((point[0] - 0.02f) * width() <= (float)x &&
+         (float)x <= (point[0] + 0.02f) * width() &&
+         (1-point[1] - 0.02f) * height() <= (float)y &&
+         (float)y <= (1-point[1] + 0.02f) * height())
       {
         tab.erase(tab.begin() + v);
+        selectedCursor=-1;
         m_value = std::vector<ossia::value>(tab.begin(), tab.end());
         sliderMoved();
         return;
@@ -144,13 +147,12 @@ void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* ev
 
 void score::QGraphicsMultiSliderXY::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  float x = event->pos().x();
-  float y = event->pos().y();
-
   if ((event->button() & Qt::LeftButton) && m_grab)
   {
-    m_grab = true;
-    mouseMoveEvent(event);
+    m_grab = false;
+    selectedCursor=-1;
+    //mouseMoveEvent(event);
+
   }
 
   update();
