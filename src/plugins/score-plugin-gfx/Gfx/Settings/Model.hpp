@@ -43,6 +43,7 @@ class Model : public score::SettingsDelegateModel
   double m_Rate{};
   int m_Samples{1};
   bool m_VSync{};
+  int m_Buffers{3};
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
@@ -52,6 +53,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, double, Rate)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Samples)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, bool, VSync)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Buffers)
 
 public:
   score::gfx::GraphicsApi graphicsApiEnum() const noexcept;
@@ -69,4 +71,5 @@ SCORE_SETTINGS_PARAMETER(Model, DecodingThreads)
 SCORE_SETTINGS_PARAMETER(Model, Rate)
 SCORE_SETTINGS_PARAMETER(Model, Samples)
 SCORE_SETTINGS_PARAMETER(Model, VSync)
+SCORE_SETTINGS_PARAMETER(Model, Buffers)
 }

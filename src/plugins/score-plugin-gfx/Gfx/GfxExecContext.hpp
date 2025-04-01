@@ -16,7 +16,7 @@ class SCORE_PLUGIN_GFX_EXPORT GfxExecutionAction final
 {
   SCORE_CONCRETE("06f48270-35a4-44d2-929a-e67b8e2904f5")
 public:
-  GfxExecutionAction(GfxContext& w);
+  explicit GfxExecutionAction(GfxContext& w);
 
   score::gfx::Message allocateMessage(int inputs);
   void releaseMessage(score::gfx::Message&&);

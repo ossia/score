@@ -43,10 +43,13 @@ namespace score::gfx
 static std::shared_ptr<RenderState>
 createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
+  qDebug("createRenderState?");
   auto st = std::make_shared<RenderState>();
   RenderState& state = *st;
   state.api = graphicsApi;
-  state.samples = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
+
+  const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
+  state.samples = settings.getSamples();
 
   QRhi::Flags flags{};
 #ifndef NDEBUG
@@ -58,6 +61,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   {
     state.surface = QRhiGles2InitParams::newFallbackSurface();
     QRhiGles2InitParams params;
+    params.format = window.format();
     params.fallbackSurface = state.surface;
     params.window = &window;
 
@@ -137,17 +141,6 @@ ScreenNode::ScreenNode(bool embedded, bool fullScreen)
     , m_ownsWindow{true}
 {
   input.push_back(new Port{this, {}, Types::Image, {}});
-}
-
-// Used for the EGL full screen case where we just have a single window
-// anyways, which must be running before everything (else QVulkanInstance crashes)
-ScreenNode::ScreenNode(std::shared_ptr<Window> w)
-    : OutputNode{}
-    , m_window{std::move(w)}
-    , m_embedded{false}
-    , m_ownsWindow{false}
-{
-  m_window->showFullScreen();
 }
 
 ScreenNode::~ScreenNode()
@@ -312,10 +305,6 @@ void ScreenNode::createOutput(
       m_window->unsetCursor();
   }
 
-#if QT_HAS_VULKAN
-  if(graphicsApi == Vulkan)
-    m_window->setVulkanInstance(staticVulkanInstance());
-#endif
   QObject::connect(m_window.get(), &Window::mouseMove, [this](QPointF s, QPointF w) {
     if(onMouseMove)
       onMouseMove(s, w);
@@ -346,8 +335,11 @@ void ScreenNode::createOutput(
       m_swapChain->setWindow(m_window.get());
       m_swapChain->setDepthStencil(m_depthStencil);
       m_swapChain->setSampleCount(m_window->state->samples);
-      m_swapChain->setFlags(QRhiSwapChain::MinimalBufferCount);
-      // FIXME QRhiSwapChain::NoVSync
+
+      QRhiSwapChain::Flags flags = QRhiSwapChain::MinimalBufferCount;
+      if(!score::AppContext().settings<Gfx::Settings::Model>().getVSync())
+        flags |= QRhiSwapChain::NoVSync;
+      m_swapChain->setFlags(flags);
 
       m_window->state->renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();

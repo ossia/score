@@ -43,10 +43,12 @@ SETTINGS_PARAMETER_IMPL(Samples){QStringLiteral("score_plugin_gfx/Samples"), 1};
 SETTINGS_PARAMETER_IMPL(DecodingThreads){
     QStringLiteral("score_plugin_gfx/DecodingThreads"), 2};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
+SETTINGS_PARAMETER_IMPL(Buffers){QStringLiteral("score_plugin_gfx/Buffers"), 3};
 
 static auto list()
 {
-  return std::tie(GraphicsApi, HardwareDecode, DecodingThreads, Samples, Rate, VSync);
+  return std::tie(
+      GraphicsApi, HardwareDecode, DecodingThreads, Samples, Rate, VSync, Buffers);
 }
 }
 
@@ -146,5 +148,5 @@ SCORE_SETTINGS_PARAMETER_CPP(double, Model, Rate)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, Samples)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DecodingThreads)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VSync)
-
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, Buffers)
 }

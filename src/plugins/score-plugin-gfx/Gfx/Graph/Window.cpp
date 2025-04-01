@@ -2,11 +2,18 @@
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/gfx/Vulkan.hpp>
 
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
-
+#if QT_HAS_VULKAN
+#if __has_include(<QtGui/private/qrhivulkan_p.h>)
+#include <QtGui/private/qrhivulkan_p.h>
+#else
+#undef QT_HAS_VULKAN
+#endif
+#endif
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(score::gfx::Window)
@@ -17,37 +24,62 @@ Window::Window(GraphicsApi graphicsApi)
     : m_api{graphicsApi}
 {
   setCursor(Qt::BlankCursor);
+  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+
   // Tell the platform plugin what we want.
   switch(m_api)
   {
+    default:
     case OpenGL:
 #if QT_CONFIG(opengl)
-    {
       setSurfaceType(OpenGLSurface);
 #if QT_VERSION < QT_VERSION_CHECK(6, 4, 0)
-      auto fmt = QRhiGles2InitParams::adjustedFormat();
-#else
-      auto fmt = QSurfaceFormat::defaultFormat();
+      fmt = QRhiGles2InitParams::adjustedFormat();
 #endif
-      const int samples
-          = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
-      fmt.setSamples(samples);
-      setFormat(fmt);
-    }
 #endif
     break;
+
+#if QT_HAS_VULKAN
     case Vulkan:
       setSurfaceType(VulkanSurface);
+      setVulkanInstance(score::gfx::staticVulkanInstance());
       break;
+#endif
+
+#if defined(_WIN32)
     case D3D11:
       setSurfaceType(OpenGLSurface); // not a typo
       break;
+#endif
+
+#if defined(__APPLE__)
     case Metal:
       setSurfaceType(MetalSurface);
       break;
+#endif
+  }
+
+  const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
+  fmt.setSwapInterval(settings.getVSync() ? 1 : 0);
+
+  switch(settings.getBuffers())
+  {
     default:
+    case 1:
+      fmt.setSwapBehavior(QSurfaceFormat::SwapBehavior::SingleBuffer);
+      break;
+    case 2:
+      fmt.setSwapBehavior(QSurfaceFormat::SwapBehavior::DoubleBuffer);
+      break;
+    case 3:
+      fmt.setSwapBehavior(QSurfaceFormat::SwapBehavior::TripleBuffer);
       break;
   }
+
+  const int samples = settings.getSamples();
+  fmt.setSamples(samples);
+
+  setFormat(fmt);
 }
 
 Window::~Window()
