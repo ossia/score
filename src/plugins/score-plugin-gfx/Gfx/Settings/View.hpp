@@ -21,6 +21,7 @@ public:
   SETTINGS_UI_DOUBLE_SPINBOX_HPP(Rate)
   SETTINGS_UI_NUM_COMBOBOX_HPP(Samples)
   SETTINGS_UI_TOGGLE_HPP(VSync)
+  SETTINGS_UI_NUM_COMBOBOX_HPP(Buffers)
 
 private:
   QWidget* getWidget() override;

@@ -11,7 +11,6 @@ namespace score::gfx
 struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 {
   ScreenNode(bool embedded = false, bool startFullScreen = false);
-  ScreenNode(std::shared_ptr<Window>);
   virtual ~ScreenNode();
 
   void startRendering() override;

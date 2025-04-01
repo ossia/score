@@ -24,6 +24,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(DecodingThreads);
   SETTINGS_PRESENTER(Rate);
   SETTINGS_PRESENTER(VSync);
+  SETTINGS_PRESENTER(Buffers);
 }
 
 QString Presenter::settingsName()

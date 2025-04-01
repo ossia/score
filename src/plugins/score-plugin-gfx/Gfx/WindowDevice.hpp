@@ -55,6 +55,7 @@ private:
   void addAddress(const Device::FullAddressSettings& settings) override;
   void setupContextMenu(QMenu&) const override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
+  void disconnect() override;
   bool reconnect() override;
 
   gfx_protocol_base* m_protocol{};

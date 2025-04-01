@@ -35,6 +35,9 @@ View::View()
   SETTINGS_UI_DOUBLE_SPINBOX_SETUP("Rate (if no VSync)", Rate);
   m_Rate->setRange(1., 1000.);
   SETTINGS_UI_TOGGLE_SETUP("VSync", VSync);
+
+  static constexpr int buffers_values[]{1, 2, 3};
+  SETTINGS_UI_NUM_COMBOBOX_SETUP("Buffer count", Buffers, buffers_values);
 }
 
 QWidget* View::getWidget()
@@ -48,5 +51,5 @@ SETTINGS_UI_NUM_COMBOBOX_IMPL(DecodingThreads)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Samples)
 SETTINGS_UI_DOUBLE_SPINBOX_IMPL(Rate)
 SETTINGS_UI_TOGGLE_IMPL(VSync)
-
+SETTINGS_UI_NUM_COMBOBOX_IMPL(Buffers)
 }

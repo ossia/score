@@ -107,7 +107,8 @@ private:
   ossia::flat_set<EdgeSpec> preview_edges;
   std::atomic_bool edges_changed{};
 
-  int m_timer{-1};
+  int m_no_vsync_timer{-1};
+  int m_watchdog_timer{-1};
 
   ossia::flat_map<int, score::gfx::OutputNode*> m_manualTimers;
 

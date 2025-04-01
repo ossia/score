@@ -31,25 +31,7 @@ namespace Gfx
 static score::gfx::ScreenNode* createScreenNode()
 {
   const auto& settings = score::AppContext().applicationSettings;
-  if(settings.autoplay || !settings.gui)
-  //if(QGuiApplication::platformName().toLower().contains("gl"))
-  {
-    return new score::gfx::ScreenNode{false, true};
-
-    /*
-    auto window = std::make_shared<Window>(defaultGraphicsAPI());
-    window->showFullScreen();
-    QCoreApplication::processEvents();
-    QCoreApplication::processEvents();
-    QCoreApplication::processEvents();
-    return new ScreenNode{window};
-    */
-  }
-  else
-
-  {
-    return new score::gfx::ScreenNode;
-  }
+  return new score::gfx::ScreenNode{false, (settings.autoplay || !settings.gui)};
 }
 
 class window_device : public ossia::net::device_base
@@ -61,14 +43,15 @@ class window_device : public ossia::net::device_base
 public:
   ~window_device()
   {
+    if(auto w = m_screen->window())
+      w->close();
+
     m_screen->onMouseMove = [](QPointF, QPointF) {};
     m_screen->onTabletMove = [](QTabletEvent*) {};
     m_screen->onKey = [](int, const QString&) {};
     m_protocol->stop();
 
-    {
-      m_root.clear_children();
-    }
+    m_root.clear_children();
 
     m_protocol.reset();
   }
@@ -376,6 +359,12 @@ void WindowDevice::setupContextMenu(QMenu& menu) const
       }
     }
   }
+}
+
+void WindowDevice::disconnect()
+{
+  DeviceInterface::disconnect();
+  m_dev = {};
 }
 
 bool WindowDevice::reconnect()
