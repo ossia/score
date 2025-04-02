@@ -365,9 +365,7 @@ void PluginSettingsView::install_package(const Package& addon)
     installAddon(addon);
   else if(addon.kind == "sdk")
     installSDK();
-  else if(addon.kind == "media")
-    installLibrary(addon);
-  else if(addon.kind == "presets")
+  else
     installLibrary(addon);
 }
 
