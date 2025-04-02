@@ -742,6 +742,70 @@ void MultiSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const
   port.domain = domain().get();
 }
 
+
+MultiSliderXY::MultiSliderXY(
+    ossia::value init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(std::move(init));
+  setInit(value());
+  setName(name);
+  setDomain(ossia::make_domain(0., 1.));
+}
+
+MultiSliderXY::~MultiSliderXY() { }
+
+ossia::value MultiSliderXY::getMin() const noexcept
+{
+  return domain().get().get_min();
+}
+
+ossia::value MultiSliderXY::getMax() const noexcept
+{
+  return domain().get().get_max();
+}
+
+void MultiSliderXY::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::LIST;
+  port.domain = domain().get();
+}
+
+
+
+PathGeneratorXY::PathGeneratorXY(
+    ossia::value init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(std::move(init));
+  setInit(value());
+  setName(name);
+  setDomain(ossia::make_domain(0., 1.));
+}
+
+PathGeneratorXY::~PathGeneratorXY() { }
+
+ossia::value PathGeneratorXY::getMin() const noexcept
+{
+  return domain().get().get_min();
+}
+
+ossia::value PathGeneratorXY::getMax() const noexcept
+{
+  return domain().get().get_max();
+}
+
+void PathGeneratorXY::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::LIST;
+  port.domain = domain().get();
+}
+
+
 Bargraph::Bargraph(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
     : ControlOutlet{id, parent}
@@ -1412,6 +1476,53 @@ JSONReader::read(const Process::MultiSlider& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::MultiSlider& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::MultiSliderXY& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::MultiSliderXY& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::MultiSliderXY& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::MultiSliderXY& p)
+{
+}
+
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::PathGeneratorXY& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::PathGeneratorXY& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::PathGeneratorXY& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::PathGeneratorXY& p)
 {
 }
 

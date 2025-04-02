@@ -63,6 +63,14 @@ enum Waveform
   Noise3
 };
 
+enum Path
+{
+  Linear,
+  Circle,
+  Spiral
+
+};
+
 #if 0
 static constexpr auto WaveformChooser()
 {
