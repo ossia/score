@@ -596,7 +596,7 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSliderXY : public Process::ControlInlet
 
   ossia::value getMin() const noexcept;
   ossia::value getMax() const noexcept;
-  void setupExecution(ossia::inlet& inl) const noexcept override;
+  void setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
 };
@@ -610,7 +610,7 @@ struct SCORE_LIB_PROCESS_EXPORT PathGeneratorXY : public Process::ControlInlet
 
   ossia::value getMin() const noexcept;
   ossia::value getMax() const noexcept;
-  void setupExecution(ossia::inlet& inl) const noexcept override;
+  void setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
 };

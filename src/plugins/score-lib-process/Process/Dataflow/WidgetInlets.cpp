@@ -766,7 +766,7 @@ ossia::value MultiSliderXY::getMax() const noexcept
   return domain().get().get_max();
 }
 
-void MultiSliderXY::setupExecution(ossia::inlet& inl) const noexcept
+void MultiSliderXY::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::LIST;
@@ -798,7 +798,7 @@ ossia::value PathGeneratorXY::getMax() const noexcept
   return domain().get().get_max();
 }
 
-void PathGeneratorXY::setupExecution(ossia::inlet& inl) const noexcept
+void PathGeneratorXY::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.type = ossia::val_type::LIST;
