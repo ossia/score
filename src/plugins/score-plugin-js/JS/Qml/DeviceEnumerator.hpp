@@ -48,6 +48,7 @@ class GlobalDeviceEnumerator : public QObject
 
 public:
   explicit GlobalDeviceEnumerator();
+  explicit GlobalDeviceEnumerator(const QString& uuid);
   ~GlobalDeviceEnumerator();
 
   void setContext(const score::DocumentContext* doc);
@@ -58,7 +59,6 @@ public:
       Device::DeviceSettings settings) W_SIGNAL(deviceAdded, factory, name, settings)
   void deviceRemoved(Device::ProtocolFactory* factory, const QString& name)
       W_SIGNAL(deviceRemoved, factory, name)
-  // QList<Device::DeviceSettings> devices();
   QQmlListProperty<JS::DeviceIdentifier> devices();
 
   W_PROPERTY(QQmlListProperty<JS::DeviceIdentifier>, devices READ devices)
@@ -79,6 +79,7 @@ private:
       m_current_enums;
 
   std::vector<DeviceIdentifier*> m_raw_list;
+  Device::ProtocolFactory::ConcreteKey m_filter{};
 
   bool m_enumerate{};
 };

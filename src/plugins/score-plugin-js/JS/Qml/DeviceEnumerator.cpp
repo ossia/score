@@ -7,6 +7,8 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <QtQml>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::GlobalDeviceEnumerator)
 W_OBJECT_IMPL(JS::DeviceIdentifier)
@@ -19,6 +21,22 @@ namespace JS
  */
 
 GlobalDeviceEnumerator::GlobalDeviceEnumerator() { }
+GlobalDeviceEnumerator::GlobalDeviceEnumerator(const QString& uid)
+{
+  // Convert the textual UUID in a strongly typed UUID
+  try
+  {
+    auto uuid = uid.toUtf8();
+    auto score_uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
+    if(score_uid.is_nil())
+      return;
+    this->m_filter = UuidKey<Device::ProtocolFactory>{score_uid};
+  }
+  catch(...)
+  {
+    return;
+  }
+}
 GlobalDeviceEnumerator::~GlobalDeviceEnumerator()
 {
   m_enumerate = false;
@@ -29,7 +47,6 @@ void GlobalDeviceEnumerator::setContext(const score::DocumentContext* doc)
 {
   this->doc = doc;
   reprocess();
-  //list = &doc.plugin<Explorer::DeviceDocumentPlugin>();
 }
 
 QQmlListProperty<DeviceIdentifier> GlobalDeviceEnumerator::devices()
@@ -84,6 +101,10 @@ void GlobalDeviceEnumerator::reprocess()
   auto& doc = *this->doc;
   for(auto& protocol : doc.app.interfaces<Device::ProtocolFactoryList>())
   {
+    if(m_filter != Device::ProtocolFactory::ConcreteKey{})
+      if(m_filter != protocol.concreteKey())
+        continue;
+
     auto enums = protocol.getEnumerators(doc);
     for(auto& [name, enumerator] : enums)
     {

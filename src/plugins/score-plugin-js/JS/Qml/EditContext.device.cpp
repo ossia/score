@@ -2,6 +2,7 @@
 
 #include <JS/Qml/DeviceEnumerator.hpp>
 #include <JS/Qml/EditContext.hpp>
+#include <Protocols/OSC/OSCProtocolFactory.hpp>
 
 #include <ossia-config.hpp>
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
@@ -16,8 +17,14 @@
 
 // #include <Protocols/OSC/OSCProtocolFactory.hpp>
 // #include <Protocols/OSC/OSCSpecificSettings.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/Commands/Remove.hpp>
+#include <Explorer/Commands/RemoveNodes.hpp>
+
+#include <Protocols/OSC/OSCSpecificSettings.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter_data.hpp>
@@ -25,6 +32,8 @@
 #include <ossia/network/oscquery/detail/json_writer.hpp>
 #include <ossia/network/value/format_value.hpp>
 #include <ossia/preset/preset.hpp>
+
+#include <QJsonDocument>
 namespace JS
 {
 GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
@@ -38,22 +47,86 @@ GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
   // e->setEnumerate(true);
   return e;
 }
-
-void EditJsContext::createOSCDevice(QString name, QString host, int in, int out)
-{ /*
+GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QString& uuid)
+{
   auto doc = ctx();
-  if (!doc)
+  if(!doc)
+    return nullptr;
+
+  auto e = new GlobalDeviceEnumerator{uuid};
+  e->setContext(doc);
+  // e->setEnumerate(true);
+  return e;
+}
+
+void EditJsContext::removeDevice(QString name)
+{
+  auto doc = ctx();
+  if(!doc)
     return;
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+
+  auto cmd = new Explorer::Command::RemoveNodes;
+  for(auto& node : plug.explorer().rootNode().children())
+  {
+    if(node.is<Device::DeviceSettings>())
+    {
+      cmd->addCommand(new Explorer::Command::Remove{plug, node});
+    }
+  }
+
+  auto [m, _] = macro(*doc);
+  submit(*m, cmd);
+}
+
+void EditJsContext::createOSCDevice(QString name, QString ip, int i, int o)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
   auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
   Device::DeviceSettings set;
   set.name = name;
-  set.deviceSpecificSettings
-      = QVariant::fromValue(Protocols::OSCSpecificSettings{in, out, host});
   set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
-  auto [m, _] = macro();
-  m->submit(new Explorer::Command::LoadDevice{plug, std::move(set)});
-  */
+  Protocols::OSCSpecificSettings osc;
+  ossia::net::udp_configuration udp;
+  udp.local
+      = ossia::net::inbound_socket_configuration{.bind = "0.0.0.0", .port = (uint16_t)i};
+  udp.remote = ossia::net::outbound_socket_configuration{ip.toStdString(), (uint16_t)o};
+  osc.configuration.transport = udp;
+  set.deviceSpecificSettings = QVariant::fromValue(osc);
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
+}
+
+void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
+{
+  auto doc = ctx();
+  if (!doc)
+    return;
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  Device::DeviceSettings set;
+  set.name = name;
+  set.protocol = UuidKey<Device::ProtocolFactory>::fromString(uuid);
+  auto json = QJsonDocument::fromVariant(obj.toVariant().value<QVariantMap>()).toJson();
+
+  auto& pl = score::AppContext().interfaces<Device::ProtocolFactoryList>();
+
+  if(auto prot = pl.get(set.protocol))
+  {
+    auto json_doc = readJson(json);
+    JSONWriter wrt{json_doc};
+    set.deviceSpecificSettings = prot->makeProtocolSpecificSettings(wrt.toVariant());
+    if(set.deviceSpecificSettings != QVariant{})
+    {
+      auto [m, _] = macro(*doc);
+      submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
+    }
+  }
 }
 
 void EditJsContext::createQMLWebSocketDevice(QString name, QString text)

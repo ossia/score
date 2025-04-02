@@ -1,6 +1,9 @@
 #pragma once
 #include <score/document/DocumentContext.hpp>
 
+#include <ossia-qt/js_utilities.hpp>
+
+#include <QJSValue>
 #include <QList>
 #include <QObject>
 #include <QVariant>
@@ -8,7 +11,6 @@
 #include <score_plugin_js_export.h>
 
 #include <memory>
-#include <optional>
 #include <verdigris>
 namespace score
 {
@@ -51,8 +53,14 @@ public:
   QString deviceToOSCQuery(QString addr);
   W_SLOT(deviceToOSCQuery)
 
+  void createDevice(QString name, QString uuid, QJSValue obj);
+  W_SLOT(createDevice)
+
   void createOSCDevice(QString name, QString host, int in, int out);
   W_SLOT(createOSCDevice)
+
+  void removeDevice(QString name);
+  W_SLOT(removeDevice)
 
   void createQMLWebSocketDevice(QString name, QString text);
   W_SLOT(createQMLWebSocketDevice)
@@ -61,7 +69,10 @@ public:
   W_SLOT(createQMLSerialDevice)
 
   GlobalDeviceEnumerator* enumerateDevices();
-  W_SLOT(enumerateDevices)
+  W_SLOT(enumerateDevices, ())
+
+  GlobalDeviceEnumerator* enumerateDevices(const QString& uuid);
+  W_SLOT(enumerateDevices, (const QString&))
 
   void createAddress(QString addr, QString type);
   W_SLOT(createAddress)
