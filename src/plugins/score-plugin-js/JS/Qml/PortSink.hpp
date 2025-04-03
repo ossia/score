@@ -7,27 +7,25 @@
 
 namespace Process
 {
-class ControlInlet;
+class Outlet;
 }
 
 namespace JS
 {
 
-struct PortSource
+struct PortSink
     : public QObject
     , public QQmlPropertyValueSource
 {
-  W_OBJECT(PortSource)
+  W_OBJECT(PortSink)
   W_INTERFACE(QQmlPropertyValueSource)
   QML_ELEMENT
 
 public:
-  explicit PortSource(QObject* parent = nullptr);
-  ~PortSource();
+  explicit PortSink(QObject* parent = nullptr);
+  ~PortSink();
 
   void setTarget(const QQmlProperty& prop) override;
-  void on_newUIValue();
-  W_SLOT(on_newUIValue);
 
   INLINE_PROPERTY_CREF(QString, process, = "", process, setProcess, processChanged)
   INLINE_PROPERTY_CREF(QVariant, port, = "", port, setPort, portChanged)
@@ -35,8 +33,7 @@ public:
 private:
   void rebuild();
   QQmlProperty m_targetProperty;
-  QPointer<Process::ControlInlet> m_inlet{};
-  bool m_writingValue{};
+  QPointer<Process::Outlet> m_outlet{};
 };
 
 }

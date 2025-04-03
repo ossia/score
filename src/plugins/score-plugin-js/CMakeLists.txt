@@ -33,9 +33,10 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/DeviceEnumerator.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.Qt6.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Metatypes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSource.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSink.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.hpp"
@@ -69,8 +70,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.scenario.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.ui.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSource.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSink.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.${QT_PREFIX}.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.Qt6.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.cpp"

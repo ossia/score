@@ -14,6 +14,7 @@
 #include <JS/LibraryHandler.hpp>
 #include <JS/Qml/AddressItem.hpp>
 #include <JS/Qml/DeviceEnumerator.hpp>
+#include <JS/Qml/PortSink.hpp>
 #include <JS/Qml/PortSource.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/Utils.hpp>
@@ -75,9 +76,10 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
   qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
 
-  qmlRegisterType<JS::AddressSource>("Score", 1, 0, "AddressSource");
-  qmlRegisterType<JS::PortSource>("Score", 1, 0, "PortSource");
-  qmlRegisterType<JS::GlobalDeviceEnumerator>("Score", 1, 0, "DeviceEnumerator");
+  qmlRegisterType<JS::AddressSource>("Score.UI", 1, 0, "AddressSource");
+  qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");
+  qmlRegisterType<JS::PortSink>("Score.UI", 1, 0, "PortSink");
+  qmlRegisterType<JS::GlobalDeviceEnumerator>("Score.UI", 1, 0, "DeviceEnumerator");
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 

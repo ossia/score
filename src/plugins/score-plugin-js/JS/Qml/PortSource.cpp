@@ -43,22 +43,15 @@ void PortSource::setTarget(const QQmlProperty& prop)
 
 void PortSource::on_newUIValue()
 {
-  // Avoir signal loops
-  // if(m_writingValue)
-  //   return;
+  // Avoid signal loops
+  if(m_writingValue)
+    return;
   if(m_inlet)
-  {
     m_inlet->setValue(ossia::qt::qt_to_ossia{}(m_targetProperty.read()));
-  }
 }
 
 void PortSource::rebuild()
 {
-  if(m_inlet)
-  {
-    // TODO
-  }
-
   m_inlet = nullptr;
 
   if(!parent())
@@ -75,7 +68,12 @@ void PortSource::rebuild()
   Process::ProcessModel* process = nullptr;
   for(auto proc : processes)
   {
-    if(proc->metadata().getName() == m_process)
+    if(proc->metadata().getLabel() == m_process)
+    {
+      process = proc;
+      break;
+    }
+    else if(proc->metadata().getName() == m_process)
     {
       process = proc;
       break;
@@ -93,7 +91,6 @@ void PortSource::rebuild()
       auto& inls = process->inlets();
       for(auto& inl : inls)
       {
-        qDebug() << inl->name() << " == " << port_name;
         if(inl->name() == port_name)
         {
           m_inlet = qobject_cast<Process::ControlInlet*>(inl);
@@ -112,5 +109,14 @@ void PortSource::rebuild()
 
   if(!m_inlet)
     return;
+
+  connect(
+      m_inlet, &Process::ControlInlet::executionValueChanged, this,
+      [this](const ossia::value& v) {
+    auto vv = v.apply(ossia::qt::ossia_to_qvariant{});
+    m_writingValue = true;
+    m_targetProperty.write(vv);
+    m_writingValue = false;
+  });
 }
 }
