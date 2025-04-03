@@ -14,6 +14,8 @@
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <score_plugin_deviceexplorer_export.h>
+
 namespace Nodal
 {
 class Model;
@@ -49,7 +51,7 @@ private:
   Id<Process::ProcessModel> m_createdNodeId;
 };
 
-class RemoveNode final : public score::Command
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT RemoveNode final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), RemoveNode, "Remove a node")
 public:

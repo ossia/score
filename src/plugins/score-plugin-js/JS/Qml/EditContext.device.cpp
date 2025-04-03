@@ -4,6 +4,8 @@
 #include <JS/Qml/EditContext.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 
+#include <score/application/ApplicationContext.hpp>
+
 #include <ossia-config.hpp>
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
 #include <Protocols/WS/WSProtocolFactory.hpp>
