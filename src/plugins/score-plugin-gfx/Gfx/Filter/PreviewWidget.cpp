@@ -122,8 +122,8 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
 {
   ShaderSource program = programFromFragmentShaderPath(path, {});
 
-  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::OpenGL;
-  QShaderVersion version = QShaderVersion(330);
+  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
+  QShaderVersion version = QShaderVersion(120);
   if(const auto& [processed, error]
      = ProgramCache::instance().get(api, version, program);
      bool(processed))
@@ -146,7 +146,7 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
   ShaderSource program{vert, frag};
 
   score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
-  QShaderVersion version = QShaderVersion(100);
+  QShaderVersion version = QShaderVersion(120);
   if(const auto& [processed, error]
      = ProgramCache::instance().get(api, version, program);
      bool(processed))
@@ -205,7 +205,7 @@ void ShaderPreviewWidget::setup()
     i++;
   }
 
-  m_graph.createAllRenderLists(score::gfx::GraphicsApi::OpenGL);
+  m_graph.createAllRenderLists(score::gfx::GraphicsApi::Vulkan);
 
   // UI setup
   auto lay = new QHBoxLayout(this);
