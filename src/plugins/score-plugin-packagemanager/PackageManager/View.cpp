@@ -4,11 +4,13 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MessageBox.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
 
 #include <QApplication>
 #include <QBuffer>
+#include <QComboBox>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
@@ -17,6 +19,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -93,7 +96,7 @@ PluginSettingsView::PluginSettingsView()
     local_widget->setLayout(local_layout);
     local_layout->addWidget(m_addonsOnSystem);
 
-    tab_widget->addTab(local_widget, tr("Local"));
+    tab_widget->addTab(local_widget, tr("Local packages"));
   }
 
   {
@@ -102,17 +105,35 @@ PluginSettingsView::PluginSettingsView()
     remote_widget->setLayout(remote_layout);
     remote_layout->addWidget(m_remoteAddons);
 
-    tab_widget->addTab(remote_widget, tr("Browse"));
+    tab_widget->addTab(remote_widget, tr("Available packages"));
   }
 
   auto side_widget = new QWidget;
   auto vlay = new QVBoxLayout{side_widget};
   grid->addWidget(side_widget, 0, 1, 2, 1);
 
+  auto categoryLabel = new QLabel("Select Kind:");
+  vlay->addWidget(categoryLabel);
+
+  categoryComboBox = new QComboBox(m_widget);
+  vlay->addWidget(categoryComboBox);
+  vlay->addSpacing(20);
+
+  m_link->setToolTip(tr("Open external package link in default browser."));
+  auto icon = makeIcons(
+      QStringLiteral(":/icons/undock_on.png"), QStringLiteral(":/icons/undock_off.png"),
+      QStringLiteral(":/icons/undock_off.png"));
+  m_link->setIcon(icon);
+
   vlay->addWidget(m_link);
+
+  vlay->addSpacing(20);
+
   vlay->addWidget(m_uninstall);
   m_install->setVisible(false);
   vlay->addWidget(m_install);
+  vlay->addSpacing(20);
+
   vlay->addWidget(m_update);
   vlay->addWidget(m_updateAll);
   vlay->addStretch();
@@ -148,6 +169,7 @@ PluginSettingsView::PluginSettingsView()
       m_progress->setValue(0);
 
       refresh();
+      updateCategoryComboBox(1);
     }
     else // Local
     {
@@ -155,6 +177,7 @@ PluginSettingsView::PluginSettingsView()
       m_install->setVisible(false);
       m_update->setVisible(true);
       m_updateAll->setVisible(true);
+      updateCategoryComboBox(0);
     }
   });
 
@@ -222,7 +245,8 @@ void PluginSettingsView::refresh()
   if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
     return;
   QNetworkRequest rqst{
-      QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/addons.json")};
+      QUrl("https://raw.githubusercontent.com/ossia/score-addons/refs/heads/"
+           "add-ai-models/addons.json")};
   mgr.get(rqst);
 }
 
@@ -305,6 +329,11 @@ void PluginSettingsView::on_message(QNetworkReply* rep)
     reset_progress();
   }
   rep->deleteLater();
+
+  if(m_install->isVisible())
+    updateCategoryComboBox(1);
+  else
+    updateCategoryComboBox(0);
 
   if(!m_firstTimeCheck)
   {
@@ -689,4 +718,38 @@ void PluginSettingsView::progress_from_bytes(qint64 bytesReceived, qint64 bytesT
   m_progress->setValue(((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100);
 }
 
+void PluginSettingsView::updateCategoryComboBox(int tabIndex)
+{
+  categoryComboBox->clear();
+  categoryComboBox->addItem("All");
+
+  PackagesModel* model = nullptr;
+  if(tabIndex == 0) // Local packages tab
+  {
+    model = static_cast<PackagesModel*>(m_addonsOnSystem->model());
+  }
+  else if(tabIndex == 1) // Remote packages tab
+  {
+    model = static_cast<PackagesModel*>(m_remoteAddons->model());
+  }
+
+  // If the model exists, add uniqueKind
+  if(model)
+  {
+    QList<QString> uniqueKinds;
+
+    for(const auto& addon : model->addons())
+    {
+      if(!uniqueKinds.contains(addon.kind))
+      {
+        uniqueKinds.append(addon.kind);
+      }
+    }
+
+    for(const QString& kind : uniqueKinds)
+    {
+      categoryComboBox->addItem(kind);
+    }
+  }
+}
 }

@@ -66,6 +66,7 @@ private:
   void set_info();
   void reset_progress();
   void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
+  void updateCategoryComboBox(int tabIndex);
 
   QWidget* m_widget{new QWidget};
 
@@ -84,6 +85,7 @@ private:
 
   QStorageInfo storage;
   QLabel* m_storage{new QLabel};
+  QComboBox* categoryComboBox = nullptr;
 
   bool m_firstTimeCheck{false};
 };
