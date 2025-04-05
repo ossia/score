@@ -253,20 +253,34 @@ bool Window::event(QEvent* e)
     case QEvent::TabletMove: {
       auto ev = static_cast<QTabletEvent*>(e);
       this->tabletMove(ev);
+      this->interactiveEvent(e);
       break;
     }
     case QEvent::TabletPress:
     case QEvent::TabletRelease:
+      this->interactiveEvent(e);
+      break;
+
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonRelease:
+    case QEvent::MouseButtonDblClick:
+      this->interactiveEvent(e);
       break;
 
     case QEvent::MouseMove: {
       auto ev = static_cast<QMouseEvent*>(e);
       this->mouseMove(ev->globalPosition(), ev->scenePosition());
+      this->interactiveEvent(e);
       break;
     }
     case QEvent::KeyPress: {
       auto ev = static_cast<QKeyEvent*>(e);
       this->key(ev->key(), ev->text());
+      this->interactiveEvent(e);
+      break;
+    }
+    case QEvent::KeyRelease: {
+      this->interactiveEvent(e);
       break;
     }
     case QEvent::PlatformSurface:
