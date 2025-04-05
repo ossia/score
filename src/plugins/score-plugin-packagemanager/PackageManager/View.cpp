@@ -115,8 +115,8 @@ PluginSettingsView::PluginSettingsView()
   auto categoryLabel = new QLabel("Select Kind:");
   vlay->addWidget(categoryLabel);
 
-  categoryComboBox = new QComboBox(m_widget);
-  vlay->addWidget(categoryComboBox);
+  m_categoryComboBox = new QComboBox(m_widget);
+  vlay->addWidget(m_categoryComboBox);
   vlay->addSpacing(20);
 
   m_link->setToolTip(tr("Open external package link in default browser."));
@@ -192,6 +192,10 @@ PluginSettingsView::PluginSettingsView()
   connect(m_updateAll, &QPushButton::pressed, this, &PluginSettingsView::updateAll);
 
   connect(&mgr, &QNetworkAccessManager::finished, this, &PluginSettingsView::on_message);
+
+  connect(m_categoryComboBox, &QComboBox::currentIndexChanged, this, [this](int index) {
+    onCategoryChanged(index);
+  });
 
   refresh();
 }
@@ -418,7 +422,7 @@ void PluginSettingsView::uninstall()
 
   const auto& library{score::AppContext().settings<Library::Settings::Model>()};
 
-  if(addon.kind == "addon" || addon.kind == "nodes" || addon.kind == "media")
+  if(addon.kind == "addon" || addon.kind == "nodes" || addon.kind == "media" || addon.kind == "ai-model")
   {
     success = QDir{library.getPackagesPath() + '/' + addon.raw_name}.removeRecursively();
   }
@@ -711,8 +715,8 @@ void PluginSettingsView::progress_from_bytes(qint64 bytesReceived, qint64 bytesT
 
 void PluginSettingsView::updateCategoryComboBox(int tabIndex)
 {
-  categoryComboBox->clear();
-  categoryComboBox->addItem("All");
+  m_categoryComboBox->clear();
+  m_categoryComboBox->addItem("All");
 
   PackagesModel* model = nullptr;
   if(tabIndex == 0) // Local packages tab
@@ -739,8 +743,36 @@ void PluginSettingsView::updateCategoryComboBox(int tabIndex)
 
     for(const QString& kind : uniqueKinds)
     {
-      categoryComboBox->addItem(kind);
+      m_categoryComboBox->addItem(kind);
     }
   }
 }
+
+void PluginSettingsView::onCategoryChanged(int index)
+{
+  // Filter table view to show only packages of the selected kind
+  QString selectedKind = m_categoryComboBox->itemText(index);
+
+  QTableView* activeView = m_install->isVisible() ? m_remoteAddons : m_addonsOnSystem;
+  PackagesModel* model = static_cast<PackagesModel*>(activeView->model());
+
+  if(!model)
+    return;
+
+  if(selectedKind == "All")
+  {
+    for(int row = 0; row < model->addons().size(); ++row)
+    {
+      activeView->setRowHidden(row, false);
+    }
+    return;
+  }
+
+  for(int row = 0; row < model->addons().size(); ++row)
+  {
+    QString rowKind = model->addons()[row].kind;
+    activeView->setRowHidden(row, rowKind != selectedKind);
+  }
+}
+
 }
