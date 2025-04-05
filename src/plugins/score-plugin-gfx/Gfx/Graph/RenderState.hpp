@@ -40,6 +40,8 @@ struct RenderState
   std::weak_ptr<RenderList> renderer{};
 
   QOffscreenSurface* surface{};
+  std::weak_ptr<score::gfx::Window>
+      window{}; // Not always set, only used to get mouse events & such.
   QSize renderSize{};
   QSize outputSize{};
   int samples{1};
@@ -48,6 +50,8 @@ struct RenderState
 
   void destroy()
   {
+    window.reset();
+
     delete rhi;
     rhi = nullptr;
 

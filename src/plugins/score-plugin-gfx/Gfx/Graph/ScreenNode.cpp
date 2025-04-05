@@ -43,7 +43,6 @@ namespace score::gfx
 static std::shared_ptr<RenderState>
 createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
-  qDebug("createRenderState?");
   auto st = std::make_shared<RenderState>();
   RenderState& state = *st;
   state.api = graphicsApi;
@@ -294,6 +293,21 @@ void ScreenNode::setFullScreen(bool b)
   }
 }
 
+void ScreenNode::setCursor(bool b)
+{
+  if(m_window)
+  {
+    if(b && m_window->cursor() == Qt::BlankCursor)
+    {
+      m_window->unsetCursor();
+    }
+    else if(!b && m_window->cursor() != Qt::BlankCursor)
+    {
+      m_window->setCursor(Qt::BlankCursor);
+    }
+  }
+}
+
 void ScreenNode::createOutput(
     GraphicsApi graphicsApi, std::function<void()> onReady,
     std::function<void()> onUpdate, std::function<void()> onResize)
@@ -320,6 +334,7 @@ void ScreenNode::createOutput(
   m_window->onUpdate = std::move(onUpdate);
   m_window->onWindowReady = [this, graphicsApi, onReady = std::move(onReady)] {
     m_window->state = createRenderState(*m_window, graphicsApi);
+    m_window->state->window = m_window;
     m_window->state->renderSize = QSize(1280, 720);
     if(m_window->state->rhi)
     {

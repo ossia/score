@@ -27,6 +27,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void setSize(QSize sz);
   void setRenderSize(QSize sz);
   void setFullScreen(bool);
+  void setCursor(bool);
 
   void createOutput(
       GraphicsApi graphicsApi, std::function<void()> onReady,

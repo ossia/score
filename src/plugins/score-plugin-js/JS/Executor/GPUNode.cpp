@@ -5,6 +5,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/Window.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
@@ -314,10 +315,22 @@ void main ()
     // Init the QQuick render stuff
     m_renderControl = new QQuickRenderControl{};
     m_window = new QQuickWindow{m_renderControl};
+    if(auto win = renderer.state.window.lock())
+    {
+      QObject::connect(
+          win.get(), &score::gfx::Window::interactiveEvent, m_window,
+          [qqw = QPointer{m_window}](QEvent* e) {
+        if(auto q = qqw.get())
+          QCoreApplication::sendEvent(q, e);
+      }, Qt::DirectConnection);
+    }
     m_window->setGraphicsDevice(QQuickGraphicsDevice::fromRhi(&rhi));
 
-    m_window->setWidth(renderer.state.renderSize.width());
-    m_window->setHeight(renderer.state.renderSize.height());
+    const auto sz = renderer.state.renderSize;
+    m_window->setWidth(sz.width());
+    m_window->setHeight(sz.height());
+    m_window->contentItem()->setWidth(sz.width());
+    m_window->contentItem()->setWidth(sz.height());
     m_window->setColor(Qt::transparent);
 
     m_renderControl->initialize();
@@ -372,6 +385,10 @@ void main ()
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& e) override
   {
     // Here we run the Qt Qucik render loop which handles its own pass
+    if(auto sz = m_window->size(); sz != m_window->contentItem()->size())
+    {
+      m_window->contentItem()->setSize(sz); // why does this happen???
+    }
 
     // 0. Copy the values in the inputs
     processMessages();
