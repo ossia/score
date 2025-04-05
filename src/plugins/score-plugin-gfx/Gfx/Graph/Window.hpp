@@ -5,6 +5,8 @@
 #include <QTabletEvent>
 #include <QWindow>
 
+#include <score_plugin_gfx_export.h>
+
 #include <verdigris>
 namespace score::gfx
 {
@@ -15,7 +17,7 @@ struct ScreenNode;
  *
  * Created by ScreenNode.
  */
-class Window : public QWindow
+class SCORE_PLUGIN_GFX_EXPORT Window : public QWindow
 {
   friend ScreenNode;
   W_OBJECT(Window)
@@ -46,6 +48,9 @@ public:
 
   void mouseMove(QPointF screen, QPointF win) W_SIGNAL(mouseMove, screen, win);
 
+  void interactiveEvent(QEvent* event)
+      E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, interactiveEvent, event);
+
   void key(int key, const QString& t) W_SIGNAL(key, key, t);
 
 private:
@@ -62,4 +67,5 @@ private:
 };
 }
 
+W_REGISTER_ARGTYPE(QEvent*)
 W_REGISTER_ARGTYPE(QTabletEvent*)

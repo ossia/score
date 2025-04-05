@@ -120,6 +120,20 @@ public:
         abs_win->push_value(ossia::vec2f{0.f, 0.f});
         node->add_child(std::move(abs_node));
       }
+      {
+        auto visible
+            = std::make_unique<ossia::net::generic_node>("visible", *this, *node);
+        auto param = visible->create_parameter(ossia::val_type::BOOL);
+        param->add_callback([this](const ossia::value& v) {
+          if(auto val = v.target<bool>())
+          {
+            ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val] {
+              screen->setCursor(v);
+            });
+          }
+        });
+        node->add_child(std::move(visible));
+      }
 
       m_screen->onMouseMove = [this, scaled_win, abs_win](QPointF screen, QPointF win) {
         if(const auto& w = m_screen->window())
