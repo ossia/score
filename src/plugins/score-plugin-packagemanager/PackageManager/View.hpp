@@ -64,6 +64,7 @@ private:
   void update();
   void updateAll();
   void updateCategoryComboBox(int tabIndex);
+  void onCategoryChanged(int index);
 
   QWidget* m_widget{new QWidget};
 
@@ -80,7 +81,7 @@ private:
 
   QStorageInfo storage;
   QLabel* m_storage{new QLabel};
-  QComboBox* categoryComboBox = nullptr;
+  QComboBox* m_categoryComboBox = nullptr;
 };
 
 }
