@@ -10,6 +10,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <JS/ApplicationPlugin.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <Library/LibrarySettings.hpp>
 
@@ -35,18 +36,6 @@
 W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
-
-void setupEngineImportPaths(QQmlEngine& eng) noexcept
-{
-  // eng.importModule(
-  //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
-  //     "tonal.mjs");
-  for(auto& p :
-      score::AppContext().settings<Library::Settings::Model>().getIncludePaths())
-  {
-    eng.addImportPath(p);
-  }
-}
 
 ProcessModel::ProcessModel(
     const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
@@ -297,9 +286,9 @@ Script* ComponentCache::get(
   }
   else
   {
-    static QQmlEngine dummyEngine;
-    std::call_once(qml_dummy_engine_setup, [] { setupEngineImportPaths(dummyEngine); });
-
+    auto& dummyEngine = score::GUIAppContext()
+                            .guiApplicationPlugin<JS::ApplicationPlugin>()
+                            .m_dummyEngine;
     auto comp = std::make_unique<QQmlComponent>(&dummyEngine);
     if(!isFile)
     {

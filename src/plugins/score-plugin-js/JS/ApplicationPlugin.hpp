@@ -22,6 +22,7 @@ public:
   void afterStartup() override;
 
   QQmlEngine m_engine;
+  QQmlEngine m_dummyEngine;
   QQmlComponent* m_comp{};
   QQuickWindow* m_window{};
 };
