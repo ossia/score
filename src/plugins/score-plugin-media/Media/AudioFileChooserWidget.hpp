@@ -4,6 +4,7 @@
 
 #include <Media/MediaFileHandle.hpp>
 
+#include <nano_observer.hpp>
 #include <score_plugin_media_export.h>
 namespace Media::Sound
 {
@@ -15,6 +16,7 @@ namespace score
 class SCORE_PLUGIN_MEDIA_EXPORT QGraphicsWaveformButton final
     : public QObject
     , public QGraphicsItem
+    , public Nano::Observer
 {
   W_OBJECT(QGraphicsWaveformButton)
 
