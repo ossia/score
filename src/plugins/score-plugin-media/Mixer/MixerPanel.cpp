@@ -155,7 +155,8 @@ public:
     auto addr = QString::fromStdString(param.get_node().osc_address());
     label.setText(addr);
 
-    slider.setValue(*param.value().target<float>());
+    const auto val = param.value();
+    slider.setValue(*val.target<float>());
     con(slider, &AudioSliderWidget::valueChanged, this,
         [&](double d) { param.push_value(d); });
     idx = param.add_callback(
