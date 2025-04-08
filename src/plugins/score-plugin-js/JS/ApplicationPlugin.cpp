@@ -3,6 +3,7 @@
 #include <JS/Qml/DeviceContext.hpp>
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
+#include <Library/LibrarySettings.hpp>
 
 #if __has_include(<QQuickWindow>)
 #include <QGuiApplication>
@@ -24,6 +25,16 @@ ApplicationPlugin::~ApplicationPlugin() { }
 
 void ApplicationPlugin::afterStartup()
 {
+  // Dummy engine setup for JS processes
+  // eng.importModule(
+  //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
+  //     "tonal.mjs");
+  for(auto& p :
+      score::AppContext().settings<Library::Settings::Model>().getIncludePaths())
+  {
+    m_dummyEngine.addImportPath(p);
+  }
+
 #if __has_include(<QQuickWindow>)
   if(QFileInfo f{context.applicationSettings.ui}; f.isFile())
   {
