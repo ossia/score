@@ -117,6 +117,10 @@ void RenderList::release()
   }
 
   m_vertexBuffers.clear();
+  for(auto& [k, v] : m_customMeshCache)
+  {
+    delete v;
+  }
   m_customMeshCache.clear();
 
   delete m_outputUBO;
