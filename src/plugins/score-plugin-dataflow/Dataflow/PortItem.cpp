@@ -172,11 +172,20 @@ bool AutomatablePortItem::on_createAutomation(
   auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
   macro(lay_cmd);
 
-  auto val = ossia::convert<float>(ctrl->value());
-
   auto dom = ctrl->domain();
   auto min = dom.get().convert_min<float>();
   auto max = dom.get().convert_max<float>();
+  auto val = ossia::convert<float>(ctrl->value());
+  if(ossia::safe_isnan(min) || ossia::safe_isinf(min))
+    return false;
+  if(ossia::safe_isnan(max) || ossia::safe_isinf(max))
+    return false;
+  if(ossia::safe_isnan(val) || ossia::safe_isinf(val))
+    return false;
+
+  if(min >= max)
+    max = min + 1;
+
   auto segt = Curve::flatCurveSegment(val, min, max);
 
   State::Unit unit = ctrl->address().qualifiers.get().unit;
