@@ -262,6 +262,8 @@ template <>
 void DataStreamWriter::write(Patternist::ProcessModel& proc)
 {
   proc.outlet = Process::load_midi_outlet(*this, &proc);
+  proc.accent = Process::load_value_outlet(*this, &proc);
+  proc.slide = Process::load_value_outlet(*this, &proc);
   m_stream >> proc.m_channel >> *proc.accent >> *proc.slide >> proc.m_currentPattern
       >> proc.m_patterns;
 
