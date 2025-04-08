@@ -248,8 +248,9 @@ public:
       if(ec)
         return;
 
-      auto const n = bytes_transferred / sizeof(::input_event);
-      for(auto& ev : events | boost::adaptors::sliced(0, n))
+      const auto n = bytes_transferred / sizeof(::input_event);
+      const auto& slice = events | boost::adaptors::sliced(0, n);
+      for(auto& ev : slice)
       {
         switch(ev.type)
         {
@@ -281,7 +282,8 @@ public:
                 std::vector<ossia::value>{ev.type, ev.code, ev.value});
             if(this->params.mouse_xy)
             {
-              if(auto cur = this->params.mouse_xy->value().target<ossia::vec2f>())
+              auto val = this->params.mouse_xy->value();
+              if(auto cur = val.target<ossia::vec2f>())
               {
                 if(ev.code == REL_X)
                   (*cur)[0] = ev.value;
@@ -298,7 +300,8 @@ public:
                 std::vector<ossia::value>{ev.type, ev.code, ev.value});
             if(this->params.tablet_xy)
             {
-              if(auto cur = this->params.tablet_xy->value().target<ossia::vec2f>())
+              auto val = this->params.tablet_xy->value();
+              if(auto cur = val.target<ossia::vec2f>())
               {
                 if(ev.code == ABS_X)
                   (*cur)[0] = ev.value;

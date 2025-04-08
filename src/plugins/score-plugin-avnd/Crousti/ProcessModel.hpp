@@ -136,7 +136,7 @@ public:
     Process::Inlet* port = avnd_input_idx_to_model_ports(idx)[0];
     auto pp = safe_cast<Process::ControlInlet*>(port);
 
-    if(pp->value().target<std::string>())
+    if(auto val = pp->value(); bool(val.target<std::string>()))
     {
       pp->setValue(custom.toStdString());
     }
