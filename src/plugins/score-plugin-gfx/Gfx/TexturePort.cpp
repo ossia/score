@@ -140,21 +140,29 @@ TextureInlet::TextureInlet(DataStream::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
+  if(m_textureFilter == ossia::texture_filter::NONE)
+    m_textureFilter = ossia::texture_filter::NEAREST;
 }
 TextureInlet::TextureInlet(JSONObject::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
+  if(m_textureFilter == ossia::texture_filter::NONE)
+    m_textureFilter = ossia::texture_filter::NEAREST;
 }
 TextureInlet::TextureInlet(DataStream::Deserializer&& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
+  if(m_textureFilter == ossia::texture_filter::NONE)
+    m_textureFilter = ossia::texture_filter::NEAREST;
 }
 TextureInlet::TextureInlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
+  if(m_textureFilter == ossia::texture_filter::NONE)
+    m_textureFilter = ossia::texture_filter::NEAREST;
 }
 
 std::optional<QSize> TextureInlet::renderSize() const noexcept
@@ -409,23 +417,22 @@ void TextureInletFactory::setupInletInspector(
   {
     using enum ossia::texture_filter;
     auto combo = new QComboBox{parent};
-    combo->addItem("None", ossia::texture_filter::NONE);
     combo->addItem("Nearest", ossia::texture_filter::NEAREST);
     combo->addItem("Linear", ossia::texture_filter::LINEAR);
-    combo->setCurrentIndex((int)inlet.textureFilter());
+    combo->setCurrentIndex((int(inlet.textureFilter()) - 1));
 
     QObject::connect(
         &inlet, &TextureInlet::textureFilterChanged, combo,
         [combo](ossia::texture_filter fmt) {
       if((int)fmt != combo->currentData())
-        combo->setCurrentIndex((int)fmt);
+        combo->setCurrentIndex((int)fmt - 1);
     });
     QObject::connect(
         combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet](int idx) {
-      auto mode = (ossia::texture_filter)idx;
+      auto mode = (ossia::texture_filter)(idx + 1);
       if(mode != inlet.textureFilter())
         CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletFilter>(
-            inlet, (ossia::texture_filter)idx);
+            inlet, mode);
     });
 
     lay.addRow("Filter", combo);
