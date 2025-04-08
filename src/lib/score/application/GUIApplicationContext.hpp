@@ -68,12 +68,14 @@ struct GUIApplicationContext : public score::ApplicationContext
   template <typename T>
   T& applicationPlugin() const
   {
+    static_assert(std::is_base_of_v<score::ApplicationPlugin, T>);
     return components.applicationPlugin<T>();
   }
 
   template <typename T>
   T* findApplicationPlugin() const
   {
+    static_assert(std::is_base_of_v<score::ApplicationPlugin, T>);
     return components.findApplicationPlugin<T>();
   }
 
@@ -85,12 +87,14 @@ struct GUIApplicationContext : public score::ApplicationContext
   template <typename T>
   T& guiApplicationPlugin() const
   {
+    static_assert(std::is_base_of_v<score::GUIApplicationPlugin, T>);
     return components.guiApplicationPlugin<T>();
   }
 
   template <typename T>
   T* findGuiApplicationPlugin() const
   {
+    static_assert(std::is_base_of_v<score::GUIApplicationPlugin, T>);
     return components.findGuiApplicationPlugin<T>();
   }
 
