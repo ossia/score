@@ -707,6 +707,8 @@ extract_glsl_function_definitions(std::string_view str)
 
   // :upside-down-face:
   ossia::flat_set<std::string> defs;
+  // FIXME: this is leaky due to some strdup calls.
+  // Calling glsl_parse_dealloc(&context); crashes.
   bool error = glsl_parse_string(&context, str.data());
   if(!error && context.root
      && context.root->code == (int)glsl_tokentype::TRANSLATION_UNIT)
