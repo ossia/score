@@ -420,8 +420,6 @@ void main ()
 
     auto rt = renderer.renderTargetForOutput(e).renderTarget;
     SCORE_ASSERT(rt);
-    cb.beginPass(rt, QColor(Qt::transparent), {}, res);
-    res = nullptr;
 
     cd->syncSceneGraph();
     rc->rc->endSync();
@@ -439,8 +437,6 @@ void main ()
 
     QEvent* updateRequest = new QEvent(QEvent::UpdateRequest);
     QCoreApplication::postEvent(m_window, updateRequest);
-    // cb.endPass(); // < called by renderSceneGraph
-    res = renderer.state.rhi->nextResourceUpdateBatch();
   }
 
   void runRenderPass(
