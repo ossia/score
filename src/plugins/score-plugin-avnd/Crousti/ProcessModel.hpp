@@ -14,6 +14,8 @@
 #include <score/serialization/MapSerialization.hpp>
 #include <score/tools/std/HashMap.hpp>
 
+#include <core/document/Document.hpp>
+
 #include <ossia/detail/string_map.hpp>
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
@@ -297,11 +299,21 @@ private:
           // We're in the ui thread, we can just push the request directly.
           // With some delay as otherwise we may be deleting the widget we
           // are clicking on before mouse release and Qt really doesn't like that
-          QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
-            if(self)
-              self->request_new_dynamic_input_count(
-                  port, avnd::field_index<N>{}, new_count);
-          });
+          // But when we are loading the document we actually do not want the
+          // delay to make sure the port is created before the cable connects to it
+          if(score::IDocument::documentFromObject(*this)->loaded())
+          {
+            QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
+              if(self)
+                self->request_new_dynamic_input_count(
+                    port, avnd::field_index<N>{}, new_count);
+            });
+          }
+          else
+          {
+            this->request_new_dynamic_input_count(
+                port, avnd::field_index<N>{}, new_count);
+          }
         };
       });
     }
@@ -313,14 +325,20 @@ private:
           avnd::get_outputs(obj),
           [&]<std::size_t N>(auto& port, auto pred_idx, avnd::field_index<N> field_idx) {
         port.request_port_resize = [this, &port](int new_count) {
-          // We're in the ui thread, we can just push the request directly.
-          // With some delay as otherwise we may be deleting the widget we
-          // are clicking on before mouse release and Qt really doesn't like that
-          QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
-            if(self)
-              self->request_new_dynamic_output_count(
-                  port, avnd::field_index<N>{}, new_count);
-          });
+          // See comment above for inputs
+          if(score::IDocument::documentFromObject(*this)->loaded())
+          {
+            QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
+              if(self)
+                self->request_new_dynamic_output_count(
+                    port, avnd::field_index<N>{}, new_count);
+            });
+          }
+          else
+          {
+            this->request_new_dynamic_output_count(
+                port, avnd::field_index<N>{}, new_count);
+          }
         };
       });
     }

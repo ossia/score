@@ -131,6 +131,8 @@ void Document::ready()
     m_backupMgr = new DocumentBackupManager{saveAsByteArray(), *this};
     m_backupMgr->updateBackupData();
   }
+
+  m_loaded = true;
 }
 
 Document::~Document()

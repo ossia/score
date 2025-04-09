@@ -103,6 +103,8 @@ public:
   // Update the various internal timers rate after settings changes
   void updateTimers();
 
+  bool loaded() const noexcept { return m_loaded; }
+
 private:
   // These are to be constructed by DocumentBuilder.
   Document(
@@ -152,6 +154,9 @@ private:
   std::optional<score::RestorableDocument> m_initialData{};
   bool m_virgin{false}; // Used to check if we can safely close it
   // if we want to load a document instead upon opening score.
+  bool m_loaded{false}; // Used to check if the document has finished loading.
+  // Can be useful to turn some async operations into sync - creation of dynamic ports,
+  // loading of vst plug-ins controls etc.
 };
 }
 
