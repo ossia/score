@@ -48,23 +48,38 @@ struct AudioTickHelper
     }
   }
 
-  void runAllCommands() const
+  static void runAllCommands(ExecutionCommandQueue& q)
   {
     std::atomic_thread_fence(std::memory_order_seq_cst);
     ExecutionCommand com;
-    while(m_context->m_execQueue.try_dequeue(com))
+    while(q.try_dequeue(com))
       com();
   }
+  void runAllCommands() const { runAllCommands(m_context->m_execQueue); }
   ~AudioTickHelper()
   {
-    runAllCommands();
-    runAllCommands();
-    m_scenar->cleanup();
-    runAllCommands();
-    runAllCommands();
-    m_context->execGraph->clear();
-    runAllCommands();
-    runAllCommands();
+    auto scenar = m_scenar;
+    std::atomic_bool done{};
+    m_context->context.executionQueue.enqueue([ctx = m_context, scenar = m_scenar,
+                                               graph = m_context->execGraph,
+                                               &done]() mutable {
+      auto& q = ctx->m_execQueue;
+      runAllCommands(q);
+      runAllCommands(q);
+      scenar->cleanup();
+      runAllCommands(q);
+      runAllCommands(q);
+      graph->clear();
+      runAllCommands(q);
+      runAllCommands(q);
+      graph.reset();
+      scenar.reset();
+
+      ctx.reset();
+      done = true;
+    });
+    while(!done)
+      std::this_thread::yield();
   }
 
   void clearBuffers(const ossia::audio_tick_state& t) const
