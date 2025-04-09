@@ -37,6 +37,7 @@ public:
   [[nodiscard]] std::string label() const noexcept override { return "javascript"; }
 
   void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
+  void clear() noexcept override;
   void setupComponent();
   void setScript(const QString& val);
 

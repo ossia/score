@@ -72,7 +72,52 @@ void Clock::play_impl(const TimeVal& t)
     m_play_tick = Execution::makeExecutionTick(opt, m_plug, this->scenario);
   }
 
-  m_pause_tick = Audio::makePauseTick(this->context.doc.app);
+  auto& app = this->context.doc.app;
+  std::vector<Execution::ExecutionAction*> actions;
+  for(Execution::ExecutionAction& act : app.interfaces<Execution::ExecutionActionList>())
+  {
+    actions.push_back(&act);
+  }
+  m_pause_tick = [ctx = std::weak_ptr{m_plug.contextData()},
+                  actions](const ossia::audio_tick_state& t) {
+    Audio::execution_status.store(ossia::transport_status::stopped);
+
+    for(int chan = 0; chan < t.n_out; chan++)
+    {
+      float* c = t.outputs[chan];
+      for(std::size_t i = 0; i < t.frames; i++)
+      {
+        c[i] = 0.f;
+      }
+    }
+
+    try
+    {
+      for(auto act : actions)
+        act->startTick(t);
+      for(auto act : actions)
+        act->endTick(t);
+    }
+    catch(...)
+    {
+    }
+    // Run some commands if they have been submitted.
+    if(auto context = ctx.lock())
+    {
+      Execution::ExecutionCommand c;
+      while(context->m_execQueue.try_dequeue(c))
+      {
+        try
+        {
+          c();
+          context->m_gcQueue.enqueue(Execution::gc(std::move(c)));
+        }
+        catch(...)
+        {
+        }
+      }
+    }
+  };
 
   resume_impl();
 }

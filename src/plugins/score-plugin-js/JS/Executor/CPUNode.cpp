@@ -30,7 +30,13 @@ js_node::js_node(ossia::execution_state& st)
 
 js_node::~js_node()
 {
+  SCORE_ASSERT(!m_engine);
+}
+
+void js_node::clear() noexcept
+{
   delete m_engine;
+  m_engine = nullptr;
 }
 
 void js_node::setupComponent()
