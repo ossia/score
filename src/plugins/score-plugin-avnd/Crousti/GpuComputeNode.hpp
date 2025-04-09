@@ -356,8 +356,10 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     // Release the allocated rts
     // TODO investigate why reference does not work here:
-    // for(auto [port, rt] : m_rts)
-    //   rt.release();
+    for(auto& e : m_rts)
+    {
+      e.second.release();
+    }
     m_rts.clear();
 
     // Release the allocated pipelines
