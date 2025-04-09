@@ -10,9 +10,8 @@ namespace Analysis
 {
 struct Kurtosis : Analysis::GistState
 {
-  
-  halp_meta(name, "Complex Spectral Difference")
-  halp_meta(c_name, "CSD")
+  halp_meta(name, "Kurtosis")
+  halp_meta(c_name, "kurtosis")
   halp_meta(category, "Analysis/Spectrum")
   halp_meta(author, "ossia score, Gist library")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#spectral-parameters")
@@ -33,7 +32,7 @@ struct Kurtosis : Analysis::GistState
 
   void operator()(int frames)
   {
-    process<&Gist<double>::complexSpectralDifference>(
+    process<&Gist<double>::spectralKurtosis>(
         inputs.audio, inputs.gain, inputs.gate, outputs.result, frames);
   }
 };
