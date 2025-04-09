@@ -460,6 +460,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         {
           SCORE_ASSERT(!updateBatch);
           updateBatch = state.rhi->nextResourceUpdateBatch();
+          SCORE_ASSERT(updateBatch);
         }
         node_was_rendered = true;
       }
@@ -485,7 +486,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
     if(this->output.configuration().outputNeedsRenderPass)
     {
       if(!updateBatch)
+      {
         updateBatch = state.rhi->nextResourceUpdateBatch();
+        SCORE_ASSERT(updateBatch);
+      }
 
       // FIXME remove this hack
       score::gfx::Port p;
