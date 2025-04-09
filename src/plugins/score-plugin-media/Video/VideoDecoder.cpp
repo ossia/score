@@ -489,15 +489,15 @@ void VideoDecoder::close_file() noexcept
 
 ReadFrame LibAVDecoder::read_one_frame_raw(AVPacket& packet)
 {
-  auto frame = m_frames.newFrame();
   int res{};
-  if(frame->buf[0])
-    av_buffer_unref(&frame->buf[0]);
 
   while((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
     if(packet.stream_index == m_avstream->index)
     {
+      auto frame = m_frames.newFrame();
+      if(frame->buf[0])
+        av_buffer_unref(&frame->buf[0]);
       // Mainly for HAP: we feed the raw undecoded codec data directly to the GPU, see HAPDecoder
       load_packet_in_frame(packet, *frame);
 
