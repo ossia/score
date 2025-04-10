@@ -428,6 +428,10 @@ static void parse_input(Input_T& inp, const sajson::value& v)
       inp.def = parse_input_impl(val, typename Input_T::value_type{});
     }
   }
+
+  // Some ISF shaders have e.g. "MIN": 0, "MAX": -5 to show them reversed in the ISF editor gui...
+  if(inp.min > inp.max)
+    std::swap(inp.min, inp.max);
 }
 
 template <
