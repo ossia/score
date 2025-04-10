@@ -112,6 +112,33 @@ void disableAppRestore()
   CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
 }
 
+void ensureDyldPath()
+{
+  auto e = qEnvironmentVariable("DYLD_LIBRARY_PATH");
+  if(e.isEmpty())
+  {
+    return;
+  }
+  else
+  {
+    fprintf(
+        stderr,
+        "Fatal error: DYLD_LIBRARY_PATH must not be set on macOS.\n"
+        "See https://github.com/ossia/score/issues/1711\n\n"
+        "If using Qt Creator, simply go in Projects and\n"
+        "uncheck the 'Add library search path to DYLD_LIBRARY_PATH and "
+        "DYLD_FRAMEWORK_PATH'\n"
+        "checkbox on the execution tab.\n\n",
+        e.toStdString().c_str());
+
+    // If you see this comment, you are allowed to remove it on your dev
+    // build but be aware that you will likely hit very spurious random
+    // crashes, for instance when a PNG gets loaded or when opening a file
+    // dialog
+    exit(1);
+  }
+}
+
 // Defined in mac_main.m
 extern "C" void disableAppNap();
 #endif
@@ -653,6 +680,7 @@ int main(int argc, char** argv)
 #if defined(__APPLE__)
   disableAppRestore();
   disableAppNap();
+  ensureDyldPath();
   // FIXME broken in qt6 qputenv("QT_MAC_WANTS_LAYER", "1");
 #endif
 
