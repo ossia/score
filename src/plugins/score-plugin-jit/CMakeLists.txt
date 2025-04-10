@@ -25,18 +25,30 @@ else()
   return()
 endif()
 
-if(SCORE_ENABLE_CXX23)
+if(SCORE_ENABLE_CXX23 OR SCORE_ENABLE_CXX26)
   if(LLVM_VERSION VERSION_LESS "19.0")
     return()
   endif()
 endif()
-find_package(Clang PATHS ${LLVM_DIR}/../Clang)
+
+find_package(Clang PATHS
+  ${LLVM_DIR}
+  ${LLVM_DIR}/../Clang
+  ${LLVM_DIR}/lib/cmake/clang
+)
 if(NOT Clang_FOUND)
   message(" -- libclang was not found, skipping JIT plug-in")
   return()
 endif()
 
-find_package(Polly PATHS ${LLVM_DIR}/../Polly)
+find_package(Polly PATHS
+  ${LLVM_DIR}
+  ${LLVM_DIR}/../Polly
+  ${LLVM_DIR}/lib/cmake/clang
+)
+if(NOT Polly_FOUND)
+  message(" -- Polly was not found, not all optimizations may be available")
+endif()
 
 # Based on the code in
 # https://github.com/weliveindetail/JitFromScratch
