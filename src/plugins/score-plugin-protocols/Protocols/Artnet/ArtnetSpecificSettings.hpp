@@ -114,7 +114,7 @@ struct ArtnetSpecificSettings
 
   QString host;
   int rate{44};
-  int start_universe{1};
+  int start_universe{0};
   int universe_count{1};
   int channels_per_universe{512};
   bool multicast{};

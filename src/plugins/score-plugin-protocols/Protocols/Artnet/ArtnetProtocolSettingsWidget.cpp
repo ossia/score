@@ -10,6 +10,7 @@
 #include <Protocols/Artnet/LEDDialog.hpp>
 
 #include <score/tools/ListNetworkAddresses.hpp>
+#include <score/widgets/HelpInteraction.hpp>
 
 #include <ossia-qt/name_utils.hpp>
 
@@ -142,6 +143,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Rate (Hz)"), m_rate);
   layout->addRow(tr("Universe"), m_universe);
+  score::setHelp(m_universe, tr("Universe starts at 0 for ArtNet, 1 for E1.31 / sACN"));
   layout->addRow(tr("Universe count"), m_universe_count);
   layout->addRow(tr("Channels in universe"), m_channels_per_universe);
   layout->addRow(tr("Transport"), m_transport);
