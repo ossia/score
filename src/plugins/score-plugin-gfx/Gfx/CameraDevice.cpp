@@ -288,6 +288,7 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 
   const CameraSettings& set = settings.deviceSpecificSettings.value<CameraSettings>();
   m_device->setText(set.device);
+  m_input->setCurrentText(set.input);
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 4, 0)
   m_layout->setRowVisible(1, set.custom);
